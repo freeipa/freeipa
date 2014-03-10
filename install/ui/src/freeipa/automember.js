@@ -25,12 +25,13 @@ define([
     './navigation',
     './phases',
     './reg',
+    './rpc',
     './text',
     './details',
     './search',
     './association',
     './entity'],
-    function(metadata_provider, IPA, $, navigation, phases, reg, text) {
+    function(metadata_provider, IPA, $, navigation, phases, reg, rpc, text) {
 
 var exp = IPA.automember = {};
 
@@ -524,7 +525,7 @@ IPA.automember.condition_widget = function(spec) {
 
     that.create_remove_command = function(values, on_success, on_error) {
 
-        var batch = IPA.batch_command({
+        var batch = rpc.batch_command({
             name: 'automember_remove_condition',
             on_success: on_success,
             on_error: on_error
@@ -628,7 +629,7 @@ IPA.automember.default_group_widget = function(spec) {
         method = 'default_group_' + method;
         var command_name = that.entity.name + that.group_type + '_' + method;
 
-        var command  = IPA.command({
+        var command  = rpc.command({
             name: command_name,
             entity: that.entity.name,
             method: method,
@@ -726,7 +727,7 @@ IPA.automember.rebuild_action = function(spec) {
             options['type'] = 'hostgroup';
         }
 
-        var command = IPA.command({
+        var command = rpc.command({
             entity: 'automember',
             method: 'rebuild',
             options: options,

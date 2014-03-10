@@ -25,10 +25,11 @@ define([
     'freeipa/details',
     'freeipa/facet',
     'freeipa/reg',
+    'freeipa/rpc',
     'freeipa/entity',
     'freeipa/field',
     'freeipa/widget'],
-        function(md, IPA, $, mod_details, mod_facet, reg) {
+        function(md, IPA, $, mod_details, mod_facet, reg, rpc) {
     return function() {
 
 var details_container;
@@ -127,15 +128,15 @@ test("Testing details lifecycle: create, load.", function(){
     data.result = {};
     data.result.result = {};
 
-    IPA.command({
+    rpc.command({
         entity: 'user',
         method: 'show',
         args: ['kfrog'],
         on_success: function(data, text_status, xhr) {
-            ok(true, "IPA.command() succeeded.");
+            ok(true, "rpc.command() succeeded.");
         },
         on_error: function(xhr, text_status, error_thrown) {
-            ok(false, "IPA.command() failed: "+error_thrown);
+            ok(false, "rpc.command() failed: "+error_thrown);
         }
     }).execute();
 

@@ -35,13 +35,15 @@ define([
         './navigation',
         './phases',
         './reg',
+        './rpc',
         './spec_util',
         './text',
         './dialog',
         './field',
         './widget'
        ], function(declare, lang, construct, on, Stateful, Evented,
-                   Singleton_registry, builder, IPA, $, navigation, phases, reg, su, text) {
+                   Singleton_registry, builder, IPA, $,
+                   navigation, phases, reg, rpc, su, text) {
 
 /**
  * Facet module
@@ -1883,7 +1885,7 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
      */
     that.create_get_records_command = function(pkeys, on_success, on_error) {
 
-        var batch = IPA.batch_command({
+        var batch = rpc.batch_command({
             name: that.get_records_command_name(),
             on_success: on_success,
             on_error: on_error
@@ -1892,7 +1894,7 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         for (var i=0; i<pkeys.length; i++) {
             var pkey = pkeys[i];
 
-            var command = IPA.command({
+            var command = rpc.command({
                 entity: that.table.entity.name,
                 method: 'show',
                 args: [pkey]

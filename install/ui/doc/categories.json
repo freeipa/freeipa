@@ -7,9 +7,9 @@
                 "classes": [
                     "IPA.object",
                     "IPA.observer",
-                    "IPA.command",
-                    "IPA.batch_command",
-                    "IPA.concurrent_command",
+                    "rpc.command",
+                    "rpc.batch_command",
+                    "rpc.concurrent_command",
                     "entity.entity"
                 ]
             },

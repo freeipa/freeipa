@@ -24,13 +24,14 @@ define([
         './jquery',
         './phases',
         './reg',
+        './rpc',
         './association',
         './details',
         './entity',
         './rule',
         './search'
         ],
-            function(IPA, $, phases, reg) {
+            function(IPA, $, phases, reg, rpc) {
 
 var exp = IPA.hbac = {
     //priority of commands in details facet

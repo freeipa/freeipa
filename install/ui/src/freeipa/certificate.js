@@ -27,9 +27,10 @@ define([
     './menu',
     './phases',
     './reg',
+    './rpc',
     './text',
     './dialog'],
-        function(lang, metadata_provider, IPA, $, menu, phases, reg, text) {
+        function(lang, metadata_provider, IPA, $, menu, phases, reg, rpc, text) {
 
 var exp = IPA.cert = {};
 
@@ -517,7 +518,7 @@ IPA.cert.load_policy = function(spec) {
     };
 
     that.load_revocation_reason = function(serial_number) {
-        IPA.command({
+        rpc.command({
             entity: 'cert',
             method: 'show',
             args: [serial_number],
@@ -643,7 +644,7 @@ IPA.cert.request_action = function(spec) {
             message: request_message,
             request: function(values) {
 
-                IPA.command({
+                rpc.command({
                     entity: 'cert',
                     method: 'request',
                     args: [values.request],
@@ -702,7 +703,7 @@ IPA.cert.revoke_action = function(spec) {
 
         var certificate = facet.certificate;
 
-        IPA.command({
+        rpc.command({
             entity: 'cert',
             method: 'revoke',
             args: [certificate.serial_number],
@@ -759,7 +760,7 @@ IPA.cert.restore_action = function(spec) {
 
         var certificate = facet.certificate;
 
-        IPA.command({
+        rpc.command({
             entity: 'cert',
             method: 'remove_hold',
             args: [certificate.serial_number],

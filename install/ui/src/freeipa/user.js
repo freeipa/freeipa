@@ -26,13 +26,14 @@ define([
         './jquery',
         './phases',
         './reg',
+        './rpc',
         './text',
         './details',
         './search',
         './association',
         './entity',
         './certificate'],
-    function(IPA, $, phases, reg, text) {
+    function(IPA, $, phases, reg, rpc, text) {
 
 /**
  * User module
@@ -366,7 +367,7 @@ IPA.user.details_facet = function(spec) {
 
         var pkey = that.get_pkey();
 
-        var batch = IPA.batch_command({
+        var batch = rpc.batch_command({
             name: 'user_details_refresh'
         });
 
@@ -381,7 +382,7 @@ IPA.user.details_facet = function(spec) {
 
         batch.add_command(user_command);
 
-        var pwpolicy_command = IPA.command({
+        var pwpolicy_command = rpc.command({
             entity: 'pwpolicy',
             method: 'show',
             options: {
@@ -406,7 +407,7 @@ IPA.user.details_facet = function(spec) {
 
         batch.add_command(pwpolicy_command);
 
-        var krbtpolicy_command = IPA.command({
+        var krbtpolicy_command = rpc.command({
             entity: 'krbtpolicy',
             method: 'show',
             args: [ pkey ],
@@ -623,7 +624,7 @@ IPA.user_password_dialog = function(spec) {
 
     that.set_password = function(pkey, current_password, password, on_success, on_error) {
 
-        var command = IPA.command({
+        var command = rpc.command({
             method: 'passwd',
             args: [ pkey ],
             options: {

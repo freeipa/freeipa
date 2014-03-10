@@ -521,9 +521,9 @@ class UI_driver(object):
         var args = arguments[1];
         var options = arguments[2];
         var callback = arguments[arguments.length - 1];
-        var IPA = require('freeipa/ipa');
+        var rpc = require('freeipa/rpc');
 
-        var cmd = IPA.command({
+        var cmd = rpc.command({
             method: method,
             args: args,
             options: options,

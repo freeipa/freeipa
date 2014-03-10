@@ -23,6 +23,7 @@ define([
         './jquery',
         './phases',
         './reg',
+        './rpc',
         './text',
         './association',
         './entity',
@@ -30,7 +31,7 @@ define([
         './rule',
         './search'
        ],
-            function(IPA, $, phases, reg, text) {
+            function(IPA, $, phases, reg, rpc, text) {
 
 var exp = IPA.sudo = {
     //priority of commands in details facet
@@ -822,7 +823,7 @@ IPA.sudo.options_section = function(spec) {
 
                 var pkey = that.facet.get_pkey();
 
-                var command = IPA.command({
+                var command = rpc.command({
                     entity: 'sudorule',
                     method: 'add_option',
                     args: [pkey],
@@ -878,7 +879,7 @@ IPA.sudo.options_section = function(spec) {
 
         dialog.execute = function() {
 
-            var batch = IPA.batch_command({
+            var batch = rpc.batch_command({
                 on_success: function(data) {
                     //last successful result of batch results contains valid data
                     var result;
@@ -905,7 +906,7 @@ IPA.sudo.options_section = function(spec) {
             });
 
             for (var i=0; i<values.length; i++) {
-                var command = IPA.command({
+                var command = rpc.command({
                     entity: 'sudorule',
                     method: 'remove_option',
                     args: [pkey]
@@ -923,7 +924,7 @@ IPA.sudo.options_section = function(spec) {
     };
 
     that.reload = function() {
-        var command = IPA.command({
+        var command = rpc.command({
             entity: that.facet.entity.name,
             method: 'show',
             args: that.facet.get_pkeys(),

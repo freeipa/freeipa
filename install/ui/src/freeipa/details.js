@@ -28,11 +28,12 @@ define([
         './jquery',
         './phases',
         './reg',
+        './rpc',
         './spec_util',
         './text',
         './facet',
         './add'],
-    function(lang, builder, IPA, $, phases, reg, su, text) {
+    function(lang, builder, IPA, $, phases, reg, rpc, su, text) {
 
 /**
  * Details module
@@ -825,7 +826,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
      * Adds update info as command options
      * @protected
      * @param {details.update_info} update_info
-     * @param {IPA.command} command
+     * @param {rpc.command} command
      */
     that.add_fields_to_command = function(update_info, command) {
 
@@ -833,7 +834,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
             var field_info = update_info.fields[i];
             if (field_info.field.flags.indexOf('no_command') > -1) continue;
             var values = field_info.field.save();
-            IPA.command_builder.add_field_option(
+            exp.command_builder.add_field_option(
                 command,
                 field_info.field,
                 values);
@@ -844,7 +845,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
      * Create update command based on field part of update info
      * @protected
      * @param {details.update_info} update_info
-     * @return {IPA.command}
+     * @return {rpc.command}
      */
     that.create_fields_update_command = function(update_info) {
 
@@ -853,7 +854,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         var options = { all: true };
         if (that.check_rights) options.rights = true;
 
-        var command = IPA.command({
+        var command = rpc.command({
             entity: that.entity.name,
             method: that.update_command_name,
             args: args,
@@ -873,11 +874,11 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
      * to reflect field part of update info (if present).
      * @protected
      * @param {details.update_info} update_info
-     * @return {IPA.batch_command}
+     * @return {rpc.batch_command}
      */
     that.create_batch_update_command = function(update_info) {
 
-        var batch = IPA.batch_command({
+        var batch = rpc.batch_command({
             name: that.entity.name + '_details_update'
         });
 
@@ -915,7 +916,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
     /**
      * Create update command
      * @protected
-     * @return {IPA.command/IPA.batch_command}
+     * @return {rpc.command|rpc.batch_command}
      */
     that.create_update_command = function() {
 
@@ -975,14 +976,14 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
     /**
      * Create refresh command
      * @protected
-     * @return {IPA.command}
+     * @return {rpc.command}
      */
     that.create_refresh_command = function() {
 
         var options = { all: true };
         if (that.check_rights) options.rights = true;
 
-        var command = IPA.command({
+        var command = rpc.command({
             name: that.get_refresh_command_name(),
             entity: that.entity.name,
             method: 'show',
@@ -1169,7 +1170,7 @@ exp.update_info = IPA.update_info = function(spec) {
 
     /**
      * Create new command info and add it to collection
-     * @param {IPA.command} command
+     * @param {rpc.command} command
      * @param {number} priority
      */
     that.append_command = function (command, priority) {
@@ -1191,7 +1192,7 @@ exp.command_info = IPA.command_info = function(spec) {
 
     /**
      * Command
-     * @property {IPA.command}
+     * @property {rpc.command}
      */
     that.command = spec.command;
 
@@ -1268,7 +1269,7 @@ exp.update_info_builder = IPA.update_info_builder = function() {
 
     /**
      * Create new command info
-     * @param {IPA.command} command
+     * @param {rpc.command} command
      * @param {number} priority
      * @return {details.command_info}
      */
@@ -1309,16 +1310,15 @@ exp.update_info_builder = IPA.update_info_builder = function() {
  * Field add/mod command builder
  *
  * @class details.command_builder
- * @alternateClassName IPA.command_builder
  * @singleton
  */
-exp.command_builder = IPA.command_builder = function() {
+exp.command_builder = function() {
 
     var that = IPA.object();
 
     /**
      * Add option to command with field values
-     * @param {IPA.command} command
+     * @param {rpc.command} command
      * @param {IPA.field} field
      * @param {Array} values
      */
@@ -1790,7 +1790,7 @@ exp.object_action = IPA.object_action = function(spec) {
         var entity_name = facet.entity.name;
         var pkeys = facet.get_pkeys();
 
-        IPA.command({
+        rpc.command({
             entity: entity_name,
             method: that.method,
             args: pkeys,

@@ -31,8 +31,10 @@ define([
         './metadata',
         './builder',
         './reg',
-        './text'],
-       function(keys, $, JSON, i18n, datetime, metadata_provider, builder, reg, text) {
+        './rpc',
+        './text',
+        'exports'
+    ], function(keys, $, JSON, i18n, datetime, metadata_provider, builder, reg, rpc, text, exports) {
 
 /**
  * @class
@@ -44,11 +46,11 @@ define([
  * and move them to separate modules.
  *
  */
-var IPA = function() {
+var IPA = function () {
 
-    var that = {
-        jsonrpc_id: 0
-    };
+    var that = exports;
+
+    that.jsonrpc_id = 0;
 
     // live server path
     that.url = '/ipa/ui/';
@@ -130,7 +132,7 @@ var IPA = function() {
 
         $.ajaxSetup(that.ajax_options);
 
-        var batch = IPA.batch_command({
+        var batch = rpc.batch_command({
             name: 'ipa_init',
             retry: false,
             on_success: function() {
@@ -168,7 +170,7 @@ var IPA = function() {
             }
         });
 
-        batch.add_command(IPA.command({
+        batch.add_command(rpc.command({
             method: 'i18n_messages',
             on_success: function(data, text_status, xhr) {
                 that.messages = data.texts;
@@ -176,7 +178,7 @@ var IPA = function() {
             }
         }));
 
-        batch.add_command(IPA.command({
+        batch.add_command(rpc.command({
             entity: 'config',
             method: 'show',
             on_success: function(data, text_status, xhr) {
@@ -186,7 +188,7 @@ var IPA = function() {
 
         batch.add_command(that.get_whoami_command(true));
 
-        batch.add_command(IPA.command({
+        batch.add_command(rpc.command({
             method: 'env',
             on_success: function(data, text_status, xhr) {
                 that.env = data.result;
@@ -194,7 +196,7 @@ var IPA = function() {
             }
         }));
 
-        batch.add_command(IPA.command({
+        batch.add_command(rpc.command({
             entity: 'dns',
             method: 'is_enabled',
             on_success: function(data, text_status, xhr) {
@@ -202,7 +204,7 @@ var IPA = function() {
             }
         }));
 
-        batch.add_command(IPA.command({
+        batch.add_command(rpc.command({
             entity: 'trustconfig',
             method: 'show',
             retry: false,
@@ -224,7 +226,7 @@ var IPA = function() {
      *                          in a batch.
      */
     that.get_whoami_command = function(batch) {
-        return IPA.command({
+        return rpc.command({
             entity: 'user',
             method: 'find',
             options: {
@@ -247,7 +249,7 @@ var IPA = function() {
      */
     that.init_metadata = function(params) {
 
-        var objects = IPA.command({
+        var objects = rpc.command({
             name: 'ipa_init_objects',
             method: 'json_metadata',
             options: {
@@ -258,7 +260,7 @@ var IPA = function() {
             }
         });
 
-        var commands = IPA.command({
+        var commands = rpc.command({
             name: 'ipa_init_commands',
             method: 'json_metadata',
             options: {
@@ -269,7 +271,7 @@ var IPA = function() {
             }
         });
 
-        var metadata_command = IPA.concurrent_command({
+        var metadata_command = rpc.concurrent_command({
             commands: [
                 objects,
                 commands
@@ -822,9 +824,9 @@ IPA.error_dialog = function(spec) {
     that.text_status = spec.text_status || '';
     /** @property {{name:string,message:string}} error_thrown Command's error */
     that.error_thrown = spec.error_thrown || {};
-    /** @property {IPA.command} command Command */
+    /** @property {rpc.command} command Command */
     that.command = spec.command;
-    /** @property {IPA.error_list} errors Errors */
+    /** @property {rpc.error_list} errors Errors */
     that.errors = spec.errors;
     /** @property {string[]} visible_buttons=['retry', 'cancel'] Visible button names */
     that.visible_buttons = spec.visible_buttons || ['retry', 'cancel'];

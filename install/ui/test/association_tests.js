@@ -19,8 +19,14 @@
  */
 
 
-define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/association', 'freeipa/entity'], function(IPA, $) {
-    return function() {
+define([
+    'freeipa/ipa',
+    'freeipa/jquery',
+    'freeipa/rpc',
+    'freeipa/association',
+    'freeipa/entity'
+], function(IPA, $, rpc)
+    { return function() {
 
 module('association');
 
@@ -29,7 +35,7 @@ test("Testing serial_associator().", function() {
 
     expect(11);
 
-    var orig_ipa_batch_command = IPA.batch_command;
+    var orig_ipa_batch_command = rpc.batch_command;
 
     var user = IPA.entity({ name: 'user' });
     var group = IPA.entity({ name: 'group' });
@@ -43,13 +49,13 @@ test("Testing serial_associator().", function() {
 
     params.values = ['user1', 'user2', 'user3'];
 
-    IPA.batch_command = function(spec) {
+    rpc.batch_command = function(spec) {
 
         var that = orig_ipa_batch_command(spec);
 
         that.execute = function() {
             equals(that.commands.length, params.values.length,
-                   'Checking IPA.batch_command command count');
+                   'Checking rpc.batch_command command count');
 
             var i, command;
 
@@ -58,15 +64,15 @@ test("Testing serial_associator().", function() {
 
                 equals(
                     command.entity, params.other_entity.name,
-                    'Checking IPA.command() parameter: entity');
+                    'Checking rpc.command() parameter: entity');
 
                 equals(
                     command.method, params.method,
-                    'Checking IPA.command() parameter: method');
+                    'Checking rpc.command() parameter: method');
 
                 equals(
                     command.args[0], 'user'+(i+1),
-                    'Checking IPA.command() parameter: primary key');
+                    'Checking rpc.command() parameter: primary key');
             }
 
             that.on_success({});
@@ -82,14 +88,14 @@ test("Testing serial_associator().", function() {
     var associator = IPA.serial_associator(params);
     associator.execute();
 
-    IPA.batch_command = orig_ipa_batch_command;
+    rpc.batch_command = orig_ipa_batch_command;
 });
 
 test("Testing bulk_associator().", function() {
 
     expect(4);
 
-    var orig_ipa_command = IPA.command;
+    var orig_ipa_command = rpc.command;
 
     var counter = 0;
 
@@ -105,7 +111,7 @@ test("Testing bulk_associator().", function() {
 
     params.values = ['user1', 'user2', 'user3'];
 
-    IPA.command = function(spec) {
+    rpc.command = function(spec) {
 
         var that = orig_ipa_command(spec);
 
@@ -114,15 +120,15 @@ test("Testing bulk_associator().", function() {
 
             equals(
                 that.method, params.method,
-                'Checking IPA.command() parameter: method');
+                'Checking rpc.command() parameter: method');
 
             equals(
                 that.args[0], params.pkey,
-                'Checking IPA.command() parameter: primary key');
+                'Checking rpc.command() parameter: primary key');
 
             equals(
                 that.options[params.other_entity.name], 'user1,user2,user3',
-                'Checking IPA.command() parameter: options[\""+params.other_entity+"\"]');
+                'Checking rpc.command() parameter: options[\""+params.other_entity+"\"]');
 
             that.on_success({});
         };
@@ -137,7 +143,7 @@ test("Testing bulk_associator().", function() {
     var associator = IPA.bulk_associator(params);
     associator.execute();
 
-    IPA.command = orig_ipa_command;
+    rpc.command = orig_ipa_command;
 });
 
 };});

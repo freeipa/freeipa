@@ -28,12 +28,13 @@ define([
     './menu',
     './phases',
     './reg',
+    './rpc',
     './text',
     './details',
     './search',
     './association',
     './entity'],
-       function(IPA, $, NET, navigation, menu, phases, reg, text) {
+       function(IPA, $, NET, navigation, menu, phases, reg, rpc, text) {
 
 var exp = IPA.dns = {
     zone_permission_name: 'Manage DNS zone ${dnszone}'
@@ -340,7 +341,7 @@ IPA.dnszone_details_facet = function(spec, no_init) {
 
         var pkey = that.get_pkey();
 
-        var batch = IPA.batch_command({
+        var batch = rpc.batch_command({
             name: 'dnszone_details_refresh'
         });
 
@@ -357,7 +358,7 @@ IPA.dnszone_details_facet = function(spec, no_init) {
 
         var permission_name = IPA.dns.zone_permission_name.replace('${dnszone}', pkey);
 
-        var permission_command = IPA.command({
+        var permission_command = rpc.command({
             entity: 'permission',
             method: 'show',
             args: [permission_name],
@@ -595,7 +596,7 @@ IPA.dns.add_permission_action = function(spec) {
 
         var pkey = facet.get_pkey();
 
-         var command = IPA.command({
+         var command = rpc.command({
             entity: 'dnszone',
             method: 'add_permission',
             args: [pkey],
@@ -625,7 +626,7 @@ IPA.dns.remove_permission_action = function(spec) {
 
         var pkey = facet.get_pkey();
 
-         var command = IPA.command({
+         var command = rpc.command({
             entity: 'dnszone',
             method: 'remove_permission',
             args: [pkey],
@@ -668,7 +669,7 @@ IPA.dns.record_search_facet = function(spec) {
 
     that.get_records = function(pkeys, on_success, on_error) {
 
-        var batch = IPA.batch_command({
+        var batch = rpc.batch_command({
             name: that.get_records_command_name(),
             on_success: on_success,
             on_error: on_error
@@ -679,7 +680,7 @@ IPA.dns.record_search_facet = function(spec) {
         for (var i=0; i<pkeys.length; i++) {
             var pkey = pkeys[i];
 
-            var command = IPA.command({
+            var command = rpc.command({
                 entity: that.table.entity.name,
                 method: 'show',
                 args: [zone, pkey],
@@ -1205,7 +1206,7 @@ IPA.dns.record_adder_dialog = function(spec) {
 
     var that = IPA.entity_adder_dialog(spec);
 
-    that.on_error = IPA.create_4304_error_handler(that);
+    that.on_error = rpc.create_4304_error_handler(that);
 
     return that;
 };
@@ -1799,7 +1800,7 @@ IPA.dns.record_type_table_widget = function(spec) {
     that.remove = function(values, pkey, on_success, on_error) {
 
         var pkeys = that.facet.get_pkeys();
-        var command = IPA.command({
+        var command = rpc.command({
             entity: that.entity.name,
             method: 'del',
             args: pkeys,
@@ -1838,7 +1839,7 @@ IPA.dns.record_type_table_widget = function(spec) {
         var cancel_button = dialog.buttons.get('cancel');
         dialog.buttons.empty();
 
-        dialog.on_error = IPA.create_4304_error_handler(dialog);
+        dialog.on_error = rpc.create_4304_error_handler(dialog);
 
         dialog.get_add_message = function() {
             var label = that.entity.metadata.label_singular;
@@ -2229,7 +2230,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
 
         that.append_status(text.get('@i18n:objects.dnsrecord.ptr_redir_zones'));
 
-        var command = IPA.command({
+        var command = rpc.command({
             entity: 'dnszone',
             method: 'find',
             options: {
@@ -2284,7 +2285,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
         var record_name = that.reverse_address.substring(0,i1 - 1);
         that.record_keys = [that.zone, record_name];
 
-        var command = IPA.command({
+        var command = rpc.command({
             entity: 'dnsrecord',
             method: 'show',
             args: that.record_keys,
@@ -2321,7 +2322,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
 
         var ptr = that.dns_record.name +'.' + that.dns_record.zone;
 
-        var command = IPA.command({
+        var command = rpc.command({
             entity: 'dnsrecord',
             method: 'add',
             args: that.record_keys,

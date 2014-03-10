@@ -23,13 +23,14 @@ define(['./ipa',
         './jquery',
         './phases',
         './reg',
+        './rpc',
         './text',
         './details',
         './search',
         './association',
         './entity',
         './certificate'],
-    function(IPA, $, phases, reg, text) {
+    function(IPA, $, phases, reg, rpc, text) {
 
 var exp = IPA.host = {};
 
@@ -459,7 +460,7 @@ IPA.host_adder_dialog = function(spec) {
         that.container.addClass('host-adder-dialog');
     };
 
-    that.on_error = IPA.create_4304_error_handler(that);
+    that.on_error = rpc.create_4304_error_handler(that);
 
     return that;
 };
@@ -509,7 +510,7 @@ IPA.dnszone_select_widget = function(spec) {
     var that = IPA.entity_select_widget(spec);
 
     that.create_search_command = function(filter) {
-        return IPA.command({
+        return rpc.command({
             entity: that.other_entity.name,
             method: 'find',
             args: [filter],
@@ -672,7 +673,7 @@ IPA.host_unprovision_dialog = function(spec) {
 
         var pkey = that.facet.get_pkeys();
 
-        var command = IPA.command({
+        var command = rpc.command({
             name: that.entity.name+'_disable_'+pkey,
             entity: that.entity.name,
             method: 'disable',

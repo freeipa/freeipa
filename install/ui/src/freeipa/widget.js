@@ -34,10 +34,11 @@ define(['dojo/_base/array',
        './jquery',
        './phases',
        './reg',
+       './rpc',
        './text'
        ],
        function(array, lang, Evented, has, keys, on, builder, datetime, IPA, $,
-        phases, reg, text) {
+        phases, reg, rpc, text) {
 
 /**
  * Widget module
@@ -2933,7 +2934,7 @@ IPA.attribute_table_widget = function(spec) {
 
         var pkeys = that.get_pkeys();
 
-        var command = IPA.command({
+        var command = rpc.command({
             entity: that.entity.name,
             method: that.remove_command || 'del',
             args: pkeys,
@@ -3543,7 +3544,7 @@ IPA.entity_select_widget = function(spec) {
     that.filter_options = spec.filter_options || {};
 
     that.create_search_command = function(filter) {
-        return IPA.command({
+        return rpc.command({
             entity: that.other_entity.name,
             method: 'find',
             args: [filter],

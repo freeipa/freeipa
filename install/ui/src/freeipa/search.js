@@ -26,10 +26,11 @@ define([
         './jquery',
         './phases',
         './reg',
+        './rpc',
         './spec_util',
         './text',
         './facet'],
-    function(IPA, $, phases, reg, su, text, mod_facet) {
+    function(IPA, $, phases, reg, rpc, su, text, mod_facet) {
 
 var exp = {};
 
@@ -235,7 +236,7 @@ IPA.search_facet = function(spec, no_init) {
 
         var args = that.get_refresh_command_args();
 
-        var command = IPA.command({
+        var command = rpc.command({
             name: that.get_search_command_name(),
             entity: that.managed_entity.name,
             method: 'find',
@@ -312,12 +313,12 @@ IPA.search_deleter_dialog = function(spec) {
     that.pkey_prefix = spec.pkey_prefix || [];
 
     that.create_command = function() {
-        var batch = IPA.batch_command({
+        var batch = rpc.batch_command({
             error_message: '@i18n:search.partial_delete'
         });
 
         for (var i=0; i<that.values.length; i++) {
-            var command = IPA.command({
+            var command = rpc.command({
                 entity: that.entity.name,
                 method: 'del'
             });
@@ -475,7 +476,7 @@ IPA.batch_items_action = function(spec) {
         var pkeys = facet.get_pkeys();
         if (!pkeys[0]) pkeys = []; // correction for search facet
 
-        that.batch = IPA.batch_command({
+        that.batch = rpc.batch_command({
             name: entity.name + '_batch_'+ that.method,
             on_success: that.get_on_success(facet, on_success)
         });
@@ -492,7 +493,7 @@ IPA.batch_items_action = function(spec) {
     };
 
     that.create_action_command = function(facet, keys) {
-        var command = IPA.command({
+        var command = rpc.command({
             entity: facet.managed_entity.name,
             method: that.method,
             args: keys,

@@ -24,9 +24,10 @@ define([
         '../ipa',
         '../phases',
         '../reg',
+        '../rpc',
         '../text',
         '../dialog'],
-            function(lang, builder, IPA, phases, reg, text) {
+            function(lang, builder, IPA, phases, reg, rpc, text) {
 
 var dialogs = {}; // dummy object
 /**
@@ -211,7 +212,7 @@ dialogs.password.dialog = function(spec) {
     that.create_command = function() {
 
         var options = that.make_otions();
-        var command = IPA.command({
+        var command = rpc.command({
             entity: that.entity.name,
             method: that.method,
             args: that.pkeys,

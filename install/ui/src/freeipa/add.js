@@ -19,8 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-define(['./ipa', './jquery', './navigation', './text', './field', './widget', './dialog'],
-       function(IPA, $, navigation, text) {
+define(['./ipa', './jquery', './navigation', './rpc', './text', './field', './widget', './dialog'],
+       function(IPA, $, navigation, rpc, text) {
 
 /**
  * Entity adder dialog
@@ -42,11 +42,11 @@ IPA.entity_adder_dialog = function(spec) {
     that.method = spec.method || 'add';
     /** @property {Function} on_error Custom add error handler */
     that.on_error = spec.on_error ;
-    /** @property {boolean} retry=true Allow retry on error (same as in IPA.command)*/
+    /** @property {boolean} retry=true Allow retry on error (same as in rpc.command)*/
     that.retry = typeof spec.retry !== 'undefined' ? spec.retry : true;
     /**
      * Add command
-     * @property {IPA.command}
+     * @property {rpc.command}
      * @protected
      */
     that.command = null;
@@ -184,7 +184,7 @@ IPA.entity_adder_dialog = function(spec) {
 
         var pkey_name = that.entity.metadata.primary_key;
 
-        var command = IPA.command({
+        var command = rpc.command({
             entity: that.entity.name,
             method: that.method,
             retry: that.retry

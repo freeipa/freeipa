@@ -33,9 +33,10 @@ define([
     './navigation',
     './phases',
     './reg',
+    './rpc',
     './text'],
        function(array, lang, metadata_provider, builder, datetime, IPA, $,
-                navigation, phases, reg, text) {
+                navigation, phases, reg, rpc, text) {
 
 /**
  * Field module
@@ -1294,7 +1295,7 @@ IPA.link_field = function(spec) {
             return;
         }
 
-        IPA.command({
+        rpc.command({
             entity: that.other_entity.name,
             method: 'show',
             args: that.other_pkeys(),
@@ -1370,7 +1371,7 @@ IPA.enable_field = function(spec) {
                 method = that.enable_method;
             }
 
-            var command = IPA.command({
+            var command = rpc.command({
                 entity: that.entity.name,
                 method: method,
                 args: that.facet.get_pkeys(),

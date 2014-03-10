@@ -28,9 +28,7 @@ define([
     './text',
     'exports'
    ],
-   function(lang, IPA, text, exports) {
-
-var rpc = {};
+   function(lang, IPA, text, rpc /*exports*/) {
 
 /**
  * Call an IPA command over JSON-RPC.
@@ -379,14 +377,14 @@ rpc.command = function(spec) {
     /**
      * Parse successful command result and get all errors.
      * @protected
-     * @param {IPA.command} command
+     * @param {rpc.command} command
      * @param {Object} result
      * @param {string} text_status
      * @param {XMLHttpRequest} xhr
-     * @return {IPA.error_list}
+     * @return {rpc.error_list}
      */
     that.get_failed = function(command, result, text_status, xhr) {
-        var errors = IPA.error_list();
+        var errors = rpc.error_list();
         if(result && result.failed) {
             for(var association in result.failed) {
                 for(var member_name in result.failed[association]) {
@@ -461,7 +459,7 @@ rpc.command = function(spec) {
  * @extends rpc.command
  *
  * @param {Object} spec
- * @param {Array.<IPA.command>} spec.commands - IPA commands to be executed
+ * @param {rpc.command[]} spec.commands - IPA commands to be executed
  * @param {Function} spec.on_success - callback function if command succeeds
  * @param {Function} spec.on_error - callback function if command fails
  */
@@ -471,12 +469,12 @@ rpc.batch_command = function(spec) {
 
     spec.method = 'batch';
 
-    var that = IPA.command(spec);
+    var that = rpc.command(spec);
 
-    /** @property {IPA.command[]} commands Commands */
+    /** @property {rpc.command[]} commands Commands */
     that.commands = [];
-    /** @property {IPA.error_list} errors Errors  */
-    that.errors = IPA.error_list();
+    /** @property {rpc.error_list} errors Errors  */
+    that.errors = rpc.error_list();
 
     /**
      * Show error if some command fail
@@ -487,7 +485,7 @@ rpc.batch_command = function(spec) {
 
     /**
      * Add command
-     * @param {IPA.command} command
+     * @param {rpc.command} command
      */
     that.add_command = function(command) {
         that.commands.push(command);
@@ -496,7 +494,7 @@ rpc.batch_command = function(spec) {
 
     /**
      * Add commands
-     * @param {IPA.command[]} commands
+     * @param {rpc.command[]} commands
      */
     that.add_commands = function(commands) {
         for (var i=0; i<commands.length; i++) {
@@ -510,7 +508,7 @@ rpc.batch_command = function(spec) {
     that.execute = function() {
         that.errors.clear();
 
-        var command = IPA.command({
+        var command = rpc.command({
             name: that.name,
             entity: that.entity,
             method: that.method,
@@ -830,7 +828,7 @@ rpc.concurrent_command = function(spec) {
  *
  * Collection for RPC command errors.
  *
- * @class IPA.error_list
+ * @class rpc.error_list
  * @private
  */
 rpc.error_list = function() {
@@ -869,7 +867,7 @@ rpc.error_list = function() {
 };
 
 /**
- * Error handler for IPA.command which handles error #4304 as success.
+ * Error handler for rpc.command which handles error #4304 as success.
  *
  * 4304 is raised when part of an operation succeeds and the part that failed
  * isn't critical.
@@ -916,15 +914,6 @@ rpc.create_4304_error_handler = function(adder_dialog) {
         dialog.open();
     };
 };
-
-// backwards compatibility:
-IPA.error_list = rpc.error_list;
-IPA.create_4304_error_handler = rpc.create_4304_error_handler;
-IPA.command = rpc.command;
-IPA.batch_command = rpc.batch_command;
-IPA.concurrent_command = rpc.concurrent_command;
-
-lang.mixin(exports, rpc);
 
 return rpc;
 });

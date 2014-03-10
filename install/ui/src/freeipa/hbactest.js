@@ -25,13 +25,14 @@ define([
         './navigation',
         './phases',
         './reg',
+        './rpc',
         './text',
         './details',
         './search',
         './association',
         './entity',
         './hbac'],
-            function(metadata_provider, IPA, $, navigation, phases, reg, text) {
+            function(metadata_provider, IPA, $, navigation, phases, reg, rpc, text) {
 
 var exp = {};
 
@@ -235,7 +236,7 @@ IPA.hbac.test_facet = function(spec) {
 
         var filter = that.state.filter;
 
-        var command = IPA.command({
+        var command = rpc.command({
             name: that.get_search_command_name(),
             entity: that.managed_entity.name,
             method: 'find',
@@ -675,7 +676,7 @@ IPA.hbac.test_run_facet = function(spec) {
 
     that.run = function() {
 
-        var command = IPA.command({ method: 'hbactest' });
+        var command = rpc.command({ method: 'hbactest' });
 
         var options = {};
         var validation_results = {

@@ -23,11 +23,12 @@ define([
     './jquery',
     './phases',
     './reg',
+    './rpc',
     './details',
     './search',
     './association',
     './entity'],
-        function(IPA, $, phases, reg) {
+        function(IPA, $, phases, reg, rpc) {
 
 IPA.rule_details_widget = function(spec) {
 
@@ -221,7 +222,7 @@ IPA.rule_association_table_field = function(spec) {
 
             if (values.length > 0) { //no need to delete if has no values
 
-                var command = IPA.command({
+                var command = rpc.command({
                     entity: that.entity.name,
                     method: that.widget.remove_method,
                     args: that.facet.get_pkeys()

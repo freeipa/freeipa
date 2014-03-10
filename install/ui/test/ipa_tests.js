@@ -18,8 +18,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-define(['freeipa/ipa', 'freeipa/jquery', 'freeipa/dialog', 'freeipa/widget',
-        'freeipa/details'],  function(IPA, $) {
+define([
+    'freeipa/ipa',
+    'freeipa/jquery',
+    'freeipa/rpc',
+    'freeipa/dialog',
+    'freeipa/widget',
+    'freeipa/details'],
+    function(IPA, $, rpc) {
     return function() {
 
 module('ipa');
@@ -88,7 +94,7 @@ test("Testing IPA.get_member_attribute().", function() {
         "IPA.get_member_attribute(null, \"group\")");
 });
 
-test("Testing successful IPA.command().", function() {
+test("Testing successful rpc.command().", function() {
 
     var method = 'method';
     var args = ['arg1', 'arg2', 'arg3'];
@@ -138,7 +144,7 @@ test("Testing successful IPA.command().", function() {
         request.success(xhr, text_status, error_thrown);
     };
 
-    IPA.command({
+    rpc.command({
         entity: object,
         method: method,
         args: args,
@@ -164,7 +170,7 @@ test("Testing successful IPA.command().", function() {
     $.ajax = orig;
 });
 
-test("Testing unsuccessful IPA.command().", function() {
+test("Testing unsuccessful rpc.command().", function() {
 
     var method = 'method';
     var args = ['arg1', 'arg2', 'arg3'];
@@ -209,7 +215,7 @@ test("Testing unsuccessful IPA.command().", function() {
         request.error(xhr, text_status, error_thrown);
     };
 
-    IPA.command({
+    rpc.command({
         entity: object,
         method: method,
         args: args,

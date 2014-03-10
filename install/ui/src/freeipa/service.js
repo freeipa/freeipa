@@ -23,12 +23,13 @@ define([
     './jquery',
     './phases',
     './reg',
+    './rpc',
     './text',
     './details',
     './search',
     './association',
     './entity'],
-        function(IPA, $, phases, reg, text) {
+        function(IPA, $, phases, reg, rpc, text) {
 
 var exp =IPA.service = {};
 
@@ -410,7 +411,7 @@ IPA.service.unprovision_dialog = function(spec) {
         var principal_f  = that.facet.fields.get_field('krbprincipalname');
         var pkey = principal_f.values[0];
 
-        IPA.command({
+        rpc.command({
             entity: that.entity.name,
             method: 'disable',
             args: [pkey],

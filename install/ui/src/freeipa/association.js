@@ -31,13 +31,14 @@ define([
     './navigation',
     './phases',
     './reg',
+    './rpc',
     './spec_util',
     './text',
     './facet',
     './search',
     './dialog'],
         function(lang, Deferred, metadata_provider, IPA, $, navigation,
-                 phases, reg, su, text) {
+                 phases, reg, rpc, su, text) {
 
 /**
  * Association module
@@ -93,7 +94,7 @@ IPA.serial_associator = function(spec) {
             return;
         }
 
-        var batch = IPA.batch_command({
+        var batch = rpc.batch_command({
             on_success: that.on_success,
             on_error: that.on_error
         });
@@ -105,7 +106,7 @@ IPA.serial_associator = function(spec) {
             options = {};
             options[that.entity.name] = that.pkey;
 
-            command = IPA.command({
+            command = rpc.command({
                 entity: that.other_entity.name,
                 method: that.method,
                 args: args,
@@ -140,7 +141,7 @@ IPA.bulk_associator = function(spec) {
             return;
         }
 
-        var command = IPA.command({
+        var command = rpc.command({
             entity: that.entity.name,
             method: that.method,
             args: [that.pkey],
@@ -313,7 +314,7 @@ IPA.association_adder_dialog = function(spec) {
             }
         }
 
-        IPA.command({
+        rpc.command({
             entity: that.other_entity.name,
             method: 'find',
             args: [that.get_filter()],
@@ -668,7 +669,7 @@ IPA.association_table_widget = function (spec) {
 
         var pkey = that.facet.get_pkey();
 
-        var command = IPA.command({
+        var command = rpc.command({
             entity: that.entity.name,
             method: that.add_method,
             args: [pkey],
@@ -732,7 +733,7 @@ IPA.association_table_widget = function (spec) {
 
         var pkey = that.facet.get_pkey();
 
-        var command = IPA.command({
+        var command = rpc.command({
             entity: that.entity.name,
             method: that.remove_method,
             args: [pkey],
@@ -795,7 +796,7 @@ IPA.association_table_field = function (spec) {
         }
 
         var pkey = that.facet.get_pkey();
-        IPA.command({
+        rpc.command({
             entity: that.entity.name,
             method: 'show',
             args: [pkey],
@@ -1246,7 +1247,7 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
 
         var pkeys = that.get_pkeys();
 
-        var command = IPA.command({
+        var command = rpc.command({
             entity: that.entity.name,
             method: 'show',
             args: pkeys
@@ -1407,7 +1408,7 @@ exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
 
         var pkey = that.get_pkeys();
 
-        var command = IPA.command({
+        var command = rpc.command({
             entity: that.entity.name,
             method: 'show',
             args: pkey
@@ -1492,7 +1493,7 @@ exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
 
         var pkey = that.get_pkeys();
 
-        var command = IPA.command({
+        var command = rpc.command({
             entity: that.entity.name,
             method: that.remove_method,
             args: pkey,
