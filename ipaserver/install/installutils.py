@@ -538,6 +538,22 @@ def read_replica_info(dir, rconfig):
     except NoOptionError:
         pass
 
+def read_replica_info_dogtag_port(config_dir):
+    portfile = config_dir + "/dogtag_directory_port.txt"
+    default_port = dogtag.Dogtag9Constants.DS_PORT
+    if not ipautil.file_exists(portfile):
+        dogtag_master_ds_port = default_port
+    else:
+        with open(portfile) as fd:
+            try:
+                dogtag_master_ds_port = int(fd.read())
+            except (ValueError, IOError), e:
+                root_logger.debug('Cannot parse dogtag DS port: %s', e)
+                root_logger.debug('Default to %d', default_port)
+                dogtag_master_ds_port = default_port
+
+    return dogtag_master_ds_port
+
 def check_server_configuration():
     """
     Check if IPA server is configured on the system.
