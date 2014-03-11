@@ -1574,7 +1574,7 @@ class CAInstance(service.Service):
         return master == 'New'
 
 
-def replica_ca_install_check(config, master_ds_port):
+def replica_ca_install_check(config):
     if not config.setup_ca:
         return
 
@@ -1583,8 +1583,6 @@ def replica_ca_install_check(config, master_ds_port):
         # Replica of old "self-signed" master - CA won't be installed
         return
 
-    master_ds_port = int(master_ds_port)
-
     # Exit if we have an old-style (Dogtag 9) CA already installed
     ca = CAInstance(config.realm_name, certs.NSS_DIR,
         dogtag_constants=dogtag.Dogtag9Constants)
@@ -1592,13 +1590,13 @@ def replica_ca_install_check(config, master_ds_port):
         root_logger.info('Dogtag 9 style CA instance found')
         sys.exit("A CA is already configured on this system.")
 
-    if master_ds_port != dogtag.Dogtag9Constants.DS_PORT:
+    if config.ca_ds_port != dogtag.Dogtag9Constants.DS_PORT:
         root_logger.debug(
             'Installing CA Replica from master with a merged database')
         return
 
     # Check if the master has the necessary schema in its CA instance
-    ca_ldap_url = 'ldap://%s:%s' % (config.master_host_name, master_ds_port)
+    ca_ldap_url = 'ldap://%s:%s' % (config.master_host_name, config.ca_ds_port)
     objectclass = 'ipaObject'
     root_logger.debug('Checking if IPA schema is present in %s', ca_ldap_url)
     try:
@@ -1627,7 +1625,7 @@ def replica_ca_install_check(config, master_ds_port):
         exit('IPA schema missing on master CA directory server')
 
 
-def install_replica_ca(config, master_ds_port, postinstall=False):
+def install_replica_ca(config, postinstall=False):
     """
     Install a CA on a replica.
 
@@ -1676,7 +1674,7 @@ def install_replica_ca(config, master_ds_port, postinstall=False):
                           config.dirman_password, config.dirman_password,
                           pkcs12_info=(cafile,),
                           master_host=config.master_host_name,
-                          master_replication_port=master_ds_port,
+                          master_replication_port=config.ca_ds_port,
                           subject_base=config.subject_base)
 
     # Restart httpd since we changed it's config and added ipa-pki-proxy.conf

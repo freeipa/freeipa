@@ -30,7 +30,7 @@ from ipaserver.install import installutils, service
 from ipaserver.install import certs
 from ipaserver.install.installutils import (HostnameLocalhost, ReplicaConfig,
         expand_replica_info, read_replica_info, get_host_name, BadHostError,
-        private_ccache)
+        private_ccache, read_replica_info_dogtag_port)
 from ipaserver.install import dsinstance, cainstance, bindinstance
 from ipaserver.install.replication import replica_conn_check
 from ipapython import version
@@ -159,31 +159,24 @@ def main():
             sys.exit(0)
     config.dir = dir
     config.setup_ca = True
+    config.ca_ds_port = read_replica_info_dogtag_port(config.dir)
 
     if not ipautil.file_exists(config.dir + "/cacert.p12"):
         print 'CA cannot be installed in CA-less setup.'
         sys.exit(1)
 
-    portfile = config.dir + "/dogtag_directory_port.txt"
-    if not ipautil.file_exists(portfile):
-        dogtag_master_ds_port = str(dogtag.Dogtag9Constants.DS_PORT)
-    else:
-        with open(portfile) as fd:
-            dogtag_master_ds_port = fd.read()
-
     if not options.skip_conncheck:
         replica_conn_check(
             config.master_host_name, config.host_name, config.realm_name, True,
-            dogtag_master_ds_port, options.admin_password)
+            config.ca_ds_port, options.admin_password)
 
     if options.skip_schema_check:
         root_logger.info("Skipping CA DS schema check")
     else:
-        cainstance.replica_ca_install_check(config, dogtag_master_ds_port)
+        cainstance.replica_ca_install_check(config)
 
     # Configure the CA if necessary
-    CA = cainstance.install_replica_ca(
-        config, dogtag_master_ds_port, postinstall=True)
+    CA = cainstance.install_replica_ca(config, postinstall=True)
 
     # We need to ldap_enable the CA now that DS is up and running
     CA.ldap_enable('CA', config.host_name, config.dirman_password,

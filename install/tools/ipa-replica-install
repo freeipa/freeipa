@@ -37,8 +37,8 @@ from ipaserver.install import memcacheinstance
 from ipaserver.install import otpdinstance
 from ipaserver.install.replication import replica_conn_check, ReplicationManager
 from ipaserver.install.installutils import (ReplicaConfig, expand_replica_info,
-                                            read_replica_info ,get_host_name,
-                                            BadHostError, private_ccache)
+        read_replica_info, get_host_name, BadHostError, private_ccache,
+        read_replica_info_dogtag_port)
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import cainstance
 from ipalib import api, errors, util
@@ -534,6 +534,7 @@ def main():
             sys.exit(0)
     config.dir = dir
     config.setup_ca = options.setup_ca
+    config.ca_ds_port = read_replica_info_dogtag_port(config.dir)
 
     if config.setup_ca and not ipautil.file_exists(config.dir + "/cacert.p12"):
         print 'CA cannot be installed in CA-less setup.'
@@ -541,18 +542,11 @@ def main():
 
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
 
-    portfile = config.dir + "/dogtag_directory_port.txt"
-    if not ipautil.file_exists(portfile):
-        dogtag_master_ds_port = str(dogtag.Dogtag9Constants.DS_PORT)
-    else:
-        with open(portfile) as fd:
-            dogtag_master_ds_port = fd.read()
-
     # check connection
     if not options.skip_conncheck:
         replica_conn_check(
             config.master_host_name, config.host_name, config.realm_name,
-            options.setup_ca, dogtag_master_ds_port, options.admin_password)
+            options.setup_ca, config.ca_ds_port, options.admin_password)
 
 
     # check replica host IP resolution
@@ -657,7 +651,7 @@ def main():
     if options.skip_schema_check:
         root_logger.info("Skipping CA DS schema check")
     else:
-        cainstance.replica_ca_install_check(config, dogtag_master_ds_port)
+        cainstance.replica_ca_install_check(config)
 
     # Configure ntpd
     if options.conf_ntp:
@@ -669,7 +663,7 @@ def main():
     ds = install_replica_ds(config)
 
     # Configure the CA if necessary
-    CA = cainstance.install_replica_ca(config, dogtag_master_ds_port)
+    CA = cainstance.install_replica_ca(config)
 
     # Always try to install DNS records
     install_dns_records(config, options)
