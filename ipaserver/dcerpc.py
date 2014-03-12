@@ -750,7 +750,7 @@ class TrustDomainInstance(object):
 
     def parse_naming_context(self, context):
         naming_ref = re.compile('.*<SID=(S-.*)>.*')
-        return naming_ref.match(context).group(1)
+        return unicode(naming_ref.match(context).group(1))
 
     def retrieve(self, remote_host):
         self.init_lsa_pipe(remote_host)
