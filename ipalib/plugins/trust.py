@@ -462,7 +462,8 @@ sides.
         # for AD trusts, regardless of the type of idranges associated with it
         # Note that fetch_domains_from_trust will add needed ranges for
         # the algorithmic ID mapping case.
-        if options.get('trust_type') == u'ad':
+        if (options.get('trust_type') == u'ad' and
+            options.get('trust_secret') is None):
             domains = fetch_domains_from_trust(self, self.trustinstance,
                                                result['result'], **options)
 
