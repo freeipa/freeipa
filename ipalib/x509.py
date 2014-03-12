@@ -165,6 +165,12 @@ def get_serial_number(certificate, datatype=PEM, dbdir=None):
     del(nsscert)
     return serial_number
 
+def is_self_signed(certificate, datatype=PEM, dbdir=None):
+    nsscert = load_certificate(certificate, datatype, dbdir)
+    self_signed = (nsscert.issuer == nsscert.subject)
+    del nsscert
+    return self_signed
+
 def make_pem(data):
     """
     Convert a raw base64-encoded blob into something that looks like a PE
