@@ -627,7 +627,7 @@ def certificate_renewal_update(ca):
     dogtag_constants = dogtag.configured_constants()
 
     # bump version when requests is changed
-    version = 1
+    version = 2
     requests = (
         (
             dogtag_constants.ALIAS_DIR,
@@ -635,6 +635,7 @@ def certificate_renewal_update(ca):
             'dogtag-ipa-ca-renew-agent',
             'stop_pkicad',
             'renew_ca_cert',
+            None,
         ),
         (
             dogtag_constants.ALIAS_DIR,
@@ -642,6 +643,7 @@ def certificate_renewal_update(ca):
             'dogtag-ipa-ca-renew-agent',
             'stop_pkicad',
             'renew_ca_cert',
+            None,
         ),
         (
             dogtag_constants.ALIAS_DIR,
@@ -649,6 +651,15 @@ def certificate_renewal_update(ca):
             'dogtag-ipa-ca-renew-agent',
             'stop_pkicad',
             'renew_ca_cert',
+            None,
+        ),
+        (
+            dogtag_constants.ALIAS_DIR,
+            'caSigningCert cert-pki-ca',
+            'dogtag-ipa-ca-renew-agent',
+            'stop_pkicad',
+            'renew_ca_cert',
+            'ipaCACertRenewal',
         ),
         (
             paths.HTTPD_ALIAS_DIR,
@@ -656,11 +667,13 @@ def certificate_renewal_update(ca):
             'dogtag-ipa-ca-renew-agent',
             None,
             'renew_ra_cert',
+            None,
         ),
         (
             dogtag_constants.ALIAS_DIR,
             'Server-Cert cert-pki-ca',
             'dogtag-ipa-renew-agent',
+            None,
             None,
             None,
         ),
@@ -677,11 +690,13 @@ def certificate_renewal_update(ca):
         return False
 
     # State not set, lets see if we are already configured
-    for nss_dir, nickname, ca_name, pre_command, post_command in requests:
+    for request in requests:
+        nss_dir, nickname, ca_name, pre_command, post_command, profile = request
         criteria = (
             ('cert_storage_location', nss_dir, certmonger.NPATH),
             ('cert_nickname', nickname, None),
             ('ca_name', ca_name, None),
+            ('template_profile', profile, None),
         )
         request_id = certmonger.get_request_id(criteria)
         if request_id is None:

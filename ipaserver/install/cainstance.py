@@ -312,9 +312,10 @@ def stop_tracking_certificates(dogtag_constants):
     cmonger.start()
 
     for nickname in ['Server-Cert cert-pki-ca',
-                        'auditSigningCert cert-pki-ca',
-                        'ocspSigningCert cert-pki-ca',
-                        'subsystemCert cert-pki-ca']:
+                     'auditSigningCert cert-pki-ca',
+                     'ocspSigningCert cert-pki-ca',
+                     'subsystemCert cert-pki-ca',
+                     'caSigningCert cert-pki-ca']:
         try:
             certmonger.stop_tracking(
                 dogtag_constants.ALIAS_DIR, nickname=nickname)
@@ -1437,12 +1438,16 @@ class CAInstance(service.Service):
                 'Unable to determine PIN for CA instance: %s' % e)
 
     def configure_renewal(self):
+        reqs = (
+            ('auditSigningCert cert-pki-ca', None),
+            ('ocspSigningCert cert-pki-ca',  None),
+            ('subsystemCert cert-pki-ca',    None),
+            ('caSigningCert cert-pki-ca',    'ipaCACertRenewal'),
+        )
         pin = self.__get_ca_pin()
 
         # Server-Cert cert-pki-ca is renewed per-server
-        for nickname in ['auditSigningCert cert-pki-ca',
-                         'ocspSigningCert cert-pki-ca',
-                         'subsystemCert cert-pki-ca']:
+        for nickname, profile in reqs:
             try:
                 certmonger.dogtag_start_tracking(
                     ca='dogtag-ipa-ca-renew-agent',
@@ -1451,7 +1456,8 @@ class CAInstance(service.Service):
                     pinfile=None,
                     secdir=self.dogtag_constants.ALIAS_DIR,
                     pre_command='stop_pkicad',
-                    post_command='renew_ca_cert "%s"' % nickname)
+                    post_command='renew_ca_cert "%s"' % nickname,
+                    profile=profile)
             except (ipautil.CalledProcessError, RuntimeError), e:
                 root_logger.error(
                     "certmonger failed to start tracking certificate: %s" % e)
