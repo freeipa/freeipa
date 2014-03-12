@@ -58,6 +58,21 @@ def print_msg(message, output_fd=sys.stdout):
     output_fd.flush()
 
 
+def format_seconds(seconds):
+    """Format a number of seconds as an English minutes+seconds message"""
+    parts = []
+    minutes, seconds = divmod(seconds, 60)
+    if minutes:
+        parts.append('%d minute' % minutes)
+        if minutes != 1:
+            parts[-1] += 's'
+    if seconds or not minutes:
+        parts.append('%d second' % seconds)
+        if seconds != 1:
+            parts[-1] += 's'
+    return ' '.join(parts)
+
+
 class Service(object):
     def __init__(self, service_name, service_desc=None, sstore=None, dm_password=None, ldapi=True, autobind=AUTO):
         self.service_name = service_name
@@ -341,19 +356,8 @@ class Service(object):
                     end_message = "Done configuring %s." % self.service_desc
 
         if runtime > 0:
-            plural=''
-            est = time.localtime(runtime)
-            if est.tm_min > 0:
-                if est.tm_min > 1:
-                    plural = 's'
-                if est.tm_sec > 0:
-                    self.print_msg('%s: Estimated time %d minute%s %d seconds' % (start_message, est.tm_min, plural, est.tm_sec))
-                else:
-                    self.print_msg('%s: Estimated time %d minute%s' % (start_message, est.tm_min, plural))
-            else:
-                if est.tm_sec > 1:
-                    plural = 's'
-                self.print_msg('%s: Estimated time %d second%s' % (start_message, est.tm_sec, plural))
+            self.print_msg('%s: Estimated time %s' % (start_message,
+                                                      format_seconds(runtime)))
         else:
             self.print_msg(start_message)
 
