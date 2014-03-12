@@ -1936,7 +1936,8 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
         if self.sort_result_entries:
             if self.obj.primary_key:
                 def sort_key(x):
-                    return x[self.obj.primary_key.name][0].lower()
+                    return self.obj.primary_key.sort_key(
+                        x[self.obj.primary_key.name][0])
                 entries.sort(key=sort_key)
 
         if not options.get('raw', False):

@@ -911,6 +911,9 @@ class Param(ReadOnly):
                     pass
         return self.default
 
+    def sort_key(self, value):
+        return value
+
     json_exclude_attrs = (
         'alwaysask', 'autofill', 'cli_name', 'cli_short_name', 'csv',
         'sortorder', 'falsehoods', 'truths', 'version',
@@ -1457,6 +1460,8 @@ class Str(Data):
                 length=self.length,
             )
 
+    def sort_key(self, value):
+        return value.lower()
 
 class IA5Str(Str):
     """
