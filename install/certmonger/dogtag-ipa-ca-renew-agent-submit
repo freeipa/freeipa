@@ -279,12 +279,13 @@ def renew_ca_cert():
     cert = os.environ.get('CERTMONGER_CERTIFICATE')
     if not cert:
         return (REJECTED, "New certificate requests not supported")
+    is_self_signed = x509.is_self_signed(cert)
 
     operation = os.environ.get('CERTMONGER_OPERATION')
     if operation == 'SUBMIT':
         state = 'retrieve'
 
-        if x509.is_self_signed(cert):
+        if is_self_signed:
             ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
             if ca.is_renewal_master():
                 state = 'request'
@@ -304,6 +305,10 @@ def renew_ca_cert():
 
     if state == 'retrieve':
         result = retrieve_cert()
+        if result[0] == WAIT_WITH_DELAY and not is_self_signed:
+            syslog.syslog(syslog.LOG_ALERT,
+                          "IPA CA certificate is about to expire, "
+                          "use ipa-cacert-manage to renew it")
     elif state == 'request':
         os.environ['CERTMONGER_CA_PROFILE'] = 'caCACert'
         result = request_and_store_cert()
