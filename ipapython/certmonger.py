@@ -27,6 +27,7 @@ import re
 import time
 from ipapython import ipautil
 from ipapython import dogtag
+from ipapython.ipa_log_manager import *
 from ipaplatform.paths import paths
 
 REQUEST_DIR=paths.CERTMONGER_REQUESTS_DIR
@@ -278,6 +279,20 @@ def stop_tracking(secdir, request_id=None, nickname=None):
 
     return (stdout, stderr, returncode)
 
+def modify(request_id, profile=None):
+    args = [paths.GETCERT, 'start-tracking',
+            '-i', request_id]
+    if profile:
+        args += ['-T', profile]
+    return ipautil.run(args)
+
+def resubmit_request(request_id, profile=None):
+    args = [paths.IPA_GETCERT, 'resubmit',
+            '-i', request_id]
+    if profile:
+        args += ['-T', profile]
+    return ipautil.run(args)
+
 def _find_IPA_ca():
     """
     Look through all the certmonger CA files to find the one that
@@ -445,6 +460,19 @@ def check_state(dirs):
         reqids.extend(get_requests_for_dir(dir))
 
     return reqids
+
+def wait_for_request(request_id, timeout=120):
+    for i in range(0, timeout, 5):
+        state = get_request_value(request_id, 'state').strip()
+        root_logger.debug("certmonger request is in state %r", state)
+        if state in ('CA_REJECTED', 'CA_UNREACHABLE', 'CA_UNCONFIGURED',
+                     'NEED_GUIDANCE', 'NEED_CA', 'MONITORING'):
+            break
+        time.sleep(5)
+    else:
+        raise RuntimeError("request timed out")
+
+    return state
 
 if __name__ == '__main__':
     request_id = request_cert(paths.HTTPD_ALIAS_DIR, "Test", "cn=tiger.example.com,O=IPA", "HTTP/tiger.example.com@EXAMPLE.COM")
