@@ -1827,6 +1827,7 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
      */
     that.load_records = function(records) {
         that.table.empty();
+        that.table.records = records;
         for (var i=0; i<records.length; i++) {
             that.add_record(records[i]);
         }

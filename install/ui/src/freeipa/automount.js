@@ -337,16 +337,20 @@ IPA.automount.key_search_facet = function(spec) {
     that.get_selected_values = function() {
 
         var values = [];
+        var keys = that.table.get_selected_values();
+        var records = that.table.records;
 
-        $('input[name="description"]:checked', that.table.tbody).each(function() {
-            var value = {};
-            $('div', $(this).parent().parent()).each(function() {
-                var div = $(this);
-                var name = div.attr('name');
-                value[name] = div.text();
-            });
-            values.push(value);
-        });
+        if (keys.length === 0 || !records) return values;
+
+        for (var i=0,l=records.length; i<l; i++) {
+            var record = records[i];
+            if (keys.indexOf(record.description[0]) > -1) {
+                values.push({
+                    automountkey: record.automountkey[0],
+                    automountinformation: record.automountinformation[0]
+                });
+            }
+        }
 
         return values;
     };
