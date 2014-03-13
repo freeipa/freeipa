@@ -256,6 +256,8 @@ class NSSDatabase(object):
         Raises a ValueError if the certificate is invalid.
         """
         certdb = cert = None
+        if nss.nss_is_initialized():
+            nss.nss_shutdown()
         nss.nss_init(self.secdir)
         try:
             certdb = nss.get_default_certdb()
@@ -276,6 +278,27 @@ class NSSDatabase(object):
             nss.nss_shutdown()
 
         return None
+
+    def verify_ca_cert_validity(self, nickname):
+        certdb = cert = None
+        if nss.nss_is_initialized():
+            nss.nss_shutdown()
+        nss.nss_init(self.secdir)
+        try:
+            certdb = nss.get_default_certdb()
+            cert = nss.find_cert_from_nickname(nickname)
+            intended_usage = nss.certificateUsageSSLCA
+            try:
+                approved_usage = cert.verify_now(certdb, True, intended_usage)
+            except NSPRError, e:
+                if e.errno != -8102:    # SEC_ERROR_INADEQUATE_KEY_USAGE
+                    raise ValueError(e.strerror)
+                approved_usage = 0
+            if approved_usage & intended_usage != intended_usage:
+                raise ValueError('invalid for a CA')
+        finally:
+            del certdb, cert
+            nss.nss_shutdown()
 
 
 class CertDB(object):
