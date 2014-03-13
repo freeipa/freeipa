@@ -23,6 +23,7 @@ man1_MANS = 				\
 	ipa-restore.1			\
 	ipa-advise.1			\
 	ipa-otptoken-import.1		\
+	ipa-cacert-manage.1		\
         $(NULL)
 
 man8_MANS =				\

@@ -25,6 +25,7 @@ sbin_SCRIPTS =			\
 	ipa-backup		\
 	ipa-restore		\
 	ipa-advise		\
+	ipa-cacert-manage	\
 	$(NULL)
 
 EXTRA_DIST =			\

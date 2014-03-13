@@ -1,0 +1,62 @@
+.\" A man page for ipa-cacert-manage
+.\" Copyright (C) 2014 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Jan Cholasta <jcholast@redhat.com>
+.\"
+.TH "ipa-cacert-manage" "1" "Aug 12 2013" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-cacert\-manage \- Manage CA certificates in IPA
+.SH "SYNOPSIS"
+\fBipa\-cacert\-manage\fR [\fIOPTIONS\fR...] \fICOMMAND\fR
+.SH "DESCRIPTION"
+\fBipa\-cacert\-manage\fR can be used to manage CA certificates in IPA.
+.SH "COMMANDS"
+.TP
+\fBrenew\fR
+\- Renew the IPA CA certificate
+.sp
+.RS
+This command can be used to manually renew CA certificate of the IPA CA.
+.sp
+When the IPA CA is the root CA (the default), it is not usually necessary to manually renew the CA certificate, as it will be renewed automatically when it is about to expire, but you can do so if you wish.
+.sp
+When the IPA CA is subordinate of an external CA, the renewal process involves submitting a CSR to the external CA and installing the newly issued certificate in IPA, which cannot be done automatically. It is necessary to manually renew the CA certificate in this setup.
+.sp
+When the IPA CA is not configured, this command is not available.
+.RE
+.SH "OPTIONS"
+.TP
+\fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
+The Directory Manager password to use for authentication.
+.TP
+\fB\-\-external\-cert\-file\fR=\fIFILE\fR
+PEM file containing a certificate signed by the external CA. Must be given with \-\-external\-ca\-file.
+.TP
+\fB\-\-external\-ca\-file\fR=\fIFILE\fR
+PEM file containing the external CA chain.
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+Print debugging information.
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Output only errors.
+.TP
+\fB\-\-log\-file\fR=\fIFILE\fR
+Log to the given file.
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred
