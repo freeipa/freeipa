@@ -20,6 +20,9 @@
 # The full version including strings
 VERSION="__VERSION__"
 
+# A fuller version including the vendor tag (e.g. 3.3.3-34.fc20)
+VENDOR_VERSION="__VENDOR_VERSION__"
+
 
 # Just the numeric portion of the version so one can do direct numeric
 # comparisons to see if the API is compatible.

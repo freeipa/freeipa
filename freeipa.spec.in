@@ -360,8 +360,10 @@ export SUPPORTED_PLATFORM=fedora18
 export SUPPORTED_PLATFORM=fedora16
 %endif
 %endif
+
 # Force re-generate of platform support
-rm -f ipapython/services.py
+export IPA_VENDOR_VERSION_SUFFIX=-%{release}
+rm -f ipapython/services.py ipapython/version.py
 make version-update
 cd ipa-client; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 %if ! %{ONLY_CLIENT}
@@ -389,7 +391,9 @@ export SUPPORTED_PLATFORM=fedora16
 %endif
 %endif
 # Force re-generate of platform support
-rm -f ipapython/services.py
+export IPA_VENDOR_VERSION_SUFFIX=-%{release}
+rm -f ipapython/services.py ipapython/version.py
+make version-update
 %if ! %{ONLY_CLIENT}
 make install DESTDIR=%{buildroot}
 %else
