@@ -73,6 +73,7 @@ BuildRequires:  check
 BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_nss_idmap-devel
 BuildRequires:  java-1.7.0-openjdk
+BuildRequires:  rhino
 BuildRequires:  libverto-devel
 BuildRequires:  systemd
 BuildRequires:  libunistring-devel
