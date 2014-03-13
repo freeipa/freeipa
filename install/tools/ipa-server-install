@@ -1191,6 +1191,10 @@ def main():
     service.print_msg("Restarting the KDC")
     krb.restart()
 
+    if setup_ca:
+        service.print_msg("Restarting the certificate server")
+        ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
+
     # Create a BIND instance
     bind = bindinstance.BindInstance(fstore, dm_password)
     bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders,
