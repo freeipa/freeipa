@@ -167,7 +167,9 @@ class permission(baseldap.LDAPObject):
     container_dn = api.env.container_permission
     object_name = _('permission')
     object_name_plural = _('permissions')
-    object_class = ['groupofnames', 'ipapermission', 'ipapermissionv2']
+    # For use the complete object_class list, including 'top', so
+    # the updater doesn't try to delete 'top' every time.
+    object_class = ['top', 'groupofnames', 'ipapermission', 'ipapermissionv2']
     default_attributes = ['cn', 'member', 'memberof',
         'memberindirect', 'ipapermissiontype', 'objectclass',
         'ipapermdefaultattr', 'ipapermincludedattr', 'ipapermexcludedattr',
