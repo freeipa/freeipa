@@ -567,14 +567,26 @@ class idrange_del(LDAPDelete):
         range_sid = old_attrs.get('ipanttrusteddomainsid')
 
         if range_sid is not None:
+            # Search for trusted domain with SID specified in the ID range entry
             range_sid = range_sid[0]
-            result = api.Command['trust_find'](ipanttrusteddomainsid=range_sid)
+            domain_filter=('(&(objectclass=ipaNTTrustedDomain)'
+                           '(ipanttrusteddomainsid=%s))' % range_sid)
 
-            if result['count'] > 0:
+            try:
+                (trust_domains, truncated) = ldap.find_entries(
+                    base_dn=DN(api.env.container_trusts, api.env.basedn),
+                    filter=domain_filter)
+            except errors.NotFound:
+                pass
+            else:
+                # If there's an entry, it means that there's active domain
+                # of a trust that this range belongs to, so raise a
+                # DependentEntry error
                 raise errors.DependentEntry(
-                    label='Active Trust',
+                    label='Active Trust domain',
                     key=keys[0],
-                    dependent=result['result'][0]['cn'][0])
+                    dependent=trust_domains[0].dn[0].value)
+
 
         return dn
 
