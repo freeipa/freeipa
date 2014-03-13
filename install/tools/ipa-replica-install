@@ -704,6 +704,10 @@ def main():
     service.print_msg("Restarting the KDC")
     krb.restart()
 
+    if CA and config.setup_ca:
+        service.print_msg("Restarting the certificate server")
+        CA.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
+
     if options.setup_dns:
         install_bind(config, options)
 

@@ -36,6 +36,7 @@ app_DATA =				\
 	40-otp.update			\
 	45-roles.update			\
 	50-7_bit_check.update	        \
+	50-dogtag10-migration.update	\
 	50-lockout-policy.update	\
 	50-groupuuid.update		\
 	50-hbacservice.update		\
