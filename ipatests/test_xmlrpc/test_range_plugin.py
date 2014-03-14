@@ -496,7 +496,7 @@ class test_range(Declarative):
             desc='Try to delete active AD trusted range %r' % testrange10,
             command=('idrange_del', [testrange10], {}),
             expected=errors.DependentEntry(
-                    label='Active Trust',
+                    label='Active Trust domain',
                     key=testrange10,
                     dependent=testtrust),
         ),
