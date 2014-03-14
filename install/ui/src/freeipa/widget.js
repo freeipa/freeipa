@@ -925,6 +925,7 @@ IPA.multivalued_widget = function(spec) {
         if (row.deleted || row.is_new) return true;
 
         var values = row.widget.save();
+        if (!values) return false;
 
         if (row.original_values.length !== values.length) return true;
 
@@ -965,12 +966,7 @@ IPA.multivalued_widget = function(spec) {
 
             that.initialized = true;
 
-            if (!that.is_writable()) {
-                that.add_link.css('display', 'none');
-            } else {
-                that.add_link.css('display', '');
-            }
-
+            that.update_add_link_visibility();
         } else {
             value = values[index];
             var row = that.rows[index];
@@ -980,6 +976,37 @@ IPA.multivalued_widget = function(spec) {
         that.updated.notify([], that);
         that.emit('update', { source: that });
 
+    };
+
+    that.update_add_link_visibility = function() {
+        var visible = that.is_writable() && that.enabled;
+        if (visible) {
+            that.add_link.css('display', '');
+        } else {
+            that.add_link.css('display', 'none');
+        }
+    };
+
+    that.set_enabled = function(enabled) {
+
+        that.widget_set_enabled(enabled);
+        that.update_add_link_visibility();
+
+        for (var i=0,l=that.rows.length; i<l; i++) {
+            var row = that.rows[i];
+            row.widget.set_enabled(enabled);
+
+            if (!enabled) {
+                row.widget.hide_undo();
+                row.remove_link.hide();
+            } else {
+                if (row.is_new || that.test_dirty_row(row)) {
+                    row.widget.show_undo();
+                } else if (that.is_writable()) {
+                    row.remove_link.show();
+                }
+            }
+        }
     };
 
     return that;
