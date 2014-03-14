@@ -206,8 +206,12 @@ define([
             details.append('<p> Web UI got in unrecoverable state during "'+error.phase+'" phase.</p>');
 
             if (error.results) {
+                var msg = {
+                    message: error.results.message,
+                    stack: error.results.stack
+                };
                 details.append('<strong>Technical details:</strong>');
-                details.append('<p>'+JSON.stringify(error.results)+'</p>');
+                details.append('<p>'+JSON.stringify(msg)+'</p>');
             }
         },
 

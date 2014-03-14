@@ -36,13 +36,19 @@ define([
  * Widgets, entities and fields related to Access Control that means
  * Permissions, Privilege, Role, Delegation and Self-service.
  *
- * When loaded, this module is also accessible as `IPA.aci`.
- *
  * @class aci
- * @alternateClassName IPA.aci
  * @singleton
  */
-var exp = IPA.aci = {};
+var aci = {};
+
+/**
+ * List of fields which are disabled for managed permissions
+ * @property {Array}
+ */
+aci.managed_fields = [
+    'ipapermright', 'extratargetfilter', 'memberof', 'ipapermlocation',
+    'ipapermtarget', 'type'
+];
 
 var make_permission_spec = function() {
 
@@ -55,7 +61,7 @@ return {
             columns: [ 'cn' ]
         },
         {
-            $factory: IPA.aci.permission_details_facet,
+            $factory: aci.permission_details_facet,
             $type: 'details',
             fields: [
                 {
@@ -63,55 +69,83 @@ return {
                     widget: 'identity.cn'
                 },
                 {
+                    $type: 'radio',
+                    name:'ipapermbindruletype',
+                    widget: 'identity.ipapermbindruletype',
+                    flags: ['w_if_no_aci']
+                },
+                {
                     $type: 'rights',
-                    name: 'permissions',
-                    widget: 'rights.permissions'
+                    name: 'ipapermright',
+                    widget: 'identity.ipapermright',
+                    required: true,
+                    flags: ['w_if_no_aci']
                 },
                 {
-                    $type: 'select',
-                    name: 'target',
-                    widget: 'target.target',
-                    enabled: false
+                    $type: 'multivalued',
+                    name: 'extratargetfilter',
+                    widget: 'target.extratargetfilter',
+                    acl_param: 'ipapermtargetfilter',
+                    enabled: false,
+                    flags: ['w_if_no_aci']
                 },
                 {
-                    name: 'filter',
-                    widget: 'target.filter',
-                    enabled: false
-                },
-                {
-                    $type: 'entity_select',
+                    $type: 'multivalued',
                     name: 'memberof',
                     widget: 'target.memberof',
-                    enabled: false
+                    enabled: false,
+                    flags: ['w_if_no_aci']
                 },
                 {
-                    name: 'subtree',
-                    widget: 'target.subtree',
-                    enabled: false
+                    name: 'ipapermlocation',
+                    widget: 'target.ipapermlocation',
+                    enabled: false,
+                    flags: ['w_if_no_aci']
                 },
                 {
-                    $type: 'entity_select',
-                    name: 'targetgroup',
-                    widget: 'target.targetgroup',
-                    enabled: false
+                    name: 'ipapermtarget',
+                    widget: 'target.ipapermtarget',
+                    enabled: false,
+                    flags: ['w_if_no_aci']
                 },
                 {
                     $type: 'select',
                     name: 'type',
                     widget: 'target.type',
-                    enabled: false
+                    enabled: false,
+                    flags: ['w_if_no_aci']
+
                 },
                 {
                     name: 'attrs',
                     widget: 'target.attrs',
-                    enabled: false
+                    enabled: false,
+                    flags: ['w_if_no_aci']
                 },
                 {
                     name: 'attrs_multi',
                     param: 'attrs',
                     $type: 'multivalued',
                     widget: 'target.attrs_multi',
-                    enabled: false
+                    enabled: false,
+                    flags: ['w_if_no_aci']
+                },
+                {
+                    name: 'ipapermdefaultattr',
+                    $type: 'multivalued',
+                    widget: 'managed.ipapermdefaultattr'
+                },
+                {
+                    name: 'ipapermincludedattr',
+                    $type: 'multivalued',
+                    widget: 'managed.ipapermincludedattr',
+                    read_only: true
+                },
+                {
+                    name: 'ipapermexcludedattr',
+                    $type: 'multivalued',
+                    widget: 'managed.ipapermexcludedattr',
+                    read_only: true
                 }
             ],
             widgets: [
@@ -120,17 +154,16 @@ return {
                     name: 'identity',
                     label: '@i18n:objects.permission.identity',
                     widgets: [
-                        'cn'
-                    ]
-                },
-                {
-                    $type: 'details_section',
-                    name: 'rights',
-                    label: '@i18n:objects.permission.rights',
-                    widgets: [
+                        'cn',
+                        {
+                            $type: 'radio',
+                            name: 'ipapermbindruletype',
+                            options: ['permission', 'all', 'anonymous']
+                        },
                         {
                             $type: 'rights',
-                            name: 'permissions'
+                            name: 'ipapermright',
+                            layout: 'columns'
                         }
                     ]
                 },
@@ -138,13 +171,32 @@ return {
                     $type: 'permission_target',
                     container_factory: IPA.details_section,
                     label: '@i18n:objects.permission.target',
-                    name: 'target',
-                    show_target: false
+                    name: 'target'
+                },
+                {
+                    $type: 'details_section',
+                    name: 'managed',
+                    label: '@i18n:objects.permission.managed',
+                    widgets: [
+                        {
+                            $type: 'multivalued',
+                            name: 'ipapermdefaultattr'
+                        },
+                        {
+                            $type: 'multivalued',
+                            name: 'ipapermincludedattr'
+                        },
+                        {
+                            $type: 'multivalued',
+                            name: 'ipapermexcludedattr'
+                        }
+                    ]
                 }
             ],
             policies: [
+                aci.permission_managed_policy,
                 {
-                    $factory: IPA.permission_target_policy,
+                    $factory: aci.permission_target_policy,
                     widget_name: 'target'
                 }
             ]
@@ -163,36 +215,37 @@ return {
                 widget: 'general.cn'
             },
             {
+                $type: 'radio',
+                name:'ipapermbindruletype',
+                widget: 'general.ipapermbindruletype'
+            },
+            {
                 $type: 'rights',
-                name: 'permissions',
-                widget: 'general.permissions'
+                name: 'ipapermright',
+                widget: 'general.ipapermright',
+                required: true
             },
             {
-                $type: 'select',
-                name: 'target',
-                widget: 'target.target',
+                $type: 'multivalued',
+                name: 'extratargetfilter',
+                widget: 'target.extratargetfilter',
+                acl_param: 'ipapermtargetfilter',
                 enabled: false
             },
             {
-                name: 'filter',
-                widget: 'target.filter',
-                enabled: false
-            },
-            {
-                $type: 'entity_select',
+                $type: 'multivalued',
                 name: 'memberof',
                 widget: 'target.memberof',
                 enabled: false
             },
             {
-                name: 'subtree',
-                widget: 'target.subtree',
+                name: 'ipapermlocation',
+                widget: 'target.ipapermlocation',
                 enabled: false
             },
             {
-                $type: 'entity_select',
-                name: 'targetgroup',
-                widget: 'target.targetgroup',
+                name: 'ipapermtarget',
+                widget: 'target.ipapermtarget',
                 enabled: false
             },
             {
@@ -221,20 +274,26 @@ return {
                 widgets: [
                     'cn',
                     {
+                        $type: 'radio',
+                        name: 'ipapermbindruletype',
+                        options: ['permission', 'all', 'anonymous'],
+                        default_value: 'permission'
+                    },
+                    {
                         $type: 'rights',
-                        name: 'permissions'
+                        name: 'ipapermright',
+                        layout: 'columns'
                     }
                 ]
             },
             {
                 $type: 'permission_target',
-                name:'target',
-                show_target: true
+                name:'target'
             }
         ],
         policies: [
             {
-                $factory: IPA.permission_target_policy,
+                $factory: aci.permission_target_policy,
                 widget_name: 'target'
             }
         ]
@@ -245,7 +304,7 @@ return {
  * @class aci.permission_details_facet
  * @extends details.details_facet
  */
-IPA.aci.permission_details_facet = function(spec) {
+aci.permission_details_facet = function(spec) {
 
     var that = IPA.details_facet(spec);
 
@@ -297,7 +356,8 @@ return {
             name: 'memberof_permission',
             facet_group: 'permission',
             add_method: 'add_permission',
-            remove_method: 'remove_permission'
+            remove_method: 'remove_permission',
+            search_options: { 'ipapermbindruletype': 'permission' }
         }
     ],
     standard_association_facets: true,
@@ -478,10 +538,10 @@ return {
 };};
 
 /**
- * @class IPA.attributes_widget
+ * @class aci.attributes_widget
  * @extends IPA.checkboxes_widget
  */
-IPA.attributes_widget = function(spec) {
+aci.attributes_widget = function(spec) {
 
     spec = spec || {};
 
@@ -540,13 +600,14 @@ IPA.attributes_widget = function(spec) {
         var tbody = $('tbody', that.table);
 
         for (var i=0; i<options.length ; i++){
-            var value = options[i].toLowerCase();
+            var option = options[i];
+            var value = option.value.toLowerCase();
             var tr = $('<tr/>').appendTo(tbody);
 
             var td =  $('<td/>').appendTo(tr);
             var name = that.get_input_name();
             var id = that._option_next_id + name;
-            IPA.standalone_option({
+            var opt = IPA.standalone_option({
                 id: id,
                 type: 'checkbox',
                 name: name,
@@ -561,6 +622,7 @@ IPA.attributes_widget = function(spec) {
                 text: value,
                 'for': id
             }));
+            option.input_node = opt[0];
             that.new_option_id();
         }
     };
@@ -582,6 +644,7 @@ IPA.attributes_widget = function(spec) {
 
         that.populate(that.object_type);
         that.append();
+        that.create_options(that.options);
         that.owb_update(values);
     };
 
@@ -597,7 +660,6 @@ IPA.attributes_widget = function(spec) {
         var aciattrs = metadata.aciattrs;
 
         that.options = that.prepare_options(aciattrs);
-        that.create_options(aciattrs);
     };
 
     that.append = function() {
@@ -614,7 +676,6 @@ IPA.attributes_widget = function(spec) {
 
         if (unmatched.length > 0 && !that.skip_unmatched) {
             that.options.push.apply(that.options, that.prepare_options(unmatched));
-            that.create_options(unmatched);
         }
     };
 
@@ -634,14 +695,14 @@ IPA.attributes_widget = function(spec) {
 };
 
 /**
- * @class IPA.rights_widget
+ * @class aci.rights_widget
  * @extends IPA.checkboxes_widget
  */
-IPA.rights_widget = function(spec) {
+aci.rights_widget = function(spec) {
 
     var that = IPA.checkboxes_widget(spec);
 
-    that.rights = ['write', 'add', 'delete'];
+    that.rights = ['read', 'search', 'compare', 'write', 'add', 'delete', 'all'];
     for (var i=0; i<that.rights.length; i++) {
         var right = that.rights[i];
         that.add_option({label: right, value: right});
@@ -650,11 +711,18 @@ IPA.rights_widget = function(spec) {
     return that;
 };
 
+
 /**
- * @class IPA.permission_target_widget
+ * Default target to display in `permission_target_widget`
+ * @property {string}
+ */
+aci.default_target = 'general';
+
+/**
+ * @class aci.permission_target_widget
  * @extends IPA.details_section
  */
-IPA.permission_target_widget = function(spec) {
+aci.permission_target_widget = function(spec) {
 
     spec = spec || {};
 
@@ -664,95 +732,72 @@ IPA.permission_target_widget = function(spec) {
 
     that.group_entity = IPA.get_entity(spec.group_entity || 'group');
 
-    that.targets = [ 'filter', 'subtree', 'targetgroup', 'type' ];
-    that.target = that.targets[0];
-    that.show_target = spec.show_target;
+    that.target = aci.default_target;
 
     var init = function() {
 
-        that.target_select = IPA.select_widget({
-            entity: that.entity,
-            name: 'target',
-            label: '@i18n:objects.permission.target',
-            hidden: !that.show_target
-        });
-
-        for (var i=0; i<that.targets.length; i++) {
-            var target = that.targets[i];
-            var target_param = IPA.get_entity_param('permission', target);
-
-            that.target_select.options.push({
-                label: target_param.label,
-                value: target
-            });
+        var objects = metadata_provider.get('@m:objects');
+        var types = IPA.create_options(['']);
+        for (var o in objects) {
+            if (objects.hasOwnProperty(o)) {
+                var obj = objects[o];
+                if (obj.can_have_permissions) {
+                    types.push({
+                        label: obj.label_singular,
+                        value: o
+                    });
+                }
+            }
         }
-
-        that.widgets.add_widget(that.target_select);
-
-
-        that.memberof_select = IPA.entity_select_widget({
-            entity: that.entity,
-            name: 'memberof',
-            other_entity: that.group_entity,
-            other_field: 'cn',
-            hidden: true
-        });
-
-        that.widgets.add_widget(that.memberof_select);
-
-        that.filter_text = IPA.text_widget({
-            entity: that.entity,
-            name: 'filter',
-            hidden: true
-        });
-
-        that.widgets.add_widget(that.filter_text);
-
-        that.subtree_textarea = IPA.textarea_widget({
-            entity: that.entity,
-            name: 'subtree',
-            hidden: true
-        });
-
-        that.widgets.add_widget(that.subtree_textarea);
-
-        that.group_select = IPA.entity_select_widget({
-            entity: that.entity,
-            name: 'targetgroup',
-            other_entity: that.group_entity,
-            other_field: 'cn',
-            hidden: true
-        });
-
-        that.widgets.add_widget(that.group_select);
 
         that.type_select = IPA.select_widget({
             entity: that.entity,
             name: 'type',
-            hidden: true
+            hidden: true,
+            options: types
         });
-
-        var type_param = IPA.get_entity_param('permission', 'type');
-
-        for (var j=0; j<type_param.values.length; j++) {
-            var type_name = type_param.values[j];
-            var type_label = metadata_provider.get('@mo:'+type_name+'.label_singular');
-
-            that.type_select.options.push({
-                label: type_label,
-                value: type_name
-            });
-        }
-
         that.widgets.add_widget(that.type_select);
 
-        that.attribute_table = IPA.attributes_widget({
+        that.ipapermlocation_text = IPA.text_widget({
             entity: that.entity,
-            name: 'attrs',
-            object_type: type_param.values[0],
+            name: 'ipapermlocation',
             hidden: true
         });
+        that.widgets.add_widget(that.ipapermlocation_text);
 
+        that.extratargetfilter_text = IPA.multivalued_widget({
+            entity: that.entity,
+            name: 'extratargetfilter',
+            hidden: true
+        });
+        that.widgets.add_widget(that.extratargetfilter_text);
+
+        that.ipapermtarget_text = IPA.text_widget({
+            entity: that.entity,
+            name: 'ipapermtarget',
+            hidden: true
+        });
+        that.widgets.add_widget(that.ipapermtarget_text);
+
+        that.memberof_select = IPA.multivalued_widget({
+            name: 'memberof',
+            entity: that.entity,
+            hidden: true,
+            child_spec: {
+                $type: 'entity_select',
+                other_entity: that.group_entity,
+                other_field: 'cn'
+            }
+        });
+        that.widgets.add_widget(that.memberof_select);
+
+
+        that.attribute_table = aci.attributes_widget({
+            entity: that.entity,
+            name: 'attrs',
+            object_type: types[0].name,
+            hidden: true
+        });
         that.widgets.add_widget(that.attribute_table);
 
         that.attribute_multivalued = IPA.multivalued_widget({
@@ -760,7 +805,6 @@ IPA.permission_target_widget = function(spec) {
             name: 'attrs_multi',
             hidden: true
         });
-
         that.widgets.add_widget(that.attribute_multivalued);
     };
 
@@ -771,36 +815,63 @@ IPA.permission_target_widget = function(spec) {
 
 /**
  * Permission target policy
- * @class IPA.permission_target_policy
+ * @class aci.permission_target_policy
  * @extends IPA.facet_policy
  */
-IPA.permission_target_policy = function (spec) {
+aci.permission_target_policy = function (spec) {
 
     var that = IPA.facet_policy();
     that.widget_name = spec.widget_name;
+    that.managed = false;
 
     that.init = function() {
 
         that.permission_target = that.container.widgets.get_widget(that.widget_name);
-        var widgets = that.permission_target.widgets;
-
-        var target_select = widgets.get_widget('target');
-        target_select.value_changed.attach(function() {
-            var target = target_select.save()[0];
-            that.select_target(target);
-        });
-
-        var type_select = widgets.get_widget('type');
+        var type_select = that.permission_target.widgets.get_widget('type');
 
         type_select.value_changed.attach(function() {
-            var type = type_select.save()[0];
-            that.set_attrs_type(type, true);
+            that.apply_type();
         });
 
         type_select.undo_clicked.attach(function() {
-            var type = type_select.save()[0];
-            that.set_attrs_type(type, true);
+            that.apply_type();
         });
+    };
+
+    that.apply_type = function () {
+
+        var widgets = that.permission_target.widgets;
+        var type_select = widgets.get_widget('type');
+        var type = type_select.save()[0];
+        var new_target = type === '' ? 'general' : 'type';
+        if (that.permission_target.target !== new_target) {
+
+            var attr_table = widgets.get_widget('attrs');
+            var attr_multi = widgets.get_widget('attrs_multi');
+            var loc_w = widgets.get_widget('ipapermlocation');
+            var loc_f = that.container.fields.get_field('ipapermlocation');
+            var attrs;
+            that.select_target(new_target);
+
+            if (new_target === 'general') {
+                attrs = attr_table.save();
+                attr_multi.update(attrs);
+                attr_multi.value_changed.notify([], attr_multi);
+
+                // permission plugin resets ipapermlocation to basedn when
+                // type is unset. -> use it as pristine value so undo will
+                // work correctly.
+                var loc = [IPA.env.basedn];
+                loc_w.update(loc);
+                loc_f.values = loc;
+            } else {
+                attrs = attr_multi.save();
+                attr_table.update(attrs);
+                // notification will be done by `set_attrs_type`
+            }
+        }
+
+        that.set_attrs_type(type, true);
     };
 
     that.set_attrs_type = function(type, skip_unmatched) {
@@ -824,16 +895,19 @@ IPA.permission_target_policy = function (spec) {
     };
 
     that.post_create = function() {
-        that.select_target(that.permission_target.targets[0]);
+        that.select_target(aci.default_target);
     };
 
     that.post_load = function(data) {
 
-        var displayed_target;
+        var displayed_target = 'general';
+        var permtype = data.result.result.ipapermissiontype;
+        that.managed = permtype && permtype.indexOf("MANAGED") > -1;
+        that.system = permtype && permtype.indexOf("SYSTEM") > -1 && permtype.length === 1;
 
         for (var target in that.target_mapping) {
-
-            if (data.result.result[target]) {
+            var property = that.target_mapping[target].property;
+            if (property && data.result.result[property]) {
                 displayed_target = target;
             } else {
                 that.set_target_visible(target, false);
@@ -855,42 +929,42 @@ IPA.permission_target_policy = function (spec) {
     that.set_target_visible = function(target, visible) {
 
         var target_info = that.target_mapping[target];
-        that.set_target_visible_core(target_info, visible);
-    };
 
-    that.set_target_visible_core = function(target_info, visible) {
-        var widget = that.permission_target.widgets.get_widget(target_info.name);
-        var field = that.container.fields.get_field(target_info.name);
-        that.permission_target.set_row_visible(target_info.name, visible);
-        field.enabled = visible;
-        field.set_required(visible && target_info.required);
-        widget.hidden = !visible;
-
-        if (target_info.additional) {
-            for (var i=0; i<target_info.additional.length; i++) {
-                var nested_info = target_info.additional[i];
-                that.set_target_visible_core(nested_info, visible);
-            }
+        for (var i=0,l=target_info.fields.length; i<l; i++) {
+            var info = target_info.fields[i];
+            that.set_target_row_visible(info, visible);
         }
 
         if (visible && target_info.action) target_info.action();
     };
 
+    that.set_target_row_visible = function(target_info, visible) {
+        var widget = that.permission_target.widgets.get_widget(target_info.name);
+        var field = that.container.fields.get_field(target_info.name);
+        that.permission_target.set_row_visible(target_info.name, visible);
+        var managed_f = aci.managed_fields.indexOf(target_info.name) > -1;
+        var enabled = !(managed_f && that.managed) && visible && !that.system;
+        field.set_enabled(enabled);
+        field.set_required(visible && target_info.required);
+        widget.hidden = !visible;
+    };
 
     that.target_mapping = {
-        filter: {
-            name: 'filter',
-            required: true,
-            additional: [
+        general: {
+            fields: [
                 {
-                    name: 'attrs_multi'
-                }
-            ]
-        },
-        subtree: {
-            name: 'subtree',
-            required: true,
-            additional: [
+                    name: 'extratargetfilter'
+                },
+                {
+                    name: 'ipapermlocation',
+                    required: true
+                },
+                {
+                    name: 'ipapermtarget'
+                },
+                {
+                    name: 'type'
+                },
                 {
                     name: 'memberof'
                 },
@@ -898,27 +972,24 @@ IPA.permission_target_policy = function (spec) {
                     name: 'attrs_multi'
                 }
             ]
-        },
-        targetgroup: {
-            name: 'targetgroup',
-            required: true,
-            additional: [
-                {
-                    name: 'attrs'
-                }
-            ],
-            action: function() {
-                that.set_attrs_type('group', false);
-            }
         },
         type: {
-            name: 'type',
-            additional: [
+            property: 'type',
+            fields: [
+                {
+                    name: 'extratargetfilter'
+                },
                 {
                     name: 'memberof'
                 },
                 {
+                    name: 'type'
+                },
+                {
                     name: 'attrs'
+                },
+                {
+                    name: 'ipapermtarget'
                 }
             ],
             action: function() {
@@ -932,58 +1003,87 @@ IPA.permission_target_policy = function (spec) {
 };
 
 /**
+ * Facet policy which shows and hides managed section based on presence
+ * "MANAGED" in ippapermissiontype attribute
+ * @class aci.permission_managed_policy
+ * @extends IPA.facet_policy
+ */
+aci.permission_managed_policy = function (spec) {
+
+    var that = IPA.facet_policy();
+
+    that.post_load = function(data) {
+        var permtype = data.result.result.ipapermissiontype;
+        var managed = permtype && permtype.indexOf("MANAGED") > -1;
+        var system = permtype && permtype.indexOf("SYSTEM") > -1 && permtype.length === 1;
+        var m_section = that.container.widgets.get_widget("managed");
+        m_section.set_visible(managed);
+
+        var fields = that.container.fields.get_fields();
+        for (var i=0, l=fields.length; i<l; i++) {
+            var field = fields[i];
+            if (field.read_only) continue;
+            var managed_f = aci.managed_fields.indexOf(field.name) > -1;
+            field.set_enabled(!system && !(managed_f && managed));
+        }
+    };
+
+    return that;
+};
+
+/**
  * Permission entity spec
  * @member aci
  */
-exp.permission_entity_spec = make_permission_spec();
+aci.permission_entity_spec = make_permission_spec();
 
 /**
  * Privilege entity spec
  * @member aci
  */
-exp.privilege_entity_spec = make_privilege_spec();
+aci.privilege_entity_spec = make_privilege_spec();
 
 /**
  * Role entity spec
  * @member aci
  */
-exp.role_entity_spec = make_role_spec();
+aci.role_entity_spec = make_role_spec();
 
 /**
  * Self-service entity spec
  * @member aci
  */
-exp.selfservice_entity_spec = make_selfservice_spec();
+aci.selfservice_entity_spec = make_selfservice_spec();
 
 /**
  * Delegation entity spec
  * @member aci
  */
-exp.delegation_entity_spec = make_delegation_spec();
+aci.delegation_entity_spec = make_delegation_spec();
 
 /**
  * Register entities, widgets and fields to global registers.
  * @member aci
  */
-exp.register = function() {
+aci.register = function() {
     var e = reg.entity;
     var w = reg.widget;
     var f = reg.field;
 
-    e.register({ type: 'permission', spec: exp.permission_entity_spec });
-    e.register({ type: 'privilege', spec: exp.privilege_entity_spec });
-    e.register({ type: 'role', spec: exp.role_entity_spec });
-    e.register({ type: 'selfservice', spec: exp.selfservice_entity_spec });
-    e.register({ type: 'delegation', spec: exp.delegation_entity_spec });
+    e.register({ type: 'permission', spec: aci.permission_entity_spec });
+    e.register({ type: 'privilege', spec: aci.privilege_entity_spec });
+    e.register({ type: 'role', spec: aci.role_entity_spec });
+    e.register({ type: 'selfservice', spec: aci.selfservice_entity_spec });
+    e.register({ type: 'delegation', spec: aci.delegation_entity_spec });
 
-    w.register('attributes', IPA.attributes_widget);
+    w.register('attributes', aci.attributes_widget);
     f.register('attributes', IPA.checkboxes_field);
-    w.register('rights', IPA.rights_widget);
+    w.register('rights', aci.rights_widget);
     f.register('rights', IPA.checkboxes_field);
-    w.register('permission_target', IPA.permission_target_widget);
+    w.register('permission_target', aci.permission_target_widget);
 };
 
-phases.on('registration', exp.register);
+phases.on('registration', aci.register);
 
-return exp;
+return aci;
 });

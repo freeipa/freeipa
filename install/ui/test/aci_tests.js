@@ -1,5 +1,6 @@
 /*  Authors:
  *    Adam Young <ayoung@redhat.com>
+ *    Petr Vobornik <pvoborni@redhat.com>
  *
  * Copyright (C) 2010 Red Hat
  * see file 'COPYING' for use and warranty information
@@ -59,31 +60,32 @@ module('aci', {
                 entity: entity,
                 fields: [
                     {
-                        $type: 'select',
+                        $type: 'radio',
                         name: 'target',
                         widget: 'target.target',
                         enabled: false
                     },
                     {
-                        name: 'filter',
-                        widget: 'target.filter',
+                        $type: 'multivalued',
+                        name: 'extratargetfilter',
+                        widget: 'target.extratargetfilter',
+                        acl_param: 'ipapermtargetfilter',
                         enabled: false
                     },
                     {
-                        $type: 'entity_select',
+                        $type: 'multivalued',
                         name: 'memberof',
                         widget: 'target.memberof',
                         enabled: false
                     },
                     {
-                        name: 'subtree',
-                        widget: 'target.subtree',
+                        name: 'ipapermlocation',
+                        widget: 'target.ipapermlocation',
                         enabled: false
                     },
                     {
-                        $type: 'entity_select',
-                        name: 'targetgroup',
-                        widget: 'target.targetgroup',
+                        name: 'ipapermtarget',
+                        widget: 'target.ipapermtarget',
                         enabled: false
                     },
                     {
@@ -108,7 +110,7 @@ module('aci', {
                 widgets: [
                     {
                         $type: 'permission_target',
-                        container_factory: IPA.details_table_section,
+                        container_factory: IPA.details_section,
                         group_entity: group_entity,
                         name: 'target',
                         label: 'Target',
@@ -117,7 +119,7 @@ module('aci', {
                 ],
                 policies: [
                     {
-                        $factory: IPA.permission_target_policy,
+                        $factory: aci.permission_target_policy,
                         widget_name: 'target'
                     }
                 ]
@@ -129,12 +131,12 @@ module('aci', {
             target_widget = target_facet.widgets.get_widget('target');
         },
         teardown: function() {
-                target_container.remove();
+            target_container.remove();
         }}
 );
 
 
-test("IPA.attributes_widget.", function() {
+test("aci.attributes_widget", function() {
 
     var aciattrs = md.source.objects.user.aciattrs;
 
@@ -142,7 +144,7 @@ test("IPA.attributes_widget.", function() {
         name: 'attrs'
     });
 
-    var widget = IPA.attributes_widget({
+    var widget = aci.attributes_widget({
         name: 'attrs',
         object_type: 'user',
         entity:entity
@@ -156,6 +158,7 @@ test("IPA.attributes_widget.", function() {
         table,
         'Widget contains table');
 
+    widget.update({});
     var tr = $('tbody tr', table);
 
     same(
@@ -187,13 +190,13 @@ test("IPA.attributes_widget.", function() {
         'All loaded values are saved and sorted');
 });
 
-test("IPA.rights_widget.", function() {
+test("aci.rights_widget.", function() {
 
     var container = $('<span/>', {
         name: 'permissions'
     });
 
-    var widget = IPA.rights_widget({
+    var widget = aci.rights_widget({
         name: 'permissions',
         entity:entity
     });
@@ -224,25 +227,6 @@ var get_visible_rows = function(section) {
     return visible;
 };
 
-test("Testing aci grouptarget.", function() {
-    var data = {};
-    data.result = {};
-    data.result.result = {
-        targetgroup: 'ipausers'
-    };
-
-    target_facet.load(data);
-
-    same(target_widget.target, 'targetgroup' , 'group control selected');
-
-
-    same(get_visible_rows(target_widget), ['targetgroup', 'attrs'],
-        'group select row visible');
-
-    ok ($('option', target_widget.group_select.container).length > 2,
-        'group select populated');
-
-});
 
 test("Testing type target.", function() {
     var data = {};
@@ -262,7 +246,8 @@ test("Testing type target.", function() {
     same(record.type[0], data.result.result.type,
          "saved type matches sample data");
 
-    same(get_visible_rows(target_widget), ['memberof', 'type', 'attrs'],
+    same(get_visible_rows(target_widget), ['type', 'extratargetfilter',
+        'ipapermtarget', 'memberof', 'attrs'],
         'type and attrs rows visible');
 
     ok((record.attrs.length > 10),
@@ -270,12 +255,12 @@ test("Testing type target.", function() {
 });
 
 
-test("Testing filter target.", function() {
+test("Testing general target.", function() {
 
     var data = {};
     data.result = {};
     data.result.result = {
-        filter: 'somevalue'
+        extratargetfilter: 'somevalue'
     };
 
     target_facet.load(data);
@@ -283,30 +268,13 @@ test("Testing filter target.", function() {
     var record = {};
     target_facet.save(record);
 
-    same(target_widget.target, 'filter', 'filter selected');
+    same(target_widget.target, 'general', 'general selected');
 
-    same(get_visible_rows(target_widget), ['filter', 'attrs_multi'], 'filter row visible');
+    same(get_visible_rows(target_widget), ['type', 'ipapermlocation',
+        'extratargetfilter', 'ipapermtarget', 'memberof',
+        'attrs_multi'], 'general target fields visible');
 
-    ok(record.filter[0], data.result.result.filter, 'filter set correctly');
-});
-
-
-
-test("Testing subtree target.", function() {
-
-    var data = {};
-    data.result = {};
-    data.result.result = {
-        subtree: 'ldap:///cn=*,cn=roles,cn=accounts,dc=example,dc=co'
-    };
-
-    target_facet.load(data);
-    var record = {};
-    target_facet.save(record);
-
-    same(record.subtree[0], data.result.result.subtree, 'subtree set correctly');
-
-    same(get_visible_rows(target_widget), ['memberof', 'subtree', 'attrs_multi'], 'subtree row visible');
+    same(record.extratargetfilter[0], data.result.result.extratargetfilter, 'filter set correctly');
 });
 
 };});

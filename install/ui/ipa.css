@@ -977,6 +977,13 @@ table.scrollable tbody {
     display: inline;
 }
 
+.option_widget.columns > li {
+    float: left;
+    width: 33%;
+    min-width: 90px;
+    max-width: 150px;
+}
+
 .combobox-widget-input {
     display: inline-block;
     position: relative;

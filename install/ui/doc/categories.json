@@ -137,7 +137,8 @@
                 "classes": [
                     "*facet_policy",
                     "IPA.hide_empty_row_policy",
-                    "IPA.permission_target_policy"
+                    "aci.permission_target_policy",
+                    "aci.permission_managed_policy"
                 ]
             },
             {

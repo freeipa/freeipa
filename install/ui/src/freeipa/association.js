@@ -23,6 +23,7 @@
  * the AssociationList elements; IT NEEDS IT'S OWN CODE! */
 
 define([
+    'dojo/_base/lang',
     'dojo/Deferred',
     './metadata',
     './ipa',
@@ -35,7 +36,7 @@ define([
     './facet',
     './search',
     './dialog'],
-        function(Deferred, metadata_provider, IPA, $, navigation,
+        function(lang, Deferred, metadata_provider, IPA, $, navigation,
                  phases, reg, su, text) {
 
 /**
@@ -233,6 +234,12 @@ IPA.association_adder_dialog = function(spec) {
     that.entity = IPA.get_entity(spec.entity);
     that.pkey = spec.pkey;
 
+    /**
+     * Map of options for search method
+     * @property {Object}
+     */
+    that.search_options = spec.search_options;
+
     that.other_entity = IPA.get_entity(spec.other_entity);
     that.attribute_member = spec.attribute_member;
 
@@ -277,6 +284,10 @@ IPA.association_adder_dialog = function(spec) {
         }
 
         var options = { all: true };
+        if (that.search_options) {
+            lang.mixin(options, that.search_options);
+        }
+
         var relationships = that.other_entity.metadata.relationships;
 
         /* TODO: better generic handling of different relationships! */
@@ -947,6 +958,12 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
 
     that.adder_columns = $.ordered_map();
 
+    /**
+     * Map of search options for adder dialog
+     * @property {Object}
+     */
+    that.search_options = spec.search_options;
+
     that.get_adder_column = function(name) {
         return that.adder_columns.get(name);
     };
@@ -1110,7 +1127,8 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
             pkey: pkey,
             other_entity: that.other_entity,
             attribute_member: that.attribute_member,
-            exclude: pkeys
+            exclude: pkeys,
+            search_options: that.search_options
         });
 
         var adder_columns = that.adder_columns.values;

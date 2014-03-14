@@ -684,7 +684,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
     that.is_dirty = function() {
         var fields = that.fields.get_fields();
         for (var i=0; i<fields.length; i++) {
-            if (fields[i].is_dirty()) {
+            if (fields[i].enabled && fields[i].is_dirty()) {
                 return true;
             }
         }
@@ -734,18 +734,15 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
      */
     that.save_as_update_info = function(only_dirty, require_value) {
 
-        var record = {};
         var update_info = IPA.update_info_builder.new_update_info();
         var fields = that.fields.get_fields();
-
-        that.save(record);
 
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
 
-            if (only_dirty && !field.is_dirty()) continue;
+            if (!field.enabled || only_dirty && !field.is_dirty()) continue;
 
-            var values = record[field.param];
+            var values = field.save();
             if (require_value && !values) continue;
 
             update_info.append_field(field, values);

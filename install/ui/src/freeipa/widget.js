@@ -676,7 +676,7 @@ IPA.multivalued_widget = function(spec) {
 
     var that = IPA.input_widget(spec);
 
-    that.widget_factory = spec.widget_factory || IPA.text_widget;
+    that.child_spec = spec.child_spec;
     that.size = spec.size || 30;
     that.undo_control;
     that.initialized = false;
@@ -811,14 +811,18 @@ IPA.multivalued_widget = function(spec) {
 
         row.container = $('<div/>', { name: 'value'});
 
-        row.widget = that.widget_factory({
-            name: that.name+'-'+row_index,
-            undo: that.undo || row.is_new,
-            read_only: that.read_only,
-            writable: that.writable,
-            enabled: that.enabled
-        });
+        var spec = that.child_spec || {};
+        if (typeof spec !== 'function') {
+                lang.mixin(spec, {
+                name: that.name+'-'+row_index,
+                undo: that.undo || row.is_new,
+                read_only: that.read_only,
+                writable: that.writable,
+                enabled: that.enabled
+            });
+        }
 
+        row.widget = builder.build('widget', spec);
         row.widget.create(row.container);
 
         row.original_values = values;
@@ -1415,7 +1419,7 @@ IPA.option_widget_base = function(spec, that) {
 
     that.set_enabled = function(enabled) {
 
-        that.enabled = enabled;
+        that.widget_set_enabled(enabled);
         that.update_enabled(enabled);
     };
 
@@ -4718,7 +4722,7 @@ IPA.widget_builder = function(spec) {
 IPA.sshkeys_widget = function(spec) {
 
     spec = spec || {};
-    spec.widget_factory = IPA.sshkey_widget;
+    spec.child_spec = IPA.sshkey_widget;
 
     var that = IPA.multivalued_widget(spec);
 

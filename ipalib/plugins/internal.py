@@ -506,9 +506,8 @@ class i18n_messages(Command):
                 "enable": "Enable token",
             },
             "permission": {
-                "identity": _("Identity"),
-                "invalid_target": _("Permission with invalid target specification"),
-                "rights": _("Rights"),
+                "identity": _("Permission settings"),
+                "managed": _("Attribute breakdown"),
                 "target": _("Target"),
             },
             "privilege": {

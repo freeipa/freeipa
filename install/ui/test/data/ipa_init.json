@@ -371,9 +371,8 @@
                             "enable": "Enable token"
                         },
                         "permission": {
-                            "identity": "Identity",
-                            "invalid_target": "Permission with invalid target specification",
-                            "rights": "Rights",
+                            "identity": "Permission settings",
+                            "managed": "Attribute breakdown",
                             "target": "Target"
                         },
                         "privilege": {

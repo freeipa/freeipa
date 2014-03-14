@@ -57,11 +57,14 @@ PERMISSION_DATA = {
     'pkey': PERMISSION_PKEY,
     'add': [
         ('textbox', 'cn', PERMISSION_PKEY),
-        ('checkbox', 'permissions', 'write'),
-        ('textbox', 'filter', 'cn=user'),
+        ('checkbox', 'ipapermright', 'write'),
+        ('checkbox', 'ipapermright', 'read'),
+        ('selectbox', 'type', 'user'),
+        ('table', 'attrs', 'audio'),
+        ('table', 'attrs', 'cn'),
     ],
     'mod': [
-        ('textbox', 'filter', 'cn=user2'),
+        ('table', 'attrs', 'carlicense'),
     ],
 }
 
