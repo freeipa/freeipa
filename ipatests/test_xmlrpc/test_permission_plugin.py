@@ -1163,7 +1163,7 @@ class test_permission(Declarative):
                         'dn': DN(('cn','Add user to default group'),
                                  api.env.container_permission, api.env.basedn),
                         'cn': [u'Add user to default group'],
-                        'objectclass': objectclasses.permission,
+                        'objectclass': objectclasses.system_permission,
                         'member_privilege': [u'User Administrators'],
                         'attrs': [u'member'],
                         'targetgroup': [u'ipausers'],

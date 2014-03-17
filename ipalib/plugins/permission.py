@@ -624,7 +624,7 @@ class permission(baseldap.LDAPObject):
             from the ACI corresponding to ``entry``.
             If None, ``entry`` itself is filled
         :param output_only:
-            If true, the flags are not updated to V2.
+            If true, the flags & objectclass are not updated to V2.
             Used for the -find and -show commands.
         :param cached_acientry:
             Optional pre-retreived entry that contains the existing ACI.
@@ -665,10 +665,9 @@ class permission(baseldap.LDAPObject):
 
         if not output_only:
             target_entry['ipapermissiontype'] = ['SYSTEM', 'V2']
-
-        if 'ipapermissionv2' not in entry['objectclass']:
-            target_entry['objectclass'] = list(entry['objectclass']) + [
-                u'ipapermissionv2']
+            if 'ipapermissionv2' not in entry['objectclass']:
+                target_entry['objectclass'] = list(entry['objectclass']) + [
+                    u'ipapermissionv2']
 
         target_entry['ipapermlocation'] = [self.api.env.basedn]
 
