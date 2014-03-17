@@ -726,9 +726,12 @@ span.main-separator{
     font-size: 0.9em;
 }
 
-.action-button-disabled {
+.action-button-disabled,
+.action-button-disabled:focus,
+.action-button-disabled:hover {
     color: gray;
     cursor: default;
+    outline: none;
 }
 
 .button-disabled {
