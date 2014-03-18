@@ -300,6 +300,7 @@ class Param(ReadOnly):
 
       - cli_name: option name in CLI
       - cli_short_name: one character version of cli_name
+      - deprecated_cli_aliases: deprecated CLI aliases
       - label: very short description of the parameter. This value is used in
         when the Command output is printed to CLI or in a Command help
       - doc: parameter long description used in help
@@ -384,6 +385,7 @@ class Param(ReadOnly):
     kwargs = (
         ('cli_name', str, None),
         ('cli_short_name', str, None),
+        ('deprecated_cli_aliases', frozenset, frozenset()),
         ('label', (basestring, Gettext), None),
         ('doc', (basestring, Gettext), None),
         ('required', bool, True),

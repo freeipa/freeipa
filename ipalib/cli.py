@@ -1102,7 +1102,18 @@ class cli(backend.Executioner):
             description=unicode(cmd.doc),
             formatter=IPAHelpFormatter(),
         )
+
         option_groups = {}
+
+        def _get_option_group(group_name):
+            """Get or create an option group for the given name"""
+            option_group = option_groups.get(group_name)
+            if option_group is None:
+                option_group = optparse.OptionGroup(parser, group_name)
+                parser.add_option_group(option_group)
+                option_groups[group_name] = option_group
+            return option_group
+
         for option in cmd.options():
             kw = dict(
                 dest=option.name,
@@ -1122,22 +1133,25 @@ class cli(backend.Executioner):
             else:
                 kw['metavar'] = option.__class__.__name__.upper()
 
+            cli_name = to_cli(option.cli_name)
+            option_names = ['--%s' % cli_name]
             if option.cli_short_name:
-                o = optparse.make_option('-%s' % option.cli_short_name, '--%s' % to_cli(option.cli_name), **kw)
+                option_names.append('-%s' % option.cli_short_name)
+            opt = optparse.make_option(*option_names, **kw)
+            if option.option_group is None:
+                parser.add_option(opt)
             else:
-                o = optparse.make_option('--%s' % to_cli(option.cli_name), **kw)
+                _get_option_group(option.option_group).add_option(opt)
 
-            if option.option_group is not None:
-                option_group = option_groups.get(option.option_group)
-                if option_group is None:
-                    option_group = optparse.OptionGroup(parser,
-                                                        option.option_group)
-                    parser.add_option_group(option_group)
-                    option_groups[option.option_group] = option_group
-
-                option_group.add_option(o)
-            else:
-                parser.add_option(o)
+            if option.deprecated_cli_aliases:
+                new_kw = dict(kw)
+                new_kw['help'] = _('Same as --%s') % cli_name
+                if isinstance(option, Enum):
+                    new_kw['metavar'] = 'VAL'
+                group = _get_option_group(unicode(_('Deprecated options')))
+                for alias in option.deprecated_cli_aliases:
+                    name = '--%s' % alias
+                    group.add_option(optparse.make_option(name, **new_kw))
 
         for arg in cmd.args():
             name = self.__get_arg_name(arg, format_name=False)
