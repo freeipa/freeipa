@@ -21,13 +21,11 @@
 Functionality for Command Line Interface.
 """
 
-import re
 import textwrap
 import sys
 import getpass
 import code
 import optparse
-import socket
 import fcntl
 import termios
 import struct
@@ -45,12 +43,11 @@ except ImportError:
 import frontend
 import backend
 import plugable
-import util
 from errors import (PublicError, CommandError, HelpError, InternalError,
-        NoSuchNamespaceError, ValidationError, NotFound, NotConfiguredError,
-        PromptFailed, ConversionError)
+                    NoSuchNamespaceError, ValidationError, NotFound,
+                    NotConfiguredError, PromptFailed)
 from constants import CLI_TAB
-from parameters import Password, Bytes, File, Str, StrEnum, Any
+from parameters import File, Str, StrEnum, Any
 from text import _
 from ipapython.version import API_VERSION
 
