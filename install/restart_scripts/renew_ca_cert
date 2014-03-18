@@ -21,19 +21,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-import os
 import syslog
 import tempfile
 import shutil
 import traceback
 
-from ipapython import dogtag, certmonger, ipautil
+from ipapython import dogtag, ipautil
 from ipapython.dn import DN
 from ipalib import api, errors, x509, certstore
 from ipaserver.install import certs, cainstance, installutils
 from ipaserver.plugins.ldap2 import ldap2
 from ipaplatform import services
 from ipaplatform.paths import paths
+
 
 def main():
     nickname = sys.argv[1]
@@ -70,8 +70,6 @@ def main():
         syslog.syslog(syslog.LOG_ERR, 'No certificate %s found.' % nickname)
         sys.exit(1)
 
-    cainstance.update_cert_config(nickname, cert, configured_constants)
-
     tmpdir = tempfile.mkdtemp(prefix="tmp-")
     try:
         principal = str('host/%s@%s' % (api.env.host, api.env.realm))
@@ -79,6 +77,7 @@ def main():
                                              principal)
 
         ca = cainstance.CAInstance(host_name=api.env.host, ldapi=False)
+        ca.update_cert_config(nickname, cert, configured_constants)
         if ca.is_renewal_master():
             cainstance.update_people_entry(cert)
 
@@ -198,7 +197,9 @@ def main():
     # off the servlet to verify that the CA is actually up and responding so
     # when this returns it should be good-to-go. The CA was stopped in the
     # pre-save state.
-    syslog.syslog(syslog.LOG_NOTICE, 'Starting %s' % dogtag_service.service_name)
+    syslog.syslog(
+        syslog.LOG_NOTICE,
+        'Starting %s' % dogtag_service.service_name)
     try:
         dogtag_service.start(dogtag_instance)
     except Exception, e:

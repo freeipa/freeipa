@@ -125,7 +125,8 @@ class BasePathNamespace(object):
     HOME_DIR = "/home"
     ROOT_IPA_CACHE = "/root/.ipa_cache"
     ROOT_PKI = "/root/.pki"
-    CA_AGENT_P12 = "/root/ca-agent.p12"
+    DOGTAG_AGENT_P12 = "/root/ca-agent.p12"
+    DOGTAG_AGENT_PEM = "/etc/httpd/alias/agent.pem"
     CACERT_P12 = "/root/cacert.p12"
     ROOT_IPA_CSR = "/root/ipa.csr"
     ROOT_TMP_CA_P12 = "/root/tmp-ca.p12"
@@ -218,7 +219,7 @@ class BasePathNamespace(object):
     SCHEMA_COMPAT_ULDIF = "/usr/share/ipa/schema_compat.uldif"
     IPA_JS_PLUGINS_DIR = "/usr/share/ipa/ui/js/plugins"
     UPDATES_DIR = "/usr/share/ipa/updates/"
-    PKI_CONF_SERVER_XML = "/usr/share/pki/ca/conf/server.xml"
+    PKI_CONF_SERVER_XML_TEMPLATE = "/usr/share/pki/%s/conf/server.xml"
     CACHE_IPA_SESSIONS = "/var/cache/ipa/sessions"
     VAR_KERBEROS_KRB5KDC_DIR = "/var/kerberos/krb5kdc/"
     VAR_KRB5KDC_K5_REALM = "/var/kerberos/krb5kdc/.k5."
@@ -254,6 +255,8 @@ class BasePathNamespace(object):
     PKI_ALIAS_CA_P12 = "/var/lib/pki-ca/alias/ca.p12"
     VAR_LIB_PKI_TOMCAT_DIR = "/var/lib/pki/pki-tomcat"
     CA_BACKUP_KEYS_P12 = "/var/lib/pki/pki-tomcat/alias/ca_backup_keys.p12"
+    KRA_BACKUP_KEYS_P12 = "/var/lib/pki/pki-tomcat/alias/kra_backup_keys.p12"
+    KRACERT_P12 = "/root/kracert.p12"
     SAMBA_DIR = "/var/lib/samba/"
     SSSD_MC_GROUP = "/var/lib/sss/mc/group"
     SSSD_MC_PASSWD = "/var/lib/sss/mc/passwd"
@@ -282,6 +285,8 @@ class BasePathNamespace(object):
     PKI_CA_LOG_DIR = "/var/log/pki-ca"
     PKI_CA_INSTALL_LOG = "/var/log/pki-ca-install.log"
     PKI_CA_UNINSTALL_LOG = "/var/log/pki-ca-uninstall.log"
+    PKI_KRA_INSTALL_LOG = "/var/log/pki-kra-install.log"
+    PKI_KRA_UNINSTALL_LOG = "/var/log/pki-kra-uninstall.log"
     VAR_LOG_PKI_DIR = "/var/log/pki/"
     TOMCAT_TOPLEVEL_DIR = "/var/log/pki/pki-tomcat"
     TOMCAT_CA_DIR = "/var/log/pki/pki-tomcat/ca"
@@ -296,5 +301,8 @@ class BasePathNamespace(object):
     KRB5CC_SAMBA = "/var/run/samba/krb5cc_samba"
     SLAPD_INSTANCE_SOCKET_TEMPLATE = "/var/run/slapd-%s.socket"
     ALL_SLAPD_INSTANCE_SOCKETS = "/var/run/slapd-*.socket"
+    ADMIN_CERT_PATH = '/root/.dogtag/pki-tomcat/ca_admin.cert'
+    ENTROPY_AVAIL = '/proc/sys/kernel/random/entropy_avail'
+
 
 path_namespace = BasePathNamespace

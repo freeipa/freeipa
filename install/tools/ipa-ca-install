@@ -19,23 +19,20 @@
 #
 
 import sys
-import socket
-
-import os, shutil
+import os
+import shutil
 from ConfigParser import RawConfigParser
-
 from ipapython import ipautil
 
-from ipaserver.install import installutils, service
+from ipaserver.install import installutils
 from ipaserver.install import certs
-from ipaserver.install.installutils import (HostnameLocalhost, ReplicaConfig,
-        expand_replica_info, read_replica_info, get_host_name, BadHostError,
-        private_ccache, read_replica_info_dogtag_port, validate_external_cert)
+from ipaserver.install.installutils import (
+    ReplicaConfig, private_ccache, create_replica_config,
+    validate_external_cert)
 from ipaserver.install import dsinstance, cainstance, bindinstance
 from ipaserver.install.replication import replica_conn_check
 from ipapython import version
-from ipalib import api, util, certstore, x509
-from ipalib.constants import CACERT
+from ipalib import api, certstore, x509
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
@@ -95,8 +92,11 @@ def parse_options():
 
     return safe_options, options, filename
 
+
 def get_dirman_password():
-    return installutils.read_password("Directory Manager (existing master)", confirm=False, validate=False)
+    return installutils.read_password(
+        "Directory Manager (existing master)", confirm=False, validate=False)
+
 
 def install_dns_records(config, options):
 
@@ -115,13 +115,15 @@ def install_dns_records(config, options):
         bind.add_ipa_ca_dns_records(config.host_name, config.domain_name)
     finally:
         if api.Backend.ldap2.isconnected() and disconnect:
-             api.Backend.ldap2.disconnect()
+            api.Backend.ldap2.disconnect()
+
 
 def install_replica(safe_options, options, filename):
     standard_logging_setup(log_file_name, debug=options.debug)
 
-    root_logger.debug('%s was invoked with argument "%s" and options: %s' % (sys.argv[0], filename, safe_options))
-    root_logger.debug('IPA version %s' % version.VENDOR_VERSION)
+    root_logger.debug('%s was invoked with argument "%s" and options: %s',
+        sys.argv[0], filename, safe_options)
+    root_logger.debug('IPA version %s', version.VENDOR_VERSION)
 
     if not ipautil.file_exists(filename):
         sys.exit("Replica file %s does not exist" % filename)
@@ -151,38 +153,13 @@ def install_replica(safe_options, options, filename):
             sys.exit("Directory Manager password required")
 
     if not options.admin_password and not options.skip_conncheck and \
-        options.unattended:
-            sys.exit('admin password required')
+            options.unattended:
+        sys.exit('admin password required')
 
-    try:
-        top_dir, dir = expand_replica_info(filename, dirman_password)
-        global REPLICA_INFO_TOP_DIR
-        REPLICA_INFO_TOP_DIR = top_dir
-    except Exception, e:
-        print "ERROR: Failed to decrypt or open the replica file."
-        print "Verify you entered the correct Directory Manager password."
-        sys.exit(1)
-
-    config = ReplicaConfig()
-    read_replica_info(dir, config)
-    config.dirman_password = dirman_password
-    try:
-        host = get_host_name(options.no_host_dns)
-    except BadHostError, e:
-        root_logger.error(str(e))
-        sys.exit(1)
-    if config.host_name != host:
-        try:
-            print "This replica was created for '%s' but this machine is named '%s'" % (config.host_name, host)
-            if not ipautil.user_input("This may cause problems. Continue?", True):
-                sys.exit(0)
-            config.host_name = host
-            print ""
-        except KeyboardInterrupt:
-            sys.exit(0)
-    config.dir = dir
+    config = create_replica_config(dirman_password, filename, options)
+    global REPLICA_INFO_TOP_DIR
+    REPLICA_INFO_TOP_DIR = config.top_dir
     config.setup_ca = True
-    config.ca_ds_port = read_replica_info_dogtag_port(config.dir)
 
     if not ipautil.file_exists(config.dir + "/cacert.p12"):
         print 'CA cannot be installed in CA-less setup.'
@@ -206,7 +183,7 @@ def install_replica(safe_options, options, filename):
                    ipautil.realm_to_suffix(config.realm_name))
 
     # This is done within stopped_service context, which restarts CA
-    CA.enable_client_auth_to_db()
+    CA.enable_client_auth_to_db(CA.dogtag_constants.CS_CFG_PATH)
 
     # Install CA DNS records
     install_dns_records(config, options)
@@ -225,12 +202,13 @@ def install_replica(safe_options, options, filename):
         root_logger.error(str(e))
         sys.exit(1)
 
+
 def install_master(safe_options, options):
     standard_logging_setup(paths.IPASERVER_CA_INSTALL_LOG, debug=options.debug)
 
     root_logger.debug(
-        "%s was invoked with options: %s" % (sys.argv[0], safe_options))
-    root_logger.debug("IPA version %s" % version.VENDOR_VERSION)
+        "%s was invoked with options: %s", sys.argv[0], safe_options)
+    root_logger.debug("IPA version %s", version.VENDOR_VERSION)
 
     global sstore
     sstore = sysrestore.StateFile(paths.SYSRESTORE)
@@ -316,7 +294,8 @@ def install_master(safe_options, options):
                        "cannot continue." % (subject, db.secdir))
                 sys.exit(1)
 
-    ca = cainstance.CAInstance(realm_name, certs.NSS_DIR,
+    ca = cainstance.CAInstance(
+        realm_name, certs.NSS_DIR,
         dogtag_constants=dogtag.install_constants)
     ca.create_ra_agent_db = False
     if external == 0:
@@ -338,7 +317,7 @@ def install_master(safe_options, options):
     ca.ldap_enable('CA', host_name, dm_password,
                    ipautil.realm_to_suffix(realm_name), ['caRenewalMaster'])
 
-    ca.enable_client_auth_to_db()
+    ca.enable_client_auth_to_db(ca.dogtag_constants.CS_CFG_PATH)
 
     # Install CA DNS records
     config = ReplicaConfig()
@@ -396,6 +375,7 @@ def install_master(safe_options, options):
 
     ca.start(ca.dogtag_constants.PKI_INSTANCE_NAME)
 
+
 def main():
     safe_options, options, filename = parse_options()
 
@@ -416,8 +396,8 @@ if __name__ == '__main__':
     try:
         with private_ccache():
             installutils.run_script(main, log_file_name=log_file_name,
-                    operation_name='ipa-ca-install',
-                    fail_message=fail_message)
+                                    operation_name='ipa-ca-install',
+                                    fail_message=fail_message)
     finally:
         # always try to remove decrypted replica file
         try:

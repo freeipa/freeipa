@@ -537,12 +537,15 @@ def named_update_gssapi_configuration():
         return False
 
     try:
-        bindinstance.named_conf_set_directive('tkey-gssapi-credential', None,
-                                              bindinstance.NAMED_SECTION_OPTIONS)
-        bindinstance.named_conf_set_directive('tkey-domain', None,
-                                              bindinstance.NAMED_SECTION_OPTIONS)
-        bindinstance.named_conf_set_directive('tkey-gssapi-keytab', paths.NAMED_KEYTAB,
-                                              bindinstance.NAMED_SECTION_OPTIONS)
+        bindinstance.named_conf_set_directive(
+            'tkey-gssapi-credential', None,
+            bindinstance.NAMED_SECTION_OPTIONS)
+        bindinstance.named_conf_set_directive(
+            'tkey-domain', None,
+            bindinstance.NAMED_SECTION_OPTIONS)
+        bindinstance.named_conf_set_directive(
+            'tkey-gssapi-keytab', paths.NAMED_KEYTAB,
+            bindinstance.NAMED_SECTION_OPTIONS)
     except IOError, e:
         root_logger.error('Cannot update GSSAPI configuration in %s: %s',
                 bindinstance.NAMED_CONF, e)
@@ -552,6 +555,7 @@ def named_update_gssapi_configuration():
 
     sysupgrade.set_upgrade_state('named.conf', 'gssapi_updated', True)
     return True
+
 
 def named_update_pid_file():
     """
@@ -723,7 +727,7 @@ def certificate_renewal_update(ca):
 
     # Ok, now we need to stop tracking, then we can start tracking them
     # again with new configuration:
-    cainstance.stop_tracking_certificates(dogtag_constants)
+    ca.stop_tracking_certificates(dogtag_constants)
 
     if not sysupgrade.get_upgrade_state('dogtag',
                                         'certificate_renewal_update_1'):
@@ -884,71 +888,9 @@ def add_ca_dns_records():
 def find_subject_base():
     """
     Try to find the current value of certificate subject base.
-    1) Look in sysupgrade first
-    2) If no value is found there, look in DS (start DS if necessary)
-    3) Last resort, look in the certmap.conf itself
-    4) If all fails, log loudly and return None
+    See the docstring in dsinstance.DsInstance for details.
     """
-    root_logger.debug('Trying to find certificate subject base in sysupgrade')
-    subject_base = sysupgrade.get_upgrade_state('certmap.conf', 'subject_base')
-
-    if subject_base:
-        root_logger.debug(
-            'Found certificate subject base in sysupgrade: %s',
-            subject_base
-        )
-        return subject_base
-
-    root_logger.debug('Unable to find certificate subject base in sysupgrade')
-    root_logger.debug('Trying to find certificate subject base in DS')
-
-    ds_is_running = services.knownservices.dirsrv.is_running()
-    if not ds_is_running:
-        try:
-            services.knownservices.dirsrv.start()
-        except ipautil.CalledProcessError as e:
-            root_logger.error('Cannot start DS to find certificate '
-                              'subject base: %s', e)
-        else:
-            ds_is_running = True
-
-    if ds_is_running:
-        try:
-            api.Backend.ldap2.connect(autobind=True)
-        except ipalib.errors.PublicError, e:
-            root_logger.error('Cannot connect to DS to find certificate '
-                              'subject base: %s', e)
-        else:
-            ret = api.Command['config_show']()
-            api.Backend.ldap2.disconnect()
-            subject_base = str(ret['result']['ipacertificatesubjectbase'][0])
-            root_logger.debug(
-                'Found certificate subject base in DS: %s',
-                subject_base
-            )
-
-    if not subject_base:
-        root_logger.debug('Unable to find certificate subject base in DS')
-        root_logger.debug('Trying to find certificate subject base in '
-                          'certmap.conf')
-
-        certmap_dir = dsinstance.config_dirname(
-            dsinstance.realm_to_serverid(api.env.realm)
-        )
-        try:
-            with open(os.path.join(certmap_dir, 'certmap.conf')) as f:
-                for line in f:
-                    if line.startswith('certmap ipaca'):
-                        subject_base = line.strip().split(',')[-1]
-                        root_logger.debug(
-                            'Found certificate subject base in certmap.conf: '
-                            '%s',
-                            subject_base
-                        )
-
-        except IOError as e:
-            root_logger.error('Cannot open certmap.conf to find certificate '
-                              'subject base: %s', e.strerror)
+    subject_base =  dsinstance.DsInstance().find_subject_base()
 
     if subject_base:
         sysupgrade.set_upgrade_state(
@@ -958,8 +900,6 @@ def find_subject_base():
         )
         return subject_base
 
-    root_logger.debug('Unable to find certificate subject base in '
-                      'certmap.conf')
     root_logger.error('Unable to determine certificate subject base. '
                       'certmap.conf will not be updated.')
 

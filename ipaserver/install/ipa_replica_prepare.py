@@ -371,6 +371,7 @@ class ReplicaPrepare(admintool.AdminTool):
         cacert_filename = paths.CACERT_PEM
         if ipautil.file_exists(cacert_filename):
             self.copy_info_file(cacert_filename, "cacert.pem")
+        self.copy_info_file(paths.IPA_DEFAULT_CONF, "default.conf")
 
     def save_config(self):
         self.log.info("Finalizing configuration")

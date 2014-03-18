@@ -47,6 +47,7 @@ PY_EXPLICIT_FILES = \
      install/tools/ipa-csreplica-manage \
      install/tools/ipactl \
      install/tools/ipa-dns-install \
+     install/tools/ipa-kra-install \
      install/tools/ipa-ldap-updater \
      install/tools/ipa-managed-entries \
      install/tools/ipa-nis-manage \

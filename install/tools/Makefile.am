@@ -7,6 +7,7 @@ SUBDIRS = 			\
 sbin_SCRIPTS =			\
 	ipa-ca-install		\
 	ipa-dns-install		\
+	ipa-kra-install		\
 	ipa-server-install	\
 	ipa-adtrust-install	\
 	ipa-replica-conncheck	\

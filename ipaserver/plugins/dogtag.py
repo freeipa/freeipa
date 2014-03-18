@@ -1,10 +1,11 @@
 # Authors:
+#   Ade Lee <alee@redhat.com>
 #   Andrew Wnuk <awnuk@redhat.com>
 #   Jason Gerard DeRose <jderose@redhat.com>
 #   Rob Crittenden <rcritten@@redhat.com>
 #   John Dennis <jdennis@redhat.com>
 #
-# Copyright (C) 2009  Red Hat
+# Copyright (C) 2014  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -34,7 +35,7 @@ variety of names, the open source version is called "dogtag".
 
 CMS consists of a number of servlets which in rough terms can be thought of as
 RPC commands. A servlet is invoked by making an HTTP request to a specific URL
-and passing URL arguments. Normally CMS responds with an HTTP reponse consisting
+and passing URL arguments. Normally CMS responds with an HTTP response consisting
 of HTML to be rendered by a web browser. This HTTP HTML response has both
 Javascript SCRIPT components and HTML rendering code. One of the Javascript
 SCRIPT blocks holds the data for the result. The rest of the response is derived
@@ -42,13 +43,13 @@ from templates associated with the servlet which may be customized. The
 templates pull the result data from Javascript variables.
 
 One way to get the result data is to parse the HTML looking for the Javascript
-varible initializations. Simple string searchs are not a robust method. First of
+variable initializations. Simple string searches are not a robust method. First of
 all one must be sure the string is only found in a Javascript SCRIPT block and
 not somewhere else in the HTML document. Some of the Javascript variable
 initializations are rather complex (e.g. lists of structures). It would be hard
 to correctly parse such complex and diverse Javascript. Existing Javascript
 parsers are not generally available. Finally, it's important to know the
-character encoding for strings. There is a somewhat complex set of precident
+character encoding for strings. There is a somewhat complex set of precedent
 rules for determining the current character encoding from the HTTP header,
 meta-equiv tags, mime Content-Type and charset attributes on HTML elements. All
 of this means trying to read the result data from a CMS HTML response is
@@ -119,7 +120,7 @@ values. Python also nicely handles type promotion transparently between int
 and long objects. For example if you multiply two int objects you may get back
 a long object if necessary. In general Python int and long objects may be
 freely mixed without the programmer needing to be aware of which type of
-intergral object is being operated on.
+integral object is being operated on.
 
 The leads to the following rule, always parse a string representing an
 integral value using the int() constructor even if it might have large
@@ -229,20 +230,28 @@ as a dict via the 'namespaces' keyword parameter of etree.XPath(). The predicate
 for the second location step uses the 're:' namespace to find the function name
 'match'. The re:match() takes a string to search as its first argument and a
 regular expression pattern as its second argument. In this example the string
-to seach is the node name of the location step because we called the built-in
+to search is the node name of the location step because we called the built-in
 node() function of XPath. The regular expression pattern we've passed says it's
 a match if the string begins with 'chapter' is followed by any number of
 digits and nothing else follows.
 
 '''
 
-from lxml import etree
-import urllib2
 import datetime
+from lxml import etree
+import tempfile
 import time
+import urllib2
+
+from pki.client import PKIConnection
+import pki.crypto as cryptoutil
+from pki.kra import KRAClient
+
+from ipalib import Backend
 from ipapython.dn import DN
 import ipapython.dogtag
 from ipapython import ipautil
+from ipaserver.install.certs import CertDB
 
 # These are general status return values used when
 # CMSServlet.outputError() is invoked.
@@ -259,6 +268,7 @@ CMS_STATUS_SVC_PENDING  = 4
 CMS_STATUS_REJECTED     = 5
 CMS_STATUS_ERROR        = 6
 CMS_STATUS_EXCEPTION    = 7
+
 
 def cms_request_status_to_string(request_status):
     '''
@@ -290,7 +300,7 @@ def parse_and_set_boolean_xml(node, response, response_name):
     '''
     :param node:          xml node object containing value to parse for boolean result
     :param response:      response dict to set boolean result in
-    :param response_name: name of the respone value to set
+    :param response_name: name of the response value to set
     :except ValueError:
 
     Read the value out of a xml text node and interpret it as a boolean value.
@@ -646,7 +656,7 @@ def parse_check_request_result_xml(doc):
     +-------------------------+---------------+-------------------+-----------------+
     |requestId                |string         |request_id         |string           |
     +-------------------------+---------------+-------------------+-----------------+
-    |staus                    |string         |cert_request_status|unicode [1]_     |
+    |status                   |string         |cert_request_status|unicode [1]_     |
     +-------------------------+---------------+-------------------+-----------------+
     |createdOn                |long, timestamp|created_on         |datetime.datetime|
     +-------------------------+---------------+-------------------+-----------------+
@@ -1199,6 +1209,57 @@ def parse_unrevoke_cert_xml(doc):
 
     return response
 
+
+def host_has_service(host, ldap2, service='CA'):
+    """
+    :param host: A host which might be a master for a service.
+    :param ldap2: connection to the local database
+    :param service: The service for which the host might be a master.
+    :return:   (true, false)
+
+    Check if a specified host is a master for a specified service.
+    """
+    base_dn = DN(('cn', host), ('cn', 'masters'), ('cn', 'ipa'),
+                 ('cn', 'etc'), api.env.basedn)
+    filter_attrs = {
+        'objectClass': 'ipaConfigObject',
+        'cn': service,
+        'ipaConfigString': 'enabledService',
+        }
+    query_filter = ldap2.make_filter(filter_attrs, rules='&')
+    try:
+        ent, trunc = ldap2.find_entries(filter=query_filter, base_dn=base_dn)
+        if len(ent):
+            return True
+    except Exception:
+        pass
+    return False
+
+
+def select_any_master(ldap2, service='CA'):
+    """
+    :param ldap2: connection to the local database
+    :param service: The service for which we're looking for a master.
+    :return:   host as str
+
+    Select any host which is a master for a specified service.
+    """
+    base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
+                  api.env.basedn)
+    filter_attrs = {
+         'objectClass': 'ipaConfigObject',
+         'cn': service,
+         'ipaConfigString': 'enabledService',}
+    query_filter = ldap2.make_filter(filter_attrs, rules='&')
+    try:
+        ent, trunc = ldap2.find_entries(filter=query_filter, base_dn=base_dn)
+        if len(ent):
+            entry = random.choice(ent)
+            return entry.dn[1].value
+    except Exception:
+        pass
+    return None
+
 #-------------------------------------------------------------------------------
 
 from ipalib import api, SkipPluginModule
@@ -1213,6 +1274,7 @@ from ipalib.util import cachedproperty
 from ipapython import dogtag
 from ipalib import _
 from ipaplatform.paths import paths
+
 
 class ra(rabase.rabase):
     """
@@ -1258,57 +1320,6 @@ class ra(rabase.rabase):
         self.error('%s.%s(): %s', self.fullname, func_name, err_msg)
         raise CertificateOperationError(error=err_msg)
 
-    def _host_has_service(self, host, service='CA'):
-        """
-        :param host: A host which might be a master for a service.
-        :param service: The service for which the host might be a master.
-        :return:   (true, false)
-
-        Check if a specified host is a master for a specified service.
-        """
-        ldap2 = self.api.Backend.ldap2
-        base_dn = DN(('cn', host), ('cn', 'masters'), ('cn', 'ipa'),
-                     ('cn', 'etc'), api.env.basedn)
-        filter_attrs = {
-            'objectClass': 'ipaConfigObject',
-            'cn': service,
-            'ipaConfigString': 'enabledService',
-        }
-        filter = ldap2.make_filter(filter_attrs, rules='&')
-        try:
-            ent, trunc = ldap2.find_entries(filter=filter, base_dn=base_dn)
-            if len(ent):
-                return True
-        except Exception, e:
-            pass
-        return False
-
-    def _select_any_master(self, service='CA'):
-        """
-        :param service: The service for which we're looking for a master.
-        :return:   host
-                   as str
-
-        Select any host which is a master for a specified service.
-        """
-        ldap2 = self.api.Backend.ldap2
-        base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
-                     api.env.basedn)
-        filter_attrs = {
-            'objectClass': 'ipaConfigObject',
-            'cn': service,
-            'ipaConfigString': 'enabledService',
-        }
-        filter = ldap2.make_filter(filter_attrs, rules='&')
-        try:
-            ent, trunc = ldap2.find_entries(filter=filter, base_dn=base_dn)
-            if len(ent):
-                entry = random.choice(ent)
-                return entry.dn[1].value
-        except Exception, e:
-            pass
-        return None
-
     @cachedproperty
     def ca_host(self):
         """
@@ -1317,12 +1328,13 @@ class ra(rabase.rabase):
 
         Select our CA host.
         """
-        if self._host_has_service(host=api.env.ca_host):
+        ldap2 = self.api.Backend.ldap2
+        if host_has_service(api.env.ca_host, ldap2, "CA"):
             return api.env.ca_host
         if api.env.host != api.env.ca_host:
-            if self._host_has_service(host=api.env.host):
+            if host_has_service(api.env.host, ldap2, "CA"):
                 return api.env.host
-        host = self._select_any_master()
+        host = select_any_master(ldap2)
         if host:
             return host
         else:
@@ -1363,7 +1375,8 @@ class ra(rabase.rabase):
         parser = etree.XMLParser()
         doc = etree.fromstring(xml_text, parser)
         result = parse_func(doc)
-        self.debug("%s() xml_text:\n%s\nparse_result:\n%s" % (parse_func.__name__, xml_text, result))
+        self.debug("%s() xml_text:\n%s\n"
+                   "parse_result:\n%s" % (parse_func.__name__, xml_text, result))
         return result
 
     def check_request_status(self, request_id):
@@ -1410,7 +1423,7 @@ class ra(rabase.rabase):
                           xml='true')
 
         # Parse and handle errors
-        if (http_status != 200):
+        if http_status != 200:
             self.raise_certificate_operation_error('check_request_status',
                                                    detail=http_reason_phrase)
 
@@ -1440,10 +1453,10 @@ class ra(rabase.rabase):
         Retrieve an existing certificate.
 
         :param serial_number: Certificate serial number. Must be a string value
-                              because serial numbers may be of any magnitue and
+                              because serial numbers may be of any magnitude and
                               XMLRPC cannot handle integers larger than 64-bit.
                               The string value should be decimal, but may optionally
-                              be prefixed with a hex radix prefix if the integal value
+                              be prefixed with a hex radix prefix if the integral value
                               is represented as hexadecimal. If no radix prefix is
                               supplied the string will be interpreted as decimal.
 
@@ -1496,7 +1509,7 @@ class ra(rabase.rabase):
 
 
         # Parse and handle errors
-        if (http_status != 200):
+        if http_status != 200:
             self.raise_certificate_operation_error('get_certificate',
                                                    detail=http_reason_phrase)
 
@@ -1563,7 +1576,7 @@ class ra(rabase.rabase):
                          cert_request=csr,
                          xml='true')
         # Parse and handle errors
-        if (http_status != 200):
+        if http_status != 200:
             self.raise_certificate_operation_error('request_certificate',
                                                    detail=http_reason_phrase)
 
@@ -1604,10 +1617,10 @@ class ra(rabase.rabase):
     def revoke_certificate(self, serial_number, revocation_reason=0):
         """
         :param serial_number: Certificate serial number. Must be a string value
-                              because serial numbers may be of any magnitue and
+                              because serial numbers may be of any magnitude and
                               XMLRPC cannot handle integers larger than 64-bit.
                               The string value should be decimal, but may optionally
-                              be prefixed with a hex radix prefix if the integal value
+                              be prefixed with a hex radix prefix if the integral value
                               is represented as hexadecimal. If no radix prefix is
                               supplied the string will be interpreted as decimal.
         :param revocation_reason: Integer code of revocation reason.
@@ -1644,7 +1657,7 @@ class ra(rabase.rabase):
                          xml='true')
 
         # Parse and handle errors
-        if (http_status != 200):
+        if http_status != 200:
             self.raise_certificate_operation_error('revoke_certificate',
                                                    detail=http_reason_phrase)
 
@@ -1668,10 +1681,10 @@ class ra(rabase.rabase):
     def take_certificate_off_hold(self, serial_number):
         """
         :param serial_number: Certificate serial number. Must be a string value
-                              because serial numbers may be of any magnitue and
+                              because serial numbers may be of any magnitude and
                               XMLRPC cannot handle integers larger than 64-bit.
                               The string value should be decimal, but may optionally
-                              be prefixed with a hex radix prefix if the integal value
+                              be prefixed with a hex radix prefix if the integral value
                               is represented as hexadecimal. If no radix prefix is
                               supplied the string will be interpreted as decimal.
 
@@ -1704,7 +1717,7 @@ class ra(rabase.rabase):
                          xml='true')
 
         # Parse and handle errors
-        if (http_status != 200):
+        if http_status != 200:
             self.raise_certificate_operation_error('take_certificate_off_hold',
                                                    detail=http_reason_phrase)
 
@@ -1866,4 +1879,133 @@ class ra(rabase.rabase):
 
         return results
 
+
 api.register(ra)
+
+
+# ----------------------------------------------------------------------------
+class kra(Backend):
+    """
+    KRA backend plugin (for Vault)
+    """
+
+    def __init__(self, kra_port=443):
+        if api.env.in_tree:
+            self.sec_dir = os.path.join(api.env.dot_ipa, 'alias')
+            pwd_file = os.path.join(self.sec_dir, '.pwd')
+            self.pem_file = os.path.join(self.sec_dir, ".pemfile")
+        else:
+            self.sec_dir = paths.HTTPD_ALIAS_DIR
+            pwd_file = paths.ALIAS_PWDFILE_TXT
+            self.pem_file = paths.DOGTAG_AGENT_PEM
+
+        self.kra_port = kra_port
+        self.transport_nick = "IPA KRA Transport Cert"
+        self.password = ""
+        with open(pwd_file, "r") as f:
+            self.password = f.readline().strip()
+
+        self.keyclient = None
+        super(kra, self).__init__()
+
+    def _create_pem_file(self):
+        """ Create PEM file used by KRA plugin for authentication.
+
+        This function reads the IPA HTTPD database and extracts the
+        Dogtag agent certificate and keys into a PKCS#12 temporary file.
+        The PKCS#12 file is then converted into PEM format so that it
+        can be used by python-requests to authenticate to the KRA.
+
+        :return: None
+        """
+        (p12_pwd_fd, p12_pwd_fname) = tempfile.mkstemp()
+        (p12_fd, p12_fname) = tempfile.mkstemp()
+
+        try:
+            os.write(p12_pwd_fd, self.password)
+            os.close(p12_pwd_fd)
+            os.close(p12_fd)
+
+            certdb = CertDB(api.env.realm)
+            certdb.export_pkcs12(p12_fname, p12_pwd_fname, "ipaCert")
+
+            certdb.install_pem_from_p12(p12_fname, self.password, self.pem_file)
+        except:
+            self.debug("Error when creating PEM file for KRA operations")
+            raise
+        finally:
+            os.remove(p12_fname)
+            os.remove(p12_pwd_fname)
+
+    def _transport_cert_present(self):
+        """ Check if the client certDB contains the KRA transport certificate
+        :return: True/False
+        """
+        # certutil -L -d db_dir -n cert_nick
+        certdb = CertDB(api.env.realm)
+        return certdb.has_nickname(self.transport_nick)
+
+    def _setup(self):
+        """ Do initial setup and crypto initialization of the KRA client
+
+        Creates a PEM file containing the KRA agent cert/keys to be used for
+        authentication to the KRA (if it does not already exist),  Sets up a
+        connection to the KRA and initializes an NSS certificate database to
+        store the transport certificate,  Retrieves the transport certificate
+        if it is not already present.
+        """
+        #set up pem file if not present
+        if not os.path.exists(self.pem_file):
+            self._create_pem_file()
+
+        # set up connection
+        connection = PKIConnection('https',
+                                   self.kra_host,
+                                   str(self.kra_port),
+                                   'kra')
+        connection.set_authentication_cert(self.pem_file)
+
+        crypto = cryptoutil.NSSCryptoProvider(self.sec_dir, self.password)
+
+        #create kraclient
+        kraclient = KRAClient(connection, crypto)
+
+        # get transport cert if needed
+        if not self._transport_cert_present():
+            transport_cert = kraclient.system_certs.get_transport_cert()
+            crypto.import_cert(self.transport_nick, transport_cert, "u,u,u")
+
+        crypto.initialize()
+
+        self.keyclient = kraclient.keys
+        self.keyclient.set_transport_cert(self.transport_nick)
+
+    @cachedproperty
+    def kra_host(self):
+        """
+        :return:   host
+                   as str
+
+        Select our KRA host.
+        """
+        ldap2 = self.api.Backend.ldap2
+        if host_has_service(api.env.kra_host, ldap2, "kra"):
+            return api.env.kra_host
+        if api.env.host != api.env.kra_host:
+            if host_has_service(api.env.host, ldap2, "kra"):
+                return api.env.host
+        host = select_any_master(ldap2, "kra")
+        if host:
+            return host
+        else:
+            return api.env.kra_host
+
+    def get_keyclient(self):
+        """Return a keyclient to perform key archival and retrieval.
+        :return: pki.key.keyclient
+        """
+        if self.keyclient is None:
+            self._setup()
+        return self.keyclient
+
+api.register(kra)

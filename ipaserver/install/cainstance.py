@@ -19,53 +19,51 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import pwd
-import os
-import sys
-import re
-import time
-import ldap
-import base64
 import array
-import tempfile
+import base64
 import binascii
-import shutil
-import httplib
-import urllib
-import xml.dom.minidom
-import stat
-import syslog
 import ConfigParser
 import dbus
+import httplib
+import ldap
+import os
+import pwd
+import re
+import shutil
+import stat
+import subprocess
+import sys
+import syslog
+import time
+import tempfile
+import urllib
+import xml.dom.minidom
 
-from ipapython import dogtag
-from ipapython.certdb import get_ca_nickname
-from ipapython import certmonger
 from ipalib import api
 from ipalib import pkcs10, x509
 from ipalib import errors
-from ipapython.dn import DN
-import subprocess
-import traceback
 
-from ipapython import ipautil
-from ipapython import ipaldap
-from ipaplatform.tasks import tasks
-from ipaserver.install import service
-from ipaserver.install import installutils
-from ipaserver.install import dsinstance
-from ipaserver.install import certs
-from ipaserver.install.installutils import stopped_service
-from ipaserver.plugins import ldap2
-from ipapython.ipa_log_manager import *
 from ipaplatform import services
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 
-HTTPD_CONFD = paths.HTTPD_CONF_D_DIR
-DEFAULT_DSPORT = dogtag.install_constants.DS_PORT
+from ipapython import dogtag
+from ipapython import certmonger
+from ipapython import ipautil
+from ipapython import ipaldap
+from ipapython.certdb import get_ca_nickname
+from ipapython.dn import DN
+from ipapython.ipa_log_manager import log_mgr,\
+    standard_logging_setup, root_logger
 
-PKI_USER = "pkiuser"
-PKI_DS_USER = dogtag.install_constants.DS_USER
+from ipaserver.install import certs
+from ipaserver.install import dsinstance
+from ipaserver.install import installutils
+from ipaserver.install import service
+from ipaserver.install.dogtaginstance import DogtagInstance
+from ipaserver.install.dogtaginstance import PKI_USER, DEFAULT_DSPORT
+from ipaserver.plugins import ldap2
+
 
 # When IPA is installed with DNS support, this CNAME should hold all IPA
 # replicas with CA configured
@@ -88,22 +86,6 @@ RootDNPwd= $PASSWORD
 ConfigFile = /usr/share/pki/ca/conf/database.ldif
 """
 
-def check_inst():
-    """
-    Validate that the appropriate dogtag/RHCS packages have been installed.
-    """
-
-    # Check for a couple of binaries we need
-    if not os.path.exists(dogtag.install_constants.SPAWN_BINARY):
-        return False
-    if not os.path.exists(dogtag.install_constants.DESTROY_BINARY):
-        return False
-
-    # This is the template tomcat file for a CA
-    if not os.path.exists(paths.PKI_CONF_SERVER_XML):
-        return False
-
-    return True
 
 def get_preop_pin(instance_root, instance_name):
     # Only used for Dogtag 9
@@ -113,23 +95,26 @@ def get_preop_pin(instance_root, instance_name):
 
     # read the config file and get the preop pin
     try:
-        f=open(filename)
+        f = open(filename)
     except IOError, e:
         root_logger.error("Cannot open configuration file." + str(e))
         raise e
     data = f.read()
     data = data.split('\n')
-    pattern = re.compile("preop.pin=(.*)" )
+    pattern = re.compile("preop.pin=(.*)")
     for line in data:
         match = re.search(pattern, line)
-        if (match):
-            preop_pin=match.group(1)
+        if match:
+            preop_pin = match.group(1)
             break
 
     if preop_pin is None:
-        raise RuntimeError("Unable to find preop.pin in %s. Is your CA already configured?" % filename)
+        raise RuntimeError(
+            "Unable to find preop.pin in %s. Is your CA already configured?" %
+            filename)
 
     return preop_pin
+
 
 def import_pkcs12(input_file, input_passwd, cert_database,
                   cert_passwd):
@@ -138,20 +123,22 @@ def import_pkcs12(input_file, input_passwd, cert_database,
                  "-k", cert_passwd,
                  "-w", input_passwd])
 
+
 def get_value(s):
     """
     Parse out a name/value pair from a Javascript variable.
     """
     try:
-        expr = s.split('=',1)
+        expr = s.split('=', 1)
         value = expr[1]
         value = value.replace('\"', '')
-        value = value.replace(';','')
-        value = value.replace('\\n','\n')
-        value = value.replace('\\r','\r')
+        value = value.replace(';', '')
+        value = value.replace('\\n', '\n')
+        value = value.replace('\\r', '\r')
         return value
     except IndexError:
         return None
+
 
 def find_substring(data, value):
     """
@@ -160,6 +147,7 @@ def find_substring(data, value):
     for d in data:
         if d.startswith(value):
             return get_value(d)
+
 
 def get_defList(data):
     """
@@ -196,6 +184,7 @@ def get_defList(data):
 
     return defdict
 
+
 def get_outputList(data):
     """
     Return a dictionary of outputList name/value pairs.
@@ -221,6 +210,7 @@ def get_outputList(data):
 
     return outputdict
 
+
 def get_crl_files(path=None):
     """
     Traverse dogtag's CRL files in default CRL publish directory or in chosen
@@ -240,8 +230,8 @@ def get_crl_files(path=None):
 
 
 def is_step_one_done():
-    '''Read CS.cfg and determine if step one of an external CA install is done
-    '''
+    """Read CS.cfg and determine if step one of an external CA install is done
+    """
     path = dogtag.install_constants.CS_CFG_PATH
     if not os.path.exists(path):
         return False
@@ -251,6 +241,14 @@ def is_step_one_done():
     return False
 
 
+def is_ca_installed_locally():
+    """Check if CA is installed locally by checking for existence of CS.cfg
+    :return:True/False
+    """
+    path = dogtag.install_constants.CS_CFG_PATH
+    return os.path.exists(path)
+
+
 class CADSInstance(service.Service):
     """Certificate Authority DS instance
 
@@ -258,7 +256,8 @@ class CADSInstance(service.Service):
     Thus this class only does uninstallation.
     """
     def __init__(self, host_name=None, realm_name=None, domain_name=None, dm_password=None, dogtag_constants=None):
-        service.Service.__init__(self, "pkids",
+        service.Service.__init__(
+            self, "pkids",
             service_desc="directory server for the CA",
             dm_password=dm_password,
             ldapi=False,
@@ -284,7 +283,7 @@ class CADSInstance(service.Service):
         serverid = self.restore_state("serverid")
 
         # Just eat this state if it exists
-        running = self.restore_state("running")
+        self.restore_state("running")
 
         if not enabled is None and not enabled:
             services.knownservices.dirsrv.disable()
@@ -297,41 +296,14 @@ class CADSInstance(service.Service):
             dsdb.untrack_server_cert("Server-Cert")
             dsinstance.erase_ds_instance_data(serverid)
 
-        user_exists = self.restore_state("user_exists")
+        self.restore_state("user_exists")
 
         # At one time we removed this user on uninstall. That can potentially
-        # orphan files, or worse, if another useradd runs in the intermim,
+        # orphan files, or worse, if another useradd runs in the interim,
         # cause files to have a new owner.
 
 
-def stop_tracking_certificates(dogtag_constants):
-    """Stop tracking our certificates. Called on uninstall.
-    """
-    cmonger = services.knownservices.certmonger
-    services.knownservices.messagebus.start()
-    cmonger.start()
-
-    for nickname in ['Server-Cert cert-pki-ca',
-                     'auditSigningCert cert-pki-ca',
-                     'ocspSigningCert cert-pki-ca',
-                     'subsystemCert cert-pki-ca',
-                     'caSigningCert cert-pki-ca']:
-        try:
-            certmonger.stop_tracking(
-                dogtag_constants.ALIAS_DIR, nickname=nickname)
-        except (ipautil.CalledProcessError, RuntimeError), e:
-            root_logger.error(
-                "certmonger failed to stop tracking certificate: %s" % str(e))
-
-    try:
-        certmonger.stop_tracking(paths.HTTPD_ALIAS_DIR, nickname='ipaCert')
-    except (ipautil.CalledProcessError, RuntimeError), e:
-        root_logger.error(
-            "certmonger failed to stop tracking certificate: %s" % str(e))
-    cmonger.stop()
-
-
-class CAInstance(service.Service):
+class CAInstance(DogtagInstance):
     """
     When using a dogtag CA the DS database contains just the
     server cert for DS. The mod_nss database will contain the RA agent
@@ -353,19 +325,15 @@ class CAInstance(service.Service):
         if dogtag_constants is None:
             dogtag_constants = dogtag.configured_constants()
 
-        service.Service.__init__(self,
-                                 '%sd' % dogtag_constants.PKI_INSTANCE_NAME,
-                                 service_desc="certificate server",
-                                 dm_password=dm_password,
-                                 ldapi=ldapi)
-
-        self.dogtag_constants = dogtag_constants
-        self.realm = realm
-        self.admin_password = None
-        self.fqdn = host_name
-        self.domain = None
-        self.pkcs12_info = None
-        self.clone = False
+        super(CAInstance, self).__init__(
+            realm=realm,
+            subsystem="CA",
+            service_desc="certificate server",
+            dogtag_constants=dogtag_constants,
+            host_name=host_name,
+            dm_password=dm_password,
+            ldapi=ldapi
+        )
 
         # for external CAs
         self.external = 0
@@ -374,36 +342,17 @@ class CAInstance(service.Service):
         self.cert_chain_file = None
         self.create_ra_agent_db = True
 
-        # The same database is used for mod_nss because the NSS context
-        # will already have been initialized by Apache by the time
-        # mod_python wants to do things.
-        self.canickname = None
-        if realm:
-            self.canickname = get_ca_nickname(realm)
-        self.basedn = DN(('o', 'ipaca'))
-        self.ca_agent_db = tempfile.mkdtemp(prefix = "tmp-")
+        self.canickname = get_ca_nickname(realm)
         self.ra_agent_db = ra_db
-        self.ra_agent_pwd = None
-        if ra_db:
-            self.ra_agent_pwd = ra_db + "/pwdfile.txt"
-        self.ds_port = DEFAULT_DSPORT
-        self.security_domain_name = "IPA"
-        self.server_root = dogtag_constants.SERVER_ROOT
+        self.ra_agent_pwd = self.ra_agent_db + "/pwdfile.txt"
         self.ra_cert = None
         self.requestId = None
-
-    def __del__(self):
-        shutil.rmtree(self.ca_agent_db, ignore_errors=True)
-
-    def is_installed(self):
-        """
-        Installing with an external CA is a two-step process. This
-        is used to determine if the first step has been done.
-
-        Returns True/False
-        """
-        return os.path.exists(os.path.join(
-            self.server_root, self.dogtag_constants.PKI_INSTANCE_NAME))
+        self.tracking_reqs = (('Server-Cert cert-pki-ca', None),
+                              ('auditSigningCert cert-pki-ca', None),
+                              ('ocspSigningCert cert-pki-ca', None),
+                              ('subsystemCert cert-pki-ca', None),
+                              ('caSigningCert cert-pki-ca', 'ipaCACertRenewal'))
+        self.log = log_mgr.get_logger(self)
 
     def configure_instance(self, host_name, domain, dm_password,
                            admin_password, ds_port=DEFAULT_DSPORT,
@@ -440,12 +389,12 @@ class CAInstance(service.Service):
         # Determine if we are installing as an externally-signed CA and
         # what stage we're in.
         if csr_file is not None:
-            self.csr_file=csr_file
-            self.external=1
+            self.csr_file = csr_file
+            self.external = 1
         elif cert_file is not None:
-            self.cert_file=cert_file
-            self.cert_chain_file=cert_chain_file
-            self.external=2
+            self.cert_file = cert_file
+            self.cert_chain_file = cert_chain_file
+            self.external = 2
 
         self.step("creating certificate server user", self.__create_ca_user)
         if self.dogtag_constants.DOGTAG_VERSION >= 10:
@@ -454,11 +403,11 @@ class CAInstance(service.Service):
             if not ipautil.dir_exists(paths.VAR_LIB_PKI_CA_DIR):
                 self.step("creating pki-ca instance", self.create_instance)
             self.step("configuring certificate server instance", self.__configure_instance)
-        self.step("stopping certificate server instance to update CS.cfg", self.__stop)
+        self.step("stopping certificate server instance to update CS.cfg", self.stop_instance)
         self.step("disabling nonces", self.__disable_nonce)
         self.step("set up CRL publishing", self.__enable_crl_publish)
         self.step("enable PKIX certificate path discovery and validation", self.enable_pkix)
-        self.step("starting certificate server instance", self.__start)
+        self.step("starting certificate server instance", self.start_instance)
         # Step 1 of external is getting a CSR so we don't need to do these
         # steps until we get a cert back from the external CA.
         if self.external != 1:
@@ -474,33 +423,28 @@ class CAInstance(service.Service):
             self.step("enabling Subject Alternative Name", self.enable_subject_alternative_name)
             self.step("enabling CRL and OCSP extensions for certificates", self.__set_crl_ocsp_extensions)
             self.step("setting audit signing renewal to 2 years", self.set_audit_renewal)
-            self.step("configuring certificate server to start on boot", self.__enable)
+            self.step("configuring certificate server to start on boot",
+                      self.enable)
             if not self.clone:
-                self.step("restarting certificate server", self.__restart_instance)
+                self.step("restarting certificate server", self.restart_instance)
                 self.step("requesting RA certificate from CA", self.__request_ra_certificate)
                 self.step("issuing RA agent certificate", self.__issue_ra_cert)
                 self.step("adding RA agent as a trusted user", self.__configure_ra)
             self.step("configure certmonger for renewals", self.configure_certmonger_renewal)
-            self.step("configure certificate renewals", self.configure_renewal)
+            self.step("configure certificate renewals", self.configure_cert_renewal)
             if not self.clone:
                 self.step("configure RA certificate renewal", self.configure_agent_renewal)
             self.step("configure Server-Cert certificate renewal", self.track_servercert)
-            self.step("Configure HTTP to proxy connections", self.__http_proxy)
+            self.step("Configure HTTP to proxy connections",
+                      self.http_proxy)
 
         self.start_creation(runtime=210)
-
-    def __stop(self):
-        self.stop()
-
-    def __start(self):
-        self.start()
-
 
     def __spawn_instance(self):
         """
         Create and configure a new CA instance using pkispawn.
-        pkispawn requires a configuration file with IPA-specific
-        parameters.
+        Creates the config file with IPA specific parameters
+        and passes it to the base class to call pkispawn
         """
 
         # Create an empty and secured file
@@ -522,7 +466,7 @@ class CAInstance(service.Service):
         config.set("CA", "pki_backup_password", self.admin_password)
 
         # Client security database
-        config.set("CA", "pki_client_database_dir", self.ca_agent_db)
+        config.set("CA", "pki_client_database_dir", self.agent_db)
         config.set("CA", "pki_client_database_password", self.admin_password)
         config.set("CA", "pki_client_database_purge", "False")
         config.set("CA", "pki_client_pkcs12_password", self.admin_password)
@@ -535,7 +479,7 @@ class CAInstance(service.Service):
         config.set("CA", "pki_admin_nickname", "ipa-ca-agent")
         config.set("CA", "pki_admin_subject_dn",
             str(DN(('cn', 'ipa-ca-agent'), self.subject_base)))
-        config.set("CA", "pki_client_admin_cert_p12", paths.CA_AGENT_P12)
+        config.set("CA", "pki_client_admin_cert_p12", paths.DOGTAG_AGENT_P12)
 
         # Directory server
         config.set("CA", "pki_ds_ldap_port", str(self.ds_port))
@@ -562,7 +506,7 @@ class CAInstance(service.Service):
         config.set("CA", "pki_audit_signing_nickname", "auditSigningCert cert-pki-ca")
         config.set("CA", "pki_ca_signing_nickname", "caSigningCert cert-pki-ca")
 
-        if (self.clone):
+        if self.clone:
             cafile = self.pkcs12_info[0]
             shutil.copy(cafile, paths.TMP_CA_P12)
             pent = pwd.getpwnam(PKI_USER)
@@ -610,22 +554,9 @@ class CAInstance(service.Service):
         with open(cfg_file, "wb") as f:
             config.write(f)
 
-        # Define the things we don't want logged
-        nolog = (self.admin_password, self.dm_password,)
-
-        args = [paths.PKISPAWN, "-s", "CA", "-f", cfg_file ]
-
-        with open(cfg_file) as f:
-            root_logger.debug(
-                'Contents of pkispawn configuration file (%s):\n%s' %
-                    (cfg_file, ipautil.nolog_replace(f.read(), nolog)))
-
         self.backup_state('installed', True)
         try:
-            ipautil.run(args, nolog=nolog)
-        except ipautil.CalledProcessError, e:
-            root_logger.critical("failed to configure ca instance %s" % e)
-            raise RuntimeError('Configuration of CA failed')
+            DogtagInstance.spawn_instance(self, cfg_file)
         finally:
             os.remove(cfg_file)
 
@@ -634,10 +565,10 @@ class CAInstance(service.Service):
             print "%s --external_cert_file=/path/to/signed_certificate --external_ca_file=/path/to/external_ca_certificate" % sys.argv[0]
             sys.exit(0)
         else:
-            shutil.move(paths.CA_BACKUP_KEYS_P12, \
+            shutil.move(paths.CA_BACKUP_KEYS_P12,
                         paths.CACERT_P12)
 
-        root_logger.debug("completed creating ca instance")
+        self.log.debug("completed creating ca instance")
 
     def create_instance(self):
         """
@@ -668,29 +599,21 @@ class CAInstance(service.Service):
         self.backup_state('installed', True)
         ipautil.run(args, env={'PKI_HOSTNAME':self.fqdn})
 
-    def __enable(self):
-        self.backup_state("enabled", self.is_enabled())
-        # We do not let the system start IPA components on its own,
-        # Instead we reply on the IPA init script to start only enabled
-        # components as found in our LDAP configuration tree
-        # We need to install DS before we can actually ldap_enable a service.
-        # so actual enablement is delayed.
-
     def __create_ca_user(self):
         try:
             pwd.getpwnam(PKI_USER)
-            root_logger.debug("ca user %s exists" % PKI_USER)
+            self.log.debug("ca user %s exists", PKI_USER)
         except KeyError:
-            root_logger.debug("adding ca user %s" % PKI_USER)
+            self.log.debug("adding ca user %s", PKI_USER)
             args = [paths.USERADD, "-c", "CA System User",
                                          "-d", paths.VAR_LIB,
                                          "-s", paths.NOLOGIN,
                                          "-M", "-r", PKI_USER]
             try:
                 ipautil.run(args)
-                root_logger.debug("done adding user")
+                self.log.debug("done adding user")
             except ipautil.CalledProcessError, e:
-                root_logger.critical("failed to add user %s" % e)
+                self.log.critical("failed to add user %s", e)
 
     def __configure_instance(self):
         # Only used for Dogtag 9
@@ -701,7 +624,7 @@ class CAInstance(service.Service):
             args = [paths.PERL, paths.PKISILENT,  "ConfigureCA",
                     "-cs_hostname", self.fqdn,
                     "-cs_port", str(self.dogtag_constants.ADMIN_SECURE_PORT),
-                    "-client_certdb_dir", self.ca_agent_db,
+                    "-client_certdb_dir", self.agent_db,
                     "-client_certdb_pwd", self.admin_password,
                     "-preop_pin" , preop_pin,
                     "-domain_name", self.security_domain_name,
@@ -746,7 +669,7 @@ class CAInstance(service.Service):
             else:
                 args.append("-external")
                 args.append("false")
-            if (self.clone):
+            if self.clone:
                 """sd = security domain -->  all CS systems get registered to
                    a security domain. This is set to the hostname and port of
                    the master CA.
@@ -785,7 +708,7 @@ class CAInstance(service.Service):
 
             ipautil.run(args, env={'PKI_HOSTNAME':self.fqdn}, nolog=nolog)
         except ipautil.CalledProcessError, e:
-            root_logger.critical("failed to configure ca instance %s" % e)
+            self.log.critical("failed to configure ca instance %s", e)
             raise RuntimeError('Configuration of CA failed')
 
         if self.external == 1:
@@ -798,15 +721,7 @@ class CAInstance(service.Service):
         if ipautil.file_exists(paths.ROOT_TMP_CA_P12):
             shutil.move(paths.ROOT_TMP_CA_P12, paths.CACERT_P12)
 
-        root_logger.debug("completed creating ca instance")
-
-    def __restart_instance(self):
-        try:
-            self.restart(self.dogtag_constants.PKI_INSTANCE_NAME)
-        except Exception:
-            # TODO: roll back here?
-            root_logger.debug(traceback.format_exc())
-            root_logger.critical("Failed to restart the certificate server. See the installation log for details.")
+        self.log.debug("completed creating ca instance")
 
     def __disable_nonce(self):
         # Turn off Nonces
@@ -830,9 +745,9 @@ class CAInstance(service.Service):
         os.write(admin_fd, self.admin_password)
         os.close(admin_fd)
 
-        # Look thru the cert chain to get all the certs we need to add
+        # Look through the cert chain to get all the certs we need to add
         # trust for
-        p = subprocess.Popen([paths.CERTUTIL, "-d", self.ca_agent_db,
+        p = subprocess.Popen([paths.CERTUTIL, "-d", self.agent_db,
                               "-O", "-n", "ipa-ca-agent"], stdout=subprocess.PIPE)
 
         chain = p.stdout.read()
@@ -851,7 +766,7 @@ class CAInstance(service.Service):
                 self.__run_certutil(
                     ['-M', '-t', 'CT,C,C', '-n',
                      nick],
-                     database=self.ca_agent_db, pwd_file=self.admin_password)
+                     database=self.agent_db, pwd_file=self.admin_password)
         finally:
             os.remove(admin_name)
 
@@ -867,12 +782,13 @@ class CAInstance(service.Service):
             '-v',
             '-n', 'ipa-ca-agent',
             '-p', self.admin_password,
-            '-d', self.ca_agent_db,
+            '-d', self.agent_db,
             '-r', '/ca/agent/ca/profileReview?requestId=%s' % self.requestId,
             '%s' % ipautil.format_netloc(
                 self.fqdn, self.dogtag_constants.AGENT_SECURE_PORT),
         ]
-        (stdout, stderr, returncode) = ipautil.run(args, nolog=(self.admin_password,))
+        (stdout, _stderr, _returncode) = ipautil.run(
+            args, nolog=(self.admin_password,))
 
         data = stdout.split(self.dogtag_constants.RACERT_LINE_SEP)
         params = get_defList(data)
@@ -888,13 +804,14 @@ class CAInstance(service.Service):
             '-v',
             '-n', 'ipa-ca-agent',
             '-p', self.admin_password,
-            '-d', self.ca_agent_db,
+            '-d', self.agent_db,
             '-e', params,
             '-r', '/ca/agent/ca/profileProcess',
             '%s' % ipautil.format_netloc(
                 self.fqdn, self.dogtag_constants.AGENT_SECURE_PORT),
         ]
-        (stdout, stderr, returncode) = ipautil.run(args, nolog=(self.admin_password,))
+        (stdout, _stderr, _returncode) = ipautil.run(
+            args, nolog=(self.admin_password,))
 
         data = stdout.split(self.dogtag_constants.RACERT_LINE_SEP)
         outputList = get_outputList(data)
@@ -973,7 +890,7 @@ class CAInstance(service.Service):
 
         conn.unbind()
 
-    def __run_certutil(self, args, database=None, pwd_file=None,stdin=None):
+    def __run_certutil(self, args, database=None, pwd_file=None, stdin=None):
         if not database:
             database = self.ra_agent_db
         if not pwd_file:
@@ -999,7 +916,7 @@ class CAInstance(service.Service):
         os.close(f)
         os.chmod(self.ra_agent_pwd, stat.S_IRUSR)
 
-        (stdout, stderr, returncode)  = self.__run_certutil(["-N"])
+        self.__run_certutil(["-N"])
 
     def __get_ca_chain(self):
         try:
@@ -1016,8 +933,8 @@ class CAInstance(service.Service):
         try:
             ipautil.run([paths.PK12UTIL,
                          "-n", "ipa-ca-agent",
-                         "-o", paths.CA_AGENT_P12,
-                         "-d", self.ca_agent_db,
+                         "-o", paths.DOGTAG_AGENT_P12,
+                         "-d", self.agent_db,
                          "-k", pwd_name,
                          "-w", pwd_name])
         finally:
@@ -1035,14 +952,15 @@ class CAInstance(service.Service):
         # makes openssl throw up.
         data = base64.b64decode(chain)
 
-        (certlist, stderr, returncode) = ipautil.run([paths.OPENSSL,
+        (certlist, _stderr, _returncode) = ipautil.run(
+            [paths.OPENSSL,
              "pkcs7",
              "-inform",
              "DER",
              "-print_certs",
              ], stdin=data)
 
-        # Ok, now we have all the certificates in certs, walk thru it
+        # Ok, now we have all the certificates in certs, walk through it
         # and pull out each certificate and add it to our database
 
         st = 1
@@ -1057,7 +975,7 @@ class CAInstance(service.Service):
                     (chain_fd, chain_name) = tempfile.mkstemp()
                     os.write(chain_fd, certlist[st:en+25])
                     os.close(chain_fd)
-                    (rdn, subject_dn) = certs.get_cert_nickname(certlist[st:en+25])
+                    (_rdn, subject_dn) = certs.get_cert_nickname(certlist[st:en+25])
                     if subject_dn == ca_dn:
                         nick = get_ca_nickname(self.realm)
                         trust_flags = 'CT,C,C'
@@ -1070,7 +988,7 @@ class CAInstance(service.Service):
                     )
                 finally:
                     os.remove(chain_name)
-                    subid = subid + 1
+                    subid += 1
 
     def __request_ra_certificate(self):
         # Create a noise file for generating our private key
@@ -1081,7 +999,10 @@ class CAInstance(service.Service):
 
         # Generate our CSR. The result gets put into stdout
         try:
-            (stdout, stderr, returncode) = self.__run_certutil(["-R", "-k", "rsa", "-g", "2048", "-s", str(DN(('CN', 'IPA RA'), self.subject_base)), "-z", noise_name, "-a"])
+            (stdout, _stderr, _returncode) = self.__run_certutil(
+                ["-R", "-k", "rsa", "-g", "2048", "-s",
+                 str(DN(('CN', 'IPA RA'), self.subject_base)),
+                 "-z", noise_name, "-a"])
         finally:
             os.remove(noise_name)
 
@@ -1298,75 +1219,32 @@ class CAInstance(service.Service):
                 'OU=pki-ipa, O=IPA', str(self.subject_base)):
             print "Updating subject_base in CA template failed"
 
-    def enable_client_auth_to_db(self):
-        """
-        Enable client auth connection to the internal db.
-        """
-        caconfig = dogtag.install_constants.CS_CFG_PATH
-
-        with stopped_service(self.dogtag_constants.SERVICE_NAME,
-                        instance_name=self.dogtag_constants.PKI_INSTANCE_NAME):
-
-            # Enable file publishing, disable LDAP
-            installutils.set_directive(caconfig,
-                'authz.instance.DirAclAuthz.ldap.ldapauth.authtype',
-                'SslClientAuth', quotes=False, separator='=')
-            installutils.set_directive(caconfig,
-                'authz.instance.DirAclAuthz.ldap.ldapauth.bindDN',
-                'uid=pkidbuser,ou=people,o=ipa-ca', quotes=False, separator='=')
-            installutils.set_directive(caconfig,
-                'authz.instance.DirAclAuthz.ldap.ldapauth.clientCertNickname',
-                'subsystemCert cert-pki-ca', quotes=False, separator='=')
-            installutils.set_directive(caconfig,
-                'authz.instance.DirAclAuthz.ldap.ldapconn.port',
-                str(dogtag.install_constants.DS_SECURE_PORT),
-                quotes=False, separator='=')
-            installutils.set_directive(caconfig,
-                'authz.instance.DirAclAuthz.ldap.ldapconn.secureConn',
-                'true', quotes=False, separator='=')
-
-            installutils.set_directive(caconfig, 'internaldb.ldapauth.authtype',
-                'SslClientAuth', quotes=False, separator='=')
-            installutils.set_directive(caconfig, 'internaldb.ldapauth.bindDN',
-                'uid=pkidbuser,ou=people,o=ipa-ca', quotes=False, separator='=')
-            installutils.set_directive(caconfig,
-                'internaldb.ldapauth.clientCertNickname',
-                'subsystemCert cert-pki-ca', quotes=False, separator='=')
-            installutils.set_directive(caconfig, 'internaldb.ldapconn.port',
-                str(dogtag.install_constants.DS_SECURE_PORT),
-                quotes=False, separator='=')
-            installutils.set_directive(caconfig,
-                 'internaldb.ldapconn.secureConn', 'true', quotes=False,
-                 separator='=')
-
     def uninstall(self):
-        if self.is_configured():
-            self.print_msg("Unconfiguring CA")
-
         enabled = self.restore_state("enabled")
         if not enabled is None and not enabled:
             self.disable()
 
-        # Just eat this state if it exists
-        installed = self.restore_state("installed")
-        try:
-            if self.dogtag_constants.DOGTAG_VERSION >= 10:
-                ipautil.run([paths.PKIDESTROY, "-i",
-                                self.dogtag_constants.PKI_INSTANCE_NAME,
-                             "-s", "CA"])
-            else:
+        if self.dogtag_constants.DOGTAG_VERSION >= 10:
+            DogtagInstance.uninstall(self)
+        else:
+            if self.is_configured():
+                self.print_msg("Unconfiguring CA")
+
+            try:
                 ipautil.run([paths.PKIREMOVE,
-                             "-pki_instance_root=/var/lib",
+                             "-pki_instance_root=%s" % paths.VAR_LIB,
                              "-pki_instance_name=%s" %
                                 self.dogtag_constants.PKI_INSTANCE_NAME,
                              "--force"])
-        except ipautil.CalledProcessError, e:
-            root_logger.critical("failed to uninstall CA instance %s" % e)
+            except ipautil.CalledProcessError, e:
+                self.log.critical("failed to uninstall CA instance %s", e)
+
+        self.restore_state("installed")
 
         # At one time we removed this user on uninstall. That can potentially
-        # orphan files, or worse, if another useradd runs in the intermim,
+        # orphan files, or worse, if another useradd runs in the interim,
         # cause files to have a new owner.
-        user_exists = self.restore_state("user_exists")
+        self.restore_state("user_exists")
 
         services.knownservices.messagebus.start()
         cmonger = services.knownservices.certmonger
@@ -1383,43 +1261,33 @@ class CAInstance(service.Service):
         cmonger.stop()
 
         # remove CRL files
-        root_logger.info("Remove old CRL files")
+        self.log.info("Remove old CRL files")
         try:
             for f in get_crl_files():
-                root_logger.debug("Remove %s", f)
+                self.log.debug("Remove %s", f)
                 installutils.remove_file(f)
         except OSError, e:
-            root_logger.warning("Error while removing old CRL files: %s" % e)
+            self.log.warning("Error while removing old CRL files: %s", e)
 
         # remove CRL directory
-        root_logger.info("Remove CRL directory")
+        self.log.info("Remove CRL directory")
         if os.path.exists(self.dogtag_constants.CRL_PUBLISH_PATH):
             try:
                 shutil.rmtree(self.dogtag_constants.CRL_PUBLISH_PATH)
             except OSError, e:
-                root_logger.warning("Error while removing CRL publish "
-                                    "directory: %s" % e)
+                self.log.warning("Error while removing CRL publish "
+                                    "directory: %s", e)
 
     def publish_ca_cert(self, location):
         args = ["-L", "-n", self.canickname, "-a"]
-        (cert, err, returncode) = self.__run_certutil(args)
+        (cert, _err, _returncode) = self.__run_certutil(args)
         fd = open(location, "w+")
         fd.write(cert)
         fd.close()
         os.chmod(location, 0444)
 
-    def __http_proxy(self):
-        template_filename = ipautil.SHARE_DIR + "ipa-pki-proxy.conf"
-        sub_dict = dict(
-            DOGTAG_PORT=self.dogtag_constants.AJP_PORT,
-            CLONE='' if self.clone else '#',
-            FQDN=self.fqdn,
-        )
-        template = ipautil.template_file(template_filename, sub_dict)
-        with open(HTTPD_CONFD + "ipa-pki-proxy.conf", "w") as fd:
-            fd.write(template)
-
-    def configure_certmonger_renewal(self):
+    @staticmethod
+    def configure_certmonger_renewal():
         """
         Create a new CA type for certmonger that will retrieve updated
         certificates from the dogtag master server.
@@ -1450,41 +1318,30 @@ class CAInstance(service.Service):
                 pre_command=None,
                 post_command='renew_ra_cert')
         except (ipautil.CalledProcessError, RuntimeError), e:
-            root_logger.error(
-                "certmonger failed to start tracking certificate: %s" % e)
+            self.log.error(
+                "certmonger failed to start tracking certificate: %s", e)
 
     def __get_ca_pin(self):
         try:
-            return certmonger.get_pin('internal',
+            return certmonger.get_pin(
+                'internal',
                 dogtag_constants=self.dogtag_constants)
         except IOError, e:
             raise RuntimeError(
                 'Unable to determine PIN for CA instance: %s' % e)
 
-    def configure_renewal(self):
+    def configure_cert_renewal(self):
+        """
+        Configure system certificates for renewal.
+        """
         reqs = (
             ('auditSigningCert cert-pki-ca', None),
             ('ocspSigningCert cert-pki-ca',  None),
             ('subsystemCert cert-pki-ca',    None),
             ('caSigningCert cert-pki-ca',    'ipaCACertRenewal'),
         )
-        pin = self.__get_ca_pin()
 
-        # Server-Cert cert-pki-ca is renewed per-server
-        for nickname, profile in reqs:
-            try:
-                certmonger.dogtag_start_tracking(
-                    ca='dogtag-ipa-ca-renew-agent',
-                    nickname=nickname,
-                    pin=pin,
-                    pinfile=None,
-                    secdir=self.dogtag_constants.ALIAS_DIR,
-                    pre_command='stop_pkicad',
-                    post_command='renew_ca_cert "%s"' % nickname,
-                    profile=profile)
-            except (ipautil.CalledProcessError, RuntimeError), e:
-                root_logger.error(
-                    "certmonger failed to start tracking certificate: %s" % e)
+        DogtagInstance.configure_renewal(self, reqs)
 
     def track_servercert(self):
         """
@@ -1503,8 +1360,22 @@ class CAInstance(service.Service):
                 pre_command=None,
                 post_command=None)
         except (ipautil.CalledProcessError, RuntimeError), e:
+            self.log.error(
+                "certmonger failed to start tracking certificate: %s", e)
+
+    @staticmethod
+    def stop_tracking_agent_certificate(dogtag_constants):
+        """Stop tracking agent certificate. Called on uninstall.
+        """
+        cmonger = services.knownservices.certmonger
+        services.knownservices.messagebus.start()
+        cmonger.start()
+        try:
+            certmonger.stop_tracking(paths.HTTPD_ALIAS_DIR, nickname='ipaCert')
+        except (ipautil.CalledProcessError, RuntimeError), e:
             root_logger.error(
-                "certmonger failed to start tracking certificate: %s" % e)
+                "certmonger failed to stop tracking certificate: %s", e)
+        cmonger.stop()
 
     def enable_subject_key_identifier(self):
         """
@@ -1517,7 +1388,7 @@ class CAInstance(service.Service):
         # this is the default setting from pki-ca/pki-tomcat. Don't touch it
         # if a user has manually modified it.
         if setlist == '1,2,3,4,5,6,7,8' or setlist == '1,2,3,4,5,6,7,8,9':
-            setlist = setlist + ',10'
+            setlist += ',10'
             installutils.set_directive(
                 self.dogtag_constants.IPA_SERVICE_PROFILE,
                 'policyset.serverCertSet.list',
@@ -1565,7 +1436,7 @@ class CAInstance(service.Service):
         # this is the default setting from pki-ca/pki-tomcat. Don't touch it
         # if a user has manually modified it.
         if setlist == '1,2,3,4,5,6,7,8,10' or setlist == '1,2,3,4,5,6,7,8,9,10':
-            setlist = setlist + ',11'
+            setlist += ',11'
             installutils.set_directive(
                 self.dogtag_constants.IPA_SERVICE_PROFILE,
                 'policyset.serverCertSet.list',
@@ -1608,13 +1479,14 @@ class CAInstance(service.Service):
         """
         # Check the default validity period of the audit signing cert
         # and set it to 2 years if it is 6 months.
-        range = installutils.get_directive(
+        cert_range = installutils.get_directive(
             '%s/caSignedLogCert.cfg' % self.dogtag_constants.SERVICE_PROFILE_DIR,
             'policyset.caLogSigningSet.2.default.params.range',
             separator='='
         )
-        root_logger.debug('caSignedLogCert.cfg profile validity range is %s' % range)
-        if range == "180":
+        self.log.debug(
+            'caSignedLogCert.cfg profile validity range is %s', cert_range)
+        if cert_range == "180":
             installutils.set_directive(
                 '%s/caSignedLogCert.cfg' % self.dogtag_constants.SERVICE_PROFILE_DIR,
                 'policyset.caLogSigningSet.2.default.params.range',
@@ -1629,7 +1501,8 @@ class CAInstance(service.Service):
                 quotes=False,
                 separator='='
             )
-            root_logger.debug('updated caSignedLogCert.cfg profile validity range to 720')
+            self.log.debug(
+                'updated caSignedLogCert.cfg profile validity range to 720')
             return True
         return False
 
@@ -1642,9 +1515,9 @@ class CAInstance(service.Service):
 
         dn = DN(('cn', 'CA'), ('cn', fqdn), ('cn', 'masters'), ('cn', 'ipa'),
                 ('cn', 'etc'), api.env.basedn)
-        filter = '(ipaConfigString=caRenewalMaster)'
+        renewal_filter = '(ipaConfigString=caRenewalMaster)'
         try:
-            self.admin_conn.get_entries(base_dn=dn, filter=filter,
+            self.admin_conn.get_entries(base_dn=dn, filter=renewal_filter,
                                         attrs_list=[])
         except errors.NotFound:
             return False
@@ -1683,6 +1556,31 @@ class CAInstance(service.Service):
             master_entry['ipaConfigString'].append('caRenewalMaster')
             self.admin_conn.update_entry(master_entry)
 
+
+    @staticmethod
+    def update_cert_config(nickname, cert, dogtag_constants=None):
+        """
+        When renewing a CA subsystem certificate the configuration file
+        needs to get the new certificate as well.
+
+        nickname is one of the known nicknames.
+        cert is a DER-encoded certificate.
+        """
+
+        if dogtag_constants is None:
+            dogtag_constants = dogtag.configured_constants()
+
+        # The cert directive to update per nickname
+        directives = {'auditSigningCert cert-pki-ca': 'ca.audit_signing.cert',
+                      'ocspSigningCert cert-pki-ca': 'ca.ocsp_signing.cert',
+                      'caSigningCert cert-pki-ca': 'ca.signing.cert',
+                      'subsystemCert cert-pki-ca': 'ca.subsystem.cert',
+                      'Server-Cert cert-pki-ca': 'ca.sslserver.cert'}
+
+        DogtagInstance.update_cert_cs_cfg(
+            nickname, cert, directives,
+            dogtag.configured_constants().CS_CFG_PATH,
+            dogtag_constants)
 
 def replica_ca_install_check(config):
     if not config.setup_ca:
@@ -1769,11 +1667,6 @@ def install_replica_ca(config, postinstall=False):
     if ca.is_installed():
         sys.exit("A CA is already configured on this system.")
 
-    pkcs12_info = None
-    if ipautil.file_exists(config.dir + "/dogtagcert.p12"):
-        pkcs12_info = (config.dir + "/dogtagcert.p12",
-                       config.dir + "/dirsrv_pin.txt")
-
     ca = CAInstance(config.realm_name, certs.NSS_DIR,
             dogtag_constants=dogtag.install_constants)
     if postinstall:
@@ -1812,32 +1705,6 @@ def install_replica_ca(config, postinstall=False):
 
     return ca
 
-def update_cert_config(nickname, cert, dogtag_constants=None):
-    """
-    When renewing a CA subsystem certificate the configuration file
-    needs to get the new certificate as well.
-
-    nickname is one of the known nicknames.
-    cert is a DER-encoded certificate.
-    """
-
-    if dogtag_constants is None:
-        dogtag_constants = dogtag.configured_constants()
-
-    # The cert directive to update per nickname
-    directives = {'auditSigningCert cert-pki-ca': 'ca.audit_signing.cert',
-                  'ocspSigningCert cert-pki-ca': 'ca.ocsp_signing.cert',
-                  'caSigningCert cert-pki-ca': 'ca.signing.cert',
-                  'subsystemCert cert-pki-ca': 'ca.subsystem.cert',
-                  'Server-Cert cert-pki-ca': 'ca.sslserver.cert'}
-
-    with stopped_service(dogtag_constants.SERVICE_NAME,
-                         instance_name=dogtag_constants.PKI_INSTANCE_NAME):
-
-        installutils.set_directive(dogtag.configured_constants().CS_CFG_PATH,
-                                    directives[nickname],
-                                    base64.b64encode(cert),
-                                    quotes=False, separator='=')
 
 def update_people_entry(dercert):
     """
@@ -1874,11 +1741,11 @@ def update_people_entry(dercert):
             conn.connect(
                 bind_dn=DN(('cn', 'directory manager')), bind_pw=dm_password)
 
-            filter = conn.make_filter(
+            db_filter = conn.make_filter(
                 {'description': ';%s;%s' % (issuer, subject)},
                 exact=False, trailing_wildcard=False)
             try:
-                entries = conn.get_entries(base_dn, conn.SCOPE_SUBTREE, filter)
+                entries = conn.get_entries(base_dn, conn.SCOPE_SUBTREE, db_filter)
             except errors.NotFound:
                 entries = []
 

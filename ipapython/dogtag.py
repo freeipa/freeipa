@@ -24,10 +24,9 @@ import ConfigParser
 from urllib import urlencode
 
 import nss.nss as nss
-from nss.error import NSPRError
 
 from ipalib import api, errors
-from ipalib.errors import NetworkError, CertificateOperationError
+from ipalib.errors import NetworkError
 from ipalib.text import _
 from ipapython import nsslib, ipautil
 from ipaplatform.paths import paths
@@ -41,6 +40,7 @@ from ipapython.ipa_log_manager import *
 # "dogtag_version" config option. (If that is missing, version 9 is assumed.)
 # The configured_constants() function below provides constants relevant to
 # the configured version.
+
 
 class Dogtag10Constants(object):
     DOGTAG_VERSION = 10
@@ -63,6 +63,7 @@ class Dogtag10Constants(object):
     SERVICE_PROFILE_DIR = '%s/ca/profiles/ca' % PKI_ROOT
     ALIAS_DIR = paths.PKI_TOMCAT_ALIAS_DIR.rstrip('/')
     SYSCONFIG_FILE_PATH = '%s/%s' % (paths.ETC_SYSCONFIG_DIR, PKI_INSTANCE_NAME)
+    KRA_CS_CFG_PATH = '%s/conf/kra/CS.cfg' % PKI_ROOT
 
     SERVICE_NAME = 'pki_tomcatd'
 
@@ -165,7 +166,8 @@ def get_ca_certchain(ca_host=None, dogtag_constants=None):
     if dogtag_constants is None:
         dogtag_constants = configured_constants()
     chain = None
-    conn = httplib.HTTPConnection(ca_host,
+    conn = httplib.HTTPConnection(
+        ca_host,
         api.env.ca_install_port or dogtag_constants.UNSECURE_PORT)
     conn.request("GET", "/ca/ee/ca/getCertChain")
     res = conn.getresponse()
@@ -244,7 +246,7 @@ def https_request(host, port, url, secdir, password, nickname, **kw):
 
     body = urlencode(kw)
     return _httplib_request(
-            'https', host, port, url, connection_factory, body)
+        'https', host, port, url, connection_factory, body)
 
 
 def http_request(host, port, url, **kw):
@@ -291,7 +293,8 @@ def _httplib_request(
     root_logger.debug('request body %r', request_body)
     try:
         conn = connection_factory(host, port)
-        conn.request('POST', uri,
+        conn.request(
+            'POST', uri,
             body=request_body,
             headers={'Content-type': 'application/x-www-form-urlencoded'},
         )

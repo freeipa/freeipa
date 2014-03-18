@@ -112,6 +112,7 @@ Requires: selinux-policy >= 3.12.1-176
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.47.7
 Requires: pki-ca >= 10.1.1
+Requires: pki-kra >= 10.1.1
 %if 0%{?rhel}
 Requires: subscription-manager
 %endif
@@ -570,6 +571,7 @@ fi
 %{_sbindir}/ipa-restore
 %{_sbindir}/ipa-ca-install
 %{_sbindir}/ipa-dns-install
+%{_sbindir}/ipa-kra-install
 %{_sbindir}/ipa-server-install
 %{_sbindir}/ipa-replica-conncheck
 %{_sbindir}/ipa-replica-install

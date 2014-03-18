@@ -3,7 +3,7 @@
 #          Simo Sorce <ssorce@redhat.com>
 #          Rob Crittenden <rcritten@redhat.com>
 #
-# Copyright (C) 2007-2010  Red Hat
+# Copyright (C) 2007-2014  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -53,6 +53,7 @@ from ipaserver.install import httpinstance
 from ipaserver.install import ntpinstance
 from ipaserver.install import certs
 from ipaserver.install import cainstance
+from ipaserver.install import krainstance
 from ipaserver.install import memcacheinstance
 from ipaserver.install import otpdinstance
 from ipaserver.install import sysupgrade
@@ -520,11 +521,20 @@ def uninstall():
             dogtag_constants=dogtag_constants)
         if cads_instance.is_configured():
             cads_instance.uninstall()
-    cainstance.stop_tracking_certificates(dogtag_constants)
+
+    kra_instance = krainstance.KRAInstance(
+        api.env.realm, dogtag_constants=dogtag_constants)
+    kra_instance.stop_tracking_certificates(dogtag_constants)
+    if kra_instance.is_installed():
+        kra_instance.uninstall()
+
     ca_instance = cainstance.CAInstance(
         api.env.realm, certs.NSS_DIR, dogtag_constants=dogtag_constants)
+    ca_instance.stop_tracking_certificates(dogtag_constants)
+    ca_instance.stop_tracking_agent_certificate(dogtag_constants)
     if ca_instance.is_configured():
         ca_instance.uninstall()
+
     bindinstance.BindInstance(fstore).uninstall()
     httpinstance.HTTPInstance(fstore).uninstall()
     krbinstance.KrbInstance(fstore).uninstall()
@@ -757,8 +767,13 @@ def main():
     # We only set up the CA if the PKCS#12 options are not given.
     if options.dirsrv_pkcs12:
         setup_ca = False
+        setup_kra = False
     else:
         setup_ca = True
+        #  setup_kra is set to False until Dogtag 10.2 is available for IPA to consume
+        #  Until then users that want to install the KRA need to use ipa-install-kra
+        # TODO set setup_kra = True when Dogtag 10.2 is available
+        setup_kra = False
 
     # Figure out what external CA step we're in. See cainstance.py for more
     # info on the 3 states.
@@ -775,6 +790,8 @@ def main():
     print "This includes:"
     if setup_ca:
         print "  * Configure a stand-alone CA (dogtag) for certificate management"
+    if setup_kra:
+        print "  * Configure a stand-alone KRA (dogtag) for key storage"
     if options.conf_ntp:
         print "  * Configure the Network Time Daemon (ntpd)"
     print "  * Create and configure an instance of Directory Server"
@@ -1021,6 +1038,7 @@ def main():
     else:
         fd.write("enable_ra=False\n")
         fd.write("ra_plugin=none\n")
+    fd.write("enable_kra=%s\n" % setup_kra)
     fd.write("mode=production\n")
     fd.close()
 
@@ -1122,7 +1140,7 @@ def main():
                        ipautil.realm_to_suffix(realm_name), ['caRenewalMaster'])
 
         # This is done within stopped_service context, which restarts CA
-        ca.enable_client_auth_to_db()
+        ca.enable_client_auth_to_db(ca.dogtag_constants.CS_CFG_PATH)
 
     krb = krbinstance.KrbInstance(fstore)
     if options.pkinit_pkcs12:
@@ -1204,6 +1222,20 @@ def main():
     service.print_msg("Restarting the web server")
     http.restart()
 
+    if setup_kra:
+        kra = krainstance.KRAInstance(realm_name,
+            dogtag_constants=dogtag.install_constants)
+        kra.configure_instance(host_name, domain_name, dm_password,
+                               dm_password, subject_base=options.subject)
+
+        # This is done within stopped_service context, which restarts KRA
+        service.print_msg("Restarting the directory server")
+        ds.restart()
+
+        service.print_msg("Enabling KRA to authenticate with the database "
+                          "using client certificates")
+        kra.enable_client_auth_to_db(kra.dogtag_constants.KRA_CS_CFG_PATH)
+
     # Set the admin user kerberos password
     ds.change_admin_password(admin_password)
 
@@ -1256,9 +1288,11 @@ def main():
 
     print ""
     if setup_ca:
-        print "Be sure to back up the CA certificate stored in /root/cacert.p12"
-        print "This file is required to create replicas. The password for this"
-        print "file is the Directory Manager password"
+        print "Be sure to back up the CA certificates stored in " + paths.CACERT_P12
+        if setup_kra:
+            print "and the KRA certificates stored in " + paths.KRACERT_P12
+        print "These files are required to create replicas. The password for these"
+        print "files is the Directory Manager password"
     else:
         print "In order for Firefox autoconfiguration to work you will need to"
         print "use a SSL signing certificate. See the IPA documentation for more details."

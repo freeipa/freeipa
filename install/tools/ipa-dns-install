@@ -32,6 +32,7 @@ from ipalib import api, errors, util
 from ipaplatform.paths import paths
 from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import standard_logging_setup, root_logger
+from ipapython.ipautil import DN
 
 log_file_name = paths.IPASERVER_INSTALL_LOG
 

@@ -155,6 +155,8 @@ DEFAULT_CONFIG = (
     ('ca_agent_install_port', None),
     ('ca_ee_install_port', None),
 
+    # KRA plugin
+    ('kra_host', FQDN),  # Set in Env._finalize_core()
 
     # Special CLI:
     ('prompt_all', False),

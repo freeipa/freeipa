@@ -35,9 +35,9 @@ from dns.exception import DNSException
 import ldap
 from nss.error import NSPRError
 
-from ipapython import ipautil, sysrestore, admintool, dogtag
+from ipapython import ipautil, sysrestore, admintool, dogtag, version
 from ipapython.admintool import ScriptError
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 from ipalib.util import validate_hostname
 from ipapython import config
 from ipalib import errors, x509
@@ -68,7 +68,7 @@ class HostnameLocalhost(HostLookupError):
     pass
 
 class ReplicaConfig:
-    def __init__(self):
+    def __init__(self, top_dir=None):
         self.realm_name = ""
         self.domain_name = ""
         self.master_host_name = ""
@@ -78,6 +78,7 @@ class ReplicaConfig:
         self.subject_base = None
         self.setup_ca = False
         self.version = 0
+        self.top_dir = top_dir
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
@@ -174,7 +175,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
             raise HostReverseLookupError("The host name %s does not match the reverse lookup %s" % (host_name, revname))
         verified.add(address)
 
-def record_in_hosts(ip, host_name=None, file=paths.HOSTS):
+def record_in_hosts(ip, host_name=None, conf_file=paths.HOSTS):
     """
     Search record in /etc/hosts - static table lookup for hostnames
 
@@ -184,9 +185,9 @@ def record_in_hosts(ip, host_name=None, file=paths.HOSTS):
 
     :param ip: IP address
     :param host_name: Optional hostname to search
-    :param file: Optional path to the lookup table
+    :param conf_file: Optional path to the lookup table
     """
-    hosts = open(file, 'r').readlines()
+    hosts = open(conf_file, 'r').readlines()
     for line in hosts:
         line = line.rstrip('\n')
         fields = line.partition('#')[0].split()
@@ -206,13 +207,13 @@ def record_in_hosts(ip, host_name=None, file=paths.HOSTS):
                     return None
             return (hosts_ip, names)
         except IndexError:
-            print "Warning: Erroneous line '%s' in %s" % (line, file)
+            print "Warning: Erroneous line '%s' in %s" % (line, conf_file)
             continue
 
     return None
 
-def add_record_to_hosts(ip, host_name, file=paths.HOSTS):
-    hosts_fd = open(file, 'r+')
+def add_record_to_hosts(ip, host_name, conf_file=paths.HOSTS):
+    hosts_fd = open(conf_file, 'r+')
     hosts_fd.seek(0, 2)
     hosts_fd.write(ip+'\t'+host_name+' '+host_name.split('.')[0]+'\n')
     hosts_fd.close()
@@ -512,20 +513,20 @@ def expand_replica_info(filename, password):
     """
     top_dir = tempfile.mkdtemp("ipa")
     tarfile = top_dir+"/files.tar"
-    dir = top_dir + "/realm_info"
+    dir_path = top_dir + "/realm_info"
     ipautil.decrypt_file(filename, tarfile, password, top_dir)
     ipautil.run(["tar", "xf", tarfile, "-C", top_dir])
     os.remove(tarfile)
 
-    return top_dir, dir
+    return top_dir, dir_path
 
-def read_replica_info(dir, rconfig):
+def read_replica_info(dir_path, rconfig):
     """
     Read the contents of a replica installation file.
 
     rconfig is a ReplicaConfig object
     """
-    filename = dir + "/realm_info"
+    filename = dir_path + "/realm_info"
     fd = open(filename)
     config = SafeConfigParser()
     config.readfp(fd)
@@ -556,6 +557,67 @@ def read_replica_info_dogtag_port(config_dir):
 
     return dogtag_master_ds_port
 
+def read_replica_info_kra_enabled(config_dir):
+    """
+    Check the replica info to determine if a KRA has been installed
+    on the master
+    """
+    default_file = config_dir + "/default.conf"
+    if not ipautil.file_exists(default_file):
+        return False
+    else:
+        with open(default_file) as fd:
+            config = SafeConfigParser()
+            config.readfp(fd)
+
+            enable_kra = bool(config.get("global", "enable_kra"))
+            return enable_kra
+
+
+def create_replica_config(dirman_password, filename, options):
+    top_dir = None
+    try:
+        top_dir, dir = expand_replica_info(filename, dirman_password)
+    except Exception, e:
+        root_logger.error("Failed to decrypt or open the replica file.")
+        print "ERROR: Failed to decrypt or open the replica file."
+        print "Verify you entered the correct Directory Manager password."
+        sys.exit(1)
+    config = ReplicaConfig(top_dir)
+    read_replica_info(dir, config)
+    root_logger.debug(
+        'Installing replica file with version %d (0 means no version in prepared file).',
+        config.version)
+    if config.version and config.version > version.NUM_VERSION:
+        root_logger.error(
+            'A replica file from a newer release (%d) cannot be installed on an older version (%d)',
+            config.version, version.NUM_VERSION)
+        sys.exit(1)
+    config.dirman_password = dirman_password
+    try:
+        host = get_host_name(options.no_host_dns)
+    except BadHostError, e:
+        root_logger.error(str(e))
+        sys.exit(1)
+    if config.host_name != host:
+        try:
+            print "This replica was created for '%s' but this machine is named '%s'" % (config.host_name, host)
+            if not ipautil.user_input("This may cause problems. Continue?", False):
+                root_logger.debug(
+                    "Replica was created for %s but machine is named %s  "
+                    "User chose to exit",
+                    config.host_name, host)
+                sys.exit(0)
+            config.host_name = host
+            print ""
+        except KeyboardInterrupt:
+            root_logger.debug("Keyboard Interrupt")
+            sys.exit(0)
+    config.dir = dir
+    config.ca_ds_port = read_replica_info_dogtag_port(config.dir)
+    return config
+
+
 def check_server_configuration():
     """
     Check if IPA server is configured on the system.
@@ -572,6 +634,7 @@ def check_server_configuration():
     if not server_fstore.has_files():
         raise RuntimeError("IPA is not configured on this system.")
 
+
 def remove_file(filename):
     """
     Remove a file and log any exceptions raised.
@@ -582,6 +645,7 @@ def remove_file(filename):
     except Exception, e:
         root_logger.error('Error removing %s: %s' % (filename, str(e)))
 
+
 def rmtree(path):
     """
     Remove a directory structure and log any exceptions raised.
@@ -591,6 +655,7 @@ def rmtree(path):
             shutil.rmtree(path)
     except Exception, e:
         root_logger.error('Error removing %s: %s' % (path, str(e)))
+
 
 def is_ipa_configured():
     """
@@ -764,7 +829,7 @@ def check_pkcs12(pkcs12_info, ca_file, hostname):
             raise ScriptError(
                 '%s server certificates found in %s, expecting only one' %
                 (len(server_certs), pkcs12_filename))
-        [(server_cert_name, server_cert_trust)] = server_certs
+        [(server_cert_name, _server_cert_trust)] = server_certs
 
         # Check we have the whole cert chain & the CA is in it
         trust_chain = nssdb.get_trust_chain(server_cert_name)
@@ -849,23 +914,23 @@ def stopped_service(service, instance_name=""):
             root_logger.debug('Starting %s%s.', service, log_instance_name)
             services.knownservices[service].start(instance_name)
 
+
 def check_entropy():
-    '''
+    """
     Checks if the system has enough entropy, if not, displays warning message
-    '''
+    """
     try:
-        with open('/proc/sys/kernel/random/entropy_avail', 'r') as efname:
+        with open(paths.ENTROPY_AVAIL, 'r') as efname:
             if int(efname.read()) < 200:
                 emsg = 'WARNING: Your system is running out of entropy, ' \
                         'you may experience long delays'
                 service.print_msg(emsg)
                 root_logger.debug(emsg)
     except IOError as e:
-        root_logger.debug("Could not open /proc/sys/kernel/random/entropy_avail: %s" % \
-            e)
+        root_logger.debug(
+            "Could not open %s: %s", paths.ENTROPY_AVAIL, e)
     except ValueError as e:
-        root_logger.debug("Invalid value in /proc/sys/kernel/random/entropy_avail %s" % \
-            e)
+        root_logger.debug("Invalid value in %s %s", paths.ENTROPY_AVAIL, e)
 
 def validate_external_cert(cert_file, ca_file, subject_base):
     extcert = None

@@ -25,7 +25,6 @@ import os
 import re
 import time
 import tempfile
-import base64
 import stat
 import grp
 
@@ -38,7 +37,9 @@ import ldap
 from ipaserver.install import ldapupdate
 from ipaserver.install import replication
 from ipaserver.install import sysupgrade
-from ipalib import errors, certstore
+from ipalib import api
+from ipalib import certstore
+from ipalib import errors
 from ipaplatform.tasks import tasks
 from ipalib.constants import CACERT
 from ipapython.dn import DN
@@ -952,3 +953,85 @@ class DsInstance(service.Service):
             pass
 
         self.ldap_disconnect()
+
+    def find_subject_base(self):
+        """
+        Try to find the current value of certificate subject base.
+        1) Look in sysupgrade first
+        2) If no value is found there, look in DS (start DS if necessary)
+        3) Last resort, look in the certmap.conf itself
+        4) If all fails, log loudly and return None
+
+        Note that this method can only be executed AFTER the ipa server
+        is configured, the api is initialized elsewhere and
+        that a ticket already have been acquired.
+        """
+        root_logger.debug(
+            'Trying to find certificate subject base in sysupgrade')
+        subject_base = sysupgrade.get_upgrade_state(
+            'certmap.conf', 'subject_base')
+
+        if subject_base:
+            root_logger.debug(
+                'Found certificate subject base in sysupgrade: %s',
+                subject_base)
+            return subject_base
+
+        root_logger.debug(
+            'Unable to find certificate subject base in sysupgrade')
+        root_logger.debug(
+            'Trying to find certificate subject base in DS')
+
+        ds_is_running = is_ds_running()
+        if not ds_is_running:
+            try:
+                self.start()
+                ds_is_running = True
+            except ipautil.CalledProcessError as e:
+                root_logger.error('Cannot start DS to find certificate '
+                                  'subject base: %s', e)
+
+        if ds_is_running:
+            try:
+                api.Backend.ldap2.connect(autobind=True)
+                ret = api.Command['config_show']()
+                subject_base = str(
+                    ret['result']['ipacertificatesubjectbase'][0])
+                root_logger.debug(
+                    'Found certificate subject base in DS: %s', subject_base)
+            except errors.PublicError, e:
+                root_logger.error('Cannot connect to DS to find certificate '
+                                  'subject base: %s', e)
+            finally:
+                try:
+                    api.Backend.ldap2.disconnect()
+                except Exception:
+                    pass
+
+        if not subject_base:
+            root_logger.debug('Unable to find certificate subject base in DS')
+            root_logger.debug('Trying to find certificate subject base in '
+                              'certmap.conf')
+
+            certmap_dir = config_dirname(
+                realm_to_serverid(api.env.realm)
+            )
+            try:
+                with open(os.path.join(certmap_dir, 'certmap.conf')) as f:
+                    for line in f:
+                        if line.startswith('certmap ipaca'):
+                            subject_base = line.strip().split(',')[-1]
+                            root_logger.debug(
+                                'Found certificate subject base in certmap.conf: '
+                                '%s', subject_base)
+
+            except IOError as e:
+                root_logger.error('Cannot open certmap.conf to find certificate '
+                                  'subject base: %s', e.strerror)
+
+        if subject_base:
+            return subject_base
+
+        root_logger.debug('Unable to find certificate subject base in '
+                          'certmap.conf')
+        return None

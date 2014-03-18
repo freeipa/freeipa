@@ -36,12 +36,12 @@ from ipaserver.install import bindinstance, httpinstance, ntpinstance
 from ipaserver.install import memcacheinstance
 from ipaserver.install import otpdinstance
 from ipaserver.install.replication import replica_conn_check, ReplicationManager
-from ipaserver.install.installutils import (ReplicaConfig, expand_replica_info,
-        read_replica_info, get_host_name, BadHostError, private_ccache,
-        read_replica_info_dogtag_port)
+from ipaserver.install.installutils import (
+    create_replica_config, read_replica_info_kra_enabled, private_ccache)
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import cainstance
-from ipalib import api, errors, util, x509, certstore
+from ipaserver.install import krainstance
+from ipalib import api, errors, util, certstore, x509
 from ipalib.constants import CACERT
 from ipapython import version
 from ipapython.config import IPAOptionParser
@@ -55,8 +55,8 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 
 log_file_name = paths.IPAREPLICA_INSTALL_LOG
-REPLICA_INFO_TOP_DIR = None
 DIRMAN_DN = DN(('cn', 'directory manager'))
+REPLICA_INFO_TOP_DIR = None
 
 def parse_options():
     usage = "%prog [options] REPLICA_FILE"
@@ -65,6 +65,8 @@ def parse_options():
     basic_group = OptionGroup(parser, "basic options")
     basic_group.add_option("--setup-ca", dest="setup_ca", action="store_true",
                       default=False, help="configure a dogtag CA")
+    basic_group.add_option("--setup-kra", dest="setup_kra", action="store_true",
+                      default=False, help="configure a dogtag KRA")
     basic_group.add_option("--ip-address", dest="ip_address",
                       type="ip", ip_local=True,
                       help="Replica server IP Address")
@@ -205,6 +207,7 @@ def install_krb(config, setup_pkinit=False):
                        setup_pkinit, pkcs12_info)
 
     return krb
+
 
 def install_ca_cert(ldap, base_dn, realm, cafile):
     try:
@@ -508,43 +511,23 @@ def main():
         if dirman_password is None:
             sys.exit("Directory Manager password required")
 
-    try:
-        top_dir, dir = expand_replica_info(filename, dirman_password)
-        global REPLICA_INFO_TOP_DIR
-        REPLICA_INFO_TOP_DIR = top_dir
-    except Exception, e:
-        print "ERROR: Failed to decrypt or open the replica file."
-        print "Verify you entered the correct Directory Manager password."
-        sys.exit(1)
-
-    config = ReplicaConfig()
-    read_replica_info(dir, config)
-    root_logger.debug('Installing replica file with version %d (0 means no version in prepared file).' % config.version)
-    if config.version and config.version > version.NUM_VERSION:
-        root_logger.error('A replica file from a newer release (%d) cannot be installed on an older version (%d)' % (config.version, version.NUM_VERSION))
-        sys.exit(1)
-    config.dirman_password = dirman_password
-    try:
-        host = get_host_name(options.no_host_dns)
-    except BadHostError, e:
-        root_logger.error(str(e))
-        sys.exit(1)
-    if config.host_name != host:
-        try:
-            print "This replica was created for '%s' but this machine is named '%s'" % (config.host_name, host)
-            if not ipautil.user_input("This may cause problems. Continue?", False):
-                sys.exit(0)
-            config.host_name = host
-            print ""
-        except KeyboardInterrupt:
-            sys.exit(0)
-    config.dir = dir
+    config = create_replica_config(dirman_password, filename, options)
+    global REPLICA_INFO_TOP_DIR
+    REPLICA_INFO_TOP_DIR = config.top_dir
     config.setup_ca = options.setup_ca
-    config.ca_ds_port = read_replica_info_dogtag_port(config.dir)
 
     if config.setup_ca and not ipautil.file_exists(config.dir + "/cacert.p12"):
         print 'CA cannot be installed in CA-less setup.'
         sys.exit(1)
+
+    config.setup_kra = options.setup_kra
+    if config.setup_kra:
+        if not config.setup_ca:
+            print "CA must be installed with the KRA"
+            sys.exit(1)
+        if not read_replica_info_kra_enabled(config.dir):
+            print "KRA is not installed on the master system"
+            sys.exit(1)
 
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
 
@@ -579,6 +562,9 @@ def main():
         else:
             fd.write("enable_ra=False\n")
             fd.write("ra_plugin=none\n")
+
+        fd.write("enable_kra=%s\n" % config.setup_kra)
+
         fd.write("mode=production\n")
         fd.close()
     finally:
@@ -611,7 +597,7 @@ def main():
 
         # Check that we don't already have a replication agreement
         try:
-            (agreement_cn, agreement_dn) = replman.agreement_dn(host)
+            (agreement_cn, agreement_dn) = replman.agreement_dn(config.host_name)
             entry = conn.get_entry(agreement_dn, ['*'])
         except errors.NotFound:
             pass
@@ -621,20 +607,20 @@ def main():
             print ('A replication agreement for this host already exists. '
                    'It needs to be removed.')
             print "Run this on the master that generated the info file:"
-            print "    %% ipa-replica-manage del %s --force" % host
+            print "    %% ipa-replica-manage del %s --force" % config.host_name
             exit(3)
 
         # Check pre-existing host entry
         try:
-            entry = conn.find_entries(u'fqdn=%s' % host, ['fqdn'], DN(api.env.container_host, api.env.basedn))
+            entry = conn.find_entries(u'fqdn=%s' % config.host_name, ['fqdn'], DN(api.env.container_host, api.env.basedn))
         except errors.NotFound:
             pass
         else:
             root_logger.info(
-                'Error: Host %s already exists on the master server.' % host)
-            print 'The host %s already exists on the master server.' % host
+                'Error: Host %s already exists on the master server.' % config.host_name)
+            print 'The host %s already exists on the master server.' % config.host_name
             print "You should remove it before proceeding:"
-            print "    %% ipa host-del %s" % host
+            print "    %% ipa host-del %s" % config.host_name
             exit(3)
 
         # Install CA cert so that we can do SSL connections with ldap
@@ -694,7 +680,7 @@ def main():
                        ipautil.realm_to_suffix(config.realm_name))
 
         # This is done within stopped_service context, which restarts CA
-        CA.enable_client_auth_to_db()
+        CA.enable_client_auth_to_db(CA.dogtag_constants.CS_CFG_PATH)
 
     krb = install_krb(config, setup_pkinit=options.setup_pkinit)
     http = install_http(config, auto_redirect=options.ui_redirect)
@@ -705,7 +691,7 @@ def main():
 
     if CA:
         CA.configure_certmonger_renewal()
-        CA.import_ra_cert(dir + "/ra.p12")
+        CA.import_ra_cert(config.dir + "/ra.p12")
         CA.fix_ra_perms()
         services.knownservices.httpd.restart()
 
@@ -717,9 +703,14 @@ def main():
     service.print_msg("Applying LDAP updates")
     ds.apply_updates()
 
-    # Restart ds and krb after configurations have been changed
-    service.print_msg("Restarting the directory server")
-    ds.restart()
+    if options.setup_kra:
+        kra = krainstance.install_replica_kra(config)
+        service.print_msg("Restarting the directory server")
+        ds.restart()
+        kra.enable_client_auth_to_db(kra.dogtag_constants.KRA_CS_CFG_PATH)
+    else:
+        service.print_msg("Restarting the directory server")
+        ds.restart()
 
     service.print_msg("Restarting the KDC")
     krb.restart()
