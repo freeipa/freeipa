@@ -47,7 +47,7 @@ from errors import (PublicError, CommandError, HelpError, InternalError,
                     NoSuchNamespaceError, ValidationError, NotFound,
                     NotConfiguredError, PromptFailed)
 from constants import CLI_TAB
-from parameters import File, Str, StrEnum, Any
+from parameters import File, Str, Enum, Any
 from text import _
 from ipapython.version import API_VERSION
 
@@ -1117,10 +1117,10 @@ class cli(backend.Executioner):
                     kw['action'] = 'store_false'
                 else:
                     kw['action'] = 'store_true'
-            elif isinstance(option, StrEnum):
-                kw['metavar'] = metavar=map(lambda x: str(x), option.values)
+            elif isinstance(option, Enum):
+                kw['metavar'] = list(str(x) for x in option.values)
             else:
-                kw['metavar'] = metavar=option.__class__.__name__.upper()
+                kw['metavar'] = option.__class__.__name__.upper()
 
             if option.cli_short_name:
                 o = optparse.make_option('-%s' % option.cli_short_name, '--%s' % to_cli(option.cli_name), **kw)
