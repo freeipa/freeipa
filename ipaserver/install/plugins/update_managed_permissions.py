@@ -129,6 +129,29 @@ NONOBJECT_PERMISSIONS = {
             'cn', 'objectclass', 'usercertificate',
         },
     },
+    'System: Add CA Certificate For Renewal': {
+        'ipapermlocation': DN('cn=ca_renewal,cn=ipa,cn=etc', api.env.basedn),
+        'ipapermtarget': DN(
+            'cn=caSigningCert cert-pki-ca,cn=ca_renewal,cn=ipa,cn=etc',
+            api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=pkiuser)'},
+        'ipapermbindruletype': 'permission',
+        'ipapermright': {'add'},
+        'default_privileges': {'Certificate Administrators'},
+    },
+    'System: Modify CA Certificate For Renewal': {
+        'ipapermlocation': DN('cn=ca_renewal,cn=ipa,cn=etc', api.env.basedn),
+        'ipapermtarget': DN(
+            'cn=caSigningCert cert-pki-ca,cn=ca_renewal,cn=ipa,cn=etc',
+            api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=pkiuser)'},
+        'ipapermbindruletype': 'permission',
+        'ipapermright': {'write'},
+        'ipapermdefaultattr': {
+            'usercertificate',
+        },
+        'default_privileges': {'Certificate Administrators'},
+    },
     'System: Read CA Certificate': {
         'replaces_global_anonymous_aci': True,
         'ipapermlocation': DN('cn=CAcert,cn=ipa,cn=etc', api.env.basedn),

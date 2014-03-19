@@ -246,6 +246,10 @@ dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Remove Users";allow (delete) groupdn = "ldap:///cn=System: Remove Users,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krblastadminunlock || krbloginfailedcount || nsaccountlock")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Unlock User";allow (write) groupdn = "ldap:///cn=System: Unlock User,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=ca_renewal,cn=ipa,cn=etc,dc=ipa,dc=example
+aci: (target = "ldap:///cn=caSigningCert cert-pki-ca,cn=ca_renewal,cn=ipa,cn=etc,dc=ipa,dc=example")(targetfilter = "(objectclass=pkiuser)")(version 3.0;acl "permission:System: Add CA Certificate For Renewal";allow (add) groupdn = "ldap:///cn=System: Add CA Certificate For Renewal,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=ca_renewal,cn=ipa,cn=etc,dc=ipa,dc=example
+aci: (targetattr = "usercertificate")(target = "ldap:///cn=caSigningCert cert-pki-ca,cn=ca_renewal,cn=ipa,cn=etc,dc=ipa,dc=example")(targetfilter = "(objectclass=pkiuser)")(version 3.0;acl "permission:System: Modify CA Certificate For Renewal";allow (write) groupdn = "ldap:///cn=System: Modify CA Certificate For Renewal,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=etc,dc=ipa,dc=example
 aci: (targetattr = "cn || ipantdomainguid || ipantfallbackprimarygroup || ipantflatname || ipantsecurityidentifier || objectclass")(target = "ldap:///cn=ad,cn=etc,dc=ipa,dc=example")(targetfilter = "(objectclass=ipantdomainattrs)")(version 3.0;acl "permission:System: Read AD Domains";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=CAcert,cn=ipa,cn=etc,dc=ipa,dc=example
