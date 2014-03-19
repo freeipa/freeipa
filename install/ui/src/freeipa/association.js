@@ -610,7 +610,6 @@ IPA.association_table_widget = function (spec) {
                 that.add_record(that.values[i]);
             }
         }
-        that.updated.notify([], that);
     };
 
     that.create_add_dialog = function() {

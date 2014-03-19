@@ -513,8 +513,7 @@ IPA.user_password_widget = function(spec) {
         } else {
             that.display_control.text(that.unset_value);
         }
-        that.updated.notify([], that);
-        that.emit('update', { source: that });
+        that.on_value_changed();
     };
 
     that.clear = function() {

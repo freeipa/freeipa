@@ -311,18 +311,6 @@ IPA.input_widget = function(spec) {
     that.undo_clicked = IPA.observer();
 
     /**
-     * Updated event.
-     * @deprecated
-     *
-     * Raised when widget content gets updated - raised by
-     * {@link IPA.input_widget#update} method.
-     *
-     * @event
-     */
-    that.updated = IPA.observer();
-
-
-    /**
      * Creates HTML representation of error link
      * @param {HTMLElement} container - node to place the error link
      */
@@ -354,6 +342,13 @@ IPA.input_widget = function(spec) {
      *                                     widget.
      */
     that.update = function() {
+    };
+
+    /**
+     * Alias of update
+     */
+    that.set_value = function(value) {
+        that.update(value);
     };
 
     /**
@@ -723,8 +718,7 @@ IPA.text_widget = function(spec) {
             that.input.css('display', '');
         }
 
-        that.updated.notify([], that);
-        that.emit('update', { source: that, value: value });
+        that.on_value_changed();
     };
 
     /**
@@ -745,6 +739,7 @@ IPA.text_widget = function(spec) {
     that.clear = function() {
         that.input.val('');
         that.display_control.text('');
+        that.on_value_changed();
     };
 
     /**
@@ -794,6 +789,7 @@ IPA.multivalued_widget = function(spec) {
     that.size = spec.size || 30;
     that.undo_control;
     that.initialized = true;
+    that.updating = false;
 
     that.rows = [];
 
@@ -806,6 +802,8 @@ IPA.multivalued_widget = function(spec) {
             row.remove_link.show();
         }
 
+        if (that.updating) return;
+        that.on_value_changed();
         that.emit('value-change', { source: that });
         that.emit('child-value-change', { source: that, row: row });
     };
@@ -1081,6 +1079,7 @@ IPA.multivalued_widget = function(spec) {
     that.update = function(values, index) {
 
         var value;
+        that.updating = true;
 
         if (index === undefined) {
 
@@ -1103,9 +1102,9 @@ IPA.multivalued_widget = function(spec) {
             row.widget.update(values);
         }
 
-        that.updated.notify([], that);
-        that.emit('update', { source: that });
+        that.updating = false;
 
+        that.on_value_changed();
     };
 
     that.update_add_link_visibility = function() {
@@ -1185,7 +1184,6 @@ IPA.option_widget_base = function(spec, that) {
     that.label = spec.label;
     that.tooltip = spec.tooltip;
     that.value_changed = that.value_changed || IPA.observer();
-    that.updated = that.updated || IPA.observer();
     that.default_value = spec.default_value || null;
     that.default_on_empty = spec.default_on_empty === undefined ? true : spec.default_on_empty;
 
@@ -1539,8 +1537,9 @@ IPA.option_widget_base = function(spec, that) {
             }
         }
 
-        that.updated.notify([], that);
-        that.emit('update', { source: that });
+        if (that.on_value_changed) {
+            that.on_value_changed();
+        }
     };
 
     that.set_enabled = function(enabled) {
@@ -1827,8 +1826,7 @@ IPA.select_widget = function(spec) {
             // default was selected instead of supplied value, hence notify
             util.emit_delayed(that,'value-change', { source: that });
         }
-        that.updated.notify([], that);
-        that.emit('update', { source: that });
+        that.on_value_changed();
     };
 
     that.empty = function() {
@@ -1937,8 +1935,7 @@ IPA.textarea_widget = function (spec) {
 
         var value = values && values.length ? values[0] : '';
         that.input.val(value);
-        that.updated.notify([], that);
-        that.emit('update', { source: that });
+        that.on_value_changed();
     };
 
     that.clear = function() {
@@ -2685,8 +2682,7 @@ IPA.table_widget = function (spec) {
             that.values.push(record[that.value_attr_name]);
             that.add_record(record);
         }
-        that.updated.notify([], that);
-        that.emit('update', { source: that });
+        that.on_value_changed();
     };
 
     that.save = function() {
@@ -3590,8 +3586,7 @@ IPA.combobox_widget = function(spec) {
                 that.select(value);
             }
         );
-        that.updated.notify([], that);
-        that.emit('update', { source: that });
+        that.on_value_changed();
     };
 
     that.set_value = function(value) {
@@ -3796,8 +3791,7 @@ IPA.link_widget = function(spec) {
         that.nonlink.html(that.value);
 
         that.check_entity_link();
-        that.updated.notify([], that);
-        that.emit('update', { source: that });
+        that.on_value_changed();
     };
 
     that.update_link = function() {
@@ -5031,9 +5025,7 @@ IPA.sshkey_widget = function(spec) {
             that.originally_set = true;
             that.original_key = that.key.key;
         }
-        that.update_link();
-        that.updated.notify([], that);
-        that.emit('update', { source: that });
+        that.on_value_changed();
     };
 
     that.set_deleted = function(deleted) {
@@ -5308,6 +5300,7 @@ IPA.value_map_widget = function(spec) {
     var that = IPA.input_widget(spec);
     that.value_map = spec.value_map || {};
     that.default_label = text.get(spec.default_label || '');
+    that.value = '';
 
     that.create = function(container) {
         that.widget_create(container);
@@ -5323,6 +5316,7 @@ IPA.value_map_widget = function(spec) {
         var value, found, label;
 
         found = false;
+        that.value = '';
 
         if ($.isArray(values)) {
             for (value in that.value_map) {
@@ -5331,6 +5325,7 @@ IPA.value_map_widget = function(spec) {
 
                 if (values.indexOf(value) > -1) {
                     label = text.get(that.value_map[value]);
+                    that.value = value;
                     found = true;
                 }
             }
@@ -5341,8 +5336,11 @@ IPA.value_map_widget = function(spec) {
         }
 
         that.display_control.text(label);
-        that.updated.notify([], that);
-        that.emit('update', { source: that });
+        that.on_value_changed();
+    };
+
+    that.save = function() {
+        return [that.value];
     };
 
     that.clear = function() {

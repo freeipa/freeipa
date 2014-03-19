@@ -481,7 +481,6 @@ IPA.hbacrule_details_facet = function(spec) {
     that.update_on_success = function(data, text_status, xhr) {
         that.refresh();
         that.on_update.notify();
-        that.emit('update', { source: that });
         that.nofify_update_success();
     };
 

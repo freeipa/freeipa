@@ -196,7 +196,6 @@ IPA.idrange_adder_policy = function(spec) {
         }
 
         type_f.widget.value_changed.attach(that.on_input_change);
-        type_f.widget.updated.attach(that.on_input_change);
         baserid_f.widget.value_changed.attach(that.on_input_change);
         secondarybaserid_f.widget.value_changed.attach(that.on_input_change);
     };

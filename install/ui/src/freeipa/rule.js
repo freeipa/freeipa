@@ -50,7 +50,6 @@ IPA.rule_details_widget = function(spec) {
 
         that.widgets.add_widget(that.enable_radio);
         that.enable_radio.value_changed.attach(that.on_enable_radio_changed);
-        that.enable_radio.updated.attach(that.on_enable_radio_changed);
     };
 
     that.on_enable_radio_changed = function() {
