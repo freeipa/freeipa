@@ -2856,6 +2856,7 @@ def main():
     root_logger.debug(
         '%s was invoked with options: %s', sys.argv[0], safe_options)
     root_logger.debug("missing options might be asked for interactively later")
+    root_logger.debug('IPA version %s' % version.VENDOR_VERSION)
 
     env={"PATH":"/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
 

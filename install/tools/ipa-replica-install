@@ -455,6 +455,7 @@ def main():
 
     standard_logging_setup(log_file_name, debug=options.debug)
     root_logger.debug('%s was invoked with argument "%s" and options: %s' % (sys.argv[0], filename, safe_options))
+    root_logger.debug('IPA version %s' % version.VENDOR_VERSION)
 
     if not ipautil.file_exists(filename):
         sys.exit("Replica file %s does not exist" % filename)

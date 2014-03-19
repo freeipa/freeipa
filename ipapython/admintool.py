@@ -283,6 +283,7 @@ class AdminTool(object):
         """
         self.log.debug('%s was invoked with arguments %s and options: %s',
                 self.command_name, self.args, self.safe_options)
+        self.log.debug('IPA version %s' % version.VENDOR_VERSION)
 
     def log_failure(self, error_message, return_value, exception, backtrace):
         self.log.debug(''.join(traceback.format_tb(backtrace)))

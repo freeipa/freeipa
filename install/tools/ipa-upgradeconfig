@@ -1014,6 +1014,7 @@ def main():
     standard_logging_setup('/var/log/ipaupgrade.log', debug=options.debug,
         verbose=verbose, console_format=console_format, filemode='a')
     root_logger.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
+    root_logger.debug('IPA version %s' % version.VENDOR_VERSION)
 
     fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
 
