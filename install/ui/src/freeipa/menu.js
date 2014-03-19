@@ -21,15 +21,15 @@
 
 define([
         'dojo/_base/lang',
-        './app', // creates circular dependency
+        './app_container',
         './ipa',
         'exports' // for handling circular dependency
        ],
-       function(lang, app, IPA, exports) {
+       function(lang, app_container, IPA, exports) {
 
 
     var get_menu = function() {
-            return app.app.menu;
+            return app_container.app.menu;
         },
 
         /**

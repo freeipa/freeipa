@@ -21,17 +21,17 @@
 
 define([
         'dojo/_base/lang',
-        './app', // creates circular dependency
-        './ipa',
-        'exports' // for handling circular dependency
+        './app_container',
+        './ipa'
        ],
-       function(lang, app, IPA, exports) {
+       function(lang, app_container, IPA) {
 
 
     var get_router = function() {
-            return app.app.router;
-        },
+        return app_container.app.router;
+    };
 
+    var navigation = {
         /**
          * Navigation tells application to show certain facet.
          *
@@ -53,7 +53,7 @@ define([
          *  @param Object params
          *  @param {Object|facet.facet|string|Function} arg
          */
-        set_params = function(params, arg) {
+        set_params: function(params, arg) {
             if (lang.isArray(arg)) {
                 params.pkeys = arg;
             } else if (typeof arg === 'object') {
@@ -86,14 +86,14 @@ define([
          * @param {Object|facet.facet|string|Function} arg2
          * @param {Object|facet.facet|string|Function} arg3
          */
-        show = function(arg1, arg2, arg3) {
+        show: function(arg1, arg2, arg3) {
 
             var nav = get_router();
             var params = {};
 
-            set_params(params, arg1);
-            set_params(params, arg2);
-            set_params(params, arg3);
+            this.set_params(params, arg1);
+            this.set_params(params, arg2);
+            this.set_params(params, arg3);
 
             var facet = params.facet;
 
@@ -129,13 +129,13 @@ define([
          * @param {Object|facet.facet|string|Function} arg2
          * @param {Object|facet.facet|string|Function} arg3
          */
-        show_entity = function(entity_name, arg1, arg2, arg3) {
+        show_entity: function(entity_name, arg1, arg2, arg3) {
             var nav = get_router();
             var params = {};
 
-            set_params(params, arg1);
-            set_params(params, arg2);
-            set_params(params, arg3);
+            this.set_params(params, arg1);
+            this.set_params(params, arg2);
+            this.set_params(params, arg3);
             return nav.navigate_to_entity_facet(entity_name, params.facet,
                                                 params.pkeys, params.args);
         },
@@ -144,17 +144,10 @@ define([
          * Show default facet
          * @method show_default
          */
-        show_default = function() {
+        show_default: function() {
             // TODO: make configurable
-            return show_entity('user', 'search');
-        };
-
-    // Module export
-    exports = {
-        show: show,
-        show_entity: show_entity,
-        show_default: show_default
+            return this.show_entity('user', 'search');
+        }
     };
-
-    return exports;
+    return navigation;
 });
