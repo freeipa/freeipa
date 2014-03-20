@@ -34,13 +34,12 @@ from ipalib.plugins.service import (split_principal, validate_certificate,
     set_kerberos_attrs)
 from ipalib.plugins.dns import (dns_container_exists, _record_types,
         add_records_for_host_validation, add_records_for_host,
-        _hostname_validator, get_reverse_zone)
-from ipalib.plugins.dns import get_reverse_zone
+        get_reverse_zone)
 from ipalib import _, ngettext
 from ipalib import x509
 from ipalib.request import context
 from ipalib.util import (normalize_sshpubkey, validate_sshpubkey_no_options,
-    convert_sshpubkey_post)
+    convert_sshpubkey_post, validate_hostname)
 from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
 from ipapython.dnsutil import DNSName
 from ipapython.ssh import SSHPublicKey
@@ -214,6 +213,15 @@ def normalize_hostname(hostname):
         hostname = hostname[:-1]
     hostname = hostname.lower()
     return hostname
+
+def _hostname_validator(ugettext, value):
+    try:
+        validate_hostname(value)
+    except ValueError, e:
+        return _('invalid domain-name: %s') \
+            % unicode(e)
+
+    return None
 
 class host(LDAPObject):
     """
