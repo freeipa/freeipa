@@ -38,8 +38,6 @@ from ipalib import _, ngettext
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
                          get_dns_forward_zone_update_policy,
                          get_dns_reverse_zone_update_policy,
-                         normalize_zone, zone_is_reverse,
-                         validate_domain_name,
                          get_reverse_zone_default, REVERSE_DNS_ZONES)
 from ipapython.ipautil import valid_ip, CheckedIPAddress, is_host_resolvable
 from ipapython.dnsutil import DNSName
@@ -403,15 +401,6 @@ def _validate_bind_forwarder(ugettext, forwarder):
             return _('%(port)s is not a valid port' % dict(port=port))
 
     return None
-
-def _domain_name_validator(ugettext, value):
-    try:
-        #classless reverse zones can contain slash '/'
-        normalized_zone = normalize_zone(value)
-        validate_domain_name(value, allow_slash=zone_is_reverse(normalized_zone))
-
-    except ValueError, e:
-        return unicode(e)
 
 def _hostname_validator(ugettext, value):
     assert isinstance(value, DNSName)

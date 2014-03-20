@@ -21,8 +21,7 @@ from ipalib import api, errors
 from ipalib import Str, Flag
 from ipalib import _
 from ipalib.plugins.baseldap import LDAPObject, LDAPUpdate, LDAPRetrieve
-from ipalib.plugins.dns import _domain_name_validator
-from ipalib.util import has_soa_or_ns_record
+from ipalib.util import has_soa_or_ns_record, validate_domain_name
 from ipapython.dn import DN
 from ipapython.ipautil import get_domain_name
 
@@ -51,6 +50,12 @@ EXAMPLES:
 
 def _domain_name_normalizer(d):
     return d.lower().rstrip('.')
+
+def _domain_name_validator(ugettext, value):
+    try:
+        validate_domain_name(value, allow_slash=False)
+    except ValueError, e:
+        return unicode(e)
 
 
 class realmdomains(LDAPObject):
