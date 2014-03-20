@@ -133,7 +133,8 @@ def restore_files(host):
         "/sbin/restorecon -v" % (backupname, sed_remove_backupdir))
 
     # Prepare command for actual restoring of the backed up files
-    copyfiles_command = 'cp -arvf %s/* /' % ipautil.shell_quote(backupname)
+    copyfiles_command = 'if [ -d %(dir)s/ ]; then cp -arvf %(dir)s/* /; fi' % {
+        'dir': ipautil.shell_quote(backupname)}
 
     # Run both commands in one session. For more information, see:
     # https://fedorahosted.org/freeipa/ticket/4133
