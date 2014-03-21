@@ -23,6 +23,7 @@ Automember tests
 
 from ipatests.test_webui.ui_driver import UI_driver
 import ipatests.test_webui.data_hostgroup as hostgroup
+from ipatests.test_webui.test_host import host_tasks
 
 ENTITY = 'automember'
 
@@ -88,6 +89,7 @@ class test_automember(UI_driver):
         """
         self.init_app()
 
+        host_util = host_tasks()
         domain = self.config.get('ipa_domain')
         host1 = 'web1.%s' % domain
         host2 = 'web2.%s' % domain
@@ -101,25 +103,9 @@ class test_automember(UI_driver):
             ]
         })
 
-        # Add a host
-        self.add_record('host', {
-            'pkey': host1,
-            'add': [
-                ('textbox', 'hostname', 'web1'),
-                ('combobox', 'dnszone', domain),
-                ('checkbox', 'force', 'checked'),
-            ]
-        })
-
-        # Add another host
-        self.add_record('host', {
-            'pkey': host2,
-            'add': [
-                ('textbox', 'hostname', 'web2'),
-                ('combobox', 'dnszone', domain),
-                ('checkbox', 'force', 'checked'),
-            ]
-        })
+        # Add hosts
+        self.add_record('host', host_util.get_data("web1", domain));
+        self.add_record('host', host_util.get_data("web2", domain));
 
         # Add an automember rule
         self.add_record(
