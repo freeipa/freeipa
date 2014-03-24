@@ -1614,12 +1614,15 @@ class CAInstance(service.Service):
             return True
         return False
 
-    def is_renewal_master(self):
+    def is_renewal_master(self, fqdn=None):
+        if fqdn is None:
+            fqdn = api.env.host
+
         if not self.admin_conn:
             self.ldap_connect()
 
-        dn = DN(('cn', 'CA'), ('cn', api.env.host), ('cn', 'masters'),
-                ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+        dn = DN(('cn', 'CA'), ('cn', fqdn), ('cn', 'masters'), ('cn', 'ipa'),
+                ('cn', 'etc'), api.env.basedn)
         filter = '(ipaConfigString=caRenewalMaster)'
         try:
             self.admin_conn.get_entries(base_dn=dn, filter=filter,
@@ -1628,6 +1631,38 @@ class CAInstance(service.Service):
             return False
 
         return True
+
+    def set_renewal_master(self, fqdn=None):
+        if fqdn is None:
+            fqdn = api.env.host
+
+        if not self.admin_conn:
+            self.ldap_connect()
+
+        base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
+                     api.env.basedn)
+        filter = '(&(cn=CA)(ipaConfigString=caRenewalMaster))'
+        try:
+            entries = self.admin_conn.get_entries(
+                base_dn=base_dn, filter=filter, attrs_list=['ipaConfigString'])
+        except errors.NotFound:
+            entries = []
+
+        dn = DN(('cn', 'CA'), ('cn', fqdn), base_dn)
+        master_entry = self.admin_conn.get_entry(dn, ['ipaConfigString'])
+
+        for entry in entries:
+            if master_entry is not None and entry.dn == master_entry.dn:
+                master_entry = None
+                continue
+
+            entry['ipaConfigString'] = [x for x in entry['ipaConfigString']
+                                        if x.lower() != 'carenewalmaster']
+            self.admin_conn.update_entry(entry)
+
+        if master_entry is not None:
+            master_entry['ipaConfigString'].append('caRenewalMaster')
+            self.admin_conn.update_entry(master_entry)
 
 
 def replica_ca_install_check(config):
