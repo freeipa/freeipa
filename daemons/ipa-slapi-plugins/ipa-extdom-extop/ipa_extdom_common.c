@@ -359,6 +359,9 @@ int create_response(struct extdom_req *req, struct pwd_grp *pg_data,
                         if ((locat = strchr(pg_data->data.pwd.pw_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
                             if (strcasecmp(locat+1, domain_name) == 0  ) {
                                 locat[0] = 0;
+                            } else {
+                                ret = LDAP_NO_SUCH_OBJECT;
+                                goto done;
                             }
                         }
                         res->data.name.object_name =
@@ -368,6 +371,9 @@ int create_response(struct extdom_req *req, struct pwd_grp *pg_data,
                         if ((locat = strchr(pg_data->data.grp.gr_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
                             if (strcasecmp(locat+1, domain_name) == 0) {
                                 locat[0] = 0;
+                            } else {
+                                ret = LDAP_NO_SUCH_OBJECT;
+                                goto done;
                             }
                         }
                         res->data.name.object_name =
@@ -408,6 +414,9 @@ int create_response(struct extdom_req *req, struct pwd_grp *pg_data,
                     if ((locat = strchr(pg_data->data.pwd.pw_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
                         if (strcasecmp(locat+1, domain_name) == 0) {
                             locat[0] = 0;
+                        } else {
+                            ret = LDAP_NO_SUCH_OBJECT;
+                            goto done;
                         }
                     }
                     res->data.user.user_name =
@@ -428,6 +437,9 @@ int create_response(struct extdom_req *req, struct pwd_grp *pg_data,
                     if ((locat = strchr(pg_data->data.grp.gr_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
                         if (strcasecmp(locat+1, domain_name) == 0) {
                             locat[0] = 0;
+                        } else {
+                            ret = LDAP_NO_SUCH_OBJECT;
+                            goto done;
                         }
                     }
                     res->data.group.group_name =
