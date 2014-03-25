@@ -22,6 +22,7 @@ import time
 import ldap as _ldap
 
 from ipalib import api, errors, Str, StrEnum, DNParam, _, ngettext
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.request import context
 from ipapython.dn import DN
@@ -124,6 +125,8 @@ EXAMPLES:
     ipa automember-rebuild --hosts=web1.example.com --hosts=web2.example.com
 """)
 
+register = Registry()
+
 # Options used by Condition Add and Remove.
 INCLUDE_RE = 'automemberinclusiveregex'
 EXCLUDE_RE = 'automemberexclusiveregex'
@@ -167,6 +170,8 @@ automember_rule = (
     ),
 )
 
+
+@register()
 class automember(LDAPObject):
 
     """
@@ -234,8 +239,6 @@ class automember(LDAPObject):
         else:
             raise errors.NotFound(reason=_('%s is not a valid attribute.') % attr)
 
-api.register(automember)
-
 
 def automember_container_exists(ldap):
     try:
@@ -244,6 +247,8 @@ def automember_container_exists(ldap):
         return False
     return True
 
+
+@register()
 class automember_add(LDAPCreate):
     __doc__ = _("""
     Add an automember rule.
@@ -266,9 +271,8 @@ class automember_add(LDAPCreate):
         result['value'] = keys[-1]
         return result
 
-api.register(automember_add)
 
-
+@register()
 class automember_add_condition(LDAPUpdate):
     __doc__ = _("""
     Add conditions to an automember rule.
@@ -359,9 +363,8 @@ class automember_add_condition(LDAPUpdate):
         result['value'] = keys[-1]
         return result
 
-api.register(automember_add_condition)
 
-
+@register()
 class automember_remove_condition(LDAPUpdate):
     __doc__ = _("""
     Remove conditions from an automember rule.
@@ -447,9 +450,8 @@ class automember_remove_condition(LDAPUpdate):
         result['value'] = keys[-1]
         return result
 
-api.register(automember_remove_condition)
 
-
+@register()
 class automember_mod(LDAPUpdate):
     __doc__ = _("""
     Modify an automember rule.
@@ -463,9 +465,8 @@ class automember_mod(LDAPUpdate):
         result['value'] = keys[-1]
         return result
 
-api.register(automember_mod)
 
-
+@register()
 class automember_del(LDAPDelete):
     __doc__ = _("""
     Delete an automember rule.
@@ -479,9 +480,8 @@ class automember_del(LDAPDelete):
         result['value'] = keys[-1]
         return result
 
-api.register(automember_del)
 
-
+@register()
 class automember_find(LDAPSearch):
     __doc__ = _("""
     Search for automember rules.
@@ -499,9 +499,8 @@ class automember_find(LDAPSearch):
         ndn = DN(('cn', options['type']), base_dn)
         return (filters, ndn, scope)
 
-api.register(automember_find)
 
-
+@register()
 class automember_show(LDAPRetrieve):
     __doc__ = _("""
     Display information about an automember rule.
@@ -515,9 +514,8 @@ class automember_show(LDAPRetrieve):
         result['value'] = keys[-1]
         return result
 
-api.register(automember_show)
 
-
+@register()
 class automember_default_group_set(LDAPUpdate):
     __doc__ = _("""
     Set default (fallback) group for all unmatched entries.
@@ -544,9 +542,8 @@ class automember_default_group_set(LDAPUpdate):
         result['value'] = options['type']
         return result
 
-api.register(automember_default_group_set)
 
-
+@register()
 class automember_default_group_remove(LDAPUpdate):
     __doc__ = _("""
     Remove default (fallback) group for all unmatched entries.
@@ -579,9 +576,8 @@ class automember_default_group_remove(LDAPUpdate):
         result['value'] = options['type']
         return result
 
-api.register(automember_default_group_remove)
 
-
+@register()
 class automember_default_group_show(LDAPRetrieve):
     __doc__ = _("""
     Display information about the default (fallback) automember groups.
@@ -604,9 +600,8 @@ class automember_default_group_show(LDAPRetrieve):
         result['value'] = options['type']
         return result
 
-api.register(automember_default_group_show)
 
-
+@register()
 class automember_rebuild(Command):
     __doc__ = _('Rebuild auto membership.')
     # TODO: Add a --dry-run option:
@@ -754,5 +749,3 @@ class automember_rebuild(Command):
             result=result,
             summary=unicode(summary),
             value=u'')
-
-api.register(automember_rebuild)
