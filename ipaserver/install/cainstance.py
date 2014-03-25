@@ -1543,21 +1543,6 @@ class CAInstance(service.Service):
             return True
         return False
 
-    def is_master(self):
-        """
-        There are some tasks that are only done on a single dogtag master.
-        By default this is the first one installed. Use this to determine if
-        that is the case.
-
-        If users have changed their topology so the initial master is either
-        gone or no longer performing certain duties then it is their
-        responsibility to handle changes on upgrades.
-        """
-        master = installutils.get_directive(
-            self.dogtag_constants.CS_CFG_PATH, 'subsystem.select', '=')
-
-        return master == 'New'
-
     def is_renewal_master(self):
         if not self.admin_conn:
             self.ldap_connect()
