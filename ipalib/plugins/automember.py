@@ -17,8 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import uuid
+import time
+
 import ldap as _ldap
-from ipalib import api, errors, Str, StrEnum, _, ngettext
+
+from ipalib import api, errors, Str, StrEnum, DNParam, _, ngettext
 from ipalib.plugins.baseldap import *
 from ipalib.request import context
 from ipapython.dn import DN
@@ -623,9 +626,21 @@ class automember_rebuild(Command):
             label=_('Hosts'),
             doc=_('Rebuild membership for specified hosts'),
         ),
+        Flag(
+            'no_wait?',
+            default=False,
+            label=_('No wait'),
+            doc=_("Don't wait for rebuilding membership"),
+        ),
     )
-    has_output = output.standard_value
-    msg_summary = _('Automember rebuild membership task completed')
+    has_output = output.standard_entry
+    has_output_params = (
+        DNParam(
+            'dn',
+            label=_('Task DN'),
+            doc=_('DN of the started task'),
+        ),
+    )
 
     def validate(self, **kw):
         """
@@ -693,20 +708,51 @@ class automember_rebuild(Command):
         else:
             search_filter = '(%s=*)' % obj.primary_key.name
 
+        task_dn = DN(
+            ('cn', cn),
+            ('cn', 'automember rebuild membership'),
+            ('cn', 'tasks'),
+            ('cn', 'config'))
+
         entry = ldap.make_entry(
-            DN(
-                ('cn', cn),
-                ('cn', 'automember rebuild membership'),
-                ('cn', 'tasks'),
-                ('cn', 'config'),
-            ),
+            task_dn,
             objectclass=['top', 'extensibleObject'],
             cn=[cn],
             basedn=[basedn],
             filter=[search_filter],
-            scope=['sub']
-        )
+            scope=['sub'],
+            ttl=[3600])
         ldap.add_entry(entry)
-        return dict(result=True, value=u'')
+
+        summary = _('Automember rebuild membership task started')
+        result = {'dn': task_dn}
+
+        if not options.get('no_wait'):
+            summary = _('Automember rebuild membership task completed')
+            result = {}
+            start_time = time.time()
+
+            while True:
+                try:
+                    task = ldap.get_entry(task_dn)
+                except errors.NotFound:
+                    break
+
+                if 'nstaskexitcode' in task:
+                    if str(task.single_value['nstaskexitcode']) == '0':
+                        summary=task.single_value['nstaskstatus']
+                        break
+                    else:
+                        raise errors.DatabaseError(
+                            desc=task.single_value['nstaskstatus'],
+                            info=_("Task DN = '%s'" % task_dn))
+                time.sleep(1)
+                if time.time() > (start_time + 60):
+                   raise errors.TaskTimeout(task=_('Automember'), task_dn=task_dn)
+
+        return dict(
+            result=result,
+            summary=unicode(summary),
+            value=u'')
 
 api.register(automember_rebuild)

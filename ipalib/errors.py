@@ -1530,6 +1530,22 @@ class DNSDataMismatch(ExecutionError):
     format = _('DNS check failed: Expected {%(expected)s} got {%(got)s}')
 
 
+class TaskTimeout(DatabaseError):
+    """
+    **4213** Raised when an LDAP task times out
+
+    For example:
+
+    >>> raise TaskTimeout()
+    Traceback (most recent call last):
+      ...
+    TaskTimeout: Automember LDAP task timeout, Task DN: ''
+    """
+
+    errno = 4213
+    format = _("%(task)s LDAP task timeout, Task DN: '%(task_dn)s'")
+
+
 class CertificateError(ExecutionError):
     """
     **4300** Base class for Certificate execution errors (*4300 - 4399*).

@@ -24,7 +24,8 @@ Test the `ipalib/plugins/automember.py` module.
 from ipalib import api, errors
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, \
+    fuzzy_automember_dn, fuzzy_automember_message
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 
 
@@ -242,8 +243,20 @@ class test_automember(Declarative):
             command=('automember_rebuild', [], dict(type=u'hostgroup')),
             expected=dict(
                 value=u'',
-                summary=u'Automember rebuild membership task completed',
-                result=True
+                summary=fuzzy_automember_message,
+                result=dict()
+            ),
+        ),
+
+        dict(
+            desc='Rebuild membership for hostgroups asynchronously',
+            command=('automember_rebuild', [], dict(type=u'hostgroup',no_wait=True)),
+            expected=dict(
+                value=u'',
+                summary=u'Automember rebuild membership task started',
+                result=dict(
+                    dn=fuzzy_automember_dn
+                ),
             ),
         ),
 
@@ -349,8 +362,20 @@ class test_automember(Declarative):
             command=('automember_rebuild', [], dict(hosts=fqdn1)),
             expected=dict(
                 value=u'',
-                summary=u'Automember rebuild membership task completed',
-                result=True
+                summary=fuzzy_automember_message,
+                result=dict()
+            ),
+        ),
+
+        dict(
+            desc='Rebuild membership for host: %s asynchronously' % fqdn1,
+            command=('automember_rebuild', [], dict(hosts=fqdn1, no_wait=True)),
+            expected=dict(
+                value=u'',
+                summary=u'Automember rebuild membership task started',
+                result=dict(
+                    dn=fuzzy_automember_dn
+                ),
             ),
         ),
 
@@ -519,8 +544,20 @@ class test_automember(Declarative):
             command=('automember_rebuild', [], dict(type=u'group')),
             expected=dict(
                 value=u'',
-                summary=u'Automember rebuild membership task completed',
-                result=True
+                summary=fuzzy_automember_message,
+                result=dict()
+            ),
+        ),
+
+        dict(
+            desc='Rebuild membership for groups asynchronously',
+            command=('automember_rebuild', [], dict(type=u'group', no_wait=True)),
+            expected=dict(
+                value=u'',
+                summary=u'Automember rebuild membership task started',
+                result=dict(
+                    dn=fuzzy_automember_dn
+                ),
             ),
         ),
 
@@ -584,8 +621,20 @@ class test_automember(Declarative):
             command=('automember_rebuild', [], dict(users=user1)),
             expected=dict(
                 value=u'',
-                summary=u'Automember rebuild membership task completed',
-                result=True
+                summary=fuzzy_automember_message,
+                result=dict()
+            ),
+        ),
+
+        dict(
+            desc='Rebuild membership for user: %s asynchronously' % user1,
+            command=('automember_rebuild', [], dict(users=user1, no_wait=True)),
+            expected=dict(
+                value=u'',
+                summary=u'Automember rebuild membership task started',
+                result=dict(
+                    dn=fuzzy_automember_dn
+                ),
             ),
         ),
 

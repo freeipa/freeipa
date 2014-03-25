@@ -38,6 +38,16 @@ uuid_re = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 # Matches an ipauniqueid like u'784d85fd-eae7-11de-9d01-54520012478b'
 fuzzy_uuid = Fuzzy('^%s$' % uuid_re)
 
+# Matches an automember task DN
+fuzzy_automember_dn = Fuzzy(
+    '^cn=%s,cn=automember rebuild membership,cn=tasks,cn=config$' % uuid_re
+)
+
+# Matches an automember task finish message
+fuzzy_automember_message = Fuzzy(
+    '^Automember rebuild task finished\. Processed \(\d+\) entries\.$'
+)
+
 # Matches trusted domain GUID, like u'463bf2be-3456-4a57-979e-120304f2a0eb'
 fuzzy_guid = fuzzy_uuid
 

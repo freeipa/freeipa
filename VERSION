@@ -89,5 +89,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=81
-# Last change: amisnyov - user plugin extend
+IPA_API_VERSION_MINOR=82
+# Last change: amisnyov - automember nowait add
