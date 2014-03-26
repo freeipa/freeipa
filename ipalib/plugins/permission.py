@@ -170,6 +170,7 @@ class permission(baseldap.LDAPObject):
     # For use the complete object_class list, including 'top', so
     # the updater doesn't try to delete 'top' every time.
     object_class = ['top', 'groupofnames', 'ipapermission', 'ipapermissionv2']
+    permission_filter_objectclasses = ['ipapermission']
     default_attributes = ['cn', 'member', 'memberof',
         'memberindirect', 'ipapermissiontype', 'objectclass',
         'ipapermdefaultattr', 'ipapermincludedattr', 'ipapermexcludedattr',
@@ -181,6 +182,32 @@ class permission(baseldap.LDAPObject):
         'memberindirect': ['role'],
     }
     rdn_is_primary_key = True
+    managed_permissions = {
+        'System: Read Permissions': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'businesscategory', 'cn', 'description', 'ipapermissiontype',
+                'o', 'objectclass', 'ou', 'owner', 'seealso',
+                'ipapermdefaultattr', 'ipapermincludedattr',
+                'ipapermexcludedattr', 'ipapermbindruletype', 'ipapermtarget',
+                'ipapermlocation', 'ipapermright', 'ipapermtargetfilter',
+                'member', 'memberof',
+            },
+            'default_privileges': {'RBAC Readers'},
+        },
+        'System: Read ACIs': {
+            # Readable ACIs are needed for reading legacy permissions.
+            'non_object': True,
+            'ipapermlocation': api.env.basedn,
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {'aci'},
+            'default_privileges': {'RBAC Readers'},
+        },
+    }
 
     label = _('Permissions')
     label_singular = _('Permission')

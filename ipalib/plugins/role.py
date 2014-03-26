@@ -66,6 +66,7 @@ class role(LDAPObject):
     object_name = _('role')
     object_name_plural = _('roles')
     object_class = ['groupofnames', 'nestedgroup']
+    permission_filter_objectclasses = ['groupofnames']
     default_attributes = ['cn', 'description', 'member', 'memberof',
         'memberindirect', 'memberofindirect',
     ]
@@ -77,6 +78,18 @@ class role(LDAPObject):
         'member': ['privilege'],
     }
     rdn_is_primary_key = True
+    managed_permissions = {
+        'System: Read Roles': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'businesscategory', 'cn', 'description', 'member', 'memberof',
+                'o', 'objectclass', 'ou', 'owner', 'seealso',
+            },
+            'default_privileges': {'RBAC Readers'},
+        },
+    }
 
     label = _('Roles')
     label_singular = _('Role')

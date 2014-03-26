@@ -54,6 +54,7 @@ class privilege(LDAPObject):
     object_name = _('privilege')
     object_name_plural = _('privileges')
     object_class = ['nestedgroup', 'groupofnames']
+    permission_filter_objectclasses = ['groupofnames']
     default_attributes = ['cn', 'description', 'member', 'memberof']
     attribute_members = {
         'member': ['role'],
@@ -63,6 +64,18 @@ class privilege(LDAPObject):
         'member': ['permission'],
     }
     rdn_is_primary_key = True
+    managed_permissions = {
+        'System: Read Privileges': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'businesscategory', 'cn', 'description', 'member', 'memberof',
+                'o', 'objectclass', 'ou', 'owner', 'seealso',
+            },
+            'default_privileges': {'RBAC Readers'},
+        },
+    }
 
     label = _('Privileges')
     label_singular = _('Privilege')
