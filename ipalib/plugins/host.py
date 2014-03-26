@@ -252,6 +252,32 @@ class host(LDAPObject):
     }
     password_attributes = [('userpassword', 'has_password'),
                            ('krbprincipalkey', 'has_keytab')]
+    managed_permissions = {
+        'System: Read Hosts': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cn', 'description', 'fqdn', 'ipaclientversion',
+                'ipakrbauthzdata', 'ipasshpubkey', 'ipauniqueid',
+                'krbprincipalname', 'l', 'macaddress', 'nshardwareplatform',
+                'nshostlocation', 'nsosversion', 'objectclass',
+                'serverhostname', 'usercertificate', 'userclass',
+                'enrolledby', 'managedby',
+                'krbprincipalname', 'krbcanonicalname', 'krbprincipalaliases',
+                'krbprincipalexpiration', 'krbpasswordexpiration',
+                'krblastpwdchange',
+            },
+        },
+        'System: Read Host Membership': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'memberof',
+            },
+        },
+    }
 
     label = _('Hosts')
     label_singular = _('Host')
