@@ -68,7 +68,7 @@ The template dictionary can have the following keys:
 No other keys are allowed in the template
 """
 
-from ipalib import errors
+from ipalib import api, errors
 from ipapython.dn import DN
 from ipalib.plugable import Registry
 from ipalib.plugins import aci
@@ -80,7 +80,82 @@ from ipaserver.install.plugins.baseupdate import PostUpdate
 
 register = Registry()
 
-NONOBJECT_PERMISSIONS = {}
+NONOBJECT_PERMISSIONS = {
+    'System: Read IPA Masters': {
+        'replaces_global_anonymous_aci': True,
+        'ipapermlocation': DN('cn=masters,cn=ipa,cn=etc', api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=nscontainer)'},
+        'ipapermbindruletype': 'permission',
+        'ipapermright': {'read', 'search', 'compare'},
+        'ipapermdefaultattr': {
+            'cn', 'objectclass', 'ipaconfigstring',
+        },
+        'default_privileges': {'IPA Masters Readers'},
+    },
+    'System: Read DNA Configuration': {
+        'replaces_global_anonymous_aci': True,
+        'ipapermlocation': DN('cn=dna,cn=ipa,cn=etc', api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=dnasharedconfig)'},
+        'ipapermbindruletype': 'all',
+        'ipapermright': {'read', 'search', 'compare'},
+        'ipapermdefaultattr': {
+            'cn', 'objectclass', 'dnaHostname', 'dnaPortNum',
+            'dnaSecurePortNum', 'dnaRemoteBindMethod', 'dnaRemoteConnProtocol',
+            'dnaRemainingValues',
+        },
+    },
+    'System: Read CA Renewal Information': {
+        'replaces_global_anonymous_aci': True,
+        'ipapermlocation': DN('cn=ca_renewal,cn=ipa,cn=etc', api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=pkiuser)'},
+        'ipapermbindruletype': 'all',
+        'ipapermright': {'read', 'search', 'compare'},
+        'ipapermdefaultattr': {
+            'cn', 'objectclass', 'usercertificate',
+        },
+    },
+    'System: Read CA Certificate': {
+        'replaces_global_anonymous_aci': True,
+        'ipapermlocation': DN('cn=CAcert,cn=ipa,cn=etc', api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=pkica)'},
+        'ipapermbindruletype': 'anonymous',
+        'ipapermright': {'read', 'search', 'compare'},
+        'ipapermdefaultattr': {
+            'cn', 'objectclass', 'cacertificate', 'certificaterevocationlist',
+            'authorityrevocationlist', 'crosscertificatepair',
+        },
+    },
+    'System: Read Replication Information': {
+        'replaces_global_anonymous_aci': True,
+        'ipapermlocation': DN('cn=replication,cn=etc', api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=nsds5replica)'},
+        'ipapermbindruletype': 'all',
+        'ipapermright': {'read', 'search', 'compare'},
+        'ipapermdefaultattr': {
+            'cn', 'objectclass', 'nsds5replicaroot', 'nsds5replicaid',
+            'nsds5replicacleanruv', 'nsds5replicaabortcleanruv',
+            'nsds5replicatype', 'nsds5replicabinddn', 'nsstate',
+            'nsds5replicaname', 'nsds5flags', 'nsds5task',
+            'nsds5replicareferral', 'nsds5replicaautoreferral',
+            'nsds5replicapurgedelay', 'nsds5replicatombstonepurgeinterval',
+            'nsds5replicachangecount', 'nsds5replicalegacyconsumer',
+            'nsds5replicaprotocoltimeout', 'nsds5replicabackoffmin',
+            'nsds5replicabackoffmax',
+        },
+    },
+    'System: Read AD Domains': {
+        'replaces_global_anonymous_aci': True,
+        'ipapermlocation': DN('cn=etc', api.env.basedn),
+        'ipapermtarget': DN('cn=ad,cn=etc', api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=ipantdomainattrs)'},
+        'ipapermbindruletype': 'all',
+        'ipapermright': {'read', 'search', 'compare'},
+        'ipapermdefaultattr': {
+            'cn', 'objectclass', 'ipantsecurityidentifier', 'ipantflatname',
+            'ipantdomainguid', 'ipantfallbackprimarygroup',
+        },
+    },
+}
 
 
 @register()
