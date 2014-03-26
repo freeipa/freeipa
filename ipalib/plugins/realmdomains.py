@@ -58,9 +58,20 @@ class realmdomains(LDAPObject):
     List of domains associated with IPA realm.
     """
     container_dn = api.env.container_realm_domains
+    permission_filter_objectclasses = ['domainrelatedobject']
     object_name = _('Realm domains')
     search_attributes = ['associateddomain']
     default_attributes = ['associateddomain']
+    managed_permissions = {
+        'System: Read Realm Domains': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass', 'cn', 'associateddomain',
+            },
+        },
+    }
 
     label = _('Realm Domains')
     label_singular = _('Realm Domains')
