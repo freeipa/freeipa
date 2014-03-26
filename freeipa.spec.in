@@ -133,7 +133,6 @@ Requires: python-ldap
 Requires: python-krbV
 Requires: acl
 Requires: python-pyasn1
-Requires: python-qrcode
 Requires: memcached
 Requires: python-memcached
 Requires: dbus-python
@@ -290,6 +289,8 @@ Requires: python-nss
 Requires: python-lxml
 Requires: python-netaddr
 Requires: libipa_hbac-python
+Requires: python-qrcode
+Requires: python-pyasn1
 
 Obsoletes: ipa-python >= 1.0
 
