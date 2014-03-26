@@ -52,10 +52,22 @@ class hbacsvcgroup(LDAPObject):
     object_name = _('HBAC service group')
     object_name_plural = _('HBAC service groups')
     object_class = ['ipaobject', 'ipahbacservicegroup']
+    permission_filter_objectclasses = ['ipahbacservicegroup']
     default_attributes = [ 'cn', 'description', 'member' ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'member': ['hbacsvc'],
+    }
+    managed_permissions = {
+        'System: Read HBAC Service Groups': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'businesscategory', 'cn', 'description', 'ipauniqueid',
+                'member', 'o', 'objectclass', 'ou', 'owner', 'seealso',
+            },
+        },
     }
 
     label = _('HBAC Service Groups')

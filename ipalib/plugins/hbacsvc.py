@@ -57,10 +57,21 @@ class hbacsvc(LDAPObject):
     object_name = _('HBAC service')
     object_name_plural = _('HBAC services')
     object_class = [ 'ipaobject', 'ipahbacservice' ]
+    permission_filter_objectclasses = ['ipahbacservice']
     default_attributes = ['cn', 'description', 'memberof']
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'memberof': ['hbacsvcgroup'],
+    }
+    managed_permissions = {
+        'System: Read HBAC Services': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cn', 'description', 'ipauniqueid', 'memberof', 'objectclass',
+            },
+        },
     }
 
     label = _('HBAC Services')

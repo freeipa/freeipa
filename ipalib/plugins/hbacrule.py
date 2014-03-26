@@ -115,6 +115,7 @@ class hbacrule(LDAPObject):
     object_name = _('HBAC rule')
     object_name_plural = _('HBAC rules')
     object_class = ['ipaassociation', 'ipahbacrule']
+    permission_filter_objectclasses = ['ipahbacrule']
     default_attributes = [
         'cn', 'ipaenabledflag',
         'description', 'usercategory', 'hostcategory',
@@ -129,6 +130,20 @@ class hbacrule(LDAPObject):
         'memberhost': ['host', 'hostgroup'],
         'sourcehost': ['host', 'hostgroup'],
         'memberservice': ['hbacsvc', 'hbacsvcgroup'],
+    }
+    managed_permissions = {
+        'System: Read HBAC Rules': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'accessruletype', 'accesstime', 'cn', 'description',
+                'externalhost', 'hostcategory', 'ipaenabledflag',
+                'ipauniqueid', 'memberhost', 'memberservice', 'memberuser',
+                'servicecategory', 'sourcehost', 'sourcehostcategory',
+                'usercategory', 'objectclass',
+            },
+        },
     }
 
     label = _('HBAC Rules')
