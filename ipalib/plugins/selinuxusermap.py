@@ -134,6 +134,7 @@ class selinuxusermap(LDAPObject):
     object_name = _('SELinux User Map rule')
     object_name_plural = _('SELinux User Map rules')
     object_class = ['ipaassociation', 'ipaselinuxusermap']
+    permission_filter_objectclasses = ['ipaselinuxusermap']
     default_attributes = [
         'cn', 'ipaenabledflag',
         'description', 'usercategory', 'hostcategory',
@@ -145,6 +146,19 @@ class selinuxusermap(LDAPObject):
     attribute_members = {
         'memberuser': ['user', 'group'],
         'memberhost': ['host', 'hostgroup'],
+    }
+    managed_permissions = {
+        'System: Read SELinux User Maps': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'accesstime', 'cn', 'description', 'hostcategory',
+                'ipaenabledflag', 'ipaselinuxuser', 'ipauniqueid',
+                'memberhost', 'memberuser', 'seealso', 'usercategory',
+                'objectclass',
+            },
+        },
     }
 
     # These maps will not show as members of other entries
