@@ -94,6 +94,28 @@ class config(LDAPObject):
         'ipaselinuxusermapdefault', 'ipaconfigstring', 'ipakrbauthzdata',
         'ipauserauthtype'
     ]
+    container_dn = DN(('cn', 'ipaconfig'), ('cn', 'etc'))
+    permission_filter_objectclasses = ['ipaguiconfig']
+    managed_permissions = {
+        'System: Read Global Configuration': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cn', 'objectclass',
+                'ipacertificatesubjectbase', 'ipaconfigstring',
+                'ipadefaultemaildomain', 'ipadefaultloginshell',
+                'ipadefaultprimarygroup', 'ipagroupobjectclasses',
+                'ipagroupsearchfields', 'ipahomesrootdir',
+                'ipakrbauthzdata', 'ipamaxusernamelength',
+                'ipamigrationenabled', 'ipapwdexpadvnotify',
+                'ipaselinuxusermapdefault', 'ipaselinuxusermaporder',
+                'ipasearchrecordslimit', 'ipasearchtimelimit',
+                'ipauserauthtype', 'ipauserobjectclasses',
+                'ipausersearchfields', 'ipacustomfields',
+            },
+        },
+    }
 
     label = _('Configuration')
     label_singular = _('Configuration')
