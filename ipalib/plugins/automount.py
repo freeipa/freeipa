@@ -208,6 +208,21 @@ class automountlocation(LDAPObject):
     default_attributes = ['cn']
     label = _('Automount Locations')
     label_singular = _('Automount Location')
+    managed_permissions = {
+        'System: Read Automount Configuration': {
+            # Single permission for all automount-related entries
+            'non_object': True,
+            'ipapermlocation': DN(container_dn, api.env.basedn),
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'anonymous',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cn', 'objectclass',
+                'automountinformation', 'automountkey', 'description',
+                'automountmapname', 'description',
+            },
+        },
+    }
 
     takes_params = (
         Str('cn',
