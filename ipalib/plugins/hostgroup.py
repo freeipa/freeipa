@@ -72,6 +72,25 @@ class hostgroup(LDAPObject):
         'memberindirect': ['host', 'hostgroup'],
         'memberofindirect': ['hostgroup', 'hbacrule', 'sudorule'],
     }
+    managed_permissions = {
+        'System: Read Hostgroups': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'businesscategory', 'cn', 'description', 'ipauniqueid', 'o',
+                'objectclass', 'ou', 'owner', 'seealso',
+            },
+        },
+        'System: Read Hostgroup Membership': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'member', 'memberof',
+            },
+        },
+    }
 
     label = _('Host Groups')
     label_singular = _('Host Group')
