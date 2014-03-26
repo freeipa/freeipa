@@ -312,6 +312,21 @@ class service(LDAPObject):
         'managedby': ('Managed by', 'man_by_', 'not_man_by_'),
     }
     password_attributes = [('krbprincipalkey', 'has_keytab')]
+    managed_permissions = {
+        'System: Read Services': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass',
+                'ipauniqueid', 'managedby', 'memberof', 'usercertificate',
+                'krbprincipalname', 'krbcanonicalname', 'krbprincipalaliases',
+                'krbprincipalexpiration', 'krbpasswordexpiration',
+                'krblastpwdchange', 'ipakrbauthzdata', 'ipakrbprincipalalias',
+                'krbobjectreferences',
+            },
+        },
+    }
 
     label = _('Services')
     label_singular = _('Service')
