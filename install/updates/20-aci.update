@@ -24,3 +24,7 @@ add:aci:'(targetfilter="(objectclass=domain)")(targetattr="objectclass || dc || 
 # Read access to containers
 dn: $SUFFIX
 add:aci:'(targetfilter="(objectclass=nsContainer)")(target!="ldap:///cn=etc,$SUFFIX")(targetattr="objectclass || cn")(version 3.0; acl "Anonymous read access to containers"; allow(read, search, compare) userdn = "ldap:///anyone";)'
+
+# Read access to Kerberos container (cn=kerberos) and realm containers (cn=$REALM,cn=kerberos)
+dn: cn=kerberos,$SUFFIX
+add:aci:'(targetattr = "cn || objectclass")(targetfilter = "(|(objectclass=krbrealmcontainer)(objectclass=krbcontainer))")(version 3.0;acl "Anonymous read access to Kerberos containers";allow (read,compare,search) userdn = "ldap:///anyone";)'
