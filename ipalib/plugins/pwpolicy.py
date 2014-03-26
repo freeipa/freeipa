@@ -78,7 +78,22 @@ class cosentry(LDAPObject):
 
     container_dn = DN(('cn', 'costemplates'), api.env.container_accounts)
     object_class = ['top', 'costemplate', 'extensibleobject', 'krbcontainer']
+    permission_filter_objectclasses = ['costemplate']
     default_attributes = ['cn', 'cospriority', 'krbpwdpolicyreference']
+    managed_permissions = {
+        'System: Read Group Password Policy costemplate': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cn', 'cospriority', 'krbpwdpolicyreference', 'objectclass',
+            },
+            'default_privileges': {
+                'Password Policy Readers',
+                'Password Policy Administrator',
+            },
+        },
+    }
 
     takes_params = (
         Str('cn', primary_key=True),
@@ -180,12 +195,31 @@ class pwpolicy(LDAPObject):
     object_name = _('password policy')
     object_name_plural = _('password policies')
     object_class = ['top', 'nscontainer', 'krbpwdpolicy']
+    permission_filter_objectclasses = ['krbpwdpolicy']
     default_attributes = [
         'cn', 'cospriority', 'krbmaxpwdlife', 'krbminpwdlife',
         'krbpwdhistorylength', 'krbpwdmindiffchars', 'krbpwdminlength',
         'krbpwdmaxfailure', 'krbpwdfailurecountinterval',
         'krbpwdlockoutduration',
     ]
+    managed_permissions = {
+        'System: Read Group Password Policy': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cn', 'cospriority', 'krbmaxpwdlife', 'krbminpwdlife',
+                'krbpwdfailurecountinterval', 'krbpwdhistorylength',
+                'krbpwdlockoutduration', 'krbpwdmaxfailure',
+                'krbpwdmindiffchars', 'krbpwdminlength', 'objectclass',
+            },
+            'default_privileges': {
+                'Password Policy Readers',
+                'Password Policy Administrator',
+            },
+        },
+    }
+
     MIN_KRB5KDC_WITH_LOCKOUT = "1.8"
     has_lockout = False
     lockout_params = ()

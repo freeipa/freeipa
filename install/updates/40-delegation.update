@@ -401,3 +401,10 @@ default:objectClass: groupofnames
 default:objectClass: top
 default:cn: RBAC Readers
 default:description: Read roles, privileges, permissions and ACIs
+
+dn: cn=Password Policy Readers,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: nestedgroup
+default:objectClass: groupofnames
+default:objectClass: top
+default:cn: Password Policy Readers
+default:description: Read password policies
