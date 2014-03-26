@@ -75,8 +75,44 @@ class krbtpolicy(LDAPObject):
     object_name = _('kerberos ticket policy settings')
     default_attributes = ['krbmaxticketlife', 'krbmaxrenewableage']
     limit_object_classes = ['krbticketpolicyaux']
+    # permission_filter_objectclasses is deliberately missing,
+    # so it is not possible to create a permission of `--type krbtpolicy`.
+    # This is because we need two permissions to cover both global and per-user
+    # policies.
+    managed_permissions = {
+        'System: Read Default Kerberos Ticket Policy': {
+            'non_object': True,
+            'replaces_global_anonymous_aci': True,
+            'ipapermtargetfilter': ['(objectclass=krbticketpolicyaux)'],
+            'ipapermlocation': DN(container_dn, api.env.basedn),
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'krbdefaultencsalttypes', 'krbmaxrenewableage',
+                'krbmaxticketlife', 'krbsupportedencsalttypes',
+                'objectclass',
+            },
+            'default_privileges': {
+                'Kerberos Ticket Policy Readers',
+            },
+        },
+        'System: Read User Kerberos Ticket Policy': {
+            'non_object': True,
+            'replaces_global_anonymous_aci': True,
+            'ipapermlocation': DN(api.env.container_user, api.env.basedn),
+            'ipapermtargetfilter': ['(objectclass=krbticketpolicyaux)'],
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'krbmaxrenewableage', 'krbmaxticketlife',
+            },
+            'default_privileges': {
+                'Kerberos Ticket Policy Readers',
+            },
+        },
+    }
 
-    label=_('Kerberos Ticket Policy')
+    label = _('Kerberos Ticket Policy')
     label_singular = _('Kerberos Ticket Policy')
 
     takes_params = (

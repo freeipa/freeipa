@@ -408,3 +408,10 @@ default:objectClass: groupofnames
 default:objectClass: top
 default:cn: Password Policy Readers
 default:description: Read password policies
+
+dn: cn=Kerberos Ticket Policy Readers,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: nestedgroup
+default:objectClass: groupofnames
+default:objectClass: top
+default:cn: Kerberos Ticket Policy Readers
+default:description: Read global and per-user Kerberos ticket policy

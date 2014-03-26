@@ -100,6 +100,7 @@ users_dn = DN(api.env.container_user, api.env.basedn)
 groups_dn = DN(api.env.container_group, api.env.basedn)
 etc_dn = DN('cn=etc', api.env.basedn)
 nonexistent_dn = DN('cn=does not exist', api.env.basedn)
+admin_dn = DN('uid=admin', users_dn)
 
 
 def verify_permission_aci(name, dn, acistring):
@@ -1117,9 +1118,42 @@ class test_permission(Declarative):
         ),
 
         dict(
+            desc='Change subtree of %r to admin' % permission1_renamed_ucase,
+            command=(
+                'permission_mod', [permission1_renamed_ucase],
+                dict(ipapermlocation=admin_dn)
+            ),
+            expected=dict(
+                value=permission1_renamed_ucase,
+                summary=u'Modified permission "%s"' % permission1_renamed_ucase,
+                result=dict(
+                    dn=permission1_renamed_ucase_dn,
+                    cn=[permission1_renamed_ucase],
+                    objectclass=objectclasses.permission,
+                    member_privilege=[privilege1],
+                    ipapermlocation=[admin_dn],
+                    ipapermright=[u'write'],
+                    memberof=[u'ipausers'],
+                    attrs=[u'sn'],
+                    ipapermbindruletype=[u'permission'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                ),
+            ),
+        ),
+
+        verify_permission_aci(
+            permission1_renamed_ucase, admin_dn,
+            '(targetattr = "sn")' +
+            '(targetfilter = "(memberOf=%s)")' % DN('cn=ipausers', groups_dn) +
+            '(version 3.0;acl "permission:%s";' % permission1_renamed_ucase +
+            'allow (write) groupdn = "ldap:///%s";)' %
+                permission1_renamed_ucase_dn,
+        ),
+
+        dict(
             desc='Search for %r using --subtree' % permission1_renamed_ucase,
             command=('permission_find', [],
-                     {'ipapermlocation': u'ldap:///%s' % users_dn}),
+                     {'ipapermlocation': u'ldap:///%s' % admin_dn}),
             expected=dict(
                 count=1,
                 truncated=False,
@@ -1130,13 +1164,12 @@ class test_permission(Declarative):
                         'cn':[permission1_renamed_ucase],
                         'objectclass': objectclasses.permission,
                         'member_privilege':[privilege1],
-                        'ipapermlocation': [users_dn],
+                        'ipapermlocation': [admin_dn],
                         'ipapermright':[u'write'],
                         'memberof':[u'ipausers'],
                         'attrs': [u'sn'],
                         'ipapermbindruletype': [u'permission'],
                         'ipapermissiontype': [u'SYSTEM', u'V2'],
-                        'ipapermlocation': [users_dn],
                     },
                 ],
             ),
