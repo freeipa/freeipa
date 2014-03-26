@@ -233,6 +233,76 @@ class user(LDAPObject):
     bindable = True
     password_attributes = [('userpassword', 'has_password'),
                            ('krbprincipalkey', 'has_keytab')]
+    managed_permissions = {
+        'System: Read User Standard Attributes': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'anonymous',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass', 'cn', 'sn', 'description', 'title', 'uid',
+                'displayname', 'givenname', 'initials', 'manager', 'gecos',
+                'gidnumber', 'homedirectory', 'loginshell', 'uidnumber'
+            },
+        },
+        'System: Read User Addressbook Attributes': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'seealso', 'telephonenumber',
+                'fax', 'l', 'ou', 'st', 'postalcode', 'street',
+                'destinationindicator', 'internationalisdnnumber',
+                'physicaldeliveryofficename', 'postaladdress', 'postofficebox',
+                'preferreddeliverymethod', 'registeredaddress',
+                'teletexterminalidentifier', 'telexnumber', 'x121address',
+                'carlicense', 'departmentnumber', 'employeenumber',
+                'employeetype', 'preferredlanguage', 'mail', 'mobile', 'pager',
+                'audio', 'businesscategory', 'homephone', 'homepostaladdress',
+                'jpegphoto', 'labeleduri', 'o', 'photo', 'roomnumber',
+                'secretary', 'usercertificate',
+                'usersmimecertificate', 'x500uniqueidentifier',
+                'inetuserhttpurl', 'inetuserstatus',
+            },
+        },
+        'System: Read User IPA Attributes': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'ipauniqueid', 'ipasshpubkey', 'ipauserauthtype', 'userclass',
+            },
+        },
+        'System: Read User Kerberos Attributes': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'krbprincipalname', 'krbcanonicalname', 'krbprincipalaliases',
+                'krbprincipalexpiration', 'krbpasswordexpiration',
+                'krblastpwdchange', 'nsaccountlock', 'krbprincipaltype',
+            },
+        },
+        'System: Read User Kerberos Login Attributes': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'krblastsuccessfulauth', 'krblastfailedauth',
+                'krblastpwdchange', 'krblastadminunlock',
+                'krbloginfailedcount', 'krbpwdpolicyreference',
+                'krbticketpolicyreference', 'krbupenabled',
+            },
+            'default_privileges': {'User Administrators'},
+        },
+        'System: Read User Membership': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'memberof',
+            },
+        },
+    }
 
     label = _('Users')
     label_singular = _('User')
