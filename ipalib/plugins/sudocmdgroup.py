@@ -55,12 +55,24 @@ class sudocmdgroup(LDAPObject):
     object_name = _('sudo command group')
     object_name_plural = _('sudo command groups')
     object_class = ['ipaobject', 'ipasudocmdgrp']
+    permission_filter_objectclasses = ['ipasudocmdgrp']
     default_attributes = [
         'cn', 'description', 'member',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'member': ['sudocmd'],
+    }
+    managed_permissions = {
+        'System: Read Sudo Command Groups': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'businesscategory', 'cn', 'description', 'ipauniqueid',
+                'member', 'o', 'objectclass', 'ou', 'owner', 'seealso',
+            },
+        },
     }
 
     label = _('Sudo Command Groups')

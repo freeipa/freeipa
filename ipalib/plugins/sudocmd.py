@@ -51,6 +51,7 @@ class sudocmd(LDAPObject):
     object_name = _('sudo command')
     object_name_plural = _('sudo commands')
     object_class = ['ipaobject', 'ipasudocmd']
+    permission_filter_objectclasses = ['ipasudocmd']
     # object_class_config = 'ipahostobjectclasses'
     search_attributes = [
         'sudocmd', 'description',
@@ -63,6 +64,18 @@ class sudocmd(LDAPObject):
     }
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
+    managed_permissions = {
+        'System: Read Sudo Commands': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'description', 'ipauniqueid', 'memberof', 'objectclass',
+                'sudocmd',
+            },
+        },
+    }
+
     label = _('Sudo Commands')
     label_singular = _('Sudo Command')
 

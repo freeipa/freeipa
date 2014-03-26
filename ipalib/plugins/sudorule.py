@@ -96,6 +96,7 @@ class sudorule(LDAPObject):
     object_name = _('sudo rule')
     object_name_plural = _('sudo rules')
     object_class = ['ipaassociation', 'ipasudorule']
+    permission_filter_objectclasses = ['ipasudorule']
     default_attributes = [
         'cn', 'ipaenabledflag', 'externaluser',
         'description', 'usercategory', 'hostcategory',
@@ -114,6 +115,36 @@ class sudorule(LDAPObject):
         'memberdenycmd': ['sudocmd', 'sudocmdgroup'],
         'ipasudorunas': ['user', 'group'],
         'ipasudorunasgroup': ['group'],
+    }
+    managed_permissions = {
+        'System: Read Sudo Rules': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cmdcategory', 'cn', 'description', 'externalhost',
+                'externaluser', 'hostcategory', 'hostmask', 'ipaenabledflag',
+                'ipasudoopt', 'ipasudorunas', 'ipasudorunasextgroup',
+                'ipasudorunasextuser', 'ipasudorunasgroup',
+                'ipasudorunasgroupcategory', 'ipasudorunasusercategory',
+                'ipauniqueid', 'memberallowcmd', 'memberdenycmd',
+                'memberhost', 'memberuser', 'sudonotafter', 'sudonotbefore',
+                'sudoorder', 'usercategory', 'objectclass',
+            },
+        },
+        'System: Read Sudoers compat tree': {
+            'non_object': True,
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('ou=sudoers', api.env.basedn),
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass', 'cn', 'ou',
+                'sudouser', 'sudohost', 'sudocommand', 'sudorunas',
+                'sudorunasuser', 'sudorunasgroup', 'sudooption',
+                'sudonotbefore', 'sudonotafter', 'sudoorder', 'description',
+            },
+        }
     }
 
     label = _('Sudo Rules')
