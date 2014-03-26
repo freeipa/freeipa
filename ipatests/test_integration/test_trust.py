@@ -80,8 +80,12 @@ class TestBasicADTrust(ADTrustBase):
         range_name = self.ad.domain.name.upper() + '_id_range'
         result = self.master.run_command(['ipa', 'idrange-show', range_name,
                                           '--all', '--raw'])
-        assert "  ipaRangeType: ipa-ad-trust" in result.stdout_text
-        assert "  ipaIDRangeSize: 200000" in result.stdout_text
+
+        iparangetype_regex = r'ipaRangeType: ipa-ad-trust'
+        iparangesize_regex = r'ipaIDRangeSize: 200000'
+
+        assert re.search(iparangetype_regex, result.stdout_text, re.IGNORECASE)
+        assert re.search(iparangesize_regex, result.stdout_text, re.IGNORECASE)
 
     def test_user_gid_uid_resolution_in_nonposix_trust(self):
         """Check that user has SID-generated UID"""
@@ -120,8 +124,11 @@ class TestPosixADTrust(ADTrustBase):
                                           '--all', '--raw'])
 
         # Check the range type and size
-        assert "  ipaRangeType: ipa-ad-trust-posix" in result.stdout_text
-        assert "  ipaIDRangeSize: 200000" in result.stdout_text
+        iparangetype_regex = r'ipaRangeType: ipa-ad-trust-posix'
+        iparangesize_regex = r'ipaIDRangeSize: 200000'
+
+        assert re.search(iparangetype_regex, result.stdout_text, re.IGNORECASE)
+        assert re.search(iparangesize_regex, result.stdout_text, re.IGNORECASE)
 
     def test_user_uid_gid_resolution_in_posix_trust(self):
         # Check that user has AD-defined UID
