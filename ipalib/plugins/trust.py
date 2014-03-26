@@ -311,6 +311,21 @@ class trust(LDAPObject):
         'ipanttrustposixoffset', 'ipantsupportedencryptiontypes' ]
     search_display_attributes = ['cn', 'ipantflatname',
                                  'ipanttrusteddomainsid', 'ipanttrusttype']
+    managed_permissions = {
+        'System: Read Trust Information': {
+            # Allow reading of attributes needed for SSSD subdomains support
+            'non_object': True,
+            'ipapermlocation': DN(container_dn, api.env.basedn),
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cn', 'objectclass',
+                'ipantflatname', 'ipantsecurityidentifier',
+                'ipanttrusteddomainsid',
+            },
+        },
+    }
 
     label = _('Trusts')
     label_singular = _('Trust')
