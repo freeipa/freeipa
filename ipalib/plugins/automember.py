@@ -183,10 +183,39 @@ class automember(LDAPObject):
     object_name = 'Automember rule'
     object_name_plural = 'Automember rules'
     object_class = ['top', 'automemberregexrule']
+    permission_filter_objectclasses = ['automemberregexrule']
     default_attributes = [
         'automemberinclusiveregex', 'automemberexclusiveregex',
         'cn', 'automembertargetgroup', 'description', 'automemberdefaultgroup'
     ]
+    managed_permissions = {
+        'System: Read Automember Definitions': {
+            'non_object': True,
+            'ipapermlocation': DN(container_dn, api.env.basedn),
+            'ipapermtargetfilter': {'(objectclass=automemberdefinition)'},
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass', 'cn', 'automemberscope', 'automemberfilter',
+                'automembergroupingattr', 'automemberdefaultgroup',
+                'automemberdisabled',
+            },
+            'default_privileges': {'Automember Readers',
+                                   'Automember Task Administrator'},
+        },
+        'System: Read Automember Rules': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cn', 'objectclass', 'automembertargetgroup', 'description',
+                'automemberexclusiveregex', 'automemberinclusiveregex',
+            },
+            'default_privileges': {'Automember Readers',
+                                   'Automember Task Administrator'},
+        },
+    }
 
     label = _('Auto Membership Rule')
 
