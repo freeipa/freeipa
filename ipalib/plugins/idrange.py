@@ -161,10 +161,23 @@ class idrange(LDAPObject):
     object_name = ('range')
     object_name_plural = ('ranges')
     object_class = ['ipaIDrange']
+    permission_filter_objectclasses = ['ipaidrange']
     possible_objectclasses = ['ipadomainidrange', 'ipatrustedaddomainrange']
     default_attributes = ['cn', 'ipabaseid', 'ipaidrangesize', 'ipabaserid',
                           'ipasecondarybaserid', 'ipanttrusteddomainsid',
                           'iparangetype']
+    managed_permissions = {
+        'System: Read ID Ranges': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cn', 'objectclass',
+                'ipabaseid', 'ipaidrangesize', 'iparangetype',
+                'ipabaserid', 'ipasecondarybaserid', 'ipanttrusteddomainsid',
+            },
+        },
+    }
 
     label = _('ID Ranges')
     label_singular = _('ID Range')
