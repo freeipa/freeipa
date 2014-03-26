@@ -137,6 +137,26 @@ class group(LDAPObject):
         'sudorule'],
     }
     rdn_is_primary_key = True
+    managed_permissions = {
+        'System: Read Groups': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'anonymous',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'businesscategory', 'cn', 'description', 'gidnumber',
+                'ipaexternalmember', 'ipauniqueid', 'mepmanagedby', 'o',
+                'objectclass', 'ou', 'owner', 'seealso',
+            },
+        },
+        'System: Read Group Membership': {
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'member', 'memberof', 'memberuid',
+            },
+        },
+    }
 
     label = _('User Groups')
     label_singular = _('User Group')
