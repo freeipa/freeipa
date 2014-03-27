@@ -51,6 +51,7 @@ from constants import CLI_TAB, LDAP_GENERALIZED_TIME_FORMAT
 from parameters import File, Str, Enum, Any
 from text import _
 from ipapython.version import API_VERSION
+from ipapython.dnsutil import DNSName
 
 import datetime
 
@@ -160,6 +161,8 @@ class textui(backend.Backend):
             return base64.b64encode(value)
         elif type(value) is datetime.datetime:
             return value.strftime(LDAP_GENERALIZED_TIME_FORMAT)
+        elif isinstance(value, DNSName):
+            return unicode(value)
         else:
             return value
 
