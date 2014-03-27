@@ -34,6 +34,9 @@ For example, an entry could look like this:
         },
     }
 
+For permissions not tied to an object plugin, a NONOBJECT_PERMISSIONS
+dict of the same format is defined in this module.
+
 The permission name must start with the "System:" prefix.
 
 The template dictionary can have the following keys:
@@ -41,8 +44,8 @@ The template dictionary can have the following keys:
   - Directly used as attributes on the permission.
   - Replaced when upgrading an existing permission
   - If not specified, these default to the defaults of a permission of the
-    corresponding --type, or (if non_object is specified) to general permission
-    defaults.
+    corresponding --type, or, if non_object is specified, or if not on an
+    object, to general permission defaults .
   - ipapermlocation and ipapermtarget must be DNs
   - ipapermtargetfilter and objectclass must be iterables of strings
 * ipapermbindruletype
@@ -76,6 +79,8 @@ from ipaserver.install.plugins.baseupdate import PostUpdate
 
 
 register = Registry()
+
+NONOBJECT_PERMISSIONS = {}
 
 
 @register()
@@ -122,6 +127,11 @@ class update_managed_permissions(PostUpdate):
                                        unicode(name),
                                        template,
                                        anonymous_read_blacklist)
+
+        self.log.info('Updating non-object managed permissions')
+        for name, template in NONOBJECT_PERMISSIONS.iteritems():
+            self.update_permission(ldap, None, unicode(name), template,
+                                   anonymous_read_blacklist)
 
         return False, False, ()
 
