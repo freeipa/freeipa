@@ -42,6 +42,7 @@ from ipapython.ipautil import (
     format_netloc, wait_for_open_socket, wait_for_open_ports, CIDict)
 from ipapython.ipa_log_manager import log_mgr
 from ipapython.dn import DN, RDN
+from ipapython.dnsutil import DNSName
 
 # Global variable to define SASL auth
 SASL_GSSAPI = ldap.sasl.sasl({}, 'GSSAPI')
@@ -258,6 +259,10 @@ class IPASimpleLDAPObject(object):
         'managedtemplate': DN,
         'managedbase':     DN,
         'originscope':     DN,
+        'idnsname':        DNSName,
+        'idnssoamname':    DNSName,
+        'idnssoarname':    DNSName,
+        'dnszoneidnsname': DNSName,
     })
     _SINGLE_VALUE_OVERRIDE = CIDict({
         'nsslapd-ssl-check-hostname': True,
@@ -402,6 +407,8 @@ class IPASimpleLDAPObject(object):
                 return 'FALSE'
         elif isinstance(val, (unicode, float, int, long, Decimal, DN)):
             return value_to_utf8(val)
+        elif isinstance(val, DNSName):
+            return str(val)
         elif isinstance(val, str):
             return val
         elif isinstance(val, list):
