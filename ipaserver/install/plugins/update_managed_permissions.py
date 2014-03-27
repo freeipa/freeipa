@@ -17,6 +17,40 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Plugin for updating managed permissions.
+
+The permissions are declared in Object plugins in the "managed_permissions"
+attribute, which is a dictionary mapping permission names to a "template"
+for the updater.
+For example, an entry could look like this:
+
+    managed_permissions = {
+        'System: Read Object A': {
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {'cn', 'description'},
+            'replaces_global_anonymous_aci': True,
+        },
+    }
+
+The permission name must start with the "System:" prefix.
+
+The template dictionary can have the following keys:
+* ipapermbindruletype, ipapermright
+  - Directly used as attributes on the permission.
+  - Replaced when upgrading an existing permission
+* ipapermdefaultattr
+  - Used as attribute of the permission.
+  - When upgrading, only new values are added; all old values are kept.
+* replaces_global_anonymous_aci
+  - If true, any attributes specified (denied) in the legacy global anonymous
+    read ACI will be added to excluded_attributes of the new permission.
+  - Has no effect when existing permissions are updated.
+
+No other keys are allowed in the template
+"""
+
 from ipalib import errors
 from ipapython.dn import DN
 from ipalib.plugable import Registry
