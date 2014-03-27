@@ -47,6 +47,15 @@ invaliduser2=u'tuser1234567890123456789012345678901234567890'
 sshpubkey = u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6XHBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGIwA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNmcSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM019Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF0L public key test'
 sshpubkeyfp = u'13:67:6B:BF:4E:A2:05:8E:AE:25:8B:A1:31:DE:6F:1B public key test (ssh-rsa)'
 
+validlanguage1=u'en-US;q=0.987 , en, abcdfgh-abcdefgh;q=1        , a;q=1.000'
+validlanguage2=u'*'
+
+invalidlanguage1=u'abcdfghji-abcdfghji'
+invalidlanguage2=u'en-us;q=0,123'
+invalidlanguage3=u'en-us;q=0.1234'
+invalidlanguage4=u'en-us;q=1.1'
+invalidlanguage5=u'en-us;q=1.0000'
+
 # Date in ISO format (2013-12-10T12:00:00)
 isodate_re = re.compile('^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
 
@@ -1467,6 +1476,89 @@ class test_user(Declarative):
                 ],
                 summary=u'Account disabled: False',
                 truncated=False,
+            ),
+        ),
+
+        dict(
+            desc='Test an invalid preferredlanguage "%s"' % invalidlanguage1,
+            command=('user_mod', [user1], dict(preferredlanguage=invalidlanguage1)),
+            expected=errors.ValidationError(name='preferredlanguage',
+                error=u'must match RFC 2068 - 14.4, e.g., "da, en-gb;q=0.8, en;q=0.7"'),
+        ),
+
+        dict(
+            desc='Test an invalid preferredlanguage "%s"' % invalidlanguage2,
+            command=('user_mod', [user1], dict(preferredlanguage=invalidlanguage2)),
+            expected=errors.ValidationError(name='preferredlanguage',
+                error=u'must match RFC 2068 - 14.4, e.g., "da, en-gb;q=0.8, en;q=0.7"'),
+        ),
+
+        dict(
+            desc='Test an invalid preferredlanguage "%s"' % invalidlanguage3,
+            command=('user_mod', [user1], dict(preferredlanguage=invalidlanguage3)),
+            expected=errors.ValidationError(name='preferredlanguage',
+                error=u'must match RFC 2068 - 14.4, e.g., "da, en-gb;q=0.8, en;q=0.7"'),
+        ),
+
+        dict(
+            desc='Test an invalid preferredlanguage "%s"' % invalidlanguage4,
+            command=('user_mod', [user1], dict(preferredlanguage=invalidlanguage4)),
+            expected=errors.ValidationError(name='preferredlanguage',
+                error=u'must match RFC 2068 - 14.4, e.g., "da, en-gb;q=0.8, en;q=0.7"'),
+        ),
+
+        dict(
+            desc='Test an invalid preferredlanguage "%s"' % invalidlanguage5,
+            command=('user_mod', [user1], dict(preferredlanguage=invalidlanguage5)),
+            expected=errors.ValidationError(name='preferredlanguage',
+                error=u'must match RFC 2068 - 14.4, e.g., "da, en-gb;q=0.8, en;q=0.7"'),
+        ),
+
+        dict(
+            desc='Set preferredlanguage "%s"' % validlanguage1,
+            command=('user_mod', [user1], dict(preferredlanguage=validlanguage1)),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    mail=[u'%s@%s' % (user1, api.env.domain)],
+                    memberof_group=[u'ipausers'],
+                    nsaccountlock=False,
+                    has_keytab=False,
+                    has_password=False,
+                    preferredlanguage=[validlanguage1],
+                ),
+                value=user1,
+                summary='Modified user "%s"' % user1,
+            ),
+        ),
+
+        dict(
+            desc='Set preferredlanguage "%s"' % validlanguage2,
+            command=('user_mod', [user1], dict(preferredlanguage=validlanguage2)),
+            expected=dict(
+                result=dict(
+                    givenname=[u'Test'],
+                    homedirectory=[u'/home/tuser1'],
+                    loginshell=[u'/bin/sh'],
+                    sn=[u'User1'],
+                    uid=[user1],
+                    uidnumber=[fuzzy_digits],
+                    gidnumber=[fuzzy_digits],
+                    mail=[u'%s@%s' % (user1, api.env.domain)],
+                    memberof_group=[u'ipausers'],
+                    nsaccountlock=False,
+                    has_keytab=False,
+                    has_password=False,
+                    preferredlanguage=[validlanguage2],
+                ),
+                value=user1,
+                summary='Modified user "%s"' % user1,
             ),
         ),
 

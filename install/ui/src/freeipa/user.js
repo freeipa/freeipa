@@ -245,12 +245,18 @@ return {
                             name: 'manager',
                             other_entity: 'user',
                             other_field: 'uid'
-                        }
+                        },
+                        { $type: 'multivalued', name: 'departmentnumber' },
+                        'employeenumber',
+                        'employeetype',
+                        'preferredlanguage'
                     ]
                 },
                 {
                     name: 'misc',
-                    fields: [ 'carlicense' ]
+                    fields: [
+                        { $type: 'multivalued', name: 'carlicense' }
+                    ]
                 }
             ],
             actions: [
