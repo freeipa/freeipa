@@ -23,7 +23,7 @@ from ipalib.request import context
 from ipalib import api, crud, errors
 from ipalib import output
 from ipalib import Object, Command
-from ipalib.plugins.baseldap import gen_pkey_only_option
+from ipalib.plugins.baseldap import gen_pkey_only_option, pkey_to_value
 
 __doc__ = _("""
 Self-service Permissions
@@ -135,7 +135,7 @@ class selfservice_add(crud.Create):
 
         return dict(
             result=result,
-            value=aciname,
+            value=pkey_to_value(aciname, kw),
         )
 
 api.register(selfservice_add)
@@ -153,7 +153,7 @@ class selfservice_del(crud.Delete):
 
         return dict(
             result=True,
-            value=aciname,
+            value=pkey_to_value(aciname, kw),
         )
 
 api.register(selfservice_del)
@@ -175,7 +175,7 @@ class selfservice_mod(crud.Update):
 
         return dict(
             result=result,
-            value=aciname,
+            value=pkey_to_value(aciname, kw),
         )
 
 api.register(selfservice_mod)
@@ -218,7 +218,7 @@ class selfservice_show(crud.Retrieve):
         self.obj.postprocess_result(result)
         return dict(
             result=result,
-            value=aciname,
+            value=pkey_to_value(aciname, kw),
         )
 
 api.register(selfservice_show)

@@ -104,8 +104,8 @@ class test_batch(Declarative):
                         error=None),
                     dict(
                         summary=u'Deleted group "%s"' % group1,
-                        result=dict(failed=u''),
-                        value=group1,
+                        result=dict(failed=[]),
+                        value=[group1],
                         error=None),
                 ),
             ),

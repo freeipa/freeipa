@@ -37,7 +37,7 @@ class test_config(Declarative):
                 dict(addattr=u'ipauserobjectclasses=ipahost')),
             expected=dict(
                     result=lambda d: 'ipahost' in d['ipauserobjectclasses'],
-                    value=u'',
+                    value=None,
                     summary=None,
                 ),
         ),
@@ -48,7 +48,7 @@ class test_config(Declarative):
                 dict(delattr=u'ipauserobjectclasses=ipahost')),
             expected=dict(
                     result=lambda d: 'ipahost' not in d['ipauserobjectclasses'],
-                    value=u'',
+                    value=None,
                     summary=None,
                 ),
         ),
@@ -123,7 +123,7 @@ class test_config(Declarative):
             command=('config_mod', [], dict(ipauserauthtype=u'password')),
             expected=dict(
                     result=lambda d: d['ipauserauthtype'] == (u'password',),
-                    value=u'',
+                    value=None,
                     summary=None,
                 ),
         ),
@@ -133,7 +133,7 @@ class test_config(Declarative):
             command=('config_show', [], {}),
             expected=dict(
                     result=lambda d: d['ipauserauthtype'] == (u'password',),
-                    value=u'',
+                    value=None,
                     summary=None,
                 ),
         ),
@@ -143,7 +143,7 @@ class test_config(Declarative):
             command=('config_mod', [], dict(ipauserauthtype=None)),
             expected=dict(
                     result=lambda d: 'ipauserauthtype' not in d,
-                    value=u'',
+                    value=None,
                     summary=None,
                 ),
         ),

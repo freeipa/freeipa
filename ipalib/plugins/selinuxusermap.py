@@ -425,7 +425,7 @@ class selinuxusermap_enable(LDAPQuery):
 
         return dict(
             result=True,
-            value=cn,
+            value=pkey_to_value(cn, options),
         )
 
 api.register(selinuxusermap_enable)
@@ -455,7 +455,7 @@ class selinuxusermap_disable(LDAPQuery):
 
         return dict(
             result=True,
-            value=cn,
+            value=pkey_to_value(cn, options),
         )
 
 api.register(selinuxusermap_disable)

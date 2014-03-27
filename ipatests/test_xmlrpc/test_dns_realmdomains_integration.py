@@ -55,6 +55,8 @@ def assert_realmdomain_and_txt_record_present(response):
 
 def assert_realmdomain_and_txt_record_not_present(response):
     zone = response['value']
+    if isinstance(zone, (tuple, list)):
+        zone = zone[0]
 
     r = api.Command['realmdomains_show']()
     assert zone not in r['result']['associateddomain']
@@ -159,9 +161,9 @@ class test_dns_realmdomains_integration(Declarative):
                  'during dnszone_del',
             command=('dnszone_del', [dnszone_1], {}),
             expected={
-                'value': dnszone_1,
+                'value': [dnszone_1],
                 'summary': u'Deleted DNS zone "%s"' % dnszone_1,
-                'result': {'failed': u''},
+                'result': {'failed': []},
             },
             extra_check=assert_realmdomain_and_txt_record_not_present,
         ),

@@ -242,7 +242,7 @@ class test_automember(Declarative):
             desc='Rebuild membership for hostgroups',
             command=('automember_rebuild', [], dict(type=u'hostgroup')),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=fuzzy_automember_message,
                 result=dict()
             ),
@@ -252,7 +252,7 @@ class test_automember(Declarative):
             desc='Rebuild membership for hostgroups asynchronously',
             command=('automember_rebuild', [], dict(type=u'hostgroup',no_wait=True)),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=u'Automember rebuild membership task started',
                 result=dict(
                     dn=fuzzy_automember_dn
@@ -361,7 +361,7 @@ class test_automember(Declarative):
             desc='Rebuild membership for host: %s' % fqdn1,
             command=('automember_rebuild', [], dict(hosts=fqdn1)),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=fuzzy_automember_message,
                 result=dict()
             ),
@@ -371,7 +371,7 @@ class test_automember(Declarative):
             desc='Rebuild membership for host: %s asynchronously' % fqdn1,
             command=('automember_rebuild', [], dict(hosts=fqdn1, no_wait=True)),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=u'Automember rebuild membership task started',
                 result=dict(
                     dn=fuzzy_automember_dn
@@ -398,9 +398,9 @@ class test_automember(Declarative):
             desc='Delete host: %r' % fqdn1,
             command=('host_del', [fqdn1], dict()),
             expected=dict(
-                value=fqdn1,
+                value=[fqdn1],
                 summary=u'Deleted host "%s"' % fqdn1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 
@@ -408,9 +408,9 @@ class test_automember(Declarative):
             desc='Delete hostgroup: %r' % hostgroup1,
             command=('hostgroup_del', [hostgroup1], dict()),
             expected=dict(
-                value=hostgroup1,
+                value=[hostgroup1],
                 summary=u'Deleted hostgroup "%s"' % hostgroup1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 
@@ -418,9 +418,9 @@ class test_automember(Declarative):
             desc='Delete automember rule: %r' % hostgroup1,
             command=('automember_del', [hostgroup1], dict(type=u'hostgroup')),
             expected=dict(
-                value=hostgroup1,
+                value=[hostgroup1],
                 summary=u'Deleted automember rule "%s"' % hostgroup1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 
@@ -543,7 +543,7 @@ class test_automember(Declarative):
             desc='Rebuild membership for groups',
             command=('automember_rebuild', [], dict(type=u'group')),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=fuzzy_automember_message,
                 result=dict()
             ),
@@ -553,7 +553,7 @@ class test_automember(Declarative):
             desc='Rebuild membership for groups asynchronously',
             command=('automember_rebuild', [], dict(type=u'group', no_wait=True)),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=u'Automember rebuild membership task started',
                 result=dict(
                     dn=fuzzy_automember_dn
@@ -620,7 +620,7 @@ class test_automember(Declarative):
             desc='Rebuild membership for user: %s' % user1,
             command=('automember_rebuild', [], dict(users=user1)),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=fuzzy_automember_message,
                 result=dict()
             ),
@@ -630,7 +630,7 @@ class test_automember(Declarative):
             desc='Rebuild membership for user: %s asynchronously' % user1,
             command=('automember_rebuild', [], dict(users=user1, no_wait=True)),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=u'Automember rebuild membership task started',
                 result=dict(
                     dn=fuzzy_automember_dn
@@ -658,9 +658,9 @@ class test_automember(Declarative):
             desc='Delete user: %r' % user1,
             command=('user_del', [user1], dict()),
             expected=dict(
-                value=user1,
+                value=[user1],
                 summary=u'Deleted user "%s"' % user1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 
@@ -668,9 +668,9 @@ class test_automember(Declarative):
             desc='Delete user: %r' % manager1,
             command=('user_del', [manager1], dict()),
             expected=dict(
-                value=manager1,
+                value=[manager1],
                 summary=u'Deleted user "%s"' % manager1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 
@@ -678,9 +678,9 @@ class test_automember(Declarative):
             desc='Delete group: %r' % group1,
             command=('group_del', [group1], dict()),
             expected=dict(
-                value=group1,
+                value=[group1],
                 summary=u'Deleted group "%s"' % group1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 
@@ -688,9 +688,9 @@ class test_automember(Declarative):
             desc='Delete automember rule: %r' % group1,
             command=('automember_del', [group1], dict(type=u'group')),
             expected=dict(
-                value=group1,
+                value=[group1],
                 summary=u'Deleted automember rule "%s"' % group1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 

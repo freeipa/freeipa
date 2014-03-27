@@ -25,6 +25,7 @@ from ipatests.util import raises, ClassChecker
 from ipalib import output
 from ipalib.frontend import Command
 from ipalib import _
+from ipapython.version import API_VERSION
 
 class test_Output(ClassChecker):
     """
@@ -78,12 +79,14 @@ class test_ListOfEntries(ClassChecker):
         okay = dict(foo='bar')
         nope = ('aye', 'bee')
 
-        e = raises(TypeError, inst.validate, cmd, [okay, okay, nope])
+        e = raises(TypeError, inst.validate,
+                   cmd, [okay, okay, nope], API_VERSION)
         assert str(e) == output.emsg % (
             'example', 'ListOfEntries', 'stuff', 2, dict, tuple, nope
         )
 
-        e = raises(TypeError, inst.validate, cmd, [nope, okay, nope])
+        e = raises(TypeError, inst.validate,
+                   cmd, [nope, okay, nope], API_VERSION)
         assert str(e) == output.emsg % (
             'example', 'ListOfEntries', 'stuff', 0, dict, tuple, nope
         )

@@ -236,9 +236,9 @@ class test_hbacsvcgroup(Declarative):
             desc='Delete %r' % hbacsvcgroup1,
             command=('hbacsvcgroup_del', [hbacsvcgroup1], {}),
             expected=dict(
-                value=hbacsvcgroup1,
+                value=[hbacsvcgroup1],
                 summary=u'Deleted HBAC service group "testhbacsvcgroup1"',
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 
@@ -247,9 +247,9 @@ class test_hbacsvcgroup(Declarative):
             desc='Delete service %r' % hbacsvc1,
             command=('hbacsvc_del', [hbacsvc1], {}),
             expected=dict(
-                value=hbacsvc1,
+                value=[hbacsvc1],
                 summary=u'Deleted HBAC service "%s"' % hbacsvc1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         )
 

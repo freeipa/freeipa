@@ -661,7 +661,7 @@ class service_disable(LDAPQuery):
 
         return dict(
             result=True,
-            value=keys[0],
+            value=pkey_to_value(keys[0], options),
         )
 
 api.register(service_disable)

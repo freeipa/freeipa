@@ -261,9 +261,9 @@ class test_hostgroup(Declarative):
             desc='Delete %r' % hostgroup1,
             command=('hostgroup_del', [hostgroup1], {}),
             expected=dict(
-                value=hostgroup1,
+                value=[hostgroup1],
                 summary=u'Deleted hostgroup "testhostgroup1"',
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 
@@ -293,9 +293,9 @@ class test_hostgroup(Declarative):
             desc='Delete %r' % hostgroup_single,
             command=('hostgroup_del', [hostgroup_single], {}),
             expected=dict(
-                value=hostgroup_single,
+                value=[hostgroup_single],
                 summary=u'Deleted hostgroup "a"',
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 
@@ -304,9 +304,9 @@ class test_hostgroup(Declarative):
             desc='Delete host %r' % fqdn1,
             command=('host_del', [fqdn1], {}),
             expected=dict(
-                value=fqdn1,
+                value=[fqdn1],
                 summary=u'Deleted host "%s"' % fqdn1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         )
 

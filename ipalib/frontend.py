@@ -439,12 +439,9 @@ class Command(HasParam):
             and 'summary' in self.output
             and 'summary' not in ret
         ):
-            if self.msg_summary:
-                ret['summary'] = self.msg_summary % ret
-            else:
-                ret['summary'] = None
+            ret['summary'] = self.get_summary_default(ret)
         if self.use_output_validation and (self.output or ret is not None):
-            self.validate_output(ret)
+            self.validate_output(ret, options.get('version', API_VERSION))
         return ret
 
     def soft_validate(self, values):
@@ -918,7 +915,7 @@ class Command(HasParam):
             flags=['no_option', 'no_output'],
         )
 
-    def validate_output(self, output):
+    def validate_output(self, output, version=API_VERSION):
         """
         Validate the return value to make sure it meets the interface contract.
         """
@@ -947,7 +944,7 @@ class Command(HasParam):
                     nice, o.name, o.type, type(value), value)
                 )
             if callable(o.validate):
-                o.validate(self, value)
+                o.validate(self, value, version)
 
     def get_output_params(self):
         for param in self._get_param_iterable('output_params', verb='has'):
@@ -958,6 +955,10 @@ class Command(HasParam):
             if 'no_output' in param.flags:
                 continue
             yield param
+
+    def get_summary_default(self, output):
+        if self.msg_summary:
+            return self.msg_summary % output
 
     def log_messages(self, output, logger):
         logger_functions = dict(

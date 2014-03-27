@@ -554,8 +554,8 @@ class test_group(Declarative):
             desc='Remove group %r with external membership' % (group3),
             command=('group_del', [group3], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=group3,
+                result=dict(failed=[]),
+                value=[group3],
                 summary=u'Deleted group "testgroup3"',
             ),
         ),
@@ -693,8 +693,8 @@ class test_group(Declarative):
             desc='Delete %r' % group1,
             command=('group_del', [group1], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=group1,
+                result=dict(failed=[]),
+                value=[group1],
                 summary=u'Deleted group "testgroup1"',
             )
         ),
@@ -728,8 +728,8 @@ class test_group(Declarative):
             desc='Delete %r' % group2,
             command=('group_del', [group2], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=group2,
+                result=dict(failed=[]),
+                value=[group2],
                 summary=u'Deleted group "testgroup2"',
             )
         ),
@@ -859,8 +859,8 @@ class test_group(Declarative):
             desc='Now delete the unmanaged group %r' % user1,
             command=('group_del', [user1], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=user1,
+                result=dict(failed=[]),
+                value=[user1],
                 summary=u'Deleted group "%s"' % user1,
             )
         ),
@@ -875,9 +875,9 @@ class test_group(Declarative):
             desc='Delete %r' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "tuser1"',
-                value=user1,
+                value=[user1],
             ),
         ),
 
@@ -1004,9 +1004,9 @@ class test_group(Declarative):
             desc='Delete %r' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "%s"' % user1,
-                value=user1,
+                value=[user1],
             ),
         ),
 

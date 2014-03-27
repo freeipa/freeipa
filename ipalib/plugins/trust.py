@@ -434,6 +434,7 @@ sides.
     )
 
     msg_summary = _('Added Active Directory trust for realm "%(value)s"')
+    msg_summary_existing = _('Re-established trust to domain "%(value)s"')
     has_output_params = LDAPCreate.has_output_params + trust_output_params
 
     def execute(self, *keys, **options):
@@ -640,11 +641,6 @@ sides.
         except errors.NotFound:
             dn = None
 
-        if dn:
-            summary = _('Re-established trust to domain "%(value)s"')
-        else:
-            summary = self.msg_summary
-
         # 1. Full access to the remote domain. Use admin credentials and
         # generate random trustdom password to do work on both sides
         if full_join:
@@ -685,10 +681,13 @@ sides.
                                              error=_('Unable to verify write permissions to the AD'))
 
             ret = dict(
-                value=self.trustinstance.remote_domain.info['dns_domain'],
+                value=pkey_to_value(
+                    self.trustinstance.remote_domain.info['dns_domain'],
+                    options),
                 verified=result['verified']
             )
-            ret['summary'] = summary % ret
+            if dn:
+                ret['summary'] = self.msg_summary_existing % ret
             return ret
 
 
@@ -702,10 +701,13 @@ sides.
                 options['trust_secret']
             )
             ret = dict(
-                value=self.trustinstance.remote_domain.info['dns_domain'],
+                value=pkey_to_value(
+                    self.trustinstance.remote_domain.info['dns_domain'],
+                    options),
                 verified=result['verified']
             )
-            ret['summary'] = summary % ret
+            if dn:
+                ret['summary'] = self.msg_summary_existing % ret
             return ret
         raise errors.ValidationError(name=_('AD Trust setup'),
                                      error=_('Not enough arguments specified to perform trust setup'))
@@ -915,7 +917,7 @@ class trustconfig_mod(LDAPUpdate):
 
     def execute(self, *keys, **options):
         result = super(trustconfig_mod, self).execute(*keys, **options)
-        result['value'] = options['trust_type']
+        result['value'] = pkey_to_value(options['trust_type'], options)
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -932,7 +934,7 @@ class trustconfig_show(LDAPRetrieve):
 
     def execute(self, *keys, **options):
         result = super(trustconfig_show, self).execute(*keys, **options)
-        result['value'] = options['trust_type']
+        result['value'] = pkey_to_value(options['trust_type'], options)
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -1216,7 +1218,7 @@ class trustdomain_del(LDAPDelete):
             except errors.AlreadyActive:
                 pass
         result = super(trustdomain_del, self).execute(*keys, **options)
-        result['value'] = u','.join(keys[1])
+        result['value'] = pkey_to_value(keys[1], options)
         return result
 
 
@@ -1346,7 +1348,7 @@ class trustdomain_enable(LDAPQuery):
 
         return dict(
             result=True,
-            value=keys[1],
+            value=pkey_to_value(keys[1], options),
         )
 
 api.register(trustdomain_enable)
@@ -1386,7 +1388,7 @@ class trustdomain_disable(LDAPQuery):
 
         return dict(
             result=True,
-            value=keys[1],
+            value=pkey_to_value(keys[1], options),
         )
 
 api.register(trustdomain_disable)

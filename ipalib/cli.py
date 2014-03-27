@@ -363,7 +363,8 @@ class textui(backend.Backend):
                 label = labels.get(key, key)
                 flag = flags.get(key, [])
                 value = entry[key]
-                if 'suppress_empty' in flag and value in [u'', '', [], None]:
+                if ('suppress_empty' in flag and
+                    value in [u'', '', (), [], None]):
                     continue
                 if isinstance(value, dict):
                     if frontend.entry_count(value) == 0:

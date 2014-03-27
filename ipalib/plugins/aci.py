@@ -126,7 +126,7 @@ from ipalib.aci import ACI
 from ipalib import output
 from ipalib import _, ngettext
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import gen_pkey_only_option
+from ipalib.plugins.baseldap import gen_pkey_only_option, pkey_to_value
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 
@@ -557,7 +557,7 @@ class aci_add(crud.Create):
             result = _aci_to_kw(ldap, newaci, kw.get('test', False))
         return dict(
             result=result,
-            value=aciname,
+            value=pkey_to_value(aciname, kw),
         )
 
 
@@ -598,7 +598,7 @@ class aci_del(crud.Delete):
 
         return dict(
             result=True,
-            value=aciname,
+            value=pkey_to_value(aciname, options),
         )
 
 
@@ -666,7 +666,7 @@ class aci_mod(crud.Update):
             result = _aci_to_kw(ldap, newaci)
         return dict(
             result=result,
-            value=aciname,
+            value=pkey_to_value(aciname, kw),
         )
 
 
@@ -919,7 +919,7 @@ class aci_show(crud.Retrieve):
             result = _aci_to_kw(ldap, aci)
         return dict(
             result=result,
-            value=aciname,
+            value=pkey_to_value(aciname, kw),
         )
 
 
@@ -981,5 +981,5 @@ class aci_rename(crud.Update):
             result = _aci_to_kw(ldap, newaci)
         return dict(
             result=result,
-            value=kw['newname'],
+            value=pkey_to_value(kw['newname'], kw),
         )

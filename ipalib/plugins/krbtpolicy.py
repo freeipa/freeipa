@@ -216,8 +216,6 @@ class krbtpolicy_reset(LDAPQuery):
 
         entry_attrs = entry_to_dict(entry_attrs, **options)
 
-        if keys[-1] is not None:
-            return dict(result=entry_attrs, value=keys[-1])
-        return dict(result=entry_attrs, value=u'')
+        return dict(result=entry_attrs, value=pkey_to_value(keys[-1], options))
 
 api.register(krbtpolicy_reset)

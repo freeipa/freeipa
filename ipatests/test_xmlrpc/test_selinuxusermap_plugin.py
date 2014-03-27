@@ -572,8 +572,8 @@ class test_selinuxusermap(Declarative):
             desc='Try to delete similarly named HBAC rule %r' % hbacrule2,
             command=('hbacrule_del', [hbacrule2], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=hbacrule2,
+                result=dict(failed=[]),
+                value=[hbacrule2],
                 summary=u'Deleted HBAC rule "%s"' % hbacrule2,
             )
         ),
@@ -584,8 +584,8 @@ class test_selinuxusermap(Declarative):
             desc='Delete %r' % rule1,
             command=('selinuxusermap_del', [rule1], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=rule1,
+                result=dict(failed=[]),
+                value=[rule1],
                 summary=u'Deleted SELinux User Map "%s"' % rule1,
             )
         ),
@@ -780,8 +780,8 @@ class test_selinuxusermap(Declarative):
             desc='Delete %r' % rule1,
             command=('selinuxusermap_del', [rule1], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=rule1,
+                result=dict(failed=[]),
+                value=[rule1],
                 summary=u'Deleted SELinux User Map "%s"' % rule1,
             )
         ),
@@ -823,8 +823,8 @@ class test_selinuxusermap(Declarative):
             desc='Delete %r' % rule1,
             command=('selinuxusermap_del', [rule1], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=rule1,
+                result=dict(failed=[]),
+                value=[rule1],
                 summary=u'Deleted SELinux User Map "%s"' % rule1,
             )
         ),
@@ -865,8 +865,8 @@ class test_selinuxusermap(Declarative):
             desc='Delete %r' % rule1,
             command=('selinuxusermap_del', [rule1], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=rule1,
+                result=dict(failed=[]),
+                value=[rule1],
                 summary=u'Deleted SELinux User Map "%s"' % rule1,
             )
         ),
@@ -899,8 +899,8 @@ class test_selinuxusermap(Declarative):
             desc='Delete %r' % rule1,
             command=('selinuxusermap_del', [rule1], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=rule1,
+                result=dict(failed=[]),
+                value=[rule1],
                 summary=u'Deleted SELinux User Map "%s"' % rule1,
             )
         ),

@@ -832,7 +832,7 @@ class user_disable(LDAPQuery):
 
         return dict(
             result=True,
-            value=keys[0],
+            value=pkey_to_value(keys[0], options),
         )
 
 api.register(user_disable)
@@ -854,7 +854,7 @@ class user_enable(LDAPQuery):
 
         return dict(
             result=True,
-            value=keys[0],
+            value=pkey_to_value(keys[0], options),
         )
 
 api.register(user_enable)
@@ -883,7 +883,7 @@ class user_unlock(LDAPQuery):
 
         return dict(
             result=True,
-            value=keys[0],
+            value=pkey_to_value(keys[0], options),
         )
 
 api.register(user_unlock)

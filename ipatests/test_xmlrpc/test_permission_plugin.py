@@ -1217,8 +1217,8 @@ class test_permission(Declarative):
             desc='Delete %r' % permission1_renamed_ucase,
             command=('permission_del', [permission1_renamed_ucase], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=permission1_renamed_ucase,
+                result=dict(failed=[]),
+                value=[permission1_renamed_ucase],
                 summary=u'Deleted permission "%s"' % permission1_renamed_ucase,
             )
         ),
@@ -1253,8 +1253,8 @@ class test_permission(Declarative):
             desc='Delete %r' % permission2,
             command=('permission_del', [permission2], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=permission2,
+                result=dict(failed=[]),
+                value=[permission2],
                 summary=u'Deleted permission "%s"' % permission2,
             )
         ),
@@ -1277,8 +1277,8 @@ class test_permission(Declarative):
             desc='Delete %r' % privilege1,
             command=('privilege_del', [privilege1], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=privilege1,
+                result=dict(failed=[]),
+                value=[privilege1],
                 summary=u'Deleted privilege "%s"' % privilege1,
             )
         ),
@@ -1410,8 +1410,8 @@ class test_permission(Declarative):
             desc='Delete %r' % permission1,
             command=('permission_del', [permission1], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=permission1,
+                result=dict(failed=[]),
+                value=[permission1],
                 summary=u'Deleted permission "%s"' % permission1,
             )
         ),
@@ -2697,8 +2697,8 @@ def _make_permission_flag_tests(flags, expected_message):
             desc='Delete %r with --force' % permission1,
             command=('permission_del', [permission1], {'force': True}),
             expected=dict(
-                result=dict(failed=u''),
-                value=permission1,
+                result=dict(failed=[]),
+                value=[permission1],
                 summary=u'Deleted permission "%s"' % permission1,
             ),
         ),
@@ -3571,8 +3571,8 @@ class test_managed_permissions(Declarative):
             desc='Delete %r with --force' % permission1,
             command=('permission_del', [permission1], {'force': True}),
             expected=dict(
-                result=dict(failed=u''),
-                value=permission1,
+                result=dict(failed=[]),
+                value=[permission1],
                 summary=u'Deleted permission "%s"' % permission1,
             ),
         ),
@@ -3826,8 +3826,8 @@ class test_permission_filters(Declarative):
             desc='Delete %r' % permission1,
             command=('permission_del', [permission1], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=permission1,
+                result=dict(failed=[]),
+                value=[permission1],
                 summary=u'Deleted permission "%s"' % permission1,
             )
         ),

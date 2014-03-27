@@ -519,9 +519,9 @@ class test_user(Declarative):
             desc='Delete "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "%s"' % user1,
-                value=user1,
+                value=[user1],
             ),
         ),
 
@@ -574,9 +574,9 @@ class test_user(Declarative):
             desc='Delete "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "%s"' % user1,
-                value=user1,
+                value=[user1],
             ),
         ),
 
@@ -646,9 +646,9 @@ class test_user(Declarative):
             desc='Delete "%s" and "%s" at the same time' % (user1, user2),
             command=('user_del', [user1, user2], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "tuser1,tuser2"',
-                value=u','.join((user1, user2)),
+                value=[user1, user2],
             ),
         ),
 
@@ -782,9 +782,9 @@ class test_user(Declarative):
             desc='Delete "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "%s"' % user1,
-                value=user1,
+                value=[user1],
             ),
         ),
 
@@ -811,9 +811,9 @@ class test_user(Declarative):
             desc='Delete "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "%s"' % user1,
-                value=user1,
+                value=[user1],
             ),
         ),
 
@@ -849,9 +849,9 @@ class test_user(Declarative):
             desc='Delete "%s"' % user2,
             command=('user_del', [user2], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "%s"' % user2,
-                value=user2,
+                value=[user2],
             ),
         ),
 
@@ -892,9 +892,9 @@ class test_user(Declarative):
             desc='Delete "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "%s"' % user1,
-                value=user1,
+                value=[user1],
             ),
         ),
 
@@ -932,9 +932,9 @@ class test_user(Declarative):
             desc='Delete "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "%s"' % user1,
-                value=user1,
+                value=[user1],
             ),
         ),
 
@@ -971,9 +971,9 @@ class test_user(Declarative):
             desc='Delete "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "%s"' % user1,
-                value=user1,
+                value=[user1],
             ),
         ),
 
@@ -1008,9 +1008,9 @@ class test_user(Declarative):
             desc='Delete "%s"' % user2,
             command=('user_del', [user2], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "%s"' % user2,
-                value=user2,
+                value=[user2],
             ),
         ),
 
@@ -1116,9 +1116,9 @@ class test_user(Declarative):
             desc='Delete %r' % renameduser1,
             command=('user_del', [renameduser1], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "%s"' % renameduser1,
-                value=renameduser1,
+                value=[renameduser1],
             ),
         ),
 
@@ -1255,9 +1255,9 @@ class test_user(Declarative):
             desc='Delete 2nd admin "%s"' % admin2,
             command=('user_del', [admin2], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "%s"' % admin2,
-                value=admin2,
+                value=[admin2],
             ),
         ),
 
@@ -1324,9 +1324,9 @@ class test_user(Declarative):
             desc='Delete "%s"' % user2,
             command=('user_del', [user2], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "%s"' % user2,
-                value=user2,
+                value=[user2],
             ),
         ),
 
@@ -1362,9 +1362,9 @@ class test_user(Declarative):
             desc='Delete "%s"' % user1,
             command=('user_del', [user1], {}),
             expected=dict(
-                result=dict(failed=u''),
+                result=dict(failed=[]),
                 summary=u'Deleted user "%s"' % user1,
-                value=user1,
+                value=[user1],
             ),
         ),
 

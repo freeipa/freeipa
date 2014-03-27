@@ -24,7 +24,7 @@ from ipalib.request import context
 from ipalib import api, crud, errors
 from ipalib import output
 from ipalib import Object, Command
-from ipalib.plugins.baseldap import gen_pkey_only_option
+from ipalib.plugins.baseldap import gen_pkey_only_option, pkey_to_value
 
 __doc__ = _("""
 Group to Group Delegation
@@ -141,7 +141,7 @@ class delegation_add(crud.Create):
 
         return dict(
             result=result,
-            value=aciname,
+            value=pkey_to_value(aciname, kw),
         )
 
 api.register(delegation_add)
@@ -159,7 +159,7 @@ class delegation_del(crud.Delete):
         self.obj.postprocess_result(result)
         return dict(
             result=True,
-            value=aciname,
+            value=pkey_to_value(aciname, kw),
         )
 
 api.register(delegation_del)
@@ -178,7 +178,7 @@ class delegation_mod(crud.Update):
 
         return dict(
             result=result,
-            value=aciname,
+            value=pkey_to_value(aciname, kw),
         )
 
 api.register(delegation_mod)
@@ -220,7 +220,7 @@ class delegation_show(crud.Retrieve):
         self.obj.postprocess_result(result)
         return dict(
             result=result,
-            value=aciname,
+            value=pkey_to_value(aciname, kw),
         )
 
 api.register(delegation_show)

@@ -451,9 +451,9 @@ class test_dns(Declarative):
             desc='Delete reverse zone %r' % revzone1,
             command=('dnszone_del', [revzone1], {}),
             expected={
-                'value': revzone1,
+                'value': [revzone1],
                 'summary': u'Deleted DNS zone "%s"' % revzone1,
-                'result': {'failed': u''},
+                'result': {'failed': []},
             },
         ),
 
@@ -560,7 +560,7 @@ class test_dns(Declarative):
             desc='Remove A record from %r in zone %r' % (name1, zone1),
             command=('dnsrecord_del', [zone1, name1], {'arecord': arec2}),
             expected={
-                'value': name1,
+                'value': [name1],
                 'summary': None,
                 'result': {
                     'idnsname': [name1],
@@ -897,9 +897,9 @@ class test_dns(Declarative):
             desc='Delete zone %r' % zone2,
             command=('dnszone_del', [zone2], {}),
             expected={
-                'value': zone2,
+                'value': [zone2],
                 'summary': u'Deleted DNS zone "%s"' % zone2,
-                'result': {'failed': u''},
+                'result': {'failed': []},
             },
         ),
 
@@ -1026,9 +1026,9 @@ class test_dns(Declarative):
             desc='Delete record %r in zone %r' % (name1_renamed, zone1),
             command=('dnsrecord_del', [zone1, name1_renamed], {'del_all': True }),
             expected={
-                'value': name1_renamed,
+                'value': [name1_renamed],
                 'summary': u'Deleted record "%s"' % name1_renamed,
-                'result': {'failed': u''},
+                'result': {'failed': []},
             },
         ),
 
@@ -1166,7 +1166,7 @@ class test_dns(Declarative):
             desc='Update global DNS settings',
             command=('dnsconfig_mod', [], {'idnsforwarders' : [fwd_ip],}),
             expected={
-                'value': u'',
+                'value': None,
                 'summary': None,
                 'result': {
                     'idnsforwarders': [fwd_ip],
@@ -1406,9 +1406,9 @@ class test_dns(Declarative):
             desc='Delete zone %r' % zone1,
             command=('dnszone_del', [zone1], {}),
             expected={
-                'value': zone1,
+                'value': [zone1],
                 'summary': u'Deleted DNS zone "%s"' % zone1,
-                'result': {'failed': u''},
+                'result': {'failed': []},
             },
         ),
 
@@ -1469,9 +1469,9 @@ class test_dns(Declarative):
             desc='Delete zone %r' % zone1,
             command=('dnszone_del', [zone1], {}),
             expected={
-                'value': zone1,
+                'value': [zone1],
                 'summary': u'Deleted DNS zone "%s"' % zone1,
-                'result': {'failed': u''},
+                'result': {'failed': []},
             },
         ),
 

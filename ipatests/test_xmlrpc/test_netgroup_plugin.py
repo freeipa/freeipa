@@ -200,9 +200,9 @@ class test_netgroup(Declarative):
             desc='Delete %r' % netgroup_single,
             command=('netgroup_del', [netgroup_single], {}),
             expected=dict(
-                value=netgroup_single,
+                value=[netgroup_single],
                 summary=u'Deleted netgroup "%s"' % netgroup_single,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 
@@ -1281,9 +1281,9 @@ class test_netgroup(Declarative):
             desc='Delete %r' % netgroup1,
             command=('netgroup_del', [netgroup1], {}),
             expected=dict(
-                value=netgroup1,
+                value=[netgroup1],
                 summary=u'Deleted netgroup "%s"' % netgroup1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 

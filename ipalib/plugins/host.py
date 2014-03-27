@@ -1011,7 +1011,7 @@ class host_disable(LDAPQuery):
 
         return dict(
             result=True,
-            value=keys[0],
+            value=pkey_to_value(keys[0], options),
         )
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):

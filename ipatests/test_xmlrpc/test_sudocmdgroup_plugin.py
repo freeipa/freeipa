@@ -600,8 +600,8 @@ class test_sudocmdgroup(Declarative):
             desc='Delete %r' % sudocmdgroup1,
             command=('sudocmdgroup_del', [sudocmdgroup1], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=sudocmdgroup1,
+                result=dict(failed=[]),
+                value=[sudocmdgroup1],
                 summary=u'Deleted Sudo Command Group "testsudocmdgroup1"',
             )
         ),
@@ -638,8 +638,8 @@ class test_sudocmdgroup(Declarative):
             desc='Delete %r' % sudocmdgroup2,
             command=('sudocmdgroup_del', [sudocmdgroup2], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=sudocmdgroup2,
+                result=dict(failed=[]),
+                value=[sudocmdgroup2],
                 summary=u'Deleted Sudo Command Group "testsudocmdgroup2"',
             )
         ),
@@ -676,8 +676,8 @@ class test_sudocmdgroup(Declarative):
             desc='Now delete the sudo command %r' % sudocmd1,
             command=('sudocmd_del', [sudocmd1], {}),
             expected=dict(
-                result=dict(failed=u''),
-                value=sudocmd1,
+                result=dict(failed=[]),
+                value=[sudocmd1],
                 summary=u'Deleted Sudo Command "%s"' % sudocmd1,
             )
         ),

@@ -297,7 +297,7 @@ class automember_add(LDAPCreate):
 
     def execute(self, *keys, **options):
         result = super(automember_add, self).execute(*keys, **options)
-        result['value'] = keys[-1]
+        result['value'] = pkey_to_value(keys[-1], options)
         return result
 
 
@@ -389,7 +389,7 @@ class automember_add_condition(LDAPUpdate):
             result =  {'result': getattr(context, 'entry_attrs'), 'value': keys[-1]}
         result['failed'] = getattr(context, 'failed')
         result['completed'] = getattr(context, 'completed')
-        result['value'] = keys[-1]
+        result['value'] = pkey_to_value(keys[-1], options)
         return result
 
 
@@ -476,7 +476,7 @@ class automember_remove_condition(LDAPUpdate):
             result =  {'result': getattr(context, 'entry_attrs'), 'value': keys[-1]}
         result['failed'] = getattr(context, 'failed')
         result['completed'] = getattr(context, 'completed')
-        result['value'] = keys[-1]
+        result['value'] = pkey_to_value(keys[-1], options)
         return result
 
 
@@ -491,7 +491,7 @@ class automember_mod(LDAPUpdate):
 
     def execute(self, *keys, **options):
         result = super(automember_mod, self).execute(*keys, **options)
-        result['value'] = keys[-1]
+        result['value'] = pkey_to_value(keys[-1], options)
         return result
 
 
@@ -506,7 +506,7 @@ class automember_del(LDAPDelete):
 
     def execute(self, *keys, **options):
         result = super(automember_del, self).execute(*keys, **options)
-        result['value'] = keys[-1]
+        result['value'] = pkey_to_value([keys[-1]], options)
         return result
 
 
@@ -540,7 +540,7 @@ class automember_show(LDAPRetrieve):
 
     def execute(self, *keys, **options):
         result = super(automember_show, self).execute(*keys, **options)
-        result['value'] = keys[-1]
+        result['value'] = pkey_to_value(keys[-1], options)
         return result
 
 
@@ -568,7 +568,7 @@ class automember_default_group_set(LDAPUpdate):
 
     def execute(self, *keys, **options):
         result = super(automember_default_group_set, self).execute(*keys, **options)
-        result['value'] = options['type']
+        result['value'] = pkey_to_value(options['type'], options)
         return result
 
 
@@ -602,7 +602,7 @@ class automember_default_group_remove(LDAPUpdate):
 
     def execute(self, *keys, **options):
         result = super(automember_default_group_remove, self).execute(*keys, **options)
-        result['value'] = options['type']
+        result['value'] = pkey_to_value(options['type'], options)
         return result
 
 
@@ -626,7 +626,7 @@ class automember_default_group_show(LDAPRetrieve):
 
     def execute(self, *keys, **options):
         result = super(automember_default_group_show, self).execute(*keys, **options)
-        result['value'] = options['type']
+        result['value'] = pkey_to_value(options['type'], options)
         return result
 
 
@@ -777,4 +777,4 @@ class automember_rebuild(Command):
         return dict(
             result=result,
             summary=unicode(summary),
-            value=u'')
+            value=pkey_to_value(None, options))

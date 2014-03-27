@@ -45,7 +45,7 @@ class test_realmdomains(Declarative):
             desc='Retrieve realm domains',
             command=('realmdomains_show', [], {}),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=None,
                 result=dict(
                     dn=dn,
@@ -57,7 +57,7 @@ class test_realmdomains(Declarative):
             desc='Retrieve realm domains - print all attributes',
             command=('realmdomains_show', [], {'all': True}),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=None,
                 result=dict(
                     dn=dn,
@@ -80,7 +80,7 @@ class test_realmdomains(Declarative):
             desc='Replace list of realm domains with "%s"' % [our_domain, new_domain_1],
             command=('realmdomains_mod', [], {'associateddomain': [our_domain, new_domain_1]}),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=None,
                 result=dict(
                     associateddomain=[our_domain, new_domain_1],
@@ -91,7 +91,7 @@ class test_realmdomains(Declarative):
             desc='Add domain "%s" to list' % new_domain_2,
             command=('realmdomains_mod', [], {'add_domain': new_domain_2}),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=None,
                 result=dict(
                     associateddomain=[our_domain, new_domain_1, new_domain_2],
@@ -102,7 +102,7 @@ class test_realmdomains(Declarative):
             desc='Delete domain "%s" from list' % new_domain_2,
             command=('realmdomains_mod', [], {'del_domain': new_domain_2}),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=None,
                 result=dict(
                     associateddomain=[our_domain, new_domain_1],
@@ -113,7 +113,7 @@ class test_realmdomains(Declarative):
             desc='Add domain "%s" and delete domain "%s"' % (new_domain_2, new_domain_1),
             command=('realmdomains_mod', [], {'add_domain': new_domain_2, 'del_domain': new_domain_1}),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=None,
                 result=dict(
                     associateddomain=[our_domain, new_domain_2],
@@ -163,7 +163,7 @@ class test_realmdomains(Declarative):
             desc='Add an invalid domain "%s" with --force option' % bad_domain,
             command=('realmdomains_mod', [], {'add_domain': bad_domain, 'force': True}),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=None,
                 result=dict(
                     associateddomain=[our_domain, new_domain_2, bad_domain],

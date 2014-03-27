@@ -373,9 +373,9 @@ class test_raduisproxy(Declarative):
             desc='Delete %r' % radius1,
             command=('radiusproxy_del', [radius1], {}),
             expected=dict(
-                value=radius1,
+                value=[radius1],
                 summary=u'Deleted RADIUS proxy server "%s"' % radius1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 

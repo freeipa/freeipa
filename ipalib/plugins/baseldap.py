@@ -32,7 +32,9 @@ from ipalib.cli import to_cli
 from ipalib import output
 from ipalib.text import _
 from ipalib.util import json_serialize, validate_hostname
+from ipalib.capabilities import client_has_capability
 from ipapython.dn import DN, RDN
+from ipapython.version import API_VERSION
 
 DNA_MAGIC = -1
 
@@ -239,6 +241,20 @@ def entry_to_dict(entry, **options):
     if options.get('all', False):
         result['dn'] = entry.dn
     return result
+
+def pkey_to_unicode(key):
+    if key is None:
+        key = []
+    elif not isinstance(key, (tuple, list)):
+        key = [key]
+    key = u','.join(unicode(k) for k in key)
+    return key
+
+def pkey_to_value(key, options):
+    version = options.get('version', API_VERSION)
+    if client_has_capability(version, 'primary_key_types'):
+        return key
+    return pkey_to_unicode(key)
 
 def wait_for_value(ldap, dn, attr, value):
     """
@@ -768,6 +784,12 @@ last, after all sets and adds."""),
 
     _callback_registry = dict(pre={}, post={}, exc={}, interactive_prompt={})
 
+    def get_summary_default(self, output):
+        if 'value' in output:
+            output = dict(output)
+            output['value'] = pkey_to_unicode(output['value'])
+        return super(BaseLDAPCommand, self).get_summary_default(output)
+
     def _convert_2_dict(self, ldap, attrs):
         """
         Convert a string in the form of name/value pairs into a dictionary.
@@ -1103,9 +1125,12 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
         entry_attrs = entry_to_dict(entry_attrs, **options)
         entry_attrs['dn'] = dn
 
-        if self.obj.primary_key and keys[-1] is not None:
-            return dict(result=entry_attrs, value=keys[-1])
-        return dict(result=entry_attrs, value=u'')
+        if self.obj.primary_key:
+            pkey = keys[-1]
+        else:
+            pkey = None
+
+        return dict(result=entry_attrs, value=pkey_to_value(pkey, options))
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -1227,9 +1252,12 @@ class LDAPRetrieve(LDAPQuery):
         entry_attrs = entry_to_dict(entry_attrs, **options)
         entry_attrs['dn'] = dn
 
-        if self.obj.primary_key and keys[-1] is not None:
-            return dict(result=entry_attrs, value=keys[-1])
-        return dict(result=entry_attrs, value=u'')
+        if self.obj.primary_key:
+            pkey = keys[-1]
+        else:
+            pkey = None
+
+        return dict(result=entry_attrs, value=pkey_to_value(pkey, options))
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -1363,9 +1391,12 @@ class LDAPUpdate(LDAPQuery, crud.Update):
 
         entry_attrs = entry_to_dict(entry_attrs, **options)
 
-        if self.obj.primary_key and keys[-1] is not None:
-            return dict(result=entry_attrs, value=keys[-1])
-        return dict(result=entry_attrs, value=u'')
+        if self.obj.primary_key:
+            pkey = keys[-1]
+        else:
+            pkey = None
+
+        return dict(result=entry_attrs, value=pkey_to_value(pkey, options))
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -1386,7 +1417,7 @@ class LDAPDelete(LDAPMultiQuery):
     """
     Delete an LDAP entry and all of its direct subentries.
     """
-    has_output = output.standard_delete
+    has_output = output.standard_multi_delete
 
     has_output_params = global_output_params
 
@@ -1433,28 +1464,28 @@ class LDAPDelete(LDAPMultiQuery):
 
             return result
 
-        if not self.obj.primary_key or not isinstance(keys[-1], (list, tuple)):
-            pkeyiter = (keys[-1], )
-        else:
+        if self.obj.primary_key and isinstance(keys[-1], (list, tuple)):
             pkeyiter = keys[-1]
+        elif keys[-1] is not None:
+            pkeyiter = [keys[-1]]
+        else:
+            pkeyiter = []
 
         deleted = []
         failed = []
-        result = True
         for pkey in pkeyiter:
             try:
-                if not delete_entry(pkey):
-                    result = False
+                delete_entry(pkey)
             except errors.ExecutionError:
                 if not options.get('continue', False):
                     raise
                 failed.append(pkey)
             else:
                 deleted.append(pkey)
+        deleted = pkey_to_value(deleted, options)
+        failed = pkey_to_value(failed, options)
 
-        if self.obj.primary_key and pkeyiter[0] is not None:
-            return dict(result=dict(failed=u','.join(failed)), value=u','.join(deleted))
-        return dict(result=dict(failed=u''), value=u'')
+        return dict(result=dict(failed=failed), value=deleted)
 
     def pre_callback(self, ldap, dn, *keys, **options):
         assert isinstance(dn, DN)

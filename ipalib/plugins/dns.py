@@ -2012,7 +2012,7 @@ class dnszone_disable(LDAPQuery):
         except errors.EmptyModlist:
             pass
 
-        return dict(result=True, value=keys[-1])
+        return dict(result=True, value=pkey_to_value(keys[-1], options))
 
 api.register(dnszone_disable)
 
@@ -2036,7 +2036,7 @@ class dnszone_enable(LDAPQuery):
         except errors.EmptyModlist:
             pass
 
-        return dict(result=True, value=keys[-1])
+        return dict(result=True, value=pkey_to_value(keys[-1], options))
 
 api.register(dnszone_enable)
 
@@ -2073,7 +2073,7 @@ class dnszone_add_permission(LDAPQuery):
 
         return dict(
             result=True,
-            value=permission_name,
+            value=pkey_to_value(permission_name, options),
         )
 
 api.register(dnszone_add_permission)
@@ -2106,7 +2106,7 @@ class dnszone_remove_permission(LDAPQuery):
 
         return dict(
             result=True,
-            value=permission_name,
+            value=pkey_to_value(permission_name, options),
         )
 
 api.register(dnszone_remove_permission)
@@ -2957,7 +2957,7 @@ api.register(dnsrecord_delentry)
 class dnsrecord_del(LDAPUpdate):
     __doc__ = _('Delete DNS resource record.')
 
-    has_output = output.standard_delete
+    has_output = output.standard_multi_delete
 
     no_option_msg = _('Neither --del-all nor options to delete a specific record provided.\n'\
             "Command help may be consulted for all supported record types.")
@@ -3045,6 +3045,7 @@ class dnsrecord_del(LDAPUpdate):
             return result
 
         result = super(dnsrecord_del, self).execute(*keys, **options)
+        result['value'] = pkey_to_value([keys[-1]], options)
 
         if getattr(context, 'del_all', False) and not \
                 self.obj.is_pkey_zone_record(*keys):
@@ -3223,7 +3224,7 @@ class dns_is_enabled(Command):
         except Exception, e:
             pass
 
-        return dict(result=dns_enabled, value=u'')
+        return dict(result=dns_enabled, value=pkey_to_value(None, options))
 
 api.register(dns_is_enabled)
 

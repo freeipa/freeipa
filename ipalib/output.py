@@ -24,6 +24,7 @@ Simple description of return values.
 from inspect import getdoc
 from types import NoneType
 from plugable import ReadOnly, lock
+from capabilities import client_has_capability
 from text import _
 
 
@@ -99,13 +100,54 @@ class ListOfEntries(Output):
     type = (list, tuple)
     doc = _('A list of LDAP entries')
 
-    def validate(self, cmd, entries):
+    def validate(self, cmd, entries, version):
         assert isinstance(entries, self.type)
         for (i, entry) in enumerate(entries):
             if not isinstance(entry, dict):
                 raise TypeError(emsg % (cmd.name, self.__class__.__name__,
                     self.name, i, dict, type(entry), entry)
                 )
+
+class PrimaryKey(Output):
+    def validate(self, cmd, value, version):
+        if client_has_capability(version, 'primary_key_types'):
+            if hasattr(cmd, 'obj') and cmd.obj and cmd.obj.primary_key:
+                types = cmd.obj.primary_key.allowed_types
+            else:
+                types = (unicode,)
+            types = types + (NoneType,)
+        else:
+            types = (unicode,)
+        if not isinstance(value, types):
+            raise TypeError(
+                "%s.validate_output() => %s.validate():\n"
+                "  output[%r]: need %r; got %r: %r" % (
+                    cmd.name, self.__class__.__name__, self.name,
+                    types[0], type(value), value))
+
+class ListOfPrimaryKeys(Output):
+    def validate(self, cmd, values, version):
+        if client_has_capability(version, 'primary_key_types'):
+            types = (tuple, list)
+        else:
+            types = (unicode,)
+        if not isinstance(values, types):
+            raise TypeError(
+                "%s.validate_output() => %s.validate():\n"
+                "  output[%r]: need %r; got %r: %r" % (
+                    cmd.name, self.__class__.__name__, self.name,
+                    types[0], type(values), values))
+
+        if client_has_capability(version, 'primary_key_types'):
+            if hasattr(cmd, 'obj') and cmd.obj and cmd.obj.primary_key:
+                types = cmd.obj.primary_key.allowed_types
+            else:
+                types = (unicode,)
+            for (i, value) in enumerate(values):
+                if not isinstance(value, types):
+                    raise TypeError(emsg % (
+                        cmd.name, self.__class__.__name__, i, self.name,
+                        types[0], type(value), value))
 
 
 result = Output('result', doc=_('All commands should at least have a result'))
@@ -114,7 +156,7 @@ summary = Output('summary', (unicode, NoneType),
     _('User-friendly description of action performed')
 )
 
-value = Output('value', unicode,
+value = PrimaryKey('value', None,
     _("The primary_key value of the entry, e.g. 'jdoe' for a user"),
     flags=['no_display'],
 )
@@ -138,6 +180,12 @@ standard_delete = (
     summary,
     Output('result', dict, _('List of deletions that failed')),
     value,
+)
+
+standard_multi_delete = (
+    summary,
+    Output('result', dict, _('List of deletions that failed')),
+    ListOfPrimaryKeys('value', flags=['no_display']),
 )
 
 standard_boolean = (

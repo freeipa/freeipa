@@ -45,6 +45,9 @@ capabilities = dict(
     # permissions2: Reworked permission system
     # http://www.freeipa.org/page/V3/Permissions_V2
     permissions2=u'2.69',
+
+    # primary_key_types: Non-unicode primary keys in command output
+    primary_key_types=u'2.83',
 )
 
 

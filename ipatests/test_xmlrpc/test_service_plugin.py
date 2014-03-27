@@ -543,9 +543,9 @@ class test_service(Declarative):
             desc='Delete %r' % service1,
             command=('service_del', [service1], {}),
             expected=dict(
-                value=service1,
+                value=[service1],
                 summary=u'Deleted service "%s"' % service1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 

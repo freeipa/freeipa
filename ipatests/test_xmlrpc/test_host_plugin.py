@@ -585,9 +585,9 @@ class test_host(Declarative):
             desc='Delete %r' % fqdn1,
             command=('host_del', [fqdn1], {}),
             expected=dict(
-                value=fqdn1,
+                value=[fqdn1],
                 summary=u'Deleted host "%s"' % fqdn1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 
@@ -661,9 +661,9 @@ class test_host(Declarative):
             desc='Delete using host name %r' % short1,
             command=('host_del', [short1], {}),
             expected=dict(
-                value=short1,
+                value=[short1],
                 summary=u'Deleted host "%s"' % short1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 
@@ -831,9 +831,9 @@ class test_host(Declarative):
             desc='Delete %r' % fqdn3,
             command=('host_del', [fqdn3], {}),
             expected=dict(
-                value=fqdn3,
+                value=[fqdn3],
                 summary=u'Deleted host "%s"' % fqdn3,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 

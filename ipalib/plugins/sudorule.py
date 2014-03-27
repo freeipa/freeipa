@@ -699,7 +699,7 @@ class sudorule_add_option(LDAPQuery):
 
         entry_attrs = entry_to_dict(entry_attrs, **options)
 
-        return dict(result=entry_attrs, value=cn)
+        return dict(result=entry_attrs, value=pkey_to_value(cn, options))
 
     def output_for_cli(self, textui, result, cn, **options):
         textui.print_dashed(_('Added option "%(option)s" to Sudo Rule "%(rule)s"') % \
@@ -755,7 +755,7 @@ class sudorule_remove_option(LDAPQuery):
 
         entry_attrs = entry_to_dict(entry_attrs, **options)
 
-        return dict(result=entry_attrs, value=cn)
+        return dict(result=entry_attrs, value=pkey_to_value(cn, options))
 
     def output_for_cli(self, textui, result, cn, **options):
         textui.print_dashed(_('Removed option "%(option)s" from Sudo Rule "%(rule)s"') % \

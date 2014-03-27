@@ -100,7 +100,7 @@ class AutomountTest(XMLRPC_test):
         finally:
             res = api.Command['automountlocation_del'](self.locname)['result']
             assert res
-            assert_attr_equal(res, 'failed', '')
+            assert not res['failed']
 
         # Success; delete the temporary directory
         shutil.rmtree(conf_directory)
@@ -285,7 +285,7 @@ class test_automount(AutomountTest):
         delkey_kw={'automountkey': self.keyname_rename, 'automountinformation' : self.newinfo}
         res = api.Command['automountkey_del'](self.locname, self.mapname, **delkey_kw)['result']
         assert res
-        assert_attr_equal(res, 'failed', '')
+        assert not res['failed']
 
         # Verify that it is gone
         with assert_raises(errors.NotFound):
@@ -297,7 +297,7 @@ class test_automount(AutomountTest):
         """
         res = api.Command['automountlocation_del'](self.locname)['result']
         assert res
-        assert_attr_equal(res, 'failed', '')
+        assert not res['failed']
 
         # Verify that it is gone
         with assert_raises(errors.NotFound):
@@ -367,7 +367,7 @@ class test_automount_direct(AutomountTest):
         """
         res = api.Command['automountlocation_del'](self.locname)['result']
         assert res
-        assert_attr_equal(res, 'failed', '')
+        assert not res['failed']
 
         # Verity that it is gone
         with assert_raises(errors.NotFound):
@@ -443,7 +443,7 @@ class test_automount_indirect(AutomountTest):
         """
         res = api.Command['automountkey_del'](self.locname, self.parentmap, **self.key_kw)['result']
         assert res
-        assert_attr_equal(res, 'failed', '')
+        assert not res['failed']
 
         # Verify that it is gone
         with assert_raises(errors.NotFound):
@@ -455,7 +455,7 @@ class test_automount_indirect(AutomountTest):
         """
         res = api.Command['automountmap_del'](self.locname, self.mapname)['result']
         assert res
-        assert_attr_equal(res, 'failed', '')
+        assert not res['failed']
 
         # Verify that it is gone
         with assert_raises(errors.NotFound):
@@ -467,7 +467,7 @@ class test_automount_indirect(AutomountTest):
         """
         res = api.Command['automountlocation_del'](self.locname)['result']
         assert res
-        assert_attr_equal(res, 'failed', '')
+        assert not res['failed']
 
         # Verity that it is gone
         with assert_raises(errors.NotFound):
@@ -551,7 +551,7 @@ class test_automount_indirect_no_parent(AutomountTest):
         delkey_kw={'automountkey': self.keyname, 'automountinformation': self.mapname}
         res = api.Command['automountkey_del'](self.locname, self.parentmap, **delkey_kw)['result']
         assert res
-        assert_attr_equal(res, 'failed', '')
+        assert not res['failed']
 
         # Verify that it is gone
         with assert_raises(errors.NotFound):
@@ -563,7 +563,7 @@ class test_automount_indirect_no_parent(AutomountTest):
         """
         res = api.Command['automountmap_del'](self.locname, self.mapname)['result']
         assert res
-        assert_attr_equal(res, 'failed', '')
+        assert not res['failed']
 
         # Verify that it is gone
         with assert_raises(errors.NotFound):
@@ -575,7 +575,7 @@ class test_automount_indirect_no_parent(AutomountTest):
         """
         res = api.Command['automountlocation_del'](self.locname)['result']
         assert res
-        assert_attr_equal(res, 'failed', '')
+        assert not res['failed']
 
         # Verity that it is gone
         with assert_raises(errors.NotFound):

@@ -281,9 +281,9 @@ class test_sudocmd(Declarative):
             desc='Delete %r' % sudocmd1,
             command=('sudocmd_del', [sudocmd1], {}),
             expected=dict(
-                value=sudocmd1,
+                value=[sudocmd1],
                 summary=u'Deleted Sudo Command "%s"' % sudocmd1,
-                result=dict(failed=u''),
+                result=dict(failed=[]),
             ),
         ),
 

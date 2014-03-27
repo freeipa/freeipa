@@ -324,7 +324,7 @@ class hbacrule_enable(LDAPQuery):
 
         return dict(
             result=True,
-            value=cn,
+            value=pkey_to_value(cn, options),
         )
 
 api.register(hbacrule_enable)
@@ -354,7 +354,7 @@ class hbacrule_disable(LDAPQuery):
 
         return dict(
             result=True,
-            value=cn,
+            value=pkey_to_value(cn, options),
         )
 
 api.register(hbacrule_disable)

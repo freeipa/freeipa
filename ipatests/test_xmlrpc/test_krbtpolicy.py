@@ -42,7 +42,7 @@ class test_krbtpolicy(Declarative):
                 'krbtpolicy_reset', [], {}
             ),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=None,
                 result=dict(
                     krbmaxticketlife=[u'86400'],
@@ -58,7 +58,7 @@ class test_krbtpolicy(Declarative):
                 'krbtpolicy_show', [], {}
             ),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=None,
                 result=dict(
                     dn=DN(('cn',api.env.domain),('cn','kerberos'),
@@ -76,7 +76,7 @@ class test_krbtpolicy(Declarative):
                 'krbtpolicy_mod', [], dict(krbmaxticketlife=3600)
             ),
             expected=dict(
-                value=u'',
+                value=None,
                 summary=None,
                 result=dict(
                     krbmaxticketlife=[u'3600'],
