@@ -252,9 +252,9 @@ class IPASimpleLDAPObject(object):
     # FWIW, many entries under cn=config are undefined :-(
 
     _SYNTAX_OVERRIDE = CIDict({
-        'managedtemplate': DN_SYNTAX_OID, # DN
-        'managedbase':     DN_SYNTAX_OID, # DN
-        'originscope':     DN_SYNTAX_OID, # DN
+        'managedtemplate': DN,
+        'managedbase':     DN,
+        'originscope':     DN,
     })
     _SINGLE_VALUE_OVERRIDE = CIDict({
         'nsslapd-ssl-check-hostname': True,
@@ -334,7 +334,7 @@ class IPASimpleLDAPObject(object):
         self._has_schema = False
         self._schema = None
 
-    def get_syntax(self, attr):
+    def get_type(self, attr):
         if isinstance(attr, unicode):
             attr = attr.encode('utf-8')
 
@@ -343,14 +343,14 @@ class IPASimpleLDAPObject(object):
             return self._SYNTAX_OVERRIDE[attr]
 
         if self.schema is None:
-            return None
+            return unicode
 
         # Try to lookup the syntax in the schema returned by the server
         obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
         if obj is None:
-            return None
+            return unicode
 
-        return obj.syntax
+        return self._SYNTAX_MAPPING.get(obj.syntax, unicode)
 
     def has_dn_syntax(self, attr):
         """
@@ -358,8 +358,7 @@ class IPASimpleLDAPObject(object):
 
         Returns True/False
         """
-        syntax = self.get_syntax(attr)
-        return syntax == DN_SYNTAX_OID
+        return self.get_type(attr) is DN
 
     def get_single_value(self, attr):
         """
@@ -421,11 +420,14 @@ class IPASimpleLDAPObject(object):
         if isinstance(val, str):
             if not self._decode_attrs:
                 return val
-            target_type = self._SYNTAX_MAPPING.get(self.get_syntax(attr), unicode_from_utf8)
-            if target_type is str:
-                return val
+            target_type = self.get_type(attr)
             try:
-                return target_type(val)
+                if target_type is str:
+                    return val
+                elif target_type is unicode:
+                    return val.decode('utf-8')
+                else:
+                    return target_type(val)
             except Exception, e:
                 msg = 'unable to convert the attribute %r value %r to type %s' % (attr, val, target_type)
                 self.log.error(msg)
