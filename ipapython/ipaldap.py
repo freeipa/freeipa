@@ -808,41 +808,28 @@ class LDAPEntry(collections.MutableMapping):
 
     def _add_attr_name(self, name):
         if name in self._names:
-            oldname = self._names[name]
+            return self._names[name]
 
-            if oldname != name:
-                for (altname, keyname) in self._names.iteritems():
-                    if keyname == oldname:
-                        self._names[altname] = name
+        if self._conn.schema is not None:
+            attrtype = self._conn.schema.get_obj(
+                ldap.schema.AttributeType, name.encode('utf-8'))
+            if attrtype is not None:
+                for altname in attrtype.names:
+                    altname = altname.decode('utf-8')
+                    self._names[altname] = name
 
-                self._nice[name] = self._nice.pop(oldname)
-                self._raw[name] = self._raw.pop(oldname)
-                if oldname in self._sync:
-                    self._sync[name] = self._sync.pop(oldname)
-                if oldname in self._not_list:
-                    self._not_list.remove(oldname)
-                    self._not_list.add(name)
-                if oldname in self._orig:
-                    self._orig[name] = self._orig.pop(oldname)
-        else:
-            if self._conn.schema is not None:
-                attrtype = self._conn.schema.get_obj(ldap.schema.AttributeType,
-                    name.encode('utf-8'))
-                if attrtype is not None:
-                    for altname in attrtype.names:
-                        altname = altname.decode('utf-8')
-                        self._names[altname] = name
+        self._names[name] = name
 
-            self._names[name] = name
+        for oldname in self._orig.keys():
+            if self._names.get(oldname) == name:
+                self._orig[name] = self._orig.pop(oldname)
+                break
 
-            for oldname in self._orig.keys():
-                if self._names.get(oldname) == name:
-                    self._orig[name] = self._orig.pop(oldname)
-                    break
+        return name
 
     def _set_nice(self, name, value):
         name = self._attr_name(name)
-        self._add_attr_name(name)
+        name = self._add_attr_name(name)
 
         if not isinstance(value, list):
             if value is None:
@@ -872,7 +859,7 @@ class LDAPEntry(collections.MutableMapping):
                 raise TypeError("%s[%d] value must be str, got %s object %r" % (
                     name, i, item.__class__.__name__, item))
 
-        self._add_attr_name(name)
+        name = self._add_attr_name(name)
 
         if self._raw.get(name) is not value:
             self._raw[name] = value

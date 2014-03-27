@@ -188,11 +188,11 @@ class test_LDAPEntry(object):
         e = self.entry
         e['commonName'] = self.cn2
         assert u'cn' in e
-        assert u'cn' not in e.keys()
+        assert u'cn' in e.keys()
         assert 'CN' in e
         assert 'CN' not in e.keys()
         assert 'commonName' in e
-        assert 'commonName' in e.keys()
+        assert 'commonName' not in e.keys()
         assert e['CN'] is self.cn2
         assert e['CN'] is e[u'cn']
 
