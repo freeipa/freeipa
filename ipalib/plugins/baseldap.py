@@ -235,7 +235,16 @@ def entry_from_entry(entry, newentry):
 
 def entry_to_dict(entry, **options):
     if options.get('raw', False):
-        result = dict(entry)
+        result = {}
+        for attr, value in entry.raw.iteritems():
+            if entry.conn.get_type(attr) is not str:
+                value = list(value)
+                for (i, v) in enumerate(value):
+                    try:
+                        value[i] = v.decode('utf-8')
+                    except UnicodeDecodeError:
+                        pass
+            result[attr] = value
     else:
         result = dict((k.lower(), v) for (k, v) in entry.iteritems())
     if options.get('all', False):

@@ -247,12 +247,12 @@ class test_old_permission(Declarative):
                     'cn': [permission1],
                     'objectclass': objectclasses.permission,
                     'member': [privilege1_dn],
-                    'aci': (u'(targetfilter = "(objectclass=posixaccount)")'+
+                    'aci': [u'(targetfilter = "(objectclass=posixaccount)")'+
                             u'(version 3.0;acl "permission:testperm";' +
                             u'allow (write) ' +
                             u'groupdn = "ldap:///%s";)' % DN(
                                ('cn', 'testperm'), ('cn', 'permissions'),
-                               ('cn', 'pbac'), api.env.basedn)),
+                               ('cn', 'pbac'), api.env.basedn)],
                     'ipapermright': [u'write'],
                     'ipapermbindruletype': [u'permission'],
                     'ipapermissiontype': [u'V2', u'SYSTEM'],
@@ -360,8 +360,8 @@ class test_old_permission(Declarative):
                         'cn': [permission1],
                         'objectclass': objectclasses.permission,
                         'member': [privilege1_dn],
-                        'aci': u'(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:testperm";allow (write) groupdn = "ldap:///%s";)' % \
-                             DN(('cn', 'testperm'), ('cn', 'permissions'), ('cn', 'pbac'), api.env.basedn),
+                        'aci': [u'(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:testperm";allow (write) groupdn = "ldap:///%s";)' % \
+                             DN(('cn', 'testperm'), ('cn', 'permissions'), ('cn', 'pbac'), api.env.basedn)],
                         'ipapermright': [u'write'],
                         'ipapermbindruletype': [u'permission'],
                         'ipapermissiontype': [u'V2', u'SYSTEM'],
