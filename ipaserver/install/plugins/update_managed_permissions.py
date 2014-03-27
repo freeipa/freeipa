@@ -37,9 +37,17 @@ For example, an entry could look like this:
 The permission name must start with the "System:" prefix.
 
 The template dictionary can have the following keys:
-* ipapermbindruletype, ipapermright
+* ipapermtarget, ipapermtargetfilter, ipapermlocation, ipapermright, objectclass
   - Directly used as attributes on the permission.
   - Replaced when upgrading an existing permission
+  - If not specified, these default to the defaults of a permission of the
+    corresponding --type, or (if non_object is specified) to general permission
+    defaults.
+  - ipapermlocation and ipapermtarget must be DNs
+  - ipapermtargetfilter and objectclass must be iterables of strings
+* ipapermbindruletype
+  - Directly used as attribute on the permission.
+  - Not replaced when upgrading an existing permission.
 * ipapermdefaultattr
   - Used as attribute of the permission.
   - When upgrading, only new values are added; all old values are kept.
@@ -47,6 +55,9 @@ The template dictionary can have the following keys:
   - If true, any attributes specified (denied) in the legacy global anonymous
     read ACI will be added to excluded_attributes of the new permission.
   - Has no effect when existing permissions are updated.
+* non_object
+  - If true, no object-specific defaults are used (e.g. for
+    ipapermtargetfilter, ipapermlocation).
 
 No other keys are allowed in the template
 """
@@ -103,7 +114,6 @@ class update_managed_permissions(PostUpdate):
             if managed_permissions:
                 self.log.info('Updating managed permissions for %s', obj.name)
             for name, template in managed_permissions.items():
-                assert name.startswith('System:')
                 self.update_permission(ldap,
                                        obj,
                                        unicode(name),
@@ -115,6 +125,8 @@ class update_managed_permissions(PostUpdate):
     def update_permission(self, ldap, obj, name, template,
                           anonymous_read_blacklist):
         """Update the given permission and the corresponding ACI"""
+        assert name.startswith('System:')
+
         dn = self.api.Object[permission].get_dn(name)
 
         try:
@@ -125,7 +137,7 @@ class update_managed_permissions(PostUpdate):
             entry = ldap.make_entry(dn)
             is_new = True
 
-        self.log.info('Updating managed permission: %s', name)
+        self.log.debug('Updating managed permission: %s', name)
         self.update_entry(obj, entry, template,
                           anonymous_read_blacklist, is_new=is_new)
 
@@ -153,22 +165,38 @@ class update_managed_permissions(PostUpdate):
 
         template = dict(template)
 
-        # Common attributes
-        entry['objectclass'] = self.api.Object[permission].object_class
+        if template.pop('non_object', False):
+            obj = None
 
         entry['ipapermissiontype'] = [u'SYSTEM', u'V2', u'MANAGED']
 
-        # Object-specific attributes
-        ldap_filter = ['(objectclass=%s)' % oc
-                       for oc in obj.permission_filter_objectclasses]
-        entry['ipapermtargetfilter'] = ldap_filter
+        # Attributes with defaults
+        objectclass = template.pop('objectclass', None)
+        if objectclass is None:
+            objectclass = self.api.Object[permission].object_class
+        entry['objectclass'] = list(objectclass)
 
-        ipapermlocation = DN(obj.container_dn, self.api.env.basedn)
+        ldap_filter = template.pop('ipapermtargetfilter', None)
+        if obj and ldap_filter is None:
+            ldap_filter = ['(objectclass=%s)' % oc
+                           for oc in obj.permission_filter_objectclasses]
+        entry['ipapermtargetfilter'] = list(ldap_filter or [])
+
+        ipapermlocation = template.pop('ipapermlocation', None)
+        if ipapermlocation is None:
+            assert obj
+            ipapermlocation = DN(obj.container_dn, self.api.env.basedn)
         entry.single_value['ipapermlocation'] = ipapermlocation
+
+        # Optional attributes
+        ipapermtarget = template.pop('ipapermtarget', None)
+        if ipapermtarget is not None:
+            entry['ipapermtarget'] = ipapermtarget
 
         # Attributes from template
         bindruletype = template.pop('ipapermbindruletype')
-        entry.single_value['ipapermbindruletype'] = bindruletype
+        if is_new:
+            entry.single_value['ipapermbindruletype'] = bindruletype
 
         entry['ipapermright'] = list(template.pop('ipapermright'))
 
