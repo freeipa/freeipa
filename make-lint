@@ -87,6 +87,7 @@ class IPATypeChecker(TypeChecker):
         'ipalib.parameters.Number': ['minvalue', 'maxvalue'],
         'ipalib.parameters.Decimal': ['precision', 'exponential',
             'numberclass'],
+        'ipalib.parameters.DNSNameParam': ['only_absolute', 'only_relative'],
         'ipalib.plugable.API': NAMESPACE_ATTRS + LOGGING_ATTRS,
         'ipalib.plugable.Plugin': ['api', 'env'] + NAMESPACE_ATTRS +
             LOGGING_ATTRS,

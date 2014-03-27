@@ -114,6 +114,9 @@ from constants import TYPE_ERROR, CALLABLE_ERROR, LDAP_GENERALIZED_TIME_FORMAT
 from text import Gettext, FixMe
 from util import json_serialize
 from ipapython.dn import DN
+from ipapython.dnsutil import DNSName
+import dns.name
+import encodings.idna
 
 def _is_null(value):
     return not value and value != 0 # NOTE: False == 0
@@ -1919,3 +1922,69 @@ def create_param(spec):
             TYPE_ERROR % ('spec', (str, Param), spec, type(spec))
         )
     return Str(spec)
+
+
+class DNSNameParam(Param):
+    """
+    Domain name parameter type.
+
+    :only_absolute a domain name has to be absolute
+        (makes it absolute from unicode input)
+    :only_relative a domain name has to be relative
+    """
+    type = DNSName
+    type_error = _('must be DNS name')
+    kwargs = Param.kwargs + (
+        ('only_absolute', bool, False),
+        ('only_relative', bool, False),
+    )
+
+    def __init__(self, name, *rules, **kw):
+        super(DNSNameParam, self).__init__(name, *rules, **kw)
+        if self.only_absolute and self.only_relative:
+            raise ValueError('%s: cannot be both absolute and relative' %
+                             self.nice)
+
+    def _convert_scalar(self, value, index=None):
+        if isinstance(value, unicode):
+            error = None
+
+            try:
+                domain_name = DNSName(value)
+            except dns.name.BadEscape:
+                error = _('invalid escape code in domain name')
+            except dns.name.EmptyLabel:
+                error = _('empty DNS label')
+            except dns.name.NameTooLong:
+                error = _('domain name cannot be longer than 255 characters')
+            except dns.name.LabelTooLong:
+                error = _('DNS label cannot be longer than 63 characters')
+            except dns.exception.SyntaxError:
+                error = _('invalid domain name')
+
+            #compare if IDN normalized and original domain match
+            #there is N:1 mapping between unicode and IDNA names
+            #user should use normalized names to avoid mistakes
+            normalized_domain_name = encodings.idna.nameprep(value)
+            if value != normalized_domain_name:
+                error = _("domain name '%(domain)s' and normalized domain name"
+                          " '%(normalized)s' do not match. Please use only"
+                          " normalized domains") % {'domain': value,
+                          'normalized': normalized_domain_name}
+            if error:
+                raise ConversionError(name=self.get_param_name(), index=index,
+                                      error=error)
+            value = domain_name
+
+            if self.only_absolute and not value.is_absolute():
+                value = value.make_absolute()
+
+        return super(DNSNameParam, self)._convert_scalar(value, index)
+
+    def _rule_only_absolute(self, _, value):
+        if self.only_absolute and not value.is_absolute():
+            return _('must be absolute')
+
+    def _rule_only_relative(self, _, value):
+        if self.only_relative and value.is_absolute():
+            return _('must be relative')
