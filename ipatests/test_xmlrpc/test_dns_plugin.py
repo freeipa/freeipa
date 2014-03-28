@@ -147,6 +147,58 @@ allowtransfer_tofwd = u'%s;' % fwd_ip
 allowquery_restricted_in = u'!192.0.2/24;any;'
 allowquery_restricted_out = u'!192.0.2.0/24;any;'
 
+idnzone1 = u'\u010d.test.'
+idnzone1_punycoded = u'xn--bea.test.'
+idnzone1_dnsname = DNSName(idnzone1)
+idnzone1_dn = DN(('idnsname',idnzone1_punycoded), api.env.container_dns, api.env.basedn)
+idnzone1_mname = u'ns1.%s' % idnzone1
+idnzone1_mname_punycoded = u'ns1.%s' % idnzone1_punycoded
+idnzone1_mname_dnsname = DNSName(idnzone1_mname)
+idnzone1_mname_dn = DN(('idnsname','ns1'), idnzone1_dn)
+idnzone1_rname = u'root.%s' % idnzone1
+idnzone1_rname_punycoded = u'root.%s' % idnzone1_punycoded
+idnzone1_rname_dnsname = DNSName(idnzone1_rname)
+idnzone1_ip = u'172.16.11.1'
+
+revidnzone1 = u'15.16.172.in-addr.arpa.'
+revidnzone1_dnsname = DNSName(revidnzone1)
+revidnzone1_ip = u'172.16.15.0/24'
+revidnzone1_dn = DN(('idnsname', revidnzone1), api.env.container_dns, api.env.basedn)
+idnzone1_permission = u'Manage DNS zone %s' % idnzone1
+idnzone1_permission_dn = DN(('cn',idnzone1_permission),
+                            api.env.container_permission,api.env.basedn)
+idnres1 = u'sk\xfa\u0161ka'
+idnres1_punycoded = u'xn--skka-rra23d'
+idnres1_dnsname = DNSName(idnres1)
+idnres1_dn = DN(('idnsname',idnres1_punycoded), idnzone1_dn)
+
+idnrescname1 = u'\u0161\u0161'
+idnrescname1_punycoded = u'xn--pgaa'
+idnrescname1_dnsname = DNSName(idnrescname1)
+idnrescname1_dn = DN(('idnsname',idnrescname1_punycoded), idnzone1_dn)
+
+idnresdname1 = u'\xe1\xe1'
+idnresdname1_punycoded = u'xn--1caa'
+idnresdname1_dnsname = DNSName(idnresdname1)
+idnresdname1_dn = DN(('idnsname',idnresdname1_punycoded), idnzone1_dn)
+
+idndomain1 = u'\u010d\u010d\u010d.test'
+idndomain1_punycoded = u'xn--beaaa.test'
+idndomain1_dnsname = DNSName(idndomain1)
+
+idnnsecrec1 = u'sk\xfa\u0161ka-b'
+idnnsecrec1_punycoded = u'xn--skka-b-qya83f'
+idnnsecrec1_dnsname = DNSName(idnnsecrec1)
+idnnsecrec1_dn = DN(('idnsname',idnnsecrec1_punycoded), idnzone1_dn)
+
+dnsafsdbres1 = u'sk\xfa\u0161ka-c'
+dnsafsdbres1_punycoded = u'xn--skka-c-qya83f'
+dnsafsdbres1_dnsname = DNSName(dnsafsdbres1)
+dnsafsdbres1_dn = DN(('idnsname',dnsafsdbres1_punycoded), idnzone1_dn)
+
+idnzone1_txtrec_dn = DN(('idnsname', '_kerberos'), idnzone1_dn)
+
+
 class test_dns(Declarative):
 
     @classmethod
@@ -169,13 +221,14 @@ class test_dns(Declarative):
 
     cleanup_commands = [
         ('dnszone_del', [zone1, zone2, zone3, revzone1, revzone2,
-                         revzone3_classless1, revzone3_classless2],
+                         revzone3_classless1, revzone3_classless2,
+                         idnzone1, revidnzone1],
             {'continue': True}),
         ('dnsconfig_mod', [], {'idnsforwarders' : None,
                                'idnsforwardpolicy' : None,
                                'idnsallowsyncptr' : None,
                                }),
-        ('permission_del', [zone1_permission], {'force': True}),
+        ('permission_del', [zone1_permission, idnzone1_permission], {'force': True}),
     ]
 
     tests = [
@@ -1657,61 +1710,82 @@ class test_dns(Declarative):
         ),
 
         dict(
-            desc='Try to create zone with invalid name',
+            desc='Create IDN zone %r' % idnzone1,
             command=(
-                'dnszone_add', [u'invalid/zone'], {
-                    'idnssoamname': zone1_ns,
-                    'idnssoarname': zone1_rname,
-                    'ip_address' : zone1_ip,
+                'dnszone_add', [idnzone1], {
+                    'idnssoamname': idnzone1_mname,
+                    'idnssoarname': idnzone1_rname,
+                    'ip_address' : idnzone1_ip,
                 }
             ),
-            expected=errors.ValidationError(name='name',
-                error=u"only letters, numbers, '-' are allowed." +
-                u" DNS label may not start or end with '-'"),
-        ),
-
-        dict(
-            desc='Try to add NS record %r to non-reverse zone %r using dnsrecord_add' % (nsrev, zone1),
-            command=('dnsrecord_add', [zone1, nsrev], {'nsrecord': zone3_ns2}),
-            expected=errors.ValidationError(name='idnsname',
-                error=u"only letters, numbers, '_', '-' are allowed." +
-                u" DNS label may not start or end with '-'"),
-        ),
-
-       dict(
-            desc='Try to add invalid PTR hostname %r to %r using dnsrecord_add' % (cnamerev_hostname, revzone1),
-            command=('dnsrecord_add', [revzone1, revname1], {'ptrrecord': cnamerev_hostname }),
-            expected=errors.ValidationError(name='hostname',
-                error=u"invalid domain-name: only letters, numbers, '-' are allowed." +
-                u" DNS label may not start or end with '-'"),
-        ),
-
-
-        dict(
-            desc='Disable zone %r' % zone1,
-            command=('dnszone_disable', [zone1], {}),
             expected={
-                'value': zone1,
-                'summary': u'Disabled DNS zone "%s"' % zone1,
-                'result': True,
+                'value': idnzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': idnzone1_dn,
+                    'idnsname': [idnzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [idnzone1_mname_dnsname],
+                    'nsrecord': [idnzone1_mname],
+                    'idnssoarname': [idnzone1_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
             },
         ),
 
-
         dict(
-            desc='Check if zone %r is really disabled' % zone1,
-            command=('dnszone_show', [zone1], {}),
+            desc='Retrieve zone %r' % idnzone1,
+            command=(
+                'dnszone_show', [idnzone1], {}
+            ),
             expected={
-                'value': zone1,
+                'value': idnzone1_dnsname,
                 'summary': None,
                 'result': {
-                    'dn': zone1_dn,
-                    'idnsname': [zone1],
-                    'idnszoneactive': [u'FALSE'],
-                    'idnssoamname': [zone1 + u'.'],
-                    'nsrecord': [zone1 + u'.'],
-                    'arecord': [zone1_ip],
-                    'idnssoarname': [zone1_rname],
+                    'dn': idnzone1_dn,
+                    'idnsname': [idnzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'nsrecord': [idnzone1_mname],
+                    'idnssoamname': [idnzone1_mname_dnsname],
+                    'idnssoarname': [idnzone1_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Retrieve zone raw %r' % idnzone1,
+            command=(
+                'dnszone_show', [idnzone1], {u'raw' : True,}
+            ),
+            expected={
+                'value': idnzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': idnzone1_dn,
+                    'idnsname': [idnzone1_punycoded],
+                    'idnszoneactive': [u'TRUE'],
+                    'nsrecord': [idnzone1_mname_punycoded],
+                    'idnssoamname': [idnzone1_mname_punycoded],
+                    'idnssoarname': [idnzone1_rname_punycoded],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -1725,13 +1799,564 @@ class test_dns(Declarative):
 
 
         dict(
-            desc='Enable zone %r' % zone1,
-            command=('dnszone_enable', [zone1], {}),
+            desc='Find zone %r' % idnzone1,
+            command=(
+                'dnszone_find', [idnzone1], {}
+            ),
             expected={
-                'value': zone1,
-                'summary': u'Enabled DNS zone "%s"' % zone1,
-                'result': True,
+                'summary': None,
+                'count': 1,
+                'truncated': False,
+                'result': [
+                    {   'dn': idnzone1_dn,
+                        'idnsname': [idnzone1_dnsname],
+                        'idnszoneactive': [u'TRUE'],
+                        'nsrecord': [idnzone1_mname],
+                        'idnssoamname': [idnzone1_mname_dnsname],
+                        'idnssoarname': [idnzone1_rname_dnsname],
+                        'idnssoaserial': [fuzzy_digits],
+                        'idnssoarefresh': [fuzzy_digits],
+                        'idnssoaretry': [fuzzy_digits],
+                        'idnssoaexpire': [fuzzy_digits],
+                        'idnssoaminimum': [fuzzy_digits],
+                        'idnsallowtransfer': [u'none;'],
+                        'idnsallowquery': [u'any;'],
+                    },
+                ],
             },
+        ),
+
+
+        dict(
+            desc='Find zone %r raw' % idnzone1_punycoded,
+            command=(
+                'dnszone_find', [idnzone1_punycoded], {'raw': True,}
+            ),
+            expected={
+                'summary': None,
+                'count': 1,
+                'truncated': False,
+                'result': [
+                    {   'dn': idnzone1_dn,
+                        'idnsname': [idnzone1_punycoded],
+                        'idnszoneactive': [u'TRUE'],
+                        'nsrecord': [idnzone1_mname_punycoded],
+                        'idnssoamname': [idnzone1_mname_punycoded],
+                        'idnssoarname': [idnzone1_rname_punycoded],
+                        'idnssoaserial': [fuzzy_digits],
+                        'idnssoarefresh': [fuzzy_digits],
+                        'idnssoaretry': [fuzzy_digits],
+                        'idnssoaexpire': [fuzzy_digits],
+                        'idnssoaminimum': [fuzzy_digits],
+                        'idnsallowtransfer': [u'none;'],
+                        'idnsallowquery': [u'any;'],
+                    },
+                ],
+            },
+        ),
+
+        dict(
+            desc='Update zone %r' % idnzone1,
+            command=('dnszone_mod', [idnzone1], {'idnssoarefresh': 5478}),
+            expected={
+                'value': idnzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [idnzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'nsrecord': [idnzone1_mname],
+                    'idnssoamname': [idnzone1_mname_dnsname],
+                    'idnssoarname': [idnzone1_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [u'5478'],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Create reverse zone %r' % revidnzone1,
+            command=(
+                'dnszone_add', [revidnzone1], {
+                    'idnssoamname': idnzone1_mname,
+                    'idnssoarname': idnzone1_rname,
+                }
+            ),
+            expected={
+                'value': revidnzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': revidnzone1_dn,
+                    'idnsname': [revidnzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [idnzone1_mname_dnsname],
+                    'nsrecord': [idnzone1_mname],
+                    'idnssoarname': [idnzone1_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
+                                         % dict(realm=api.env.realm, zone=revidnzone1)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+
+        dict(
+            desc='Delete reverse zone %r' % revidnzone1,
+            command=('dnszone_del', [revidnzone1], {}),
+            expected={
+                'value': [revidnzone1_dnsname],
+                'summary': u'Deleted DNS zone "%s"' % revidnzone1,
+                'result': {'failed': []},
+            },
+        ),
+
+        dict(
+            desc='Search for zones with name %r' % idnzone1,
+            command=('dnszone_find', [idnzone1], {}),
+            expected={
+                'summary': None,
+                'count': 1,
+                'truncated': False,
+                'result': [{
+                    'dn': idnzone1_dn,
+                    'idnsname': [idnzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'nsrecord': [idnzone1_mname],
+                    'idnssoamname': [idnzone1_mname_dnsname],
+                    'idnssoarname': [idnzone1_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [u'5478'],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                }],
+            },
+        ),
+
+        dict(
+            desc='Try to retrieve non-existent record %r in zone %r' % (idnres1, idnzone1),
+            command=('dnsrecord_show', [idnzone1, idnres1], {}),
+            expected=errors.NotFound(
+                reason=u'%s: DNS resource record not found' % idnres1),
+        ),
+
+        dict(
+            desc='Create record %r in zone %r' % (idnzone1, idnres1),
+            command=('dnsrecord_add', [idnzone1, idnres1], {'arecord': u'127.0.0.1'}),
+            expected={
+                'value': idnres1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': idnres1_dn,
+                    'idnsname': [idnres1_dnsname],
+                    'objectclass': objectclasses.dnsrecord,
+                    'arecord': [u'127.0.0.1'],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Search for all records in zone %r' % idnzone1,
+            command=('dnsrecord_find', [idnzone1], {}),
+            expected={
+                'summary': None,
+                'count': 3,
+                'truncated': False,
+                'result': [
+                    {
+                        'dn': idnzone1_dn,
+                        'nsrecord': (idnzone1_mname,),
+                        'idnsname': [_dns_zone_record],
+                    },
+                    {
+                        'dn': idnzone1_mname_dn,
+                        'idnsname': [DNSName(u'ns1')],
+                        'arecord': [idnzone1_ip],
+                    },
+                    {
+                        'dn': idnres1_dn,
+                        'idnsname': [idnres1_dnsname],
+                        'arecord': [u'127.0.0.1'],
+                    },
+                ],
+            },
+        ),
+
+
+        dict(
+            desc='Search for all records in zone %r with --pkey-only' % idnzone1,
+            command=('dnsrecord_find', [idnzone1], {'pkey_only':True,}),
+            expected={
+                'summary': None,
+                'count': 3,
+                'truncated': False,
+                'result': [
+                    {
+                        'dn': idnzone1_dn,
+                        'idnsname': [_dns_zone_record],
+                    },
+                    {
+                        'dn': idnzone1_mname_dn,
+                        'idnsname': [DNSName(u'ns1')],
+                    },
+                    {
+                        'dn': idnres1_dn,
+                        'idnsname': [idnres1_dnsname],
+                    },
+                ],
+            },
+        ),
+
+
+        dict(
+            desc='Find %r record in zone %r' % (idnzone1, idnzone1),
+            command=('dnsrecord_find', [idnzone1, idnzone1], {}),
+            expected={
+                'summary': None,
+                'count': 1,
+                'truncated': False,
+                'result': [
+                    {
+                        'dn': idnzone1_dn,
+                        'nsrecord': (idnzone1_mname,),
+                        'idnsname': [_dns_zone_record],
+                    },
+                ],
+            },
+        ),
+
+
+        dict(
+            desc='Find %r record in zone %r' % (idnres1, idnzone1),
+            command=('dnsrecord_find', [idnzone1, idnres1], {}),
+            expected={
+                'summary': None,
+                'count': 1,
+                'truncated': False,
+                'result': [
+                    {
+                        'dn': idnres1_dn,
+                        'idnsname': [idnres1_dnsname],
+                        'arecord': [u'127.0.0.1'],
+                    },
+                ],
+            },
+        ),
+
+
+        dict(
+            desc='Find %r record in zone %r with --pkey-only' % (idnres1, idnzone1),
+            command=('dnsrecord_find', [idnzone1, idnres1], {'pkey_only':True,}),
+            expected={
+                'summary': None,
+                'count': 1,
+                'truncated': False,
+                'result': [
+                    {
+                        'dn': idnres1_dn,
+                        'idnsname': [idnres1_dnsname],
+                    },
+                ],
+            },
+        ),
+
+
+        dict(
+            desc='Find raw %r record in zone %r with --pkey-only' % (idnres1, idnzone1),
+            command=('dnsrecord_find', [idnzone1, idnres1],
+                     {'pkey_only' : True, 'raw' : True,}),
+            expected={
+                'summary': None,
+                'count': 1,
+                'truncated': False,
+                'result': [
+                    {
+                        'dn': idnres1_dn,
+                        'idnsname': [idnres1_punycoded],
+                    },
+                ],
+            },
+        ),
+
+
+        dict(
+            desc='Find raw %r record in zone %r with --pkey-only' % (idnres1_punycoded, idnzone1),
+            command=('dnsrecord_find', [idnzone1, idnres1_punycoded], {'pkey_only':True, 'raw' : True}),
+            expected={
+                'summary': None,
+                'count': 1,
+                'truncated': False,
+                'result': [
+                    {
+                        'dn': idnres1_dn,
+                        'idnsname': [idnres1_punycoded],
+                    },
+                ],
+            },
+        ),
+
+
+        dict(
+            desc='Add A record to %r in zone %r' % (idnres1, idnzone1),
+            command=('dnsrecord_add', [idnzone1, idnres1], {'arecord': u'10.10.0.1'}),
+            expected={
+                'value': idnres1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': idnres1_dn,
+                    'idnsname': [idnres1_dnsname],
+                    'arecord': [u'127.0.0.1', u'10.10.0.1'],
+                    'objectclass': objectclasses.dnsrecord,
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Remove A record from %r in zone %r' % (idnres1, idnzone1),
+            command=('dnsrecord_del', [idnzone1, idnres1], {'arecord': u'127.0.0.1'}),
+            expected={
+                'value': [idnres1_dnsname],
+                'summary': None,
+                'result': {
+                    'idnsname': [idnres1_dnsname],
+                    'arecord': [u'10.10.0.1'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Add MX record to zone %r using dnsrecord_add' % (idnzone1),
+            command=('dnsrecord_add', [idnzone1, u'@'], {'mxrecord': u"0 %s" % idnzone1_mname }),
+            expected={
+                'value': _dns_zone_record,
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnszone,
+                    'dn': idnzone1_dn,
+                    'idnsname': [_dns_zone_record],
+                    'mxrecord': [u"0 %s" % idnzone1_mname],
+                    'nsrecord': [idnzone1_mname],
+                },
+            },
+        ),
+
+        dict(
+            desc='Add KX record to zone %r using dnsrecord_add' % (idnzone1),
+            command=('dnsrecord_add', [idnzone1, u'@'], {'kxrecord': u"0 %s" % idnzone1_mname }),
+            expected={
+                'value': _dns_zone_record,
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnszone,
+                    'dn': idnzone1_dn,
+                    'idnsname': [_dns_zone_record],
+                    'mxrecord': [u"0 %s" % idnzone1_mname],
+                    'kxrecord': [u"0 %s" % idnzone1_mname],
+                    'nsrecord': [idnzone1_mname],
+                },
+            },
+        ),
+
+        dict(
+            desc='Retrieve raw zone record of zone %r using dnsrecord_show' % (idnzone1),
+            command=('dnsrecord_show', [idnzone1, u'@'], {u'raw' : True}),
+            expected={
+                'value': _dns_zone_record,
+                'summary': None,
+                'result': {
+                    'dn': idnzone1_dn,
+                    'idnsname': [u'@'],
+                    'mxrecord': [u"0 %s" % idnzone1_mname_punycoded],
+                    'kxrecord': [u"0 %s" % idnzone1_mname_punycoded],
+                    'nsrecord': [idnzone1_mname_punycoded],
+                },
+            },
+        ),
+
+        dict(
+            desc='Add CNAME record to %r using dnsrecord_add' % (idnrescname1),
+            command=('dnsrecord_add', [idnzone1, idnrescname1], {'cnamerecord': idndomain1 + u'.'}),
+            expected={
+                'value': idnrescname1_dnsname,
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnsrecord,
+                    'dn': idnrescname1_dn,
+                    'idnsname': [idnrescname1_dnsname],
+                    'cnamerecord': [idndomain1 + u'.'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Show raw record %r in zone %r' % (idnrescname1, idnzone1),
+            command=('dnsrecord_show', [idnzone1, idnrescname1], {u'raw' : True}),
+            expected={
+                'value': idnrescname1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': idnrescname1_dn,
+                    'idnsname': [idnrescname1_punycoded],
+                    'cnamerecord': [idndomain1_punycoded + u'.'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Add DNAME record to %r using dnsrecord_add' % (idnresdname1),
+            command=('dnsrecord_add', [idnzone1, idnresdname1], {'dnamerecord': idndomain1 + u'.'}),
+            expected={
+                'value': idnresdname1_dnsname,
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnsrecord,
+                    'dn': idnresdname1_dn,
+                    'idnsname': [idnresdname1_dnsname],
+                    'dnamerecord': [idndomain1 + u'.'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Show raw record %r in zone %r' % (idnresdname1, idnzone1),
+            command=('dnsrecord_show', [idnzone1, idnresdname1], {u'raw' : True}),
+            expected={
+                'value': idnresdname1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': idnresdname1_dn,
+                    'idnsname': [idnresdname1_punycoded],
+                    'dnamerecord': [idndomain1_punycoded + u'.'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Add SRV record to zone %r using dnsrecord_add' % (idnzone1),
+            command=('dnsrecord_add', [idnzone1, u'_foo._tcp'], {'srvrecord': u"0 100 1234 %s" % idnzone1_mname}),
+            expected={
+                'value': DNSName(u'_foo._tcp'),
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnsrecord,
+                    'dn': DN(('idnsname', u'_foo._tcp'), idnzone1_dn),
+                    'idnsname': [DNSName(u'_foo._tcp')],
+                    'srvrecord': [u"0 100 1234 %s" % idnzone1_mname],
+                },
+            },
+        ),
+
+        dict(
+            desc='Show raw record %r in zone %r' % (u'_foo._tcp', idnzone1),
+            command=('dnsrecord_show', [idnzone1, u'_foo._tcp'], {u'raw' : True}),
+            expected={
+                'value': DNSName(u'_foo._tcp'),
+                'summary': None,
+                'result': {
+                    'dn': DN(('idnsname', u'_foo._tcp'), idnzone1_dn),
+                    'idnsname': [u'_foo._tcp'],
+                    'srvrecord': [u"0 100 1234 %s" % idnzone1_mname_punycoded],
+                },
+            },
+        ),
+
+        dict(
+            desc='Show raw record %r in zone %r' % (u'_foo._tcp', idnzone1_punycoded),
+            command=('dnsrecord_show', [idnzone1, u'_foo._tcp'], {u'raw' : True}),
+            expected={
+                'value': DNSName(u'_foo._tcp'),
+                'summary': None,
+                'result': {
+                    'dn': DN(('idnsname', u'_foo._tcp'), idnzone1_dn),
+                    'idnsname': [u'_foo._tcp'],
+                    'srvrecord': [u"0 100 1234 %s" % idnzone1_mname_punycoded],
+                },
+            },
+        ),
+
+        dict(
+            desc='Add NSEC record to %r using dnsrecord_add' % (idnnsecrec1),
+            command=('dnsrecord_add', [idnzone1, idnnsecrec1], {
+                'nsec_part_next': idnzone1,
+                'nsec_part_types' : [u'TXT', u'A']}),
+            expected={
+                'value': idnnsecrec1_dnsname,
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnsrecord,
+                    'dn': idnnsecrec1_dn,
+                    'idnsname': [idnnsecrec1_dnsname],
+                    'nsecrecord': [idnzone1 + u' TXT A'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Show raw record %r in zone %r' % (idnnsecrec1, idnzone1),
+            command=('dnsrecord_show', [idnzone1, idnnsecrec1], {u'raw' : True}),
+            expected={
+                'value': idnnsecrec1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': idnnsecrec1_dn,
+                    'idnsname': [idnnsecrec1_punycoded],
+                    'nsecrecord': [idnzone1_punycoded + u' TXT A'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Add AFSDB record to %r using dnsrecord_add' % (dnsafsdbres1),
+            command=('dnsrecord_add', [idnzone1, dnsafsdbres1], {
+                'afsdb_part_subtype': 0,
+                'afsdb_part_hostname' : idnzone1_mname}),
+            expected={
+                'value': dnsafsdbres1_dnsname,
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnsrecord,
+                    'dn': dnsafsdbres1_dn,
+                    'idnsname': [dnsafsdbres1_dnsname],
+                    'afsdbrecord': [u'0 ' + idnzone1_mname],
+                },
+            },
+        ),
+
+        dict(
+            desc='Show raw record %r in zone %r' % (idnnsecrec1, idnzone1),
+            command=('dnsrecord_show', [idnzone1, dnsafsdbres1], {u'raw' : True}),
+            expected={
+                'value': dnsafsdbres1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': dnsafsdbres1_dn,
+                    'idnsname': [dnsafsdbres1_punycoded],
+                    'afsdbrecord': [u'0 ' + idnzone1_mname_punycoded],
+                },
+            },
+        ),
+
+        dict(
+            desc='Add A denormalized record to %r in zone %r' % (idnres1, idnzone1),
+            command=('dnsrecord_add', [idnzone1, u'gro\xdf'], {'arecord': u'172.16.0.1'}),
+            expected=errors.ConversionError(name='name',
+                error=u'domain name \'gro\xdf\' and normalized domain name \'gross\''
+                + ' do not match. Please use only normalized domains'),
         ),
 
 
@@ -1804,6 +2429,81 @@ class test_dns(Declarative):
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
                     'arecord': [arec1,],
+                },
+            },
+        ),
+
+        dict(
+            desc='Disable zone %r' % idnzone1,
+            command=('dnszone_disable', [idnzone1], {}),
+            expected={
+                'value': idnzone1_dnsname,
+                'summary': u'Disabled DNS zone "%s"' % idnzone1,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Check if zone %r is really disabled' % idnzone1,
+            command=('dnszone_show', [idnzone1], {}),
+            expected={
+                'value': idnzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': idnzone1_dn,
+                    'idnsname': [idnzone1_dnsname],
+                    'idnszoneactive': [u'FALSE'],
+                    'nsrecord': [idnzone1_mname],
+                    'idnssoamname': [idnzone1_mname_dnsname],
+                    'idnssoarname': [idnzone1_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'mxrecord': [u"0 %s" % idnzone1_mname],
+                    'kxrecord': [u"0 %s" % idnzone1_mname],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Enable zone %r' % idnzone1,
+            command=('dnszone_enable', [idnzone1], {}),
+            expected={
+                'value': idnzone1_dnsname,
+                'summary': u'Enabled DNS zone "%s"' % idnzone1,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Check if zone %r is really enabled' % idnzone1,
+            command=('dnszone_show', [idnzone1], {}),
+            expected={
+                'value': idnzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': idnzone1_dn,
+                    'idnsname': [idnzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'nsrecord': [idnzone1_mname],
+                    'idnssoamname': [idnzone1_mname_dnsname],
+                    'idnssoarname': [idnzone1_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'mxrecord': [u"0 %s" % idnzone1_mname],
+                    'kxrecord': [u"0 %s" % idnzone1_mname],
                 },
             },
         ),
