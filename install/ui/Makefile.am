@@ -18,7 +18,6 @@ app_DATA =				\
 	ipa.css				\
 	login.html			\
 	login.js			\
-	logout.html			\
 	reset_password.js		\
 	reset_password.html		\
 	$(NULL)

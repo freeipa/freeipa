@@ -715,7 +715,6 @@ fi
 %dir %{_usr}/share/ipa/ui
 %{_usr}/share/ipa/ui/index.html
 %{_usr}/share/ipa/ui/login.html
-%{_usr}/share/ipa/ui/logout.html
 %{_usr}/share/ipa/ui/reset_password.html
 %{_usr}/share/ipa/ui/*.ico
 %{_usr}/share/ipa/ui/*.css
