@@ -87,8 +87,8 @@ RP.verify_required = function(field, value) {
 
 RP.on_submit = function() {
 
-    var username = $('#username').val();
-    var current_password = $('#password').val();
+    var username = $('#user').val();
+    var current_password = $('#old_password').val();
     var new_password = $('#new_password').val();
     var verify_password = $('#verify_password').val();
 
@@ -108,49 +108,36 @@ RP.on_submit = function() {
         RP.show_error(result.message);
     } else {
         RP.reset_form();
-        $('#success').css('display', 'block');
-        RP.hide_reset_form();
+        RP.show_success("Password reset was successful.");
     }
 };
 
 RP.reset_form = function() {
-    $('#invalid').css('display', 'none');
-    $('#success').css('display', 'none');
-    $('#password').val('');
+    $('.alert-danger').css('display', 'none');
+    $('.alert-success').css('display', 'none');
+    $('#old_password').val('');
     $('#new_password').val('');
     $('#verify_password').val('');
 };
 
 RP.show_error = function(message) {
 
-    $('#error-msg').text(message);
-    $('#invalid').css('display', 'block');
-    $('#success').css('display', 'none');
+    $('.alert-danger > p').text(message);
+    $('.alert-danger').css('display', '');
+    $('.alert-success').css('display', 'none');
 };
 
-RP.hide_reset_form = function() {
+RP.show_success = function(message) {
 
-    RP.form.hide();
-    RP.reset_link.show();
+    $('.alert-success > p').text(message);
+    $('.alert-danger').css('display', 'none');
+    $('.alert-success').css('display', '');
 };
 
-RP.show_reset_form = function() {
-
-    RP.reset_form();
-    RP.form.show();
-    RP.reset_link.hide();
-};
 
 RP.init = function() {
 
-    RP.form = $('#login');
-    RP.reset_link = $('#reset_pwd_link');
-    RP.reset_link.click(function() {
-        RP.show_reset_form();
-        return false;
-    });
-
-    $('input[name=submit]', RP.form).click(function() {
+    $('#reset_password').submit(function() {
         RP.on_submit();
         return false;
     });
