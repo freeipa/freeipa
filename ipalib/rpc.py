@@ -63,6 +63,7 @@ from ipapython.nsslib import NSSHTTPS, NSSConnection
 from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
                              KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, KRB5_REALM_CANT_RESOLVE
 from ipapython.dn import DN
+from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 
 COOKIE_NAME = 'ipa_session'
 KEYRING_COOKIE_NAME = '%s_cookie:%%s' % COOKIE_NAME
@@ -126,7 +127,7 @@ def delete_persistent_client_session_data(principal):
     # kernel_keyring only raises ValueError (why??)
     kernel_keyring.del_key(keyname)
 
-def xml_wrap(value):
+def xml_wrap(value, version):
     """
     Wrap all ``str`` in ``xmlrpclib.Binary``.
 
@@ -148,10 +149,10 @@ def xml_wrap(value):
     :param value: The simple scalar or simple compound value to wrap.
     """
     if type(value) in (list, tuple):
-        return tuple(xml_wrap(v) for v in value)
+        return tuple(xml_wrap(v, version) for v in value)
     if isinstance(value, dict):
         return dict(
-            (k, xml_wrap(v)) for (k, v) in value.iteritems()
+            (k, xml_wrap(v, version)) for (k, v) in value.iteritems()
         )
     if type(value) is str:
         return Binary(value)
@@ -199,7 +200,8 @@ def xml_unwrap(value, encoding='UTF-8'):
     return value
 
 
-def xml_dumps(params, methodname=None, methodresponse=False, encoding='UTF-8'):
+def xml_dumps(params, version, methodname=None, methodresponse=False,
+              encoding='UTF-8'):
     """
     Encode an XML-RPC data packet, transparently wraping ``params``.
 
@@ -219,7 +221,7 @@ def xml_dumps(params, methodname=None, methodresponse=False, encoding='UTF-8'):
     :param encoding: The Unicode encoding to use (defaults to ``'UTF-8'``).
     """
     if type(params) is tuple:
-        params = xml_wrap(params)
+        params = xml_wrap(params, version)
     else:
         assert isinstance(params, Fault)
     return dumps(params,
@@ -230,7 +232,7 @@ def xml_dumps(params, methodname=None, methodresponse=False, encoding='UTF-8'):
     )
 
 
-def json_encode_binary(val):
+def json_encode_binary(val, version):
     '''
    JSON cannot encode binary values. We encode binary values in Python str
    objects and text in Python unicode objects. In order to allow a binary
@@ -253,10 +255,10 @@ def json_encode_binary(val):
     if isinstance(val, dict):
         new_dict = {}
         for k, v in val.items():
-            new_dict[k] = json_encode_binary(v)
+            new_dict[k] = json_encode_binary(v, version)
         return new_dict
     elif isinstance(val, (list, tuple)):
-        new_list = [json_encode_binary(v) for v in val]
+        new_list = [json_encode_binary(v, version) for v in val]
         return new_list
     elif isinstance(val, str):
         return {'__base64__': base64.b64encode(val)}
@@ -894,7 +896,8 @@ class xmlclient(RPCClient):
     env_rpc_uri_key = 'xmlrpc_uri'
 
     def _call_command(self, command, params):
-        params = xml_wrap(params)
+        version = params[1].get('version', VERSION_WITHOUT_CAPABILITIES)
+        params = xml_wrap(params, version)
         result = command(*params)
         return xml_unwrap(result)
 
@@ -918,11 +921,12 @@ class JSONServerProxy(object):
 
     def __request(self, name, args):
         payload = {'method': unicode(name), 'params': args, 'id': 0}
+        version = args[1].get('version', VERSION_WITHOUT_CAPABILITIES)
 
         response = self.__transport.request(
             self.__host,
             self.__handler,
-            json.dumps(json_encode_binary(payload)),
+            json.dumps(json_encode_binary(payload, version)),
             verbose=self.__verbose,
         )
 

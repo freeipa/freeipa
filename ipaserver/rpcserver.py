@@ -31,7 +31,8 @@ import urlparse
 import time
 import json
 
-from ipalib import plugable, capabilities, errors
+from ipalib import plugable, errors
+from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib.backend import Executioner
 from ipalib.errors import (PublicError, InternalError, CommandError, JSONError,
     CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError,
@@ -378,7 +379,8 @@ class WSGIExecutioner(Executioner):
                       name,
                       type(e).__name__)
 
-        return self.marshal(result, error, _id)
+        version = options.get('version', VERSION_WITHOUT_CAPABILITIES)
+        return self.marshal(result, error, _id, version)
 
     def simple_unmarshal(self, environ):
         name = environ['PATH_INFO'].strip('/')
@@ -415,7 +417,8 @@ class WSGIExecutioner(Executioner):
     def unmarshal(self, data):
         raise NotImplementedError('%s.unmarshal()' % self.fullname)
 
-    def marshal(self, result, error, _id=None):
+    def marshal(self, result, error, _id=None,
+                version=VERSION_WITHOUT_CAPABILITIES):
         raise NotImplementedError('%s.marshal()' % self.fullname)
 
 
@@ -439,7 +442,8 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
         response = super(jsonserver, self).__call__(environ, start_response)
         return response
 
-    def marshal(self, result, error, _id=None):
+    def marshal(self, result, error, _id=None,
+                version=VERSION_WITHOUT_CAPABILITIES):
         if error:
             assert isinstance(error, PublicError)
             error = dict(
@@ -455,7 +459,7 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
             principal=unicode(principal),
             version=unicode(VERSION),
         )
-        response = json_encode_binary(response)
+        response = json_encode_binary(response, version)
         return json.dumps(response, sort_keys=True, indent=4)
 
     def unmarshal(self, data):
@@ -712,10 +716,11 @@ class xmlserver(KerberosWSGIExecutioner):
             # Keep backwards compatibility with client containing
             # bug https://fedorahosted.org/freeipa/ticket/3294:
             # If `version` is not given in XML-RPC, assume an old version
-            options['version'] = capabilities.VERSION_WITHOUT_CAPABILITIES
+            options['version'] = VERSION_WITHOUT_CAPABILITIES
         return (name, args, options, None)
 
-    def marshal(self, result, error, _id=None):
+    def marshal(self, result, error, _id=None,
+                version=VERSION_WITHOUT_CAPABILITIES):
         if error:
             self.debug('response: %s: %s', error.__class__.__name__, str(error))
             response = Fault(error.errno, error.strerror)
@@ -723,7 +728,7 @@ class xmlserver(KerberosWSGIExecutioner):
             if isinstance(result, dict):
                 self.debug('response: entries returned %d', result.get('count', 1))
             response = (result,)
-        return xml_dumps(response, methodresponse=True)
+        return xml_dumps(response, version, methodresponse=True)
 
 
 class jsonserver_session(jsonserver, KerberosSession):

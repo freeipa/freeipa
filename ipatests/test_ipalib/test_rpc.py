@@ -29,6 +29,7 @@ from ipatests.data import binary_bytes, utf8_bytes, unicode_str
 from ipalib.frontend import Command
 from ipalib.request import context, Connection
 from ipalib import rpc, errors, api, request
+from ipapython.version import API_VERSION
 
 
 std_compound = (binary_bytes, utf8_bytes, unicode_str)
@@ -43,7 +44,7 @@ def dump_n_load(value):
 
 def round_trip(value):
     return rpc.xml_unwrap(
-        dump_n_load(rpc.xml_wrap(value))
+        dump_n_load(rpc.xml_wrap(value, API_VERSION))
     )
 
 
@@ -90,15 +91,15 @@ def test_xml_wrap():
     Test the `ipalib.rpc.xml_wrap` function.
     """
     f = rpc.xml_wrap
-    assert f([]) == tuple()
-    assert f({}) == dict()
-    b = f('hello')
+    assert f([], API_VERSION) == tuple()
+    assert f({}, API_VERSION) == dict()
+    b = f('hello', API_VERSION)
     assert isinstance(b, Binary)
     assert b.data == 'hello'
-    u = f(u'hello')
+    u = f(u'hello', API_VERSION)
     assert type(u) is unicode
     assert u == u'hello'
-    value = f([dict(one=False, two=u'hello'), None, 'hello'])
+    value = f([dict(one=False, two=u'hello'), None, 'hello'], API_VERSION)
 
 
 def test_xml_unwrap():
@@ -127,14 +128,14 @@ def test_xml_dumps():
     params = (binary_bytes, utf8_bytes, unicode_str, None)
 
     # Test serializing an RPC request:
-    data = f(params, 'the_method')
+    data = f(params, API_VERSION, 'the_method')
     (p, m) = loads(data)
     assert_equal(m, u'the_method')
     assert type(p) is tuple
     assert rpc.xml_unwrap(p) == params
 
     # Test serializing an RPC response:
-    data = f((params,), methodresponse=True)
+    data = f((params,), API_VERSION, methodresponse=True)
     (tup, m) = loads(data)
     assert m is None
     assert len(tup) == 1
@@ -143,7 +144,7 @@ def test_xml_dumps():
 
     # Test serializing an RPC response containing a Fault:
     fault = Fault(69, unicode_str)
-    data = f(fault, methodresponse=True)
+    data = f(fault, API_VERSION, methodresponse=True)
     e = raises(Fault, loads, data)
     assert e.faultCode == 69
     assert_equal(e.faultString, unicode_str)
@@ -155,7 +156,7 @@ def test_xml_loads():
     """
     f = rpc.xml_loads
     params = (binary_bytes, utf8_bytes, unicode_str, None)
-    wrapped = rpc.xml_wrap(params)
+    wrapped = rpc.xml_wrap(params, API_VERSION)
 
     # Test un-serializing an RPC request:
     data = dumps(wrapped, 'the_method', allow_none=True)
@@ -210,19 +211,19 @@ class test_xmlclient(PluginTester):
         conn = DummyClass(
             (
                 'user_add',
-                rpc.xml_wrap(params),
+                rpc.xml_wrap(params, API_VERSION),
                 {},
-                rpc.xml_wrap(result),
+                rpc.xml_wrap(result, API_VERSION),
             ),
             (
                 'user_add',
-                rpc.xml_wrap(params),
+                rpc.xml_wrap(params, API_VERSION),
                 {},
                 Fault(3007, u"'four' is required"),  # RequirementError
             ),
             (
                 'user_add',
-                rpc.xml_wrap(params),
+                rpc.xml_wrap(params, API_VERSION),
                 {},
                 Fault(700, u'no such error'),  # There is no error 700
             ),
