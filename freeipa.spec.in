@@ -142,7 +142,7 @@ Requires(post): systemd-units
 Requires: selinux-policy >= 3.12.1-65
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.47.7
-Requires: pki-ca >= 10.0.4
+Requires: pki-ca >= 10.1.1
 Requires: dogtag-pki-server-theme
 %if 0%{?rhel}
 Requires: subscription-manager
