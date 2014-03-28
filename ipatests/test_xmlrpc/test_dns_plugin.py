@@ -22,82 +22,115 @@ Test the `ipalib/plugins/dns.py` module.
 
 import nose
 from ipalib import api, errors
+from ipapython.dnsutil import DNSName
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
+_dns_zone_record = DNSName(u'@')
+
 zone1 = u'dnszone.test'
+zone1_dnsname = DNSName(zone1)
+zone1_absolute = u'%s.' % zone1
+zone1_absolute_dnsname = DNSName(zone1_absolute)
 zone1_ip = u'172.16.29.111'
-zone1_dn = DN(('idnsname',zone1), api.env.container_dns, api.env.basedn)
-zone1_ns = u'ns1.%s.' % zone1
+zone1_dn = DN(('idnsname',zone1_absolute), api.env.container_dns, api.env.basedn)
+zone1_ns = u'ns1.%s' % zone1_absolute
+zone1_ns_dnsname = DNSName(zone1_ns)
 zone1_ns_dn = DN(('idnsname','ns1'), zone1_dn)
-zone1_rname = u'root.%s.' % zone1
-zone1_permission = u'Manage DNS zone %s' % zone1
+zone1_rname = u'root.%s' % zone1_absolute
+zone1_rname_dnsname = DNSName(zone1_rname)
+zone1_permission = u'Manage DNS zone %s' % zone1_absolute
 zone1_permission_dn = DN(('cn',zone1_permission),
                             api.env.container_permission,api.env.basedn)
 zone1_txtrec_dn = DN(('idnsname', '_kerberos'), zone1_dn)
 
 zone2 = u'zone2.test'
-zone2_dn = DN(('idnsname', zone2), api.env.container_dns, api.env.basedn)
-zone2_ns = u'ns1.%s.' % zone2
-zone2_rname = u'root.%s.' % zone2
+zone2_dnsname = DNSName(zone2)
+zone2_absolute = u'%s.' % zone2
+zone2_absolute_dnsname = DNSName(zone2_absolute)
+zone2_dn = DN(('idnsname', zone2_absolute), api.env.container_dns, api.env.basedn)
+zone2_ns = u'ns1.%s' % zone2_absolute
+zone2_ns_dnsname = DNSName(zone2_ns)
+zone2_rname = u'root.%s' % zone2_absolute
+zone2_rname_dnsname = DNSName(zone2_rname)
 
 zone3 = u'zone3.test'
-zone3_ip = u'192.168.1.1'
-zone3_ip2 = u'192.168.1.129'
-zone3_dn = DN(('idnsname', zone3), api.env.container_dns, api.env.basedn)
-zone3_ns = u'ns1.%s.' % zone3
-zone3_ns2 = u'ns2.%s.' % zone3
-zone3_rname = u'root.%s.' % zone3
+zone3_dnsname = DNSName(zone3)
+zone3_absolute = u'%s.' % zone3
+zone3_absolute_dnsname = DNSName(zone3_absolute)
+zone3_ip = u'172.16.70.1'
+zone3_ip2 = u'172.16.70.129'
+zone3_dn = DN(('idnsname', zone3_absolute), api.env.container_dns, api.env.basedn)
+zone3_ns = u'ns1.%s' % zone3_absolute
+zone3_ns_dnsname = DNSName(zone3_ns)
+zone3_ns2 = u'ns2.%s' % zone3_absolute
+zone3_ns2_dnsname = DNSName(zone3_ns2)
+zone3_rname = u'root.%s' % zone3_absolute
+zone3_rname_dnsname = DNSName(zone3_rname)
 
 zone3_ns2_arec = u'ns2'
+zone3_ns2_arec_dnsname = DNSName(zone3_ns2_arec)
 zone3_ns2_arec_dn = DN(('idnsname',zone3_ns2_arec), zone3_dn)
 
 revzone1 = u'31.16.172.in-addr.arpa.'
+revzone1_dnsname = DNSName(revzone1)
 revzone1_ip = u'172.16.31.0'
 revzone1_ipprefix = u'172.16.31.'
 revzone1_dn = DN(('idnsname', revzone1), api.env.container_dns, api.env.basedn)
 
 revzone2 = u'30.15.172.in-addr.arpa.'
+revzone2_dnsname = DNSName(revzone2)
 revzone2_ip = u'172.15.30.0/24'
 revzone2_dn = DN(('idnsname',revzone2), api.env.container_dns, api.env.basedn)
 
-revzone3_classless1 = u'1.168.192.in-addr.arpa.'
-revzone3_classless1_ip = u'192.168.1.0'
-revzone3_classless1_ipprefix = u'192.168.1.'
+revzone3_classless1 = u'70.16.172.in-addr.arpa.'
+revzone3_classless1_dnsname = DNSName(revzone3_classless1)
+revzone3_classless1_ip = u'172.16.70.0'
+revzone3_classless1_ipprefix = u'172.16.70.'
 revzone3_classless1_dn = DN(('idnsname', revzone3_classless1), api.env.container_dns, api.env.basedn)
 
-revzone3_classless2 = u'128/25.1.168.192.in-addr.arpa.'
-revzone3_classless2_ip = u'192.168.1.128'
-revzone3_classless2_ipprefix = u'192.168.1.'
+revzone3_classless2 = u'128/25.70.16.172.in-addr.arpa.'
+revzone3_classless2_dnsname = DNSName(revzone3_classless2)
+revzone3_classless2_ip = u'172.16.70.128'
+revzone3_classless2_ipprefix = u'172.16.70.'
 revzone3_classless2_dn = DN(('idnsname', revzone3_classless2), api.env.container_dns, api.env.basedn)
 
 name1 = u'testdnsres'
+name1_dnsname = DNSName(name1)
 name1_dn = DN(('idnsname',name1), zone1_dn)
 name1_renamed = u'testdnsres-renamed'
+name1_renamed_dnsname = DNSName(name1_renamed)
 
 revname1 = u'80'
+revname1_dnsname = DNSName(revname1)
 revname1_ip = revzone1_ipprefix + revname1
 revname1_dn = DN(('idnsname',revname1), revzone1_dn)
 
 revname2 = u'81'
+revname2_dnsname = DNSName(revname2)
 revname2_ip = revzone1_ipprefix + revname2
 revname2_dn = DN(('idnsname',revname2), revzone1_dn)
 
 cname = u'testcnamerec'
+cname_dnsname = DNSName(cname)
 cname_dn = DN(('idnsname',cname), zone1_dn)
 
 dname = u'testdns-dname'
+dname_dnsname = DNSName(dname)
 dname_dn = DN(('idnsname',dname), zone1_dn)
 
 nsrev = u'128/25'
+nsrev_dnsname = DNSName(nsrev)
 nsrev_dn = DN(('idnsname',nsrev), revzone3_classless1_dn)
 
 cnamerev = u'129'
+cnamerev_dnsname = DNSName(cnamerev)
 cnamerev_dn = DN(('idnsname',cnamerev), revzone3_classless1_dn)
-cnamerev_hostname = u'129.128/25.1.168.192.in-addr.arpa.'
+cnamerev_hostname = u'129.128/25.70.16.172.in-addr.arpa.'
 
 ptr_revzone3 = u'129'
+ptr_revzone3_dnsname = DNSName(ptr_revzone3)
 ptr_revzone3_dn = DN(('idnsname',cnamerev), revzone3_classless2_dn)
 ptr_revzone3_hostname = zone3_ns2;
 
@@ -151,15 +184,21 @@ class test_dns(Declarative):
             desc='Try to retrieve non-existent zone %r' % zone1,
             command=('dnszone_show', [zone1], {}),
             expected=errors.NotFound(
-                reason=u'%s: DNS zone not found' % zone1),
+                reason=u'%s: DNS zone not found' % zone1_absolute),
         ),
 
+        dict(
+            desc='Try to retrieve non-existent IDN zone %r' % idnzone1,
+            command=('dnszone_show', [idnzone1], {}),
+            expected=errors.NotFound(
+                reason=u'%s: DNS zone not found' % idnzone1),
+        ),
 
         dict(
             desc='Try to update non-existent zone %r' % zone1,
             command=('dnszone_mod', [zone1], {'idnssoaminimum': 3500}),
             expected=errors.NotFound(
-                reason=u'%s: DNS zone not found' % zone1),
+                reason=u'%s: DNS zone not found' % zone1_absolute),
         ),
 
 
@@ -167,22 +206,7 @@ class test_dns(Declarative):
             desc='Try to delete non-existent zone %r' % zone1,
             command=('dnszone_del', [zone1], {}),
             expected=errors.NotFound(
-                reason=u'%s: DNS zone not found' % zone1),
-        ),
-
-
-        dict(
-            desc='Try to create zone with invalid name',
-            command=(
-                'dnszone_add', [u'invalid zone'], {
-                    'idnssoamname': zone1_ns,
-                    'idnssoarname': zone1_rname,
-                    'ip_address' : zone1_ip,
-                }
-            ),
-            expected=errors.ValidationError(name='name',
-                error=u"only letters, numbers, '-' are allowed." +
-                u" DNS label may not start or end with '-'"),
+                reason=u'%s: DNS zone not found' % zone1_absolute),
         ),
 
 
@@ -196,15 +220,15 @@ class test_dns(Declarative):
                 }
             ),
             expected={
-                'value': zone1,
+                'value': zone1_absolute_dnsname,
                 'summary': None,
                 'result': {
                     'dn': zone1_dn,
-                    'idnsname': [zone1],
+                    'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone1_ns],
+                    'idnssoamname': [zone1_ns_dnsname],
                     'nsrecord': [zone1_ns],
-                    'idnssoarname': [zone1_rname],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -233,7 +257,7 @@ class test_dns(Declarative):
                 }
             ),
             expected=errors.DuplicateEntry(
-                message=u'DNS zone with name "%s" already exists' % zone1),
+                message=u'DNS zone with name "%s" already exists' % zone1_absolute),
         ),
 
         dict(
@@ -257,15 +281,15 @@ class test_dns(Declarative):
                 }
             ),
             expected={
-                'value': zone2,
+                'value': zone2_absolute_dnsname,
                 'summary': None,
                 'result': {
                     'dn': zone2_dn,
-                    'idnsname': [zone2],
+                    'idnsname': [zone2_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone2_ns],
+                    'idnssoamname': [zone2_ns_dnsname],
                     'nsrecord': [zone2_ns],
-                    'idnssoarname': [zone2_rname],
+                    'idnssoarname': [zone2_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -288,15 +312,15 @@ class test_dns(Declarative):
             desc='Retrieve zone %r' % zone1,
             command=('dnszone_show', [zone1], {}),
             expected={
-                'value': zone1,
+                'value': zone1_absolute_dnsname,
                 'summary': None,
                 'result': {
                     'dn': zone1_dn,
-                    'idnsname': [zone1],
+                    'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [zone1_ns],
-                    'idnssoamname': [zone1_ns],
-                    'idnssoarname': [zone1_rname],
+                    'idnssoamname': [zone1_ns_dnsname],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -313,14 +337,14 @@ class test_dns(Declarative):
             desc='Update zone %r' % zone1,
             command=('dnszone_mod', [zone1], {'idnssoarefresh': 5478}),
             expected={
-                'value': zone1,
+                'value': zone1_absolute_dnsname,
                 'summary': None,
                 'result': {
-                    'idnsname': [zone1],
+                    'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [zone1_ns],
-                    'idnssoamname': [zone1_ns],
-                    'idnssoarname': [zone1_rname],
+                    'idnssoamname': [zone1_ns_dnsname],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
                     'idnssoaretry': [fuzzy_digits],
@@ -355,15 +379,15 @@ class test_dns(Declarative):
                 }
             ),
             expected={
-                'value': revzone1,
+                'value': revzone1_dnsname,
                 'summary': None,
                 'result': {
                     'dn': revzone1_dn,
-                    'idnsname': [revzone1],
+                    'idnsname': [revzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone1_ns],
+                    'idnssoamname': [zone1_ns_dnsname],
                     'nsrecord': [zone1_ns],
-                    'idnssoarname': [zone1_rname],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -389,11 +413,11 @@ class test_dns(Declarative):
                 'truncated': False,
                 'result': [{
                     'dn': revzone1_dn,
-                    'idnsname': [revzone1],
+                    'idnsname': [revzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [zone1_ns],
-                    'idnssoamname': [zone1_ns],
-                    'idnssoarname': [zone1_rname],
+                    'idnssoamname': [zone1_ns_dnsname],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -404,11 +428,11 @@ class test_dns(Declarative):
                 },
                 {
                     'dn': zone1_dn,
-                    'idnsname': [zone1],
+                    'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [zone1_ns],
-                    'idnssoamname': [zone1_ns],
-                    'idnssoarname': [zone1_rname],
+                    'idnssoamname': [zone1_ns_dnsname],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
                     'idnssoaretry': [fuzzy_digits],
@@ -430,11 +454,11 @@ class test_dns(Declarative):
                 'truncated': False,
                 'result': [{
                     'dn': zone1_dn,
-                    'idnsname': [zone1],
+                    'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [zone1_ns],
-                    'idnssoamname': [zone1_ns],
-                    'idnssoarname': [zone1_rname],
+                    'idnssoamname': [zone1_ns_dnsname],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
                     'idnssoaretry': [fuzzy_digits],
@@ -451,7 +475,7 @@ class test_dns(Declarative):
             desc='Delete reverse zone %r' % revzone1,
             command=('dnszone_del', [revzone1], {}),
             expected={
-                'value': [revzone1],
+                'value': [revzone1_dnsname],
                 'summary': u'Deleted DNS zone "%s"' % revzone1,
                 'result': {'failed': []},
             },
@@ -483,23 +507,14 @@ class test_dns(Declarative):
 
 
         dict(
-            desc='Try to create record with invalid name in zone %r' % zone1,
-            command=('dnsrecord_add', [zone1, u'invalid record'], {'arecord': arec2}),
-            expected=errors.ValidationError(name='name',
-                error=u"only letters, numbers, '_', '/', '-' are allowed." +
-                    u" DNS label may not start or end with '/', '-'"),
-        ),
-
-
-        dict(
             desc='Create record %r in zone %r' % (zone1, name1),
             command=('dnsrecord_add', [zone1, name1], {'arecord': arec2}),
             expected={
-                'value': name1,
+                'value': name1_dnsname,
                 'summary': None,
                 'result': {
                     'dn': name1_dn,
-                    'idnsname': [name1],
+                    'idnsname': [name1_dnsname],
                     'objectclass': objectclasses.dnsrecord,
                     'arecord': [arec2],
                 },
@@ -518,21 +533,21 @@ class test_dns(Declarative):
                     {
                         'dn': zone1_dn,
                         'nsrecord': (zone1_ns,),
-                        'idnsname': [u'@'],
+                        'idnsname': [_dns_zone_record],
                     },
                     {
                         'dn': zone1_txtrec_dn,
                         'txtrecord': [api.env.realm],
-                        'idnsname': [u'_kerberos'],
+                        'idnsname': [DNSName(u'_kerberos')],
                     },
                     {
                         'dn': zone1_ns_dn,
-                        'idnsname': [u'ns1'],
+                        'idnsname': [DNSName(u'ns1')],
                         'arecord': [zone1_ip],
                     },
                     {
                         'dn': name1_dn,
-                        'idnsname': [name1],
+                        'idnsname': [name1_dnsname],
                         'arecord': [arec2],
                     },
                 ],
@@ -544,11 +559,11 @@ class test_dns(Declarative):
             desc='Add A record to %r in zone %r' % (name1, zone1),
             command=('dnsrecord_add', [zone1, name1], {'arecord': arec3}),
             expected={
-                'value': name1,
+                'value': name1_dnsname,
                 'summary': None,
                 'result': {
                     'dn': name1_dn,
-                    'idnsname': [name1],
+                    'idnsname': [name1_dnsname],
                     'arecord': [arec2, arec3],
                     'objectclass': objectclasses.dnsrecord,
                 },
@@ -560,10 +575,10 @@ class test_dns(Declarative):
             desc='Remove A record from %r in zone %r' % (name1, zone1),
             command=('dnsrecord_del', [zone1, name1], {'arecord': arec2}),
             expected={
-                'value': [name1],
+                'value': [name1_dnsname],
                 'summary': None,
                 'result': {
-                    'idnsname': [name1],
+                    'idnsname': [name1_dnsname],
                     'arecord': [arec3],
                 },
             },
@@ -574,10 +589,10 @@ class test_dns(Declarative):
             desc='Add AAAA record to %r in zone %r using dnsrecord_mod' % (name1, zone1),
             command=('dnsrecord_mod', [zone1, name1], {'aaaarecord': u'::1'}),
             expected={
-                'value': name1,
+                'value': name1_dnsname,
                 'summary': None,
                 'result': {
-                    'idnsname': [name1],
+                    'idnsname': [name1_dnsname],
                     'arecord': [arec3],
                     'aaaarecord': [u'::1'],
                 },
@@ -599,10 +614,10 @@ class test_dns(Declarative):
             desc='Modify AAAA record in %r in zone %r' % (name1, zone1),
             command=('dnsrecord_mod', [zone1, name1], {'aaaarecord': u'ff02::1'}),
             expected={
-                'value': name1,
+                'value': name1_dnsname,
                 'summary': None,
                 'result': {
-                    'idnsname': [name1],
+                    'idnsname': [name1_dnsname],
                     'arecord': [arec3],
                     'aaaarecord': [u'ff02::1'],
                 },
@@ -614,10 +629,10 @@ class test_dns(Declarative):
             desc='Remove AAAA record from %r in zone %r using dnsrecord_mod' % (name1, zone1),
             command=('dnsrecord_mod', [zone1, name1], {'aaaarecord': u''}),
             expected={
-                'value': name1,
+                'value': name1_dnsname,
                 'summary': None,
                 'result': {
-                    'idnsname': [name1],
+                    'idnsname': [name1_dnsname],
                     'arecord': [arec3],
                 },
             },
@@ -635,12 +650,12 @@ class test_dns(Declarative):
             desc='Add MX record to zone %r using dnsrecord_add' % (zone1),
             command=('dnsrecord_add', [zone1, u'@'], {'mxrecord': u"0 %s" % zone1_ns }),
             expected={
-                'value': u'@',
+                'value': _dns_zone_record,
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnszone,
                     'dn': zone1_dn,
-                    'idnsname': [u'@'],
+                    'idnsname': [_dns_zone_record],
                     'mxrecord': [u"0 %s" % zone1_ns],
                     'nsrecord': [zone1_ns],
                 },
@@ -655,16 +670,6 @@ class test_dns(Declarative):
                     u' (see RFC 2782 for details)'),
         ),
 
-        dict(
-            desc='Try to add invalid SRV record via parts to zone %r using dnsrecord_add' % (zone1),
-            command=('dnsrecord_add', [zone1, u'_foo._tcp'], {'srv_part_priority': 0,
-                                                                 'srv_part_weight' : 0,
-                                                                 'srv_part_port' : 123,
-                                                                 'srv_part_target' : u'foo bar'}),
-            expected=errors.ValidationError(name='srv_target',
-                error=u"invalid domain-name: only letters, numbers, '_', '-' are allowed." +
-                    u" DNS label may not start or end with '-'"),
-        ),
 
         dict(
             desc='Try to add SRV record to zone %r both via parts and a raw value' % (zone1),
@@ -683,12 +688,12 @@ class test_dns(Declarative):
             desc='Add SRV record to zone %r using dnsrecord_add' % (zone1),
             command=('dnsrecord_add', [zone1, u'_foo._tcp'], {'srvrecord': u"0 100 1234 %s" % zone1_ns}),
             expected={
-                'value': u'_foo._tcp',
+                'value': DNSName(u'_foo._tcp'),
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
                     'dn': DN(('idnsname', u'_foo._tcp'), zone1_dn),
-                    'idnsname': [u'_foo._tcp'],
+                    'idnsname': [DNSName(u'_foo._tcp')],
                     'srvrecord': [u"0 100 1234 %s" % zone1_ns],
                 },
             },
@@ -720,10 +725,10 @@ class test_dns(Declarative):
             command=('dnsrecord_mod', [zone1, u'_foo._tcp'], {'srv_part_priority': 1,
                                                   'srvrecord' : [u"0 100 1234 %s" % zone1_ns] }),
             expected={
-                'value': u'_foo._tcp',
+                'value': DNSName(u'_foo._tcp'),
                 'summary': None,
                 'result': {
-                    'idnsname': [u'_foo._tcp'],
+                    'idnsname': [DNSName(u'_foo._tcp')],
                     'srvrecord': [u"1 100 1234 %s" % zone1_ns],
                 },
             },
@@ -740,12 +745,12 @@ class test_dns(Declarative):
             desc='Add LOC record to zone %r using dnsrecord_add' % (zone1),
             command=('dnsrecord_add', [zone1, u'@'], {'locrecord': u"49 11 42.4 N 16 36 29.6 E 227.64m 10m 10.0m 0.1"}),
             expected={
-                'value': u'@',
+                'value': _dns_zone_record,
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnszone,
                     'dn': zone1_dn,
-                    'idnsname': [u'@'],
+                    'idnsname': [_dns_zone_record],
                     'mxrecord': [u"0 %s" % zone1_ns],
                     'nsrecord': [zone1_ns],
                     'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
@@ -762,14 +767,6 @@ class test_dns(Declarative):
         ),
 
         dict(
-            desc='Try to add invalid CNAME record %r using dnsrecord_add' % (cname),
-            command=('dnsrecord_add', [zone1, cname], {'cnamerecord': u'-.%s' % relnxname}),
-            expected=errors.ValidationError(name='hostname',
-                error=u"invalid domain-name: only letters, numbers, '_', '/', '-' are allowed." +
-                    u" DNS label may not start or end with '/', '-'"),
-        ),
-
-        dict(
             desc='Try to add multiple CNAME record %r using dnsrecord_add' % (cname),
             command=('dnsrecord_add', [zone1, cname], {'cnamerecord':
                 [u'1.%s' % absnxname, u'2.%s' % absnxname]}),
@@ -781,12 +778,12 @@ class test_dns(Declarative):
             desc='Add CNAME record to %r using dnsrecord_add' % (cname),
             command=('dnsrecord_add', [zone1, cname], {'cnamerecord': absnxname}),
             expected={
-                'value': cname,
+                'value': cname_dnsname,
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
                     'dn': cname_dn,
-                    'idnsname': [cname],
+                    'idnsname': [cname_dnsname],
                     'cnamerecord': [absnxname],
                 },
             },
@@ -813,10 +810,10 @@ class test_dns(Declarative):
             command=('dnsrecord_mod', [zone1, cname], {'arecord': arec1,
                                                                 'cnamerecord': None}),
             expected={
-                'value': cname,
+                'value': cname_dnsname,
                 'summary': None,
                 'result': {
-                    'idnsname': [cname],
+                    'idnsname': [cname_dnsname],
                     'arecord': [arec1],
                 },
             },
@@ -830,26 +827,18 @@ class test_dns(Declarative):
                 error=u'only one DNAME record is allowed per name (RFC 6672, section 2.4)'),
         ),
 
-        dict(
-            desc='Try to add invalid DNAME record %r using dnsrecord_add' % (dname),
-            command=('dnsrecord_add', [zone1, dname], {'dnamerecord': u'-.%s'
-                % absnxname}),
-            expected=errors.ValidationError(name='target',
-                error=u"invalid domain-name: only letters, numbers, '_', '/', '-' are allowed." +
-                    u" DNS label may not start or end with '/', '-'"),
-        ),
 
         dict(
             desc='Add DNAME record to %r using dnsrecord_add' % (dname),
             command=('dnsrecord_add', [zone1, dname],
                 {'dnamerecord': u'd.%s' % absnxname, 'arecord': arec1}),
             expected={
-                'value': dname,
+                'value': dname_dnsname,
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
                     'dn': dname_dn,
-                    'idnsname': [dname],
+                    'idnsname': [dname_dnsname],
                     'dnamerecord': [u'd.%s' % absnxname],
                     'arecord': [arec1],
                 },
@@ -880,14 +869,14 @@ class test_dns(Declarative):
                 {'dnamerecord': u'd.%s' % absnxname,
                  'nsrecord': zone1_ns}),
             expected = {
-                'value': u'@',
+                'value': _dns_zone_record,
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnszone,
                     'dnamerecord': [u'd.%s' % absnxname],
                     'dn': zone2_dn,
                     'nsrecord': [zone2_ns, zone1_ns],
-                    'idnsname': [u'@']
+                    'idnsname': [_dns_zone_record]
                 }
             },
         ),
@@ -897,8 +886,8 @@ class test_dns(Declarative):
             desc='Delete zone %r' % zone2,
             command=('dnszone_del', [zone2], {}),
             expected={
-                'value': [zone2],
-                'summary': u'Deleted DNS zone "%s"' % zone2,
+                'value': [zone2_absolute_dnsname],
+                'summary': u'Deleted DNS zone "%s"' % zone2_absolute,
                 'result': {'failed': []},
             },
         ),
@@ -915,12 +904,12 @@ class test_dns(Declarative):
             desc='Add KX record to %r using dnsrecord_add' % (name1),
             command=('dnsrecord_add', [zone1, name1], {'kxrecord': u'1 foo-1' }),
             expected={
-                'value': name1,
+                'value': name1_dnsname,
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
                     'dn': name1_dn,
-                    'idnsname': [name1],
+                    'idnsname': [name1_dnsname],
                     'arecord': [arec3],
                     'kxrecord': [u'1 foo-1'],
                 },
@@ -931,12 +920,12 @@ class test_dns(Declarative):
             desc='Add TXT record to %r using dnsrecord_add' % (name1),
             command=('dnsrecord_add', [zone1, name1], {'txtrecord': u'foo bar' }),
             expected={
-                'value': name1,
+                'value': name1_dnsname,
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
                     'dn': name1_dn,
-                    'idnsname': [name1],
+                    'idnsname': [name1_dnsname],
                     'arecord': [arec3],
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
@@ -950,12 +939,12 @@ class test_dns(Declarative):
                 'nsec_part_next': zone1,
                 'nsec_part_types' : [u'TXT', u'A']}),
             expected={
-                'value': name1,
+                'value': name1_dnsname,
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
                     'dn': name1_dn,
-                    'idnsname': [name1],
+                    'idnsname': [name1_dnsname],
                     'arecord': [arec3],
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
@@ -982,12 +971,12 @@ class test_dns(Declarative):
             command=('dnsrecord_add', [zone1, name1], {'nsrecord': absnxname,
                                                             'force' : True}),
             expected={
-                'value': name1,
+                'value': name1_dnsname,
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
                     'dn': name1_dn,
-                    'idnsname': [name1],
+                    'idnsname': [name1_dnsname],
                     'arecord': [arec3],
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
@@ -1008,10 +997,10 @@ class test_dns(Declarative):
             desc='Rename DNS record %r to %r' % (name1, name1_renamed),
             command=('dnsrecord_mod', [zone1, name1], {'rename': name1_renamed,}),
             expected={
-                'value': name1,
+                'value': name1_dnsname,
                 'summary': None,
                 'result': {
-                    'idnsname': [name1_renamed],
+                    'idnsname': [name1_renamed_dnsname],
                     'arecord': [arec3],
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
@@ -1026,7 +1015,7 @@ class test_dns(Declarative):
             desc='Delete record %r in zone %r' % (name1_renamed, zone1),
             command=('dnsrecord_del', [zone1, name1_renamed], {'del_all': True }),
             expected={
-                'value': [name1_renamed],
+                'value': [name1_renamed_dnsname],
                 'summary': u'Deleted record "%s"' % name1_renamed,
                 'result': {'failed': []},
             },
@@ -1056,15 +1045,15 @@ class test_dns(Declarative):
                 }
             ),
             expected={
-                'value': revzone1,
+                'value': revzone1_dnsname,
                 'summary': None,
                 'result': {
                     'dn': revzone1_dn,
-                    'idnsname': [revzone1],
+                    'idnsname': [revzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone1_ns],
+                    'idnssoamname': [zone1_ns_dnsname],
                     'nsrecord': [zone1_ns],
-                    'idnssoarname': [zone1_rname],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -1091,15 +1080,15 @@ class test_dns(Declarative):
                 }
             ),
             expected={
-                'value': revzone2,
+                'value': revzone2_dnsname,
                 'summary': None,
                 'result': {
                     'dn': revzone2_dn,
-                    'idnsname': [revzone2],
+                    'idnsname': [revzone2_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone1_ns],
+                    'idnssoamname': [zone1_ns_dnsname],
                     'nsrecord': [zone1_ns],
-                    'idnssoarname': [zone1_rname],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -1117,23 +1106,15 @@ class test_dns(Declarative):
 
 
         dict(
-            desc='Try to add invalid PTR %r to %r using dnsrecord_add' % (revname1, revzone1),
-            command=('dnsrecord_add', [revzone1, revname1], {'ptrrecord': u'-.%s' % relnxname}),
-            expected=errors.ValidationError(name='hostname',
-                error=u"invalid domain-name: only letters, numbers, '-' " +
-                    u"are allowed. DNS label may not start or end with '-'"),
-        ),
-
-        dict(
             desc='Add PTR record %r to %r using dnsrecord_add' % (revname1, revzone1),
             command=('dnsrecord_add', [revzone1, revname1], {'ptrrecord': absnxname}),
             expected={
-                'value': revname1,
+                'value': revname1_dnsname,
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
                     'dn': revname1_dn,
-                    'idnsname': [revname1],
+                    'idnsname': [revname1_dnsname],
                     'ptrrecord': [absnxname],
                 },
             },
@@ -1145,11 +1126,11 @@ class test_dns(Declarative):
             command=('dnsrecord_show', [revzone1, revname1],
                 {'structured': True, 'all': True}),
             expected={
-                'value': revname1,
+                'value': revname1_dnsname,
                 'summary': None,
                 'result': {
                     'dn': revname1_dn,
-                    'idnsname': [revname1],
+                    'idnsname': [revname1_dnsname],
                     'objectclass': objectclasses.dnsrecord,
                     'dnsrecords': [
                         {
@@ -1186,16 +1167,16 @@ class test_dns(Declarative):
             desc='Add allow-query ACL to zone %r' % zone1,
             command=('dnszone_mod', [zone1], {'idnsallowquery': allowquery_restricted_in}),
             expected={
-                'value': zone1,
+                'value': zone1_absolute_dnsname,
                 'summary': None,
                 'result': {
-                    'idnsname': [zone1],
+                    'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [zone1_ns],
                     'mxrecord': [u'0 ns1.dnszone.test.'],
                     'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
-                    'idnssoamname': [zone1_ns],
-                    'idnssoarname': [zone1_rname],
+                    'idnssoamname': [zone1_ns_dnsname],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
                     'idnssoaretry': [fuzzy_digits],
@@ -1219,16 +1200,16 @@ class test_dns(Declarative):
             desc='Add allow-transer ACL to zone %r' % zone1,
             command=('dnszone_mod', [zone1], {'idnsallowtransfer': fwd_ip}),
             expected={
-                'value': zone1,
+                'value': zone1_absolute_dnsname,
                 'summary': None,
                 'result': {
-                    'idnsname': [zone1],
+                    'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [zone1_ns],
                     'mxrecord': [u'0 ns1.dnszone.test.'],
                     'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
-                    'idnssoamname': [zone1_ns],
-                    'idnssoarname': [zone1_rname],
+                    'idnssoamname': [zone1_ns_dnsname],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
                     'idnssoaretry': [fuzzy_digits],
@@ -1245,16 +1226,16 @@ class test_dns(Declarative):
             desc='Set SOA serial of zone %r to high number' % zone1,
             command=('dnszone_mod', [zone1], {'idnssoaserial': 4294967295L}),
             expected={
-                'value': zone1,
+                'value': zone1_absolute_dnsname,
                 'summary': None,
                 'result': {
-                    'idnsname': [zone1],
+                    'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
                     'nsrecord': [zone1_ns],
                     'mxrecord': [u'0 ns1.dnszone.test.'],
                     'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
-                    'idnssoamname': [zone1_ns],
-                    'idnssoarname': [zone1_rname],
+                    'idnssoamname': [zone1_ns_dnsname],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [u'4294967295'],
                     'idnssoarefresh': [u'5478'],
                     'idnssoaretry': [fuzzy_digits],
@@ -1282,11 +1263,11 @@ class test_dns(Declarative):
             command=('dnsrecord_add', [zone1, name1], {'arecord': revname2_ip,
                                                             'a_extra_create_reverse' : True}),
             expected={
-                'value': name1,
+                'value': name1_dnsname,
                 'summary': None,
                 'result': {
                     'dn': name1_dn,
-                    'idnsname': [name1],
+                    'idnsname': [name1_dnsname],
                     'objectclass': objectclasses.dnsrecord,
                     'arecord': [revname2_ip],
                 },
@@ -1298,11 +1279,11 @@ class test_dns(Declarative):
             desc='Check reverse record for %r created via --a-create-reverse' % name1,
             command=('dnsrecord_show', [revzone1, revname2], {}),
             expected={
-                'value': revname2,
+                'value': revname2_dnsname,
                 'summary': None,
                 'result': {
                     'dn': revname2_dn,
-                    'idnsname': [revname2],
+                    'idnsname': [revname2_dnsname],
                     'ptrrecord': [name1 + '.' + zone1 + '.'],
                 },
             },
@@ -1406,8 +1387,8 @@ class test_dns(Declarative):
             desc='Delete zone %r' % zone1,
             command=('dnszone_del', [zone1], {}),
             expected={
-                'value': [zone1],
-                'summary': u'Deleted DNS zone "%s"' % zone1,
+                'value': [zone1_absolute_dnsname],
+                'summary': u'Deleted DNS zone "%s"' % zone1_absolute,
                 'result': {'failed': []},
             },
         ),
@@ -1416,7 +1397,7 @@ class test_dns(Declarative):
         dict(
             desc='Try to create zone %r nameserver not in it' % zone1,
             command=(
-                'dnszone_add', [zone1], {
+                'dnszone_add', [zone1_absolute], {
                     'idnssoamname': u'not.in.this.zone.',
                     'idnssoarname': zone1_rname,
                     'ip_address' : zone1_ip,
@@ -1431,22 +1412,22 @@ class test_dns(Declarative):
         dict(
             desc='Create zone %r with relative nameserver' % zone1,
             command=(
-                'dnszone_add', [zone1], {
+                'dnszone_add', [zone1_absolute], {
                     'idnssoamname': u'ns',
                     'idnssoarname': zone1_rname,
                     'ip_address' : zone1_ip,
                 }
             ),
             expected={
-                'value': zone1,
+                'value': zone1_absolute_dnsname,
                 'summary': None,
                 'result': {
                     'dn': zone1_dn,
-                    'idnsname': [zone1],
+                    'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [u'ns'],
+                    'idnssoamname': [DNSName(u'ns')],
                     'nsrecord': [u'ns'],
-                    'idnssoarname': [zone1_rname],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -1469,8 +1450,8 @@ class test_dns(Declarative):
             desc='Delete zone %r' % zone1,
             command=('dnszone_del', [zone1], {}),
             expected={
-                'value': [zone1],
-                'summary': u'Deleted DNS zone "%s"' % zone1,
+                'value': [zone1_absolute_dnsname],
+                'summary': u'Deleted DNS zone "%s"' % zone1_absolute,
                 'result': {'failed': []},
             },
         ),
@@ -1480,21 +1461,21 @@ class test_dns(Declarative):
             desc='Create zone %r with nameserver in the zone itself' % zone1,
             command=(
                 'dnszone_add', [zone1], {
-                    'idnssoamname': zone1 + u'.',
+                    'idnssoamname': zone1_absolute,
                     'idnssoarname': zone1_rname,
                     'ip_address' : zone1_ip,
                 }
             ),
             expected={
-                'value': zone1,
+                'value': zone1_absolute_dnsname,
                 'summary': None,
                 'result': {
                     'dn': zone1_dn,
-                    'idnsname': [zone1],
+                    'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone1 + u'.'],
-                    'nsrecord': [zone1 + u'.'],
-                    'idnssoarname': [zone1_rname],
+                    'idnssoamname': [zone1_absolute_dnsname],
+                    'nsrecord': [zone1_absolute],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -1522,15 +1503,15 @@ class test_dns(Declarative):
                 }
             ),
             expected={
-                'value': zone3,
+                'value': zone3_absolute_dnsname,
                 'summary': None,
                 'result': {
                     'dn': zone3_dn,
-                    'idnsname': [zone3],
+                    'idnsname': [zone3_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone3_ns],
+                    'idnssoamname': [zone3_ns_dnsname],
                     'nsrecord': [zone3_ns],
-                    'idnssoarname': [zone3_rname],
+                    'idnssoarname': [zone3_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -1552,11 +1533,11 @@ class test_dns(Declarative):
             desc='Add A record to %r in zone %r' % (zone3_ns2_arec, zone3),
             command=('dnsrecord_add', [zone3, zone3_ns2_arec], {'arecord': zone3_ip2}),
             expected={
-                'value': zone3_ns2_arec,
+                'value': zone3_ns2_arec_dnsname,
                 'summary': None,
                 'result': {
                     'dn': zone3_ns2_arec_dn,
-                    'idnsname': [zone3_ns2_arec],
+                    'idnsname': [zone3_ns2_arec_dnsname],
                     'arecord': [zone3_ip2],
                     'objectclass': objectclasses.dnsrecord,
                 },
@@ -1572,15 +1553,15 @@ class test_dns(Declarative):
                 }
             ),
             expected={
-                'value': revzone3_classless1,
+                'value': revzone3_classless1_dnsname,
                 'summary': None,
                 'result': {
                     'dn': revzone3_classless1_dn,
-                    'idnsname': [revzone3_classless1],
+                    'idnsname': [revzone3_classless1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone3_ns],
+                    'idnssoamname': [zone3_ns_dnsname],
                     'nsrecord': [zone3_ns],
-                    'idnssoarname': [zone3_rname],
+                    'idnssoarname': [zone3_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -1605,15 +1586,15 @@ class test_dns(Declarative):
                 }
             ),
             expected={
-                'value': revzone3_classless2,
+                'value': revzone3_classless2_dnsname,
                 'summary': None,
                 'result': {
                     'dn': revzone3_classless2_dn,
-                    'idnsname': [revzone3_classless2],
+                    'idnsname': [revzone3_classless2_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone3_ns2],
+                    'idnssoamname': [zone3_ns2_dnsname],
                     'nsrecord': [zone3_ns2],
-                    'idnssoarname': [zone3_rname],
+                    'idnssoarname': [zone3_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -1633,14 +1614,14 @@ class test_dns(Declarative):
             desc='Add NS record to %r in revzone %r' % (nsrev, revzone3_classless1),
             command=('dnsrecord_add', [revzone3_classless1, nsrev], {'nsrecord': zone3_ns2}),
             expected={
-                'value': nsrev,
+                'value': nsrev_dnsname,
                 'summary': None,
                 'result': {
                     'dn': nsrev_dn,
-                    'idnsname': [nsrev],
+                    'idnsname': [nsrev_dnsname],
                     'nsrecord': [zone3_ns2],
                     'objectclass': objectclasses.dnsrecord,
-                },
+                    },
             },
         ),
 
@@ -1648,11 +1629,11 @@ class test_dns(Declarative):
             desc='Add CNAME record to %r in revzone %r' % (cnamerev, revzone3_classless1),
             command=('dnsrecord_add', [revzone3_classless1, cnamerev], {'cnamerecord': cnamerev_hostname}),
             expected={
-                'value': cnamerev,
+                'value': cnamerev_dnsname,
                 'summary': None,
                 'result': {
                     'dn': cnamerev_dn,
-                    'idnsname': [cnamerev],
+                    'idnsname': [cnamerev_dnsname],
                     'cnamerecord': [cnamerev_hostname],
                     'objectclass': objectclasses.dnsrecord,
                 },
@@ -1664,11 +1645,11 @@ class test_dns(Declarative):
             command=('dnsrecord_add', [revzone3_classless2, cnamerev],
                      {'ptrrecord': ptr_revzone3_hostname}),
             expected={
-                'value': ptr_revzone3,
+                'value': ptr_revzone3_dnsname,
                 'summary': None,
                 'result': {
                     'dn': ptr_revzone3_dn,
-                    'idnsname': [ptr_revzone3],
+                    'idnsname': [ptr_revzone3_dnsname],
                     'ptrrecord': [ptr_revzone3_hostname],
                     'objectclass': objectclasses.dnsrecord,
                 },
@@ -1755,19 +1736,29 @@ class test_dns(Declarative):
 
 
         dict(
-            desc='Check if zone %r is really enabled' % zone1,
+            desc='Disable zone %r' % zone1,
+            command=('dnszone_disable', [zone1], {}),
+            expected={
+                'value': zone1_absolute_dnsname,
+                'summary': u'Disabled DNS zone "%s"' % zone1_absolute,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Check if zone %r is really disabled' % zone1,
             command=('dnszone_show', [zone1], {}),
             expected={
-                'value': zone1,
+                'value': zone1_absolute_dnsname,
                 'summary': None,
                 'result': {
                     'dn': zone1_dn,
-                    'idnsname': [zone1],
-                    'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone1 + u'.'],
-                    'nsrecord': [zone1 + u'.'],
-                    'arecord': [zone1_ip],
-                    'idnssoarname': [zone1_rname],
+                    'idnsname': [zone1_absolute_dnsname],
+                    'idnszoneactive': [u'FALSE'],
+                    'nsrecord': [zone1_absolute],
+                    'idnssoamname': [zone1_absolute_dnsname],
+                    'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -1775,6 +1766,44 @@ class test_dns(Declarative):
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
+                    'arecord': [arec1,],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Enable zone %r' % zone1,
+            command=('dnszone_enable', [zone1], {}),
+            expected={
+                'value': zone1_absolute_dnsname,
+                'summary': u'Enabled DNS zone "%s"' % zone1_absolute,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Check if zone %r is really enabled' % zone1,
+            command=('dnszone_show', [zone1_absolute], {}),
+            expected={
+                'value': zone1_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone1_dn,
+                    'idnsname': [zone1_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'nsrecord': [zone1_absolute],
+                    'idnssoamname': [zone1_absolute_dnsname],
+                    'idnssoarname': [zone1_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'arecord': [arec1,],
                 },
             },
         ),

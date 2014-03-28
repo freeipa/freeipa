@@ -24,6 +24,7 @@ Test integration of DNS and realmdomains.
 
 from ipalib import api, errors
 from ipapython.dn import DN
+from ipapython.dnsutil import DNSName
 from ipatests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits
 
@@ -32,17 +33,25 @@ cn = u'Realm Domains'
 dn = DN(('cn', cn), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
 our_domain = api.env.domain
 dnszone_1 = u'dnszone.test'
-dnszone_1_dn = DN(('idnsname', dnszone_1), api.env.container_dns,
+dnszone_1_absolute = u'%s.' % dnszone_1
+dnszone_1_dn = DN(('idnsname', dnszone_1_absolute), api.env.container_dns,
                   api.env.basedn)
 idnssoamname = u'ns1.%s.' % dnszone_1
 idnssoarname = u'root.%s.' % dnszone_1
 dnszone_2 = u'dnszone2.test'
-dnszone_2_dn = DN(('idnsname', dnszone_2), api.env.container_dns,
+dnszone_2_absolute = "%s." % dnszone_2
+dnszone_2_dn = DN(('idnsname', dnszone_2_absolute), api.env.container_dns,
                   api.env.basedn)
 
 
 def assert_realmdomain_and_txt_record_present(response):
     zone = response['value']
+    if isinstance(zone, (tuple, list)):
+        zone = zone[0]
+    zone = unicode(zone)
+    if zone.endswith(u'.'):
+        #realmdomains are without end dot
+        zone = zone[:-1]
 
     r = api.Command['realmdomains_show']()
     assert zone in r['result']['associateddomain']
@@ -57,6 +66,10 @@ def assert_realmdomain_and_txt_record_not_present(response):
     zone = response['value']
     if isinstance(zone, (tuple, list)):
         zone = zone[0]
+    zone = unicode(zone)
+    if zone.endswith(u'.'):
+        #realmdomains are without end dot
+        zone = zone[:-1]
 
     r = api.Command['realmdomains_show']()
     assert zone not in r['result']['associateddomain']
@@ -85,15 +98,15 @@ class test_dns_realmdomains_integration(Declarative):
                 }
             ),
             expected={
-                'value': dnszone_1,
+                'value':DNSName(dnszone_1_absolute),
                 'summary': None,
                 'result': {
                     'dn': dnszone_1_dn,
-                    'idnsname': [dnszone_1],
+                    'idnsname': [DNSName(dnszone_1_absolute)],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [idnssoamname],
+                    'idnssoamname': [DNSName(idnssoamname)],
                     'nsrecord': [idnssoamname],
-                    'idnssoarname': [idnssoarname],
+                    'idnssoarname': [DNSName(idnssoarname)],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -126,17 +139,17 @@ class test_dns_realmdomains_integration(Declarative):
                 }
             ),
             expected={
-                'value': dnszone_2,
+                'value': DNSName(dnszone_2_absolute),
                 'summary': None,
                 'result': {
                     'dn': dnszone_2_dn,
-                    'idnsname': [dnszone_2],
+                    'idnsname': [DNSName(dnszone_2_absolute)],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [idnssoamname],
+                    'idnssoamname': [DNSName(idnssoamname)],
                     'idnsforwarders': [u'1.2.3.4'],
                     'idnsforwardpolicy': [u'only'],
                     'nsrecord': [idnssoamname],
-                    'idnssoarname': [idnssoarname],
+                    'idnssoarname': [DNSName(idnssoarname)],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -161,8 +174,8 @@ class test_dns_realmdomains_integration(Declarative):
                  'during dnszone_del',
             command=('dnszone_del', [dnszone_1], {}),
             expected={
-                'value': [dnszone_1],
-                'summary': u'Deleted DNS zone "%s"' % dnszone_1,
+                'value': [DNSName(dnszone_1_absolute)],
+                'summary': u'Deleted DNS zone "%s"' % dnszone_1_absolute,
                 'result': {'failed': []},
             },
             extra_check=assert_realmdomain_and_txt_record_not_present,
