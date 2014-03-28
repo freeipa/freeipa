@@ -1407,16 +1407,6 @@ form#login {
     margin-top: 100px;
 }
 
-/* --- Unauthorized dialog --- */
-
-.auth-dialog  {
-    padding: 0 2em;
-}
-
-.auth-dialog h3 {
-    margin: 0.5em;
-}
-
 /* --- Action list --- */
 
 .facet-action-list {
