@@ -109,7 +109,6 @@ RP.on_submit = function() {
     } else {
         RP.reset_form();
         $('#success').css('display', 'block');
-        $('#login-link').focus();
         RP.hide_reset_form();
     }
 };

@@ -16,8 +16,6 @@ app_DATA =				\
 	jquery-ui.css			\
 	ie.css				\
 	ipa.css				\
-	login.html			\
-	login.js			\
 	reset_password.js		\
 	reset_password.html		\
 	$(NULL)
