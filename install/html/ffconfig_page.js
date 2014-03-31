@@ -22,13 +22,9 @@
 
     var set_enabled = function(steps, enabled) {
 
-        var method;
-
-        if (enabled) method = function(el) { el.removeClass('ui-state-disabled'); };
-        else method = function(el) { el.addClass('ui-state-disabled'); };
-
         for (var i=0; i<steps.length; i++) {
-            method($(steps[i]));
+            $(steps[i]).toggleClass('disabled', !enabled);
+            $(steps[i]+" .btn").toggleClass('disabled', !enabled);
         }
     };
 
@@ -46,7 +42,7 @@
 
     var install = function(event) {
 
-        window.location = $(event.target).parent().attr('href');
+        window.location = $(event.target).attr('href');
         check_until_installed();
         return false;
     };
@@ -87,10 +83,9 @@
 
     var check_version = function() {
 
-        var firefox = $.browser.mozilla === true;
-        var version = $.browser.version;
+        var browser = IPA.browser_config.get_browser();
 
-        if (!firefox) {
+        if (!browser.mozilla) {
             $('#wrongbrowser').show();
             set_enabled(['#step1', '#step2', '#step3'], false);
         } else {
@@ -98,7 +93,7 @@
             // the extension is compatible with version 3.6, 10 and later
             // FF 4-9 are not compatible because there is an error in loading
             // resource from chrome.manifest
-            if (compare_version(version, '15') === -1) {
+            if (compare_version(browser.version, '15') === -1) {
                 $('#step2a').show();
                 set_enabled(['#step2', '#step3'], false);
             }// else if (compare_version(version, '15') === -1) {
@@ -131,17 +126,19 @@
         return 0;
     };
 
-    $('#install-link').click(install);
-    $('#reinstall-link').click(install);
-    $('#configure-link').click(configure);
+    var button_handler = function(handler) {
+        return function(e) {
+            if ($(this).hasClass('disabled')) {
+                e.preventDefault();
+                return false;
+            }
+            return handler.call(this, e);
+        };
+    };
 
-    $('#notfirefox-link').button();
-    $('#ca-link').button();
-    $('#oldfirefox-link').button();
-    $('#reinstall-link').button();
-    $('#install-link').button();
-    $('#configure-link').button();
-    $('#return-link').button();
+    $('#install-link').click(button_handler(install));
+    $('#reinstall-link').click(button_handler(install));
+    $('#configure-link').click(button_handler(configure));
 
     check_version();
     show_installed(IPA.browser_config.extension_installed());

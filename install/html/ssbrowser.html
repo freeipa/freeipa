@@ -11,7 +11,8 @@
                     var domain = '.' + (IPA_DOMAIN || 'example.com');
                     $('.example-domain').text(domain);
 
-                    if ($.browser.mozilla) {
+                    var browser = IPA.browser_config.get_browser();
+                    if (browser.mozilla) {
                         var ff_config = $("#configurefirefox");
                         var obj = $('<object/>', {
                             type: 'text/html',
@@ -25,13 +26,13 @@
             }
 
             var styles = [
-                '../ui/jquery-ui.css',
-                '../ui/ipa.css',
-                'ipa_error.css'
+                '../ui/css/patternfly.css',
+                '../ui/css/ipa.css'
             ];
             var scripts = [
                 '../ui/js/libs/jquery.js',
-                'krb.js'
+                'krb.js',
+                'ffconfig.js'
             ];
             ipa_loader.scripts(scripts, loaded);
             ipa_loader.styles(styles);
@@ -42,59 +43,84 @@
 
 <body class="info-page">
 
-  <div class="container_1 ssbrowser">
-    <div class="header-logo">
-            <img src="../ui/images/ipa-logo.png" /><img src="../ui/images/ipa-banner.png" />
-        </div>
-       <div class="textblockkrb">
+    <nav class="navbar navbar-default navbar-pf" role="navigation">
+    <div class="navbar-header">
+        <a class="brand" href="../ui/index.html"><img src="../ui/images/header-logo.png" alt="FreeIPA"></a>
+    </div>
+    </nav>
+
+    <div class="container-fluid">
+    <div class="row">
+    <div class="col-sm-12">
+    <div class="ssbrowser">
         <h1>Browser Kerberos Setup</h1>
-        <img alt="Internet Explorer" src="../ui/images/ie-icon.png"><h2>Internet Explorer Configuration</h2>
-        <p>Once you are able to log into the workstation with your kerberos key you are now able to use that ticket in Internet Explorer. </p>
+        <h2><img alt="Internet Explorer" src="../ui/images/ie-icon.png">Internet Explorer Configuration</h2>
+        <p>
+            Once you are able to log into the workstation with your kerberos key you are now able to use that ticket in Internet Explorer.
+        </p>
+        <p>
+            <strong>Login to the Windows machine using an account of your Kerberos realm (administrative domain)</strong>
+        </p>
+        <p>
+            <strong>In Internet Explorer, click Tools, and then click Internet Options.</strong>
+        </p>
+        <div>
+            <ol>
+                <li>Click the Security tab</li>
+                <li>Click Local intranet</li>
+                <li>Click Sites </li>
+                <li>Click Advanced </li>
+                <li>Add your domain to the list</li>
+            </ol>
+            <ol>
+                <li>Click the Security tab</li>
+                <li>Click Local intranet</li>
+                <li>Click Custom Level</li>
+                <li>Select Automatic logon only in Intranet zone</li>
+            </ol>
 
-          <strong>Login to the Windows machine using an account of your Kerberos realm (administrative domain)</strong><br>
-          <strong>In Internet Explorer, click Tools, and then click Internet Options.</strong>
-            <br>
-            <ul>
-            <li> 1. Click the Security tab </li>
-            <li> 2. Click Local intranet </li>
-            <li> 3. Click Sites </li>
-            <li> 4. Click Advanced </li>
-            <li> 5. Add your domain to the list </li>
-            <br>
-            <li> 1. Click the Security tab </li>
-            <li> 2. Click Local intranet </li>
-            <li> 3. Click Custom Level </li>
-            <li> 4. Select Automatic logon only in Intranet zone </li>
-            <br>
-            <li> Visit a kerberized web site using IE (You must use the fully-qualified Domain Name in the URL)</li>
-            <li><strong> You are all set. </strong></li>
-            </ul>
-
-            <br>
-
-        <img alt="Firefox" src="../ui/images/firefox-icon.png"><h2>Firefox Configuration</h2>
-
-        <p>You can configure Firefox to use Kerberos for Single Sign-on. The following instructions will guide you in configuring your web browser <br>
-         to send your Kerberos credentials to the appropriate Key Distribution Center which enables Single Sign-on.  </p>
-
-            <ul><li> 1. In the address bar of Firefox, type <tt>about:config</tt> to display the list of current configuration options.</li>
-                <li> 2. In the Filter field, type <tt>negotiate</tt> to restrict the list of options. </li>
-                <li> 3. Double-click the <tt>network.negotiate-auth.trusted-uris</tt> entry to display the Enter string value dialog box. </li>
-                <li> 4. Enter the name of the domain against which you want to authenticate, for example, <tt class="example-domain">.example.com.</tt> </li>
-                <br>
-                <li><strong> You are all set. </strong></li>
-            </ul>
-
-            <h3><a name="oldfirefox"></a> Automatic Configuration of older versions</h3>
-            <p>You can configure older versions of Firefox (up to version 14) using signed code. Use <a href="browserconfig.html">Firefox configuration page</a> for newer versions.</p>
-            <ul>
-                <li>1. Import <a href="ca.crt">CA certificate</a>. Make sure you checked all three checkboxes.</li>
-                <li>2. Click on "Configure Browser" button below.</li>
-                <li id="configurefirefox" style="display:none"></li>
-            </ul>
+            <ol>
+                <li> Visit a kerberized web site using IE (You must use the fully-qualified Domain Name in the URL)</li>
+                <li><strong> You are all set.</strong></li>
+            </ol>
         </div>
 
-   </div>
+        <h2><img alt="Firefox" src="../ui/images/firefox-icon.png">Firefox Configuration</h2>
+
+        <p>
+            You can configure Firefox to use Kerberos for Single Sign-on. The following instructions will guide you in configuring your web browser to send your Kerberos credentials to the appropriate Key Distribution Center which enables Single Sign-on.
+        </p>
+
+        <ol>
+            <li>
+                In the address bar of Firefox, type <code>about:config</code> to display the list of current configuration options.
+            </li>
+            <li>
+                In the Filter field, type <code>negotiate</code> to restrict the list of options.
+            </li>
+            <li>
+                Double-click the <code>network.negotiate-auth.trusted-uris</code> entry to display the Enter string value dialog box.
+            </li>
+            <li>
+                Enter the name of the domain against which you want to authenticate, for example, <code class="example-domain">.example.com.</code>
+            </li>
+            <li><strong> You are all set. </strong></li>
+        </ol>
+
+        <h3>Automatic Configuration of older versions</h3>
+        <p>You can configure older versions of Firefox (up to version 14) using signed code. Use <a href="browserconfig.html">Firefox configuration page</a> for newer versions.</p>
+        <ol>
+            <li>Import <a href="ca.crt">CA certificate</a>. Make sure you checked all three checkboxes.</li>
+            <li>
+                Click on "Configure Browser" button below.
+                <div id="configurefirefox" style="display:none"></div>
+            </li>
+        </ol>
+
+    </div>
+    </div>
+    </div>
+    </div>
 
 </body>
 
