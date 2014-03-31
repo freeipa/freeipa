@@ -7,7 +7,6 @@ app_DATA =                              \
 	ssbrowser.html			\
 	browserconfig.html       	\
 	unauthorized.html       	\
-	ipa_error.css			\
 	$(NULL)
 
 EXTRA_DIST =                            \

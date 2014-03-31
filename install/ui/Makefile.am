@@ -13,7 +13,6 @@ appdir = $(IPA_DATA_DIR)/ui
 app_DATA =				\
 	favicon.ico			\
 	index.html 			\
-	jquery-ui.css			\
 	ie.css				\
 	ipa.css				\
 	reset_password.js		\

@@ -6,7 +6,6 @@ app_DATA =				\
 	browser.js 			\
 	jquery.js 			\
 	jquery.ordered-map.js 		\
-	jquery-ui.js 			\
 	json2.js 			\
 	loader.js 			\
 	qrcode.js 			\
