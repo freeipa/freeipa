@@ -2,13 +2,9 @@ NULL =
 
 appdir = $(IPA_DATA_DIR)/ui/images
 app_DATA =                              \
-	add-icon.png			\
 	arrow-collapsed.png		\
 	arrow-expanded.png		\
-	caution-icon.png		\
 	centered-background.png		\
-	check-icon.png			\
-	combobox-open.png		\
 	facet-tab-off.png		\
 	facet-tab-on.png		\
 	firefox-icon.png		\
@@ -26,10 +22,7 @@ app_DATA =                              \
 	outer-background.png		\
 	panel-background.png		\
 	product-name.png		\
-	remove-icon.png			\
-	reset-icon.png			\
 	search-background.png		\
-	search-icon.png			\
 	spinner-header-1.gif		\
 	spinner-small.gif		\
 	static-background.png		\
@@ -43,13 +36,6 @@ app_DATA =                              \
 	ui-bg_highlight-soft_50_aaaaaa_1x100.png \
 	ui-bg_inset-hard_45_cd0a0a_1x100.png \
 	ui-bg_inset-hard_55_ffeb80_1x100.png \
-	ui-icons_222222_256x240.png	\
-	ui-icons_4ca300_256x240.png	\
-	ui-icons_bbbbbb_256x240.png	\
-	ui-icons_ededed_256x240.png	\
-	ui-icons_ffcf29_256x240.png	\
-	ui-icons_ffffff_256x240.png	\
-	update-icon.png			\
 	$(NULL)
 
 EXTRA_DIST =                            \

@@ -60,76 +60,12 @@ textarea[readonly] {
     vertical-align: middle;
 }
 
-.combobox-icon {
-    background: url(images/combobox-open.png);
-}
-
 .expanded-icon {
     background: url(images/arrow-expanded.png);
 }
 
 .collapsed-icon {
     background: url(images/arrow-collapsed.png);
-}
-
-.search-icon {
-    background: url(images/search-icon.png) no-repeat;
-}
-
-.add-icon {
-    background: url(images/add-icon.png);
-    margin: -4px 0 0 1px;
-}
-
-.remove-icon {
-    background: url(images/remove-icon.png);
-    margin: -4px 0 0 1px;
-}
-
-.update-icon {
-    background: url(images/update-icon.png);
-    margin: -4px 0 0 1px;
-}
-
-.reset-icon {
-    background: url(images/reset-icon.png);
-    margin: -4px 0 0 1px;
-}
-
-.enabled-icon {
-    background-image: url(images/ui-icons_222222_256x240.png);
-    background-position: -64px -144px;
-    margin: -4px 0 0 1px;
-}
-
-.disabled-icon {
-    background-image: url(images/ui-icons_bbbbbb_256x240.png);
-    background-position: -64px -128px;
-    margin: -4px 0 0 1px;
-}
-
-.prev-icon {
-    background-image: url(images/ui-icons_bbbbbb_256x240.png);
-    background-position: -96px -16px;
-    margin: -4px 0 0 1px;
-}
-
-.next-icon {
-    background-image: url(images/ui-icons_bbbbbb_256x240.png);
-    background-position: -32px -16px;
-    margin: -4px 0 0 1px;
-}
-
-.ipa-icon {
-    font-size: 0.7em;
-    padding-right: 0.3em;
-}
-
-.ui-state-error,
-.ui-widget-content .ui-state-error,
-.ui-widget-header .ui-state-error {
-    font-weight: bold;
-    padding: 0.2em;
 }
 
 /* ---- Password expiration */
