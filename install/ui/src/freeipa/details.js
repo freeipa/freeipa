@@ -44,18 +44,6 @@ define([
 var exp = {};
 
 /**
- * Name of expanded icon
- * @member details
- */
-exp.expanded_icon = IPA.expanded_icon = 'expanded-icon';
-
-/**
- * Name of collapsed icon
- * @member details
- */
-exp.collapsed_icon = IPA.collapsed_icon = 'collapsed-icon';
-
-/**
  * Details builder
  *
  * Processes containers spec and builds sections, widget and fields according

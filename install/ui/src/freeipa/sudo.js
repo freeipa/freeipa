@@ -312,7 +312,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
 
     spec.widgets.push(
         {
-            $factory: IPA.collapsible_section,
+            $factory: IPA.section,
             name: 'user',
             label: '@i18n:objects.sudorule.user',
             widgets: [
@@ -387,7 +387,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
 
     spec.widgets.push(
     {
-            $factory: IPA.collapsible_section,
+            $factory: IPA.section,
             name: 'host',
             label: '@i18n:objects.sudorule.host',
             widgets: [
@@ -473,7 +473,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
 
     spec.widgets.push(
         {
-            $factory: IPA.collapsible_section,
+            $factory: IPA.section,
             name: 'command',
             label: '@i18n:objects.sudorule.command',
             widgets: [
@@ -589,7 +589,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
 
     spec.widgets.push(
         {
-            $factory: IPA.collapsible_section,
+            $factory: IPA.section,
             name: 'runas',
             label: '@i18n:objects.sudorule.runas',
             widgets: [
@@ -682,7 +682,7 @@ IPA.sudo.options_section = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.collapsible_section(spec);
+    var that = IPA.section(spec);
 
     function setup_table(){
         that.table = IPA.table_widget({

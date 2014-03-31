@@ -192,7 +192,7 @@ var add_selinux_details_facet_widgets = function (spec) {
 
     spec.widgets.push(
         {
-            $factory: IPA.collapsible_section,
+            $factory: IPA.section,
             name: 'user',
             label: '@i18n:objects.selinuxusermap.user',
             widgets: [
@@ -261,7 +261,7 @@ var add_selinux_details_facet_widgets = function (spec) {
 
     spec.widgets.push(
         {
-            $factory: IPA.collapsible_section,
+            $factory: IPA.section,
             name: 'host',
             label: '@i18n:objects.selinuxusermap.host',
             widgets: [

@@ -2,8 +2,6 @@ NULL =
 
 appdir = $(IPA_DATA_DIR)/ui/images
 app_DATA =                              \
-	arrow-collapsed.png		\
-	arrow-expanded.png		\
 	centered-background.png		\
 	facet-tab-off.png		\
 	facet-tab-on.png		\

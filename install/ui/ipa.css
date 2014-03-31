@@ -51,23 +51,6 @@ textarea[readonly] {
     margin: 0 auto 0;
 }
 
-/** Icons **/
-
-.icon {
-    display: inline-block;
-    height: 16px;
-    width: 16px;
-    vertical-align: middle;
-}
-
-.expanded-icon {
-    background: url(images/arrow-expanded.png);
-}
-
-.collapsed-icon {
-    background: url(images/arrow-collapsed.png);
-}
-
 /* ---- Password expiration */
 
 .header-passwordexpires {

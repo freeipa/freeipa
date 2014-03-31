@@ -169,6 +169,7 @@
                 "name": "Sections and layout widgets",
                 "classes": [
                     "IPA.layout",
+                    "IPA.section",
                     "*_section",
                     "*_layout",
                     "IPA.details_table_section_nc"

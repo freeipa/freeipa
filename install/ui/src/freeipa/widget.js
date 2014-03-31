@@ -4104,13 +4104,12 @@ IPA.composite_widget = function(spec) {
  * @class
  * @extends IPA.composite_widget
  */
-IPA.collapsible_section = function(spec) {
+IPA.section = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.composite_widget(spec);
 
-    that.collabsible = !!spec.collabsible;
     that.show_header = spec.show_header === undefined ? true : spec.show_header;
 
     that.create = function(container) {
@@ -4135,18 +4134,6 @@ IPA.collapsible_section = function(spec) {
             name: that.name
         }).appendTo(container);
 
-        if (that.collabsible) {
-            that.icon = $('<span/>', {
-                name: 'icon',
-                'class': 'icon section-expand '+IPA.expanded_icon
-            }).appendTo(that.header);
-
-            that.header.click(function() {
-                var visible = that.content_container.is(":visible");
-                that.toggle(!visible);
-            });
-        }
-
         that.header.append(' ');
 
         that.header.append(that.label);
@@ -4154,16 +4141,6 @@ IPA.collapsible_section = function(spec) {
 
     that.create_content = function() {
         that.composite_widget_create(that.content_container);
-    };
-
-    that.toggle = function(visible) {
-
-        that.icon.toggleClass(IPA.expanded_icon, visible);
-        that.icon.toggleClass(IPA.collapsed_icon, !visible);
-
-        if (visible != that.content_container.is(":visible")) {
-            that.content_container.slideToggle('slow');
-        }
     };
 
     return that;
@@ -4416,15 +4393,15 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
 };
 
 /**
- * Collapsible section with table layout
+ * Section with fluid form layout
  * @class
- * @extends IPA.collapsible_section
+ * @extends IPA.section
  */
 IPA.details_section = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.collapsible_section(spec);
+    var that = IPA.section(spec);
     that.layout = IPA.build(spec.layout || IPA.fluid_layout);
     that.action_panel = that.build_child(spec.action_panel, {},
                                          { $factory: IPA.action_panel });
@@ -4460,13 +4437,12 @@ IPA.details_section = function(spec) {
 };
 
 /**
- * Collapsible section with table layout
+ * Section with table layout
  * @class
  * @extends IPA.details_section
  */
 IPA.details_table_section = function(spec) {
 
-    spec.collabsible = spec.collabsible === undefined ? true : spec.collabsible;
     spec.layout = spec.layout || IPA.table_layout;
 
     var that = IPA.details_section(spec);

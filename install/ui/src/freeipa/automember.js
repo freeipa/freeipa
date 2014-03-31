@@ -268,7 +268,7 @@ IPA.automember.rule_details_facet = function(spec) {
             ]
         },
         {
-            $factory: IPA.collapsible_section,
+            $factory: IPA.section,
             name: 'inclusive',
             label: '@i18n:objects.automember.inclusive',
             widgets: [
@@ -298,7 +298,7 @@ IPA.automember.rule_details_facet = function(spec) {
             ]
         },
         {
-            $factory: IPA.collapsible_section,
+            $factory: IPA.section,
             name: 'exclusive',
             label: '@i18n:objects.automember.exclusive',
             widgets: [
