@@ -23,7 +23,7 @@ Password migration script
 import cgi
 import errno
 import glob
-import wsgiref
+from wsgiref.util import request_uri
 
 from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import get_ipa_basedn
@@ -37,7 +37,7 @@ def wsgi_redirect(start_response, loc):
     return []
 
 def get_ui_url(environ):
-    full_url = wsgiref.util.request_uri(environ)
+    full_url = request_uri(environ)
     index = full_url.rfind(environ.get('SCRIPT_NAME',''))
     if index == -1:
         raise ValueError('Cannot strip the script URL from full URL "%s"' % full_url)
