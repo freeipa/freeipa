@@ -1381,7 +1381,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     static const char *attrs_list[] = {
         SLAPI_USERPWD_ATTR, "ipaUserAuthType", "krbprincipalkey", "uid",
         "krbprincipalname", "objectclass", "passwordexpirationtime",
-        "passwordhistory",
+        "passwordhistory", "krbprincipalexpiration",
         NULL
     };
     struct berval *credentials = NULL;
@@ -1390,6 +1390,10 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     int method = 0;
     bool syncreq;
     int ret = 0;
+    time_t current_time;
+    time_t expire_time;
+    char *principal_expire = NULL;
+    struct tm expire_tm;
 
     /* get BIND parameters */
     ret |= slapi_pblock_get(pb, SLAPI_BIND_TARGET, &dn);
@@ -1409,6 +1413,35 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     if (ret) {
         LOG("failed to retrieve user entry: %s\n", dn);
         return 0;
+    }
+
+    /* Check if the principal is not expired */
+    principal_expire = slapi_entry_attr_get_charptr(entry, "krbPrincipalExpiration");
+
+    if (principal_expire) {
+        /* if it is set, check whether the principal has not expired */
+        memset(&expire_tm, 0, sizeof (expire_tm));
+
+        if (strptime(principal_expire, "%Y%m%d%H%M%SZ", &expire_tm)) {
+            expire_time = mktime(&expire_tm);
+            current_time = time(NULL);
+
+            /* mktime returns -1 if the tm struct cannot be represented as
+             * as calendar time (seconds since the Epoch). This might
+             * happen with tm structs that are ill-formated or on 32-bit
+             * platforms with dates that would cause overflow
+             * (year 2038 and later).
+             * In such cases, skip the expiration check. */
+
+            if (current_time > expire_time && expire_time > 0) {
+                LOG_FATAL("kerberos principal in %s is expired\n", dn);
+                slapi_entry_free(entry);
+                slapi_send_ldap_result(pb, LDAP_UNWILLING_TO_PERFORM, NULL,
+                                       "Account (Kerberos principal) is expired",
+                                        0, NULL);
+                return -1;
+            }
+        }
     }
 
     /* Try to do OTP first. */
