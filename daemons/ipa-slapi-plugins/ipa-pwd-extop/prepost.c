@@ -1414,6 +1414,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     /* Try to do OTP first. */
     syncreq = sync_request_present(pb);
     if (!syncreq && !ipapwd_pre_bind_otp(dn, entry, credentials)) {
+        slapi_entry_free(entry);
         slapi_send_ldap_result(pb, LDAP_INVALID_CREDENTIALS,
                                NULL, NULL, 0, NULL);
         return 1;
