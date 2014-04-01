@@ -78,6 +78,14 @@ struct range_info {
     uint32_t secondary_base_rid;
 };
 
+static void free_range_info(struct range_info *range) {
+    if (range != NULL) {
+        slapi_ch_free_string(&(range->name));
+        slapi_ch_free_string(&(range->domain_id));
+        free(range);
+    }
+}
+
 static int slapi_entry_to_range_info(struct slapi_entry *entry,
                                      struct range_info **_range)
 {
@@ -131,7 +139,7 @@ static int slapi_entry_to_range_info(struct slapi_entry *entry,
 
 done:
     if (ret != 0) {
-        free(range);
+        free_range_info(range);
     }
 
     return ret;
@@ -388,7 +396,7 @@ static int ipa_range_check_pre_op(Slapi_PBlock *pb, int modtype)
         }
 
         no_overlap = ranges_overlap(new_range, old_range);
-        free(old_range);
+        free_range_info(old_range);
         old_range = NULL;
         if (no_overlap != 0) {
             ret = LDAP_CONSTRAINT_VIOLATION;
@@ -426,8 +434,8 @@ done:
     slapi_free_search_results_internal(search_pb);
     slapi_pblock_destroy(search_pb);
     slapi_sdn_free(&dn);
-    free(old_range);
-    free(new_range);
+    free_range_info(old_range);
+    free_range_info(new_range);
     if (free_entry) {
         slapi_entry_free(entry);
     }
