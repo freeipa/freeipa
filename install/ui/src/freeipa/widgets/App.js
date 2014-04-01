@@ -92,42 +92,71 @@ define(['dojo/_base/declare',
                 construct.place(this.dom_node, this.container_node);
             }
 
-            this._render_header();
+            this._render_navigation();
 
             this.content_node = construct.create('div', {
                 'class': 'content'
             }, this.dom_node);
         },
 
-        _render_header: function() {
-            this.header_node = construct.create('div', {
-                'class': 'header rcue'
+        _render_navigation: function() {
+
+            this.nav_node = construct.create('nav', {
+                'class': 'navbar navbar-default navbar-pf',
+                role: 'navigation'
             });
 
+            this._render_nav_header();
+            construct.place(this.header_node, this.nav_node);
+
             this._render_nav_util();
-            construct.place(this.nav_util_node, this.header_node);
+            construct.place(this.nav_util_node, this.nav_node);
 
             this.menu_node = this.menu_widget.render();
-            construct.place(this.menu_node, this.header_node);
+            construct.place(this.menu_node, this.nav_util_node);
 
-            construct.place(this.header_node, this.dom_node);
+            construct.place(this.nav_node, this.dom_node);
+        },
+
+        _render_nav_header: function() {
+
+            this.header_node = construct.create('div', {
+                'class': 'navbar-header'
+            }, this.nav_node);
+
+            var button = construct.create('button', {
+                'class': 'navbar-toggle',
+                'data-toggle': 'collapse',
+                'data-target': '.navbar-collapse-21'
+            });
+
+            construct.create('span', {
+                'class': 'sr-only',
+                innerHTML: 'Toggle navigation'
+            }, button);
+
+            construct.create('span', { 'class': 'icon-bar' }, button);
+            construct.create('span', { 'class': 'icon-bar' }, button);
+            construct.create('span', { 'class': 'icon-bar' }, button);
+
+            construct.place(button, this.header_node);
+
+            this._render_brand();
+            construct.place(this.brand_node, this.header_node);
+            return this.header_node;
         },
 
         _render_nav_util: function() {
+
             this.nav_util_node = construct.create('div', {
-                'class': 'navbar utility'
-            });
+                'class': 'collapse navbar-collapse navbar-collapse-21'
+            }, this.nav_node);
 
-            this.nav_util_inner_node = construct.create('div', {
-                'class': 'navbar-inner'
-            }, this.nav_util_node);
 
-            this._render_brand();
-            construct.place(this.brand_node, this.nav_util_inner_node);
 
             this.nav_util_tool_node = construct.create('ul', {
-                'class': 'nav pull-right'
-            }, this.nav_util_inner_node);
+                'class': 'nav navbar-nav navbar-utility'
+            }, this.nav_util_node);
 
             this.password_expires_node = construct.create('li', {
                 'class': 'header-passwordexpires'
@@ -150,7 +179,7 @@ define(['dojo/_base/declare',
 
         _render_brand: function() {
             this.brand_node = construct.create('a', {
-                'class': 'brand',
+                'class': 'navbar-brand',
                 href: '#'
             });
 
@@ -182,6 +211,19 @@ define(['dojo/_base/declare',
             return nodes;
         },
 
+        collapse_menu: function() {
+            if (this.nav_util_node) {
+                var $nav = $(this.nav_util_node);
+                if ($nav.hasClass('in')) {
+                    $nav.collapse('hide');
+                }
+            }
+        },
+
+        on_menu_item_click: function(item) {
+            this.collapse_menu();
+        },
+
         on_user_menu_click: function(item) {
 
             if (item.name === 'profile') {
@@ -193,6 +235,7 @@ define(['dojo/_base/declare',
             } else if (item.name == 'about') {
                 this.emit('about-click');
             }
+            this.collapse_menu();
         },
 
         constructor: function(spec) {
@@ -231,6 +274,7 @@ define(['dojo/_base/declare',
                 ]
             });
             on(this.user_menu, 'item-click', lang.hitch(this, this.on_user_menu_click));
+            on(this.menu_widget, 'item-select', lang.hitch(this, this.on_menu_item_click));
         }
 
     });

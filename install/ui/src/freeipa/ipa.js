@@ -318,7 +318,7 @@ var IPA = function () {
      */
     that.display_activity_icon = function() {
         that.network_call_count++;
-        $('.network-activity-indicator').css('visibility', 'visible');
+        $('.network-activity-indicator').css('display', '');
         if (that.network_call_count === 1) {
             topic.publish('network-activity-start');
         }
@@ -333,7 +333,7 @@ var IPA = function () {
         that.network_call_count--;
 
         if (0 === that.network_call_count) {
-            $('.network-activity-indicator').css('visibility', 'hidden');
+            $('.network-activity-indicator').css('display', 'none');
             topic.publish('network-activity-end');
         }
     };
@@ -583,14 +583,14 @@ IPA.reset_password = function(username, old_password, new_password) {
  */
 IPA.update_password_expiration = function() {
 
-    var now, expires, notify_days, diff, message, container;
+    var now, expires, notify_days, diff, message, container, notify;
 
     expires = IPA.whoami.krbpasswordexpiration;
     expires = expires ? datetime.parse(expires[0]) : null;
 
     notify_days = IPA.server_config.ipapwdexpadvnotify;
     notify_days = notify_days ? notify_days[0] : 0;
-
+    notify = false;
     now = new Date();
 
     container = $('.header-passwordexpires');
@@ -602,11 +602,13 @@ IPA.update_password_expiration = function() {
         diff = Math.floor(diff / 86400000);
 
         if (diff <= notify_days) {
+            notify = true;
             message = text.get('@i18n:password.expires_in');
             message = message.replace('${days}', diff);
             container.append(message);
         }
     }
+    container.toggle(notify);
 };
 
 /**

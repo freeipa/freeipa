@@ -78,17 +78,10 @@ define(['dojo/_base/declare',
         render: function() {
             if (this.dom_node) {
                 construct.empty(this.dom_node);
-            } else {
-                this.dom_node = construct.create('div', {
-                    'class': 'navbar primary persistent-secondary'
-                });
             }
-            this.innerNode = construct.create('div', {
-                'class': 'navbar-inner'
-            }, this.dom_node);
-            if (this.menu) {
-                this._render_children(null, null, this.innerNode, 1);
-            }
+
+            this.dom_node = this._render_children(null, null, this.dom_node, null, 1);
+
             return this.dom_node;
         },
 
@@ -96,19 +89,24 @@ define(['dojo/_base/declare',
          * Render submenu container of given level
          *
          * @protected
-         * @param {HTMLElement} node Node to add the container to.
          * @param {Number} level submenu level
          */
-        _render_level_container: function(node, level) {
+        _render_level_container: function(level, parent) {
 
             var lvl_class = this._get_lvl_class(level);
             var type_cls = 'nav';
-            if (level === 2) type_cls = 'persistent';
-            if (level > 2) type_cls = 'dropdown-menu';
+            if (level === 1) {
+                type_cls = 'nav navbar-nav navbar-primary persistent-secondary';
+            } else if (level === 2) {
+                type_cls = 'nav navbar-nav navbar-persistent';
+            } else {
+                type_cls = 'dropdown-menu';
+            }
 
             var cont = construct.create('ul', {
                 'class': type_cls + ' ' + lvl_class
-            }, node);
+            });
+
             return cont;
         },
 
@@ -143,7 +141,7 @@ define(['dojo/_base/declare',
             this._update_item(menu_item, item_node);
 
              // create submenu
-            this._render_children(menu_item, children, item_node, level + 1);
+            this._render_children(menu_item, children, null, item_node, level + 1);
 
             construct.place(item_node, container);
         },
@@ -154,24 +152,35 @@ define(['dojo/_base/declare',
          *
          * @protected
          * @param {navigation.MenuItem|null} menu_item
-         * @param {HTMLElement} container
+         * @param {Object|null} children query result
+         * @param {HTMLElement|null} item_container  container for children
+         * @param {HTMLElement|null} container container for item_container
          * @param {number} level
          */
-        _render_children: function(menu_item, children, container, level) {
+        _render_children: function(menu_item, children, item_container, container, level) {
 
             if (children === null) {
                 children = this._get_children(menu_item);
             }
 
-            if (children.total > 0) {
-                var item_container = this._render_level_container(container, level);
+            if (!item_container) {
+                item_container = this._render_level_container(level, container);
+            }
 
+            if (children.total > 0) {
                 array.forEach(children, function(menu_item) {
                     this._render_item(menu_item, item_container, level);
                 }, this);
-
-                construct.place(item_container, container);
             }
+
+            if (container) {
+                construct.place(item_container, container);
+                // use jQuery resize to make use of window.resize throttling
+                $(window).bind('resize', lang.hitch(this, function() {
+                    this._adjust_size(container, item_container, level);
+                }));
+            }
+            return item_container;
         },
 
         _get_children: function(menu_item) {
@@ -240,15 +249,10 @@ define(['dojo/_base/declare',
             // show and update selected
             array.forEach(menu_items, function(item) {
                 this._update_item(item);
-
-                // show submenu
-                var item_div = query('div[data-item=\''+item.name+'\']', this.dom_node)[0];
-                if (item_div) {
-                    dom_style.set(item_div, {
-                        display: 'block'
-                    });
-                }
             }, this);
+
+            // to force adjusting of item sizes
+            $(window).trigger('resize');
         },
 
         /**
@@ -306,6 +310,23 @@ define(['dojo/_base/declare',
          */
         item_clicked: function(menu_item/*, event*/) {
             this._item_clicked(menu_item);
+        },
+
+        /**
+         * Adjust parent size according to child size
+         * @param  {HTMLElement} parent parent menu item container
+         * @param  {HTMLElement} child child menu item container
+         * @param  {number} level level of the child menu item
+         */
+        _adjust_size: function(parent, child, level) {
+
+            if (level !== 2) return;
+
+            var child_height = dom_style.get(child, 'height');
+            var absolute = dom_style.get(child, 'position') === 'absolute';
+            if (child_height && absolute) {
+                dom_style.set(parent, 'marginBottom', child_height+'px');
+            }
         }
     });
 });

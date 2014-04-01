@@ -201,7 +201,7 @@ class test_user(UI_driver):
         self.logout()
         self.init_app(user.PKEY, pwd)
 
-        header = self.find('.header', By.CSS_SELECTOR)
+        header = self.find('.navbar-pf', By.CSS_SELECTOR)
         self.assert_text(
             '.header-passwordexpires',
             'Your password expires in 6 days.',
