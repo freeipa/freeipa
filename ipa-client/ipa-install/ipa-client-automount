@@ -440,7 +440,12 @@ def main():
         except errors.KerberosError, e:
             sys.exit('Cannot connect to the server due to ' + str(e))
         try:
-            api.Command['automountlocation_show'](unicode(options.location))
+            # Use the RPC directly so older servers are supported
+            result = api.Backend.xmlclient.forward(
+                'automountlocation_show',
+                unicode(options.location),
+                version=u'2.0',
+            )
         except errors.VersionError, e:
             sys.exit('This client is incompatible: ' + str(e))
         except errors.NotFound:
