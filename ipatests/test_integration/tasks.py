@@ -445,6 +445,15 @@ def uninstall_master(host):
 
     host.run_command(['ipa-server-install', '--uninstall', '-U'],
                      raiseonerr=False)
+    host.run_command(['pkidestroy', '-s', 'CA', '-i', 'pki-tomcat'],
+                     raiseonerr=False)
+    host.run_command(['rm', '-rf',
+                      '/var/log/pki/pki-tomcat',
+                      '/etc/sysconfig/pki-tomcat',
+                      '/etc/sysconfig/pki/tomcat/pki-tomcat',
+                      '/var/lib/pki/pki-tomcat',
+                      '/etc/pki/pki-tomcat'],
+                      raiseonerr=False)
     unapply_fixes(host)
 
 
