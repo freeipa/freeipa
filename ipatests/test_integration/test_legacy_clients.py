@@ -65,7 +65,7 @@ class BaseTestLegacyClient(object):
         try:
             child_ad = cls.host_by_role(cls.optional_extra_roles[0])
             cls.ad_subdomain = '.'.join(
-                                   child_ad.external_hostname.split('.')[1:])
+                                   child_ad.hostname.split('.')[1:])
         except LookupError:
             cls.ad_subdomain = None
 
