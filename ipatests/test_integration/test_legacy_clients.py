@@ -98,8 +98,8 @@ class BaseTestLegacyClient(object):
         self.clear_sssd_caches()
         result = self.legacy_client.run_command(['getent', 'passwd', 'admin'])
 
-        admin_regex = "^admin:\*:(\d+):(\d+):"\
-                      "Administrator:/home/admin:/bin/bash$"
+        admin_regex = "admin:\*:(\d+):(\d+):"\
+                      "Administrator:/home/admin:/bin/bash"
 
         assert re.search(admin_regex, result.stdout_text)
 
@@ -107,7 +107,7 @@ class BaseTestLegacyClient(object):
         self.clear_sssd_caches()
         result = self.legacy_client.run_command(['getent', 'group', 'admins'])
 
-        admin_group_regex = "^admins:\*:(\d+):admin"
+        admin_group_regex = "admins:\*:(\d+):admin"
 
         assert re.search(admin_group_regex, result.stdout_text)
 
