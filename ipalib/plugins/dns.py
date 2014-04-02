@@ -24,6 +24,7 @@ import netaddr
 import time
 import re
 import dns.name
+import dns.resolver
 
 from ipalib.request import context
 from ipalib import api, errors, output
@@ -247,6 +248,12 @@ _record_attributes = [str('%srecord' % t.lower()) for t in _record_types]
 
 # supported DNS classes, IN = internet, rest is almost never used
 _record_classes = (u'IN', u'CS', u'CH', u'HS')
+
+# IN record class
+_IN = dns.rdataclass.IN
+
+# NS record type
+_NS = dns.rdatatype.from_text('NS')
 
 def _rname_validator(ugettext, zonemgr):
     try:
@@ -2397,6 +2404,178 @@ class dnsrecord(LDAPObject):
                                   'NS record except when located in a zone root '
                                   'record (RFC 6672, section 2.3)'))
 
+    def _entry2rrsets(self, entry_attrs, dns_name, dns_domain):
+        '''Convert entry_attrs to a dictionary {rdtype: rrset}.
+
+        :returns:
+            None if entry_attrs is None
+            {rdtype: None} if RRset of given type is empty
+            {rdtype: RRset} if RRset of given type is non-empty
+        '''
+        record_attr_suf = 'record'
+        ldap_rrsets = {}
+
+        if not entry_attrs:
+            # all records were deleted => name should not exist in DNS
+            return None
+
+        for attr, value in entry_attrs.iteritems():
+            if not attr.endswith(record_attr_suf):
+                continue
+
+            rdtype = dns.rdatatype.from_text(attr[0:-len(record_attr_suf)])
+            if not value:
+                ldap_rrsets[rdtype] = None  # RRset is empty
+                continue
+
+            try:
+                # TTL here can be arbitrary value because it is ignored
+                # during comparison
+                ldap_rrset = dns.rrset.from_text(
+                    dns_name, 86400, dns.rdataclass.IN, rdtype,
+                    *map(str, value))
+
+                # make sure that all names are absolute so RRset
+                # comparison will work
+                for ldap_rr in ldap_rrset:
+                    ldap_rr.choose_relativity(origin=dns_domain,
+                                              relativize=False)
+                ldap_rrsets[rdtype] = ldap_rrset
+
+            except dns.exception.SyntaxError as e:
+                self.log.error('DNS syntax error: %s %s %s: %s', dns_name,
+                               dns.rdatatype.to_text(rdtype), value, e)
+                raise
+
+        return ldap_rrsets
+
+    def wait_for_modified_attr(self, ldap_rrset, rdtype, dns_name):
+        '''Wait until DNS resolver returns up-to-date answer for given RRset
+            or until the maximum number of attempts is reached.
+            Number of attempts is controlled by self.api.env['wait_for_dns'].
+
+        :param ldap_rrset:
+            None if given rdtype should not exist or
+            dns.rrset.RRset to match against data in DNS.
+        :param dns_name: FQDN to query
+        :type dns_name: dns.name.Name
+        :return: None if data in DNS and LDAP match
+        :raises errors.DNSDataMismatch: if data in DNS and LDAP doesn't match
+        :raises dns.exception.DNSException: if DNS resolution failed
+        '''
+        resolver = dns.resolver.Resolver()
+        resolver.set_flags(0)  # disable recursion (for NS RR checks)
+        max_attempts = int(self.api.env['wait_for_dns'])
+        warn_attempts = max_attempts / 2
+        period = 1  # second
+        attempt = 0
+        log_fn = self.log.debug
+        log_fn('querying DNS server: expecting answer {%s}', ldap_rrset)
+        wait_template = 'waiting for DNS answer {%s}: got {%s} (attempt %s); '\
+                        'waiting %s seconds before next try'
+
+        while attempt < max_attempts:
+            if attempt >= warn_attempts:
+                log_fn = self.log.warn
+            attempt += 1
+            try:
+                dns_answer = resolver.query(dns_name, rdtype,
+                                            dns.rdataclass.IN,
+                                            raise_on_no_answer=False)
+                dns_rrset = None
+                if rdtype == _NS:
+                    # NS records can be in Authority section (sometimes)
+                    dns_rrset = dns_answer.response.get_rrset(
+                        dns_answer.response.authority, dns_name, _IN, rdtype)
+
+                if not dns_rrset:
+                    # Look for NS and other data in Answer section
+                    dns_rrset = dns_answer.rrset
+
+                if dns_rrset == ldap_rrset:
+                    log_fn('DNS answer matches expectations (attempt %s)',
+                           attempt)
+                    return
+
+                log_msg = wait_template % (ldap_rrset, dns_answer.response,
+                                           attempt, period)
+
+            except (dns.resolver.NXDOMAIN,
+                    dns.resolver.YXDOMAIN,
+                    dns.resolver.NoNameservers,
+                    dns.resolver.Timeout) as e:
+                if attempt >= max_attempts:
+                    raise
+                else:
+                    log_msg = wait_template % (ldap_rrset, type(e), attempt,
+                                               period)
+
+            log_fn(log_msg)
+            time.sleep(period)
+
+        # Maximum number of attempts was reached
+        else:
+            raise errors.DNSDataMismatch(expected=ldap_rrset, got=dns_rrset)
+
+    def wait_for_modified_attrs(self, entry_attrs, dns_name, dns_domain):
+        '''Wait until DNS resolver returns up-to-date answer for given entry
+            or until the maximum number of attempts is reached.
+
+        :param entry_attrs:
+            None if the entry was deleted from LDAP or
+            LDAPEntry instance containing at least all modified attributes.
+        :param dns_name: FQDN
+        :type dns_name: dns.name.Name
+        :raises errors.DNSDataMismatch: if data in DNS and LDAP doesn't match
+        '''
+
+        # represent data in LDAP as dictionary rdtype => rrset
+        ldap_rrsets = self._entry2rrsets(entry_attrs, dns_name, dns_domain)
+        nxdomain = ldap_rrsets is None
+        if nxdomain:
+            # name should not exist => ask for A record and check result
+            ldap_rrsets = {dns.rdatatype.from_text('A'): None}
+
+        for rdtype, ldap_rrset in ldap_rrsets.iteritems():
+            try:
+                self.wait_for_modified_attr(ldap_rrset, rdtype, dns_name)
+
+            except dns.resolver.NXDOMAIN as e:
+                if nxdomain:
+                    continue
+                else:
+                    e = errors.DNSDataMismatch(expected=ldap_rrset,
+                                               got="NXDOMAIN")
+                    self.log.error(e)
+                    raise e
+
+            except dns.resolver.NoNameservers as e:
+                # Do not raise exception if we have got SERVFAILs.
+                # Maybe the user has created an invalid zone intentionally.
+                self.log.warn('waiting for DNS answer {%s}: got {%s}; '
+                              'ignoring', ldap_rrset, type(e))
+                continue
+
+            except dns.exception.DNSException as e:
+                err_desc = str(type(e))
+                err_str = str(e)
+                if err_str:
+                    err_desc += ": %s" % err_str
+                e = errors.DNSDataMismatch(expected=ldap_rrset, got=err_desc)
+                self.log.error(e)
+                raise e
+
+    def wait_for_modified_entries(self, entries):
+        '''Call wait_for_modified_attrs for all entries in given dict.
+
+        :param entries:
+            Dict {(dns_domain, dns_name): entry_for_wait_for_modified_attrs}
+        '''
+        for entry_name, entry in entries.iteritems():
+            dns_domain = dns.name.from_text(entry_name[0])
+            dns_name = dns.name.from_text(entry_name[1], origin=dns_domain)
+            self.wait_for_modified_attrs(entry, dns_name, dns_domain)
+
 api.register(dnsrecord)
 
 
@@ -2559,6 +2738,10 @@ class dnsrecord_add(LDAPCreate):
                 entry_attrs[attr] = list(set(old_entry.get(attr, []) + vals))
 
         self.obj.check_record_type_collisions(keys, old_entry, entry_attrs)
+        context.dnsrecord_entry_mods = getattr(context, 'dnsrecord_entry_mods',
+                                               {})
+        context.dnsrecord_entry_mods[(keys[0], keys[1])] = entry_attrs.copy()
+
         return dn
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
@@ -2586,6 +2769,8 @@ class dnsrecord_add(LDAPCreate):
 
         self.obj.postprocess_record(entry_attrs, **options)
 
+        if self.api.env['wait_for_dns']:
+            self.obj.wait_for_modified_entries(context.dnsrecord_entry_mods)
         return dn
 
 api.register(dnsrecord_add)
@@ -2661,6 +2846,10 @@ class dnsrecord_mod(LDAPUpdate):
                 entry_attrs[attr] = list(set(old_entry[attr] + new_dnsvalue))
 
         self.obj.check_record_type_collisions(keys, old_entry, entry_attrs)
+
+        context.dnsrecord_entry_mods = getattr(context, 'dnsrecord_entry_mods',
+                                               {})
+        context.dnsrecord_entry_mods[(keys[0], keys[1])] = entry_attrs.copy()
         return dn
 
     def execute(self, *keys, **options):
@@ -2682,7 +2871,14 @@ class dnsrecord_mod(LDAPUpdate):
                     break
 
             if del_all:
-                return self.obj.methods.delentry(*keys, version=options['version'])
+                result = self.obj.methods.delentry(*keys,
+                                                   version=options['version'])
+                # indicate that entry was deleted
+                context.dnsrecord_entry_mods[(keys[0], keys[1])] = None
+
+        if self.api.env['wait_for_dns']:
+            self.obj.wait_for_modified_entries(context.dnsrecord_entry_mods)
+
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -2826,7 +3022,10 @@ class dnsrecord_del(LDAPUpdate):
         # set del_all flag in context
         # when the flag is enabled, the entire DNS record object is deleted
         # in a post callback
-        setattr(context, 'del_all', del_all)
+        context.del_all = del_all
+        context.dnsrecord_entry_mods = getattr(context, 'dnsrecord_entry_mods',
+                                               {})
+        context.dnsrecord_entry_mods[(keys[0], keys[1])] = entry_attrs.copy()
 
         return dn
 
@@ -2838,13 +3037,23 @@ class dnsrecord_del(LDAPUpdate):
                         error=_('Zone record \'%s\' cannot be deleted') \
                                 % _dns_zone_record
                       )
-            return self.obj.methods.delentry(*keys, version=options['version'])
+            result = self.obj.methods.delentry(*keys,
+                                               version=options['version'])
+            if self.api.env['wait_for_dns']:
+                entries = {(keys[0], keys[1]): None}
+                self.obj.wait_for_modified_entries(entries)
+            return result
 
         result = super(dnsrecord_del, self).execute(*keys, **options)
 
         if getattr(context, 'del_all', False) and not \
                 self.obj.is_pkey_zone_record(*keys):
-            return self.obj.methods.delentry(*keys, version=options['version'])
+            result = self.obj.methods.delentry(*keys,
+                                               version=options['version'])
+            context.dnsrecord_entry_mods[(keys[0], keys[1])] = None
+
+        if self.api.env['wait_for_dns']:
+            self.obj.wait_for_modified_entries(context.dnsrecord_entry_mods)
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):

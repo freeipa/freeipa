@@ -178,6 +178,15 @@ Used internally in the IPA source package to verify that the API has not changed
 .B verbose <boolean>
 When True provides more information. Specifically this sets the global log level to "info".
 .TP
+.B wait_for_dns <number of attempts>
+Controls whether the IPA commands dnsrecord\-{add,mod,del} work synchronously or not. The DNS commands will repeat DNS queries up to the specified number of attempts until the DNS server returns an up-to-date answer to a query for modified records. Delay between retries is one second.
+.IP
+The DNS commands will raise a DNSDataMismatch exception if the answer doesn't match the expected value even after the specified number of attempts.
+.IP
+The DNS queries will be sent to the resolver configured in /etc/resolv.conf on the IPA server.
+.IP
+Do not enable this in production! This will cause problems if the resolver on IPA server uses a caching server instead of a local authoritative server or e.g. if DNS answers are modified by DNS64. The default is disabled (the option is not present).
+.TP
 .B xmlrpc_uri <URI>
 Specifies the URI of the XML\-RPC server for a client. This may be used by IPA, and is used by some external tools, such as ipa\-getcert. Example: https://ipa.example.com/ipa/xml
 .TP

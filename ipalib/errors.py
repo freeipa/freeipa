@@ -1512,6 +1512,24 @@ class DatabaseTimeout(DatabaseError):
     format = _('LDAP timeout')
 
 
+class DNSDataMismatch(ExecutionError):
+    """
+    **4212** Raised when an DNS query didn't return expected answer
+    in a configured time limit.
+
+    For example:
+
+    >>> raise DNSDataMismatch(expected="zone3.test. 86400 IN A 192.0.2.1", \
+                              got="zone3.test. 86400 IN A 192.168.1.1")
+    Traceback (most recent call last):
+      ...
+    DNSDataMismatch: DNS check failed: Expected {zone3.test. 86400 IN A 192.0.2.1} got {zone3.test. 86400 IN A 192.168.1.1}
+    """
+
+    errno = 4212
+    format = _('DNS check failed: Expected {%(expected)s} got {%(got)s}')
+
+
 class CertificateError(ExecutionError):
     """
     **4300** Base class for Certificate execution errors (*4300 - 4399*).
