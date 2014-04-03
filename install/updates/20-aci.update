@@ -16,3 +16,11 @@ add:aci:'(targetattr="ipasshpubkey")(version 3.0; acl "Hosts can modify their ow
 
 dn: cn=computers,cn=accounts,$SUFFIX
 add:aci:'(targetattr="ipasshpubkey")(version 3.0; acl "Hosts can manage other host SSH public keys"; allow(write) userattr = "parent[0,1].managedby#USERDN";)'
+
+# Read access to $SUFFIX itself
+dn: $SUFFIX
+add:aci:'(targetfilter="(objectclass=domain)")(targetattr="objectclass || dc || info || nisDomain || associatedDomain")(version 3.0; acl "Anonymous read access to DIT root"; allow(read, search, compare) userdn = "ldap:///anyone";)'
+
+# Read access to containers
+dn: $SUFFIX
+add:aci:'(targetfilter="(objectclass=nsContainer)")(target!="ldap:///cn=etc,$SUFFIX")(targetattr="objectclass || cn")(version 3.0; acl "Anonymous read access to containers"; allow(read, search, compare) userdn = "ldap:///anyone";)'
