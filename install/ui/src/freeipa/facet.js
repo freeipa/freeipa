@@ -1955,12 +1955,11 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
     that.init_table = function(entity) {
 
         that.table = IPA.table_widget({
-            'class': 'content-table',
             name: that.table_name || entity.metadata.primary_key,
             label: entity.metadata.label,
             entity: entity,
             pagination: true,
-            scrollable: true,
+            scrollable: false,
             selectable: that.selectable && !that.read_only
         });
 

@@ -917,7 +917,7 @@ class UI_driver(object):
         s = "table"
         if name:
             s += "[name='%s']" % name
-        s += '.search-table'
+        s += '.table'
         return s
 
     def select_record(self, pkey, parent=None, table_name=None):

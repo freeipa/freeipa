@@ -2372,10 +2372,10 @@ IPA.table_widget = function (spec) {
 
         that.widget_create(container);
 
-        container.addClass('table-widget');
+        container.addClass('table-widget table-responsive');
 
         that.table = $('<table/>', {
-            'class': 'search-table',
+            'class': 'content-table table table-condensed table-striped table-bordered',
             name: that.name
         }).appendTo(container);
 
@@ -2414,58 +2414,15 @@ IPA.table_widget = function (spec) {
             }
         }
         var columns = that.columns.values;
-        var column;
-
-        var columns_without_width = 0;
-        var per_column_space = 16; //cell padding(2x6px), border (2x1px), spacing (2px)
-        var available_width = that.thead.width();
-        available_width -= 2;  //first cell spacing
-
-        //subtract checkbox column
-        if(that.selectable) {
-            available_width -= IPA.checkbox_column_width;
-            available_width -= per_column_space;
-        }
-
-        //subtract width of columns with their width set
-        for (i=0; i<columns.length; i++) {
-            column = columns[i];
-            if (column.width) {
-                available_width -= parseInt(
-                    column.width.substring(0, column.width.length-2),10);
-                available_width -= per_column_space;
-            } else {
-                columns_without_width++;
-            }
-        }
-
-        //width for columns without width set
-        var new_column_width = (available_width -
-                                per_column_space * columns_without_width) /
-                                columns_without_width;
-
-
-        //set the new width, now all columns should have width set
-        for (i=0; i<columns.length; i++) {
-            column = columns[i];
-            if (!column.width) {
-                column.width = new_column_width+"px";
-            }
-        }
 
         for (i=0; i<columns.length; i++) {
-            column = columns[i];
+            var column = columns[i];
 
             th = $('<th/>').appendTo(tr);
 
-            th.css('width', column.width);
-            th.css('max-width', column.width);
-
-            var label = column.label;
-
             $('<div/>', {
-                'style': 'float: left;',
-                'html': label
+                'html': column.label,
+                'style': 'float: left;'
             }).appendTo(th);
 
             if (i == columns.length-1) {
@@ -2495,12 +2452,19 @@ IPA.table_widget = function (spec) {
             that.tbody.css('height', that.height);
         }
 
+        that.create_footer();
+
+        that.set_enabled(that.enabled);
+    };
+
+    that.create_footer = function() {
+
         that.tfoot = $('<tfoot/>').appendTo(that.table);
 
-        tr = $('<tr/>').appendTo(that.tfoot);
+        var tr = $('<tr/>').appendTo(that.tfoot);
 
         var td = $('<td/>', {
-            colspan: columns.length + (that.selectable ? 1 : 0)
+            colspan: that.columns.values.length + (that.selectable ? 1 : 0)
         }).appendTo(tr);
 
         that.create_error_link(td);
@@ -2509,55 +2473,57 @@ IPA.table_widget = function (spec) {
             'name': 'summary'
         }).appendTo(td);
 
+        if (that.pagination) {
+            that.create_pagination(td);
+        }
+    };
+
+    that.create_pagination = function(container) {
+
         that.pagination_control = $('<span/>', {
             'class': 'pagination-control'
-        }).appendTo(td);
+        }).appendTo(container);
 
-        if (that.pagination) {
+        $('<a/>', {
+            text: text.get('@i18n:widget.prev'),
+            name: 'prev_page',
+            click: function() {
+                that.prev_page();
+                return false;
+            }
+        }).appendTo(that.pagination_control);
 
-            $('<a/>', {
-                text: text.get('@i18n:widget.prev'),
-                name: 'prev_page',
-                click: function() {
-                    that.prev_page();
-                    return false;
+        that.pagination_control.append(' ');
+
+        $('<a/>', {
+            text: text.get('@i18n:widget.next'),
+            name: 'next_page',
+            click: function() {
+                that.next_page();
+                return false;
+            }
+        }).appendTo(that.pagination_control);
+
+        that.pagination_control.append(' ');
+        that.pagination_control.append(text.get('@i18n:widget.page'));
+        that.pagination_control.append(': ');
+
+        that.current_page_input = $('<input/>', {
+            type: 'text',
+            name: 'current_page',
+            keypress: function(e) {
+                if (e.which == 13) {
+                    var page = parseInt(that.current_page_input.val(), 10) || 1;
+                    that.set_page(page);
                 }
-            }).appendTo(that.pagination_control);
+            }
+        }).appendTo(that.pagination_control);
 
-            that.pagination_control.append(' ');
+        that.pagination_control.append(' / ');
 
-            $('<a/>', {
-                text: text.get('@i18n:widget.next'),
-                name: 'next_page',
-                click: function() {
-                    that.next_page();
-                    return false;
-                }
-            }).appendTo(that.pagination_control);
-
-            that.pagination_control.append(' ');
-            that.pagination_control.append(text.get('@i18n:widget.page'));
-            that.pagination_control.append(': ');
-
-            that.current_page_input = $('<input/>', {
-                type: 'text',
-                name: 'current_page',
-                keypress: function(e) {
-                    if (e.which == 13) {
-                        var page = parseInt(that.current_page_input.val(), 10) || 1;
-                        that.set_page(page);
-                    }
-                }
-            }).appendTo(that.pagination_control);
-
-            that.pagination_control.append(' / ');
-
-            that.total_pages_span = $('<span/>', {
-                name: 'total_pages'
-            }).appendTo(that.pagination_control);
-        }
-
-        that.set_enabled(that.enabled);
+        that.total_pages_span = $('<span/>', {
+            name: 'total_pages'
+        }).appendTo(that.pagination_control);
     };
 
     /**
@@ -2570,6 +2536,7 @@ IPA.table_widget = function (spec) {
         var td;
 
         if (that.selectable) {
+
             td = $('<td/>', {
                 'style': 'width: '+ (IPA.checkbox_column_width + 7) +'px;'
             }).appendTo(row);
@@ -2589,14 +2556,6 @@ IPA.table_widget = function (spec) {
             var column = columns[i];
 
             td = $('<td/>').appendTo(row);
-            if (column.width) {
-                width = parseInt(
-                        column.width.substring(0, column.width.length-2),10);
-                width += 7; //data cells lack right padding
-                width += 'px';
-                td.css('width', width);
-                td.css('max-width', width);
-            }
 
             $('<div/>', {
                 'name': column.name

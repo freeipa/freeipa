@@ -563,7 +563,7 @@ aci.attributes_widget = function(spec) {
         that.$node = that.table = $('<table/>', {
             id: id,
             name: that.name,
-            'class': 'search-table aci-attribute-table scrollable'
+            'class': 'table table-bordered table-condensed aci-attribute-table scrollable'
         }).
             append('<thead/>').
             append('<tbody/>').
