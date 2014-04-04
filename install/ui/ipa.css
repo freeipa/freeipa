@@ -81,39 +81,6 @@ textarea[readonly] {
     max-width: 500px;
 }
 
-/* ---- Entity ---- */
-
-.entity {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-}
-
-.entity h1 {
-    margin: 0 0 10px;
-}
-
-.entity-content {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    font-size: 10px;
-    margin: 0 0 0;
-}
-
-.entity-content div.content-buttons {
-    float: right;
-    margin-right: 1.5em;
-}
-
-.entity-content div.content-buttons img {
-    border: 0;
-}
-
 /* ---- Facet ---- */
 
 .facet {
@@ -125,33 +92,22 @@ textarea[readonly] {
     height: 100%;
 }
 
-#container .facet {
-    position: absolute;
-    top: 110px;
-    left: 10px;
-    right: 10px;
-    bottom: 0;
-}
-
 .active-facet {
     display: block;
 }
 
 .facet-header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 130px;
+    position: relative;
     margin: 0 12px 0;
 }
 
 .facet-title {
-    position: absolute;
-    top: 10px;
-    left: 0;
+    position: relative;
+    margin-top: 5px;
+    margin-right: 20px;
+    margin-bottom: 5px;
     color: gray;
-    display: block;
+    display: inline-block;
 }
 
 .facet-title h3 {
@@ -169,11 +125,9 @@ textarea[readonly] {
 }
 
 .breadcrumb {
-    position: absolute;
-    top:  -5px;
-    left: 0;
     background-color: transparent;
     padding: 0;
+    margin: 5px 0 0 0;
 }
 
 .breadcrumb a {
@@ -183,12 +137,7 @@ textarea[readonly] {
 /* ---- Facet Tabs ---- */
 
 .facet-tabs {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 35px;
     z-index: 1; /* need to be above facet header */
-    border-bottom: 1px solid #C9C3BA;
 }
 
 .facet-group {
@@ -203,7 +152,7 @@ textarea[readonly] {
 }
 
 .facet-tab {
-    height: 31px;
+    /*height: 31px;*/
     list-style-type: none;
     margin: 0;
     padding: 0;
@@ -268,20 +217,13 @@ div[name=settings].facet-group li a {
 /* ---- Facet Controls ---- */
 
 .facet-controls {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 30px;
     line-height: 30px;
     padding: 0 6px 0 6px;
+    clear: both;
 }
 
 .right-aligned-facet-controls {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
+    float: right;
 }
 
 .facet-controls a {
@@ -296,23 +238,9 @@ div[name=settings].facet-group li a {
 /* ---- Facet Content ---- */
 
 .facet-content {
-    position: absolute;
-    top: 130px;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    position: relative;
     margin: 0 12px;
     padding: 0;
-}
-
-/* ---- Facet Customization ---- */
-
-.no-facet-tabs .facet-header {
-    height: 70px;
-}
-
-.no-facet-tabs .facet-content {
-    top: 70px;
 }
 
 /* --- Facet error --- */
@@ -332,39 +260,13 @@ div[name=settings].facet-group li a {
 
 /* ---- Search Facet ---- */
 
-.content-table {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-collapse: separate;
-    border-spacing: 1px;
-}
-
-.content-table thead {
-    position: absolute;
-    top: 0px;
-    left: 3px;
-    right: 3px;
-}
-
-.content-table tbody {
-    position: absolute;
-    top: 31px;
-    left: 3px;
-    right: 3px;
-    bottom: 35px;
-}
-
-.content-table tbody tr.disabled {
-    color: gray;
-}
-
 .search-option {
     margin-right: 8px;
     width: 206px;
 }
 
 .search-filter {
+    margin-top: 2px;
     width: 215px;
     display: inline-block;
 }
@@ -380,94 +282,19 @@ div[name=settings].facet-group li a {
     top: -5px;
 }
 
-.search-controls {
-    -moz-border-radius: .7em .7em 0 0;
-    -webkit-border-radius: .7em .7em 0 0;
-    height:2.5em;
-    background: -moz-linear-gradient(top,  #eeeeee,  #dfdfdf);
-    background: -webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#dfdfdf));
-    position: relative;
-    padding: 1em 1.5em;
-    margin-top: .8em;
-}
-
-.search-table {
-    padding: 0;
-    width: 100%;
-    border: none;
-}
-
-.search-table thead tr th {
-    padding: 0 6px;
-    background-color:#f6f6f6;
-    color:#333333;
-    text-align: left;
-    border: 1px solid #dfdfdf;
-    height: 25px;
-}
-
-.search-table thead tr th .action-button {
-    margin: 0 0 0 6px;
-}
-
-.search-table tbody td {
-    padding: 0 0 0 7px;
-}
-
-.search-table thead th div,
-.search-table tbody td div
-{
-    word-wrap: break-word;
-}
-
-.search-table tfoot td {
-    padding: 0.5em 0 0 1em;
-    border-top: 1px solid #dfdfdf;
-    height: 25px;
-    line-height: 25px;
-    margin-top: 1em;
-}
-
-.search-table span[name=summary] {
-    float: left;
-    margin-right: 4em;
-}
-
-.search-table .pagination-control {
+.pagination-control {
     float: right;
 }
 
-.search-table .pagination-control a {
+.pagination-control a {
     cursor:pointer;
 }
 
-.search-table .pagination-control input[name=current_page] {
+.pagination-control input[name=current_page] {
     width: 22px;
     padding: 0 6px;
     margin: 0;
 }
-
-ul#viewtype {
-    padding-left: 2em;
-}
-
-ul#viewtype li {
-    color: #656565;
-    display: inline;
-    font-weight: bold;
-    list-style-type: none;
-    padding-right: 2em;
-}
-
-
-ul#viewtype li img {
-    vertical-align: middle;
-}
-
-ul#viewtype li a {
-    font-weight: normal;
-}
-
 
 h1 {
     font-size: 1.5em;
@@ -493,38 +320,14 @@ h3 {
     text-shadow: 1px 1px 0 #FFFFFF;
 }
 
-.section-expand{
-}
-
-hr {
-    background-color: #EEEEEE;
-    clear: both;
-    color: #FFFFFF;
-    height: 0.1em;
-    margin-left: 1.5em;
-    margin-right: 1.5em;
-    margin-top: 1em;
-}
-
 /* ---- Details Facet ---- */
 
 .details-content {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 32px;
-    overflow: auto;
     border: none;
     border-top: 1px solid #DFDFDF;
 }
 
 .details-summary {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 29px;
     border-top: 1px solid #DFDFDF;
     padding-left: 0.5em;
     line-height: 25px;
@@ -706,6 +509,11 @@ textarea.certificate {
 }
 
 /* ---- Table ---- */
+
+/* Used in association tables */
+th div[name="buttons"] .action-button {
+    margin: 0 0 0 6px;
+}
 
 table.scrollable thead {
     display: block;
@@ -1247,11 +1055,10 @@ form#login {
 /* --- Action list --- */
 
 .facet-action-list {
-    position: absolute;
     left: 200px;
-    top: 15px;
-    height: 24px;
     vertical-align: top;
+    display: inline-block;
+    margin-top: 10px;
 }
 
 .facet-action-list div {
@@ -1270,9 +1077,6 @@ form#login {
 .facet-action-list .separator {
     width: 1px;
     height: 24px;
-    margin-left: 10px;
-    margin-right: 15px;
-    background-color: #a1a1a1;
 }
 
 /* --- Facet title states --- */
