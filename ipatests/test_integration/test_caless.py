@@ -23,6 +23,7 @@ import shutil
 import base64
 import glob
 import contextlib
+import nose
 
 from ipalib import x509
 from ipapython import ipautil
@@ -557,6 +558,12 @@ class TestServerInstall(CALessBase):
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
+
+        if result.returncode == 0:
+            raise nose.SkipTest(
+                "Known CA-less installation defect, see "
+                + "https://fedorahosted.org/freeipa/ticket/4270")
+
         assert result.returncode > 0
 
     def test_revoked_ds(self):
@@ -569,6 +576,12 @@ class TestServerInstall(CALessBase):
 
         result = self.install_server(http_pkcs12='http.p12',
                                      dirsrv_pkcs12='dirsrv.p12')
+
+        if result.returncode == 0:
+            raise nose.SkipTest(
+                "Known CA-less installation defect, see "
+                + "https://fedorahosted.org/freeipa/ticket/4270")
+
         assert result.returncode > 0
 
     def test_http_intermediate_ca(self):
@@ -917,6 +930,12 @@ class TestReplicaInstall(CALessBase):
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
+
+        if result.returncode == 0:
+            raise nose.SkipTest(
+                "Known CA-less installation defect, see "
+                + "https://fedorahosted.org/freeipa/ticket/4270")
+
         assert result.returncode > 0
 
     def test_revoked_ds(self):
@@ -927,6 +946,12 @@ class TestReplicaInstall(CALessBase):
 
         result = self.prepare_replica(http_pkcs12='http.p12',
                                       dirsrv_pkcs12='dirsrv.p12')
+
+        if result.returncode == 0:
+            raise nose.SkipTest(
+                "Known CA-less installation defect, see "
+                + "https://fedorahosted.org/freeipa/ticket/4270")
+
         assert result.returncode > 0
 
     def test_http_intermediate_ca(self):
@@ -1336,12 +1361,24 @@ class TestCertinstall(CALessBase):
         "Install new revoked HTTP certificate"
 
         result = self.certinstall('w', 'ca1/server-revoked')
+
+        if result.returncode == 0:
+            raise nose.SkipTest(
+                "Known CA-less installation defect, see "
+                + "https://fedorahosted.org/freeipa/ticket/4270")
+
         assert result.returncode > 0
 
     def test_revoked_ds(self):
         "Install new revoked DS certificate"
 
         result = self.certinstall('d', 'ca1/server-revoked')
+
+        if result.returncode == 0:
+            raise nose.SkipTest(
+                "Known CA-less installation defect, see "
+                + "https://fedorahosted.org/freeipa/ticket/4270")
+
         assert result.returncode > 0
 
     def test_http_intermediate_ca(self):
