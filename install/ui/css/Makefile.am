@@ -2,8 +2,8 @@ NULL =
 
 appdir = $(IPA_DATA_DIR)/ui/css
 app_DATA =				\
-	bootstrap.css 			\
-	rcue.css 			\
+	patternfly.css 			\
+	ipa.css 			\
 	$(NULL)
 
 EXTRA_DIST =                            \
@@ -14,7 +14,7 @@ MAINTAINERCLEANFILES =                  \
         *~                              \
         Makefile.in
 
-rcue := $(wildcard ../less/*.less)
+ipa := $(wildcard ../less/*.less)
 
-rcue.css: $(rcue)
+ipa.css: $(ipa)
 	../util/make-css.sh

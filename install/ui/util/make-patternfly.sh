@@ -3,7 +3,7 @@
 # Authors:
 #    Petr Vobornik <pvoborni@redhat.com>
 #
-#  Copyright (C) 2013 Red Hat
+#  Copyright (C) 2014 Red Hat
 #  see file 'COPYING' for use and warranty information
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -21,5 +21,9 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-lesscpy -x $DIR/../less/ipa.less > $DIR/../css/ipa.css
+
+# This script is used for custom build of Bootstrap 3, PatternFly and
+# Font Awesome. Inspect ../less/patternfly.less for more information
+
+lessc --clean-css $DIR/../less/patternfly.less > $DIR/../css/patternfly.css
 exit $?
