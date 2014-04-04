@@ -630,15 +630,10 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
     that.create_content = function(container) {
 
         that.content = $('<div/>', {
-            'class': 'details-content'
+            'class': 'details-content row'
         }).appendTo(container);
 
         that.widgets.create(that.content);
-
-        $('<span/>', {
-            name: 'summary',
-            'class': 'details-summary'
-        }).appendTo(container);
     };
 
     /**

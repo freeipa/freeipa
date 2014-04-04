@@ -416,7 +416,7 @@ IPA.dnszone_name_section_layout = function(spec) {
 
         var label_text = widget.label + that.get_measurement_unit_text(widget);
 
-        var label_cont = $('<div/>', { 'class': 'control-label' });
+        var label_cont = $('<div/>', { 'class': 'control-label col-sm-3' });
 
         widget.create_radio(label_cont);
 

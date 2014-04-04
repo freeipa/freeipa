@@ -542,7 +542,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
             that.dom_node.detach();
         } else {
             that.dom_node = $('<div/>', {
-                'class': 'facet active-facet',
+                'class': 'facet active-facet fluid-container',
                 name: that.name,
                 'data-name': that.name,
                 'data-entity': entity_name
@@ -563,16 +563,16 @@ exp.facet = IPA.facet = function(spec, no_init) {
         dom_node.addClass(that.display_class);
 
         that.header_container = $('<div/>', {
-            'class': 'facet-header'
+            'class': 'facet-header col-sm-12'
         }).appendTo(dom_node);
         that.create_header(that.header_container);
 
         that.content = $('<div/>', {
-            'class': 'facet-content'
+            'class': 'facet-content col-sm-12'
         }).appendTo(dom_node);
 
         that.error_container = $('<div/>', {
-            'class': 'facet-content facet-error'
+            'class': 'facet-content facet-error col-sm-12'
         }).appendTo(dom_node);
 
         that.create_content(that.content);

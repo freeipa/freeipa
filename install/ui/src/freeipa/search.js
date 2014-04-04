@@ -117,6 +117,7 @@ IPA.search_facet = function(spec, no_init) {
 
         that.filter = $('<input/>', {
             type: 'text',
+            'class': 'form-control',
             name: 'filter'
         }).appendTo(that.filter_container);
 

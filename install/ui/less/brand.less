@@ -21,17 +21,14 @@
 // This file contains overrides of reference RCUE implementation to comply
 // with IPA design
 
-.header.rcue {
-    // Use blue instead of red
-    border-top: 3px solid #1d85d9;
-    .brand {
-        // Lower vertical padding by 5px
-        // FreeIPA uses logo with height: 20px instead of 10px.
-        padding: 2px 0;
+@media (min-width: 768px) {
+    .navbar-pf .navbar-brand {
+        padding: 2px 0 3px;
     }
 }
 
-body {
+#simple-container .content {
+    height: 100%;
     background-color: #1D2226;
     background-image: url("../images/login-screen-background.jpg");
     background-position: top left;
@@ -40,7 +37,7 @@ body {
 }
 
 @media (min-width: 1280px) {
-    body {
+    #simple-container .content {
         background-size: 100% auto;
     }
 }

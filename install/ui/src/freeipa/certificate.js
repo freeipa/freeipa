@@ -1191,7 +1191,7 @@ IPA.cert.search_facet = function(spec) {
 
         that.search_option = $('<select/>', {
             name: 'search_option',
-            'class': 'search-option'
+            'class': 'search-option form-control'
         });
 
         that.filter_container.before(that.search_option);

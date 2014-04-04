@@ -325,14 +325,15 @@ IPA.host_fqdn_widget = function(spec) {
 
     that.create = function(container) {
         that.container = container;
+        container.addClass('col-sm-12');
 
         var hostname = that.widgets.get_widget('hostname');
         var dnszone = that.widgets.get_widget('dnszone');
 
         var layout = IPA.fluid_layout({
-            cont_cls: 'row-fluid',
-            group_cls: 'control-group span6',
-            widget_cls: 'control',
+            cont_cls: 'row fluid-row',
+            group_cls: 'col-sm-6 form-group',
+            widget_cls: 'controls',
             label_cls: 'control-label'
         });
 

@@ -264,7 +264,7 @@ IPA.dialog = function(spec) {
         that.header_node.appendTo(that.dialog_node);
 
         that.body_node = $('<div/>', {
-            'class': 'rcue-dialog-body'
+            'class': 'rcue-dialog-body row'
         });
         // for backwards compatibility
         that.container = that.body_node;
@@ -768,7 +768,7 @@ IPA.adder_dialog = function(spec) {
 
         $('<div/>', {
             html: text.get('@i18n:dialogs.available'),
-            'class': 'adder-dialog-header ui-widget-header'
+            'class': 'adder-dialog-header'
         }).appendTo(available_panel);
 
         var available_content = $('<div/>', {
@@ -789,7 +789,7 @@ IPA.adder_dialog = function(spec) {
 
         $('<div/>', {
             html: text.get('@i18n:dialogs.prospective'),
-            'class': 'adder-dialog-header ui-widget-header'
+            'class': 'adder-dialog-header'
         }).appendTo(selected_panel);
 
         var selected_content = $('<div/>', {
@@ -838,7 +838,7 @@ IPA.adder_dialog = function(spec) {
 
             $('<div/>', {
                 html: text.get('@i18n:objects.sudorule.external'),
-                'class': 'adder-dialog-header ui-widget-header'
+                'class': 'adder-dialog-header'
             }).appendTo(external_panel);
 
             var external_content = $('<div/>', {

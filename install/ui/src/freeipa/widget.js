@@ -321,7 +321,7 @@ IPA.input_widget = function(spec) {
 
         $('<span/>', {
             name: 'error_link',
-            'class': 'help-inline',
+            'class': 'help-block',
             style: 'display:none'
         }).appendTo(container);
     };
@@ -674,8 +674,9 @@ IPA.text_widget = function(spec) {
 
         container.addClass('text-widget');
 
-        that.display_control = $('<label/>', {
+        that.display_control = $('<p/>', {
             name: that.name,
+            'class': 'form-control-static',
             style: 'display: none;'
         }).appendTo(container);
 
@@ -685,6 +686,7 @@ IPA.text_widget = function(spec) {
             type: that.input_type,
             name: that.name,
             id: id,
+            'class': 'form-control',
             size: that.size,
             title: that.tooltip,
             keyup: function() {
@@ -1324,7 +1326,7 @@ IPA.option_widget_base = function(spec, that) {
         var enabled = that.enabled && option.enabled;
 
         var opt_cont = $('<span/>', {
-            "class": that.intput_type
+            "class": that.intput_type + '-cnt'
         }).appendTo(container);
 
         option.input_node = $('<input/>', {
@@ -1720,7 +1722,7 @@ IPA.standalone_option = function(spec, container, label) {
     spec.type = spec.type || 'checkbox';
 
     var opt_cont = $('<span/>', {
-        'class': spec.type
+        'class': spec.type + '-cnt'
     });
 
     var input = $('<input/>', spec);
@@ -1767,6 +1769,7 @@ IPA.select_widget = function(spec) {
 
         that.select = $('<select/>', {
             name: that.name,
+            'class':'form-control',
             change: function() {
                 that.value_changed.notify([], that);
                 that.emit('value-change', { source: that });
@@ -1902,6 +1905,7 @@ IPA.textarea_widget = function (spec) {
             name: that.name,
             rows: that.rows,
             cols: that.cols,
+            'class': 'form-control',
             readOnly: !!that.read_only,
             title: that.tooltip,
             keyup: function() {
@@ -2375,7 +2379,7 @@ IPA.table_widget = function (spec) {
         container.addClass('table-widget table-responsive');
 
         that.table = $('<table/>', {
-            'class': 'content-table table table-condensed table-striped table-bordered',
+            'class': 'content-table table table-condensed table-striped table-hover table-bordered',
             name: that.name
         }).appendTo(container);
 
@@ -3222,6 +3226,7 @@ IPA.combobox_widget = function(spec) {
         that.input = $('<input/>', {
             type: 'text',
             name: that.name,
+            'class': 'form-control',
             id: id,
             title: that.tooltip,
             keydown: that.on_input_keydown,
@@ -3276,6 +3281,7 @@ IPA.combobox_widget = function(spec) {
             that.filter = $('<input/>', {
                 type: 'text',
                 name: 'filter',
+                'class': 'form-control',
                 keyup: that.on_filter_keyup,
                 keydown: that.on_filter_keydown,
                 blur: that.list_child_on_blur
@@ -3297,8 +3303,6 @@ IPA.combobox_widget = function(spec) {
             }).appendTo(div);
 
             that.search_button.bind('mousedown', that.on_no_close);
-
-            div.append('<br/>');
         }
 
         that.list = $('<select/>', {
@@ -3884,7 +3888,7 @@ IPA.button = function(spec) {
     spec = spec || {};
 
     var el = spec.element || '<button/>';
-    var button_class = spec.button_class || 'btn';
+    var button_class = spec.button_class || 'btn btn-default';
 
     var button = $(el, {
         id: spec.id,
@@ -4074,6 +4078,7 @@ IPA.section = function(spec) {
     that.create = function(container) {
 
         that.widget_create(container);
+        container.addClass('details-section col-sm-12');
 
         if (that.show_header) {
             that.create_header(container);
@@ -4081,7 +4086,7 @@ IPA.section = function(spec) {
 
         that.content_container = $('<div/>', {
             name: that.name,
-            'class': 'details-section'
+            'class': 'details-section-content'
         }).appendTo(container);
 
         that.create_content();
@@ -4212,9 +4217,9 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
     var that = IPA.layout(spec);
 
     that.cont_cls = spec.cont_cls || 'form-horizontal';
-    that.widget_cls = spec.widget_cls || 'controls';
-    that.label_cls = spec.label_cls || 'control-label';
-    that.group_cls = spec.group_cls || 'control-group';
+    that.widget_cls = spec.widget_cls || 'col-md-6 controls';
+    that.label_cls = spec.label_cls || 'col-md-2 control-label';
+    that.group_cls = spec.group_cls || 'form-group';
 
     that.create = function(widgets) {
 
@@ -4317,14 +4322,14 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
 
         var row = that._get_row(event);
         if (!row) return;
-        row.toggleClass('error', true);
+        row.toggleClass('has-error', true);
     };
 
     that.on_error_hide= function(event) {
 
         var row = that._get_row(event);
         if (!row) return;
-        row.toggleClass('error', false);
+        row.toggleClass('has-error', false);
     };
 
     that.on_visible_change = function(event) {
@@ -4476,7 +4481,7 @@ IPA.multiple_choice_section = function(spec) {
         var i, choice, choices;
 
         that.widget_create(container);
-        that.container.addClass('multiple-choice-section');
+        that.container.addClass('multiple-choice-section col-sm-12');
 
         that.header_element = $('<div/>', {
             'class': 'multiple-choice-section-header',

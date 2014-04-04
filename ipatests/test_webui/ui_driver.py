@@ -789,6 +789,7 @@ class UI_driver(object):
         self.wait()
         self.wait_for_request()
 
+        list_cnt = self.find('.combobox-widget-list', By.CSS_SELECTOR, cb, strict=True)
         search_btn = self.find('a[name=search] i', By.CSS_SELECTOR, cb, strict=True)
         opt_s = "select[name=list] option[value='%s']" % value
         option = self.find(opt_s, By.CSS_SELECTOR, cb)
@@ -803,7 +804,7 @@ class UI_driver(object):
         option.click()
 
         # Chrome does not close search area on click
-        if search_btn.is_displayed():
+        if list_cnt.is_displayed():
             self.driver.switch_to_active_element().send_keys(Keys.RETURN)
 
         self.wait()
@@ -822,13 +823,13 @@ class UI_driver(object):
         value = el.get_attribute('value')
         return value
 
-    def get_field_text(self, name, parent=None, element='label'):
+    def get_field_text(self, name, parent=None, element='p'):
 
-        s = "div[name='%s'] %s[name='%s']" % (name, element, name)
+        s = ".controls %s[name='%s']" % (element, name)
         return self.get_text(s, parent)
 
     def get_field_value(self, name, parent=None, element='input'):
-        s = "div[name='%s'] %s[name='%s']" % (name, element, name)
+        s = ".controls %s[name='%s']" % (element, name)
         return self.get_value(s, parent)
 
     def get_multivalued_value(self, name, parent=None):

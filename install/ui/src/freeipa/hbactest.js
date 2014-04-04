@@ -298,6 +298,7 @@ IPA.hbac.test_select_facet = function(spec) {
 
         that.filter = $('<input/>', {
             type: 'text',
+            'class': 'form-control',
             name: 'filter'
         }).appendTo(filter_container);
 
@@ -331,7 +332,8 @@ IPA.hbac.test_select_facet = function(spec) {
         var tr = $('<tr/>').appendTo(that.table.tfoot);
 
         var td = $('<td/>', {
-            name: 'external'
+            name: 'external',
+            colspan: that.columns.length + 1
         }).appendTo(tr);
 
         that.external_radio = $('<input/>', {
@@ -524,11 +526,11 @@ IPA.hbac.test_run_facet = function(spec) {
         }).appendTo(container);
 
         var top_panel = $('<div/>', {
-            'class': 'hbac-test-top-panel'
+            'class': 'hbac-test-top-panel row'
         }).appendTo(header);
 
         var button_panel = $('<div/>', {
-            'class': 'hbac-test-button-panel'
+            'class': 'hbac-test-button-panel col-sm-2'
         }).appendTo(top_panel);
 
         that.run_button = IPA.button({
@@ -544,7 +546,7 @@ IPA.hbac.test_run_facet = function(spec) {
         }).appendTo(button_panel);
 
         var result_panel = $('<div/>', {
-            'class': 'hbac-test-result-panel'
+            'class': 'hbac-test-result-panel col-sm-10'
         }).appendTo(top_panel);
 
         that.test_result = $('<p/>', {

@@ -31,7 +31,7 @@
 
 /* Checkboxes and Radios */
 
-.radio, .checkbox {
+.radio-cnt, .checkbox-cnt {
     position: relative;
     padding: 0;
 }
@@ -60,7 +60,7 @@ input[type="radio"] + label {
     margin: 0;
 
     &:before {
-        .fa;
+        .fa();
 
         font-size: 125%;
         vertical-align: -7%;
@@ -137,7 +137,6 @@ input[type="radio"]:checked + label:before {
 
         a, label {
             padding-top: 3px;
-            margin-bottom: 3px;
         }
 
         // disable previous in combobox
@@ -148,24 +147,11 @@ input[type="radio"]:checked + label:before {
     }
 }
 
-// this style directly negates the same in forms.less
-.help-inline {
-    margin-top: 0;
-}
-
-.control-group .control-label {
-    position: relative;
-
-    label {
-        margin-bottom: 0;
-    }
-}
-
 // implicit required indicator
-.control-group.required .control-label label:after {
+.form-group.required .control-label label:after {
     display: inline-block;
     position: absolute;
-    right: -11px;
+    right: 6px;
     top: 0px;
     font-size: 125%;
     font-weight: bold;
@@ -173,36 +159,31 @@ input[type="radio"]:checked + label:before {
     color: #1d85d9;
 }
 
-.row-fluid .control-group.required .control-label label:after {
+.fluid-row .form-group.required .control-label label:after {
     position: relative;
     right: -2px;
 }
 
-@media (max-width: 480px) {
-    .control-group.required .control-label label:after {
+@media (max-width: 768px) {
+    .form-group.required .control-label label:after {
         position: relative;
         right: -2px;
     }
 }
 
-// do not show error hint for valid value in multivalued widget if some
-// other value is invalid
-.control-group.error .valid .help-inline {
-    display: none;
-}
+// don't show red highlight for valid controls in multivalued widget with error
+.has-error .valid .form-control {
 
-// only type text for now - it should be replaced when we adopt Bootstrap 3
-// based RCUE (patternfly)
-.control-group.error .valid input[type=text] {
+    border-color: #bababa !important;
 
-    border-color: #62afdb !important;
+    &:hover {
+        border-color: #66afe9 !important;
+    }
 
     &:focus {
-        border-color: rgba(82, 168, 236, 0.8);
+        border-color: #66afe9;
         outline: 0;
-        outline: thin dotted \9;
-        -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
-        -moz-box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
-        box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(82,168,236,.6);
+        -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
+        box-shadow: inset 0 1px 1px rgba(0,0,0,.075),0 0 8px rgba(102,175,233,.6);
     }
 }

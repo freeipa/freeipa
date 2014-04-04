@@ -90,13 +90,13 @@ test("Testing IPA.details_section.create().", function() {
     var container = $("<div/>");
     section.create(container);
 
-    var section_el = $('.details-section', container);
+    var section_el = $('.details-section-content', container);
 
     same(
         section_el.length, 1,
         'Verifying section element');
 
-    var controls = $('.control-group', section_el);
+    var controls = $('.form-group', section_el);
     same(
         controls.length, fields.length,
         'Verifying number of controls');
@@ -247,7 +247,7 @@ test("Testing details lifecycle: create, load.", function(){
         identity.length,
         'Verifying section for identity is created');
 
-    var rows = $('.control-group', identity);
+    var rows = $('.form-group', identity);
 
     same(
         rows.length, 6,
@@ -313,13 +313,13 @@ test("Testing IPA.details_section_create again()",function() {
     section.create(container);
     facet.load(data);
 
-   var section_el = $('.details-section', container);
+   var section_el = $('.details-section-content', container);
 
     same(
         section_el.length, 1,
         'Verifying section element');
 
-    var controls = $('.control-group', section_el);
+    var controls = $('.form-group', section_el);
     same(
         controls.length, fields.length,
         'Verifying number of controls');
