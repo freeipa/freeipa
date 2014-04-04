@@ -1297,8 +1297,7 @@ class PTRRecord(DNSRecord):
     rfc = 1035
     parts = (
         DNSNameParam('hostname',
-            _hostname_validator,
-            only_absolute=True,
+            #RFC 2317 section 5.2 -- can be relative
             label=_('Hostname'),
             doc=_('The hostname this reverse record points to'),
         ),
