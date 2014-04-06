@@ -180,7 +180,7 @@ class BaseTestLegacyClient(object):
             '%s '
             '"echo test"' %
             (self.legacy_client.config.admin_password,
-             self.legacy_client.external_hostname))
+             self.legacy_client.hostname))
 
         assert "test" in result.stdout_text
 
@@ -197,7 +197,7 @@ class BaseTestLegacyClient(object):
             '-l %s '
             '%s '
             '"echo test"' %
-             (testuser, self.legacy_client.external_hostname))
+             (testuser, self.legacy_client.hostname))
 
         assert "test" in result.stdout_text
 
