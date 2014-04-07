@@ -111,6 +111,18 @@ def fix_resolv_conf(host):
     host.put_file_contents('/etc/resolv.conf', contents)
 
 
+def fix_apache_semaphores(master):
+    systemd_available = master.transport.file_exists('/bin/systemctl')
+
+    if systemd_available:
+        master.run_command(['systemctl', 'stop', 'httpd'], raiseonerr=False)
+    else:
+        master.run_command(['/sbin/service', 'httpd', 'stop'], raiseonerr=False)
+
+    master.run_command('for line in `ipcs -s | grep apache | cut -d " " -f 2`; '
+                       'do ipcrm -s $line; done', raiseonerr=False)
+
+
 def unapply_fixes(host):
     restore_files(host)
     restore_hostname(host)
@@ -179,6 +191,7 @@ def install_master(host):
     host.collect_log('/var/log/dirsrv/slapd-%s/access' % inst)
 
     apply_common_fixes(host)
+    fix_apache_semaphores(host)
 
     host.run_command(['ipa-server-install', '-U',
                       '-r', host.domain.name,
@@ -197,6 +210,7 @@ def install_replica(master, replica, setup_ca=True):
     replica.collect_log('/var/log/ipareplica-conncheck.log')
 
     apply_common_fixes(replica)
+    fix_apache_semaphores(replica)
 
     master.run_command(['ipa-replica-prepare',
                         '-p', replica.config.dirman_password,
