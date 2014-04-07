@@ -41,7 +41,11 @@ class BaseHost(object):
 
         shortname, dot, ext_domain = hostname.partition('.')
         self.shortname = shortname
-        self.hostname = str(shortname + '.' + self.domain.name)
+
+        self.hostname = (hostname[:-1]
+                         if hostname.endswith('.')
+                         else shortname + '.' + self.domain.name)
+
         self.external_hostname = str(external_hostname or hostname)
 
         self.netbios = self.domain.name.split('.')[0].upper()
