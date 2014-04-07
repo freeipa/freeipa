@@ -236,7 +236,7 @@ def install_replica(master, replica, setup_ca=True):
     kinit_admin(replica)
 
 
-def install_client(master, client):
+def install_client(master, client, extra_args=()):
     client.collect_log('/var/log/ipaclient-install.log')
 
     apply_common_fixes(client)
@@ -246,7 +246,8 @@ def install_client(master, client):
                         '--realm', client.domain.realm,
                         '-p', client.config.admin_name,
                         '-w', client.config.admin_password,
-                        '--server', master.hostname])
+                        '--server', master.hostname]
+                        + list(extra_args))
 
     kinit_admin(client)
 
