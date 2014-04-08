@@ -233,6 +233,7 @@ class DsInstance(service.Service):
         self.domain = domain_name
         self.serverid = None
         self.pkcs12_info = None
+        self.cacert_name = None
         self.ca_is_configured = True
         self.dercert = None
         self.idstart = None
@@ -642,6 +643,8 @@ class DsInstance(service.Service):
                 nickname, self.fqdn, cadb)
             dsdb.create_pin_file()
 
+        self.cacert_name = dsdb.cacert_name
+
         if self.ca_is_configured:
             dsdb.track_server_cert(
                 nickname, self.principal, dsdb.passwd_fname,
@@ -685,7 +688,7 @@ class DsInstance(service.Service):
         certdb = certs.CertDB(self.realm, nssdir=dirname,
                               subject_base=self.subject_base)
 
-        dercert = certdb.get_cert_from_db(certdb.cacert_name, pem=False)
+        dercert = certdb.get_cert_from_db(self.cacert_name, pem=False)
 
         conn = ipaldap.IPAdmin(self.fqdn)
         conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)
