@@ -268,7 +268,8 @@ class BaseTestLegacyClient(object):
         testgroup = 'subdomaintestgroup@%s' % self.ad_subdomain
         result = self.legacy_client.run_command(['getent', 'group', testgroup])
 
-        testgroup_stdout = "%s:\*:%s:" % (testgroup, self.testuser_gid_regex)
+        testgroup_stdout = "%s:\*:%s:" % (testgroup,
+                                          self.subdomain_testuser_gid_regex)
         assert re.search(testgroup_stdout, result.stdout_text)
 
     def test_id_subdomain_ad_user(self):
@@ -285,9 +286,12 @@ class BaseTestLegacyClient(object):
         # testgroup
         group_name = '\(%s\)' % testgroup if self.posix_trust else ''
 
-        uid_regex = "uid=%s\(%s\)" % (self.testuser_uid_regex, testuser)
-        gid_regex = "gid=%s%s" % (self.testuser_gid_regex, group_name)
-        groups_regex = "groups=%s%s" % (self.testuser_gid_regex, group_name)
+        uid_regex = "uid=%s\(%s\)" % (self.subdomain_testuser_uid_regex,
+                                      testuser)
+        gid_regex = "gid=%s%s" % (self.subdomain_testuser_gid_regex,
+                                  group_name)
+        groups_regex = "groups=%s%s" % (self.subdomain_testuser_gid_regex,
+                                        group_name)
 
         assert re.search(uid_regex, result.stdout_text)
         assert re.search(gid_regex, result.stdout_text)
