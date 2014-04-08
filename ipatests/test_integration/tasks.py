@@ -430,7 +430,7 @@ def clear_sssd_cache(host):
         host.run_command(['/sbin/service', 'sssd', 'start'])
 
     # To avoid false negatives due to SSSD not responding yet
-    time.sleep(2)
+    time.sleep(10)
 
 
 def sync_time(host, server):
