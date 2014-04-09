@@ -1536,7 +1536,7 @@ class TaskTimeout(DatabaseError):
 
     For example:
 
-    >>> raise TaskTimeout()
+    >>> raise TaskTimeout(task='Automember', task_dn='')
     Traceback (most recent call last):
       ...
     TaskTimeout: Automember LDAP task timeout, Task DN: ''
