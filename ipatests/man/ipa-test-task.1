@@ -143,6 +143,10 @@ Configures auth_to_local rule in /etc/krb5.conf
 Clears SSSD cache by removing the cache files. Restarts SSSD.
 
 .TP
+\fBipa\-test\-task setup\-sssd\-debugging HOST\fR
+Sets up SSSD debugging. Restarts SSSD.
+
+.TP
 \fBipa\-test\-task sync\-time HOST SERVER\fR
 Syncs the time with the remote server. Please note that this function leaves
 ntpd stopped.

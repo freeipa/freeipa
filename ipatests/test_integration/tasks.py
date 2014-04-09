@@ -201,6 +201,7 @@ def install_master(host):
                       '--forwarder', host.config.dns_forwarder])
 
     enable_replication_debugging(host)
+    setup_sssd_debugging(host)
 
     kinit_admin(host)
 
@@ -232,6 +233,7 @@ def install_replica(master, replica, setup_ca=True):
     replica.run_command(args)
 
     enable_replication_debugging(replica)
+    setup_sssd_debugging(replica)
 
     kinit_admin(replica)
 
@@ -249,6 +251,7 @@ def install_client(master, client, extra_args=()):
                         '--server', master.hostname]
                         + list(extra_args))
 
+    setup_sssd_debugging(client)
     kinit_admin(client)
 
 
@@ -405,6 +408,31 @@ def configure_auth_to_local_rule(master, ad):
     master.put_file_contents('/etc/krb5.conf', krb5_conf_new_content)
 
     master.run_command(['systemctl', 'restart', 'sssd'])
+
+
+def setup_sssd_debugging(host):
+    """
+    Sets debug level to 7 in each section of sssd.conf file.
+    """
+
+    # Set debug level in each section of sssd.conf file to 7
+    # First, remove any previous occurences
+    host.run_command(['sed', '-i',
+                      '/debug_level = 7/d',
+                      '/etc/sssd/sssd.conf'
+                     ], raiseonerr=False)
+
+    # Add the debug directive to each section
+    host.run_command(['sed', '-i',
+                      '/\[*\]/ a\debug_level = 7',
+                      '/etc/sssd/sssd.conf'
+                     ], raiseonerr=False)
+
+
+    host.collect_log('/var/log/sssd/*')
+
+    # Clear the cache and restart SSSD
+    clear_sssd_cache(host)
 
 
 def clear_sssd_cache(host):

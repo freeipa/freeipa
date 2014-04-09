@@ -205,6 +205,13 @@ class TaskRunner(object):
         subparser.set_defaults(func=self.clear_sssd_cache)
 
         subparser = subparsers.add_parser(
+            'setup-sssd-debugging',
+            help='Turns on SSSD debugging levels.')
+        subparser.add_argument('host', type=str,
+                            help='IPA Host to turn SSSD debugging on')
+        subparser.set_defaults(func=self.setup_sssd_debugging)
+
+        subparser = subparsers.add_parser(
             'sync-time',
             help='Synchronize time on host with respect to server')
         subparser.add_argument('host', type=str,
@@ -409,6 +416,10 @@ class TaskRunner(object):
     def clear_sssd_cache(self, args):
         host = self.get_host(args.host, default=args.domain.master)
         tasks.clear_sssd_cache(host)
+
+    def setup_sssd_debugging(self, args):
+        host = self.get_host(args.host, default=args.domain.master)
+        tasks.setup_sssd_debugging(host)
 
     def sync_time(self, args):
         host = self.get_host(args.host, default=args.domain.master)
