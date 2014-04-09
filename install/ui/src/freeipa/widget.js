@@ -144,12 +144,28 @@ IPA.widget = function(spec) {
     that.visible = spec.visible === undefined ? true : spec.visible;
 
     /**
+     * Default main element's css classes
+     * @type {string}
+     */
+    that.base_css_class = spec.base_css_class || 'widget';
+
+    /**
+     * Additional main element's css classes
+     *
+     * Intended to be overridden in spec objects
+     *
+     * @type {string}
+     */
+    that.css_class = spec.css_class || '';
+
+    /**
      * Create HTML representation of a widget.
      * @method
      * @param {HTMLElement} container - Container node
      */
     that.create = function(container) {
-        container.addClass('widget');
+        container.addClass(that.base_css_class);
+        container.addClass(that.css_class);
         that.container = container;
     };
 
@@ -659,6 +675,7 @@ IPA.text_widget = function(spec) {
      */
     that.input_type = spec.input_type || 'text';
 
+    that.base_css_class = that.base_css_class + ' text-widget';
 
     /**
      * Select range of text
@@ -673,8 +690,6 @@ IPA.text_widget = function(spec) {
     that.create = function(container) {
 
         that.widget_create(container);
-
-        container.addClass('text-widget');
 
         that.display_control = $('<p/>', {
             name: that.name,
@@ -830,6 +845,8 @@ IPA.multivalued_widget = function(spec) {
     that.updating = false;
 
     that.rows = [];
+
+    that.base_css_class = that.base_css_class + ' multivalued-widget';
 
     that.on_child_value_changed = function(row) {
         if (that.test_dirty_row(row)) {
@@ -1046,8 +1063,6 @@ IPA.multivalued_widget = function(spec) {
     };
 
     that.create = function(container) {
-
-        container.addClass('multivalued-widget');
 
         that.widget_create(container);
 
@@ -1658,11 +1673,12 @@ IPA.radio_widget = function(spec) {
     var that = IPA.input_widget(spec);
     IPA.option_widget_base(spec, that);
 
+    that.base_css_class = that.base_css_class + ' radio-widget';
+
     /** @inheritDoc */
     that.create = function(container) {
         that.widget_create(container);
         that.owb_create(container);
-        container.addClass('radio-widget');
 
         if (that.undo) {
             that.create_undo(container);
@@ -1810,11 +1826,11 @@ IPA.select_widget = function(spec) {
 
     that.options = spec.options || [];
 
+    that.base_css_class = that.base_css_class + ' select-widget';
+
     that.create = function(container) {
 
         that.widget_create(container);
-
-        container.addClass('select-widget');
 
         that.select = $('<select/>', {
             name: that.name,
@@ -1944,11 +1960,11 @@ IPA.textarea_widget = function (spec) {
     that.cols = spec.cols || 40;
     that.style = spec.style;
 
+    that.base_css_class = that.base_css_class + ' textarea-widget';
+
     that.create = function(container) {
 
         that.widget_create(container);
-
-        container.addClass('textarea-widget');
 
         that.input = $('<textarea/>', {
             name: that.name,
@@ -2385,6 +2401,7 @@ IPA.table_widget = function (spec) {
 
     that.columns = $.ordered_map();
     that.value_attr_name = spec.value_attribute || that.name;
+    that.base_css_class = that.base_css_class + ' table-widget table-responsive';
 
     that.get_columns = function() {
         return that.columns.values;
@@ -2424,8 +2441,6 @@ IPA.table_widget = function (spec) {
     that.create = function(container) {
 
         that.widget_create(container);
-
-        container.addClass('table-widget table-responsive');
 
         that.table = $('<table/>', {
             'class': 'content-table table table-condensed table-striped table-hover table-bordered',
@@ -3255,11 +3270,10 @@ IPA.combobox_widget = function(spec) {
     that.empty_option = spec.empty_option === undefined ? true : spec.empty_option;
     that.options = spec.options || [];
     that.z_index = spec.z_index ? spec.z_index + 9000000 : 9000000;
+    that.base_css_class = that.base_css_class + ' combobox-widget';
 
     that.create = function(container) {
         that.widget_create(container);
-
-        container.addClass('combobox-widget');
 
         that.input_group = $('<div/>', {}).appendTo(container);
 
@@ -4061,16 +4075,10 @@ IPA.html_widget = function(spec) {
 
     /** Code to render */
     that.html = spec.html;
-    /** Container CSS class */
-    that.css_class = spec.css_class;
 
     that.create = function(container) {
 
         that.widget_create(container);
-
-        if (that.css_class) {
-            container.addClass(that.css_class);
-        }
 
         if (that.html) {
             container.append(that.html);
@@ -4127,11 +4135,13 @@ IPA.section = function(spec) {
     var that = IPA.composite_widget(spec);
 
     that.show_header = spec.show_header === undefined ? true : spec.show_header;
+    that.base_css_class = that.base_css_class + ' details-section';
+    that.layout_css_class = spec.layout_css_class || 'col-sm-12';
 
     that.create = function(container) {
 
         that.widget_create(container);
-        container.addClass('details-section col-sm-12');
+        that.container.addClass(that.layout_css_class);
 
         if (that.show_header) {
             that.create_header(container);
@@ -4270,8 +4280,8 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
     var that = IPA.layout(spec);
 
     that.cont_cls = spec.cont_cls || 'form-horizontal';
-    that.widget_cls = spec.widget_cls || 'col-md-6 controls';
-    that.label_cls = spec.label_cls || 'col-md-2 control-label';
+    that.widget_cls = spec.widget_cls || 'col-sm-9 controls';
+    that.label_cls = spec.label_cls || 'col-sm-3 control-label';
     that.group_cls = spec.group_cls || 'form-group';
 
     that.create = function(widgets) {
@@ -4979,8 +4989,6 @@ IPA.sshkey_widget = function(spec) {
 
         that.widget_create(container);
 
-        container.addClass('text-widget');
-
         that.status_label = $('<span />', {
             'class': 'sshkey-status',
             text: ''
@@ -5297,10 +5305,10 @@ IPA.value_map_widget = function(spec) {
     that.value_map = spec.value_map || {};
     that.default_label = text.get(spec.default_label || '');
     that.value = '';
+    that.base_css_class = that.base_css_class + ' status-section';
 
     that.create = function(container) {
         that.widget_create(container);
-        container.addClass('status-widget');
 
         that.display_control = $('<span/>', {
             name: that.name

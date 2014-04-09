@@ -252,7 +252,7 @@ IPA.dialog = function(spec) {
         }).appendTo(that.dom_node);
 
         that.dialog_node = $('<div/>', {
-            'class': 'rcue-dialog',
+            'class': 'rcue-dialog row',
             id: that.get_id(),
             'data-name' : that.name,
             role: 'dialog',

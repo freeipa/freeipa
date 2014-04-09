@@ -44,6 +44,12 @@ define([
 var exp = {};
 
 /**
+ * CSS classes for defining basic layout of sections in details facets
+ * @type {String}
+ */
+exp.details_section_layout_class = 'col-sm-12 col-md-6';
+
+/**
  * Details builder
  *
  * Processes containers spec and builds sections, widget and fields according
@@ -194,10 +200,9 @@ exp.section_builder = IPA.section_builder = function(spec) {
     /**
      * Default section factory
      *
-     * TODO: should be modified so it can be a class too
-     * @property {IPA.composite_widget}
+     * @property {IPA.composite_widget|Object}
      */
-    that.section_factory = spec.section_factory || IPA.details_section;
+    that.section_spec = spec.section_spec || IPA.details_section;
 
     /**
      * Field builder
@@ -231,23 +236,32 @@ exp.section_builder = IPA.section_builder = function(spec) {
      *                        is not specified in spec
      */
     that.build_section = function(section_spec, index) {
-        section_spec.entity = that.container.entity;
-        section_spec.facet = that.container;
 
-        if (!section_spec.label && section_spec.name && that.container.entity) {
-            var section_label = '@i18n:objects.'+that.container.entity.name+
-                    '.' + section_spec.name;
-            section_spec.label = section_label;
+        var spec = section_spec;
+        var overrides = {};
+        var spec_type = typeof that.section_spec;
+        if (spec_type === 'object') {
+            spec = lang.mixin({}, that.section_spec);
+            spec = lang.mixin(spec, section_spec);
+        } else if (spec_type === "function") {
+            overrides = that.section_spec;
         }
 
-        if(!section_spec.name) section_spec.name = 'section'+index;
+        if (!spec.label && spec.name && that.container.entity) {
+            var section_label = '@i18n:objects.'+that.container.entity.name+
+                    '.' + spec.name;
+            spec.label = section_label;
+        }
 
-        section_spec.$factory = section_spec.$factory || that.section_factory;
-        var section = section_spec.$factory(section_spec);
+        if (!spec.name) spec.name = 'section'+index;
+
+        var section = builder.build('widget', spec, {
+            entity: that.container.entity,
+            facet: that.container
+        }, overrides);
 
         that.container.widgets.add_widget(section);
-
-        that.create_fields(section, section_spec.fields);
+        that.create_fields(section, spec.fields);
     };
 
     /**
@@ -563,6 +577,12 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         }
         that.fields.container_add_field(field);
     };
+
+    /**
+     * Class for details section, defines layout
+     * @property {string}
+     */
+    that.section_layout_class = spec.section_layout_class || exp.details_section_layout_class;
 
     /**
      * Dirty
@@ -1091,7 +1111,11 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         var section_builder = IPA.section_builder({
             container: that,
             widget_builder: widget_builder,
-            field_builder: field_builder
+            field_builder: field_builder,
+            section_spec: {
+                $factory: IPA.details_section,
+                layout_css_class: that.section_layout_class
+            }
         });
 
         that.builder = IPA.details_builder({
