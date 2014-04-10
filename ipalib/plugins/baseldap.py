@@ -558,7 +558,7 @@ class LDAPObject(Object):
                 yield key
             if parent_obj.primary_key:
                 pkey = parent_obj.primary_key
-                yield pkey.__class__(
+                yield pkey.clone_rename(
                     parent_obj.name + pkey.name, required=True, query=True,
                     cli_name=parent_obj.name, label=pkey.label
                 )
