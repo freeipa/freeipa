@@ -51,6 +51,9 @@ The template dictionary can have the following keys:
 * ipapermdefaultattr
   - Used as attribute of the permission.
   - When upgrading, only new values are added; all old values are kept.
+* default_privileges
+  - Names of privileges to add the permission to
+  - Only applied on newly created permissions
 * replaces_global_anonymous_aci
   - If true, any attributes specified (denied) in the legacy global anonymous
     read ACI will be added to excluded_attributes of the new permission.
@@ -199,6 +202,14 @@ class update_managed_permissions(PostUpdate):
             entry.single_value['ipapermbindruletype'] = bindruletype
 
         entry['ipapermright'] = list(template.pop('ipapermright'))
+
+        default_privileges = template.pop('default_privileges', None)
+        if is_new and default_privileges:
+            entry['member'] = list(
+                DN(('cn', privilege_name),
+                   self.api.env.container_privilege,
+                   self.api.env.basedn)
+                for privilege_name in default_privileges)
 
         # Add to the set of default attributes
         attributes = set(template.pop('ipapermdefaultattr', ()))
