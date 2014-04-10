@@ -429,9 +429,17 @@ class BaseTestLegacyClientNonPosix(BaseTestLegacyClient,
         pass
 
 
+class BaseTestSSSDMixin(object):
+
+    def test_apply_advice(self):
+        super(BaseTestSSSDMixin, self).test_apply_advice()
+        tasks.setup_sssd_debugging(self.legacy_client)
+
+
 # Tests definitions themselves. Beauty. Just pure beauty.
 
-class TestLegacySSSDBefore19RedHatNonPosix(BaseTestLegacySSSDBefore19RedHat,
+class TestLegacySSSDBefore19RedHatNonPosix(BaseTestSSSDMixin,
+                                           BaseTestLegacySSSDBefore19RedHat,
                                            BaseTestLegacyClientNonPosix):
     pass
 
@@ -446,7 +454,8 @@ class TestLegacyNssLdapRedHatNonPosix(BaseTestLegacyNssLdapRedHat,
     pass
 
 
-class TestLegacySSSDBefore19RedHatPosix(BaseTestLegacySSSDBefore19RedHat,
+class TestLegacySSSDBefore19RedHatPosix(BaseTestSSSDMixin,
+                                        BaseTestLegacySSSDBefore19RedHat,
                                         BaseTestLegacyClientPosix):
     pass
 
