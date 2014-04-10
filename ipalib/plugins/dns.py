@@ -255,6 +255,12 @@ _IN = dns.rdataclass.IN
 # NS record type
 _NS = dns.rdatatype.from_text('NS')
 
+_output_permissions = (
+    output.summary,
+    output.Output('result', bool, _('True means the operation was successful')),
+    output.Output('value', unicode, _('Permission value')),
+)
+
 def _rname_validator(ugettext, zonemgr):
     try:
         validate_zonemgr(zonemgr)
@@ -2049,7 +2055,7 @@ api.register(dnszone_enable)
 class dnszone_add_permission(LDAPQuery):
     __doc__ = _('Add a permission for per-zone access delegation.')
 
-    has_output = output.standard_value
+    has_output = _output_permissions
     msg_summary = _('Added system permission "%(value)s"')
 
     def execute(self, *keys, **options):
@@ -2087,7 +2093,7 @@ api.register(dnszone_add_permission)
 class dnszone_remove_permission(LDAPQuery):
     __doc__ = _('Remove a permission for per-zone access delegation.')
 
-    has_output = output.standard_value
+    has_output = _output_permissions
     msg_summary = _('Removed system permission "%(value)s"')
 
     def execute(self, *keys, **options):

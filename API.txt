@@ -1106,7 +1106,7 @@ arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_
 option: Str('version?', exclude='webui')
 output: Output('result', <type 'bool'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
-output: PrimaryKey('value', None, None)
+output: Output('value', <type 'unicode'>, None)
 command: dnszone_del
 args: 1,2,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=True, primary_key=True, query=True, required=True)
@@ -1201,7 +1201,7 @@ arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_
 option: Str('version?', exclude='webui')
 output: Output('result', <type 'bool'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
-output: PrimaryKey('value', None, None)
+output: Output('value', <type 'unicode'>, None)
 command: dnszone_show
 args: 1,4,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
