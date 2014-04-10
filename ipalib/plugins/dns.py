@@ -26,6 +26,7 @@ import re
 import dns.name
 import dns.exception
 import dns.resolver
+import encodings.idna
 
 from ipalib.request import context
 from ipalib import api, errors, output
@@ -606,10 +607,19 @@ class DNSRecord(Str):
             return None
         return tuple(values)
 
-    def _part_values_to_string(self, values, index):
+    def _part_values_to_string(self, values, index, idna=True):
         self._validate_parts(values)
-        return u" ".join(super(DNSRecord, self)._convert_scalar(v, index) \
-                             for v in values if v is not None)
+        parts = []
+        for v in values:
+            if v is None:
+                continue
+            elif isinstance(v, DNSName) and idna:
+                v = v.ToASCII()
+            elif not isinstance(v, unicode):
+                v = unicode(v)
+            parts.append(v)
+
+        return u" ".join(parts)
 
     def get_parts_from_kw(self, kw, raise_on_none=True):
         part_names = tuple(self.part_name_format % (self.rrtype.lower(), part.name) \
@@ -1230,9 +1240,13 @@ class NSECRecord(DNSRecord):
 
         return (values[0], tuple(values[1:]))
 
-    def _part_values_to_string(self, values, index):
+    def _part_values_to_string(self, values, index, idna=True):
         self._validate_parts(values)
-        values_flat = [values[0],]  # add "next" part
+        if idna:
+            val = values[0].ToASCII()
+        else:
+            val = unicode(values[0])
+        values_flat = [val, ]  # add "next" part
         types = values[1]
         if not isinstance(types, (list, tuple)):
             types = [types,]
@@ -1511,7 +1525,7 @@ def check_ns_rec_resolvable(zone, name):
         # this is a DNS name relative to the zone
         name = name.derelativize(zone.make_absolute())
     try:
-        return api.Command['dns_resolve'](name)
+        return api.Command['dns_resolve'](unicode(name))
     except errors.NotFound:
         raise errors.NotFound(
             reason=_('Nameserver \'%(host)s\' does not have a corresponding '
@@ -1536,6 +1550,133 @@ dnszone_output_params = (
         label=_('Managedby permission'),
     ),
 )
+
+
+def _convert_to_idna(value):
+    """
+    Function converts a unicode value to idna, without extra validation.
+    If conversion fails, None is returned
+    """
+    assert isinstance(value, unicode)
+
+    try:
+        idna_val = value
+        start_dot = u''
+        end_dot = u''
+        if idna_val.startswith(u'.'):
+            idna_val = idna_val[1:]
+            start_dot = u'.'
+        if idna_val.endswith(u'.'):
+            idna_val = idna_val[:-1]
+            end_dot = u'.'
+        idna_val = encodings.idna.nameprep(idna_val)
+        idna_val = re.split(r'(?<!\\)\.', idna_val)
+        idna_val = u'%s%s%s' % (start_dot,
+                                u'.'.join(encodings.idna.ToASCII(x)
+                                          for x in idna_val),
+                                end_dot)
+        return idna_val
+    except Exception:
+        pass
+    return None
+
+def _create_idn_filter(cmd, ldap, *args, **options):
+    term = args[-1]
+    if term:
+        #include idna values to search
+        term_idna = _convert_to_idna(term)
+        if term_idna and term != term_idna:
+            term = (term, term_idna)
+
+    search_kw = {}
+    attr_extra_filters = []
+
+    for attr, value in cmd.args_options_2_entry(**options).iteritems():
+        if not isinstance(value, list):
+            value = [value]
+        for i, v in enumerate(value):
+            if isinstance(v, DNSName):
+                value[i] = v.ToASCII()
+            elif attr in map_names_to_records:
+                record = map_names_to_records[attr]
+                parts = record._get_part_values(v)
+                if parts is None:
+                    value[i] = v
+                    continue
+                try:
+                    value[i] = record._part_values_to_string(parts, None)
+                except errors.ValidationError:
+                    value[i] = v
+
+        #create MATCH_ANY filter for multivalue
+        if len(value) > 1:
+            f = ldap.make_filter({attr: value}, rules=ldap.MATCH_ANY)
+            attr_extra_filters.append(f)
+        else:
+            search_kw[attr] = value
+
+    if cmd.obj.search_attributes:
+        search_attrs = cmd.obj.search_attributes
+    else:
+        search_attrs = cmd.obj.default_attributes
+    if cmd.obj.search_attributes_config:
+        config = ldap.get_ipa_config()
+        config_attrs = config.get(cmd.obj.search_attributes_config, [])
+        if len(config_attrs) == 1 and (isinstance(config_attrs[0],
+                                                  basestring)):
+            search_attrs = config_attrs[0].split(',')
+
+    search_kw['objectclass'] = cmd.obj.object_class
+    attr_filter = ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
+    if attr_extra_filters:
+        #combine filter if there is any idna value
+        attr_extra_filters.append(attr_filter)
+        attr_filter = ldap.combine_filters(attr_extra_filters,
+                                           rules=ldap.MATCH_ALL)
+
+    search_kw = {}
+    for a in search_attrs:
+        search_kw[a] = term
+    term_filter = ldap.make_filter(search_kw, exact=False)
+
+    member_filter = cmd.get_member_filter(ldap, **options)
+
+    filter = ldap.combine_filters(
+        (term_filter, attr_filter, member_filter), rules=ldap.MATCH_ALL
+    )
+    return filter
+
+
+map_names_to_records = {"%srecord" % record.rrtype.lower(): record for record
+                        in _dns_records if record.supported}
+
+def _records_idn_postprocess(record, **options):
+    for attr in record.keys():
+        attr = attr.lower()
+        try:
+            param = map_names_to_records[attr]
+        except KeyError:
+            continue
+        if not isinstance(param, DNSRecord):
+            continue
+
+        part_params = param.get_parts()
+        rrs = []
+        for dnsvalue in record[attr]:
+            parts = param._get_part_values(dnsvalue)
+            if parts is None:
+                continue
+            parts = list(parts)
+            try:
+                for (i, p) in enumerate(parts):
+                    if isinstance(part_params[i], DNSNameParam):
+                        parts[i] = DNSName(p)
+                rrs.append(param._part_values_to_string(parts, None,
+                                            idna=options.get('raw', False)))
+            except (errors.ValidationError, errors.ConversionError):
+                rrs.append(dnsvalue)
+        record[attr] = rrs
+
 
 class dnszone(LDAPObject):
     """
@@ -1713,57 +1854,50 @@ class dnszone(LDAPObject):
 
     def get_dn(self, *keys, **options):
         zone = keys[-1]
+        assert isinstance(zone, DNSName)
+        assert zone.is_absolute()
+        zone = zone.ToASCII()
+
+        #try first relative name, a new zone has to be added as absolute
+        #otherwise ObjectViolation is raised
+        zone = zone[:-1]
         dn = super(dnszone, self).get_dn(zone, **options)
         try:
             self.backend.get_entry(dn, [''])
         except errors.NotFound:
-            if zone.endswith(u'.'):
-                zone = zone[:-1]
-            else:
-                zone = zone + u'.'
-            test_dn = super(dnszone, self).get_dn(zone, **options)
-
-            try:
-                dn = self.backend.get_entry(test_dn, ['']).dn
-            except errors.NotFound:
-                pass
+            zone = u"%s." % zone
+            dn = super(dnszone, self).get_dn(zone, **options)
 
         return dn
 
     def permission_name(self, zone):
-        return u"Manage DNS zone %s" % zone
+        assert isinstance(zone, DNSName)
+        return u"Manage DNS zone %s" % zone.ToASCII()
 
     def get_name_in_zone(self, zone, hostname):
         """
         Get name of a record that is to be added to a new zone. I.e. when
         we want to add record "ipa.lab.example.com" in a zone "example.com",
         this function should return "ipa.lab". Returns None when record cannot
-        be added to a zone
+        be added to a zone. Returns '@' when the hostname is the zone record.
         """
-        if hostname == _dns_zone_record:
-            # special case: @ --> zone name
+        assert isinstance(zone, DNSName)
+        assert zone.is_absolute()
+        assert isinstance(hostname, DNSName)
+
+        if not hostname.is_absolute():
             return hostname
 
-        if hostname.endswith(u'.'):
-            hostname = hostname[:-1]
-        if zone.endswith(u'.'):
-            zone = zone[:-1]
+        if hostname.is_subdomain(zone):
+            return hostname.relativize(zone)
 
-        hostname_parts = hostname.split(u'.')
-        zone_parts = zone.split(u'.')
+        return None
 
-        dns_name = list(hostname_parts)
-        for host_part, zone_part in zip(reversed(hostname_parts),
-                                        reversed(zone_parts)):
-            if host_part != zone_part:
-                return None
-            dns_name.pop()
-
-        if not dns_name:
-            # hostname is directly in zone itself
-            return _dns_zone_record
-
-        return u'.'.join(dns_name)
+    def _rr_zone_postprocess(self, record, **options):
+        #Decode IDN ACE form to Unicode, raw records are passed directly from LDAP
+        if options.get('raw', False):
+            return
+        _records_idn_postprocess(record, **options)
 
 api.register(dnszone)
 
@@ -1794,12 +1928,20 @@ class dnszone_add(LDAPCreate):
         if kw.get('ip_address', None):
             return
 
-        zone = normalize_zone(kw['idnsname'])
-        ns = kw['idnssoamname']
-        relative_ns = not ns.endswith('.')
+        try:
+            zone = DNSName(kw['idnsname']).make_absolute()
+        except Exception, e:
+            raise errors.ValidationError(name='idnsname', error=unicode(e))
+
+        try:
+            ns = DNSName(kw['idnssoamname'])
+        except Exception, e:
+            raise errors.ValidationError(name='idnssoamname', error=unicode(e))
+
+        relative_ns = not ns.is_absolute()
         ns_in_zone = self.obj.get_name_in_zone(zone, ns)
 
-        if not zone_is_reverse(zone) and (relative_ns or ns_in_zone):
+        if not zone.is_reverse() and (relative_ns or ns_in_zone):
             ip_address = self.Backend.textui.prompt(_(u'Nameserver IP address'))
             kw['ip_address'] = ip_address
 
@@ -1819,15 +1961,14 @@ class dnszone_add(LDAPCreate):
                     error=_("Nameserver address is not a domain name"))
 
         nameserver_ip_address = options.get('ip_address')
-        normalized_zone = normalize_zone(keys[-1])
-
-        if nameserver.endswith('.'):
+        zone = keys[-1]
+        if nameserver.is_absolute():
             record_in_zone = self.obj.get_name_in_zone(keys[-1], nameserver)
         else:
             record_in_zone = nameserver
 
-        if zone_is_reverse(normalized_zone):
-            if not nameserver.endswith('.'):
+        if zone.is_reverse():
+            if not nameserver.is_absolute():
                 raise errors.ValidationError(name='name-server',
                         error=_("Nameserver for reverse zone cannot be "
                                 "a relative DNS name"))
@@ -1835,7 +1976,8 @@ class dnszone_add(LDAPCreate):
                 raise errors.ValidationError(name='ip_address',
                         error=_("Nameserver DNS record is created for "
                                 "for forward zones only"))
-        elif nameserver_ip_address and nameserver.endswith('.') and not record_in_zone:
+        elif (nameserver_ip_address and nameserver.is_absolute() and
+              record_in_zone is None):
             raise errors.ValidationError(name='ip_address',
                     error=_("Nameserver DNS record is created only for "
                             "nameservers in current zone"))
@@ -1852,7 +1994,7 @@ class dnszone_add(LDAPCreate):
         nameserver_ip_address = options.get('ip_address')
         if nameserver_ip_address:
             nameserver = entry_attrs['idnssoamname'][0]
-            if nameserver.endswith('.'):
+            if nameserver.is_absolute():
                 dns_record = self.obj.get_name_in_zone(keys[-1], nameserver)
             else:
                 dns_record = nameserver
@@ -1864,14 +2006,16 @@ class dnszone_add(LDAPCreate):
         # except for our own domain, forwarded zones and reverse zones
         zone = keys[0]
 
-        if (zone != api.env.domain
+        if (zone != DNSName(api.env.domain).make_absolute()
             and not options.get('idnsforwarders')
-            and not zone_is_reverse(zone)):
+            and not zone.is_reverse()):
             try:
-                api.Command['realmdomains_mod'](add_domain=zone, force=True)
-            except errors.EmptyModlist:
+                api.Command['realmdomains_mod'](add_domain=unicode(zone),
+                                                force=True)
+            except (errors.EmptyModlist, errors.ValidationError):
                 pass
 
+        self.obj._rr_zone_postprocess(entry_attrs, **options)
         return dn
 
 api.register(dnszone_add)
@@ -1891,12 +2035,14 @@ class dnszone_del(LDAPDelete):
 
         # Delete entry from realmdomains
         # except for our own domain
-        zone = keys[0]
+        zone = keys[0].make_absolute()
 
-        if zone != api.env.domain:
+        if (zone != DNSName(api.env.domain).make_absolute() and
+            not zone.is_reverse()):
             try:
-                api.Command['realmdomains_mod'](del_domain=zone, force=True)
-            except errors.AttrValueNotFound:
+                api.Command['realmdomains_mod'](del_domain=unicode(zone),
+                                                force=True)
+            except (errors.AttrValueNotFound, errors.ValidationError):
                 pass
 
         return True
@@ -1918,9 +2064,14 @@ class dnszone_mod(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list,  *keys, **options):
         nameserver = entry_attrs.get('idnssoamname')
-        if nameserver and nameserver != _dns_zone_record and not options['force']:
+        if nameserver and not nameserver.is_empty() and not options['force']:
             check_ns_rec_resolvable(keys[0], nameserver)
 
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        self.obj._rr_zone_postprocess(entry_attrs, **options)
         return dn
 
 api.register(dnszone_mod)
@@ -1947,7 +2098,12 @@ class dnszone_find(LDAPSearch):
             if 'idnsname' not in options:
                 options['idnsname'] = self.obj.params['idnsname'].get_default(**options)
             del options['name_from_ip']
-        return super(dnszone_find, self).args_options_2_entry(*args, **options)
+        search_kw = super(dnszone_find, self).args_options_2_entry(*args,
+                                                                   **options)
+        name = search_kw.get('idnsname')
+        if name:
+            search_kw['idnsname'] = [name, name.relativize(DNSName.root)]
+        return search_kw
 
     takes_options = LDAPSearch.takes_options + (
         Flag('forward_only',
@@ -1959,15 +2115,26 @@ class dnszone_find(LDAPSearch):
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
         assert isinstance(base_dn, DN)
+
+        filter = _create_idn_filter(self, ldap, *args, **options)
+
         if options.get('forward_only', False):
             search_kw = {}
-            search_kw['idnsname'] = REVERSE_DNS_ZONES.keys()
-            rev_zone_filter = ldap.make_filter(search_kw, rules=ldap.MATCH_NONE, exact=False,
-                    trailing_wildcard=False)
-            filter = ldap.combine_filters((rev_zone_filter, filter), rules=ldap.MATCH_ALL)
+            search_kw['idnsname'] = [revzone.ToASCII() for revzone in
+                                     REVERSE_DNS_ZONES.keys()]
+            rev_zone_filter = ldap.make_filter(search_kw,
+                                               rules=ldap.MATCH_NONE,
+                                               exact=False,
+                                               trailing_wildcard=False)
+            filter = ldap.combine_filters((rev_zone_filter, filter),
+                                          rules=ldap.MATCH_ALL)
 
         return (filter, base_dn, scope)
 
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        for entry_attrs in entries:
+            self.obj._rr_zone_postprocess(entry_attrs, **options)
+        return truncated
 
 api.register(dnszone_find)
 
@@ -1976,6 +2143,11 @@ class dnszone_show(LDAPRetrieve):
     __doc__ = _('Display information about a DNS zone (SOA record).')
 
     has_output_params = LDAPRetrieve.has_output_params + dnszone_output_params
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        self.obj._rr_zone_postprocess(entry_attrs, **options)
+        return dn
 
 api.register(dnszone_show)
 
@@ -2139,21 +2311,24 @@ class dnsrecord(LDAPObject):
                            doc=_('Parse all raw DNS records and return them in a structured way'),
                            )
 
-    def _idnsname_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        if not self.is_pkey_zone_record(*keys):
-            zone, addr = normalize_zone(keys[-2]), keys[-1]
-            try:
-                validate_domain_name(addr, allow_underscore=True, allow_slash=zone_is_reverse(zone))
-            except ValueError, e:
-                raise errors.ValidationError(name='idnsname', error=unicode(e))
-
     def _nsrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         nsrecords = entry_attrs.get('nsrecord')
         if options.get('force', False) or nsrecords is None:
             return
         for nsrecord in nsrecords:
-            check_ns_rec_resolvable(keys[0], nsrecord)
+            check_ns_rec_resolvable(keys[0], DNSName(nsrecord))
+
+    def _idnsname_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        if keys[-1].is_absolute():
+            if keys[-1].is_subdomain(keys[-2]):
+                entry_attrs['idnsname'] = [keys[-1].relativize(keys[-2])]
+            elif not self.is_pkey_zone_record(*keys):
+                raise errors.ValidationError(name='idnsname',
+                        error=unicode(_('out-of-zone data: record name must '
+                                        'be a subdomain of the zone or a '
+                                        'relative name')))
 
     def _ptrrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
@@ -2163,35 +2338,42 @@ class dnsrecord(LDAPObject):
 
         zone = keys[-2]
         if self.is_pkey_zone_record(*keys):
-            addr = u''
+            addr = _dns_zone_record
         else:
             addr = keys[-1]
 
-        zone = normalize_zone(zone)
-
         zone_len = 0
         for valid_zone in REVERSE_DNS_ZONES:
-            if zone.endswith(valid_zone):
-                zone = zone.replace(valid_zone,'')
+            if zone.is_subdomain(valid_zone):
+                zone = zone.relativize(valid_zone)
                 zone_name = valid_zone
                 zone_len = REVERSE_DNS_ZONES[valid_zone]
 
         if not zone_len:
-            allowed_zones = ', '.join(REVERSE_DNS_ZONES)
+            allowed_zones = ', '.join([unicode(revzone) for revzone in
+                                       REVERSE_DNS_ZONES.keys()])
             raise errors.ValidationError(name='ptrrecord',
                     error=unicode(_('Reverse zone for PTR record should be a sub-zone of one the following fully qualified domains: %s') % allowed_zones))
 
-        addr_len = len(addr.split('.')) if addr else 0
+        addr_len = len(addr.labels)
 
         #Classless zones (0/25.0.0.10.in-addr.arpa.) -> skip check
         #zone has to be checked without reverse domain suffix (in-addr.arpa.)
-        if ('/' not in addr and '/' not in zone and
-            '-' not in addr and '-' not in zone):
-            ip_addr_comp_count = addr_len + len(zone.split('.'))
-            if ip_addr_comp_count != zone_len:
-                raise errors.ValidationError(name='ptrrecord',
-                      error=unicode(_('Reverse zone %(name)s requires exactly %(count)d IP address components, %(user_count)d given')
-                      % dict(name=zone_name, count=zone_len, user_count=ip_addr_comp_count)))
+        for sign in ('/', '-'):
+            for name in (zone, addr):
+                for label in name.labels:
+                    if sign in label:
+                        return
+
+        ip_addr_comp_count = addr_len + len(zone.labels)
+        if ip_addr_comp_count != zone_len:
+            raise errors.ValidationError(name='ptrrecord',
+                error=unicode(_('Reverse zone %(name)s requires exactly '
+                                '%(count)d IP address components, '
+                                '%(user_count)d given')
+                % dict(name=zone_name,
+                       count=zone_len,
+                       user_count=ip_addr_comp_count)))
 
     def run_precallback_validators(self, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
@@ -2203,21 +2385,28 @@ class dnsrecord(LDAPObject):
                 rtype_cb(ldap, dn, entry_attrs, *keys, **options)
 
     def is_pkey_zone_record(self, *keys):
+        assert isinstance(keys[-1], DNSName)
+        assert isinstance(keys[-2], DNSName)
         idnsname = keys[-1]
-        if idnsname == str(_dns_zone_record) or idnsname == ('%s.' % keys[-2]):
+        zonename = keys[-2]
+        if idnsname.is_empty() or idnsname == zonename:
             return True
         return False
 
     def get_dn(self, *keys, **options):
         if self.is_pkey_zone_record(*keys):
-            dn = self.api.Object[self.parent_object].get_dn(*keys[:-1], **options)
+            parent_object = self.api.Object[self.parent_object]
+            dn = parent_object.get_dn(*keys[:-1], **options)
             # zone must exist
             ldap = self.api.Backend.ldap2
             try:
                 ldap.get_entry(dn, [])
             except errors.NotFound:
-                self.api.Object['dnszone'].handle_not_found(keys[-2])
-            return self.api.Object[self.parent_object].get_dn(*keys[:-1], **options)
+                parent_object.handle_not_found(*keys[:-1])
+            return dn
+        #Make RR name relative if possible
+        relative_name = keys[-1].relativize(keys[-2]).ToASCII()
+        keys = keys[:-1] + (relative_name,)
         return super(dnsrecord, self).get_dn(*keys, **options)
 
     def attr_to_cli(self, attr):
@@ -2292,9 +2481,19 @@ class dnsrecord(LDAPObject):
                         continue
                     for val_id, val in enumerate(values):
                         if val is not None:
-                            dnsentry[parts_params[val_id].name] = val
+                            #decode IDN
+                            if isinstance(parts_params[val_id], DNSNameParam):
+                                dnsentry[parts_params[val_id].name] = \
+                                _dns_name_to_string(val,
+                                                    options.get('raw', False))
+                            else:
+                                dnsentry[parts_params[val_id].name] = val
                     record.setdefault('dnsrecords', []).append(dnsentry)
                 del record[attr]
+
+        elif not options.get('raw', False):
+            #Decode IDN ACE form to Unicode, raw records are passed directly from LDAP
+            _records_idn_postprocess(record, **options)
 
     def get_rrparam_from_part(self, part_name):
         """
@@ -2384,7 +2583,7 @@ class dnsrecord(LDAPObject):
                         error=_('only one DNAME record is allowed per name '
                                 '(RFC 6672, section 2.4)'))
                 # DNAME must not coexist with CNAME, but this is already checked earlier
-                if rrattrs.get('nsrecord') and keys[1] != _dns_zone_record:
+                if rrattrs.get('nsrecord') and not keys[1].is_empty():
                     raise errors.ValidationError(name='dnamerecord',
                           error=_('DNAME record is not allowed to coexist with an '
                                   'NS record except when located in a zone root '
@@ -2558,8 +2757,8 @@ class dnsrecord(LDAPObject):
             Dict {(dns_domain, dns_name): entry_for_wait_for_modified_attrs}
         '''
         for entry_name, entry in entries.iteritems():
-            dns_domain = dns.name.from_text(entry_name[0])
-            dns_name = dns.name.from_text(entry_name[1], origin=dns_domain)
+            dns_domain = entry_name[0]
+            dns_name = entry_name[1].derelativize(dns_domain)
             self.wait_for_modified_attrs(entry, dns_name, dns_domain)
 
 api.register(dnsrecord)
@@ -2603,10 +2802,20 @@ class dnsrecord_add(LDAPCreate):
         except errors.OptionError:
             pass
 
+        try:
+            idnsname = DNSName(kw['idnsname'])
+        except Exception, e:
+            raise errors.ValidationError(name='idnsname', error=unicode(e))
+
+        try:
+            zonename = DNSName(kw['dnszoneidnsname'])
+        except Exception, e:
+            raise errors.ValidationError(name='dnszoneidnsname', error=unicode(e))
+
         # check zone type
-        if kw['idnsname'] == _dns_zone_record:
+        if idnsname.is_empty():
             common_types = u', '.join(_zone_top_record_types)
-        elif zone_is_reverse(kw['dnszoneidnsname']):
+        elif zonename.is_reverse():
             common_types = u', '.join(_rev_top_record_types)
         else:
             common_types = u', '.join(_top_record_types)
@@ -3145,7 +3354,8 @@ class dnsrecord_find(LDAPSearch):
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
         assert isinstance(base_dn, DN)
-        # include zone record (root entry) in the search
+
+        filter = _create_idn_filter(self, ldap, *args, **options)
         return (filter, base_dn, ldap.SCOPE_SUBTREE)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
