@@ -28,7 +28,7 @@ import socket
 
 from ipapython import ipautil
 from ipaserver.install import replication, dsinstance, installutils
-from ipaserver.install import bindinstance
+from ipaserver.install import bindinstance, cainstance, certs
 from ipaserver.plugins import ldap2
 from ipapython import version, ipaldap
 from ipalib import api, errors, util
@@ -665,6 +665,7 @@ def del_master(realm, hostname, options):
         # Check that we are not leaving the installation without CA and/or DNS
         this_services = []
         other_services = []
+        ca_hostname = None
 
         for master_cn in [m.single_value['cn'] for m in masters]:
             master_dn = DN(('cn', master_cn), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
@@ -679,6 +680,8 @@ def del_master(realm, hostname, options):
                 this_services = services_cns
             else:
                 other_services.append(services_cns)
+                if ca_hostname is None and 'CA' in services_cns:
+                    ca_hostname = master_cn
 
         if 'CA' in this_services and not any(['CA' in o for o in other_services]):
             print "Deleting this server is not allowed as it would leave your installation without a CA."
@@ -688,6 +691,14 @@ def del_master(realm, hostname, options):
             print "Deleting this server will leave your installation without a DNS."
             if not options.force and not ipautil.user_input("Continue to delete?", False):
                 sys.exit("Deletion aborted")
+
+        # Pick CA renewal master
+        ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+        if ca.is_renewal_master(hostname):
+            try:
+                ca.set_renewal_master(options.host)
+            except errors.NotFound:
+                ca.set_renewal_master(ca_hostname)
     else:
         print "Skipping calculation to determine if one or more masters would be orphaned."
 
