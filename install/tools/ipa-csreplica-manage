@@ -25,7 +25,8 @@ import os
 import krbV
 from ipapython.ipa_log_manager import *
 
-from ipaserver.install import replication, installutils, bindinstance
+from ipaserver.install import (replication, installutils, bindinstance,
+    cainstance, certs)
 from ipalib import api, errors, util
 from ipalib.constants import CACERT
 from ipapython import ipautil, ipaldap, version, dogtag
@@ -272,7 +273,12 @@ def del_master(realm, hostname, options):
         except Exception, e:
             sys.exit("There were issues removing a connection: %s" % e)
 
-    # 6. And clean up the removed replica DNS entries if any.
+    # 6. Pick CA renewal master
+    ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+    if ca.is_renewal_master(hostname):
+        ca.set_renewal_master(options.host)
+
+    # 7. And clean up the removed replica DNS entries if any.
     try:
         if bindinstance.dns_container_exists(options.host, api.env.basedn,
                                              dm_password=options.dirman_passwd):
