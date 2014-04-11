@@ -50,7 +50,10 @@ capabilities = dict(
     primary_key_types=u'2.83',
 
     # support for datetime values on the client
-    datetime_values=u'2.84'
+    datetime_values=u'2.84',
+
+    # dns_name_values: dnsnames as objects
+    dns_name_values=u'2.88',
 )
 
 

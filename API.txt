@@ -4014,3 +4014,4 @@ capability: optional_uid_params 2.54
 capability: permissions2 2.69
 capability: primary_key_types 2.83
 capability: datetime_values 2.84
+capability: dns_name_values 2.88

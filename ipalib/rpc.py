@@ -60,6 +60,7 @@ from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
 from ipapython import kernel_keyring
 from ipapython.cookie import Cookie
+from ipapython.dnsutil import DNSName
 from ipalib.text import _
 from ipapython.nsslib import NSSHTTPS, NSSConnection
 from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
@@ -173,6 +174,12 @@ def xml_wrap(value, version):
         else:
             return value.strftime(LDAP_GENERALIZED_TIME_FORMAT)
 
+    if isinstance(value, DNSName):
+        if capabilities.client_has_capability(version, 'dns_name_values'):
+            return {'__dns_name__': unicode(value)}
+        else:
+            return unicode(value)
+
     assert type(value) in (unicode, int, long, float, bool, NoneType)
     return value
 
@@ -198,9 +205,12 @@ def xml_unwrap(value, encoding='UTF-8'):
     if type(value) in (list, tuple):
         return tuple(xml_unwrap(v, encoding) for v in value)
     if type(value) is dict:
-        return dict(
-            (k, xml_unwrap(v, encoding)) for (k, v) in value.iteritems()
-        )
+        if '__dns_name__' in value:
+            return DNSName(value['__dns_name__'])
+        else:
+            return dict(
+                (k, xml_unwrap(v, encoding)) for (k, v) in value.iteritems()
+            )
     if type(value) is str:
         return value.decode(encoding)
     if isinstance(value, Binary):
@@ -284,6 +294,11 @@ def json_encode_binary(val, version):
             return {'__datetime__': val.strftime(LDAP_GENERALIZED_TIME_FORMAT)}
         else:
             return val.strftime(LDAP_GENERALIZED_TIME_FORMAT)
+    elif isinstance(val, DNSName):
+        if capabilities.client_has_capability(version, 'dns_name_values'):
+            return {'__dns_name__': unicode(val)}
+        else:
+            return unicode(val)
     else:
         return val
 
@@ -314,6 +329,8 @@ def json_decode_binary(val):
         elif '__datetime__' in val:
             return datetime.datetime.strptime(val['__datetime__'],
                                               LDAP_GENERALIZED_TIME_FORMAT)
+        elif '__dns_name__' in val:
+            return DNSName(val['__dns_name__'])
         else:
             return dict((k, json_decode_binary(v)) for k, v in val.items())
     elif isinstance(val, list):
