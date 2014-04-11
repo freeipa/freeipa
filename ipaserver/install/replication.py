@@ -1202,6 +1202,49 @@ class ReplicationManager(object):
                 err = e
 
         try:
+            entry = self.conn.get_entry(
+                DN(('cn', 'ipa'), ('cn', 'etc'), self.suffix), ['aci'])
+
+            sub = {'suffix': self.suffix, 'fqdn': replica}
+            try:
+                entry.raw['aci'].remove(
+                    '(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,'
+                    '%(suffix)s")(version 3.0; acl "Add CA Certificates for '
+                    'renewals"; allow(add) userdn = "ldap:///fqdn=%(fqdn)s,'
+                    'cn=computers,cn=accounts,%(suffix)s";)' % sub)
+            except ValueError:
+                pass
+            try:
+                entry.raw['aci'].remove(
+                    '(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,'
+                    '%(suffix)s")(targetattr = "userCertificate")'
+                    '(version 3.0; acl "Modify CA Certificates for renewals"; '
+                    'allow(write) userdn = "ldap:///fqdn=%(fqdn)s,'
+                    'cn=computers,cn=accounts,%(suffix)s";)' % sub)
+            except ValueError:
+                pass
+            try:
+                entry.raw['aci'].remove(
+                    '(target = "ldap:///cn=CAcert,cn=ipa,cn=etc,%(suffix)s")'
+                    '(targetattr = cACertificate)(version 3.0; acl "Modify CA '
+                    'Certificate"; allow (write) userdn = "ldap:///fqdn='
+                    '%(fqdn)s,cn=computers,cn=accounts,%(suffix)s";)' % sub)
+            except ValueError:
+                pass
+
+            try:
+                self.conn.update_entry(entry)
+            except errors.EmptyModlist:
+                pass
+        except errors.NotFound:
+            pass
+        except Exception, e:
+            if not force:
+                raise e
+            elif not err:
+                err = e
+
+        try:
             basedn = DN(('cn', 'etc'), self.suffix)
             filter = '(dnaHostname=%s)' % replica
             entries = self.conn.get_entries(
