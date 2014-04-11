@@ -734,7 +734,7 @@ class UI_driver(object):
             val = i.get_attribute('value')
             n = i.get_attribute('name')
             if val == value:
-                s = "input[name='%s'] ~ a[name=remove]" % n
+                s = "input[name='%s'] ~ .input-group-btn button[name=remove]" % n
                 link = self.find(s, By.CSS_SELECTOR, w, strict=True)
                 link.click()
                 self.wait()
@@ -1308,7 +1308,7 @@ class UI_driver(object):
             parent = self.get_form()
         s = self.get_table_selector(name)
         table = self.find(s, By.CSS_SELECTOR, parent, strict=True)
-        s = "a[name=%s] span.button-label" % 'add'
+        s = "a[name=%s].button" % 'add'
         btn = self.find(s, By.CSS_SELECTOR, table, strict=True)
         btn.click()
         self.wait()
@@ -1349,7 +1349,7 @@ class UI_driver(object):
         s = self.get_table_selector(table_name)
         table = self.find(s, By.CSS_SELECTOR, parent, strict=True)
 
-        s = "a[name=%s] span.button-label" % 'add'
+        s = "a[name=%s].button" % 'add'
         btn = self.find(s, By.CSS_SELECTOR, table, strict=True)
         btn.click()
         self.wait_for_request(0.4)

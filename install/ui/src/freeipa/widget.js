@@ -609,6 +609,8 @@ IPA.input_widget = function(spec) {
     that.widget_hide_error = that.hide_error;
     that.widget_show_error = that.show_error;
     that.widget_set_valid = that.set_valid;
+    that.widget_hide_undo = that.hide_undo;
+    that.widget_show_undo = that.show_undo;
 
     return that;
 };
@@ -682,6 +684,8 @@ IPA.text_widget = function(spec) {
 
         var id = IPA.html_util.get_next_id(that.name);
 
+        that.input_group = $('<div/>').appendTo(container);
+
         that.input = $('<input/>', {
             type: that.input_type,
             name: that.name,
@@ -692,18 +696,23 @@ IPA.text_widget = function(spec) {
             keyup: function() {
                 that.on_value_changed();
             }
-        }).appendTo(container);
+        }).appendTo(that.input_group);
+
+        that.input_group_btn = $('<div/>', {
+            'class': 'input-group-btn'
+        }).appendTo(that.input_group);
 
         that.input.bind('input', function() {
             that.on_value_changed();
         });
 
         if (that.undo) {
-            that.create_undo(container);
+            that.create_undo(that.input_group_btn);
         }
 
         that.create_error_link(container);
         that.set_enabled(that.enabled);
+        that.update_input_group_state();
     };
 
     /**
@@ -715,11 +724,11 @@ IPA.text_widget = function(spec) {
         if (!that.is_writable()) {
             that.display_control.text(value);
             that.display_control.css('display', '');
-            that.input.css('display', 'none');
+            that.input_group.css('display', 'none');
         } else {
             that.input.val(value);
             that.display_control.css('display', 'none');
-            that.input.css('display', '');
+            that.input_group.css('display', '');
         }
 
         that.on_value_changed();
@@ -755,6 +764,31 @@ IPA.text_widget = function(spec) {
         } else {
             that.input.removeClass('strikethrough');
         }
+    };
+
+    /**
+     * Display undo button
+     */
+    that.show_undo = function() {
+        that.widget_show_undo();
+        that.update_input_group_state();
+    };
+
+    /**
+     * Hide undo button
+     */
+    that.hide_undo = function() {
+        that.widget_hide_undo();
+        that.update_input_group_state();
+    };
+
+    /**
+     * Set 'input_group' class to input group if input_group_btn has any
+     * visible content.
+     */
+    that.update_input_group_state = function() {
+        var visible = $(':visible', that.input_group_btn).length > 0;
+        that.input_group.toggleClass('input-group', visible);
     };
 
     // methods that should be invoked by subclasses
@@ -799,11 +833,11 @@ IPA.multivalued_widget = function(spec) {
 
     that.on_child_value_changed = function(row) {
         if (that.test_dirty_row(row)) {
+            that.toggle_remove_link(row, false);
             row.widget.show_undo();
-            row.remove_link.hide();
         } else {
             row.widget.hide_undo();
-            row.remove_link.show();
+            that.toggle_remove_link(row, true);
         }
 
         if (that.updating) return;
@@ -828,7 +862,7 @@ IPA.multivalued_widget = function(spec) {
             var row = that.rows[i];
             row.widget.hide_undo();
             if (that.is_writable()) {
-                row.remove_link.show();
+                that.toggle_remove_link(row, true);
             }
         }
     };
@@ -971,29 +1005,44 @@ IPA.multivalued_widget = function(spec) {
             that.emit('error-show', { source: that });
         });
 
-        row.remove_link = $('<a/>', {
+        var remove_link_visible = !(row.is_new || !that.is_writable());
+        row.remove_link = $('<button/>', {
             name: 'remove',
-            href: '#',
-            'class': 'link-btn',
+            'class': 'btn btn-link',
             title: text.get('@i18n:buttons.remove'),
             html: text.get('@i18n:buttons.remove'),
             click: function () {
                 that.remove_row(row);
                 return false;
             }
-        }).appendTo(row.container);
+        });
+
+        if (row.widget.input_group_btn) {
+            // A little hack to make delete button part of row widget
+            row.remove_link.appendTo(row.widget.input_group_btn);
+        } else {
+            row.remove_link.appendTo(row.container);
+        }
 
         if (row.is_new) {
-            row.remove_link.hide();
             row.widget.show_undo();
             that.value_changed.notify([], that);
             that.emit('value-change', { source: that });
         }
-        if (!that.is_writable()) {
-            row.remove_link.hide();
-        }
 
         row.container.insertBefore(that.add_link);
+        that.toggle_remove_link(row, remove_link_visible);
+    };
+
+    that.toggle_remove_link = function(row, show) {
+        if (show) {
+            row.remove_link.show();
+        } else {
+            row.remove_link.hide();
+        }
+        if (row.widget.update_input_group_state) {
+            row.widget.update_input_group_state();
+        }
     };
 
     that.create = function(container) {
@@ -1036,8 +1085,8 @@ IPA.multivalued_widget = function(spec) {
         row.widget.update(row.original_values);
         row.widget.set_deleted(false);
         row.deleted = false;
-        row.remove_link.show();
         row.widget.hide_undo();
+        that.toggle_remove_link(row, true);
 
         that.value_changed.notify([], that);
         that.emit('value-change', { source: that });
@@ -1050,7 +1099,7 @@ IPA.multivalued_widget = function(spec) {
         } else {
             row.deleted = true;
             row.widget.set_deleted(true);
-            row.remove_link.hide();
+            that.toggle_remove_link(row, false);
             row.widget.show_undo();
         }
         that.value_changed.notify([], that);
@@ -1131,12 +1180,12 @@ IPA.multivalued_widget = function(spec) {
 
             if (!enabled) {
                 row.widget.hide_undo();
-                row.remove_link.hide();
+                that.toggle_remove_link(row, false);
             } else {
                 if (row.is_new || that.test_dirty_row(row)) {
                     row.widget.show_undo();
                 } else if (that.is_writable()) {
-                    row.remove_link.show();
+                    that.toggle_remove_link(row, true);
                 }
             }
         }
@@ -3198,7 +3247,7 @@ IPA.combobox_widget = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.input_widget(spec);
+    var that = IPA.text_widget(spec);
 
     that.editable = spec.editable;
     that.searchable = spec.searchable;
@@ -3212,9 +3261,11 @@ IPA.combobox_widget = function(spec) {
 
         container.addClass('combobox-widget');
 
+        that.input_group = $('<div/>', {}).appendTo(container);
+
         that.input_container = $('<div/>', {
             'class': 'combobox-widget-input'
-        }).appendTo(container);
+        }).appendTo(that.input_group);
 
         that.text = $('<label/>', {
             name: that.name,
@@ -3315,12 +3366,17 @@ IPA.combobox_widget = function(spec) {
         }).appendTo(div);
         that.list.prop('size', that.size);
 
+        that.input_group_btn = $('<div/>', {
+            'class': 'input-group-btn'
+        }).appendTo(that.input_group);
+
         if (that.undo) {
-            that.create_undo(container);
+            that.create_undo(that.input_group_btn);
         }
 
         that.create_error_link(container);
         that.set_enabled(that.enabled);
+        that.update_input_group_state();
     };
 
     that.on_no_close = function() {
@@ -3916,10 +3972,7 @@ IPA.button = function(spec) {
     }
 
     if (spec.label) {
-        $('<span/>', {
-            'class': 'button-label',
-            html: text.get(spec.label)
-        }).appendTo(button);
+        button.append(text.get(spec.label));
     }
 
     return button;

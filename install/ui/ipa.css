@@ -531,8 +531,9 @@ table.scrollable tbody {
     margin-top: 3px;
 }
 
-.combobox-widget .undo {
-    margin-top: 3px;
+.input-group .combobox-widget-input .form-control {
+    position: initial;
+    float: inherit;
 }
 
 /* ---- HBAC Test ---- */
