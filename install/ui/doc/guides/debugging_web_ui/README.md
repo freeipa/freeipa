@@ -67,7 +67,7 @@ Notes:
 
 ## Conclusion
 
-While reporting an UI bug it's good the check if there is some JavaScript error and if so send a call stack with line numbers, preferably the ones by using source codes. If source codes are not available, pretty print function should be used and send also code (~15 lines on both sides) around the bug.
+While reporting an UI bug it's good to check if there is some JavaScript error and if so, send a call stack with line numbers, preferably the ones by using source codes. If source codes are not available, pretty print function should be used and send also code (~15 lines on both sides) around the bug.
 
 The most valuable information in order of preference are:
 
