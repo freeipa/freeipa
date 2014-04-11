@@ -1077,77 +1077,10 @@ exp.facet_header = IPA.facet_header = function(spec) {
 
         if (!value) return;
 
-        var key, i;
         var pkey_max = that.get_max_pkey_length();
         var limited_value = IPA.limit_text(value, pkey_max);
 
-        if (!that.facet.disable_breadcrumb) {
-            var breadcrumb = [];
-
-            // all pkeys should be available in facet
-            var keys = that.facet.get_pkeys();
-
-            var entity = that.facet.entity.get_containing_entity();
-            i = keys.length - 2; //set pointer to first containing entity
-
-            while (entity) {
-                key = keys[i];
-                breadcrumb.unshift($('<a/>', {
-                    'class': 'breadcrumb-element',
-                    text: key,
-                    title: entity.metadata.label_singular,
-                    click: function(entity) {
-                        return function() {
-                            navigation.show_entity(entity.name, 'default');
-                            return false;
-                        };
-                    }(entity)
-                }));
-
-                entity = entity.get_containing_entity();
-                i--;
-            }
-
-            //calculation of breadcrumb keys length
-            keys.push(value);
-            var max_bc_l = 140; //max chars which can fit on one line
-            var max_key_l = (max_bc_l / keys.length) - 4; //4 chars as divider
-            var bc_l = 0;
-            var to_limit = keys.length;
-
-            //count how many won't be limited and how much space they take
-            for (i=0; i<keys.length; i++) {
-                var key_l = keys[i].length;
-                if (key_l <= max_key_l) {
-                    to_limit--;
-                    bc_l += key_l + 4;
-                }
-            }
-
-            max_key_l = ((max_bc_l - bc_l) / to_limit) - 4;
-
-
-            that.path.empty();
-
-            for (i=0; i<breadcrumb.length; i++) {
-                var item = breadcrumb[i];
-                key = IPA.limit_text(keys[i], max_key_l);
-                item.text(key);
-
-                that.path.append(' &raquo; ');
-                that.path.append(item);
-            }
-
-            that.path.append(' &raquo; ');
-
-            key = IPA.limit_text(keys[i], max_key_l);
-
-            $('<span>', {
-                'class': 'breadcrumb-element',
-                title: value,
-                text: key
-            }).appendTo(that.path);
-        }
+        that.update_breadcrumb(limited_value);
 
         var title_info = {
             title: that.facet.label,
@@ -1157,6 +1090,85 @@ exp.facet_header = IPA.facet_header = function(spec) {
         that.title_widget.update(title_info);
 
         that.adjust_elements();
+    };
+
+    that.update_breadcrumb = function(pkey) {
+
+        if (!that.breadcrumb) return;
+
+        var items = [];
+        var item, i, l;
+
+        // all pkeys should be available in facet
+        var keys = that.facet.get_pkeys();
+        var entity = that.facet.entity.get_containing_entity();
+        i = keys.length - 2; //set pointer to first containing entity
+        while (entity) {
+            items.unshift({
+                text: keys[i],
+                title: entity.metadata.label_singular,
+                handler: function(entity) {
+                    return function() {
+                        navigation.show_entity(entity.name, 'default');
+                        return false;
+                    };
+                }(entity)
+            });
+            entity = entity.get_containing_entity();
+            i--;
+        }
+
+        //calculation of breadcrumb keys length
+        keys.push(pkey);
+        var max_bc_l = 140; //max chars which can fit on one line
+        var max_key_l = (max_bc_l / keys.length) - 4; //4 chars as divider
+        var bc_l = 0;
+        var to_limit = keys.length;
+        //count how many won't be limited and how much space they take
+        for (i=0; i<keys.length; i++) {
+            var key_l = keys[i].length;
+            if (key_l <= max_key_l) {
+                to_limit--;
+                bc_l += key_l + 4;
+            }
+        }
+        max_key_l = ((max_bc_l - bc_l) / to_limit) - 4;
+
+        // main level item
+        var redirect_facet = that.facet.get_redirect_facet();
+        items.unshift({
+            text: redirect_facet.label,
+            handler: function() {
+                that.facet.redirect();
+                return false;
+            }
+        });
+
+        // recreation
+        that.breadcrumb.empty();
+        for (i=0, l=items.length; i<l; i++) {
+            item = items[i];
+            item.text = IPA.limit_text(item.text, max_key_l);
+            that.breadcrumb.append(that.create_breadcrumb_item(item));
+        }
+        that.breadcrumb.append(that.create_breadcrumb_item({ text: pkey }));
+    };
+
+    that.create_breadcrumb_item = function(item) {
+
+        var title = item.title || '';
+
+        var bc_item = $('<li/>');
+        if (item.handler) {
+            var link = $('<a/>', {
+                text: item.text,
+                title: title,
+                click: item.handler
+            }).appendTo(bc_item);
+        } else {
+            bc_item.append(item.text);
+        }
+        return bc_item;
     };
 
     /**
@@ -1225,28 +1237,10 @@ exp.facet_header = IPA.facet_header = function(spec) {
         that.container = container;
 
         if (!that.facet.disable_breadcrumb) {
-            that.breadcrumb = $('<div/>', {
+            that.breadcrumb = $('<ol/>', {
                 'class': 'breadcrumb'
             }).appendTo(container);
-
-            that.back_link = $('<span/>', {
-                'class': 'back-link'
-            }).appendTo(that.breadcrumb);
-
-            var redirect_facet = that.facet.get_redirect_facet();
-
-            $('<a/>', {
-                text: redirect_facet.label,
-                click: function() {
-                    that.facet.redirect();
-                    return false;
-                }
-            }).appendTo(that.back_link);
-
-
-            that.path = $('<span/>', {
-                'class': 'path'
-            }).appendTo(that.breadcrumb);
+            that.update_breadcrumb('');
         }
 
         that.title_widget.create(container);

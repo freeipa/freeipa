@@ -429,7 +429,7 @@ class UI_driver(object):
         Navigate by breadcrumb navigation
         """
         facet = self.get_facet()
-        nav = self.find('div.breadcrumb', By.CSS_SELECTOR, facet, strict=True)
+        nav = self.find('.breadcrumb', By.CSS_SELECTOR, facet, strict=True)
         a = self.find(item, By.LINK_TEXT, nav, strict=True)
         a.click()
         self.wait_for_request()
