@@ -1448,17 +1448,17 @@ exp.facet_title = IPA.facet_title = function(spec) {
             'class': 'facet-title'
         }).appendTo(container);
 
-        var h3 = $('<h3/>').appendTo(that.title_container);
+        var header = $('<h1/>').appendTo(that.title_container);
 
         that.icon = $('<i />', {
             'class': 'header-icon'
-        }).appendTo(h3);
+        }).appendTo(header);
 
-        that.title = $('<span/>').appendTo(h3);
+        that.title = $('<span/>').appendTo(header);
 
         that.pkey = $('<span/>', {
             'class': 'facet-pkey'
-        }).appendTo(h3);
+        }).appendTo(header);
     };
 
     /**

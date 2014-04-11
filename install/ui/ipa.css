@@ -87,11 +87,6 @@ textarea[readonly] {
     display: inline-block;
 }
 
-.facet-title h3 {
-    margin: 0;
-    line-height: 1.8em;
-}
-
 .facet-title span {
     display: inline;
 }
@@ -717,7 +712,7 @@ form#login {
 
 /* --- Facet title states --- */
 
-.facet-title h3 {
+.facet-title h1 {
     display: inline-block;
 }
 
@@ -737,14 +732,16 @@ form#login {
 
 .facet-title.enabled .header-icon:before {
     content: "\f00c";
+    margin-right: 5px;
 }
 
 .facet-title.disabled .header-icon:before {
     content: "\f068";
+    margin-right: 5px;
 }
 
-.facet-title.disabled h3,
-.facet-title.disabled h3 .facet-pkey{
+.facet-title.disabled h1,
+.facet-title.disabled h1 .facet-pkey{
     color: gray;
 }
 
