@@ -31,7 +31,7 @@ from ipalib.request import context
 from ipalib import api, errors, output
 from ipalib import Command
 from ipalib.parameters import (Flag, Bool, Int, Decimal, Str, StrEnum, Any,
-                               DeprecatedParam)
+                               DeprecatedParam, DNSNameParam)
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
@@ -907,8 +907,7 @@ class AFSDBRecord(DNSRecord):
             minvalue=0,
             maxvalue=65535,
         ),
-        Str('hostname',
-            _bind_hostname_validator,
+        DNSNameParam('hostname',
             label=_('Hostname'),
         ),
     )
@@ -946,8 +945,7 @@ class CNAMERecord(DNSRecord):
     rrtype = 'CNAME'
     rfc = 1035
     parts = (
-        Str('hostname',
-            _bind_cname_hostname_validator,
+        DNSNameParam('hostname',
             label=_('Hostname'),
             doc=_('A hostname which this alias hostname points to'),
         ),
@@ -967,8 +965,7 @@ class DNAMERecord(DNSRecord):
     rrtype = 'DNAME'
     rfc = 2672
     parts = (
-        Str('target',
-            _bind_cname_hostname_validator,
+        DNSNameParam('target',
             label=_('Target'),
         ),
     )
@@ -1046,8 +1043,7 @@ class KXRecord(DNSRecord):
             minvalue=0,
             maxvalue=65535,
         ),
-        Str('exchanger',
-            _bind_hostname_validator,
+        DNSNameParam('exchanger',
             label=_('Exchanger'),
             doc=_('A host willing to act as a key exchanger'),
         ),
@@ -1192,8 +1188,7 @@ class MXRecord(DNSRecord):
             minvalue=0,
             maxvalue=65535,
         ),
-        Str('exchanger',
-            _bind_hostname_validator,
+        DNSNameParam('exchanger',
             label=_('Exchanger'),
             doc=_('A host willing to act as a mail exchanger'),
         ),
@@ -1204,8 +1199,7 @@ class NSRecord(DNSRecord):
     rfc = 1035
 
     parts = (
-        Str('hostname',
-            _bind_hostname_validator,
+        DNSNameParam('hostname',
             label=_('Hostname'),
         ),
     )
@@ -1218,8 +1212,7 @@ class NSECRecord(DNSRecord):
     _allowed_types = (u'SOA',) + _record_types
 
     parts = (
-        Str('next',
-            _bind_hostname_validator,
+        DNSNameParam('next',
             label=_('Next Domain Name'),
         ),
         StrEnum('types+',
@@ -1300,9 +1293,9 @@ class PTRRecord(DNSRecord):
     rrtype = 'PTR'
     rfc = 1035
     parts = (
-        Str('hostname',
+        DNSNameParam('hostname',
             _hostname_validator,
-            normalizer=_normalize_hostname,
+            only_absolute=True,
             label=_('Hostname'),
             doc=_('The hostname this reverse record points to'),
         ),
@@ -1332,8 +1325,7 @@ class SRVRecord(DNSRecord):
             minvalue=0,
             maxvalue=65535,
         ),
-        Str('target',
-            _srv_target_validator,
+        DNSNameParam('target',
             label=_('Target'),
             doc=_('The domain name of the target host or \'.\' if the service is decidedly not available at this domain'),
         ),
@@ -1564,13 +1556,12 @@ class dnszone(LDAPObject):
     label_singular = _('DNS Zone')
 
     takes_params = (
-        Str('idnsname',
-            _domain_name_validator,
+        DNSNameParam('idnsname',
+            only_absolute=True,
             cli_name='name',
             label=_('Zone name'),
             doc=_('Zone name (FQDN)'),
             default_from=lambda name_from_ip: _reverse_zone_name(name_from_ip),
-            normalizer=lambda value: value.lower(),
             primary_key=True,
         ),
         Str('name_from_ip?', _validate_ipnet,
@@ -1578,18 +1569,19 @@ class dnszone(LDAPObject):
             doc=_('IP network to create reverse zone name from'),
             flags=('virtual_attribute',),
         ),
-        Str('idnssoamname',
+        DNSNameParam('idnssoamname',
             cli_name='name_server',
             label=_('Authoritative nameserver'),
             doc=_('Authoritative nameserver domain name'),
-            normalizer=lambda value: value.lower(),
         ),
-        Str('idnssoarname',
+        DNSNameParam('idnssoarname',
             _rname_validator,
+            only_absolute=True,
             cli_name='admin_email',
             label=_('Administrator e-mail address'),
             doc=_('Administrator e-mail address'),
-            default_from=lambda idnsname: 'hostmaster.%s' % idnsname,
+            default_from=lambda idnsname:
+                DNSName(('hostmaster')).derelativize(idnsname),
             normalizer=normalize_zonemgr,
         ),
         Int('idnssoaserial',
@@ -2123,8 +2115,7 @@ class dnsrecord(LDAPObject):
     label_singular = _('DNS Resource Record')
 
     takes_params = (
-        Str('idnsname',
-            _dns_record_name_validator,
+        DNSNameParam('idnsname',
             cli_name='name',
             label=_('Record name'),
             doc=_('Record name'),
