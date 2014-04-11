@@ -64,6 +64,15 @@ class test_realmdomains(Declarative):
                     associateddomain=[our_domain],
                     cn=[cn],
                     objectclass=objectclasses.realmdomains,
+                    aci=[
+                        u'(targetattr = "associateddomain || cn || '
+                            u'objectclass")'
+                        u'(targetfilter = "(objectclass=domainrelatedobject)")'
+                        u'(version 3.0;acl '
+                            u'"permission:System: Read Realm Domains";'
+                            u'allow (read,compare,search) '
+                            u'userdn = "ldap:///all";)'
+                    ],
                 ),
             ),
         ),
