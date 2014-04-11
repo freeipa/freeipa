@@ -133,7 +133,8 @@ class update_managed_permissions(PostUpdate):
         dn = self.api.Object[permission].get_dn(name)
 
         try:
-            attrs_list = self.api.Object[permission].default_attributes
+            attrs_list = list(self.api.Object[permission].default_attributes)
+            attrs_list.remove('memberindirect')
             entry = ldap.get_entry(dn, attrs_list)
             is_new = False
         except errors.NotFound:
