@@ -632,6 +632,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
     that.create_controls = function() {
 
         that.create_control_buttons(that.controls);
+        that.create_action_dropdown(that.controls);
     };
 
     /**

@@ -1368,14 +1368,18 @@ class UI_driver(object):
             for key in pkeys:
                 self.assert_record(key, parent, table_name, negative=True)
 
-    def action_list_action(self, name):
+    def action_list_action(self, name, confirm=True, confirm_btn="ok"):
         """
         Execute action list action
         """
-        cont = self.find(".active-facet .facet-action-list", By.CSS_SELECTOR, strict=True)
-        select = self.find("select[name=action]", By.CSS_SELECTOR, cont, strict=True)
-        Select(select).select_by_value(name)
-        self.button_click('apply', cont)
+        cont = self.find(".active-facet .facet-actions", By.CSS_SELECTOR, strict=True)
+        expand = self.find(".dropdown-toggle", By.CSS_SELECTOR, cont, strict=True)
+        expand.click()
+        action_link = self.find("li[data-name=%s] a" % name, By.CSS_SELECTOR, cont, strict=True)
+        action_link.click()
+        if confirm:
+            self.wait(0.5)  # wait for dialog
+            self.dialog_button_click(confirm_btn)
         self.wait()
 
     def action_panel_action(self, panel_name, action):

@@ -39,12 +39,13 @@ define([
         './rpc',
         './spec_util',
         './text',
+        './widgets/ActionDropdownWidget',
         './dialog',
         './field',
         './widget'
        ], function(declare, lang, construct, on, Stateful, Evented,
                    Singleton_registry, construct_utils, builder, IPA, $,
-                   navigation, phases, reg, rpc, su, text) {
+                   navigation, phases, reg, rpc, su, text, ActionDropdownWidget) {
 
 /**
  * Facet module
@@ -204,7 +205,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
      * Array of actions which are displayed in facet header
      * @property {Array.<string>}
      */
-    that.header_actions = spec.header_actions;
+    that.header_actions = spec.header_actions || [];
 
     /**
      * Facet header
@@ -590,7 +591,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
         that.header.create(container);
 
         that.controls = $('<div/>', {
-            'class': 'facet-controls'
+            'class': 'facet-controls clearfix'
         }).appendTo(container);
     };
 
@@ -614,6 +615,13 @@ exp.facet = IPA.facet = function(spec, no_init) {
 
         if (that.control_buttons) {
             that.control_buttons.create(container);
+        }
+    };
+
+    that.create_action_dropdown = function(container) {
+        if (that.action_dropdown && that.header_actions && that.header_actions.length > 0) {
+            var dropdown = that.action_dropdown.render();
+            container.append(dropdown);
         }
     };
 
@@ -962,12 +970,25 @@ exp.facet = IPA.facet = function(spec, no_init) {
         var buttons_spec = {
             $factory: IPA.control_buttons_widget,
             name: 'control-buttons',
-            'class': 'control-buttons',
+            css_class: 'control-buttons',
             buttons: spec.control_buttons
         };
 
         that.control_buttons = IPA.build(buttons_spec);
         that.control_buttons.init(that);
+
+        that.action_dropdown = IPA.build({
+            $ctor: ActionDropdownWidget,
+            action_names: that.header_actions,
+            name: 'facet_actions',
+            'class': 'dropdown facet-actions',
+            right_aligned: true,
+            toggle_text: 'Actions ',
+            toggle_class: 'btn btn-default',
+            toggle_icon: 'fa fa-angle-down'
+        });
+        that.action_dropdown.init(that);
+
     };
 
     if (!no_init) that.init_facet();
@@ -3038,9 +3059,8 @@ exp.control_buttons_widget = IPA.control_buttons_widget = function(spec) {
      */
     that.create = function(container) {
 
-        that.container = $('<div/>', {
-            'class': that['class']
-        }).appendTo(container);
+        that.container = $('<div/>', {}).appendTo(container);
+        that.widget_create(that.container);
 
         for (var i=0; i<that.buttons.length; i++) {
 

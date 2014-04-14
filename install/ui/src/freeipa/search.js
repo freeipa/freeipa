@@ -138,6 +138,7 @@ IPA.search_facet = function(spec, no_init) {
         }).appendTo(that.filter_container);
 
         that.create_control_buttons(that.controls);
+        that.create_action_dropdown(that.controls);
     };
 
     that.managed_entity_pkey_prefix = function() {

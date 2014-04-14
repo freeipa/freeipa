@@ -178,15 +178,28 @@ div[name=settings].facet-group li a {
     float: right;
 }
 
-.facet-controls a {
-    font-size: 1.3em !important;
-    margin: 0 16px 0 0;
+.control-buttons {
+    float: left;
+}
+
+.control-buttons a {
+    float: left;
+    font-size: 13px;
+    margin-right: 16px;
+    text-decoration: none;
+}
+
+.facet-actions {
+    display: inline-block;
+    float: right;
+    margin-right: 8px;
 }
 
 /* --- Facet error --- */
 
 .facet-error {
     padding: 2em 15em;
+    background-color: white;
 }
 
 .facet-error h1 {
@@ -207,7 +220,6 @@ div[name=settings].facet-group li a {
 }
 
 .search-filter {
-    margin-top: -2px;
     display: inline-block;
 }
 

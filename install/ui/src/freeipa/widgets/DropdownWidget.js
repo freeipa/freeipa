@@ -77,6 +77,21 @@ define(['dojo/_base/declare',
         toggle_text: '',
 
         /**
+         * Icon displayed after toggle text
+         * @property {String}
+         */
+        toggle_icon: null,
+
+        /**
+         * Toggle classes
+         *
+         * e.g.: `btn btn-default`
+         *
+         * @property {String}
+         */
+        toggle_class: '',
+
+        /**
          * Toggle button content. Replaces toggle button text if set. Can be
          * use for more complex toggle buttons.
          * @property {HTMLElement|HTMLElement[]}
@@ -96,6 +111,19 @@ define(['dojo/_base/declare',
          */
         dom_node: null,
 
+        /**
+         * Container for items
+         * @protected
+         * @property {HTMLElement}
+         */
+        ul_node: null,
+
+        /**
+         * Menu is right aligned
+         * @type {Boolean}
+         */
+        right_aligned: false,
+
         render: function() {
             if (this.dom_node) {
                 construct.empty(this.dom_node);
@@ -108,7 +136,8 @@ define(['dojo/_base/declare',
             }
 
             this._render_toggle(this.dom_node);
-            this._render_items(this.items, this.dom_node);
+            this._render_list(this.dom_node);
+            this._render_items(this.items);
 
             return this.dom_node;
         },
@@ -120,6 +149,7 @@ define(['dojo/_base/declare',
                 'data-toggle': 'dropdown',
                 href: '#'
             });
+            if (this.toggle_class) dom_class.add(this.toggle_node, this.toggle_class);
 
             this._update_toggle();
             if (container) {
@@ -140,6 +170,11 @@ define(['dojo/_base/declare',
                 }
             } else {
                 prop.set(this.toggle_node, 'textContent', this.toggle_text);
+                if (this.toggle_icon) {
+                    var icon = construct.create('i', {
+                        'class': this.toggle_icon
+                    }, this.toggle_node);
+                }
             }
         },
 
@@ -153,30 +188,54 @@ define(['dojo/_base/declare',
             this._update_toggle();
         },
 
-        _render_items: function(items, container) {
-            var ul = construct.create('ul', {
+        _itemsSetter: function(value) {
+            this._clear_items();
+            this.items = value;
+            this._render_items(this.items, this.dom_node);
+        },
+
+        _clear_items: function() {
+            this.items = [];
+            if (this.ul_node) {
+                construct.empty(this.ul_node);
+            }
+        },
+
+        _render_list: function(container) {
+
+            var ul = this.ul_node = construct.create('ul', {
                 'class': 'dropdown-menu'
             });
-
-            array.forEach(items, function(item) {
-                this._render_item(item, ul);
-            }, this);
-
+            if (this.right_aligned) {
+                dom_class.add(ul, 'dropdown-menu-right');
+            }
             if (container) {
                 construct.place(ul, container);
             }
             return ul;
         },
 
+        _render_items: function(items, container) {
+
+            var ul = this.ul_node;
+            array.forEach(items, function(item) {
+                this._render_item(item, ul);
+            }, this);
+        },
+
         _render_item: function(item, container) {
 
             var li = construct.create('li', {
-                'data-name': item.name || ''
+                'data-name': item.name || '',
+                role: 'presentation'
             });
 
             var a = construct.create('a', {
                 'href': '#' + item.name || ''
-            }, li);
+            });
+            if (item['class'] !== 'divider') {
+                construct.place(a, li);
+            }
 
             if (item.icon) {
                 construct.create('i', {
@@ -189,6 +248,11 @@ define(['dojo/_base/declare',
 
             if (item['class']) {
                 dom_class.add(li, item['class']);
+            }
+
+            if (item.disabled) {
+                dom_class.add(li, 'disabled');
+                attr.set(a, 'tabIndex', -1);
             }
 
             if (item.items && item.items.length > 0) {
