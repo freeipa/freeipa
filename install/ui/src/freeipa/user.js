@@ -120,11 +120,6 @@ return {
                 },
                 {
                     name: 'account',
-                    action_panel: {
-                        $factory: IPA.action_panel,
-                        name: 'account_actions',
-                        actions: ['reset_password']
-                    },
                     fields: [
                         'uid',
                         {
@@ -271,7 +266,7 @@ return {
                     label: '@i18n:actions.automember_rebuild'
                 }
             ],
-            header_actions: ['enable', 'disable', 'delete', 'automember_rebuild'],
+            header_actions: ['reset_password', 'enable', 'disable', 'delete', 'automember_rebuild'],
             state: {
                 evaluators: [
                     {

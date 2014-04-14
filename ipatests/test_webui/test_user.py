@@ -235,7 +235,7 @@ class test_user(UI_driver):
         Execute reset password action
         """
 
-        self.action_panel_action('account_actions', 'reset_password')
+        self.action_list_action('reset_password', False)
         self.fill_password_dialog(password)
 
     def fill_password_dialog(self, password, current=None):
