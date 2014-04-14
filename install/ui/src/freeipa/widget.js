@@ -3979,14 +3979,17 @@ IPA.button = function(spec) {
 
     if (spec.type) button.addClass(spec.type);
 
+    var label = text.get(spec.label);
+
     if (spec.icon) {
         $('<i/>', {
             'class': 'fa '+spec.icon
         }).appendTo(button);
+        if (label) label = " " + label ;
     }
 
-    if (spec.label) {
-        button.append(text.get(spec.label));
+    if (label) {
+        button.append(label);
     }
 
     return button;

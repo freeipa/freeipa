@@ -260,6 +260,7 @@ div[name=settings].facet-group li a {
 .action-button-disabled:hover {
     color: gray;
     cursor: default;
+    text-decoration: none;
     outline: none;
 }
 
