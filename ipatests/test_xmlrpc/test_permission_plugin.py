@@ -752,14 +752,19 @@ class test_permission(Declarative):
             command=('permission_find', [], {'pkey_only': True,
                                              'attrs': [u'krbminpwdlife']}),
             expected=dict(
-                count=1,
+                count=2,
                 truncated=False,
-                summary=u'1 permission matched',
+                summary=u'2 permissions matched',
                 result=[
                     {
                         'dn': DN(('cn','Modify Group Password Policy'),
                                  api.env.container_permission, api.env.basedn),
                         'cn': [u'Modify Group Password Policy'],
+                    },
+                    {
+                        'dn': DN(('cn', 'System: Read Group Password Policy'),
+                                 api.env.container_permission, api.env.basedn),
+                        'cn': [u'System: Read Group Password Policy'],
                     },
                 ],
             ),
