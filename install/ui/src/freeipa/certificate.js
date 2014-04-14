@@ -1128,17 +1128,11 @@ return {
                     IPA.cert.certificate_evaluator
                 ]
             },
+            header_actions: ['revoke_cert', 'restore_cert'],
             sections: [
                 {
                     name: 'details',
                     label: '@i18n:objects.cert.certificate',
-                    action_panel: {
-                        $factory: IPA.action_panel,
-                        name: 'cert_actions',
-                        actions: [
-                            'revoke_cert', 'restore_cert'
-                        ]
-                    },
                     fields: [
                         'serial_number',
                         'serial_number_hex',
