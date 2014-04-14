@@ -1857,7 +1857,7 @@ exp.object_action = IPA.object_action = function(spec) {
      * @inheritDoc
      */
     that.get_confirm_message = function(facet) {
-        var pkey = that.get_pkey();
+        var pkey = facet.get_pkey();
         var msg = that.confirm_msg.replace('${object}', pkey);
         return msg;
     };
@@ -1878,6 +1878,7 @@ exp.enable_action = IPA.enable_action = function(spec) {
     spec = spec || {};
     spec.name = spec.name || 'enable';
     spec.method = spec.method || 'enable';
+    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
     spec.confirm_msg = spec.confirm_msg || '@i18n:actions.enable_confirm';
     spec.label = spec.label || '@i18n:buttons.enable';
     spec.disable_cond = spec.disable_cond || ['enabled'];
@@ -1898,6 +1899,7 @@ exp.disable_action = IPA.disable_action = function(spec) {
     spec = spec || {};
     spec.name = spec.name || 'disable';
     spec.method = spec.method || 'disable';
+    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
     spec.confirm_msg = spec.confirm_msg || '@i18n:actions.disable_confirm';
     spec.label = spec.label || '@i18n:buttons.disable';
     spec.enable_cond = spec.enable_cond || ['enabled'];
@@ -1921,6 +1923,7 @@ exp.delete_action = IPA.delete_action = function(spec) {
     spec = spec || {};
     spec.name = spec.name || 'delete';
     spec.method = spec.method || 'del';
+    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
     spec.confirm_msg = spec.confirm_msg || '@i18n:actions.delete_confirm';
     spec.label = spec.label || '@i18n:buttons.remove';
 

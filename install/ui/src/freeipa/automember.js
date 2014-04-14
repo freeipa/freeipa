@@ -708,6 +708,8 @@ IPA.automember.rebuild_action = function(spec) {
     spec = spec || {};
     spec.name = spec.name || 'automember_rebuild';
     spec.label = spec.label || '@i18n:actions.automember_rebuild';
+    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
+    spec.confirm_msg = spec.confirm_msg || '@i18n:actions.automember_rebuild_confirm';
 
     var that = IPA.action(spec);
 

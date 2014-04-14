@@ -129,6 +129,8 @@ return {
                     name: 'otp_enable',
                     label: '@i18n:objects.otptoken.enable',
                     method: 'mod',
+                    needs_confirm: true,
+                    confirm_msg: '@i18n:actions.enable_confirm',
                     options: { ipatokendisabled: false },
                     enable_cond: ['disabled'],
                     hide_cond: ['self-service']
@@ -138,6 +140,8 @@ return {
                     name: 'otp_disable',
                     label: '@i18n:objects.otptoken.disable',
                     method: 'mod',
+                    needs_confirm: true,
+                    confirm_msg: '@i18n:actions.disable_confirm',
                     options: { ipatokendisabled: true },
                     enable_cond: ['enabled'],
                     hide_cond: ['self-service']

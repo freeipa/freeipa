@@ -15,6 +15,7 @@
                     "actions": {
                         "apply": "Apply",
                         "automember_rebuild": "Rebuild auto membership",
+                        "automember_rebuild_confirm": "Are you sure you want to rebuild auto membership?",
                         "automember_rebuild_success": "Automember rebuild membership task completed",
                         "confirm": "Are you sure you want to proceed with the action?",
                         "delete_confirm": "Are you sure you want to delete ${object}?",
