@@ -83,7 +83,7 @@ return {
                     hide_cond: ['self-service']
                 }
             ],
-            header_actions: ['select_action', 'automember_rebuild'],
+            header_actions: ['automember_rebuild'],
             control_buttons: [
                 {
                     name: 'disable',
@@ -271,7 +271,7 @@ return {
                     label: '@i18n:actions.automember_rebuild'
                 }
             ],
-            header_actions: ['select_action', 'enable', 'disable', 'delete', 'automember_rebuild'],
+            header_actions: ['enable', 'disable', 'delete', 'automember_rebuild'],
             state: {
                 evaluators: [
                     {

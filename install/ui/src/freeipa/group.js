@@ -77,7 +77,7 @@ return {
                 'make_external',
                 'delete'
             ],
-            header_actions: ['select_action', 'make_posix', 'make_external', 'delete'],
+            header_actions: ['make_posix', 'make_external', 'delete'],
             state: {
                 evaluators: [
                     IPA.object_class_evaluator

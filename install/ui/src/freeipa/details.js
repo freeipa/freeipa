@@ -1367,26 +1367,6 @@ exp.command_builder = function() {
 }();
 
 /**
- * No-op action which serves only for displaying label
- * @class details.select_action
- * @alternateClassName IPA.select_action
- * @extends facet.action
- */
-exp.select_action = IPA.select_action = function(spec) {
-
-    spec = spec || {};
-    spec.name = spec.name || 'select_action';
-    spec.label = spec.label || '-- select action --';
-
-    var that = IPA.action(spec);
-
-    that.execute_action = function(facet) {
-    };
-
-    return that;
-};
-
-/**
  * Invokes `facet.refresh`
  * @class details.refresh_action
  * @alternateClassName IPA.refresh_action
@@ -2007,7 +1987,6 @@ exp.register = function() {
     var a = reg.action;
     var f = reg.facet;
 
-    a.register('select', exp.select_action);
     a.register('refresh', exp.refresh_action);
     a.register('reset', exp.reset_action);
     a.register('update', exp.update_action);

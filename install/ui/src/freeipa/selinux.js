@@ -79,7 +79,7 @@ var spec = {
                 'disable',
                 'delete'
             ],
-            header_actions: ['select_action', 'enable', 'disable', 'delete'],
+            header_actions: ['enable', 'disable', 'delete'],
             state: {
                 evaluators: [
                     {

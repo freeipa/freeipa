@@ -229,7 +229,7 @@ return {
                 'dns_add_permission',
                 'dns_remove_permission'
             ],
-            header_actions: ['select_action', 'enable', 'disable', 'delete',
+            header_actions: ['enable', 'disable', 'delete',
                 'add_permission', 'remove_permission'],
             state: {
                 evaluators: [

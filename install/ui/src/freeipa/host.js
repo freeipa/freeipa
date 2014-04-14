@@ -73,7 +73,7 @@ return {
                     label: '@i18n:actions.automember_rebuild'
                 }
             ],
-            header_actions: ['select_action', 'automember_rebuild']
+            header_actions: ['automember_rebuild']
         },
         {
             $type: 'details',
@@ -194,7 +194,7 @@ return {
                 'cert_revoke',
                 'cert_restore'
             ],
-            header_actions: ['select_action', 'automember_rebuild'],
+            header_actions: ['automember_rebuild'],
             state: {
                 evaluators: [
                     IPA.host.has_password_evaluator,

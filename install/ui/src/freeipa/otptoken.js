@@ -144,7 +144,7 @@ return {
                 },
                 'delete'
             ],
-            header_actions: ['select_action', 'otp_enable', 'otp_disable', 'delete'],
+            header_actions: ['otp_enable', 'otp_disable', 'delete'],
             state: {
                 evaluators: [
                     {
