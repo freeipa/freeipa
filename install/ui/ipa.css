@@ -79,16 +79,7 @@ textarea[readonly] {
 }
 
 .facet-title {
-    position: relative;
-    margin-top: 5px;
-    margin-right: 20px;
-    margin-bottom: 5px;
     color: gray;
-    display: inline-block;
-}
-
-.facet-title span {
-    display: inline;
 }
 
 .facet-pkey {
@@ -681,33 +672,6 @@ form#login {
 
 .login-page #formwindow {
     margin-top: 100px;
-}
-
-/* --- Action list --- */
-
-.facet-action-list {
-    left: 200px;
-    vertical-align: top;
-    display: inline-block;
-    margin-top: 10px;
-}
-
-.facet-action-list div {
-    display: inline-block;
-    vertical-align: top;
-}
-
-.facet-action-list div[name=apply] {
-    margin-left: 10px;
-}
-
-.facet-action-list .btn {
-    line-height: 20px;
-}
-
-.facet-action-list .separator {
-    width: 1px;
-    height: 24px;
 }
 
 /* --- Facet title states --- */

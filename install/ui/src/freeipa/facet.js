@@ -1012,11 +1012,6 @@ exp.facet_header = IPA.facet_header = function(spec) {
     that.facet = spec.facet;
 
     /**
-     * Action list with facet's header actions
-     * @property {facet.action_list_widget} action_list
-     */
-
-    /**
      * Facet title widget
      * @property {facet.facet_title} title_widget
      */
@@ -1035,14 +1030,6 @@ exp.facet_header = IPA.facet_header = function(spec) {
                     facet: that.facet
                 }
             });
-
-            var widget = {
-                $factory: IPA.action_list_widget,
-                actions: that.facet.header_actions
-            };
-
-            that.action_list = widget_builder.build_widget(widget);
-            that.action_list.init(that.facet);
         }
 
         that.facet.action_state.changed.attach(that.update_summary);
@@ -1088,8 +1075,6 @@ exp.facet_header = IPA.facet_header = function(spec) {
             pkey_tooltip: value
         };
         that.title_widget.update(title_info);
-
-        that.adjust_elements();
     };
 
     that.update_breadcrumb = function(pkey) {
@@ -1246,14 +1231,6 @@ exp.facet_header = IPA.facet_header = function(spec) {
         that.title_widget.create(container);
         that.title_widget.update({ title: that.facet.label });
 
-        if (that.action_list) {
-            that.action_list_container = $('<div/>', {
-                'class': 'facet-action-list'
-            }).appendTo(container);
-
-            that.action_list.create(that.action_list_container);
-        }
-
         if (!that.facet.disable_facet_tabs) {
             that.facet_tabs = $('<div/>', {
                 'class': 'facet-tabs'
@@ -1334,8 +1311,6 @@ exp.facet_header = IPA.facet_header = function(spec) {
             that.title_widget.set_class(css_class);
             that.title_widget.set_icon_tooltip(summary.description);
         }
-
-        that.adjust_elements();
     };
 
     /**
@@ -1352,36 +1327,9 @@ exp.facet_header = IPA.facet_header = function(spec) {
         char_w = label_w / that.title_widget.title.text().length;
         max_pkey_w = container_w - icon_w - label_w;
         max_pkey_w -= 10; //some space correction to be safe
-
-        if (that.action_list) {
-            al = that.action_list.container;
-            al_w = al.width();
-
-            max_pkey_w -=  al_w;
-        }
-
         max_pkey_l = Math.ceil(max_pkey_w / char_w);
 
         return max_pkey_l;
-    };
-
-    /**
-     * Adjust position of header widgets, mainly action list, according to
-     * title length.
-     */
-    that.adjust_elements = function() {
-
-        if (that.action_list) {
-
-            var action_list = that.action_list.container;
-            var max_width = that.container.width();
-            var al_width = action_list.width();
-            var title_width = that.title_widget.title_container.width();
-            var title_max = max_width - al_width;
-
-            that.title_widget.set_max_width(title_max);
-            action_list.css('left', title_width + 'px');
-        }
     };
 
     /**
@@ -1389,7 +1337,6 @@ exp.facet_header = IPA.facet_header = function(spec) {
      */
     that.clear = function() {
         that.load();
-        if (that.action_list) that.action_list.clear();
     };
 
     return that;
@@ -3138,270 +3085,6 @@ exp.eval_cond = IPA.eval_cond = function(enable_cond, disable_cond, state) {
 };
 
 /**
- * Action list widget to be displayed in facet header
- *
- * @class facet.action_list_widget
- * @extends IPA.composite_widget
- * @alternateClassName IPA.action_list_widget
- */
-exp.action_list_widget = IPA.action_list_widget = function(spec) {
-
-    spec = spec || {};
-
-    spec.widgets = spec.widgets || [
-        {
-            $type: 'html',
-            css_class: 'separator'
-        },
-        {
-            $type: 'select',
-            name: 'action',
-            undo: false
-        },
-        {
-            $type: 'button',
-            name: 'apply',
-            label: '@i18n:actions.apply'
-        }
-    ];
-
-    var that = IPA.composite_widget(spec);
-
-    /**
-     * Names of actions, which should be later obtained from facet
-     * @property {Array.<string>}
-     */
-    that.action_names = spec.actions || [];
-
-    /**
-     * Actions
-     * @property {ordered_map}
-     */
-    that.actions = $.ordered_map();
-
-    /**
-     * Initializes action list
-     *
-     * - set facet
-     * - get actions from facet
-     * - init child widgets
-     *
-     * @param {facet.facet} facet
-     */
-    that.init = function(facet) {
-
-        var options, actions, action, name, i;
-
-        that.facet = facet;
-
-        that.action_select = that.widgets.get_widget('action');
-        that.apply_button = that.widgets.get_widget('apply');
-
-        that.action_select.value_changed.attach(that.on_action_change);
-        that.apply_button.click = that.on_apply;
-
-        for (i=0; i<that.action_names.length; i++) {
-            name = that.action_names[i];
-            action = that.facet.actions.get(name);
-            that.add_action(action, true);
-        }
-
-        that.init_options();
-    };
-
-    /**
-     * Add action
-     * @param {facet.action} action
-     * @param {boolean} [batch] Set to `true` when adding multiple actions to
-     *                          prevent unnecessary option initialization and
-     *                          recreation. Set it back to `false` when adding
-     *                          last option.
-     */
-    that.add_action = function(action, batch) {
-        that.actions.put(action.name, action);
-        action.enabled_changed.attach(that.action_enabled_changed);
-        action.visible_changed.attach(that.action_visible_changed);
-
-        if(!batch) {
-            that.init_options();
-            that.recreate_options();
-            that.select_first_enabled();
-        }
-    };
-
-    /**
-     * Create and set select options from actions
-     */
-    that.init_options = function() {
-
-        var options, actions, action, i;
-
-        options = [];
-        actions = that.actions.values;
-
-        for (i=0; i< actions.length; i++) {
-            action = actions[i];
-            if (!action.visible) continue;
-            options.push({
-                label: action.label,
-                value: action.name
-            });
-        }
-
-        that.action_select.options = options;
-    };
-
-    /**
-     * Force select to recreate options
-     */
-    that.recreate_options = function() {
-
-        that.action_select.create_options();
-    };
-
-    /**
-     * Handler for action selection in select
-     * @protected
-     */
-    that.on_action_change = function() {
-
-        var action = that.get_selected();
-        that.apply_button.set_enabled(action.enabled);
-    };
-
-    /**
-     * Handler for click on apply button.
-     *
-     * - executes selected action if enabled
-     * @protected
-     */
-    that.on_apply = function() {
-
-        var action = that.get_selected();
-
-        if (action.enabled) {
-            action.execute(that.facet,
-                           that.on_action_success,
-                           that.on_action_error);
-        }
-    };
-
-    /**
-     * Global action success handler
-     *
-     * @localdoc - override point
-     * @protected
-     * @abstract
-     */
-    that.on_action_success = function() {
-    };
-
-    /**
-     * Global action error handler
-     *
-     * @localdoc - override point
-     * @protected
-     * @abstract
-     */
-    that.on_action_error = function() {
-    };
-
-    /**
-     * Handle action's `enabled_changed` event.
-     * @protected
-     * @param {boolean} enabled
-     */
-    that.action_enabled_changed = function(enabled) {
-        var action = this;
-        var selected_action = that.get_selected();
-        that.action_select.set_options_enabled(action.enabled, [action.name]);
-
-        if (!action.enabled && action === selected_action) {
-            that.select_first_enabled();
-        }
-    };
-
-    /**
-     * Handle action's `visible_changed` event.
-     * @protected
-     * @param {boolean} visible
-     */
-    that.action_visible_changed = function(visible) {
-        var action = this;
-        var selected_action = that.get_selected();
-
-        that.init_options();
-        that.recreate_options();
-
-        if (!action.visible && action === selected_action) {
-            that.select_first_enabled();
-        }
-    };
-
-    /**
-     * Get selected action
-     * @return {facet.action}
-     */
-    that.get_selected = function() {
-        var selected = that.action_select.save()[0];
-        var action = that.actions.get(selected);
-        return action;
-    };
-
-    /**
-     * Subject to removal
-     *
-     * This method is full of bugs.
-     *
-     * @deprecated
-     */
-    that.get_disabled = function() {
-
-        var disabled = [];
-        var actions = that.action.values;
-
-        for (var i=0; i< actions.length; i++) {
-            var action = actions[i];
-            if (!that.action.enabled) {
-                disabled.push(action.name);
-            }
-        }
-
-        return disabled;
-    };
-
-    /**
-     * Select first enabled action
-     */
-    that.select_first_enabled = function() {
-
-        var actions = that.actions.values;
-
-        var first = actions[0].name;
-
-        for (var i=0; i< actions.length; i++) {
-            var action = actions[i];
-            if (action.enabled) {
-                first = action.name;
-                break;
-            }
-        }
-
-        that.action_select.update([first]);
-    };
-
-    /**
-     * @inheritDoc
-     */
-    that.clear = function() {
-
-        that.select_first_enabled();
-    };
-
-    return that;
-};
-
-/**
  * Facet state
  * @extends Stateful
  * @mixins Evented
@@ -3514,7 +3197,6 @@ exp.register = function() {
 
     w.register('action_button', exp.action_button_widget);
     w.register('control_buttons', exp.control_buttons_widget);
-    w.register('action_list', exp.action_list_widget);
 };
 
 phases.on('registration', exp.register);
