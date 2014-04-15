@@ -398,7 +398,7 @@ otptoken.qr_widget = function(spec) {
         that.qrcode.makeCode(that.text);
         that.uri_control.text(that.text);
         that.div_link_control.prop('href', that.text);
-        that.on_value_changed();
+        that.emit('value-change', { source: that, value: val });
     };
 
     /**
