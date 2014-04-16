@@ -131,6 +131,7 @@ static int map_domain_to_root(struct domain_info **head,
     new_head->forest_root_id = slapi_entry_attr_get_charptr(root_domain,
                                                             IPA_DOMAIN_ID);
     new_head->next = *head;
+    *head = new_head;
 
     return 0;
 }
