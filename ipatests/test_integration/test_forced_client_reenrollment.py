@@ -256,6 +256,10 @@ class TestForcedClientReenrollment(IntegrationTest):
                 sshfp_record = line.replace('SSHFP record:', '').strip()
 
         assert sshfp_record, 'SSHFP record not found'
+
+        sshfp_record = set(sshfp_record.split(', '))
+        self.log.debug("SSHFP record for host %s: %s", client_host, str(sshfp_record))
+
         return sshfp_record
 
     def backup_keytab(self):
