@@ -24,7 +24,8 @@ define([
     'freeipa/rpc',
     'freeipa/dialog',
     'freeipa/widget',
-    'freeipa/details'],
+    'freeipa/details',
+    'freeipa/entity'],
     function(IPA, $, rpc) {
     return function() {
 
@@ -157,7 +158,7 @@ test("Testing successful rpc.command().", function() {
         ajax_counter, 1,
         "Checking ajax invocation counter");
 
-    var dialog = $('#error_dialog');
+    var dialog = $('[data-name=error_dialog]');
 
     ok(
         dialog.length === 0,
@@ -183,6 +184,7 @@ test("Testing unsuccessful rpc.command().", function() {
 
     var success_handler_counter = 0;
     var error_handler_counter = 0;
+    var dialog_selector = '[data-name=error_dialog]';
 
     function success_handler(data, status, xhr) {
         success_handler_counter++;
@@ -225,12 +227,12 @@ test("Testing unsuccessful rpc.command().", function() {
     }).execute();
 
     function click_button(name) {
-        var dialog = $('#error_dialog');
+        var dialog = $(dialog_selector);
         var btn = $('button[name='+name+']', dialog).first();
         btn.trigger('click');
     }
 
-    var dialog = $('#error_dialog');
+    var dialog = $(dialog_selector);
 
     equals(
         ajax_counter, 1,
@@ -267,13 +269,14 @@ test("Testing unsuccessful rpc.command().", function() {
     equals(ajax_counter, 3,
         "Checking ajax invocation counter");
 
-    dialog = $('#error_dialog');
-
-    ok(dialog.length === 0,
-        "After cancel, the dialog box is closed.");
-
     ok(success_handler_counter === 0 && error_handler_counter === 1,
         "Only the error handler is called.");
+
+    // cleanup - qunit doesn't really play well with asynchronous opening and
+    // closing of dialogs
+    // opening and closing may be rewritten as asynchronous test
+    $('.modal').remove();
+    $('.modal-backdrop').remove();
 
     $.ajax = orig;
 });

@@ -243,37 +243,39 @@ IPA.dialog = function(spec) {
         }
 
         that.dom_node = $('<div/>', {
-            'class': 'rcue-dialog-background',
-            keydown: that.on_key_down
+            'class': 'modal fade',
+            keydown: that.on_key_down,
+            tabindex: '-1',
+            'role': 'dialog',
+            'aria-labelledby': 'myLargeModalLabel',
+            'aria-hidden': 'true'
         });
 
-        var container_node = $('<div/>', {
-            'class': 'rcue-dialog-container'
-        }).appendTo(that.dom_node);
-
         that.dialog_node = $('<div/>', {
-            'class': 'rcue-dialog row',
+            'class': 'modal-dialog',
             id: that.get_id(),
             'data-name' : that.name,
             role: 'dialog',
             tabIndex: -1 // make the div focusable
-        }).appendTo(container_node);
+        }).appendTo(that.dom_node);
 
-        that.header_node = $('<header/>');
+        that.content_node = $('<div/>', { 'class': 'modal-content' }).
+            appendTo(that.dialog_node);
+        that.header_node = $('<div/>', { 'class': 'modal-header' });
         that.create_header();
-        that.header_node.appendTo(that.dialog_node);
+        that.header_node.appendTo(that.content_node);
 
         that.body_node = $('<div/>', {
-            'class': 'rcue-dialog-body row'
+            'class': 'modal-body'
         });
         // for backwards compatibility
         that.container = that.body_node;
         that.create_content();
-        that.body_node.appendTo(that.dialog_node);
+        that.body_node.appendTo(that.content_node);
 
-        that.footer_node = $('<footer/>');
+        that.footer_node = $('<div/>', { 'class': 'modal-footer' });
         that.create_footer();
-        that.footer_node.appendTo(that.dialog_node);
+        that.footer_node.appendTo(that.content_node);
 
         that.policies.post_create();
         return that.dom_node;
@@ -287,15 +289,20 @@ IPA.dialog = function(spec) {
     that.create_header = function() {
 
         that.header_node.empty();
-        that.title_node = $('<h1/>', {
-            text: that.title
-        }).appendTo(that.header_node);
-        that.title_close_button = $('<a/>', {
-            href: '#',
-            'class': 'rcue-button-close',
+
+        that.title_close_button = $('<button/>', {
+            'class': 'close',
+            'aria-hidden': 'true',
             click: function() {
                 that.close();
             }
+        }).appendTo(that.header_node);
+
+        $('<span/>', { 'class': 'fa fa-times' }).appendTo(that.title_close_button);
+
+        that.title_node = $('<h4/>', {
+            'class': 'modal-title',
+            text: that.title
         }).appendTo(that.header_node);
 
         return that.header_node;
@@ -441,7 +448,15 @@ IPA.dialog = function(spec) {
 
         that.register_listeners();
         IPA.opened_dialogs.add_dialog(that);
-        that.focus_first_element();
+
+        this.dom_node.one('shown.bs.modal', function() {
+            that.focus_first_element();
+        });
+
+        this.dom_node.modal({
+            backdrop: 'static',
+            keyboard: 'false'
+        });
     };
 
     /**
@@ -508,11 +523,18 @@ IPA.dialog = function(spec) {
 
         that.remove_listeners();
 
-        that.dom_node.remove();
-        that.dom_node = null;
+        if (!that.dom_node) return;
 
-        IPA.opened_dialogs.remove_dialog(that);
-        IPA.opened_dialogs.focus_top();
+        var dom_node = that.dom_node;
+
+        that.dom_node.one('hidden.bs.modal', function() {
+            dom_node.remove();
+            that.dom_node = null;
+            IPA.opened_dialogs.remove_dialog(that);
+            IPA.opened_dialogs.focus_top();
+        });
+
+        that.dom_node.modal('hide');
     };
 
     /**

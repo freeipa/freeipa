@@ -504,9 +504,9 @@ class UI_driver(object):
         """
         Get all dialogs in DOM
         """
-        s = 'div[role=dialog]'
+        s = '.modal-dialog'
         if name:
-            s += " div[data-name='%s'" % name
+            s += "[data-name='%s']" % name
         dialogs = self.find(s, By.CSS_SELECTOR, many=True)
         if strict:
             assert dialogs, "No dialogs found"
@@ -526,7 +526,7 @@ class UI_driver(object):
         """
         Get last opened error dialog or None.
         """
-        s = "div[role=dialog] div[data-name='%s']" % dialog_name
+        s = ".modal-dialog[data-name='%s']" % dialog_name
         dialogs = self.find(s, By.CSS_SELECTOR, many=True)
         dialog = None
         if dialogs:
@@ -542,7 +542,7 @@ class UI_driver(object):
 
         info = None
         if dialog:
-            body = self.find('.rcue-dialog-body', By.CSS_SELECTOR, dialog, strict=True)
+            body = self.find('.modal-body', By.CSS_SELECTOR, dialog, strict=True)
             info = {
                 'name': dialog.get_attribute('data-name'),
                 'text': body.text,
@@ -644,6 +644,9 @@ class UI_driver(object):
         s = "[name=profile-menu] a[href='#%s']" % name
         btn = self.find(s, By.CSS_SELECTOR, strict=True)
         btn.click()
+        # action is usually followed by opening a dialog, add wait to compensate
+        # possible dialog transition effect
+        self.wait(0.5)
 
     def get_form(self):
         """
