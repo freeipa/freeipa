@@ -173,6 +173,8 @@ static int build_domain_to_forest_root_map(struct domain_info **head,
     int search_result;
     int ret = 0;
 
+    LOG("Building forest root map \n");
+
     /* Set the base DN for the search to cn=ad, cn=trusts, $SUFFIX */
     ret = asprintf(&base, "cn=ad,cn=trusts,%s", ctx->base_dn);
     if (ret == -1) {
@@ -211,8 +213,14 @@ static int build_domain_to_forest_root_map(struct domain_info **head,
 
     ret = slapi_pblock_get(trusted_domain_search_pb, SLAPI_PLUGIN_INTOP_RESULT, &search_result);
     if (ret != 0 || search_result != LDAP_SUCCESS) {
-        LOG_FATAL("Internal search failed.\n");
-        ret = LDAP_OPERATIONS_ERROR;
+
+        /* If the search for the trusted domains fails,
+         * AD Trust support on IPA server is not available */
+
+        LOG("Empty forest root map as trusts are not enabled on this IPA server.\n");
+        ret = 0;
+        *head = NULL;
+
         goto done;
     }
 
