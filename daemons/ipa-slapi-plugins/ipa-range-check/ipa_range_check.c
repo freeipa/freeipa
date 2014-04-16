@@ -88,6 +88,8 @@ struct range_info {
     uint32_t id_range_size;
     uint32_t base_rid;
     uint32_t secondary_base_rid;
+    bool base_rid_set;
+    bool secondary_base_rid_set;
 };
 
 static void free_range_info(struct range_info *range) {
@@ -281,6 +283,7 @@ static int slapi_entry_to_range_info(struct domain_info *domain_info_head,
     int ret;
     unsigned long ul_val;
     struct range_info *range = NULL;
+    Slapi_Attr *attr;
 
     range = calloc(1, sizeof(struct range_info));
     if (range == NULL) {
@@ -325,6 +328,10 @@ static int slapi_entry_to_range_info(struct domain_info *domain_info_head,
         goto done;
     }
     range->secondary_base_rid = ul_val;
+
+    /* slapi_entry_attr_find return 0 if requested attribute is present in entry */
+    range->base_rid_set = (slapi_entry_attr_find(entry, IPA_BASE_RID, &attr) == 0);
+    range->secondary_base_rid_set = (slapi_entry_attr_find(entry, IPA_SECONDARY_BASE_RID, &attr) == 0);
 
     *_range = range;
     ret = 0;
@@ -398,12 +405,14 @@ static int check_ranges(struct range_info *r1, struct range_info *r2)
 
         /* For ipa-local or ipa-ad-trust range types primary RID ranges should
          * not overlap */
+
         if (strcasecmp(r1->id_range_type, AD_TRUST_RANGE_TYPE) == 0 ||
             strcasecmp(r1->id_range_type, LOCAL_RANGE_TYPE) == 0) {
 
-            /* Check if rid range overlaps with existing rid range */
-            if (intervals_overlap(r1->base_rid, r2->base_rid,
-                r1->id_range_size, r2->id_range_size))
+            /* Check if primary rid range overlaps with existing primary rid range */
+            if ((r1->base_rid_set && r2->base_rid_set) &&
+                intervals_overlap(r1->base_rid, r2->base_rid,
+                                  r1->id_range_size, r2->id_range_size))
                 return 2;
         }
 
@@ -412,18 +421,21 @@ static int check_ranges(struct range_info *r1, struct range_info *r2)
 
             /* Check if secondary RID range overlaps with existing secondary or
              * primary RID range. */
-            if (intervals_overlap(r1->secondary_base_rid,
-                r2->secondary_base_rid, r1->id_range_size, r2->id_range_size))
+            if ((r1->secondary_base_rid_set && r2->secondary_base_rid_set) &&
+                intervals_overlap(r1->secondary_base_rid, r2->secondary_base_rid,
+                                  r1->id_range_size, r2->id_range_size))
                 return 3;
 
             /* Check if RID range overlaps with existing secondary RID range */
-            if (intervals_overlap(r1->base_rid, r2->secondary_base_rid,
-                r1->id_range_size, r2->id_range_size))
+            if ((r1->base_rid_set && r2->secondary_base_rid_set) &&
+                intervals_overlap(r1->base_rid, r2->secondary_base_rid,
+                                  r1->id_range_size, r2->id_range_size))
                 return 4;
 
             /* Check if secondary RID range overlaps with existing RID range */
-            if (intervals_overlap(r1->secondary_base_rid, r2->base_rid,
-                r1->id_range_size, r2->id_range_size))
+            if ((r1->secondary_base_rid_set && r2->base_rid_set) &&
+                intervals_overlap(r1->secondary_base_rid, r2->base_rid,
+                                  r1->id_range_size, r2->id_range_size))
                 return 5;
             }
     }
