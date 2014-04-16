@@ -387,10 +387,10 @@ static int check_ranges(struct range_info *r1, struct range_info *r2)
 
     /* Check if base range overlaps with existing base range.
      * Exception: ipa-ad-trust-posix ranges from the same forest */
-    if (!(strcasecmp(r1->id_range_type, AD_TRUST_POSIX_RANGE_TYPE) &&
-          strcasecmp(r2->id_range_type, AD_TRUST_POSIX_RANGE_TYPE) &&
-          r1->forest_root_id != NULL && r2->forest_root_id !=NULL &&
-          strcasecmp(r1->forest_root_id, r2->forest_root_id) == 0)) {
+    if (!((strcasecmp(r1->id_range_type, AD_TRUST_POSIX_RANGE_TYPE) == 0) &&
+          (strcasecmp(r2->id_range_type, AD_TRUST_POSIX_RANGE_TYPE) == 0) &&
+          (r1->forest_root_id != NULL && r2->forest_root_id != NULL) &&
+          (strcasecmp(r1->forest_root_id, r2->forest_root_id) == 0))) {
 
         if (intervals_overlap(r1->base_id, r2->base_id,
             r1->id_range_size, r2->id_range_size)){
