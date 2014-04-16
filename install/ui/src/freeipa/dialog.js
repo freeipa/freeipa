@@ -670,14 +670,12 @@ IPA.adder_dialog = function(spec) {
     var init = function() {
         that.available_table = IPA.table_widget({
             entity: that.entity,
-            name: 'available',
-            scrollable: true
+            name: 'available'
         });
 
         that.selected_table = IPA.table_widget({
             entity: that.entity,
-            name: 'selected',
-            scrollable: true
+            name: 'selected'
         });
 
         if (spec.columns) {
@@ -751,22 +749,25 @@ IPA.adder_dialog = function(spec) {
             'class': 'adder-dialog'
         }).appendTo(that.container);
 
-        var top_panel = $('<div/>', {
-            'class': 'adder-dialog-top'
+        var input_group = $('<div/>', {
+            'class': 'input-group col-md-12 adder-dialog-top'
         }).appendTo(container);
 
-        $('<input/>', {
+        that.filter_field = $('<input/>', {
             type: 'text',
             name: 'filter',
+            'class': 'form-control',
             keyup: function(event) {
                 if (event.keyCode === keys.ENTER) {
                     that.search();
                     return false;
                 }
             }
-        }).appendTo(top_panel);
+        }).appendTo(input_group);
 
-        top_panel.append(' ');
+        var input_group_btn = $('<div/>', {
+            'class': 'input-group-btn'
+        }).appendTo(input_group);
 
         that.find_button = IPA.button({
             name: 'find',
@@ -775,20 +776,22 @@ IPA.adder_dialog = function(spec) {
                 that.search();
                 return false;
             }
-        }).appendTo(top_panel);
+        }).appendTo(input_group_btn);
 
-        top_panel.append(IPA.create_network_spinner());
-
+        var row = $('<div/>', { 'class': 'row adder-dialog-main'}).appendTo(container);
+        //
+        // left
+        //
         var left_panel = $('<div/>', {
-            'class': 'adder-dialog-left'
-        }).appendTo(container);
+            'class': 'adder-dialog-left col-sm-6'
+        }).appendTo(row);
 
         var available_panel = $('<div/>', {
             name: 'available',
             'class': 'adder-dialog-available'
         }).appendTo(left_panel);
 
-        $('<div/>', {
+        $('<h4/>', {
             html: text.get('@i18n:dialogs.available'),
             'class': 'adder-dialog-header'
         }).appendTo(available_panel);
@@ -799,17 +802,59 @@ IPA.adder_dialog = function(spec) {
 
         that.available_table.create(available_content);
 
+        //
+        // buttons
+        //
+        var buttons_panel = $('<div/>', {
+            name: 'buttons',
+            'class': 'adder-dialog-buttons col-sm-1'
+        }).appendTo(row);
 
+        var btn_row = $('<div/>', {
+            'class': 'row'
+        }).appendTo(buttons_panel);
+
+        var div = $('<div/>', {
+            'class': 'col-sm-12 col-xs-6'
+        }).appendTo(btn_row);
+        IPA.button({
+            name: 'add',
+            icon: 'fa fa-chevron-right',
+            title: text.get('@i18n:buttons.add'),
+            click: function() {
+                that.add();
+                that.update_buttons();
+                return false;
+            }
+        }).appendTo(div);
+
+        div = $('<div/>', {
+            'class': 'col-sm-12 col-xs-6'
+        }).appendTo(btn_row);
+        IPA.button({
+            name: 'remove',
+            icon: 'fa fa-chevron-left',
+            title: text.get('@i18n:buttons.remove'),
+            click: function() {
+                that.remove();
+                that.update_buttons();
+                return false;
+            }
+        }).appendTo(div);
+
+        //
+        // right
+        //
         var right_panel = $('<div/>', {
-            'class': 'adder-dialog-right'
-        }).appendTo(container);
+            'class': 'adder-dialog-right col-sm-5'
+        }).appendTo(row);
 
         var selected_panel = $('<div/>', {
             name: 'selected',
             'class': 'adder-dialog-selected'
         }).appendTo(right_panel);
 
-        $('<div/>', {
+        $('<h4/>', {
             html: text.get('@i18n:dialogs.prospective'),
             'class': 'adder-dialog-header'
         }).appendTo(selected_panel);
@@ -820,56 +865,31 @@ IPA.adder_dialog = function(spec) {
 
         that.selected_table.create(selected_content);
 
-
-        var buttons_panel = $('<div/>', {
-            name: 'buttons',
-            'class': 'adder-dialog-buttons'
-        }).appendTo(container);
-
-        var div = $('<div/>').appendTo(buttons_panel);
-        IPA.button({
-            name: 'add',
-            label: '>>',
-            click: function() {
-                that.add();
-                that.update_buttons();
-                return false;
-            }
-        }).appendTo(div);
-
-        div = $('<div/>').appendTo(buttons_panel);
-        IPA.button({
-            name: 'remove',
-            label: '<<',
-            click: function() {
-                that.remove();
-                that.update_buttons();
-                return false;
-            }
-        }).appendTo(div);
-
-        that.filter_field = $('input[name=filter]', that.container);
-
+        //
+        // external
+        //
         if (that.external) {
             container.addClass('adder-dialog-with-external');
 
             var external_panel = $('<div/>', {
                 name: 'external',
-                'class': 'adder-dialog-external'
+                'class': 'adder-dialog-external row'
             }).appendTo(left_panel);
 
-            $('<div/>', {
+
+            $('<h5/>', {
                 html: text.get('@i18n:objects.sudorule.external'),
-                'class': 'adder-dialog-header'
+                'class': 'adder-dialog-header col-sm-12'
             }).appendTo(external_panel);
 
             var external_content = $('<div/>', {
-                'class': 'adder-dialog-content'
+                'class': 'adder-dialog-content col-sm-12'
             }).appendTo(external_panel);
 
             that.external_field = $('<input/>', {
                 type: 'text',
-                name: 'external'
+                name: 'external',
+                'class': 'form-control'
             }).appendTo(external_content);
         }
 

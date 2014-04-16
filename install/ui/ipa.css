@@ -308,151 +308,31 @@ table.scrollable tbody {
     overflow: auto;
 }
 
-.adder-dialog {
-    position: relative;
-    height: 350px;
-}
-
-.adder-dialog-top {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3em;
-    line-height: 18px;
-}
-
-.adder-dialog-top input[name=filter] {
-    width: 244px;
-}
-
-.adder-dialog-top .network-activity-indicator img,
-.adder-dialog-top button {
-    margin-top: -10px;
-}
-
-.adder-dialog-left {
-    position: absolute;
-    top: 3.5em;
-    left: 0;
-    right: 50%;
-    bottom: 0;
-}
-
-.adder-dialog-right {
-    position: absolute;
-    top: 3.5em;
-    left: 50%;
-    right: 0;
-    bottom: 0;
-}
-
-.adder-dialog .search-table {
-    width: 100%;
-    height: 100%;
-}
-
-.adder-dialog table.scrollable thead {
-    display: table-header-group;
-}
-
-.adder-dialog tbody {
-    position: absolute;
-    bottom: 32px;
-    left: 0;
-    right: 0;
-    top: 31px;
-}
-
-.adder-dialog-header {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1.5em;
-    line-height: 1.5em;
-    padding: 0.2em 1em;
-    font-weight: 700;
-}
-
 .adder-dialog-content {
-    position: absolute;
-    top: 1.9em;
-    left: 0;
-    right: 0;
-    bottom: 0;
-}
-
-.adder-dialog-available {
-    background-color: #ffffff;
-    border: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 3em;
-}
-
-.adder-dialog-with-external .adder-dialog-available {
-    bottom: 5em;
-}
-
-.adder-dialog-selected {
-    background-color: #ffffff;
-    border: none;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 3em;
+    max-height: 400px;
+    overflow: auto;
 }
 
 .adder-dialog-buttons {
-    width: 60px;
     text-align: center;
-    margin: 0 auto;
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 10em;
+    margin-top: 9.5px;
 }
 
-
-.adder-dialog-buttons .button {
-    position: relative;
+/* remove padding to enlarge the tiny width of the button column */
+.adder-dialog-buttons .row .col-sm-12 {
+    padding: 0;
 }
 
-.adder-dialog-internal {
-    background-color: #ffffff;
-    border: none;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 23em;
-    padding-top: 1em;
+/* add some space for vertical layout (sm and bigger) */
+/* 768px == @screen-sm-min */
+@media (min-width: 768px) {
+    .adder-dialog-buttons {
+        margin-top: 34px;
+    }
 
-}
-
-.adder-dialog-external {
-    border: none;
-    position: absolute;
-    left: 0;
-    bottom: 3em;
-    right: 3em;
-    height: 4em;
-}
-
-.adder-dialog-external .adder-dialog-content {
-    top: 2.1em;
-}
-
-.adder-dialog-external input {
-    width: 98%;
-}
-
-.adder-dialog-buttons > div:first-child{
-    margin-bottom: 0.5em;
+    .adder-dialog-buttons button {
+        margin-bottom: 20px;
+    }
 }
 
 /* ---- Widgets ---- */
