@@ -147,7 +147,7 @@ static char* get_forest_root_id(struct domain_info *head, char* domain_id) {
     if (domain_id != NULL) {
         while(head) {
             if (strcasecmp(head->domain_id, domain_id) == 0) {
-                return head->forest_root_id;
+                return slapi_ch_strdup(head->forest_root_id);
             }
             head = head->next;
         }
