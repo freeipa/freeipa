@@ -306,12 +306,11 @@ class trust(LDAPObject):
     object_name_plural = _('trusts')
     object_class = ['ipaNTTrustedDomain']
     default_attributes = ['cn', 'ipantflatname', 'ipanttrusteddomainsid',
-        'ipanttrusttype', 'ipanttrustattributes', 'ipanttrustdirection', 'ipanttrustpartner',
-        'ipantauthtrustoutgoing', 'ipanttrustauthincoming', 'ipanttrustforesttrustinfo',
+        'ipanttrusttype', 'ipanttrustattributes', 'ipanttrustdirection',
+        'ipanttrustpartner', 'ipanttrustforesttrustinfo',
         'ipanttrustposixoffset', 'ipantsupportedencryptiontypes' ]
     search_display_attributes = ['cn', 'ipantflatname',
-                                 'ipanttrusteddomainsid', 'ipanttrusttype',
-                                 'ipantsidblacklistincoming', 'ipantsidblacklistoutgoing' ]
+                                 'ipanttrusteddomainsid', 'ipanttrusttype']
 
     label = _('Trusts')
     label_singular = _('Trust')
