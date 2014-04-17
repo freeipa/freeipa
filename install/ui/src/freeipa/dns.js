@@ -1629,6 +1629,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
     spec = spec || {};
     spec.columns = spec.columns || [];
+    spec.footer = spec.footer === undefined ? false : spec.footer;
 
     spec.columns.push({
         name: 'position',

@@ -107,6 +107,7 @@ IPA.rule_details_widget = function(spec) {
 IPA.rule_association_table_widget = function(spec) {
 
     spec = spec || {};
+    spec.footer = spec.footer === undefined ? false : spec.footer;
 
     var that = IPA.association_table_widget(spec);
 

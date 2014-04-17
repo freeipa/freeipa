@@ -2393,6 +2393,12 @@ IPA.table_widget = function (spec) {
     that.save_values = spec.save_values === undefined ? true : spec.save_values;
     that['class'] = spec['class'];
 
+    /**
+     * Flag to render footer
+     * @property {boolean}
+     */
+    that.footer = spec.footer === undefined ? true : spec.footer;
+
     that.pagination = spec.pagination;
     that.current_page = 1;
     that.total_pages = 1;
@@ -2521,7 +2527,9 @@ IPA.table_widget = function (spec) {
             that.tbody.css('height', that.height);
         }
 
-        that.create_footer();
+        if (that.footer) {
+            that.create_footer();
+        }
 
         that.set_enabled(that.enabled);
     };
@@ -2911,7 +2919,9 @@ IPA.table_widget = function (spec) {
 
     that.clear = function() {
         that.empty();
-        that.summary.text('');
+        if (that.footer) {
+            that.summary.text('');
+        }
     };
 
     //column initialization

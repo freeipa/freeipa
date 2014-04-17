@@ -678,12 +678,14 @@ IPA.adder_dialog = function(spec) {
     var init = function() {
         that.available_table = IPA.table_widget({
             entity: that.entity,
-            name: 'available'
+            name: 'available',
+            footer: false
         });
 
         that.selected_table = IPA.table_widget({
             entity: that.entity,
-            name: 'selected'
+            name: 'selected',
+            footer: false
         });
 
         if (spec.columns) {

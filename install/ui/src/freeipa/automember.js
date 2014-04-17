@@ -472,6 +472,7 @@ IPA.automember.condition_adapter = declare([field_mod.Adapter], {
 IPA.automember.condition_widget = function(spec) {
 
     spec = spec || {};
+    spec.footer = spec.footer === undefined ? false : spec.footer;
 
     spec.columns = $.merge(spec.columns || [], [
         {
