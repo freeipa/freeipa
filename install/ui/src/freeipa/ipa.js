@@ -318,7 +318,6 @@ var IPA = function () {
      */
     that.display_activity_icon = function() {
         that.network_call_count++;
-        $('.network-activity-indicator').css('display', '');
         if (that.network_call_count === 1) {
             topic.publish('network-activity-start');
         }
@@ -333,7 +332,6 @@ var IPA = function () {
         that.network_call_count--;
 
         if (0 === that.network_call_count) {
-            $('.network-activity-indicator').css('display', 'none');
             topic.publish('network-activity-end');
         }
     };
@@ -722,21 +720,6 @@ IPA.get_member_attribute = function(obj_name, member) {
     }
 
     return null;
-};
-
-/**
- * Create HTML representation of network spinner.
- * @member IPA
- * @return {HTMLElement} Network spinner node
- */
-IPA.create_network_spinner = function(){
-    var span = $('<span/>', {
-        'class': 'network-activity-indicator'
-    });
-    $('<img/>', {
-        src: 'images/spinner-small.gif'
-    }).appendTo(span);
-    return span;
 };
 
 /**

@@ -24,14 +24,6 @@ textarea[readonly] {
     color: Gray;
 }
 
-.network-activity-indicator {
-    width: 16px;
-    height: 16px;
-    line-height: 16px;
-    margin-right: 5px;
-    display: inline-block;
-}
-
 /* ---- Container ---- */
 
 .app-container {

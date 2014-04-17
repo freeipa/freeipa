@@ -1,31 +1,74 @@
 
 
+#simple-container {
+
+	.global-activity-indicator {
+
+		bottom: initial;
+		height: auto;
+		background-color: rgba(0, 0, 0, 0.3);
+		color: white;
+		width: 200px;
+		text-align: left;
+
+		.activity-row {
+			background-color: transparent;
+			display: block;
+			padding: 10px 20px;
+		}
+
+		.activity-text {
+			padding: 0px;
+		}
+
+		.activity-text {
+			background-color: transparent;
+		}
+	}
+
+	.slider {
+		transition-property: all;
+		transition-duration: .5s;
+		transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+	}
+}
+
 .global-activity-indicator {
 
 	position: fixed;
 	top: 0;
 	left: 0;
 	right: 0;
-	background-color: rgba(0, 0, 0, 0.3);
+	bottom: 0;
 	text-shadow: none;
-	color: white;
+	color: black;
 	font-size: 20px;
 	font-weight: 300;
-	width: 200px;
-	padding: 15px 20px;
+	height: 80px;
 	margin: auto;
+	text-align: center;
+
+	.activity-row {
+		display: inline-block;
+		background-color: rgba(0, 0, 0, 0.2);
+		padding: 7px;
+		border: 1px solid rgba(0, 0, 0, 0.2);
+	}
+
+	.activity-text {
+		padding: 3px 14px;
+		background-color: white;
+	}
 }
 
-.slider{
+.slider {
 	overflow-y: hidden;
-	transition-property: all;
-	transition-duration: .5s;
-	transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
 }
 
+#simple-container .slider.closed,
 .slider.closed {
 	max-height: 0;
-	padding: 0 20px;
+	padding: 0;
 }
 
 .validation-summary {

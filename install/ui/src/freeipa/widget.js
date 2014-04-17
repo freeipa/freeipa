@@ -164,6 +164,7 @@ IPA.widget = function(spec) {
      * @param {HTMLElement} container - Container node
      */
     that.create = function(container) {
+        container = $(container);
         container.addClass(that.base_css_class);
         container.addClass(that.css_class);
         that.container = container;
@@ -5464,6 +5465,8 @@ exp.activity_widget = IPA.activity_widget = function(spec) {
 
     that.text_node = null;
 
+    that.row_node = null;
+
     that.dots = spec.dots || 0;
 
     that.step = spec.step || 1;
@@ -5474,16 +5477,41 @@ exp.activity_widget = IPA.activity_widget = function(spec) {
 
     that.speed = spec.speed || 800;
 
+    that.icon = spec.icon || 'fa fa-spinner fa-spin';
+
+    /**
+     * Operation mode
+     *
+     * ['dots', 'icon']
+     *
+     * @property {string}
+     */
+    that.mode = spec.mode || "dots";
+
     that.activate_event = spec.activate_event || 'network-activity-start';
     that.deactivate_event = spec.deactivate_event || 'network-activity-end';
 
     that.create = function(container) {
         that.widget_create(container);
         that.add_class('global-activity-indicator slider closed');
+        that.row_node = $("<div/>", { 'class': 'activity-row' }).appendTo(that.container);
         that.text_node = $("<div/>", {
-            text: that.text
-        }).appendTo(that.container);
-        if (that.visible) that.start();
+            text: that.text,
+            'class': 'activity-text'
+        }).appendTo(that.row_node);
+
+        if (that.mode === 'icon') {
+            that.text_node.prepend(' ');
+            $('<i/>', {
+                'class': that.icon
+            }).prependTo(that.text_node);
+        }
+
+        if (that.visible) {
+            that.show();
+        } else {
+            that.hide();
+        }
         that.set_visible(that.visible);
         topic.subscribe(that.activate_event, function() {
             that.show();
@@ -5493,25 +5521,29 @@ exp.activity_widget = IPA.activity_widget = function(spec) {
         });
     };
 
-    that.start = function() {
+    that.toggle_timer = function(start) {
 
-        that.timer = window.setInterval( function() {
-            that.make_step();
-        }, that.speed);
-    };
+        if (that.mode === 'icon') return;
 
-    that.stop = function() {
-        if (that.timer) window.clearInterval(that.timer);
+        if (start) {
+            that.timer = window.setInterval( function() {
+                that.make_step();
+            }, that.speed);
+        } else {
+            if (that.timer) window.clearInterval(that.timer);
+        }
     };
 
     that.hide = function() {
         that.toggle_class('closed', true);
-        that.stop();
+        that.row_node.detach(); // to save CPU time (spinner icon)
+        that.toggle_timer(false);
     };
 
     that.show = function() {
         that.toggle_class('closed', false);
-        that.start();
+        that.row_node.appendTo(that.container);
+        that.toggle_timer(true);
     };
 
     that.make_step = function() {

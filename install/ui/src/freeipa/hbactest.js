@@ -318,8 +318,6 @@ IPA.hbac.test_select_facet = function(spec) {
             }
         }).appendTo(filter_container);
 
-        header.append(IPA.create_network_spinner());
-
         var content = $('<div/>', {
             'class': 'hbac-test-content'
         }).appendTo(container);

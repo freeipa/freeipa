@@ -24,8 +24,9 @@ define([
     'dojo/when',
     './plugin_loader',
     './phases',
-    './Application_controller'
-],function(lang, Deferred, when, plugin_loader, phases, Application_controller) {
+    './Application_controller',
+    'exports'
+],function(lang, Deferred, when, plugin_loader, phases, Application_controller, app) {
 
     /**
      * Application wrapper
@@ -35,7 +36,7 @@ define([
      * @class app
      * @singleton
      */
-    var app = {
+    lang.mixin(app, {
 
         /**
          * Application instance
@@ -89,7 +90,7 @@ define([
                 phases.controller.run();
             }));
         }
-    };
+    });
 
     return app;
 });

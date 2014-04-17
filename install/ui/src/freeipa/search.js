@@ -109,8 +109,6 @@ IPA.search_facet = function(spec, no_init) {
             'class': 'right-aligned-facet-controls'
         }).appendTo(that.controls);
 
-        div.append(IPA.create_network_spinner());
-
         that.filter_container = $('<div/>', {
             'class': 'search-filter'
         }).appendTo(div);

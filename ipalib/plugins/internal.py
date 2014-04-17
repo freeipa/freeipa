@@ -671,6 +671,7 @@ class i18n_messages(Command):
             "enable": _("Enable"),
             "enabled": _("Enabled"),
             "label": _("Status"),
+            "working": _("Working"),
         },
         "tabs": {
             "audit": _("Audit"),

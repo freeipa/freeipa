@@ -35,6 +35,7 @@ try:
     from selenium import webdriver
     from selenium.common.exceptions import NoSuchElementException
     from selenium.common.exceptions import InvalidElementStateException
+    from selenium.common.exceptions import StaleElementReferenceException
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.common.by import By
@@ -262,7 +263,7 @@ class UI_driver(object):
         """
         Test if dependencies were loaded. (Checks if UI has been rendered)
         """
-        indicator = self.find(".network-activity-indicator", By.CSS_SELECTOR)
+        indicator = self.find(".global-activity-indicator", By.CSS_SELECTOR)
         return indicator is not None
 
     def has_ca(self):
@@ -287,11 +288,15 @@ class UI_driver(object):
         """
         Check if there is running AJAX request
         """
-        indicator = self.find(".network-activity-indicator", By.CSS_SELECTOR)
-        i_visible = indicator and indicator.is_displayed()
-        global_indicator = self.find(".global-activity-indicator", By.CSS_SELECTOR)
-        g_visible = global_indicator and global_indicator.is_displayed()
-        return i_visible or g_visible
+        global_indicators = self.find(".global-activity-indicator", By.CSS_SELECTOR, many=True)
+        for el in global_indicators:
+            try:
+                if not self.has_class(el, 'closed'):
+                    return True
+            except StaleElementReferenceException:
+                # we don't care. Happens when indicator is part of removed dialog.
+                continue
+        return False
 
     def wait(self, seconds=0.2):
         """
@@ -635,7 +640,7 @@ class UI_driver(object):
         btn.click()
         self.wait_for_request()
 
-    def profile_menu_action (self, name):
+    def profile_menu_action(self, name):
         """
         Execute action from profile menu
         """
@@ -1480,6 +1485,12 @@ class UI_driver(object):
             # add multiple at once and test table delete button
             self.add_table_associations(table, keys, delete=True)
 
+    def has_class(self, el, cls):
+        """
+        Check if el has CSS class
+        """
+        return cls in el.get_attribute("class").split()
+
     def skip(self, reason):
         """
         Skip tests
@@ -1543,8 +1554,7 @@ class UI_driver(object):
         facet = self.get_facet()
         btn = self.find(s, By.CSS_SELECTOR, facet, strict=True)
         cls = 'action-button-disabled'
-        has_cls = cls in btn.get_attribute("class").split()
-        valid = enabled ^ has_cls
+        valid = enabled ^ self.has_class(btn, cls)
         assert btn.is_displayed(), 'Button is not displayed'
         assert valid, 'Button has incorrect enabled state.'
 
@@ -1648,7 +1658,7 @@ class UI_driver(object):
         """
         Assert that element has certain class
         """
-        valid = cls in element.get_attribute('class').split()
+        valid = self.has_class(element, cls)
         if negative:
             assert not valid, "Element contains unwanted class: %s" % cls
         else:

@@ -31,11 +31,13 @@ define(['dojo/_base/declare',
         './Menu',
         './DropdownWidget',
         './FacetContainer',
+        '../text',
+        '../widget',
         'dojo/NodeList-dom'
        ],
        function(declare, lang, array, dom, construct, prop, dom_class,
                 dom_style, query, on, Menu, DropdownWidget,
-                FacetContainer) {
+                FacetContainer, text, widgets) {
 
     /**
      * Main application widget
@@ -63,9 +65,13 @@ define(['dojo/_base/declare',
 
         menu_node: null,
 
+        indicator_node: null,
+
         id: 'container',
 
         logged: false,
+
+        use_activity_indicator: true,
 
         _loggedSetter: function(value) {
             this.logged = value;
@@ -97,6 +103,11 @@ define(['dojo/_base/declare',
             this.content_node = construct.create('div', {
                 'class': 'content'
             }, this.dom_node);
+
+            if (this.use_activity_indicator) {
+                this.indicator_node = construct.create('div', {}, this.dom_node);
+                this.activity_indicator.create(this.indicator_node);
+            }
         },
 
         _render_navigation: function() {
@@ -161,14 +172,6 @@ define(['dojo/_base/declare',
             this.password_expires_node = construct.create('li', {
                 'class': 'header-passwordexpires'
             }, this.nav_util_tool_node);
-
-            var network_activity = construct.create('li', {
-                'class': 'header-network-activity-indicator network-activity-indicator'
-            }, this.nav_util_tool_node);
-
-            construct.create('img', {
-                src: 'images/spinner-header-1.gif'
-            }, network_activity);
 
             var user_toggle = this._render_user_toggle_nodes();
             this.user_menu.set('toggle_content', user_toggle);
@@ -241,6 +244,10 @@ define(['dojo/_base/declare',
         constructor: function(spec) {
             spec = spec || {};
             this.menu_widget = new Menu();
+            this.activity_indicator = widgets.activity_widget({
+                mode: 'icon',
+                text: text.get('@i18n:status.working', 'Working')
+            });
             this.user_menu = new DropdownWidget({
                 el_type:  'li',
                 name: 'profile-menu',

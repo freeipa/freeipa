@@ -534,7 +534,8 @@
                         "disabled": "Disabled",
                         "enable": "Enable",
                         "enabled": "Enabled",
-                        "label": "Status"
+                        "label": "Status",
+                        "working": "Working"
                     },
                     "tabs": {
                         "audit": "Audit",

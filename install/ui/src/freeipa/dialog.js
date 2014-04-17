@@ -277,6 +277,14 @@ IPA.dialog = function(spec) {
         that.create_footer();
         that.footer_node.appendTo(that.content_node);
 
+        that.activity_indicator = IPA.activity_widget({
+            text: text.get('@i18n:status.working', 'Working'),
+            mode: 'icon',
+            visible: false
+        });
+        that.activity_indicator_node = $('<div/>').appendTo(that.dom_node);
+        that.activity_indicator.create(that.activity_indicator_node);
+
         that.policies.post_create();
         return that.dom_node;
     };

@@ -10,8 +10,6 @@ app_DATA =                              \
 	login-screen-background.jpg	\
 	login-screen-logo.png	\
 	product-name.png		\
-	spinner-header-1.gif		\
-	spinner-small.gif		\
 	$(NULL)
 
 EXTRA_DIST =                            \
