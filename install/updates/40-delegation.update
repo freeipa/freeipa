@@ -394,6 +394,45 @@ dn: cn=config
 add:aci: '(target = "ldap:///cn=automember rebuild membership,cn=tasks,cn=config")(targetattr=*)(version 3.0;acl "permission:Add Automember Rebuild Membership Task";allow (add) groupdn = "ldap:///cn=Add Automember Rebuild Membership Task,cn=permissions,cn=pbac,$SUFFIX";)'
 
 
+# Virtual operations
+
+dn: cn=retrieve certificate,cn=virtual operations,cn=etc,$SUFFIX
+add:objectClass: ipaVirtualOperation
+default:objectClass: top
+default:objectClass: nsContainer
+default:cn: retrieve certificate
+
+dn: cn=request certificate,cn=virtual operations,cn=etc,$SUFFIX
+add:objectClass: ipaVirtualOperation
+default:objectClass: top
+default:objectClass: nsContainer
+default:cn: request certificate
+
+dn: cn=request certificate different host,cn=virtual operations,cn=etc,$SUFFIX
+add:objectClass: ipaVirtualOperation
+default:objectClass: top
+default:objectClass: nsContainer
+default:cn: request certificate different host
+
+dn: cn=certificate status,cn=virtual operations,cn=etc,$SUFFIX
+add:objectClass: ipaVirtualOperation
+default:objectClass: top
+default:objectClass: nsContainer
+default:cn: certificate status
+
+dn: cn=revoke certificate,cn=virtual operations,cn=etc,$SUFFIX
+add:objectClass: ipaVirtualOperation
+default:objectClass: top
+default:objectClass: nsContainer
+default:cn: revoke certificate
+
+dn: cn=certificate remove hold,cn=virtual operations,cn=etc,$SUFFIX
+add:objectClass: ipaVirtualOperation
+default:objectClass: top
+default:objectClass: nsContainer
+default:cn: certificate remove hold
+
+
 # Read privileges
 dn: cn=RBAC Readers,cn=privileges,cn=pbac,$SUFFIX
 default:objectClass: nestedgroup
