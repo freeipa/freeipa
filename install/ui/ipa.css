@@ -446,17 +446,19 @@ table.scrollable tbody {
 
 /* --- Automember --- */
 
-.automember-header .default_group {
-    padding-bottom: 5px;
+.automember-header {
+    margin-bottom: 5px;
 }
 
-.automember-header .default_group h2 {
+.automember-header-label {
     display: inline-block;
-    margin: 0 15px 0 0;
+    font-weight: 600;
+    margin-right: 20px;
 }
 
-.automember-header .default_group label {
-    margin-right: 20px;
+.automember-header-control {
+    display: inline-block;
+    width: 200px;
 }
 
 /* --- Stand alone forms --- */

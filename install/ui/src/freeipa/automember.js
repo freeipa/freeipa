@@ -678,17 +678,16 @@ IPA.automember.default_group_widget = function(spec) {
 
         var title = that.get_title();
 
-        var default_group = $('<div />', {
-            'class': 'default_group'
-        }).appendTo(container);
-
-        that.header = $('<h2/>', {
+        that.header = $('<div/>', {
+            'class': 'automember-header-label',
             name: 'header',
             text: title,
             title: title
-        }).appendTo(default_group);
+        }).appendTo(container);
 
-        that.group_select.create(default_group);
+        that.group_select_node = $('<div/>', { 'class': 'automember-header-control' });
+        that.group_select.create(that.group_select_node);
+        that.group_select_node.appendTo(container);
     };
 
     that.get_title = function() {
