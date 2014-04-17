@@ -2533,13 +2533,14 @@ IPA.table_widget = function (spec) {
         var tr = $('<tr/>').appendTo(that.tfoot);
 
         var td = $('<td/>', {
+            'class': 'table-summary',
             colspan: that.columns.values.length + (that.selectable ? 1 : 0)
         }).appendTo(tr);
 
         that.create_error_link(td);
 
-        that.summary = $('<span/>', {
-            'name': 'summary'
+        that.summary = $('<div/>', {
+            'class': 'summary'
         }).appendTo(td);
 
         if (that.pagination) {
@@ -2547,52 +2548,112 @@ IPA.table_widget = function (spec) {
         }
     };
 
+    /**
+     * Create or recreate pagination
+     * @param  {jQuery} container parent element
+     * @protected
+     */
     that.create_pagination = function(container) {
 
-        that.pagination_control = $('<span/>', {
-            'class': 'pagination-control'
-        }).appendTo(container);
+        if (container && !that.pagination_control) {
+            that.pagination_control = $('<span/>', {
+                'class': 'dataTables_paginate pagination-control'
+            }).appendTo(container);
+        } else if (that.pagination_control) {
+            that.pagination_control.empty();
+        } else {
+            return;
+        }
 
-        $('<a/>', {
-            text: text.get('@i18n:widget.prev'),
-            name: 'prev_page',
-            click: function() {
+        if (that.total_pages <= 1) return;
+
+        function render_btn(cls, icon, title, disabled, handler) {
+            var li = $('<li/>', {
+                'class': cls,
+                title: title
+            });
+            var span = $('<span/>', {
+                'class': 'i fa ' + icon
+            }).appendTo(li);
+            if (disabled) {
+                li.addClass('disabled');
+            } else {
+                span.click(handler);
+            }
+            return li;
+        }
+
+        var prev_ul = $('<ul/>', { 'class': 'pagination' });
+        var middle = $('<div/>', { 'class': 'pagination-input' });
+        var next_ul = $('<ul/>', { 'class': 'pagination' });
+
+        var cp = that.current_page;
+        var tp = that.total_pages;
+
+        prev_ul.append(render_btn('first',
+            'fa-angle-double-left',
+            text.get('@i18n:widget.first'),
+            cp <= 1,
+            function() {
+                that.set_page(1);
+                return false;
+            }));
+
+        prev_ul.append(render_btn('prev',
+            'fa-angle-left',
+            text.get('@i18n:widget.prev'),
+            cp <= 1,
+            function() {
                 that.prev_page();
                 return false;
-            }
-        }).appendTo(that.pagination_control);
+            }));
 
-        that.pagination_control.append(' ');
-
-        $('<a/>', {
-            text: text.get('@i18n:widget.next'),
-            name: 'next_page',
-            click: function() {
+        next_ul.append(render_btn('next',
+            'fa-angle-right',
+            text.get('@i18n:widget.next'),
+            cp >= tp,
+            function() {
                 that.next_page();
                 return false;
-            }
-        }).appendTo(that.pagination_control);
+            }));
 
-        that.pagination_control.append(' ');
-        that.pagination_control.append(text.get('@i18n:widget.page'));
-        that.pagination_control.append(': ');
+        next_ul.append(render_btn('last',
+            'fa-angle-double-right',
+            text.get('@i18n:widget.last'),
+            cp >= tp,
+            function() {
+                that.set_page(tp);
+                return false;
+            }));
 
-        that.current_page_input = $('<input/>', {
+        var current = $('<input/>', {
             type: 'text',
-            name: 'current_page',
+            'class': 'paginate_input',
             keypress: function(e) {
                 if (e.which == 13) {
-                    var page = parseInt(that.current_page_input.val(), 10) || 1;
+                    var page = parseInt(current.val(), 10) || 1;
                     that.set_page(page);
                 }
             }
-        }).appendTo(that.pagination_control);
+        }).appendTo(middle);
+        current.val(cp);
 
-        that.pagination_control.append(' / ');
+        var of = $('<span/>', {
+            'class': 'paginate_of'
+        }).appendTo(middle);
+        of.append(' '+ text.get('@i18n:widget.of', 'of')+ ' ');
+        of.append($('<b/>', { text: tp }));
 
-        that.total_pages_span = $('<span/>', {
-            name: 'total_pages'
-        }).appendTo(that.pagination_control);
+        that.pagination_control.append(prev_ul);
+        that.pagination_control.append(middle);
+        that.pagination_control.append(next_ul);
+    };
+
+    /**
+     * Refresh pagination
+     */
+    that.refresh_pagination = function() {
+        that.create_pagination();
     };
 
     /**
@@ -2655,7 +2716,7 @@ IPA.table_widget = function (spec) {
             page = that.total_pages;
         }
         that.current_page = page;
-        that.current_page_input.val(page);
+        that.refresh_pagination();
         that.refresh();
     };
 

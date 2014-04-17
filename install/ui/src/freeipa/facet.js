@@ -1638,10 +1638,7 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
             that.load_all(data);
         }
 
-        that.table.current_page_input.val(that.table.current_page);
-        that.table.total_pages_span.text(that.table.total_pages);
-
-        that.table.pagination_control.css('visibility', 'visible');
+        that.table.refresh_pagination();
 
         that.post_load.notify([data], that);
         that.clear_expired_flag();

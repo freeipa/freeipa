@@ -689,6 +689,8 @@ class i18n_messages(Command):
         },
         "true": _("True"),
         "widget": {
+            "first": _("First"),
+            "last": _("Last"),
             "next": _("Next"),
             "page": _("Page"),
             "prev": _("Prev"),

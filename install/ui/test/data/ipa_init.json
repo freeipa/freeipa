@@ -553,6 +553,8 @@
                     },
                     "true": "True",
                     "widget": {
+                        "first": "First",
+                        "last": "Last",
                         "next": "Next",
                         "page": "Page",
                         "prev": "Prev",
