@@ -326,6 +326,9 @@ class KrbInstance(service.Service):
             os.chmod(path, chmod)
 
     def __init_ipa_kdb(self):
+        # kdb5_util may take a very long time when entropy is low
+        installutils.check_entropy()
+
         #populate the directory with the realm structure
         args = ["kdb5_util", "create", "-s",
                                        "-r", self.realm,

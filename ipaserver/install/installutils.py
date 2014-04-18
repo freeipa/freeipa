@@ -41,7 +41,7 @@ from ipalib.util import validate_hostname
 from ipapython import config
 from ipalib import errors
 from ipapython.dn import DN
-from ipaserver.install import certs
+from ipaserver.install import certs, service
 from ipapython import services as ipaservices
 
 # Used to determine install status
@@ -846,3 +846,21 @@ def stopped_service(service, instance_name=""):
         finally:
             root_logger.debug('Starting %s%s.', service, log_instance_name)
             ipaservices.knownservices[service].start(instance_name)
+
+def check_entropy():
+    '''
+    Checks if the system has enough entropy, if not, displays warning message
+    '''
+    try:
+        with open('/proc/sys/kernel/random/entropy_avail', 'r') as efname:
+            if int(efname.read()) < 200:
+                emsg = 'WARNING: Your system is running out of entropy, ' \
+                        'you may experience long delays'
+                service.print_msg(emsg)
+                root_logger.debug(emsg)
+    except IOError as e:
+        root_logger.debug("Could not open /proc/sys/kernel/random/entropy_avail: %s" % \
+            e)
+    except ValueError as e:
+        root_logger.debug("Invalid value in /proc/sys/kernel/random/entropy_avail %s" % \
+            e)

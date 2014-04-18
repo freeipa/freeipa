@@ -523,6 +523,9 @@ class BindInstance(service.Service):
         if installutils.record_in_hosts(self.ip_address, self.fqdn) is None:
             installutils.add_record_to_hosts(self.ip_address, self.fqdn)
 
+        # Make sure generate-rndc-key.sh runs before named restart
+        self.step("generating rndc key file", self.__generate_rndc_key)
+
         if self.first_instance:
             self.step("adding DNS container", self.__setup_dns_container)
 
@@ -819,6 +822,10 @@ class BindInstance(service.Service):
             resolv_fd.close()
         except IOError as e:
             root_logger.error('Could not write to resolv.conf: %s', e)
+
+    def __generate_rndc_key(self):
+        installutils.check_entropy()
+        ipautil.run(['/usr/libexec/generate-rndc-key.sh'])
 
     def add_master_dns_records(self, fqdn, ip_address, realm_name, domain_name,
                                reverse_zone, ntp=False, ca_configured=None):
