@@ -142,7 +142,7 @@ class BaseHost(object):
 
     def to_dict(self):
         return {
-            'name': self.hostname,
+            'name': str(self.hostname),
             'ip': self.ip,
             'role': self.role,
             'external_hostname': self.external_hostname,
