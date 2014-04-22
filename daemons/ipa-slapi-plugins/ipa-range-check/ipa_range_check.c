@@ -79,6 +79,16 @@ struct ipa_range_check_ctx {
     const char *base_dn;
 };
 
+typedef enum {
+    RANGE_CHECK_OK,
+    RANGE_CHECK_BASE_OVERLAP,
+    RANGE_CHECK_PRIMARY_PRIMARY_RID_OVERLAP,
+    RANGE_CHECK_SECONDARY_SECONDARY_RID_OVERLAP,
+    RANGE_CHECK_PRIMARY_SECONDARY_RID_OVERLAP,
+    RANGE_CHECK_SECONDARY_PRIMARY_RID_OVERLAP,
+    RANGE_CHECK_DIFFERENT_TYPE_IN_DOMAIN,
+} range_check_result_t;
+
 struct range_info {
     char *name;
     char *domain_id;
@@ -377,12 +387,12 @@ static bool intervals_overlap(uint32_t x, uint32_t base, uint32_t x_size, uint32
  *                   |     |  /  \ |
  * new range:       base  rid  sec_rid
  **/
-static int check_ranges(struct range_info *r1, struct range_info *r2)
+static range_check_result_t check_ranges(struct range_info *r1, struct range_info *r2)
 {
     /* Do not check overlaps of range with the range itself */
     if (r1->name != NULL && r2->name != NULL &&
         strcasecmp(r1->name, r2->name) == 0) {
-        return 0;
+        return RANGE_CHECK_OK;
     }
 
     /* Check if base range overlaps with existing base range.
@@ -394,7 +404,7 @@ static int check_ranges(struct range_info *r1, struct range_info *r2)
 
         if (intervals_overlap(r1->base_id, r2->base_id,
             r1->id_range_size, r2->id_range_size)){
-            return 1;
+            return RANGE_CHECK_BASE_OVERLAP;
         }
 
     }
@@ -409,7 +419,7 @@ static int check_ranges(struct range_info *r1, struct range_info *r2)
 
         /* Ranges from the same domain must have the same type */
         if (strcasecmp(r1->id_range_type, r2->id_range_type) != 0) {
-            return 6;
+            return RANGE_CHECK_DIFFERENT_TYPE_IN_DOMAIN;
         }
 
         /* For ipa-local or ipa-ad-trust range types primary RID ranges should
@@ -422,7 +432,7 @@ static int check_ranges(struct range_info *r1, struct range_info *r2)
             if ((r1->base_rid_set && r2->base_rid_set) &&
                 intervals_overlap(r1->base_rid, r2->base_rid,
                                   r1->id_range_size, r2->id_range_size))
-                return 2;
+                return RANGE_CHECK_PRIMARY_PRIMARY_RID_OVERLAP;
         }
 
         /* The following 3 checks are relevant only if both ranges are local. */
@@ -433,23 +443,23 @@ static int check_ranges(struct range_info *r1, struct range_info *r2)
             if ((r1->secondary_base_rid_set && r2->secondary_base_rid_set) &&
                 intervals_overlap(r1->secondary_base_rid, r2->secondary_base_rid,
                                   r1->id_range_size, r2->id_range_size))
-                return 3;
+                return RANGE_CHECK_SECONDARY_SECONDARY_RID_OVERLAP;
 
             /* Check if RID range overlaps with existing secondary RID range */
             if ((r1->base_rid_set && r2->secondary_base_rid_set) &&
                 intervals_overlap(r1->base_rid, r2->secondary_base_rid,
                                   r1->id_range_size, r2->id_range_size))
-                return 4;
+                return RANGE_CHECK_PRIMARY_SECONDARY_RID_OVERLAP;
 
             /* Check if secondary RID range overlaps with existing RID range */
             if ((r1->secondary_base_rid_set && r2->base_rid_set) &&
                 intervals_overlap(r1->secondary_base_rid, r2->base_rid,
                                   r1->id_range_size, r2->id_range_size))
-                return 5;
+                return RANGE_CHECK_SECONDARY_PRIMARY_RID_OVERLAP;
             }
     }
 
-    return 0;
+    return RANGE_CHECK_OK;
 }
 
 static int ipa_range_check_start(Slapi_PBlock *pb)
@@ -629,26 +639,26 @@ static int ipa_range_check_pre_op(Slapi_PBlock *pb, int modtype)
         ranges_valid = check_ranges(new_range, old_range);
         free_range_info(old_range);
         old_range = NULL;
-        if (ranges_valid != 0) {
+        if (ranges_valid != RANGE_CHECK_OK) {
             ret = LDAP_CONSTRAINT_VIOLATION;
 
             switch (ranges_valid){
-            case 1:
+            case RANGE_CHECK_BASE_OVERLAP:
                 errmsg = "New base range overlaps with existing base range.";
                 break;
-            case 2:
+            case RANGE_CHECK_PRIMARY_PRIMARY_RID_OVERLAP:
                 errmsg = "New primary rid range overlaps with existing primary rid range.";
                 break;
-            case 3:
+            case RANGE_CHECK_SECONDARY_SECONDARY_RID_OVERLAP:
                 errmsg = "New secondary rid range overlaps with existing secondary rid range.";
                 break;
-            case 4:
+            case RANGE_CHECK_PRIMARY_SECONDARY_RID_OVERLAP:
                 errmsg = "New primary rid range overlaps with existing secondary rid range.";
                 break;
-            case 5:
+            case RANGE_CHECK_SECONDARY_PRIMARY_RID_OVERLAP:
                 errmsg = "New secondary rid range overlaps with existing primary rid range.";
                 break;
-            case 6:
+            case RANGE_CHECK_DIFFERENT_TYPE_IN_DOMAIN:
                 errmsg = "New ID range has invalid type. All ranges in the same domain must be of the same type.";
             default:
                 errmsg = "New range overlaps with existing one.";
