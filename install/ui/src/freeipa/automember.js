@@ -688,6 +688,7 @@ IPA.automember.default_group_widget = function(spec) {
         that.group_select_node = $('<div/>', { 'class': 'automember-header-control' });
         that.group_select.create(that.group_select_node);
         that.group_select_node.appendTo(container);
+        that.group_select.update([]); // preload groups
     };
 
     that.get_title = function() {
