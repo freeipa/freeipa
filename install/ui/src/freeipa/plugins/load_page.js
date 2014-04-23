@@ -40,6 +40,7 @@ define([
     load.facet_spec = {
         name: 'load',
         preferred_container: 'simple',
+        'class': 'login-pf-body',
         widgets: [
             {
                 $type: 'activity',

@@ -24,144 +24,32 @@
     height: 100%;
 }
 
-.rcue-login-screen {
-    width: 100%;
-
+.login-pf-body {
     height: 100%;
-    background-color: #1D2226;
-    background-image: url("../images/login-screen-background.jpg");
-    background-position: top left;
+    background: @login-bg-color url("@{img-path}/@{img-bg-login}") repeat-x 50% 0;
     background-size: auto;
-    background-repeat: no-repeat;
+    color: #fff;
+}
 
-    img.logo {
-        // position: absolute;
-        // top: 50px;
-        // right: 64px;
-        display: none;
-    }
-
-    .login-form {
-        position: absolute;
-        bottom: 15%;
-        left: 0;
-        right: 0;
-        border-top: 1px rgba(255, 255, 255, 0.05) solid;
-        border-bottom: 1px rgba(255, 255, 255, 0.05) solid;
-        background-color: rgba(0, 0, 0, 0.3);
-        color: #fff;
-
-        aside {
-            padding: 30px;
-            p {
-                margin-bottom: 8px;
-            }
-        }
-
-        fieldset {
-            float: left;
-            margin: 30px;
-            padding: 10px;
-            padding-right: 34px;
-            width: 426px;
-            border-right: 1px rgba(255, 255, 255, 0.15) solid;
-
-            legend {
-                position: absolute;
-                top: -100px;
-                padding-left: 100px;
-                width: auto;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                font-weight: 200;
-                font-size: 22px;
-                border-bottom: none;
-
-                strong {
-                    margin-right: 4px;
-                    font-weight: 700;
-                }
-            }
-
-            input[type="text"],
-            input[type="password"] {
-                width: 282px;
-                color: black;
-            }
-
-            .buttons {
-                float: right;
-            }
-
-            label, button {
-                font-size: 13px;
-            }
-
-            small {
-                line-height: 22px;
-                margin-left: 87px;
-                margin-top: 10px;
-                display: block;
-                float: left;
-            }
+.reset-login-pf-height() {
+    .login-pf {
+        height: auto;
+        .login-pf-body {
+            height: auto;
         }
     }
-}
-
-@media (min-width: 1280px) {
-    .rcue-login-screen {
-        background-size: 100% auto;
-    }
-}
-
-
-.login_small() {
-    .rcue-login-screen .login-form {
-        top: 100px;
-        bottom: inherit;
-    }
-}
-
-@media (max-width: 480px) {
-
-    .login_small;
-
-    .rcue-login-screen .login-form {
-        fieldset  {
-            float: none;
-            width: auto;
-            .buttons {
-                float: none;
-            }
-        }
-        aside {
-            padding: 10px;
-        }
-    }
-}
-
-@media (max-height: 700px) {
-    .login_small;
-}
-
-@media (max-height: 480px) {
-    .login_small;
-    .rcue-login-screen .login-form  legend {
+    .login-pf .container {
         position: relative;
     }
 }
 
-@media (max-width: 740px) {
-    .rcue-login-screen .login-form {
-        fieldset  {
-            border-right: none;
-            legend {
-                padding-left: 0;
-                width: 100%;
-            }
-        }
-        aside {
-            clear: both;
-        }
+// 768px = @screen-sm-min)
+@media (min-width: 768px) {
+    .login-pf-body {
+        background-size: 100% auto;
     }
+}
+
+@media (max-height: 300px) {
+    .reset-login-pf-height;
 }

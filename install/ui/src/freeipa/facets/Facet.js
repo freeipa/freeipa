@@ -239,6 +239,9 @@ define(['dojo/_base/declare',
                     'data-name': this.name
                 });
             }
+            if (this['class']) {
+                dom_class.add(this.dom_node, this['class']);
+            }
             if (this.container_node) {
                 construct.place(this.dom_node, this.container_node);
             }

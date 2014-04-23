@@ -18,30 +18,60 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// This file contains overrides of reference RCUE implementation to comply
-// with IPA design
+// this file should be overridden with brand/platform specific content
 
+@login-details-border: #777777;
+
+.login-pf {
+
+    .login-pf-body {
+        padding-top: 50px;
+    }
+
+    #badge img {
+        display: none;
+    }
+
+    #brand {
+        position: absolute;
+        top: -135px;
+        img {
+            height: auto;
+        }
+    }
+
+    .container {
+        padding-top: 40px;
+
+        .details p:first-child {
+            border-top: 1px solid @login-details-border;
+        }
+    }
+}
+
+// 768px == @screen-sm-min
 @media (min-width: 768px) {
     .navbar-pf .navbar-brand {
         padding: 2px 0 3px;
     }
-}
 
-#simple-container .content {
-    height: 100%;
-    background-color: #1D2226;
-    background-image: url("../images/login-screen-background.jpg");
-    background-position: top left;
-    background-size: auto;
-    background-repeat: no-repeat;
-}
-
-@media (min-width: 1280px) {
-    #simple-container .content {
-        background-size: 100% auto;
+    .login-pf .container .details {
+        p:first-child {
+            border-top: 0;
+        }
+        border-left: 1px solid @login-details-border;
     }
 }
 
-#container {
-    background-color: white;
+@media (max-height: 520px) {
+    .reset-login-pf-height;
+    .login-pf {
+        .login-pf-body {
+            padding-top: 0;
+        }
+        #badge {
+            margin-top: 0;
+            height: 70px;
+        }
+    }
 }
