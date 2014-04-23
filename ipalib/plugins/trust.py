@@ -379,7 +379,7 @@ class trust(LDAPObject):
             ldap = self.backend
             filter = ldap.make_filter({'objectclass': ['ipaNTTrustedDomain'], 'cn': [keys[-1]] },
                                       rules=ldap.MATCH_ALL)
-            filter = ldap.combine_filters((filter, "ipaNTSIDBlacklistIncoming=*"), rules=ldap.MATCH_ALL)
+            filter = ldap.combine_filters((filter, "ipaNTSecurityIdentifier=*"), rules=ldap.MATCH_ALL)
             result = ldap.get_entries(DN(self.container_dn, self.env.basedn),
                                       ldap.SCOPE_SUBTREE, filter, [''])
             if len(result) > 1:
@@ -762,7 +762,7 @@ class trust_find(LDAPSearch):
     # search needs to be done on a sub-tree scope
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
         # list only trust, not trust domains
-        trust_filter = '(ipaNTSIDBlacklistIncoming=*)'
+        trust_filter = '(ipaNTSecurityIdentifier=*)'
         filter = ldap.combine_filters((filters, trust_filter), rules=ldap.MATCH_ALL)
         return (filter, base_dn, ldap.SCOPE_SUBTREE)
 
@@ -772,7 +772,8 @@ class trust_find(LDAPSearch):
 
         for attrs in entries:
             # Translate ipanttrusttype to trusttype if --raw not used
-            if not options.get('raw', False):
+            trust_type = attrs.get('ipanttrusttype', [None])[0]
+            if not options.get('raw', False) and trust_type is not None:
                 attrs['trusttype'] = trust_type_string(attrs['ipanttrusttype'][0])
                 del attrs['ipanttrusttype']
 
@@ -791,13 +792,15 @@ class trust_show(LDAPRetrieve):
         # if --raw not used
 
         if not options.get('raw', False):
-            type_str = trust_type_string(entry_attrs['ipanttrusttype'][0])
-            dir_str = trust_direction_string(entry_attrs['ipanttrustdirection']
-                                                        [0])
-            entry_attrs['trusttype'] = [type_str]
-            entry_attrs['trustdirection'] = [dir_str]
-            del entry_attrs['ipanttrusttype']
-            del entry_attrs['ipanttrustdirection']
+            trust_type = entry_attrs.get('ipanttrusttype', [None])[0]
+            if trust_type is not None:
+                entry_attrs['trusttype'] = trust_type_string(trust_type)
+                del entry_attrs['ipanttrusttype']
+
+            dir_str = entry_attrs.get('ipanttrustdirection', [None])[0]
+            if dir_str is not None:
+                entry_attrs['trustdirection'] = [trust_direction_string(dir_str)]
+                del entry_attrs['ipanttrustdirection']
 
         return dn
 
@@ -1187,7 +1190,12 @@ class trustdomain_find(LDAPSearch):
         trust_entry = ldap.get_entry(trust_dn)
         for entry in entries:
             sid = entry['ipanttrusteddomainsid'][0]
-            if sid in trust_entry['ipantsidblacklistincoming']:
+
+            blacklist = trust_entry.get('ipantsidblacklistincoming')
+            if blacklist is None:
+                continue
+
+            if sid in blacklist:
                 entry['domain_enabled'] = [False]
             else:
                 entry['domain_enabled'] = [True]
