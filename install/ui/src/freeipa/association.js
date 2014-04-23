@@ -1203,6 +1203,7 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
                 method: that.remove_method,
                 on_success: function(data) {
                     that.refresh();
+                    that.table.unselect_all();
 
                     var succeeded = IPA.get_succeeded(data);
                     var msg = text.get('@i18n:association.removed').replace('${count}', succeeded);
@@ -1473,6 +1474,7 @@ exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
                 function(data) {
                     that.load(data);
                     that.show_content();
+                    that.table.unselect_all();
 
                     var succeeded = IPA.get_succeeded(data);
                     var msg = text.get('@i18n:association.removed').replace('${count}', succeeded);

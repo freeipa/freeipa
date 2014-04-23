@@ -353,6 +353,7 @@ IPA.search_deleter_dialog = function(spec) {
         batch.on_success = function(data, text_status, xhr) {
             that.facet.refresh();
             that.facet.on_update.notify([],that.facet);
+            that.facet.table.unselect_all();
             var succeeded = batch.commands.length - batch.errors.errors.length;
             var msg = text.get('@i18n:search.deleted').replace('${count}', succeeded);
             IPA.notify_success(msg);
@@ -505,6 +506,7 @@ IPA.batch_items_action = function(spec) {
     that.on_success = function(facet, data, text_status, xhr) {
         facet.on_update.notify();
         facet.refresh();
+        facet.table.unselect_all();
 
         if (that.success_msg) {
             var succeeded = that.batch.commands.length - that.batch.errors.errors.length;

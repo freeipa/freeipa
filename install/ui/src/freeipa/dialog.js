@@ -885,6 +885,8 @@ IPA.adder_dialog = function(spec) {
     that.add = function() {
         var rows = that.available_table.remove_selected_rows();
         that.selected_table.add_rows(rows);
+        that.available_table.unselect_all();
+        that.selected_table.unselect_all();
     };
 
     /**
@@ -893,6 +895,8 @@ IPA.adder_dialog = function(spec) {
     that.remove = function() {
         var rows = that.selected_table.remove_selected_rows();
         that.available_table.add_rows(rows);
+        that.available_table.unselect_all();
+        that.selected_table.unselect_all();
     };
 
     /**
