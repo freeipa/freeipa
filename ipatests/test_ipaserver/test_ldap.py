@@ -61,11 +61,10 @@ class test_ldap(object):
         """
         self.conn = ldap2(shared_instance=False, ldap_uri=self.ldapuri)
         self.conn.connect()
-        entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
-        cert = entry_attrs.get('usercertificate')
-        cert = cert[0]
-        serial = unicode(x509.get_serial_number(cert, x509.DER))
-        assert serial is not None
+        dn = api.env.basedn
+        entry_attrs = self.conn.get_entry(dn, ['associateddomain'])
+        domain = entry_attrs.single_value['associateddomain']
+        assert domain == api.env.domain
 
     def test_GSSAPI(self):
         """
