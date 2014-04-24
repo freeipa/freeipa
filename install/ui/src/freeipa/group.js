@@ -21,6 +21,7 @@
  */
 
 define([
+        'dojo/on',
         './ipa',
         './jquery',
         './phases',
@@ -29,7 +30,7 @@ define([
         './search',
         './association',
         './entity'],
-    function(IPA, $, phases, reg) {
+    function(on, IPA, $, phases, reg) {
 
 var exp = IPA.group = {};
 
@@ -197,14 +198,14 @@ IPA.group_adder_dialog = function(spec) {
     var init = function() {
 
         var type_field = that.fields.get_field('type');
-        type_field.widget.value_changed.attach(that.on_type_change);
+        on(type_field, 'value-change', that.on_type_change);
     };
 
     that.on_type_change = function() {
 
         var type_field = that.fields.get_field('type');
         var gid_field = that.fields.get_field('gidnumber');
-        var posix = type_field.save()[0] === 'posix';
+        var posix = type_field.get_value()[0] === 'posix';
 
         if (!posix) {
             gid_field.reset();

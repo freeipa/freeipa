@@ -1590,6 +1590,8 @@ IPA.option_widget_base = function(spec, that) {
                 // select default if none specified
                 if (that.default_value !== null) {
                     check(that._selector+'[value="'+that.default_value+'"]');
+                    // default was selected instead of supplied value, hence notify
+                    util.emit_delayed(that, 'value-change', { source: that });
                 } else {
                     // otherwise select empty
                     check(that._selector+'[value=""]');

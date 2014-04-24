@@ -43,6 +43,37 @@ class test_group(UI_driver):
                         default_facet=group.DEFAULT_FACET)
 
     @screenshot
+    def test_group_types(self):
+        """
+        Test group types in adder dialog
+        """
+        self.init_app()
+
+        pkey = 'itest-group'
+        data = {
+            'pkey': pkey,
+            'add': [
+                ('callback', self.check_posix_enabled, True),
+                ('textbox', 'cn', pkey),
+                ('textarea', 'description', 'test-group desc'),
+                ('radio', 'type', 'normal'),
+                ('callback', self.check_posix_enabled, False),
+                ('radio', 'type', 'posix'),
+                ('callback', self.check_posix_enabled, True),
+                ('radio', 'type', 'external'),
+                ('callback', self.check_posix_enabled, False),
+                ('radio', 'type', 'posix'),
+                ('callback', self.check_posix_enabled, True),
+            ],
+        }
+
+        self.add_record(group.ENTITY, data)
+        self.delete(group.ENTITY, [data], navigate=False)
+
+    def check_posix_enabled(self, enabled):
+        self.assert_disabled("[name=gidnumber]", negative=enabled)
+
+    @screenshot
     def test_actions(self):
         """
         Test group actions
