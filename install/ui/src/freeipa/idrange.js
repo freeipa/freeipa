@@ -19,6 +19,7 @@
  */
 
 define([
+        'dojo/on',
         './ipa',
         './jquery',
         './phases',
@@ -27,7 +28,7 @@ define([
         './search',
         './association',
         './entity'],
-            function(IPA, $, phases, reg) {
+            function(on, IPA, $, phases, reg) {
 
 var exp = IPA.idrange = {};
 
@@ -171,7 +172,7 @@ IPA.idrange_adder_policy = function(spec) {
     }
 
     function disable(field) {
-        field.reset();
+        field.set_value(['']); // avoid usage of reset() to break event handler loop
         field.set_required(false);
         field.set_enabled(false);
     }
@@ -195,9 +196,9 @@ IPA.idrange_adder_policy = function(spec) {
             require(secondarybaserid_f);
         }
 
-        type_f.widget.value_changed.attach(that.on_input_change);
-        baserid_f.widget.value_changed.attach(that.on_input_change);
-        secondarybaserid_f.widget.value_changed.attach(that.on_input_change);
+        on(type_f, 'value-change', that.on_input_change);
+        on(baserid_f, 'value-change', that.on_input_change);
+        on(secondarybaserid_f, 'value-change', that.on_input_change);
     };
 
     that.on_input_change = function() {
@@ -206,9 +207,9 @@ IPA.idrange_adder_policy = function(spec) {
         var secondarybaserid_f = that.container.fields.get_field('ipasecondarybaserid');
         var trusteddomainsid_f = that.container.fields.get_field('ipanttrusteddomainsid');
 
-        var type_v = type_f.save()[0];
-        var baserid_v = baserid_f.save()[0] || '';
-        var secondarybaserid_v = secondarybaserid_f.save()[0] || '';
+        var type_v = type_f.get_value()[0];
+        var baserid_v = baserid_f.get_value()[0] || '';
+        var secondarybaserid_v = secondarybaserid_f.get_value()[0] || '';
 
         var is_ad_range = (type_v === 'ipa-ad-trust' || type_v === 'ipa-ad-trust-posix');
 
