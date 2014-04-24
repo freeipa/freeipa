@@ -120,8 +120,9 @@ class test_trust(trust_tasks):
 
         r_tasks = range_tasks(self.driver, self.config)
         r_tasks.get_shifts()
-        base_id = r_tasks.id_shift + 100
-        range_size = 50
+        range_add = r_tasks.get_add_data('')
+        base_id = range_add[2][2]
+        range_size = range_add[3][2]
         range_pkey = self.get_range_name()
         column = 'iparangetype'
 
@@ -135,6 +136,7 @@ class test_trust(trust_tasks):
         self.assert_record_value('Active Directory domain range', range_pkey, column)
         self.delete_record(range_pkey)
 
+        self.request_timeout = 60
         add = self.get_add_data('ipa-ad-trust-posix', base_id, range_size)
         data = self.get_data(add_data=add)
         self.add_record(ENTITY, data, delete=True)

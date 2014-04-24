@@ -41,6 +41,13 @@ class test_range(range_tasks):
     def test_types(self):
         """
         Test range types
+
+        Only 'local' and 'ipa-ad-trust' types are tested since range validation
+        made quite hard to test the other types:
+
+        - 'ipa-ad-trust-posix' can be tested only with subdomains.
+        - 'ipa-ad-winsync' and 'ipa-ipa-trust' and  are not supported yet
+          https://fedorahosted.org/freeipa/ticket/4323
         """
         self.init_app()
         self.get_shifts()
@@ -73,28 +80,8 @@ class test_range(range_tasks):
             self.add_record(ENTITY, data, navigate=False)
             self.assert_record_value('Active Directory domain range', pkey_ad, column)
 
-            add = self.get_add_data(pkey_posix, range_type='ipa-ad-trust-posix', sid=sid)
-            data = self.get_data(pkey_posix, add_data=add)
-            self.add_record(ENTITY, data, navigate=False)
-            self.assert_record_value('Active Directory trust range with POSIX attributes', pkey_posix, column)
-
             self.delete(trust_mod.ENTITY, [trust_data])
-
             self.navigate_to_entity(ENTITY)
             self.delete_record(pkey_ad)
-            self.delete_record(pkey_posix)
-            self.delete_record(trust_tasks.get_range_name())
-
-        add = self.get_add_data(pkey_winsync, range_type='ipa-ad-winsync')
-        data = self.get_data(pkey_winsync, add_data=add)
-        self.add_record(ENTITY, data, navigate=False)
-        self.assert_record_value('Active Directory winsync range', pkey_winsync, column)
-
-        add = self.get_add_data(pkey_trust, range_type='ipa-ipa-trust')
-        data = self.get_data(pkey_trust, add_data=add)
-        self.add_record(ENTITY, data, navigate=False)
-        self.assert_record_value('IPA trust range', pkey_trust, column)
 
         self.delete_record(pkey_local)
-        self.delete_record(pkey_winsync)
-        self.delete_record(pkey_trust)

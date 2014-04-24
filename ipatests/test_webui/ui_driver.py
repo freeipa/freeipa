@@ -31,6 +31,7 @@ import os
 try:
     from selenium import webdriver
     from selenium.common.exceptions import NoSuchElementException
+    from selenium.common.exceptions import InvalidElementStateException
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.common.by import By
@@ -636,8 +637,12 @@ class UI_driver(object):
         if not parent:
             parent = self.get_form()
         tb = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
-        tb.clear()
-        tb.send_keys(value)
+        try:
+            tb.clear()
+            tb.send_keys(value)
+        except InvalidElementStateException as e:
+            msg = "Invalid Element State, el: %s, value: %s, error: %s" % (selector, value, e)
+            assert False, msg
 
     def fill_input(self, name, value, input_type="text", parent=None):
         """

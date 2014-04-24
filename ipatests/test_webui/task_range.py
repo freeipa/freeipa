@@ -32,8 +32,8 @@ class range_tasks(UI_driver):
             result = self.execute_api_from_ui('idrange_find', [], {})
             idranges = result['result']['result']
 
-        id_shift = 0
-        rid_shift = 0
+        max_id = 0
+        max_rid = 0
 
         for idrange in idranges:
             size = int(idrange['ipaidrangesize'][0])
@@ -50,16 +50,14 @@ class range_tasks(UI_driver):
                     secondary_base_rid = int(idrange['ipasecondarybaserid'][0])
                     rid_end = max(base_rid, secondary_base_rid) + size
 
-            if id_shift < id_end:
-                id_shift = id_end + 1000000
+            if max_id < id_end:
+                max_id = id_end + 1000000
 
-            if rid_shift < rid_end:
-                rid_shift = rid_end + 1000000
+            if max_rid < rid_end:
+                max_rid = rid_end + 1000000
 
-        self.id_shift = id_shift
-        self.rid_shift = rid_shift
-        self.sec_rid_shift = rid_shift + 1000
-        self.shift = 0
+        self.max_id = max_id
+        self.max_rid = max_rid
 
     def get_sid(self):
         result = self.execute_api_from_ui('trust_find', [], {})
@@ -85,17 +83,24 @@ class range_tasks(UI_driver):
 
     def get_add_data(self, pkey, range_type='ipa-local', size=50, shift=100, sid=None):
 
-        self.shift += shift
+        base_id = self.max_id + shift
+        self.max_id = base_id + size
+
+        base_rid = self.max_rid + shift
+        self.max_rid = base_rid + size
+
         add = [
             ('textbox', 'cn', pkey),
-            ('textbox', 'ipabaseid', str(self.id_shift + self.shift)),
+            ('textbox', 'ipabaseid', str(base_id)),
             ('textbox', 'ipaidrangesize', str(size)),
-            ('textbox', 'ipabaserid', str(self.rid_shift + self.shift)),
+            ('textbox', 'ipabaserid', str(base_rid)),
             ('radio', 'iparangetype', range_type),
         ]
 
         if not sid:
-            add.append(('textbox', 'ipasecondarybaserid', str(self.sec_rid_shift + self.shift)))
+            base_rid = self.max_rid + shift
+            self.max_rid = base_rid + size
+            add.append(('textbox', 'ipasecondarybaserid', str(base_rid)))
         if sid:
             add.append(('textbox', 'ipanttrusteddomainsid', sid))
 
