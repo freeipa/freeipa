@@ -4534,7 +4534,7 @@ IPA.multiple_choice_section = function(spec) {
 
     var that = IPA.composite_widget(spec);
     that.choices = $.ordered_map().put_array(spec.choices, 'name');
-    that.layout = IPA.build(spec.layout || IPA.fluid_layout);
+    that.layout = spec.layout || IPA.fluid_layout;
 
     that.create = function(container) {
 
@@ -4563,7 +4563,7 @@ IPA.multiple_choice_section = function(spec) {
 
     that.create_choice = function(choice) {
 
-        var widgets, i, widget, field, section, choice_el, header, radio,
+        var widgets, i, widget, field, section, layout, choice_el, header, radio,
             enabled, radio_id;
 
         widgets = [];
@@ -4610,7 +4610,8 @@ IPA.multiple_choice_section = function(spec) {
             'for': radio_id
         }).appendTo(header);
 
-        section = that.layout.create(widgets);
+        layout = IPA.build(that.layout);
+        section = layout.create(widgets);
         section.appendTo(choice_el);
         choice_el.appendTo(that.choice_container);
     };
