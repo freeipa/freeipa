@@ -178,6 +178,7 @@
             {
                 "name": "Widget mixins, utils and related",
                 "classes": [
+                    "widget.alert_helper",
                     "IPA.option_widget_base",
                     "IPA.column",
                     "IPA.html_util"

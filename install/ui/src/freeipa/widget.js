@@ -5429,86 +5429,185 @@ IPA.value_map_widget = function(spec) {
     return that;
 };
 
+/**
+ * Helper class for rendering bootstrap alerts
+ * @class widget.alert_helper
+ * @alternateClassName IPA.alert_helper
+ * @singleton
+ */
+exp.alert_helper = {
+
+    /**
+     * Create alert object
+     * @param  {string} name
+     * @param  {string|HTMLElement} text
+     * @param  {string} type error|warning|success|info
+     * @return {Object} alert
+     */
+    create_alert: function(name, text, type) {
+
+        var alert = null;
+        switch (type) {
+            case 'error':
+                alert = this.create_error(name, text);
+                break;
+            case 'warning':
+                alert = this.create_warning(name, text);
+                break;
+            case 'success':
+                alert = this.create_success(name, text);
+                break;
+            default:
+                alert = this.create_info(name, text);
+                break;
+        }
+        return alert;
+    },
+
+    /**
+     * Create error alert
+     * @param  {string} name
+     * @param  {string|HTMLElement} text
+     * @return {Object} alert
+     */
+    create_error: function(name, text) {
+        return {
+            name: name,
+            text: text,
+            cls: 'alert alert-danger',
+            icon: 'fa fa-exclamation-circle'
+        };
+    },
+
+    /**
+     * Create warning alert
+     * @param  {string} name
+     * @param  {string|HTMLElement} text
+     * @return {Object} alert
+     */
+    create_warning: function(name, text) {
+        return {
+            name: name,
+            text: text,
+            cls: 'alert alert-warning',
+            icon: 'fa fa-warning'
+        };
+    },
+
+    /**
+     * Create info alert
+     * @param  {string} name
+     * @param  {string|HTMLElement} text
+     * @return {Object} alert
+     */
+    create_info: function(name, text) {
+        return {
+            name: name,
+            text: text,
+            cls: 'alert alert-info',
+            icon: 'fa fa-info-circle'
+        };
+    },
+
+    /**
+     * Create success alert
+     * @param  {string} name
+     * @param  {string|HTMLElement} text
+     * @return {Object} alert
+     */
+    create_success: function(name, text) {
+        return {
+            name: name,
+            text: text,
+            cls: 'alert alert-success',
+            icon: 'fa fa-check-circle-o'
+        };
+    },
+
+    /**
+     * Render alert
+     * @param  {Object} alert
+     * @return {jQuery} alert as html element
+     */
+    render_alert: function(alert) {
+
+        var el = $('<div/>', {
+            'data-name': alert.name,
+            'class': alert.cls
+        });
+        $('<span/>', { 'class': alert.icon }).appendTo(el);
+        el.append(' ');
+        el.append(alert.text);
+        return el;
+    }
+};
+
 exp.validation_summary_widget = IPA.validation_summary_widget = function(spec) {
 
     var that = IPA.widget(spec);
 
     /**
-     * Map of errors to display
+     * Map of items to display
      *
      * - key: source ie. widget name
      * - value: error text
      * @protected
      * @property {ordered_map}
      */
-    that.errors = $.ordered_map();
+    that.items = $.ordered_map();
 
-    /**
-     * Map of warning s to display
-     *
-     * - key: source ie. widget name
-     * - value: warning text
-     * @protected
-     * @property {ordered_map}
-     */
-    that.warnings = $.ordered_map();
-
-    that.errors_node = null;
-    that.warnings_node = null;
+    that.items_node = null;
 
     that.create = function(container) {
         that.widget_create(container);
         that.add_class('validation-summary');
 
-        that.errors_node = $('<div/>', {
-            'class': 'text-error'
-        }).appendTo(container);
-        that.warnings_node = $('<div/>', {
-            'class': 'text-warning'
-        }).appendTo(container);
-        that.render_items(that.errors, that.errors_node);
-        that.render_items(that.warnings, that.warnings_node);
+        that.items_node = $('<div/>', {}).appendTo(container);
+        that.render_items();
     };
 
-    that.render_items = function(items, node) {
+    that.render_items = function() {
 
         if (that.enabled) {
-            that.set_visible(that.errors.length > 0 || that.warnings.length > 0);
+            that.set_visible(that.items.length > 0);
         }
 
-        if (!node) return;
+        if (!that.items_node) return;
 
-        node.empty();
+        that.items_node.empty();
 
-        var values = items.values;
-        var keys = items.keys;
+        var items = that.items.values;
+        for (var i=0, l=items.length; i<l; i++) {
 
-        for (var i=0; i<values.length; i++) {
-            $('<div/>', {
-                'data-name': keys[i],
-                html: values[i]
-            }).appendTo(node);
+            var alert = items[i];
+            exp.alert_helper.render_alert(alert).appendTo(that.items_node);
         }
+    };
+
+    that.add = function(alert) {
+        that.items.put(alert.name, alert);
+        that.render_items();
     };
 
     that.add_error = function(name, text) {
-        that.errors.put(name, text);
-        that.render_items(that.errors, that.errors_node);
-    };
-
-    that.remove_error = function(name) {
-        that.errors.remove(name);
-        that.render_items(that.errors, that.errors_node);
+        that.add(exp.alert_helper.create_error(name, text));
     };
 
     that.add_warning = function(name, text) {
-        that.warnings.put(name, text);
-        that.render_items(that.warnings, that.warnings_node);
+        that.add(exp.alert_helper.create_warning(name, text));
     };
 
-    that.remove_warning = function(name) {
-        that.warnings.remove(name);
-        that.render_items(that.warnings, that.warnings_node);
+    that.add_info = function(name, text) {
+        that.add(exp.alert_helper.create_info(name, text));
+    };
+
+    that.add_success = function(name, text) {
+        that.add(exp.alert_helper.create_success(name, text));
+    };
+
+    that.remove = function(name) {
+        that.items.remove(name);
+        that.render_items();
     };
 
     return that;

@@ -334,7 +334,7 @@ define(['dojo/_base/declare',
             if (display) {
                 val_summary.add_warning('caps', this.caps_warning_msg);
             } else {
-                val_summary.remove_warning('caps');
+                val_summary.remove('caps');
             }
         },
 
@@ -342,7 +342,7 @@ define(['dojo/_base/declare',
 
             on(field, 'valid-change', function(e) {
                 if (e.valid) {
-                    summary.remove_error(field.name);
+                    summary.remove(field.name);
                 } else {
                     summary.add_error(field.name, field.label + ': ' + e.result.message);
                 }
@@ -360,7 +360,7 @@ define(['dojo/_base/declare',
         login: function() {
 
             var val_summary = this.get_widget('validation');
-            val_summary.remove_error('login');
+            val_summary.remove('login');
 
             if (!this.validate()) return;
 
@@ -401,7 +401,7 @@ define(['dojo/_base/declare',
                     password_f.set_value('');
                 } else if (result === 'password-expired') {
                     this.set('view', 'reset');
-                    val_summary.add_error('login', this.password_expired);
+                    val_summary.add_info('login', this.password_expired);
                 } else {
                     val_summary.add_error('login', this.form_auth_failed);
                     password_f.set_value('');
@@ -412,7 +412,7 @@ define(['dojo/_base/declare',
         login_and_reset: function() {
 
             var val_summary = this.get_widget('validation');
-            val_summary.remove_error('login');
+            val_summary.remove('login');
 
             if (!this.validate()) return;
 
