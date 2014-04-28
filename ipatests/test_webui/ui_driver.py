@@ -24,9 +24,12 @@ Contains browser driver and common tasks.
 """
 
 import nose
+from datetime import datetime
 import time
 import re
 import os
+from functools import wraps
+from nose.plugins.skip import SkipTest
 
 try:
     from selenium import webdriver
@@ -75,6 +78,29 @@ ENV_MAP = {
 DEFAULT_BROWSER = 'firefox'
 DEFAULT_PORT = 4444
 DEFAULT_TYPE = 'local'
+
+
+def screenshot(fn):
+    """
+    Decorator for saving screenshot on exception (test fail)
+    Should be applied on methods of UI_driver subclasses
+    """
+    @wraps(fn)
+    def screenshot_wrapper(*args):
+        try:
+            return fn(*args)
+        except SkipTest:
+            raise
+        except Exception:
+            self = args[0]
+            name = '%s_%s_%s' % (
+                datetime.now().isoformat(),
+                self.__class__.__name__,
+                fn.__name__)
+            self.take_screenshot(name)
+            raise
+
+    return screenshot_wrapper
 
 
 class UI_driver(object):
@@ -367,6 +393,14 @@ class UI_driver(object):
         """
         screen = self.get_login_screen()
         return screen and screen.is_displayed()
+
+    def take_screenshot(self, name):
+        if self.config.get('save_screenshots'):
+            scr_dir = self.config.get('screenshot_dir')
+            path = name + '.png'
+            if scr_dir:
+                path = os.path.join(scr_dir, path)
+            self.driver.get_screenshot_as_file(path)
 
     def navigate_to_entity(self, entity, facet=None):
         self.driver.get(self.get_url(entity, facet))
