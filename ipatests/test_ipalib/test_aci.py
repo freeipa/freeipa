@@ -34,6 +34,10 @@ def test_aci_parsing_1():
     check_aci_parsing('(targetattr="title")(targetfilter="(memberOf=cn=bar,cn=groups,cn=accounts ,dc=example,dc=com)")(version 3.0;acl "foobar";allow (write) groupdn="ldap:///cn=foo,cn=groups,cn=accounts,dc=example,dc=com";)',
         '(targetattr = "title")(targetfilter = "(memberOf=cn=bar,cn=groups,cn=accounts ,dc=example,dc=com)")(version 3.0;acl "foobar";allow (write) groupdn = "ldap:///cn=foo,cn=groups,cn=accounts,dc=example,dc=com";)')
 
+def test_aci_parsing_1_with_aci_keyword():
+    check_aci_parsing('(targetattr="title")(targetfilter="(memberOf=cn=bar,cn=groups,cn=accounts ,dc=example,dc=com)")(version 3.0;aci "foobar";allow (write) groupdn="ldap:///cn=foo,cn=groups,cn=accounts,dc=example,dc=com";)',
+        '(targetattr = "title")(targetfilter = "(memberOf=cn=bar,cn=groups,cn=accounts ,dc=example,dc=com)")(version 3.0;acl "foobar";allow (write) groupdn = "ldap:///cn=foo,cn=groups,cn=accounts,dc=example,dc=com";)')
+
 def test_aci_parsing_2():
     check_aci_parsing('(target="ldap:///uid=bjensen,dc=example,dc=com")(targetattr=*) (version 3.0;acl "aci1";allow (write) userdn="ldap:///self";)',
         '(targetattr = "*")(target = "ldap:///uid=bjensen,dc=example,dc=com")(version 3.0;acl "aci1";allow (write) userdn = "ldap:///self";)')

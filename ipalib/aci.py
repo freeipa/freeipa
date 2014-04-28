@@ -23,7 +23,7 @@ import re
 # The Python re module doesn't do nested parenthesis
 
 # Break the ACI into 3 pieces: target, name, permissions/bind_rules
-ACIPat = re.compile(r'\(version\s+3.0\s*;\s*acl\s+\"([^\"]*)\"\s*;\s*([^;]*);\s*\)', re.UNICODE)
+ACIPat = re.compile(r'\(version\s+3.0\s*;\s*ac[li]\s+\"([^\"]*)\"\s*;\s*([^;]*);\s*\)', re.UNICODE)
 
 # Break the permissions/bind_rules out
 PermPat = re.compile(r'(\w+)\s*\((.*)\)\s+(.*)', re.UNICODE)
