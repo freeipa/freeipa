@@ -155,6 +155,67 @@ NONOBJECT_PERMISSIONS = {
             'ipantdomainguid', 'ipantfallbackprimarygroup',
         },
     },
+    'System: Read Replication Agreements': {
+        'ipapermlocation': DN('cn=config'),
+        'ipapermtargetfilter': {
+            '(|'
+                '(objectclass=nsds5Replica)'
+                '(objectclass=nsds5replicationagreement)'
+                '(objectclass=nsDSWindowsReplicationAgreement)'
+                '(objectClass=nsMappingTree)'
+            ')'
+        },
+        'ipapermbindruletype': 'permission',
+        'ipapermright': {'read', 'search', 'compare'},
+        'ipapermdefaultattr': {
+            'cn', 'objectclass',
+            # nsds5Replica
+            'nsds5replicaroot', 'nsds5replicaid', 'nsds5replicacleanruv',
+            'nsds5replicaabortcleanruv', 'nsds5replicatype',
+            'nsds5replicabinddn', 'nsstate', 'nsds5replicaname',
+            'nsds5flags', 'nsds5task', 'nsds5replicareferral',
+            'nsds5replicaautoreferral', 'nsds5replicapurgedelay',
+            'nsds5replicatombstonepurgeinterval', 'nsds5replicachangecount',
+            'nsds5replicalegacyconsumer', 'nsds5replicaprotocoltimeout',
+            'nsds5replicabackoffmin', 'nsds5replicabackoffmax',
+            # nsds5replicationagreement
+            'nsds5replicacleanruvnotified', 'nsds5replicahost',
+            'nsds5replicaport', 'nsds5replicatransportinfo',
+            'nsds5replicabinddn', 'nsds5replicacredentials',
+            'nsds5replicabindmethod', 'nsds5replicaroot',
+            'nsds5replicatedattributelist',
+            'nsds5replicatedattributelisttotal', 'nsds5replicaupdateschedule',
+            'nsds5beginreplicarefresh', 'description', 'nsds50ruv',
+            'nsruvreplicalastmodified', 'nsds5replicatimeout',
+            'nsds5replicachangessentsincestartup', 'nsds5replicalastupdateend',
+            'nsds5replicalastupdatestart', 'nsds5replicalastupdatestatus',
+            'nsds5replicaupdateinprogress', 'nsds5replicalastinitend',
+            'nsds5replicaenabled', 'nsds5replicalastinitstart',
+            'nsds5replicalastinitstatus', 'nsds5debugreplicatimeout',
+            'nsds5replicabusywaittime', 'nsds5replicastripattrs',
+            'nsds5replicasessionpausetime', 'nsds5replicaprotocoltimeout',
+            # nsDSWindowsReplicationAgreement
+            'nsds5replicahost', 'nsds5replicaport',
+            'nsds5replicatransportinfo', 'nsds5replicabinddn',
+            'nsds5replicacredentials', 'nsds5replicabindmethod',
+            'nsds5replicaroot', 'nsds5replicatedattributelist',
+            'nsds5replicaupdateschedule', 'nsds5beginreplicarefresh',
+            'description', 'nsds50ruv', 'nsruvreplicalastmodified',
+            'nsds5replicatimeout', 'nsds5replicachangessentsincestartup',
+            'nsds5replicalastupdateend', 'nsds5replicalastupdatestart',
+            'nsds5replicalastupdatestatus', 'nsds5replicaupdateinprogress',
+            'nsds5replicalastinitend', 'nsds5replicalastinitstart',
+            'nsds5replicalastinitstatus', 'nsds5debugreplicatimeout',
+            'nsds5replicabusywaittime', 'nsds5replicasessionpausetime',
+            'nsds7windowsreplicasubtree', 'nsds7directoryreplicasubtree',
+            'nsds7newwinusersyncenabled', 'nsds7newwingroupsyncenabled',
+            'nsds7windowsdomain', 'nsds7dirsynccookie', 'winsyncinterval',
+            'onewaysync', 'winsyncmoveaction', 'nsds5replicaenabled',
+            'winsyncdirectoryfilter', 'winsyncwindowsfilter',
+            'winsyncsubtreepair',
+        },
+        'default_privileges': {'Replication Administrators'},
+    }
 }
 
 
