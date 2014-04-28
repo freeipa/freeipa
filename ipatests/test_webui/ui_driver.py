@@ -36,6 +36,8 @@ try:
     from selenium.common.exceptions import NoSuchElementException
     from selenium.common.exceptions import InvalidElementStateException
     from selenium.common.exceptions import StaleElementReferenceException
+    from selenium.common.exceptions import WebDriverException
+    from selenium.webdriver.common.action_chains import ActionChains
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
     from selenium.webdriver.common.keys import Keys
     from selenium.webdriver.common.by import By
@@ -939,7 +941,11 @@ class UI_driver(object):
         s = self.get_table_selector(table_name)
         s += " tbody td input[value='%s']+label" % pkey
         label = self.find(s, By.CSS_SELECTOR, parent, strict=True)
-        label.click()
+        try:
+            ActionChains(self.driver).move_to_element(label).click().perform()
+        except WebDriverException as e:
+            assert False, 'Can\'t click on checkbox label: %s \n%s' % (s, e)
+
         self.wait()
 
     def get_record_value(self, pkey, column, parent=None, table_name=None):
