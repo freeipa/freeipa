@@ -33,28 +33,36 @@ from xmlrpc_test import (Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_password,
                          add_oc)
 from ipapython.dn import DN
 
-user1=u'tuser1'
-user2=u'tuser2'
-admin1=u'admin'
-admin2=u'admin2'
-renameduser1=u'tuser'
-group1=u'group1'
-admins_group=u'admins'
+user1 = u'tuser1'
+user2 = u'tuser2'
+admin1 = u'admin'
+admin2 = u'admin2'
+renameduser1 = u'tuser'
+group1 = u'group1'
+admins_group = u'admins'
 
-invaliduser1=u'+tuser1'
-invaliduser2=u'tuser1234567890123456789012345678901234567890'
+invaliduser1 = u'+tuser1'
+invaliduser2 = u'tuser1234567890123456789012345678901234567890'
 
-sshpubkey = u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6XHBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGIwA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNmcSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM019Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF0L public key test'
-sshpubkeyfp = u'13:67:6B:BF:4E:A2:05:8E:AE:25:8B:A1:31:DE:6F:1B public key test (ssh-rsa)'
+sshpubkey = (u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
+              'HBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGI'
+              'wA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2'
+              'No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNm'
+              'cSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM01'
+              '9Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF'
+              '0L public key test')
+sshpubkeyfp = (u'13:67:6B:BF:4E:A2:05:8E:AE:25:8B:A1:31:DE:6F:1B '
+                'public key test (ssh-rsa)')
 
-validlanguage1=u'en-US;q=0.987 , en, abcdfgh-abcdefgh;q=1        , a;q=1.000'
-validlanguage2=u'*'
+validlanguage1 = u'en-US;q=0.987 , en, abcdfgh-abcdefgh;q=1        , a;q=1.000'
+validlanguage2 = u'*'
 
-invalidlanguage1=u'abcdfghji-abcdfghji'
-invalidlanguage2=u'en-us;q=0,123'
-invalidlanguage3=u'en-us;q=0.1234'
-invalidlanguage4=u'en-us;q=1.1'
-invalidlanguage5=u'en-us;q=1.0000'
+invalidlanguage1 = u'abcdfghji-abcdfghji'
+invalidlanguage2 = u'en-us;q=0,123'
+invalidlanguage3 = u'en-us;q=0.1234'
+invalidlanguage4 = u'en-us;q=1.1'
+invalidlanguage5 = u'en-us;q=1.0000'
+
 
 # Date in ISO format (2013-12-10T12:00:00)
 isodate_re = re.compile('^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
@@ -137,12 +145,13 @@ def get_admin_result(operation='show', **overrides):
     return result
 
 
-
 def get_user_dn(uid):
     return DN(('uid', uid), api.env.container_user, api.env.basedn)
 
+
 def get_group_dn(cn):
     return DN(('cn', cn), api.env.container_group, api.env.basedn)
+
 
 def upg_check(response):
     """Check that the user was assigned to the corresponding private group."""
@@ -150,8 +159,13 @@ def upg_check(response):
                  response['result']['gidnumber'])
     return True
 
+
 def not_upg_check(response):
-    """Check that the user was not assigned to the corresponding private group."""
+    """
+    Check that the user was not assigned to the corresponding
+    private group.
+    """
+
     assert_not_equal(response['result']['uidnumber'],
                      response['result']['gidnumber'])
     return True
@@ -190,7 +204,8 @@ class test_user(Declarative):
 
         dict(
             desc='Try to rename non-existent "%s"' % user1,
-            command=('user_mod', [user1], dict(setattr=u'uid=%s' % renameduser1)),
+            command=('user_mod', [user1],
+                     dict(setattr=u'uid=%s' % renameduser1)),
             expected=errors.NotFound(reason=u'%s: user not found' % user1),
         ),
 
@@ -377,7 +392,7 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Enable "%s"'  % user1,
+            desc='Enable "%s"' % user1,
             command=(
                 'user_enable', [user1], {}
             ),
@@ -485,7 +500,8 @@ class test_user(Declarative):
 
         dict(
             desc='Rename "%s"' % user1,
-            command=('user_mod', [user1], dict(setattr=u'uid=%s' % renameduser1)),
+            command=('user_mod', [user1],
+                     dict(setattr=u'uid=%s' % renameduser1)),
             expected=dict(
                 result=get_user_result(
                     renameduser1, u'Finkle', u'User1', 'mod',
@@ -499,14 +515,16 @@ class test_user(Declarative):
 
         dict(
             desc='Rename "%s" to same value' % renameduser1,
-            command=('user_mod', [renameduser1], dict(setattr=u'uid=%s' % renameduser1)),
+            command=('user_mod', [renameduser1],
+                     dict(setattr=u'uid=%s' % renameduser1)),
             expected=errors.EmptyModlist(),
         ),
 
 
         dict(
             desc='Rename back "%s"' % renameduser1,
-            command=('user_mod', [renameduser1], dict(setattr=u'uid=%s' % user1)),
+            command=('user_mod', [renameduser1],
+                     dict(setattr=u'uid=%s' % user1)),
             expected=dict(
                 result=get_user_result(user1, u'Finkle', u'User1', 'mod'),
                 summary=u'Modified user "%s"' % renameduser1,
@@ -539,14 +557,16 @@ class test_user(Declarative):
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
                 setattr=u'krbmaxticketlife=88000')
             ),
-            expected=errors.ObjectclassViolation(info='attribute "krbmaxticketlife" not allowed'),
+            expected=errors.ObjectclassViolation(
+                info='attribute "krbmaxticketlife" not allowed'),
         ),
 
 
         dict(
             desc='Create "%s" with SSH public key' % user1,
             command=(
-                'user_add', [user1], dict(givenname=u'Test', sn=u'User1', ipasshpubkey=[sshpubkey])
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
+                                          ipasshpubkey=[sshpubkey])
             ),
             expected=dict(
                 value=user1,
@@ -564,7 +584,9 @@ class test_user(Declarative):
 
         dict(
             desc='Add an illegal SSH public key to "%r"' % user1,
-            command=('user_mod', [user1], dict(ipasshpubkey=[u"anal nathrach orth' bhais's bethad do che'l de'nmha"])),
+            command=('user_mod', [user1],
+                     dict(ipasshpubkey=[u"anal nathrach orth' bhais's bethad "
+                                         "do che'l de'nmha"])),
             expected=errors.ValidationError(name='sshpubkey',
                 error=u'invalid SSH public key'),
         ),
@@ -610,7 +632,8 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Make non-existent "%s" the manager of "%s"' % (renameduser1, user2),
+            desc='Make non-existent "%s" the manager of "%s"' % (renameduser1,
+                                                                 user2),
             command=('user_mod', [user2], dict(manager=renameduser1)),
             expected=errors.NotFound(
                 reason=u'manager %s not found' % renameduser1),
@@ -668,7 +691,8 @@ class test_user(Declarative):
 
         dict(
             desc='Test an invalid login name "%s"' % invaliduser1,
-            command=('user_add', [invaliduser1], dict(givenname=u'Test', sn=u'User1')),
+            command=('user_add', [invaliduser1], dict(givenname=u'Test',
+                                                      sn=u'User1')),
             expected=errors.ValidationError(name='login',
                 error=u'may only include letters, numbers, _, -, . and $'),
         ),
@@ -791,7 +815,8 @@ class test_user(Declarative):
         dict(
             desc='Create "%s" with random password' % user1,
             command=(
-                'user_add', [user1], dict(givenname=u'Test', sn=u'User1', random=True)
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
+                                          random=True)
             ),
             expected=dict(
                 value=user1,
@@ -885,7 +910,8 @@ class test_user(Declarative):
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
                 krbprincipalname='%s@BAD@NOTFOUND.ORG' % user1)
             ),
-            expected=errors.MalformedUserPrincipal(principal='%s@BAD@NOTFOUND.ORG' % user1),
+            expected=errors.MalformedUserPrincipal(
+                principal='%s@BAD@NOTFOUND.ORG' % user1),
         ),
 
         dict(
@@ -907,7 +933,8 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Create user "%s" with different default home directory' % user1,
+            desc=('Create user "%s" with different default '
+                  'home directory' % user1),
             command=(
                 'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
             ),
@@ -941,7 +968,8 @@ class test_user(Declarative):
         dict(
             desc='Change default login shell',
             command=(
-                'config_mod', [], dict(ipadefaultloginshell=u'/usr/bin/ipython'),
+                'config_mod', [],
+                dict(ipadefaultloginshell=u'/usr/bin/ipython'),
             ),
             expected=lambda x, output: x is None,
         ),
@@ -980,15 +1008,18 @@ class test_user(Declarative):
         dict(
             desc='Create "%s" without UPG' % user1,
             command=(
-                'user_add', [user1], dict(givenname=u'Test', sn=u'User1', noprivate=True)
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
+                                          noprivate=True)
             ),
-            expected=errors.NotFound(reason='Default group for new users is not POSIX'),
+            expected=errors.NotFound(
+                reason='Default group for new users is not POSIX'),
         ),
 
         dict(
             desc='Create "%s" without UPG with GID explicitly set' % user2,
             command=(
-                'user_add', [user2], dict(givenname=u'Test', sn=u'User2', noprivate=True, gidnumber=1000)
+                'user_add', [user2], dict(givenname=u'Test', sn=u'User2',
+                                          noprivate=True, gidnumber=1000)
             ),
             expected=dict(
                 value=user2,
@@ -1025,7 +1056,8 @@ class test_user(Declarative):
         dict(
             desc='Create "%s" without UPG' % user1,
             command=(
-                'user_add', [user1], dict(givenname=u'Test', sn=u'User1', noprivate=True)
+                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
+                                          noprivate=True)
             ),
             expected=dict(
                 value=user1,
@@ -1045,7 +1077,8 @@ class test_user(Declarative):
         dict(
             desc='Create "%s" without UPG with GID explicitly set' % user2,
             command=(
-                'user_add', [user2], dict(givenname=u'Test', sn=u'User2', noprivate=True, gidnumber=1000)
+                'user_add', [user2], dict(givenname=u'Test', sn=u'User2',
+                                          noprivate=True, gidnumber=1000)
             ),
             expected=dict(
                 value=user2,
@@ -1199,7 +1232,8 @@ class test_user(Declarative):
 
 
         dict(
-            desc='Retrieve admins group "%s" to verify membership is "%s","%s"' % (admins_group, admin1, admin2),
+            desc=('Retrieve admins group "%s" to verify membership is '
+                  '"%s","%s"' % (admins_group, admin1, admin2)),
             command=('group_show', [admins_group], {}),
             expected=dict(
                 value=admins_group,
@@ -1215,7 +1249,8 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Disable 2nd admin user "%s", admins group "%s" should also contain enabled "%s"' % (admin2, admins_group, admin1),
+            desc=('Disable 2nd admin user "%s", admins group "%s" should also '
+                  'contain enabled "%s"' % (admin2, admins_group, admin1)),
             command=(
                 'user_disable', [admin2], {}
             ),
@@ -1230,7 +1265,7 @@ class test_user(Declarative):
             desc='Assert 2nd admin user "%s" is disabled' % admin2,
             command=('user_find', [admin2], {}),
             expected=dict(
-                result=[lambda d: d['nsaccountlock'] == True],
+                result=[lambda d: d['nsaccountlock'] is True],
                 summary=u'1 user matched',
                 count=1,
                 truncated=False,
@@ -1262,7 +1297,8 @@ class test_user(Declarative):
         ),
 
         dict(
-            desc='Retrieve admins group "%s" to verify membership is "%s"' % (admins_group, admin1),
+            desc=('Retrieve admins group "%s" to verify membership is "%s"'
+                  % (admins_group, admin1)),
             command=('group_show', [admins_group], {}),
             expected=dict(
                 value=admins_group,
@@ -1281,7 +1317,7 @@ class test_user(Declarative):
             desc='Assert original admin user "%s" is enabled' % admin1,
             command=('user_find', [admin1], {}),
             expected=dict(
-                result=[lambda d: d['nsaccountlock'] == False],
+                result=[lambda d: d['nsaccountlock'] is False],
                 summary=u'1 user matched',
                 count=1,
                 truncated=False,
@@ -1313,7 +1349,10 @@ class test_user(Declarative):
             expected=dict(
                 result=dict(
                     cn=[u'Group'],
-                    automemberdefaultgroup=[DN(('cn', 'ipausers'), ('cn', 'groups'), ('cn', 'accounts'), api.env.basedn)],
+                    automemberdefaultgroup=[DN(('cn', 'ipausers'),
+                                               ('cn', 'groups'),
+                                               ('cn', 'accounts'),
+                                               api.env.basedn)],
                 ),
                 value=u'group',
                 summary=u'Set default (fallback) group for automember "group"',
@@ -1391,20 +1430,8 @@ class test_user(Declarative):
             desc='Set ipauserauthtype for "%s"' % user1,
             command=('user_mod', [user1], dict(ipauserauthtype=u'password')),
             expected=dict(
-                result=dict(
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user1, api.env.domain)],
-                    memberof_group=[u'ipausers'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
-                    ipauserauthtype=[u'password'],
+                result=get_user_result(user1, u'Test', u'User1', 'mod',
+                                       ipauserauthtype=[u'password'],
                 ),
                 value=user1,
                 summary='Modified user "%s"' % user1,
@@ -1415,21 +1442,8 @@ class test_user(Declarative):
             desc='Retrieve "%s" to verify ipauserauthtype' % user1,
             command=('user_show', [user1], {}),
             expected=dict(
-                result=dict(
-                    dn=get_user_dn(user1),
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user1, api.env.domain)],
-                    memberof_group=[u'ipausers'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
-                    ipauserauthtype=[u'password'],
+                result=get_user_result(user1, u'Test', u'User1', 'show',
+                                       ipauserauthtype=[u'password'],
                 ),
                 value=user1,
                 summary=None,
@@ -1440,20 +1454,7 @@ class test_user(Declarative):
             desc='Unset ipauserauthtype for "%s"' % user1,
             command=('user_mod', [user1], dict(ipauserauthtype=None)),
             expected=dict(
-                result=dict(
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user1, api.env.domain)],
-                    memberof_group=[u'ipausers'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
-                ),
+                result=get_user_result(user1, u'Test', u'User1', 'mod'),
                 value=user1,
                 summary='Modified user "%s"' % user1,
             ),
@@ -1481,57 +1482,56 @@ class test_user(Declarative):
 
         dict(
             desc='Test an invalid preferredlanguage "%s"' % invalidlanguage1,
-            command=('user_mod', [user1], dict(preferredlanguage=invalidlanguage1)),
+            command=('user_mod', [user1],
+                     dict(preferredlanguage=invalidlanguage1)),
             expected=errors.ValidationError(name='preferredlanguage',
-                error=u'must match RFC 2068 - 14.4, e.g., "da, en-gb;q=0.8, en;q=0.7"'),
+                error=(u'must match RFC 2068 - 14.4, e.g., '
+                        '"da, en-gb;q=0.8, en;q=0.7"')),
         ),
 
         dict(
             desc='Test an invalid preferredlanguage "%s"' % invalidlanguage2,
-            command=('user_mod', [user1], dict(preferredlanguage=invalidlanguage2)),
+            command=('user_mod', [user1],
+                     dict(preferredlanguage=invalidlanguage2)),
             expected=errors.ValidationError(name='preferredlanguage',
-                error=u'must match RFC 2068 - 14.4, e.g., "da, en-gb;q=0.8, en;q=0.7"'),
+                error=(u'must match RFC 2068 - 14.4, e.g., '
+                        '"da, en-gb;q=0.8, en;q=0.7"')),
         ),
 
         dict(
             desc='Test an invalid preferredlanguage "%s"' % invalidlanguage3,
-            command=('user_mod', [user1], dict(preferredlanguage=invalidlanguage3)),
+            command=('user_mod', [user1],
+                     dict(preferredlanguage=invalidlanguage3)),
             expected=errors.ValidationError(name='preferredlanguage',
-                error=u'must match RFC 2068 - 14.4, e.g., "da, en-gb;q=0.8, en;q=0.7"'),
+                error=(u'must match RFC 2068 - 14.4, e.g., '
+                        '"da, en-gb;q=0.8, en;q=0.7"')),
         ),
 
         dict(
             desc='Test an invalid preferredlanguage "%s"' % invalidlanguage4,
-            command=('user_mod', [user1], dict(preferredlanguage=invalidlanguage4)),
+            command=('user_mod', [user1],
+                     dict(preferredlanguage=invalidlanguage4)),
             expected=errors.ValidationError(name='preferredlanguage',
-                error=u'must match RFC 2068 - 14.4, e.g., "da, en-gb;q=0.8, en;q=0.7"'),
+                error=(u'must match RFC 2068 - 14.4, e.g., '
+                        '"da, en-gb;q=0.8, en;q=0.7"')),
         ),
 
         dict(
             desc='Test an invalid preferredlanguage "%s"' % invalidlanguage5,
-            command=('user_mod', [user1], dict(preferredlanguage=invalidlanguage5)),
+            command=('user_mod', [user1],
+                     dict(preferredlanguage=invalidlanguage5)),
             expected=errors.ValidationError(name='preferredlanguage',
-                error=u'must match RFC 2068 - 14.4, e.g., "da, en-gb;q=0.8, en;q=0.7"'),
+                error=(u'must match RFC 2068 - 14.4, e.g., '
+                        '"da, en-gb;q=0.8, en;q=0.7"')),
         ),
 
         dict(
             desc='Set preferredlanguage "%s"' % validlanguage1,
-            command=('user_mod', [user1], dict(preferredlanguage=validlanguage1)),
+            command=('user_mod', [user1],
+                     dict(preferredlanguage=validlanguage1)),
             expected=dict(
-                result=dict(
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user1, api.env.domain)],
-                    memberof_group=[u'ipausers'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
-                    preferredlanguage=[validlanguage1],
+                result=get_user_result(user1, u'Test', u'User1', 'mod',
+                                       preferredlanguage=[validlanguage1],
                 ),
                 value=user1,
                 summary='Modified user "%s"' % user1,
@@ -1540,22 +1540,11 @@ class test_user(Declarative):
 
         dict(
             desc='Set preferredlanguage "%s"' % validlanguage2,
-            command=('user_mod', [user1], dict(preferredlanguage=validlanguage2)),
+            command=('user_mod', [user1],
+                     dict(preferredlanguage=validlanguage2)),
             expected=dict(
-                result=dict(
-                    givenname=[u'Test'],
-                    homedirectory=[u'/home/tuser1'],
-                    loginshell=[u'/bin/sh'],
-                    sn=[u'User1'],
-                    uid=[user1],
-                    uidnumber=[fuzzy_digits],
-                    gidnumber=[fuzzy_digits],
-                    mail=[u'%s@%s' % (user1, api.env.domain)],
-                    memberof_group=[u'ipausers'],
-                    nsaccountlock=False,
-                    has_keytab=False,
-                    has_password=False,
-                    preferredlanguage=[validlanguage2],
+                result=get_user_result(user1, u'Test', u'User1', 'mod',
+                                       preferredlanguage=[validlanguage2],
                 ),
                 value=user1,
                 summary='Modified user "%s"' % user1,
