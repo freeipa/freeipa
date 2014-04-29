@@ -24,14 +24,15 @@ Test the `ipalib/plugins/user.py` module.
 """
 
 import datetime
+import ldap
 import re
 
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
-from ipatests.util import assert_equal, assert_not_equal
-from xmlrpc_test import (Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_password,
-                         fuzzy_string, fuzzy_dergeneralizedtime, add_sid,
-                         add_oc)
+from ipatests.util import assert_equal, assert_not_equal, raises
+from xmlrpc_test import (XMLRPC_test, Declarative, fuzzy_digits, fuzzy_uuid,
+                         fuzzy_password, fuzzy_string, fuzzy_dergeneralizedtime,
+                         add_sid, add_oc)
 from ipapython.dn import DN
 
 user1 = u'tuser1'
@@ -1582,3 +1583,43 @@ class test_user(Declarative):
         ),
 
     ]
+
+
+class test_denied_bind_with_expired_principal(XMLRPC_test):
+
+    password = u'random'
+
+    @classmethod
+    def setUpClass(cls):
+        super(test_denied_bind_with_expired_principal, cls).setUpClass()
+
+        cls.connection = ldap.initialize('ldap://{host}'
+                                         .format(host=api.env.host))
+
+    def test_1_bind_as_test_user(self):
+        self.failsafe_add(
+            api.Object.user,
+            user1,
+            givenname=u'Test',
+            sn=u'User1',
+            userpassword=self.password,
+            krbprincipalexpiration=principal_expiration_string
+        )
+
+        self.connection.simple_bind_s(str(get_user_dn(user1)), self.password)
+
+    def test_2_bind_as_expired_test_user(self):
+        api.Command['user_mod'](
+                user1,
+                krbprincipalexpiration=expired_expiration_string)
+
+        raises(ldap.UNWILLING_TO_PERFORM,
+               self.connection.simple_bind_s,
+               str(get_user_dn(user1)), self.password)
+
+    def test_3_bind_as_renewed_test_user(self):
+        api.Command['user_mod'](
+                user1,
+                krbprincipalexpiration=principal_expiration_string)
+
+        self.connection.simple_bind_s(str(get_user_dn(user1)), self.password)
