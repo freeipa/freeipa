@@ -23,6 +23,7 @@
 Test the `ipalib/plugins/user.py` module.
 """
 
+import datetime
 import re
 
 from ipalib import api, errors
@@ -63,6 +64,11 @@ invalidlanguage3 = u'en-us;q=0.1234'
 invalidlanguage4 = u'en-us;q=1.1'
 invalidlanguage5 = u'en-us;q=1.0000'
 
+principal_expiration_string = "2020-12-07T19:54:13Z"
+principal_expiration_date = datetime.datetime(2020, 12, 7, 19, 54, 13)
+
+invalid_expiration_string = "2020-12-07 19:54:13"
+expired_expiration_string = "1991-12-07T19:54:13Z"
 
 # Date in ISO format (2013-12-10T12:00:00)
 isodate_re = re.compile('^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$')
@@ -1548,6 +1554,30 @@ class test_user(Declarative):
                 ),
                 value=user1,
                 summary='Modified user "%s"' % user1,
+            ),
+        ),
+
+        dict(
+            desc='Set principal expiration "%s"' % principal_expiration_string,
+            command=('user_mod', [user1],
+                     dict(krbprincipalexpiration=principal_expiration_string)),
+            expected=dict(
+                result=get_user_result(user1, u'Test', u'User1', 'mod',
+                    krbprincipalexpiration=[principal_expiration_date],
+                ),
+                value=user1,
+                summary='Modified user "%s"' % user1,
+            ),
+        ),
+
+        dict(
+            desc='Set principal expiration "%s"' % invalid_expiration_string,
+            command=('user_mod', [user1],
+                     dict(krbprincipalexpiration=invalid_expiration_string)),
+            expected=errors.ConversionError(name='principal_expiration',
+                error=(u'does not match any of accepted formats: '
+                        '%Y%m%d%H%M%SZ, %Y-%m-%dT%H:%M:%SZ, %Y-%m-%dT%H:%MZ, '
+                        '%Y-%m-%dZ, %Y-%m-%d %H:%M:%SZ, %Y-%m-%d %H:%MZ')
             ),
         ),
 
