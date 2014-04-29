@@ -229,8 +229,7 @@ class update_managed_permissions(PostUpdate):
     """
     order = LAST
 
-    def get_anonymous_read_blacklist(self, ldap):
-        """Get the list of attributes from the legacy anonymous access ACI"""
+    def get_anonymous_read_aci(self, ldap):
         aciname = u'Enable Anonymous access'
         aciprefix = u'none'
 
@@ -239,19 +238,19 @@ class update_managed_permissions(PostUpdate):
         acistrs = base_entry.get('aci', [])
         acilist = aci._convert_strings_to_acis(acistrs)
         try:
-            rawaci = aci._find_aci_by_name(acilist, aciprefix, aciname)
+            return aci._find_aci_by_name(acilist, aciprefix, aciname)
         except errors.NotFound:
-            self.log.info('Anonymous ACI not found, using no blacklist')
-            return []
-
-        return rawaci.target['targetattr']['expression']
+            return None
 
     def execute(self, **options):
         ldap = self.api.Backend[ldap2]
 
-        anonymous_read_blacklist = self.get_anonymous_read_blacklist(ldap)
+        anonymous_read_aci = self.get_anonymous_read_aci(ldap)
 
-        self.log.info('Anonymous read blacklist: %s', anonymous_read_blacklist)
+        if anonymous_read_aci:
+            self.log.info('Anonymous read ACI: %s', anonymous_read_aci)
+        else:
+            self.log.info('Anonymous ACI not found')
 
         for obj in self.api.Object():
             managed_permissions = getattr(obj, 'managed_permissions', {})
@@ -262,17 +261,16 @@ class update_managed_permissions(PostUpdate):
                                        obj,
                                        unicode(name),
                                        template,
-                                       anonymous_read_blacklist)
+                                       anonymous_read_aci)
 
         self.log.info('Updating non-object managed permissions')
         for name, template in NONOBJECT_PERMISSIONS.iteritems():
             self.update_permission(ldap, None, unicode(name), template,
-                                   anonymous_read_blacklist)
+                                   anonymous_read_aci)
 
         return False, False, ()
 
-    def update_permission(self, ldap, obj, name, template,
-                          anonymous_read_blacklist):
+    def update_permission(self, ldap, obj, name, template, anonymous_read_aci):
         """Update the given permission and the corresponding ACI"""
         assert name.startswith('System:')
 
@@ -289,7 +287,7 @@ class update_managed_permissions(PostUpdate):
 
         self.log.debug('Updating managed permission: %s', name)
         self.update_entry(obj, entry, template,
-                          anonymous_read_blacklist, is_new=is_new)
+                          anonymous_read_aci, is_new=is_new)
 
         if is_new:
             ldap.add_entry(entry)
@@ -305,7 +303,7 @@ class update_managed_permissions(PostUpdate):
         self.api.Object[permission].update_aci(entry)
 
     def update_entry(self, obj, entry, template,
-                     anonymous_read_blacklist, is_new):
+                     anonymous_read_aci, is_new):
         """Update the given permission Entry (without contacting LDAP)"""
 
         [name_ava] = entry.dn[0]
@@ -365,8 +363,11 @@ class update_managed_permissions(PostUpdate):
         entry['ipapermdefaultattr'] = list(attributes)
 
         # Exclude attributes filtered from the global read ACI
-        if template.pop('replaces_global_anonymous_aci', False) and is_new:
-            read_blacklist = set(a.lower() for a in anonymous_read_blacklist)
+        replaces_ga_aci = template.pop('replaces_global_anonymous_aci', False)
+        if replaces_ga_aci and is_new and anonymous_read_aci:
+            read_blacklist = set(
+                a.lower() for a in
+                anonymous_read_aci.target['targetattr']['expression'])
             read_blacklist &= attributes
             if read_blacklist:
                 self.log.info('Excluded attributes for %s: %s',
