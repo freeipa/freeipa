@@ -195,6 +195,21 @@ def check_protected_member(user, protected_group_name=u'admins'):
         raise errors.LastMemberError(key=user, label=_(u'group'),
             container=protected_group_name)
 
+
+def fix_addressbook_permission_bindrule(name, template, is_new,
+                                        anonymous_read_aci,
+                                        **other_options):
+    """Fix bind rule type for Read User Addressbook/IPA Attributes permission
+
+    When upgrading from an old IPA that had the global read ACI,
+    or when installing the first replica with granular read permissions,
+    we need to keep allowing anonymous access to many user attributes.
+    This fixup_function changes the bind rule type accordingly.
+    """
+    if is_new and anonymous_read_aci:
+        template['ipapermbindruletype'] = 'anonymous'
+
+
 class user(LDAPObject):
     """
     User object.
@@ -263,6 +278,7 @@ class user(LDAPObject):
                 'usersmimecertificate', 'x500uniqueidentifier',
                 'inetuserhttpurl', 'inetuserstatus',
             },
+            'fixup_function': fix_addressbook_permission_bindrule,
         },
         'System: Read User IPA Attributes': {
             'replaces_global_anonymous_aci': True,
@@ -271,6 +287,7 @@ class user(LDAPObject):
             'ipapermdefaultattr': {
                 'ipauniqueid', 'ipasshpubkey', 'ipauserauthtype', 'userclass',
             },
+            'fixup_function': fix_addressbook_permission_bindrule,
         },
         'System: Read User Kerberos Attributes': {
             'replaces_global_anonymous_aci': True,

@@ -64,6 +64,14 @@ The template dictionary can have the following keys:
 * non_object
   - If true, no object-specific defaults are used (e.g. for
     ipapermtargetfilter, ipapermlocation).
+* fixup_function
+  - A callable that may modify the template in-place before it is applied.
+  - Called with the permission name, template dict, and keyword arguments:
+    - is_new: true if the permission was previously existing
+    - anonymous_read_aci: the legacy 'Enable Anonymous access' ACI as
+      an ipalib.aci.ACI object, or None if it does not exist
+    Extra keyword arguments must be ignored, since this list may grow
+    in the future.
 
 No other keys are allowed in the template
 """
@@ -312,6 +320,12 @@ class update_managed_permissions(PostUpdate):
         entry.single_value['cn'] = name
 
         template = dict(template)
+
+        fixup_function = template.pop('fixup_function', None)
+        if fixup_function:
+            fixup_function(name, template,
+                           is_new=is_new,
+                           anonymous_read_aci=anonymous_read_aci)
 
         if template.pop('non_object', False):
             obj = None
