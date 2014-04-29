@@ -1569,7 +1569,7 @@ class dnszone(LDAPObject):
         'idnsname', 'idnszoneactive', 'idnssoamname', 'idnssoarname',
         'idnssoaserial', 'idnssoarefresh', 'idnssoaretry', 'idnssoaexpire',
         'idnssoaminimum', 'idnsallowquery', 'idnsallowtransfer',
-        'idnsforwarders', 'idnsforwardpolicy'
+        'idnsforwarders', 'idnsforwardpolicy', 'idnssecinlinesigning',
     ] + _record_attributes
     label = _('DNS Zones')
     label_singular = _('DNS Zone')
@@ -1721,6 +1721,12 @@ class dnszone(LDAPObject):
             cli_name='allow_sync_ptr',
             label=_('Allow PTR sync'),
             doc=_('Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the zone'),
+        ),
+        Bool('idnssecinlinesigning?',
+            cli_name='dnssec',
+            default=False,
+            label=_('Allow in-line DNSSEC signing'),
+            doc=_('Allow inline DNSSEC signing of records in the zone'),
         ),
     )
 

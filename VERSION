@@ -89,5 +89,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=86
-# Last change: npmccallum - Only specify the ipatokenuniqueid default in the add operation
+IPA_API_VERSION_MINOR=87
+# Last change: pviktori - --dnssec option for dnszone

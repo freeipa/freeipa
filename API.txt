@@ -1070,7 +1070,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: dnszone_add
-args: 1,24,3
+args: 1,25,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -1083,6 +1083,7 @@ option: Bool('idnsallowsyncptr', attribute=True, cli_name='allow_sync_ptr', mult
 option: Str('idnsallowtransfer', attribute=True, autofill=True, cli_name='allow_transfer', default=u'none;', multivalue=False, required=False)
 option: Str('idnsforwarders', attribute=True, cli_name='forwarder', csv=True, multivalue=True, required=False)
 option: StrEnum('idnsforwardpolicy', attribute=True, cli_name='forward_policy', multivalue=False, required=False, values=(u'only', u'first', u'none'))
+option: Bool('idnssecinlinesigning', attribute=True, cli_name='dnssec', default=False, multivalue=False, required=False)
 option: Int('idnssoaexpire', attribute=True, autofill=True, cli_name='expire', default=1209600, maxvalue=2147483647, minvalue=0, multivalue=False, required=True)
 option: Int('idnssoaminimum', attribute=True, autofill=True, cli_name='minimum', default=3600, maxvalue=2147483647, minvalue=0, multivalue=False, required=True)
 option: Str('idnssoamname', attribute=True, cli_name='name_server', multivalue=False, required=True)
@@ -1129,7 +1130,7 @@ output: Output('result', <type 'bool'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: dnszone_find
-args: 1,26,4
+args: 1,27,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: StrEnum('dnsclass', attribute=True, autofill=False, cli_name='class', multivalue=False, query=True, required=False, values=(u'IN', u'CS', u'CH', u'HS'))
@@ -1142,6 +1143,7 @@ option: Str('idnsallowtransfer', attribute=True, autofill=False, cli_name='allow
 option: Str('idnsforwarders', attribute=True, autofill=False, cli_name='forwarder', csv=True, multivalue=True, query=True, required=False)
 option: StrEnum('idnsforwardpolicy', attribute=True, autofill=False, cli_name='forward_policy', multivalue=False, query=True, required=False, values=(u'only', u'first', u'none'))
 option: Str('idnsname', attribute=True, autofill=False, cli_name='name', multivalue=False, primary_key=True, query=True, required=False)
+option: Bool('idnssecinlinesigning', attribute=True, autofill=False, cli_name='dnssec', default=False, multivalue=False, query=True, required=False)
 option: Int('idnssoaexpire', attribute=True, autofill=False, cli_name='expire', default=1209600, maxvalue=2147483647, minvalue=0, multivalue=False, query=True, required=False)
 option: Int('idnssoaminimum', attribute=True, autofill=False, cli_name='minimum', default=3600, maxvalue=2147483647, minvalue=0, multivalue=False, query=True, required=False)
 option: Str('idnssoamname', attribute=True, autofill=False, cli_name='name_server', multivalue=False, query=True, required=False)
@@ -1162,7 +1164,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: dnszone_mod
-args: 1,25,3
+args: 1,26,3
 arg: Str('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -1176,6 +1178,7 @@ option: Bool('idnsallowsyncptr', attribute=True, autofill=False, cli_name='allow
 option: Str('idnsallowtransfer', attribute=True, autofill=False, cli_name='allow_transfer', default=u'none;', multivalue=False, required=False)
 option: Str('idnsforwarders', attribute=True, autofill=False, cli_name='forwarder', csv=True, multivalue=True, required=False)
 option: StrEnum('idnsforwardpolicy', attribute=True, autofill=False, cli_name='forward_policy', multivalue=False, required=False, values=(u'only', u'first', u'none'))
+option: Bool('idnssecinlinesigning', attribute=True, autofill=False, cli_name='dnssec', default=False, multivalue=False, required=False)
 option: Int('idnssoaexpire', attribute=True, autofill=False, cli_name='expire', default=1209600, maxvalue=2147483647, minvalue=0, multivalue=False, required=False)
 option: Int('idnssoaminimum', attribute=True, autofill=False, cli_name='minimum', default=3600, maxvalue=2147483647, minvalue=0, multivalue=False, required=False)
 option: Str('idnssoamname', attribute=True, autofill=False, cli_name='name_server', multivalue=False, required=False)
