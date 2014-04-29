@@ -21,6 +21,7 @@
 Base class for all XML-RPC tests
 """
 
+import datetime
 import nose
 from ipatests.util import assert_deepequal, Fuzzy
 from ipalib import api, request, errors
@@ -86,7 +87,7 @@ fuzzy_hex = Fuzzy('^0x[0-9a-fA-F]+$', type=basestring)
 fuzzy_password = Fuzzy('^\S([\S ]*\S)*$')
 
 # Matches generalized time value. Time format is: %Y%m%d%H%M%SZ
-fuzzy_dergeneralizedtime = Fuzzy('^[0-9]{14}Z$')
+fuzzy_dergeneralizedtime = Fuzzy(type=datetime.datetime)
 
 # match any string
 fuzzy_string = Fuzzy(type=basestring)

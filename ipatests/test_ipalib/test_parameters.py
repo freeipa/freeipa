@@ -22,6 +22,7 @@
 Test the `ipalib.parameters` module.
 """
 
+import datetime
 import re
 import sys
 from types import NoneType
@@ -1580,3 +1581,48 @@ class test_IA5Str(ClassChecker):
             assert e.name == 'my_str'
             assert e.index is None
             assert_equal(e.error, "The character '\\xc3' is not allowed.")
+
+
+class test_DateTime(ClassChecker):
+    """
+    Test the `ipalib.parameters.DateTime` class.
+    """
+    _cls = parameters.DateTime
+
+    def test_init(self):
+        """
+        Test the `ipalib.parameters.DateTime.__init__` method.
+        """
+
+        # Test with no kwargs:
+        o = self.cls('my_datetime')
+        assert o.type is datetime.datetime
+        assert isinstance(o, parameters.DateTime)
+        assert o.multivalue is False
+
+        # Check full time formats
+        date = datetime.datetime(1991, 12, 7, 6, 30, 5)
+        assert date == o.convert(u'19911207063005Z')
+        assert date == o.convert(u'1991-12-07T06:30:05Z')
+        assert date == o.convert(u'1991-12-07 06:30:05Z')
+
+        # Check time formats without seconds
+        date = datetime.datetime(1991, 12, 7, 6, 30)
+        assert date == o.convert(u'1991-12-07T06:30Z')
+        assert date == o.convert(u'1991-12-07 06:30Z')
+
+        # Check date formats
+        date = datetime.datetime(1991, 12, 7)
+        assert date == o.convert(u'1991-12-07Z')
+
+        # Check some wrong formats
+        for value in (u'19911207063005',
+                      u'1991-12-07T06:30:05',
+                      u'1991-12-07 06:30:05',
+                      u'1991-12-07T06:30',
+                      u'1991-12-07 06:30',
+                      u'1991-12-07',
+                      u'1991-31-12Z',
+                      u'1991-12-07T25:30:05Z',
+            ):
+            raises(ConversionError, o.convert, value)
