@@ -22,6 +22,7 @@ Trust tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 from ipatests.test_webui.task_range import range_tasks
 
 ENTITY = 'trust'
@@ -100,6 +101,7 @@ class test_trust(trust_tasks):
         if not self.has_trusts():
             self.skip('Trusts not configured')
 
+    @screenshot
     def test_crud(self):
         """
         Basic basic CRUD: trust
@@ -114,6 +116,7 @@ class test_trust(trust_tasks):
         self.navigate_to_entity('idrange')
         self.delete_record(self.get_range_name())
 
+    @screenshot
     def test_range_types(self):
 
         self.init_app()
@@ -144,6 +147,7 @@ class test_trust(trust_tasks):
         self.assert_record_value('Active Directory trust range with POSIX attributes', range_pkey, column)
         self.delete_record(range_pkey)
 
+    @screenshot
     def test_config_mod(self):
 
         self.init_app()

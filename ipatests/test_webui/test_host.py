@@ -22,6 +22,7 @@ Host tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_hostgroup as hostgroup
 import ipatests.test_webui.data_netgroup as netgroup
 import ipatests.test_webui.data_hbac as hbac
@@ -104,6 +105,7 @@ class host_tasks(UI_driver):
 
 class test_host(host_tasks):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: host
@@ -111,6 +113,7 @@ class test_host(host_tasks):
         self.init_app()
         self.basic_crud(ENTITY, self.data)
 
+    @screenshot
     def test_certificates(self):
         """
         Test host certificate actions
@@ -175,6 +178,7 @@ class test_host(host_tasks):
         self.navigate_to_entity(ENTITY, 'search')
         self.delete_record(self.pkey, self.data.get('del'))
 
+    @screenshot
     def test_ca_less(self):
         """
         Test host certificate actions in CA-less install
@@ -198,6 +202,7 @@ class test_host(host_tasks):
         self.navigate_by_breadcrumb('Hosts')
         self.delete_record(self.pkey, self.data.get('del'))
 
+    @screenshot
     def test_kerberos_flags(self):
         """
         Test Kerberos flags
@@ -220,6 +225,7 @@ class test_host(host_tasks):
         self.validate_fields([('checkbox', name, [])])
         self.delete_record(self.pkey, self.data.get('del'))
 
+    @screenshot
     def test_associations(self):
         """
         Host direct associations
@@ -258,6 +264,7 @@ class test_host(host_tasks):
         self.delete(hbac.RULE_ENTITY, [hbac.RULE_DATA])
         self.delete(sudo.RULE_ENTITY, [sudo.RULE_DATA])
 
+    @screenshot
     def test_indirect_associations(self):
         """
         Host indirect associations

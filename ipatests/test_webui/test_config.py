@@ -22,6 +22,7 @@ Config tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 
 ENTITY = 'config'
 
@@ -42,6 +43,7 @@ DATA2 = {
 
 class test_config(UI_driver):
 
+    @screenshot
     def test_mod(self):
         """
         Config mod tests

@@ -22,6 +22,7 @@ Automount tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 
 LOC_ENTITY = 'automountlocation'
 MAP_ENTITY = 'automountmap'
@@ -62,6 +63,7 @@ KEY_DATA = {
 
 class test_automount(UI_driver):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: automount

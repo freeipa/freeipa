@@ -22,6 +22,7 @@ User tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_user as user
 import ipatests.test_webui.data_group as group
 import ipatests.test_webui.data_netgroup as netgroup
@@ -37,6 +38,7 @@ except ImportError:
 
 class test_user(UI_driver):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: user
@@ -44,6 +46,7 @@ class test_user(UI_driver):
         self.init_app()
         self.basic_crud(user.ENTITY, user.DATA)
 
+    @screenshot
     def test_associations(self):
         """
         User direct associations
@@ -80,6 +83,7 @@ class test_user(UI_driver):
         self.delete(hbac.RULE_ENTITY, [hbac.RULE_DATA])
         self.delete(sudo.RULE_ENTITY, [sudo.RULE_DATA])
 
+    @screenshot
     def test_indirect_associations(self):
         """
         User indirect associations
@@ -134,6 +138,7 @@ class test_user(UI_driver):
         self.delete(hbac.RULE_ENTITY, [hbac.RULE_DATA])
         self.delete(sudo.RULE_ENTITY, [sudo.RULE_DATA])
 
+    @screenshot
     def test_actions(self):
         """
         Test user actions
@@ -154,6 +159,7 @@ class test_user(UI_driver):
         # delete
         self.delete_action(user.ENTITY, user.PKEY)
 
+    @screenshot
     def test_password_expiration_notification(self):
         """
         Test password expiration notification

@@ -22,6 +22,7 @@ Selfservice tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 
 ENTITY = 'selfservice'
 PKEY = 'itest-selfservice-rule'
@@ -40,6 +41,7 @@ DATA = {
 
 class test_selfservice(UI_driver):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: selfservice entity

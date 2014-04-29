@@ -22,6 +22,7 @@ Netgroup tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_netgroup as netgroup
 import ipatests.test_webui.data_user as user
 import ipatests.test_webui.data_group as group
@@ -31,6 +32,7 @@ from ipatests.test_webui.test_host import host_tasks, ENTITY as HOST_ENTITY
 
 class test_netgroup(UI_driver):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: netgroup
@@ -38,6 +40,7 @@ class test_netgroup(UI_driver):
         self.init_app()
         self.basic_crud(netgroup.ENTITY, netgroup.DATA)
 
+    @screenshot
     def test_mod(self):
         """
         Mod: netgroup

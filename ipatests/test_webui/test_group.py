@@ -22,6 +22,7 @@ Group tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_group as group
 import ipatests.test_webui.data_user as user
 import ipatests.test_webui.data_netgroup as netgroup
@@ -32,6 +33,7 @@ import ipatests.test_webui.data_sudo as sudo
 
 class test_group(UI_driver):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: group
@@ -40,6 +42,7 @@ class test_group(UI_driver):
         self.basic_crud(group.ENTITY, group.DATA,
                         default_facet=group.DEFAULT_FACET)
 
+    @screenshot
     def test_actions(self):
         """
         Test group actions
@@ -79,6 +82,7 @@ class test_group(UI_driver):
         self.assert_facet(entity, 'search')
         self.assert_record(pkey, negative=True)
 
+    @screenshot
     def test_associations(self):
         """
         Test group associations
@@ -122,6 +126,7 @@ class test_group(UI_driver):
         self.delete(hbac.RULE_ENTITY, [hbac.RULE_DATA])
         self.delete(sudo.RULE_ENTITY, [sudo.RULE_DATA])
 
+    @screenshot
     def test_indirect_associations(self):
         """
         Group indirect associations

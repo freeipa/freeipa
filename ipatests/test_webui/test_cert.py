@@ -22,6 +22,7 @@ Cert tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 
 ENTITY = 'cert'
 
@@ -34,6 +35,7 @@ class test_cert(UI_driver):
         if not self.has_ca():
             self.skip('CA not configured')
 
+    @screenshot
     def test_read(self):
         """
         Basic read: cert

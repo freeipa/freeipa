@@ -22,6 +22,7 @@ Automember tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_hostgroup as hostgroup
 from ipatests.test_webui.test_host import host_tasks
 
@@ -51,6 +52,7 @@ HOST_GROUP_DATA = {
 
 class test_automember(UI_driver):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: automember
@@ -83,6 +85,7 @@ class test_automember(UI_driver):
         # cleanup
         self.delete(hostgroup.ENTITY, [hostgroup.DATA])
 
+    @screenshot
     def test_rebuild_membership_hosts(self):
         """
         Test automember rebuild membership feature for hosts
@@ -169,6 +172,7 @@ class test_automember(UI_driver):
         self.delete('automember', [{'pkey': 'webservers'}],
                     facet='searchhostgroup')
 
+    @screenshot
     def test_rebuild_membership_users(self):
         """
         Test automember rebuild membership feature for users

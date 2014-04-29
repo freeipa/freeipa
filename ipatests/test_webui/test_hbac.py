@@ -22,12 +22,14 @@ HBAC tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_hbac as hbac
 import ipatests.test_webui.data_hostgroup as hostgroup
 
 
 class test_hbac(UI_driver):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: hbac
@@ -38,6 +40,7 @@ class test_hbac(UI_driver):
         self.basic_crud(hbac.SVCGROUP_ENTITY, hbac.SVCGROUP_DATA,
                         default_facet=hbac.SVCGROUP_DEF_FACET)
 
+    @screenshot
     def test_mod(self):
         """
         Mod: hbac
@@ -72,6 +75,7 @@ class test_hbac(UI_driver):
         self.delete(hbac.RULE_ENTITY, [hbac.RULE_DATA])
         self.delete(hostgroup.ENTITY, [hostgroup.DATA])
 
+    @screenshot
     def test_actions(self):
         """
         Test hbac rule actions
@@ -85,6 +89,7 @@ class test_hbac(UI_driver):
         self.enable_action()
         self.delete_action(hbac.RULE_ENTITY, hbac.RULE_PKEY)
 
+    @screenshot
     def test_hbac_test(self):
         """
         Test HBAC test UI

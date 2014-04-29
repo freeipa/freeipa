@@ -22,6 +22,7 @@ Kerberos policy tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 
 ENTITY = 'krbtpolicy'
 
@@ -42,6 +43,7 @@ DATA2 = {
 
 class test_krbtpolicy(UI_driver):
 
+    @screenshot
     def test_mod(self):
         """
         Kerberos policy mod test

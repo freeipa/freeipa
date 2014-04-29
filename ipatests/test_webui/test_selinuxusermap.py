@@ -22,6 +22,7 @@ SELinux user map tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_user as user
 import ipatests.test_webui.data_group as group
 import ipatests.test_webui.data_hostgroup as hostgroup
@@ -43,6 +44,7 @@ DATA = {
 
 class test_selinuxusermap(UI_driver):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: selinuxusermap
@@ -50,6 +52,7 @@ class test_selinuxusermap(UI_driver):
         self.init_app()
         self.basic_crud(ENTITY, DATA)
 
+    @screenshot
     def test_mod(self):
         """
         Mod: selinuxusermap
@@ -91,6 +94,7 @@ class test_selinuxusermap(UI_driver):
         self.delete(HOST_ENTITY, [host.data, host.data2])
         self.delete(hostgroup.ENTITY, [hostgroup.DATA, hostgroup.DATA2])
 
+    @screenshot
     def test_actions(self):
         """
         Test SELinux user map actions

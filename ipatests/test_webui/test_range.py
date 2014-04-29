@@ -22,6 +22,7 @@ Range tests
 """
 
 import ipatests.test_webui.test_trust as trust_mod
+from ipatests.test_webui.ui_driver import screenshot
 from ipatests.test_webui.task_range import range_tasks
 
 ENTITY = 'idrange'
@@ -30,6 +31,7 @@ PKEY = 'itest-range'
 
 class test_range(range_tasks):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: range
@@ -38,6 +40,7 @@ class test_range(range_tasks):
         self.get_shifts()
         self.basic_crud(ENTITY, self.get_data(PKEY))
 
+    @screenshot
     def test_types(self):
         """
         Test range types

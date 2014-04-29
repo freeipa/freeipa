@@ -22,6 +22,7 @@ Sudo tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_sudo as sudo
 import ipatests.test_webui.data_netgroup as netgroup
 import ipatests.test_webui.data_user as user
@@ -32,6 +33,7 @@ from ipatests.test_webui.test_host import host_tasks, ENTITY as HOST_ENTITY
 
 class test_sudo(UI_driver):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: sudo
@@ -42,6 +44,7 @@ class test_sudo(UI_driver):
         self.basic_crud(sudo.CMDGROUP_ENTITY, sudo.CMDGROUP_DATA,
                         default_facet=sudo.CMDGROUP_DEF_FACET)
 
+    @screenshot
     def test_mod(self):
         """
         Mod: sudo
@@ -109,6 +112,7 @@ class test_sudo(UI_driver):
         self.delete(HOST_ENTITY, [host.data, host.data2])
         self.delete(hostgroup.ENTITY, [hostgroup.DATA, hostgroup.DATA2])
 
+    @screenshot
     def test_actions(self):
         """
         Test sudo rule actions

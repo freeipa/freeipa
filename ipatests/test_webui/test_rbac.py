@@ -22,6 +22,7 @@ RBAC tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 
 ROLE_ENTITY = 'role'
 ROLE_DEF_FACET = 'member_user'
@@ -71,6 +72,7 @@ PERMISSION_DATA = {
 
 class test_rbac(UI_driver):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: RBAC

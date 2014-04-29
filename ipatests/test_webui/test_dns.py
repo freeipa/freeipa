@@ -22,6 +22,7 @@ DNS tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 
 ZONE_ENTITY = 'dnszone'
 RECORD_ENTITY = 'dnsrecord'
@@ -76,6 +77,7 @@ class test_dns(UI_driver):
         if not self.has_dns():
             self.skip('DNS not configured')
 
+    @screenshot
     def test_zone_record_crud(self):
         """
         Basic CRUD: dns
@@ -99,6 +101,7 @@ class test_dns(UI_driver):
         self.navigate_by_breadcrumb("DNS Zones")
         self.delete_record(ZONE_PKEY)
 
+    @screenshot
     def test_last_entry_deletion(self):
         """
         Test last entry deletion
@@ -117,6 +120,7 @@ class test_dns(UI_driver):
         self.navigate_by_breadcrumb("DNS Zones")
         self.delete_record(ZONE_PKEY)
 
+    @screenshot
     def test_config_crud(self):
         """
         Basic CRUD: dnsconfig

@@ -22,6 +22,7 @@ Service tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 
 ENTITY = 'service'
 
@@ -60,6 +61,7 @@ class sevice_tasks(UI_driver):
 
 class test_service(sevice_tasks):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: service
@@ -68,6 +70,7 @@ class test_service(sevice_tasks):
         data = self.prep_data()
         self.basic_crud(ENTITY, data)
 
+    @screenshot
     def test_certificates(self):
         """
         Test service certificate actions
@@ -135,6 +138,7 @@ class test_service(sevice_tasks):
         self.navigate_to_entity(ENTITY, 'search')
         self.delete_record(pkey, data.get('del'))
 
+    @screenshot
     def test_ca_less(self):
         """
         Test service certificate actions in CA-less install
@@ -170,6 +174,7 @@ class test_service(sevice_tasks):
         self.assert_action_panel_action(panel, 'view_cert')
         self.assert_action_panel_action(panel, 'get_cert')
 
+    @screenshot
     def test_kerberos_flags(self):
         """
         Test Kerberos flags

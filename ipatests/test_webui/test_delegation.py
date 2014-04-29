@@ -22,6 +22,7 @@ Delegation tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 
 ENTITY = 'delegation'
 PKEY = 'itest-delegation-rule'
@@ -43,6 +44,7 @@ DATA = {
 
 class test_delegation(UI_driver):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: delegation

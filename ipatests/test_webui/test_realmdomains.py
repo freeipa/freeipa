@@ -22,12 +22,14 @@ Realm domains tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 
 ENTITY = 'realmdomains'
 
 
 class test_realmdomains(UI_driver):
 
+    @screenshot
     def test_read(self):
         """
         Realm domains mod tests

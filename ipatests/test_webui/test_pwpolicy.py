@@ -22,6 +22,7 @@ Password policy tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 
 ENTITY = 'pwpolicy'
 DATA = {
@@ -45,6 +46,7 @@ DATA = {
 
 class test_pwpolicy(UI_driver):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: pwpolicy

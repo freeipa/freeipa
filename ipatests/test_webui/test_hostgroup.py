@@ -22,6 +22,7 @@ Hostgroup tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_hostgroup as hostgroup
 from ipatests.test_webui.test_host import host_tasks, ENTITY as HOST_ENTITY
 import ipatests.test_webui.data_netgroup as netgroup
@@ -32,6 +33,7 @@ import ipatests.test_webui.data_sudo as sudo
 
 class test_hostgroup(UI_driver):
 
+    @screenshot
     def test_crud(self):
         """
         Basic CRUD: hostgroup
@@ -40,6 +42,7 @@ class test_hostgroup(UI_driver):
         self.basic_crud(hostgroup.ENTITY, hostgroup.DATA,
                         default_facet=hostgroup.DEFAULT_FACET)
 
+    @screenshot
     def test_associations(self):
         """
         Hostgroup associations
@@ -80,6 +83,7 @@ class test_hostgroup(UI_driver):
         self.delete(hbac.RULE_ENTITY, [hbac.RULE_DATA])
         self.delete(sudo.RULE_ENTITY, [sudo.RULE_DATA])
 
+    @screenshot
     def test_indirect_associations(self):
         """
         Hostgroup indirect associations

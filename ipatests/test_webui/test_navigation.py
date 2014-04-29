@@ -22,6 +22,7 @@ Basic ui tests
 """
 
 from ipatests.test_webui.ui_driver import UI_driver
+from ipatests.test_webui.ui_driver import screenshot
 
 
 ENTITIES = [
@@ -63,6 +64,7 @@ ENTITIES = [
 
 class test_navigation(UI_driver):
 
+    @screenshot
     def test_url_navigation(self):
         """
         Navigation test: direct url change
@@ -88,6 +90,7 @@ class test_navigation(UI_driver):
             url = self.get_url(e)
             self.assert_e_url(url, e)
 
+    @screenshot
     def test_menu_navigation(self):
         """
         Navigation test: menu items
