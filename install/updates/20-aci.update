@@ -51,3 +51,14 @@ add:aci:'(targetattr="ipaUniqueId || memberOf || enrolledBy || krbExtraData || k
 dn: cn=config
 # Replaced by 'System: Read Replication Agreements'
 remove:aci: '(targetattr != aci)(version 3.0; aci "replica admins read access"; allow (read, search, compare) groupdn = "ldap:///cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)'
+
+dn: $SUFFIX
+remove:aci: '(targetattr = "*")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0; acl "No anonymous access to roles"; deny (read,search,compare) userdn != "ldap:///all";)'
+remove:aci: '(targetattr = "memberOf || memberHost || memberUser")(version 3.0; acl "No anonymous access to member information"; deny (read,search,compare) userdn != "ldap:///all";)'
+remove:aci: '(targetattr = "*")(target = "ldap:///cn=*,ou=SUDOers,$SUFFIX")(version 3.0; acl "No anonymous access to sudo"; deny (read,search,compare) userdn != "ldap:///all";)'
+
+dn: cn=hbac,$SUFFIX
+remove:aci: '(targetattr = "*")(version 3.0; acl "No anonymous access to hbac"; deny (read,search,compare) userdn != "ldap:///all";)'
+
+dn: cn=sudo,$SUFFIX
+remove:aci: '(targetattr = "*")(version 3.0; acl "No anonymous access to sudo"; deny (read,search,compare) userdn != "ldap:///all";)'

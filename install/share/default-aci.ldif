@@ -3,10 +3,7 @@
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetfilter = "(&(!(objectClass=ipaToken))(!(objectClass=ipatokenTOTP))(!(objectClass=ipatokenHOTP))(!(objectClass=ipatokenRadiusConfiguration)))")(target != "ldap:///idnsname=*,cn=dns,$SUFFIX")(targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || userPKCS12 || ipaNTHash || ipaNTTrustAuthOutgoing || ipaNTTrustAuthIncoming")(version 3.0; acl "Enable Anonymous access"; allow (read, search, compare) userdn = "ldap:///anyone";)
-aci: (targetattr = "memberOf || memberHost || memberUser")(version 3.0; acl "No anonymous access to member information"; deny (read,search,compare) userdn != "ldap:///all";)
 aci: (targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword")(version 3.0; acl "selfservice:Self can write own password"; allow (write) userdn="ldap:///self";)
-aci: (targetattr = "*")(target = "ldap:///cn=*,ou=SUDOers,$SUFFIX")(version 3.0; acl "No anonymous access to sudo"; deny (read,search,compare) userdn != "ldap:///all";)
 
 dn: $SUFFIX
 changetype: modify
@@ -64,16 +61,6 @@ dn: cn=computers,cn=accounts,$SUFFIX
 changetype: modify
 add: aci
 aci: (targetattr = "krbPrincipalKey || krbLastPwdChange")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "Admins can manage host keytab";allow (write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
-
-dn: cn=hbac,$SUFFIX
-changetype: modify
-add: aci
-aci: (targetattr = "*")(version 3.0; acl "No anonymous access to hbac"; deny (read,search,compare) userdn != "ldap:///all";)
-
-dn: cn=sudo,$SUFFIX
-changetype: modify
-add: aci
-aci: (targetattr = "*")(version 3.0; acl "No anonymous access to sudo"; deny (read,search,compare) userdn != "ldap:///all";)
 
 # This is used for the host/service one-time passwordn and keytab indirectors.
 # We can do a query on a DN to see if an attribute exists.

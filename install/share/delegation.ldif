@@ -580,11 +580,6 @@ aci: (targetattr = "usercertificate")(target = "ldap:///krbprincipalname=*,cn=se
 dn: $SUFFIX
 changetype: modify
 add: aci
-aci: (targetattr = "*")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0; acl "No anonymous access to roles"; deny (read,search,compare) userdn != "ldap:///all";)
-
-dn: $SUFFIX
-changetype: modify
-add: aci
 aci: (target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Roles";allow (add) groupdn = "ldap:///cn=Add Roles,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Roles";allow (delete) groupdn = "ldap:///cn=Remove Roles,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (targetattr = "cn || description")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0; acl "permission:Modify Roles";allow (write) groupdn = "ldap:///cn=Modify Roles,cn=permissions,cn=pbac,$SUFFIX";)

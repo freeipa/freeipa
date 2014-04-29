@@ -81,6 +81,7 @@ from ipapython.dn import DN
 from ipalib.plugable import Registry
 from ipalib.plugins import aci
 from ipalib.plugins.permission import permission
+from ipalib.aci import ACI
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install.plugins import LAST
 from ipaserver.install.plugins.baseupdate import PostUpdate
@@ -250,6 +251,21 @@ class update_managed_permissions(PostUpdate):
         except errors.NotFound:
             return None
 
+    def remove_anonymous_read_aci(self, ldap, anonymous_read_aci):
+        base_entry = ldap.get_entry(self.api.env.basedn, ['aci'])
+
+        acistrs = base_entry.get('aci', [])
+
+        for acistr in acistrs:
+            if ACI(acistr).isequal(anonymous_read_aci):
+                self.log.info('Removing anonymous ACI: %s', acistr)
+                acistrs.remove(acistr)
+                break
+        else:
+            return
+
+        ldap.update_entry(base_entry)
+
     def execute(self, **options):
         ldap = self.api.Backend[ldap2]
 
@@ -275,6 +291,9 @@ class update_managed_permissions(PostUpdate):
         for name, template in NONOBJECT_PERMISSIONS.iteritems():
             self.update_permission(ldap, None, unicode(name), template,
                                    anonymous_read_aci)
+
+        if anonymous_read_aci:
+            self.remove_anonymous_read_aci(ldap, anonymous_read_aci)
 
         return False, False, ()
 
