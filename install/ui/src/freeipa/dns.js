@@ -218,6 +218,10 @@ return {
                     {
                         $type: 'checkbox',
                         name: 'idnsallowsyncptr'
+                    },
+                    {
+                        $type: 'checkbox',
+                        name: 'idnssecinlinesigning'
                     }
                 ]
             }],
