@@ -253,6 +253,12 @@ class ACI:
         # We got this far so lets declare them the same
         return True
 
+    __eq__ = isequal
+
+    def __neq__(self, b):
+        return not self == b
+
+
 if __name__ == '__main__':
 #    a = ACI('(targetattr="title")(targetfilter="(memberOf=cn=bar,cn=groups,cn=accounts ,dc=example,dc=com)")(version 3.0;acl "foobar";allow (write) groupdn="ldap:///cn=foo,cn=groups,cn=accounts,dc=example,dc=com";)')
 #    print a
