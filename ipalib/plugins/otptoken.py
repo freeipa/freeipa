@@ -120,8 +120,6 @@ class otptoken(LDAPObject):
         Str('ipatokenuniqueid',
             cli_name='id',
             label=_('Unique ID'),
-            default_from=lambda: unicode(uuid.uuid4()),
-            autofill=True,
             primary_key=True,
             flags=('optional_create'),
         ),
@@ -233,6 +231,11 @@ class otptoken_add(LDAPCreate):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        # Fill in a default UUID when not specified.
+        if entry_attrs.get('ipatokenuniqueid', None) is None:
+            entry_attrs['ipatokenuniqueid'] = str(uuid.uuid4())
+            dn = DN("ipatokenuniqueid=%s" % entry_attrs['ipatokenuniqueid'], dn)
+
         # Set the object class and defaults for specific token types
         entry_attrs['objectclass'] = otptoken.object_class + ['ipatoken' + options['type']]
         for ttype, tattrs in TOKEN_TYPES.items():
