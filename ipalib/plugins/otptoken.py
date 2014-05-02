@@ -39,16 +39,16 @@ code enables the management of OTP tokens.
 EXAMPLES:
 
  Add a new token:
-   ipa otp-add --type=totp --owner=jdoe --desc="My soft token"
+   ipa otptoken-add --type=totp --owner=jdoe --desc="My soft token"
 
  Examine the token:
-   ipa otp-show a93db710-a31a-4639-8647-f15b2c70b78a
+   ipa otptoken-show a93db710-a31a-4639-8647-f15b2c70b78a
 
  Change the vendor:
-   ipa otp-mod a93db710-a31a-4639-8647-f15b2c70b78a --vendor="Red Hat"
+   ipa otptoken-mod a93db710-a31a-4639-8647-f15b2c70b78a --vendor="Red Hat"
 
  Delete a token:
-   ipa otp-del a93db710-a31a-4639-8647-f15b2c70b78a
+   ipa otptoken-del a93db710-a31a-4639-8647-f15b2c70b78a
 """)
 
 register = Registry()
