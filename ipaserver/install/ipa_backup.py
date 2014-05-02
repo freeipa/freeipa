@@ -42,7 +42,7 @@ from ipalib.constants import CACERT
 from ConfigParser import SafeConfigParser
 
 """
-A test gpg can be generated list this:
+A test gpg can be generated like this:
 
 # cat >keygen <<EOF
      %echo Generating a standard key
