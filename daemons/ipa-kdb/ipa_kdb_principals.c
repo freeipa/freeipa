@@ -429,6 +429,10 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     switch (ret) {
     case 0:
         entry->pw_expiration = restime;
+
+        /* If we are using only RADIUS, we don't know expiration. */
+        if (ua == IPADB_USER_AUTH_RADIUS)
+            entry->pw_expiration = 0;
     case ENOENT:
         break;
     default:
