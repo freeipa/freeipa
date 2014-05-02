@@ -22,6 +22,7 @@ from ipalib import api
 from ipalib import Int, Str, DNParam
 from ipalib.plugins.baseldap import *
 from ipalib import _
+from ipalib.plugable import Registry
 from ipalib.request import context
 from ipapython.ipautil import run
 from ipapython.dn import DN
@@ -70,6 +71,9 @@ EXAMPLES:
    ipa pwpolicy-mod --minclasses=2 localadmins
 """)
 
+register = Registry()
+
+@register()
 class cosentry(LDAPObject):
     """
     Class of Service object used for linking policies with groups
@@ -127,9 +131,8 @@ class cosentry(LDAPObject):
                     }
                 )
 
-api.register(cosentry)
 
-
+@register()
 class cosentry_add(LDAPCreate):
     NO_CLI = True
 
@@ -145,15 +148,13 @@ class cosentry_add(LDAPCreate):
         del entry_attrs['cn']
         return dn
 
-api.register(cosentry_add)
 
-
+@register()
 class cosentry_del(LDAPDelete):
     NO_CLI = True
 
-api.register(cosentry_del)
 
-
+@register()
 class cosentry_mod(LDAPUpdate):
     NO_CLI = True
 
@@ -169,24 +170,21 @@ class cosentry_mod(LDAPUpdate):
                 self.obj.check_priority_uniqueness(*keys, **options)
         return dn
 
-api.register(cosentry_mod)
 
-
+@register()
 class cosentry_show(LDAPRetrieve):
     NO_CLI = True
 
-api.register(cosentry_show)
 
-
+@register()
 class cosentry_find(LDAPSearch):
     NO_CLI = True
-
-api.register(cosentry_find)
 
 
 global_policy_name = 'global_policy'
 global_policy_dn = DN(('cn', global_policy_name), ('cn', api.env.realm), ('cn', 'kerberos'), api.env.basedn)
 
+@register()
 class pwpolicy(LDAPObject):
     """
     Password Policy object
@@ -368,9 +366,8 @@ class pwpolicy(LDAPObject):
                     entry['attributelevelrights']['cospriority'] = \
                         cos_entry['attributelevelrights']['cospriority']
 
-api.register(pwpolicy)
 
-
+@register()
 class pwpolicy_add(LDAPCreate):
     __doc__ = _('Add a new group password policy.')
 
@@ -395,9 +392,8 @@ class pwpolicy_add(LDAPCreate):
         self.obj.convert_time_for_output(entry_attrs, **options)
         return dn
 
-api.register(pwpolicy_add)
 
-
+@register()
 class pwpolicy_del(LDAPDelete):
     __doc__ = _('Delete a group password policy.')
 
@@ -423,9 +419,8 @@ class pwpolicy_del(LDAPDelete):
             pass
         return True
 
-api.register(pwpolicy_del)
 
-
+@register()
 class pwpolicy_mod(LDAPUpdate):
     __doc__ = _('Modify a group password policy.')
 
@@ -467,9 +462,8 @@ class pwpolicy_mod(LDAPUpdate):
                     return
         raise exc
 
-api.register(pwpolicy_mod)
 
-
+@register()
 class pwpolicy_show(LDAPRetrieve):
     __doc__ = _('Display information about password policy.')
 
@@ -497,9 +491,8 @@ class pwpolicy_show(LDAPRetrieve):
         self.obj.convert_time_for_output(entry_attrs, **options)
         return dn
 
-api.register(pwpolicy_show)
 
-
+@register()
 class pwpolicy_find(LDAPSearch):
     __doc__ = _('Search for group password policies.')
 
@@ -546,5 +539,3 @@ class pwpolicy_find(LDAPSearch):
                     pass
 
         return truncated
-
-api.register(pwpolicy_find)
