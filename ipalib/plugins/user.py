@@ -855,12 +855,17 @@ class user_del(LDAPDelete):
         assert isinstance(dn, DN)
         check_protected_member(keys[-1])
 
-        # Delete all tokens owned by this user
+        # Delete all tokens owned and managed by this user.
+        # Orphan all tokens owned but not managed by this user.
         owner = self.api.Object.user.get_primary_key_from_dn(dn)
         results = self.api.Command.otptoken_find(ipatokenowner=owner)['result']
         for token in results:
+            orphan = not [x for x in token.get('managedby_user', []) if x == owner]
             token = self.api.Object.otptoken.get_primary_key_from_dn(token['dn'])
-            self.api.Command.otptoken_del(token)
+            if orphan:
+                self.api.Command.otptoken_mod(token, ipatokenowner=None)
+            else:
+                self.api.Command.otptoken_del(token)
 
         return dn
 

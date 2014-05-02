@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib.plugins.baseldap import DN, LDAPObject, LDAPCreate, LDAPDelete, LDAPUpdate, LDAPSearch, LDAPRetrieve
+from ipalib.plugins.baseldap import DN, LDAPObject, LDAPAddMember, LDAPRemoveMember
+from ipalib.plugins.baseldap import LDAPCreate, LDAPDelete, LDAPUpdate, LDAPSearch, LDAPRetrieve
 from ipalib import api, Int, Str, Bool, Flag, Bytes, IntEnum, StrEnum, _, ngettext
 from ipalib.plugable import Registry
 from ipalib.errors import PasswordMismatch, ConversionError, LastMemberError, NotFound
@@ -109,8 +110,14 @@ class otptoken(LDAPObject):
     default_attributes = [
         'ipatokenuniqueid', 'description', 'ipatokenowner',
         'ipatokendisabled', 'ipatokennotbefore', 'ipatokennotafter',
-        'ipatokenvendor', 'ipatokenmodel', 'ipatokenserial'
+        'ipatokenvendor', 'ipatokenmodel', 'ipatokenserial', 'managedby'
     ]
+    attribute_members = {
+        'managedby': ['user'],
+    }
+    relationships = {
+        'managedby': ('Managed by', 'man_by_', 'not_man_by_'),
+    }
     rdn_is_primary_key = True
 
     label = _('OTP Tokens')
@@ -137,6 +144,10 @@ class otptoken(LDAPObject):
         Str('ipatokenowner?',
             cli_name='owner',
             label=_('Owner'),
+        ),
+        Str('managedby_user?',
+            label=_('Manager'),
+            flags=['no_create', 'no_update', 'no_search'],
         ),
         Bool('ipatokendisabled?',
             cli_name='disabled',
@@ -245,11 +256,14 @@ class otptoken_add(LDAPCreate):
                         del entry_attrs[tattr]
 
         # If owner was not specified, default to the person adding this token.
-        if 'ipatokenowner' not in entry_attrs:
+        # If managedby was not specified, attempt a sensible default.
+        if 'ipatokenowner' not in entry_attrs or 'managedby' not in entry_attrs:
             result = self.api.Command.user_find(whoami=True)['result']
             if result:
                 cur_uid = result[0]['uid'][0]
-                entry_attrs.setdefault('ipatokenowner', cur_uid)
+                prev_uid = entry_attrs.setdefault('ipatokenowner', cur_uid)
+                if cur_uid == prev_uid:
+                    entry_attrs.setdefault('managedby', result[0]['dn'])
 
         # Resolve the owner's dn
         _normalize_owner(self.api.Object.user, entry_attrs)
@@ -326,9 +340,7 @@ class otptoken_mod(LDAPUpdate):
 @register()
 class otptoken_find(LDAPSearch):
     __doc__ = _('Search for OTP token.')
-    msg_summary = ngettext(
-        '%(count)d OTP token matched', '%(count)d OTP tokens matched', 0
-    )
+    msg_summary = ngettext('%(count)d OTP token matched', '%(count)d OTP tokens matched', 0)
 
     def pre_callback(self, ldap, filters, *args, **kwargs):
         # This is a hack, but there is no other way to
@@ -359,3 +371,15 @@ class otptoken_show(LDAPRetrieve):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         _convert_owner(self.api.Object.user, entry_attrs, options)
         return super(otptoken_show, self).post_callback(ldap, dn, entry_attrs, *keys, **options)
+
+@register()
+class otptoken_add_managedby(LDAPAddMember):
+    __doc__ = _('Add users that can manage this token.')
+
+    member_attributes = ['managedby']
+
+@register()
+class otptoken_remove_managedby(LDAPRemoveMember):
+    __doc__ = _('Remove hosts that can manage this host.')
+
+    member_attributes = ['managedby']
