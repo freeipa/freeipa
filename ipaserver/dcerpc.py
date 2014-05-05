@@ -1107,7 +1107,7 @@ class TrustDomainJoins(object):
         # Use realmdomains' modification timestamp to judge records last update time
         entry = self.api.Backend.ldap2.get_entry(realm_domains['dn'], ['modifyTimestamp'])
         # Convert the timestamp to Windows 64-bit timestamp format
-        trust_timestamp = long(time.mktime(time.strptime(entry['modifytimestamp'][0][:14], "%Y%m%d%H%M%S"))*1e7+116444736000000000)
+        trust_timestamp = long(time.mktime(entry['modifytimestamp'][0].timetuple())*1e7+116444736000000000)
 
         for dom in realm_domains['associateddomain']:
             ftinfo = dict()
