@@ -244,7 +244,14 @@ class otptoken_add(LDAPCreate):
                     if tattr in entry_attrs:
                         del entry_attrs[tattr]
 
-        # Resolve the user's dn
+        # If owner was not specified, default to the person adding this token.
+        if 'ipatokenowner' not in entry_attrs:
+            result = self.api.Command.user_find(whoami=True)['result']
+            if result:
+                cur_uid = result[0]['uid'][0]
+                entry_attrs.setdefault('ipatokenowner', cur_uid)
+
+        # Resolve the owner's dn
         _normalize_owner(self.api.Object.user, entry_attrs)
 
         # Get the issuer for the URI
