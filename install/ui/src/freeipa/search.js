@@ -314,7 +314,8 @@ IPA.search_deleter_dialog = function(spec) {
 
     that.create_command = function() {
         var batch = rpc.batch_command({
-            error_message: '@i18n:search.partial_delete'
+            error_message: '@i18n:search.partial_delete',
+            name: that.entity.name + '_batch_del'
         });
 
         for (var i=0; i<that.values.length; i++) {
