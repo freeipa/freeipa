@@ -95,6 +95,7 @@ class range_tasks(UI_driver):
             ('textbox', 'ipaidrangesize', str(size)),
             ('textbox', 'ipabaserid', str(base_rid)),
             ('radio', 'iparangetype', range_type),
+            ('callback', self.check_range_type_mod, range_type)
         ]
 
         if not sid:
@@ -105,3 +106,11 @@ class range_tasks(UI_driver):
             add.append(('textbox', 'ipanttrusteddomainsid', sid))
 
         return add
+
+    def check_range_type_mod(self, range_type):
+        if range_type == 'ipa-local':
+            self.assert_disabled("[name=ipanttrusteddomainsid]")
+            self.assert_disabled("[name=ipasecondarybaserid]", negative=True)
+        elif range_type == 'ipa-ad-trust':
+            self.assert_disabled("[name=ipanttrusteddomainsid]", negative=True)
+            self.assert_disabled("[name=ipasecondarybaserid]")
