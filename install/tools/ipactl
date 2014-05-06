@@ -232,7 +232,7 @@ def ipa_start(options):
     try:
         svc_list = get_config(dirsrv)
     except Exception, e:
-        emit_err("Failed to data from service file: " + str(e))
+        emit_err("Failed to read data from service file: " + str(e))
         emit_err("Shutting down")
 
         if not options.force:
