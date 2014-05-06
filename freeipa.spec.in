@@ -81,7 +81,6 @@ BuildRequires:  libunistring-devel
 BuildRequires:  python-lesscpy
 BuildRequires:  python-kerberos
 BuildRequires:  python-cherrypy
-BuildRequires:  python-requests
 
 # Find out Kerberos middle version to infer ABI changes in DAL driver
 # We cannot load DAL driver into KDC with wrong ABI.
@@ -229,8 +228,8 @@ Group: System Environment/Base
 Requires: %{name}-client = %version-%release
 Requires: python-cherrypy
 Requires: gssproxy >= 0.3.1
-Requires: python-requests
 Requires: python-kerberos >= 1.1-14
+Requires: mod_wsgi
 
 %description server-foreman-smartproxy
 A Foreman-compatible REST API for managing hosts and hostgroups.
@@ -475,7 +474,6 @@ touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 mkdir -p %{buildroot}%{_unitdir}
 install -m 644 init/systemd/ipa.service %{buildroot}%{_unitdir}/ipa.service
 install -m 644 init/systemd/ipa_memcached.service %{buildroot}%{_unitdir}/ipa_memcached.service
-install -m 644 smartproxy/ipa-smartproxy.service %{buildroot}%{_unitdir}/ipa-smartproxy.service
 # END
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa/backup
 %endif # ONLY_CLIENT
@@ -532,8 +530,6 @@ if [ $1 = 0 ]; then
 # NOTE: systemd specific section
     /bin/systemctl --quiet stop ipa.service || :
     /bin/systemctl --quiet disable ipa.service || :
-    /bin/systemctl --quiet stop ipa-smartproxy.service || :
-    /bin/systemctl --quiet disable ipa-smartproxy.service || :
 # END
 fi
 
@@ -570,15 +566,9 @@ if [ $1 -eq 0 ]; then
     %{_sbindir}/update-alternatives --remove winbind_krb5_locator.so /dev/null
 fi
 
-%preun server-foreman-smartproxy
-if [ $1 = 0 ]; then
-    /bin/systemctl --quiet disable ipa-smartproxy.service || :
-fi
-
 %post server-foreman-smartproxy
 if [ $1 -gt 1 ] ; then
-    /bin/systemctl --system daemon-reload 2>&1 || :
-    /bin/systemctl condrestart ipa-smartproxy.service 2>&1 || :
+    /bin/systemctl try-restart httpd.service >/dev/null 2>&1 || :
 fi
 %endif # ONLY_CLIENT
 
@@ -821,9 +811,7 @@ fi
 %{_usr}/share/ipa/smartproxy/ipa-smartproxy.py*
 %{_mandir}/man1/ipa-smartproxy.1.gz
 %{_mandir}/man5/ipa-smartproxy.conf.5.gz
-%attr(644,root,root) %{_unitdir}/ipa-smartproxy.service
 %config(noreplace) %{_sysconfdir}/ipa/ipa-smartproxy.conf
-%config(noreplace)%{_sysconfdir}/logrotate.d/ipa-smartproxy
 
 %endif # ONLY_CLIENT
 

@@ -1,5 +1,3 @@
-#!/usr/bin/python2 -E
-#
 # Authors:
 #   Rob Crittenden <rcritten@redhat.com>
 #
@@ -31,7 +29,7 @@ from cherrypy import response
 from ipalib import api
 from ipalib import errors
 from ipalib.request import context
-from ipaserver.rpcserver import json_encode_binary
+from ipalib.rpc import json_encode_binary
 from ipapython.version import VERSION, API_VERSION
 from ipapython.ipa_log_manager import root_logger
 
@@ -393,7 +391,7 @@ wsgi_config = {'environment': 'embedded',
                'engine.autoreload_on': False
 }
 
-api.bootstrap(context='ipasmartproxy')
+api.bootstrap(context='ipasmartproxy', log='/dev/null')
 api.finalize()
 
 cherrypy.config.update(wsgi_config)

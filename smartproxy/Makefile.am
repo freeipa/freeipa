@@ -14,11 +14,6 @@ app_DATA =			\
 	ipa-smartproxy.py	\
 	$(NULL)
 
-rotatedir = $(LOGROTATE_DIR)
-rotate_DATA =			\
-	ipa-smartproxy.logrotate	\
-	$(NULL)
-
 SUBDIRS =			\
 	man			\
 	$(NULL)
@@ -40,6 +35,3 @@ MAINTAINERCLEANFILES =		\
 	missing			\
 	Makefile.in		\
 	$(NULL)
-
-install-data-hook:
-	mv $(DESTDIR)/$(LOGROTATE_DIR)/ipa-smartproxy.logrotate $(DESTDIR)/$(LOGROTATE_DIR)/ipa-smartproxy

@@ -60,10 +60,8 @@ dnl ---------------------------------------------------------------------------
 
 IPA_DATA_DIR="$datadir/ipa"
 IPA_SYSCONF_DIR="$sysconfdir/ipa"
-LOGROTATE_DIR="$sysconfdir/logrotate.d"
 AC_SUBST(IPA_DATA_DIR)
 AC_SUBST(IPA_SYSCONF_DIR)
-AC_SUBST(LOGROTATE_DIR)
 
 # Files
 
