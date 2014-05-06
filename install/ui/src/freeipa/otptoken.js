@@ -284,7 +284,6 @@ otptoken.adder_dialog_preop = function(spec) {
 /**
  * OTP adder dialog
  *
- * - otp-add requires 'type' to be set. At the moment IPA supports only 'totp'
  * @class
  * @extends IPA.entity_adder_dialog
  */
