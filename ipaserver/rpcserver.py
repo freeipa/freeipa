@@ -28,7 +28,6 @@ from xmlrpclib import Fault
 import os
 import datetime
 import urlparse
-import time
 import json
 
 from ipalib import plugable, errors
@@ -959,13 +958,8 @@ class login_password(Backend, KerberosSession, HTTP_Status):
                     ['krbpasswordexpiration'])
                 if 'krbpasswordexpiration' in entry_attrs:
                     expiration = entry_attrs['krbpasswordexpiration'][0]
-                    try:
-                        exp = time.strptime(expiration, '%Y%m%d%H%M%SZ')
-                        if exp <= time.gmtime():
-                            reason = 'password-expired'
-                    except ValueError, v:
-                        self.error('Unable to convert %s to a time string'
-                            % expiration)
+                    if expiration <= datetime.datetime.now():
+                        reason = 'password-expired'
 
             except Exception:
                 # It doesn't really matter how we got here but the user's
