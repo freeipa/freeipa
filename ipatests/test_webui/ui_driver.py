@@ -1000,7 +1000,7 @@ class UI_driver(object):
             key = field[1]
             val = field[2]
 
-            if undo:
+            if undo and not hasattr(key, '__call__'):
                 self.assert_undo_button(key, False, parent)
 
             if widget_type == 'textbox':
@@ -1025,8 +1025,13 @@ class UI_driver(object):
                 self.fill_multivalued(key, val, parent)
             elif widget_type == 'table':
                 self.select_record(val, parent, key)
+            # this meta field specifies a function, to extend functionality of
+            # field checking
+            elif widget_type == 'callback':
+                if hasattr(key, '__call__'):
+                    key(val)
             self.wait()
-            if undo:
+            if undo and not hasattr(key, '__call__'):
                 self.assert_undo_button(key, True, parent)
 
     def validate_fields(self, fields, parent=None):
@@ -1550,6 +1555,19 @@ class UI_driver(object):
             assert not visible, "Element visible: %s" % selector
         else:
             assert visible, "Element not visible: %s" % selector
+
+    def assert_disabled(self, selector, parent=None, negative=False):
+        """
+        Assert that element defined by selector is disabled
+        """
+        if not parent:
+            parent = self.get_form()
+        el = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
+        dis = self.find(selector+"[disabled]", By.CSS_SELECTOR, parent)
+        if negative:
+            assert dis is None, "Element is disabled: %s" % selector
+        else:
+            assert dis, "Element is not disabled: %s" % selector
 
     def assert_record(self, pkey, parent=None, table_name=None, negative=False):
         """
