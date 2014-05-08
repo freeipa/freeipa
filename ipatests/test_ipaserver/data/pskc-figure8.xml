@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<KeyContainer
+    xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+    xmlns="urn:ietf:params:xml:ns:keyprov:pskc"
+    xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
+    Id="KC0001"
+    Version="1.0">
+  <EncryptionKey>
+    <ds:X509Data>
+      <ds:X509Certificate>MIIB5zCCAVCgAwIBAgIESZp/vDANBgkqhkiG9w0BAQUFADA4M
+      Q0wCwYDVQQKEwRJRVRGMRMwEQYDVQQLEwpLZXlQcm92IFdHMRIwEAYDVQQDEwlQU0tDIF
+      Rlc3QwHhcNMDkwMjE3MDkxMzMyWhcNMTEwMjE3MDkxMzMyWjA4MQ0wCwYDVQQKEwRJRVR
+      GMRMwEQYDVQQLEwpLZXlQcm92IFdHMRIwEAYDVQQDEwlQU0tDIFRlc3QwgZ8wDQYJKoZI
+      hvcNAQEBBQADgY0AMIGJAoGBALCWLDa2ItYJ6su80hd1gL4cggQYdyyKK17btt/aS6Q/e
+      DsKjsPyFIODsxeKVV/uA3wLT4jQJM5euKJXkDajzGGOy92+ypfzTX4zDJMkh61SZwlHNJ
+      xBKilAM5aW7C+BQ0RvCxvdYtzx2LTdB+X/KMEBA7uIYxLfXH2Mnub3WIh1AgMBAAEwDQY
+      JKoZIhvcNAQEFBQADgYEAe875m84sYUJ8qPeZ+NG7REgTvlHTmoCdoByU0LBBLotUKuqf
+      rnRuXJRMeZXaaEGmzY1kLonVjQGzjAkU4dJ+RPmiDlYuHLZS41Pg6VMwY+03lhk6I5A/w
+      4rnqdkmwZX/NgXg06alnc2pBsXWhL4O7nk0S2ZrLMsQZ6HcsXgdmHo=
+      </ds:X509Certificate>
+    </ds:X509Data>
+  </EncryptionKey>
+  <KeyPackage>
+    <DeviceInfo>
+      <Manufacturer>TokenVendorAcme</Manufacturer>
+      <SerialNo>987654321</SerialNo>
+    </DeviceInfo>
+    <Key Id="MBK000000001"
+         Algorithm="urn:ietf:params:xml:ns:keyprov:pskc:hotp">
+      <Issuer>Example-Issuer</Issuer>
+      <AlgorithmParameters>
+        <ResponseFormat Length="6" Encoding="DECIMAL"/>
+      </AlgorithmParameters>
+      <Data>
+        <Secret>
+          <EncryptedValue>
+            <xenc:EncryptionMethod
+                Algorithm="http://www.w3.org/2001/04/xmlenc#rsa_1_5"/>
+            <xenc:CipherData>
+	      <xenc:CipherValue>hJ+fvpoMPMO9BYpK2rdyQYGIxiATYHTHC7e/sPLKYo5/r1v+4
+	      xTYG3gJolCWuVMydJ7Ta0GaiBPHcWa8ctCVYmHKfSz5fdeV5nqbZApe6dofTqhRwZK6
+	      Yx4ufevi91cjN2vBpSxYafvN3c3+xIgk0EnTV4iVPRCR0rBwyfFrPc4=
+	      </xenc:CipherValue>
+            </xenc:CipherData>
+          </EncryptedValue>
+        </Secret>
+        <Counter>
+          <PlainValue>0</PlainValue>
+        </Counter>
+      </Data>
+    </Key>
+  </KeyPackage>
+</KeyContainer>

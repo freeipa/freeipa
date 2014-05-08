@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<KeyContainer xmlns="urn:ietf:params:xml:ns:keyprov:pskc" Version="1.0" Id="KCID">
+  <KeyPackage>
+    <DeviceInfo>
+      <Manufacturer>iana.dummy</Manufacturer>
+      <SerialNo>SerialNo</SerialNo>
+      <Model>Model</Model>
+      <IssueNo>IssueNo</IssueNo>
+      <DeviceBinding>DeviceBinding</DeviceBinding>
+      <StartDate>2006-05-01T00:00:00Z</StartDate>
+      <ExpiryDate>2012-05-01T00:00:00Z</ExpiryDate>
+      <UserId>DeviceUserId</UserId>
+    </DeviceInfo>
+    <CryptoModuleInfo>
+      <Id>CMID</Id>
+    </CryptoModuleInfo>
+    <Key Id="KID1" Algorithm="urn:ietf:params:xml:ns:keyprov:pskc:hotp">
+      <Issuer>Issuer</Issuer>
+      <AlgorithmParameters>
+        <Suite>Suite</Suite>
+        <ChallengeFormat Encoding="DECIMAL" Min="42" Max="4711" CheckDigits="true"/>
+        <ResponseFormat Encoding="DECIMAL" Length="8" CheckDigits="true"/>
+      </AlgorithmParameters>
+      <KeyProfileId>KeyProfileId</KeyProfileId>
+      <KeyReference>KeyReference</KeyReference>
+      <FriendlyName>FriendlyName</FriendlyName>
+      <Data>
+        <Secret>
+          <PlainValue>MTIzNDU2Nzg5MDEyMzQ1Njc4OTA=</PlainValue>
+        </Secret>
+        <Counter>
+          <PlainValue>0</PlainValue>
+        </Counter>
+        <TimeInterval>
+          <PlainValue>200</PlainValue>
+        </TimeInterval>
+        <TimeDrift>
+          <PlainValue>300</PlainValue>
+        </TimeDrift>
+      </Data>
+      <UserId>KeyUserId</UserId>
+      <Policy>
+        <StartDate>2006-05-01T00:00:00Z</StartDate>
+        <ExpiryDate>2006-05-31T00:00:00Z</ExpiryDate>
+      </Policy>
+    </Key>
+  </KeyPackage>
+</KeyContainer>

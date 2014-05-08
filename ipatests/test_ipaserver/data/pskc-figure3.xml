@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<KeyContainer Version="1.0"
+    Id="exampleID1"
+    xmlns="urn:ietf:params:xml:ns:keyprov:pskc">
+    <KeyPackage>
+        <DeviceInfo>
+            <Manufacturer>Manufacturer</Manufacturer>
+            <SerialNo>987654321</SerialNo>
+            <UserId>DC=example-bank,DC=net</UserId>
+        </DeviceInfo>
+        <CryptoModuleInfo>
+            <Id>CM_ID_001</Id>
+        </CryptoModuleInfo>
+        <Key Id="12345678"
+            Algorithm="urn:ietf:params:xml:ns:keyprov:pskc:hotp">
+            <Issuer>Issuer</Issuer>
+            <AlgorithmParameters>
+                <ResponseFormat Length="8" Encoding="DECIMAL"/>
+            </AlgorithmParameters>
+            <Data>
+                <Secret>
+                    <PlainValue>MTIzNDU2Nzg5MDEyMzQ1Njc4OTA=
+                    </PlainValue>
+                </Secret>
+                <Counter>
+                    <PlainValue>0</PlainValue>
+                </Counter>
+            </Data>
+            <UserId>UID=jsmith,DC=example-bank,DC=net</UserId>
+        </Key>
+    </KeyPackage>
+</KeyContainer>

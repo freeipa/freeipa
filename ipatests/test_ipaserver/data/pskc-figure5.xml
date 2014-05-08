@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<KeyContainer
+    Version="1.0" Id="exampleID1"
+    xmlns="urn:ietf:params:xml:ns:keyprov:pskc">
+  <KeyPackage>
+    <DeviceInfo>
+      <Manufacturer>Manufacturer</Manufacturer>
+      <SerialNo>987654321</SerialNo>
+    </DeviceInfo>
+    <CryptoModuleInfo>
+      <Id>CM_ID_001</Id>
+    </CryptoModuleInfo>
+    <Key Id="12345678"
+         Algorithm="urn:ietf:params:xml:ns:keyprov:pskc:hotp">
+      <Issuer>Issuer</Issuer>
+      <AlgorithmParameters>
+        <ResponseFormat Length="8" Encoding="DECIMAL"/>
+      </AlgorithmParameters>
+      <Data>
+        <Secret>
+          <PlainValue>MTIzNDU2Nzg5MDEyMzQ1Njc4OTA=
+          </PlainValue>
+        </Secret>
+        <Counter>
+          <PlainValue>0</PlainValue>
+        </Counter>
+      </Data>
+      <Policy>
+        <PINPolicy MinLength="4" MaxLength="4"
+                   PINKeyId="123456781" PINEncoding="DECIMAL"
+                   PINUsageMode="Local"/>
+        <KeyUsage>OTP</KeyUsage>
+      </Policy>
+    </Key>
+  </KeyPackage>
+  <KeyPackage>
+    <DeviceInfo>
+      <Manufacturer>Manufacturer</Manufacturer>
+      <SerialNo>987654321</SerialNo>
+    </DeviceInfo>
+    <CryptoModuleInfo>
+      <Id>CM_ID_001</Id>
+    </CryptoModuleInfo>
+    <Key Id="123456781"
+         Algorithm="urn:ietf:params:xml:ns:keyprov:pskc:pin">
+      <Issuer>Issuer</Issuer>
+      <AlgorithmParameters>
+        <ResponseFormat Length="4" Encoding="DECIMAL"/>
+      </AlgorithmParameters>
+      <Data>
+        <Secret>
+          <PlainValue>MTIzNA==</PlainValue>
+        </Secret>
+      </Data>
+    </Key>
+  </KeyPackage>
+</KeyContainer>

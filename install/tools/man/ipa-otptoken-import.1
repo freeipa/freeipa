@@ -1,0 +1,36 @@
+.\" A man page for ipa-otptoken-import
+.\" Copyright (C) 2014 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Nathaniel McCallum <npmccallum@redhat.com>
+.\"
+.TH "ipa-otptoken-import" "1" "Jun 12 2014" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-otptoken\-import \- Imports OTP tokens from RFC 6030 XML file
+.SH "SYNOPSIS"
+ipa\-otptoken\-import [options] <infile> <outfile>
+.SH "DESCRIPTION"
+Running the command will attempt to import all tokens specified in \fBinfile\fR. If the command is unable to import a token, the reason for the failure will be printed to standard error and all failed tokens will be written to the \fBoutfile\fR for further inspection.
+
+If the \fBinfile\fR contains encrypted token data, then the \fIkeyfile\fR (\fB-k\fR) option MUST be specified. 
+
+.SH "OPTIONS"
+.TP
+\fB\-k\fR \fIkeyfile\fR
+File containing the key used to decrypt the token data.
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred

@@ -20,6 +20,7 @@ sbin_SCRIPTS =			\
 	ipa-nis-manage		\
 	ipa-managed-entries     \
 	ipa-ldap-updater	\
+	ipa-otptoken-import	\
 	ipa-upgradeconfig	\
 	ipa-backup		\
 	ipa-restore		\
