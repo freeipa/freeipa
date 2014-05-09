@@ -217,7 +217,7 @@ Remove a winsync replication agreement:
 .SH "PASSSYNC"
 PassSync is a Windows service that runs on AD Domain Controllers to intercept password changes. It sends these password changes to the IPA LDAP server over TLS. These password changes bypass normal IPA password policy settings and the password is not set to immediately expire. This is because by the time IPA receives the password change it has already been accepted by AD so it is too late to reject it.
 .TP
-IPA maintains a list of DNs that are excempt from password policy. A special user is added automatically when a winsync replication agreement is created. The DN of this user is added to the excemption list stored in passSyncManagersDNs in the entry cn=ipa_pwd_extop,cn=plugins,cn=config.
+IPA maintains a list of DNs that are exempt from password policy. A special user is added automatically when a winsync replication agreement is created. The DN of this user is added to the exemption list stored in passSyncManagersDNs in the entry cn=ipa_pwd_extop,cn=plugins,cn=config.
 .SH "EXIT STATUS"
 0 if the command was successful
 
