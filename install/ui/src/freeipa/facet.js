@@ -2873,59 +2873,12 @@ exp.action_button_widget = IPA.action_button_widget = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.widget(spec);
-
-    /**
-     * Name
-     * @property {string}
-     */
-    that.name = spec.name;
-
-    /**
-     * Label
-     * @property {string}
-     */
-    that.label = text.get(spec.label);
-
-    /**
-     * Tooltip
-     * @property {string}
-     */
-    that.tooltip = text.get(spec.tooltip);
-
-    /**
-     * Button href
-     *
-     * - purely visual thing, the click itself is handled internally.
-     * @property {string}
-     */
-    that.href = spec.href || that.name;
-
-    /**
-     * Icon name
-     * @property {string}
-     */
-    that.icon = spec.icon;
-
+    var that = IPA.button_widget(spec);
     /**
      * Name of action this button should execute
      * @property {string}
      */
     that.action_name = spec.action || that.name;
-
-    /**
-     * Enabled
-     * @property {boolean}
-     * @readonly
-     */
-    that.enabled = spec.enabled !== undefined ? spec.enabled : true;
-
-    /**
-     * Visible
-     * @property {boolean}
-     * @readonly
-     */
-    that.visible = spec.visible !== undefined ? spec.visible : true;
 
     /**
      * Subject to removal
@@ -2959,19 +2912,7 @@ exp.action_button_widget = IPA.action_button_widget = function(spec) {
      */
     that.create = function(container) {
 
-        that.widget_create(container);
-
-        that.button_element = IPA.action_button({
-            name: that.name,
-            href: that.href,
-            label: that.label,
-            icon: that.icon,
-            click: function() {
-                that.on_click();
-                return false;
-            }
-        }).appendTo(container);
-
+        that.button_widget_create(container);
         that.set_enabled(that.action.enabled);
         that.set_visible(that.action.visible);
     };
@@ -2986,39 +2927,6 @@ exp.action_button_widget = IPA.action_button_widget = function(spec) {
         if (!that.enabled) return;
 
         that.action.execute(that.facet);
-    };
-
-    /**
-     * Enabled setter
-     * @param {boolean} enabled
-     */
-    that.set_enabled = function(enabled) {
-        that.widget_set_enabled(enabled);
-
-        if (that.button_element) {
-            if (enabled) {
-                that.button_element.removeClass('action-button-disabled');
-            } else {
-                that.button_element.addClass('action-button-disabled');
-            }
-        }
-    };
-
-    /**
-     * Visible setter
-     * @param {boolean} visible
-     */
-    that.set_visible = function(visible) {
-
-        that.visible = visible;
-
-        if (that.button_element) {
-            if (visible) {
-                that.button_element.show();
-            } else {
-                that.button_element.hide();
-            }
-        }
     };
 
     return that;

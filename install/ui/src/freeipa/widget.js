@@ -4097,6 +4097,12 @@ IPA.button_widget = function(spec) {
     that['class'] = spec['class'];
 
     /**
+     * Icon name
+     * @property {string}
+     */
+    that.icon = spec.icon;
+
+    /**
      * Widget click handler.
      *
      * Calls provided click handler.
@@ -4118,8 +4124,10 @@ IPA.button_widget = function(spec) {
             label: that.label,
             'class': that['class'],
             style: that.style,
+            icon: that.icon,
             click: that.on_click
         }).appendTo(container);
+        that.container = that.button;
 
         that.set_enabled(that.enabled);
     };
@@ -4132,6 +4140,8 @@ IPA.button_widget = function(spec) {
             that.button.prop('disabled', !enabled);
         }
     };
+
+    that.button_widget_create = that.create;
 
     return that;
 };

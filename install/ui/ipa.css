@@ -178,9 +178,8 @@ div[name=settings].facet-group li a {
     display: inline-block;
 }
 
-.control-buttons a {
-    margin-right: 16px;
-    text-decoration: none;
+.control-buttons button {
+    margin-right: 5px;
 }
 
 .facet-actions {

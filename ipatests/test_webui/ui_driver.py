@@ -596,7 +596,7 @@ class UI_driver(object):
         Click on facet button with given name
         """
         facet = self.get_facet()
-        s = ".facet-controls a[name=%s]" % name
+        s = ".facet-controls button[name=%s]" % name
         self._button_click(s, facet, name)
 
     def dialog_button_click(self, name, dialog=None):
@@ -1549,9 +1549,9 @@ class UI_driver(object):
         """
         assert expected == current, "Rows don't match. Expected: %d, Got: %d" % (expected, current)
 
-    def assert_button_enabled(self, name, context_selector=None, enabled=True):
+    def assert_action_button_enabled(self, name, context_selector=None, enabled=True):
         """
-        Assert that button is enabled or disabled
+        Assert that action-button is enabled or disabled
         """
         s = ""
         if context_selector:
@@ -1564,6 +1564,21 @@ class UI_driver(object):
         assert btn.is_displayed(), 'Button is not displayed'
         assert valid, 'Button has incorrect enabled state.'
 
+    def assert_button_enabled(self, name, context_selector=None, enabled=True):
+        """
+        Assert that button is enabled or disabled (expects that element will be
+        <button>)
+        """
+        s = ""
+        if context_selector:
+            s = context_selector
+        s += "button[name=%s]" % name
+        facet = self.get_facet()
+        btn = self.find(s, By.CSS_SELECTOR, facet, strict=True)
+        valid = enabled == btn.is_enabled()
+        assert btn.is_displayed(), 'Button is not displayed'
+        assert valid, 'Button (%s) has incorrect enabled state (enabled==%s).' % (s, enabled)
+
     def assert_facet_button_enabled(self, name, enabled=True):
         """
         Assert that facet button is enabled or disabled
@@ -1575,7 +1590,7 @@ class UI_driver(object):
         Assert that button in table is enabled/disabled
         """
         s = "table[name='%s'] " % table_name
-        self.assert_button_enabled(name, s, enabled)
+        self.assert_action_button_enabled(name, s, enabled)
 
     def assert_facet(self, entity, facet=None):
         """
