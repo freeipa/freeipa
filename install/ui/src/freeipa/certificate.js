@@ -550,7 +550,7 @@ IPA.cert.view_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'view_cert';
-    spec.label = spec.label || '@i18n:buttons.view';
+    spec.label = spec.label || '@i18n:objects.cert.view_certificate_btn';
     spec.enable_cond = spec.enable_cond || ['has_certificate'];
 
     var that = IPA.action(spec);
@@ -583,7 +583,7 @@ IPA.cert.get_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'get_cert';
-    spec.label = spec.label || '@i18n:buttons.get';
+    spec.label = spec.label || '@i18n:objects.cert.get_certificate';
     spec.enable_cond = spec.enable_cond || ['has_certificate'];
 
     var that = IPA.action(spec);
@@ -672,7 +672,7 @@ IPA.cert.revoke_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'revoke_cert';
-    spec.label = spec.label || '@i18n:buttons.revoke';
+    spec.label = spec.label || '@i18n:objects.cert.revoke_certificate_simple';
     spec.enable_cond = spec.enable_cond || ['has_certificate'];
     spec.disable_cond = spec.disable_cond || ['certificate_revoked'];
     spec.hide_cond = spec.hide_cond || ['ra_disabled'];
@@ -727,7 +727,7 @@ IPA.cert.restore_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'restore_cert';
-    spec.label = spec.label || '@i18n:buttons.restore';
+    spec.label = spec.label || '@i18n:objects.cert.restore_certificate_simple';
     spec.enable_cond = spec.enable_cond || ['has_certificate', 'certificate_hold'];
     spec.hide_cond = spec.hide_cond || ['ra_disabled'];
     spec.confirm_msg = spec.confirm_msg || '@i18n:objects.cert.restore_confirmation';

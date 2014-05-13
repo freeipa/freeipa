@@ -343,6 +343,7 @@ class i18n_messages(Command):
                 "find_validnotbefore_from": _("Valid not before from"),
                 "find_validnotbefore_to": _("Valid not before to"),
                 "fingerprints": _("Fingerprints"),
+                "get_certificate": _("Get Certificate"),
                 "issue_certificate": _("Issue New Certificate for ${entity} ${primary_key}"),
                 "issued_by": _("Issued By"),
                 "issued_on": _("Issued On"),
@@ -377,6 +378,7 @@ class i18n_messages(Command):
                 "valid": _("Valid Certificate Present"),
                 "validity": _("Validity"),
                 "view_certificate": _("Certificate for ${entity} ${primary_key}"),
+                "view_certificate_btn": _("View Certificate"),
             },
             "config": {
                 "group": _("Group Options"),

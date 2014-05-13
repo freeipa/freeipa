@@ -140,35 +140,35 @@ class test_host(host_tasks):
         self.assert_visible("div[name='certificate-missing']")
 
         # cert request
-        self.action_panel_action(panel, 'request_cert')
+        self.action_list_action('request_cert', confirm=False)
         self.fill_text('textarea.certificate', csr)
         self.dialog_button_click('issue')
         self.wait_for_request(n=2, d=0.5)
         self.assert_visible("div[name='certificate-valid']")
 
         # cert view
-        self.action_panel_action(panel, 'view_cert')
+        self.action_list_action('view_cert', confirm=False)
         self.wait()
         self.assert_text("tbody tr:nth-child(2) td:nth-child(2)", self.pkey)
         self.assert_text("tbody tr:nth-child(3) td:nth-child(2)", realm)
         self.dialog_button_click('close')
 
         # cert get
-        self.action_panel_action(panel, 'get_cert')
+        self.action_list_action('get_cert', confirm=False)
         self.wait()
         # We don't know the cert text, so at least open and close the dialog
         self.dialog_button_click('close')
 
-        ## cert revoke
-        self.action_panel_action(panel, 'revoke_cert')
+        # cert revoke
+        self.action_list_action('revoke_cert', confirm=False)
         self.wait()
         self.select('select', '6')
         self.dialog_button_click('ok')
         self.wait_for_request(n=2)
         self.assert_visible("div[name='certificate-revoked']")
 
-        ## cert restore
-        self.action_panel_action(panel, 'restore_cert')
+        # cert restore
+        self.action_list_action('restore_cert', confirm=False)
         self.wait()
         self.dialog_button_click('ok')
         self.wait_for_request(n=2)
@@ -191,13 +191,12 @@ class test_host(host_tasks):
         self.add_record(ENTITY, self.data)
         self.navigate_to_record(self.pkey)
 
-        panel = 'cert_actions'
-        self.assert_action_panel_action(panel, 'request_cert', visible=False)
-        self.assert_action_panel_action(panel, 'revoke_cert', visible=False)
-        self.assert_action_panel_action(panel, 'restore_cert', visible=False)
+        self.assert_action_list_action('request_cert', visible=False)
+        self.assert_action_list_action('revoke_cert', visible=False)
+        self.assert_action_list_action('restore_cert', visible=False)
 
-        self.assert_action_panel_action(panel, 'view_cert', enabled=False)
-        self.assert_action_panel_action(panel, 'get_cert', enabled=False)
+        self.assert_action_list_action('view_cert', enabled=False)
+        self.assert_action_list_action('get_cert', enabled=False)
 
         self.navigate_by_breadcrumb('Hosts')
         self.delete_record(self.pkey, self.data.get('del'))

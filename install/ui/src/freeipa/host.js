@@ -117,11 +117,6 @@ return {
                 },
                 {
                     name: 'enrollment',
-                    action_panel: {
-                        $factory: IPA.action_panel,
-                        name: 'enrollment_actions',
-                        actions: ['unprovision', 'set_otp', 'reset_otp']
-                    },
                     fields: [
                         {
                             $factory: IPA.host_keytab_widget,
@@ -137,14 +132,6 @@ return {
                 },
                 {
                     name: 'certificate',
-                    action_panel: {
-                        $factory: IPA.action_panel,
-                        name: 'cert_actions',
-                        actions: [
-                            'request_cert', 'view_cert', 'get_cert',
-                            'revoke_cert', 'restore_cert'
-                        ]
-                    },
                     fields: [
                         {
                             $type: 'certificate_status',
@@ -194,7 +181,8 @@ return {
                 'cert_revoke',
                 'cert_restore'
             ],
-            header_actions: ['automember_rebuild'],
+            header_actions: ['automember_rebuild', 'unprovision', 'set_otp', 'reset_otp',
+                'request_cert', 'view_cert', 'get_cert', 'revoke_cert', 'restore_cert'],
             state: {
                 evaluators: [
                     IPA.host.has_password_evaluator,

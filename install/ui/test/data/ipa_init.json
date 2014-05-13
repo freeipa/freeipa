@@ -209,6 +209,7 @@
                             "find_validnotafter_to": "Valid not after to",
                             "find_validnotbefore_from": "Valid not before from",
                             "find_validnotbefore_to": "Valid not before to",
+                            "get_certificate": "Get Certificate",
                             "issue_certificate": "Issue New Certificate for ${entity} ${primary_key}",
                             "issued_by": "Issued By",
                             "issued_on": "Issued On",
@@ -242,7 +243,8 @@
                             "unspecified": "Unspecified",
                             "valid": "Valid Certificate Present",
                             "validity": "Validity",
-                            "view_certificate": "Certificate for ${entity} ${primary_key}"
+                            "view_certificate": "Certificate for ${entity} ${primary_key}",
+                            "view_certificate_btn": "View Certificate"
                         },
                         "config": {
                             "group": "Group Options",
