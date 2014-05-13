@@ -1234,7 +1234,7 @@ IPA.cert.search_facet = function(spec) {
     that.show = function() {
         that.search_facet_show();
 
-        if (that.search_option) {
+        if (that.search_option && that.state.search_option) {
             that.search_option.val(that.state.search_option);
         }
     };
