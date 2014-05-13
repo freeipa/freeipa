@@ -763,10 +763,15 @@ IPA.adder_dialog = function(spec) {
             'class': 'input-group col-md-12 adder-dialog-top'
         }).appendTo(container);
 
+        var filter_placeholder = text.get('@i18n:association.filter_placeholder');
+        filter_placeholder = filter_placeholder.replace('${other_entity}',
+            that.other_entity.metadata.label);
+
         that.filter_field = $('<input/>', {
             type: 'text',
             name: 'filter',
             'class': 'form-control',
+            'placeholder': filter_placeholder,
             keyup: function(event) {
                 if (event.keyCode === keys.ENTER) {
                     that.search();
@@ -781,7 +786,7 @@ IPA.adder_dialog = function(spec) {
 
         that.find_button = IPA.button({
             name: 'find',
-            label: '@i18n:buttons.find',
+            label: '@i18n:buttons.filter',
             click: function() {
                 that.search();
                 return false;
