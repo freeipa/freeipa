@@ -593,6 +593,14 @@ exp.facet = IPA.facet = function(spec, no_init) {
         that.controls = $('<div/>', {
             'class': 'facet-controls clearfix'
         }).appendTo(container);
+
+        that.controls_left = $('<div/>', {
+            'class': 'facet-controls-left'
+        }).appendTo(that.controls);
+
+        that.controls_right = $('<div/>', {
+            'class': 'facet-controls-right'
+        }).appendTo(that.controls);
     };
 
     /**

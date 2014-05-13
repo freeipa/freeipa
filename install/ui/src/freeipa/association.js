@@ -1041,57 +1041,58 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
         that.facet_create_header(container);
 
         if (that.indirect_attribute_member) {
-
-            var div = $('<div/>', {
-                'class': 'right-aligned-facet-controls'
-            }).appendTo(that.controls);
-
-            div.append(text.get('@i18n:association.show_results'));
-            div.append(' ');
-
-            var name = that.entity.name+'-'+that.attribute_member+'-'+that.other_entity.name+'-type-radio';
-            var direct_id = name + '-direct';
-
-            that.direct_radio = $('<input/>', {
-                id: direct_id,
-                type: 'radio',
-                name: name,
-                value: 'direct',
-                click: function() {
-                    that.association_type = $(this).val();
-                    that.refresh();
-                    return true;
-                }
-            }).appendTo(div);
-
-            $('<label/>', {
-                text: text.get('@i18n:association.direct_membership'),
-                'for': direct_id
-            }).appendTo(div);
-
-            div.append(' ');
-
-            var indirect_id = name + '-indirect';
-
-            that.indirect_radio = $('<input/>', {
-                id: indirect_id,
-                type: 'radio',
-                name: name,
-                value: 'indirect',
-                click: function() {
-                    that.association_type = $(this).val();
-                    that.refresh();
-                    return true;
-                }
-            }).appendTo(div);
-
-            $('<label/>', {
-                text: text.get('@i18n:association.indirect_membership'),
-                'for': indirect_id
-            }).appendTo(div);
+            that.create_membership_radios(that.controls_right);
         }
 
-        that.create_control_buttons(that.controls);
+        that.create_control_buttons(that.controls_left);
+    };
+
+    that.create_membership_radios = function(container) {
+
+        var div = $('<div/>', { 'class': 'association-direction'}).appendTo(container);
+        div.append(text.get('@i18n:association.show_results'));
+        div.append(' ');
+
+        var name = that.entity.name+'-'+that.attribute_member+'-'+that.other_entity.name+'-type-radio';
+        var direct_id = name + '-direct';
+
+        that.direct_radio = $('<input/>', {
+            id: direct_id,
+            type: 'radio',
+            name: name,
+            value: 'direct',
+            click: function() {
+                that.association_type = $(this).val();
+                that.refresh();
+                return true;
+            }
+        }).appendTo(div);
+
+        $('<label/>', {
+            text: text.get('@i18n:association.direct_membership'),
+            'for': direct_id
+        }).appendTo(div);
+
+        div.append(' ');
+
+        var indirect_id = name + '-indirect';
+
+        that.indirect_radio = $('<input/>', {
+            id: indirect_id,
+            type: 'radio',
+            name: name,
+            value: 'indirect',
+            click: function() {
+                that.association_type = $(this).val();
+                that.refresh();
+                return true;
+            }
+        }).appendTo(div);
+
+        $('<label/>', {
+            text: text.get('@i18n:association.indirect_membership'),
+            'for': indirect_id
+        }).appendTo(div);
     };
 
     that.get_attribute_name = function() {

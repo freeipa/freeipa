@@ -104,14 +104,16 @@ IPA.search_facet = function(spec, no_init) {
     that.create_header = function(container) {
 
         that.facet_create_header(container);
+        that.create_search_filter(that.controls_left);
+        that.create_control_buttons(that.controls_right);
+        that.create_action_dropdown(that.controls_right);
+    };
 
-        var div = $('<div/>', {
-            'class': 'right-aligned-facet-controls'
-        }).appendTo(that.controls);
+    that.create_search_filter = function(container) {
 
         that.filter_container = $('<div/>', {
             'class': 'search-filter'
-        }).appendTo(div);
+        }).appendTo(container);
 
         that.filter = $('<input/>', {
             type: 'text',
@@ -134,9 +136,6 @@ IPA.search_facet = function(spec, no_init) {
                 return false;
             }
         }).appendTo(that.filter_container);
-
-        that.create_control_buttons(that.controls);
-        that.create_action_dropdown(that.controls);
     };
 
     that.managed_entity_pkey_prefix = function() {

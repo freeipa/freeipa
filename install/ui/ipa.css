@@ -166,25 +166,25 @@ div[name=settings].facet-group li a {
     clear: both;
 }
 
-.right-aligned-facet-controls {
+.facet-controls-left {
+    float: left;
+}
+
+.facet-controls-right {
     float: right;
 }
 
 .control-buttons {
-    float: left;
+    display: inline-block;
 }
 
 .control-buttons a {
-    float: left;
-    font-size: 13px;
     margin-right: 16px;
     text-decoration: none;
 }
 
 .facet-actions {
     display: inline-block;
-    float: right;
-    margin-right: 8px;
 }
 
 /* --- Facet error --- */
