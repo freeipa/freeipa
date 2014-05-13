@@ -1026,7 +1026,7 @@ IPA.multivalued_widget = function(spec) {
         var remove_link_visible = !(row.is_new || !that.is_writable());
         row.remove_link = $('<button/>', {
             name: 'remove',
-            'class': 'btn btn-link',
+            'class': 'btn btn-default',
             title: text.get('@i18n:buttons.remove'),
             html: text.get('@i18n:buttons.remove'),
             click: function () {
@@ -1069,10 +1069,9 @@ IPA.multivalued_widget = function(spec) {
 
         that.create_error_link(container);
 
-        that.add_link = $('<a/>', {
+        that.add_link = $('<button/>', {
             name: 'add',
-            href: '#',
-            'class': 'link-btn',
+            'class': 'btn btn-default',
             title: text.get('@i18n:buttons.add'),
             html: text.get('@i18n:buttons.add'),
             click: function() {

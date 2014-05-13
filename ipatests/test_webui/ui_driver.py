@@ -722,7 +722,7 @@ class UI_driver(object):
             parent = self.get_form()
         s = "div[name='%s'].multivalued-widget" % name
         w = self.find(s, By.CSS_SELECTOR, parent, strict=True)
-        add_btn = self.find("Add", By.LINK_TEXT, w, strict=True)
+        add_btn = self.find("button[name=add]", By.CSS_SELECTOR, w, strict=True)
         add_btn.click()
         s = "div[name=value] input"
         inputs = self.find(s, By.CSS_SELECTOR, w, many=True)
