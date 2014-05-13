@@ -441,7 +441,7 @@ def main():
             sys.exit('Cannot connect to the server due to ' + str(e))
         try:
             # Use the RPC directly so older servers are supported
-            result = api.Backend.xmlclient.forward(
+            result = api.Backend.rpcclient.forward(
                 'automountlocation_show',
                 unicode(options.location),
                 version=u'2.0',
