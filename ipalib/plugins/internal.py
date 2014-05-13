@@ -660,6 +660,7 @@ class i18n_messages(Command):
             "enable_confirm": _("Are you sure you want to enable selected entries?"),
             "enabled": _("${count} item(s) enabled"),
             "partial_delete": _("Some entries were not deleted"),
+            "placeholder": _("Search"),
             "quick_links": _("Quick Links"),
             "select_all": _("Select All"),
             "truncated": _("Query returned more results than the configured size limit. Displaying the first ${counter} results."),

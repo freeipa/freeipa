@@ -118,7 +118,8 @@ IPA.search_facet = function(spec, no_init) {
         that.filter = $('<input/>', {
             type: 'text',
             'class': 'form-control',
-            name: 'filter'
+            name: 'filter',
+            placeholder: text.get('@i18n:search.placeholder')
         }).appendTo(that.filter_container);
 
         that.filter.keypress(function(e) {

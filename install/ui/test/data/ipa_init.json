@@ -524,6 +524,7 @@
                         "enable_confirm": "Are you sure you want to enable selected entries?",
                         "enabled": "${count} item(s) enabled",
                         "partial_delete": "Some entries were not deleted",
+                        "placeholder": "Search",
                         "quick_links": "Quick Links",
                         "select_all": "Select All",
                         "truncated": "Query returned more results than the configured size limit. Displaying the first ${counter} results.",
