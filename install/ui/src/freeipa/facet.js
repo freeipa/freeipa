@@ -1402,7 +1402,8 @@ exp.facet_title = IPA.facet_title = function(spec) {
         var icon_tooltip = data.icon_tooltip || '';
 
         that.title.text(data.title);
-        that.title.attr('title', tooltip);
+        that.title.prop('title', tooltip);
+        that.title_container.toggleClass('no-pkey', !data.pkey);
 
         if (data.pkey) {
             that.title.text(data.title + ': ');

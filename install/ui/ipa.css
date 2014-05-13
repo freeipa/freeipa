@@ -74,6 +74,10 @@ textarea[readonly] {
     color: gray;
 }
 
+.facet-title.no-pkey {
+    color: inherit;
+}
+
 .facet-pkey {
     color:black;
     text-transform: none;
