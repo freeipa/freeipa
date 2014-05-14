@@ -530,12 +530,6 @@ class sudorule_add_deny_command(LDAPAddMember):
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
-        try:
-            _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
-        except errors.NotFound:
-            self.obj.handle_not_found(*keys)
-        if is_all(_entry_attrs, 'cmdcategory'):
-            raise errors.MutuallyExclusiveError(reason=_("commands cannot be added when command category='all'"))
         return dn
 
 
