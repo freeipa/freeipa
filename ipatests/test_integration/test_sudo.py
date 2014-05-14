@@ -62,6 +62,19 @@ class TestSudo(IntegrationTest):
                                  'testhostgroup',
                                  '--hosts', cls.client.hostname])
 
+        # Create local user and local group he's member of
+        cls.client.run_command(['groupadd', 'localgroup'])
+        cls.client.run_command(['useradd',
+                                '-M',
+                                '-G', 'localgroup',
+                                'localuser'])
+
+    @classmethod
+    def teardown_class(cls):
+        cls.client.run_command(['groupdel', 'localgroup'], raiseonerr=False)
+        cls.client.run_command(['userdel', 'localuser'], raiseonerr=False)
+        super(TestSudo, cls).teardown_class()
+
     def list_sudo_commands(self, user, raiseonerr=False, verbose=False):
         clear_sssd_cache(self.client)
         list_flag = '-ll' if verbose else '-l'
@@ -159,11 +172,34 @@ class TestSudo(IntegrationTest):
         result2 = self.list_sudo_commands("testuser2")
         assert "(ALL) NOPASSWD: ALL" in result2.stdout_text
 
+    def test_setting_category_to_all_with_valid_entries_user_group(self):
+        result = self.reset_rule_categories()
+        assert result.returncode != 0
+
     def test_sudo_rule_restricted_to_one_group_teardown(self):
         # Remove the testgroup2 from the rule
         self.master.run_command(['ipa', 'sudorule-remove-user',
                                  'testrule',
                                  '--groups', 'testgroup2'])
+
+    def test_sudo_rule_restricted_to_one_local_user_setup(self):
+        # Add the localuser to the rule
+        self.master.run_command(['ipa', 'sudorule-add-user',
+                                 'testrule',
+                                 '--users', 'localuser'])
+
+    def test_sudo_rule_restricted_to_one_local_user(self):
+        result1 = self.list_sudo_commands("localuser")
+        assert "(ALL) NOPASSWD: ALL" in result1.stdout_text
+
+        result2 = self.list_sudo_commands("testuser1", raiseonerr=False)
+        assert result2.returncode != 0
+
+    def test_sudo_rule_restricted_to_one_local_user_teardown(self):
+        # Remove the testuser1 from the rule
+        self.master.run_command(['ipa', 'sudorule-remove-user',
+                                 'testrule',
+                                 '--users', 'localuser'])
 
     def test_sudo_rule_restricted_to_one_host_negative_setup(self):
         # Reset testrule configuration
@@ -333,6 +369,23 @@ class TestSudo(IntegrationTest):
                                  'testrule',
                                  '--users', 'testuser2'])
 
+    def test_sudo_rule_restricted_to_running_as_single_local_user_setup(self):
+        # Allow running commands as testuser2
+        self.master.run_command(['ipa', 'sudorule-add-runasuser',
+                                 'testrule',
+                                 '--users', 'localuser'])
+
+    def test_sudo_rule_restricted_to_running_as_single_local_user(self):
+        result1 = self.list_sudo_commands("testuser1", verbose=True)
+        assert "RunAsUsers: localuser" in result1.stdout_text
+        assert "RunAsGroups:" not in result1.stdout_text
+
+    def test_sudo_rule_restricted_to_running_as_single_user_local_tear(self):
+        # Remove permission to run commands as testuser2
+        self.master.run_command(['ipa', 'sudorule-remove-runasuser',
+                                 'testrule',
+                                 '--users', 'localuser'])
+
     def test_sudo_rule_restricted_to_running_as_users_from_group_setup(self):
         # Allow running commands as users from testgroup2
         self.master.run_command(['ipa', 'sudorule-add-runasuser',
@@ -350,6 +403,23 @@ class TestSudo(IntegrationTest):
                                  'testrule',
                                  '--groups', 'testgroup2'])
 
+    def test_sudo_rule_restricted_to_run_as_users_from_local_group_setup(self):
+        # Allow running commands as users from localgroup
+        self.master.run_command(['ipa', 'sudorule-add-runasuser',
+                                 'testrule',
+                                 '--groups', 'localgroup'])
+
+    def test_sudo_rule_restricted_to_run_as_users_from_local_group(self):
+        result1 = self.list_sudo_commands("testuser1", verbose=True)
+        assert "RunAsUsers: %localgroup" in result1.stdout_text
+        assert "RunAsGroups:" not in result1.stdout_text
+
+    def test_sudo_rule_restricted_to_run_as_users_from_local_group_tear(self):
+        # Remove permission to run commands as testuser2
+        self.master.run_command(['ipa', 'sudorule-remove-runasuser',
+                                 'testrule',
+                                 '--groups', 'localgroup'])
+
     def test_sudo_rule_restricted_to_running_as_single_group_setup(self):
         # Allow running commands as testgroup2
         self.master.run_command(['ipa', 'sudorule-add-runasgroup',
@@ -366,6 +436,23 @@ class TestSudo(IntegrationTest):
         self.master.run_command(['ipa', 'sudorule-remove-runasgroup',
                                  'testrule',
                                  '--groups', 'testgroup2'])
+
+    def test_sudo_rule_restricted_to_running_as_single_local_group_setup(self):
+        # Allow running commands as testgroup2
+        self.master.run_command(['ipa', 'sudorule-add-runasgroup',
+                                 'testrule',
+                                 '--groups', 'localgroup'])
+
+    def test_sudo_rule_restricted_to_running_as_single_local_group(self):
+        result1 = self.list_sudo_commands("testuser1", verbose=True)
+        assert "RunAsUsers:" not in result1.stdout_text
+        assert "RunAsGroups: localgroup" in result1.stdout_text
+
+    def test_sudo_rule_restricted_to_running_as_single_local_group_tear(self):
+        # Remove permission to run commands as testgroup2
+        self.master.run_command(['ipa', 'sudorule-remove-runasgroup',
+                                 'testrule',
+                                 '--groups', 'localgroup'])
 
         # Reset testrule configuration
         self.reset_rule_categories()
