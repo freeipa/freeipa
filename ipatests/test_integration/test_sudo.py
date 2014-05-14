@@ -226,6 +226,42 @@ class TestSudo(IntegrationTest):
                                  'testrule',
                                  '--hostgroups', 'testhostgroup'])
 
+    def test_sudo_rule_restricted_to_one_hostmask_setup(self):
+        # Add the client's /24 hostmask to the rule
+        ip = self.client.ip
+        self.master.run_command(['ipa', '-n', 'sudorule-add-host',
+                                 'testrule',
+                                 '--hostmask', '%s/24' % ip])
+
+    def test_sudo_rule_restricted_to_one_hostmask(self):
+        result1 = self.list_sudo_commands("testuser1")
+        assert "(ALL) NOPASSWD: ALL" in result1.stdout_text
+
+    def test_sudo_rule_restricted_to_one_hostmask_teardown(self):
+        # Remove the client's /24 hostmask from the rule
+        ip = self.client.ip
+        self.master.run_command(['ipa', '-n', 'sudorule-remove-host',
+                                 'testrule',
+                                 '--hostmask', '%s/24' % ip])
+
+    def test_sudo_rule_restricted_to_one_hostmask_negative_setup(self):
+        # Add the master's hostmask to the rule
+        ip = self.master.ip
+        self.master.run_command(['ipa', '-n', 'sudorule-add-host',
+                                 'testrule',
+                                 '--hostmask', '%s/32' % ip])
+
+    def test_sudo_rule_restricted_to_one_hostmask_negative(self):
+        result1 = self.list_sudo_commands("testuser1")
+        assert result1.returncode != 0
+
+    def test_sudo_rule_restricted_to_one_hostmask_negative_teardown(self):
+        # Remove the master's hostmask from the rule
+        ip = self.master.ip
+        self.master.run_command(['ipa', '-n', 'sudorule-remove-host',
+                                 'testrule',
+                                 '--hostmask', '%s/32' % ip])
+
     def test_sudo_rule_restricted_to_one_command_setup(self):
         # Reset testrule configuration
         self.reset_rule_categories()
