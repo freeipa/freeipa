@@ -96,7 +96,7 @@ add:schema-compat-entry-attribute: 'sudoRunAsUser=%%%{ipaSudoRunAsExtUserGroup}'
 add:schema-compat-entry-attribute: 'sudoRunAsUser=%deref("ipaSudoRunAs","uid")'
 add:schema-compat-entry-attribute: 'sudoRunAsUser=%ifeq("ipaSudoRunAsUserCategory","all","ALL","%%%deref_f(\"ipaSudoRunAs\",\"(objectclass=posixGroup)\",\"cn\")")'
 add:schema-compat-entry-attribute: 'sudoRunAsGroup=%{ipaSudoRunAsExtGroup}'
-add:schema-compat-entry-attribute: 'sudoRunAsGroup=%deref("ipaSudoRunAs","cn")'
+add:schema-compat-entry-attribute: 'sudoRunAsGroup=%deref_f("ipaSudoRunAsGroup","(objectclass=posixGroup)","cn")'
 add:schema-compat-entry-attribute: 'sudoOption=%{ipaSudoOpt}'
 
 dn: cn=computers, cn=Schema Compatibility, cn=plugins, cn=config

@@ -1,10 +1,13 @@
 dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
 only:schema-compat-entry-rdn:'%ifeq("ipaEnabledFlag", "FALSE", "DISABLED", "cn=%{cn}")'
-replace: schema-compat-entry-attribute:'sudoRunAsGroup=%deref("ipaSudoRunAs","cn")::sudoRunAsGroup=%deref_f("ipaSudoRunAsGroup","(objectclass=posixGroup)","cn")'
-
-dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
 add:schema-compat-entry-attribute: 'sudoHost=%ifeq("hostCategory","all","ALL","%{hostMask}")'
 add:schema-compat-entry-attribute: 'sudoRunAsUser=%%%{ipaSudoRunAsExtUserGroup}'
+# Fix for #4324 (regression of #1309)
+remove:schema-compat-entry-attribute:'sudoRunAsGroup=%deref("ipaSudoRunAs","cn")'
+
+# We need to add the value in a separate transaction
+dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
+add: schema-compat-entry-attribute: 'sudoRunAsGroup=%deref_f("ipaSudoRunAsGroup","(objectclass=posixGroup)","cn")'
 
 # Change padding for host and userCategory so the pad returns the same value
 # as the original, '' or -.
