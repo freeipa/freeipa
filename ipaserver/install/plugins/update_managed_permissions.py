@@ -64,6 +64,9 @@ The template dictionary can have the following keys:
 * non_object
   - If true, no object-specific defaults are used (e.g. for
     ipapermtargetfilter, ipapermlocation).
+* replaces
+  - A list of ACIs corresponding to legacy default permissions replaced
+    by this permission.
 * fixup_function
   - A callable that may modify the template in-place before it is applied.
   - Called with the permission name, template dict, and keyword arguments:
@@ -80,8 +83,9 @@ from ipalib import api, errors
 from ipapython.dn import DN
 from ipalib.plugable import Registry
 from ipalib.plugins import aci
-from ipalib.plugins.permission import permission
+from ipalib.plugins.permission import permission, permission_del
 from ipalib.aci import ACI
+from ipapython import ipautil
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install.plugins import LAST
 from ipaserver.install.plugins.baseupdate import PostUpdate
@@ -228,6 +232,10 @@ NONOBJECT_PERMISSIONS = {
 }
 
 
+class IncompatibleACIModification(Exception):
+    """User has made a legacy default perm modification we can't handle"""
+
+
 @register()
 class update_managed_permissions(PostUpdate):
     """Update managed permissions after an update.
@@ -302,9 +310,10 @@ class update_managed_permissions(PostUpdate):
         assert name.startswith('System:')
 
         dn = self.api.Object[permission].get_dn(name)
+        permission_plugin = self.api.Object[permission]
 
         try:
-            attrs_list = list(self.api.Object[permission].default_attributes)
+            attrs_list = list(permission_plugin.default_attributes)
             attrs_list.remove('memberindirect')
             entry = ldap.get_entry(dn, attrs_list)
             is_new = False
@@ -312,10 +321,63 @@ class update_managed_permissions(PostUpdate):
             entry = ldap.make_entry(dn)
             is_new = True
 
-        self.log.debug('Updating managed permission: %s', name)
         self.update_entry(obj, entry, template,
                           anonymous_read_aci, is_new=is_new)
 
+        remove_legacy = False
+        if 'replaces' in template:
+            sub_dict = {
+                'SUFFIX': str(self.api.env.basedn),
+            }
+            legacy_acistrs = [ipautil.template_str(r, sub_dict)
+                              for r in template['replaces']]
+
+            legacy_aci = ACI(legacy_acistrs[0])
+            prefix, sep, legacy_name = legacy_aci.name.partition(':')
+            assert prefix == 'permission' and sep
+
+            legacy_dn = permission_plugin.get_dn(legacy_name)
+            try:
+                legacy_entry = ldap.get_entry(legacy_dn,
+                                              ['ipapermissiontype', 'cn'])
+            except errors.NotFound:
+                self.log.debug("Legacy permission %s not found", legacy_name)
+            else:
+                if 'ipapermissiontype' not in legacy_entry:
+                    if is_new:
+                        acientry, acistr = (
+                            permission_plugin._get_aci_entry_and_string(
+                                legacy_entry, notfound_ok=True))
+                        try:
+                            included, excluded = self.get_upgrade_attr_lists(
+                                acistr, legacy_acistrs)
+                        except IncompatibleACIModification:
+                            self.log.error(
+                                "Permission '%s' has been modified from its "
+                                "default; not updating it to '%s'.",
+                                legacy_name, name)
+                            return
+                        else:
+                            self.log.debug("Merging attributes from legacy "
+                                           "permission '%s'", legacy_name)
+                            self.log.debug("Included attrs: %s",
+                                           ', '.join(sorted(included)))
+                            self.log.debug("Excluded attrs: %s",
+                                           ', '.join(sorted(excluded)))
+                            entry['ipapermincludedattr'] = list(included)
+                            entry['ipapermexcludedattr'] = list(excluded)
+                            remove_legacy = True
+                    else:
+                        self.log.debug("Ignoring attributes in legacy "
+                                       "permission '%s' because '%s' exists",
+                                       legacy_name, name)
+                        remove_legacy = True
+                else:
+                    self.log.debug("Ignoring V2 permission named '%s'" %
+                                   legacy_name)
+
+        update_aci = True
+        self.log.debug('Updating managed permission: %s', name)
         if is_new:
             ldap.add_entry(entry)
         else:
@@ -323,11 +385,75 @@ class update_managed_permissions(PostUpdate):
                 ldap.update_entry(entry)
             except errors.EmptyModlist:
                 self.log.debug('No changes to permission: %s', name)
-                return
+                update_aci = False
 
-        self.log.debug('Updating ACI for managed permission: %s', name)
+        if update_aci:
+            self.log.debug('Updating ACI for managed permission: %s', name)
+            permission_plugin.update_aci(entry)
 
-        self.api.Object[permission].update_aci(entry)
+        if remove_legacy:
+            self.log.info("Removing legacy permission '%s'", legacy_name)
+            self.api.Command[permission_del](unicode(legacy_name))
+
+    def get_upgrade_attr_lists(self, current_acistring, default_acistrings):
+        """Compute included and excluded attributes for a new permission
+
+        :param current_acistring: ACI is in LDAP currently
+        :param default_acistrings:
+            List of all default ACIs IPA historically used for this permission
+        :return:
+            (ipapermincludedattr, ipapermexcludedattr) for the upgraded
+            permission
+
+        An attribute will be included if the user has it in LDAP but it does
+        not appear in *any* historic ACI.
+        It will be excluded if it is in *all* historic ACIs but not in LDAP.
+
+        If the ACIs differ in something else than the list of attributes,
+        raise IncompatibleACIModification. This means manual action is needed
+        (either delete the old permission or change it to resemble the default
+        again, then re-run ipa-ldap-updater)
+        """
+        assert default_acistrings
+
+        def _pop_targetattr(aci):
+            """Return the attr list it as a set, clear it in the ACI object
+            """
+            targetattr = aci.target.get('targetattr')
+            if targetattr:
+                attrs = targetattr['expression']
+                targetattr['expression'] = []
+                return set(t.lower() for t in attrs)
+            else:
+                return set()
+
+        current_aci = ACI(current_acistring)
+        current_attrs = _pop_targetattr(current_aci)
+        self.log.debug("Current ACI for '%s': %s",
+                       current_aci.name, current_acistring)
+
+        attrs_in_all_defaults = None
+        attrs_in_any_defaults = set()
+        for default_acistring in default_acistrings:
+            default_aci = ACI(default_acistring)
+            default_attrs = _pop_targetattr(default_aci)
+            self.log.debug("Default ACI for '%s': %s",
+                           default_aci.name, default_acistring)
+
+            if current_aci != default_aci:
+                self.log.debug('ACIs not compatible')
+                raise(IncompatibleACIModification())
+
+            if attrs_in_all_defaults is None:
+                attrs_in_all_defaults = set(default_attrs)
+            else:
+                attrs_in_all_defaults &= attrs_in_all_defaults
+            attrs_in_any_defaults |= default_attrs
+
+        included = current_attrs - attrs_in_any_defaults
+        excluded = attrs_in_all_defaults - current_attrs
+
+        return included, excluded
 
     def update_entry(self, obj, entry, template,
                      anonymous_read_aci, is_new):
@@ -339,6 +465,7 @@ class update_managed_permissions(PostUpdate):
         entry.single_value['cn'] = name
 
         template = dict(template)
+        template.pop('replaces', None)
 
         fixup_function = template.pop('fixup_function', None)
         if fixup_function:
