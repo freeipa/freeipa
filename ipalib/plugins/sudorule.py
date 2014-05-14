@@ -132,7 +132,7 @@ class sudorule(LDAPObject):
         'memberallowcmd', 'memberdenycmd', 'ipasudoopt',
         'ipasudorunas', 'ipasudorunasgroup',
         'ipasudorunasusercategory', 'ipasudorunasgroupcategory',
-        'sudoorder', 'hostmask',
+        'sudoorder', 'hostmask', 'ipasudorunasextusergroup',
     ]
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
@@ -153,7 +153,8 @@ class sudorule(LDAPObject):
                 'cmdcategory', 'cn', 'description', 'externalhost',
                 'externaluser', 'hostcategory', 'hostmask', 'ipaenabledflag',
                 'ipasudoopt', 'ipasudorunas', 'ipasudorunasextgroup',
-                'ipasudorunasextuser', 'ipasudorunasgroup',
+                'ipasudorunasextuser', 'ipasudorunasextusergroup',
+                'ipasudorunasgroup',
                 'ipasudorunasgroupcategory', 'ipasudorunasusercategory',
                 'ipauniqueid', 'memberallowcmd', 'memberdenycmd',
                 'memberhost', 'memberuser', 'sudonotafter', 'sudonotbefore',
@@ -193,6 +194,7 @@ class sudorule(LDAPObject):
                 'description', 'ipaenabledflag', 'usercategory',
                 'hostcategory', 'cmdcategory', 'ipasudorunasusercategory',
                 'ipasudorunasgroupcategory', 'externaluser',
+                'ipasudorunasextusergroup',
                 'ipasudorunasextuser', 'ipasudorunasextgroup', 'memberdenycmd',
                 'memberallowcmd', 'memberuser', 'memberhost', 'externalhost',
                 'sudonotafter', 'hostmask', 'sudoorder', 'sudonotbefore',
@@ -317,6 +319,12 @@ class sudorule(LDAPObject):
             cli_name='runasexternaluser',
             label=_('RunAs External User'),
             doc=_('External User the commands can run as (sudorule-find only)'),
+        ),
+        Str('ipasudorunasextusergroup?',
+            cli_name='runasexternalusergroup',
+            label=_('External Groups of RunAs Users'),
+            doc=_('External Groups of users that the command can run as'),
+            flags=['no_create', 'no_update', 'no_search'],
         ),
         Str('ipasudorunasextgroup?', validate_runasextgroup,
             cli_name='runasexternalgroup',
@@ -731,7 +739,26 @@ class sudorule_add_runasuser(LDAPAddMember):
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,
                       *keys, **options):
         assert isinstance(dn, DN)
-        return add_external_post_callback('ipasudorunas', 'user', 'ipasudorunasextuser', ldap, completed, failed, dn, entry_attrs, keys, options)
+
+        # Since external_post_callback returns the total number of completed
+        # entries yet (that is, any external users it added plus the value of
+        # passed variable 'completed', we need to pass 0 as completed,
+        # so that the entries added by the framework are not counted twice
+        # (once in each call of add_external_post_callback)
+
+        (completed_ex_users, dn) = add_external_post_callback(
+                                       'ipasudorunas', 'user',
+                                       'ipasudorunasextuser',
+                                        ldap, 0, failed, dn, entry_attrs,
+                                        keys, options)
+
+        (completed_ex_groups, dn) = add_external_post_callback(
+                                       'ipasudorunas', 'group',
+                                       'ipasudorunasextusergroup',
+                                        ldap, 0, failed, dn, entry_attrs,
+                                        keys, options)
+
+        return (completed + completed_ex_users + completed_ex_groups, dn)
 
 
 @register()
@@ -744,7 +771,26 @@ class sudorule_remove_runasuser(LDAPRemoveMember):
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,
                       *keys, **options):
         assert isinstance(dn, DN)
-        return remove_external_post_callback('ipasudorunas', 'user', 'ipasudorunasextuser', ldap, completed, failed, dn, entry_attrs, keys, options)
+
+        # Since external_post_callback returns the total number of completed
+        # entries yet (that is, any external users it added plus the value of
+        # passed variable 'completed', we need to pass 0 as completed,
+        # so that the entries added by the framework are not counted twice
+        # (once in each call of remove_external_post_callback)
+
+        (completed_ex_users, dn) = remove_external_post_callback(
+                                       'ipasudorunas', 'user',
+                                       'ipasudorunasextuser',
+                                        ldap, 0, failed, dn, entry_attrs,
+                                        keys, options)
+
+        (completed_ex_groups, dn) = remove_external_post_callback(
+                                       'ipasudorunas', 'group',
+                                       'ipasudorunasextusergroup',
+                                        ldap, 0, failed, dn, entry_attrs,
+                                        keys, options)
+
+        return (completed + completed_ex_users + completed_ex_groups, dn)
 
 
 @register()

@@ -4,6 +4,7 @@ replace: schema-compat-entry-attribute:'sudoRunAsGroup=%deref("ipaSudoRunAs","cn
 
 dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
 add:schema-compat-entry-attribute: 'sudoHost=%ifeq("hostCategory","all","ALL","%{hostMask}")'
+add:schema-compat-entry-attribute: 'sudoRunAsUser=%%%{ipaSudoRunAsExtUserGroup}'
 
 # Change padding for host and userCategory so the pad returns the same value
 # as the original, '' or -.
