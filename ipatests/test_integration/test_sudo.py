@@ -81,15 +81,28 @@ class TestSudo(IntegrationTest):
         return self.client.run_command('su -c "sudo %s" %s' % (list_flag, user),
                                        raiseonerr=raiseonerr)
 
-    def reset_rule_categories(self):
+    def reset_rule_categories(self, safe_delete=True):
+        if safe_delete:
+            # Remove and then add the rule back, since the deletion of some
+            # entries might cause setting categories to ALL to fail
+            # and therefore cause false negatives in the tests
+            self.master.run_command(['ipa', 'sudorule-del', 'testrule'])
+            self.master.run_command(['ipa', 'sudorule-add', 'testrule'])
+            self.master.run_command(['ipa', 'sudorule-add-option',
+                                     'testrule',
+                                     '--sudooption', "!authenticate"])
+
         # Reset testrule to allow everything
-        self.master.run_command(['ipa', 'sudorule-mod',
-                                 'testrule',
-                                 '--usercat=all',
-                                 '--hostcat=all',
-                                 '--cmdcat=all',
-                                 '--runasusercat=all',
-                                 '--runasgroupcat=all'], raiseonerr=False)
+        result = self.master.run_command(['ipa', 'sudorule-mod',
+                                          'testrule',
+                                          '--usercat=all',
+                                          '--hostcat=all',
+                                          '--cmdcat=all',
+                                          '--runasusercat=all',
+                                          '--runasgroupcat=all'],
+                                          raiseonerr=False)
+
+        return result
 
     def test_nisdomainname(self):
         result = self.client.run_command('nisdomainname')
@@ -153,6 +166,10 @@ class TestSudo(IntegrationTest):
         result2 = self.list_sudo_commands("testuser2", raiseonerr=False)
         assert result2.returncode != 0
 
+    def test_setting_category_to_all_with_valid_entries_user(self):
+        result = self.reset_rule_categories(safe_delete=False)
+        assert result.returncode != 0
+
     def test_sudo_rule_restricted_to_one_user_teardown(self):
         # Remove the testuser1 from the rule
         self.master.run_command(['ipa', 'sudorule-remove-user',
@@ -173,7 +190,7 @@ class TestSudo(IntegrationTest):
         assert "(ALL) NOPASSWD: ALL" in result2.stdout_text
 
     def test_setting_category_to_all_with_valid_entries_user_group(self):
-        result = self.reset_rule_categories()
+        result = self.reset_rule_categories(safe_delete=False)
         assert result.returncode != 0
 
     def test_sudo_rule_restricted_to_one_group_teardown(self):
@@ -194,6 +211,10 @@ class TestSudo(IntegrationTest):
 
         result2 = self.list_sudo_commands("testuser1", raiseonerr=False)
         assert result2.returncode != 0
+
+    def test_setting_category_to_all_with_valid_entries_user_local(self):
+        result = self.reset_rule_categories(safe_delete=False)
+        assert result.returncode != 0
 
     def test_sudo_rule_restricted_to_one_local_user_teardown(self):
         # Remove the testuser1 from the rule
@@ -240,6 +261,10 @@ class TestSudo(IntegrationTest):
         result1 = self.list_sudo_commands("testuser1", raiseonerr=False)
         assert "(ALL) NOPASSWD: ALL" in result1.stdout_text
 
+    def test_setting_category_to_all_with_valid_entries_host(self):
+        result = self.reset_rule_categories(safe_delete=False)
+        assert result.returncode != 0
+
     def test_sudo_rule_restricted_to_one_host_teardown(self):
         # Remove the master from the rule
         self.master.run_command(['ipa', 'sudorule-remove-host',
@@ -255,6 +280,10 @@ class TestSudo(IntegrationTest):
     def test_sudo_rule_restricted_to_one_hostgroup(self):
         result1 = self.list_sudo_commands("testuser1")
         assert "(ALL) NOPASSWD: ALL" in result1.stdout_text
+
+    def test_setting_category_to_all_with_valid_entries_host_group(self):
+        result = self.reset_rule_categories(safe_delete=False)
+        assert result.returncode != 0
 
     def test_sudo_rule_restricted_to_one_hostgroup_teardown(self):
         # Remove the testhostgroup from the rule
@@ -272,6 +301,10 @@ class TestSudo(IntegrationTest):
     def test_sudo_rule_restricted_to_one_hostmask(self):
         result1 = self.list_sudo_commands("testuser1")
         assert "(ALL) NOPASSWD: ALL" in result1.stdout_text
+
+    def test_setting_category_to_all_with_valid_entries_host_mask(self):
+        result = self.reset_rule_categories(safe_delete=False)
+        assert result.returncode != 0
 
     def test_sudo_rule_restricted_to_one_hostmask_teardown(self):
         # Remove the client's /24 hostmask from the rule
@@ -329,6 +362,10 @@ class TestSudo(IntegrationTest):
         assert "/usr/bin/tail" in result1.stdout_text
         assert "/usr/bin/cat" in result1.stdout_text
 
+    def test_setting_category_to_all_with_valid_entries_command(self):
+        result = self.reset_rule_categories(safe_delete=False)
+        assert result.returncode != 0
+
     def test_sudo_rule_restricted_to_command_and_command_group_teardown(self):
         # Remove the yum command from the rule
         self.master.run_command(['ipa', 'sudorule-remove-allow-command',
@@ -363,6 +400,10 @@ class TestSudo(IntegrationTest):
         assert "RunAsUsers: testuser2" in result1.stdout_text
         assert "RunAsGroups:" not in result1.stdout_text
 
+    def test_setting_category_to_all_with_valid_entries_runasuser(self):
+        result = self.reset_rule_categories(safe_delete=False)
+        assert result.returncode != 0
+
     def test_sudo_rule_restricted_to_running_as_single_user_teardown(self):
         # Remove permission to run commands as testuser2
         self.master.run_command(['ipa', 'sudorule-remove-runasuser',
@@ -379,6 +420,10 @@ class TestSudo(IntegrationTest):
         result1 = self.list_sudo_commands("testuser1", verbose=True)
         assert "RunAsUsers: localuser" in result1.stdout_text
         assert "RunAsGroups:" not in result1.stdout_text
+
+    def test_setting_category_to_all_with_valid_entries_runasuser_local(self):
+        result = self.reset_rule_categories(safe_delete=False)
+        assert result.returncode != 0
 
     def test_sudo_rule_restricted_to_running_as_single_user_local_tear(self):
         # Remove permission to run commands as testuser2
@@ -397,6 +442,10 @@ class TestSudo(IntegrationTest):
         assert "RunAsUsers: testuser2" in result1.stdout_text
         assert "RunAsGroups:" not in result1.stdout_text
 
+    def test_setting_category_to_all_with_valid_entries_runasuser_group(self):
+        result = self.reset_rule_categories(safe_delete=False)
+        assert result.returncode != 0
+
     def test_sudo_rule_restricted_to_running_as_users_from_group_teardown(self):
         # Remove permission to run commands as testuser2
         self.master.run_command(['ipa', 'sudorule-remove-runasuser',
@@ -413,6 +462,10 @@ class TestSudo(IntegrationTest):
         result1 = self.list_sudo_commands("testuser1", verbose=True)
         assert "RunAsUsers: %localgroup" in result1.stdout_text
         assert "RunAsGroups:" not in result1.stdout_text
+
+    def test_set_category_to_all_with_valid_entries_runasuser_group_local(self):
+        result = self.reset_rule_categories(safe_delete=False)
+        assert result.returncode != 0
 
     def test_sudo_rule_restricted_to_run_as_users_from_local_group_tear(self):
         # Remove permission to run commands as testuser2
@@ -431,6 +484,10 @@ class TestSudo(IntegrationTest):
         assert "RunAsUsers:" not in result1.stdout_text
         assert "RunAsGroups: testgroup2" in result1.stdout_text
 
+    def test_setting_category_to_all_with_valid_entries_runasgroup(self):
+        result = self.reset_rule_categories(safe_delete=False)
+        assert result.returncode != 0
+
     def test_sudo_rule_restricted_to_running_as_single_group_teardown(self):
         # Remove permission to run commands as testgroup2
         self.master.run_command(['ipa', 'sudorule-remove-runasgroup',
@@ -448,11 +505,129 @@ class TestSudo(IntegrationTest):
         assert "RunAsUsers:" not in result1.stdout_text
         assert "RunAsGroups: localgroup" in result1.stdout_text
 
+    def test_setting_category_to_all_with_valid_entries_runasgroup_local(self):
+        result = self.reset_rule_categories(safe_delete=False)
+        assert result.returncode != 0
+
     def test_sudo_rule_restricted_to_running_as_single_local_group_tear(self):
         # Remove permission to run commands as testgroup2
         self.master.run_command(['ipa', 'sudorule-remove-runasgroup',
                                  'testrule',
                                  '--groups', 'localgroup'])
 
+    def test_category_all_validation_setup(self):
         # Reset testrule configuration
         self.reset_rule_categories()
+
+    def test_category_all_validation_user(self):
+        # Add the testuser1 to the rule
+        result = self.master.run_command(['ipa', 'sudorule-add-user',
+                                          'testrule',
+                                          '--users', 'testuser1'],
+                                         raiseonerr=False)
+        assert result.returncode != 0
+
+    def test_category_all_validation_user_group(self):
+        # Try to add the testgroup2 to the rule
+        result = self.master.run_command(['ipa', 'sudorule-add-user',
+                                          'testrule',
+                                          '--groups', 'testgroup2'],
+                                          raiseonerr=False)
+        assert result.returncode != 0
+
+    def test_category_all_validation_user_local(self):
+        # Try to add the local user to the rule
+        result = self.master.run_command(['ipa', 'sudorule-add-user',
+                                          'testrule',
+                                          '--users', 'localuser'],
+                                          raiseonerr=False)
+        assert result.returncode != 0
+
+    def test_category_all_validation_host(self):
+        # Try to add the master to the rule
+        result = self.master.run_command(['ipa', 'sudorule-add-host',
+                                          'testrule',
+                                          '--hosts', self.master.hostname],
+                                          raiseonerr=False)
+        assert result.returncode != 0
+
+    def test_category_all_validation_host_group(self):
+        # Try to add the testhostgroup to the rule
+        result = self.master.run_command(['ipa', 'sudorule-add-host',
+                                          'testrule',
+                                          '--hostgroups', 'testhostgroup'],
+                                          raiseonerr=False)
+        assert result.returncode != 0
+
+    def test_category_all_validation_host_mask(self):
+        # Try to add the client's /24 hostmask to the rule
+        ip = self.client.ip
+        result = self.master.run_command(['ipa', '-n', 'sudorule-add-host',
+                                          'testrule',
+                                          '--hostmask', '%s/24' % ip],
+                                          raiseonerr=False)
+        assert result.returncode != 0
+
+    def test_category_all_validation_command_allow(self):
+        # Try to add the yum command to the rule
+        result = self.master.run_command(['ipa', 'sudorule-add-allow-command',
+                                          'testrule',
+                                          '--sudocmds', '/usr/bin/yum'],
+                                          raiseonerr=False)
+        assert result.returncode != 0
+
+    def test_category_all_validation_command_allow_group(self):
+        # Try to add the readers command group to the rule
+        result = self.master.run_command(['ipa', 'sudorule-add-allow-command',
+                                          'testrule',
+                                          '--sudocmdgroups', 'readers'],
+                                          raiseonerr=False)
+        assert result.returncode != 0
+
+    def test_category_all_validation_command_deny(self):
+        # Try to add the yum command to the rule
+        # This SHOULD be allowed
+        self.master.run_command(['ipa', 'sudorule-add-deny-command',
+                                 'testrule',
+                                 '--sudocmds', '/usr/bin/yum'],
+                                 raiseonerr=False)
+
+        self.master.run_command(['ipa', 'sudorule-remove-deny-command',
+                                 'testrule',
+                                 '--sudocmds', '/usr/bin/yum'],
+                                 raiseonerr=False)
+
+    def test_category_all_validation_command_deny_group(self):
+        # Try to add the readers command group to the rule
+        # This SHOULD be allowed
+        self.master.run_command(['ipa', 'sudorule-add-deny-command',
+                                 'testrule',
+                                 '--sudocmdgroups', 'readers'])
+
+        self.master.run_command(['ipa', 'sudorule-remove-deny-command',
+                                 'testrule',
+                                 '--sudocmdgroups', 'readers'])
+
+    def test_category_all_validation_runasuser(self):
+        # Try to allow running commands as testuser2
+        result = self.master.run_command(['ipa', 'sudorule-add-runasuser',
+                                          'testrule',
+                                          '--users', 'testuser2'],
+                                          raiseonerr=False)
+        assert result.returncode != 0
+
+    def test_category_all_validation_runasuser_group(self):
+        # Try to allow running commands as users from testgroup2
+        result = self.master.run_command(['ipa', 'sudorule-add-runasuser',
+                                          'testrule',
+                                          '--groups', 'testgroup2'],
+                                          raiseonerr=False)
+        assert result.returncode != 0
+
+    def test_category_all_validation_runasgroup(self):
+        # Try to allow running commands as testgroup2
+        result = self.master.run_command(['ipa', 'sudorule-add-runasgroup',
+                                          'testrule',
+                                          '--groups', 'testgroup2'],
+                                          raiseonerr=False)
+        assert result.returncode != 0
