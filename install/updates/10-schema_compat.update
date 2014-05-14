@@ -4,10 +4,20 @@ add:schema-compat-entry-attribute: 'sudoHost=%ifeq("hostCategory","all","ALL","%
 add:schema-compat-entry-attribute: 'sudoRunAsUser=%%%{ipaSudoRunAsExtUserGroup}'
 # Fix for #4324 (regression of #1309)
 remove:schema-compat-entry-attribute:'sudoRunAsGroup=%deref("ipaSudoRunAs","cn")'
+remove:schema-compat-entry-attribute:'sudoRunAsUser=%{ipaSudoRunAsExtUser}'
+remove:schema-compat-entry-attribute:'sudoRunAsUser=%%%{ipaSudoRunAsExtUserGroup}'
+remove:schema-compat-entry-attribute:'sudoRunAsUser=%deref("ipaSudoRunAs","uid")'
+remove:schema-compat-entry-attribute:'sudoRunAsGroup=%{ipaSudoRunAsExtGroup}'
+remove:schema-compat-entry-attribute:'sudoRunAsGroup=%deref_f("ipaSudoRunAsGroup","(objectclass=posixGroup)","cn")'
 
 # We need to add the value in a separate transaction
 dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
 add: schema-compat-entry-attribute: 'sudoRunAsGroup=%deref_f("ipaSudoRunAsGroup","(objectclass=posixGroup)","cn")'
+add: schema-compat-entry-attribute: 'sudoRunAsUser=%ifeq("ipaSudoRunAsUserCategory","all","ALL","%{ipaSudoRunAsExtUser}")'
+add: schema-compat-entry-attribute: 'sudoRunAsUser=%ifeq("ipaSudoRunAsUserCategory","all","ALL","%%%{ipaSudoRunAsExtUserGroup}")'
+add: schema-compat-entry-attribute: 'sudoRunAsUser=%ifeq("ipaSudoRunAsUserCategory","all","ALL","%deref_f(\"ipaSudoRunAs\",\"(objectclass=posixAccount)\",\"uid\")")'
+add: schema-compat-entry-attribute: 'sudoRunAsGroup=%ifeq("ipaSudoRunAsGroupCategory","all","ALL","%{ipaSudoRunAsExtGroup}")'
+add: schema-compat-entry-attribute: 'sudoRunAsGroup=%ifeq("ipaSudoRunAsGroupCategory","all","ALL","%deref_f(\"ipaSudoRunAsGroup\",\"(objectclass=posixGroup)\",\"cn\")")'
 
 # Change padding for host and userCategory so the pad returns the same value
 # as the original, '' or -.
