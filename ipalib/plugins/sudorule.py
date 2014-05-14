@@ -132,7 +132,8 @@ class sudorule(LDAPObject):
         'memberallowcmd', 'memberdenycmd', 'ipasudoopt',
         'ipasudorunas', 'ipasudorunasgroup',
         'ipasudorunasusercategory', 'ipasudorunasgroupcategory',
-        'sudoorder', 'hostmask', 'ipasudorunasextusergroup',
+        'sudoorder', 'hostmask', 'externalhost', 'ipasudorunasextusergroup',
+        'ipasudorunasextgroup', 'ipasudorunasextuser'
     ]
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
