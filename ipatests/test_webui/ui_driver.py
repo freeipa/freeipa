@@ -1715,11 +1715,34 @@ class UI_driver(object):
         is_visible = link is not None and link.is_displayed()
         is_enabled = False
         if is_visible:
-            is_enabled = 'disabled' not in link.get_attribute("class").split()
+            is_enabled = not self.has_class(link, 'disabled')
 
         assert is_visible == visible, ('Invalid visibility of action button: %s. '
                                        'Expected: %s') % (action, str(visible))
 
         if is_visible:
             assert is_enabled == enabled, ('Invalid enabled state of action button %s. '
+                                           'Expected: %s') % (action, str(visible))
+
+    def assert_action_list_action(self, action, visible=True, enabled=True, parent=None):
+        """
+        Assert that action dropdown action is visible/hidden, and enabled/disabled
+
+        Enabled is checked only if action is visible.
+        """
+        if not parent:
+            parent = self.get_form()
+
+        s = ".facet-actions li[data-name='%s'] a" % action
+        link = self.find(s, By.CSS_SELECTOR, parent)
+
+        is_visible = link is not None and link.is_displayed()
+        is_enabled = False
+
+        assert is_visible == visible, ('Invalid visibility of action item: %s. '
+                                       'Expected: %s') % (action, str(visible))
+
+        if is_visible:
+            is_enabled = not self.has_class(link, 'disabled')
+            assert is_enabled == enabled, ('Invalid enabled state of action item %s. '
                                            'Expected: %s') % (action, str(visible))
