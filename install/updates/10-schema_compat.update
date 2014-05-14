@@ -2,6 +2,9 @@ dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
 only:schema-compat-entry-rdn:'%ifeq("ipaEnabledFlag", "FALSE", "DISABLED", "cn=%{cn}")'
 replace: schema-compat-entry-attribute:'sudoRunAsGroup=%deref("ipaSudoRunAs","cn")::sudoRunAsGroup=%deref_f("ipaSudoRunAsGroup","(objectclass=posixGroup)","cn")'
 
+dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
+add:schema-compat-entry-attribute: 'sudoHost=%ifeq("hostCategory","all","ALL","%{hostMask}")'
+
 # Change padding for host and userCategory so the pad returns the same value
 # as the original, '' or -.
 dn: cn=ng,cn=Schema Compatibility,cn=plugins,cn=config

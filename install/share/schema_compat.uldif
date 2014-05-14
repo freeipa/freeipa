@@ -86,6 +86,7 @@ add:schema-compat-entry-attribute: 'sudoHost=%ifeq("hostCategory","all","ALL","%
 add:schema-compat-entry-attribute: 'sudoHost=%ifeq("hostCategory","all","ALL","%deref_rf(\"memberHost\",\"(&(objectclass=ipaHostGroup)(!(objectclass=mepOriginEntry)))\",\"member\",\"(|(objectclass=ipaHostGroup)(objectclass=ipaHost))\",\"fqdn\")")'
 add:schema-compat-entry-attribute: 'sudoHost=%ifeq("hostCategory","all","ALL","+%deref_f(\"memberHost\",\"(&(objectclass=ipaHostGroup)(objectclass=mepOriginEntry))\",\"cn\")")'
 add:schema-compat-entry-attribute: 'sudoHost=%ifeq("hostCategory","all","ALL","+%deref_f(\"memberHost\",\"(objectclass=ipaNisNetgroup)\",\"cn\")")'
+add:schema-compat-entry-attribute: 'sudoHost=%ifeq("hostCategory","all","ALL","%{hostMask}")'
 add:schema-compat-entry-attribute: 'sudoCommand=%ifeq("cmdCategory","all","ALL","%deref(\"memberAllowCmd\",\"sudoCmd\")")'
 add:schema-compat-entry-attribute: 'sudoCommand=%ifeq("cmdCategory","all","ALL","%deref_r(\"memberAllowCmd\",\"member\",\"sudoCmd\")")'
 add:schema-compat-entry-attribute: 'sudoCommand=!%deref("memberDenyCmd","sudoCmd")'

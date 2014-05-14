@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import netaddr
+
 from ipalib import api, errors
 from ipalib import Str, StrEnum, Bool, Int
 from ipalib.plugable import Registry
@@ -30,6 +32,7 @@ from ipalib.plugins.baseldap import (LDAPObject, LDAPCreate, LDAPDelete,
                                      external_host_param)
 from ipalib.plugins.hbacrule import is_all
 from ipalib import _, ngettext
+from ipalib.util import validate_hostmask
 from ipapython.dn import DN
 
 __doc__ = _("""
@@ -94,6 +97,12 @@ def deprecated(attribute):
         error=_('this option has been deprecated.'))
 
 
+hostmask_membership_param = Str('hostmask?', validate_hostmask,
+                                label=_('host masks of allowed hosts'),
+                                flags=['no_create', 'no_update', 'no_search'],
+                                multivalue=True,
+                                )
+
 def validate_externaluser(ugettext, value):
     deprecated('externaluser')
 
@@ -123,7 +132,7 @@ class sudorule(LDAPObject):
         'memberallowcmd', 'memberdenycmd', 'ipasudoopt',
         'ipasudorunas', 'ipasudorunasgroup',
         'ipasudorunasusercategory', 'ipasudorunasgroupcategory',
-        'sudoorder',
+        'sudoorder', 'hostmask',
     ]
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
@@ -266,6 +275,12 @@ class sudorule(LDAPObject):
         Str('memberhost_hostgroup?',
             label=_('Host Groups'),
             flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('hostmask', validate_hostmask,
+            normalizer=lambda x: unicode(netaddr.IPNetwork(x).cidr),
+            label=_('Host Masks'),
+            flags=['no_create', 'no_update', 'no_search'],
+            multivalue=True,
         ),
         Str('memberallowcmd_sudocmd?',
             label=_('Sudo Allow Commands'),
@@ -577,6 +592,11 @@ class sudorule_add_host(LDAPAddMember):
     member_attributes = ['memberhost']
     member_count_out = ('%i object added.', '%i objects added.')
 
+    def get_options(self):
+        for option in super(sudorule_add_host, self).get_options():
+            yield option
+        yield hostmask_membership_param
+
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
         try:
@@ -593,7 +613,30 @@ class sudorule_add_host(LDAPAddMember):
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,
                       *keys, **options):
         assert isinstance(dn, DN)
-        return add_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
+        try:
+            _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
+        if 'hostmask' in options:
+            norm = lambda x: unicode(netaddr.IPNetwork(x).cidr)
+
+            old_masks = set(map(norm, _entry_attrs.get('hostmask', [])))
+            new_masks = set(map(norm, options['hostmask']))
+
+            num_added = len(new_masks - old_masks)
+
+            if num_added:
+                entry_attrs['hostmask'] = list(old_masks | new_masks)
+                try:
+                    ldap.update_entry(entry_attrs)
+                except errors.EmptyModlist:
+                    pass
+                completed = completed + num_added
+
+        return add_external_post_callback('memberhost', 'host', 'externalhost',
+                                          ldap, completed, failed, dn,
+                                          entry_attrs, keys, options)
 
 
 
@@ -604,9 +647,35 @@ class sudorule_remove_host(LDAPRemoveMember):
     member_attributes = ['memberhost']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
+    def get_options(self):
+        for option in super(sudorule_remove_host, self).get_options():
+            yield option
+        yield hostmask_membership_param
     def post_callback(self, ldap, completed, failed, dn, entry_attrs,
                       *keys, **options):
         assert isinstance(dn, DN)
+
+        try:
+            _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
+        if 'hostmask' in options:
+            norm = lambda x: unicode(netaddr.IPNetwork(x).cidr)
+
+            old_masks = set(map(norm, _entry_attrs.get('hostmask', [])))
+            removed_masks = set(map(norm, options['hostmask']))
+
+            num_added = len(removed_masks & old_masks)
+
+            if num_added:
+                entry_attrs['hostmask'] = list(old_masks - removed_masks)
+                try:
+                    ldap.update_entry(entry_attrs)
+                except errors.EmptyModlist:
+                    pass
+                completed = completed + num_added
+
         return remove_external_post_callback('memberhost', 'host',
                                              'externalhost', ldap, completed,
                                              failed, dn, entry_attrs, keys,

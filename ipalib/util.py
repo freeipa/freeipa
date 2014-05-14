@@ -32,6 +32,7 @@ from types import NoneType
 from weakref import WeakKeyDictionary
 from dns import resolver, rdatatype
 from dns.exception import DNSException
+from netaddr.core import AddrFormatError
 
 from ipalib import errors
 from ipalib.text import _
@@ -544,3 +545,9 @@ def validate_rdn_param(ugettext, value):
     except Exception, e:
         return str(e)
     return None
+
+def validate_hostmask(ugettext, hostmask):
+    try:
+        netaddr.IPNetwork(hostmask)
+    except (ValueError, AddrFormatError):
+        return _('invalid hostmask')

@@ -3474,11 +3474,12 @@ output: Output('completed', <type 'int'>, None)
 output: Output('failed', <type 'dict'>, None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 command: sudorule_add_host
-args: 1,6,3
+args: 1,7,3
 arg: Str('cn', attribute=True, cli_name='sudorule_name', multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('host*', alwaysask=True, cli_name='hosts', csv=True)
 option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups', csv=True)
+option: Str('hostmask?', multivalue=True)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
@@ -3627,11 +3628,12 @@ output: Output('completed', <type 'int'>, None)
 output: Output('failed', <type 'dict'>, None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 command: sudorule_remove_host
-args: 1,6,3
+args: 1,7,3
 arg: Str('cn', attribute=True, cli_name='sudorule_name', multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('host*', alwaysask=True, cli_name='hosts', csv=True)
 option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups', csv=True)
+option: Str('hostmask?', multivalue=True)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('version?', exclude='webui')
