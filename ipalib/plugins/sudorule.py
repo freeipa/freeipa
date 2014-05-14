@@ -18,11 +18,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api, errors
-from ipalib import Str, StrEnum, Bool
+from ipalib import Str, StrEnum, Bool, Int
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import *
+from ipalib.plugins.baseldap import (LDAPObject, LDAPCreate, LDAPDelete,
+                                     LDAPUpdate, LDAPSearch, LDAPRetrieve,
+                                     LDAPQuery, LDAPAddMember, LDAPRemoveMember,
+                                     add_external_pre_callback,
+                                     add_external_post_callback,
+                                     remove_external_post_callback,
+                                     output, entry_to_dict, pkey_to_value,
+                                     external_host_param)
 from ipalib.plugins.hbacrule import is_all
 from ipalib import _, ngettext
+from ipapython.dn import DN
 
 __doc__ = _("""
 Sudo Rules
@@ -79,17 +87,24 @@ register = Registry()
 
 topic = ('sudo', _('Commands for controlling sudo configuration'))
 
+
 def deprecated(attribute):
-    raise errors.ValidationError(name=attribute, error=_('this option has been deprecated.'))
+    raise errors.ValidationError(
+        name=attribute,
+        error=_('this option has been deprecated.'))
+
 
 def validate_externaluser(ugettext, value):
     deprecated('externaluser')
 
+
 def validate_runasextuser(ugettext, value):
     deprecated('runasexternaluser')
 
+
 def validate_runasextgroup(ugettext, value):
     deprecated('runasexternalgroup')
+
 
 @register()
 class sudorule(LDAPObject):
@@ -326,7 +341,6 @@ class sudorule(LDAPObject):
                 )
 
 
-
 @register()
 class sudorule_add(LDAPCreate):
     __doc__ = _('Create new Sudo Rule.')
@@ -341,7 +355,6 @@ class sudorule_add(LDAPCreate):
     msg_summary = _('Added Sudo Rule "%(value)s"')
 
 
-
 @register()
 class sudorule_del(LDAPDelete):
     __doc__ = _('Delete Sudo Rule.')
@@ -349,14 +362,15 @@ class sudorule_del(LDAPDelete):
     msg_summary = _('Deleted Sudo Rule "%(value)s"')
 
 
-
 @register()
 class sudorule_mod(LDAPUpdate):
     __doc__ = _('Modify Sudo Rule.')
 
     msg_summary = _('Modified Sudo Rule "%(value)s"')
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
+
         if 'sudoorder' in options:
             new_order = options.get('sudoorder')
             old_entry = self.api.Command.sudorule_show(keys[-1])['result']
@@ -386,7 +400,6 @@ class sudorule_mod(LDAPUpdate):
         return dn
 
 
-
 @register()
 class sudorule_find(LDAPSearch):
     __doc__ = _('Search for Sudo Rule.')
@@ -396,11 +409,9 @@ class sudorule_find(LDAPSearch):
     )
 
 
-
 @register()
 class sudorule_show(LDAPRetrieve):
     __doc__ = _('Display Sudo Rule.')
-
 
 
 @register()
@@ -429,7 +440,6 @@ class sudorule_enable(LDAPQuery):
         textui.print_dashed(_('Enabled Sudo Rule "%s"') % cn)
 
 
-
 @register()
 class sudorule_disable(LDAPQuery):
     __doc__ = _('Disable a Sudo Rule.')
@@ -456,7 +466,6 @@ class sudorule_disable(LDAPQuery):
         textui.print_dashed(_('Disabled Sudo Rule "%s"') % cn)
 
 
-
 @register()
 class sudorule_add_allow_command(LDAPAddMember):
     __doc__ = _('Add commands and sudo command groups affected by Sudo Rule.')
@@ -466,15 +475,18 @@ class sudorule_add_allow_command(LDAPAddMember):
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
+
         try:
             _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
+
         if is_all(_entry_attrs, 'cmdcategory'):
-            raise errors.MutuallyExclusiveError(reason=_("commands cannot be added when command category='all'"))
+            raise errors.MutuallyExclusiveError(
+                reason=_("commands cannot be added when command "
+                         "category='all'"))
 
         return dn
-
 
 
 @register()
@@ -483,7 +495,6 @@ class sudorule_remove_allow_command(LDAPRemoveMember):
 
     member_attributes = ['memberallowcmd']
     member_count_out = ('%i object removed.', '%i objects removed.')
-
 
 
 @register()
@@ -504,14 +515,12 @@ class sudorule_add_deny_command(LDAPAddMember):
         return dn
 
 
-
 @register()
 class sudorule_remove_deny_command(LDAPRemoveMember):
     __doc__ = _('Remove commands and sudo command groups affected by Sudo Rule.')
 
     member_attributes = ['memberdenycmd']
     member_count_out = ('%i object removed.', '%i objects removed.')
-
 
 
 @register()
@@ -523,17 +532,24 @@ class sudorule_add_user(LDAPAddMember):
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
+
         try:
             _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
+
         if is_all(_entry_attrs, 'usercategory'):
-            raise errors.MutuallyExclusiveError(reason=_("users cannot be added when user category='all'"))
+            raise errors.MutuallyExclusiveError(
+                reason=_("users cannot be added when user category='all'"))
+
         return add_external_pre_callback('user', ldap, dn, keys, options)
 
-    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs,
+                      *keys, **options):
         assert isinstance(dn, DN)
-        return add_external_post_callback('memberuser', 'user', 'externaluser', ldap, completed, failed, dn, entry_attrs, keys, options)
+        return add_external_post_callback('memberuser', 'user', 'externaluser',
+                                          ldap, completed, failed, dn,
+                                          entry_attrs, keys, options)
 
 
 
@@ -544,9 +560,13 @@ class sudorule_remove_user(LDAPRemoveMember):
     member_attributes = ['memberuser']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs,
+                      *keys, **options):
         assert isinstance(dn, DN)
-        return remove_external_post_callback('memberuser', 'user', 'externaluser', ldap, completed, failed, dn, entry_attrs, keys, options)
+        return remove_external_post_callback('memberuser', 'user',
+                                             'externaluser', ldap, completed,
+                                             failed, dn, entry_attrs, keys,
+                                             options)
 
 
 
@@ -563,11 +583,15 @@ class sudorule_add_host(LDAPAddMember):
             _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
+
         if is_all(_entry_attrs, 'hostcategory'):
-            raise errors.MutuallyExclusiveError(reason=_("hosts cannot be added when host category='all'"))
+            raise errors.MutuallyExclusiveError(
+                reason=_("hosts cannot be added when host category='all'"))
+
         return add_external_pre_callback('host', ldap, dn, keys, options)
 
-    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs,
+                      *keys, **options):
         assert isinstance(dn, DN)
         return add_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
 
@@ -580,9 +604,13 @@ class sudorule_remove_host(LDAPRemoveMember):
     member_attributes = ['memberhost']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs,
+                      *keys, **options):
         assert isinstance(dn, DN)
-        return remove_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
+        return remove_external_post_callback('memberhost', 'host',
+                                             'externalhost', ldap, completed,
+                                             failed, dn, entry_attrs, keys,
+                                             options)
 
 
 @register()
@@ -594,6 +622,7 @@ class sudorule_add_runasuser(LDAPAddMember):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
+
         def check_validity(runas):
             v = unicode(runas)
             if v.upper() == u'ALL':
@@ -604,29 +633,36 @@ class sudorule_add_runasuser(LDAPAddMember):
             _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
-        if is_all(_entry_attrs, 'ipasudorunasusercategory') or \
-          is_all(_entry_attrs, 'ipasudorunasgroupcategory'):
-            raise errors.MutuallyExclusiveError(reason=_("users cannot be added when runAs user or runAs group category='all'"))
+
+        if any((is_all(_entry_attrs, 'ipasudorunasusercategory'),
+                is_all(_entry_attrs, 'ipasudorunasgroupcategory'))):
+
+            raise errors.MutuallyExclusiveError(
+                reason=_("users cannot be added when runAs user or runAs "
+                         "group category='all'"))
 
         if 'user' in options:
             for name in options['user']:
                 if not check_validity(name):
                     raise errors.ValidationError(name='runas-user',
-                          error=unicode(_("RunAsUser does not accept '%(name)s' as a user name")) %
-                          dict(name=name))
+                          error=unicode(_("RunAsUser does not accept "
+                                          "'%(name)s' as a user name")) %
+                                          dict(name=name))
+
         if 'group' in options:
             for name in options['group']:
                 if not check_validity(name):
                     raise errors.ValidationError(name='runas-user',
-                          error=unicode(_("RunAsUser does not accept '%(name)s' as a group name")) %
-                          dict(name=name))
+                          error=unicode(_("RunAsUser does not accept "
+                                          "'%(name)s' as a group name")) %
+                                          dict(name=name))
 
         return add_external_pre_callback('user', ldap, dn, keys, options)
 
-    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs,
+                      *keys, **options):
         assert isinstance(dn, DN)
         return add_external_post_callback('ipasudorunas', 'user', 'ipasudorunasextuser', ldap, completed, failed, dn, entry_attrs, keys, options)
-
 
 
 @register()
@@ -636,10 +672,10 @@ class sudorule_remove_runasuser(LDAPRemoveMember):
     member_attributes = ['ipasudorunas']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs,
+                      *keys, **options):
         assert isinstance(dn, DN)
         return remove_external_post_callback('ipasudorunas', 'user', 'ipasudorunasextuser', ldap, completed, failed, dn, entry_attrs, keys, options)
-
 
 
 @register()
@@ -651,6 +687,7 @@ class sudorule_add_runasgroup(LDAPAddMember):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
+
         def check_validity(runas):
             v = unicode(runas)
             if v.upper() == u'ALL':
@@ -663,20 +700,27 @@ class sudorule_add_runasgroup(LDAPAddMember):
             self.obj.handle_not_found(*keys)
         if is_all(_entry_attrs, 'ipasudorunasusercategory') or \
           is_all(_entry_attrs, 'ipasudorunasgroupcategory'):
-            raise errors.MutuallyExclusiveError(reason=_("users cannot be added when runAs user or runAs group category='all'"))
+            raise errors.MutuallyExclusiveError(
+                reason=_("users cannot be added when runAs user or runAs "
+                         "group category='all'"))
 
         if 'group' in options:
             for name in options['group']:
                 if not check_validity(name):
                     raise errors.ValidationError(name='runas-group',
-                          error=unicode(_("RunAsGroup does not accept '%(name)s' as a group name")) %
-                          dict(name=name))
+                          error=unicode(_("RunAsGroup does not accept "
+                                          "'%(name)s' as a group name")) %
+                                          dict(name=name))
 
         return add_external_pre_callback('group', ldap, dn, keys, options)
 
-    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs,
+                      *keys, **options):
         assert isinstance(dn, DN)
-        return add_external_post_callback('ipasudorunasgroup', 'group', 'ipasudorunasextgroup', ldap, completed, failed, dn, entry_attrs, keys, options)
+        return add_external_post_callback('ipasudorunasgroup', 'group',
+                                          'ipasudorunasextgroup', ldap,
+                                          completed, failed, dn, entry_attrs,
+                                          keys, options)
 
 
 
@@ -687,9 +731,13 @@ class sudorule_remove_runasgroup(LDAPRemoveMember):
     member_attributes = ['ipasudorunasgroup']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs,
+                      *keys, **options):
         assert isinstance(dn, DN)
-        return remove_external_post_callback('ipasudorunasgroup', 'group', 'ipasudorunasextgroup', ldap, completed, failed, dn, entry_attrs, keys, options)
+        return remove_external_post_callback('ipasudorunasgroup', 'group',
+                                             'ipasudorunasextgroup', ldap,
+                                             completed, failed, dn,
+                                             entry_attrs, keys, options)
 
 
 
@@ -738,12 +786,12 @@ class sudorule_add_option(LDAPQuery):
         return dict(result=entry_attrs, value=pkey_to_value(cn, options))
 
     def output_for_cli(self, textui, result, cn, **options):
-        textui.print_dashed(_('Added option "%(option)s" to Sudo Rule "%(rule)s"') % \
-                dict(option=options['ipasudoopt'], rule=cn))
-        super(sudorule_add_option, self).output_for_cli(textui, result, cn, **options)
+        textui.print_dashed(
+            _('Added option "%(option)s" to Sudo Rule "%(rule)s"')
+              % dict(option=options['ipasudoopt'], rule=cn))
 
-
-
+        super(sudorule_add_option, self).output_for_cli(textui, result, cn,
+                                                        **options)
 
 
 @register()
@@ -765,7 +813,9 @@ class sudorule_remove_option(LDAPQuery):
 
         if not options['ipasudoopt'].strip():
             raise errors.EmptyModlist()
+
         entry_attrs = ldap.get_entry(dn, ['ipasudoopt'])
+
         try:
             if options['ipasudoopt'] in entry_attrs['ipasudoopt']:
                 entry_attrs.setdefault('ipasudoopt', []).remove(
@@ -776,7 +826,7 @@ class sudorule_remove_option(LDAPQuery):
                     attr='ipasudoopt',
                     value=options['ipasudoopt']
                     )
-        except ValueError, e:
+        except ValueError:
             pass
         except KeyError:
             raise errors.AttrValueNotFound(
@@ -794,7 +844,9 @@ class sudorule_remove_option(LDAPQuery):
         return dict(result=entry_attrs, value=pkey_to_value(cn, options))
 
     def output_for_cli(self, textui, result, cn, **options):
-        textui.print_dashed(_('Removed option "%(option)s" from Sudo Rule "%(rule)s"') % \
-                dict(option=options['ipasudoopt'], rule=cn))
-        super(sudorule_remove_option, self).output_for_cli(textui, result, cn, **options)
+        textui.print_dashed(
+            _('Removed option "%(option)s" from Sudo Rule "%(rule)s"')
+              % dict(option=options['ipasudoopt'], rule=cn))
+        super(sudorule_remove_option, self).output_for_cli(textui, result, cn,
+                                                           **options)
 
