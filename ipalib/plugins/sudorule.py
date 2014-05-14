@@ -1,7 +1,7 @@
 # Authors:
 #   Jr Aquino <jr.aquino@citrixonline.com>
 #
-# Copyright (C) 2010  Red Hat
+# Copyright (C) 2010-2014  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -404,22 +404,51 @@ class sudorule_mod(LDAPUpdate):
                     self.obj.check_order_uniqueness(*keys, **options)
             else:
                 self.obj.check_order_uniqueness(*keys, **options)
+
         try:
             _entry_attrs = ldap.get_entry(dn, self.obj.default_attributes)
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
-        if is_all(options, 'usercategory') and 'memberuser' in _entry_attrs:
-            raise errors.MutuallyExclusiveError(reason=_("user category cannot be set to 'all' while there are allowed users"))
-        if is_all(options, 'hostcategory') and 'memberhost' in _entry_attrs:
-            raise errors.MutuallyExclusiveError(reason=_("host category cannot be set to 'all' while there are allowed hosts"))
-        if is_all(options, 'cmdcategory') and ('memberallowcmd' or
-            'memberdenywcmd') in _entry_attrs:
-            raise errors.MutuallyExclusiveError(reason=_("command category cannot be set to 'all' while there are allow or deny commands"))
-        if is_all(options, 'ipasudorunasusercategory') and 'ipasudorunas' in _entry_attrs:
-            raise errors.MutuallyExclusiveError(reason=_("user runAs category cannot be set to 'all' while there are users"))
-        if is_all(options, 'ipasudorunasgroupcategory') and 'ipasudorunasgroup' in _entry_attrs:
-            raise errors.MutuallyExclusiveError(reason=_("group runAs category cannot be set to 'all' while there are groups"))
+        error = _("%(type)s category cannot be set to 'all' "
+                  "while there are allowed %(objects)s")
+
+        category_info = [(
+                'usercategory',
+                 ['memberuser', 'externaluser'],
+                 error % {'type': _('user'), 'objects': _('users')}
+            ),
+            (
+                'hostcategory',
+                ['memberhost', 'externalhost', 'hostmask'],
+                error % {'type': _('host'), 'objects': _('hosts')}
+            ),
+            (
+                'cmdcategory',
+                ['memberallowcmd'],
+                error % {'type': _('command'), 'objects': _('commands')}
+            ),
+            (
+                'ipasudorunasusercategory',
+                ['ipasudorunas', 'ipasudorunasextuser',
+                 'ipasudorunasextusergroup'],
+                error % {'type': _('runAs user'), 'objects': _('runAs users')}
+            ),
+            (
+                'ipasudorunasgroupcategory',
+                ['ipasudorunasgroup', 'ipasudorunasextgroup'],
+                error % {'type': _('group runAs'), 'objects': _('runAs groups')}
+            ),
+        ]
+
+
+        # Enforce the checks for all the categories
+        for category, member_attrs, error in category_info:
+            any_member_attrs_set = any(attr in _entry_attrs
+                                       for attr in member_attrs)
+
+            if is_all(options, category) and any_member_attrs_set:
+                raise errors.MutuallyExclusiveError(reason=error)
 
         return dn
 
