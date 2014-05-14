@@ -144,7 +144,38 @@ class sudorule(LDAPObject):
                 'sudorunasuser', 'sudorunasgroup', 'sudooption',
                 'sudonotbefore', 'sudonotafter', 'sudoorder', 'description',
             },
-        }
+        },
+        'System: Add Sudo rule': {
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///ipauniqueid=*,cn=sudorules,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Add Sudo rule";allow (add) groupdn = "ldap:///cn=Add Sudo rule,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Sudo Administrator'},
+        },
+        'System: Delete Sudo rule': {
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///ipauniqueid=*,cn=sudorules,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Delete Sudo rule";allow (delete) groupdn = "ldap:///cn=Delete Sudo rule,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Sudo Administrator'},
+        },
+        'System: Modify Sudo rule': {
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'description', 'ipaenabledflag', 'usercategory',
+                'hostcategory', 'cmdcategory', 'ipasudorunasusercategory',
+                'ipasudorunasgroupcategory', 'externaluser',
+                'ipasudorunasextuser', 'ipasudorunasextgroup', 'memberdenycmd',
+                'memberallowcmd', 'memberuser',
+            },
+            'replaces': [
+                '(targetattr = "description || ipaenabledflag || usercategory || hostcategory || cmdcategory || ipasudorunasusercategory || ipasudorunasgroupcategory || externaluser || ipasudorunasextuser || ipasudorunasextgroup || memberdenycmd || memberallowcmd || memberuser")(target = "ldap:///ipauniqueid=*,cn=sudorules,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Modify Sudo rule";allow (write) groupdn = "ldap:///cn=Modify Sudo rule,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Sudo Administrator'},
+        },
     }
 
     label = _('Sudo Rules')

@@ -108,27 +108,6 @@ default:objectClass: top
 default:cn: Sudo Administrator
 default:description: Sudo Administrator
 
-dn: cn=Add Sudo rule,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:objectClass: top
-default:cn: Add Sudo rule
-default:member: cn=Sudo Administrator,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Delete Sudo rule,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:objectClass: top
-default:cn: Delete Sudo rule
-default:member: cn=Sudo Administrator,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Modify Sudo rule,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:objectClass: top
-default:cn: Modify Sudo rule
-default:member: cn=Sudo Administrator,cn=privileges,cn=pbac,$SUFFIX
-
 dn: cn=Add Sudo command,cn=permissions,cn=pbac,$SUFFIX
 default:objectClass: groupofnames
 default:objectClass: ipapermission
@@ -172,10 +151,6 @@ default:cn: Manage Sudo command group membership
 default:member: cn=Sudo Administrator,cn=privileges,cn=pbac,$SUFFIX
 
 dn: $SUFFIX
-add:aci: '(target = "ldap:///ipauniqueid=*,cn=sudorules,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Add Sudo rule";allow (add) groupdn = "ldap:///cn=Add Sudo rule,cn=permissions,cn=pbac,$SUFFIX";)'
-add:aci: '(target = "ldap:///ipauniqueid=*,cn=sudorules,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Delete Sudo rule";allow (delete) groupdn = "ldap:///cn=Delete Sudo rule,cn=permissions,cn=pbac,$SUFFIX";)'
-add:aci: '(targetattr = "description || ipaenabledflag || usercategory || hostcategory || cmdcategory || ipasudorunasusercategory || ipasudorunasgroupcategory || externaluser || ipasudorunasextuser || ipasudorunasextgroup || memberdenycmd || memberallowcmd || memberuser")(target = "ldap:///ipauniqueid=*,cn=sudorules,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Modify Sudo rule";allow (write) groupdn = "ldap:///cn=Modify Sudo rule,cn=permissions,cn=pbac,$SUFFIX";)'
-
 remove:aci: '(targetattr = "description")(target = "ldap:///sudocmd=*,cn=sudocmds,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Modify Sudo command";allow (write) groupdn = "ldap:///cn=Modify Sudo command,cn=permissions,cn=pbac,$SUFFIX";)'
 remove:aci: '(target = "ldap:///sudocmd=*,cn=sudocmds,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Delete Sudo command";allow (delete) groupdn = "ldap:///cn=Delete Sudo command,cn=permissions,cn=pbac,$SUFFIX";)'
 remove:aci: '(target = "ldap:///sudocmd=*,cn=sudocmds,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Add Sudo command";allow (add) groupdn = "ldap:///cn=Add Sudo command,cn=permissions,cn=pbac,$SUFFIX";)'
