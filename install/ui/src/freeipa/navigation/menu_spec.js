@@ -146,14 +146,8 @@ var nav = {};
 nav.self_service = {
     name: 'self-service',
     items: [
-        {
-            name: 'identity',
-            label: '@i18n:tabs.identity',
-            children: [
-                { entity: 'user' },
-                { entity: 'otptoken' }
-            ]
-        }
+        { entity: 'user' },
+        { entity: 'otptoken' }
     ]
 };
 
