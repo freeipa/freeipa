@@ -143,10 +143,10 @@ class TestSudo(IntegrationTest):
 
     def test_add_sudo_rule(self):
         result1 = self.list_sudo_commands("testuser1")
-        assert "(ALL) NOPASSWD: ALL" in result1.stdout_text
+        assert "(ALL : ALL) NOPASSWD: ALL" in result1.stdout_text
 
         result2 = self.list_sudo_commands("testuser2")
-        assert "(ALL) NOPASSWD: ALL" in result2.stdout_text
+        assert "(ALL : ALL) NOPASSWD: ALL" in result2.stdout_text
 
     def test_sudo_rule_restricted_to_one_user_setup(self):
         # Configure the rule to not apply to anybody
@@ -161,7 +161,7 @@ class TestSudo(IntegrationTest):
 
     def test_sudo_rule_restricted_to_one_user(self):
         result1 = self.list_sudo_commands("testuser1")
-        assert "(ALL) NOPASSWD: ALL" in result1.stdout_text
+        assert "(ALL : ALL) NOPASSWD: ALL" in result1.stdout_text
 
         result2 = self.list_sudo_commands("testuser2", raiseonerr=False)
         assert result2.returncode != 0
@@ -187,7 +187,7 @@ class TestSudo(IntegrationTest):
         assert result1.returncode != 0
 
         result2 = self.list_sudo_commands("testuser2")
-        assert "(ALL) NOPASSWD: ALL" in result2.stdout_text
+        assert "(ALL : ALL) NOPASSWD: ALL" in result2.stdout_text
 
     def test_setting_category_to_all_with_valid_entries_user_group(self):
         result = self.reset_rule_categories(safe_delete=False)
@@ -207,7 +207,7 @@ class TestSudo(IntegrationTest):
 
     def test_sudo_rule_restricted_to_one_local_user(self):
         result1 = self.list_sudo_commands("localuser")
-        assert "(ALL) NOPASSWD: ALL" in result1.stdout_text
+        assert "(ALL : ALL) NOPASSWD: ALL" in result1.stdout_text
 
         result2 = self.list_sudo_commands("testuser1", raiseonerr=False)
         assert result2.returncode != 0
@@ -259,7 +259,7 @@ class TestSudo(IntegrationTest):
 
     def test_sudo_rule_restricted_to_one_host(self):
         result1 = self.list_sudo_commands("testuser1", raiseonerr=False)
-        assert "(ALL) NOPASSWD: ALL" in result1.stdout_text
+        assert "(ALL : ALL) NOPASSWD: ALL" in result1.stdout_text
 
     def test_setting_category_to_all_with_valid_entries_host(self):
         result = self.reset_rule_categories(safe_delete=False)
@@ -279,7 +279,7 @@ class TestSudo(IntegrationTest):
 
     def test_sudo_rule_restricted_to_one_hostgroup(self):
         result1 = self.list_sudo_commands("testuser1")
-        assert "(ALL) NOPASSWD: ALL" in result1.stdout_text
+        assert "(ALL : ALL) NOPASSWD: ALL" in result1.stdout_text
 
     def test_setting_category_to_all_with_valid_entries_host_group(self):
         result = self.reset_rule_categories(safe_delete=False)
@@ -300,7 +300,7 @@ class TestSudo(IntegrationTest):
 
     def test_sudo_rule_restricted_to_one_hostmask(self):
         result1 = self.list_sudo_commands("testuser1")
-        assert "(ALL) NOPASSWD: ALL" in result1.stdout_text
+        assert "(ALL : ALL) NOPASSWD: ALL" in result1.stdout_text
 
     def test_setting_category_to_all_with_valid_entries_host_mask(self):
         result = self.reset_rule_categories(safe_delete=False)
@@ -347,7 +347,7 @@ class TestSudo(IntegrationTest):
 
     def test_sudo_rule_restricted_to_one_command(self):
         result1 = self.list_sudo_commands("testuser1")
-        assert "(ALL) NOPASSWD: /usr/bin/yum" in result1.stdout_text
+        assert "(ALL : ALL) NOPASSWD: /usr/bin/yum" in result1.stdout_text
 
     def test_sudo_rule_restricted_to_command_and_command_group_setup(self):
         # Add the readers command group to the rule
@@ -357,7 +357,7 @@ class TestSudo(IntegrationTest):
 
     def test_sudo_rule_restricted_to_command_and_command_group(self):
         result1 = self.list_sudo_commands("testuser1")
-        assert "(ALL) NOPASSWD:" in result1.stdout_text
+        assert "(ALL : ALL) NOPASSWD:" in result1.stdout_text
         assert "/usr/bin/yum" in result1.stdout_text
         assert "/usr/bin/tail" in result1.stdout_text
         assert "/usr/bin/cat" in result1.stdout_text
