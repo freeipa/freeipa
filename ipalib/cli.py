@@ -30,6 +30,7 @@ import fcntl
 import termios
 import struct
 import base64
+import traceback
 try:
     #pylint: disable=F0401
     import default_encoding_utf8
@@ -875,15 +876,33 @@ class show_mappings(frontend.Command):
 
 
 class console(frontend.Command):
-    """Start the IPA interactive Python console."""
+    """Start the IPA interactive Python console, or run a script.
 
+    An IPA API object is initialized and made available
+    in the `api` global variable.
+    """
+
+    takes_args = ('filename?',)
     has_output = tuple()
 
-    def run(self, **options):
-        code.interact(
-            '(Custom IPA interactive Python console)',
-            local=dict(api=self.api)
-        )
+    def run(self, filename=None, **options):
+        local = dict(api=self.api)
+        if filename:
+            try:
+                script = open(filename)
+            except IOError as e:
+                exit("%s: %s" % (e.filename, e.strerror))
+            try:
+                with script:
+                    exec(script, globals(), local)
+            except:
+                traceback.print_exc()
+                exit(1)
+        else:
+            code.interact(
+                '(Custom IPA interactive Python console)',
+                local=local
+            )
 
 
 class show_api(frontend.Command):
