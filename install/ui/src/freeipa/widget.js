@@ -5747,6 +5747,7 @@ exp.activity_widget = IPA.activity_widget = function(spec) {
 exp.pre_op = function(spec, context) {
 
     if (context.facet) spec.facet = context.facet;
+    if (context.parent) spec.parent = context.parent;
     if (context.entity) spec.entity = context.entity;
     return spec;
 };

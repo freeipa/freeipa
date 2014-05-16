@@ -147,6 +147,8 @@ define(['dojo/_base/declare',
             this.widgets = ordered_map();
             var builder_spec = spec.widget_builder || widget_mod.widget_builder;
             this.widget_builder = builder.build(null, builder_spec);
+            this.widget_builder.widget_options =  this.widget_builder.widget_options || {};
+            this.widget_builder.widget_options.parent = this;
         }
     });
 
