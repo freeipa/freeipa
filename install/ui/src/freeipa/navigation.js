@@ -77,7 +77,7 @@ define([
          * type.
          *
          * When facet is defined as a string it has to be registered in
-         * facet register. //FIXME: not yet implemented
+         * facet register.
          *
          * When it's an object (Facet) and has an entity set it will be
          * dealt as entity facet.
@@ -98,9 +98,7 @@ define([
             var facet = params.facet;
 
             if (typeof facet === 'string') {
-                // FIXME: doesn't work at the moment
-                throw 'Not yet supported';
-                //facet = IPA.get_facet(facet);
+                nav.navigate_to_facet(facet, params.args);
             }
 
             if (!facet) throw 'Argument exception: missing facet';
@@ -138,6 +136,22 @@ define([
             this.set_params(params, arg3);
             return nav.navigate_to_entity_facet(entity_name, params.facet,
                                                 params.pkeys, params.args);
+        },
+
+        /**
+         * Uses lower level access
+         *
+         * `experimental`
+         *
+         * Navigates to generic page by changing hash.
+         *
+         * @param  {string} hash Hash of the change
+         * @param  {Object} [facet] Facet we are navigating to. Usually used for
+         *                          notification purposes
+         */
+        show_generic: function(hash, facet) {
+            var nav = get_router();
+            nav.navigate_to_hash(hash, facet);
         },
 
         /**
