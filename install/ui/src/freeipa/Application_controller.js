@@ -35,10 +35,11 @@ define([
         './reg',
         './navigation/Menu',
         './navigation/Router',
+        './navigation/routing',
         './navigation/menu_spec'
        ],
        function(declare, lang, array, Deferred, on, topic, query, dom_class, auth,
-            JSON, App_widget, FacetContainer, IPA, reg, Menu, Router, menu_spec) {
+            JSON, App_widget, FacetContainer, IPA, reg, Menu, Router, routing, menu_spec) {
 
     /**
      * Application controller
@@ -78,6 +79,7 @@ define([
         init: function() {
             this.menu = new Menu();
             this.router = new Router();
+            routing.init(this.router);
 
             var body_node = query('body')[0];
             this.app_widget = new App_widget();
@@ -181,7 +183,7 @@ define([
             if (IPA.is_selfservice) {
                 this.on_profile();
             } else {
-                this.router.navigate_to_entity_facet('user', 'search');
+                routing.navigate(routing.default_path);
             }
         },
 
@@ -219,7 +221,7 @@ define([
         },
 
         on_profile: function() {
-            this.router.navigate_to_entity_facet('user', 'details', [IPA.whoami.uid[0]]);
+            routing.navigate(['entity', 'user', 'details', [IPA.whoami.uid[0]]]);
         },
 
         on_logout: function(event) {
@@ -287,8 +289,7 @@ define([
 
         on_facet_state_changed: function(event) {
             if (event.facet === this.current_facet) {
-                var hash = this.router.create_hash(event.facet, event.state);
-                this.router.update_hash(hash, true);
+                routing.update_hash(event.facet, event.state);
             }
         },
 
@@ -405,14 +406,15 @@ define([
             if (!child) {
                 if(menu_item.entity) {
                     // entity pages
-                    this.router.navigate_to_entity_facet(
+                    routing.navigate([
+                        'entity',
                         menu_item.entity,
                         menu_item.facet,
                         menu_item.pkeys,
-                        menu_item.args);
+                        menu_item.args]);
                 } else if (menu_item.facet) {
                     // concrete facets
-                    this.router.navigate_to_facet(menu_item.facet, menu_item.args);
+                    routing.navigate(['generic', menu_item.facet, menu_item.args]);
                 } else {
                     // categories, select first posible child, it may be the last
                     var children = this.menu.query({parent: menu_item.name });

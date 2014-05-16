@@ -20,14 +20,10 @@
 
 define(['dojo/_base/declare',
         'dojo/_base/lang',
-        'dojo/_base/array',
         'dojo/Evented',
-        'dojo/io-query',
-        'dojo/router',
-        '../ipa',
-        '../reg'
+        'dojo/router'
        ],
-       function(declare, lang, array, Evented, ioquery, router, IPA, reg) {
+       function(declare, lang, Evented, router) {
 
     /**
      * Router
@@ -56,27 +52,6 @@ define(['dojo/_base/declare',
         route_prefix: '',
 
         /**
-         * Variations of entity routes
-         * @property {Array.<string>}
-         */
-        entity_routes: [
-            '/e/:entity/:facet/:pkeys/*args',
-            '/e/:entity/:facet//*args',
-            '/e/:entity/:facet/:pkeys',
-            '/e/:entity/:facet',
-            '/e/:entity'
-        ],
-
-        /**
-         * Variations of simple page routes
-         * @property {Array.<string>}
-         */
-        page_routes: [
-            '/p/:page/*args',
-            '/p/:page'
-        ],
-
-        /**
          * Used during facet changing. Set it to true in 'facet-change'
          * event handler to stop the change.
          * @property {boolean}
@@ -100,145 +75,22 @@ define(['dojo/_base/declare',
          * @param {Function} handler to be associated with the route(s)
          */
         register_route: function(route, handler) {
-            // TODO: add multiple routes for one handler
-            route = this.route_prefix + route;
-            this.route_handlers.push(router.register(route, lang.hitch(this, handler)));
+
+            if (route instanceof Array) {
+                for (var i=0, l=route.length; i<l; i++) {
+                    this.register_route(route[i], handler);
+                }
+            } else {
+                var r = this.route_prefix + route;
+                this.route_handlers.push(router.register(r, lang.hitch(this, handler)));
+            }
         },
 
         /**
-         * Initializates router
-         *  - registers handlers
-         */
-        init_router: function() {
-
-            // entity pages
-            array.forEach(this.entity_routes, function(route) {
-                this.register_route(route, this.entity_route_handler);
-            }, this);
-
-            // special pages
-            array.forEach(this.page_routes, function(route) {
-                this.register_route(route, this.page_route_handler);
-            }, this);
-        },
-
-        /**
-         * Handler for entity routes
-         * Shouldn't be invoked directly.
-         * @param {Object} event route event args
-         */
-        entity_route_handler: function(event) {
-
-            if (this.check_clear_ignore()) return;
-
-            var entity_name = event.params.entity;
-            var facet_name = event.params.facet;
-            var pkeys, args;
-            try {
-                pkeys = this._decode_pkeys(event.params.pkeys || '');
-                args = ioquery.queryToObject(event.params.args || '');
-            } catch (e) {
-                this._error('URI error', 'route', event.params);
-                return;
-            }
-            args.pkeys = pkeys;
-
-            // set new facet state
-            var entity = reg.entity.get(entity_name);
-            if (!entity) {
-                this._error('Unknown entity', 'route', event.params);
-                return;
-            }
-            var facet = entity.get_facet(facet_name);
-            if (!facet) {
-                this._error('Unknown facet', 'route', event.params);
-                return;
-            }
-            facet.reset_state(args);
-
-            this.show_facet(facet);
-        },
-
-        /**
-         * General facet route handler
-         * Shouldn't be invoked directly.
-         * @param {Object} event route event args
-         */
-        page_route_handler: function(event) {
-
-            if (this.check_clear_ignore()) return;
-
-            var facet_name = event.params.page;
-            var args;
-            try {
-                args = ioquery.queryToObject(event.params.args || '');
-            } catch (e) {
-                this._error('URI error', 'route', event.params);
-                return;
-            }
-
-            // set new facet state
-            var facet = reg.facet.get(facet_name);
-            if (!facet) {
-                this._error('Unknown facet', 'route', event.params);
-                return;
-            }
-            facet.reset_state(args);
-
-            this.show_facet(facet);
-        },
-
-        /**
-         * Used for switching to entitie's facets. Current target facet
-         * state is used as params (pkeys, args) when none of pkeys and args
-         * are used (useful for switching to previous page with keeping the context).
-         */
-        navigate_to_entity_facet: function(entity_name, facet_name, pkeys, args) {
-
-            var entity = reg.entity.get(entity_name);
-            if (!entity) {
-                this._error('Unknown entity', 'navigation', { entity: entity_name});
-                return false;
-            }
-
-            var facet = entity.get_facet(facet_name);
-            if (!facet) {
-                this._error('Unknown facet', 'navigation', { facet: facet_name});
-                return false;
-            }
-
-            // Use current state if none supplied
-            if (!pkeys && !args) {
-                args = facet.get_state();
-            }
-            args = args || {};
-
-            // Facets may be nested and require more pkeys than supplied.
-            args.pkeys = facet.get_pkeys(pkeys);
-
-            var hash = this._create_entity_facet_hash(facet, args);
-            return this.navigate_to_hash(hash, facet);
-        },
-
-        /**
-         * Navigate to other facet.
-         */
-        navigate_to_facet: function(facet_name, args) {
-
-            var facet = reg.facet.get(facet_name);
-            if (!facet) {
-                this._error('Unknown facet', 'navigation', { facet: facet_name});
-                return false;
-            }
-            if (!args) args = facet.get_state();
-            var hash = this._create_facet_hash(facet, args);
-            return this.navigate_to_hash(hash, facet);
-        },
-
-        /**
-         * Low level function.
+         * Navigate to given hash
          *
-         * Public usage should be limited reinitializing canceled navigations.
+         * @fires facet-change
+         * @fires facet-change-canceled
          */
         navigate_to_hash: function(hash, facet) {
 
@@ -273,48 +125,6 @@ define(['dojo/_base/declare',
         },
 
         /**
-         * Creates from facet state appropriate hash.
-         */
-        _create_entity_facet_hash: function(facet, state) {
-            state = lang.clone(state);
-            var entity_name = facet.entity.name;
-            var pkeys = this._encode_pkeys(state.pkeys || []);
-            delete state.pkeys;
-            var args = ioquery.objectToQuery(state || {});
-
-            var path = [this.route_prefix, 'e', entity_name, facet.name];
-            if (!IPA.is_empty(args)) path.push(pkeys, args);
-            else if (!IPA.is_empty(pkeys)) path.push(pkeys);
-
-            var hash = path.join('/');
-            return hash;
-        },
-
-        /**
-         * Creates hash of general facet.
-         */
-        _create_facet_hash: function(facet, state) {
-            var args = ioquery.objectToQuery(state.args || {});
-            var path = [this.route_prefix, 'p', facet.name];
-
-            if (!IPA.is_empty(args)) path.push(args);
-            var hash = path.join('/');
-            return hash;
-        },
-
-        /**
-         * Creates hash from supplied facet and state.
-         *
-         * @param {facet.facet} facet
-         * @param {Object} state
-         */
-        create_hash: function(facet, state) {
-            if (facet.entity) return this._create_entity_facet_hash(facet, state);
-            else return this._create_facet_hash(facet, state);
-        },
-
-
-        /**
          * Tells other component to show given facet.
          */
         show_facet: function(facet) {
@@ -322,34 +132,6 @@ define(['dojo/_base/declare',
             this.emit('facet-show', {
                 facet: facet
             });
-        },
-
-        /**
-         * URI Encodes array items and delimits them by '&'
-         * Example: ['foo ', 'bar'] => 'foo%20&bar'
-         */
-        _encode_pkeys: function(pkeys) {
-
-            var ret = [];
-            array.forEach(pkeys, function(pkey) {
-                ret.push(encodeURIComponent(pkey));
-            });
-            return ret.join('&');
-        },
-
-        /**
-         * Splits strings by '&' and return an array of URI decoded parts.
-         * Example: 'foo%20&bar' => ['foo ', 'bar']
-         */
-        _decode_pkeys: function(str) {
-
-            if (!str) return [];
-
-            var keys = str.split('&');
-            for (var i=0; i<keys.length; i++) {
-                keys[i] = decodeURIComponent(keys[i]);
-            }
-            return keys;
         },
 
         /**
@@ -375,7 +157,6 @@ define(['dojo/_base/declare',
 
         constructor: function(spec) {
             spec = spec || {};
-            this.init_router();
         }
 
     });
