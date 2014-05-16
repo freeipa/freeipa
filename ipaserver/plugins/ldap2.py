@@ -186,12 +186,15 @@ class ldap2(LDAPClient, CrudBackend):
         has_memberindirect = False
         has_memberofindirect = False
         if attrs_list:
-            if 'memberindirect' in attrs_list:
-                has_memberindirect = True
-                attrs_list.remove('memberindirect')
-            if 'memberofindirect' in attrs_list:
-                has_memberofindirect = True
-                attrs_list.remove('memberofindirect')
+            new_attrs_list = []
+            for attr_name in attrs_list:
+                if attr_name == 'memberindirect':
+                    has_memberindirect = True
+                elif attr_name == 'memberofindirect':
+                    has_memberofindirect = True
+                else:
+                    new_attrs_list.append(attr_name)
+            attrs_list = new_attrs_list
 
         res, truncated = super(ldap2, self).find_entries(
             filter=filter, attrs_list=attrs_list, base_dn=base_dn, scope=scope,
