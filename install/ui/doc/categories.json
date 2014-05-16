@@ -98,10 +98,11 @@
                     "IPA.serial_associator",
                     "IPA.bulk_associator",
                     "IPA.association_config",
-                    "spec_util",
                     "_base.debug",
                     "_base.Spec_mod",
                     "datetime",
+                    "extend",
+                    "spec_util",
                     "util"
                 ]
             }
