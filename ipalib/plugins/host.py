@@ -42,6 +42,7 @@ from ipalib.request import context
 from ipalib.util import (normalize_sshpubkey, validate_sshpubkey_no_options,
     convert_sshpubkey_post)
 from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
+from ipapython.dnsutil import DNSName
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN
 
@@ -442,7 +443,9 @@ class host_add(LDAPCreate):
             host = parts[0]
             domain = unicode('.'.join(parts[1:]))
             check_reverse = not options.get('no_reverse', False)
-            add_records_for_host_validation('ip_address', host, domain,
+            add_records_for_host_validation('ip_address',
+                    DNSName(host),
+                    DNSName(domain),
                     options['ip_address'],
                     check_forward=True,
                     check_reverse=check_reverse)
@@ -494,7 +497,8 @@ class host_add(LDAPCreate):
                 if options.get('ip_address'):
                     add_reverse = not options.get('no_reverse', False)
 
-                    add_records_for_host(host, domain, options['ip_address'],
+                    add_records_for_host(DNSName(host), DNSName(domain),
+                                         options['ip_address'],
                                          add_forward=True,
                                          add_reverse=add_reverse)
                     del options['ip_address']

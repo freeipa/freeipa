@@ -35,7 +35,7 @@ from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 import ipalib
 from ipalib import api, errors
-from ipalib.util import (validate_zonemgr, normalize_zonemgr,
+from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
         get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy,
         normalize_zone, get_reverse_zone_default, zone_is_reverse)
 from ipalib.constants import CACERT
@@ -383,7 +383,7 @@ def zonemgr_callback(option, opt_str, value, parser):
     """
     # validate the value first
     try:
-        validate_zonemgr(value)
+        validate_zonemgr_str(value)
     except ValueError, e:
         parser.error("invalid zonemgr: " + unicode(e))
 

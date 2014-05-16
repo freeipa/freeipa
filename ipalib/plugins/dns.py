@@ -24,6 +24,7 @@ import netaddr
 import time
 import re
 import dns.name
+import dns.exception
 import dns.resolver
 
 from ipalib.request import context
@@ -33,11 +34,14 @@ from ipalib.parameters import (Flag, Bool, Int, Decimal, Str, StrEnum, Any,
                                DeprecatedParam)
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
-from ipalib.util import (validate_zonemgr, normalize_zonemgr, normalize_zone,
-        validate_hostname, validate_dns_label, validate_domain_name,
-        get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy,
-        get_reverse_zone_default, zone_is_reverse, REVERSE_DNS_ZONES)
+from ipalib.util import (validate_zonemgr, normalize_zonemgr,
+                         get_dns_forward_zone_update_policy,
+                         get_dns_reverse_zone_update_policy,
+                         normalize_zone, zone_is_reverse,
+                         validate_domain_name,
+                         get_reverse_zone_default, REVERSE_DNS_ZONES)
 from ipapython.ipautil import valid_ip, CheckedIPAddress, is_host_resolvable
+from ipapython.dnsutil import DNSName
 
 __doc__ = _("""
 Domain Name System (DNS)
@@ -236,7 +240,7 @@ _record_types = (
 )
 
 # DNS zone record identificator
-_dns_zone_record = u'@'
+_dns_zone_record = DNSName.empty
 
 # most used record types, always ask for those in interactive prompt
 _top_record_types = ('A', 'AAAA', )
@@ -264,7 +268,7 @@ _output_permissions = (
 def _rname_validator(ugettext, zonemgr):
     try:
         validate_zonemgr(zonemgr)
-    except ValueError, e:
+    except (ValueError, dns.exception.SyntaxError), e:
         return unicode(e)
     return None
 
@@ -381,35 +385,6 @@ def _normalize_bind_aci(bind_acis):
     acis += u';'
     return acis
 
-def _bind_hostname_validator(ugettext, value, allow_slash=False):
-    if value == _dns_zone_record:
-        return
-    try:
-        # Allow domain name which is not fully qualified. These are supported
-        # in bind and then translated as <non-fqdn-name>.<domain>.
-        validate_hostname(value, check_fqdn=False, allow_underscore=True, allow_slash=allow_slash)
-    except ValueError, e:
-        return _('invalid domain-name: %s') \
-            % unicode(e)
-
-    return None
-
-def _bind_cname_hostname_validator(ugettext, value):
-    """
-    Validator for CNAME allows classless domain names (25/0.0.10.in-addr.arpa.)
-    """
-    return _bind_hostname_validator(ugettext, value, allow_slash=True)
-
-def _dns_record_name_validator(ugettext, value):
-    if value == _dns_zone_record:
-        return
-
-    try:
-        map(lambda label:validate_dns_label(label, allow_underscore=True, allow_slash=True), \
-            value.split(u'.'))
-    except ValueError, e:
-        return unicode(e)
-
 def _validate_bind_forwarder(ugettext, forwarder):
     ip_address, sep, port = forwarder.partition(u' port ')
 
@@ -438,20 +413,11 @@ def _domain_name_validator(ugettext, value):
         return unicode(e)
 
 def _hostname_validator(ugettext, value):
-    try:
-        validate_hostname(value)
-    except ValueError, e:
-        return _('invalid domain-name: %s') \
-            % unicode(e)
+    assert isinstance(value, DNSName)
+    if len(value.make_absolute().labels) < 3:
+        return _('invalid domain-name: not fully qualified')
 
     return None
-
-def _normalize_hostname(domain_name):
-    """Make it fully-qualified"""
-    if domain_name[-1] != '.':
-        return domain_name + '.'
-    else:
-        return domain_name
 
 def is_forward_record(zone, str_address):
     addr = netaddr.IPAddress(str_address)
@@ -478,15 +444,16 @@ def add_forward_record(zone, name, str_address):
 
 def get_reverse_zone(ipaddr, prefixlen=None):
     ip = netaddr.IPAddress(str(ipaddr))
-    revdns = unicode(ip.reverse_dns)
+    revdns = DNSName(unicode(ip.reverse_dns))
 
     if prefixlen is None:
-        revzone = u''
+        revzone = None
 
         result = api.Command['dnszone_find']()['result']
         for zone in result:
             zonename = zone['idnsname'][0]
-            if revdns.endswith(zonename) and len(zonename) > len(revzone):
+            if (revdns.is_subdomain(zonename.make_absolute()) and
+               (revzone is None or zonename.is_subdomain(revzone))):
                 revzone = zonename
     else:
         if ip.version == 4:
@@ -494,23 +461,26 @@ def get_reverse_zone(ipaddr, prefixlen=None):
         elif ip.version == 6:
             pos = 32 - prefixlen / 4
         items = ip.reverse_dns.split('.')
-        revzone = u'.'.join(items[pos:])
+        revzone = DNSName(items[pos:])
 
         try:
             api.Command['dnszone_show'](revzone)
         except errors.NotFound:
-            revzone = u''
+            revzone = None
 
-    if len(revzone) == 0:
+    if revzone is None:
         raise errors.NotFound(
             reason=_('DNS reverse zone for IP address %(addr)s not found') % dict(addr=ipaddr)
         )
 
-    revname = revdns[:-len(revzone)-1]
+    revname = revdns.relativize(revzone)
 
     return revzone, revname
 
 def add_records_for_host_validation(option_name, host, domain, ip_addresses, check_forward=True, check_reverse=True):
+    assert isinstance(host, DNSName)
+    assert isinstance(domain, DNSName)
+
     try:
         api.Command['dnszone_show'](domain)['result']
     except errors.NotFound:
@@ -549,6 +519,9 @@ def add_records_for_host_validation(option_name, host, domain, ip_addresses, che
 
 
 def add_records_for_host(host, domain, ip_addresses, add_forward=True, add_reverse=True):
+    assert isinstance(host, DNSName)
+    assert isinstance(domain, DNSName)
+
     if not isinstance(ip_addresses, (tuple, list)):
         ip_addresses = [ip_addresses]
 
@@ -564,11 +537,24 @@ def add_records_for_host(host, domain, ip_addresses, add_forward=True, add_rever
                 if not ip.defaultnet:
                     prefixlen = ip.prefixlen
                 revzone, revname = get_reverse_zone(ip, prefixlen)
-                addkw = { 'ptrrecord' : host + "." + domain }
+                addkw = {'ptrrecord': host.derelativize(domain).ToASCII()}
                 api.Command['dnsrecord_add'](revzone, revname, **addkw)
             except errors.EmptyModlist:
                 # the entry already exists and matches
                 pass
+
+def _dns_name_to_string(value, raw=False):
+    if isinstance(value, unicode):
+        try:
+            value = DNSName(value)
+        except Exception:
+            return value
+
+    assert isinstance(value, DNSName)
+    if raw:
+        return value.ToASCII()
+    else:
+        return unicode(value)
 
 class DNSRecord(Str):
     # a list of parts that create the actual raw DNS record
@@ -1327,12 +1313,6 @@ class RPRecord(DNSRecord):
     rfc = 1183
     supported = False
 
-def _srv_target_validator(ugettext, value):
-    if value == u'.':
-        # service not available
-        return
-    return _bind_hostname_validator(ugettext, value)
-
 class SRVRecord(DNSRecord):
     rrtype = 'SRV'
     rfc = 2782
@@ -1530,17 +1510,20 @@ _dns_supported_record_types = tuple(record.rrtype for record in _dns_records \
                                     if record.supported)
 
 def check_ns_rec_resolvable(zone, name):
-    if name == _dns_zone_record:
-        name = normalize_zone(zone)
-    elif not name.endswith('.'):
+    assert isinstance(zone, DNSName)
+    assert isinstance(name, DNSName)
+
+    if name.is_empty():
+        name = zone.make_absolute()
+    elif not name.is_absolute():
         # this is a DNS name relative to the zone
-        zone = dns.name.from_text(zone)
-        name = unicode(dns.name.from_text(name, origin=zone))
+        name = name.derelativize(zone.make_absolute())
     try:
         return api.Command['dns_resolve'](name)
     except errors.NotFound:
         raise errors.NotFound(
-            reason=_('Nameserver \'%(host)s\' does not have a corresponding A/AAAA record') % {'host': name}
+            reason=_('Nameserver \'%(host)s\' does not have a corresponding '
+                     'A/AAAA record') % {'host': name}
         )
 
 def dns_container_exists(ldap):
@@ -1551,8 +1534,8 @@ def dns_container_exists(ldap):
     return True
 
 def default_zone_update_policy(zone):
-    if zone_is_reverse(zone):
-        return get_dns_reverse_zone_update_policy(api.env.realm, zone)
+    if zone.is_reverse():
+        return get_dns_reverse_zone_update_policy(api.env.realm, zone.ToASCII())
     else:
         return get_dns_forward_zone_update_policy(api.env.realm)
 

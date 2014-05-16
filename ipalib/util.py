@@ -37,6 +37,7 @@ from ipalib import errors
 from ipalib.text import _
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN, RDN
+from ipapython.dnsutil import DNSName
 
 
 def json_serialize(obj):
@@ -198,8 +199,7 @@ def check_writable_file(filename):
         raise errors.FileError(reason=str(e))
 
 def normalize_zonemgr(zonemgr):
-    if not zonemgr:
-        # do not normalize empty or None value
+    if not zonemgr or not isinstance(zonemgr, basestring):
         return zonemgr
     if '@' in zonemgr:
         # local-part needs to be normalized
@@ -260,46 +260,20 @@ def validate_domain_name(domain_name, allow_underscore=False, allow_slash=False)
 
 
 def validate_zonemgr(zonemgr):
+    assert isinstance(zonemgr, DNSName)
+    assert zonemgr.is_absolute()
     """ See RFC 1033, 1035 """
-    regex_local_part = re.compile(r'^[a-z0-9]([a-z0-9-_]?[a-z0-9])*$',
-                                    re.IGNORECASE)
-    local_part_errmsg = _('mail account may only include letters, numbers, -, _ and a dot. There may not be consecutive -, _ and . characters. Its parts may not start or end with - or _')
-    local_part_sep = '.'
-    local_part = None
-    domain = None
-
-    if len(zonemgr) > 255:
-        raise ValueError(_('cannot be longer that 255 characters'))
-
-    if zonemgr.endswith('.'):
-        zonemgr = zonemgr[:-1]
-
-    if zonemgr.count('@') == 1:
-        local_part, dot, domain = zonemgr.partition('@')
-    elif zonemgr.count('@') > 1:
+    if any('@' in label for label in zonemgr.labels):
         raise ValueError(_('too many \'@\' characters'))
-    else:
-        last_fake_sep = zonemgr.rfind('\\.')
-        if last_fake_sep != -1: # there is a 'fake' local-part/domain separator
-            local_part_sep = '\\.'
-            sep = zonemgr.find('.', last_fake_sep+2)
-            if sep != -1:
-                local_part = zonemgr[:sep]
-                domain = zonemgr[sep+1:]
-        else:
-            local_part, dot, domain = zonemgr.partition('.')
-
-    if not domain:
+    if len(zonemgr.labels) < 3:
         raise ValueError(_('missing address domain'))
-
-    validate_domain_name(domain)
-
-    if not local_part:
+    if not zonemgr.labels[0]:
         raise ValueError(_('missing mail account'))
 
-    if not all(regex_local_part.match(part) for part in \
-               local_part.split(local_part_sep)):
-        raise ValueError(local_part_errmsg)
+def validate_zonemgr_str(zonemgr):
+    zonemgr = normalize_zonemgr(zonemgr)
+    zonemgr = DNSName(zonemgr).make_absolute()
+    return validate_zonemgr(zonemgr)
 
 def validate_hostname(hostname, check_fqdn=True, allow_underscore=False, allow_slash=False):
     """ See RFC 952, 1123
@@ -546,16 +520,12 @@ def get_dns_reverse_zone_update_policy(realm, reverse_zone, rrtypes=('PTR',)):
 
 # dictionary of valid reverse zone -> number of address components
 REVERSE_DNS_ZONES = {
-    '.in-addr.arpa.' : 4,
-    '.ip6.arpa.' : 32,
+    DNSName.ip4_rev_zone : 4,
+    DNSName.ip6_rev_zone : 32,
 }
 
 def zone_is_reverse(zone_name):
-    zone_name = normalize_zone(zone_name)
-    if any(zone_name.endswith(name) for name in REVERSE_DNS_ZONES):
-        return True
-
-    return False
+    return DNSName(zone_name).is_reverse()
 
 def get_reverse_zone_default(ip_address):
     ip = netaddr.IPAddress(str(ip_address))
