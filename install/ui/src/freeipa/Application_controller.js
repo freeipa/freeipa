@@ -323,7 +323,7 @@ define([
             if (menu_item) this.menu.select(menu_item);
 
             // show facet
-            if (!facet.container) {
+            if (!facet.container_node) {
                 facet.container_node = container.widget.content_node;
                 on(facet, 'facet-state-change', lang.hitch(this, this.on_facet_state_changed));
             }
