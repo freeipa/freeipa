@@ -21,7 +21,10 @@
  */
 
 define([
+       'dojo/_base/lang',
        'dojo/keys',
+       'dojo/topic',
+       'dojo/Evented',
        './builder',
        './ipa',
        './jquery',
@@ -30,10 +33,14 @@ define([
        './text',
        './field',
        './widget'],
-       function(keys, builder, IPA, $, phases, reg, text, field_mod, widget_mod) {
+       function(lang, keys, topic, Evented, builder, IPA, $, phases, reg, text,
+        field_mod, widget_mod) {
+
 
 /**
  * Opened dialogs
+ *
+ * For proper functionality requires started application(`app_container.app`)
  *
  * @class
  * @singleton
@@ -43,23 +50,65 @@ IPA.opened_dialogs = {
     /** Opened dialogs */
     dialogs: [],
 
-    /** Get top dialog */
+    /**
+     * Show only one dialog at a time
+     * @property {Boolean}
+     */
+    show_only_one: true,
+
+    /**
+     * Dialog topic handlers
+     * @property {Array}
+     * @protected
+     */
+    handlers: [],
+
+    /**
+     * Object which contains `current_facet`
+     * @property {ApplicationController}
+     */
+    app: null,
+
+    /**
+     * Get top dialog of target facet or a global one
+     * @return {IPA.dialog}
+     */
     top_dialog: function() {
         var top = null;
-        if (this.dialogs.length) top = this.dialogs[this.dialogs.length - 1];
+        for (var i=0,l=this.dialogs.length; i<l; i++) {
+            var dialog = this.dialogs[i];
+            if (!dialog.facet || dialog.facet === this.app.current_facet) {
+                top = dialog;
+                break;
+            }
+        }
         return top;
     },
 
-    /** Focus to dialog */
+    /** Focus and show top dialog */
     focus_top: function() {
         var top = this.top_dialog();
-        if (top) {
+        if (!top) return;
+
+        function focus_first() {
             top.focus_first_element();
+        }
+
+        if (top.is_shown) {
+            focus_first();
+        } else {
+            top.show(focus_first);
         }
     },
 
     /** Add dialog */
     add_dialog: function(dialog) {
+        if (this.show_only_one) {
+            var top = this.top_dialog();
+            if (top) {
+                top.hide();
+            }
+        }
         this.dialogs.push(dialog);
     },
 
@@ -67,6 +116,50 @@ IPA.opened_dialogs = {
     remove_dialog: function(dialog) {
         var index = this.dialogs.indexOf(dialog);
         if (index > -1) this.dialogs.splice(index, 1);
+
+        this.focus_top();
+    },
+
+    /**
+     * Hide all dialogs or only the ones belonging to specific facet
+     * @param  {facet.facet|facets.Facet} [facet] Target facet
+     */
+    hide: function(facet) {
+        for (var i=0,l=this.dialogs.length; i<l; i++) {
+            var dialog = this.dialogs[i];
+            if (dialog.is_shown && (!facet || dialog.facet === facet)) {
+                dialog.hide();
+            }
+        }
+    },
+
+    on_dialog_open: function(event) {
+        var dialog = event.source;
+        if (dialog.facet === undefined) {
+           event.source.facet = this.app.current_facet;
+        }
+    },
+
+    on_dialog_opened: function(event) {
+        this.add_dialog(event.source);
+    },
+
+    on_dialog_closed: function(event) {
+        this.remove_dialog(event.source);
+    },
+
+    start_handling: function(app) {
+
+        this.app = app;
+
+        this.handlers.push(topic.subscribe('dialog.open',
+            lang.hitch(this, this.on_dialog_open)));
+
+        this.handlers.push(topic.subscribe('dialog.opened',
+            lang.hitch(this, this.on_dialog_opened)));
+
+        this.handlers.push(topic.subscribe('dialog.closed',
+            lang.hitch(this, this.on_dialog_closed)));
     }
 };
 
@@ -128,7 +221,7 @@ IPA.dialog = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.object();
+    var that = new Evented();
 
     /** @property {entity.entity} entity Entity */
     that.entity = IPA.get_entity(spec.entity);
@@ -142,6 +235,8 @@ IPA.dialog = function(spec) {
     that.width = spec.width || 500;
     /** @property {number} height Dialog height */
     that.height = spec.height;
+    /** @property {boolean} Dialog is shown */
+    that.is_shown = false;
 
     /**
      * Close dialog on Escape key press
@@ -460,11 +555,27 @@ IPA.dialog = function(spec) {
         that.dom_node.appendTo(document.body);
 
         that.register_listeners();
-        IPA.opened_dialogs.add_dialog(that);
 
-        this.dom_node.one('shown.bs.modal', function() {
+        this.emit('open', { source: that });
+        topic.publish('dialog.open', { source: that });
+
+        this.show(lang.hitch(this, function() {
             that.focus_first_element();
-        });
+            that.emit('opened', { source: that });
+            topic.publish('dialog.opened', { source: that });
+        }));
+    };
+
+    /**
+     * Show dialog
+     * @param  {Function} clb Show callback, called when showing is complete.
+     */
+    that.show = function(clb) {
+        that.is_shown = true;
+        this.dom_node.one('shown.bs.modal', clb);
+
+        that.emit('show', { source: that });
+        topic.publish('dialog.show', { source: that });
 
         this.dom_node.modal({
             backdrop: 'static',
@@ -531,6 +642,8 @@ IPA.dialog = function(spec) {
 
     /**
      * Close dialog
+     *
+     * Hides and destroys dialog.
      */
     that.close = function() {
 
@@ -539,14 +652,25 @@ IPA.dialog = function(spec) {
         if (!that.dom_node) return;
 
         var dom_node = that.dom_node;
-
-        that.dom_node.one('hidden.bs.modal', function() {
+        this.hide(lang.hitch(this, function() {
             dom_node.remove();
             that.dom_node = null;
-            IPA.opened_dialogs.remove_dialog(that);
-            IPA.opened_dialogs.focus_top();
-        });
+            that.emit('closed', { source: that });
+            topic.publish('dialog.closed', { source: that });
+        }));
+    };
 
+    /**
+     * Hide dialog
+     *
+     * Dialog's content remains untouched
+     * @param {Function} [clb] Hide callback
+     */
+    that.hide = function(clb) {
+        that.is_shown = false;
+        that.dom_node.one('hidden.bs.modal', clb);
+        that.emit('hide', { source: that });
+        topic.publish('dialog.hide', { source: that });
         that.dom_node.modal('hide');
     };
 

@@ -116,6 +116,7 @@ define([
             simple_container.hide();
             var load_facet = reg.facet.get('load');
             this.show_facet(load_facet);
+            IPA.opened_dialogs.start_handling(this);
         },
 
         /**
@@ -320,9 +321,14 @@ define([
                 on(facet, 'facet-state-change', lang.hitch(this, this.on_facet_state_changed));
             }
 
+            if (this.current_facet !== facet) {
+                IPA.opened_dialogs.hide();
+            }
+
             this.hide_facet();
             this.current_facet = facet;
             facet.show();
+            IPA.opened_dialogs.focus_top();
         },
 
         hide_facet: function() {
@@ -455,7 +461,6 @@ define([
                     }
                     topic.publish('auth-successful');
                 });
-
                 this.show_facet(login_facet);
             }
         }
