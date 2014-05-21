@@ -289,7 +289,7 @@ rpc.command = function(spec) {
             // With trusts, user from trusted domain can use his ticket but he
             // doesn't have rights for LDAP modify. It will throw internal error.
             // We should offer form base login.
-            if (xhr.status === 500 && auth.authenticated_by === 'kerberos' &&
+            if (xhr.status === 500 && auth.current.authenticated_by === 'kerberos' &&
                 !IPA.ui.initialized) {
                 error_handler_auth(xhr, text_status, error_thrown);
                 return;

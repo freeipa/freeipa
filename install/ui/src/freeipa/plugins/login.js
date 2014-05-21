@@ -43,6 +43,7 @@ define(['dojo/_base/declare',
     login.facet_spec = {
         name: 'login',
         preferred_container: 'simple',
+        requires_auth: false,
         widgets: [
             {
                 $type: 'activity',
@@ -60,7 +61,7 @@ define(['dojo/_base/declare',
     login.LoginFacet = declare([Facet], {
 
         can_leave: function() {
-            return auth.authenticated;
+            return auth.current.authenticated;
         },
 
         init: function() {

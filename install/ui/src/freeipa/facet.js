@@ -220,6 +220,13 @@ exp.facet = IPA.facet = function(spec, no_init) {
      */
     that._needs_update = spec.needs_update;
 
+
+    /**
+     * Facet is shown
+     * @property {Boolean}
+     */
+    that.is_shown = false;
+
     /**
      * Marks facet as expired - needs update
      *
@@ -290,6 +297,13 @@ exp.facet = IPA.facet = function(spec, no_init) {
      * @param {string} facet facet name
      */
     that.redirect_info = spec.redirect_info;
+
+
+    /**
+     * Facet requires authenticated user
+     * @type {Boolean}
+     */
+    that.requires_auth = spec.requires_auth !== undefined ? spec.requires_auth : true;
 
     /**
      * Public state
@@ -480,7 +494,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
         that.old_state = state;
 
         // we don't have to reflect any changes if facet dom is not yet created
-        if (!that.dom_node) {
+        if (!that.dom_node || !that.is_shown) {
             if (needs_update) that.set_expired_flag();
             return;
         }
@@ -651,30 +665,29 @@ exp.facet = IPA.facet = function(spec, no_init) {
      */
     that.show = function() {
 
+        if (that.is_shown) return;
+        that.is_shown = true;
+
         that.entity.facet = that; // FIXME: remove
 
         if (!that.dom_node) {
             that.create();
+        }
 
-            var state = that.state.clone();
-            var needs_update = that.needs_update(state);
-            that.old_state = state;
+        var state = that.state.clone();
+        var needs_update = that.needs_update(state);
+        that.old_state = state;
 
-            if (needs_update) {
-                that.clear();
-            }
+        if (needs_update) {
+            that.clear();
+        }
 
-            that.dom_node.addClass('active-facet');
-            that.show_content();
-            that.header.select_tab();
+        that.dom_node.addClass('active-facet');
+        that.show_content();
+        that.header.select_tab();
 
-            if (needs_update) {
-                that.refresh();
-            }
-        } else {
-            that.dom_node.addClass('active-facet');
-            that.show_content();
-            that.header.select_tab();
+        if (needs_update) {
+            that.refresh();
         }
     };
 
@@ -714,6 +727,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
      * Un-mark itself as active facet
      */
     that.hide = function() {
+        that.is_shown = false;
         that.dom_node.removeClass('active-facet');
     };
 

@@ -113,6 +113,12 @@ define(['dojo/_base/declare',
         redirect_info: null,
 
         /**
+         * Facet requires authenticated user
+         * @type {Boolean}
+         */
+        requires_auth: true,
+
+        /**
          * Public state
          * @property {facet.FacetState}
          * @protected
@@ -323,6 +329,9 @@ define(['dojo/_base/declare',
             this.container_node = spec.container_node;
             this.dom_node = spec.dom_node;
             this.redirect_info = spec.redirect_info;
+            if (spec.requires_auth !== undefined) {
+                this.requires_auth = spec.requires_auth;
+            }
             this.state = new mod_facet.FacetState();
             on(this.state, 'set', lang.hitch(this, this.on_state_set));
         }

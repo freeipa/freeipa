@@ -27,6 +27,7 @@ define([
         'dojo/topic',
         'dojo/query',
         'dojo/dom-class',
+        './auth',
         './json2',
         './widgets/App',
         './widgets/FacetContainer',
@@ -36,7 +37,7 @@ define([
         './navigation/Router',
         './navigation/menu_spec'
        ],
-       function(declare, lang, array, Deferred, on, topic, query, dom_class,
+       function(declare, lang, array, Deferred, on, topic, query, dom_class, auth,
             JSON, App_widget, FacetContainer, IPA, reg, Menu, Router, menu_spec) {
 
     /**
@@ -297,6 +298,12 @@ define([
 
         show_facet: function(facet) {
 
+            // prevent changing facet when authenticating
+            if (this.current_facet && this.current_facet.name === 'login' &&
+                !auth.current.authenticated && facet.requires_auth) {
+                return;
+            }
+
             // choose container
             var container = this.containers[facet.preferred_container];
             if (!container) container = this.containers.main;
@@ -455,7 +462,6 @@ define([
                 var login_facet = reg.facet.get('login');
 
                 on.once(login_facet, "logged_in", function() {
-
                     if (facet) {
                         self.show_facet(facet);
                     }
