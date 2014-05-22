@@ -1843,6 +1843,7 @@ class dnszone(LDAPObject):
             doc=_('Allow inline DNSSEC signing of records in the zone'),
         ),
     )
+    # Permissions will be apllied for forwardzones too
     managed_permissions = {
         'System: Add DNS Entries': {
             'non_object': True,
@@ -3591,3 +3592,330 @@ class dnsconfig_show(LDAPRetrieve):
         self.obj.postprocess_result(result)
         return result
 
+
+@register()
+class dnsforwardzone(LDAPObject):
+    """
+    DNS Forward zone, container for resource records.
+    """
+    container_dn = api.env.container_dns
+    object_name = _('DNS forward zone')
+    object_name_plural = _('DNS forward zones')
+    object_class = ['top', 'idnsforwardzone']
+    possible_objectclasses = ['ipadnszone']
+    default_attributes = [
+        'idnsname', 'idnszoneactive', 'idnsforwarders', 'idnsforwardpolicy'
+    ]
+    label = _('DNS Forward Zones')
+    label_singular = _('DNS Forward Zone')
+    default_forward_policy = u'first'
+
+    takes_params = (
+        DNSNameParam('idnsname',
+            only_absolute=True,
+            cli_name='name',
+            label=_('Forward zone name'),
+            doc=_('Forward zone name (FQDN)'),
+            default_from=lambda name_from_ip: _reverse_zone_name(name_from_ip),
+            primary_key=True,
+        ),
+        Str('name_from_ip?', _validate_ipnet,
+            label=_('Reverse zone IP network'),
+            doc=_('IP network to create reverse zone name from'),
+            flags=('virtual_attribute',),
+        ),
+        Bool('idnszoneactive?',
+            cli_name='zone_active',
+            label=_('Active zone'),
+            doc=_('Is zone active?'),
+            flags=['no_create', 'no_update'],
+            attribute=True,
+        ),
+        Str('idnsforwarders*',
+            _validate_bind_forwarder,
+            cli_name='forwarder',
+            label=_('Zone forwarders'),
+            doc=_('Per-zone forwarders. A custom port can be specified '
+                  'for each forwarder using a standard format "IP_ADDRESS port PORT"'),
+            csv=True,
+        ),
+        StrEnum('idnsforwardpolicy?',
+            cli_name='forward_policy',
+            label=_('Forward policy'),
+            doc=_('Per-zone conditional forwarding policy. Set to "none" to '
+                  'disable forwarding.'),
+            values=(u'only', u'first', u'none'),
+        ),
+
+    )
+    # managed_permissions: permissions was apllied in dnszone class, do NOT
+    # add them here, they should not be applied twice.
+
+    def get_dn(self, *keys, **options):
+        zone = keys[-1]
+        assert isinstance(zone, DNSName)
+        assert zone.is_absolute()
+        zone = zone.ToASCII()
+
+        # try first relative name, a new zone has to be added as absolute
+        # otherwise ObjectViolation is raised
+        zone = zone[:-1]
+        dn = super(dnsforwardzone, self).get_dn(zone, **options)
+        try:
+            self.backend.get_entry(dn, [''])
+        except errors.NotFound:
+            zone = u"%s." % zone
+            dn = super(dnsforwardzone, self).get_dn(zone, **options)
+
+        return dn
+
+    def permission_name(self, zone):
+        assert isinstance(zone, DNSName)
+        return u"Manage DNS zone %s" % zone.ToASCII()
+
+
+@register()
+class dnsforwardzone_add(LDAPCreate):
+    __doc__ = _('Create new DNS forward zone.')
+
+    has_output_params = LDAPCreate.has_output_params + dnszone_output_params
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
+        if not dns_container_exists(self.api.Backend.ldap2):
+            raise errors.NotFound(reason=_('DNS is not configured'))
+
+        entry_attrs['idnszoneactive'] = 'TRUE'
+
+        if 'idnsforwardpolicy' not in entry_attrs:
+            entry_attrs['idnsforwardpolicy'] = self.obj.default_forward_policy
+
+        if (not entry_attrs.get('idnsforwarders') and
+                entry_attrs['idnsforwardpolicy'] != u'none'):
+            raise errors.ValidationError(name=u'idnsforwarders',
+                                         error=_('Please specify forwarders.'))
+
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        return dn
+
+
+@register()
+class dnsforwardzone_del(LDAPDelete):
+    __doc__ = _('Delete DNS forward zone.')
+
+    msg_summary = _('Deleted DNS forward zone "%(value)s"')
+
+    def post_callback(self, ldap, dn, *keys, **options):
+        try:
+            api.Command['permission_del'](self.obj.permission_name(keys[-1]),
+                                          force=True)
+        except errors.NotFound:
+            pass
+
+        return True
+
+
+@register()
+class dnsforwardzone_mod(LDAPUpdate):
+    __doc__ = _('Modify DNS forward zone.')
+
+    has_output_params = LDAPUpdate.has_output_params + dnszone_output_params
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        try:
+            entry = ldap.get_entry(dn)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
+        policy = self.obj.default_forward_policy
+        forwarders = []
+
+        if 'idnsforwarders' in entry_attrs:
+            forwarders = entry_attrs['idnsforwarders']
+        elif 'idnsforwarders' in entry:
+            forwarders = entry['idnsforwarders']
+
+        if 'idnsforwardpolicy' in entry_attrs:
+            policy = entry_attrs['idnsforwardpolicy']
+        elif 'idnsforwardpolicy' in entry:
+            policy = entry['idnsforwardpolicy']
+
+        if not forwarders and policy != u'none':
+            raise errors.ValidationError(name=u'idnsforwarders',
+                                         error=_('Please specify forwarders.'))
+
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        return dn
+
+
+@register()
+class dnsforwardzone_find(LDAPSearch):
+    __doc__ = _('Search for DNS forward zones.')
+
+    has_output_params = LDAPSearch.has_output_params + dnszone_output_params
+
+    def args_options_2_params(self, *args, **options):
+        # FIXME: Check that name_from_ip is valid. This is necessary because
+        #        custom validation rules, including _validate_ipnet, are not
+        #        used when doing a search. Once we have a parameter type for
+        #        IP network objects, this will no longer be necessary, as the
+        #        parameter type will handle the validation itself (see
+        #        <https://fedorahosted.org/freeipa/ticket/2266>).
+        if 'name_from_ip' in options:
+            self.obj.params['name_from_ip'](unicode(options['name_from_ip']))
+        return super(dnsforwardzone_find, self).args_options_2_params(*args, **options)
+
+    def args_options_2_entry(self, *args, **options):
+        if 'name_from_ip' in options:
+            if 'idnsname' not in options:
+                options['idnsname'] = self.obj.params['idnsname'].get_default(**options)
+            del options['name_from_ip']
+        search_kw = super(dnsforwardzone_find, self).args_options_2_entry(*args,
+                                                                   **options)
+        name = search_kw.get('idnsname')
+        if name:
+            search_kw['idnsname'] = [name, name.relativize(DNSName.root)]
+        return search_kw
+
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
+        assert isinstance(base_dn, DN)
+
+        filter = _create_idn_filter(self, ldap, *args, **options)
+
+        return (filter, base_dn, scope)
+
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        return truncated
+
+
+@register()
+class dnsforwardzone_show(LDAPRetrieve):
+    __doc__ = _('Display information about a DNS forward zone.')
+
+    has_output_params = LDAPRetrieve.has_output_params + dnszone_output_params
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        return dn
+
+
+@register()
+class dnsforwardzone_disable(LDAPQuery):
+    __doc__ = _('Disable DNS Forward Zone.')
+
+    has_output = output.standard_value
+    msg_summary = _('Disabled DNS forward zone "%(value)s"')
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+
+        dn = self.obj.get_dn(*keys, **options)
+        entry = ldap.get_entry(dn, ['idnszoneactive'])
+
+        entry['idnszoneactive'] = ['FALSE']
+
+        try:
+            ldap.update_entry(entry)
+        except errors.EmptyModlist:
+            pass
+
+        return dict(result=True, value=pkey_to_value(keys[-1], options))
+
+
+@register()
+class dnsforwardzone_enable(LDAPQuery):
+    __doc__ = _('Enable DNS Forward Zone.')
+
+    has_output = output.standard_value
+    msg_summary = _('Enabled DNS forward zone "%(value)s"')
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+
+        dn = self.obj.get_dn(*keys, **options)
+        entry = ldap.get_entry(dn, ['idnszoneactive'])
+
+        entry['idnszoneactive'] = ['TRUE']
+
+        try:
+            ldap.update_entry(entry)
+        except errors.EmptyModlist:
+            pass
+
+        return dict(result=True, value=pkey_to_value(keys[-1], options))
+
+
+@register()
+class dnsforwardzone_add_permission(LDAPQuery):
+    __doc__ = _('Add a permission for per-zone access delegation.')
+
+    has_output = _output_permissions
+    msg_summary = _('Added system permission "%(value)s"')
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+        dn = self.obj.get_dn(*keys, **options)
+
+        try:
+            entry_attrs = ldap.get_entry(dn, ['objectclass'])
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
+        permission_name = self.obj.permission_name(keys[-1])
+        permission = api.Command['permission_add_noaci'](permission_name,
+                         ipapermissiontype=u'SYSTEM'
+                     )['result']
+
+        dnszone_ocs = entry_attrs.get('objectclass')
+        if dnszone_ocs:
+            for oc in dnszone_ocs:
+                if oc.lower() == 'ipadnszone':
+                    break
+            else:
+                dnszone_ocs.append('ipadnszone')
+
+        entry_attrs['managedby'] = [permission['dn']]
+        ldap.update_entry(entry_attrs)
+
+        return dict(
+            result=True,
+            value=pkey_to_value(permission_name, options),
+        )
+
+
+@register()
+class dnsforwardzone_remove_permission(LDAPQuery):
+    __doc__ = _('Remove a permission for per-zone access delegation.')
+
+    has_output = _output_permissions
+    msg_summary = _('Removed system permission "%(value)s"')
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+        dn = self.obj.get_dn(*keys, **options)
+        try:
+            entry = ldap.get_entry(dn, ['managedby'])
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
+        entry['managedby'] = None
+
+        try:
+            ldap.update_entry(entry)
+        except errors.EmptyModlist:
+            # managedBy attribute is clean, lets make sure there is also no
+            # dangling DNS zone permission
+            pass
+
+        permission_name = self.obj.permission_name(keys[-1])
+        api.Command['permission_del'](permission_name, force=True)
+
+        return dict(
+            result=True,
+            value=pkey_to_value(permission_name, options),
+        )

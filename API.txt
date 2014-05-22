@@ -704,6 +704,100 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
+command: dnsforwardzone_add
+args: 1,8,3
+arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=False, only_absolute=True, primary_key=True, required=True)
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Str('idnsforwarders', attribute=True, cli_name='forwarder', csv=True, multivalue=True, required=False)
+option: StrEnum('idnsforwardpolicy', attribute=True, cli_name='forward_policy', multivalue=False, required=False, values=(u'only', u'first', u'none'))
+option: Str('name_from_ip', attribute=False, cli_name='name_from_ip', multivalue=False, required=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('version?', exclude='webui')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: PrimaryKey('value', None, None)
+command: dnsforwardzone_add_permission
+args: 1,1,3
+arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=False, only_absolute=True, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
+output: Output('result', <type 'bool'>, None)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Output('value', <type 'unicode'>, None)
+command: dnsforwardzone_del
+args: 1,2,3
+arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=True, only_absolute=True, primary_key=True, query=True, required=True)
+option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
+output: Output('result', <type 'dict'>, None)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: ListOfPrimaryKeys('value', None, None)
+command: dnsforwardzone_disable
+args: 1,1,3
+arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=False, only_absolute=True, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
+output: Output('result', <type 'bool'>, None)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: PrimaryKey('value', None, None)
+command: dnsforwardzone_enable
+args: 1,1,3
+arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=False, only_absolute=True, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
+output: Output('result', <type 'bool'>, None)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: PrimaryKey('value', None, None)
+command: dnsforwardzone_find
+args: 1,11,4
+arg: Str('criteria?', noextrawhitespace=False)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Str('idnsforwarders', attribute=True, autofill=False, cli_name='forwarder', csv=True, multivalue=True, query=True, required=False)
+option: StrEnum('idnsforwardpolicy', attribute=True, autofill=False, cli_name='forward_policy', multivalue=False, query=True, required=False, values=(u'only', u'first', u'none'))
+option: DNSNameParam('idnsname', attribute=True, autofill=False, cli_name='name', multivalue=False, only_absolute=True, primary_key=True, query=True, required=False)
+option: Bool('idnszoneactive', attribute=True, autofill=False, cli_name='zone_active', multivalue=False, query=True, required=False)
+option: Str('name_from_ip', attribute=False, autofill=False, cli_name='name_from_ip', multivalue=False, query=True, required=False)
+option: Flag('pkey_only?', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Int('sizelimit?', autofill=False, minvalue=0)
+option: Int('timelimit?', autofill=False, minvalue=0)
+option: Str('version?', exclude='webui')
+output: Output('count', <type 'int'>, None)
+output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Output('truncated', <type 'bool'>, None)
+command: dnsforwardzone_mod
+args: 1,10,3
+arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=False, only_absolute=True, primary_key=True, query=True, required=True)
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
+option: Str('idnsforwarders', attribute=True, autofill=False, cli_name='forwarder', csv=True, multivalue=True, required=False)
+option: StrEnum('idnsforwardpolicy', attribute=True, autofill=False, cli_name='forward_policy', multivalue=False, required=False, values=(u'only', u'first', u'none'))
+option: Str('name_from_ip', attribute=False, autofill=False, cli_name='name_from_ip', multivalue=False, required=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Flag('rights', autofill=True, default=False)
+option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('version?', exclude='webui')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: PrimaryKey('value', None, None)
+command: dnsforwardzone_remove_permission
+args: 1,1,3
+arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=False, only_absolute=True, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
+output: Output('result', <type 'bool'>, None)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Output('value', <type 'unicode'>, None)
+command: dnsforwardzone_show
+args: 1,4,3
+arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=False, only_absolute=True, primary_key=True, query=True, required=True)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Flag('rights', autofill=True, default=False)
+option: Str('version?', exclude='webui')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: PrimaryKey('value', None, None)
 command: dnsrecord_add
 args: 2,116,3
 arg: DNSNameParam('dnszoneidnsname', cli_name='dnszone', multivalue=False, only_absolute=True, primary_key=True, query=True, required=True)
