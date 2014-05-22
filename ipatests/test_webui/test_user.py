@@ -246,7 +246,7 @@ class test_user(UI_driver):
         self.assert_dialog()
 
         fields = [
-            ('password', 'password1', password),
+            ('password', 'password', password),
             ('password', 'password2', password),
         ]
 
@@ -254,6 +254,6 @@ class test_user(UI_driver):
             fields.append(('password', 'current_password', current))
 
         self.fill_fields(fields)
-        self.dialog_button_click('reset_password')
+        self.dialog_button_click('confirm')
         self.wait_for_request(n=3)
         self.assert_no_error_dialog()

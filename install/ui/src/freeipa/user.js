@@ -22,18 +22,20 @@
  */
 
 define([
+        './builder',
         './ipa',
         './jquery',
         './phases',
         './reg',
         './rpc',
         './text',
+        './dialogs/password',
         './details',
         './search',
         './association',
         './entity',
         './certificate'],
-    function(IPA, $, phases, reg, rpc, text) {
+    function(builder, IPA, $, phases, reg, rpc, text, password_dialog) {
 
 /**
  * User module
@@ -509,154 +511,56 @@ IPA.user_password_widget = function(spec) {
     return that;
 };
 
-IPA.user_password_dialog = function(spec) {
+IPA.user.password_dialog_pre_op0 = function(spec) {
 
-    spec = spec || {};
+    spec.password_name = spec.password_name || 'password';
+    return spec;
+};
 
-    spec.width = spec.width || 400;
-    spec.title = spec.title || '@i18n:password.reset_password';
-    spec.sections = spec.sections || [];
+IPA.user.password_dialog_pre_op = function(spec) {
 
-    spec.sections.push(
-        {
-            name: 'input',
-            fields: [
-                {
-                    name: 'current_password',
-                    label: '@i18n:password.current_password',
-                    $type: 'password',
-                    required: true
-                },
-                {
-                    name: 'password1',
-                    label: '@i18n:password.new_password',
-                    $type: 'password',
-                    required: true
-                },
-                {
-                    name: 'password2',
-                    label: '@i18n:password.verify_password',
-                    $type: 'password',
-                    validators: [{
-                        $type: 'same_password',
-                        other_field: 'password1'
-                    }],
-                    required: true
-                }
-            ]
-        });
+    spec.sections[0].fields.splice(0, 0, {
+        name: 'current_password',
+        label: '@i18n:password.current_password',
+        $type: 'password',
+        required: true
+    }, {
+         name: 'otp',
+        label: '@i18n:password.otp',
+        $type: 'password'
+    });
 
-    var that = IPA.dialog(spec);
+    spec.method = spec.method || 'passwd';
 
-    IPA.confirm_mixin().apply(that);
+    return spec;
+};
 
-    that.success_handler = spec.on_success;
-    that.error_handler = spec.on_error;
-    that.pkey = spec.pkey;
+IPA.user.password_dialog = function(spec) {
+
+    var that = password_dialog.dialog(spec);
 
     that.is_self_service = function() {
-        var self_service = that.pkey === IPA.whoami.uid[0];
+        var self_service = that.args[0] === IPA.whoami.uid[0];
         return self_service;
     };
 
     that.open = function() {
+        that.dialog_open();
 
         var self_service = that.is_self_service();
-        var section = that.widgets.get_widget('input');
-        var current_password_f = that.fields.get_field('current_password');
+        var current_pw_f = that.fields.get_field('current_password');
+        var current_pw_w = that.widgets.get_widget('general.current_password');
+        var otp_f = that.fields.get_field('otp');
+        var otp_w = that.widgets.get_widget('general.otp');
 
-        that.dialog_open();
-        section.set_row_visible('current_password', self_service);
-        current_password_f.set_required(self_service);
+        current_pw_f.set_required(self_service);
+        current_pw_f.set_enabled(self_service);
+        current_pw_w.set_visible(self_service);
+        otp_f.set_enabled(self_service);
+        otp_w.set_visible(self_service);
+
         that.focus_first_element();
     };
-
-    that.create_buttons = function() {
-
-        that.create_button({
-            name: 'reset_password',
-            label: '@i18n:password.reset_password',
-            click: that.on_reset_click
-        });
-
-        that.create_button({
-            name: 'cancel',
-            label: '@i18n:buttons.cancel',
-            click: function() {
-                that.close();
-            }
-        });
-    };
-
-    that.on_confirm = function() {
-        that.on_reset_click();
-    };
-
-    that.on_reset_click = function() {
-
-        if (!that.validate()) return;
-
-        var self_service = that.is_self_service();
-
-        var record = {};
-        that.save(record);
-
-        var current_password = self_service ? record.current_password[0] : undefined;
-        var new_password = record.password1[0];
-        var repeat_password = record.password2[0];
-
-        that.set_password(
-            that.pkey,
-            current_password,
-            new_password,
-            that.on_reset_success,
-            that.on_reset_error);
-    };
-
-    that.set_password = function(pkey, current_password, password, on_success, on_error) {
-
-        var command = rpc.command({
-            method: 'passwd',
-            args: [ pkey ],
-            options: {
-                current_password: current_password,
-                password: password
-            },
-            on_success: on_success,
-            on_error: on_error
-        });
-
-        command.execute();
-    };
-
-    that.on_reset_success = function(data, text_status, xhr) {
-
-        if (that.success_handler) {
-            that.success_handler.call(this, data, text_status, xhr);
-        } else {
-            IPA.notify_success('@i18n:password.password_change_complete');
-            that.close();
-
-            // refresh password expiration field
-            that.facet.refresh();
-
-            if (that.is_self_service()) {
-                var command = IPA.get_whoami_command();
-                command.execute();
-            }
-        }
-    };
-
-    that.on_reset_error = function(xhr, text_status, error_thrown) {
-
-        if (that.error_handler) {
-            that.error_handler.call(this, xhr, text_status, error_thrown);
-        } else {
-            that.close();
-        }
-    };
-
-    that.create_buttons();
 
     return that;
 };
@@ -672,10 +576,17 @@ IPA.user.reset_password_action = function(spec) {
 
     that.execute_action = function(facet) {
 
-        var dialog = IPA.user_password_dialog({
-            entity: facet.entity,
-            facet: facet,
-            pkey: facet.get_pkey()
+        var dialog = builder.build('dialog', {
+            $type: 'user_password',
+            args: [facet.get_pkey()]
+        });
+
+        dialog.succeeded.attach(function() {
+            facet.refresh();
+            if (dialog.is_self_service()) {
+                var command = IPA.get_whoami_command();
+                command.execute();
+            }
         });
 
         dialog.open();
@@ -688,8 +599,14 @@ exp.entity_spec = make_spec();
 exp.register = function() {
     var e = reg.entity;
     var a = reg.action;
+    var d = reg.dialog;
     e.register({type: 'user', spec: exp.entity_spec});
     a.register('reset_password', IPA.user.reset_password_action);
+    d.copy('password', 'user_password', {
+        factory: IPA.user.password_dialog,
+        pre_ops: [IPA.user.password_dialog_pre_op]
+    });
+    d.register_pre_op('user_password', IPA.user.password_dialog_pre_op0, true);
 };
 phases.on('registration', exp.register);
 

@@ -51,6 +51,7 @@ dialogs.password.default_fields_pre_op =  function(spec) {
     spec.width = spec.width || 400;
     spec.sections = spec.sections || [
         {
+            name: 'general',
             fields: [
                 {
                     name: name,
@@ -193,7 +194,7 @@ dialogs.password.dialog = function(spec) {
         for (var j=0; j<fields.length; j++) {
             var field = fields[j];
             var values = field.save();
-            if (!values || values.length === 0) continue;
+            if (!values || values.length === 0 || !field.enabled) continue;
             if (field.flags.indexOf('no_command') > -1) continue;
 
             if (values.length === 1) {
@@ -212,10 +213,12 @@ dialogs.password.dialog = function(spec) {
     that.create_command = function() {
 
         var options = that.make_otions();
+        var entity = null;
+        if (that.entity) entity = that.entity.name;
         var command = rpc.command({
-            entity: that.entity.name,
+            entity: entity,
             method: that.method,
-            args: that.pkeys,
+            args: that.args,
             options: options,
             on_success: function(data) {
                 that.on_success();
@@ -301,7 +304,7 @@ dialogs.password.action = function(spec) {
             ds.$type = 'password';
         }
         var dialog = builder.build('dialog', ds);
-        dialog.pkeys = facet.get_pkeys();
+        dialog.args = facet.get_pkeys();
         dialog.succeeded.attach(function() {
             if (that.refresh) facet.refresh();
         });

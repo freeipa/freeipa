@@ -619,20 +619,20 @@ IPA.update_password_expiration = function() {
  * @member IPA
  */
 IPA.password_selfservice = function() {
-    var reset_dialog = IPA.user_password_dialog({
-        pkey: IPA.whoami.uid[0],
-        on_success: function() {
-            var command = IPA.get_whoami_command();
-            var orig_on_success = command.on_success;
-            command.on_success = function(data, text_status, xhr) {
-                orig_on_success.call(this, data, text_status, xhr);
-                IPA.update_password_expiration();
-            };
-            command.execute();
+    var reset_dialog = builder.build('dialog', {
+        $type: 'user_password',
+        args: [IPA.whoami.uid[0]]
+    });
+    reset_dialog.succeeded.attach(function() {
+        var command = IPA.get_whoami_command();
+        var orig_on_success = command.on_success;
+        command.on_success = function(data, text_status, xhr) {
+            orig_on_success.call(this, data, text_status, xhr);
+            IPA.update_password_expiration();
+        };
+        command.execute();
 
-            IPA.notify_success(text.get('@i18n:password.password_change_complete'));
-            reset_dialog.close();
-        }
+        IPA.notify_success(text.get('@i18n:password.password_change_complete'));
     });
     reset_dialog.open();
 };
