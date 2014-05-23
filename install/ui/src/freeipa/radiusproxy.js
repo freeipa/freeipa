@@ -73,13 +73,7 @@ return {
                         'ipatokenusermapattribute', // TODO: add validation
                         'ipatokenradiustimeout',
                         'ipatokenradiusretries'
-                    ],
-                     action_panel: {
-                        name: 'radius_actions',
-                        actions: [
-                            'password'
-                        ]
-                    }
+                    ]
                 }
             ],
             actions: [
@@ -89,7 +83,8 @@ return {
                         password_name: 'ipatokenradiussecret'
                     }
                 }
-            ]
+            ],
+            header_actions: ['password']
         }
     ],
     adder_dialog: {
