@@ -2409,10 +2409,11 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: passwd
-args: 3,1,3
+args: 3,2,3
 arg: Str('principal', autofill=True, cli_name='user', primary_key=True)
 arg: Password('password')
 arg: Password('current_password', autofill=True, confirm=False)
+option: Password('otp?', confirm=False)
 option: Str('version?', exclude='webui')
 output: Output('result', <type 'bool'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)

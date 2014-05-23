@@ -89,6 +89,14 @@ class passwd(Command):
         ),
     )
 
+    takes_options =  (
+        Password('otp?',
+                 label=_('OTP'),
+                 doc=_('One Time Password'),
+                 confirm=False,
+        ),
+    )
+
     has_output = output.standard_value
     msg_summary = _('Changed password for "%(value)s"')
 
@@ -121,7 +129,8 @@ class passwd(Command):
         if current_password == MAGIC_VALUE:
             ldap.modify_password(entry_attrs.dn, password)
         else:
-            ldap.modify_password(entry_attrs.dn, password, current_password)
+            otp = options.get('otp')
+            ldap.modify_password(entry_attrs.dn, password, current_password, otp)
 
         return dict(
             result=True,
