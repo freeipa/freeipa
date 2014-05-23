@@ -1043,7 +1043,7 @@ class change_password(Backend, HTTP_Status):
             return self.bad_request(environ, start_response, "cannot parse query data")
 
         data = {}
-        for field in ('user', 'old_password', 'new_password'):
+        for field in ('user', 'old_password', 'new_password', 'otp'):
             value = query_dict.get(field, None)
             if value is not None:
                 if len(value) == 1:
@@ -1051,7 +1051,7 @@ class change_password(Backend, HTTP_Status):
                 else:
                     return self.bad_request(environ, start_response, "more than one %s parameter"
                                             % field)
-            else:
+            elif field != 'otp':  # otp is optional
                 return self.bad_request(environ, start_response, "no %s specified" % field)
 
         # start building the response
@@ -1066,9 +1066,12 @@ class change_password(Backend, HTTP_Status):
                      self.api.env.container_user, self.api.env.basedn)
 
         try:
+            pw = data['old_password']
+            if data.get('otp'):
+                pw = data['old_password'] + data['otp']
             conn = ldap2(shared_instance=False,
                          ldap_uri=self.api.env.ldap_uri)
-            conn.connect(bind_dn=bind_dn, bind_pw=data['old_password'])
+            conn.connect(bind_dn=bind_dn, bind_pw=pw)
         except (NotFound, ACIError):
             result = 'invalid-password'
             message = 'The old password or username is not correct.'
@@ -1078,7 +1081,7 @@ class change_password(Backend, HTTP_Status):
                     data['user'], str(e))
         else:
             try:
-                conn.modify_password(bind_dn, data['new_password'], data['old_password'])
+                conn.modify_password(bind_dn, data['new_password'], data['old_password'], skip_bind=True)
             except ExecutionError, e:
                 result = 'policy-error'
                 policy_error = escape(str(e))
