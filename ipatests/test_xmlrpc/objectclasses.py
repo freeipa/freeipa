@@ -155,6 +155,11 @@ dnszone = [
     u'idnszone',
 ]
 
+dnsforwardzone = [
+    u'top',
+    u'idnsforwardzone',
+]
+
 dnsrecord = [
     u'top',
     u'idnsrecord',
