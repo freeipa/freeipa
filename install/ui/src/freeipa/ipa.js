@@ -516,7 +516,7 @@ IPA.login_password = function(username, password) {
  * @return {string} result.status
  * @return {string} result.message
  */
-IPA.reset_password = function(username, old_password, new_password) {
+IPA.reset_password = function(username, old_password, new_password, otp) {
 
     //possible results: 'ok', 'invalid-password', 'policy-error'
 
@@ -552,6 +552,10 @@ IPA.reset_password = function(username, old_password, new_password) {
         old_password: old_password,
         new_password: new_password
     };
+
+    if (otp) {
+        data.otp = otp;
+    }
 
     request = {
         url: '/ipa/session/change_password',

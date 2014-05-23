@@ -78,6 +78,8 @@ define(['dojo/_base/declare',
 
         password_expired: "Your password has expired. Please enter a new password.",
 
+        password_change_complete: "Password change complete",
+
         denied: "Sorry you are not allowed to access this service.",
 
         caps_warning_msg: "Warning: CAPS LOCK key is on",
@@ -417,23 +419,36 @@ define(['dojo/_base/declare',
             if (!this.validate()) return;
 
             var psw_f = this.get_field('password');
+            var psw_f2 = this.get_field('current_password');
+            var otp_f = this.get_field('otp');
             var new_f = this.get_field('new_password');
             var ver_f = this.get_field('verify_password');
             var username_f = this.get_field('username');
 
+            var psw = psw_f2.get_value()[0] || psw_f.get_value()[0];
+            var otp = otp_f.get_value()[0];
+
             var result = IPA.reset_password(
                 username_f.get_value()[0],
-                psw_f.get_value()[0],
-                new_f.get_value()[0]);
+                psw,
+                new_f.get_value()[0],
+                otp);
 
             if (result.status === 'ok') {
-                psw_f.set_value(new_f.get_value());
-                this.login();
+                val_summary.add_success('login', this.password_change_complete);
+                psw_f.set_value('');
+                psw_f2.set_value('');
+                // do not login if otp is used because it will fail (reuse of OTP)
+                if (!otp) {
+                    psw_f.set_value(new_f.get_value());
+                    this.login();
+                }
                 this.set('view', 'login');
             } else {
                 val_summary.add_error('login', result.message);
             }
 
+            otp_f.set_value('');
             new_f.set_value('');
             ver_f.set_value('');
         },
@@ -456,7 +471,12 @@ define(['dojo/_base/declare',
             }
             if (this.password_enabled()) {
                 this.use_fields(['username', 'password']);
-                this.get_widget('username').focus_input();
+                var username_f = this.get_field('username');
+                if (username_f.get_value()[0]) {
+                    this.get_widget('password').focus_input();
+                } else {
+                    this.get_widget('username').focus_input();
+                }
             } else {
                 this.use_fields([]);
                 this.login_btn_node.focus();
@@ -469,14 +489,14 @@ define(['dojo/_base/declare',
             if (this.buttons_node) {
                 construct.place(this.reset_btn_node, this.buttons_node);
             }
-            this.use_fields(['username_r', 'new_password', 'verify_password']);
+            this.use_fields(['username_r', 'current_password', 'otp', 'new_password', 'verify_password']);
 
             var val_summary = this.get_widget('validation');
 
             var u_f = this.fields.get('username');
             var u_r_f = this.fields.get('username_r');
             u_r_f.set_value(u_f.get_value());
-            this.get_widget('new_password').focus_input();
+            this.get_widget('current_password').focus_input();
         },
 
         use_fields: function(names) {
@@ -536,6 +556,9 @@ define(['dojo/_base/declare',
 
             this.kerberos_msg = this.kerberos_msg.replace('${host}', window.location.hostname);
 
+            this.password_change_complete = text.get(spec.password_change_complete ||
+                '@i18n:password.password_change_complete', this.password_change_complete);
+
             this.krb_auth_failed = text.get(spec.krb_auth_failed, this.krb_auth_failed);
         }
     });
@@ -559,6 +582,20 @@ define(['dojo/_base/declare',
             name: 'username_r',
             read_only: true,
             label: text.get('@i18n:login.username', "Username"),
+            show_errors: false,
+            undo: false
+        },
+        {
+            name: 'current_password',
+            $type: 'password',
+            label: text.get('@i18n:login.current_password', "Current Password"),
+            show_errors: false,
+            undo: false
+        },
+        {
+            name: 'otp',
+            $type: 'password',
+            label: text.get('@i18n:login.current_password', "OTP"),
             show_errors: false,
             undo: false
         },
