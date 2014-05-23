@@ -80,16 +80,14 @@ int otptoken_get_digits(struct otptoken *token);
 /* Get the SDN of the token. */
 const Slapi_DN *otptoken_get_sdn(struct otptoken *token);
 
-/* Validate the token code within a range of steps. */
-bool otptoken_validate(struct otptoken *token, size_t steps, uint32_t code);
-
 /* Validate the token code within a range of steps. If tail is true,
  * it will be assumed that the token is specified at the end of the string. */
-bool otptoken_validate_string(struct otptoken *token, size_t steps,
-                       const char *code, ssize_t len, bool tail);
+bool otptoken_validate_berval(struct otptoken *token, size_t steps,
+                              const struct berval *code, bool tail);
 
 /* Synchronize the token within a range of steps. */
-bool otptoken_sync(struct otptoken * const *tokens, size_t steps,
-                   uint32_t first_code, uint32_t second_code);
+bool otptoken_sync_berval(struct otptoken * const *tokens, size_t steps,
+                          const struct berval *first_code,
+                          const struct berval *second_code);
 
 #endif /* LIBOTP_H_ */

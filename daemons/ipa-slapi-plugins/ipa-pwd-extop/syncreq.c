@@ -58,10 +58,11 @@ bool sync_request_handle(Slapi_ComponentId *plugin_id, Slapi_PBlock *pb,
 {
     struct otptoken **tokens = NULL;
     LDAPControl **controls = NULL;
+    struct berval *second = NULL;
+    struct berval *first = NULL;
     BerElement *ber = NULL;
     char *token_dn = NULL;
-    int second = 0;
-    int first = 0;
+    bool success;
 
     if (slapi_pblock_get(pb, SLAPI_REQCONTROLS, &controls) != 0)
         return false;
@@ -79,32 +80,30 @@ bool sync_request_handle(Slapi_ComponentId *plugin_id, Slapi_PBlock *pb,
             return false;
 
         /* Decode the token codes. */
-        if (ber_scanf(ber, "{ii", &first, &second) == LBER_ERROR) {
+        if (ber_scanf(ber, "{OO", &first, &second) == LBER_ERROR) {
             ber_free(ber, 1);
             return false;
         }
 
         /* Decode the optional token DN. */
         ber_scanf(ber, "a", &token_dn);
-        if (ber_scanf(ber, "}") == LBER_ERROR) {
-            ber_free(ber, 1);
-            return false;
+
+        /* Process the synchronization. */
+        success = false;
+        if (ber_scanf(ber, "}") != LBER_ERROR) {
+            tokens = otptoken_find(plugin_id, user_dn, token_dn, true, NULL);
+            if (tokens != NULL) {
+                success = otptoken_sync_berval(tokens, OTP_SYNC_MAX_STEPS, first, second);
+                otptoken_free_array(tokens);
+            }
         }
+
+        ber_memfree(token_dn); token_dn = NULL;
+        ber_bvfree(second);
+        ber_bvfree(first);
         ber_free(ber, 1);
-
-        /* Find all the tokens. */
-        tokens = otptoken_find(plugin_id, user_dn, token_dn, true, NULL);
-        ber_memfree(token_dn);
-        if (tokens == NULL)
+        if (!success)
             return false;
-
-        /* Synchronize the token. */
-        if (!otptoken_sync(tokens, OTP_SYNC_MAX_STEPS, first, second)) {
-            otptoken_free_array(tokens);
-            return false;
-        }
-
-        otptoken_free_array(tokens);
     }
 
     return true;

@@ -48,8 +48,8 @@
  * The ASN.1 encoding of the request structure:
  *
  *     OTPSyncRequest ::= SEQUENCE {
- *         firstCode   INTEGER,
- *         secondCode  INTEGER,
+ *         firstCode   OCTET STRING,
+ *         secondCode  OCTET STRING,
  *         tokenDN     OCTET STRING OPTIONAL
  *     }
  */

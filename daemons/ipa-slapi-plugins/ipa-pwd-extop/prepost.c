@@ -1157,8 +1157,8 @@ static bool ipapwd_do_otp_auth(const char *dn, Slapi_Entry *bind_entry,
     /* Loop through each token. */
     for (int i = 0; tokens[i] && !success; i++) {
         /* Attempt authentication. */
-        success = otptoken_validate_string(tokens[i], OTP_VALIDATE_STEPS,
-                                           creds->bv_val, creds->bv_len, true);
+        success = otptoken_validate_berval(tokens[i], OTP_VALIDATE_STEPS,
+                                           creds, true);
 
         /* Truncate the password to remove the OTP code at the end. */
         if (success) {

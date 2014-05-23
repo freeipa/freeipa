@@ -449,7 +449,8 @@ const Slapi_DN *otptoken_get_sdn(struct otptoken *token)
     return token->sdn;
 }
 
-bool otptoken_validate(struct otptoken *token, size_t steps, uint32_t code)
+static bool otptoken_validate(struct otptoken *token, size_t steps,
+                              uint32_t code)
 {
     time_t now = 0;
 
@@ -477,44 +478,53 @@ bool otptoken_validate(struct otptoken *token, size_t steps, uint32_t code)
     return false;
 }
 
-bool otptoken_validate_string(struct otptoken *token, size_t steps,
-                              const char *code, ssize_t len, bool tail)
+
+/*
+ *  Convert code berval to decimal.
+ *
+ *  NOTE: We can't use atol() or strtoul() because:
+ *    1. If we have leading zeros, atol() fails.
+ *    2. Neither support limiting conversion by length.
+ */
+static bool bvtod(const struct berval *code, uint32_t *out)
 {
+    *out = 0;
+
+    for (ber_len_t i = 0; i < code->bv_len; i++) {
+        if (code->bv_val[i] < '0' || code->bv_val[i] > '9')
+            return false;
+        *out *= 10;
+        *out += code->bv_val[i] - '0';
+    }
+
+    return code->bv_len != 0;
+}
+
+bool otptoken_validate_berval(struct otptoken *token, size_t steps,
+                              const struct berval *code, bool tail)
+{
+    struct berval tmp;
     uint32_t otp;
 
     if (token == NULL || code == NULL)
         return false;
+    tmp = *code;
 
-    if (len < 0)
-        len = strlen(code);
-
-    if (len < token->token.digits)
+    if (tmp.bv_len < token->token.digits)
         return false;
 
     if (tail)
-        code = &code[len - token->token.digits];
-    len = token->token.digits;
+        tmp.bv_val = &tmp.bv_val[tmp.bv_len - token->token.digits];
+    tmp.bv_len = token->token.digits;
 
-    /*
-     *  Convert code string to decimal.
-     *
-     *  NOTE: We can't use atol() or strtoul() because:
-     *  1. We may have leading zeros (atol() fails here).
-     *  2. Neither support limiting conversion by length.
-     */
-    otp = 0;
-    for (ssize_t i = 0; i < len; i++) {
-        if (code[i] < '0' || code[i] > '9')
-            return false;
-        otp *= 10;
-        otp += code[i] - '0';
-    }
+    if (!bvtod(&tmp, &otp))
+        return false;
 
     return otptoken_validate(token, steps, otp);
 }
 
-bool otptoken_sync(struct otptoken * const *tokens, size_t steps,
-                   uint32_t first_code, uint32_t second_code)
+static bool otptoken_sync(struct otptoken * const *tokens, size_t steps,
+                          uint32_t first_code, uint32_t second_code)
 {
     time_t now = 0;
 
@@ -541,4 +551,20 @@ bool otptoken_sync(struct otptoken * const *tokens, size_t steps,
     }
 
     return false;
+}
+
+bool otptoken_sync_berval(struct otptoken * const *tokens, size_t steps,
+                          const struct berval *first_code,
+                          const struct berval *second_code)
+{
+    uint32_t second = 0;
+    uint32_t first = 0;
+
+    if (!bvtod(first_code, &first))
+        return false;
+
+    if (!bvtod(second_code, &second))
+        return false;
+
+    return otptoken_sync(tokens, steps, first, second);
 }
