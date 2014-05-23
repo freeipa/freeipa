@@ -20,7 +20,7 @@
 
 var RP = {}; //Reset Password Page
 
-RP.reset_password = function(username, old_password, new_password) {
+RP.reset_password = function(username, old_password, new_password, otp) {
 
     //possible results: 'ok', 'invalid-password', 'policy-error'
 
@@ -54,6 +54,10 @@ RP.reset_password = function(username, old_password, new_password) {
         old_password: old_password,
         new_password: new_password
     };
+
+    if (otp) {
+        data.otp = otp;
+    }
 
     request = {
         url: '/ipa/session/change_password',
@@ -89,6 +93,7 @@ RP.on_submit = function() {
 
     var username = $('#user').val();
     var current_password = $('#old_password').val();
+    var otp = $('#otp').val();
     var new_password = $('#new_password').val();
     var verify_password = $('#verify_password').val();
 
@@ -102,7 +107,7 @@ RP.on_submit = function() {
         return;
     }
 
-    var result = RP.reset_password(username, current_password, new_password);
+    var result = RP.reset_password(username, current_password, new_password, otp);
 
     if (result.status !== 'ok') {
         RP.show_error(result.message);
@@ -116,6 +121,7 @@ RP.reset_form = function() {
     $('.alert-danger').css('display', 'none');
     $('.alert-success').css('display', 'none');
     $('#old_password').val('');
+    $('#otp').val('');
     $('#new_password').val('');
     $('#verify_password').val('');
 };
