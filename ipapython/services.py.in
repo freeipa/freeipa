@@ -27,41 +27,5 @@ knownservices = None
 # service is a class to instantiate ipapython.platform.base.PlatformService
 service = None
 
-# restore context default implementation  that does nothing
-def restore_context_default(filepath):
-    return
-
-# Restore security context for a path
-# If the platform has security features where context is important, implement
-# your own version in platform services
-restore_context = restore_context_default
-
-# Default implementation of backup and replace hostname that does nothing
-def backup_and_replace_hostname_default(fstore, statestore, hostname):
-    return
-
-# Backup and replace system's hostname
-# Since many platforms have their own way how to store system's hostname,
-# this method must be implemented in platform services
-backup_and_replace_hostname = backup_and_replace_hostname_default
-
-# See if SELinux is enabled and /usr/sbin/restorecon is installed.
-# Default to a no-op. Those platforms that support SELinux should
-# implement this function.
-def check_selinux_status():
-    return
-
-from ipapython.platform.base import SVC_LIST_FILE
-def get_svc_list_file():
-    return SVC_LIST_FILE
-
-def insert_ca_cert_into_systemwide_ca_store_default(path):
-    return True
-
-def remove_ca_cert_from_systemwide_ca_store_default(path):
-    return True
-
-insert_ca_cert_into_systemwide_ca_store = insert_ca_cert_into_systemwide_ca_store_default
-remove_ca_cert_from_systemwide_ca_store = remove_ca_cert_from_systemwide_ca_store_default
 
 from ipapython.platform.SUPPORTED_PLATFORM import *
