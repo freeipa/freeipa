@@ -52,3 +52,11 @@ def get_svc_list_file():
 # implement this function.
 def check_selinux_status():
     return
+
+
+def restore_network_configuration(fstore, statestore):
+    return
+
+
+def backup_and_replace_hostname(fstore, statestore, hostname):
+    return
