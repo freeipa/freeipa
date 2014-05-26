@@ -16,39 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib.plugable import MagicDict
-import json
-import os
-
-# Canonical names of services as IPA wants to see them. As we need to have
-# *some* naming, set them as in Red Hat distributions. Actual implementation
-# should make them available through knownservices.<name> and take care of
-# re-mapping internally, if needed
-wellknownservices = ['certmonger', 'dirsrv', 'httpd', 'ipa', 'krb5kdc',
-                     'messagebus', 'nslcd', 'nscd', 'ntpd', 'portmap',
-                     'rpcbind', 'kadmin', 'sshd', 'autofs', 'rpcgssd',
-                     'rpcidmapd', 'pki_tomcatd', 'pki_cad', 'chronyd',
-                     'domainname']
-
-# System may support more time&date services. FreeIPA supports ntpd only, other
-# services will be disabled during IPA installation
-timedate_services = ['ntpd', 'chronyd']
-
-
-# The common ports for these services. This is used to wait for the
-# service to become available.
-wellknownports = {
-    'dirsrv@PKI-IPA.service': [7389],
-    'PKI-IPA': [7389],
-    'dirsrv': [389], # this is only used if the incoming instance name is blank
-    'pki-cad': [9180, 9443, 9444],
-    'pki-tomcatd@pki-tomcat.service': [8080, 8443],
-    'pki-tomcat': [8080, 8443],
-    'pki-tomcatd': [8080, 8443],  # used if the incoming instance name is blank
-}
-
-SVC_LIST_FILE = "/var/run/ipa/services.list"
-
 # Firefox paths
 FIREFOX_EXEC = "/usr/bin/firefox"
 FIREFOX_INSTALL_DIRS = ["/usr/lib64/firefox", "/usr/lib/firefox"]
@@ -137,97 +104,7 @@ class AuthConfig(object):
         self.parameters = {}
         return self
 
-class PlatformService(object):
-    """
-    PlatformService abstracts out external process running on the system
-    which is possible to administer (start, stop, check status, etc).
 
-    """
 
-    def __init__(self, service_name):
-        self.service_name = service_name
 
-    def start(self, instance_name="", capture_output=True, wait=True,
-        update_service_list=True):
-        """
-        When a service is started record the fact in a special file.
-        This allows ipactl stop to always stop all services that have
-        been started via ipa tools
-        """
-        if not update_service_list:
-            return
-        svc_list = []
-        try:
-            f = open(SVC_LIST_FILE, 'r')
-            svc_list = json.load(f)
-        except Exception:
-            # not fatal, may be the first service
-            pass
-
-        if self.service_name not in svc_list:
-            svc_list.append(self.service_name)
-
-        f = open(SVC_LIST_FILE, 'w')
-        json.dump(svc_list, f)
-        f.flush()
-        f.close()
-        return
-
-    def stop(self, instance_name="", capture_output=True, update_service_list=True):
-        """
-        When a service is stopped remove it from the service list file.
-        """
-        if not update_service_list:
-            return
-        svc_list = []
-        try:
-            f = open(SVC_LIST_FILE, 'r')
-            svc_list = json.load(f)
-        except Exception:
-            # not fatal, may be the first service
-            pass
-
-        while self.service_name in svc_list:
-            svc_list.remove(self.service_name)
-
-        f = open(SVC_LIST_FILE, 'w')
-        json.dump(svc_list, f)
-        f.flush()
-        f.close()
-        return
-
-    def restart(self, instance_name="", capture_output=True, wait=True):
-        return
-
-    def is_running(self, instance_name=""):
-        return False
-
-    def is_installed(self):
-        return False
-
-    def is_enabled(self, instance_name=""):
-        return False
-
-    def enable(self, instance_name=""):
-        return
-
-    def disable(self, instance_name=""):
-        return
-
-    def install(self, instance_name=""):
-        return
-
-    def remove(self, instance_name=""):
-        return
-
-    def get_config_dir(self, instance_name=""):
-        return
-
-class KnownServices(MagicDict):
-    """
-    KnownServices is an abstract class factory that should give out instances
-    of well-known platform services. Actual implementation must create these
-    instances as its own attributes on first access (or instance creation)
-    and cache them.
-    """
 

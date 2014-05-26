@@ -20,3 +20,5 @@
 '''
 This base platform module exports default filesystem paths.
 '''
+
+SVC_LIST_FILE = "/var/run/ipa/services.list"
