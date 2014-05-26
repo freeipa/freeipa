@@ -1,7 +1,8 @@
-# Authors:
-#   Tomas Babej <tbabej@redhat.com>
+# Authors: Simo Sorce <ssorce@redhat.com>
+#          Alexander Bokovoy <abokovoy@redhat.com>
+#          Tomas Babej <tbabej@redhat.com>
 #
-# Copyright (C) 2014  Red Hat
+# Copyright (C) 2007-2014  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -20,3 +21,58 @@
 '''
 This module contains default Fedora-specific implementations of system tasks.
 '''
+
+import os
+import ipautil
+
+from ipaplatform.base.tasks import *
+
+
+def restore_context(filepath, restorecon='/sbin/restorecon'):
+    """
+    restore security context on the file path
+    SELinux equivalent is /path/to/restorecon <filepath>
+
+    restorecon's return values are not reliable so we have to
+    ignore them (BZ #739604).
+
+    ipautil.run() will do the logging.
+    """
+    try:
+        if os.path.exists('/usr/sbin/selinuxenabled'):
+            ipautil.run(["/usr/sbin/selinuxenabled"])
+        else:
+            # No selinuxenabled, no SELinux
+            return
+    except ipautil.CalledProcessError:
+        # selinuxenabled returns 1 if not enabled
+        return
+
+    if (os.path.exists(restorecon)):
+        ipautil.run([restorecon, filepath], raiseonerr=False)
+
+
+def check_selinux_status(restorecon='/sbin/restorecon'):
+    """
+    We don't have a specific package requirement for policycoreutils
+    which provides restorecon. This is because we don't require
+    SELinux on client installs. However if SELinux is enabled then
+    this package is required.
+
+    This function returns nothing but may raise a Runtime exception
+    if SELinux is enabled but restorecon is not available.
+    """
+    try:
+        if os.path.exists('/usr/sbin/selinuxenabled'):
+            ipautil.run(["/usr/sbin/selinuxenabled"])
+        else:
+            # No selinuxenabled, no SELinux
+            return
+    except ipautil.CalledProcessError:
+        # selinuxenabled returns 1 if not enabled
+        return
+
+    if not os.path.exists(restorecon):
+        raise RuntimeError('SELinux is enabled but %s does not exist.\n'
+                           'Install the policycoreutils package and start the '
+                           'installation again.' % restorecon)
