@@ -41,7 +41,6 @@ try:
     from ipapython.ipautil import (
         run, user_input, CalledProcessError, file_exists, dir_exists,
         realm_to_suffix)
-    import ipapython.services as ipaservices
     from ipapython import ipautil, sysrestore, version, certmonger, ipaldap
     from ipapython import kernel_keyring
     from ipapython.config import IPAOptionParser
