@@ -546,7 +546,7 @@ class aci_add(crud.Create):
                 raise errors.DuplicateEntry()
 
         newaci_str = unicode(newaci)
-        entry['aci'].append(newaci_str)
+        entry.setdefault('aci', []).append(newaci_str)
 
         if not kw.get('test', False):
             ldap.update_entry(entry)
