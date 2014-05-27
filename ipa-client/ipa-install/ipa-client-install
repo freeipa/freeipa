@@ -50,6 +50,8 @@ try:
     from ipapython.dn import DN
     from ipapython.ssh import SSHPublicKey
     from ipalib.rpc import delete_persistent_client_session_data
+    from ipaplatform.tasks import tasks
+
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -144,7 +146,7 @@ def parse_options():
     basic_group.add_option("--no-dns-sshfp", dest="create_sshfp", default=True, action="store_false",
                       help="do not automatically create DNS SSHFP records")
     basic_group.add_option("--noac", dest="no_ac", default=False, action="store_true",
-                      help="do not use Authconfig to modify the nsswitch.conf and PAM configuration")
+                      help="do not modify the nsswitch.conf and PAM configuration")
     basic_group.add_option("-f", "--force", dest="force", action="store_true",
                       default=False, help="force setting of LDAP/Kerberos conf")
     basic_group.add_option("-d", "--debug", dest="debug", action="store_true",
@@ -563,30 +565,10 @@ def uninstall(options, env):
         sshd_config = os.path.join(ipaservices.knownservices.sshd.get_config_dir(), "sshd_config")
         was_sshd_configured = fstore.has_file(sshd_config)
     try:
-        auth_config = ipaservices.authconfig()
-        if statestore.has_state('authconfig'):
-            # disable only those configurations that we enabled during install
-            for conf in ('ldap', 'krb5', 'sssd', 'sssdauth', 'mkhomedir'):
-                cnf = statestore.restore_state('authconfig', conf)
-                # Do not disable sssd, as this can cause issues with its later
-                # uses. Remove it from statestore however, so that it becomes
-                # empty at the end of uninstall process.
-                if cnf and conf != 'sssd':
-                    auth_config.disable(conf)
-        else:
-            # There was no authconfig status store
-            # It means the code was upgraded after original install
-            # Fall back to old logic
-            auth_config.disable("ldap").\
-                        disable("krb5")
-            if not(was_sssd_installed and was_sssd_configured):
-                # Only disable sssdauth. Disabling sssd would cause issues
-                # with its later uses.
-                auth_config.disable("sssdauth")
-            auth_config.disable("mkhomedir")
-
-        auth_config.add_option("update")
-        auth_config.execute()
+        tasks.restore_pre_ipa_client_configuration(fstore,
+                                                   statestore,
+                                                   was_sssd_installed,
+                                                   was_sssd_configured)
     except Exception, e:
         root_logger.error(
             "Failed to remove krb5/LDAP configuration: %s", str(e))
@@ -1461,7 +1443,7 @@ def configure_nisdomain(options, domain):
                             ipaservices.knownservices.domainname.is_enabled())
 
     # Set the new NIS domain name
-    set_nisdomain(domain)
+    tasks.set_nisdomain(domain)
 
     # Enable and start the domainname service
     ipaservices.knownservices.domainname.enable()
@@ -1478,20 +1460,12 @@ def unconfigure_nisdomain():
         else:
             root_logger.info('Unconfiguring the NIS domain.')
 
-        set_nisdomain(old_nisdomain)
+        tasks.set_nisdomain(old_nisdomain)
 
     # Restore the configuration of the domainname service
     enabled = statestore.restore_state('domainname', 'enabled')
     if not enabled:
         ipaservices.knownservices.domainname.disable()
-
-
-def set_nisdomain(nisdomain):
-    # Let authconfig setup the permanent configuration
-    auth_config = ipaservices.authconfig()
-    auth_config.add_parameter("nisdomain", nisdomain)
-    auth_config.add_option("update")
-    auth_config.execute()
 
 
 def resolve_ipaddress(server):
@@ -2723,27 +2697,12 @@ def install(options, env, fstore, statestore):
 
     if not options.no_ac:
         # Modify nsswitch/pam stack
-        auth_config = ipaservices.authconfig()
-        if options.sssd:
-            statestore.backup_state('authconfig', 'sssd', True)
-            statestore.backup_state('authconfig', 'sssdauth', True)
-            auth_config.enable("sssd").\
-                        enable("sssdauth")
-            message = "SSSD enabled"
-            conf = 'SSSD'
-        else:
-            statestore.backup_state('authconfig', 'ldap', True)
-            auth_config.enable("ldap").\
-                        enable("forcelegacy")
-            message = "LDAP enabled"
+        tasks.modify_nsswitch_pam_stack(sssd=options.sssd,
+                                        mkhomedir=options.mkhomedir,
+                                        statestore=statestore)
 
-        if options.mkhomedir:
-            statestore.backup_state('authconfig', 'mkhomedir', True)
-            auth_config.enable("mkhomedir")
+        root_logger.info("%s enabled", "SSSD" if options.sssd else "LDAP")
 
-        auth_config.add_option("update")
-        auth_config.execute()
-        root_logger.info("%s", message)
         if options.sssd:
             sssd = ipaservices.service('sssd')
             try:
@@ -2758,13 +2717,7 @@ def install(options, env, fstore, statestore):
                     "Failed to enable automatic startup of the SSSD daemon: %s", e)
 
         if not options.sssd:
-            #Modify pam to add pam_krb5 only when sssd is not in use
-            auth_config.reset()
-            statestore.backup_state('authconfig', 'krb5', True)
-            auth_config.enable("krb5").\
-                        add_option("update").\
-                        add_option("nostart")
-            auth_config.execute()
+            tasks.modify_pam_to_use_krb5(statestore)
             root_logger.info("Kerberos 5 enabled")
 
         # Update non-SSSD LDAP configuration after authconfig calls as it would

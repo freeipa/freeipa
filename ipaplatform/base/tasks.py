@@ -60,3 +60,21 @@ def restore_network_configuration(fstore, statestore):
 
 def backup_and_replace_hostname(fstore, statestore, hostname):
     return
+
+
+def restore_pre_ipa_client_configuration(fstore, statestore,
+                                         was_sssd_installed,
+                                         was_sssd_configured):
+    return
+
+
+def set_nisdomain(nisdomain):
+    return
+
+
+def modify_nsswitch_pam_stack(sssd, mkhomedir, statestore):
+    return
+
+
+def modify_pam_to_use_krb5(statestore):
+    return

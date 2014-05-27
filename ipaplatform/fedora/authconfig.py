@@ -1,7 +1,8 @@
 # Authors: Simo Sorce <ssorce@redhat.com>
 #          Alexander Bokovoy <abokovoy@redhat.com>
+#          Tomas Babej <tbabej@redhat.com>
 #
-# Copyright (C) 2007-2011   Red Hat
+# Copyright (C) 2007-2014  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -11,24 +12,26 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.    See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 
 from ipapython import ipautil
-from ipapython.platform import base
+from ipaplatform.base.authconfig import AuthConfig
 
-class RedHatAuthConfig(base.AuthConfig):
+
+class FedoraAuthConfig(AuthConfig):
     """
     AuthConfig class implements system-independent interface to configure
-    system authentication resources. In Red Hat-produced systems this is done with
-    authconfig(8) utility.
+    system authentication resources. In Red Hat-produced systems this is done
+    with authconfig(8) utility.
     """
-    def __build_args(self):
+
+    def build_args(self):
         args = []
+
         for (option, value) in self.parameters.items():
             if type(value) is bool:
                 if value:
@@ -41,9 +44,13 @@ class RedHatAuthConfig(base.AuthConfig):
             elif value is None:
                 args.append("--%s" % (option))
             else:
-                args.append("--%s%s" % (option,value))
+                args.append("--%s%s" % (option, value))
+
         return args
 
-    def execute(self):
-        args = self.__build_args()
-        ipautil.run(["/usr/sbin/authconfig"]+args)
+    def execute(self, update=True):
+        if update:
+            self.add_option("update")
+
+        args = self.build_args()
+        ipautil.run(["/usr/sbin/authconfig"] + args)
