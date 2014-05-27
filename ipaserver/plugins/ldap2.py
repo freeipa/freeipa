@@ -28,7 +28,6 @@ Backend plugin for LDAP.
 # everything except the CrudBackend methods, where dn is part of the entry dict.
 
 import os
-import re
 import pwd
 
 import krbV
@@ -52,7 +51,7 @@ except ImportError:
         def __init__(self, criticality, authzId=None):
             LDAPControl.__init__(self, '1.3.6.1.4.1.42.2.27.9.5.2', criticality, authzId)
 
-from ipalib import api, errors
+from ipalib import api, errors, _
 from ipalib.crud import CrudBackend
 from ipalib.request import context
 
@@ -297,23 +296,28 @@ class ldap2(LDAPClient, CrudBackend):
 
     def has_upg(self):
         """Returns True/False whether User-Private Groups are enabled.
-           This is determined based on whether the UPG Template exists.
+
+        This is determined based on whether the UPG Definition's originfilter
+        contains "(objectclass=disable)".
+
+        If the UPG Definition or its originfilter is not readable,
+        an ACI error is raised.
         """
 
         upg_dn = DN(('cn', 'UPG Definition'), ('cn', 'Definitions'), ('cn', 'Managed Entries'),
                     ('cn', 'etc'), api.env.basedn)
 
         try:
-            upg_entry = self.conn.search_s(upg_dn, _ldap.SCOPE_BASE,
-                                           attrlist=['*'])[0]
-            disable_attr = '(objectclass=disable)'
-            if 'originfilter' in upg_entry:
-                org_filter = upg_entry['originfilter']
-                return not bool(re.search(r'%s' % disable_attr, org_filter[0]))
-            else:
-                return False
-        except _ldap.NO_SUCH_OBJECT, e:
-            return False
+            upg_entries = self.conn.search_s(upg_dn, _ldap.SCOPE_BASE,
+                                             attrlist=['*'])
+        except _ldap.NO_SUCH_OBJECT:
+            upg_entries = None
+        if not upg_entries or 'originfilter' not in upg_entries[0]:
+            raise errors.ACIError(info=_(
+                'Could not read UPG Definition originfilter. '
+                'Check your permissions.'))
+        org_filter = upg_entries[0].single_value['originfilter']
+        return '(objectclass=disable)' not in org_filter
 
     def get_effective_rights(self, dn, attrs_list):
         """Returns the rights the currently bound user has for the given DN.
