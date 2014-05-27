@@ -172,15 +172,33 @@ class krbtpolicy_show(baseldap.LDAPRetrieve):
             options['all'] = False
         return dn
 
-    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        assert isinstance(dn, DN)
-        if keys[-1] is not None:
-            # if policy for a specific user isn't set, display global values
-            if 'krbmaxticketlife' not in entry_attrs or \
-                'krbmaxrenewableage' not in entry_attrs:
-                res = self.api.Command.krbtpolicy_show()
-                for a in self.obj.default_attributes:
-                    entry_attrs.setdefault(a, res['result'][a])
+    def post_callback(self, ldap, dn, entry, *keys, **options):
+        default_entry = None
+        rights = None
+        for attrname in self.obj.default_attributes:
+            if attrname not in entry:
+                if keys[-1] is not None:
+                    # User entry doesn't override the attribute.
+                    # Check if this is caused by insufficient read rights
+                    if rights is None:
+                        rights = baseldap.get_effective_rights(
+                            ldap, dn, self.obj.default_attributes)
+                    if 'r' not in rights.get(attrname.lower(), ''):
+                        raise errors.ACIError(
+                            info=_('Ticket policy for %s could not be read') %
+                                keys[-1])
+                    # Fallback to the default
+                    if default_entry is None:
+                        try:
+                            default_dn = self.obj.get_dn(None)
+                            default_entry = ldap.get_entry(default_dn)
+                        except errors.NotFound:
+                            default_entry = {}
+                    if attrname in default_entry:
+                        entry[attrname] = default_entry[attrname]
+            if attrname not in entry:
+                raise errors.ACIError(
+                    info=_('Default ticket policy could not be read'))
         return dn
 
 
