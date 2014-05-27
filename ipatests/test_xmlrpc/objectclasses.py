@@ -170,3 +170,9 @@ radiusproxy = [
     u'ipatokenradiusconfiguration',
     u'top',
 ]
+
+pwpolicy = [
+    u'krbpwdpolicy',
+    u'nscontainer',
+    u'top',
+]

@@ -21,12 +21,14 @@
 Test the `ipalib/plugins/pwpolicy.py` module.
 """
 
-import sys
 from nose.tools import assert_raises  # pylint: disable=E0611
 
-from xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
+from ipapython.dn import DN
+from ipatests.test_xmlrpc import objectclasses
+from ipatests.test_xmlrpc.xmlrpc_test import (XMLRPC_test, assert_attr_equal,
+                                              Declarative)
 
 
 class test_pwpolicy(XMLRPC_test):
@@ -242,3 +244,69 @@ class test_pwpolicy(XMLRPC_test):
 
         # Remove the user we created
         api.Command['user_del'](self.user)
+
+
+class test_pwpolicy_mod_cospriority(Declarative):
+    """Tests for cospriority modifications"""
+    cleanup_commands = [
+        ('pwpolicy_del', [u'ipausers'], {}),
+    ]
+
+    tests = [
+        dict(
+            desc='Create a password policy',
+            command=('pwpolicy_add', [u'ipausers'], dict(
+                krbmaxpwdlife=90,
+                krbminpwdlife=1,
+                krbpwdhistorylength=10,
+                krbpwdmindiffchars=3,
+                krbpwdminlength=8,
+                cospriority=10,
+            )),
+            expected=dict(
+                result=dict(
+                    cn=[u'ipausers'],
+                    cospriority=[u'10'],
+                    dn=DN('cn=ipausers', ('cn', api.env.realm),
+                          'cn=kerberos', api.env.basedn),
+                    krbmaxpwdlife=[u'90'],
+                    krbminpwdlife=[u'1'],
+                    krbpwdhistorylength=[u'10'],
+                    krbpwdmindiffchars=[u'3'],
+                    krbpwdminlength=[u'8'],
+                    objectclass=objectclasses.pwpolicy,
+                ),
+                summary=None,
+                value=u'ipausers',
+            ),
+        ),
+
+        dict(
+            # https://fedorahosted.org/freeipa/ticket/4309
+            desc="Try no-op modification of password policy's cospriority",
+            command=('pwpolicy_mod', [u'ipausers'], dict(
+                cospriority=10,
+            )),
+            expected=errors.EmptyModlist(),
+        ),
+
+        dict(
+            desc="Modify the password policy's cospriority",
+            command=('pwpolicy_mod', [u'ipausers'], dict(
+                cospriority=20,
+            )),
+            expected=dict(
+                result=dict(
+                    cn=[u'ipausers'],
+                    cospriority=[u'20'],
+                    krbmaxpwdlife=[u'90'],
+                    krbminpwdlife=[u'1'],
+                    krbpwdhistorylength=[u'10'],
+                    krbpwdmindiffchars=[u'3'],
+                    krbpwdminlength=[u'8'],
+                ),
+                summary=None,
+                value=u'ipausers',
+            ),
+        ),
+    ]

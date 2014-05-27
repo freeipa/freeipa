@@ -456,7 +456,7 @@ class pwpolicy_mod(LDAPUpdate):
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         if call_func.func_name == 'update_entry':
             if isinstance(exc, errors.EmptyModlist):
-                entry_attrs = call_args[1]
+                entry_attrs = call_args[0]
                 cosupdate = getattr(context, 'cosupdate')
                 if not entry_attrs or cosupdate:
                     return
