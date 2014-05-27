@@ -50,63 +50,6 @@ __all__ = ['authconfig', 'service', 'knownservices',
 # Just copy a referential list of timedate services
 timedate_services = list(base.timedate_services)
 
-def backup_and_replace_hostname(fstore, statestore, hostname):
-    old_hostname = socket.gethostname()
-    try:
-        ipautil.run(['/bin/hostname', hostname])
-    except ipautil.CalledProcessError, e:
-        print >>sys.stderr, "Failed to set this machine hostname to %s (%s)." % (hostname, str(e))
-
-    filepath = '/etc/hostname'
-    if os.path.exists(filepath):
-        # read old hostname
-        with open(filepath, 'r') as f:
-            for line in f.readlines():
-                line = line.strip()
-                if not line or line.startswith('#'):
-                    # skip comment or empty line
-                    continue
-                old_hostname = line
-                break
-        fstore.backup_file(filepath)
-
-    with open(filepath, 'w') as f:
-        f.write("%s\n" % hostname)
-    os.chmod(filepath, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
-    os.chown(filepath, 0, 0)
-    restore_context(filepath)
-
-    # store old hostname
-    statestore.backup_state('network', 'hostname', old_hostname)
-
-def restore_network_configuration(fstore, statestore):
-    old_filepath = '/etc/sysconfig/network'
-    old_hostname = statestore.get_state('network', 'hostname')
-    hostname_was_configured = False
-
-    if fstore.has_file(old_filepath):
-        # This is Fedora >=18 instance that was upgraded from previous
-        # Fedora version which held network configuration
-        # in /etc/sysconfig/network
-        old_filepath_restore = '/etc/sysconfig/network.ipabkp'
-        fstore.restore_file(old_filepath, old_filepath_restore)
-        print "Deprecated configuration file '%s' was restored to '%s'" \
-                % (old_filepath, old_filepath_restore)
-        hostname_was_configured = True
-
-    filepath = '/etc/hostname'
-    if fstore.has_file(filepath):
-        fstore.restore_file(filepath)
-        hostname_was_configured = True
-
-    if not hostname_was_configured and old_hostname:
-        # hostname was not configured before but was set by IPA. Delete
-        # /etc/hostname to restore previous configuration
-        try:
-            os.remove(filepath)
-        except OSError:
-            pass
-
 authconfig = fedora16.authconfig
 service = fedora16.service
 knownservices = fedora16.knownservices

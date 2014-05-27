@@ -1,5 +1,6 @@
 # Authors: Simo Sorce <ssorce@redhat.com>
 #          Alexander Bokovoy <abokovoy@redhat.com>
+#          Martin Kosek <mkosek@redhat.com>
 #          Tomas Babej <tbabej@redhat.com>
 #
 # Copyright (C) 2007-2014  Red Hat
@@ -23,8 +24,17 @@ This module contains default Fedora-specific implementations of system tasks.
 '''
 
 import os
-import ipautil
+import shutil
+import stat
+import socket
+import sys
 
+from subprocess import CalledProcessError
+
+from ipapython.ipa_log_manager import root_logger
+from ipapython import ipautil
+
+from ipaplatform.paths import paths
 from ipaplatform.fedora.authconfig import FedoraAuthConfig
 from ipaplatform.base.tasks import *
 
@@ -53,7 +63,7 @@ def restore_context(filepath, restorecon='/sbin/restorecon'):
         ipautil.run([restorecon, filepath], raiseonerr=False)
 
 
-def check_selinux_status(restorecon='/sbin/restorecon'):
+def check_selinux_status(restorecon=paths.RESTORECON):
     """
     We don't have a specific package requirement for policycoreutils
     which provides restorecon. This is because we don't require
@@ -141,3 +151,113 @@ def modify_pam_to_use_krb5(statestore):
     auth_config.enable("krb5")
     auth_config.add_option("nostart")
     auth_config.execute()
+
+
+def insert_ca_cert_into_systemwide_ca_store(cacert_path):
+    # Add the 'ipa-' prefix to cert name to avoid name collisions
+    cacert_name = os.path.basename(cacert_path)
+    new_cacert_path = os.path.join(paths.SYSTEMWIDE_CA_STORE,
+                                   'ipa-%s' % cacert_name)
+
+    # Add the CA to the systemwide CA trust database
+    try:
+        shutil.copy(cacert_path, new_cacert_path)
+        ipautil.run(['/usr/bin/update-ca-trust'])
+    except OSError, e:
+        root_logger.info("Failed to copy %s to %s", cacert_path,
+                         new_cacert_path)
+    except CalledProcessError, e:
+        root_logger.info("Failed to add CA to the systemwide "
+                         "CA trust database: %s", e)
+    else:
+        root_logger.info('Added the CA to the systemwide CA trust database.')
+        return True
+
+    return False
+
+
+def remove_ca_cert_from_systemwide_ca_store(cacert_path):
+    # Derive the certificate name in the store
+    cacert_name = os.path.basename(cacert_path)
+    new_cacert_path = os.path.join(paths.SYSTEMWIDE_CA_STORE,
+                                   'ipa-%s' % cacert_name)
+
+    # Remove CA cert from systemwide store
+    if os.path.exists(new_cacert_path):
+        try:
+            os.remove(new_cacert_path)
+            ipautil.run(['/usr/bin/update-ca-trust'])
+        except OSError, e:
+            root_logger.error('Could not remove: %s, %s', new_cacert_path, e)
+            return False
+        except CalledProcessError, e:
+            root_logger.error('Could not update systemwide CA trust '
+                              'database: %s', e)
+            return False
+        else:
+            root_logger.info('Systemwide CA database updated.')
+
+    return True
+
+
+def backup_and_replace_hostname(fstore, statestore, hostname):
+    old_hostname = socket.gethostname()
+    try:
+        ipautil.run(['/bin/hostname', hostname])
+    except ipautil.CalledProcessError, e:
+        error_message = ("Failed to set this machine hostname to %s (%s)."
+                         % (hostname, e))
+        root_logger.error(error_message)
+        print >>sys.stderr, error_message
+
+    filepath = '/etc/hostname'
+    if os.path.exists(filepath):
+        # read old hostname
+        with open(filepath, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    # skip comment or empty line
+                    continue
+                old_hostname = line
+                break
+        fstore.backup_file(filepath)
+
+    with open(filepath, 'w') as f:
+        f.write("%s\n" % hostname)
+    os.chmod(filepath,
+             stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+    os.chown(filepath, 0, 0)
+    restore_context(filepath)
+
+    # store old hostname
+    statestore.backup_state('network', 'hostname', old_hostname)
+
+
+def restore_network_configuration(fstore, statestore):
+    old_filepath = '/etc/sysconfig/network'
+    old_hostname = statestore.get_state('network', 'hostname')
+    hostname_was_configured = False
+
+    if fstore.has_file(old_filepath):
+        # This is Fedora >=18 instance that was upgraded from previous
+        # Fedora version which held network configuration
+        # in /etc/sysconfig/network
+        old_filepath_restore = '/etc/sysconfig/network.ipabkp'
+        fstore.restore_file(old_filepath, old_filepath_restore)
+        print "Deprecated configuration file '%s' was restored to '%s'" \
+                % (old_filepath, old_filepath_restore)
+        hostname_was_configured = True
+
+    filepath = '/etc/hostname'
+    if fstore.has_file(filepath):
+        fstore.restore_file(filepath)
+        hostname_was_configured = True
+
+    if not hostname_was_configured and old_hostname:
+        # hostname was not configured before but was set by IPA. Delete
+        # /etc/hostname to restore previous configuration
+        try:
+            os.remove(filepath)
+        except OSError:
+            pass

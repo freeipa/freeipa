@@ -22,3 +22,4 @@ This base platform module exports default filesystem paths.
 '''
 
 SVC_LIST_FILE = "/var/run/ipa/services.list"
+SYSTEMWIDE_CA_STORE = "/etc/pki/ca-trust/source/anchors/"
