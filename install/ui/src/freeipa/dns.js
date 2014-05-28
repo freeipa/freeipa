@@ -1884,7 +1884,7 @@ IPA.dns.record_type_table_widget = function(spec) {
                 dialog.add(
                     function(data, text_status, xhr) {
 
-                        dialog.show_message(dialog.get_add_message());
+                        dialog.show_message(dialog.get_add_message(), 'success');
 
                         if (data.result.result.dnsrecords) {
                             that.reload_facet(data);

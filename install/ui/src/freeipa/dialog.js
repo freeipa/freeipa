@@ -30,7 +30,7 @@ define([
        './text',
        './field',
        './widget'],
-       function(keys, builder, IPA, $, phases, reg, text) {
+       function(keys, builder, IPA, $, phases, reg, text, field_mod, widget_mod) {
 
 /**
  * Opened dialogs
@@ -331,7 +331,7 @@ IPA.dialog = function(spec) {
 
         that.message_container = $('<div/>', {
             style: 'display: none',
-            'class': 'dialog-message alert'
+            'class': 'dialog-message col-sm-12'
         }).appendTo(that.body_node);
 
         var widgets = that.widgets.get_widgets();
@@ -433,14 +433,19 @@ IPA.dialog = function(spec) {
      * Show message in dialog's message container
      * @param {string} message
      */
-    that.show_message = function(message) {
-        that.message_container.text(message);
+    that.show_message = function(message, type) {
+
+        var ah = widget_mod.alert_helper;
+        var alert = ah.create_alert('msg', message, type);
+        var el = ah.render_alert(alert);
+        that.message_container.append(el);
         that.message_container.css('display', '');
     };
 
     /** Hide dialog message */
     that.hide_message = function() {
         that.message_container.css('display', 'none');
+        that.message_container.empty();
     };
 
     /**

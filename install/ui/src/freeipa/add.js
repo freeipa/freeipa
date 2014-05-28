@@ -85,7 +85,7 @@ IPA.entity_adder_dialog = function(spec) {
                 that.add(
                     function(data, text_status, xhr) {
                         that.added.notify([data], that);
-                        that.show_message(that.get_success_message(data));
+                        that.show_message(that.get_success_message(data), 'success');
                         that.reset();
                         that.focus_first_element();
                     },
