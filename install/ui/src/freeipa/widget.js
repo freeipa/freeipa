@@ -5082,7 +5082,7 @@ IPA.sshkey_widget = function(spec) {
 
         that.link = $('<a/>', {
             type: that.type,
-            'class': 'sshkey-set link-btn',
+            'class': 'sshkey-set btn btn-default',
             name: that.name,
             href: '#show-certificate',
             title: that.tooltip,
@@ -5115,6 +5115,7 @@ IPA.sshkey_widget = function(spec) {
             that.originally_set = true;
             that.original_key = that.key.key;
         }
+        that.update_link();
         that.on_value_changed();
     };
 
