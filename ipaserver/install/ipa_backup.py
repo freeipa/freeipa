@@ -460,6 +460,7 @@ class Backup(admintool.AdminTool):
 
         self.log.info("Backing up files")
         args = ['tar',
+                '--exclude=/var/lib/ipa/backup',
                 '--xattrs',
                 '--selinux',
                 '-czf',
