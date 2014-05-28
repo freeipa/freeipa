@@ -120,6 +120,13 @@ dname = u'testdns-dname'
 dname_dnsname = DNSName(dname)
 dname_dn = DN(('idnsname',dname), zone1_dn)
 
+wildcard_rec1 = u'*.test'
+wildcard_rec1_dnsname = DNSName(wildcard_rec1)
+wildcard_rec1_dn = DN(('idnsname',wildcard_rec1), zone1_dn)
+wildcard_rec1_addr = u'172.16.15.55'
+wildcard_rec1_test1 = u'a.test.%s' % zone1_absolute
+wildcard_rec1_test2 = u'b.test.%s' % zone1_absolute
+
 nsrev = u'128/25'
 nsrev_dnsname = DNSName(nsrev)
 nsrev_dn = DN(('idnsname',nsrev), revzone3_classless1_dn)
@@ -2350,6 +2357,45 @@ class test_dns(Declarative):
                 },
             },
         ),
+
+
+        dict(
+            desc='Add A record to %r in zone %r' % (wildcard_rec1, zone1),
+            command=('dnsrecord_add', [zone1, wildcard_rec1], {'arecord': wildcard_rec1_addr}),
+            expected={
+                'value': wildcard_rec1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': wildcard_rec1_dn,
+                    'idnsname': [wildcard_rec1_dnsname],
+                    'arecord': [wildcard_rec1_addr],
+                    'objectclass': objectclasses.dnsrecord,
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Resolve name %r (wildcard)' % (wildcard_rec1_test1),
+            command=('dns_resolve', [wildcard_rec1_test1], {}),
+            expected={
+                    'result': True,
+                    'summary': "Found '%s'" % wildcard_rec1_test1,
+                    'value': wildcard_rec1_test1,
+            },
+        ),
+
+
+        dict(
+            desc='Resolve name %r (wildcard)' % (wildcard_rec1_test2),
+            command=('dns_resolve', [wildcard_rec1_test2], {}),
+            expected={
+                    'result': True,
+                    'summary': "Found '%s'" % wildcard_rec1_test2,
+                    'value': wildcard_rec1_test2,
+            },
+        ),
+
 
         dict(
             desc='Add A denormalized record to %r in zone %r' % (idnres1, idnzone1),
