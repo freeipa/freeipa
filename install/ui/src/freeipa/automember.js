@@ -617,6 +617,7 @@ IPA.automember.default_group_widget = function(spec) {
         }
 
         that.update(group);
+        that.set_visible(true);
     };
 
     that.update = function(group) {
@@ -646,7 +647,11 @@ IPA.automember.default_group_widget = function(spec) {
     that.refresh = function() {
 
         var command = that.create_command('show');
+        command.retry = false;
         command.on_success = that.load;
+        command.on_error = function() {
+            that.set_visible(false);
+        };
 
         command.execute();
     };
@@ -677,6 +682,7 @@ IPA.automember.default_group_widget = function(spec) {
     that.create = function(container) {
 
         var title = that.get_title();
+        that.container = container;
 
         that.header = $('<div/>', {
             'class': 'automember-header-label',
@@ -689,6 +695,7 @@ IPA.automember.default_group_widget = function(spec) {
         that.group_select.create(that.group_select_node);
         that.group_select_node.appendTo(container);
         that.group_select.update([]); // preload groups
+        that.set_visible(false);
     };
 
     that.get_title = function() {
