@@ -5444,7 +5444,7 @@ IPA.value_map_widget = function(spec) {
  * @alternateClassName IPA.alert_helper
  * @singleton
  */
-exp.alert_helper = {
+exp.alert_helper = IPA.alert_helper = {
 
     /**
      * Create alert object

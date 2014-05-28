@@ -50,11 +50,7 @@ textarea[readonly] {
 .notification-area div {
     position: relative;
     left: -50%;
-
-    line-height: 1.5em;
     z-index: 20;
-    padding: 4px;
-    text-align: center;
     word-wrap: break-word;
     max-width: 500px;
 }

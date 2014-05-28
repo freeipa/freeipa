@@ -1164,8 +1164,6 @@ IPA.notify = function(message, type, timeout) {
     }
 
     var notification_area = $('.notification-area');
-    var message_el = $('.notification-area div');
-
     if (notification_area.length === 0) {
         notification_area =  $('<div/>', {
             'class': 'notification-area',
@@ -1174,25 +1172,14 @@ IPA.notify = function(message, type, timeout) {
                 notification_area.fadeOut(100);
             }
         });
-        message_el = $('<div/>', {
-            'class': 'alert'
-        }).appendTo(notification_area);
 
         notification_area.appendTo('#container');
     }
+    notification_area.empty();
 
-    if (IPA.notify_success.current_cls) {
-        message_el.removeClass(IPA.notify_success.current_cls);
-        IPA.notify_success.current_cls = null;
-    }
-
-    if (type && type !== 'warning') {
-        var type_cls = 'alert-'+type;
-        message_el.addClass(type_cls);
-        IPA.notify_success.current_cls = type_cls;
-    }
-
-    message_el.text(message);
+    var alert = IPA.alert_helper.create_alert('msg', message, type);
+    var el = IPA.alert_helper.render_alert(alert);
+    notification_area.append(el);
 
     destroy_timeout();
     notification_area.fadeIn(IPA.config.message_fadein_time);
