@@ -193,12 +193,12 @@ IPA.rule_association_table_field = function(spec) {
         }
     };
 
-    that.load = function(result) {
-        that.values = result[that.param] || [];
+    that.load = function(data) {
+        that.values = that.adapter.load(data);
 
         if (that.external) {
             that.set_values_external(that.values, '');
-            var external_values = result[that.external] || [];
+            var external_values = that.adapter.load(data, that.external, []);
             that.set_values_external(external_values, 'true');
             $.merge(that.values, external_values);
         }

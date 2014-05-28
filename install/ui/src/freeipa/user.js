@@ -153,6 +153,7 @@ return {
                 {
                     name: 'pwpolicy',
                     label: '@i18n:objects.pwpolicy.identity',
+                    field_adapter: { result_index: 1 },
                     fields: [
                         {
                             name: 'krbmaxpwdlife',
@@ -202,6 +203,7 @@ return {
                 {
                     name: 'krbtpolicy',
                     label: '@i18n:objects.krbtpolicy.identity',
+                    field_adapter: { result_index: 2 },
                     fields: [
                         {
                             name: 'krbmaxrenewableage',
@@ -272,9 +274,15 @@ return {
                     {
                         $factory: IPA.enable_state_evaluator,
                         field: 'nsaccountlock',
+                        adapter: { $type: 'batch', result_index: 0 },
                         invert_value: true
                     },
-                    IPA.user.reset_password_acl_evaluator
+                    {
+                        $factory: IPA.acl_state_evaluator,
+                        name: 'reset_password_acl_evaluator',
+                        adapter: { $type: 'batch', result_index: 0 },
+                        attribute: 'userpassword'
+                    }
                 ],
                 summary_conditions: [
                     IPA.enabled_summary_cond,
@@ -358,12 +366,6 @@ IPA.user.details_facet = function(spec) {
 
     var that = IPA.details_facet(spec);
 
-    that.refresh_on_success = function(data, text_status, xhr) {
-        // do not load data from batch
-
-        that.show_content();
-    };
-
     that.create_refresh_command = function() {
 
         var pkey = that.get_pkey();
@@ -373,19 +375,12 @@ IPA.user.details_facet = function(spec) {
         });
 
         var user_command = that.details_facet_create_refresh_command();
-
-        user_command.on_success = function(data, text_status, xhr) {
-            // create data that mimics user-show output
-            var user_data = {};
-            user_data.result = data;
-            that.load(user_data);
-        };
-
         batch.add_command(user_command);
 
         var pwpolicy_command = rpc.command({
             entity: 'pwpolicy',
             method: 'show',
+            retry: false,
             options: {
                 user: pkey,
                 all: true,
@@ -394,16 +389,11 @@ IPA.user.details_facet = function(spec) {
         });
 
         pwpolicy_command.on_success = function(data, text_status, xhr) {
-            // TODO: Use nested fields: that.fields.get_field('pwpolicy').get_fields();
-            var fields = that.fields.get_fields();
-            for (var i=0; i<fields.length; i++) {
-                var field = fields[i];
+            that.widgets.get_widget('pwpolicy').set_visible(true);
+        };
 
-                // load result into pwpolicy fields
-                if (field.widget_name.match(/^pwpolicy\./)) {
-                    field.load(data.result);
-                }
-            }
+        pwpolicy_command.on_error = function(xhr, text_status, error_thrown) {
+            that.widgets.get_widget('pwpolicy').set_visible(false);
         };
 
         batch.add_command(pwpolicy_command);
@@ -412,6 +402,7 @@ IPA.user.details_facet = function(spec) {
             entity: 'krbtpolicy',
             method: 'show',
             args: [ pkey ],
+            retry: false,
             options: {
                 all: true,
                 rights: true
@@ -419,16 +410,11 @@ IPA.user.details_facet = function(spec) {
         });
 
         krbtpolicy_command.on_success = function(data, text_status, xhr) {
-            // TODO: Use nested fields: that.fields.get_field('krbtpolicy').get_fields();
-            var fields = that.fields.get_fields();
-            for (var i=0; i<fields.length; i++) {
-                var field = fields[i];
+            that.widgets.get_widget('krbtpolicy').set_visible(true);
+        };
 
-                // load result into krbtpolicy fields
-                if (field.widget_name.match(/^krbtpolicy\./)) {
-                    field.load(data.result);
-                }
-            }
+        krbtpolicy_command.on_error = function(xhr, text_status, error_thrown) {
+            that.widgets.get_widget('krbtpolicy').set_visible(false);
         };
 
         batch.add_command(krbtpolicy_command);
@@ -690,15 +676,6 @@ IPA.user.reset_password_action = function(spec) {
         dialog.open();
     };
 
-    return that;
-};
-
-IPA.user.reset_password_acl_evaluator = function(spec) {
-
-    spec.name = spec.name || 'reset_password_acl_evaluator';
-    spec.attribute = spec.attribute || 'userpassword';
-
-    var that = IPA.acl_state_evaluator(spec);
     return that;
 };
 

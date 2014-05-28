@@ -411,17 +411,18 @@ field.field = IPA.field = function(spec) {
      * This function calls adapter to get value from record and date_parser to
      * process it. The it sets is as `value`.
      */
-    that.load = function(record) {
+    that.load = function(data) {
 
-        var value = that.adapter.load(record);
+        var value = that.adapter.load(data);
         var parsed = util.parse(that.data_parser, value, "Parse error:"+that.name);
         value = parsed.value;
         if (!parsed.ok) {
             window.console.warn(parsed.message);
         }
 
-        // this call is quite application specific and should be moved to
+        // this part is quite application specific and should be moved to
         // different component
+        var record = that.adapter.get_record(data);
         that.load_writable(record);
 
         that.set_value(value, true);
@@ -459,7 +460,7 @@ field.field = IPA.field = function(spec) {
             }
         }
 
-        if (record.attributelevelrights) {
+        if (record && record.attributelevelrights) {
             var rights = record.attributelevelrights[that.acl_param];
             var oc_rights= record.attributelevelrights['objectclass'];
             var write_oc = oc_rights && oc_rights.indexOf('w') > -1;
@@ -740,10 +741,10 @@ field.field = IPA.field = function(spec) {
 };
 
 /**
- * Adapter's task is to select wanted data from record and vice-versa.
+ * Adapter's task is to select wanted data from RPC response
  *
- * This default adapter expects that context will be field and record
- * will be FreeIPA JsonRPC result.
+ * This default adapter expects that context will be a field and data
+ * will be FreeIPA JsonRPC response.
  *
  * @class
  */
@@ -755,6 +756,41 @@ field.Adapter = declare(null, {
      * @property {Object}
      */
     context: null,
+
+    /**
+     * Index of result in batch results array
+     * @type {Number}
+     */
+    result_index: 0,
+
+    /**
+     * Extract record from RPC call response
+     *
+     * Tries to detect if supplied data is RPC call response if so, it
+     * extracts the record. Otherwise it returns supplied data as the record.
+     *
+     * @param  {Object} data Response data or record
+     * @return {Object} record
+     */
+    get_record: function(data) {
+
+        // detection if it's result or raw RPC command response
+        // all raw responses should contain `version` and `principal`
+        if (!data.version || !data.principal) {
+            return data;
+        }
+
+        var dr = data.result;
+        var record = null;
+        if (dr) {
+            if (dr.result) record = dr.result;
+            else if (dr.results) {
+                var result = dr.results[this.result_index];
+                if (result) record = result.result;
+            }
+        }
+        return record;
+    },
 
     /**
      * Get single value from record
@@ -772,13 +808,21 @@ field.Adapter = declare(null, {
      * By default just select attribute with name defined by `context.param`
      * from a record. Uses default value if value is not in record and context
      * defines it.
-     * @param {Object} record
+     * @param {Object} data Object which contains the record or the record
+     * @param {string} [attribute] attribute name - overrides `context.param`
+     * @param {Mixed} [def_val] default value - overrides `context.default_value`
      * @returns {Array} attribute value
      */
-    load: function(record) {
-        var value = this.get_value(record, this.context.param);
-        if (util.is_empty(value) && !util.is_empty(this.context.default_value)) {
-            value = util.normalize_value(this.context.default_value);
+    load: function(data, attribute, def_val) {
+        var record = this.get_record(data);
+        var value = null;
+        var attr = attribute || this.context.param;
+        var def = def_val || this.context.default_value;
+        if (record) {
+            value = this.get_value(record, attr);
+        }
+        if (util.is_empty(value) && !util.is_empty(def)) {
+            value = util.normalize_value(def);
         }
         return value;
     },
@@ -803,6 +847,7 @@ field.Adapter = declare(null, {
     },
 
     constructor: function(spec) {
+        declare.safeMixin(this, spec);
         this.context = spec.context || {};
     }
 });
@@ -1127,7 +1172,9 @@ field.SshKeysAdapter = declare([field.Adapter], {
      *  ]
      * """
      */
-    load: function(record) {
+    load: function(data) {
+
+        var record = this.get_record(data);
         var keys = this.get_value(record, this.context.param);
         var fingerprints = this.get_value(record, 'sshpubkeyfp');
         var values = [];
@@ -1392,6 +1439,7 @@ reg.set('validator', field.validator_builder.registry);
  * @member field
  */
 field.adapter_builder = builder.get('adapter');
+field.adapter_builder.ctor = field.Adapter;
 field.adapter_builder.post_ops.push(function(obj, spec, context) {
         obj.context = context.context;
         return obj;

@@ -237,15 +237,15 @@ exp.section_builder = IPA.section_builder = function(spec) {
      */
     that.build_section = function(section_spec, index) {
 
-        var spec = section_spec;
+        var spec = {};
         var overrides = {};
         var spec_type = typeof that.section_spec;
         if (spec_type === 'object') {
             spec = lang.mixin({}, that.section_spec);
-            spec = lang.mixin(spec, section_spec);
         } else if (spec_type === "function") {
             overrides = that.section_spec;
         }
+        spec = lang.mixin(spec, section_spec);
 
         if (!spec.label && spec.name && that.container.entity) {
             var section_label = '@i18n:objects.'+that.container.entity.name+
@@ -261,7 +261,9 @@ exp.section_builder = IPA.section_builder = function(spec) {
         }, overrides);
 
         that.container.widgets.add_widget(section);
+        section.$field_adapter = spec.field_adapter;
         that.create_fields(section, spec.fields);
+        delete section.$field_adapter;
     };
 
     /**
@@ -283,7 +285,17 @@ exp.section_builder = IPA.section_builder = function(spec) {
      */
     that.create_field = function(section, field_spec) {
 
+        if (typeof field_spec === 'string') {
+            field_spec = {
+                name: field_spec
+            };
+        }
+
         var widget = that.widget_builder.build_widget(field_spec, section.widgets);
+
+        if (section.$field_adapter && !field_spec.adapter) {
+            field_spec.adapter = section.$field_adapter;
+        }
 
         //spec.$factory refers to widget factory
         if(field_spec.$factory) delete field_spec.$factory;
@@ -714,7 +726,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         var fields = that.fields.get_fields();
         for (var i=0; i<fields.length; i++) {
             var field = fields[i];
-            field.load(data.result.result);
+            field.load(data);
         }
         that.policies.post_load(data);
         that.post_load.notify([data], that);
@@ -1467,6 +1479,10 @@ exp.boolean_state_evaluator = IPA.boolean_state_evaluator = function(spec) {
      */
     that.field_name = spec.field;
 
+    that.param = spec.param || that.field_name;
+
+    that.adapter = builder.build('adapter', spec.adapter || 'adapter', { context: that });
+
     /**
      * State to set when value is `true`
      * @property {string}
@@ -1504,10 +1520,10 @@ exp.boolean_state_evaluator = IPA.boolean_state_evaluator = function(spec) {
     that.on_event = function(data) {
 
         var old_state = that.state;
-        var record = data.result.result;
         that.state = [];
 
-        var value = that.parser.parse(record[that.field_name]);
+        var value = that.adapter.load(data);
+        value = that.parser.parse(value);
 
         if (value === true) {
             that.state.push(that.true_state);
@@ -1570,20 +1586,23 @@ exp.acl_state_evaluator = IPA.acl_state_evaluator = function(spec) {
      */
     that.attribute = spec.attribute;
 
+    that.param = spec.param || 'attributelevelrights';
+
+    that.adapter = builder.build('adapter', spec.adapter || 'adapter', { context: that });
+
     /**
      * @inheritDoc
      */
     that.on_event = function(data) {
 
-        var old_state, record, rights, i, state;
+        var old_state, record, all_rights, rights, i, state;
 
         old_state = that.state;
-        record = data.result.result;
-
         that.state = [];
 
-        if (record.attributelevelrights) {
-            rights = record.attributelevelrights[that.attribute];
+        all_rights = that.adapter.load(data);
+        if (all_rights) {
+            rights = all_rights[that.attribute];
         }
 
         // Full rights if we don't know the rights.  Better to allow action and

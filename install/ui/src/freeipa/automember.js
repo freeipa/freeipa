@@ -455,7 +455,7 @@ IPA.automember.condition_field = function(spec) {
 
 IPA.automember.condition_adapter = declare([field_mod.Adapter], {
 
-    load: function(record) {
+    load: function(data) {
         var regexes = this.inherited(arguments);
         var values = [];
         if (regexes) {

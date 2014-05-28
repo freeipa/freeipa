@@ -209,9 +209,6 @@ define([
         if (!(value instanceof Array)) {
             value = value !== undefined ? [value] : [];
         }
-        if (!value.length) {
-            value = [''];
-        }
         return value;
     }
 

@@ -339,12 +339,6 @@ IPA.dnszone_details_facet = function(spec, no_init) {
     that.permission_load = IPA.observer();
     that.permission_status = 'unknown'; // [unknown, set, none]
 
-    that.refresh_on_success = function(data, text_status, xhr) {
-        // do not load data from batch
-
-        that.show_content();
-    };
-
     that.create_refresh_command = function() {
 
         var pkey = that.get_pkey();
@@ -354,14 +348,6 @@ IPA.dnszone_details_facet = function(spec, no_init) {
         });
 
         var dnszone_command = that.details_facet_create_refresh_command();
-
-        dnszone_command.on_success = function(data, text_status, xhr) {
-            // create data that mimics dnszone-show output
-            var dnszone_data = {};
-            dnszone_data.result = data;
-            that.load(dnszone_data);
-        };
-
         batch.add_command(dnszone_command);
 
         var permission_name = IPA.dns.zone_permission_name.replace('${dnszone}', pkey);
@@ -1608,8 +1594,9 @@ IPA.dns.record_type_adapter = declare([field_mod.Adapter], {
 
     separator: ';',
 
-    load: function(record) {
+    load: function(rpcdata) {
 
+        var record = this.get_record(rpcdata);
         var data = {};
 
         data.idnsname = record.idnsname;
@@ -2060,7 +2047,7 @@ IPA.dns.netaddr_adapter = declare([field_mod.Adapter], {
 
     separator: ';',
 
-    load: function(record) {
+    load: function(data) {
         var value = this.inherited(arguments)[0];
         if (value) {
             if (value[value.length-1] === this.separator) {

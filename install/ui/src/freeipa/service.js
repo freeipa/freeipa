@@ -269,7 +269,8 @@ IPA.service_adder_dialog = function(spec) {
 };
 
 IPA.service_name_adapter = declare([field_mod.Adapter], {
-    load: function(record) {
+    load: function(data) {
+        var record = this.get_record(data);
         var krbprincipalname = record.krbprincipalname[0];
         var value = krbprincipalname.replace(/\/.*$/, '');
         return [value];
@@ -277,7 +278,8 @@ IPA.service_name_adapter = declare([field_mod.Adapter], {
 });
 
 IPA.service_host_adapter = declare([field_mod.Adapter], {
-    load: function(record) {
+    load: function(data) {
+        var record = this.get_record(data);
         var krbprincipalname = record.krbprincipalname[0];
         var value = krbprincipalname.replace(/^.*\//, '').replace(/@.*$/, '');
         return [value];
