@@ -25,7 +25,7 @@ Loads WSGI server plugins.
 from ipalib import api
 
 if 'in_server' in api.env and api.env.in_server is True:
-    from ipaserver.rpcserver import wsgi_dispatch, xmlserver, jsonserver_kerb, jsonserver_session, login_kerberos, login_password, change_password, xmlserver_session
+    from ipaserver.rpcserver import wsgi_dispatch, xmlserver, jsonserver_kerb, jsonserver_session, login_kerberos, login_password, change_password, sync_token, xmlserver_session
     api.register(wsgi_dispatch)
     api.register(xmlserver)
     api.register(jsonserver_kerb)
@@ -33,4 +33,5 @@ if 'in_server' in api.env and api.env.in_server is True:
     api.register(login_kerberos)
     api.register(login_password)
     api.register(change_password)
+    api.register(sync_token)
     api.register(xmlserver_session)

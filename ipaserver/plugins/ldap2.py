@@ -93,7 +93,7 @@ class ldap2(LDAPClient, CrudBackend):
 
     def create_connection(self, ccache=None, bind_dn=None, bind_pw='',
             tls_cacertfile=None, tls_certfile=None, tls_keyfile=None,
-            debug_level=0, autobind=False):
+            debug_level=0, autobind=False, serverctrls=None, clientctrls=None):
         """
         Connect to LDAP server.
 
@@ -151,16 +151,22 @@ class ldap2(LDAPClient, CrudBackend):
                         context=krbV.default_context()).principal().name
 
                 os.environ['KRB5CCNAME'] = ccache
-                conn.sasl_interactive_bind_s(None, SASL_GSSAPI)
+                conn.sasl_interactive_bind_s(None, SASL_GSSAPI,
+                                             serverctrls=serverctrls,
+                                             clientctrls=clientctrls)
                 setattr(context, 'principal', principal)
             else:
                 # no kerberos ccache, use simple bind or external sasl
                 if autobind:
                     pent = pwd.getpwuid(os.geteuid())
                     auth_tokens = _ldap.sasl.external(pent.pw_name)
-                    conn.sasl_interactive_bind_s(None, auth_tokens)
+                    conn.sasl_interactive_bind_s(None, auth_tokens,
+                                                 serverctrls=serverctrls,
+                                                 clientctrls=clientctrls)
                 else:
-                    conn.simple_bind_s(bind_dn, bind_pw)
+                    conn.simple_bind_s(bind_dn, bind_pw,
+                                       serverctrls=serverctrls,
+                                       clientctrls=clientctrls)
 
         return conn
 

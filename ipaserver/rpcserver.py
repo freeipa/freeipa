@@ -30,6 +30,10 @@ import datetime
 import urlparse
 import json
 
+import ldap.controls
+from pyasn1.type import univ, namedtype
+from pyasn1.codec.ber import encoder
+
 from ipalib import plugable, errors
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib.backend import Executioner
@@ -106,7 +110,7 @@ _unauthorized_template = """<html>
 </body>
 </html>"""
 
-_pwchange_template = """<html>
+_success_template = """<html>
 <head>
 <title>200 Success</title>
 </head>
@@ -1105,10 +1109,110 @@ class change_password(Backend, HTTP_Status):
             response_headers.append(('X-IPA-Pwchange-Policy-Error', policy_error))
 
         start_response(status, response_headers)
-        output = _pwchange_template % dict(title=str(title),
-                                           message=str(message))
+        output = _success_template % dict(title=str(title),
+                                          message=str(message))
         return [output]
 
+class sync_token(Backend, HTTP_Status):
+    content_type = 'text/plain'
+    key = '/session/sync_token'
+
+    class OTPSyncRequest(univ.Sequence):
+        OID = "2.16.840.1.113730.3.8.10.6"
+
+        componentType = namedtype.NamedTypes(
+            namedtype.NamedType('firstCode', univ.OctetString()),
+            namedtype.NamedType('secondCode', univ.OctetString()),
+            namedtype.OptionalNamedType('tokenDN', univ.OctetString())
+        )
+
+    def __init__(self):
+        super(sync_token, self).__init__()
+
+    def _on_finalize(self):
+        super(sync_token, self)._on_finalize()
+        self.api.Backend.wsgi_dispatch.mount(self, self.key)
+
+    def __call__(self, environ, start_response):
+        # Make sure this is a form request.
+        content_type = environ.get('CONTENT_TYPE', '').lower()
+        if not content_type.startswith('application/x-www-form-urlencoded'):
+            return self.bad_request(environ, start_response, "Content-Type must be application/x-www-form-urlencoded")
+
+        # Make sure this is a POST request.
+        method = environ.get('REQUEST_METHOD', '').upper()
+        if method == 'POST':
+            query_string = read_input(environ)
+        else:
+            return self.bad_request(environ, start_response, "HTTP request method must be POST")
+
+        # Parse the query string to a dictionary.
+        try:
+            query_dict = urlparse.parse_qs(query_string)
+        except Exception, e:
+            return self.bad_request(environ, start_response, "cannot parse query data")
+        data = {}
+        for field in ('user', 'password', 'first_code', 'second_code', 'token'):
+            value = query_dict.get(field, None)
+            if value is not None:
+                if len(value) == 1:
+                    data[field] = value[0]
+                else:
+                    return self.bad_request(environ, start_response, "more than one %s parameter"
+                                            % field)
+            elif field != 'token':
+                return self.bad_request(environ, start_response, "no %s specified" % field)
+
+        # Create the request control.
+        sr = self.OTPSyncRequest()
+        sr.setComponentByName('firstCode', data['first_code'])
+        sr.setComponentByName('secondCode', data['second_code'])
+        if 'token' in data:
+            try:
+                token_dn = DN(data['token'])
+            except ValueError:
+                token_dn = DN((self.api.Object.otptoken.primary_key.name, data['token']),
+                              self.api.env.container_otp, self.api.env.basedn)
+
+            sr.setComponentByName('tokenDN', str(token_dn))
+        rc = ldap.controls.RequestControl(sr.OID, True, encoder.encode(sr))
+
+        # Resolve the user DN
+        bind_dn = DN((self.api.Object.user.primary_key.name, data['user']),
+                     self.api.env.container_user, self.api.env.basedn)
+
+        # Start building the response.
+        status = HTTP_STATUS_SUCCESS
+        response_headers = [('Content-Type', 'text/html; charset=utf-8')]
+        title = 'Token sync rejected'
+
+        # Perform the synchronization.
+        conn = ldap2(shared_instance=False, ldap_uri=self.api.env.ldap_uri)
+        try:
+            conn.connect(bind_dn=bind_dn,
+                         bind_pw=data['password'],
+                         serverctrls=[rc,])
+            result = 'ok'
+            title = "Token sync successful"
+            message = "Token was synchronized."
+        except (NotFound, ACIError):
+            result = 'invalid-credentials'
+            message = 'The username, password or token codes are not correct.'
+        except Exception, e:
+            result = 'error'
+            message = "Could not connect to LDAP server."
+            self.error("token_sync: cannot authenticate '%s' to LDAP server: %s",
+                       data['user'], str(e))
+        finally:
+            if conn.isconnected():
+                conn.destroy_connection()
+
+        # Report status and return.
+        response_headers.append(('X-IPA-TokenSync-Result', result))
+        start_response(status, response_headers)
+        output = _success_template % dict(title=str(title),
+                                          message=str(message))
+        return [output]
 
 class xmlserver_session(xmlserver, KerberosSession):
     """
