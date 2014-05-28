@@ -111,6 +111,12 @@ status_output_params = (
     ),
    )
 
+UPG_DEFINITION_DN = DN(('cn', 'UPG Definition'),
+                       ('cn', 'Definitions'),
+                       ('cn', 'Managed Entries'),
+                       ('cn', 'etc'),
+                       api.env.basedn)
+
 # characters to be used for generating random user passwords
 user_pwdchars = string.digits + string.ascii_letters + '_,.@+-='
 
@@ -318,6 +324,17 @@ class user(LDAPObject):
             'ipapermdefaultattr': {
                 'memberof',
             },
+        },
+        'System: Read UPG Definition': {
+            # Required for adding users
+            'replaces_global_anonymous_aci': True,
+            'non_object': True,
+            'ipapermlocation': UPG_DEFINITION_DN,
+            'ipapermtarget': UPG_DEFINITION_DN,
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {'*'},
+            'default_privileges': {'User Administrators'},
         },
     }
 
