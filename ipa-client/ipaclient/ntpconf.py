@@ -21,6 +21,7 @@ from ipapython import ipautil
 from ipapython import services as ipaservices
 import shutil
 import os
+from ipaplatform import tasks
 
 ntp_conf = """# Permit time synchronization with our time source, but do not
 # permit the source to query or modify the service on this system.
@@ -110,7 +111,7 @@ def config_ntp(server_fqdn, fstore = None, sysstore = None):
         ns = ipautil.template_str(ntp_step_tickers, sub_dict)
         __backup_config(path_step_tickers, fstore)
         __write_config(path_step_tickers, ns)
-        ipaservices.restore_context(path_step_tickers)
+        tasks.restore_context(path_step_tickers)
 
     if sysstore:
         module = 'ntp'
@@ -120,11 +121,11 @@ def config_ntp(server_fqdn, fstore = None, sysstore = None):
 
     __backup_config(path_ntp_conf, fstore)
     __write_config(path_ntp_conf, nc)
-    ipaservices.restore_context(path_ntp_conf)
+    tasks.restore_context(path_ntp_conf)
 
     __backup_config(path_ntp_sysconfig, fstore)
     __write_config(path_ntp_sysconfig, ntp_sysconfig)
-    ipaservices.restore_context(path_ntp_sysconfig)
+    tasks.restore_context(path_ntp_sysconfig)
 
     # Set the ntpd to start on boot
     ipaservices.knownservices.ntpd.enable()

@@ -51,6 +51,7 @@ from ipapython.ipa_log_manager import *
 from ipapython import dogtag
 from ipapython.dn import DN
 import ipaclient.ntpconf
+from ipaplatform import tasks
 
 log_file_name = "/var/log/ipareplica-install.log"
 REPLICA_INFO_TOP_DIR = None
@@ -447,7 +448,7 @@ def check_dns_resolution(host_name, dns_servers):
 
 
 def main():
-    ipaservices.check_selinux_status()
+    tasks.check_selinux_status()
     safe_options, options, filename = parse_options()
 
     if os.geteuid() != 0:

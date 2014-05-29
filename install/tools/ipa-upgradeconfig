@@ -35,7 +35,9 @@ from ipalib import api
 import SSSDConfig
 import ipalib.util
 import ipalib.errors
-from ipapython import ipautil, sysrestore, version, services
+from ipaplatform import services
+from ipaplatform import tasks
+from ipapython import ipautil, sysrestore, version
 from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import *
 from ipapython import certmonger
@@ -718,7 +720,7 @@ def copy_crl_file(old_path, new_path=None):
         pent = pwd.getpwnam(cainstance.PKI_USER)
         os.chown(new_path, pent.pw_uid, pent.pw_gid)
 
-    services.restore_context(new_path)
+    tasks.restore_context(new_path)
 
 def migrate_crl_publish_dir(ca):
     """

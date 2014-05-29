@@ -78,6 +78,7 @@ from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 
 import ipaclient.ntpconf
+from ipaplatform import tasks
 
 uninstalling = False
 installation_cleanup = True
@@ -505,7 +506,7 @@ def uninstall():
         adtrustinstance.ADTRUSTInstance(fstore).uninstall()
     memcacheinstance.MemcacheInstance().uninstall()
     otpdinstance.OtpdInstance().uninstall()
-    ipaservices.restore_network_configuration(fstore, sstore)
+    tasks.restore_network_configuration(fstore, sstore)
     fstore.restore_all_files()
     try:
         os.remove(ANSWER_CACHE)
@@ -580,7 +581,7 @@ def main():
     if os.getegid() != 0:
         sys.exit("Must be root to set up server")
 
-    ipaservices.check_selinux_status()
+    tasks.check_selinux_status()
 
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
@@ -1036,7 +1037,7 @@ def main():
         root_logger.debug("Chosen hostname (%s) differs from system hostname (%s) - change it" \
                       % (host_name, system_hostname))
         # configure /etc/sysconfig/network to contain the custom hostname
-        ipaservices.backup_and_replace_hostname(fstore, sstore, host_name)
+        tasks.backup_and_replace_hostname(fstore, sstore, host_name)
 
     # Create DS group if it doesn't exist yet
     dsinstance.create_ds_group()
@@ -1156,7 +1157,7 @@ def main():
         http.create_instance(
             realm_name, host_name, domain_name, dm_password,
             subject_base=options.subject, auto_redirect=options.ui_redirect)
-    ipaservices.restore_context("/var/cache/ipa/sessions")
+    tasks.restore_context("/var/cache/ipa/sessions")
 
     set_subject_in_config(realm_name, dm_password, ipautil.realm_to_suffix(realm_name), options.subject)
 

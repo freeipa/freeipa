@@ -40,6 +40,7 @@ from ipaserver.install import ldapupdate
 from ipaserver.install import replication
 from ipaserver.install import sysupgrade
 from ipalib import errors
+from ipaplatform import tasks
 from ipalib.constants import CACERT
 from ipapython.dn import DN
 
@@ -602,7 +603,7 @@ class DsInstance(service.Service):
         replacevars = {'KRB5CCNAME': ccache}
         old_values = ipautil.backup_config_and_replace_variables(
             self.fstore, filepath, replacevars=replacevars)
-        ipaservices.restore_context(filepath)
+        tasks.restore_context(filepath)
 
     def __managed_entries(self):
         self._ldap_mod("managed-entries.ldif", self.sub_dict)

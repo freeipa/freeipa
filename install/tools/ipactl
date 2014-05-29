@@ -32,6 +32,7 @@ from ipapython.ipaldap import IPAdmin
 from ipapython.ipautil import wait_for_open_ports, wait_for_open_socket
 from ipapython import services as ipaservices
 from ipapython import config, dogtag
+from ipaplatform import tasks
 from ipapython.dn import DN
 
 class IpactlError(ScriptError):
@@ -171,7 +172,7 @@ def get_config_from_file():
     svc_list = []
 
     try:
-        f = open(ipaservices.get_svc_list_file(), 'r')
+        f = open(tasks.get_svc_list_file(), 'r')
         svc_list = json.load(f)
     except Exception, e:
         raise IpactlError("Unknown error when retrieving list of services from file: " + str(e))
@@ -211,7 +212,7 @@ def stop_dirsrv(dirsrv):
 
 def ipa_start(options):
 
-    if os.path.isfile(ipaservices.get_svc_list_file()):
+    if os.path.isfile(tasks.get_svc_list_file()):
         emit_err("Existing service file detected!")
         emit_err("Assuming stale, cleaning and proceeding")
         # remove file with list of started services
@@ -429,7 +430,7 @@ def ipa_status(options):
         else:
             svc_list = get_config_from_file()
     except IpactlError, e:
-        if os.path.exists(ipaservices.get_svc_list_file()):
+        if os.path.exists(tasks.get_svc_list_file()):
             raise e
         else:
             svc_list = []

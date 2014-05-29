@@ -33,6 +33,7 @@ import string
 
 from ipapython import ipautil
 from ipapython import services as ipaservices
+from ipaplatform import tasks
 
 SYSRESTORE_PATH = "/tmp"
 SYSRESTORE_INDEXFILE = "sysrestore.index"
@@ -190,7 +191,7 @@ class FileStore:
         os.chown(path, int(uid), int(gid))
         os.chmod(path, int(mode))
 
-        ipaservices.restore_context(path)
+        tasks.restore_context(path)
 
         del self.files[filename]
         self.save()
@@ -221,7 +222,7 @@ class FileStore:
             os.chown(path, int(uid), int(gid))
             os.chmod(path, int(mode))
 
-            ipaservices.restore_context(path)
+            tasks.restore_context(path)
 
 	#force file to be deleted
         self.files = {}

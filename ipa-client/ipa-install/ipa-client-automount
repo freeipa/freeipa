@@ -38,6 +38,7 @@ from ipaclient import ipachangeconf
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipapython import services as ipaservices
+from ipaplatform import tasks
 
 AUTOFS_CONF = '/etc/sysconfig/autofs'
 NSSWITCH_CONF = '/etc/nsswitch.conf'
@@ -220,7 +221,7 @@ def configure_autofs(fstore, statestore, autodiscover, server, options):
 
     ipautil.backup_config_and_replace_variables(fstore,
         AUTOFS_CONF, replacevars=replacevars)
-    ipaservices.restore_context(AUTOFS_CONF)
+    tasks.restore_context(AUTOFS_CONF)
     statestore.backup_state('autofs', 'sssd', False)
 
     print "Configured %s" % AUTOFS_CONF
@@ -313,7 +314,7 @@ def configure_nfs(fstore, statestore):
     }
     ipautil.backup_config_and_replace_variables(fstore,
         NFS_CONF, replacevars=replacevars)
-    ipaservices.restore_context(NFS_CONF)
+    tasks.restore_context(NFS_CONF)
 
     print "Configured %s" % NFS_CONF
 
@@ -322,7 +323,7 @@ def configure_nfs(fstore, statestore):
     }
     ipautil.backup_config_and_replace_variables(fstore,
         IDMAPD_CONF, replacevars=replacevars)
-    ipaservices.restore_context(IDMAPD_CONF)
+    tasks.restore_context(IDMAPD_CONF)
 
     print "Configured %s" % IDMAPD_CONF
 

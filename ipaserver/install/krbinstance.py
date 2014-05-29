@@ -45,6 +45,7 @@ import struct
 
 import certs
 from distutils import version
+from ipaplatform import tasks
 
 def update_key_val_in_file(filename, key, val):
     if os.path.exists(filename):
@@ -370,7 +371,7 @@ class KrbInstance(service.Service):
         ipautil.backup_config_and_replace_variables(self.fstore, "/etc/sysconfig/krb5kdc",
                                                     replacevars=replacevars,
                                                     appendvars=appendvars)
-        ipaservices.restore_context("/etc/sysconfig/krb5kdc")
+        tasks.restore_context("/etc/sysconfig/krb5kdc")
 
     def __write_stash_from_ds(self):
         try:

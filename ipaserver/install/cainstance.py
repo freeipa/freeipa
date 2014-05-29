@@ -51,6 +51,7 @@ import traceback
 from ipapython import ipautil
 from ipapython import services as ipaservices
 from ipapython import ipaldap
+from ipaplatform import tasks
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
@@ -1115,7 +1116,7 @@ class CAInstance(service.Service):
         pent = pwd.getpwnam(PKI_USER)
         os.chown(publishdir, 0, pent.pw_gid)
 
-        ipaservices.restore_context(publishdir)
+        tasks.restore_context(publishdir)
 
         return publishdir
 

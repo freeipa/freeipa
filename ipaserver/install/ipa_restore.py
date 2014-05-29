@@ -38,6 +38,7 @@ from ipaserver.install.replication import (wait_for_task, ReplicationManager,
 from ipaserver.install import installutils
 from ipapython import services as ipaservices
 from ipapython import ipaldap
+from ipaplatform import tasks
 from ipaserver.install.ipa_backup import BACKUP_DIR
 
 
@@ -630,7 +631,7 @@ class Restore(admintool.AdminTool):
                 self.log.debug('Creating %s' % dir)
                 os.mkdir(dir, 0770)
                 os.chown(dir, pent.pw_uid, pent.pw_gid)
-                ipaservices.restore_context(dir)
+                tasks.restore_context(dir)
             except Exception, e:
                 # This isn't so fatal as to side-track the restore
                 self.log.error('Problem with %s: %s' % (dir, e))

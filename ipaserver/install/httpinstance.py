@@ -35,6 +35,7 @@ from ipapython import dogtag
 from ipapython.ipa_log_manager import *
 from ipaserver.install import sysupgrade
 from ipalib import api
+from ipaplatform import tasks
 from ipalib.constants import CACERT
 
 HTTPD_DIR = "/etc/httpd"
@@ -317,8 +318,8 @@ class HTTPInstance(service.Service):
         os.chown(certs.NSS_DIR + "/pwdfile.txt", 0, pent.pw_gid )
 
         # Fix SELinux permissions on the database
-        ipaservices.restore_context(certs.NSS_DIR + "/cert8.db")
-        ipaservices.restore_context(certs.NSS_DIR + "/key3.db")
+        tasks.restore_context(certs.NSS_DIR + "/cert8.db")
+        tasks.restore_context(certs.NSS_DIR + "/key3.db")
 
     def __setup_autoconfig(self):
         target_fname = '/usr/share/ipa/html/preferences.html'

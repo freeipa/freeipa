@@ -41,6 +41,7 @@ try:
     from ipapython.ipautil import (
         run, user_input, CalledProcessError, file_exists, dir_exists,
         realm_to_suffix)
+    from ipaplatform.tasks import tasks
     from ipapython import ipautil, sysrestore, version, certmonger, ipaldap
     from ipapython import kernel_keyring
     from ipapython.config import IPAOptionParser
@@ -50,7 +51,6 @@ try:
     from ipapython.dn import DN
     from ipapython.ssh import SSHPublicKey
     from ipalib.rpc import delete_persistent_client_session_data
-    from ipaplatform.tasks import tasks
 
 except ImportError:
     print >> sys.stderr, """\
@@ -648,7 +648,7 @@ def uninstall(options, env):
 
     if fstore.has_files():
         root_logger.info("Restoring client configuration files")
-        ipaservices.restore_network_configuration(fstore, statestore)
+        tasks.restore_network_configuration(fstore, statestore)
         fstore.restore_all_files()
 
     ipautil.restore_hostname(statestore)
@@ -740,7 +740,7 @@ def uninstall(options, env):
                             'as it can cause subsequent installation to fail.')
 
     # Remove the CA cert from the systemwide certificate store
-    ipaservices.remove_ca_cert_from_systemwide_ca_store(CACERT)
+    tasks.remove_ca_cert_from_systemwide_ca_store(CACERT)
 
     # Remove the CA cert
     try:
@@ -2319,7 +2319,7 @@ def install(options, env, fstore, statestore):
         # configure /etc/sysconfig/network to contain the hostname we set.
         # skip this step when run by ipa-server-install as it always configures
         # hostname if different from system hostname
-        ipaservices.backup_and_replace_hostname(fstore, statestore, options.hostname)
+        tasks.backup_and_replace_hostname(fstore, statestore, options.hostname)
 
     if not options.on_master:
         # Attempt to sync time with IPA server.
@@ -2540,7 +2540,7 @@ def install(options, env, fstore, statestore):
         root_logger.info("Configured /etc/sssd/sssd.conf")
 
     # Add the CA to the platform-dependant systemwide CA store
-    ipaservices.insert_ca_cert_into_systemwide_ca_store(CACERT)
+    tasks.insert_ca_cert_into_systemwide_ca_store(CACERT)
 
     # Add the CA to the default NSS database and trust it
     try:
@@ -2803,7 +2803,7 @@ def main():
 
     if not os.getegid() == 0:
         sys.exit("\nYou must be root to run ipa-client-install.\n")
-    ipaservices.check_selinux_status()
+    tasks.check_selinux_status()
     logging_setup(options)
     root_logger.debug(
         '%s was invoked with options: %s', sys.argv[0], safe_options)
