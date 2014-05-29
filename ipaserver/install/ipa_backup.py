@@ -25,6 +25,7 @@ import time
 import pwd
 from optparse import OptionGroup
 from ConfigParser import SafeConfigParser
+from ipaplatform import services
 
 from ipalib import api, errors
 from ipapython import version
@@ -258,7 +259,7 @@ class Backup(admintool.AdminTool):
 
         cwd = os.getcwd()
         try:
-            dirsrv = ipaservices.knownservices.dirsrv
+            dirsrv = services.knownservices.dirsrv
 
             self.add_instance_specific_data()
 

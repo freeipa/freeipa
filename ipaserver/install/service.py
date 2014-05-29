@@ -29,6 +29,7 @@ from ipapython import services as ipaservices
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 from ipalib import errors
+from ipaplatform import services
 
 # Autobind modes
 AUTO = 1
@@ -75,7 +76,7 @@ class Service(object):
     def __init__(self, service_name, service_desc=None, sstore=None, dm_password=None, ldapi=True, autobind=AUTO):
         self.service_name = service_name
         self.service_desc = service_desc
-        self.service = ipaservices.service(service_name)
+        self.service = services.service(service_name)
         self.steps = []
         self.output_fd = sys.stdout
         self.dm_password = dm_password

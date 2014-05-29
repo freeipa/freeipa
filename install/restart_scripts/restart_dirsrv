@@ -24,6 +24,7 @@ import syslog
 import traceback
 from ipapython import services as ipaservices
 from ipalib import api
+from ipaplatform import services
 
 def main():
     try:
@@ -37,7 +38,7 @@ def main():
     syslog.syslog(syslog.LOG_NOTICE, "certmonger restarted dirsrv instance '%s'" % instance)
 
     try:
-        ipaservices.knownservices.dirsrv.restart(instance)
+        services.knownservices.dirsrv.restart(instance)
     except Exception, e:
         syslog.syslog(syslog.LOG_ERR, "Cannot restart dirsrv (instance: '%s'): %s" % (instance, str(e)))
 

@@ -43,6 +43,7 @@ from ipalib import errors
 from ipapython.dn import DN
 from ipaserver.install import certs, service
 from ipapython import services as ipaservices
+from ipaplatform import services
 
 # Used to determine install status
 IPA_MODULES = [
@@ -833,19 +834,19 @@ def stopped_service(service, instance_name=""):
                       log_instance_name)
 
     # Figure out if the service is running, if not, yield
-    if not ipaservices.knownservices[service].is_running(instance_name):
+    if not services.knownservices[service].is_running(instance_name):
         root_logger.debug('Service %s%s is not running, continue.', service,
                           log_instance_name)
         yield
     else:
         # Stop the service, do the required stuff and start it again
         root_logger.debug('Stopping %s%s.', service, log_instance_name)
-        ipaservices.knownservices[service].stop(instance_name)
+        services.knownservices[service].stop(instance_name)
         try:
             yield
         finally:
             root_logger.debug('Starting %s%s.', service, log_instance_name)
-            ipaservices.knownservices[service].start(instance_name)
+            services.knownservices[service].start(instance_name)
 
 def check_entropy():
     '''

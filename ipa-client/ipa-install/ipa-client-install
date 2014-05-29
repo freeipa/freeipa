@@ -317,7 +317,7 @@ def nssldap_exists():
 # helper function for uninstall
 # deletes IPA domain from sssd.conf
 def delete_ipa_domain():
-    sssd = ipaservices.service('sssd')
+    sssd = services.service('sssd')
     try:
         sssdconfig = SSSDConfig.SSSDConfig()
         sssdconfig.import_config()
@@ -492,13 +492,13 @@ def uninstall(options, env):
 
     # Always start certmonger. We can't untrack something if it isn't
     # running
-    messagebus = ipaservices.knownservices.messagebus
+    messagebus = services.knownservices.messagebus
     try:
         messagebus.start()
     except Exception, e:
         log_service_error(messagebus.service_name, 'start', e)
 
-    cmonger = ipaservices.knownservices.certmonger
+    cmonger = services.knownservices.certmonger
     try:
         cmonger.start()
     except Exception, e:
@@ -562,7 +562,7 @@ def uninstall(options, env):
     if fstore.has_files():
         was_sssd_installed = fstore.has_file("/etc/sssd/sssd.conf")
 
-        sshd_config = os.path.join(ipaservices.knownservices.sshd.get_config_dir(), "sshd_config")
+        sshd_config = os.path.join(services.knownservices.sshd.get_config_dir(), "sshd_config")
         was_sshd_configured = fstore.has_file(sshd_config)
     try:
         tasks.restore_pre_ipa_client_configuration(fstore,
@@ -603,7 +603,7 @@ def uninstall(options, env):
 
         root_logger.info("IPA domain removed from current one, " +
                          "restarting SSSD service")
-        sssd = ipaservices.service('sssd')
+        sssd = services.service('sssd')
         try:
             sssd.restart()
         except CalledProcessError:
@@ -616,7 +616,7 @@ def uninstall(options, env):
         root_logger.info("Other domains than IPA domain found, " +
                          "IPA domain was removed from /etc/sssd/sssd.conf.")
 
-        sssd = ipaservices.service('sssd')
+        sssd = services.service('sssd')
         try:
             sssd.restart()
         except CalledProcessError:
@@ -634,7 +634,7 @@ def uninstall(options, env):
         root_logger.info("Redundant SSSD configuration file " +
             "/etc/sssd/sssd.conf was moved to /etc/sssd/sssd.conf.deleted")
 
-        sssd = ipaservices.service('sssd')
+        sssd = services.service('sssd')
         try:
             sssd.stop()
         except CalledProcessError:
@@ -654,8 +654,8 @@ def uninstall(options, env):
     ipautil.restore_hostname(statestore)
     unconfigure_nisdomain()
 
-    nscd = ipaservices.knownservices.nscd
-    nslcd = ipaservices.knownservices.nslcd
+    nscd = services.knownservices.nscd
+    nslcd = services.knownservices.nslcd
 
     for service in (nscd, nslcd):
         if service.is_installed():
@@ -686,16 +686,16 @@ def uninstall(options, env):
             pass
 
         if not ntp_enabled:
-           ipaservices.knownservices.ntpd.stop()
-           ipaservices.knownservices.ntpd.disable()
+           services.knownservices.ntpd.stop()
+           services.knownservices.ntpd.disable()
         else:
            if restored:
-               ipaservices.knownservices.ntpd.restart()
+               services.knownservices.ntpd.restart()
 
     ipaclient.ntpconf.restore_forced_ntpd(statestore)
 
-    if was_sshd_configured and ipaservices.knownservices.sshd.is_running():
-        ipaservices.knownservices.sshd.restart()
+    if was_sshd_configured and services.knownservices.sshd.is_running():
+        services.knownservices.sshd.restart()
 
     # Remove the Firefox configuration
     if statestore.has_state('firefox'):
@@ -890,7 +890,7 @@ def configure_nslcd_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, 
             root_logger.error("Creation of %s failed: %s", filename, str(e))
             return (1, None, None)
 
-    nslcd = ipaservices.knownservices.nslcd
+    nslcd = services.knownservices.nslcd
     if nslcd.is_installed():
         try:
             nslcd.restart()
@@ -1067,7 +1067,7 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options,
     started = True
     principal = 'host/%s@%s' % (hostname, cli_realm)
 
-    messagebus = ipaservices.knownservices.messagebus
+    messagebus = services.knownservices.messagebus
     try:
         messagebus.start()
     except Exception, e:
@@ -1075,7 +1075,7 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options,
 
     # Ensure that certmonger has been started at least once to generate the
     # cas files in /var/lib/certmonger/cas.
-    cmonger = ipaservices.knownservices.certmonger
+    cmonger = services.knownservices.certmonger
     try:
         cmonger.restart()
     except Exception, e:
@@ -1172,7 +1172,7 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
         sssdconfig.new_config()
         domain = sssdconfig.new_domain(cli_domain)
 
-    ssh_dir = ipaservices.knownservices.sshd.get_config_dir()
+    ssh_dir = services.knownservices.sshd.get_config_dir()
     ssh_config = os.path.join(ssh_dir, 'ssh_config')
     sshd_config = os.path.join(ssh_dir, 'sshd_config')
 
@@ -1314,7 +1314,7 @@ def change_ssh_config(filename, changes, sections):
     return True
 
 def configure_ssh_config(fstore, options):
-    ssh_dir = ipaservices.knownservices.sshd.get_config_dir()
+    ssh_dir = services.knownservices.sshd.get_config_dir()
     ssh_config = os.path.join(ssh_dir, 'ssh_config')
 
     if not file_exists(ssh_config):
@@ -1338,7 +1338,7 @@ def configure_ssh_config(fstore, options):
     root_logger.info('Configured %s', ssh_config)
 
 def configure_sshd_config(fstore, options):
-    sshd = ipaservices.knownservices.sshd
+    sshd = services.knownservices.sshd
     ssh_dir = sshd.get_config_dir()
     sshd_config = os.path.join(ssh_dir, 'sshd_config')
 
@@ -1440,14 +1440,14 @@ def configure_nisdomain(options, domain):
 
     # Backup the state of the domainname service
     statestore.backup_state("domainname", "enabled",
-                            ipaservices.knownservices.domainname.is_enabled())
+                            services.knownservices.domainname.is_enabled())
 
     # Set the new NIS domain name
     tasks.set_nisdomain(domain)
 
     # Enable and start the domainname service
-    ipaservices.knownservices.domainname.enable()
-    ipaservices.knownservices.domainname.start()
+    services.knownservices.domainname.enable()
+    services.knownservices.domainname.start()
 
 
 def unconfigure_nisdomain():
@@ -1465,7 +1465,7 @@ def unconfigure_nisdomain():
     # Restore the configuration of the domainname service
     enabled = statestore.restore_state('domainname', 'enabled')
     if not enabled:
-        ipaservices.knownservices.domainname.disable()
+        services.knownservices.domainname.disable()
 
 
 def resolve_ipaddress(server):
@@ -2640,7 +2640,7 @@ def install(options, env, fstore, statestore):
         configure_certmonger(fstore, subject_base, cli_realm, hostname,
                              options, remote_env)
 
-    update_ssh_keys(cli_server[0], hostname, ipaservices.knownservices.sshd.get_config_dir(), options.create_sshfp)
+    update_ssh_keys(cli_server[0], hostname, services.knownservices.sshd.get_config_dir(), options.create_sshfp)
 
     try:
         os.remove(CCACHE_FILE)
@@ -2648,7 +2648,7 @@ def install(options, env, fstore, statestore):
         pass
 
     #Name Server Caching Daemon. Disable for SSSD, use otherwise (if installed)
-    nscd = ipaservices.knownservices.nscd
+    nscd = services.knownservices.nscd
     if nscd.is_installed():
         save_state(nscd)
 
@@ -2689,7 +2689,7 @@ def install(options, env, fstore, statestore):
             root_logger.info("%s daemon is not installed, skip configuration",
                 nscd.service_name)
 
-    nslcd = ipaservices.knownservices.nslcd
+    nslcd = services.knownservices.nslcd
     if nscd.is_installed():
         save_state(nslcd)
 
@@ -2704,7 +2704,7 @@ def install(options, env, fstore, statestore):
         root_logger.info("%s enabled", "SSSD" if options.sssd else "LDAP")
 
         if options.sssd:
-            sssd = ipaservices.service('sssd')
+            sssd = services.service('sssd')
             try:
                 sssd.restart()
             except CalledProcessError:

@@ -15,7 +15,8 @@ import sys
 import pwd
 import shutil
 
-from ipapython import services, ipautil, dogtag
+from ipaplatform import services
+from ipapython import ipautil, dogtag
 from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipaserver.install.dsinstance import DS_USER, schema_dirname
 from ipaserver.install.cainstance import PKI_USER

@@ -30,6 +30,7 @@ from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
 from ipapython import ipautil, dogtag, ipaldap
 from ipapython.dn import DN
+from ipaplatform import services
 
 # the default container used by AD for user entries
 WIN_USER_CONTAINER = DN(('cn', 'Users'))
@@ -108,7 +109,7 @@ def enable_replication_version_checking(hostname, realm, dirman_passwd):
         conn.modify_s(entry.dn, [(ldap.MOD_REPLACE, 'nsslapd-pluginenabled', 'on')])
         conn.unbind()
         serverid = "-".join(realm.split("."))
-        ipaservices.knownservices.dirsrv.restart(instance_name=serverid)
+        services.knownservices.dirsrv.restart(instance_name=serverid)
     else:
         conn.unbind()
 

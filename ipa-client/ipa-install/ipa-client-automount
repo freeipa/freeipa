@@ -39,6 +39,7 @@ from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipapython import services as ipaservices
 from ipaplatform import tasks
+from ipaplatform import services
 
 AUTOFS_CONF = '/etc/sysconfig/autofs'
 NSSWITCH_CONF = '/etc/nsswitch.conf'
@@ -192,7 +193,7 @@ def configure_autofs_sssd(fstore, statestore, autodiscover, options):
     sssdconfig.write("/etc/sssd/sssd.conf")
     statestore.backup_state('autofs', 'sssd', True)
 
-    sssd = ipaservices.service('sssd')
+    sssd = services.service('sssd')
     sssd.restart()
     print "Restarting sssd, waiting for it to become available."
     wait_for_sssd()
@@ -227,7 +228,7 @@ def configure_autofs(fstore, statestore, autodiscover, server, options):
     print "Configured %s" % AUTOFS_CONF
 
 def configure_autofs_common(fstore, statestore, options):
-    autofs = ipaservices.knownservices.autofs
+    autofs = services.knownservices.autofs
     statestore.backup_state('autofs', 'enabled', autofs.is_enabled())
     statestore.backup_state('autofs', 'running', autofs.is_running())
     try:
@@ -257,7 +258,7 @@ def uninstall(fstore, statestore):
         enabled = statestore.restore_state('autofs', 'enabled')
         running = statestore.restore_state('autofs', 'running')
         sssd = statestore.restore_state('autofs', 'sssd')
-        autofs = ipaservices.knownservices.autofs
+        autofs = services.knownservices.autofs
         if not enabled:
             autofs.disable()
         if not running:
@@ -280,7 +281,7 @@ def uninstall(fstore, statestore):
                         break
                 sssdconfig.save_domain(domain)
                 sssdconfig.write("/etc/sssd/sssd.conf")
-                sssd = ipaservices.service('sssd')
+                sssd = services.service('sssd')
                 sssd.restart()
                 wait_for_sssd()
             except Exception, e:
@@ -289,7 +290,7 @@ def uninstall(fstore, statestore):
     if statestore.has_state('rpcidmapd'):
         enabled = statestore.restore_state('rpcidmapd', 'enabled')
         running = statestore.restore_state('rpcidmapd', 'running')
-        rpcidmapd = ipaservices.knownservices.rpcidmapd
+        rpcidmapd = services.knownservices.rpcidmapd
         if not enabled:
             rpcidmapd.disable()
         if not running:
@@ -297,7 +298,7 @@ def uninstall(fstore, statestore):
     if statestore.has_state('rpcgssd'):
         enabled = statestore.restore_state('rpcgssd', 'enabled')
         running = statestore.restore_state('rpcgssd', 'running')
-        rpcgssd = ipaservices.knownservices.rpcgssd
+        rpcgssd = services.knownservices.rpcgssd
         if not enabled:
             rpcgssd.disable()
         if not running:
@@ -327,7 +328,7 @@ def configure_nfs(fstore, statestore):
 
     print "Configured %s" % IDMAPD_CONF
 
-    rpcidmapd = ipaservices.knownservices.rpcidmapd
+    rpcidmapd = services.knownservices.rpcidmapd
     statestore.backup_state('rpcidmapd', 'enabled', rpcidmapd.is_enabled())
     statestore.backup_state('rpcidmapd', 'running', rpcidmapd.is_running())
     try:
@@ -341,7 +342,7 @@ def configure_nfs(fstore, statestore):
         print "Failed to configure automatic startup of the %s daemon" % (rpcidmapd.service_name)
         root_logger.error("Failed to enable automatic startup of the %s daemon: %s" % (rpcidmapd.service_name, str(e)))
 
-    rpcgssd = ipaservices.knownservices.rpcgssd
+    rpcgssd = services.knownservices.rpcgssd
     statestore.backup_state('rpcgssd', 'enabled', rpcgssd.is_enabled())
     statestore.backup_state('rpcgssd', 'running', rpcgssd.is_running())
     try:

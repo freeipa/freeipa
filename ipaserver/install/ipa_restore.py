@@ -40,6 +40,7 @@ from ipapython import services as ipaservices
 from ipapython import ipaldap
 from ipaplatform import tasks
 from ipaserver.install.ipa_backup import BACKUP_DIR
+from ipaplatform import services
 
 
 def recursive_chown(path, uid, gid):
@@ -204,7 +205,7 @@ class Restore(admintool.AdminTool):
 
         cwd = os.getcwd()
         try:
-            dirsrv = ipaservices.knownservices.dirsrv
+            dirsrv = services.knownservices.dirsrv
 
             self.read_header()
             # These two checks would normally be in the validate method but
@@ -294,13 +295,13 @@ class Restore(admintool.AdminTool):
             else:
                 # explicitly enable then disable the pki tomcatd service to
                 # re-register its instance. FIXME, this is really wierd.
-                ipaservices.knownservices.pki_tomcatd.enable()
-                ipaservices.knownservices.pki_tomcatd.disable()
+                services.knownservices.pki_tomcatd.enable()
+                services.knownservices.pki_tomcatd.disable()
 
                 self.log.info('Starting IPA services')
                 run(['ipactl', 'start'])
                 self.log.info('Restarting SSSD')
-                sssd = ipaservices.service('sssd')
+                sssd = services.service('sssd')
                 sssd.restart()
         finally:
             try:

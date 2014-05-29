@@ -32,6 +32,7 @@ from ipapython import services as ipaservices
 from ipalib import api, errors, x509, util
 from ipaserver.install import certs, cainstance, installutils
 from ipaserver.plugins.ldap2 import ldap2
+from ipaplatform import services
 
 def main():
     nickname = sys.argv[1]
@@ -41,7 +42,7 @@ def main():
 
     configured_constants = dogtag.configured_constants(api)
     alias_dir = configured_constants.ALIAS_DIR
-    dogtag_service = ipaservices.knownservices[configured_constants.SERVICE_NAME]
+    dogtag_service = services.knownservices[configured_constants.SERVICE_NAME]
     dogtag_instance = configured_constants.PKI_INSTANCE_NAME
 
     # dogtag opens its NSS database in read/write mode so we need it
@@ -89,7 +90,7 @@ def main():
                 "Updating trust on certificate %s failed in %s" %
                 (nickname, db.secdir))
 
-    # Now we can start the CA. Using the ipaservices start should fire
+    # Now we can start the CA. Using the services start should fire
     # off the servlet to verify that the CA is actually up and responding so
     # when this returns it should be good-to-go. The CA was stopped in the
     # pre-save state.

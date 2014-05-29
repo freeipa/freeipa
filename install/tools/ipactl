@@ -34,6 +34,7 @@ from ipapython import services as ipaservices
 from ipapython import config, dogtag
 from ipaplatform import tasks
 from ipapython.dn import DN
+from ipaplatform import services
 
 class IpactlError(ScriptError):
     pass
@@ -196,7 +197,7 @@ def get_config_from_file():
 
 def stop_services(svc_list):
     for svc in svc_list:
-        svc_off = ipaservices.service(svc)
+        svc_off = services.service(svc)
         try:
             svc_off.stop(capture_output=False)
         except Exception:
@@ -222,7 +223,7 @@ def ipa_start(options):
         # service file again
         os.unlink(ipaservices.SVC_LIST_FILE)
 
-    dirsrv = ipaservices.knownservices.dirsrv
+    dirsrv = services.knownservices.dirsrv
     try:
         print "Starting Directory Service"
         dirsrv.start(capture_output=get_capture_output('dirsrv', options.debug))
@@ -250,7 +251,7 @@ def ipa_start(options):
         return
 
     for svc in svc_list:
-        svchandle = ipaservices.service(svc)
+        svchandle = services.service(svc)
         try:
             print "Starting %s Service" % svc
             svchandle.start(capture_output=get_capture_output(svc, options.debug))
@@ -268,7 +269,7 @@ def ipa_start(options):
             raise IpactlError("Aborting ipactl")
 
 def ipa_stop(options):
-    dirsrv = ipaservices.knownservices.dirsrv
+    dirsrv = services.knownservices.dirsrv
     try:
         svc_list = get_config_from_file()
     except Exception, e:
@@ -293,7 +294,7 @@ def ipa_stop(options):
         raise IpactlError("Failed to stop Directory Service")
 
     for svc in reversed(svc_list):
-        svchandle = ipaservices.service(svc)
+        svchandle = services.service(svc)
         try:
             print "Stopping %s Service" % svc
             svchandle.stop(capture_output=False)
@@ -308,7 +309,7 @@ def ipa_stop(options):
 
 
 def ipa_restart(options):
-    dirsrv = ipaservices.knownservices.dirsrv
+    dirsrv = services.knownservices.dirsrv
     new_svc_list = []
     dirsrv_restart = True
     if not dirsrv.is_running():
@@ -359,7 +360,7 @@ def ipa_restart(options):
     if len(old_svc_list) != 0:
         # we need to definitely stop some services
         for svc in reversed(old_svc_list):
-            svchandle = ipaservices.service(svc)
+            svchandle = services.service(svc)
             try:
                 print "Stopping %s Service" % svc
                 svchandle.stop(capture_output=False)
@@ -384,7 +385,7 @@ def ipa_restart(options):
         # there are services to restart
 
         for svc in svc_list:
-            svchandle = ipaservices.service(svc)
+            svchandle = services.service(svc)
             try:
                 print "Restarting %s Service" % svc
                 svchandle.restart(capture_output=get_capture_output(svc, options.debug))
@@ -404,7 +405,7 @@ def ipa_restart(options):
     if len(new_svc_list) != 0:
         # we still need to start some services
         for svc in new_svc_list:
-            svchandle = ipaservices.service(svc)
+            svchandle = services.service(svc)
             try:
                 print "Starting %s Service" % svc
                 svchandle.start(capture_output=get_capture_output(svc, options.debug))
@@ -424,7 +425,7 @@ def ipa_restart(options):
 def ipa_status(options):
 
     try:
-        dirsrv = ipaservices.knownservices.dirsrv
+        dirsrv = services.knownservices.dirsrv
         if dirsrv.is_running():
             svc_list = get_config(dirsrv)
         else:
@@ -437,7 +438,7 @@ def ipa_status(options):
     except Exception, e:
         raise IpactlError("Failed to get list of services to probe status: " + str(e))
 
-    dirsrv = ipaservices.knownservices.dirsrv
+    dirsrv = services.knownservices.dirsrv
     try:
         if dirsrv.is_running():
             print "Directory Service: RUNNING"
@@ -453,7 +454,7 @@ def ipa_status(options):
         return
 
     for svc in svc_list:
-        svchandle = ipaservices.service(svc)
+        svchandle = services.service(svc)
         try:
             if svchandle.is_running():
                 print "%s Service: RUNNING" % svc

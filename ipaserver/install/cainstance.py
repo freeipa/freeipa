@@ -59,6 +59,7 @@ from ipaserver.install import certs
 from ipaserver.install.installutils import stopped_service
 from ipaserver.plugins import ldap2
 from ipapython.ipa_log_manager import *
+from ipaplatform import services
 
 HTTPD_CONFD = "/etc/httpd/conf.d/"
 DEFAULT_DSPORT = dogtag.install_constants.DS_PORT
@@ -286,7 +287,7 @@ class CADSInstance(service.Service):
         running = self.restore_state("running")
 
         if not enabled is None and not enabled:
-            ipaservices.knownservices.dirsrv.disable()
+            services.knownservices.dirsrv.disable()
 
         if not serverid is None:
             # drop the trailing / off the config_dirname so the directory
@@ -306,8 +307,8 @@ class CADSInstance(service.Service):
 def stop_tracking_certificates(dogtag_constants):
     """Stop tracking our certificates. Called on uninstall.
     """
-    cmonger = ipaservices.knownservices.certmonger
-    ipaservices.knownservices.messagebus.start()
+    cmonger = services.knownservices.certmonger
+    services.knownservices.messagebus.start()
     cmonger.start()
 
     for nickname in ['Server-Cert cert-pki-ca',
@@ -1335,8 +1336,8 @@ class CAInstance(service.Service):
         # cause files to have a new owner.
         user_exists = self.restore_state("user_exists")
 
-        ipaservices.knownservices.messagebus.start()
-        cmonger = ipaservices.knownservices.certmonger
+        services.knownservices.messagebus.start()
+        cmonger = services.knownservices.certmonger
         cmonger.start()
 
         bus = dbus.SystemBus()
@@ -1388,8 +1389,8 @@ class CAInstance(service.Service):
         Create a new CA type for certmonger that will retrieve updated
         certificates from the dogtag master server.
         """
-        ipaservices.knownservices.messagebus.start()
-        cmonger = ipaservices.knownservices.certmonger
+        services.knownservices.messagebus.start()
+        cmonger = services.knownservices.certmonger
         cmonger.enable()
         cmonger.start()
 
@@ -1667,7 +1668,7 @@ def install_replica_ca(config, postinstall=False):
     # Without the restart, CA service status check would fail due to missing
     # proxy
     if postinstall:
-        ipaservices.knownservices.httpd.restart()
+        services.knownservices.httpd.restart()
 
 
     # The dogtag DS instance needs to be restarted after installation.
@@ -1682,7 +1683,7 @@ def install_replica_ca(config, postinstall=False):
     service.print_msg("Restarting the directory and certificate servers")
     ca.stop(dogtag.install_constants.PKI_INSTANCE_NAME)
 
-    ipaservices.knownservices.dirsrv.restart()
+    services.knownservices.dirsrv.restart()
 
     ca.start(dogtag.install_constants.PKI_INSTANCE_NAME)
 

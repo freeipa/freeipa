@@ -40,6 +40,7 @@ from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
 from ipapython import dogtag
 from ipapython.ipa_log_manager import *
+from ipaplatform import services
 
 log_file_name = "/var/log/ipareplica-ca-install.log"
 REPLICA_INFO_TOP_DIR = None
@@ -190,7 +191,7 @@ def main():
     install_dns_records(config, options)
 
     # We need to restart apache as we drop a new config file in there
-    ipaservices.knownservices.httpd.restart(capture_output=True)
+    services.knownservices.httpd.restart(capture_output=True)
 
     #update dogtag version in config file
     try:

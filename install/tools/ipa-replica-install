@@ -52,6 +52,7 @@ from ipapython import dogtag
 from ipapython.dn import DN
 import ipaclient.ntpconf
 from ipaplatform import tasks
+from ipaplatform import services
 
 log_file_name = "/var/log/ipareplica-install.log"
 REPLICA_INFO_TOP_DIR = None
@@ -698,7 +699,7 @@ def main():
         CA.configure_certmonger_renewal()
         CA.import_ra_cert(dir + "/ra.p12")
         CA.fix_ra_perms()
-        ipaservices.knownservices.httpd.restart()
+        services.knownservices.httpd.restart()
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated
@@ -748,7 +749,7 @@ def main():
     ds.replica_populate()
 
     #Everything installed properly, activate ipa service.
-    ipaservices.knownservices.ipa.enable()
+    services.knownservices.ipa.enable()
 
 fail_message = '''
 Your system may be partly configured.

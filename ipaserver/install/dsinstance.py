@@ -43,6 +43,7 @@ from ipalib import errors
 from ipaplatform import tasks
 from ipalib.constants import CACERT
 from ipapython.dn import DN
+from ipaplatform import services
 
 SERVER_ROOT_64 = "/usr/lib64/dirsrv"
 SERVER_ROOT_32 = "/usr/lib/dirsrv"
@@ -145,7 +146,7 @@ def check_ports():
     return (ds_unsecure, ds_secure)
 
 def is_ds_running(server_id=''):
-    return ipaservices.knownservices.dirsrv.is_running(instance_name=server_id)
+    return services.knownservices.dirsrv.is_running(instance_name=server_id)
 
 
 def create_ds_user():
@@ -819,7 +820,7 @@ class DsInstance(service.Service):
         # (re)start them.
         for ds_instance in get_ds_instances():
             try:
-                ipaservices.knownservices.dirsrv.restart(ds_instance, wait=False)
+                services.knownservices.dirsrv.restart(ds_instance, wait=False)
             except Exception, e:
                 root_logger.error('Unable to restart ds instance %s: %s', ds_instance, e)
 
@@ -884,7 +885,7 @@ class DsInstance(service.Service):
         """
 
         # Do the platform-specific changes
-        proceed = ipaservices.knownservices.dirsrv.tune_nofile_platform(
+        proceed = services.knownservices.dirsrv.tune_nofile_platform(
                     num=num, fstore=self.fstore)
 
         if proceed:

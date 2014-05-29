@@ -40,6 +40,7 @@ from ipapython.ipa_log_manager import *
 from ipapython import services as ipaservices
 
 import ipaclient.ipachangeconf
+from ipaplatform import services
 
 
 ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits
@@ -730,21 +731,21 @@ class ADTRUSTInstance(service.Service):
     def __start(self):
         try:
             self.start()
-            ipaservices.service('winbind').start()
+            services.service('winbind').start()
         except:
             root_logger.critical("CIFS services failed to start")
 
     def __stop(self):
         self.backup_state("running", self.is_running())
         try:
-            ipaservices.service('winbind').stop()
+            services.service('winbind').stop()
             self.stop()
         except:
             pass
 
     def __restart_dirsrv(self):
         try:
-            ipaservices.knownservices.dirsrv.restart()
+            services.knownservices.dirsrv.restart()
         except:
             pass
 
@@ -889,7 +890,7 @@ class ADTRUSTInstance(service.Service):
         self.restore_state("running")
         self.restore_state("enabled")
 
-        winbind = ipaservices.service("winbind")
+        winbind = services.service("winbind")
         # Always try to stop and disable smb service, since we do not leave
         # working configuration after uninstall
         try:

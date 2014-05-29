@@ -31,6 +31,7 @@ try:
     from ipalib import api, errors
     from ipapython.ipa_log_manager import *
     from ipapython.dn import DN
+    from ipaplatform import services
 except ImportError:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
@@ -142,13 +143,13 @@ def main():
 
             # Enable either the portmap or rpcbind service
             try:
-                portmap = ipaservices.knownservices.portmap
+                portmap = services.knownservices.portmap
                 portmap.enable()
                 servicemsg = portmap.service_name
             except ipautil.CalledProcessError, cpe:
                 if cpe.returncode == 1:
                     try:
-                        rpcbind = ipaservices.knownservices.rpcbind
+                        rpcbind = services.knownservices.rpcbind
                         rpcbind.enable()
                         servicemsg = rpcbind.service_name
                     except ipautil.CalledProcessError, cpe:

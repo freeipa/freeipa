@@ -22,12 +22,13 @@
 import syslog
 import traceback
 from ipapython import services as ipaservices
+from ipaplatform import services
 
 def main():
     syslog.syslog(syslog.LOG_NOTICE, 'certmonger restarted httpd')
 
     try:
-        ipaservices.knownservices.httpd.restart()
+        services.knownservices.httpd.restart()
     except Exception, e:
         syslog.syslog(syslog.LOG_ERR, "Cannot restart httpd: %s" % str(e))
 

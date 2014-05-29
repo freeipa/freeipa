@@ -27,6 +27,7 @@ import traceback
 from ipapython import services as ipaservices
 from ipalib import api
 from ipaserver.install import certs, cainstance
+from ipaplatform import services
 
 nickname = 'ipaCert'
 
@@ -49,7 +50,7 @@ def main():
     # Now restart Apache so the new certificate is available
     syslog.syslog(syslog.LOG_NOTICE, "Restarting httpd")
     try:
-        ipaservices.knownservices.httpd.restart()
+        services.knownservices.httpd.restart()
     except Exception, e:
         syslog.syslog(syslog.LOG_ERR, "Cannot restart httpd: %s" % e)
     else:

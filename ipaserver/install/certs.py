@@ -42,6 +42,7 @@ from ipapython.dn import DN
 from ipalib import pkcs10, x509, api
 from ipalib.errors import CertificateOperationError
 from ipalib.text import _
+from ipaplatform import services
 
 # Apache needs access to this database so we need to create it
 # where apache can reach
@@ -509,9 +510,9 @@ class CertDB(object):
             else:
                 libpath = 'lib'
             command = '/usr/%s/ipa/certmonger/%s' % (libpath, command)
-        cmonger = ipaservices.knownservices.certmonger
+        cmonger = services.knownservices.certmonger
         cmonger.enable()
-        ipaservices.knownservices.messagebus.start()
+        services.knownservices.messagebus.start()
         cmonger.start()
         try:
             (stdout, stderr, rc) = certmonger.start_tracking(nickname, self.secdir, password_file, command)
@@ -541,8 +542,8 @@ class CertDB(object):
 
         # Always start certmonger. We can't untrack something if it isn't
         # running
-        cmonger = ipaservices.knownservices.certmonger
-        ipaservices.knownservices.messagebus.start()
+        cmonger = services.knownservices.certmonger
+        services.knownservices.messagebus.start()
         cmonger.start()
         try:
             certmonger.stop_tracking(self.secdir, nickname=nickname)
