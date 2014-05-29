@@ -37,8 +37,7 @@ from ipaclient import ipadiscovery
 from ipaclient import ipachangeconf
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
-from ipapython import services as ipaservices
-from ipaplatform import tasks
+from ipaplatform.tasks import tasks
 from ipaplatform import services
 
 AUTOFS_CONF = '/etc/sysconfig/autofs'

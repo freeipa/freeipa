@@ -36,9 +36,8 @@ from ipaserver.install.cainstance import PKI_USER
 from ipaserver.install.replication import (wait_for_task, ReplicationManager,
                                            get_cs_replication_manager)
 from ipaserver.install import installutils
-from ipapython import services as ipaservices
 from ipapython import ipaldap
-from ipaplatform import tasks
+from ipaplatform.tasks import tasks
 from ipaserver.install.ipa_backup import BACKUP_DIR
 from ipaplatform import services
 

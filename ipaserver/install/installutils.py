@@ -42,7 +42,6 @@ from ipapython import config
 from ipalib import errors
 from ipapython.dn import DN
 from ipaserver.install import certs, service
-from ipapython import services as ipaservices
 from ipaplatform import services
 
 # Used to determine install status

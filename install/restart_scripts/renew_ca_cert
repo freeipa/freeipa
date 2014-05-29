@@ -28,7 +28,6 @@ import shutil
 import traceback
 
 from ipapython import dogtag, certmonger, ipautil
-from ipapython import services as ipaservices
 from ipalib import api, errors, x509, util
 from ipaserver.install import certs, cainstance, installutils
 from ipaserver.plugins.ldap2 import ldap2

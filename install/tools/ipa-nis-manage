@@ -24,7 +24,6 @@ import os
 try:
     from optparse import OptionParser
     from ipapython import ipautil, config
-    from ipapython import services as ipaservices
     from ipaserver.install import installutils
     from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax
     from ipaserver.plugins.ldap2 import ldap2

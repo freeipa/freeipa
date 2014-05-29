@@ -30,12 +30,11 @@ import certs
 import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
-from ipapython import services as ipaservices
 from ipapython import dogtag
 from ipapython.ipa_log_manager import *
 from ipaserver.install import sysupgrade
 from ipalib import api
-from ipaplatform import tasks
+from ipaplatform.tasks import tasks
 from ipalib.constants import CACERT
 
 HTTPD_DIR = "/etc/httpd"

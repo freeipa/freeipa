@@ -24,7 +24,6 @@ import socket
 import os, shutil
 
 from ipapython import ipautil
-from ipapython import services as ipaservices
 
 from ipaserver.install import installutils, service
 from ipaserver.install import certs

@@ -46,12 +46,11 @@ from ipalib.constants import CACERT
 from ipapython import version
 from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
-from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
 from ipapython import dogtag
 from ipapython.dn import DN
 import ipaclient.ntpconf
-from ipaplatform import tasks
+from ipaplatform.tasks import tasks
 from ipaplatform import services
 
 log_file_name = "/var/log/ipareplica-install.log"

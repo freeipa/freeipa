@@ -49,9 +49,8 @@ import subprocess
 import traceback
 
 from ipapython import ipautil
-from ipapython import services as ipaservices
 from ipapython import ipaldap
-from ipaplatform import tasks
+from ipaplatform.tasks import tasks
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance

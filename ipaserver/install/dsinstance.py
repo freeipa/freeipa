@@ -31,7 +31,6 @@ import grp
 
 from ipapython.ipa_log_manager import *
 from ipapython import ipautil, sysrestore, ipaldap
-from ipapython import services as ipaservices
 import service
 import installutils
 import certs
@@ -40,7 +39,7 @@ from ipaserver.install import ldapupdate
 from ipaserver.install import replication
 from ipaserver.install import sysupgrade
 from ipalib import errors
-from ipaplatform import tasks
+from ipaplatform.tasks import tasks
 from ipalib.constants import CACERT
 from ipapython.dn import DN
 from ipaplatform import services

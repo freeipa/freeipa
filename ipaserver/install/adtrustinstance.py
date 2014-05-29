@@ -37,7 +37,6 @@ from ipapython.dn import DN
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython.ipa_log_manager import *
-from ipapython import services as ipaservices
 
 import ipaclient.ipachangeconf
 from ipaplatform import services

@@ -37,7 +37,6 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import certmonger
 from ipapython.certdb import get_ca_nickname
-from ipapython import services as ipaservices
 from ipapython.dn import DN
 from ipalib import pkcs10, x509, api
 from ipalib.errors import CertificateOperationError

@@ -26,7 +26,6 @@ import ldap
 
 from ipalib import api, errors
 from ipalib.constants import CACERT
-from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
 from ipapython import ipautil, dogtag, ipaldap
 from ipapython.dn import DN

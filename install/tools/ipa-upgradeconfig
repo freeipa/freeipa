@@ -36,7 +36,7 @@ import SSSDConfig
 import ipalib.util
 import ipalib.errors
 from ipaplatform import services
-from ipaplatform import tasks
+from ipaplatform.tasks import tasks
 from ipapython import ipautil, sysrestore, version
 from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import *

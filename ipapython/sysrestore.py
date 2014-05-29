@@ -32,8 +32,7 @@ import random
 import string
 
 from ipapython import ipautil
-from ipapython import services as ipaservices
-from ipaplatform import tasks
+from ipaplatform.tasks import tasks
 
 SYSRESTORE_PATH = "/tmp"
 SYSRESTORE_INDEXFILE = "sysrestore.index"

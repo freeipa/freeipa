@@ -30,7 +30,6 @@ import service
 import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
-from ipapython import services as ipaservices
 from ipapython import kernel_keyring
 from ipalib import errors
 from ipalib.constants import CACERT
@@ -45,7 +44,7 @@ import struct
 
 import certs
 from distutils import version
-from ipaplatform import tasks
+from ipaplatform.tasks import tasks
 
 def update_key_val_in_file(filename, key, val):
     if os.path.exists(filename):

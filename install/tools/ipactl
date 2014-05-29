@@ -30,9 +30,8 @@ from ipaserver.install.installutils import is_ipa_configured, ScriptError
 from ipalib import api, errors
 from ipapython.ipaldap import IPAdmin
 from ipapython.ipautil import wait_for_open_ports, wait_for_open_socket
-from ipapython import services as ipaservices
 from ipapython import config, dogtag
-from ipaplatform import tasks
+from ipaplatform.tasks import tasks
 from ipapython.dn import DN
 from ipaplatform import services
 from ipaplatform.paths import paths

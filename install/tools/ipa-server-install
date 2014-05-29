@@ -73,12 +73,11 @@ from ipapython.config import IPAOptionParser
 from ipalib.x509 import load_certificate_from_file, load_certificate_chain_from_file
 from ipalib.util import validate_domain_name
 from ipalib.constants import CACERT
-from ipapython import services as ipaservices
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 
 import ipaclient.ntpconf
-from ipaplatform import tasks
+from ipaplatform.tasks import tasks
 from ipaplatform import services
 
 uninstalling = False

@@ -22,7 +22,6 @@
 import sys
 import syslog
 import traceback
-from ipapython import services as ipaservices
 from ipalib import api
 from ipaplatform import services
 

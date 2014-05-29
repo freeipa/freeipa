@@ -36,7 +36,6 @@ from ipapython.dn import DN
 from ipaserver.install.dsinstance import realm_to_serverid, DS_USER
 from ipaserver.install.replication import wait_for_task
 from ipaserver.install import installutils
-from ipapython import services as ipaservices
 from ipapython import ipaldap
 from ipalib.session import ISO8601_DATETIME_FMT
 from ipalib.constants import CACERT

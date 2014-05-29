@@ -21,7 +21,6 @@
 
 import syslog
 import traceback
-from ipapython import services as ipaservices
 from ipaplatform import services
 
 def main():

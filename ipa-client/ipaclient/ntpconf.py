@@ -18,10 +18,9 @@
 #
 
 from ipapython import ipautil
-from ipapython import services as ipaservices
 import shutil
 import os
-from ipaplatform import tasks
+from ipaplatform.tasks import tasks
 from ipaplatform import services
 
 ntp_conf = """# Permit time synchronization with our time source, but do not
