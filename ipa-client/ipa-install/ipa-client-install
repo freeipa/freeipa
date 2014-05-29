@@ -42,6 +42,8 @@ try:
         run, user_input, CalledProcessError, file_exists, dir_exists,
         realm_to_suffix)
     from ipaplatform.tasks import tasks
+    from ipaplatform import services
+    from ipaplatform.paths import paths
     from ipapython import ipautil, sysrestore, version, certmonger, ipaldap
     from ipapython import kernel_keyring
     from ipapython.config import IPAOptionParser
@@ -1991,6 +1993,7 @@ pref("network.negotiate-auth.allow-proxies", true);
 """
 
 FIREFOX_PREFERENCES_FILENAME = "all-ipa.js"
+FIREFOX_PREFERENCES_REL_PATH = "browser/defaults/preferences"
 
 def configure_firefox(options, statestore, domain):
     try:
@@ -2001,19 +2004,19 @@ def configure_firefox(options, statestore, domain):
         # Check user specified location of firefox install directory
         if options.firefox_dir is not None:
             pref_path = os.path.join(options.firefox_dir,
-                                    ipaservices.FIREFOX_PREFERENCES_REL_PATH)
+                                     FIREFOX_PREFERENCES_REL_PATH)
             if dir_exists(pref_path):
                 preferences_dir = pref_path
             else:
                 root_logger.error("Directory '%s' does not exists." % pref_path)
         else:
             # test if firefox is installed
-            if file_exists(ipaservices.FIREFOX_EXEC):
+            if file_exists(paths.FIREFOX):
 
                 # find valid preferences path
-                for path in ipaservices.FIREFOX_INSTALL_DIRS:
+                for path in [paths.LIB_FIREFOX, paths.LIB64_FIREFOX]:
                     pref_path = os.path.join(path,
-                                            ipaservices.FIREFOX_PREFERENCES_REL_PATH)
+                                             FIREFOX_PREFERENCES_REL_PATH)
                     if dir_exists(pref_path):
                         preferences_dir = pref_path
                         break
