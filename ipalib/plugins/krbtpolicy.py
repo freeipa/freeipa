@@ -17,10 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api
+from ipalib import api, errors, output, _
 from ipalib import Int, Str
-from ipalib.plugins.baseldap import *
-from ipalib import _
+from ipalib.plugins import baseldap
+from ipalib.plugins.baseldap import entry_to_dict, pkey_to_value
+from ipalib.plugable import Registry
+from ipapython.dn import DN
 
 __doc__ = _("""
 Kerberos ticket policy
@@ -60,6 +62,8 @@ EXAMPLES:
   ipa krbtpolicy-mod admin --maxlife=3600
 """)
 
+register = Registry()
+
 # FIXME: load this from a config file?
 _default_values = {
     'krbmaxticketlife': 86400,
@@ -67,7 +71,8 @@ _default_values = {
 }
 
 
-class krbtpolicy(LDAPObject):
+@register()
+class krbtpolicy(baseldap.LDAPObject):
     """
     Kerberos Ticket Policy object
     """
@@ -141,10 +146,9 @@ class krbtpolicy(LDAPObject):
             return self.api.Object.user.get_dn(*keys, **kwargs)
         return DN(self.container_dn, api.env.basedn)
 
-api.register(krbtpolicy)
 
-
-class krbtpolicy_mod(LDAPUpdate):
+@register()
+class krbtpolicy_mod(baseldap.LDAPUpdate):
     __doc__ = _('Modify Kerberos ticket policy.')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -155,10 +159,9 @@ class krbtpolicy_mod(LDAPUpdate):
             options['all'] = False
         return dn
 
-api.register(krbtpolicy_mod)
 
-
-class krbtpolicy_show(LDAPRetrieve):
+@register()
+class krbtpolicy_show(baseldap.LDAPRetrieve):
     __doc__ = _('Display the current Kerberos ticket policy.')
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
@@ -180,10 +183,9 @@ class krbtpolicy_show(LDAPRetrieve):
                     entry_attrs.setdefault(a, res['result'][a])
         return dn
 
-api.register(krbtpolicy_show)
 
-
-class krbtpolicy_reset(LDAPQuery):
+@register()
+class krbtpolicy_reset(baseldap.LDAPQuery):
     __doc__ = _('Reset Kerberos ticket policy to the default values.')
 
     has_output = output.standard_entry
@@ -217,5 +219,3 @@ class krbtpolicy_reset(LDAPQuery):
         entry_attrs = entry_to_dict(entry_attrs, **options)
 
         return dict(result=entry_attrs, value=pkey_to_value(keys[-1], options))
-
-api.register(krbtpolicy_reset)
