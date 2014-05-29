@@ -21,6 +21,7 @@
 import service
 from ipapython import sysrestore
 from ipapython import ipautil
+from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import *
 
 class NTPInstance(service.Service):
@@ -30,20 +31,20 @@ class NTPInstance(service.Service):
         if fstore:
             self.fstore = fstore
         else:
-            self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     def __write_config(self):
 
-        self.fstore.backup_file("/etc/ntp.conf")
-        self.fstore.backup_file("/etc/sysconfig/ntpd")
+        self.fstore.backup_file(paths.NTP_CONF)
+        self.fstore.backup_file(paths.SYSCONFIG_NTPD)
 
         # We use the OS variable to point it towards either the rhel
         # or fedora pools. Other distros should be added in the future
         # or we can get our own pool.
         os = ""
-        if ipautil.file_exists("/etc/fedora-release"):
+        if ipautil.file_exists(paths.ETC_FEDORA_RELEASE):
             os = "fedora"
-        elif ipautil.file_exists("/etc/redhat-release"):
+        elif ipautil.file_exists(paths.ETC_REDHAT_RELEASE):
             os = "rhel"
 
         srv_vals = []
@@ -57,7 +58,7 @@ class NTPInstance(service.Service):
         file_changed = False
         fudge_present = False
         ntpconf = []
-        fd = open("/etc/ntp.conf", "r")
+        fd = open(paths.NTP_CONF, "r")
         for line in fd:
             opt = line.split()
             if len(opt) < 1:
@@ -85,7 +86,7 @@ class NTPInstance(service.Service):
             ntpconf.append(line)
 
         if file_changed or len(srv_vals) != 0 or not fudge_present:
-            fd = open("/etc/ntp.conf", "w")
+            fd = open(paths.NTP_CONF, "w")
             for line in ntpconf:
                 fd.write(line)
             fd.write("\n### Added by IPA Installer ###\n")
@@ -99,7 +100,7 @@ class NTPInstance(service.Service):
         #read in memory, find OPTIONS, check/change it, then overwrite file
         needopts = [ {'val':'-x', 'need':True},
                      {'val':'-g', 'need':True} ]
-        fd = open("/etc/sysconfig/ntpd", "r")
+        fd = open(paths.SYSCONFIG_NTPD, "r")
         lines = fd.readlines()
         fd.close()
         for line in lines:
@@ -118,7 +119,7 @@ class NTPInstance(service.Service):
 
         done = False
         if newopts:
-            fd = open("/etc/sysconfig/ntpd", "w")
+            fd = open(paths.SYSCONFIG_NTPD, "w")
             for line in lines:
                 if not done:
                     sline = line.strip()
@@ -167,7 +168,7 @@ class NTPInstance(service.Service):
             self.stop()
 
         try:
-            self.fstore.restore_file("/etc/ntp.conf")
+            self.fstore.restore_file(paths.NTP_CONF)
         except ValueError, error:
             root_logger.debug(error)
             pass

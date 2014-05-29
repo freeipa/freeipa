@@ -18,11 +18,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import os
 import subprocess
+from ipaplatform.paths import paths
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
 
-CLIENT_KEYTAB = '/etc/krb5.keytab'
+CLIENT_KEYTAB = paths.KRB5_KEYTAB
 
 
 class TestForcedClientReenrollment(IntegrationTest):
@@ -274,9 +275,9 @@ class TestForcedClientReenrollment(IntegrationTest):
         """
         Put server's ip address at the top of resolv.conf
         """
-        contents = client.get_file_contents('/etc/resolv.conf')
+        contents = client.get_file_contents(paths.RESOLV_CONF)
         nameserver = 'nameserver %s\n' % server.ip
 
         if not contents.startswith(nameserver):
             contents = nameserver + contents.replace(nameserver, '')
-            client.put_file_contents('/etc/resolv.conf', contents)
+            client.put_file_contents(paths.RESOLV_CONF, contents)

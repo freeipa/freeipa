@@ -59,8 +59,9 @@ from ipaserver.install.installutils import stopped_service
 from ipaserver.plugins import ldap2
 from ipapython.ipa_log_manager import *
 from ipaplatform import services
+from ipaplatform.paths import paths
 
-HTTPD_CONFD = "/etc/httpd/conf.d/"
+HTTPD_CONFD = paths.HTTPD_CONF_D_DIR
 DEFAULT_DSPORT = dogtag.install_constants.DS_PORT
 
 PKI_USER = "pkiuser"
@@ -99,7 +100,7 @@ def check_inst():
         return False
 
     # This is the template tomcat file for a CA
-    if not os.path.exists('/usr/share/pki/ca/conf/server.xml'):
+    if not os.path.exists(paths.PKI_CONF_SERVER_XML):
         return False
 
     return True
@@ -132,7 +133,7 @@ def get_preop_pin(instance_root, instance_name):
 
 def import_pkcs12(input_file, input_passwd, cert_database,
                   cert_passwd):
-    ipautil.run(["/usr/bin/pk12util", "-d", cert_database,
+    ipautil.run([paths.PK12UTIL, "-d", cert_database,
                  "-i", input_file,
                  "-k", cert_passwd,
                  "-w", input_passwd])
@@ -322,7 +323,7 @@ def stop_tracking_certificates(dogtag_constants):
                 "certmonger failed to stop tracking certificate: %s" % str(e))
 
     try:
-        certmonger.stop_tracking('/etc/httpd/alias', nickname='ipaCert')
+        certmonger.stop_tracking(paths.HTTPD_ALIAS_DIR, nickname='ipaCert')
     except (ipautil.CalledProcessError, RuntimeError), e:
         root_logger.error(
             "certmonger failed to stop tracking certificate: %s" % str(e))
@@ -444,7 +445,7 @@ class CAInstance(service.Service):
         if self.dogtag_constants.DOGTAG_VERSION >= 10:
             self.step("configuring certificate server instance", self.__spawn_instance)
         else:
-            if not ipautil.dir_exists("/var/lib/pki-ca"):
+            if not ipautil.dir_exists(paths.VAR_LIB_PKI_CA_DIR):
                 self.step("creating pki-ca instance", self.create_instance)
             self.step("configuring certificate server instance", self.__configure_instance)
         self.step("stopping certificate server instance to update CS.cfg", self.__stop)
@@ -526,7 +527,7 @@ class CAInstance(service.Service):
         config.set("CA", "pki_admin_nickname", "ipa-ca-agent")
         config.set("CA", "pki_admin_subject_dn",
             str(DN(('cn', 'ipa-ca-agent'), self.subject_base)))
-        config.set("CA", "pki_client_admin_cert_p12", "/root/ca-agent.p12")
+        config.set("CA", "pki_client_admin_cert_p12", paths.CA_AGENT_P12)
 
         # Directory server
         config.set("CA", "pki_ds_ldap_port", str(self.ds_port))
@@ -555,9 +556,9 @@ class CAInstance(service.Service):
 
         if (self.clone):
             cafile = self.pkcs12_info[0]
-            shutil.copy(cafile, "/tmp/ca.p12")
+            shutil.copy(cafile, paths.TMP_CA_P12)
             pent = pwd.getpwnam(PKI_USER)
-            os.chown("/tmp/ca.p12", pent.pw_uid, pent.pw_gid)
+            os.chown(paths.TMP_CA_P12, pent.pw_uid, pent.pw_gid)
 
             # Security domain registration
             config.set("CA", "pki_security_domain_hostname", self.master_host)
@@ -567,7 +568,7 @@ class CAInstance(service.Service):
 
             # Clone
             config.set("CA", "pki_clone", "True")
-            config.set("CA", "pki_clone_pkcs12_path", "/tmp/ca.p12")
+            config.set("CA", "pki_clone_pkcs12_path", paths.TMP_CA_P12)
             config.set("CA", "pki_clone_pkcs12_password", self.dm_password)
             config.set("CA", "pki_clone_replication_security", "TLS")
             config.set("CA", "pki_clone_replication_master_port", str(self.master_replication_port))
@@ -593,7 +594,7 @@ class CAInstance(service.Service):
         # Define the things we don't want logged
         nolog = (self.admin_password, self.dm_password,)
 
-        args = ["/usr/sbin/pkispawn", "-s", "CA", "-f", cfg_file ]
+        args = [paths.PKISPAWN, "-s", "CA", "-f", cfg_file ]
 
         with open(cfg_file) as f:
             root_logger.debug(
@@ -613,8 +614,8 @@ class CAInstance(service.Service):
             print "ipa-server-install --external_cert_file=/path/to/signed_certificate --external_ca_file=/path/to/external_ca_certificate"
             sys.exit(0)
         else:
-            shutil.move("/var/lib/pki/pki-tomcat/alias/ca_backup_keys.p12", \
-                        "/root/cacert.p12")
+            shutil.move(paths.CA_BACKUP_KEYS_P12, \
+                        paths.CACERT_P12)
 
         root_logger.debug("completed creating ca instance")
 
@@ -624,8 +625,8 @@ class CAInstance(service.Service):
         """
         # Only used for Dogtag 9
 
-        args = ['/usr/bin/pkicreate',
-                '-pki_instance_root', '/var/lib',
+        args = [paths.PKICREATE,
+                '-pki_instance_root', paths.VAR_LIB,
                 '-pki_instance_name',
                         self.dogtag_constants.PKI_INSTANCE_NAME,
                 '-subsystem_type', 'ca',
@@ -660,9 +661,9 @@ class CAInstance(service.Service):
             root_logger.debug("ca user %s exists" % PKI_USER)
         except KeyError:
             root_logger.debug("adding ca user %s" % PKI_USER)
-            args = ["/usr/sbin/useradd", "-c", "CA System User",
-                                         "-d", "/var/lib",
-                                         "-s", "/sbin/nologin",
+            args = [paths.USERADD, "-c", "CA System User",
+                                         "-d", paths.VAR_LIB,
+                                         "-s", paths.NOLOGIN,
                                          "-M", "-r", PKI_USER]
             try:
                 ipautil.run(args)
@@ -676,7 +677,7 @@ class CAInstance(service.Service):
             self.server_root, self.dogtag_constants.PKI_INSTANCE_NAME)
 
         try:
-            args = ["/usr/bin/perl", "/usr/bin/pkisilent",  "ConfigureCA",
+            args = [paths.PERL, paths.PKISILENT,  "ConfigureCA",
                     "-cs_hostname", self.fqdn,
                     "-cs_port", str(self.dogtag_constants.ADMIN_SECURE_PORT),
                     "-client_certdb_dir", self.ca_agent_db,
@@ -731,9 +732,9 @@ class CAInstance(service.Service):
                 """
                 # The install wizard expects the file to be here.
                 cafile = self.pkcs12_info[0]
-                shutil.copy(cafile, "/var/lib/pki-ca/alias/ca.p12")
+                shutil.copy(cafile, paths.PKI_ALIAS_CA_P12)
                 pent = pwd.getpwnam(PKI_USER)
-                os.chown("/var/lib/pki-ca/alias/ca.p12", pent.pw_uid, pent.pw_gid )
+                os.chown(paths.PKI_ALIAS_CA_P12, pent.pw_uid, pent.pw_gid )
                 args.append("-clone")
                 args.append("true")
                 args.append("-clone_p12_file")
@@ -773,8 +774,8 @@ class CAInstance(service.Service):
 
         # pkisilent makes a copy of the CA PKCS#12 file for us but gives
         # it a lousy name.
-        if ipautil.file_exists("/root/tmp-ca.p12"):
-            shutil.move("/root/tmp-ca.p12", "/root/cacert.p12")
+        if ipautil.file_exists(paths.ROOT_TMP_CA_P12):
+            shutil.move(paths.ROOT_TMP_CA_P12, paths.CACERT_P12)
 
         root_logger.debug("completed creating ca instance")
 
@@ -805,7 +806,7 @@ class CAInstance(service.Service):
 
         # Look thru the cert chain to get all the certs we need to add
         # trust for
-        p = subprocess.Popen(["/usr/bin/certutil", "-d", self.ca_agent_db,
+        p = subprocess.Popen([paths.CERTUTIL, "-d", self.ca_agent_db,
                               "-O", "-n", "ipa-ca-agent"], stdout=subprocess.PIPE)
 
         chain = p.stdout.read()
@@ -836,7 +837,7 @@ class CAInstance(service.Service):
         # to use the final RA agent database when issuing certs for DS and
         # mod_nss.
         args = [
-            '/usr/bin/sslget',
+            paths.SSLGET,
             '-v',
             '-n', 'ipa-ca-agent',
             '-p', self.admin_password,
@@ -857,7 +858,7 @@ class CAInstance(service.Service):
 
         # Now issue the RA certificate.
         args = [
-            '/usr/bin/sslget',
+            paths.SSLGET,
             '-v',
             '-n', 'ipa-ca-agent',
             '-p', self.admin_password,
@@ -951,7 +952,7 @@ class CAInstance(service.Service):
             database = self.ra_agent_db
         if not pwd_file:
             pwd_file = self.ra_agent_pwd
-        new_args = ["/usr/bin/certutil", "-d", database, "-f", pwd_file]
+        new_args = [paths.CERTUTIL, "-d", database, "-f", pwd_file]
         new_args = new_args + args
         return ipautil.run(new_args, stdin, nolog=(pwd_file,))
 
@@ -987,9 +988,9 @@ class CAInstance(service.Service):
         os.write(pwd_fd, self.admin_password)
         os.close(pwd_fd)
         try:
-            ipautil.run(["/usr/bin/pk12util",
+            ipautil.run([paths.PK12UTIL,
                          "-n", "ipa-ca-agent",
-                         "-o", "/root/ca-agent.p12",
+                         "-o", paths.CA_AGENT_P12,
                          "-d", self.ca_agent_db,
                          "-k", pwd_name,
                          "-w", pwd_name])
@@ -1008,7 +1009,7 @@ class CAInstance(service.Service):
         # makes openssl throw up.
         data = base64.b64decode(chain)
 
-        (certlist, stderr, returncode) = ipautil.run(["/usr/bin/openssl",
+        (certlist, stderr, returncode) = ipautil.run([paths.OPENSSL,
              "pkcs7",
              "-inform",
              "DER",
@@ -1318,11 +1319,11 @@ class CAInstance(service.Service):
 
         try:
             if self.dogtag_constants.DOGTAG_VERSION >= 10:
-                ipautil.run(["/usr/sbin/pkidestroy", "-i",
+                ipautil.run([paths.PKIDESTROY, "-i",
                                 self.dogtag_constants.PKI_INSTANCE_NAME,
                              "-s", "CA"])
             else:
-                ipautil.run(["/usr/bin/pkiremove",
+                ipautil.run([paths.PKIREMOVE,
                              "-pki_instance_root=/var/lib",
                              "-pki_instance_name=%s" %
                                 self.dogtag_constants.PKI_INSTANCE_NAME,
@@ -1401,7 +1402,7 @@ class CAInstance(service.Service):
         if not path:
             iface.add_known_ca(
                 'dogtag-ipa-ca-renew-agent',
-                '/usr/libexec/certmonger/dogtag-ipa-ca-renew-agent-submit', [])
+                paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT, [])
 
     def configure_agent_renewal(self):
         try:
@@ -1409,8 +1410,8 @@ class CAInstance(service.Service):
                 ca='dogtag-ipa-ca-renew-agent',
                 nickname='ipaCert',
                 pin=None,
-                pinfile='/etc/httpd/alias/pwdfile.txt',
-                secdir='/etc/httpd/alias',
+                pinfile=paths.ALIAS_PWDFILE_TXT,
+                secdir=paths.HTTPD_ALIAS_DIR,
                 pre_command=None,
                 post_command='renew_ra_cert')
         except (ipautil.CalledProcessError, RuntimeError), e:
@@ -1802,5 +1803,5 @@ if __name__ == "__main__":
     standard_logging_setup("install.log")
     ds = dsinstance.DsInstance()
 
-    ca = CAInstance("EXAMPLE.COM", "/etc/httpd/alias")
+    ca = CAInstance("EXAMPLE.COM", paths.HTTPD_ALIAS_DIR)
     ca.configure_instance("catest.example.com", "example.com", "password", "password")

@@ -17,13 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-SHARE_DIR = "/usr/share/ipa/"
-PLUGINS_SHARE_DIR = "/usr/share/ipa/plugins"
-
-GEN_PWD_LEN = 12
-
-IPA_BASEDN_INFO = 'ipa v2.0'
-
 import string
 import tempfile
 import subprocess
@@ -49,7 +42,15 @@ from dns.exception import DNSException
 from ipapython.ipa_log_manager import *
 from ipapython import ipavalidate
 from ipapython import config
+from ipaplatform.paths import paths
 from ipapython.dn import DN
+
+SHARE_DIR = paths.USR_SHARE_IPA_DIR
+PLUGINS_SHARE_DIR = paths.IPA_PLUGINS
+
+GEN_PWD_LEN = 12
+
+IPA_BASEDN_INFO = 'ipa v2.0'
 
 try:
     from subprocess import CalledProcessError
@@ -143,7 +144,7 @@ class CheckedIPAddress(netaddr.IPAddress):
             elif addr.version == 6:
                 family = 'inet6'
 
-            ipresult = run(['/sbin/ip', '-family', family, '-oneline', 'address', 'show'])
+            ipresult = run([paths.IP, '-family', family, '-oneline', 'address', 'show'])
             lines = ipresult[0].split('\n')
             for line in lines:
                 fields = line.split()
@@ -261,7 +262,7 @@ def run(args, stdin=None, raiseonerr=True,
 
         Example:
         We have a command
-            ['/usr/bin/setpasswd', '--password', 'Secret123', 'someuser']
+            [paths.SETPASSWD, '--password', 'Secret123', 'someuser']
         and we don't want to log the password so nolog would be set to:
         ('Secret123',)
         The resulting log output would be:
@@ -296,7 +297,7 @@ def run(args, stdin=None, raiseonerr=True,
     if stdin:
         p_in = subprocess.PIPE
     if skip_output:
-        p_out = p_err = open('/dev/null', 'w')
+        p_out = p_err = open(paths.DEV_NULL, 'w')
     elif capture_output:
         p_out = subprocess.PIPE
         p_err = subprocess.PIPE
@@ -411,7 +412,7 @@ def encrypt_file(source, dest, password, workdir = None):
             #give gpg a fake dir so that we can leater remove all
             #the cruft when we clean up the tempdir
             os.mkdir(gpgdir)
-            args = ['/usr/bin/gpg-agent', '--batch', '--homedir', gpgdir, '--daemon', '/usr/bin/gpg', '--batch', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-c', source]
+            args = [paths.GPG_AGENT, '--batch', '--homedir', gpgdir, '--daemon', paths.GPG, '--batch', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-c', source]
             run(args, password, skip_output=True)
         except:
             raise
@@ -441,7 +442,7 @@ def decrypt_file(source, dest, password, workdir = None):
             #give gpg a fake dir so that we can leater remove all
             #the cruft when we clean up the tempdir
             os.mkdir(gpgdir)
-            args = ['/usr/bin/gpg-agent', '--batch', '--homedir', gpgdir, '--daemon', '/usr/bin/gpg', '--batch', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-d', source]
+            args = [paths.GPG_AGENT, '--batch', '--homedir', gpgdir, '--daemon', paths.GPG, '--batch', '--homedir', gpgdir, '--passphrase-fd', '0', '--yes', '--no-tty', '-o', dest, '-d', source]
             run(args, password, skip_output=True)
         except:
             raise
@@ -1234,6 +1235,6 @@ def restore_hostname(statestore):
     system_hostname = socket.gethostname()
     if old_hostname is not None and old_hostname != system_hostname:
         try:
-            run(['/bin/hostname', old_hostname])
+            run([paths.BIN_HOSTNAME, old_hostname])
         except CalledProcessError, e:
             print >>sys.stderr, "Failed to set this machine hostname back to %s: %s" % (old_hostname, str(e))

@@ -51,6 +51,7 @@ from ipalib.krb_utils import (
     KRB5_CCache, krb_ticket_expiration_threshold, krb5_format_principal_name,
     krb5_format_service_principal_name)
 from ipapython import ipautil
+from ipaplatform.paths import paths
 from ipapython.version import VERSION
 from ipalib.text import _
 
@@ -977,7 +978,7 @@ class login_password(Backend, KerberosSession, HTTP_Status):
         # get http service ccache as an armor for FAST to enable OTP authentication
         armor_principal = krb5_format_service_principal_name(
             'HTTP', self.api.env.host, realm)
-        keytab = '/etc/httpd/conf/ipa.keytab'
+        keytab = paths.IPA_KEYTAB
         armor_name = "%sA_%s" % (krbccache_prefix, user)
         armor_path = os.path.join(krbccache_dir, armor_name)
 
@@ -985,7 +986,7 @@ class login_password(Backend, KerberosSession, HTTP_Status):
                    armor_principal, keytab, armor_path)
 
         (stdout, stderr, returncode) = ipautil.run(
-            ['/usr/bin/kinit', '-kt', keytab, armor_principal],
+            [paths.KINIT, '-kt', keytab, armor_principal],
             env={'KRB5CCNAME': armor_path}, raiseonerr=False)
 
         if returncode != 0:
@@ -995,7 +996,7 @@ class login_password(Backend, KerberosSession, HTTP_Status):
         principal = krb5_format_principal_name(user, realm)
 
         (stdout, stderr, returncode) = ipautil.run(
-            ['/usr/bin/kinit', principal, '-T', armor_path],
+            [paths.KINIT, principal, '-T', armor_path],
             env={'KRB5CCNAME': ccache_name}, stdin=password, raiseonerr=False)
 
         self.debug('kinit: principal=%s returncode=%s, stderr="%s"',
@@ -1003,7 +1004,7 @@ class login_password(Backend, KerberosSession, HTTP_Status):
 
         self.debug('Cleanup the armor ccache')
         ipautil.run(
-            ['/usr/bin/kdestroy', '-A', '-c', armor_path],
+            [paths.KDESTROY, '-A', '-c', armor_path],
             env={'KRB5CCNAME': armor_path},
             raiseonerr=False)
 

@@ -30,6 +30,7 @@ from ipalib import api, errors
 from ipalib.errors import NetworkError, CertificateOperationError
 from ipalib.text import _
 from ipapython import nsslib, ipautil
+from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import *
 
 # IPA can use either Dogtag version 9 or 10.
@@ -50,17 +51,17 @@ class Dogtag10Constants(object):
     DS_PORT = 389
     DS_SECURE_PORT = 636
 
-    SPAWN_BINARY = '/usr/sbin/pkispawn'
-    DESTROY_BINARY = '/usr/sbin/pkidestroy'
+    SPAWN_BINARY = paths.PKISPAWN
+    DESTROY_BINARY = paths.PKIDESTROY
 
-    SERVER_ROOT = '/var/lib/pki'
+    SERVER_ROOT = paths.VAR_LIB_PKI_DIR
     PKI_INSTANCE_NAME = 'pki-tomcat'
     PKI_ROOT = '%s/%s' % (SERVER_ROOT, PKI_INSTANCE_NAME)
-    CRL_PUBLISH_PATH = '/var/lib/ipa/pki-ca/publish'
+    CRL_PUBLISH_PATH = paths.PKI_CA_PUBLISH_DIR
     CS_CFG_PATH = '%s/conf/ca/CS.cfg' % PKI_ROOT
     PASSWORD_CONF_PATH = '%s/conf/password.conf' % PKI_ROOT
     SERVICE_PROFILE_DIR = '%s/ca/profiles/ca' % PKI_ROOT
-    ALIAS_DIR = '/etc/pki/pki-tomcat/alias'
+    ALIAS_DIR = paths.PKI_TOMCAT_ALIAS_DIR.rstrip('/')
 
     SERVICE_NAME = 'pki_tomcatd'
 
@@ -82,13 +83,13 @@ class Dogtag9Constants(object):
     DS_PORT = 7389
     DS_SECURE_PORT = 7636
 
-    SPAWN_BINARY = '/bin/pkicreate'
-    DESTROY_BINARY = '/bin/pkisilent'
+    SPAWN_BINARY = paths.PKICREATE
+    DESTROY_BINARY = paths.PKISILENT
 
-    SERVER_ROOT = '/var/lib'
+    SERVER_ROOT = paths.VAR_LIB
     PKI_INSTANCE_NAME = 'pki-ca'
     PKI_ROOT = '%s/%s' % (SERVER_ROOT, PKI_INSTANCE_NAME)
-    CRL_PUBLISH_PATH = '/var/lib/ipa/pki-ca/publish'
+    CRL_PUBLISH_PATH = paths.PKI_CA_PUBLISH_DIR
     CS_CFG_PATH = '%s/conf/CS.cfg' % PKI_ROOT
     PASSWORD_CONF_PATH = '%s/conf/password.conf' % PKI_ROOT
     SERVICE_PROFILE_DIR = '%s/profiles/ca' % PKI_ROOT
@@ -108,7 +109,7 @@ class Dogtag9Constants(object):
     DS_USER = "pkisrv"
     DS_NAME = "PKI-IPA"
 
-if os.path.exists('/usr/sbin/pkispawn'):
+if os.path.exists(paths.PKISPAWN):
     install_constants = Dogtag10Constants
 else:
     install_constants = Dogtag9Constants
@@ -124,7 +125,7 @@ def _get_configured_version(api):
         return int(api.env.dogtag_version)
     else:
         p = ConfigParser.SafeConfigParser()
-        p.read("/etc/ipa/default.conf")
+        p.read(paths.IPA_DEFAULT_CONF)
         try:
             version = p.get('global', 'dogtag_version')
         except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):

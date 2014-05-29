@@ -105,6 +105,7 @@ current block assignments:
 from ipalib.text import ngettext as ungettext
 
 import messages
+from ipaplatform.paths import paths
 
 
 class PrivateError(StandardError):
@@ -142,7 +143,7 @@ class SubprocessError(PrivateError):
     The exit code of the sub-process is available via the ``returncode``
     instance attribute.  For example:
 
-    >>> e = SubprocessError(returncode=1, argv=('/bin/false',))
+    >>> e = SubprocessError(returncode=1, argv=(paths.BIN_FALSE,))
     >>> e.returncode
     1
     >>> e.argv  # argv is also available

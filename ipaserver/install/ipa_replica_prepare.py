@@ -34,6 +34,7 @@ from ipapython.dn import DN
 from ipapython import version
 from ipalib import api
 from ipalib import errors
+from ipaplatform.paths import paths
 from ipalib.constants import CACERT
 
 
@@ -60,7 +61,7 @@ class ReplicaPrepare(admintool.AdminTool):
         parser.add_option("--no-pkinit", dest="setup_pkinit",
             action="store_false", default=True,
             help="disables pkinit setup steps")
-        parser.add_option("--ca", dest="ca_file", default="/root/cacert.p12",
+        parser.add_option("--ca", dest="ca_file", default=paths.CACERT_P12,
             metavar="FILE",
             help="location of CA PKCS#12 file, default /root/cacert.p12")
 
@@ -358,16 +359,16 @@ class ReplicaPrepare(admintool.AdminTool):
         self.log.info("Copying additional files")
 
         self.copy_info_file(CACERT, "ca.crt")
-        preferences_filename = "/usr/share/ipa/html/preferences.html"
+        preferences_filename = paths.PREFERENCES_HTML
         if ipautil.file_exists(preferences_filename):
             self.copy_info_file(preferences_filename, "preferences.html")
-            self.copy_info_file("/usr/share/ipa/html/krb.js", "krb.js")
+            self.copy_info_file(paths.KRB_JS, "krb.js")
             self.copy_info_file(
-                "/usr/share/ipa/html/kerberosauth.xpi", "kerberosauth.xpi")
-        jar_filename = "/usr/share/ipa/html/configure.jar"
+                paths.KERBEROSAUTH_XPI, "kerberosauth.xpi")
+        jar_filename = paths.CONFIGURE_JAR
         if ipautil.file_exists(jar_filename):
             self.copy_info_file(jar_filename, "configure.jar")
-        cacert_filename = "/var/kerberos/krb5kdc/cacert.pem"
+        cacert_filename = paths.CACERT_PEM
         if ipautil.file_exists(cacert_filename):
             self.copy_info_file(cacert_filename, "cacert.pem")
 
@@ -387,12 +388,12 @@ class ReplicaPrepare(admintool.AdminTool):
             config.write(fd)
 
     def package_replica_file(self):
-        replicafile = "/var/lib/ipa/replica-info-%s" % self.replica_fqdn
+        replicafile = paths.REPLICA_INFO_TEMPLATE % self.replica_fqdn
         encfile = "%s.gpg" % replicafile
 
         self.log.info("Packaging replica information into %s", encfile)
         ipautil.run(
-            ["/bin/tar", "cf", replicafile, "-C", self.top_dir, "realm_info"])
+            [paths.TAR, "cf", replicafile, "-C", self.top_dir, "realm_info"])
         ipautil.encrypt_file(
             replicafile, encfile, self.dirman_password, self.top_dir)
 
@@ -546,7 +547,7 @@ class ReplicaPrepare(admintool.AdminTool):
         dm_pwd_fd = ipautil.write_tmp_file(self.dirman_password)
 
         keydb_pwd = ''
-        with open('/etc/pki/pki-tomcat/password.conf') as f:
+        with open(paths.PKI_TOMCAT_PASSWORD_CONF) as f:
             for line in f.readlines():
                 key, value = line.strip().split('=')
                 if key == 'internal':
@@ -556,8 +557,8 @@ class ReplicaPrepare(admintool.AdminTool):
         keydb_pwd_fd = ipautil.write_tmp_file(keydb_pwd)
 
         ipautil.run([
-            '/usr/bin/PKCS12Export',
-            '-d', '/etc/pki/pki-tomcat/alias/',
+            paths.PKCS12EXPORT,
+            '-d', paths.PKI_TOMCAT_ALIAS_DIR,
             '-p', keydb_pwd_fd.name,
             '-w', dm_pwd_fd.name,
             '-o', ca_file

@@ -28,6 +28,7 @@ import os
 
 from ipalib import api
 from ipalib import errors
+from ipaplatform.paths import paths
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipaserver.plugins.ldap2 import ldap2
 
@@ -49,7 +50,7 @@ class cmdline_test(XMLRPC_test):
     Base class for all command-line tests
     """
     # some reasonable default command
-    command = '/bin/ls'
+    command = paths.LS
 
     def setUp(self):
         # Find the executable in $PATH

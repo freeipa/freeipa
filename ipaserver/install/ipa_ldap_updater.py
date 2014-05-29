@@ -30,6 +30,7 @@ import krbV
 
 from ipalib import api
 from ipapython import ipautil, admintool
+from ipaplatform.paths import paths
 from ipaserver.install import installutils, dsinstance, schemaupdate
 from ipaserver.install.ldapupdate import LDAPUpdate, UPDATES_DIR
 from ipaserver.install.upgradeinstance import IPAUpgrade
@@ -94,7 +95,7 @@ class LDAPUpdater(admintool.AdminTool):
             except RuntimeError, e:
                 print unicode(e)
                 sys.exit(1)
-        elif not os.path.exists('/etc/ipa/default.conf'):
+        elif not os.path.exists(paths.IPA_DEFAULT_CONF):
             print "IPA is not configured on this system."
             sys.exit(1)
 
@@ -124,7 +125,7 @@ class LDAPUpdater(admintool.AdminTool):
 
 
 class LDAPUpdater_Upgrade(LDAPUpdater):
-    log_file_name = '/var/log/ipaupgrade.log'
+    log_file_name = paths.IPAUPGRADE_LOG
 
     def validate_options(self):
         if os.getegid() != 0:
@@ -154,7 +155,7 @@ class LDAPUpdater_Upgrade(LDAPUpdater):
 
 
 class LDAPUpdater_NonUpgrade(LDAPUpdater):
-    log_file_name = '/var/log/ipaupgrade.log'
+    log_file_name = paths.IPAUPGRADE_LOG
 
     def validate_options(self):
         super(LDAPUpdater_NonUpgrade, self).validate_options()

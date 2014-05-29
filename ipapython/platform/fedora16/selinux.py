@@ -1,4 +1,5 @@
 # Author: Alexander Bokovoy <abokovoy@redhat.com>
+from ipaplatform.paths import paths
 #
 # Copyright (C) 2011   Red Hat
 # see file 'COPYING' for use and warranty information
@@ -19,8 +20,8 @@
 
 from ipapython.platform import redhat
 
-def restore_context(filepath, restorecon='/usr/sbin/restorecon'):
+def restore_context(filepath, restorecon=paths.RESTORECON):
     return redhat.restore_context(filepath, restorecon)
 
-def check_selinux_status(restorecon='/usr/sbin/restorecon'):
+def check_selinux_status(restorecon=paths.RESTORECON):
     return redhat.check_selinux_status(restorecon)

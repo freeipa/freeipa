@@ -1212,6 +1212,7 @@ from ipalib.constants import TYPE_ERROR
 from ipalib.util import cachedproperty
 from ipapython import dogtag
 from ipalib import _
+from ipaplatform.paths import paths
 
 class ra(rabase.rabase):
     """
@@ -1222,8 +1223,8 @@ class ra(rabase.rabase):
             self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
             self.pwd_file = self.sec_dir + os.sep + '.pwd'
         else:
-            self.sec_dir = "/etc/httpd/alias"
-            self.pwd_file = "/etc/httpd/alias/pwdfile.txt"
+            self.sec_dir = paths.HTTPD_ALIAS_DIR
+            self.pwd_file = paths.ALIAS_PWDFILE_TXT
         self.noise_file = self.sec_dir + os.sep + '.noise'
         self.ipa_key_size = "2048"
         self.ipa_certificate_nickname = "ipaCert"

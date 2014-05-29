@@ -27,9 +27,10 @@ import re
 import time
 from ipapython import ipautil
 from ipapython import dogtag
+from ipaplatform.paths import paths
 
-REQUEST_DIR='/var/lib/certmonger/requests/'
-CA_DIR='/var/lib/certmonger/cas/'
+REQUEST_DIR=paths.CERTMONGER_REQUESTS_DIR
+CA_DIR=paths.CERTMONGER_CAS_DIR
 
 # Normalizer types for critera in get_request_id()
 NPATH = 1
@@ -176,7 +177,7 @@ def request_cert(nssdb, nickname, subject, principal, passwd_fname=None):
     """
     Execute certmonger to request a server certificate
     """
-    args = ['/usr/bin/ipa-getcert',
+    args = [paths.IPA_GETCERT,
             'request',
             '-d', nssdb,
             '-n', nickname,
@@ -202,7 +203,7 @@ def cert_exists(nickname, secdir):
     a database that doesn't exist and a nickname that doesn't exist within
     the database.
     """
-    args = ["/usr/bin/certutil", "-L",
+    args = [paths.CERTUTIL, "-L",
            "-d", os.path.abspath(secdir),
            "-n", nickname
           ]
@@ -227,7 +228,7 @@ def start_tracking(nickname, secdir, password_file=None, command=None):
     """
     if not cert_exists(nickname, os.path.abspath(secdir)):
         raise RuntimeError('Nickname "%s" doesn\'t exist in NSS database "%s"' % (nickname, secdir))
-    args = ["/usr/bin/ipa-getcert", "start-tracking",
+    args = [paths.IPA_GETCERT, "start-tracking",
             "-d", os.path.abspath(secdir),
             "-n", nickname]
     if password_file:
@@ -261,7 +262,7 @@ def stop_tracking(secdir, request_id=None, nickname=None):
             # Fall back to trying to stop tracking using nickname
             pass
 
-    args = ['/usr/bin/getcert',
+    args = [paths.GETCERT,
             'stop-tracking',
     ]
     if request_id:
@@ -390,7 +391,7 @@ def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, pre_command,
     if not cert_exists(nickname, os.path.abspath(secdir)):
         raise RuntimeError('Nickname "%s" doesn\'t exist in NSS database "%s"' % (nickname, secdir))
 
-    args = ["/usr/bin/getcert", "start-tracking",
+    args = [paths.GETCERT, "start-tracking",
             "-d", os.path.abspath(secdir),
             "-n", nickname,
             "-c", ca,
@@ -402,7 +403,7 @@ def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, pre_command,
                 libpath = 'lib64'
             else:
                 libpath = 'lib'
-            pre_command = '/usr/%s/ipa/certmonger/%s' % (libpath, pre_command)
+            pre_command = paths.CERTMONGER_COMMAND_TEMPLATE % (libpath, pre_command)
         args.append("-B")
         args.append(pre_command)
 
@@ -412,7 +413,7 @@ def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, pre_command,
                 libpath = 'lib64'
             else:
                 libpath = 'lib'
-            post_command = '/usr/%s/ipa/certmonger/%s' % (libpath, post_command)
+            post_command = paths.CERTMONGER_COMMAND_TEMPLATE % (libpath, post_command)
         args.append("-C")
         args.append(post_command)
 
@@ -446,7 +447,7 @@ def check_state(dirs):
     return reqids
 
 if __name__ == '__main__':
-    request_id = request_cert("/etc/httpd/alias", "Test", "cn=tiger.example.com,O=IPA", "HTTP/tiger.example.com@EXAMPLE.COM")
+    request_id = request_cert(paths.HTTPD_ALIAS_DIR, "Test", "cn=tiger.example.com,O=IPA", "HTTP/tiger.example.com@EXAMPLE.COM")
     csr = get_request_value(request_id, 'csr')
     print csr
     stop_tracking(request_id)

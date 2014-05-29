@@ -31,6 +31,7 @@ import shutil
 from ipalib import api, x509
 from ipaserver.plugins import rabase
 from ipapython import ipautil
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 
 _testcert = None
@@ -52,7 +53,7 @@ def run_certutil(reqdir, args, stdin=None):
     """
     Run an NSS certutil command
     """
-    new_args = ["/usr/bin/certutil", "-d", reqdir]
+    new_args = [paths.CERTUTIL, "-d", reqdir]
     new_args = new_args + args
     return ipautil.run(new_args, stdin)
 
@@ -64,7 +65,7 @@ def generate_csr(reqdir, pwname, subject):
     req_path = os.path.join(reqdir, 'req')
     run_certutil(reqdir, ["-R", "-s", subject,
                           "-o", req_path,
-                          "-z", "/etc/group",
+                          "-z", paths.GROUP,
                           "-f", pwname,
                           "-a"])
     with open(req_path, "r") as fp:

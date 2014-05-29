@@ -59,6 +59,7 @@ from ipalib.util import get_current_principal
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
 from ipapython import kernel_keyring
+from ipaplatform.paths import paths
 from ipapython.cookie import Cookie
 from ipapython.dnsutil import DNSName
 from ipalib.text import _
@@ -482,7 +483,7 @@ class SSLTransport(LanguageAwareTransport):
             if self._connection and host == self._connection[0]:
                 return self._connection[1]
 
-        dbdir = '/etc/pki/nssdb'
+        dbdir = paths.NSS_DB_DIR
         no_init = self.__nss_initialized(dbdir)
         if sys.version_info < (2, 7):
             conn = NSSHTTPS(host, 443, dbdir=dbdir, no_init=no_init)

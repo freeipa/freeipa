@@ -35,19 +35,9 @@ from ipapython.ipa_log_manager import *
 from ipaserver.install import sysupgrade
 from ipalib import api
 from ipaplatform.tasks import tasks
+from ipaplatform.paths import paths
 from ipalib.constants import CACERT
 
-HTTPD_DIR = "/etc/httpd"
-SSL_CONF = HTTPD_DIR + "/conf.d/ssl.conf"
-NSS_CONF = HTTPD_DIR + "/conf.d/nss.conf"
-
-selinux_warning = """
-WARNING: could not set selinux boolean(s) %(var)s to true.  The web
-interface may not function correctly until this boolean is successfully
-change with the command:
-   /usr/sbin/setsebool -P %(var)s true
-Try updating the policycoreutils and selinux-policy packages.
-"""
 
 def httpd_443_configured():
     """
@@ -58,7 +48,7 @@ def httpd_443_configured():
     False otherwise.
     """
     try:
-        (stdout, stderr, rc) = ipautil.run(['/usr/sbin/httpd', '-t', '-D', 'DUMP_VHOSTS'])
+        (stdout, stderr, rc) = ipautil.run([paths.HTTPD, '-t', '-D', 'DUMP_VHOSTS'])
     except ipautil.CalledProcessError, e:
         service.print_msg("WARNING: cannot check if port 443 is already configured")
         service.print_msg("httpd returned error when checking: %s" % e)
@@ -84,7 +74,7 @@ class HTTPInstance(service.Service):
         if fstore:
             self.fstore = fstore
         else:
-            self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
         self.cert_nickname = cert_nickname
 
@@ -151,15 +141,15 @@ class HTTPInstance(service.Service):
             else:
                 updates = ["%s=%s" % update for update in changes.iteritems()]
 
-            args = ["/usr/sbin/setsebool", "-P"]
+            args = [paths.SETSEBOOL, "-P"]
             args.extend(updates)
 
             return args
 
         selinux = False
         try:
-            if (os.path.exists('/usr/sbin/selinuxenabled')):
-                ipautil.run(["/usr/sbin/selinuxenabled"])
+            if (os.path.exists(paths.SELINUXENABLED)):
+                ipautil.run([paths.SELINUXENABLED])
                 selinux = True
         except ipautil.CalledProcessError:
             # selinuxenabled returns 1 if not enabled
@@ -173,7 +163,7 @@ class HTTPInstance(service.Service):
                                  ("httpd_manage_ipa", "on"))
             for setting, state in required_settings:
                 try:
-                    (stdout, stderr, returncode) = ipautil.run(["/usr/sbin/getsebool", setting])
+                    (stdout, stderr, returncode) = ipautil.run([paths.GETSEBOOL, setting])
                     original_state = stdout.split()[2]
                     self.backup_state(setting, original_state)
 
@@ -208,12 +198,12 @@ class HTTPInstance(service.Service):
 
     def __create_http_keytab(self):
         installutils.kadmin_addprinc(self.principal)
-        installutils.create_keytab("/etc/httpd/conf/ipa.keytab", self.principal)
+        installutils.create_keytab(paths.IPA_KEYTAB, self.principal)
         self.move_service(self.principal)
         self.add_cert_to_service()
 
         pent = pwd.getpwnam("apache")
-        os.chown("/etc/httpd/conf/ipa.keytab", pent.pw_uid, pent.pw_gid)
+        os.chown(paths.IPA_KEYTAB, pent.pw_uid, pent.pw_gid)
 
     def remove_httpd_ccache(self):
         # Clean up existing ccache
@@ -222,17 +212,17 @@ class HTTPInstance(service.Service):
         ipautil.run(['kdestroy', '-A'], runas='apache', raiseonerr=False, env={})
 
     def __configure_http(self):
-        target_fname = '/etc/httpd/conf.d/ipa.conf'
+        target_fname = paths.HTTPD_IPA_CONF
         http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa.conf", self.sub_dict)
-        self.fstore.backup_file("/etc/httpd/conf.d/ipa.conf")
+        self.fstore.backup_file(paths.HTTPD_IPA_CONF)
         http_fd = open(target_fname, "w")
         http_fd.write(http_txt)
         http_fd.close()
         os.chmod(target_fname, 0644)
 
-        target_fname = '/etc/httpd/conf.d/ipa-rewrite.conf'
+        target_fname = paths.HTTPD_IPA_REWRITE_CONF
         http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa-rewrite.conf", self.sub_dict)
-        self.fstore.backup_file("/etc/httpd/conf.d/ipa-rewrite.conf")
+        self.fstore.backup_file(paths.HTTPD_IPA_REWRITE_CONF)
         http_fd = open(target_fname, "w")
         http_fd.write(http_txt)
         http_fd.close()
@@ -249,28 +239,28 @@ class HTTPInstance(service.Service):
         #
         # Remove the workaround.
         if sysupgrade.get_upgrade_state('nss.conf', 'listen_port_updated'):
-            installutils.set_directive(NSS_CONF, 'Listen', '443', quotes=False)
+            installutils.set_directive(paths.HTTPD_NSS_CONF, 'Listen', '443', quotes=False)
             sysupgrade.set_upgrade_state('nss.conf', 'listen_port_updated', False)
 
     def __set_mod_nss_port(self):
-        self.fstore.backup_file(NSS_CONF)
-        if installutils.update_file(NSS_CONF, '8443', '443') != 0:
-            print "Updating port in %s failed." % NSS_CONF
+        self.fstore.backup_file(paths.HTTPD_NSS_CONF)
+        if installutils.update_file(paths.HTTPD_NSS_CONF, '8443', '443') != 0:
+            print "Updating port in %s failed." % paths.HTTPD_NSS_CONF
 
     def __set_mod_nss_nickname(self, nickname):
-        installutils.set_directive(NSS_CONF, 'NSSNickname', nickname)
+        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSNickname', nickname)
 
     def enable_mod_nss_renegotiate(self):
-        installutils.set_directive(NSS_CONF, 'NSSRenegotiation', 'on', False)
-        installutils.set_directive(NSS_CONF, 'NSSRequireSafeNegotiation', 'on', False)
+        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSRenegotiation', 'on', False)
+        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSRequireSafeNegotiation', 'on', False)
 
     def __set_mod_nss_passwordfile(self):
-        installutils.set_directive(NSS_CONF, 'NSSPassPhraseDialog', 'file:/etc/httpd/conf/password.conf')
+        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSPassPhraseDialog', 'file:/etc/httpd/conf/password.conf')
 
     def __add_include(self):
         """This should run after __set_mod_nss_port so is already backed up"""
-        if installutils.update_file(NSS_CONF, '</VirtualHost>', 'Include conf.d/ipa-rewrite.conf\n</VirtualHost>') != 0:
-            print "Adding Include conf.d/ipa-rewrite to %s failed." % NSS_CONF
+        if installutils.update_file(paths.HTTPD_NSS_CONF, '</VirtualHost>', 'Include conf.d/ipa-rewrite.conf\n</VirtualHost>') != 0:
+            print "Adding Include conf.d/ipa-rewrite to %s failed." % paths.HTTPD_NSS_CONF
 
     def __setup_ssl(self):
         fqdn = self.fqdn
@@ -321,7 +311,7 @@ class HTTPInstance(service.Service):
         tasks.restore_context(certs.NSS_DIR + "/key3.db")
 
     def __setup_autoconfig(self):
-        target_fname = '/usr/share/ipa/html/preferences.html'
+        target_fname = paths.PREFERENCES_HTML
         ipautil.copy_template_file(
             ipautil.SHARE_DIR + "preferences.html.template",
             target_fname, self.sub_dict)
@@ -335,8 +325,8 @@ class HTTPInstance(service.Service):
         # Setup configure.jar
         if db.has_nickname('Signing-Cert'):
             tmpdir = tempfile.mkdtemp(prefix="tmp-")
-            target_fname = '/usr/share/ipa/html/configure.jar'
-            shutil.copy("/usr/share/ipa/html/preferences.html", tmpdir)
+            target_fname = paths.CONFIGURE_JAR
+            shutil.copy(paths.PREFERENCES_HTML, tmpdir)
             db.run_signtool(["-k", "Signing-Cert",
                             "-Z", target_fname,
                             "-e", ".html", "-p", pwd,
@@ -356,7 +346,7 @@ class HTTPInstance(service.Service):
         ``force`` is true.
         """
 
-        target_fname = '/usr/share/ipa/html/krb.js'
+        target_fname = paths.KRB_JS
         if os.path.exists(target_fname) and not force:
             root_logger.info(
                 '%s exists, skipping install of Firefox extension',
@@ -375,8 +365,8 @@ class HTTPInstance(service.Service):
         # Setup extension
         tmpdir = tempfile.mkdtemp(prefix="tmp-")
         extdir = tmpdir + "/ext"
-        target_fname = "/usr/share/ipa/html/kerberosauth.xpi"
-        shutil.copytree("/usr/share/ipa/ffextension", extdir)
+        target_fname = paths.KERBEROSAUTH_XPI
+        shutil.copytree(paths.FFEXTENSION, extdir)
         if db.has_nickname('Signing-Cert'):
             db.run_signtool(["-k", "Signing-Cert",
                                 "-p", pwd,
@@ -386,14 +376,14 @@ class HTTPInstance(service.Service):
             root_logger.warning('Object-signing certificate was not found. '
                 'Creating unsigned Firefox configuration extension.')
             filenames = os.listdir(extdir)
-            ipautil.run(['/usr/bin/zip', '-r', target_fname] + filenames,
+            ipautil.run([paths.ZIP, '-r', target_fname] + filenames,
                 cwd=extdir)
         shutil.rmtree(tmpdir)
         os.chmod(target_fname, 0644)
 
     def __publish_ca_cert(self):
         ca_db = certs.CertDB(self.realm)
-        ca_db.publish_ca_cert("/usr/share/ipa/html/ca.crt")
+        ca_db.publish_ca_cert(paths.CA_CRT)
 
     def uninstall(self):
         if self.is_configured():
@@ -409,7 +399,7 @@ class HTTPInstance(service.Service):
         if not enabled is None and not enabled:
             self.disable()
 
-        for f in ["/etc/httpd/conf.d/ipa.conf", SSL_CONF, NSS_CONF]:
+        for f in [paths.HTTPD_IPA_CONF, paths.HTTPD_SSL_CONF, paths.HTTPD_NSS_CONF]:
             try:
                 self.fstore.restore_file(f)
             except ValueError, error:
@@ -417,15 +407,15 @@ class HTTPInstance(service.Service):
                 pass
 
         # Remove the configuration files we create
-        installutils.remove_file("/etc/httpd/conf.d/ipa-rewrite.conf")
-        installutils.remove_file("/etc/httpd/conf.d/ipa.conf")
-        installutils.remove_file("/etc/httpd/conf.d/ipa-pki-proxy.conf")
+        installutils.remove_file(paths.HTTPD_IPA_REWRITE_CONF)
+        installutils.remove_file(paths.HTTPD_IPA_CONF)
+        installutils.remove_file(paths.HTTPD_IPA_PKI_PROXY_CONF)
 
         for var in ["httpd_can_network_connect", "httpd_manage_ipa"]:
             sebool_state = self.restore_state(var)
             if not sebool_state is None:
                 try:
-                    ipautil.run(["/usr/sbin/setsebool", "-P", var, sebool_state])
+                    ipautil.run([paths.SETSEBOOL, "-P", var, sebool_state])
                 except ipautil.CalledProcessError, e:
                     self.print_msg("Cannot restore SELinux boolean '%s' back to '%s': %s" \
                             % (var, sebool_state, e))

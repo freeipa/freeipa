@@ -22,6 +22,7 @@ import shutil
 import os
 from ipaplatform.tasks import tasks
 from ipaplatform import services
+from ipaplatform.paths import paths
 
 ntp_conf = """# Permit time synchronization with our time source, but do not
 # permit the source to query or modify the service on this system.
@@ -96,9 +97,9 @@ def __write_config(path, content):
     fd.close()
 
 def config_ntp(server_fqdn, fstore = None, sysstore = None):
-    path_step_tickers = "/etc/ntp/step-tickers"
-    path_ntp_conf = "/etc/ntp.conf"
-    path_ntp_sysconfig = "/etc/sysconfig/ntpd"
+    path_step_tickers = paths.NTP_STEP_TICKERS
+    path_ntp_conf = paths.NTP_CONF
+    path_ntp_sysconfig = paths.SYSCONFIG_NTPD
     sub_dict = { }
     sub_dict["SERVER"] = server_fqdn
 
@@ -142,7 +143,7 @@ def synconce_ntp(server_fqdn):
 
     Returns True if sync was successful
     """
-    ntpd = '/usr/sbin/ntpd'
+    ntpd = paths.NTPD
     if not os.path.exists(ntpd):
         return False
 

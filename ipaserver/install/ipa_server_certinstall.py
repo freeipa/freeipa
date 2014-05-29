@@ -24,6 +24,7 @@ import os.path
 import pwd
 import optparse
 
+from ipaplatform.paths import paths
 from ipapython import admintool
 from ipapython.dn import DN
 from ipapython.ipautil import user_input, write_tmp_file
@@ -132,14 +133,14 @@ class ServerCertInstall(admintool.AdminTool):
     def install_http_cert(self):
         dirname = certs.NSS_DIR
 
-        old_cert = installutils.get_directive(httpinstance.NSS_CONF,
+        old_cert = installutils.get_directive(paths.HTTPD_NSS_CONF,
                                               'NSSNickname')
 
         server_cert = self.import_cert(dirname, self.options.pin,
                                        old_cert, 'HTTP/%s' % api.env.host,
                                        'restart_httpd')
 
-        installutils.set_directive(httpinstance.NSS_CONF,
+        installutils.set_directive(paths.HTTPD_NSS_CONF,
                                    'NSSNickname', server_cert)
 
         # Fix the database permissions

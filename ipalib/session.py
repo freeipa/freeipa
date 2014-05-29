@@ -27,6 +27,7 @@ from text import _
 from ipapython.ipa_log_manager import *
 from ipalib import api, errors
 from ipalib import Command
+from ipaplatform.paths import paths
 from ipalib.krb_utils import *
 from ipapython.cookie import Cookie
 
@@ -795,7 +796,7 @@ class MemcacheSessionManager(SessionManager):
     session data (see `load_session_data()`)
     '''
 
-    memcached_socket_path = '/var/run/ipa_memcached/ipa_memcached'
+    memcached_socket_path = paths.VAR_RUN_IPA_MEMCACHED
     session_cookie_name = 'ipa_session'
     mc_server_stat_name_re = re.compile(r'(.+)\s+\((\d+)\)')
 
@@ -1208,7 +1209,7 @@ class MemcacheSessionManager(SessionManager):
 
 
 #-------------------------------------------------------------------------------
-krbccache_dir ='/var/run/ipa_memcached'
+krbccache_dir =paths.IPA_MEMCACHED_DIR
 krbccache_prefix = 'krbcc_'
 
 def _get_krbccache_pathname():

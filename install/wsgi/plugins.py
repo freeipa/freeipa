@@ -22,9 +22,10 @@ Plugin index generation script
 """
 
 import os
+from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import root_logger
 
-PLUGINS_DIR = "/usr/share/ipa/ui/js/plugins"
+PLUGINS_DIR = paths.IPA_JS_PLUGINS_DIR
 
 def get_plugin_index():
 

@@ -21,6 +21,7 @@ import os
 import re
 
 import nose
+from ipaplatform.paths import paths
 
 from ipatests.test_integration import tasks
 
@@ -40,7 +41,7 @@ class BaseTestLegacyClient(object):
                     '/etc/openldap/cacerts',
                     '/etc/openldap/ldap.conf',
                     '/etc/nsswitch.conf',
-                    '/etc/sssd/sssd.conf']
+                    paths.SSSD_CONF]
 
     # Actual test classes need to override these attributes to set the expected
     # values on the UID and GID results, since this varies with the usage of the
@@ -88,7 +89,7 @@ class BaseTestLegacyClient(object):
                                                  advice_path])
 
         # Restart SSHD to load new PAM configuration
-        self.legacy_client.run_command(['/sbin/service', 'sshd', 'restart'])
+        self.legacy_client.run_command([paths.SBIN_SERVICE, 'sshd', 'restart'])
 
     def clear_sssd_caches(self):
         tasks.clear_sssd_cache(self.master)

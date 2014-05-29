@@ -21,9 +21,10 @@ import os
 import os.path
 
 from ipapython import sysrestore
+from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import *
 
-STATEFILE_DIR = '/var/lib/ipa/sysupgrade'
+STATEFILE_DIR = paths.STATEFILE_DIR
 STATEFILE_FILE = 'sysupgrade.state'
 
 _sstore = sysrestore.StateFile(STATEFILE_DIR, STATEFILE_FILE)

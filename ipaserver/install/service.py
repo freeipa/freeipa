@@ -29,6 +29,7 @@ from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 from ipalib import errors
 from ipaplatform import services
+from ipaplatform.paths import paths
 
 # Autobind modes
 AUTO = 1
@@ -88,7 +89,7 @@ class Service(object):
         if sstore:
             self.sstore = sstore
         else:
-            self.sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
+            self.sstore = sysrestore.StateFile(paths.SYSRESTORE)
 
         self.realm = None
         self.suffix = DN()
@@ -155,7 +156,7 @@ class Service(object):
             if 'RANDOM_PASSWORD' in sub_dict:
                 nologlist.append(sub_dict['RANDOM_PASSWORD'])
 
-        args = ["/usr/bin/ldapmodify", "-v", "-f", path]
+        args = [paths.LDAPMODIFY, "-v", "-f", path]
 
         # As we always connect to the local host,
         # use URI of admin connection

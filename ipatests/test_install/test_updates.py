@@ -30,6 +30,7 @@ from ipalib import errors
 from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax
 from ipaserver.install import installutils
 from ipapython import ipautil, ipaldap
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 
 """
@@ -123,7 +124,7 @@ class test_update(unittest.TestCase):
         for item in ('top', 'person', 'posixaccount', 'krbprincipalaux', 'inetuser'):
             self.assertTrue(item in objectclasses)
 
-        self.assertEqual(entry.single_value['loginshell'], '/bin/bash')
+        self.assertEqual(entry.single_value['loginshell'], paths.BASH)
         self.assertEqual(entry.single_value['sn'], 'User')
         self.assertEqual(entry.single_value['uid'], 'tuser')
         self.assertEqual(entry.single_value['cn'], 'Test User')
@@ -307,7 +308,7 @@ class test_update(unittest.TestCase):
         for item in ('top', 'person', 'posixaccount', 'krbprincipalaux', 'inetuser'):
             self.assertTrue(item in objectclasses)
 
-        self.assertEqual(entry.single_value['loginshell'], '/bin/bash')
+        self.assertEqual(entry.single_value['loginshell'], paths.BASH)
         self.assertEqual(entry.single_value['sn'], 'User')
         self.assertEqual(entry.single_value['uid'], 'tuser')
         self.assertEqual(entry.single_value['cn'], 'Test User')

@@ -33,6 +33,7 @@ from ipalib import _
 from ipapython.dn import DN
 from ipapython.ipautil import write_tmp_file
 import datetime
+from ipaplatform.paths import paths
 
 __doc__ = _("""
 Migration to IPA
@@ -185,13 +186,13 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
     # fill in required attributes by IPA
     entry_attrs['ipauniqueid'] = 'autogenerate'
     if 'homedirectory' not in entry_attrs:
-        homes_root = config.get('ipahomesrootdir', ('/home', ))[0]
+        homes_root = config.get('ipahomesrootdir', (paths.HOME_DIR, ))[0]
         home_dir = '%s/%s' % (homes_root, pkey)
         home_dir = home_dir.replace('//', '/').rstrip('/')
         entry_attrs['homedirectory'] = home_dir
 
     if 'loginshell' not in entry_attrs:
-        default_shell = config.get('ipadefaultloginshell', ['/bin/sh'])[0]
+        default_shell = config.get('ipadefaultloginshell', [paths.SH])[0]
         entry_attrs.setdefault('loginshell', default_shell)
 
     # do not migrate all attributes

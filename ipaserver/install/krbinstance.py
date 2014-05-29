@@ -45,6 +45,7 @@ import struct
 import certs
 from distutils import version
 from ipaplatform.tasks import tasks
+from ipaplatform.paths import paths
 
 def update_key_val_in_file(filename, key, val):
     if os.path.exists(filename):
@@ -88,7 +89,7 @@ class KrbInstance(service.Service):
         if fstore:
             self.fstore = fstore
         else:
-            self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     suffix = ipautil.dn_attribute_property('_suffix')
     subject_base = ipautil.dn_attribute_property('_subject_base')
@@ -345,11 +346,11 @@ class KrbInstance(service.Service):
             print "Failed to initialize the realm container"
 
     def __configure_instance(self):
-        self.__template_file("/var/kerberos/krb5kdc/kdc.conf", chmod=None)
-        self.__template_file("/etc/krb5.conf")
-        self.__template_file("/usr/share/ipa/html/krb5.ini")
-        self.__template_file("/usr/share/ipa/html/krb.con")
-        self.__template_file("/usr/share/ipa/html/krbrealm.con")
+        self.__template_file(paths.KRB5KDC_KDC_CONF, chmod=None)
+        self.__template_file(paths.KRB5_CONF)
+        self.__template_file(paths.HTML_KRB5_INI)
+        self.__template_file(paths.KRB_CON)
+        self.__template_file(paths.HTML_KRBREALM_CON)
 
         MIN_KRB5KDC_WITH_WORKERS = "1.9"
         cpus = os.sysconf('SC_NPROCESSORS_ONLN')
@@ -367,10 +368,10 @@ class KrbInstance(service.Service):
         appendvars = {}
         if workers and cpus > 1:
             appendvars = {'KRB5KDC_ARGS': "'-w %s'" % str(cpus)}
-        ipautil.backup_config_and_replace_variables(self.fstore, "/etc/sysconfig/krb5kdc",
+        ipautil.backup_config_and_replace_variables(self.fstore, paths.SYSCONFIG_KRB5KDC_DIR,
                                                     replacevars=replacevars,
                                                     appendvars=appendvars)
-        tasks.restore_context("/etc/sysconfig/krb5kdc")
+        tasks.restore_context(paths.SYSCONFIG_KRB5KDC_DIR)
 
     def __write_stash_from_ds(self):
         try:
@@ -390,7 +391,7 @@ class KrbInstance(service.Service):
         format = '=hi%ss' % len(keydata)
         s = struct.pack(format, keytype, len(keydata), keydata)
         try:
-            fd = open("/var/kerberos/krb5kdc/.k5."+self.realm, "w")
+            fd = open(paths.VAR_KRB5KDC_K5_REALM+self.realm, "w")
             fd.write(s)
             fd.close()
         except os.error, e:
@@ -406,23 +407,23 @@ class KrbInstance(service.Service):
         installutils.kadmin_addprinc(ldap_principal)
         self.move_service(ldap_principal)
 
-        self.fstore.backup_file("/etc/dirsrv/ds.keytab")
-        installutils.create_keytab("/etc/dirsrv/ds.keytab", ldap_principal)
+        self.fstore.backup_file(paths.DS_KEYTAB)
+        installutils.create_keytab(paths.DS_KEYTAB, ldap_principal)
 
-        update_key_val_in_file("/etc/sysconfig/dirsrv", "KRB5_KTNAME", "/etc/dirsrv/ds.keytab")
+        update_key_val_in_file(paths.SYSCONFIG_DIRSRV, "KRB5_KTNAME", paths.DS_KEYTAB)
         pent = pwd.getpwnam(dsinstance.DS_USER)
-        os.chown("/etc/dirsrv/ds.keytab", pent.pw_uid, pent.pw_gid)
+        os.chown(paths.DS_KEYTAB, pent.pw_uid, pent.pw_gid)
 
     def __create_host_keytab(self):
         host_principal = "host/" + self.fqdn + "@" + self.realm
         installutils.kadmin_addprinc(host_principal)
 
-        self.fstore.backup_file("/etc/krb5.keytab")
-        installutils.create_keytab("/etc/krb5.keytab", host_principal)
+        self.fstore.backup_file(paths.KRB5_KEYTAB)
+        installutils.create_keytab(paths.KRB5_KEYTAB, host_principal)
 
         # Make sure access is strictly reserved to root only for now
-        os.chown("/etc/krb5.keytab", 0, 0)
-        os.chmod("/etc/krb5.keytab", 0600)
+        os.chown(paths.KRB5_KEYTAB, 0, 0)
+        os.chmod(paths.KRB5_KEYTAB, 0600)
 
         self.move_service_to_host(host_principal)
 
@@ -433,13 +434,13 @@ class KrbInstance(service.Service):
         if self.pkcs12_info:
             ca_db.install_pem_from_p12(self.pkcs12_info[0],
                                        self.pkcs12_info[1],
-                                       "/var/kerberos/krb5kdc/kdc.pem")
+                                       paths.KDC_PEM)
         else:
             raise RuntimeError("PKI not supported yet\n")
 
         # Finally copy the cacert in the krb directory so we don't
         # have any selinux issues with the file context
-        shutil.copyfile(CACERT, "/var/kerberos/krb5kdc/cacert.pem")
+        shutil.copyfile(CACERT, paths.CACERT_PEM)
 
     def __add_anonymous_pkinit_principal(self):
         princ = "WELLKNOWN/ANONYMOUS"
@@ -472,7 +473,7 @@ class KrbInstance(service.Service):
         except:
             pass
 
-        for f in ["/var/kerberos/krb5kdc/kdc.conf", "/etc/krb5.conf"]:
+        for f in [paths.KRB5KDC_KDC_CONF, paths.KRB5_CONF]:
             try:
                 self.fstore.restore_file(f)
             except ValueError, error:

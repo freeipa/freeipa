@@ -25,6 +25,7 @@ import time
 import pwd
 from optparse import OptionGroup
 from ConfigParser import SafeConfigParser
+from ipaplatform.paths import paths
 from ipaplatform import services
 
 from ipalib import api, errors
@@ -62,14 +63,14 @@ EOF
       --keyring /root/backup.pub --list-secret-keys
 """
 
-BACKUP_DIR = '/var/lib/ipa/backup'
+BACKUP_DIR = paths.IPA_BACKUP_DIR
 
 
 def encrypt_file(filename, keyring, remove_original=True):
     source = filename
     dest = filename + '.gpg'
 
-    args = ['/usr/bin/gpg',
+    args = [paths.GPG,
             '--batch',
             '--default-recipient-self',
             '-o', dest]
@@ -96,91 +97,91 @@ def encrypt_file(filename, keyring, remove_original=True):
 
 class Backup(admintool.AdminTool):
     command_name = 'ipa-backup'
-    log_file_name = '/var/log/ipabackup.log'
+    log_file_name = paths.IPABACKUP_LOG
 
     usage = "%prog [options]"
 
     description = "Back up IPA files and databases."
 
-    dirs = ('/usr/share/ipa/html',
-        '/root/.pki',
-        '/etc/pki-ca',
-        '/etc/pki/pki-tomcat',
-        '/etc/sysconfig/pki',
-        '/etc/httpd/alias',
-        '/var/lib/pki',
-        '/var/lib/pki-ca',
-        '/var/lib/ipa/sysrestore',
-        '/var/lib/ipa-client/sysrestore',
-        '/var/lib/sss/pubconf/krb5.include.d',
-        '/var/lib/authconfig/last',
-        '/var/lib/certmonger',
-        '/var/lib/ipa',
-        '/var/run/dirsrv',
-        '/var/lock/dirsrv',
+    dirs = (paths.IPA_HTML_DIR,
+        paths.ROOT_PKI,
+        paths.ETC_PKI_CA_DIR,
+        paths.PKI_TOMCAT,
+        paths.SYSCONFIG_PKI,
+        paths.HTTPD_ALIAS_DIR,
+        paths.VAR_LIB_PKI_DIR,
+        paths.VAR_LIB_PKI_CA_DIR,
+        paths.SYSRESTORE,
+        paths.IPA_CLIENT_SYSRESTORE,
+        paths.SSS_KRB5_INCLUDE_D,
+        paths.AUTHCONFIG_LAST,
+        paths.VAR_LIB_CERTMONGER_DIR,
+        paths.VAR_LIB_IPA,
+        paths.VAR_RUN_DIRSRV_DIR,
+        paths.DIRSRV_LOCK_DIR,
     )
 
     files = (
-        '/etc/named.conf',
-        '/etc/named.keytab',
-        '/etc/resolv.conf',
-        '/etc/sysconfig/pki-ca',
-        '/etc/sysconfig/pki-tomcat',
-        '/etc/sysconfig/dirsrv',
-        '/etc/sysconfig/ntpd',
-        '/etc/sysconfig/krb5kdc',
-        '/etc/sysconfig/pki/ca/pki-ca',
-        '/etc/sysconfig/authconfig',
-        '/etc/pki/nssdb/cert8.db',
-        '/etc/pki/nssdb/key3.db',
-        '/etc/pki/nssdb/secmod.db',
-        '/etc/nsswitch.conf',
-        '/etc/krb5.keytab',
-        '/etc/sssd/sssd.conf',
-        '/etc/openldap/ldap.conf',
-        '/etc/security/limits.conf',
-        '/etc/httpd/conf/password.conf',
-        '/etc/httpd/conf/ipa.keytab',
-        '/etc/httpd/conf.d/ipa-pki-proxy.conf',
-        '/etc/httpd/conf.d/ipa-rewrite.conf',
-        '/etc/httpd/conf.d/nss.conf',
-        '/etc/httpd/conf.d/ipa.conf',
-        '/etc/ssh/sshd_config',
-        '/etc/ssh/ssh_config',
-        '/etc/krb5.conf',
-        '/etc/group',
-        '/etc/passwd',
+        paths.NAMED_CONF,
+        paths.NAMED_KEYTAB,
+        paths.RESOLV_CONF,
+        paths.SYSCONFIG_PKI_CA_DIR,
+        paths.SYSCONFIG_PKI_TOMCAT,
+        paths.SYSCONFIG_DIRSRV,
+        paths.SYSCONFIG_NTPD,
+        paths.SYSCONFIG_KRB5KDC_DIR,
+        paths.SYSCONFIG_PKI_CA_PKI_CA_DIR,
+        paths.ETC_SYSCONFIG_AUTHCONFIG,
+        paths.NSSDB_CERT8_DB,
+        paths.NSSDB_KEY3_DB,
+        paths.NSSDB_SECMOD_DB,
+        paths.NSSWITCH_CONF,
+        paths.KRB5_KEYTAB,
+        paths.SSSD_CONF,
+        paths.OPENLDAP_LDAP_CONF,
+        paths.LIMITS_CONF,
+        paths.HTTPD_PASSWORD_CONF,
+        paths.IPA_KEYTAB,
+        paths.HTTPD_IPA_PKI_PROXY_CONF,
+        paths.HTTPD_IPA_REWRITE_CONF,
+        paths.HTTPD_NSS_CONF,
+        paths.HTTPD_IPA_CONF,
+        paths.SSHD_CONFIG,
+        paths.SSH_CONFIG,
+        paths.KRB5_CONF,
+        paths.GROUP,
+        paths.PASSWD,
         CACERT,
-        '/etc/ipa/default.conf',
-        '/etc/dirsrv/ds.keytab',
-        '/etc/ntp.conf',
-        '/etc/samba/smb.conf',
-        '/etc/samba/samba.keytab',
-        '/root/ca-agent.p12',
-        '/root/cacert.p12',
-        '/var/kerberos/krb5kdc/kdc.conf',
-        '/etc/systemd/system/multi-user.target.wants/ipa.service',
-        '/etc/systemd/system/multi-user.target.wants/sssd.service',
-        '/etc/systemd/system/multi-user.target.wants/certmonger.service',
-        '/etc/systemd/system/pki-tomcatd.target.wants/pki-tomcatd@pki-tomcat.service',
-        '/var/run/ipa/services.list',
+        paths.IPA_DEFAULT_CONF,
+        paths.DS_KEYTAB,
+        paths.NTP_CONF,
+        paths.SMB_CONF,
+        paths.SAMBA_KEYTAB,
+        paths.CA_AGENT_P12,
+        paths.CACERT_P12,
+        paths.KRB5KDC_KDC_CONF,
+        paths.SYSTEMD_IPA_SERVICE,
+        paths.SYSTEMD_SSSD_SERVICE,
+        paths.SYSTEMD_CERTMONGER_SERVICE,
+        paths.SYSTEMD_PKI_TOMCAT_SERVICE,
+        paths.SVC_LIST_FILE,
     )
 
     logs=(
-      '/var/log/pki-ca',
-      '/var/log/pki/',
-      '/var/log/dirsrv/slapd-PKI-IPA',
-      '/var/log/httpd',
-      '/var/log/ipaserver-install.log',
-      '/var/log/kadmind.log',
-      '/var/log/pki-ca-install.log',
-      '/var/log/messages',
-      '/var/log/ipaclient-install.log',
-      '/var/log/secure',
-      '/var/log/ipaserver-uninstall.log',
-      '/var/log/pki-ca-uninstall.log',
-      '/var/log/ipaclient-uninstall.log',
-      '/var/named/data/named.run',
+      paths.PKI_CA_LOG_DIR,
+      paths.VAR_LOG_PKI_DIR,
+      paths.VAR_LOG_SLAPD_PKI_IPA_DIR,
+      paths.VAR_LOG_HTTPD_DIR,
+      paths.IPASERVER_INSTALL_LOG,
+      paths.KADMIND_LOG,
+      paths.PKI_CA_INSTALL_LOG,
+      paths.MESSAGES,
+      paths.IPACLIENT_INSTALL_LOG,
+      paths.LOG_SECURE,
+      paths.IPASERVER_UNINSTALL_LOG,
+      paths.PKI_CA_UNINSTALL_LOG,
+      paths.IPACLIENT_UNINSTALL_LOG,
+      paths.NAMED_RUN,
     )
 
     def __init__(self, options, args):
@@ -277,8 +278,8 @@ class Backup(admintool.AdminTool):
                 run(['ipactl', 'stop'])
 
             for instance in [realm_to_serverid(api.env.realm), 'PKI-IPA']:
-                if os.path.exists('/var/lib/dirsrv/slapd-%s' % instance):
-                    if os.path.exists('/var/lib/dirsrv/slapd-%s/db/ipaca' % instance):
+                if os.path.exists(paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % instance):
+                    if os.path.exists(paths.IPACA_DIRSRV_INSTANCE_DB_TEMPLATE % instance):
                         self.db2ldif(instance, 'ipaca', online=options.online)
                     self.db2ldif(instance, 'userRoot', online=options.online)
                     self.db2bak(instance, online=options.online)
@@ -310,26 +311,26 @@ class Backup(admintool.AdminTool):
               instance.
         '''
         for dir in [
-                '/etc/dirsrv/slapd-%s' % realm_to_serverid(api.env.realm),
-                '/var/lib/dirsrv/scripts-%s' % realm_to_serverid(api.env.realm),
-                '/var/lib/dirsrv/slapd-%s' % realm_to_serverid(api.env.realm),
-                '/usr/lib64/dirsrv/slapd-PKI-IPA',
-                '/usr/lib/dirsrv/slapd-PKI-IPA',
-                '/etc/dirsrv/slapd-PKI-IPA',
-                '/var/lib/dirsrv/slapd-PKI-IPA',
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % realm_to_serverid(api.env.realm),
+                paths.VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE % realm_to_serverid(api.env.realm),
+                paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % realm_to_serverid(api.env.realm),
+                paths.VAR_LIB_SLAPD_PKI_IPA_DIR_TEMPLATE,
+                paths.USR_LIB_SLAPD_PKI_IPA_DIR,
+                paths.ETC_SLAPD_PKI_IPA_DIR,
+                paths.VAR_LIB_SLAPD_PKI_IPA_DIR_TEMPLATE,
                 self.__find_scripts_dir('PKI-IPA'),
             ]:
             if os.path.exists(dir):
                 self.dirs.append(dir)
 
         for file in [
-                '/etc/sysconfig/dirsrv-%s' % realm_to_serverid(api.env.realm),
-                '/etc/sysconfig/dirsrv-PKI-IPA']:
+                paths.SYSCONFIG_DIRSRV_INSTANCE % realm_to_serverid(api.env.realm),
+                paths.SYSCONFIG_DIRSRV_PKI_IPA_DIR]:
             if os.path.exists(file):
                 self.files.append(file)
 
         for log in [
-              '/var/log/dirsrv/slapd-%s' % realm_to_serverid(api.env.realm),]:
+              paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % realm_to_serverid(api.env.realm),]:
             self.logs.append(log)
 
 
@@ -372,7 +373,7 @@ class Backup(admintool.AdminTool):
 
         ldifname = '%s-%s.ldif' % (instance, backend)
         ldiffile = os.path.join(
-            '/var/lib/dirsrv/slapd-%s/ldif' % instance,
+            paths.SLAPD_INSTANCE_LDIF_DIR_TEMPLATE % instance,
             ldifname)
 
         if online:
@@ -421,7 +422,7 @@ class Backup(admintool.AdminTool):
         cn = time.strftime('backup_%Y_%m_%d_%H_%M_%S')
         dn = DN(('cn', cn), ('cn', 'backup'), ('cn', 'tasks'), ('cn', 'config'))
 
-        bakdir = os.path.join('/var/lib/dirsrv/slapd-%s/bak/%s' % (instance, instance))
+        bakdir = os.path.join(paths.SLAPD_INSTANCE_BACKUP_DIR_TEMPLATE % (instance, instance))
 
         if online:
             conn = self.get_connection()
@@ -560,10 +561,10 @@ class Backup(admintool.AdminTool):
         does so we need to probe for it.
         """
         if instance != 'PKI-IPA':
-            return os.path.join('/var/lib/dirsrv', 'scripts-%s' % instance)
+            return os.path.join(paths.VAR_LIB_DIRSRV, 'scripts-%s' % instance)
         else:
             if sys.maxsize > 2**32L:
                 libpath = 'lib64'
             else:
                 libpath = 'lib'
-            return os.path.join('/usr', libpath, 'dirsrv', 'slapd-PKI-IPA')
+            return os.path.join(paths.USR_DIR, libpath, 'dirsrv', 'slapd-PKI-IPA')

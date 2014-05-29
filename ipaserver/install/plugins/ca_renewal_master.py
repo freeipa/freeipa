@@ -22,6 +22,7 @@ from ipaserver.install import installutils, certs, cainstance
 from ipalib import errors
 from ipalib.plugable import Registry
 from ipapython import certmonger, dogtag
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 
 register = Registry()
@@ -52,7 +53,7 @@ class update_ca_renewal_master(PostUpdate):
             return (False, False, [])
 
         criteria = (
-            ('cert_storage_location', '/etc/httpd/alias', certmonger.NPATH),
+            ('cert_storage_location', paths.HTTPD_ALIAS_DIR, certmonger.NPATH),
             ('cert_nickname', 'ipaCert', None),
         )
         request_id = certmonger.get_request_id(criteria)

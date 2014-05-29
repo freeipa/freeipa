@@ -30,6 +30,7 @@ from ipapython.ipa_log_manager import *
 from ipapython import ipautil, dogtag, ipaldap
 from ipapython.dn import DN
 from ipaplatform import services
+from ipaplatform.paths import paths
 
 # the default container used by AD for user entries
 WIN_USER_CONTAINER = DN(('cn', 'Users'))
@@ -68,7 +69,7 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
     Does not return a value, will sys.exit() on failure.
     """
     print "Run connection check to master"
-    args = ["/usr/sbin/ipa-replica-conncheck", "--master", master_host,
+    args = [paths.IPA_REPLICA_CONNCHECK, "--master", master_host,
             "--auto-master-check", "--realm", realm,
             "--principal", "admin",
             "--hostname", host_name]

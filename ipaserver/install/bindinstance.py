@@ -35,13 +35,14 @@ from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 import ipalib
 from ipalib import api, errors
+from ipaplatform.paths import paths
 from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
         get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy,
         normalize_zone, get_reverse_zone_default, zone_is_reverse)
 from ipalib.constants import CACERT
 
-NAMED_CONF = '/etc/named.conf'
-RESOLV_CONF = '/etc/resolv.conf'
+NAMED_CONF = paths.NAMED_CONF
+RESOLV_CONF = paths.RESOLV_CONF
 
 named_conf_section_ipa_start_re = re.compile('\s*dynamic-db\s+"ipa"\s+{')
 named_conf_section_options_start_re = re.compile('\s*options\s+{')
@@ -55,14 +56,14 @@ def check_inst(unattended):
     has_bind = True
     # So far this file is always present in both RHEL5 and Fedora if all the necessary
     # bind packages are installed (RHEL5 requires also the pkg: caching-nameserver)
-    if not os.path.exists('/etc/named.rfc1912.zones'):
+    if not os.path.exists(paths.NAMED_RFC1912_ZONES):
         print "BIND was not found on this system"
         print "Please install the 'bind' package and start the installation again"
         has_bind = False
 
     # Also check for the LDAP BIND plug-in
-    if not os.path.exists('/usr/lib/bind/ldap.so') and \
-       not os.path.exists('/usr/lib64/bind/ldap.so'):
+    if not os.path.exists(paths.BIND_LDAP_SO) and \
+       not os.path.exists(paths.BIND_LDAP_SO_64):
         print "The BIND LDAP plug-in was not found on this system"
         print "Please install the 'bind-dyndb-ldap' package and start the installation again"
         has_bind = False
@@ -458,7 +459,7 @@ class BindInstance(service.Service):
         if fstore:
             self.fstore = fstore
         else:
-            self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     suffix = ipautil.dn_attribute_property('_suffix')
 
@@ -758,8 +759,8 @@ class BindInstance(service.Service):
         installutils.kadmin_addprinc(dns_principal)
 
         # Store the keytab on disk
-        self.fstore.backup_file("/etc/named.keytab")
-        installutils.create_keytab("/etc/named.keytab", dns_principal)
+        self.fstore.backup_file(paths.NAMED_KEYTAB)
+        installutils.create_keytab(paths.NAMED_KEYTAB, dns_principal)
         p = self.move_service(dns_principal)
         if p is None:
             # the service has already been moved, perhaps we're doing a DNS reinstall
@@ -770,8 +771,8 @@ class BindInstance(service.Service):
 
         # Make sure access is strictly reserved to the named user
         pent = pwd.getpwnam(self.named_user)
-        os.chown("/etc/named.keytab", pent.pw_uid, pent.pw_gid)
-        os.chmod("/etc/named.keytab", 0400)
+        os.chown(paths.NAMED_KEYTAB, pent.pw_uid, pent.pw_gid)
+        os.chmod(paths.NAMED_KEYTAB, 0400)
 
         # modify the principal so that it is marked as an ipa service so that
         # it can host the memberof attribute, then also add it to the

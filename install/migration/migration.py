@@ -30,6 +30,7 @@ from ipapython.ipautil import get_ipa_basedn
 from ipapython.dn import DN
 from ipapython.ipaldap import IPAdmin
 from ipalib import errors
+from ipaplatform.paths import paths
 
 
 def wsgi_redirect(start_response, loc):
@@ -89,7 +90,7 @@ def application(environ, start_response):
     if not form_data.has_key('username') or not form_data.has_key('password'):
         return wsgi_redirect(start_response, 'invalid.html')
 
-    slapd_sockets = glob.glob('/var/run/slapd-*.socket')
+    slapd_sockets = glob.glob(paths.ALL_SLAPD_INSTANCE_SOCKETS)
     if slapd_sockets:
         ldap_uri = 'ldapi://%s' % slapd_sockets[0].replace('/', '%2f')
     else:

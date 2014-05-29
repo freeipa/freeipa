@@ -30,6 +30,7 @@ import StringIO
 from ldif import LDIFWriter
 
 from ipapython import ipautil
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
 from ipatests.test_integration import util
@@ -75,8 +76,8 @@ def backup_file(host, filename):
 
 
 def fix_etc_hosts(host):
-    backup_file(host, '/etc/hosts')
-    contents = host.get_file_contents('/etc/hosts')
+    backup_file(host, paths.HOSTS)
+    contents = host.get_file_contents(paths.HOSTS)
     # Remove existing mentions of the host's FQDN, short name, and IP
     contents = re.sub('\s%s(\s|$)' % re.escape(host.hostname), ' ', contents,
                       flags=re.MULTILINE)
@@ -87,12 +88,12 @@ def fix_etc_hosts(host):
     # Add the host's info again
     contents += '\n%s %s %s\n' % (host.ip, host.hostname, host.shortname)
     log.debug('Writing the following to /etc/hosts:\n%s', contents)
-    host.put_file_contents('/etc/hosts', contents)
+    host.put_file_contents(paths.HOSTS, contents)
 
 
 def fix_hostname(host):
-    backup_file(host, '/etc/hostname')
-    host.put_file_contents('/etc/hostname', host.hostname + '\n')
+    backup_file(host, paths.ETC_HOSTNAME)
+    host.put_file_contents(paths.ETC_HOSTNAME, host.hostname + '\n')
     host.run_command(['hostname', host.hostname])
 
     backupname = os.path.join(host.config.test_dir, 'backup_hostname')
@@ -100,24 +101,24 @@ def fix_hostname(host):
 
 
 def fix_resolv_conf(host):
-    backup_file(host, '/etc/resolv.conf')
-    lines = host.get_file_contents('/etc/resolv.conf').splitlines()
+    backup_file(host, paths.RESOLV_CONF)
+    lines = host.get_file_contents(paths.RESOLV_CONF).splitlines()
     lines = ['#' + l if l.startswith('nameserver') else l for l in lines]
     for other_host in host.domain.hosts:
         if other_host.role in ('master', 'replica'):
             lines.append('nameserver %s' % other_host.ip)
     contents = '\n'.join(lines)
     log.debug('Writing the following to /etc/resolv.conf:\n%s', contents)
-    host.put_file_contents('/etc/resolv.conf', contents)
+    host.put_file_contents(paths.RESOLV_CONF, contents)
 
 
 def fix_apache_semaphores(master):
-    systemd_available = master.transport.file_exists('/bin/systemctl')
+    systemd_available = master.transport.file_exists(paths.SYSTEMCTL)
 
     if systemd_available:
         master.run_command(['systemctl', 'stop', 'httpd'], raiseonerr=False)
     else:
-        master.run_command(['/sbin/service', 'httpd', 'stop'], raiseonerr=False)
+        master.run_command([paths.SBIN_SERVICE, 'httpd', 'stop'], raiseonerr=False)
 
     master.run_command('for line in `ipcs -s | grep apache | cut -d " " -f 2`; '
                        'do ipcrm -s $line; done', raiseonerr=False)
@@ -184,11 +185,11 @@ def enable_replication_debugging(host):
 
 
 def install_master(host):
-    host.collect_log('/var/log/ipaserver-install.log')
-    host.collect_log('/var/log/ipaclient-install.log')
+    host.collect_log(paths.IPASERVER_INSTALL_LOG)
+    host.collect_log(paths.IPACLIENT_INSTALL_LOG)
     inst = host.domain.realm.replace('.', '-')
-    host.collect_log('/var/log/dirsrv/slapd-%s/errors' % inst)
-    host.collect_log('/var/log/dirsrv/slapd-%s/access' % inst)
+    host.collect_log(paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
+    host.collect_log(paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
 
     apply_common_fixes(host)
     fix_apache_semaphores(host)
@@ -207,8 +208,8 @@ def install_master(host):
 
 
 def install_replica(master, replica, setup_ca=True):
-    replica.collect_log('/var/log/ipareplica-install.log')
-    replica.collect_log('/var/log/ipareplica-conncheck.log')
+    replica.collect_log(paths.IPAREPLICA_INSTALL_LOG)
+    replica.collect_log(paths.IPAREPLICA_CONNCHECK_LOG)
 
     apply_common_fixes(replica)
     fix_apache_semaphores(replica)
@@ -218,7 +219,7 @@ def install_replica(master, replica, setup_ca=True):
                         '--ip-address', replica.ip,
                         replica.hostname])
     replica_bundle = master.get_file_contents(
-        '/var/lib/ipa/replica-info-%s.gpg' % replica.hostname)
+        paths.REPLICA_INFO_TEMPLATE_GPG % replica.hostname)
     replica_filename = os.path.join(replica.config.test_dir,
                                     'replica-info.gpg')
     replica.put_file_contents(replica_filename, replica_bundle)
@@ -239,7 +240,7 @@ def install_replica(master, replica, setup_ca=True):
 
 
 def install_client(master, client, extra_args=()):
-    client.collect_log('/var/log/ipaclient-install.log')
+    client.collect_log(paths.IPACLIENT_INSTALL_LOG)
 
     apply_common_fixes(client)
 
@@ -262,11 +263,11 @@ def install_adtrust(host):
     """
 
     # ipa-adtrust-install appends to ipaserver-install.log
-    host.collect_log('/var/log/ipaserver-install.log')
+    host.collect_log(paths.IPASERVER_INSTALL_LOG)
 
     inst = host.domain.realm.replace('.', '-')
-    host.collect_log('/var/log/dirsrv/slapd-%s/errors' % inst)
-    host.collect_log('/var/log/dirsrv/slapd-%s/access' % inst)
+    host.collect_log(paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
+    host.collect_log(paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
 
     kinit_admin(host)
     host.run_command(['ipa-adtrust-install', '-U',
@@ -354,7 +355,7 @@ def establish_trust_with_ad(master, ad, extra_args=()):
     """
 
     # Force KDC to reload MS-PAC info by trying to get TGT for HTTP
-    master.run_command(['kinit', '-kt', '/etc/httpd/conf/ipa.keytab',
+    master.run_command(['kinit', '-kt', paths.IPA_KEYTAB,
                         'HTTP/%s' % master.hostname])
     master.run_command(['systemctl', 'restart', 'krb5kdc.service'])
     master.run_command(['kdestroy', '-A'])
@@ -397,7 +398,7 @@ def configure_auth_to_local_rule(master, ad):
              % (ad.domain.realm, ad.domain.realm, ad.domain.name))
     line2 = "  auth_to_local = DEFAULT"
 
-    krb5_conf_content = master.get_file_contents('/etc/krb5.conf')
+    krb5_conf_content = master.get_file_contents(paths.KRB5_CONF)
     krb5_lines = [line.rstrip() for line in krb5_conf_content.split('\n')]
     realm_section_index = krb5_lines.index(section_identifier)
 
@@ -405,7 +406,7 @@ def configure_auth_to_local_rule(master, ad):
     krb5_lines.insert(realm_section_index + 2, line2)
 
     krb5_conf_new_content = '\n'.join(krb5_lines)
-    master.put_file_contents('/etc/krb5.conf', krb5_conf_new_content)
+    master.put_file_contents(paths.KRB5_CONF, krb5_conf_new_content)
 
     master.run_command(['systemctl', 'restart', 'sssd'])
 
@@ -419,13 +420,13 @@ def setup_sssd_debugging(host):
     # First, remove any previous occurences
     host.run_command(['sed', '-i',
                       '/debug_level = 7/d',
-                      '/etc/sssd/sssd.conf'
+                      paths.SSSD_CONF
                      ], raiseonerr=False)
 
     # Add the debug directive to each section
     host.run_command(['sed', '-i',
                       '/\[*\]/ a\debug_level = 7',
-                      '/etc/sssd/sssd.conf'
+                      paths.SSSD_CONF
                      ], raiseonerr=False)
 
 
@@ -440,22 +441,22 @@ def clear_sssd_cache(host):
     Clears SSSD cache by removing the cache files. Restarts SSSD.
     """
 
-    systemd_available = host.transport.file_exists('/bin/systemctl')
+    systemd_available = host.transport.file_exists(paths.SYSTEMCTL)
 
     if systemd_available:
         host.run_command(['systemctl', 'stop', 'sssd'])
     else:
-        host.run_command(['/sbin/service', 'sssd', 'stop'])
+        host.run_command([paths.SBIN_SERVICE, 'sssd', 'stop'])
 
     host.run_command("find /var/lib/sss/db -name '*.ldb' | "
                      "xargs rm -fv")
-    host.run_command(['rm', '-fv', '/var/lib/sss/mc/group'])
-    host.run_command(['rm', '-fv', '/var/lib/sss/mc/passwd'])
+    host.run_command(['rm', '-fv', paths.SSSD_MC_GROUP])
+    host.run_command(['rm', '-fv', paths.SSSD_MC_PASSWD])
 
     if systemd_available:
         host.run_command(['systemctl', 'start', 'sssd'])
     else:
-        host.run_command(['/sbin/service', 'sssd', 'start'])
+        host.run_command([paths.SBIN_SERVICE, 'sssd', 'start'])
 
     # To avoid false negatives due to SSSD not responding yet
     time.sleep(10)
@@ -487,24 +488,24 @@ def kinit_admin(host):
 
 
 def uninstall_master(host):
-    host.collect_log('/var/log/ipaserver-uninstall.log')
+    host.collect_log(paths.IPASERVER_UNINSTALL_LOG)
 
     host.run_command(['ipa-server-install', '--uninstall', '-U'],
                      raiseonerr=False)
     host.run_command(['pkidestroy', '-s', 'CA', '-i', 'pki-tomcat'],
                      raiseonerr=False)
     host.run_command(['rm', '-rf',
-                      '/var/log/pki/pki-tomcat',
-                      '/etc/sysconfig/pki-tomcat',
-                      '/etc/sysconfig/pki/tomcat/pki-tomcat',
-                      '/var/lib/pki/pki-tomcat',
-                      '/etc/pki/pki-tomcat'],
+                      paths.TOMCAT_TOPLEVEL_DIR,
+                      paths.SYSCONFIG_PKI_TOMCAT,
+                      paths.SYSCONFIG_PKI_TOMCAT_PKI_TOMCAT_DIR,
+                      paths.VAR_LIB_PKI_TOMCAT_DIR,
+                      paths.PKI_TOMCAT],
                       raiseonerr=False)
     unapply_fixes(host)
 
 
 def uninstall_client(host):
-    host.collect_log('/var/log/ipaclient-uninstall.log')
+    host.collect_log(paths.IPACLIENT_UNINSTALL_LOG)
 
     host.run_command(['ipa-client-install', '--uninstall', '-U'],
                      raiseonerr=False)

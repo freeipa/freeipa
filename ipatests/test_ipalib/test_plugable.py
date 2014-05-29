@@ -26,6 +26,7 @@ from ipatests.util import raises, no_set, no_del, read_only
 from ipatests.util import getitem, setitem, delitem
 from ipatests.util import ClassChecker, create_test_api
 from ipalib import plugable, errors, text
+from ipaplatform.paths import paths
 
 
 class test_SetProxy(ClassChecker):
@@ -277,10 +278,10 @@ class test_Plugin(ClassChecker):
         Test the `ipalib.plugable.Plugin.call` method.
         """
         o = self.cls()
-        o.call('/bin/true') is None
-        e = raises(errors.SubprocessError, o.call, '/bin/false')
+        o.call(paths.BIN_TRUE) is None
+        e = raises(errors.SubprocessError, o.call, paths.BIN_FALSE)
         assert e.returncode == 1
-        assert e.argv == ('/bin/false',)
+        assert e.argv == (paths.BIN_FALSE,)
 
 
 def test_Registrar():

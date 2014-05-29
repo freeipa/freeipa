@@ -42,6 +42,7 @@ from ipalib import api
 from ipalib import _
 from ipalib import util
 from ipalib import errors
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 
 PEM = 0
@@ -99,7 +100,7 @@ def load_certificate(data, datatype=PEM, dbdir=None):
                 if api.env.in_tree:
                     dbdir = api.env.dot_ipa + os.sep + 'alias'
                 else:
-                    dbdir = "/etc/httpd/alias"
+                    dbdir = paths.HTTPD_ALIAS_DIR
                 nss.nss_init(dbdir)
             else:
                 nss.nss_init_nodb()

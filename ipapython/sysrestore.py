@@ -33,8 +33,9 @@ import string
 
 from ipapython import ipautil
 from ipaplatform.tasks import tasks
+from ipaplatform.paths import paths
 
-SYSRESTORE_PATH = "/tmp"
+SYSRESTORE_PATH = paths.TMP
 SYSRESTORE_INDEXFILE = "sysrestore.index"
 SYSRESTORE_STATEFILE = "sysrestore.state"
 

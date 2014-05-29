@@ -32,6 +32,7 @@ from ipatests.util import TempDir, TempHome
 from ipalib.constants import TYPE_ERROR, OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
 from ipalib.constants import NAME_REGEX, NAME_ERROR
 from ipalib import config, constants, base
+from ipaplatform.paths import paths
 
 
 # Valid environment variables in (key, raw, value) tuples:
@@ -448,8 +449,8 @@ class test_Env(ClassChecker):
         assert o.dot_ipa == home.join('.ipa')
         assert o.in_tree is False
         assert o.context == 'default'
-        assert o.confdir == '/etc/ipa'
-        assert o.conf == '/etc/ipa/default.conf'
+        assert o.confdir == paths.ETC_IPA
+        assert o.conf == paths.IPA_DEFAULT_CONF
         assert o.conf_default == o.conf
 
         # Test overriding values created by _bootstrap()
@@ -461,11 +462,11 @@ class test_Env(ClassChecker):
         assert o.in_tree is False
         assert o.context == 'default'
         assert o.conf == '/my/wacky/whatever.conf'
-        assert o.conf_default == '/etc/ipa/default.conf'
+        assert o.conf_default == paths.IPA_DEFAULT_CONF
         (o, home) = self.bootstrap(conf_default='/my/wacky/default.conf')
         assert o.in_tree is False
         assert o.context == 'default'
-        assert o.conf == '/etc/ipa/default.conf'
+        assert o.conf == paths.IPA_DEFAULT_CONF
         assert o.conf_default == '/my/wacky/default.conf'
 
         # Test various overrides and types conversion

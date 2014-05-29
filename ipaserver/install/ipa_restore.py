@@ -40,6 +40,7 @@ from ipapython import ipaldap
 from ipaplatform.tasks import tasks
 from ipaserver.install.ipa_backup import BACKUP_DIR
 from ipaplatform import services
+from ipaplatform.paths import paths
 
 
 def recursive_chown(path, uid, gid):
@@ -65,7 +66,7 @@ def decrypt_file(tmpdir, filename, keyring):
     dest = os.path.basename(dest)
     dest = os.path.join(tmpdir, dest)
 
-    args = ['/usr/bin/gpg',
+    args = [paths.GPG,
             '--batch',
             '-o', dest]
 
@@ -88,7 +89,7 @@ def decrypt_file(tmpdir, filename, keyring):
 
 class Restore(admintool.AdminTool):
     command_name = 'ipa-restore'
-    log_file_name = '/var/log/iparestore.log'
+    log_file_name = paths.IPARESTORE_LOG
 
     usage = "%prog [options] backup"
 
@@ -180,7 +181,7 @@ class Restore(admintool.AdminTool):
         if not options.instance:
             instances = []
             for instance in [realm_to_serverid(api.env.realm), 'PKI-IPA']:
-                if os.path.exists('/var/lib/dirsrv/slapd-%s' % instance):
+                if os.path.exists(paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % instance):
                     instances.append(instance)
         else:
             instances = [options.instance]
@@ -277,10 +278,10 @@ class Restore(admintool.AdminTool):
             # have a unified instance we need to restore both userRoot and
             # ipaca.
             for instance in instances:
-                if os.path.exists('/var/lib/dirsrv/slapd-%s' % instance):
+                if os.path.exists(paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % instance):
                     if options.backend is None:
                         self.ldif2db(instance, 'userRoot', online=options.online)
-                        if os.path.exists('/var/lib/dirsrv/slapd-%s/db/ipaca' % instance):
+                        if os.path.exists(paths.IPACA_DIRSRV_INSTANCE_DB_TEMPLATE % instance):
                             self.ldif2db(instance, 'ipaca', online=options.online)
                     else:
                         self.ldif2db(instance, options.backend, online=options.online)
@@ -589,13 +590,13 @@ class Restore(admintool.AdminTool):
         does so we need to probe for it.
         """
         if instance != 'PKI-IPA':
-            return os.path.join('/var/lib/dirsrv', 'scripts-%s' % instance)
+            return os.path.join(paths.VAR_LIB_DIRSRV, 'scripts-%s' % instance)
         else:
             if sys.maxsize > 2**32L:
                 libpath = 'lib64'
             else:
                 libpath = 'lib'
-            return os.path.join('/usr', libpath, 'dirsrv', 'slapd-PKI-IPA')
+            return os.path.join(paths.USR_DIR, libpath, 'dirsrv', 'slapd-PKI-IPA')
 
     def __create_dogtag_log_dirs(self):
         """
@@ -606,16 +607,16 @@ class Restore(admintool.AdminTool):
         or a d10-based installation. We can tell based on whether there is
         a PKI-IPA 389-ds instance.
         """
-        if os.path.exists('/etc/dirsrv/slapd-PKI-IPA'): # dogtag 9
-            topdir = '/var/log/pki-ca'
+        if os.path.exists(paths.ETC_SLAPD_PKI_IPA_DIR): # dogtag 9
+            topdir = paths.PKI_CA_LOG_DIR
             dirs = [topdir,
                     '/var/log/pki-ca/signedAudit,']
         else: # dogtag 10
-            topdir = '/var/log/pki/pki-tomcat'
+            topdir = paths.TOMCAT_TOPLEVEL_DIR
             dirs = [topdir,
-                    '/var/log/pki/pki-tomcat/ca',
-                    '/var/log/pki/pki-tomcat/ca/archive',
-                    '/var/log/pki/pki-tomcat/ca/signedAudit',]
+                    paths.TOMCAT_CA_DIR,
+                    paths.TOMCAT_CA_ARCHIVE_DIR,
+                    paths.TOMCAT_SIGNEDAUDIT_DIR,]
 
         if os.path.exists(topdir):
             return

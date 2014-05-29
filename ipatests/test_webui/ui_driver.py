@@ -53,6 +53,7 @@ try:
 except ImportError:
     NO_YAML = True
 from urllib2 import URLError
+from ipaplatform.paths import paths
 
 ENV_MAP = {
     'MASTER': 'ipa_server',
@@ -186,7 +187,7 @@ class UI_driver(object):
 
         if browser == 'chromium':
             options = ChromeOptions()
-            options.binary_location = '/usr/bin/chromium-browser'
+            options.binary_location = paths.CHROMIUM_BROWSER
 
         if driver_type == 'remote':
             if not 'host' in self.config:

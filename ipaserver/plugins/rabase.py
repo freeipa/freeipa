@@ -35,6 +35,7 @@ from ipalib import Backend
 from ipalib import errors
 from ipaserver.install import certs
 import os
+from ipaplatform.paths import paths
 
 class rabase(Backend):
     """
@@ -45,8 +46,8 @@ class rabase(Backend):
             self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
             self.pwd_file = self.sec_dir + os.sep + '.pwd'
         else:
-            self.sec_dir = "/etc/httpd/alias"
-            self.pwd_file = "/etc/httpd/alias/pwdfile.txt"
+            self.sec_dir = paths.HTTPD_ALIAS_DIR
+            self.pwd_file = paths.ALIAS_PWDFILE_TXT
         super(rabase, self).__init__()
 
 

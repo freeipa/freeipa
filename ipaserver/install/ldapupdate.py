@@ -22,8 +22,6 @@
 # TODO
 # save undo files?
 
-UPDATES_DIR="/usr/share/ipa/updates/"
-
 import sys
 import uuid
 import platform
@@ -41,10 +39,13 @@ from ipaserver.install import installutils
 from ipapython import ipautil, ipaldap
 from ipalib import errors
 from ipalib import api
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 from ipaserver.install.plugins import PRE_UPDATE, POST_UPDATE
 from ipaserver.plugins import ldap2
+
+UPDATES_DIR=paths.UPDATES_DIR
 
 
 def connect(ldapi=False, realm=None, fqdn=None, dm_password=None, pw_name=None):

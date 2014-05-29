@@ -22,6 +22,7 @@ from ipaserver.install.ldapupdate import LDAPUpdate
 from ipapython.ipautil import wait_for_open_socket
 from ipalib import api
 from ipalib import backend
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 
 class updateclient(backend.Executioner):
@@ -143,7 +144,7 @@ class updateclient(backend.Executioner):
 
     def restart(self, dm_password, live_run):
         dsrestart = DSRestart()
-        socket_name = '/var/run/slapd-%s.socket' % \
+        socket_name = paths.SLAPD_INSTANCE_SOCKET_TEMPLATE % \
             api.env.realm.replace('.','-')
         if live_run:
             self.destroy_context()

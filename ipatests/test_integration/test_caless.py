@@ -27,6 +27,7 @@ import nose
 
 from ipalib import x509
 from ipapython import ipautil
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
@@ -113,7 +114,7 @@ class CALessBase(IntegrationTest):
 
         # Remove CA cert in /etc/pki/nssdb, in case of failed (un)install
         for host in cls.get_all_hosts():
-            cls.master.run_command(['certutil', '-d', '/etc/pki/nssdb', '-D',
+            cls.master.run_command(['certutil', '-d', paths.NSS_DB_DIR, '-D',
                                     '-n', 'External CA cert'],
                                    raiseonerr=False)
 
@@ -145,11 +146,11 @@ class CALessBase(IntegrationTest):
         for filename in set(files_to_copy):
             cls.copy_cert(host, filename)
 
-        cls.collect_log(host, '/var/log/ipaserver-install.log')
-        cls.collect_log(host, '/var/log/ipaclient-install.log')
+        cls.collect_log(host, paths.IPASERVER_INSTALL_LOG)
+        cls.collect_log(host, paths.IPACLIENT_INSTALL_LOG)
         inst = host.domain.realm.replace('.', '-')
-        cls.collect_log(host, '/var/log/dirsrv/slapd-%s/errors' % inst)
-        cls.collect_log(host, '/var/log/dirsrv/slapd-%s/access' % inst)
+        cls.collect_log(host, paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
+        cls.collect_log(host, paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
 
         args = [
             'ipa-server-install',
@@ -216,11 +217,11 @@ class CALessBase(IntegrationTest):
                 os.path.join(self.cert_dir, filename),
                 os.path.join(master.config.test_dir, filename))
 
-        self.collect_log(replica, '/var/log/ipareplica-install.log')
-        self.collect_log(replica, '/var/log/ipaclient-install.log')
+        self.collect_log(replica, paths.IPAREPLICA_INSTALL_LOG)
+        self.collect_log(replica, paths.IPACLIENT_INSTALL_LOG)
         inst = replica.domain.realm.replace('.', '-')
-        self.collect_log(replica, '/var/log/dirsrv/slapd-%s/errors' % inst)
-        self.collect_log(replica, '/var/log/dirsrv/slapd-%s/access' % inst)
+        self.collect_log(replica, paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
+        self.collect_log(replica, paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
 
         args = [
             'ipa-replica-prepare',
@@ -244,7 +245,7 @@ class CALessBase(IntegrationTest):
 
         if result.returncode == 0:
             replica_bundle = master.get_file_contents(
-                '/var/lib/ipa/replica-info-%s.gpg' % replica.hostname)
+                paths.REPLICA_INFO_TEMPLATE_GPG % replica.hostname)
             replica.put_file_contents(self.get_replica_filename(replica),
                                       replica_bundle)
         else:
@@ -327,7 +328,7 @@ class CALessBase(IntegrationTest):
 
         for host in self.get_all_hosts():
             # Check the cert PEM file
-            remote_cacrt = host.get_file_contents('/etc/ipa/ca.crt')
+            remote_cacrt = host.get_file_contents(paths.IPA_CA_CRT)
             self.log.debug('%s:/etc/ipa/ca.crt contents:\n%s',
                            host, remote_cacrt)
             binary_cacrt = base64.b64decode(x509.strip_header(remote_cacrt))
@@ -344,7 +345,7 @@ class TestServerInstall(CALessBase):
 
         # Remove CA cert in /etc/pki/nssdb, in case of failed (un)install
         for host in self.get_all_hosts():
-            self.master.run_command(['certutil', '-d', '/etc/pki/nssdb', '-D',
+            self.master.run_command(['certutil', '-d', paths.NSS_DB_DIR, '-D',
                                      '-n', 'External CA cert'],
                                     raiseonerr=False)
 
@@ -768,11 +769,11 @@ class TestReplicaInstall(CALessBase):
         self.master.run_command(['ipa', 'host-del', replica.hostname],
                                 raiseonerr=False)
 
-        replica.run_command(['certutil', '-d', '/etc/pki/nssdb', '-D',
+        replica.run_command(['certutil', '-d', paths.NSS_DB_DIR, '-D',
                              '-n', 'External CA cert'], raiseonerr=False)
 
         self.uninstall_server()
-        self.master.run_command(['certutil', '-d', '/etc/pki/nssdb', '-D',
+        self.master.run_command(['certutil', '-d', paths.NSS_DB_DIR, '-D',
                                  '-n', 'External CA cert'], raiseonerr=False)
 
     def test_no_certs(self):

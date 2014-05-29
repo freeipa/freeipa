@@ -55,6 +55,7 @@ from dns import resolver, rdatatype
 from dns.exception import DNSException
 import pysss_nss_idmap
 import pysss
+from ipaplatform.paths import paths
 
 __doc__ = _("""
 Classes to manage trust joins using DCE-RPC calls
@@ -474,13 +475,13 @@ class DomainValidator(object):
         realm = api.env.realm
         hostname = api.env.host
         principal = 'HTTP/%s@%s' % (hostname, realm)
-        keytab = '/etc/httpd/conf/ipa.keytab'
+        keytab = paths.IPA_KEYTAB
 
         # Destroy the contents of the ccache
         root_logger.debug('Destroying the contents of the separate ccache')
 
         (stdout, stderr, returncode) = ipautil.run(
-            ['/usr/bin/kdestroy', '-A', '-c', ccache_path],
+            [paths.KDESTROY, '-A', '-c', ccache_path],
             env={'KRB5CCNAME': ccache_path},
             raiseonerr=False)
 
@@ -489,7 +490,7 @@ class DomainValidator(object):
                           'service principal with MS-PAC attached.')
 
         (stdout, stderr, returncode) = ipautil.run(
-            ['/usr/bin/kinit', '-kt', keytab, principal],
+            [paths.KINIT, '-kt', keytab, principal],
             env={'KRB5CCNAME': ccache_path},
             raiseonerr=False)
 

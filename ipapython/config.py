@@ -23,6 +23,7 @@ from copy import copy
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 from ipapython.dn import DN
+from ipaplatform.paths import paths
 import dns.name
 
 import socket
@@ -152,7 +153,7 @@ config = IPAConfig()
 
 def __parse_config(discover_server = True):
     p = ConfigParser.SafeConfigParser()
-    p.read("/etc/ipa/default.conf")
+    p.read(paths.IPA_DEFAULT_CONF)
 
     try:
         if not config.default_realm:

@@ -43,9 +43,10 @@ from ipaplatform.tasks import tasks
 from ipalib.constants import CACERT
 from ipapython.dn import DN
 from ipaplatform import services
+from ipaplatform.paths import paths
 
-SERVER_ROOT_64 = "/usr/lib64/dirsrv"
-SERVER_ROOT_32 = "/usr/lib/dirsrv"
+SERVER_ROOT_64 = paths.USR_LIB_DIRSRV_64
+SERVER_ROOT_32 = paths.USR_LIB_DIRSRV
 
 DS_USER = 'dirsrv'
 DS_GROUP = 'dirsrv'
@@ -75,32 +76,32 @@ def realm_to_serverid(realm_name):
     return "-".join(realm_name.split("."))
 
 def config_dirname(serverid):
-    return "/etc/dirsrv/slapd-" + serverid + "/"
+    return (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid) + "/"
 
 def schema_dirname(serverid):
     return config_dirname(serverid) + "/schema/"
 
 def erase_ds_instance_data(serverid):
-    installutils.rmtree("/etc/dirsrv/slapd-%s" % serverid)
+    installutils.rmtree(paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid)
 
-    installutils.rmtree("/usr/lib/dirsrv/slapd-%s" % serverid)
+    installutils.rmtree(paths.USR_LIB_SLAPD_INSTANCE_TEMPLATE % serverid)
 
-    installutils.rmtree("/usr/lib64/dirsrv/slapd-%s" % serverid)
+    installutils.rmtree(paths.USR_LIB_DIRSRV_SLAPD_INSTANCE_DIR_TEMPLATE % serverid)
 
-    installutils.rmtree("/var/lib/dirsrv/slapd-%s" % serverid)
+    installutils.rmtree(paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % serverid)
 
-    installutils.rmtree("/var/lock/dirsrv/slapd-%s" % serverid)
+    installutils.rmtree(paths.SLAPD_INSTANCE_LOCK_TEMPLATE % serverid)
 
-    installutils.remove_file("/var/run/slapd-%s.socket" % serverid)
+    installutils.remove_file(paths.SLAPD_INSTANCE_SOCKET_TEMPLATE % serverid)
 
-    installutils.rmtree("/var/lib/dirsrv/scripts-%s" % serverid)
+    installutils.rmtree(paths.VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE % serverid)
 
-    installutils.remove_file("/etc/dirsrv/ds.keytab")
+    installutils.remove_file(paths.DS_KEYTAB)
 
-    installutils.remove_file("/etc/sysconfig/dirsrv-%s" % serverid)
+    installutils.remove_file(paths.SYSCONFIG_DIRSRV_INSTANCE % serverid)
 
 #    try:
-#        shutil.rmtree("/var/log/dirsrv/slapd-%s" % serverid)
+#        shutil.rmtree(paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % serverid)
 #    except:
 #        pass
 
@@ -112,7 +113,7 @@ def get_ds_instances():
     matches 389ds behavior.
     '''
 
-    dirsrv_instance_dir='/etc/dirsrv'
+    dirsrv_instance_dir=paths.ETC_DIRSRV
     instance_prefix = 'slapd-'
 
     instances = []
@@ -158,11 +159,11 @@ def create_ds_user():
     except KeyError:
         root_logger.debug('Adding DS user %s', DS_USER)
         args = [
-            '/usr/sbin/useradd',
+            paths.USERADD,
             '-g', DS_GROUP,
             '-c', 'DS System User',
-            '-d', '/var/lib/dirsrv',
-            '-s', '/sbin/nologin',
+            '-d', paths.VAR_LIB_DIRSRV,
+            '-s', paths.NOLOGIN,
             '-M', '-r', DS_USER
         ]
         try:
@@ -184,7 +185,7 @@ def create_ds_group():
     except KeyError:
         group_exists = False
         root_logger.debug('Adding DS group %s', DS_GROUP)
-        args = ['/usr/sbin/groupadd', '-r', DS_GROUP]
+        args = [paths.GROUPADD, '-r', DS_GROUP]
         try:
             ipautil.run(args)
             root_logger.debug('Done adding DS group')
@@ -251,7 +252,7 @@ class DsInstance(service.Service):
         if fstore:
             self.fstore = fstore
         else:
-            self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
@@ -433,13 +434,13 @@ class DsInstance(service.Service):
         pent = pwd.getpwnam(DS_USER)
 
         self.backup_state("serverid", self.serverid)
-        self.fstore.backup_file("/etc/sysconfig/dirsrv")
+        self.fstore.backup_file(paths.SYSCONFIG_DIRSRV)
 
         self.sub_dict['BASEDC'] = self.realm.split('.')[0].lower()
         base_txt = ipautil.template_str(BASE_TEMPLATE, self.sub_dict)
         root_logger.debug(base_txt)
 
-        target_fname = '/var/lib/dirsrv/boot.ldif'
+        target_fname = paths.DIRSRV_BOOT_LDIF
         base_fd = open(target_fname, "w")
         base_fd.write(base_txt)
         base_fd.close()
@@ -453,11 +454,11 @@ class DsInstance(service.Service):
         inf_fd = ipautil.write_tmp_file(inf_txt)
         inf_txt = re.sub(r"RootDNPwd=.*\n", "", inf_txt)
         root_logger.debug(inf_txt)
-        if ipautil.file_exists("/usr/sbin/setup-ds.pl"):
-            args = ["/usr/sbin/setup-ds.pl", "--silent", "--logfile", "-", "-f", inf_fd.name]
+        if ipautil.file_exists(paths.SETUP_DS_PL):
+            args = [paths.SETUP_DS_PL, "--silent", "--logfile", "-", "-f", inf_fd.name]
             root_logger.debug("calling setup-ds.pl")
         else:
-            args = ["/usr/bin/ds_newinst.pl", inf_fd.name]
+            args = [paths.DS_NEWINST_PL, inf_fd.name]
             root_logger.debug("calling ds_newinst.pl")
         try:
             ipautil.run(args)
@@ -476,7 +477,7 @@ class DsInstance(service.Service):
             print "failed to restart ds instance", e
             root_logger.debug("failed to restart ds instance %s" % e)
         inf_fd.close()
-        os.remove("/var/lib/dirsrv/boot.ldif")
+        os.remove(paths.DIRSRV_BOOT_LDIF)
 
     def __add_default_schemas(self):
         pent = pwd.getpwnam(DS_USER)
@@ -560,7 +561,7 @@ class DsInstance(service.Service):
 
     def __enable_compat_plugin(self):
         ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password, sub_dict=self.sub_dict)
-        rv = ld.update(['/usr/share/ipa/schema_compat.uldif'])
+        rv = ld.update([paths.SCHEMA_COMPAT_ULDIF])
         if not rv:
             raise RuntimeError("Enabling compatibility plugin failed")
 
@@ -591,8 +592,8 @@ class DsInstance(service.Service):
 
     def configure_dirsrv_ccache(self):
         pent = pwd.getpwnam("dirsrv")
-        ccache = '/tmp/krb5cc_%d' % pent.pw_uid
-        filepath = '/etc/sysconfig/dirsrv'
+        ccache = paths.TMP_KRB5CC % pent.pw_uid
+        filepath = paths.SYSCONFIG_DIRSRV
         if not os.path.exists(filepath):
             # file doesn't exist; create it with correct ownership & mode
             open(filepath, 'a').close()
@@ -753,15 +754,15 @@ class DsInstance(service.Service):
         admpwdfile = ""
 
         try:
-            (dmpwdfd, dmpwdfile) = tempfile.mkstemp(dir='/var/lib/ipa')
+            (dmpwdfd, dmpwdfile) = tempfile.mkstemp(dir=paths.VAR_LIB_IPA)
             os.write(dmpwdfd, self.dm_password)
             os.close(dmpwdfd)
 
-            (admpwdfd, admpwdfile) = tempfile.mkstemp(dir='/var/lib/ipa')
+            (admpwdfd, admpwdfile) = tempfile.mkstemp(dir=paths.VAR_LIB_IPA)
             os.write(admpwdfd, password)
             os.close(admpwdfd)
 
-            args = ["/usr/bin/ldappasswd", "-h", self.fqdn,
+            args = [paths.LDAPPASSWD, "-h", self.fqdn,
                     "-ZZ", "-x", "-D", str(DN(('cn', 'Directory Manager'))),
                     "-y", dmpwdfile, "-T", admpwdfile,
                     str(DN(('uid', 'admin'), ('cn', 'users'), ('cn', 'accounts'), self.suffix))]
@@ -790,8 +791,8 @@ class DsInstance(service.Service):
         running = self.restore_state("running")
 
         try:
-            self.fstore.restore_file("/etc/security/limits.conf")
-            self.fstore.restore_file("/etc/sysconfig/dirsrv")
+            self.fstore.restore_file(paths.LIMITS_CONF)
+            self.fstore.restore_file(paths.SYSCONFIG_DIRSRV)
         except ValueError, error:
             root_logger.debug(error)
             pass

@@ -43,6 +43,7 @@ from ipalib import errors
 from ipapython.dn import DN
 from ipaserver.install import certs, service
 from ipaplatform import services
+from ipaplatform.paths import paths
 
 # Used to determine install status
 IPA_MODULES = [
@@ -172,7 +173,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
             raise HostReverseLookupError("The host name %s does not match the reverse lookup %s" % (host_name, revname))
         verified.add(address)
 
-def record_in_hosts(ip, host_name=None, file="/etc/hosts"):
+def record_in_hosts(ip, host_name=None, file=paths.HOSTS):
     """
     Search record in /etc/hosts - static table lookup for hostnames
 
@@ -209,7 +210,7 @@ def record_in_hosts(ip, host_name=None, file="/etc/hosts"):
 
     return None
 
-def add_record_to_hosts(ip, host_name, file="/etc/hosts"):
+def add_record_to_hosts(ip, host_name, file=paths.HOSTS):
     hosts_fd = open(file, 'r+')
     hosts_fd.seek(0, 2)
     hosts_fd.write(ip+'\t'+host_name+' '+host_name.split('.')[0]+'\n')
@@ -488,7 +489,7 @@ def get_server_ip_address(host_name, fstore, unattended, options):
     if hosts_record is None:
         if ip_add_to_hosts:
             print "Adding ["+ip_address+" "+host_name+"] to your /etc/hosts file"
-            fstore.backup_file("/etc/hosts")
+            fstore.backup_file(paths.HOSTS)
             add_record_to_hosts(ip_address, host_name)
     else:
         primary_host = hosts_record[1][0]
@@ -566,7 +567,7 @@ def check_server_configuration():
     Most convenient use case for the function is in install tools that require
     configured IPA for its function.
     """
-    server_fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+    server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
     if not server_fstore.has_files():
         raise RuntimeError("IPA is not configured on this system.")
 
@@ -597,8 +598,8 @@ def is_ipa_configured():
     """
     installed = False
 
-    sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
-    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+    sstore = sysrestore.StateFile(paths.SYSRESTORE)
+    fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     for module in IPA_MODULES:
         if sstore.has_state(module):

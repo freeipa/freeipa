@@ -33,6 +33,7 @@ import tempfile
 from ipapython import ipautil
 import nose
 import base64
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 
 # So we can save the cert from issuance and compare it later
@@ -78,7 +79,7 @@ class test_cert(XMLRPC_test):
         is_db_configured()
 
     def run_certutil(self, args, stdin=None):
-        new_args = ["/usr/bin/certutil", "-d", self.reqdir]
+        new_args = [paths.CERTUTIL, "-d", self.reqdir]
         new_args = new_args + args
         return ipautil.run(new_args, stdin)
 
@@ -105,7 +106,7 @@ class test_cert(XMLRPC_test):
     def generateCSR(self, subject):
         self.run_certutil(["-R", "-s", subject,
                            "-o", self.reqfile,
-                           "-z", "/etc/group",
+                           "-z", paths.GROUP,
                            "-f", self.pwname,
                            "-a",
                            ])

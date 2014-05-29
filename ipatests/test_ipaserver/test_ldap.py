@@ -36,6 +36,7 @@ from ipalib.plugins.service import service, service_show
 from ipalib.plugins.host import host
 from ipalib import api, x509, create_api, errors
 from ipapython import ipautil
+from ipaplatform.paths import paths
 from ipapython.dn import DN
 
 class test_ldap(object):
@@ -46,7 +47,7 @@ class test_ldap(object):
     def setUp(self):
         self.conn = None
         self.ldapuri = 'ldap://%s' % ipautil.format_netloc(api.env.host)
-        self.ccache = '/tmp/krb5cc_%d' % os.getuid()
+        self.ccache = paths.TMP_KRB5CC % os.getuid()
         nss.nss_init_nodb()
         self.dn = DN(('krbprincipalname','ldap/%s@%s' % (api.env.host, api.env.realm)),
                      ('cn','services'),('cn','accounts'),api.env.basedn)

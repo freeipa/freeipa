@@ -31,6 +31,7 @@ from ipalib.plugins import baseldap
 from ipalib.request import context
 from ipalib import _, ngettext
 from ipalib import output
+from ipaplatform.paths import paths
 from ipapython.ipautil import ipa_generate_password
 from ipapython.ipavalidate import Email
 from ipalib.capabilities import client_has_capability
@@ -729,14 +730,14 @@ class user_add(LDAPCreate):
                         len = int(config.get('ipamaxusernamelength')[0])
                     )
                 )
-        default_shell = config.get('ipadefaultloginshell', ['/bin/sh'])[0]
+        default_shell = config.get('ipadefaultloginshell', [paths.SH])[0]
         entry_attrs.setdefault('loginshell', default_shell)
         # hack so we can request separate first and last name in CLI
         full_name = '%s %s' % (entry_attrs['givenname'], entry_attrs['sn'])
         entry_attrs.setdefault('cn', full_name)
         if 'homedirectory' not in entry_attrs:
             # get home's root directory from config
-            homes_root = config.get('ipahomesrootdir', ['/home'])[0]
+            homes_root = config.get('ipahomesrootdir', [paths.HOME_DIR])[0]
             # build user's home directory based on his uid
             entry_attrs['homedirectory'] = posixpath.join(homes_root, keys[-1])
         entry_attrs.setdefault('krbprincipalname', '%s@%s' % (entry_attrs['uid'], api.env.realm))

@@ -28,6 +28,7 @@ import traceback as tb_internal
 from cherrypy import response
 from ipalib import api
 from ipalib import errors
+from ipaplatform.paths import paths
 from ipalib.request import context
 from ipalib.rpc import json_encode_binary
 from ipapython.version import VERSION, API_VERSION
@@ -391,8 +392,8 @@ wsgi_config = {'environment': 'embedded',
                'engine.autoreload_on': False
 }
 
-api.bootstrap(context='ipasmartproxy', log='/dev/null')
+api.bootstrap(context='ipasmartproxy', log=paths.DEV_NULL)
 api.finalize()
 
 cherrypy.config.update(wsgi_config)
-start(['/etc/ipa/ipa-smartproxy.conf'])
+start([paths.IPA_SMARTPROXY_CONF])

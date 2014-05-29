@@ -31,6 +31,7 @@ import nose
 from nose.plugins import Plugin
 
 from ipapython import ipautil
+from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import log_mgr
 
 LINK_RE = re.compile(r'https?://[^\s]+')
@@ -63,8 +64,8 @@ class BeakerLibProcess(object):
         # Set up the Bash process
         self.bash = subprocess.Popen(['bash'],
                                      stdin=subprocess.PIPE,
-                                     stdout=open('/dev/null', 'w'),
-                                     stderr=open('/dev/null', 'w'))
+                                     stdout=open(paths.DEV_NULL, 'w'),
+                                     stderr=open(paths.DEV_NULL, 'w'))
         source_path = os.path.join(self.env['BEAKERLIB'], 'beakerlib.sh')
         self.run_beakerlib_command(['.', source_path])
 

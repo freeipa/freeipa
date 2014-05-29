@@ -40,6 +40,7 @@ from ipapython.ipa_log_manager import *
 
 import ipaclient.ipachangeconf
 from ipaplatform import services
+from ipaplatform.paths import paths
 
 
 ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits
@@ -60,7 +61,7 @@ and re-run ipa-adtrust-instal again afterwards.
 """
 
 def check_inst():
-    for smbfile in ['/usr/sbin/smbd', '/usr/bin/net']:
+    for smbfile in [paths.SMBD, paths.NET]:
         if not os.path.exists(smbfile):
             print "%s was not found on this system" % smbfile
             print "Please install the 'samba' packages and " \
@@ -73,7 +74,7 @@ def check_inst():
 
 def ipa_smb_conf_exists():
     try:
-        conf_fd = open('/etc/samba/smb.conf', 'r')
+        conf_fd = open(paths.SMB_CONF, 'r')
     except IOError, err:
         if err.errno == errno.ENOENT:
             return False
@@ -134,7 +135,7 @@ class ADTRUSTInstance(service.Service):
         if fstore:
             self.fstore = fstore
         else:
-            self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
         self.__setup_default_attributes()
 
@@ -145,8 +146,8 @@ class ADTRUSTInstance(service.Service):
         """
 
         # Constants
-        self.smb_conf = "/etc/samba/smb.conf"
-        self.samba_keytab = "/etc/samba/samba.keytab"
+        self.smb_conf = paths.SMB_CONF
+        self.samba_keytab = paths.SAMBA_KEYTAB
         self.selinux_booleans = ["samba_portmapper"]
         self.cifs_hosts = []
 
@@ -485,7 +486,7 @@ class ADTRUSTInstance(service.Service):
         os.write(tmp_fd, conf)
         os.close(tmp_fd)
 
-        args = ["/usr/bin/net", "conf", "import", tmp_name]
+        args = [paths.NET, "conf", "import", tmp_name]
 
         try:
             ipautil.run(args)
@@ -608,8 +609,8 @@ class ADTRUSTInstance(service.Service):
     def __configure_selinux_for_smbd(self):
         selinux = False
         try:
-            if (os.path.exists('/usr/sbin/selinuxenabled')):
-                ipautil.run(["/usr/sbin/selinuxenabled"])
+            if (os.path.exists(paths.SELINUXENABLED)):
+                ipautil.run([paths.SELINUXENABLED])
                 selinux = True
         except ipautil.CalledProcessError:
             # selinuxenabled returns 1 if not enabled
@@ -620,7 +621,7 @@ class ADTRUSTInstance(service.Service):
             sebools = []
             for var in self.selinux_booleans:
                 try:
-                    (stdout, stderr, returncode) = ipautil.run(["/usr/sbin/getsebool", var])
+                    (stdout, stderr, returncode) = ipautil.run([paths.GETSEBOOL, var])
                     if stdout and not stderr and returncode == 0:
                         self.backup_state(var, stdout.split()[2])
                         sebools.append(var)
@@ -629,7 +630,7 @@ class ADTRUSTInstance(service.Service):
 
             if sebools:
                 bools = [var + "=true" for var in sebools]
-                args = ["/usr/sbin/setsebool", "-P"]
+                args = [paths.SETSEBOOL, "-P"]
                 args.extend(bools);
                 try:
                     ipautil.run(args)
@@ -665,7 +666,7 @@ class ADTRUSTInstance(service.Service):
                 {'name':'realms', 'type':'section', 'action':'set',
                  'value':ropts}]
 
-        krbconf.changeConf("/etc/krb5.conf", opts)
+        krbconf.changeConf(paths.KRB5_CONF, opts)
 
     def __update_krb5_conf(self):
         """
@@ -673,7 +674,7 @@ class ADTRUSTInstance(service.Service):
         """
 
         try:
-            krb5conf = open("/etc/krb5.conf", 'r')
+            krb5conf = open(paths.KRB5_CONF, 'r')
         except IOError, e:
             self.print_msg("Cannot open /etc/krb5.conf (%s)\n" % str(e))
             return
@@ -908,20 +909,20 @@ class ADTRUSTInstance(service.Service):
             sebool_state = self.restore_state(var)
             if not sebool_state is None:
                 try:
-                    ipautil.run(["/usr/sbin/setsebool",
+                    ipautil.run([paths.SETSEBOOL,
                                  "-P", var, sebool_state])
                 except Exception:
                     self.print_msg(SELINUX_WARNING % dict(var=var))
 
         # Remove samba's credentials cache
-        krb5cc_samba = '/var/run/samba/krb5cc_samba'
+        krb5cc_samba = paths.KRB5CC_SAMBA
         installutils.remove_file(krb5cc_samba)
 
         # Remove samba's configuration file
         installutils.remove_file(self.smb_conf)
 
         # Remove samba's persistent and temporary tdb files
-        tdb_files = [tdb_file for tdb_file in os.listdir("/var/lib/samba/")
+        tdb_files = [tdb_file for tdb_file in os.listdir(paths.SAMBA_DIR)
                                            if tdb_file.endswith(".tdb")]
         for tdb_file in tdb_files:
             installutils.remove_file(tdb_file)

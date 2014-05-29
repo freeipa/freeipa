@@ -32,6 +32,7 @@ from ipapython.dn import DN
 
 from nose.tools import raises, assert_raises  # pylint: disable=E0611
 from xmlrpc_test import XMLRPC_test, assert_attr_equal
+from ipaplatform.paths import paths
 from ipatests.util import assert_deepequal
 
 

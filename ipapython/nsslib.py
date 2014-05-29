@@ -29,6 +29,7 @@ import nss.io as io
 import nss.nss as nss
 import nss.ssl as ssl
 import nss.error as error
+from ipaplatform.paths import paths
 
 def auth_certificate_callback(sock, check_sig, is_server, certdb):
     cert_is_valid = False
@@ -309,7 +310,7 @@ if __name__ == "__main__":
     root_logger.info("Start")
 
     if False:
-        conn = NSSConnection("www.verisign.com", 443, dbdir="/etc/pki/nssdb")
+        conn = NSSConnection("www.verisign.com", 443, dbdir=paths.NSS_DB_DIR)
         conn.set_debuglevel(1)
         conn.connect()
         conn.request("GET", "/")
@@ -322,7 +323,7 @@ if __name__ == "__main__":
         conn.close()
 
     if True:
-        h = NSSHTTPS("www.verisign.com", 443, dbdir="/etc/pki/nssdb")
+        h = NSSHTTPS("www.verisign.com", 443, dbdir=paths.NSS_DB_DIR)
         h.connect()
         h.putrequest('GET', '/')
         h.endheaders()

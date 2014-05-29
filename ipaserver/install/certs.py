@@ -42,10 +42,11 @@ from ipalib import pkcs10, x509, api
 from ipalib.errors import CertificateOperationError
 from ipalib.text import _
 from ipaplatform import services
+from ipaplatform.paths import paths
 
 # Apache needs access to this database so we need to create it
 # where apache can reach
-NSS_DIR = "/etc/httpd/alias"
+NSS_DIR = paths.HTTPD_ALIAS_DIR
 
 def find_cert_from_txt(cert, start=0):
     """
@@ -114,7 +115,7 @@ class NSSDatabase(object):
         self.close()
 
     def run_certutil(self, args, stdin=None):
-        new_args = ["/usr/bin/certutil", "-d", self.secdir]
+        new_args = [paths.CERTUTIL, "-d", self.secdir]
         new_args = new_args + args
         return ipautil.run(new_args, stdin)
 
@@ -177,12 +178,12 @@ class NSSDatabase(object):
 
     def import_pkcs12(self, pkcs12_filename, db_password_filename,
                       pkcs12_passwd=None):
-        args = ["/usr/bin/pk12util", "-d", self.secdir,
+        args = [paths.PK12UTIL, "-d", self.secdir,
                 "-i", pkcs12_filename,
                 "-k", db_password_filename, '-v']
         if pkcs12_passwd is not None:
             pkcs12_passwd = pkcs12_passwd + '\n'
-            args = args + ["-w", "/dev/stdin"]
+            args = args + ["-w", paths.DEV_STDIN]
         try:
             ipautil.run(args, stdin=pkcs12_passwd)
         except ipautil.CalledProcessError, e:
@@ -298,7 +299,7 @@ class CertDB(object):
         self.cacert_fname = self.secdir + "/cacert.asc"
         self.pk12_fname = self.secdir + "/cacert.p12"
         self.pin_fname = self.secdir + "/pin.txt"
-        self.pwd_conf = "/etc/httpd/conf/password.conf"
+        self.pwd_conf = paths.HTTPD_PASSWORD_CONF
         self.reqdir = None
         self.certreq_fname = None
         self.certder_fname = None
@@ -328,7 +329,7 @@ class CertDB(object):
         if fstore:
             self.fstore = fstore
         else:
-            self.fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+            self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
@@ -351,7 +352,7 @@ class CertDB(object):
         if self.reqdir is not None:
             return
 
-        self.reqdir = tempfile.mkdtemp('', 'ipa-', '/var/lib/ipa')
+        self.reqdir = tempfile.mkdtemp('', 'ipa-', paths.VAR_LIB_IPA)
         self.certreq_fname = self.reqdir + "/tmpcertreq"
         self.certder_fname = self.reqdir + "/tmpcert.der"
 
@@ -379,7 +380,7 @@ class CertDB(object):
     def run_signtool(self, args, stdin=None):
         with open(self.passwd_fname, "r") as f:
             password = f.readline()
-        new_args = ["/usr/bin/signtool", "-d", self.secdir, "-p", password]
+        new_args = [paths.SIGNTOOL, "-d", self.secdir, "-p", password]
 
         new_args = new_args + args
         ipautil.run(new_args, stdin)
@@ -446,7 +447,7 @@ class CertDB(object):
         os.chmod(self.cacert_fname, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
         if create_pkcs12:
             ipautil.backup_file(self.pk12_fname)
-            ipautil.run(["/usr/bin/pk12util", "-d", self.secdir,
+            ipautil.run([paths.PK12UTIL, "-d", self.secdir,
                          "-o", self.pk12_fname,
                          "-n", self.cacert_name,
                          "-w", self.passwd_fname,
@@ -508,7 +509,7 @@ class CertDB(object):
                 libpath = 'lib64'
             else:
                 libpath = 'lib'
-            command = '/usr/%s/ipa/certmonger/%s' % (libpath, command)
+            command = paths.CERTMONGER_COMMAND_TEMPLATE % (libpath, command)
         cmonger = services.knownservices.certmonger
         cmonger.enable()
         services.knownservices.messagebus.start()
@@ -779,7 +780,7 @@ class CertDB(object):
         if nickname is None:
             nickname = get_ca_nickname(api.env.realm)
 
-        ipautil.run(["/usr/bin/pk12util", "-d", self.secdir,
+        ipautil.run([paths.PK12UTIL, "-d", self.secdir,
                      "-o", pkcs12_fname,
                      "-n", nickname,
                      "-k", self.passwd_fname,
@@ -787,7 +788,7 @@ class CertDB(object):
 
     def export_pem_p12(self, pkcs12_fname, pkcs12_pwd_fname,
                        nickname, pem_fname):
-        ipautil.run(["/usr/bin/openssl", "pkcs12",
+        ipautil.run([paths.OPENSSL, "pkcs12",
                      "-export", "-name", nickname,
                      "-in", pem_fname, "-out", pkcs12_fname,
                      "-passout", "file:" + pkcs12_pwd_fname])
@@ -857,7 +858,7 @@ class CertDB(object):
 
     def install_pem_from_p12(self, p12_fname, p12_passwd, pem_fname):
         pwd = ipautil.write_tmp_file(p12_passwd)
-        ipautil.run(["/usr/bin/openssl", "pkcs12", "-nodes",
+        ipautil.run([paths.OPENSSL, "pkcs12", "-nodes",
                      "-in", p12_fname, "-out", pem_fname,
                      "-passin", "file:" + pwd.name])
 

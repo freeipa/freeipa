@@ -26,6 +26,7 @@ from dns import resolver, rdatatype
 from dns.exception import DNSException
 from ipalib import errors
 from ipapython import ipaldap
+from ipaplatform.paths import paths
 from ipapython.ipautil import valid_ip, get_ipa_basedn, realm_to_suffix
 from ipapython.dn import DN
 
@@ -75,7 +76,7 @@ class IPADiscovery(object):
         domains = []
         domain = None
         try:
-            fp = open('/etc/resolv.conf', 'r')
+            fp = open(paths.RESOLV_CONF, 'r')
             lines = fp.readlines()
             fp.close()
 
