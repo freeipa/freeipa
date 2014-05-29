@@ -111,6 +111,8 @@ class test_sudo(UI_driver):
         self.delete(group.ENTITY, [group.DATA, group.DATA2])
         self.delete(HOST_ENTITY, [host.data, host.data2])
         self.delete(hostgroup.ENTITY, [hostgroup.DATA, hostgroup.DATA2])
+        self.delete(sudo.CMDENTITY, [sudo.CMD_DATA, sudo.CMD_DATA2])
+        self.delete(sudo.CMDGROUP_ENTITY, [sudo.CMDGROUP_DATA, sudo.CMDGROUP_DATA2])
 
     @screenshot
     def test_actions(self):

@@ -43,9 +43,10 @@ IPA.rule_details_widget = function(spec) {
 
     that.init = function() {
 
-        that.enable_radio = IPA.radio_widget({
+        that.enable_radio = IPA.rule_radio_widget({
             name: that.radio_name,
-            options: that.options
+            options: that.options,
+            entity: that.entity
         });
 
         that.widgets.add_widget(that.enable_radio);
@@ -65,40 +66,37 @@ IPA.rule_details_widget = function(spec) {
         }
     };
 
+    that.init();
+
+    return that;
+};
+
+/**
+ * Rule radio widget
+ *
+ * Intended to be used especially by rule widget.
+ *
+ * @class IPA.rule_radio_widget
+ * @extends IPA.radio_widget
+ */
+IPA.rule_radio_widget = function(spec) {
+
+    spec = spec || {};
+    var that = IPA.radio_widget(spec);
+
+    /** @inheritDoc */
     that.create = function(container) {
 
-        that.container = container;
+        var param_info = IPA.get_entity_param(that.entity.name, that.name);
+        var title = param_info ? param_info.doc : that.name;
 
-        //enable radios
-        var param_info = IPA.get_entity_param(that.entity.name, that.radio_name);
-        var title = param_info ? param_info.doc : that.radio_name;
-        var enable_radio_container = $('<div/>', {
-            name: that.radio_name,
-            title: title,
-            'class': 'field'
-        }).appendTo(container);
-
-        enable_radio_container.append(title+': ');
-        that.enable_radio.create(enable_radio_container);
-
-        //tables
-        for (var j=0; j<that.tables.length; j++) {
-            var table = that.tables[j];
-
-            var metadata = IPA.get_entity_param(that.entity.name, table.name);
-
-            var table_container = $('<div/>', {
-                name: table.name,
-                title: metadata ? metadata.doc : table.name,
-                'class': 'field'
-            }).appendTo(container);
-
-            var widget = that.widgets.get_widget(table.name);
-            widget.create(table_container);
+        container.append(title + ': ');
+        that.widget_create(container);
+        that.owb_create(container);
+        if (that.undo) {
+            that.create_undo(container);
         }
     };
-
-    that.init();
 
     return that;
 };

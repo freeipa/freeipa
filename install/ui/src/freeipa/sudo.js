@@ -460,13 +460,13 @@ var add_sudorule_details_facet_widgets = function (spec) {
         {
             $type: 'rule_association_table',
             name: 'memberdenycmd_sudocmd',
-            widget: 'command.memberdenycmd_sudocmd',
+            widget: 'command.rule.memberdenycmd_sudocmd',
             priority: IPA.sudo.remove_method_priority
         },
         {
             $type: 'rule_association_table',
             name: 'memberdenycmd_sudocmdgroup',
-            widget: 'command.memberdenycmd_sudocmdgroup',
+            widget: 'command.rule.memberdenycmd_sudocmdgroup',
             priority: IPA.sudo.remove_method_priority
         }
     );
@@ -477,12 +477,6 @@ var add_sudorule_details_facet_widgets = function (spec) {
             name: 'command',
             label: '@i18n:objects.sudorule.command',
             widgets: [
-                {
-                    $factory: IPA.header_widget,
-                    name: 'allow_header',
-                    text: '@i18n:objects.sudorule.allow',
-                    description: '@i18n:objects.sudorule.allow'
-                },
                 {
                     $factory: IPA.rule_details_widget,
                     name: 'rule',
@@ -499,9 +493,17 @@ var add_sudorule_details_facet_widgets = function (spec) {
                     ],
                     tables: [
                         { name: 'memberallowcmd_sudocmd' },
-                        { name: 'memberallowcmd_sudocmdgroup' }
+                        { name: 'memberallowcmd_sudocmdgroup' },
+                        { name: 'memberdenycmd_sudocmd' },
+                        { name: 'memberdenycmd_sudocmdgroup' }
                     ],
                     widgets: [
+                        {
+                            $factory: IPA.header_widget,
+                            name: 'allow_header',
+                            text: '@i18n:objects.sudorule.allow',
+                            description: '@i18n:objects.sudorule.allow'
+                        },
                         {
                             $type: 'rule_association_table',
                             id: 'sudorule-memberallowcmd_sudocmd',
@@ -519,32 +521,32 @@ var add_sudorule_details_facet_widgets = function (spec) {
                             remove_method: 'remove_allow_command',
                             add_title: '@i18n:association.add.memberallowcmd',
                             remove_title: '@i18n:association.remove.memberallowcmd'
+                        },
+                        {
+                            $factory: IPA.header_widget,
+                            name: 'deny_header',
+                            text: '@i18n:objects.sudorule.deny',
+                            description: '@i18n:objects.sudorule.deny'
+                        },
+                        {
+                            $type: 'rule_association_table',
+                            id: 'sudorule-memberdenycmd_sudocmd',
+                            name: 'memberdenycmd_sudocmd',
+                            add_method: 'add_deny_command',
+                            remove_method: 'remove_deny_command',
+                            add_title: '@i18n:association.add.memberdenycmd',
+                            remove_title: '@i18n:association.remove.memberdenycmd'
+                        },
+                        {
+                            $type: 'rule_association_table',
+                            id: 'sudorule-memberdenycmd_sudocmdgroup',
+                            name: 'memberdenycmd_sudocmdgroup',
+                            add_method: 'add_deny_command',
+                            remove_method: 'remove_deny_command',
+                            add_title: '@i18n:association.add.memberdenycmd',
+                            remove_title: '@i18n:association.remove.memberdenycmd'
                         }
                     ]
-                },
-                {
-                    $factory: IPA.header_widget,
-                    name: 'deny_header',
-                    text: '@i18n:objects.sudorule.deny',
-                    description: '@i18n:objects.sudorule.deny'
-                },
-                {
-                    $type: 'rule_association_table',
-                    id: 'sudorule-memberdenycmd_sudocmd',
-                    name: 'memberdenycmd_sudocmd',
-                    add_method: 'add_deny_command',
-                    remove_method: 'remove_deny_command',
-                    add_title: '@i18n:association.add.memberdenycmd',
-                    remove_title: '@i18n:association.remove.memberdenycmd'
-                },
-                {
-                    $type: 'rule_association_table',
-                    id: 'sudorule-memberdenycmd_sudocmdgroup',
-                    name: 'memberdenycmd_sudocmdgroup',
-                    add_method: 'add_deny_command',
-                    remove_method: 'remove_deny_command',
-                    add_title: '@i18n:association.add.memberdenycmd',
-                    remove_title: '@i18n:association.remove.memberdenycmd'
                 }
             ]
         }
