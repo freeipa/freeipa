@@ -243,6 +243,10 @@ var add_sudorule_details_facet_widgets = function (spec) {
             widget: 'general.cn'
         },
         {
+            name: 'sudoorder',
+            widget: 'general.sudoorder'
+        },
+        {
             $type: 'textarea',
             name: 'description',
             widget: 'general.description'
@@ -258,6 +262,7 @@ var add_sudorule_details_facet_widgets = function (spec) {
                 {
                     name: 'cn'
                 },
+                'sudoorder',
                 {
                     $type: 'textarea',
                     name: 'description'
