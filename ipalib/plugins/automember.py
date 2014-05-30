@@ -131,6 +131,11 @@ register = Registry()
 INCLUDE_RE = 'automemberinclusiveregex'
 EXCLUDE_RE = 'automemberexclusiveregex'
 
+REBUILD_TASK_CONTAINER = DN(('cn', 'automember rebuild membership'),
+                            ('cn', 'tasks'),
+                            ('cn', 'config'))
+
+
 regex_attrs = (
     Str('automemberinclusiveregex*',
         cli_name='inclusive_regex',
@@ -214,6 +219,16 @@ class automember(LDAPObject):
             },
             'default_privileges': {'Automember Readers',
                                    'Automember Task Administrator'},
+        },
+        'System: Read Automember Tasks': {
+            'non_object': True,
+            'ipapermlocation': DN('cn=tasks', 'cn=config'),
+            'ipapermtarget': DN('cn=*', REBUILD_TASK_CONTAINER),
+            'replaces_global_anonymous_aci': True,
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {'*'},
+            'default_privileges': {'Automember Task Administrator'},
         },
     }
 
@@ -732,11 +747,7 @@ class automember_rebuild(Command):
         else:
             search_filter = '(%s=*)' % obj.primary_key.name
 
-        task_dn = DN(
-            ('cn', cn),
-            ('cn', 'automember rebuild membership'),
-            ('cn', 'tasks'),
-            ('cn', 'config'))
+        task_dn = DN(('cn', cn), REBUILD_TASK_CONTAINER)
 
         entry = ldap.make_entry(
             task_dn,

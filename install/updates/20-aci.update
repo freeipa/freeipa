@@ -47,6 +47,9 @@ add:aci:'(targetfilter = "(objectClass=krbPwdPolicy)")(targetattr = "krbMaxPwdLi
 # Read-only
 add:aci:'(targetattr="ipaUniqueId || memberOf || enrolledBy || krbExtraData || krbPrincipalName || krbCanonicalName || krbPasswordExpiration || krbLastPwdChange || krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount")(version 3.0; acl "Admin read-only attributes"; allow (read, search, compare) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)'
 
+dn: cn=tasks,cn=config
+add:aci:'(targetattr="*")(version 3.0; acl "Admin can read all tasks"; allow (read, compare, search) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)'
+
 # Removal of obsolete ACIs
 dn: cn=config
 # Replaced by 'System: Read Replication Agreements'
