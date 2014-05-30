@@ -220,33 +220,33 @@ def normalize_zone(zone):
 
 
 def validate_dns_label(dns_label, allow_underscore=False, allow_slash=False):
-     base_chars = 'a-z0-9'
-     extra_chars = ''
-     middle_chars = ''
+    base_chars = 'a-z0-9'
+    extra_chars = ''
+    middle_chars = ''
 
-     if allow_underscore:
-         extra_chars += '_'
-     if allow_slash:
-         middle_chars += '/'
+    if allow_underscore:
+        extra_chars += '_'
+    if allow_slash:
+        middle_chars += '/'
 
-     middle_chars = middle_chars + '-' #has to be always the last in the regex [....-]
+    middle_chars = middle_chars + '-' #has to be always the last in the regex [....-]
 
-     label_regex = r'^[%(base)s%(extra)s]([%(base)s%(extra)s%(middle)s]?[%(base)s%(extra)s])*$' \
-         % dict(base=base_chars, extra=extra_chars, middle=middle_chars)
-     regex = re.compile(label_regex, re.IGNORECASE)
+    label_regex = r'^[%(base)s%(extra)s]([%(base)s%(extra)s%(middle)s]?[%(base)s%(extra)s])*$' \
+        % dict(base=base_chars, extra=extra_chars, middle=middle_chars)
+    regex = re.compile(label_regex, re.IGNORECASE)
 
-     if not dns_label:
-         raise ValueError(_('empty DNS label'))
+    if not dns_label:
+        raise ValueError(_('empty DNS label'))
 
-     if len(dns_label) > 63:
-         raise ValueError(_('DNS label cannot be longer that 63 characters'))
+    if len(dns_label) > 63:
+        raise ValueError(_('DNS label cannot be longer that 63 characters'))
 
-     if not regex.match(dns_label):
-         chars = ', '.join("'%s'" % c for c in extra_chars + middle_chars)
-         chars2 = ', '.join("'%s'" % c for c in middle_chars)
-         raise ValueError(_("only letters, numbers, %(chars)s are allowed. " \
-                            "DNS label may not start or end with %(chars2)s") \
-                            % dict(chars=chars, chars2=chars2))
+    if not regex.match(dns_label):
+        chars = ', '.join("'%s'" % c for c in extra_chars + middle_chars)
+        chars2 = ', '.join("'%s'" % c for c in middle_chars)
+        raise ValueError(_("only letters, numbers, %(chars)s are allowed. " \
+                           "DNS label may not start or end with %(chars2)s") \
+                           % dict(chars=chars, chars2=chars2))
 
 
 def validate_domain_name(domain_name, allow_underscore=False, allow_slash=False):
