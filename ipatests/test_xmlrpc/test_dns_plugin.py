@@ -2162,6 +2162,40 @@ class test_dns(Declarative):
             },
         ),
 
+
+        #https://fedorahosted.org/freeipa/ticket/4232
+        dict(
+            desc='Add MX record (2) to zone %r using dnsrecord_add' % (idnzone1),
+            command=('dnsrecord_add', [idnzone1, idnzone1], {'mxrecord': u"10 %s" % idnzone1_mname }),
+            expected={
+                'value': idnzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnszone,
+                    'dn': idnzone1_dn,
+                    'idnsname': [_dns_zone_record],
+                    'mxrecord': [u"0 %s" % idnzone1_mname, u"10 %s" % idnzone1_mname],
+                    'nsrecord': [idnzone1_mname],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Remove MX record (2) from zone %r using dnsrecord_add' % (idnzone1),
+            command=('dnsrecord_del', [idnzone1, idnzone1], {'mxrecord': u"10 %s" % idnzone1_mname }),
+            expected={
+                'value': [idnzone1_dnsname],
+                'summary': None,
+                'result': {
+                    'idnsname': [_dns_zone_record],
+                    'mxrecord': [u"0 %s" % idnzone1_mname],
+                    'nsrecord': [idnzone1_mname],
+                },
+            },
+        ),
+
+
         dict(
             desc='Add KX record to zone %r using dnsrecord_add' % (idnzone1),
             command=('dnsrecord_add', [idnzone1, u'@'], {'kxrecord': u"0 %s" % idnzone1_mname }),
