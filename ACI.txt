@@ -38,10 +38,24 @@ dn: cn=System: Read HBAC Services,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "cn || description || ipauniqueid || memberof || objectclass")(targetfilter = "(objectclass=ipahbacservice)")(version 3.0;acl "permission:System: Read HBAC Services";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Read HBAC Service Groups,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "businesscategory || cn || description || ipauniqueid || member || memberhost || memberuser || o || objectclass || ou || owner || seealso")(targetfilter = "(objectclass=ipahbacservicegroup)")(version 3.0;acl "permission:System: Read HBAC Service Groups";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=System: Add Hosts,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Add Hosts";allow (add) groupdn = "ldap:///cn=System: Add Hosts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Add krbPrincipalName to a Host,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "krbprincipalname")(targetfilter = "(&(!(krbprincipalname=*))(objectclass=ipahost))")(version 3.0;acl "permission:System: Add krbPrincipalName to a Host";allow (write) groupdn = "ldap:///cn=System: Add krbPrincipalName to a Host,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Enroll a Host,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "enrolledby || objectclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Enroll a Host";allow (write) groupdn = "ldap:///cn=System: Enroll a Host,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Manage Host Keytab,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "krblastpwdchange || krbprincipalkey")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host Keytab";allow (write) groupdn = "ldap:///cn=System: Manage Host Keytab,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Manage Host SSH Public Keys,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "ipasshpubkey")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host SSH Public Keys";allow (write) groupdn = "ldap:///cn=System: Manage Host SSH Public Keys,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Modify Hosts,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "description || l || macaddress || nshardwareplatform || nshostlocation || nsosversion")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Modify Hosts";allow (write) groupdn = "ldap:///cn=System: Modify Hosts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Host Membership,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "memberof")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Read Host Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Read Hosts,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "cn || description || enrolledby || fqdn || ipaclientversion || ipakrbauthzdata || ipasshpubkey || ipauniqueid || krbcanonicalname || krblastpwdchange || krbpasswordexpiration || krbprincipalaliases || krbprincipalexpiration || krbprincipalname || l || macaddress || managedby || nshardwareplatform || nshostlocation || nsosversion || objectclass || serverhostname || usercertificate || userclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Read Hosts";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=System: Remove Hosts,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Remove Hosts";allow (delete) groupdn = "ldap:///cn=System: Remove Hosts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Hostgroup Membership,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "member || memberhost || memberof || memberuser")(targetfilter = "(objectclass=ipahostgroup)")(version 3.0;acl "permission:System: Read Hostgroup Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Read Hostgroups,cn=permissions,cn=pbac,dc=ipa,dc=example

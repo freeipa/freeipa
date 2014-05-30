@@ -167,40 +167,6 @@ objectClass: ipapermission
 cn: Modify Group membership
 member: cn=Group Administrators,cn=privileges,cn=pbac,$SUFFIX
 
-# Host administration
-
-dn: cn=Add Hosts,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Add Hosts
-member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Remove Hosts,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Remove Hosts
-member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Modify Hosts,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Modify Hosts
-member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Manage Host SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Manage Host SSH Public Keys
-member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
-
 # Hostgroup administration
 
 dn: cn=Add Hostgroups,cn=permissions,cn=pbac,$SUFFIX
@@ -387,17 +353,6 @@ objectClass: ipapermission
 cn: Modify netgroup membership
 member: cn=Netgroups Administrators,cn=privileges,cn=pbac,$SUFFIX
 
-# Keytab access
-
-dn: cn=Manage host keytab,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Manage host keytab
-member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
-member: cn=Host Enrollment,cn=privileges,cn=pbac,$SUFFIX
-
 dn: cn=Manage service keytab,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
@@ -410,15 +365,6 @@ member: cn=admins,cn=groups,cn=accounts,$SUFFIX
 # DNS administration
 
 # The permission and aci for this is in install/updates/dns.ldif
-
-dn: cn=Enroll a host,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Enroll a host
-member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
-member: cn=Host Enrollment,cn=privileges,cn=pbac,$SUFFIX
 
 # Replica administration
 
@@ -474,16 +420,6 @@ aci: (target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "pe
 # promoted. We need mqpManagedBy and ipaUniqueId so a group can be detached.
 aci: (targetattr = "cn || description || gidnumber || objectclass || mepmanagedby || ipauniqueid")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Groups";allow (write) groupdn = "ldap:///cn=Modify Groups,cn=permissions,cn=pbac,$SUFFIX";)
 
-# Host administration
-
-dn: $SUFFIX
-changetype: modify
-add: aci
-aci: (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Hosts";allow (add) groupdn = "ldap:///cn=Add Hosts,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Hosts";allow (delete) groupdn = "ldap:///cn=Remove Hosts,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetattr = "description || l || nshostlocation || nshardwareplatform || nsosversion")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Hosts";allow (write) groupdn = "ldap:///cn=Modify Hosts,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetattr = "ipasshpubkey")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage Host SSH Public Keys";allow (write) groupdn = "ldap:///cn=Manage Host SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX";)
-
 # Hostgroup administration
 
 dn: $SUFFIX
@@ -536,30 +472,12 @@ aci: (target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0;acl "pe
 aci: (targetattr = "description")(target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0; acl "permission:Modify netgroups";allow (write) groupdn = "ldap:///cn=Modify netgroups,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (targetattr = "memberhost || externalhost || memberuser || member")(target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0;acl "permission:Modify netgroup membership";allow (write) groupdn = "ldap:///cn=Modify netgroup membership,cn=permissions,cn=pbac,$SUFFIX";)
 
-# Host keytab admin
-
-dn: $SUFFIX
-changetype: modify
-add: aci
-aci: (targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage host keytab";allow (write) groupdn = "ldap:///cn=Manage host keytab,cn=permissions,cn=pbac,$SUFFIX";)
-
 # Service keytab admin
 
 dn: $SUFFIX
 changetype: modify
 add: aci
 aci: (targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage service keytab";allow (write) groupdn = "ldap:///cn=Manage service keytab,cn=permissions,cn=pbac,$SUFFIX";)
-
-# Add the ACI needed to do host enrollment. When this occurs we
-# set the krbPrincipalName, add krbPrincipalAux to objectClass and
-# set enrolledBy to whoever ran join. enrolledBy is specifically
-# not listed here, it is set by the plugin but we don't want an
-# admin overriding it using --setattr or ldapmodify.
-
-dn: $SUFFIX
-changetype: modify
-add: aci
-aci: (targetattr = "objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Enroll a host";allow (write) groupdn = "ldap:///cn=Enroll a host,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Create virtual operations entry. This is used to control access to
 # operations that don't rely on LDAP directly.

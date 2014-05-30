@@ -170,27 +170,8 @@ default:objectClass: top
 default:cn: Password Policy Administrator
 default:description: Password Policy Administrator
 
-# Allow an admin to enroll a host that has a one-time password.
-# When a host is created with a password no krbPrincipalName is set.
-# This will let it be added if the client ends up enrolling with
-# an administrator instead.
-dn: cn=Add krbPrincipalName to a host,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: top
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:cn: Add krbPrincipalName to a host
-default:member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
-default:member: cn=Host Enrollment,cn=privileges,cn=pbac,$SUFFIX
-
-dn: $SUFFIX
-add:aci: '(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(targetfilter = "(!(krbprincipalname=*))")(targetattr = "krbprincipalname")(version 3.0;acl "permission:Add krbPrincipalName to a host"; allow (write) groupdn = "ldap:///cn=Add krbPrincipalName to a host,cn=permissions,cn=pbac,$SUFFIX";)'
-
 dn: cn=Host Enrollment,cn=privileges,cn=pbac,$SUFFIX
 add:member: 'cn=admins,cn=groups,cn=accounts,$SUFFIX'
-
-# Don't allow admins to update enrolledBy
-dn: $SUFFIX
-replace:aci:'(targetattr = "enrolledby || objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Enroll a host";allow (write) groupdn = "ldap:///cn=Enroll a host,cn=permissions,cn=pbac,$SUFFIX";)::(targetattr = "objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Enroll a host";allow (write) groupdn = "ldap:///cn=Enroll a host,cn=permissions,cn=pbac,$SUFFIX";)'
 
 # The original DNS permissions lacked the tag.
 dn: $SUFFIX
@@ -257,16 +238,7 @@ add:aci:'(targetattr = "automountkey || automountinformation || description")(ta
 replace:aci:'(target = "ldap:///automountkey=*,automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Add Automount keys";allow (add) groupdn = "ldap:///cn=Add Automount keys,cn=permissions,cn=pbac,$SUFFIX";)::(targetfilter = "(objectclass=automount)")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Add Automount keys";allow (add) groupdn = "ldap:///cn=Add Automount keys,cn=permissions,cn=pbac,$SUFFIX";)'
 replace:aci:'(target = "ldap:///automountkey=*,automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Remove Automount keys";allow (delete) groupdn = "ldap:///cn=Remove Automount keys,cn=permissions,cn=pbac,$SUFFIX";)::(targetfilter = "(objectclass=automount)")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Remove Automount keys";allow (delete) groupdn = "ldap:///cn=Remove Automount keys,cn=permissions,cn=pbac,$SUFFIX";)'
 
-dn: cn=Manage Host SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: top
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:cn: Manage Host SSH Public Keys
-default:member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
-
 dn: $SUFFIX
-add:aci:'(targetattr = "ipasshpubkey")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage Host SSH Public Keys";allow (write) groupdn = "ldap:///cn=Manage Host SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX";)'
-
 # Don't allow the default 'manage group membership' to be able to manage the
 # admins group
 replace:aci:'(targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Group membership";allow (write) groupdn = "ldap:///cn=Modify Group membership,cn=permissions,cn=pbac,$SUFFIX";)::(targetfilter = "(!(cn=admins))")(targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Group membership";allow (write) groupdn = "ldap:///cn=Modify Group membership,cn=permissions,cn=pbac,$SUFFIX";)'
@@ -282,6 +254,7 @@ add: member: 'cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX'
 
 dn: cn=Revoke Certificate,cn=permissions,cn=pbac,$SUFFIX
 add: member: 'cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX'
+
 
 # Automember tasks
 dn: cn=Automember Task Administrator,cn=privileges,cn=pbac,$SUFFIX

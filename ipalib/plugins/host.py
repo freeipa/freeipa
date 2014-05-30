@@ -290,6 +290,72 @@ class host(LDAPObject):
                 'memberof',
             },
         },
+        'System: Add Hosts': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Hosts";allow (add) groupdn = "ldap:///cn=Add Hosts,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Host Administrators'},
+        },
+        'System: Add krbPrincipalName to a Host': {
+            # Allow an admin to enroll a host that has a one-time password.
+            # When a host is created with a password no krbPrincipalName is set.
+            # This will let it be added if the client ends up enrolling with
+            # an administrator instead.
+            'ipapermright': {'write'},
+            'ipapermtargetfilter': [
+                '(objectclass=ipahost)',
+                '(!(krbprincipalname=*))',
+            ],
+            'ipapermdefaultattr': {'krbprincipalname'},
+            'replaces': [
+                '(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(targetfilter = "(!(krbprincipalname=*))")(targetattr = "krbprincipalname")(version 3.0;acl "permission:Add krbPrincipalName to a host"; allow (write) groupdn = "ldap:///cn=Add krbPrincipalName to a host,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Host Administrators', 'Host Enrollment'},
+        },
+        'System: Enroll a Host': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'objectclass', 'enrolledby'},
+            'replaces': [
+                '(targetattr = "objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Enroll a host";allow (write) groupdn = "ldap:///cn=Enroll a host,cn=permissions,cn=pbac,$SUFFIX";)',
+                '(targetattr = "enrolledby || objectclass")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Enroll a host";allow (write) groupdn = "ldap:///cn=Enroll a host,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Host Administrators', 'Host Enrollment'},
+        },
+        'System: Manage Host SSH Public Keys': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'ipasshpubkey'},
+            'replaces': [
+                '(targetattr = "ipasshpubkey")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage Host SSH Public Keys";allow (write) groupdn = "ldap:///cn=Manage Host SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Host Administrators'},
+        },
+        'System: Manage Host Keytab': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'krblastpwdchange', 'krbprincipalkey'},
+            'replaces': [
+                '(targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage host keytab";allow (write) groupdn = "ldap:///cn=Manage host keytab,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Host Administrators', 'Host Enrollment'},
+        },
+        'System: Modify Hosts': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'description', 'l', 'nshardwareplatform', 'nshostlocation',
+                'nsosversion', 'macaddress',
+            },
+            'replaces': [
+                '(targetattr = "description || l || nshostlocation || nshardwareplatform || nsosversion")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Hosts";allow (write) groupdn = "ldap:///cn=Modify Hosts,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Host Administrators'},
+        },
+        'System: Remove Hosts': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Hosts";allow (delete) groupdn = "ldap:///cn=Remove Hosts,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Host Administrators'},
+        },
     }
 
     label = _('Hosts')
