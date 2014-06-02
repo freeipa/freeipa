@@ -8,7 +8,7 @@ PRJ_PREFIX=freeipa
 RPMBUILD ?= $(PWD)/rpmbuild
 TARGET ?= master
 
-SUPPORTED_PLATFORM ?= redhat
+SUPPORTED_PLATFORM ?= fedora
 
 IPA_NUM_VERSION ?= $(shell printf %d%02d%02d $(IPA_VERSION_MAJOR) $(IPA_VERSION_MINOR) $(IPA_VERSION_RELEASE))
 
@@ -128,6 +128,8 @@ version-update: release-update
 		> version.m4
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipapython/setup.py.in \
 		> ipapython/setup.py
+	sed -e s/__VERSION__/$(IPA_VERSION)/ ipaplatform/setup.py.in \
+		> ipaplatform/setup.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipapython/version.py.in \
 		> ipapython/version.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipatests/setup.py.in \
@@ -147,12 +149,6 @@ version-update: release-update
 		ipa-client/ipa-client.spec.in > ipa-client/ipa-client.spec
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-client/version.m4.in \
 		> ipa-client/version.m4
-
-	if [ "$(SUPPORTED_PLATFORM)" != "" ]; then \
-		sed -e s/SUPPORTED_PLATFORM/$(SUPPORTED_PLATFORM)/ ipapython/services.py.in \
-			> ipapython/services.py; \
-		touch -r ipapython/services.py.in ipapython/services.py; \
-	fi
 
 	if [ "$(SKIP_API_VERSION_CHECK)" != "yes" ]; then \
 		./makeapi --validate; \
