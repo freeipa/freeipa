@@ -238,8 +238,8 @@ class ACI:
 
             if set(self.target.get('targetattr', {}).get('expression', ())) != set(b.target.get('targetattr',{}).get('expression', ())):
                 return False
-                if self.target.get('targetattr',{}).get('operator') != b.target.get('targetattr',{}).get('operator'):
-                    return False
+            if self.target.get('targetattr',{}).get('operator') != b.target.get('targetattr',{}).get('operator'):
+                return False
 
             if self.target.get('target',{}).get('expression') != b.target.get('target',{}).get('expression'):
                 return False
@@ -255,5 +255,5 @@ class ACI:
 
     __eq__ = isequal
 
-    def __neq__(self, b):
+    def __ne__(self, b):
         return not self == b

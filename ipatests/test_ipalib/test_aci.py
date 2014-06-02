@@ -62,7 +62,8 @@ def test_aci_parsing_7():
     check_aci_parsing('(targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "change_password"; allow (write) groupdn = "ldap:///cn=change_password,cn=taskgroups,dc=example,dc=com";)',
         '(targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0;acl "change_password";allow (write) groupdn = "ldap:///cn=change_password,cn=taskgroups,dc=example,dc=com";)')
 
-def test_aci_equality():
+
+def make_test_aci():
     a = ACI()
     a.name ="foo"
     a.set_target_attr(['title','givenname'], "!=")
@@ -70,6 +71,11 @@ def test_aci_equality():
     a.set_bindrule_operator("=")
     a.set_bindrule_expression("\"ldap:///cn=foo,cn=groups,cn=accounts,dc=example,dc=com\"")
     a.permissions = ['read','write','add']
+    return a
+
+
+def test_aci_equality():
+    a = make_test_aci()
     print a
 
     b = ACI()
@@ -83,6 +89,66 @@ def test_aci_equality():
 
     assert a.isequal(b)
     assert a == b
+    assert not a != b
+
+
+def check_aci_inequality(b):
+    a = make_test_aci()
+    print a
+    print b
+
+    assert not a.isequal(b)
+    assert not a == b
+    assert a != b
+
+
+def test_aci_inequality_targetattr_expression():
+    b = make_test_aci()
+    b.set_target_attr(['givenname'], "!=")
+    check_aci_inequality(b)
+
+
+def test_aci_inequality_targetattr_op():
+    b = make_test_aci()
+    b.set_target_attr(['givenname', 'title'], "=")
+    check_aci_inequality(b)
+
+
+def test_aci_inequality_targetfilter():
+    b = make_test_aci()
+    b.set_target_filter('(objectclass=*)', "=")
+    check_aci_inequality(b)
+
+
+def test_aci_inequality_target():
+    b = make_test_aci()
+    b.set_target("ldap:///cn=bar,cn=groups,cn=accounts,dc=example,dc=com", "=")
+    check_aci_inequality(b)
+
+
+def test_aci_inequality_bindrule_keyword():
+    b = make_test_aci()
+    b.set_bindrule_keyword("userdn")
+    check_aci_inequality(b)
+
+
+def test_aci_inequality_bindrule_op():
+    b = make_test_aci()
+    b.set_bindrule_operator("!=")
+    check_aci_inequality(b)
+
+
+def test_aci_inequality_bindrule_expression():
+    b = make_test_aci()
+    b.set_bindrule_expression("\"ldap:///cn=bar,cn=groups,cn=accounts,dc=example,dc=com\"")
+    check_aci_inequality(b)
+
+
+def test_aci_inequality_permissions():
+    b = make_test_aci()
+    b.permissions = ['read', 'search', 'compare']
+    check_aci_inequality(b)
+
 
 def test_aci_parsing_8():
     check_aci_parsing('(targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey")(version 3.0; acl "Enable Anonymous access"; allow (read, search, compare) userdn = "ldap:///anyone";)',
