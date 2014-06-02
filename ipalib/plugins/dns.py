@@ -1034,26 +1034,7 @@ class HIPRecord(DNSRecord):
 class KEYRecord(DNSRecord):
     rrtype = 'KEY'
     rfc = 2535
-    parts = (
-        Int('flags',
-            label=_('Flags'),
-            minvalue=0,
-            maxvalue=65535,
-        ),
-        Int('protocol',
-            label=_('Protocol'),
-            minvalue=0,
-            maxvalue=255,
-        ),
-        Int('algorithm',
-            label=_('Algorithm'),
-            minvalue=0,
-            maxvalue=255,
-        ),
-        Str('public_key',
-            label=_('Public Key'),
-        ),
-    )
+    supported = False  # managed by BIND itself
 
 class IPSECKEYRecord(DNSRecord):
     rrtype = 'IPSECKEY'
@@ -1234,42 +1215,7 @@ class NSRecord(DNSRecord):
 class NSECRecord(DNSRecord):
     rrtype = 'NSEC'
     rfc = 4034
-    format_error_msg = _('format must be specified as "NEXT TYPE1 '\
-                         '[TYPE2 [TYPE3 [...]]]" (see RFC 4034 for details)')
-    _allowed_types = (u'SOA',) + _record_types
-
-    parts = (
-        DNSNameParam('next',
-            label=_('Next Domain Name'),
-        ),
-        StrEnum('types+',
-            label=_('Type Map'),
-            values=_allowed_types,
-            csv=True,
-        ),
-    )
-
-    def _get_part_values(self, value):
-        values = value.split()
-
-        if len(values) < 2:
-            return None
-
-        return (values[0], tuple(values[1:]))
-
-    def _part_values_to_string(self, values, index, idna=True):
-        self._validate_parts(values)
-        if idna:
-            val = values[0].ToASCII()
-        else:
-            val = unicode(values[0])
-        values_flat = [val, ]  # add "next" part
-        types = values[1]
-        if not isinstance(types, (list, tuple)):
-            types = [types,]
-        values_flat.extend(types)
-        return u" ".join(Str._convert_scalar(self, v, index) \
-                             for v in values_flat if v is not None)
+    supported = False  # managed by BIND itself
 
 class NSEC3Record(DNSRecord):
     rrtype = 'NSEC3'
@@ -1372,47 +1318,7 @@ def _sig_time_validator(ugettext, value):
 class SIGRecord(DNSRecord):
     rrtype = 'SIG'
     rfc = 2535
-    _allowed_types = tuple([u'SOA'] + [x for x in _record_types if x != u'SIG'])
-
-    parts = (
-        StrEnum('type_covered',
-            label=_('Type Covered'),
-            values=_allowed_types,
-        ),
-        Int('algorithm',
-            label=_('Algorithm'),
-            minvalue=0,
-            maxvalue=255,
-        ),
-        Int('labels',
-            label=_('Labels'),
-            minvalue=0,
-            maxvalue=255,
-        ),
-        Int('original_ttl',
-            label=_('Original TTL'),
-            minvalue=0,
-        ),
-        Str('signature_expiration',
-            _sig_time_validator,
-            label=_('Signature Expiration'),
-        ),
-        Str('signature_inception',
-            _sig_time_validator,
-            label=_('Signature Inception'),
-        ),
-        Int('key_tag',
-            label=_('Key Tag'),
-            minvalue=0,
-            maxvalue=65535,
-        ),
-        Str('signers_name',
-            label=_('Signer\'s Name'),
-        ),
-        Str('signature',
-            label=_('Signature'),
-        ),
-    )
+    supported = False  # managed by BIND itself
 
 class SPFRecord(DNSRecord):
     rrtype = 'SPF'
@@ -1422,6 +1328,7 @@ class SPFRecord(DNSRecord):
 class RRSIGRecord(SIGRecord):
     rrtype = 'RRSIG'
     rfc = 4034
+    supported = False  # managed by BIND itself
 
 class SSHFPRecord(DNSRecord):
     rrtype = 'SSHFP'
