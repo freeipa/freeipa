@@ -25,56 +25,45 @@ This module contains default platform-specific implementations of system tasks.
 from ipaplatform.paths import paths
 
 
-# restore context default implementation  that does nothing
-def restore_context(filepath):
-    return
+class BaseTaskNamespace(object):
+    # restore context default implementation  that does nothing
+    def restore_context(self, filepath):
+        return
 
+    # Default implementation of backup and replace hostname that does nothing
+    def backup_and_replace_hostname(self, fstore, statestore, hostname):
+        return
 
-# Default implementation of backup and replace hostname that does nothing
-def backup_and_replace_hostname(fstore, statestore, hostname):
-    return
+    def insert_ca_cert_into_systemwide_ca_store(self, path):
+        return True
 
+    def remove_ca_cert_from_systemwide_ca_store(self, path):
+        return True
 
-def insert_ca_cert_into_systemwide_ca_store(path):
-    return True
+    def get_svc_list_file(self):
+        return paths.SVC_LIST_FILE
 
+    # See if SELinux is enabled and /usr/sbin/restorecon is installed.
+    # Default to a no-op. Those platforms that support SELinux should
+    # implement this function.
+    def check_selinux_status(self):
+        return
 
-def remove_ca_cert_from_systemwide_ca_store(path):
-    return True
+    def restore_network_configuration(self, fstore, statestore):
+        return
 
+    def restore_pre_ipa_client_configuration(self, fstore, statestore,
+                                             was_sssd_installed,
+                                             was_sssd_configured):
+        return
 
-def get_svc_list_file():
-    return paths.SVC_LIST_FILE
+    def set_nisdomain(self, nisdomain):
+        return
 
+    def modify_nsswitch_pam_stack(sssd, mkhomedir, statestore):
+        return
 
-# See if SELinux is enabled and /usr/sbin/restorecon is installed.
-# Default to a no-op. Those platforms that support SELinux should
-# implement this function.
-def check_selinux_status():
-    return
+    def modify_pam_to_use_krb5(statestore):
+        return
 
-
-def restore_network_configuration(fstore, statestore):
-    return
-
-
-def backup_and_replace_hostname(fstore, statestore, hostname):
-    return
-
-
-def restore_pre_ipa_client_configuration(fstore, statestore,
-                                         was_sssd_installed,
-                                         was_sssd_configured):
-    return
-
-
-def set_nisdomain(nisdomain):
-    return
-
-
-def modify_nsswitch_pam_stack(sssd, mkhomedir, statestore):
-    return
-
-
-def modify_pam_to_use_krb5(statestore):
-    return
+task_namespace = BaseTaskNamespace()
