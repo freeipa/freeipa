@@ -24,22 +24,17 @@ define(['dojo/_base/declare',
         'dojo/dom-style',
         'dojo/query',
         'dojo/on',
-        'dojo/Evented',
-        'dojo/Stateful',
         '../ipa',
         '../auth',
         '../reg',
         '../FieldBinder',
-        '../FormMixin',
         '../text',
         '../util',
-        './ContainerMixin'
+        './LoginScreenBase'
        ],
        function(declare, lang,  construct, dom_style, query, on,
-                Evented, Stateful, IPA, auth, reg, FieldBinder, FormMixin, text,
-                util, ContainerMixin) {
+                IPA, auth, reg, FieldBinder, text, util, LoginScreenBase) {
 
-    var ConfirmMixin = declare(null, IPA.confirm_mixin().mixin);
 
     /**
      * Widget with login form.
@@ -51,17 +46,7 @@ define(['dojo/_base/declare',
      *
      * @class widgets.LoginScreen
      */
-    var LoginScreen = declare([Stateful, Evented, FormMixin, ContainerMixin, ConfirmMixin], {
-
-        id: '',
-
-        'class': 'login-pf',
-
-        logo_src: 'images/login-screen-logo.png',
-
-        product_name_src: 'images/product-name.png',
-
-        product_name: '',
+    var LoginScreen = declare([LoginScreenBase], {
 
         expired_msg: "Your session has expired. Please re-login.",
 
@@ -82,29 +67,10 @@ define(['dojo/_base/declare',
 
         denied: "Sorry you are not allowed to access this service.",
 
-        caps_warning_msg: "Warning: CAPS LOCK key is on",
-
-        /**
-         * Details builder
-         * @property {IPA.details_builder}
-         * @protected
-         */
-        details_builder: null,
-
-        /**
-         * Aside text
-         * @property {string}
-         */
-        aside: "",
 
         //nodes:
-        dom_node: null,
-        container_node: null,
-        content_node: null,
-        aside_node: null,
         login_btn_node: null,
         reset_btn_node: null,
-        buttons_node: null,
 
         /**
          * View this form is in.
@@ -114,119 +80,14 @@ define(['dojo/_base/declare',
          */
         view: 'login',
 
-        /**
-         * Indicates that CAPS LOCK warning is on. Null indicates that we don't
-         * know the state.
-         * @property {boolean|null}
-         */
-        caps_warning: null,
-
-
-        _asideSetter: function(text) {
-            this.aside = text;
-            if (this.aside_node) {
-                this.aside_node.innerHTML = this.aside;
-            }
-        },
-
-        _viewSetter: function(view) {
-            this.view = view;
-            this.refresh();
-        },
-
-        render: function() {
-
-            this.dom_node = construct.create('div', {
-                id: this.id,
-                'class': this['class']
-            });
-
-            if (this.container_node) {
-                construct.place(this.dom_node, this.container_node);
-            }
-
-            this.render_content();
-            this.register_listeners();
-
-            return this.dom_node;
-        },
-
-        render_content: function() {
-
-            var login_body = construct.create('div', {
-                'class': 'login-pf-body'
-            }, this.dom_node);
-
-            construct.empty(login_body);
-
-            this.render_badge(login_body);
-
-            var cnt = construct.create('div', {
-                'class': 'container'
-            }, login_body);
-
-            var row = construct.create('div', {
-                'class': 'row'
-            }, cnt);
-
-
-            this.render_brand(row);
-            this.render_form(row);
-            this.render_aside(row);
-        },
-
-        render_badge: function(container) {
-
-            var cnt = construct.create('span', {
-                'id': 'badge'
-            }, container);
-            construct.create('img', {
-                src: this.logo_src,
-                alt: this.product_name
-            }, cnt);
-        },
-
-        render_brand: function(container) {
-            var c1 = construct.create('div', {
-                'class': 'col-sm-12'
-            }, container);
-            var c2 = construct.create('div', {
-                'id': 'brand'
-            }, c1);
-            construct.create('img', {
-                src: this.product_name_src,
-                height: '80px'
-            }, c2);
-        },
-
-        render_form: function(container) {
-
-            var form_cont = construct.create('div', {
-                'class': 'col-sm-7 col-md-6 col-lg-5 login'
-            }, container);
-
-            var layout = IPA.fluid_layout({
-                label_cls: 'col-sm-3 col-md-3 control-label',
-                widget_cls: 'col-sm-9 col-md-9 controls'
-            });
-            var form = layout.create(this.get_widgets());
-            construct.place(form[0], form_cont);
-            this.register_caps_check();
-
-            var btn_row = construct.create('div', {
-                'class': 'row'
-            }, form_cont);
-
-            this.buttons_node = construct.create('div', {
-                'class': 'col-sm-12 col-md-offset-3 col-md-9 submit'
-            }, btn_row);
+        render_buttons: function(container) {
 
             this.login_btn_node = IPA.button({
                 label: text.get('@i18n:login.login', "Login"),
                 'class': 'btn-primary btn-lg',
                 click: lang.hitch(this, this.on_confirm)
             })[0];
-            construct.place(this.login_btn_node, this.buttons_node);
+            construct.place(this.login_btn_node, container);
 
             this.reset_btn_node = IPA.button({
                 label: text.get('@i18n:buttons.reset_password_and_login', "Reset Password and Login"),
@@ -235,31 +96,7 @@ define(['dojo/_base/declare',
             })[0];
         },
 
-        render_aside: function(container) {
-
-            this.aside_node = construct.create('div', {
-                'class': 'col-sm-5 col-md-6 col-lg-7 details',
-                innerHTML: this.aside
-            }, container);
-        },
-
-        create_fields: function() {
-
-            var validation_summary = {
-                $type: 'validation_summary',
-                name: 'validation',
-                visible: false
-            };
-
-            var val_w = this.add_widget(validation_summary);
-            var fields = LoginScreen.field_specs;
-            for (var i=0, l=fields.length; i<l; i++) {
-                var f = this.add_field(fields[i]);
-                var w = this.add_widget(fields[i]);
-                new FieldBinder(f, w).bind(true);
-                this.bind_validation(val_w, f);
-            }
-
+        post_create_fields: function() {
             var u_f = this.get_field('username');
             var p_f = this.get_field('password');
 
@@ -276,79 +113,6 @@ define(['dojo/_base/declare',
                     !util.is_empty(p_f.get_value()) || !this.kerberos_enabled();
             u_f.set_required(required);
             p_f.set_required(required);
-        },
-
-        register_caps_check: function() {
-
-            // this is not a nice solution. It breaks widget encapsulation over
-            // input field, but we need to listen to keydown events which are
-            // not exposed
-            var nodes = query("input[type=text],input[type=password]", this.dom_node);
-            nodes.on('keypress', lang.hitch(this, this.check_caps_lock));
-            nodes.on('keydown', lang.hitch(this, this.check_caps_lock_press));
-        },
-
-        /**
-         * Check if Caps Lock key is on.
-         *
-         * Works fine only with keypress events. Doesn't work with keydown or
-         * up since keyCode is always uppercase there.
-         * @param {Event} e  Key press event
-         * @protected
-         */
-        check_caps_lock: function(e) {
-
-            var s = String.fromCharCode(e.keyCode || e.which);
-
-            if ((s.toUpperCase() === s && s.toLowerCase() !== s && !e.shiftKey)||
-              (s.toUpperCase() !== s && s.toLowerCase() === s && e.shiftKey)) {
-                this.displey_caps_warning(true);
-            } else if ((s.toLowerCase() === s && s.toUpperCase() !== s && !e.shiftKey)||
-              (s.toLowerCase() !== s && s.toUpperCase() === s && e.shiftKey)) {
-                this.displey_caps_warning(false);
-            }
-            // in other cases it's most likely non alpha numeric character
-        },
-
-        /**
-         * Check if Caps Lock was press
-         * If current caps lock state is known, i.e. by `check_caps_lock` method,
-         * toogle it.
-         * @param {Event} e Key down or key up event
-         * @protected
-         */
-        check_caps_lock_press: function(e) {
-
-            if (this.caps_warning !== null && e.keyCode == 20) {
-                this.displey_caps_warning(!this.caps_warning);
-            }
-        },
-
-        /**
-         * Show or hide CAPS lock warning
-         * @param {boolean} display
-         * @protected
-         */
-        displey_caps_warning: function(display) {
-
-            this.caps_warning = display;
-            var val_summary = this.get_widget('validation');
-            if (display) {
-                val_summary.add_warning('caps', this.caps_warning_msg);
-            } else {
-                val_summary.remove('caps');
-            }
-        },
-
-        bind_validation: function(summary, field) {
-
-            on(field, 'valid-change', function(e) {
-                if (e.valid) {
-                    summary.remove(field.name);
-                } else {
-                    summary.add_error(field.name, field.label + ': ' + e.result.message);
-                }
-            });
         },
 
         on_confirm: function() {
@@ -499,18 +263,6 @@ define(['dojo/_base/declare',
             this.get_widget('current_password').focus_input();
         },
 
-        use_fields: function(names) {
-
-            var fields = this.get_fields();
-            for (var i=0, l=fields.length; i<l; i++) {
-                var f = fields[i];
-                var w = this.get_widget(f.name);
-                var enable = names.indexOf(f.name) >-1;
-                f.set_enabled(enable);
-                w.set_visible(enable);
-            }
-        },
-
         set_login_aside_text: function() {
             var aside = "";
             if (auth.current.expired) {
@@ -529,21 +281,8 @@ define(['dojo/_base/declare',
             this.set('aside', '');
         },
 
-        kerberos_enabled: function() {
-            return auth.current.auth_methods.indexOf('kerberos') > -1;
-        },
-
-        password_enabled: function() {
-            return auth.current.auth_methods.indexOf('password') > -1;
-        },
-
-        postscript: function(args) {
-            this.create_fields();
-        },
-
         constructor: function(spec) {
             spec = spec || {};
-            declare.safeMixin(this, spec);
 
             this.expired_msg = text.get(spec.expired_msg || '@i18n:ajax.401.message',
                 this.expired_msg);
@@ -560,6 +299,8 @@ define(['dojo/_base/declare',
                 '@i18n:password.password_change_complete', this.password_change_complete);
 
             this.krb_auth_failed = text.get(spec.krb_auth_failed, this.krb_auth_failed);
+
+            this.field_specs = LoginScreen.field_specs;
         }
     });
 
