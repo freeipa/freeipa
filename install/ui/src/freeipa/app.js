@@ -23,6 +23,7 @@ define([
     './app_container',
     './plugins/load_page',
     './plugins/login',
+    './plugins/sync_otp',
     // entities
     './aci',
     './automember',
