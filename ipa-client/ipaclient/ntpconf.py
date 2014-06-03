@@ -179,9 +179,9 @@ def check_timedate_services():
         if service == 'ntpd':
             continue
         # Make sure that the service is not enabled
-        service = services.service(service)
-        if service.is_enabled() or service.is_running():
-            raise NTPConflictingService(conflicting_service=service.service_name)
+        instance = services.service(service)
+        if instance.is_enabled() or instance.is_running():
+            raise NTPConflictingService(conflicting_service=instance.service_name)
 
 def force_ntpd(statestore):
     """
@@ -191,19 +191,19 @@ def force_ntpd(statestore):
     for service in services.timedate_services:
         if service == 'ntpd':
             continue
-        service = services.service(service)
-        enabled = service.is_enabled()
-        running = service.is_running()
+        instance = services.service(service)
+        enabled = instance.is_enabled()
+        running = instance.is_running()
 
         if enabled or running:
-            statestore.backup_state(service.service_name, 'enabled', enabled)
-            statestore.backup_state(service.service_name, 'running', running)
+            statestore.backup_state(instance.service_name, 'enabled', enabled)
+            statestore.backup_state(instance.service_name, 'running', running)
 
             if running:
-                service.stop()
+                instance.stop()
 
             if enabled:
-                service.disable()
+                instance.disable()
 
 def restore_forced_ntpd(statestore):
     """
@@ -214,10 +214,10 @@ def restore_forced_ntpd(statestore):
         if service == 'ntpd':
             continue
         if statestore.has_state(service):
-            service = services.service(service)
-            enabled = statestore.restore_state(service.service_name, 'enabled')
-            running = statestore.restore_state(service.service_name, 'running')
+            instance = services.service(service)
+            enabled = statestore.restore_state(instance.service_name, 'enabled')
+            running = statestore.restore_state(instance.service_name, 'running')
             if enabled:
-                service.enable()
+                instance.enable()
             if running:
-                service.start()
+                instance.start()
