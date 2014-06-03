@@ -799,7 +799,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: dnsrecord_add
-args: 2,92,3
+args: 2,96,3
 arg: DNSNameParam('dnszoneidnsname', cli_name='dnszone', multivalue=False, only_absolute=True, primary_key=True, query=True, required=True)
 arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
 option: Str('a6_part_data', attribute=False, cli_name='a6_data', multivalue=False, option_group=u'A6 Record', required=False)
@@ -866,6 +866,10 @@ option: Str('naptr_part_replacement', attribute=False, cli_name='naptr_replaceme
 option: Str('naptr_part_service', attribute=False, cli_name='naptr_service', multivalue=False, option_group=u'NAPTR Record', required=False)
 option: NAPTRRecord('naptrrecord', attribute=True, cli_name='naptr_rec', csv=True, multivalue=True, option_group=u'NAPTR Record', required=False)
 option: DNSNameParam('ns_part_hostname', attribute=False, cli_name='ns_hostname', multivalue=False, option_group=u'NS Record', required=False)
+option: Int('nsec3param_part_algorithm', attribute=False, cli_name='nsec3param_algorithm', maxvalue=255, minvalue=0, multivalue=False, option_group=u'NSEC3PARAM Record', required=False)
+option: Int('nsec3param_part_flags', attribute=False, cli_name='nsec3param_flags', default=0, maxvalue=255, minvalue=0, multivalue=False, option_group=u'NSEC3PARAM Record', required=False)
+option: Int('nsec3param_part_iterations', attribute=False, cli_name='nsec3param_iterations', maxvalue=65535, minvalue=0, multivalue=False, option_group=u'NSEC3PARAM Record', required=False)
+option: Str('nsec3param_part_salt', attribute=False, cli_name='nsec3param_salt', default=u'-', minlength=1, multivalue=False, option_group=u'NSEC3PARAM Record', pattern='^([0-9a-fA-F]+|-)$', required=False)
 option: NSEC3PARAMRecord('nsec3paramrecord', attribute=True, cli_name='nsec3param_rec', csv=True, multivalue=True, option_group=u'NSEC3PARAM Record', required=False)
 option: NSEC3Record('nsec3record', attribute=True, cli_name='nsec3_rec', csv=True, multivalue=True, option_group=u'NSEC3 Record', required=False)
 option: NSECRecord('nsecrecord', attribute=True, cli_name='nsec_rec', csv=True, multivalue=True, option_group=u'NSEC Record', required=False)
@@ -1005,7 +1009,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: dnsrecord_mod
-args: 2,92,3
+args: 2,96,3
 arg: DNSNameParam('dnszoneidnsname', cli_name='dnszone', multivalue=False, only_absolute=True, primary_key=True, query=True, required=True)
 arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('a6_part_data', attribute=False, autofill=False, cli_name='a6_data', multivalue=False, option_group=u'A6 Record', required=False)
@@ -1070,6 +1074,10 @@ option: Str('naptr_part_replacement', attribute=False, autofill=False, cli_name=
 option: Str('naptr_part_service', attribute=False, autofill=False, cli_name='naptr_service', multivalue=False, option_group=u'NAPTR Record', required=False)
 option: NAPTRRecord('naptrrecord', attribute=True, autofill=False, cli_name='naptr_rec', csv=True, multivalue=True, option_group=u'NAPTR Record', required=False)
 option: DNSNameParam('ns_part_hostname', attribute=False, autofill=False, cli_name='ns_hostname', multivalue=False, option_group=u'NS Record', required=False)
+option: Int('nsec3param_part_algorithm', attribute=False, autofill=False, cli_name='nsec3param_algorithm', maxvalue=255, minvalue=0, multivalue=False, option_group=u'NSEC3PARAM Record', required=False)
+option: Int('nsec3param_part_flags', attribute=False, autofill=False, cli_name='nsec3param_flags', default=0, maxvalue=255, minvalue=0, multivalue=False, option_group=u'NSEC3PARAM Record', required=False)
+option: Int('nsec3param_part_iterations', attribute=False, autofill=False, cli_name='nsec3param_iterations', maxvalue=65535, minvalue=0, multivalue=False, option_group=u'NSEC3PARAM Record', required=False)
+option: Str('nsec3param_part_salt', attribute=False, autofill=False, cli_name='nsec3param_salt', default=u'-', minlength=1, multivalue=False, option_group=u'NSEC3PARAM Record', pattern='^([0-9a-fA-F]+|-)$', required=False)
 option: NSEC3PARAMRecord('nsec3paramrecord', attribute=True, autofill=False, cli_name='nsec3param_rec', csv=True, multivalue=True, option_group=u'NSEC3PARAM Record', required=False)
 option: NSEC3Record('nsec3record', attribute=True, autofill=False, cli_name='nsec3_rec', csv=True, multivalue=True, option_group=u'NSEC3 Record', required=False)
 option: NSECRecord('nsecrecord', attribute=True, autofill=False, cli_name='nsec_rec', csv=True, multivalue=True, option_group=u'NSEC Record', required=False)

@@ -1225,7 +1225,34 @@ class NSEC3Record(DNSRecord):
 class NSEC3PARAMRecord(DNSRecord):
     rrtype = 'NSEC3PARAM'
     rfc = 5155
-    supported = False
+    parts = (
+        Int('algorithm',
+            label=_('Algorithm'),
+            minvalue=0,
+            maxvalue=255,
+            ),
+        Int('flags',
+            label=_('Flags'),
+            minvalue=0,
+            maxvalue=255,
+            default=0,
+            ),
+        Int('iterations',
+            label=_('Iterations'),
+            minvalue=0,
+            maxvalue=65535,
+            ),
+        Str('salt',
+            label=_('Salt'),
+            doc=_('A hexadecimal salt value. Requires hexadecimal digits '
+                  'or hyphen ("-") if no salt is required'),
+            minlength=1,
+            default=u'-',  # no salt
+            pattern=r'^([0-9a-fA-F]+|-)$',
+            pattern_errmsg=u'only hexadecimal digits or single hyphen ("-") '
+                           u'are allowed'
+            ),
+    )
 
 def _validate_naptr_flags(ugettext, flags):
     allowed_flags = u'SAUP'
@@ -2063,8 +2090,9 @@ class dnszone(DNSZoneBase):
                 'idnssoaserial', 'idnsupdatepolicy', 'idnszoneactive',
                 'keyrecord', 'kxrecord', 'locrecord', 'managedby', 'mdrecord',
                 'minforecord', 'mxrecord', 'naptrrecord', 'nsecrecord',
-                'nsrecord', 'nxtrecord', 'ptrrecord', 'rrsigrecord',
-                'sigrecord', 'srvrecord', 'sshfprecord', 'txtrecord',
+                'nsec3paramrecord', 'nsrecord', 'nxtrecord', 'ptrrecord',
+                'rrsigrecord', 'sigrecord', 'srvrecord', 'sshfprecord',
+                'txtrecord',
             },
             'replaces_system': ['Read DNS Entries'],
             'default_privileges': {'DNS Administrators', 'DNS Servers'},
@@ -2095,8 +2123,9 @@ class dnszone(DNSZoneBase):
                 'idnssoaserial', 'idnsupdatepolicy', 'idnszoneactive',
                 'keyrecord', 'kxrecord', 'locrecord', 'managedby', 'mdrecord',
                 'minforecord', 'mxrecord', 'naptrrecord', 'nsecrecord',
-                'nsrecord', 'nxtrecord', 'ptrrecord', 'rrsigrecord',
-                'sigrecord', 'srvrecord', 'sshfprecord', 'txtrecord',
+                'nsec3paramrecord', 'nsrecord', 'nxtrecord', 'ptrrecord',
+                'rrsigrecord', 'sigrecord', 'srvrecord', 'sshfprecord',
+                'txtrecord',
             },
             'replaces': [
                 '(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:update dns entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -2405,6 +2434,13 @@ class dnsrecord(LDAPObject):
         for nsrecord in nsrecords:
             check_ns_rec_resolvable(keys[0], DNSName(nsrecord))
 
+    def _nsec3paramrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        nsec3paramrecord = entry_attrs.get('nsec3paramrecord')
+        if nsec3paramrecord and not self.is_pkey_zone_record(*keys):
+            raise errors.ValidationError(name='nsec3paramrecord',
+                        error=unicode(_('must be in zone record')))
+
     def _idnsname_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         if keys[-1].is_absolute():
@@ -2690,6 +2726,14 @@ class dnsrecord(LDAPObject):
                           error=_('DNAME record is not allowed to coexist with an '
                                   'NS record except when located in a zone root '
                                   'record (RFC 6672, section 2.3)'))
+
+        # NSEC3PARAM record validation
+        nsec3params = rrattrs.get('nsec3paramrecord')
+        if nsec3params is not None:
+            if len(nsec3params) > 1:
+                raise errors.ValidationError(name='nsec3paramrecord',
+                    error=_('Only one NSEC3PARAM record is '
+                            'allowed per zone'))
 
     def _entry2rrsets(self, entry_attrs, dns_name, dns_domain):
         '''Convert entry_attrs to a dictionary {rdtype: rrset}.
