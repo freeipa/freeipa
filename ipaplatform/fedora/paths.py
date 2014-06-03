@@ -23,4 +23,10 @@ in Fedora-based systems.
 '''
 
 # Fallback to default path definitions
-from ipaplatform.base import *
+from ipaplatform.base.paths import BasePathNamespace
+
+
+class FedoraPathNamespace(BasePathNamespace):
+    pass
+
+paths = FedoraPathNamespace()
