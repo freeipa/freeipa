@@ -150,6 +150,13 @@ version-update: release-update
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-client/version.m4.in \
 		> ipa-client/version.m4
 
+	if [ "$(SUPPORTED_PLATFORM)" != "" ]; then \
+		rm -f ipaplatform/paths.py ipaplatform/services.py ipaplatform/tasks.py; \
+		ln -s $(SUPPORTED_PLATFORM)/paths.py ipaplatform/paths.py; \
+		ln -s $(SUPPORTED_PLATFORM)/services.py ipaplatform/services.py; \
+		ln -s $(SUPPORTED_PLATFORM)/tasks.py ipaplatform/tasks.py; \
+	fi
+
 	if [ "$(SKIP_API_VERSION_CHECK)" != "yes" ]; then \
 		./makeapi --validate; \
 		./makeaci --validate; \
