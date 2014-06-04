@@ -2432,7 +2432,7 @@ class test_permission_targetfilter(Declarative):
         dict(
             desc='Search for %r using %s %s' % (permission1, value_name, option_name),
             command=(
-                'permission_find', [],
+                'permission_find', [permission1],
                 {option_name: value, 'all': True}
             ),
             expected=dict(
