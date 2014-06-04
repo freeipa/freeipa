@@ -73,6 +73,28 @@ class hbacsvcgroup(LDAPObject):
                 'memberuser', 'memberhost',
             },
         },
+        'System: Add HBAC Service Groups': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///cn=*,cn=hbacservicegroups,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Add HBAC service groups";allow (add) groupdn = "ldap:///cn=Add HBAC service groups,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'HBAC Administrator'},
+        },
+        'System: Delete HBAC Service Groups': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///cn=*,cn=hbacservicegroups,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Delete HBAC service groups";allow (delete) groupdn = "ldap:///cn=Delete HBAC service groups,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'HBAC Administrator'},
+        },
+        'System: Manage HBAC Service Group Membership': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'member'},
+            'replaces': [
+                '(targetattr = "member")(target = "ldap:///cn=*,cn=hbacservicegroups,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Manage HBAC service group membership";allow (write) groupdn = "ldap:///cn=Manage HBAC service group membership,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'HBAC Administrator'},
+        },
     }
 
     label = _('HBAC Service Groups')

@@ -68,6 +68,12 @@ dn: cn=System: Delete HBAC Services,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipahbacservice)")(version 3.0;acl "permission:System: Delete HBAC Services";allow (delete) groupdn = "ldap:///cn=System: Delete HBAC Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read HBAC Services,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "cn || description || ipauniqueid || memberof || objectclass")(targetfilter = "(objectclass=ipahbacservice)")(version 3.0;acl "permission:System: Read HBAC Services";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=System: Add HBAC Service Groups,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipahbacservicegroup)")(version 3.0;acl "permission:System: Add HBAC Service Groups";allow (add) groupdn = "ldap:///cn=System: Add HBAC Service Groups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Delete HBAC Service Groups,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipahbacservicegroup)")(version 3.0;acl "permission:System: Delete HBAC Service Groups";allow (delete) groupdn = "ldap:///cn=System: Delete HBAC Service Groups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Manage HBAC Service Group Membership,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "member")(targetfilter = "(objectclass=ipahbacservicegroup)")(version 3.0;acl "permission:System: Manage HBAC Service Group Membership";allow (write) groupdn = "ldap:///cn=System: Manage HBAC Service Group Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read HBAC Service Groups,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "businesscategory || cn || description || ipauniqueid || member || memberhost || memberuser || o || objectclass || ou || owner || seealso")(targetfilter = "(objectclass=ipahbacservicegroup)")(version 3.0;acl "permission:System: Read HBAC Service Groups";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Add Hosts,cn=permissions,cn=pbac,dc=ipa,dc=example

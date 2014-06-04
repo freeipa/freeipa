@@ -25,32 +25,6 @@ default:objectClass: top
 default:cn: HBAC Administrator
 default:description: HBAC Administrator
 
-dn: cn=Add HBAC service groups,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:objectClass: top
-default:cn: Add HBAC service groups
-default:member: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Delete HBAC service groups,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:objectClass: top
-default:cn: Delete HBAC service groups
-default:member: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Manage HBAC service group membership,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:objectClass: top
-default:cn: Manage HBAC service group membership
-default:member: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
-
-dn: $SUFFIX
-add:aci: '(target = "ldap:///cn=*,cn=hbacservicegroups,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Add HBAC service groups";allow (add) groupdn = "ldap:///cn=Add HBAC service groups,cn=permissions,cn=pbac,$SUFFIX";)'
-add:aci: '(target = "ldap:///cn=*,cn=hbacservicegroups,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Delete HBAC service groups";allow (delete) groupdn = "ldap:///cn=Delete HBAC service groups,cn=permissions,cn=pbac,$SUFFIX";)'
-add:aci: '(targetattr = "member")(target = "ldap:///cn=*,cn=hbacservicegroups,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Manage HBAC service group membership";allow (write) groupdn = "ldap:///cn=Manage HBAC service group membership,cn=permissions,cn=pbac,$SUFFIX";)'
-
 # SUDO
 
 dn: cn=Sudo Administrator,cn=privileges,cn=pbac,$SUFFIX
