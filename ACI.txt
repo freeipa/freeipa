@@ -146,8 +146,16 @@ dn: cn=System: Read Group Password Policy,cn=permissions,cn=pbac,dc=ipa,dc=examp
 aci: (targetattr = "cn || cospriority || krbmaxpwdlife || krbminpwdlife || krbpwdfailurecountinterval || krbpwdhistorylength || krbpwdlockoutduration || krbpwdmaxfailure || krbpwdmindiffchars || krbpwdminlength || objectclass")(targetfilter = "(objectclass=krbpwdpolicy)")(version 3.0;acl "permission:System: Read Group Password Policy";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Group Password Policy,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Realm Domains,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "associateddomain || cn || objectclass")(targetfilter = "(objectclass=domainrelatedobject)")(version 3.0;acl "permission:System: Read Realm Domains";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=System: Add Roles,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=groupofnames)")(version 3.0;acl "permission:System: Add Roles";allow (add) groupdn = "ldap:///cn=System: Add Roles,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Modify Role Membership,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "member")(targetfilter = "(objectclass=groupofnames)")(version 3.0;acl "permission:System: Modify Role Membership";allow (write) groupdn = "ldap:///cn=System: Modify Role Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Modify Roles,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "cn || description")(targetfilter = "(objectclass=groupofnames)")(version 3.0;acl "permission:System: Modify Roles";allow (write) groupdn = "ldap:///cn=System: Modify Roles,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Roles,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "businesscategory || cn || description || member || memberhost || memberof || memberuser || o || objectclass || ou || owner || seealso")(targetfilter = "(objectclass=groupofnames)")(version 3.0;acl "permission:System: Read Roles";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Roles,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Remove Roles,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=groupofnames)")(version 3.0;acl "permission:System: Remove Roles";allow (delete) groupdn = "ldap:///cn=System: Remove Roles,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read SELinux User Maps,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "accesstime || cn || description || hostcategory || ipaenabledflag || ipaselinuxuser || ipauniqueid || member || memberhost || memberuser || objectclass || seealso || usercategory")(targetfilter = "(objectclass=ipaselinuxusermap)")(version 3.0;acl "permission:System: Read SELinux User Maps";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Read Services,cn=permissions,cn=pbac,dc=ipa,dc=example

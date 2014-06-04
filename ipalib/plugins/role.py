@@ -93,6 +93,36 @@ class role(LDAPObject):
             },
             'default_privileges': {'RBAC Readers'},
         },
+        'System: Add Roles': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Roles";allow (add) groupdn = "ldap:///cn=Add Roles,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Delegation Administrator'},
+        },
+        'System: Modify Role Membership': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'member'},
+            'replaces': [
+                '(targetattr = "member")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Role membership";allow (write) groupdn = "ldap:///cn=Modify Role membership,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Delegation Administrator'},
+        },
+        'System: Modify Roles': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'cn', 'description'},
+            'replaces': [
+                '(targetattr = "cn || description")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0; acl "permission:Modify Roles";allow (write) groupdn = "ldap:///cn=Modify Roles,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Delegation Administrator'},
+        },
+        'System: Remove Roles': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Roles";allow (delete) groupdn = "ldap:///cn=Remove Roles,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Delegation Administrator'},
+        },
     }
 
     label = _('Roles')
