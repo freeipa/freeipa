@@ -408,11 +408,20 @@ class update_managed_permissions(PostUpdate):
         An attribute will be included if the user has it in LDAP but it does
         not appear in *any* historic ACI.
         It will be excluded if it is in *all* historic ACIs but not in LDAP.
+        Rationale: When we don't know which version of an ACI the user is
+        upgrading from, we only consider attributes where all the versions
+        agree. For other attrs we'll use the default from the new managed perm.
 
         If the ACIs differ in something else than the list of attributes,
         raise IncompatibleACIModification. This means manual action is needed
         (either delete the old permission or change it to resemble the default
-        again, then re-run ipa-ldap-updater)
+        again, then re-run ipa-ldap-updater).
+
+        In case there are multiple historic default ACIs, and some of them
+        are compatible with the current but other ones aren't, we deduce that
+        the user is upgrading from one of the compatible ones.
+        The incompatible ones are removed from consideration, both for
+        compatibility and attribute lists.
         """
         assert default_acistrings
 
@@ -434,6 +443,7 @@ class update_managed_permissions(PostUpdate):
 
         attrs_in_all_defaults = None
         attrs_in_any_defaults = set()
+        all_incompatible = True
         for default_acistring in default_acistrings:
             default_aci = ACI(default_acistring)
             default_attrs = _pop_targetattr(default_aci)
@@ -442,13 +452,19 @@ class update_managed_permissions(PostUpdate):
 
             if current_aci != default_aci:
                 self.log.debug('ACIs not compatible')
-                raise(IncompatibleACIModification())
+                continue
+            else:
+                all_incompatible = False
 
             if attrs_in_all_defaults is None:
                 attrs_in_all_defaults = set(default_attrs)
             else:
                 attrs_in_all_defaults &= attrs_in_all_defaults
             attrs_in_any_defaults |= default_attrs
+
+        if all_incompatible:
+            self.log.debug('All old default ACIs are incompatible')
+            raise(IncompatibleACIModification())
 
         included = current_attrs - attrs_in_any_defaults
         excluded = attrs_in_all_defaults - current_attrs
