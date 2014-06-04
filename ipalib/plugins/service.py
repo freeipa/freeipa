@@ -330,6 +330,36 @@ class service(LDAPObject):
                 'krbobjectreferences',
             },
         },
+        'System: Add Services': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Services";allow (add) groupdn = "ldap:///cn=Add Services,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Service Administrators'},
+        },
+        'System: Manage Service Keytab': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'krblastpwdchange', 'krbprincipalkey'},
+            'replaces': [
+                '(targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage service keytab";allow (write) groupdn = "ldap:///cn=Manage service keytab,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Service Administrators'},
+        },
+        'System: Modify Services': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'usercertificate'},
+            'replaces': [
+                '(targetattr = "usercertificate")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Services";allow (write) groupdn = "ldap:///cn=Modify Services,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Service Administrators'},
+        },
+        'System: Remove Services': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Services";allow (delete) groupdn = "ldap:///cn=Remove Services,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Service Administrators'},
+        },
     }
 
     label = _('Services')

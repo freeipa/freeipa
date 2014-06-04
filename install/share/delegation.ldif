@@ -133,41 +133,6 @@ description: Host Enrollment
 # Default permissions.
 ############################################
 
-# Service administration
-
-dn: cn=Add Services,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Add Services
-member: cn=Service Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Remove Services,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Remove Services
-member: cn=Service Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Modify Services,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Modify Services
-member: cn=Service Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Manage service keytab,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Manage service keytab
-member: cn=Service Administrators,cn=privileges,cn=pbac,$SUFFIX
-member: cn=admins,cn=groups,cn=accounts,$SUFFIX
-
 # DNS administration
 
 # The permission and aci for this is in install/updates/dns.ldif
@@ -209,26 +174,6 @@ objectClass: ipapermission
 cn: Modify DNA Range
 ipapermissiontype: SYSTEM
 member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-############################################
-# Default permissions (ACIs)
-############################################
-
-# Service administration
-
-dn: $SUFFIX
-changetype: modify
-add: aci
-aci: (target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Services";allow (add) groupdn = "ldap:///cn=Add Services,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Services";allow (delete) groupdn = "ldap:///cn=Remove Services,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetattr = "usercertificate")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Services";allow (write) groupdn = "ldap:///cn=Modify Services,cn=permissions,cn=pbac,$SUFFIX";)
-
-# Service keytab admin
-
-dn: $SUFFIX
-changetype: modify
-add: aci
-aci: (targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage service keytab";allow (write) groupdn = "ldap:///cn=Manage service keytab,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Create virtual operations entry. This is used to control access to
 # operations that don't rely on LDAP directly.
