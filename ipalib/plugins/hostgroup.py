@@ -94,6 +94,36 @@ class hostgroup(LDAPObject):
                 'member', 'memberof', 'memberuser', 'memberhost',
             },
         },
+        'System: Add Hostgroups': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Hostgroups";allow (add) groupdn = "ldap:///cn=Add Hostgroups,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Host Group Administrators'},
+        },
+        'System: Modify Hostgroup Membership': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'member'},
+            'replaces': [
+                '(targetattr = "member")(target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Hostgroup membership";allow (write) groupdn = "ldap:///cn=Modify Hostgroup membership,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Host Group Administrators'},
+        },
+        'System: Modify Hostgroups': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'cn', 'description'},
+            'replaces': [
+                '(targetattr = "cn || description")(target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0; acl "permission:Modify Hostgroups";allow (write) groupdn = "ldap:///cn=Modify Hostgroups,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Host Group Administrators'},
+        },
+        'System: Remove Hostgroups': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Hostgroups";allow (delete) groupdn = "ldap:///cn=Remove Hostgroups,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Host Group Administrators'},
+        },
     }
 
     label = _('Host Groups')

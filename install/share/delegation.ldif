@@ -133,40 +133,6 @@ description: Host Enrollment
 # Default permissions.
 ############################################
 
-# Hostgroup administration
-
-dn: cn=Add Hostgroups,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Add Hostgroups
-member: cn=Host Group Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Remove Hostgroups,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Remove Hostgroups
-member: cn=Host Group Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Modify Hostgroups,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Modify Hostgroups
-member: cn=Host Group Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Modify Hostgroup membership,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Modify Hostgroup membership
-member: cn=Host Group Administrators,cn=privileges,cn=pbac,$SUFFIX
-
 # Service administration
 
 dn: cn=Add Services,cn=permissions,cn=pbac,$SUFFIX
@@ -323,16 +289,6 @@ member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 ############################################
 # Default permissions (ACIs)
 ############################################
-
-# Hostgroup administration
-
-dn: $SUFFIX
-changetype: modify
-add: aci
-aci: (target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Hostgroups";allow (add) groupdn = "ldap:///cn=Add Hostgroups,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Hostgroups";allow (delete) groupdn = "ldap:///cn=Remove Hostgroups,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetattr = "cn || description")(target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0; acl "permission:Modify Hostgroups";allow (write) groupdn = "ldap:///cn=Modify Hostgroups,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetattr = "member")(target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Hostgroup membership";allow (write) groupdn = "ldap:///cn=Modify Hostgroup membership,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Service administration
 
