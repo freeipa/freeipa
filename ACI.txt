@@ -52,6 +52,14 @@ dn: cn=System: Read Groups,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "businesscategory || cn || description || gidnumber || ipaexternalmember || ipantsecurityidentifier || ipauniqueid || mepmanagedby || o || objectclass || ou || owner || seealso")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Read Groups";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=System: Remove Groups,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Remove Groups";allow (delete) groupdn = "ldap:///cn=System: Remove Groups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Add HBAC Rule,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipahbacrule)")(version 3.0;acl "permission:System: Add HBAC Rule";allow (add) groupdn = "ldap:///cn=System: Add HBAC Rule,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Delete HBAC Rule,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipahbacrule)")(version 3.0;acl "permission:System: Delete HBAC Rule";allow (delete) groupdn = "ldap:///cn=System: Delete HBAC Rule,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Manage HBAC Rule Membership,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "externalhost || memberhost || memberservice || memberuser")(targetfilter = "(objectclass=ipahbacrule)")(version 3.0;acl "permission:System: Manage HBAC Rule Membership";allow (write) groupdn = "ldap:///cn=System: Manage HBAC Rule Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Modify HBAC Rule,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "accessruletype || accesstime || cn || description || hostcategory || ipaenabledflag || servicecategory || sourcehost || sourcehostcategory || usercategory")(targetfilter = "(objectclass=ipahbacrule)")(version 3.0;acl "permission:System: Modify HBAC Rule";allow (write) groupdn = "ldap:///cn=System: Modify HBAC Rule,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read HBAC Rules,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "accessruletype || accesstime || cn || description || externalhost || hostcategory || ipaenabledflag || ipauniqueid || member || memberhost || memberservice || memberuser || objectclass || servicecategory || sourcehost || sourcehostcategory || usercategory")(targetfilter = "(objectclass=ipahbacrule)")(version 3.0;acl "permission:System: Read HBAC Rules";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Read HBAC Services,cn=permissions,cn=pbac,dc=ipa,dc=example

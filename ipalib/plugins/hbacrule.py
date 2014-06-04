@@ -147,6 +147,42 @@ class hbacrule(LDAPObject):
                 'usercategory', 'objectclass', 'member',
             },
         },
+        'System: Add HBAC Rule': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///ipauniqueid=*,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Add HBAC rule";allow (add) groupdn = "ldap:///cn=Add HBAC rule,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'HBAC Administrator'},
+        },
+        'System: Delete HBAC Rule': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///ipauniqueid=*,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Delete HBAC rule";allow (delete) groupdn = "ldap:///cn=Delete HBAC rule,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'HBAC Administrator'},
+        },
+        'System: Manage HBAC Rule Membership': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'externalhost', 'memberhost', 'memberservice', 'memberuser'
+            },
+            'replaces': [
+                '(targetattr = "memberuser || externalhost || memberservice || memberhost")(target = "ldap:///ipauniqueid=*,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Manage HBAC rule membership";allow (write) groupdn = "ldap:///cn=Manage HBAC rule membership,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'HBAC Administrator'},
+        },
+        'System: Modify HBAC Rule': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'accessruletype', 'accesstime', 'cn', 'description',
+                'hostcategory', 'ipaenabledflag', 'servicecategory',
+                'sourcehost', 'sourcehostcategory', 'usercategory'
+            },
+            'replaces': [
+                '(targetattr = "servicecategory || sourcehostcategory || cn || description || ipaenabledflag || accesstime || usercategory || hostcategory || accessruletype || sourcehost")(target = "ldap:///ipauniqueid=*,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Modify HBAC rule";allow (write) groupdn = "ldap:///cn=Modify HBAC rule,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'HBAC Administrator'},
+        },
     }
 
     label = _('HBAC Rules')
