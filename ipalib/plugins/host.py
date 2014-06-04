@@ -342,7 +342,7 @@ class host(LDAPObject):
             'ipapermright': {'write'},
             'ipapermdefaultattr': {
                 'description', 'l', 'nshardwareplatform', 'nshostlocation',
-                'nsosversion', 'macaddress',
+                'nsosversion', 'macaddress', 'userclass',
             },
             'replaces': [
                 '(targetattr = "description || l || nshostlocation || nshardwareplatform || nsosversion")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Hosts";allow (write) groupdn = "ldap:///cn=Modify Hosts,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -355,6 +355,18 @@ class host(LDAPObject):
                 '(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Hosts";allow (delete) groupdn = "ldap:///cn=Remove Hosts,cn=permissions,cn=pbac,$SUFFIX";)',
             ],
             'default_privileges': {'Host Administrators'},
+        },
+        'System: Manage Host Certificates': {
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'usercertificate'},
+            'default_privileges': {'Host Administrators', 'Host Enrollment'},
+        },
+        'System: Manage Host Enrollment Password': {
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'userpassword'},
+            'default_privileges': {'Host Administrators', 'Host Enrollment'},
         },
     }
 
