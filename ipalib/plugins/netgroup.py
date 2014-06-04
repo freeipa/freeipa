@@ -127,6 +127,38 @@ class netgroup(LDAPObject):
                 'memberhost', 'objectclass',
             },
         },
+        'System: Add Netgroups': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0;acl "permission:Add netgroups";allow (add) groupdn = "ldap:///cn=Add netgroups,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Netgroups Administrators'},
+        },
+        'System: Modify Netgroup Membership': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'externalhost', 'member', 'memberhost', 'memberuser'
+            },
+            'replaces': [
+                '(targetattr = "memberhost || externalhost || memberuser || member")(target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0;acl "permission:Modify netgroup membership";allow (write) groupdn = "ldap:///cn=Modify netgroup membership,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Netgroups Administrators'},
+        },
+        'System: Modify Netgroups': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'description'},
+            'replaces': [
+                '(targetattr = "description")(target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0; acl "permission:Modify netgroups";allow (write) groupdn = "ldap:///cn=Modify netgroups,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Netgroups Administrators'},
+        },
+        'System: Remove Netgroups': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///ipauniqueid=*,cn=ng,cn=alt,$SUFFIX")(version 3.0;acl "permission:Remove netgroups";allow (delete) groupdn = "ldap:///cn=Remove netgroups,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Netgroups Administrators'},
+        },
     }
 
     label = _('Netgroups')

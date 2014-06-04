@@ -116,10 +116,18 @@ dn: cn=System: Read Default Kerberos Ticket Policy,cn=permissions,cn=pbac,dc=ipa
 aci: (targetattr = "krbdefaultencsalttypes || krbmaxrenewableage || krbmaxticketlife || krbsupportedencsalttypes || objectclass")(targetfilter = "(objectclass=krbticketpolicyaux)")(version 3.0;acl "permission:System: Read Default Kerberos Ticket Policy";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Default Kerberos Ticket Policy,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read User Kerberos Ticket Policy,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "krbmaxrenewableage || krbmaxticketlife")(targetfilter = "(objectclass=krbticketpolicyaux)")(version 3.0;acl "permission:System: Read User Kerberos Ticket Policy";allow (compare,read,search) groupdn = "ldap:///cn=System: Read User Kerberos Ticket Policy,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Add Netgroups,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Add Netgroups";allow (add) groupdn = "ldap:///cn=System: Add Netgroups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Modify Netgroup Membership,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "externalhost || member || memberhost || memberuser")(targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Modify Netgroup Membership";allow (write) groupdn = "ldap:///cn=System: Modify Netgroup Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Modify Netgroups,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "description")(targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Modify Netgroups";allow (write) groupdn = "ldap:///cn=System: Modify Netgroups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Netgroup Membership,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "externalhost || member || memberhost || memberof || memberuser || objectclass")(targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Read Netgroup Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Read Netgroups,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "cn || description || hostcategory || ipaenabledflag || ipauniqueid || nisdomainname || objectclass || usercategory")(targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Read Netgroups";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=System: Remove Netgroups,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Remove Netgroups";allow (delete) groupdn = "ldap:///cn=System: Remove Netgroups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read ACIs,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "aci")(version 3.0;acl "permission:System: Read ACIs";allow (compare,read,search) groupdn = "ldap:///cn=System: Read ACIs,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Permissions,cn=permissions,cn=pbac,dc=ipa,dc=example
