@@ -34,33 +34,6 @@ default:objectClass: top
 default:cn: Sudo Administrator
 default:description: Sudo Administrator
 
-dn: cn=Add Sudo command group,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:objectClass: top
-default:cn: Add Sudo command group
-default:member: cn=Sudo Administrator,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Delete Sudo command group,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:objectClass: top
-default:cn: Delete Sudo command group
-default:member: cn=Sudo Administrator,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Manage Sudo command group membership,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:objectClass: top
-default:cn: Manage Sudo command group membership
-default:member: cn=Sudo Administrator,cn=privileges,cn=pbac,$SUFFIX
-
-dn: $SUFFIX
-
-add:aci: '(target = "ldap:///cn=*,cn=sudocmdgroups,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Add Sudo command group";allow (add) groupdn = "ldap:///cn=Add Sudo command group,cn=permissions,cn=pbac,$SUFFIX";)'
-add:aci: '(target = "ldap:///cn=*,cn=sudocmdgroups,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Delete Sudo command group";allow (delete) groupdn = "ldap:///cn=Delete Sudo command group,cn=permissions,cn=pbac,$SUFFIX";)'
-add:aci: '(targetattr = "member")(target = "ldap:///cn=*,cn=sudocmdgroups,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Manage Sudo command group membership";allow (write) groupdn = "ldap:///cn=Manage Sudo command group membership,cn=permissions,cn=pbac,$SUFFIX";)'
-
 # Password Policy
 dn: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
 default:objectClass: nestedgroup

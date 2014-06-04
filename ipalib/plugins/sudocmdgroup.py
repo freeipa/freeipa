@@ -78,6 +78,28 @@ class sudocmdgroup(LDAPObject):
                 'memberuser', 'memberhost',
             },
         },
+        'System: Add Sudo Command Group': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///cn=*,cn=sudocmdgroups,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Add Sudo command group";allow (add) groupdn = "ldap:///cn=Add Sudo command group,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Sudo Administrator'},
+        },
+        'System: Delete Sudo Command Group': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///cn=*,cn=sudocmdgroups,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Delete Sudo command group";allow (delete) groupdn = "ldap:///cn=Delete Sudo command group,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Sudo Administrator'},
+        },
+        'System: Manage Sudo Command Group Membership': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'member'},
+            'replaces': [
+                '(targetattr = "member")(target = "ldap:///cn=*,cn=sudocmdgroups,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Manage Sudo command group membership";allow (write) groupdn = "ldap:///cn=Manage Sudo command group membership,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Sudo Administrator'},
+        },
     }
 
     label = _('Sudo Command Groups')

@@ -182,6 +182,12 @@ dn: cn=System: Modify Sudo Command,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "description")(targetfilter = "(objectclass=ipasudocmd)")(version 3.0;acl "permission:System: Modify Sudo Command";allow (write) groupdn = "ldap:///cn=System: Modify Sudo Command,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Sudo Commands,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "description || ipauniqueid || memberof || objectclass || sudocmd")(targetfilter = "(objectclass=ipasudocmd)")(version 3.0;acl "permission:System: Read Sudo Commands";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=System: Add Sudo Command Group,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipasudocmdgrp)")(version 3.0;acl "permission:System: Add Sudo Command Group";allow (add) groupdn = "ldap:///cn=System: Add Sudo Command Group,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Delete Sudo Command Group,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipasudocmdgrp)")(version 3.0;acl "permission:System: Delete Sudo Command Group";allow (delete) groupdn = "ldap:///cn=System: Delete Sudo Command Group,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Manage Sudo Command Group Membership,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "member")(targetfilter = "(objectclass=ipasudocmdgrp)")(version 3.0;acl "permission:System: Manage Sudo Command Group Membership";allow (write) groupdn = "ldap:///cn=System: Manage Sudo Command Group Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Sudo Command Groups,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "businesscategory || cn || description || ipauniqueid || member || memberhost || memberuser || o || objectclass || ou || owner || seealso")(targetfilter = "(objectclass=ipasudocmdgrp)")(version 3.0;acl "permission:System: Read Sudo Command Groups";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Add Sudo rule,cn=permissions,cn=pbac,dc=ipa,dc=example
