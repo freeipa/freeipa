@@ -161,6 +161,46 @@ class group(LDAPObject):
                 'member', 'memberof', 'memberuid', 'memberuser', 'memberhost',
             },
         },
+        'System: Add Groups': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Groups";allow (add) groupdn = "ldap:///cn=Add Groups,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Group Administrators'},
+        },
+        'System: Modify Group Membership': {
+            'ipapermright': {'write'},
+            'ipapermtargetfilter': [
+                '(objectclass=ipausergroup)',
+                '(!(cn=admins))',
+            ],
+            'ipapermdefaultattr': {'member'},
+            'replaces': [
+                '(targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Group membership";allow (write) groupdn = "ldap:///cn=Modify Group membership,cn=permissions,cn=pbac,$SUFFIX";)',
+                '(targetfilter = "(!(cn=admins))")(targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Group membership";allow (write) groupdn = "ldap:///cn=Modify Group membership,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {
+                'Group Administrators', 'Modify Group membership'
+            },
+        },
+        'System: Modify Groups': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'cn', 'description', 'gidnumber', 'ipauniqueid',
+                'mepmanagedby', 'objectclass'
+            },
+            'replaces': [
+                '(targetattr = "cn || description || gidnumber || objectclass || mepmanagedby || ipauniqueid")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Groups";allow (write) groupdn = "ldap:///cn=Modify Groups,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Group Administrators'},
+        },
+        'System: Remove Groups': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Groups";allow (delete) groupdn = "ldap:///cn=Remove Groups,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Group Administrators'},
+        },
     }
 
     label = _('User Groups')

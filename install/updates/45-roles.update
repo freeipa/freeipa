@@ -15,9 +15,6 @@ default:cn: Modify Group membership
 default:description: Modify Group membership
 default:member: cn=helpdesk,cn=roles,cn=accounts,$SUFFIX
 
-dn: cn=Modify Group membership,cn=permissions,cn=pbac,$SUFFIX
-add:member: 'cn=Modify Group membership,cn=privileges,cn=pbac,$SUFFIX'
-
 dn: cn=User Administrator,cn=roles,cn=accounts,$SUFFIX
 default:objectClass: groupofnames
 default:objectClass: nestedgroup

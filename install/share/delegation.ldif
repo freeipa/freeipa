@@ -133,40 +133,6 @@ description: Host Enrollment
 # Default permissions.
 ############################################
 
-# Group administration
-
-dn: cn=Add Groups,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Add Groups
-member: cn=Group Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Remove Groups,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Remove Groups
-member: cn=Group Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Modify Groups,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Modify Groups
-member: cn=Group Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Modify Group membership,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Modify Group membership
-member: cn=Group Administrators,cn=privileges,cn=pbac,$SUFFIX
-
 # Hostgroup administration
 
 dn: cn=Add Hostgroups,cn=permissions,cn=pbac,$SUFFIX
@@ -357,18 +323,6 @@ member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 ############################################
 # Default permissions (ACIs)
 ############################################
-
-# Group administration
-
-dn: $SUFFIX
-changetype: modify
-add: aci
-aci: (target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Groups";allow (add) groupdn = "ldap:///cn=Add Groups,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetfilter = "(!(cn=admins))")(targetattr = "member")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Group membership";allow (write) groupdn = "ldap:///cn=Modify Group membership,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Groups";allow (delete) groupdn = "ldap:///cn=Remove Groups,cn=permissions,cn=pbac,$SUFFIX";)
-# We need objectclass and gidnumber in modify so a non-posix group can be
-# promoted. We need mqpManagedBy and ipaUniqueId so a group can be detached.
-aci: (targetattr = "cn || description || gidnumber || objectclass || mepmanagedby || ipauniqueid")(target = "ldap:///cn=*,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Groups";allow (write) groupdn = "ldap:///cn=Modify Groups,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Hostgroup administration
 
