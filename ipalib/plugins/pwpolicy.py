@@ -237,6 +237,32 @@ class pwpolicy(LDAPObject):
                 'Password Policy Administrator',
             },
         },
+        'System: Add Group Password Policy': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///cn=*,cn=$REALM,cn=kerberos,$SUFFIX")(version 3.0;acl "permission:Add Group Password Policy";allow (add) groupdn = "ldap:///cn=Add Group Password Policy,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Password Policy Administrator'},
+        },
+        'System: Delete Group Password Policy': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///cn=*,cn=$REALM,cn=kerberos,$SUFFIX")(version 3.0;acl "permission:Delete Group Password Policy";allow (delete) groupdn = "ldap:///cn=Delete Group Password Policy,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Password Policy Administrator'},
+        },
+        'System: Modify Group Password Policy': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'krbmaxpwdlife', 'krbminpwdlife', 'krbpwdfailurecountinterval',
+                'krbpwdhistorylength', 'krbpwdlockoutduration',
+                'krbpwdmaxfailure', 'krbpwdmindiffchars', 'krbpwdminlength'
+            },
+            'replaces': [
+                '(targetattr = "krbmaxpwdlife || krbminpwdlife || krbpwdhistorylength || krbpwdmindiffchars || krbpwdminlength || krbpwdmaxfailure || krbpwdfailurecountinterval || krbpwdlockoutduration")(target = "ldap:///cn=*,cn=$REALM,cn=kerberos,$SUFFIX")(version 3.0;acl "permission:Modify Group Password Policy";allow (write) groupdn = "ldap:///cn=Modify Group Password Policy,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Password Policy Administrator'},
+        },
     }
 
     MIN_KRB5KDC_WITH_LOCKOUT = "1.8"
