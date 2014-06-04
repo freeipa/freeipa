@@ -41,6 +41,8 @@ define(['dojo/_base/declare',
 
         id: 'simple-container',
 
+        'class': 'app-container',
+
         //nodes:
         dom_node: null,
 
@@ -52,7 +54,7 @@ define(['dojo/_base/declare',
 
             this.dom_node = construct.create('div', {
                 id: this.id,
-                'class': 'app-container'
+                'class': this['class']
             });
 
             if (this.container_node) {

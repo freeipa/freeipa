@@ -1177,7 +1177,7 @@ IPA.notify = function(message, type, timeout) {
             }
         });
 
-        notification_area.appendTo('#container');
+        notification_area.appendTo('#notification');
     }
     notification_area.empty();
 

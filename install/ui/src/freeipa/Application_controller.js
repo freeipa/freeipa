@@ -89,6 +89,12 @@ define([
             var simple_container = new FacetContainer();
             simple_container.container_node = body_node;
 
+            var notification_container = new FacetContainer({
+                container_node: body_node,
+                id: "notification",
+                'class': ''
+            });
+
             this.containers = {
                 // Default view
                 main: {
@@ -117,6 +123,7 @@ define([
             this.app_widget.hide();
             simple_container.render();
             simple_container.hide();
+            notification_container.render();
             var load_facet = reg.facet.get('load');
             this.show_facet(load_facet);
             IPA.opened_dialogs.start_handling(this);
