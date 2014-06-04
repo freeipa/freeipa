@@ -62,6 +62,10 @@ dn: cn=System: Modify HBAC Rule,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "accessruletype || accesstime || cn || description || hostcategory || ipaenabledflag || servicecategory || sourcehost || sourcehostcategory || usercategory")(targetfilter = "(objectclass=ipahbacrule)")(version 3.0;acl "permission:System: Modify HBAC Rule";allow (write) groupdn = "ldap:///cn=System: Modify HBAC Rule,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read HBAC Rules,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "accessruletype || accesstime || cn || description || externalhost || hostcategory || ipaenabledflag || ipauniqueid || member || memberhost || memberservice || memberuser || objectclass || servicecategory || sourcehost || sourcehostcategory || usercategory")(targetfilter = "(objectclass=ipahbacrule)")(version 3.0;acl "permission:System: Read HBAC Rules";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=System: Add HBAC Services,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipahbacservice)")(version 3.0;acl "permission:System: Add HBAC Services";allow (add) groupdn = "ldap:///cn=System: Add HBAC Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Delete HBAC Services,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipahbacservice)")(version 3.0;acl "permission:System: Delete HBAC Services";allow (delete) groupdn = "ldap:///cn=System: Delete HBAC Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read HBAC Services,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "cn || description || ipauniqueid || memberof || objectclass")(targetfilter = "(objectclass=ipahbacservice)")(version 3.0;acl "permission:System: Read HBAC Services";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Read HBAC Service Groups,cn=permissions,cn=pbac,dc=ipa,dc=example

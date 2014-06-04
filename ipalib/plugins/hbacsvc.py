@@ -76,6 +76,20 @@ class hbacsvc(LDAPObject):
                 'cn', 'description', 'ipauniqueid', 'memberof', 'objectclass',
             },
         },
+        'System: Add HBAC Services': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///cn=*,cn=hbacservices,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Add HBAC services";allow (add) groupdn = "ldap:///cn=Add HBAC services,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'HBAC Administrator'},
+        },
+        'System: Delete HBAC Services': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///cn=*,cn=hbacservices,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Delete HBAC services";allow (delete) groupdn = "ldap:///cn=Delete HBAC services,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'HBAC Administrator'},
+        },
     }
 
     label = _('HBAC Services')
