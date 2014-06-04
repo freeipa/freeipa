@@ -21,9 +21,9 @@
 define([
     // core
     './app_container',
-    './plugins/load_page',
-    './plugins/login',
     './plugins/sync_otp',
+    './plugins/login',
+    './plugins/login_process',
     // entities
     './aci',
     './automember',

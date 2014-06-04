@@ -36,7 +36,8 @@ define([
         './navigation/Menu',
         './navigation/Router',
         './navigation/routing',
-        './navigation/menu_spec'
+        './navigation/menu_spec',
+        './plugins/load_page'
        ],
        function(declare, lang, array, Deferred, on, topic, query, dom_class, auth,
             JSON, App_widget, FacetContainer, IPA, reg, Menu, Router, routing, menu_spec) {
