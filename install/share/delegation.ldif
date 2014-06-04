@@ -193,14 +193,6 @@ objectClass: ipapermission
 cn: Modify Role membership
 member: cn=Delegation Administrator,cn=privileges,cn=pbac,$SUFFIX
 
-dn: cn=Modify privilege membership,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Modify privilege membership
-member: cn=Delegation Administrator,cn=privileges,cn=pbac,$SUFFIX
-
 dn: cn=Manage service keytab,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
@@ -274,7 +266,6 @@ aci: (target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "per
 aci: (target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Roles";allow (delete) groupdn = "ldap:///cn=Remove Roles,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (targetattr = "cn || description")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0; acl "permission:Modify Roles";allow (write) groupdn = "ldap:///cn=Modify Roles,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (targetattr = "member")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Role membership";allow (write) groupdn = "ldap:///cn=Modify Role membership,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetattr = "member")(target = "ldap:///cn=*,cn=permissions,cn=pbac,$SUFFIX")(version 3.0;acl "permission:Modify privilege membership";allow (write) groupdn = "ldap:///cn=Modify privilege membership,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Service keytab admin
 

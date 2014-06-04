@@ -128,6 +128,8 @@ dn: cn=System: Read Netgroups,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "cn || description || hostcategory || ipaenabledflag || ipauniqueid || nisdomainname || objectclass || usercategory")(targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Read Netgroups";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Remove Netgroups,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Remove Netgroups";allow (delete) groupdn = "ldap:///cn=System: Remove Netgroups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Modify Privilege Membership,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "member")(targetfilter = "(objectclass=ipapermission)")(version 3.0;acl "permission:System: Modify Privilege Membership";allow (write) groupdn = "ldap:///cn=System: Modify Privilege Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read ACIs,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "aci")(version 3.0;acl "permission:System: Read ACIs";allow (compare,read,search) groupdn = "ldap:///cn=System: Read ACIs,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Permissions,cn=permissions,cn=pbac,dc=ipa,dc=example

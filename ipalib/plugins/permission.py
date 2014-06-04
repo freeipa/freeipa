@@ -205,6 +205,14 @@ class permission(baseldap.LDAPObject):
             'ipapermdefaultattr': {'aci'},
             'default_privileges': {'RBAC Readers'},
         },
+        'System: Modify Privilege Membership': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'member'},
+            'replaces': [
+                '(targetattr = "member")(target = "ldap:///cn=*,cn=permissions,cn=pbac,$SUFFIX")(version 3.0;acl "permission:Modify privilege membership";allow (write) groupdn = "ldap:///cn=Modify privilege membership,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Delegation Administrator'},
+        },
     }
 
     label = _('Permissions')
