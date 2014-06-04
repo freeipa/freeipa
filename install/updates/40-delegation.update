@@ -307,14 +307,6 @@ add:aci:'(targetattr = "automountkey || automountinformation || description")(ta
 replace:aci:'(target = "ldap:///automountkey=*,automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Add Automount keys";allow (add) groupdn = "ldap:///cn=Add Automount keys,cn=permissions,cn=pbac,$SUFFIX";)::(targetfilter = "(objectclass=automount)")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Add Automount keys";allow (add) groupdn = "ldap:///cn=Add Automount keys,cn=permissions,cn=pbac,$SUFFIX";)'
 replace:aci:'(target = "ldap:///automountkey=*,automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Remove Automount keys";allow (delete) groupdn = "ldap:///cn=Remove Automount keys,cn=permissions,cn=pbac,$SUFFIX";)::(targetfilter = "(objectclass=automount)")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Remove Automount keys";allow (delete) groupdn = "ldap:///cn=Remove Automount keys,cn=permissions,cn=pbac,$SUFFIX";)'
 
-# SSH public keys
-dn: cn=Manage User SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: top
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:cn: Manage User SSH Public Keys
-default:member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
-
 dn: cn=Manage Host SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX
 default:objectClass: top
 default:objectClass: groupofnames
@@ -323,15 +315,7 @@ default:cn: Manage Host SSH Public Keys
 default:member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
 
 dn: $SUFFIX
-add:aci:'(targetattr = "ipasshpubkey")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage User SSH Public Keys";allow (write) groupdn = "ldap:///cn=Manage User SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX";)'
-
-dn: $SUFFIX
 add:aci:'(targetattr = "ipasshpubkey")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage Host SSH Public Keys";allow (write) groupdn = "ldap:///cn=Manage Host SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX";)'
-
-# Limit the change password permission so it can't change the passwords
-# of administrators
-dn: $SUFFIX
-replace:aci:'(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "permission:Change a user password";allow (write) groupdn = "ldap:///cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX";)::(targetfilter = "(!(memberOf=cn=admins,cn=groups,cn=accounts,$SUFFIX))")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "permission:Change a user password";allow (write) groupdn = "ldap:///cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX";)'
 
 # Don't allow the default 'manage group membership' to be able to manage the
 # admins group

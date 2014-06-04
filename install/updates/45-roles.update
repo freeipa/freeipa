@@ -7,12 +7,6 @@ default:cn: Modify Users and Reset passwords
 default:description: Modify Users and Reset passwords
 default:member: cn=helpdesk,cn=roles,cn=accounts,$SUFFIX
 
-dn: cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX
-add:member: 'cn=Modify Users and Reset passwords,cn=privileges,cn=pbac,$SUFFIX'
-
-dn: cn=Modify Users,cn=permissions,cn=pbac,$SUFFIX
-add:member: 'cn=Modify Users and Reset passwords,cn=privileges,cn=pbac,$SUFFIX'
-
 dn: cn=Modify Group membership,cn=privileges,cn=pbac,$SUFFIX
 default:objectClass: top
 default:objectClass: groupofnames

@@ -133,65 +133,6 @@ description: Host Enrollment
 # Default permissions.
 ############################################
 
-# User administration
-
-dn: cn=Add Users,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Add Users
-member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Change a user password
-member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Add user to default group,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Add user to default group
-member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Unlock user accounts,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectclass: top
-objectclass: groupofnames
-objectClass: ipapermission
-cn: Unlock user accounts
-member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
-member: cn=admins,cn=groups,cn=accounts,$SUFFIX
-
-dn: cn=Remove Users,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Remove Users
-member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Modify Users,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Modify Users
-member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Manage User SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Manage User SSH Public Keys
-member: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
-
 # Group administration
 
 dn: cn=Add Groups,cn=permissions,cn=pbac,$SUFFIX
@@ -520,19 +461,6 @@ member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 ############################################
 # Default permissions (ACIs)
 ############################################
-
-# User administration
-
-dn: $SUFFIX
-changetype: modify
-add: aci
-aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Users";allow (add) groupdn = "ldap:///cn=Add Users,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetfilter = "(!(memberOf=cn=admins,cn=groups,cn=accounts,$SUFFIX))")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "permission:Change a user password";allow (write) groupdn = "ldap:///cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetattr = "krbLastAdminUnlock || krbLoginFailedCount")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Unlock user accounts";allow (write) groupdn = "ldap:///cn=Unlock user accounts,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetattr = "member")(target = "ldap:///cn=ipausers,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add user to default group";allow (write) groupdn = "ldap:///cn=Add user to default group,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Users";allow (delete) groupdn = "ldap:///cn=Remove Users,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype || businesscategory || ou || mepmanagedentry || objectclass")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Users";allow (write) groupdn = "ldap:///cn=Modify Users,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetattr = "ipasshpubkey")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage User SSH Public Keys";allow (write) groupdn = "ldap:///cn=Manage User SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Group administration
 

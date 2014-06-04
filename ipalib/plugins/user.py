@@ -336,6 +336,97 @@ class user(LDAPObject):
             'ipapermdefaultattr': {'*'},
             'default_privileges': {'User Administrators'},
         },
+        'System: Add Users': {
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Users";allow (add) groupdn = "ldap:///cn=Add Users,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'User Administrators'},
+        },
+        'System: Add User to default group': {
+            'non_object': True,
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'write'},
+            'ipapermlocation': DN(api.env.container_group, api.env.basedn),
+            'ipapermtarget': DN('cn=ipausers', api.env.container_group,
+                                api.env.basedn),
+            'ipapermdefaultattr': {'member'},
+            'replaces': [
+                '(targetattr = "member")(target = "ldap:///cn=ipausers,cn=groups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add user to default group";allow (write) groupdn = "ldap:///cn=Add user to default group,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'User Administrators'},
+        },
+        'System: Change User password': {
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'write'},
+            'ipapermtargetfilter': [
+                '(objectclass=posixaccount)',
+                '(!(memberOf=%s))' % DN('cn=admins',
+                                        api.env.container_group,
+                                        api.env.basedn),
+            ],
+            'ipapermdefaultattr': {
+                'krbprincipalkey', 'passwordhistory', 'sambalmpassword',
+                'sambantpassword', 'userpassword'
+            },
+            'replaces': [
+                '(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "permission:Change a user password";allow (write) groupdn = "ldap:///cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX";)',
+                '(targetfilter = "(!(memberOf=cn=admins,cn=groups,cn=accounts,$SUFFIX))")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "permission:Change a user password";allow (write) groupdn = "ldap:///cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {
+                'User Administrators',
+                'Modify Users and Reset passwords',
+            },
+        },
+        'System: Manage User SSH Public Keys': {
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'ipasshpubkey'},
+            'replaces': [
+                '(targetattr = "ipasshpubkey")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage User SSH Public Keys";allow (write) groupdn = "ldap:///cn=Manage User SSH Public Keys,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'User Administrators'},
+        },
+        'System: Modify Users': {
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'businesscategory', 'carlicense', 'cn', 'description',
+                'displayname', 'employeetype', 'facsimiletelephonenumber',
+                'gecos', 'givenname', 'homephone', 'inetuserhttpurl',
+                'initials', 'l', 'labeleduri', 'loginshell', 'manager',
+                'mepmanagedentry', 'mobile', 'objectclass', 'ou', 'pager',
+                'postalcode', 'roomnumber', 'secretary', 'seealso', 'sn', 'st',
+                'street', 'telephonenumber', 'title'
+            },
+            'replaces': [
+                '(targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype || businesscategory || ou || mepmanagedentry || objectclass")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Users";allow (write) groupdn = "ldap:///cn=Modify Users,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {
+                'User Administrators',
+                'Modify Users and Reset passwords',
+            },
+        },
+        'System: Remove Users': {
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Users";allow (delete) groupdn = "ldap:///cn=Remove Users,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'User Administrators'},
+        },
+        'System: Unlock User': {
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'krblastadminunlock', 'krbloginfailedcount'
+            },
+            'replaces': [
+                '(targetattr = "krbLastAdminUnlock || krbLoginFailedCount")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Unlock user accounts";allow (write) groupdn = "ldap:///cn=Unlock user accounts,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'User Administrators'},
+        },
     }
 
     label = _('Users')
