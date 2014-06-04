@@ -1468,7 +1468,8 @@ IPA.confirm_mixin = function() {
                     key = event.keyCode,
                     ignore = ir.src_elements.indexOf(t.tagName.toLowerCase()) > -1 ||
                              ir.src_types.indexOf(t.type) > -1 ||
-                             !this.keysdown[key];
+                             !this.keysdown[key] ||
+                             this.last_origin !== t;
                     delete this.keysdown[key];
 
                 return ignore;
@@ -1512,6 +1513,7 @@ IPA.confirm_mixin = function() {
                     this.on_cancel();
                 }
                 delete this.keysdown[event.keyCode];
+                delete this.last_origin;
             },
 
             /**
@@ -1527,6 +1529,7 @@ IPA.confirm_mixin = function() {
              * @param {Event} event
              */
             _on_key_down: function(event) {
+                this.last_origin = event.target;
                 this.keysdown[event.keyCode] = true;
             }
         },
