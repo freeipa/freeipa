@@ -78,6 +78,31 @@ class sudocmd(LDAPObject):
                 'sudocmd',
             },
         },
+        'System: Add Sudo Command': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///sudocmd=*,cn=sudocmds,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Add Sudo command";allow (add) groupdn = "ldap:///cn=Add Sudo command,cn=permissions,cn=pbac,$SUFFIX";)',
+                '(targetfilter = "(objectclass=ipasudocmd)")(target = "ldap:///cn=sudocmds,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Add Sudo command";allow (add) groupdn = "ldap:///cn=Add Sudo command,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Sudo Administrator'},
+        },
+        'System: Delete Sudo Command': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///sudocmd=*,cn=sudocmds,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Delete Sudo command";allow (delete) groupdn = "ldap:///cn=Delete Sudo command,cn=permissions,cn=pbac,$SUFFIX";)',
+                '(targetfilter = "(objectclass=ipasudocmd)")(target = "ldap:///cn=sudocmds,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Delete Sudo command";allow (delete) groupdn = "ldap:///cn=Delete Sudo command,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Sudo Administrator'},
+        },
+        'System: Modify Sudo Command': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'description'},
+            'replaces': [
+                '(targetattr = "description")(target = "ldap:///sudocmd=*,cn=sudocmds,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Modify Sudo command";allow (write) groupdn = "ldap:///cn=Modify Sudo command,cn=permissions,cn=pbac,$SUFFIX";)',
+                '(targetfilter = "(objectclass=ipasudocmd)")(targetattr = "description")(target = "ldap:///cn=sudocmds,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Modify Sudo command";allow (write) groupdn = "ldap:///cn=Modify Sudo command,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Sudo Administrator'},
+        },
     }
 
     label = _('Sudo Commands')

@@ -174,6 +174,12 @@ dn: cn=System: Read Services,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "ipakrbauthzdata || ipakrbprincipalalias || ipauniqueid || krbcanonicalname || krblastpwdchange || krbobjectreferences || krbpasswordexpiration || krbprincipalaliases || krbprincipalexpiration || krbprincipalname || managedby || memberof || objectclass || usercertificate")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Read Services";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Remove Services,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Remove Services";allow (delete) groupdn = "ldap:///cn=System: Remove Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Add Sudo Command,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipasudocmd)")(version 3.0;acl "permission:System: Add Sudo Command";allow (add) groupdn = "ldap:///cn=System: Add Sudo Command,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Delete Sudo Command,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipasudocmd)")(version 3.0;acl "permission:System: Delete Sudo Command";allow (delete) groupdn = "ldap:///cn=System: Delete Sudo Command,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Modify Sudo Command,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "description")(targetfilter = "(objectclass=ipasudocmd)")(version 3.0;acl "permission:System: Modify Sudo Command";allow (write) groupdn = "ldap:///cn=System: Modify Sudo Command,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Sudo Commands,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "description || ipauniqueid || memberof || objectclass || sudocmd")(targetfilter = "(objectclass=ipasudocmd)")(version 3.0;acl "permission:System: Read Sudo Commands";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Read Sudo Command Groups,cn=permissions,cn=pbac,dc=ipa,dc=example
