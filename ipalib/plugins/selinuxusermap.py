@@ -163,6 +163,31 @@ class selinuxusermap(LDAPObject):
                 'objectclass', 'member',
             },
         },
+        'System: Add SELinux User Maps': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///ipauniqueid=*,cn=usermap,cn=selinux,$SUFFIX")(version 3.0;acl "permission:Add SELinux User Maps";allow (add) groupdn = "ldap:///cn=Add SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'SELinux User Map Administrators'},
+        },
+        'System: Modify SELinux User Maps': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'cn', 'ipaenabledflag', 'ipaselinuxuser', 'memberhost',
+                'memberuser', 'seealso'
+            },
+            'replaces': [
+                '(targetattr = "cn || memberuser || memberhost || seealso || ipaselinuxuser || ipaenabledflag")(target = "ldap:///ipauniqueid=*,cn=usermap,cn=selinux,$SUFFIX")(version 3.0;acl "permission:Modify SELinux User Maps";allow (write) groupdn = "ldap:///cn=Modify SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'SELinux User Map Administrators'},
+        },
+        'System: Remove SELinux User Maps': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///ipauniqueid=*,cn=usermap,cn=selinux,$SUFFIX")(version 3.0;acl "permission:Remove SELinux User Maps";allow (delete) groupdn = "ldap:///cn=Remove SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'SELinux User Map Administrators'},
+        },
     }
 
     # These maps will not show as members of other entries

@@ -113,36 +113,6 @@ default:objectClass: nestedgroup
 default:cn: SELinux User Map Administrators
 default:description: SELinux User Map Administrators
 
-dn: cn=Add SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: top
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:cn: Add SELinux User Maps
-default:member: cn=SELinux User Map Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Remove SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: top
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:cn: Remove SELinux User Maps
-default:member: cn=SELinux User Map Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Modify SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX
-default:objectClass: top
-default:objectClass: groupofnames
-default:objectClass: ipapermission
-default:cn: Modify SELinux User Maps
-default:member: cn=SELinux User Map Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: $SUFFIX
-add:aci:'(target = "ldap:///ipauniqueid=*,cn=usermap,cn=selinux,$SUFFIX")(version 3.0;acl "permission:Add SELinux User Maps";allow (add) groupdn = "ldap:///cn=Add SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX";)'
-
-dn: $SUFFIX
-add:aci:'(target = "ldap:///ipauniqueid=*,cn=usermap,cn=selinux,$SUFFIX")(version 3.0;acl "permission:Remove SELinux User Maps";allow (delete) groupdn = "ldap:///cn=Remove SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX";)'
-
-dn: $SUFFIX
-add:aci:'(targetattr = "cn || memberuser || memberhost || seealso || ipaselinuxuser || ipaenabledflag")(target = "ldap:///ipauniqueid=*,cn=usermap,cn=selinux,$SUFFIX")(version 3.0;acl "permission:Modify SELinux User Maps";allow (write) groupdn = "ldap:///cn=Modify SELinux User Maps,cn=permissions,cn=pbac,$SUFFIX";)'
-
 dn: cn=ipa,cn=etc,$SUFFIX
 add:aci:'(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,$SUFFIX")(version 3.0; acl "Add CA Certificates for renewals"; allow(add) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)'
 add:aci:'(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,$SUFFIX")(targetattr = "userCertificate")(version 3.0; acl "Modify CA Certificates for renewals"; allow(write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)'

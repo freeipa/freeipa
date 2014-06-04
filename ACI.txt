@@ -156,8 +156,14 @@ dn: cn=System: Read Roles,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "businesscategory || cn || description || member || memberhost || memberof || memberuser || o || objectclass || ou || owner || seealso")(targetfilter = "(objectclass=groupofnames)")(version 3.0;acl "permission:System: Read Roles";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Roles,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Remove Roles,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=groupofnames)")(version 3.0;acl "permission:System: Remove Roles";allow (delete) groupdn = "ldap:///cn=System: Remove Roles,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Add SELinux User Maps,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipaselinuxusermap)")(version 3.0;acl "permission:System: Add SELinux User Maps";allow (add) groupdn = "ldap:///cn=System: Add SELinux User Maps,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Modify SELinux User Maps,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "cn || ipaenabledflag || ipaselinuxuser || memberhost || memberuser || seealso")(targetfilter = "(objectclass=ipaselinuxusermap)")(version 3.0;acl "permission:System: Modify SELinux User Maps";allow (write) groupdn = "ldap:///cn=System: Modify SELinux User Maps,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read SELinux User Maps,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "accesstime || cn || description || hostcategory || ipaenabledflag || ipaselinuxuser || ipauniqueid || member || memberhost || memberuser || objectclass || seealso || usercategory")(targetfilter = "(objectclass=ipaselinuxusermap)")(version 3.0;acl "permission:System: Read SELinux User Maps";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=System: Remove SELinux User Maps,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipaselinuxusermap)")(version 3.0;acl "permission:System: Remove SELinux User Maps";allow (delete) groupdn = "ldap:///cn=System: Remove SELinux User Maps,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Services,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "ipakrbauthzdata || ipakrbprincipalalias || ipauniqueid || krbcanonicalname || krblastpwdchange || krbobjectreferences || krbpasswordexpiration || krbprincipalaliases || krbprincipalexpiration || krbprincipalname || managedby || memberof || objectclass || usercertificate")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Read Services";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Read Sudo Commands,cn=permissions,cn=pbac,dc=ipa,dc=example
