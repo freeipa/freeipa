@@ -290,6 +290,7 @@ class i18n_messages(Command):
             "logout": _("Logout"),
             "logout_error": _("Logout error"),
             "password": _("Password"),
+            "sync_otp_token": _("Sync OTP Token"),
             "username": _("Username"),
         },
         "measurement_units": {

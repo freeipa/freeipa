@@ -148,6 +148,7 @@
                         "logout": "Logout",
                         "logout_error": "Logout error",
                         "password": "Password",
+                        "sync_otp_token": "Sync OTP Token",
                         "username": "Username"
                     },
                     "measurement_units": {

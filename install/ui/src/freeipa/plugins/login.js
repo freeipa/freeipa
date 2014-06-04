@@ -75,6 +75,10 @@ define(['dojo/_base/declare',
             on(this, 'show', function(args) {
                 login_screen.refresh();
             });
+
+            on(login_screen, 'require-otp-sync', function(args) {
+                self.emit('require-otp-sync', args);
+            });
         }
     });
 

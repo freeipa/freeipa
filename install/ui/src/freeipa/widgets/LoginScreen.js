@@ -82,6 +82,13 @@ define(['dojo/_base/declare',
 
         render_buttons: function(container) {
 
+            this.sync_btn_node = IPA.button({
+                label: text.get('@i18n:login.sync_otp_token', "Sync OTP Token"),
+                button_class: 'btn btn-link',
+                click: lang.hitch(this, this.on_sync)
+            })[0];
+            construct.place(this.sync_btn_node, container);
+
             this.login_btn_node = IPA.button({
                 label: text.get('@i18n:login.login', "Login"),
                 'class': 'btn-primary btn-lg',
@@ -113,6 +120,11 @@ define(['dojo/_base/declare',
                     !util.is_empty(p_f.get_value()) || !this.kerberos_enabled();
             u_f.set_required(required);
             p_f.set_required(required);
+        },
+
+        on_sync: function() {
+            var user = this.get_field('username').get_value()[0];
+            this.emit('require-otp-sync', { source: this, user: user });
         },
 
         on_confirm: function() {
@@ -231,6 +243,7 @@ define(['dojo/_base/declare',
         show_login_view: function() {
             this.set_login_aside_text();
             if (this.buttons_node) {
+                construct.place(this.sync_btn_node, this.buttons_node);
                 construct.place(this.login_btn_node, this.buttons_node);
             }
             if (this.password_enabled()) {
