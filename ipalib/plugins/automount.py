@@ -576,6 +576,7 @@ class automountmap(LDAPObject):
     object_name = _('automount map')
     object_name_plural = _('automount maps')
     object_class = ['automountmap']
+    permission_filter_objectclasses = ['automountmap']
     default_attributes = ['automountmapname', 'description']
 
     takes_params = (
@@ -590,6 +591,31 @@ class automountmap(LDAPObject):
             label=_('Description'),
         ),
     )
+
+    managed_permissions = {
+        'System: Add Automount Maps': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Add Automount maps";allow (add) groupdn = "ldap:///cn=Add Automount maps,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Automount Administrators'},
+        },
+        'System: Modify Automount Maps': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'automountmapname', 'description'},
+            'replaces': [
+                '(targetattr = "automountmapname || description")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Modify Automount maps";allow (write) groupdn = "ldap:///cn=Modify Automount maps,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Automount Administrators'},
+        },
+        'System: Remove Automount Maps': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Remove Automount maps";allow (delete) groupdn = "ldap:///cn=Remove Automount maps,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Automount Administrators'},
+        },
+    }
 
     label = _('Automount Maps')
     label_singular = _('Automount Map')
@@ -653,6 +679,7 @@ class automountkey(LDAPObject):
     object_name = _('automount key')
     object_name_plural = _('automount keys')
     object_class = ['automount']
+    permission_filter_objectclasses = ['automount']
     default_attributes = [
         'automountkey', 'automountinformation', 'description'
     ]
@@ -678,6 +705,35 @@ class automountkey(LDAPObject):
             exclude='webui',
         ),
     )
+
+    managed_permissions = {
+        'System: Add Automount Keys': {
+            'ipapermright': {'add'},
+            'replaces': [
+                '(target = "ldap:///automountkey=*,automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Add Automount keys";allow (add) groupdn = "ldap:///cn=Add Automount keys,cn=permissions,cn=pbac,$SUFFIX";)',
+                '(targetfilter = "(objectclass=automount)")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Add Automount keys";allow (add) groupdn = "ldap:///cn=Add Automount keys,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Automount Administrators'},
+        },
+        'System: Modify Automount Keys': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'automountinformation', 'automountkey', 'description',
+            },
+            'replaces': [
+                '(targetattr = "automountkey || automountinformation || description")(targetfilter = "(objectclass=automount)")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Modify Automount keys";allow (write) groupdn = "ldap:///cn=Modify Automount keys,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Automount Administrators'},
+        },
+        'System: Remove Automount Keys': {
+            'ipapermright': {'delete'},
+            'replaces': [
+                '(target = "ldap:///automountkey=*,automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Remove Automount keys";allow (delete) groupdn = "ldap:///cn=Remove Automount keys,cn=permissions,cn=pbac,$SUFFIX";)',
+                '(targetfilter = "(objectclass=automount)")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Remove Automount keys";allow (delete) groupdn = "ldap:///cn=Remove Automount keys,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'Automount Administrators'},
+        },
+    }
 
     num_parents = 2
     label = _('Automount Keys')

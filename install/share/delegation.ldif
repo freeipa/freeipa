@@ -269,56 +269,6 @@ objectClass: ipapermission
 cn: Modify privilege membership
 member: cn=Delegation Administrator,cn=privileges,cn=pbac,$SUFFIX
 
-# Automount administration
-
-dn: cn=Add Automount maps,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Add Automount maps
-member: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Remove Automount maps,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Remove Automount maps
-member: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Modify Automount maps,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Modify Automount maps
-member: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Add Automount keys,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Add Automount keys
-member: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Modify Automount keys,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Modify Automount keys
-member: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Remove Automount keys,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Remove Automount keys
-member: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
-
 # Netgroup administration
 
 dn: cn=Add netgroups,cn=permissions,cn=pbac,$SUFFIX
@@ -449,18 +399,6 @@ aci: (target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "per
 aci: (targetattr = "cn || description")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0; acl "permission:Modify Roles";allow (write) groupdn = "ldap:///cn=Modify Roles,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (targetattr = "member")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Role membership";allow (write) groupdn = "ldap:///cn=Modify Role membership,cn=permissions,cn=pbac,$SUFFIX";)
 aci: (targetattr = "member")(target = "ldap:///cn=*,cn=permissions,cn=pbac,$SUFFIX")(version 3.0;acl "permission:Modify privilege membership";allow (write) groupdn = "ldap:///cn=Modify privilege membership,cn=permissions,cn=pbac,$SUFFIX";)
-
-# Automount administration
-
-dn: $SUFFIX
-changetype: modify
-add: aci
-aci: (target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Add Automount maps";allow (add) groupdn = "ldap:///cn=Add Automount maps,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Remove Automount maps";allow (delete) groupdn = "ldap:///cn=Remove Automount maps,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetattr = "automountmapname || description")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Modify Automount maps";allow (write) groupdn = "ldap:///cn=Modify Automount maps,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetfilter = "(objectclass=automount)")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Add Automount keys";allow (add) groupdn = "ldap:///cn=Add Automount keys,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetfilter = "(objectclass=automount)")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Remove Automount keys";allow (delete) groupdn = "ldap:///cn=Remove Automount keys,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetattr = "automountkey || automountinformation || description")(targetfilter = "(objectclass=automount)")(target = "ldap:///automountmapname=*,cn=automount,$SUFFIX")(version 3.0;acl "permission:Modify Automount keys";allow (write) groupdn = "ldap:///cn=Modify Automount keys,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Netgroup administration
 
