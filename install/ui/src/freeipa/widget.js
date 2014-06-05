@@ -32,6 +32,7 @@ define(['dojo/_base/array',
        'dojo/topic',
        './builder',
        './datetime',
+       './entity',
        './ipa',
        './jquery',
        './navigation',
@@ -39,10 +40,11 @@ define(['dojo/_base/array',
        './reg',
        './rpc',
        './text',
-       './util'
+       './util',
+       'exports'
        ],
        function(array, lang, Evented, has, keys, on, string, topic, builder,
-                datetime, IPA, $, navigation, phases, reg, rpc, text, util) {
+                datetime, entity_mod, IPA, $, navigation, phases, reg, rpc, text, util, exp) {
 
 /**
  * Widget module
@@ -54,7 +56,6 @@ define(['dojo/_base/array',
  * @class widget
  * @singleton
  */
-var exp = {};
 
 /**
  * Width of column which contains only checkbox

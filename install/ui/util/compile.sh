@@ -106,15 +106,3 @@ fi
 
 # compile using uglify.js
 $DIR/uglifyjs/uglify $RDIR/$RELEASE/$LAYER.js $OUTPUT_FILE
-
-# clean all other files
-BUILD_DIR=$RDIR/$RELEASE/`echo $LAYER | cut -d/ -f 1`
-LAYER_FILE=`echo $LAYER | cut -d/ -f 2`.js
-rm -f $RDIR/$RELEASE/build-report.txt
-pushd $BUILD_DIR
-    if [[ $? != 0 ]] ; then
-        echo "Invalid build dir: $BUILD_DIR"
-        exit 1
-    fi
-    ls -1 | grep -v -e "^$LAYER_FILE$" | xargs rm -rf
-popd

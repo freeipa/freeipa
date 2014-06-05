@@ -114,6 +114,9 @@ var profile = (function(){
         ],
 
         layers: {
+            "freeipa/core": {
+                include: ["freeipa/core"]
+            },
             "freeipa/app": {
                 include: ["freeipa/app", "freeipa/extend"]
             }

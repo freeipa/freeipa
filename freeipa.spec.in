@@ -714,6 +714,7 @@ fi
 %{_usr}/share/ipa/ui/js/libs/*.js
 %dir %{_usr}/share/ipa/ui/js/freeipa
 %{_usr}/share/ipa/ui/js/freeipa/app.js
+%{_usr}/share/ipa/ui/js/freeipa/core.js
 %dir %{_usr}/share/ipa/ui/js/plugins
 %dir %{_usr}/share/ipa/ui/images
 %{_usr}/share/ipa/ui/images/*.jpg

@@ -3,6 +3,7 @@ NULL =
 appdir = $(IPA_DATA_DIR)/ui/js/freeipa
 app_DATA =				\
 	app.js 				\
+	core.js 			\
 	$(NULL)
 
 EXTRA_DIST =                            \

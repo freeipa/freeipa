@@ -24,9 +24,10 @@ define([
     'dojo/when',
     './plugin_loader',
     './phases',
+    './reg',
     './Application_controller',
     'exports'
-],function(lang, Deferred, when, plugin_loader, phases, Application_controller, app) {
+],function(lang, Deferred, when, plugin_loader, phases, reg, Application_controller, app) {
 
     /**
      * Application wrapper
@@ -84,9 +85,37 @@ define([
             }));
         },
 
+        simple_mode_phases: function() {
+
+            phases.on('init', lang.hitch(this, function() {
+                var app = this.app = new this.App_class();
+                app.init();
+                return app;
+            }));
+
+            phases.on('runtime', lang.hitch(this, function() {
+                var d = new Deferred();
+                var facet = reg.facet.get(this.target_facet);
+                if (!facet) {
+                    window.console.error('Target facet not found: '+this.target_facet);
+                } else {
+                    this.app.show_facet(facet);
+                }
+                return d.promise;
+            }));
+        },
+
         run: function() {
             when(plugin_loader.load_plugins(), lang.hitch(this, function() {
                 this.register_phases();
+                phases.controller.run();
+            }));
+        },
+
+        run_simple: function(facet) {
+            this.target_facet = facet;
+            when(plugin_loader.load_plugins(), lang.hitch(this, function() {
+                this.simple_mode_phases();
                 phases.controller.run();
             }));
         }
