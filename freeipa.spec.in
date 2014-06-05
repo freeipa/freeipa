@@ -702,6 +702,7 @@ fi
 %dir %{_usr}/share/ipa/ui
 %{_usr}/share/ipa/ui/index.html
 %{_usr}/share/ipa/ui/reset_password.html
+%{_usr}/share/ipa/ui/sync_otp.html
 %{_usr}/share/ipa/ui/*.ico
 %{_usr}/share/ipa/ui/*.css
 %{_usr}/share/ipa/ui/*.js

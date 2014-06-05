@@ -17,6 +17,7 @@ app_DATA =				\
 	ipa.css				\
 	reset_password.js		\
 	reset_password.html		\
+	sync_otp.html		\
 	$(NULL)
 
 EXTRA_DIST =                            \
