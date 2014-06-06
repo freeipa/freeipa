@@ -43,6 +43,7 @@ from text import _
 from base import ReadOnly, NameSpace, lock, islocked, check_name
 from constants import DEFAULT_CONFIG
 from ipapython.ipa_log_manager import *
+from ipapython.version import VERSION, API_VERSION
 
 # FIXME: Updated constants.TYPE_ERROR to use this clearer format from wehjit:
 TYPE_ERROR = '%s: need a %r; got a %r: %r'
@@ -559,6 +560,8 @@ class API(DictProxy):
                 formatter=IPAHelpFormatter(),
                 usage='%prog [global-options] COMMAND [command-options]',
                 description='Manage an IPA domain',
+                version=('VERSION: %s, API_VERSION: %s'
+                                % (VERSION, API_VERSION)),
                 epilog='\n'.join([
                     'See "ipa help topics" for available help topics.',
                     'See "ipa help <TOPIC>" for more information on a '

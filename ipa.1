@@ -37,7 +37,7 @@ Load configuration from \fIFILE\fR.
 \fB\-d\fR, \fB\-\-debug\fR
 Produce full debugging output.
 .TP
-\fB\-\-\-delegate\fR
+\fB\-\-delegate\fR
 Delegate the user's TGT to the IPA server
 .TP
 \fB\-e\fR \fIKEY=VAL\fR
@@ -56,7 +56,9 @@ Prompt for all parameters of \fICOMMAND\fR, even if they are optional.
 Don't fall back to other IPA servers if the default doesn't work.
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
-Produce verbose output. A second \-v displays the XML\-RPC request
+Produce verbose output. A second \-v displays the XML\-RPC request.
+\fB\-\-version\fR
+Display the IPA version and API version.
 .SH "COMMANDS"
 The principal function of the CLI is to execute administrative commands specified by the \fICOMMAND\fR argument. The majority of commands are executed remotely over XML\-RPC on a IPA server listed in the configuration file (see FILES section of this manual page).
 
