@@ -193,11 +193,6 @@ idndomain1 = u'\u010d\u010d\u010d.test'
 idndomain1_punycoded = u'xn--beaaa.test'
 idndomain1_dnsname = DNSName(idndomain1)
 
-idnnsecrec1 = u'sk\xfa\u0161ka-b'
-idnnsecrec1_punycoded = u'xn--skka-b-qya83f'
-idnnsecrec1_dnsname = DNSName(idnnsecrec1)
-idnnsecrec1_dn = DN(('idnsname',idnnsecrec1_punycoded), idnzone1_dn)
-
 dnsafsdbres1 = u'sk\xfa\u0161ka-c'
 dnsafsdbres1_punycoded = u'xn--skka-c-qya83f'
 dnsafsdbres1_dnsname = DNSName(dnsafsdbres1)
@@ -1024,25 +1019,6 @@ class test_dns(Declarative):
             },
         ),
 
-        dict(
-            desc='Add NSEC record to %r using dnsrecord_add' % (name1),
-            command=('dnsrecord_add', [zone1, name1], {
-                'nsec_part_next': zone1,
-                'nsec_part_types' : [u'TXT', u'A']}),
-            expected={
-                'value': name1_dnsname,
-                'summary': None,
-                'result': {
-                    'objectclass': objectclasses.dnsrecord,
-                    'dn': name1_dn,
-                    'idnsname': [name1_dnsname],
-                    'arecord': [arec3],
-                    'kxrecord': [u'1 foo-1'],
-                    'txtrecord': [u'foo bar'],
-                    'nsecrecord': [zone1 + u' TXT A'],
-                },
-            },
-        ),
 
         dict(
             desc='Try to add unresolvable absolute NS record to %r using dnsrecord_add' % (name1),
@@ -1071,7 +1047,6 @@ class test_dns(Declarative):
                     'arecord': [arec3],
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
-                    'nsecrecord': [zone1 + u' TXT A'],
                     'nsrecord': [absnxname],
                 },
             },
@@ -1095,7 +1070,6 @@ class test_dns(Declarative):
                     'arecord': [arec3],
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
-                    'nsecrecord': [zone1 + u' TXT A'],
                     'nsrecord': [absnxname],
                 },
             },
@@ -2361,36 +2335,6 @@ class test_dns(Declarative):
             },
         ),
 
-        dict(
-            desc='Add NSEC record to %r using dnsrecord_add' % (idnnsecrec1),
-            command=('dnsrecord_add', [idnzone1, idnnsecrec1], {
-                'nsec_part_next': idnzone1,
-                'nsec_part_types' : [u'TXT', u'A']}),
-            expected={
-                'value': idnnsecrec1_dnsname,
-                'summary': None,
-                'result': {
-                    'objectclass': objectclasses.dnsrecord,
-                    'dn': idnnsecrec1_dn,
-                    'idnsname': [idnnsecrec1_dnsname],
-                    'nsecrecord': [idnzone1 + u' TXT A'],
-                },
-            },
-        ),
-
-        dict(
-            desc='Show raw record %r in zone %r' % (idnnsecrec1, idnzone1),
-            command=('dnsrecord_show', [idnzone1, idnnsecrec1], {u'raw' : True}),
-            expected={
-                'value': idnnsecrec1_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': idnnsecrec1_dn,
-                    'idnsname': [idnnsecrec1_punycoded],
-                    'nsecrecord': [idnzone1_punycoded + u' TXT A'],
-                },
-            },
-        ),
 
         dict(
             desc='Add AFSDB record to %r using dnsrecord_add' % (dnsafsdbres1),
@@ -2410,7 +2354,7 @@ class test_dns(Declarative):
         ),
 
         dict(
-            desc='Show raw record %r in zone %r' % (idnnsecrec1, idnzone1),
+            desc='Show raw record %r in zone %r' % (dnsafsdbres1, idnzone1),
             command=('dnsrecord_show', [idnzone1, dnsafsdbres1], {u'raw' : True}),
             expected={
                 'value': dnsafsdbres1_dnsname,
