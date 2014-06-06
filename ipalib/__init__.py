@@ -140,7 +140,7 @@ implement a ``run()`` method, like this:
 >>> api = create_api()
 >>> api.register(my_command)
 >>> api.finalize()
->>> api.Command.my_command() # Call your command
+>>> api.Command.my_command(version=u'2.47') # Call your command
 {'result': 'My run() method was called!'}
 
 When `frontend.Command.__call__()` is called, it first validates any arguments
@@ -359,7 +359,7 @@ False
 
 And yet we can call ``my_command()``:
 
->>> api.Command.my_command()
+>>> api.Command.my_command(version=u'2.47')
 {'result': 'Just my_command.forward() getting called here.'}
 
 

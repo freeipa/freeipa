@@ -51,7 +51,7 @@ class AutomountTest(XMLRPC_test):
 
         mock_ui = MockTextui()
         command = api.Command['automountlocation_tofiles']
-        command.output_for_cli(mock_ui, res, self.locname)
+        command.output_for_cli(mock_ui, res, self.locname, version=u'2.88')
         expected_output = self.tofiles_output
         assert_deepequal(expected_output, u'\n'.join(mock_ui))
 
@@ -87,7 +87,8 @@ class AutomountTest(XMLRPC_test):
             # Feed the files to automountlocation_import & check
             master_file = u'%s/auto.master' % conf_directory
             automountlocation_import = api.Command['automountlocation_import']
-            res = automountlocation_import(self.locname, master_file)
+            res = automountlocation_import(self.locname, master_file,
+                                           version=u'2.88')
             assert_deepequal(dict(
                 result=dict(
                     keys=lambda k: k,
@@ -233,7 +234,8 @@ class test_automount(AutomountTest):
         """
         Test the `automountlocation_tofiles` command.
         """
-        res = api.Command['automountlocation_tofiles'](self.locname)
+        res = api.Command['automountlocation_tofiles'](self.locname,
+                                                       version=u'2.88')
         assert_deepequal(dict(
             result=dict(
                 keys={'auto.direct': ()},

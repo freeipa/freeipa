@@ -419,6 +419,11 @@ class Command(HasParam):
         XML-RPC and the executed an the nearest IPA server.
         """
         self.ensure_finalized()
+        version_provided = 'version' in options
+        if version_provided:
+            self.verify_client_version(unicode(options['version']))
+        else:
+            options['version'] = API_VERSION
         params = self.args_options_2_params(*args, **options)
         self.debug(
             'raw: %s(%s)', self.name, ', '.join(self._repr_iter(**params))
@@ -429,11 +434,13 @@ class Command(HasParam):
         self.debug(
             '%s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
-        if not self.api.env.in_server and 'version' not in params:
-            params['version'] = API_VERSION
         self.validate(**params)
         (args, options) = self.params_2_args_options(**params)
         ret = self.run(*args, **options)
+        if not version_provided and isinstance(ret, dict):
+            messages.add_message(
+                API_VERSION, ret,
+                messages.VersionMissing(server_version=API_VERSION))
         if (
             isinstance(ret, dict)
             and 'summary' in self.output
@@ -441,7 +448,7 @@ class Command(HasParam):
         ):
             ret['summary'] = self.get_summary_default(ret)
         if self.use_output_validation and (self.output or ret is not None):
-            self.validate_output(ret, options.get('version', API_VERSION))
+            self.validate_output(ret, options['version'])
         return ret
 
     def soft_validate(self, values):
@@ -744,17 +751,7 @@ class Command(HasParam):
         performs is executed remotely.
         """
         if self.api.env.in_server:
-            version_provided = 'version' in options
-            if version_provided:
-                self.verify_client_version(options['version'])
-            else:
-                options['version'] = API_VERSION
-            result = self.execute(*args, **options)
-            if not version_provided:
-                messages.add_message(
-                    API_VERSION, result,
-                    messages.VersionMissing(server_version=API_VERSION))
-            return result
+            return self.execute(*args, **options)
         return self.forward(*args, **options)
 
     def execute(self, *args, **kw):
@@ -1318,15 +1315,18 @@ class Method(Attribute, Command):
 
     >>> list(api.Method)
     ['user_add']
-    >>> api.Method.user_add() # Will call user_add.run()
+    >>> api.Method.user_add(version=u'2.88')  # Will call user_add.run()
     {'result': 'Added the user!'}
+
+    (The "version" argument is the API version to use.
+    The current API version can be found in ipalib.version.API_VERSION.)
 
     Second, because `Method` is a subclass of `Command`, the ``user_add``
     plugin can also be accessed through the ``api.Command`` namespace:
 
     >>> list(api.Command)
     ['user_add']
-    >>> api.Command.user_add() # Will call user_add.run()
+    >>> api.Command.user_add(version=u'2.88') # Will call user_add.run()
     {'result': 'Added the user!'}
 
     And third, ``user_add`` can be accessed as an attribute on the ``user``
@@ -1336,7 +1336,7 @@ class Method(Attribute, Command):
     ['user']
     >>> list(api.Object.user.methods)
     ['add']
-    >>> api.Object.user.methods.add() # Will call user_add.run()
+    >>> api.Object.user.methods.add(version=u'2.88') # Will call user_add.run()
     {'result': 'Added the user!'}
 
     The `Attribute` base class implements the naming convention for the
