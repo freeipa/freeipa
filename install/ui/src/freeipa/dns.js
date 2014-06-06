@@ -862,20 +862,6 @@ IPA.dns.get_record_metadata = function() {
                       'ds_part_digest_type']
         },
         {
-            name: 'keyrecord',
-            attributes: [
-                'key_part_flags',
-                'key_part_protocol',
-                'key_part_algorithm',
-                {
-                    name: 'key_part_public_key',
-                    $type: 'textarea'
-                }
-            ],
-            columns: ['key_part_flags', 'key_part_protocol',
-                      'key_part_algorithm']
-        },
-        {
             name: 'kxrecord',
             attributes: [
                 'kx_part_preference',
@@ -949,24 +935,18 @@ IPA.dns.get_record_metadata = function() {
             columns: ['ns_part_hostname']
         },
         {
-            name: 'nsecrecord',
+            name: 'nsec3paramrecord',
             attributes: [
-                'nsec_part_next',
-                'nsec_part_types'
-//             TODO: nsec_part_types is multivalued attribute. New selector
-//             widget or at least new validator should be created.
-//                 {
-//                     name: 'nsec_part_types',
-//                     options: IPA.create_options(['SOA', 'A', 'AAAA', 'A6', 'AFSDB',
-//                         'APL', 'CERT', 'CNAME', 'DHCID', 'DLV', 'DNAME', 'DNSKEY',
-//                         'DS', 'HIP', 'IPSECKEY', 'KEY', 'KX', 'LOC', 'MX', 'NAPTR',
-//                         'NS', 'NSEC','NSEC3', 'NSEC3PARAM', 'PTR', 'RRSIG', 'RP',
-//                         'SIG', 'SPF', 'SRV', 'SSHFP', 'TA', 'TKEY', 'TSIG', 'TXT']),
-//                     $type: 'select'
-//                 }
+                'nsec3param_part_algorithm',
+                'nsec3param_part_flags',
+                'nsec3param_part_iterations',
+                'nsec3param_part_salt'
             ],
             adder_attributes: [],
-            columns: [ 'nsec_part_next', 'nsec_part_types']
+            columns: [
+                'nsec3param_part_algorithm', 'nsec3param_part_flags',
+                'nsec3param_part_iterations', 'nsec3param_part_salt'
+            ]
         },
         {
             name: 'ptrrecord',
@@ -975,62 +955,6 @@ IPA.dns.get_record_metadata = function() {
             ],
             adder_attributes: [],
             columns: [ 'ptr_part_hostname']
-        },
-        {
-            name: 'rrsigrecord',
-            attributes: [
-                {
-                    name: 'rrsig_part_type_covered',
-                    $type: 'select',
-                    options:  IPA.create_options(['SOA', 'A', 'AAAA', 'A6', 'AFSDB',
-                                'APL', 'CERT', 'CNAME', 'DHCID', 'DLV', 'DNAME',
-                                'DNSKEY', 'DS', 'HIP', 'IPSECKEY', 'KEY', 'KX',
-                                'LOC', 'MX', 'NAPTR', 'NS', 'NSEC', 'NSEC3',
-                                'NSEC3PARAM', 'PTR', 'RRSIG', 'RP', 'SPF', 'SRV',
-                                'SSHFP', 'TA', 'TKEY', 'TSIG', 'TXT'])
-                },
-                'rrsig_part_algorithm',
-                'rrsig_part_labels',
-                'rrsig_part_original_ttl',
-                'rrsig_part_signature_expiration',
-                'rrsig_part_signature_inception',
-                'rrsig_part_key_tag',
-                'rrsig_part_signers_name',
-                {
-                    name: 'rrsig_part_signature',
-                    $type: 'textarea'
-                }
-            ],
-            adder_attributes: [],
-            columns: ['dnsdata']
-        },
-        {
-            name: 'sigrecord',
-            attributes: [
-                {
-                    name: 'sig_part_type_covered',
-                    $type: 'select',
-                    options:  IPA.create_options(['SOA', 'A', 'AAAA', 'A6', 'AFSDB',
-                                'APL', 'CERT', 'CNAME', 'DHCID', 'DLV', 'DNAME',
-                                'DNSKEY', 'DS', 'HIP', 'IPSECKEY', 'KEY', 'KX',
-                                'LOC', 'MX', 'NAPTR', 'NS', 'NSEC', 'NSEC3',
-                                'NSEC3PARAM', 'PTR', 'RRSIG', 'RP', 'SPF', 'SRV',
-                                'SSHFP', 'TA', 'TKEY', 'TSIG', 'TXT'])
-                },
-                'sig_part_algorithm',
-                'sig_part_labels',
-                'sig_part_original_ttl',
-                'sig_part_signature_expiration',
-                'sig_part_signature_inception',
-                'sig_part_key_tag',
-                'sig_part_signers_name',
-                {
-                    name: 'sig_part_signature',
-                    $type: 'textarea'
-                }
-            ],
-            adder_attributes: [],
-            columns: ['dnsdata']
         },
         {
             name: 'srvrecord',
@@ -1441,8 +1365,8 @@ IPA.dns_record_types = function() {
 
     //only supported
     var attrs = ['A', 'AAAA', 'A6', 'AFSDB', 'CERT', 'CNAME', 'DNAME',
-                   'DS','KEY', 'KX', 'LOC', 'MX', 'NAPTR', 'NS', 'NSEC',
-                   'PTR', 'RRSIG', 'SRV', 'SIG', 'SSHFP', 'TXT'];
+                   'DS', 'KX', 'LOC', 'MX', 'NAPTR', 'NS',
+                   'NSEC3PARAM', 'PTR', 'SRV', 'SSHFP', 'TXT'];
     var record_types = [];
     for (var i=0; i<attrs.length; i++) {
         var attr = attrs[i];
