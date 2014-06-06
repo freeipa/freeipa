@@ -301,7 +301,7 @@ def run(args, stdin=None, raiseonerr=True,
         p_out = subprocess.PIPE
         p_err = subprocess.PIPE
 
-    arg_string = nolog_replace(' '.join(args), nolog)
+    arg_string = nolog_replace(' '.join(shell_quote(a) for a in args), nolog)
     root_logger.debug('Starting external process')
     root_logger.debug('args=%s' % arg_string)
 
