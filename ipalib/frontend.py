@@ -419,6 +419,9 @@ class Command(HasParam):
         XML-RPC and the executed an the nearest IPA server.
         """
         self.ensure_finalized()
+        version_provided = 'version' in options
+        if version_provided:
+            self.verify_client_version(unicode(options['version']))
         params = self.args_options_2_params(*args, **options)
         self.debug(
             'raw: %s(%s)', self.name, ', '.join(self._repr_iter(**params))
