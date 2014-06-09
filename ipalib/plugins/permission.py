@@ -550,7 +550,7 @@ class permission(baseldap.LDAPObject):
             raise ValueError(ipapermbindruletype)
 
         aci_parts.append('(version 3.0;acl "permission:%s";allow (%s) %s;)' % (
-            name, ','.join(entry['ipapermright']), bindrule))
+            name, ','.join(sorted(entry['ipapermright'])), bindrule))
 
         return ''.join(aci_parts)
 
