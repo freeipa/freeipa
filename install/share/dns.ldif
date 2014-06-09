@@ -9,14 +9,6 @@ aci: (target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Add DNS ent
 aci: (target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Remove DNS entries from a zone";allow (delete) userattr = "parent[1].managedby#GROUPDN";)
 aci: (targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy || idnsallowquery || idnsallowtransfer || idnsallowsyncptr || idnsforwardpolicy || idnsforwarders")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Update DNS entries in a zone";allow (write) userattr = "parent[0,1].managedby#GROUPDN";)
 
-dn: $SUFFIX
-changetype: modify
-add: aci
-aci: (target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:add dns entries";allow (add) groupdn = "ldap:///cn=add dns entries,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:remove dns entries";allow (delete) groupdn = "ldap:///cn=remove dns entries,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy || idnsallowquery || idnsallowtransfer || idnsallowsyncptr || idnsforwardpolicy || idnsforwarders")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:update dns entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX";)
-aci: (targetattr = "idnsforwardpolicy || idnsforwarders || idnsallowsyncptr || idnszonerefresh || idnspersistentsearch")(target = "ldap:///cn=dns,$SUFFIX")(version 3.0;acl "permission:Write DNS Configuration";allow (write) groupdn = "ldap:///cn=Write DNS Configuration,cn=permissions,cn=pbac,$SUFFIX";)
-
 dn: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
@@ -32,54 +24,3 @@ objectClass: groupofnames
 objectClass: nestedgroup
 cn: DNS Servers
 description: DNS Servers
-
-dn: cn=add dns entries,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: groupofnames
-objectClass: top
-objectClass: ipapermission
-cn: add dns entries
-description: Add DNS entries
-member: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
-member: cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=remove dns entries,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: groupofnames
-objectClass: top
-objectClass: ipapermission
-cn: remove dns entries
-description: Remove DNS entries
-member: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
-member: cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: groupofnames
-objectClass: top
-objectClass: ipapermission
-cn: update dns entries
-description: Update DNS entries
-member: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
-member: cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Read DNS Entries,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: top
-objectClass: groupofnames
-objectClass: ipapermission
-cn: Read DNS Entries
-description: Read DNS entries
-ipapermissiontype: SYSTEM
-member: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
-member: cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX
-
-dn: cn=Write DNS Configuration,cn=permissions,cn=pbac,$SUFFIX
-changetype: add
-objectClass: groupofnames
-objectClass: top
-objectClass: ipapermission
-cn: Write DNS Configuration
-description: Write DNS Configuration
-member: cn=DNS Administrators,cn=privileges,cn=pbac,$SUFFIX
-member: cn=DNS Servers,cn=privileges,cn=pbac,$SUFFIX

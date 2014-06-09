@@ -1843,6 +1843,77 @@ class dnszone(LDAPObject):
             doc=_('Allow inline DNSSEC signing of records in the zone'),
         ),
     )
+    managed_permissions = {
+        'System: Add DNS Entries': {
+            'non_object': True,
+            'ipapermright': {'add'},
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('idnsname=*', 'cn=dns', api.env.basedn),
+            'replaces': [
+                '(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:add dns entries";allow (add) groupdn = "ldap:///cn=add dns entries,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'DNS Administrators', 'DNS Servers'},
+        },
+        'System: Read DNS Entries': {
+            'non_object': True,
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('idnsname=*', 'cn=dns', api.env.basedn),
+            'ipapermdefaultattr': {
+                'objectclass',
+                'a6record', 'aaaarecord', 'afsdbrecord', 'arecord',
+                'certrecord', 'cn', 'cnamerecord', 'dnamerecord', 'dnsclass',
+                'dnsttl', 'dsrecord', 'hinforecord', 'idnsallowdynupdate',
+                'idnsallowquery', 'idnsallowsyncptr', 'idnsallowtransfer',
+                'idnsforwarders', 'idnsforwardpolicy', 'idnsname',
+                'idnssoaexpire', 'idnssoaminimum', 'idnssoamname',
+                'idnssoarefresh', 'idnssoaretry', 'idnssoarname',
+                'idnssoaserial', 'idnsupdatepolicy', 'idnszoneactive',
+                'keyrecord', 'kxrecord', 'locrecord', 'managedby', 'mdrecord',
+                'minforecord', 'mxrecord', 'naptrrecord', 'nsecrecord',
+                'nsrecord', 'nxtrecord', 'ptrrecord', 'rrsigrecord',
+                'sigrecord', 'srvrecord', 'sshfprecord', 'txtrecord',
+            },
+            'replaces_system': ['Read DNS Entries'],
+            'default_privileges': {'DNS Administrators', 'DNS Servers'},
+        },
+        'System: Remove DNS Entries': {
+            'non_object': True,
+            'ipapermright': {'delete'},
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('idnsname=*', 'cn=dns', api.env.basedn),
+            'replaces': [
+                '(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:remove dns entries";allow (delete) groupdn = "ldap:///cn=remove dns entries,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'DNS Administrators', 'DNS Servers'},
+        },
+        'System: Update DNS Entries': {
+            'non_object': True,
+            'ipapermright': {'write'},
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('idnsname=*', 'cn=dns', api.env.basedn),
+            'ipapermdefaultattr': {
+                'a6record', 'aaaarecord', 'afsdbrecord', 'arecord',
+                'certrecord', 'cn', 'cnamerecord', 'dnamerecord', 'dnsclass',
+                'dnsttl', 'dsrecord', 'hinforecord', 'idnsallowdynupdate',
+                'idnsallowquery', 'idnsallowsyncptr', 'idnsallowtransfer',
+                'idnsforwarders', 'idnsforwardpolicy', 'idnsname',
+                'idnssoaexpire', 'idnssoaminimum', 'idnssoamname',
+                'idnssoarefresh', 'idnssoaretry', 'idnssoarname',
+                'idnssoaserial', 'idnsupdatepolicy', 'idnszoneactive',
+                'keyrecord', 'kxrecord', 'locrecord', 'managedby', 'mdrecord',
+                'minforecord', 'mxrecord', 'naptrrecord', 'nsecrecord',
+                'nsrecord', 'nxtrecord', 'ptrrecord', 'rrsigrecord',
+                'sigrecord', 'srvrecord', 'sshfprecord', 'txtrecord',
+            },
+            'replaces': [
+                '(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:update dns entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX";)',
+                '(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy || idnsallowquery || idnsallowtransfer || idnsallowsyncptr || idnsforwardpolicy || idnsforwarders")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:update dns entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX";)',
+                '(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy || idnsallowquery || idnsallowtransfer || idnsallowsyncptr || idnsforwardpolicy || idnsforwarders || managedby")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:update dns entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'DNS Administrators', 'DNS Servers'},
+        },
+    }
 
     def get_dn(self, *keys, **options):
         zone = keys[-1]
@@ -3455,6 +3526,36 @@ class dnsconfig(LDAPObject):
             label=_('Zone refresh interval'),
         ),
     )
+    managed_permissions = {
+        'System: Write DNS Configuration': {
+            'non_object': True,
+            'ipapermright': {'write'},
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('cn=dns', api.env.basedn),
+            'ipapermtargetfilter': ['(objectclass=idnsConfigObject)'],
+            'ipapermdefaultattr': {
+                'idnsallowsyncptr', 'idnsforwarders', 'idnsforwardpolicy',
+                'idnspersistentsearch', 'idnszonerefresh'
+            },
+            'replaces': [
+                '(targetattr = "idnsforwardpolicy || idnsforwarders || idnsallowsyncptr || idnszonerefresh || idnspersistentsearch")(target = "ldap:///cn=dns,$SUFFIX")(version 3.0;acl "permission:Write DNS Configuration";allow (write) groupdn = "ldap:///cn=Write DNS Configuration,cn=permissions,cn=pbac,$SUFFIX";)',
+            ],
+            'default_privileges': {'DNS Administrators', 'DNS Servers'},
+        },
+        'System: Read DNS Configuration': {
+            'non_object': True,
+            'ipapermright': {'read'},
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('cn=dns', api.env.basedn),
+            'ipapermtargetfilter': ['(objectclass=idnsConfigObject)'],
+            'ipapermdefaultattr': {
+                'objectclass',
+                'idnsallowsyncptr', 'idnsforwarders', 'idnsforwardpolicy',
+                'idnspersistentsearch', 'idnszonerefresh'
+            },
+            'default_privileges': {'DNS Administrators', 'DNS Servers'},
+        },
+    }
 
     def get_dn(self, *keys, **kwargs):
         return DN(api.env.container_dns, api.env.basedn)
