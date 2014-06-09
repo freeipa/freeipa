@@ -156,6 +156,7 @@ version-update: release-update
 
 	if [ "$(SKIP_API_VERSION_CHECK)" != "yes" ]; then \
 		./makeapi --validate; \
+		./makeaci --validate; \
 	fi
 
 server: version-update
