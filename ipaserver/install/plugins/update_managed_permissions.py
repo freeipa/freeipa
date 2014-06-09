@@ -274,6 +274,21 @@ class update_managed_permissions(PostUpdate):
 
         ldap.update_entry(base_entry)
 
+    def get_templates(self):
+        """Return (name, template, obj) triples for all managed permissions
+
+        If the permission is not defined in an object plugin, obj is None.
+        Entries with the same obj are returned consecutively.
+        """
+        for obj in sorted(self.api.Object(), key=lambda o: o.name):
+            managed_permissions = getattr(obj, 'managed_permissions', {})
+            for name, template in sorted(managed_permissions.iteritems()):
+                yield name, template, obj
+
+        for name, template in sorted(NONOBJECT_PERMISSIONS.iteritems()):
+            yield name, template, None
+
+
     def execute(self, **options):
         ldap = self.api.Backend[ldap2]
 
@@ -284,21 +299,21 @@ class update_managed_permissions(PostUpdate):
         else:
             self.log.info('Anonymous ACI not found')
 
-        for obj in self.api.Object():
-            managed_permissions = getattr(obj, 'managed_permissions', {})
-            if managed_permissions:
-                self.log.info('Updating managed permissions for %s', obj.name)
-            for name, template in managed_permissions.items():
-                self.update_permission(ldap,
-                                       obj,
-                                       unicode(name),
-                                       template,
-                                       anonymous_read_aci)
+        current_obj = ()  # initially distinct from any obj value, even None
+        for name, template, obj in self.get_templates():
+            if current_obj != obj:
+                if obj:
+                    self.log.info('Updating managed permissions for %s',
+                                  obj.name)
+                else:
+                    self.log.info('Updating non-object managed permissions')
+                current_obj = obj
 
-        self.log.info('Updating non-object managed permissions')
-        for name, template in NONOBJECT_PERMISSIONS.iteritems():
-            self.update_permission(ldap, None, unicode(name), template,
-                                   anonymous_read_aci)
+            self.update_permission(ldap,
+                                    obj,
+                                    unicode(name),
+                                    template,
+                                    anonymous_read_aci)
 
         if anonymous_read_aci:
             self.remove_anonymous_read_aci(ldap, anonymous_read_aci)
