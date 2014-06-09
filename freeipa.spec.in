@@ -79,7 +79,6 @@ BuildRequires:  libverto-devel
 BuildRequires:  systemd
 BuildRequires:  libunistring-devel
 BuildRequires:  python-lesscpy
-BuildRequires:  python-kerberos
 BuildRequires:  python-cherrypy
 
 # Find out Kerberos middle version to infer ABI changes in DAL driver
@@ -295,7 +294,7 @@ IPA administrators.
 %package python
 Summary: Python libraries used by IPA
 Group: System Environment/Libraries
-Requires: python-kerberos
+Requires: python-kerberos >= 1.1-14
 Requires: gnupg
 Requires: iproute
 Requires: keyutils
