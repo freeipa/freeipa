@@ -269,8 +269,13 @@ class HTTPInstance(service.Service):
 
         db = certs.CertDB(self.realm, subject_base=self.subject_base)
         if self.pkcs12_info:
+            if api.env.enable_ra:
+                trust_flags = 'CT,C,C'
+            else:
+                trust_flags = None
             db.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
-                                  passwd=None, ca_file=self.ca_file)
+                                  passwd=None, ca_file=self.ca_file,
+                                  trust_flags=trust_flags)
             server_certs = db.find_server_certs()
             if len(server_certs) == 0:
                 raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])

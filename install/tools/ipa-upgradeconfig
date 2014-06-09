@@ -37,7 +37,7 @@ import ipalib.util
 import ipalib.errors
 from ipaplatform import services
 from ipaplatform.tasks import tasks
-from ipapython import ipautil, sysrestore, version
+from ipapython import ipautil, sysrestore, version, certdb
 from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import *
 from ipapython import certmonger
@@ -1052,6 +1052,26 @@ def remove_ds_ra_cert(subject_base):
     sysupgrade.set_upgrade_state('ds', 'remove_ra_cert', True)
 
 
+def fix_trust_flags(service, **kwargs):
+    root_logger.info('[Fixing trust_flags in %s NSS database]' % service)
+
+    if not api.env.enable_ra:
+        root_logger.info("CA is not enabled")
+        return
+
+    if sysupgrade.get_upgrade_state(service, 'fix_trust_flags'):
+        root_logger.info("Trust flags already fixed")
+        return
+
+    db = certs.CertDB(api.env.realm, **kwargs)
+    nickname = certdb.get_ca_nickname(api.env.realm)
+    cert = db.get_cert_from_db(nickname)
+    if cert:
+        db.trust_root_cert(nickname, 'CT,C,C')
+
+    sysupgrade.set_upgrade_state(service, 'fix_trust_flags', True)
+
+
 def main():
     """
     Get some basics about the system. If getting those basics fail then
@@ -1119,7 +1139,7 @@ def main():
         sub_dict['CLONE']='#' if crl.lower() == 'true' else ''
 
     ds_serverid = dsinstance.realm_to_serverid(api.env.realm)
-    certmap_dir = dsinstance.config_dirname(ds_serverid)
+    ds_dirname = dsinstance.config_dirname(ds_serverid)
 
     upgrade(sub_dict, paths.HTTPD_IPA_CONF, ipautil.SHARE_DIR + "ipa.conf")
     upgrade(sub_dict, paths.HTTPD_IPA_REWRITE_CONF, ipautil.SHARE_DIR + "ipa-rewrite.conf")
@@ -1127,7 +1147,7 @@ def main():
     if subject_base:
         upgrade(
             sub_dict,
-            os.path.join(certmap_dir, "certmap.conf"),
+            os.path.join(ds_dirname, "certmap.conf"),
             os.path.join(ipautil.SHARE_DIR, "certmap.conf.template")
         )
     upgrade_pki(ca, fstore)
@@ -1145,12 +1165,17 @@ def main():
     http.configure_selinux_for_httpd()
     http.change_mod_nss_port_from_http()
 
+    http.stop()
+    fix_trust_flags('http')
+    http.start()
+
     ds = dsinstance.DsInstance()
     ds.configure_dirsrv_ccache()
 
     ds.stop(ds_serverid)
     fix_schema_file_syntax()
     remove_ds_ra_cert(subject_base)
+    fix_trust_flags('ds', nssdir=ds_dirname)
     ds.start(ds_serverid)
 
     uninstall_selfsign(ds, http)

@@ -1043,10 +1043,12 @@ class CAInstance(service.Service):
                     (rdn, subject_dn) = certs.get_cert_nickname(certlist[st:en+25])
                     if subject_dn == ca_dn:
                         nick = get_ca_nickname(self.realm)
+                        trust_flags = 'CT,C,C'
                     else:
                         nick = str(subject_dn)
+                        trust_flags = ',,'
                     self.__run_certutil(
-                        ['-A', '-t', 'CT,C,C', '-n', nick, '-a',
+                        ['-A', '-t', trust_flags, '-n', nick, '-a',
                          '-i', chain_name]
                     )
                 finally:

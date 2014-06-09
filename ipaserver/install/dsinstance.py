@@ -625,8 +625,13 @@ class DsInstance(service.Service):
         dirname = config_dirname(self.serverid)
         dsdb = certs.CertDB(self.realm, nssdir=dirname, subject_base=self.subject_base)
         if self.pkcs12_info:
+            if self.ca_is_configured:
+                trust_flags = 'CT,C,C'
+            else:
+                trust_flags = None
             dsdb.create_from_pkcs12(self.pkcs12_info[0], self.pkcs12_info[1],
-                                    ca_file=self.ca_file)
+                                    ca_file=self.ca_file,
+                                    trust_flags=trust_flags)
             server_certs = dsdb.find_server_certs()
             if len(server_certs) == 0:
                 raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])

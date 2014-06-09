@@ -203,7 +203,7 @@ class NSSDatabase(object):
                 root_nickname)
         else:
             if trust_flags is None:
-                trust_flags = 'CT,CT,'
+                trust_flags = 'C,,'
             try:
                 self.run_certutil(["-M", "-n", root_nickname,
                                    "-t", trust_flags])
@@ -479,7 +479,7 @@ class CertDB(object):
                          "-k", self.passwd_fname])
             self.set_perms(self.pk12_fname)
 
-    def load_cacert(self, cacert_fname):
+    def load_cacert(self, cacert_fname, trust_flags='C,,'):
         """
         Load all the certificates from a given file. It is assumed that
         this file creates CA certificates.
@@ -496,9 +496,11 @@ class CertDB(object):
                 (rdn, subject_dn) = get_cert_nickname(cert)
                 if subject_dn == ca_dn:
                     nick = get_ca_nickname(self.realm)
+                    tf = trust_flags
                 else:
                     nick = str(subject_dn)
-                self.nssdb.add_single_pem_cert(nick, "CT,,C", cert)
+                    tf = ',,'
+                self.nssdb.add_single_pem_cert(nick, tf, cert)
             except RuntimeError:
                 break
 
@@ -839,10 +841,10 @@ class CertDB(object):
         # a new certificate database.
         self.create_passwd_file(passwd)
         self.create_certdbs()
-        self.load_cacert(cacert_fname)
+        self.load_cacert(cacert_fname, 'CT,C,C')
 
     def create_from_pkcs12(self, pkcs12_fname, pkcs12_passwd, passwd=None,
-                           ca_file=None):
+                           ca_file=None, trust_flags=None):
         """Create a new NSS database using the certificates in a PKCS#12 file.
 
            pkcs12_fname: the filename of the PKCS#12 file
@@ -864,19 +866,17 @@ class CertDB(object):
             raise RuntimeError("Could not find a suitable server cert in import in %s" % pkcs12_fname)
 
         if ca_file:
-            self.nssdb.import_pem_cert('CA', 'CT,CT,', ca_file)
+            self.nssdb.import_pem_cert('CA', ',,', ca_file)
 
         # We only handle one server cert
         nickname = server_certs[0][0]
 
-        ca_names = [name for name, flags
-                    in self.nssdb.list_certs() if 'u' not in flags]
+        ca_names = self.find_root_cert(nickname)[:-1]
         if len(ca_names) == 0:
             raise RuntimeError("Could not find a CA cert in %s" % pkcs12_fname)
 
-        self.cacert_name = ca_names[0]
-        for ca in ca_names:
-            self.trust_root_cert(ca)
+        self.cacert_name = ca_names[-1]
+        self.trust_root_cert(self.cacert_name, trust_flags)
 
         self.create_pin_file()
         self.export_ca_cert(nickname, False)
