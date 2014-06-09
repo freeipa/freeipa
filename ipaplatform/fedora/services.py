@@ -31,6 +31,7 @@ from ipaplatform.base import services as base_services
 from ipapython import ipautil, dogtag
 from ipapython.ipa_log_manager import root_logger
 from ipalib import api
+from ipaplatform.paths import paths
 
 # Mappings from service names as FreeIPA code references to these services
 # to their actual systemd service names
@@ -97,9 +98,7 @@ class FedoraDirectoryService(FedoraService):
         Returns False if the setting of the nofile limit needs to be skipped.
         """
 
-        dirsrv_systemd = "/etc/sysconfig/dirsrv.systemd"
-
-        if os.path.exists(dirsrv_systemd):
+        if os.path.exists(paths.SYSCONFIG_DIRSRV_SYSTEMD):
             # We need to enable LimitNOFILE=8192 in the dirsrv@.service
             # Since 389-ds-base-1.2.10-0.8.a7 the configuration of the
             # service parameters is performed via
@@ -107,10 +106,10 @@ class FedoraDirectoryService(FedoraService):
             # into dirsrv@.service unit
 
             replacevars = {'LimitNOFILE': str(num)}
-            ipautil.inifile_replace_variables(dirsrv_systemd,
+            ipautil.inifile_replace_variables(paths.SYSCONFIG_DIRSRV_SYSTEMD,
                                               'service',
                                               replacevars=replacevars)
-            tasks.restore_context(dirsrv_systemd)
+            tasks.restore_context(paths.SYSCONFIG_DIRSRV_SYSTEMD)
             ipautil.run(["/bin/systemctl", "--system", "daemon-reload"],
                         raiseonerr=False)
 
@@ -129,9 +128,9 @@ class FedoraDirectoryService(FedoraService):
         if instance_name:
             elements = self.systemd_name.split("@")
 
-            srv_etc = os.path.join(self.SYSTEMD_ETC_PATH,
+            srv_etc = os.path.join(paths.ETC_SYSTEMD_SYSTEM_DIR,
                                    self.systemd_name)
-            srv_tgt = os.path.join(self.SYSTEMD_ETC_PATH,
+            srv_tgt = os.path.join(paths.ETC_SYSTEMD_SYSTEM_DIR,
                                    self.SYSTEMD_SRV_TARGET % (elements[0]))
             srv_lnk = os.path.join(srv_tgt,
                                    self.service_instance(instance_name))
@@ -169,7 +168,7 @@ class FedoraCAService(FedoraService):
         # TODO: Use a cleaner solution
         use_proxy = True
         if not (os.path.exists('/etc/httpd/conf.d/ipa.conf') and
-                os.path.exists('/etc/httpd/conf.d/ipa-pki-proxy.conf')):
+                os.path.exists(paths.HTTPD_IPA_PKI_PROXY_CONF)):
             root_logger.debug(
                 'The httpd proxy is not installed, wait on local port')
             use_proxy = False

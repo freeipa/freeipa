@@ -41,7 +41,7 @@ from ipaplatform.base.tasks import *
 
 class FedoraTaskNamespace(BaseTaskNamespace):
 
-    def restore_context(self, filepath, restorecon='/sbin/restorecon'):
+    def restore_context(self, filepath, restorecon=paths.SBIN_RESTORECON):
         """
         restore security context on the file path
         SELinux equivalent is /path/to/restorecon <filepath>
@@ -157,7 +157,7 @@ class FedoraTaskNamespace(BaseTaskNamespace):
         # Add the CA to the systemwide CA trust database
         try:
             shutil.copy(cacert_path, new_cacert_path)
-            ipautil.run(['/usr/bin/update-ca-trust'])
+            ipautil.run([paths.UPDATE_CA_TRUST])
         except OSError, e:
             root_logger.info("Failed to copy %s to %s" % (cacert_path,
                                                           new_cacert_path))
@@ -181,7 +181,7 @@ class FedoraTaskNamespace(BaseTaskNamespace):
         if os.path.exists(new_cacert_path):
             try:
                 os.remove(new_cacert_path)
-                ipautil.run(['/usr/bin/update-ca-trust'])
+                ipautil.run([paths.UPDATE_CA_TRUST])
             except OSError, e:
                 root_logger.error('Could not remove: %s, %s'
                                    % (new_cacert_path, str(e)))
@@ -198,12 +198,12 @@ class FedoraTaskNamespace(BaseTaskNamespace):
     def backup_and_replace_hostname(self, fstore, statestore, hostname):
         old_hostname = socket.gethostname()
         try:
-            ipautil.run(['/bin/hostname', hostname])
+            ipautil.run([paths.BIN_HOSTNAME, hostname])
         except ipautil.CalledProcessError, e:
             print >>sys.stderr, ("Failed to set this machine hostname to "
                                  "%s (%s)." % (hostname, str(e)))
 
-        filepath = '/etc/hostname'
+        filepath = paths.ETC_HOSTNAME
         if os.path.exists(filepath):
             # read old hostname
             with open(filepath, 'r') as f:
@@ -227,7 +227,7 @@ class FedoraTaskNamespace(BaseTaskNamespace):
         statestore.backup_state('network', 'hostname', old_hostname)
 
     def restore_network_configuration(self, fstore, statestore):
-        old_filepath = '/etc/sysconfig/network'
+        old_filepath = paths.SYSCONFIG_NETWORK
         old_hostname = statestore.get_state('network', 'hostname')
         hostname_was_configured = False
 
@@ -235,13 +235,13 @@ class FedoraTaskNamespace(BaseTaskNamespace):
             # This is Fedora >=18 instance that was upgraded from previous
             # Fedora version which held network configuration
             # in /etc/sysconfig/network
-            old_filepath_restore = '/etc/sysconfig/network.ipabkp'
+            old_filepath_restore = paths.SYSCONFIG_NETWORK_IPABKP
             fstore.restore_file(old_filepath, old_filepath_restore)
             print "Deprecated configuration file '%s' was restored to '%s'" \
                     % (old_filepath, old_filepath_restore)
             hostname_was_configured = True
 
-        filepath = '/etc/hostname'
+        filepath = paths.ETC_HOSTNAME
         if fstore.has_file(filepath):
             fstore.restore_file(filepath)
             hostname_was_configured = True

@@ -151,14 +151,12 @@ class PlatformService(object):
 
 
 class SystemdService(PlatformService):
-    SYSTEMD_ETC_PATH = "/etc/systemd/system/"
-    SYSTEMD_LIB_PATH = "/lib/systemd/system/"
     SYSTEMD_SRV_TARGET = "%s.target.wants"
 
     def __init__(self, service_name, systemd_name, **kwargs):
         super(SystemdService, self).__init__(service_name, **kwargs)
         self.systemd_name = systemd_name
-        self.lib_path = os.path.join(self.SYSTEMD_LIB_PATH, self.systemd_name)
+        self.lib_path = os.path.join(paths.LIB_SYSTEMD_SYSTEMD_DIR, self.systemd_name)
         self.lib_path_exists = None
 
     def service_instance(self, instance_name, operation=None):
@@ -192,7 +190,7 @@ class SystemdService(PlatformService):
             else:
                 # No instance name, try with target
                 tgt_name = "%s.target" % (elements[0])
-                srv_lib = os.path.join(self.SYSTEMD_LIB_PATH, tgt_name)
+                srv_lib = os.path.join(paths.LIB_SYSTEMD_SYSTEMD_DIR, tgt_name)
                 if os.path.exists(srv_lib):
                     return tgt_name
 
@@ -231,7 +229,7 @@ class SystemdService(PlatformService):
 
     def stop(self, instance_name="", capture_output=True):
         instance = self.service_instance(instance_name)
-        args = ["/bin/systemctl", "stop", instance]
+        args = [paths.SYSTEMCTL, "stop", instance]
 
         # The --ignore-dependencies switch is used to avoid possible
         # deadlock during the shutdown transaction. For more details, see
@@ -251,7 +249,7 @@ class SystemdService(PlatformService):
             update_service_list=update_service_list)
 
     def start(self, instance_name="", capture_output=True, wait=True):
-        ipautil.run(["/bin/systemctl", "start",
+        ipautil.run([paths.SYSTEMCTL, "start",
                      self.service_instance(instance_name)],
                      capture_output=capture_output)
 
@@ -267,7 +265,7 @@ class SystemdService(PlatformService):
             update_service_list=update_service_list)
 
     def restart(self, instance_name="", capture_output=True, wait=True):
-        ipautil.run(["/bin/systemctl", "restart",
+        ipautil.run([paths.SYSTEMCTL, "restart",
                      self.service_instance(instance_name)],
                     capture_output=capture_output)
 
@@ -280,7 +278,7 @@ class SystemdService(PlatformService):
         while True:
             try:
                 (sout, serr, rcode) = ipautil.run(
-                    ["/bin/systemctl", "is-active", instance],
+                    [paths.SYSTEMCTL, "is-active", instance],
                     capture_output=True
                 )
             except ipautil.CalledProcessError as e:
@@ -299,7 +297,7 @@ class SystemdService(PlatformService):
 
     def is_installed(self):
         try:
-            (sout, serr, rcode) = ipautil.run(["/bin/systemctl",
+            (sout, serr, rcode) = ipautil.run([paths.SYSTEMCTL,
                                                "list-unit-files",
                                                "--full"])
             if rcode != 0:
@@ -318,7 +316,7 @@ class SystemdService(PlatformService):
         enabled = True
         try:
             (sout, serr, rcode) = ipautil.run(
-                                      ["/bin/systemctl",
+                                      [paths.SYSTEMCTL,
                                        "is-enabled",
                                         self.service_instance(instance_name)])
 
@@ -355,7 +353,7 @@ class SystemdService(PlatformService):
             #    <service>@<instance_name>.service to
             #    /lib/systemd/system/<service>@.service
 
-            srv_tgt = os.path.join(self.SYSTEMD_ETC_PATH,
+            srv_tgt = os.path.join(paths.ETC_SYSTEMD_SYSTEM_DIR,
                                    self.SYSTEMD_SRV_TARGET % (elements[0]))
             srv_lnk = os.path.join(srv_tgt,
                                    self.service_instance(instance_name))
@@ -375,7 +373,7 @@ class SystemdService(PlatformService):
                         # Link exists and it is broken, make new one
                         os.unlink(srv_lnk)
                         os.symlink(self.lib_path, srv_lnk)
-                ipautil.run(["/bin/systemctl", "--system", "daemon-reload"])
+                ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"])
             except:
                 pass
         else:
@@ -389,7 +387,7 @@ class SystemdService(PlatformService):
             # <service>@<instance_name>.service
             # to /lib/systemd/system/<service>@.service
 
-            srv_tgt = os.path.join(self.SYSTEMD_ETC_PATH,
+            srv_tgt = os.path.join(paths.ETC_SYSTEMD_SYSTEM_DIR,
                                    self.SYSTEMD_SRV_TARGET % (elements[0]))
             srv_lnk = os.path.join(srv_tgt,
                                    self.service_instance(instance_name))
@@ -398,7 +396,7 @@ class SystemdService(PlatformService):
                 if ipautil.dir_exists(srv_tgt):
                     if os.path.islink(srv_lnk):
                         os.unlink(srv_lnk)
-                ipautil.run(["/bin/systemctl", "--system", "daemon-reload"])
+                ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"])
             except:
                 pass
         else:
@@ -406,14 +404,14 @@ class SystemdService(PlatformService):
 
     def __enable(self, instance_name=""):
         try:
-            ipautil.run(["/bin/systemctl", "enable",
+            ipautil.run([paths.SYSTEMCTL, "enable",
                          self.service_instance(instance_name)])
         except ipautil.CalledProcessError:
             pass
 
     def __disable(self, instance_name=""):
         try:
-            ipautil.run(["/bin/systemctl", "disable",
+            ipautil.run([paths.SYSTEMCTL, "disable",
                          self.service_instance(instance_name)])
         except ipautil.CalledProcessError:
             pass
