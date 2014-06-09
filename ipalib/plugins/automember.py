@@ -29,48 +29,48 @@ from ipapython.dn import DN
 
 __doc__ = _("""
 Auto Membership Rule.
-
+""") + _("""
 Bring clarity to the membership of hosts and users by configuring inclusive
 or exclusive regex patterns, you can automatically assign a new entries into
 a group or hostgroup based upon attribute information.
-
+""") + _("""
 A rule is directly associated with a group by name, so you cannot create
 a rule without an accompanying group or hostgroup.
-
+""") + _("""
 A condition is a regular expression used by 389-ds to match a new incoming
 entry with an automember rule. If it matches an inclusive rule then the
 entry is added to the appropriate group or hostgroup.
-
+""") + _("""
 A default group or hostgroup could be specified for entries that do not
 match any rule. In case of user entries this group will be a fallback group
 because all users are by default members of group specified in IPA config.
-
+""") + _("""
 The automember-rebuild command can be used to retroactively run automember rules
 against existing entries, thus rebuilding their membership.
-
+""") + _("""
 EXAMPLES:
-
+""") + _("""
  Add the initial group or hostgroup:
    ipa hostgroup-add --desc="Web Servers" webservers
    ipa group-add --desc="Developers" devel
-
+""") + _("""
  Add the initial rule:
    ipa automember-add --type=hostgroup webservers
    ipa automember-add --type=group devel
-
+""") + _("""
  Add a condition to the rule:
    ipa automember-add-condition --key=fqdn --type=hostgroup --inclusive-regex=^web[1-9]+\.example\.com webservers
    ipa automember-add-condition --key=manager --type=group --inclusive-regex=^uid=mscott devel
-
+""") + _("""
  Add an exclusive condition to the rule to prevent auto assignment:
    ipa automember-add-condition --key=fqdn --type=hostgroup --exclusive-regex=^web5\.example\.com webservers
-
+""") + _("""
  Add a host:
     ipa host-add web1.example.com
-
+""") + _("""
  Add a user:
     ipa user-add --first=Tim --last=User --password tuser1 --manager=mscott
-
+""") + _("""
  Verify automembership:
     ipa hostgroup-show webservers
       Host-group: webservers
@@ -82,45 +82,45 @@ EXAMPLES:
       Description: Developers
       GID: 1004200000
       Member users: tuser
-
+""") + _("""
  Remove a condition from the rule:
    ipa automember-remove-condition --key=fqdn --type=hostgroup --inclusive-regex=^web[1-9]+\.example\.com webservers
-
+""") + _("""
  Modify the automember rule:
     ipa automember-mod
-
+""") + _("""
  Set the default (fallback) target group:
     ipa automember-default-group-set --default-group=webservers --type=hostgroup
     ipa automember-default-group-set --default-group=ipausers --type=group
-
+""") + _("""
  Remove the default (fallback) target group:
     ipa automember-default-group-remove --type=hostgroup
     ipa automember-default-group-remove --type=group
-
+""") + _("""
  Show the default (fallback) target group:
     ipa automember-default-group-show --type=hostgroup
     ipa automember-default-group-show --type=group
-
+""") + _("""
  Find all of the automember rules:
     ipa automember-find
-
+""") + _("""
  Display a automember rule:
     ipa automember-show --type=hostgroup webservers
     ipa automember-show --type=group devel
-
+""") + _("""
  Delete an automember rule:
     ipa automember-del --type=hostgroup webservers
     ipa automember-del --type=group devel
-
+""") + _("""
  Rebuild membership for all users:
     ipa automember-rebuild --type=group
-
+""") + _("""
  Rebuild membership for all hosts:
     ipa automember-rebuild --type=hostgroup
-
+""") + _("""
  Rebuild membership for specified users:
     ipa automember-rebuild --users=tuser1 --users=tuser2
-
+""") + _("""
  Rebuild membership for specified hosts:
     ipa automember-rebuild --hosts=web1.example.com --hosts=web2.example.com
 """)

@@ -30,23 +30,23 @@ import qrcode
 
 __doc__ = _("""
 OTP Tokens
-
+""") + _("""
 Manage OTP tokens.
-
+""") + _("""
 IPA supports the use of OTP tokens for multi-factor authentication. This
 code enables the management of OTP tokens.
-
+""") + _("""
 EXAMPLES:
-
+""") + _("""
  Add a new token:
    ipa otptoken-add --type=totp --owner=jdoe --desc="My soft token"
-
+""") + _("""
  Examine the token:
    ipa otptoken-show a93db710-a31a-4639-8647-f15b2c70b78a
-
+""") + _("""
  Change the vendor:
    ipa otptoken-mod a93db710-a31a-4639-8647-f15b2c70b78a --vendor="Red Hat"
-
+""") + _("""
  Delete a token:
    ipa otptoken-del a93db710-a31a-4639-8647-f15b2c70b78a
 """)

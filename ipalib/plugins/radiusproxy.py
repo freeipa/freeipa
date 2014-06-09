@@ -26,27 +26,27 @@ import re
 
 __doc__ = _("""
 RADIUS Proxy Servers
-
+""") + _("""
 Manage RADIUS Proxy Servers.
-
+""") + _("""
 IPA supports the use of an external RADIUS proxy server for krb5 OTP
 authentications. This permits a great deal of flexibility when
 integrating with third-party authentication services.
-
+""") + _("""
 EXAMPLES:
-
+""") + _("""
  Add a new server:
    ipa radiusproxy-add MyRADIUS --server=radius.example.com:1812
-
+""") + _("""
  Find all servers whose entries include the string "example.com":
    ipa radiusproxy-find example.com
-
+""") + _("""
  Examine the configuration:
    ipa radiusproxy-show MyRADIUS
-
+""") + _("""
  Change the secret:
    ipa radiusproxy-mod MyRADIUS --secret
-
+""") + _("""
  Delete a configuration:
    ipa radiusproxy-del MyRADIUS
 """)

@@ -25,12 +25,12 @@ from ipalib import _, ngettext
 
 __doc__ = _("""
 Sudo Rules
-
+""") + _("""
 Sudo (su "do") allows a system administrator to delegate authority to
 give certain users (or groups of users) the ability to run some (or all)
 commands as root or another user while providing an audit trail of the
 commands and their arguments.
-
+""") + _("""
 FreeIPA provides a means to configure the various aspects of Sudo:
    Users: The user(s)/group(s) allowed to invoke Sudo.
    Hosts: The host(s)/hostgroup(s) which the user is allowed to to invoke Sudo.
@@ -39,37 +39,37 @@ FreeIPA provides a means to configure the various aspects of Sudo:
    RunAsUser: The user(s) or group(s) of users whose rights Sudo will be invoked with.
    RunAsGroup: The group(s) whose gid rights Sudo will be invoked with.
    Options: The various Sudoers Options that can modify Sudo's behavior.
-
+""") + _("""
 An order can be added to a sudorule to control the order in which they
 are evaluated (if the client supports it). This order is an integer and
 must be unique.
-
+""") + _("""
 FreeIPA provides a designated binddn to use with Sudo located at:
 uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com
-
+""") + _("""
 To enable the binddn run the following command to set the password:
 LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W \
 -h ipa.example.com -ZZ -D "cn=Directory Manager" \
 uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com
-
+""") + _("""
 EXAMPLES:
-
+""") + _("""
  Create a new rule:
    ipa sudorule-add readfiles
-
+""") + _("""
  Add sudo command object and add it as allowed command in the rule:
    ipa sudocmd-add /usr/bin/less
    ipa sudorule-add-allow-command readfiles --sudocmds /usr/bin/less
-
+""") + _("""
  Add a host to the rule:
    ipa sudorule-add-host readfiles --hosts server.example.com
-
+""") + _("""
  Add a user to the rule:
    ipa sudorule-add-user readfiles --users jsmith
-
+""") + _("""
  Add a special Sudo rule for default Sudo server configuration:
    ipa sudorule-add defaults
-
+""") + _("""
  Set a default Sudo option:
    ipa sudorule-add-option defaults --sudooption '!authenticate'
 """)
