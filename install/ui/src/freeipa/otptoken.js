@@ -469,6 +469,7 @@ otptoken.adder_dialog_qrcode_post_op = function(object) {
                 {
                     $type: 'qrcode',
                     name: 'qr',
+                    css_class: 'col-sm-12',
                     text: uri
                 }
             ]
