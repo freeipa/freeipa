@@ -247,6 +247,11 @@ div[name=settings].facet-group li a {
 
 /* ---- Dialog ---- */
 
+.modal code {
+    white-space: normal;
+    word-wrap: break-word;
+}
+
 .action-button-disabled,
 .action-button-disabled:focus,
 .action-button-disabled:hover {
