@@ -967,7 +967,7 @@ def uninstall_selfsign(ds, http):
     http.stop_tracking_certificates()
 
 
-def fix_schema_file_syntax(ds):
+def fix_schema_file_syntax():
     """Fix syntax errors in schema files
 
     https://fedorahosted.org/freeipa/ticket/3578
@@ -983,9 +983,6 @@ def fix_schema_file_syntax(ds):
         return
 
     serverid = dsinstance.realm_to_serverid(api.env.realm)
-
-    ds.stop(serverid)
-
     ds_dir = dsinstance.config_dirname(serverid)
 
     # 1. 60ipadns.ldif: Add parenthesis to idnsRecord
@@ -1024,8 +1021,6 @@ def fix_schema_file_syntax(ds):
 
     # Done
 
-    ds.start(serverid)
-
     sysupgrade.set_upgrade_state('ds', 'fix_schema_syntax', True)
 
 
@@ -1036,6 +1031,25 @@ def set_sssd_domain_option(option, value):
     domain.set_option(option, value)
     sssdconfig.save_domain(domain)
     sssdconfig.write(paths.SSSD_CONF)
+
+
+def remove_ds_ra_cert(subject_base):
+    root_logger.info('[Removing RA cert from DS NSS database]')
+
+    if sysupgrade.get_upgrade_state('ds', 'remove_ra_cert'):
+        root_logger.info('RA cert already removed')
+        return
+
+    dbdir = dsinstance.config_dirname(
+        dsinstance.realm_to_serverid(api.env.realm))
+    dsdb = certs.CertDB(api.env.realm, nssdir=dbdir, subject_base=subject_base)
+
+    nickname = 'CN=IPA RA,%s' % subject_base
+    cert = dsdb.get_cert_from_db(nickname)
+    if cert:
+        dsdb.delete_cert(nickname)
+
+    sysupgrade.set_upgrade_state('ds', 'remove_ra_cert', True)
 
 
 def main():
@@ -1104,8 +1118,8 @@ def main():
                                          '=')
         sub_dict['CLONE']='#' if crl.lower() == 'true' else ''
 
-    certmap_dir = dsinstance.config_dirname(
-        dsinstance.realm_to_serverid(api.env.realm))
+    ds_serverid = dsinstance.realm_to_serverid(api.env.realm)
+    certmap_dir = dsinstance.config_dirname(ds_serverid)
 
     upgrade(sub_dict, paths.HTTPD_IPA_CONF, ipautil.SHARE_DIR + "ipa.conf")
     upgrade(sub_dict, paths.HTTPD_IPA_REWRITE_CONF, ipautil.SHARE_DIR + "ipa-rewrite.conf")
@@ -1134,7 +1148,10 @@ def main():
     ds = dsinstance.DsInstance()
     ds.configure_dirsrv_ccache()
 
-    fix_schema_file_syntax(ds)
+    ds.stop(ds_serverid)
+    fix_schema_file_syntax()
+    remove_ds_ra_cert(subject_base)
+    ds.start(ds_serverid)
 
     uninstall_selfsign(ds, http)
 

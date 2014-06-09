@@ -461,7 +461,7 @@ class CertDB(object):
            do that step."""
         # export the CA cert for use with other apps
         ipautil.backup_file(self.cacert_fname)
-        root_nicknames = self.find_root_cert(nickname)
+        root_nicknames = self.find_root_cert(nickname)[:-1]
         fd = open(self.cacert_fname, "w")
         for root in root_nicknames:
             (cert, stderr, returncode) = self.run_certutil(["-L", "-n", root, "-a"])
