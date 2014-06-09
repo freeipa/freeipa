@@ -533,7 +533,7 @@ class update_managed_permissions(PostUpdate):
             entry['ipapermtarget'] = ipapermtarget
 
         # Attributes from template
-        bindruletype = template.pop('ipapermbindruletype')
+        bindruletype = template.pop('ipapermbindruletype', 'permission')
         if is_new:
             entry.single_value['ipapermbindruletype'] = bindruletype
 

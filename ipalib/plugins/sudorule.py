@@ -150,7 +150,6 @@ class sudorule(LDAPObject):
             },
         },
         'System: Add Sudo rule': {
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'add'},
             'replaces': [
                 '(target = "ldap:///ipauniqueid=*,cn=sudorules,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Add Sudo rule";allow (add) groupdn = "ldap:///cn=Add Sudo rule,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -158,7 +157,6 @@ class sudorule(LDAPObject):
             'default_privileges': {'Sudo Administrator'},
         },
         'System: Delete Sudo rule': {
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'delete'},
             'replaces': [
                 '(target = "ldap:///ipauniqueid=*,cn=sudorules,cn=sudo,$SUFFIX")(version 3.0;acl "permission:Delete Sudo rule";allow (delete) groupdn = "ldap:///cn=Delete Sudo rule,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -166,7 +164,6 @@ class sudorule(LDAPObject):
             'default_privileges': {'Sudo Administrator'},
         },
         'System: Modify Sudo rule': {
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'write'},
             'ipapermdefaultattr': {
                 'description', 'ipaenabledflag', 'usercategory',

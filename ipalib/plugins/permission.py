@@ -185,7 +185,6 @@ class permission(baseldap.LDAPObject):
     managed_permissions = {
         'System: Read Permissions': {
             'replaces_global_anonymous_aci': True,
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'businesscategory', 'cn', 'description', 'ipapermissiontype',
@@ -202,7 +201,6 @@ class permission(baseldap.LDAPObject):
             'non_object': True,
             'ipapermlocation': api.env.basedn,
             'replaces_global_anonymous_aci': True,
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {'aci'},
             'default_privileges': {'RBAC Readers'},

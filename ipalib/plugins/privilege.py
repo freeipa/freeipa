@@ -67,7 +67,6 @@ class privilege(LDAPObject):
     managed_permissions = {
         'System: Read Privileges': {
             'replaces_global_anonymous_aci': True,
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'businesscategory', 'cn', 'description', 'member', 'memberof',

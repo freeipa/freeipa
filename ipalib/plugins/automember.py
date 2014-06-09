@@ -199,7 +199,6 @@ class automember(LDAPObject):
             'ipapermlocation': DN(container_dn, api.env.basedn),
             'ipapermtargetfilter': {'(objectclass=automemberdefinition)'},
             'replaces_global_anonymous_aci': True,
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'objectclass', 'cn', 'automemberscope', 'automemberfilter',
@@ -211,7 +210,6 @@ class automember(LDAPObject):
         },
         'System: Read Automember Rules': {
             'replaces_global_anonymous_aci': True,
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'cn', 'objectclass', 'automembertargetgroup', 'description',
@@ -225,7 +223,6 @@ class automember(LDAPObject):
             'ipapermlocation': DN('cn=tasks', 'cn=config'),
             'ipapermtarget': DN('cn=*', REBUILD_TASK_CONTAINER),
             'replaces_global_anonymous_aci': True,
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {'*'},
             'default_privileges': {'Automember Task Administrator'},

@@ -310,7 +310,6 @@ class user(LDAPObject):
         },
         'System: Read User Kerberos Login Attributes': {
             'replaces_global_anonymous_aci': True,
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'krblastsuccessfulauth', 'krblastfailedauth',
@@ -334,13 +333,11 @@ class user(LDAPObject):
             'non_object': True,
             'ipapermlocation': UPG_DEFINITION_DN,
             'ipapermtarget': UPG_DEFINITION_DN,
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {'*'},
             'default_privileges': {'User Administrators'},
         },
         'System: Add Users': {
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'add'},
             'replaces': [
                 '(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Add Users";allow (add) groupdn = "ldap:///cn=Add Users,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -349,7 +346,6 @@ class user(LDAPObject):
         },
         'System: Add User to default group': {
             'non_object': True,
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'write'},
             'ipapermlocation': DN(api.env.container_group, api.env.basedn),
             'ipapermtarget': DN('cn=ipausers', api.env.container_group,
@@ -361,7 +357,6 @@ class user(LDAPObject):
             'default_privileges': {'User Administrators'},
         },
         'System: Change User password': {
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'write'},
             'ipapermtargetfilter': [
                 '(objectclass=posixaccount)',
@@ -383,7 +378,6 @@ class user(LDAPObject):
             },
         },
         'System: Manage User SSH Public Keys': {
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'write'},
             'ipapermdefaultattr': {'ipasshpubkey'},
             'replaces': [
@@ -392,7 +386,6 @@ class user(LDAPObject):
             'default_privileges': {'User Administrators'},
         },
         'System: Modify Users': {
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'write'},
             'ipapermdefaultattr': {
                 'businesscategory', 'carlicense', 'cn', 'description',
@@ -413,7 +406,6 @@ class user(LDAPObject):
             },
         },
         'System: Remove Users': {
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'delete'},
             'replaces': [
                 '(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Remove Users";allow (delete) groupdn = "ldap:///cn=Remove Users,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -421,7 +413,6 @@ class user(LDAPObject):
             'default_privileges': {'User Administrators'},
         },
         'System: Unlock User': {
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'write'},
             'ipapermdefaultattr': {
                 'krblastadminunlock', 'krbloginfailedcount', 'nsaccountlock',

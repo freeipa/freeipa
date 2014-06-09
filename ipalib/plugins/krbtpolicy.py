@@ -90,7 +90,6 @@ class krbtpolicy(baseldap.LDAPObject):
             'replaces_global_anonymous_aci': True,
             'ipapermtargetfilter': ['(objectclass=krbticketpolicyaux)'],
             'ipapermlocation': DN(container_dn, api.env.basedn),
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'krbdefaultencsalttypes', 'krbmaxrenewableage',
@@ -106,7 +105,6 @@ class krbtpolicy(baseldap.LDAPObject):
             'replaces_global_anonymous_aci': True,
             'ipapermlocation': DN(api.env.container_user, api.env.basedn),
             'ipapermtargetfilter': ['(objectclass=krbticketpolicyaux)'],
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'krbmaxrenewableage', 'krbmaxticketlife',

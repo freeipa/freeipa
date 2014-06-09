@@ -87,7 +87,6 @@ class cosentry(LDAPObject):
     managed_permissions = {
         'System: Read Group Password Policy costemplate': {
             'replaces_global_anonymous_aci': True,
-            'ipapermbindruletype': 'permission',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'cn', 'cospriority', 'krbpwdpolicyreference', 'objectclass',
