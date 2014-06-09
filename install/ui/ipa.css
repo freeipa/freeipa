@@ -222,6 +222,7 @@ div[name=settings].facet-group li a {
 .search-filter a {
     position: relative;
     margin: 0 0 0 -20px;
+    padding-right: 10px;
 }
 
 .pagination-control {
