@@ -1283,6 +1283,36 @@ class ReplicationManager(object):
                 err = e
 
         try:
+            entry = self.conn.get_entry(
+                DN(('cn', 'certificates'), ('cn', 'ipa'), ('cn', 'etc'),
+                   self.suffix),
+                ['aci'])
+
+            sub = {'suffix': self.suffix, 'fqdn': replica}
+            try:
+                entry.raw['aci'].remove(
+                    '(targetfilter = "(&(objectClass=ipaCertificate)'
+                    '(ipaConfigString=ipaCA))")(targetattr = '
+                    '"ipaCertIssuerSerial || cACertificate")(version 3.0; acl '
+                    '"Modify CA Certificate Store Entry"; allow (write) '
+                    'userdn = "ldap:///fqdn=%(fqdn)s,cn=computers,cn=accounts,'
+                    '%(suffix)s";)' % sub)
+            except ValueError:
+                pass
+
+            try:
+                self.conn.update_entry(entry)
+            except errors.EmptyModlist:
+                pass
+        except errors.NotFound:
+            pass
+        except Exception, e:
+            if not force:
+                raise e
+            elif not err:
+                err = e
+
+        try:
             basedn = DN(('cn', 'etc'), self.suffix)
             filter = '(dnaHostname=%s)' % replica
             entries = self.conn.get_entries(

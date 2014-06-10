@@ -163,6 +163,52 @@ NONOBJECT_PERMISSIONS = {
             'authorityrevocationlist', 'crosscertificatepair',
         },
     },
+    'System: Modify CA Certificate': {
+        'ipapermlocation': DN('cn=CAcert,cn=ipa,cn=etc', api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=pkica)'},
+        'ipapermbindruletype': 'permission',
+        'ipapermright': {'write'},
+        'ipapermdefaultattr': {
+            'cacertificate',
+        },
+        'default_privileges': {'Certificate Administrators'},
+    },
+    'System: Read Certificate Store Entries': {
+        'ipapermlocation': DN('cn=certificates,cn=ipa,cn=etc', api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=ipacertificate)'},
+        'ipapermbindruletype': 'anonymous',
+        'ipapermright': {'read', 'search', 'compare'},
+        'ipapermdefaultattr': {
+            'cn', 'objectclass', 'ipacertsubject', 'ipacertissuerserial',
+            'ipapublickey', 'ipaconfigstring', 'cacertificate', 'ipakeytrust',
+            'ipakeyusage', 'ipakeyextusage',
+        },
+    },
+    'System: Add Certificate Store Entry': {
+        'ipapermlocation': DN('cn=certificates,cn=ipa,cn=etc', api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=ipacertificate)'},
+        'ipapermbindruletype': 'permission',
+        'ipapermright': {'add'},
+        'default_privileges': {'Certificate Administrators'},
+    },
+    'System: Modify Certificate Store Entry': {
+        'ipapermlocation': DN('cn=certificates,cn=ipa,cn=etc', api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=ipacertificate)'},
+        'ipapermbindruletype': 'permission',
+        'ipapermright': {'write'},
+        'ipapermdefaultattr': {
+            'ipacertissuerserial', 'ipaconfigstring', 'cacertificate',
+            'ipakeytrust', 'ipakeyusage', 'ipakeyextusage',
+        },
+        'default_privileges': {'Certificate Administrators'},
+    },
+    'System: Remove Certificate Store Entry': {
+        'ipapermlocation': DN('cn=certificates,cn=ipa,cn=etc', api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=ipacertificate)'},
+        'ipapermbindruletype': 'permission',
+        'ipapermright': {'delete'},
+        'default_privileges': {'Certificate Administrators'},
+    },
     'System: Read Replication Information': {
         'replaces_global_anonymous_aci': True,
         'ipapermlocation': DN('cn=replication,cn=etc', api.env.basedn),
