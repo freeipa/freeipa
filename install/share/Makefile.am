@@ -16,6 +16,7 @@ app_DATA =				\
 	60basev3.ldif			\
 	60ipadns.ldif			\
 	61kerberos-ipav3.ldif		\
+	65ipacertstore.ldif		\
 	65ipasudo.ldif			\
 	70ipaotp.ldif			\
 	anonymous-vlv.ldif		\
