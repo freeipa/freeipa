@@ -37,6 +37,8 @@ import base64
 import re
 import nss.nss as nss
 from nss.error import NSPRError
+from pyasn1.type import univ, namedtype, tag
+from pyasn1.codec.der import decoder, encoder
 from ipapython import ipautil
 from ipalib import api
 from ipalib import _
@@ -170,6 +172,59 @@ def is_self_signed(certificate, datatype=PEM, dbdir=None):
     self_signed = (nsscert.issuer == nsscert.subject)
     del nsscert
     return self_signed
+
+class _TBSCertificate(univ.Sequence):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType(
+            'version',
+            univ.Integer().subtype(explicitTag=tag.Tag(
+                tag.tagClassContext, tag.tagFormatSimple, 0))),
+        namedtype.NamedType('serialNumber', univ.Integer()),
+        namedtype.NamedType('signature', univ.Sequence()),
+        namedtype.NamedType('issuer', univ.Sequence()),
+        namedtype.NamedType('validity', univ.Sequence()),
+        namedtype.NamedType('subject', univ.Sequence()),
+        namedtype.NamedType('subjectPublicKeyInfo', univ.Sequence()),
+        namedtype.OptionalNamedType(
+            'issuerUniquedID',
+            univ.BitString().subtype(implicitTag=tag.Tag(
+                tag.tagClassContext, tag.tagFormatSimple, 1))),
+        namedtype.OptionalNamedType(
+            'subjectUniquedID',
+            univ.BitString().subtype(implicitTag=tag.Tag(
+                tag.tagClassContext, tag.tagFormatSimple, 2))),
+        namedtype.OptionalNamedType(
+            'extensions',
+            univ.Sequence().subtype(explicitTag=tag.Tag(
+                tag.tagClassContext, tag.tagFormatSimple, 3))),
+        )
+
+class _Certificate(univ.Sequence):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType('tbsCertificate', _TBSCertificate()),
+        namedtype.NamedType('signatureAlgorithm', univ.Sequence()),
+        namedtype.NamedType('signature', univ.BitString()),
+        )
+
+def _get_der_field(cert, datatype, dbdir, field):
+    cert = load_certificate(cert, datatype, dbdir)
+    cert = cert.der_data
+    cert = decoder.decode(cert, _Certificate())[0]
+    field = cert['tbsCertificate'][field]
+    field = encoder.encode(field)
+    return field
+
+def get_der_subject(cert, datatype=PEM, dbdir=None):
+    return _get_der_field(cert, datatype, dbdir, 'subject')
+
+def get_der_issuer(cert, datatype=PEM, dbdir=None):
+    return _get_der_field(cert, datatype, dbdir, 'issuer')
+
+def get_der_serial_number(cert, datatype=PEM, dbdir=None):
+    return _get_der_field(cert, datatype, dbdir, 'serialNumber')
+
+def get_der_public_key_info(cert, datatype=PEM, dbdir=None):
+    return _get_der_field(cert, datatype, dbdir, 'subjectPublicKeyInfo')
 
 def make_pem(data):
     """
