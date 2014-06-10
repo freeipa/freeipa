@@ -133,7 +133,7 @@ class sudorule(LDAPObject):
                 'ipasudorunasgroupcategory', 'ipasudorunasusercategory',
                 'ipauniqueid', 'memberallowcmd', 'memberdenycmd',
                 'memberhost', 'memberuser', 'sudonotafter', 'sudonotbefore',
-                'sudoorder', 'usercategory', 'objectclass',
+                'sudoorder', 'usercategory', 'objectclass', 'member',
             },
         },
         'System: Read Sudoers compat tree': {

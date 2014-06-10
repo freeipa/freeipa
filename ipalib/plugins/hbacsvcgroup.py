@@ -70,6 +70,7 @@ class hbacsvcgroup(LDAPObject):
             'ipapermdefaultattr': {
                 'businesscategory', 'cn', 'description', 'ipauniqueid',
                 'member', 'o', 'objectclass', 'ou', 'owner', 'seealso',
+                'memberuser', 'memberhost',
             },
         },
     }

@@ -91,7 +91,7 @@ class hostgroup(LDAPObject):
             'ipapermbindruletype': 'all',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
-                'member', 'memberof',
+                'member', 'memberof', 'memberuser', 'memberhost',
             },
         },
     }

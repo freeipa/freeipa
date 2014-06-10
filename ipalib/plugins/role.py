@@ -88,7 +88,8 @@ class role(LDAPObject):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'businesscategory', 'cn', 'description', 'member', 'memberof',
-                'o', 'objectclass', 'ou', 'owner', 'seealso',
+                'o', 'objectclass', 'ou', 'owner', 'seealso', 'memberuser',
+                'memberhost',
             },
             'default_privileges': {'RBAC Readers'},
         },

@@ -123,7 +123,8 @@ class netgroup(LDAPObject):
             'ipapermbindruletype': 'all',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
-                'externalhost', 'member', 'memberof', 'memberuser'
+                'externalhost', 'member', 'memberof', 'memberuser',
+                'memberhost',
             },
         },
     }

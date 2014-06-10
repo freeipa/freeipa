@@ -144,7 +144,7 @@ class hbacrule(LDAPObject):
                 'externalhost', 'hostcategory', 'ipaenabledflag',
                 'ipauniqueid', 'memberhost', 'memberservice', 'memberuser',
                 'servicecategory', 'sourcehost', 'sourcehostcategory',
-                'usercategory', 'objectclass',
+                'usercategory', 'objectclass', 'member',
             },
         },
     }

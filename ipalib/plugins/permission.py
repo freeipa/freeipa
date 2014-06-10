@@ -192,7 +192,7 @@ class permission(baseldap.LDAPObject):
                 'ipapermdefaultattr', 'ipapermincludedattr',
                 'ipapermexcludedattr', 'ipapermbindruletype', 'ipapermtarget',
                 'ipapermlocation', 'ipapermright', 'ipapermtargetfilter',
-                'member', 'memberof',
+                'member', 'memberof', 'memberuser', 'memberhost',
             },
             'default_privileges': {'RBAC Readers'},
         },

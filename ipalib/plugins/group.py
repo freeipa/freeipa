@@ -157,7 +157,7 @@ class group(LDAPObject):
             'ipapermbindruletype': 'all',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
-                'member', 'memberof', 'memberuid',
+                'member', 'memberof', 'memberuid', 'memberuser', 'memberhost',
             },
         },
     }

@@ -160,7 +160,7 @@ class selinuxusermap(LDAPObject):
                 'accesstime', 'cn', 'description', 'hostcategory',
                 'ipaenabledflag', 'ipaselinuxuser', 'ipauniqueid',
                 'memberhost', 'memberuser', 'seealso', 'usercategory',
-                'objectclass',
+                'objectclass', 'member',
             },
         },
     }
