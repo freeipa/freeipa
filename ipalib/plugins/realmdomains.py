@@ -20,6 +20,7 @@
 from ipalib import api, errors
 from ipalib import Str, Flag
 from ipalib import _
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import LDAPObject, LDAPUpdate, LDAPRetrieve
 from ipalib.util import has_soa_or_ns_record, validate_domain_name
 from ipapython.dn import DN
@@ -47,6 +48,7 @@ EXAMPLES:
    ipa realmdomains-mod --del-domain=olddomain.com
 """)
 
+register = Registry()
 
 def _domain_name_normalizer(d):
     return d.lower().rstrip('.')
@@ -58,6 +60,7 @@ def _domain_name_validator(ugettext, value):
         return unicode(e)
 
 
+@register()
 class realmdomains(LDAPObject):
     """
     List of domains associated with IPA realm.
@@ -102,9 +105,9 @@ class realmdomains(LDAPObject):
         ),
     )
 
-api.register(realmdomains)
 
 
+@register()
 class realmdomains_mod(LDAPUpdate):
     __doc__ = _('Modify realm domains.')
 
@@ -199,10 +202,9 @@ class realmdomains_mod(LDAPUpdate):
 
         return result
 
-api.register(realmdomains_mod)
 
 
+@register()
 class realmdomains_show(LDAPRetrieve):
     __doc__ = _('Display the list of realm domains.')
 
-api.register(realmdomains_show)

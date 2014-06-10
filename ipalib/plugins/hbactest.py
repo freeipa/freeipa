@@ -23,6 +23,7 @@ from types import NoneType
 from ipalib.cli import to_cli
 from ipalib import _, ngettext
 from ipapython.dn import DN
+from ipalib.plugable import Registry
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         import ipaserver.dcerpc
@@ -205,6 +206,8 @@ EXAMPLES:
       Not matched rules: can_login
 """)
 
+register = Registry()
+
 def convert_to_ipa_rule(rule):
     # convert a dict with a rule to an pyhbac rule
     ipa_rule = pyhbac.HbacRule(rule['cn'][0])
@@ -237,6 +240,7 @@ def convert_to_ipa_rule(rule):
     return ipa_rule
 
 
+@register()
 class hbactest(Command):
     __doc__ = _('Simulate use of Host-based access controls')
 
@@ -510,4 +514,3 @@ class hbactest(Command):
         # Propagate integer value for result. It will give proper command line result for scripts
         return int(not output['value'])
 
-api.register(hbactest)

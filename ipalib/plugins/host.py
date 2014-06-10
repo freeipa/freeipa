@@ -28,6 +28,7 @@ import string
 
 from ipalib import api, errors, util
 from ipalib import Str, Flag, Bytes
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.service import (split_principal, validate_certificate,
     set_certificate_attrs, ticket_flags_params, update_krbticketflags,
@@ -102,6 +103,8 @@ EXAMPLES:
  Add a host that can manage this host's keytab and certificate:
    ipa host-add-managedby --hosts=test2 test
 """)
+
+register = Registry()
 
 # Characters to be used by random password generator
 # The set was chosen to avoid the need for escaping the characters by user
@@ -223,6 +226,7 @@ def _hostname_validator(ugettext, value):
 
     return None
 
+@register()
 class host(LDAPObject):
     """
     Host object.
@@ -421,9 +425,9 @@ class host(LDAPObject):
             else:
                 entry_attrs['memberofindirect'].remove(member)
 
-api.register(host)
 
 
+@register()
 class host_add(LDAPCreate):
     __doc__ = _('Add a new host.')
 
@@ -541,9 +545,9 @@ class host_add(LDAPCreate):
 
         return dn
 
-api.register(host_add)
 
 
+@register()
 class host_del(LDAPDelete):
     __doc__ = _('Delete a host.')
 
@@ -653,9 +657,9 @@ class host_del(LDAPDelete):
 
         return dn
 
-api.register(host_del)
 
 
+@register()
 class host_mod(LDAPUpdate):
     __doc__ = _('Modify information about a host.')
 
@@ -801,9 +805,9 @@ class host_mod(LDAPUpdate):
 
         return dn
 
-api.register(host_mod)
 
 
+@register()
 class host_find(LDAPSearch):
     __doc__ = _('Search for hosts.')
 
@@ -886,9 +890,9 @@ class host_find(LDAPSearch):
 
         return truncated
 
-api.register(host_find)
 
 
+@register()
 class host_show(LDAPRetrieve):
     __doc__ = _('Display information about a host.')
 
@@ -934,9 +938,9 @@ class host_show(LDAPRetrieve):
         else:
             return super(host_show, self).forward(*keys, **options)
 
-api.register(host_show)
 
 
+@register()
 class host_disable(LDAPQuery):
     __doc__ = _('Disable the Kerberos key, SSL certificate and all services of a host.')
 
@@ -1032,8 +1036,8 @@ class host_disable(LDAPQuery):
         self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
         return dn
 
-api.register(host_disable)
 
+@register()
 class host_add_managedby(LDAPAddMember):
     __doc__ = _('Add hosts that can manage this host.')
 
@@ -1046,9 +1050,9 @@ class host_add_managedby(LDAPAddMember):
         self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
         return (completed, dn)
 
-api.register(host_add_managedby)
 
 
+@register()
 class host_remove_managedby(LDAPRemoveMember):
     __doc__ = _('Remove hosts that can manage this host.')
 
@@ -1060,4 +1064,3 @@ class host_remove_managedby(LDAPRemoveMember):
         self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
         return (completed, dn)
 
-api.register(host_remove_managedby)

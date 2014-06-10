@@ -33,6 +33,7 @@ from ipalib import api, errors, output
 from ipalib import Command
 from ipalib.parameters import (Flag, Bool, Int, Decimal, Str, StrEnum, Any,
                                DeprecatedParam, DNSNameParam)
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
@@ -228,6 +229,8 @@ server:
  Modify global DNS configuration and set a list of global forwarders:
    ipa dnsconfig-mod --forwarder=10.0.0.1
 """)
+
+register = Registry()
 
 # supported resource record types
 _record_types = (
@@ -1666,6 +1669,7 @@ def _records_idn_postprocess(record, **options):
         record[attr] = rrs
 
 
+@register()
 class dnszone(LDAPObject):
     """
     DNS Zone, container for resource records.
@@ -1887,9 +1891,9 @@ class dnszone(LDAPObject):
             return
         _records_idn_postprocess(record, **options)
 
-api.register(dnszone)
 
 
+@register()
 class dnszone_add(LDAPCreate):
     __doc__ = _('Create new DNS zone (SOA record).')
 
@@ -2006,9 +2010,9 @@ class dnszone_add(LDAPCreate):
         self.obj._rr_zone_postprocess(entry_attrs, **options)
         return dn
 
-api.register(dnszone_add)
 
 
+@register()
 class dnszone_del(LDAPDelete):
     __doc__ = _('Delete DNS zone (SOA record).')
 
@@ -2035,9 +2039,9 @@ class dnszone_del(LDAPDelete):
 
         return True
 
-api.register(dnszone_del)
 
 
+@register()
 class dnszone_mod(LDAPUpdate):
     __doc__ = _('Modify DNS zone (SOA record).')
 
@@ -2062,9 +2066,9 @@ class dnszone_mod(LDAPUpdate):
         self.obj._rr_zone_postprocess(entry_attrs, **options)
         return dn
 
-api.register(dnszone_mod)
 
 
+@register()
 class dnszone_find(LDAPSearch):
     __doc__ = _('Search for DNS zones (SOA records).')
 
@@ -2124,9 +2128,9 @@ class dnszone_find(LDAPSearch):
             self.obj._rr_zone_postprocess(entry_attrs, **options)
         return truncated
 
-api.register(dnszone_find)
 
 
+@register()
 class dnszone_show(LDAPRetrieve):
     __doc__ = _('Display information about a DNS zone (SOA record).')
 
@@ -2137,9 +2141,9 @@ class dnszone_show(LDAPRetrieve):
         self.obj._rr_zone_postprocess(entry_attrs, **options)
         return dn
 
-api.register(dnszone_show)
 
 
+@register()
 class dnszone_disable(LDAPQuery):
     __doc__ = _('Disable DNS Zone.')
 
@@ -2161,9 +2165,9 @@ class dnszone_disable(LDAPQuery):
 
         return dict(result=True, value=pkey_to_value(keys[-1], options))
 
-api.register(dnszone_disable)
 
 
+@register()
 class dnszone_enable(LDAPQuery):
     __doc__ = _('Enable DNS Zone.')
 
@@ -2185,8 +2189,8 @@ class dnszone_enable(LDAPQuery):
 
         return dict(result=True, value=pkey_to_value(keys[-1], options))
 
-api.register(dnszone_enable)
 
+@register()
 class dnszone_add_permission(LDAPQuery):
     __doc__ = _('Add a permission for per-zone access delegation.')
 
@@ -2223,8 +2227,8 @@ class dnszone_add_permission(LDAPQuery):
             value=pkey_to_value(permission_name, options),
         )
 
-api.register(dnszone_add_permission)
 
+@register()
 class dnszone_remove_permission(LDAPQuery):
     __doc__ = _('Remove a permission for per-zone access delegation.')
 
@@ -2256,8 +2260,8 @@ class dnszone_remove_permission(LDAPQuery):
             value=pkey_to_value(permission_name, options),
         )
 
-api.register(dnszone_remove_permission)
 
+@register()
 class dnsrecord(LDAPObject):
     """
     DNS record.
@@ -2749,9 +2753,9 @@ class dnsrecord(LDAPObject):
             dns_name = entry_name[1].derelativize(dns_domain)
             self.wait_for_modified_attrs(entry, dns_name, dns_domain)
 
-api.register(dnsrecord)
 
 
+@register()
 class dnsrecord_add(LDAPCreate):
     __doc__ = _('Add new DNS resource record.')
 
@@ -2956,9 +2960,9 @@ class dnsrecord_add(LDAPCreate):
             self.obj.wait_for_modified_entries(context.dnsrecord_entry_mods)
         return dn
 
-api.register(dnsrecord_add)
 
 
+@register()
 class dnsrecord_mod(LDAPUpdate):
     __doc__ = _('Modify a DNS resource record.')
 
@@ -3124,9 +3128,9 @@ class dnsrecord_mod(LDAPUpdate):
                             0) % dict(count=len(rec_values), type=param.rrtype))
                          break
 
-api.register(dnsrecord_mod)
 
 
+@register()
 class dnsrecord_delentry(LDAPDelete):
     """
     Delete DNS record entry.
@@ -3134,9 +3138,9 @@ class dnsrecord_delentry(LDAPDelete):
     msg_summary = _('Deleted record "%(value)s"')
     NO_CLI = True
 
-api.register(dnsrecord_delentry)
 
 
+@register()
 class dnsrecord_del(LDAPUpdate):
     __doc__ = _('Delete DNS resource record.')
 
@@ -3303,9 +3307,9 @@ class dnsrecord_del(LDAPUpdate):
             if deleted_values:
                 kw[param.name] = tuple(deleted_values)
 
-api.register(dnsrecord_del)
 
 
+@register()
 class dnsrecord_show(LDAPRetrieve):
     __doc__ = _('Display DNS resource.')
 
@@ -3320,9 +3324,9 @@ class dnsrecord_show(LDAPRetrieve):
         self.obj.postprocess_record(entry_attrs, **options)
         return dn
 
-api.register(dnsrecord_show)
 
 
+@register()
 class dnsrecord_find(LDAPSearch):
     __doc__ = _('Search for DNS resources.')
 
@@ -3357,8 +3361,8 @@ class dnsrecord_find(LDAPSearch):
 
         return truncated
 
-api.register(dnsrecord_find)
 
+@register()
 class dns_resolve(Command):
     __doc__ = _('Resolve a host name in DNS.')
 
@@ -3385,8 +3389,8 @@ class dns_resolve(Command):
 
         return dict(result=True, value=query)
 
-api.register(dns_resolve)
 
+@register()
 class dns_is_enabled(Command):
     """
     Checks if any of the servers has the DNS service enabled.
@@ -3410,9 +3414,9 @@ class dns_is_enabled(Command):
 
         return dict(result=dns_enabled, value=pkey_to_value(None, options))
 
-api.register(dns_is_enabled)
 
 
+@register()
 class dnsconfig(LDAPObject):
     """
     DNS global configuration object
@@ -3464,9 +3468,9 @@ class dnsconfig(LDAPObject):
         if not any(param in result['result'] for param in self.params):
             result['summary'] = unicode(_('Global DNS configuration is empty'))
 
-api.register(dnsconfig)
 
 
+@register()
 class dnsconfig_mod(LDAPUpdate):
     __doc__ = _('Modify global DNS configuration.')
 
@@ -3475,9 +3479,9 @@ class dnsconfig_mod(LDAPUpdate):
         self.obj.postprocess_result(result)
         return result
 
-api.register(dnsconfig_mod)
 
 
+@register()
 class dnsconfig_show(LDAPRetrieve):
     __doc__ = _('Show the current global DNS configuration.')
 
@@ -3486,4 +3490,3 @@ class dnsconfig_show(LDAPRetrieve):
         self.obj.postprocess_result(result)
         return result
 
-api.register(dnsconfig_show)

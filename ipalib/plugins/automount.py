@@ -23,6 +23,7 @@ import os
 from ipalib import api, errors
 from ipalib import Object, Command
 from ipalib import Flag, Str, IA5Str
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
@@ -193,10 +194,13 @@ automountInformation: -ro,soft,rsize=8192,wsize=8192 nfs.example.com:/vol/arch
 
 """
 
+register = Registry()
+
 DIRECT_MAP_KEY = u'/-'
 DEFAULT_MAPS = (u'auto.direct', )
 DEFAULT_KEYS = (u'/-', )
 
+@register()
 class automountlocation(LDAPObject):
     """
     Location container for automount maps.
@@ -233,9 +237,8 @@ class automountlocation(LDAPObject):
         ),
     )
 
-api.register(automountlocation)
 
-
+@register()
 class automountlocation_add(LDAPCreate):
     __doc__ = _('Create a new automount location.')
 
@@ -255,23 +258,19 @@ class automountlocation_add(LDAPCreate):
         return dn
 
 
-api.register(automountlocation_add)
-
-
+@register()
 class automountlocation_del(LDAPDelete):
     __doc__ = _('Delete an automount location.')
 
     msg_summary = _('Deleted automount location "%(value)s"')
 
-api.register(automountlocation_del)
 
-
+@register()
 class automountlocation_show(LDAPRetrieve):
     __doc__ = _('Display an automount location.')
 
-api.register(automountlocation_show)
 
-
+@register()
 class automountlocation_find(LDAPSearch):
     __doc__ = _('Search for an automount location.')
 
@@ -280,9 +279,8 @@ class automountlocation_find(LDAPSearch):
         '%(count)d automount locations matched', 0
     )
 
-api.register(automountlocation_find)
 
-
+@register()
 class automountlocation_tofiles(LDAPQuery):
     __doc__ = _('Generate automount files for a specific location.')
 
@@ -376,9 +374,8 @@ class automountlocation_tofiles(LDAPQuery):
                         )
                     )
 
-api.register(automountlocation_tofiles)
 
-
+@register()
 class automountlocation_import(LDAPQuery):
     __doc__ = _('Import automount files for a specific location.')
 
@@ -569,8 +566,7 @@ class automountlocation_import(LDAPQuery):
                 )
 
 
-api.register(automountlocation_import)
-
+@register()
 class automountmap(LDAPObject):
     """
     Automount map object.
@@ -598,17 +594,15 @@ class automountmap(LDAPObject):
     label = _('Automount Maps')
     label_singular = _('Automount Map')
 
-api.register(automountmap)
 
-
+@register()
 class automountmap_add(LDAPCreate):
     __doc__ = _('Create a new automount map.')
 
     msg_summary = _('Added automount map "%(value)s"')
 
-api.register(automountmap_add)
 
-
+@register()
 class automountmap_del(LDAPDelete):
     __doc__ = _('Delete an automount map.')
 
@@ -627,17 +621,15 @@ class automountmap_del(LDAPDelete):
             pass
         return True
 
-api.register(automountmap_del)
 
-
+@register()
 class automountmap_mod(LDAPUpdate):
     __doc__ = _('Modify an automount map.')
 
     msg_summary = _('Modified automount map "%(value)s"')
 
-api.register(automountmap_mod)
 
-
+@register()
 class automountmap_find(LDAPSearch):
     __doc__ = _('Search for an automount map.')
 
@@ -646,15 +638,13 @@ class automountmap_find(LDAPSearch):
         '%(count)d automount maps matched', 0
     )
 
-api.register(automountmap_find)
 
-
+@register()
 class automountmap_show(LDAPRetrieve):
     __doc__ = _('Display an automount map.')
 
-api.register(automountmap_show)
 
-
+@register()
 class automountkey(LDAPObject):
     __doc__ = _('Automount key object.')
 
@@ -800,9 +790,8 @@ class automountkey(LDAPObject):
                 else: return
             self.handle_duplicate_entry(location, map, self.get_pk(key, info))
 
-api.register(automountkey)
 
-
+@register()
 class automountkey_add(LDAPCreate):
     __doc__ = _('Create a new automount key.')
 
@@ -830,9 +819,8 @@ class automountkey_add(LDAPCreate):
         result['value'] = pkey_to_value(options['automountkey'], options)
         return result
 
-api.register(automountkey_add)
 
-
+@register()
 class automountmap_add_indirect(LDAPCreate):
     __doc__ = _('Create a new indirect mount point.')
 
@@ -884,9 +872,8 @@ class automountmap_add_indirect(LDAPCreate):
             raise
         return result
 
-api.register(automountmap_add_indirect)
 
-
+@register()
 class automountkey_del(LDAPDelete):
     __doc__ = _('Delete an automount key.')
 
@@ -926,9 +913,8 @@ class automountkey_del(LDAPDelete):
         result['value'] = pkey_to_value([options['automountkey']], options)
         return result
 
-api.register(automountkey_del)
 
-
+@register()
 class automountkey_mod(LDAPUpdate):
     __doc__ = _('Modify an automount key.')
 
@@ -985,9 +971,8 @@ class automountkey_mod(LDAPUpdate):
         result['value'] = pkey_to_value(options['automountkey'], options)
         return result
 
-api.register(automountkey_mod)
 
-
+@register()
 class automountkey_find(LDAPSearch):
     __doc__ = _('Search for an automount key.')
 
@@ -996,9 +981,8 @@ class automountkey_find(LDAPSearch):
         '%(count)d automount keys matched', 0
     )
 
-api.register(automountkey_find)
 
-
+@register()
 class automountkey_show(LDAPRetrieve):
     __doc__ = _('Display an automount key.')
 
@@ -1028,5 +1012,3 @@ class automountkey_show(LDAPRetrieve):
         result = super(automountkey_show, self).execute(*keys, **options)
         result['value'] = pkey_to_value(options['automountkey'], options)
         return result
-
-api.register(automountkey_show)

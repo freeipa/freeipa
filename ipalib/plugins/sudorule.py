@@ -19,6 +19,7 @@
 
 from ipalib import api, errors
 from ipalib import Str, StrEnum, Bool
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.hbacrule import is_all
 from ipalib import _, ngettext
@@ -74,6 +75,8 @@ EXAMPLES:
    ipa sudorule-add-option defaults --sudooption '!authenticate'
 """)
 
+register = Registry()
+
 topic = ('sudo', _('Commands for controlling sudo configuration'))
 
 def deprecated(attribute):
@@ -88,6 +91,7 @@ def validate_runasextuser(ugettext, value):
 def validate_runasextgroup(ugettext, value):
     deprecated('runasexternalgroup')
 
+@register()
 class sudorule(LDAPObject):
     """
     Sudo Rule object.
@@ -323,9 +327,9 @@ class sudorule(LDAPObject):
                     }
                 )
 
-api.register(sudorule)
 
 
+@register()
 class sudorule_add(LDAPCreate):
     __doc__ = _('Create new Sudo Rule.')
 
@@ -338,17 +342,17 @@ class sudorule_add(LDAPCreate):
 
     msg_summary = _('Added Sudo Rule "%(value)s"')
 
-api.register(sudorule_add)
 
 
+@register()
 class sudorule_del(LDAPDelete):
     __doc__ = _('Delete Sudo Rule.')
 
     msg_summary = _('Deleted Sudo Rule "%(value)s"')
 
-api.register(sudorule_del)
 
 
+@register()
 class sudorule_mod(LDAPUpdate):
     __doc__ = _('Modify Sudo Rule.')
 
@@ -383,9 +387,9 @@ class sudorule_mod(LDAPUpdate):
 
         return dn
 
-api.register(sudorule_mod)
 
 
+@register()
 class sudorule_find(LDAPSearch):
     __doc__ = _('Search for Sudo Rule.')
 
@@ -393,15 +397,15 @@ class sudorule_find(LDAPSearch):
         '%(count)d Sudo Rule matched', '%(count)d Sudo Rules matched', 0
     )
 
-api.register(sudorule_find)
 
 
+@register()
 class sudorule_show(LDAPRetrieve):
     __doc__ = _('Display Sudo Rule.')
 
-api.register(sudorule_show)
 
 
+@register()
 class sudorule_enable(LDAPQuery):
     __doc__ = _('Enable a Sudo Rule.')
 
@@ -426,9 +430,9 @@ class sudorule_enable(LDAPQuery):
     def output_for_cli(self, textui, result, cn, **options):
         textui.print_dashed(_('Enabled Sudo Rule "%s"') % cn)
 
-api.register(sudorule_enable)
 
 
+@register()
 class sudorule_disable(LDAPQuery):
     __doc__ = _('Disable a Sudo Rule.')
 
@@ -453,9 +457,9 @@ class sudorule_disable(LDAPQuery):
     def output_for_cli(self, textui, result, cn, **options):
         textui.print_dashed(_('Disabled Sudo Rule "%s"') % cn)
 
-api.register(sudorule_disable)
 
 
+@register()
 class sudorule_add_allow_command(LDAPAddMember):
     __doc__ = _('Add commands and sudo command groups affected by Sudo Rule.')
 
@@ -473,18 +477,18 @@ class sudorule_add_allow_command(LDAPAddMember):
 
         return dn
 
-api.register(sudorule_add_allow_command)
 
 
+@register()
 class sudorule_remove_allow_command(LDAPRemoveMember):
     __doc__ = _('Remove commands and sudo command groups affected by Sudo Rule.')
 
     member_attributes = ['memberallowcmd']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-api.register(sudorule_remove_allow_command)
 
 
+@register()
 class sudorule_add_deny_command(LDAPAddMember):
     __doc__ = _('Add commands and sudo command groups affected by Sudo Rule.')
 
@@ -501,18 +505,18 @@ class sudorule_add_deny_command(LDAPAddMember):
             raise errors.MutuallyExclusiveError(reason=_("commands cannot be added when command category='all'"))
         return dn
 
-api.register(sudorule_add_deny_command)
 
 
+@register()
 class sudorule_remove_deny_command(LDAPRemoveMember):
     __doc__ = _('Remove commands and sudo command groups affected by Sudo Rule.')
 
     member_attributes = ['memberdenycmd']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-api.register(sudorule_remove_deny_command)
 
 
+@register()
 class sudorule_add_user(LDAPAddMember):
     __doc__ = _('Add users and groups affected by Sudo Rule.')
 
@@ -533,9 +537,9 @@ class sudorule_add_user(LDAPAddMember):
         assert isinstance(dn, DN)
         return add_external_post_callback('memberuser', 'user', 'externaluser', ldap, completed, failed, dn, entry_attrs, keys, options)
 
-api.register(sudorule_add_user)
 
 
+@register()
 class sudorule_remove_user(LDAPRemoveMember):
     __doc__ = _('Remove users and groups affected by Sudo Rule.')
 
@@ -546,9 +550,9 @@ class sudorule_remove_user(LDAPRemoveMember):
         assert isinstance(dn, DN)
         return remove_external_post_callback('memberuser', 'user', 'externaluser', ldap, completed, failed, dn, entry_attrs, keys, options)
 
-api.register(sudorule_remove_user)
 
 
+@register()
 class sudorule_add_host(LDAPAddMember):
     __doc__ = _('Add hosts and hostgroups affected by Sudo Rule.')
 
@@ -569,9 +573,9 @@ class sudorule_add_host(LDAPAddMember):
         assert isinstance(dn, DN)
         return add_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
 
-api.register(sudorule_add_host)
 
 
+@register()
 class sudorule_remove_host(LDAPRemoveMember):
     __doc__ = _('Remove hosts and hostgroups affected by Sudo Rule.')
 
@@ -582,8 +586,8 @@ class sudorule_remove_host(LDAPRemoveMember):
         assert isinstance(dn, DN)
         return remove_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
 
-api.register(sudorule_remove_host)
 
+@register()
 class sudorule_add_runasuser(LDAPAddMember):
     __doc__ = _('Add users and groups for Sudo to execute as.')
 
@@ -625,9 +629,9 @@ class sudorule_add_runasuser(LDAPAddMember):
         assert isinstance(dn, DN)
         return add_external_post_callback('ipasudorunas', 'user', 'ipasudorunasextuser', ldap, completed, failed, dn, entry_attrs, keys, options)
 
-api.register(sudorule_add_runasuser)
 
 
+@register()
 class sudorule_remove_runasuser(LDAPRemoveMember):
     __doc__ = _('Remove users and groups for Sudo to execute as.')
 
@@ -638,9 +642,9 @@ class sudorule_remove_runasuser(LDAPRemoveMember):
         assert isinstance(dn, DN)
         return remove_external_post_callback('ipasudorunas', 'user', 'ipasudorunasextuser', ldap, completed, failed, dn, entry_attrs, keys, options)
 
-api.register(sudorule_remove_runasuser)
 
 
+@register()
 class sudorule_add_runasgroup(LDAPAddMember):
     __doc__ = _('Add group for Sudo to execute as.')
 
@@ -676,9 +680,9 @@ class sudorule_add_runasgroup(LDAPAddMember):
         assert isinstance(dn, DN)
         return add_external_post_callback('ipasudorunasgroup', 'group', 'ipasudorunasextgroup', ldap, completed, failed, dn, entry_attrs, keys, options)
 
-api.register(sudorule_add_runasgroup)
 
 
+@register()
 class sudorule_remove_runasgroup(LDAPRemoveMember):
     __doc__ = _('Remove group for Sudo to execute as.')
 
@@ -689,9 +693,9 @@ class sudorule_remove_runasgroup(LDAPRemoveMember):
         assert isinstance(dn, DN)
         return remove_external_post_callback('ipasudorunasgroup', 'group', 'ipasudorunasextgroup', ldap, completed, failed, dn, entry_attrs, keys, options)
 
-api.register(sudorule_remove_runasgroup)
 
 
+@register()
 class sudorule_add_option(LDAPQuery):
     __doc__ = _('Add an option to the Sudo Rule.')
 
@@ -742,9 +746,9 @@ class sudorule_add_option(LDAPQuery):
 
 
 
-api.register(sudorule_add_option)
 
 
+@register()
 class sudorule_remove_option(LDAPQuery):
     __doc__ = _('Remove an option from Sudo Rule.')
 
@@ -796,4 +800,3 @@ class sudorule_remove_option(LDAPQuery):
                 dict(option=options['ipasudoopt'], rule=cn))
         super(sudorule_remove_option, self).output_for_cli(textui, result, cn, **options)
 
-api.register(sudorule_remove_option)

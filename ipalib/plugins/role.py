@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import api, Str, _, ngettext
 from ipalib import Command
@@ -58,6 +59,9 @@ EXAMPLES:
  add users, reset passwords or add a user to the default IPA user group.
 """)
 
+register = Registry()
+
+@register()
 class role(LDAPObject):
     """
     Role object.
@@ -107,33 +111,33 @@ class role(LDAPObject):
         ),
     )
 
-api.register(role)
 
 
+@register()
 class role_add(LDAPCreate):
     __doc__ = _('Add a new role.')
 
     msg_summary = _('Added role "%(value)s"')
 
-api.register(role_add)
 
 
+@register()
 class role_del(LDAPDelete):
     __doc__ = _('Delete a role.')
 
     msg_summary = _('Deleted role "%(value)s"')
 
-api.register(role_del)
 
 
+@register()
 class role_mod(LDAPUpdate):
     __doc__ = _('Modify a role.')
 
     msg_summary = _('Modified role "%(value)s"')
 
-api.register(role_mod)
 
 
+@register()
 class role_find(LDAPSearch):
     __doc__ = _('Search for roles.')
 
@@ -141,27 +145,27 @@ class role_find(LDAPSearch):
         '%(count)d role matched', '%(count)d roles matched', 0
     )
 
-api.register(role_find)
 
 
+@register()
 class role_show(LDAPRetrieve):
     __doc__ = _('Display information about a role.')
 
-api.register(role_show)
 
 
+@register()
 class role_add_member(LDAPAddMember):
     __doc__ = _('Add members to a role.')
 
-api.register(role_add_member)
 
 
+@register()
 class role_remove_member(LDAPRemoveMember):
     __doc__ = _('Remove members from a role.')
 
-api.register(role_remove_member)
 
 
+@register()
 class role_add_privilege(LDAPAddReverseMember):
     __doc__ = _('Add privileges to a role.')
 
@@ -182,9 +186,9 @@ class role_add_privilege(LDAPAddReverseMember):
         ),
     )
 
-api.register(role_add_privilege)
 
 
+@register()
 class role_remove_privilege(LDAPRemoveReverseMember):
     __doc__ = _('Remove privileges from a role.')
 
@@ -205,4 +209,3 @@ class role_remove_privilege(LDAPRemoveReverseMember):
         ),
     )
 
-api.register(role_remove_privilege)

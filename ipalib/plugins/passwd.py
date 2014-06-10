@@ -22,6 +22,7 @@ from ipalib import Command
 from ipalib import Str, Password
 from ipalib import _
 from ipalib import output
+from ipalib.plugable import Registry
 from ipalib.plugins.user import split_principal, validate_principal, normalize_principal
 from ipalib.request import context
 from ipapython.dn import DN
@@ -45,6 +46,8 @@ EXAMPLES:
    ipa passwd tuser1
 """)
 
+register = Registry()
+
 # We only need to prompt for the current password when changing a password
 # for yourself, but the parameter is still required
 MAGIC_VALUE = u'CHANGING_PASSWORD_FOR_ANOTHER_USER'
@@ -61,6 +64,7 @@ def get_current_password(principal):
     else:
         return MAGIC_VALUE
 
+@register()
 class passwd(Command):
     __doc__ = _("Set a user's password.")
 
@@ -124,4 +128,3 @@ class passwd(Command):
             value=principal,
         )
 
-api.register(passwd)

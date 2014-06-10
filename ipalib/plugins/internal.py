@@ -31,7 +31,11 @@ from ipalib import Str
 from ipalib.output import Output
 from ipalib.text import _
 from ipalib.util import json_serialize
+from ipalib.plugable import Registry
 
+register = Registry()
+
+@register()
 class json_metadata(Command):
     """
     Export plugin meta-data for the webUI.
@@ -136,8 +140,8 @@ class json_metadata(Command):
     def output_for_cli(self, textui, result, *args, **options):
         print json.dumps(result, default=json_serialize)
 
-api.register(json_metadata)
 
+@register()
 class i18n_messages(Command):
     NO_CLI = True
 
@@ -730,4 +734,3 @@ class i18n_messages(Command):
         print json.dumps(result, default=json_serialize)
 
 
-api.register(i18n_messages)

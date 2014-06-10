@@ -24,6 +24,7 @@ import os
 
 from ipalib import api, errors, util
 from ipalib import Str, Flag, Bytes, StrEnum, Bool
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import x509
 from ipalib import _, ngettext
@@ -90,6 +91,8 @@ EXAMPLES:
    ipa-getkeytab -s ipa.example.com -p HTTP/web.example.com -k /etc/httpd/httpd.keytab
 
 """)
+
+register = Registry()
 
 output_params = (
     Flag('has_keytab',
@@ -287,6 +290,7 @@ def set_kerberos_attrs(entry_attrs, options):
         if name in options or all_opt:
             entry_attrs[name] = bool(ticket_flags & value)
 
+@register()
 class service(LDAPObject):
     """
     Service object.
@@ -371,9 +375,9 @@ class service(LDAPObject):
             raise errors.ValidationError(name='ipakrbauthzdata',
                 error=_('NONE value cannot be combined with other PAC types'))
 
-api.register(service)
 
 
+@register()
 class service_add(LDAPCreate):
     __doc__ = _('Add a new IPA new service.')
 
@@ -433,9 +437,9 @@ class service_add(LDAPCreate):
         set_kerberos_attrs(entry_attrs, options)
         return dn
 
-api.register(service_add)
 
 
+@register()
 class service_del(LDAPDelete):
     __doc__ = _('Delete an IPA service.')
 
@@ -478,9 +482,9 @@ class service_del(LDAPDelete):
                         raise nsprerr
         return dn
 
-api.register(service_del)
 
 
+@register()
 class service_mod(LDAPUpdate):
     __doc__ = _('Modify an existing IPA service.')
 
@@ -525,9 +529,9 @@ class service_mod(LDAPUpdate):
         set_kerberos_attrs(entry_attrs, options)
         return dn
 
-api.register(service_mod)
 
 
+@register()
 class service_find(LDAPSearch):
     __doc__ = _('Search for IPA services.')
 
@@ -562,9 +566,9 @@ class service_find(LDAPSearch):
             set_kerberos_attrs(entry_attrs, options)
         return truncated
 
-api.register(service_find)
 
 
+@register()
 class service_show(LDAPRetrieve):
     __doc__ = _('Display information about an IPA service.')
 
@@ -598,26 +602,26 @@ class service_show(LDAPRetrieve):
         else:
             return super(service_show, self).forward(*keys, **options)
 
-api.register(service_show)
 
+@register()
 class service_add_host(LDAPAddMember):
     __doc__ = _('Add hosts that can manage this service.')
 
     member_attributes = ['managedby']
     has_output_params = LDAPAddMember.has_output_params + output_params
 
-api.register(service_add_host)
 
 
+@register()
 class service_remove_host(LDAPRemoveMember):
     __doc__ = _('Remove hosts that can manage this service.')
 
     member_attributes = ['managedby']
     has_output_params = LDAPRemoveMember.has_output_params + output_params
 
-api.register(service_remove_host)
 
 
+@register()
 class service_disable(LDAPQuery):
     __doc__ = _('Disable the Kerberos key and SSL certificate of a service.')
 
@@ -679,4 +683,3 @@ class service_disable(LDAPQuery):
             value=pkey_to_value(keys[0], options),
         )
 
-api.register(service_disable)

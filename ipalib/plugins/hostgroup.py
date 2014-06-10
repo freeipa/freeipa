@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import api, Int, _, ngettext, errors
 from ipalib.plugins.netgroup import NETGROUP_PATTERN, NETGROUP_PATTERN_ERRMSG
@@ -53,6 +54,9 @@ EXAMPLES:
    ipa hostgroup-del baltimore
 """)
 
+register = Registry()
+
+@register()
 class hostgroup(LDAPObject):
     """
     Hostgroup object.
@@ -131,9 +135,9 @@ class hostgroup(LDAPObject):
             else:
                 entry_attrs['memberof'].remove(member)
 
-api.register(hostgroup)
 
 
+@register()
 class hostgroup_add(LDAPCreate):
     __doc__ = _('Add a new hostgroup.')
 
@@ -172,17 +176,17 @@ class hostgroup_add(LDAPCreate):
         return dn
 
 
-api.register(hostgroup_add)
 
 
+@register()
 class hostgroup_del(LDAPDelete):
     __doc__ = _('Delete a hostgroup.')
 
     msg_summary = _('Deleted hostgroup "%(value)s"')
 
-api.register(hostgroup_del)
 
 
+@register()
 class hostgroup_mod(LDAPUpdate):
     __doc__ = _('Modify a hostgroup.')
 
@@ -193,9 +197,9 @@ class hostgroup_mod(LDAPUpdate):
         self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
         return dn
 
-api.register(hostgroup_mod)
 
 
+@register()
 class hostgroup_find(LDAPSearch):
     __doc__ = _('Search for hostgroups.')
 
@@ -211,9 +215,9 @@ class hostgroup_find(LDAPSearch):
             self.obj.suppress_netgroup_memberof(ldap, entry.dn, entry)
         return truncated
 
-api.register(hostgroup_find)
 
 
+@register()
 class hostgroup_show(LDAPRetrieve):
     __doc__ = _('Display information about a hostgroup.')
 
@@ -222,9 +226,9 @@ class hostgroup_show(LDAPRetrieve):
         self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
         return dn
 
-api.register(hostgroup_show)
 
 
+@register()
 class hostgroup_add_member(LDAPAddMember):
     __doc__ = _('Add members to a hostgroup.')
 
@@ -233,9 +237,9 @@ class hostgroup_add_member(LDAPAddMember):
         self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
         return (completed, dn)
 
-api.register(hostgroup_add_member)
 
 
+@register()
 class hostgroup_remove_member(LDAPRemoveMember):
     __doc__ = _('Remove members from a hostgroup.')
 
@@ -244,4 +248,3 @@ class hostgroup_remove_member(LDAPRemoveMember):
         self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
         return (completed, dn)
 
-api.register(hostgroup_remove_member)

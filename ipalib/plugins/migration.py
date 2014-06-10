@@ -22,6 +22,7 @@ import re
 from ipalib import api, errors, output
 from ipalib import Command, Password, Str, Flag, StrEnum, DNParam, File
 from ipalib.cli import to_cli
+from ipalib.plugable import Registry
 from ipalib.plugins.user import NO_UPG_MAGIC
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
@@ -125,6 +126,8 @@ If the log level is debug, either by setting debug = True in
 for each user added plus a summary when the default user group is
 updated.
 """)
+
+register = Registry()
 
 # USER MIGRATION CALLBACKS AND VARS
 
@@ -441,6 +444,7 @@ def validate_ldapuri(ugettext, ldapuri):
         raise errors.ValidationError(name='ldap_uri', error=err_msg)
 
 
+@register()
 class migrate_ds(Command):
     __doc__ = _('Migrate users and groups from DS to IPA.')
 
@@ -928,4 +932,3 @@ can use their Kerberos accounts.''')
         textui.print_plain('-' * len(self.name))
         textui.print_plain(unicode(self.pwd_migration_msg))
 
-api.register(migrate_ds)

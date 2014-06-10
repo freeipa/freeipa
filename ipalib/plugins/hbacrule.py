@@ -19,6 +19,7 @@
 
 from ipalib import api, errors
 from ipalib import AccessTime, Password, Str, StrEnum, Bool, DeprecatedParam
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
@@ -70,6 +71,7 @@ EXAMPLES:
    ipa hbacrule-del allow_server
 """)
 
+register = Registry()
 
 # AccessTime support is being removed for now.
 #
@@ -107,6 +109,7 @@ def is_all(options, attribute):
         return False
 
 
+@register()
 class hbacrule(LDAPObject):
     """
     HBAC object.
@@ -226,9 +229,9 @@ class hbacrule(LDAPObject):
         external_host_param,
     )
 
-api.register(hbacrule)
 
 
+@register()
 class hbacrule_add(LDAPCreate):
     __doc__ = _('Create a new HBAC rule.')
 
@@ -240,9 +243,9 @@ class hbacrule_add(LDAPCreate):
         entry_attrs['ipaenabledflag'] = 'TRUE'
         return dn
 
-api.register(hbacrule_add)
 
 
+@register()
 class hbacrule_del(LDAPDelete):
     __doc__ = _('Delete an HBAC rule.')
 
@@ -257,9 +260,9 @@ class hbacrule_del(LDAPDelete):
 
         return dn
 
-api.register(hbacrule_del)
 
 
+@register()
 class hbacrule_mod(LDAPUpdate):
     __doc__ = _('Modify an HBAC rule.')
 
@@ -281,9 +284,9 @@ class hbacrule_mod(LDAPUpdate):
             raise errors.MutuallyExclusiveError(reason=_("service category cannot be set to 'all' while there are allowed services"))
         return dn
 
-api.register(hbacrule_mod)
 
 
+@register()
 class hbacrule_find(LDAPSearch):
     __doc__ = _('Search for HBAC rules.')
 
@@ -291,15 +294,15 @@ class hbacrule_find(LDAPSearch):
         '%(count)d HBAC rule matched', '%(count)d HBAC rules matched', 0
     )
 
-api.register(hbacrule_find)
 
 
+@register()
 class hbacrule_show(LDAPRetrieve):
     __doc__ = _('Display the properties of an HBAC rule.')
 
-api.register(hbacrule_show)
 
 
+@register()
 class hbacrule_enable(LDAPQuery):
     __doc__ = _('Enable an HBAC rule.')
 
@@ -327,9 +330,9 @@ class hbacrule_enable(LDAPQuery):
             value=pkey_to_value(cn, options),
         )
 
-api.register(hbacrule_enable)
 
 
+@register()
 class hbacrule_disable(LDAPQuery):
     __doc__ = _('Disable an HBAC rule.')
 
@@ -357,7 +360,6 @@ class hbacrule_disable(LDAPQuery):
             value=pkey_to_value(cn, options),
         )
 
-api.register(hbacrule_disable)
 
 
 class hbacrule_add_accesstime(LDAPQuery):
@@ -441,6 +443,7 @@ class hbacrule_remove_accesstime(LDAPQuery):
 #api.register(hbacrule_remove_accesstime)
 
 
+@register()
 class hbacrule_add_user(LDAPAddMember):
     __doc__ = _('Add users and groups to an HBAC rule.')
 
@@ -460,18 +463,18 @@ class hbacrule_add_user(LDAPAddMember):
                 reason=_("users cannot be added when user category='all'"))
         return dn
 
-api.register(hbacrule_add_user)
 
 
+@register()
 class hbacrule_remove_user(LDAPRemoveMember):
     __doc__ = _('Remove users and groups from an HBAC rule.')
 
     member_attributes = ['memberuser']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-api.register(hbacrule_remove_user)
 
 
+@register()
 class hbacrule_add_host(LDAPAddMember):
     __doc__ = _('Add target hosts and hostgroups to an HBAC rule.')
 
@@ -491,18 +494,18 @@ class hbacrule_add_host(LDAPAddMember):
                 reason=_("hosts cannot be added when host category='all'"))
         return dn
 
-api.register(hbacrule_add_host)
 
 
+@register()
 class hbacrule_remove_host(LDAPRemoveMember):
     __doc__ = _('Remove target hosts and hostgroups from an HBAC rule.')
 
     member_attributes = ['memberhost']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-api.register(hbacrule_remove_host)
 
 
+@register()
 class hbacrule_add_sourcehost(LDAPAddMember):
     NO_CLI = True
 
@@ -512,9 +515,9 @@ class hbacrule_add_sourcehost(LDAPAddMember):
     def validate(self, **kw):
         raise errors.DeprecationError(name='hbacrule_add_sourcehost')
 
-api.register(hbacrule_add_sourcehost)
 
 
+@register()
 class hbacrule_remove_sourcehost(LDAPRemoveMember):
     NO_CLI = True
 
@@ -524,9 +527,9 @@ class hbacrule_remove_sourcehost(LDAPRemoveMember):
     def validate(self, **kw):
         raise errors.DeprecationError(name='hbacrule_remove_sourcehost')
 
-api.register(hbacrule_remove_sourcehost)
 
 
+@register()
 class hbacrule_add_service(LDAPAddMember):
     __doc__ = _('Add services to an HBAC rule.')
 
@@ -546,13 +549,12 @@ class hbacrule_add_service(LDAPAddMember):
                 "services cannot be added when service category='all'"))
         return dn
 
-api.register(hbacrule_add_service)
 
 
+@register()
 class hbacrule_remove_service(LDAPRemoveMember):
     __doc__ = _('Remove service and service groups from an HBAC rule.')
 
     member_attributes = ['memberservice']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-api.register(hbacrule_remove_service)

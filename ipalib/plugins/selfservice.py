@@ -23,6 +23,7 @@ from ipalib.request import context
 from ipalib import api, crud, errors
 from ipalib import output
 from ipalib import Object, Command
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import gen_pkey_only_option, pkey_to_value
 
 __doc__ = _("""
@@ -53,6 +54,8 @@ EXAMPLES:
    ipa selfservice-del "Users manage their own address"
 """)
 
+register = Registry()
+
 ACI_PREFIX=u"selfservice"
 
 output_params = (
@@ -62,6 +65,7 @@ output_params = (
 )
 
 
+@register()
 class selfservice(Object):
     """
     Selfservice object.
@@ -116,9 +120,9 @@ class selfservice(Object):
         except KeyError:
             pass
 
-api.register(selfservice)
 
 
+@register()
 class selfservice_add(crud.Create):
     __doc__ = _('Add a new self-service permission.')
 
@@ -138,9 +142,9 @@ class selfservice_add(crud.Create):
             value=pkey_to_value(aciname, kw),
         )
 
-api.register(selfservice_add)
 
 
+@register()
 class selfservice_del(crud.Delete):
     __doc__ = _('Delete a self-service permission.')
 
@@ -156,9 +160,9 @@ class selfservice_del(crud.Delete):
             value=pkey_to_value(aciname, kw),
         )
 
-api.register(selfservice_del)
 
 
+@register()
 class selfservice_mod(crud.Update):
     __doc__ = _('Modify a self-service permission.')
 
@@ -178,9 +182,9 @@ class selfservice_mod(crud.Update):
             value=pkey_to_value(aciname, kw),
         )
 
-api.register(selfservice_mod)
 
 
+@register()
 class selfservice_find(crud.Search):
     __doc__ = _('Search for a self-service permission.')
 
@@ -205,9 +209,9 @@ class selfservice_find(crud.Search):
             truncated=False,
         )
 
-api.register(selfservice_find)
 
 
+@register()
 class selfservice_show(crud.Retrieve):
     __doc__ = _('Display information about a self-service permission.')
 
@@ -221,4 +225,3 @@ class selfservice_show(crud.Retrieve):
             value=pkey_to_value(aciname, kw),
         )
 
-api.register(selfservice_show)

@@ -23,6 +23,7 @@ import sys
 
 from ipalib import api, errors, util
 from ipalib import Str
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
@@ -41,8 +42,11 @@ EXAMPLES:
 
 """)
 
+register = Registry()
+
 topic = ('sudo', _('commands for controlling sudo configuration'))
 
+@register()
 class sudocmd(LDAPObject):
     """
     Sudo Command object.
@@ -108,15 +112,15 @@ class sudocmd(LDAPObject):
                 pass
         return dn
 
-api.register(sudocmd)
 
+@register()
 class sudocmd_add(LDAPCreate):
     __doc__ = _('Create new Sudo Command.')
 
     msg_summary = _('Added Sudo Command "%(value)s"')
 
-api.register(sudocmd_add)
 
+@register()
 class sudocmd_del(LDAPDelete):
     __doc__ = _('Delete Sudo Command.')
 
@@ -148,15 +152,15 @@ class sudocmd_del(LDAPDelete):
                 dependent=', '.join(dependent_sudorules))
         return dn
 
-api.register(sudocmd_del)
 
+@register()
 class sudocmd_mod(LDAPUpdate):
     __doc__ = _('Modify Sudo Command.')
 
     msg_summary = _('Modified Sudo Command "%(value)s"')
 
-api.register(sudocmd_mod)
 
+@register()
 class sudocmd_find(LDAPSearch):
     __doc__ = _('Search for Sudo Commands.')
 
@@ -164,9 +168,8 @@ class sudocmd_find(LDAPSearch):
         '%(count)d Sudo Command matched', '%(count)d Sudo Commands matched', 0
     )
 
-api.register(sudocmd_find)
 
+@register()
 class sudocmd_show(LDAPRetrieve):
     __doc__ = _('Display Sudo Command.')
 
-api.register(sudocmd_show)

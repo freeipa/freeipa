@@ -21,6 +21,7 @@ from ipalib import api, errors
 from ipalib import Int, Str
 from ipalib import Object, Command
 from ipalib import _
+from ipalib.plugable import Registry
 from ipapython.dn import DN
 
 __doc__ = _("""
@@ -43,6 +44,9 @@ For more information on anonymous pkinit see:
 http://k5wiki.kerberos.org/wiki/Projects/Anonymous_pkinit
 """)
 
+register = Registry()
+
+@register()
 class pkinit(Object):
     """
     PKINIT Options
@@ -51,7 +55,6 @@ class pkinit(Object):
 
     label=_('PKINIT')
 
-api.register(pkinit)
 
 def valid_arg(ugettext, action):
     """
@@ -64,6 +67,7 @@ def valid_arg(ugettext, action):
             error=_('Unknown command %s') % action
         )
 
+@register()
 class pkinit_anonymous(Command):
     __doc__ = _('Enable or Disable Anonymous PKINIT.')
 
@@ -99,4 +103,3 @@ class pkinit_anonymous(Command):
 
         return dict(result=True)
 
-api.register(pkinit_anonymous)

@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api, errors
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
@@ -42,8 +43,11 @@ EXAMPLES:
    ipa hbacsvcgroup-del login
 """)
 
+register = Registry()
+
 topic = ('hbac', _('Host based access control commands'))
 
+@register()
 class hbacsvcgroup(LDAPObject):
     """
     HBAC service group object.
@@ -87,33 +91,33 @@ class hbacsvcgroup(LDAPObject):
         ),
     )
 
-api.register(hbacsvcgroup)
 
 
+@register()
 class hbacsvcgroup_add(LDAPCreate):
     __doc__ = _('Add a new HBAC service group.')
 
     msg_summary = _('Added HBAC service group "%(value)s"')
 
-api.register(hbacsvcgroup_add)
 
 
+@register()
 class hbacsvcgroup_del(LDAPDelete):
     __doc__ = _('Delete an HBAC service group.')
 
     msg_summary = _('Deleted HBAC service group "%(value)s"')
 
-api.register(hbacsvcgroup_del)
 
 
+@register()
 class hbacsvcgroup_mod(LDAPUpdate):
     __doc__ = _('Modify an HBAC service group.')
 
     msg_summary = _('Modified HBAC service group "%(value)s"')
 
-api.register(hbacsvcgroup_mod)
 
 
+@register()
 class hbacsvcgroup_find(LDAPSearch):
     __doc__ = _('Search for an HBAC service group.')
 
@@ -121,22 +125,21 @@ class hbacsvcgroup_find(LDAPSearch):
         '%(count)d HBAC service group matched', '%(count)d HBAC service groups matched', 0
     )
 
-api.register(hbacsvcgroup_find)
 
 
+@register()
 class hbacsvcgroup_show(LDAPRetrieve):
     __doc__ = _('Display information about an HBAC service group.')
 
-api.register(hbacsvcgroup_show)
 
 
+@register()
 class hbacsvcgroup_add_member(LDAPAddMember):
     __doc__ = _('Add members to an HBAC service group.')
 
-api.register(hbacsvcgroup_add_member)
 
 
+@register()
 class hbacsvcgroup_remove_member(LDAPRemoveMember):
     __doc__ = _('Remove members from an HBAC service group.')
 
-api.register(hbacsvcgroup_remove_member)

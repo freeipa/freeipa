@@ -31,6 +31,7 @@ from ipalib import pkcs10
 from ipalib import x509
 from ipalib import util
 from ipalib import ngettext
+from ipalib.plugable import Registry
 from ipalib.plugins.virtual import *
 from ipalib.plugins.service import split_principal
 import base64
@@ -121,6 +122,8 @@ Note that reason code 7 is not used.  See RFC 5280 for more details:
 http://www.ietf.org/rfc/rfc5280.txt
 
 """)
+
+register = Registry()
 
 def validate_pkidate(ugettext, value):
     """
@@ -221,6 +224,7 @@ def get_host_from_principal(principal):
 
     return hostname
 
+@register()
 class cert_request(VirtualCommand):
     __doc__ = _('Submit a certificate signing request.')
 
@@ -419,9 +423,9 @@ class cert_request(VirtualCommand):
             result=result
         )
 
-api.register(cert_request)
 
 
+@register()
 class cert_status(VirtualCommand):
     __doc__ = _('Check the status of a certificate signing request.')
 
@@ -445,7 +449,6 @@ class cert_status(VirtualCommand):
             result=self.Backend.ra.check_request_status(request_id)
         )
 
-api.register(cert_status)
 
 
 _serial_number = Str('serial_number',
@@ -455,6 +458,7 @@ _serial_number = Str('serial_number',
     normalizer=normalize_serial_number,
 )
 
+@register()
 class cert_show(VirtualCommand):
     __doc__ = _('Retrieve an existing certificate.')
 
@@ -540,9 +544,9 @@ class cert_show(VirtualCommand):
             return super(cert_show, self).forward(*keys, **options)
 
 
-api.register(cert_show)
 
 
+@register()
 class cert_revoke(VirtualCommand):
     __doc__ = _('Revoke a certificate.')
 
@@ -587,9 +591,9 @@ class cert_revoke(VirtualCommand):
                 serial_number, revocation_reason=revocation_reason)
         )
 
-api.register(cert_revoke)
 
 
+@register()
 class cert_remove_hold(VirtualCommand):
     __doc__ = _('Take a revoked certificate off hold.')
 
@@ -611,9 +615,9 @@ class cert_remove_hold(VirtualCommand):
             result=self.Backend.ra.take_certificate_off_hold(serial_number)
         )
 
-api.register(cert_remove_hold)
 
 
+@register()
 class cert_find(Command):
     __doc__ = _('Search for existing certificates.')
 
@@ -712,4 +716,3 @@ class cert_find(Command):
         ret['truncated'] = False
         return ret
 
-api.register(cert_find)

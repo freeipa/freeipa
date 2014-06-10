@@ -20,6 +20,7 @@
 
 from ipalib import api
 from ipalib import Bool, Int, Str, IA5Str, StrEnum, DNParam
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.selinuxusermap import validate_selinuxuser
 from ipalib import _
@@ -75,11 +76,14 @@ EXAMPLES:
    ipa config-mod --ipaselinuxusermaporder='guest_u:s0$xguest_u:s0$user_u:s0-s0:c0.c1023$staff_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023'
 """)
 
+register = Registry()
+
 def validate_searchtimelimit(ugettext, limit):
     if limit == 0:
         raise ValidationError(name='ipasearchtimelimit', error=_('searchtimelimit must be -1 or > 1.'))
     return None
 
+@register()
 class config(LDAPObject):
     """
     IPA configuration object
@@ -232,9 +236,9 @@ class config(LDAPObject):
     def get_dn(self, *keys, **kwargs):
         return DN(('cn', 'ipaconfig'), ('cn', 'etc'), api.env.basedn)
 
-api.register(config)
 
 
+@register()
 class config_mod(LDAPUpdate):
     __doc__ = _('Modify configuration options.')
 
@@ -338,10 +342,9 @@ class config_mod(LDAPUpdate):
 
         return dn
 
-api.register(config_mod)
 
 
+@register()
 class config_show(LDAPRetrieve):
     __doc__ = _('Show the current configuration.')
 
-api.register(config_show)

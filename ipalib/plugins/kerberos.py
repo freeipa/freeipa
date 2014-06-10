@@ -26,11 +26,15 @@ This wraps the python-kerberos and python-krbV bindings.
 import sys
 from ipalib import api
 from ipalib.backend import Backend
+from ipalib.plugable import Registry
 import krbV
+
+register = Registry()
 
 ENCODING = 'UTF-8'
 
 
+@register()
 class krb(Backend):
     """
     Kerberos backend plugin.
@@ -119,4 +123,3 @@ class krb(Backend):
         return self.__get_principal(ccname).realm.decode(ENCODING)
 
 
-api.register(krb)

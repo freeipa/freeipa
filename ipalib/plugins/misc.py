@@ -21,10 +21,13 @@ import re
 from ipalib import api, LocalOrRemote, _, ngettext
 from ipalib.output import Output, summary
 from ipalib import Flag
+from ipalib.plugable import Registry
 
 __doc__ = _("""
 Misc plug-ins
 """)
+
+register = Registry()
 
 # FIXME: We should not let env return anything in_server
 # when mode == 'production'.  This would allow an attacker to see the
@@ -32,6 +35,7 @@ Misc plug-ins
 # information.  However, it's damn handy for testing/debugging.
 
 
+@register()
 class env(LocalOrRemote):
     __doc__ = _('Show environment variables.')
 
@@ -99,9 +103,9 @@ class env(LocalOrRemote):
             ret['summary'] = None
         return ret
 
-api.register(env)
 
 
+@register()
 class plugins(LocalOrRemote):
     __doc__ = _('Show all loaded plugins.')
 
@@ -137,4 +141,3 @@ class plugins(LocalOrRemote):
             count=len(plugins),
         )
 
-api.register(plugins)

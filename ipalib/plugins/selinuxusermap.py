@@ -19,6 +19,7 @@
 
 from ipalib import api, errors
 from ipalib import Str, StrEnum, Bool
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.plugins.hbacrule import is_all
@@ -67,6 +68,8 @@ SEEALSO:
  The list controlling the order in which the SELinux user map is applied
  and the default SELinux user are available in the config-show command.
 """)
+
+register = Registry()
 
 notboth_err = _('HBAC rule and local members cannot both be set')
 
@@ -126,6 +129,7 @@ def validate_selinuxuser_inlist(ldap, user):
     return
 
 
+@register()
 class selinuxusermap(LDAPObject):
     """
     SELinux User Map object.
@@ -254,9 +258,9 @@ class selinuxusermap(LDAPObject):
             hbac_attrs = ldap.get_entry(entry_attrs['seealso'][0], ['cn'])
             entry_attrs['seealso'] = hbac_attrs['cn'][0]
 
-api.register(selinuxusermap)
 
 
+@register()
 class selinuxusermap_add(LDAPCreate):
     __doc__ = _('Create a new SELinux User Map.')
 
@@ -291,17 +295,17 @@ class selinuxusermap_add(LDAPCreate):
 
         return dn
 
-api.register(selinuxusermap_add)
 
 
+@register()
 class selinuxusermap_del(LDAPDelete):
     __doc__ = _('Delete a SELinux User Map.')
 
     msg_summary = _('Deleted SELinux User Map "%(value)s"')
 
-api.register(selinuxusermap_del)
 
 
+@register()
 class selinuxusermap_mod(LDAPUpdate):
     __doc__ = _('Modify a SELinux User Map.')
 
@@ -355,9 +359,9 @@ class selinuxusermap_mod(LDAPUpdate):
         self.obj._convert_seealso(ldap, entry_attrs, **options)
         return dn
 
-api.register(selinuxusermap_mod)
 
 
+@register()
 class selinuxusermap_find(LDAPSearch):
     __doc__ = _('Search for SELinux User Maps.')
 
@@ -387,9 +391,9 @@ all=True)['result']
             self.obj._convert_seealso(ldap, attrs, **options)
         return truncated
 
-api.register(selinuxusermap_find)
 
 
+@register()
 class selinuxusermap_show(LDAPRetrieve):
     __doc__ = _('Display the properties of a SELinux User Map rule.')
 
@@ -398,9 +402,9 @@ class selinuxusermap_show(LDAPRetrieve):
         self.obj._convert_seealso(ldap, entry_attrs, **options)
         return dn
 
-api.register(selinuxusermap_show)
 
 
+@register()
 class selinuxusermap_enable(LDAPQuery):
     __doc__ = _('Enable an SELinux User Map rule.')
 
@@ -428,9 +432,9 @@ class selinuxusermap_enable(LDAPQuery):
             value=pkey_to_value(cn, options),
         )
 
-api.register(selinuxusermap_enable)
 
 
+@register()
 class selinuxusermap_disable(LDAPQuery):
     __doc__ = _('Disable an SELinux User Map rule.')
 
@@ -458,9 +462,9 @@ class selinuxusermap_disable(LDAPQuery):
             value=pkey_to_value(cn, options),
         )
 
-api.register(selinuxusermap_disable)
 
 
+@register()
 class selinuxusermap_add_user(LDAPAddMember):
     __doc__ = _('Add users and groups to an SELinux User Map rule.')
 
@@ -482,18 +486,18 @@ class selinuxusermap_add_user(LDAPAddMember):
             raise errors.MutuallyExclusiveError(reason=notboth_err)
         return dn
 
-api.register(selinuxusermap_add_user)
 
 
+@register()
 class selinuxusermap_remove_user(LDAPRemoveMember):
     __doc__ = _('Remove users and groups from an SELinux User Map rule.')
 
     member_attributes = ['memberuser']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-api.register(selinuxusermap_remove_user)
 
 
+@register()
 class selinuxusermap_add_host(LDAPAddMember):
     __doc__ = _('Add target hosts and hostgroups to an SELinux User Map rule.')
 
@@ -515,13 +519,12 @@ class selinuxusermap_add_host(LDAPAddMember):
             raise errors.MutuallyExclusiveError(reason=notboth_err)
         return dn
 
-api.register(selinuxusermap_add_host)
 
 
+@register()
 class selinuxusermap_remove_host(LDAPRemoveMember):
     __doc__ = _('Remove target hosts and hostgroups from an SELinux User Map rule.')
 
     member_attributes = ['memberhost']
     member_count_out = ('%i object removed.', '%i objects removed.')
 
-api.register(selinuxusermap_remove_host)

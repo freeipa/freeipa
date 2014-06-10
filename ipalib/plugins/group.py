@@ -20,6 +20,7 @@
 
 from ipalib import api
 from ipalib import Int, Str
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins import baseldap
 from ipalib import _, ngettext
@@ -110,8 +111,11 @@ Example:
    ipa group-show ad_admins_external
 """)
 
+register = Registry()
+
 PROTECTED_GROUPS = (u'admins', u'trust admins', u'default smb group')
 
+@register()
 class group(LDAPObject):
     """
     Group object.
@@ -184,7 +188,6 @@ class group(LDAPObject):
         ),
     )
 
-api.register(group)
 
 ipaexternalmember_param = Str('ipaexternalmember*',
             cli_name='external',
@@ -194,6 +197,7 @@ ipaexternalmember_param = Str('ipaexternalmember*',
             flags=['no_create', 'no_update', 'no_search'],
         )
 
+@register()
 class group_add(LDAPCreate):
     __doc__ = _('Create a new group.')
 
@@ -228,9 +232,9 @@ class group_add(LDAPCreate):
         return dn
 
 
-api.register(group_add)
 
 
+@register()
 class group_del(LDAPDelete):
     __doc__ = _('Delete group.')
 
@@ -262,9 +266,9 @@ class group_del(LDAPDelete):
 
         return True
 
-api.register(group_del)
 
 
+@register()
 class group_mod(LDAPUpdate):
     __doc__ = _('Modify a group.')
 
@@ -334,9 +338,9 @@ class group_mod(LDAPUpdate):
                     raise errors.RequirementError(name='gid')
         raise exc
 
-api.register(group_mod)
 
 
+@register()
 class group_find(LDAPSearch):
     __doc__ = _('Search for groups.')
 
@@ -404,9 +408,9 @@ class group_find(LDAPSearch):
             filter = ldap.combine_filters(filters, rules=ldap.MATCH_ALL)
         return (filter, base_dn, scope)
 
-api.register(group_find)
 
 
+@register()
 class group_show(LDAPRetrieve):
     __doc__ = _('Display information about a named group.')
     has_output_params = LDAPRetrieve.has_output_params + (ipaexternalmember_param,)
@@ -425,9 +429,9 @@ class group_show(LDAPRetrieve):
                 except ValueError:
                     pass
         return dn
-api.register(group_show)
 
 
+@register()
 class group_add_member(LDAPAddMember):
     __doc__ = _('Add members to a group.')
 
@@ -467,9 +471,9 @@ class group_add_member(LDAPAddMember):
             failed['member']['group'] += restore + failed_sids
         return result
 
-api.register(group_add_member)
 
 
+@register()
 class group_remove_member(LDAPRemoveMember):
     __doc__ = _('Remove members from a group.')
 
@@ -521,9 +525,9 @@ class group_remove_member(LDAPRemoveMember):
             failed['member']['group'] += restore + failed_sids
         return result
 
-api.register(group_remove_member)
 
 
+@register()
 class group_detach(LDAPQuery):
     __doc__ = _('Detach a managed group from a user.')
 
@@ -592,4 +596,3 @@ class group_detach(LDAPQuery):
             value=pkey_to_value(keys[0], options),
         )
 
-api.register(group_detach)

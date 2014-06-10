@@ -19,6 +19,7 @@
 
 from ipalib import api
 from ipalib import Str
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 
@@ -45,8 +46,11 @@ EXAMPLES:
    ipa group-show localadmins
 """)
 
+register = Registry()
+
 topic = ('sudo', _('commands for controlling sudo configuration'))
 
+@register()
 class sudocmdgroup(LDAPObject):
     """
     Sudo Command Group object.
@@ -100,33 +104,33 @@ class sudocmdgroup(LDAPObject):
         ),
     )
 
-api.register(sudocmdgroup)
 
 
+@register()
 class sudocmdgroup_add(LDAPCreate):
     __doc__ = _('Create new Sudo Command Group.')
 
     msg_summary = _('Added Sudo Command Group "%(value)s"')
 
-api.register(sudocmdgroup_add)
 
 
+@register()
 class sudocmdgroup_del(LDAPDelete):
     __doc__ = _('Delete Sudo Command Group.')
 
     msg_summary = _('Deleted Sudo Command Group "%(value)s"')
 
-api.register(sudocmdgroup_del)
 
 
+@register()
 class sudocmdgroup_mod(LDAPUpdate):
     __doc__ = _('Modify Sudo Command Group.')
 
     msg_summary = _('Modified Sudo Command Group "%(value)s"')
 
-api.register(sudocmdgroup_mod)
 
 
+@register()
 class sudocmdgroup_find(LDAPSearch):
     __doc__ = _('Search for Sudo Command Groups.')
 
@@ -135,22 +139,21 @@ class sudocmdgroup_find(LDAPSearch):
         '%(count)d Sudo Command Groups matched', 0
     )
 
-api.register(sudocmdgroup_find)
 
 
+@register()
 class sudocmdgroup_show(LDAPRetrieve):
     __doc__ = _('Display Sudo Command Group.')
 
-api.register(sudocmdgroup_show)
 
 
+@register()
 class sudocmdgroup_add_member(LDAPAddMember):
     __doc__ = _('Add members to Sudo Command Group.')
 
-api.register(sudocmdgroup_add_member)
 
 
+@register()
 class sudocmdgroup_remove_member(LDAPRemoveMember):
     __doc__ = _('Remove members from Sudo Command Group.')
 
-api.register(sudocmdgroup_remove_member)

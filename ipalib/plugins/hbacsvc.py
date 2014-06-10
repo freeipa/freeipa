@@ -19,6 +19,7 @@
 
 from ipalib import api
 from ipalib import Str
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import LDAPObject, LDAPCreate, LDAPDelete
 from ipalib.plugins.baseldap import LDAPUpdate, LDAPSearch, LDAPRetrieve
 
@@ -47,8 +48,11 @@ EXAMPLES:
 
 """)
 
+register = Registry()
+
 topic = ('hbac', _('Host based access control commands'))
 
+@register()
 class hbacsvc(LDAPObject):
     """
     HBAC Service object.
@@ -92,33 +96,33 @@ class hbacsvc(LDAPObject):
         ),
     )
 
-api.register(hbacsvc)
 
 
+@register()
 class hbacsvc_add(LDAPCreate):
     __doc__ = _('Add a new HBAC service.')
 
     msg_summary = _('Added HBAC service "%(value)s"')
 
-api.register(hbacsvc_add)
 
 
+@register()
 class hbacsvc_del(LDAPDelete):
     __doc__ = _('Delete an existing HBAC service.')
 
     msg_summary = _('Deleted HBAC service "%(value)s"')
 
-api.register(hbacsvc_del)
 
 
+@register()
 class hbacsvc_mod(LDAPUpdate):
     __doc__ = _('Modify an HBAC service.')
 
     msg_summary = _('Modified HBAC service "%(value)s"')
 
-api.register(hbacsvc_mod)
 
 
+@register()
 class hbacsvc_find(LDAPSearch):
     __doc__ = _('Search for HBAC services.')
 
@@ -126,10 +130,9 @@ class hbacsvc_find(LDAPSearch):
         '%(count)d HBAC service matched', '%(count)d HBAC services matched', 0
     )
 
-api.register(hbacsvc_find)
 
 
+@register()
 class hbacsvc_show(LDAPRetrieve):
     __doc__ = _('Display information about an HBAC service.')
 
-api.register(hbacsvc_show)

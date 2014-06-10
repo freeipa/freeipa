@@ -25,6 +25,7 @@ import os
 
 from ipalib import api, errors
 from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins import baseldap
 from ipalib.request import context
@@ -81,6 +82,7 @@ EXAMPLES:
    ipa user-del tuser1
 """)
 
+register = Registry()
 
 NO_UPG_MAGIC = '__no_upg__'
 
@@ -216,6 +218,7 @@ def fix_addressbook_permission_bindrule(name, template, is_new,
         template['ipapermbindruletype'] = 'anonymous'
 
 
+@register()
 class user(LDAPObject):
     """
     User object.
@@ -675,9 +678,8 @@ class user(LDAPObject):
             for m in xrange(len(entry_attrs['manager'])):
                 entry_attrs['manager'][m] = self.get_primary_key_from_dn(entry_attrs['manager'][m])
 
-api.register(user)
 
-
+@register()
 class user_add(LDAPCreate):
     __doc__ = _('Add a new user.')
 
@@ -851,9 +853,8 @@ class user_add(LDAPCreate):
         radius_dn2pk(self.api, entry_attrs)
         return dn
 
-api.register(user_add)
 
-
+@register()
 class user_del(LDAPDelete):
     __doc__ = _('Delete a user.')
 
@@ -872,9 +873,8 @@ class user_del(LDAPDelete):
 
         return dn
 
-api.register(user_del)
 
-
+@register()
 class user_mod(LDAPUpdate):
     __doc__ = _('Modify a user.')
 
@@ -946,9 +946,8 @@ class user_mod(LDAPUpdate):
         radius_dn2pk(self.api, entry_attrs)
         return dn
 
-api.register(user_mod)
 
-
+@register()
 class user_find(LDAPSearch):
     __doc__ = _('Search for users.')
 
@@ -997,9 +996,8 @@ class user_find(LDAPSearch):
         '%(count)d user matched', '%(count)d users matched', 0
     )
 
-api.register(user_find)
 
-
+@register()
 class user_show(LDAPRetrieve):
     __doc__ = _('Display information about a user.')
 
@@ -1014,9 +1012,8 @@ class user_show(LDAPRetrieve):
         radius_dn2pk(self.api, entry_attrs)
         return dn
 
-api.register(user_show)
 
-
+@register()
 class user_disable(LDAPQuery):
     __doc__ = _('Disable a user account.')
 
@@ -1036,9 +1033,8 @@ class user_disable(LDAPQuery):
             value=pkey_to_value(keys[0], options),
         )
 
-api.register(user_disable)
 
-
+@register()
 class user_enable(LDAPQuery):
     __doc__ = _('Enable a user account.')
 
@@ -1058,8 +1054,8 @@ class user_enable(LDAPQuery):
             value=pkey_to_value(keys[0], options),
         )
 
-api.register(user_enable)
 
+@register()
 class user_unlock(LDAPQuery):
     __doc__ = _("""
     Unlock a user account
@@ -1087,8 +1083,8 @@ class user_unlock(LDAPQuery):
             value=pkey_to_value(keys[0], options),
         )
 
-api.register(user_unlock)
 
+@register()
 class user_status(LDAPQuery):
     __doc__ = _("""
     Lockout status of a user account
@@ -1197,5 +1193,3 @@ class user_status(LDAPQuery):
                     summary=unicode(_('Account disabled: %(disabled)s' %
                         dict(disabled=disabled))),
         )
-
-api.register(user_status)

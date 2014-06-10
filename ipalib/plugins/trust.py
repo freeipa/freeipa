@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.dns import dns_container_exists
 from ipapython.ipautil import realm_to_suffix
@@ -128,6 +129,8 @@ particular type.
 
    ipa trustconfig-mod --type ad --fallback-primary-group "Default SMB Group"
 """)
+
+register = Registry()
 
 trust_output_params = (
     Str('trustdirection',
@@ -296,6 +299,7 @@ def add_range(self, range_name, dom_sid, *keys, **options):
     return range_type, range_size, base_id
 
 
+@register()
 class trust(LDAPObject):
     """
     Trust object.
@@ -389,6 +393,7 @@ class trust(LDAPObject):
         dn=make_trust_dn(self.env, trust_type, DN(*sdn))
         return dn
 
+@register()
 class trust_add(LDAPCreate):
     __doc__ = _('''
 Add new trust to use.
@@ -726,11 +731,13 @@ sides.
         raise errors.ValidationError(name=_('AD Trust setup'),
                                      error=_('Not enough arguments specified to perform trust setup'))
 
+@register()
 class trust_del(LDAPDelete):
     __doc__ = _('Delete a trust.')
 
     msg_summary = _('Deleted trust "%(value)s"')
 
+@register()
 class trust_mod(LDAPUpdate):
     __doc__ = _("""
     Modify a trust (for future use).
@@ -749,6 +756,7 @@ class trust_mod(LDAPUpdate):
 
         return dn
 
+@register()
 class trust_find(LDAPSearch):
     __doc__ = _('Search for trusts.')
     has_output_params = LDAPSearch.has_output_params + trust_output_params +\
@@ -779,6 +787,7 @@ class trust_find(LDAPSearch):
 
         return truncated
 
+@register()
 class trust_show(LDAPRetrieve):
     __doc__ = _('Display information about a trust.')
     has_output_params = LDAPRetrieve.has_output_params + trust_output_params +\
@@ -804,18 +813,13 @@ class trust_show(LDAPRetrieve):
 
         return dn
 
-api.register(trust)
-api.register(trust_add)
-api.register(trust_mod)
-api.register(trust_del)
-api.register(trust_find)
-api.register(trust_show)
 
 _trustconfig_dn = {
     u'ad': DN(('cn', api.env.domain), api.env.container_cifsdomains, api.env.basedn),
 }
 
 
+@register()
 class trustconfig(LDAPObject):
     """
     Trusts global configuration object
@@ -920,8 +924,8 @@ class trustconfig(LDAPObject):
 
         entry_attrs['ipantfallbackprimarygroup'] = [groupdn[0][0].value]
 
-api.register(trustconfig)
 
+@register()
 class trustconfig_mod(LDAPUpdate):
     __doc__ = _('Modify global trust configuration.')
 
@@ -941,9 +945,9 @@ class trustconfig_mod(LDAPUpdate):
         self.obj._convert_groupdn(entry_attrs, options)
         return dn
 
-api.register(trustconfig_mod)
 
 
+@register()
 class trustconfig_show(LDAPRetrieve):
     __doc__ = _('Show global trust configuration.')
 
@@ -958,7 +962,6 @@ class trustconfig_show(LDAPRetrieve):
         self.obj._convert_groupdn(entry_attrs, options)
         return dn
 
-api.register(trustconfig_show)
 
 if _nss_idmap_installed:
     _idmap_type_dict = {
@@ -970,6 +973,7 @@ if _nss_idmap_installed:
         string = _idmap_type_dict.get(int(level), 'unknown')
         return unicode(string)
 
+@register()
 class trust_resolve(Command):
     NO_CLI = True
     __doc__ = _('Resolve security identifiers of users and groups in trusted domains')
@@ -1008,9 +1012,9 @@ class trust_resolve(Command):
 
         return dict(result=result)
 
-api.register(trust_resolve)
 
 
+@register()
 class adtrust_is_enabled(Command):
     NO_CLI = True
 
@@ -1035,9 +1039,9 @@ class adtrust_is_enabled(Command):
 
         return dict(result=True)
 
-api.register(adtrust_is_enabled)
 
 
+@register()
 class compat_is_enabled(Command):
     NO_CLI = True
 
@@ -1079,9 +1083,9 @@ class compat_is_enabled(Command):
 
         return dict(result=True)
 
-api.register(compat_is_enabled)
 
 
+@register()
 class sidgen_was_run(Command):
     """
     This command tries to determine whether the sidgen task was run during
@@ -1123,8 +1127,8 @@ class sidgen_was_run(Command):
 
         return dict(result=True)
 
-api.register(sidgen_was_run)
 
+@register()
 class trustdomain(LDAPObject):
     """
     Object representing a domain of the AD trust.
@@ -1172,8 +1176,8 @@ class trustdomain(LDAPObject):
 
         dn=make_trust_dn(self.env, trust_type, DN(*sdn))
         return dn
-api.register(trustdomain)
 
+@register()
 class trustdomain_find(LDAPSearch):
     __doc__ = _('Search domains of the trust')
 
@@ -1202,15 +1206,15 @@ class trustdomain_find(LDAPSearch):
         return truncated
 
 
-api.register(trustdomain_find)
 
+@register()
 class trustdomain_mod(LDAPUpdate):
     __doc__ = _('Modify trustdomain of the trust')
 
     NO_CLI = True
     takes_options = LDAPUpdate.takes_options + (_trust_type_option,)
-api.register(trustdomain_mod)
 
+@register()
 class trustdomain_add(LDAPCreate):
     __doc__ = _('Allow access from the trusted domain')
     NO_CLI = True
@@ -1220,8 +1224,8 @@ class trustdomain_add(LDAPCreate):
         if 'ipanttrustpartner' in options:
             entry_attrs['ipanttrustpartner'] = [options['ipanttrustpartner']]
         return dn
-api.register(trustdomain_add)
 
+@register()
 class trustdomain_del(LDAPDelete):
     __doc__ = _('Remove infromation about the domain associated with the trust.')
 
@@ -1244,7 +1248,6 @@ class trustdomain_del(LDAPDelete):
         return result
 
 
-api.register(trustdomain_del)
 
 
 def fetch_domains_from_trust(self, trustinstance, trust_entry, **options):
@@ -1293,6 +1296,7 @@ def fetch_domains_from_trust(self, trustinstance, trust_entry, **options):
             pass
     return result
 
+@register()
 class trust_fetch_domains(LDAPRetrieve):
     __doc__ = _('Refresh list of the domains associated with the trust')
 
@@ -1333,8 +1337,8 @@ class trust_fetch_domains(LDAPRetrieve):
         result['truncated'] = False
         return result
 
-api.register(trust_fetch_domains)
 
+@register()
 class trustdomain_enable(LDAPQuery):
     __doc__ = _('Allow use of IPA resources by the domain of the trust')
 
@@ -1373,8 +1377,8 @@ class trustdomain_enable(LDAPQuery):
             value=pkey_to_value(keys[1], options),
         )
 
-api.register(trustdomain_enable)
 
+@register()
 class trustdomain_disable(LDAPQuery):
     __doc__ = _('Disable use of IPA resources by the domain of the trust')
 
@@ -1413,4 +1417,3 @@ class trustdomain_disable(LDAPQuery):
             value=pkey_to_value(keys[1], options),
         )
 
-api.register(trustdomain_disable)

@@ -24,6 +24,7 @@ from ipalib.request import context
 from ipalib import api, crud, errors
 from ipalib import output
 from ipalib import Object, Command
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import gen_pkey_only_option, pkey_to_value
 
 __doc__ = _("""
@@ -52,6 +53,8 @@ EXAMPLES:
    ipa delegation-del "managers edit employees' street"
 """)
 
+register = Registry()
+
 ACI_PREFIX=u"delegation"
 
 output_params = (
@@ -60,6 +63,7 @@ output_params = (
     ),
 )
 
+@register()
 class delegation(Object):
     """
     Delegation object.
@@ -123,9 +127,9 @@ class delegation(Object):
         except KeyError:
             pass
 
-api.register(delegation)
 
 
+@register()
 class delegation_add(crud.Create):
     __doc__ = _('Add a new delegation.')
 
@@ -144,9 +148,9 @@ class delegation_add(crud.Create):
             value=pkey_to_value(aciname, kw),
         )
 
-api.register(delegation_add)
 
 
+@register()
 class delegation_del(crud.Delete):
     __doc__ = _('Delete a delegation.')
 
@@ -162,9 +166,9 @@ class delegation_del(crud.Delete):
             value=pkey_to_value(aciname, kw),
         )
 
-api.register(delegation_del)
 
 
+@register()
 class delegation_mod(crud.Update):
     __doc__ = _('Modify a delegation.')
 
@@ -181,9 +185,9 @@ class delegation_mod(crud.Update):
             value=pkey_to_value(aciname, kw),
         )
 
-api.register(delegation_mod)
 
 
+@register()
 class delegation_find(crud.Search):
     __doc__ = _('Search for delegations.')
 
@@ -207,9 +211,9 @@ class delegation_find(crud.Search):
             truncated=False,
         )
 
-api.register(delegation_find)
 
 
+@register()
 class delegation_show(crud.Retrieve):
     __doc__ = _('Display information about a delegation.')
 
@@ -223,4 +227,3 @@ class delegation_show(crud.Retrieve):
             value=pkey_to_value(aciname, kw),
         )
 
-api.register(delegation_show)

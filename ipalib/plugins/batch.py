@@ -52,8 +52,12 @@ from ipalib.output import Output
 from ipalib import output
 from ipalib.text import _
 from ipalib.request import context
+from ipalib.plugable import Registry
 from ipapython.version import API_VERSION
 
+register = Registry()
+
+@register()
 class batch(Command):
     NO_CLI = True
 
@@ -124,4 +128,3 @@ class batch(Command):
             results.append(result)
         return dict(count=len(results) , results=results)
 
-api.register(batch)

@@ -21,6 +21,7 @@
 
 from ipalib import api, errors
 from ipalib import Str, StrEnum
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib.plugins.hbacrule import is_all
@@ -49,6 +50,7 @@ EXAMPLES:
    ipa netgroup-del admins
 """)
 
+register = Registry()
 
 NETGROUP_PATTERN='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]*$'
 NETGROUP_PATTERN_ERRMSG='may only include letters, numbers, _, -, and .'
@@ -73,6 +75,7 @@ output_params = (
         ),
     )
 
+@register()
 class netgroup(LDAPObject):
     """
     Netgroup object.
@@ -169,9 +172,9 @@ class netgroup(LDAPObject):
         external_host_param,
     )
 
-api.register(netgroup)
 
 
+@register()
 class netgroup_add(LDAPCreate):
     __doc__ = _('Add a new netgroup.')
 
@@ -206,17 +209,17 @@ class netgroup_add(LDAPCreate):
 
         return dn
 
-api.register(netgroup_add)
 
 
+@register()
 class netgroup_del(LDAPDelete):
     __doc__ = _('Delete a netgroup.')
 
     msg_summary = _('Deleted netgroup "%(value)s"')
 
-api.register(netgroup_del)
 
 
+@register()
 class netgroup_mod(LDAPUpdate):
     __doc__ = _('Modify a netgroup.')
 
@@ -236,9 +239,9 @@ class netgroup_mod(LDAPUpdate):
             raise errors.MutuallyExclusiveError(reason=_("host category cannot be set to 'all' while there are allowed hosts"))
         return dn
 
-api.register(netgroup_mod)
 
 
+@register()
 class netgroup_find(LDAPSearch):
     __doc__ = _('Search for a netgroup.')
 
@@ -274,17 +277,17 @@ class netgroup_find(LDAPSearch):
         filter = ldap.combine_filters((local_filter, filter), rules=ldap.MATCH_ALL)
         return (filter, base_dn, scope)
 
-api.register(netgroup_find)
 
 
+@register()
 class netgroup_show(LDAPRetrieve):
     __doc__ = _('Display information about a netgroup.')
 
     has_output_params = LDAPRetrieve.has_output_params + output_params
 
-api.register(netgroup_show)
 
 
+@register()
 class netgroup_add_member(LDAPAddMember):
     __doc__ = _('Add members to a netgroup.')
 
@@ -298,9 +301,9 @@ class netgroup_add_member(LDAPAddMember):
         assert isinstance(dn, DN)
         return add_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
 
-api.register(netgroup_add_member)
 
 
+@register()
 class netgroup_remove_member(LDAPRemoveMember):
     __doc__ = _('Remove members from a netgroup.')
 
@@ -310,4 +313,3 @@ class netgroup_remove_member(LDAPRemoveMember):
         assert isinstance(dn, DN)
         return remove_external_post_callback('memberhost', 'host', 'externalhost', ldap, completed, failed, dn, entry_attrs, keys, options)
 
-api.register(netgroup_remove_member)

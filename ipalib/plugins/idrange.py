@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import (LDAPObject, LDAPCreate, LDAPDelete,
                                      LDAPRetrieve, LDAPSearch, LDAPUpdate)
 from ipalib import api, Int, Str, DeprecatedParam, StrEnum, _, ngettext
@@ -150,7 +151,9 @@ IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config' has to be
 modified to match the new range.
 """)
 
+register = Registry()
 
+@register()
 class idrange(LDAPObject):
     """
     Range object.
@@ -353,6 +356,7 @@ class idrange(LDAPObject):
             return True
 
 
+@register()
 class idrange_add(LDAPCreate):
     __doc__ = _("""
     Add new ID range.
@@ -557,6 +561,7 @@ class idrange_add(LDAPCreate):
         return dn
 
 
+@register()
 class idrange_del(LDAPDelete):
     __doc__ = _('Delete an ID range.')
 
@@ -604,6 +609,7 @@ class idrange_del(LDAPDelete):
         return dn
 
 
+@register()
 class idrange_find(LDAPSearch):
     __doc__ = _('Search for ranges.')
 
@@ -625,6 +631,7 @@ class idrange_find(LDAPSearch):
         return truncated
 
 
+@register()
 class idrange_show(LDAPRetrieve):
     __doc__ = _('Display information about a range.')
 
@@ -639,6 +646,7 @@ class idrange_show(LDAPRetrieve):
         return dn
 
 
+@register()
 class idrange_mod(LDAPUpdate):
     __doc__ = _('Modify ID range.')
 
@@ -761,9 +769,3 @@ class idrange_mod(LDAPUpdate):
         return dn
 
 
-api.register(idrange)
-api.register(idrange_add)
-api.register(idrange_mod)
-api.register(idrange_del)
-api.register(idrange_find)
-api.register(idrange_show)
