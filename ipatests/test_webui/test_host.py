@@ -58,7 +58,7 @@ class host_tasks(UI_driver):
         if self.has_dns():
             add_data = [
                 ('textbox', 'hostname', host),
-                ('combobox', 'dnszone', domain),
+                ('combobox', 'dnszone', domain+'.'),
             ]
             if ip:
                 add_data.append(('textbox', 'ip_address', ip))

@@ -30,7 +30,7 @@ CONFIG_ENTITY = 'dnsconfig'
 
 ZONE_DEFAULT_FACET = 'records'
 
-ZONE_PKEY = 'foo.itest'
+ZONE_PKEY = 'foo.itest.'
 
 ZONE_DATA = {
     'pkey': ZONE_PKEY,
