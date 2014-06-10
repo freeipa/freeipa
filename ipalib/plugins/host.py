@@ -453,7 +453,7 @@ class host_add(LDAPCreate):
             check_reverse = not options.get('no_reverse', False)
             add_records_for_host_validation('ip_address',
                     DNSName(host),
-                    DNSName(domain),
+                    DNSName(domain).make_absolute(),
                     options['ip_address'],
                     check_forward=True,
                     check_reverse=check_reverse)
@@ -505,7 +505,8 @@ class host_add(LDAPCreate):
                 if options.get('ip_address'):
                     add_reverse = not options.get('no_reverse', False)
 
-                    add_records_for_host(DNSName(host), DNSName(domain),
+                    add_records_for_host(DNSName(host),
+                                         DNSName(domain).make_absolute(),
                                          options['ip_address'],
                                          add_forward=True,
                                          add_reverse=add_reverse)
