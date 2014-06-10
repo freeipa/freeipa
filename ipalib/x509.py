@@ -52,6 +52,13 @@ DER = 1
 
 PEM_REGEX = re.compile(r'(?<=-----BEGIN CERTIFICATE-----).*?(?=-----END CERTIFICATE-----)', re.DOTALL)
 
+EKU_SERVER_AUTH = '1.3.6.1.5.5.7.3.1'
+EKU_CLIENT_AUTH = '1.3.6.1.5.5.7.3.2'
+EKU_CODE_SIGNING = '1.3.6.1.5.5.7.3.3'
+EKU_EMAIL_PROTECTION = '1.3.6.1.5.5.7.3.4'
+EKU_ANY = '2.5.29.37.0'
+EKU_PLACEHOLDER = '1.3.6.1.4.1.3319.6.10.16'
+
 _subject_base = None
 
 def subject_base():
@@ -225,6 +232,21 @@ def get_der_serial_number(cert, datatype=PEM, dbdir=None):
 
 def get_der_public_key_info(cert, datatype=PEM, dbdir=None):
     return _get_der_field(cert, datatype, dbdir, 'subjectPublicKeyInfo')
+
+def get_ext_key_usage(certificate, datatype=PEM, dbdir=None):
+    nsscert = load_certificate(certificate, datatype, dbdir)
+    if not nsscert.extensions:
+        return None
+
+    for ext in nsscert.extensions:
+        if ext.oid_tag == nss.SEC_OID_X509_EXT_KEY_USAGE:
+            break
+    else:
+        return None
+
+    eku = nss.x509_ext_key_usage(ext.value, nss.AsDottedDecimal)
+    eku = set(o[4:] for o in eku)
+    return eku
 
 def make_pem(data):
     """
