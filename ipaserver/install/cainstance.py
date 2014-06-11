@@ -39,7 +39,7 @@ import syslog
 from ipapython import dogtag
 from ipapython.certdb import get_ca_nickname
 from ipapython import certmonger
-from ipalib import pkcs10, x509
+from ipalib import pkcs10, x509, api
 from ipalib import errors
 from ipapython.dn import DN
 import subprocess
@@ -108,20 +108,29 @@ def get_preop_pin(instance_root, instance_name):
 
     filename = instance_root + "/" + instance_name + "/conf/CS.cfg"
 
-    # read the config file and get the preop pin
-    try:
-        f=open(filename)
-    except IOError, e:
-        root_logger.error("Cannot open configuration file." + str(e))
-        raise e
-    data = f.read()
-    data = data.split('\n')
+    # Retry to read the preop.pin several times before timing out
+    # due to possible race conditions
+    # https://fedorahosted.org/freeipa/ticket/3382
+
+    op_timeout = time.time() + api.env.startup_timeout
     pattern = re.compile("preop.pin=(.*)" )
-    for line in data:
-        match = re.search(pattern, line)
-        if (match):
-            preop_pin=match.group(1)
-            break
+
+    while preop_pin is None and time.time() < op_timeout:
+        try:
+            with open(filename, 'r') as f:
+                for line in f:
+                    match = re.search(pattern, line.rstrip('\n'))
+                    if match:
+                        preop_pin = match.group(1)
+                        break
+
+        except IOError, e:
+            root_logger.error("Cannot open configuration file." + str(e))
+        finally:
+            if preop_pin is None:
+                root_logger.debug("Unable to find preop.pin.")
+                root_logger.debug("Possible race condition. Waiting for 1 second.")
+                time.sleep(1)
 
     if preop_pin is None:
         raise RuntimeError("Unable to find preop.pin in %s. Is your CA already configured?" % filename)
