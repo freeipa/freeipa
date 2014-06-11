@@ -1764,8 +1764,8 @@ class dnszone(LDAPObject):
         ),
         Int('dnsttl?',
             cli_name='ttl',
-            label=_('SOA time to live'),
-            doc=_('SOA record time to live'),
+            label=_('Time to live'),
+            doc=_('Time to live for records at zone apex'),
             minvalue=0,
             maxvalue=2147483647, # see RFC 2181
         ),
