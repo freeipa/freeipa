@@ -216,21 +216,17 @@ class CACertManage(admintool.AdminTool):
         with certs.NSSDatabase() as tmpdb:
             pw = ipautil.write_tmp_file(ipautil.ipa_generate_password())
             tmpdb.create_db(pw.name)
-            tmpdb.add_single_pem_cert(
-                'IPA CA', 'C,,', x509.make_pem(base64.b64encode(old_cert)))
+            tmpdb.add_cert(old_cert, 'IPA CA', 'C,,')
 
             try:
-                tmpdb.add_single_pem_cert(
-                    'IPA CA', 'C,,', x509.make_pem(base64.b64encode(cert)))
+                tmpdb.add_cert(cert, 'IPA CA', 'C,,')
             except ipautil.CalledProcessError, e:
                 raise admintool.ScriptError(
                     "Not compatible with the current CA certificate: %s", e)
 
             ca_certs = x509.load_certificate_chain_from_file(ca_filename)
             for ca_cert in ca_certs:
-                tmpdb.add_single_pem_cert(
-                    str(ca_cert.subject), 'C,,',
-                    x509.make_pem(base64.b64encode(ca_cert.der_data)))
+                tmpdb.add_cert(ca_cert.der_data, str(ca_cert.subject), 'C,,')
             del ca_certs
             del ca_cert
 

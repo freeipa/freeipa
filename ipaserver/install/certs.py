@@ -232,7 +232,7 @@ class NSSDatabase(object):
             )
 
         cert, st = find_cert_from_txt(certs)
-        self.add_single_pem_cert(nickname, flags, cert)
+        self.add_cert(cert, nickname, flags, pem=True)
 
         try:
             find_cert_from_txt(certs, st)
@@ -242,12 +242,11 @@ class NSSDatabase(object):
             raise ValueError('%s contains more than one certificate' %
                              location)
 
-    def add_single_pem_cert(self, nick, flags, cert):
-        """Import a cert in PEM format"""
-        self.run_certutil(["-A", "-n", nick,
-                            "-t", flags,
-                            "-a"],
-                            stdin=cert)
+    def add_cert(self, cert, nick, flags, pem=False):
+        args = ["-A", "-n", nick, "-t", flags]
+        if pem:
+            args.append("-a")
+        self.run_certutil(args, stdin=cert)
 
     def delete_cert(self, nick):
         self.run_certutil(["-D", "-n", nick])
@@ -500,7 +499,7 @@ class CertDB(object):
                 else:
                     nick = str(subject_dn)
                     tf = ',,'
-                self.nssdb.add_single_pem_cert(nick, tf, cert)
+                self.nssdb.add_cert(cert, nick, tf, pem=True)
             except RuntimeError:
                 break
 
@@ -736,6 +735,9 @@ class CertDB(object):
         f = open(cert_fname, "w")
         f.write(cert)
         f.close()
+
+    def add_cert(self, cert, nick, flags, pem=False):
+        self.nssdb.add_cert(cert, nick, flags, pem)
 
     def import_cert(self, cert_fname, nickname):
         """
