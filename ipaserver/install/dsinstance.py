@@ -38,7 +38,7 @@ import ldap
 from ipaserver.install import ldapupdate
 from ipaserver.install import replication
 from ipaserver.install import sysupgrade
-from ipalib import errors
+from ipalib import errors, certstore
 from ipaplatform.tasks import tasks
 from ipalib.constants import CACERT
 from ipapython.dn import DN
@@ -235,6 +235,7 @@ class DsInstance(service.Service):
         self.sub_dict = None
         self.domain = domain_name
         self.serverid = None
+        self.master_fqdn = None
         self.pkcs12_info = None
         self.cacert_name = None
         self.ca_is_configured = True
@@ -693,28 +694,25 @@ class DsInstance(service.Service):
         """
 
         dirname = config_dirname(self.serverid)
-        certdb = certs.CertDB(self.realm, nssdir=dirname,
-                              subject_base=self.subject_base)
-
-        dercert = certdb.get_cert_from_db(self.cacert_name, pem=False)
+        dsdb = certs.CertDB(self.realm, nssdir=dirname,
+                            subject_base=self.subject_base)
+        trust_flags = dict(reversed(dsdb.list_certs()))
 
         conn = ipaldap.IPAdmin(self.fqdn)
         conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)
 
-        dn = DN(('cn', 'CAcert'), ('cn', 'ipa'), ('cn', 'etc'), self.suffix)
-        try:
-            entry = conn.get_entry(dn, attrs_list=['cACertificate;binary'])
-            entry['cACertificate;binary'] = [dercert]
-            conn.update_entry(entry)
-        except errors.NotFound:
-            entry = conn.make_entry(
-                dn,
-                {'objectClass': ['nsContainer', 'pkiCA'],
-                 'cn': ['CAcert'],
-                 'cACertificate;binary': [dercert]})
-            conn.add_entry(entry)
-        except errors.EmptyModlist:
-            pass
+        nicknames = dsdb.find_root_cert(self.cacert_name)[:-1]
+        for nickname in nicknames:
+            cert = dsdb.get_cert_from_db(nickname, pem=False)
+            certstore.put_ca_cert_nss(conn, self.suffix, cert, nickname,
+                                      trust_flags[nickname])
+
+        nickname = self.cacert_name
+        cert = dsdb.get_cert_from_db(nickname, pem=False)
+        certstore.put_ca_cert_nss(conn, self.suffix, cert, nickname,
+                                  trust_flags[nickname],
+                                  config_ipa=self.ca_is_configured,
+                                  config_compat=self.master_fqdn is None)
 
         conn.unbind()
 
