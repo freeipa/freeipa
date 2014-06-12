@@ -29,7 +29,7 @@ import traceback
 
 from ipapython import dogtag, certmonger, ipautil
 from ipapython.dn import DN
-from ipalib import api, errors, x509, util
+from ipalib import api, errors, x509, certstore
 from ipaserver.install import certs, cainstance, installutils
 from ipaserver.plugins.ldap2 import ldap2
 from ipaplatform import services
@@ -103,13 +103,8 @@ def main():
                 conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)
                 conn.connect(ccache=ccache)
 
-                dn = DN(('cn', 'CAcert'), ('cn', 'ipa'), ('cn', 'etc'),
-                        api.env.basedn)
                 try:
-                    entry = conn.get_entry(
-                        dn, attrs_list=['cACertificate;binary'])
-                    entry['cACertificate;binary'] = [cert]
-                    conn.update_entry(entry)
+                    certstore.update_ca_cert(conn, api.env.basedn, cert)
                 except errors.EmptyModlist:
                     pass
 
