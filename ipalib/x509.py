@@ -348,6 +348,31 @@ def verify_cert_subject(ldap, hostname, dercert):
         raise errors.CertificateOperationError(error=_('Issuer "%(issuer)s" does not match the expected issuer') % \
         {'issuer' : issuer})
 
+class _Extension(univ.Sequence):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType('extnID', univ.ObjectIdentifier()),
+        namedtype.NamedType('critical', univ.Boolean()),
+        namedtype.NamedType('extnValue', univ.OctetString()),
+    )
+
+def _encode_extension(oid, critical, value):
+    ext = _Extension()
+    ext['extnID'] = univ.ObjectIdentifier(oid)
+    ext['critical'] = univ.Boolean(critical)
+    ext['extnValue'] = univ.OctetString(value)
+    ext = encoder.encode(ext)
+    return ext
+
+class _ExtKeyUsageSyntax(univ.SequenceOf):
+    componentType = univ.ObjectIdentifier()
+
+def encode_ext_key_usage(ext_key_usage):
+    eku = _ExtKeyUsageSyntax()
+    for i, oid in enumerate(ext_key_usage):
+        eku[i] = univ.ObjectIdentifier(oid)
+    eku = encoder.encode(eku)
+    return _encode_extension('2.5.29.37', EKU_ANY not in ext_key_usage, eku)
+
 if __name__ == '__main__':
     # this can be run with:
     # python ipalib/x509.py < /etc/ipa/ca.crt
