@@ -1245,6 +1245,44 @@ class ReplicationManager(object):
                 err = e
 
         try:
+            entry = self.conn.get_entry(
+                DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
+                   self.suffix),
+                ['aci'])
+
+            sub = {'suffix': self.suffix, 'fqdn': replica}
+            try:
+                entry.raw['aci'].remove(
+                    '(targetfilter = "(objectClass=nsContainer)")'
+                    '(targetattr = "cn || objectClass || ipaConfigString")'
+                    '(version 3.0; acl "Read IPA Masters"; allow (read, '
+                    'search, compare) userdn = "ldap:///fqdn=%(fqdn)s,'
+                    'cn=computers,cn=accounts,%(suffix)s";)' % sub)
+            except ValueError:
+                pass
+            try:
+                entry.raw['aci'].remove(
+                    '(targetfilter = "(objectClass=nsContainer)")'
+                    '(targetattr = "ipaConfigString")(version 3.0; acl '
+                    '"Modify IPA Masters"; allow (write) userdn = '
+                    '"ldap:///fqdn=%(fqdn)s,cn=computers,cn=accounts,'
+                    '%(suffix)s";)' % sub)
+            except ValueError:
+                pass
+
+            try:
+                self.conn.update_entry(entry)
+            except errors.EmptyModlist:
+                pass
+        except errors.NotFound:
+            pass
+        except Exception, e:
+            if not force:
+                raise e
+            elif not err:
+                err = e
+
+        try:
             basedn = DN(('cn', 'etc'), self.suffix)
             filter = '(dnaHostname=%s)' % replica
             entries = self.conn.get_entries(

@@ -177,3 +177,7 @@ default:objectClass: groupofnames
 default:objectClass: top
 default:cn: IPA Masters Readers
 default:description: Read list of IPA masters
+
+dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
+add:aci:'(targetfilter = "(objectClass=nsContainer)")(targetattr = "cn || objectClass || ipaConfigString")(version 3.0; acl "Read IPA Masters"; allow (read, search, compare) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)'
+add:aci:'(targetfilter = "(objectClass=nsContainer)")(targetattr = "ipaConfigString")(version 3.0; acl "Modify IPA Masters"; allow (write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)'
