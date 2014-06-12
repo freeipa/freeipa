@@ -594,7 +594,7 @@ class CertDB(object):
             subject=DN(('CN', hostname), self.subject_base)
         self.request_cert(subject)
         cdb.issue_server_cert(self.certreq_fname, self.certder_fname)
-        self.add_cert(self.certder_fname, nickname)
+        self.import_cert(self.certder_fname, nickname)
         fd = open(self.certder_fname, "r")
         dercert = fd.read()
         fd.close()
@@ -612,7 +612,7 @@ class CertDB(object):
             subject=DN(('CN', hostname), self.subject_base)
         self.request_cert(subject)
         cdb.issue_signing_cert(self.certreq_fname, self.certder_fname)
-        self.add_cert(self.certder_fname, nickname)
+        self.import_cert(self.certder_fname, nickname)
         os.unlink(self.certreq_fname)
         os.unlink(self.certder_fname)
 
@@ -737,7 +737,7 @@ class CertDB(object):
         f.write(cert)
         f.close()
 
-    def add_cert(self, cert_fname, nickname):
+    def import_cert(self, cert_fname, nickname):
         """
         Load a certificate from a PEM file and add minimal trust.
         """
