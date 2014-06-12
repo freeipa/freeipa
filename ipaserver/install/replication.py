@@ -238,12 +238,17 @@ class ReplicationManager(object):
             root_logger.debug("Unable to retrieve nsDS5ReplicaId from remote server")
             raise
         else:
-            if replica.single_value.get('nsDS5ReplicaId') is None:
+            id_values = replica.get('nsDS5ReplicaId')
+            if not id_values:
                 root_logger.debug("Unable to retrieve nsDS5ReplicaId from remote server")
                 raise RuntimeError("Unable to retrieve nsDS5ReplicaId from remote server")
 
+        # nsDS5ReplicaId is single-valued now, but historically it could
+        # contain multiple values, of which we need the highest.
+        # see bug: https://fedorahosted.org/freeipa/ticket/3394
+        retval = max(int(v) for v in id_values)
+
         # Now update the value on the master
-        retval = int(replica.single_value['nsDS5ReplicaId'])
         mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaId', str(retval + 1))]
 
         try:
