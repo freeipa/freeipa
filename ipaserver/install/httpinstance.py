@@ -111,6 +111,7 @@ class HTTPInstance(service.Service):
         self.step("adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
         self.step("setting up ssl", self.__setup_ssl)
+        self.step("importing CA certificates from LDAP", self.__import_ca_certs)
         if autoconfig:
             self.step("setting up browser autoconfig", self.__setup_autoconfig)
         self.step("publish CA cert", self.__publish_ca_cert)
@@ -314,6 +315,10 @@ class HTTPInstance(service.Service):
         # Fix SELinux permissions on the database
         tasks.restore_context(certs.NSS_DIR + "/cert8.db")
         tasks.restore_context(certs.NSS_DIR + "/key3.db")
+
+    def __import_ca_certs(self):
+        db = certs.CertDB(self.realm, subject_base=self.subject_base)
+        self.import_ca_certs(db, api.env.enable_ra)
 
     def __setup_autoconfig(self):
         target_fname = paths.PREFERENCES_HTML
