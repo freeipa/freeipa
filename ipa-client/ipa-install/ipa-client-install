@@ -483,12 +483,16 @@ def uninstall(options, env):
     client_nss_nickname = client_nss_nickname_format % hostname
 
     # Remove our host cert and CA cert
-    if nickname_exists("IPA CA"):
+    for nickname in ('IPA CA', 'External CA cert'):
+        if not nickname_exists(nickname):
+            continue
         try:
-            run([paths.CERTUTIL, "-D", "-d", paths.NSS_DB_DIR, "-n", "IPA CA"])
+            run([paths.CERTUTIL, "-D",
+                 "-d", paths.NSS_DB_DIR,
+                 "-n", nickname])
         except Exception, e:
             root_logger.error(
-                "Failed to remove IPA CA from /etc/pki/nssdb: %s", str(e))
+                "Failed to remove %s from /etc/pki/nssdb: %s", nickname, e)
 
     # Always start certmonger. We can't untrack something if it isn't
     # running
