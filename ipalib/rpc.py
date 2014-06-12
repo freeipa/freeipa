@@ -483,7 +483,7 @@ class SSLTransport(LanguageAwareTransport):
             if self._connection and host == self._connection[0]:
                 return self._connection[1]
 
-        dbdir = paths.NSS_DB_DIR
+        dbdir = getattr(context, 'nss_dir', paths.NSS_DB_DIR)
         no_init = self.__nss_initialized(dbdir)
         if sys.version_info < (2, 7):
             conn = NSSHTTPS(host, 443, dbdir=dbdir, no_init=no_init)
@@ -762,7 +762,7 @@ class RPCClient(Connectible):
         return session_url
 
     def create_connection(self, ccache=None, verbose=False, fallback=True,
-                          delegate=False):
+                          delegate=False, nss_dir=None):
         try:
             rpc_uri = self.env[self.env_rpc_uri_key]
             principal = get_current_principal()
@@ -774,6 +774,9 @@ class RPCClient(Connectible):
         except ValueError:
             # No session key, do full Kerberos auth
             pass
+        # This might be dangerous. Use at your own risk!
+        if nss_dir:
+            context.nss_dir = nss_dir
         urls = self.get_url_list(rpc_uri)
         serverproxy = None
         for url in urls:
