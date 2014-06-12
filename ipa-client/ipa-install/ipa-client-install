@@ -30,6 +30,7 @@ try:
     import getpass
     from ConfigParser import RawConfigParser
     from optparse import SUPPRESS_HELP, OptionGroup, OptionValueError
+    import shutil
 
     import nss.nss as nss
     import SSSDConfig
@@ -232,6 +233,42 @@ def nickname_exists(nickname):
             return True
         else:
             return False
+
+def purge_ipa_certs(additional=[]):
+    filename = paths.NSSDB_IPA_TXT
+    if file_exists(filename):
+        try:
+            with open(filename, 'r') as f:
+                lines = f.readlines()
+        except IOError, e:
+            root_logger.error("Failed to open %s: %s", filename, e)
+            return False
+        finally:
+            try:
+                os.unlink(filename)
+            except OSError, e:
+                root_logger.error("Failed to remove %s: %s", filename, e)
+                return False
+    else:
+        lines = []
+
+    nicknames = set(additional)
+    for line in lines:
+        nickname = line.strip()
+        if nickname:
+            nicknames.add(nickname)
+
+    for nickname in nicknames:
+        while nickname_exists(nickname):
+            try:
+                run([paths.CERTUTIL, "-D",
+                     "-d", paths.NSS_DB_DIR,
+                     "-n", nickname])
+            except Exception, e:
+                root_logger.error(
+                    "Failed to remove %s from /etc/pki/nssdb: %s", nickname, e)
+
+    return True
 
 def cert_summary(msg, certs, indent='    '):
     if msg:
@@ -485,18 +522,6 @@ def uninstall(options, env):
 
     client_nss_nickname = client_nss_nickname_format % hostname
 
-    # Remove our host cert and CA cert
-    for nickname in ('IPA CA', 'External CA cert'):
-        if not nickname_exists(nickname):
-            continue
-        try:
-            run([paths.CERTUTIL, "-D",
-                 "-d", paths.NSS_DB_DIR,
-                 "-n", nickname])
-        except Exception, e:
-            root_logger.error(
-                "Failed to remove %s from /etc/pki/nssdb: %s", nickname, e)
-
     # Always start certmonger. We can't untrack something if it isn't
     # running
     messagebus = services.knownservices.messagebus
@@ -517,12 +542,8 @@ def uninstall(options, env):
         root_logger.error("%s failed to stop tracking certificate: %s",
             cmonger.service_name, str(e))
 
-    if nickname_exists(client_nss_nickname):
-        try:
-            run([paths.CERTUTIL, "-D", "-d", paths.NSS_DB_DIR, "-n", client_nss_nickname])
-        except Exception, e:
-            root_logger.error("Failed to remove %s from /etc/pki/nssdb: %s",
-                client_nss_nickname, str(e))
+    # Remove our host cert and CA cert
+    purge_ipa_certs({client_nss_nickname, 'IPA CA', 'External CA cert'})
 
     try:
         cmonger.stop()
@@ -1670,6 +1691,22 @@ def print_port_conf_info():
         "     TCP: 464\n"
         "     UDP: 464, 123 (if NTP enabled)")
 
+def get_certs_from_ldap(server, base_dn, realm, enable_ra):
+    conn = ipaldap.IPAdmin(server, sasl_nocanon=True)
+    try:
+        conn.do_sasl_gssapi_bind()
+        certs = certstore.get_ca_certs(conn, base_dn, realm, enable_ra)
+    except errors.NotFound:
+        raise errors.NoCertificateError(entry=server)
+    except errors.NetworkError, e:
+        raise errors.NetworkError(uri=conn.ldap_uri, error=str(e))
+    except Exception, e:
+        raise errors.LDAPError(str(e))
+    finally:
+        conn.unbind()
+
+    return certs
+
 def get_ca_certs_from_file(url):
     '''
     Get the CA cert from a user supplied file and write it into the
@@ -1744,20 +1781,11 @@ def get_ca_certs_from_ldap(server, basedn, realm):
 
     root_logger.debug("trying to retrieve CA cert via LDAP from %s", server)
 
-    conn = ipaldap.IPAdmin(server, sasl_nocanon=True)
     try:
-        conn.do_sasl_gssapi_bind()
-        certs = certstore.get_ca_certs(conn, basedn, realm, False)
-    except errors.NotFound, e:
-        root_logger.debug("get_ca_certs_from_ldap() error: %s", e)
-        raise errors.NoCertificateError(entry=server)
-
-    except errors.NetworkError, e:
-        root_logger.debug("get_ca_certs_from_ldap() error: %s", e)
-        raise errors.NetworkError(uri=conn.ldap_uri, error=str(e))
+        certs = get_certs_from_ldap(server, basedn, realm, False)
     except Exception, e:
         root_logger.debug("get_ca_certs_from_ldap() error: %s", e)
-        raise errors.LDAPError(str(e))
+        raise
 
     certs = [x509.load_certificate(c[0], x509.DER) for c in certs
              if c[2] is not False]
@@ -2520,18 +2548,6 @@ def install(options, env, fstore, statestore):
     # Add the CA to the platform-dependant systemwide CA store
     tasks.insert_ca_cert_into_systemwide_ca_store(CACERT)
 
-    # Add the CA to the default NSS database and trust it
-    try:
-        root_logger.debug("Attempting to add CA directly to the "
-                          "default NSS database.")
-        run([paths.CERTUTIL, "-A", "-d", paths.NSS_DB_DIR,
-             "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", CACERT])
-    except CalledProcessError, e:
-        root_logger.info("Failed to add CA to the default NSS database.")
-        return CLIENT_INSTALL_ERROR
-    else:
-        root_logger.info('Added the CA to the default NSS database.')
-
     host_principal = 'host/%s@%s' % (hostname, cli_realm)
     if options.on_master:
         # If on master assume kerberos is already configured properly.
@@ -2566,10 +2582,30 @@ def install(options, env, fstore, statestore):
     except ValueError:
         pass
 
+    # Add CA certs to a temporary NSS database
+    try:
+        os.mkdir(paths.IPA_NSSDB_DIR)
+        pwd_file = ipautil.write_tmp_file(ipautil.ipa_generate_password())
+        run([paths.CERTUTIL, '-N',
+             '-d', paths.IPA_NSSDB_DIR,
+             '-f', pwd_file.name])
+
+        ca_certs = x509.load_certificate_list_from_file(CACERT)
+        ca_certs = [cert.der_data for cert in ca_certs]
+        for i, cert in enumerate(ca_certs):
+            run([paths.CERTUTIL, '-A',
+                 '-d', paths.IPA_NSSDB_DIR,
+                 '-n', 'CA certificate %d' % (i + 1),
+                 '-t', 'C,,'],
+                 stdin=cert)
+    except CalledProcessError, e:
+        root_logger.info("Failed to add CA to temporary NSS database.")
+        return CLIENT_INSTALL_ERROR
+
     # Now, let's try to connect to the server's XML-RPC interface
     connected = False
     try:
-        api.Backend.rpcclient.connect()
+        api.Backend.rpcclient.connect(nss_dir=paths.IPA_NSSDB_DIR)
         connected = True
         root_logger.debug('Try RPC connection')
         api.Backend.rpcclient.forward('ping')
@@ -2579,7 +2615,7 @@ def install(options, env, fstore, statestore):
         root_logger.info('Cannot connect to the server due to ' +
             'Kerberos error: %s. Trying with delegate=True', str(e))
         try:
-            api.Backend.rpcclient.connect(delegate=True)
+            api.Backend.rpcclient.connect(delegate=True, nss_dir=paths.IPA_NSSDB_DIR)
             root_logger.debug('Try RPC connection')
             api.Backend.rpcclient.forward('ping')
 
@@ -2612,6 +2648,43 @@ def install(options, env, fstore, statestore):
     remote_env = result['result']
     if not remote_env['enable_ra']:
         disable_ra()
+
+    # Add the CA to the default NSS database and trust it
+    if not purge_ipa_certs():
+        root_logger.info(
+            "Failed to remove old IPA certificates from the default NSS "
+            "database.")
+        return CLIENT_INSTALL_ERROR
+
+    try:
+        list_file = open(paths.NSSDB_IPA_TXT, 'w')
+    except IOError, e:
+        root_logger.error("Failed to open /etc/pki/nssdb/ipa.txt: %s", e)
+        return CLIENT_INSTALL_ERROR
+
+    ca_certs = get_certs_from_ldap(cli_server[0], cli_basedn, cli_realm,
+                                   remote_env['enable_ra'])
+    for cert, nickname, trusted, ext_key_usage in ca_certs:
+        try:
+            root_logger.debug("Attempting to add CA directly to the "
+                              "default NSS database.")
+            trust_flags = certstore.key_policy_to_trust_flags(
+                trusted, True, ext_key_usage)
+            run([paths.CERTUTIL,
+                 "-A",
+                 "-d", paths.NSS_DB_DIR,
+                 "-n", nickname,
+                 "-t", trust_flags],
+                stdin=cert)
+        except CalledProcessError, e:
+            root_logger.info("Failed to add CA to the default NSS database.")
+            list_file.close()
+            return CLIENT_INSTALL_ERROR
+        else:
+            root_logger.info('Added the CA to the default NSS database.')
+            list_file.write(nickname + '\n')
+
+    list_file.close()
 
     if not options.on_master:
         client_dns(cli_server[0], hostname, options.dns_updates)
@@ -2835,5 +2908,9 @@ except RuntimeError, e:
 finally:
     try:
         os.remove(CCACHE_FILE)
+    except Exception:
+        pass
+    try:
+        shutil.rmtree(paths.IPA_NSSDB_DIR)
     except Exception:
         pass
