@@ -345,6 +345,7 @@ class update_managed_permissions(PostUpdate):
         if 'replaces' in template:
             sub_dict = {
                 'SUFFIX': str(self.api.env.basedn),
+                'REALM': str(self.api.env.realm),
             }
             legacy_acistrs = [ipautil.template_str(r, sub_dict)
                               for r in template['replaces']]
