@@ -27,7 +27,7 @@ import datetime
 from ipapython import sysrestore, ipautil, dogtag, ipaldap
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
-from ipalib import errors
+from ipalib import errors, certstore
 from ipaplatform import services
 from ipaplatform.paths import paths
 
@@ -268,6 +268,21 @@ class Service(object):
             self.admin_conn.update_entry(entry)
         except Exception, e:
             root_logger.critical("Could not add certificate to service %s entry: %s" % (self.principal, str(e)))
+
+    def import_ca_certs(self, db, ca_is_configured, conn=None):
+        if conn is None:
+            if not self.admin_conn:
+                self.ldap_connect()
+            conn = self.admin_conn
+
+        try:
+            ca_certs = certstore.get_ca_certs_nss(
+                conn, self.suffix, self.realm, ca_is_configured)
+        except errors.NotFound:
+            pass
+        else:
+            for cert, nickname, trust_flags in ca_certs:
+                db.add_cert(cert, nickname, trust_flags)
 
     def is_configured(self):
         return self.sstore.has_state(self.service_name)

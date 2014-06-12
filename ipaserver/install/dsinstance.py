@@ -384,6 +384,7 @@ class DsInstance(service.Service):
         # See LDIFs for automember configuration during replica install
         self.step("setting Auto Member configuration", self.__add_replica_automember_config)
         self.step("enabling S4U2Proxy delegation", self.__setup_s4u2proxy)
+        self.step("importing CA certificates from LDAP", self.__import_ca_certs)
 
         self.__common_post_setup()
 
@@ -713,6 +714,18 @@ class DsInstance(service.Service):
                                   trust_flags[nickname],
                                   config_ipa=self.ca_is_configured,
                                   config_compat=self.master_fqdn is None)
+
+        conn.unbind()
+
+    def __import_ca_certs(self):
+        dirname = config_dirname(self.serverid)
+        dsdb = certs.CertDB(self.realm, nssdir=dirname,
+                            subject_base=self.subject_base)
+
+        conn = ipaldap.IPAdmin(self.fqdn)
+        conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)
+
+        self.import_ca_certs(dsdb, self.ca_is_configured, conn)
 
         conn.unbind()
 
