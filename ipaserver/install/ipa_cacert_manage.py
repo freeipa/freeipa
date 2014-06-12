@@ -224,7 +224,7 @@ class CACertManage(admintool.AdminTool):
                 raise admintool.ScriptError(
                     "Not compatible with the current CA certificate: %s", e)
 
-            ca_certs = x509.load_certificate_chain_from_file(ca_filename)
+            ca_certs = x509.load_certificate_list_from_file(ca_filename)
             for ca_cert in ca_certs:
                 tmpdb.add_cert(ca_cert.der_data, str(ca_cert.subject), 'C,,')
             del ca_certs

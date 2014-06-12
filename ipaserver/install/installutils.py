@@ -889,7 +889,7 @@ def validate_external_cert(cert_file, ca_file, subject_base):
 
     extchain = None
     try:
-        extchain = x509.load_certificate_chain_from_file(ca_file)
+        extchain = x509.load_certificate_list_from_file(ca_file)
         certdict = dict((DN(str(cert.subject)), DN(str(cert.issuer)))
                         for cert in extchain)
     except IOError, e:

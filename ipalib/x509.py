@@ -118,21 +118,6 @@ def load_certificate(data, datatype=PEM, dbdir=None):
 
     return nss.Certificate(buffer(data))
 
-def load_certificate_chain_from_file(filename, dbdir=None):
-    """
-    Load a certificate chain from a PEM file.
-
-    Returns a list of nss.Certificate objects.
-    """
-    fd = open(filename, 'r')
-    data = fd.read()
-    fd.close()
-
-    chain = PEM_REGEX.findall(data)
-    chain = [load_certificate(cert, PEM, dbdir) for cert in chain]
-
-    return chain
-
 def load_certificate_from_file(filename, dbdir=None):
     """
     Load a certificate from a PEM file.
@@ -144,6 +129,23 @@ def load_certificate_from_file(filename, dbdir=None):
     fd.close()
 
     return load_certificate(data, PEM, dbdir)
+
+def load_certificate_list(data, dbdir=None):
+    certs = PEM_REGEX.findall(data)
+    certs = [load_certificate(cert, PEM, dbdir) for cert in certs]
+    return certs
+
+def load_certificate_list_from_file(filename, dbdir=None):
+    """
+    Load a certificate list from a PEM file.
+
+    Returns a list of nss.Certificate objects.
+    """
+    fd = open(filename, 'r')
+    data = fd.read()
+    fd.close()
+
+    return load_certificate_list(data, dbdir)
 
 def get_subject(certificate, datatype=PEM, dbdir=None):
     """
@@ -307,6 +309,24 @@ def write_certificate(rawcert, filename):
         fp = open(filename, 'w')
         fp.write(make_pem(base64.b64encode(dercert)))
         fp.close()
+    except (IOError, OSError), e:
+        raise errors.FileError(reason=str(e))
+
+def write_certificate_list(rawcerts, filename):
+    """
+    Write a list of certificates to a file in PEM format.
+
+    The cert values can be either DER or PEM-encoded, they will be normalized
+    to DER regardless, then back out to PEM.
+    """
+    dercerts = [normalize_certificate(rawcert) for rawcert in rawcerts]
+
+    try:
+        with open(filename, 'w') as f:
+            for cert in dercerts:
+                cert = base64.b64encode(cert)
+                cert = make_pem(cert)
+                f.write(cert + '\n')
     except (IOError, OSError), e:
         raise errors.FileError(reason=str(e))
 
