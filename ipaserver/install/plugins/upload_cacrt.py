@@ -19,11 +19,10 @@
 
 from ipaserver.install.plugins import MIDDLE
 from ipaserver.install.plugins.baseupdate import PostUpdate
-from ipaserver.install.dsinstance import realm_to_serverid, config_dirname
 from ipaserver.install import certs
-from ipalib import api
+from ipalib import api, certstore
+from ipapython import certdb
 from ipapython.dn import DN
-import base64
 
 class update_upload_cacrt(PostUpdate):
     """
@@ -32,24 +31,61 @@ class update_upload_cacrt(PostUpdate):
     order=MIDDLE
 
     def execute(self, **options):
-        ldap = self.obj.backend
-        ipa_config = ldap.get_ipa_config()
-        subject_base = ipa_config.get('ipacertificatesubjectbase', [None])[0]
-        dirname = config_dirname(realm_to_serverid(api.env.realm))
-        certdb = certs.CertDB(api.env.realm, nssdir=dirname, subject_base=subject_base)
+        db = certs.CertDB(self.api.env.realm)
+        ca_cert = None
 
-        dercert = certdb.get_cert_from_db(certdb.cacert_name, pem=False)
+        if self.api.env.enable_ra:
+            ca_nickname = certdb.get_ca_nickname(self.api.env.realm)
+        else:
+            ca_nickname = None
+            server_certs = db.find_server_certs()
+            if server_certs:
+                ca_chain = db.find_root_cert(server_certs[0][0])[:-1]
+                if ca_chain:
+                    ca_nickname = ca_chain[-1]
 
         updates = {}
-        dn = DN(('cn', 'CACert'), ('cn', 'ipa'), ('cn','etc'), api.env.basedn)
 
-        cacrt_entry = ['objectclass:nsContainer',
-                       'objectclass:pkiCA',
-                       'cn:CAcert',
-                       'cACertificate;binary:%s' % dercert,
-                      ]
-        updates[dn] = {'dn': dn, 'default': cacrt_entry}
+        for nickname, trust_flags in db.list_certs():
+            if 'u' in trust_flags:
+                continue
+            if nickname == ca_nickname and self.api.env.enable_ra:
+                trust_flags = 'CT,C,C'
+            cert = db.get_cert_from_db(nickname, pem=False)
+            try:
+                dn, entry = self._make_entry(cert, nickname, trust_flags)
+            except Exception, e:
+                self.log.warning("Failed to create entry for %s: %s",
+                                 nickname, e)
+                continue
+            if nickname == ca_nickname:
+                ca_cert = cert
+                if self.api.env.enable_ra:
+                    entry.append('ipaConfigString:ipaCA')
+                entry.append('ipaConfigString:compatCA')
+            updates[dn] = {'dn': dn, 'default': entry}
+
+        if ca_cert:
+            dn = DN(('cn', 'CACert'), ('cn', 'ipa'), ('cn','etc'),
+                    self.api.env.basedn)
+            entry = ['objectclass:nsContainer',
+                     'objectclass:pkiCA',
+                     'cn:CAcert',
+                     'cACertificate;binary:%s' % ca_cert,
+                    ]
+            updates[dn] = {'dn': dn, 'default': entry}
 
         return (False, True, [updates])
+
+    def _make_entry(self, cert, nickname, trust_flags):
+        dn = DN(('cn', nickname), ('cn', 'certificates'), ('cn', 'ipa'),
+                ('cn','etc'), self.api.env.basedn)
+
+        entry = dict()
+        trust, ca, eku = certstore.trust_flags_to_key_policy(trust_flags)
+        certstore.init_ca_entry(entry, cert, nickname, trust, eku)
+        entry = ['%s:%s' % (a, v) for a, vs in entry.iteritems() for v in vs]
+
+        return dn, entry
 
 api.register(update_upload_cacrt)
