@@ -48,7 +48,7 @@ try:
     from ipapython import kernel_keyring
     from ipapython.config import IPAOptionParser
     from ipalib import api, errors
-    from ipalib import x509
+    from ipalib import x509, certstore
     from ipalib.constants import CACERT
     from ipapython.dn import DN
     from ipapython.ssh import SSHPublicKey
@@ -1729,7 +1729,7 @@ def get_ca_certs_from_http(url, warn=True):
 
     return certs
 
-def get_ca_certs_from_ldap(server, basedn):
+def get_ca_certs_from_ldap(server, basedn, realm):
     '''
     Retrieve th CA cert from the LDAP server by binding to the
     server with GSSAPI using the current Kerberos credentials.
@@ -1742,21 +1742,12 @@ def get_ca_certs_from_ldap(server, basedn):
     Raises errors.FileError if unable to write cert.
     '''
 
-    ca_cert_attr = 'cAcertificate;binary'
-    dn = DN(('cn', 'CAcert'), ('cn', 'ipa'), ('cn', 'etc'), basedn)
-
-
     root_logger.debug("trying to retrieve CA cert via LDAP from %s", server)
 
     conn = ipaldap.IPAdmin(server, sasl_nocanon=True)
     try:
         conn.do_sasl_gssapi_bind()
-        result, truncated = conn.find_entries(
-            base_dn=dn,
-            scope=conn.SCOPE_BASE,
-            filter='(objectclass=pkiCA)',
-            attrs_list=[ca_cert_attr],
-            time_limit=10)
+        certs = certstore.get_ca_certs(conn, basedn, realm, False)
     except errors.NotFound, e:
         root_logger.debug("get_ca_certs_from_ldap() error: %s", e)
         raise errors.NoCertificateError(entry=server)
@@ -1768,18 +1759,10 @@ def get_ca_certs_from_ldap(server, basedn):
         root_logger.debug("get_ca_certs_from_ldap() error: %s", e)
         raise errors.LDAPError(str(e))
 
-    if len(result) != 1:
-        raise errors.OnlyOneValueAllowed(attr=ca_cert_attr)
+    certs = [x509.load_certificate(c[0], x509.DER) for c in certs
+             if c[2] is not False]
 
-    attrs = result[0]
-    try:
-        der_cert = attrs[ca_cert_attr][0]
-    except KeyError:
-        raise errors.NoCertificateError(entry=ca_cert_attr)
-
-    cert = x509.load_certificate(der_cert, x509.DER)
-
-    return [cert]
+    return certs
 
 def validate_new_ca_certs(existing_ca_certs, new_ca_certs, ask,
                           override=False):
@@ -1808,7 +1791,7 @@ def validate_new_ca_certs(existing_ca_certs, new_ca_certs, ask,
         root_logger.debug(
                 "Existing CA cert and Retrieved CA cert are identical")
 
-def get_ca_certs(fstore, options, server, basedn):
+def get_ca_certs(fstore, options, server, basedn, realm):
     '''
     Examine the different options and determine a method for obtaining
     the CA cert.
@@ -1907,7 +1890,7 @@ def get_ca_certs(fstore, options, server, basedn):
             # Auth with user credentials
             try:
                 url = ldap_url()
-                ca_certs = get_ca_certs_from_ldap(server, basedn)
+                ca_certs = get_ca_certs_from_ldap(server, basedn, realm)
                 validate_new_ca_certs(existing_ca_certs, ca_certs, interactive)
             except errors.FileError, e:
                 root_logger.debug(e)
@@ -2451,7 +2434,8 @@ def install(options, env, fstore, statestore):
             # Get the CA certificate
             try:
                 os.environ['KRB5_CONFIG'] = env['KRB5_CONFIG']
-                get_ca_certs(fstore, options, cli_server[0], cli_basedn)
+                get_ca_certs(fstore, options, cli_server[0], cli_basedn,
+                             cli_realm)
                 del os.environ['KRB5_CONFIG']
             except errors.FileError, e:
                 root_logger.error(e)
