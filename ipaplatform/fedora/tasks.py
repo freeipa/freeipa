@@ -28,11 +28,17 @@ import shutil
 import stat
 import socket
 import sys
+import urllib
+import base64
 
 from subprocess import CalledProcessError
+from nss.error import NSPRError
+from pyasn1.error import PyAsn1Error
 
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
+
+from ipalib import x509 # FIXME: do not import from ipalib
 
 from ipaplatform.paths import paths
 from ipaplatform.fedora.authconfig import FedoraAuthConfig
@@ -148,19 +154,88 @@ class FedoraTaskNamespace(BaseTaskNamespace):
         auth_config.add_option("nostart")
         auth_config.execute()
 
-    def insert_ca_cert_into_systemwide_ca_store(self, cacert_path):
-        # Add the 'ipa-' prefix to cert name to avoid name collisions
-        cacert_name = os.path.basename(cacert_path)
-        new_cacert_path = os.path.join(paths.SYSTEMWIDE_CA_STORE,
-                                       'ipa-%s' % cacert_name)
+    def insert_ca_certs_into_systemwide_ca_store(self, ca_certs):
+        new_cacert_path = paths.IPA_P11_KIT
+
+        try:
+            f = open(new_cacert_path, 'w')
+        except IOError, e:
+            root_logger.info("Failed to open %s: %s" % (new_cacert_path, e))
+            return False
+
+        f.write("# This file was created by IPA. Do not edit.\n"
+                "\n")
+
+        has_eku = set()
+        for cert, nickname, trusted, ext_key_usage in ca_certs:
+            try:
+                subject = x509.get_der_subject(cert, x509.DER)
+                issuer = x509.get_der_issuer(cert, x509.DER)
+                serial_number = x509.get_der_serial_number(cert, x509.DER)
+                public_key_info = x509.get_der_public_key_info(cert, x509.DER)
+            except (NSPRError, PyAsn1Error), e:
+                root_logger.warning(
+                    "Failed to decode certificate \"%s\": %s", nickname, e)
+                continue
+
+            label = urllib.quote(nickname)
+            subject = urllib.quote(subject)
+            issuer = urllib.quote(issuer)
+            serial_number = urllib.quote(serial_number)
+            public_key_info = urllib.quote(public_key_info)
+
+            cert = base64.b64encode(cert)
+            cert = x509.make_pem(cert)
+
+            obj = ("[p11-kit-object-v1]\n"
+                   "class: certificate\n"
+                   "certificate-type: x-509\n"
+                   "certificate-category: authority\n"
+                   "label: \"%(label)s\"\n"
+                   "subject: \"%(subject)s\"\n"
+                   "issuer: \"%(issuer)s\"\n"
+                   "serial-number: \"%(serial_number)s\"\n"
+                   "x-public-key-info: \"%(public_key_info)s\"\n" %
+                   dict(label=label,
+                        subject=subject,
+                        issuer=issuer,
+                        serial_number=serial_number,
+                        public_key_info=public_key_info))
+            if trusted is True:
+                obj += "trusted: true\n"
+            elif trusted is False:
+                obj += "x-distrusted: true\n"
+            obj += "%s\n\n" % cert
+            f.write(obj)
+
+            if ext_key_usage is not None and public_key_info not in has_eku:
+                if not ext_key_usage:
+                    ext_key_usage = {x509.EKU_PLACEHOLDER}
+                try:
+                    ext_key_usage = x509.encode_ext_key_usage(ext_key_usage)
+                except PyAsn1Error, e:
+                    root_logger.warning(
+                        "Failed to encode extended key usage for \"%s\": %s",
+                        nickname, e)
+                    continue
+                value = urllib.quote(ext_key_usage)
+                obj = ("[p11-kit-object-v1]\n"
+                       "class: x-certificate-extension\n"
+                       "label: \"ExtendedKeyUsage for %(label)s\"\n"
+                       "x-public-key-info: \"%(public_key_info)s\"\n"
+                       "object-id: 2.5.29.37\n"
+                       "value: \"%(value)s\"\n\n" %
+                       dict(label=label,
+                            public_key_info=public_key_info,
+                            value=value))
+                f.write(obj)
+                has_eku.add(public_key_info)
+
+        f.close()
 
         # Add the CA to the systemwide CA trust database
         try:
-            shutil.copy(cacert_path, new_cacert_path)
             ipautil.run([paths.UPDATE_CA_TRUST])
-        except OSError, e:
-            root_logger.info("Failed to copy %s to %s" % (cacert_path,
-                                                          new_cacert_path))
         except CalledProcessError, e:
             root_logger.info("Failed to add CA to the systemwide "
                              "CA trust database: %s" % str(e))
@@ -171,11 +246,8 @@ class FedoraTaskNamespace(BaseTaskNamespace):
 
         return False
 
-    def remove_ca_cert_from_systemwide_ca_store(self, cacert_path):
-        # Derive the certificate name in the store
-        cacert_name = os.path.basename(cacert_path)
-        new_cacert_path = os.path.join(paths.SYSTEMWIDE_CA_STORE,
-                                       'ipa-%s' % cacert_name)
+    def remove_ca_certs_from_systemwide_ca_store(self):
+        new_cacert_path = paths.IPA_P11_KIT
 
         # Remove CA cert from systemwide store
         if os.path.exists(new_cacert_path):

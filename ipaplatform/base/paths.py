@@ -80,7 +80,7 @@ class BasePathNamespace(object):
     PAM_LDAP_CONF = "/etc/pam_ldap.conf"
     PASSWD = "/etc/passwd"
     ETC_PKI_CA_DIR = "/etc/pki-ca"
-    SYSTEMWIDE_CA_STORE = "/etc/pki/ca-trust/source/anchors/"
+    IPA_P11_KIT = "/etc/pki/ca-trust/source/ipa.p11-kit"
     NSS_DB_DIR = "/etc/pki/nssdb"
     NSSDB_CERT8_DB = "/etc/pki/nssdb/cert8.db"
     NSSDB_KEY3_DB = "/etc/pki/nssdb/key3.db"

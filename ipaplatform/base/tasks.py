@@ -49,9 +49,9 @@ class BaseTaskNamespace(object):
 
         return
 
-    def insert_ca_cert_into_systemwide_ca_store(self, path):
+    def insert_ca_certs_into_systemwide_ca_store(self, ca_certs):
         """
-        Adds the CA certificate located at 'path' to the systemwide CA store
+        Adds CA certificates from 'ca_certs' to the systemwide CA store
         (if available on the platform).
 
         Returns True if the operation succeeded, False otherwise.
@@ -59,10 +59,10 @@ class BaseTaskNamespace(object):
 
         return True
 
-    def remove_ca_cert_from_systemwide_ca_store(self, path):
+    def remove_ca_certs_from_systemwide_ca_store(self):
         """
-        Removes the CA certificate located at 'path' from the systemwide CA
-        store (if available on the platform).
+        Removes IPA CA certificates from the systemwide CA store
+        (if available on the platform).
 
         Returns True if the operation succeeded, False otherwise.
         """

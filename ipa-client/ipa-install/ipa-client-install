@@ -771,7 +771,7 @@ def uninstall(options, env):
                             'as it can cause subsequent installation to fail.')
 
     # Remove the CA cert from the systemwide certificate store
-    tasks.remove_ca_cert_from_systemwide_ca_store(CACERT)
+    tasks.remove_ca_certs_from_systemwide_ca_store()
 
     # Remove the CA cert
     try:
@@ -2545,9 +2545,6 @@ def install(options, env, fstore, statestore):
             return CLIENT_INSTALL_ERROR
         root_logger.info("Configured /etc/sssd/sssd.conf")
 
-    # Add the CA to the platform-dependant systemwide CA store
-    tasks.insert_ca_cert_into_systemwide_ca_store(CACERT)
-
     host_principal = 'host/%s@%s' % (hostname, cli_realm)
     if options.on_master:
         # If on master assume kerberos is already configured properly.
@@ -2649,6 +2646,13 @@ def install(options, env, fstore, statestore):
     if not remote_env['enable_ra']:
         disable_ra()
 
+    # Get CA certificates from the certificate store
+    ca_certs = get_certs_from_ldap(cli_server[0], cli_basedn, cli_realm,
+                                   remote_env['enable_ra'])
+
+    # Add the CA to the platform-dependant systemwide CA store
+    tasks.insert_ca_certs_into_systemwide_ca_store(ca_certs)
+
     # Add the CA to the default NSS database and trust it
     if not purge_ipa_certs():
         root_logger.info(
@@ -2662,8 +2666,6 @@ def install(options, env, fstore, statestore):
         root_logger.error("Failed to open /etc/pki/nssdb/ipa.txt: %s", e)
         return CLIENT_INSTALL_ERROR
 
-    ca_certs = get_certs_from_ldap(cli_server[0], cli_basedn, cli_realm,
-                                   remote_env['enable_ra'])
     for cert, nickname, trusted, ext_key_usage in ca_certs:
         try:
             root_logger.debug("Attempting to add CA directly to the "
