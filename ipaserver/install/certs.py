@@ -196,15 +196,17 @@ class NSSDatabase(object):
                 raise RuntimeError("unknown error import pkcs#12 file %s" %
                     pkcs12_filename)
 
-    def trust_root_cert(self, root_nickname):
+    def trust_root_cert(self, root_nickname, trust_flags=None):
         if root_nickname[:7] == "Builtin":
             root_logger.debug(
                 "No need to add trust for built-in root CAs, skipping %s" %
                 root_nickname)
         else:
+            if trust_flags is None:
+                trust_flags = 'CT,CT,'
             try:
                 self.run_certutil(["-M", "-n", root_nickname,
-                                   "-t", "CT,CT,"])
+                                   "-t", trust_flags])
             except ipautil.CalledProcessError, e:
                 raise RuntimeError(
                     "Setting trust on %s failed" % root_nickname)
@@ -782,13 +784,13 @@ class CertDB(object):
 
         return root_nicknames
 
-    def trust_root_cert(self, root_nickname):
+    def trust_root_cert(self, root_nickname, trust_flags=None):
         if root_nickname is None:
             root_logger.debug("Unable to identify root certificate to trust. Continuing but things are likely to fail.")
             return
 
         try:
-            self.nssdb.trust_root_cert(root_nickname)
+            self.nssdb.trust_root_cert(root_nickname, trust_flags)
         except RuntimeError:
             pass
 
