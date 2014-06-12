@@ -41,7 +41,7 @@ from ipaserver.install.installutils import (ReplicaConfig, expand_replica_info,
         read_replica_info_dogtag_port)
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import cainstance
-from ipalib import api, errors, util
+from ipalib import api, errors, util, x509, certstore
 from ipalib.constants import CACERT
 from ipapython import version
 from ipapython.config import IPAOptionParser
@@ -206,13 +206,16 @@ def install_krb(config, setup_pkinit=False):
 
     return krb
 
-def install_ca_cert(config):
-    cafile = config.dir + "/ca.crt"
-    if not ipautil.file_exists(cafile):
-        raise RuntimeError("Ca cert file is not available")
-
+def install_ca_cert(ldap, base_dn, realm, cafile):
     try:
-        shutil.copy(cafile, CACERT)
+        try:
+            certs = certstore.get_ca_certs(ldap, base_dn, realm, False)
+        except errors.NotFound:
+            shutil.copy(cafile, CACERT)
+        else:
+            certs = [c[0] for c in certs if c[2] is not False]
+            x509.write_certificate_list(certs, CACERT)
+
         os.chmod(CACERT, 0444)
     except Exception, e:
         print "error copying files: " + str(e)
@@ -591,8 +594,10 @@ def main():
     #Automatically disable pkinit w/ dogtag until that is supported
     options.setup_pkinit = False
 
-    # Install CA cert so that we can do SSL connections with ldap
-    install_ca_cert(config)
+    cafile = config.dir + "/ca.crt"
+    if not ipautil.file_exists(cafile):
+        raise RuntimeError("CA cert file is not available. Please run "
+                           "ipa-replica-prepare to create a new replica file.")
 
     ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
     replman = conn = None
@@ -600,7 +605,7 @@ def main():
         # Try out the password
         conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
         conn.connect(bind_dn=DIRMAN_DN, bind_pw=config.dirman_password,
-                     tls_cacertfile=CACERT)
+                     tls_cacertfile=cafile)
         replman = ReplicationManager(config.realm_name, config.master_host_name,
                                      config.dirman_password)
 
@@ -631,6 +636,9 @@ def main():
             print "You should remove it before proceeding:"
             print "    %% ipa host-del %s" % host
             exit(3)
+
+        # Install CA cert so that we can do SSL connections with ldap
+        install_ca_cert(conn, api.env.basedn, api.env.realm, cafile)
 
         # If remote host has DNS, check forward/reverse resolution
         with temporary_ldap2_connection(
