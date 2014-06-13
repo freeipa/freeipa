@@ -322,6 +322,7 @@ def add_external_pre_callback(membertype, ldap, dn, keys, options):
     membertype is the type of member
     """
     assert isinstance(dn, DN)
+
     # validate hostname with allowed underscore characters, non-fqdn
     # hostnames are allowed
     def validate_host(hostname):
@@ -341,19 +342,30 @@ def add_external_pre_callback(membertype, ldap, dn, keys, options):
                 raise errors.ValidationError(name=membertype, error=e)
     return dn
 
-def add_external_post_callback(memberattr, membertype, externalattr, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+
+def add_external_post_callback(ldap, dn, entry_attrs, failed, completed,
+                               memberattr, membertype, externalattr,
+                               normalize=True):
     """
-    Post callback to add failed members as external members.
+    Takes the following arguments:
+        failed - the list of failed entries, these are candidates for possible
+                 external entries to add
+        completed - the number of successfully added entries so far
+        memberattr - the attribute name that IPA uses for membership natively
+                     (e.g. memberhost)
+        membertype - the object type of the member (e.g. host)
+        externalattr - the attribute name that IPA uses to store the membership
+                       of the entries that are not managed by IPA
+                       (e.g externalhost)
 
-    This should be called by a commands post callback directly.
-
-    memberattr is one of memberuser,
-    membertype is the type of member: user,
-    externalattr is one of externaluser,
+    Returns the number of completed entries so far (the number of entries
+    handled by IPA incremented by the number of handled external entries) and
+    dn.
     """
     assert isinstance(dn, DN)
+
     completed_external = 0
-    normalize = options.get('external_callback_normalize', True)
+
     # Sift through the failures. We assume that these are all
     # entries that aren't stored in IPA, aka external entries.
     if memberattr in failed and membertype in failed[memberattr]:
@@ -362,11 +374,13 @@ def add_external_post_callback(memberattr, membertype, externalattr, ldap, compl
         members = entry_attrs.get(memberattr, [])
         external_entries = entry_attrs_.get(externalattr, [])
         lc_external_entries = set(e.lower() for e in external_entries)
+
         failed_entries = []
         for entry in failed[memberattr][membertype]:
             membername = entry[0].lower()
             member_dn = api.Object[membertype].get_dn(membername)
             assert isinstance(member_dn, DN)
+
             if (membername not in lc_external_entries and
                 member_dn not in members):
                 # Not an IPA entry, assume external
@@ -399,8 +413,28 @@ def add_external_post_callback(memberattr, membertype, externalattr, ldap, compl
 
     return (completed + completed_external, dn)
 
-def remove_external_post_callback(memberattr, membertype, externalattr, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+
+def remove_external_post_callback(ldap, dn, entry_attrs, failed, completed,
+                                  memberattr, membertype, externalattr):
+    """
+    Takes the following arguments:
+        failed - the list of failed entries, these are candidates for possible
+                 external entries to remove
+        completed - the number of successfully removed entries so far
+        memberattr - the attribute name that IPA uses for membership natively
+                     (e.g. memberhost)
+        membertype - the object type of the member (e.g. host)
+        externalattr - the attribute name that IPA uses to store the membership
+                       of the entries that are not managed by IPA
+                       (e.g externalhost)
+
+    Returns the number of completed entries so far (the number of entries
+    handled by IPA incremented by the number of handled external entries) and
+    dn.
+    """
+
     assert isinstance(dn, DN)
+
     # Run through the failures and gracefully remove any member defined
     # as an external member.
     if memberattr in failed and membertype in failed[memberattr]:
@@ -409,6 +443,7 @@ def remove_external_post_callback(memberattr, membertype, externalattr, ldap, co
         external_entries = entry_attrs_.get(externalattr, [])
         failed_entries = []
         completed_external = 0
+
         for entry in failed[memberattr][membertype]:
             membername = entry[0].lower()
             if membername in external_entries or entry[0] in external_entries:
@@ -434,6 +469,7 @@ def remove_external_post_callback(memberattr, membertype, externalattr, ldap, co
             entry_attrs[externalattr] = external_entries
 
     return (completed + completed_external, dn)
+
 
 def host_is_master(ldap, fqdn):
     """
