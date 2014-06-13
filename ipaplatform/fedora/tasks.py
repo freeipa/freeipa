@@ -36,7 +36,7 @@ from ipapython import ipautil
 
 from ipaplatform.paths import paths
 from ipaplatform.fedora.authconfig import FedoraAuthConfig
-from ipaplatform.base.tasks import *
+from ipaplatform.base.tasks import BaseTaskNamespace
 
 
 class FedoraTaskNamespace(BaseTaskNamespace):

@@ -26,44 +26,110 @@ from ipaplatform.paths import paths
 
 
 class BaseTaskNamespace(object):
-    # restore context default implementation  that does nothing
+
     def restore_context(self, filepath):
+        """
+        Restore SELinux security context on the given filepath.
+
+        No return value expected.
+        """
+
         return
 
-    # Default implementation of backup and replace hostname that does nothing
     def backup_and_replace_hostname(self, fstore, statestore, hostname):
+        """
+        Backs up the current hostname in the statestore (so that it can be
+        restored by the restore_network_configuration platform task).
+
+        Makes sure that new hostname (passed via hostname argument) is set
+        as a new pemanent hostname for this host.
+
+        No return value expected.
+        """
+
         return
 
     def insert_ca_cert_into_systemwide_ca_store(self, path):
+        """
+        Adds the CA certificate located at 'path' to the systemwide CA store
+        (if available on the platform).
+
+        Returns True if the operation succeeded, False otherwise.
+        """
+
         return True
 
     def remove_ca_cert_from_systemwide_ca_store(self, path):
+        """
+        Removes the CA certificate located at 'path' from the systemwide CA
+        store (if available on the platform).
+
+        Returns True if the operation succeeded, False otherwise.
+        """
+
         return True
 
     def get_svc_list_file(self):
+        """
+        Returns the path to the IPA service list file.
+        """
+
         return paths.SVC_LIST_FILE
 
-    # See if SELinux is enabled and /usr/sbin/restorecon is installed.
-    # Default to a no-op. Those platforms that support SELinux should
-    # implement this function.
     def check_selinux_status(self):
+        """
+        Checks if SELinux is available on the platform. If it is, this task
+        also makes sure that restorecon tool is available.
+
+        If SELinux is available, but restorcon tool is not installed, raises
+        an RuntimeError, which suggest installing the package containing
+        restorecon and rerunning the installation.
+        """
+
         return
 
     def restore_network_configuration(self, fstore, statestore):
+        """
+        Restores the original hostname as backed up in the
+        backup_and_replace_hostname platform task.
+        """
+
         return
 
     def restore_pre_ipa_client_configuration(self, fstore, statestore,
                                              was_sssd_installed,
                                              was_sssd_configured):
+        """
+        Restores the pre-ipa-client configuration that was modified by the
+        following platform tasks:
+            modify_nsswitch_pam_stack
+            modify_pam_to_use_krb5
+        """
+
         return
 
     def set_nisdomain(self, nisdomain):
+        """
+        Sets the NIS domain name to 'nisdomain'.
+        """
+
         return
 
     def modify_nsswitch_pam_stack(self, sssd, mkhomedir, statestore):
+        """
+        If sssd flag is true, configure pam and nsswtich so that SSSD is used
+        for retrieving user information and authentication.
+
+        Otherwise, configure pam and nsswitch to leverage pure LDAP.
+        """
+
         return
 
     def modify_pam_to_use_krb5(self, statestore):
+        """
+        Configure pam stack to allow kerberos authentication.
+        """
+
         return
 
 task_namespace = BaseTaskNamespace()
