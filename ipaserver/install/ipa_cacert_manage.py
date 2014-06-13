@@ -28,7 +28,7 @@ import krbV
 from ipapython import admintool, certmonger, ipautil
 from ipapython.dn import DN
 from ipaplatform.paths import paths
-from ipalib import api, errors, x509, util
+from ipalib import api, errors, x509, certstore
 from ipaserver.install import certs, cainstance, installutils
 from ipaserver.plugins.ldap2 import ldap2
 
@@ -51,6 +51,14 @@ class CACertManage(admintool.AdminTool):
             help="Directory Manager password")
 
         renew_group = OptionGroup(parser, "Renew options")
+        renew_group.add_option(
+            "--self-signed", dest='self_signed',
+            action='store_true',
+            help="Sign the renewed certificate by itself")
+        renew_group.add_option(
+            "--external-ca", dest='self_signed',
+            action='store_false',
+            help="Sign the renewed certificate by external CA")
         renew_group.add_option(
             "--external-cert-file", dest='external_cert_file',
             help="PEM file containing a certificate signed by the external CA")
@@ -146,7 +154,12 @@ class CACertManage(admintool.AdminTool):
         if options.external_cert_file:
             return self.renew_external_step_2(ca, cert)
 
-        if x509.is_self_signed(cert, x509.DER):
+        if options.self_signed is not None:
+            self_signed = options.self_signed
+        else:
+            self_signed = x509.is_self_signed(cert, x509.DER)
+
+        if self_signed:
             return self.renew_self_signed(ca)
         else:
             return self.renew_external_step_1(ca)
@@ -192,7 +205,6 @@ class CACertManage(admintool.AdminTool):
 
             nss_cert = x509.load_certificate(old_cert, x509.DER)
             subject = nss_cert.subject
-            issuer = nss_cert.issuer
             #pylint: disable=E1101
             pkinfo = nss_cert.subject_public_key_info.format()
             #pylint: enable=E1101
@@ -202,8 +214,6 @@ class CACertManage(admintool.AdminTool):
                 raise admintool.ScriptError("Not a CA certificate")
             if nss_cert.subject != subject:
                 raise admintool.ScriptError("Subject name mismatch")
-            if nss_cert.issuer != issuer:
-                raise admintool.ScriptError("Issuer mismatch")
             #pylint: disable=E1101
             if nss_cert.subject_public_key_info.format() != pkinfo:
                 raise admintool.ScriptError("Subject public key info mismatch")
@@ -235,6 +245,15 @@ class CACertManage(admintool.AdminTool):
             except ValueError, e:
                 raise admintool.ScriptError(
                     "Not a valid CA certificate: %s" % e)
+
+            trust_chain = tmpdb.get_trust_chain('IPA CA')[:-1]
+            for nickname in trust_chain:
+                try:
+                    ca_cert = tmpdb.get_cert(nickname)
+                except RuntimeError:
+                    break
+                certstore.put_ca_cert_nss(
+                    self.conn, api.env.basedn, ca_cert, nickname, ',,')
 
         dn = DN(('cn', self.cert_nickname), ('cn', 'ca_renewal'),
                 ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)

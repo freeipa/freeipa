@@ -42,6 +42,12 @@ When the IPA CA is not configured, this command is not available.
 \fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 The Directory Manager password to use for authentication.
 .TP
+\fB\-\-self\-signed\fR
+Sign the renewed certificate by itself.
+.TP
+\fB\-\-external\-ca\fR
+Sign the renewed certificate by external CA.
+.TP
 \fB\-\-external\-cert\-file\fR=\fIFILE\fR
 PEM file containing a certificate signed by the external CA. Must be given with \-\-external\-ca\-file.
 .TP
