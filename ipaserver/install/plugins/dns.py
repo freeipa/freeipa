@@ -17,12 +17,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipaserver.install.plugins import MIDDLE
-from ipaserver.install.plugins.baseupdate import PostUpdate
+import ldap as _ldap
+import traceback
+import time
+
+from ldif import LDIFWriter
+
+from ipaserver.install.plugins import MIDDLE, LAST
+from ipaserver.install.plugins.baseupdate import (PostUpdate, PreUpdate,
+                                                  PreSchemaUpdate)
+from ipaserver.install import sysupgrade
 from ipalib import api, errors, util
 from ipapython.dn import DN
 from ipalib.plugins.dns import dns_container_exists
 from ipapython.ipa_log_manager import *
+
 
 class update_dnszones(PostUpdate):
     """
@@ -129,3 +138,169 @@ class update_dns_limits(PostUpdate):
         return (False, True, [dnsupdates])
 
 api.register(update_dns_limits)
+
+
+class update_check_forwardzones(PreSchemaUpdate):
+    """
+    Check if the idnsforwardzone objectclass is in LDAP schema.
+    If not update is required (update_to_forward_zones), set sysupgrade state
+    'update_to_forward_zones' to True
+    """
+
+    def execute(self, **options):
+        state = sysupgrade.get_upgrade_state('dns', 'update_to_forward_zones')
+        if state is False:
+            # no upgrade is needed
+            return (False, False, [])
+        ldap = self.obj.backend
+        result = ldap.schema.get_obj(_ldap.schema.models.ObjectClass, 'idnsforwardzone')
+        if result is None:
+            sysupgrade.set_upgrade_state('dns', 'update_to_forward_zones', True)
+            self.log.info('Prepared upgrade to forward zones')
+        else:
+            sysupgrade.set_upgrade_state('dns', 'update_to_forward_zones', False)
+        return (False, False, [])
+
+api.register(update_check_forwardzones)
+
+
+class update_master_to_dnsforwardzones(PostUpdate):
+    """
+    Update all zones to meet requirements in the new FreeIPA versions
+
+    All masters zones with specified forwarders, and forward-policy different
+    than none, will be tranformed to forward zones.
+    Original masters zone will be backed up to ldif file.
+
+    This should be applied only once, and only if original version was lower than 4.0
+    """
+    order = LAST
+
+    backup_dir = u'/var/lib/ipa/backup/'
+    backup_filename = u'dns-forward-zones-backup-%Y-%m-%d-%H-%M-%S.ldif'
+    backup_path = u'%s%s' % (backup_dir, backup_filename)
+
+    def execute(self, **options):
+        ldap = self.obj.backend
+        if not sysupgrade.get_upgrade_state('dns', 'update_to_forward_zones'):
+            # forward zones was tranformed before, nothing to do
+            return (False, False, [])
+
+        try:
+            # raw values are required to store into ldif
+            zones = api.Command.dnszone_find(all=True,
+                                             raw=True,
+                                             sizelimit=0)['result']
+        except errors.NotFound:
+            self.log.info('No DNS zone to update found')
+            return (False, False, [])
+
+        zones_to_transform = []
+
+        for zone in zones:
+            if (
+                zone.get('idnsforwardpolicy', [u'first'])[0] == u'none' or
+                zone.get('idnsforwarders', []) == []
+            ):
+                continue  # don't update zone
+
+            zones_to_transform.append(zone)
+
+        if zones_to_transform:
+            # add time to filename
+            self.backup_path = time.strftime(self.backup_path)
+
+            self.log.info('Zones with specified forwarders with policy different'
+                          ' than none will be transformed to forward zones.')
+            self.log.info('Original zones will be saved in LDIF format in '
+                          '%s file' % self.backup_path)
+            try:
+
+                with open(self.backup_path, 'w') as f:
+                    writer = LDIFWriter(f)
+                    for zone in zones_to_transform:
+                        # save backup to ldif
+                        try:
+
+                            dn = str(zone['dn'])
+                            del zone['dn']  # dn shouldn't be as attribute in ldif
+                            writer.unparse(dn, zone)
+
+                            if 'managedBy' in zone:
+                                entry = ldap.get_entry(DN(zone['managedBy'][0]))
+                                writer.unparse(str(entry.dn), dict(entry))
+
+                            # raw values are required to store into ldif
+                            records = api.Command['dnsrecord_find'](
+                                        zone['idnsname'][0],
+                                        all=True,
+                                        raw=True,
+                                        sizelimit=0)['result']
+                            for record in records:
+                                if record['idnsname'][0] == u'@':
+                                    # zone record was saved before
+                                    continue
+                                dn = str(record['dn'])
+                                del record['dn']
+                                writer.unparse(dn, record)
+
+                        except Exception, e:
+                            self.log.error('Unable to backup zone %s' %
+                                           zone['idnsname'][0])
+                            self.log.error(traceback.format_exc())
+                            return (False, False, [])
+                    f.close()
+            except Exception:
+                self.log.error('Unable to create backup file')
+                self.log.error(traceback.format_exc())
+                return (False, False, [])
+
+            # update
+            for zone in zones_to_transform:
+                # delete master zone
+                try:
+                    api.Command['dnszone_del'](zone['idnsname'])
+                except Exception, e:
+                    self.log.error('Transform to forwardzone terminated: '
+                                   'removing zone %s failed (%s)' % (
+                                       zone['idnsname'][0], e)
+                                  )
+                    self.log.error(traceback.format_exc())
+                    continue
+
+                # create forward zone
+                try:
+                    kw = {
+                        'idnsforwarders': zone.get('idnsforwarders', []),
+                        'idnsforwardpolicy': zone.get('idnsforwardpolicy', [u'first'])[0]
+                    }
+                    api.Command['dnsforwardzone_add'](zone['idnsname'][0], **kw)
+                except Exception, e:
+                    self.log.error('Transform to forwardzone terminated: creating '
+                                   'forwardzone %s failed' %
+                                   zone['idnsname'][0])
+                    self.log.error(traceback.format_exc())
+                    continue
+
+                # create permission if original zone has one
+                if 'managedBy' in zone:
+                    try:
+                        api.Command['dnsforwardzone_add_permission'](zone['idnsname'][0])
+                    except Exception, e:
+                        self.log.error('Transform to forwardzone terminated: '
+                                       'Adding managed by permission to forward zone'
+                                       ' %s failed' % zone['idnsname'])
+                        self.log.error(traceback.format_exc())
+                        self.log.info('Zone %s was transformed to forward zone '
+                                      ' without managed permissions',
+                                      zone['idnsname'][0])
+                        continue
+
+                self.log.info('Zone %s was sucessfully transformed to forward zone',
+                              zone['idnsname'][0])
+
+        sysupgrade.set_upgrade_state('dns', 'update_to_forward_zones', False)
+
+        return (False, False, [])
+
+api.register(update_master_to_dnsforwardzones)
