@@ -43,8 +43,7 @@ good_vars = (
     ('trailing_whitespace', u' value  ', u'value'),
     ('an_int', 42, 42),
     ('int_repr', ' 42 ', 42),
-    ('a_float', 3.14, 3.14),
-    ('float_repr', ' 3.14 ', 3.14),
+    ('not_a_float', '3.14', u'3.14'),
     ('true', True, True),
     ('true_repr', ' True ', True),
     ('false', False, False),
@@ -406,7 +405,7 @@ class test_Env(ClassChecker):
         assert o.yes is True
         assert o.no is False
         assert o.number == 42
-        assert o.floating == 3.14
+        assert o.floating == '3.14'
 
     def new(self, in_tree=False):
         """

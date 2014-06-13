@@ -1135,6 +1135,7 @@ def wait_for_open_ports(host, ports, timeout=0):
     in seconds may be specified to limit the wait. If the timeout is
     exceeded, socket.timeout exception is raised.
     """
+    timeout = float(timeout)
     if not isinstance(ports, (tuple, list)):
         ports = [ports]
 
@@ -1156,6 +1157,7 @@ def wait_for_open_socket(socket_name, timeout=0):
     Wait until the specified socket on the local host is open. Timeout
     in seconds may be specified to limit the wait.
     """
+    timeout = float(timeout)
     op_timeout = time.time() + timeout
 
     while True:

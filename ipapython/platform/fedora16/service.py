@@ -152,7 +152,7 @@ class Fedora16CAService(Fedora16Service):
                 'The httpd proxy is not installed, wait on local port')
             use_proxy = False
         root_logger.debug('Waiting until the CA is running')
-        timeout = api.env.startup_timeout
+        timeout = float(api.env.startup_timeout)
         op_timeout = time.time() + timeout
         while time.time() < op_timeout:
             try:
