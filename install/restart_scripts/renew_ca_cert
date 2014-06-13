@@ -97,21 +97,47 @@ def main():
                     syslog.LOG_ERR,
                     "Updating trust on certificate %s failed in %s" %
                     (nickname, db.secdir))
-        elif nickname == 'caSigningCert cert-pki-ca' and ca.is_renewal_master():
+        elif nickname == 'caSigningCert cert-pki-ca':
+            # Update CS.cfg
+            cfg_path = configured_constants.CS_CFG_PATH
+            config = installutils.get_directive(
+                cfg_path, 'subsystem.select', '=')
+            if config == 'New':
+                syslog.syslog(syslog.LOG_NOTICE, "Updating CS.cfg")
+                if x509.is_self_signed(cert, x509.DER):
+                    installutils.set_directive(
+                        cfg_path, 'hierarchy.select', 'Root',
+                        quotes=False, separator='=')
+                    installutils.set_directive(
+                        cfg_path, 'subsystem.count', '1',
+                        quotes=False, separator='=')
+                else:
+                    installutils.set_directive(
+                        cfg_path, 'hierarchy.select', 'Subordinate',
+                        quotes=False, separator='=')
+                    installutils.set_directive(
+                        cfg_path, 'subsystem.count', '0',
+                        quotes=False, separator='=')
+            else:
+                syslog.syslog(syslog.LOG_NOTICE, "Not updating CS.cfg")
+
             # Update CA certificate in LDAP
-            try:
-                conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)
-                conn.connect(ccache=ccache)
-
+            if ca.is_renewal_master():
                 try:
-                    certstore.update_ca_cert(conn, api.env.basedn, cert)
-                except errors.EmptyModlist:
-                    pass
+                    conn = ldap2(shared_instance=False,
+                                 ldap_uri=api.env.ldap_uri)
+                    conn.connect(ccache=ccache)
 
-                conn.disconnect()
-            except Exception, e:
-                syslog.syslog(
-                    syslog.LOG_ERR, "Updating CA certificate failed: %s" % e)
+                    try:
+                        certstore.update_ca_cert(conn, api.env.basedn, cert)
+                    except errors.EmptyModlist:
+                        pass
+
+                    conn.disconnect()
+                except Exception, e:
+                    syslog.syslog(
+                        syslog.LOG_ERR,
+                        "Updating CA certificate failed: %s" % e)
     finally:
         shutil.rmtree(tmpdir)
 
