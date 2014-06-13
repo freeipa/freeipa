@@ -211,9 +211,21 @@ class NSSDatabase(object):
                 raise RuntimeError(
                     "Setting trust on %s failed" % root_nickname)
 
+    def get_cert(self, nickname, pem=False):
+        args = ['-L', '-n', nickname]
+        if pem:
+            args.append('-a')
+        else:
+            args.append('-r')
+        try:
+            cert, err, returncode = self.run_certutil(args)
+        except ipautil.CalledProcessError:
+            raise RuntimeError("Failed to get %s" % nickname)
+        return cert
+
     def export_pem_cert(self, nickname, location):
         """Export the given cert to PEM file in the given location"""
-        cert, err, returncode = self.run_certutil(["-L", "-n", nickname, "-a"])
+        cert = self.get_cert(nickname)
         with open(location, "w+") as fd:
             fd.write(cert)
         os.chmod(location, 0444)
