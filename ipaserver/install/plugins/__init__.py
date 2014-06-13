@@ -20,6 +20,7 @@
 """
 Provide a separate api for updates.
 """
+PRE_SCHEMA_UPDATE = 0
 PRE_UPDATE = 1
 POST_UPDATE = 2
 

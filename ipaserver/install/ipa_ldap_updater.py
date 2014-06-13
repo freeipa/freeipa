@@ -191,18 +191,20 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
 
         modified = False
 
-        if options.update_schema:
-            modified = schemaupdate.update_schema(
-                options.schema_files,
-                dm_password=self.dirman_password,
-                live_run=not options.test) or modified
-
         ld = LDAPUpdate(
             dm_password=self.dirman_password,
             sub_dict={},
             live_run=not options.test,
             ldapi=options.ldapi,
             plugins=options.plugins or self.run_plugins)
+
+        modified = ld.pre_schema_update(ordered=True)
+
+        if options.update_schema:
+            modified = schemaupdate.update_schema(
+                options.schema_files,
+                dm_password=self.dirman_password,
+                live_run=not options.test) or modified
 
         if not self.files:
             self.files = ld.get_all_files(UPDATES_DIR)
