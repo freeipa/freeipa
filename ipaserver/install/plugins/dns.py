@@ -81,62 +81,6 @@ class update_dnszones(PostUpdate):
 
 api.register(update_dnszones)
 
-class update_dns_permissions(PostUpdate):
-    """
-    New DNS permissions need to be added only for updated machines with
-    enabled DNS. LDIF loaded by DNS installer would fail because of duplicate
-    entries otherwise.
-    """
-
-    _write_dns_perm_dn = DN(('cn', 'Write DNS Configuration'),
-                            api.env.container_permission, api.env.basedn)
-    _write_dns_perm_entry = ['objectClass:groupofnames',
-                             'objectClass:top',
-                             'cn:Write DNS Configuration',
-                             'description:Write DNS Configuration',
-                             'member:%s' % DN(('cn', 'DNS Administrators'), ('cn', 'privileges'), ('cn', 'pbac'),
-                                              api.env.basedn),
-                             'member:%s' % DN(('cn', 'DNS Servers'), ('cn', 'privileges'), ('cn', 'pbac'),
-                                              api.env.basedn)]
-
-    _read_dns_perm_dn = DN(('cn', 'Read DNS Entries'),
-                            api.env.container_permission, api.env.basedn)
-    _read_dns_perm_entry = ['objectClass:top',
-                            'objectClass:groupofnames',
-                            'objectClass:ipapermission',
-                            'cn:Read DNS Entries',
-                            'description:Read DNS entries',
-                            'ipapermissiontype:SYSTEM',
-                            'member:%s' % DN(('cn', 'DNS Administrators'), ('cn', 'privileges'), ('cn', 'pbac'),
-                                             api.env.basedn),
-                            'member:%s' % DN(('cn', 'DNS Servers'), ('cn', 'privileges'), ('cn', 'pbac'),
-                                             api.env.basedn),]
-
-    _write_dns_aci_dn = DN(api.env.basedn)
-    _write_dns_aci_entry = ['add:aci:\'(targetattr = "idnsforwardpolicy || idnsforwarders || idnsallowsyncptr || idnszonerefresh || idnspersistentsearch")(target = "ldap:///cn=dns,%(realm)s")(version 3.0;acl "permission:Write DNS Configuration";allow (write) groupdn = "ldap:///cn=Write DNS Configuration,cn=permissions,cn=pbac,%(realm)s";)\'' % dict(realm=api.env.basedn)]
-
-    _read_dns_aci_dn = DN(api.env.container_dns, api.env.basedn)
-    _read_dns_aci_entry = ['add:aci:\'(targetattr = "*")(version 3.0; acl "Allow read access"; allow (read,search,compare) groupdn = "ldap:///cn=Read DNS Entries,cn=permissions,cn=pbac,%(realm)s" or userattr = "parent[0,1].managedby#GROUPDN";)\''  % dict(realm=api.env.basedn) ]
-
-    def execute(self, **options):
-        ldap = self.obj.backend
-
-        if not dns_container_exists(ldap):
-            return (False, False, [])
-
-        dnsupdates = {}
-
-        # add default and updated entries
-        for dn, container, entry in ((self._write_dns_perm_dn, 'default', self._write_dns_perm_entry),
-                                     (self._read_dns_perm_dn, 'default', self._read_dns_perm_entry),
-                                     (self._write_dns_aci_dn, 'updates', self._write_dns_aci_entry),
-                                     (self._read_dns_aci_dn, 'updates', self._read_dns_aci_entry)):
-
-            dnsupdates[dn] = {'dn': dn, container: entry}
-
-        return (False, True, [dnsupdates])
-
-api.register(update_dns_permissions)
 
 class update_dns_limits(PostUpdate):
     """
