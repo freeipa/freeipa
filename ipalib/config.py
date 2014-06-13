@@ -257,7 +257,7 @@ class Env(object):
                 value = m[value]
             elif value.isdigit():
                 value = int(value)
-            elif key in ('basedn'):
+            elif key == 'basedn':
                 value = DN(value)
             else:
                 try:
