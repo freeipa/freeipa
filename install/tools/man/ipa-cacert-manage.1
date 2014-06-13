@@ -37,6 +37,13 @@ When the IPA CA is subordinate of an external CA, the renewal process involves s
 .sp
 When the IPA CA is not configured, this command is not available.
 .RE
+.TP
+\fBinstall\fR
+\- Install a CA certificate
+.sp
+.RS
+This command can be used to install new CA certificate to IPA.
+.RE
 .SH "OPTIONS"
 .TP
 \fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
@@ -53,6 +60,22 @@ PEM file containing a certificate signed by the external CA. Must be given with 
 .TP
 \fB\-\-external\-ca\-file\fR=\fIFILE\fR
 PEM file containing the external CA chain.
+.TP
+\fB\-n\fR \fINICKNAME\fR, \fB\-\-nickname\fR=\fINICKNAME\fR
+Nickname for the certificate.
+.TP
+\fB\-t\fR \fITRUST_FLAGS\fR, \fB\-\-trust\-flags\fR=\fITRUST_FLAGS\fR
+Trust flags for the certificate in certutil format. Trust flags are of the form "X,Y,Z" where X is for SSL, Y is for S/MIME, and Z is for code signing. Use ",," for no explicit trust.
+.sp
+The supported trust flags are:
+.RS
+.IP
+C \- CA trusted to issue server certificates
+.IP
+T \- CA trusted to issue client certificates
+.IP
+p \- not trusted
+.RE
 .TP
 \fB\-v\fR, \fB\-\-verbose\fR
 Print debugging information.

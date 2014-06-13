@@ -36,7 +36,7 @@ from ipaserver.plugins.ldap2 import ldap2
 class CACertManage(admintool.AdminTool):
     command_name = 'ipa-cacert-manage'
 
-    usage = "%prog renew [options]"
+    usage = "%prog {renew|install} [options]"
 
     description = "Manage CA certificates."
 
@@ -67,6 +67,15 @@ class CACertManage(admintool.AdminTool):
             help="PEM file containing the external CA chain")
         parser.add_option_group(renew_group)
 
+        install_group = OptionGroup(parser, "Install options")
+        install_group.add_option(
+            "-n", "--nickname", dest='nickname',
+            help="Nickname for the certificate")
+        install_group.add_option(
+            "-t", "--trust-flags", dest='trust_flags', default='C,,',
+            help="Trust flags for the certificate in certutil format")
+        parser.add_option_group(install_group)
+
     def validate_options(self):
         super(CACertManage, self).validate_options(needs_root=True)
 
@@ -85,6 +94,9 @@ class CACertManage(admintool.AdminTool):
                 parser.error("--external-ca-file not specified")
             elif not options.external_cert_file and options.external_ca_file:
                 parser.error("--external-cert-file not specified")
+        elif command == 'install':
+            if len(self.args) < 2:
+                parser.error("certificate file name not provided")
         else:
             parser.error("unknown command \"%s\"" % command)
 
@@ -95,7 +107,8 @@ class CACertManage(admintool.AdminTool):
         api.bootstrap(in_server=True)
         api.finalize()
 
-        if command == 'renew' and options.external_cert_file:
+        if ((command == 'renew' and options.external_cert_file) or
+            command == 'install'):
             self.conn = self.ldap_connect()
         else:
             self.conn = None
@@ -103,6 +116,8 @@ class CACertManage(admintool.AdminTool):
         try:
             if command == 'renew':
                 rc = self.renew()
+            elif command == 'install':
+                rc = self.install()
         finally:
             if self.conn is not None:
                 self.conn.disconnect()
@@ -298,3 +313,41 @@ class CACertManage(admintool.AdminTool):
 
         self.log.debug("modifying certmonger request '%s'", self.request_id)
         certmonger.modify(self.request_id, profile='ipaCACertRenewal')
+
+    def install(self):
+        print "Installing CA certificate, please wait"
+
+        options = self.options
+        cert_filename = self.args[1]
+
+        nss_cert = None
+        try:
+            try:
+                nss_cert = x509.load_certificate_from_file(cert_filename)
+            except IOError, e:
+                raise admintool.ScriptError(
+                    "Can't open \"%s\": %s" % (cert_filename, e))
+            except (TypeError, NSPRError), e:
+                raise admintool.ScriptError("Not a valid certificate: %s" % e)
+            if not nss_cert.is_ca_cert():
+                raise admintool.ScriptError("Not a CA certificate")
+            subject = nss_cert.subject
+            cert = nss_cert.der_data
+        finally:
+            del nss_cert
+
+        nickname = options.nickname or str(subject)
+
+        trust_flags = options.trust_flags
+        if ((set(trust_flags) - set(',CPTcgpuw')) or
+            len(trust_flags.split(',')) != 3):
+            raise admintool.ScriptError("Invalid trust flags")
+
+        try:
+            certstore.put_ca_cert_nss(
+                self.conn, api.env.basedn, cert, nickname, trust_flags)
+        except ValueError, e:
+            raise admintool.ScriptError(
+                "Failed to install the certificate: %s" % e)
+
+        print "CA certificate successfully installed"
