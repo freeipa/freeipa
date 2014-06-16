@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import nose
 import re
 
 from ipatests.test_integration.base import IntegrationTest
@@ -29,6 +30,7 @@ class ADTrustBase(IntegrationTest):
 
     topology = 'line'
     num_ad_domains = 1
+    optional_extra_roles = ['ad_subdomain']
 
     @classmethod
     def install(cls):
@@ -37,6 +39,14 @@ class ADTrustBase(IntegrationTest):
         cls.install_adtrust()
         cls.check_sid_generation()
         cls.configure_dns_and_time()
+
+        # Determine whether the subdomain AD is available
+        try:
+            child_ad = cls.host_by_role(cls.optional_extra_roles[0])
+            cls.ad_subdomain = '.'.join(
+                                   child_ad.hostname.split('.')[1:])
+        except LookupError:
+            cls.ad_subdomain = None
 
     @classmethod
     def install_adtrust(cls):
@@ -64,15 +74,31 @@ class ADTrustBase(IntegrationTest):
         tasks.configure_dns_for_trust(cls.master, cls.ad)
         tasks.sync_time(cls.master, cls.ad)
 
-
-class TestBasicADTrust(ADTrustBase):
-    """Basic Integration test for Active Directory"""
-
     def test_establish_trust(self):
         """Tests establishing trust with Active Directory"""
 
         tasks.establish_trust_with_ad(self.master, self.ad,
             extra_args=['--range-type', 'ipa-ad-trust'])
+
+    def test_all_trustdomains_found(self):
+        """
+        Tests that all trustdomains can be found.
+        """
+
+        if self.ad_subdomain is None:
+            raise nose.SkipTest('AD subdomain is not available.')
+
+        result = self.master.run_command(['ipa',
+                                          'trustdomain-find',
+                                           self.ad.domain.name])
+
+        # Check that both trustdomains appear in the result
+        assert self.ad.domain.name in result.stdout_text
+        assert self.ad_subdomain in result.stdout_text
+
+
+class TestBasicADTrust(ADTrustBase):
+    """Basic Integration test for Active Directory"""
 
     def test_range_properties_in_nonposix_trust(self):
         """Check the properties of the created range"""
@@ -111,7 +137,7 @@ class TestBasicADTrust(ADTrustBase):
 class TestPosixADTrust(ADTrustBase):
     """Integration test for Active Directory with POSIX support"""
 
-    def test_establish_trust_with_posix_attributes(self):
+    def test_establish_trust(self):
         # Not specifying the --range-type directly, it should be detected
         tasks.establish_trust_with_ad(self.master, self.ad)
 
