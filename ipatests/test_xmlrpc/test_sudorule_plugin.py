@@ -769,6 +769,10 @@ class test_sudorule(XMLRPC_test):
         with assert_raises(errors.ValidationError):
             api.Command['sudorule_mod'](self.rule_name, sudoorder=0)
 
+        # Try unsetting sudoorder from both rules
+        api.Command['sudorule_mod'](self.rule_name, sudoorder=None)
+        api.Command['sudorule_mod'](self.rule_name2, sudoorder=None)
+
 
     def test_m_sudorule_del(self):
         """

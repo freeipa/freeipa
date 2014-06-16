@@ -310,10 +310,11 @@ class sudorule(LDAPObject):
     )
 
     def check_order_uniqueness(self, *keys, **options):
-        if 'sudoorder' in options:
+        if options.get('sudoorder') is not None:
             entries = self.methods.find(
                 sudoorder=options['sudoorder']
             )['result']
+
             if len(entries) > 0:
                 rule_name = entries[0]['cn'][0]
                 raise errors.ValidationError(
