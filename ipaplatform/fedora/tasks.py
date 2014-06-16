@@ -122,7 +122,7 @@ class FedoraTaskNamespace(BaseTaskNamespace):
         auth_config.add_parameter("nisdomain", nisdomain)
         auth_config.execute()
 
-    def modify_nsswitch_pam_stack(sssd, mkhomedir, statestore):
+    def modify_nsswitch_pam_stack(self, sssd, mkhomedir, statestore):
         auth_config = FedoraAuthConfig()
 
         if sssd:
@@ -141,7 +141,7 @@ class FedoraTaskNamespace(BaseTaskNamespace):
 
         auth_config.execute()
 
-    def modify_pam_to_use_krb5(statestore):
+    def modify_pam_to_use_krb5(self, statestore):
         auth_config = FedoraAuthConfig()
         statestore.backup_state('authconfig', 'krb5', True)
         auth_config.enable("krb5")

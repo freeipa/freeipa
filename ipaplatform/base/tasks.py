@@ -60,10 +60,10 @@ class BaseTaskNamespace(object):
     def set_nisdomain(self, nisdomain):
         return
 
-    def modify_nsswitch_pam_stack(sssd, mkhomedir, statestore):
+    def modify_nsswitch_pam_stack(self, sssd, mkhomedir, statestore):
         return
 
-    def modify_pam_to_use_krb5(statestore):
+    def modify_pam_to_use_krb5(self, statestore):
         return
 
 task_namespace = BaseTaskNamespace()
