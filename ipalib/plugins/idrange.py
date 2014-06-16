@@ -185,13 +185,14 @@ class idrange(LDAPObject):
     label = _('ID Ranges')
     label_singular = _('ID Range')
 
+    # The commented range types are planned but not yet supported
     range_types = {
         u'ipa-local': unicode(_('local domain range')),
-        u'ipa-ad-winsync': unicode(_('Active Directory winsync range')),
+        # u'ipa-ad-winsync': unicode(_('Active Directory winsync range')),
         u'ipa-ad-trust': unicode(_('Active Directory domain range')),
         u'ipa-ad-trust-posix': unicode(_('Active Directory trust range with '
                                         'POSIX attributes')),
-        u'ipa-ipa-trust': unicode(_('IPA trust range')),
+        # u'ipa-ipa-trust': unicode(_('IPA trust range')),
                   }
 
     takes_params = (
