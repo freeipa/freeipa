@@ -272,6 +272,7 @@ class BasePathNamespace(object):
     IPAREPLICA_CONNCHECK_LOG = "/var/log/ipareplica-conncheck.log"
     IPAREPLICA_INSTALL_LOG = "/var/log/ipareplica-install.log"
     IPARESTORE_LOG = "/var/log/iparestore.log"
+    IPASERVER_CA_INSTALL_LOG = "/var/log/ipaserver-ca-install.log"
     IPASERVER_INSTALL_LOG = "/var/log/ipaserver-install.log"
     IPASERVER_UNINSTALL_LOG = "/var/log/ipaserver-uninstall.log"
     IPAUPGRADE_LOG = "/var/log/ipaupgrade.log"

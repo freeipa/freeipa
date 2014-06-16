@@ -1,4 +1,4 @@
-.\" A man page for ipa-replica-install
+.\" A man page for ipa-ca-install
 .\" Copyright (C) 2011 Red Hat, Inc.
 .\"
 .\" This program is free software; you can redistribute it and/or modify
@@ -18,13 +18,15 @@
 .\"
 .TH "ipa-ca-install" "1" "Jun 17 2011" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
-ipa\-ca\-install \- Install a CA on a replica
+ipa\-ca\-install \- Install a CA on a server
 .SH "SYNOPSIS"
-ipa\-ca\-install [\fIOPTION\fR]... replica_file
+ipa\-ca\-install [\fIOPTION\fR]... [replica_file]
 .SH "DESCRIPTION"
 Adds a CA as an IPA\-managed service. This requires that the IPA server is already installed and configured.
 
 The replica_file is created using the ipa\-replica\-prepare utility and should be the same one used when originally installing the replica.
+
+Alternatively, you can run ipa\-ca\-install without replica_file to upgrade from CA-less to CA-full.
 .SH "OPTIONS"
 \fB\-d\fR, \fB\-\-debug\fR
 Enable debug logging when more verbose output is needed
