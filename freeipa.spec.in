@@ -490,7 +490,10 @@ fi
 python -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
 # NOTE: systemd specific section
 if [  $? -eq 0 ]; then
-    /bin/systemctl try-restart ipa.service >/dev/null 2>&1 || :
+    /bin/systemctl is-enabled ipa.service >/dev/null 2>&1
+    if [  $? -eq 0 ]; then
+        /bin/systemctl restart ipa.service >/dev/null 2>&1 || :
+    fi
 fi
 # END
 
