@@ -37,11 +37,12 @@ import threading
 import errno
 from socket import SOCK_STREAM, SOCK_DGRAM
 import distutils.spawn
+from ipaplatform.paths import paths
 
 CONNECT_TIMEOUT = 5
 RESPONDERS = [ ]
 QUIET = False
-CCACHE_FILE = "/etc/ipa/.conncheck_ccache"
+CCACHE_FILE = paths.CONNCHECK_CCACHE
 KRB5_CONFIG = None
 
 class SshExec(object):
@@ -168,7 +169,7 @@ def logging_setup(options):
     log_file = None
 
     if os.getegid() == 0:
-        log_file = "/var/log/ipareplica-conncheck.log"
+        log_file = paths.IPAREPLICA_CONNCHECK_LOG
 
     standard_logging_setup(log_file, debug=options.debug)
 
@@ -372,7 +373,7 @@ def main():
 
 
             stderr=''
-            (stdout, stderr, returncode) = ipautil.run(['/usr/bin/kinit', principal],
+            (stdout, stderr, returncode) = ipautil.run([paths.KINIT, principal],
                  env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME':CCACHE_FILE},
                  stdin=password, raiseonerr=False)
             if returncode != 0:
@@ -380,7 +381,7 @@ def main():
 
             # Verify kinit was actually successful
             stderr=''
-            (stdout, stderr, returncode) = ipautil.run(['/usr/bin/kvno',
+            (stdout, stderr, returncode) = ipautil.run([paths.BIN_KVNO,
                  'host/%s' % options.master],
                  env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME':CCACHE_FILE},
                  raiseonerr=False)

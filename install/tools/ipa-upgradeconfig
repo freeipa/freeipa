@@ -42,6 +42,7 @@ from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import *
 from ipapython import certmonger
 from ipapython import dogtag
+from ipaplatform.paths import paths
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
 from ipaserver.install import httpinstance
@@ -114,7 +115,7 @@ def update_conf(sub_dict, filename, template_filename):
 
 def find_hostname():
     """Find the hostname currently configured in ipa-rewrite.conf"""
-    filename="/etc/httpd/conf.d/ipa-rewrite.conf"
+    filename=paths.HTTPD_IPA_REWRITE_CONF
 
     if not ipautil.file_exists(filename):
         return None
@@ -137,7 +138,7 @@ def find_autoredirect(fqdn):
 
     Returns True if autoredirect is enabled, False otherwise
     """
-    filename = '/etc/httpd/conf.d/ipa-rewrite.conf'
+    filename = paths.HTTPD_IPA_REWRITE_CONF
     if os.path.exists(filename):
         pattern = "^RewriteRule \^/\$ https://%s/ipa/ui \[L,NC,R=301\]" % fqdn
         p = re.compile(pattern)
@@ -200,12 +201,12 @@ def upgrade(sub_dict, filename, template, add=False):
 def check_certs():
     """Check ca.crt is in the right place, and try to fix if not"""
     root_logger.info('[Verifying that root certificate is published]')
-    if not os.path.exists("/usr/share/ipa/html/ca.crt"):
-        ca_file = "/etc/httpd/alias/cacert.asc"
+    if not os.path.exists(paths.CA_CRT):
+        ca_file = paths.ALIAS_CACERT_ASC
         if os.path.exists(ca_file):
             old_umask = os.umask(022)   # make sure its readable by httpd
             try:
-                shutil.copyfile(ca_file, "/usr/share/ipa/html/ca.crt")
+                shutil.copyfile(ca_file, paths.CA_CRT)
             finally:
                 os.umask(old_umask)
         else:
@@ -231,14 +232,14 @@ def upgrade_pki(ca, fstore):
     http.enable_mod_nss_renegotiate()
     if not installutils.get_directive(configured_constants.CS_CFG_PATH,
                                       'proxy.securePort', '=') and \
-            os.path.exists('/usr/bin/pki-setup-proxy'):
-        ipautil.run(['/usr/bin/pki-setup-proxy', '-pki_instance_root=/var/lib'
+            os.path.exists(paths.PKI_SETUP_PROXY):
+        ipautil.run([paths.PKI_SETUP_PROXY, '-pki_instance_root=/var/lib'
                      ,'-pki_instance_name=pki-ca','-subsystem_type=ca'])
         root_logger.debug('Proxy configuration updated')
     else:
         root_logger.debug('Proxy configuration up-to-date')
 
-def update_dbmodules(realm, filename="/etc/krb5.conf"):
+def update_dbmodules(realm, filename=paths.KRB5_CONF):
     newfile = []
     found_dbrealm = False
     found_realm = False
@@ -287,7 +288,7 @@ def cleanup_kdc(fstore):
     """
     root_logger.info('[Checking for deprecated KDC configuration files]')
     for file in ['kpasswd.keytab', 'ldappwd']:
-        filename = '/var/kerberos/krb5kdc/%s' % file
+        filename = os.path.join(paths.VAR_KERBEROS_KRB5KDC_DIR, file)
         installutils.remove_file(filename)
         if fstore.has_file(filename):
             fstore.untrack_file(filename)
@@ -301,7 +302,7 @@ def cleanup_adtrust(fstore):
     root_logger.info('[Checking for deprecated backups of Samba '
                      'configuration files]')
 
-    for backed_up_file in ['/etc/samba/smb.conf']:
+    for backed_up_file in [paths.SMB_CONF]:
         if fstore.has_file(backed_up_file):
             fstore.untrack_file(backed_up_file)
             root_logger.debug('Removing %s from backup', backed_up_file)
@@ -540,7 +541,7 @@ def named_update_gssapi_configuration():
                                               bindinstance.NAMED_SECTION_OPTIONS)
         bindinstance.named_conf_set_directive('tkey-domain', None,
                                               bindinstance.NAMED_SECTION_OPTIONS)
-        bindinstance.named_conf_set_directive('tkey-gssapi-keytab', '/etc/named.keytab',
+        bindinstance.named_conf_set_directive('tkey-gssapi-keytab', paths.NAMED_KEYTAB,
                                               bindinstance.NAMED_SECTION_OPTIONS)
     except IOError, e:
         root_logger.error('Cannot update GSSAPI configuration in %s: %s',
@@ -581,7 +582,7 @@ def named_update_pid_file():
             return False
 
     try:
-        bindinstance.named_conf_set_directive('pid-file', '/run/named/named.pid',
+        bindinstance.named_conf_set_directive('pid-file', paths.NAMED_PID,
                                               bindinstance.NAMED_SECTION_OPTIONS)
     except IOError, e:
         root_logger.error('Cannot update pid-file configuration in %s: %s',
@@ -625,7 +626,7 @@ def certificate_renewal_update(ca):
             'renew_ca_cert',
         ),
         (
-            '/etc/httpd/alias',
+            paths.HTTPD_ALIAS_DIR,
             'ipaCert',
             'dogtag-ipa-ca-renew-agent',
             None,
@@ -686,7 +687,7 @@ def certificate_renewal_update(ca):
 
     if not sysupgrade.get_upgrade_state('dogtag',
                                         'certificate_renewal_update_1'):
-        filename = '/var/lib/certmonger/cas/ca_renewal'
+        filename = paths.CERTMONGER_CAS_CA_RENEWAL
         if os.path.exists(filename):
             with installutils.stopped_service('certmonger'):
                 root_logger.info("Removing %s" % filename)
@@ -916,10 +917,10 @@ def uninstall_selfsign(ds, http):
     root_logger.warning(
         'Removing self-signed CA. Certificates will need to managed manually.')
     p = ConfigParser.SafeConfigParser()
-    p.read('/etc/ipa/default.conf')
+    p.read(paths.IPA_DEFAULT_CONF)
     p.set('global', 'enable_ra', 'False')
     p.set('global', 'ra_plugin', 'none')
-    with open('/etc/ipa/default.conf', 'w') as f:
+    with open(paths.IPA_DEFAULT_CONF, 'w') as f:
         p.write(f)
 
     ds.stop_tracking_certificates()
@@ -994,7 +995,7 @@ def set_sssd_domain_option(option, value):
     domain = sssdconfig.get_domain(str(api.env.domain))
     domain.set_option(option, value)
     sssdconfig.save_domain(domain)
-    sssdconfig.write("/etc/sssd/sssd.conf")
+    sssdconfig.write(paths.SSSD_CONF)
 
 
 def main():
@@ -1018,12 +1019,12 @@ def main():
     else:
         console_format = '%(message)s'
 
-    standard_logging_setup('/var/log/ipaupgrade.log', debug=options.debug,
+    standard_logging_setup(paths.IPAUPGRADE_LOG, debug=options.debug,
         verbose=verbose, console_format=console_format, filemode='a')
     root_logger.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
     root_logger.debug('IPA version %s' % version.VENDOR_VERSION)
 
-    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+    fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     api.bootstrap(context='restart', in_server=True)
     api.finalize()
@@ -1066,9 +1067,9 @@ def main():
     certmap_dir = dsinstance.config_dirname(
         dsinstance.realm_to_serverid(api.env.realm))
 
-    upgrade(sub_dict, "/etc/httpd/conf.d/ipa.conf", ipautil.SHARE_DIR + "ipa.conf")
-    upgrade(sub_dict, "/etc/httpd/conf.d/ipa-rewrite.conf", ipautil.SHARE_DIR + "ipa-rewrite.conf")
-    upgrade(sub_dict, "/etc/httpd/conf.d/ipa-pki-proxy.conf", ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
+    upgrade(sub_dict, paths.HTTPD_IPA_CONF, ipautil.SHARE_DIR + "ipa.conf")
+    upgrade(sub_dict, paths.HTTPD_IPA_REWRITE_CONF, ipautil.SHARE_DIR + "ipa-rewrite.conf")
+    upgrade(sub_dict, paths.HTTPD_IPA_PKI_PROXY_CONF, ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
     if subject_base:
         upgrade(
             sub_dict,
@@ -1079,7 +1080,7 @@ def main():
     update_dbmodules(api.env.realm)
     uninstall_ipa_kpasswd()
 
-    removed_sysconfig_file = '/etc/sysconfig/httpd'
+    removed_sysconfig_file = paths.SYSCONFIG_HTTPD
     if fstore.has_file(removed_sysconfig_file):
         root_logger.info('Restoring %s as it is no longer required',
             removed_sysconfig_file)

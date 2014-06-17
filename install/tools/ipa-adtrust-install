@@ -29,10 +29,11 @@ from ipapython import ipautil, sysrestore
 from ipalib import api, errors, util
 from ipapython.config import IPAOptionParser
 import krbV
+from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 
-log_file_name = "/var/log/ipaserver-install.log"
+log_file_name = paths.IPASERVER_INSTALL_LOG
 
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
@@ -222,7 +223,7 @@ def main():
     check_server_configuration()
 
     global fstore
-    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+    fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     print "=============================================================================="
     print "This program will setup components needed to establish trust to AD domains for"
@@ -276,7 +277,7 @@ def main():
                                           allow_empty = False):
                     sys.exit("Aborting installation.")
 
-    elif os.path.exists('/etc/samba/smb.conf'):
+    elif os.path.exists(paths.SMB_CONF):
         print("WARNING: The smb.conf already exists. Running "
               "ipa-adtrust-install will break your existing samba "
               "configuration.\n\n")

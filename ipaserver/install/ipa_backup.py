@@ -113,7 +113,7 @@ class Backup(admintool.AdminTool):
         paths.VAR_LIB_PKI_CA_DIR,
         paths.SYSRESTORE,
         paths.IPA_CLIENT_SYSRESTORE,
-        paths.SSS_KRB5_INCLUDE_D,
+        paths.SSSD_PUBCONF_KRB5_INCLUDE_D_DIR,
         paths.AUTHCONFIG_LAST,
         paths.VAR_LIB_CERTMONGER_DIR,
         paths.VAR_LIB_IPA,

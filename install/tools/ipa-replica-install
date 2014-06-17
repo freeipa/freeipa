@@ -52,8 +52,9 @@ from ipapython.dn import DN
 import ipaclient.ntpconf
 from ipaplatform.tasks import tasks
 from ipaplatform import services
+from ipaplatform.paths import paths
 
-log_file_name = "/var/log/ipareplica-install.log"
+log_file_name = paths.IPAREPLICA_INSTALL_LOG
 REPLICA_INFO_TOP_DIR = None
 DIRMAN_DN = DN(('cn', 'directory manager'))
 
@@ -236,15 +237,15 @@ def install_http(config, auto_redirect):
     try:
         if ipautil.file_exists(config.dir + "/preferences.html"):
             shutil.copy(config.dir + "/preferences.html",
-                        "/usr/share/ipa/html/preferences.html")
+                        paths.PREFERENCES_HTML)
         if ipautil.file_exists(config.dir + "/configure.jar"):
             shutil.copy(config.dir + "/configure.jar",
-                        "/usr/share/ipa/html/configure.jar")
+                        paths.CONFIGURE_JAR)
         if ipautil.file_exists(config.dir + "/krb.js"):
             shutil.copy(config.dir + "/krb.js",
-                        "/usr/share/ipa/html/krb.js")
+                        paths.KRB_JS)
             shutil.copy(config.dir + "/kerberosauth.xpi",
-                        "/usr/share/ipa/html/kerberosauth.xpi")
+                        paths.KERBEROSAUTH_XPI)
     except Exception, e:
         print "error copying files: " + str(e)
         sys.exit(1)
@@ -461,17 +462,17 @@ def main():
     if not ipautil.file_exists(filename):
         sys.exit("Replica file %s does not exist" % filename)
 
-    client_fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
+    client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     if client_fstore.has_files():
         sys.exit("IPA client is already configured on this system.\n" +
             "Please uninstall it first before configuring the replica, " +
             "using 'ipa-client-install --uninstall'.")
 
     global sstore
-    sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
+    sstore = sysrestore.StateFile(paths.SYSRESTORE)
 
     global fstore
-    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+    fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     # check the bind is installed
     if options.setup_dns:
@@ -559,7 +560,7 @@ def main():
     # Note: We must do this before bootstraping and finalizing ipalib.api
     old_umask = os.umask(022)   # must be readable for httpd
     try:
-        fd = open("/etc/ipa/default.conf", "w")
+        fd = open(paths.IPA_DEFAULT_CONF, "w")
         fd.write("[global]\n")
         fd.write("host=%s\n" % config.host_name)
         fd.write("basedn=%s\n" % str(ipautil.realm_to_suffix(config.realm_name)))
@@ -728,7 +729,7 @@ def main():
 
     # Call client install script
     try:
-        args = ["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--domain", config.domain_name, "--server", config.host_name, "--realm", config.realm_name]
+        args = [paths.IPA_CLIENT_INSTALL, "--on-master", "--unattended", "--domain", config.domain_name, "--server", config.host_name, "--realm", config.realm_name]
         if not options.create_sshfp:
             args.append("--no-dns-sshfp")
         if options.trust_sshfp:

@@ -39,12 +39,13 @@ from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipaplatform.tasks import tasks
 from ipaplatform import services
+from ipaplatform.paths import paths
 
-AUTOFS_CONF = '/etc/sysconfig/autofs'
-NSSWITCH_CONF = '/etc/nsswitch.conf'
-AUTOFS_LDAP_AUTH = '/etc/autofs_ldap_auth.conf'
-NFS_CONF = '/etc/sysconfig/nfs'
-IDMAPD_CONF = '/etc/idmapd.conf'
+AUTOFS_CONF = paths.SYSCONFIG_AUTOFS
+NSSWITCH_CONF = paths.NSSWITCH_CONF
+AUTOFS_LDAP_AUTH = paths.AUTOFS_LDAP_AUTH_CONF
+NFS_CONF = paths.SYSCONFIG_NFS
+IDMAPD_CONF = paths.IDMAPD_CONF
 
 def parse_options():
     usage = "%prog [options]\n"
@@ -189,7 +190,7 @@ def configure_autofs_sssd(fstore, statestore, autodiscover, options):
         sys.exit('SSSD is not configured.')
 
     sssdconfig.save_domain(domain)
-    sssdconfig.write("/etc/sssd/sssd.conf")
+    sssdconfig.write(paths.SSSD_CONF)
     statestore.backup_state('autofs', 'sssd', True)
 
     sssd = services.service('sssd')
@@ -279,7 +280,7 @@ def uninstall(fstore, statestore):
                         domain.remove_provider('autofs')
                         break
                 sssdconfig.save_domain(domain)
-                sssdconfig.write("/etc/sssd/sssd.conf")
+                sssdconfig.write(paths.SSSD_CONF)
                 sssd = services.service('sssd')
                 sssd.restart()
                 wait_for_sssd()
@@ -357,15 +358,15 @@ def configure_nfs(fstore, statestore):
 
 def main():
 
-    fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
-    statestore = sysrestore.StateFile('/var/lib/ipa-client/sysrestore')
-    if not fstore.has_files() and not os.path.exists('/etc/ipa/default.conf'):
+    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
+    statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
+    if not fstore.has_files() and not os.path.exists(paths.IPA_DEFAULT_CONF):
         sys.exit('IPA client is not configured on this system.\n')
 
     options, args = parse_options()
 
     standard_logging_setup(
-        '/var/log/ipaclient-install.log', verbose=False, debug=options.debug,
+        paths.IPACLIENT_INSTALL_LOG, verbose=False, debug=options.debug,
         filemode='a', console_format='%(message)s')
 
     cfg = dict(
@@ -430,7 +431,7 @@ def main():
     try:
         try:
             os.environ['KRB5CCNAME'] = ccache_name
-            ipautil.run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab', 'host/%s@%s' % (api.env.host, api.env.realm)])
+            ipautil.run([paths.KINIT, '-k', '-t', paths.KRB5_KEYTAB, 'host/%s@%s' % (api.env.host, api.env.realm)])
         except ipautil.CalledProcessError, e:
             sys.exit("Failed to obtain host TGT.")
         # Now we have a TGT, connect to IPA

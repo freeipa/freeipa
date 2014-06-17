@@ -40,8 +40,9 @@ from ipapython import sysrestore
 from ipapython import dogtag
 from ipapython.ipa_log_manager import *
 from ipaplatform import services
+from ipaplatform.paths import paths
 
-log_file_name = "/var/log/ipareplica-ca-install.log"
+log_file_name = paths.IPAREPLICA_CA_INSTALL_LOG
 REPLICA_INFO_TOP_DIR = None
 
 def parse_options():
@@ -105,7 +106,7 @@ def main():
         sys.exit("Replica file %s does not exist" % filename)
 
     global sstore
-    sstore = sysrestore.StateFile('/var/lib/ipa/sysrestore')
+    sstore = sysrestore.StateFile(paths.SYSRESTORE)
 
     if not dsinstance.DsInstance().is_configured():
         sys.exit("IPA server is not configured on this system.\n")
@@ -194,7 +195,7 @@ def main():
 
     #update dogtag version in config file
     try:
-        fd = open("/etc/ipa/default.conf", "a")
+        fd = open(paths.IPA_DEFAULT_CONF, "a")
         fd.write(
             "dogtag_version=%s\n" % dogtag.install_constants.DOGTAG_VERSION)
         fd.close()

@@ -38,6 +38,7 @@ from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
 from ipaclient import ipadiscovery
 from xmlrpclib import MAXINT
+from ipaplatform.paths import paths
 
 # dict of command name and tuples of min/max num of args needed
 commands = {
@@ -1144,7 +1145,7 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
 def main():
     if os.getegid() == 0:
         installutils.check_server_configuration()
-    elif not os.path.exists('/etc/ipa/default.conf'):
+    elif not os.path.exists(paths.IPA_DEFAULT_CONF):
         sys.exit("IPA is not configured on this system.")
 
     options, args = parse_options()

@@ -79,6 +79,7 @@ from ipapython.dn import DN
 import ipaclient.ntpconf
 from ipaplatform.tasks import tasks
 from ipaplatform import services
+from ipaplatform.paths import paths
 
 uninstalling = False
 installation_cleanup = True
@@ -91,7 +92,7 @@ VALID_SUBJECT_ATTRS = ['st', 'o', 'ou', 'dnqualifier', 'c',
                        'incorporationlocality', 'incorporationstate',
                        'incorporationcountry', 'businesscategory']
 
-SYSRESTORE_DIR_PATH = '/var/lib/ipa/sysrestore'
+SYSRESTORE_DIR_PATH = paths.SYSRESTORE
 
 def subject_callback(option, opt_str, value, parser):
     """
@@ -335,7 +336,7 @@ def signal_handler(signum, frame):
             dsinstance.erase_ds_instance_data (ds.serverid)
     sys.exit(1)
 
-ANSWER_CACHE = "/root/.ipa_cache"
+ANSWER_CACHE = paths.ROOT_IPA_CACHE
 
 def read_cache(dm_password):
     """
@@ -469,7 +470,7 @@ def uninstall():
 
     print "Shutting down all IPA services"
     try:
-        (stdout, stderr, rc) = run(["/usr/sbin/ipactl", "stop"], raiseonerr=False)
+        (stdout, stderr, rc) = run([paths.IPACTL, "stop"], raiseonerr=False)
     except Exception, e:
         pass
 
@@ -478,7 +479,7 @@ def uninstall():
 
     print "Removing IPA client configuration"
     try:
-        (stdout, stderr, rc) = run(["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--uninstall"], raiseonerr=False)
+        (stdout, stderr, rc) = run([paths.IPA_CLIENT_INSTALL, "--on-master", "--unattended", "--uninstall"], raiseonerr=False)
         if rc not in [0,2]:
             root_logger.debug("ipa-client-install returned %d" % rc)
             raise RuntimeError(stdout)
@@ -588,10 +589,10 @@ def main():
 
     if options.uninstall:
         uninstalling = True
-        standard_logging_setup("/var/log/ipaserver-uninstall.log", debug=options.debug)
+        standard_logging_setup(paths.IPASERVER_UNINSTALL_LOG, debug=options.debug)
         installation_cleanup = False
     else:
-        standard_logging_setup("/var/log/ipaserver-install.log", debug=options.debug)
+        standard_logging_setup(paths.IPASERVER_INSTALL_LOG, debug=options.debug)
         print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
         if not options.external_ca and not options.external_cert_file and is_ipa_configured():
             installation_cleanup = False
@@ -599,7 +600,7 @@ def main():
                 "If you want to reinstall the IPA server, please uninstall " +
                 "it first using 'ipa-server-install --uninstall'.")
 
-        client_fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
+        client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
         if client_fstore.has_files():
             installation_cleanup = False
             sys.exit("IPA client is already configured on this system.\n" +
@@ -1001,7 +1002,7 @@ def main():
     installation_cleanup = False
 
     # Create the management framework config file and finalize api
-    target_fname = '/etc/ipa/default.conf'
+    target_fname = paths.IPA_DEFAULT_CONF
     fd = open(target_fname, "w")
     fd.write("[global]\n")
     fd.write("host=%s\n" % host_name)
@@ -1093,7 +1094,7 @@ def main():
             options.reverse_zone = reverse_zone
             write_cache(vars(options))
             ca.configure_instance(host_name, domain_name, dm_password,
-                                  dm_password, csr_file="/root/ipa.csr",
+                                  dm_password, csr_file=paths.ROOT_IPA_CSR,
                                   subject_base=options.subject)
         else:
             # stage 2 of external CA installation
@@ -1157,7 +1158,7 @@ def main():
         http.create_instance(
             realm_name, host_name, domain_name, dm_password,
             subject_base=options.subject, auto_redirect=options.ui_redirect)
-    tasks.restore_context("/var/cache/ipa/sessions")
+    tasks.restore_context(paths.CACHE_IPA_SESSIONS)
 
     set_subject_in_config(realm_name, dm_password, ipautil.realm_to_suffix(realm_name), options.subject)
 
@@ -1201,7 +1202,7 @@ def main():
 
     # Call client install script
     try:
-        args = ["/usr/sbin/ipa-client-install", "--on-master", "--unattended", "--domain", domain_name, "--server", host_name, "--realm", realm_name, "--hostname", host_name]
+        args = [paths.IPA_CLIENT_INSTALL, "--on-master", "--unattended", "--domain", domain_name, "--server", host_name, "--realm", realm_name, "--hostname", host_name]
         if not options.create_sshfp:
             args.append("--no-dns-sshfp")
         if options.trust_sshfp:
@@ -1267,9 +1268,9 @@ if __name__ == '__main__':
         # out from all install scripts
         safe_options, options = parse_options()
         if options.uninstall:
-            log_file_name = "/var/log/ipaserver-uninstall.log"
+            log_file_name = paths.IPASERVER_UNINSTALL_LOG
         else:
-            log_file_name = "/var/log/ipaserver-install.log"
+            log_file_name = paths.IPASERVER_INSTALL_LOG
 
         # Use private ccache
         with private_ccache():
@@ -1282,6 +1283,6 @@ if __name__ == '__main__':
             # Do a cautious clean up as we don't know what failed and what is
             # the state of the environment
             try:
-                fstore.restore_file('/etc/hosts')
+                fstore.restore_file(paths.HOSTS)
             except:
                 pass

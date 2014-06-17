@@ -29,10 +29,11 @@ from ipaserver.install import installutils
 from ipapython import version
 from ipapython import ipautil, sysrestore
 from ipalib import api, errors, util
+from ipaplatform.paths import paths
 from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import standard_logging_setup, root_logger
 
-log_file_name = "/var/log/ipaserver-install.log"
+log_file_name = paths.IPASERVER_INSTALL_LOG
 
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
@@ -85,7 +86,7 @@ def main():
     installutils.check_server_configuration()
 
     global fstore
-    fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+    fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     print "=============================================================================="
     print "This program will setup DNS for the FreeIPA Server."

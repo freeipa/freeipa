@@ -20,6 +20,7 @@
 #
 
 import sys
+from ipaplatform.paths import paths
 try:
     from optparse import OptionParser
     from ipapython import ipautil, config
@@ -80,7 +81,7 @@ def get_entry(dn, conn):
 
 def main():
     retval = 0
-    files = ['/usr/share/ipa/schema_compat.uldif']
+    files = [paths.SCHEMA_COMPAT_ULDIF]
 
     options, args = parse_options()
 

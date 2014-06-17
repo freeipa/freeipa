@@ -69,13 +69,11 @@ CLIENT_NOT_CONFIGURED = 2
 CLIENT_ALREADY_CONFIGURED = 3
 CLIENT_UNINSTALL_ERROR = 4 # error after restoring files/state
 
-SSH_AUTHORIZEDKEYSCOMMAND = '/usr/bin/sss_ssh_authorizedkeys'
-SSH_PROXYCOMMAND = '/usr/bin/sss_ssh_knownhostsproxy'
-SSH_KNOWNHOSTSFILE = '/var/lib/sss/pubconf/known_hosts'
+SSH_AUTHORIZEDKEYSCOMMAND = paths.SSS_SSH_AUTHORIZEDKEYS
+SSH_PROXYCOMMAND = paths.SSS_SSH_KNOWNHOSTSPROXY
+SSH_KNOWNHOSTSFILE = paths.SSSD_PUBCONF_KNOWN_HOSTS
 
 client_nss_nickname_format = 'IPA Machine Certificate - %s'
-
-NSSWITCH_CONF = '/etc/nsswitch.conf'
 
 def parse_options():
     def validate_ca_cert_file_option(option, opt, value, parser):
@@ -214,10 +212,10 @@ def parse_options():
     return safe_opts, options
 
 def logging_setup(options):
-    log_file = "/var/log/ipaclient-install.log"
+    log_file = paths.IPACLIENT_INSTALL_LOG
 
     if options.uninstall:
-        log_file = "/var/log/ipaclient-uninstall.log"
+        log_file = paths.IPACLIENT_UNINSTALL_LOG
 
     standard_logging_setup(
         filename=log_file, verbose=True, debug=options.debug,
@@ -228,7 +226,7 @@ def log_service_error(name, action, error):
     root_logger.error("%s failed to %s: %s", name, action, str(error))
 
 def nickname_exists(nickname):
-        (sout, serr, returncode) = run(["/usr/bin/certutil", "-L", "-d", "/etc/pki/nssdb", "-n", nickname], raiseonerr=False)
+        (sout, serr, returncode) = run([paths.CERTUTIL, "-L", "-d", paths.NSS_DB_DIR, "-n", nickname], raiseonerr=False)
 
         if returncode == 0:
             return True
@@ -297,8 +295,8 @@ def restore_state(service):
 
 # Checks whether nss_ldap or nss-pam-ldapd is installed. If anyone of mandatory files was found returns True and list of all files found.
 def nssldap_exists():
-    files_to_check = [{'function':'configure_ldap_conf', 'mandatory':['/etc/ldap.conf','/etc/nss_ldap.conf','/etc/libnss-ldap.conf'], 'optional':['/etc/pam_ldap.conf']},
-                      {'function':'configure_nslcd_conf', 'mandatory':['/etc/nslcd.conf']}]
+    files_to_check = [{'function':'configure_ldap_conf', 'mandatory':[paths.LDAP_CONF,paths.NSS_LDAP_CONF,paths.LIBNSS_LDAP_CONF], 'optional':[paths.PAM_LDAP_CONF]},
+                      {'function':'configure_nslcd_conf', 'mandatory':[paths.NSLCD_CONF]}]
     files_found = {}
     retval = False
 
@@ -356,7 +354,7 @@ def is_ipa_client_installed(on_master=False):
     """
 
     installed = fstore.has_files() or \
-       (not on_master and os.path.exists('/etc/ipa/default.conf'))
+       (not on_master and os.path.exists(paths.IPA_DEFAULT_CONF))
 
     return installed
 
@@ -380,15 +378,15 @@ def configure_nsswitch_database(fstore, database, services, preserve=True,
     """
 
     # Backup the original version of nsswitch.conf, we're going to edit it now
-    if not fstore.has_file(NSSWITCH_CONF):
-        fstore.backup_file(NSSWITCH_CONF)
+    if not fstore.has_file(paths.NSSWITCH_CONF):
+        fstore.backup_file(paths.NSSWITCH_CONF)
 
     conf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
     conf.setOptionAssignment(':')
 
     if preserve:
         # Read the existing configuration
-        with open('/etc/nsswitch.conf', 'r') as f:
+        with open(paths.NSSWITCH_CONF, 'r') as f:
             opts = conf.parse(f)
             raw_database_entry = conf.findOpts(opts, 'option', database)[1]
 
@@ -419,8 +417,8 @@ def configure_nsswitch_database(fstore, database, services, preserve=True,
              'type':'empty'
             }]
 
-    conf.changeConf(NSSWITCH_CONF, opts)
-    root_logger.info("Configured %s in %s" % (database, NSSWITCH_CONF))
+    conf.changeConf(paths.NSSWITCH_CONF, opts)
+    root_logger.info("Configured %s in %s" % (database, paths.NSSWITCH_CONF))
 
 
 def uninstall(options, env):
@@ -429,7 +427,7 @@ def uninstall(options, env):
         root_logger.error("IPA client is not configured on this system.")
         return CLIENT_NOT_CONFIGURED
 
-    server_fstore = sysrestore.FileStore('/var/lib/ipa/sysrestore')
+    server_fstore = sysrestore.FileStore(paths.SYSRESTORE)
     if server_fstore.has_files() and not options.on_master:
         root_logger.error(
             "IPA client is configured as a part of IPA server on this system.")
@@ -487,7 +485,7 @@ def uninstall(options, env):
     # Remove our host cert and CA cert
     if nickname_exists("IPA CA"):
         try:
-            run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", "IPA CA"])
+            run([paths.CERTUTIL, "-D", "-d", paths.NSS_DB_DIR, "-n", "IPA CA"])
         except Exception, e:
             root_logger.error(
                 "Failed to remove IPA CA from /etc/pki/nssdb: %s", str(e))
@@ -507,14 +505,14 @@ def uninstall(options, env):
         log_service_error(cmonger.service_name, 'start', e)
 
     try:
-        certmonger.stop_tracking('/etc/pki/nssdb', nickname=client_nss_nickname)
+        certmonger.stop_tracking(paths.NSS_DB_DIR, nickname=client_nss_nickname)
     except (CalledProcessError, RuntimeError), e:
         root_logger.error("%s failed to stop tracking certificate: %s",
             cmonger.service_name, str(e))
 
     if nickname_exists(client_nss_nickname):
         try:
-            run(["/usr/bin/certutil", "-D", "-d", "/etc/pki/nssdb", "-n", client_nss_nickname])
+            run([paths.CERTUTIL, "-D", "-d", paths.NSS_DB_DIR, "-n", client_nss_nickname])
         except Exception, e:
             root_logger.error("Failed to remove %s from /etc/pki/nssdb: %s",
                 client_nss_nickname, str(e))
@@ -534,9 +532,9 @@ def uninstall(options, env):
             "Failed to disable automatic startup of the %s service: %s",
             cmonger.service_name, str(e))
 
-    if not options.on_master and os.path.exists('/etc/ipa/default.conf'):
+    if not options.on_master and os.path.exists(paths.IPA_DEFAULT_CONF):
         root_logger.info("Unenrolling client from IPA server")
-        join_args = ["/usr/sbin/ipa-join", "--unenroll", "-h", hostname]
+        join_args = [paths.SBIN_IPA_JOIN, "--unenroll", "-h", hostname]
         if options.debug:
             join_args.append("-d")
             env['XMLRPC_TRACE_CURL'] = 'yes'
@@ -544,16 +542,16 @@ def uninstall(options, env):
         if returncode != 0:
             root_logger.error("Unenrolling host failed: %s", stderr)
 
-    if os.path.exists('/etc/ipa/default.conf'):
+    if os.path.exists(paths.IPA_DEFAULT_CONF):
         root_logger.info(
             "Removing Kerberos service principals from /etc/krb5.keytab")
         try:
             parser = RawConfigParser()
-            fp = open('/etc/ipa/default.conf', 'r')
+            fp = open(paths.IPA_DEFAULT_CONF, 'r')
             parser.readfp(fp)
             fp.close()
             realm = parser.get('global', 'realm')
-            run(["/usr/sbin/ipa-rmkeytab", "-k", "/etc/krb5.keytab", "-r", realm])
+            run([paths.IPA_RMKEYTAB, "-k", paths.KRB5_KEYTAB, "-r", realm])
         except Exception, e:
             root_logger.error(
                 "Failed to remove Kerberos service principals: %s", str(e))
@@ -562,7 +560,7 @@ def uninstall(options, env):
     was_sssd_installed = False
     was_sshd_configured = False
     if fstore.has_files():
-        was_sssd_installed = fstore.has_file("/etc/sssd/sssd.conf")
+        was_sssd_installed = fstore.has_file(paths.SSSD_CONF)
 
         sshd_config = os.path.join(services.knownservices.sshd.get_config_dir(), "sshd_config")
         was_sshd_configured = fstore.has_file(sshd_config)
@@ -595,7 +593,7 @@ def uninstall(options, env):
 
         restored = False
         try:
-            restored = fstore.restore_file("/etc/sssd/sssd.conf","/etc/sssd/sssd.conf.bkp")
+            restored = fstore.restore_file(paths.SSSD_CONF,paths.SSSD_CONF_BKP)
         except OSError:
             root_logger.debug("Error while restoring pre-IPA /etc/sssd/sssd.conf.")
 
@@ -628,10 +626,10 @@ def uninstall(options, env):
     # than IPA are configured in sssd.conf - make sure config file is removed
     elif not was_sssd_installed and not was_sssd_configured:
         try:
-            os.rename("/etc/sssd/sssd.conf","/etc/sssd/sssd.conf.deleted")
+            os.rename(paths.SSSD_CONF,paths.SSSD_CONF_DELETED)
         except OSError:
-            root_logger.debug("Error while moving /etc/sssd/sssd.conf to "
-                "/etc/sssd/sssd.conf.deleted")
+            root_logger.debug("Error while moving /etc/sssd/sssd.conf to %s" %
+                              paths.SSSD_CONF_DELETED)
 
         root_logger.info("Redundant SSSD configuration file " +
             "/etc/sssd/sssd.conf was moved to /etc/sssd/sssd.conf.deleted")
@@ -680,10 +678,10 @@ def uninstall(options, env):
             # the reason for it might be that freeipa-client was updated
             # to this version but not unenrolled/enrolled again
             # In such case it is OK to fail
-            restored = fstore.restore_file("/etc/ntp.conf")
-            restored |= fstore.restore_file("/etc/sysconfig/ntpd")
+            restored = fstore.restore_file(paths.NTP_CONF)
+            restored |= fstore.restore_file(paths.SYSCONFIG_NTPD)
             if ntp_step_tickers:
-               restored |= fstore.restore_file("/etc/ntp/step-tickers")
+               restored |= fstore.restore_file(paths.NTP_STEP_TICKERS)
         except Exception:
             pass
 
@@ -714,8 +712,8 @@ def uninstall(options, env):
     rv = 0
 
     if fstore.has_files():
-        root_logger.error('Some files have not been restored, see '
-                          '/var/lib/ipa-client/sysrestore/sysrestore.index')
+        root_logger.error('Some files have not been restored, see %s' %
+                          paths.SYSRESTORE_INDEX)
     has_state = False
     for module in statestore.modules.keys():
             root_logger.error('Some installation state for %s has not been '
@@ -734,7 +732,7 @@ def uninstall(options, env):
 
     # Remove the IPA configuration file
     try:
-        os.remove("/etc/ipa/default.conf")
+        os.remove(paths.IPA_DEFAULT_CONF)
     except OSError, e:
         root_logger.warning('/etc/ipa/default.conf could not be removed: %s',
                             str(e))
@@ -766,7 +764,7 @@ def uninstall(options, env):
         if not options.on_master:
             if user_input("Do you want to reboot the machine?", False):
                 try:
-                    run(["/sbin/reboot"])
+                    run([paths.SBIN_REBOOT])
                 except Exception, e:
                     root_logger.error(
                         "Reboot command failed to exceute: %s", str(e))
@@ -795,7 +793,7 @@ def configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server):
     opts.append({'name':'global', 'type':'section', 'value':defopts})
     opts.append({'name':'empty', 'type':'empty'})
 
-    target_fname = '/etc/ipa/default.conf'
+    target_fname = paths.IPA_DEFAULT_CONF
     fstore.backup_file(target_fname)
     ipaconf.newConf(target_fname, opts)
     os.chmod(target_fname, 0644)
@@ -809,9 +807,9 @@ def disable_ra():
     Note that api.env will retain the old value (it is readonly).
     """
     parser = RawConfigParser()
-    parser.read('/etc/ipa/default.conf')
+    parser.read(paths.IPA_DEFAULT_CONF)
     parser.set('global', 'enable_ra', 'False')
-    fp = open('/etc/ipa/default.conf', 'w')
+    fp = open(paths.IPA_DEFAULT_CONF, 'w')
     parser.write(fp)
     fp.close()
 
@@ -948,7 +946,7 @@ def configure_openldap_conf(fstore, cli_basedn, cli_server):
             {'action':'addifnotset', 'name':'TLS_CACERT', 'type':'option',
                 'value':CACERT},]
 
-    target_fname = '/etc/openldap/ldap.conf'
+    target_fname = paths.OPENLDAP_LDAP_CONF
     fstore.backup_file(target_fname)
 
     error_msg = "Configuring {path} failed with: {err}"
@@ -975,7 +973,7 @@ def hardcode_ldap_server(cli_server):
     DNS Discovery didn't return a valid IPA server, hardcode a value into
     the file instead.
     """
-    if not file_exists('/etc/ldap.conf'):
+    if not file_exists(paths.LDAP_CONF):
         return
 
     ldapconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
@@ -985,7 +983,7 @@ def hardcode_ldap_server(cli_server):
             {'name':'empty', 'type':'empty'}]
 
     # Errors raised by this should be caught by the caller
-    ldapconf.changeConf("/etc/ldap.conf", opts)
+    ldapconf.changeConf(paths.LDAP_CONF, opts)
     root_logger.info("Changed configuration of /etc/ldap.conf to use " +
         "hardcoded server name: %s", cli_server[0])
 
@@ -1005,7 +1003,7 @@ def configure_krb5_conf(cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
 
     # SSSD include dir
     if options.sssd:
-        opts.append({'name':'includedir', 'type':'option', 'value':'/var/lib/sss/pubconf/krb5.include.d/', 'delim':' '})
+        opts.append({'name':'includedir', 'type':'option', 'value':paths.SSSD_PUBCONF_KRB5_INCLUDE_D_DIR, 'delim':' '})
         opts.append({'name':'empty', 'type':'empty'})
 
     #[libdefaults]
@@ -1116,7 +1114,7 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options,
             client_nss_nickname = client_nss_nickname_format % hostname
             subject = DN(('CN', hostname), subject_base)
             try:
-                run(["ipa-getcert", "request", "-d", "/etc/pki/nssdb",
+                run(["ipa-getcert", "request", "-d", paths.NSS_DB_DIR,
                      "-n", client_nss_nickname, "-N", str(subject),
                      "-K", principal])
             except Exception:
@@ -1132,7 +1130,7 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
         sssdconfig = SSSDConfig.SSSDConfig()
         sssdconfig.import_config()
     except Exception, e:
-        if os.path.exists("/etc/sssd/sssd.conf") and options.preserve_sssd:
+        if os.path.exists(paths.SSSD_CONF) and options.preserve_sssd:
             # SSSD config is in place but we are unable to read it
             # In addition, we are instructed to preserve it
             # This all means we can't use it and have to bail out
@@ -1254,7 +1252,7 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
     domain.set_active(True)
 
     sssdconfig.save_domain(domain)
-    sssdconfig.write("/etc/sssd/sssd.conf")
+    sssdconfig.write(paths.SSSD_CONF)
 
     return 0
 
@@ -1376,7 +1374,7 @@ def configure_sshd_config(fstore, options):
         )
 
         for candidate in candidates:
-            args = ['sshd', '-t', '-f', '/dev/null']
+            args = ['sshd', '-t', '-f', paths.DEV_NULL]
             for item in candidate.iteritems():
                 args.append('-o')
                 args.append('%s=%s' % item)
@@ -1432,9 +1430,9 @@ def configure_nisdomain(options, domain):
     nis_domain_name = ''
 
     # First backup the old NIS domain name
-    if os.path.exists('/usr/bin/nisdomainname'):
+    if os.path.exists(paths.BIN_NISDOMAINNAME):
         try:
-            nis_domain_name, _, _ = ipautil.run(['/usr/bin/nisdomainname'])
+            nis_domain_name, _, _ = ipautil.run([paths.BIN_NISDOMAINNAME])
         except CalledProcessError, e:
             pass
 
@@ -1515,7 +1513,7 @@ def do_nsupdate(update_txt):
 
     result = False
     try:
-        ipautil.run(['/usr/bin/nsupdate', '-g', UPDATE_FILE])
+        ipautil.run([paths.NSUPDATE, '-g', UPDATE_FILE])
         result = True
     except CalledProcessError, e:
         root_logger.debug('nsupdate failed: %s', str(e))
@@ -1549,8 +1547,8 @@ show
 send
 """
 
-UPDATE_FILE = "/etc/ipa/.dns_update.txt"
-CCACHE_FILE = "/etc/ipa/.dns_ccache"
+UPDATE_FILE = paths.IPA_DNS_UPDATE_TXT
+CCACHE_FILE = paths.IPA_DNS_CCACHE
 
 def update_dns(server, hostname):
 
@@ -1723,7 +1721,7 @@ def get_ca_cert_from_http(url, ca_file, warn=True):
     root_logger.debug("trying to retrieve CA cert via HTTP from %s", url)
     try:
 
-        run(["/usr/bin/wget", "-O", ca_file, url])
+        run([paths.BIN_WGET, "-O", ca_file, url])
     except CalledProcessError, e:
         raise errors.NoCertificateError(entry=url)
 
@@ -2306,8 +2304,8 @@ def install(options, env, fstore, statestore):
     if not options.on_master:
         # Try removing old principals from the keytab
         try:
-            ipautil.run(['/usr/sbin/ipa-rmkeytab',
-                '-k', '/etc/krb5.keytab', '-r', cli_realm])
+            ipautil.run([paths.IPA_RMKEYTAB,
+                '-k', paths.KRB5_KEYTAB, '-r', cli_realm])
         except CalledProcessError, e:
             if e.returncode not in (3, 5):
                 # 3 - Unable to open keytab
@@ -2316,7 +2314,7 @@ def install(options, env, fstore, statestore):
                     "/usr/sbin/ipa-rmkeytab returned %s" % e.returncode)
         else:
             root_logger.info("Removed old keys for realm %s from %s" % (
-                cli_realm, '/etc/krb5.keytab'))
+                cli_realm, paths.KRB5_KEYTAB))
 
     if options.hostname and not options.on_master:
         # configure /etc/sysconfig/network to contain the hostname we set.
@@ -2372,7 +2370,7 @@ def install(options, env, fstore, statestore):
             (ccache_fd, ccache_name) = tempfile.mkstemp()
             os.close(ccache_fd)
             env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = ccache_name
-            join_args = ["/usr/sbin/ipa-join",
+            join_args = [paths.SBIN_IPA_JOIN,
                          "-s", cli_server[0],
                          "-b", str(realm_to_suffix(cli_realm)),
                          "-h", hostname]
@@ -2422,7 +2420,7 @@ def install(options, env, fstore, statestore):
                 join_args.append("-f")
                 if os.path.exists(options.keytab):
                     (stderr, stdout, returncode) = run(
-                        ['/usr/bin/kinit','-k', '-t', options.keytab,
+                        [paths.KINIT,'-k', '-t', options.keytab,
                             'host/%s@%s' % (hostname, cli_realm)],
                         env=env,
                         raiseonerr=False)
@@ -2502,7 +2500,7 @@ def install(options, env, fstore, statestore):
             # Once we have the TGT, it's usable on any server.
             env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = CCACHE_FILE
             try:
-                run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab',
+                run([paths.KINIT, '-k', '-t', paths.KRB5_KEYTAB,
                         'host/%s@%s' % (hostname, cli_realm)], env=env)
             except CalledProcessError, e:
                 root_logger.error("Failed to obtain host TGT.")
@@ -2536,7 +2534,7 @@ def install(options, env, fstore, statestore):
         return CLIENT_INSTALL_ERROR
 
     # Always back up sssd.conf. It gets updated by authconfig --enablekrb5.
-    fstore.backup_file("/etc/sssd/sssd.conf")
+    fstore.backup_file(paths.SSSD_CONF)
     if options.sssd:
         if configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, client_domain, hostname):
             return CLIENT_INSTALL_ERROR
@@ -2549,7 +2547,7 @@ def install(options, env, fstore, statestore):
     try:
         root_logger.debug("Attempting to add CA directly to the "
                           "default NSS database.")
-        run(["/usr/bin/certutil", "-A", "-d", "/etc/pki/nssdb",
+        run([paths.CERTUTIL, "-A", "-d", paths.NSS_DB_DIR,
              "-n", "IPA CA", "-t", "CT,C,C", "-a", "-i", CACERT])
     except CalledProcessError, e:
         root_logger.info("Failed to add CA to the default NSS database.")
@@ -2563,14 +2561,14 @@ def install(options, env, fstore, statestore):
         # Get the host TGT.
         os.environ['KRB5CCNAME'] = CCACHE_FILE
         try:
-            run(['/usr/bin/kinit', '-k', '-t', '/etc/krb5.keytab',
+            run([paths.KINIT, '-k', '-t', paths.KRB5_KEYTAB,
                     host_principal])
         except CalledProcessError, e:
             root_logger.error("Failed to obtain host TGT.")
             return CLIENT_INSTALL_ERROR
     else:
         # Configure krb5.conf
-        fstore.backup_file("/etc/krb5.conf")
+        fstore.backup_file(paths.KRB5_CONF)
         if configure_krb5_conf(
                 cli_realm=cli_realm,
                 cli_domain=cli_domain,
@@ -2578,7 +2576,7 @@ def install(options, env, fstore, statestore):
                 cli_kdc=cli_kdc,
                 dnsok=dnsok,
                 options=options,
-                filename="/etc/krb5.conf",
+                filename=paths.KRB5_CONF,
                 client_domain=client_domain):
             return CLIENT_INSTALL_ERROR
 
@@ -2816,10 +2814,10 @@ def main():
     env={"PATH":"/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
 
     global fstore
-    fstore = sysrestore.FileStore('/var/lib/ipa-client/sysrestore')
+    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
 
     global statestore
-    statestore = sysrestore.StateFile('/var/lib/ipa-client/sysrestore')
+    statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
 
     if options.uninstall:
         return uninstall(options, env)
