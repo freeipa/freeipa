@@ -120,6 +120,12 @@ dname = u'testdns-dname'
 dname_dnsname = DNSName(dname)
 dname_dn = DN(('idnsname',dname), zone1_dn)
 
+dlv = u'dlv'
+dlv_dnsname = DNSName(dlv)
+dlv_dn = DN(('idnsname', dlv), zone1_dn)
+
+dlvrec = u'60485 5 1 2BB183AF5F22588179A53B0A98631FAD1A292118'
+
 wildcard_rec1 = u'*.test'
 wildcard_rec1_dnsname = DNSName(wildcard_rec1)
 wildcard_rec1_dn = DN(('idnsname',wildcard_rec1), zone1_dn)
@@ -1078,10 +1084,38 @@ class test_dns(Declarative):
 
         dict(
             desc='Delete record %r in zone %r' % (name1_renamed, zone1),
-            command=('dnsrecord_del', [zone1, name1_renamed], {'del_all': True }),
+            command=('dnsrecord_del', [zone1, name1_renamed],
+                     {'del_all': True}),
             expected={
                 'value': [name1_renamed_dnsname],
                 'summary': u'Deleted record "%s"' % name1_renamed,
+                'result': {'failed': []},
+            },
+        ),
+
+
+        dict(
+            desc='Add DLV record to %r using dnsrecord_add' % (dlv),
+            command=('dnsrecord_add', [zone1, dlv], {'dlvrecord': dlvrec}),
+            expected={
+                'value': dlv_dnsname,
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnsrecord,
+                    'dn': dlv_dn,
+                    'idnsname': [dlv_dnsname],
+                    'dlvrecord': [dlvrec],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Delete record %r in zone %r' % (dlv, zone1),
+            command=('dnsrecord_del', [zone1, dlv], {'del_all': True}),
+            expected={
+                'value': [dlv_dnsname],
+                'summary': u'Deleted record "%s"' % dlv,
                 'result': {'failed': []},
             },
         ),
