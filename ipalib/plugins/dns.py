@@ -1018,6 +1018,8 @@ class DSRecord(DNSRecord):
         ),
         Str('digest',
             label=_('Digest'),
+            pattern=r'^[0-9a-fA-F]+$',
+            pattern_errmsg=u'only hexadecimal digits are allowed'
         ),
     )
 
