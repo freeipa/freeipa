@@ -983,11 +983,6 @@ class DHCIDRecord(DNSRecord):
     rfc = 4701
     supported = False
 
-class DLVRecord(DNSRecord):
-    rrtype = 'DLV'
-    rfc = 4431
-    supported = False
-
 class DNAMERecord(DNSRecord):
     rrtype = 'DNAME'
     rfc = 2672
@@ -1025,6 +1020,13 @@ class DSRecord(DNSRecord):
             label=_('Digest'),
         ),
     )
+
+
+class DLVRecord(DSRecord):
+    # must use same attributes as DSRecord
+    rrtype = 'DLV'
+    rfc = 4431
+
 
 class HIPRecord(DNSRecord):
     rrtype = 'HIP'
@@ -2081,11 +2083,11 @@ class dnszone(DNSZoneBase):
             'ipapermdefaultattr': {
                 'objectclass',
                 'a6record', 'aaaarecord', 'afsdbrecord', 'arecord',
-                'certrecord', 'cn', 'cnamerecord', 'dnamerecord', 'dnsclass',
-                'dnsttl', 'dsrecord', 'hinforecord', 'idnsallowdynupdate',
-                'idnsallowquery', 'idnsallowsyncptr', 'idnsallowtransfer',
-                'idnsforwarders', 'idnsforwardpolicy', 'idnsname',
-                'idnssoaexpire', 'idnssoaminimum', 'idnssoamname',
+                'certrecord', 'cn', 'cnamerecord', 'dlvrecord', 'dnamerecord',
+                'dnsclass', 'dnsttl', 'dsrecord', 'hinforecord',
+                'idnsallowdynupdate', 'idnsallowquery', 'idnsallowsyncptr',
+                'idnsallowtransfer', 'idnsforwarders', 'idnsforwardpolicy',
+                'idnsname', 'idnssoaexpire', 'idnssoaminimum', 'idnssoamname',
                 'idnssoarefresh', 'idnssoaretry', 'idnssoarname',
                 'idnssoaserial', 'idnsupdatepolicy', 'idnszoneactive',
                 'keyrecord', 'kxrecord', 'locrecord', 'managedby', 'mdrecord',
@@ -2114,11 +2116,11 @@ class dnszone(DNSZoneBase):
             'ipapermtarget': DN('idnsname=*', 'cn=dns', api.env.basedn),
             'ipapermdefaultattr': {
                 'a6record', 'aaaarecord', 'afsdbrecord', 'arecord',
-                'certrecord', 'cn', 'cnamerecord', 'dnamerecord', 'dnsclass',
-                'dnsttl', 'dsrecord', 'hinforecord', 'idnsallowdynupdate',
-                'idnsallowquery', 'idnsallowsyncptr', 'idnsallowtransfer',
-                'idnsforwarders', 'idnsforwardpolicy', 'idnsname',
-                'idnssoaexpire', 'idnssoaminimum', 'idnssoamname',
+                'certrecord', 'cn', 'cnamerecord', 'dlvrecord', 'dnamerecord',
+                'dnsclass', 'dnsttl', 'dsrecord', 'hinforecord',
+                'idnsallowdynupdate', 'idnsallowquery', 'idnsallowsyncptr',
+                'idnsallowtransfer', 'idnsforwarders', 'idnsforwardpolicy',
+                'idnsname', 'idnssoaexpire', 'idnssoaminimum', 'idnssoamname',
                 'idnssoarefresh', 'idnssoaretry', 'idnssoarname',
                 'idnssoaserial', 'idnsupdatepolicy', 'idnszoneactive',
                 'keyrecord', 'kxrecord', 'locrecord', 'managedby', 'mdrecord',
