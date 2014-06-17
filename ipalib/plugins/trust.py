@@ -721,11 +721,10 @@ sides.
                 ret['summary'] = self.msg_summary_existing % ret
             return ret
 
-
         # 2. We don't have access to the remote domain and trustdom password
         # is provided. Do the work on our side and inform what to do on remote
         # side.
-        if 'trust_secret' in options:
+        if options.get('trust_secret'):
             result = self.trustinstance.join_ad_ipa_half(
                 keys[-1],
                 self.realm_server,
@@ -740,8 +739,11 @@ sides.
             if dn:
                 ret['summary'] = self.msg_summary_existing % ret
             return ret
-        raise errors.ValidationError(name=_('AD Trust setup'),
-                                     error=_('Not enough arguments specified to perform trust setup'))
+        else:
+            raise errors.ValidationError(
+                name=_('AD Trust setup'),
+                error=_('Not enough arguments specified to perform trust '
+                        'setup'))
 
 @register()
 class trust_del(LDAPDelete):
