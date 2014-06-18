@@ -1257,7 +1257,7 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
     return 0
 
 def change_ssh_config(filename, changes, sections):
-    if len(changes) == 0:
+    if not changes:
         return True
 
     try:
@@ -1266,38 +1266,30 @@ def change_ssh_config(filename, changes, sections):
         root_logger.error("Failed to open '%s': %s", filename, str(e))
         return False
 
+    change_keys = tuple(key.lower() for key in changes)
+    section_keys = tuple(key.lower() for key in sections)
+
     lines = []
-    in_section = False
     for line in f:
-        if in_section:
-            lines.append(line)
-            continue
+        line = line.rstrip('\n')
         pline = line.strip()
-        if len(pline) == 0 or pline.startswith('#'):
+        if not pline or pline.startswith('#'):
             lines.append(line)
             continue
-        parts = pline.split()
-        option = parts[0].lower()
-        for key in sections:
-            if key.lower() == option:
-                in_section = True
-                break
-        if in_section:
-            break
-        for opt in changes:
-            if opt.lower() == option:
-                line = None
-                break
-        if line is not None:
+        option = pline.split()[0].lower()
+        if option in section_keys:
             lines.append(line)
-    for opt in changes:
-        if changes[opt] is not None:
-            lines.append('%s %s\n' % (opt, changes[opt]))
-    lines.append('\n')
-    if in_section:
+            break
+        if option in change_keys:
+            line = '#' + line
         lines.append(line)
+    for option, value in changes.items():
+        if value is not None:
+            lines.append('%s %s' % (option, value))
     for line in f:
+        line = line.rstrip('\n')
         lines.append(line)
+    lines.append('')
 
     f.close()
 
@@ -1307,7 +1299,7 @@ def change_ssh_config(filename, changes, sections):
         root_logger.error("Failed to open '%s': %s", filename, str(e))
         return False
 
-    f.write(''.join(lines))
+    f.write('\n'.join(lines))
 
     f.close()
 
