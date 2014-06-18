@@ -1710,11 +1710,11 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
 
         var result = data.result.result;
         var pkey_name = that.managed_entity.metadata.primary_key;
+        var adapter = builder.build('adapter', 'adapter', {context: that});
 
         for (var i=0; i<result.length; i++) {
             var record = result[i];
-            var pkey = record[pkey_name];
-            if (pkey instanceof Array) pkey = pkey[0];
+            var pkey = adapter.load(record, pkey_name)[0];
             records_map.put(pkey, record);
         }
 

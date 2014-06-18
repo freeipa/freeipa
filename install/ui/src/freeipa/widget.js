@@ -2257,11 +2257,13 @@ IPA.column = function (spec) {
 
     that.entity = IPA.get_entity(spec.entity);
     that.name = spec.name;
+    that.param = spec.param || that.name;
 
     that.label = text.get(spec.label);
     that.width = spec.width;
     that.primary_key = spec.primary_key;
     that.link = spec.link;
+    that.adapter = builder.build('adapter', spec.adapter || 'adapter', { context: that });
     that.formatter = builder.build('formatter', spec.formatter);
 
     if (!that.entity) {
@@ -2290,7 +2292,7 @@ IPA.column = function (spec) {
      * @param {boolean} suppress_link
      */
     that.setup = function(container, record, suppress_link) {
-        var value = record[that.name];
+        var value = that.adapter.load(record);
         var type;
         if (that.formatter) {
             value = that.formatter.parse(value);
@@ -2327,6 +2329,9 @@ IPA.column = function (spec) {
      */
     that.set_value = function(container, value, type, suppress_link) {
 
+        if (value instanceof Array) {
+            value = value.join(', ');
+        }
         value = value ? value.toString() : '';
         container.empty();
 
@@ -2835,8 +2840,9 @@ IPA.table_widget = function (spec) {
 
         var columns = that.columns.values;
         for (var i=0; i<columns.length; i++){
+
             var name = columns[i].name;
-            var values = result[name];
+            var values = columns[i].adapter.load(result);
             if (!values) continue;
 
             if (values instanceof Array){
@@ -2865,7 +2871,7 @@ IPA.table_widget = function (spec) {
         for (var i=0; i<columns.length; i++){
             var column = columns[i];
 
-            value = record[column.name];
+            value = column.adapter.load(record);
             value = value ? value.toString() : '';
 
             if (column.primary_key) {
@@ -3825,13 +3831,15 @@ IPA.entity_select_widget = function(spec) {
 
     that.search_success = function(data, text_status, xhr) {
 
+        var adapter = builder.build('adapter', 'adapter', { context: that });
+
         //get options
         var options = [];
 
         var entries = data.result.result;
         for (var i=0; i<data.result.count; i++) {
             var entry = entries[i];
-            var values = entry[that.other_field];
+            var values = adapter.load(entry, that.other_field);
             var value = values[0];
 
             options.push(value);

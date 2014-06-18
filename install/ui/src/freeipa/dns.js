@@ -824,7 +824,7 @@ IPA.dns.record_search_facet = function(spec) {
 
             var original = records[i];
             var record = {
-                idnsname: original.idnsname,
+                idnsname: rpc.extract_objects(original.idnsname),
                 values: []
             };
 
@@ -2280,7 +2280,7 @@ IPA.dns.ptr_redirection_dialog = function(spec) {
 
         for (var i=0; i<zones.length; i++) {
 
-            var zone_name = zones[i].idnsname[0];
+            var zone_name = rpc.extract_objects(zones[i].idnsname)[0];
             if (that.reverse_address.indexOf(zone_name) > -1) {
                 var msg = text.get('@i18n:objects.dnsrecord.ptr_redir_zone');
                 msg = msg.replace('${zone}', zone_name);

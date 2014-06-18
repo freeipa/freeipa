@@ -923,5 +923,48 @@ rpc.create_4304_error_handler = function(adder_dialog) {
     };
 };
 
+/**
+ * Property names to identify objects and values to extract in
+ * `rpc.extract_objects(array)` method.
+ * @type {Array}
+ */
+rpc.extract_types = ['__base64__', '__datetime__', '__dns_name__'];
+
+/**
+ * Extract values from specially encoded objects
+ *
+ * '''
+ * // from
+ * [{"__datetime__": "20140625103152Z"}]
+ * // to
+ * ["20140625103152Z"]
+ * '''
+ *
+ * - in-place operations, modifies input array
+ * - object properties to extract are defined in `rpc.extract_types`
+ * - other types are left intact
+ *
+ * @param  {Array} values
+ * @return {Array}
+ */
+rpc.extract_objects = function(values) {
+
+    if (!values) return values;
+
+    var et = rpc.extract_types;
+    for (var i=0, l=values.length; i<l; i++) {
+        var val = values[i];
+        if (typeof val === 'object') {
+            for (var j=0, m=et.length; j<m; j++) {
+                if (val[et[j]] !== undefined) {
+                    values[i] = val[et[j]];
+                    break;
+                }
+            }
+        }
+    }
+    return values;
+};
+
 return rpc;
 });

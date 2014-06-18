@@ -824,6 +824,7 @@ field.Adapter = declare(null, {
         if (util.is_empty(value) && !util.is_empty(def)) {
             value = util.normalize_value(def);
         }
+        value = rpc.extract_objects(value);
         return value;
     },
 

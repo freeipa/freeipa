@@ -587,7 +587,7 @@ IPA.update_password_expiration = function() {
 
     var now, expires, notify_days, diff, message, container, notify;
 
-    expires = IPA.whoami.krbpasswordexpiration;
+    expires = rpc.extract_objects(IPA.whoami.krbpasswordexpiration);
     expires = expires ? datetime.parse(expires[0]) : null;
 
     notify_days = IPA.server_config.ipapwdexpadvnotify;
