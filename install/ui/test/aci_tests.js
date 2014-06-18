@@ -229,10 +229,10 @@ var get_visible_rows = function(section) {
 
 
 test("Testing type target.", function() {
-    var data = {};
-    data.result = {};
-    data.result.result = {
-        type: 'hostgroup'
+    var data = {
+        id: null,
+        error: null,
+        result: { result: { type: 'hostgroup'} }
     };
 
     target_facet.load(data);
@@ -266,10 +266,10 @@ test("Testing type target.", function() {
 
 test("Testing general target.", function() {
 
-    var data = {};
-    data.result = {};
-    data.result.result = {
-        extratargetfilter: 'somevalue'
+    var data = {
+        id: null,
+        error: null,
+        result: { result: { extratargetfilter: 'hostgroup'} }
     };
 
     target_facet.load(data);

@@ -775,8 +775,8 @@ field.Adapter = declare(null, {
     get_record: function(data) {
 
         // detection if it's result or raw RPC command response
-        // all raw responses should contain `version` and `principal`
-        if (!data.version || !data.principal) {
+        // each RPC response should define properties as follows
+        if (data.id === undefined || data.result === undefined || data.error === undefined) {
             return data;
         }
 
