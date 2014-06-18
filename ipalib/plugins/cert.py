@@ -42,6 +42,7 @@ from ipalib import output
 from ipalib.plugins.service import validate_principal
 import nss.nss as nss
 from nss.error import NSPRError
+from pyasn1.error import PyAsn1Error
 
 __doc__ = _("""
 IPA certificate operations
@@ -135,17 +136,6 @@ def validate_pkidate(ugettext, value):
         return str(e)
 
     return None
-
-def get_csr_hostname(csr):
-    """
-    Return the value of CN in the subject of the request or None
-    """
-    try:
-        subject = pkcs10.get_subject(csr)
-        return subject.common_name  #pylint: disable=E1101
-    except NSPRError, nsprerr:
-        raise errors.CertificateOperationError(
-            error=_('Failure decoding Certificate Signing Request: %s') % nsprerr)
 
 def validate_csr(ugettext, csr):
     """
@@ -290,6 +280,14 @@ class cert_request(VirtualCommand):
         ),
     )
 
+    _allowed_extensions = {
+        '2.5.29.14': None,      # Subject Key Identifier
+        '2.5.29.15': None,      # Key Usage
+        '2.5.29.17': 'request certificate with subjectaltname',
+        '2.5.29.19': None,      # Basic Constraints
+        '2.5.29.37': None,      # Extended Key Usage
+    }
+
     def execute(self, csr, **kw):
         ldap = self.api.Backend.ldap2
         principal = kw.get('principal')
@@ -313,10 +311,22 @@ class cert_request(VirtualCommand):
         if not bind_principal.startswith('host/'):
             self.check_access()
 
-        # FIXME: add support for subject alt name
+        try:
+            subject = pkcs10.get_subject(csr)
+            extensions = pkcs10.get_extensions(csr)
+            subjectaltname = pkcs10.get_subjectaltname(csr) or ()
+        except (NSPRError, PyAsn1Error), e:
+            raise errors.CertificateOperationError(
+                error=_("Failure decoding Certificate Signing Request: %s") % e)
+
+        if not bind_principal.startswith('host/'):
+            for ext in extensions:
+                operation = self._allowed_extensions.get(ext)
+                if operation:
+                    self.check_access(operation)
 
         # Ensure that the hostname in the CSR matches the principal
-        subject_host = get_csr_hostname(csr)
+        subject_host = subject.common_name  #pylint: disable=E1101
         if not subject_host:
             raise errors.ValidationError(name='csr',
                 error=_("No hostname was found in subject of request."))
@@ -328,28 +338,40 @@ class cert_request(VirtualCommand):
                     "does not match principal hostname '%(hostname)s'") % dict(
                         subject_host=subject_host, hostname=hostname))
 
+        for ext in extensions:
+            if ext not in self._allowed_extensions:
+                raise errors.ValidationError(
+                    name='csr', error=_("extension %s is forbidden") % ext)
+
+        for name_type, name in subjectaltname:
+            if name_type not in (pkcs10.SAN_DNSNAME,
+                                 pkcs10.SAN_OTHERNAME_KRB5PRINCIPALNAME,
+                                 pkcs10.SAN_OTHERNAME_UPN):
+                raise errors.ValidationError(
+                    name='csr',
+                    error=_("subject alt name type %s is forbidden") %
+                          name_type)
+
         dn = None
         service = None
         # See if the service exists and punt if it doesn't and we aren't
         # going to add it
         try:
-            if not principal.startswith('host/'):
-                service = api.Command['service_show'](principal, all=True)['result']
-                dn = service['dn']
+            if servicename != 'host':
+                service = api.Command['service_show'](principal, all=True)
             else:
-                hostname = get_host_from_principal(principal)
-                service = api.Command['host_show'](hostname, all=True)['result']
-                dn = service['dn']
+                service = api.Command['host_show'](hostname, all=True)
         except errors.NotFound, e:
             if not add:
                 raise errors.NotFound(reason=_("The service principal for "
                     "this request doesn't exist."))
             try:
-                service = api.Command['service_add'](principal, **{'force': True})['result']
-                dn = service['dn']
+                service = api.Command['service_add'](principal, force=True)
             except errors.ACIError:
                 raise errors.ACIError(info=_('You need to be a member of '
                     'the serviceadmin role to add services'))
+        service = service['result']
+        dn = service['dn']
 
         # We got this far so the service entry exists, can we write it?
         if not ldap.can_write(dn, "usercertificate"):
@@ -357,25 +379,38 @@ class cert_request(VirtualCommand):
                 "to the 'userCertificate' attribute of entry '%s'.") % dn)
 
         # Validate the subject alt name, if any
-        subjectaltname = pkcs10.get_subjectaltname(csr)
-        if subjectaltname is not None:
-            for name in subjectaltname:
+        for name_type, name in subjectaltname:
+            if name_type == pkcs10.SAN_DNSNAME:
                 name = unicode(name)
                 try:
-                    hostentry = api.Command['host_show'](name, all=True)['result']
-                    hostdn = hostentry['dn']
+                    if servicename == 'host':
+                        altservice = api.Command['host_show'](name, all=True)
+                    else:
+                        altprincipal = '%s/%s@%s' % (servicename, name, realm)
+                        altservice = api.Command['service_show'](
+                            altprincipal, all=True)
                 except errors.NotFound:
                     # We don't want to issue any certificates referencing
                     # machines we don't know about. Nothing is stored in this
                     # host record related to this certificate.
-                    raise errors.NotFound(reason=_('no host record for '
-                        'subject alt name %s in certificate request') % name)
-                authprincipal = getattr(context, 'principal')
-                if authprincipal.startswith("host/"):
-                    if not hostdn in service.get('managedby_host', []):
-                        raise errors.ACIError(info=_(
-                            "Insufficient privilege to create a certificate "
-                            "with subject alt name '%s'.") % name)
+                    raise errors.NotFound(reason=_('The service principal for '
+                        'subject alt name %s in certificate request does not '
+                        'exist') % name)
+                altdn = altservice['result']['dn']
+                if not ldap.can_write(altdn, "usercertificate"):
+                    raise errors.ACIError(info=_(
+                        "Insufficient privilege to create a certificate with "
+                        "subject alt name '%s'.") % name)
+            elif name_type in (pkcs10.SAN_OTHERNAME_KRB5PRINCIPALNAME,
+                               pkcs10.SAN_OTHERNAME_UPN):
+                if name != principal:
+                    raise errors.ACIError(
+                        info=_("Principal '%s' in subject alt name does not "
+                               "match requested service principal") % name)
+            else:
+                raise errors.ACIError(
+                    info=_("Subject alt name type %s is forbidden") %
+                         name_type)
 
         if 'usercertificate' in service:
             serial = x509.get_serial_number(service['usercertificate'][0], datatype=x509.DER)

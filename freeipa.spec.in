@@ -299,7 +299,7 @@ Requires: gnupg
 Requires: iproute
 Requires: keyutils
 Requires: pyOpenSSL
-Requires: python-nss
+Requires: python-nss >= 0.15
 Requires: python-lxml
 Requires: python-netaddr
 Requires: libipa_hbac-python

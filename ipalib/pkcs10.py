@@ -21,13 +21,17 @@ import os
 import sys
 import base64
 import nss.nss as nss
-from pyasn1.type import univ, namedtype, tag
+from pyasn1.type import univ, char, namedtype, tag
 from pyasn1.codec.der import decoder
 from ipapython import ipautil
 from ipalib import api
 
 PEM = 0
 DER = 1
+
+SAN_DNSNAME = 'DNS name'
+SAN_OTHERNAME_UPN = 'Other Name (OID.1.3.6.1.4.1.311.20.2.3)'
+SAN_OTHERNAME_KRB5PRINCIPALNAME = 'Other Name (OID.1.3.6.1.5.2.2)'
 
 def get_subject(csr, datatype=PEM):
     """
@@ -41,6 +45,89 @@ def get_subject(csr, datatype=PEM):
     finally:
         del request
 
+def get_extensions(csr, datatype=PEM):
+    """
+    Given a CSR return OIDs of certificate extensions.
+
+    The return value is a tuple of strings
+    """
+    request = load_certificate_request(csr, datatype)
+    return tuple(nss.oid_dotted_decimal(ext.oid_tag)[4:]
+                 for ext in request.extensions)
+
+class _PrincipalName(univ.Sequence):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType('name-type', univ.Integer().subtype(
+            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))
+        ),
+        namedtype.NamedType('name-string', univ.SequenceOf(char.GeneralString()).subtype(
+            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 1))
+        ),
+    )
+
+class _KRB5PrincipalName(univ.Sequence):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType('realm', char.GeneralString().subtype(
+            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))
+        ),
+        namedtype.NamedType('principalName', _PrincipalName().subtype(
+            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 1))
+        ),
+    )
+
+def _decode_krb5principalname(data):
+    principal = decoder.decode(data, asn1Spec=_KRB5PrincipalName())[0]
+    realm = (str(principal['realm']).replace('\\', '\\\\')
+                                    .replace('@', '\\@'))
+    name = principal['principalName']['name-string']
+    name = '/'.join(str(n).replace('\\', '\\\\')
+                          .replace('/', '\\/')
+                          .replace('@', '\\@') for n in name)
+    name = '%s@%s' % (name, realm)
+    return name
+
+class _AnotherName(univ.Sequence):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType('type-id', univ.ObjectIdentifier()),
+        namedtype.NamedType('value', univ.Any().subtype(
+            explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))
+        ),
+    )
+
+class _GeneralName(univ.Choice):
+    componentType = namedtype.NamedTypes(
+        namedtype.NamedType('otherName', _AnotherName().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 0))
+        ),
+        namedtype.NamedType('rfc822Name', char.IA5String().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 1))
+        ),
+        namedtype.NamedType('dNSName', char.IA5String().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 2))
+        ),
+        namedtype.NamedType('x400Address', univ.Sequence().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 3))
+        ),
+        namedtype.NamedType('directoryName', univ.Choice().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 4))
+        ),
+        namedtype.NamedType('ediPartyName', univ.Sequence().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 5))
+        ),
+        namedtype.NamedType('uniformResourceIdentifier', char.IA5String().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 6))
+        ),
+        namedtype.NamedType('iPAddress', univ.OctetString().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 7))
+        ),
+        namedtype.NamedType('registeredID', univ.ObjectIdentifier().subtype(
+            implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 8))
+        ),
+    )
+
+class _SubjectAltName(univ.SequenceOf):
+    componentType = _GeneralName()
+
 def get_subjectaltname(csr, datatype=PEM):
     """
     Given a CSR return the subjectaltname value, if any.
@@ -48,13 +135,26 @@ def get_subjectaltname(csr, datatype=PEM):
     The return value is a tuple of strings or None
     """
     request = load_certificate_request(csr, datatype)
-    try:
-        for extension in request.extensions:
-            if extension.oid_tag  == nss.SEC_OID_X509_SUBJECT_ALT_NAME:
-                return nss.x509_alt_name(extension.value)
-    finally:
-        del request
-    return None
+    for extension in request.extensions:
+        if extension.oid_tag == nss.SEC_OID_X509_SUBJECT_ALT_NAME:
+            break
+    else:
+        return None
+    del request
+
+    nss_names = nss.x509_alt_name(extension.value, nss.AsObject)
+    asn1_names = decoder.decode(extension.value.data,
+                                asn1Spec=_SubjectAltName())[0]
+    names = []
+    for nss_name, asn1_name in zip(nss_names, asn1_names):
+        name_type = nss_name.type_string
+        if name_type == SAN_OTHERNAME_KRB5PRINCIPALNAME:
+            name = _decode_krb5principalname(asn1_name['otherName']['value'])
+        else:
+            name = nss_name.name
+        names.append((name_type, name))
+
+    return tuple(names)
 
 # Unfortunately, NSS can only parse the extension request attribute, so
 # we have to parse friendly name ourselves (see RFC 2986)
