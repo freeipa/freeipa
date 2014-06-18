@@ -2504,11 +2504,10 @@ class test_dns(Declarative):
 
 
         dict(
-            desc='Add A denormalized record to %r in zone %r' % (idnres1, idnzone1),
+            desc='Add A denormalized record in zone %r' % (idnzone1),
             command=('dnsrecord_add', [idnzone1, u'gro\xdf'], {'arecord': u'172.16.0.1'}),
             expected=errors.ConversionError(name='name',
-                error=u'domain name \'gro\xdf\' and normalized domain name \'gross\''
-                + ' do not match. Please use only normalized domains'),
+                error=u'domain name \'gro\xdf\' should be normalized to: gross')
         ),
 
 

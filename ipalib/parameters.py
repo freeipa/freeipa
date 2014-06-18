@@ -1961,16 +1961,21 @@ class DNSNameParam(Param):
                 error = _('DNS label cannot be longer than 63 characters')
             except dns.exception.SyntaxError:
                 error = _('invalid domain name')
-
-            #compare if IDN normalized and original domain match
-            #there is N:1 mapping between unicode and IDNA names
-            #user should use normalized names to avoid mistakes
-            normalized_domain_name = encodings.idna.nameprep(value)
-            if value != normalized_domain_name:
-                error = _("domain name '%(domain)s' and normalized domain name"
-                          " '%(normalized)s' do not match. Please use only"
-                          " normalized domains") % {'domain': value,
-                          'normalized': normalized_domain_name}
+            else:
+                #compare if IDN normalized and original domain match
+                #there is N:1 mapping between unicode and IDNA names
+                #user should use normalized names to avoid mistakes
+                labels = re.split(u'[.\uff0e\u3002\uff61]', value, flags=re.UNICODE)
+                try:
+                    map(lambda label: label.encode("ascii"), labels)
+                except UnicodeError:
+                    # IDNA
+                    is_nonnorm = any(encodings.idna.nameprep(x) != x for x in labels)
+                    if is_nonnorm:
+                        error = _("domain name '%(domain)s' should be normalized to"
+                          ": %(normalized)s") % {
+                          'domain': value,
+                          'normalized': '.'.join([encodings.idna.nameprep(x) for x in labels])}
             if error:
                 raise ConversionError(name=self.get_param_name(), index=index,
                                       error=error)
