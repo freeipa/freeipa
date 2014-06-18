@@ -333,9 +333,11 @@ class ldap2(LDAPClient, CrudBackend):
             "krbPrincipalAux", base_dn=api.env.basedn)
         sctrl = [GetEffectiveRightsControl(True, "dn: " + str(entry.dn))]
         self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, sctrl)
-        entry = self.get_entry(dn, attrs_list)
-        # remove the control so subsequent operations don't include GER
-        self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, [])
+        try:
+            entry = self.get_entry(dn, attrs_list)
+        finally:
+            # remove the control so subsequent operations don't include GER
+            self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, [])
         return entry
 
     def can_write(self, dn, attr):
