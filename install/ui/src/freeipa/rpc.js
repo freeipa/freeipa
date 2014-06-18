@@ -362,6 +362,8 @@ rpc.command = function(spec) {
             }
         }
 
+        that.options.version = window.ipa_loader.api_version;
+
         that.data = {
             method: that.get_command(),
             params: [that.args, that.options]
@@ -511,6 +513,8 @@ rpc.batch_command = function(spec) {
      */
     that.execute = function() {
         that.errors.clear();
+
+        that.options.version = window.ipa_loader.api_version;
 
         var command = rpc.command({
             name: that.name,
