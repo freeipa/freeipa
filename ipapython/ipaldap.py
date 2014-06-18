@@ -1392,7 +1392,9 @@ class LDAPClient(object):
                     attrs_list=None):
         """Return a list of matching entries.
 
-        Raises an error if the list is truncated by the server
+        :raises: errors.LimitsExceeded if the list is truncated by the server
+        :raises: errors.NotFound if result set is empty
+                                 or base_dn doesn't exist
 
         :param base_dn: dn of the entry at which to start the search
         :param scope: search scope, see LDAP docs (default ldap2.SCOPE_SUBTREE)
@@ -1426,6 +1428,9 @@ class LDAPClient(object):
         search_refs -- allow search references to be returned
             (default skips these entries)
         paged_search -- search using paged results control
+
+        :raises: errors.NotFound if result set is empty
+                                 or base_dn doesn't exist
         """
         if base_dn is None:
             base_dn = DN()
