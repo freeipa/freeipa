@@ -252,7 +252,7 @@ field.field = IPA.field = function(spec) {
      * Default value
      * @property {Mixed}
      */
-    that.default_value = null;
+    that.default_value = spec.default_value || null;
 
     /**
      * Field is dirty (value is modified)
