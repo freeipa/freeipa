@@ -19,7 +19,7 @@
                 ],
                 "attribute_members": {},
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=automember,cn=etc",
                 "default_attributes": [
                     "automemberinclusiveregex",
@@ -82,6 +82,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "A description of this auto member rule",
                         "flags": [],
                         "label": "Description",
@@ -91,6 +92,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Default group for entries to land",
                         "flags": [
                             "no_update",
@@ -169,6 +171,7 @@
                 "takes_params": [
                     {
                         "class": "IA5Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Automount key name.",
                         "flags": [
                             "req_update"
@@ -181,6 +184,7 @@
                     },
                     {
                         "class": "IA5Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Mount information",
                         "flags": [],
                         "label": "Mount information",
@@ -191,6 +195,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "description",
                         "exclude": [
                             "webui"
@@ -271,6 +276,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Automount location name.",
                         "flags": [],
                         "label": "Location",
@@ -346,6 +352,7 @@
                 "takes_params": [
                     {
                         "class": "IA5Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Automount map name.",
                         "flags": [],
                         "label": "Map",
@@ -357,6 +364,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Description",
                         "flags": [],
                         "label": "Description",
@@ -371,8 +379,8 @@
                 "aciattrs": [],
                 "attribute_members": {},
                 "bindable": false,
-                "can_have_permissions": false,
-                "container_dn": "",
+                "can_have_permissions": true,
+                "container_dn": "cn=ipaconfig,cn=etc",
                 "default_attributes": [
                     "ipamaxusernamelength",
                     "ipahomesrootdir",
@@ -434,6 +442,7 @@
                 "takes_params": [
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Maximum username length",
                         "flags": [],
                         "label": "Maximum username length",
@@ -445,6 +454,7 @@
                     },
                     {
                         "class": "IA5Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Default location of home directories",
                         "flags": [],
                         "label": "Home directory base",
@@ -455,6 +465,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Default shell for new users",
                         "flags": [],
                         "label": "Default shell",
@@ -465,6 +476,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Default group for new users",
                         "flags": [],
                         "label": "Default users group",
@@ -475,6 +487,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Default e-mail domain",
                         "flags": [],
                         "label": "Default e-mail domain",
@@ -484,6 +497,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Maximum amount of time (seconds) for a search (> 0, or -1 for unlimited)",
                         "flags": [],
                         "label": "Search time limit",
@@ -495,6 +509,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Maximum number of records to search (-1 is unlimited)",
                         "flags": [],
                         "label": "Search size limit",
@@ -506,6 +521,7 @@
                     },
                     {
                         "class": "IA5Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "A comma-separated list of fields to search in when searching for users",
                         "flags": [],
                         "label": "User search fields",
@@ -516,6 +532,7 @@
                     },
                     {
                         "class": "IA5Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "A comma-separated list of fields to search in when searching for groups",
                         "flags": [],
                         "label": "Group search fields",
@@ -526,6 +543,7 @@
                     },
                     {
                         "class": "Bool",
+                        "deprecated_cli_aliases": [],
                         "doc": "Enable migration mode",
                         "flags": [],
                         "label": "Enable migration mode",
@@ -535,6 +553,7 @@
                     },
                     {
                         "class": "DNParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "Base for certificate subjects (OU=Test,O=Example)",
                         "flags": [
                             "no_update"
@@ -546,6 +565,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Default group objectclasses (comma-separated list)",
                         "flags": [],
                         "label": "Default group objectclasses",
@@ -557,6 +577,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Default user objectclasses (comma-separated list)",
                         "flags": [],
                         "label": "Default user objectclasses",
@@ -568,6 +589,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Number of days's notice of impending password expiration",
                         "flags": [],
                         "label": "Password Expiration Notification (days)",
@@ -579,6 +601,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "Extra hashes to generate in password plug-in",
                         "flags": [],
                         "label": "Password plugin features",
@@ -593,6 +616,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Order in increasing priority of SELinux users, delimited by $",
                         "flags": [],
                         "label": "SELinux user map order",
@@ -603,6 +627,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Default SELinux user when no match is found in SELinux map rule",
                         "flags": [],
                         "label": "Default SELinux user",
@@ -612,6 +637,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "Default types of PAC supported for services",
                         "flags": [],
                         "label": "Default PAC types",
@@ -626,6 +652,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "Default types of supported user authentication",
                         "flags": [],
                         "label": "Default user authentication types",
@@ -771,6 +798,7 @@
                     "ditcontentrules",
                     "ditredirect",
                     "ditstructurerules",
+                    "dlvrecord",
                     "dnafilter",
                     "dnahostname",
                     "dnainterval",
@@ -866,6 +894,7 @@
                     "idnsforwardpolicy",
                     "idnsname",
                     "idnspersistentsearch",
+                    "idnssecinlinesigning",
                     "idnssoaexpire",
                     "idnssoaminimum",
                     "idnssoamname",
@@ -1234,6 +1263,7 @@
                     "nsds7newwinusersyncenabled",
                     "nsds7windowsdomain",
                     "nsds7windowsreplicasubtree",
+                    "nsec3paramrecord",
                     "nsecrecord",
                     "nsencryptionalgorithm",
                     "nserrorlog",
@@ -1722,7 +1752,7 @@
                 ],
                 "attribute_members": {},
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=costemplates,cn=accounts",
                 "default_attributes": [
                     "cn",
@@ -1780,6 +1810,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "<cn>",
                         "flags": [],
                         "label": "<cn>",
@@ -1791,6 +1822,7 @@
                     },
                     {
                         "class": "DNParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "<krbpwdpolicyreference>",
                         "flags": [],
                         "label": "<krbpwdpolicyreference>",
@@ -1800,6 +1832,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "<cospriority>",
                         "flags": [],
                         "label": "<cospriority>",
@@ -1830,6 +1863,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Delegation name",
                         "flags": [],
                         "label": "Delegation name",
@@ -1841,6 +1875,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Permissions to grant (read, write). Default is write.",
                         "flags": [],
                         "label": "Permissions",
@@ -1851,6 +1886,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Attributes to which the delegation applies",
                         "flags": [],
                         "label": "Attributes",
@@ -1862,6 +1898,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "User group to apply delegation to",
                         "flags": [],
                         "label": "Member user group",
@@ -1872,6 +1909,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "User group ACI grants access to",
                         "flags": [],
                         "label": "User group",
@@ -1935,6 +1973,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Global forwarders. A custom port can be specified for each forwarder using a standard format \"IP_ADDRESS port PORT\"",
                         "flags": [],
                         "label": "Global forwarders",
@@ -1945,6 +1984,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "Global forwarding policy. Set to \"none\" to disable any configured global forwarders.",
                         "flags": [],
                         "label": "Forward policy",
@@ -1958,6 +1998,7 @@
                     },
                     {
                         "class": "Bool",
+                        "deprecated_cli_aliases": [],
                         "doc": "Allow synchronization of forward (A, AAAA) and reverse (PTR) records",
                         "flags": [],
                         "label": "Allow PTR sync",
@@ -1967,6 +2008,7 @@
                     {
                         "class": "DeprecatedParam",
                         "deprecate": true,
+                        "deprecated_cli_aliases": [],
                         "doc": "Zone refresh interval",
                         "flags": [
                             "no_option"
@@ -1974,6 +2016,141 @@
                         "label": "Zone refresh interval",
                         "name": "idnszonerefresh",
                         "type": "object"
+                    }
+                ],
+                "uuid_attribute": ""
+            },
+            "dnsforwardzone": {
+                "aciattrs": [
+                    "idnsforwarders",
+                    "idnsforwardpolicy",
+                    "idnsname",
+                    "idnszoneactive",
+                    "managedby",
+                    "objectclass"
+                ],
+                "attribute_members": {},
+                "bindable": false,
+                "can_have_permissions": false,
+                "container_dn": "cn=dns",
+                "default_attributes": [
+                    "idnsname",
+                    "idnszoneactive",
+                    "idnsforwarders",
+                    "idnsforwardpolicy"
+                ],
+                "hidden_attributes": [
+                    "objectclass",
+                    "aci"
+                ],
+                "label": "DNS Forward Zones",
+                "label_singular": "DNS Forward Zone",
+                "methods": [
+                    "add",
+                    "add_permission",
+                    "del",
+                    "disable",
+                    "enable",
+                    "find",
+                    "mod",
+                    "remove_permission",
+                    "show"
+                ],
+                "name": "dnsforwardzone",
+                "object_class": [
+                    "top",
+                    "idnsforwardzone"
+                ],
+                "object_class_config": null,
+                "object_name": "DNS forward zone",
+                "object_name_plural": "DNS forward zones",
+                "parent_object": "",
+                "primary_key": "idnsname",
+                "rdn_attribute": "",
+                "relationships": {
+                    "member": [
+                        "Member",
+                        "",
+                        "no_"
+                    ],
+                    "memberindirect": [
+                        "Indirect Member",
+                        null,
+                        "no_indirect_"
+                    ],
+                    "memberof": [
+                        "Member Of",
+                        "in_",
+                        "not_in_"
+                    ],
+                    "memberofindirect": [
+                        "Indirect Member Of",
+                        null,
+                        "not_in_indirect_"
+                    ]
+                },
+                "takes_params": [
+                    {
+                        "class": "DNSNameParam",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Zone name (FQDN)",
+                        "flags": [],
+                        "label": "Zone name",
+                        "name": "idnsname",
+                        "only_absolute": true,
+                        "primary_key": true,
+                        "required": true,
+                        "type": "DNSName"
+                    },
+                    {
+                        "class": "Str",
+                        "deprecated_cli_aliases": [],
+                        "doc": "IP network to create reverse zone name from",
+                        "flags": [
+                            "virtual_attribute"
+                        ],
+                        "label": "Reverse zone IP network",
+                        "name": "name_from_ip",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "attribute": true,
+                        "class": "Bool",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Is zone active?",
+                        "flags": [
+                            "no_update",
+                            "no_create"
+                        ],
+                        "label": "Active zone",
+                        "name": "idnszoneactive",
+                        "type": "bool"
+                    },
+                    {
+                        "class": "Str",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Per-zone forwarders. A custom port can be specified for each forwarder using a standard format \"IP_ADDRESS port PORT\"",
+                        "flags": [],
+                        "label": "Zone forwarders",
+                        "multivalue": true,
+                        "name": "idnsforwarders",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Per-zone conditional forwarding policy. Set to \"none\" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.",
+                        "flags": [],
+                        "label": "Forward policy",
+                        "name": "idnsforwardpolicy",
+                        "type": "unicode",
+                        "values": [
+                            "only",
+                            "first",
+                            "none"
+                        ]
                     }
                 ],
                 "uuid_attribute": ""
@@ -1986,6 +2163,7 @@
                     "arecord",
                     "certrecord",
                     "cnamerecord",
+                    "dlvrecord",
                     "dnamerecord",
                     "dnsclass",
                     "dnsttl",
@@ -2000,6 +2178,7 @@
                     "minforecord",
                     "mxrecord",
                     "naptrrecord",
+                    "nsec3paramrecord",
                     "nsecrecord",
                     "nsrecord",
                     "nxtrecord",
@@ -2101,18 +2280,19 @@
                 },
                 "takes_params": [
                     {
-                        "class": "Str",
+                        "class": "DNSNameParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "Record name",
                         "flags": [],
                         "label": "Record name",
                         "name": "idnsname",
-                        "noextrawhitespace": true,
                         "primary_key": true,
                         "required": true,
-                        "type": "unicode"
+                        "type": "DNSName"
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Time to live",
                         "flags": [],
                         "label": "Time to live",
@@ -2123,6 +2303,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "DNS class",
                         "flags": [],
                         "label": "Class",
@@ -2137,6 +2318,7 @@
                     },
                     {
                         "class": "Any",
+                        "deprecated_cli_aliases": [],
                         "doc": "Records",
                         "flags": [
                             "no_update",
@@ -2149,6 +2331,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Record type",
                         "flags": [
                             "no_update",
@@ -2162,6 +2345,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Record data",
                         "flags": [
                             "no_update",
@@ -2175,6 +2359,7 @@
                     },
                     {
                         "class": "ARecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw A records",
                         "flags": [],
                         "label": "A record",
@@ -2188,6 +2373,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "IP Address",
                         "flags": [
                             "dnsrecord_part",
@@ -2202,6 +2388,7 @@
                     },
                     {
                         "class": "Flag",
+                        "deprecated_cli_aliases": [],
                         "doc": "Create reverse record for this IP Address",
                         "flags": [
                             "no_update",
@@ -2216,6 +2403,7 @@
                     },
                     {
                         "class": "AAAARecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw AAAA records",
                         "flags": [],
                         "label": "AAAA record",
@@ -2229,6 +2417,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "IP Address",
                         "flags": [
                             "dnsrecord_part",
@@ -2243,6 +2432,7 @@
                     },
                     {
                         "class": "Flag",
+                        "deprecated_cli_aliases": [],
                         "doc": "Create reverse record for this IP Address",
                         "flags": [
                             "no_update",
@@ -2257,6 +2447,7 @@
                     },
                     {
                         "class": "A6Record",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw A6 records",
                         "flags": [],
                         "label": "A6 record",
@@ -2270,6 +2461,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Record data",
                         "flags": [
                             "dnsrecord_part",
@@ -2284,6 +2476,7 @@
                     },
                     {
                         "class": "AFSDBRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw AFSDB records",
                         "flags": [],
                         "label": "AFSDB record",
@@ -2297,6 +2490,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Subtype",
                         "flags": [
                             "dnsrecord_optional",
@@ -2312,7 +2506,8 @@
                         "type": "int"
                     },
                     {
-                        "class": "Str",
+                        "class": "DNSNameParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "Hostname",
                         "flags": [
                             "dnsrecord_part",
@@ -2321,12 +2516,12 @@
                         "hint": "afsdbrecord",
                         "label": "AFSDB Hostname",
                         "name": "afsdb_part_hostname",
-                        "noextrawhitespace": true,
                         "option_group": "AFSDB Record",
-                        "type": "unicode"
+                        "type": "DNSName"
                     },
                     {
                         "class": "APLRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw APL records",
                         "flags": [
                             "no_option"
@@ -2342,6 +2537,7 @@
                     },
                     {
                         "class": "CERTRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw CERT records",
                         "flags": [],
                         "label": "CERT record",
@@ -2355,6 +2551,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Certificate Type",
                         "flags": [
                             "dnsrecord_part",
@@ -2370,6 +2567,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Key Tag",
                         "flags": [
                             "dnsrecord_part",
@@ -2385,6 +2583,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Algorithm",
                         "flags": [
                             "dnsrecord_part",
@@ -2400,6 +2599,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Certificate/CRL",
                         "flags": [
                             "dnsrecord_part",
@@ -2414,6 +2614,7 @@
                     },
                     {
                         "class": "CNAMERecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw CNAME records",
                         "flags": [],
                         "label": "CNAME record",
@@ -2426,7 +2627,8 @@
                         "validatedns": true
                     },
                     {
-                        "class": "Str",
+                        "class": "DNSNameParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "A hostname which this alias hostname points to",
                         "flags": [
                             "dnsrecord_part",
@@ -2435,12 +2637,12 @@
                         "hint": "cnamerecord",
                         "label": "CNAME Hostname",
                         "name": "cname_part_hostname",
-                        "noextrawhitespace": true,
                         "option_group": "CNAME Record",
-                        "type": "unicode"
+                        "type": "DNSName"
                     },
                     {
                         "class": "DHCIDRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw DHCID records",
                         "flags": [
                             "no_option"
@@ -2456,10 +2658,9 @@
                     },
                     {
                         "class": "DLVRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw DLV records",
-                        "flags": [
-                            "no_option"
-                        ],
+                        "flags": [],
                         "label": "DLV record",
                         "multivalue": true,
                         "name": "dlvrecord",
@@ -2470,7 +2671,73 @@
                         "validatedns": true
                     },
                     {
+                        "class": "Int",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Key Tag",
+                        "flags": [
+                            "dnsrecord_part",
+                            "virtual_attribute"
+                        ],
+                        "hint": "dlvrecord",
+                        "label": "DLV Key Tag",
+                        "maxvalue": 65535,
+                        "minvalue": 0,
+                        "name": "dlv_part_key_tag",
+                        "option_group": "DLV Record",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Algorithm",
+                        "flags": [
+                            "dnsrecord_part",
+                            "virtual_attribute"
+                        ],
+                        "hint": "dlvrecord",
+                        "label": "DLV Algorithm",
+                        "maxvalue": 255,
+                        "minvalue": 0,
+                        "name": "dlv_part_algorithm",
+                        "option_group": "DLV Record",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Digest Type",
+                        "flags": [
+                            "dnsrecord_part",
+                            "virtual_attribute"
+                        ],
+                        "hint": "dlvrecord",
+                        "label": "DLV Digest Type",
+                        "maxvalue": 255,
+                        "minvalue": 0,
+                        "name": "dlv_part_digest_type",
+                        "option_group": "DLV Record",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Str",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Digest",
+                        "flags": [
+                            "dnsrecord_part",
+                            "virtual_attribute"
+                        ],
+                        "hint": "dlvrecord",
+                        "label": "DLV Digest",
+                        "name": "dlv_part_digest",
+                        "noextrawhitespace": true,
+                        "option_group": "DLV Record",
+                        "pattern": "^[0-9a-fA-F]+$",
+                        "pattern_errmsg": "only hexadecimal digits are allowed",
+                        "type": "unicode"
+                    },
+                    {
                         "class": "DNAMERecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw DNAME records",
                         "flags": [],
                         "label": "DNAME record",
@@ -2483,7 +2750,8 @@
                         "validatedns": true
                     },
                     {
-                        "class": "Str",
+                        "class": "DNSNameParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "Target",
                         "flags": [
                             "dnsrecord_part",
@@ -2492,12 +2760,12 @@
                         "hint": "dnamerecord",
                         "label": "DNAME Target",
                         "name": "dname_part_target",
-                        "noextrawhitespace": true,
                         "option_group": "DNAME Record",
-                        "type": "unicode"
+                        "type": "DNSName"
                     },
                     {
                         "class": "DNSKEYRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw DNSKEY records",
                         "flags": [
                             "no_option"
@@ -2513,6 +2781,7 @@
                     },
                     {
                         "class": "DSRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw DS records",
                         "flags": [],
                         "label": "DS record",
@@ -2526,6 +2795,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Key Tag",
                         "flags": [
                             "dnsrecord_part",
@@ -2541,6 +2811,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Algorithm",
                         "flags": [
                             "dnsrecord_part",
@@ -2556,6 +2827,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Digest Type",
                         "flags": [
                             "dnsrecord_part",
@@ -2571,6 +2843,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Digest",
                         "flags": [
                             "dnsrecord_part",
@@ -2581,10 +2854,13 @@
                         "name": "ds_part_digest",
                         "noextrawhitespace": true,
                         "option_group": "DS Record",
+                        "pattern": "^[0-9a-fA-F]+$",
+                        "pattern_errmsg": "only hexadecimal digits are allowed",
                         "type": "unicode"
                     },
                     {
                         "class": "HIPRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw HIP records",
                         "flags": [
                             "no_option"
@@ -2600,6 +2876,7 @@
                     },
                     {
                         "class": "IPSECKEYRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw IPSECKEY records",
                         "flags": [
                             "no_option"
@@ -2615,8 +2892,11 @@
                     },
                     {
                         "class": "KEYRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw KEY records",
-                        "flags": [],
+                        "flags": [
+                            "no_option"
+                        ],
                         "label": "KEY record",
                         "multivalue": true,
                         "name": "keyrecord",
@@ -2627,66 +2907,8 @@
                         "validatedns": true
                     },
                     {
-                        "class": "Int",
-                        "doc": "Flags",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "keyrecord",
-                        "label": "KEY Flags",
-                        "maxvalue": 65535,
-                        "minvalue": 0,
-                        "name": "key_part_flags",
-                        "option_group": "KEY Record",
-                        "type": "int"
-                    },
-                    {
-                        "class": "Int",
-                        "doc": "Protocol",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "keyrecord",
-                        "label": "KEY Protocol",
-                        "maxvalue": 255,
-                        "minvalue": 0,
-                        "name": "key_part_protocol",
-                        "option_group": "KEY Record",
-                        "type": "int"
-                    },
-                    {
-                        "class": "Int",
-                        "doc": "Algorithm",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "keyrecord",
-                        "label": "KEY Algorithm",
-                        "maxvalue": 255,
-                        "minvalue": 0,
-                        "name": "key_part_algorithm",
-                        "option_group": "KEY Record",
-                        "type": "int"
-                    },
-                    {
-                        "class": "Str",
-                        "doc": "Public Key",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "keyrecord",
-                        "label": "KEY Public Key",
-                        "name": "key_part_public_key",
-                        "noextrawhitespace": true,
-                        "option_group": "KEY Record",
-                        "type": "unicode"
-                    },
-                    {
                         "class": "KXRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw KX records",
                         "flags": [],
                         "label": "KX record",
@@ -2700,6 +2922,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Preference given to this exchanger. Lower values are more preferred",
                         "flags": [
                             "dnsrecord_part",
@@ -2714,7 +2937,8 @@
                         "type": "int"
                     },
                     {
-                        "class": "Str",
+                        "class": "DNSNameParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "A host willing to act as a key exchanger",
                         "flags": [
                             "dnsrecord_part",
@@ -2723,12 +2947,12 @@
                         "hint": "kxrecord",
                         "label": "KX Exchanger",
                         "name": "kx_part_exchanger",
-                        "noextrawhitespace": true,
                         "option_group": "KX Record",
-                        "type": "unicode"
+                        "type": "DNSName"
                     },
                     {
                         "class": "LOCRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw LOC records",
                         "flags": [],
                         "label": "LOC record",
@@ -2742,6 +2966,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Degrees Latitude",
                         "flags": [
                             "dnsrecord_part",
@@ -2757,6 +2982,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Minutes Latitude",
                         "flags": [
                             "dnsrecord_optional",
@@ -2773,6 +2999,7 @@
                     },
                     {
                         "class": "Decimal",
+                        "deprecated_cli_aliases": [],
                         "doc": "Seconds Latitude",
                         "flags": [
                             "dnsrecord_optional",
@@ -2795,6 +3022,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "Direction Latitude",
                         "flags": [
                             "dnsrecord_part",
@@ -2812,6 +3040,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Degrees Longitude",
                         "flags": [
                             "dnsrecord_part",
@@ -2827,6 +3056,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Minutes Longitude",
                         "flags": [
                             "dnsrecord_optional",
@@ -2843,6 +3073,7 @@
                     },
                     {
                         "class": "Decimal",
+                        "deprecated_cli_aliases": [],
                         "doc": "Seconds Longitude",
                         "flags": [
                             "dnsrecord_optional",
@@ -2865,6 +3096,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "Direction Longitude",
                         "flags": [
                             "dnsrecord_part",
@@ -2882,6 +3114,7 @@
                     },
                     {
                         "class": "Decimal",
+                        "deprecated_cli_aliases": [],
                         "doc": "Altitude",
                         "flags": [
                             "dnsrecord_part",
@@ -2903,6 +3136,7 @@
                     },
                     {
                         "class": "Decimal",
+                        "deprecated_cli_aliases": [],
                         "doc": "Size",
                         "flags": [
                             "dnsrecord_optional",
@@ -2925,6 +3159,7 @@
                     },
                     {
                         "class": "Decimal",
+                        "deprecated_cli_aliases": [],
                         "doc": "Horizontal Precision",
                         "flags": [
                             "dnsrecord_optional",
@@ -2947,6 +3182,7 @@
                     },
                     {
                         "class": "Decimal",
+                        "deprecated_cli_aliases": [],
                         "doc": "Vertical Precision",
                         "flags": [
                             "dnsrecord_optional",
@@ -2969,6 +3205,7 @@
                     },
                     {
                         "class": "MXRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw MX records",
                         "flags": [],
                         "label": "MX record",
@@ -2982,6 +3219,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Preference given to this exchanger. Lower values are more preferred",
                         "flags": [
                             "dnsrecord_part",
@@ -2996,7 +3234,8 @@
                         "type": "int"
                     },
                     {
-                        "class": "Str",
+                        "class": "DNSNameParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "A host willing to act as a mail exchanger",
                         "flags": [
                             "dnsrecord_part",
@@ -3005,12 +3244,12 @@
                         "hint": "mxrecord",
                         "label": "MX Exchanger",
                         "name": "mx_part_exchanger",
-                        "noextrawhitespace": true,
                         "option_group": "MX Record",
-                        "type": "unicode"
+                        "type": "DNSName"
                     },
                     {
                         "class": "NAPTRRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw NAPTR records",
                         "flags": [],
                         "label": "NAPTR record",
@@ -3024,6 +3263,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Order",
                         "flags": [
                             "dnsrecord_part",
@@ -3039,6 +3279,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Preference",
                         "flags": [
                             "dnsrecord_part",
@@ -3054,6 +3295,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Flags",
                         "flags": [
                             "dnsrecord_part",
@@ -3068,6 +3310,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Service",
                         "flags": [
                             "dnsrecord_part",
@@ -3082,6 +3325,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Regular Expression",
                         "flags": [
                             "dnsrecord_part",
@@ -3096,6 +3340,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Replacement",
                         "flags": [
                             "dnsrecord_part",
@@ -3110,6 +3355,7 @@
                     },
                     {
                         "class": "NSRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw NS records",
                         "flags": [],
                         "label": "NS record",
@@ -3122,7 +3368,8 @@
                         "validatedns": true
                     },
                     {
-                        "class": "Str",
+                        "class": "DNSNameParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "Hostname",
                         "flags": [
                             "dnsrecord_part",
@@ -3131,14 +3378,16 @@
                         "hint": "nsrecord",
                         "label": "NS Hostname",
                         "name": "ns_part_hostname",
-                        "noextrawhitespace": true,
                         "option_group": "NS Record",
-                        "type": "unicode"
+                        "type": "DNSName"
                     },
                     {
                         "class": "NSECRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw NSEC records",
-                        "flags": [],
+                        "flags": [
+                            "no_option"
+                        ],
                         "label": "NSEC record",
                         "multivalue": true,
                         "name": "nsecrecord",
@@ -3149,72 +3398,8 @@
                         "validatedns": true
                     },
                     {
-                        "class": "Str",
-                        "doc": "Next Domain Name",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "nsecrecord",
-                        "label": "NSEC Next Domain Name",
-                        "name": "nsec_part_next",
-                        "noextrawhitespace": true,
-                        "option_group": "NSEC Record",
-                        "type": "unicode"
-                    },
-                    {
-                        "class": "StrEnum",
-                        "doc": "Type Map",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "nsecrecord",
-                        "label": "NSEC Type Map",
-                        "multivalue": true,
-                        "name": "nsec_part_types",
-                        "option_group": "NSEC Record",
-                        "type": "unicode",
-                        "values": [
-                            "SOA",
-                            "A",
-                            "AAAA",
-                            "A6",
-                            "AFSDB",
-                            "APL",
-                            "CERT",
-                            "CNAME",
-                            "DHCID",
-                            "DLV",
-                            "DNAME",
-                            "DNSKEY",
-                            "DS",
-                            "HIP",
-                            "IPSECKEY",
-                            "KEY",
-                            "KX",
-                            "LOC",
-                            "MX",
-                            "NAPTR",
-                            "NS",
-                            "NSEC",
-                            "NSEC3",
-                            "NSEC3PARAM",
-                            "PTR",
-                            "RRSIG",
-                            "RP",
-                            "SIG",
-                            "SPF",
-                            "SRV",
-                            "SSHFP",
-                            "TA",
-                            "TKEY",
-                            "TSIG",
-                            "TXT"
-                        ]
-                    },
-                    {
                         "class": "NSEC3Record",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw NSEC3 records",
                         "flags": [
                             "no_option"
@@ -3230,10 +3415,9 @@
                     },
                     {
                         "class": "NSEC3PARAMRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw NSEC3PARAM records",
-                        "flags": [
-                            "no_option"
-                        ],
+                        "flags": [],
                         "label": "NSEC3PARAM record",
                         "multivalue": true,
                         "name": "nsec3paramrecord",
@@ -3244,7 +3428,76 @@
                         "validatedns": true
                     },
                     {
+                        "class": "Int",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Algorithm",
+                        "flags": [
+                            "dnsrecord_part",
+                            "virtual_attribute"
+                        ],
+                        "hint": "nsec3paramrecord",
+                        "label": "NSEC3PARAM Algorithm",
+                        "maxvalue": 255,
+                        "minvalue": 0,
+                        "name": "nsec3param_part_algorithm",
+                        "option_group": "NSEC3PARAM Record",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "default": 0,
+                        "deprecated_cli_aliases": [],
+                        "doc": "Flags",
+                        "flags": [
+                            "dnsrecord_part",
+                            "virtual_attribute"
+                        ],
+                        "hint": "nsec3paramrecord",
+                        "label": "NSEC3PARAM Flags",
+                        "maxvalue": 255,
+                        "minvalue": 0,
+                        "name": "nsec3param_part_flags",
+                        "option_group": "NSEC3PARAM Record",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Int",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Iterations",
+                        "flags": [
+                            "dnsrecord_part",
+                            "virtual_attribute"
+                        ],
+                        "hint": "nsec3paramrecord",
+                        "label": "NSEC3PARAM Iterations",
+                        "maxvalue": 65535,
+                        "minvalue": 0,
+                        "name": "nsec3param_part_iterations",
+                        "option_group": "NSEC3PARAM Record",
+                        "type": "int"
+                    },
+                    {
+                        "class": "Str",
+                        "default": "-",
+                        "deprecated_cli_aliases": [],
+                        "doc": "A hexadecimal salt value. Requires hexadecimal digits or hyphen (\"-\") if no salt is required",
+                        "flags": [
+                            "dnsrecord_part",
+                            "virtual_attribute"
+                        ],
+                        "hint": "nsec3paramrecord",
+                        "label": "NSEC3PARAM Salt",
+                        "minlength": 1,
+                        "name": "nsec3param_part_salt",
+                        "noextrawhitespace": true,
+                        "option_group": "NSEC3PARAM Record",
+                        "pattern": "^([0-9a-fA-F]+|-)$",
+                        "pattern_errmsg": "only hexadecimal digits or single hyphen (\"-\") are allowed",
+                        "type": "unicode"
+                    },
+                    {
                         "class": "PTRRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw PTR records",
                         "flags": [],
                         "label": "PTR record",
@@ -3257,7 +3510,8 @@
                         "validatedns": true
                     },
                     {
-                        "class": "Str",
+                        "class": "DNSNameParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "The hostname this reverse record points to",
                         "flags": [
                             "dnsrecord_part",
@@ -3266,14 +3520,16 @@
                         "hint": "ptrrecord",
                         "label": "PTR Hostname",
                         "name": "ptr_part_hostname",
-                        "noextrawhitespace": true,
                         "option_group": "PTR Record",
-                        "type": "unicode"
+                        "type": "DNSName"
                     },
                     {
                         "class": "RRSIGRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw RRSIG records",
-                        "flags": [],
+                        "flags": [
+                            "no_option"
+                        ],
                         "label": "RRSIG record",
                         "multivalue": true,
                         "name": "rrsigrecord",
@@ -3284,172 +3540,8 @@
                         "validatedns": true
                     },
                     {
-                        "class": "StrEnum",
-                        "doc": "Type Covered",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "rrsigrecord",
-                        "label": "RRSIG Type Covered",
-                        "name": "rrsig_part_type_covered",
-                        "option_group": "RRSIG Record",
-                        "type": "unicode",
-                        "values": [
-                            "SOA",
-                            "A",
-                            "AAAA",
-                            "A6",
-                            "AFSDB",
-                            "APL",
-                            "CERT",
-                            "CNAME",
-                            "DHCID",
-                            "DLV",
-                            "DNAME",
-                            "DNSKEY",
-                            "DS",
-                            "HIP",
-                            "IPSECKEY",
-                            "KEY",
-                            "KX",
-                            "LOC",
-                            "MX",
-                            "NAPTR",
-                            "NS",
-                            "NSEC",
-                            "NSEC3",
-                            "NSEC3PARAM",
-                            "PTR",
-                            "RRSIG",
-                            "RP",
-                            "SPF",
-                            "SRV",
-                            "SSHFP",
-                            "TA",
-                            "TKEY",
-                            "TSIG",
-                            "TXT"
-                        ]
-                    },
-                    {
-                        "class": "Int",
-                        "doc": "Algorithm",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "rrsigrecord",
-                        "label": "RRSIG Algorithm",
-                        "maxvalue": 255,
-                        "minvalue": 0,
-                        "name": "rrsig_part_algorithm",
-                        "option_group": "RRSIG Record",
-                        "type": "int"
-                    },
-                    {
-                        "class": "Int",
-                        "doc": "Labels",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "rrsigrecord",
-                        "label": "RRSIG Labels",
-                        "maxvalue": 255,
-                        "minvalue": 0,
-                        "name": "rrsig_part_labels",
-                        "option_group": "RRSIG Record",
-                        "type": "int"
-                    },
-                    {
-                        "class": "Int",
-                        "doc": "Original TTL",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "rrsigrecord",
-                        "label": "RRSIG Original TTL",
-                        "maxvalue": 2147483647,
-                        "minvalue": 0,
-                        "name": "rrsig_part_original_ttl",
-                        "option_group": "RRSIG Record",
-                        "type": "int"
-                    },
-                    {
-                        "class": "Str",
-                        "doc": "Signature Expiration",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "rrsigrecord",
-                        "label": "RRSIG Signature Expiration",
-                        "name": "rrsig_part_signature_expiration",
-                        "noextrawhitespace": true,
-                        "option_group": "RRSIG Record",
-                        "type": "unicode"
-                    },
-                    {
-                        "class": "Str",
-                        "doc": "Signature Inception",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "rrsigrecord",
-                        "label": "RRSIG Signature Inception",
-                        "name": "rrsig_part_signature_inception",
-                        "noextrawhitespace": true,
-                        "option_group": "RRSIG Record",
-                        "type": "unicode"
-                    },
-                    {
-                        "class": "Int",
-                        "doc": "Key Tag",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "rrsigrecord",
-                        "label": "RRSIG Key Tag",
-                        "maxvalue": 65535,
-                        "minvalue": 0,
-                        "name": "rrsig_part_key_tag",
-                        "option_group": "RRSIG Record",
-                        "type": "int"
-                    },
-                    {
-                        "class": "Str",
-                        "doc": "Signer's Name",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "rrsigrecord",
-                        "label": "RRSIG Signer's Name",
-                        "name": "rrsig_part_signers_name",
-                        "noextrawhitespace": true,
-                        "option_group": "RRSIG Record",
-                        "type": "unicode"
-                    },
-                    {
-                        "class": "Str",
-                        "doc": "Signature",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "rrsigrecord",
-                        "label": "RRSIG Signature",
-                        "name": "rrsig_part_signature",
-                        "noextrawhitespace": true,
-                        "option_group": "RRSIG Record",
-                        "type": "unicode"
-                    },
-                    {
                         "class": "RPRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw RP records",
                         "flags": [
                             "no_option"
@@ -3465,8 +3557,11 @@
                     },
                     {
                         "class": "SIGRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw SIG records",
-                        "flags": [],
+                        "flags": [
+                            "no_option"
+                        ],
                         "label": "SIG record",
                         "multivalue": true,
                         "name": "sigrecord",
@@ -3477,172 +3572,8 @@
                         "validatedns": true
                     },
                     {
-                        "class": "StrEnum",
-                        "doc": "Type Covered",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "sigrecord",
-                        "label": "SIG Type Covered",
-                        "name": "sig_part_type_covered",
-                        "option_group": "SIG Record",
-                        "type": "unicode",
-                        "values": [
-                            "SOA",
-                            "A",
-                            "AAAA",
-                            "A6",
-                            "AFSDB",
-                            "APL",
-                            "CERT",
-                            "CNAME",
-                            "DHCID",
-                            "DLV",
-                            "DNAME",
-                            "DNSKEY",
-                            "DS",
-                            "HIP",
-                            "IPSECKEY",
-                            "KEY",
-                            "KX",
-                            "LOC",
-                            "MX",
-                            "NAPTR",
-                            "NS",
-                            "NSEC",
-                            "NSEC3",
-                            "NSEC3PARAM",
-                            "PTR",
-                            "RRSIG",
-                            "RP",
-                            "SPF",
-                            "SRV",
-                            "SSHFP",
-                            "TA",
-                            "TKEY",
-                            "TSIG",
-                            "TXT"
-                        ]
-                    },
-                    {
-                        "class": "Int",
-                        "doc": "Algorithm",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "sigrecord",
-                        "label": "SIG Algorithm",
-                        "maxvalue": 255,
-                        "minvalue": 0,
-                        "name": "sig_part_algorithm",
-                        "option_group": "SIG Record",
-                        "type": "int"
-                    },
-                    {
-                        "class": "Int",
-                        "doc": "Labels",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "sigrecord",
-                        "label": "SIG Labels",
-                        "maxvalue": 255,
-                        "minvalue": 0,
-                        "name": "sig_part_labels",
-                        "option_group": "SIG Record",
-                        "type": "int"
-                    },
-                    {
-                        "class": "Int",
-                        "doc": "Original TTL",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "sigrecord",
-                        "label": "SIG Original TTL",
-                        "maxvalue": 2147483647,
-                        "minvalue": 0,
-                        "name": "sig_part_original_ttl",
-                        "option_group": "SIG Record",
-                        "type": "int"
-                    },
-                    {
-                        "class": "Str",
-                        "doc": "Signature Expiration",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "sigrecord",
-                        "label": "SIG Signature Expiration",
-                        "name": "sig_part_signature_expiration",
-                        "noextrawhitespace": true,
-                        "option_group": "SIG Record",
-                        "type": "unicode"
-                    },
-                    {
-                        "class": "Str",
-                        "doc": "Signature Inception",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "sigrecord",
-                        "label": "SIG Signature Inception",
-                        "name": "sig_part_signature_inception",
-                        "noextrawhitespace": true,
-                        "option_group": "SIG Record",
-                        "type": "unicode"
-                    },
-                    {
-                        "class": "Int",
-                        "doc": "Key Tag",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "sigrecord",
-                        "label": "SIG Key Tag",
-                        "maxvalue": 65535,
-                        "minvalue": 0,
-                        "name": "sig_part_key_tag",
-                        "option_group": "SIG Record",
-                        "type": "int"
-                    },
-                    {
-                        "class": "Str",
-                        "doc": "Signer's Name",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "sigrecord",
-                        "label": "SIG Signer's Name",
-                        "name": "sig_part_signers_name",
-                        "noextrawhitespace": true,
-                        "option_group": "SIG Record",
-                        "type": "unicode"
-                    },
-                    {
-                        "class": "Str",
-                        "doc": "Signature",
-                        "flags": [
-                            "dnsrecord_part",
-                            "virtual_attribute"
-                        ],
-                        "hint": "sigrecord",
-                        "label": "SIG Signature",
-                        "name": "sig_part_signature",
-                        "noextrawhitespace": true,
-                        "option_group": "SIG Record",
-                        "type": "unicode"
-                    },
-                    {
                         "class": "SPFRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw SPF records",
                         "flags": [
                             "no_option"
@@ -3658,6 +3589,7 @@
                     },
                     {
                         "class": "SRVRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw SRV records",
                         "flags": [],
                         "label": "SRV record",
@@ -3671,6 +3603,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Priority",
                         "flags": [
                             "dnsrecord_part",
@@ -3686,6 +3619,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Weight",
                         "flags": [
                             "dnsrecord_part",
@@ -3701,6 +3635,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Port",
                         "flags": [
                             "dnsrecord_part",
@@ -3715,7 +3650,8 @@
                         "type": "int"
                     },
                     {
-                        "class": "Str",
+                        "class": "DNSNameParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "The domain name of the target host or '.' if the service is decidedly not available at this domain",
                         "flags": [
                             "dnsrecord_part",
@@ -3724,12 +3660,12 @@
                         "hint": "srvrecord",
                         "label": "SRV Target",
                         "name": "srv_part_target",
-                        "noextrawhitespace": true,
                         "option_group": "SRV Record",
-                        "type": "unicode"
+                        "type": "DNSName"
                     },
                     {
                         "class": "SSHFPRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw SSHFP records",
                         "flags": [],
                         "label": "SSHFP record",
@@ -3743,6 +3679,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Algorithm",
                         "flags": [
                             "dnsrecord_part",
@@ -3758,6 +3695,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Fingerprint Type",
                         "flags": [
                             "dnsrecord_part",
@@ -3773,6 +3711,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Fingerprint",
                         "flags": [
                             "dnsrecord_part",
@@ -3787,6 +3726,7 @@
                     },
                     {
                         "class": "TARecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw TA records",
                         "flags": [
                             "no_option"
@@ -3802,6 +3742,7 @@
                     },
                     {
                         "class": "TKEYRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw TKEY records",
                         "flags": [
                             "no_option"
@@ -3817,6 +3758,7 @@
                     },
                     {
                         "class": "TSIGRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw TSIG records",
                         "flags": [
                             "no_option"
@@ -3832,6 +3774,7 @@
                     },
                     {
                         "class": "TXTRecord",
+                        "deprecated_cli_aliases": [],
                         "doc": "Raw TXT records",
                         "flags": [],
                         "label": "TXT record",
@@ -3845,6 +3788,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Text Data",
                         "flags": [
                             "dnsrecord_part",
@@ -3868,6 +3812,7 @@
                     "arecord",
                     "certrecord",
                     "cnamerecord",
+                    "dlvrecord",
                     "dnamerecord",
                     "dnsclass",
                     "dnsttl",
@@ -3880,6 +3825,7 @@
                     "idnsforwarders",
                     "idnsforwardpolicy",
                     "idnsname",
+                    "idnssecinlinesigning",
                     "idnssoaexpire",
                     "idnssoaminimum",
                     "idnssoamname",
@@ -3897,6 +3843,7 @@
                     "minforecord",
                     "mxrecord",
                     "naptrrecord",
+                    "nsec3paramrecord",
                     "nsecrecord",
                     "nsrecord",
                     "nxtrecord",
@@ -3915,6 +3862,8 @@
                 "default_attributes": [
                     "idnsname",
                     "idnszoneactive",
+                    "idnsforwarders",
+                    "idnsforwardpolicy",
                     "idnssoamname",
                     "idnssoarname",
                     "idnssoaserial",
@@ -3924,8 +3873,7 @@
                     "idnssoaminimum",
                     "idnsallowquery",
                     "idnsallowtransfer",
-                    "idnsforwarders",
-                    "idnsforwardpolicy",
+                    "idnssecinlinesigning",
                     "arecord",
                     "aaaarecord",
                     "a6record",
@@ -4014,18 +3962,20 @@
                 },
                 "takes_params": [
                     {
-                        "class": "Str",
+                        "class": "DNSNameParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "Zone name (FQDN)",
                         "flags": [],
                         "label": "Zone name",
                         "name": "idnsname",
-                        "noextrawhitespace": true,
+                        "only_absolute": true,
                         "primary_key": true,
                         "required": true,
-                        "type": "unicode"
+                        "type": "DNSName"
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "IP network to create reverse zone name from",
                         "flags": [
                             "virtual_attribute"
@@ -4036,27 +3986,67 @@
                         "type": "unicode"
                     },
                     {
+                        "attribute": true,
+                        "class": "Bool",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Is zone active?",
+                        "flags": [
+                            "no_update",
+                            "no_create"
+                        ],
+                        "label": "Active zone",
+                        "name": "idnszoneactive",
+                        "type": "bool"
+                    },
+                    {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Per-zone forwarders. A custom port can be specified for each forwarder using a standard format \"IP_ADDRESS port PORT\"",
+                        "flags": [],
+                        "label": "Zone forwarders",
+                        "multivalue": true,
+                        "name": "idnsforwarders",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Per-zone conditional forwarding policy. Set to \"none\" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.",
+                        "flags": [],
+                        "label": "Forward policy",
+                        "name": "idnsforwardpolicy",
+                        "type": "unicode",
+                        "values": [
+                            "only",
+                            "first",
+                            "none"
+                        ]
+                    },
+                    {
+                        "class": "DNSNameParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "Authoritative nameserver domain name",
                         "flags": [],
                         "label": "Authoritative nameserver",
                         "name": "idnssoamname",
-                        "noextrawhitespace": true,
                         "required": true,
-                        "type": "unicode"
+                        "type": "DNSName"
                     },
                     {
-                        "class": "Str",
+                        "class": "DNSNameParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "Administrator e-mail address",
                         "flags": [],
                         "label": "Administrator e-mail address",
                         "name": "idnssoarname",
-                        "noextrawhitespace": true,
+                        "only_absolute": true,
                         "required": true,
-                        "type": "unicode"
+                        "type": "DNSName"
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "SOA record serial number",
                         "flags": [],
                         "label": "SOA serial",
@@ -4069,6 +4059,7 @@
                     {
                         "class": "Int",
                         "default": 3600,
+                        "deprecated_cli_aliases": [],
                         "doc": "SOA record refresh time",
                         "flags": [],
                         "label": "SOA refresh",
@@ -4081,6 +4072,7 @@
                     {
                         "class": "Int",
                         "default": 900,
+                        "deprecated_cli_aliases": [],
                         "doc": "SOA record retry time",
                         "flags": [],
                         "label": "SOA retry",
@@ -4093,6 +4085,7 @@
                     {
                         "class": "Int",
                         "default": 1209600,
+                        "deprecated_cli_aliases": [],
                         "doc": "SOA record expire time",
                         "flags": [],
                         "label": "SOA expire",
@@ -4105,6 +4098,7 @@
                     {
                         "class": "Int",
                         "default": 3600,
+                        "deprecated_cli_aliases": [],
                         "doc": "How long should negative responses be cached",
                         "flags": [],
                         "label": "SOA minimum",
@@ -4116,6 +4110,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Time to live for records at zone apex",
                         "flags": [],
                         "label": "Time to live",
@@ -4126,6 +4121,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "SOA record class",
                         "flags": [],
                         "label": "SOA class",
@@ -4140,6 +4136,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "BIND update policy",
                         "flags": [],
                         "label": "BIND update policy",
@@ -4150,18 +4147,7 @@
                     {
                         "attribute": true,
                         "class": "Bool",
-                        "doc": "Is zone active?",
-                        "flags": [
-                            "no_update",
-                            "no_create"
-                        ],
-                        "label": "Active zone",
-                        "name": "idnszoneactive",
-                        "type": "bool"
-                    },
-                    {
-                        "attribute": true,
-                        "class": "Bool",
+                        "deprecated_cli_aliases": [],
                         "doc": "Allow dynamic updates.",
                         "flags": [],
                         "label": "Dynamic update",
@@ -4171,6 +4157,7 @@
                     {
                         "class": "Str",
                         "default": "any;",
+                        "deprecated_cli_aliases": [],
                         "doc": "Semicolon separated list of IP addresses or networks which are allowed to issue queries",
                         "flags": [],
                         "label": "Allow query",
@@ -4181,6 +4168,7 @@
                     {
                         "class": "Str",
                         "default": "none;",
+                        "deprecated_cli_aliases": [],
                         "doc": "Semicolon separated list of IP addresses or networks which are allowed to transfer the zone",
                         "flags": [],
                         "label": "Allow transfer",
@@ -4189,34 +4177,21 @@
                         "type": "unicode"
                     },
                     {
-                        "class": "Str",
-                        "doc": "Per-zone forwarders. A custom port can be specified for each forwarder using a standard format \"IP_ADDRESS port PORT\"",
-                        "flags": [],
-                        "label": "Zone forwarders",
-                        "multivalue": true,
-                        "name": "idnsforwarders",
-                        "noextrawhitespace": true,
-                        "type": "unicode"
-                    },
-                    {
-                        "class": "StrEnum",
-                        "doc": "Per-zone conditional forwarding policy. Set to \"none\" to disable forwarding to global forwarder for this zone. In that case, conditional zone forwarders are disregarded.",
-                        "flags": [],
-                        "label": "Forward policy",
-                        "name": "idnsforwardpolicy",
-                        "type": "unicode",
-                        "values": [
-                            "only",
-                            "first",
-                            "none"
-                        ]
-                    },
-                    {
                         "class": "Bool",
+                        "deprecated_cli_aliases": [],
                         "doc": "Allow synchronization of forward (A, AAAA) and reverse (PTR) records in the zone",
                         "flags": [],
                         "label": "Allow PTR sync",
                         "name": "idnsallowsyncptr",
+                        "type": "bool"
+                    },
+                    {
+                        "class": "Bool",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Allow inline DNSSEC signing of records in the zone",
+                        "flags": [],
+                        "label": "Allow in-line DNSSEC signing",
+                        "name": "idnssecinlinesigning",
                         "type": "bool"
                     }
                 ],
@@ -4329,6 +4304,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Group name",
                         "flags": [],
                         "label": "Group name",
@@ -4343,6 +4319,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Group description",
                         "flags": [],
                         "label": "Description",
@@ -4353,6 +4330,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "GID (use this option to set it manually)",
                         "flags": [],
                         "label": "GID",
@@ -4401,7 +4379,7 @@
                     ]
                 },
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=hbac",
                 "default_attributes": [
                     "cn",
@@ -4477,6 +4455,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Rule name",
                         "flags": [],
                         "label": "Rule name",
@@ -4489,6 +4468,7 @@
                     {
                         "class": "StrEnum",
                         "default": "allow",
+                        "deprecated_cli_aliases": [],
                         "doc": "Rule type (allow)",
                         "exclude": [
                             "webui"
@@ -4508,6 +4488,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "User category the rule applies to",
                         "flags": [],
                         "label": "User category",
@@ -4519,6 +4500,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "Host category the rule applies to",
                         "flags": [],
                         "label": "Host category",
@@ -4531,6 +4513,7 @@
                     {
                         "class": "DeprecatedParam",
                         "deprecate": true,
+                        "deprecated_cli_aliases": [],
                         "doc": "<sourcehostcategory>",
                         "flags": [
                             "no_option"
@@ -4541,6 +4524,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "Service category the rule applies to",
                         "flags": [],
                         "label": "Service category",
@@ -4552,6 +4536,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Description",
                         "flags": [],
                         "label": "Description",
@@ -4561,6 +4546,7 @@
                     },
                     {
                         "class": "Bool",
+                        "deprecated_cli_aliases": [],
                         "doc": "Enabled",
                         "flags": [
                             "no_option"
@@ -4571,6 +4557,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Users",
                         "flags": [
                             "no_update",
@@ -4584,6 +4571,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "User Groups",
                         "flags": [
                             "no_update",
@@ -4597,6 +4585,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Hosts",
                         "flags": [
                             "no_update",
@@ -4610,6 +4599,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Host Groups",
                         "flags": [
                             "no_update",
@@ -4624,6 +4614,7 @@
                     {
                         "class": "DeprecatedParam",
                         "deprecate": true,
+                        "deprecated_cli_aliases": [],
                         "doc": "<sourcehost_host>",
                         "flags": [
                             "no_option"
@@ -4635,6 +4626,7 @@
                     {
                         "class": "DeprecatedParam",
                         "deprecate": true,
+                        "deprecated_cli_aliases": [],
                         "doc": "<sourcehost_hostgroup>",
                         "flags": [
                             "no_option"
@@ -4645,6 +4637,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Services",
                         "flags": [
                             "no_update",
@@ -4658,6 +4651,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Service Groups",
                         "flags": [
                             "no_update",
@@ -4671,6 +4665,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "External host",
                         "flags": [
                             "no_option"
@@ -4698,7 +4693,7 @@
                     ]
                 },
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=hbacservices,cn=hbac",
                 "default_attributes": [
                     "cn",
@@ -4754,6 +4749,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "HBAC service",
                         "flags": [],
                         "label": "Service name",
@@ -4765,6 +4761,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "HBAC service description",
                         "flags": [],
                         "label": "Description",
@@ -4794,7 +4791,7 @@
                     ]
                 },
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=hbacservicegroups,cn=hbac",
                 "default_attributes": [
                     "cn",
@@ -4852,6 +4849,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Service group name",
                         "flags": [],
                         "label": "Service group name",
@@ -4863,6 +4861,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "HBAC service group description",
                         "flags": [],
                         "label": "Description",
@@ -4994,6 +4993,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Host name",
                         "flags": [],
                         "label": "Host name",
@@ -5005,6 +5005,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "A description of this host",
                         "flags": [],
                         "label": "Description",
@@ -5014,6 +5015,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Host locality (e.g. \"Baltimore, MD\")",
                         "flags": [],
                         "label": "Locality",
@@ -5023,6 +5025,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Host location (e.g. \"Lab 2\")",
                         "flags": [],
                         "label": "Location",
@@ -5032,6 +5035,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Host hardware platform (e.g. \"Lenovo T61\")",
                         "flags": [],
                         "label": "Platform",
@@ -5041,6 +5045,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Host operating system and version (e.g. \"Fedora 9\")",
                         "flags": [],
                         "label": "Operating system",
@@ -5050,6 +5055,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Password used in bulk enrollment",
                         "flags": [],
                         "label": "User password",
@@ -5059,6 +5065,7 @@
                     },
                     {
                         "class": "Flag",
+                        "deprecated_cli_aliases": [],
                         "doc": "Generate a random password to be used in bulk enrollment",
                         "flags": [
                             "no_search",
@@ -5070,6 +5077,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Random password",
                         "flags": [
                             "virtual_attribute",
@@ -5084,6 +5092,7 @@
                     },
                     {
                         "class": "Bytes",
+                        "deprecated_cli_aliases": [],
                         "doc": "Base-64 encoded server certificate",
                         "flags": [],
                         "label": "Certificate",
@@ -5092,6 +5101,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Principal name",
                         "flags": [
                             "no_update",
@@ -5105,6 +5115,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Hardware MAC address(es) on this host",
                         "flags": [],
                         "label": "MAC address",
@@ -5117,6 +5128,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "SSH public key",
                         "flags": [
                             "no_search"
@@ -5129,6 +5141,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Host category (semantics placed on this attribute are for local interpretation)",
                         "flags": [],
                         "label": "Class",
@@ -5139,6 +5152,7 @@
                     },
                     {
                         "class": "Bool",
+                        "deprecated_cli_aliases": [],
                         "doc": "Pre-authentication is required for the service",
                         "flags": [
                             "virtual_attribute",
@@ -5150,6 +5164,7 @@
                     },
                     {
                         "class": "Bool",
+                        "deprecated_cli_aliases": [],
                         "doc": "Client credentials may be delegated to the service",
                         "flags": [
                             "virtual_attribute",
@@ -5259,6 +5274,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Name of host-group",
                         "flags": [],
                         "label": "Host-group",
@@ -5272,6 +5288,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "A description of this host-group",
                         "flags": [],
                         "label": "Description",
@@ -5295,7 +5312,7 @@
                 ],
                 "attribute_members": {},
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=ranges,cn=etc",
                 "default_attributes": [
                     "cn",
@@ -5354,6 +5371,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Range name",
                         "flags": [],
                         "label": "Range name",
@@ -5365,6 +5383,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "First Posix ID of the range",
                         "flags": [],
                         "label": "First Posix ID of the range",
@@ -5376,6 +5395,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Number of IDs in the range",
                         "flags": [],
                         "label": "Number of IDs in the range",
@@ -5387,6 +5407,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "First RID of the corresponding RID range",
                         "flags": [],
                         "label": "First RID of the corresponding RID range",
@@ -5397,6 +5418,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "First RID of the secondary RID range",
                         "flags": [],
                         "label": "First RID of the secondary RID range",
@@ -5407,6 +5429,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Domain SID of the trusted domain",
                         "flags": [
                             "no_update"
@@ -5418,6 +5441,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Name of the trusted domain",
                         "flags": [
                             "no_update",
@@ -5431,6 +5455,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "ID range type, one of ipa-ad-trust-posix, ipa-ad-trust, ipa-local, ipa-ad-winsync, ipa-ipa-trust",
                         "flags": [
                             "no_update"
@@ -5503,6 +5528,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Manage ticket policy for specific user",
                         "flags": [],
                         "label": "User name",
@@ -5513,6 +5539,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Maximum ticket life (seconds)",
                         "flags": [],
                         "label": "Max life",
@@ -5523,6 +5550,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Maximum renewable age (seconds)",
                         "flags": [],
                         "label": "Max renew",
@@ -5641,6 +5669,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Netgroup name",
                         "flags": [],
                         "label": "Netgroup name",
@@ -5654,6 +5683,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Netgroup description",
                         "flags": [],
                         "label": "Description",
@@ -5664,6 +5694,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "NIS domain name",
                         "flags": [],
                         "label": "NIS domain name",
@@ -5675,6 +5706,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "IPA unique ID",
                         "flags": [
                             "no_update",
@@ -5687,6 +5719,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "User category the rule applies to",
                         "flags": [],
                         "label": "User category",
@@ -5698,6 +5731,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "Host category the rule applies to",
                         "flags": [],
                         "label": "Host category",
@@ -5709,6 +5743,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "External host",
                         "flags": [
                             "no_option"
@@ -5739,9 +5774,14 @@
                     "ipatokentotptimestep",
                     "ipatokenuniqueid",
                     "ipatokenvendor",
+                    "managedby",
                     "objectclass"
                 ],
-                "attribute_members": {},
+                "attribute_members": {
+                    "managedby": [
+                        "user"
+                    ]
+                },
                 "bindable": false,
                 "can_have_permissions": false,
                 "container_dn": "cn=otp",
@@ -5754,7 +5794,8 @@
                     "ipatokennotafter",
                     "ipatokenvendor",
                     "ipatokenmodel",
-                    "ipatokenserial"
+                    "ipatokenserial",
+                    "managedby"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -5764,9 +5805,11 @@
                 "label_singular": "OTP Token",
                 "methods": [
                     "add",
+                    "add_managedby",
                     "del",
                     "find",
                     "mod",
+                    "remove_managedby",
                     "show"
                 ],
                 "name": "otptoken",
@@ -5780,30 +5823,16 @@
                 "primary_key": "ipatokenuniqueid",
                 "rdn_attribute": "",
                 "relationships": {
-                    "member": [
-                        "Member",
-                        "",
-                        "no_"
-                    ],
-                    "memberindirect": [
-                        "Indirect Member",
-                        null,
-                        "no_indirect_"
-                    ],
-                    "memberof": [
-                        "Member Of",
-                        "in_",
-                        "not_in_"
-                    ],
-                    "memberofindirect": [
-                        "Indirect Member Of",
-                        null,
-                        "not_in_indirect_"
+                    "managedby": [
+                        "Managed by",
+                        "man_by_",
+                        "not_man_by_"
                     ]
                 },
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Unique ID",
                         "flags": [
                             "optional_create"
@@ -5818,6 +5847,7 @@
                     {
                         "class": "StrEnum",
                         "default": "totp",
+                        "deprecated_cli_aliases": [],
                         "doc": "Type",
                         "flags": [
                             "no_update",
@@ -5833,6 +5863,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Description",
                         "flags": [],
                         "label": "Description",
@@ -5842,6 +5873,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Owner",
                         "flags": [],
                         "label": "Owner",
@@ -5850,7 +5882,22 @@
                         "type": "unicode"
                     },
                     {
+                        "class": "Str",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Manager",
+                        "flags": [
+                            "no_update",
+                            "no_create",
+                            "no_search"
+                        ],
+                        "label": "Manager",
+                        "name": "managedby_user",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
                         "class": "Bool",
+                        "deprecated_cli_aliases": [],
                         "doc": "Disabled state",
                         "flags": [],
                         "label": "Disabled state",
@@ -5859,6 +5906,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Validity start",
                         "flags": [],
                         "label": "Validity start",
@@ -5868,6 +5916,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Validity end",
                         "flags": [],
                         "label": "Validity end",
@@ -5878,6 +5927,7 @@
                     {
                         "class": "Str",
                         "default": "FreeIPA",
+                        "deprecated_cli_aliases": [],
                         "doc": "Vendor",
                         "flags": [],
                         "label": "Vendor",
@@ -5887,6 +5937,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Model",
                         "flags": [],
                         "label": "Model",
@@ -5896,6 +5947,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Serial",
                         "flags": [],
                         "label": "Serial",
@@ -5906,6 +5958,7 @@
                     {
                         "class": "OTPTokenKey",
                         "confirm": true,
+                        "deprecated_cli_aliases": [],
                         "doc": "Key",
                         "flags": [
                             "no_display",
@@ -5919,6 +5972,7 @@
                     {
                         "class": "StrEnum",
                         "default": "sha1",
+                        "deprecated_cli_aliases": [],
                         "doc": "Algorithm",
                         "flags": [
                             "no_update"
@@ -5936,6 +5990,7 @@
                     {
                         "class": "IntEnum",
                         "default": 6,
+                        "deprecated_cli_aliases": [],
                         "doc": "Display length",
                         "flags": [
                             "no_update"
@@ -5951,6 +6006,7 @@
                     {
                         "class": "Int",
                         "default": 0,
+                        "deprecated_cli_aliases": [],
                         "doc": "Clock offset",
                         "flags": [
                             "no_update"
@@ -5964,6 +6020,7 @@
                     {
                         "class": "Int",
                         "default": 30,
+                        "deprecated_cli_aliases": [],
                         "doc": "Clock interval",
                         "flags": [
                             "no_update"
@@ -5977,6 +6034,7 @@
                     {
                         "class": "Int",
                         "default": 0,
+                        "deprecated_cli_aliases": [],
                         "doc": "Counter",
                         "flags": [
                             "no_update"
@@ -6020,7 +6078,7 @@
                     ]
                 },
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=permissions,cn=pbac",
                 "default_attributes": [
                     "cn",
@@ -6056,6 +6114,7 @@
                 ],
                 "name": "permission",
                 "object_class": [
+                    "top",
                     "groupofnames",
                     "ipapermission",
                     "ipapermissionv2"
@@ -6091,22 +6150,26 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Permission name",
                         "flags": [],
                         "label": "Permission name",
                         "name": "cn",
                         "noextrawhitespace": true,
-                        "pattern": "^[-_ a-zA-Z0-9.]+$",
-                        "pattern_errmsg": "May only contain letters, numbers, -, _, ., and space",
+                        "pattern": "^[-_ a-zA-Z0-9.:]+$",
+                        "pattern_errmsg": "May only contain letters, numbers, -, _, ., :, and space",
                         "primary_key": true,
                         "required": true,
                         "type": "unicode"
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [
+                            "permissions"
+                        ],
                         "doc": "Rights to grant (read, search, compare, write, add, delete, all)",
                         "flags": [],
-                        "label": "Permissions",
+                        "label": "Granted rights",
                         "multivalue": true,
                         "name": "ipapermright",
                         "type": "unicode",
@@ -6122,6 +6185,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "All attributes to which the permission applies",
                         "flags": [
                             "virtual_attribute",
@@ -6135,6 +6199,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "User-specified attributes to which the permission applies",
                         "flags": [
                             "no_create",
@@ -6148,6 +6213,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "User-specified attributes to which the permission explicitly does not apply",
                         "flags": [
                             "no_create",
@@ -6161,6 +6227,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Attributes to which the permission applies by default",
                         "flags": [
                             "no_update",
@@ -6175,6 +6242,7 @@
                     {
                         "class": "StrEnum",
                         "default": "permission",
+                        "deprecated_cli_aliases": [],
                         "doc": "Bind rule type",
                         "flags": [
                             "allow_mod_for_managed_permission"
@@ -6191,6 +6259,7 @@
                     },
                     {
                         "class": "DNOrURL",
+                        "deprecated_cli_aliases": [],
                         "doc": "Subtree to apply permissions to",
                         "flags": [
                             "ask_create"
@@ -6201,6 +6270,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Extra target filter",
                         "flags": [
                             "virtual_attribute"
@@ -6213,6 +6283,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "All target filters, including those implied by type and memberof",
                         "flags": [],
                         "label": "Raw target filter",
@@ -6223,6 +6294,7 @@
                     },
                     {
                         "class": "DNParam",
+                        "deprecated_cli_aliases": [],
                         "doc": "ACI target DN",
                         "flags": [
                             "no_option"
@@ -6233,6 +6305,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Target members of a group (sets memberOf targetfilter)",
                         "flags": [
                             "ask_create",
@@ -6246,6 +6319,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "User group to apply permissions to (sets target)",
                         "flags": [
                             "ask_create",
@@ -6258,6 +6332,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Type of IPA object (sets subtree and objectClass targetfilter)",
                         "flags": [
                             "ask_create",
@@ -6270,6 +6345,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Deprecated; use extratargetfilter",
                         "flags": [
                             "no_option",
@@ -6283,6 +6359,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Deprecated; use ipapermlocation",
                         "flags": [
                             "no_option",
@@ -6296,6 +6373,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Deprecated; use ipapermright",
                         "flags": [
                             "no_option",
@@ -6335,7 +6413,7 @@
                     ]
                 },
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=privileges,cn=pbac",
                 "default_attributes": [
                     "cn",
@@ -6396,6 +6474,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Privilege name",
                         "flags": [],
                         "label": "Privilege name",
@@ -6407,6 +6486,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Privilege description",
                         "flags": [],
                         "label": "Description",
@@ -6433,7 +6513,7 @@
                 ],
                 "attribute_members": {},
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=EXAMPLE.COM,cn=kerberos",
                 "default_attributes": [
                     "cn",
@@ -6497,6 +6577,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Manage password policy for specific group",
                         "flags": [],
                         "label": "Group",
@@ -6507,6 +6588,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Maximum password lifetime (in days)",
                         "flags": [],
                         "label": "Max lifetime (days)",
@@ -6517,6 +6599,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Minimum password lifetime (in hours)",
                         "flags": [],
                         "label": "Min lifetime (hours)",
@@ -6527,6 +6610,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Password history size",
                         "flags": [],
                         "label": "History size",
@@ -6537,6 +6621,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Minimum number of character classes",
                         "flags": [],
                         "label": "Character classes",
@@ -6547,6 +6632,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Minimum length of password",
                         "flags": [],
                         "label": "Min length",
@@ -6557,6 +6643,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Priority of the policy (higher number means lower priority",
                         "flags": [
                             "virtual_attribute"
@@ -6570,6 +6657,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Consecutive failures before lockout",
                         "flags": [],
                         "label": "Max failures",
@@ -6580,6 +6668,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Period after which failure count will be reset (seconds)",
                         "flags": [],
                         "label": "Failure reset interval",
@@ -6590,6 +6679,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Period for which lockout is enforced (seconds)",
                         "flags": [],
                         "label": "Lockout duration",
@@ -6672,6 +6762,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "RADIUS proxy server name",
                         "flags": [],
                         "label": "RADIUS proxy server name",
@@ -6683,6 +6774,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "A description of this RADIUS proxy server",
                         "flags": [],
                         "label": "Description",
@@ -6692,6 +6784,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "The hostname or IP (with or without port)",
                         "flags": [],
                         "label": "Server",
@@ -6704,6 +6797,7 @@
                     {
                         "class": "Password",
                         "confirm": true,
+                        "deprecated_cli_aliases": [],
                         "doc": "The secret used to encrypt data",
                         "flags": [
                             "no_option"
@@ -6716,6 +6810,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "The total timeout across all retries (in seconds)",
                         "flags": [],
                         "label": "Timeout",
@@ -6726,6 +6821,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "The number of times to retry authentication",
                         "flags": [],
                         "label": "Retries",
@@ -6736,6 +6832,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "The username attribute on the user object",
                         "flags": [],
                         "label": "User attribute",
@@ -6750,7 +6847,7 @@
                 "aciattrs": [],
                 "attribute_members": {},
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=Realm Domains,cn=ipa,cn=etc",
                 "default_attributes": [
                     "associateddomain"
@@ -6797,6 +6894,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Domain",
                         "flags": [],
                         "label": "Domain",
@@ -6808,6 +6906,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Add domain",
                         "flags": [],
                         "label": "Add domain",
@@ -6817,6 +6916,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Delete domain",
                         "flags": [],
                         "label": "Delete domain",
@@ -6852,7 +6952,7 @@
                     ]
                 },
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=roles,cn=accounts",
                 "default_attributes": [
                     "cn",
@@ -6915,6 +7015,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Role name",
                         "flags": [],
                         "label": "Role name",
@@ -6926,6 +7027,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "A description of this role-group",
                         "flags": [],
                         "label": "Description",
@@ -6955,6 +7057,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Self-service name",
                         "flags": [],
                         "label": "Self-service name",
@@ -6968,6 +7071,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Permissions to grant (read, write). Default is write.",
                         "flags": [],
                         "label": "Permissions",
@@ -6978,6 +7082,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Attributes to which the permission applies.",
                         "flags": [],
                         "label": "Attributes",
@@ -7014,7 +7119,7 @@
                     ]
                 },
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=usermap,cn=selinux",
                 "default_attributes": [
                     "cn",
@@ -7084,6 +7189,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Rule name",
                         "flags": [],
                         "label": "Rule name",
@@ -7095,6 +7201,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "SELinux User",
                         "flags": [],
                         "label": "SELinux User",
@@ -7105,6 +7212,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "HBAC Rule that defines the users, groups and hostgroups",
                         "flags": [],
                         "label": "HBAC Rule",
@@ -7114,6 +7222,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "User category the rule applies to",
                         "flags": [],
                         "label": "User category",
@@ -7125,6 +7234,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "Host category the rule applies to",
                         "flags": [],
                         "label": "Host category",
@@ -7136,6 +7246,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Description",
                         "flags": [],
                         "label": "Description",
@@ -7145,6 +7256,7 @@
                     },
                     {
                         "class": "Bool",
+                        "deprecated_cli_aliases": [],
                         "doc": "Enabled",
                         "flags": [
                             "no_option"
@@ -7155,6 +7267,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Users",
                         "flags": [
                             "no_update",
@@ -7168,6 +7281,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "User Groups",
                         "flags": [
                             "no_update",
@@ -7181,6 +7295,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Hosts",
                         "flags": [
                             "no_update",
@@ -7194,6 +7309,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Host Groups",
                         "flags": [
                             "no_update",
@@ -7294,6 +7410,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Service principal",
                         "flags": [],
                         "label": "Principal",
@@ -7305,6 +7422,7 @@
                     },
                     {
                         "class": "Bytes",
+                        "deprecated_cli_aliases": [],
                         "doc": "Base-64 encoded server certificate",
                         "flags": [
                             "no_search"
@@ -7315,6 +7433,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "Override default list of supported PAC types. Use 'NONE' to disable PAC support for this service, e.g. this might be necessary for NFS services.",
                         "flags": [],
                         "label": "PAC type",
@@ -7329,6 +7448,7 @@
                     },
                     {
                         "class": "Bool",
+                        "deprecated_cli_aliases": [],
                         "doc": "Pre-authentication is required for the service",
                         "flags": [
                             "virtual_attribute",
@@ -7340,6 +7460,7 @@
                     },
                     {
                         "class": "Bool",
+                        "deprecated_cli_aliases": [],
                         "doc": "Client credentials may be delegated to the service",
                         "flags": [
                             "virtual_attribute",
@@ -7366,7 +7487,7 @@
                     ]
                 },
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=sudocmds,cn=sudo",
                 "default_attributes": [
                     "sudocmd",
@@ -7422,6 +7543,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Sudo Command",
                         "flags": [],
                         "label": "Sudo Command",
@@ -7433,6 +7555,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "A description of this command",
                         "flags": [],
                         "label": "Description",
@@ -7462,7 +7585,7 @@
                     ]
                 },
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=sudocmdgroups,cn=sudo",
                 "default_attributes": [
                     "cn",
@@ -7520,6 +7643,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Sudo Command Group",
                         "flags": [],
                         "label": "Sudo Command Group",
@@ -7531,6 +7655,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Group description",
                         "flags": [],
                         "label": "Description",
@@ -7541,6 +7666,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Commands",
                         "flags": [
                             "no_update",
@@ -7554,6 +7680,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Sudo Command Groups",
                         "flags": [
                             "no_update",
@@ -7621,7 +7748,7 @@
                     ]
                 },
                 "bindable": false,
-                "can_have_permissions": false,
+                "can_have_permissions": true,
                 "container_dn": "cn=sudorules,cn=sudo",
                 "default_attributes": [
                     "cn",
@@ -7707,6 +7834,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Rule name",
                         "flags": [],
                         "label": "Rule name",
@@ -7718,6 +7846,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Description",
                         "flags": [],
                         "label": "Description",
@@ -7727,6 +7856,7 @@
                     },
                     {
                         "class": "Bool",
+                        "deprecated_cli_aliases": [],
                         "doc": "Enabled",
                         "flags": [
                             "no_option"
@@ -7737,6 +7867,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "User category the rule applies to",
                         "flags": [],
                         "label": "User category",
@@ -7748,6 +7879,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "Host category the rule applies to",
                         "flags": [],
                         "label": "Host category",
@@ -7759,6 +7891,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "Command category the rule applies to",
                         "flags": [],
                         "label": "Command category",
@@ -7770,6 +7903,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "RunAs User category the rule applies to",
                         "flags": [],
                         "label": "RunAs User category",
@@ -7781,6 +7915,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "RunAs Group category the rule applies to",
                         "flags": [],
                         "label": "RunAs Group category",
@@ -7793,6 +7928,7 @@
                     {
                         "class": "Int",
                         "default": 0,
+                        "deprecated_cli_aliases": [],
                         "doc": "integer to order the Sudo rules",
                         "flags": [],
                         "label": "Sudo order",
@@ -7803,6 +7939,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Users",
                         "flags": [
                             "no_update",
@@ -7816,6 +7953,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "User Groups",
                         "flags": [
                             "no_update",
@@ -7829,6 +7967,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Hosts",
                         "flags": [
                             "no_update",
@@ -7842,6 +7981,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Host Groups",
                         "flags": [
                             "no_update",
@@ -7855,6 +7995,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Sudo Allow Commands",
                         "flags": [
                             "no_update",
@@ -7868,6 +8009,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Sudo Deny Commands",
                         "flags": [
                             "no_update",
@@ -7881,6 +8023,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Sudo Allow Command Groups",
                         "flags": [
                             "no_update",
@@ -7894,6 +8037,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Sudo Deny Command Groups",
                         "flags": [
                             "no_update",
@@ -7907,6 +8051,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Run as a user",
                         "flags": [
                             "no_update",
@@ -7920,6 +8065,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Run as any user within a specified group",
                         "flags": [
                             "no_update",
@@ -7933,6 +8079,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "External User the rule applies to (sudorule-find only)",
                         "flags": [],
                         "label": "External User",
@@ -7942,6 +8089,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "External User the commands can run as (sudorule-find only)",
                         "flags": [],
                         "label": "RunAs External User",
@@ -7951,6 +8099,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "External Group the commands can run as (sudorule-find only)",
                         "flags": [],
                         "label": "RunAs External Group",
@@ -7960,6 +8109,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Sudo Option",
                         "flags": [
                             "no_update",
@@ -7973,6 +8123,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Run with the gid of a specified POSIX group",
                         "flags": [
                             "no_update",
@@ -7986,6 +8137,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "External host",
                         "flags": [
                             "no_option"
@@ -8029,8 +8181,6 @@
                     "ipanttrustattributes",
                     "ipanttrustdirection",
                     "ipanttrustpartner",
-                    "ipantauthtrustoutgoing",
-                    "ipanttrustauthincoming",
                     "ipanttrustforesttrustinfo",
                     "ipanttrustposixoffset",
                     "ipantsupportedencryptiontypes"
@@ -8084,6 +8234,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Realm name",
                         "flags": [],
                         "label": "Realm name",
@@ -8095,6 +8246,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Domain NetBIOS name",
                         "flags": [
                             "no_update",
@@ -8108,6 +8260,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Domain Security Identifier",
                         "flags": [
                             "no_update",
@@ -8121,6 +8274,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "SID blacklist incoming",
                         "flags": [
                             "no_create"
@@ -8133,6 +8287,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "SID blacklist outgoing",
                         "flags": [
                             "no_create"
@@ -8201,6 +8356,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Domain",
                         "flags": [
                             "no_update"
@@ -8213,6 +8369,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Security Identifier",
                         "flags": [
                             "no_update"
@@ -8225,6 +8382,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "NetBIOS name",
                         "flags": [
                             "no_update"
@@ -8237,6 +8395,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Domain GUID",
                         "flags": [
                             "no_update"
@@ -8249,6 +8408,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Fallback primary group",
                         "flags": [],
                         "label": "Fallback primary group",
@@ -8337,6 +8497,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Domain name",
                         "flags": [],
                         "label": "Domain name",
@@ -8348,6 +8509,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Domain NetBIOS name",
                         "flags": [],
                         "label": "Domain NetBIOS name",
@@ -8357,6 +8519,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Domain Security Identifier",
                         "flags": [],
                         "label": "Domain Security Identifier",
@@ -8366,6 +8529,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Trusted domain partner",
                         "flags": [
                             "no_display",
@@ -8505,7 +8669,8 @@
                     "ipauserauthtype",
                     "userclass",
                     "ipatokenradiusconfiglink",
-                    "ipatokenradiususername"
+                    "ipatokenradiususername",
+                    "krbprincipalexpiration"
                 ],
                 "hidden_attributes": [
                     "objectclass",
@@ -8559,6 +8724,7 @@
                 "takes_params": [
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "User login",
                         "flags": [],
                         "label": "User login",
@@ -8573,6 +8739,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "First name",
                         "flags": [],
                         "label": "First name",
@@ -8583,6 +8750,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Last name",
                         "flags": [],
                         "label": "Last name",
@@ -8593,6 +8761,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Full name",
                         "flags": [],
                         "label": "Full name",
@@ -8603,6 +8772,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Display name",
                         "flags": [],
                         "label": "Display name",
@@ -8612,6 +8782,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Initials",
                         "flags": [],
                         "label": "Initials",
@@ -8621,6 +8792,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Home directory",
                         "flags": [],
                         "label": "Home directory",
@@ -8630,6 +8802,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "GECOS",
                         "flags": [],
                         "label": "GECOS",
@@ -8639,6 +8812,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Login shell",
                         "flags": [],
                         "label": "Login shell",
@@ -8648,6 +8822,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Kerberos principal",
                         "flags": [
                             "no_update"
@@ -8658,7 +8833,17 @@
                         "type": "unicode"
                     },
                     {
+                        "class": "DateTime",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Kerberos principal expiration",
+                        "flags": [],
+                        "label": "Kerberos principal expiration",
+                        "name": "krbprincipalexpiration",
+                        "type": "datetime"
+                    },
+                    {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Email address",
                         "flags": [],
                         "label": "Email address",
@@ -8670,6 +8855,7 @@
                     {
                         "class": "Password",
                         "confirm": true,
+                        "deprecated_cli_aliases": [],
                         "doc": "Prompt to set the user password",
                         "exclude": [
                             "webui"
@@ -8682,6 +8868,7 @@
                     },
                     {
                         "class": "Flag",
+                        "deprecated_cli_aliases": [],
                         "doc": "Generate a random user password",
                         "flags": [
                             "no_search",
@@ -8693,6 +8880,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Random password",
                         "flags": [
                             "virtual_attribute",
@@ -8707,6 +8895,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "User ID Number (system will assign one if not provided)",
                         "flags": [],
                         "label": "UID",
@@ -8717,6 +8906,7 @@
                     },
                     {
                         "class": "Int",
+                        "deprecated_cli_aliases": [],
                         "doc": "Group ID Number",
                         "flags": [],
                         "label": "GID",
@@ -8727,6 +8917,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Street address",
                         "flags": [],
                         "label": "Street address",
@@ -8736,6 +8927,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "City",
                         "flags": [],
                         "label": "City",
@@ -8745,6 +8937,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "State/Province",
                         "flags": [],
                         "label": "State/Province",
@@ -8754,6 +8947,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "ZIP",
                         "flags": [],
                         "label": "ZIP",
@@ -8763,6 +8957,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Telephone Number",
                         "flags": [],
                         "label": "Telephone Number",
@@ -8773,6 +8968,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Mobile Telephone Number",
                         "flags": [],
                         "label": "Mobile Telephone Number",
@@ -8783,6 +8979,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Pager Number",
                         "flags": [],
                         "label": "Pager Number",
@@ -8793,6 +8990,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Fax Number",
                         "flags": [],
                         "label": "Fax Number",
@@ -8803,6 +9001,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Org. Unit",
                         "flags": [],
                         "label": "Org. Unit",
@@ -8812,6 +9011,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Job Title",
                         "flags": [],
                         "label": "Job Title",
@@ -8821,6 +9021,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Manager",
                         "flags": [],
                         "label": "Manager",
@@ -8830,15 +9031,18 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "Car License",
                         "flags": [],
                         "label": "Car License",
+                        "multivalue": true,
                         "name": "carlicense",
                         "noextrawhitespace": true,
                         "type": "unicode"
                     },
                     {
                         "class": "Bool",
+                        "deprecated_cli_aliases": [],
                         "doc": "Account disabled",
                         "flags": [
                             "no_option"
@@ -8849,6 +9053,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "SSH public key",
                         "flags": [
                             "no_search"
@@ -8861,6 +9066,7 @@
                     },
                     {
                         "class": "StrEnum",
+                        "deprecated_cli_aliases": [],
                         "doc": "Types of supported user authentication",
                         "flags": [],
                         "label": "User authentication types",
@@ -8875,6 +9081,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "User category (semantics placed on this attribute are for local interpretation)",
                         "flags": [],
                         "label": "Class",
@@ -8885,6 +9092,7 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "RADIUS proxy configuration",
                         "flags": [],
                         "label": "RADIUS proxy configuration",
@@ -8894,11 +9102,55 @@
                     },
                     {
                         "class": "Str",
+                        "deprecated_cli_aliases": [],
                         "doc": "RADIUS proxy username",
                         "flags": [],
                         "label": "RADIUS proxy username",
                         "name": "ipatokenradiususername",
                         "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Department Number",
+                        "flags": [],
+                        "label": "Department Number",
+                        "multivalue": true,
+                        "name": "departmentnumber",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Employee Number",
+                        "flags": [],
+                        "label": "Employee Number",
+                        "name": "employeenumber",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Employee Type",
+                        "flags": [],
+                        "label": "Employee Type",
+                        "name": "employeetype",
+                        "noextrawhitespace": true,
+                        "type": "unicode"
+                    },
+                    {
+                        "class": "Str",
+                        "deprecated_cli_aliases": [],
+                        "doc": "Preferred Language",
+                        "flags": [],
+                        "label": "Preferred Language",
+                        "name": "preferredlanguage",
+                        "noextrawhitespace": true,
+                        "pattern": "^(([a-zA-Z]{1,8}(-[a-zA-Z]{1,8})?(;q\\=((0(\\.[0-9]{0,3})?)|(1(\\.0{0,3})?)))?(\\s*,\\s*[a-zA-Z]{1,8}(-[a-zA-Z]{1,8})?(;q\\=((0(\\.[0-9]{0,3})?)|(1(\\.0{0,3})?)))?)*)|(\\*))$",
+                        "pattern_errmsg": "must match RFC 2068 - 14.4, e.g., \"da, en-gb;q=0.8, en;q=0.7\"",
                         "type": "unicode"
                     }
                 ],

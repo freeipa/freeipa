@@ -2,16 +2,11 @@
     "error": null,
     "id": null,
     "result": {
-        "count": 5,
+        "count": 6,
         "results": [
             {
                 "error": null,
                 "texts": {
-                    "ajax": {
-                        "401": {
-                            "message": "Your session has expired. Please re-login."
-                        }
-                    },
                     "actions": {
                         "apply": "Apply",
                         "automember_rebuild": "Rebuild auto membership",
@@ -615,6 +610,10 @@
                     "ipahomesrootdir": [
                         "/home"
                     ],
+                    "ipakrbauthzdata": [
+                        "nfs:NONE",
+                        "MS-PAC"
+                    ],
                     "ipamaxusernamelength": [
                         "32"
                     ],
@@ -631,17 +630,17 @@
                         "2"
                     ],
                     "ipaselinuxusermapdefault": [
-                        "guest_u:s0"
+                        "unconfined_u:s0-s0:c0.c1023"
                     ],
                     "ipaselinuxusermaporder": [
-                        "guest_u:s0$xguest_u:s0$user_u:s0-s0:c0.c1023$staff_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023"
+                        "guest_u:s0$xguest_u:s0$user_u:s0$staff_u:s0-s0:c0.c1023$unconfined_u:s0-s0:c0.c1023"
                     ],
                     "ipausersearchfields": [
                         "uid,givenname,sn,telephonenumber,ou,title"
                     ]
                 },
                 "summary": null,
-                "value": ""
+                "value": null
             },
             {
                 "count": 1,
@@ -675,10 +674,19 @@
                             }
                         ],
                         "krblastpwdchange": [
-                            "20120110142413Z"
+                            {
+                                "__datetime__": "20140612125228Z"
+                            }
+                        ],
+                        "krblastsuccessfulauth": [
+                            {
+                                "__datetime__": "20140618115206Z"
+                            }
                         ],
                         "krbpasswordexpiration": [
-                            "20141212052109Z"
+                            {
+                                "__datetime__": "20140910125228Z"
+                            }
                         ],
                         "krbprincipalname": [
                             "admin@DEV.EXAMPLE.COM"
@@ -687,17 +695,20 @@
                             "/bin/bash"
                         ],
                         "memberof_group": [
-                            "admins"
+                            "admins",
+                            "trust admins"
                         ],
                         "nsaccountlock": false,
                         "objectclass": [
+                            "ipaSshGroupOfPubKeys",
+                            "ipaobject",
                             "top",
+                            "ipasshuser",
                             "person",
-                            "posixaccount",
-                            "krbprincipalaux",
                             "krbticketpolicyaux",
+                            "krbprincipalaux",
                             "inetuser",
-                            "ipaobject"
+                            "posixaccount"
                         ],
                         "sn": [
                             "Administrator"
@@ -714,27 +725,32 @@
                 "truncated": false
             },
             {
-                "count": 75,
+                "count": 88,
                 "error": null,
                 "result": {
-                    "basedn": "dc=dev,dc=example,dc=com",
-                    "bin": "/var/www",
-                    "ca_agent_install_port": 9443,
+                    "api_version": 2.91,
+                    "basedn": "dc=example,dc=com",
+                    "bin": "/usr/share/httpd",
+                    "ca_agent_install_port": null,
                     "ca_agent_port": 443,
-                    "ca_ee_install_port": 9444,
+                    "ca_ee_install_port": null,
                     "ca_ee_port": 443,
                     "ca_host": "dev.example.com",
-                    "ca_install_port": 9180,
+                    "ca_install_port": null,
                     "ca_port": 80,
                     "conf": "/etc/ipa/server.conf",
                     "conf_default": "/etc/ipa/default.conf",
                     "confdir": "/etc/ipa",
                     "config_loaded": true,
                     "container_accounts": "cn=accounts",
+                    "container_adtrusts": "cn=ad,cn=trusts",
                     "container_applications": "cn=applications,cn=configs,cn=policies",
                     "container_automember": "cn=automember,cn=etc",
                     "container_automount": "cn=automount",
+                    "container_cifsdomains": "cn=ad,cn=etc",
                     "container_configs": "cn=configs,cn=policies",
+                    "container_dna": "cn=dna,cn=ipa,cn=etc",
+                    "container_dna_posix_ids": "cn=posix-ids,cn=dna,cn=ipa,cn=etc",
                     "container_dns": "cn=dns",
                     "container_group": "cn=groups,cn=accounts",
                     "container_hbac": "cn=hbac",
@@ -743,46 +759,56 @@
                     "container_host": "cn=computers,cn=accounts",
                     "container_hostgroup": "cn=hostgroups,cn=accounts",
                     "container_netgroup": "cn=ng,cn=alt",
+                    "container_otp": "cn=otp",
                     "container_permission": "cn=permissions,cn=pbac",
                     "container_policies": "cn=policies",
                     "container_policygroups": "cn=policygroups,cn=configs,cn=policies",
                     "container_policylinks": "cn=policylinks,cn=configs,cn=policies",
                     "container_privilege": "cn=privileges,cn=pbac",
+                    "container_radiusproxy": "cn=radiusproxy",
+                    "container_ranges": "cn=ranges,cn=etc",
+                    "container_realm_domains": "cn=Realm Domains,cn=ipa,cn=etc",
                     "container_rolegroup": "cn=roles,cn=accounts",
                     "container_roles": "cn=roles,cn=policies",
+                    "container_s4u2proxy": "cn=s4u2proxy,cn=etc",
                     "container_selinux": "cn=usermap,cn=selinux",
                     "container_service": "cn=services,cn=accounts",
                     "container_sudocmd": "cn=sudocmds,cn=sudo",
                     "container_sudocmdgroup": "cn=sudocmdgroups,cn=sudo",
                     "container_sudorule": "cn=sudorules,cn=sudo",
+                    "container_trusts": "cn=trusts",
                     "container_user": "cn=users,cn=accounts",
                     "container_virtual": "cn=virtual operations,cn=etc",
                     "context": "server",
-                    "debug": false,
+                    "debug": true,
+                    "delegate": false,
+                    "dogtag_version": 10,
                     "domain": "example.com",
-                    "dot_ipa": "/var/www/.ipa",
+                    "dot_ipa": "/usr/share/httpd/.ipa",
                     "enable_ra": true,
                     "fallback": true,
-                    "home": "/var/www",
+                    "home": "/usr/share/httpd",
                     "host": "dev.example.com",
                     "in_server": true,
                     "in_tree": false,
                     "interactive": true,
                     "ipalib": "/usr/lib/python2.7/site-packages/ipalib",
-                    "ldap_uri": "ldapi://%2fvar%2frun%2fslapd-DEV-EXAMPLE-COM.socket",
+                    "jsonrpc_uri": "https://dev.example.com/ipa/json",
+                    "ldap_uri": "ldapi://%2fvar%2frun%2fslapd-EXAMPLE-COM.socket",
                     "log": null,
                     "logdir": "/var/log/ipa",
                     "mode": "production",
                     "mount_ipa": "/ipa/",
-                    "mount_jsonserver": "json",
-                    "mount_xmlserver": "xml",
                     "plugins_on_demand": false,
                     "prompt_all": false,
                     "ra_plugin": "dogtag",
-                    "realm": "DEV.EXAMPLE.COM",
-                    "rpc_json_uri": "http://localhost:8888/ipa/json",
-                    "script": "/var/www/mod_wsgi",
+                    "realm": "EXAMPLE.COM",
+                    "rpc_protocol": "jsonrpc",
+                    "script": "/usr/share/httpd/mod_wsgi",
+                    "session_auth_duration": "20 minutes",
+                    "session_duration_type": "inactivity_timeout",
                     "site_packages": "/usr/lib/python2.7/site-packages",
+                    "startup_timeout": 300,
                     "startup_traceback": false,
                     "validate_api": false,
                     "verbose": 0,
@@ -790,14 +816,14 @@
                     "webui_prod": true,
                     "xmlrpc_uri": "https://dev.example.com/ipa/xml"
                 },
-                "summary": "75 variables",
-                "total": 75
+                "summary": "88 variables",
+                "total": 88
             },
             {
                 "error": null,
                 "result": true,
                 "summary": null,
-                "value": ""
+                "value": null
             },
             {
                 "error": null,
