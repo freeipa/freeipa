@@ -306,6 +306,7 @@ Requires: libipa_hbac-python
 Requires: python-qrcode
 Requires: python-pyasn1
 Requires: python-dateutil
+Requires: python-yubico
 
 Obsoletes: ipa-python >= 1.0
 

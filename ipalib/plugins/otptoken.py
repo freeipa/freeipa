@@ -196,7 +196,7 @@ class otptoken(LDAPObject):
         ),
         IntEnum('ipatokenotpdigits?',
             cli_name='digits',
-            label=_('Display length'),
+            label=_('Digits'),
             values=(6, 8),
             default=6,
             autofill=True,
