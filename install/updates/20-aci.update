@@ -30,7 +30,7 @@ add:aci:'(targetfilter="(objectclass=nsContainer)")(version 3.0; acl "Deny read 
 
 # Read access to masters (but not their services)
 dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
-add:aci:'(targetfilter="(objectclass=nsContainer)")(target!="ldap:///cn=*,cn=*,cn=masters,cn=ipa,cn=etc,$SUFFIX")(targetattr="objectclass || cn")(version 3.0; acl "Read access to masters"; allow(read, search, compare) userdn = "ldap:///all";)'
+add:aci:'(targetfilter="(&(objectclass=nsContainer)(!(objectclass=ipaConfigObject)))")(targetattr="objectclass || cn")(version 3.0; acl "Read access to masters"; allow(read, search, compare) userdn = "ldap:///all";)'
 
 # Read access to Kerberos container (cn=kerberos) and realm containers (cn=$REALM,cn=kerberos)
 dn: cn=kerberos,$SUFFIX
