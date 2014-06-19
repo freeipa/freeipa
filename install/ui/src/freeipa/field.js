@@ -450,6 +450,12 @@ field.field = IPA.field = function(spec) {
 
         var writable = true;
 
+        function has_write(record, param) {
+            var rights = record.attributelevelrights[param];
+            var has = !!rights && rights.indexOf('w') > -1;
+            return has;
+        }
+
         if (that.metadata) {
             if (that.metadata.primary_key) {
                 writable = false;
@@ -460,21 +466,21 @@ field.field = IPA.field = function(spec) {
             }
         }
 
-        if (record && record.attributelevelrights) {
+        if (record && record.attributelevelrights && writable) {
             var rights = record.attributelevelrights[that.acl_param];
-            var oc_rights= record.attributelevelrights['objectclass'];
-            var write_oc = oc_rights && oc_rights.indexOf('w') > -1;
+            var write_attr = has_write(record, that.acl_param);
+            var write_all = has_write(record, '*');
 
-            // Some objects in LDAP may not have set proper object class and
+            // Some objects in LDAP may not have proper object class set and
             // therefore server doesn't send proper attribute rights. Flag
             // 'w_if_no_aci' should be used when we want to ensure that UI
             // shows edit interface in such cases. Usable only when user can
             // modify object classes.
-            // For all others, lack of rights means no write.
-            if ((!rights && !(that.flags.indexOf('w_if_no_aci') > -1 && write_oc)) ||
-                 (rights && rights.indexOf('w') < 0)) {
-                writable = false;
-            }
+            var write_oc = has_write(record, 'objectclass');
+            var may_add_oc = !rights && write_oc && that.flags.indexOf('w_if_no_aci') > -1;
+
+            // If no rights, change writable to False:
+            writable = write_attr || write_all || may_add_oc;
         }
 
         that.set_writable(writable);
