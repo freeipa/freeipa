@@ -363,26 +363,17 @@ class permission(baseldap.LDAPObject):
         # type
         if ipapermtargetfilter and ipapermlocation:
             for obj in self.api.Object():
-                filter_objectclasses = getattr(
-                    obj, 'permission_filter_objectclasses', None)
-                if not filter_objectclasses:
+                filt = self.make_type_filter(obj)
+                if not filt:
                     continue
+
                 wantdn = DN(obj.container_dn, self.api.env.basedn)
                 if DN(ipapermlocation) != wantdn:
                     continue
 
-                objectclass_targetfilters = set()
-                for objclass in filter_objectclasses:
-                    filter_re = '\(objectclass=%s\)' % re.escape(objclass)
-                    for tf in ipapermtargetfilter:
-                        if re.match(filter_re, tf, re.I):
-                            objectclass_targetfilters.add(tf)
-                            break
-                    else:
-                        break
-                else:
+                if filt in ipapermtargetfilter:
                     result['type'] = [unicode(obj.name)]
-                    implicit_targetfilters |= objectclass_targetfilters
+                    implicit_targetfilters.add(filt)
                     break
 
         return result
@@ -717,6 +708,17 @@ class permission(baseldap.LDAPObject):
             raise ValueError('Cannot convert ACI, %r != %r' % (new_acistring,
                                                                acistring))
 
+    def make_type_filter(self, obj):
+        """Make a filter for a --type based permission from an Object"""
+        objectclasses = getattr(obj, 'permission_filter_objectclasses', None)
+        if not objectclasses:
+            return None
+        filters = [u'(objectclass=%s)' % o for o in objectclasses]
+        if len(filters) == 1:
+            return filters[0]
+        else:
+            return '(|%s)' % ''.join(sorted(filters))
+
     def preprocess_options(self, options,
                            return_filter_ops=False,
                            merge_targetfilter=False):
@@ -808,15 +810,19 @@ class permission(baseldap.LDAPObject):
         if 'type' in options:
             objtype = options.pop('type')
             filter_ops['remove'].append(re.compile(r'\(objectclass=.*\)', re.I))
+            filter_ops['remove'].append(re.compile(
+                r'\(\|(\(objectclass=[^(]*\))+\)', re.I))
             if objtype:
                 if 'ipapermlocation' in options:
                     raise errors.ValidationError(
                         name='ipapermlocation',
                         error=_('subtree and type are mutually exclusive'))
                 obj = self.api.Object[objtype.lower()]
-                new_values = [u'(objectclass=%s)' % o
-                              for o in obj.permission_filter_objectclasses]
-                filter_ops['add'].extend(new_values)
+                filt = self.make_type_filter(obj)
+                if not filt:
+                    raise errors.ValidationError(
+                        _('"%s" is not a valid permission type') % objtype)
+                filter_ops['add'].append(filt)
                 container_dn = DN(obj.container_dn, self.api.env.basedn)
                 options['ipapermlocation'] = container_dn
             else:

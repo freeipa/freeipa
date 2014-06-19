@@ -516,6 +516,8 @@ class update_managed_permissions(PostUpdate):
         template = dict(template)
         template.pop('replaces', None)
         template.pop('replaces_system', None)
+        template.pop('replaces_permissions', None)
+        template.pop('replaces_acis', None)
 
         fixup_function = template.pop('fixup_function', None)
         if fixup_function:
@@ -536,8 +538,7 @@ class update_managed_permissions(PostUpdate):
 
         ldap_filter = template.pop('ipapermtargetfilter', None)
         if obj and ldap_filter is None:
-            ldap_filter = ['(objectclass=%s)' % oc
-                           for oc in obj.permission_filter_objectclasses]
+            ldap_filter = [self.api.Object[permission].make_type_filter(obj)]
         entry['ipapermtargetfilter'] = list(ldap_filter or [])
 
         ipapermlocation = template.pop('ipapermlocation', None)
