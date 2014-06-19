@@ -266,7 +266,8 @@ class user(LDAPObject):
             'ipapermdefaultattr': {
                 'objectclass', 'cn', 'sn', 'description', 'title', 'uid',
                 'displayname', 'givenname', 'initials', 'manager', 'gecos',
-                'gidnumber', 'homedirectory', 'loginshell', 'uidnumber'
+                'gidnumber', 'homedirectory', 'loginshell', 'uidnumber',
+                'ipantsecurityidentifier'
             },
         },
         'System: Read User Addressbook Attributes': {

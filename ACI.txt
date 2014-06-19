@@ -31,7 +31,7 @@ aci: (targetattr = "a6record || aaaarecord || afsdbrecord || arecord || certreco
 dn: cn=System: Read Group Membership,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "member || memberhost || memberof || memberuid || memberuser")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Read Group Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Read Groups,cn=permissions,cn=pbac,dc=ipa,dc=example
-aci: (targetattr = "businesscategory || cn || description || gidnumber || ipaexternalmember || ipauniqueid || mepmanagedby || o || objectclass || ou || owner || seealso")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Read Groups";allow (compare,read,search) userdn = "ldap:///anyone";)
+aci: (targetattr = "businesscategory || cn || description || gidnumber || ipaexternalmember || ipantsecurityidentifier || ipauniqueid || mepmanagedby || o || objectclass || ou || owner || seealso")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Read Groups";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=System: Read HBAC Rules,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "accessruletype || accesstime || cn || description || externalhost || hostcategory || ipaenabledflag || ipauniqueid || member || memberhost || memberservice || memberuser || objectclass || servicecategory || sourcehost || sourcehostcategory || usercategory")(targetfilter = "(objectclass=ipahbacrule)")(version 3.0;acl "permission:System: Read HBAC Rules";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Read HBAC Services,cn=permissions,cn=pbac,dc=ipa,dc=example
@@ -135,7 +135,7 @@ aci: (targetattr = "krblastadminunlock || krblastfailedauth || krblastpwdchange 
 dn: cn=System: Read User Membership,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "memberof")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Read User Standard Attributes,cn=permissions,cn=pbac,dc=ipa,dc=example
-aci: (targetattr = "cn || description || displayname || gecos || gidnumber || givenname || homedirectory || initials || loginshell || manager || objectclass || sn || title || uid || uidnumber")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User Standard Attributes";allow (compare,read,search) userdn = "ldap:///anyone";)
+aci: (targetattr = "cn || description || displayname || gecos || gidnumber || givenname || homedirectory || initials || ipantsecurityidentifier || loginshell || manager || objectclass || sn || title || uid || uidnumber")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User Standard Attributes";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=System: Remove Users,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Remove Users";allow (delete) groupdn = "ldap:///cn=System: Remove Users,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Unlock User,cn=permissions,cn=pbac,dc=ipa,dc=example

@@ -150,6 +150,7 @@ class group(LDAPObject):
                 'businesscategory', 'cn', 'description', 'gidnumber',
                 'ipaexternalmember', 'ipauniqueid', 'mepmanagedby', 'o',
                 'objectclass', 'ou', 'owner', 'seealso',
+                'ipantsecurityidentifier'
             },
         },
         'System: Read Group Membership': {
