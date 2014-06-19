@@ -838,11 +838,7 @@ fi
 %dir %{python_sitelib}/ipalib
 %{python_sitelib}/ipalib/*
 %dir %{python_sitelib}/ipaplatform
-%dir %{python_sitelib}/ipaplatform/base
-%dir %{python_sitelib}/ipaplatform/fedora
-%{python_sitelib}/ipaplatform/*.py*
-%{python_sitelib}/ipaplatform/base/*.py*
-%{python_sitelib}/ipaplatform/fedora/*.py*
+%{python_sitelib}/ipaplatform/*
 %attr(0644,root,root) %{python_sitearch}/default_encoding_utf8.so
 %{python_sitelib}/ipapython-*.egg-info
 %{python_sitelib}/freeipa-*.egg-info
