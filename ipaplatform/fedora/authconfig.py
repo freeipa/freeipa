@@ -19,15 +19,45 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipapython import ipautil
-from ipaplatform.base.authconfig import AuthConfig
 
 
-class FedoraAuthConfig(AuthConfig):
+class FedoraAuthConfig(object):
     """
     AuthConfig class implements system-independent interface to configure
-    system authentication resources. In Red Hat-produced systems this is done
-    with authconfig(8) utility.
+    system authentication resources. In Red Hat systems this is done with
+    authconfig(8) utility.
+
+    AuthConfig class is nothing more than a tool to gather configuration
+    options and execute their processing. These options then converted by
+    an actual implementation to series of a system calls to appropriate
+    utilities performing real configuration.
+
+    If you need to re-use existing AuthConfig instance for multiple runs,
+    make sure to call 'AuthConfig.reset()' between the runs.
     """
+
+    def __init__(self):
+        self.parameters = {}
+
+    def enable(self, option):
+        self.parameters[option] = True
+        return self
+
+    def disable(self, option):
+        self.parameters[option] = False
+        return self
+
+    def add_option(self, option):
+        self.parameters[option] = None
+        return self
+
+    def add_parameter(self, option, value):
+        self.parameters[option] = [value]
+        return self
+
+    def reset(self):
+        self.parameters = {}
+        return self
 
     def build_args(self):
         args = []
