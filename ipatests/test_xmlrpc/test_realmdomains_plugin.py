@@ -70,7 +70,7 @@ class test_realmdomains(Declarative):
                         u'(targetfilter = "(objectclass=domainrelatedobject)")'
                         u'(version 3.0;acl '
                             u'"permission:System: Read Realm Domains";'
-                            u'allow (read,compare,search) '
+                            u'allow (compare,read,search) '
                             u'userdn = "ldap:///all";)'
                     ],
                 ),

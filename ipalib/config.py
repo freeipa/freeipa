@@ -105,15 +105,11 @@ class Env(object):
     u'false'
 
     If an ``str`` value looks like an integer, it's automatically converted to
-    the ``int`` type.  Likewise, if an ``str`` value looks like a floating-point
-    number, it's automatically converted to the ``float`` type.  For example:
+    the ``int`` type.
 
     >>> env.lucky = '7'
     >>> env.lucky
     7
-    >>> env.three_halves = '1.5'
-    >>> env.three_halves
-    1.5
 
     Leading and trailing white-space is automatically stripped from ``str``
     values.  For example:

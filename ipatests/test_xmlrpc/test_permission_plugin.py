@@ -758,9 +758,9 @@ class test_permission(Declarative):
                 summary=u'2 permissions matched',
                 result=[
                     {
-                        'dn': DN(('cn','Modify Group Password Policy'),
+                        'dn': DN(('cn', 'System: Modify Group Password Policy'),
                                  api.env.container_permission, api.env.basedn),
-                        'cn': [u'Modify Group Password Policy'],
+                        'cn': [u'System: Modify Group Password Policy'],
                     },
                     {
                         'dn': DN(('cn', 'System: Read Group Password Policy'),
@@ -1193,10 +1193,10 @@ class test_permission(Declarative):
                 summary=u'1 permission matched',
                 result=[
                     {
-                        'dn': DN(('cn','Add user to default group'),
+                        'dn': DN(('cn', 'System: Add User to default group'),
                                  api.env.container_permission, api.env.basedn),
-                        'cn': [u'Add user to default group'],
-                        'objectclass': objectclasses.system_permission,
+                        'cn': [u'System: Add User to default group'],
+                        'objectclass': objectclasses.permission,
                         'member_privilege': [u'User Administrators'],
                         'attrs': [u'member'],
                         'targetgroup': [u'ipausers'],
@@ -1206,7 +1206,9 @@ class test_permission(Declarative):
                         'ipapermtarget': [DN(
                             'cn=ipausers', api.env.container_group,
                             api.env.basedn)],
-                        'ipapermlocation': [api.env.basedn],
+                        'ipapermlocation': [groups_dn],
+                        'ipapermdefaultattr': [u'member'],
+                        'ipapermissiontype': [u'V2', u'MANAGED', u'SYSTEM'],
                     }
                 ],
             ),
