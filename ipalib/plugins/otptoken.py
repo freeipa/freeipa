@@ -25,9 +25,9 @@ from ipalib.errors import PasswordMismatch, ConversionError, LastMemberError, No
 from ipalib.request import context
 import base64
 import uuid
-import random
 import urllib
 import qrcode
+import os
 
 __doc__ = _("""
 OTP Tokens
@@ -182,7 +182,7 @@ class otptoken(LDAPObject):
         OTPTokenKey('ipatokenotpkey?',
             cli_name='key',
             label=_('Key'),
-            default_from=lambda: "".join(random.SystemRandom().sample(map(chr, range(256)), 10)),
+            default_from=lambda: os.urandom(KEY_LENGTH),
             autofill=True,
             flags=('no_display', 'no_update', 'no_search'),
         ),
