@@ -25,6 +25,7 @@ from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 
 ZONE_ENTITY = 'dnszone'
+FORWARD_ZONE_ENTITY = 'dnsforwardzone'
 RECORD_ENTITY = 'dnsrecord'
 CONFIG_ENTITY = 'dnsconfig'
 
@@ -45,6 +46,24 @@ ZONE_DATA = {
     ],
 }
 
+FORWARD_ZONE_PKEY = 'forward.itest.'
+
+FORWARD_ZONE_DATA = {
+    'pkey': FORWARD_ZONE_PKEY,
+    'add': [
+        ('textbox', 'idnsname', FORWARD_ZONE_PKEY),
+        ('multivalued', 'idnsforwarders', [
+            ('add', '192.168.2.1'),
+        ]),
+        ('radio', 'idnsforwardpolicy', 'only'),
+    ],
+    'mod': [
+        ('multivalued', 'idnsforwarders', [
+            ('add', '192.168.3.1'),
+        ]),
+        ('checkbox', 'idnsforwardpolicy', 'first'),
+    ],
+}
 
 RECORD_PKEY = 'itest'
 A_IP = '192.168.1.10'
@@ -100,6 +119,28 @@ class test_dns(UI_driver):
         self.delete_record(RECORD_PKEY)
         self.navigate_by_breadcrumb("DNS Zones")
         self.delete_record(ZONE_PKEY)
+
+    @screenshot
+    def test_forward_zone(self):
+        """
+        Forward DNS zones
+        """
+        self.init_app()
+
+        # add and mod zone
+        self.basic_crud(FORWARD_ZONE_ENTITY, FORWARD_ZONE_DATA, delete=False)
+
+        # enable/disable
+        self.navigate_to_record(FORWARD_ZONE_PKEY)
+
+        self.disable_action()
+        self.enable_action()
+        self.action_list_action('add_permission')
+        self.action_list_action('remove_permission')
+
+        # del zone
+        self.navigate_by_breadcrumb("DNS Forward Zones")
+        self.delete_record(FORWARD_ZONE_PKEY)
 
     @screenshot
     def test_last_entry_deletion(self):

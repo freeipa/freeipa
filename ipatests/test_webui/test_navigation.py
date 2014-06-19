@@ -33,6 +33,7 @@ ENTITIES = [
     'netgroup',
     'service',
     'dnszone',
+    'dnsforwardzone',
     # TODO: dnsrecord
     'dnsconfig',
     'cert',
@@ -109,6 +110,7 @@ class test_navigation(UI_driver):
             self.navigate_by_menu('identity/dns/dnsconfig', True)
             self.navigate_by_menu('identity/dns', False)
             self.navigate_by_menu('identity/dns/dnszone', False)
+            self.navigate_by_menu('identity/dns/dnsforwardzone')
         else:
             self.assert_menu_item('identity/dns', False)
         if self.has_ca():
