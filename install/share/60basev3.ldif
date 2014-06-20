@@ -64,4 +64,3 @@ objectClasses: (2.16.840.1.113730.3.8.12.17 NAME 'ipaTrustedADDomainRange' SUP i
 objectClasses: (2.16.840.1.113730.3.8.12.19 NAME 'ipaUserAuthTypeClass' SUP top AUXILIARY DESC 'Class for authentication methods definition' MAY ipaUserAuthType X-ORIGIN 'IPA v3')
 objectClasses: (2.16.840.1.113730.3.8.12.20 NAME 'ipaUser' AUXILIARY MUST ( uid ) MAY ( userClass ) X-ORIGIN 'IPA v3' )
 objectClasses: (2.16.840.1.113730.3.8.12.21 NAME 'ipaPermissionV2' DESC 'IPA Permission objectclass, version 2' SUP ipaPermission AUXILIARY MUST ( ipaPermBindRuleType $ ipaPermLocation ) MAY ( ipaPermDefaultAttr $ ipaPermIncludedAttr $ ipaPermExcludedAttr $ ipaPermRight $ ipaPermTargetFilter $ ipaPermTarget ) X-ORIGIN 'IPA v3' )
-objectClasses: (2.16.840.1.113730.3.8.12.23 NAME 'ipaVirtualOperation' DESC 'IPA Virtual operation objectclass' SUP top AUXILIARY MUST ( cn ) X-ORIGIN 'IPA v3' )
