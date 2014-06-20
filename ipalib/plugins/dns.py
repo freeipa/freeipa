@@ -1876,6 +1876,23 @@ class DNSZoneBase_add_permission(LDAPQuery):
                 self.obj.handle_not_found(*keys)
 
         permission_name = self.obj.permission_name(keys[-1])
+
+        # compatibility with older IPA versions which allows relative zonenames
+        permission_name_rel = self.obj.permission_name(
+            keys[-1].relativize(DNSName.root)
+        )
+        try:
+            api.Object['permission'].get_dn_if_exists(permission_name_rel)
+        except errors.NotFound:
+            pass
+        else:
+            # permission exists without absolute domain name
+            raise errors.DuplicateEntry(
+                message=_('permission "%(value)s" already exists') % {
+                        'value': permission_name
+                }
+            )
+
         permission = api.Command['permission_add_noaci'](permission_name,
                          ipapermissiontype=u'SYSTEM'
                      )['result']
@@ -1922,7 +1939,19 @@ class DNSZoneBase_remove_permission(LDAPQuery):
             pass
 
         permission_name = self.obj.permission_name(keys[-1])
-        api.Command['permission_del'](permission_name, force=True)
+        try:
+            api.Command['permission_del'](permission_name, force=True)
+        except errors.NotFound, e:
+            # compatibility, older IPA versions which allows to create zone
+            # without absolute zone name
+            permission_name_rel = self.obj.permission_name(
+                keys[-1].relativize(DNSName.root)
+            )
+            try:
+                api.Command['permission_del'](permission_name_rel, force=True)
+            except errors.NotFound:
+                raise e  # re-raise original exception
+
 
         return dict(
             result=True,
