@@ -862,6 +862,20 @@ IPA.dns.get_record_metadata = function() {
                       'ds_part_digest_type']
         },
         {
+            name: 'dlvrecord',
+            attributes: [
+                'dlv_part_key_tag',
+                'dlv_part_algorithm',
+                'dlv_part_digest_type',
+                {
+                    name: 'dlv_part_digest',
+                    $type: 'textarea'
+                }
+            ],
+            columns: ['dlv_part_key_tag', 'dlv_part_algorithm',
+                      'dlv_part_digest_type']
+        },
+        {
             name: 'kxrecord',
             attributes: [
                 'kx_part_preference',
@@ -1365,7 +1379,7 @@ IPA.dns_record_types = function() {
 
     //only supported
     var attrs = ['A', 'AAAA', 'A6', 'AFSDB', 'CERT', 'CNAME', 'DNAME',
-                   'DS', 'KX', 'LOC', 'MX', 'NAPTR', 'NS',
+                   'DS', 'DLV', 'KX', 'LOC', 'MX', 'NAPTR', 'NS',
                    'NSEC3PARAM', 'PTR', 'SRV', 'SSHFP', 'TXT'];
     var record_types = [];
     for (var i=0; i<attrs.length; i++) {
