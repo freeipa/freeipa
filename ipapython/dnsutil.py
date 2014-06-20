@@ -18,6 +18,7 @@
 #
 
 import dns.name
+import dns.exception
 import copy
 
 
@@ -35,10 +36,10 @@ class DNSName(dns.name.Name):
             labels = labels.labels
         try:
             super(DNSName, self).__init__(labels)
-        except UnicodeError:
-            #dnspython bug, punycoded label longer than 63 returns UnicodeError
-            #instead of LabelTooLong
-            raise dns.name.LabelTooLong()
+        except UnicodeError, e:
+            # dnspython bug, an invalid domain name returns the UnicodeError
+            # instead of a dns.exception
+            raise dns.exception.SyntaxError(e)
 
     def __nonzero__(self):
         #dns.name.from_text('@') is represented like empty tuple
