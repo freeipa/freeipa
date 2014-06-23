@@ -115,7 +115,7 @@ class netgroup(LDAPObject):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'cn', 'description', 'hostcategory', 'ipaenabledflag',
-                'ipauniqueid', 'nisdomainname', 'usercategory'
+                'ipauniqueid', 'nisdomainname', 'usercategory', 'objectclass',
             },
         },
         'System: Read Netgroup Membership': {
@@ -124,7 +124,7 @@ class netgroup(LDAPObject):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'externalhost', 'member', 'memberof', 'memberuser',
-                'memberhost',
+                'memberhost', 'objectclass',
             },
         },
     }
