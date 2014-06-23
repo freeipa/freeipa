@@ -357,8 +357,7 @@ return {
             name: 'memberof_permission',
             facet_group: 'permission',
             add_method: 'add_permission',
-            remove_method: 'remove_permission',
-            search_options: { 'ipapermbindruletype': 'permission' }
+            remove_method: 'remove_permission'
         }
     ],
     standard_association_facets: true,
