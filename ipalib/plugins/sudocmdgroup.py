@@ -92,6 +92,11 @@ class sudocmdgroup(LDAPObject):
             ],
             'default_privileges': {'Sudo Administrator'},
         },
+        'System: Modify Sudo Command Group': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {'description'},
+            'default_privileges': {'Sudo Administrator'},
+        },
         'System: Manage Sudo Command Group Membership': {
             'ipapermright': {'write'},
             'ipapermdefaultattr': {'member'},

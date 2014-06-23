@@ -212,6 +212,7 @@ class automountlocation(LDAPObject):
     default_attributes = ['cn']
     label = _('Automount Locations')
     label_singular = _('Automount Location')
+    permission_filter_objectclasses = ['nscontainer']
     managed_permissions = {
         'System: Read Automount Configuration': {
             # Single permission for all automount-related entries
@@ -225,6 +226,14 @@ class automountlocation(LDAPObject):
                 'automountinformation', 'automountkey', 'description',
                 'automountmapname', 'description',
             },
+        },
+        'System: Add Automount Locations': {
+            'ipapermright': {'add'},
+            'default_privileges': {'Automount Administrators'},
+        },
+        'System: Remove Automount Locations': {
+            'ipapermright': {'delete'},
+            'default_privileges': {'Automount Administrators'},
         },
     }
 

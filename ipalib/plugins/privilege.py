@@ -75,6 +75,22 @@ class privilege(LDAPObject):
             },
             'default_privileges': {'RBAC Readers'},
         },
+        'System: Add Privileges': {
+            'ipapermright': {'add'},
+            'default_privileges': {'Delegation Administrator'},
+        },
+        'System: Modify Privileges': {
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'businesscategory',  'cn', 'description', 'o', 'ou', 'owner',
+                'seealso',
+            },
+            'default_privileges': {'Delegation Administrator'},
+        },
+        'System: Remove Privileges': {
+            'ipapermright': {'delete'},
+            'default_privileges': {'Delegation Administrator'},
+        },
     }
 
     label = _('Privileges')

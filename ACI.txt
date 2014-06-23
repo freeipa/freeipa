@@ -10,8 +10,12 @@ dn: cn=System: Modify Automount Keys,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "automountinformation || automountkey || description")(targetfilter = "(objectclass=automount)")(version 3.0;acl "permission:System: Modify Automount Keys";allow (write) groupdn = "ldap:///cn=System: Modify Automount Keys,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Remove Automount Keys,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=automount)")(version 3.0;acl "permission:System: Remove Automount Keys";allow (delete) groupdn = "ldap:///cn=System: Remove Automount Keys,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Add Automount Locations,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=nscontainer)")(version 3.0;acl "permission:System: Add Automount Locations";allow (add) groupdn = "ldap:///cn=System: Add Automount Locations,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Automount Configuration,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "automountinformation || automountkey || automountmapname || cn || description || objectclass")(version 3.0;acl "permission:System: Read Automount Configuration";allow (compare,read,search) userdn = "ldap:///anyone";)
+dn: cn=System: Remove Automount Locations,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=nscontainer)")(version 3.0;acl "permission:System: Remove Automount Locations";allow (delete) groupdn = "ldap:///cn=System: Remove Automount Locations,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Add Automount Maps,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=automountmap)")(version 3.0;acl "permission:System: Add Automount Maps";allow (add) groupdn = "ldap:///cn=System: Add Automount Maps,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Modify Automount Maps,cn=permissions,cn=pbac,dc=ipa,dc=example
@@ -134,8 +138,14 @@ dn: cn=System: Read ACIs,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "aci")(version 3.0;acl "permission:System: Read ACIs";allow (compare,read,search) groupdn = "ldap:///cn=System: Read ACIs,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Permissions,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "businesscategory || cn || description || ipapermbindruletype || ipapermdefaultattr || ipapermexcludedattr || ipapermincludedattr || ipapermissiontype || ipapermlocation || ipapermright || ipapermtarget || ipapermtargetfilter || member || memberhost || memberof || memberuser || o || objectclass || ou || owner || seealso")(targetfilter = "(objectclass=ipapermission)")(version 3.0;acl "permission:System: Read Permissions";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Permissions,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Add Privileges,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=groupofnames)")(version 3.0;acl "permission:System: Add Privileges";allow (add) groupdn = "ldap:///cn=System: Add Privileges,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Modify Privileges,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "businesscategory || cn || description || o || ou || owner || seealso")(targetfilter = "(objectclass=groupofnames)")(version 3.0;acl "permission:System: Modify Privileges";allow (write) groupdn = "ldap:///cn=System: Modify Privileges,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Privileges,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "businesscategory || cn || description || member || memberhost || memberof || memberuser || o || objectclass || ou || owner || seealso")(targetfilter = "(objectclass=groupofnames)")(version 3.0;acl "permission:System: Read Privileges";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Privileges,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Remove Privileges,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=groupofnames)")(version 3.0;acl "permission:System: Remove Privileges";allow (delete) groupdn = "ldap:///cn=System: Remove Privileges,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Add Group Password Policy,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=krbpwdpolicy)")(version 3.0;acl "permission:System: Add Group Password Policy";allow (add) groupdn = "ldap:///cn=System: Add Group Password Policy,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Delete Group Password Policy,cn=permissions,cn=pbac,dc=ipa,dc=example
@@ -188,6 +198,8 @@ dn: cn=System: Delete Sudo Command Group,cn=permissions,cn=pbac,dc=ipa,dc=exampl
 aci: (targetfilter = "(objectclass=ipasudocmdgrp)")(version 3.0;acl "permission:System: Delete Sudo Command Group";allow (delete) groupdn = "ldap:///cn=System: Delete Sudo Command Group,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Manage Sudo Command Group Membership,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "member")(targetfilter = "(objectclass=ipasudocmdgrp)")(version 3.0;acl "permission:System: Manage Sudo Command Group Membership";allow (write) groupdn = "ldap:///cn=System: Manage Sudo Command Group Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Modify Sudo Command Group,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "description")(targetfilter = "(objectclass=ipasudocmdgrp)")(version 3.0;acl "permission:System: Modify Sudo Command Group";allow (write) groupdn = "ldap:///cn=System: Modify Sudo Command Group,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Sudo Command Groups,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "businesscategory || cn || description || ipauniqueid || member || memberhost || memberuser || o || objectclass || ou || owner || seealso")(targetfilter = "(objectclass=ipasudocmdgrp)")(version 3.0;acl "permission:System: Read Sudo Command Groups";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Add Sudo rule,cn=permissions,cn=pbac,dc=ipa,dc=example
