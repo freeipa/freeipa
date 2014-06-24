@@ -52,6 +52,7 @@ var nav = {};
                                 { entity: 'dnsrecord', hidden:true }
                             ]
                         },
+                        { entity: 'dnsforwardzone' },
                         { entity: 'dnsconfig' }
                     ]
                 },
