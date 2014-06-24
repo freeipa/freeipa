@@ -959,7 +959,7 @@ class login_password(Backend, KerberosSession, HTTP_Status):
                     ['krbpasswordexpiration'])
                 if 'krbpasswordexpiration' in entry_attrs:
                     expiration = entry_attrs['krbpasswordexpiration'][0]
-                    if expiration <= datetime.datetime.now():
+                    if expiration <= datetime.datetime.utcnow():
                         reason = 'password-expired'
 
             except Exception:
