@@ -646,6 +646,8 @@ class i18n_messages(Command):
                 "misc": _("Misc. Information"),
                 "status_confirmation": _("Are you sure you want to ${action} the user?<br/>The change will take effect immediately."),
                 "status_link": _("Click to ${action}"),
+                "unlock": _("Unlock"),
+                "unlock_confirm": _("Are you sure you want to unlock user ${object}?"),
             },
         },
         "password": {

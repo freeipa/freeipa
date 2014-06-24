@@ -270,12 +270,20 @@ return {
                 'delete',
                 'reset_password',
                 {
+                    $factory: IPA.object_action,
+                    name: 'unlock',
+                    method: 'unlock',
+                    label: '@i18n:objects.user.unlock',
+                    needs_confirm: true,
+                    confirm_msg: '@i18n:objects.user.unlock_confirm'
+                },
+                {
                     $type: 'automember_rebuild',
                     name: 'automember_rebuild',
                     label: '@i18n:actions.automember_rebuild'
                 }
             ],
-            header_actions: ['reset_password', 'enable', 'disable', 'delete', 'automember_rebuild'],
+            header_actions: ['reset_password', 'enable', 'disable', 'delete', 'unlock', 'automember_rebuild'],
             state: {
                 evaluators: [
                     {

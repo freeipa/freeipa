@@ -500,7 +500,9 @@
                             "mailing": "Mailing Address",
                             "misc": "Misc. Information",
                             "status_confirmation": "Are you sure you want to ${action} the user?<br/>The change will take effect immediately.",
-                            "status_link": "Click to ${action}"
+                            "status_link": "Click to ${action}",
+                            "unlock": "Unlock",
+                            "unlock_confirm": "Are you sure you want to unlock user ${object}?"
                         }
                     },
                     "password": {

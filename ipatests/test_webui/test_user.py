@@ -156,6 +156,8 @@ class test_user(UI_driver):
         self.reset_password_action(pwd)
         self.assert_text_field('has_password', '******')
 
+        self.action_list_action('unlock')
+
         # delete
         self.delete_action(user.ENTITY, user.PKEY)
 
