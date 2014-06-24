@@ -839,7 +839,7 @@ fi
 %dir %{python_sitelib}/ipaplatform
 %dir %{python_sitelib}/ipaplatform/base
 %dir %{python_sitelib}/ipaplatform/fedora
-%{python_sitelib}/ipaplatform/*
+%{python_sitelib}/ipaplatform/*.py*
 %{python_sitelib}/ipaplatform/base/*.py*
 %{python_sitelib}/ipaplatform/fedora/*.py*
 %attr(0644,root,root) %{python_sitearch}/default_encoding_utf8.so
