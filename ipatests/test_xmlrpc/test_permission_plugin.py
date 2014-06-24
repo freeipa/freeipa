@@ -2851,9 +2851,9 @@ class test_permission_legacy(Declarative):
             command=('permission_find', [],
                      {'ipapermlocation': api.env.basedn}),
             expected=dict(
-                count=lambda n: n > 50,
+                count=15,
                 truncated=False,
-                summary=lambda s: True,
+                summary=u'15 permissions matched',
                 result=lambda s: True,
             ),
         ),
