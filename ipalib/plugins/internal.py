@@ -422,7 +422,9 @@ class i18n_messages(Command):
             "dnszone": {
                 "identity": _("DNS Zone Settings"),
                 "add_permission":_("Add Permission"),
+                "add_permission_confirm":_("Are you sure you want to add permission for DNS Zone ${object}?"),
                 "remove_permission": _("Remove Permission"),
+                "remove_permission_confirm": _("Are you sure you want to remove permission for DNS Zone ${object}?"),
             },
             "group": {
                 "details": _("Group Settings"),

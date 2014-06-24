@@ -581,29 +581,13 @@ IPA.dns.add_permission_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'add_permission';
+    spec.method = spec.method || 'add_permission';
     spec.label = spec.label || '@i18n:objects.dnszone.add_permission';
     spec.enable_cond = spec.enable_cond || ['permission-none', 'managedby_w'];
+    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
+    spec.confirm_msg = spec.confirm_msg || '@i18n:objects.dnszone.add_permission_confirm';
 
-    var that = IPA.action(spec);
-
-    that.execute_action = function(facet) {
-
-        var pkey = facet.get_pkey();
-
-         var command = rpc.command({
-            entity: 'dnszone',
-            method: 'add_permission',
-            args: [pkey],
-            options: {},
-            on_success: function(data, text_status, xhr) {
-                facet.refresh();
-                IPA.notify_success(data.result.summary);
-            }
-        });
-
-        command.execute();
-    };
-
+    var that = IPA.object_action(spec);
     return that;
 };
 
@@ -611,29 +595,13 @@ IPA.dns.remove_permission_action = function(spec) {
 
     spec = spec || {};
     spec.name = spec.name || 'remove_permission';
+    spec.method = spec.method || 'remove_permission';
     spec.label = spec.label || '@i18n:objects.dnszone.remove_permission';
     spec.enable_cond = spec.enable_cond || ['permission-set', 'managedby_w'];
+    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
+    spec.confirm_msg = spec.confirm_msg || '@i18n:objects.dnszone.remove_permission_confirm';
 
-    var that = IPA.action(spec);
-
-    that.execute_action = function(facet) {
-
-        var pkey = facet.get_pkey();
-
-         var command = rpc.command({
-            entity: 'dnszone',
-            method: 'remove_permission',
-            args: [pkey],
-            options: {},
-            on_success: function(data, text_status, xhr) {
-                facet.refresh();
-                IPA.notify_success(data.result.summary);
-            }
-        });
-
-        command.execute();
-    };
-
+    var that = IPA.object_action(spec);
     return that;
 };
 

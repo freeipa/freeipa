@@ -283,7 +283,9 @@
                         "dnszone": {
                             "identity": "DNS Zone Settings",
                             "add_permission": "Add Permission",
-                            "remove_permission": "Remove Permission"
+                            "add_permission_confirm":"Are you sure you want to add permission for DNS Zone ${object}?",
+                            "remove_permission": "Remove Permission",
+                            "remove_permission_confirm": "Are you sure you want to remove permission for DNS Zone ${object}?"
                         },
                         "group": {
                             "details": "Group Settings",
