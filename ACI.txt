@@ -214,6 +214,8 @@ dn: cn=System: Read Sudoers compat tree,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "cn || description || objectclass || ou || sudocommand || sudohost || sudonotafter || sudonotbefore || sudooption || sudoorder || sudorunas || sudorunasgroup || sudorunasuser || sudouser")(target = "ldap:///ou=sudoers,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Sudoers compat tree";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Read Trust Information,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "cn || ipantflatname || ipantsecurityidentifier || ipantsidblacklistincoming || ipantsidblacklistoutgoing || ipanttrusteddomainsid || ipanttrustpartner || objectclass")(version 3.0;acl "permission:System: Read Trust Information";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=System: Read system trust accounts,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "gidnumber || krbprincipalname || uidnumber")(version 3.0;acl "permission:System: Read system trust accounts";allow (compare,read,search) groupdn = "ldap:///cn=System: Read system trust accounts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Add User to default group,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "member")(target = "ldap:///cn=ipausers,cn=groups,cn=accounts,dc=ipa,dc=example")(version 3.0;acl "permission:System: Add User to default group";allow (write) groupdn = "ldap:///cn=System: Add User to default group,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Add Users,cn=permissions,cn=pbac,dc=ipa,dc=example

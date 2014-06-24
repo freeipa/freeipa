@@ -330,6 +330,17 @@ class trust(LDAPObject):
                 'ipantsidblacklistincoming', 'ipantsidblacklistoutgoing'
             },
         },
+
+        'System: Read system trust accounts': {
+            'non_object': True,
+            'ipapermlocation': DN(container_dn, api.env.basedn),
+            'replaces_global_anonymous_aci': True,
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'uidnumber', 'gidnumber', 'krbprincipalname'
+            },
+            'default_privileges': {'ADTrust Agents'},
+        },
     }
 
     label = _('Trusts')

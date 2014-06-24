@@ -15,6 +15,14 @@ default: objectClass: GroupOfNames
 default: objectClass: top
 default: cn: adtrust agents
 
+dn: cn=ADTrust Agents,cn=privileges,cn=pbac,$SUFFIX
+default: objectClass: top
+default: objectClass: groupofnames
+default: objectClass: nestedgroup
+default: cn: ADTrust Agents
+default: description: System accounts able to access trust information
+default: member: cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX
+
 dn: cn=trusts,$SUFFIX
 default: objectClass: top
 default: objectClass: nsContainer
