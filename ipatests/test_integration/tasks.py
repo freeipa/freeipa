@@ -219,7 +219,7 @@ def install_replica(master, replica, setup_ca=True):
                         '--ip-address', replica.ip,
                         replica.hostname])
     replica_bundle = master.get_file_contents(
-        paths.REPLICA_INFO_TEMPLATE_GPG % replica.hostname)
+        paths.REPLICA_INFO_GPG_TEMPLATE % replica.hostname)
     replica_filename = os.path.join(replica.config.test_dir,
                                     'replica-info.gpg')
     replica.put_file_contents(replica_filename, replica_bundle)

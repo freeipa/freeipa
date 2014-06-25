@@ -245,7 +245,7 @@ class CALessBase(IntegrationTest):
 
         if result.returncode == 0:
             replica_bundle = master.get_file_contents(
-                paths.REPLICA_INFO_TEMPLATE_GPG % replica.hostname)
+                paths.REPLICA_INFO_GPG_TEMPLATE % replica.hostname)
             replica.put_file_contents(self.get_replica_filename(replica),
                                       replica_bundle)
         else:
