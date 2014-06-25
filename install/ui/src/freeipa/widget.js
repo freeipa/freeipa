@@ -917,7 +917,7 @@ IPA.multivalued_widget = function(spec) {
         var old = that.valid;
         that.valid = result.valid;
 
-        if (!result.valid && result.errors) {
+        if (!result.valid && result.results) {
             var offset = 0;
             for (var i=0; i<that.rows.length; i++) {
 
@@ -936,10 +936,9 @@ IPA.multivalued_widget = function(spec) {
                 var error_link = that.get_error_link();
                 error_link.css('display', 'none');
                 error_link.html('');
-            } else {
-                that.show_error(result.message);
             }
-
+        } else if (!result.valid) {
+            that.show_error(result.message);
         } else {
             that.hide_error();
         }
