@@ -20,7 +20,7 @@
 */
 
 define(['./ipa', './jquery', './navigation', './rpc', './text', './field', './widget', './dialog'],
-       function(IPA, $, navigation, rpc, text) {
+       function(IPA, $, navigation, rpc, text, field_mod, widget_mod) {
 
 /**
  * Entity adder dialog
@@ -219,7 +219,10 @@ IPA.entity_adder_dialog = function(spec) {
      */
     that.add = function(on_success, on_error) {
 
-        if (!that.validate()) return;
+        if (!that.validate()) {
+            widget_mod.focus_invalid(that);
+            return;
+        }
 
         var record = {};
         that.save(record);

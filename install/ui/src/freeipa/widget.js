@@ -5756,6 +5756,28 @@ exp.activity_widget = IPA.activity_widget = function(spec) {
 };
 
 /**
+ * Find and focus first focusable invalid widget
+ * @member widget
+ * @param {IPA.widget|facet.facet} widget Widget container
+ * @return {boolean} A widget was focused
+ */
+exp.focus_invalid = function(widget) {
+
+    var widgets = widget.widgets.widgets;
+    var focused = false;
+    for (var i=0, l=widgets.length; i<l; i++) {
+        var w = widgets.values[i];
+        if (w.valid === false && w.focus_input) {
+            w.focus_input();
+            focused = true;
+        }
+        else if (w.widgets) focused = exp.focus_invalid(w);
+        if (focused) break;
+    }
+    return focused;
+};
+
+/**
  * pre_op operations for widgets
  * - sets facet and entity if present in context
  * @member widget

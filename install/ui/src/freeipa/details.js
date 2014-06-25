@@ -31,9 +31,10 @@ define([
         './rpc',
         './spec_util',
         './text',
+        './widget',
         './facet',
         './add'],
-    function(lang, builder, IPA, $, phases, reg, rpc, su, text) {
+    function(lang, builder, IPA, $, phases, reg, rpc, su, text, widget_mod) {
 
 /**
  * Details module
@@ -1436,6 +1437,7 @@ exp.update_action = IPA.update_action = function(spec) {
 
         if (!facet.validate()) {
             facet.show_validation_error();
+            widget_mod.focus_invalid(facet);
             return;
         }
 
