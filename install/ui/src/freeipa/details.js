@@ -930,12 +930,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
      * @protected
      */
     that.show_validation_error = function() {
-        var dialog = IPA.message_dialog({
-            name: 'validation_error',
-            title: '@i18n:dialogs.validation_title',
-            message: '@i18n:dialogs.validation_message'
-        });
-        dialog.open();
+        IPA.notify('@i18n:dialogs.validation_message', 'error');
     };
 
     /**
