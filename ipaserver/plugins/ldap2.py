@@ -178,15 +178,24 @@ class ldap2(LDAPClient, CrudBackend):
             # ignore when trying to unbind multiple times
             pass
 
+
     def find_entries(self, filter=None, attrs_list=None, base_dn=None,
                      scope=_ldap.SCOPE_SUBTREE, time_limit=None,
                      size_limit=None, search_refs=False, paged_search=False):
-        if time_limit is None or size_limit is None:
-            config = self.get_ipa_config()
-            if time_limit is None:
-                time_limit = config.get('ipasearchtimelimit', [None])[0]
-            if size_limit is None:
-                size_limit = config.get('ipasearchrecordslimit', [None])[0]
+
+        def _get_limits():
+            """Get configured global limits, caching them for more calls"""
+            if not _lims:
+                config = self.get_ipa_config()
+                _lims['time'] = config.get('ipasearchtimelimit', [None])[0]
+                _lims['size'] = config.get('ipasearchrecordslimit', [None])[0]
+            return _lims
+        _lims = {}
+
+        if time_limit is None:
+            time_limit = _get_limits()['time']
+        if size_limit is None:
+            size_limit = _get_limits()['size']
 
         has_memberindirect = False
         has_memberofindirect = False
@@ -207,6 +216,20 @@ class ldap2(LDAPClient, CrudBackend):
             search_refs=search_refs, paged_search=paged_search)
 
         if has_memberindirect or has_memberofindirect:
+
+            # For the memberof searches, we want to apply the global limit
+            # if it's larger than the requested one, so decreasing limits on
+            # the individual query only affects the query itself.
+            # See https://fedorahosted.org/freeipa/ticket/4398
+            def _max_with_none(a, b):
+                """Maximum of a and b, treating None as infinity"""
+                if a is None or b is None:
+                    return None
+                else:
+                    return max(a, b)
+            time_limit = _max_with_none(time_limit, _get_limits()['time'])
+            size_limit = _max_with_none(size_limit, _get_limits()['size'])
+
             for entry in res:
                 if has_memberindirect:
                     self._process_memberindirect(
