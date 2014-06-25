@@ -238,7 +238,7 @@ _record_types = (
     u'DNAME', u'DNSKEY', u'DS', u'HIP', u'IPSECKEY', u'KEY', u'KX', u'LOC',
     u'MX', u'NAPTR', u'NS', u'NSEC', u'NSEC3', u'NSEC3PARAM', u'PTR',
     u'RRSIG', u'RP', u'SIG', u'SPF', u'SRV', u'SSHFP', u'TA', u'TKEY',
-    u'TSIG', u'TXT',
+    u'TLSA', u'TSIG', u'TXT',
 )
 
 # DNS zone record identificator
@@ -1384,6 +1384,32 @@ class TARecord(DNSRecord):
     rrtype = 'TA'
     supported = False
 
+
+class TLSARecord(DNSRecord):
+    rrtype = 'TLSA'
+    rfc = 6698
+    parts = (
+        Int('cert_usage',
+            label=_('Certificate Usage'),
+            minvalue=0,
+            maxvalue=255,
+        ),
+        Int('selector',
+            label=_('Selector'),
+            minvalue=0,
+            maxvalue=255,
+        ),
+        Int('matching_type',
+            label=_('Matching Type'),
+            minvalue=0,
+            maxvalue=255,
+        ),
+        Str('cert_association_data',
+            label=_('Certificate Association Data'),
+        ),
+    )
+
+
 class TKEYRecord(DNSRecord):
     rrtype = 'TKEY'
     supported = False
@@ -1437,6 +1463,7 @@ _dns_records = (
     SRVRecord(),
     SSHFPRecord(),
     TARecord(),
+    TLSARecord(),
     TKEYRecord(),
     TSIGRecord(),
     TXTRecord(),
@@ -2118,13 +2145,14 @@ class dnszone(DNSZoneBase):
                 'dnsclass', 'dnsttl', 'dsrecord', 'hinforecord',
                 'idnsallowdynupdate', 'idnsallowquery', 'idnsallowsyncptr',
                 'idnsallowtransfer', 'idnsforwarders', 'idnsforwardpolicy',
-                'idnsname', 'idnssoaexpire', 'idnssoaminimum', 'idnssoamname',
-                'idnssoarefresh', 'idnssoaretry', 'idnssoarname',
-                'idnssoaserial', 'idnsupdatepolicy', 'idnszoneactive',
-                'keyrecord', 'kxrecord', 'locrecord', 'managedby', 'mdrecord',
-                'minforecord', 'mxrecord', 'naptrrecord', 'nsecrecord',
-                'nsec3paramrecord', 'nsrecord', 'nxtrecord', 'ptrrecord',
-                'rrsigrecord', 'sigrecord', 'srvrecord', 'sshfprecord',
+                'idnsname', 'idnssoaexpire',
+                'idnssoaminimum', 'idnssoamname', 'idnssoarefresh',
+                'idnssoaretry', 'idnssoarname', 'idnssoaserial',
+                'idnsupdatepolicy', 'idnszoneactive', 'keyrecord', 'kxrecord',
+                'locrecord', 'managedby', 'mdrecord', 'minforecord',
+                'mxrecord', 'naptrrecord', 'nsecrecord', 'nsec3paramrecord',
+                'nsrecord', 'nxtrecord', 'ptrrecord', 'rrsigrecord',
+                'sigrecord', 'srvrecord', 'sshfprecord', 'tlsarecord',
                 'txtrecord',
             },
             'replaces_system': ['Read DNS Entries'],
@@ -2151,13 +2179,14 @@ class dnszone(DNSZoneBase):
                 'dnsclass', 'dnsttl', 'dsrecord', 'hinforecord',
                 'idnsallowdynupdate', 'idnsallowquery', 'idnsallowsyncptr',
                 'idnsallowtransfer', 'idnsforwarders', 'idnsforwardpolicy',
-                'idnsname', 'idnssoaexpire', 'idnssoaminimum', 'idnssoamname',
-                'idnssoarefresh', 'idnssoaretry', 'idnssoarname',
-                'idnssoaserial', 'idnsupdatepolicy', 'idnszoneactive',
-                'keyrecord', 'kxrecord', 'locrecord', 'managedby', 'mdrecord',
-                'minforecord', 'mxrecord', 'naptrrecord', 'nsecrecord',
-                'nsec3paramrecord', 'nsrecord', 'nxtrecord', 'ptrrecord',
-                'rrsigrecord', 'sigrecord', 'srvrecord', 'sshfprecord',
+                'idnsname', 'idnssoaexpire',
+                'idnssoaminimum', 'idnssoamname', 'idnssoarefresh',
+                'idnssoaretry', 'idnssoarname', 'idnssoaserial',
+                'idnsupdatepolicy', 'idnszoneactive', 'keyrecord', 'kxrecord',
+                'locrecord', 'managedby', 'mdrecord', 'minforecord',
+                'mxrecord', 'naptrrecord', 'nsecrecord', 'nsec3paramrecord',
+                'nsrecord', 'nxtrecord', 'ptrrecord', 'rrsigrecord',
+                'sigrecord', 'srvrecord', 'sshfprecord', 'tlsarecord',
                 'txtrecord',
             },
             'replaces': [
