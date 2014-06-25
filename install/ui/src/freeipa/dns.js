@@ -1123,6 +1123,23 @@ IPA.dns.get_record_metadata = function() {
             columns: ['sshfp_part_algorithm', 'sshfp_part_fp_type']
         },
         {
+            name: 'tlsarecord',
+            attributes: [
+                'tlsa_part_cert_usage',
+                'tlsa_part_selector',
+                'tlsa_part_matching_type',
+                {
+                    name: 'tlsa_part_cert_association_data',
+                    $type: 'textarea'
+                }
+            ],
+            adder_attributes: [],
+            columns: [
+                'tlsa_part_cert_usage', 'tlsa_part_selector',
+                'tlsa_part_matching_type'
+            ]
+        },
+        {
             name: 'txtrecord',
             attributes: [
                 'txt_part_data'
@@ -1507,7 +1524,7 @@ IPA.dns_record_types = function() {
     //only supported
     var attrs = ['A', 'AAAA', 'A6', 'AFSDB', 'CERT', 'CNAME', 'DNAME',
                    'DS', 'DLV', 'KX', 'LOC', 'MX', 'NAPTR', 'NS',
-                   'NSEC3PARAM', 'PTR', 'SRV', 'SSHFP', 'TXT'];
+                   'NSEC3PARAM', 'PTR', 'SRV', 'SSHFP', 'TLSA', 'TXT'];
     var record_types = [];
     for (var i=0; i<attrs.length; i++) {
         var attr = attrs[i];
