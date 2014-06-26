@@ -315,15 +315,7 @@ def configure_dns_for_trust(master, ad):
 
     kinit_admin(master)
 
-    if is_subdomain(master.domain.name, ad.domain.name):
-        master.run_command(['ipa', 'dnszone-add', ad.domain.name,
-                            '--name-server', ad.hostname,
-                            '--admin-email', 'hostmaster@%s' % ad.domain.name,
-                            '--forwarder', ad.ip,
-                            '--forward-policy', 'only',
-                            '--ip-address', ad.ip,
-                            '--force'])
-    elif is_subdomain(ad.domain.name, master.domain.name):
+    if is_subdomain(ad.domain.name, master.domain.name):
         master.run_command(['ipa', 'dnsrecord-add', master.domain.name,
                             '%s.%s' % (ad.shortname, ad.netbios),
                             '--a-ip-address', ad.ip])
@@ -336,13 +328,10 @@ def configure_dns_for_trust(master, ad):
         master.run_command(['ipa', 'dnszone-mod', master.domain.name,
                             '--allow-transfer', ad.ip])
     else:
-        master.run_command(['ipa', 'dnszone-add', ad.domain.name,
-                            '--name-server', ad.hostname,
-                            '--admin-email', 'hostmaster@%s' % ad.domain.name,
+        master.run_command(['ipa', 'dnsforwardzone-add', ad.domain.name,
                             '--forwarder', ad.ip,
                             '--forward-policy', 'only',
-                            '--ip-address', ad.ip,
-                            '--force'])
+                            ])
 
 
 def establish_trust_with_ad(master, ad, extra_args=()):
