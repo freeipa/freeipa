@@ -1734,16 +1734,17 @@ class UI_driver(object):
         if not parent:
             parent = self.get_form()
 
-        s = ".facet-actions li[data-name='%s'] a" % action
-        link = self.find(s, By.CSS_SELECTOR, parent)
+        s = ".facet-actions li[data-name='%s']" % action
+        li = self.find(s, By.CSS_SELECTOR, parent)
+        link = self.find("a", By.CSS_SELECTOR, li)
 
-        is_visible = link is not None and link.is_displayed()
+        is_visible = li is not None and link is not None
         is_enabled = False
 
         assert is_visible == visible, ('Invalid visibility of action item: %s. '
                                        'Expected: %s') % (action, str(visible))
 
         if is_visible:
-            is_enabled = not self.has_class(link, 'disabled')
+            is_enabled = not self.has_class(li, 'disabled')
             assert is_enabled == enabled, ('Invalid enabled state of action item %s. '
                                            'Expected: %s') % (action, str(visible))
