@@ -1073,7 +1073,7 @@ static int encode_setkeytab_reply(struct ipapwd_keyset *kset,
 
     for (int i = 0; i < kset->num_keys; i++) {
         rc = ber_printf(ber, "{i}", (ber_int_t)kset->keys[i].key_data_type[0]);
-    if (rc == -1) {
+        if (rc == -1) {
             rc = LDAP_OPERATIONS_ERROR;
             LOG_FATAL("Failed to ber_printf the enctype");
             goto done;
@@ -1328,7 +1328,7 @@ static int decode_getkeytab_request(struct berval *extop, bool *wantold,
     }
 
     /* ber parse code */
-    ttag = ber_scanf(ber, "{t[a]", &ctag, &svcname);
+    ttag = ber_scanf(ber, "{ta", &ctag, &svcname);
     if (ttag == LBER_ERROR || ctag != GKREQ_SVCNAME_TAG) {
         LOG_FATAL("ber_scanf failed to decode service name\n");
         err_msg = "Invalid payload.\n";
@@ -1378,7 +1378,7 @@ static int decode_getkeytab_request(struct berval *extop, bool *wantold,
     /* ttag peek done as last step of the previous for loop */
     if (ttag == GKREQ_PASSWORD_TAG) {
         /* optional password present */
-        ttag = ber_scanf(ber, "[a]", &password);
+        ttag = ber_scanf(ber, "a", &password);
         if (ttag == LBER_ERROR) {
             LOG_FATAL("ber_scanf failed to decode password\n");
             err_msg = "Invalid payload.\n";
@@ -1494,7 +1494,7 @@ static int encode_getkeytab_reply(krb5_context krbctx,
         }
 
         rc = ber_printf(ber,
-                        "{t[{t[i]t[o]}]",
+                        "{t{tito}",
                         GKREP_KEY_TAG,
                             GKREP_KEYTYPE_TAG,
                                 (ber_int_t)keys[i].key_data_type[0],
@@ -1509,7 +1509,7 @@ static int encode_getkeytab_reply(krb5_context krbctx,
         /* if salt available, add it */
         if (keys[i].key_data_length[1] != 0) {
             rc = ber_printf(ber,
-                            "t[{t[i]t[o]}]",
+                            "t{tito}",
                             GKREP_SALT_TAG,
                                 GKREP_SALTTYPE_TAG,
                                     (ber_int_t)keys[i].key_data_type[1],

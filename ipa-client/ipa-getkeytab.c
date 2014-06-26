@@ -503,7 +503,7 @@ static struct berval *create_getkeytab_control(const char *svc_princ, bool gen,
         ctag = GK_REQUEST_CURKEYS;
     }
 
-    ret = ber_printf(be, "t{t[s]", ctag, GKREQ_SVCNAME_TAG, svc_princ);
+    ret = ber_printf(be, "t{ts", ctag, GKREQ_SVCNAME_TAG, svc_princ);
     if (ret == -1) {
         ber_free(be, 1);
         goto done;
@@ -530,7 +530,7 @@ static struct berval *create_getkeytab_control(const char *svc_princ, bool gen,
         }
 
         if (password) {
-            ret = ber_printf(be, "t[s]", GKREQ_PASSWORD_TAG, password);
+            ret = ber_printf(be, "ts", GKREQ_PASSWORD_TAG, password);
             if (ret == -1) {
                 ber_free(be, 1);
                 goto done;
@@ -642,7 +642,7 @@ static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
         memset(&keys->ksdata[i], 0, sizeof(struct krb_key_salt));
         keys->nkeys = i + 1;
 
-        rtag = ber_scanf(ber, "{t{[i][o]}]", &ctag, &tint, &tbval);
+        rtag = ber_scanf(ber, "{t{io}", &ctag, &tint, &tbval);
         if (rtag == LBER_ERROR || ctag != GKREP_KEY_TAG) {
             *err_msg = _("Failed to parse enctype in key data!\n");
             ret = LDAP_OPERATIONS_ERROR;
@@ -662,7 +662,7 @@ static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
 
         rtag = ber_peek_tag(ber, &tlen);
         if (rtag == GKREP_SALT_TAG) {
-            rtag = ber_scanf(ber, "t{[i][o]}", &ctag, &tint, &tbval);
+            rtag = ber_scanf(ber, "t{io}", &ctag, &tint, &tbval);
             if (rtag == LBER_ERROR) {
                 *err_msg = _("Failed to parse salt in key data!\n");
                 ret = LDAP_OPERATIONS_ERROR;
