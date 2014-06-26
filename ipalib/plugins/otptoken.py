@@ -19,15 +19,22 @@
 
 from ipalib.plugins.baseldap import DN, LDAPObject, LDAPAddMember, LDAPRemoveMember
 from ipalib.plugins.baseldap import LDAPCreate, LDAPDelete, LDAPUpdate, LDAPSearch, LDAPRetrieve
-from ipalib import api, Int, Str, Bool, Flag, Bytes, IntEnum, StrEnum, _, ngettext
+from ipalib import api, Int, Str, Bool, Flag, Bytes, IntEnum, StrEnum, Password, _, ngettext
 from ipalib.plugable import Registry
 from ipalib.errors import PasswordMismatch, ConversionError, LastMemberError, NotFound
 from ipalib.request import context
+from ipalib.frontend import Local
+
+from backports.ssl_match_hostname import match_hostname
 import base64
 import uuid
 import urllib
+import urllib2
+import httplib
+import urlparse
 import qrcode
 import os
+import ssl
 
 __doc__ = _("""
 OTP Tokens
@@ -383,3 +390,96 @@ class otptoken_remove_managedby(LDAPRemoveMember):
     __doc__ = _('Remove hosts that can manage this host.')
 
     member_attributes = ['managedby']
+
+class HTTPSConnection(httplib.HTTPConnection):
+    "Generates an SSL HTTP connection that performs hostname validation."
+
+    ssl_kwargs = ssl.wrap_socket.func_code.co_varnames[1:ssl.wrap_socket.func_code.co_argcount] #pylint: disable=E1101
+    default_port = httplib.HTTPS_PORT
+
+    def __init__(self, host, **kwargs):
+        # Strip out arguments we want to pass to ssl.wrap_socket()
+        self.__kwargs = {k: v for k, v in kwargs.items() if k in self.ssl_kwargs}
+        for k in self.__kwargs:
+            del kwargs[k]
+
+        # Can't use super() because the parent is an old-style class.
+        httplib.HTTPConnection.__init__(self, host, **kwargs)
+
+    def connect(self):
+        # Create the raw socket and wrap it in ssl.
+        httplib.HTTPConnection.connect(self)
+        self.sock = ssl.wrap_socket(self.sock, **self.__kwargs)
+
+        # Verify the remote hostname.
+        match_hostname(self.sock.getpeercert(), self.host.split(':', 1)[0])
+
+class HTTPSHandler(urllib2.HTTPSHandler):
+    "Opens SSL HTTPS connections that perform hostname validation."
+
+    def __init__(self, **kwargs):
+        self.__kwargs = kwargs
+
+        # Can't use super() because the parent is an old-style class.
+        urllib2.HTTPSHandler.__init__(self)
+
+    def __inner(self, host, **kwargs):
+        tmp = self.__kwargs.copy()
+        tmp.update(kwargs)
+        return HTTPSConnection(host, **tmp)
+
+    def https_open(self, req):
+        return self.do_open(self.__inner, req)
+
+@register()
+class otptoken_sync(Local):
+    __doc__ = _('Synchronize an OTP token.')
+
+    header = 'X-IPA-TokenSync-Result'
+
+    takes_options = (
+        Str('user', label=_('User ID')),
+        Password('password', label=_('Password'), confirm=False),
+        Password('first_code', label=_('First Code'), confirm=False),
+        Password('second_code', label=_('Second Code'), confirm=False),
+    )
+
+    takes_args = (
+        Str('token?', label=_('Token ID')),
+    )
+
+    def forward(self, *args, **kwargs):
+        status = {'result': {self.header: 'unknown'}}
+
+        # Get the sync URI.
+        segments = list(urlparse.urlparse(self.api.env.xmlrpc_uri))
+        assert segments[0] == 'https' # Ensure encryption.
+        segments[2] = segments[2].replace('/xml', '/session/sync_token')
+        sync_uri = urlparse.urlunparse(segments)
+
+        # Prepare the query.
+        query = {k: v for k, v in kwargs.items()
+                    if k in {x.name for x in self.takes_options}}
+        if args and args[0] is not None:
+            obj = self.api.Object.otptoken
+            query['token'] = DN((obj.primary_key.name, args[0]),
+                                obj.container_dn, self.api.env.basedn)
+        query = urllib.urlencode(query)
+
+        # Sync the token.
+        handler = HTTPSHandler(ca_certs=os.path.join(self.api.env.confdir, 'ca.crt'),
+                               cert_reqs=ssl.CERT_REQUIRED,
+                               ssl_version=ssl.PROTOCOL_TLSv1)
+        rsp = urllib2.build_opener(handler).open(sync_uri, query)
+        if rsp.getcode() == 200:
+            status['result'][self.header] = rsp.info().get(self.header, 'unknown')
+        rsp.close()
+
+        return status
+
+    def output_for_cli(self, textui, result, *keys, **options):
+        textui.print_plain({
+            'ok': 'Token synchronized.',
+            'error': 'Error contacting server!',
+            'invalid-credentials': 'Invalid Credentials!',
+        }.get(result['result'][self.header], 'Unknown Error!'))

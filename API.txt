@@ -2420,6 +2420,15 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
+command: otptoken_sync
+args: 1,5,1
+arg: Str('token?')
+option: Password('first_code', confirm=False)
+option: Password('password', confirm=False)
+option: Password('second_code', confirm=False)
+option: Str('user')
+option: Str('version?', exclude='webui')
+output: Output('result', None, None)
 command: passwd
 args: 3,2,3
 arg: Str('principal', autofill=True, cli_name='user', primary_key=True)
