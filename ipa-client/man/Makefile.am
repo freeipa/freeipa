@@ -9,6 +9,7 @@ man1_MANS = 				\
 		ipa-rmkeytab.1		\
 		ipa-client-install.1	\
 		ipa-client-automount.1	\
+		ipa-certupdate.1	\
 		ipa-join.1
 
 man5_MANS =				\

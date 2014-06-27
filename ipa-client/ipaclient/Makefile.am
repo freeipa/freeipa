@@ -6,6 +6,7 @@ app_PYTHON = 			\
 	ipachangeconf.py	\
 	ipadiscovery.py		\
 	ntpconf.py		\
+	ipa_certupdate.py	\
 	$(NULL)
 
 EXTRA_DIST =			\
