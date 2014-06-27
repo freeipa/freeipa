@@ -80,6 +80,7 @@ BuildRequires:  systemd
 BuildRequires:  libunistring-devel
 BuildRequires:  python-lesscpy
 BuildRequires:  python-cherrypy
+BuildRequires:  python-yubico
 
 # Find out Kerberos middle version to infer ABI changes in DAL driver
 # We cannot load DAL driver into KDC with wrong ABI.
