@@ -719,8 +719,8 @@ class i18n_messages(Command):
             "next": _("Next"),
             "page": _("Page"),
             "prev": _("Prev"),
-            "undo": _("undo"),
-            "undo_all": _("undo all"),
+            "undo": _("Undo"),
+            "undo_all": _("Undo All"),
             "validation": {
                 "error": _("Text does not match field pattern"),
                 "datetime": _("Must be an UTC date/time value (e.g., \"2014-01-20 17:58:01Z\")"),

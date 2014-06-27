@@ -574,8 +574,8 @@
                         "next": "Next",
                         "page": "Page",
                         "prev": "Prev",
-                        "undo": "undo",
-                        "undo_all": "undo all",
+                        "undo": "Undo",
+                        "undo_all": "Undo All",
                         "validation": {
                             "error": "Text does not match field pattern",
                             "datetime": "Must be an UTC date/time value (e.g., \"2014-01-20 17:58:01Z\")",
