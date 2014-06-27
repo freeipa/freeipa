@@ -594,6 +594,26 @@ def named_update_pid_file():
     sysupgrade.set_upgrade_state('named.conf', 'pid-file_updated', True)
     return True
 
+def named_enable_dnssec():
+    """
+    Enable dnssec in named.conf
+    """
+    if not sysupgrade.get_upgrade_state('named.conf', 'dnssec_enabled'):
+        root_logger.info('[Enabling "dnssec-enable" configuration in DNS]')
+        try:
+            bindinstance.named_conf_set_directive('dnssec-enable', 'yes',
+                                                  bindinstance.NAMED_SECTION_OPTIONS,
+                                                  str_val=False)
+        except IOError, e:
+            root_logger.error('Cannot update dnssec-enable configuration in %s: %s',
+                    bindinstance.NAMED_CONF, e)
+            return False
+    else:
+        root_logger.debug('dnssec-enabled in %s' % bindinstance.NAMED_CONF)
+
+    sysupgrade.set_upgrade_state('named.conf', 'dnssec_enabled', True)
+    return True
+
 
 def certificate_renewal_update(ca):
     """
@@ -1129,6 +1149,7 @@ def main():
                           named_enable_serial_autoincrement(),
                           named_update_gssapi_configuration(),
                           named_update_pid_file(),
+                          named_enable_dnssec(),
                          )
 
     if any(named_conf_changes):
