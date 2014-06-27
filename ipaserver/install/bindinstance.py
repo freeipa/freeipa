@@ -51,6 +51,9 @@ named_conf_arg_ipa_re = re.compile(r'(?P<indent>\s*)arg\s+"(?P<name>\S+)\s(?P<va
 named_conf_arg_options_re = re.compile(r'(?P<indent>\s*)(?P<name>\S+)\s+"(?P<value>[^"]+)"\s*;')
 named_conf_arg_ipa_template = "%(indent)sarg \"%(name)s %(value)s\";\n"
 named_conf_arg_options_template = "%(indent)s%(name)s \"%(value)s\";\n"
+# non string args for options section
+named_conf_arg_options_re_nonstr = re.compile(r'(?P<indent>\s*)(?P<name>\S+)\s+(?P<value>[^"]+)\s*;')
+named_conf_arg_options_template_nonstr = "%(indent)s%(name)s %(value)s;\n"
 
 def check_inst(unattended):
     has_bind = True
@@ -94,14 +97,21 @@ def named_conf_exists():
 
 NAMED_SECTION_OPTIONS = "options"
 NAMED_SECTION_IPA = "ipa"
-def named_conf_get_directive(name, section=NAMED_SECTION_IPA):
-    """Get a configuration option in bind-dyndb-ldap section of named.conf"""
+def named_conf_get_directive(name, section=NAMED_SECTION_IPA, str_val=True):
+    """Get a configuration option in bind-dyndb-ldap section of named.conf
+
+    :str_val - set to True if directive value is string
+        (only for NAMED_SECTION_OPTIONS)
+    """
     if section == NAMED_SECTION_IPA:
         named_conf_section_start_re = named_conf_section_ipa_start_re
         named_conf_arg_re = named_conf_arg_ipa_re
     elif section == NAMED_SECTION_OPTIONS:
         named_conf_section_start_re = named_conf_section_options_start_re
-        named_conf_arg_re = named_conf_arg_options_re
+        if str_val:
+            named_conf_arg_re = named_conf_arg_options_re
+        else:
+            named_conf_arg_re = named_conf_arg_options_re_nonstr
     else:
         raise NotImplementedError('Section "%s" is not supported' % section)
 
@@ -121,7 +131,8 @@ def named_conf_get_directive(name, section=NAMED_SECTION_IPA):
                 if match and name == match.group('name'):
                     return match.group('value')
 
-def named_conf_set_directive(name, value, section=NAMED_SECTION_IPA):
+def named_conf_set_directive(name, value, section=NAMED_SECTION_IPA,
+                             str_val=True):
     """
     Set configuration option in bind-dyndb-ldap section of named.conf.
 
@@ -130,6 +141,9 @@ def named_conf_set_directive(name, value, section=NAMED_SECTION_IPA):
 
     If the value is set to None, the configuration option is removed
     from named.conf.
+
+    :str_val - set to True if directive value is string
+        (only for NAMED_SECTION_OPTIONS)
     """
     new_lines = []
 
@@ -139,8 +153,12 @@ def named_conf_set_directive(name, value, section=NAMED_SECTION_IPA):
         named_conf_arg_template = named_conf_arg_ipa_template
     elif section == NAMED_SECTION_OPTIONS:
         named_conf_section_start_re = named_conf_section_options_start_re
-        named_conf_arg_re = named_conf_arg_options_re
-        named_conf_arg_template = named_conf_arg_options_template
+        if str_val:
+            named_conf_arg_re = named_conf_arg_options_re
+            named_conf_arg_template = named_conf_arg_options_template
+        else:
+            named_conf_arg_re = named_conf_arg_options_re_nonstr
+            named_conf_arg_template = named_conf_arg_options_template_nonstr
     else:
         raise NotImplementedError('Section "%s" is not supported' % section)
 
