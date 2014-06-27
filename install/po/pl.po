@@ -4,17 +4,18 @@
 #
 # Translators:
 # jdennis <jdennis@redhat.com>, 2011
-# mmarzantowicz <mmarzantowicz@osdf.com.pl>, 2013
+# Mateusz Marzantowicz <mmarzantowicz@osdf.com.pl>, 2013
 # Piotr Drąg <piotrdrag@gmail.com>, 2010,2013
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-10-09 14:39+0200\n"
-"PO-Revision-Date: 2013-08-01 14:06+0000\n"
+"POT-Creation-Date: 2014-06-27 16:29+0200\n"
+"PO-Revision-Date: 2014-06-25 19:44+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
-"Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
+"Language-Team: Polish (http://www.transifex.com/projects/p/freeipa/language/"
+"pl/)\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -321,9 +322,11 @@ msgstr[2] "Pasuje %(count)d ACI"
 msgid "Description"
 msgstr "Opis"
 
-#, python-format
-msgid "Group: %s not found!"
-msgstr "Grupa: nie odnaleziono %s."
+msgid "Users"
+msgstr "Użytkownicy"
+
+msgid "Hosts"
+msgstr "Komputery"
 
 msgid "Location"
 msgstr "Położenie"
@@ -444,12 +447,6 @@ msgstr "Ograniczenie rozmiaru"
 msgid "Maximum number of entries returned"
 msgstr "Maksymalna liczba zwróconych wpisów"
 
-msgid "Failure decoding Certificate Signing Request:"
-msgstr "Dekodowanie żądania podpisywania certyfikatu nie powiodło się:"
-
-msgid "Failure decoding Certificate Signing Request"
-msgstr "Dekodowanie żądania podpisywania certyfikatu nie powiodło się"
-
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr "Dekodowanie żądania podpisywania certyfikatu nie powiodło się: %s"
@@ -569,6 +566,12 @@ msgstr "Nazwa strefy"
 msgid "Zone name (FQDN)"
 msgstr "Nazwa strefy (FQDN)"
 
+msgid "Active zone"
+msgstr "Aktywna strefa"
+
+msgid "DNS is not configured"
+msgstr "DNS nie jest skonfigurowany"
+
 msgid "Administrator e-mail address"
 msgstr "Adres e-mail administratora"
 
@@ -587,23 +590,14 @@ msgstr "Wygaszenie SOA"
 msgid "SOA minimum"
 msgstr "Minimalne SOA"
 
-msgid "SOA time to live"
-msgstr "Czas życia SOA"
+msgid "Time to live"
+msgstr "Czas życia"
 
 msgid "SOA class"
 msgstr "Klasa SOA"
 
 msgid "BIND update policy"
 msgstr "Polityka aktualizacji BIND"
-
-msgid "Active zone"
-msgstr "Aktywna strefa"
-
-msgid "DNS is not configured"
-msgstr "DNS nie jest skonfigurowany"
-
-msgid "Time to live"
-msgstr "Czas życia"
 
 msgid "Class"
 msgstr "Klasa"
@@ -698,12 +692,6 @@ msgstr "Kategoria usług, do których zastosowywana jest reguła"
 
 msgid "Enabled"
 msgstr "Włączone"
-
-msgid "Users"
-msgstr "Użytkownicy"
-
-msgid "Hosts"
-msgstr "Komputery"
 
 msgid "Host Groups"
 msgstr "Grupy komputerów"
@@ -1292,20 +1280,8 @@ msgid "Out of memory \n"
 msgstr "Brak pamięci \n"
 
 #, c-format
-msgid "Out of Memory!\n"
-msgstr "Brak pamięci.\n"
-
-#, c-format
-msgid "Failed to create control!\n"
-msgstr "Utworzenie kontroli nie powiodło się.\n"
-
-#, c-format
 msgid "Unable to initialize ldap library!\n"
 msgstr "Nie można zainicjować biblioteki LDAP.\n"
-
-#, c-format
-msgid "Unable to set ldap options!\n"
-msgstr "Nie można ustawić opcji LDAP.\n"
 
 #, c-format
 msgid "Simple bind failed\n"
@@ -1320,8 +1296,20 @@ msgid "Missing reply control!\n"
 msgstr "Brak kontroli odpowiedzi.\n"
 
 #, c-format
+msgid "Out of Memory!\n"
+msgstr "Brak pamięci.\n"
+
+#, c-format
+msgid "Failed to create control!\n"
+msgstr "Utworzenie kontroli nie powiodło się.\n"
+
+#, c-format
 msgid "ber_init() failed, Invalid control ?!\n"
 msgstr "ber_init() nie powiodło się, nieprawidłowa kontrola?\n"
+
+#, c-format
+msgid "Out of memory!\n"
+msgstr "Brak pamięci.\n"
 
 msgid "New Principal Password"
 msgstr "Nowe hasło naczelnika"
@@ -1469,10 +1457,6 @@ msgstr "Dowiązanie nie powiodło się: %s\n"
 #, c-format
 msgid "No values for %s"
 msgstr "Brak wartości dla %s"
-
-#, c-format
-msgid "Out of memory!\n"
-msgstr "Brak pamięci.\n"
 
 #, c-format
 msgid "Search for ipaCertificateSubjectBase failed with error %d"
@@ -1632,11 +1616,11 @@ msgstr "Usuwa wszystkich naczelników w tym obszarze"
 msgid "Closing keytab failed\n"
 msgstr "Zamknięcie tablicy kluczy nie powiodło się\n"
 
-msgid "Out of memory!?\n"
-msgstr "Brak pamięci?\n"
-
 msgid "Out of memory\n"
 msgstr "Brak pamięci\n"
+
+msgid "Out of memory!?\n"
+msgstr "Brak pamięci?\n"
 
 msgid "Enctype comparison failed!\n"
 msgstr "Porównanie typów szyfrowania nie powiodło się.\n"
@@ -1646,3 +1630,6 @@ msgstr "Utworzenie losowego klucza nie powiodło się.\n"
 
 msgid "Failed to create key!\n"
 msgstr "Utworzenie klucza nie powiodło się.\n"
+
+#~ msgid "Unable to set ldap options!\n"
+#~ msgstr "Nie można ustawić opcji LDAP.\n"

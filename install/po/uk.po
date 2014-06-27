@@ -4,16 +4,18 @@
 #
 # Translators:
 # jdennis <jdennis@redhat.com>, 2011
-# Yuri Chornoivan <yurchor@ukr.net>, 2011-2013
+# Petr Viktorin <encukou@gmail.com>, 2014
+# Yuri Chornoivan <yurchor@ukr.net>, 2011-2014
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-10-09 14:39+0200\n"
-"PO-Revision-Date: 2013-08-01 16:10+0000\n"
+"POT-Creation-Date: 2014-06-27 16:29+0200\n"
+"PO-Revision-Date: 2014-06-26 09:08+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
-"Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
+"Language-Team: Ukrainian (http://www.transifex.com/projects/p/freeipa/"
+"language/uk/)\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -52,6 +54,13 @@ msgstr "Назва команди"
 
 msgid "Positional arguments"
 msgstr "Обов’язкові аргументи"
+
+#, python-format
+msgid "Same as --%s"
+msgstr "Те саме, що і --%s"
+
+msgid "Deprecated options"
+msgstr "Застарілі параметри"
 
 msgid "No file to read"
 msgstr "Немає файла для читання"
@@ -335,6 +344,17 @@ msgid "LDAP timeout"
 msgstr "Час очікування LDAP"
 
 #, python-format
+msgid "DNS check failed: Expected {%(expected)s} got {%(got)s}"
+msgstr ""
+"Перевірка DNS зазнала невдачі: мало бути {%(expected)s}, отримано {%(got)s}"
+
+#, python-format
+msgid "%(task)s LDAP task timeout, Task DN: '%(task_dn)s'"
+msgstr ""
+"Перевищення часу очікування на завершення завдання LDAP %(task)s, DN "
+"завдання: «%(task_dn)s»"
+
+#, python-format
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "Не вдалося завершити дію з сертифікатом: %(error)s"
 
@@ -523,11 +543,49 @@ msgstr "має бути «%(value)s»"
 msgid "must be one of %(values)s"
 msgstr "має бути одним з таких значень: %(values)s"
 
+msgid "must be datetime value"
+msgstr "має бути значенням дати і часу"
+
+msgid "does not match any of accepted formats: "
+msgstr "не відповідає жодному з прийнятних форматів: "
+
 msgid "incomplete time value"
 msgstr "неповне часове значення"
 
 msgid "this option is deprecated"
 msgstr "цей параметр вважається застарілим"
+
+msgid "must be DNS name"
+msgstr "має бути назвою DNS"
+
+msgid "invalid escape code in domain name"
+msgstr "некоректний керівний код у назві домену"
+
+msgid "empty DNS label"
+msgstr "порожня мітка DNS"
+
+msgid "domain name cannot be longer than 255 characters"
+msgstr "назва домену не повинна перевищувати за довжиною 255 символів"
+
+msgid "DNS label cannot be longer than 63 characters"
+msgstr "Довжина мітки DNS не повинна перевищувати 63 символів"
+
+msgid "invalid domain name"
+msgstr "некоректна назва домену"
+
+#, python-format
+msgid ""
+"domain name '%(domain)s' and normalized domain name '%(normalized)s' do not "
+"match. Please use only normalized domains"
+msgstr ""
+"назва домену «%(domain)s» і нормалізована назва «%(normalized)s» не "
+"збігаються. Будь ласка, використовуйте лише нормалізовані домени."
+
+msgid "must be absolute"
+msgstr "має бути абсолютною"
+
+msgid "must be relative"
+msgstr "має бути відносною"
 
 msgid "A list of ACI values"
 msgstr "Список значень ACI"
@@ -676,6 +734,9 @@ msgstr[0] "встановлено відповідність %(count)d ACI"
 msgstr[1] "встановлено відповідність %(count)d ACI"
 msgstr[2] "встановлено відповідність %(count)d ACI"
 
+msgid "Location of the ACI"
+msgstr "Розташування ACI"
+
 msgid "New ACI name"
 msgstr "Нова назва ACI"
 
@@ -686,49 +747,145 @@ msgstr "ACI перейменовано на «%(value)s»"
 msgid ""
 "\n"
 "Auto Membership Rule.\n"
+msgstr ""
+"\n"
+"Правило автоматичної участі.\n"
+
+msgid ""
 "\n"
 "Bring clarity to the membership of hosts and users by configuring inclusive\n"
 "or exclusive regex patterns, you can automatically assign a new entries "
 "into\n"
 "a group or hostgroup based upon attribute information.\n"
+msgstr ""
+"\n"
+"Внесіть ясність у правила участі вузлів та користувачів налаштовуванням\n"
+"формальних виразів шаблонів включення або виключення. Ви можете автоматично\n"
+"пов’язувати нові записи з групою або групою вузлів на основі даних щодо "
+"атрибутів.\n"
+
+msgid ""
 "\n"
 "A rule is directly associated with a group by name, so you cannot create\n"
 "a rule without an accompanying group or hostgroup.\n"
+msgstr ""
+"\n"
+"Правило безпосередньо пов’язується з групою за назвою, отже ви не можете\n"
+"створити правило без визначення групи або групи вузлів.\n"
+
+msgid ""
 "\n"
 "A condition is a regular expression used by 389-ds to match a new incoming\n"
 "entry with an automember rule. If it matches an inclusive rule then the\n"
 "entry is added to the appropriate group or hostgroup.\n"
+msgstr ""
+"\n"
+"Умова є формальним виразом, використовується 389-ds для встановлення\n"
+"відповідності нового вхідного запису з правилом автоматичної участі.\n"
+"Якщо умові відповідає правило включення, запис додається до відповідної\n"
+"групи або групи вузлів.\n"
+
+msgid ""
 "\n"
 "A default group or hostgroup could be specified for entries that do not\n"
 "match any rule. In case of user entries this group will be a fallback group\n"
 "because all users are by default members of group specified in IPA config.\n"
+msgstr ""
 "\n"
+"Можна визначити типову групу або групу вузлів, яку буде використано для\n"
+"записів, які не відповідають жодному правилу. У випадку записів "
+"користувачів\n"
+"ця група буде резервною групою, оскільки усіх користувачі типово є "
+"учасниками\n"
+"групи, вказаної у налаштуваннях IPA.\n"
+
+msgid ""
+"\n"
+"The automember-rebuild command can be used to retroactively run automember "
+"rules\n"
+"against existing entries, thus rebuilding their membership.\n"
+msgstr ""
+"\n"
+"За допомогою програми automember-rebuild ви можете повторно застосувати "
+"правила\n"
+"автоматичної участі до вже створених записів, тобто перебудувати схему "
+"участі.\n"
+
+msgid ""
 "\n"
 "EXAMPLES:\n"
+msgstr ""
+"\n"
+"ПРИКЛАДИ:\n"
+
+msgid ""
 "\n"
 " Add the initial group or hostgroup:\n"
 "   ipa hostgroup-add --desc=\"Web Servers\" webservers\n"
 "   ipa group-add --desc=\"Developers\" devel\n"
+msgstr ""
+"\n"
+" Додати початкову групу або групу вузлів:\n"
+"   ipa hostgroup-add --desc=\"Web Servers\" webservers\n"
+"   ipa group-add --desc=\"Developers\" devel\n"
+
+msgid ""
 "\n"
 " Add the initial rule:\n"
 "   ipa automember-add --type=hostgroup webservers\n"
 "   ipa automember-add --type=group devel\n"
+msgstr ""
+"\n"
+" Додати початкове правило:\n"
+"   ipa automember-add --type=hostgroup webservers\n"
+"   ipa automember-add --type=group devel\n"
+
+msgid ""
 "\n"
 " Add a condition to the rule:\n"
 "   ipa automember-add-condition --key=fqdn --type=hostgroup --inclusive-"
 "regex=^web[1-9]+\\.example\\.com webservers\n"
 "   ipa automember-add-condition --key=manager --type=group --inclusive-"
 "regex=^uid=mscott devel\n"
+msgstr ""
+"\n"
+" Додати умову до правила:\n"
+"   ipa automember-add-condition --key=fqdn --type=hostgroup --inclusive-"
+"regex=^web[1-9]+\\.example\\.com webservers\n"
+"   ipa automember-add-condition --key=manager --type=group --inclusive-"
+"regex=^uid=mscott devel\n"
+
+msgid ""
 "\n"
 " Add an exclusive condition to the rule to prevent auto assignment:\n"
 "   ipa automember-add-condition --key=fqdn --type=hostgroup --exclusive-"
 "regex=^web5\\.example\\.com webservers\n"
+msgstr ""
+"\n"
+" Додати умову виключення до правила для запобігання автоматичному "
+"пов’язуванню:\n"
+"   ipa automember-add-condition --key=fqdn --type=hostgroup --exclusive-"
+"regex=^web5\\.example\\.com webservers\n"
+
+msgid ""
 "\n"
 " Add a host:\n"
 "    ipa host-add web1.example.com\n"
+msgstr ""
+"\n"
+" Додати вузол:\n"
+"    ipa host-add web1.example.com\n"
+
+msgid ""
 "\n"
 " Add a user:\n"
 "    ipa user-add --first=Tim --last=User --password tuser1 --manager=mscott\n"
+msgstr ""
+"\n"
+" Додати запис користувача:\n"
+"    ipa user-add --first=Tim --last=User --password tuser1 --manager=mscott\n"
+
+msgid ""
 "\n"
 " Verify automembership:\n"
 "    ipa hostgroup-show webservers\n"
@@ -741,130 +898,143 @@ msgid ""
 "      Description: Developers\n"
 "      GID: 1004200000\n"
 "      Member users: tuser\n"
+msgstr ""
+"\n"
+" Перевірити правила автоматичної участі:\n"
+"    ipa hostgroup-show webservers\n"
+"      Група вузлів: webservers\n"
+"      Опис: Web Servers\n"
+"      Вузли-учасники: web1.example.com\n"
+"\n"
+"    ipa group-show devel\n"
+"      Назва групи: devel\n"
+"      Опис: Developers\n"
+"      GID: 1004200000\n"
+"      Користувачі-учасники: tuser\n"
+
+msgid ""
 "\n"
 " Remove a condition from the rule:\n"
 "   ipa automember-remove-condition --key=fqdn --type=hostgroup --inclusive-"
 "regex=^web[1-9]+\\.example\\.com webservers\n"
+msgstr ""
+"\n"
+" Вилучити умову з правила:\n"
+"   ipa automember-remove-condition --key=fqdn --type=hostgroup --inclusive-"
+"regex=^web[1-9]+\\.example\\.com webservers\n"
+
+msgid ""
 "\n"
 " Modify the automember rule:\n"
 "    ipa automember-mod\n"
+msgstr ""
+"\n"
+" Змінити правило автоматичної участі:\n"
+"    ipa automember-mod\n"
+
+msgid ""
 "\n"
 " Set the default (fallback) target group:\n"
 "    ipa automember-default-group-set --default-group=webservers --"
 "type=hostgroup\n"
 "    ipa automember-default-group-set --default-group=ipausers --type=group\n"
+msgstr ""
+"\n"
+" Встановити типову (резервну) групу призначення:\n"
+"    ipa automember-default-group-set --default-group=webservers --"
+"type=hostgroup\n"
+"    ipa automember-default-group-set --default-group=ipausers --type=group\n"
+
+msgid ""
 "\n"
 " Remove the default (fallback) target group:\n"
 "    ipa automember-default-group-remove --type=hostgroup\n"
 "    ipa automember-default-group-remove --type=group\n"
+msgstr ""
+"\n"
+" Вилучити типову (резервну) групу призначення:\n"
+"    ipa automember-default-group-remove --type=hostgroup\n"
+"    ipa automember-default-group-remove --type=group\n"
+
+msgid ""
 "\n"
 " Show the default (fallback) target group:\n"
 "    ipa automember-default-group-show --type=hostgroup\n"
 "    ipa automember-default-group-show --type=group\n"
+msgstr ""
+"\n"
+" Показати типову (резервну) групу призначення:\n"
+"    ipa automember-default-group-show --type=hostgroup\n"
+"    ipa automember-default-group-show --type=group\n"
+
+msgid ""
 "\n"
 " Find all of the automember rules:\n"
 "    ipa automember-find\n"
+msgstr ""
+"\n"
+" Знайти усіх правила автоматичної участі:\n"
+"    ipa automember-find\n"
+
+msgid ""
 "\n"
 " Display a automember rule:\n"
 "    ipa automember-show --type=hostgroup webservers\n"
 "    ipa automember-show --type=group devel\n"
+msgstr ""
+"\n"
+" Показати правило автоматичної участі:\n"
+"    ipa automember-show --type=hostgroup webservers\n"
+"    ipa automember-show --type=group devel\n"
+
+msgid ""
 "\n"
 " Delete an automember rule:\n"
 "    ipa automember-del --type=hostgroup webservers\n"
 "    ipa automember-del --type=group devel\n"
 msgstr ""
 "\n"
-"Правило автоматичної участі.\n"
-"\n"
-"Спрощує визначення участі вузлів і користувачів за допомогою визначених\n"
-"вами шаблонів (формальних виразів) включення чи не включення нових записів\n"
-"до груп або груп вузлів на основі даних атрибутів у автоматичному режимі.\n"
-"\n"
-"Правило безпосередньо пов’язується з групою за назвою, отже ви не можете\n"
-"створювати правила, які не буде пов’язано з групою користувачів чи групою\n"
-"вузлів.\n"
-"Умовою використання правила є формальний вираз, який використовуватиметься\n"
-"389-ds для встановлення відповідності нового вхідного запису з правилом\n"
-"автоматичної участі. Якщо запис відповідатиме правилу включення, його буде\n"
-"додано до відповідної групи або групи вузлів.\n"
-"\n"
-"Можна вказати типову групу або групу вузлів для записів, які не "
-"відповідають\n"
-"жодному правилу. У випадку записів користувачів ця група буде резервною,\n"
-"оскільки всі користувачі є типовими учасниками групи, вказаної у "
-"налаштуваннях\n"
-"IPA (файлі налаштувань).\n"
-"\n"
-"\n"
-"ПРИКЛАДИ:\n"
-"\n"
-" Додавання початкової групи або групи вузлів:\n"
-"   ipa hostgroup-add --desc=\"Web Servers\" webservers\n"
-"   ipa group-add --desc=\"Developers\" devel\n"
-"\n"
-" Додавання початкового правила:\n"
-"   ipa automember-add --type=hostgroup webservers\n"
-"   ipa automember-add --type=group devel\n"
-"\n"
-" Додавання умови до правила:\n"
-"   ipa automember-add-condition --key=fqdn --type=hostgroup --inclusive-"
-"regex=^web[1-9]+\\.example\\.com webservers\n"
-"   ipa automember-add-condition --key=manager --type=group --inclusive-"
-"regex=^uid=mscott devel\n"
-"\n"
-" Додавання умови виключення до правила з метою запобігання\n"
-"   автоматичному додаванню:\n"
-"   ipa automember-add-condition --key=fqdn --type=hostgroup --exclusive-"
-"regex=^web5\\.example\\.com webservers\n"
-"\n"
-" Додавання вузла:\n"
-"    ipa host-add web1.example.com\n"
-"\n"
-" Додавання користувача:\n"
-"    ipa user-add --first=Tim --last=User --password tuser1 --manager=mscott\n"
-"\n"
-" Перевірка правила:\n"
-"    ipa hostgroup-show webservers\n"
-"      Host-group: webservers\n"
-"      Description: Web Servers\n"
-"      Member hosts: web1.example.com\n"
-"\n"
-"    ipa group-show devel\n"
-"      Group name: devel\n"
-"      Description: Developers\n"
-"      GID: 1004200000\n"
-"      Member users: tuser\n"
-"\n"
-" Вилучення умови з правила:\n"
-"   ipa automember-remove-condition --key=fqdn --type=hostgroup --inclusive-"
-"regex=^web[1-9]+\\.example\\.com webservers\n"
-"\n"
-" Внесення змін до правила автоматичної участі:\n"
-"    ipa automember-mod\n"
-"\n"
-" Встановлення типової (резервної) групи призначення:\n"
-"    ipa automember-default-group-set --default-group=webservers --"
-"type=hostgroup\n"
-"    ipa automember-default-group-set --default-group=ipausers --type=group\n"
-"\n"
-" Вилучення типової (резервної) групи призначення:\n"
-"    ipa automember-default-group-remove --type=hostgroup\n"
-"    ipa automember-default-group-remove --type=group\n"
-"\n"
-" Показати типову (резервну) групу призначення:\n"
-"    ipa automember-default-group-show --type=hostgroup\n"
-"    ipa automember-default-group-show --type=group\n"
-"\n"
-" Знайти всі правила автоматичної участі:\n"
-"    ipa automember-find\n"
-"\n"
-" Показати правило автоматичної участі:\n"
-"    ipa automember-show --type=hostgroup webservers\n"
-"    ipa automember-show --type=group devel\n"
-"\n"
 " Вилучити правило автоматичної участі:\n"
 "    ipa automember-del --type=hostgroup webservers\n"
 "    ipa automember-del --type=group devel\n"
+
+msgid ""
+"\n"
+" Rebuild membership for all users:\n"
+"    ipa automember-rebuild --type=group\n"
+msgstr ""
+"\n"
+" Перебудувати записи участі для усіх користувачів:\n"
+"    ipa automember-rebuild --type=group\n"
+
+msgid ""
+"\n"
+" Rebuild membership for all hosts:\n"
+"    ipa automember-rebuild --type=hostgroup\n"
+msgstr ""
+"\n"
+" Перебудувати записи участі для усіх вузлів:\n"
+"    ipa automember-rebuild --type=hostgroup\n"
+
+msgid ""
+"\n"
+" Rebuild membership for specified users:\n"
+"    ipa automember-rebuild --users=tuser1 --users=tuser2\n"
+msgstr ""
+"\n"
+" Перебудувати записи участі для вказаних користувачів:\n"
+"    ipa automember-rebuild --users=tuser1 --users=tuser2\n"
+
+msgid ""
+"\n"
+" Rebuild membership for specified hosts:\n"
+"    ipa automember-rebuild --hosts=web1.example.com --hosts=web2.example."
+"com\n"
+msgstr ""
+"\n"
+" Перебудувати записи участі для вказаних вузлів:\n"
+"    ipa automember-rebuild --hosts=web1.example.com --hosts=web2.example."
+"com\n"
 
 msgid "Inclusive Regex"
 msgstr "Формальний вираз включення"
@@ -907,8 +1077,8 @@ msgid "Default group for entries to land"
 msgstr "Типова група для додавання записів"
 
 #, python-format
-msgid "Group: %s not found!"
-msgstr "Група: %s не знайдено!"
+msgid "%(otype)s \"%(oname)s\" not found"
+msgstr "%(otype)s «%(oname)s» не знайдено"
 
 #, python-format
 msgid "%s is not a valid attribute."
@@ -1086,6 +1256,61 @@ msgstr ""
 "\n"
 "    Показати дані щодо типових (резервних) груп автоматичної участі.\n"
 "    "
+
+msgid "Rebuild auto membership."
+msgstr "Повторне збирання правил автоматичної участі."
+
+msgid "Rebuild membership for all members of a grouping"
+msgstr "Повторне збирання правил участі для усіх учасників угрупування"
+
+msgid "Users"
+msgstr "Користувачі"
+
+msgid "Rebuild membership for specified users"
+msgstr "Повторне збирання правил участі для вказаних користувачів"
+
+msgid "Hosts"
+msgstr "Вузли"
+
+msgid "Rebuild membership for specified hosts"
+msgstr "Повторне збирання правил участі для вказаних вузлів"
+
+msgid "No wait"
+msgstr "Не чекати"
+
+msgid "Don't wait for rebuilding membership"
+msgstr "Не чекати на завершення перебудови записів участі"
+
+msgid "Task DN"
+msgstr "DN завдання"
+
+msgid "DN of the started task"
+msgstr "DN запущеного завдання"
+
+msgid "at least one of options: type, users, hosts must be specified"
+msgstr "має бути вказано принаймні один з варіантів: тип, користувачі чи вузли"
+
+msgid "users and hosts cannot both be set"
+msgstr "не можна одночасно вказувати користувачів і вузли"
+
+msgid "hosts cannot be set when type is 'group'"
+msgstr "не можна вказувати вузли, якщо типом є «group»"
+
+msgid "users cannot be set when type is 'hostgroup'"
+msgstr "не можна вказувати користувачів, якщо типом є «hostgroup»"
+
+msgid "Automember rebuild membership task started"
+msgstr "Виконується завдання з перебудови записів автоматичної участі"
+
+msgid "Automember rebuild membership task completed"
+msgstr "Завдання з перезбирання правил автоматичної участі виконано"
+
+#, python-format
+msgid "Task DN = '%s'"
+msgstr "DN завдання = «%s»"
+
+msgid "Automember"
+msgstr "Автоматична участь"
 
 msgid ""
 "\n"
@@ -1551,7 +1776,7 @@ msgid "Failed members"
 msgstr "Помилка members"
 
 msgid "Member users"
-msgstr "Учасник users"
+msgstr "Користувачі-учасники"
 
 msgid "Member groups"
 msgstr "Учасник groups"
@@ -1560,7 +1785,7 @@ msgid "Member of groups"
 msgstr "Учасник груп"
 
 msgid "Member hosts"
-msgstr "Учасник hosts"
+msgstr "Вузли-учасники"
 
 msgid "Member host-groups"
 msgstr "Учасник host-groups"
@@ -1575,7 +1800,7 @@ msgid "Sudo Command Groups"
 msgstr "Групи команд sudo"
 
 msgid "Granting privilege to roles"
-msgstr "Надання уповноважень ролям"
+msgstr "Надання привілеїв ролям"
 
 msgid "Member netgroups"
 msgstr "Мережеві групи учасника"
@@ -1596,7 +1821,7 @@ msgid "Member HBAC service groups"
 msgstr "Групи служб HBAC учасника"
 
 msgid "Indirect Member users"
-msgstr "Опосередковані користувачі учасника"
+msgstr "Опосередковані користувачі-учасники"
 
 msgid "Indirect Member groups"
 msgstr "Опосередковані групи учасника"
@@ -1964,12 +2189,6 @@ msgstr ""
 "http://www.ietf.org/rfc/rfc5280.txt\n"
 "\n"
 
-msgid "Failure decoding Certificate Signing Request:"
-msgstr "Помилка під час декодування запиту на підписування сертифіката (CSR):"
-
-msgid "Failure decoding Certificate Signing Request"
-msgstr "Помилка під час декодування запиту на підписування сертифіката (CSR)"
-
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr ""
@@ -2033,6 +2252,14 @@ msgstr ""
 "назва вузла у призначенні запиту, «%(subject_host)s», не збігається з назвою "
 "вузла реєстраційного запису, «%(hostname)s»"
 
+#, python-format
+msgid "extension %s is forbidden"
+msgstr "використання розширення %s заборонено"
+
+#, python-format
+msgid "subject alt name type %s is forbidden"
+msgstr "використання типу альтернативної назви об’єкта %s заборонено"
+
 msgid "The service principal for this request doesn't exist."
 msgstr "Реєстраційного запису служби для цього запиту не існує."
 
@@ -2044,21 +2271,33 @@ msgstr ""
 msgid ""
 "Insufficient 'write' privilege to the 'userCertificate' attribute of entry "
 "'%s'."
-msgstr ""
-"Недостатні права доступу «write» до атрибута «userCertificate» запису «%s»."
+msgstr "Недостатні привілеї «write» до атрибута «userCertificate» запису «%s»."
 
 #, python-format
-msgid "no host record for subject alt name %s in certificate request"
+msgid ""
+"The service principal for subject alt name %s in certificate request does "
+"not exist"
 msgstr ""
-"немає запису вузла для альтернативної назви призначення, %s, у запиті щодо "
-"сертифікації"
+"Реєстраційного запису служби для альтернативної назви об’єкта %s запиту щодо "
+"сертифіката не існує"
 
 #, python-format
 msgid ""
 "Insufficient privilege to create a certificate with subject alt name '%s'."
 msgstr ""
-"Недостатні права доступу для створення сертифіката з альтернативною назвою "
+"Недостатні привілеї для створення сертифіката з альтернативною назвою "
 "призначення «%s»."
+
+#, python-format
+msgid ""
+"Principal '%s' in subject alt name does not match requested service principal"
+msgstr ""
+"Реєстраційний запис «%s» у альтернативній назві об’єкта не відповідає "
+"запитаному реєстраційному запису служби"
+
+#, python-format
+msgid "Subject alt name type %s is forbidden"
+msgstr "Використання типу альтернативної назви об’єкта %s заборонено"
 
 msgid "Check the status of a certificate signing request."
 msgstr "Перевірити стан запиту щодо підписування сертифіката."
@@ -2372,6 +2611,12 @@ msgstr "Типові типи PAC"
 
 msgid "Default types of PAC supported for services"
 msgstr "Типові типи PAC, підтримувані для служб"
+
+msgid "Default user authentication types"
+msgstr "Типові типи розпізнавання користувачів"
+
+msgid "Default types of supported user authentication"
+msgstr "Типові типи підтримуваного розпізнавання користувачів"
 
 msgid "Modify configuration options."
 msgstr "Змінити параметри налаштування."
@@ -2783,6 +3028,9 @@ msgstr ""
 "   ipa dnszone-add example.com --name-server=ns \\\n"
 "                               --admin-email=admin@example.com \\\n"
 "                               --ip-address=10.0.0.1\n"
+" Додати системні права доступу, якими можна скористатися для делегування "
+"привілеїв для окремих зон:\n"
+"   ipa dnszone-add-permission example.com\n"
 "\n"
 " Змінити зону з метою дозволити динамічні оновлення для власних записів "
 "вузлів у області EXAMPLE.COM:\n"
@@ -2948,6 +3196,9 @@ msgstr ""
 " переспрямовувачів:\n"
 "   ipa dnsconfig-mod --forwarder=10.0.0.1\n"
 
+msgid "Permission value"
+msgstr "Значення прав доступу"
+
 #, python-format
 msgid "invalid IP address version (is %(value)d, must be %(required_value)d)!"
 msgstr ""
@@ -2966,12 +3217,11 @@ msgid "invalid address format"
 msgstr "некоректний формат адреси"
 
 #, python-format
-msgid "invalid domain-name: %s"
-msgstr "некоректна назва домену: %s"
-
-#, python-format
 msgid "%(port)s is not a valid port"
 msgstr "%(port)s не є чинним портом"
+
+msgid "invalid domain-name: not fully qualified"
+msgstr "некоректна назва домену: назва не є повною"
 
 #, python-format
 msgid "DNS reverse zone for IP address %(addr)s not found"
@@ -3069,15 +3319,6 @@ msgstr "Тип контрольної суми"
 msgid "Digest"
 msgstr "Контрольна сума"
 
-msgid "Flags"
-msgstr "Прапорці"
-
-msgid "Protocol"
-msgstr "Протокол"
-
-msgid "Public Key"
-msgstr "Відкритий ключ"
-
 msgid "Preference"
 msgstr "Пріоритет"
 
@@ -3159,18 +3400,21 @@ msgstr "«%(required)s» має бути порожнім, якщо вказан
 msgid "A host willing to act as a mail exchanger"
 msgstr "Вузол, який може працювати як обмінник поштовими даними"
 
+msgid "Flags"
+msgstr "Прапорці"
+
+msgid "Iterations"
+msgstr "Ітерації"
+
+msgid "Salt"
+msgstr "Сіль"
+
 msgid ""
-"format must be specified as \"NEXT TYPE1 [TYPE2 [TYPE3 [...]]]\" (see RFC "
-"4034 for details)"
+"A hexadecimal salt value. Requires hexadecimal digits or hyphen (\"-\") if "
+"no salt is required"
 msgstr ""
-"формат має бути таким: «НАСТУПНИЙ ТИП1 [ТИП2 [ТИП3 [...]]]» (докладніше про "
-"це у RFC 4034)"
-
-msgid "Next Domain Name"
-msgstr "Наступна назва домену"
-
-msgid "Type Map"
-msgstr "Карта типів"
+"Шістнадцяткове значення солі. Складається із шістнадцяткових цифр або дефіса "
+"(«-»), якщо сіль не потрібна."
 
 msgid "flags must be one of \"S\", \"A\", \"U\", or \"P\""
 msgstr ""
@@ -3211,27 +3455,6 @@ msgstr ""
 msgid "the value does not follow \"YYYYMMDDHHMMSS\" time format"
 msgstr "значення не відповідає формату «РРРРММДДГГХХСС»"
 
-msgid "Type Covered"
-msgstr "Тип покриття"
-
-msgid "Labels"
-msgstr "Мітки"
-
-msgid "Original TTL"
-msgstr "Початковий TTL"
-
-msgid "Signature Expiration"
-msgstr "Строк завершення дії підпису"
-
-msgid "Signature Inception"
-msgstr "Початок дії підпису"
-
-msgid "Signer's Name"
-msgstr "Ім’я підписувача"
-
-msgid "Signature"
-msgstr "Підпис"
-
 msgid "Fingerprint Type"
 msgstr "Тип відбитка"
 
@@ -3254,18 +3477,6 @@ msgstr "Сервер назв «%(host)s» не має відповідного 
 msgid "Managedby permission"
 msgstr "Права доступу managedby"
 
-msgid "DNS zone"
-msgstr "зона DNS"
-
-msgid "DNS zones"
-msgstr "зони DNS"
-
-msgid "DNS Zones"
-msgstr "Зони DNS"
-
-msgid "DNS Zone"
-msgstr "Зона DNS"
-
 msgid "Zone name"
 msgstr "Назва зони"
 
@@ -3277,6 +3488,67 @@ msgstr "Мережа IP зворотної зони"
 
 msgid "IP network to create reverse zone name from"
 msgstr "Мережа IP для створення зворотних назв зони"
+
+msgid "Active zone"
+msgstr "Активна зона"
+
+msgid "Is zone active?"
+msgstr "Чи є зона активною?"
+
+msgid "Zone forwarders"
+msgstr "Переспрямовувачі зон"
+
+msgid ""
+"Per-zone forwarders. A custom port can be specified for each forwarder using "
+"a standard format \"IP_ADDRESS port PORT\""
+msgstr ""
+"Переспрямовувачі для окремої зони. Можна вказати нетиповий порт для кожного "
+"переспрямовувача у стандартному форматі: «IP_АДРЕСА port ПОРТ»"
+
+msgid "Forward policy"
+msgstr "Правила переспрямовування"
+
+msgid ""
+"Per-zone conditional forwarding policy. Set to \"none\" to disable "
+"forwarding to global forwarder for this zone. In that case, conditional zone "
+"forwarders are disregarded."
+msgstr ""
+"Умовні правила переспрямування для окремої зони. Встановіть значення «none» "
+"для вимикання переспрямовувача загального рівня для цієї зони. Якщо ви "
+"встановите це значення, умовні переспрямовувачі зони не братимуться до уваги."
+
+msgid "DNS is not configured"
+msgstr "DNS не налаштовано"
+
+msgid "Only one zone type is allowed per zone name"
+msgstr "Можна використовувати лише один тип зони на одну назву зони"
+
+msgid "Search for DNS zones (SOA records)."
+msgstr "Пошук зон DNS (записів SOA)."
+
+#, python-format
+msgid "Added system permission \"%(value)s\""
+msgstr "Додано системні права доступу «%(value)s»"
+
+#, python-format
+msgid "permission \"%(value)s\" already exists"
+msgstr "право доступу «%(value)s» вже існує"
+
+#, python-format
+msgid "Removed system permission \"%(value)s\""
+msgstr "Вилучено системні права доступу «%(value)s»"
+
+msgid "DNS zone"
+msgstr "зона DNS"
+
+msgid "DNS zones"
+msgstr "зони DNS"
+
+msgid "DNS Zones"
+msgstr "Зони DNS"
+
+msgid "DNS Zone"
+msgstr "Зона DNS"
 
 msgid "Authoritative nameserver"
 msgstr "Основний сервер назв"
@@ -3317,11 +3589,11 @@ msgstr "Мінімальний SOA"
 msgid "How long should negative responses be cached"
 msgstr "Тривалість кешування відмов"
 
-msgid "SOA time to live"
-msgstr "Строк дії SOA"
+msgid "Time to live"
+msgstr "Строк дії"
 
-msgid "SOA record time to live"
-msgstr "Час життя запису SOA"
+msgid "Time to live for records at zone apex"
+msgstr "Час життя записів у апексі зони"
 
 msgid "SOA class"
 msgstr "Клас SOA"
@@ -3331,12 +3603,6 @@ msgstr "Клас записів SOA"
 
 msgid "BIND update policy"
 msgstr "Правила оновлення BIND"
-
-msgid "Active zone"
-msgstr "Активна зона"
-
-msgid "Is zone active?"
-msgstr "Чи є зона активною?"
 
 msgid "Dynamic update"
 msgstr "Динамічне оновлення"
@@ -3364,28 +3630,6 @@ msgstr ""
 "Список відокремлених крапкою з комою записів IP-адрес або мереж, яким надано "
 "доступ до перенесення зони"
 
-msgid "Zone forwarders"
-msgstr "Переспрямовувачі зон"
-
-msgid ""
-"Per-zone forwarders. A custom port can be specified for each forwarder using "
-"a standard format \"IP_ADDRESS port PORT\""
-msgstr ""
-"Переспрямовувачі для окремої зони. Можна вказати нетиповий порт для кожного "
-"переспрямовувача у стандартному форматі: «IP_АДРЕСА port ПОРТ»"
-
-msgid "Forward policy"
-msgstr "Правила переспрямовування"
-
-msgid ""
-"Per-zone conditional forwarding policy. Set to \"none\" to disable "
-"forwarding to global forwarder for this zone. In that case, conditional zone "
-"forwarders are disregarded."
-msgstr ""
-"Умовні правила переспрямування для окремої зони. Встановіть значення «none» "
-"для вимикання переспрямовувача загального рівня для цієї зони. Якщо ви "
-"встановите це значення, умовні переспрямовувачі зони не братимуться до уваги."
-
 msgid "Allow PTR sync"
 msgstr "Дозволити PTR-синхронізацію"
 
@@ -3394,6 +3638,12 @@ msgid ""
 "zone"
 msgstr ""
 "Дозволити у зоні синхронізацію прямих (A, AAAA) і зворотних (PTR) записів"
+
+msgid "Allow in-line DNSSEC signing"
+msgstr "Дозволити вбудоване підписування DNSSEC"
+
+msgid "Allow inline DNSSEC signing of records in the zone"
+msgstr "Дозволити вбудоване підписування DNSSEC записів у зоні"
 
 msgid "Create new DNS zone (SOA record)."
 msgstr "Створити зону DNS (запис SOA)."
@@ -3412,9 +3662,6 @@ msgstr ""
 
 msgid "Nameserver IP address"
 msgstr "IP-адреса сервера назв"
-
-msgid "DNS is not configured"
-msgstr "DNS не налаштовано"
 
 msgid "Nameserver address is not a domain name"
 msgstr "Адреса сервера назв не є назвою домену"
@@ -3442,9 +3689,6 @@ msgid "Force nameserver change even if nameserver not in DNS"
 msgstr ""
 "Примусово змінити сервер назв, навіть якщо запису сервера назв немає у DNS"
 
-msgid "Search for DNS zones (SOA records)."
-msgstr "Пошук зон DNS (записів SOA)."
-
 msgid "Forward zones only"
 msgstr "Лише прямі зони"
 
@@ -3471,16 +3715,8 @@ msgstr "Увімкнено зону DNS «%(value)s»"
 msgid "Add a permission for per-zone access delegation."
 msgstr "Додати права доступу до надання доступу до окремих зон."
 
-#, python-format
-msgid "Added system permission \"%(value)s\""
-msgstr "Додано системні права доступу «%(value)s»"
-
 msgid "Remove a permission for per-zone access delegation."
 msgstr "Вилучити права доступу до надання доступу до окремих зон."
-
-#, python-format
-msgid "Removed system permission \"%(value)s\""
-msgstr "Вилучено системні права доступу «%(value)s»"
 
 msgid "DNS resource record"
 msgstr "Запис ресурсу DNS"
@@ -3497,9 +3733,6 @@ msgstr "Запис ресурсу DNS"
 msgid "Record name"
 msgstr "Назва запису"
 
-msgid "Time to live"
-msgstr "Строк дії"
-
 msgid "Class"
 msgstr "Клас"
 
@@ -3511,6 +3744,15 @@ msgstr "Структурована"
 
 msgid "Parse all raw DNS records and return them in a structured way"
 msgstr "Обробити всі записи DNS і повернути дані у структурованій формі"
+
+msgid "must be in zone record"
+msgstr "має бути у записі зони"
+
+msgid ""
+"out-of-zone data: record name must be a subdomain of the zone or a relative "
+"name"
+msgstr ""
+"дані поза зоною: назва запису має бути піддоменом зони або відносною назвою"
 
 #, python-format
 msgid ""
@@ -3527,6 +3769,9 @@ msgid ""
 msgstr ""
 "Зворотна зона %(name)s потребує точно %(count)d компонентів IP-адрес, надано "
 "%(user_count)d"
+
+msgid "only master zones can contain records"
+msgstr "записи можуть містити лише основні зони"
 
 msgid "only one CNAME record is allowed per name (RFC 2136, section 1.1.5)"
 msgstr ""
@@ -3549,6 +3794,9 @@ msgid ""
 msgstr ""
 "запис DNAME не можна використовувати разом з записом NS, якщо їх не "
 "розташовано у запису кореня зони (RFC 6672, розділ 2.3)"
+
+msgid "Only one NSEC3PARAM record is allowed per zone"
+msgstr "У зоні може бути лише один запис NSEC3PARAM"
 
 msgid "Add new DNS resource record."
 msgstr "Додати новий запис ресурсу DNS."
@@ -3700,6 +3948,64 @@ msgstr "Змінити загальні налаштування DNS."
 
 msgid "Show the current global DNS configuration."
 msgstr "Показати поточні загальні налаштування DNS."
+
+msgid "DNS forward zone"
+msgstr "Зона переспрямовування DNS"
+
+msgid "DNS forward zones"
+msgstr "Зони переспрямовування DNS"
+
+msgid "DNS Forward Zones"
+msgstr "Зони переспрямовування DNS"
+
+msgid "DNS Forward Zone"
+msgstr "Зона переспрямовування DNS"
+
+msgid "Create new DNS forward zone."
+msgstr "Створити зону переспрямовування DNS."
+
+msgid "Please specify forwarders."
+msgstr "Будь ласка, вкажіть переспрямовувачі."
+
+msgid "Delete DNS forward zone."
+msgstr "Вилучити зону переспрямовування DNS."
+
+#, python-format
+msgid "Deleted DNS forward zone \"%(value)s\""
+msgstr "Вилучено зону переспрямовування DNS «%(value)s»"
+
+msgid "Modify DNS forward zone."
+msgstr "Змінити зону переспрямовування DNS."
+
+msgid "Search for DNS forward zones."
+msgstr "Пошук зон переспрямовування DNS."
+
+msgid "Display information about a DNS forward zone."
+msgstr "Показ даних щодо зони переспрямовування DNS."
+
+msgid "Disable DNS Forward Zone."
+msgstr "Вимкнути зону переспрямовування DNS."
+
+#, python-format
+msgid "Disabled DNS forward zone \"%(value)s\""
+msgstr "Вимкнено зону переспрямовування DNS «%(value)s»"
+
+msgid "Enable DNS Forward Zone."
+msgstr "Увімкнути зону переспрямовування DNS"
+
+#, python-format
+msgid "Enabled DNS forward zone \"%(value)s\""
+msgstr "Увімкнено зону переспрямовування DNS «%(value)s»"
+
+msgid "Add a permission for per-forward zone access delegation."
+msgstr ""
+"Додати право доступу до делегування доступу на основі окремих зон "
+"переспрямовування."
+
+msgid "Remove a permission for per-forward zone access delegation."
+msgstr ""
+"Вилучити права доступу до делегування доступу для окремих зон "
+"переспрямовування."
 
 msgid ""
 "\n"
@@ -4155,12 +4461,6 @@ msgstr "Категорія служб, до якої застосовуєтьс�
 
 msgid "Enabled"
 msgstr "Увімкнено"
-
-msgid "Users"
-msgstr "Користувачі"
-
-msgid "Hosts"
-msgstr "Вузли"
 
 msgid "Host Groups"
 msgstr "Групи вузлів"
@@ -4920,13 +5220,12 @@ msgstr ""
 "\n"
 "Вузли/Комп’ютери\n"
 "\n"
-"Одному вузлу відповідає один комп’ютер. Вузол може бути використано\n"
-"у декількох контекстах:\n"
-"- записи служб, пов’язані з вузлом;\n"
-"- на вузлі зберігається реєстраційний запис служби вузла\n"
-"- вузол може бути використано у правилах Host-based Access Control (HBAC);\n"
-"- для кожного зареєстрованого клієнта створюється запис вузла.\n"
-"\n"
+"Вузол — це окремий комп’ютер. Термін може використовуватися у декількох "
+"контекстах:\n"
+"- записи служб, пов’язані з певним вузлом\n"
+"- вузол зберігає реєстраційні дані вузол/служба\n"
+"- вузол можна використовувати у правилах Host-based Access Control (HBAC)\n"
+"- для усіх зареєстрованих клієнтів створюється запис вузла\n"
 
 msgid ""
 "\n"
@@ -4945,24 +5244,43 @@ msgstr ""
 "\n"
 "РЕЄСТРАЦІЯ:\n"
 "\n"
-"Передбачено три сценарії реєстрації нового клієнта:\n"
+"Передбачено три сценарії реєстрації нових клієнтів:\n"
 "\n"
-"1. Реєстрація повноцінного адміністратора. Відповідний запис вузла може "
-"існувати\n"
-"   або не існувати. Повноцінний адміністратор є учасником ролі hostadmin "
-"або\n"
-"   групи admins.\n"
-"2. Реєстрація обмеженого адміністратора. Відповідний запис вузла вже має "
-"існувати\n"
-"   Обмежений адміністратор є учасником розі з правами реєстрації вузлів.\n"
-"3. Створення запису вузла з одноразовим паролем.\n"
+"1. Ви реєструєтеся як повноцінний адміністратор. Запис вузла може існувати\n"
+"   або не існувати. Повноцінний адміністратор виконує роль hostadmin або є\n"
+"   учасником групи admins.\n"
+"2. Ви реєструєтеся як адміністратор з обмеженими правами. Вузол вже має\n"
+"   існувати. Обмежений адміністратор виконує роль з привілеями\n"
+"   Host Enrollment.\n"
+"3. Вузол було створено з одноразовим паролем.\n"
 
 msgid ""
 "\n"
-"EXAMPLES:\n"
+"RE-ENROLLMENT:\n"
+"\n"
+"Host that has been enrolled at some point, and lost its configuration (e.g. "
+"VM\n"
+"destroyed) can be re-enrolled.\n"
+"\n"
+"For more information, consult the manual pages for ipa-client-install.\n"
+"\n"
+"A host can optionally store information such as where it is located,\n"
+"the OS that it runs, etc.\n"
 msgstr ""
 "\n"
-"ПРИКЛАДИ:\n"
+"ПОВТОРНА РЕЄСТРАЦІЯ:\n"
+"\n"
+"Вузол, якому вже колись було надано певну роль, але налаштування було "
+"втрачено\n"
+"(наприклад через знищення віртуальної машини), можна знову зареєструвати "
+"(надати роль).\n"
+"\n"
+"Щоб дізнатися більше, зверніться до сторінок підручника (man) щодо ipa-"
+"client-install.\n"
+"\n"
+"Запис вузла може, якщо потрібно, зберігати відомості щодо розташування, "
+"запущеної\n"
+"операційної системи тощо.\n"
 
 msgid ""
 "\n"
@@ -4971,7 +5289,7 @@ msgid ""
 "com\n"
 msgstr ""
 "\n"
-" Додавання нового вузла:\n"
+"Додати новий вузол:\n"
 "   ipa host-add --location=\"3rd floor lab\" --locality=Dallas test.example."
 "com\n"
 
@@ -4981,7 +5299,7 @@ msgid ""
 "   ipa host-del test.example.com\n"
 msgstr ""
 "\n"
-" Вилучення вузла:\n"
+" Вилучити вузол:\n"
 "   ipa host-del test.example.com\n"
 
 msgid ""
@@ -4990,7 +5308,7 @@ msgid ""
 "   ipa host-add --os='Fedora 12' --password=Secret123 test.example.com\n"
 msgstr ""
 "\n"
-" Додавання нового вузла з одноразовим паролем:\n"
+" Додати новий вузол з одноразовим паролем:\n"
 "   ipa host-add --os='Fedora 12' --password=Secret123 test.example.com\n"
 
 msgid ""
@@ -4999,7 +5317,7 @@ msgid ""
 "   ipa host-add --os='Fedora 12' --random test.example.com\n"
 msgstr ""
 "\n"
-" Додавання нового вузла з випадковим одноразовим паролем:\n"
+"Додати новий вузол з випадковим одноразовим паролем:\n"
 "   ipa host-add --os='Fedora 12' --random test.example.com\n"
 
 msgid ""
@@ -5008,7 +5326,7 @@ msgid ""
 "   ipa host-mod --os='Fedora 12' test.example.com\n"
 msgstr ""
 "\n"
-" Зміна даних щодо вузла:\n"
+" Змінити відомості щодо вузла:\n"
 "   ipa host-mod --os='Fedora 12' test.example.com\n"
 
 msgid ""
@@ -5017,7 +5335,7 @@ msgid ""
 "   ipa host-mod --sshpubkey= --updatedns test.example.com\n"
 msgstr ""
 "\n"
-" Вилучення відкритих ключів SSH вузла і оновлення DNS відповідно до внесених "
+" Вилучити відкриті ключі SSH вузла і оновити DNS відповідно до внесених "
 "змін:\n"
 "   ipa host-mod --sshpubkey= --updatedns test.example.com\n"
 
@@ -5027,7 +5345,7 @@ msgid ""
 "   ipa host-disable test.example.com\n"
 msgstr ""
 "\n"
-" Вимикання ключа Kerberos вузла, сертифіката SSL та всіх його служб:\n"
+"Вимкнути ключ Kerberos вузла, сертифікат SSL та усі його служби:\n"
 "   ipa host-disable test.example.com\n"
 
 msgid ""
@@ -5036,8 +5354,8 @@ msgid ""
 "   ipa host-add-managedby --hosts=test2 test\n"
 msgstr ""
 "\n"
-" Додавання вузла, який може керувати таблицею ключів і сертифікатів\n"
-" цього вузла:\n"
+"Додати вузол, який може керувати сховищем ключів та сертифікатом цього "
+"вузла :\n"
 "   ipa host-add-managedby --hosts=test2 test\n"
 
 msgid "Keytab"
@@ -5054,6 +5372,10 @@ msgstr "Помилка managedby"
 
 msgid "SSH public key fingerprint"
 msgstr "Відбиток відкритого ключа SSH"
+
+#, python-format
+msgid "invalid domain-name: %s"
+msgstr "некоректна назва домену: %s"
 
 msgid "host"
 msgstr "вузол"
@@ -5673,6 +5995,7 @@ msgstr "Назва довіреного домену"
 msgid "Range type"
 msgstr "Тип діапазону"
 
+#, python-brace-format
 msgid "ID range type, one of {vals}"
 msgstr "Тип діапазону ідентифікаторів, одне з таких значень: {vals}"
 
@@ -5883,47 +6206,68 @@ msgstr ""
 msgid "Apply"
 msgstr "Застосувати"
 
-msgid "Are you sure you want to proceed with the action."
+msgid "Rebuild auto membership"
+msgstr "Повторне збирання правил автоматичної участі"
+
+msgid "Are you sure you want to rebuild auto membership?"
+msgstr "Ви справді хочете перебудувати записи автоматичної участі?"
+
+msgid "Are you sure you want to proceed with the action?"
 msgstr "Ви справді хочете виконати цю дію?"
 
-msgid "Are you sure you want to delete ${object}"
-msgstr "Ви справді хочете вилучити ${object}"
+#, python-brace-format
+msgid "Are you sure you want to delete ${object}?"
+msgstr "Ви справді хочете вилучити ${object}?"
 
-msgid "Are you sure you want to disable ${object}"
-msgstr "Ви справді хочете вимкнути ${object}"
+#, python-brace-format
+msgid "Are you sure you want to disable ${object}?"
+msgstr "Ви справді хочете вимкнути ${object}?"
 
-msgid "Are you sure you want to enable ${object}"
-msgstr "Ви справді хочете увімкнути ${object}"
+#, python-brace-format
+msgid "Are you sure you want to enable ${object}?"
+msgstr "Ви справді хочете увімкнути ${object}?"
 
 msgid "Actions"
 msgstr "Дії"
 
+#, python-brace-format
 msgid "Add RunAs ${other_entity} into ${entity} ${primary_key}"
 msgstr "Додати ${other_entity} запуск від імені до ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Add RunAs Groups into ${entity} ${primary_key}"
 msgstr "Додати групи запуску від імені до ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Add ${other_entity} Managing ${entity} ${primary_key}"
 msgstr "Додати ${other_entity}, керування ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Add ${other_entity} into ${entity} ${primary_key}"
 msgstr "Додати ${other_entity} до ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Add Allow ${other_entity} into ${entity} ${primary_key}"
 msgstr "Додано дозвіл ${other_entity} до ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Add Deny ${other_entity} into ${entity} ${primary_key}"
 msgstr "Додано заборону ${other_entity} до ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Add ${entity} ${primary_key} into ${other_entity}"
 msgstr "Додати ${entity} ${primary_key} до ${other_entity}"
 
+#, python-brace-format
 msgid "${count} item(s) added"
 msgstr "Додано ${count} записів"
 
 msgid "Direct Membership"
 msgstr "Безпосередня участь"
+
+#, python-brace-format
+msgid "Filter available ${other_entity}"
+msgstr "Доступний фільтр ${other_entity}"
 
 msgid "Indirect Membership"
 msgstr "Опосередкована участь"
@@ -5931,35 +6275,47 @@ msgstr "Опосередкована участь"
 msgid "No entries."
 msgstr "Немає записів."
 
+#, python-brace-format
 msgid "Showing ${start} to ${end} of ${total} entries."
 msgstr "Показано записи від ${start} до ${end} з ${total} записів."
 
+#, python-brace-format
 msgid "Remove RunAs ${other_entity} from ${entity} ${primary_key}"
 msgstr "Вилучити ${other_entity} запуску від імені з ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Remove RunAs Groups from ${entity} ${primary_key}"
 msgstr "Вилучити групи запуску від імені з ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Remove ${other_entity} Managing ${entity} ${primary_key}"
 msgstr "Вилучити ${other_entity}, керування ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Remove ${other_entity} from ${entity} ${primary_key}"
 msgstr "Вилучити ${other_entity} з ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Remove Allow ${other_entity} from ${entity} ${primary_key}"
 msgstr "Вилучити дозвіл ${other_entity} з ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Remove Deny ${other_entity} from ${entity} ${primary_key}"
 msgstr "Вилучити заборону ${other_entity} з ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Remove ${entity} ${primary_key} from ${other_entity}"
 msgstr "Вилучити ${entity} ${primary_key} з ${other_entity}"
 
+#, python-brace-format
 msgid "${count} item(s) removed"
 msgstr "Вилучено ${count} записів"
 
 msgid "Show Results"
 msgstr "Показати результати"
+
+msgid "About"
+msgstr "Про програму"
 
 msgid "Add"
 msgstr "Додати"
@@ -6048,18 +6404,22 @@ msgstr "Загальне"
 msgid "Identity Settings"
 msgstr "Параметри профілю"
 
+#, python-brace-format
 msgid "${entity} ${primary_key} Settings"
 msgstr "Параметри ${primary_key} ${entity}"
 
 msgid "Back to Top"
 msgstr "Повернутися до початку"
 
+#, python-brace-format
 msgid "${entity} ${primary_key} updated"
 msgstr "Оновлено ${primary_key} ${entity}"
 
+#, python-brace-format
 msgid "${entity} successfully added"
 msgstr "${entity} успішно додано"
 
+#, python-brace-format
 msgid "Add ${entity}"
 msgstr "Додати ${entity}"
 
@@ -6083,11 +6443,16 @@ msgstr ""
 msgid "Unsaved Changes"
 msgstr "Незбережені зміни"
 
+#, python-brace-format
 msgid "Edit ${entity}"
 msgstr "Змінити ${entity}"
 
 msgid "Hide details"
 msgstr "Сховати подробиці"
+
+#, python-brace-format
+msgid "${product}, version: ${version}"
+msgstr "${product}, версія: ${version}"
 
 msgid "Prospective"
 msgstr "Очікуваний"
@@ -6098,6 +6463,7 @@ msgstr "Переспрямування"
 msgid "Select entries to be removed."
 msgstr "Виберіть записи, які слід вилучити."
 
+#, python-brace-format
 msgid "Remove ${entity}"
 msgstr "Вилучити ${entity}"
 
@@ -6128,6 +6494,7 @@ msgstr "Перезавантажити переглядач."
 msgid "Return to the main page and retry the operation"
 msgstr "Повернутися до головної сторінки і повторити спробу"
 
+#, python-brace-format
 msgid "An error has occurred (${error})"
 msgstr "Сталася помилка (${error})"
 
@@ -6149,12 +6516,15 @@ msgstr "Невідома помилка"
 msgid "URL"
 msgstr "Адреса"
 
+#, python-brace-format
 msgid "${primary_key} is managed by:"
 msgstr "${primary_key} керується:"
 
+#, python-brace-format
 msgid "${primary_key} members:"
 msgstr "Учасники ${primary_key}:"
 
+#, python-brace-format
 msgid "${primary_key} is a member of:"
 msgstr "${primary_key} міститься у:"
 
@@ -6189,6 +6559,7 @@ msgstr ""
 msgid "Logged In As"
 msgstr "Вхід до системи від імені"
 
+#, python-brace-format
 msgid ""
 "To login with Kerberos, please make sure you have valid tickets (obtainable "
 "via kinit) and <a href='http://${host}/ipa/config/unauthorized."
@@ -6220,6 +6591,7 @@ msgstr "секунд"
 msgid "Attribute"
 msgstr "Атрибут"
 
+#, python-brace-format
 msgid "Add Condition into ${pkey}"
 msgstr "Додати умову до ${pkey}"
 
@@ -6322,6 +6694,10 @@ msgstr "Чинний не раніше"
 msgid "Fingerprints"
 msgstr "Відбитки"
 
+msgid "Get Certificate"
+msgstr "Отримати сертифікат"
+
+#, python-brace-format
 msgid "Issue New Certificate for ${entity} ${primary_key}"
 msgstr "Створити сертифікат для ${primary_key} ${entity}"
 
@@ -6356,7 +6732,7 @@ msgid "Organizational Unit"
 msgstr "Підрозділ установи"
 
 msgid "Privilege Withdrawn"
-msgstr "Уповноваження відкликано"
+msgstr "Привілей відкликано"
 
 msgid "Reason for Revocation"
 msgstr "Причина відкликання"
@@ -6364,6 +6740,7 @@ msgstr "Причина відкликання"
 msgid "Remove from CRL"
 msgstr "Вилучити з CRL"
 
+#, python-brace-format
 msgid ""
 "<ol> <li>Create a certificate database or use an existing one. To create a "
 "new database:<br/> <code># certutil -N -d &lt;database path&gt;</code> </li> "
@@ -6386,6 +6763,7 @@ msgstr ""
 msgid "Certificate requested"
 msgstr "Надіслано запит щодо сертифікації"
 
+#, python-brace-format
 msgid "Restore Certificate for ${entity} ${primary_key}"
 msgstr "Відновити сертифікат для ${primary_key} ${entity}"
 
@@ -6402,6 +6780,7 @@ msgstr ""
 msgid "Certificate restored"
 msgstr "Сертифікат відновлено"
 
+#, python-brace-format
 msgid "Revoke Certificate for ${entity} ${primary_key}"
 msgstr "Відкликати сертифікат для ${primary_key} ${entity}"
 
@@ -6433,8 +6812,12 @@ msgstr "Є чинний сертифікат"
 msgid "Validity"
 msgstr "Коректність"
 
+#, python-brace-format
 msgid "Certificate for ${entity} ${primary_key}"
 msgstr "Сертифікат для ${primary_key} ${entity}"
+
+msgid "View Certificate"
+msgstr "Переглянути сертифікат"
 
 msgid "Group Options"
 msgstr "Параметри групи"
@@ -6493,6 +6876,7 @@ msgstr "Запис не знайдено."
 msgid "Redirection to PTR record"
 msgstr "Переспрямовування на запис PTR"
 
+#, python-brace-format
 msgid "Zone found: ${zone}"
 msgstr "Виявлено зону: ${zone}"
 
@@ -6607,6 +6991,7 @@ msgstr "Правила"
 msgid "Run Test"
 msgstr "Запустити тест…"
 
+#, python-brace-format
 msgid "Specify external ${entity}"
 msgstr "Вкажіть зовнішній ${entity}"
 
@@ -6673,6 +7058,7 @@ msgstr "Скасування передбачення"
 msgid "Are you sure you want to unprovision this host?"
 msgstr "Ви справді бажаєте скасувати передбачення цього вузла?"
 
+#, python-brace-format
 msgid "Unprovisioning ${entity}"
 msgstr "Скасування передбачення ${entity}"
 
@@ -6691,14 +7077,14 @@ msgstr "Параметри мережевої групи"
 msgid "User"
 msgstr "Користувач"
 
-msgid "Identity"
-msgstr "Профіль"
+msgid "Permission settings"
+msgstr "Параметри прав доступу"
 
-msgid "Permission with invalid target specification"
-msgstr "Права доступу з некоректним визначенням призначення"
+msgid "Attribute breakdown"
+msgstr "Розбиття за атрибутами"
 
 msgid "Privilege Settings"
-msgstr "Параметри уповноваження"
+msgstr "Параметри привілеїв"
 
 msgid "Password Policy"
 msgstr "Правила для паролів"
@@ -6727,6 +7113,9 @@ msgstr "Домен Active Directory"
 msgid "Active Directory domain with POSIX attributes"
 msgstr "Домен Active Directory з атрибутами POSIX"
 
+msgid "Detect"
+msgstr "Визначити"
+
 msgid "Local domain"
 msgstr "Локальний домен"
 
@@ -6735,6 +7124,9 @@ msgstr "Довіра IPA"
 
 msgid "Active Directory winsync"
 msgstr "winsync Active Directory"
+
+msgid "RADIUS Proxy Server Settings"
+msgstr "Параметри проксі-сервера RADIUS"
 
 msgid "Realm Domains"
 msgstr "Домени області"
@@ -6820,6 +7212,7 @@ msgstr "Доступ до цього вузла"
 msgid "Option added"
 msgstr "Додано параметр"
 
+#, python-brace-format
 msgid "${count} option(s) removed"
 msgstr "Вилучено ${count} параметрів"
 
@@ -6849,6 +7242,9 @@ msgstr "Домен"
 
 msgid "Establish using"
 msgstr "Встановити за допомогою"
+
+msgid "Fetch domains"
+msgstr "Отримати домени"
 
 msgid "Domain NetBIOS name"
 msgstr "Назва домену у NetBIOS"
@@ -6892,6 +7288,7 @@ msgstr "Адреса ел. пошти"
 msgid "Misc. Information"
 msgstr "Інша інформація"
 
+#, python-brace-format
 msgid ""
 "Are you sure you want to ${action} the user?<br/>The change will take effect "
 "immediately."
@@ -6899,6 +7296,7 @@ msgstr ""
 "Ви справді бажаєте виконати щодо користувача дію «${action}»?<br/>Зміни буде "
 "внесено негайно."
 
+#, python-brace-format
 msgid "Click to ${action}"
 msgstr "Натисніть, щоб ${action}"
 
@@ -6908,6 +7306,7 @@ msgstr "Поточний пароль"
 msgid "Current password is required"
 msgstr "Слід вказати поточний пароль"
 
+#, python-brace-format
 msgid "Your password expires in ${days} days."
 msgstr "Строк дії вашого пароля буде вичерпано за ${days} днів."
 
@@ -6941,18 +7340,21 @@ msgstr "Повторіть пароль"
 msgid "Are you sure you want to delete selected entries?"
 msgstr "Ви справді бажаєте вилучити позначені записи?"
 
+#, python-brace-format
 msgid "${count} item(s) deleted"
 msgstr "Вилучено ${count} записів"
 
 msgid "Are you sure you want to disable selected entries?"
 msgstr "Ви справді хочете вимкнути позначені записи?"
 
+#, python-brace-format
 msgid "${count} item(s) disabled"
 msgstr "Вимкнено ${count} записів"
 
 msgid "Are you sure you want to enable selected entries?"
 msgstr "Ви справді бажаєте увімкнути позначені записи?"
 
+#, python-brace-format
 msgid "${count} item(s) enabled"
 msgstr "Увімкнено ${count} записів"
 
@@ -6965,6 +7367,7 @@ msgstr "Швидкі посилання"
 msgid "Select All"
 msgstr "Вибрати все"
 
+#, python-brace-format
 msgid ""
 "Query returned more results than the configured size limit. Displaying the "
 "first ${counter} results."
@@ -6978,11 +7381,11 @@ msgstr "Скасувати вибір всього"
 msgid "Disabled"
 msgstr "Вимкнено"
 
+msgid "Working"
+msgstr "Працює"
+
 msgid "Audit"
 msgstr "Аудит"
-
-msgid "Automember"
-msgstr "Автоматична участь"
 
 msgid "Automount"
 msgstr "Автоматичне монтування"
@@ -6992,6 +7395,9 @@ msgstr "DNS"
 
 msgid "Host Based Access Control"
 msgstr "Керування доступом на основі вузлів"
+
+msgid "Identity"
+msgstr "Профіль"
 
 msgid "IPA Server"
 msgstr "Сервер IPA"
@@ -7011,6 +7417,12 @@ msgstr "Записи довіри"
 msgid "True"
 msgstr "Так"
 
+msgid "First"
+msgstr "Перший"
+
+msgid "Last"
+msgstr "Останній"
+
 msgid "Next"
 msgstr "Далі"
 
@@ -7029,8 +7441,16 @@ msgstr "скасувати всі дії"
 msgid "Text does not match field pattern"
 msgstr "Текст не відповідає шаблону поля"
 
+msgid "Must be an UTC date/time value (e.g., \"2014-01-20 17:58:01Z\")"
+msgstr ""
+"Має бути значенням дати часу за Гринвічем (UTC) (наприклад, «2014-01-20 "
+"17:58:01Z»)"
+
 msgid "Must be a decimal number"
 msgstr "Має бути десятковим числом"
+
+msgid "Format error"
+msgstr "Помилка форматування"
 
 msgid "Must be an integer"
 msgstr "Має бути цілим числом"
@@ -7044,15 +7464,21 @@ msgstr "Некоректна адреса IPv4"
 msgid "Not a valid IPv6 address"
 msgstr "Некоректна адреса IPv6"
 
+#, python-brace-format
 msgid "Maximum value is ${value}"
 msgstr "Максимальним є значення ${value}"
 
+#, python-brace-format
 msgid "Minimum value is ${value}"
 msgstr "Мінімальним є значення ${value}"
 
 msgid "Not a valid network address"
 msgstr "Некоректна адреса у мережі"
 
+msgid "Parse error"
+msgstr "Помилка обробки"
+
+#, python-brace-format
 msgid "'${port}' is not a valid port"
 msgstr "«${port}» не є коректним визначенням порту"
 
@@ -7165,6 +7591,13 @@ msgstr "Змінити правила квитків Kerberos."
 
 msgid "Display the current Kerberos ticket policy."
 msgstr "Показати поточні правила квитків Kerberos."
+
+#, python-format
+msgid "Ticket policy for %s could not be read"
+msgstr "Не вдалося прочитати правила щодо квитків для %s"
+
+msgid "Default ticket policy could not be read"
+msgstr "Не вдалося прочитати типові правила щодо квитків"
 
 msgid "Reset Kerberos ticket policy to the default values."
 msgstr "Відновити типові правила квитків Kerberos."
@@ -7516,6 +7949,12 @@ msgstr "Ігнорувати додаток compat"
 msgid "Allows migration despite the usage of compat plugin"
 msgstr "Уможливлює перенесення, незважаючи на використання додатка compat"
 
+msgid "CA certificate"
+msgstr "Сертифікат CA"
+
+msgid "Load CA certificate of LDAP server from FILE"
+msgstr "Завантажити сертифікат CA сервера LDAP з вказаного файла"
+
 msgid "Lists of objects migrated; categorized by type."
 msgstr "Списки об’єктів, міграцію яких виконано; впорядкований за типами."
 
@@ -7738,6 +8177,159 @@ msgstr "Вилучити учасників з мережевої групи."
 
 msgid ""
 "\n"
+"OTP Tokens\n"
+msgstr ""
+"\n"
+"Маркери OTP\n"
+
+msgid ""
+"\n"
+"Manage OTP tokens.\n"
+msgstr ""
+"\n"
+"Керування маркерами OTP.\n"
+
+msgid ""
+"\n"
+"IPA supports the use of OTP tokens for multi-factor authentication. This\n"
+"code enables the management of OTP tokens.\n"
+msgstr ""
+"\n"
+"У IPA передбачено підтримку використання маркерів OTP для багатофакторного "
+"розпізнавання.\n"
+"За допомогою цього коду уможливлюється керування маркерами OTP.\n"
+
+msgid ""
+"\n"
+" Add a new token:\n"
+"   ipa otptoken-add --type=totp --owner=jdoe --desc=\"My soft token\"\n"
+msgstr ""
+"\n"
+" Додати новий маркер:\n"
+"   ipa otptoken-add --type=totp --owner=jdoe --desc=\"My soft token\"\n"
+
+msgid ""
+"\n"
+" Examine the token:\n"
+"   ipa otptoken-show a93db710-a31a-4639-8647-f15b2c70b78a\n"
+msgstr ""
+"\n"
+" Перевірити маркер:\n"
+"   ipa otptoken-show a93db710-a31a-4639-8647-f15b2c70b78a\n"
+
+msgid ""
+"\n"
+" Change the vendor:\n"
+"   ipa otptoken-mod a93db710-a31a-4639-8647-f15b2c70b78a --vendor=\"Red Hat"
+"\"\n"
+msgstr ""
+"\n"
+" Змінити постачальника:\n"
+"   ipa otptoken-mod a93db710-a31a-4639-8647-f15b2c70b78a --vendor=\"Red Hat"
+"\"\n"
+
+msgid ""
+"\n"
+" Delete a token:\n"
+"   ipa otptoken-del a93db710-a31a-4639-8647-f15b2c70b78a\n"
+msgstr ""
+"\n"
+" Вилучити маркер:\n"
+"   ipa otptoken-del a93db710-a31a-4639-8647-f15b2c70b78a\n"
+
+msgid "OTP token"
+msgstr "Маркер OTP"
+
+msgid "OTP tokens"
+msgstr "Маркери OTP"
+
+msgid "OTP Tokens"
+msgstr "Маркери OTP"
+
+msgid "OTP Token"
+msgstr "Маркер OTP"
+
+msgid "Unique ID"
+msgstr "Унікальний ід."
+
+msgid "Owner"
+msgstr "Власник"
+
+msgid "Manager"
+msgstr "Керівник"
+
+msgid "Disabled state"
+msgstr "Вимкнений стан"
+
+msgid "Validity start"
+msgstr "Початок чинності"
+
+msgid "Validity end"
+msgstr "Завершення чинності"
+
+msgid "Vendor"
+msgstr "Постачальник"
+
+msgid "Model"
+msgstr "Модель"
+
+msgid "Serial"
+msgstr "Серійний номер"
+
+msgid "Clock offset"
+msgstr "Зсув годинника"
+
+msgid "Clock interval"
+msgstr "Інтервал годинника"
+
+msgid "Counter"
+msgstr "Лічильник"
+
+msgid "Add a new OTP token."
+msgstr "Додати новий маркер OTP."
+
+#, python-format
+msgid "Added OTP token \"%(value)s\""
+msgstr "Додано маркер OTP «%(value)s»"
+
+msgid "Display QR code (requires wide terminal)"
+msgstr "Показати QR-код (потребує широкого термінала)"
+
+msgid "URI"
+msgstr "URI"
+
+msgid "Delete an OTP token."
+msgstr "Вилучити маркер OTP."
+
+#, python-format
+msgid "Deleted OTP token \"%(value)s\""
+msgstr "Вилучено маркер OTP «%(value)s»"
+
+msgid "Modify a OTP token."
+msgstr "Змінити маркер OTP."
+
+#, python-format
+msgid "Modified OTP token \"%(value)s\""
+msgstr "Змінено маркер OTP «%(value)s»"
+
+msgid "Search for OTP token."
+msgstr "Шукати маркер OTP."
+
+#, python-format
+msgid "%(count)d OTP token matched"
+msgid_plural "%(count)d OTP tokens matched"
+msgstr[0] "встановлено відповідність %(count)d маркера OTP"
+msgstr[1] "встановлено відповідність %(count)d маркери OTP"
+msgstr[2] "встановлено відповідність %(count)d маркерів OTP"
+
+msgid "Display information about an OTP token."
+msgstr "Показати інформацію щодо маркера OTP."
+
+msgid "Add users that can manage this token."
+msgstr "Додати записи користувачів, які можуть керувати цим ключем."
+
+msgid ""
+"\n"
 "Set a user's password\n"
 "\n"
 "If someone other than a user changes that user's password (e.g., Helpdesk\n"
@@ -7787,117 +8379,196 @@ msgstr "Реєстраційні дані вказано з помилками"
 msgid ""
 "\n"
 "Permissions\n"
+msgstr ""
+"\n"
+"Права доступу\n"
+
+msgid ""
 "\n"
 "A permission enables fine-grained delegation of rights. A permission is\n"
-"a human-readable form of a 389-ds Access Control Rule, or instruction "
-"(ACI).\n"
+"a human-readable wrapper around a 389-ds Access Control Rule,\n"
+"or instruction (ACI).\n"
 "A permission grants the right to perform a specific task such as adding a\n"
 "user, modifying a group, etc.\n"
+msgstr ""
+"\n"
+"Запис правил доступу уможливлює точне делегування прав. Запис прав доступу\n"
+"є зручною для читання обгорткою навколо правила керування доступом 389-ds\n"
+"або інструкції (ACI).\n"
+"Право доступу надає право виконувати специфічне завдання, зокрема додавання\n"
+"запису користувача, внесення зміни до групи тощо.\n"
+
+msgid ""
 "\n"
 "A permission may not contain other permissions.\n"
+msgstr ""
 "\n"
-"* A permission grants access to read, write, add or delete.\n"
+"Запис прав доступу не може містити інших прав доступу.\n"
+
+msgid ""
+"\n"
+"* A permission grants access to read, write, add, delete, read, search,\n"
+"  or compare.\n"
 "* A privilege combines similar permissions (for example all the permissions\n"
 "  needed to add a user).\n"
 "* A role grants a set of privileges to users, groups, hosts or hostgroups.\n"
+msgstr ""
+"\n"
+"* Права доступу надають можливість читати, записувати, вилучати, шукати або\n"
+"  порівнювати.\n"
+"* Привілеї поєднують подібні права доступу (наприклад усі права доступу,\n"
+"  потрібні для додавання запису користувача).\n"
+"* Роль надає набір привілеїв користувачам, групам, вузлам або групам "
+"вузлів.\n"
+
+msgid ""
 "\n"
 "A permission is made up of a number of different parts:\n"
 "\n"
 "1. The name of the permission.\n"
 "2. The target of the permission.\n"
 "3. The rights granted by the permission.\n"
+msgstr ""
+"\n"
+"Запис права доступу складається з декількох різних частин:\n"
+"\n"
+"1. Назви запису права доступу.\n"
+"2. Призначення права доступу.\n"
+"3. Права, які надаються записом.\n"
+
+msgid ""
 "\n"
 "Rights define what operations are allowed, and may be one or more\n"
 "of the following:\n"
 "1. write - write one or more attributes\n"
 "2. read - read one or more attributes\n"
-"3. add - add a new entry to the tree\n"
-"4. delete - delete an existing entry\n"
-"5. all - all permissions are granted\n"
+"3. search - search on one or more attributes\n"
+"4. compare - compare one or more attributes\n"
+"5. add - add a new entry to the tree\n"
+"6. delete - delete an existing entry\n"
+"7. all - all permissions are granted\n"
+msgstr ""
 "\n"
-"Read permission is granted for most attributes by default so the read\n"
-"permission is not expected to be used very often.\n"
+"Права визначають список дій, які можна виконувати. Запис прав може\n"
+"бути один або може бути декілька записів з такого набору:\n"
+"1. write - запис одного або декількох атрибутів\n"
+"2. read - читання одного або декількох атрибутів\n"
+"3. search - пошук одного або декількох атрибутів\n"
+"4. compare - порівняння одного або декількох атрибутів\n"
+"5. add - додавання нового запису до ієрархії\n"
+"6. delete - вилучення наявного запису\n"
+"7. all - надати усі права доступу\n"
+
+msgid ""
 "\n"
 "Note the distinction between attributes and entries. The permissions are\n"
 "independent, so being able to add a user does not mean that the user will\n"
 "be editable.\n"
+msgstr ""
+"\n"
+"Зауважте відмінність між атрибутами і записами. Права доступу є "
+"незалежними,\n"
+"отже можливість додавання запису користувача не означає, що цей запис "
+"згодом\n"
+"буде придатним до редагування.\n"
+
+msgid ""
 "\n"
 "There are a number of allowed targets:\n"
-"1. type: a type of object (user, group, etc).\n"
-"2. memberof: a member of a group or hostgroup\n"
-"3. filter: an LDAP filter\n"
-"4. subtree: an LDAP filter specifying part of the LDAP DIT. This is a\n"
-"   super-set of the \"type\" target.\n"
-"5. targetgroup: grant access to modify a specific group (such as granting\n"
-"   the rights to manage group membership)\n"
+"1. subtree: a DN; the permission applies to the subtree under this DN\n"
+"2. target filter: an LDAP filter\n"
+"3. target: DN with possible wildcards, specifies entries permission applies "
+"to\n"
+msgstr ""
 "\n"
-"EXAMPLES:\n"
+"Передбачено декілька можливих призначень:\n"
+"1. subtree:  DN; право доступу застосовується до піддерева DN\n"
+"2. target filter: фільтр LDAP\n"
+"3. target: DN з можливими символами-замінниками, що визначає записи, яких "
+"стосуються права доступу\n"
+
+msgid ""
+"\n"
+"Additionally, there are the following convenience options.\n"
+"Setting one of these options will set the corresponding attribute(s).\n"
+"1. type: a type of object (user, group, etc); sets subtree and target "
+"filter.\n"
+"2. memberof: apply to members of a group; sets target filter\n"
+"3. targetgroup: grant access to modify a specific group (such as granting\n"
+"   the rights to manage group membership); sets target.\n"
+msgstr ""
+"\n"
+"Крім того, передбачено вказані нижче параметри.\n"
+"Встановлення одного з цих параметрів призводить до встановлення відповідних "
+"атрибутів.\n"
+"1. type: тип об’єкта (користувач, група тощо); встановлює фільтрування за "
+"піддеревом (subtree) та фільтрування за призначенням (target filter).\n"
+"2. memberof: застосовувати до учасників групи; встановлює фільтр за "
+"призначенням (target filter).\n"
+"3. targetgroup: надає доступ до внесення змін до певної групи (зокрема, "
+"доступ до\n"
+"   надання можливості керування участю у групі); встановлює призначення "
+"(target).\n"
+
+msgid ""
+"\n"
+"Managed permissions\n"
+msgstr ""
+"\n"
+"Керовані права доступу\n"
+
+msgid ""
+"\n"
+"Permissions that come with IPA by default can be so-called \"managed\"\n"
+"permissions. These have a default set of attributes they apply to,\n"
+"but the administrator can add/remove individual attributes to/from the set.\n"
+msgstr ""
+"\n"
+"Права доступу, які типово встановлюються разом з IPA, можуть бути\n"
+"так званими «керованим» правами доступу. Такі права доступу мають\n"
+"типовий набір атрибутів, до яких вони застосовуються. Втім, адміністратор\n"
+"може додавати або вилучати окремі атрибути набору.\n"
+
+msgid ""
+"\n"
+"Deleting or renaming a managed permission, as well as changing its target,\n"
+"is not allowed.\n"
+msgstr ""
+"\n"
+"Вилучення або перейменування керованих прав доступу, а також зміну "
+"призначення\n"
+"таких прав, заборонено.\n"
+
+msgid ""
 "\n"
 " Add a permission that grants the creation of users:\n"
 "   ipa permission-add --type=user --permissions=add \"Add Users\"\n"
+msgstr ""
+"\n"
+" Додати право доступу до створення записів користувачів:\n"
+"   ipa permission-add --type=user --permissions=add \"Add Users\"\n"
+
+msgid ""
 "\n"
 " Add a permission that grants the ability to manage group membership:\n"
 "   ipa permission-add --attrs=member --permissions=write --type=group "
 "\"Manage Group Members\"\n"
 msgstr ""
 "\n"
-"Права доступу\n"
-"\n"
-"Права доступу надають змогу точно налаштувати уповноваження. Права доступу\n"
-"визначаються звичайним текстом у форматі правила керування доступом 389-ds\n"
-"або інструкції (ACI). Права доступу надають можливість виконувати певне\n"
-"завдання, зокрема додавання запису користувача, внесення змін до запису\n"
-"групи.\n"
-"\n"
-"Права доступу можуть містити інші права доступу.\n"
-"\n"
-"* Право доступу надає доступ до читання, запису, додавання або вилучення.\n"
-"* Уповноваження поєднують у собі подібні права доступу (наприклад всі\n"
-"  права доступу, потрібні для додавання запису користувача).\n"
-"* Роль надає користувачам, групам, вузлам або групам вузлів певний набір\n"
-"  уповноважень.\n"
-"\n"
-"Право доступу складається з декількох різних частин:\n"
-"\n"
-"1. Назви права доступу.\n"
-"2. Призначення права доступу.\n"
-"3. Прав, які надаються.\n"
-"\n"
-"Права визначають набір дозволених дій і можуть складатися з одного або\n"
-"декількох таких записів:\n"
-"1. write — запис одного або декількох атрибутів\n"
-"2. read — читання одного або декількох атрибутів\n"
-"3. add — додавання нового запису до ієрархії\n"
-"4. delete — вилучення вже створеного запису\n"
-"5. all — надання всіх прав доступу\n"
-"\n"
-"Типово, право доступу до читання надається для більшості атрибутів, отже\n"
-"право доступу «read» не використовуватиметься часто.\n"
-"\n"
-"Зауваження щодо відмінностей між атрибутами та записами. Права доступу\n"
-"є незалежними, отже можливість додавання запису користувача не означає\n"
-"можливості вносити зміни до доданого запису.\n"
-"\n"
-"Передбачено декілька можливих цілей:\n"
-"1. type: тип об’єкта (user, group тощо).\n"
-"2. memberof: учасник групи користувачів або вузлів\n"
-"3. filter: фільтр LDAP\n"
-"4. subtree: фільтр LDAP, що визначає частину DIT LDAP DIT. Надмножина\n"
-"   цілі «type».\n"
-"5. targetgroup: надати доступ до внесення змін до запису певної групи\n"
-"   (зокрема до керування участю у групі)\n"
-"\n"
-"ПРИКЛАДИ:\n"
-"\n"
-" Додавання права доступу до створення записів користувачів:\n"
-"   ipa permission-add --type=user --permissions=add \"Add Users\"\n"
-"\n"
-" Додавання права доступу до можливості керування участю у групі:\n"
+" Додати право доступу, яке надає можливість керувати участю у групах:\n"
 "   ipa permission-add --attrs=member --permissions=write --type=group "
 "\"Manage Group Members\"\n"
 
-msgid "Permission Type"
-msgstr "Тип прав доступу"
+msgid "must be enclosed in parentheses"
+msgstr "слід брати у дужки"
+
+#, python-format
+msgid "\"%s\" is not an object type"
+msgstr "«%s» не є об’єктним типом"
+
+#, python-format
+msgid "\"%s\" is not a valid permission type"
+msgstr "«%s» не є коректним типом прав доступу"
 
 msgid "permission"
 msgstr "права доступу"
@@ -7908,39 +8579,146 @@ msgstr "права доступу"
 msgid "Permission name"
 msgstr "Назва прав доступу"
 
-msgid "Permissions to grant (read, write, add, delete, all)"
-msgstr "Права доступу, які слід надати (read, write, add, delete, all)"
+msgid "Granted rights"
+msgstr "Надані права"
+
+msgid "Rights to grant (read, search, compare, write, add, delete, all)"
+msgstr ""
+"Права доступу, які слід надати (read, search, compare, write, add, delete, "
+"all)"
+
+msgid "Effective attributes"
+msgstr "Ефективні атрибути"
+
+msgid "All attributes to which the permission applies"
+msgstr "Усі атрибути, яких стосуються ці права доступу"
+
+msgid "Included attributes"
+msgstr "Атрибути включення"
+
+msgid "User-specified attributes to which the permission applies"
+msgstr "Вказані користувачем атрибути, до яких застосовується правило доступу"
+
+msgid "Excluded attributes"
+msgstr "Атрибути виключення"
 
 msgid ""
-"Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)"
+"User-specified attributes to which the permission explicitly does not apply"
 msgstr ""
-"Тип об’єкта IPA (user (користувач), group (група), host (вузол), hostgroup "
-"(група вузлів), service (служба), netgroup (мережева група), dns)"
+"Вказані користувачем атрибути, до яких права доступу явним чином не "
+"застосовуватимуться"
 
-msgid "Member of group"
-msgstr "Учасник групи"
+msgid "Default attributes"
+msgstr "Типові атрибути"
 
-msgid "Target members of a group"
-msgstr "Цільові учасники групи"
+msgid "Attributes to which the permission applies by default"
+msgstr "Атрибути, до яких типово застосовується правило доступу"
+
+msgid "Bind rule type"
+msgstr "Тип правила прив’язування"
 
 msgid "Subtree to apply permissions to"
 msgstr "Піддерево, до якого буде застосовано права доступу"
 
-msgid "User group to apply permissions to"
-msgstr "Група користувачів, до якої буде застосовано права доступу"
+msgid "Extra target filter"
+msgstr "Додатковий фільтр призначення"
 
-msgid "Add a new permission."
-msgstr "Додати нові права доступу."
+msgid "Raw target filter"
+msgstr "Фільтр призначення без обробки"
+
+msgid "All target filters, including those implied by type and memberof"
+msgstr ""
+"Усі фільтри призначення, зокрема ті, які визначаються типом та членством"
+
+msgid "ACI target DN"
+msgstr "DN призначення ACI"
+
+msgid "Member of group"
+msgstr "Учасник групи"
+
+msgid "Target members of a group (sets memberOf targetfilter)"
+msgstr "Цільові учасники групи (встановлює фільтр призначення memberOf)"
+
+msgid "User group to apply permissions to (sets target)"
+msgstr ""
+"Група користувачів, до якої буде застосовано права доступу (встановлює "
+"target)"
+
+msgid "Type of IPA object (sets subtree and objectClass targetfilter)"
+msgstr "Тип об’єкта IPA (встановлює фільтри призначення subtree і objectClass)"
+
+#, python-format
+msgid "Deprecated; use %s"
+msgstr "Застаріло; користуйтеся %s"
+
+#, python-format
+msgid "Permission with unknown flag %s may not be modified or removed"
+msgstr "Не можна змінювати чи вилучати права доступу з невідомим прапорцем %s"
+
+msgid "A SYSTEM permission may not be modified or removed"
+msgstr "Права доступу SYSTEM не можна змінювати чи вилучати"
+
+#, python-format
+msgid "Entry %s not found"
+msgstr "Запису %s не знайдено"
+
+#, python-format
+msgid "The ACI for permission %(name)s was not found in %(dn)s "
+msgstr "ACI для прав доступу %(name)s у %(dn)s не знайдено "
+
+msgid ""
+"cannot specify full target filter and extra target filter simultaneously"
+msgstr ""
+"не можна одразу вказувати повне фільтрування за призначенням та фільтрування "
+"за додатковими параметрами призначення"
+
+#, python-format
+msgid "option was renamed; use %s"
+msgstr "назву параметра змінено; користуйтеся новою назвою — %s"
+
+#, python-format
+msgid "Cannot use %(old_name)s with %(new_name)s"
+msgstr "Не можна одночасно використовувати %(old_name)s і %(new_name)s"
+
+#, python-format
+msgid "%s: group not found"
+msgstr "%s: групи не знайдено"
+
+msgid "target and targetgroup are mutually exclusive"
+msgstr "не можна одночасно використовувати target і targetgroup"
+
+msgid "subtree and type are mutually exclusive"
+msgstr "не можна одночасно використовувати subtree і type"
+
+msgid "Bad search filter"
+msgstr "Помилковий фільтр пошуку"
+
+#, python-format
+msgid "Entry %s does not exist"
+msgstr "Запису %s не існує"
+
+msgid ""
+"there must be at least one target entry specifier (e.g. target, "
+"targetfilter, attrs)"
+msgstr ""
+"має бути вказано хоча б один специфікатор запису призначення (наприклад "
+"target, targetfilter, attrs)"
+
+msgid "Add a system permission without an ACI (internal command)"
+msgstr "Додати системні права доступу без ACI (внутрішня команда)"
 
 #, python-format
 msgid "Added permission \"%(value)s\""
 msgstr "Додано права доступу «%(value)s»"
 
-msgid "Add a system permission without an ACI"
-msgstr "Додати системні права доступу без ACI"
+msgid "Permission flags"
+msgstr "Прапорці прав доступу"
 
-msgid "Permission type"
-msgstr "Тип прав доступу"
+msgid "Add a new permission."
+msgstr "Додати нові права доступу."
+
+msgid "attrs and included attributes are mutually exclusive"
+msgstr "не можна одразу вказувати attrs та атрибути включення"
 
 msgid "Delete a permission."
 msgstr "Вилучити права доступу."
@@ -7952,8 +8730,12 @@ msgstr "Вилучено права доступу «%(value)s»"
 msgid "force delete of SYSTEM permissions"
 msgstr "примусове вилучення прав доступу SYSTEM"
 
-msgid "A SYSTEM permission may not be removed"
-msgstr "Права доступу SYSTEM не можна вилучати"
+msgid "cannot delete managed permissions"
+msgstr "неможливо вилучити керовані права доступу"
+
+#, python-format
+msgid "ACI of permission %s was not found"
+msgstr "ACI права доступу %s не знайдено"
 
 msgid "Modify a permission."
 msgstr "Змінити права доступу."
@@ -7962,11 +8744,22 @@ msgstr "Змінити права доступу."
 msgid "Modified permission \"%(value)s\""
 msgstr "Змінено права доступу «%(value)s»"
 
-msgid "A SYSTEM permission may not be modified"
-msgstr "Права доступу SYSTEM не можна змінювати"
+msgid "cannot rename managed permissions"
+msgstr "неможливо перейменувати керовані права доступу"
 
-msgid "New name can not be empty"
-msgstr "Нова назва має бути непорожньою"
+msgid "not modifiable on managed permissions"
+msgstr "не можна змінювати для керованих прав доступу"
+
+msgid "only available on managed permissions"
+msgstr "доступне лише для керованих прав доступу"
+
+msgid "attrs and included/excluded attributes are mutually exclusive"
+msgstr "не можна одразу вказувати attrs та атрибути включення або виключення"
+
+msgid "cannot set bindtype for a permission that is assigned to a privilege"
+msgstr ""
+"не можна встановлювати типу прив’язки для прав доступу, які пов’язано з "
+"привілеєм"
 
 msgid "Search for permissions."
 msgstr "Знайти права доступу."
@@ -8032,8 +8825,7 @@ msgstr ""
 " Перевірити луна-імпульсом сервер IPA і отримати докладні дані:\n"
 "   ipa -v ping\n"
 "   ipa: INFO: trying https://ipa.example.com/ipa/xml\n"
-"   ipa: INFO: Forwarding 'ping' to server 'https://ipa.example.com/ipa/"
-"xml'\n"
+"   ipa: INFO: Forwarding 'ping' to server 'https://ipa.example.com/ipa/xml'\n"
 "   -----------------------------------------------------\n"
 "   Сервер IPA версії 2.1.9. Версія API 2.20\n"
 "   -----------------------------------------------------\n"
@@ -8115,11 +8907,11 @@ msgid ""
 "See role and permission for additional information.\n"
 msgstr ""
 "\n"
-"Уповноваження\n"
+"Привілей\n"
 "\n"
-"Уповноваження поєднує права доступу у одне логічне завдання. Право доступу\n"
+"Привілей поєднує права доступу у одне логічне завдання. Право доступу\n"
 "надає можливість виконувати лише одне завдання. У IPA є декілька дій,\n"
-"виконання яких потребує одразу декількох прав доступу. В уповноваженні такі\n"
+"виконання яких потребує одразу декількох прав доступу. У привілеї такі\n"
 "права доступу поєднуються з метою виконання певної дії.\n"
 "\n"
 "Наприклад, додавання запису користувача потребує таких прав доступу:\n"
@@ -8128,75 +8920,83 @@ msgstr ""
 " * право додавання користувача до типової групи користувачів IPA.\n"
 "\n"
 "Поєднання цих трьох низькорівневих завдань у високорівневе завдання у\n"
-"форматі уповноваження з назвою «Add User» полегшує керування ролями.\n"
+"форматі привілею з назвою «Add User» полегшує керування ролями.\n"
 "\n"
-"Уповноваження не може містити інших уповноважень.\n"
+"Привілей не може містити інших привілеїв.\n"
 "\n"
 "Щоб дізнатися більше, ознайомтеся з довідною щодо ролей та прав доступу.\n"
 
 msgid "privilege"
-msgstr "уповноваження"
+msgstr "привілей"
 
 msgid "privileges"
-msgstr "уповноваження"
+msgstr "привілеї"
 
 msgid "Privileges"
-msgstr "Уповноваження"
+msgstr "Привілеї"
 
 msgid "Privilege"
-msgstr "Уповноваження"
+msgstr "Привілей"
 
 msgid "Privilege name"
-msgstr "Назва уповноваження"
+msgstr "Назва привілею"
 
 msgid "Privilege description"
-msgstr "Опис уповноваження"
+msgstr "Опис привілею"
 
 msgid "Add a new privilege."
-msgstr "Додати нове уповноваження."
+msgstr "Додати новий привілей."
 
 #, python-format
 msgid "Added privilege \"%(value)s\""
-msgstr "Додано уповноваження «%(value)s»"
+msgstr "Додано привілей «%(value)s»"
 
 msgid "Delete a privilege."
-msgstr "Вилучити уповноваження."
+msgstr "Вилучити привілей."
 
 #, python-format
 msgid "Deleted privilege \"%(value)s\""
-msgstr "Вилучено уповноваження «%(value)s»"
+msgstr "Вилучено привілей «%(value)s»"
 
 msgid "Modify a privilege."
-msgstr "Змінити уповноваження."
+msgstr "Змінити привілей."
 
 #, python-format
 msgid "Modified privilege \"%(value)s\""
-msgstr "Змінено уповноваження «%(value)s»"
+msgstr "Змінено привілей «%(value)s»"
 
 msgid "Search for privileges."
-msgstr "Знайти уповноваження."
+msgstr "Знайти привілеї."
 
 #, python-format
 msgid "%(count)d privilege matched"
 msgid_plural "%(count)d privileges matched"
-msgstr[0] "встановлено відповідність %(count)d уповноваження"
-msgstr[1] "встановлено відповідність %(count)d уповноваження"
-msgstr[2] "встановлено відповідність %(count)d уповноважень"
+msgstr[0] "встановлено відповідність %(count)d привілею"
+msgstr[1] "встановлено відповідність %(count)d привілеїв"
+msgstr[2] "встановлено відповідність %(count)d привілеїв"
 
 msgid "Display information about a privilege."
-msgstr "Показати дані щодо уповноваження."
+msgstr "Показати дані щодо привілею."
 
 msgid "Add members to a privilege."
-msgstr "Додати учасників до запису уповноваження."
+msgstr "Додати учасників до запису привілею."
 
 msgid "Add permissions to a privilege."
-msgstr "Додати права доступу до уповноваження."
+msgstr "Додати права доступу до привілею."
 
 msgid "Number of permissions added"
 msgstr "Кількість доданих прав доступу"
 
+#, python-format
+msgid ""
+"cannot add permission \"%(perm)s\" with bindtype \"%(bindtype)s\" to a "
+"privilege"
+msgstr ""
+"неможливо додати права доступу «%(perm)s» з типом прив’язки «%(bindtype)s» "
+"до привілею"
+
 msgid "Remove permissions from a privilege."
-msgstr "Вилучити права доступу з уповноваження."
+msgstr "Вилучити права доступу з привілею."
 
 msgid "Number of permissions removed"
 msgstr "Кількість вилучених записів прав доступу"
@@ -8392,6 +9192,164 @@ msgstr "Знайти групу правил для паролів."
 
 msgid ""
 "\n"
+"RADIUS Proxy Servers\n"
+msgstr ""
+"\n"
+"Проксі-сервери RADIUS\n"
+
+msgid ""
+"\n"
+"Manage RADIUS Proxy Servers.\n"
+msgstr ""
+"\n"
+"Керування проксі-серверами RADIUS.\n"
+
+msgid ""
+"\n"
+"IPA supports the use of an external RADIUS proxy server for krb5 OTP\n"
+"authentications. This permits a great deal of flexibility when\n"
+"integrating with third-party authentication services.\n"
+msgstr ""
+"\n"
+"У IPA передбачено підтримку зовнішнього проксі-сервера RADIUS для\n"
+"виконання розпізнавання OTP krb5. Це надає системі значної гнучкості\n"
+"з метою інтеграції зі сторонніми службами розпізнавання.\n"
+
+msgid ""
+"\n"
+" Add a new server:\n"
+"   ipa radiusproxy-add MyRADIUS --server=radius.example.com:1812\n"
+msgstr ""
+"\n"
+" Додати новий сервер:\n"
+"   ipa radiusproxy-add MyRADIUS --server=radius.example.com:1812\n"
+
+msgid ""
+"\n"
+" Find all servers whose entries include the string \"example.com\":\n"
+"   ipa radiusproxy-find example.com\n"
+msgstr ""
+"\n"
+" Знайти усі сервери, чиї запис містять рядок «example.com»:\n"
+"   ipa radiusproxy-find example.com\n"
+
+msgid ""
+"\n"
+" Examine the configuration:\n"
+"   ipa radiusproxy-show MyRADIUS\n"
+msgstr ""
+"\n"
+" Перевірити налаштування:\n"
+"   ipa radiusproxy-show MyRADIUS\n"
+
+msgid ""
+"\n"
+" Change the secret:\n"
+"   ipa radiusproxy-mod MyRADIUS --secret\n"
+msgstr ""
+"\n"
+" Змінити реєстраційні дані:\n"
+"   ipa radiusproxy-mod MyRADIUS --secret\n"
+
+msgid ""
+"\n"
+" Delete a configuration:\n"
+"   ipa radiusproxy-del MyRADIUS\n"
+msgstr ""
+"\n"
+" Вилучити налаштування:\n"
+"   ipa radiusproxy-del MyRADIUS\n"
+
+msgid "invalid attribute name"
+msgstr "некоректна назва атрибута"
+
+msgid "invalid port number"
+msgstr "некоректний номер порту"
+
+msgid "RADIUS proxy server"
+msgstr "Проксі-сервер RADIUS"
+
+msgid "RADIUS proxy servers"
+msgstr "Проксі-сервери RADIUS"
+
+msgid "RADIUS Servers"
+msgstr "Сервери RADIUS"
+
+msgid "RADIUS Server"
+msgstr "Сервер RADIUS"
+
+msgid "RADIUS proxy server name"
+msgstr "Назва проксі-сервера RADIUS"
+
+msgid "A description of this RADIUS proxy server"
+msgstr "Опис цього проксі-сервера RADIUS"
+
+msgid "Server"
+msgstr "Сервер"
+
+msgid "The hostname or IP (with or without port)"
+msgstr "Назва вузла або IP-адреса (з портом або без порту)"
+
+msgid "Secret"
+msgstr "Ключ"
+
+msgid "The secret used to encrypt data"
+msgstr "Ключ, який використовується для шифрування даних"
+
+msgid "Timeout"
+msgstr "Час очікування"
+
+msgid "The total timeout across all retries (in seconds)"
+msgstr "Загальний час очікування за усіма спробами (у секундах)"
+
+msgid "Retries"
+msgstr "Кількість спроб"
+
+msgid "The number of times to retry authentication"
+msgstr "Кількість спроб пройти розпізнавання"
+
+msgid "User attribute"
+msgstr "Атрибут користувача"
+
+msgid "The username attribute on the user object"
+msgstr "Атрибут імені користувача об’єкта користувача"
+
+msgid "Add a new RADIUS proxy server."
+msgstr "Додати новий проксі-сервер RADIUS."
+
+#, python-format
+msgid "Added RADIUS proxy server \"%(value)s\""
+msgstr "Додано проксі-сервер RADIUS «%(value)s»"
+
+msgid "Delete a RADIUS proxy server."
+msgstr "Вилучити проксі-сервер RADIUS."
+
+#, python-format
+msgid "Deleted RADIUS proxy server \"%(value)s\""
+msgstr "Вилучити проксі-сервер RADIUS «%(value)s»"
+
+msgid "Modify a RADIUS proxy server."
+msgstr "Змінити запис проксі-сервера RADIUS."
+
+#, python-format
+msgid "Modified RADIUS proxy server \"%(value)s\""
+msgstr "Змінено запис проксі-сервера RADIUS «%(value)s»"
+
+msgid "Search for RADIUS proxy servers."
+msgstr "Шукати проксі-сервери RADIUS."
+
+#, python-format
+msgid "%(count)d RADIUS proxy server matched"
+msgid_plural "%(count)d RADIUS proxy servers matched"
+msgstr[0] "Встановлено відповідність %(count)d проксі-сервера RADIUS"
+msgstr[1] "Встановлено відповідність %(count)d проксі-серверів RADIUS"
+msgstr[2] "Встановлено відповідність %(count)d проксі-серверів RADIUS"
+
+msgid "Display information about a RADIUS proxy server."
+msgstr "Показати дані щодо проксі-сервера RADIUS."
+
+msgid ""
+"\n"
 "Realm domains\n"
 "\n"
 "Manage the list of domains associated with IPA realm.\n"
@@ -8510,7 +9468,7 @@ msgstr ""
 "Роль використовується для уточнення налаштування прав доступу. Право "
 "доступу\n"
 "надає можливість виконувати деякі низькорівневі завдання (додавання запису\n"
-"користувача, внесення змін до групи тощо). Уповноваження поєднують одне або "
+"користувача, внесення змін до групи тощо). Привілей поєднують одне або "
 "декілька\n"
 "прав доступу у високорівневу абстракцію, наприклад «адміністратор "
 "користувачів»\n"
@@ -8518,7 +9476,7 @@ msgstr ""
 "записів\n"
 "користувачів.\n"
 "\n"
-"Уповноваження пов’язуються з ролями.\n"
+"Привілеї пов’язуються з ролями.\n"
 "\n"
 "Учасниками ролі можуть бути користувачі, групи, вузли та групи вузлів.\n"
 "\n"
@@ -8529,7 +9487,7 @@ msgstr ""
 " Додавання нової ролі:\n"
 "   ipa role-add --desc=\"Junior-level admin\" junioradmin\n"
 "\n"
-" Додавання уповноважень до цієї ролі:\n"
+" Додавання привілеїв до цієї ролі:\n"
 "   ipa role-add-privilege --privileges=addusers junioradmin\n"
 "   ipa role-add-privilege --privileges=change_password junioradmin\n"
 "   ipa role-add-privilege --privileges=add_user_to_default_group "
@@ -8604,16 +9562,16 @@ msgid "Remove members from a role."
 msgstr "Вилучити учасників з запису ролі."
 
 msgid "Add privileges to a role."
-msgstr "Додати уповноваження до запису ролі."
+msgstr "Додати привілеї до запису ролі."
 
 msgid "Number of privileges added"
-msgstr "Кількість доданих уповноважень"
+msgstr "Кількість доданих привілеїв"
 
 msgid "Remove privileges from a role."
-msgstr "Вилучити уповноваження з запису ролі."
+msgstr "Вилучити привілеї з запису ролі."
 
 msgid "Number of privileges removed"
-msgstr "Кількість вилучених уповноважень"
+msgstr "Кількість вилучених привілеїв"
 
 msgid ""
 "\n"
@@ -9351,11 +10309,25 @@ msgstr "Вилучити учасників з групи команд sudo."
 msgid ""
 "\n"
 "Sudo Rules\n"
+msgstr ""
+"\n"
+"Правила sudo\n"
+
+msgid ""
 "\n"
 "Sudo (su \"do\") allows a system administrator to delegate authority to\n"
 "give certain users (or groups of users) the ability to run some (or all)\n"
 "commands as root or another user while providing an audit trail of the\n"
 "commands and their arguments.\n"
+msgstr ""
+"\n"
+"Sudo (su \"do\") надає системному адміністратору змогу делегувати\n"
+"повноваження певним користувачам (або групам користувачів) на виконання\n"
+"деяких (або усіх) команд від імені адміністратора (root) або іншого\n"
+"користувача, зберігаючи водночас журнал виконання команд та\n"
+"аргументів.\n"
+
+msgid ""
 "\n"
 "FreeIPA provides a means to configure the various aspects of Sudo:\n"
 "   Users: The user(s)/group(s) allowed to invoke Sudo.\n"
@@ -9367,63 +10339,121 @@ msgid ""
 "invoked with.\n"
 "   RunAsGroup: The group(s) whose gid rights Sudo will be invoked with.\n"
 "   Options: The various Sudoers Options that can modify Sudo's behavior.\n"
+msgstr ""
+"\n"
+"У FreeIPA передбачено декілька параметрів налаштовування роботи sudo:\n"
+"   Users: користувачі або групи, які можуть викликати sudo.\n"
+"   Hosts: вузли або групи вузлів, користувачі якого можуть викликати sudo.\n"
+"   Allow Command: специфічні команди, які можна виконувати за допомогою "
+"sudo.\n"
+"   Deny Command: специфічні команди, які не можна виконувати за допомогою "
+"sudo.\n"
+"   RunAsUser: користувачі або групи, від імені яких sudo виконуватиме "
+"команди.\n"
+"   RunAsGroup: групи, ідентифікатори яких буде використано sudo для "
+"виконання команд.\n"
+"   Options: різноманітні параметри sudoers, які можуть змінити поведінку "
+"sudo.\n"
+
+msgid ""
 "\n"
 "An order can be added to a sudorule to control the order in which they\n"
 "are evaluated (if the client supports it). This order is an integer and\n"
 "must be unique.\n"
+msgstr ""
+"\n"
+"До правила sudo можна додати порядок, який керуватиме порядком\n"
+"обробки записів (якщо такий порядок передбачено на клієнтському боці).\n"
+"Порядок визначається числовим індексом, який не повинен повторюватися.\n"
+
+msgid ""
 "\n"
 "FreeIPA provides a designated binddn to use with Sudo located at:\n"
 "uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
+msgstr ""
+"\n"
+"У FreeIPA передбачено визначений binddn для використання з sudo, який "
+"розташовано у\n"
+"uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
+
+msgid ""
 "\n"
 "To enable the binddn run the following command to set the password:\n"
 "LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W -h ipa.example.com -"
 "ZZ -D \"cn=Directory Manager\" uid=sudo,cn=sysaccounts,cn=etc,dc=example,"
 "dc=com\n"
-"\n"
-"For more information, see the FreeIPA Documentation to Sudo.\n"
 msgstr ""
 "\n"
-"Правила sudo\n"
-"\n"
-"Sudo (su \"do\") надає змогу адміністраторові системи уповноважити\n"
-"певних користувачів (або групи користувачів) на виконання певних (або\n"
-"всіх) команд від імені адміністратора або іншого користувача зі\n"
-"збереженням можливості ознайомлення з журналом команд і аргументів.\n"
-"\n"
-"У FreeIPA передбачено можливість налаштування різноманітних аспектів\n"
-"роботи sudo:\n"
-"   Користувачі: користувачі і групи, яким можна використовувати sudo.\n"
-"   Вузли: вузли і групи вузлів, користувачам яких можна використовувати "
-"sudo.\n"
-"   Дозволена команда: команда, яку можна виконувати за допомогою sudo.\n"
-"   Заборонена команда: команда, яку не можна виконувати за допомогою sudo.\n"
-"   Користувач запуску: користувач або група користувачів, від імені яких "
-"виконується sudo.\n"
-"   Група запуску: група, з ідентифікатором якої буде запущено sudo.\n"
-"   Параметри: різноманітні параметри sudoers, які можуть змінювати поведінку "
-"sudo.\n"
-"\n"
-"До правила sudo може бути додано порядковий номер з метою керування "
-"порядком, у якому\n"
-"застосовуються правила (якщо клієнтом передбачено можливість впорядковування "
-"правил).\n"
-"Порядковий номер є цілим числом, унікальним для кожного з правил правила.\n"
-"\n"
-"FreeIPA надає підписаний binddn для використання з sudo з адресою:\n"
-"uid=sudo,cn=sysaccounts,cn=etc,dc=example,dc=com\n"
-"\n"
-"Щоб увімкнути binddn, виконайте таку команду для встановлення пароля:\n"
+"Щоб увімкнути binddn, віддайте таку команду для встановлення пароля:\n"
 "LDAPTLS_CACERT=/etc/ipa/ca.crt /usr/bin/ldappasswd -S -W -h ipa.example.com -"
 "ZZ -D \"cn=Directory Manager\" uid=sudo,cn=sysaccounts,cn=etc,dc=example,"
 "dc=com\n"
+
+msgid ""
 "\n"
-"Докладніші відомості можна знайти у документації до FreeIPA з sudo.\n"
+" Create a new rule:\n"
+"   ipa sudorule-add readfiles\n"
+msgstr ""
+"\n"
+" Створити правило:\n"
+"   ipa sudorule-add readfiles\n"
+
+msgid ""
+"\n"
+" Add sudo command object and add it as allowed command in the rule:\n"
+"   ipa sudocmd-add /usr/bin/less\n"
+"   ipa sudorule-add-allow-command readfiles --sudocmds /usr/bin/less\n"
+msgstr ""
+"\n"
+" Додати об’єкт команди sudo і записати його як дозволену команду до "
+"правила:\n"
+"   ipa sudocmd-add /usr/bin/less\n"
+"   ipa sudorule-add-allow-command readfiles --sudocmds /usr/bin/less\n"
+
+msgid ""
+"\n"
+" Add a host to the rule:\n"
+"   ipa sudorule-add-host readfiles --hosts server.example.com\n"
+msgstr ""
+"\n"
+" Додати запис вузла до правила:\n"
+"   ipa sudorule-add-host readfiles --hosts server.example.com\n"
+
+msgid ""
+"\n"
+" Add a user to the rule:\n"
+"   ipa sudorule-add-user readfiles --users jsmith\n"
+msgstr ""
+"\n"
+" Додати запис користувача до правила:\n"
+"   ipa sudorule-add-user readfiles --users jsmith\n"
+
+msgid ""
+"\n"
+" Add a special Sudo rule for default Sudo server configuration:\n"
+"   ipa sudorule-add defaults\n"
+msgstr ""
+"\n"
+" Додати особливе правило sudo для типового налаштовування сервера sudo:\n"
+"   ipa sudorule-add defaults\n"
+
+msgid ""
+"\n"
+" Set a default Sudo option:\n"
+"   ipa sudorule-add-option defaults --sudooption '!authenticate'\n"
+msgstr ""
+"\n"
+" Встановити типовий варіант дій для sudo:\n"
+"   ipa sudorule-add-option defaults --sudooption '!authenticate'\n"
 
 msgid "Commands for controlling sudo configuration"
 msgstr "Команди керування налаштуванням sudo"
 
 msgid "this option has been deprecated."
 msgstr "цей параметр вважається застарілим."
+
+msgid "host masks of allowed hosts"
+msgstr "маски для дозволених вузлів"
 
 msgid "sudo rule"
 msgstr "правило sudo"
@@ -9462,6 +10492,17 @@ msgstr "Порядок sudo"
 msgid "integer to order the Sudo rules"
 msgstr "ціле число для впорядковування правил sudo"
 
+msgid "External User"
+msgstr "Зовнішній користувач"
+
+msgid "External User the rule applies to (sudorule-find only)"
+msgstr ""
+"Зовнішній користувач, до якого застосовуватиметься правило (лише sudorule-"
+"find)"
+
+msgid "Host Masks"
+msgstr "Маски вузлів"
+
 msgid "Sudo Allow Commands"
 msgstr "Дозволені команди sudo"
 
@@ -9486,14 +10527,6 @@ msgstr "Групи користувачів запуску від імені"
 msgid "Run as any user within a specified group"
 msgstr "Запускати від імені будь-якого користувача вказаної групи"
 
-msgid "External User"
-msgstr "Зовнішній користувач"
-
-msgid "External User the rule applies to (sudorule-find only)"
-msgstr ""
-"Зовнішній користувач, до якого застосовуватиметься правило (лише sudorule-"
-"find)"
-
 msgid "RunAs External User"
 msgstr "Зовнішній користувач для RunAs"
 
@@ -9501,6 +10534,18 @@ msgid "External User the commands can run as (sudorule-find only)"
 msgstr ""
 "Зовнішній користувач, від імені якого можна віддавати команди (лише sudorule-"
 "find)"
+
+msgid "External Groups of RunAs Users"
+msgstr "Зовнішні групи користувачів для запуску від імені"
+
+msgid "External Groups of users that the command can run as"
+msgstr "Зовнішні групи користувачів, від імені яких можна виконувати команду"
+
+msgid "RunAs Groups"
+msgstr "Групи запуску від імені"
+
+msgid "Run with the gid of a specified POSIX group"
+msgstr "Запускати з ідентифікатором вказаної групи POSIX"
 
 msgid "RunAs External Group"
 msgstr "Зовнішня група для RunAs"
@@ -9511,12 +10556,6 @@ msgstr ""
 
 msgid "Sudo Option"
 msgstr "Пункт sudo"
-
-msgid "RunAs Groups"
-msgstr "Групи запуску від імені"
-
-msgid "Run with the gid of a specified POSIX group"
-msgstr "Запускати з ідентифікатором вказаної групи POSIX"
 
 #, python-format
 msgid "order must be a unique value (%(order)d already used by %(rule)s)"
@@ -9545,22 +10584,36 @@ msgstr "Змінити правило sudo."
 msgid "Modified Sudo Rule \"%(value)s\""
 msgstr "Змінено правило sudo «%(value)s»"
 
+#, python-format
 msgid ""
-"command category cannot be set to 'all' while there are allow or deny "
-"commands"
+"%(type)s category cannot be set to 'all' while there are allowed %(objects)s"
 msgstr ""
-"не можна встановлювати для категорії команд значення «all», доки є записи "
-"дозволу або заборони команд"
+"Значенням категорії %(type)s не можна встановлювати «all», якщо існують "
+"дозволені %(objects)s"
 
-msgid "user runAs category cannot be set to 'all' while there are users"
-msgstr ""
-"не можна встановлювати для категорії запуску від імені користувачів значення "
-"«all», доки є записи для окремих користувачів"
+msgid "user"
+msgstr "користувач"
 
-msgid "group runAs category cannot be set to 'all' while there are groups"
-msgstr ""
-"не можна встановлювати для категорії запуску від імені груп значення «all», "
-"доки є записи для окремих груп"
+msgid "users"
+msgstr "користувачі"
+
+msgid "command"
+msgstr "команда"
+
+msgid "commands"
+msgstr "команди"
+
+msgid "runAs user"
+msgstr "користувач, від імені якого виконуватиметься"
+
+msgid "runAs users"
+msgstr "користувачі, від імені яких виконуватиметься"
+
+msgid "group runAs"
+msgstr "група, від імені якої виконуватиметься"
+
+msgid "runAs groups"
+msgstr "групи, від імені яких виконуватиметься"
 
 msgid "Search for Sudo Rule."
 msgstr "Знайти правило sudo."
@@ -9957,6 +11010,7 @@ msgid "Size of the ID range reserved for the trusted domain"
 msgstr ""
 "Розмір діапазону ідентифікаторів, зарезервованого для довіреного домену"
 
+#, python-brace-format
 msgid "Type of trusted domain ID range, one of {vals}"
 msgstr ""
 "Тип діапазону ідентифікаторів довіреного домену, одне з таких значень: {vals}"
@@ -9964,6 +11018,10 @@ msgstr ""
 #, python-format
 msgid "Added Active Directory trust for realm \"%(value)s\""
 msgstr "Додано запис довіри Active Directory для області «%(value)s»"
+
+#, python-format
+msgid "Re-established trust to domain \"%(value)s\""
+msgstr "Відновлено довіру до домену «%(value)s»"
 
 msgid "AD Trust setup"
 msgstr "Налаштування довіри AD"
@@ -9986,6 +11044,16 @@ msgstr "тип довіри"
 
 msgid "only \"ad\" is supported"
 msgstr "передбачено підтримку лише «ad»"
+
+msgid "Realm-domain mismatch"
+msgstr "Невідповідність між областю і доменом"
+
+msgid ""
+"To establish trust with Active Directory, the domain name and the realm name "
+"of the IPA server must match"
+msgstr ""
+"Для встановлення довіри з Active Directory назва домену і назва області "
+"сервера IPA мають збігатися"
 
 msgid "Trusted domain and administrator account use different realms"
 msgstr ""
@@ -10038,10 +11106,6 @@ msgstr ""
 "Діапазон ідентифікаторів для довіреного домену вже існує, але належить до "
 "іншого типу. Будь ласка, вилучіть попередній діапазон вручну або не "
 "визначайте тип у примусовому порядку за допомогою параметра --range-type."
-
-#, python-format
-msgid "Re-established trust to domain \"%(value)s\""
-msgstr "Відновлено довіру до домену «%(value)s»"
 
 #, python-format
 msgid "Unable to resolve domain controller for '%s' domain. "
@@ -10167,6 +11231,104 @@ msgid "Determine whether ipa-adtrust-install has been run on this system"
 msgstr "Визначити, чи було запущено ipa-adtrust-install для цієї системи"
 
 msgid ""
+"Determine whether Schema Compatibility plugin is configured to serve trusted "
+"domain users and groups"
+msgstr ""
+"Визначити, чи налаштовано додаток сумісності схем (Schema Compatibility) на "
+"обслуговування користувачів і груп довіреного домену"
+
+msgid "Determine whether ipa-adtrust-install has been run with sidgen task"
+msgstr "Визначити, чи було запущено ipa-adtrust-install з завданням sidgen"
+
+msgid "sidgen_was_run"
+msgstr "sidgen_was_run"
+
+msgid ""
+"This command relies on the existence of the \"editors\" group, but this "
+"group was not found."
+msgstr ""
+"Для виконання цієї команди має існувати група «editors», але групи з такою "
+"назвою не знайдено."
+
+msgid "trust domain"
+msgstr "довірений домен"
+
+msgid "trust domains"
+msgstr "довірені домени"
+
+msgid "Trusted domains"
+msgstr "Довірені домени"
+
+msgid "Trusted domain"
+msgstr "Довірений домен"
+
+msgid "Domain name"
+msgstr "Назва домену"
+
+msgid "Trusted domain partner"
+msgstr "Партнер довіреного домену"
+
+msgid "Search domains of the trust"
+msgstr "Шукати довірені домени"
+
+msgid "Domain enabled"
+msgstr "Домен увімкнено"
+
+msgid "Modify trustdomain of the trust"
+msgstr "Змінити значення довіреного домену (trustdomain) правила довіри"
+
+msgid "Allow access from the trusted domain"
+msgstr "Дозволити доступ з довіреного домену"
+
+msgid "Remove infromation about the domain associated with the trust."
+msgstr "Вилучити дані щодо домену, пов’язаного з цим правилом довіри."
+
+#, python-format
+msgid "Removed information about the trusted domain \"%(value)s\""
+msgstr "Дані щодо довіреного домену «%(value)s» вилучено"
+
+msgid ""
+"cannot delete root domain of the trust, use trust-del to delete the trust "
+"itself"
+msgstr ""
+"вилучення кореневого домену правила довіри неможливе, скористайтеся trust-"
+"del для вилучення самого правила довіри"
+
+msgid "Refresh list of the domains associated with the trust"
+msgstr "Освіжити список доменів, пов’язаних з правилом довіри"
+
+msgid "List of trust domains successfully refreshed"
+msgstr "Список довірених доменів успішно оновлено"
+
+msgid "No new trust domains were found"
+msgstr "Нових довірених доменів не знайдено"
+
+msgid "Allow use of IPA resources by the domain of the trust"
+msgstr "Дозволити використання ресурсів IPA доменом правила довіри"
+
+#, python-format
+msgid "Enabled trust domain \"%(value)s\""
+msgstr "Увімкнено домен довіри «%(value)s»"
+
+msgid "Root domain of the trust is always enabled for the existing trust"
+msgstr ""
+"Кореневий домен правила довіри для наявного правила довіри завжди увімкнено"
+
+msgid "Disable use of IPA resources by the domain of the trust"
+msgstr "Вимкнути використання ресурсів IPA доменом правила довіри"
+
+#, python-format
+msgid "Disabled trust domain \"%(value)s\""
+msgstr "Домен довіри «%(value)s» вимкнено"
+
+msgid ""
+"cannot disable root domain of the trust, use trust-del to delete the trust "
+"itself"
+msgstr ""
+"вимикання кореневого домену правила довіри неможливе, скористайтеся trust-"
+"del для вилучення самого правила довіри"
+
+msgid ""
 "\n"
 "Users\n"
 "\n"
@@ -10257,9 +11419,6 @@ msgstr ""
 msgid "Kerberos keys available"
 msgstr "Доступні ключі Kerberos"
 
-msgid "Server"
-msgstr "Сервер"
-
 msgid "Failed logins"
 msgstr "Кількість невдалих спроб увійти"
 
@@ -10274,12 +11433,6 @@ msgstr "Поточний час"
 
 msgid "must be TRUE or FALSE"
 msgstr "має дорівнювати TRUE або FALSE"
-
-msgid "user"
-msgstr "користувач"
-
-msgid "users"
-msgstr "користувачі"
 
 msgid "User login"
 msgstr "Користувач"
@@ -10310,6 +11463,9 @@ msgstr "Оболонка входу"
 
 msgid "Kerberos principal"
 msgstr "Реєстраційний запис Kerberos"
+
+msgid "Kerberos principal expiration"
+msgstr "Завершення строку дії реєстраційного запису Kerberos"
 
 msgid "Email address"
 msgstr "Адреса ел. пошти"
@@ -10361,14 +11517,41 @@ msgstr "Підрозділ"
 msgid "Job Title"
 msgstr "Посада"
 
-msgid "Manager"
-msgstr "Керівник"
-
 msgid "Car License"
 msgstr "Водійська ліцензія"
 
 msgid "Account disabled"
 msgstr "Обліковий запис вимкнено"
+
+msgid "User authentication types"
+msgstr "Типи розпізнавання користувачів"
+
+msgid "Types of supported user authentication"
+msgstr "Типи підтримуваного розпізнавання користувачів"
+
+msgid ""
+"User category (semantics placed on this attribute are for local "
+"interpretation)"
+msgstr ""
+"Категорія вузлів (семантику цього атрибуту призначено для локальної обробки)"
+
+msgid "RADIUS proxy configuration"
+msgstr "Налаштування проксі RADIUS"
+
+msgid "RADIUS proxy username"
+msgstr "Ім’я користувача проксі-сервера RADIUS"
+
+msgid "Department Number"
+msgstr "Номер відділу"
+
+msgid "Employee Number"
+msgstr "Номер працівника"
+
+msgid "Employee Type"
+msgstr "Тип працівника"
+
+msgid "Preferred Language"
+msgstr "Бажана мова"
 
 #, python-format
 msgid "invalid e-mail format: %(email)s"
@@ -10564,32 +11747,16 @@ msgstr "Порожня назва файла"
 msgid "Permission denied: %(file)s"
 msgstr "Доступ заборонено: %(file)s"
 
-msgid "empty DNS label"
-msgstr "порожня мітка DNS"
-
 msgid "DNS label cannot be longer that 63 characters"
 msgstr "Довжина мітки DNS не повинна перевищувати 63 символи"
 
 #, python-format
 msgid ""
-"only letters, numbers,%(underscore)s and - are allowed. DNS label may not "
-"start or end with -"
+"only letters, numbers, %(chars)s are allowed. DNS label may not start or end "
+"with %(chars2)s"
 msgstr ""
-"можна використовувати лише літери, цифри, %(underscore)s і символ «-». "
-"Символ «-» не повинен бути першим або останнім символом мітки DNS."
-
-msgid ""
-"mail account may only include letters, numbers, -, _ and a dot. There may "
-"not be consecutive -, _ and . characters. Its parts may not start or end "
-"with - or _"
-msgstr ""
-"назва облікового запису електронної пошти може складатися лише з літер, "
-"цифр, символів «-», «_» і крапок. Не можна використовувати у назві "
-"послідовності з символів «-», «_» та «.». Його частини не повинні починатися "
-"або закінчуватися на «-» або «_»."
-
-msgid "cannot be longer that 255 characters"
-msgstr "не може бути довшим за 255 символів"
+"можна використовувати лише літери, цифри, %(chars)s. Символ %(chars2)s не "
+"повинен бути першим або останнім символом мітки DNS."
 
 msgid "too many '@' characters"
 msgstr "занадто багато символів «@»"
@@ -10599,6 +11766,9 @@ msgstr "не вказано домену адреси"
 
 msgid "missing mail account"
 msgstr "не вказано поштового облікового запису"
+
+msgid "cannot be longer that 255 characters"
+msgstr "не може бути довшим за 255 символів"
 
 msgid "hostname contains empty label (consecutive dots)"
 msgstr "назва вузла містить лише порожню мітку (послідовні крапки)"
@@ -10611,6 +11781,9 @@ msgstr "некоректний відкритий ключ SSH"
 
 msgid "options are not allowed"
 msgstr "не можна використовувати параметри"
+
+msgid "invalid hostmask"
+msgstr "некоректна маска вузлів"
 
 msgid "improperly formatted DER-encoded certificate"
 msgstr "неналежне форматування сертифіката у кодуванні DER"
@@ -10660,6 +11833,14 @@ msgstr "Контролер домену AD"
 
 msgid "unsupported functional level"
 msgstr "непідтримуваний функціональний рівень"
+
+msgid ""
+"AD domain controller complains about communication sequence. It may mean "
+"unsynchronized time on both sides, for example"
+msgstr ""
+"Домен AD скаржиться на послідовність команд встановлення зв’язку. Це, "
+"наприклад, може означати розсинхронізацію часу між комп’ютерами, які "
+"обмінюються даними."
 
 msgid "Cannot find specified domain or server name"
 msgstr "Не вдалося знайти домену або сервера з вказаною назвою"
@@ -10772,7 +11953,12 @@ msgid ""
 "Insufficient 'write' privilege to the 'krbLastPwdChange' attribute of entry "
 "'%s'."
 msgstr ""
-"Недостатні права доступу «write» до атрибута «krbLastPwdChange» запису «%s»."
+"Недостатні привілеї «write» до атрибута «krbLastPwdChange» запису «%s»."
+
+msgid "Could not read UPG Definition originfilter. Check your permissions."
+msgstr ""
+"Не вдалося прочитати фільтр походження (originfilter) UPG Definition. "
+"Переконайтеся, що у вас є відповідні права доступу."
 
 msgid "Request must be a dict"
 msgstr "Запит має належати до типу словника (dict)"
@@ -10828,24 +12014,12 @@ msgid "Out of memory \n"
 msgstr "Не вистачає пам'яті \n"
 
 #, c-format
-msgid "Out of Memory!\n"
-msgstr "Не вистачає пам'яті!\n"
-
-#, c-format
-msgid "Failed to create control!\n"
-msgstr "Не вдалося створити керування!\n"
-
-#, c-format
 msgid "Unable to initialize ldap library!\n"
 msgstr "Не вдалося ініціалізувати бібліотеку ldap!\n"
 
 #, c-format
 msgid "Unable to set LDAP_OPT_X_SASL_NOCANON\n"
 msgstr "Не вдалося встановити LDAP_OPT_X_SASL_NOCANON\n"
-
-#, c-format
-msgid "Unable to set ldap options!\n"
-msgstr "Не вдалося встановити значення параметрів ldap!\n"
 
 #, c-format
 msgid "Simple bind failed\n"
@@ -10858,6 +12032,14 @@ msgstr "Невдала спроба виконання дії! %s\n"
 #, c-format
 msgid "Missing reply control!\n"
 msgstr "Немає керування відповіддю!\n"
+
+#, c-format
+msgid "Out of Memory!\n"
+msgstr "Не вистачає пам'яті!\n"
+
+#, c-format
+msgid "Failed to create control!\n"
+msgstr "Не вдалося створити керування!\n"
 
 #, c-format
 msgid "ber_init() failed, Invalid control ?!\n"
@@ -10878,6 +12060,10 @@ msgstr "Не вдалося отримати дані щодо типу шифр
 #, c-format
 msgid "Failed to retrieve any keys"
 msgstr "Не вдалося отримати жодного ключа"
+
+#, c-format
+msgid "Out of memory!\n"
+msgstr "Не вистачає пам'яті!\n"
 
 msgid "New Principal Password"
 msgstr "Новий пароль реєстраційного запису"
@@ -11052,10 +12238,6 @@ msgstr "Спроба пошуку namingContext IPA завершилася по�
 #, c-format
 msgid "IPA namingContext not found\n"
 msgstr "namingContext IPA не знайдено\n"
-
-#, c-format
-msgid "Out of memory!\n"
-msgstr "Не вистачає пам'яті!\n"
 
 #, c-format
 msgid "Search for ipaCertificateSubjectBase failed with error %d"
@@ -11287,9 +12469,6 @@ msgstr "Спроба закриття таблиці ключів зазнала
 msgid "krb5_kt_close %1$d: %2$s\n"
 msgstr "krb5_kt_close %1$d: %2$s\n"
 
-msgid "Out of memory!?\n"
-msgstr "Не вистачає пам'яті!?\n"
-
 msgid "Out of memory\n"
 msgstr "Не вистачає пам'яті\n"
 
@@ -11298,6 +12477,9 @@ msgstr "Попередження: невідомий тип шифрування
 
 msgid "Warning unrecognized salt type.\n"
 msgstr "Попередження: невідомий тип солі (salt).\n"
+
+msgid "Out of memory!?\n"
+msgstr "Не вистачає пам'яті!?\n"
 
 msgid "Enctype comparison failed!\n"
 msgstr "Спроба порівняння значень типу шифрування зазнала невдачі!\n"
@@ -11310,3 +12492,9 @@ msgstr "Не вдалося створити ключ!\n"
 
 msgid "Bad or unsupported salt type.\n"
 msgstr "Помилковий або непідтримуваний тип солі (salt).\n"
+
+#~ msgid "Display length"
+#~ msgstr "Ширина дисплея"
+
+#~ msgid "Unable to set ldap options!\n"
+#~ msgstr "Не вдалося встановити значення параметрів ldap!\n"

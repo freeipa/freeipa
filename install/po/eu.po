@@ -9,10 +9,10 @@ msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-10-09 14:39+0200\n"
-"PO-Revision-Date: 2013-08-01 14:06+0000\n"
+"POT-Creation-Date: 2014-06-27 16:29+0200\n"
+"PO-Revision-Date: 2014-06-25 19:44+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
-"Language-Team: Basque (http://www.transifex.com/projects/p/fedora/language/"
+"Language-Team: Basque (http://www.transifex.com/projects/p/freeipa/language/"
 "eu/)\n"
 "Language: eu\n"
 "MIME-Version: 1.0\n"
@@ -104,6 +104,12 @@ msgstr "ACI izen berria"
 
 msgid "Description"
 msgstr "Deskribapena"
+
+msgid "Users"
+msgstr "Erabiltzaileak"
+
+msgid "Hosts"
+msgstr "Ostalariak"
 
 msgid "description"
 msgstr "deskribapena"
@@ -240,12 +246,6 @@ msgstr "Arau-mota"
 
 msgid "Enabled"
 msgstr "Gaituta"
-
-msgid "Users"
-msgstr "Erabiltzaileak"
-
-msgid "Hosts"
-msgstr "Ostalariak"
 
 msgid "Host Groups"
 msgstr "Ostalari-taldeak"
@@ -446,6 +446,9 @@ msgstr "LDAP URI baliogabea."
 msgid "NIS domain name"
 msgstr "NIS domeinu-izena"
 
+msgid "Manager"
+msgstr "Kudeatzailea"
+
 msgid "PKINIT"
 msgstr "PKINIT"
 
@@ -513,9 +516,6 @@ msgstr "Bilagailu-zenbakia"
 
 msgid "Fax Number"
 msgstr "Fax-zenbakia"
-
-msgid "Manager"
-msgstr "Kudeatzailea"
 
 #, python-format
 msgid "Added user \"%(value)s\""

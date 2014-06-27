@@ -12,10 +12,11 @@ msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-10-09 14:39+0200\n"
-"PO-Revision-Date: 2013-08-01 14:06+0000\n"
+"POT-Creation-Date: 2014-06-27 16:29+0200\n"
+"PO-Revision-Date: 2014-06-25 19:44+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
-"Language-Team: Russian <trans-ru@lists.fedoraproject.org>\n"
+"Language-Team: Russian (http://www.transifex.com/projects/p/freeipa/language/"
+"ru/)\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -311,6 +312,12 @@ msgstr[2] "Найдено %(count)d ACI"
 msgid "Description"
 msgstr "Описание"
 
+msgid "Users"
+msgstr "Пользователи"
+
+msgid "Hosts"
+msgstr "Узлы"
+
 msgid "Location"
 msgstr "Расположение"
 
@@ -352,12 +359,6 @@ msgstr "Ограничение времени поиска в секундах"
 
 msgid "Size Limit"
 msgstr "Ограничение по размеру"
-
-msgid "Failure decoding Certificate Signing Request:"
-msgstr "Сбой при декодировании запроса на создание сертификата:"
-
-msgid "Failure decoding Certificate Signing Request"
-msgstr "Сбой при декодировании запроса на создание сертификата"
 
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
@@ -472,10 +473,6 @@ msgid "invalid IP network format"
 msgstr "неправильный формат подсети"
 
 #, python-format
-msgid "invalid domain-name: %s"
-msgstr "неправильное доменное имя: %s"
-
-#, python-format
 msgid "(see RFC %s for details)"
 msgstr "(см. RFC %s для деталей)"
 
@@ -494,12 +491,6 @@ msgstr "Алгоритм"
 
 msgid "Certificate/CRL"
 msgstr "Сертификат/СОС"
-
-msgid "Protocol"
-msgstr "Протокол"
-
-msgid "Public Key"
-msgstr "Открытый ключ"
 
 msgid "Altitude"
 msgstr "Высота над уровнем моря"
@@ -532,6 +523,15 @@ msgstr "Тип записи"
 msgid "Nameserver '%(host)s' does not have a corresponding A/AAAA record"
 msgstr "У сервера имен «%(host)s» не соответствующей A/AAAA-записи"
 
+msgid "Zone name"
+msgstr "Имя зоны"
+
+msgid "Zone name (FQDN)"
+msgstr "Имя зоны (FQDN)"
+
+msgid "Reverse zone IP network"
+msgstr "Зона обратных адресов"
+
 msgid "DNS zone"
 msgstr "зона DNS"
 
@@ -544,17 +544,11 @@ msgstr "Зоны DNS"
 msgid "DNS Zone"
 msgstr "Зона DNS"
 
-msgid "Zone name"
-msgstr "Имя зоны"
-
-msgid "Zone name (FQDN)"
-msgstr "Имя зоны (FQDN)"
-
-msgid "Reverse zone IP network"
-msgstr "Зона обратных адресов"
-
 msgid "SOA serial"
 msgstr "Номер SOA"
+
+msgid "Time to live"
+msgstr "Время жизни"
 
 msgid "Dynamic update"
 msgstr "Динамическое обновление"
@@ -567,9 +561,6 @@ msgstr "Создать новую зону DNS (SOA-запись)"
 
 msgid "Force"
 msgstr "Принудительно"
-
-msgid "Time to live"
-msgstr "Время жизни"
 
 msgid "Class"
 msgstr "Класс"
@@ -660,12 +651,6 @@ msgstr "Категория службы"
 msgid "Enabled"
 msgstr "Включено"
 
-msgid "Users"
-msgstr "Пользователи"
-
-msgid "Hosts"
-msgstr "Узлы"
-
 msgid "Host Groups"
 msgstr "Группы узлов"
 
@@ -683,6 +668,10 @@ msgstr "Имя службы"
 
 msgid "Warning"
 msgstr "Предупреждение"
+
+#, python-format
+msgid "invalid domain-name: %s"
+msgstr "неправильное доменное имя: %s"
 
 msgid "host"
 msgstr "узел"
@@ -931,6 +920,9 @@ msgstr[0] "Загружен %(count)d подключаемый модуль"
 msgstr[1] "Загружено %(count)d подключаемых модуля"
 msgstr[2] "Загружено %(count)d подключаемых модулей"
 
+msgid "Manager"
+msgstr "Руководитель"
+
 msgid "permission"
 msgstr "разрешение"
 
@@ -1031,9 +1023,6 @@ msgstr "Отдел"
 
 msgid "Job Title"
 msgstr "Должность"
-
-msgid "Manager"
-msgstr "Руководитель"
 
 msgid "Car License"
 msgstr "Номер автомобиля"

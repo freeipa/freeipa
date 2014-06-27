@@ -3,16 +3,17 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Translators:
-# jordimash <jmas@softcatala.org>, 2013
+# Jordi Mas <jmas@softcatala.org>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-10-09 14:39+0200\n"
-"PO-Revision-Date: 2013-08-01 14:06+0000\n"
+"POT-Creation-Date: 2014-06-27 16:29+0200\n"
+"PO-Revision-Date: 2014-06-25 19:44+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
-"Language-Team: Catalan <fedora@llistes.softcatala.org>\n"
+"Language-Team: Catalan (http://www.transifex.com/projects/p/freeipa/language/"
+"ca/)\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -45,6 +46,9 @@ msgstr "Subarbre"
 
 msgid "Description"
 msgstr "Descripció"
+
+msgid "Users"
+msgstr "Usuaris"
 
 msgid "Location"
 msgstr "Ubicació"
@@ -121,17 +125,11 @@ msgstr "Algorisme"
 msgid "Target"
 msgstr "Objectiu"
 
-msgid "Flags"
-msgstr "Indicadors"
-
-msgid "Protocol"
-msgstr "Protocol"
-
-msgid "Public Key"
-msgstr "Clau pública"
-
 msgid "Size"
 msgstr "Mida"
+
+msgid "Flags"
+msgstr "Indicadors"
 
 msgid "Regular Expression"
 msgstr "Expressió regular"
@@ -144,12 +142,6 @@ msgstr "Pes"
 
 msgid "Port"
 msgstr "Port"
-
-msgid "Labels"
-msgstr "Etiquetes"
-
-msgid "Signature"
-msgstr "Signatura"
 
 msgid "Fingerprint"
 msgstr "Empremta"
@@ -168,9 +160,6 @@ msgstr "Nom del grup"
 
 msgid "Enabled"
 msgstr "S'ha habilitat"
-
-msgid "Users"
-msgstr "Usuaris"
 
 msgid "Services"
 msgstr "Serveis"
@@ -421,9 +410,6 @@ msgstr "Nom de l'ordinador"
 msgid "User"
 msgstr "Usuari"
 
-msgid "Identity"
-msgstr "Identitat"
-
 msgid "Active Directory domain"
 msgstr "Domini d'Active Directory"
 
@@ -469,6 +455,9 @@ msgstr "Inhabilitat"
 msgid "DNS"
 msgstr "DNS"
 
+msgid "Identity"
+msgstr "Identitat"
+
 msgid "Policy"
 msgstr "Política"
 
@@ -493,6 +482,9 @@ msgstr "Continua"
 msgid "Netgroup name"
 msgstr "Nom de grup de xarxa"
 
+msgid "Manager"
+msgstr "Gestor"
+
 msgid "Invalid credentials"
 msgstr "Credencials no vàlides"
 
@@ -502,11 +494,20 @@ msgstr "permisos"
 msgid "Group"
 msgstr "Grup"
 
+msgid "Server"
+msgstr "Servidor"
+
 msgid "Role"
 msgstr "Rol"
 
 msgid "services"
 msgstr "serveis"
+
+msgid "user"
+msgstr "usuari"
+
+msgid "users"
+msgstr "usuaris"
 
 msgid "Unknown"
 msgstr "Desconegut"
@@ -514,17 +515,8 @@ msgstr "Desconegut"
 msgid "Trust"
 msgstr "Confiança"
 
-msgid "Server"
-msgstr "Servidor"
-
 msgid "Time now"
 msgstr "L'hora actual"
-
-msgid "user"
-msgstr "usuari"
-
-msgid "users"
-msgstr "usuaris"
 
 msgid "User login"
 msgstr "Entrada"
@@ -570,9 +562,6 @@ msgstr "Número de fax"
 
 msgid "Job Title"
 msgstr "Càrrec"
-
-msgid "Manager"
-msgstr "Gestor"
 
 msgid "Self"
 msgstr "Ell mateix"

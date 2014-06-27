@@ -10,10 +10,10 @@ msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-10-09 14:39+0200\n"
-"PO-Revision-Date: 2013-08-01 14:06+0000\n"
+"POT-Creation-Date: 2014-06-27 16:29+0200\n"
+"PO-Revision-Date: 2014-06-25 19:44+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
-"Language-Team: Kannada (http://www.transifex.com/projects/p/fedora/language/"
+"Language-Team: Kannada (http://www.transifex.com/projects/p/freeipa/language/"
 "kn/)\n"
 "Language: kn\n"
 "MIME-Version: 1.0\n"
@@ -268,6 +268,12 @@ msgstr "\"%(value)s\" ACIವನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ
 msgid "Description"
 msgstr "ವಿವರಣೆ"
 
+msgid "Users"
+msgstr "ಬಳಕೆದಾರರು"
+
+msgid "Hosts"
+msgstr "ಹೋಸ್ಟ್‌ಗಳು"
+
 msgid "Location"
 msgstr "ಸ್ಥಳ"
 
@@ -318,9 +324,6 @@ msgstr "ಹೋಸ್ಟ್-ಗುಂಪಿನ ಸದಸ್ಯ"
 
 msgid "External host"
 msgstr "ಹೊರಗಿನ ಹೋಸ್ಟ್"
-
-msgid "Failure decoding Certificate Signing Request"
-msgstr "ಪ್ರಮಾಣಪತ್ರದ ಸಹಿಯ ಕೋರಿಕೆಯ ಡಿಕೋಡಿಂಗ್‌ನ ವಿಫಲತೆ"
 
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
@@ -416,17 +419,14 @@ msgstr "SOA expire"
 msgid "SOA minimum"
 msgstr "SOA minimum"
 
-msgid "SOA time to live"
-msgstr "SOA time to live"
+msgid "Time to live"
+msgstr "ಉಳಿದಿರಬೇಕಾದ ಸಮಯ"
 
 msgid "SOA class"
 msgstr "SOA class"
 
 msgid "BIND update policy"
 msgstr "BIND update policy"
-
-msgid "Time to live"
-msgstr "ಉಳಿದಿರಬೇಕಾದ ಸಮಯ"
 
 msgid "Class"
 msgstr "ವರ್ಗ"
@@ -472,12 +472,6 @@ msgstr "ಹೋಸ್ಟ್ ವರ್ಗ"
 
 msgid "Host category the rule applies to"
 msgstr "ನಿಯಮ ಅನ್ವಯಿಸುವಂತಹ ಹೋಸ್ಟ್ ವರ್ಗ"
-
-msgid "Users"
-msgstr "ಬಳಕೆದಾರರು"
-
-msgid "Hosts"
-msgstr "ಹೋಸ್ಟ್‌ಗಳು"
 
 msgid "Host Groups"
 msgstr "ಹೋಸ್ಟ್ ಗುಂಪುಗಳು"

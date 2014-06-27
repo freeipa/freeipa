@@ -3,7 +3,8 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Translators:
-# Adolfo Jayme Barrientos <fitoschido@ubuntu.com>, 2013
+# Adolfo Jayme Barrientos <fitoschido@ubuntu.com>, 2013
+# Adolfo Jayme Barrientos <fitoschido@ubuntu.com>, 2014
 # Eduardo Villagrán M <gotencool@gmail.com>, 2012
 # vareli <ehespinosa@ya.com>, 2013
 # Gladys Guerrero <gguerrer@redhat.com>, 2011
@@ -16,10 +17,11 @@ msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-10-09 14:39+0200\n"
-"PO-Revision-Date: 2013-09-20 06:46+0000\n"
-"Last-Translator: Adolfo Jayme Barrientos <fitoschido@ubuntu.com>\n"
-"Language-Team: Spanish <trans-es@lists.fedoraproject.org>\n"
+"POT-Creation-Date: 2014-06-27 16:29+0200\n"
+"PO-Revision-Date: 2014-06-25 19:44+0000\n"
+"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
+"Language-Team: Spanish (http://www.transifex.com/projects/p/freeipa/language/"
+"es/)\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -32,7 +34,10 @@ msgstr "Ingrese %(label)s nuevamente para verificar: "
 
 #, c-format
 msgid "Passwords do not match!"
-msgstr "¡Las contraseñas no coinciden!"
+msgstr "Las contraseñas no coinciden."
+
+msgid "No matching entries found"
+msgstr "No se encontraron entradas coincidentes"
 
 msgid "Topic commands:"
 msgstr "Tema comandos:"
@@ -248,6 +253,11 @@ msgstr "Ya está registrado"
 msgid "Not registered yet"
 msgstr "Aún no está registrado"
 
+#, python-format
+msgid "%(key)s cannot be deleted because %(label)s %(dependent)s requires it"
+msgstr ""
+"No se puede eliminar %(key)s porque %(label)s %(dependent)s lo requiere"
+
 msgid "Results are truncated, try a more specific search"
 msgstr ""
 "Los resultados se encuentran truncados, intente realizar una búsqueda más "
@@ -272,6 +282,9 @@ msgstr ""
 msgid "Forward to server instead of running locally"
 msgstr "Reenvía al servidor en lugar de ejecutarse localmente"
 
+msgid "Additional instructions:"
+msgstr "Instrucciones adicionales:"
+
 msgid "A dictionary representing an LDAP entry"
 msgstr "Un diccionario representando una entrada LDAP"
 
@@ -281,8 +294,17 @@ msgstr "Una lista de entradas LDAP"
 msgid "All commands should at least have a result"
 msgstr "Todos los comandos deberían por lo menos tener un resultado"
 
+msgid "User-friendly description of action performed"
+msgstr "Descripción sencilla de la acción realizada"
+
+msgid "The primary_key value of the entry, e.g. 'jdoe' for a user"
+msgstr "El valor de primary_key de la entrada, p.ej., «jperez» para un usuario"
+
 msgid "Number of entries returned"
 msgstr "Cantidad de entradas devueltas"
+
+msgid "True if not all results were returned"
+msgstr "Verdadero si no todos los resultados se devolvieron"
 
 msgid "List of deletions that failed"
 msgstr "Lista de eliminaciones fallidas"
@@ -349,6 +371,10 @@ msgstr "puede tener a lo sumo %(maxlength)d caracteres"
 #, python-format
 msgid "must be exactly %(length)d characters"
 msgstr "debe tener exactamente %(length)d caracteres"
+
+#, python-format
+msgid "must be '%(value)s'"
+msgstr "debe ser «%(value)s»"
 
 msgid "A list of ACI values"
 msgstr "Una lista de valores ACI"
@@ -527,10 +553,6 @@ msgid "A description of this auto member rule"
 msgstr "Una descripción de esta regla auto miembro"
 
 #, python-format
-msgid "Group: %s not found!"
-msgstr "Grupo: %s no encontrado!"
-
-#, python-format
 msgid "%s is not a valid attribute."
 msgstr "%s no es un atributo válido."
 
@@ -596,6 +618,10 @@ msgstr ""
 "    Borrar condiciones de una regla automiembro.\n"
 "    "
 
+#, python-format
+msgid "Removed condition(s) from \"%(value)s\""
+msgstr "Condición(es) eliminada(s) de «%(value)s»"
+
 msgid "Conditions that could not be removed"
 msgstr "Condiciones que no pueden ser eliminadas"
 
@@ -660,6 +686,12 @@ msgstr ""
 "\n"
 "    Muestra información sobre una regla automiembro.\n"
 "    "
+
+msgid "Users"
+msgstr "Usuarios"
+
+msgid "Hosts"
+msgstr "Equipos"
 
 msgid "automount location"
 msgstr "localización automontaje"
@@ -1106,14 +1138,26 @@ msgid "the entry was deleted while being modified"
 msgstr "la entrada fue eliminada mientras estaba siendo modificada"
 
 #, python-format
+msgid "%s"
+msgstr "%s"
+
+#, python-format
 msgid "member %s"
 msgstr "miembro %s"
+
+#, python-format
+msgid "%s to add"
+msgstr "%s a añadir"
 
 msgid "Members that could not be added"
 msgstr "Miembros que no han podido ser añadidos"
 
 msgid "Number of members added"
 msgstr "Cantidad de miembros añadidos"
+
+#, python-format
+msgid "%s to remove"
+msgstr "%s a eliminar"
 
 msgid "Members that could not be removed"
 msgstr "Miembros que no han podido ser eliminados"
@@ -1143,14 +1187,6 @@ msgstr "Cantidad máxima de entradas obtenidas"
 
 msgid "Nested Methods to execute"
 msgstr "Métodos anidados para ejecutar"
-
-msgid "Failure decoding Certificate Signing Request:"
-msgstr ""
-"Falla al intentar decodificar la petición de identificación de certificado"
-
-msgid "Failure decoding Certificate Signing Request"
-msgstr ""
-"Falla al intentar decodificar la petición de identificación de certificado"
 
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
@@ -1197,6 +1233,9 @@ msgstr "Huella digital (SHA1)"
 
 msgid "Serial number"
 msgstr "Número de serie"
+
+msgid "Serial number (hex)"
+msgstr "N.º de serie (hex.)"
 
 msgid "Dictionary mapping variable name to value"
 msgstr "Nombre de la variable de mapeo de dicionario a valorizar "
@@ -1422,9 +1461,12 @@ msgstr "formato no válido de dirección IP"
 msgid "invalid IP network format"
 msgstr "formato no válido de red IP"
 
+msgid "invalid address format"
+msgstr "formato de dirección no válido"
+
 #, python-format
-msgid "invalid domain-name: %s"
-msgstr "nombre de dominio no válido: %s"
+msgid "%(port)s is not a valid port"
+msgstr "%(port)s no es un puerto válido"
 
 #, python-format
 msgid "DNS reverse zone for IP address %(addr)s not found"
@@ -1434,11 +1476,26 @@ msgstr "Zona invertida DNS para dirección IP %(addr)s no encontrada"
 msgid "DNS zone %(zone)s not found"
 msgstr "Zona DNS %(zone)s no encontrado"
 
+#, python-format
+msgid "%s record"
+msgstr "%s registro"
+
+#, python-format
+msgid "%s Record"
+msgstr "%s registro"
+
+#, python-format
+msgid "'%s' is a required part of DNS record"
+msgstr "«%s» es una parte requerida del registro DNS"
+
 msgid "Invalid number of parts!"
 msgstr "El número de partes no es válido."
 
 msgid "IP Address"
 msgstr "Dirección IP"
+
+msgid "Record data"
+msgstr "Registrar datos"
 
 msgid "Subtype"
 msgstr "Subtipo"
@@ -1449,6 +1506,9 @@ msgstr "Nombre del equipo anfitrión"
 msgid "Certificate Type"
 msgstr "Tipo de certificado"
 
+msgid "Key Tag"
+msgstr "Etiqueta de clave"
+
 msgid "Algorithm"
 msgstr "Algoritmo"
 
@@ -1458,14 +1518,32 @@ msgstr "Certificado/CRL"
 msgid "Target"
 msgstr "Meta"
 
-msgid "Protocol"
-msgstr "Protocolo"
-
-msgid "Public Key"
-msgstr "Clave pública"
-
 msgid "Preference"
 msgstr "Preferencia"
+
+msgid "Degrees Latitude"
+msgstr "Latitud en grados"
+
+msgid "Minutes Latitude"
+msgstr "Latitud en minutos"
+
+msgid "Seconds Latitude"
+msgstr "Latitud en segundos"
+
+msgid "Direction Latitude"
+msgstr "Latitud de dirección"
+
+msgid "Altitude"
+msgstr "Altitud"
+
+msgid "Size"
+msgstr "Tamaño"
+
+msgid "Horizontal Precision"
+msgstr "Precisión horizontal"
+
+msgid "Vertical Precision"
+msgstr "Precisión vertical"
 
 msgid ""
 "format must be specified as\n"
@@ -1491,32 +1569,23 @@ msgstr ""
 "siz, hp, vp: [0 .. 90000000.00] (tamaño/precisión en metros)\n"
 "Vea RFC 1876 para detalles"
 
+msgid "Order"
+msgstr "Orden"
+
 msgid "Service"
 msgstr "Servicio"
 
 msgid "Regular Expression"
 msgstr "Expresión regular"
 
+msgid "Replacement"
+msgstr "Reemplazo"
+
 msgid "Priority"
 msgstr "Prioridad"
 
 msgid "Port"
 msgstr "Puerto"
-
-msgid "Labels"
-msgstr "Etiquetas"
-
-msgid "Original TTL"
-msgstr "TTL original"
-
-msgid "Signature Expiration"
-msgstr "Caducidad de la firma"
-
-msgid "Signer's Name"
-msgstr "Nombre del firmante"
-
-msgid "Signature"
-msgstr "Firma"
 
 msgid "Fingerprint Type"
 msgstr "Tipo de huella digital"
@@ -1538,18 +1607,6 @@ msgid "Nameserver '%(host)s' does not have a corresponding A/AAAA record"
 msgstr ""
 "El servidor de nombre '%(host)s' no tiene su correspondiente registro  A/AAAA"
 
-msgid "DNS zone"
-msgstr "zona DNS"
-
-msgid "DNS zones"
-msgstr "zonas DNS"
-
-msgid "DNS Zones"
-msgstr "Zonas DNS"
-
-msgid "DNS Zone"
-msgstr "Zona DNS"
-
 msgid "Zone name"
 msgstr "Nombre de la zona"
 
@@ -1561,6 +1618,30 @@ msgstr "Zona reversa de red IP"
 
 msgid "IP network to create reverse zone name from"
 msgstr "Red IP para crear un nombre de zona reversa desde"
+
+msgid "Active zone"
+msgstr "Activar zona"
+
+msgid "Is zone active?"
+msgstr "¿Está la zona activa?"
+
+msgid "DNS is not configured"
+msgstr "DNS no está configurado"
+
+msgid "Search for DNS zones (SOA records)."
+msgstr "Buscar zonas DNS (registros SOA)."
+
+msgid "DNS zone"
+msgstr "zona DNS"
+
+msgid "DNS zones"
+msgstr "zonas DNS"
+
+msgid "DNS Zones"
+msgstr "Zonas DNS"
+
+msgid "DNS Zone"
+msgstr "Zona DNS"
 
 msgid "Authoritative nameserver"
 msgstr "Nombre de servidor autoritativo"
@@ -1601,11 +1682,8 @@ msgstr "Mínimo SOA"
 msgid "How long should negative responses be cached"
 msgstr "¿Por cuánto tiempo las respuestas negativas deben guardarse en cache?"
 
-msgid "SOA time to live"
-msgstr "Tiempo para abandonar SOA"
-
-msgid "SOA record time to live"
-msgstr "tiempo de vida de registro SOA"
+msgid "Time to live"
+msgstr "Tiempo para abandonar"
 
 msgid "SOA class"
 msgstr "Clase SOA"
@@ -1616,17 +1694,17 @@ msgstr "Clase de registro SOA "
 msgid "BIND update policy"
 msgstr "Política de actualización de BIND"
 
-msgid "Active zone"
-msgstr "Activar zona"
-
-msgid "Is zone active?"
-msgstr "¿Está la zona activa?"
-
 msgid "Dynamic update"
 msgstr "Actualización dinámica"
 
 msgid "Allow dynamic updates."
 msgstr "Permitir actualizaciones dinámicas."
+
+msgid "Allow query"
+msgstr "Permitir consulta"
+
+msgid "Allow transfer"
+msgstr "Permitir transferencia"
 
 msgid "Create new DNS zone (SOA record)."
 msgstr "Crear nueva zona DNS (registro SOA)."
@@ -1634,17 +1712,11 @@ msgstr "Crear nueva zona DNS (registro SOA)."
 msgid "Force"
 msgstr "Forzar"
 
-msgid "DNS is not configured"
-msgstr "DNS no está configurado"
-
 msgid "Delete DNS zone (SOA record)."
 msgstr "Borrar zona DNS (registro SOA)."
 
 msgid "Modify DNS zone (SOA record)."
 msgstr "Modificar zona DNS (registro SOA)."
-
-msgid "Search for DNS zones (SOA records)."
-msgstr "Buscar zonas DNS (registros SOA)."
 
 msgid "Forward zones only"
 msgstr "Zonas de reenvío sólo"
@@ -1683,9 +1755,6 @@ msgstr "Registro de Recurso de DNS"
 
 msgid "Record name"
 msgstr "Nombre de registro"
-
-msgid "Time to live"
-msgstr "Tiempo para abandonar"
 
 msgid "Class"
 msgstr "Clase"
@@ -1761,6 +1830,12 @@ msgstr "Ha sido encontrado '%(value)s'"
 #, python-format
 msgid "Host '%(host)s' not found"
 msgstr "No ha sido encontrado el equipo anfitrión '%(host)s' "
+
+msgid "DNS configuration options"
+msgstr "Opciones de configuración de DNS"
+
+msgid "DNS Global Configuration"
+msgstr "Configuración global de DNS"
 
 msgid "group"
 msgstr "grupo"
@@ -1897,12 +1972,6 @@ msgstr "Categoría de servicio a la que se aplica la regla"
 
 msgid "Enabled"
 msgstr "Habilitado"
-
-msgid "Users"
-msgstr "Usuarios"
-
-msgid "Hosts"
-msgstr "Equipos"
 
 msgid "Host Groups"
 msgstr "Grupos de equipo"
@@ -2191,8 +2260,15 @@ msgstr "Keytab"
 msgid "Serial Number"
 msgstr "Número de serie"
 
+msgid "Serial Number (hex)"
+msgstr "N.º de serie (hex.)"
+
 msgid "Failed managedby"
 msgstr "Falló managedby"
+
+#, python-format
+msgid "invalid domain-name: %s"
+msgstr "nombre de dominio no válido: %s"
 
 msgid "host"
 msgstr "host"
@@ -2251,6 +2327,9 @@ msgstr "Nombre principal"
 
 msgid "MAC address"
 msgstr "Dirección MAC"
+
+msgid "SSH public key"
+msgstr "Clave pública SSH"
 
 msgid "Add a new host."
 msgstr "Añadir un n uevo host."
@@ -2398,6 +2477,38 @@ msgstr "Añadir miembros a un grupo de host."
 msgid "Remove members from a hostgroup."
 msgstr "Borrar miembros de un grupo de host."
 
+msgid "ID Ranges"
+msgstr "Intervalos de ID"
+
+msgid "ID Range"
+msgstr "Intervalo de ID"
+
+msgid "local domain range"
+msgstr "intervalo de dominios locales"
+
+msgid "Active Directory domain range"
+msgstr "Intervalo de dominios de Active Directory"
+
+msgid "Range name"
+msgstr "Nombre del intervalo"
+
+msgid "Range type"
+msgstr "Tipo de intervalo"
+
+#, python-format
+msgid "Added ID range \"%(value)s\""
+msgstr "Se añadió el intervalo de ID «%(value)s»"
+
+msgid "Delete an ID range."
+msgstr "Eliminar un intervalo de ID."
+
+#, python-format
+msgid "Deleted ID range \"%(value)s\""
+msgstr "Se eliminó el intervalo de ID «%(value)s»"
+
+msgid "Search for ranges."
+msgstr "Buscar intervalos."
+
 msgid "Name of object to export"
 msgstr "Nombre del objeto a exportar"
 
@@ -2416,24 +2527,31 @@ msgstr "Métodos IPA  codificados de Dict de JSON "
 msgid "Dict of JSON encoded IPA Commands"
 msgstr "Dict de JSON comandos codificados IPA"
 
+#, python-brace-format
 msgid "Add RunAs ${other_entity} into ${entity} ${primary_key}"
 msgstr "Añadir RunAs ${other_entity} en ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Add RunAs Groups into ${entity} ${primary_key}"
 msgstr "Añadir RunAs Grupos en ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Add ${other_entity} Managing ${entity} ${primary_key}"
 msgstr "Añadir ${other_entity} Gestionando ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Add ${other_entity} into ${entity} ${primary_key}"
 msgstr "Añadir ${other_entity} a ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Add Allow ${other_entity} into ${entity} ${primary_key}"
 msgstr "Añadir Permitir ${other_entity} en ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Add Deny ${other_entity} into ${entity} ${primary_key}"
 msgstr "Añadir Denegar ${other_entity} en ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Add ${entity} ${primary_key} into ${other_entity}"
 msgstr "Añadir ${entity} ${primary_key} en ${other_entity}"
 
@@ -2446,27 +2564,35 @@ msgstr "Afiliación Indirecta"
 msgid "No entries."
 msgstr "Sin entradas."
 
+#, python-brace-format
 msgid "Showing ${start} to ${end} of ${total} entries."
 msgstr "Mostrando ${start} a ${end} de ${total} entradas."
 
+#, python-brace-format
 msgid "Remove RunAs ${other_entity} from ${entity} ${primary_key}"
 msgstr "Quitar RunAs ${other_entity} de ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Remove RunAs Groups from ${entity} ${primary_key}"
 msgstr "Quitar Grupos RunAs de ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Remove ${other_entity} Managing ${entity} ${primary_key}"
 msgstr "Quitar ${other_entity} Gestionando ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Remove ${other_entity} from ${entity} ${primary_key}"
 msgstr "Retirar ${other_entity} de ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Remove Allow ${other_entity} from ${entity} ${primary_key}"
 msgstr "Quitar Permitir ${other_entity} de ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Remove Deny ${other_entity} from ${entity} ${primary_key}"
 msgstr "Quitar Denegar ${other_entity} de ${entity} ${primary_key}"
 
+#, python-brace-format
 msgid "Remove ${entity} ${primary_key} from ${other_entity}"
 msgstr "Quitar ${entity} ${primary_key} de ${other_entity}"
 
@@ -2554,15 +2680,18 @@ msgstr "General"
 msgid "Identity Settings"
 msgstr "Configuración de identidad"
 
+#, python-brace-format
 msgid "${entity} ${primary_key} Settings"
 msgstr "Configuraciones de  ${entity} ${primary_key}"
 
 msgid "Back to Top"
 msgstr "Volver al comienzo"
 
+#, python-brace-format
 msgid "${entity} successfully added"
 msgstr "${entity} añadido con éxito"
 
+#, python-brace-format
 msgid "Add ${entity}"
 msgstr "Añadir ${entity}"
 
@@ -2584,6 +2713,7 @@ msgstr "Esta página tiene cambios sin guardar. Por favor, guardar o deshacer."
 msgid "Unsaved Changes"
 msgstr "Cambios No Guardados"
 
+#, python-brace-format
 msgid "Edit ${entity}"
 msgstr "Editar ${entity}"
 
@@ -2599,6 +2729,7 @@ msgstr "Redirección "
 msgid "Select entries to be removed."
 msgstr "Las entradas seleccionadas han sido quitadas."
 
+#, python-brace-format
 msgid "Remove ${entity}"
 msgstr "Quitar ${entity}"
 
@@ -2629,12 +2760,15 @@ msgstr "Error Desconocido"
 msgid "URL"
 msgstr "URL"
 
+#, python-brace-format
 msgid "${primary_key} is managed by:"
 msgstr "${primary_key} es gestionada por:"
 
+#, python-brace-format
 msgid "${primary_key} members:"
 msgstr "${primary_key} miembros:"
 
+#, python-brace-format
 msgid "${primary_key} is a member of:"
 msgstr "${primary_key} es un miembro de:"
 
@@ -2658,6 +2792,9 @@ msgstr "Atributo"
 
 msgid "Add Rule"
 msgstr "Añadir una regla"
+
+msgid "Expression"
+msgstr "Expresión"
 
 msgid "Automount Location Settings"
 msgstr "Configuración de ubicación de automount"
@@ -2698,6 +2835,7 @@ msgstr "Expira el"
 msgid "Fingerprints"
 msgstr "Las huellas dactilares"
 
+#, python-brace-format
 msgid "Issue New Certificate for ${entity} ${primary_key}"
 msgstr "Enviar Nuevo Certificado para ${entity} ${primary_key}"
 
@@ -2740,8 +2878,12 @@ msgstr "Motivo de la revocación"
 msgid "Remove from CRL"
 msgstr "Borrar de CRL"
 
+#, python-brace-format
 msgid "Restore Certificate for ${entity} ${primary_key}"
 msgstr "Restablecer Certificado para ${entity} ${primary_key}"
+
+msgid "Restore Certificate"
+msgstr "Restaurar certificado"
 
 msgid ""
 "To confirm your intention to restore this certificate, click the \"Restore\" "
@@ -2750,8 +2892,12 @@ msgstr ""
 "Para confirmar su intención de restaurar este certificado, haga clic en el "
 "botón \"Restaurar\"."
 
+#, python-brace-format
 msgid "Revoke Certificate for ${entity} ${primary_key}"
 msgstr "Revocar certificado por ${entity} ${primary_key}"
+
+msgid "Revoke Certificate"
+msgstr "Revocar certificado"
 
 msgid ""
 "To confirm your intention to revoke this certificate, select a reason from "
@@ -2778,6 +2924,7 @@ msgstr "Presentar certificado válido"
 msgid "Validity"
 msgstr "Validez"
 
+#, python-brace-format
 msgid "Certificate for ${entity} ${primary_key}"
 msgstr "Certificado para ${entity} ${primary_key}"
 
@@ -2802,6 +2949,21 @@ msgstr "Registro DNS fue borrado porque no contenía datos."
 msgid "Other Record Types"
 msgstr "Otros Tipos de Registro"
 
+msgid "Create dns record"
+msgstr "Crear registro DNS"
+
+msgid "Creating record."
+msgstr "Creando el registro."
+
+msgid "Record creation failed."
+msgstr "Falló la creación del registro."
+
+msgid "Checking if record exists."
+msgstr "Comprobando que el registro existe."
+
+msgid "Record not found."
+msgstr "No se encontró el registro."
+
 msgid "You will be redirected to DNS Zone."
 msgstr "Será redirigido a Zona DNS."
 
@@ -2822,6 +2984,12 @@ msgstr "Configuración del grupo"
 
 msgid "External"
 msgstr "Externos"
+
+msgid "POSIX"
+msgstr "POSIX"
+
+msgid "Group Type"
+msgstr "Tipo de grupo"
 
 msgid "Any Host"
 msgstr "Cualquier host"
@@ -2871,6 +3039,9 @@ msgstr "Prueba HBAC"
 msgid "Matched"
 msgstr "Emparejado"
 
+msgid "Missing values: "
+msgstr "Valores faltantes:"
+
 msgid "New Test"
 msgstr "Nueva Prueba"
 
@@ -2880,6 +3051,7 @@ msgstr "Reglas"
 msgid "Run Test"
 msgstr "Ejecutar Prueba"
 
+#, python-brace-format
 msgid "Specify external ${entity}"
 msgstr "Especificar ${entity} externa"
 
@@ -2940,6 +3112,7 @@ msgstr "Unprovision"
 msgid "Are you sure you want to unprovision this host?"
 msgstr "¿Está seguro que desea unprovision este equipo?"
 
+#, python-brace-format
 msgid "Unprovisioning ${entity}"
 msgstr "Cancelación ${entity}"
 
@@ -2954,12 +3127,6 @@ msgstr "Configuración de Netgroup"
 
 msgid "User"
 msgstr "Usuario"
-
-msgid "Identity"
-msgstr "Identidad"
-
-msgid "Permission with invalid target specification"
-msgstr "Permiso con especificación de destino inválida"
 
 msgid "Privilege Settings"
 msgstr "Configuración de privilegios"
@@ -3021,6 +3188,12 @@ msgstr "Grupos especificados"
 msgid "Account"
 msgstr "Cuenta"
 
+msgid "Domain"
+msgstr "Dominio"
+
+msgid "Pre-shared password"
+msgstr "Contraseña precompartida"
+
 msgid "Account Settings"
 msgstr "Configuración de la cuenta"
 
@@ -3045,6 +3218,7 @@ msgstr "Dirección de correo"
 msgid "Misc. Information"
 msgstr "Información diversa"
 
+#, python-brace-format
 msgid ""
 "Are you sure you want to ${action} the user?<br/>The change will take effect "
 "immediately."
@@ -3052,6 +3226,7 @@ msgstr ""
 "¿Está seguro que desea ${action} el usuario?<br/>El cambio tendrá efecto "
 "inmediatamente."
 
+#, python-brace-format
 msgid "Click to ${action}"
 msgstr "Pulse para ${action}"
 
@@ -3088,6 +3263,7 @@ msgstr "Enlaces rápidos"
 msgid "Select All"
 msgstr " Seleccionar todo"
 
+#, python-brace-format
 msgid ""
 "Query returned more results than the configured size limit. Displaying the "
 "first ${counter} results."
@@ -3112,6 +3288,9 @@ msgstr "DNS"
 
 msgid "Host Based Access Control"
 msgstr "Control de Acceso basado en Host"
+
+msgid "Identity"
+msgstr "Identidad"
 
 msgid "IPA Server"
 msgstr "Servidor IPA"
@@ -3158,14 +3337,23 @@ msgstr "No es una dirección IPv4 válida"
 msgid "Not a valid IPv6 address"
 msgstr "No es una dirección IPv6 válida"
 
+#, python-brace-format
 msgid "Maximum value is ${value}"
 msgstr "Valor máximo es ${value}"
 
+#, python-brace-format
 msgid "Minimum value is ${value}"
 msgstr "Valor mínimo es ${value}"
 
+#, python-brace-format
+msgid "'${port}' is not a valid port"
+msgstr "«${port}» no es un puerto válido"
+
 msgid "Required field"
 msgstr "Campo requerido"
+
+msgid "Unsupported value"
+msgstr "Valor no admitido"
 
 msgid "Dict of I18N messages"
 msgstr "Dictado de los mensajes regionales"
@@ -3519,6 +3707,9 @@ msgstr "Añadir miembros a un grupo de red."
 msgid "Remove members from a netgroup."
 msgstr "Borrar miembros de un grupo de red."
 
+msgid "Manager"
+msgstr "Manager"
+
 msgid ""
 "\n"
 "Set a user's password\n"
@@ -3561,117 +3752,6 @@ msgstr "Fijar una contraseña de usuario."
 msgid "Changed password for \"%(value)s\""
 msgstr "Cambio de contraseña para \"%(value)s\""
 
-msgid ""
-"\n"
-"Permissions\n"
-"\n"
-"A permission enables fine-grained delegation of rights. A permission is\n"
-"a human-readable form of a 389-ds Access Control Rule, or instruction "
-"(ACI).\n"
-"A permission grants the right to perform a specific task such as adding a\n"
-"user, modifying a group, etc.\n"
-"\n"
-"A permission may not contain other permissions.\n"
-"\n"
-"* A permission grants access to read, write, add or delete.\n"
-"* A privilege combines similar permissions (for example all the permissions\n"
-"  needed to add a user).\n"
-"* A role grants a set of privileges to users, groups, hosts or hostgroups.\n"
-"\n"
-"A permission is made up of a number of different parts:\n"
-"\n"
-"1. The name of the permission.\n"
-"2. The target of the permission.\n"
-"3. The rights granted by the permission.\n"
-"\n"
-"Rights define what operations are allowed, and may be one or more\n"
-"of the following:\n"
-"1. write - write one or more attributes\n"
-"2. read - read one or more attributes\n"
-"3. add - add a new entry to the tree\n"
-"4. delete - delete an existing entry\n"
-"5. all - all permissions are granted\n"
-"\n"
-"Read permission is granted for most attributes by default so the read\n"
-"permission is not expected to be used very often.\n"
-"\n"
-"Note the distinction between attributes and entries. The permissions are\n"
-"independent, so being able to add a user does not mean that the user will\n"
-"be editable.\n"
-"\n"
-"There are a number of allowed targets:\n"
-"1. type: a type of object (user, group, etc).\n"
-"2. memberof: a member of a group or hostgroup\n"
-"3. filter: an LDAP filter\n"
-"4. subtree: an LDAP filter specifying part of the LDAP DIT. This is a\n"
-"   super-set of the \"type\" target.\n"
-"5. targetgroup: grant access to modify a specific group (such as granting\n"
-"   the rights to manage group membership)\n"
-"\n"
-"EXAMPLES:\n"
-"\n"
-" Add a permission that grants the creation of users:\n"
-"   ipa permission-add --type=user --permissions=add \"Add Users\"\n"
-"\n"
-" Add a permission that grants the ability to manage group membership:\n"
-"   ipa permission-add --attrs=member --permissions=write --type=group "
-"\"Manage Group Members\"\n"
-msgstr ""
-"\n"
-"Permisos\n"
-"\n"
-"Un permiso permite delegación de grano fino de derechos. Un permiso es una "
-"regla de control de acceso 389-ds o de instrucción (ACI).\n"
-"\n"
-"Un permiso otorga el derecho de realizar tareas tales como añadir un "
-"usuario, modificar un grupo, etc.\n"
-"Un permiso no puede contener otros permisos.\n"
-"Un permiso otorga acceso de lectura, escritura, agregar o borrar.\n"
-"Un privilegio combina permisos similares (por ejemplo, todos los permisos \n"
-"   necesarios para agregar un usuario).\n"
-"Un rol otorga un set de privilegios para usuarios, grupos, hosts o "
-"hostgroups.\n"
-"Un permiso está compuesto de varias partes:\n"
-"\n"
-"1. El nombre del permiso.\n"
-"2. El destino del permiso.\n"
-"3. Los derechos otorgados por permiso.\n"
-"\n"
-"Los derechos definen las operaciones permitidas y pueden ser una o más de "
-"las siguientes.\n"
-"\n"
-"1. write - escribir uno o más atributos\n"
-"2. read - leer uno o más atributos\n"
-"3. add - agregar una nueva entrada al árbol\n"
-"4. delete - borrar una entrada existente\n"
-"5. all- todos los permisos son otorgados\n"
-"\n"
-"El permiso de lectura se otorga a la mayoría de los atributos y entradas. "
-"Los permisos son independientes, por lo tanto, poder agregar un usuario no "
-"significa que el usuario sea editable.\n"
-"Hay un número de destinos permitidos:\n"
-"1. type: un tipo de objeto (usuario, grupo, etc).\n"
-"2. memberof: un miembro de grupo o  hostgroup\n"
-"3. filter: un filtro de LDAP \n"
-"4. subtree: un filtro LDAP que especifica parte del LDAP DIT. Es un\n"
-"    super-set del \"type\" target.\n"
-"5. targetgroup: otorga acceso para modificar un grupo específico (tal como "
-"otorgar\n"
-"    los derechos para administrar la membresía de grupo)\n"
-"EJEMPLOS:\n"
-"Añadir un permiso que otogue la creación de usuarios:\n"
-"\n"
-"   ipa permission-add --type=user --permissions=add \"Add Users\"\n"
-"Añadir un permiso que otorgue la capacidad de administrar una membresía de "
-"grupo:\n"
-"\n"
-"  ipa permission-add --attrs=member --permissions=write --type=group "
-"\"Manage Group \n"
-"Members\"\n"
-
-msgid "Permission Type"
-msgstr "Tipo de permiso"
-
 msgid "permission"
 msgstr "permiso"
 
@@ -3681,29 +3761,18 @@ msgstr "permisos"
 msgid "Permission name"
 msgstr "Nombre de permiso"
 
-msgid ""
-"Type of IPA object (user, group, host, hostgroup, service, netgroup, dns)"
-msgstr ""
-"Tipo de objeto del IPA (usuario, host, hostgroup, servicio, netgroup, dns)"
+msgid "Subtree to apply permissions to"
+msgstr "Subárbol para aplicar permisos"
 
 msgid "Member of group"
 msgstr "Miembro del grupo"
 
-msgid "Target members of a group"
-msgstr "Objetivo para los miembros de un grupo"
-
-msgid "Subtree to apply permissions to"
-msgstr "Subárbol para aplicar permisos"
-
-msgid "User group to apply permissions to"
-msgstr "Grupo de usuario para aplicar permisos"
-
-msgid "Add a new permission."
-msgstr "Añadir un nuevo permiso."
-
 #, python-format
 msgid "Added permission \"%(value)s\""
 msgstr "Permiso agregado \"%(value)s\""
+
+msgid "Add a new permission."
+msgstr "Añadir un nuevo permiso."
 
 msgid "Delete a permission."
 msgstr "Borrar un permiso."
@@ -4078,6 +4147,9 @@ msgstr "Ofrece la política efectiva para un determinado usuario"
 msgid "Search for group password policies."
 msgstr "Buscar grupo de políticas de contraseña."
 
+msgid "Server"
+msgstr "Servidor"
+
 msgid "role"
 msgstr "rol"
 
@@ -4200,6 +4272,9 @@ msgstr "servicios"
 
 msgid "Service principal"
 msgstr "    Búsqueda de servicios IPA"
+
+msgid "PAC type"
+msgstr "Tipo PAC"
 
 msgid "Add a new IPA new service."
 msgstr "Añadir un nuevo servicio nuevo IPA."
@@ -4414,6 +4489,12 @@ msgstr "RunAs Grupo categoría"
 msgid "RunAs Group category the rule applies to"
 msgstr "RunAs Grupo categoría la regla aplica a"
 
+msgid "External User"
+msgstr "De usuarios externos"
+
+msgid "External User the rule applies to (sudorule-find only)"
+msgstr "Usuario Externo la regla aplica a (sudorule-find sólo)"
+
 msgid "Sudo Allow Commands"
 msgstr "Comandos Allow de sudo"
 
@@ -4438,17 +4519,17 @@ msgstr "Grupos de Usuarios RunAs"
 msgid "Run as any user within a specified group"
 msgstr "Ejecutar como cualquier usuario dentro de un grupo especificado"
 
-msgid "External User"
-msgstr "De usuarios externos"
-
-msgid "External User the rule applies to (sudorule-find only)"
-msgstr "Usuario Externo la regla aplica a (sudorule-find sólo)"
-
 msgid "RunAs External User"
 msgstr "RunAs de usuarios externos"
 
 msgid "External User the commands can run as (sudorule-find only)"
 msgstr "Usuario Externo los comandos pueden correr como (sudorule-find sólo)"
+
+msgid "RunAs Groups"
+msgstr "Grupos RunAs"
+
+msgid "Run with the gid of a specified POSIX group"
+msgstr "Ejecutar con la gid de un grupo POSIX especificado"
 
 msgid "RunAs External Group"
 msgstr "Grupo externo RunAs"
@@ -4458,12 +4539,6 @@ msgstr "Grupo Externo los comandos pueden correr como (sudorule-find sólo)"
 
 msgid "Sudo Option"
 msgstr "Opción de sudo"
-
-msgid "RunAs Groups"
-msgstr "Grupos RunAs"
-
-msgid "Run with the gid of a specified POSIX group"
-msgstr "Ejecutar con la gid de un grupo POSIX especificado"
 
 msgid "Create new Sudo Rule."
 msgstr "Crear nueva Regla Sudo."
@@ -4485,6 +4560,12 @@ msgstr "Modificar Regla Sudo."
 #, python-format
 msgid "Modified Sudo Rule \"%(value)s\""
 msgstr "Regla Sudo Modificada “%(value)s”"
+
+msgid "user"
+msgstr "usuario"
+
+msgid "users"
+msgstr "usuarios"
 
 msgid "Search for Sudo Rule."
 msgstr "Buscar Regla Sudo."
@@ -4548,17 +4629,33 @@ msgstr "Añadir una opción a la Regla Sudo."
 msgid "Remove an option from Sudo Rule."
 msgstr "Quitar una opción de la Regla Sudo."
 
+msgid "Unknown"
+msgstr "Desconocido"
+
 msgid "Realm name"
 msgstr "Nombre de reino "
+
+#, python-format
+msgid "invalid SID: %(value)s"
+msgstr "SID no válido: %(value)s"
+
+msgid "only \"ad\" is supported"
+msgstr "solo se admite «ad»"
+
+msgid "range exists"
+msgstr "el intervalo existe"
+
+msgid "Name"
+msgstr "Nombre"
+
+msgid "SID"
+msgstr "SID"
 
 msgid "Kerberos keys available"
 msgstr "Claves Kerberos disponibles"
 
-msgid "user"
-msgstr "usuario"
-
-msgid "users"
-msgstr "usuarios"
+msgid "Failed logins"
+msgstr "Inicios de sesión fallidos"
 
 msgid "User login"
 msgstr "Ingreso de usuario"
@@ -4632,9 +4729,6 @@ msgstr "Unidad. org"
 
 msgid "Job Title"
 msgstr "Cargo"
-
-msgid "Manager"
-msgstr "Manager"
 
 msgid "Car License"
 msgstr "Licencia de conducción"
@@ -4734,19 +4828,32 @@ msgstr "Cuenta desbloqueada \" %(value)s \""
 msgid "Permission denied: %(file)s"
 msgstr "Permiso denegado:%(file)s "
 
+msgid "too many '@' characters"
+msgstr "demasiados ‘@’ caracteres"
+
 msgid "cannot be longer that 255 characters"
 msgstr "no puede ser más larga de 255 caracteres"
 
-msgid "too many '@' characters"
-msgstr "demasiados ‘@’ caracteres"
+msgid "invalid SSH public key"
+msgstr "clave SSH pública no válida"
 
 #, python-format
 msgid "Issuer \"%(issuer)s\" does not match the expected issuer"
 msgstr "Emisor \"%(issuer)s\" no coincide con el emisor esperado "
 
 #, python-format
+msgid "Retrieving CA status failed: %s"
+msgstr "Falló la obtención del estado de CA: %s"
+
+#, python-format
 msgid "objectclass %s not found"
 msgstr "clase objeto %s no encontrada"
+
+msgid "domain is not configured"
+msgstr "el dominio no está configurado"
+
+msgid "SID is not valid"
+msgstr "el SID no es válido"
 
 #, python-format
 msgid "Unable to communicate with CMS (%s)"
@@ -4789,24 +4896,12 @@ msgid "Out of memory \n"
 msgstr "¡Memoria insuficiente!\n"
 
 #, c-format
-msgid "Out of Memory!\n"
-msgstr "¡Memoria insuficiente!\n"
-
-#, c-format
-msgid "Failed to create control!\n"
-msgstr "¡Falló crear control!\n"
-
-#, c-format
 msgid "Unable to initialize ldap library!\n"
 msgstr "¡No puede iniciar biblioteca IDAP!\n"
 
 #, c-format
 msgid "Unable to set LDAP_OPT_X_SASL_NOCANON\n"
 msgstr "Incapaz de fijar LDAP_OPT_X_SASL_NOCANON \n"
-
-#, c-format
-msgid "Unable to set ldap options!\n"
-msgstr "¡No puede establecer opciones IDAP!\n"
 
 #, c-format
 msgid "Simple bind failed\n"
@@ -4821,8 +4916,20 @@ msgid "Missing reply control!\n"
 msgstr "¡Falta control de respuesta!\n"
 
 #, c-format
+msgid "Out of Memory!\n"
+msgstr "¡Memoria insuficiente!\n"
+
+#, c-format
+msgid "Failed to create control!\n"
+msgstr "¡Falló crear control!\n"
+
+#, c-format
 msgid "ber_init() failed, Invalid control ?!\n"
 msgstr "Falló ber_init(), ¿control inválido?\n"
+
+#, c-format
+msgid "Out of memory!\n"
+msgstr "¡Memoria insuficiente!\n"
 
 msgid "New Principal Password"
 msgstr "Nueva contraseña principal"
@@ -4987,10 +5094,6 @@ msgid "IPA namingContext not found\n"
 msgstr "IPA namingContext no encontrado \n"
 
 #, c-format
-msgid "Out of memory!\n"
-msgstr "¡Memoria insuficiente!\n"
-
-#, c-format
 msgid "Search for ipaCertificateSubjectBase failed with error %d"
 msgstr "Búsqueda de ipaCertificateSubjectBase falló con error %d"
 
@@ -5062,6 +5165,10 @@ msgstr "Cancelación falló.\n"
 #, c-format
 msgid "result not found in XML-RPC response\n"
 msgstr "resultado no se encuentra en respuesta XML-RPC\n"
+
+#, c-format
+msgid "The hostname must not be: %s\n"
+msgstr "El nombre del equipo no debe ser: %s\n"
 
 #, c-format
 msgid "Unable to join host: Kerberos Credential Cache not found\n"
@@ -5181,13 +5288,13 @@ msgstr "Quite todos los principales en este ámbito"
 msgid "Closing keytab failed\n"
 msgstr "Cierre de tabla de claves falló\n"
 
+msgid "Out of memory\n"
+msgstr "¡Memoria insuficiente!\n"
+
 msgid "Out of memory!?\n"
 msgstr ""
 "¡Memoria insuficiente!\n"
 "\n"
-
-msgid "Out of memory\n"
-msgstr "¡Memoria insuficiente!\n"
 
 msgid "Enctype comparison failed!\n"
 msgstr "¡Falló comparación de Enctype!\n"
@@ -5197,3 +5304,6 @@ msgstr "Falló la creación de clave aleatoria\n"
 
 msgid "Failed to create key!\n"
 msgstr "¡Falló la creación de clave!\n"
+
+#~ msgid "Unable to set ldap options!\n"
+#~ msgstr "¡No puede establecer opciones IDAP!\n"

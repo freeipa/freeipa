@@ -9,10 +9,10 @@ msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-10-09 14:39+0200\n"
-"PO-Revision-Date: 2013-08-01 14:06+0000\n"
+"POT-Creation-Date: 2014-06-27 16:29+0200\n"
+"PO-Revision-Date: 2014-06-25 19:44+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
-"Language-Team: Tajik (http://www.transifex.com/projects/p/fedora/language/"
+"Language-Team: Tajik (http://www.transifex.com/projects/p/freeipa/language/"
 "tg/)\n"
 "Language: tg\n"
 "MIME-Version: 1.0\n"
@@ -249,6 +249,9 @@ msgstr "Сиёсат"
 msgid "Sudo"
 msgstr "Sudo"
 
+msgid "Manager"
+msgstr "Диспетчер"
+
 msgid "Group"
 msgstr "Гурӯҳ"
 
@@ -276,9 +279,6 @@ msgstr "Рақами факс"
 msgid "Job Title"
 msgstr "Вазифа"
 
-msgid "Manager"
-msgstr "Диспетчер"
-
 #, c-format
 msgid "out of memory\n"
 msgstr "берун аз хотира\n"
@@ -295,6 +295,10 @@ msgstr "Берун аз хотира \n"
 msgid "Out of Memory!\n"
 msgstr "Берун аз хотира!\n"
 
+#, c-format
+msgid "Out of memory!\n"
+msgstr "Берун аз хотира!\n"
+
 msgid "Server Name"
 msgstr "Номи сервер"
 
@@ -309,10 +313,6 @@ msgid "Out of memory!"
 msgstr "Берун аз хотира!"
 
 #, c-format
-msgid "Out of memory!\n"
-msgstr "Берун аз хотира!\n"
-
-#, c-format
 msgid "Incorrect password.\n"
 msgstr "Пароли нодуруст.\n"
 
@@ -325,8 +325,8 @@ msgstr "номи файл"
 msgid "password"
 msgstr "парол"
 
-msgid "Out of memory!?\n"
-msgstr "Аз хотира берун шуд!?\n"
-
 msgid "Out of memory\n"
 msgstr "Берун аз хотира \n"
+
+msgid "Out of memory!?\n"
+msgstr "Аз хотира берун шуд!?\n"

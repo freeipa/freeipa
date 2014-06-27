@@ -4,16 +4,17 @@
 #
 # Translators:
 # Tomoyuki KATO <tomo@dream.daynight.jp>, 2012
-# 高一人参 @欠陥遺伝子 <www.carrotsoft@gmail.com>, 2011
+# carrotsoft <www.carrotsoft@gmail.com>, 2011
 msgid ""
 msgstr ""
 "Project-Id-Version: FreeIPA\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2013-10-09 14:39+0200\n"
-"PO-Revision-Date: 2013-08-01 14:06+0000\n"
+"POT-Creation-Date: 2014-06-27 16:29+0200\n"
+"PO-Revision-Date: 2014-06-25 19:44+0000\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
-"Language-Team: Japanese <trans-ja@lists.fedoraproject.org>\n"
+"Language-Team: Japanese (http://www.transifex.com/projects/p/freeipa/"
+"language/ja/)\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -148,10 +149,6 @@ msgid "Fingerprint (SHA1)"
 msgstr "フィンガープリント (SHA1)"
 
 #, python-format
-msgid "invalid domain-name: %s"
-msgstr "無効なドメイン名: %s"
-
-#, python-format
 msgid "%s record"
 msgstr "%s レコード"
 
@@ -164,9 +161,6 @@ msgstr "IP アドレス"
 
 msgid "Port"
 msgstr "ポート"
-
-msgid "Labels"
-msgstr "ラベル"
 
 msgid "Fingerprint"
 msgstr "フィンガープリント"
@@ -270,6 +264,10 @@ msgstr "HBAC サービスグループにメンバーを追加します。"
 msgid "Remove members from an HBAC service group."
 msgstr "HBAC サービスグループからメンバーを削除します。"
 
+#, python-format
+msgid "invalid domain-name: %s"
+msgstr "無効なドメイン名: %s"
+
 msgid "host"
 msgstr "ホスト"
 
@@ -303,6 +301,7 @@ msgstr "更新"
 msgid "Set"
 msgstr "設定"
 
+#, python-brace-format
 msgid "Edit ${entity}"
 msgstr "${entity} の編集"
 
@@ -456,8 +455,8 @@ msgstr "ユーザーアカウントを有効化します。"
 msgid "invalid SSH public key"
 msgstr "無効な SSH 公開鍵"
 
-msgid "Out of memory!?\n"
-msgstr "メモリー不足!?\n"
-
 msgid "Out of memory\n"
 msgstr "メモリー不足\n"
+
+msgid "Out of memory!?\n"
+msgstr "メモリー不足!?\n"
