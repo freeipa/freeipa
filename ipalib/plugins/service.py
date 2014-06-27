@@ -343,7 +343,7 @@ class service(LDAPObject):
             'replaces': [
                 '(targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage service keytab";allow (write) groupdn = "ldap:///cn=Manage service keytab,cn=permissions,cn=pbac,$SUFFIX";)',
             ],
-            'default_privileges': {'Service Administrators'},
+            'default_privileges': {'Service Administrators', 'Host Administrators'},
         },
         'System: Modify Services': {
             'ipapermright': {'write'},
