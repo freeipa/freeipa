@@ -222,7 +222,8 @@ return {
                     {
                         $type: 'checkbox',
                         name: 'idnssecinlinesigning'
-                    }
+                    },
+                    'nsec3paramrecord'
                 ]
             }],
             actions: [

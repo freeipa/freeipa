@@ -23,6 +23,7 @@ from __future__ import absolute_import
 import netaddr
 import time
 import re
+import binascii
 import dns.name
 import dns.exception
 import dns.resolver
@@ -404,6 +405,40 @@ def _validate_bind_forwarder(ugettext, forwarder):
             return _('%(port)s is not a valid port' % dict(port=port))
 
     return None
+
+def _validate_nsec3param_record(ugettext, value):
+    _nsec3param_pattern = (r'^(?P<alg>\d+) (?P<flags>\d+) (?P<iter>\d+) '
+        r'(?P<salt>([0-9a-fA-F]{2})+|-)$')
+    rec = re.compile(_nsec3param_pattern, flags=re.U)
+    result = rec.match(value)
+
+    if result is None:
+        return _(u'expected format: <0-255> <0-255> <0-65535> '
+                 'even-length_hexadecimal_digits_or_hyphen')
+
+    alg = int(result.group('alg'))
+    flags = int(result.group('flags'))
+    iterations = int(result.group('iter'))
+    salt = result.group('salt')
+
+    if alg > 255:
+        return _('algorithm value: allowed interval 0-255')
+
+    if flags > 255:
+        return _('flags value: allowed interval 0-255')
+
+    if iterations > 65535:
+        return _('iterations value: allowed interval 0-65535')
+
+    if salt == u'-':
+        return None
+
+    try:
+        binascii.a2b_hex(salt)
+    except TypeError, e:
+        return _('salt value: %(err)s') % {'err': e}
+    return None
+
 
 def _hostname_validator(ugettext, value):
     assert isinstance(value, DNSName)
@@ -1229,7 +1264,7 @@ class NSEC3Record(DNSRecord):
 class NSEC3PARAMRecord(DNSRecord):
     rrtype = 'NSEC3PARAM'
     rfc = 5155
-    supported = False
+    supported = False  # this is part of zone in IPA
 
 def _validate_naptr_flags(ugettext, flags):
     allowed_flags = u'SAUP'
@@ -2093,6 +2128,15 @@ class dnszone(DNSZoneBase):
             label=_('Allow in-line DNSSEC signing'),
             doc=_('Allow inline DNSSEC signing of records in the zone'),
         ),
+        Str('nsec3paramrecord?',
+            _validate_nsec3param_record,
+            cli_name='nsec3param_rec',
+            label=_('NSEC3PARAM record'),
+            doc=_('NSEC3PARAM record for zone in format: hash_algorithm flags iterations salt'),
+            pattern=r'^\d+ \d+ \d+ (([0-9a-fA-F]{2})+|-)$',
+            pattern_errmsg=(u'expected format: <0-255> <0-255> <0-65535> '
+                 'even-length_hexadecimal_digits_or_hyphen'),
+        ),
     )
     # Permissions will be apllied for forwardzones too
     managed_permissions = {
@@ -2123,7 +2167,7 @@ class dnszone(DNSZoneBase):
                 'idnssoaretry', 'idnssoarname', 'idnssoaserial',
                 'idnsupdatepolicy', 'idnszoneactive', 'keyrecord', 'kxrecord',
                 'locrecord', 'managedby', 'mdrecord', 'minforecord',
-                'mxrecord', 'naptrrecord', 'nsecrecord',
+                'mxrecord', 'naptrrecord', 'nsecrecord', 'nsec3paramrecord',
                 'nsrecord', 'nxtrecord', 'ptrrecord', 'rrsigrecord',
                 'sigrecord', 'srvrecord', 'sshfprecord', 'tlsarecord',
                 'txtrecord',
@@ -2157,7 +2201,7 @@ class dnszone(DNSZoneBase):
                 'idnssoaretry', 'idnssoarname', 'idnssoaserial',
                 'idnsupdatepolicy', 'idnszoneactive', 'keyrecord', 'kxrecord',
                 'locrecord', 'managedby', 'mdrecord', 'minforecord',
-                'mxrecord', 'naptrrecord', 'nsecrecord',
+                'mxrecord', 'naptrrecord', 'nsecrecord', 'nsec3paramrecord',
                 'nsrecord', 'nxtrecord', 'ptrrecord', 'rrsigrecord',
                 'sigrecord', 'srvrecord', 'sshfprecord', 'tlsarecord',
                 'txtrecord',

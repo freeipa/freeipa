@@ -89,5 +89,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=98
-# Last change: mbasti - Remove NSEC3PARAM record
+IPA_API_VERSION_MINOR=99
+# Last change: mbasti - add NSEC3PARAM zone attribute
