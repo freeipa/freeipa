@@ -1439,7 +1439,9 @@ def configure_nisdomain(options, domain):
 
     # Enable and start the domainname service
     services.knownservices.domainname.enable()
-    services.knownservices.domainname.start()
+    # Restart rather than start so that new NIS domain name is loaded
+    # if the service is already running
+    services.knownservices.domainname.restart()
 
 
 def unconfigure_nisdomain():
