@@ -2229,6 +2229,23 @@ class dnszone(DNSZoneBase):
             messages.add_message(options.get('version', VERSION_WITHOUT_CAPABILITIES),
                                  result, messages.ForwardersWarning())
 
+    def _warning_dnssec_experimental(self, result, *keys, **options):
+        # add warning when user use option --dnssec
+        if 'idnssecinlinesigning' in options:
+            if options['idnssecinlinesigning'] is True:
+                messages.add_message(options['version'], result,
+                    messages.DNSSECWarning(
+                    additional_info=_("Manual configuration needed, please "
+                    "visit 'http://www.freeipa.org/page/Releases/4.0.0#"
+                    "Experimental_DNSSEC_Support'")
+                ))
+            else:
+                messages.add_message(options['version'], result,
+                    messages.DNSSECWarning(
+                    additional_info=_("If you encounter any problems please "
+                    "report them and restart 'named' service on affected IPA "
+                    "server.")
+                ))
 
 
 @register()
@@ -2320,6 +2337,7 @@ class dnszone_add(DNSZoneBase_add):
     def execute(self, *keys, **options):
         result = super(dnszone_add, self).execute(*keys, **options)
         self.obj._warning_forwarding(result, **options)
+        self.obj._warning_dnssec_experimental(result, *keys, **options)
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -2402,6 +2420,7 @@ class dnszone_mod(DNSZoneBase_mod):
     def execute(self, *keys, **options):
         result = super(dnszone_mod, self).execute(*keys, **options)
         self.obj._warning_forwarding(result, **options)
+        self.obj._warning_dnssec_experimental(result, *keys, **options)
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):

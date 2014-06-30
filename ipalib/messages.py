@@ -147,6 +147,16 @@ class ForwardersWarning(PublicMessage):
         u"You may want to use forward zones (dnsforwardzone-*) instead.\n"
         u"For more details read the docs.")
 
+
+class DNSSECWarning(PublicMessage):
+    """
+    **13003** Used when user change DNSSEC settings
+    """
+
+    errno = 13003
+    type = "warning"
+    format = _("DNSSEC support is experimental.\n%(additional_info)s")
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
