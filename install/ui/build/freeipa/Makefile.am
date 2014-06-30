@@ -21,3 +21,5 @@ nav := $(wildcard ../../src/freeipa/navigation/*.js)
 
 app.js: $(core) $(base) $(widgets) $(nav)
 	../../util/make-ui.sh
+
+core.js: app.js
