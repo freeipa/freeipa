@@ -3966,3 +3966,55 @@ class test_permission_filters(Declarative):
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
     ]
+
+
+class test_permission_in_accounts(Declarative):
+    """Test managing a permission in cn=accounts"""
+
+    tests = [
+        dict(
+            desc='Create %r in cn=accounts' % permission1,
+            command=(
+                'permission_add', [permission1], dict(
+                    ipapermlocation=DN('cn=accounts', api.env.basedn),
+                    ipapermright=u'add',
+                    attrs=[u'cn'],
+                )
+            ),
+            expected=dict(
+                value=permission1,
+                summary=u'Added permission "%s"' % permission1,
+                result=dict(
+                    dn=permission1_dn,
+                    cn=[permission1],
+                    objectclass=objectclasses.permission,
+                    attrs=[u'cn'],
+                    ipapermright=[u'add'],
+                    ipapermbindruletype=[u'permission'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    ipapermlocation=[DN('cn=accounts', api.env.basedn)],
+                ),
+            ),
+        ),
+
+        verify_permission_aci(
+            permission1, DN('cn=accounts', api.env.basedn),
+            '(targetattr = "cn")' +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (add) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+
+        dict(
+            desc='Delete %r' % permission1,
+            command=(
+                'permission_del', [permission1], {}
+            ),
+            expected=dict(
+                result=dict(failed=[]),
+                value=[permission1],
+                summary=u'Deleted permission "%s"' % permission1,
+            )
+        ),
+
+        verify_permission_aci_missing(permission1, api.env.basedn),
+    ]

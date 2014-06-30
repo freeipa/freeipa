@@ -641,7 +641,12 @@ class permission(baseldap.LDAPObject):
                 acientry = ldap.make_entry(location)
         acis = acientry.get('aci', ())
         for acistring in acis:
-            aci = ACI(acistring)
+            try:
+                aci = ACI(acistring)
+            except SyntaxError as e:
+                self.log.warning('Unparseable ACI %s: %s (at %s)',
+                                 acistring, e, location)
+                continue
             if aci.name == wanted_aciname:
                 return acientry, acistring
         else:
