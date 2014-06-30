@@ -1594,68 +1594,6 @@ class test_dns(Declarative):
 
 
         dict(
-            desc='Try to add NSEC3PARAM record out of zone record %r' % (zone1),
-            command=('dnsrecord_add', [zone1, u'test'],
-                     {'nsec3paramrecord': u'1 0 2 ad50f1'}),
-            expected=errors.ValidationError(name='nsec3paramrecord',
-                        error=u'must be in zone record'),
-        ),
-
-
-        dict(
-            desc='Try to add invalid NSEC3PARAM record to zone %r' % (zone1),
-            command=('dnsrecord_add', [zone1, u'@'],
-                     {'nsec3paramrecord': u'1 0 2 -ad50f1'}),
-            expected=errors.ValidationError(name='salt',
-                        error=u'only hexadecimal digits or single hyphen ("-") are allowed'),
-        ),
-
-
-        dict(
-            desc='Add NSEC3PARAM record to zone %r' % (zone1),
-            command=('dnsrecord_add', [zone1, u'@'],
-                     {'nsec3paramrecord': u'1 0 2 ad50f1'}),
-            expected={
-                'value': _dns_zone_record,
-                'summary': None,
-                'result': {
-                    'dn': zone1_dn,
-                    'arecord': [u'172.16.29.111'],
-                    'idnsname': [_dns_zone_record],
-                    'nsrecord': [zone1_absolute],
-                    'nsec3paramrecord': [u'1 0 2 ad50f1'],
-                    'objectclass': objectclasses.dnszone,
-                },
-            },
-        ),
-
-
-        dict(
-            desc='Try to add another NSEC3PARAM record to zone %r' % (zone1),
-            command=('dnsrecord_add', [zone1, u'@'],
-                     {'nsec3paramrecord': u'1 0 2 -'}),
-            expected=errors.ValidationError(name='nsec3paramrecord',
-                        error=u'Only one NSEC3PARAM record is allowed per zone'),
-        ),
-
-
-        dict(
-            desc='Remove NSEC3PARAM record from zone %r' % (zone1),
-            command=('dnsrecord_del', [zone1, u'@'],
-                     {'nsec3paramrecord': u'1 0 2 ad50f1'}),
-            expected={
-                'value': [_dns_zone_record],
-                'summary': None,
-                'result': {
-                    'arecord': [u'172.16.29.111'],
-                    'idnsname': [_dns_zone_record],
-                    'nsrecord': [zone1_absolute],
-                },
-            },
-        ),
-
-
-        dict(
             desc='Create zone %r' % zone3,
             command=(
                 'dnszone_add', [zone3], {
