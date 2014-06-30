@@ -221,19 +221,6 @@ Cross-realm trusts with Active Directory in IPA require working Samba 4
 installation. This package is provided for convenience to install all required
 dependencies at once.
 
-
-%package server-foreman-smartproxy
-Summary: Foreman-compatible REST API for IPA
-Group: System Environment/Base
-Requires: %{name}-client = %version-%release
-Requires: python-cherrypy
-Requires: gssproxy >= 0.3.1
-Requires: python-kerberos >= 1.1-14
-Requires: mod_wsgi
-
-%description server-foreman-smartproxy
-A Foreman-compatible REST API for managing hosts and hostgroups.
-
 %endif # ONLY_CLIENT
 
 
@@ -557,10 +544,6 @@ if [ $1 -eq 0 ]; then
     %{_sbindir}/update-alternatives --remove winbind_krb5_locator.so /dev/null
 fi
 
-%post server-foreman-smartproxy
-if [ $1 -gt 1 ] ; then
-    /bin/systemctl try-restart httpd.service >/dev/null 2>&1 || :
-fi
 %endif # ONLY_CLIENT
 
 %post client
@@ -794,14 +777,6 @@ fi
 %{python_sitelib}/ipaserver/dcerpc*
 %{python_sitelib}/ipaserver/install/adtrustinstance*
 %ghost %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
-
-%files server-foreman-smartproxy
-%doc COPYING README smartproxy/ipa-smartproxy-apache.conf
-%dir %{_usr}/share/ipa/smartproxy
-%{_usr}/share/ipa/smartproxy/ipa-smartproxy.py*
-%{_mandir}/man1/ipa-smartproxy.1.gz
-%{_mandir}/man5/ipa-smartproxy.conf.5.gz
-%config(noreplace) %{_sysconfdir}/ipa/ipa-smartproxy.conf
 
 %endif # ONLY_CLIENT
 
