@@ -32,11 +32,13 @@ import encodings.idna
 from ipalib.request import context
 from ipalib import api, errors, output
 from ipalib import Command
+from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib.parameters import (Flag, Bool, Int, Decimal, Str, StrEnum, Any,
                                DeprecatedParam, DNSNameParam)
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
+from ipalib import messages
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
                          get_dns_forward_zone_update_policy,
                          get_dns_reverse_zone_update_policy,
@@ -267,6 +269,7 @@ _output_permissions = (
     output.Output('result', bool, _('True means the operation was successful')),
     output.Output('value', unicode, _('Permission value')),
 )
+
 
 def _rname_validator(ugettext, zonemgr):
     try:
@@ -2221,6 +2224,11 @@ class dnszone(DNSZoneBase):
             return
         _records_idn_postprocess(record, **options)
 
+    def _warning_forwarding(self, result, **options):
+        if ('idnsforwarders' in result['result']):
+            messages.add_message(options.get('version', VERSION_WITHOUT_CAPABILITIES),
+                                 result, messages.ForwardersWarning())
+
 
 
 @register()
@@ -2309,6 +2317,11 @@ class dnszone_add(DNSZoneBase_add):
         entry_attrs['idnssoamname'] = nameserver
         return dn
 
+    def execute(self, *keys, **options):
+        result = super(dnszone_add, self).execute(*keys, **options)
+        self.obj._warning_forwarding(result, **options)
+        return result
+
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         nameserver_ip_address = options.get('ip_address')
@@ -2386,6 +2399,11 @@ class dnszone_mod(DNSZoneBase_mod):
 
         return dn
 
+    def execute(self, *keys, **options):
+        result = super(dnszone_mod, self).execute(*keys, **options)
+        self.obj._warning_forwarding(result, **options)
+        return result
+
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         self.obj._rr_zone_postprocess(entry_attrs, **options)
@@ -2433,6 +2451,11 @@ class dnszone_find(DNSZoneBase_find):
 @register()
 class dnszone_show(DNSZoneBase_show):
     __doc__ = _('Display information about a DNS zone (SOA record).')
+
+    def execute(self, *keys, **options):
+        result = super(dnszone_show, self).execute(*keys, **options)
+        self.obj._warning_forwarding(result, **options)
+        return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
