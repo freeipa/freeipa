@@ -448,6 +448,111 @@ class test_dns(Declarative):
             },
         ),
 
+        dict(
+            desc='Try to add invalid NSEC3PARAM record to zone %s' % (zone1),
+            command=('dnszone_mod', [zone1], {'nsec3paramrecord': u'0 0 0 0 X'}),
+            expected=errors.ValidationError(name="nsec3param_rec",
+                        error=(u'expected format: <0-255> <0-255> <0-65535> '
+                               u'even-length_hexadecimal_digits_or_hyphen')
+            )
+        ),
+
+
+        dict(
+            desc='Try to add invalid NSEC3PARAM record to zone %s' % (zone1),
+            command=('dnszone_mod', [zone1], {'nsec3paramrecord': u'0 0 0 X'}),
+            expected=errors.ValidationError(name="nsec3param_rec",
+                        error=(u'expected format: <0-255> <0-255> <0-65535> '
+                               u'even-length_hexadecimal_digits_or_hyphen')
+            )
+        ),
+
+
+        dict(
+            desc='Try to add invalid NSEC3PARAM record to zone %s' % (zone1),
+            command=('dnszone_mod', [zone1], {'nsec3paramrecord': u'333 0 0 -'}),
+            expected=errors.ValidationError(name="nsec3param_rec",
+                        error=u'algorithm value: allowed interval 0-255'
+            )
+        ),
+
+
+        dict(
+            desc='Try to add invalid NSEC3PARAM record to zone %s' % (zone1),
+            command=('dnszone_mod', [zone1], {'nsec3paramrecord': u'0 333 0 -'}),
+            expected=errors.ValidationError(name="nsec3param_rec",
+                        error=u'flags value: allowed interval 0-255'
+            )
+        ),
+
+
+        dict(
+            desc='Try to add invalid NSEC3PARAM record to zone %s' % (zone1),
+            command=('dnszone_mod', [zone1], {'nsec3paramrecord': u'0 0 65536 -'}),
+            expected=errors.ValidationError(name="nsec3param_rec",
+                        error=u'iterations value: allowed interval 0-65535'
+            )
+        ),
+
+
+        dict(
+            desc='Try to add invalid NSEC3PARAM record to zone %s' % (zone1),
+            command=('dnszone_mod', [zone1], {'nsec3paramrecord': u'0 0 0 A'}),
+            expected=errors.ValidationError(name="nsec3param_rec",
+                        error=(u'expected format: <0-255> <0-255> <0-65535> '
+                               u'even-length_hexadecimal_digits_or_hyphen')
+            )
+        ),
+
+
+        dict(
+            desc='Add NSEC3PARAM record to zone %s' % (zone1),
+            command=('dnszone_mod', [zone1], {'nsec3paramrecord': u'0 0 0 -'}),
+            expected={
+                'value': zone1_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [zone1_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'nsrecord': [zone1_ns],
+                    'idnssoamname': [zone1_ns_dnsname],
+                    'idnssoarname': [zone1_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [u'5478'],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'nsec3paramrecord': [u'0 0 0 -'],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Delete NSEC3PARAM record from zone %s' % (zone1),
+            command=('dnszone_mod', [zone1], {'nsec3paramrecord': u''}),
+            expected={
+                'value': zone1_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [zone1_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'nsrecord': [zone1_ns],
+                    'idnssoamname': [zone1_ns_dnsname],
+                    'idnssoarname': [zone1_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [u'5478'],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                },
+            },
+        ),
+
 
         dict(
             desc='Try to create reverse zone %r with NS record in it' % revzone1,
