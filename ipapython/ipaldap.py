@@ -263,6 +263,10 @@ class IPASimpleLDAPObject(object):
         'idnssoamname':    DNSName,
         'idnssoarname':    DNSName,
         'dnszoneidnsname': DNSName,
+        'nsds5replicalastupdatestart': unicode,
+        'nsds5replicalastupdateend': unicode,
+        'nsds5replicalastinitstart': unicode,
+        'nsds5replicalastinitend': unicode,
     })
     _SINGLE_VALUE_OVERRIDE = CIDict({
         'nsslapd-ssl-check-hostname': True,
