@@ -32,7 +32,7 @@ attributeTypes: (2.16.840.1.113730.3.8.7.12 NAME 'hostMask' DESC 'IP mask to ide
 ## Attribute to store sudo command
 attributeTypes: (2.16.840.1.113730.3.8.7.13 NAME 'sudoCmd' DESC 'Command(s) to be executed by sudo' EQUALITY caseExactMatch ORDERING caseExactMatch SUBSTR caseExactSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v2' )
 ## Attribute to store a name of the user not managed by IPA. Command witll be executed under his identity.
-attributeTypes: (2.16.840.1.113730.3.8.7.14 NAME 'ipaSudoRunAsExtUserGroup' DESC 'Multivalue string attribute that allows storing groups of users that are not managed by IPA the command can be run as' EQUALITY caseIgnoreMatch ORDERING caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4' )
+attributeTypes: (2.16.840.1.113730.3.8.7.14 NAME 'ipaSudoRunAsExtUserGroup' DESC 'Multivalue string attribute that allows storing groups of users that are not managed by IPA the command can be run as' EQUALITY caseIgnoreMatch ORDERING caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.0' )
 ## Object class for SUDO rules
 objectClasses: (2.16.840.1.113730.3.8.8.1 NAME 'ipaSudoRule' SUP ipaAssociation STRUCTURAL MAY ( externalUser $ externalHost $ hostMask $ memberAllowCmd $ memberDenyCmd $ cmdCategory $ ipaSudoOpt $ ipaSudoRunAs $ ipaSudoRunAsExtUser $ ipaSudoRunAsUserCategory $ ipaSudoRunAsGroup $ ipaSudoRunAsExtGroup $ ipaSudoRunAsGroupCategory $ sudoNotBefore $ sudoNotAfter $ sudoOrder $ ipaSudoRunAsExtUserGroup ) X-ORIGIN 'IPA v2' )
 ## Object class for SUDO commands

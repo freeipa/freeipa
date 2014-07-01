@@ -1,7 +1,7 @@
 ## IPA Base OID:	2.16.840.1.113730.3.8
 ##
-## Attributes:		2.16.840.1.113730.3.8.11 - V3 base attributres
-## ObjectClasses:	2.16.840.1.113730.3.8.12 - V3 base objectclasses
+## Attributes:		2.16.840.1.113730.3.8.11 - V3+ base attributes
+## ObjectClasses:	2.16.840.1.113730.3.8.12 - V3+ base objectclasses
 ##
 dn: cn=schema
 attributeTypes: (2.16.840.1.113730.3.8.11.1 NAME 'ipaExternalMember' DESC 'External Group Member Identifier' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v3' )
@@ -38,15 +38,15 @@ attributeTypes: (2.16.840.1.113730.3.8.11.38 NAME 'ipaNTSIDBlacklistIncoming' DE
 attributeTypes: (2.16.840.1.113730.3.8.11.39 NAME 'ipaNTSIDBlacklistOutgoing' DESC 'Extra SIDs filtered out from outgoing MS-PAC' EQUALITY caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'IPA v3')
 attributeTypes: (2.16.840.1.113730.3.8.11.40 NAME 'ipaUserAuthType' DESC 'Allowed authentication methods' EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v3')
 attributeTypes: (2.16.840.1.113730.3.8.11.41 NAME 'ipaRangeType' DESC 'Range type' EQUALITY caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 X-ORIGIN 'IPA v3' )
-attributeTypes: (2.16.840.1.113730.3.8.11.42 NAME 'ipaPermDefaultAttr' DESC 'IPA permission default attribute' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v3' )
-attributeTypes: (2.16.840.1.113730.3.8.11.43 NAME 'ipaPermIncludedAttr' DESC 'IPA permission explicitly included attribute' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v3' )
-attributeTypes: (2.16.840.1.113730.3.8.11.44 NAME 'ipaPermExcludedAttr' DESC 'IPA permission explicitly excluded attribute' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v3' )
-attributeTypes: (2.16.840.1.113730.3.8.11.45 NAME 'ipaPermBindRuleType' DESC 'IPA permission bind rule type' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v3' )
-attributeTypes: (2.16.840.1.113730.3.8.11.46 NAME 'ipaPermLocation' DESC 'Location of IPA permission ACI' EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE X-ORIGIN 'IPA v3' )
-attributeTypes: (2.16.840.1.113730.3.8.11.47 NAME 'ipaPermRight' DESC 'IPA permission rights' EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v3' )
-attributeTypes: (2.16.840.1.113730.3.8.11.48 NAME 'ipaPermTargetFilter' DESC 'IPA permission target filter' EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v3' )
-attributeTypes: (2.16.840.1.113730.3.8.11.49 NAME 'ipaPermTarget' DESC 'IPA permission target' EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v3' )
-attributeTypes: (2.16.840.1.113730.3.8.11.51 NAME 'ipaAllowedToPerform' DESC 'DNs allowed to perform an operation' SUP distinguishedName X-ORIGIN 'IPA-v3')
+attributeTypes: (2.16.840.1.113730.3.8.11.42 NAME 'ipaPermDefaultAttr' DESC 'IPA permission default attribute' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.0' )
+attributeTypes: (2.16.840.1.113730.3.8.11.43 NAME 'ipaPermIncludedAttr' DESC 'IPA permission explicitly included attribute' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.0' )
+attributeTypes: (2.16.840.1.113730.3.8.11.44 NAME 'ipaPermExcludedAttr' DESC 'IPA permission explicitly excluded attribute' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.0' )
+attributeTypes: (2.16.840.1.113730.3.8.11.45 NAME 'ipaPermBindRuleType' DESC 'IPA permission bind rule type' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v4.0' )
+attributeTypes: (2.16.840.1.113730.3.8.11.46 NAME 'ipaPermLocation' DESC 'Location of IPA permission ACI' EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE X-ORIGIN 'IPA v4.0' )
+attributeTypes: (2.16.840.1.113730.3.8.11.47 NAME 'ipaPermRight' DESC 'IPA permission rights' EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.0' )
+attributeTypes: (2.16.840.1.113730.3.8.11.48 NAME 'ipaPermTargetFilter' DESC 'IPA permission target filter' EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.0' )
+attributeTypes: (2.16.840.1.113730.3.8.11.49 NAME 'ipaPermTarget' DESC 'IPA permission target' EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE X-ORIGIN 'IPA v4.0' )
+attributeTypes: (2.16.840.1.113730.3.8.11.51 NAME 'ipaAllowedToPerform' DESC 'DNs allowed to perform an operation' SUP distinguishedName X-ORIGIN 'IPA v4.0')
 attributeTypes: (2.16.840.1.113730.3.8.11.52 NAME 'ipaProtectedOperation' DESC 'Operation to be protected' EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128} )
 objectClasses: (2.16.840.1.113730.3.8.12.1 NAME 'ipaExternalGroup' SUP top STRUCTURAL MUST ( cn ) MAY ( ipaExternalMember $ memberOf $ description $ owner) X-ORIGIN 'IPA v3' )
 objectClasses: (2.16.840.1.113730.3.8.12.2 NAME 'ipaNTUserAttrs' SUP top AUXILIARY MUST ( ipaNTSecurityIdentifier ) MAY ( ipaNTHash $ ipaNTLogonScript $ ipaNTProfilePath $ ipaNTHomeDirectory $ ipaNTHomeDirectoryDrive ) X-ORIGIN 'IPA v3' )
@@ -65,5 +65,5 @@ objectClasses: (2.16.840.1.113730.3.8.12.16 NAME 'ipaDomainIDRange' SUP ipaIDran
 objectClasses: (2.16.840.1.113730.3.8.12.17 NAME 'ipaTrustedADDomainRange' SUP ipaIDrange STRUCTURAL MUST ( ipaBaseRID $ ipaNTTrustedDomainSID ) X-ORIGIN 'IPA v3' )
 objectClasses: (2.16.840.1.113730.3.8.12.19 NAME 'ipaUserAuthTypeClass' SUP top AUXILIARY DESC 'Class for authentication methods definition' MAY ipaUserAuthType X-ORIGIN 'IPA v3')
 objectClasses: (2.16.840.1.113730.3.8.12.20 NAME 'ipaUser' AUXILIARY MUST ( uid ) MAY ( userClass ) X-ORIGIN 'IPA v3' )
-objectClasses: (2.16.840.1.113730.3.8.12.21 NAME 'ipaPermissionV2' DESC 'IPA Permission objectclass, version 2' SUP ipaPermission AUXILIARY MUST ( ipaPermBindRuleType $ ipaPermLocation ) MAY ( ipaPermDefaultAttr $ ipaPermIncludedAttr $ ipaPermExcludedAttr $ ipaPermRight $ ipaPermTargetFilter $ ipaPermTarget ) X-ORIGIN 'IPA v3' )
-objectClasses: (2.16.840.1.113730.3.8.12.22 NAME 'ipaAllowedOperations' SUP top AUXILIARY DESC 'Class to apply access controls to arbitrary operations' MAY ( ipaAllowedToPerform $ ipaProtectedOperation ) X-ORIGIN 'IPA v3')
+objectClasses: (2.16.840.1.113730.3.8.12.21 NAME 'ipaPermissionV2' DESC 'IPA Permission objectclass, version 2' SUP ipaPermission AUXILIARY MUST ( ipaPermBindRuleType $ ipaPermLocation ) MAY ( ipaPermDefaultAttr $ ipaPermIncludedAttr $ ipaPermExcludedAttr $ ipaPermRight $ ipaPermTargetFilter $ ipaPermTarget ) X-ORIGIN 'IPA v4.0' )
+objectClasses: (2.16.840.1.113730.3.8.12.22 NAME 'ipaAllowedOperations' SUP top AUXILIARY DESC 'Class to apply access controls to arbitrary operations' MAY ( ipaAllowedToPerform $ ipaProtectedOperation ) X-ORIGIN 'IPA v4.0')
