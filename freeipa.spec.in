@@ -79,7 +79,6 @@ BuildRequires:  libverto-devel
 BuildRequires:  systemd
 BuildRequires:  libunistring-devel
 BuildRequires:  python-lesscpy
-BuildRequires:  python-cherrypy
 BuildRequires:  python-yubico
 
 # Find out Kerberos middle version to infer ABI changes in DAL driver
