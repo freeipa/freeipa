@@ -83,7 +83,7 @@ EXAMPLES:
  Add new zone:
    ipa dnszone-add example.com --name-server=ns \\
                                --admin-email=admin@example.com \\
-                               --ip-address=10.0.0.1
+                               --ip-address=192.0.2.1
 
  Add system permission that can be used for per-zone privilege delegation:
    ipa dnszone-add-permission example.com
@@ -96,10 +96,10 @@ EXAMPLES:
       --update-policy="grant EXAMPLE.COM krb5-self * A; grant EXAMPLE.COM krb5-self * AAAA; grant EXAMPLE.COM krb5-self * SSHFP;"
 
  Modify the zone to allow zone transfers for local network only:
-   ipa dnszone-mod example.com --allow-transfer=10.0.0.0/8
+   ipa dnszone-mod example.com --allow-transfer=192.0.2.0/24
 
  Add new reverse zone specified by network IP address:
-   ipa dnszone-add --name-from-ip=80.142.15.0/24 \\
+   ipa dnszone-add --name-from-ip=192.0.2.0/24 \\
                    --name-server=ns.example.com.
 
  Add second nameserver for example.com:
@@ -132,11 +132,11 @@ EXAMPLES:
 
  Add new A record for www.example.com. Create a reverse record in appropriate
  reverse zone as well. In this case a PTR record "2" pointing to www.example.com
- will be created in zone 15.142.80.in-addr.arpa.
-   ipa dnsrecord-add example.com www --a-rec=80.142.15.2 --a-create-reverse
+ will be created in zone 2.0.192.in-addr.arpa.
+   ipa dnsrecord-add example.com www --a-rec=192.0.2.2 --a-create-reverse
 
  Add new PTR record for www.example.com
-   ipa dnsrecord-add 15.142.80.in-addr.arpa. 2 --ptr-rec=www.example.com.
+   ipa dnsrecord-add 2.0.192.in-addr.arpa. 2 --ptr-rec=www.example.com.
 
  Add new SRV records for LDAP servers. Three quarters of the requests
  should go to fast.example.com, one quarter to slow.example.com. If neither
@@ -171,12 +171,12 @@ EXAMPLES:
    Delete all? Yes/No (default No):     (do not delete all records)
    Current DNS record contents:
 
-   A record: 1.2.3.4, 11.22.33.44
+   A record: 192.0.2.2, 192.0.2.3
 
-   Delete A record '1.2.3.4'? Yes/No (default No):
-   Delete A record '11.22.33.44'? Yes/No (default No): y
+   Delete A record '192.0.2.2'? Yes/No (default No):
+   Delete A record '192.0.2.3'? Yes/No (default No): y
      Record name: www
-     A record: 1.2.3.4                  (A record 11.22.33.44 has been deleted)
+     A record: 192.0.2.2               (A record 192.0.2.3 has been deleted)
 
  Show zone example.com:
    ipa dnszone-show example.com
@@ -187,14 +187,14 @@ EXAMPLES:
  Find records for resources with "www" in their name in zone example.com:
    ipa dnsrecord-find example.com www
 
- Find A records with value 10.10.0.1 in zone example.com
-   ipa dnsrecord-find example.com --a-rec=10.10.0.1
+ Find A records with value 192.0.2.2 in zone example.com
+   ipa dnsrecord-find example.com --a-rec=192.0.2.2
 
  Show records for resource www in zone example.com
    ipa dnsrecord-show example.com www
 
  Delegate zone sub.example to another nameserver:
-   ipa dnsrecord-add example.com ns.sub --a-rec=10.0.100.5
+   ipa dnsrecord-add example.com ns.sub --a-rec=203.0.113.1
    ipa dnsrecord-add example.com sub --ns-rec=ns.sub.example.com.
 
  If global forwarder is configured, all requests to sub.example.com will be
@@ -207,7 +207,7 @@ EXAMPLES:
  a "first" policy (it will send the queries to the selected forwarder and if
  not answered it will use global resolvers):
    ipa dnszone-add external.com
-   ipa dnszone-mod external.com --forwarder=10.20.0.1 \\
+   ipa dnszone-mod external.com --forwarder=203.0.113.1 \\
                                 --forward-policy=first
 
  Delete zone example.com with all resource records:
@@ -230,7 +230,7 @@ server:
    ipa dnsconfig-show
 
  Modify global DNS configuration and set a list of global forwarders:
-   ipa dnsconfig-mod --forwarder=10.0.0.1
+   ipa dnsconfig-mod --forwarder=203.0.113.113
 """)
 
 register = Registry()
