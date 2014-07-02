@@ -51,6 +51,11 @@ Domain Name System (DNS)
 
 Manage DNS zone and resource records.
 
+SUPPORTED ZONE TYPES
+
+ * Master zone (dnszone-*), contains authoritative data.
+ * Forward zone (dnsforwardzone-*), forwards queries to configured forwarders
+ (a set of DNS servers).
 
 USING STRUCTURED PER-TYPE OPTIONS
 
@@ -197,21 +202,55 @@ EXAMPLES:
    ipa dnsrecord-add example.com ns.sub --a-rec=203.0.113.1
    ipa dnsrecord-add example.com sub --ns-rec=ns.sub.example.com.
 
- If global forwarder is configured, all requests to sub.example.com will be
- routed through the global forwarder. To change the behavior for example.com
- zone only and forward the request directly to ns.sub.example.com., global
- forwarding may be disabled per-zone:
-   ipa dnszone-mod example.com --forward-policy=none
-
- Forward all requests for the zone external.com to another nameserver using
- a "first" policy (it will send the queries to the selected forwarder and if
- not answered it will use global resolvers):
-   ipa dnszone-add external.com
-   ipa dnszone-mod external.com --forwarder=203.0.113.1 \\
-                                --forward-policy=first
-
  Delete zone example.com with all resource records:
    ipa dnszone-del example.com
+
+ If a global forwarder is configured, all queries for which this server is not
+ authoritative (e.g. sub.example.com) will be routed to the global forwarder.
+ Global forwarding configuration can be overridden per-zone.
+
+ Semantics of forwarding in IPA matches BIND sematics and depends on type
+ of the zone:
+   * Master zone: local BIND replies authoritatively to queries for data in
+   the given zone (including authoritative NXDOMAIN answers) and forwarding
+   affects only queries for names bellow zone cuts (NS records) of locally
+   served zones.
+
+   * Forward zone: forward zone contains no authoritative data. BIND forwards
+   queries, which cannot be answered from its local cache, to configured
+   forwarders.
+
+ Semantics of the --forwarder-policy option:
+   * none - disable forwarding for the given zone.
+   * first - forward all queries to configured forwarders. If they fail,
+   do resolution using DNS root servers.
+   * only - forward all queries to configured forwarders and if they fail,
+   return failure.
+
+ Disable global forwarding for given sub-tree:
+   ipa dnszone-mod example.com --forward-policy=none
+
+ This configuration forwards all queries for names outside the example.com
+ sub-tree to global forwarders. Normal recursive resolution process is used
+ for names inside the example.com sub-tree (i.e. NS records are followed etc.).
+
+ Forward all requests for the zone external.example.com to another forwarder
+ using a "first" policy (it will send the queries to the selected forwarder
+ and if not answered it will use global root servers):
+   ipa dnsforwardzone-add external.example.com --forward-policy=first \\
+                               --forwarder=203.0.113.1
+
+ Change forward-policy for external.example.com:
+   ipa dnsforwardzone-mod external.example.com --forward-policy=only
+
+ Show forward zone external.example.com:
+   ipa dnsforwardzone-show external.example.com
+
+ List all forward zones:
+   ipa dnsforwardzone-find
+
+ Delete forward zone external.example.com:
+   ipa dnsforwardzone-del external.example.com
 
  Resolve a host name to see if it exists (will add default IPA domain
  if one is not included):
