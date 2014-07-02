@@ -80,7 +80,9 @@ def setup_package():
             package_data = {
                 'ipatests.test_install': ['*.update'],
                 'ipatests.test_integration': ['scripts/*'],
-                'ipatests.test_pkcs10': ['*.csr']}
+                'ipatests.test_pkcs10': ['*.csr'],
+                "ipatests.test_ipaserver": ['data/*'],
+            }
         )
     finally:
         del sys.path[0]

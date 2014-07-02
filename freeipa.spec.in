@@ -836,6 +836,7 @@ fi
 %dir %{python_sitelib}/ipatests/test_ipapython
 %dir %{python_sitelib}/ipatests/test_ipaserver
 %dir %{python_sitelib}/ipatests/test_ipaserver/test_install
+%dir %{python_sitelib}/ipatests/test_ipaserver/data
 %dir %{python_sitelib}/ipatests/test_pkcs10
 %dir %{python_sitelib}/ipatests/test_webui
 %dir %{python_sitelib}/ipatests/test_xmlrpc
