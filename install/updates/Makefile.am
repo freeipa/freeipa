@@ -5,6 +5,7 @@ app_DATA =				\
 	10-config.update		\
 	10-enable-betxn.update		\
 	10-selinuxusermap.update	\
+	10-rootdse.update		\
 	10-uniqueness.update		\
 	10-schema_compat.update		\
 	19-managed-entries.update	\
