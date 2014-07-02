@@ -247,6 +247,7 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
         if self.sock:
             self.sock.close()   # close it manually... there may be other refs
             self.sock = None
+            ssl.clear_session_cache()
 
     def endheaders(self, message=None):
         """
