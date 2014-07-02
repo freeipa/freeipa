@@ -228,7 +228,7 @@ class update_master_to_dnsforwardzones(PostUpdate):
 
                             if 'managedBy' in zone:
                                 entry = ldap.get_entry(DN(zone['managedBy'][0]))
-                                writer.unparse(str(entry.dn), dict(entry))
+                                writer.unparse(str(entry.dn), dict(entry.raw))
 
                             # raw values are required to store into ldif
                             records = api.Command['dnsrecord_find'](
