@@ -43,101 +43,134 @@ var nav = {};
                 { entity: 'netgroup' },
                 { entity: 'service' },
                 {
+                    name: 'automember',
+                    label: '@i18n:tabs.automember',
+                    children: [
+                        {
+                            name: 'amgroup',
+                            entity: 'automember',
+                            facet: 'searchgroup',
+                            label: '@i18n:objects.automember.usergrouprules',
+                            children: [
+                                {
+                                    entity: 'automember',
+                                    facet: 'usergrouprule',
+                                    hidden: true
+                                }
+                            ]
+                        },
+                        {
+                            name: 'amhostgroup',
+                            entity: 'automember',
+                            facet: 'searchhostgroup',
+                            label: '@i18n:objects.automember.hostgrouprules',
+                            children: [
+                                {
+                                    entity: 'automember',
+                                    facet: 'hostgrouprule',
+                                    hidden: true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            name: 'policy',
+            label: '@i18n:tabs.policy',
+            children: [
+                {
+                    name: 'hbac',
+                    label: '@i18n:tabs.hbac',
+                    children: [
+                        { entity: 'hbacrule' },
+                        { entity: 'hbacsvc' },
+                        { entity: 'hbacsvcgroup' },
+                        { entity: 'hbactest' }
+                    ]
+                },
+                {
+                    name: 'sudo',
+                    label: '@i18n:tabs.sudo',
+                    children: [
+                        { entity: 'sudorule' },
+                        { entity: 'sudocmd' },
+                        { entity: 'sudocmdgroup' }
+                    ]
+                },
+                { entity: 'selinuxusermap' },
+                { entity: 'pwpolicy' },
+                { entity: 'krbtpolicy' }
+            ]
+        },
+        {
+            name: 'authentication',
+            label: '@i18n:tabs.authentication',
+            children: [
+                { entity: 'cert', label: '@i18n:tabs.cert' },
+                { entity: 'otptoken' },
+                { entity: 'radiusproxy' }
+            ]
+        },
+        {
+            name: 'network_services',
+            label: '@i18n:tabs.network_services',
+            children: [
+                {
+                    name:'automount',
+                    label: '@i18n:tabs.automount',
+                    entity: 'automountlocation',
+                    children: [
+                        { entity: 'automountlocation', hidden: true },
+                        { entity: 'automountmap', hidden: true },
+                        { entity: 'automountkey', hidden: true }
+                    ]
+                },
+                {
                     name:'dns',
                     label: '@i18n:tabs.dns',
                     children: [
                         {
                             entity: 'dnszone',
                             children: [
-                                { entity: 'dnsrecord', hidden:true }
+                                { entity: 'dnsrecord', hidden: true }
                             ]
                         },
                         { entity: 'dnsforwardzone' },
                         { entity: 'dnsconfig' }
                     ]
-                },
-                { entity: 'cert', label: '@i18n:tabs.cert' },
-                { entity: 'realmdomains' },
-                { entity: 'otptoken' }
+                }
             ]
         },
-        {name: 'policy', label: '@i18n:tabs.policy', children: [
-            {name: 'hbac', label: '@i18n:tabs.hbac', children: [
-                {entity: 'hbacrule'},
-                {entity: 'hbacsvc'},
-                {entity: 'hbacsvcgroup'},
-                {entity: 'hbactest'}
-            ]},
-            {name: 'sudo', label: '@i18n:tabs.sudo', children: [
-                {entity: 'sudorule'},
-                {entity: 'sudocmd'},
-                {entity: 'sudocmdgroup'}
-            ]},
-            {
-                name:'automount',
-                label: '@i18n:tabs.automount',
-                entity: 'automountlocation',
-                children:[
-                 {entity: 'automountlocation', hidden:true},
-                 {entity: 'automountmap', hidden: true},
-                 {entity: 'automountkey', hidden: true}]
-            },
-            {entity: 'pwpolicy'},
-            {entity: 'krbtpolicy'},
-            {entity: 'selinuxusermap'},
-            {
-                name: 'automember',
-                label: '@i18n:tabs.automember',
-                children: [
-                    {
-                        name: 'amgroup',
-                        entity: 'automember',
-                        facet: 'searchgroup',
-                        label: '@i18n:objects.automember.usergrouprules',
-                        children: [
-                            {
-                                entity: 'automember',
-                                facet: 'usergrouprule',
-                                hidden: true
-                            }
-                        ]
-                    },
-                    {
-                        name: 'amhostgroup',
-                        entity: 'automember',
-                        facet: 'searchhostgroup',
-                        label: '@i18n:objects.automember.hostgrouprules',
-                        children: [
-                            {
-                                entity: 'automember',
-                                facet: 'hostgrouprule',
-                                hidden: true
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]},
-        {name: 'ipaserver', label: '@i18n:tabs.ipaserver', children: [
-            {name: 'rolebased', label: '@i18n:tabs.role', children: [
-                {entity: 'role'},
-                {entity: 'privilege'},
-                {entity: 'permission'}
-            ]},
-            {entity: 'selfservice'},
-            {entity: 'delegation'},
-            {entity: 'idrange'},
-            {
-                name: 'trusts',
-                label: '@i18n:tabs.trust',
-                children:[
-                    {entity: 'trust'},
-                    {entity: 'trustconfig'}
-                ]
-            },
-            {entity: 'radiusproxy'},
-            {entity: 'config'}
-        ]}
+        {
+            name: 'ipaserver',
+            label: '@i18n:tabs.ipaserver',
+            children: [
+                {
+                    name: 'rbac',
+                    label: '@i18n:tabs.role',
+                    children: [
+                        { entity: 'role' },
+                        { entity: 'privilege' },
+                        { entity: 'permission' },
+                        { entity: 'selfservice' },
+                        { entity: 'delegation' }
+                    ]
+                },
+                { entity: 'idrange' },
+                { entity: 'realmdomains' },
+                {
+                    name: 'trusts',
+                    label: '@i18n:tabs.trust',
+                    children: [
+                        { entity: 'trust' },
+                        { entity: 'trustconfig' }
+                    ]
+                },
+                { entity: 'config' }
+            ]
+        }
     ]
 };
 

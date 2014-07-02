@@ -1293,7 +1293,7 @@ IPA.cert.cert_update_policy = function(spec) {
 
 exp.remove_menu_item = function() {
     if (!IPA.cert.is_enabled()) {
-        menu.remove_item('identity/cert');
+        menu.remove_item('authentication/cert');
     }
 };
 

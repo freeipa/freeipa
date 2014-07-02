@@ -427,7 +427,7 @@ class UI_driver(object):
 
         s = ".navbar a[href='#%s']" % item
         link = self.find(s, By.CSS_SELECTOR, strict=True)
-        assert link.is_displayed(), 'Navigation link is not displayed'
+        assert link.is_displayed(), 'Navigation link is not displayed: %s' % item
         link.click()
         self.wait_for_request()
         self.wait_for_request(0.4)

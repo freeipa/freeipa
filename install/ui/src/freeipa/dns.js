@@ -2530,7 +2530,7 @@ IPA.network_validator = function(spec) {
 
 exp.remove_menu_item = function() {
     if (!IPA.dns_enabled) {
-        menu.remove_item('identity/dns');
+        menu.remove_item('network_services/dns');
     }
 };
 

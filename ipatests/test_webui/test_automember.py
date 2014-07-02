@@ -72,7 +72,7 @@ class test_automember(UI_driver):
                         delete=False)
 
         # host group rule
-        self.navigate_by_menu('policy/automember/amhostgroup')
+        self.navigate_by_menu('identity/automember/amhostgroup')
 
         self.basic_crud(ENTITY, HOST_GROUP_DATA,
                         search_facet='searchhostgroup',

@@ -167,5 +167,5 @@ class test_dns(UI_driver):
         Basic CRUD: dnsconfig
         """
         self.init_app()
-        self.navigate_by_menu('identity/dns/dnsconfig')
+        self.navigate_by_menu('network_services/dns/dnsconfig')
         self.mod_record(CONFIG_ENTITY, CONFIG_MOD_DATA)

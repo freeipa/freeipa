@@ -553,6 +553,7 @@
                     },
                     "tabs": {
                         "audit": "Audit",
+                        "authentication": "Authentication",
                         "automember": "Automember",
                         "automount": "Automount",
                         "cert": "Certificates",
@@ -560,6 +561,7 @@
                         "hbac": "Host Based Access Control",
                         "identity": "Identity",
                         "ipaserver": "IPA Server",
+                        "network_services": "Network Services",
                         "policy": "Policy",
                         "role": "Role Based Access Control",
                         "sudo": "Sudo",

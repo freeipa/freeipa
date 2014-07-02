@@ -698,6 +698,7 @@ class i18n_messages(Command):
         },
         "tabs": {
             "audit": _("Audit"),
+            "authentication": _("Authentication"),
             "automember": _("Automember"),
             "automount": _("Automount"),
             "cert": _("Certificates"),
@@ -705,6 +706,7 @@ class i18n_messages(Command):
             "hbac": _("Host Based Access Control"),
             "identity": _("Identity"),
             "ipaserver": _("IPA Server"),
+            "network_services": _("Network Services"),
             "policy": _("Policy"),
             "role": _("Role Based Access Control"),
             "sudo": _("Sudo"),
