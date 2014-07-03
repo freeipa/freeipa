@@ -210,6 +210,10 @@ class update_master_to_dnsforwardzones(PostUpdate):
             # add time to filename
             self.backup_path = time.strftime(self.backup_path)
 
+            # DNs of privileges which contain dns managed permissions
+            privileges_to_ldif = set()  # store priviledges only once
+            zone_to_privileges = {}  # zone: [privileges cn]
+
             self.log.info('Zones with specified forwarders with policy different'
                           ' than none will be transformed to forward zones.')
             self.log.info('Original zones will be saved in LDIF format in '
@@ -228,7 +232,13 @@ class update_master_to_dnsforwardzones(PostUpdate):
 
                             if 'managedBy' in zone:
                                 entry = ldap.get_entry(DN(zone['managedBy'][0]))
+                                for privilege_member_dn in entry.get('member', []):
+                                    privileges_to_ldif.add(privilege_member_dn)
                                 writer.unparse(str(entry.dn), dict(entry.raw))
+
+                                # privileges where permission is used
+                                if entry.get('member'):
+                                    zone_to_privileges[zone['idnsname'][0]] = entry['member']
 
                             # raw values are required to store into ldif
                             records = api.Command['dnsrecord_find'](
@@ -249,6 +259,17 @@ class update_master_to_dnsforwardzones(PostUpdate):
                                            zone['idnsname'][0])
                             self.log.error(traceback.format_exc())
                             return (False, False, [])
+
+                    for privilege_dn in privileges_to_ldif:
+                        try:
+                            entry = ldap.get_entry(privilege_dn)
+                            writer.unparse(str(entry.dn), dict(entry.raw))
+                        except Exception, e:
+                            self.log.error('Unable to backup privilege %s' %
+                                           privilege_dn)
+                            self.log.error(traceback.format_exc())
+                            return (False, False, [])
+
                     f.close()
             except Exception:
                 self.log.error('Unable to create backup file')
@@ -285,7 +306,8 @@ class update_master_to_dnsforwardzones(PostUpdate):
                 # create permission if original zone has one
                 if 'managedBy' in zone:
                     try:
-                        api.Command['dnsforwardzone_add_permission'](zone['idnsname'][0])
+                        perm_name = api.Command['dnsforwardzone_add_permission'](
+                                        zone['idnsname'][0])['value']
                     except Exception, e:
                         self.log.error('Transform to forwardzone terminated: '
                                        'Adding managed by permission to forward zone'
@@ -296,8 +318,27 @@ class update_master_to_dnsforwardzones(PostUpdate):
                                       zone['idnsname'][0])
                         continue
 
+                    else:
+                        if zone['idnsname'][0] in zone_to_privileges:
+                            privileges = [
+                                dn[0].value for dn in zone_to_privileges[zone['idnsname'][0]]
+                            ]
+                            try:
+                                api.Command['permission_add_member'](perm_name,
+                                                    privilege=privileges)
+                            except Exception, e:
+                                self.log.error('Unable to restore privileges for '
+                                       'permission %s, for zone %s'
+                                        % (perm_name, zone['idnsname']))
+                                self.log.error(traceback.format_exc())
+                                self.log.info('Zone %s was transformed to forward zone'
+                                              ' without restored privileges',
+                                              zone['idnsname'][0])
+                                continue
+
                 self.log.info('Zone %s was sucessfully transformed to forward zone',
                               zone['idnsname'][0])
+
 
         sysupgrade.set_upgrade_state('dns', 'update_to_forward_zones', False)
 
