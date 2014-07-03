@@ -1708,6 +1708,15 @@ def _records_idn_postprocess(record, **options):
                 rrs.append(dnsvalue)
         record[attr] = rrs
 
+def _normalize_zone(zone):
+    if isinstance(zone, unicode):
+        # normalize only non-IDNA zones
+        try:
+            return unicode(zone.encode('ascii')).lower()
+        except UnicodeError:
+            pass
+    return zone
+
 
 class DNSZoneBase(LDAPObject):
     """
@@ -1727,6 +1736,7 @@ class DNSZoneBase(LDAPObject):
             label=_('Zone name'),
             doc=_('Zone name (FQDN)'),
             default_from=lambda name_from_ip: _reverse_zone_name(name_from_ip),
+            normalizer=_normalize_zone,
             primary_key=True,
         ),
         Str('name_from_ip?', _validate_ipnet,
