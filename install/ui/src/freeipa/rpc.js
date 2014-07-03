@@ -27,9 +27,10 @@ define([
     './auth',
     './ipa',
     './text',
+    './util',
     'exports'
    ],
-   function(lang, auth, IPA, text, rpc /*exports*/) {
+   function(lang, auth, IPA, text, util, rpc /*exports*/) {
 
 /**
  * Call an IPA command over JSON-RPC.
@@ -177,6 +178,23 @@ rpc.command = function(spec) {
      */
     that.remove_option = function(name) {
         delete that.options[name];
+    };
+
+    /**
+     * Check result for warnings and process them
+     * @param  {Object} result
+     */
+    that.process_warnings = function(result) {
+
+        var msgs = result.messages;
+        if (!result.messages) return;
+
+        for (var i=0,l=msgs.length; i<l; i++) {
+            var msg = lang.clone(msgs[i]);
+            // escape and reformat message
+            msg.message = util.beautify_message(msg.message);
+            IPA.notify(msg.message, msg.type);
+        }
     };
 
     /**
@@ -359,6 +377,7 @@ rpc.command = function(spec) {
                     //custom success handling, maintaining AJAX call's context
                     if (that.on_success) that.on_success.call(this, data, text_status, xhr);
                 }
+                that.process_warnings(data.result);
             }
         }
 

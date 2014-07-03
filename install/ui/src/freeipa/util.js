@@ -220,6 +220,27 @@ define([
         }, 0);
     }
 
+    function beautify_message(message) {
+        var els = [];
+        var lines = message.split(/\n/g);
+        var line_span;
+        for (var i=0,l=lines.length; i<l; i++) {
+            if (lines[i].charAt(0) == '\t') {
+                line_span = $('<p />', {
+                    'class': 'error-message-hinted',
+                    text: lines[i].substr(1)
+                });
+                els.push(line_span);
+            } else {
+                line_span = $('<p />', {
+                    text: lines[i]
+                });
+                els.push(line_span);
+            }
+        }
+        return els;
+    }
+
     /**
      * Module with utility functions
      * @class
@@ -328,7 +349,20 @@ define([
          * @param {Object} event Event object
          * @param {Number} [delay=0]
          */
-        emit_delayed: emit_delayed
+        emit_delayed: emit_delayed,
+
+        /**
+         * Beautify message
+         *
+         * Converts text value into array of HTML <p> elements. One additional
+         * paragraph for each line break.
+         *
+         * Multi-lined text may contain TAB character as first char of the line
+         * to hint at marking the whole line differently.
+         * @param {string} text
+         * @return {Array} array of jQuery elements
+         */
+        beautify_message: beautify_message
     };
 
     return util;

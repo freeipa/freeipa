@@ -5557,12 +5557,18 @@ exp.alert_helper = IPA.alert_helper = {
      * @param  {Object} alert
      * @return {jQuery} alert as html element
      */
-    render_alert: function(alert) {
+    render_alert: function(alert, close_icon) {
 
         var el = $('<div/>', {
             'data-name': alert.name,
-            'class': alert.cls
+            'class': "fade in " + alert.cls
         });
+        if (close_icon) {
+            el.addClass('alert-dismissable');
+            el.append("<button type=\"button\" class=\"close\" \
+            data-dismiss=\"alert\"><span aria-hidden=\"true\">&times;\
+            </span><span class=\"sr-only\">Close</span></button>");
+        }
         $('<span/>', { 'class': alert.icon }).appendTo(el);
         el.append(' ');
         el.append(alert.text);

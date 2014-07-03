@@ -36,9 +36,10 @@ define([
         './reg',
         './rpc',
         './text',
+        './util',
         'exports'
     ], function(Deferred, keys, topic, $, JSON, i18n, auth, datetime,
-        metadata_provider, builder, reg, rpc, text, exports) {
+        metadata_provider, builder, reg, rpc, text, util, exports) {
 
 /**
  * @class
@@ -830,32 +831,6 @@ IPA.error_dialog = function(spec) {
     /** @property {string[]} visible_buttons=['retry', 'cancel'] Visible button names */
     that.visible_buttons = spec.visible_buttons || ['retry', 'cancel'];
 
-    /**
-     * Beautify error message
-     *
-     * Multi-lined text may contain TAB character as first char of the line
-     * to hint at marking the whole line differently.
-     * @param {jQuery} container Container to add the beautified message.
-     * @param {string} message
-     */
-    that.beautify_message = function(container, message) {
-        var lines = message.split(/\n/g);
-        var line_span;
-        for(var i=0; i<lines.length; i++) {
-
-            if (lines[i].charAt(0) == '\t') {
-                line_span = $('<p />', {
-                    'class': 'error-message-hinted',
-                    text: lines[i].substr(1)
-                }).appendTo(container);
-            } else {
-                line_span = $('<p />', {
-                    text: lines[i]
-                }).appendTo(container);
-            }
-        }
-    };
-
     /** @inheritDoc */
     that.create_content = function() {
         if (that.error_thrown.url) {
@@ -865,7 +840,7 @@ IPA.error_dialog = function(spec) {
         }
 
         var error_message = $('<div />', {});
-        that.beautify_message(error_message, that.error_thrown.message);
+        error_message.append(util.beautify_message(that.error_thrown.message));
         error_message.appendTo(that.container);
 
         if(that.errors && that.errors.length > 0) {
@@ -896,7 +871,7 @@ IPA.error_dialog = function(spec) {
                 var error = that.errors[i];
                 if(error.message) {
                     var error_div = $('<li />', {});
-                    that.beautify_message(error_div, error.message);
+                    error_div.append(util.beautify_message(error.message));
                     error_div.appendTo(errors_container);
                 }
             }
@@ -1161,36 +1136,38 @@ IPA.notify = function(message, type, timeout) {
 
     if (!message) return; // don't show undefined, null and such
 
-    message = text.get(message);
-
-    function destroy_timeout() {
-        if (IPA.notify_success.timeout) window.clearTimeout(IPA.notify_success.timeout);
+    if (typeof message === 'string') {
+        message = text.get(message);
     }
 
-    var notification_area = $('.notification-area');
+    var notification_area = $('#notification .notification-area');
     if (notification_area.length === 0) {
         notification_area =  $('<div/>', {
-            'class': 'notification-area',
-            click: function() {
-                destroy_timeout();
-                notification_area.fadeOut(100);
-            }
+            'class': 'notification-area'
         });
-
         notification_area.appendTo('#notification');
     }
-    notification_area.empty();
-
     var alert = IPA.alert_helper.create_alert('msg', message, type);
-    var el = IPA.alert_helper.render_alert(alert);
+    var el = IPA.alert_helper.render_alert(alert, true);
     notification_area.append(el);
+    el.alert();
 
-    destroy_timeout();
-    notification_area.fadeIn(IPA.config.message_fadein_time);
+    if (!timeout) {
+        // compute timeout, based on text length
 
-    IPA.notify_success.timeout = window.setTimeout(function() {
-        notification_area.fadeOut(IPA.config.message_fadeout_time);
-    }, timeout || IPA.config.message_timeout);
+        // get text length without whitespace chars (misleading with
+        // multiple inner HTML elements)
+        var l = el.text().replace(/\s+/g, ' ').length;
+        var ratio = IPA.config.message_timeout_length;
+        if (l < ratio) timeout = IPA.config.message_timeout;
+        else {
+            timeout = l/ratio*IPA.config.message_timeout;
+        }
+    }
+
+    window.setTimeout(function() {
+        el.alert('close');
+    }, timeout);
 };
 
 /**
@@ -1220,14 +1197,13 @@ IPA.get_succeeded = function(data) {
  * @property {number} default_priority - command default priority. Used in
  *                                        'update info' concept
  * @property {number} message_timeout - timeout for notification messages
- * @property {number} message_fadeout_time
- * @property {number} message_fadein_time
+ * @property {number} message_timeout_length - longer messages will be displayed
+ *                                             longer
  */
 IPA.config = {
     default_priority: 500,
     message_timeout: 3000, // [ms]
-    message_fadeout_time: 800, // [ms]
-    message_fadein_time: 400 // [ms]
+    message_timeout_length: 50 // [chars]
 };
 
 return IPA;
