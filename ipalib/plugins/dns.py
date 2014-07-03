@@ -1801,6 +1801,21 @@ class DNSZoneBase(LDAPObject):
 
         return None
 
+    def _remove_permission(self, zone):
+        permission_name = self.permission_name(zone)
+        try:
+            api.Command['permission_del'](permission_name, force=True)
+        except errors.NotFound, e:
+            # compatibility, older IPA versions which allows to create zone
+            # without absolute zone name
+            permission_name_rel = self.permission_name(
+                zone.relativize(DNSName.root)
+            )
+            try:
+                api.Command['permission_del'](permission_name_rel, force=True)
+            except errors.NotFound:
+                raise e  # re-raise original exception
+
 
 class DNSZoneBase_add(LDAPCreate):
 
@@ -1838,8 +1853,7 @@ class DNSZoneBase_del(LDAPDelete):
 
     def post_callback(self, ldap, dn, *keys, **options):
         try:
-            api.Command['permission_del'](self.obj.permission_name(keys[-1]),
-                    force=True)
+            self.obj._remove_permission(keys[-1])
         except errors.NotFound:
             pass
 
@@ -2017,18 +2031,9 @@ class DNSZoneBase_remove_permission(LDAPQuery):
 
         permission_name = self.obj.permission_name(keys[-1])
         try:
-            api.Command['permission_del'](permission_name, force=True)
-        except errors.NotFound, e:
-            # compatibility, older IPA versions which allows to create zone
-            # without absolute zone name
-            permission_name_rel = self.obj.permission_name(
-                keys[-1].relativize(DNSName.root)
-            )
-            try:
-                api.Command['permission_del'](permission_name_rel, force=True)
-            except errors.NotFound:
-                raise e  # re-raise original exception
-
+            self.obj._remove_permission(keys[-1])
+        except errors.NotFound:
+            pass
 
         return dict(
             result=True,
