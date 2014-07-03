@@ -868,7 +868,21 @@ class CertDB(object):
             raise RuntimeError("Could not find a suitable server cert in import in %s" % pkcs12_fname)
 
         if ca_file:
-            self.nssdb.import_pem_cert('CA', ',,', ca_file)
+            try:
+                with open(ca_file) as fd:
+                    certs = fd.read()
+            except IOError as e:
+                raise RuntimeError(
+                    "Failed to open %s: %s" % (ca_file, e.strerror))
+            st = 0
+            num = 1
+            while True:
+                try:
+                    cert, st = find_cert_from_txt(certs, st)
+                except RuntimeError:
+                    break
+                self.add_cert(cert, 'CA %s' % num, ',,', pem=True)
+                num += 1
 
         # We only handle one server cert
         nickname = server_certs[0][0]
