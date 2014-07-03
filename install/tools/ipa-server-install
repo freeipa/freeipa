@@ -1162,6 +1162,11 @@ def main():
             subject_base=options.subject, auto_redirect=options.ui_redirect)
     tasks.restore_context(paths.CACHE_IPA_SESSIONS)
 
+    # Export full CA chain
+    ca_db = certs.CertDB(realm_name)
+    os.chmod(CACERT, 0644)
+    ca_db.publish_ca_cert(CACERT)
+
     set_subject_in_config(realm_name, dm_password, ipautil.realm_to_suffix(realm_name), options.subject)
 
     # Apply any LDAP updates. Needs to be done after the configuration file
