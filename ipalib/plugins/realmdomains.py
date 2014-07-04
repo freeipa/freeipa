@@ -79,6 +79,14 @@ class realmdomains(LDAPObject):
                 'objectclass', 'cn', 'associateddomain',
             },
         },
+        'System: Modify Realm Domains': {
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'associatedDomain',
+            },
+            'default_privileges': {'DNS Administrators'},
+        },
     }
 
     label = _('Realm Domains')

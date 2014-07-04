@@ -154,6 +154,8 @@ dn: cn=System: Modify Group Password Policy,cn=permissions,cn=pbac,dc=ipa,dc=exa
 aci: (targetattr = "krbmaxpwdlife || krbminpwdlife || krbpwdfailurecountinterval || krbpwdhistorylength || krbpwdlockoutduration || krbpwdmaxfailure || krbpwdmindiffchars || krbpwdminlength")(targetfilter = "(objectclass=krbpwdpolicy)")(version 3.0;acl "permission:System: Modify Group Password Policy";allow (write) groupdn = "ldap:///cn=System: Modify Group Password Policy,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Group Password Policy,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "cn || cospriority || krbmaxpwdlife || krbminpwdlife || krbpwdfailurecountinterval || krbpwdhistorylength || krbpwdlockoutduration || krbpwdmaxfailure || krbpwdmindiffchars || krbpwdminlength || objectclass")(targetfilter = "(objectclass=krbpwdpolicy)")(version 3.0;acl "permission:System: Read Group Password Policy";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Group Password Policy,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=System: Modify Realm Domains,cn=permissions,cn=pbac,dc=ipa,dc=example
+aci: (targetattr = "associateddomain")(targetfilter = "(objectclass=domainrelatedobject)")(version 3.0;acl "permission:System: Modify Realm Domains";allow (write) groupdn = "ldap:///cn=System: Modify Realm Domains,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=System: Read Realm Domains,cn=permissions,cn=pbac,dc=ipa,dc=example
 aci: (targetattr = "associateddomain || cn || objectclass")(targetfilter = "(objectclass=domainrelatedobject)")(version 3.0;acl "permission:System: Read Realm Domains";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=System: Add Roles,cn=permissions,cn=pbac,dc=ipa,dc=example
