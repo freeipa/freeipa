@@ -139,6 +139,15 @@ dlv_dn = DN(('idnsname', dlv), zone1_dn)
 
 dlvrec = u'60485 5 1 2BB183AF5F22588179A53B0A98631FAD1A292118'
 
+tlsa = u'tlsa'
+tlsa_dnsname = DNSName(tlsa)
+tlsa_dn = DN(('idnsname', tlsa), zone1_dn)
+
+tlsarec_err1 = u'300 0 1 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
+tlsarec_err2 = u'0 300 1 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
+tlsarec_err3 = u'0 0 300 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
+tlsarec_ok = u'0 0 1 d2abde240d7cd3ee6b4b28c54df034b97983a1d16e8a410e4561cb106618e971'
+
 wildcard_rec1 = u'*.test'
 wildcard_rec1_dnsname = DNSName(wildcard_rec1)
 wildcard_rec1_dn = DN(('idnsname',wildcard_rec1), zone1_dn)
@@ -1272,6 +1281,63 @@ class test_dns(Declarative):
             expected={
                 'value': [dlv_dnsname],
                 'summary': u'Deleted record "%s"' % dlv,
+                'result': {'failed': []},
+            },
+        ),
+
+
+        dict(
+            desc='Try to add invalid TLSA record to %r using dnsrecord_add (1)' % (tlsa),
+            command=('dnsrecord_add', [zone1, tlsa], {'tlsarecord': tlsarec_err1}),
+            expected=errors.ValidationError(
+                name="cert_usage",
+                error=u'can be at most 255'
+            ),
+        ),
+
+
+        dict(
+            desc='Try to add invalid TLSA record to %r using dnsrecord_add (2)' % (tlsa),
+            command=('dnsrecord_add', [zone1, tlsa], {'tlsarecord': tlsarec_err2}),
+            expected=errors.ValidationError(
+                name="selector",
+                error=u'can be at most 255'
+            ),
+        ),
+
+
+        dict(
+            desc='Try to add invalid TLSA record to %r using dnsrecord_add (3)' % (tlsa),
+            command=('dnsrecord_add', [zone1, tlsa], {'tlsarecord': tlsarec_err3}),
+            expected=errors.ValidationError(
+                name="matching_type",
+                error=u'can be at most 255'
+            ),
+        ),
+
+
+        dict(
+            desc='Add TLSA record to %r using dnsrecord_add' % (tlsa),
+            command=('dnsrecord_add', [zone1, tlsa], {'tlsarecord': tlsarec_ok}),
+            expected={
+                'value': tlsa_dnsname,
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnsrecord,
+                    'dn': tlsa_dn,
+                    'idnsname': [tlsa_dnsname],
+                    'tlsarecord': [tlsarec_ok],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Delete record %r in zone %r' % (tlsa, zone1),
+            command=('dnsrecord_del', [zone1, tlsa], {'del_all': True}),
+            expected={
+                'value': [tlsa_dnsname],
+                'summary': u'Deleted record "%s"' % tlsa,
                 'result': {'failed': []},
             },
         ),
