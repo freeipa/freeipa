@@ -73,6 +73,15 @@ zone3_ns2_arec = u'ns2'
 zone3_ns2_arec_dnsname = DNSName(zone3_ns2_arec)
 zone3_ns2_arec_dn = DN(('idnsname',zone3_ns2_arec), zone3_dn)
 
+zone4_upper = u'ZONE4.test'
+zone4 = u'zone4.test.'
+zone4_dnsname = DNSName(zone4)
+zone4_dn = DN(('idnsname', zone4), api.env.container_dns, api.env.basedn)
+zone4_ns = u'ns1.%s' % zone4
+zone4_ns_dnsname = DNSName(zone4_ns)
+zone4_rname = u'root.%s' % zone4
+zone4_rname_dnsname = DNSName(zone4_rname)
+
 revzone1 = u'31.16.172.in-addr.arpa.'
 revzone1_dnsname = DNSName(revzone1)
 revzone1_ip = u'172.16.31.0'
@@ -259,7 +268,7 @@ class test_dns(Declarative):
             pass
 
     cleanup_commands = [
-        ('dnszone_del', [zone1, zone2, zone3, revzone1, revzone2,
+        ('dnszone_del', [zone1, zone2, zone3, zone4, revzone1, revzone2,
                          revzone3_classless1, revzone3_classless2,
                          idnzone1, revidnzone1, zone_findtest_master],
             {'continue': True}),
@@ -387,6 +396,43 @@ class test_dns(Declarative):
                     'idnssoamname': [zone2_ns_dnsname],
                     'nsrecord': [zone2_ns],
                     'idnssoarname': [zone2_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Create a zone with upper case name with --force',
+            command=(
+                'dnszone_add', [zone4_upper], {
+                    'idnssoamname': zone4_ns,
+                    'idnssoarname': zone4_rname,
+                    'force'       : True,
+                }
+            ),
+            expected={
+                'value': zone4_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone4_dn,
+                    'idnsname': [zone4_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [zone4_ns_dnsname],
+                    'nsrecord': [zone4_ns],
+                    'idnssoarname': [zone4_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
