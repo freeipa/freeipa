@@ -553,6 +553,59 @@ aci.attributes_widget = function(spec) {
 
     var id = spec.name;
 
+    that.create = function(container) {
+        that.container = container;
+
+        that.widget_create(container);
+        that.create_search_filter(container);
+        that.owb_create(container);
+
+        if (that.undo) {
+            that.create_undo(container);
+        }
+
+        that.create_error_link(container);
+    };
+
+    that.create_search_filter = function(container) {
+        var filter_container = $('<div/>', {
+            'class': 'search-filter'
+        });
+
+        that.filter = $('<input/>', {
+            type: 'text',
+            name: 'filter',
+            'class': 'form-control',
+            placeholder: text.get('@i18n:objects.permission.filter')
+        }).appendTo(filter_container);
+
+        that.filter.keyup(function(e) {
+            that.filter_options();
+        });
+
+        var find_button = IPA.action_button({
+            name: 'find',
+            icon: 'fa-search',
+            click: function() {
+                that.filter_options();
+                return false;
+            }
+        }).appendTo(filter_container);
+
+        filter_container.appendTo(container);
+    };
+
+    that.filter_options = function() {
+        $("li", that.$node).each(function() {
+            var item = $(this);
+            if(item.find('input').val().indexOf(that.filter.val()) === -1) {
+                item.css('display','none');
+            } else {
+                item.css('display','inline');
+            }
+        });
+    };
+
     that.update = function(values) {
 
         that.values = [];

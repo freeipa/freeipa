@@ -374,6 +374,7 @@
                             "enable": "Enable token"
                         },
                         "permission": {
+                            "filter": "Filter",
                             "identity": "Permission settings",
                             "managed": "Attribute breakdown",
                             "target": "Target"

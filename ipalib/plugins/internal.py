@@ -518,6 +518,7 @@ class i18n_messages(Command):
                 "enable": "Enable token",
             },
             "permission": {
+                "filter": _("Filter"),
                 "identity": _("Permission settings"),
                 "managed": _("Attribute breakdown"),
                 "target": _("Target"),
