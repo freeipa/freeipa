@@ -28,9 +28,9 @@ add:aci:'(targetfilter="(&(objectclass=nsContainer)(!(objectclass=krbPwdPolicy))
 dn: cn=replicas,cn=ipa,cn=etc,$SUFFIX
 add:aci:'(targetfilter="(objectclass=nsContainer)")(version 3.0; acl "Deny read access to replica configuration"; deny(read, search, compare) userdn = "ldap:///anyone";)'
 
-# Read access to masters (but not their services)
+# Read access to masters and their services
 dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
-add:aci:'(targetfilter="(&(objectclass=nsContainer)(!(objectclass=ipaConfigObject)))")(targetattr="objectclass || cn")(version 3.0; acl "Read access to masters"; allow(read, search, compare) userdn = "ldap:///all";)'
+add:aci:'(targetfilter="(objectclass=nsContainer)")(targetattr="objectclass || cn")(version 3.0; acl "Read access to masters"; allow(read, search, compare) userdn = "ldap:///all";)'
 
 # Read access to Kerberos container (cn=kerberos) and realm containers (cn=$REALM,cn=kerberos)
 dn: cn=kerberos,$SUFFIX
