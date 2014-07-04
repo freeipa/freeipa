@@ -61,11 +61,11 @@ PERMISSION_DATA = {
         ('checkbox', 'ipapermright', 'write'),
         ('checkbox', 'ipapermright', 'read'),
         ('selectbox', 'type', 'user'),
-        ('table', 'attrs', 'audio'),
-        ('table', 'attrs', 'cn'),
+        ('checkbox', 'attrs', 'audio'),
+        ('checkbox', 'attrs', 'cn'),
     ],
     'mod': [
-        ('table', 'attrs', 'carlicense'),
+        ('checkbox', 'attrs', 'carlicense'),
     ],
 }
 

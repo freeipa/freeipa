@@ -30,11 +30,11 @@ DATA = {
     'pkey': PKEY,
     'add': [
         ('textbox', 'aciname', PKEY),
-        ('table', 'attrs', 'audio'),
-        ('table', 'attrs', 'businesscategory'),
+        ('checkbox', 'attrs', 'audio'),
+        ('checkbox', 'attrs', 'businesscategory'),
     ],
     'mod': [
-        ('table', 'attrs', 'businesscategory'),
+        ('checkbox', 'attrs', 'businesscategory'),
     ],
 }
 

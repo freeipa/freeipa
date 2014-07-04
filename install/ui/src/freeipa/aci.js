@@ -544,6 +544,7 @@ return {
 aci.attributes_widget = function(spec) {
 
     spec = spec || {};
+    spec.layout = spec.layout || 'columns attribute_widget';
 
     var that = IPA.checkboxes_widget(spec);
 
@@ -551,83 +552,6 @@ aci.attributes_widget = function(spec) {
     that.skip_unmatched = spec.skip_unmatched === undefined ? false : spec.skip_unmatched;
 
     var id = spec.name;
-
-    that.create = function(container) {
-        that.container = container;
-
-        var attr_container = $('<div/>', {
-            'class': 'aci-attribute-table-container'
-        }).appendTo(container);
-
-        that.$node = that.table = $('<table/>', {
-            id: id,
-            name: that.name,
-            'class': 'table table-bordered table-condensed aci-attribute-table scrollable'
-        }).
-            append('<thead/>').
-            append('<tbody/>').
-            appendTo(attr_container);
-
-        var tr = $('<tr></tr>').appendTo($('thead', that.table));
-
-        var th = $('<th/>').appendTo(tr);
-        IPA.standalone_option({
-            type: "checkbox",
-            click: function() {
-                $('.aci-attribute', that.table).
-                    prop('checked', $(this).prop('checked'));
-                that.value_changed.notify([], that);
-                that.emit('value-change', { source: that });
-            }
-        }, th);
-
-        tr.append($('<th/>', {
-            'class': 'aci-attribute-column',
-            html: text.get('@i18n:objects.aci.attribute')
-        }));
-
-        if (that.undo) {
-            that.create_undo(container);
-        }
-
-        if (that.object_type) {
-            that.populate(that.object_type);
-        }
-
-        that.create_error_link(container);
-    };
-
-    that.create_options = function(options) {
-        var tbody = $('tbody', that.table);
-
-        for (var i=0; i<options.length ; i++){
-            var option = options[i];
-            var value = option.value.toLowerCase();
-            var tr = $('<tr/>').appendTo(tbody);
-
-            var td =  $('<td/>').appendTo(tr);
-            var name = that.get_input_name();
-            var id = that._option_next_id + name;
-            var opt = IPA.standalone_option({
-                id: id,
-                type: 'checkbox',
-                name: name,
-                value: value,
-                'class': 'aci-attribute',
-                change: function() {
-                    that.value_changed.notify([], that);
-                    that.emit('value-change', { source: that });
-                }
-            }, td);
-            td = $('<td/>').appendTo(tr);
-            td.append($('<label/>',{
-                text: value,
-                'for': id
-            }));
-            option.input_node = opt[0];
-            that.new_option_id();
-        }
-    };
 
     that.update = function(values) {
 
@@ -646,13 +570,11 @@ aci.attributes_widget = function(spec) {
 
         that.populate(that.object_type);
         that.append();
-        that.create_options(that.options);
+        that.owb_create(that.container);
         that.owb_update(values);
     };
 
     that.populate = function(object_type) {
-
-        $('tbody tr', that.table).remove();
 
         if (!object_type || object_type === '') return;
 
@@ -687,10 +609,6 @@ aci.attributes_widget = function(spec) {
             if (o[i].value === value) return true;
         }
         return false;
-    };
-
-    that.show_undo = function() {
-        $(that.undo_span).css('display', 'inline-block');
     };
 
     return that;

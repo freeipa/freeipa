@@ -33,11 +33,11 @@ DATA = {
         ('textbox', 'aciname', PKEY),
         ('combobox', 'group', 'editors'),
         ('combobox', 'memberof', 'ipausers'),
-        ('table', 'attrs', 'audio'),
-        ('table', 'attrs', 'businesscategory'),
+        ('checkbox', 'attrs', 'audio'),
+        ('checkbox', 'attrs', 'businesscategory'),
     ],
     'mod': [
-        ('table', 'attrs', 'businesscategory'),
+        ('checkbox', 'attrs', 'businesscategory'),
     ],
 }
 

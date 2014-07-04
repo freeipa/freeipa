@@ -1444,7 +1444,6 @@ IPA.option_widget_base = function(spec, that) {
 
     that.create = function(container) {
         that.destroy();
-        that.create_options(that.$node);
         var css_class = [that.css_class, 'option_widget', that.layout,
                 that.nested ? 'nested': ''].join(' ');
 
