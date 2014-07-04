@@ -625,6 +625,14 @@ class LDAPUpdate:
                         (old, new) = update_value.split('::', 1)
                     except ValueError:
                         raise BadSyntax, "bad syntax in replace, needs to be in the format old::new in %s" % update_value
+                    try:
+                        entry_values.remove(old)
+                    except ValueError:
+                        self.debug('replace: %s not found, skipping', safe_output(attr, old))
+                    else:
+                        entry_values.append(new)
+                        self.debug('replace: updated value %s', safe_output(attr, entry_values))
+                        entry[attr] = entry_values
 
         return entry
 
