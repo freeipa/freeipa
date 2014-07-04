@@ -96,6 +96,10 @@ revzone3_classless2_ip = u'172.16.70.128'
 revzone3_classless2_ipprefix = u'172.16.70.'
 revzone3_classless2_dn = DN(('idnsname', revzone3_classless2), api.env.container_dns, api.env.basedn)
 
+revzone3_classless2_permission = u'Manage DNS zone %s' % revzone3_classless2
+revzone3_classless2_permission_dn = DN(('cn', revzone3_classless2_permission),
+                           api.env.container_permission, api.env.basedn)
+
 name1 = u'testdnsres'
 name1_dnsname = DNSName(name1)
 name1_dn = DN(('idnsname',name1), zone1_dn)
@@ -266,7 +270,8 @@ class test_dns(Declarative):
                                'idnsallowsyncptr' : None,
                                }),
         ('permission_del', [zone1_permission, idnzone1_permission,
-                            fwzone1_permission], {'force': True}
+                            fwzone1_permission,
+                            revzone3_classless2_permission], {'force': True}
         ),
     ]
 
@@ -1814,6 +1819,33 @@ class test_dns(Declarative):
                 },
             },
         ),
+
+
+        dict(
+            desc='Add per-zone permission for classless zone %r' % revzone3_classless2,
+            command=(
+                'dnszone_add_permission', [revzone3_classless2], {}
+            ),
+            expected=dict(
+                result=True,
+                value=revzone3_classless2_permission,
+                summary=u'Added system permission "%s"' % revzone3_classless2_permission,
+            ),
+        ),
+
+
+        dict(
+            desc='Remove per-zone permission for classless zone %r' % revzone3_classless2,
+            command=(
+                'dnszone_remove_permission', [revzone3_classless2], {}
+            ),
+            expected=dict(
+                result=True,
+                value=revzone3_classless2_permission,
+                summary=u'Removed system permission "%s"' % revzone3_classless2_permission,
+            ),
+        ),
+
 
         dict(
             desc='Add NS record to %r in revzone %r' % (nsrev, revzone3_classless1),

@@ -223,9 +223,9 @@ class permission(baseldap.LDAPObject):
             cli_name='name',
             label=_('Permission name'),
             primary_key=True,
-            pattern='^[-_ a-zA-Z0-9.:]+$',
+            pattern='^[-_ a-zA-Z0-9.:/]+$',
             pattern_errmsg="May only contain letters, numbers, "
-                           "-, _, ., :, and space",
+                           "-, _, ., :, /, and space",
         ),
         StrEnum(
             'ipapermright*',
