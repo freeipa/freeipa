@@ -4,10 +4,7 @@
 %global plugin_dir %{_libdir}/dirsrv/plugins
 %global POLICYCOREUTILSVER 2.1.12-5
 %global gettext_domain ipa
-
-%if (0%{?fedora} > 15 || 0%{?rhel} >= 7)
 %define _hardened_build 1
-%endif
 
 Name:           freeipa
 Version:        __VERSION__
@@ -25,14 +22,9 @@ BuildRequires:  389-ds-base-devel >= 1.3.2.16
 BuildRequires:  svrcore-devel
 BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
 BuildRequires:  systemd-units
-%if 0%{?fedora} >= 18
 BuildRequires:  samba-devel >= 2:4.0.5-1
 BuildRequires:  samba-python
 BuildRequires:  libwbclient-devel
-%else
-BuildRequires:  samba4-devel >= 4.0.0-139
-BuildRequires:  samba4-python
-%endif
 BuildRequires:  libtalloc-devel
 BuildRequires:  libtevent-devel
 %endif # ONLY_CLIENT
@@ -81,11 +73,6 @@ BuildRequires:  libunistring-devel
 BuildRequires:  python-lesscpy
 BuildRequires:  python-yubico
 
-# Find out Kerberos middle version to infer ABI changes in DAL driver
-# We cannot load DAL driver into KDC with wrong ABI.
-# This is also needed to support ipa-devel repository where krb5 1.11 is available for F18
-%global krb5_dal_version %{expand:%(echo "#include <kdb.h>"|cpp -dM|grep KRB5_KDB_DAL_MAJOR_VERSION|cut -d' ' -f3)}
-
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
 user, virtual machines, groups, authentication credentials), Policy
@@ -99,36 +86,17 @@ Group: System Environment/Base
 Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
-Requires: 389-ds-base >= 1.3.2.16
+Requires: 389-ds-base >= 1.3.2.19
 Requires: openldap-clients > 2.4.35-4
-%if 0%{?fedora} == 18
-Requires: nss >= 3.14.3-2
-Requires: nss-tools >= 3.14.3-2
-%else
 Requires: nss >= 3.14.3-12.0
 Requires: nss-tools >= 3.14.3-12.0
-%endif
-%if 0%{?krb5_dal_version} >= 4
 Requires: krb5-server >= 1.11.5-3
-%else
-%if 0%{krb5_dal_version} == 3
-# krb5 1.11 bumped DAL interface major version, a rebuild is needed
-Requires: krb5-server < 1.11
-Requires: krb5-server >= 1.10
-%else
-Requires: krb5-server >= 1.10
-%endif
-%endif
 Requires: krb5-pkinit-openssl
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
 Requires: httpd >= 2.4.6-6
 Requires: mod_wsgi
-%if 0%{?fedora} >= 18
 Requires: mod_auth_kerb >= 5.4-16
-%else
-Requires: mod_auth_kerb >= 5.4-8
-%endif
 Requires: mod_nss >= 1.0.8-26
 Requires: python-ldap
 Requires: python-krbV
@@ -140,7 +108,7 @@ Requires: dbus-python
 Requires: systemd-units >= 38
 Requires(pre): systemd-units
 Requires(post): systemd-units
-Requires: selinux-policy >= 3.12.1-135
+Requires: selinux-policy >= 3.12.1-176
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.47.7
 Requires: pki-ca >= 10.1.1
@@ -155,7 +123,7 @@ Requires: zip
 Requires: policycoreutils >= %{POLICYCOREUTILSVER}
 Requires: tar
 Requires(pre): certmonger >= 0.65
-Requires(pre): 389-ds-base >= 1.3.2.11
+Requires(pre): 389-ds-base >= 1.3.2.19
 Requires: fontawesome-fonts
 Requires: open-sans-fonts
 
@@ -166,11 +134,7 @@ Obsoletes: freeipa-server-selinux < 3.3.0
 # We have a soft-requires on bind. It is an optional part of
 # IPA but if it is configured we need a way to require versions
 # that work for us.
-%if 0%{?fedora} >= 18
-Conflicts: bind-dyndb-ldap < 3.5
-%else
-Conflicts: bind-dyndb-ldap < 1.1.0-0.12.rc1
-%endif
+Conflicts: bind-dyndb-ldap < 5.0
 Conflicts: bind < 9.8.2-0.4.rc2
 
 # Versions of nss-pam-ldapd < 0.8.4 require a mapping from uniqueMember to
@@ -193,19 +157,11 @@ Summary: Virtual package to install packages required for Active Directory trust
 Group: System Environment/Base
 Requires: %{name}-server = %version-%release
 Requires: m2crypto
-%if 0%{?fedora} >= 18
 Requires: samba-python
 Requires: samba >= 2:4.0.5-1
 Requires: samba-winbind
-%else
-Requires: samba4-python
-Requires: samba4
-Requires: samba4-winbind
-%endif
 Requires: libsss_idmap
-%if 0%{?fedora} >= 19
 Requires: libsss_nss_idmap-python
-%endif
 # We use alternatives to divert winbind_krb5_locator.so plugin to libkrb5
 # on the installes where server-trust-ad subpackage is installed because
 # IPA AD trusts cannot be used at the same time with the locator plugin
