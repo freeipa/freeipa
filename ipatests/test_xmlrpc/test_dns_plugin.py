@@ -82,6 +82,14 @@ zone4_ns_dnsname = DNSName(zone4_ns)
 zone4_rname = u'root.%s' % zone4
 zone4_rname_dnsname = DNSName(zone4_rname)
 
+zone5 = u'zone--5.test.'
+zone5_dnsname = DNSName(zone5)
+zone5_dn = DN(('idnsname', zone5), api.env.container_dns, api.env.basedn)
+zone5_ns = u'ns1.%s' % zone5
+zone5_ns_dnsname = DNSName(zone5_ns)
+zone5_rname = u'root.%s' % zone5
+zone5_rname_dnsname = DNSName(zone5_rname)
+
 revzone1 = u'31.16.172.in-addr.arpa.'
 revzone1_dnsname = DNSName(revzone1)
 revzone1_ip = u'172.16.31.0'
@@ -277,7 +285,7 @@ class test_dns(Declarative):
             pass
 
     cleanup_commands = [
-        ('dnszone_del', [zone1, zone2, zone3, zone4, revzone1, revzone2,
+        ('dnszone_del', [zone1, zone2, zone3, zone4, zone5, revzone1, revzone2,
                          revzone3_classless1, revzone3_classless2,
                          idnzone1, revidnzone1, zone_findtest_master],
             {'continue': True}),
@@ -442,6 +450,43 @@ class test_dns(Declarative):
                     'idnssoamname': [zone4_ns_dnsname],
                     'nsrecord': [zone4_ns],
                     'idnssoarname': [zone4_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+
+
+        dict(  # https://fedorahosted.org/freeipa/ticket/4268
+            desc='Create a zone with consecutive dash characters with --force',
+            command=(
+                'dnszone_add', [zone5], {
+                    'idnssoamname': zone5_ns,
+                    'idnssoarname': zone5_rname,
+                    'force'       : True,
+                }
+            ),
+            expected={
+                'value': zone5_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone5_dn,
+                    'idnsname': [zone5_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [zone5_ns_dnsname],
+                    'nsrecord': [zone5_ns],
+                    'idnssoarname': [zone5_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
