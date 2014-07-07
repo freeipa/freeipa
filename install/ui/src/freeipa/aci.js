@@ -972,9 +972,7 @@ aci.permission_target_policy = function (spec) {
         var widget = that.permission_target.widgets.get_widget(target_info.name);
         var field = that.container.fields.get_field(target_info.name);
         that.permission_target.set_row_visible(target_info.name, visible);
-        var managed_f = aci.managed_fields.indexOf(target_info.name) > -1;
-        var enabled = !(managed_f && that.managed) && visible && !that.system;
-        field.set_enabled(enabled);
+        field.set_enabled(visible);
         field.set_required(visible && target_info.required);
         widget.set_visible(visible);
     };
@@ -1054,7 +1052,7 @@ aci.permission_managed_policy = function (spec) {
             var field = fields[i];
             if (field.read_only) continue;
             var managed_f = aci.managed_fields.indexOf(field.name) > -1;
-            field.set_enabled(!system && !(managed_f && managed));
+            field.set_writable(!system && !(managed_f && managed) && field.writable);
         }
     };
 
