@@ -834,7 +834,10 @@ IPA.text_widget = function(spec) {
      * visible content.
      */
     that.update_input_group_state = function() {
-        var visible = $(':visible', that.input_group_btn).length > 0;
+        var children = that.input_group_btn.children();
+        var visible = $.grep(children, function(el, i) {
+            return $(el).css('display') !== 'none';
+        }).length > 0;
         that.input_group.toggleClass('input-group', visible);
     };
 
