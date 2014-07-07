@@ -1981,7 +1981,7 @@ IPA.select_widget = function(spec) {
 
     that.update = function(values) {
         var old = that.save()[0];
-        var value = values[0];
+        var value = values[0] || "";
         var option = $('option[value="'+value+'"]', that.select);
         if (option.length) {
             option.prop('selected', true);
