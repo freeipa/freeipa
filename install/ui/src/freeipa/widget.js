@@ -569,6 +569,7 @@ IPA.input_widget = function(spec) {
         var changed = writable !== that.writable;
 
         that.writable = writable;
+        that.update_read_only();
 
         if (changed) {
             that.emit('writable-change', { source: that, writable: writable });
@@ -585,9 +586,22 @@ IPA.input_widget = function(spec) {
         var changed = read_only !== that.read_only;
 
         that.read_only = read_only;
+        that.update_read_only();
 
         if (changed) {
             that.emit('readonly-change', { source: that, read_only: read_only });
+        }
+    };
+
+    /**
+     * Update widget's HTML based on `read_only` and `writable` properties
+     * @protected
+     */
+    that.update_read_only = function() {
+        var input = that.get_input();
+        if (input) {
+            var ro = that.is_writable();
+            input.prop('readOnly', !ro);
         }
     };
 
@@ -636,6 +650,8 @@ IPA.input_widget = function(spec) {
     that.widget_set_valid = that.set_valid;
     that.widget_hide_undo = that.hide_undo;
     that.widget_show_undo = that.show_undo;
+    that.widget_set_writable = that.set_writable;
+    that.widget_set_read_only = that.set_read_only;
 
     return that;
 };
@@ -737,6 +753,7 @@ IPA.text_widget = function(spec) {
 
         that.create_error_link(container);
         that.set_enabled(that.enabled);
+        that.update_read_only();
         that.update_input_group_state();
     };
 
@@ -745,18 +762,23 @@ IPA.text_widget = function(spec) {
      */
     that.update = function(values) {
         var value = values && values.length ? values[0] : '';
+        that.display_control.text(value);
+        that.input.val(value);
+        that.on_value_changed();
+    };
 
+    /**
+     * @inheritDoc
+     */
+    that.update_read_only = function() {
+        if (!that.input) return;
         if (!that.is_writable()) {
-            that.display_control.text(value);
             that.display_control.css('display', '');
             that.input_group.css('display', 'none');
         } else {
-            that.input.val(value);
             that.display_control.css('display', 'none');
             that.input_group.css('display', '');
         }
-
-        that.on_value_changed();
     };
 
     /**
@@ -1183,12 +1205,52 @@ IPA.multivalued_widget = function(spec) {
         that.on_value_changed();
     };
 
+    /** @inheritDoc */
+    that.update_read_only = function() {
+        that.update_add_link_visibility();
+    };
+
     that.update_add_link_visibility = function() {
+        if (!that.add_link) return;
         var visible = that.is_writable() && that.enabled;
         if (visible) {
             that.add_link.css('display', '');
         } else {
             that.add_link.css('display', 'none');
+        }
+    };
+
+    that.update_row_buttons = function(row) {
+
+        var w = that.is_writable();
+        if (!that.enabled || !w) {
+            row.widget.hide_undo();
+            that.toggle_remove_link(row, false);
+        } else {
+            if (row.is_new || that.test_dirty_row(row)) {
+                row.widget.show_undo();
+                that.toggle_remove_link(row, false);
+            } else {
+                that.toggle_remove_link(row, w);
+            }
+        }
+    };
+
+    that.set_writable = function(writable) {
+        that.widget_set_writable(writable);
+        for (var i=0,l=that.rows.length; i<l; i++) {
+            var row = that.rows[i];
+            row.widget.set_writable(writable);
+            that.update_row_buttons(row);
+        }
+    };
+
+    that.set_read_only = function(read_only) {
+        that.widget_set_read_only(read_only);
+        for (var i=0,l=that.rows.length; i<l; i++) {
+            var row = that.rows[i];
+            row.widget.set_read_only(read_only);
+            that.update_row_buttons(row);
         }
     };
 
@@ -1200,17 +1262,7 @@ IPA.multivalued_widget = function(spec) {
         for (var i=0,l=that.rows.length; i<l; i++) {
             var row = that.rows[i];
             row.widget.set_enabled(enabled);
-
-            if (!enabled) {
-                row.widget.hide_undo();
-                that.toggle_remove_link(row, false);
-            } else {
-                if (row.is_new || that.test_dirty_row(row)) {
-                    row.widget.show_undo();
-                } else if (that.is_writable()) {
-                    that.toggle_remove_link(row, true);
-                }
-            }
+            that.update_row_buttons(row);
         }
     };
 
@@ -1655,6 +1707,12 @@ IPA.option_widget_base = function(spec, that) {
         }
     };
 
+    that.update_read_only = function() {
+        // a little hack
+        var enabled = that.is_writable() && that.enabled;
+        that.update_enabled(enabled);
+    };
+
 
     that.clear = function() {
 
@@ -1858,6 +1916,12 @@ IPA.select_widget = function(spec) {
 
         that.widget_create(container);
 
+        that.display_control = $('<p/>', {
+            name: that.name,
+            'class': 'form-control-static',
+            style: 'display: none;'
+        }).appendTo(container);
+
         that.select = $('<select/>', {
             name: that.name,
             'class':'form-control',
@@ -1918,11 +1982,23 @@ IPA.select_widget = function(spec) {
         var option = $('option[value="'+value+'"]', that.select);
         if (option.length) {
             option.prop('selected', true);
+            that.display_control.text(option.text());
         } else {
             // default was selected instead of supplied value, hence notify
             util.emit_delayed(that,'value-change', { source: that });
         }
         that.on_value_changed();
+    };
+
+    that.update_read_only = function() {
+        if (!that.select) return;
+        if (!that.is_writable()) {
+            that.display_control.css('display', '');
+            that.select.css('display', 'none');
+        } else {
+            that.display_control.css('display', 'none');
+            that.select.css('display', '');
+        }
     };
 
     that.empty = function() {
@@ -2028,12 +2104,16 @@ IPA.textarea_widget = function (spec) {
     };
 
     that.update = function(values) {
-        var read_only = !that.is_writable();
-        that.input.prop('readOnly', read_only);
 
         var value = values && values.length ? values[0] : '';
         that.input.val(value);
         that.on_value_changed();
+    };
+
+    that.update_read_only = function() {
+        if (!that.input) return;
+        var read_only = !that.is_writable();
+        that.input.prop('readOnly', read_only);
     };
 
     that.clear = function() {
@@ -3692,16 +3772,6 @@ IPA.combobox_widget = function(spec) {
     that.update = function(values) {
         that.close();
 
-        if (that.writable) {
-            that.text.css('display', 'none');
-            that.input.css('display', 'inline');
-            that.open_button.css('display', 'inline');
-        } else {
-            that.text.css('display', 'inline');
-            that.input.css('display', 'none');
-            that.open_button.css('display', 'none');
-        }
-
         if (that.searchable) {
             that.filter.empty();
         }
@@ -3726,6 +3796,19 @@ IPA.combobox_widget = function(spec) {
             }
         );
         that.on_value_changed();
+    };
+
+    that.update_read_only = function() {
+        if (!that.input) return;
+        if (that.is_writable()) {
+            that.text.css('display', 'none');
+            that.input.css('display', 'inline');
+            that.open_button.css('display', 'inline');
+        } else {
+            that.text.css('display', 'inline');
+            that.input.css('display', 'none');
+            that.open_button.css('display', 'none');
+        }
     };
 
     that.set_value = function(value) {
