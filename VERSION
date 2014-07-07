@@ -18,9 +18,9 @@
 #      IPA_VERSION_RELEASE=0                           #
 #  ->  "1.0.0"                                         #
 ########################################################
-IPA_VERSION_MAJOR=3
-IPA_VERSION_MINOR=3
-IPA_VERSION_RELEASE=90
+IPA_VERSION_MAJOR=4
+IPA_VERSION_MINOR=0
+IPA_VERSION_RELEASE=0
 
 ########################################################
 # For 'pre' releases the version will be               #
