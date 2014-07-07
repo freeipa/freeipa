@@ -1041,7 +1041,9 @@ aci.permission_managed_policy = function (spec) {
     var that = IPA.facet_policy();
 
     that.post_load = function(data) {
-        var permtype = data.result.result.ipapermissiontype;
+
+        var result = data.result.result;
+        var permtype = result.ipapermissiontype;
         var managed = permtype && permtype.indexOf("MANAGED") > -1;
         var system = permtype && permtype.indexOf("SYSTEM") > -1 && permtype.length === 1;
         var m_section = that.container.widgets.get_widget("managed");
@@ -1053,6 +1055,13 @@ aci.permission_managed_policy = function (spec) {
             if (field.read_only) continue;
             var managed_f = aci.managed_fields.indexOf(field.name) > -1;
             field.set_writable(!system && !(managed_f && managed) && field.writable);
+        }
+
+        // Bind rule type cannot be changed if permission is in a privilege
+        var privileges = result.member_privilege;
+        if (privileges && privileges.length > 0) {
+            var f = that.container.fields.get_field('ipapermbindruletype');
+            f.set_writable(false);
         }
     };
 
