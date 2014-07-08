@@ -692,7 +692,10 @@ def uninstall(options, env):
            if restored:
                services.knownservices.ntpd.restart()
 
-    ipaclient.ntpconf.restore_forced_ntpd(statestore)
+    try:
+        ipaclient.ntpconf.restore_forced_ntpd(statestore)
+    except CalledProcessError, e:
+        root_logger.error('Failed to start chronyd: %s', e)
 
     if was_sshd_configured and services.knownservices.sshd.is_running():
         services.knownservices.sshd.restart()
