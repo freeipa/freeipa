@@ -71,7 +71,17 @@ class test_realmdomains(Declarative):
                         u'(version 3.0;acl '
                             u'"permission:System: Read Realm Domains";'
                             u'allow (compare,read,search) '
-                            u'userdn = "ldap:///all";)'
+                            u'userdn = "ldap:///all";)',
+
+                        u'(targetattr = "associateddomain")'
+                        u'(targetfilter = "(objectclass=domainrelatedobject)")'
+                        u'(version 3.0;acl '
+                            u'"permission:System: Modify Realm Domains";'
+                            u'allow (write) groupdn = "ldap:///%s";)' %
+                                DN('cn=System: Modify Realm Domains',
+                                   api.env.container_permission,
+                                   api.env.basedn),
+
                     ],
                 ),
             ),
