@@ -1119,19 +1119,19 @@ class DefaultGroupError(ExecutionError):
 
 class DNSNotARecordError(ExecutionError):
     """
-    **4019** Raised when a hostname is not a DNS A record
+    **4019** Raised when a hostname is not a DNS A/AAAA record
 
     For example:
 
     >>> raise DNSNotARecordError()
     Traceback (most recent call last):
       ...
-    DNSNotARecordError: Host does not have corresponding DNS A record
+    DNSNotARecordError: Host does not have corresponding DNS A/AAAA record
 
     """
 
     errno = 4019
-    format = _('Host does not have corresponding DNS A record')
+    format = _('Host does not have corresponding DNS A/AAAA record')
 
 class ManagedGroupError(ExecutionError):
     """
