@@ -898,6 +898,16 @@ aci.permission_target_policy = function (spec) {
         var attribute_table = that.permission_target.widgets.get_widget('attrs');
         var skip_unmatched_org = attribute_table.skip_unmatched;
         attribute_table.object_type = type;
+
+        // UI doesn't always know what are the possible attributes.
+        // In case of managed permissions, one of the possible lists is in ipapermdefaultattr.
+        var default_attrs = that.container.fields.get_field('ipapermdefaultattr');
+        if (default_attrs && default_attrs.enabled) { // if managed permission
+            attribute_table.custom_options = default_attrs.get_value();
+        } else {
+            attribute_table.custom_options = [];
+        }
+
         // skip values which don't belong to new type. Bug #2617
         attribute_table.skip_unmatched =  skip_unmatched || skip_unmatched_org;
         attribute_field.reset();
