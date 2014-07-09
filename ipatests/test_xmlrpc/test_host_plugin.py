@@ -684,7 +684,7 @@ class test_host(Declarative):
             desc='Try to add host not in DNS %r without force' % fqdn2,
             command=('host_add', [fqdn2], {}),
             expected=errors.DNSNotARecordError(
-                reason=u'Host does not have corresponding DNS A record'),
+                reason=u'Host does not have corresponding DNS A/AAAA record'),
         ),
 
 

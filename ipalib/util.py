@@ -96,19 +96,30 @@ def find_modules_in_dir(src_dir):
 
 def validate_host_dns(log, fqdn):
     """
-    See if the hostname has a DNS A record.
+    See if the hostname has a DNS A/AAAA record.
     """
     try:
         answers = resolver.query(fqdn, rdatatype.A)
         log.debug(
-            'IPA: found %d records for %s: %s' % (len(answers), fqdn,
+            'IPA: found %d A records for %s: %s' % (len(answers), fqdn,
                 ' '.join(str(answer) for answer in answers))
         )
     except DNSException, e:
         log.debug(
             'IPA: DNS A record lookup failed for %s' % fqdn
         )
-        raise errors.DNSNotARecordError()
+        # A record not found, try to find AAAA record
+        try:
+            answers = resolver.query(fqdn, rdatatype.AAAA)
+            log.debug(
+                'IPA: found %d AAAA records for %s: %s' % (len(answers), fqdn,
+                    ' '.join(str(answer) for answer in answers))
+            )
+        except DNSException, e:
+            log.debug(
+                'IPA: DNS AAAA record lookup failed for %s' % fqdn
+            )
+            raise errors.DNSNotARecordError()
 
 
 def has_soa_or_ns_record(domain):
