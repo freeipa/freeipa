@@ -24,6 +24,7 @@
 
 define(['dojo/_base/array',
        'dojo/_base/lang',
+       'dojo/dom-construct',
        'dojo/Evented',
        'dojo/has',
        'dojo/keys',
@@ -43,7 +44,7 @@ define(['dojo/_base/array',
        './util',
        'exports'
        ],
-       function(array, lang, Evented, has, keys, on, string, topic, builder,
+       function(array, lang, construct, Evented, has, keys, on, string, topic, builder,
                 datetime, entity_mod, IPA, $, navigation, phases, reg, rpc, text, util, exp) {
 
 /**
@@ -1379,16 +1380,17 @@ IPA.option_widget_base = function(spec, that) {
     };
 
     that.create_options = function(container) {
-        for (var i=0; i<that.options.length; i++) {
+        container = $(container)[0];
+        for (var i=0, l=that.options.length; i<l; i++) {
             var option_container = that.create_option_container();
             var option = that.options[i];
             that.create_option(option, option_container);
-            option_container.appendTo(container);
+            construct.place(option_container, container);
         }
     };
 
     that.create_option_container = function() {
-        return $('<li/>');
+        return construct.create('li');
     };
 
     that._create_option = function(option, container) {
@@ -1396,11 +1398,11 @@ IPA.option_widget_base = function(spec, that) {
         var id = that._option_next_id + input_name;
         var enabled = that.enabled && option.enabled;
 
-        var opt_cont = $('<span/>', {
+        var opt_cont = construct.create('span', {
             "class": that.intput_type + '-cnt'
-        }).appendTo(container);
+        });
 
-        option.input_node = $('<input/>', {
+        option.input_node = construct.create('input', {
             id: id,
             type: that.input_type,
             name: input_name,
@@ -1408,15 +1410,16 @@ IPA.option_widget_base = function(spec, that) {
             value: option.value,
             title: option.tooltip || that.tooltip,
             change: that.on_input_change
-        }).appendTo(opt_cont);
+        }, opt_cont);
 
-        option.label_node =  $('<label/>', {
-            html: option.label || '',
+        option.label_node = construct.create('label', {
             title: option.tooltip || that.tooltip,
             'for': id
-        }).appendTo(opt_cont);
+        }, opt_cont);
+        option.label_node.textContent = option.label || '';
 
         that.new_option_id();
+        construct.place(opt_cont, container);
     };
 
     that.create_option = function(option, container) {
