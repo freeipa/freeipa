@@ -1395,8 +1395,7 @@ IPA.confirm_dialog = function(spec) {
             name: 'ok',
             label: that.ok_label,
             click: function() {
-                that.confirmed = true;
-                that.close();
+                that.on_confirm();
             }
         });
 
@@ -1415,6 +1414,18 @@ IPA.confirm_dialog = function(spec) {
     that.confirm_dialog_close = that.close;
     that.confirm_dialog_open = that.open;
 
+    return that;
+};
+
+/**
+ * General form dialog with confirmation feature
+ * @class  dialog.form_dialog
+ * @extends {IPA.confirm_dialog}
+ */
+IPA.form_dialog = function(spec) {
+
+    var that = IPA.confirm_dialog(spec);
+    that.create_content = that.dialog_create_content;
     return that;
 };
 
