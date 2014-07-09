@@ -545,6 +545,7 @@ aci.attributes_widget = function(spec) {
 
     spec = spec || {};
     spec.layout = spec.layout || 'columns attribute_widget';
+    spec.sort = spec.sort === undefined ? true : spec.sort;
 
     var that = IPA.checkboxes_widget(spec);
 

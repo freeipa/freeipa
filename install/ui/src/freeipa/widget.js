@@ -1259,6 +1259,7 @@ IPA.option_widget_base = function(spec, that) {
     that.name = spec.name;
     that.label = spec.label;
     that.tooltip = spec.tooltip;
+    that.sort = spec.sort === undefined ? false : spec.sort;
     that.value_changed = that.value_changed || IPA.observer();
     that.default_value = spec.default_value || null;
     that.default_on_empty = spec.default_on_empty === undefined ? true : spec.default_on_empty;
@@ -1379,11 +1380,25 @@ IPA.option_widget_base = function(spec, that) {
         }
     };
 
+    that.sort_options = function() {
+        var options = that.options.concat();
+        options.sort(function(a,b) {
+            if (a.value > b.value)
+              return 1;
+            if (a.value < b.value)
+              return -1;
+            return 0;
+        });
+        return options;
+    };
+
     that.create_options = function(container) {
         container = $(container)[0];
-        for (var i=0, l=that.options.length; i<l; i++) {
+        var options = that.options;
+        if (that.sort) options = that.sort_options();
+        for (var i=0, l=options.length; i<l; i++) {
             var option_container = that.create_option_container();
-            var option = that.options[i];
+            var option = options[i];
             that.create_option(option, option_container);
             construct.place(option_container, container);
         }
