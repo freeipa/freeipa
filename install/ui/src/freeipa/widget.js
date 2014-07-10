@@ -1316,7 +1316,17 @@ IPA.option_widget_base = function(spec, that) {
     that.tooltip = spec.tooltip;
     that.sort = spec.sort === undefined ? false : spec.sort;
     that.value_changed = that.value_changed || IPA.observer();
+
+    /**
+     * Value which should be check when no value supplied
+     * @type {string|null}
+     */
     that.default_value = spec.default_value || null;
+
+    /**
+     * Consider empty string as non-value -> enable setting default value in such case
+     * @type {string}
+     */
     that.default_on_empty = spec.default_on_empty === undefined ? true : spec.default_on_empty;
 
     /**
@@ -1625,6 +1635,8 @@ IPA.option_widget_base = function(spec, that) {
 
     that.update = function(values) {
 
+        var i;
+
         var check = function(selector, uncheck) {
             $(selector, that.$node).prop('checked', !uncheck);
         };
@@ -1634,55 +1646,59 @@ IPA.option_widget_base = function(spec, that) {
             // uncheck all inputs
             check(that._selector, true /*uncheck*/);
 
+            // enable/disable the inputs and their children
+            // they might be disabled later if not checked
             var writable = !that.read_only && !!that.writable && that.enabled;
             if (!that.nested) {
                 that.update_enabled(writable);
             }
 
-            if (values && values.length > 0) {
-
-                if (that.default_on_empty && that.default_value !== null) {
-                    for (var i=0; i<values.length; i++) {
-                        if (values[i] === '') {
-                            values[i] = that.default_value;
-                        }
+            // use default value if none supplied
+            var def_used = false;
+            if (values && values.length > 0 && that.default_on_empty &&
+                    that.default_value !== null) {
+                for (i=0; i<values.length; i++) {
+                    if (values[i] === '') {
+                        values[i] = that.default_value;
+                        def_used = true;
                     }
                 }
+            } else if (!values || !values.length) {
+                var default_value = that.default_value || '';
+                values = [default_value];
+                def_used = true;
+            }
 
-                // check the option when option or some of its child should be
-                // checked
-                for (i=0; i<that.options.length; i++) {
-                    var option = that.options[i];
-                    var opt_vals = that.get_values(option);
-                    var has_opt = array.some(values, function(val) {
-                        return array.indexOf(opt_vals, val) > -1;
-                    });
+            // check the option if it or some of its children should be checked
+            for (i=0; i<that.options.length; i++) {
+                var option = that.options[i];
+                var opt_vals = that.get_values(option);
+                var has_opt = array.some(values, function(val) {
+                    return array.indexOf(opt_vals, val) > -1;
+                });
 
-                    if (has_opt) {
-                        check(that._selector+'[value="'+ option.value +'"]');
-                    }
-                    if (option.widget) {
-                        option.widget.update_enabled(writable && has_opt, false);
-                    }
+                if (has_opt) {
+                    check(that._selector+'[value="'+ option.value +'"]');
                 }
-            } else {
-                // select default if none specified
-                if (that.default_value !== null) {
-                    check(that._selector+'[value="'+that.default_value+'"]');
-                    // default was selected instead of supplied value, hence notify
-                    util.emit_delayed(that, 'value-change', { source: that });
-                } else {
-                    // otherwise select empty
-                    check(that._selector+'[value=""]');
+
+                // disable options without value
+                if (option.widget && !has_opt) {
+                    option.widget.update_enabled(false);
                 }
             }
 
+            // update nested
             for (var j=0; j<that._child_widgets.length; j++) {
                 var widget = that._child_widgets[j];
                 widget.writable = that.writable;
                 widget.read_only = that.read_only;
                 widget.enabled = that.enabled;
                 widget.update(values);
+            }
+
+            // notify if a value other than supplied was used
+            if (def_used) {
+                util.emit_delayed(that, 'value-change', { source: that });
             }
         }
 
