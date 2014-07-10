@@ -11,6 +11,7 @@ default: nsAccountLock: FALSE
 default: ipaUniqueID: autogenerate
 
 dn: cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX
+add: objectClass: nestedgroup
 default: objectClass: GroupOfNames
 default: objectClass: top
 default: cn: adtrust agents
