@@ -66,6 +66,7 @@ struct otptoken {
     enum otptoken_type type;
     union {
         struct {
+            uint64_t watermark;
             unsigned int step;
             int offset;
         } totp;
@@ -123,69 +124,21 @@ static const struct berval *entry_attr_get_berval(const Slapi_Entry* e,
     return slapi_value_get_berval(v);
 }
 
-static bool validate(struct otptoken *token, time_t now, ssize_t step,
-                     uint32_t first, const uint32_t *second)
-{
-    uint32_t tmp;
-
-    switch (token->type) {
-    case OTPTOKEN_TOTP:
-        step = (now + token->totp.offset) / token->totp.step + step;
-        break;
-    case OTPTOKEN_HOTP:
-        step = token->hotp.counter + step;
-        break;
-    default:
-        return false;
-    }
-
-    if (!hotp(&token->token, step, &tmp))
-        return false;
-
-    if (first != tmp)
-        return false;
-
-    if (second == NULL)
-        return true;
-
-    if (!hotp(&token->token, step + 1, &tmp))
-        return false;
-
-    return *second == tmp;
-}
-
-static bool writeback(struct otptoken *token, ssize_t step, bool sync)
+static bool writeattr(const struct otptoken *token, const char *attr,
+                      int value)
 {
     Slapi_Value *svals[] = { NULL, NULL };
     Slapi_PBlock *pb = NULL;
     Slapi_Mods *mods = NULL;
     bool success = false;
-    const char *attr;
-    int value;
     int ret;
-
-    switch (token->type) {
-    case OTPTOKEN_TOTP:
-        if (!sync)
-            return true;
-        attr = T("clockOffset");
-        value = token->totp.offset + step * token->totp.step;
-        break;
-    case OTPTOKEN_HOTP:
-        /* Having support for LDAP_MOD_INCREMENT could be helpful here. */
-        if (step < 0)
-            return false; /* NEVER go backwards! */
-        attr = H("counter");
-        value = token->hotp.counter + step;
-        break;
-    default:
-        return false;
-    }
 
     /* Create the value. */
     svals[0] = slapi_value_new();
-    if (slapi_value_set_int(svals[0], value) != 0)
-        goto error;
+    if (slapi_value_set_int(svals[0], value) != 0) {
+        slapi_value_free(&svals[0]);
+        return false;
+    }
 
     /* Create the mods. */
     mods = slapi_mods_new();
@@ -203,25 +156,90 @@ static bool writeback(struct otptoken *token, ssize_t step, bool sync)
     if (ret != LDAP_SUCCESS)
         goto error;
 
-    /* Save our modifications to the object. */
-    switch (token->type) {
-    case OTPTOKEN_TOTP:
-        token->totp.offset = value;
-        break;
-    case OTPTOKEN_HOTP:
-        token->hotp.counter = value;
-        break;
-    default:
-        break;
-    }
-
     success = true;
 
 error:
     slapi_pblock_destroy(pb);
     slapi_mods_free(&mods);
     return success;
+
 }
+
+/**
+ * Validate a token.
+ *
+ * If the second token code is specified, perform synchronization.
+ */
+static bool validate(struct otptoken *token, time_t now, ssize_t step,
+                     uint32_t first, const uint32_t *second)
+{
+    const char *attr;
+    uint32_t tmp;
+
+    /* Calculate the absolute step. */
+    switch (token->type) {
+    case OTPTOKEN_TOTP:
+        attr = T("watermark");
+        step = (now + token->totp.offset) / token->totp.step + step;
+        if (token->totp.watermark > 0 && step < token->totp.watermark)
+            return false;
+        break;
+    case OTPTOKEN_HOTP:
+        if (step < 0) /* NEVER go backwards! */
+            return false;
+        attr = H("counter");
+        step = token->hotp.counter + step;
+        break;
+    default:
+        return false;
+    }
+
+    /* Validate the first code. */
+    if (!hotp(&token->token, step++, &tmp))
+        return false;
+
+    if (first != tmp)
+        return false;
+
+    /* Validate the second code if specified. */
+    if (second != NULL) {
+        if (!hotp(&token->token, step++, &tmp))
+            return false;
+
+        if (*second != tmp)
+            return false;
+
+        /* Perform optional synchronization steps. */
+        switch (token->type) {
+        case OTPTOKEN_TOTP:
+            tmp = (step - now / token->totp.step) * token->totp.step;
+            if (!writeattr(token, T("clockOffset"), tmp))
+                return false;
+            break;
+        default:
+            break;
+        }
+    }
+
+    /* Write the step value. */
+    if (!writeattr(token, attr, step))
+        return false;
+
+    /* Save our modifications to the object. */
+    switch (token->type) {
+    case OTPTOKEN_TOTP:
+        token->totp.watermark = step;
+        break;
+    case OTPTOKEN_HOTP:
+        token->hotp.counter = step;
+        break;
+    default:
+        break;
+    }
+
+    return true;
+}
+
 
 static void otptoken_free(struct otptoken *token)
 {
@@ -302,6 +320,9 @@ static struct otptoken *otptoken_new(Slapi_ComponentId *id, Slapi_Entry *entry)
     case OTPTOKEN_TOTP:
         /* Get offset. */
         token->totp.offset = slapi_entry_attr_get_int(entry, T("clockOffset"));
+
+        /* Get watermark. */
+        token->totp.watermark = slapi_entry_attr_get_int(entry, T("watermark"));
 
         /* Get step. */
         token->totp.step = slapi_entry_attr_get_uint(entry, T("timeStep"));
@@ -464,15 +485,11 @@ static bool otptoken_validate(struct otptoken *token, size_t steps,
     for (int i = 0; i <= steps; i++) {
         /* Validate the positive step. */
         if (validate(token, now, i, code, NULL))
-            return writeback(token, i + 1, false);
-
-        /* Counter-based tokens must NEVER validate old steps! */
-        if (i == 0 || token->type == OTPTOKEN_HOTP)
-            continue;
+            return true;
 
         /* Validate the negative step. */
         if (validate(token, now, 0 - i, code, NULL))
-            return writeback(token, 0 - i + 1, false);
+            return true;
     }
 
     return false;
@@ -538,15 +555,11 @@ static bool otptoken_sync(struct otptoken * const *tokens, size_t steps,
         for (int j = 0; tokens[j] != NULL; j++) {
             /* Validate the positive step. */
             if (validate(tokens[j], now, i, first_code, &second_code))
-                return writeback(tokens[j], i + 2, true);
-
-            /* Counter-based tokens must NEVER validate old steps! */
-            if (i == 0 || tokens[j]->type == OTPTOKEN_HOTP)
-                continue;
+                return true;
 
             /* Validate the negative step. */
             if (validate(tokens[j], now, 0 - i, first_code, &second_code))
-                return writeback(tokens[j], 0 - i + 2, true);
+                return true;
         }
     }
 
