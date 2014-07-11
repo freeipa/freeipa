@@ -191,7 +191,7 @@ define(['dojo/_base/declare',
         _itemsSetter: function(value) {
             this._clear_items();
             this.items = value;
-            this._render_items(this.items, this.dom_node);
+            this._render_items(this.items);
         },
 
         _clear_items: function() {
@@ -201,9 +201,9 @@ define(['dojo/_base/declare',
             }
         },
 
-        _render_list: function(container) {
+        _render_list: function(container, nested) {
 
-            var ul = this.ul_node = construct.create('ul', {
+            var ul = construct.create('ul', {
                 'class': 'dropdown-menu'
             });
             if (this.right_aligned) {
@@ -212,14 +212,15 @@ define(['dojo/_base/declare',
             if (container) {
                 construct.place(ul, container);
             }
+            if (!nested) this.ul_node = ul;
             return ul;
         },
 
         _render_items: function(items, container) {
 
-            var ul = this.ul_node;
+            if (!container) container = this.ul_node;
             array.forEach(items, function(item) {
-                this._render_item(item, ul);
+                this._render_item(item, container);
             }, this);
         },
 
@@ -257,7 +258,8 @@ define(['dojo/_base/declare',
 
             if (item.items && item.items.length > 0) {
                 dom_class.add(li, 'dropdown-submenu');
-                this._render_items(item.items, li);
+                var ul = this._render_list(li, true);
+                this._render_items(item.items, ul);
             } else {
                 on(a, 'click', lang.hitch(this, function(event) {
                     this.on_item_click(event, item);
