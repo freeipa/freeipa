@@ -569,7 +569,7 @@ static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
     struct krb_key_salt *es = NULL;
     int num_es = 0;
     struct berval *control = NULL;
-    LDAP *ld;
+    LDAP *ld = NULL;
     LDAPControl **srvctrl = NULL;
     BerElement *ber = NULL;
     ber_tag_t rtag;
