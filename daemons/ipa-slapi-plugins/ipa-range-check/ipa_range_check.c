@@ -660,6 +660,7 @@ static int ipa_range_check_pre_op(Slapi_PBlock *pb, int modtype)
                 break;
             case RANGE_CHECK_DIFFERENT_TYPE_IN_DOMAIN:
                 errmsg = "New ID range has invalid type. All ranges in the same domain must be of the same type.";
+                break;
             default:
                 errmsg = "New range overlaps with existing one.";
                 break;
