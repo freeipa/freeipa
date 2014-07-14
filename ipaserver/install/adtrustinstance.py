@@ -408,6 +408,7 @@ class ADTRUSTInstance(service.Service):
         conf_fd = open(self.smb_conf, "w")
         conf_fd.write('### Added by IPA Installer ###\n')
         conf_fd.write('[global]\n')
+        conf_fd.write('debug pid = yes\n')
         conf_fd.write('config backend = registry\n')
         conf_fd.close()
 
