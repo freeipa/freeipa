@@ -584,6 +584,12 @@ class InvalidSessionPassword(SessionError):
     errno = 1201
     format= _('Principal %(principal)s cannot be authenticated: %(message)s')
 
+class PasswordExpired(InvalidSessionPassword):
+    """
+    **1202** Raised when we cannot obtain a TGT for a principal because the password is expired.
+    """
+    errno = 1202
+
 ##############################################################################
 # 2000 - 2999: Authorization errors
 class AuthorizationError(PublicError):

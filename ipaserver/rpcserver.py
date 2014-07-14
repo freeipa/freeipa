@@ -39,7 +39,7 @@ from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib.backend import Executioner
 from ipalib.errors import (PublicError, InternalError, CommandError, JSONError,
     CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError,
-    ExecutionError)
+    ExecutionError, PasswordExpired)
 from ipalib.request import context, destroy_context
 from ipalib.rpc import (xml_dumps, xml_loads,
     json_encode_binary, json_decode_binary)
@@ -944,37 +944,12 @@ class login_password(Backend, KerberosSession, HTTP_Status):
 
         # Get the ccache we'll use and attempt to get credentials in it with user,password
         ipa_ccache_name = get_ipa_ccache_name()
-        reason = 'invalid-password'
         try:
             self.kinit(user, self.api.env.realm, password, ipa_ccache_name)
-        except InvalidSessionPassword, e:
-            # Ok, now why is this bad. Is the password simply bad or is the
-            # password expired?
-            try:
-                dn = DN(('uid', user),
-                        self.api.env.container_user,
-                        self.api.env.basedn)
-                conn = ldap2(shared_instance=False,
-                             ldap_uri=self.api.env.ldap_uri)
-                conn.connect(bind_dn=dn, bind_pw=password)
-
-                # password is ok, must be expired, lets double-check
-                entry_attrs = conn.get_entry(dn,
-                    ['krbpasswordexpiration'])
-                if 'krbpasswordexpiration' in entry_attrs:
-                    expiration = entry_attrs['krbpasswordexpiration'][0]
-                    if expiration <= datetime.datetime.utcnow():
-                        reason = 'password-expired'
-
-            except Exception:
-                # It doesn't really matter how we got here but the user's
-                # password is not accepted or the user is unknown.
-                pass
-            finally:
-                if conn.isconnected():
-                    conn.destroy_connection()
-
-            return self.unauthorized(environ, start_response, str(e), reason)
+        except PasswordExpired as e:
+            return self.unauthorized(environ, start_response, str(e), 'password-expired')
+        except InvalidSessionPassword as e:
+            return self.unauthorized(environ, start_response, str(e), 'invalid-password')
 
         return self.finalize_kerberos_acquisition('login_password', ipa_ccache_name, environ, start_response)
 
@@ -1001,7 +976,8 @@ class login_password(Backend, KerberosSession, HTTP_Status):
 
         (stdout, stderr, returncode) = ipautil.run(
             [paths.KINIT, principal, '-T', armor_path],
-            env={'KRB5CCNAME': ccache_name}, stdin=password, raiseonerr=False)
+            env={'KRB5CCNAME': ccache_name, 'LC_ALL': 'C'},
+            stdin=password, raiseonerr=False)
 
         self.debug('kinit: principal=%s returncode=%s, stderr="%s"',
                    principal, returncode, stderr)
@@ -1013,6 +989,8 @@ class login_password(Backend, KerberosSession, HTTP_Status):
             raiseonerr=False)
 
         if returncode != 0:
+            if stderr.strip() == 'kinit: Cannot read password while getting initial credentials':
+                raise PasswordExpired(principal=principal, message=unicode(stderr))
             raise InvalidSessionPassword(principal=principal, message=unicode(stderr))
 
 class change_password(Backend, HTTP_Status):
