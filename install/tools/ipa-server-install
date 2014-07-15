@@ -556,7 +556,8 @@ def uninstall():
 
     ipaclient.ntpconf.restore_forced_ntpd(sstore)
 
-    group_exists = sstore.restore_state("install", "group_exists")
+    # Clean up group_exists (unused since IPA 2.2, not being set since 4.1)
+    sstore.restore_state("install", "group_exists")
 
     services.knownservices.ipa.disable()
 
@@ -1061,8 +1062,8 @@ def main():
         # configure /etc/sysconfig/network to contain the custom hostname
         tasks.backup_and_replace_hostname(fstore, sstore, host_name)
 
-    # Create DS group if it doesn't exist yet
-    dsinstance.create_ds_group()
+    # Create DS user/group if it doesn't exist yet
+    dsinstance.create_ds_user()
 
     # Create a directory server instance
     if external != 2:

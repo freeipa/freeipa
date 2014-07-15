@@ -249,6 +249,16 @@ def is_ca_installed_locally():
     return os.path.exists(path)
 
 
+def create_ca_user():
+    """Create PKI user/group if it doesn't exist yet."""
+    installutils.create_system_user(
+        name=PKI_USER,
+        group=PKI_USER,
+        homedir=paths.VAR_LIB,
+        shell=paths.NOLOGIN,
+    )
+
+
 class CADSInstance(service.Service):
     """Certificate Authority DS instance
 
@@ -396,7 +406,7 @@ class CAInstance(DogtagInstance):
             self.cert_chain_file = cert_chain_file
             self.external = 2
 
-        self.step("creating certificate server user", self.__create_ca_user)
+        self.step("creating certificate server user", create_ca_user)
         if self.dogtag_constants.DOGTAG_VERSION >= 10:
             self.step("configuring certificate server instance", self.__spawn_instance)
         else:
@@ -604,22 +614,6 @@ class CAInstance(DogtagInstance):
         ]
         self.backup_state('installed', True)
         ipautil.run(args, env={'PKI_HOSTNAME':self.fqdn})
-
-    def __create_ca_user(self):
-        try:
-            pwd.getpwnam(PKI_USER)
-            self.log.debug("ca user %s exists", PKI_USER)
-        except KeyError:
-            self.log.debug("adding ca user %s", PKI_USER)
-            args = [paths.USERADD, "-c", "CA System User",
-                                         "-d", paths.VAR_LIB,
-                                         "-s", paths.NOLOGIN,
-                                         "-M", "-r", PKI_USER]
-            try:
-                ipautil.run(args)
-                self.log.debug("done adding user")
-            except ipautil.CalledProcessError, e:
-                self.log.critical("failed to add user %s", e)
 
     def __configure_instance(self):
         # Only used for Dogtag 9
