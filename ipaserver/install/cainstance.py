@@ -251,6 +251,16 @@ def is_step_one_done():
     return False
 
 
+def create_ca_user():
+    """Create PKI user/group if it doesn't exist yet."""
+    installutils.create_system_user(
+        name=PKI_USER,
+        group=PKI_USER,
+        homedir=paths.VAR_LIB,
+        shell=paths.NOLOGIN,
+    )
+
+
 class CADSInstance(service.Service):
     """Certificate Authority DS instance
 
@@ -447,7 +457,7 @@ class CAInstance(service.Service):
             self.cert_chain_file=cert_chain_file
             self.external=2
 
-        self.step("creating certificate server user", self.__create_ca_user)
+        self.step("creating certificate server user", create_ca_user)
         if self.dogtag_constants.DOGTAG_VERSION >= 10:
             self.step("configuring certificate server instance", self.__spawn_instance)
         else:
@@ -681,22 +691,6 @@ class CAInstance(service.Service):
         # components as found in our LDAP configuration tree
         # We need to install DS before we can actually ldap_enable a service.
         # so actual enablement is delayed.
-
-    def __create_ca_user(self):
-        try:
-            pwd.getpwnam(PKI_USER)
-            root_logger.debug("ca user %s exists" % PKI_USER)
-        except KeyError:
-            root_logger.debug("adding ca user %s" % PKI_USER)
-            args = [paths.USERADD, "-c", "CA System User",
-                                         "-d", paths.VAR_LIB,
-                                         "-s", paths.NOLOGIN,
-                                         "-M", "-r", PKI_USER]
-            try:
-                ipautil.run(args)
-                root_logger.debug("done adding user")
-            except ipautil.CalledProcessError, e:
-                root_logger.critical("failed to add user %s" % e)
 
     def __configure_instance(self):
         # Only used for Dogtag 9

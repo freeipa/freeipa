@@ -30,7 +30,7 @@ from ipapython import version
 from ipapython.ipautil import run, user_input
 from ipapython import admintool
 from ipapython.dn import DN
-from ipaserver.install.dsinstance import (realm_to_serverid, create_ds_group,
+from ipaserver.install.dsinstance import (realm_to_serverid,
                                           create_ds_user, DS_USER)
 from ipaserver.install.cainstance import PKI_USER
 from ipaserver.install.replication import (wait_for_task, ReplicationManager,
@@ -188,7 +188,6 @@ class Restore(admintool.AdminTool):
         if options.data_only and not instances:
             raise admintool.ScriptError('No instances to restore to')
 
-        create_ds_group()
         create_ds_user()
         pent = pwd.getpwnam(DS_USER)
 

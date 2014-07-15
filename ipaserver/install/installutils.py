@@ -29,6 +29,8 @@ from ConfigParser import SafeConfigParser, NoOptionError
 import traceback
 import textwrap
 from contextlib import contextmanager
+import pwd
+import grp
 
 from dns import resolver, rdatatype
 from dns.exception import DNSException
@@ -37,7 +39,7 @@ from nss.error import NSPRError
 
 from ipapython import ipautil, sysrestore, admintool, dogtag
 from ipapython.admintool import ScriptError
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger, log_mgr
 from ipalib.util import validate_hostname
 from ipapython import config
 from ipalib import errors, x509
@@ -80,6 +82,8 @@ class ReplicaConfig:
         self.version = 0
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
+
+log = log_mgr.get_logger(__name__)
 
 def get_fqdn():
     fqdn = ""
@@ -917,3 +921,41 @@ def validate_external_cert(cert_file, ca_file, subject_base):
             raise ValueError(
                 "The external CA chain is incomplete (%s is missing from the "
                 "chain)." % certsubject)
+
+
+def create_system_user(name, group, homedir, shell):
+    """Create a system user with a corresponding group"""
+    try:
+        grp.getgrnam(group)
+    except KeyError:
+        log.debug('Adding group %s', group)
+        args = [paths.GROUPADD, '-r', group]
+        try:
+            ipautil.run(args)
+            log.debug('Done adding group')
+        except ipautil.CalledProcessError as e:
+            log.critical('Failed to add group: %s', e)
+            raise
+    else:
+        log.debug('group %s exists', group)
+
+    try:
+        pwd.getpwnam(name)
+    except KeyError:
+        log.debug('Adding user %s', name)
+        args = [
+            paths.USERADD,
+            '-g', group,
+            '-c', 'DS System User',
+            '-d', homedir,
+            '-s', shell,
+            '-M', '-r', name,
+        ]
+        try:
+            ipautil.run(args)
+            log.debug('Done adding user')
+        except ipautil.CalledProcessError as e:
+            log.critical('Failed to add user: %s', e)
+            raise
+    else:
+        log.debug('user %s exists', name)

@@ -25,9 +25,7 @@ import os
 import re
 import time
 import tempfile
-import base64
 import stat
-import grp
 
 from ipapython.ipa_log_manager import *
 from ipapython import ipautil, sysrestore, ipaldap
@@ -151,49 +149,14 @@ def is_ds_running(server_id=''):
 
 
 def create_ds_user():
-    """
-    Create DS user if it doesn't exist yet.
-    """
-    try:
-        pwd.getpwnam(DS_USER)
-        root_logger.debug('DS user %s exists', DS_USER)
-    except KeyError:
-        root_logger.debug('Adding DS user %s', DS_USER)
-        args = [
-            paths.USERADD,
-            '-g', DS_GROUP,
-            '-c', 'DS System User',
-            '-d', paths.VAR_LIB_DIRSRV,
-            '-s', paths.NOLOGIN,
-            '-M', '-r', DS_USER
-        ]
-        try:
-            ipautil.run(args)
-            root_logger.debug('Done adding DS user')
-        except ipautil.CalledProcessError, e:
-            root_logger.critical('Failed to add DS user: %s', e)
+    """Create DS user/group if it doesn't exist yet."""
+    installutils.create_system_user(
+        name=DS_USER,
+        group=DS_USER,
+        homedir=paths.VAR_LIB_DIRSRV,
+        shell=paths.NOLOGIN,
+    )
 
-
-def create_ds_group():
-    """
-    Create DS group if it doesn't exist yet.
-    Returns True if the group already exists.
-    """
-    try:
-        grp.getgrnam(DS_GROUP)
-        root_logger.debug('DS group %s exists', DS_GROUP)
-        group_exists = True
-    except KeyError:
-        group_exists = False
-        root_logger.debug('Adding DS group %s', DS_GROUP)
-        args = [paths.GROUPADD, '-r', DS_GROUP]
-        try:
-            ipautil.run(args)
-            root_logger.debug('Done adding DS group')
-        except ipautil.CalledProcessError, e:
-            root_logger.critical('Failed to add DS group: %s', e)
-
-    return group_exists
 
 INF_TEMPLATE = """
 [General]
