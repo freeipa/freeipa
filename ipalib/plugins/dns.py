@@ -209,11 +209,11 @@ EXAMPLES:
  authoritative (e.g. sub.example.com) will be routed to the global forwarder.
  Global forwarding configuration can be overridden per-zone.
 """) + _("""
- Semantics of forwarding in IPA matches BIND sematics and depends on type
- of the zone:
+ Semantics of forwarding in IPA matches BIND semantics and depends on the type
+ of zone:
    * Master zone: local BIND replies authoritatively to queries for data in
    the given zone (including authoritative NXDOMAIN answers) and forwarding
-   affects only queries for names bellow zone cuts (NS records) of locally
+   affects only queries for names below zone cuts (NS records) of locally
    served zones.
 
    * Forward zone: forward zone contains no authoritative data. BIND forwards
