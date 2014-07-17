@@ -62,6 +62,7 @@ class Dogtag10Constants(object):
     PASSWORD_CONF_PATH = '%s/conf/password.conf' % PKI_ROOT
     SERVICE_PROFILE_DIR = '%s/ca/profiles/ca' % PKI_ROOT
     ALIAS_DIR = paths.PKI_TOMCAT_ALIAS_DIR.rstrip('/')
+    SYSCONFIG_FILE_PATH = '%s/%s' % (paths.ETC_SYSCONFIG_DIR, PKI_INSTANCE_NAME)
 
     SERVICE_NAME = 'pki_tomcatd'
 
@@ -94,6 +95,7 @@ class Dogtag9Constants(object):
     PASSWORD_CONF_PATH = '%s/conf/password.conf' % PKI_ROOT
     SERVICE_PROFILE_DIR = '%s/profiles/ca' % PKI_ROOT
     ALIAS_DIR = '%s/alias' % PKI_ROOT
+    SYSCONFIG_FILE_PATH = '%s/%s' % (paths.ETC_SYSCONFIG_DIR, PKI_INSTANCE_NAME)
 
     SERVICE_NAME = 'pki-cad'
 

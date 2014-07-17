@@ -833,6 +833,23 @@ def migrate_crl_publish_dir(ca):
                      'request pki-ca restart')
     return True
 
+
+def ca_enable_pkix(ca):
+    root_logger.info('[Enable PKIX certificate path discovery and validation]')
+    if sysupgrade.get_upgrade_state('dogtag', 'pkix_enabled'):
+        root_logger.info('PKIX already enabled')
+        return False
+
+    if not ca.is_configured():
+        root_logger.info('CA is not configured')
+        return False
+
+    ca.enable_pkix()
+    sysupgrade.set_upgrade_state('dogtag', 'pkix_enabled', True)
+
+    return True
+
+
 def add_ca_dns_records():
     root_logger.info('[Add missing CA DNS records]')
 
@@ -1227,6 +1244,7 @@ def main():
         ca_restart,
         upgrade_ipa_profile(ca, api.env.domain, fqdn),
         certificate_renewal_update(ca),
+        ca_enable_pkix(ca),
     ])
 
     if ca_restart:

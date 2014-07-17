@@ -457,6 +457,7 @@ class CAInstance(service.Service):
         self.step("stopping certificate server instance to update CS.cfg", self.__stop)
         self.step("disabling nonces", self.__disable_nonce)
         self.step("set up CRL publishing", self.__enable_crl_publish)
+        self.step("enable PKIX certificate path discovery and validation", self.enable_pkix)
         self.step("starting certificate server instance", self.__start)
         # Step 1 of external is getting a CSR so we don't need to do these
         # steps until we get a cert back from the external CA.
@@ -806,6 +807,11 @@ class CAInstance(service.Service):
         pent = pwd.getpwnam(PKI_USER)
         os.chown(self.dogtag_constants.CS_CFG_PATH,
                  pent.pw_uid, pent.pw_gid)
+
+    def enable_pkix(self):
+        installutils.set_directive(self.dogtag_constants.SYSCONFIG_FILE_PATH,
+                                   'NSS_ENABLE_PKIX_VERIFY', '1',
+                                   quotes=False, separator='=')
 
     def __issue_ra_cert(self):
         # The CA certificate is in the agent DB but isn't trusted

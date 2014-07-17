@@ -99,6 +99,7 @@ class BasePathNamespace(object):
     SSSD_CONF = "/etc/sssd/sssd.conf"
     SSSD_CONF_BKP = "/etc/sssd/sssd.conf.bkp"
     SSSD_CONF_DELETED = "/etc/sssd/sssd.conf.deleted"
+    ETC_SYSCONFIG_DIR = "/etc/sysconfig"
     ETC_SYSCONFIG_AUTHCONFIG = "/etc/sysconfig/authconfig"
     SYSCONFIG_AUTOFS = "/etc/sysconfig/autofs"
     SYSCONFIG_DIRSRV = "/etc/sysconfig/dirsrv"
