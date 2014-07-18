@@ -37,7 +37,7 @@ from ipapython.dn import DN
 from ipalib import api, errors, pkcs10, x509
 from ipaplatform.paths import paths
 from ipaserver.plugins.ldap2 import ldap2
-from ipaserver.install import cainstance, certs
+from ipaserver.install import cainstance
 
 # This is a certmonger CA helper script for IPA CA subsystem cert renewal. See
 # https://git.fedorahosted.org/cgit/certmonger.git/tree/doc/submit.txt for more
@@ -56,20 +56,13 @@ OPERATION_NOT_SUPPORTED_BY_HELPER = 6
 @contextlib.contextmanager
 def ldap_connect():
     conn = None
-    tmpdir = tempfile.mkdtemp(prefix="tmp-")
     try:
-        principal = str('host/%s@%s' % (api.env.host, api.env.realm))
-        ccache = ipautil.kinit_hostprincipal(paths.KRB5_KEYTAB, tmpdir,
-                                             principal)
-
         conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)
-        conn.connect(ccache=ccache)
-
+        conn.connect(ccache=os.environ['KRB5CCNAME'])
         yield conn
     finally:
         if conn is not None and conn.isconnected():
             conn.disconnect()
-        shutil.rmtree(tmpdir)
 
 def request_cert():
     """
@@ -286,7 +279,7 @@ def renew_ca_cert():
         state = 'retrieve'
 
         if is_self_signed:
-            ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+            ca = cainstance.CAInstance(host_name=api.env.host, ldapi=False)
             if ca.is_renewal_master():
                 state = 'request'
     elif operation == 'POLL':
@@ -331,20 +324,31 @@ def main():
     api.bootstrap(context='renew')
     api.finalize()
 
-    profile = os.environ.get('CERTMONGER_CA_PROFILE')
-    if profile:
-        handler = handlers.get(profile, request_and_store_cert)
-    else:
-        ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
-        if ca.is_renewal_master():
-            handler = request_and_store_cert
-        else:
-            handler = retrieve_cert
+    operation = os.environ.get('CERTMONGER_OPERATION')
+    if operation not in ('SUBMIT', 'POLL'):
+        return OPERATION_NOT_SUPPORTED_BY_HELPER
 
-    res = handler()
-    for item in res[1:]:
-        print item
-    return res[0]
+    tmpdir = tempfile.mkdtemp(prefix="tmp-")
+    try:
+        principal = str('host/%s@%s' % (api.env.host, api.env.realm))
+        ipautil.kinit_hostprincipal(paths.KRB5_KEYTAB, tmpdir, principal)
+
+        profile = os.environ.get('CERTMONGER_CA_PROFILE')
+        if profile:
+            handler = handlers.get(profile, request_and_store_cert)
+        else:
+            ca = cainstance.CAInstance(host_name=api.env.host, ldapi=False)
+            if ca.is_renewal_master():
+                handler = request_and_store_cert
+            else:
+                handler = retrieve_cert
+
+        res = handler()
+        for item in res[1:]:
+            print item
+        return res[0]
+    finally:
+        shutil.rmtree(tmpdir)
 
 try:
     sys.exit(main())

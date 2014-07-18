@@ -72,50 +72,53 @@ def main():
 
     cainstance.update_cert_config(nickname, cert, configured_constants)
 
-    ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
-    if ca.is_renewal_master():
-        cainstance.update_people_entry(cert)
+    tmpdir = tempfile.mkdtemp(prefix="tmp-")
+    try:
+        principal = str('host/%s@%s' % (api.env.host, api.env.realm))
+        ccache = ipautil.kinit_hostprincipal(paths.KRB5_KEYTAB, tmpdir,
+                                             principal)
 
-    if nickname == 'auditSigningCert cert-pki-ca':
-        # Fix trust on the audit cert
-        try:
-            db.run_certutil(['-M',
-                             '-n', nickname,
-                             '-t', 'u,u,Pu'])
-            syslog.syslog(
-                syslog.LOG_NOTICE,
-                "Updated trust on certificate %s in %s" % (nickname, db.secdir))
-        except ipautil.CalledProcessError:
-            syslog.syslog(
-                syslog.LOG_ERR,
-                "Updating trust on certificate %s failed in %s" %
-                (nickname, db.secdir))
-    elif nickname == 'caSigningCert cert-pki-ca' and ca.is_renewal_master():
-        # Update CA certificate in LDAP
-        tmpdir = tempfile.mkdtemp(prefix="tmp-")
-        try:
-            principal = str('host/%s@%s' % (api.env.host, api.env.realm))
-            ccache = ipautil.kinit_hostprincipal(paths.KRB5_KEYTAB, tmpdir,
-                                                 principal)
+        ca = cainstance.CAInstance(host_name=api.env.host, ldapi=False)
+        if ca.is_renewal_master():
+            cainstance.update_people_entry(cert)
 
-            conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)
-            conn.connect(ccache=ccache)
-
-            dn = DN(('cn', 'CAcert'), ('cn', 'ipa'), ('cn', 'etc'),
-                    api.env.basedn)
+        if nickname == 'auditSigningCert cert-pki-ca':
+            # Fix trust on the audit cert
             try:
-                entry = conn.get_entry(dn, attrs_list=['cACertificate;binary'])
-                entry['cACertificate;binary'] = [cert]
-                conn.update_entry(entry)
-            except errors.EmptyModlist:
-                pass
+                db.run_certutil(['-M',
+                                 '-n', nickname,
+                                 '-t', 'u,u,Pu'])
+                syslog.syslog(
+                    syslog.LOG_NOTICE,
+                    "Updated trust on certificate %s in %s" %
+                    (nickname, db.secdir))
+            except ipautil.CalledProcessError:
+                syslog.syslog(
+                    syslog.LOG_ERR,
+                    "Updating trust on certificate %s failed in %s" %
+                    (nickname, db.secdir))
+        elif nickname == 'caSigningCert cert-pki-ca' and ca.is_renewal_master():
+            # Update CA certificate in LDAP
+            try:
+                conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)
+                conn.connect(ccache=ccache)
 
-            conn.disconnect()
-        except Exception, e:
-            syslog.syslog(
-                syslog.LOG_ERR, "Updating CA certificate failed: %s" % e)
-        finally:
-            shutil.rmtree(tmpdir)
+                dn = DN(('cn', 'CAcert'), ('cn', 'ipa'), ('cn', 'etc'),
+                        api.env.basedn)
+                try:
+                    entry = conn.get_entry(
+                        dn, attrs_list=['cACertificate;binary'])
+                    entry['cACertificate;binary'] = [cert]
+                    conn.update_entry(entry)
+                except errors.EmptyModlist:
+                    pass
+
+                conn.disconnect()
+            except Exception, e:
+                syslog.syslog(
+                    syslog.LOG_ERR, "Updating CA certificate failed: %s" % e)
+    finally:
+        shutil.rmtree(tmpdir)
 
     # Now we can start the CA. Using the services start should fire
     # off the servlet to verify that the CA is actually up and responding so

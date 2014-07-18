@@ -22,11 +22,15 @@
 
 import sys
 import syslog
+import tempfile
+import shutil
 import traceback
 
+from ipapython import ipautil
 from ipalib import api
 from ipaserver.install import certs, cainstance
 from ipaplatform import services
+from ipaplatform.paths import paths
 
 nickname = 'ipaCert'
 
@@ -34,17 +38,26 @@ def main():
     api.bootstrap(context='restart')
     api.finalize()
 
-    ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
-    if ca.is_renewal_master():
-        # Fetch the new certificate
-        db = certs.CertDB(api.env.realm)
-        dercert = db.get_cert_from_db(nickname, pem=False)
-        if not dercert:
-            syslog.syslog(syslog.LOG_ERR, 'No certificate %s found.' % nickname)
-            sys.exit(1)
+    tmpdir = tempfile.mkdtemp(prefix="tmp-")
+    try:
+        principal = str('host/%s@%s' % (api.env.host, api.env.realm))
+        ccache = ipautil.kinit_hostprincipal(paths.KRB5_KEYTAB, tmpdir,
+                                             principal)
 
-        # Load it into dogtag
-        cainstance.update_people_entry(dercert)
+        ca = cainstance.CAInstance(host_name=api.env.host, ldapi=False)
+        if ca.is_renewal_master():
+            # Fetch the new certificate
+            db = certs.CertDB(api.env.realm)
+            dercert = db.get_cert_from_db(nickname, pem=False)
+            if not dercert:
+                syslog.syslog(
+                    syslog.LOG_ERR, "No certificate %s found." % nickname)
+                sys.exit(1)
+
+            # Load it into dogtag
+            cainstance.update_people_entry(dercert)
+    finally:
+        shutil.rmtree(tmpdir)
 
     # Now restart Apache so the new certificate is available
     syslog.syslog(syslog.LOG_NOTICE, "Restarting httpd")

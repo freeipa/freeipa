@@ -348,20 +348,21 @@ class CAInstance(service.Service):
        2 = have signed cert, continue installation
     """
 
-    def __init__(self, realm, ra_db, dogtag_constants=None):
+    def __init__(self, realm=None, ra_db=None, dogtag_constants=None,
+                 host_name=None, dm_password=None, ldapi=True):
         if dogtag_constants is None:
             dogtag_constants = dogtag.configured_constants()
 
         service.Service.__init__(self,
-                '%sd' % dogtag_constants.PKI_INSTANCE_NAME,
-                service_desc="certificate server"
-                )
+                                 '%sd' % dogtag_constants.PKI_INSTANCE_NAME,
+                                 service_desc="certificate server",
+                                 dm_password=dm_password,
+                                 ldapi=ldapi)
 
         self.dogtag_constants = dogtag_constants
         self.realm = realm
-        self.dm_password = None
         self.admin_password = None
-        self.fqdn = None
+        self.fqdn = host_name
         self.domain = None
         self.pkcs12_info = None
         self.clone = False
@@ -376,11 +377,15 @@ class CAInstance(service.Service):
         # The same database is used for mod_nss because the NSS context
         # will already have been initialized by Apache by the time
         # mod_python wants to do things.
-        self.canickname = get_ca_nickname(realm)
+        self.canickname = None
+        if realm:
+            self.canickname = get_ca_nickname(realm)
         self.basedn = DN(('o', 'ipaca'))
         self.ca_agent_db = tempfile.mkdtemp(prefix = "tmp-")
         self.ra_agent_db = ra_db
-        self.ra_agent_pwd = self.ra_agent_db + "/pwdfile.txt"
+        self.ra_agent_pwd = None
+        if ra_db:
+            self.ra_agent_pwd = ra_db + "/pwdfile.txt"
         self.ds_port = DEFAULT_DSPORT
         self.security_domain_name = "IPA"
         self.server_root = dogtag_constants.SERVER_ROOT
