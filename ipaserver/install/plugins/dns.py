@@ -61,6 +61,8 @@ class update_dnszones(PostUpdate):
 
     def execute(self, **options):
         ldap = self.obj.backend
+        if not dns_container_exists(ldap):
+            return (False, False, [])
 
         try:
             zones = api.Command.dnszone_find(all=True)['result']
@@ -153,6 +155,8 @@ class update_check_forwardzones(PreSchemaUpdate):
             # no upgrade is needed
             return (False, False, [])
         ldap = self.obj.backend
+        if not dns_container_exists(ldap):  # No DNS installed
+            return (False, False, [])
         result = ldap.schema.get_obj(_ldap.schema.models.ObjectClass, 'idnsforwardzone')
         if result is None:
             sysupgrade.set_upgrade_state('dns', 'update_to_forward_zones', True)
