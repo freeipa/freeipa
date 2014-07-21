@@ -602,6 +602,7 @@ class CAInstance(service.Service):
                 'Contents of pkispawn configuration file (%s):\n%s' %
                     (cfg_file, ipautil.nolog_replace(f.read(), nolog)))
 
+        self.backup_state('installed', True)
         try:
             ipautil.run(args, nolog=nolog)
         except ipautil.CalledProcessError, e:
@@ -646,6 +647,7 @@ class CAInstance(service.Service):
                 '-redirect', 'logs=/var/log/pki-ca',
                 '-enable_proxy'
         ]
+        self.backup_state('installed', True)
         ipautil.run(args, env={'PKI_HOSTNAME':self.fqdn})
 
     def __enable(self):
@@ -1320,6 +1322,8 @@ class CAInstance(service.Service):
         if not enabled is None and not enabled:
             self.disable()
 
+        # Just eat this state if it exists
+        installed = self.restore_state("installed")
         try:
             if self.dogtag_constants.DOGTAG_VERSION >= 10:
                 ipautil.run([paths.PKIDESTROY, "-i",
@@ -1355,9 +1359,12 @@ class CAInstance(service.Service):
 
         # remove CRL files
         root_logger.info("Remove old CRL files")
-        for f in get_crl_files():
-            root_logger.debug("Remove %s", f)
-            installutils.remove_file(f)
+        try:
+            for f in get_crl_files():
+                root_logger.debug("Remove %s", f)
+                installutils.remove_file(f)
+        except OSError, e:
+            root_logger.warning("Error while removing old CRL files: %s" % e)
 
         # remove CRL directory
         root_logger.info("Remove CRL directory")
