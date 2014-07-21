@@ -90,7 +90,7 @@ Requires: 389-ds-base >= 1.3.2.19
 Requires: openldap-clients > 2.4.35-4
 Requires: nss >= 3.14.3-12.0
 Requires: nss-tools >= 3.14.3-12.0
-Requires: krb5-server >= 1.11.5-3
+Requires: krb5-server >= 1.11.5-5
 Requires: krb5-pkinit-openssl
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
