@@ -1739,41 +1739,34 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         container.addClass('dnstype-table');
 
-        that.remove_button = IPA.action_button({
+        that.remove_button = IPA.button_widget({
             name: 'remove',
             label: '@i18n:buttons.remove',
             icon: 'fa-trash-o',
-            'class': 'action-button-disabled',
-            click: function() {
-                if (!that.remove_button.hasClass('action-button-disabled')) {
-                    that.remove_handler();
-                }
-                return false;
-            }
-        }).appendTo(that.buttons);
+            enabled: false,
+            button_class: 'btn btn-link',
+            click: that.remove_handler
+        });
+        that.remove_button.create(that.buttons);
 
-        that.add_button = IPA.action_button({
+        that.add_button = IPA.button_widget({
             name: 'add',
             label: '@i18n:buttons.add',
             icon: 'fa-plus',
-            click: function() {
-                if (!that.add_button.hasClass('action-button-disabled')) {
-                    that.add_handler();
-                }
-                return false;
-            }
-        }).appendTo(that.buttons);
+            button_class: 'btn btn-link',
+            click: that.add_handler
+        });
+        that.add_button.create(that.buttons);
     };
 
     that.set_enabled = function(enabled) {
         that.table_set_enabled(enabled);
-        if (enabled) {
-            if(that.add_button) {
-                that.add_button.removeClass('action-button-disabled');
-            }
-        } else {
-            $('.action-button', that.table).addClass('action-button-disabled');
+        if (!enabled) {
             that.unselect_all();
+        }
+        if (that.add_button) {
+            that.add_button.set_enabled(enabled);
+            that.remove_button.set_enabled(false);
         }
     };
 
@@ -1782,11 +1775,7 @@ IPA.dns.record_type_table_widget = function(spec) {
         var values = that.get_selected_values();
 
         if (that.remove_button) {
-            if (values.length === 0) {
-                that.remove_button.addClass('action-button-disabled');
-            } else {
-                that.remove_button.removeClass('action-button-disabled');
-            }
+            that.remove_button.set_enabled(values.length > 0);
         }
     };
 
