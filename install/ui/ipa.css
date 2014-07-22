@@ -252,15 +252,6 @@ div[name=settings].facet-group li a {
     word-wrap: break-word;
 }
 
-.action-button-disabled,
-.action-button-disabled:focus,
-.action-button-disabled:hover {
-    color: gray;
-    cursor: default;
-    text-decoration: none;
-    outline: none;
-}
-
 .aci-attribute-table tbody {
     height: 10em;
 }

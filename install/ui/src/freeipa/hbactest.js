@@ -184,12 +184,7 @@ IPA.hbac.test_facet = function(spec) {
                 name: 'prev',
                 label: '@i18n:widget.prev',
                 icon: 'fa-chevron-left',
-                click: function() {
-                    if (!that.prev_button.hasClass('action-button-disabled')) {
-                        that.prev();
-                    }
-                    return false;
-                }
+                click: that.prev
             }).appendTo(buttons);
 
             buttons.append(' ');
@@ -199,12 +194,7 @@ IPA.hbac.test_facet = function(spec) {
             name: 'next',
             label: '@i18n:widget.next',
             icon: 'fa-chevron-right',
-            click: function() {
-                if (!that.next_button.hasClass('action-button-disabled')) {
-                    that.next();
-                }
-                return false;
-            }
+            click: that.next
         }).appendTo(buttons);
     };
 
@@ -535,12 +525,7 @@ IPA.hbac.test_run_facet = function(spec) {
             name: 'run_test',
             label: '@i18n:objects.hbactest.run_test',
             icon: 'fa-gear',
-            click: function() {
-                if (!that.run_button.hasClass('action-button-disabled')) {
-                    that.run();
-                }
-                return false;
-            }
+            click: that.run
         }).appendTo(button_panel);
 
         var result_panel = $('<div/>', {
@@ -608,12 +593,7 @@ IPA.hbac.test_run_facet = function(spec) {
             name: 'prev',
             label: '@i18n:widget.prev',
             icon: 'fa-chevron-left',
-            click: function() {
-                if (!that.prev_button.hasClass('action-button-disabled')) {
-                    that.prev();
-                }
-                return false;
-            }
+            click: that.prev
         }).appendTo(buttons);
 
         buttons.append(' ');
@@ -622,12 +602,7 @@ IPA.hbac.test_run_facet = function(spec) {
             name: 'new_test',
             label: '@i18n:objects.hbactest.new_test',
             icon: 'fa-repeat',
-            click: function() {
-                if (!that.new_test_button.hasClass('action-button-disabled')) {
-                    that.new_test();
-                }
-                return false;
-            }
+            click: that.new_test
         }).appendTo(buttons);
     };
 
