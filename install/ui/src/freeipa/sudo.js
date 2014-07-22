@@ -710,30 +710,24 @@ IPA.sudo.options_section = function(spec) {
 
             that.table.table_create(container);
 
-            that.remove_button = IPA.action_button({
+            that.remove_button = IPA.button_widget({
                 name: 'remove',
                 label: '@i18n:buttons.remove',
                 icon: 'fa-trash-o',
-                'class': 'action-button-disabled',
-                click: function() {
-                    if (!that.remove_button.hasClass('action-button-disabled')) {
-                        that.remove_handler();
-                    }
-                    return false;
-                }
-            }).appendTo(that.table.buttons);
+                enabled: false,
+                button_class: 'btn btn-link',
+                click: that.remove_handler
+            });
+            that.remove_button.create(that.table.buttons);
 
-            that.add_button = IPA.action_button({
+            that.add_button = IPA.button_widget({
                 name: 'add',
                 label: '@i18n:buttons.add',
                 icon: 'fa-plus',
-                click: function() {
-                    if (!that.add_button.hasClass('action-button-disabled')) {
-                        that.add_handler();
-                    }
-                    return false;
-                }
-            }).appendTo(that.table.buttons);
+                button_class: 'btn btn-link',
+                click: that.add_handler
+            });
+            that.add_button.create(that.table.buttons);
         };
 
         that.table.select_changed = function() {
@@ -741,11 +735,7 @@ IPA.sudo.options_section = function(spec) {
             var values = that.table.get_selected_values();
 
             if (that.remove_button) {
-                if (values.length === 0) {
-                    that.remove_button.addClass('action-button-disabled');
-                } else {
-                    that.remove_button.removeClass('action-button-disabled');
-                }
+                that.remove_button.set_enabled(values.length > 0);
             }
         };
 

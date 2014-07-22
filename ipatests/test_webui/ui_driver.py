@@ -609,7 +609,7 @@ class UI_driver(object):
         if not dialog:
             dialog = self.get_dialog(strict=True)
 
-        s = ".rcue-dialog-buttons button[name=%s]" % name
+        s = ".rcue-dialog-buttons button[name='%s']" % name
         self._button_click(s, dialog, name)
 
     def action_button_click(self, name, parent):
@@ -634,10 +634,8 @@ class UI_driver(object):
 
     def _button_click(self, selector, parent, name=''):
         btn = self.find(selector, By.CSS_SELECTOR, parent, strict=True)
-
-        disabled = 'ui-state-disabled' in btn.get_attribute("class").split() or \
-                   btn.get_attribute("disabled")
-
+        ActionChains(self.driver).move_to_element(btn).perform()
+        disabled = btn.get_attribute("disabled")
         assert btn.is_displayed(), 'Button is not displayed: %s' % name
         assert not disabled, 'Invalid button state: disabled. Button: %s' % name
         btn.click()
@@ -940,13 +938,18 @@ class UI_driver(object):
             parent = self.get_form()
 
         s = self.get_table_selector(table_name)
-        s += " tbody td input[value='%s']+label" % pkey
-        label = self.find(s, By.CSS_SELECTOR, parent, strict=True)
+        input_s = s + " tbody td input[value='%s']" % pkey
+        checkbox = self.find(input_s, By.CSS_SELECTOR, parent, strict=True)
+        checkbox_id = checkbox.get_attribute('id')
+        label_s = s + " tbody td label[for='%s']" % checkbox_id
+        print label_s
+        label = self.find(label_s, By.CSS_SELECTOR, parent, strict=True)
         try:
             ActionChains(self.driver).move_to_element(label).click().perform()
         except WebDriverException as e:
             assert False, 'Can\'t click on checkbox label: %s \n%s' % (s, e)
-
+        self.wait()
+        assert checkbox.is_selected(), 'Record was not checked: %s' % input_s
         self.wait()
 
     def get_record_value(self, pkey, column, parent=None, table_name=None):
@@ -1011,7 +1014,7 @@ class UI_driver(object):
             if table_name and parent:
                 s = self.get_table_selector(table_name)
                 table = self.find(s, By.CSS_SELECTOR, parent, strict=True)
-                self.action_button_click('remove', table)
+                self.button_click('remove', table)
             else:
                 self.facet_button_click('remove')
             if fields:
@@ -1339,6 +1342,7 @@ class UI_driver(object):
             self.switch_to_facet(facet)
 
         self.facet_button_click('add')
+        self.wait()
         self.wait_for_request()
 
         for key in pkeys:
@@ -1364,7 +1368,7 @@ class UI_driver(object):
         s = self.get_table_selector(table_name)
         table = self.find(s, By.CSS_SELECTOR, parent, strict=True)
 
-        s = "a[name=%s].button" % 'add'
+        s = "button[name='%s']" % 'add'
         btn = self.find(s, By.CSS_SELECTOR, table, strict=True)
         btn.click()
         self.wait_for_request(0.4)
@@ -1372,6 +1376,7 @@ class UI_driver(object):
         for key in pkeys:
             self.select_record(key, table_name='available')
             self.button_click('add')
+            self.wait()
 
         self.dialog_button_click('add')
         self.wait_for_request(n=2)
@@ -1550,21 +1555,6 @@ class UI_driver(object):
         """
         assert expected == current, "Rows don't match. Expected: %d, Got: %d" % (expected, current)
 
-    def assert_action_button_enabled(self, name, context_selector=None, enabled=True):
-        """
-        Assert that action-button is enabled or disabled
-        """
-        s = ""
-        if context_selector:
-            s = context_selector
-        s += "a[name=%s]" % name
-        facet = self.get_facet()
-        btn = self.find(s, By.CSS_SELECTOR, facet, strict=True)
-        cls = 'action-button-disabled'
-        valid = enabled ^ self.has_class(btn, cls)
-        assert btn.is_displayed(), 'Button is not displayed'
-        assert valid, 'Button has incorrect enabled state.'
-
     def assert_button_enabled(self, name, context_selector=None, enabled=True):
         """
         Assert that button is enabled or disabled (expects that element will be
@@ -1591,7 +1581,7 @@ class UI_driver(object):
         Assert that button in table is enabled/disabled
         """
         s = "table[name='%s'] " % table_name
-        self.assert_action_button_enabled(name, s, enabled)
+        self.assert_button_enabled(name, s, enabled)
 
     def assert_facet(self, entity, facet=None):
         """

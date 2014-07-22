@@ -3152,30 +3152,24 @@ IPA.attribute_table_widget = function(spec) {
 
     that.create_buttons = function(container) {
 
-        that.remove_button = IPA.action_button({
+        that.remove_button = IPA.button_widget({
             name: 'remove',
             label: '@i18n:buttons.remove',
             icon: 'fa-trash-o',
-            'class': 'action-button-disabled',
-            click: function() {
-                if (!that.remove_button.hasClass('action-button-disabled')) {
-                    that.remove_handler();
-                }
-                return false;
-            }
-        }).appendTo(container);
+            enabled: false,
+            button_class: 'btn btn-link',
+            click: that.remove_handler
+        });
+        that.remove_button.create(container);
 
-        that.add_button = IPA.action_button({
+        that.add_button = IPA.button_widget({
             name: 'add',
             label: '@i18n:buttons.add',
             icon: 'fa-plus',
-            click: function() {
-                if (!that.add_button.hasClass('action-button-disabled')) {
-                    that.add_handler();
-                }
-                return false;
-            }
-        }).appendTo(container);
+            button_class: 'btn btn-link',
+            click: that.add_handler
+        });
+        that.add_button.create(container);
     };
 
     that.create = function(container) {
@@ -3189,13 +3183,12 @@ IPA.attribute_table_widget = function(spec) {
 
     that.set_enabled = function(enabled) {
         that.table_set_enabled(enabled);
-        if (enabled) {
-            if(that.add_button) {
-                that.add_button.removeClass('action-button-disabled');
-            }
-        } else {
-            $('.action-button', that.table).addClass('action-button-disabled');
+        if (!enabled) {
             that.unselect_all();
+        }
+        if (that.add_button) {
+            that.add_button.set_enabled(enabled);
+            that.remove_button.set_enabled(false);
         }
     };
 
@@ -3204,11 +3197,7 @@ IPA.attribute_table_widget = function(spec) {
         var values = that.get_selected_values();
 
         if (that.remove_button) {
-            if (values.length === 0) {
-                that.remove_button.addClass('action-button-disabled');
-            } else {
-                that.remove_button.removeClass('action-button-disabled');
-            }
+            that.remove_button.set_enabled(values.length > 0);
         }
     };
 
@@ -4233,6 +4222,12 @@ IPA.button_widget = function(spec) {
     that['class'] = spec['class'];
 
     /**
+     * Override for button classes
+     * @property {string}
+     */
+    that.button_class = spec.button_class;
+
+    /**
      * Icon name
      * @property {string}
      */
@@ -4245,7 +4240,7 @@ IPA.button_widget = function(spec) {
      */
     that.on_click = function() {
 
-        if (that.click) {
+        if (that.click && that.enabled) {
             that.click();
         }
         return false;
@@ -4259,6 +4254,7 @@ IPA.button_widget = function(spec) {
             title: that.tooltip,
             label: that.label,
             'class': that['class'],
+            button_class: that.button_class,
             style: that.style,
             icon: that.icon,
             click: that.on_click
@@ -4266,6 +4262,7 @@ IPA.button_widget = function(spec) {
         that.container = that.button;
 
         that.set_enabled(that.enabled);
+        return that.button;
     };
 
     /** @inheritDoc */
