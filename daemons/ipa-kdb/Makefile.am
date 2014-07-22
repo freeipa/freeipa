@@ -79,6 +79,7 @@ ipa_kdb_tests_LDADD =          \
        $(KRB5_LIBS)            \
        $(LDAP_LIBS)            \
        $(NDRPAC_LIBS)          \
+       $(UNISTRING_LIBS)       \
        $(NSS_LIBS)             \
        -lkdb5                  \
        -lsss_idmap             \
