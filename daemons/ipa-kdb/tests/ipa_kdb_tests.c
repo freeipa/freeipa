@@ -174,7 +174,9 @@ START_TEST(test_get_authz_data_types)
     for (c = 0; test_set[c].authz_data != NULL ||
                 test_set[c].global_authz_data != NULL; c++) {
         ied->authz_data = test_set[c].authz_data;
-        ipa_ctx->authz_data = test_set[c].global_authz_data;
+        ipa_ctx->config.authz_data = test_set[c].global_authz_data;
+        /* Set last_update to avoid LDAP lookups during tests */
+        ipa_ctx->config.last_update = time(NULL);
         entry->princ = test_set[c].princ;
         get_authz_data_types(krb5_ctx, entry, &with_pac, &with_pad);
         fail_unless(with_pad == test_set[c].exp_with_pad, "with_pad not %s %s.",
