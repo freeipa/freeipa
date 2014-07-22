@@ -672,6 +672,8 @@ exp.facet = IPA.facet = function(spec, no_init) {
 
         if (!that.dom_node) {
             that.create();
+        } else if (!that.dom_node.parentElement) {
+            construct.place(that.dom_node[0], that.container_node);
         }
 
         var state = that.state.clone();
@@ -728,6 +730,9 @@ exp.facet = IPA.facet = function(spec, no_init) {
      */
     that.hide = function() {
         that.is_shown = false;
+        if (that.dom_node[0].parentElement) {
+            that.container_node.removeChild(that.dom_node[0]);
+        }
         that.dom_node.removeClass('active-facet');
     };
 

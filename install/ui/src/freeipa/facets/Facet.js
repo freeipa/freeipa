@@ -285,6 +285,8 @@ define(['dojo/_base/declare',
             if (!this.dom_node) {
                 this.create();
                 this.render_children();
+            } else if (!this.dom_node.parentElement) {
+                construct.place(this.dom_node, this.container_node);
             }
 
             dom_class.add(this.dom_node, 'active-facet');
@@ -295,6 +297,9 @@ define(['dojo/_base/declare',
          * Un-mark itself as active facet
          */
         hide: function() {
+            if (this.dom_node.parentElement) {
+                this.container_node.removeChild(this.dom_node);
+            }
             dom_class.remove(this.dom_node, 'active-facet');
             this.emit('hide', { source: this });
         },
