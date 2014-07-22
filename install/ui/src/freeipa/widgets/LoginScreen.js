@@ -231,7 +231,13 @@ define(['dojo/_base/declare',
 
         refresh: function() {
             if (this.buttons_node) {
-                this.buttons_node.innerHTML = "";
+                // detach button nodes politely
+                // hard methods like `innerHTML=''` might have undesired
+                // consequences, e.g., removal of children's content in IE
+                var bn = this.buttons_node;
+                while (bn.firstChild) {
+                    bn.removeChild(bn.firstChild);
+                }
             }
             if (this.view === 'reset') {
                 this.show_reset_view();
