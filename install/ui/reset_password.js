@@ -114,6 +114,7 @@ RP.on_submit = function() {
     } else {
         RP.reset_form();
         RP.show_success("Password reset was successful.");
+        RP.redirect();
     }
 };
 
@@ -138,6 +139,29 @@ RP.show_success = function(message) {
     $('.alert-success > p').text(message);
     $('.alert-danger').css('display', 'none');
     $('.alert-success').css('display', '');
+};
+
+RP.parse_uri = function() {
+    var opts = {};
+    if (window.location.search.length > 1) {
+        var couples = window.location.search.substr(1).split("&");
+        for (var i=0,l=couples.length; i < l; i++) {
+            var couple = couples[i].split("=");
+            var key = decodeURIComponent(couple[0]);
+            var value = couple.length > 1 ? decodeURIComponent(couple[1]) : '';
+            opts[key] = value;
+        }
+    }
+    return opts;
+};
+
+RP.redirect = function() {
+
+    var opts = RP.parse_uri();
+    var url = opts['redirect'];
+    if (url) {
+        window.location = url;
+    }
 };
 
 
