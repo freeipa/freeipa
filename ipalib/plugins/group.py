@@ -522,7 +522,7 @@ class group_remove_member(LDAPRemoveMember):
 
     def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
         assert isinstance(dn, DN)
-        if keys[0] in PROTECTED_GROUPS:
+        if keys[0] in PROTECTED_GROUPS and 'user' in options:
             protected_group_name = keys[0]
             result = api.Command.group_show(protected_group_name)
             users_left = set(result['result'].get('member_user', []))
