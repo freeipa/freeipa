@@ -42,6 +42,9 @@ Manages the CA replication agreements of an IPA server.
 \fBforce\-sync\fR
 \- Immediately flush any data to be replicated from a server specified with the \-\-from option
 .TP
+\fBset\-renewal\-master\fR [SERVER]
+\- Set CA server which handles renewal of CA subsystem certificates to SERVER
+.TP
 The connect and disconnect options are used to manage the replication topology. When a replica is created it is only connected with the master that created it. The connect option may be used to connect it to other existing replicas.
 .TP
 The disconnect option cannot be used to remove the last link of a replica. To remove a replica from the topology use the del option.
