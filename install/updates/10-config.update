@@ -63,3 +63,8 @@ addifnew:nsSaslMapPriority: 10
 # Can be removed when https://fedorahosted.org/389/ticket/47457 is fixed
 dn: cn=config
 only:nsslapd-sasl-max-buffer-size:2097152
+
+# Allow hashed passwords to be added by non-DM users. Without this
+# setting, password migration fails
+dn: cn=config
+only:nsslapd-allow-hashed-passwords:on
