@@ -2091,9 +2091,6 @@ class LDAPAddReverseMember(LDAPModReverseMember):
                 attrs_list.difference_update(self.obj.attribute_members)
             attrs_list = list(attrs_list)
 
-        # Pull the record as it is now so we can know how many members
-        # there are.
-        entry_start = self.api.Command[self.show_command](keys[-1])['result']
         completed = 0
         failed = {'member': {self.reverse_attr: []}}
         for attr in options.get(self.reverse_attr) or []:
@@ -2195,9 +2192,6 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
                 attrs_list.difference_update(self.obj.attribute_members)
             attrs_list = list(attrs_list)
 
-        # Pull the record as it is now so we can know how many members
-        # there are.
-        entry_start = self.api.Command[self.show_command](keys[-1])['result']
         completed = 0
         failed = {'member': {self.reverse_attr: []}}
         for attr in options.get(self.reverse_attr) or []:
