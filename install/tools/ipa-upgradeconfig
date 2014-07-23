@@ -598,6 +598,11 @@ def named_enable_dnssec():
     """
     Enable dnssec in named.conf
     """
+    if not bindinstance.named_conf_exists():
+        # DNS service may not be configured
+        root_logger.info('DNS is not configured')
+        return False
+
     if not sysupgrade.get_upgrade_state('named.conf', 'dnssec_enabled'):
         root_logger.info('[Enabling "dnssec-enable" configuration in DNS]')
         try:
