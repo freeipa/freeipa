@@ -100,7 +100,7 @@ Requires: httpd >= 2.4.6-6
 Requires: mod_wsgi
 Requires: mod_auth_kerb >= 5.4-16
 Requires: mod_nss >= 1.0.8-26
-Requires: python-ldap
+Requires: python-ldap >= 2.4.15
 Requires: python-krbV
 Requires: acl
 Requires: python-pyasn1

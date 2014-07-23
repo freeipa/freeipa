@@ -29,15 +29,58 @@ from ipaserver.install.ldapupdate import connect
 from ipaserver.install import installutils
 
 
-SCHEMA_ELEMENT_CLASSES = {
+SCHEMA_ELEMENT_CLASSES = (
     # All schema model classes this tool can modify
-    'objectclasses': ldap.schema.models.ObjectClass,
-    'attributetypes': ldap.schema.models.AttributeType,
-}
+    # Depends on order, attributes first, then objectclasses
+    ('attributetypes', ldap.schema.models.AttributeType),
+    ('objectclasses', ldap.schema.models.ObjectClass),
+)
 
 ORIGIN = 'IPA v%s' % ipapython.version.VERSION
 
 log = log_mgr.get_logger(__name__)
+
+
+def _get_oid_dependency_order(schema, cls):
+    """
+    Returns a ordered list of OIDs sets, in order which respects inheritance in LDAP
+    OIDs in second set, depend on first set, etc.
+
+    :return [set(1st-tree-level), set(2nd-tree-level), ...]
+    """
+    top_node = '_'
+    ordered_oid_groups = []
+
+    tree = schema.tree(cls)  # tree structure of schema
+
+    # remove top_node from tree, it breaks ordering
+    # we don't need this, tree from file is not consistent
+    del tree[top_node]
+    unordered_oids = tree.keys()
+
+    # split into two groups, parents and child nodes, and iterate until
+    # child nodes are not empty
+    while unordered_oids:
+        parent_nodes = set()
+        child_nodes = set()
+
+        for node in unordered_oids:
+            if node not in child_nodes:
+                # if node was child once, must remain as child
+                parent_nodes.add(node)
+
+            for child_oid in tree[node]:
+                # iterate over all child nodes stored in tree[node] per node
+                # child node must be removed from parents
+                parent_nodes.discard(child_oid)
+                child_nodes.add(child_oid)
+
+        ordered_oid_groups.append(parent_nodes)  # parents nodes are not dependent
+
+        assert len(child_nodes) < len(unordered_oids)  # while iteration must be finite
+        unordered_oids = child_nodes  # extract new parent nodes in next iteration
+
+    return ordered_oid_groups
 
 
 def update_schema(schema_files, ldapi=False, dm_password=None, live_run=True):
@@ -62,64 +105,68 @@ def update_schema(schema_files, ldapi=False, dm_password=None, live_run=True):
         True if modifications were made
         (or *would be* made, for live_run=false)
     """
+    SCHEMA_ELEMENT_CLASSES_KEYS = [x[0] for x in SCHEMA_ELEMENT_CLASSES]
+
     conn = connect(ldapi=ldapi, dm_password=dm_password,
                    realm=krbV.default_context().default_realm,
                    fqdn=installutils.get_fqdn())
 
     old_schema = conn.schema
 
+
     schema_entry = conn.get_entry(DN(('cn', 'schema')),
-                                  SCHEMA_ELEMENT_CLASSES.keys())
+                                  SCHEMA_ELEMENT_CLASSES_KEYS)
 
     modified = False
 
     # The exact representation the DS gives us for each OID
     # (for debug logging)
     old_entries_by_oid = {cls(str(attr)).oid: str(attr)
-                          for attrname, cls in SCHEMA_ELEMENT_CLASSES.items()
+                          for (attrname, cls) in SCHEMA_ELEMENT_CLASSES
                           for attr in schema_entry[attrname]}
 
     for filename in schema_files:
         log.info('Processing schema LDIF file %s', filename)
         dn, new_schema = ldap.schema.subentry.urlfetch(filename)
 
-        for attrname, cls in SCHEMA_ELEMENT_CLASSES.items():
+        for attrname, cls in SCHEMA_ELEMENT_CLASSES:
+            for oids_set in _get_oid_dependency_order(new_schema, cls):
+                # Set of all elements of this class, as strings given by the DS
+                new_elements = []
+                for oid in oids_set:
+                    new_obj = new_schema.get_obj(cls, oid)
+                    old_obj = old_schema.get_obj(cls, oid)
+                    # Compare python-ldap's sanitized string representations
+                    # to see if the value is different
+                    # This can give false positives, e.g. with case differences
+                    # in case-insensitive names.
+                    # But, false positives are harmless (and infrequent)
+                    if not old_obj or str(new_obj) != str(old_obj):
+                        # Note: An add will automatically replace any existing
+                        # schema with the same OID. So, we only add.
+                        value = add_x_origin(new_obj)
+                        new_elements.append(value)
 
-            # Set of all elements of this class, as strings given by the DS
-            new_elements = []
+                        if old_obj:
+                            old_attr = old_entries_by_oid.get(oid)
+                            log.info('Replace: %s', old_attr)
+                            log.info('   with: %s', value)
+                        else:
+                            log.info('Add: %s', value)
 
-            for oid in new_schema.listall(cls):
-                new_obj = new_schema.get_obj(cls, oid)
-                old_obj = old_schema.get_obj(cls, oid)
-                # Compare python-ldap's sanitized string representations
-                # to see if the value is different
-                # This can give false positives, e.g. with case differences
-                # in case-insensitive names.
-                # But, false positives are harmless (and infrequent)
-                if not old_obj or str(new_obj) != str(old_obj):
-                    # Note: An add will automatically replace any existing
-                    # schema with the same OID. So, we only add.
-                    value = add_x_origin(new_obj)
-                    new_elements.append(value)
+                modified = modified or new_elements
+                schema_entry[attrname].extend(new_elements)
+                # we need to iterate schema updates, due to dependencies (SUP)
+                # schema_entry doesn't respect order of objectclasses/attributes
+                # so updates must be executed with groups of independent OIDs
+                if new_elements:
+                    modlist = schema_entry.generate_modlist()
+                    log.debug("Schema modlist:\n%s", pprint.pformat(modlist))
 
-                    if old_obj:
-                        old_attr = old_entries_by_oid.get(oid)
-                        log.info('Replace: %s', old_attr)
-                        log.info('   with: %s', value)
-                    else:
-                        log.info('Add: %s', value)
+                    if live_run:
+                        conn.update_entry(schema_entry)
 
-            modified = modified or new_elements
-            schema_entry[attrname].extend(new_elements)
-
-    # FIXME: We should have a better way to display the modlist,
-    # for now display raw output of our internal routine
-    modlist = schema_entry.generate_modlist()
-    log.debug("Complete schema modlist:\n%s", pprint.pformat(modlist))
-
-    if modified and live_run:
-        conn.update_entry(schema_entry)
-    else:
+    if not (modified and live_run):
         log.info('Not updating schema')
 
     return modified
