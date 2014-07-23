@@ -121,23 +121,76 @@ def main():
             else:
                 syslog.syslog(syslog.LOG_NOTICE, "Not updating CS.cfg")
 
-            # Update CA certificate in LDAP
-            if ca.is_renewal_master():
-                try:
-                    conn = ldap2(shared_instance=False,
-                                 ldap_uri=api.env.ldap_uri)
-                    conn.connect(ccache=ccache)
+            # Remove old external CA certificates
+            for ca_nick, ca_flags in db.list_certs():
+                if 'u' in ca_flags:
+                    continue
+                # Delete *all* certificates that use the nickname
+                while True:
+                    try:
+                        db.delete_cert(ca_nick)
+                    except ipautil.CalledProcessError:
+                        syslog.syslog(
+                            syslog.LOG_ERR,
+                            "Failed to remove certificate %s" % ca_nick)
+                        break
+                    if not db.has_nickname(ca_nick):
+                        break
 
+            conn = None
+            try:
+                conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)
+                conn.connect(ccache=ccache)
+            except Exception, e:
+                syslog.syslog(
+                    syslog.LOG_ERR, "Failed to connect to LDAP: %s" % e)
+            else:
+                # Update CA certificate in LDAP
+                if ca.is_renewal_master():
                     try:
                         certstore.update_ca_cert(conn, api.env.basedn, cert)
                     except errors.EmptyModlist:
                         pass
+                    except Exception, e:
+                        syslog.syslog(
+                            syslog.LOG_ERR,
+                            "Updating CA certificate failed: %s" % e)
 
-                    conn.disconnect()
+                # Add external CA certificates
+                ca_issuer = str(x509.get_issuer(cert, x509.DER))
+                try:
+                    ca_certs = certstore.get_ca_certs(
+                        conn, api.env.basedn, api.env.realm, False,
+                        filter_subject=ca_issuer)
                 except Exception, e:
                     syslog.syslog(
                         syslog.LOG_ERR,
-                        "Updating CA certificate failed: %s" % e)
+                        "Failed to get external CA certificates from LDAP: "
+                        "%s" % e)
+                    ca_certs = []
+
+                for ca_cert, ca_nick, ca_trusted, ca_eku in ca_certs:
+                    ca_subject = DN(str(x509.get_subject(ca_cert, x509.DER)))
+                    nick_base = ' - '.join(rdn[-1].value for rdn in ca_subject)
+                    nick = nick_base
+                    i = 1
+                    while db.has_nickname(nick):
+                        nick = '%s [%s]' % (nick_base, i)
+                        i += 1
+                    if ca_trusted is False:
+                        flags = 'p,p,p'
+                    else:
+                        flags = 'CT,c,'
+
+                    try:
+                        db.add_cert(ca_cert, nick, flags)
+                    except ipautil.CalledProcessError, e:
+                        syslog.syslog(
+                            syslog.LOG_ERR,
+                            "Failed to add certificate %s" % ca_nick)
+            finally:
+                if conn is not None and conn.isconnected():
+                    conn.disconnect()
     finally:
         shutil.rmtree(tmpdir)
 
