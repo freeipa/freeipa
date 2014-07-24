@@ -121,7 +121,31 @@ def validate_dm_password(password):
         raise ValueError("Password must only contain ASCII characters")
 
     # Disallow characters that pkisilent doesn't process properly:
-    bad_characters = ' &\\<%'
+    bad_characters = '\\'
+    if any(c in bad_characters for c in password):
+        raise ValueError('Password must not contain these characters: %s' %
+            ', '.join('"%s"' % c for c in bad_characters))
+
+    # TODO: Check https://fedorahosted.org/389/ticket/47849
+    # Actual behavior of setup-ds.pl is that it does not accept white
+    # space characters in password when called interactively but does when
+    # provided such password in INF file. But it ignores leading and trailing
+    # white spaces in INF file.
+
+    # Disallow leading/trailing whaitespaces
+    if password.strip() != password:
+        raise ValueError('Password must not start or end with whitespace.')
+
+def validate_admin_password(password):
+    if len(password) < 8:
+        raise ValueError("Password must be at least 8 characters long")
+    if any(ord(c) < 0x20 for c in password):
+        raise ValueError("Password must not contain control characters")
+    if any(ord(c) >= 0x7F for c in password):
+        raise ValueError("Password must only contain ASCII characters")
+
+    # Disallow characters that pkisilent doesn't process properly:
+    bad_characters = '\\'
     if any(c in bad_characters for c in password):
         raise ValueError('Password must not contain these characters: %s' %
             ', '.join('"%s"' % c for c in bad_characters))
@@ -239,8 +263,11 @@ def parse_options():
             validate_dm_password(options.dm_password)
         except ValueError, e:
             parser.error("DS admin password: " + str(e))
-    if options.admin_password is not None and len(options.admin_password) < 8:
-        parser.error("Admin user password must be at least 8 characters long")
+    if options.admin_password is not None:
+        try:
+            validate_admin_password(options.admin_password)
+        except ValueError, e:
+            parser.error("Admin user password: " + str(e))
 
     if options.domain_name is not None:
         try:
@@ -450,7 +477,7 @@ def read_admin_password():
     print "This user is a regular system account used for IPA server administration."
     print ""
     #TODO: provide the option of generating a random password
-    admin_password = read_password("IPA admin")
+    admin_password = read_password("IPA admin", validator=validate_admin_password)
     return admin_password
 
 def check_dirsrv(unattended):
