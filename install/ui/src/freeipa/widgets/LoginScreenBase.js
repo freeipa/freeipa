@@ -60,6 +60,9 @@ define(['dojo/_base/declare',
 
         caps_warning_msg: "Warning: CAPS LOCK key is on",
 
+        otp_info_msg: "<i class=\"fa fa-info-circle\"></i> <strong>One-Time-Password(OTP):</strong> \
+        Generate new OTP code for each OTP field.",
+
         /**
          * Details builder
          * @property {IPA.details_builder}
@@ -331,6 +334,9 @@ define(['dojo/_base/declare',
         constructor: function(spec) {
             spec = spec || {};
             declare.safeMixin(this, spec);
+
+            this.otp_info_msg = text.get(spec.otp_info_msg || '@i18n:password.otp_info',
+                this.otp_info_msg);
         }
     });
     return LoginScreenBase;
