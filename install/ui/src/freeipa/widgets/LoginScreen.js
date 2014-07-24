@@ -248,6 +248,10 @@ define(['dojo/_base/declare',
 
         show_login_view: function() {
             this.set_login_aside_text();
+            if (auth.current.expired) {
+                var val_summary = this.get_widget('validation');
+                val_summary.add_info('expired', this.expired_msg);
+            }
             if (this.buttons_node) {
                 construct.place(this.sync_btn_node, this.buttons_node);
                 construct.place(this.login_btn_node, this.buttons_node);
@@ -284,9 +288,6 @@ define(['dojo/_base/declare',
 
         set_login_aside_text: function() {
             var aside = "";
-            if (auth.current.expired) {
-                aside += "<p>"+this.expired_msg;+"<p/>";
-            }
             if (this.password_enabled()) {
                 aside += "<p>"+this.form_auth_msg;+"<p/>";
             }
