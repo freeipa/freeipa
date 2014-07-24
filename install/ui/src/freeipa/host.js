@@ -531,7 +531,7 @@ IPA.host_dnsrecord_entity_link_widget = function(spec) {
 IPA.force_host_add_checkbox_widget = function(spec) {
     var metadata = IPA.get_command_option('host_add', spec.name);
     spec.label = metadata.label;
-    spec.tooltip = metadata.doc;
+    spec.title = metadata.doc;
     return IPA.checkbox_widget(spec);
 };
 

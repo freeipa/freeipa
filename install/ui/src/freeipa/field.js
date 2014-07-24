@@ -112,10 +112,10 @@ field.field = IPA.field = function(spec) {
     that.label = text.get(spec.label);
 
     /**
-     * Tooltip
+     * Title
      * @property {string}
      */
-    that.tooltip = text.get(spec.tooltip);
+    that.title = text.get(spec.title);
 
     /**
      * Measurement unit
@@ -299,8 +299,8 @@ field.field = IPA.field = function(spec) {
             if (!that.label) {
                 that.label = that.metadata.label || '';
             }
-            if (!that.tooltip) {
-                that.tooltip = that.metadata.doc || '';
+            if (!that.title) {
+                that.title = that.metadata.doc || '';
             }
         }
 

@@ -56,27 +56,27 @@ return {
                         {
                             name: 'ipabaseid',
                             label: '@i18n:objects.idrange.ipabaseid',
-                            tooltip: '@mo-param:idrange:ipabaseid:label'
+                            title: '@mo-param:idrange:ipabaseid:label'
                         },
                         {
                             name: 'ipaidrangesize',
                             label: '@i18n:objects.idrange.ipaidrangesize',
-                            tooltip: '@mo-param:idrange:ipaidrangesize:label'
+                            title: '@mo-param:idrange:ipaidrangesize:label'
                         },
                         {
                             name: 'ipabaserid',
                             label: '@i18n:objects.idrange.ipabaserid',
-                            tooltip: '@mo-param:idrange:ipabaserid:label'
+                            title: '@mo-param:idrange:ipabaserid:label'
                         },
                         {
                             name: 'ipasecondarybaserid',
                             label: '@i18n:objects.idrange.ipasecondarybaserid',
-                            tooltip: '@mo-param:idrange:ipasecondarybaserid:label'
+                            title: '@mo-param:idrange:ipasecondarybaserid:label'
                         },
                         {
                             name: 'ipanttrusteddomainsid',
                             label: '@i18n:objects.idrange.ipanttrusteddomainsid',
-                            tooltip: '@mo-param:idrange:ipanttrusteddomainsid:label'
+                            title: '@mo-param:idrange:ipanttrusteddomainsid:label'
                         }
                     ]
                 }
@@ -91,17 +91,17 @@ return {
             {
                 name: 'ipabaseid',
                 label: '@i18n:objects.idrange.ipabaseid',
-                tooltip: '@mo-param:idrange:ipabaseid:label'
+                title: '@mo-param:idrange:ipabaseid:label'
             },
             {
                 name: 'ipaidrangesize',
                 label: '@i18n:objects.idrange.ipaidrangesize',
-                tooltip: '@mo-param:idrange:ipaidrangesize:label'
+                title: '@mo-param:idrange:ipaidrangesize:label'
             },
             {
                 name: 'ipabaserid',
                 label: '@i18n:objects.idrange.ipabaserid',
-                tooltip: '@mo-param:idrange:ipabaserid:label'
+                title: '@mo-param:idrange:ipabaserid:label'
             },
             {
                 name: 'iparangetype',
@@ -135,12 +135,12 @@ return {
             {
                 name: 'ipasecondarybaserid',
                 label: '@i18n:objects.idrange.ipasecondarybaserid',
-                tooltip: '@mo-param:idrange:ipasecondarybaserid:label'
+                title: '@mo-param:idrange:ipasecondarybaserid:label'
             },
             {
                 name: 'ipanttrusteddomainsid',
                 label: '@i18n:objects.idrange.ipanttrusteddomainsid',
-                tooltip: '@mo-param:idrange:ipanttrusteddomainsid:label',
+                title: '@mo-param:idrange:ipanttrusteddomainsid:label',
                 enabled: false
             }
         ],

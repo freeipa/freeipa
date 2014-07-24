@@ -405,7 +405,7 @@ IPA.dialog = function(spec) {
 
         that.title_node = $('<h4/>', {
             'class': 'modal-title',
-            text: that.title
+            text: that.title || ''
         }).appendTo(that.header_node);
 
         return that.header_node;
