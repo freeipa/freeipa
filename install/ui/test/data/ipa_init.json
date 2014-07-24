@@ -378,7 +378,9 @@
                         "otptoken": {
                             "details": "OTP Token Settings",
                             "disable": "Disable token",
-                            "enable": "Enable token"
+                            "enable": "Enable token",
+                            "type_hotp": "Counter-based (HOTP)",
+                            "type_totp": "Time-based (TOTP)"
                         },
                         "permission": {
                             "add_custom_attr": "Add custom attribute",
