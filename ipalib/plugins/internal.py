@@ -190,6 +190,13 @@ class i18n_messages(Command):
             "removed": _("${count} item(s) removed"),
             "show_results": _("Show Results"),
         },
+        "authtype": {
+            "config_tooltip": _("Implicit method (password) will be used if no method is chosen."),
+            "type_otp": _("Two factor authentication (password + OTP)"),
+            "type_password": _("Password"),
+            "type_radius": _("Radius"),
+            "user_tooltip": _("Per-user setting, overwrites the global setting if any option is checked."),
+        },
         "buttons": {
             "about": _("About"),
             "add": _("Add"),

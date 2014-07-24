@@ -77,7 +77,12 @@ return {
                             $type: 'checkboxes',
                             name: 'ipauserauthtype',
                             flags: ['w_if_no_aci'],
-                            options: ['password', 'radius', 'otp']
+                            options: [
+                                { label: '@i18n:authtype.type_password', value: 'password' },
+                                { label: '@i18n:authtype.type_radius', value: 'radius' },
+                                { label: '@i18n:authtype.type_otp', value: 'otp' }
+                            ],
+                            tooltip: '@i18n:authtype.config_tooltip'
                         },
                         {
                             $type: 'checkbox',

@@ -48,6 +48,13 @@
                         "removed": "${count} item(s) removed",
                         "show_results": "Show Results"
                     },
+                    "authtype": {
+                        "config_tooltip": "Implicit method (password) will be used if no method is chosen.",
+                        "type_otp": "Two factor authentication (password + OTP)",
+                        "type_password": "Password",
+                        "type_radius": "Radius",
+                        "user_tooltip": "Per-user setting, overwrites the global setting if any option is checked."
+                    },
                     "buttons": {
                         "about": "About",
                         "add": "Add",
