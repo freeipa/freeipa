@@ -513,6 +513,10 @@ def uninstall():
         os.remove(ANSWER_CACHE)
     except Exception:
         pass
+    try:
+        os.remove(paths.ROOT_IPA_CSR)
+    except Exception:
+        pass
 
     # ipa-client-install removes /etc/ipa/default.conf
 
@@ -686,13 +690,21 @@ def main():
 
     if options.external_ca:
         if cainstance.is_step_one_done():
-            print "CA is already installed.\nRun the installer with --external_cert_file and --external_ca_file."
+            print ("CA is already installed.\nRun the installer with "
+                   "--external_cert_file and --external_ca_file.")
+            sys.exit(1)
+        if ipautil.file_exists(paths.ROOT_IPA_CSR):
+            print ("CA CSR file %s already exists.\nIn order to continue "
+                   "remove the file and run the installer again." %
+                   paths.ROOT_IPA_CSR)
             sys.exit(1)
     elif options.external_cert_file:
         if not cainstance.is_step_one_done():
             # This can happen if someone passes external_ca_file without
             # already having done the first stage of the CA install.
-            print "CA is not installed yet. To install with an external CA is a two-stage process.\nFirst run the installer with --external-ca."
+            print ("CA is not installed yet. To install with an external CA "
+                   "is a two-stage process.\nFirst run the installer with "
+                   "--external-ca.")
             sys.exit(1)
 
     # This will override any settings passed in on the cmdline
