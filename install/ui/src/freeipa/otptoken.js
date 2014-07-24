@@ -198,8 +198,14 @@ return {
                         'ipatokenserial',
                         'ipatokenotpalgorithm',
                         'ipatokenotpdigits',
-                        'ipatokentotpclockoffset',
-                        'ipatokentotptimestep',
+                        {
+                            name: 'ipatokentotpclockoffset',
+                            measurement_unit: 'seconds'
+                        },
+                        {
+                            name: 'ipatokentotptimestep',
+                            measurement_unit: 'seconds'
+                        },
                         'ipatokenhotpcounter'
                     ]
                 }
@@ -262,7 +268,10 @@ return {
                 default_value: '6',
                 options: ['6', '8']
             },
-             'ipatokentotptimestep'
+            {
+                name: 'ipatokentotptimestep',
+                measurement_unit: 'seconds'
+            }
         ],
         selfservice_fields: [
             {
