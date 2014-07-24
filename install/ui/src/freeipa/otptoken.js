@@ -19,6 +19,7 @@
  */
 
 define([
+        'dojo/on',
         './ipa',
         './jquery',
         './menu',
@@ -30,7 +31,7 @@ define([
         './text',
         './search',
         './entity'],
-            function(IPA, $, menu, phases, reg, mod_details, mod_facet, QRCode, text) {
+            function(on, IPA, $, menu, phases, reg, mod_details, mod_facet, QRCode, text) {
 /**
  * OTP tokens module
  * @class
@@ -222,6 +223,9 @@ return {
         $post_ops: [
             otptoken.adder_dialog_qrcode_post_op
         ],
+        policies: [
+            { $factory: otptoken.adder_policy }
+        ],
         fields: [
             {
                 $type: 'radio',
@@ -292,6 +296,23 @@ return {
         ]
     }
 };};
+
+otptoken.adder_policy = function(spec) {
+    var that = IPA.facet_policy(spec);
+    that.init = function() {
+        var type_f = that.container.fields.get_field('type');
+        on(type_f, 'value-change', that.on_type_change);
+    };
+    that.on_type_change = function(args) {
+        var step_f = that.container.fields.get_field('ipatokentotptimestep');
+        if (!step_f) return;
+        var step_w = step_f.widget;
+        var is_totp = args.value[0] === 'totp';
+        step_f.set_enabled(is_totp);
+        step_w.set_visible(is_totp);
+    };
+    return that;
+};
 
 /**
  * OTP adder dialog pre-op.
