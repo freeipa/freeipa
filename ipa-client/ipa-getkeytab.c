@@ -258,10 +258,10 @@ static int ipa_ldap_extended_op(LDAP *ld, const char *reqoid,
     int msgid;
     int ret, rc;
 
-    ret = ldap_extended_operation(ld, KEYTAB_GET_OID, control,
+    ret = ldap_extended_operation(ld, reqoid, control,
                                   NULL, NULL, &msgid);
     if (ret != LDAP_SUCCESS) {
-        fprintf(stderr, _("Operation failed! %s\n"), ldap_err2string(ret));
+        fprintf(stderr, _("Operation failed: %s\n"), ldap_err2string(ret));
         return ret;
     }
 
@@ -270,20 +270,20 @@ static int ipa_ldap_extended_op(LDAP *ld, const char *reqoid,
     tv.tv_usec = 0;
     ret = ldap_result(ld, msgid, 1, &tv, &res);
     if (ret == -1) {
-        fprintf(stderr, _("Failed to get result! %s\n"), ldap_err2string(ret));
+        fprintf(stderr, _("Failed to get result: %s\n"), ldap_err2string(ret));
         goto done;
     }
 
     ret = ldap_parse_extended_result(ld, res, &retoid, &retdata, 0);
     if (ret != LDAP_SUCCESS) {
-        fprintf(stderr, _("Failed to parse extended result! %s\n"),
+        fprintf(stderr, _("Failed to parse extended result: %s\n"),
                         ldap_err2string(ret));
         goto done;
     }
 
     ret = ldap_parse_result(ld, res, &rc, NULL, &err, NULL, srvctrl, 0);
     if (ret != LDAP_SUCCESS || rc != LDAP_SUCCESS) {
-        fprintf(stderr, _("Failed to parse result! %s\n"),
+        fprintf(stderr, _("Failed to parse result: %s\n"),
                         err ? err : ldap_err2string(ret));
         if (ret == LDAP_SUCCESS) ret = rc;
         goto done;
@@ -917,20 +917,24 @@ int main(int argc, const char *argv[])
         }
     }
 
-    if (password && (retrieve == 0) && (kvno == -1)) {
-        if (!quiet) fprintf(stderr, _("Retrying with old method\n"));
+    if (retrieve == 0 && kvno == -1) {
+        if (!quiet) {
+            fprintf(stderr,
+                    _("Retrying with pre-4.0 keytab retrieval method...\n"));
+        }
 
-	/* create key material */
-	ret = create_keys(krbctx, sprinc, password, enctypes_string, &keys, &err_msg);
-	if (!ret) {
-		if (err_msg != NULL) {
-			fprintf(stderr, "%s", err_msg);
-		}
-		fprintf(stderr, _("Failed to create key material\n"));
-		exit(8);
-	}
+        /* create key material */
+        ret = create_keys(krbctx, sprinc, password, enctypes_string, &keys, &err_msg);
+        if (!ret) {
+            if (err_msg != NULL) {
+                fprintf(stderr, "%s", err_msg);
+            }
 
-	kvno = ldap_set_keytab(krbctx, server, principal, uprinc, binddn, bindpw, &keys);
+            fprintf(stderr, _("Failed to create key material\n"));
+            exit(8);
+        }
+
+        kvno = ldap_set_keytab(krbctx, server, principal, uprinc, binddn, bindpw, &keys);
     }
 
     if (kvno == -1) {
