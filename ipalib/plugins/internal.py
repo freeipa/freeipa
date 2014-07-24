@@ -520,9 +520,11 @@ class i18n_messages(Command):
                 "users": _("Users"),
             },
             "otptoken": {
-                "details": "OTP Token Settings",
-                "disable": "Disable token",
-                "enable": "Enable token",
+                "details": _("OTP Token Settings"),
+                "disable": _("Disable token"),
+                "enable": _("Enable token"),
+                "type_hotp": _("Counter-based (HOTP)"),
+                "type_totp": _("Time-based (TOTP)"),
             },
             "permission": {
                 "add_custom_attr": _("Add custom attribute"),
