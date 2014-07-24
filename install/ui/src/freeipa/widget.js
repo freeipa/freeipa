@@ -85,6 +85,18 @@ IPA.widget = function(spec) {
     var that = new Evented();
 
     /**
+     * Normalize tooltip
+     * @protected
+     */
+    that._normalize_tooltip = function(tt_spec) {
+        var tt = typeof tt_spec === 'string' ? { title: tt_spec } : tt_spec;
+        if (tt) {
+            tt.title = text.get(tt.title);
+        }
+        return tt;
+    };
+
+    /**
      * Widget name. Should be container unique.
      */
     that.name = spec.name;
@@ -112,6 +124,27 @@ IPA.widget = function(spec) {
      * @property {string}
      */
     that.measurement_unit = spec.measurement_unit;
+
+    /**
+     * Tooltip text
+     *
+     *     '''
+     *     var tooltip = {
+     *         title: 'Helper text',
+     *         placement: 'right'
+     *         // possible placements: left, top, bottom, right
+     *     };
+     *
+     *     // or  just string, it will be normalized later:
+     *     tooltip = "Helper text";
+     *
+     *     '''
+     *
+     * Check Bootstrap documentation for more tooltip options.
+     *
+     * @property {Object|string}
+     */
+    that.tooltip = that._normalize_tooltip(spec.tooltip);
 
     /**
      * Parent entity
@@ -4409,6 +4442,19 @@ IPA.layout = function(spec) {
         return '';
     };
 
+    that.create_tooltip_icon = function(widget) {
+
+        if (!widget.tooltip) return null;
+
+        var el = $('<span/>', {
+            'data-toggle': 'tooltip'
+        }).append($('<i/>', {
+            'class': 'fa fa-info-circle'
+        }));
+        $(el).tooltip(widget.tooltip);
+        return el;
+    };
+
     return that;
 };
 
@@ -4546,6 +4592,8 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
             'class': '',
             text: label_text
         }).appendTo(label_cont);
+        var tooltip = that.create_tooltip_icon(widget);
+        if (tooltip) label_el.append(' ').append(tooltip);
 
         var input = widget.get_input && widget.get_input();
 
