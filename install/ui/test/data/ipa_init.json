@@ -141,9 +141,9 @@
                         "pad": "PAD"
                     },
                     "login": {
-                        "form_auth": "To login with username and password, enter them in the fields below then click Login.",
+                        "form_auth": "<i class=\"fa fa-info-circle\"></i> To login with <strong>username and password</strong>, enter them in the corresponding fields, then click Login.",
                         "header": "Logged In As",
-                        "krb_auth_msg": "To login with Kerberos, please make sure you have valid tickets (obtainable via kinit) and <a href='http://${host}/ipa/config/unauthorized.html'>configured</a> the browser correctly, then click Login.",
+                        "krb_auth_msg": "<i class=\"fa fa-info-circle\"></i> To login with <strong>Kerberos</strong>, please make sure you have valid tickets (obtainable via kinit) and <a href='http://${host}/ipa/config/unauthorized.html'>configured</a> the browser correctly, then click Login.",
                         "login": "Login",
                         "logout": "Logout",
                         "logout_error": "Logout error",
@@ -517,6 +517,7 @@
                         "new_password": "New Password",
                         "new_password_required": "New password is required",
                         "otp": "OTP",
+                        "otp_info": "<i class=\"fa fa-info-circle\"></i> <strong>One-Time-Password(OTP):</strong> Generate new OTP code for each OTP field.",
                         "otp_long": "One-Time-Password",
                         "otp_sync_fail": "Token synchronization failed",
                         "otp_sync_invalid": "The username, password or token codes are not correct",

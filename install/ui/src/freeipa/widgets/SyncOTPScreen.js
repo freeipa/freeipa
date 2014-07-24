@@ -179,6 +179,8 @@ define(['dojo/_base/declare',
         constructor: function(spec) {
             spec = spec || {};
 
+            this.aside = "<p>" + this.otp_info_msg + "</p>";
+
             this.sync_fail = text.get(spec.sync_fail || '@i18n:password.otp_sync_fail',
                 this.sync_fail);
 

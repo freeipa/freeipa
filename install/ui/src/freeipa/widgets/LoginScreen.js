@@ -50,9 +50,9 @@ define(['dojo/_base/declare',
 
         expired_msg: "Your session has expired. Please re-login.",
 
-        form_auth_msg: "To login with username and password, enter them in the fields below, then click Login.",
+        form_auth_msg: "<i class=\"fa fa-info-circle\"></i> To login with <strong>username and password</strong>, enter them in the corresponding fields, then click Login.",
 
-        kerberos_msg: " To login with Kerberos, please make sure you" +
+        kerberos_msg: "<i class=\"fa fa-info-circle\"></i> To login with <strong>Kerberos</strong>, please make sure you" +
                     " have valid tickets (obtainable via kinit) and " +
                     "<a href='http://${host}/ipa/config/unauthorized.html'>configured</a>" +
                     " the browser correctly, then click Login. ",
@@ -298,7 +298,7 @@ define(['dojo/_base/declare',
         },
 
         set_reset_aside_text: function() {
-            this.set('aside', '');
+            this.set('aside', "<p>"+this.otp_info_msg+"<p/>");
         },
 
         constructor: function(spec) {
