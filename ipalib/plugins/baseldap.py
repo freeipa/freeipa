@@ -240,9 +240,13 @@ def entry_from_entry(entry, newentry):
 def entry_to_dict(entry, **options):
     if options.get('raw', False):
         result = {}
-        for attr, value in entry.raw.iteritems():
-            if entry.conn.get_type(attr) is not str:
-                value = list(value)
+        for attr in entry.iterkeys():
+            if attr.lower() == 'attributelevelrights':
+                value = entry[attr]
+            elif entry.conn.get_type(attr) is str:
+                value = entry.raw[attr]
+            else:
+                value = list(entry.raw[attr])
                 for (i, v) in enumerate(value):
                     try:
                         value[i] = v.decode('utf-8')
