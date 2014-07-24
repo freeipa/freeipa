@@ -102,10 +102,10 @@ IPA.widget = function(spec) {
     that.label = text.get(spec.label);
 
     /**
-     * Helper text
+     * Title text
      * @property {string}
      */
-    that.tooltip = text.get(spec.tooltip);
+    that.title = text.get(spec.title);
 
     /**
      * Measurement unit
@@ -732,7 +732,7 @@ IPA.text_widget = function(spec) {
             id: id,
             'class': 'form-control',
             size: that.size,
-            title: that.tooltip,
+            title: that.title,
             placeholder: that.placeholder,
             keyup: function() {
                 that.on_value_changed();
@@ -1313,7 +1313,7 @@ IPA.option_widget_base = function(spec, that) {
     // classic properties
     that.name = spec.name;
     that.label = spec.label;
-    that.tooltip = spec.tooltip;
+    that.title = spec.title;
     that.sort = spec.sort === undefined ? false : spec.sort;
     that.value_changed = that.value_changed || IPA.observer();
 
@@ -1488,12 +1488,12 @@ IPA.option_widget_base = function(spec, that) {
             name: input_name,
             disabled: !enabled,
             value: option.value,
-            title: option.tooltip || that.tooltip,
+            title: option.title || that.title || '',
             change: that.on_input_change
         }, opt_cont);
 
         option.label_node = construct.create('label', {
-            title: option.tooltip || that.tooltip,
+            title: option.title || that.title || '',
             'for': id
         }, opt_cont);
         option.label_node.textContent = option.label || '';
@@ -2093,7 +2093,7 @@ IPA.textarea_widget = function (spec) {
             cols: that.cols,
             'class': 'form-control',
             readOnly: !!that.read_only,
-            title: that.tooltip,
+            title: that.title || '',
             placeholder: that.placeholder,
             keyup: function() {
                 that.on_value_changed();
@@ -3485,7 +3485,7 @@ IPA.combobox_widget = function(spec) {
             name: that.name,
             'class': 'form-control',
             id: id,
-            title: that.tooltip,
+            title: that.title,
             keydown: that.on_input_keydown,
             mousedown: that.on_no_close,
             click: function() {
@@ -4251,7 +4251,7 @@ IPA.button_widget = function(spec) {
         that.button = IPA.button({
             id: that.id,
             name: that.name,
-            title: that.tooltip,
+            title: that.title,
             label: that.label,
             'class': that['class'],
             button_class: that.button_class,

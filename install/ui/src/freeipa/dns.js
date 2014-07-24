@@ -666,7 +666,7 @@ IPA.dnszone_name_widget = function(spec) {
 IPA.force_dnszone_add_checkbox_widget = function(spec) {
     var metadata = IPA.get_command_option('dnszone_add', spec.name);
     spec.label = metadata.label;
-    spec.tooltip = metadata.doc;
+    spec.title = metadata.doc;
     return IPA.checkbox_widget(spec);
 };
 

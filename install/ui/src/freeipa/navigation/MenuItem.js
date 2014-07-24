@@ -48,7 +48,7 @@ var MenuItem = {
     label: '',
 
     /**
-     * Title/Tooltip
+     * Title
      */
     title: '',
 

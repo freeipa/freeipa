@@ -1118,9 +1118,9 @@ exp.facet_header = IPA.facet_header = function(spec) {
         that.update_breadcrumb(limited_value);
 
         var title_info = {
-            title: that.facet.label,
+            text: that.facet.label,
             pkey: limited_value,
-            pkey_tooltip: value
+            pkey_title: value
         };
         that.title_widget.update(title_info);
     };
@@ -1277,7 +1277,7 @@ exp.facet_header = IPA.facet_header = function(spec) {
         }
 
         that.title_widget.create(container);
-        that.title_widget.update({ title: that.facet.label });
+        that.title_widget.update({ text: that.facet.label });
 
         if (!that.facet.disable_facet_tabs) {
             that.facet_tabs = $('<div/>', {
@@ -1349,7 +1349,7 @@ exp.facet_header = IPA.facet_header = function(spec) {
 
     /**
      * Reflect facet's action state summary into title widget class and icon
-     * tooltip.
+     * title.
      */
     that.update_summary = function() {
         var summary = that.facet.action_state.summary();
@@ -1357,7 +1357,7 @@ exp.facet_header = IPA.facet_header = function(spec) {
         if (summary.state.length > 0) {
             var css_class = summary.state.join(' ');
             that.title_widget.set_class(css_class);
-            that.title_widget.set_icon_tooltip(summary.description);
+            that.title_widget.set_icon_title(summary.description);
         }
     };
 
@@ -1409,30 +1409,26 @@ exp.facet_title = IPA.facet_title = function(spec) {
      *
      * @param {Object} data
      * @param {string} data.pkey
+     * @param {string} data.text
      * @param {string} data.title
-     * @param {string} data.tooltip
-     * @param {string} data.icon_tooltip
+     * @param {string} data.icon_title
      * @param {string} data.css_class css class for title container
      */
     that.update = function(data) {
 
-        var tooltip = data.tooltip || data.title;
-        var pkey_tooltip = data.pkey_tooltip || data.pkey;
-        var icon_tooltip = data.icon_tooltip || '';
-
-        that.title.text(data.title);
-        that.title.prop('title', tooltip);
+        that.title.text(data.text);
+        that.title.prop('title', data.title || '');
         that.title_container.toggleClass('no-pkey', !data.pkey);
 
         if (data.pkey) {
-            that.title.text(data.title + ': ');
+            that.title.text(data.text + ': ');
             that.pkey.text(data.pkey);
-            that.pkey.attr('title', pkey_tooltip);
+            that.pkey.attr('title', data.pkey_title || data.pkey);
         }
 
         if (data.css_class) that.set_class(data.css_class);
 
-        that.set_icon_tooltip(icon_tooltip);
+        that.set_icon_title(data.icon_title || '');
     };
 
     /**
@@ -1487,12 +1483,12 @@ exp.facet_title = IPA.facet_title = function(spec) {
     };
 
     /**
-     * Set icon tooltip
+     * Set icon title
      *
-     * @param {string} tooltip
+     * @param {string} title
      */
-    that.set_icon_tooltip = function(tooltip) {
-        that.icon.attr('title', tooltip);
+    that.set_icon_title = function(title) {
+        that.icon.attr('title', title);
     };
 
     return that;
