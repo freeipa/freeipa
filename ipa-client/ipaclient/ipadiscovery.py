@@ -335,6 +335,10 @@ class IPADiscovery(object):
                                      no_schema=True, decode_attrs=False)
             try:
                 lh.do_simple_bind(DN(), '')
+
+                # get IPA base DN
+                root_logger.debug("Search LDAP server for IPA base DN")
+                basedn = get_ipa_basedn(lh)
             except errors.ACIError:
                 root_logger.debug("LDAP Error: Anonymous access not allowed")
                 return [NO_ACCESS_TO_LDAP]
@@ -349,10 +353,6 @@ class IPADiscovery(object):
                     return [NO_TLS_LDAP]
                 else:
                     return [UNKNOWN_ERROR]
-
-            # get IPA base DN
-            root_logger.debug("Search LDAP server for IPA base DN")
-            basedn = get_ipa_basedn(lh)
 
             if basedn is None:
                 root_logger.debug("The server is not an IPA server")
