@@ -83,32 +83,69 @@ define(['dojo/_base/declare',
         render_buttons: function(container) {
 
             this.sync_btn_node = IPA.button({
+                name: 'sync',
                 label: text.get('@i18n:login.sync_otp_token', "Sync OTP Token"),
                 button_class: 'btn btn-link',
                 click: lang.hitch(this, this.on_sync)
             })[0];
             construct.place(this.sync_btn_node, container);
+            construct.place(document.createTextNode(" "), container);
 
             this.login_btn_node = IPA.button({
+                name: 'login',
                 label: text.get('@i18n:login.login', "Login"),
                 'class': 'btn-primary btn-lg',
                 click: lang.hitch(this, this.on_confirm)
             })[0];
             construct.place(this.login_btn_node, container);
+            construct.place(document.createTextNode(" "), container);
+
+            this.cancel_btn_node = IPA.button({
+                name: 'cancel',
+                label: text.get('@i18n:buttons.cancel', "Cancel"),
+                'class': 'btn-default',
+                click: lang.hitch(this, this.on_cancel)
+            })[0];
+            construct.place(this.cancel_btn_node, container);
+            construct.place(document.createTextNode(" "), container);
 
             this.reset_btn_node = IPA.button({
+                name: 'reset',
+                label: text.get('@i18n:buttons.reset_password', "Reset Password"),
+                'class': 'btn-primary btn-lg',
+                click: lang.hitch(this, this.on_confirm)
+            })[0];
+            construct.place(this.reset_btn_node, container);
+            construct.place(document.createTextNode(" "), container);
+
+            this.reset_and_login_btn_node = IPA.button({
+                name: 'reset_and_login',
                 label: text.get('@i18n:buttons.reset_password_and_login', "Reset Password and Login"),
                 'class': 'btn-primary btn-lg',
                 click: lang.hitch(this, this.on_confirm)
             })[0];
+            construct.place(this.reset_and_login_btn_node, container);
+        },
+
+        set_visible_buttons: function(buttons) {
+            if (!this.buttons_node) return;
+            query('button', this.buttons_node).forEach(function(el) {
+                if (buttons.indexOf(el.name) > -1) {
+                    dom_style.set(el, 'display', '');
+                } else {
+                    dom_style.set(el, 'display', 'none');
+                }
+            });
         },
 
         post_create_fields: function() {
             var u_f = this.get_field('username');
             var p_f = this.get_field('password');
+            var otp_f = this.get_field('otp');
 
             u_f.on('value-change', lang.hitch(this, this.on_form_change));
             p_f.on('value-change', lang.hitch(this, this.on_form_change));
+            otp_f.on('value-change', lang.hitch(this, this.on_otp_change));
             this.on_form_change();
         },
 
@@ -122,6 +159,15 @@ define(['dojo/_base/declare',
             p_f.set_required(required);
         },
 
+        on_otp_change: function(event) {
+            if (this.view === 'login') return;
+            if (!event.value[0]) {
+                this.set_visible_buttons(['cancel', 'reset_and_login']);
+            } else {
+                this.set_visible_buttons(['cancel', 'reset']);
+            }
+        },
+
         on_sync: function() {
             var user = this.get_field('username').get_value()[0];
             this.emit('require-otp-sync', { source: this, user: user });
@@ -133,6 +179,10 @@ define(['dojo/_base/declare',
             } else {
                 this.login_and_reset();
             }
+        },
+
+        on_cancel: function() {
+            this.set('view', 'login');
         },
 
         login: function() {
@@ -230,15 +280,6 @@ define(['dojo/_base/declare',
         },
 
         refresh: function() {
-            if (this.buttons_node) {
-                // detach button nodes politely
-                // hard methods like `innerHTML=''` might have undesired
-                // consequences, e.g., removal of children's content in IE
-                var bn = this.buttons_node;
-                while (bn.firstChild) {
-                    bn.removeChild(bn.firstChild);
-                }
-            }
             if (this.view === 'reset') {
                 this.show_reset_view();
             } else {
@@ -252,10 +293,7 @@ define(['dojo/_base/declare',
                 var val_summary = this.get_widget('validation');
                 val_summary.add_info('expired', this.expired_msg);
             }
-            if (this.buttons_node) {
-                construct.place(this.sync_btn_node, this.buttons_node);
-                construct.place(this.login_btn_node, this.buttons_node);
-            }
+            this.set_visible_buttons(['sync', 'login']);
             if (this.password_enabled()) {
                 this.use_fields(['username', 'password']);
                 var username_f = this.get_field('username');
@@ -273,9 +311,7 @@ define(['dojo/_base/declare',
         show_reset_view: function() {
 
             this.set_reset_aside_text();
-            if (this.buttons_node) {
-                construct.place(this.reset_btn_node, this.buttons_node);
-            }
+            this.set_visible_buttons(['cancel', 'reset_and_login']);
             this.use_fields(['username_r', 'current_password', 'otp', 'new_password', 'verify_password']);
 
             var val_summary = this.get_widget('validation');

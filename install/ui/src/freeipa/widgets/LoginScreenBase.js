@@ -226,6 +226,8 @@ define(['dojo/_base/declare',
                 new FieldBinder(f, w).bind(true);
                 this.bind_validation(val_w, f);
             }
+
+            this.post_create_fields();
         },
 
         post_create_fields: function() {
