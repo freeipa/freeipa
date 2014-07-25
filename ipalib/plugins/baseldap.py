@@ -213,7 +213,7 @@ def get_effective_rights(ldap, dn, attrs=None):
             if v == 'none':
                 # the string "none" means "no rights found"
                 # see https://fedorahosted.org/freeipa/ticket/4359
-                v = ''
+                v = u''
             rdict[k.strip().lower()] = v
 
     return rdict
