@@ -27,9 +27,10 @@ define([
         './details',
         './facet',
         './qrcode',
+        './text',
         './search',
         './entity'],
-            function(IPA, $, menu, phases, reg, mod_details, mod_facet, QRCode) {
+            function(IPA, $, menu, phases, reg, mod_details, mod_facet, QRCode, text) {
 /**
  * OTP tokens module
  * @class
@@ -386,7 +387,7 @@ otptoken.qr_widget = function(spec) {
         that.show_uri_link = $('<a/>', {
             name: 'show-uri',
             href: '#',
-            text: 'Show configuration uri',
+            text: text.get('@i18n:objects.otptoken.show_uri'),
             click: function(e) {
                 e.preventDefault();
                 that.update_display_mode(!that.show_link);
@@ -437,11 +438,11 @@ otptoken.qr_widget = function(spec) {
         that.show_link = !!show_link;
 
          if (that.show_link) {
-             that.show_uri_link.text('Show QR code');
+             that.show_uri_link.text(text.get('@i18n:objects.otptoken.show_qr'));
              that.qr_control.hide();
              that.uri_control.show();
          } else {
-             that.show_uri_link.text('Show configuration uri');
+             that.show_uri_link.text(text.get('@i18n:objects.otptoken.show_uri'));
              that.qr_control.show();
              that.uri_control.hide();
          }
@@ -487,7 +488,7 @@ otptoken.adder_dialog_qrcode_post_op = function(object) {
         var uri = data.result.result.uri;
         var qr_dialog = otptoken.qr_dialog({
             name: 'qr_dialog',
-            title: 'Configure your token',
+            title: '@i18n:objects.otptoken.config_title',
             widgets: [
                 {
                     $type: 'qrcode',
@@ -499,9 +500,7 @@ otptoken.adder_dialog_qrcode_post_op = function(object) {
         });
 
         qr_dialog.open();
-        qr_dialog.show_message('Configure your token by scanning the QR code \
-                                below. Click on the QR core if you see this on \
-                                the device you want to configure.');
+        qr_dialog.show_message(text.get('@i18n:objects.otptoken.config_instructions'));
     });
 
 

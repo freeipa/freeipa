@@ -521,9 +521,13 @@ class i18n_messages(Command):
             },
             "otptoken": {
                 "add_token": _("Add OTP Token"),
+                "config_title": _("Configure your token"),
+                "config_instructions": _("Configure your token by scanning the QR code below. Click on the QR code if you see this on the device you want to configure."),
                 "details": _("OTP Token Settings"),
                 "disable": _("Disable token"),
                 "enable": _("Enable token"),
+                "show_qr": _("Show QR code"),
+                "show_uri": _("Show configuration uri"),
                 "type_hotp": _("Counter-based (HOTP)"),
                 "type_totp": _("Time-based (TOTP)"),
             },

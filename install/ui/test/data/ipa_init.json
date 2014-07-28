@@ -377,9 +377,13 @@
                         },
                         "otptoken": {
                             "add_token": "Add OTP Token",
+                            "config_title": "Configure your token",
+                            "config_instructions": "Configure your token by scanning the QR code below. Click on the QR code if you see this on the device you want to configure.",
                             "details": "OTP Token Settings",
                             "disable": "Disable token",
                             "enable": "Enable token",
+                            "show_qr": "Show QR code",
+                            "show_uri": "Show configuration uri",
                             "type_hotp": "Counter-based (HOTP)",
                             "type_totp": "Time-based (TOTP)"
                         },
