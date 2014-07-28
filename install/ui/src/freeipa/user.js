@@ -269,7 +269,7 @@ return {
                 }
             ],
             actions: [
-                'select',
+                'add_otptoken',
                 'enable',
                 'disable',
                 'delete',
@@ -288,7 +288,7 @@ return {
                     label: '@i18n:actions.automember_rebuild'
                 }
             ],
-            header_actions: ['reset_password', 'enable', 'disable', 'delete', 'unlock', 'automember_rebuild'],
+            header_actions: ['reset_password', 'enable', 'disable', 'delete', 'unlock', 'add_otptoken', 'automember_rebuild'],
             state: {
                 evaluators: [
                     {
@@ -302,7 +302,8 @@ return {
                         name: 'reset_password_acl_evaluator',
                         adapter: { $type: 'batch', result_index: 0 },
                         attribute: 'userpassword'
-                    }
+                    },
+                    IPA.user.self_service_other_user_evaluator
                 ],
                 summary_conditions: [
                     IPA.enabled_summary_cond,
@@ -608,6 +609,59 @@ IPA.user.reset_password_action = function(spec) {
     return that;
 };
 
+
+IPA.user.add_otptoken_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'add_otptoken';
+    spec.label = spec.label || '@i18n:objects.otptoken.add_token';
+    spec.disable_cond = spec.disable_cond || ['self-service-other'];
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+
+        var otp_e = reg.entity.get('otptoken');
+        var dialog = otp_e.get_dialog('add');
+        dialog.open();
+        if (!IPA.is_selfservice) {
+            var owner = facet.get_pkey();
+            dialog.get_field('ipatokenowner').set_value([owner]);
+        }
+    };
+
+    return that;
+};
+
+IPA.user.self_service_other_user_evaluator = function(spec) {
+
+    spec = spec || {};
+    spec.event = spec.event || 'post_load';
+
+    var that = IPA.state_evaluator(spec);
+    that.name = spec.name || 'self_service_other_user_evaluator';
+    that.param = spec.param || 'uid';
+    that.adapter = builder.build('adapter', spec.adapter || 'adapter', { context: that });
+
+    /**
+     * Evaluates if user is in self-service and viewing himself
+     */
+    that.on_event = function(data) {
+
+        var old_state = that.state;
+        that.state = [];
+
+        var value = that.adapter.load(data);
+        if (IPA.is_selfservice && IPA.whoami.uid[0] !== value[0]) {
+            that.state.push('self-service-other');
+        }
+
+        that.notify_on_change(old_state);
+    };
+
+    return that;
+};
+
 exp.entity_spec = make_spec();
 exp.register = function() {
     var e = reg.entity;
@@ -615,6 +669,7 @@ exp.register = function() {
     var d = reg.dialog;
     e.register({type: 'user', spec: exp.entity_spec});
     a.register('reset_password', IPA.user.reset_password_action);
+    a.register('add_otptoken', IPA.user.add_otptoken_action);
     d.copy('password', 'user_password', {
         factory: IPA.user.password_dialog,
         pre_ops: [IPA.user.password_dialog_pre_op]

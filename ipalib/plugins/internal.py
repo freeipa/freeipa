@@ -520,6 +520,7 @@ class i18n_messages(Command):
                 "users": _("Users"),
             },
             "otptoken": {
+                "add_token": _("Add OTP Token"),
                 "details": _("OTP Token Settings"),
                 "disable": _("Disable token"),
                 "enable": _("Enable token"),

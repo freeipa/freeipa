@@ -376,6 +376,7 @@
                             "users": "Users"
                         },
                         "otptoken": {
+                            "add_token": "Add OTP Token",
                             "details": "OTP Token Settings",
                             "disable": "Disable token",
                             "enable": "Enable token",
