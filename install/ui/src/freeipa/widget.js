@@ -213,6 +213,14 @@ IPA.widget = function(spec) {
     };
 
     /**
+     * Widget post constructor/factory initialization
+     *
+     * Called by builder by default.
+     */
+    that.ctor_init = function() {
+    };
+
+    /**
      * Set enabled state.
      * @param {boolean} value - True - enabled; False - disabled
      */
@@ -5998,6 +6006,7 @@ exp.post_op = function(obj, spec, context) {
         nc.container = obj.widgets;
         builder.build('widget', spec.widgets, nc);
     }
+    if (obj.ctor_init) obj.ctor_init();
     return obj;
 };
 
