@@ -553,6 +553,8 @@ class Backup(admintool.AdminTool):
 
         shutil.move(self.header, backup_dir)
 
+        self.log.info('Backed up to %s', backup_dir)
+
     def __find_scripts_dir(self, instance):
         """
         IPA stores its 389-ds scripts in a different directory than dogtag
