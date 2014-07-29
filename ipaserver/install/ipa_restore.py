@@ -538,7 +538,7 @@ class Restore(admintool.AdminTool):
         self.backup_host = config.get('ipa', 'host')
         self.backup_ipa_version = config.get('ipa', 'ipa_version')
         self.backup_version = config.get('ipa', 'version')
-        self.backup_services = config.get('ipa', 'services')
+        self.backup_services = config.get('ipa', 'services').split(',')
 
 
     def extract_backup(self, keyring=None):
