@@ -149,8 +149,6 @@ class Backup(admintool.AdminTool):
         paths.SSHD_CONFIG,
         paths.SSH_CONFIG,
         paths.KRB5_CONF,
-        paths.GROUP,
-        paths.PASSWD,
         CACERT,
         paths.IPA_DEFAULT_CONF,
         paths.DS_KEYTAB,
