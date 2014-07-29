@@ -21,7 +21,7 @@ from ipalib.plugins.baseldap import DN, LDAPObject, LDAPAddMember, LDAPRemoveMem
 from ipalib.plugins.baseldap import LDAPCreate, LDAPDelete, LDAPUpdate, LDAPSearch, LDAPRetrieve
 from ipalib import api, Int, Str, Bool, DateTime, Flag, Bytes, IntEnum, StrEnum, Password, _, ngettext
 from ipalib.plugable import Registry
-from ipalib.errors import PasswordMismatch, ConversionError, LastMemberError, NotFound
+from ipalib.errors import PasswordMismatch, ConversionError, LastMemberError, NotFound, ValidationError
 from ipalib.request import context
 from ipalib.frontend import Local
 
@@ -102,6 +102,11 @@ def _normalize_owner(userobj, entry_attrs):
     owner = entry_attrs.get('ipatokenowner', None)
     if owner is not None:
         entry_attrs['ipatokenowner'] = userobj.get_dn(owner)
+
+def _check_interval(not_before, not_after):
+    if not_before and not_after:
+        return not_before <= not_after
+    return True
 
 
 @register()
@@ -254,6 +259,11 @@ class otptoken_add(LDAPCreate):
             entry_attrs['ipatokenuniqueid'] = str(uuid.uuid4())
             dn = DN("ipatokenuniqueid=%s" % entry_attrs['ipatokenuniqueid'], dn)
 
+        if not _check_interval(options.get('ipatokennotbefore', None),
+                               options.get('ipatokennotafter', None)):
+            raise ValidationError(name='not_after',
+                                  error='is before the validity start')
+
         # Set the object class and defaults for specific token types
         entry_attrs['objectclass'] = otptoken.object_class + ['ipatoken' + options['type']]
         for ttype, tattrs in TOKEN_TYPES.items():
@@ -336,6 +346,25 @@ class otptoken_mod(LDAPUpdate):
     msg_summary = _('Modified OTP token "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        notafter_set = True
+        notbefore = options.get('ipatokennotbefore', None)
+        notafter = options.get('ipatokennotafter', None)
+        # notbefore xor notafter, exactly one of them is not None
+        if bool(notbefore) ^ bool(notafter):
+            result = self.api.Command.otptoken_show(keys[-1])['result']
+            if notbefore is None:
+                notbefore = result.get('ipatokennotbefore', [None])[0]
+            if notafter is None:
+                notafter_set = False
+                notafter = result.get('ipatokennotafter', [None])[0]
+
+        if not _check_interval(notbefore, notafter):
+            if notafter_set:
+                raise ValidationError(name='not_after',
+                                      error='is before the validity start')
+            else:
+                raise ValidationError(name='not_before',
+                                      error='is after the validity end')
         _normalize_owner(self.api.Object.user, entry_attrs)
         return dn
 
