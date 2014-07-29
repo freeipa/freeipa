@@ -1009,5 +1009,72 @@ class test_group(Declarative):
                 value=[user1],
             ),
         ),
+    ]
 
+class test_group_remove_group_from_protected_group(Declarative):
+    cleanup_commands = [
+        ('group_del', [group1], {}),
+    ]
+    tests = [
+        # Test scenario from ticket #4448
+        # https://fedorahosted.org/freeipa/ticket/4448
+        dict(
+            desc='Add group %s' % group1,
+            command=('group_add', [group1], dict(description=u'Test desc 1')),
+            expected=dict(
+                value=group1,
+                summary=u'Added group "%s"' % group1,
+                result=dict(
+                    cn=[group1],
+                    description=[u'Test desc 1'],
+                    objectclass=objectclasses.posixgroup,
+                    gidnumber=[fuzzy_digits],
+                    ipauniqueid=[fuzzy_uuid],
+                    dn=get_group_dn(group1),
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Add %s group to admins group' % group1,
+            command=('group_add_member', [u'admins'], dict(group=group1)),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                ),
+                result=dict(
+                        dn=get_group_dn('admins'),
+                        member_user=[u'admin'],
+                        member_group=[group1],
+                        gidnumber=[fuzzy_digits],
+                        cn=[u'admins'],
+                        description=[u'Account administrators group'],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Remove %s group from admins group' % group1,
+            command=('group_remove_member', [u'admins'], dict(group=group1)),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                ),
+                result=dict(
+                    dn=get_group_dn(u'admins'),
+                    cn=[u'admins'],
+                    gidnumber=[fuzzy_digits],
+                    member_user=[u'admin'],
+                    description=[u'Account administrators group'],
+                ),
+            ),
+        ),
     ]
