@@ -189,7 +189,6 @@ div[name=settings].facet-group li a {
 /* --- Facet error --- */
 
 .facet-error {
-    padding: 2em 15em;
     background-color: white;
 }
 
@@ -199,7 +198,10 @@ div[name=settings].facet-group li a {
 
 .facet-error .error-details {
     margin-top: 2em;
-    font-family: monospace;
+}
+
+.facet-error .error-details code {
+    white-space: pre;
 }
 
 /* ---- Search Facet ---- */
