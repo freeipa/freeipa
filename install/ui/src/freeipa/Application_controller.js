@@ -247,26 +247,26 @@ define([
 
         on_phase_error: function(error) {
 
-            window.console.error(error);
             error = error || {};
             var name = error.name || 'Runtime error';
             var error_container = $('<div/>', {
-                'class': 'facet-content facet-error'
-            }).appendTo($('.content').empty());
+                'class': 'container facet-content facet-error'
+            }).appendTo($('.app-container .content').empty());
             error_container.append('<h1>'+name+'</h1>');
             var details = $('<div/>', {
                 'class': 'error-details'
             }).appendTo(error_container);
 
             details.append('<p> Web UI got in unrecoverable state during "'+error.phase+'" phase.</p>');
-
+            if (error.name) window.console.error(error.name);
             if (error.results) {
-                var msg = {
-                    message: error.results.message,
-                    stack: error.results.stack
-                };
-                details.append('<strong>Technical details:</strong>');
-                details.append('<p>'+JSON.stringify(msg)+'</p>');
+                var msg = error.results.message;
+                var stack = error.results.stack.toString();
+                window.console.error(msg);
+                window.console.error(stack);
+                details.append('<h3>Technical details:</h3>');
+                details.append($('<div/>', { text: error.results.message }));
+                details.append($('<div/>').append($('<code/>', { text: stack })));
             }
         },
 
