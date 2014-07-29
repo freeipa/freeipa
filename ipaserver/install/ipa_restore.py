@@ -32,7 +32,7 @@ from ipapython import admintool
 from ipapython.dn import DN
 from ipaserver.install.dsinstance import (realm_to_serverid,
                                           create_ds_user, DS_USER)
-from ipaserver.install.cainstance import PKI_USER
+from ipaserver.install.cainstance import PKI_USER, create_ca_user
 from ipaserver.install.replication import (wait_for_task, ReplicationManager,
                                            get_cs_replication_manager)
 from ipaserver.install import installutils
@@ -265,6 +265,8 @@ class Restore(admintool.AdminTool):
 
             # We do either a full file restore or we restore data.
             if self.backup_type == 'FULL' and not options.data_only:
+                if 'CA' in self.backup_services:
+                    create_ca_user()
                 if options.online:
                     raise admintool.ScriptError('File restoration cannot be done online.')
                 self.file_restore(options.no_logs)
