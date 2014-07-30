@@ -202,13 +202,18 @@ return {
                         'ipatokenotpdigits',
                         {
                             name: 'ipatokentotpclockoffset',
-                            measurement_unit: 'seconds'
+                            measurement_unit: 'seconds',
+                            hidden_if_empty: true
                         },
                         {
                             name: 'ipatokentotptimestep',
-                            measurement_unit: 'seconds'
+                            measurement_unit: 'seconds',
+                            hidden_if_empty: true
                         },
-                        'ipatokenhotpcounter'
+                        {
+                            name: 'ipatokenhotpcounter',
+                            hidden_if_empty: true
+                        }
                     ]
                 }
             ]
