@@ -330,7 +330,7 @@ IPA.service_provisioning_status_widget = function (spec) {
     that.update = function(values) {
         that.status = values && values.length ? values[0] : false;
         set_status(that.status ? 'valid' : 'missing');
-        that.on_value_changed();
+        that.on_value_changed(values);
     };
 
     that.clear = function() {

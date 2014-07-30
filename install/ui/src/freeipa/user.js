@@ -515,7 +515,7 @@ IPA.user_password_widget = function(spec) {
         } else {
             that.display_control.text(that.unset_value);
         }
-        that.on_value_changed();
+        that.on_value_changed(values);
     };
 
     that.clear = function() {
