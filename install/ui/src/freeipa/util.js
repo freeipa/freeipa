@@ -111,7 +111,7 @@ define([
     function is_empty(value) {
         var empty = false;
 
-        if (!value) empty = true;
+        if (value === null || value === undefined) empty = true;
 
         if (lang.isArray(value)) {
             empty = empty || value.length === 0 ||

@@ -578,10 +578,12 @@ IPA.input_widget = function(spec) {
      * Raise value change event
      * @protected
      */
-    that.on_value_changed = function() {
-        var value = that.save();
+    that.on_value_changed = function(value) {
+        var old = that.value;
+        if (value === undefined) value = that.save();
+        that.value = value;
         that.value_changed.notify([value], that);
-        that.emit('value-change', { source: that, value: value });
+        that.emit('value-change', { source: that, value: value, old: old });
     };
 
     /**
@@ -797,7 +799,7 @@ IPA.text_widget = function(spec) {
         var value = values && values.length ? values[0] : '';
         that.display_control.text(value);
         that.input.val(value);
-        that.on_value_changed();
+        that.on_value_changed(values);
     };
 
     /**
@@ -818,12 +820,9 @@ IPA.text_widget = function(spec) {
      * @inheritDoc
      */
     that.save = function() {
-        if (!that.is_writable()) {
-            return null;
-        } else {
-            var value = that.input.val();
-            return value === '' ? [] : [value];
-        }
+
+        var value = that.input.val();
+        return value === '' ? [] : [value];
     };
 
     /**
@@ -832,7 +831,7 @@ IPA.text_widget = function(spec) {
     that.clear = function() {
         that.input.val('');
         that.display_control.text('');
-        that.on_value_changed();
+        that.on_value_changed([]);
     };
 
     /**
@@ -1741,7 +1740,7 @@ IPA.option_widget_base = function(spec, that) {
         }
 
         if (that.on_value_changed) {
-            that.on_value_changed();
+            that.on_value_changed(values);
         }
     };
 
@@ -2044,7 +2043,7 @@ IPA.select_widget = function(spec) {
             // default was selected instead of supplied value, hence notify
             util.emit_delayed(that,'value-change', { source: that });
         }
-        that.on_value_changed();
+        that.on_value_changed(values);
     };
 
     that.update_read_only = function() {
@@ -2153,9 +2152,6 @@ IPA.textarea_widget = function (spec) {
     };
 
     that.save = function() {
-        if (!that.is_writable()) {
-            return null;
-        }
         var value = that.input.val();
         return [value];
     };
@@ -2164,7 +2160,7 @@ IPA.textarea_widget = function (spec) {
 
         var value = values && values.length ? values[0] : '';
         that.input.val(value);
-        that.on_value_changed();
+        that.on_value_changed(values);
     };
 
     that.update_read_only = function() {
@@ -2949,7 +2945,7 @@ IPA.table_widget = function (spec) {
             that.values.push(record[that.value_attr_name]);
             that.add_record(record);
         }
-        that.on_value_changed();
+        that.on_value_changed(records);
     };
 
     that.save = function() {
@@ -3841,7 +3837,7 @@ IPA.combobox_widget = function(spec) {
                 that.select(value);
             }
         );
-        that.on_value_changed();
+        that.on_value_changed(values);
     };
 
     that.update_read_only = function() {
@@ -3881,7 +3877,7 @@ IPA.combobox_widget = function(spec) {
 
         that.set_value(option.val());
         that.value_changed.notify([], that);
-        that.emit('value-change', { source: that });
+        that.emit('value-change', { source: that, value: value });
     };
 
     that.select_next = function() {
@@ -4061,7 +4057,7 @@ IPA.link_widget = function(spec) {
         that.nonlink.html(that.value);
 
         that.check_entity_link();
-        that.on_value_changed();
+        that.on_value_changed(values);
     };
 
     that.update_link = function() {
@@ -5306,7 +5302,7 @@ IPA.sshkey_widget = function(spec) {
             that.original_key = that.key.key;
         }
         that.update_link();
-        that.on_value_changed();
+        that.on_value_changed(value);
     };
 
     that.set_deleted = function(deleted) {
@@ -5617,7 +5613,7 @@ IPA.value_map_widget = function(spec) {
         }
 
         that.display_control.text(label);
-        that.on_value_changed();
+        that.on_value_changed(values);
     };
 
     that.save = function() {

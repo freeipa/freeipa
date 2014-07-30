@@ -880,7 +880,7 @@ IPA.cert.status_widget = function(spec) {
             status = IPA.cert.CERTIFICATE_STATUS_REVOKED;
         }
         that.set_status(status, certificate.revocation_reason);
-        that.on_value_changed();
+        that.on_value_changed(certificate);
     };
 
     that.clear = function() {
