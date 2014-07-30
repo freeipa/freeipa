@@ -86,10 +86,8 @@ class test_ipagetkeytab(cmdline_test):
                     "-k", self.keytabname,
                    ]
         (out, err, rc) = ipautil.run(new_args, stdin=None, raiseonerr=False)
-        assert err == (
-            'Failed to parse result! PrincipalName not found.\n\n'
-            'Failed to get keytab\n'
-        ), err
+        assert 'Failed to parse result: PrincipalName not found.\n' in err, err
+        assert rc > 0, rc
 
     def test_2_run(self):
         """
