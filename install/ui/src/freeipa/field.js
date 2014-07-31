@@ -106,6 +106,16 @@ field.field = IPA.field = function(spec) {
     that.acl_param = spec.acl_param || that.param;
 
     /**
+     * Rights which determines what operation can do with this field or
+     * attribute.
+     *
+     * E.g., 'rscwo' - read, search, compare, write(mod-add), obliterate(mod-del)
+     *
+     * @property {string}
+     */
+    that.acl_rights = spec.acl_rights || 'r';
+
+    /**
      * Label
      * @property {string}
      */
@@ -449,6 +459,7 @@ field.field = IPA.field = function(spec) {
     that.load_writable = function(record) {
 
         var writable = true;
+        var old = that.acl_rights;
 
         function has_write(record, param) {
             var rights = record.attributelevelrights[param];
@@ -466,10 +477,16 @@ field.field = IPA.field = function(spec) {
             }
         }
 
-        if (record && record.attributelevelrights && writable) {
+        if (record && record.attributelevelrights) {
             var rights = record.attributelevelrights[that.acl_param];
             var write_attr = has_write(record, that.acl_param);
+            var all_rights = record.attributelevelrights['*'];
             var write_all = has_write(record, '*');
+
+            // don't assume any value if the rights are not defined, keep the original
+            if (rights !== undefined || all_rights !== undefined) {
+                that.acl_rights = rights || all_rights || '';
+            }
 
             // Some objects in LDAP may not have proper object class set and
             // therefore server doesn't send proper attribute rights. Flag
@@ -480,10 +497,13 @@ field.field = IPA.field = function(spec) {
             var may_add_oc = !rights && write_oc && that.flags.indexOf('w_if_no_aci') > -1;
 
             // If no rights, change writable to False:
-            writable = write_attr || write_all || may_add_oc;
+            writable = writable && (write_attr || write_all || may_add_oc);
         }
 
         that.set_writable(writable);
+        if (old !== that.acl_rights) {
+            that.emit('acl-rights-change', { source: that, rights: that.acl_rights, old: old });
+        }
     };
 
     /**
