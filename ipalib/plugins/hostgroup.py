@@ -54,6 +54,14 @@ EXAMPLES:
    ipa hostgroup-del baltimore
 """)
 
+
+def get_complete_hostgroup_member_list(hostgroup):
+    result = api.Command['hostgroup_show'](hostgroup)['result']
+    direct = list(result.get('member_host', []))
+    indirect = list(result.get('memberindirect_host', []))
+    return direct + indirect
+
+
 register = Registry()
 
 @register()
