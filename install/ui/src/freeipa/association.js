@@ -868,6 +868,7 @@ exp.association_facet_pre_op = function(spec, context) {
             hide_cond: ['read-only'],
             show_cond: ['direct'],
             enable_cond: ['item-selected'],
+            enabled: false,
             handler: function(facet) {
                 facet.show_remove_dialog();
             }
