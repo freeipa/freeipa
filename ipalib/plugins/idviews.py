@@ -22,7 +22,7 @@ from ipalib.plugins.baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPDelete, LDAPUpdate, LDAPSearch,
                                      LDAPRetrieve, global_output_params)
 from ipalib.plugins.hostgroup import get_complete_hostgroup_member_list
-from ipalib import api, Str, Int, _, ngettext, errors, output
+from ipalib import api, Str, Int, Flag, _, ngettext, errors, output
 from ipalib.plugable import Registry
 
 from ipapython.dn import DN
@@ -107,49 +107,94 @@ class idview_find(LDAPSearch):
 class idview_show(LDAPRetrieve):
     __doc__ = _('Display information about an ID view.')
 
-
-@register()
-class idview_apply(LDAPQuery):
-    __doc__ = _('Applies ID view to specified hosts or current members of '
-                'specified hostgroups. If any other ID view is applied to '
-                'the host, it is overriden.')
-
-    member_count_out = (_('ID view applied to %i host.'),
-                        _('ID view applied to %i hosts.'))
-
-    msg_summary = 'Applied ID view "%(value)s"'
-
-    takes_options = (
-        Str('host*',
-            cli_name='hosts',
-            doc=_('Hosts to apply the ID view to'),
-            label=_('hosts'),
-        ),
-        Str('hostgroup*',
-            cli_name='hostgroups',
-            doc=_('Hostgroups to whose hosts apply the ID view to. Please note '
-                  'that view is not applied automatically to any hosts added '
-                  'to the hostgroup after running the idview-apply command.'),
-            label=_('hostgroups'),
+    takes_options = LDAPRetrieve.takes_options + (
+        Flag('show_hosts?',
+             cli_name='show_hosts',
+             doc=_('Enumerate all the hosts the view applies to.'),
         ),
     )
 
-    has_output = (
-        output.summary,
-        output.Output('succeeded',
-            type=dict,
-            doc=_('Hosts that this ID view was applied to.'),
-        ),
-        output.Output('failed',
-            type=dict,
-            doc=_('Hosts or hostgroups that this ID view could not be '
-                  'applied to.'),
-        ),
-        output.Output('completed',
-            type=int,
-            doc=_('Number of hosts the ID view was applied to:'),
+    has_output_params = global_output_params + (
+        Str('useroverrides',
+            label=_('User object overrides'),
+            ),
+        Str('groupoverrides',
+            label=_('Group object overrides'),
+            ),
+        Str('appliedtohosts',
+            label=_('Hosts the view applies to')
         ),
     )
+
+    def show_id_overrides(self, dn, entry_attrs):
+        ldap = self.obj.backend
+
+        try:
+            (useroverrides, truncated) = ldap.find_entries(
+                filter="objectclass=ipaUserOverride",
+                attrs_list=['ipaanchoruuid'],
+                base_dn=dn,
+                scope=ldap.SCOPE_ONELEVEL,
+                paged_search=True)
+
+            entry_attrs['useroverrides'] = [
+                view.single_value.get('ipaanchoruuid')
+                for view in useroverrides
+            ]
+
+        except errors.NotFound:
+            pass
+
+        try:
+            (groupoverrides, truncated) = ldap.find_entries(
+                filter="objectclass=ipaGroupOverride",
+                attrs_list=['ipaanchoruuid'],
+                base_dn=dn,
+                scope=ldap.SCOPE_ONELEVEL,
+                paged_search=True)
+
+            entry_attrs['groupoverrides'] = [
+                view.single_value.get('ipaanchoruuid')
+                for view in groupoverrides
+            ]
+
+        except errors.NotFound:
+            pass
+
+    def enumerate_hosts(self, dn, entry_attrs):
+        ldap = self.obj.backend
+
+        filter_params = {
+            'ipaAssignedIDView': dn,
+            'objectClass': 'ipaHost',
+        }
+
+        try:
+            (hosts, truncated) = ldap.find_entries(
+                filter=ldap.make_filter(filter_params, rules=ldap.MATCH_ALL),
+                attrs_list=['cn'],
+                base_dn=api.env.container_host + api.env.basedn,
+                scope=ldap.SCOPE_ONELEVEL,
+                paged_search=True)
+
+            entry_attrs['appliedtohosts'] = [host.single_value['cn']
+                                             for host in hosts]
+        except errors.NotFound:
+            pass
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.show_id_overrides(dn, entry_attrs)
+
+        if options.get('show_hosts', False):
+            self.enumerate_hosts(dn, entry_attrs)
+
+        return dn
+
+
+class baseidview_apply(LDAPQuery):
+    """
+    Base class for idview_apply and idview_unapply commands.
+    """
 
     has_output_params = global_output_params
 
@@ -228,7 +273,51 @@ class idview_apply(LDAPQuery):
 
 
 @register()
-class idview_unapply(idview_apply):
+class idview_apply(baseidview_apply):
+    __doc__ = _('Applies ID view to specified hosts or current members of '
+                'specified hostgroups. If any other ID view is applied to '
+                'the host, it is overriden.')
+
+    member_count_out = (_('ID view applied to %i host.'),
+                        _('ID view applied to %i hosts.'))
+
+    msg_summary = 'Applied ID view "%(value)s"'
+
+    takes_options = (
+        Str('host*',
+            cli_name='hosts',
+            doc=_('Hosts to apply the ID view to'),
+            label=_('hosts'),
+        ),
+        Str('hostgroup*',
+            cli_name='hostgroups',
+            doc=_('Hostgroups to whose hosts apply the ID view to. Please note '
+                  'that view is not applied automatically to any hosts added '
+                  'to the hostgroup after running the idview-apply command.'),
+            label=_('hostgroups'),
+        ),
+    )
+
+    has_output = (
+        output.summary,
+        output.Output('succeeded',
+            type=dict,
+            doc=_('Hosts that this ID view was applied to.'),
+        ),
+        output.Output('failed',
+            type=dict,
+            doc=_('Hosts or hostgroups that this ID view could not be '
+                  'applied to.'),
+        ),
+        output.Output('completed',
+            type=int,
+            doc=_('Number of hosts the ID view was applied to:'),
+        ),
+    )
+
+
+@register()
+class idview_unapply(baseidview_apply):
     __doc__ = _('Clears ID view from specified hosts or current members of '
                 'specified hostgroups.')
 
