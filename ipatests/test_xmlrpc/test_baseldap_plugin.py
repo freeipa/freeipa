@@ -21,8 +21,13 @@
 Test the `ipalib.plugins.baseldap` module.
 """
 
+import ldap
+
+from ipapython.dn import DN
+from ipapython import ipaldap
 from ipalib import errors
 from ipalib.plugins import baseldap
+from ipatests.util import assert_deepequal
 
 
 def test_exc_wrapper():
@@ -157,3 +162,47 @@ def test_exc_callback_registration():
     messages = []
     subclass_instance.test_fail()
     assert messages == ['Base exc_callback', 'Subclass registered callback']
+
+
+def test_entry_to_dict():
+    class FakeAttributeType(object):
+        def __init__(self, name, syntax):
+            self.names = (name,)
+            self.syntax = syntax
+
+    class FakeSchema(object):
+        def get_obj(self, type, name):
+            if type != ldap.schema.AttributeType:
+                return
+            if name == 'binaryattr':
+                return FakeAttributeType(name, '1.3.6.1.4.1.1466.115.121.1.40')
+            elif name == 'textattr':
+                return FakeAttributeType(name, '1.3.6.1.4.1.1466.115.121.1.15')
+            elif name == 'dnattr':
+                return FakeAttributeType(name, '1.3.6.1.4.1.1466.115.121.1.12')
+
+    class FakeIPASimpleLDAPObject(ipaldap.IPASimpleLDAPObject):
+        def __init__(self):
+            super(FakeIPASimpleLDAPObject, self).__init__('ldap://test', False)
+            self._schema = FakeSchema()
+            self._has_schema = True
+
+    conn = FakeIPASimpleLDAPObject()
+    rights = {'nothing': 'is'}
+
+    entry = ipaldap.LDAPEntry(
+        conn,
+        DN('cn=test'),
+        textattr=[u'text'],
+        dnattr=[DN('cn=test')],
+        binaryattr=['\xffabcd'],
+        attributelevelrights=rights)
+    the_dict = {
+        u'dn': u'cn=test',
+        u'textattr': [u'text'],
+        u'dnattr': [u'cn=test'],
+        u'binaryattr': ['\xffabcd'],
+        u'attributelevelrights': rights}
+    assert_deepequal(
+        baseldap.entry_to_dict(entry, all=True, raw=True),
+        the_dict)
