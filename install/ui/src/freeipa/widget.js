@@ -5582,7 +5582,7 @@ IPA.value_map_widget = function(spec) {
     that.value_map = spec.value_map || {};
     that.default_label = text.get(spec.default_label || '');
     that.value = '';
-    that.base_css_class = that.base_css_class + ' status-section';
+    that.base_css_class = that.base_css_class + ' status-section form-control-static';
 
     that.create = function(container) {
         that.widget_create(container);
