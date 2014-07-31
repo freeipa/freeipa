@@ -1116,6 +1116,12 @@ IPA.multivalued_widget = function(spec) {
 
         row.container.insertBefore(that.add_link);
         that.toggle_remove_link(row, remove_link_visible);
+        return row;
+    };
+
+    that.new_row = function() {
+        that.add_row('');
+        that.focus_last();
     };
 
     that.toggle_remove_link = function(row, show) {
@@ -1141,8 +1147,7 @@ IPA.multivalued_widget = function(spec) {
             title: text.get('@i18n:buttons.add'),
             html: text.get('@i18n:buttons.add'),
             click: function() {
-                that.add_row('');
-                that.focus_last();
+                that.new_row();
                 return false;
             }
         }).appendTo(container);
@@ -5213,9 +5218,14 @@ exp.widget_builder = IPA.widget_builder = function(spec) {
 IPA.sshkeys_widget = function(spec) {
 
     spec = spec || {};
-    spec.child_spec = IPA.sshkey_widget;
+    spec.child_spec = { $factory: IPA.sshkey_widget };
 
     var that = IPA.multivalued_widget(spec);
+
+    that.new_row = function() {
+        var row = that.add_row('');
+        row.widget.open_edit_dialog();
+    };
 
     that.test_dirty_row = function(row) {
 
