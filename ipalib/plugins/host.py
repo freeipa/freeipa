@@ -27,7 +27,7 @@ import netaddr
 import string
 
 from ipalib import api, errors, util
-from ipalib import Str, Flag, Bytes
+from ipalib import Str, Flag, Bytes, DNParam
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.service import (split_principal, validate_certificate,
@@ -276,7 +276,7 @@ class host(LDAPObject):
                 'krbprincipalname', 'l', 'macaddress', 'nshardwareplatform',
                 'nshostlocation', 'nsosversion', 'objectclass',
                 'serverhostname', 'usercertificate', 'userclass',
-                'enrolledby', 'managedby',
+                'enrolledby', 'managedby', 'ipaassignedidview',
                 'krbprincipalname', 'krbcanonicalname', 'krbprincipalaliases',
                 'krbprincipalexpiration', 'krbpasswordexpiration',
                 'krblastpwdchange',
@@ -342,7 +342,7 @@ class host(LDAPObject):
             'ipapermright': {'write'},
             'ipapermdefaultattr': {
                 'description', 'l', 'nshardwareplatform', 'nshostlocation',
-                'nsosversion', 'macaddress', 'userclass',
+                'nsosversion', 'macaddress', 'userclass', 'ipaassignedidview',
             },
             'replaces': [
                 '(targetattr = "description || l || nshostlocation || nshardwareplatform || nsosversion")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Hosts";allow (write) groupdn = "ldap:///cn=Modify Hosts,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -458,6 +458,9 @@ class host(LDAPObject):
             label=_('Class'),
             doc=_('Host category (semantics placed on this attribute are for '
                   'local interpretation)'),
+        ),
+        DNParam('ipaassignedidview?',
+            flags=['no_option'],
         ),
     ) + ticket_flags_params
 
