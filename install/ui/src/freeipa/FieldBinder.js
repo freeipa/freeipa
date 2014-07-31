@@ -121,6 +121,7 @@ define(['dojo/_base/declare',
             this.handle(field, 'require-change', this.on_field_require_change);
             this.handle(field, 'writable-change', this.on_field_writable_change);
             this.handle(field, 'readonly-change', this.on_field_readonly_change);
+            this.handle(field, 'acl-rights-change', this.on_field_acl_rights_change);
             this.handle(field, 'reset', this.on_field_reset);
 
             this.handle(widget, 'value-change', this.on_widget_value_change);
@@ -238,6 +239,18 @@ define(['dojo/_base/declare',
         on_field_readonly_change: function(event) {
 
             this.widget.set_read_only(event.read_only);
+        },
+
+        /**
+         * Field acl rights change handler
+         * @protected
+         */
+        on_field_acl_rights_change: function(event) {
+
+            var readable= event.rights.indexOf('r') > -1;
+            if (this.widget.set_readable) {
+                this.widget.set_readable(readable);
+            }
         },
 
         /**

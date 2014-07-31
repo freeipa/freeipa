@@ -406,6 +406,9 @@ IPA.input_widget = function(spec) {
      */
     that.ctor_init = function() {
         on(that, 'value-change', that.hide_if_empty);
+        on(that, 'readable-change', function() {
+            that.set_visible();
+        });
     };
 
     /**
@@ -641,7 +644,20 @@ IPA.input_widget = function(spec) {
         if (that.has_value === false && !that.is_writable() && that.hidden_if_empty) {
             visible = false;
         }
+        if (that.readable !== undefined) {
+            visible = visible && that.readable;
+        }
         return visible;
+    };
+
+    that.set_readable = function(readable) {
+
+        var old = that.readable;
+        that.readable = readable;
+
+        if (old !== that.readable) {
+            that.emit('readable-change', { source: that, readable: readable });
+        }
     };
 
     /**
