@@ -113,6 +113,7 @@ DEFAULT_CONFIG = (
     ('container_realm_domains', DN(('cn', 'Realm Domains'), ('cn', 'ipa'), ('cn', 'etc'))),
     ('container_otp', DN(('cn', 'otp'))),
     ('container_radiusproxy', DN(('cn', 'radiusproxy'))),
+    ('container_views', DN(('cn', 'views'), ('cn', 'accounts'))),
 
     # Ports, hosts, and URIs:
     ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),
