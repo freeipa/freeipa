@@ -61,6 +61,7 @@ IPA_SCHEMA_FILES = ("60kerberos.ldif",
                     "65ipacertstore.ldif",
                     "65ipasudo.ldif",
                     "70ipaotp.ldif",
+                    "71idviews.ldif",
                     "15rfc2307bis.ldif",
                     "15rfc4876.ldif")
 

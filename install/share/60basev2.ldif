@@ -12,8 +12,10 @@ attributeTypes: (2.16.840.1.113730.3.8.3.18 NAME 'managedBy' DESC 'DNs of entrie
 attributeTypes: (2.16.840.1.113730.3.8.3.24 NAME 'ipaEntitlementId' DESC 'Entitlement Unique identifier' EQUALITY caseIgnoreMatch ORDERING caseIgnoreOrderingMatch SUBSTR caseIgnoreSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v2' )
 # ipaKrbAuthzData added here. Even though it is a v3 attribute it is updating
 # a v2 objectClass so needs to be here.
+# Same for the ipaAssignedIDView.
 attributeTypes: (2.16.840.1.113730.3.8.11.37 NAME 'ipaKrbAuthzData' DESC 'type of PAC preferred by a service' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v3' )
-objectClasses: (2.16.840.1.113730.3.8.4.1 NAME 'ipaHost' AUXILIARY MUST ( fqdn ) MAY ( userPassword $ ipaClientVersion $ enrolledBy $ memberOf $ userClass ) X-ORIGIN 'IPA v2' )
+attributeTypes: (2.16.840.1.113730.3.8.12.33 NAME 'ipaAssignedIDView' DESC 'DN of view assigned to this particular host' SUP distinguishedName EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE X-ORIGIN 'IPA v4' )
+objectClasses: (2.16.840.1.113730.3.8.4.1 NAME 'ipaHost' AUXILIARY MUST ( fqdn ) MAY ( userPassword $ ipaClientVersion $ enrolledBy $ memberOf $ userClass $ ipaAssignedIDView ) X-ORIGIN 'IPA v2' )
 objectClasses: (2.16.840.1.113730.3.8.4.12 NAME 'ipaObject' DESC 'IPA objectclass' AUXILIARY MUST ( ipaUniqueID ) X-ORIGIN 'IPA v2' )
 objectClasses: (2.16.840.1.113730.3.8.4.14 NAME 'ipaEntitlement' DESC 'IPA Entitlement object' AUXILIARY MUST ( ipaEntitlementId ) MAY ( userPKCS12 $ userCertificate ) X-ORIGIN 'IPA v2' )
 objectClasses: (2.16.840.1.113730.3.8.4.15 NAME 'ipaPermission' DESC 'IPA Permission objectclass' AUXILIARY MAY ( ipaPermissionType ) X-ORIGIN 'IPA v2' )
