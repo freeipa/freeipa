@@ -44,6 +44,7 @@ app_DATA =				\
 	60-trusts.update		\
 	61-trusts-s4u2proxy.update	\
 	62-ranges.update		\
+	71-idviews.update		\
 	$(NULL)
 
 EXTRA_DIST =				\
