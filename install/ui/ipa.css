@@ -285,8 +285,10 @@ textarea.certificate {
 /* ---- Table ---- */
 
 /* Used in association tables */
-th div[name="buttons"] .action-button {
-    margin: 0 0 0 6px;
+th div[name="buttons"] .btn-link {
+    padding-top: 0;
+    padding-bottom: 0;
+    border: 0;
 }
 
 table.scrollable thead {

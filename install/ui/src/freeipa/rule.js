@@ -46,7 +46,8 @@ IPA.rule_details_widget = function(spec) {
         that.enable_radio = IPA.rule_radio_widget({
             name: that.radio_name,
             options: that.options,
-            entity: that.entity
+            entity: that.entity,
+            css_class: 'rule-enable-radio'
         });
 
         that.widgets.add_widget(that.enable_radio);
