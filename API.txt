@@ -2199,6 +2199,16 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
+command: idview_apply
+args: 1,3,4
+arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('host*', cli_name='hosts')
+option: Str('hostgroup*', cli_name='hostgroups')
+option: Str('version?', exclude='webui')
+output: Output('completed', <type 'int'>, None)
+output: Output('failed', <type 'dict'>, None)
+output: Output('succeeded', <type 'dict'>, None)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 command: idview_del
 args: 1,2,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=True, primary_key=True, query=True, required=True)
@@ -2247,6 +2257,15 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
+command: idview_unapply
+args: 0,3,4
+option: Str('host*', cli_name='hosts')
+option: Str('hostgroup*', cli_name='hostgroups')
+option: Str('version?', exclude='webui')
+output: Output('completed', <type 'int'>, None)
+output: Output('failed', <type 'dict'>, None)
+output: Output('succeeded', <type 'dict'>, None)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 command: json_metadata
 args: 2,4,3
 arg: Str('objname?')
