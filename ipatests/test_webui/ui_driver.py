@@ -368,9 +368,9 @@ class UI_driver(object):
             self.wait_for_request(n=2)
 
             # reset password if needed
-            newpw_tb = self.find("//input[@type='password'][@name='new_password']", 'xpath', auth, strict=True)
-            verify_tb = self.find("//input[@type='password'][@name='verify_password']", 'xpath', auth, strict=True)
-            if newpw_tb.is_displayed():
+            newpw_tb = self.find("//input[@type='password'][@name='new_password']", 'xpath', auth)
+            verify_tb = self.find("//input[@type='password'][@name='verify_password']", 'xpath', auth)
+            if newpw_tb and newpw_tb.is_displayed():
                 newpw_tb.send_keys(new_password)
                 verify_tb.send_keys(new_password)
                 verify_tb.send_keys(Keys.RETURN)
