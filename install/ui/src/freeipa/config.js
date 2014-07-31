@@ -70,8 +70,19 @@ define([], function() {
             dataType: 'json',
             async: true,
             processData: false
-        }
+        },
 
+        /**
+         * Hide read-only widgets without value
+         * @property {boolean}
+         */
+        hide_empty_widgets: false,
+
+        /**
+         * Hide sections without any visible widget
+         * @property {boolean}
+         */
+        hide_empty_sections: true
     };
 
     return config;
