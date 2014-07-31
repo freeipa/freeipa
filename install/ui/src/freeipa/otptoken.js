@@ -78,6 +78,7 @@ return {
                     options: { ipatokendisabled: false },
                     needs_confirm: true,
                     enable_cond: ['item-selected'],
+                    enabled: false,
                     success_msg: '@i18n:search.enabled',
                     confirm_msg: '@i18n:search.enable_confirm'
                 },
@@ -88,6 +89,7 @@ return {
                     options: { ipatokendisabled: true },
                     needs_confirm: true,
                     enable_cond: ['item-selected'],
+                    enabled: false,
                     success_msg: '@i18n:search.disabled',
                     confirm_msg: '@i18n:search.disable_confirm'
                 },

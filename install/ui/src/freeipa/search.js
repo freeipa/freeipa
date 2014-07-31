@@ -430,6 +430,7 @@ IPA.batch_remove_action = function(spec) {
     spec.name = spec.name || 'remove';
     spec.label = spec.label || '@i18n:buttons.remove';
     spec.enable_cond = spec.enable_cond || ['item-selected'];
+    spec.enabled = spec.enabled === undefined ? false : spec.enabled;
     spec.hide_cond = spec.hide_cond || ['self-service'];
 
     var that = IPA.action(spec);
@@ -535,6 +536,7 @@ IPA.batch_disable_action = function(spec) {
     spec.method = spec.method || 'disable';
     spec.needs_confirm = spec.needs_confirm === undefined ? true : spec.needs_confirm;
     spec.enable_cond = spec.enable_cond || ['item-selected'];
+    spec.enabled = spec.enabled === undefined ? false : spec.enabled;
     spec.success_msg = spec.success_msg || '@i18n:search.disabled';
     spec.confirm_msg = spec.confirm_msg || '@i18n:search.disable_confirm';
 
@@ -548,6 +550,7 @@ IPA.batch_enable_action = function(spec) {
     spec.name = spec.name || 'enable';
     spec.method = spec.method || 'enable';
     spec.needs_confirm = spec.needs_confirm === undefined ? true : spec.needs_confirm;
+    spec.enabled = spec.enabled === undefined ? false : spec.enabled;
     spec.enable_cond = spec.enable_cond || ['item-selected'];
     spec.success_msg = spec.success_msg || '@i18n:search.enabled';
     spec.confirm_msg = spec.confirm_msg || '@i18n:search.enable_confirm';
