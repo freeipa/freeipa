@@ -32,6 +32,7 @@ define(['dojo/_base/array',
        'dojo/string',
        'dojo/topic',
        './builder',
+       './config',
        './datetime',
        './entity',
        './ipa',
@@ -44,7 +45,7 @@ define(['dojo/_base/array',
        './util',
        'exports'
        ],
-       function(array, lang, construct, Evented, has, keys, on, string, topic, builder,
+       function(array, lang, construct, Evented, has, keys, on, string, topic, builder, config,
                 datetime, entity_mod, IPA, $, navigation, phases, reg, rpc, text, util, exp) {
 
 /**
@@ -179,8 +180,22 @@ IPA.widget = function(spec) {
     that.visible = spec.visible === undefined ? true : spec.visible;
 
     /**
+     * If true, widget visible is set to false when value is empty
+     * @property {boolean}
+     */
+    that.hidden_if_empty = spec.hidden_if_empty === undefined ? config.hide_empty_widgets :
+                                spec.hidden_if_empty;
+
+    /**
+     * Disable `hidden_if_empty`
+     * @property {boolean}
+     */
+    that.ignore_empty_hiding = spec.ignore_empty_hiding === undefined ? config.hide_empty_sections :
+                                spec.ignore_empty_hiding;
+
+    /**
      * Default main element's css classes
-     * @type {string}
+     * @property {string}
      */
     that.base_css_class = spec.base_css_class || 'widget';
 
@@ -189,7 +204,7 @@ IPA.widget = function(spec) {
      *
      * Intended to be overridden in spec objects
      *
-     * @type {string}
+     * @property {string}
      */
     that.css_class = spec.css_class || '';
 
@@ -234,20 +249,28 @@ IPA.widget = function(spec) {
 
     /**
      * Whether widget should be displayed.
-     * @param {boolean} value - True - visible; False - hidden
+     * @param {boolean} [value] - True - visible; False - hidden,
+     *                            undefined - use previous (enforce state)
      */
     that.set_visible = function(visible) {
-        var changed = visible !== that.visible;
+        var old = that._effective_visible;
+        visible = visible === undefined ? that.visible : visible;
         that.visible = visible;
+        var current = that.get_visible();
+        that._effective_visible = current;
 
-        if (visible) {
+        if (current) {
             that.show();
         } else {
             that.hide();
         }
-        if (changed) {
-            that.emit('visible-change', { source: that, visible: visible });
+        if (old !== current) {
+            that.emit('visible-change', { source: that, visible: current });
         }
+    };
+
+    that.get_visible = function() {
+        return that.visible;
     };
 
     that.hide = function() {
@@ -377,6 +400,13 @@ IPA.input_widget = function(spec) {
      * @event
      */
     that.undo_clicked = IPA.observer();
+
+    /**
+     * @inheritDoc
+     */
+    that.ctor_init = function() {
+        on(that, 'value-change', that.hide_if_empty);
+    };
 
     /**
      * Creates HTML representation of error link
@@ -592,6 +622,26 @@ IPA.input_widget = function(spec) {
         that.value = value;
         that.value_changed.notify([value], that);
         that.emit('value-change', { source: that, value: value, old: old });
+    };
+
+    /**
+     * Hide widget if value is empty and widget is read_only.
+     * @protected
+     */
+    that.hide_if_empty = function(event) {
+
+        var value = event.value !== undefined ? event.value : true;
+        that.has_value = !util.is_empty(value);
+        that.set_visible();
+    };
+
+    that.get_visible = function() {
+
+        var visible = that.visible;
+        if (that.has_value === false && !that.is_writable() && that.hidden_if_empty) {
+            visible = false;
+        }
+        return visible;
     };
 
     /**
@@ -4394,9 +4444,29 @@ IPA.section = function(spec) {
 
     var that = IPA.composite_widget(spec);
 
+    that.hidden_if_empty = spec.hidden_if_empty === undefined ? true : spec.hidden_if_empty;
     that.show_header = spec.show_header === undefined ? true : spec.show_header;
     that.base_css_class = that.base_css_class + ' details-section';
     that.layout_css_class = spec.layout_css_class || 'col-sm-12';
+
+    that.ctor_init = function() {
+        on(that.widgets, 'widget-add', that.on_widget_add);
+    };
+
+    that.on_widget_add = function(event) {
+        on(event.widget, 'visible-change', that.hide_if_empty);
+    };
+
+    that.hide_if_empty = function() {
+        if (!that.hidden_if_empty) return;
+        var widgets = that.widgets.get_widgets();
+        var any = false;
+        for (var i=0, l=widgets.length; i<l; i++) {
+            any = widgets[i].get_visible();
+            if (any) break;
+        }
+        that.set_visible(any);
+    };
 
     that.create = function(container) {
 
@@ -4583,7 +4653,7 @@ exp.fluid_layout = IPA.fluid_layout = function(spec) {
         var group = $('<div/>', { 'class': that.group_cls });
         that.rows.put(widget.name, group);
 
-        if (!widget.visible) {
+        if (!widget.get_visible()) {
             group.css('display', 'none');
         }
 
@@ -5109,7 +5179,7 @@ IPA.widget_container = function(spec) {
 
     spec = spec || {};
 
-    var that = IPA.object();
+    var that = new Evented();
 
     that.new_container_for_child = spec.new_container_for_child !== undefined ?
     spec.new_container_for_child : true;
@@ -5118,6 +5188,7 @@ IPA.widget_container = function(spec) {
 
     that.add_widget = function(widget) {
         that.widgets.put(widget.name, widget);
+        that.emit('widget-add', { source: that, widget: widget });
     };
 
     that.get_widget = function(path) {
