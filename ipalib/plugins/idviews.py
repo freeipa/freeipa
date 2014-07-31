@@ -64,6 +64,17 @@ class idview(LDAPObject):
         ),
     )
 
+    permission_filter_objectclasses = ['nsContainer']
+    managed_permissions = {
+        'System: Read ID Views': {
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cn', 'description', 'objectClass',
+            },
+        },
+    }
+
 
 @register()
 class idview_add(LDAPCreate):
@@ -159,6 +170,18 @@ class idoverride(LDAPObject):
             label=_('Home directory'),
         ),
     )
+
+    permission_filter_objectclasses = ['ipaOverrideAnchor']
+    managed_permissions = {
+        'System: Read ID Overrides': {
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'cn', 'objectClass', 'ipaAnchorUUID', 'uidNumber', 'gidNumber',
+                'description', 'homeDirectory', 'uid',
+            },
+        },
+    }
 
 
 @register()
