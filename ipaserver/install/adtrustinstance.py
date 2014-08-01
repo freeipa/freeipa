@@ -497,28 +497,31 @@ class ADTRUSTInstance(service.Service):
     def __setup_principal(self):
         try:
             api.Command.service_add(unicode(self.cifs_principal))
-            # Add the principal to the 'adtrust agents' group
-            # as 389-ds only operates with GroupOfNames, we have to use
-            # the principal's proper dn as defined in self.cifs_agent
-            try:
-                current = self.admin_conn.get_entry(self.smb_dn)
-                members = current.get('member', [])
-                if not(self.cifs_agent in members):
-                    current["member"] = members + [self.cifs_agent]
-                    self.admin_conn.update_entry(current)
-            except errors.NotFound:
-                entry = self.admin_conn.make_entry(
-                    self.smb_dn,
-                    objectclass=["top", "GroupOfNames"],
-                    cn=[self.smb_dn['cn']],
-                    member=[self.cifs_agent],
-                )
-                self.admin_conn.add_entry(entry)
-        except Exception:
+        except errors.DuplicateEntry:
             # CIFS principal already exists, it is not the first time
             # adtrustinstance is managed
             # That's fine, we we'll re-extract the key again.
             pass
+        except Exception, e:
+            self.print_msg("Cannot add CIFS service: %s" % e)
+
+        # Add the principal to the 'adtrust agents' group
+        # as 389-ds only operates with GroupOfNames, we have to use
+        # the principal's proper dn as defined in self.cifs_agent
+        try:
+            current = self.admin_conn.get_entry(self.smb_dn)
+            members = current.get('member', [])
+            if not(self.cifs_agent in members):
+                current["member"] = members + [self.cifs_agent]
+                self.admin_conn.update_entry(current)
+        except errors.NotFound:
+            entry = self.admin_conn.make_entry(
+                self.smb_dn,
+                objectclass=["top", "GroupOfNames"],
+                cn=[self.smb_dn['cn']],
+                member=[self.cifs_agent],
+            )
+            self.admin_conn.add_entry(entry)
 
         self.clean_samba_keytab()
 
