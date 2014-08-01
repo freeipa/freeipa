@@ -18,18 +18,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import platform
-import os
-import sys
 from nss.error import NSPRError
-import nss.nss as nss
-import netaddr
 import string
 
 from ipalib import api, errors, util
 from ipalib import Str, Flag, Bytes, DNParam
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import *
+from ipalib.plugins.baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
+                                     LDAPDelete, LDAPUpdate, LDAPSearch,
+                                     LDAPRetrieve, LDAPAddMember,
+                                     LDAPRemoveMember, host_is_master,
+                                     pkey_to_value)
 from ipalib.plugins.service import (split_principal, validate_certificate,
     set_certificate_attrs, ticket_flags_params, update_krbticketflags,
     set_kerberos_attrs)
@@ -38,6 +37,7 @@ from ipalib.plugins.dns import (dns_container_exists, _record_types,
         get_reverse_zone)
 from ipalib import _, ngettext
 from ipalib import x509
+from ipalib import output
 from ipalib.request import context
 from ipalib.util import (normalize_sshpubkey, validate_sshpubkey_no_options,
     convert_sshpubkey_post, validate_hostname)
@@ -139,13 +139,13 @@ def update_sshfp_record(zone, record, entry_attrs):
     for pubkey in pubkeys:
         try:
             sshfp = SSHPublicKey(pubkey).fingerprint_dns_sha1()
-        except ValueError, UnicodeDecodeError:
+        except (ValueError, UnicodeDecodeError):
             continue
         if sshfp is not None:
             sshfps.append(sshfp)
         try:
             sshfp = SSHPublicKey(pubkey).fingerprint_dns_sha256()
-        except ValueError, UnicodeDecodeError:
+        except (ValueError, UnicodeDecodeError):
             continue
         if sshfp is not None:
             sshfps.append(sshfp)
