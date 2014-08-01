@@ -67,6 +67,7 @@ def get_complete_hostgroup_member_list(hostgroup):
 
 register = Registry()
 
+
 @register()
 class hostgroup(LDAPObject):
     """
@@ -177,7 +178,6 @@ class hostgroup(LDAPObject):
                 entry_attrs['memberof'].remove(member)
 
 
-
 @register()
 class hostgroup_add(LDAPCreate):
     __doc__ = _('Add a new hostgroup.')
@@ -197,9 +197,9 @@ class hostgroup_add(LDAPCreate):
             # when enabled, a managed netgroup is created for every hostgroup
             # make sure that the netgroup can be created
             api.Object['netgroup'].get_dn_if_exists(keys[-1])
-            raise errors.DuplicateEntry(message=unicode(_(\
-                    u'netgroup with name "%s" already exists. ' \
-                    u'Hostgroups and netgroups share a common namespace'\
+            raise errors.DuplicateEntry(message=unicode(_(
+                    u'netgroup with name "%s" already exists. '
+                    u'Hostgroups and netgroups share a common namespace'
                     ) % keys[-1]))
         except errors.NotFound:
             pass
@@ -217,14 +217,11 @@ class hostgroup_add(LDAPCreate):
         return dn
 
 
-
-
 @register()
 class hostgroup_del(LDAPDelete):
     __doc__ = _('Delete a hostgroup.')
 
     msg_summary = _('Deleted hostgroup "%(value)s"')
-
 
 
 @register()
@@ -237,7 +234,6 @@ class hostgroup_mod(LDAPUpdate):
         assert isinstance(dn, DN)
         self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
         return dn
-
 
 
 @register()
@@ -257,7 +253,6 @@ class hostgroup_find(LDAPSearch):
         return truncated
 
 
-
 @register()
 class hostgroup_show(LDAPRetrieve):
     __doc__ = _('Display information about a hostgroup.')
@@ -268,7 +263,6 @@ class hostgroup_show(LDAPRetrieve):
         return dn
 
 
-
 @register()
 class hostgroup_add_member(LDAPAddMember):
     __doc__ = _('Add members to a hostgroup.')
@@ -277,7 +271,6 @@ class hostgroup_add_member(LDAPAddMember):
         assert isinstance(dn, DN)
         self.obj.suppress_netgroup_memberof(ldap, dn, entry_attrs)
         return (completed, dn)
-
 
 
 @register()
