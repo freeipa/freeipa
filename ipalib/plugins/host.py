@@ -108,7 +108,8 @@ register = Registry()
 
 # Characters to be used by random password generator
 # The set was chosen to avoid the need for escaping the characters by user
-host_pwd_chars=string.digits + string.ascii_letters + '_,.@+-='
+host_pwd_chars = string.digits + string.ascii_letters + '_,.@+-='
+
 
 def remove_fwd_ptr(ipaddr, host, domain, recordtype):
     api.log.debug('deleting ipaddr %s' % ipaddr)
@@ -118,24 +119,25 @@ def remove_fwd_ptr(ipaddr, host, domain, recordtype):
         # in case domain is in FQDN form with a trailing dot, we needn't add
         # another one, in case it has no trailing dot, dnsrecord-del will
         # normalize the entry
-        delkw = { 'ptrrecord' : "%s.%s" % (host, domain) }
+        delkw = {'ptrrecord': "%s.%s" % (host, domain)}
 
         api.Command['dnsrecord_del'](revzone, revname, **delkw)
     except errors.NotFound:
         pass
 
     try:
-        delkw = { recordtype : ipaddr }
+        delkw = {recordtype: ipaddr}
         api.Command['dnsrecord_del'](domain, host, **delkw)
     except errors.NotFound:
         pass
+
 
 def update_sshfp_record(zone, record, entry_attrs):
     if 'ipasshpubkey' not in entry_attrs:
         return
 
     pubkeys = entry_attrs['ipasshpubkey'] or ()
-    sshfps=[]
+    sshfps = []
     for pubkey in pubkeys:
         try:
             sshfp = SSHPublicKey(pubkey).fingerprint_dns_sha1()
@@ -143,6 +145,7 @@ def update_sshfp_record(zone, record, entry_attrs):
             continue
         if sshfp is not None:
             sshfps.append(sshfp)
+
         try:
             sshfp = SSHPublicKey(pubkey).fingerprint_dns_sha256()
         except (ValueError, UnicodeDecodeError):
@@ -200,15 +203,17 @@ host_output_params = (
     ),
 )
 
+
 def validate_ipaddr(ugettext, ipaddr):
     """
     Verify that we have either an IPv4 or IPv6 address.
     """
     try:
-        ip = CheckedIPAddress(ipaddr, match_local=False)
+        CheckedIPAddress(ipaddr, match_local=False)
     except Exception, e:
         return unicode(e)
     return None
+
 
 def normalize_hostname(hostname):
     """Use common fqdn form without the trailing dot"""
@@ -217,14 +222,15 @@ def normalize_hostname(hostname):
     hostname = hostname.lower()
     return hostname
 
+
 def _hostname_validator(ugettext, value):
     try:
         validate_hostname(value)
     except ValueError, e:
-        return _('invalid domain-name: %s') \
-            % unicode(e)
+        return _('invalid domain-name: %s') % unicode(e)
 
     return None
+
 
 @register()
 class host(LDAPObject):
@@ -441,7 +447,8 @@ class host(LDAPObject):
         Str('macaddress*',
             normalizer=lambda value: value.upper(),
             pattern='^([a-fA-F0-9]{2}[:|\-]?){5}[a-fA-F0-9]{2}$',
-            pattern_errmsg='Must be of the form HH:HH:HH:HH:HH:HH, where each H is a hexadecimal character.',
+            pattern_errmsg=('Must be of the form HH:HH:HH:HH:HH:HH, where '
+                            'each H is a hexadecimal character.'),
             csv=True,
             label=_('MAC address'),
             doc=_('Hardware MAC address(es) on this host'),
@@ -515,7 +522,6 @@ class host(LDAPObject):
                 pass
             else:
                 entry_attrs['memberofindirect'].remove(member)
-
 
 
 @register()
@@ -637,7 +643,6 @@ class host_add(LDAPCreate):
         return dn
 
 
-
 @register()
 class host_del(LDAPDelete):
     __doc__ = _('Delete a host.')
@@ -703,7 +708,8 @@ class host_del(LDAPDelete):
                                    domain, 'aaaarecord')
                 else:
                     # Try to delete all other record types too
-                    _attribute_types = [str('%srecord' % t.lower()) for t in _record_types]
+                    _attribute_types = [str('%srecord' % t.lower())
+                                        for t in _record_types]
                     for attr in _attribute_types:
                         if attr not in ['arecord', 'aaaarecord'] and attr in record:
                             for i in xrange(len(record[attr])):
@@ -749,7 +755,6 @@ class host_del(LDAPDelete):
         return dn
 
 
-
 @register()
 class host_mod(LDAPUpdate):
     __doc__ = _('Modify information about a host.')
@@ -779,7 +784,9 @@ class host_mod(LDAPUpdate):
             entry = {}
             self.obj.get_password_attributes(ldap, dn, entry)
             if not entry['has_password'] and entry['has_keytab']:
-                raise errors.ValidationError(name='password', error=_('Password cannot be set on enrolled host.'))
+                raise errors.ValidationError(
+                    name='password',
+                    error=_('Password cannot be set on enrolled host.'))
 
         # Once a principal name is set it cannot be changed
         if 'cn' in entry_attrs:
@@ -897,7 +904,6 @@ class host_mod(LDAPUpdate):
         return dn
 
 
-
 @register()
 class host_find(LDAPSearch):
     __doc__ = _('Search for hosts.')
@@ -952,7 +958,8 @@ class host_find(LDAPSearch):
             for target_hosts, filter_op in ((hosts, ldap.MATCH_ANY),
                                             (not_hosts, ldap.MATCH_NONE)):
                 hosts_avas = [DN(host)[0][0] for host in target_hosts]
-                hosts_filters = [ldap.make_filter_from_attr(ava.attr, ava.value) for ava in hosts_avas]
+                hosts_filters = [ldap.make_filter_from_attr(ava.attr, ava.value)
+                                 for ava in hosts_avas]
                 hosts_filter = ldap.combine_filters(hosts_filters, filter_op)
 
                 filter = ldap.combine_filters(
@@ -980,7 +987,6 @@ class host_find(LDAPSearch):
             convert_sshpubkey_post(ldap, entry_attrs.dn, entry_attrs)
 
         return truncated
-
 
 
 @register()
@@ -1028,7 +1034,6 @@ class host_show(LDAPRetrieve):
                 raise errors.NoCertificateError(entry=keys[-1])
         else:
             return super(host_show, self).forward(*keys, **options)
-
 
 
 @register()
@@ -1140,7 +1145,6 @@ class host_add_managedby(LDAPAddMember):
         assert isinstance(dn, DN)
         self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
         return (completed, dn)
-
 
 
 @register()
