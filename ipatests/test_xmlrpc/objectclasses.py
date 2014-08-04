@@ -181,3 +181,21 @@ pwpolicy = [
     u'nscontainer',
     u'top',
 ]
+
+idview = [
+    u'ipaIDView',
+    u'nsContainer',
+    u'top'
+]
+
+idoverrideuser = [
+    u'ipaOverrideAnchor',
+    u'top',
+    u'ipaUserOverride',
+]
+
+idoverridegroup = [
+    u'ipaOverrideAnchor',
+    u'top',
+    u'ipaGroupOverride',
+]
