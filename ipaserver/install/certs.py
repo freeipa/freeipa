@@ -137,10 +137,9 @@ class NSSDatabase(object):
         # FIXME, this relies on NSS never changing the formatting of certutil
         certlist = []
         for cert in certs:
-            nickname = cert[0:61]
-            trust = cert[61:]
-            if re.match(r'\w*,\w*,\w*', trust):
-                certlist.append((nickname.strip(), trust.strip()))
+            match = re.match(r'^(.+?)\s+(\w*,\w*,\w*)\s*$', cert)
+            if match:
+                certlist.append(match.groups())
 
         return tuple(certlist)
 
