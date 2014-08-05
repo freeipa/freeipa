@@ -68,7 +68,7 @@ from ipapython import sysrestore
 from ipapython.ipautil import *
 from ipapython import ipautil
 from ipapython import dogtag
-from ipalib import api, errors, util
+from ipalib import api, errors, util, x509
 from ipapython.config import IPAOptionParser
 from ipalib.util import validate_domain_name
 from ipalib.constants import CACERT
@@ -222,7 +222,7 @@ def parse_options():
     cert_group.add_option("--pkinit_pin", dest="pkinit_pin",
                       help="The password of the Kerberos KDC PKCS#12 file")
     cert_group.add_option("--root-ca-file", dest="root_ca_file",
-                      help="PEM file with root CA certificate(s) to trust")
+                      help="PEM file containing the CA certificate for the PKCS#12 files")
     cert_group.add_option("--subject", action="callback", callback=subject_callback,
                       type="string",
                       help="The certificate subject base (default O=<realm-name>)")
@@ -314,10 +314,6 @@ def parse_options():
             parser.error("You must specify --http_pin with --http_pkcs12")
         if options.pkinit_pkcs12 and options.pkinit_pin is None:
             parser.error("You must specify --pkinit_pin with --pkinit_pkcs12")
-
-    if options.dirsrv_pkcs12 and not options.root_ca_file:
-        parser.error(
-            "--root-ca-file must be given with the PKCS#12 options.")
 
     if (options.external_cert_file or options.external_ca_file) and options.dirsrv_pkcs12:
         parser.error(
@@ -903,7 +899,7 @@ def main():
             if options.http_pin is None:
                 sys.exit("%s unlock password required" % options.http_pkcs12)
         http_pkcs12_info = (options.http_pkcs12, options.http_pin)
-        http_cert_name = installutils.check_pkcs12(
+        http_ca_cert = installutils.check_pkcs12(
             http_pkcs12_info, ca_file, host_name)
 
     if options.dirsrv_pkcs12:
@@ -914,7 +910,7 @@ def main():
             if options.dirsrv_pin is None:
                 sys.exit("%s unlock password required" % options.dirsrv_pkcs12)
         dirsrv_pkcs12_info = (options.dirsrv_pkcs12, options.dirsrv_pin)
-        dirsrv_cert_name = installutils.check_pkcs12(
+        dirsrv_ca_cert = installutils.check_pkcs12(
             dirsrv_pkcs12_info, ca_file, host_name)
 
     if options.pkinit_pkcs12:
@@ -925,6 +921,11 @@ def main():
             if options.pkinit_pin is None:
                 sys.exit("%s unlock password required" % options.pkinit_pkcs12)
         pkinit_pkcs12_info = (options.pkinit_pkcs12, options.pkinit_pin)
+
+    if (options.http_pkcs12 and options.dirsrv_pkcs12 and
+        http_ca_cert != dirsrv_ca_cert):
+        sys.exit("%s and %s are not signed by the same CA certificate" %
+                 (options.http_pkcs12, options.dirsrv_pkcs12))
 
     if not options.dm_password:
         dm_password = read_dm_password()
@@ -1055,8 +1056,7 @@ def main():
                 ntp.create_instance()
 
         if options.dirsrv_pkcs12:
-            ds = dsinstance.DsInstance(fstore=fstore,
-                cert_nickname=dirsrv_cert_name)
+            ds = dsinstance.DsInstance(fstore=fstore)
             ds.create_instance(realm_name, host_name, domain_name,
                             dm_password, dirsrv_pkcs12_info,
                             idstart=options.idstart, idmax=options.idmax,
@@ -1110,7 +1110,7 @@ def main():
         ca.publish_ca_cert(CACERT)
     else:
         # Put the CA cert where other instances expect it
-        shutil.copy(options.root_ca_file, CACERT)
+        x509.write_certificate(http_ca_cert, CACERT)
         os.chmod(CACERT, 0444)
 
     # we now need to enable ssl on the ds
