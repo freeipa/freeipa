@@ -139,7 +139,7 @@ class ReplicaPrepare(admintool.AdminTool):
                 "could not find directory instance: %s" % config_dir)
 
     def check_pkcs12(self, pkcs12_file, pkcs12_pin):
-        installutils.check_pkcs12(
+        return installutils.check_pkcs12(
             pkcs12_info=(pkcs12_file, pkcs12_pin),
             ca_file=CACERT,
             hostname=self.replica_fqdn)
@@ -221,7 +221,8 @@ class ReplicaPrepare(admintool.AdminTool):
                 if options.http_pin is None:
                     raise admintool.ScriptError(
                         "%s unlock password required" % options.http_pkcs12)
-            self.check_pkcs12(options.http_pkcs12, options.http_pin)
+            http_ca_cert = self.check_pkcs12(
+                options.http_pkcs12, options.http_pin)
 
         if options.dirsrv_pkcs12:
             if options.dirsrv_pin is None:
@@ -231,7 +232,8 @@ class ReplicaPrepare(admintool.AdminTool):
                 if options.dirsrv_pin is None:
                     raise admintool.ScriptError(
                         "%s unlock password required" % options.dirsrv_pkcs12)
-            self.check_pkcs12(options.dirsrv_pkcs12, options.dirsrv_pin)
+            dirsrv_ca_cert = self.check_pkcs12(
+                options.dirsrv_pkcs12, options.dirsrv_pin)
 
         if options.pkinit_pkcs12:
             if options.pkinit_pin is None:
@@ -241,6 +243,12 @@ class ReplicaPrepare(admintool.AdminTool):
                 if options.pkinit_pin is None:
                     raise admintool.ScriptError(
                         "%s unlock password required" % options.pkinit_pkcs12)
+
+        if (options.http_pkcs12 and options.dirsrv_pkcs12 and
+            http_ca_cert != dirsrv_ca_cert):
+            raise admintool.ScriptError(
+                "%s and %s are not signed by the same CA certificate" %
+                (options.http_pkcs12, options.dirsrv_pkcs12))
 
         if (not ipautil.file_exists(
                     dogtag.configured_constants().CS_CFG_PATH) and

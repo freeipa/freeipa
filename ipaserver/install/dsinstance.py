@@ -221,14 +221,14 @@ info: IPA V2.0
 
 class DsInstance(service.Service):
     def __init__(self, realm_name=None, domain_name=None, dm_password=None,
-                 fstore=None, cert_nickname='Server-Cert'):
+                 fstore=None):
         service.Service.__init__(self, "dirsrv",
             service_desc="directory server",
             dm_password=dm_password,
             ldapi=False,
             autobind=service.DISABLED
             )
-        self.nickname = cert_nickname
+        self.nickname = 'Server-Cert'
         self.dm_password = dm_password
         self.realm = realm_name
         self.sub_dict = None
@@ -632,24 +632,23 @@ class DsInstance(service.Service):
                 raise RuntimeError("Could not find a suitable server cert in import in %s" % self.pkcs12_info[0])
 
             # We only handle one server cert
-            nickname = server_certs[0][0]
-            self.dercert = dsdb.get_cert_from_db(nickname, pem=False)
+            self.nickname = server_certs[0][0]
+            self.dercert = dsdb.get_cert_from_db(self.nickname, pem=False)
         else:
-            nickname = self.nickname
             cadb = certs.CertDB(self.realm, host_name=self.fqdn, subject_base=self.subject_base)
 
             # FIXME, need to set this nickname in the RA plugin
             cadb.export_ca_cert('ipaCert', False)
             dsdb.create_from_cacert(cadb.cacert_fname, passwd=None)
             self.dercert = dsdb.create_server_cert(
-                nickname, self.fqdn, cadb)
+                self.nickname, self.fqdn, cadb)
             dsdb.create_pin_file()
 
         self.cacert_name = dsdb.cacert_name
 
         if self.ca_is_configured:
             dsdb.track_server_cert(
-                nickname, self.principal, dsdb.passwd_fname,
+                self.nickname, self.principal, dsdb.passwd_fname,
                 'restart_dirsrv %s' % self.serverid)
 
         conn = ipaldap.IPAdmin(self.fqdn)
@@ -670,7 +669,7 @@ class DsInstance(service.Service):
             DN(('cn', 'RSA'), ('cn', 'encryption'), ('cn', 'config')),
             objectclass=["top", "nsEncryptionModule"],
             cn=["RSA"],
-            nsSSLPersonalitySSL=[nickname],
+            nsSSLPersonalitySSL=[self.nickname],
             nsSSLToken=["internal (software)"],
             nsSSLActivation=["on"],
         )

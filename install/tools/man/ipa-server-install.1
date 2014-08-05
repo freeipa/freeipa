@@ -118,6 +118,9 @@ The password of the Apache Server PKCS#12 file
 \fB\-\-pkinit_pin\fR=\fIPKINIT_PIN\fR
 The password of the Kerberos KDC PKCS#12 file
 .TP
+\fB\-\-root\-ca\-file\fR=\fIFILE\fR
+PEM file containing the CA certificate of the CA which issued the Directory Server, Apache Server and Kerberos KDC SSL certificates. Use this option if the CA certificate is not present in the PKCS#12 files.
+.TP
 \fB\-\-subject\fR=\fISUBJECT\fR
 The certificate subject base (default O=REALM.NAME)
 
