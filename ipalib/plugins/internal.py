@@ -550,6 +550,7 @@ class i18n_messages(Command):
             },
             "otptoken": {
                 "add_token": _("Add OTP Token"),
+                "app_link": _("You can use <a href=\"${link}\" target=\"_blank\">FreeOTP<a/> as a software OTP token application."),
                 "config_title": _("Configure your token"),
                 "config_instructions": _("Configure your token by scanning the QR code below. Click on the QR code if you see this on the device you want to configure."),
                 "details": _("OTP Token Settings"),

@@ -406,6 +406,7 @@
                         },
                         "otptoken": {
                             "add_token": "Add OTP Token",
+                            "app_link": "You can use <a href=\"${link}\" target=\"_blank\">FreeOTP<a/> as a software OTP token application.",
                             "config_title": "Configure your token",
                             "config_instructions": "Configure your token by scanning the QR code below. Click on the QR code if you see this on the device you want to configure.",
                             "details": "OTP Token Settings",
