@@ -37,7 +37,10 @@ define([
  * @class
  * @singleton
  */
-var otptoken = IPA.otptoken = {};
+var otptoken = IPA.otptoken = {
+    app_link: 'https://fedorahosted.org/freeotp/',
+    app_link_text: '@i18n:objects.otptoken.app_link'
+};
 
 var make_spec = function() {
 return {
@@ -523,6 +526,11 @@ otptoken.adder_dialog_qrcode_post_op = function(object) {
 
         qr_dialog.open();
         qr_dialog.show_message(text.get('@i18n:objects.otptoken.config_instructions'));
+        if (otptoken.app_link && otptoken.app_link_text) {
+            var app_text = text.get(otptoken.app_link_text);
+            app_text = app_text.replace('${link}', otptoken.app_link);
+            qr_dialog.show_message(app_text);
+        }
     });
 
 
