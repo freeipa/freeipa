@@ -1819,8 +1819,9 @@ output: Output('completed', <type 'int'>, None)
 output: Output('failed', <type 'dict'>, None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 command: host_del
-args: 1,2,3
+args: 1,3,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', multivalue=True, primary_key=True, query=True, required=True)
+option: Flag('continue', autofill=True, cli_name='continue', default=False)
 option: Flag('updatedns?', autofill=True, default=False)
 option: Str('version?', exclude='webui')
 output: Output('result', <type 'dict'>, None)

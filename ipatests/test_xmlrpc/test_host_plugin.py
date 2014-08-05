@@ -139,10 +139,7 @@ sshpubkeyfp = u'13:67:6B:BF:4E:A2:05:8E:AE:25:8B:A1:31:DE:6F:1B public key test 
 class test_host(Declarative):
 
     cleanup_commands = [
-        ('host_del', [fqdn1], {}),
-        ('host_del', [fqdn2], {}),
-        ('host_del', [fqdn3], {}),
-        ('host_del', [fqdn4], {}),
+        ('host_del', [fqdn1, fqdn2, fqdn3, fqdn4], {'continue': True}),
         ('service_del', [service1], {}),
     ]
 
