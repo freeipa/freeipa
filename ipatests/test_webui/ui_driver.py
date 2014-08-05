@@ -1326,7 +1326,7 @@ class UI_driver(object):
             parent = self.get_form()
         s = self.get_table_selector(name)
         table = self.find(s, By.CSS_SELECTOR, parent, strict=True)
-        s = "a[name=%s].button" % 'add'
+        s = ".btn[name=%s]" % 'add'
         btn = self.find(s, By.CSS_SELECTOR, table, strict=True)
         btn.click()
         self.wait()
