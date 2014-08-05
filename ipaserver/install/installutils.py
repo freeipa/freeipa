@@ -800,8 +800,6 @@ def check_pkcs12(pkcs12_info, ca_file, hostname):
 
     This is used for files given to --*_pkcs12 to ipa-server-install and
     ipa-replica-prepare.
-
-    Return a (server cert name, CA cert names) tuple
     """
     pkcs12_filename, pkcs12_passwd = pkcs12_info
     root_logger.debug('Checking PKCS#12 certificate %s', pkcs12_filename)
@@ -812,13 +810,18 @@ def check_pkcs12(pkcs12_info, ca_file, hostname):
         # Import the CA cert first so it has a known nickname
         # (if it's present in the PKCS#12 it won't be overwritten)
         ca_cert_name = 'The Root CA'
-        try:
-            nssdb.import_pem_cert(ca_cert_name, "CT,C,C", ca_file)
-        except (ValueError, RuntimeError) as e:
-            raise ScriptError(str(e))
+        if ca_file:
+            try:
+                nssdb.import_pem_cert(ca_cert_name, "CT,C,C", ca_file)
+            except (ValueError, RuntimeError) as e:
+                raise ScriptError(str(e))
 
         # Import everything in the PKCS#12
-        nssdb.import_pkcs12(pkcs12_filename, db_pwd_file.name, pkcs12_passwd)
+        try:
+            nssdb.import_pkcs12(
+                pkcs12_filename, db_pwd_file.name, pkcs12_passwd)
+        except RuntimeError as e:
+            raise ScriptError(str(e))
 
         # Check we have exactly one server cert (one with a private key)
         server_certs = nssdb.find_server_certs()
@@ -833,21 +836,23 @@ def check_pkcs12(pkcs12_info, ca_file, hostname):
 
         # Check we have the whole cert chain & the CA is in it
         trust_chain = nssdb.get_trust_chain(server_cert_name)
-        while trust_chain:
-            if trust_chain[0] == ca_cert_name:
-                break
-            trust_chain = trust_chain[1:]
-        else:
+        if len(trust_chain) < 2:
+            if ca_file:
+                raise ScriptError(
+                    '%s is not signed by %s, or the full certificate chain is '
+                    'not present in the PKCS#12 file' %
+                    (pkcs12_filename, ca_file))
+            else:
+                raise ScriptError(
+                    'The full certificate chain is not present in %s' %
+                    pkcs12_filename)
+        if ca_file and trust_chain[-2] != ca_cert_name:
             raise ScriptError(
-                '%s is not signed by %s, or the full certificate chain is not '
-                'present in the PKCS#12 file' % (pkcs12_filename, ca_file))
-        if len(trust_chain) != 2:
-            raise ScriptError(
-                'trust chain of the server certificate in %s contains %s '
-                'certificates, expected 2' %
-                (pkcs12_filename, len(trust_chain)))
+                '%s is not signed by %s' % (pkcs12_filename, ca_file))
+        ca_cert_name = trust_chain[-2]
 
         # Check server validity
+        nssdb.trust_root_cert(ca_cert_name)
         try:
             nssdb.verify_server_cert_validity(server_cert_name, hostname)
         except ValueError as e:
@@ -855,8 +860,7 @@ def check_pkcs12(pkcs12_info, ca_file, hostname):
                 'The server certificate in %s is not valid: %s' %
                 (pkcs12_filename, e))
 
-        return server_cert_name
-
+        return nssdb.get_cert(ca_cert_name)
 
 @contextmanager
 def private_ccache(path=None):
