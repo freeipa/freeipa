@@ -226,6 +226,10 @@ def parse_options():
     cert_group.add_option("--subject", action="callback", callback=subject_callback,
                       type="string",
                       help="The certificate subject base (default O=<realm-name>)")
+    cert_group.add_option("--ca-signing-algorithm", dest="ca_signing_algorithm",
+                      type="choice",
+                      choices=('SHA1withRSA', 'SHA256withRSA', 'SHA512withRSA'),
+                      help="Signing algorithm of the IPA CA certificate")
     parser.add_option_group(cert_group)
 
     dns_group = OptionGroup(parser, "DNS options")
@@ -1075,7 +1079,8 @@ def main():
             dogtag_constants=dogtag.install_constants)
         if external == 0:
             ca.configure_instance(host_name, domain_name, dm_password,
-                                  dm_password, subject_base=options.subject)
+                                  dm_password, subject_base=options.subject,
+                                  ca_signing_algorithm=options.ca_signing_algorithm)
         elif external == 1:
             # stage 1 of external CA installation
             options.realm_name = realm_name
@@ -1090,14 +1095,16 @@ def main():
             write_cache(vars(options))
             ca.configure_instance(host_name, domain_name, dm_password,
                                   dm_password, csr_file=paths.ROOT_IPA_CSR,
-                                  subject_base=options.subject)
+                                  subject_base=options.subject,
+                                  ca_signing_algorithm=options.ca_signing_algorithm)
         else:
             # stage 2 of external CA installation
             ca.configure_instance(host_name, domain_name, dm_password,
                                   dm_password,
                                   cert_file=options.external_cert_file,
                                   cert_chain_file=options.external_ca_file,
-                                  subject_base=options.subject)
+                                  subject_base=options.subject,
+                                  ca_signing_algorithm=options.ca_signing_algorithm)
 
         # Now put the CA cert where other instances exepct it
         ca.publish_ca_cert(CACERT)

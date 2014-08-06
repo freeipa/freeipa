@@ -123,6 +123,9 @@ PEM file containing the CA certificate of the CA which issued the Directory Serv
 .TP
 \fB\-\-subject\fR=\fISUBJECT\fR
 The certificate subject base (default O=REALM.NAME)
+.TP
+\fB\-\-ca\-signing\-algorithm\fR=\fIALGORITHM\fR
+Signing algorithm of the IPA CA certificate. Possible values are SHA1withRSA, SHA256withRSA, SHA512withRSA. Default value is SHA256withRSA. Use this option with --external-ca if the external CA does not support the default signing algorithm.
 
 .SS "DNS OPTIONS"
 .TP
