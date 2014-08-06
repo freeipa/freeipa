@@ -17,13 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import re
 import contextlib
 
+from ipapython.ipa_log_manager import log_mgr
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
 from ipatests.util import assert_deepequal
+
+log = log_mgr.get_logger(__name__)
 
 
 def assert_entries_equal(a, b):
@@ -84,22 +88,30 @@ def restore_checker(host):
     assert_results_equal(certs_output, check_certs(host))
 
 
+def backup(host):
+    """Run backup on host, return the path to the backup directory"""
+    result = host.run_command(['ipa-backup', '-v'])
+
+    # Get the backup location from the command's output
+    for line in result.stderr_text.splitlines():
+        prefix = ('ipa.ipaserver.install.ipa_backup.Backup: '
+                  'INFO: Backed up to ')
+        if line.startswith(prefix):
+            backup_path = line[len(prefix):].strip()
+            log.info('Backup path for %s is %s', host, backup_path)
+            return backup_path
+    else:
+        raise AssertionError('Backup directory not found in output')
+
+
+
 class TestBackupAndRestore(IntegrationTest):
     topology = 'star'
 
     def test_full_backup_and_restore(self):
         """backup, uninstall, restore"""
         with restore_checker(self.master):
-            result = self.master.run_command(['ipa-backup', '-v'])
-
-            # Get the backup location from the command's output
-            for line in result.stderr_text.splitlines():
-                prefix = ('ipa.ipaserver.install.ipa_backup.Backup: '
-                          'INFO: Backed up to ')
-                if line.startswith(prefix):
-                    backup_path = line[len(prefix):].strip()
-
-            self.log.info('Backup path for %s is %s', self.master, backup_path)
+            backup_path = backup(self.master)
 
             self.master.run_command(['ipa-server-install',
                                      '--uninstall',
@@ -108,3 +120,29 @@ class TestBackupAndRestore(IntegrationTest):
             dirman_password = self.master.config.dirman_password
             self.master.run_command(['ipa-restore', backup_path],
                                     stdin_text=dirman_password + '\nyes')
+
+    def test_full_backup_and_restore_with_removed_users(self):
+        """regression test for https://fedorahosted.org/freeipa/ticket/3866"""
+        with restore_checker(self.master):
+            backup_path = backup(self.master)
+
+            self.log.info('Backup path for %s is %s', self.master, backup_path)
+
+            self.master.run_command(['ipa-server-install',
+                                     '--uninstall',
+                                     '-U'])
+
+            self.master.run_command(['userdel', 'dirsrv'])
+            self.master.run_command(['userdel', 'pkiuser'])
+
+            homedir = os.path.join(self.master.config.test_dir,
+                                   'testuser_homedir')
+            self.master.run_command(['useradd', 'ipatest_user1',
+                                     '--system',
+                                     '-d', homedir])
+            try:
+                dirman_password = self.master.config.dirman_password
+                self.master.run_command(['ipa-restore', backup_path],
+                                        stdin_text=dirman_password + '\nyes')
+            finally:
+                self.master.run_command(['userdel', 'ipatest_user1'])
