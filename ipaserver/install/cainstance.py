@@ -369,7 +369,7 @@ class CAInstance(DogtagInstance):
                            pkcs12_info=None, master_host=None, csr_file=None,
                            cert_file=None, cert_chain_file=None,
                            master_replication_port=None,
-                           subject_base=None):
+                           subject_base=None, ca_signing_algorithm=None):
         """Create a CA instance.
 
            For Dogtag 9, this may involve creating the pki-ca instance.
@@ -395,6 +395,10 @@ class CAInstance(DogtagInstance):
             self.subject_base = DN(('O', self.realm))
         else:
             self.subject_base = subject_base
+        if ca_signing_algorithm is None:
+            self.ca_signing_algorithm = 'SHA256withRSA'
+        else:
+            self.ca_signing_algorithm = ca_signing_algorithm
 
         # Determine if we are installing as an externally-signed CA and
         # what stage we're in.
@@ -516,6 +520,9 @@ class CAInstance(DogtagInstance):
         config.set("CA", "pki_ssl_server_nickname", "Server-Cert cert-pki-ca")
         config.set("CA", "pki_audit_signing_nickname", "auditSigningCert cert-pki-ca")
         config.set("CA", "pki_ca_signing_nickname", "caSigningCert cert-pki-ca")
+
+        # CA key algorithm
+        config.set("CA", "pki_ca_signing_key_algorithm", self.ca_signing_algorithm)
 
         if self.clone:
             cafile = self.pkcs12_info[0]
@@ -643,7 +650,8 @@ class CAInstance(DogtagInstance):
                     "-db_name", "ipaca",
                     "-key_size", "2048",
                     "-key_type", "rsa",
-                    "-key_algorithm", "SHA256withRSA",
+                    "-key_algorithm", self.ca_signing_algorithm,
+                    "-signing_algorithm", "SHA256withRSA",
                     "-save_p12", "true",
                     "-backup_pwd", self.admin_password,
                     "-subsystem_name", self.service_name,
