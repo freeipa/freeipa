@@ -21,6 +21,7 @@ app_DATA =				\
 	21-ca_renewal_container.update	\
 	21-certstore_container.update	\
 	25-referint.update		\
+	30-provisioning.update		\
 	30-s4u2proxy.update		\
 	40-delegation.update		\
 	40-realm_domains.update		\

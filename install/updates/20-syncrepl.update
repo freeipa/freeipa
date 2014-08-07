@@ -10,11 +10,17 @@ add:nsslapd-changelogmaxage: 2d
 # indices for cn=changelog.
 dn: cn=MemberOf Plugin,cn=plugins,cn=config
 add:memberofentryscope: '$SUFFIX'
+add:memberofentryscopeexcludesubtree: 'cn=provisioning,$SUFFIX'
 
 dn: cn=referential integrity postoperation,cn=plugins,cn=config
 add:nsslapd-plugincontainerscope: '$SUFFIX'
 add:nsslapd-pluginentryscope: '$SUFFIX'
+add:nsslapd-pluginExcludeEntryScope: 'cn=provisioning,$SUFFIX'
 
 # Enable SyncRepl
 dn: cn=Content Synchronization,cn=plugins,cn=config
 only:nsslapd-pluginEnabled: on
+
+# Make sure IPA UUID does not generate ipaUniqueID for Stage/Delete entries
+dn: cn=IPA Unique IDs,cn=IPA UUID,cn=plugins,cn=config
+add:ipaUuidExcludeSubtree: 'cn=provisioning,$SUFFIX'

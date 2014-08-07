@@ -1,0 +1,21 @@
+# bootstrap the user life cycle DIT structure.
+
+dn: cn=provisioning,$SUFFIX
+add: objectclass: top
+add: objectclass: nsContainer
+add: cn: provisioning
+
+dn: cn=accounts,cn=provisioning,$SUFFIX
+add: objectclass: top
+add: objectclass: nsContainer
+add: cn: accounts
+
+dn: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
+add: objectclass: top
+add: objectclass: nsContainer
+add: cn: staged users
+
+dn: cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX
+add: objectclass: top
+add: objectclass: nsContainer
+add: cn: staged users
