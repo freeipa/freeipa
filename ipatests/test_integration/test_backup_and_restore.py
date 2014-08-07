@@ -146,3 +146,32 @@ class TestBackupAndRestore(IntegrationTest):
                                         stdin_text=dirman_password + '\nyes')
             finally:
                 self.master.run_command(['userdel', 'ipatest_user1'])
+
+    def test_full_backup_and_restore_with_selinux_booleans_off(self):
+        """regression test for https://fedorahosted.org/freeipa/ticket/4157"""
+        with restore_checker(self.master):
+            backup_path = backup(self.master)
+
+            self.log.info('Backup path for %s is %s', self.master, backup_path)
+
+            self.master.run_command(['ipa-server-install',
+                                     '--uninstall',
+                                     '-U'])
+
+            self.master.run_command([
+                'setsebool', '-P',
+                'httpd_can_network_connect=off',
+                'httpd_manage_ipa=off',
+            ])
+
+            dirman_password = self.master.config.dirman_password
+            self.master.run_command(['ipa-restore', backup_path],
+                                    stdin_text=dirman_password + '\nyes')
+
+        result = self.master.run_command([
+            'getsebool',
+            'httpd_can_network_connect',
+            'httpd_manage_ipa',
+        ])
+        assert 'httpd_can_network_connect --> on' in result.stdout_text
+        assert 'httpd_manage_ipa --> on' in result.stdout_text
