@@ -36,7 +36,10 @@ from ipaserver.install.cainstance import PKI_USER, create_ca_user
 from ipaserver.install.replication import (wait_for_task, ReplicationManager,
                                            get_cs_replication_manager)
 from ipaserver.install import installutils
+from ipaserver.install import httpinstance
+from ipaserver.install import adtrustinstance
 from ipapython import ipaldap
+import ipapython.errors
 from ipaplatform.tasks import tasks
 from ipaserver.install.ipa_backup import BACKUP_DIR
 from ipaplatform import services
@@ -261,6 +264,8 @@ class Restore(admintool.AdminTool):
                 (stdout, stderr, rc) = run(['ipactl', 'stop'], raiseonerr=False)
                 if rc not in [0, 6]:
                     self.log.warn('Stopping IPA failed: %s' % stderr)
+
+                self.restore_selinux_booleans()
 
 
             # We do either a full file restore or we restore data.
@@ -637,3 +642,12 @@ class Restore(admintool.AdminTool):
             except Exception, e:
                 # This isn't so fatal as to side-track the restore
                 self.log.error('Problem with %s: %s' % (dir, e))
+
+    def restore_selinux_booleans(self):
+        bools = dict(httpinstance.SELINUX_BOOLEAN_SETTINGS)
+        if 'ADTRUST' in self.backup_services:
+            bools.update(adtrustinstance.SELINUX_BOOLEAN_SETTINGS)
+        try:
+            tasks.set_selinux_booleans(bools)
+        except ipapython.errors.SetseboolError as e:
+            self.log.error('%s', e)
