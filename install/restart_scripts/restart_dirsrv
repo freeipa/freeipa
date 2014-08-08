@@ -22,11 +22,15 @@
 import sys
 import syslog
 from ipapython import services as ipaservices
+from ipalib import api
 
 try:
     instance = sys.argv[1]
 except IndexError:
     instance = ""
+
+api.bootstrap(context='restart')
+api.finalize()
 
 syslog.syslog(syslog.LOG_NOTICE, "certmonger restarted dirsrv instance '%s'" % instance)
 
