@@ -583,9 +583,20 @@ class CAInstance(service.Service):
             config.set("CA", "pki_external_csr_path", self.csr_file)
 
         elif self.external == 2:
+            cert_chain, stderr, rc = ipautil.run(
+                [paths.OPENSSL, 'crl2pkcs7',
+                 '-certfile', self.cert_chain_file,
+                 '-nocrl'])
+            # Dogtag chokes on the header and footer, remove them
+            # https://bugzilla.redhat.com/show_bug.cgi?id=1127838
+            cert_chain = re.search(
+                r'(?<=-----BEGIN PKCS7-----).*?(?=-----END PKCS7-----)',
+                cert_chain, re.DOTALL).group(0)
+            cert_chain_file = ipautil.write_tmp_file(cert_chain)
+
             config.set("CA", "pki_external", "True")
             config.set("CA", "pki_external_ca_cert_path", self.cert_file)
-            config.set("CA", "pki_external_ca_cert_chain_path", self.cert_chain_file)
+            config.set("CA", "pki_external_ca_cert_chain_path", cert_chain_file.name)
             config.set("CA", "pki_external_step_two", "True")
 
         # Generate configuration file

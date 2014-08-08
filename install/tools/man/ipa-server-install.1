@@ -85,13 +85,17 @@ An unattended installation that will never prompt for user input
 .SS "CERTIFICATE SYSTEM OPTIONS"
 .TP
 \fB\-\-external\-ca\fR
-Generate a CSR to be signed by an external CA
+Generate a CSR for the IPA CA certificate to be signed by an external CA.
 .TP
 \fB\-\-external_cert_file\fR=\fIFILE\fR
-PEM file containing a certificate signed by the external CA. Must be given with \-\-external_ca_file.
+File containing the IPA CA certificate signed by the external CA in PEM format. Must be given with \-\-external_ca_file.
 .TP
 \fB\-\-external_ca_file\fR=\fIFILE\fR
-PEM file containing the external CA chain
+File containing the external CA certificate chain in PEM format. Must be given with \-\-external_cert_file.
+
+If the CA certificate chain is in PKCS#7 format you can convert it to PEM using:
+
+    openssl pkcs7 -in PKCS7_FILE -print_certs -out PEM_FILE
 .TP
 \fB\-\-no\-pkinit\fR
 Disables pkinit setup steps
