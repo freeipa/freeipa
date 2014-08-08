@@ -25,6 +25,8 @@ import shutil
 import tempfile
 import krbV
 import syslog
+import random
+import time
 from ipalib import api
 from ipapython.dn import DN
 from ipalib import errors
@@ -33,6 +35,10 @@ from ipapython import ipautil
 from ipaserver.install import certs
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install.cainstance import update_cert_config
+
+# This script a post-cert-install command for certmonger. When certmonger
+# has renewed a CA subsystem certificate a copy is put into the replicated
+# tree so it can be shared with the other IPA servers.
 
 nickname = sys.argv[1]
 
@@ -85,8 +91,16 @@ if nickname == 'auditSigningCert cert-pki-ca':
 
 update_cert_config(nickname, cert)
 
-syslog.syslog(syslog.LOG_NOTICE, 'certmonger restarted pki-cad instance pki-ca')
+syslog.syslog(syslog.LOG_NOTICE, 'certmonger restarted pki-cad instance pki-ca to renew %s' % nickname)
 
+# We monitor 3 certs that are all likely to be renewed by certmonger more or
+# less at the same time. Each cert renewal is going to need to restart
+# the CA. Add a bit of randomness in this so not all three try to start it
+# at the same time. A restart is needed for each because there is no guarantee
+# that they will all be renewed at the same time.
+pause = random.randint(10,360)
+syslog.syslog(syslog.LOG_NOTICE, 'Pausing %d seconds to restart pki-ca' % pause)
+time.sleep(pause)
 try:
     ipaservices.knownservices.pki_cad.restart('pki-ca')
 except Exception, e:

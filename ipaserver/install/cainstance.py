@@ -1320,6 +1320,7 @@ def update_cert_config(nickname, cert):
     directives = {'auditSigningCert cert-pki-ca': 'ca.audit_signing.cert',
                   'ocspSigningCert cert-pki-ca': 'ca.ocsp_signing.cert',
                   'caSigningCert cert-pki-ca': 'ca.signing.cert',
+                  'subsystemCert cert-pki-ca': 'ca.subsystem.cert',
                   'Server-Cert cert-pki-ca': 'ca.sslserver.cert' }
 
     installutils.set_directive('/var/lib/%s/conf/CS.cfg' % PKI_INSTANCE_NAME,
