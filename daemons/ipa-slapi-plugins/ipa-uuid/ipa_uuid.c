@@ -64,6 +64,7 @@
 #define IPAUUID_GENERATE         "ipaUuidMagicRegen"
 #define IPAUUID_FILTER           "ipaUuidFilter"
 #define IPAUUID_SCOPE            "ipaUuidScope"
+#define IPAUUID_EXCLUDE_SUBTREE  "ipaUuidExcludeSubtree"
 #define IPAUUID_ENFORCE          "ipaUuidEnforce"
 
 #define IPAUUID_FEATURE_DESC      "IPA UUID"
@@ -91,6 +92,7 @@ struct configEntry {
     Slapi_Filter *slapi_filter;
     char *generate;
     char *scope;
+    char *exclude_subtree;
     bool enforce;
 };
 
@@ -537,6 +539,10 @@ ipauuid_parse_config_entry(Slapi_Entry * e, bool apply)
     }
     LOG_CONFIG("----------> %s [%s]\n", IPAUUID_SCOPE, entry->scope);
 
+    value = slapi_entry_attr_get_charptr(e, IPAUUID_EXCLUDE_SUBTREE);
+    entry->exclude_subtree = value;
+    LOG_CONFIG("----------> %s [%s]\n", IPAUUID_EXCLUDE_SUBTREE, entry->exclude_subtree);
+
     entry->enforce = slapi_entry_attr_get_bool(e, IPAUUID_ENFORCE);
     LOG_CONFIG("----------> %s [%s]\n",
                IPAUUID_ENFORCE, entry->enforce ? "True" : "False");
@@ -638,6 +644,10 @@ ipauuid_free_config_entry(struct configEntry **entry)
 
     if (e->scope) {
         slapi_ch_free_string(&e->scope);
+    }
+
+    if (e->exclude_subtree) {
+        slapi_ch_free_string(&e->exclude_subtree);
     }
 
     slapi_ch_free((void **)entry);
@@ -916,6 +926,12 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
             if (!slapi_dn_issuffix(dn, cfgentry->scope)) {
                 continue;
             }
+        }
+
+        if (cfgentry->exclude_subtree) {
+                if (slapi_dn_issuffix(dn, cfgentry->exclude_subtree)) {
+                        continue;
+                }
         }
 
         /* does the entry match the filter? */
