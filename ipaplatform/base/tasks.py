@@ -132,4 +132,23 @@ class BaseTaskNamespace(object):
 
         return
 
+    def set_selinux_booleans(self, required_settings, backup_func=None):
+        """Set the specified SELinux booleans
+
+        :param required_settings: A dictionary mapping the boolean names
+                                  to desired_values.
+                                  The desired value can be 'on' or 'off'.
+
+        :param backup_func: A function called for each boolean with two
+                            arguments: the name and the previous value
+
+        If SELinux is disabled, return False; on success returns True.
+
+        If setting the booleans fails,
+        an ipapython.errors.SetseboolError is raised.
+        """
+
+        return
+
+
 task_namespace = BaseTaskNamespace()

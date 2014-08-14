@@ -36,22 +36,16 @@ from ipalib.util import normalize_zone
 from ipapython.dn import DN
 from ipapython import sysrestore
 from ipapython import ipautil
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
+import ipapython.errors
 
 import ipaclient.ipachangeconf
 from ipaplatform import services
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 
 
 ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits
-
-SELINUX_WARNING = """
-WARNING: could not set selinux boolean(s) %(var)s to true.  The adtrust
-service may not function correctly until this boolean is successfully
-change with the command:
-   /usr/sbin/setsebool -P %(var)s true
-Try updating the policycoreutils and selinux-policy packages.
-"""
 
 UPGRADE_ERROR = """
 Entry %(dn)s does not exist.
@@ -59,6 +53,9 @@ This means upgrade from IPA 2.x to 3.x did not went well and required S4U2Proxy
 configuration was not set up properly. Please run ipa-ldap-updater manually
 and re-run ipa-adtrust-instal again afterwards.
 """
+
+SELINUX_BOOLEAN_SETTINGS = {'samba_portmapper': 'on'}
+
 
 def check_inst():
     for smbfile in [paths.SMBD, paths.NET]:
@@ -148,7 +145,6 @@ class ADTRUSTInstance(service.Service):
         # Constants
         self.smb_conf = paths.SMB_CONF
         self.samba_keytab = paths.SAMBA_KEYTAB
-        self.selinux_booleans = ["samba_portmapper"]
         self.cifs_hosts = []
 
         # Values obtained from API.env
@@ -611,35 +607,11 @@ class ADTRUSTInstance(service.Service):
                     add_rr(zone, win_srv, "SRV", rec)
 
     def __configure_selinux_for_smbd(self):
-        selinux = False
         try:
-            if (os.path.exists(paths.SELINUXENABLED)):
-                ipautil.run([paths.SELINUXENABLED])
-                selinux = True
-        except ipautil.CalledProcessError:
-            # selinuxenabled returns 1 if not enabled
-            pass
-
-        if selinux:
-            # Don't assume all booleans are available
-            sebools = []
-            for var in self.selinux_booleans:
-                try:
-                    (stdout, stderr, returncode) = ipautil.run([paths.GETSEBOOL, var])
-                    if stdout and not stderr and returncode == 0:
-                        self.backup_state(var, stdout.split()[2])
-                        sebools.append(var)
-                except:
-                    pass
-
-            if sebools:
-                bools = [var + "=true" for var in sebools]
-                args = [paths.SETSEBOOL, "-P"]
-                args.extend(bools);
-                try:
-                    ipautil.run(args)
-                except:
-                    self.print_msg(SELINUX_WARNING % dict(var=','.join(sebools)))
+            tasks.set_selinux_booleans(SELINUX_BOOLEAN_SETTINGS,
+                                       self.backup_state)
+        except ipapython.errors.SetseboolError as e:
+            self.print_msg(e.format_service_warning('adtrust service'))
 
     def __mod_krb5_conf(self):
         """
@@ -909,14 +881,12 @@ class ADTRUSTInstance(service.Service):
         # we should not restore smb.conf
 
         # Restore the state of affected selinux booleans
-        for var in self.selinux_booleans:
-            sebool_state = self.restore_state(var)
-            if not sebool_state is None:
-                try:
-                    ipautil.run([paths.SETSEBOOL,
-                                 "-P", var, sebool_state])
-                except Exception:
-                    self.print_msg(SELINUX_WARNING % dict(var=var))
+        boolean_states = {name: self.restore_state(name)
+                          for name in SELINUX_BOOLEAN_SETTINGS}
+        try:
+            tasks.set_selinux_booleans(boolean_states)
+        except ipapython.errors.SetseboolError as e:
+            self.print_msg('WARNING: ' + str(e))
 
         # Remove samba's credentials cache
         krb5cc_samba = paths.KRB5CC_SAMBA
