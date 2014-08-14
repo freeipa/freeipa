@@ -24,7 +24,6 @@ This module contains default Fedora-specific implementations of system tasks.
 '''
 
 import os
-import shutil
 import stat
 import socket
 import sys
@@ -35,14 +34,18 @@ from subprocess import CalledProcessError
 from nss.error import NSPRError
 from pyasn1.error import PyAsn1Error
 
-from ipapython.ipa_log_manager import root_logger
+from ipapython.ipa_log_manager import root_logger, log_mgr
 from ipapython import ipautil
+import ipapython.errors
 
 from ipalib import x509 # FIXME: do not import from ipalib
 
 from ipaplatform.paths import paths
 from ipaplatform.fedora.authconfig import FedoraAuthConfig
 from ipaplatform.base.tasks import BaseTaskNamespace
+
+
+log = log_mgr.get_logger(__name__)
 
 
 class FedoraTaskNamespace(BaseTaskNamespace):
@@ -325,5 +328,51 @@ class FedoraTaskNamespace(BaseTaskNamespace):
                 os.remove(filepath)
             except OSError:
                 pass
+
+    def set_selinux_booleans(self, required_settings, backup_func=None):
+        def get_setsebool_args(changes):
+            args = [paths.SETSEBOOL, "-P"]
+            args.extend(["%s=%s" % update for update in changes.iteritems()])
+
+            return args
+
+        if (os.path.exists(paths.SELINUXENABLED)):
+            try:
+                ipautil.run([paths.SELINUXENABLED])
+            except ipautil.CalledProcessError:
+                # selinuxenabled returns 1 if not enabled
+                return False
+        else:
+            return False
+
+        updated_vars = {}
+        failed_vars = {}
+        for setting, state in required_settings.iteritems():
+            try:
+                (stdout, stderr, rc) = ipautil.run([paths.GETSEBOOL, setting])
+                original_state = stdout.split()[2]
+                if backup_func is not None:
+                    backup_func(setting, original_state)
+
+                if original_state != state:
+                    updated_vars[setting] = state
+            except ipautil.CalledProcessError, e:
+                log.error("Cannot get SELinux boolean '%s': %s", setting, e)
+                failed_vars[setting] = state
+
+        if updated_vars:
+            args = get_setsebool_args(updated_vars)
+            try:
+                ipautil.run(args)
+            except ipautil.CalledProcessError:
+                failed_vars.update(updated_vars)
+
+        if failed_vars:
+            raise ipapython.errors.SetseboolError(
+                failed=failed_vars,
+                command=' '.join(get_setsebool_args(failed_vars)))
+
+        return True
+
 
 tasks = FedoraTaskNamespace()

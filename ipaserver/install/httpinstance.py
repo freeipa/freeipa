@@ -22,7 +22,6 @@ import os.path
 import tempfile
 import pwd
 import shutil
-import stat
 import re
 
 import service
@@ -31,12 +30,18 @@ import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import dogtag
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
+import ipapython.errors
 from ipaserver.install import sysupgrade
 from ipalib import api
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
-from ipalib.constants import CACERT
+
+
+SELINUX_BOOLEAN_SETTINGS = dict(
+    httpd_can_network_connect='on',
+    httpd_manage_ipa='on',
+)
 
 
 def httpd_443_configured():
@@ -135,67 +140,11 @@ class HTTPInstance(service.Service):
         self.ldap_enable('HTTP', self.fqdn, self.dm_password, self.suffix)
 
     def configure_selinux_for_httpd(self):
-        def get_setsebool_args(changes):
-            if len(changes) == 1:
-                # workaround https://bugzilla.redhat.com/show_bug.cgi?id=825163
-                updates = changes.items()[0]
-            else:
-                updates = ["%s=%s" % update for update in changes.iteritems()]
-
-            args = [paths.SETSEBOOL, "-P"]
-            args.extend(updates)
-
-            return args
-
-        selinux = False
         try:
-            if (os.path.exists(paths.SELINUXENABLED)):
-                ipautil.run([paths.SELINUXENABLED])
-                selinux = True
-        except ipautil.CalledProcessError:
-            # selinuxenabled returns 1 if not enabled
-            pass
-
-        if selinux:
-            # Don't assume all vars are available
-            updated_vars = {}
-            failed_vars = {}
-            required_settings = (("httpd_can_network_connect", "on"),
-                                 ("httpd_manage_ipa", "on"))
-            for setting, state in required_settings:
-                try:
-                    (stdout, stderr, returncode) = ipautil.run([paths.GETSEBOOL, setting])
-                    original_state = stdout.split()[2]
-                    self.backup_state(setting, original_state)
-
-                    if original_state != state:
-                        updated_vars[setting] = state
-                except ipautil.CalledProcessError, e:
-                    root_logger.debug("Cannot get SELinux boolean '%s': %s", setting, e)
-                    failed_vars[setting] = state
-
-            # Allow apache to connect to the dogtag UI and the session cache
-            # This can still fail even if selinux is enabled. Execute these
-            # together so it is speedier.
-            if updated_vars:
-                args = get_setsebool_args(updated_vars)
-                try:
-                    ipautil.run(args)
-                except ipautil.CalledProcessError:
-                    failed_vars.update(updated_vars)
-
-            if failed_vars:
-                args = get_setsebool_args(failed_vars)
-                names = [update[0] for update in updated_vars]
-                message = ['WARNING: could not set the following SELinux boolean(s):']
-                for update in failed_vars.iteritems():
-                    message.append('  %s -> %s' % update)
-                message.append('The web interface may not function correctly until the booleans')
-                message.append('are successfully changed with the command:')
-                message.append(' '.join(args))
-                message.append('Try updating the policycoreutils and selinux-policy packages.')
-
-                self.print_msg("\n".join(message))
+            tasks.set_selinux_booleans(SELINUX_BOOLEAN_SETTINGS,
+                                       self.backup_state)
+        except ipapython.errors.SetseboolError as e:
+            self.print_msg(e.format_service_warning('web interface'))
 
     def __create_http_keytab(self):
         installutils.kadmin_addprinc(self.principal)
@@ -412,14 +361,13 @@ class HTTPInstance(service.Service):
         installutils.remove_file(paths.HTTPD_IPA_CONF)
         installutils.remove_file(paths.HTTPD_IPA_PKI_PROXY_CONF)
 
-        for var in ["httpd_can_network_connect", "httpd_manage_ipa"]:
-            sebool_state = self.restore_state(var)
-            if not sebool_state is None:
-                try:
-                    ipautil.run([paths.SETSEBOOL, "-P", var, sebool_state])
-                except ipautil.CalledProcessError, e:
-                    self.print_msg("Cannot restore SELinux boolean '%s' back to '%s': %s" \
-                            % (var, sebool_state, e))
+        # Restore SELinux boolean states
+        boolean_states = {name: self.restore_state(name)
+                          for name in SELINUX_BOOLEAN_SETTINGS}
+        try:
+            tasks.set_selinux_booleans(boolean_states)
+        except ipapython.errors.SetseboolError as e:
+            self.print_msg('WARNING: ' + str(e))
 
         if not running is None and running:
             self.start()
