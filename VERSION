@@ -89,5 +89,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=101
-# Last change: mbasti - Allow '/' in permission name
+IPA_API_VERSION_MINOR=102
+# Last change: pviktori - allow adding services to roles

@@ -257,6 +257,7 @@ class test_role(Declarative):
                         group=[],
                         host=[],
                         hostgroup=[],
+                        service=[],
                     ),
                 ),
                 result={
@@ -436,6 +437,7 @@ class test_role(Declarative):
                         group=[],
                         host=[],
                         hostgroup=[],
+                        service=[],
                     ),
                 ),
                 result={

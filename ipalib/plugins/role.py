@@ -75,7 +75,7 @@ class role(LDAPObject):
         'memberindirect', 'memberofindirect',
     ]
     attribute_members = {
-        'member': ['user', 'group', 'host', 'hostgroup'],
+        'member': ['user', 'group', 'host', 'hostgroup', 'service'],
         'memberof': ['privilege'],
     }
     reverse_members = {

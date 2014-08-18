@@ -306,10 +306,11 @@ class service(LDAPObject):
     permission_filter_objectclasses = ['ipaservice']
     search_attributes = ['krbprincipalname', 'managedby', 'ipakrbauthzdata']
     default_attributes = ['krbprincipalname', 'usercertificate', 'managedby',
-        'ipakrbauthzdata',]
+        'ipakrbauthzdata', 'memberof']
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'managedby': ['host'],
+        'memberof': ['role'],
     }
     bindable = True
     relationships = {

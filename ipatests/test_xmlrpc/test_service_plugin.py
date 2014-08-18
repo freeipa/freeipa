@@ -40,6 +40,8 @@ host1dn = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),api.env.basedn)
 host2dn = DN(('fqdn',fqdn2),('cn','computers'),('cn','accounts'),api.env.basedn)
 host3dn = DN(('fqdn',fqdn3),('cn','computers'),('cn','accounts'),api.env.basedn)
 
+role1 = u'Test Role'
+role1_dn = DN(('cn', role1), api.env.container_rolegroup, api.env.basedn)
 
 badservercert = 'MIICbzCCAdigAwIBAgICA/4wDQYJKoZIhvcNAQEFBQAwKTEnMCUGA1UEAxMeSVBBIFRlc3QgQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTEwMDgwOTE1MDIyN1oXDTIwMDgwOTE1MDIyN1owKTEMMAoGA1UEChMDSVBBMRkwFwYDVQQDExBwdW1hLmdyZXlvYWsuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwYbfEOQPgGenPn9vt1JFKvWm/Je3y2tawGWA3LXDuqfFJyYtZ8ib3TcBUOnLk9WK5g2qCwHaNlei7bj8ggIfr5hegAVe10cun+wYErjnYo7hsHYd+57VZezeipWrXu+7NoNd4+c4A5lk4A/xJay9j3bYx2oOM8BEox4xWYoWge1ljPrc5JK46f0X7AGW4F2VhnKPnf8rwSuzI1U8VGjutyM9TWNy3m9KMWeScjyG/ggIpOjUDMV7HkJL0Di61lznR9jXubpiEC7gWGbTp84eGl/Nn9bgK1AwHfJ2lHwfoY4uiL7ge1gyP6EvuUlHoBzdb7pekiX28iePjW3iEG9IawIDAQABoyIwIDARBglghkgBhvhCAQEEBAMCBkAwCwYDVR0PBAQDAgUgMA0GCSqGSIb3DQEBBQUAA4GBACRESLemRV9BPxfEgbALuxH5oE8jQm8WZ3pm2pALbpDlAd9wQc3yVf6RtkfVthyDnM18bg7IhxKpd77/p3H8eCnS8w5MLVRda6ktUC6tGhFTS4QKAf0WyDGTcIgkXbeDw0OPAoNHivoXbIXIIRxlw/XgaSaMzJQDBG8iROsN4kCv'
 
@@ -625,4 +627,126 @@ class test_service(Declarative):
         ),
 
 
+    ]
+
+
+class test_service_in_role(Declarative):
+    cleanup_commands = [
+        ('host_del', [fqdn1], {}),
+        ('service_del', [service1], {}),
+        ('role_del', [role1], {}),
+    ]
+
+    tests = [
+        dict(
+            desc='Create %r' % fqdn1,
+            command=('host_add', [fqdn1],
+                dict(
+                    description=u'Test host 1',
+                    l=u'Undisclosed location 1',
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=fqdn1,
+                summary=u'Added host "%s"' % fqdn1,
+                result=dict(
+                    dn=host1dn,
+                    fqdn=[fqdn1],
+                    description=[u'Test host 1'],
+                    l=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[u'%s' % fqdn1],
+                    has_keytab=False,
+                    has_password=False,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Create %r' % service1,
+            command=('service_add', [service1], dict(force=True)),
+            expected=dict(
+                value=service1,
+                summary=u'Added service "%s"' % service1,
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    objectclass=objectclasses.service,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Create %r' % role1,
+            command=('role_add', [role1], dict(description=u'role desc 1')),
+            expected=dict(
+                value=role1,
+                summary=u'Added role "%s"' % role1,
+                result=dict(
+                    dn=role1_dn,
+                    cn=[role1],
+                    description=[u'role desc 1'],
+                    objectclass=objectclasses.role,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Add %r to %r' % (service1, role1),
+            command=('role_add_member', [role1], dict(service=service1)),
+            expected=dict(
+                failed=dict(
+                    member=dict(
+                        host=[],
+                        group=[],
+                        hostgroup=[],
+                        service=[],
+                        user=[],
+                    ),
+                ),
+                completed=1,
+                result=dict(
+                    dn=role1_dn,
+                    cn=[role1],
+                    description=[u'role desc 1'],
+                    member_service=[service1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Verify %r is member of %r' % (service1, role1),
+            command=('service_show', [service1], {}),
+            expected=dict(
+                value=service1,
+                summary=None,
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                    memberof_role=[role1.lower()],
+                    has_keytab=False,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Verify %r has member %r' % (role1, service1),
+            command=('role_show', [role1], {}),
+            expected=dict(
+                value=role1,
+                summary=None,
+                result=dict(
+                    dn=role1_dn,
+                    cn=[role1],
+                    description=[u'role desc 1'],
+                    member_service=[service1],
+                ),
+            ),
+        ),
     ]
