@@ -810,6 +810,22 @@ class DeprecationError(InvocationError):
     errno = 3015
     format = _("Command '%(name)s' has been deprecated")
 
+class NotAForestRootError(InvocationError):
+    """
+    **3016** Raised when an attempt to establish trust is done against non-root domain
+             Forest root domain has the same name as the forest itself
+
+    For example:
+
+    >>> raise NotAForestRootError(forest='example.test', domain='jointops.test')
+    Traceback (most recent call last):
+      ...
+    NotAForestRootError: Domain 'jointops.test' is not a root domain for forest 'example.test'
+    """
+
+    errno = 3016
+    format = _("Domain '%(domain)s' is not a root domain for forest '%(forest)s'")
+
 
 ##############################################################################
 # 4000 - 4999: Execution errors
