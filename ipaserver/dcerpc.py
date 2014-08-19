@@ -706,16 +706,19 @@ class TrustDomainInstance(object):
         binding_template=lambda x,y,z: u'%s:%s[%s]' % (x, y, z)
         return [binding_template(t, remote_host, o) for t in transports for o in options]
 
-    def retrieve_anonymously(self, remote_host, discover_srv=False):
+    def retrieve_anonymously(self, remote_host, discover_srv=False, search_pdc=False):
         """
         When retrieving DC information anonymously, we can't get SID of the domain
         """
         netrc = net.Net(creds=self.creds, lp=self.parm)
+        flags = nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS | nbt.NBT_SERVER_WRITABLE
+        if search_pdc:
+            flags = flags | nbt.NBT_SERVER_PDC
         try:
             if discover_srv:
-                result = netrc.finddc(domain=remote_host, flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
+                result = netrc.finddc(domain=remote_host, flags=flags)
             else:
-                result = netrc.finddc(address=remote_host, flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
+                result = netrc.finddc(address=remote_host, flags=flags)
         except RuntimeError, e:
             raise assess_dcerpc_exception(message=str(e))
 
@@ -726,6 +729,7 @@ class TrustDomainInstance(object):
         self.info['dns_forest'] = unicode(result.forest)
         self.info['guid'] = unicode(result.domain_uuid)
         self.info['dc'] = unicode(result.pdc_dns_name)
+        self.info['is_pdc'] = (result.server_type & nbt.NBT_SERVER_PDC) != 0
 
         # Netlogon response doesn't contain SID of the domain.
         # We need to do rootDSE search with LDAP_SERVER_EXTENDED_DN_OID control to reveal the SID
@@ -773,6 +777,13 @@ class TrustDomainInstance(object):
         self.info['guid'] = unicode(result.domain_guid)
         self.info['sid'] = unicode(result.sid)
         self.info['dc'] = remote_host
+
+        try:
+            result = self._pipe.QueryInfoPolicy2(self._policy_handle, lsa.LSA_POLICY_INFO_ROLE)
+        except RuntimeError, (num, message):
+            raise assess_dcerpc_exception(num=num, message=message)
+
+        self.info['is_pdc'] = (result.role == lsa.LSA_ROLE_PRIMARY)
 
     def generate_auth(self, trustdom_secret):
         def arcfour_encrypt(key, data):
@@ -1069,9 +1080,9 @@ class TrustDomainJoins(object):
         rd.creds.set_anonymous()
         rd.creds.set_workstation(self.local_domain.hostname)
         if realm_server is None:
-            rd.retrieve_anonymously(realm, discover_srv=True)
+            rd.retrieve_anonymously(realm, discover_srv=True, search_pdc=True)
         else:
-            rd.retrieve_anonymously(realm_server, discover_srv=False)
+            rd.retrieve_anonymously(realm_server, discover_srv=False, search_pdc=True)
         rd.read_only = True
         if realm_admin and realm_passwd:
             if 'name' in rd.info:
