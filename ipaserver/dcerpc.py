@@ -589,7 +589,11 @@ class DomainValidator(object):
         try:
             result = netrc.finddc(domain=domain, flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_GC | nbt.NBT_SERVER_CLOSEST)
         except RuntimeError, e:
-            finddc_error = e
+            try:
+                # If search of closest GC failed, attempt to find any one
+                result = netrc.finddc(domain=domain, flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_GC)
+            except RuntimeError, e:
+                finddc_error = e
 
         if not self._domains:
             self._domains = self.get_trusted_domains()
