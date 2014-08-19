@@ -780,23 +780,21 @@ class user_add(LDAPCreate):
         if 'manager' in entry_attrs:
             entry_attrs['manager'] = self.obj._normalize_manager(entry_attrs['manager'])
 
-        if ('objectclass' in entry_attrs
-            and 'userclass' in entry_attrs
-            and 'ipauser' not in entry_attrs['objectclass']):
+        if 'userclass' in entry_attrs and \
+           'ipauser' not in entry_attrs['objectclass']:
             entry_attrs['objectclass'].append('ipauser')
 
-        if 'ipatokenradiusconfiglink' in entry_attrs:
-            cl = entry_attrs['ipatokenradiusconfiglink']
-            if cl:
-                if 'objectclass' not in entry_attrs:
-                    _entry = ldap.get_entry(dn, ['objectclass'])
-                    entry_attrs['objectclass'] = _entry['objectclass']
+        if 'ipauserauthtype' in entry_attrs and \
+           'ipauserauthtypeclass' not in entry_attrs['objectclass']:
+            entry_attrs['objectclass'].append('ipauserauthtypeclass')
 
-                if 'ipatokenradiusproxyuser' not in entry_attrs['objectclass']:
-                    entry_attrs['objectclass'].append('ipatokenradiusproxyuser')
+        rcl = entry_attrs.get('ipatokenradiusconfiglink', None)
+        if rcl:
+            if 'ipatokenradiusproxyuser' not in entry_attrs['objectclass']:
+                entry_attrs['objectclass'].append('ipatokenradiusproxyuser')
 
-                answer = self.api.Object['radiusproxy'].get_dn_if_exists(cl)
-                entry_attrs['ipatokenradiusconfiglink'] = answer
+            answer = self.api.Object['radiusproxy'].get_dn_if_exists(rcl)
+            entry_attrs['ipatokenradiusconfiglink'] = answer
 
         return dn
 
