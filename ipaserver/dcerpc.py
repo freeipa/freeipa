@@ -901,7 +901,7 @@ class TrustDomainInstance(object):
         info.sid = security.dom_sid(another_domain.info['sid'])
         info.trust_direction = lsa.LSA_TRUST_DIRECTION_INBOUND | lsa.LSA_TRUST_DIRECTION_OUTBOUND
         info.trust_type = lsa.LSA_TRUST_TYPE_UPLEVEL
-        info.trust_attributes = lsa.LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE
+        info.trust_attributes = 0
 
         try:
             dname = lsa.String()
@@ -917,8 +917,6 @@ class TrustDomainInstance(object):
             trustdom_handle = self._pipe.CreateTrustedDomainEx2(self._policy_handle, info, self.auth_info, security.SEC_STD_DELETE)
         except RuntimeError, (num, message):
             raise assess_dcerpc_exception(num=num, message=message)
-
-        self.update_ftinfo(another_domain)
 
         # We should use proper trustdom handle in order to modify the
         # trust settings. Samba insists this has to be done with LSA
@@ -937,6 +935,15 @@ class TrustDomainInstance(object):
             # well. In particular, the call may fail against Windows 2003
             # server as that one doesn't support AES encryption types
             pass
+
+        try:
+            info.trust_attributes = lsa.LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE
+            self._pipe.SetInformationTrustedDomain(trustdom_handle, lsa.LSA_TRUSTED_DOMAIN_INFO_INFO_EX, info)
+        except RuntimeError, e:
+            root_logger.error('unable to set trust to transitive: %s' % (str(e)))
+            pass
+        if self.info['is_pdc']:
+            self.update_ftinfo(another_domain)
 
     def verify_trust(self, another_domain):
         def retrieve_netlogon_info_2(domain, function_code, data):
