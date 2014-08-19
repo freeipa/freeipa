@@ -1151,6 +1151,9 @@ class TrustDomainJoins(object):
                 realm_passwd
             )
 
+        if self.remote_domain.info['dns_domain'] != self.remote_domain.info['dns_forest']:
+            raise errors.NotAForestRootError(forest=self.remote_domain.info['dns_forest'], domain=self.remote_domain.info['dns_domain'])
+
         if not self.remote_domain.read_only:
             trustdom_pass = samba.generate_random_password(128, 128)
             self.get_realmdomains()
@@ -1166,6 +1169,9 @@ class TrustDomainJoins(object):
 
         if not(isinstance(self.remote_domain, TrustDomainInstance)):
             self.populate_remote_domain(realm, realm_server, realm_passwd=None)
+
+        if self.remote_domain.info['dns_domain'] != self.remote_domain.info['dns_forest']:
+            raise errors.NotAForestRootError(forest=self.remote_domain.info['dns_forest'], domain=self.remote_domain.info['dns_domain'])
 
         self.local_domain.establish_trust(self.remote_domain, trustdom_passwd)
         return dict(local=self.local_domain, remote=self.remote_domain, verified=False)
