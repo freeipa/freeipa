@@ -1039,7 +1039,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None):
 
     result = []
     for t in domains.array:
-        if ((t.trust_attributes & trust_attributes['NETR_TRUST_ATTRIBUTE_WITHIN_FOREST']) and
+        if (not (t.trust_flags & trust_flags['NETR_TRUST_FLAG_PRIMARY']) and
             (t.trust_flags & trust_flags['NETR_TRUST_FLAG_IN_FOREST'])):
             res = dict()
             res['cn'] = unicode(t.dns_name)
