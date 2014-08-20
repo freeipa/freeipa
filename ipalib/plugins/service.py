@@ -406,6 +406,9 @@ class service(LDAPObject):
             raise errors.ValidationError(name='ipakrbauthzdata',
                 error=_('NONE value cannot be combined with other PAC types'))
 
+    def get_dn(self, *keys, **kwargs):
+        keys = (normalize_principal(k) for k in keys)
+        return super(service, self).get_dn(*keys, **kwargs)
 
 
 @register()
