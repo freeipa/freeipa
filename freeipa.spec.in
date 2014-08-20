@@ -65,7 +65,7 @@ BuildRequires:  m2crypto
 BuildRequires:  check
 BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_nss_idmap-devel
-BuildRequires:  java-1.7.0-openjdk
+BuildRequires:  java-headless
 BuildRequires:  rhino
 BuildRequires:  libverto-devel
 BuildRequires:  systemd
