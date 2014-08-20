@@ -489,6 +489,14 @@ def _hostname_validator(ugettext, value):
 
     return None
 
+def _no_wildcard_validator(ugettext, value):
+    """Disallow usage of wildcards as RFC 4592 section 4 recommends
+    """
+    assert isinstance(value, DNSName)
+    if value.is_wild():
+        return _('should not be a wildcard domain name (RFC 4592 section 4)')
+    return None
+
 def is_forward_record(zone, str_address):
     addr = netaddr.IPAddress(str_address)
     if addr.version == 4:
@@ -1731,6 +1739,7 @@ class DNSZoneBase(LDAPObject):
 
     takes_params = (
         DNSNameParam('idnsname',
+            _no_wildcard_validator,  # RFC 4592 section 4
             only_absolute=True,
             cli_name='name',
             label=_('Zone name'),
@@ -2627,6 +2636,19 @@ class dnsrecord(LDAPObject):
                         error=unicode(_('out-of-zone data: record name must '
                                         'be a subdomain of the zone or a '
                                         'relative name')))
+        # dissallowed wildcard (RFC 4592 section 4)
+        no_wildcard_rtypes = ['DNAME', 'DS', 'NS']
+        if (keys[-1].is_wild() and
+            any(entry_attrs.get('%srecord' % r.lower())
+            for r in no_wildcard_rtypes)
+        ):
+            raise errors.ValidationError(
+                name='idnsname',
+                error=(_('owner of %(types)s records '
+                    'should not be a wildcard domain name (RFC 4592 section 4)') %
+                    {'types': ', '.join(no_wildcard_rtypes)}
+                )
+            )
 
     def _ptrrecord_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
