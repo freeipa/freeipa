@@ -33,7 +33,8 @@ from ipapython.dn import DN
 fqdn1 = u'testhost1.%s' % api.env.domain
 fqdn2 = u'testhost2.%s' % api.env.domain
 fqdn3 = u'TestHost3.%s' % api.env.domain
-service1 = u'HTTP/%s@%s' % (fqdn1, api.env.realm)
+service1_no_realm = u'HTTP/%s' % fqdn1
+service1 = u'%s@%s' % (service1_no_realm, api.env.realm)
 hostprincipal1 = u'host/%s@%s'  % (fqdn1, api.env.realm)
 service1dn = DN(('krbprincipalname',service1),('cn','services'),('cn','accounts'),api.env.basedn)
 host1dn = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),api.env.basedn)
@@ -667,7 +668,7 @@ class test_service_in_role(Declarative):
 
         dict(
             desc='Create %r' % service1,
-            command=('service_add', [service1], dict(force=True)),
+            command=('service_add', [service1_no_realm], dict(force=True)),
             expected=dict(
                 value=service1,
                 summary=u'Added service "%s"' % service1,
@@ -698,7 +699,8 @@ class test_service_in_role(Declarative):
 
         dict(
             desc='Add %r to %r' % (service1, role1),
-            command=('role_add_member', [role1], dict(service=service1)),
+            command=('role_add_member', [role1],
+                     dict(service=service1_no_realm)),
             expected=dict(
                 failed=dict(
                     member=dict(
@@ -721,7 +723,7 @@ class test_service_in_role(Declarative):
 
         dict(
             desc='Verify %r is member of %r' % (service1, role1),
-            command=('service_show', [service1], {}),
+            command=('service_show', [service1_no_realm], {}),
             expected=dict(
                 value=service1,
                 summary=None,
