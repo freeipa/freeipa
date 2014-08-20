@@ -273,6 +273,7 @@ zone_findtest_forward = u'forward.find.test.'
 zone_findtest_forward_dnsname = DNSName(zone_findtest_forward)
 zone_findtest_forward_dn = DN(('idnsname', zone_findtest_forward), api.env.container_dns, api.env.basedn)
 
+zone_fw_wildcard = u'*.wildcardforwardzone.test.'
 
 class test_dns(Declarative):
 
@@ -299,7 +300,8 @@ class test_dns(Declarative):
                          revzone3_classless1, revzone3_classless2,
                          idnzone1, revidnzone1, zone_findtest_master],
             {'continue': True}),
-        ('dnsforwardzone_del', [fwzone1, zone_findtest_forward],
+        ('dnsforwardzone_del', [fwzone1, zone_findtest_forward,
+                                zone_fw_wildcard],
             {'continue': True}),
         ('dnsconfig_mod', [], {'idnsforwarders' : None,
                                'idnsforwardpolicy' : None,
@@ -2819,10 +2821,53 @@ class test_dns(Declarative):
 
 
         dict(
+            desc='Try to add NS record to wildcard owner %r in zone %r' % (wildcard_rec1, zone1),
+            command=('dnsrecord_add', [zone1, wildcard_rec1], {'nsrecord': zone2_ns, 'force': True}),
+            expected=errors.ValidationError(
+                name='idnsname',
+                error=(u'owner of DNAME, DS, NS records '
+                    'should not be a wildcard domain name (RFC 4592 section 4)')
+            )
+        ),
+
+
+        dict(
+            desc='Try to add DNAME record to wildcard owner %r in zone %r' % (wildcard_rec1, zone1),
+            command=('dnsrecord_add', [zone1, wildcard_rec1], {'dnamerecord': u'dname.test.'}),
+            expected=errors.ValidationError(
+                name='idnsname',
+                error=(u'owner of DNAME, DS, NS records '
+                    'should not be a wildcard domain name (RFC 4592 section 4)')
+            )
+        ),
+
+
+        dict(
+            desc='Try to add DS record to wildcard owner %r in zone %r' % (wildcard_rec1, zone1),
+            command=('dnsrecord_add', [zone1, wildcard_rec1], {'dsrecord': u'0 0 0 00'}),
+            expected=errors.ValidationError(
+                name='idnsname',
+                error=(u'owner of DNAME, DS, NS records '
+                    'should not be a wildcard domain name (RFC 4592 section 4)')
+            )
+        ),
+
+
+        dict(
             desc='Add A denormalized record in zone %r' % (idnzone1),
             command=('dnsrecord_add', [idnzone1, u'gro\xdf'], {'arecord': u'172.16.0.1'}),
             expected=errors.ConversionError(name='name',
                 error=u'domain name \'gro\xdf\' should be normalized to: gross')
+        ),
+
+
+        dict(
+            desc='Try to create forward zone %r with wildcard domain name' % zone_fw_wildcard,
+            command=(
+                'dnsforwardzone_add', [zone_fw_wildcard], {'idnsforwardpolicy': u'none'}
+            ),
+            expected=errors.ValidationError(name='name',
+                                        error=u'should not be a wildcard domain name (RFC 4592 section 4)')
         ),
 
 
