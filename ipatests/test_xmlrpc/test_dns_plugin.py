@@ -123,6 +123,10 @@ name1_dn = DN(('idnsname',name1), zone1_dn)
 name1_renamed = u'testdnsres-renamed'
 name1_renamed_dnsname = DNSName(name1_renamed)
 
+name_ns = u'testdnsres-ns'
+name_ns_dnsname = DNSName(name_ns)
+name_ns_dn = DN(('idnsname',name_ns), zone1_dn)
+
 revname1 = u'80'
 revname1_dnsname = DNSName(revname1)
 revname1_ip = revzone1_ipprefix + revname1
@@ -1166,9 +1170,10 @@ class test_dns(Declarative):
             desc='Try to add NS record to %r using dnsrecord_add' % (dname),
             command=('dnsrecord_add', [zone1, dname],
                 {'nsrecord': u'%s.%s.' % (name1, zone1)}),
-            expected=errors.ValidationError(name='dnamerecord',
-                error=u'DNAME record is not allowed to coexist with an NS '
-                      u'record except when located in a zone root record (RFC 6672, section 2.3)'),
+            expected=errors.ValidationError(name='nsrecord',
+                error=u'NS record is not allowed to coexist with an DNAME '
+                      u'record except when located in a zone root record '
+                      '(RFC 2181, section 6.1'),
         ),
 
         dict(
@@ -1243,32 +1248,29 @@ class test_dns(Declarative):
 
 
         dict(
-            desc='Try to add unresolvable absolute NS record to %r using dnsrecord_add' % (name1),
-            command=('dnsrecord_add', [zone1, name1], {'nsrecord': absnxname}),
+            desc='Try to add unresolvable absolute NS record to %r using dnsrecord_add' % (name_ns),
+            command=('dnsrecord_add', [zone1, name_ns], {'nsrecord': absnxname}),
             expected=errors.NotFound(reason=u"Nameserver '%s' does not have a corresponding A/AAAA record" % absnxname),
         ),
 
         dict(
-            desc='Try to add unresolvable relative NS record to %r using dnsrecord_add' % (name1),
-            command=('dnsrecord_add', [zone1, name1], {'nsrecord': relnxname}),
+            desc='Try to add unresolvable relative NS record to %r using dnsrecord_add' % (name_ns),
+            command=('dnsrecord_add', [zone1, name_ns], {'nsrecord': relnxname}),
             expected=errors.NotFound(reason=u"Nameserver '%s.%s.' does not "
                 "have a corresponding A/AAAA record" % (relnxname, zone1)),
         ),
 
         dict(
-            desc='Add unresolvable NS record with --force to %r using dnsrecord_add' % (name1),
-            command=('dnsrecord_add', [zone1, name1], {'nsrecord': absnxname,
+            desc='Add unresolvable NS record with --force to %r using dnsrecord_add' % (name_ns),
+            command=('dnsrecord_add', [zone1, name_ns], {'nsrecord': absnxname,
                                                             'force' : True}),
             expected={
-                'value': name1_dnsname,
+                'value': name_ns_dnsname,
                 'summary': None,
                 'result': {
                     'objectclass': objectclasses.dnsrecord,
-                    'dn': name1_dn,
-                    'idnsname': [name1_dnsname],
-                    'arecord': [arec3],
-                    'kxrecord': [u'1 foo-1'],
-                    'txtrecord': [u'foo bar'],
+                    'dn': name_ns_dn,
+                    'idnsname': [name_ns_dnsname],
                     'nsrecord': [absnxname],
                 },
             },
@@ -1292,7 +1294,6 @@ class test_dns(Declarative):
                     'arecord': [arec3],
                     'kxrecord': [u'1 foo-1'],
                     'txtrecord': [u'foo bar'],
-                    'nsrecord': [absnxname],
                 },
             },
         ),
