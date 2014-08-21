@@ -134,6 +134,16 @@ RP.show_error = function(message) {
     $('.alert-success').css('display', 'none');
 };
 
+RP.show_info = function(message) {
+
+    $('.alert-info > p').text(message || '');
+    if (!message) {
+        $('.alert-info').css('display', 'none');
+    } else {
+        $('.alert-info').css('display', '');
+    }
+};
+
 RP.show_success = function(message) {
 
     $('.alert-success > p').text(message);
@@ -158,10 +168,41 @@ RP.parse_uri = function() {
 RP.redirect = function() {
 
     var opts = RP.parse_uri();
-    var url = opts['redirect'];
+    var url = opts['url'];
+    var delay = parseInt(opts['delay'], 10);
+
+    var msg_cont = $('.alert-success > p');
+    $('.redirect', msg_cont).remove();
+
+    // button for manual redirection
     if (url) {
-        window.location = url;
+        var redir_cont = $('<span/>', { 'class': 'redirect' }).
+            append(' ').
+            append($('<a/>', {
+                href: url,
+                text: 'Continue to next page'
+            })).
+            appendTo(msg_cont);
+    } else {
+        return;
     }
+
+    if (delay <= 0 || delay > 0) { // NaN check
+        RP.redir_url = url;
+        RP.redir_delay = delay;
+        RP.redir_count_down();
+    }
+};
+
+RP.redir_count_down = function() {
+
+    RP.show_info("You will be redirected in " + Math.max(RP.redir_delay, 0) + "s");
+    if (RP.redir_delay <= 0) {
+        window.location = RP.redir_url;
+        return;
+    }
+    window.setTimeout(RP.redir_count_down, 1000);
+    RP.redir_delay--;
 };
 
 
