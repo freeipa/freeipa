@@ -120,12 +120,12 @@ revzone3_classless2_permission_dn = DN(('cn', revzone3_classless2_permission),
 name1 = u'testdnsres'
 name1_dnsname = DNSName(name1)
 name1_dn = DN(('idnsname',name1), zone1_dn)
-name1_renamed = u'testdnsres-renamed'
-name1_renamed_dnsname = DNSName(name1_renamed)
 
 name_ns = u'testdnsres-ns'
 name_ns_dnsname = DNSName(name_ns)
 name_ns_dn = DN(('idnsname',name_ns), zone1_dn)
+name_ns_renamed = u'testdnsres-ns-renamed'
+name_ns_renamed_dnsname = DNSName(name_ns_renamed)
 
 revname1 = u'80'
 revname1_dnsname = DNSName(revname1)
@@ -1173,7 +1173,7 @@ class test_dns(Declarative):
             expected=errors.ValidationError(name='nsrecord',
                 error=u'NS record is not allowed to coexist with an DNAME '
                       u'record except when located in a zone root record '
-                      '(RFC 2181, section 6.1'),
+                      '(RFC 2181, section 6.1)'),
         ),
 
         dict(
@@ -1278,34 +1278,33 @@ class test_dns(Declarative):
 
         dict(
             desc='Try to to rename DNS zone %r root record' % (zone1),
-            command=('dnsrecord_mod', [zone1, u'@'], {'rename': name1_renamed,}),
+            command=('dnsrecord_mod', [zone1, u'@'], {'rename': u'renamed-zone',}),
             expected=errors.ValidationError(name='rename',
                            error=u'DNS zone root record cannot be renamed')
         ),
 
+
         dict(
-            desc='Rename DNS record %r to %r' % (name1, name1_renamed),
-            command=('dnsrecord_mod', [zone1, name1], {'rename': name1_renamed,}),
+            desc='Rename DNS record %r to %r' % (name_ns, name_ns_renamed),
+            command=('dnsrecord_mod', [zone1, name_ns], {'rename': name_ns_renamed,}),
             expected={
-                'value': name1_dnsname,
+                'value': name_ns_dnsname,
                 'summary': None,
                 'result': {
-                    'idnsname': [name1_renamed_dnsname],
-                    'arecord': [arec3],
-                    'kxrecord': [u'1 foo-1'],
-                    'txtrecord': [u'foo bar'],
+                'idnsname': [name_ns_renamed_dnsname],
+                'nsrecord': [absnxname],
                 },
             },
         ),
 
 
         dict(
-            desc='Delete record %r in zone %r' % (name1_renamed, zone1),
-            command=('dnsrecord_del', [zone1, name1_renamed],
+            desc='Delete record %r in zone %r' % (name1, zone1),
+            command=('dnsrecord_del', [zone1, name1],
                      {'del_all': True}),
             expected={
-                'value': [name1_renamed_dnsname],
-                'summary': u'Deleted record "%s"' % name1_renamed,
+                'value': [name1_dnsname],
+                'summary': u'Deleted record "%s"' % name1,
                 'result': {'failed': []},
             },
         ),
