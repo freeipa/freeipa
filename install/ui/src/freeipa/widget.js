@@ -5677,7 +5677,8 @@ exp.alert_helper = IPA.alert_helper = {
             name: name,
             text: text,
             cls: 'alert alert-danger',
-            icon: 'fa fa-exclamation-circle'
+            icon: 'fa fa-exclamation-circle',
+            type: 'error'
         };
     },
 
@@ -5692,7 +5693,8 @@ exp.alert_helper = IPA.alert_helper = {
             name: name,
             text: text,
             cls: 'alert alert-warning',
-            icon: 'fa fa-warning'
+            icon: 'fa fa-warning',
+            type: 'warning'
         };
     },
 
@@ -5707,7 +5709,8 @@ exp.alert_helper = IPA.alert_helper = {
             name: name,
             text: text,
             cls: 'alert alert-info',
-            icon: 'fa fa-info-circle'
+            icon: 'fa fa-info-circle',
+            type: 'info'
         };
     },
 
@@ -5722,7 +5725,8 @@ exp.alert_helper = IPA.alert_helper = {
             name: name,
             text: text,
             cls: 'alert alert-success',
-            icon: 'fa fa-check-circle-o'
+            icon: 'fa fa-check-circle-o',
+            type: 'success'
         };
     },
 
@@ -5815,6 +5819,21 @@ exp.validation_summary_widget = IPA.validation_summary_widget = function(spec) {
 
     that.remove = function(name) {
         that.items.remove(name);
+        that.render_items();
+    };
+
+    that.remove_all = function(type) {
+
+        if (!type) that.items.empty();
+
+        for (var i=0, l=that.items.length; i<l; i++) {
+            var alert = that.items.get_value_by_index(i);
+            if (alert.type !== type) continue;
+            that.items.remove(alert.name);
+            i--;
+            l--;
+        }
+
         that.render_items();
     };
 

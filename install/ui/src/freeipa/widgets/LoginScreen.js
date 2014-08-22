@@ -170,6 +170,7 @@ define(['dojo/_base/declare',
 
         on_sync: function() {
             var user = this.get_field('username').get_value()[0];
+            this.get_widget('validation').remove_all('error');
             this.emit('require-otp-sync', { source: this, user: user });
         },
 
