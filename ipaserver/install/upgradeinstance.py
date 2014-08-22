@@ -82,8 +82,11 @@ class IPAUpgrade(service.Service):
         if self.schema_files:
             self.step("updating schema", self.__update_schema)
         self.step("upgrading server", self.__upgrade)
-        self.step("stopping directory server", self.__stop_instance)
-        self.step("restoring configuration", self.__restore_config)
+
+        self.step("stopping directory server", self.__stop_instance,
+                  run_after_failure=True)
+        self.step("restoring configuration", self.__restore_config,
+                  run_after_failure=True)
         self.step("starting directory server", self.start)
 
         self.start_creation(start_message="Upgrading IPA:",
@@ -103,10 +106,14 @@ class IPAUpgrade(service.Service):
         port = self.restore_state('nsslapd-port')
         security = self.restore_state('nsslapd-security')
 
-        installutils.set_directive(self.filename, 'nsslapd-port',
-            port, quotes=False, separator=':')
-        installutils.set_directive(self.filename, 'nsslapd-security',
-            security, quotes=False, separator=':')
+        if port is not None:
+            installutils.set_directive(
+                self.filename, 'nsslapd-port', port,
+                quotes=False, separator=':')
+        if security is not None:
+            installutils.set_directive(
+                self.filename, 'nsslapd-security', security,
+                quotes=False, separator=':')
 
     def __disable_listeners(self):
         installutils.set_directive(self.filename, 'nsslapd-port',
