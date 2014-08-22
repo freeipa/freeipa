@@ -1784,17 +1784,21 @@ class DNSZoneBase(LDAPObject):
         zone = keys[-1]
         assert isinstance(zone, DNSName)
         assert zone.is_absolute()
-        zone = zone.ToASCII()
+        zone_a = zone.ToASCII()
+
+        # special case when zone is the root zone ('.')
+        if zone == DNSName.root:
+            return super(DNSZoneBase, self).get_dn(zone_a, **options)
 
         # try first relative name, a new zone has to be added as absolute
         # otherwise ObjectViolation is raised
-        zone = zone[:-1]
-        dn = super(DNSZoneBase, self).get_dn(zone, **options)
+        zone_a = zone_a[:-1]
+        dn = super(DNSZoneBase, self).get_dn(zone_a, **options)
         try:
             self.backend.get_entry(dn, [''])
         except errors.NotFound:
-            zone = u"%s." % zone
-            dn = super(DNSZoneBase, self).get_dn(zone, **options)
+            zone_a = u"%s." % zone_a
+            dn = super(DNSZoneBase, self).get_dn(zone_a, **options)
 
         return dn
 
@@ -1826,6 +1830,8 @@ class DNSZoneBase(LDAPObject):
         try:
             api.Command['permission_del'](permission_name, force=True)
         except errors.NotFound, e:
+            if zone == DNSName.root:  # special case root zone
+                raise
             # compatibility, older IPA versions which allows to create zone
             # without absolute zone name
             permission_name_rel = self.permission_name(
@@ -1989,20 +1995,21 @@ class DNSZoneBase_add_permission(LDAPQuery):
         permission_name = self.obj.permission_name(keys[-1])
 
         # compatibility with older IPA versions which allows relative zonenames
-        permission_name_rel = self.obj.permission_name(
-            keys[-1].relativize(DNSName.root)
-        )
-        try:
-            api.Object['permission'].get_dn_if_exists(permission_name_rel)
-        except errors.NotFound:
-            pass
-        else:
-            # permission exists without absolute domain name
-            raise errors.DuplicateEntry(
-                message=_('permission "%(value)s" already exists') % {
-                        'value': permission_name
-                }
+        if keys[-1] != DNSName.root:  # special case root zone
+            permission_name_rel = self.obj.permission_name(
+                keys[-1].relativize(DNSName.root)
             )
+            try:
+                api.Object['permission'].get_dn_if_exists(permission_name_rel)
+            except errors.NotFound:
+                pass
+            else:
+                # permission exists without absolute domain name
+                raise errors.DuplicateEntry(
+                    message=_('permission "%(value)s" already exists') % {
+                        'value': permission_name
+                    }
+                )
 
         permission = api.Command['permission_add_noaci'](permission_name,
                          ipapermissiontype=u'SYSTEM'
@@ -2415,12 +2422,13 @@ class dnszone_add(DNSZoneBase_add):
                                nameserver_ip_address)
 
         # Add entry to realmdomains
-        # except for our own domain, forwarded zones and reverse zones
+        # except for our own domain, forward zones, reverse zones and root zone
         zone = keys[0]
 
-        if (zone != DNSName(api.env.domain).make_absolute()
-            and not options.get('idnsforwarders')
-            and not zone.is_reverse()):
+        if (zone != DNSName(api.env.domain).make_absolute() and
+                not options.get('idnsforwarders') and
+                not zone.is_reverse() and
+                zone != DNSName.root):
             try:
                 api.Command['realmdomains_mod'](add_domain=unicode(zone),
                                                 force=True)
@@ -2442,11 +2450,11 @@ class dnszone_del(DNSZoneBase_del):
         super(dnszone_del, self).post_callback(ldap, dn, *keys, **options)
 
         # Delete entry from realmdomains
-        # except for our own domain
+        # except for our own domain, reverse zone, and root zone
         zone = keys[0].make_absolute()
 
         if (zone != DNSName(api.env.domain).make_absolute() and
-                not zone.is_reverse()
+                not zone.is_reverse() and zone != DNSName.root
         ):
             try:
                 api.Command['realmdomains_mod'](del_domain=unicode(zone),
