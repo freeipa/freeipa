@@ -23,9 +23,17 @@ from ipalib.plugins.baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPRetrieve, global_output_params)
 from ipalib.plugins.hostgroup import get_complete_hostgroup_member_list
 from ipalib import api, Str, Int, Flag, _, ngettext, errors, output
+from ipalib.constants import IPA_ANCHOR_PREFIX, SID_ANCHOR_PREFIX
 from ipalib.plugable import Registry
 
 from ipapython.dn import DN
+
+if api.env.in_server and api.env.context in ['lite', 'server']:
+    try:
+        import ipaserver.dcerpc
+        _dcerpc_bindings_installed = True
+    except ImportError:
+        _dcerpc_bindings_installed = False
 
 __doc__ = _("""
 ID views
@@ -445,11 +453,109 @@ class idoverride(LDAPObject):
         },
     }
 
+    def resolve_object_to_anchor(self, obj):
+        """
+        Resolves the user/group name to the anchor uuid:
+            - first it tries to find the object as user in IPA
+            - then it tries to find the object as group in IPA
+            - if the IPA lookups both failed, use SSSD to lookup object SID in
+              the trusted domains
+        """
+
+        # First try to resolve the object as IPA user or group
+        for obj_type in ('user', 'group'):
+            try:
+                entry = self.backend.get_entry(api.Object[obj_type].get_dn(obj),
+                                               attrs_list=['ipaUniqueID'])
+                return IPA_ANCHOR_PREFIX + entry.single_value.get('ipaUniqueID')
+            except errors.NotFound:
+                pass
+
+        # If not successfull, try looking up the object in the trusted domain
+        if _dcerpc_bindings_installed:
+            domain_validator = ipaserver.dcerpc.DomainValidator(api)
+            if domain_validator.is_configured():
+                sid = domain_validator.get_trusted_domain_object_sid(obj)
+                return SID_ANCHOR_PREFIX + sid
+
+    def resolve_anchor_to_object_name(self, anchor):
+        if anchor.startswith(IPA_ANCHOR_PREFIX):
+            uuid = anchor.split(IPA_ANCHOR_PREFIX)[1].strip()
+
+            # Prepare search parameters
+            accounts_dn = DN(api.env.container_accounts, api.env.basedn)
+            class_filter = self.backend.make_filter_from_attr(
+                               attr='objectClass',
+                               value=['posixaccount','ipausergroup'])
+
+            uuid_filter = self.backend.make_filter_from_attr(
+                               attr='ipaUniqueID',
+                               value=uuid)
+
+            # We need to filter for any object with above objectclasses
+            # AND specified UUID
+            object_filter = self.backend.combine_filters(
+                                [class_filter, uuid_filter],
+                                self.backend.MATCH_ALL)
+
+            entries, truncated = self.backend.find_entries(
+                                     filter=object_filter,
+                                     attrs_list=['cn','uid'],
+                                     base_dn=accounts_dn)
+
+            # Handle incorrect number of results. Should not happen
+            # since UUID stands for UniqueUID.
+
+            if len(entries) > 1:
+                raise errors.SingleMatchExpected(found=len(entries))
+            else:
+                if truncated:
+                    raise errors.LimitsExceeded()
+                else:
+                    # Return the name of the object, which is either cn for
+                    # groups or uid for users
+                    return (entries[0].single_value.get('uid') or
+                            entries[0].single_value.get('cn'))
+
+        elif anchor.startswith(SID_ANCHOR_PREFIX):
+            sid = anchor.split(SID_ANCHOR_PREFIX)[1].strip()
+
+            if _dcerpc_bindings_installed:
+                domain_validator = ipaserver.dcerpc.DomainValidator(api)
+                if domain_validator.is_configured():
+                    name = domain_validator.get_trusted_domain_object_from_sid(sid)
+                    return name
+
+
+    def get_dn(self, *keys, **options):
+        keys = keys[:-1] + (self.resolve_object_to_anchor(keys[-1]), )
+        return super(idoverride, self).get_dn(*keys, **options)
+
+    def set_anchoruuid_from_dn(self, dn, entry_attrs):
+        # TODO: Use entry_attrs.single_value once LDAPUpdate supports
+        # lists in primary key fields (baseldap.LDAPUpdate.execute)
+        entry_attrs['ipaanchoruuid'] = dn[0].value
+
+    def convert_anchor_to_human_readable_form(self, entry_attrs, **options):
+        if not options.get('raw'):
+            anchor = entry_attrs.single_value.get('ipaanchoruuid')
+
+            if anchor:
+                object_name = self.resolve_anchor_to_object_name(anchor)
+                entry_attrs.single_value['ipaanchoruuid'] = object_name
 
 @register()
 class idoverride_add(LDAPCreate):
     __doc__ = _('Add a new ID override.')
     msg_summary = _('Added ID override "%(value)s"')
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        self.obj.set_anchoruuid_from_dn(dn, entry_attrs)
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.convert_anchor_to_human_readable_form(entry_attrs, **options)
+        return dn
 
 
 @register()
@@ -463,6 +569,10 @@ class idoverride_mod(LDAPUpdate):
     __doc__ = _('Modify an ID override.')
     msg_summary = _('Modified an ID override "%(value)s"')
 
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.convert_anchor_to_human_readable_form(entry_attrs, **options)
+        return dn
+
 
 @register()
 class idoverride_find(LDAPSearch):
@@ -470,7 +580,16 @@ class idoverride_find(LDAPSearch):
     msg_summary = ngettext('%(count)d ID override matched',
                            '%(count)d ID overrides matched', 0)
 
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        for entry in entries:
+            self.obj.convert_anchor_to_human_readable_form(entry, **options)
+        return truncated
+
 
 @register()
 class idoverride_show(LDAPRetrieve):
     __doc__ = _('Display information about an ID override.')
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.convert_anchor_to_human_readable_form(entry_attrs, **options)
+        return dn
