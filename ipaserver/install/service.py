@@ -23,6 +23,7 @@ import tempfile
 import pwd
 import time
 import datetime
+import traceback
 
 from ipapython import sysrestore, ipautil, dogtag, ipaldap
 from ipapython.dn import DN
@@ -329,8 +330,8 @@ class Service(object):
     def print_msg(self, message):
         print_msg(message, self.output_fd)
 
-    def step(self, message, method):
-        self.steps.append((message, method))
+    def step(self, message, method, run_after_failure=False):
+        self.steps.append((message, method, run_after_failure))
 
     def start_creation(self, start_message=None, end_message=None,
         show_service_name=True, runtime=-1):
@@ -375,15 +376,32 @@ class Service(object):
         else:
             self.print_msg(start_message)
 
-        step = 0
-        for (message, method) in self.steps:
-            self.print_msg("  [%d/%d]: %s" % (step+1, len(self.steps), message))
+        def run_step(message, method):
+            self.print_msg(message)
             s = datetime.datetime.now()
             method()
             e = datetime.datetime.now()
             d = e - s
             root_logger.debug("  duration: %d seconds" % d.seconds)
-            step += 1
+
+        step = 0
+        steps_iter = iter(self.steps)
+        try:
+            for message, method, run_after_failure in steps_iter:
+                full_msg = "  [%d/%d]: %s" % (step+1, len(self.steps), message)
+                run_step(full_msg, method)
+                step += 1
+        except BaseException as e:
+            # show the traceback, so it's not lost if the cleanup method fails
+            root_logger.debug("%s" % traceback.format_exc())
+            self.print_msg('  [error] %s: %s' % (type(e).__name__, e))
+
+            # run through remaining methods marked run_after_failure
+            for message, method, run_after_failure in steps_iter:
+                if run_after_failure:
+                    run_step("  [cleanup]: %s" % message, method)
+
+            raise
 
         self.print_msg(end_message)
 
