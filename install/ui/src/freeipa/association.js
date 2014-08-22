@@ -826,6 +826,16 @@ exp.association_facet_pre_op = function(spec, context) {
     spec.other_entity = spec.other_entity ||
         spec.name.substring(index+1);
 
+    if (!spec.associator) {
+        // batch associator (default) calls entity_command, serial associator
+        // calls other_entity_command --> if entity doesn't support the command,
+        // switch associators to try the other_entity
+        var add_command = spec.add_command || 'add_member';
+        if (!metadata_provider.get('@mc:'+entity.name+'_'+add_command)) {
+            spec.associator = IPA.serial_associator;
+        }
+    }
+
     spec.add_title = '@i18n:association.add.'+spec.attribute_member;
     spec.remove_title = '@i18n:association.remove.'+spec.attribute_member;
 
