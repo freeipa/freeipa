@@ -15,6 +15,7 @@ man1_MANS = 				\
 	ipa-dns-install.1		\
 	ipa-adtrust-install.1		\
 	ipa-ca-install.1		\
+	ipa-kra-install.1		\
 	ipa-ldap-updater.1		\
 	ipa-compat-manage.1		\
 	ipa-nis-manage.1		\

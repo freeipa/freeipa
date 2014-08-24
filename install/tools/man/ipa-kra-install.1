@@ -1,0 +1,56 @@
+.\" A man page for ipa-kra-install
+.\" Copyright (C) 2014 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Ade Lee <alee@redhat.com>
+.\"
+.TH "ipa-kra-install" "1" "Aug 24 2014" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-kra\-install \- Install a KRA on a server
+.SH "SYNOPSIS"
+ipa\-kra\-install [\fIOPTION\fR]... [replica_file]
+.SH "DESCRIPTION"
+Adds a KRA as an IPA\-managed service. This requires that the IPA server is already installed and configured, including a CA.
+
+The KRA (Key Recovery Authority) is a component used to securely store secrets such as passwords, symmetric keys and private asymmetric keys.  It is used as the back-end repository for the IPA Password Vault.
+
+ipa\-kra\-install can be run without replica_file to add KRA to the existing CA.
+ipa\-kra\-install will contact the CA to determine if a KRA has already been installed on another replica, and if so, will exit indicating that a replica_file is required.
+
+The replica_file is created using the ipa\-replica\-prepare utility.  A new replica_file should be generated on the master IPA server after the KRA has been installed and configured, so that the replica_file will contain the master KRA configuration and system certificates.
+
+The uninstall option can be  used to remove the KRA from the local IPA server. KRA instances on other replicas are not affected.  The KRA will also be removed if the entire server is removed using ipa\-server\-install \-\-uninstall.
+.SH "OPTIONS"
+\fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
+Directory Manager (existing master) password
+.TP
+\fB\-U\fR, \fB\-\-unattended\fR
+An unattended installation that will never prompt for user input
+.TP
+\fB\-\-uninstall\fR
+Uninstall the KRA from the local IPA server.
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+Enable debug output when more verbose output is needed
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Output only errors
+.TP
+\fB\-v\fR, \fB\-\-log-file\fR=\fFILE\fR
+Log to the given file
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred

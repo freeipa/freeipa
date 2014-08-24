@@ -712,6 +712,7 @@ fi
 %{_mandir}/man1/ipa-server-install.1.gz
 %{_mandir}/man1/ipa-dns-install.1.gz
 %{_mandir}/man1/ipa-ca-install.1.gz
+%{_mandir}/man1/ipa-kra-install.1.gz
 %{_mandir}/man1/ipa-compat-manage.1.gz
 %{_mandir}/man1/ipa-nis-manage.1.gz
 %{_mandir}/man1/ipa-managed-entries.1.gz
