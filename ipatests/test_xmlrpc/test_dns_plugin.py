@@ -3719,3 +3719,107 @@ class test_dns(Declarative):
         ),
 
     ]
+
+
+zone_root = u'.'
+zone_root_dnsname = DNSName(zone_root)
+zone_root_ip = u'172.16.29.222'
+zone_root_dn = DN(('idnsname', zone_root),
+                  api.env.container_dns, api.env.basedn)
+zone_root_ns = u'ns'
+zone_root_ns_dnsname = DNSName(zone_root_ns)
+zone_root_ns_dn = DN(('idnsname', zone_root_ns), zone_root_dn)
+zone_root_rname = u'root.example.com.'
+zone_root_rname_dnsname = DNSName(zone_root_rname)
+zone_root_permission = u'Manage DNS zone %s' % zone_root
+zone_root_permission_dn = DN(('cn', zone_root_permission),
+                             api.env.container_permission, api.env.basedn)
+
+
+class test_root_zone(Declarative):
+
+    @classmethod
+    def setUpClass(cls):
+        super(test_root_zone, cls).setUpClass()
+
+        if not api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.connect(fallback=False)
+        try:
+            api.Command['dnszone_add'](
+                zone1,
+                idnssoamname=zone1_ns,
+                idnssoarname=zone1_rname,
+                force=True,)
+            api.Command['dnszone_del'](zone1)
+        except errors.NotFound:
+            raise nose.SkipTest('DNS is not configured')
+        except errors.DuplicateEntry:
+            pass
+
+    cleanup_commands = [
+        ('dnszone_del', [zone_root, ],
+            {'continue': True}),
+        ('permission_del', [zone_root_permission, ], {'force': True}),
+    ]
+
+    tests = [
+
+        dict(
+            desc='Create zone %r' % zone_root,
+            command=(
+                'dnszone_add', [zone_root], {
+                    'idnssoamname': zone_root_ns,
+                    'idnssoarname': zone_root_rname,
+                    'ip_address': zone_root_ip,
+                }
+            ),
+            expected={
+                'value': zone_root_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone_root_dn,
+                    'idnsname': [zone_root_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [zone_root_ns_dnsname],
+                    'nsrecord': [zone_root_ns],
+                    'idnssoarname': [zone_root_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+
+        dict(
+            desc='Add per-zone permission for zone %r' % zone_root,
+            command=(
+                'dnszone_add_permission', [zone_root], {}
+            ),
+            expected=dict(
+                result=True,
+                value=zone_root_permission,
+                summary=u'Added system permission "%s"' % zone_root_permission,
+            ),
+        ),
+
+        dict(
+            desc='Delete zone %r' % zone_root,
+            command=('dnszone_del', [zone_root], {}),
+            expected={
+                'value': [zone_root_dnsname],
+                'summary': u'Deleted DNS zone "%s"' % zone_root,
+                'result': {'failed': []},
+            },
+        ),
+
+    ]
