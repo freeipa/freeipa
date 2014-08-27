@@ -2125,7 +2125,7 @@ def install(options, env, fstore, statestore):
     # Create the discovery instance
     ds = ipadiscovery.IPADiscovery()
 
-    ret = ds.search(domain=options.domain, servers=options.server, hostname=hostname, ca_cert_path=get_cert_path(options.ca_cert_file))
+    ret = ds.search(domain=options.domain, servers=options.server, realm=options.realm_name, hostname=hostname, ca_cert_path=get_cert_path(options.ca_cert_file))
 
     if options.server and ret != 0:
         # There is no point to continue with installation as server list was

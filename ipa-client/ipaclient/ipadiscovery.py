@@ -139,7 +139,7 @@ class IPADiscovery(object):
                 domain = domain[p+1:]
         return (None, None)
 
-    def search(self, domain = "", servers = "", hostname=None, ca_cert_path=None):
+    def search(self, domain="", servers="", realm=None, hostname=None, ca_cert_path=None):
         """
         Use DNS discovery to identify valid IPA servers.
 
@@ -218,13 +218,21 @@ class IPADiscovery(object):
 
         #search for kerberos
         root_logger.debug("[Kerberos realm search]")
-        krb_realm, kdc = self.ipadnssearchkrb(self.domain)
-        if not servers and not krb_realm:
+        if realm:
+            root_logger.debug("Kerberos realm forced")
+            self.realm = realm
+            self.realm_source = 'Forced'
+        else:
+            realm = self.ipadnssearchkrbrealm()
+            self.realm = realm
+            self.realm_source = (
+                'Discovered Kerberos DNS records from %s' % self.domain)
+
+        if not servers and not realm:
             return REALM_NOT_FOUND
 
-        self.realm = krb_realm
-        self.kdc = kdc
-        self.realm_source = self.kdc_source = (
+        self.kdc = self.ipadnssearchkrbkdc()
+        self.kdc_source = (
             'Discovered Kerberos DNS records from %s' % self.domain)
 
         # We may have received multiple servers corresponding to the domain
@@ -452,11 +460,12 @@ class IPADiscovery(object):
 
         return servers
 
-    def ipadnssearchkrb(self, tdomain):
+    def ipadnssearchkrbrealm(self, domain=None):
         realm = None
-        kdc = None
+        if not domain:
+            domain = self.domain
         # now, check for a Kerberos realm the local host or domain is in
-        qname = "_kerberos." + tdomain
+        qname = "_kerberos." + domain
 
         root_logger.debug("Search DNS for TXT record of %s", qname)
 
@@ -472,18 +481,21 @@ class IPADiscovery(object):
                 realm = answer.strings[0]
                 if realm:
                     break
+        return realm
 
-        if realm:
-            # now fetch server information for the realm
-            domain = realm.lower()
+    def ipadnssearchkrbkdc(self, domain=None):
+        kdc = None
 
-            kdc = self.ipadns_search_srv(domain, '_kerberos._udp', 88,
-                    break_on_first=False)
+        if not domain:
+            domain = self.domain
 
-            if kdc:
-                kdc = ','.join(kdc)
-            else:
-                root_logger.debug("SRV record for KDC not found! Realm: %s, SRV record: %s" % (realm, qname))
-                kdc = None
+        kdc = self.ipadns_search_srv(domain, '_kerberos._udp', 88,
+                                     break_on_first=False)
 
-        return realm, kdc
+        if kdc:
+            kdc = ','.join(kdc)
+        else:
+            root_logger.debug("SRV record for KDC not found! Domain: %s" % domain)
+            kdc = None
+
+        return kdc
