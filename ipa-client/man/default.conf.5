@@ -96,7 +96,7 @@ Specifies whether the CA is acting as an RA agent, such as when dogtag is being 
 Specifies whether an IPA client should attempt to fall back and try other services if the first connection fails.
 .TP
 .B host <hostname>
-Specifies the hostname of the IPA server. This value is used to construct URL values on the client and server.
+Specifies the local system hostname.
 .TP
 .B in_server <boolean>
 Specifies whether requests should be forwarded to an IPA server or handled locally. This is used internally by IPA in a similar way as context. The same IPA framework is used by the ipa command\-line tool and the server. This setting tells the framework whether it should execute the command as if on the server or forward it via XML\-RPC to a remote server.
@@ -164,7 +164,7 @@ Specifies the length of time authentication credentials cached in the session ar
 Specifies how the expiration of a session is computed. With \fBinactivity_timeout\fR the expiration time is advanced by the value of session_auth_duration everytime the user accesses the service. With \fBfrom_start\fR the session expiration is the start of the user's session plus the value of session_auth_duration.
 .TP
 .B server <hostname>
-Specifies the IPA Server hostname. This option is deprecated.
+Specifies the IPA Server hostname.
 .TP
 .B startup_timeout <time in seconds>
 Controls the amount of time waited when starting a service. The default value is 120 seconds.
