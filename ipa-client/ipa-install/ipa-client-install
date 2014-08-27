@@ -359,7 +359,7 @@ def is_ipa_client_installed(on_master=False):
     return installed
 
 def configure_nsswitch_database(fstore, database, services, preserve=True,
-                                append=True, default_value=None):
+                                append=True, default_value=()):
     """
     Edits the specified nsswitch.conf database (e.g. passwd, group, sudoers)
     to use the specified service(s).
@@ -390,28 +390,34 @@ def configure_nsswitch_database(fstore, database, services, preserve=True,
             opts = conf.parse(f)
             raw_database_entry = conf.findOpts(opts, 'option', database)[1]
 
-            if not raw_database_entry:
-                # If there is no database entry, database is not present in
-                # the nsswitch.conf. Set the list of services to the
-                # default list, if passed.
-                configured_services = ' '.join(default_value or [])
-            else:
-                configured_services = raw_database_entry['value'].strip()
-
-        if append:
-            new_services = ' ' + configured_services + ' ' + ' '.join(services)
+        # Detect the list of already configured services
+        if not raw_database_entry:
+            # If there is no database entry, database is not present in
+            # the nsswitch.conf. Set the list of services to the
+            # default list, if passed.
+            configured_services = list(default_value)
         else:
-            new_services = ' ' +  ' '.join(services) + ' ' + configured_services
+            configured_services = raw_database_entry['value'].strip().split()
+
+        # Make sure no service is added if already mentioned in the list
+        added_services = [s for s in services
+                          if s not in configured_services]
+
+        # Prepend / append the list of new services
+        if append:
+            new_value = ' ' + ' '.join(configured_services + added_services)
+        else:
+            new_value = ' ' + ' '.join(added_services + configured_services)
 
     else:
         # Preserve not set, let's rewrite existing configuration
-        new_services = ' ' + ' '.join(services)
+        new_value = ' ' + ' '.join(services)
 
     # Set new services as sources for database
     opts = [{'name': database,
              'type':'option',
              'action':'set',
-             'value': new_services
+             'value': new_value
             },
             {'name':'empty',
              'type':'empty'
