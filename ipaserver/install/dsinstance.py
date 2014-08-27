@@ -190,7 +190,7 @@ class DsInstance(service.Service):
             service_desc="directory server",
             dm_password=dm_password,
             ldapi=False,
-            autobind=service.DISABLED
+            autobind=ipaldap.AUTOBIND_DISABLED
             )
         self.nickname = 'Server-Cert'
         self.dm_password = dm_password
