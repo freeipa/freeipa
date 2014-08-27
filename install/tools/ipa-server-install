@@ -174,8 +174,8 @@ def parse_options():
                            help="create home directories for users "
                                 "on their first login")
     basic_group.add_option("--hostname", dest="host_name", help="fully qualified name of server")
-    basic_group.add_option("--ip-address", dest="ip_address",
-                      type="ip", ip_local=True,
+    basic_group.add_option("--ip-address", dest="ip_addresses",
+                      type="ip", ip_local=True, action="append", default=[],
                       help="Master Server IP Address")
     basic_group.add_option("-N", "--no-ntp", dest="conf_ntp", action="store_false",
                       help="do not configure ntp", default=True)
@@ -235,7 +235,8 @@ def parse_options():
                       type="ip", help="Add a DNS forwarder")
     dns_group.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
-    dns_group.add_option("--reverse-zone", dest="reverse_zone", help="The reverse DNS zone to use")
+    dns_group.add_option("--reverse-zone", dest="reverse_zones", help="The reverse DNS zone to use",
+                      action="append", default=[])
     dns_group.add_option("--no-reverse", dest="no_reverse", action="store_true",
                       default=False, help="Do not create reverse DNS zone")
     dns_group.add_option("--zonemgr", action="callback", callback=bindinstance.zonemgr_callback,
@@ -279,13 +280,13 @@ def parse_options():
             parser.error("You cannot specify a --forwarder option without the --setup-dns option")
         if options.no_forwarders:
             parser.error("You cannot specify a --no-forwarders option without the --setup-dns option")
-        if options.reverse_zone:
+        if options.reverse_zones:
             parser.error("You cannot specify a --reverse-zone option without the --setup-dns option")
         if options.no_reverse:
             parser.error("You cannot specify a --no-reverse option without the --setup-dns option")
     elif options.forwarders and options.no_forwarders:
         parser.error("You cannot specify a --forwarder option together with --no-forwarders")
-    elif options.reverse_zone and options.no_reverse:
+    elif options.reverse_zones and options.no_reverse:
         parser.error("You cannot specify a --reverse-zone option together with --no-reverse")
 
     if options.uninstall:
@@ -812,11 +813,11 @@ def main():
     realm_name = ""
     host_name = ""
     domain_name = ""
-    ip_address = ""
+    ip_addresses = []
     master_password = ""
     dm_password = ""
     admin_password = ""
-    reverse_zone = None
+    reverse_zones = []
 
     if not options.setup_dns and not options.unattended:
         if ipautil.user_input("Do you want to configure integrated DNS (BIND)?", False):
@@ -875,11 +876,8 @@ def main():
 
     domain_name = domain_name.lower()
 
-    ip = get_server_ip_address(host_name, fstore, options.unattended, options)
-    ip_address = str(ip)
-
-    if options.reverse_zone and not bindinstance.verify_reverse_zone(options.reverse_zone, ip):
-        sys.exit(1)
+    ip_addresses = get_server_ip_address(host_name, fstore,
+        options.unattended, options.setup_dns, options.ip_addresses)
 
     if not options.realm_name:
         realm_name = read_realm_name(domain_name, options.unattended)
@@ -956,35 +954,29 @@ def main():
         else:
             dns_forwarders = read_dns_forwarders()
 
-        if options.reverse_zone:
-            reverse_zone = bindinstance.normalize_zone(options.reverse_zone)
-        elif not options.no_reverse:
-            if options.unattended:
-                reverse_zone = util.get_reverse_zone_default(ip)
-            elif bindinstance.create_reverse():
-                reverse_zone = util.get_reverse_zone_default(ip)
-                reverse_zone = bindinstance.read_reverse_zone(reverse_zone, ip)
+        reverse_zones = bindinstance.check_reverse_zones(ip_addresses,
+            options.reverse_zones, options, options.unattended)
 
-        if reverse_zone is not None:
-            print "Using reverse zone %s" % reverse_zone
+        if reverse_zones:
+            print "Using reverse zone(s) %s" % ", ".join(str(rz) for rz in reverse_zones)
     else:
         dns_forwarders = ()
     root_logger.debug("will use dns_forwarders: %s\n" % str(dns_forwarders))
 
     print
     print "The IPA Master Server will be configured with:"
-    print "Hostname:      %s" % host_name
-    print "IP address:    %s" % ip_address
-    print "Domain name:   %s" % domain_name
-    print "Realm name:    %s" % realm_name
+    print "Hostname:       %s" % host_name
+    print "IP address(es): %s" % ", ".join(str(ip) for ip in ip_addresses)
+    print "Domain name:    %s" % domain_name
+    print "Realm name:     %s" % realm_name
     print
 
     if options.setup_dns:
         print "BIND DNS server will be configured to serve IPA domain with:"
         print "Forwarders:    %s" % ("No forwarders" if not dns_forwarders \
                 else ", ".join([str(ip) for ip in dns_forwarders]))
-        print "Reverse zone:  %s" % ("No reverse zone" if options.no_reverse \
-                or reverse_zone is None else reverse_zone)
+        print "Reverse zone(s):  %s" % ("No reverse zone" if options.no_reverse \
+                or reverse_zones is None else ", ".join(str(rz) for rz in reverse_zones))
         print
 
     # If domain name and realm does not match, IPA server will not be able
@@ -1094,7 +1086,7 @@ def main():
             options.host_name = host_name
             options.unattended = True
             options.forwarders = dns_forwarders
-            options.reverse_zone = reverse_zone
+            options.reverse_zones = reverse_zones
             write_cache(vars(options))
             ca.configure_instance(host_name, domain_name, dm_password,
                                   dm_password, csr_file=paths.ROOT_IPA_CSR,
@@ -1188,8 +1180,8 @@ def main():
 
     # Create a BIND instance
     bind = bindinstance.BindInstance(fstore, dm_password)
-    bind.setup(host_name, ip_address, realm_name, domain_name, dns_forwarders,
-               options.conf_ntp, reverse_zone, zonemgr=options.zonemgr,
+    bind.setup(host_name, ip_addresses, realm_name, domain_name, dns_forwarders,
+               options.conf_ntp, reverse_zones, zonemgr=options.zonemgr,
                ca_configured=setup_ca)
     if options.setup_dns:
         api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=dm_password)

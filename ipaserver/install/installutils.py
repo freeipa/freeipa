@@ -221,6 +221,7 @@ def add_record_to_hosts(ip, host_name, file=paths.HOSTS):
     hosts_fd.write(ip+'\t'+host_name+' '+host_name.split('.')[0]+'\n')
     hosts_fd.close()
 
+# TODO: Remove when removing usage from ipa-adtrust-install
 def read_ip_address(host_name, fstore):
     while True:
         ip = ipautil.user_input("Please provide the IP address to be used for this host name", allow_empty = False)
@@ -233,6 +234,22 @@ def read_ip_address(host_name, fstore):
             break
 
     return ip_parsed
+
+def read_ip_addresses(host_name, fstore):
+    ips = []
+    print "Enter the IP address to use, or press Enter to finish."
+    while True:
+        ip = ipautil.user_input("Please provide the IP address to be used for this host name", allow_empty = True)
+        if not ip:
+            break
+        try:
+            ip_parsed = ipautil.CheckedIPAddress(ip, match_local=True)
+        except Exception, e:
+            print "Error: Invalid IP Address %s: %s" % (ip, e)
+            continue
+        ips.append(ip)
+
+    return ips
 
 def read_dns_forwarders():
     addrs = []
@@ -425,7 +442,7 @@ def get_host_name(no_host_dns):
     verify_fqdn(hostname, no_host_dns)
     return hostname
 
-def get_server_ip_address(host_name, fstore, unattended, options):
+def get_server_ip_address(host_name, fstore, unattended, setup_dns, ip_addresses):
     # Check we have a public IP that is associated with the hostname
     try:
         hostaddr = resolve_host(host_name)
@@ -440,74 +457,59 @@ def get_server_ip_address(host_name, fstore, unattended, options):
 
     ip_add_to_hosts = False
 
-    if len(hostaddr) > 1:
-        print >> sys.stderr, "The server hostname resolves to more than one address:"
-        for addr in hostaddr:
-            print >> sys.stderr, "  %s" % addr
+    ips = []
+    if len(hostaddr):
+        for ha in hostaddr:
+            try:
+                ips.append(ipautil.CheckedIPAddress(ha, match_local=True))
+            except ValueError, e:
+                root_logger.warning("Invalid IP address %s for %s: %s", ha, host_name, unicode(e))
 
-        if options.ip_address:
-            if str(options.ip_address) not in hostaddr:
-                print >> sys.stderr, "Address passed in --ip-address did not match any resolved"
-                print >> sys.stderr, "address!"
-                sys.exit(1)
-            print "Selected IP address:", str(options.ip_address)
-            ip = options.ip_address
+    if not ips and not ip_addresses:
+        if not unattended:
+            ip_addresses = read_ip_addresses(host_name, fstore)
+
+    if ip_addresses:
+        if setup_dns:
+            ips = ip_addresses
         else:
-            if unattended:
-                print >> sys.stderr, "Please use --ip-address option to specify the address"
-                sys.exit(1)
+            # all specified addresses was resolved for this host
+            if set(ip_addresses) <= set(ips):
+                ips = ip_addresses
             else:
-                ip = read_ip_address(host_name, fstore)
-    elif len(hostaddr) == 1:
-        try:
-            ip = ipautil.CheckedIPAddress(hostaddr[0], match_local=True)
-        except ValueError, e:
-            sys.exit("Invalid IP Address %s for %s: %s" % (hostaddr[0], host_name, unicode(e)))
-    else:
-        # hostname is not resolvable
-        ip = options.ip_address
+                print >>sys.stderr, "Error: the hostname resolves to IP address(es) that are different"
+                print >>sys.stderr, "from those provided on the command line.  Please fix your DNS"
+                print >>sys.stderr, "or /etc/hosts file and restart the installation."
+                print >>sys.stderr, "Provided but not resolved address(es): %s" % \
+                                    ", ".join(str(ip) for ip in (set(ip_addresses) - set(ips)))
+                sys.exit(1)
         ip_add_to_hosts = True
 
-    if ip is None:
-        print "Unable to resolve IP address for host name"
-        if unattended:
-            sys.exit(1)
+    if not ips:
+        print >> sys.stderr, "No usable IP address provided nor resolved."
+        sys.exit(1)
 
-    if options.ip_address:
-        if options.ip_address != ip and not options.setup_dns:
-            print >>sys.stderr, "Error: the hostname resolves to an IP address that is different"
-            print >>sys.stderr, "from the one provided on the command line.  Please fix your DNS"
-            print >>sys.stderr, "or /etc/hosts file and restart the installation."
-            sys.exit(1)
+    for ip_address in ips:
+        # check /etc/hosts sanity, add a record when needed
+        hosts_record = record_in_hosts(str(ip_address))
 
-        ip = options.ip_address
+        if hosts_record is None:
+            if ip_add_to_hosts:
+                print "Adding ["+str(ip_address)+" "+host_name+"] to your /etc/hosts file"
+                fstore.backup_file(paths.HOSTS)
+                add_record_to_hosts(str(ip_address), host_name)
+        else:
+            primary_host = hosts_record[1][0]
+            if primary_host != host_name:
+                print >>sys.stderr, "Error: there is already a record in /etc/hosts for IP address %s:" \
+                        % ip_address
+                print >>sys.stderr, hosts_record[0], " ".join(hosts_record[1])
+                print >>sys.stderr, "Chosen hostname %s does not match configured canonical hostname %s" \
+                        % (host_name, primary_host)
+                print >>sys.stderr, "Please fix your /etc/hosts file and restart the installation."
+                sys.exit(1)
 
-    if ip is None:
-        ip = read_ip_address(host_name, fstore)
-        root_logger.debug("read ip_address: %s\n" % str(ip))
-
-    ip_address = str(ip)
-
-    # check /etc/hosts sanity, add a record when needed
-    hosts_record = record_in_hosts(ip_address)
-
-    if hosts_record is None:
-        if ip_add_to_hosts or options.setup_dns:
-            print "Adding ["+ip_address+" "+host_name+"] to your /etc/hosts file"
-            fstore.backup_file(paths.HOSTS)
-            add_record_to_hosts(ip_address, host_name)
-    else:
-        primary_host = hosts_record[1][0]
-        if primary_host != host_name:
-            print >>sys.stderr, "Error: there is already a record in /etc/hosts for IP address %s:" \
-                    % ip_address
-            print >>sys.stderr, hosts_record[0], " ".join(hosts_record[1])
-            print >>sys.stderr, "Chosen hostname %s does not match configured canonical hostname %s" \
-                    % (host_name, primary_host)
-            print >>sys.stderr, "Please fix your /etc/hosts file and restart the installation."
-            sys.exit(1)
-
-    return ip
+    return ips
 
 def expand_replica_info(filename, password):
     """
