@@ -20,7 +20,6 @@
 import sys
 import os, socket
 import tempfile
-import pwd
 import time
 import datetime
 import traceback
@@ -32,10 +31,6 @@ from ipalib import errors, certstore
 from ipaplatform import services
 from ipaplatform.paths import paths
 
-# Autobind modes
-AUTO = 1
-ENABLED = 2
-DISABLED = 3
 
 # The service name as stored in cn=masters,cn=ipa,cn=etc. In the tuple
 # the first value is the *nix service name, the second the start order.
@@ -74,7 +69,8 @@ def format_seconds(seconds):
 
 
 class Service(object):
-    def __init__(self, service_name, service_desc=None, sstore=None, dm_password=None, ldapi=True, autobind=AUTO):
+    def __init__(self, service_name, service_desc=None, sstore=None, dm_password=None, ldapi=True,
+                 autobind=ipaldap.AUTOBIND_AUTO):
         self.service_name = service_name
         self.service_desc = service_desc
         self.service = services.service(service_name)
@@ -110,26 +106,8 @@ class Service(object):
                 conn = ipaldap.IPAdmin(ldapi=self.ldapi, realm=self.realm)
             else:
                 conn = ipaldap.IPAdmin(self.fqdn, port=389)
-            if self.dm_password:
-                conn.do_simple_bind(bindpw=self.dm_password)
-            elif self.autobind in [AUTO, ENABLED]:
-                if os.getegid() == 0 and self.ldapi:
-                    try:
-                        # autobind
-                        pw_name = pwd.getpwuid(os.geteuid()).pw_name
-                        conn.do_external_bind(pw_name)
-                    except errors.NotFound, e:
-                        if self.autobind == AUTO:
-                            # Fall back
-                            conn.do_sasl_gssapi_bind()
-                        else:
-                            # autobind was required and failed, raise
-                            # exception that it failed
-                            raise e
-                else:
-                    conn.do_sasl_gssapi_bind()
-            else:
-                conn.do_sasl_gssapi_bind()
+
+            conn.do_bind(self.dm_password, autobind=self.autobind)
         except Exception, e:
             root_logger.debug("Could not connect to the Directory Server on %s: %s" % (self.fqdn, str(e)))
             raise

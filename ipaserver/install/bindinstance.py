@@ -202,23 +202,11 @@ def named_conf_set_directive(name, value, section=NAMED_SECTION_IPA,
     with open(NAMED_CONF, 'w') as f:
         f.write("".join(new_lines))
 
-def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None):
+def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None,
+                         autobind=ipaldap.AUTOBIND_DISABLED):
     """
     Test whether the dns container exists.
     """
-
-    def object_exists(dn):      # FIXME, this should be a IPAdmin/ldap2 method so it can be shared
-        """
-        Test whether the given object exists in LDAP.
-        """
-        assert isinstance(dn, DN)
-        try:
-            conn.get_entry(dn)
-        except errors.NotFound:
-            return False
-        else:
-            return True
-
     assert isinstance(suffix, DN)
     try:
         # At install time we may need to use LDAPI to avoid chicken/egg
@@ -228,14 +216,11 @@ def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None
         else:
             conn = ipaldap.IPAdmin(host=fqdn, port=636, cacert=CACERT)
 
-        if dm_password:
-            conn.do_simple_bind(bindpw=dm_password)
-        else:
-            conn.do_sasl_gssapi_bind()
+        conn.do_bind(dm_password, autobind=autobind)
     except ldap.SERVER_DOWN:
         raise RuntimeError('LDAP server on %s is not responding. Is IPA installed?' % fqdn)
 
-    ret = object_exists(DN(('cn', 'dns'), suffix))
+    ret = conn.entry_exists(DN(('cn', 'dns'), suffix))
     conn.unbind()
 
     return ret
@@ -446,7 +431,7 @@ class BindInstance(service.Service):
             service_desc="DNS",
             dm_password=dm_password,
             ldapi=False,
-            autobind=service.DISABLED
+            autobind=ipaldap.AUTOBIND_DISABLED
             )
         self.dns_backup = DnsBackup(self)
         self.named_user = None

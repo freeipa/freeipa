@@ -271,7 +271,7 @@ class CADSInstance(service.Service):
             service_desc="directory server for the CA",
             dm_password=dm_password,
             ldapi=False,
-            autobind=service.DISABLED)
+            autobind=ipaldap.AUTOBIND_DISABLED)
 
         self.serverid = "PKI-IPA"
         self.realm = realm_name

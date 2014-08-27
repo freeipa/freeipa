@@ -27,6 +27,8 @@ from decimal import Decimal
 from copy import deepcopy
 import contextlib
 import collections
+import os
+import pwd
 
 import ldap
 import ldap.sasl
@@ -53,6 +55,10 @@ _debug_log_ldap = False
 
 _missing = object()
 
+# Autobind modes
+AUTOBIND_AUTO = 1
+AUTOBIND_ENABLED = 2
+AUTOBIND_DISABLED = 3
 
 def unicode_from_utf8(val):
     '''
@@ -1633,6 +1639,18 @@ class LDAPClient(object):
         with self.error_handler():
             self.conn.delete_s(dn)
 
+    def entry_exists(self, dn):
+        """
+        Test whether the given object exists in LDAP.
+        """
+        assert isinstance(dn, DN)
+        try:
+            self.get_entry(dn, attrs_list=[])
+        except errors.NotFound:
+            return False
+        else:
+            return True
+
 
 class IPAdmin(LDAPClient):
 
@@ -1741,6 +1759,25 @@ class IPAdmin(LDAPClient):
         auth_tokens = ldap.sasl.external(user_name)
         self.__bind_with_wait(
             self.conn.sasl_interactive_bind_s, timeout, None, auth_tokens)
+
+    def do_bind(self, dm_password="", autobind=AUTOBIND_AUTO, timeout=DEFAULT_TIMEOUT):
+        if dm_password:
+            self.do_simple_bind(bindpw=dm_password, timeout=timeout)
+            return
+        if autobind != AUTOBIND_DISABLED and os.getegid() == 0 and self.ldapi:
+            try:
+                # autobind
+                pw_name = pwd.getpwuid(os.geteuid()).pw_name
+                self.do_external_bind(pw_name, timeout=timeout)
+                return
+            except errors.NotFound, e:
+                if autobind == AUTOBIND_ENABLED:
+                    # autobind was required and failed, raise
+                    # exception that it failed
+                    raise
+
+        #fall back
+        self.do_sasl_gssapi_bind(timeout=timeout)
 
     def modify_s(self, *args, **kwargs):
         # FIXME: for backwards compatibility only
