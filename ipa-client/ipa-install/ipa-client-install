@@ -812,7 +812,7 @@ def uninstall(options, env):
 
     return rv
 
-def configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server):
+def configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, hostname):
     ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Installer")
     ipaconf.setOptionAssignment(" = ")
     ipaconf.setSectionNameDelimiters(("[","]"))
@@ -825,6 +825,7 @@ def configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server):
                {'name':'realm', 'type':'option', 'value':cli_realm},
                {'name':'domain', 'type':'option', 'value':cli_domain},
                {'name':'server', 'type':'option', 'value':cli_server[0]},
+               {'name':'host', 'type':'option', 'value':hostname},
                {'name':'xmlrpc_uri', 'type':'option', 'value':'https://%s/ipa/xml' % ipautil.format_netloc(cli_server[0])},
                {'name':'enable_ra', 'type':'option', 'value':'True'}]
 
@@ -2473,7 +2474,7 @@ def install(options, env, fstore, statestore):
 
     # Configure ipa.conf
     if not options.on_master:
-        configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server)
+        configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, hostname)
         root_logger.info("Created /etc/ipa/default.conf")
 
     api.bootstrap(context='cli_installer', debug=options.debug)
