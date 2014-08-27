@@ -67,8 +67,8 @@ def parse_options():
                       default=False, help="configure a dogtag CA")
     basic_group.add_option("--setup-kra", dest="setup_kra", action="store_true",
                       default=False, help="configure a dogtag KRA")
-    basic_group.add_option("--ip-address", dest="ip_address",
-                      type="ip", ip_local=True,
+    basic_group.add_option("--ip-address", dest="ip_addresses",
+                      type="ip", ip_local=True, action="append", default=[],
                       help="Replica server IP Address")
     basic_group.add_option("-p", "--password", dest="password", sensitive=True,
                       help="Directory Manager (existing master) password")
@@ -112,7 +112,8 @@ def parse_options():
                       type="ip", help="Add a DNS forwarder")
     dns_group.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
-    dns_group.add_option("--reverse-zone", dest="reverse_zone", help="The reverse DNS zone to use")
+    dns_group.add_option("--reverse-zone", dest="reverse_zones", default=[],
+                         action="append", help="The reverse DNS zone to use")
     dns_group.add_option("--no-reverse", dest="no_reverse", action="store_true",
                       default=False, help="Do not create new reverse DNS zone")
     dns_group.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
@@ -133,7 +134,7 @@ def parse_options():
             parser.error("You cannot specify a --forwarder option without the --setup-dns option")
         if options.no_forwarders:
             parser.error("You cannot specify a --no-forwarders option without the --setup-dns option")
-        if options.reverse_zone:
+        if options.reverse_zones:
             parser.error("You cannot specify a --reverse-zone option without the --setup-dns option")
         if options.no_reverse:
             parser.error("You cannot specify a --no-reverse option without the --setup-dns option")
@@ -141,7 +142,7 @@ def parse_options():
         parser.error("You cannot specify a --forwarder option together with --no-forwarders")
     elif not options.forwarders and not options.no_forwarders:
         parser.error("You must specify at least one --forwarder option or --no-forwarders option")
-    elif options.reverse_zone and options.no_reverse:
+    elif options.reverse_zones and options.no_reverse:
         parser.error("You cannot specify a --reverse-zone option together with --no-reverse")
 
     return safe_options, options, args[0]
@@ -264,23 +265,9 @@ def install_bind(config, options):
         forwarders = ()
     bind = bindinstance.BindInstance(dm_password=config.dirman_password)
 
-    if options.reverse_zone:
-        if not bindinstance.verify_reverse_zone(options.reverse_zone, config.ip):
-            sys.exit(1)
-        reverse_zone = bindinstance.normalize_zone(options.reverse_zone)
-    else:
-        reverse_zone = bindinstance.find_reverse_zone(config.ip)
-        if reverse_zone is None and not options.no_reverse:
-            reverse_zone = util.get_reverse_zone_default(config.ip)
-            if not options.unattended and bindinstance.create_reverse():
-                reverse_zone = bindinstance.read_reverse_zone(reverse_zone, config.ip)
-
-    if reverse_zone is not None:
-        print "Using reverse zone %s" % reverse_zone
-
-    bind.setup(config.host_name, config.ip_address, config.realm_name,
-               config.domain_name, forwarders, options.conf_ntp, reverse_zone,
-               ca_configured=options.setup_ca)
+    bind.setup(config.host_name, config.ips, config.realm_name,
+               config.domain_name, forwarders, options.conf_ntp,
+               config.reverse_zones, ca_configured=options.setup_ca)
     bind.create_instance()
 
     print ""
@@ -326,12 +313,16 @@ def install_dns_records(config, options):
             config.master_host_name, config.dirman_password):
         try:
             bind = bindinstance.BindInstance(dm_password=config.dirman_password)
-            reverse_zone = bindinstance.find_reverse_zone(config.ip)
+            for ip in config.ips:
+                reverse_zone = bindinstance.find_reverse_zone(ip)
 
-            bind.add_master_dns_records(config.host_name, config.ip_address,
-                                        config.realm_name, config.domain_name,
-                                        reverse_zone, options.conf_ntp,
-                                        options.setup_ca)
+                bind.add_master_dns_records(config.host_name,
+                                            str(ip),
+                                            config.realm_name,
+                                            config.domain_name,
+                                            reverse_zone,
+                                            options.conf_ntp,
+                                            options.setup_ca)
         except errors.NotFound, e:
             root_logger.debug('Replica DNS records could not be added '
                               'on master: %s', str(e))
@@ -534,8 +525,16 @@ def main():
 
 
     # check replica host IP resolution
-    config.ip = installutils.get_server_ip_address(config.host_name, fstore, True, options)
-    config.ip_address = str(config.ip)
+    config.ips = installutils.get_server_ip_address(config.host_name, fstore,
+        options.unattended, options.setup_dns, options.ip_addresses)
+
+    ip_addresses = [str(ip) for ip in config.ips]
+    config.reverse_zones = bindinstance.check_reverse_zones(ip_addresses,
+        options.reverse_zones, options, True)
+
+    if config.reverse_zones is not None:
+        print "Using reverse zone(s) %s" % ', '.join(config.reverse_zones)
+
 
     # Create the management framework config file
     # Note: We must do this before bootstraping and finalizing ipalib.api

@@ -22,6 +22,7 @@ import os
 import pwd
 import netaddr
 import re
+import sys
 
 import ldap
 
@@ -250,7 +251,6 @@ def verify_reverse_zone(zone, ip_address):
     try:
         get_reverse_record_name(zone, ip_address)
     except ValueError:
-        print "Invalid reverse zone %s" % zone
         return False
 
     return True
@@ -276,6 +276,8 @@ def read_reverse_zone(default, ip_address):
             return None
         if verify_reverse_zone(zone, ip_address):
             break
+        else:
+            print "Invalid reverse zone %s for IP address %s" % (zone, ip_address)
 
     return normalize_zone(zone)
 
@@ -378,6 +380,48 @@ def zonemgr_callback(option, opt_str, value, parser):
 
     parser.values.zonemgr = value
 
+def check_reverse_zones(ip_addresses, reverse_zones, options, unattended, search_reverse_zones=False):
+    reverse_asked = False
+
+    ret_reverse_zones = []
+    # check that there is IP address in every reverse zone
+    if reverse_zones:
+        for rz in reverse_zones:
+            for ip in ip_addresses:
+                if verify_reverse_zone(rz, ip):
+                    ret_reverse_zones.append(normalize_zone(rz))
+                    break
+            else:
+                # no ip matching reverse zone found
+                sys.exit("There is no IP address matching reverse zone %s." % rz)
+    if not options.no_reverse:
+        # check that there is reverse zone for every IP
+        for ip in ip_addresses:
+            if search_reverse_zones and find_reverse_zone(str(ip)):
+                # reverse zone is already in LDAP
+                continue
+            for rz in ret_reverse_zones:
+                if verify_reverse_zone(rz, ip):
+                    # reverse zone was entered by user
+                    break
+            else:
+                # no reverse zone for ip found
+                if not reverse_asked:
+                    if not unattended and not reverse_zones:
+                        # user did not specify reverse_zone nor no_reverse
+                        options.no_reverse = not create_reverse()
+                        if options.no_reverse:
+                            # user decided not to create reverse zone
+                            return []
+                    reverse_asked = True
+                rz = get_reverse_zone_default(str(ip))
+                if not unattended:
+                    rz = read_reverse_zone(rz, str(ip))
+                ret_reverse_zones.append(rz)
+
+    return ret_reverse_zones
+
+
 class DnsBackup(object):
     def __init__(self, service):
         self.service = service
@@ -437,11 +481,11 @@ class BindInstance(service.Service):
         self.named_user = None
         self.domain = None
         self.host = None
-        self.ip_address = None
+        self.ip_addresses = []
         self.realm = None
         self.forwarders = None
         self.sub_dict = None
-        self.reverse_zone = None
+        self.reverse_zones = []
         self.dm_password = dm_password
 
         if fstore:
@@ -451,19 +495,19 @@ class BindInstance(service.Service):
 
     suffix = ipautil.dn_attribute_property('_suffix')
 
-    def setup(self, fqdn, ip_address, realm_name, domain_name, forwarders, ntp,
-              reverse_zone, named_user="named", zonemgr=None,
+    def setup(self, fqdn, ip_addresses, realm_name, domain_name, forwarders, ntp,
+              reverse_zones, named_user="named", zonemgr=None,
               ca_configured=None):
         self.named_user = named_user
         self.fqdn = fqdn
-        self.ip_address = ip_address
+        self.ip_addresses = ip_addresses
         self.realm = realm_name
         self.domain = domain_name
         self.forwarders = forwarders
         self.host = fqdn.split(".")[0]
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.ntp = ntp
-        self.reverse_zone = reverse_zone
+        self.reverse_zones = reverse_zones
         self.ca_configured = ca_configured
 
         if not zonemgr:
@@ -509,8 +553,9 @@ class BindInstance(service.Service):
         # get a connection to the DS
         self.ldap_connect()
 
-        if installutils.record_in_hosts(self.ip_address, self.fqdn) is None:
-            installutils.add_record_to_hosts(self.ip_address, self.fqdn)
+        for ip_address in self.ip_addresses:
+            if installutils.record_in_hosts(str(ip_address), self.fqdn) is None:
+                installutils.add_record_to_hosts(str(ip_address), self.fqdn)
 
         # Make sure generate-rndc-key.sh runs before named restart
         self.step("generating rndc key file", self.__generate_rndc_key)
@@ -520,8 +565,7 @@ class BindInstance(service.Service):
 
         if not dns_zone_exists(self.domain):
             self.step("setting up our zone", self.__setup_zone)
-
-        if self.reverse_zone is not None:
+        if self.reverse_zones:
             self.step("setting up reverse zone", self.__setup_reverse_zone)
 
         self.step("setting up our own record", self.__add_self)
@@ -574,18 +618,17 @@ class BindInstance(service.Service):
         else:
             optional_ntp = ""
 
-        addr = netaddr.IPAddress(self.ip_address)
-        if addr.version in (4, 6):
-            ipa_ca = "%s\t\t\tIN %s\t\t\t%s\n" % (
-                IPA_CA_RECORD,
-                "A" if addr.version == 4 else "AAAA",
-                self.ip_address)
-        else:
-            ipa_ca = ""
+        ipa_ca = ""
+        for addr in self.ip_addresses:
+            if addr.version in (4, 6):
+                ipa_ca += "%s\t\t\tIN %s\t\t\t%s\n" % (
+                    IPA_CA_RECORD,
+                    "A" if addr.version == 4 else "AAAA",
+                    str(addr))
 
         self.sub_dict = dict(
             FQDN=self.fqdn,
-            IP=self.ip_address,
+            IP=[str(ip) for ip in self.ip_addresses],
             DOMAIN=self.domain,
             HOST=self.host,
             REALM=self.realm,
@@ -618,7 +661,8 @@ class BindInstance(service.Service):
 
     def __setup_reverse_zone(self):
         # Always use force=True as named is not set up yet
-        add_zone(self.reverse_zone, self.zonemgr, ns_hostname=api.env.host,
+        for reverse_zone in self.reverse_zones:
+            add_zone(reverse_zone, self.zonemgr, ns_hostname=api.env.host,
                 dns_backup=self.dns_backup, force=True)
 
     def __add_master_records(self, fqdn, addrs):
@@ -665,7 +709,7 @@ class BindInstance(service.Service):
                 add_ptr_rr(reverse_zone, addr, fqdn)
 
     def __add_self(self):
-        self.__add_master_records(self.fqdn, [self.ip_address])
+        self.__add_master_records(self.fqdn, self.ip_addresses)
 
     def __add_others(self):
         entries = self.admin_conn.get_entries(
@@ -710,7 +754,7 @@ class BindInstance(service.Service):
             pass
 
     def __add_ipa_ca_record(self):
-        self.__add_ipa_ca_records(self.fqdn, [self.ip_address],
+        self.__add_ipa_ca_records(self.fqdn, self.ip_addresses,
                                   self.ca_configured)
 
         if self.first_instance:
@@ -798,7 +842,17 @@ class BindInstance(service.Service):
 
     def __setup_resolv_conf(self):
         self.fstore.backup_file(RESOLV_CONF)
-        resolv_txt = "search "+self.domain+"\nnameserver "+self.ip_address+"\n"
+        resolv_txt = "search "+self.domain+"\n"
+
+        for ip_address in self.ip_addresses:
+            if ip_address.version == 4:
+                resolv_txt += "nameserver 127.0.0.1\n"
+                break
+
+        for ip_address in self.ip_addresses:
+            if ip_address.version == 6:
+                resolv_txt += "nameserver ::1\n"
+                break
         try:
             resolv_fd = open(RESOLV_CONF, 'w')
             resolv_fd.seek(0)
@@ -812,16 +866,16 @@ class BindInstance(service.Service):
         installutils.check_entropy()
         ipautil.run(['/usr/libexec/generate-rndc-key.sh'])
 
-    def add_master_dns_records(self, fqdn, ip_address, realm_name, domain_name,
-                               reverse_zone, ntp=False, ca_configured=None):
+    def add_master_dns_records(self, fqdn, ip_addresses, realm_name, domain_name,
+                               reverse_zones, ntp=False, ca_configured=None):
         self.fqdn = fqdn
-        self.ip_address = ip_address
+        self.ip_addresses = ip_addresses
         self.realm = realm_name
         self.domain = domain_name
         self.host = fqdn.split(".")[0]
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.ntp = ntp
-        self.reverse_zone = reverse_zone
+        self.reverse_zones = reverse_zones
         self.ca_configured = ca_configured
         self.first_instance = False
         self.zonemgr = 'hostmaster.%s' % self.domain

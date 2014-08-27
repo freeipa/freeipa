@@ -54,9 +54,11 @@ class ReplicaPrepare(admintool.AdminTool):
 
         parser.add_option("-p", "--password", dest="password",
             help="Directory Manager password (for the existing master)")
-        parser.add_option("--ip-address", dest="ip_address", type="ip",
+        parser.add_option("--ip-address", dest="ip_addresses", type="ip",
+            action="append", default=[],
             help="add A and PTR records of the future replica")
-        parser.add_option("--reverse-zone", dest="reverse_zone",
+        parser.add_option("--reverse-zone", dest="reverse_zones",
+            action="append", default=[],
             help="the reverse DNS zone to use")
         parser.add_option("--no-reverse", dest="no_reverse",
             action="store_true", default=False,
@@ -95,14 +97,14 @@ class ReplicaPrepare(admintool.AdminTool):
         super(ReplicaPrepare, self).validate_options(needs_root=True)
         installutils.check_server_configuration()
 
-        if not options.ip_address:
-            if options.reverse_zone:
+        if not options.ip_addresses:
+            if options.reverse_zones:
                 self.option_parser.error("You cannot specify a --reverse-zone "
                     "option without the --ip-address option")
             if options.no_reverse:
                 self.option_parser.error("You cannot specify a --no-reverse "
                     "option without the --ip-address option")
-        elif options.reverse_zone and options.no_reverse:
+        elif options.reverse_zones and options.no_reverse:
             self.option_parser.error("You cannot specify a --reverse-zone "
                 "option together with --no-reverse")
 
@@ -192,7 +194,7 @@ class ReplicaPrepare(admintool.AdminTool):
         except installutils.BadHostError, e:
             msg = str(e)
             if isinstance(e, installutils.HostLookupError):
-                if options.ip_address is None:
+                if not options.ip_addresses:
                     if dns_container_exists(
                             api.env.host, api.env.basedn,
                             dm_password=self.dirman_password,
@@ -206,7 +208,7 @@ class ReplicaPrepare(admintool.AdminTool):
             else:
                 raise
 
-        if options.ip_address:
+        if options.ip_addresses:
             if not dns_container_exists(api.env.host, api.env.basedn,
                                         dm_password=self.dirman_password,
                                         ldapi=True, realm=api.env.realm):
@@ -215,9 +217,19 @@ class ReplicaPrepare(admintool.AdminTool):
                     "because DNS is not managed by IPA. Please create DNS "
                     "record manually and then omit --ip-address option.")
                 raise admintool.ScriptError("Cannot add DNS record")
-            if options.reverse_zone and not bindinstance.verify_reverse_zone(
-                    options.reverse_zone, options.ip_address):
-                raise admintool.ScriptError("Invalid reverse zone")
+
+            disconnect = False
+            if not api.Backend.ldap2.isconnected():
+                api.Backend.ldap2.connect(
+                    bind_dn=DN(('cn', 'Directory Manager')),
+                    bind_pw=self.dirman_password)
+                disconnect = True
+
+            options.reverse_zones = bindinstance.check_reverse_zones(
+                options.ip_addresses, options.reverse_zones, options, False,
+                True)
+            if disconnect:
+                api.Backend.ldap2.disconnect()
 
         if options.http_pkcs12:
             if options.http_pin is None:
@@ -293,7 +305,7 @@ class ReplicaPrepare(admintool.AdminTool):
         finally:
             shutil.rmtree(self.top_dir)
 
-        if options.ip_address:
+        if options.ip_addresses:
             self.add_dns_records()
 
         if options.wait_for_dns:
@@ -420,46 +432,38 @@ class ReplicaPrepare(admintool.AdminTool):
         options = self.options
 
         self.log.info("Adding DNS records for %s", self.replica_fqdn)
-        api.Backend.ldap2.connect(
-            bind_dn=DN(('cn', 'Directory Manager')),
-            bind_pw=self.dirman_password)
-
         name, domain = self.replica_fqdn.split(".", 1)
 
-        ip = options.ip_address
-        ip_address = str(ip)
-
-        if options.reverse_zone:
-            reverse_zone = bindinstance.normalize_zone(options.reverse_zone)
-        else:
-            reverse_zone = bindinstance.find_reverse_zone(ip)
-            if reverse_zone is None and not options.no_reverse:
-                reverse_zone = bindinstance.get_reverse_zone_default(ip)
-
+        if not api.Backend.ldap2.isconnected():
+            api.Backend.ldap2.connect(
+                bind_dn=DN(('cn', 'Directory Manager')),
+                bind_pw=self.dirman_password)
         try:
             add_zone(domain)
         except errors.PublicError, e:
             raise admintool.ScriptError(
                 "Could not create forward DNS zone for the replica: %s" % e)
 
-        try:
-            add_fwd_rr(domain, name, ip_address)
-        except errors.PublicError, e:
-            raise admintool.ScriptError(
-                "Could not add forward DNS record for the replica: %s" % e)
+        for reverse_zone in options.reverse_zones:
+            self.log.info("Adding reverse zone %s", reverse_zone)
+            add_zone(reverse_zone)
 
-        if reverse_zone is not None:
-            self.log.info("Using reverse zone %s", reverse_zone)
+        for ip in options.ip_addresses:
+            ip_address = str(ip)
             try:
-                add_zone(reverse_zone)
+                add_fwd_rr(domain, name, ip_address)
             except errors.PublicError, e:
                 raise admintool.ScriptError(
-                    "Could not create reverse DNS zone for replica: %s" % e)
-            try:
-                add_ptr_rr(reverse_zone, ip_address, self.replica_fqdn)
-            except errors.PublicError, e:
-                raise admintool.ScriptError(
-                    "Could not add reverse DNS record for the replica: %s" % e)
+                    "Could not add forward DNS record for the replica: %s" % e)
+
+            if not options.no_reverse:
+                reverse_zone = bindinstance.find_reverse_zone(ip)
+                try:
+                    add_ptr_rr(reverse_zone, ip_address, self.replica_fqdn)
+                except errors.PublicError, e:
+                    raise admintool.ScriptError(
+                        "Could not add reverse DNS record for the replica: %s"
+                        % e)
 
     def check_dns(self, replica_fqdn):
         """Return true if the replica hostname is resolvable"""
