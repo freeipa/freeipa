@@ -392,6 +392,32 @@ class Service(object):
             self.ldap_connect()
 
         entry_name = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
+
+        # enable disabled service
+        try:
+            entry = self.admin_conn.get_entry(entry_name, ['ipaConfigString'])
+        except errors.NotFound:
+            pass
+        else:
+            if any(u'enabledservice' == val.lower()
+                   for val in entry.get('ipaConfigString', [])):
+                root_logger.debug("service %s startup entry already enabled", name)
+                return
+
+            entry.setdefault('ipaConfigString', []).append(u'enabledService')
+
+            try:
+                self.admin_conn.update_entry(entry)
+            except errors.EmptyModlist:
+                root_logger.debug("service %s startup entry already enabled", name)
+                return
+            except:
+                root_logger.debug("failed to enable service %s startup entry", name)
+                raise
+
+            root_logger.debug("service %s startup entry enabled", name)
+            return
+
         order = SERVICE_LIST[name][1]
         entry = self.admin_conn.make_entry(
             entry_name,
@@ -404,8 +430,47 @@ class Service(object):
         try:
             self.admin_conn.add_entry(entry)
         except (errors.DuplicateEntry), e:
-            root_logger.debug("failed to add %s Service startup entry" % name)
+            root_logger.debug("failed to add service %s startup entry", name)
             raise e
+
+    def ldap_disable(self, name, fqdn, ldap_suffix):
+        assert isinstance(ldap_suffix, DN)
+        if not self.admin_conn:
+            self.ldap_connect()
+
+        entry_dn = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'),
+                        ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
+        search_kw = {'ipaConfigString': u'enabledService'}
+        filter = self.admin_conn.make_filter(search_kw)
+        try:
+            entries, truncated = self.admin_conn.find_entries(
+                filter=filter,
+                attrs_list=['ipaConfigString'],
+                base_dn=entry_dn,
+                scope=self.admin_conn.SCOPE_BASE)
+        except errors.NotFound:
+            root_logger.debug("service %s startup entry already disabled", name)
+            return
+
+        assert len(entries) == 1  # only one entry is expected
+        entry = entries[0]
+
+        # case insensitive
+        for value in entry.get('ipaConfigString', []):
+            if value.lower() == u'enabledservice':
+                entry['ipaConfigString'].remove(value)
+                break
+
+        try:
+            self.admin_conn.update_entry(entry)
+        except errors.EmptyModlist:
+            pass
+        except:
+            root_logger.debug("failed to disable service %s startup entry", name)
+            raise
+
+        root_logger.debug("service %s startup entry disabled", name)
+
 
 class SimpleServiceInstance(Service):
     def create_instance(self, gensvc_name=None, fqdn=None, dm_password=None, ldap_suffix=None, realm=None):
