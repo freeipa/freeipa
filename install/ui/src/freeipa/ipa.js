@@ -632,8 +632,6 @@ IPA.password_selfservice = function() {
             IPA.update_password_expiration();
         };
         command.execute();
-
-        IPA.notify_success(text.get('@i18n:password.password_change_complete'));
     });
     reset_dialog.open();
 };
