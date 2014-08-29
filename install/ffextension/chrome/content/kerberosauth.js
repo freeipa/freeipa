@@ -42,7 +42,8 @@ var kerberosauth = {
             referer: '2',
             native_gss_lib: 'true',
             trusted_uris: '',
-            allow_proxies: 'true'
+            allow_proxies: 'true',
+            append: ['trusted_uris']
         }
     },
 
@@ -125,14 +126,25 @@ var kerberosauth = {
         var self = this;
 
         var prefs = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
+        var append_opts = options.append || [];
 
         for (var opt in options) {
+
+            if (!self.config_options[opt]) continue;
 
             var name = self.config_options[opt][0];
             var type = self.config_options[opt][1];
             var value = options[opt];
 
             if (type === 'str') {
+                if (value && append_opts.indexOf(opt) > -1) {
+                    var current = prefs.getCharPref(name) || '';
+                    if (this.str_contains(current, value)) {
+                        continue;
+                    } else if (current) {
+                        value = current + ', ' + value;
+                    }
+                }
                 prefs.setCharPref(name, value);
             } else if (type ==='int') {
                 prefs.setIntPref(name, Number(value));
@@ -140,6 +152,16 @@ var kerberosauth = {
                 prefs.setBoolPref(name, value === 'true');
             }
         }
+    },
+
+    str_contains: function(str, value) {
+
+        if (!str) return false;
+        var vals = str.split(',');
+        for (var i=0, l=vals.length; i<l; i++) {
+            if (vals[i].trim() === value) return true;
+        }
+        return false;
     },
 
     prompt: function(conf, options) {
