@@ -583,6 +583,11 @@ class CAInstance(service.Service):
             config.set("CA", "pki_external_csr_path", self.csr_file)
 
         elif self.external == 2:
+            cert = x509.load_certificate_from_file(self.cert_file)
+            cert_file = tempfile.NamedTemporaryFile()
+            x509.write_certificate(cert.der_data, cert_file.name)
+            cert_file.flush()
+
             cert_chain, stderr, rc = ipautil.run(
                 [paths.OPENSSL, 'crl2pkcs7',
                  '-certfile', self.cert_chain_file,
@@ -595,7 +600,7 @@ class CAInstance(service.Service):
             cert_chain_file = ipautil.write_tmp_file(cert_chain)
 
             config.set("CA", "pki_external", "True")
-            config.set("CA", "pki_external_ca_cert_path", self.cert_file)
+            config.set("CA", "pki_external_ca_cert_path", cert_file.name)
             config.set("CA", "pki_external_ca_cert_chain_path", cert_chain_file.name)
             config.set("CA", "pki_external_step_two", "True")
 
@@ -730,10 +735,15 @@ class CAInstance(service.Service):
                 args.append("-ext_csr_file")
                 args.append(self.csr_file)
             elif self.external == 2:
+                cert = x509.load_certificate_from_file(self.cert_file)
+                cert_file = tempfile.NamedTemporaryFile()
+                x509.write_certificate(cert.der_data, cert_file.name)
+                cert_file.flush()
+
                 args.append("-external")
                 args.append("true")
                 args.append("-ext_ca_cert_file")
-                args.append(self.cert_file)
+                args.append(cert_file.name)
                 args.append("-ext_ca_cert_chain_file")
                 args.append(self.cert_chain_file)
             else:
