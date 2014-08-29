@@ -347,22 +347,13 @@ class HTTPInstance(service.Service):
             root_logger.warning('Object-signing certificate was not found; '
                 'therefore, configure.jar was not created.')
 
-        self.setup_firefox_extension(self.realm, self.domain, force=True)
+        self.setup_firefox_extension(self.realm, self.domain)
 
-    def setup_firefox_extension(self, realm, domain, force=False):
+    def setup_firefox_extension(self, realm, domain):
         """Set up the signed browser configuration extension
-
-        If the extension is already set up, skip the installation unless
-        ``force`` is true.
         """
 
         target_fname = paths.KRB_JS
-        if os.path.exists(target_fname) and not force:
-            root_logger.info(
-                '%s exists, skipping install of Firefox extension',
-                    target_fname)
-            return
-
         sub_dict = dict(REALM=realm, DOMAIN=domain)
         db = certs.CertDB(realm)
         with open(db.passwd_fname) as pwdfile:
