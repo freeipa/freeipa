@@ -247,11 +247,6 @@ def install_http(config, auto_redirect):
         if ipautil.file_exists(config.dir + "/configure.jar"):
             shutil.copy(config.dir + "/configure.jar",
                         paths.CONFIGURE_JAR)
-        if ipautil.file_exists(config.dir + "/krb.js"):
-            shutil.copy(config.dir + "/krb.js",
-                        paths.KRB_JS)
-            shutil.copy(config.dir + "/kerberosauth.xpi",
-                        paths.KERBEROSAUTH_XPI)
     except Exception, e:
         print "error copying files: " + str(e)
         sys.exit(1)

@@ -370,9 +370,6 @@ class ReplicaPrepare(admintool.AdminTool):
         preferences_filename = paths.PREFERENCES_HTML
         if ipautil.file_exists(preferences_filename):
             self.copy_info_file(preferences_filename, "preferences.html")
-            self.copy_info_file(paths.KRB_JS, "krb.js")
-            self.copy_info_file(
-                paths.KERBEROSAUTH_XPI, "kerberosauth.xpi")
         jar_filename = paths.CONFIGURE_JAR
         if ipautil.file_exists(jar_filename):
             self.copy_info_file(jar_filename, "configure.jar")
