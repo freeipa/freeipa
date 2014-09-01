@@ -296,6 +296,15 @@ class Service(object):
     def is_enabled(self):
         return self.service.is_enabled()
 
+    def mask(self):
+        return self.service.mask()
+
+    def unmask(self):
+        return self.service.unmask()
+
+    def is_masked(self):
+        return self.service.is_masked()
+
     def backup_state(self, key, value):
         self.sstore.backup_state(self.service_name, key, value)
 

@@ -134,10 +134,19 @@ class PlatformService(object):
     def is_enabled(self, instance_name=""):
         return False
 
+    def is_masked(self, instance_name=""):
+        return False
+
     def enable(self, instance_name=""):
         return
 
     def disable(self, instance_name=""):
+        return
+
+    def mask(self, instance_name=""):
+        return
+
+    def unmask(self, instance_name=""):
         return
 
     def install(self, instance_name=""):
@@ -327,6 +336,21 @@ class SystemdService(PlatformService):
                 enabled = False
         return enabled
 
+    def is_masked(self, instance_name=""):
+        masked = False
+        try:
+            (sout, serr, rcode) = ipautil.run(
+                                      [paths.SYSTEMCTL,
+                                       "is-enabled",
+                                        self.service_instance(instance_name)])
+
+            if rcode == 1 and sout == 'masked':
+                masked = True
+
+        except ipautil.CalledProcessError:
+                pass
+        return masked
+
     def enable(self, instance_name=""):
         if self.lib_path_exists is None:
             self.lib_path_exists = os.path.exists(self.lib_path)
@@ -402,6 +426,18 @@ class SystemdService(PlatformService):
         else:
             self.__disable(instance_name)
 
+    def mask(self, instance_name=""):
+        if instance_name != "":
+            srv_tgt = os.path.join(paths.ETC_SYSTEMD_SYSTEM_DIR, instance_name)
+            # remove instance file or link before masking
+            if os.path.islink(srv_tgt):
+                os.unlink(srv_tgt)
+
+        self.__mask(instance_name)
+
+    def unmask(self, instance_name=""):
+        self.__unmask(instance_name)
+
     def __enable(self, instance_name=""):
         try:
             ipautil.run([paths.SYSTEMCTL, "enable",
@@ -412,6 +448,20 @@ class SystemdService(PlatformService):
     def __disable(self, instance_name=""):
         try:
             ipautil.run([paths.SYSTEMCTL, "disable",
+                         self.service_instance(instance_name)])
+        except ipautil.CalledProcessError:
+            pass
+
+    def __mask(self, instance_name=""):
+        try:
+            ipautil.run([paths.SYSTEMCTL, "mask",
+                         self.service_instance(instance_name)])
+        except ipautil.CalledProcessError:
+            pass
+
+    def __unmask(self, instance_name=""):
+        try:
+            ipautil.run([paths.SYSTEMCTL, "unmask",
                          self.service_instance(instance_name)])
         except ipautil.CalledProcessError:
             pass
