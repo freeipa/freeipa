@@ -203,6 +203,7 @@ Requires: libsss_autofs
 Requires: autofs
 Requires: libnfsidmap
 Requires: nfs-utils
+Requires: python-backports-ssl_match_hostname
 Requires(post): policycoreutils
 
 Obsoletes: ipa-client >= 1.0
