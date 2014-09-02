@@ -335,6 +335,10 @@ class DogtagInstance(service.Service):
     def stop_tracking_certificates(self, dogtag_constants, reqs=None):
         """Stop tracking our certificates. Called on uninstall.
         """
+        self.print_msg(
+            "Configuring certmonger to stop tracking system certificates "
+            "for %s" % self.subsystem)
+
         cmonger = services.knownservices.certmonger
         services.knownservices.messagebus.start()
         cmonger.start()

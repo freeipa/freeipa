@@ -49,6 +49,11 @@ class KRAInstall(admintool.AdminTool):
         super(KRAInstall, cls).add_options(parser, debug_option=True)
 
         parser.add_option(
+            "--no-host-dns", dest="no_host_dns", action="store_true",
+            default=False,
+            help="Do not use DNS for hostname lookup during installation")
+
+        parser.add_option(
             "-p", "--password",
             dest="password", sensitive=True,
             help="Directory Manager (existing master) password")
@@ -114,14 +119,6 @@ class KRAUninstaller(KRAInstall):
     def run(self):
         super(KRAUninstaller, self).run()
         dogtag_constants = dogtag.configured_constants()
-
-        # temporarily disable uninstall until Dogtag ticket:
-        # https://fedorahosted.org/pki/ticket/1113 is fixed
-        # TODO(alee) remove this once the above ticket is fixed
-        raise admintool.ScriptError(
-            "Uninstall is temporarily disabled.  To uninstall, please "
-            "use ipa-server-install --uninstall"
-        )
 
         kra_instance = krainstance.KRAInstance(
             api.env.realm, dogtag_constants=dogtag_constants)
