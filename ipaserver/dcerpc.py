@@ -57,6 +57,8 @@ import pysss_nss_idmap
 import pysss
 from ipaplatform.paths import paths
 
+from ldap.filter import escape_filter_chars
+
 __doc__ = _("""
 Classes to manage trust joins using DCE-RPC calls
 
@@ -349,6 +351,53 @@ class DomainValidator(object):
         except TypeError, e:
             raise errors.ValidationError(name=_('trusted domain object'),
                error= _('Trusted domain did not return a valid SID for the object'))
+
+    def get_trusted_domain_object_from_sid(self, sid):
+        root_logger.info("Converting SID to object name: %s" % sid)
+
+        # Check if the given SID is valid
+        if not self.is_trusted_sid_valid(sid):
+            raise errors.ValidationError(name='sid', error='SID is not valid')
+
+        # Use pysss_nss_idmap to obtain the name
+        result = pysss_nss_idmap.getnamebysid(sid).get(sid)
+
+        valid_types = (pysss_nss_idmap.ID_USER,
+                       pysss_nss_idmap.ID_GROUP,
+                       pysss_nss_idmap.ID_BOTH)
+
+        if result:
+            if result.get(pysss_nss_idmap.TYPE_KEY) in valid_types:
+                return result.get(pysss_nss_idmap.NAME_KEY)
+
+        # If unsuccessful, search AD DC LDAP
+        root_logger.info("Searching AD DC LDAP")
+
+        escaped_sid = escape_filter_chars(
+            security.dom_sid(sid).__ndr_pack__(),
+            2  # 2 means every character needs to be escaped
+        )
+
+        attrs = ['sAMAccountName']
+        filter = (r'(&(objectSid=%(sid)s)(|(objectClass=user)(objectClass=group)))'
+                  % dict(sid=escaped_sid))  # sid in binary
+        domain = self.get_domain_by_sid(sid)
+
+        entries = self.get_trusted_domain_objects(domain=domain,
+                                                  filter=filter,
+                                                  attrs=attrs)
+
+        if len(entries) > 1:
+            # Treat non-unique entries as invalid
+            raise errors.ValidationError(name=_('trusted domain object'),
+               error=_('Trusted domain did not return a unique object'))
+
+        object_name = (
+            "%s@%s" % (entries[0].single_value['sAMAccountName'].lower(),
+                       domain.lower())
+            )
+
+        return unicode(object_name)
 
     def __get_trusted_domain_user_and_groups(self, object_name):
         """
