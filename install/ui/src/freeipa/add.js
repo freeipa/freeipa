@@ -166,12 +166,13 @@ IPA.entity_adder_dialog = function(spec) {
     function show_edit_page(entity,result) {
         var pkey_name = entity.metadata.primary_key;
         var pkey = result[pkey_name];
-        if (pkey instanceof Array) {
-            pkey = pkey[0];
+        if (!(pkey instanceof Array)) {
+            pkey = [pkey];
         }
+        rpc.extract_objects(pkey);
 
         var pkeys = that.pkey_prefix.slice(0);
-        pkeys.push(pkey);
+        pkeys.push(pkey[0]);
         navigation.show_entity(that.entity.name, 'default', pkeys);
     }
 
