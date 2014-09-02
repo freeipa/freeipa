@@ -1754,23 +1754,15 @@ def update_people_entry(dercert):
     issuer = x509.get_issuer(dercert, datatype=x509.DER)
 
     attempts = 0
-    configured_constants = dogtag.configured_constants(api)
-    dogtag_uri = 'ldap://localhost:%d' % configured_constants.DS_PORT
+    server_id = dsinstance.realm_to_serverid(api.env.realm)
+    dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
     updated = False
-
-    try:
-        dm_password = certmonger.get_pin('internaldb')
-    except IOError, e:
-        syslog.syslog(
-            syslog.LOG_ERR, 'Unable to determine PIN for CA instance: %s' % e)
-        return False
 
     while attempts < 10:
         conn = None
         try:
             conn = ldap2.ldap2(shared_instance=False, ldap_uri=dogtag_uri)
-            conn.connect(
-                bind_dn=DN(('cn', 'directory manager')), bind_pw=dm_password)
+            conn.connect(autobind=True)
 
             db_filter = conn.make_filter(
                 {'description': ';%s;%s' % (issuer, subject)},
