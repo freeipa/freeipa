@@ -109,7 +109,7 @@ Requires: dbus-python
 Requires: systemd-units >= 38
 Requires(pre): systemd-units
 Requires(post): systemd-units
-Requires: selinux-policy >= 3.12.1-176
+Requires: selinux-policy >= 3.12.1-179
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.47.7
 Requires: pki-ca >= 10.1.1
