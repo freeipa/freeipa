@@ -489,7 +489,7 @@ def get_server_ip_address(host_name, fstore, unattended, options):
     hosts_record = record_in_hosts(ip_address)
 
     if hosts_record is None:
-        if ip_add_to_hosts:
+        if ip_add_to_hosts or options.setup_dns:
             print "Adding ["+ip_address+" "+host_name+"] to your /etc/hosts file"
             fstore.backup_file(paths.HOSTS)
             add_record_to_hosts(ip_address, host_name)
