@@ -404,6 +404,7 @@ class CAInstance(DogtagInstance):
                 self.step("creating pki-ca instance", self.create_instance)
             self.step("configuring certificate server instance", self.__configure_instance)
         self.step("stopping certificate server instance to update CS.cfg", self.stop_instance)
+        self.step("backing up CS.cfg", self.backup_config)
         self.step("disabling nonces", self.__disable_nonce)
         self.step("set up CRL publishing", self.__enable_crl_publish)
         self.step("enable PKIX certificate path discovery and validation", self.enable_pkix)
@@ -732,6 +733,12 @@ class CAInstance(DogtagInstance):
             shutil.move(paths.ROOT_TMP_CA_P12, paths.CACERT_P12)
 
         self.log.debug("completed creating ca instance")
+
+    def backup_config(self):
+        try:
+            backup_config(self.dogtag_constants)
+        except Exception, e:
+            root_logger.warning("Failed to backup CS.cfg: %s", e)
 
     def __disable_nonce(self):
         # Turn off Nonces
@@ -1587,6 +1594,11 @@ class CAInstance(DogtagInstance):
                       'subsystemCert cert-pki-ca': 'ca.subsystem.cert',
                       'Server-Cert cert-pki-ca': 'ca.sslserver.cert'}
 
+        try:
+            backup_config(dogtag_constants)
+        except Exception, e:
+            syslog.syslog(syslog.LOG_ERR, "Failed to backup CS.cfg: %s" % e)
+
         DogtagInstance.update_cert_cs_cfg(
             nickname, cert, directives,
             dogtag.configured_constants().CS_CFG_PATH,
@@ -1715,6 +1727,15 @@ def install_replica_ca(config, postinstall=False):
 
     return ca
 
+def backup_config(dogtag_constants=None):
+    """
+    Create a backup copy of CS.cfg
+    """
+    if dogtag_constants is None:
+        dogtag_constants = dogtag.configured_constants()
+
+    shutil.copy(dogtag_constants.CS_CFG_PATH,
+                dogtag_constants.CS_CFG_PATH + '.ipabkp')
 
 def update_people_entry(dercert):
     """
