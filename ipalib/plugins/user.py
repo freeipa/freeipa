@@ -424,6 +424,17 @@ class user(LDAPObject):
             ],
             'default_privileges': {'User Administrators'},
         },
+        'System: Read User Compat Tree': {
+            'non_object': True,
+            'ipapermbindruletype': 'anonymous',
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('cn=users', 'cn=compat', api.env.basedn),
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass', 'uid', 'cn', 'gecos', 'gidnumber', 'uidnumber',
+                'homedirectory', 'loginshell',
+            },
+        },
     }
 
     label = _('Users')

@@ -368,6 +368,16 @@ class host(LDAPObject):
             'ipapermdefaultattr': {'userpassword'},
             'default_privileges': {'Host Administrators', 'Host Enrollment'},
         },
+        'System: Read Host Compat Tree': {
+            'non_object': True,
+            'ipapermbindruletype': 'all',
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('cn=computers', 'cn=compat', api.env.basedn),
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass', 'cn', 'macaddress',
+            },
+        },
     }
 
     label = _('Hosts')
