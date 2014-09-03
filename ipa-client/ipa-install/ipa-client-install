@@ -512,7 +512,7 @@ def uninstall(options, env):
 
     try:
         certmonger.stop_tracking(paths.NSS_DB_DIR, nickname=client_nss_nickname)
-    except (CalledProcessError, RuntimeError), e:
+    except RuntimeError, e:
         root_logger.error("%s failed to stop tracking certificate: %s",
             cmonger.service_name, str(e))
 

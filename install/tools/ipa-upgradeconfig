@@ -677,24 +677,25 @@ def certificate_renewal_update(ca):
         return False
 
     # State not set, lets see if we are already configured
-    for nss_dir, nickname, ca_name, pre_command, post_command in requests:
-        criteria = (
-            ('cert_storage_location', nss_dir, certmonger.NPATH),
-            ('cert_nickname', nickname, None),
-            ('ca_name', ca_name, None),
-        )
+    for request in requests:
+        nss_dir, nickname, ca_name, pre_command, post_command = request
+        criteria = {
+            'cert-database': nss_dir,
+            'cert-nickname': nickname,
+            'ca-name': ca_name,
+        }
         request_id = certmonger.get_request_id(criteria)
         if request_id is None:
             break
 
-        val = certmonger.get_request_value(request_id, 'pre_certsave_command')
+        val = certmonger.get_request_value(request_id, 'cert-presave-command')
         if val is not None:
             val = val.split(' ', 1)[0]
             val = os.path.basename(val)
         if pre_command != val:
             break
 
-        val = certmonger.get_request_value(request_id, 'post_certsave_command')
+        val = certmonger.get_request_value(request_id, 'post-certsave-command')
         if val is not None:
             val = val.split(' ', 1)[0]
             val = os.path.basename(val)

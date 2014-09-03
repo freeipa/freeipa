@@ -510,46 +510,26 @@ class CertDB(object):
             else:
                 libpath = 'lib'
             command = paths.CERTMONGER_COMMAND_TEMPLATE % (libpath, command)
-        cmonger = services.knownservices.certmonger
-        cmonger.enable()
-        services.knownservices.messagebus.start()
-        cmonger.start()
         try:
-            (stdout, stderr, rc) = certmonger.start_tracking(nickname, self.secdir, password_file, command)
-        except (ipautil.CalledProcessError, RuntimeError), e:
+            request_id = certmonger.start_tracking(nickname, self.secdir, password_file, command)
+        except RuntimeError, e:
             root_logger.error("certmonger failed starting to track certificate: %s" % str(e))
             return
 
-        cmonger.stop()
         cert = self.get_cert_from_db(nickname)
         nsscert = x509.load_certificate(cert, dbdir=self.secdir)
         subject = str(nsscert.subject)
-        m = re.match('New tracking request "(\d+)" added', stdout)
-        if not m:
-            root_logger.error('Didn\'t get new %s request, got %s' % (cmonger.service_name, stdout))
-            raise RuntimeError('%s did not issue new tracking request for \'%s\' in \'%s\'. Use \'ipa-getcert list\' to list existing certificates.' % (cmonger.service_name, nickname, self.secdir))
-        request_id = m.group(1)
-
         certmonger.add_principal(request_id, principal)
         certmonger.add_subject(request_id, subject)
-
-        cmonger.start()
 
     def untrack_server_cert(self, nickname):
         """
         Tell certmonger to stop tracking the given certificate nickname.
         """
-
-        # Always start certmonger. We can't untrack something if it isn't
-        # running
-        cmonger = services.knownservices.certmonger
-        services.knownservices.messagebus.start()
-        cmonger.start()
         try:
             certmonger.stop_tracking(self.secdir, nickname=nickname)
-        except (ipautil.CalledProcessError, RuntimeError), e:
+        except RuntimeError, e:
             root_logger.error("certmonger failed to stop tracking certificate: %s" % str(e))
-        cmonger.stop()
 
     def create_server_cert(self, nickname, hostname, other_certdb=None, subject=None):
         """

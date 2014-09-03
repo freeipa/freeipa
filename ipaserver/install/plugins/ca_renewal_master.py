@@ -52,10 +52,10 @@ class update_ca_renewal_master(PostUpdate):
             self.debug("found CA renewal master %s", entries[0].dn[1].value)
             return (False, False, [])
 
-        criteria = (
-            ('cert_storage_location', paths.HTTPD_ALIAS_DIR, certmonger.NPATH),
-            ('cert_nickname', 'ipaCert', None),
-        )
+        criteria = {
+            'cert-database': paths.HTTPD_ALIAS_DIR,
+            'cert-nickname': 'ipaCert',
+        }
         request_id = certmonger.get_request_id(criteria)
         if request_id is not None:
             self.debug("found certmonger request for ipaCert")
