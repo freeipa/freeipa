@@ -297,7 +297,6 @@ class permission(baseldap.LDAPObject):
             'ipapermtarget?',
             cli_name='target',
             label=_('ACI target DN'),
-            flags={'no_option'}
         ),
 
         Str('memberof*',
