@@ -455,6 +455,7 @@ class CAInstance(service.Service):
                 self.step("creating pki-ca instance", self.create_instance)
             self.step("configuring certificate server instance", self.__configure_instance)
         self.step("stopping certificate server instance to update CS.cfg", self.__stop)
+        self.step("backing up CS.cfg", self.backup_config)
         self.step("disabling nonces", self.__disable_nonce)
         self.step("set up CRL publishing", self.__enable_crl_publish)
         self.step("enable PKIX certificate path discovery and validation", self.enable_pkix)
@@ -817,6 +818,12 @@ class CAInstance(service.Service):
             # TODO: roll back here?
             root_logger.debug(traceback.format_exc())
             root_logger.critical("Failed to restart the certificate server. See the installation log for details.")
+
+    def backup_config(self):
+        try:
+            backup_config(self.dogtag_constants)
+        except Exception, e:
+            root_logger.warning("Failed to backup CS.cfg: %s", e)
 
     def __disable_nonce(self):
         # Turn off Nonces
@@ -1822,6 +1829,16 @@ def install_replica_ca(config, postinstall=False):
 
     return ca
 
+def backup_config(dogtag_constants=None):
+    """
+    Create a backup copy of CS.cfg
+    """
+    if dogtag_constants is None:
+        dogtag_constants = dogtag.configured_constants()
+
+    shutil.copy(dogtag_constants.CS_CFG_PATH,
+                dogtag_constants.CS_CFG_PATH + '.ipabkp')
+
 def update_cert_config(nickname, cert, dogtag_constants=None):
     """
     When renewing a CA subsystem certificate the configuration file
@@ -1843,6 +1860,10 @@ def update_cert_config(nickname, cert, dogtag_constants=None):
 
     with stopped_service(dogtag_constants.SERVICE_NAME,
                          instance_name=dogtag_constants.PKI_INSTANCE_NAME):
+        try:
+            backup_config(dogtag_constants)
+        except Exception, e:
+            syslog.syslog(syslog.LOG_ERR, "Failed to backup CS.cfg: %s" % e)
 
         installutils.set_directive(dogtag.configured_constants().CS_CFG_PATH,
                                     directives[nickname],
