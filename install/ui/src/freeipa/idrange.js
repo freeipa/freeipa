@@ -54,6 +54,11 @@ return {
                         'cn',
                         'iparangetype',
                         {
+                            name: 'iparangetyperaw',
+                            read_only: true,
+                            visible: false
+                        },
+                        {
                             name: 'ipabaseid',
                             label: '@i18n:objects.idrange.ipabaseid',
                             title: '@mo-param:idrange:ipabaseid:label'
@@ -80,6 +85,9 @@ return {
                         }
                     ]
                 }
+            ],
+            policies: [
+                exp.idrange_policy
             ]
         }
     ],
@@ -87,21 +95,6 @@ return {
         fields: [
             {
                 name: 'cn'
-            },
-            {
-                name: 'ipabaseid',
-                label: '@i18n:objects.idrange.ipabaseid',
-                title: '@mo-param:idrange:ipabaseid:label'
-            },
-            {
-                name: 'ipaidrangesize',
-                label: '@i18n:objects.idrange.ipaidrangesize',
-                title: '@mo-param:idrange:ipaidrangesize:label'
-            },
-            {
-                name: 'ipabaserid',
-                label: '@i18n:objects.idrange.ipabaserid',
-                title: '@mo-param:idrange:ipabaserid:label'
             },
             {
                 name: 'iparangetype',
@@ -123,6 +116,21 @@ return {
                         label: '@i18n:objects.idrange.type_ad_posix'
                     }
                 ]
+            },
+            {
+                name: 'ipabaseid',
+                label: '@i18n:objects.idrange.ipabaseid',
+                title: '@mo-param:idrange:ipabaseid:label'
+            },
+            {
+                name: 'ipaidrangesize',
+                label: '@i18n:objects.idrange.ipaidrangesize',
+                title: '@mo-param:idrange:ipaidrangesize:label'
+            },
+            {
+                name: 'ipabaserid',
+                label: '@i18n:objects.idrange.ipabaserid',
+                title: '@mo-param:idrange:ipabaserid:label'
             },
             {
                 name: 'ipasecondarybaserid',
@@ -147,7 +155,9 @@ IPA.idrange_adder_policy = function(spec) {
     The logic for enabling/requiring ipabaserid, ipasecondarybaserid and
     ipanttrusteddomainsid is as follows:
         1) for AD ranges (range type is ipa-ad-trust or ipa-ad-trust-posix):
-           * ipabaserid and ipanttrusteddomainsid are requred
+           * ipanttrusteddomainsid is required
+           * ipabaserid is required for ipa-ad-trust but disabled for
+             ipa-ad-trust-posix
            * ipasecondarybaserid is disabled
         2) for local ranges
            *  ipanttrusteddomainsid is disabled
@@ -206,7 +216,11 @@ IPA.idrange_adder_policy = function(spec) {
         var is_ad_range = (type_v === 'ipa-ad-trust' || type_v === 'ipa-ad-trust-posix');
 
         if (is_ad_range) {
-            require(baserid_f);
+            if (type_v === 'ipa-ad-trust') {
+                require(baserid_f);
+            } else {
+                disable(baserid_f);
+            }
             require(trusteddomainsid_f);
             disable(secondarybaserid_f);
         } else {
@@ -227,6 +241,35 @@ IPA.idrange_adder_policy = function(spec) {
         }
     };
 
+    return that;
+};
+
+exp.idrange_policy = function(spec) {
+
+    spec = spec || {};
+    var that = IPA.facet_policy(spec);
+
+    that.post_load = function() {
+        var type_f = that.container.fields.get_field('iparangetyperaw');
+        var widgets = that.container.widgets;
+        var type_v = type_f.get_value()[0];
+
+        var baserid = true;
+        var secrid = true;
+        var sid = true;
+
+        if (type_v === 'ipa-local') {
+            sid = false;
+        } else if (type_v === 'ipa-ad-trust-posix') {
+            baserid = secrid = false;
+        } else if (type_v === 'ipa-ad-trust') {
+            secrid = false;
+        }
+
+        widgets.get_widget('details.ipabaserid').set_visible(baserid);
+        widgets.get_widget('details.ipasecondarybaserid').set_visible(secrid);
+        widgets.get_widget('details.ipanttrusteddomainsid').set_visible(sid);
+    };
     return that;
 };
 
