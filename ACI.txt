@@ -50,6 +50,8 @@ dn: cn=groups,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "member")(targetfilter = "(&(!(cn=admins))(objectclass=ipausergroup))")(version 3.0;acl "permission:System: Modify Group Membership";allow (write) groupdn = "ldap:///cn=System: Modify Group Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "cn || description || gidnumber || ipauniqueid || mepmanagedby || objectclass")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Modify Groups";allow (write) groupdn = "ldap:///cn=System: Modify Groups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "cn || memberuid || objectclass")(target = "ldap:///cn=groups,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Group Compat Tree";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "member || memberhost || memberof || memberuid || memberuser")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Read Group Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
@@ -96,6 +98,8 @@ dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "ipasshpubkey")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host SSH Public Keys";allow (write) groupdn = "ldap:///cn=System: Manage Host SSH Public Keys,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "description || l || macaddress || nshardwareplatform || nshostlocation || nsosversion || userclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Modify Hosts";allow (write) groupdn = "ldap:///cn=System: Modify Hosts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "cn || macaddress || objectclass")(target = "ldap:///cn=computers,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Host Compat Tree";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "memberof")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Read Host Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
@@ -126,6 +130,8 @@ dn: cn=ng,cn=alt,dc=ipa,dc=example
 aci: (targetattr = "externalhost || member || memberhost || memberuser")(targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Modify Netgroup Membership";allow (write) groupdn = "ldap:///cn=System: Modify Netgroup Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=ng,cn=alt,dc=ipa,dc=example
 aci: (targetattr = "description")(targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Modify Netgroups";allow (write) groupdn = "ldap:///cn=System: Modify Netgroups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "cn || mambernisnetgroup || nisnetgrouptriple || objectclass")(target = "ldap:///cn=ng,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Netgroup Compat Tree";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=ng,cn=alt,dc=ipa,dc=example
 aci: (targetattr = "externalhost || member || memberhost || memberof || memberuser || objectclass")(targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Read Netgroup Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=ng,cn=alt,dc=ipa,dc=example
@@ -232,6 +238,8 @@ dn: cn=UPG Definition,cn=Definitions,cn=Managed Entries,cn=etc,dc=ipa,dc=example
 aci: (targetattr = "*")(target = "ldap:///cn=UPG Definition,cn=Definitions,cn=Managed Entries,cn=etc,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read UPG Definition";allow (compare,read,search) groupdn = "ldap:///cn=System: Read UPG Definition,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "audio || businesscategory || carlicense || departmentnumber || destinationindicator || employeenumber || employeetype || fax || homephone || homepostaladdress || inetuserhttpurl || inetuserstatus || internationalisdnnumber || jpegphoto || l || labeleduri || mail || mobile || o || ou || pager || photo || physicaldeliveryofficename || postaladdress || postalcode || postofficebox || preferreddeliverymethod || preferredlanguage || registeredaddress || roomnumber || secretary || seealso || st || street || telephonenumber || teletexterminalidentifier || telexnumber || usercertificate || usersmimecertificate || x121address || x500uniqueidentifier")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User Addressbook Attributes";allow (compare,read,search) userdn = "ldap:///all";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "cn || gecos || gidnumber || homedirectory || loginshell || objectclass || uid || uidnumber")(target = "ldap:///cn=users,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read User Compat Tree";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "ipasshpubkey || ipauniqueid || ipauserauthtype || userclass")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User IPA Attributes";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
