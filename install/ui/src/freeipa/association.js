@@ -133,6 +133,7 @@ IPA.bulk_associator = function(spec) {
     spec = spec || {};
 
     var that = IPA.associator(spec);
+    that.options = spec.options || { 'all': true };
 
     that.execute = function() {
 
@@ -145,7 +146,7 @@ IPA.bulk_associator = function(spec) {
             entity: that.entity.name,
             method: that.method,
             args: [that.pkey],
-            options: { 'all': true },
+            options: that.options,
             on_success: that.on_success,
             on_error: that.on_error
         });
@@ -1407,6 +1408,15 @@ exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
 
     that.refresh = function() {
 
+        var command = that.get_refresh_command();
+        command.execute();
+    };
+
+    /**
+     * Create refresh command
+     */
+    that.get_refresh_command = function() {
+
         var pkey = that.get_pkeys();
 
         var command = rpc.command({
@@ -1431,8 +1441,7 @@ exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
             that.redirect_error(error_thrown);
             that.report_error(error_thrown);
         };
-
-        command.execute();
+        return command;
     };
 
     that.clear = function() {
@@ -1524,6 +1533,8 @@ exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
     };
 
     if (!no_init) that.init_attribute_facet();
+
+    that.attribute_get_refresh_command = that.get_refresh_command;
 
     return that;
 };

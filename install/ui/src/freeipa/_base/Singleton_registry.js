@@ -116,6 +116,23 @@ define(['dojo/_base/declare',
             this.builder.registry.register(type, func, default_spec);
         },
 
+        /**
+         * Makes a copy of construct specification of original type. Extends
+         * it with values in supplied construct specification.
+         *
+         * @param {string} org_type Original type
+         * @param {string} new_type New type
+         * @param {Object} construct_spec Construction specification
+         */
+        copy: function(org_type, new_type, construct_spec) {
+            if (!lang.exists('builder.registry', this)) {
+                throw {
+                    error: 'Object Initialized Exception: builder not initalized',
+                    context: this
+                };
+            }
+            this.builder.registry.copy(org_type, new_type, construct_spec);
+        },
 
         constructor: function(spec) {
 
