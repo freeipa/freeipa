@@ -296,7 +296,9 @@ class permission(baseldap.LDAPObject):
         DNParam(
             'ipapermtarget?',
             cli_name='target',
-            label=_('ACI target DN'),
+            label=_('Target DN'),
+            doc=_('Optional DN to apply the permission to '
+                  '(must be in the subtree, but may not yet exist)'),
         ),
 
         Str('memberof*',
