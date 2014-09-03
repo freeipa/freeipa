@@ -1327,7 +1327,7 @@ class CAInstance(DogtagInstance):
                 secdir=paths.HTTPD_ALIAS_DIR,
                 pre_command=None,
                 post_command='renew_ra_cert')
-        except (ipautil.CalledProcessError, RuntimeError), e:
+        except RuntimeError, e:
             self.log.error(
                 "certmonger failed to start tracking certificate: %s", e)
 
@@ -1369,7 +1369,7 @@ class CAInstance(DogtagInstance):
                 secdir=self.dogtag_constants.ALIAS_DIR,
                 pre_command=None,
                 post_command=None)
-        except (ipautil.CalledProcessError, RuntimeError), e:
+        except RuntimeError, e:
             self.log.error(
                 "certmonger failed to start tracking certificate: %s", e)
 
@@ -1382,7 +1382,7 @@ class CAInstance(DogtagInstance):
         cmonger.start()
         try:
             certmonger.stop_tracking(paths.HTTPD_ALIAS_DIR, nickname='ipaCert')
-        except (ipautil.CalledProcessError, RuntimeError), e:
+        except RuntimeError, e:
             root_logger.error(
                 "certmonger failed to stop tracking certificate: %s", e)
         cmonger.stop()

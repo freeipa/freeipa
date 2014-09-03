@@ -325,7 +325,7 @@ class DogtagInstance(service.Service):
                     pre_command='stop_pkicad',
                     post_command='renew_ca_cert "%s"' % nickname,
                     profile=profile)
-            except (ipautil.CalledProcessError, RuntimeError), e:
+            except RuntimeError, e:
                 self.log.error(
                     "certmonger failed to start tracking certificate: %s", e)
 
@@ -343,7 +343,7 @@ class DogtagInstance(service.Service):
             try:
                 certmonger.stop_tracking(
                     dogtag_constants.ALIAS_DIR, nickname=nickname)
-            except (ipautil.CalledProcessError, RuntimeError), e:
+            except RuntimeError, e:
                 self.log.error(
                     "certmonger failed to stop tracking certificate: %s", e)
 
