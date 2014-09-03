@@ -35,6 +35,7 @@ define([
     './hostgroup',
     './host',
     './idrange',
+    './idviews',
     './netgroup',
     './otptoken',
     './policy',

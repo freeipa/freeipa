@@ -796,6 +796,8 @@ IPA.adder_dialog = function(spec) {
     /** @property {number} height=300 Height */
     that.height = spec.height || 360;
 
+    that.add_button_label = spec.add_button_label || '@i18n:buttons.add';
+
     if (!that.entity) {
         var except = {
             expected: false,
@@ -1045,7 +1047,7 @@ IPA.adder_dialog = function(spec) {
 
         var add_button = that.create_button({
             name: 'add',
-            label: '@i18n:buttons.add',
+            label: that.add_button_label,
             click: function() {
                 if (!add_button.is_enabled()) return;
                 that.execute();

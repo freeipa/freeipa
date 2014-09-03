@@ -159,6 +159,7 @@ var nav = {};
                     ]
                 },
                 { entity: 'idrange' },
+                { entity: 'idview' },
                 { entity: 'realmdomains' },
                 {
                     name: 'trusts',

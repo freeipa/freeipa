@@ -241,6 +241,7 @@
                 "name": "Plugins",
                 "classes": [
                     "aci",
+                    "idviews",
                     "otptoken",
                     "radiusproxy",
                     "user",
