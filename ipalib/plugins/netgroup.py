@@ -160,6 +160,16 @@ class netgroup(LDAPObject):
             ],
             'default_privileges': {'Netgroups Administrators'},
         },
+        'System: Read Netgroup Compat Tree': {
+            'non_object': True,
+            'ipapermbindruletype': 'all',
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('cn=ng', 'cn=compat', api.env.basedn),
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass', 'cn', 'mambernisnetgroup', 'nisnetgrouptriple',
+            },
+        },
     }
 
     label = _('Netgroups')

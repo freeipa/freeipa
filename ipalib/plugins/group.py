@@ -202,6 +202,16 @@ class group(LDAPObject):
             ],
             'default_privileges': {'Group Administrators'},
         },
+        'System: Read Group Compat Tree': {
+            'non_object': True,
+            'ipapermbindruletype': 'all',
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('cn=groups', 'cn=compat', api.env.basedn),
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass', 'cn', 'memberuid',
+            },
+        },
     }
 
     label = _('User Groups')
