@@ -121,14 +121,6 @@ return {
                     {
                         value: 'ipa-ad-trust-posix',
                         label: '@i18n:objects.idrange.type_ad_posix'
-                    },
-                    {
-                        value: 'ipa-ad-winsync',
-                        label: '@i18n:objects.idrange.type_winsync'
-                    },
-                    {
-                        value: 'ipa-ipa-trust',
-                        label: '@i18n:objects.idrange.type_ipa'
                     }
                 ]
             },
