@@ -497,7 +497,8 @@ def uninstall(options, env):
                 "Failed to remove IPA CA from /etc/pki/nssdb: %s", str(e))
 
     # Always start certmonger. We can't untrack something if it isn't
-    # running
+    # running. Note that this is legacy code to untrack any certificates
+    # that were created by previous versions of this installer.
     messagebus = services.knownservices.messagebus
     try:
         messagebus.start()
@@ -1070,69 +1071,6 @@ def configure_krb5_conf(cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
     os.chmod(filename, 0644)
 
     return 0
-
-def configure_certmonger(fstore, subject_base, cli_realm, hostname, options,
-                         remote_env):
-    started = True
-    principal = 'host/%s@%s' % (hostname, cli_realm)
-
-    messagebus = services.knownservices.messagebus
-    try:
-        messagebus.start()
-    except Exception, e:
-        log_service_error(messagebus.service_name, 'start', e)
-
-    # Ensure that certmonger has been started at least once to generate the
-    # cas files in /var/lib/certmonger/cas.
-    cmonger = services.knownservices.certmonger
-    try:
-        cmonger.restart()
-    except Exception, e:
-        log_service_error(cmonger.service_name, 'restart', e)
-
-    if options.hostname:
-        # It needs to be stopped if we touch them
-        try:
-            cmonger.stop()
-        except Exception, e:
-            log_service_error(cmonger.service_name, 'stop', e)
-        # If the hostname is explicitly set then we need to tell certmonger
-        # which principal name to use when requesting certs.
-        certmonger.add_principal_to_cas(principal)
-
-    try:
-        cmonger.restart()
-    except Exception, e:
-        log_service_error(cmonger.service_name, 'restart', e)
-        root_logger.warning(
-            "Automatic certificate management will not be available")
-        started = False
-
-    try:
-        cmonger.enable()
-    except Exception, e:
-        root_logger.error(
-            "Failed to configure automatic startup of the %s daemon: %s",
-            cmonger.service_name, str(e))
-        root_logger.warning(
-            "Automatic certificate management will not be available")
-
-    # Request our host cert
-    if remote_env['enable_ra']:
-        if started:
-            client_nss_nickname = client_nss_nickname_format % hostname
-            subject = DN(('CN', hostname), subject_base)
-            try:
-                run(["ipa-getcert", "request", "-d", paths.NSS_DB_DIR,
-                     "-n", client_nss_nickname, "-N", str(subject),
-                     "-K", principal])
-            except Exception:
-                root_logger.error("%s request for host certificate failed",
-                                  cmonger.service_name)
-    else:
-        root_logger.warning(
-            "A RA is not configured on the server. "
-            "Not requesting host certificate.")
 
 def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, client_domain, client_hostname):
     try:
@@ -2641,8 +2579,6 @@ def install(options, env, fstore, statestore):
 
     if not options.on_master:
         client_dns(cli_server[0], hostname, options.dns_updates)
-        configure_certmonger(fstore, subject_base, cli_realm, hostname,
-                             options, remote_env)
 
     update_ssh_keys(cli_server[0], hostname, services.knownservices.sshd.get_config_dir(), options.create_sshfp)
 
