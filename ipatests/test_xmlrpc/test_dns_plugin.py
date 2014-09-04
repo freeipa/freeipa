@@ -1378,10 +1378,10 @@ class test_dns(Declarative):
 
 
         dict(
-            desc='Delete record %r in zone %r' % (tlsa, zone1),
-            command=('dnsrecord_del', [zone1, tlsa], {'del_all': True}),
+            desc='Remove record using dnsrecord-mod %r in zone %r' % (tlsa, zone1),
+            command=('dnsrecord_mod', [zone1, tlsa], {'tlsarecord': ''}),
             expected={
-                'value': [tlsa_dnsname],
+                'value': tlsa_dnsname,
                 'summary': u'Deleted record "%s"' % tlsa,
                 'result': {'failed': []},
             },
