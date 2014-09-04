@@ -376,26 +376,19 @@ class idview_unapply(baseidview_apply):
         return super(idview_unapply, self).execute(*keys, **options)
 
 
-@register()
-class idoverride(LDAPObject):
+# This is not registered on purpose, it's a base class for ID overrides
+class baseidoverride(LDAPObject):
     """
-    ID override object.
+    Base ID override object.
     """
 
     parent_object = 'idview'
     container_dn = api.env.container_views
 
-    object_name = _('ID override')
-    object_name_plural = _('ID overrides')
     object_class = ['ipaOverrideAnchor', 'top']
     default_attributes = [
-        'cn', 'description', 'ipaAnchorUUID', 'gidNumber',
-        'homeDirectory', 'uidNumber', 'uid',
+       'description', 'ipaAnchorUUID',
     ]
-
-    label = _('ID overrides')
-    label_singular = _('ID override')
-    rdn_is_primary_key = True
 
     takes_params = (
         Str('ipaanchoruuid',
@@ -407,51 +400,9 @@ class idoverride(LDAPObject):
             cli_name='desc',
             label=_('Description'),
         ),
-        Str('cn?',
-            pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$',
-            pattern_errmsg='may only include letters, numbers, _, -, . and $',
-            maxlength=255,
-            cli_name='group_name',
-            label=_('Group name'),
-            normalizer=lambda value: value.lower(),
-        ),
-        Int('gidnumber?',
-            cli_name='gid',
-            label=_('GID'),
-            doc=_('Group ID Number'),
-            minvalue=1,
-        ),
-        Str('uid?',
-            pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$',
-            pattern_errmsg='may only include letters, numbers, _, -, . and $',
-            maxlength=255,
-            cli_name='login',
-            label=_('User login'),
-            normalizer=lambda value: value.lower(),
-        ),
-        Int('uidnumber?',
-            cli_name='uid',
-            label=_('UID'),
-            doc=_('User ID Number'),
-            minvalue=1,
-        ),
-        Str('homedirectory?',
-            cli_name='homedir',
-            label=_('Home directory'),
-        ),
     )
 
-    permission_filter_objectclasses = ['ipaOverrideAnchor']
-    managed_permissions = {
-        'System: Read ID Overrides': {
-            'ipapermbindruletype': 'all',
-            'ipapermright': {'read', 'search', 'compare'},
-            'ipapermdefaultattr': {
-                'cn', 'objectClass', 'ipaAnchorUUID', 'uidNumber', 'gidNumber',
-                'description', 'homeDirectory', 'uid',
-            },
-        },
-    }
+    override_object = None
 
     def resolve_object_to_anchor(self, obj):
         """
@@ -593,3 +544,101 @@ class idoverride_show(LDAPRetrieve):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         self.obj.convert_anchor_to_human_readable_form(entry_attrs, **options)
         return dn
+
+
+@register()
+class idoverrideuser(baseidoverride):
+
+    object_name = _('User ID override')
+    object_name_plural = _('User ID overrides')
+
+    label = _('User ID overrides')
+    label_singular = _('User ID override')
+    rdn_is_primary_key = True
+
+    permission_filter_objectclasses = ['ipaUserOverride']
+    managed_permissions = {
+        'System: Read User ID Overrides': {
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectClass', 'ipaAnchorUUID', 'uidNumber', 'description',
+                'homeDirectory', 'uid',
+            },
+        },
+    }
+
+    object_class = baseidoverride.object_class + ['ipaUserOverride']
+    default_attributes = baseidoverride.default_attributes + [
+       'homeDirectory', 'uidNumber', 'uid',
+    ]
+
+    takes_params = baseidoverride.takes_params + (
+        Str('uid?',
+            pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$',
+            pattern_errmsg='may only include letters, numbers, _, -, . and $',
+            maxlength=255,
+            cli_name='login',
+            label=_('User login'),
+            normalizer=lambda value: value.lower(),
+        ),
+        Int('uidnumber?',
+            cli_name='uid',
+            label=_('UID'),
+            doc=_('User ID Number'),
+            minvalue=1,
+        ),
+        Str('homedirectory?',
+            cli_name='homedir',
+            label=_('Home directory'),
+        ),
+    )
+
+    override_object = 'user'
+
+
+@register()
+class idoverridegroup(baseidoverride):
+
+    object_name = _('Group ID override')
+    object_name_plural = _('Group ID overrides')
+
+    label = _('Group ID overrides')
+    label_singular = _('Group ID override')
+    rdn_is_primary_key = True
+
+    permission_filter_objectclasses = ['ipaGroupOverride']
+    managed_permissions = {
+        'System: Read Group ID Overrides': {
+            'ipapermbindruletype': 'all',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectClass', 'ipaAnchorUUID', 'gidNumber',
+                'description', 'cn',
+            },
+        },
+    }
+
+    object_class = baseidoverride.object_class + ['ipaGroupOverride']
+    default_attributes = baseidoverride.default_attributes + [
+       'gidNumber', 'cn',
+    ]
+
+    takes_params = baseidoverride.takes_params + (
+        Str('cn?',
+            pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$',
+            pattern_errmsg='may only include letters, numbers, _, -, . and $',
+            maxlength=255,
+            cli_name='group_name',
+            label=_('Group name'),
+            normalizer=lambda value: value.lower(),
+        ),
+        Int('gidnumber?',
+            cli_name='gid',
+            label=_('GID'),
+            doc=_('Group ID Number'),
+            minvalue=1,
+        ),
+    )
+
+    override_object = 'group'
