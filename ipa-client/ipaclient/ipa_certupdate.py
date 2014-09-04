@@ -122,11 +122,10 @@ class CertUpdate(admintool.AdminTool):
 
         dogtag_constants = dogtag.configured_constants()
         nickname = 'caSigningCert cert-pki-ca'
-        criteria = (
-            ('cert_storage_location', dogtag_constants.ALIAS_DIR,
-             certmonger.NPATH),
-            ('cert_nickname', nickname, None),
-        )
+        criteria = {
+            'cert-database': dogtag_constants.ALIAS_DIR,
+            'cert-nickname': nickname,
+        }
         request_id = certmonger.get_request_id(criteria)
         if request_id is not None:
             timeout = api.env.startup_timeout + 60
