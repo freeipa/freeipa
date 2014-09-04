@@ -3374,6 +3374,13 @@ class dnsrecord_mod(LDAPUpdate):
             if del_all:
                 result = self.obj.methods.delentry(*keys,
                                                    version=options['version'])
+
+                # we need to modify delete result to match mod output type
+                # only one value is expected, not a list
+                if client_has_capability(options['version'], 'primary_key_types'):
+                    assert len(result['value']) == 1
+                    result['value'] = result['value'][0]
+
                 # indicate that entry was deleted
                 context.dnsrecord_entry_mods[(keys[0], keys[1])] = None
 
