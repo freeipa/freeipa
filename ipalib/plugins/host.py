@@ -370,7 +370,7 @@ class host(LDAPObject):
         },
         'System: Read Host Compat Tree': {
             'non_object': True,
-            'ipapermbindruletype': 'all',
+            'ipapermbindruletype': 'anonymous',
             'ipapermlocation': api.env.basedn,
             'ipapermtarget': DN('cn=computers', 'cn=compat', api.env.basedn),
             'ipapermright': {'read', 'search', 'compare'},

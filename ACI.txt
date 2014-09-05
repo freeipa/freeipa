@@ -51,7 +51,7 @@ aci: (targetattr = "member")(targetfilter = "(&(!(cn=admins))(objectclass=ipause
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "cn || description || gidnumber || ipauniqueid || mepmanagedby || objectclass")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Modify Groups";allow (write) groupdn = "ldap:///cn=System: Modify Groups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: dc=ipa,dc=example
-aci: (targetattr = "cn || memberuid || objectclass")(target = "ldap:///cn=groups,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Group Compat Tree";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "cn || gidnumber || memberuid || objectclass")(target = "ldap:///cn=groups,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Group Compat Tree";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "member || memberhost || memberof || memberuid || memberuser")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Read Group Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
@@ -99,7 +99,7 @@ aci: (targetattr = "ipasshpubkey")(targetfilter = "(objectclass=ipahost)")(versi
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "description || l || macaddress || nshardwareplatform || nshostlocation || nsosversion || userclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Modify Hosts";allow (write) groupdn = "ldap:///cn=System: Modify Hosts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: dc=ipa,dc=example
-aci: (targetattr = "cn || macaddress || objectclass")(target = "ldap:///cn=computers,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Host Compat Tree";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "cn || macaddress || objectclass")(target = "ldap:///cn=computers,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Host Compat Tree";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "memberof")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Read Host Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
@@ -131,7 +131,7 @@ aci: (targetattr = "externalhost || member || memberhost || memberuser")(targetf
 dn: cn=ng,cn=alt,dc=ipa,dc=example
 aci: (targetattr = "description")(targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Modify Netgroups";allow (write) groupdn = "ldap:///cn=System: Modify Netgroups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: dc=ipa,dc=example
-aci: (targetattr = "cn || mambernisnetgroup || nisnetgrouptriple || objectclass")(target = "ldap:///cn=ng,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Netgroup Compat Tree";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "cn || membernisnetgroup || nisnetgrouptriple || objectclass")(target = "ldap:///cn=ng,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Netgroup Compat Tree";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=ng,cn=alt,dc=ipa,dc=example
 aci: (targetattr = "externalhost || member || memberhost || memberof || memberuser || objectclass")(targetfilter = "(objectclass=ipanisnetgroup)")(version 3.0;acl "permission:System: Read Netgroup Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=ng,cn=alt,dc=ipa,dc=example
@@ -219,7 +219,7 @@ aci: (targetattr = "cmdcategory || description || externalhost || externaluser |
 dn: cn=sudorules,cn=sudo,dc=ipa,dc=example
 aci: (targetattr = "cmdcategory || cn || description || externalhost || externaluser || hostcategory || hostmask || ipaenabledflag || ipasudoopt || ipasudorunas || ipasudorunasextgroup || ipasudorunasextuser || ipasudorunasextusergroup || ipasudorunasgroup || ipasudorunasgroupcategory || ipasudorunasusercategory || ipauniqueid || member || memberallowcmd || memberdenycmd || memberhost || memberuser || objectclass || sudonotafter || sudonotbefore || sudoorder || usercategory")(targetfilter = "(objectclass=ipasudorule)")(version 3.0;acl "permission:System: Read Sudo Rules";allow (compare,read,search) userdn = "ldap:///all";)
 dn: dc=ipa,dc=example
-aci: (targetattr = "cn || description || objectclass || ou || sudocommand || sudohost || sudonotafter || sudonotbefore || sudooption || sudoorder || sudorunas || sudorunasgroup || sudorunasuser || sudouser")(target = "ldap:///ou=sudoers,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Sudoers compat tree";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "cn || description || objectclass || ou || sudocommand || sudohost || sudonotafter || sudonotbefore || sudooption || sudoorder || sudorunas || sudorunasgroup || sudorunasuser || sudouser")(target = "ldap:///ou=sudoers,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Sudoers compat tree";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=trusts,dc=ipa,dc=example
 aci: (targetattr = "cn || ipantflatname || ipantsecurityidentifier || ipantsidblacklistincoming || ipantsidblacklistoutgoing || ipanttrusteddomainsid || ipanttrustpartner || objectclass")(version 3.0;acl "permission:System: Read Trust Information";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=trusts,dc=ipa,dc=example
@@ -260,6 +260,8 @@ dn: cn=CAcert,cn=ipa,cn=etc,dc=ipa,dc=example
 aci: (targetattr = "authorityrevocationlist || cacertificate || certificaterevocationlist || cn || crosscertificatepair || objectclass")(targetfilter = "(objectclass=pkica)")(version 3.0;acl "permission:System: Read CA Certificate";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=ca_renewal,cn=ipa,cn=etc,dc=ipa,dc=example
 aci: (targetattr = "cn || objectclass || usercertificate")(targetfilter = "(objectclass=pkiuser)")(version 3.0;acl "permission:System: Read CA Renewal Information";allow (compare,read,search) userdn = "ldap:///all";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "creatorsname || modifiersname")(targetfilter = "(objectclass=*)")(version 3.0;acl "permission:System: Read Creator and Modifier Operational Attributes";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=dna,cn=ipa,cn=etc,dc=ipa,dc=example
 aci: (targetattr = "cn || dnahostname || dnaportnum || dnaremainingvalues || dnaremotebindmethod || dnaremoteconnprotocol || dnasecureportnum || objectclass")(targetfilter = "(objectclass=dnasharedconfig)")(version 3.0;acl "permission:System: Read DNA Configuration";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=masters,cn=ipa,cn=etc,dc=ipa,dc=example
@@ -268,3 +270,5 @@ dn: cn=config
 aci: (targetattr = "cn || description || nsds50ruv || nsds5beginreplicarefresh || nsds5debugreplicatimeout || nsds5flags || nsds5replicaabortcleanruv || nsds5replicaautoreferral || nsds5replicabackoffmax || nsds5replicabackoffmin || nsds5replicabinddn || nsds5replicabindmethod || nsds5replicabusywaittime || nsds5replicachangecount || nsds5replicachangessentsincestartup || nsds5replicacleanruv || nsds5replicacleanruvnotified || nsds5replicacredentials || nsds5replicaenabled || nsds5replicahost || nsds5replicaid || nsds5replicalastinitend || nsds5replicalastinitstart || nsds5replicalastinitstatus || nsds5replicalastupdateend || nsds5replicalastupdatestart || nsds5replicalastupdatestatus || nsds5replicalegacyconsumer || nsds5replicaname || nsds5replicaport || nsds5replicaprotocoltimeout || nsds5replicapurgedelay || nsds5replicareferral || nsds5replicaroot || nsds5replicasessionpausetime || nsds5replicastripattrs || nsds5replicatedattributelist || nsds5replicatedattributelisttotal || nsds5replicatimeout || nsds5replicatombstonepurgeinterval || nsds5replicatransportinfo || nsds5replicatype || nsds5replicaupdateinprogress || nsds5replicaupdateschedule || nsds5task || nsds7directoryreplicasubtree || nsds7dirsynccookie || nsds7newwingroupsyncenabled || nsds7newwinusersyncenabled || nsds7windowsdomain || nsds7windowsreplicasubtree || nsruvreplicalastmodified || nsstate || objectclass || onewaysync || winsyncdirectoryfilter || winsyncinterval || winsyncmoveaction || winsyncsubtreepair || winsyncwindowsfilter")(targetfilter = "(|(objectclass=nsds5Replica)(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement)(objectClass=nsMappingTree))")(version 3.0;acl "permission:System: Read Replication Agreements";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Replication Agreements,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=replication,cn=etc,dc=ipa,dc=example
 aci: (targetattr = "cn || nsds5flags || nsds5replicaabortcleanruv || nsds5replicaautoreferral || nsds5replicabackoffmax || nsds5replicabackoffmin || nsds5replicabinddn || nsds5replicachangecount || nsds5replicacleanruv || nsds5replicaid || nsds5replicalegacyconsumer || nsds5replicaname || nsds5replicaprotocoltimeout || nsds5replicapurgedelay || nsds5replicareferral || nsds5replicaroot || nsds5replicatombstonepurgeinterval || nsds5replicatype || nsds5task || nsstate || objectclass")(targetfilter = "(objectclass=nsds5replica)")(version 3.0;acl "permission:System: Read Replication Information";allow (compare,read,search) userdn = "ldap:///all";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "createtimestamp || entryusn || modifytimestamp")(targetfilter = "(objectclass=*)")(version 3.0;acl "permission:System: Read Timestamp and USN Operational Attributes";allow (compare,read,search) userdn = "ldap:///anyone";)

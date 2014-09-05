@@ -96,6 +96,24 @@ from ipaserver.install.plugins.baseupdate import PostUpdate
 register = Registry()
 
 NONOBJECT_PERMISSIONS = {
+    'System: Read Timestamp and USN Operational Attributes': {
+        'ipapermlocation': api.env.basedn,
+        'ipapermtargetfilter': {'(objectclass=*)'},
+        'ipapermbindruletype': 'anonymous',
+        'ipapermright': {'read', 'search', 'compare'},
+        'ipapermdefaultattr': {
+            'createtimestamp', 'modifytimestamp', 'entryusn',
+        },
+    },
+    'System: Read Creator and Modifier Operational Attributes': {
+        'ipapermlocation': api.env.basedn,
+        'ipapermtargetfilter': {'(objectclass=*)'},
+        'ipapermbindruletype': 'all',
+        'ipapermright': {'read', 'search', 'compare'},
+        'ipapermdefaultattr': {
+            'creatorsname', 'modifiersname',
+        },
+    },
     'System: Read IPA Masters': {
         'replaces_global_anonymous_aci': True,
         'ipapermlocation': DN('cn=masters,cn=ipa,cn=etc', api.env.basedn),
