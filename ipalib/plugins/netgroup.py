@@ -162,12 +162,12 @@ class netgroup(LDAPObject):
         },
         'System: Read Netgroup Compat Tree': {
             'non_object': True,
-            'ipapermbindruletype': 'all',
+            'ipapermbindruletype': 'anonymous',
             'ipapermlocation': api.env.basedn,
             'ipapermtarget': DN('cn=ng', 'cn=compat', api.env.basedn),
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
-                'objectclass', 'cn', 'mambernisnetgroup', 'nisnetgrouptriple',
+                'objectclass', 'cn', 'membernisnetgroup', 'nisnetgrouptriple',
             },
         },
     }

@@ -166,7 +166,7 @@ class sudorule(LDAPObject):
             'non_object': True,
             'ipapermlocation': api.env.basedn,
             'ipapermtarget': DN('ou=sudoers', api.env.basedn),
-            'ipapermbindruletype': 'all',
+            'ipapermbindruletype': 'anonymous',
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'objectclass', 'cn', 'ou',
