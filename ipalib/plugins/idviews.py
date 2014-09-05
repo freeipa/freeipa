@@ -162,7 +162,7 @@ class idview_show(LDAPRetrieve):
                 paged_search=True)
 
             entry_attrs['groupoverrides'] = [
-                view.single_value.get('ipaanchoruuid')
+                view.single_value['ipaanchoruuid']
                 for view in groupoverrides
             ]
 
@@ -414,13 +414,14 @@ class baseidoverride(LDAPObject):
         """
 
         # First try to resolve the object as IPA user or group
-        for obj_type in ('user', 'group'):
-            try:
-                entry = self.backend.get_entry(api.Object[obj_type].get_dn(obj),
-                                               attrs_list=['ipaUniqueID'])
-                return IPA_ANCHOR_PREFIX + entry.single_value.get('ipaUniqueID')
-            except errors.NotFound:
-                pass
+        obj_type = self.override_object
+
+        try:
+            entry = self.backend.get_entry(api.Object[obj_type].get_dn(obj),
+                                           attrs_list=['ipaUniqueID'])
+            return IPA_ANCHOR_PREFIX + entry.single_value.get('ipaUniqueID')
+        except errors.NotFound:
+            pass
 
         # If not successfull, try looking up the object in the trusted domain
         if _dcerpc_bindings_installed:
@@ -431,44 +432,31 @@ class baseidoverride(LDAPObject):
 
     def resolve_anchor_to_object_name(self, anchor):
         if anchor.startswith(IPA_ANCHOR_PREFIX):
-            uuid = anchor.split(IPA_ANCHOR_PREFIX)[1].strip()
 
             # Prepare search parameters
             accounts_dn = DN(api.env.container_accounts, api.env.basedn)
-            class_filter = self.backend.make_filter_from_attr(
-                               attr='objectClass',
-                               value=['posixaccount','ipausergroup'])
+            uuid = anchor.split(IPA_ANCHOR_PREFIX)[1].strip()
 
-            uuid_filter = self.backend.make_filter_from_attr(
-                               attr='ipaUniqueID',
-                               value=uuid)
+            objectclass, name_attr = (
+                ('posixaccount', 'uid')
+                if self.override_object == 'user' else
+                ('ipausergroup', 'cn')
+            )
 
-            # We need to filter for any object with above objectclasses
-            # AND specified UUID
-            object_filter = self.backend.combine_filters(
-                                [class_filter, uuid_filter],
-                                self.backend.MATCH_ALL)
-
-            entries, truncated = self.backend.find_entries(
-                                     filter=object_filter,
-                                     attrs_list=['cn','uid'],
+            entry = self.backend.find_entry_by_attr(
+                                     attr='ipaUniqueID',
+                                     value=uuid,
+                                     object_class=objectclass,
+                                     attrs_list=[name_attr],
                                      base_dn=accounts_dn)
 
-            # Handle incorrect number of results. Should not happen
-            # since UUID stands for UniqueUID.
-
-            if len(entries) > 1:
-                raise errors.SingleMatchExpected(found=len(entries))
-            else:
-                if truncated:
-                    raise errors.LimitsExceeded()
-                else:
-                    # Return the name of the object, which is either cn for
-                    # groups or uid for users
-                    return (entries[0].single_value.get('uid') or
-                            entries[0].single_value.get('cn'))
+            # Return the name of the object, which is either cn for
+            # groups or uid for users
+            return entry.single_value.get(name_attr)
 
         elif anchor.startswith(SID_ANCHOR_PREFIX):
+
+            # Parse the SID out from the anchor
             sid = anchor.split(SID_ANCHOR_PREFIX)[1].strip()
 
             if _dcerpc_bindings_installed:
@@ -480,7 +468,7 @@ class baseidoverride(LDAPObject):
 
     def get_dn(self, *keys, **options):
         keys = keys[:-1] + (self.resolve_object_to_anchor(keys[-1]), )
-        return super(idoverride, self).get_dn(*keys, **options)
+        return super(baseidoverride, self).get_dn(*keys, **options)
 
     def set_anchoruuid_from_dn(self, dn, entry_attrs):
         # TODO: Use entry_attrs.single_value once LDAPUpdate supports
