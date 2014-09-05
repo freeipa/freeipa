@@ -699,7 +699,6 @@ def main():
         CA.configure_certmonger_renewal()
         CA.import_ra_cert(dir + "/ra.p12")
         CA.fix_ra_perms()
-        services.knownservices.httpd.restart()
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated
