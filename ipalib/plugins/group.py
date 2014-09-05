@@ -204,12 +204,12 @@ class group(LDAPObject):
         },
         'System: Read Group Compat Tree': {
             'non_object': True,
-            'ipapermbindruletype': 'all',
+            'ipapermbindruletype': 'anonymous',
             'ipapermlocation': api.env.basedn,
             'ipapermtarget': DN('cn=groups', 'cn=compat', api.env.basedn),
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
-                'objectclass', 'cn', 'memberuid',
+                'objectclass', 'cn', 'memberuid', 'gidnumber',
             },
         },
     }
