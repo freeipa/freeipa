@@ -495,8 +495,8 @@ class baseidoverride(LDAPObject):
                 object_name = self.resolve_anchor_to_object_name(anchor)
                 entry_attrs.single_value['ipaanchoruuid'] = object_name
 
-@register()
-class idoverride_add(LDAPCreate):
+
+class baseidoverride_add(LDAPCreate):
     __doc__ = _('Add a new ID override.')
     msg_summary = _('Added ID override "%(value)s"')
 
@@ -509,14 +509,12 @@ class idoverride_add(LDAPCreate):
         return dn
 
 
-@register()
-class idoverride_del(LDAPDelete):
+class baseidoverride_del(LDAPDelete):
     __doc__ = _('Delete an ID override.')
     msg_summary = _('Deleted ID override "%(value)s"')
 
 
-@register()
-class idoverride_mod(LDAPUpdate):
+class baseidoverride_mod(LDAPUpdate):
     __doc__ = _('Modify an ID override.')
     msg_summary = _('Modified an ID override "%(value)s"')
 
@@ -525,8 +523,7 @@ class idoverride_mod(LDAPUpdate):
         return dn
 
 
-@register()
-class idoverride_find(LDAPSearch):
+class baseidoverride_find(LDAPSearch):
     __doc__ = _('Search for an ID override.')
     msg_summary = ngettext('%(count)d ID override matched',
                            '%(count)d ID overrides matched', 0)
@@ -537,8 +534,7 @@ class idoverride_find(LDAPSearch):
         return truncated
 
 
-@register()
-class idoverride_show(LDAPRetrieve):
+class baseidoverride_show(LDAPRetrieve):
     __doc__ = _('Display information about an ID override.')
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -642,3 +638,63 @@ class idoverridegroup(baseidoverride):
     )
 
     override_object = 'group'
+
+
+@register()
+class idoverrideuser_add(baseidoverride_add):
+    __doc__ = _('Add a new User ID override.')
+    msg_summary = _('Added User ID override "%(value)s"')
+
+
+@register()
+class idoverrideuser_del(baseidoverride_del):
+    __doc__ = _('Delete an User ID override.')
+    msg_summary = _('Deleted User ID override "%(value)s"')
+
+
+@register()
+class idoverrideuser_mod(baseidoverride_mod):
+    __doc__ = _('Modify an User ID override.')
+    msg_summary = _('Modified an User ID override "%(value)s"')
+
+
+@register()
+class idoverrideuser_find(baseidoverride_find):
+    __doc__ = _('Search for an User ID override.')
+    msg_summary = ngettext('%(count)d User ID override matched',
+                           '%(count)d User ID overrides matched', 0)
+
+
+@register()
+class idoverrideuser_show(baseidoverride_show):
+    __doc__ = _('Display information about an User ID override.')
+
+
+@register()
+class idoverridegroup_add(baseidoverride_add):
+    __doc__ = _('Add a new Group ID override.')
+    msg_summary = _('Added Group ID override "%(value)s"')
+
+
+@register()
+class idoverridegroup_del(baseidoverride_del):
+    __doc__ = _('Delete an Group ID override.')
+    msg_summary = _('Deleted Group ID override "%(value)s"')
+
+
+@register()
+class idoverridegroup_mod(baseidoverride_mod):
+    __doc__ = _('Modify an Group ID override.')
+    msg_summary = _('Modified an Group ID override "%(value)s"')
+
+
+@register()
+class idoverridegroup_find(baseidoverride_find):
+    __doc__ = _('Search for an Group ID override.')
+    msg_summary = ngettext('%(count)d Group ID override matched',
+                           '%(count)d Group ID overrides matched', 0)
+
+
+@register()
+class idoverridegroup_show(baseidoverride_show):
+    __doc__ = _('Display information about an Group ID override.')
