@@ -157,6 +157,28 @@ class DNSSECWarning(PublicMessage):
     type = "warning"
     format = _("DNSSEC support is experimental.\n%(additional_info)s")
 
+
+class OptionDeprecatedWarning(PublicMessage):
+    """
+    **13004** Used when user uses a deprecated option
+    """
+
+    errno = 13004
+    type = "warning"
+    format = _(u"'%(option)s' option is deprecated. %(additional_info)s")
+
+
+class OptionSemanticChangedWarning(PublicMessage):
+    """
+    **13005** Used when option which recently changes its semantic is used
+    """
+
+    errno = 13005
+    type = "warning"
+    format = _(u"semantic of '%(option)s' option was changed: "
+               u"%(current_behavior)s.\n%(hint)s")
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """

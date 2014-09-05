@@ -42,8 +42,9 @@ from ipalib import messages
 from ipalib.util import (validate_zonemgr, normalize_zonemgr,
                          get_dns_forward_zone_update_policy,
                          get_dns_reverse_zone_update_policy,
-                         get_reverse_zone_default, REVERSE_DNS_ZONES)
-from ipapython.ipautil import valid_ip, CheckedIPAddress, is_host_resolvable
+                         get_reverse_zone_default, REVERSE_DNS_ZONES,
+                         normalize_zone)
+from ipapython.ipautil import CheckedIPAddress, is_host_resolvable
 from ipapython.dnsutil import DNSName
 
 __doc__ = _("""
@@ -2082,10 +2083,11 @@ class dnszone(DNSZoneBase):
     label_singular = _('DNS Zone')
 
     takes_params = DNSZoneBase.takes_params + (
-        DNSNameParam('idnssoamname',
+        DNSNameParam('idnssoamname?',
             cli_name='name_server',
             label=_('Authoritative nameserver'),
             doc=_('Authoritative nameserver domain name'),
+            default=None,  # value will be added in precallback from ldap
         ),
         DNSNameParam('idnssoarname',
             _rname_validator,
@@ -2315,6 +2317,18 @@ class dnszone(DNSZoneBase):
                     "server.")
                 ))
 
+    def _warning_name_server_option(self, result, context, **options):
+        if getattr(context, 'show_warning_nameserver_option', False):
+            messages.add_message(
+                options['version'],
+                result, messages.OptionSemanticChangedWarning(
+                    option=u"--name-server",
+                    current_behavior=_(u"the option is used only for "
+                                       u"setting up the SOA MNAME attribute"),
+                    hint=_(u"To edit NS record(s) in zone apex, use command "
+                           u"'dnsrecord-mod [zone] @ --ns-rec=nameserver'.")
+                )
+            )
 
 @register()
 class dnszone_add(DNSZoneBase_add):
@@ -2325,101 +2339,70 @@ class dnszone_add(DNSZoneBase_add):
              label=_('Force'),
              doc=_('Force DNS zone creation even if nameserver is not resolvable.'),
         ),
-        Str('ip_address?', _validate_ipaddr,
-            doc=_('Add forward record for nameserver located in the created zone'),
-            label=_('Nameserver IP address'),
+
+        # Deprecated
+        # ip-address option is not used anymore, we have to keep it
+        # due to compability with clients older than 4.1
+        Str('ip_address?',
+            flags=['no_option', ]
         ),
     )
 
-    def interactive_prompt_callback(self, kw):
-        """
-        Interactive mode should prompt for nameserver IP address only if all
-        of the following conditions are true:
-        * New zone is a forward zone
-        * NS is defined inside the new zone (NS can be given either in the
-          form of absolute or relative name)
-        """
-        if kw.get('ip_address', None):
-            return
-
-        try:
-            zone = DNSName(kw['idnsname']).make_absolute()
-        except Exception, e:
-            raise errors.ValidationError(name='idnsname', error=unicode(e))
-
-        try:
-            ns = DNSName(kw['idnssoamname'])
-        except Exception, e:
-            raise errors.ValidationError(name='idnssoamname', error=unicode(e))
-
-        relative_ns = not ns.is_absolute()
-        ns_in_zone = self.obj.get_name_in_zone(zone, ns)
-
-        if not zone.is_reverse() and (relative_ns or ns_in_zone):
-            ip_address = self.Backend.textui.prompt(_(u'Nameserver IP address'))
-            kw['ip_address'] = ip_address
+    def _warning_deprecated_option(self, result, **options):
+        if 'ip_address' in options:
+            messages.add_message(
+                options['version'],
+                result,
+                messages.OptionDeprecatedWarning(
+                    option='ip-address',
+                    additional_info=u"Value will be ignored.")
+            )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
-        dn = super(dnszone_add, self).pre_callback(ldap, dn, entry_attrs,
-            attrs_list, *keys, **options)
+        dn = super(dnszone_add, self).pre_callback(
+            ldap, dn, entry_attrs, attrs_list, *keys, **options)
 
-        # Check nameserver has a forward record
-        nameserver = entry_attrs['idnssoamname']
-
-        # NS record must contain domain name
-        if valid_ip(nameserver):
-            raise errors.ValidationError(name='name-server',
-                    error=_("Nameserver address is not a domain name"))
-
-        nameserver_ip_address = options.get('ip_address')
+        nameservers = [normalize_zone(x) for x in api.Object.dnsrecord.get_dns_masters()]
+        server = normalize_zone(api.env.host)
         zone = keys[-1]
-        if nameserver.is_absolute():
-            record_in_zone = self.obj.get_name_in_zone(keys[-1], nameserver)
+
+        if entry_attrs.get('idnssoamname'):
+            if zone.is_reverse() and not entry_attrs['idnssoamname'].is_absolute():
+                raise errors.ValidationError(
+                    name='name-server',
+                    error=_("Nameserver for reverse zone cannot be a relative DNS name"))
+
+            # verify if user specified server is resolvable
+            if not options['force']:
+                check_ns_rec_resolvable(keys[0], entry_attrs['idnssoamname'])
+            # show warning about --name-server option
+            context.show_warning_nameserver_option = True
         else:
-            record_in_zone = nameserver
+            # user didn't specify SOA mname
+            if server in nameservers:
+                # current ipa server is authoritative nameserver in SOA record
+                entry_attrs['idnssoamname'] = [server]
+            else:
+                # a first DNS capable server is authoritative nameserver in SOA record
+                entry_attrs['idnssoamname'] = [nameservers[0]]
 
-        if zone.is_reverse():
-            if not nameserver.is_absolute():
-                raise errors.ValidationError(name='name-server',
-                        error=_("Nameserver for reverse zone cannot be "
-                                "a relative DNS name"))
-            elif nameserver_ip_address:
-                raise errors.ValidationError(name='ip_address',
-                        error=_("Nameserver DNS record is created for "
-                                "for forward zones only"))
-        elif (nameserver_ip_address and nameserver.is_absolute() and
-              record_in_zone is None):
-            raise errors.ValidationError(name='ip_address',
-                    error=_("Nameserver DNS record is created only for "
-                            "nameservers in current zone"))
+        # all ipa DNS servers should be in NS zone record (as absolute domain name)
+        entry_attrs['nsrecord'] = nameservers
 
-        if not nameserver_ip_address and not options['force']:
-             check_ns_rec_resolvable(keys[0], nameserver)
-
-        entry_attrs['nsrecord'] = nameserver
-        entry_attrs['idnssoamname'] = nameserver
         return dn
 
     def execute(self, *keys, **options):
         result = super(dnszone_add, self).execute(*keys, **options)
+        self._warning_deprecated_option(result, **options)
         self.obj._warning_forwarding(result, **options)
         self.obj._warning_dnssec_experimental(result, *keys, **options)
+        self.obj._warning_name_server_option(result, context, **options)
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
-        nameserver_ip_address = options.get('ip_address')
-        if nameserver_ip_address:
-            nameserver = entry_attrs['idnssoamname'][0]
-            if nameserver.is_absolute():
-                dns_record = self.obj.get_name_in_zone(keys[-1], nameserver)
-            else:
-                dns_record = nameserver
-            add_forward_record(keys[-1],
-                               dns_record,
-                               nameserver_ip_address)
 
         # Add entry to realmdomains
         # except for our own domain, forward zones, reverse zones and root zone
@@ -2480,9 +2463,17 @@ class dnszone_mod(DNSZoneBase_mod):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list,  *keys, **options):
         if not _check_DN_objectclass(ldap, dn, self.obj.object_class):
             self.obj.handle_not_found(*keys)
-        nameserver = entry_attrs.get('idnssoamname')
-        if nameserver and not nameserver.is_empty() and not options['force']:
-            check_ns_rec_resolvable(keys[0], nameserver)
+        if 'idnssoamname' in entry_attrs:
+            nameserver = entry_attrs['idnssoamname']
+            if nameserver:
+                if not nameserver.is_empty() and not options['force']:
+                    check_ns_rec_resolvable(keys[0], nameserver)
+                context.show_warning_nameserver_option = True
+            else:
+                # empty value, this option is required by ldap
+                raise errors.ValidationError(
+                    name='name_server',
+                    error=_(u"is required"))
 
         return dn
 
@@ -2490,6 +2481,7 @@ class dnszone_mod(DNSZoneBase_mod):
         result = super(dnszone_mod, self).execute(*keys, **options)
         self.obj._warning_forwarding(result, **options)
         self.obj._warning_dnssec_experimental(result, *keys, **options)
+        self.obj._warning_name_server_option(result, context, **options)
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
