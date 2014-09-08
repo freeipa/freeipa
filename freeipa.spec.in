@@ -391,8 +391,8 @@ install -m 644 init/ipa_memcached.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa_
 mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
 
 # NOTE: systemd specific section
-mkdir -p %{buildroot}%{_prefix}/lib/tmpfiles.d
-install -m 0644 init/systemd/ipa.conf.tmpfiles %{buildroot}%{_prefix}/lib/tmpfiles.d/%{name}.conf
+mkdir -p %{buildroot}%{_tmpfilesdir}
+install -m 0644 init/systemd/ipa.conf.tmpfiles %{buildroot}%{_tmpfilesdir}/%{name}.conf
 # END
 
 mkdir -p %{buildroot}%{_localstatedir}/run/
@@ -596,7 +596,7 @@ fi
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
 %dir %attr(0700,root,root) %{_localstatedir}/run/ipa/
 # NOTE: systemd specific section
-%{_prefix}/lib/tmpfiles.d/%{name}.conf
+%{_tmpfilesdir}/%{name}.conf
 %attr(644,root,root) %{_unitdir}/ipa.service
 %attr(644,root,root) %{_unitdir}/ipa_memcached.service
 %attr(644,root,root) %{_unitdir}/ipa-otpd.socket
