@@ -59,7 +59,7 @@ BuildRequires:  python-memcached
 BuildRequires:  sssd >= 1.9.2
 BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1 >= 0.0.9a
-BuildRequires:  python-qrcode
+BuildRequires:  python-qrcode-core >= 5.0.0
 BuildRequires:  python-dns
 BuildRequires:  m2crypto
 BuildRequires:  check
@@ -248,7 +248,7 @@ Requires: python-nss >= 0.15
 Requires: python-lxml
 Requires: python-netaddr
 Requires: libipa_hbac-python
-Requires: python-qrcode
+Requires: python-qrcode-core >= 5.0.0
 Requires: python-pyasn1
 Requires: python-dateutil
 Requires: python-yubico
