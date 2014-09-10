@@ -314,6 +314,7 @@ AC_CONFIG_FILES([
     ipa-slapi-plugins/ipa-dns/Makefile
     ipa-slapi-plugins/ipa-enrollment/Makefile
     ipa-slapi-plugins/ipa-lockout/Makefile
+    ipa-slapi-plugins/ipa-otp-counter/Makefile
     ipa-slapi-plugins/ipa-otp-lasttoken/Makefile
     ipa-slapi-plugins/ipa-pwd-extop/Makefile
     ipa-slapi-plugins/ipa-extdom-extop/Makefile

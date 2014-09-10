@@ -33,7 +33,7 @@ Source0:        freeipa-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %if ! %{ONLY_CLIENT}
-BuildRequires:  389-ds-base-devel >= 1.3.3.2
+BuildRequires:  389-ds-base-devel >= 1.3.3.5
 BuildRequires:  svrcore-devel
 BuildRequires:  policycoreutils >= 2.1.12-5
 BuildRequires:  systemd-units
@@ -102,7 +102,7 @@ Group: System Environment/Base
 Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
-Requires: 389-ds-base >= 1.3.3.2
+Requires: 389-ds-base >= 1.3.3.5
 Requires: openldap-clients > 2.4.35-4
 Requires: nss >= 3.14.3-12.0
 Requires: nss-tools >= 3.14.3-12.0
@@ -139,7 +139,7 @@ Requires: zip
 Requires: policycoreutils >= 2.1.12-5
 Requires: tar
 Requires(pre): certmonger >= 0.75.13
-Requires(pre): 389-ds-base >= 1.3.3.2
+Requires(pre): 389-ds-base >= 1.3.3.5
 Requires: fontawesome-fonts
 Requires: open-sans-fonts
 
@@ -375,6 +375,7 @@ rm %{buildroot}/%{plugin_dir}/libipa_sidgen.la
 rm %{buildroot}/%{plugin_dir}/libipa_sidgen_task.la
 rm %{buildroot}/%{plugin_dir}/libipa_extdom_extop.la
 rm %{buildroot}/%{plugin_dir}/libipa_range_check.la
+rm %{buildroot}/%{plugin_dir}/libipa_otp_counter.la
 rm %{buildroot}/%{plugin_dir}/libipa_otp_lasttoken.la
 rm %{buildroot}/%{_libdir}/krb5/plugins/kdb/ipadb.la
 rm %{buildroot}/%{_libdir}/samba/pdb/ipasam.la
@@ -736,6 +737,7 @@ fi
 %attr(755,root,root) %{plugin_dir}/libipa_cldap.so
 %attr(755,root,root) %{plugin_dir}/libipa_dns.so
 %attr(755,root,root) %{plugin_dir}/libipa_range_check.so
+%attr(755,root,root) %{plugin_dir}/libipa_otp_counter.so
 %attr(755,root,root) %{plugin_dir}/libipa_otp_lasttoken.so
 %dir %{_localstatedir}/lib/ipa
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/backup
