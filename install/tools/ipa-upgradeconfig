@@ -713,7 +713,7 @@ def certificate_renewal_update(ca):
         if pre_command != val:
             break
 
-        val = certmonger.get_request_value(request_id, 'post-certsave-command')
+        val = certmonger.get_request_value(request_id, 'cert-postsave-command')
         if val is not None:
             val = val.split(' ', 1)[0]
             val = os.path.basename(val)
