@@ -7,6 +7,7 @@ SUBDIRS =			\
 	ipa-enrollment		\
 	ipa-lockout		\
 	ipa-modrdn		\
+	ipa-otp-counter		\
 	ipa-otp-lasttoken	\
 	ipa-pwd-extop		\
 	ipa-extdom-extop	\
