@@ -419,7 +419,13 @@ class baseidoverride(LDAPObject):
         try:
             entry = self.backend.get_entry(api.Object[obj_type].get_dn(obj),
                                            attrs_list=['ipaUniqueID'])
-            return IPA_ANCHOR_PREFIX + entry.single_value.get('ipaUniqueID')
+
+            # The domain prefix, this will need to be reworked once we
+            # introduce IPA-IPA trusts
+            domain = api.env.domain
+            uuid = entry.single_value.get('ipaUniqueID')
+
+            return "%s%s:%s" % (IPA_ANCHOR_PREFIX, domain, uuid)
         except errors.NotFound:
             pass
 
@@ -428,6 +434,9 @@ class baseidoverride(LDAPObject):
             domain_validator = ipaserver.dcerpc.DomainValidator(api)
             if domain_validator.is_configured():
                 sid = domain_validator.get_trusted_domain_object_sid(obj)
+
+                # There is no domain prefix since SID contains information
+                # about the domain
                 return SID_ANCHOR_PREFIX + sid
 
     def resolve_anchor_to_object_name(self, anchor):
@@ -435,7 +444,10 @@ class baseidoverride(LDAPObject):
 
             # Prepare search parameters
             accounts_dn = DN(api.env.container_accounts, api.env.basedn)
-            uuid = anchor.split(IPA_ANCHOR_PREFIX)[1].strip()
+
+            # Anchor of the form :IPA:<domain>:<uuid>
+            # Strip the IPA prefix and the domain prefix
+            uuid = anchor.rpartition(':')[-1].strip()
 
             objectclass, name_attr = (
                 ('posixaccount', 'uid')
