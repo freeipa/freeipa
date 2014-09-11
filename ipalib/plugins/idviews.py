@@ -137,37 +137,31 @@ class idview_show(LDAPRetrieve):
     def show_id_overrides(self, dn, entry_attrs):
         ldap = self.obj.backend
 
-        try:
-            (useroverrides, truncated) = ldap.find_entries(
-                filter="objectclass=ipaUserOverride",
-                attrs_list=['ipaanchoruuid'],
-                base_dn=dn,
-                scope=ldap.SCOPE_ONELEVEL,
-                paged_search=True)
+        for objectclass, obj_type in [('ipaUserOverride', 'user'),
+                                      ('ipaGroupOverride', 'group')]:
 
-            entry_attrs['useroverrides'] = [
-                view.single_value.get('ipaanchoruuid')
-                for view in useroverrides
-            ]
+            # Attribute to store results is called (user|group)overrides
+            attr_name = obj_type + 'overrides'
 
-        except errors.NotFound:
-            pass
+            try:
+                (overrides, truncated) = ldap.find_entries(
+                    filter="objectclass=%s" % objectclass,
+                    attrs_list=['ipaanchoruuid'],
+                    base_dn=dn,
+                    scope=ldap.SCOPE_ONELEVEL,
+                    paged_search=True)
 
-        try:
-            (groupoverrides, truncated) = ldap.find_entries(
-                filter="objectclass=ipaGroupOverride",
-                attrs_list=['ipaanchoruuid'],
-                base_dn=dn,
-                scope=ldap.SCOPE_ONELEVEL,
-                paged_search=True)
+                entry_attrs[attr_name] = [
+                    resolve_anchor_to_object_name(
+                        ldap,
+                        obj_type,
+                        override.single_value['ipaanchoruuid']
+                    )
+                    for override in overrides
+                ]
 
-            entry_attrs['groupoverrides'] = [
-                view.single_value['ipaanchoruuid']
-                for view in groupoverrides
-            ]
-
-        except errors.NotFound:
-            pass
+            except errors.NotFound:
+                pass
 
     def enumerate_hosts(self, dn, entry_attrs):
         ldap = self.obj.backend
@@ -376,6 +370,100 @@ class idview_unapply(baseidview_apply):
         return super(idview_unapply, self).execute(*keys, **options)
 
 
+# ID overrides helper methods
+def resolve_object_to_anchor(ldap, obj_type, obj):
+    """
+    Resolves the user/group name to the anchor uuid:
+        - first it tries to find the object as user or group in IPA (depending
+          on the passed obj_type)
+        - if the IPA lookup failed, lookup object SID in the trusted domains
+
+    Takes options:
+        ldap - the backend
+        obj_type - either 'user' or 'group'
+        obj - the name of the object, e.g 'admin' or 'testuser'
+    """
+
+    try:
+        entry = ldap.get_entry(api.Object[obj_type].get_dn(obj),
+                                       attrs_list=['ipaUniqueID'])
+
+        # The domain prefix, this will need to be reworked once we
+        # introduce IPA-IPA trusts
+        domain = api.env.domain
+        uuid = entry.single_value.get('ipaUniqueID')
+
+        return "%s%s:%s" % (IPA_ANCHOR_PREFIX, domain, uuid)
+    except errors.NotFound:
+        pass
+
+    # If not successfull, try looking up the object in the trusted domain
+    if _dcerpc_bindings_installed:
+        domain_validator = ipaserver.dcerpc.DomainValidator(api)
+        if domain_validator.is_configured():
+            sid = domain_validator.get_trusted_domain_object_sid(obj)
+
+            # There is no domain prefix since SID contains information
+            # about the domain
+            return SID_ANCHOR_PREFIX + sid
+
+    # No acceptable object was found
+    api.Object[obj_type].handle_not_found(obj)
+
+
+def resolve_anchor_to_object_name(ldap, obj_type, anchor):
+    """
+    Resolves IPA Anchor UUID to the actual common object name (uid for users,
+    cn for groups).
+
+    Takes options:
+        ldap - the backend
+        anchor - the anchor, e.g.
+                 ':IPA:ipa.example.com:2cb604ea-39a5-11e4-a37e-001a4a22216f'
+    """
+
+    if anchor.startswith(IPA_ANCHOR_PREFIX):
+
+        # Prepare search parameters
+        accounts_dn = DN(api.env.container_accounts, api.env.basedn)
+
+        # Anchor of the form :IPA:<domain>:<uuid>
+        # Strip the IPA prefix and the domain prefix
+        uuid = anchor.rpartition(':')[-1].strip()
+
+        # Set the object type-specific search attributes
+        objectclass, name_attr = {
+            'user': ('posixaccount', 'uid'),
+            'group': ('ipausergroup', 'cn'),
+        }[obj_type]
+
+        entry = ldap.find_entry_by_attr(attr='ipaUniqueID',
+                                        value=uuid,
+                                        object_class=objectclass,
+                                        attrs_list=[name_attr],
+                                        base_dn=accounts_dn)
+
+        # Return the name of the object, which is either cn for
+        # groups or uid for users
+        return entry.single_value.get(name_attr)
+
+    elif anchor.startswith(SID_ANCHOR_PREFIX):
+
+        # Parse the SID out from the anchor
+        sid = anchor[len(SID_ANCHOR_PREFIX):].strip()
+
+        if _dcerpc_bindings_installed:
+            domain_validator = ipaserver.dcerpc.DomainValidator(api)
+            if domain_validator.is_configured():
+                name = domain_validator.get_trusted_domain_object_from_sid(sid)
+                return name
+
+    # No acceptable object was found
+    raise errors.NotFound(
+        reason=_("Anchor '%(anchor)s' could not be resolved.")
+               % dict(anchor=anchor))
+
+
 # This is not registered on purpose, it's a base class for ID overrides
 class baseidoverride(LDAPObject):
     """
@@ -404,89 +492,14 @@ class baseidoverride(LDAPObject):
 
     override_object = None
 
-    def resolve_object_to_anchor(self, obj):
-        """
-        Resolves the user/group name to the anchor uuid:
-            - first it tries to find the object as user in IPA
-            - then it tries to find the object as group in IPA
-            - if the IPA lookups both failed, use SSSD to lookup object SID in
-              the trusted domains
-        """
-
-        # First try to resolve the object as IPA user or group
-        obj_type = self.override_object
-
-        try:
-            entry = self.backend.get_entry(api.Object[obj_type].get_dn(obj),
-                                           attrs_list=['ipaUniqueID'])
-
-            # The domain prefix, this will need to be reworked once we
-            # introduce IPA-IPA trusts
-            domain = api.env.domain
-            uuid = entry.single_value.get('ipaUniqueID')
-
-            return "%s%s:%s" % (IPA_ANCHOR_PREFIX, domain, uuid)
-        except errors.NotFound:
-            pass
-
-        # If not successfull, try looking up the object in the trusted domain
-        if _dcerpc_bindings_installed:
-            domain_validator = ipaserver.dcerpc.DomainValidator(api)
-            if domain_validator.is_configured():
-                sid = domain_validator.get_trusted_domain_object_sid(obj)
-
-                # There is no domain prefix since SID contains information
-                # about the domain
-                return SID_ANCHOR_PREFIX + sid
-
-        # No acceptable object was found
-        api.Object['idoverride%s' % obj_type].handle_not_found(obj)
-
-    def resolve_anchor_to_object_name(self, anchor):
-        if anchor.startswith(IPA_ANCHOR_PREFIX):
-
-            # Prepare search parameters
-            accounts_dn = DN(api.env.container_accounts, api.env.basedn)
-
-            # Anchor of the form :IPA:<domain>:<uuid>
-            # Strip the IPA prefix and the domain prefix
-            uuid = anchor.rpartition(':')[-1].strip()
-
-            objectclass, name_attr = (
-                ('posixaccount', 'uid')
-                if self.override_object == 'user' else
-                ('ipausergroup', 'cn')
-            )
-
-            entry = self.backend.find_entry_by_attr(
-                                     attr='ipaUniqueID',
-                                     value=uuid,
-                                     object_class=objectclass,
-                                     attrs_list=[name_attr],
-                                     base_dn=accounts_dn)
-
-            # Return the name of the object, which is either cn for
-            # groups or uid for users
-            return entry.single_value.get(name_attr)
-
-        elif anchor.startswith(SID_ANCHOR_PREFIX):
-
-            # Parse the SID out from the anchor
-            sid = anchor.split(SID_ANCHOR_PREFIX)[1].strip()
-
-            if _dcerpc_bindings_installed:
-                domain_validator = ipaserver.dcerpc.DomainValidator(api)
-                if domain_validator.is_configured():
-                    name = domain_validator.get_trusted_domain_object_from_sid(sid)
-                    return name
-
-        # No acceptable object was found
-        raise errors.NotFound(
-            reason=_("Anchor '%(anchor)s' could not be resolved.")
-                   % dict(anchor=anchor))
-
     def get_dn(self, *keys, **options):
-        keys = keys[:-1] + (self.resolve_object_to_anchor(keys[-1]), )
+        anchor = resolve_object_to_anchor(
+            self.backend,
+            self.override_object,
+            keys[-1]
+        )
+
+        keys = keys[:-1] + (anchor, )
         return super(baseidoverride, self).get_dn(*keys, **options)
 
     def set_anchoruuid_from_dn(self, dn, entry_attrs):
@@ -499,7 +512,11 @@ class baseidoverride(LDAPObject):
             anchor = entry_attrs.single_value.get('ipaanchoruuid')
 
             if anchor:
-                object_name = self.resolve_anchor_to_object_name(anchor)
+                object_name = resolve_anchor_to_object_name(
+                    self.backend,
+                    self.override_object,
+                    anchor
+                )
                 entry_attrs.single_value['ipaanchoruuid'] = object_name
 
 
