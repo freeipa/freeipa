@@ -439,6 +439,9 @@ class baseidoverride(LDAPObject):
                 # about the domain
                 return SID_ANCHOR_PREFIX + sid
 
+        # No acceptable object was found
+        api.Object['idoverride%s' % obj_type].handle_not_found(obj)
+
     def resolve_anchor_to_object_name(self, anchor):
         if anchor.startswith(IPA_ANCHOR_PREFIX):
 
@@ -477,6 +480,10 @@ class baseidoverride(LDAPObject):
                     name = domain_validator.get_trusted_domain_object_from_sid(sid)
                     return name
 
+        # No acceptable object was found
+        raise errors.NotFound(
+            reason=_("Anchor '%(anchor)s' could not be resolved.")
+                   % dict(anchor=anchor))
 
     def get_dn(self, *keys, **options):
         keys = keys[:-1] + (self.resolve_object_to_anchor(keys[-1]), )
