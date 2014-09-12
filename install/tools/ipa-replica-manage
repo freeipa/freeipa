@@ -745,6 +745,7 @@ def del_master(realm, hostname, options):
             bind = bindinstance.BindInstance()
             bind.remove_master_dns_records(hostname, realm, realm.lower())
             bind.remove_ipa_ca_dns_records(hostname, realm.lower())
+            bind.remove_server_ns_records(hostname)
     except Exception, e:
         print "Failed to cleanup %s DNS entries: %s" % (hostname, e)
         print "You may need to manually remove them from the tree"

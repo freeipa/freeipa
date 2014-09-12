@@ -294,11 +294,11 @@ def read_reverse_zone(default, ip_address):
 
     return normalize_zone(zone)
 
-def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_address=None,
+def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None,
        update_policy=None, force=False):
-    if zone_is_reverse(name):
-        # always normalize reverse zones
-        name = normalize_zone(name)
+
+    # always normalize zones
+    name = normalize_zone(name)
 
     if update_policy is None:
         if zone_is_reverse(name):
@@ -309,27 +309,14 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_addres
     if zonemgr is None:
         zonemgr = 'hostmaster.%s' % name
 
-    if ns_hostname is None:
-        # automatically retrieve list of DNS masters
-        dns_masters = api.Object.dnsrecord.get_dns_masters()
-        if not dns_masters:
-            raise installutils.ScriptError(
-                "No IPA server with DNS support found!")
-        ns_main = dns_masters.pop(0)
-        ns_replicas = dns_masters
-    else:
-        ns_main = ns_hostname
-        ns_replicas = []
-    ns_main = normalize_zone(ns_main)
-
-    if ns_ip_address is not None:
-        ns_ip_address = unicode(ns_ip_address)
+    if ns_hostname:
+        ns_hostname = normalize_zone(ns_hostname)
+        ns_hostname = unicode(ns_hostname)
 
     try:
         api.Command.dnszone_add(unicode(name),
-                                idnssoamname=unicode(ns_main),
+                                idnssoamname=ns_hostname,
                                 idnssoarname=unicode(zonemgr),
-                                ip_address=ns_ip_address,
                                 idnsallowdynupdate=True,
                                 idnsupdatepolicy=unicode(update_policy),
                                 idnsallowquery=u'any',
@@ -337,11 +324,6 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None, ns_ip_addres
                                 force=force)
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
-
-    nameservers = ns_replicas + [ns_main]
-    for hostname in nameservers:
-        hostname = normalize_zone(hostname)
-        add_ns_rr(name, hostname, dns_backup=None, force=True)
 
 def add_rr(zone, name, type, rdata, dns_backup=None, **kwargs):
     addkw = { '%srecord' % str(type.lower()) : unicode(rdata) }
@@ -382,6 +364,9 @@ def del_fwd_rr(zone, host, ip_address):
         del_rr(zone, host, "A", ip_address)
     elif addr.version == 6:
         del_rr(zone, host, "AAAA", ip_address)
+
+def del_ns_rr(zone, name, rdata):
+    del_rr(zone, name, 'NS', rdata)
 
 def get_rr(zone, name, type):
     rectype = '%srecord' % unicode(type.lower())
@@ -548,16 +533,17 @@ class BindInstance(service.Service):
         if self.first_instance:
             self.step("adding DNS container", self.__setup_dns_container)
 
-        if dns_zone_exists(self.domain):
-            self.step("adding NS record to the zone", self.__add_self_ns)
-        else:
+        if not dns_zone_exists(self.domain):
             self.step("setting up our zone", self.__setup_zone)
+
         if self.reverse_zone is not None:
             self.step("setting up reverse zone", self.__setup_reverse_zone)
 
         self.step("setting up our own record", self.__add_self)
         if self.first_instance:
             self.step("setting up records for other masters", self.__add_others)
+        # all zones must be created before this step
+        self.step("adding NS record to the zones", self.__add_self_ns)
         self.step("setting up CA record", self.__add_ipa_ca_record)
 
         self.step("setting up kerberos principal", self.__setup_principal)
@@ -630,19 +616,20 @@ class BindInstance(service.Service):
         self._ldap_mod("dns.ldif", self.sub_dict)
 
     def __setup_zone(self):
-        nameserver_ip_address = self.ip_address
-        if not self.host_in_default_domain():
-            # Nameserver is in self.host_domain, no forward record added to self.domain
-            nameserver_ip_address = None
         # Always use force=True as named is not set up yet
         add_zone(self.domain, self.zonemgr, dns_backup=self.dns_backup,
-                ns_hostname=api.env.host, ns_ip_address=nameserver_ip_address,
-                force=True)
+                ns_hostname=api.env.host, force=True)
 
         add_rr(self.domain, "_kerberos", "TXT", self.realm)
 
     def __add_self_ns(self):
-        add_ns_rr(self.domain, api.env.host, self.dns_backup, force=True)
+        # add NS record to all zones
+        ns_hostname = normalize_zone(api.env.host)
+        result = api.Command.dnszone_find()
+        for zone in result['result']:
+            zone = unicode(zone['idnsname'][0])  # we need unicode due to backup
+            root_logger.debug("adding self NS to zone %s apex", zone)
+            add_ns_rr(zone, ns_hostname, self.dns_backup, force=True)
 
     def __setup_reverse_zone(self):
         # Always use force=True as named is not set up yet
@@ -681,14 +668,8 @@ class BindInstance(service.Service):
                     zone, self.domain))
             root_logger.debug("Add DNS zone for host first.")
 
-            if normalize_zone(zone) == normalize_zone(self.host_domain):
-                ns_ip_address = self.ip_address
-            else:
-                ns_ip_address = None
-
             add_zone(zone, self.zonemgr, dns_backup=self.dns_backup,
-                     ns_hostname=self.fqdn, ns_ip_address=ns_ip_address,
-                     force=True)
+                     ns_hostname=self.fqdn, force=True)
 
         # Add forward and reverse records to self
         for addr in addrs:
@@ -936,7 +917,6 @@ class BindInstance(service.Service):
             ("_kpasswd._tcp", "SRV", "0 100 464 %s" % self.host_in_rr),
             ("_kpasswd._udp", "SRV", "0 100 464 %s" % self.host_in_rr),
             ("_ntp._udp", "SRV", "0 100 123 %s" % self.host_in_rr),
-            ("@", "NS", normalize_zone(fqdn)),
         )
 
         for (record, type, rdata) in resource_records:
@@ -950,8 +930,6 @@ class BindInstance(service.Service):
             if rzone is not None:
                 record = get_reverse_record_name(rzone, rdata)
                 del_rr(rzone, record, "PTR", normalize_zone(fqdn))
-                # remove also master NS record from the reverse zone
-                del_rr(rzone, "@", "NS", normalize_zone(fqdn))
 
     def remove_ipa_ca_dns_records(self, fqdn, domain_name):
         host, zone = fqdn.split(".", 1)
@@ -962,6 +940,38 @@ class BindInstance(service.Service):
 
         for addr in addrs:
             del_fwd_rr(domain_name, IPA_CA_RECORD, addr)
+
+    def remove_server_ns_records(self, fqdn):
+        """
+        Remove all NS records pointing to this server
+        """
+        ldap = api.Backend.ldap2
+        ns_rdata = normalize_zone(fqdn)
+
+        # find all NS records pointing to this server
+        search_kw = {}
+        search_kw['nsrecord'] = ns_rdata
+        attr_filter = ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
+        attributes = ['idnsname', 'objectclass']
+        dn = DN(api.env.container_dns, api.env.basedn)
+
+        entries, truncated = ldap.find_entries(attr_filter, attributes, base_dn=dn)
+
+        # remove records
+        if entries:
+            root_logger.debug("Removing all NS records pointing to %s:", ns_rdata)
+
+        for entry in entries:
+            if 'idnszone' in entry['objectclass']:
+                # zone record
+                zone = entry.single_value['idnsname']
+                root_logger.debug("zone record %s", zone)
+                del_ns_rr(zone, u'@', ns_rdata)
+            else:
+                zone = entry.dn[1].value  # get zone from DN
+                record = entry.single_value['idnsname']
+                root_logger.debug("record %s in zone %s", record, zone)
+                del_ns_rr(zone, record, ns_rdata)
 
     def check_global_configuration(self):
         """
