@@ -1228,7 +1228,6 @@ exp.facet_header = IPA.facet_header = function(spec) {
 
         var li = $('<li/>', {
             name: other_facet.name,
-            title: other_facet.name,
             click: function() {
                 if (li.hasClass('entity-facet-disabled')) {
                     return false;
