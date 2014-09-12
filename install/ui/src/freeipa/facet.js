@@ -298,6 +298,15 @@ exp.facet = IPA.facet = function(spec, no_init) {
      */
     that.redirect_info = spec.redirect_info;
 
+    /**
+     * Name of containing facet of containing entity
+     *
+     * A guide for breadcrumb navigation
+     *
+     * @property {string}
+     */
+    that.containing_facet = spec.containing_facet;
+
 
     /**
      * Facet requires authenticated user
@@ -1130,25 +1139,30 @@ exp.facet_header = IPA.facet_header = function(spec) {
         if (!that.breadcrumb) return;
 
         var items = [];
-        var item, i, l;
+        var item, i, l, keys, target_facet, target_facet_keys, containing_entity;
 
         // all pkeys should be available in facet
-        var keys = that.facet.get_pkeys();
-        var entity = that.facet.entity.get_containing_entity();
-        i = keys.length - 2; //set pointer to first containing entity
-        while (entity) {
+        keys = that.facet.get_pkeys();
+
+        target_facet_keys = keys;
+        containing_entity = that.facet.entity.get_containing_entity();
+        target_facet = that.facet;
+
+        while (containing_entity) {
+            target_facet = containing_entity.get_facet(
+                target_facet.containing_facet || 'default');
+            target_facet_keys = target_facet_keys.slice(0, -1);
             items.unshift({
-                text: keys[i],
-                title: entity.metadata.label_singular,
-                handler: function(entity) {
+                text: target_facet_keys.slice(-1),
+                title: containing_entity.metadata.label_singular,
+                handler: function(facet, keys) {
                     return function() {
-                        navigation.show_entity(entity.name, 'default');
+                        navigation.show(facet, keys);
                         return false;
                     };
-                }(entity)
+                }(target_facet, target_facet_keys)
             });
-            entity = entity.get_containing_entity();
-            i--;
+            containing_entity = containing_entity.get_containing_entity();
         }
 
         //calculation of breadcrumb keys length
@@ -1167,12 +1181,12 @@ exp.facet_header = IPA.facet_header = function(spec) {
         }
         max_key_l = ((max_bc_l - bc_l) / to_limit) - 4;
 
+        target_facet = target_facet.get_redirect_facet();
         // main level item
-        var redirect_facet = that.facet.get_redirect_facet();
         items.unshift({
-            text: redirect_facet.label,
+            text: target_facet.label,
             handler: function() {
-                that.facet.redirect();
+                navigation.show(target_facet);
                 return false;
             }
         });
