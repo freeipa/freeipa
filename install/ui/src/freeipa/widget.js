@@ -4098,10 +4098,11 @@ IPA.link_widget = function(spec) {
 
     that.is_link = spec.is_link || false;
 
-    that.value = [];
+    that.value = '';
+    that.values = [];
 
     function other_pkeys () {
-        return that.facet.get_pkeys();
+        return that.values;
     }
 
     /** @inheritDoc */
@@ -4126,7 +4127,8 @@ IPA.link_widget = function(spec) {
     /** @inheritDoc */
     that.update = function(values) {
 
-        that.value = util.normalize_value(values)[0] || '';
+        that.values = util.normalize_value(values);
+        that.value = that.values.slice(-1)[0] || '';
         that.link.html(that.value);
         that.nonlink.html(that.value);
 
