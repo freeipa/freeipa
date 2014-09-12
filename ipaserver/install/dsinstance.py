@@ -655,11 +655,8 @@ class DsInstance(service.Service):
         conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)
 
         mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
-               (ldap.MOD_REPLACE, "nsSSL3Ciphers",
-                "-rsa_null_md5,+rsa_rc4_128_md5,+rsa_rc4_40_md5,+rsa_rc2_40_md5,\
-+rsa_des_sha,+rsa_fips_des_sha,+rsa_3des_sha,+rsa_fips_3des_sha,+fortezza,\
-+fortezza_rc4_128_sha,+fortezza_null,+tls_rsa_export1024_with_rc4_56_sha,\
-+tls_rsa_export1024_with_des_cbc_sha")]
+               (ldap.MOD_REPLACE, "nsSSL3Ciphers", "+all"),
+               (ldap.MOD_REPLACE, "allowWeakCipher", "off")]
         conn.modify_s(DN(('cn', 'encryption'), ('cn', 'config')), mod)
 
         mod = [(ldap.MOD_ADD, "nsslapd-security", "on")]
