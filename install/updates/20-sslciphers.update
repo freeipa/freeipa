@@ -1,0 +1,6 @@
+# change configured ciphers
+# the result of this update will be that all ciphers
+# provided by NSS which ar not weak will be enabled
+dn: cn=encryption,cn=config
+only:nsSSL3Ciphers: +all
+addifnew:allowWeakCipher: off
