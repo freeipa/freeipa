@@ -4096,7 +4096,20 @@ IPA.link_widget = function(spec) {
      */
     that.other_pkeys = spec.other_pkeys || other_pkeys;
 
+    /**
+     * Indicates if it's a valid link
+     * @property {boolean}
+     */
     that.is_link = spec.is_link || false;
+
+    /**
+     * Whether to skip entity validation step
+     *
+     * Value of `is_link` won't be changed.
+     *
+     * @property {boolean}
+     */
+    that.no_check = spec.no_check;
 
     that.value = '';
     that.values = [];
@@ -4131,7 +4144,7 @@ IPA.link_widget = function(spec) {
         that.value = that.values.slice(-1)[0] || '';
         that.link.html(that.value);
         that.nonlink.html(that.value);
-
+        that.update_link();
         that.check_entity_link();
         that.on_value_changed(values);
     };
@@ -4177,6 +4190,8 @@ IPA.link_widget = function(spec) {
             return;
         }
 
+        if (that.no_check) return;
+
         rpc.command({
             entity: that.other_entity.name,
             method: 'show',
@@ -4192,8 +4207,6 @@ IPA.link_widget = function(spec) {
                 that.update_link();
             }
         }).execute();
-
-        that.update_link();
     };
 
     /** @inheritDoc */
