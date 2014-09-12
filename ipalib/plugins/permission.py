@@ -503,6 +503,14 @@ class permission(baseldap.LDAPObject):
     def get_effective_attrs(self, entry):
         attrs = set(entry.get('ipapermdefaultattr', ()))
         attrs.update(entry.get('ipapermincludedattr', ()))
+        if ('read' in entry.get('ipapermright', ()) and
+                'objectclass' in (x.lower() for x in attrs)):
+            # Add special-cased operational attributes
+            # We want to allow reading these whenever reading the objectclass
+            # is allowed.
+            # (But they can still be excluded explicitly, at least in managed
+            # permissions).
+            attrs.update((u'entryusn', u'createtimestamp', u'modifytimestamp'))
         attrs.difference_update(entry.get('ipapermexcludedattr', ()))
         return sorted(attrs)
 
