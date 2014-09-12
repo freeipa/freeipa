@@ -2,36 +2,3 @@ dn: cn=referential integrity postoperation,cn=plugins,cn=config
 changetype: modify
 replace: nsslapd-pluginenabled
 nsslapd-pluginenabled: on
--
-add: nsslapd-pluginArg7
-nsslapd-pluginArg7: manager
--
-add: nsslapd-pluginArg8
-nsslapd-pluginArg8: secretary
--
-add: nsslapd-pluginArg9
-nsslapd-pluginArg9: memberuser
--
-add: nsslapd-pluginArg10
-nsslapd-pluginArg10: memberhost
--
-add: nsslapd-pluginArg11
-nsslapd-pluginArg11: sourcehost
--
-add: nsslapd-pluginArg12
-nsslapd-pluginArg12: memberservice
--
-add: nsslapd-pluginArg13
-nsslapd-pluginArg13: managedby
--
-add: nsslapd-pluginArg14
-nsslapd-pluginArg14: memberallowcmd
--
-add: nsslapd-pluginArg15
-nsslapd-pluginArg15: memberdenycmd
--
-add: nsslapd-pluginArg16
-nsslapd-pluginArg16: ipasudorunas
--
-add: nsslapd-pluginArg17
-nsslapd-pluginArg17: ipasudorunasgroup
