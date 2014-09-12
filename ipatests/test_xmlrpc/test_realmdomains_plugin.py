@@ -66,7 +66,8 @@ class test_realmdomains(Declarative):
                     objectclass=objectclasses.realmdomains,
                     aci=[
                         u'(targetattr = "associateddomain || cn || '
-                            u'objectclass")'
+                            u'createtimestamp || entryusn || '
+                            u'modifytimestamp || objectclass")'
                         u'(targetfilter = "(objectclass=domainrelatedobject)")'
                         u'(version 3.0;acl '
                             u'"permission:System: Read Realm Domains";'

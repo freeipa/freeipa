@@ -4018,3 +4018,47 @@ class test_permission_in_accounts(Declarative):
 
         verify_permission_aci_missing(permission1, api.env.basedn),
     ]
+
+
+class test_autoadd_operational_attrs(Declarative):
+    """Test that read access to operational attributes is automatically added
+    """
+    cleanup_commands = [
+        ('permission_del', [permission1], {'force': True}),
+    ]
+
+    tests = [
+        dict(
+            desc='Create %r' % permission1,
+            command=(
+                'permission_add', [permission1], dict(
+                    ipapermlocation=DN('cn=accounts', api.env.basedn),
+                    ipapermright=u'read',
+                    attrs=[u'ObjectClass'],
+                )
+            ),
+            expected=dict(
+                value=permission1,
+                summary=u'Added permission "%s"' % permission1,
+                result=dict(
+                    dn=permission1_dn,
+                    cn=[permission1],
+                    objectclass=objectclasses.permission,
+                    attrs=[u'ObjectClass', u'entryusn', u'createtimestamp',
+                           u'modifytimestamp'],
+                    ipapermright=[u'read'],
+                    ipapermbindruletype=[u'permission'],
+                    ipapermissiontype=[u'SYSTEM', u'V2'],
+                    ipapermlocation=[DN('cn=accounts', api.env.basedn)],
+                ),
+            ),
+        ),
+
+        verify_permission_aci(
+            permission1, DN('cn=accounts', api.env.basedn),
+            '(targetattr = "ObjectClass || createtimestamp || entryusn || ' +
+                'modifytimestamp")' +
+            '(version 3.0;acl "permission:%s";' % permission1 +
+            'allow (read) groupdn = "ldap:///%s";)' % permission1_dn,
+        ),
+    ]
