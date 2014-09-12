@@ -79,6 +79,8 @@ The template dictionary can have the following keys:
     in the future.
 
 No other keys are allowed in the template
+
+The plugin also deletes permissions specified in OBSOLETE_PERMISSIONS.
 """
 
 from ipalib import api, errors
@@ -95,25 +97,15 @@ from ipaserver.install.plugins.baseupdate import PostUpdate
 
 register = Registry()
 
+OBSOLETE_PERMISSIONS = {
+    # These permissions will be removed on upgrade, if they exist.
+    # Any modifications the user might have made to them are not taken
+    # into account. This should be used sparingly.
+    'System: Read Timestamp and USN Operational Attributes',
+    'System: Read Creator and Modifier Operational Attributes',
+}
+
 NONOBJECT_PERMISSIONS = {
-    'System: Read Timestamp and USN Operational Attributes': {
-        'ipapermlocation': api.env.basedn,
-        'ipapermtargetfilter': {'(objectclass=*)'},
-        'ipapermbindruletype': 'anonymous',
-        'ipapermright': {'read', 'search', 'compare'},
-        'ipapermdefaultattr': {
-            'createtimestamp', 'modifytimestamp', 'entryusn',
-        },
-    },
-    'System: Read Creator and Modifier Operational Attributes': {
-        'ipapermlocation': api.env.basedn,
-        'ipapermtargetfilter': {'(objectclass=*)'},
-        'ipapermbindruletype': 'all',
-        'ipapermright': {'read', 'search', 'compare'},
-        'ipapermdefaultattr': {
-            'creatorsname', 'modifiersname',
-        },
-    },
     'System: Read IPA Masters': {
         'replaces_global_anonymous_aci': True,
         'ipapermlocation': DN('cn=masters,cn=ipa,cn=etc', api.env.basedn),
@@ -337,6 +329,17 @@ class update_managed_permissions(PostUpdate):
 
         if anonymous_read_aci:
             self.remove_anonymous_read_aci(ldap, anonymous_read_aci)
+
+        for obsolete_name in OBSOLETE_PERMISSIONS:
+            self.log.debug('Deleting obsolete permission %s', obsolete_name)
+            try:
+                self.api.Command[permission_del](unicode(obsolete_name),
+                                                 force=True,
+                                                 version=u'2.101')
+            except errors.NotFound:
+                self.log.debug('Obsolete permission not found')
+            else:
+                self.log.info('Obsolete permission deleted: %s', obsolete_name)
 
         return False, False, ()
 
