@@ -142,7 +142,10 @@ return {
                 name: 'identity',
                 fields: [
                     'idnsname',
-                    'idnssoamname',
+                    {
+                        name: 'idnssoamname',
+                        required: true
+                    },
                     'idnssoarname',
                     'idnssoaserial',
                     'idnssoarefresh',
@@ -276,7 +279,6 @@ return {
     ],
     standard_association_facets: true,
     adder_dialog: {
-        $factory: IPA.dnszone_adder_dialog,
         height: 300,
         sections: [
             {
@@ -294,26 +296,6 @@ return {
                         name: 'name_from_ip',
                         radio_name: 'dnszone_name_type',
                         validators: ['network']
-                    }
-                ]
-            },
-            {
-                name: 'other',
-                fields: [
-                    'idnssoamname',
-                    {
-                        name: 'ip_address',
-                        validators: [ 'ip_address' ],
-                        metadata: '@mc-opt:dnszone_add:ip_address'
-                    },
-                    {
-                        name: 'idnssoarname',
-                        required: false
-                    },
-                    {
-                        $type: 'force_dnszone_add_checkbox',
-                        name: 'force',
-                        metadata: '@mc-opt:dnszone_add:force'
                     }
                 ]
             }
@@ -661,73 +643,6 @@ IPA.force_dnszone_add_checkbox_widget = function(spec) {
     spec.label = metadata.label;
     spec.title = metadata.doc;
     return IPA.checkbox_widget(spec);
-};
-
-IPA.dnszone_adder_dialog = function(spec) {
-
-    spec = spec || {};
-
-    var that = IPA.entity_adder_dialog(spec);
-
-    function ends_with(str, suffix) {
-        return str.indexOf(suffix, str.length - suffix.length) !== -1;
-    }
-
-    var init = function() {
-        var zone_w = that.fields.get_field('idnsname').widget;
-        var reverse_zone_w = that.fields.get_field('name_from_ip').widget;
-        var ns_w = that.fields.get_field('idnssoamname').widget;
-
-        zone_w.value_changed.attach(that.check_ns_ip);
-        reverse_zone_w.value_changed.attach(that.check_ns_ip);
-        ns_w.value_changed.attach(that.check_ns_ip);
-    };
-
-    that.check_ns_ip = function() {
-        var ip_address_f = that.fields.get_field('ip_address');
-        var zone_w = that.fields.get_field('idnsname').widget;
-        var ns_w = that.fields.get_field('idnssoamname').widget;
-
-        var zone = zone_w.save()[0] || '';
-        var ns = ns_w.save()[0] || '';
-
-        var zone_is_reverse = !zone_w.enabled ||
-                              ends_with(zone, '.in-addr.arpa.') ||
-                              ends_with(zone, '.ip6.arpa.');
-        var relative_ns = true;
-        var ns_in_zone = false;
-
-        if (ns && ns[ns.length-1] === '.') {
-            relative_ns = false;
-            ns = ns.slice(0, -1);
-        }
-
-        if (zone && zone[zone.length-1] === '.') {
-            zone = zone.slice(0, -1);
-        }
-
-        if (ns && zone && ends_with(ns, '.' + zone)) {
-            ns_in_zone = true;
-        }
-
-        if (!zone_is_reverse && (relative_ns || ns_in_zone)) {
-            ip_address_f.set_enabled(true);
-            ip_address_f.set_required(true);
-        } else {
-            ip_address_f.reset();
-            ip_address_f.set_required(false);
-            ip_address_f.set_enabled(false);
-        }
-    };
-
-    that.create_content = function() {
-        that.entity_adder_dialog_create_content();
-        that.container.addClass('dnszone-adder-dialog');
-    };
-
-    init();
-
-    return that;
 };
 
 IPA.dns.add_permission_action = function(spec) {
