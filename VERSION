@@ -89,5 +89,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=103
-# Last change: mbasti - make --name-server option optional
+IPA_API_VERSION_MINOR=104
+# Last change: mbasti - autofill --admin-email in DNS zone
