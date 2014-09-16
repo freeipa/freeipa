@@ -39,7 +39,7 @@ from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
 from ipalib import messages
-from ipalib.util import (validate_zonemgr, normalize_zonemgr,
+from ipalib.util import (normalize_zonemgr,
                          get_dns_forward_zone_update_policy,
                          get_dns_reverse_zone_update_policy,
                          get_reverse_zone_default, REVERSE_DNS_ZONES,
@@ -314,8 +314,8 @@ _output_permissions = (
 
 def _rname_validator(ugettext, zonemgr):
     try:
-        validate_zonemgr(zonemgr)
-    except (ValueError, dns.exception.SyntaxError), e:
+        DNSName(zonemgr)  # test only if it is valid domain name
+    except (ValueError, dns.exception.SyntaxError) as e:
         return unicode(e)
     return None
 
@@ -2091,13 +2091,12 @@ class dnszone(DNSZoneBase):
         ),
         DNSNameParam('idnssoarname',
             _rname_validator,
-            only_absolute=True,
             cli_name='admin_email',
             label=_('Administrator e-mail address'),
             doc=_('Administrator e-mail address'),
-            default_from=lambda idnsname:
-                DNSName(('hostmaster')).derelativize(idnsname),
+            default=DNSName(u'hostmaster'),
             normalizer=normalize_zonemgr,
+            autofill=True,
         ),
         Int('idnssoaserial',
             cli_name='serial',

@@ -219,9 +219,6 @@ def normalize_zonemgr(zonemgr):
         name = name.replace('.', '\\.')
         zonemgr = u''.join((name, u'.', domain))
 
-    if not zonemgr.endswith('.'):
-        zonemgr = zonemgr + u'.'
-
     return zonemgr
 
 def normalize_zone(zone):
@@ -273,18 +270,12 @@ def validate_domain_name(domain_name, allow_underscore=False, allow_slash=False)
 
 def validate_zonemgr(zonemgr):
     assert isinstance(zonemgr, DNSName)
-    assert zonemgr.is_absolute()
-    """ See RFC 1033, 1035 """
     if any('@' in label for label in zonemgr.labels):
         raise ValueError(_('too many \'@\' characters'))
-    if len(zonemgr.labels) < 3:
-        raise ValueError(_('missing address domain'))
-    if not zonemgr.labels[0]:
-        raise ValueError(_('missing mail account'))
+
 
 def validate_zonemgr_str(zonemgr):
     zonemgr = normalize_zonemgr(zonemgr)
-    zonemgr = DNSName(zonemgr).make_absolute()
     return validate_zonemgr(zonemgr)
 
 def validate_hostname(hostname, check_fqdn=True, allow_underscore=False, allow_slash=False):
