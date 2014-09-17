@@ -158,6 +158,16 @@ class FedoraTaskNamespace(BaseTaskNamespace):
         auth_config.execute()
 
     def insert_ca_certs_into_systemwide_ca_store(self, ca_certs):
+        new_cacert_path = os.path.join(paths.SYSTEMWIDE_CA_STORE, 'ipa-ca.crt')
+
+        if os.path.exists(new_cacert_path):
+            try:
+                os.remove(new_cacert_path)
+            except OSError, e:
+                root_logger.error(
+                    "Could not remove %s: %s", new_cacert_path, e)
+                return False
+
         new_cacert_path = paths.IPA_P11_KIT
 
         try:
@@ -250,25 +260,33 @@ class FedoraTaskNamespace(BaseTaskNamespace):
         return False
 
     def remove_ca_certs_from_systemwide_ca_store(self):
-        new_cacert_path = paths.IPA_P11_KIT
+        ipa_ca_crt = os.path.join(paths.SYSTEMWIDE_CA_STORE, 'ipa-ca.crt')
+        update = False
 
         # Remove CA cert from systemwide store
-        if os.path.exists(new_cacert_path):
+        for new_cacert_path in (paths.IPA_P11_KIT, ipa_ca_crt):
+            if not os.path.exists(new_cacert_path):
+                continue
             try:
                 os.remove(new_cacert_path)
-                ipautil.run([paths.UPDATE_CA_TRUST])
             except OSError, e:
-                root_logger.error('Could not remove: %s, %s'
-                                   % (new_cacert_path, str(e)))
-                return False
+                root_logger.error(
+                    "Could not remove %s: %s", new_cacert_path, e)
+            else:
+                update = True
+
+        if update:
+            try:
+                ipautil.run([paths.UPDATE_CA_TRUST])
             except CalledProcessError, e:
-                root_logger.error('Could not update systemwide CA trust '
-                                  'database: %s' % str(e))
+                root_logger.error(
+                    "Could not update systemwide CA trust database: %s", e)
                 return False
             else:
-                root_logger.info('Systemwide CA database updated.')
+                root_logger.info("Systemwide CA database updated.")
+                return True
 
-        return True
+        return False
 
     def backup_and_replace_hostname(self, fstore, statestore, hostname):
         old_hostname = socket.gethostname()
