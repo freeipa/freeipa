@@ -60,7 +60,7 @@ class update_ca_renewal_master(PostUpdate):
         if request_id is not None:
             self.debug("found certmonger request for ipaCert")
 
-            ca_name = certmonger.get_request_value(request_id, 'ca_name')
+            ca_name = certmonger.get_request_value(request_id, 'ca-name')
             if ca_name is None:
                 self.warning(
                     "certmonger request for ipaCert is missing ca_name, "
