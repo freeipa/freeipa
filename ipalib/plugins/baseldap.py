@@ -1398,16 +1398,23 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 entry_attrs[self.obj.primary_key.name] = options['rename']
 
             if self.obj.rdn_is_primary_key and self.obj.primary_key.name in entry_attrs:
-                # RDN change
-                self._exc_wrapper(keys, options, ldap.update_entry_rdn)(
-                    entry_attrs.dn,
-                    RDN((self.obj.primary_key.name,
-                         entry_attrs[self.obj.primary_key.name])))
-                rdnkeys = keys[:-1] + (entry_attrs[self.obj.primary_key.name], )
-                entry_attrs.dn = self.obj.get_dn(*rdnkeys)
-                del entry_attrs[self.obj.primary_key.name]
-                options['rdnupdate'] = True
-                rdnupdate = True
+                try:
+                    # RDN change
+                    self._exc_wrapper(keys, options, ldap.update_entry_rdn)(
+                        entry_attrs.dn,
+                        RDN((self.obj.primary_key.name,
+                             entry_attrs[self.obj.primary_key.name])))
+
+                    rdnkeys = keys[:-1] + (entry_attrs[self.obj.primary_key.name], )
+                    entry_attrs.dn = self.obj.get_dn(*rdnkeys)
+                    options['rdnupdate'] = True
+                    rdnupdate = True
+                except errors.EmptyModlist:
+                    # Attempt to rename to the current name, ignore
+                    pass
+                finally:
+                    # Delete the primary_key from entry_attrs either way
+                    del entry_attrs[self.obj.primary_key.name]
 
             # Exception callbacks will need to test for options['rdnupdate']
             # to decide what to do. An EmptyModlist in this context doesn't

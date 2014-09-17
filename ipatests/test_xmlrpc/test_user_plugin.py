@@ -527,11 +527,28 @@ class test_user(Declarative):
             expected=errors.EmptyModlist(),
         ),
 
+        dict(
+            desc='Rename "%s" to same value, check that other modifications '
+                 'are performed' % renameduser1,
+            command=('user_mod', [renameduser1],
+                     dict(setattr=u'uid=%s' % renameduser1,
+                          loginshell=u'/bin/bash')),
+            expected=dict(
+                result=get_user_result(
+                    renameduser1, u'Finkle', u'User1', 'mod',
+                    mail=[u'%s@%s' % (user1, api.env.domain)],
+                    homedirectory=[u'/home/%s' % user1],
+                    loginshell=[u'/bin/bash']),
+                summary=u'Modified user "%s"' % renameduser1,
+                value=renameduser1,
+            ),
+        ),
+
 
         dict(
             desc='Rename back "%s"' % renameduser1,
             command=('user_mod', [renameduser1],
-                     dict(setattr=u'uid=%s' % user1)),
+                     dict(setattr=u'uid=%s' % user1, loginshell=u'/bin/sh')),
             expected=dict(
                 result=get_user_result(user1, u'Finkle', u'User1', 'mod'),
                 summary=u'Modified user "%s"' % renameduser1,
