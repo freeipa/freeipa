@@ -78,9 +78,6 @@ setup(
     packages=[
         'ipalib',
         'ipalib.plugins',
-        'ipaplatform',
-        'ipaplatform.base',
-        'ipaplatform.fedora',
         'ipaserver',
         'ipaserver.advise',
         'ipaserver.advise.plugins',

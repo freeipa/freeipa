@@ -343,6 +343,8 @@ make client-install DESTDIR=%{buildroot}
 %find_lang %{gettext_domain}
 
 
+mkdir -p %{buildroot}%{_usr}/share/ipa
+
 %if ! %{ONLY_CLIENT}
 # Remove .la files from libtool - we don't want to package
 # these files
@@ -789,6 +791,7 @@ fi
 %attr(0644,root,root) %{python_sitearch}/default_encoding_utf8.so
 %{python_sitelib}/ipapython-*.egg-info
 %{python_sitelib}/freeipa-*.egg-info
+%{python_sitelib}/ipaplatform-*.egg-info
 %{python_sitearch}/python_default_encoding-*.egg-info
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
