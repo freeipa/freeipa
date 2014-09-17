@@ -31,6 +31,9 @@ import nss.ssl as ssl
 import nss.error as error
 from ipaplatform.paths import paths
 
+# NSS database currently open
+current_dbdir = None
+
 def auth_certificate_callback(sock, check_sig, is_server, certdb):
     cert_is_valid = False
 
@@ -184,19 +187,27 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
         httplib.HTTPConnection.__init__(self, host, port, strict)
         NSSAddressFamilyFallback.__init__(self, family)
 
-        if not dbdir:
-            raise RuntimeError("dbdir is required")
-
         root_logger.debug('%s init %s', self.__class__.__name__, host)
-        if not no_init and nss.nss_is_initialized():
-            # close any open NSS database and use the new one
-            ssl.clear_session_cache()
-            try:
-                nss.nss_shutdown()
-            except NSPRError, e:
-                if e.errno != error.SEC_ERROR_NOT_INITIALIZED:
-                    raise e
-        nss.nss_init(dbdir)
+
+        # If initialization is requested, initialize the new database.
+        if not no_init:
+
+            if nss.nss_is_initialized():
+                ssl.clear_session_cache()
+                try:
+                    nss.nss_shutdown()
+                except NSPRError, e:
+                    if e.errno != error.SEC_ERROR_NOT_INITIALIZED:
+                        raise e
+
+            if not dbdir:
+                raise RuntimeError("dbdir is required")
+
+            nss.nss_init(dbdir)
+
+            global current_dbdir
+            current_dbdir = dbdir
+
         ssl.set_domestic_policy()
         nss.set_password_callback(self.password_callback)
 

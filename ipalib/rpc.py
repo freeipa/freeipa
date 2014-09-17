@@ -63,6 +63,7 @@ from ipaplatform.paths import paths
 from ipapython.cookie import Cookie
 from ipapython.dnsutil import DNSName
 from ipalib.text import _
+import ipapython.nsslib
 from ipapython.nsslib import NSSHTTPS, NSSConnection
 from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
                              KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, KRB5_REALM_CANT_RESOLVE
@@ -450,14 +451,10 @@ class LanguageAwareTransport(MultiProtocolTransport):
 class SSLTransport(LanguageAwareTransport):
     """Handles an HTTPS transaction to an XML-RPC server."""
 
-    def __nss_initialized(self, dbdir):
+    def get_connection_dbdir(self):
         """
-        If there is another connections open it may have already
-        initialized NSS. This is likely to lead to an NSS shutdown
-        failure.  One way to mitigate this is to tell NSS to not
-        initialize if it has already been done in another open connection.
-
-        Returns True if another connection is using the same db.
+        If there is a connections open it may have already initialized
+        NSS database. Return the database location used by the connection.
         """
         for value in context.__dict__.values():
             if not isinstance(value, Connection):
@@ -466,25 +463,32 @@ class SSLTransport(LanguageAwareTransport):
                     getattr(value.conn, '_ServerProxy__transport', None),
                     SSLTransport):
                 continue
-            if hasattr(value.conn._ServerProxy__transport, 'dbdir') and \
-              value.conn._ServerProxy__transport.dbdir == dbdir:
-                return True
-        return False
+            if hasattr(value.conn._ServerProxy__transport, 'dbdir'):
+                return value.conn._ServerProxy__transport.dbdir
+        return None
 
     def make_connection(self, host):
         host, self._extra_headers, x509 = self.get_host_info(host)
         # Python 2.7 changed the internal class used in xmlrpclib from
         # HTTP to HTTPConnection. We need to use the proper subclass
 
-        # If we an existing connection exists using the same NSS database
-        # there is no need to re-initialize. Pass thsi into the NSS
-        # connection creator.
         if sys.version_info >= (2, 7):
             if self._connection and host == self._connection[0]:
                 return self._connection[1]
 
         dbdir = getattr(context, 'nss_dir', paths.IPA_NSSDB_DIR)
-        no_init = self.__nss_initialized(dbdir)
+        connection_dbdir = self.get_connection_dbdir()
+
+        if connection_dbdir:
+            # If an existing connection is already using the same NSS
+            # database there is no need to re-initialize.
+            no_init = dbdir == connection_dbdir
+
+        else:
+            # If the NSS database is already being used there is no
+            # need to re-initialize.
+            no_init = dbdir == ipapython.nsslib.current_dbdir
+
         if sys.version_info < (2, 7):
             conn = NSSHTTPS(host, 443, dbdir=dbdir, no_init=no_init)
         else:
