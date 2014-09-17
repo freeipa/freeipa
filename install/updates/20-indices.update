@@ -143,3 +143,10 @@ default:ObjectClass: top
 default:ObjectClass: nsIndex
 default:nsSystemIndex: false
 only:nsIndexType: eq,pres,sub
+
+dn: cn=ipaassignedidview,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: ipaassignedidview
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+default:nsSystemIndex: false
+only:nsIndexType: eq,pres,sub
