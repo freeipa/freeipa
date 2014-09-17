@@ -1,6 +1,7 @@
 # Define ONLY_CLIENT to only make the ipa-client and ipa-python subpackages
 %{!?ONLY_CLIENT:%global ONLY_CLIENT 0}
 
+%global alt_name ipa
 %global plugin_dir %{_libdir}/dirsrv/plugins
 %global POLICYCOREUTILSVER 2.1.12-5
 %global gettext_domain ipa
@@ -127,6 +128,9 @@ Requires(pre): 389-ds-base >= 1.3.3.2
 Requires: fontawesome-fonts
 Requires: open-sans-fonts
 
+Conflicts: %{alt_name}-server
+Obsoletes: %{alt_name}-server < %{version}
+
 # With FreeIPA 3.3, package freeipa-server-selinux was obsoleted as the
 # entire SELinux policy is stored in the system policy
 Obsoletes: freeipa-server-selinux < 3.3.0
@@ -140,8 +144,6 @@ Conflicts: bind < 9.8.2-0.4.rc2
 # Versions of nss-pam-ldapd < 0.8.4 require a mapping from uniqueMember to
 # member.
 Conflicts: nss-pam-ldapd < 0.8.4
-
-Obsoletes: ipa-server >= 1.0
 
 %description server
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -170,6 +172,9 @@ Requires(post): %{_sbindir}/update-alternatives
 Requires(post): python
 Requires(postun): %{_sbindir}/update-alternatives
 Requires(preun): %{_sbindir}/update-alternatives
+
+Conflicts: %{alt_name}-server-trust-ad
+Obsoletes: %{alt_name}-server-trust-ad < %{version}
 
 %description server-trust-ad
 Cross-realm trusts with Active Directory in IPA require working Samba 4
@@ -206,7 +211,8 @@ Requires: nfs-utils
 Requires: python-backports-ssl_match_hostname
 Requires(post): policycoreutils
 
-Obsoletes: ipa-client >= 1.0
+Conflicts: %{alt_name}-client
+Obsoletes: %{alt_name}-client < %{version}
 
 %description client
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -225,7 +231,8 @@ Requires: %{name}-client = %{version}-%{release}
 Requires: python-krbV
 Requires: python-ldap
 
-Obsoletes: ipa-admintools >= 1.0
+Conflicts: %{alt_name}-admintools
+Obsoletes: %{alt_name}-admintools < %{version}
 
 %description admintools
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -252,7 +259,8 @@ Requires: python-pyasn1
 Requires: python-dateutil
 Requires: python-yubico
 
-Obsoletes: ipa-python >= 1.0
+Conflicts: %{alt_name}-python
+Obsoletes: %{alt_name}-python < %{version}
 
 %description python
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -273,6 +281,9 @@ Requires: python-paste
 Requires: python-coverage
 Requires: python-polib
 Requires: python-paramiko >= 1.7.7
+
+Conflicts: %{alt_name}-tests
+Obsoletes: %{alt_name}-tests < %{version}
 
 %description tests
 IPA is an integrated solution to provide centrally managed Identity (machine,
