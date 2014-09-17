@@ -166,7 +166,13 @@ def get_request_value(request_id, directive):
         root_logger.error('Failed to get request: %s' % e)
         raise
     if request:
-        return request.prop_if.Get(DBUS_CM_REQUEST_IF, directive)
+        if directive == 'ca-name':
+            ca_path = request.obj_if.get_ca()
+            ca = _cm_dbus_object(request.bus, ca_path, DBUS_CM_CA_IF,
+                                 DBUS_CM_IF)
+            return ca.obj_if.get_nickname()
+        else:
+            return request.prop_if.Get(DBUS_CM_REQUEST_IF, directive)
     else:
         return None
 
