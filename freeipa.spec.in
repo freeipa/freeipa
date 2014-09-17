@@ -223,7 +223,6 @@ logs, analysis thereof). If your network uses IPA for authentication,
 this package should be installed on every client machine.
 
 
-%if ! %{ONLY_CLIENT}
 %package admintools
 Summary: IPA administrative tools
 Group: System Environment/Base
@@ -241,7 +240,6 @@ user, virtual machines, groups, authentication credentials), Policy
 (configuration settings, access control information) and Audit (events,
 logs, analysis thereof). This package provides command-line tools for
 IPA administrators.
-%endif # ONLY_CLIENT
 
 %package python
 Summary: Python libraries used by IPA
@@ -427,10 +425,10 @@ mkdir -p %{buildroot}%{_sysconfdir}/ipa/
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/default.conf
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/ca.crt
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
-
-%if ! %{ONLY_CLIENT}
 mkdir -p %{buildroot}%{_sysconfdir}/bash_completion.d
 install -pm 644 contrib/completion/ipa.bash_completion %{buildroot}%{_sysconfdir}/bash_completion.d/ipa
+
+%if ! %{ONLY_CLIENT}
 mkdir -p %{buildroot}%{_sysconfdir}/cron.d
 
 (cd %{buildroot}/%{python_sitelib}/ipaserver && find . -type f  | \
@@ -776,14 +774,12 @@ fi
 %{_mandir}/man1/ipa-join.1.gz
 %{_mandir}/man5/default.conf.5.gz
 
-%if ! %{ONLY_CLIENT}
 %files admintools
 %defattr(-,root,root,-)
 %doc COPYING README Contributors.txt
 %{_bindir}/ipa
 %config %{_sysconfdir}/bash_completion.d
 %{_mandir}/man1/ipa.1.gz
-%endif # ONLY_CLIENT
 
 %files python -f %{gettext_domain}.lang
 %defattr(-,root,root,-)
