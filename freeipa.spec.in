@@ -815,6 +815,7 @@ fi
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/key3.db
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/secmod.db
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/pwdfile.txt
+%ghost %config(noreplace) %{_sysconfdir}/pki/ca-trust/source/ipa.p11-kit
 
 %if ! %{ONLY_CLIENT}
 %files tests -f tests-python.list
