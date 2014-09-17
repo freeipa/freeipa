@@ -583,14 +583,14 @@ class idoverrideuser(baseidoverride):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'objectClass', 'ipaAnchorUUID', 'uidNumber', 'description',
-                'homeDirectory', 'uid',
+                'homeDirectory', 'uid', 'ipaOriginalUid',
             },
         },
     }
 
     object_class = baseidoverride.object_class + ['ipaUserOverride']
     default_attributes = baseidoverride.default_attributes + [
-       'homeDirectory', 'uidNumber', 'uid',
+       'homeDirectory', 'uidNumber', 'uid', 'ipaOriginalUid',
     ]
 
     takes_params = baseidoverride.takes_params + (
@@ -612,9 +612,19 @@ class idoverrideuser(baseidoverride):
             cli_name='homedir',
             label=_('Home directory'),
         ),
+        Str('ipaoriginaluid?',
+            flags=['no_option', 'no_output']
+            ),
     )
 
     override_object = 'user'
+
+    def update_original_uid_reference(self, entry_attrs):
+        anchor = entry_attrs.single_value.get('ipaanchoruuid')
+        original_uid = resolve_anchor_to_object_name(self.backend,
+                                                     self.override_object,
+                                                     anchor)
+        entry_attrs['ipaOriginalUid'] = original_uid
 
 
 @register()
@@ -669,6 +679,14 @@ class idoverrideuser_add(baseidoverride_add):
     __doc__ = _('Add a new User ID override.')
     msg_summary = _('Added User ID override "%(value)s"')
 
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        dn = super(idoverrideuser_add, self).pre_callback(ldap, dn,
+                 entry_attrs, attrs_list, *keys, **options)
+
+        # Update the ipaOriginalUid
+        self.obj.update_original_uid_reference(entry_attrs)
+        return dn
+
 
 @register()
 class idoverrideuser_del(baseidoverride_del):
@@ -680,6 +698,15 @@ class idoverrideuser_del(baseidoverride_del):
 class idoverrideuser_mod(baseidoverride_mod):
     __doc__ = _('Modify an User ID override.')
     msg_summary = _('Modified an User ID override "%(value)s"')
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        dn = super(idoverrideuser_mod, self).pre_callback(ldap, dn,
+                 entry_attrs, attrs_list, *keys, **options)
+
+        # Update the ipaOriginalUid
+        self.obj.set_anchoruuid_from_dn(dn, entry_attrs)
+        self.obj.update_original_uid_reference(entry_attrs)
+        return dn
 
 
 @register()
