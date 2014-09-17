@@ -71,6 +71,7 @@ client: client-autogen
 	@for subdir in $(CLIENTDIRS); do \
 		(cd $$subdir && $(MAKE) all) || exit 1; \
 	done
+	cd ipaplatform && $(PYTHON) setup.py build
 
 bootstrap-autogen: version-update client-autogen
 	@echo "Building IPA $(IPA_VERSION)"
@@ -96,8 +97,10 @@ client-install: client client-dirs
 	cd install/po && $(MAKE) install || exit 1;
 	if [ "$(DESTDIR)" = "" ]; then \
 		$(PYTHON) setup-client.py install; \
+		(cd ipaplatform && $(PYTHON) setup.py install); \
 	else \
 		$(PYTHON) setup-client.py install --root $(DESTDIR); \
+		(cd ipaplatform && $(PYTHON) setup.py install --root $(DESTDIR)); \
 	fi
 
 client-dirs:
@@ -164,12 +167,15 @@ version-update: release-update
 
 server: version-update
 	$(PYTHON) setup.py build
+	cd ipaplatform && $(PYTHON) setup.py build
 
 server-install: server
 	if [ "$(DESTDIR)" = "" ]; then \
 		$(PYTHON) setup.py install; \
+		(cd ipaplatform && $(PYTHON) setup.py install); \
 	else \
 		$(PYTHON) setup.py install --root $(DESTDIR); \
+		(cd ipaplatform && $(PYTHON) setup.py install --root $(DESTDIR)); \
 	fi
 
 tests: version-update tests-man-autogen
