@@ -41,6 +41,12 @@ class CertUpdate(admintool.AdminTool):
         super(CertUpdate, self).validate_options(needs_root=True)
 
     def run(self):
+        fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
+        if (not fstore.has_files() and
+            not os.path.exists(paths.IPA_DEFAULT_CONF)):
+            raise admintool.ScriptError(
+                "IPA client is not configured on this system.")
+
         api.bootstrap(context='cli_installer')
         api.finalize()
 
