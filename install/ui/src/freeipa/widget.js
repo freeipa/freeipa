@@ -2489,6 +2489,8 @@ IPA.column = function (spec) {
     that.link = spec.link;
     that.adapter = builder.build('adapter', spec.adapter || 'adapter', { context: that });
     that.formatter = builder.build('formatter', spec.formatter);
+    that.target_entity = spec.target_entity;
+    that.target_facet = spec.target_facet;
 
     if (!that.entity) {
         throw {
@@ -2585,6 +2587,10 @@ IPA.column = function (spec) {
      * Intended to be overridden.
      */
     that.link_handler = function(value) {
+
+        // very simple implementation which doesn't handle navigation to
+        // nested entities
+        navigation.show_entity(that.target_entity, that.target_facet, [value]);
         return false;
     };
 
