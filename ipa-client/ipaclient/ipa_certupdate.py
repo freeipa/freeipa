@@ -70,6 +70,15 @@ class CertUpdate(admintool.AdminTool):
 
     def update_client(self, certs):
         self.update_file(paths.IPA_CA_CRT, certs)
+        self.update_db(paths.IPA_NSSDB_DIR, certs)
+
+        for nickname in ('IPA CA', 'External CA cert'):
+            try:
+                ipautil.run([paths.CERTUTIL, '-D',
+                             '-d', paths.NSS_DB_DIR,
+                             '-n', nickname])
+            except ipautil.CalledProcessError, e:
+                pass
 
         self.update_db(paths.NSS_DB_DIR, certs)
 

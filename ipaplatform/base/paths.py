@@ -63,7 +63,7 @@ class BasePathNamespace(object):
     IPA_DNS_UPDATE_TXT = "/etc/ipa/.dns_update.txt"
     IPA_CA_CRT = "/etc/ipa/ca.crt"
     IPA_DEFAULT_CONF = "/etc/ipa/default.conf"
-    IPA_NSSDB_DIR = "/etc/ipa/.nssdb"
+    IPA_NSSDB_DIR = "/etc/ipa/nssdb"
     KRB5_CONF = "/etc/krb5.conf"
     KRB5_KEYTAB = "/etc/krb5.keytab"
     LDAP_CONF = "/etc/ldap.conf"

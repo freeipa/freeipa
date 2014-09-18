@@ -46,7 +46,7 @@ try:
     from ipaplatform import services
     from ipaplatform.paths import paths
     from ipapython import ipautil, sysrestore, version, certmonger, ipaldap
-    from ipapython import kernel_keyring
+    from ipapython import kernel_keyring, certdb
     from ipapython.config import IPAOptionParser
     from ipalib import api, errors
     from ipalib import x509, certstore
@@ -550,6 +550,15 @@ def uninstall(options, env):
             cmonger.service_name, str(e))
 
     # Remove our host cert and CA cert
+    for filename in (os.path.join(paths.IPA_NSSDB_DIR, 'cert8.db'),
+                     os.path.join(paths.IPA_NSSDB_DIR, 'key3.db'),
+                     os.path.join(paths.IPA_NSSDB_DIR, 'secmod.db'),
+                     os.path.join(paths.IPA_NSSDB_DIR, 'pwdfile.txt')):
+        try:
+            os.remove(filename)
+        except OSError, e:
+            root_logger.error("Failed to remove %s: %s", filename, e)
+
     purge_ipa_certs({client_nss_nickname, 'IPA CA', 'External CA cert'})
 
     try:
@@ -2524,62 +2533,69 @@ def install(options, env, fstore, statestore):
     except ValueError:
         pass
 
-    # Add CA certs to a temporary NSS database
+    tmp_nss_dir = tempfile.mkdtemp()
     try:
-        os.mkdir(paths.IPA_NSSDB_DIR)
-        pwd_file = ipautil.write_tmp_file(ipautil.ipa_generate_password())
-        run([paths.CERTUTIL, '-N',
-             '-d', paths.IPA_NSSDB_DIR,
-             '-f', pwd_file.name])
-
-        ca_certs = x509.load_certificate_list_from_file(CACERT)
-        ca_certs = [cert.der_data for cert in ca_certs]
-        for i, cert in enumerate(ca_certs):
-            run([paths.CERTUTIL, '-A',
-                 '-d', paths.IPA_NSSDB_DIR,
-                 '-n', 'CA certificate %d' % (i + 1),
-                 '-t', 'C,,'],
-                 stdin=cert)
-    except CalledProcessError, e:
-        root_logger.info("Failed to add CA to temporary NSS database.")
-        return CLIENT_INSTALL_ERROR
-
-    # Now, let's try to connect to the server's XML-RPC interface
-    connected = False
-    try:
-        api.Backend.rpcclient.connect(nss_dir=paths.IPA_NSSDB_DIR)
-        connected = True
-        root_logger.debug('Try RPC connection')
-        api.Backend.rpcclient.forward('ping')
-    except errors.KerberosError, e:
-        if connected:
-            api.Backend.rpcclient.disconnect()
-        root_logger.info('Cannot connect to the server due to ' +
-            'Kerberos error: %s. Trying with delegate=True', str(e))
+        # Add CA certs to a temporary NSS database
         try:
-            api.Backend.rpcclient.connect(delegate=True, nss_dir=paths.IPA_NSSDB_DIR)
-            root_logger.debug('Try RPC connection')
-            api.Backend.rpcclient.forward('ping')
+            pwd_file = ipautil.write_tmp_file(ipautil.ipa_generate_password())
+            run([paths.CERTUTIL, '-N',
+                 '-d', tmp_nss_dir,
+                 '-f', pwd_file.name])
 
-            root_logger.info('Connection with delegate=True successful')
-
-            # The remote server is not capable of Kerberos S4U2Proxy delegation
-            # This features is implemented in IPA server version 2.2 and higher
-            root_logger.warning("Target IPA server has a lower version than " +
-                "the enrolled client")
-            root_logger.warning("Some capabilities including the ipa " +
-                "command capability may not be available")
-        except errors.PublicError, e2:
-            root_logger.warning(
-                'Second connect with delegate=True also failed: %s', str(e2))
-            root_logger.error(
-                "Cannot connect to the IPA server XML-RPC interface: %s",
-                str(e2))
+            ca_certs = x509.load_certificate_list_from_file(CACERT)
+            ca_certs = [cert.der_data for cert in ca_certs]
+            for i, cert in enumerate(ca_certs):
+                run([paths.CERTUTIL, '-A',
+                     '-d', tmp_nss_dir,
+                     '-n', 'CA certificate %d' % (i + 1),
+                     '-t', 'C,,'],
+                     stdin=cert)
+        except CalledProcessError, e:
+            root_logger.info("Failed to add CA to temporary NSS database.")
             return CLIENT_INSTALL_ERROR
-    except errors.PublicError, e:
-        root_logger.error(
-            'Cannot connect to the server due to generic error: %s', str(e))
-        return CLIENT_INSTALL_ERROR
+
+        # Now, let's try to connect to the server's RPC interface
+        connected = False
+        try:
+            api.Backend.rpcclient.connect(nss_dir=tmp_nss_dir)
+            connected = True
+            root_logger.debug("Try RPC connection")
+            api.Backend.rpcclient.forward('ping')
+        except errors.KerberosError, e:
+            if connected:
+                api.Backend.rpcclient.disconnect()
+            root_logger.info(
+                "Cannot connect to the server due to Kerberos error: %s. "
+                "Trying with delegate=True", e)
+            try:
+                api.Backend.rpcclient.connect(delegate=True,
+                                              nss_dir=tmp_nss_dir)
+                root_logger.debug("Try RPC connection")
+                api.Backend.rpcclient.forward('ping')
+
+                root_logger.info("Connection with delegate=True successful")
+
+                # The remote server is not capable of Kerberos S4U2Proxy
+                # delegation. This features is implemented in IPA server
+                # version 2.2 and higher
+                root_logger.warning(
+                    "Target IPA server has a lower version than the enrolled "
+                    "client")
+                root_logger.warning(
+                    "Some capabilities including the ipa command capability "
+                    "may not be available")
+            except errors.PublicError, e2:
+                root_logger.warning(
+                    "Second connect with delegate=True also failed: %s", e2)
+                root_logger.error(
+                    "Cannot connect to the IPA server RPC interface: %s", e2)
+                return CLIENT_INSTALL_ERROR
+        except errors.PublicError, e:
+            root_logger.error(
+                "Cannot connect to the server due to generic error: %s", e)
+            return CLIENT_INSTALL_ERROR
+    finally:
+        shutil.rmtree(tmp_nss_dir)
 
     # Use the RPC directly so older servers are supported
     result = api.Backend.rpcclient.forward(
@@ -2591,14 +2607,38 @@ def install(options, env, fstore, statestore):
     if not remote_env['enable_ra']:
         disable_ra()
 
+    # Create IPA NSS database
+    try:
+        certdb.create_ipa_nssdb()
+    except ipautil.CalledProcessError, e:
+        root_logger.error("Failed to create IPA NSS database: %s", e)
+        return CLIENT_INSTALL_ERROR
+
     # Get CA certificates from the certificate store
     ca_certs = get_certs_from_ldap(cli_server[0], cli_basedn, cli_realm,
                                    remote_env['enable_ra'])
+    ca_certs_trust = [(c, n, certstore.key_policy_to_trust_flags(t, True, u))
+                      for (c, n, t, u) in ca_certs]
 
-    # Add the CA to the platform-dependant systemwide CA store
+    # Add the CA certificates to the IPA NSS database
+    root_logger.debug("Adding CA certificates to the IPA NSS database.")
+    for cert, nickname, trust_flags in ca_certs_trust:
+        try:
+            run([paths.CERTUTIL,
+                 "-A",
+                 "-d", paths.IPA_NSSDB_DIR,
+                 "-n", nickname,
+                 "-t", trust_flags],
+                stdin=cert)
+        except CalledProcessError, e:
+            root_logger.error(
+                "Failed to add %s to the IPA NSS database.", nickname)
+            return CLIENT_INSTALL_ERROR
+
+    # Add the CA certificates to the platform-dependant systemwide CA store
     tasks.insert_ca_certs_into_systemwide_ca_store(ca_certs)
 
-    # Add the CA to the default NSS database and trust it
+    # Add the CA certificates to the default NSS database
     if not purge_ipa_certs():
         root_logger.info(
             "Failed to remove old IPA certificates from the default NSS "
@@ -2611,12 +2651,10 @@ def install(options, env, fstore, statestore):
         root_logger.error("Failed to open /etc/pki/nssdb/ipa.txt: %s", e)
         return CLIENT_INSTALL_ERROR
 
-    for cert, nickname, trusted, ext_key_usage in ca_certs:
+    root_logger.debug(
+        "Attempting to add CA certificates to the default NSS database.")
+    for cert, nickname, trust_flags in ca_certs_trust:
         try:
-            root_logger.debug("Attempting to add CA directly to the "
-                              "default NSS database.")
-            trust_flags = certstore.key_policy_to_trust_flags(
-                trusted, True, ext_key_usage)
             run([paths.CERTUTIL,
                  "-A",
                  "-d", paths.NSS_DB_DIR,
@@ -2624,12 +2662,13 @@ def install(options, env, fstore, statestore):
                  "-t", trust_flags],
                 stdin=cert)
         except CalledProcessError, e:
-            root_logger.info("Failed to add CA to the default NSS database.")
+            root_logger.error(
+                "Failed to add %s to the default NSS database.", nickname)
             list_file.close()
             return CLIENT_INSTALL_ERROR
         else:
-            root_logger.info('Added the CA to the default NSS database.')
             list_file.write(nickname + '\n')
+    root_logger.info("Added CA certificates to the default NSS database.")
 
     list_file.close()
 
@@ -2853,9 +2892,5 @@ except RuntimeError, e:
 finally:
     try:
         os.remove(CCACHE_FILE)
-    except Exception:
-        pass
-    try:
-        shutil.rmtree(paths.IPA_NSSDB_DIR)
     except Exception:
         pass
