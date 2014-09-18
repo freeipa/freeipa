@@ -1965,7 +1965,9 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
 
             var metadata = IPA.get_entity_param(entity.name, column.name);
             column.primary_key = metadata && metadata.primary_key;
-            column.link = (column.link === undefined ? true : column.link) && column.primary_key;
+            if (column.primary_key) {
+                column.link = column.link === undefined ? true : column.link;
+            }
 
             if (column.link && column.primary_key) {
                 column.link_handler = function(value) {
