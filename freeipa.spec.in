@@ -423,6 +423,7 @@ mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa/backup
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/default.conf
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/ca.crt
+mkdir -p %{buildroot}%{_sysconfdir}/ipa/nssdb
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
 mkdir -p %{buildroot}%{_sysconfdir}/bash_completion.d
 install -pm 644 contrib/completion/ipa.bash_completion %{buildroot}%{_sysconfdir}/bash_completion.d/ipa
@@ -536,6 +537,17 @@ if [ $1 -gt 1 ] ; then
 
             /bin/systemctl condrestart ntpd.service 2>&1 || :
         fi
+    fi
+
+    if [ ! -f '/etc/ipa/nssdb/cert8.db' -a $restore -ge 2 ]; then
+        python2 -c 'from ipapython.certdb import create_ipa_nssdb; create_ipa_nssdb()' >/dev/null 2>&1
+        tempfile=$(mktemp)
+        if certutil -L -d /etc/pki/nssdb -n 'IPA CA' -a >"$tempfile" 2>/var/log/ipaupgrade.log; then
+            certutil -A -d /etc/ipa/nssdb -n 'IPA CA' -t CT,C,C -a -i "$tempfile" >/var/log/ipaupgrade.log 2>&1
+        elif certutil -L -d /etc/pki/nssdb -n 'External CA cert' -a >"$tempfile" 2>/var/log/ipaupgrade.log; then
+            certutil -A -d /etc/ipa/nssdb -n 'External CA cert' -t C,, -a -i "$tempfile" >/var/log/ipaupgrade.log 2>&1
+        fi
+        rm -f "$tempfile"
     fi
 fi
 
@@ -795,6 +807,11 @@ fi
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
+%dir %attr(0755,root,root) %{_sysconfdir}/ipa/nssdb
+%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/cert8.db
+%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/key3.db
+%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/secmod.db
+%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/pwdfile.txt
 
 %if ! %{ONLY_CLIENT}
 %files tests -f tests-python.list

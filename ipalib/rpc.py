@@ -483,7 +483,7 @@ class SSLTransport(LanguageAwareTransport):
             if self._connection and host == self._connection[0]:
                 return self._connection[1]
 
-        dbdir = getattr(context, 'nss_dir', paths.NSS_DB_DIR)
+        dbdir = getattr(context, 'nss_dir', paths.IPA_NSSDB_DIR)
         no_init = self.__nss_initialized(dbdir)
         if sys.version_info < (2, 7):
             conn = NSSHTTPS(host, 443, dbdir=dbdir, no_init=no_init)
