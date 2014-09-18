@@ -406,6 +406,15 @@ class NSSDatabase(object):
             raise RuntimeError("Failed to get %s" % nickname)
         return cert
 
+    def has_nickname(self, nickname):
+        try:
+            self.get_cert(nickname)
+        except RuntimeError:
+            # This might be error other than "nickname not found". Beware.
+            return False
+        else:
+            return True
+
     def export_pem_cert(self, nickname, location):
         """Export the given cert to PEM file in the given location"""
         cert = self.get_cert(nickname)
