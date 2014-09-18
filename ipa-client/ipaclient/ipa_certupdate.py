@@ -22,7 +22,7 @@ import tempfile
 import shutil
 
 from ipapython import (admintool, ipautil, ipaldap, sysrestore, dogtag,
-                       certmonger)
+                       certmonger, certdb)
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
@@ -72,11 +72,10 @@ class CertUpdate(admintool.AdminTool):
         self.update_file(paths.IPA_CA_CRT, certs)
         self.update_db(paths.IPA_NSSDB_DIR, certs)
 
+        sys_db = certdb.NSSDatabase(paths.NSS_DB_DIR)
         for nickname in ('IPA CA', 'External CA cert'):
             try:
-                ipautil.run([paths.CERTUTIL, '-D',
-                             '-d', paths.NSS_DB_DIR,
-                             '-n', nickname])
+                sys_db.delete_cert(nickname)
             except ipautil.CalledProcessError, e:
                 pass
 
@@ -165,15 +164,12 @@ class CertUpdate(admintool.AdminTool):
             self.log.error("failed to update %s: %s", filename, e)
 
     def update_db(self, path, certs):
+        db = certdb.NSSDatabase(path)
         for cert, nickname, trusted, eku in certs:
             trust_flags = certstore.key_policy_to_trust_flags(
                 trusted, True, eku)
             try:
-                ipautil.run([paths.CERTUTIL, '-A',
-                             '-d', path,
-                             '-n', nickname,
-                             '-t', trust_flags],
-                             stdin=cert)
+                db.add_cert(cert, nickname, trust_flags)
             except ipautil.CalledProcessError, e:
                 self.log.error(
                     "failed to update %s in %s: %s", nickname, path, e)

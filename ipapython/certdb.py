@@ -36,24 +36,22 @@ def get_ca_nickname(realm, format=CA_NICKNAME_FMT):
 
 
 def create_ipa_nssdb():
-    pwdfile = os.path.join(paths.IPA_NSSDB_DIR, 'pwdfile.txt')
+    db = NSSDatabase(paths.IPA_NSSDB_DIR)
+    pwdfile = os.path.join(db.secdir, 'pwdfile.txt')
 
     ipautil.backup_file(pwdfile)
-    ipautil.backup_file(os.path.join(paths.IPA_NSSDB_DIR, 'cert8.db'))
-    ipautil.backup_file(os.path.join(paths.IPA_NSSDB_DIR, 'key3.db'))
-    ipautil.backup_file(os.path.join(paths.IPA_NSSDB_DIR, 'secmod.db'))
+    ipautil.backup_file(os.path.join(db.secdir, 'cert8.db'))
+    ipautil.backup_file(os.path.join(db.secdir, 'key3.db'))
+    ipautil.backup_file(os.path.join(db.secdir, 'secmod.db'))
 
     with open(pwdfile, 'w') as f:
         f.write(ipautil.ipa_generate_password(pwd_len=40))
     os.chmod(pwdfile, 0600)
 
-    ipautil.run([paths.CERTUTIL,
-         "-N",
-         "-d", paths.IPA_NSSDB_DIR,
-         "-f", pwdfile])
-    os.chmod(os.path.join(paths.IPA_NSSDB_DIR, 'cert8.db'), 0644)
-    os.chmod(os.path.join(paths.IPA_NSSDB_DIR, 'key3.db'), 0644)
-    os.chmod(os.path.join(paths.IPA_NSSDB_DIR, 'secmod.db'), 0644)
+    db.create_db(pwdfile)
+    os.chmod(os.path.join(db.secdir, 'cert8.db'), 0644)
+    os.chmod(os.path.join(db.secdir, 'key3.db'), 0644)
+    os.chmod(os.path.join(db.secdir, 'secmod.db'), 0644)
 
 
 def find_cert_from_txt(cert, start=0):

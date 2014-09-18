@@ -226,14 +226,6 @@ def logging_setup(options):
 def log_service_error(name, action, error):
     root_logger.error("%s failed to %s: %s", name, action, str(error))
 
-def nickname_exists(nickname):
-        (sout, serr, returncode) = run([paths.CERTUTIL, "-L", "-d", paths.NSS_DB_DIR, "-n", nickname], raiseonerr=False)
-
-        if returncode == 0:
-            return True
-        else:
-            return False
-
 def purge_ipa_certs(additional=[]):
     filename = paths.NSSDB_IPA_TXT
     if file_exists(filename):
@@ -258,12 +250,11 @@ def purge_ipa_certs(additional=[]):
         if nickname:
             nicknames.add(nickname)
 
+    sys_db = certdb.NSSDatabase(paths.NSS_DB_DIR)
     for nickname in nicknames:
-        while nickname_exists(nickname):
+        while sys_db.has_nickname(nickname):
             try:
-                run([paths.CERTUTIL, "-D",
-                     "-d", paths.NSS_DB_DIR,
-                     "-n", nickname])
+                sys_db.delete_cert(nickname)
             except Exception, e:
                 root_logger.error(
                     "Failed to remove %s from /etc/pki/nssdb: %s", nickname, e)
@@ -2533,23 +2524,16 @@ def install(options, env, fstore, statestore):
     except ValueError:
         pass
 
-    tmp_nss_dir = tempfile.mkdtemp()
-    try:
+    with certdb.NSSDatabase() as tmp_db:
         # Add CA certs to a temporary NSS database
         try:
             pwd_file = ipautil.write_tmp_file(ipautil.ipa_generate_password())
-            run([paths.CERTUTIL, '-N',
-                 '-d', tmp_nss_dir,
-                 '-f', pwd_file.name])
+            tmp_db.create_db(pwd_file.name)
 
             ca_certs = x509.load_certificate_list_from_file(CACERT)
             ca_certs = [cert.der_data for cert in ca_certs]
             for i, cert in enumerate(ca_certs):
-                run([paths.CERTUTIL, '-A',
-                     '-d', tmp_nss_dir,
-                     '-n', 'CA certificate %d' % (i + 1),
-                     '-t', 'C,,'],
-                     stdin=cert)
+                tmp_db.add_cert(cert, 'CA certificate %d' % (i + 1), 'C,,')
         except CalledProcessError, e:
             root_logger.info("Failed to add CA to temporary NSS database.")
             return CLIENT_INSTALL_ERROR
@@ -2557,7 +2541,7 @@ def install(options, env, fstore, statestore):
         # Now, let's try to connect to the server's RPC interface
         connected = False
         try:
-            api.Backend.rpcclient.connect(nss_dir=tmp_nss_dir)
+            api.Backend.rpcclient.connect(nss_dir=tmp_db.secdir)
             connected = True
             root_logger.debug("Try RPC connection")
             api.Backend.rpcclient.forward('ping')
@@ -2569,7 +2553,7 @@ def install(options, env, fstore, statestore):
                 "Trying with delegate=True", e)
             try:
                 api.Backend.rpcclient.connect(delegate=True,
-                                              nss_dir=tmp_nss_dir)
+                                              nss_dir=tmp_db.secdir)
                 root_logger.debug("Try RPC connection")
                 api.Backend.rpcclient.forward('ping')
 
@@ -2594,8 +2578,6 @@ def install(options, env, fstore, statestore):
             root_logger.error(
                 "Cannot connect to the server due to generic error: %s", e)
             return CLIENT_INSTALL_ERROR
-    finally:
-        shutil.rmtree(tmp_nss_dir)
 
     # Use the RPC directly so older servers are supported
     result = api.Backend.rpcclient.forward(
@@ -2622,14 +2604,10 @@ def install(options, env, fstore, statestore):
 
     # Add the CA certificates to the IPA NSS database
     root_logger.debug("Adding CA certificates to the IPA NSS database.")
+    ipa_db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
     for cert, nickname, trust_flags in ca_certs_trust:
         try:
-            run([paths.CERTUTIL,
-                 "-A",
-                 "-d", paths.IPA_NSSDB_DIR,
-                 "-n", nickname,
-                 "-t", trust_flags],
-                stdin=cert)
+            ipa_db.add_cert(cert, nickname, trust_flags)
         except CalledProcessError, e:
             root_logger.error(
                 "Failed to add %s to the IPA NSS database.", nickname)
@@ -2653,14 +2631,10 @@ def install(options, env, fstore, statestore):
 
     root_logger.debug(
         "Attempting to add CA certificates to the default NSS database.")
+    sys_db = certdb.NSSDatabase(paths.NSS_DB_DIR)
     for cert, nickname, trust_flags in ca_certs_trust:
         try:
-            run([paths.CERTUTIL,
-                 "-A",
-                 "-d", paths.NSS_DB_DIR,
-                 "-n", nickname,
-                 "-t", trust_flags],
-                stdin=cert)
+            sys_db.add_cert(cert, nickname, trust_flags)
         except CalledProcessError, e:
             root_logger.error(
                 "Failed to add %s to the default NSS database.", nickname)
