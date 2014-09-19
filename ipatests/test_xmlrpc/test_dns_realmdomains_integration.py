@@ -23,6 +23,7 @@ Test integration of DNS and realmdomains.
 """
 
 from ipalib import api, errors
+from ipalib.util import normalize_zone
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipatests.test_xmlrpc import objectclasses
@@ -43,6 +44,8 @@ dnszone_2_absolute = "%s." % dnszone_2
 dnszone_2_dn = DN(('idnsname', dnszone_2_absolute), api.env.container_dns,
                   api.env.basedn)
 
+self_server_ns = normalize_zone(api.env.host)
+self_server_ns_dnsname = DNSName(self_server_ns)
 
 def assert_realmdomain_and_txt_record_present(response):
     zone = response['value']
@@ -92,9 +95,7 @@ class test_dns_realmdomains_integration(Declarative):
                  'during dnszone_add',
             command=(
                 'dnszone_add', [dnszone_1], {
-                    'idnssoamname': idnssoamname,
                     'idnssoarname': idnssoarname,
-                    'ip_address': u'1.2.3.4',
                 }
             ),
             expected={
@@ -104,8 +105,8 @@ class test_dns_realmdomains_integration(Declarative):
                     'dn': dnszone_1_dn,
                     'idnsname': [DNSName(dnszone_1_absolute)],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [DNSName(idnssoamname)],
-                    'nsrecord': [idnssoamname],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': lambda x: True,
                     'idnssoarname': [DNSName(idnssoarname)],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -131,11 +132,9 @@ class test_dns_realmdomains_integration(Declarative):
                  'during dnszone_add for forwarded zone',
             command=(
                 'dnszone_add', [dnszone_2], {
-                    'idnssoamname': idnssoamname,
                     'idnssoarname': idnssoarname,
                     'idnsforwarders': u'1.2.3.4',
                     'idnsforwardpolicy': u'only',
-                    'force': True,
                 }
             ),
             expected={
@@ -154,10 +153,10 @@ class test_dns_realmdomains_integration(Declarative):
                     'dn': dnszone_2_dn,
                     'idnsname': [DNSName(dnszone_2_absolute)],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [DNSName(idnssoamname)],
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnsforwarders': [u'1.2.3.4'],
                     'idnsforwardpolicy': [u'only'],
-                    'nsrecord': [idnssoamname],
+                    'nsrecord': lambda x: True,
                     'idnssoarname': [DNSName(idnssoarname)],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],

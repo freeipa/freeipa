@@ -22,12 +22,25 @@ Test the `ipalib/plugins/dns.py` module.
 
 import nose
 from ipalib import api, errors
+from ipalib.util import normalize_zone
 from ipapython.dnsutil import DNSName
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 
+try:
+    from ipaserver.plugins.ldap2 import ldap2
+except ImportError:
+    have_ldap2 = False
+else:
+    import krbV
+    have_ldap2 = True
+
 _dns_zone_record = DNSName(u'@')
+
+# default value of idnssoamname is local DNS server
+self_server_ns = normalize_zone(api.env.host)
+self_server_ns_dnsname = DNSName(self_server_ns)
 
 zone1 = u'dnszone.test'
 zone1_dnsname = DNSName(zone1)
@@ -38,6 +51,7 @@ zone1_dn = DN(('idnsname',zone1_absolute), api.env.container_dns, api.env.basedn
 zone1_ns = u'ns1.%s' % zone1_absolute
 zone1_ns_dnsname = DNSName(zone1_ns)
 zone1_ns_dn = DN(('idnsname','ns1'), zone1_dn)
+zone1_self_server_ns_dn = DN(('idnsname',self_server_ns), zone1_dn)
 zone1_rname = u'root.%s' % zone1_absolute
 zone1_rname_dnsname = DNSName(zone1_rname)
 zone1_permission = u'Manage DNS zone %s' % zone1_absolute
@@ -72,6 +86,7 @@ zone3_rname_dnsname = DNSName(zone3_rname)
 zone3_ns2_arec = u'ns2'
 zone3_ns2_arec_dnsname = DNSName(zone3_ns2_arec)
 zone3_ns2_arec_dn = DN(('idnsname',zone3_ns2_arec), zone3_dn)
+zone3_ns2_arec_absolute = u'%s.%s' % (zone3_ns2_arec, zone3_absolute)
 
 zone4_upper = u'ZONE4.test'
 zone4 = u'zone4.test.'
@@ -173,7 +188,7 @@ wildcard_rec1_addr = u'172.16.15.55'
 wildcard_rec1_test1 = u'a.test.%s' % zone1_absolute
 wildcard_rec1_test2 = u'b.test.%s' % zone1_absolute
 
-nsrev = u'128/25'
+nsrev = u'128/28'
 nsrev_dnsname = DNSName(nsrev)
 nsrev_dn = DN(('idnsname',nsrev), revzone3_classless1_dn)
 
@@ -275,6 +290,47 @@ zone_findtest_forward_dn = DN(('idnsname', zone_findtest_forward), api.env.conta
 
 zone_fw_wildcard = u'*.wildcardforwardzone.test.'
 
+def _get_nameservers_ldap(conn):
+    base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+    ldap_filter = '(&(objectClass=ipaConfigObject)(cn=DNS))'
+    dns_masters = []
+
+    try:
+        entries = conn.find_entries(filter=ldap_filter, base_dn=base_dn)[0]
+
+        for entry in entries:
+            try:
+                master = entry.dn[1]['cn']
+                dns_masters.append(master)
+            except (IndexError, KeyError):
+                pass
+    except errors.NotFound:
+        return []
+
+    return dns_masters
+
+
+def get_nameservers():
+        ldap = ldap2(shared_instance=False)
+        ldap.connect(ccache=krbV.default_context().default_ccache())
+        nameservers = [normalize_zone(x) for x in _get_nameservers_ldap(ldap)]
+        return nameservers
+
+# FIXME to avoid this hack with nameservers, tests should be functional
+nameservers = []
+# get list of nameservers from LDAP
+get_nameservers_error = None
+if have_ldap2:
+    try:
+        nameservers = get_nameservers()
+    except Exception as e:
+        get_nameservers_error = e
+    else:
+        if not nameservers:
+            # if DNS is installed there must be at least one IPA DNS server
+            get_nameservers_error = "No DNS servers found in LDAP"
+
+
 class test_dns(Declarative):
 
     @classmethod
@@ -283,11 +339,16 @@ class test_dns(Declarative):
 
         if not api.Backend.rpcclient.isconnected():
             api.Backend.rpcclient.connect(fallback=False)
+
+        if not have_ldap2:
+            raise nose.SkipTest('server plugin not available')
+
+        if get_nameservers_error is not None:
+            raise nose.SkipTest('unable to get list of nameservers (%s)' % get_nameservers_error)
+
         try:
            api.Command['dnszone_add'](zone1,
-               idnssoamname = zone1_ns,
                idnssoarname = zone1_rname,
-               force = True,
            )
            api.Command['dnszone_del'](zone1)
         except errors.NotFound:
@@ -349,9 +410,7 @@ class test_dns(Declarative):
             desc='Create zone %r' % zone1,
             command=(
                 'dnszone_add', [zone1], {
-                    'idnssoamname': zone1_ns,
                     'idnssoarname': zone1_rname,
-                    'ip_address' : zone1_ip,
                 }
             ),
             expected={
@@ -361,8 +420,8 @@ class test_dns(Declarative):
                     'dn': zone1_dn,
                     'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone1_ns_dnsname],
-                    'nsrecord': [zone1_ns],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -386,9 +445,7 @@ class test_dns(Declarative):
             desc='Try to create duplicate zone %r' % zone1,
             command=(
                 'dnszone_add', [zone1], {
-                    'idnssoamname': zone1_ns,
                     'idnssoarname': zone1_rname,
-                    'ip_address' : zone1_ip,
                 }
             ),
             expected=errors.DuplicateEntry(
@@ -412,7 +469,7 @@ class test_dns(Declarative):
                 'dnszone_add', [zone2], {
                     'idnssoamname': zone2_ns,
                     'idnssoarname': zone2_rname,
-                    'force'       : True,
+                    'force': True,
                 }
             ),
             expected={
@@ -423,7 +480,7 @@ class test_dns(Declarative):
                     'idnsname': [zone2_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
                     'idnssoamname': [zone2_ns_dnsname],
-                    'nsrecord': [zone2_ns],
+                    'nsrecord': nameservers,
                     'idnssoarname': [zone2_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -439,17 +496,23 @@ class test_dns(Declarative):
                     'idnsallowquery': [u'any;'],
                     'objectclass': objectclasses.dnszone,
                 },
+                'messages': (
+                    {'message': u"semantic of '--name-server' option was changed: the option is used only for setting up"
+                                u" the SOA MNAME attribute.\nTo edit NS record(s) in zone apex, use command "
+                                u"'dnsrecord-mod [zone] @ --ns-rec=nameserver'.",
+                     'code': 13005,
+                     'type': u'warning',
+                     'name': u'OptionSemanticChangedWarning'},
+                )
             },
         ),
 
 
         dict(
-            desc='Create a zone with upper case name with --force',
+            desc='Create a zone with upper case name',
             command=(
                 'dnszone_add', [zone4_upper], {
-                    'idnssoamname': zone4_ns,
                     'idnssoarname': zone4_rname,
-                    'force'       : True,
                 }
             ),
             expected={
@@ -459,8 +522,8 @@ class test_dns(Declarative):
                     'dn': zone4_dn,
                     'idnsname': [zone4_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone4_ns_dnsname],
-                    'nsrecord': [zone4_ns],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
                     'idnssoarname': [zone4_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -481,12 +544,10 @@ class test_dns(Declarative):
 
 
         dict(  # https://fedorahosted.org/freeipa/ticket/4268
-            desc='Create a zone with consecutive dash characters with --force',
+            desc='Create a zone with consecutive dash characters',
             command=(
                 'dnszone_add', [zone5], {
-                    'idnssoamname': zone5_ns,
                     'idnssoarname': zone5_rname,
-                    'force'       : True,
                 }
             ),
             expected={
@@ -496,8 +557,8 @@ class test_dns(Declarative):
                     'dn': zone5_dn,
                     'idnsname': [zone5_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone5_ns_dnsname],
-                    'nsrecord': [zone5_ns],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
                     'idnssoarname': [zone5_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -527,8 +588,8 @@ class test_dns(Declarative):
                     'dn': zone1_dn,
                     'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [zone1_ns],
-                    'idnssoamname': [zone1_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -551,8 +612,8 @@ class test_dns(Declarative):
                 'result': {
                     'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [zone1_ns],
-                    'idnssoamname': [zone1_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
@@ -631,8 +692,8 @@ class test_dns(Declarative):
                 'result': {
                     'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [zone1_ns],
-                    'idnssoamname': [zone1_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
@@ -656,8 +717,8 @@ class test_dns(Declarative):
                 'result': {
                     'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [zone1_ns],
-                    'idnssoamname': [zone1_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
@@ -688,7 +749,6 @@ class test_dns(Declarative):
             desc='Create reverse zone %r' % revzone1,
             command=(
                 'dnszone_add', [revzone1], {
-                    'idnssoamname': zone1_ns,
                     'idnssoarname': zone1_rname,
                 }
             ),
@@ -699,8 +759,8 @@ class test_dns(Declarative):
                     'dn': revzone1_dn,
                     'idnsname': [revzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone1_ns_dnsname],
-                    'nsrecord': [zone1_ns],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -719,8 +779,8 @@ class test_dns(Declarative):
 
 
         dict(
-            desc='Search for zones with name server %r' % (zone1_ns),
-            command=('dnszone_find', [], {'idnssoamname': zone1_ns}),
+            desc='Search for zones with admin email %r' % (zone1_rname),
+            command=('dnszone_find', [], {'idnssoarname': zone1_rname}),
             expected={
                 'summary': None,
                 'count': 2,
@@ -729,8 +789,8 @@ class test_dns(Declarative):
                     'dn': revzone1_dn,
                     'idnsname': [revzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [zone1_ns],
-                    'idnssoamname': [zone1_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -744,8 +804,8 @@ class test_dns(Declarative):
                     'dn': zone1_dn,
                     'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [zone1_ns],
-                    'idnssoamname': [zone1_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
@@ -760,8 +820,8 @@ class test_dns(Declarative):
 
 
         dict(
-            desc='Search for zones with name server %r with --forward-only' % zone1_ns,
-            command=('dnszone_find', [], {'idnssoamname': zone1_ns, 'forward_only' : True}),
+            desc='Search for zones with admin email %r with --forward-only' % zone1_rname,
+            command=('dnszone_find', [], {'idnssoarname': zone1_rname, 'forward_only' : True}),
             expected={
                 'summary': None,
                 'count': 1,
@@ -770,8 +830,8 @@ class test_dns(Declarative):
                     'dn': zone1_dn,
                     'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [zone1_ns],
-                    'idnssoamname': [zone1_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
@@ -841,23 +901,18 @@ class test_dns(Declarative):
             command=('dnsrecord_find', [zone1], {}),
             expected={
                 'summary': None,
-                'count': 4,
+                'count': 3,
                 'truncated': False,
                 'result': [
                     {
                         'dn': zone1_dn,
-                        'nsrecord': (zone1_ns,),
+                        'nsrecord': nameservers,
                         'idnsname': [_dns_zone_record],
                     },
                     {
                         'dn': zone1_txtrec_dn,
                         'txtrecord': [api.env.realm],
                         'idnsname': [DNSName(u'_kerberos')],
-                    },
-                    {
-                        'dn': zone1_ns_dn,
-                        'idnsname': [DNSName(u'ns1')],
-                        'arecord': [zone1_ip],
                     },
                     {
                         'dn': name1_dn,
@@ -971,7 +1026,7 @@ class test_dns(Declarative):
                     'dn': zone1_dn,
                     'idnsname': [_dns_zone_record],
                     'mxrecord': [u"0 %s" % zone1_ns],
-                    'nsrecord': [zone1_ns],
+                    'nsrecord': nameservers,
                 },
             },
         ),
@@ -1066,7 +1121,7 @@ class test_dns(Declarative):
                     'dn': zone1_dn,
                     'idnsname': [_dns_zone_record],
                     'mxrecord': [u"0 %s" % zone1_ns],
-                    'nsrecord': [zone1_ns],
+                    'nsrecord': nameservers,
                     'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
                 },
             },
@@ -1182,7 +1237,7 @@ class test_dns(Declarative):
             desc='Add NS+DNAME record to %r zone record using dnsrecord_add' % (zone2),
             command=('dnsrecord_add', [zone2, u'@'],
                 {'dnamerecord': u'd.%s' % absnxname,
-                 'nsrecord': zone1_ns}),
+                 'nsrecord': zone1_ns, 'force': True}),
             expected = {
                 'value': _dns_zone_record,
                 'summary': None,
@@ -1190,7 +1245,7 @@ class test_dns(Declarative):
                     'objectclass': objectclasses.dnszone,
                     'dnamerecord': [u'd.%s' % absnxname],
                     'dn': zone2_dn,
-                    'nsrecord': [zone2_ns, zone1_ns],
+                    'nsrecord': [zone1_ns] + nameservers,
                     'idnsname': [_dns_zone_record]
                 }
             },
@@ -1351,7 +1406,7 @@ class test_dns(Declarative):
         dict(
             desc='Add NS record to %r using dnsrecord_add' % (ds),
             command=('dnsrecord_add', [zone1, ds],
-                     {'nsrecord': zone1_ns}),
+                     {'nsrecord': zone1_ns, 'force': True}),
             expected={
                 'value': ds_dnsname,
                 'summary': None,
@@ -1491,7 +1546,6 @@ class test_dns(Declarative):
             command=(
                 'dnszone_add', [], {
                     'name_from_ip': revzone1_ip,
-                    'idnssoamname': zone1_ns,
                     'idnssoarname': zone1_rname,
                 }
             ),
@@ -1502,8 +1556,8 @@ class test_dns(Declarative):
                     'dn': revzone1_dn,
                     'idnsname': [revzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone1_ns_dnsname],
-                    'nsrecord': [zone1_ns],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -1526,7 +1580,6 @@ class test_dns(Declarative):
             command=(
                 'dnszone_add', [], {
                     'name_from_ip': revzone2_ip,
-                    'idnssoamname': zone1_ns,
                     'idnssoarname': zone1_rname,
                 }
             ),
@@ -1537,8 +1590,8 @@ class test_dns(Declarative):
                     'dn': revzone2_dn,
                     'idnsname': [revzone2_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone1_ns_dnsname],
-                    'nsrecord': [zone1_ns],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -1623,10 +1676,10 @@ class test_dns(Declarative):
                 'result': {
                     'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [zone1_ns],
+                    'nsrecord': nameservers,
                     'mxrecord': [u'0 ns1.dnszone.test.'],
                     'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
-                    'idnssoamname': [zone1_ns_dnsname],
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
@@ -1656,10 +1709,10 @@ class test_dns(Declarative):
                 'result': {
                     'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [zone1_ns],
+                    'nsrecord': nameservers,
                     'mxrecord': [u'0 ns1.dnszone.test.'],
                     'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
-                    'idnssoamname': [zone1_ns_dnsname],
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
@@ -1682,10 +1735,10 @@ class test_dns(Declarative):
                 'result': {
                     'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [zone1_ns],
+                    'nsrecord': nameservers,
                     'mxrecord': [u'0 ns1.dnszone.test.'],
                     'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
-                    'idnssoamname': [zone1_ns_dnsname],
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [u'4294967295'],
                     'idnssoarefresh': [u'5478'],
@@ -1833,115 +1886,28 @@ class test_dns(Declarative):
                                      % zone1_permission)
         ),
 
-
         dict(
-            desc='Delete zone %r' % zone1,
-            command=('dnszone_del', [zone1], {}),
-            expected={
-                'value': [zone1_absolute_dnsname],
-                'summary': u'Deleted DNS zone "%s"' % zone1_absolute,
-                'result': {'failed': []},
-            },
-        ),
-
-
-        dict(
-            desc='Try to create zone %r nameserver not in it' % zone1,
+            desc='Try to create zone %r with relative nameserver' % zone3,
             command=(
-                'dnszone_add', [zone1_absolute], {
-                    'idnssoamname': u'not.in.this.zone.',
-                    'idnssoarname': zone1_rname,
-                    'ip_address' : zone1_ip,
-                }
-            ),
-            expected=errors.ValidationError(name='ip_address',
-                error=u"Nameserver DNS record is created only for nameservers"
-                      u" in current zone"),
-        ),
-
-
-        dict(
-            desc='Create zone %r with relative nameserver' % zone1,
-            command=(
-                'dnszone_add', [zone1_absolute], {
+                'dnszone_add', [zone3], {
                     'idnssoamname': u'ns',
-                    'idnssoarname': zone1_rname,
-                    'ip_address' : zone1_ip,
+                    'idnssoarname': zone3_rname,
                 }
             ),
-            expected={
-                'value': zone1_absolute_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': zone1_dn,
-                    'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [DNSName(u'ns')],
-                    'nsrecord': [u'ns'],
-                    'idnssoarname': [zone1_rname_dnsname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': [fuzzy_digits],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
-                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
-                                         u'grant %(realm)s krb5-self * AAAA; '
-                                         u'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
-                    'objectclass': objectclasses.dnszone,
-                },
-            },
+            expected=errors.NotFound(reason=u"Nameserver 'ns.%s' does not have a corresponding A/AAAA record"
+                                            % zone3_absolute)
         ),
 
-
         dict(
-            desc='Delete zone %r' % zone1,
-            command=('dnszone_del', [zone1], {}),
-            expected={
-                'value': [zone1_absolute_dnsname],
-                'summary': u'Deleted DNS zone "%s"' % zone1_absolute,
-                'result': {'failed': []},
-            },
-        ),
-
-
-        dict(
-            desc='Create zone %r with nameserver in the zone itself' % zone1,
+            desc='Try to create zone %r with nameserver in the zone itself' % zone3,
             command=(
-                'dnszone_add', [zone1], {
-                    'idnssoamname': zone1_absolute,
-                    'idnssoarname': zone1_rname,
-                    'ip_address' : zone1_ip,
+                'dnszone_add', [zone3], {
+                    'idnssoamname': zone3_absolute,
+                    'idnssoarname': zone3_rname,
                 }
             ),
-            expected={
-                'value': zone1_absolute_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': zone1_dn,
-                    'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone1_absolute_dnsname],
-                    'nsrecord': [zone1_absolute],
-                    'idnssoarname': [zone1_rname_dnsname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': [fuzzy_digits],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
-                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
-                                         u'grant %(realm)s krb5-self * AAAA; '
-                                         u'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
-                    'objectclass': objectclasses.dnszone,
-                },
-            },
+            expected=errors.NotFound(reason=u"Nameserver '%s' does not have a corresponding A/AAAA record"
+                                            % zone3_absolute)
         ),
 
 
@@ -1949,9 +1915,7 @@ class test_dns(Declarative):
             desc='Create zone %r' % zone3,
             command=(
                 'dnszone_add', [zone3], {
-                    'idnssoamname': zone3_ns,
                     'idnssoarname': zone3_rname,
-                    'ip_address' : zone3_ip,
                 }
             ),
             expected={
@@ -1961,8 +1925,8 @@ class test_dns(Declarative):
                     'dn': zone3_dn,
                     'idnsname': [zone3_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone3_ns_dnsname],
-                    'nsrecord': [zone3_ns],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
                     'idnssoarname': [zone3_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -2000,7 +1964,6 @@ class test_dns(Declarative):
             desc='Create reverse zone %r' % revzone3_classless1,
             command=(
                 'dnszone_add', [revzone3_classless1], {
-                    'idnssoamname': zone3_ns,
                     'idnssoarname': zone3_rname,
                 }
             ),
@@ -2011,8 +1974,8 @@ class test_dns(Declarative):
                     'dn': revzone3_classless1_dn,
                     'idnsname': [revzone3_classless1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone3_ns_dnsname],
-                    'nsrecord': [zone3_ns],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
                     'idnssoarname': [zone3_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -2033,7 +1996,6 @@ class test_dns(Declarative):
             desc='Create classless reverse zone %r' % revzone3_classless2,
             command=(
                 'dnszone_add', [revzone3_classless2], {
-                    'idnssoamname': zone3_ns2,
                     'idnssoarname': zone3_rname,
                 }
             ),
@@ -2044,8 +2006,8 @@ class test_dns(Declarative):
                     'dn': revzone3_classless2_dn,
                     'idnsname': [revzone3_classless2_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone3_ns2_dnsname],
-                    'nsrecord': [zone3_ns2],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
                     'idnssoarname': [zone3_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -2091,14 +2053,14 @@ class test_dns(Declarative):
 
         dict(
             desc='Add NS record to %r in revzone %r' % (nsrev, revzone3_classless1),
-            command=('dnsrecord_add', [revzone3_classless1, nsrev], {'nsrecord': zone3_ns2}),
+            command=('dnsrecord_add', [revzone3_classless1, nsrev], {'nsrecord': zone3_ns2_arec_absolute}),
             expected={
                 'value': nsrev_dnsname,
                 'summary': None,
                 'result': {
                     'dn': nsrev_dn,
                     'idnsname': [nsrev_dnsname],
-                    'nsrecord': [zone3_ns2],
+                    'nsrecord': [zone3_ns2_arec_absolute],
                     'objectclass': objectclasses.dnsrecord,
                     },
             },
@@ -2139,9 +2101,7 @@ class test_dns(Declarative):
             desc='Create IDN zone %r' % idnzone1,
             command=(
                 'dnszone_add', [idnzone1], {
-                    'idnssoamname': idnzone1_mname,
                     'idnssoarname': idnzone1_rname,
-                    'ip_address' : idnzone1_ip,
                 }
             ),
             expected={
@@ -2151,8 +2111,8 @@ class test_dns(Declarative):
                     'dn': idnzone1_dn,
                     'idnsname': [idnzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [idnzone1_mname_dnsname],
-                    'nsrecord': [idnzone1_mname],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
                     'idnssoarname': [idnzone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -2183,8 +2143,8 @@ class test_dns(Declarative):
                     'dn': idnzone1_dn,
                     'idnsname': [idnzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [idnzone1_mname],
-                    'idnssoamname': [idnzone1_mname_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [idnzone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -2209,8 +2169,8 @@ class test_dns(Declarative):
                     'dn': idnzone1_dn,
                     'idnsname': [idnzone1_punycoded],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [idnzone1_mname_punycoded],
-                    'idnssoamname': [idnzone1_mname_punycoded],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns],
                     'idnssoarname': [idnzone1_rname_punycoded],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -2237,8 +2197,8 @@ class test_dns(Declarative):
                     {   'dn': idnzone1_dn,
                         'idnsname': [idnzone1_dnsname],
                         'idnszoneactive': [u'TRUE'],
-                        'nsrecord': [idnzone1_mname],
-                        'idnssoamname': [idnzone1_mname_dnsname],
+                        'nsrecord': nameservers,
+                        'idnssoamname': [self_server_ns_dnsname],
                         'idnssoarname': [idnzone1_rname_dnsname],
                         'idnssoaserial': [fuzzy_digits],
                         'idnssoarefresh': [fuzzy_digits],
@@ -2266,8 +2226,8 @@ class test_dns(Declarative):
                     {   'dn': idnzone1_dn,
                         'idnsname': [idnzone1_punycoded],
                         'idnszoneactive': [u'TRUE'],
-                        'nsrecord': [idnzone1_mname_punycoded],
-                        'idnssoamname': [idnzone1_mname_punycoded],
+                        'nsrecord': nameservers,
+                        'idnssoamname': [self_server_ns],
                         'idnssoarname': [idnzone1_rname_punycoded],
                         'idnssoaserial': [fuzzy_digits],
                         'idnssoarefresh': [fuzzy_digits],
@@ -2290,8 +2250,8 @@ class test_dns(Declarative):
                 'result': {
                     'idnsname': [idnzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [idnzone1_mname],
-                    'idnssoamname': [idnzone1_mname_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [idnzone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
@@ -2308,7 +2268,6 @@ class test_dns(Declarative):
             desc='Create reverse zone %r' % revidnzone1,
             command=(
                 'dnszone_add', [revidnzone1], {
-                    'idnssoamname': idnzone1_mname,
                     'idnssoarname': idnzone1_rname,
                 }
             ),
@@ -2319,8 +2278,8 @@ class test_dns(Declarative):
                     'dn': revidnzone1_dn,
                     'idnsname': [revidnzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [idnzone1_mname_dnsname],
-                    'nsrecord': [idnzone1_mname],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
                     'idnssoarname': [idnzone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -2358,8 +2317,8 @@ class test_dns(Declarative):
                     'dn': idnzone1_dn,
                     'idnsname': [idnzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [idnzone1_mname],
-                    'idnssoamname': [idnzone1_mname_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [idnzone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [u'5478'],
@@ -2400,18 +2359,13 @@ class test_dns(Declarative):
             command=('dnsrecord_find', [idnzone1], {}),
             expected={
                 'summary': None,
-                'count': 3,
+                'count': 2,
                 'truncated': False,
                 'result': [
                     {
                         'dn': idnzone1_dn,
-                        'nsrecord': (idnzone1_mname,),
+                        'nsrecord': nameservers,
                         'idnsname': [_dns_zone_record],
-                    },
-                    {
-                        'dn': idnzone1_mname_dn,
-                        'idnsname': [DNSName(u'ns1')],
-                        'arecord': [idnzone1_ip],
                     },
                     {
                         'dn': idnres1_dn,
@@ -2428,16 +2382,12 @@ class test_dns(Declarative):
             command=('dnsrecord_find', [idnzone1], {'pkey_only':True,}),
             expected={
                 'summary': None,
-                'count': 3,
+                'count': 2,
                 'truncated': False,
                 'result': [
                     {
                         'dn': idnzone1_dn,
                         'idnsname': [_dns_zone_record],
-                    },
-                    {
-                        'dn': idnzone1_mname_dn,
-                        'idnsname': [DNSName(u'ns1')],
                     },
                     {
                         'dn': idnres1_dn,
@@ -2458,7 +2408,7 @@ class test_dns(Declarative):
                 'result': [
                     {
                         'dn': idnzone1_dn,
-                        'nsrecord': (idnzone1_mname,),
+                        'nsrecord': nameservers,
                         'idnsname': [_dns_zone_record],
                     },
                 ],
@@ -2576,7 +2526,7 @@ class test_dns(Declarative):
                     'dn': idnzone1_dn,
                     'idnsname': [_dns_zone_record],
                     'mxrecord': [u"0 %s" % idnzone1_mname],
-                    'nsrecord': [idnzone1_mname],
+                    'nsrecord': nameservers,
                 },
             },
         ),
@@ -2594,7 +2544,7 @@ class test_dns(Declarative):
                     'dn': idnzone1_dn,
                     'idnsname': [_dns_zone_record],
                     'mxrecord': [u"0 %s" % idnzone1_mname, u"10 %s" % idnzone1_mname],
-                    'nsrecord': [idnzone1_mname],
+                    'nsrecord': nameservers,
                 },
             },
         ),
@@ -2609,7 +2559,7 @@ class test_dns(Declarative):
                 'result': {
                     'idnsname': [_dns_zone_record],
                     'mxrecord': [u"0 %s" % idnzone1_mname],
-                    'nsrecord': [idnzone1_mname],
+                    'nsrecord': nameservers,
                 },
             },
         ),
@@ -2627,7 +2577,7 @@ class test_dns(Declarative):
                     'idnsname': [_dns_zone_record],
                     'mxrecord': [u"0 %s" % idnzone1_mname],
                     'kxrecord': [u"0 %s" % idnzone1_mname],
-                    'nsrecord': [idnzone1_mname],
+                    'nsrecord': nameservers,
                 },
             },
         ),
@@ -2643,7 +2593,7 @@ class test_dns(Declarative):
                     'idnsname': [u'@'],
                     'mxrecord': [u"0 %s" % idnzone1_mname_punycoded],
                     'kxrecord': [u"0 %s" % idnzone1_mname_punycoded],
-                    'nsrecord': [idnzone1_mname_punycoded],
+                    'nsrecord': nameservers,
                 },
             },
         ),
@@ -2783,6 +2733,14 @@ class test_dns(Declarative):
 
 
         dict(
+            desc='Add A denormalized record in zone %r' % (idnzone1),
+            command=('dnsrecord_add', [idnzone1, u'gro\xdf'], {'arecord': u'172.16.0.1'}),
+            expected=errors.ConversionError(name='name',
+                error=u'domain name \'gro\xdf\' should be normalized to: gross')
+        ),
+
+
+        dict(
             desc='Add A record to %r in zone %r' % (wildcard_rec1, zone1),
             command=('dnsrecord_add', [zone1, wildcard_rec1], {'arecord': wildcard_rec1_addr}),
             expected={
@@ -2850,14 +2808,6 @@ class test_dns(Declarative):
                 error=(u'owner of DNAME, DS, NS records '
                     'should not be a wildcard domain name (RFC 4592 section 4)')
             )
-        ),
-
-
-        dict(
-            desc='Add A denormalized record in zone %r' % (idnzone1),
-            command=('dnsrecord_add', [idnzone1, u'gro\xdf'], {'arecord': u'172.16.0.1'}),
-            expected=errors.ConversionError(name='name',
-                error=u'domain name \'gro\xdf\' should be normalized to: gross')
         ),
 
 
@@ -3221,9 +3171,7 @@ class test_dns(Declarative):
             desc='Try to create duplicate zone which is already forward zone %r' % fwzone1,
             command=(
                 'dnszone_add', [fwzone1], {
-                    'idnssoamname': u'ns',
                     'idnssoarname': zone1_rname,
-                    'ip_address': zone1_ip,
                 }
             ),
             expected=errors.DuplicateEntry(
@@ -3366,9 +3314,7 @@ class test_dns(Declarative):
             desc='Create zone %r' % zone_findtest_master,
             command=(
                 'dnszone_add', [zone_findtest_master], {
-                    'idnssoamname': zone_findtest_master_ns,
                     'idnssoarname': zone_findtest_master_rname,
-                    'ip_address': zone1_ip,
                 }
             ),
             expected={
@@ -3378,8 +3324,8 @@ class test_dns(Declarative):
                     'dn': zone_findtest_master_dn,
                     'idnsname': [zone_findtest_master_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone_findtest_master_ns_dnsname],
-                    'nsrecord': [zone_findtest_master_ns],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
                     'idnssoarname': [zone_findtest_master_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -3449,8 +3395,8 @@ class test_dns(Declarative):
                     'dn': zone_findtest_master_dn,
                     'idnsname': [zone_findtest_master_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [zone_findtest_master_ns],
-                    'idnssoamname': [zone_findtest_master_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone_findtest_master_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -3536,17 +3482,18 @@ class test_dns(Declarative):
                     'dn': zone1_dn,
                     'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'FALSE'],
-                    'nsrecord': [zone1_absolute],
-                    'idnssoamname': [zone1_absolute_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
-                    'arecord': [arec1,],
+                    'idnsallowtransfer': [u'172.16.31.80;'],
+                    'idnsallowquery': [u'!192.0.2.0/24;any;'],
+                    'mxrecord': [u'0 ns1.dnszone.test.'],
+                    'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
                 },
             },
         ),
@@ -3573,17 +3520,18 @@ class test_dns(Declarative):
                     'dn': zone1_dn,
                     'idnsname': [zone1_absolute_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [zone1_absolute],
-                    'idnssoamname': [zone1_absolute_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [zone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
-                    'arecord': [arec1,],
+                    'idnsallowtransfer': [u'172.16.31.80;'],
+                    'idnsallowquery': [u'!192.0.2.0/24;any;'],
+                    'mxrecord': [u'0 ns1.dnszone.test.'],
+                    'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
                 },
             },
         ),
@@ -3609,8 +3557,8 @@ class test_dns(Declarative):
                     'dn': idnzone1_dn,
                     'idnsname': [idnzone1_dnsname],
                     'idnszoneactive': [u'FALSE'],
-                    'nsrecord': [idnzone1_mname],
-                    'idnssoamname': [idnzone1_mname_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [idnzone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -3647,8 +3595,8 @@ class test_dns(Declarative):
                     'dn': idnzone1_dn,
                     'idnsname': [idnzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': [idnzone1_mname],
-                    'idnssoamname': [idnzone1_mname_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
                     'idnssoarname': [idnzone1_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -3718,6 +3666,16 @@ class test_dns(Declarative):
             },
         ),
 
+        dict(
+            desc='Delete zone %r' % zone1,
+            command=('dnszone_del', [zone1], {}),
+            expected={
+                'value': [zone1_absolute_dnsname],
+                'summary': u'Deleted DNS zone "%s"' % zone1_absolute,
+                'result': {'failed': []},
+            },
+        ),
+
     ]
 
 
@@ -3744,12 +3702,15 @@ class test_root_zone(Declarative):
 
         if not api.Backend.rpcclient.isconnected():
             api.Backend.rpcclient.connect(fallback=False)
+
+        if not have_ldap2:
+            raise nose.SkipTest('server plugin not available')
+
+        if get_nameservers_error is not None:
+            raise nose.SkipTest('unable to get list of nameservers (%s)' % get_nameservers_error)
+
         try:
-            api.Command['dnszone_add'](
-                zone1,
-                idnssoamname=zone1_ns,
-                idnssoarname=zone1_rname,
-                force=True,)
+            api.Command['dnszone_add'](zone1, idnssoarname=zone1_rname,)
             api.Command['dnszone_del'](zone1)
         except errors.NotFound:
             raise nose.SkipTest('DNS is not configured')
@@ -3768,9 +3729,7 @@ class test_root_zone(Declarative):
             desc='Create zone %r' % zone_root,
             command=(
                 'dnszone_add', [zone_root], {
-                    'idnssoamname': zone_root_ns,
                     'idnssoarname': zone_root_rname,
-                    'ip_address': zone_root_ip,
                 }
             ),
             expected={
@@ -3780,8 +3739,8 @@ class test_root_zone(Declarative):
                     'dn': zone_root_dn,
                     'idnsname': [zone_root_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [zone_root_ns_dnsname],
-                    'nsrecord': [zone_root_ns],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
                     'idnssoarname': [zone_root_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -3810,16 +3769,6 @@ class test_root_zone(Declarative):
                 value=zone_root_permission,
                 summary=u'Added system permission "%s"' % zone_root_permission,
             ),
-        ),
-
-        dict(
-            desc='Delete zone %r' % zone_root,
-            command=('dnszone_del', [zone_root], {}),
-            expected={
-                'value': [zone_root_dnsname],
-                'summary': u'Deleted DNS zone "%s"' % zone_root,
-                'result': {'failed': []},
-            },
         ),
 
     ]
