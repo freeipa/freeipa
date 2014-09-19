@@ -202,17 +202,6 @@ static bool validate(struct otptoken *token, time_t now, ssize_t step,
 
         if (*second != tmp)
             return false;
-
-        /* Perform optional synchronization steps. */
-        switch (token->type) {
-        case OTPTOKEN_TOTP:
-            tmp = (step - now / token->totp.step) * token->totp.step;
-            if (!writeattr(token, T("clockOffset"), tmp))
-                return false;
-            break;
-        default:
-            break;
-        }
     }
 
     /* Write the step value. */
@@ -222,6 +211,13 @@ static bool validate(struct otptoken *token, time_t now, ssize_t step,
     /* Save our modifications to the object. */
     switch (token->type) {
     case OTPTOKEN_TOTP:
+        /* Perform optional synchronization steps. */
+        if (second != NULL) {
+            tmp = (step - now / token->totp.step) * token->totp.step;
+            if (!writeattr(token, T("clockOffset"), tmp))
+                return false;
+            token->totp.offset = tmp;
+        }
         token->totp.watermark = step;
         break;
     case OTPTOKEN_HOTP:
