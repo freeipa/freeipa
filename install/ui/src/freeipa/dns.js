@@ -151,13 +151,6 @@ return {
                     'idnssoaminimum',
                     'dnsttl',
                     {
-                        $type: 'combobox',
-                        name: 'dnsclass',
-                        options: [
-                            'IN', 'CS', 'CH', 'HS'
-                        ]
-                    },
-                    {
                         $type: 'radio',
                         name: 'idnsallowdynupdate',
                         options: [
