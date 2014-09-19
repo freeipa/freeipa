@@ -4,36 +4,93 @@ The following people have contributed to the FreeIPA project.
 (Listed in alphabetical order within category)
 
 Developers:
+	Timo Aaltonen
+	Gabe Alford
 	Jr Aquino
-	Tomas Babej
+	Tomáš Babej
+	Kyle Baker
+	Martin Bašti
+	Sylvain Baubeau
 	Alexander Bokovoy
+	Thierry Bordaz
+	Sumit Bose
+	Xiao-Long Chen
 	Jan Cholasta
+	Yuri Chornoivan
+	Brian Cook
 	Rob Crittenden
+	Frank Cusack
 	Nalin Dahyabhai
+	Don Davis
 	John Dennis
-	Endi Dewata
+	Jason Gerard DeRose
+	Günther Deschner
+	Endi Sukma Dewata
+	Stephen Gallagher
+	Ondřej Hamada
+	Nick Hatch
 	Jakub Hrozek
-	Martin Kosek
 	Nathan Kinder
-	Ana Krivokapic
+	Krzysztof Klimonda
+	Nikolai Kondrashov
+	Martin Košek
+	Ludwig Krispenz
+	Ana Krivokapić
+	Ian Kumlien
+	David Kupka
+	Ade Lee
+	Karl MacMillan
 	Nathaniel McCallum
-	Lynn Root
+	William Jon McCann
+	Kevin McCarthy
+	Mark McLoughlin
 	Rich Megginson
+	Jim Meyering
+	Adam Misnyovszki
+	Marko Myllynen
+	Martin Nagy
+	David O'Brien
+	Dmitri Pal
+	Jan Pazdziora
+	W. Michael Petullo
+	Gowrishankar Rajaiyan
+	Lubomír Rintel
+	Lynn Root
+	Pete Rowley
+	Thorsten Scherf
+	Lars Sjostrom
+	Lukáš Slebodník
 	Simo Sorce
+	Petr Špaček
+	David Spångberg
+	Diane Trout
 	Petr Viktorin
-	Petr Vobornik
+	Petr Voborník
 	Andrew Wnuk
+	Jason Woods
 	Adam Young
+	Jan Zelený
+	Pavel Zůna
 
 Documentation:
+	Gabe Alford
+	Martin Bašti
+	Tomáš Čapek
 	Ella Deon Lackey
+	David O'Brien
 
 Testing:
+	Xiyang Dong
 	Michael Gregg
+	Steeve Goveas
 	Suzanne Hillman
 	Chandrasekar Kannan
+	Namita Krishnan
+	Varun Mylaraiah
+	Scott Poore
 	Gowrishankar Rajaiyan
 	Jenny Severance
+	Kaleemullah Siddiqui
 	Yi Zhang
 
 Translators:
@@ -51,6 +108,7 @@ Wiki, Solution and Idea Contributors:
 	James Hogarth
 	Dale Macartney
 	Viji V Nair
+	Bryce Nordgren
 	Ryan Thompson
 	David Zeuthen
 
@@ -60,29 +118,9 @@ Graphic Design and User Interaction Design:
 
 Management:
 	Scott Haines
+	Nathan Kinder
+	Martin Košek
 	Bob Lord
 	Dmitri Pal
 	Kevin Unthank
 	Karl Wirth
-
-Past and Occasional Contributors:
-	Sylvain Baubeau
-	Yuri Chornoivan
-	Frank Cusack
-	Don Davis
-	Jason DeRose
-	Gunther Deschner
-	Stephen Gallagher
-	Ondrej Hamada
-	Ian Kumlien
-	Karl MacMillan
-	Jon McCann
-	Kevin McCarthy
-	Jim Meyering
-	Martin Nagy
-	David O'Brien
-	Lubomir Rintel
-	Pete Rowley
-	Andreas Schneider
-	Jan Zeleny
-	Pavel Zuna
