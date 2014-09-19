@@ -2842,19 +2842,27 @@ class test_permission_flags(Declarative):
             'Permission with unknown flag ?? may not be modified or removed'))
 
 
+def check_legacy_results(results):
+    """Check that the expected number of legacy permissions are in $SUFFIX"""
+    legacy_permissions = [p for p in results
+                          if not p.get('ipapermissiontype')]
+    print legacy_permissions
+    assert len(legacy_permissions) == 8, len(legacy_permissions)
+    return True
+
 class test_permission_legacy(Declarative):
     """Tests for non-upgraded permissions"""
 
     tests = [
         dict(
-            desc='Search for all permissions in $SUFFIX',
+            desc='Check that some legacy permission is found in $SUFFIX',
             command=('permission_find', [],
                      {'ipapermlocation': api.env.basedn}),
             expected=dict(
-                count=16,
+                count=lambda count: count,
                 truncated=False,
-                summary=u'16 permissions matched',
-                result=lambda s: True,
+                summary=lambda s: True,
+                result=check_legacy_results,
             ),
         ),
     ]
