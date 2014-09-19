@@ -125,30 +125,26 @@ static const struct berval *entry_attr_get_berval(const Slapi_Entry* e,
 }
 
 static bool writeattr(const struct otptoken *token, const char *attr,
-                      int value)
+                      long long val)
 {
-    Slapi_Value *svals[] = { NULL, NULL };
     Slapi_PBlock *pb = NULL;
-    Slapi_Mods *mods = NULL;
     bool success = false;
+    char value[32];
     int ret;
 
-    /* Create the value. */
-    svals[0] = slapi_value_new();
-    if (slapi_value_set_int(svals[0], value) != 0) {
-        slapi_value_free(&svals[0]);
-        return false;
-    }
+    LDAPMod *mods[] = {
+        &(LDAPMod) {
+            LDAP_MOD_REPLACE, (char *) attr,
+            .mod_values = (char *[]) { value, NULL }
+        },
+        NULL
+    };
 
-    /* Create the mods. */
-    mods = slapi_mods_new();
-    slapi_mods_add_mod_values(mods, LDAP_MOD_REPLACE, attr, svals);
+    snprintf(value, sizeof(value), "%lld", val);
 
-    /* Perform the modification. */
     pb = slapi_pblock_new();
     slapi_modify_internal_set_pb(pb, slapi_sdn_get_dn(token->sdn),
-                                 slapi_mods_get_ldapmods_byref(mods),
-                                 NULL, NULL, token->plugin_id, 0);
+                                 mods, NULL, NULL, token->plugin_id, 0);
     if (slapi_modify_internal_pb(pb) != 0)
         goto error;
     if (slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &ret) != 0)
@@ -160,9 +156,7 @@ static bool writeattr(const struct otptoken *token, const char *attr,
 
 error:
     slapi_pblock_destroy(pb);
-    slapi_mods_free(&mods);
     return success;
-
 }
 
 /**
