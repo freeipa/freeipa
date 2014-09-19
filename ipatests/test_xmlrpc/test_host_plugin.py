@@ -26,6 +26,7 @@ import os
 import tempfile
 from ipapython import ipautil
 from ipalib import api, errors, x509
+from ipalib.util import normalize_zone
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from nose.tools import raises, assert_raises
@@ -37,6 +38,8 @@ from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.testcert import get_testcert
 import base64
 
+self_server_ns = normalize_zone(api.env.host)
+self_server_ns_dnsname = DNSName(self_server_ns)
 
 fqdn1 = u'testhost1.%s' % api.env.domain
 short1 = u'testhost1'
@@ -1052,9 +1055,7 @@ class test_host_dns(Declarative):
             desc='Create zone %r' % dnszone,
             command=(
                 'dnszone_add', [dnszone], {
-                    'idnssoamname': dnszone_ns,
                     'idnssoarname': dnszone_rname,
-                    'ip_address' : dnszone_ip,
                 }
             ),
             expected={
@@ -1064,8 +1065,8 @@ class test_host_dns(Declarative):
                     'dn': dnszone_dn,
                     'idnsname': [dnszone_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [dnszone_ns_dnsname],
-                    'nsrecord': [dnszone_ns],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': lambda x: True,
                     'idnssoarname': [dnszone_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -1089,7 +1090,6 @@ class test_host_dns(Declarative):
             desc='Create reverse zone %r' % revzone,
             command=(
                 'dnszone_add', [revzone], {
-                    'idnssoamname': dnszone_ns,
                     'idnssoarname': dnszone_rname,
                 }
             ),
@@ -1100,8 +1100,8 @@ class test_host_dns(Declarative):
                     'dn': revzone_dn,
                     'idnsname': [revzone_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [dnszone_ns_dnsname],
-                    'nsrecord': [dnszone_ns],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': lambda x: True,
                     'idnssoarname': [dnszone_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
@@ -1123,7 +1123,6 @@ class test_host_dns(Declarative):
             desc='Create reverse zone %r' % revipv6zone,
             command=(
                 'dnszone_add', [revipv6zone], {
-                    'idnssoamname': dnszone_ns,
                     'idnssoarname': dnszone_rname,
                 }
             ),
@@ -1134,8 +1133,8 @@ class test_host_dns(Declarative):
                     'dn': revipv6zone_dn,
                     'idnsname': [revipv6zone_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [dnszone_ns_dnsname],
-                    'nsrecord': [dnszone_ns],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': lambda x: True,
                     'idnssoarname': [dnszone_rname_dnsname],
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
