@@ -21,8 +21,11 @@
 import os
 import shutil
 import tempfile
+import time
 from optparse import OptionGroup
 from ConfigParser import SafeConfigParser
+
+import dns.resolver
 
 from ipaserver.install import certs, installutils, bindinstance, dsinstance
 from ipaserver.install.replication import enable_replication_version_checking
@@ -64,6 +67,9 @@ class ReplicaPrepare(admintool.AdminTool):
         parser.add_option("--ca", dest="ca_file", default=paths.CACERT_P12,
             metavar="FILE",
             help="location of CA PKCS#12 file, default /root/cacert.p12")
+        parser.add_option('--no-wait-for-dns', dest='wait_for_dns',
+            action='store_false', default=True,
+            help="do not wait until the replica is resolvable in DNS")
 
         group = OptionGroup(parser, "SSL certificate options",
             "Only used if the server was installed using custom SSL certificates")
@@ -290,6 +296,9 @@ class ReplicaPrepare(admintool.AdminTool):
         if options.ip_address:
             self.add_dns_records()
 
+        if options.wait_for_dns:
+            self.wait_for_dns()
+
     def copy_ds_certificate(self):
         options = self.options
 
@@ -453,6 +462,50 @@ class ReplicaPrepare(admintool.AdminTool):
             except errors.PublicError, e:
                 raise admintool.ScriptError(
                     "Could not add reverse DNS record for the replica: %s" % e)
+
+    def check_dns(self, replica_fqdn):
+        """Return true if the replica hostname is resolvable"""
+        resolver = dns.resolver.Resolver()
+        exceptions = (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer,
+                      dns.resolver.Timeout, dns.resolver.NoNameservers)
+
+        try:
+            dns_answer = resolver.query(replica_fqdn, 'A', 'IN')
+        except exceptions:
+            try:
+                dns_answer = resolver.query(replica_fqdn, 'AAAA', 'IN')
+            except exceptions:
+                return False
+        except Exception as e:
+            self.log.warn('Exception while waiting for DNS record: %s: %s',
+                          type(e).__name__, e)
+
+        return True
+
+    def wait_for_dns(self):
+        options = self.options
+
+        # Make sure replica_fqdn has a trailing dot, so the
+        # 'search' directive in /etc/resolv.conf doesn't apply
+        replica_fqdn = self.replica_fqdn
+        if not replica_fqdn.endswith('.'):
+            replica_fqdn += '.'
+
+        if self.check_dns(replica_fqdn):
+            self.log.debug('%s A/AAAA record resolvable', replica_fqdn)
+            return
+
+        self.log.info('Waiting for %s A or AAAA record to be resolvable',
+                      replica_fqdn)
+        print 'This can be safely interrupted (Ctrl+C)'
+
+        try:
+            while not self.check_dns(replica_fqdn):
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.log.info('Interrupted')
+        else:
+            self.log.debug('%s A/AAAA record resolvable', replica_fqdn)
 
     def copy_info_file(self, source, dest):
         """Copy a file into the info directory
