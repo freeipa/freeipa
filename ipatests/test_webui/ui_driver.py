@@ -1638,12 +1638,13 @@ class UI_driver(object):
         Assert that record is in current search table
         """
         has = self.has_record(pkey, parent, table_name)
+        has |= self.has_record(pkey.lower(), parent, table_name)
         if negative:
             assert not has, "Record exists when it shouldn't: %s" % pkey
         else:
             assert has, 'Record does not exist: %s' % pkey
 
-    def assert_indirect_record(self, pkey, entity, facet, negative=False, switch=True, lower=True):
+    def assert_indirect_record(self, pkey, entity, facet, negative=False, switch=True):
         """
         Switch to indirect facet and assert record.
 
@@ -1655,8 +1656,6 @@ class UI_driver(object):
             self.check_option(radio_name, 'indirect')
             self.wait_for_request(n=2)
         key = pkey
-        if lower:
-            key = key.lower()
         self.assert_record(key, negative=negative)
 
     def assert_record_value(self, expected, pkey, column, parent=None, table_name=None):
