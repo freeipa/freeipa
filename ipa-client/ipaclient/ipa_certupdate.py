@@ -70,49 +70,32 @@ class CertUpdate(admintool.AdminTool):
 
     def update_client(self, certs):
         self.update_file(paths.IPA_CA_CRT, certs)
-        self.update_db(paths.IPA_NSSDB_DIR, certs)
 
+        ipa_db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
         sys_db = certdb.NSSDatabase(paths.NSS_DB_DIR)
+
+        # Remove IPA certs from /etc/pki/nssdb
+        for nickname, trust_flags in ipa_db.list_certs():
+            while sys_db.has_nickname(nickname):
+                try:
+                    sys_db.delete_cert(nickname)
+                except ipautil.CalledProcessError, e:
+                    self.log.error("Failed to remove %s from %s: %s",
+                                   nickname, sys_db.secdir, e)
+                    break
+
+        # Remove old IPA certs from /etc/ipa/nssdb
         for nickname in ('IPA CA', 'External CA cert'):
-            try:
-                sys_db.delete_cert(nickname)
-            except ipautil.CalledProcessError, e:
-                pass
-
-        self.update_db(paths.NSS_DB_DIR, certs)
-
-        new_nicknames = set(c[1] for c in certs)
-        old_nicknames = set()
-        if ipautil.file_exists(paths.NSSDB_IPA_TXT):
-            try:
-                list_file = open(paths.NSSDB_IPA_TXT, 'r')
-            except IOError, e:
-                self.log.error("failed to open %s: %s", paths.NSSDB_IPA_TXT, e)
-            else:
+            while ipa_db.has_nickname(nickname):
                 try:
-                    lines = list_file.readlines()
-                except IOError, e:
-                    self.log.error(
-                        "failed to read %s: %s", paths.NSSDB_IPA_TXT, e)
-                else:
-                    for line in lines:
-                        nickname = line.strip()
-                        if nickname:
-                            old_nicknames.add(nickname)
-                list_file.close()
-        if new_nicknames != old_nicknames:
-            try:
-                list_file = open(paths.NSSDB_IPA_TXT, 'w')
-            except IOError, e:
-                self.log.error("failed to open %s: %s", paths.NSSDB_IPA_TXT, e)
-            else:
-                try:
-                    for nickname in new_nicknames:
-                        list_file.write(nickname + '\n')
-                except IOError, e:
-                    self.log.error(
-                        "failed to write %s: %s", paths.NSSDB_IPA_TXT, e)
-                list_file.close()
+                    ipa_db.delete_cert(nickname)
+                except ipautil.CalledProcessError, e:
+                    self.log.error("Failed to remove %s from %s: %s",
+                                   nickname, ipa_db.secdir, e)
+                    break
+
+        self.update_db(ipa_db.secdir, certs)
+        self.update_db(sys_db.secdir, certs)
 
         tasks.remove_ca_certs_from_systemwide_ca_store()
         tasks.insert_ca_certs_into_systemwide_ca_store(certs)
