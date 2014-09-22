@@ -36,8 +36,8 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
         _dcerpc_bindings_installed = False
 
 __doc__ = _("""
-ID views
-Manage ID views
+ID Views
+Manage ID Views
 IPA allows to override certain properties of users and groups per each host.
 This functionality is primarily used to allow migration from older systems or
 other Identity Management solutions.
@@ -49,18 +49,18 @@ register = Registry()
 @register()
 class idview(LDAPObject):
     """
-    ID view object.
+    ID View object.
     """
 
     container_dn = api.env.container_views
-    object_name = _('ID view')
-    object_name_plural = _('ID views')
+    object_name = _('ID View')
+    object_name_plural = _('ID Views')
     object_class = ['ipaIDView', 'top']
     default_attributes = ['cn', 'description']
     rdn_is_primary_key = True
 
-    label = _('ID views')
-    label_singular = _('ID view')
+    label = _('ID Views')
+    label_singular = _('ID View')
 
     takes_params = (
         Str('cn',
@@ -89,31 +89,31 @@ class idview(LDAPObject):
 @register()
 class idview_add(LDAPCreate):
     __doc__ = _('Add a new ID View.')
-    msg_summary = _('Added ID view "%(value)s"')
+    msg_summary = _('Added ID View "%(value)s"')
 
 
 @register()
 class idview_del(LDAPDelete):
-    __doc__ = _('Delete an ID view.')
-    msg_summary = _('Deleted ID view "%(value)s"')
+    __doc__ = _('Delete an ID View.')
+    msg_summary = _('Deleted ID View "%(value)s"')
 
 
 @register()
 class idview_mod(LDAPUpdate):
-    __doc__ = _('Modify an ID view.')
-    msg_summary = _('Modified an ID view "%(value)s"')
+    __doc__ = _('Modify an ID View.')
+    msg_summary = _('Modified an ID View "%(value)s"')
 
 
 @register()
 class idview_find(LDAPSearch):
-    __doc__ = _('Search for an ID view.')
-    msg_summary = ngettext('%(count)d ID view matched',
-                           '%(count)d ID views matched', 0)
+    __doc__ = _('Search for an ID View.')
+    msg_summary = ngettext('%(count)d ID View matched',
+                           '%(count)d ID Views matched', 0)
 
 
 @register()
 class idview_show(LDAPRetrieve):
-    __doc__ = _('Display information about an ID view.')
+    __doc__ = _('Display information about an ID View.')
 
     takes_options = LDAPRetrieve.takes_options + (
         Flag('show_hosts?',
@@ -276,24 +276,24 @@ class baseidview_apply(LDAPQuery):
 
 @register()
 class idview_apply(baseidview_apply):
-    __doc__ = _('Applies ID view to specified hosts or current members of '
-                'specified hostgroups. If any other ID view is applied to '
+    __doc__ = _('Applies ID View to specified hosts or current members of '
+                'specified hostgroups. If any other ID View is applied to '
                 'the host, it is overriden.')
 
-    member_count_out = (_('ID view applied to %i host.'),
-                        _('ID view applied to %i hosts.'))
+    member_count_out = (_('ID View applied to %i host.'),
+                        _('ID View applied to %i hosts.'))
 
-    msg_summary = 'Applied ID view "%(value)s"'
+    msg_summary = 'Applied ID View "%(value)s"'
 
     takes_options = (
         Str('host*',
             cli_name='hosts',
-            doc=_('Hosts to apply the ID view to'),
+            doc=_('Hosts to apply the ID View to'),
             label=_('hosts'),
         ),
         Str('hostgroup*',
             cli_name='hostgroups',
-            doc=_('Hostgroups to whose hosts apply the ID view to. Please note '
+            doc=_('Hostgroups to whose hosts apply the ID View to. Please note '
                   'that view is not applied automatically to any hosts added '
                   'to the hostgroup after running the idview-apply command.'),
             label=_('hostgroups'),
@@ -304,39 +304,39 @@ class idview_apply(baseidview_apply):
         output.summary,
         output.Output('succeeded',
             type=dict,
-            doc=_('Hosts that this ID view was applied to.'),
+            doc=_('Hosts that this ID View was applied to.'),
         ),
         output.Output('failed',
             type=dict,
-            doc=_('Hosts or hostgroups that this ID view could not be '
+            doc=_('Hosts or hostgroups that this ID View could not be '
                   'applied to.'),
         ),
         output.Output('completed',
             type=int,
-            doc=_('Number of hosts the ID view was applied to:'),
+            doc=_('Number of hosts the ID View was applied to:'),
         ),
     )
 
 
 @register()
 class idview_unapply(baseidview_apply):
-    __doc__ = _('Clears ID view from specified hosts or current members of '
+    __doc__ = _('Clears ID View from specified hosts or current members of '
                 'specified hostgroups.')
 
-    member_count_out = (_('ID view cleared from %i host.'),
-                        _('ID view cleared from %i hosts.'))
+    member_count_out = (_('ID View cleared from %i host.'),
+                        _('ID View cleared from %i hosts.'))
 
-    msg_summary = 'Cleared ID views'
+    msg_summary = 'Cleared ID Views'
 
     takes_options = (
         Str('host*',
             cli_name='hosts',
-            doc=_('Hosts to clear (any) ID view from.'),
+            doc=_('Hosts to clear (any) ID View from.'),
             label=_('hosts'),
         ),
         Str('hostgroup*',
             cli_name='hostgroups',
-            doc=_('Hostgroups whose hosts should have ID views cleared. Note '
+            doc=_('Hostgroups whose hosts should have ID Views cleared. Note '
                   'that view is not cleared automatically from any host added '
                   'to the hostgroup after running idview-unapply command.'),
             label=_('hostgroups'),
@@ -347,16 +347,16 @@ class idview_unapply(baseidview_apply):
         output.summary,
         output.Output('succeeded',
             type=dict,
-            doc=_('Hosts that ID view was cleared from.'),
+            doc=_('Hosts that ID View was cleared from.'),
         ),
         output.Output('failed',
             type=dict,
-            doc=_('Hosts or hostgroups that ID view could not be cleared '
+            doc=_('Hosts or hostgroups that ID View could not be cleared '
                   'from.'),
         ),
         output.Output('completed',
             type=int,
-            doc=_('Number of hosts that had a ID view was unset:'),
+            doc=_('Number of hosts that had a ID View was unset:'),
         ),
     )
 
