@@ -237,6 +237,27 @@ class ADTRUSTInstance(service.Service):
             except:
                 self.print_msg("Failed to modify IPA admin group object")
 
+    def __add_default_trust_view(self):
+        default_view_dn = DN(('cn', 'Default Trust View'),
+                             api.env.container_views, self.suffix)
+
+        try:
+            self.admin_conn.get_entry(default_view_dn)
+        except errors.NotFound:
+            try:
+                self._ldap_mod('default-trust-view.ldif', self.sub_dict)
+            except Exception, e:
+                self.print_msg("Failed to add default trust view.")
+                raise e
+        else:
+            self.print_msg("Default Trust View already exists.")
+
+        # _ldap_mod does not return useful error codes, so we must check again
+        # if the default trust view was created properly.
+        try:
+            self.admin_conn.get_entry(default_view_dn)
+        except errors.NotFound:
+            self.print_msg("Failed to add Default Trust View.")
 
     def __add_fallback_group(self):
         """
@@ -847,6 +868,7 @@ class ADTRUSTInstance(service.Service):
         self.step("restarting Directory Server to take MS PAC and LDAP plugins changes into account", \
                   self.__restart_dirsrv)
         self.step("adding fallback group", self.__add_fallback_group)
+        self.step("adding Default Trust View", self.__add_default_trust_view)
         self.step("setting SELinux booleans", \
                   self.__configure_selinux_for_smbd)
         self.step("starting CIFS services", self.__start)
