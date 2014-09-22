@@ -26,6 +26,7 @@ app_DATA =				\
 	default-aci.ldif		\
 	default-hbac.ldif		\
 	default-smb-group.ldif		\
+	default-trust-view.ldif		\
 	delegation.ldif			\
 	disable-betxn.ldif		\
 	replica-acis.ldif		\
