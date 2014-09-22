@@ -484,7 +484,7 @@ class baseidoverride(LDAPObject):
             primary_key=True,
             label=_('Anchor to override'),
         ),
-        Str('description',
+        Str('description?',
             cli_name='desc',
             label=_('Description'),
         ),
