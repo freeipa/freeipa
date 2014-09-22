@@ -85,7 +85,6 @@ class BasePathNamespace(object):
     NSSDB_CERT8_DB = "/etc/pki/nssdb/cert8.db"
     NSSDB_KEY3_DB = "/etc/pki/nssdb/key3.db"
     NSSDB_SECMOD_DB = "/etc/pki/nssdb/secmod.db"
-    NSSDB_IPA_TXT = "/etc/pki/nssdb/ipa.txt"
     PKI_TOMCAT = "/etc/pki/pki-tomcat"
     PKI_TOMCAT_ALIAS_DIR = "/etc/pki/pki-tomcat/alias/"
     PKI_TOMCAT_PASSWORD_CONF = "/etc/pki/pki-tomcat/password.conf"
