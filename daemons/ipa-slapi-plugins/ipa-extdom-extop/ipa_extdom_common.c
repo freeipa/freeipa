@@ -70,6 +70,7 @@ int parse_request_data(struct berval *req_val, struct extdom_req **_req)
  *    requestType ENUMERATED {
  *        simple (1),
  *        full (2)
+ *        full_with_groups (3)
  *    },
  *    data InputData
  * }
@@ -179,23 +180,23 @@ void free_req_data(struct extdom_req *req)
     free(req);
 }
 
-int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
-                   struct extdom_res **res)
+int check_request(struct extdom_req *req, enum extdom_version version)
 {
-    int ret;
-    char *domain_name = NULL;
-    char *sid_str = NULL;
-    size_t buf_len;
-    char *buf = NULL;
+    if (version == EXTDOM_V0) {
+        if (req->request_type == REQ_FULL_WITH_GROUPS) {
+            return LDAP_PROTOCOL_ERROR;
+        }
+    }
+
+    return LDAP_SUCCESS;
+}
+
+static int get_buffer(size_t *_buf_len, char **_buf)
+{
     long pw_max;
     long gr_max;
-    struct pwd_grp pg_data;
-    struct passwd *pwd_result = NULL;
-    struct group *grp_result = NULL;
-    enum sss_id_type id_type;
-    char *fq_name = NULL;
-    char *sep;
-
+    size_t buf_len;
+    char *buf;
 
     pw_max = sysconf(_SC_GETPW_R_SIZE_MAX);
     gr_max = sysconf(_SC_GETGR_R_SIZE_MAX);
@@ -211,301 +212,632 @@ int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
         return LDAP_OPERATIONS_ERROR;
     }
 
-    switch (req->input_type) {
-    case INP_POSIX_UID:
-        if (req->request_type == REQ_SIMPLE) {
-            ret = sss_nss_getsidbyid(req->data.posix_uid.uid, &sid_str,
-                                     &id_type);
-        } else {
-            id_type = SSS_ID_TYPE_UID;
-            ret = getpwuid_r(req->data.posix_uid.uid, &pg_data.data.pwd, buf,
-                             buf_len, &pwd_result);
-        }
+    *_buf_len = buf_len;
+    *_buf = buf;
 
-        domain_name = strdup(req->data.posix_uid.domain_name);
-        break;
-    case INP_POSIX_GID:
-        if (req->request_type == REQ_SIMPLE) {
-            ret = sss_nss_getsidbyid(req->data.posix_uid.uid, &sid_str,
-                                     &id_type);
-        } else {
-            id_type = SSS_ID_TYPE_GID;
-            ret = getgrgid_r(req->data.posix_gid.gid, &pg_data.data.grp, buf,
-                             buf_len, &grp_result);
-        }
+    return LDAP_SUCCESS;
+}
 
-        domain_name = strdup(req->data.posix_gid.domain_name);
-        break;
-    case INP_SID:
-        ret = sss_nss_getnamebysid(req->data.sid, &fq_name, &id_type);
-        if (ret != 0) {
-            ret = LDAP_OPERATIONS_ERROR;
+static int get_user_grouplist(const char *name, gid_t gid,
+                              size_t *_ngroups, gid_t **_groups )
+{
+    int ret;
+    int ngroups;
+    gid_t *groups;
+    gid_t *new_groups;
+
+    ngroups = 128;
+    groups = malloc(ngroups * sizeof(gid_t));
+    if (groups == NULL) {
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    ret = getgrouplist(name, gid, groups, &ngroups);
+    if (ret == -1) {
+        new_groups = realloc(groups, ngroups);
+        if (new_groups == NULL) {
+            free(groups);
+            return LDAP_OPERATIONS_ERROR;
+        }
+        groups = new_groups;
+
+        ret = getgrouplist(name, gid, groups, &ngroups);
+        if (ret == -1) {
+            free(groups);
+            return LDAP_OPERATIONS_ERROR;
+        }
+    }
+
+    *_ngroups = ngroups;
+    *_groups = groups;
+
+    return LDAP_SUCCESS;
+}
+
+static int pack_ber_sid(const char *sid, struct berval **berval)
+{
+    BerElement *ber = NULL;
+    int ret;
+
+    ber = ber_alloc_t( LBER_USE_DER );
+    if (ber == NULL) {
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    ret = ber_printf(ber,"{es}", RESP_SID, sid);
+    if (ret == -1) {
+        ber_free(ber, 1);
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    ret = ber_flatten(ber, berval);
+    ber_free(ber, 1);
+    if (ret == -1) {
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    return LDAP_SUCCESS;
+}
+
+#define SSSD_SYSDB_SID_STR "objectSIDString"
+
+static int pack_ber_user(enum response_types response_type,
+                         const char *domain_name, const char *user_name,
+                         uid_t uid, gid_t gid,
+                         const char *gecos, const char *homedir,
+                         const char *shell, const char *sid_str,
+                         struct berval **berval)
+{
+    BerElement *ber = NULL;
+    int ret;
+    size_t ngroups;
+    gid_t *groups = NULL;
+    size_t buf_len;
+    char *buf = NULL;
+    struct group grp;
+    struct group *grp_result;
+    size_t c;
+    char *locat;
+    char *short_user_name = NULL;
+    const char *single_value_string_array[] = {NULL, NULL};
+
+    short_user_name = strdup(user_name);
+    if ((locat = strchr(short_user_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
+        if (strcasecmp(locat+1, domain_name) == 0  ) {
+            locat[0] = '\0';
+        } else {
+            ret = LDAP_NO_SUCH_OBJECT;
+            goto done;
+        }
+    }
+
+    ber = ber_alloc_t( LBER_USE_DER );
+    if (ber == NULL) {
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    ret = ber_printf(ber,"{e{ssii", response_type, domain_name, short_user_name,
+                                      uid, gid);
+    if (ret == -1) {
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    if (response_type == RESP_USER_GROUPLIST) {
+        ret = get_user_grouplist(user_name, gid, &ngroups, &groups);
+        if (ret != LDAP_SUCCESS) {
             goto done;
         }
 
-        sep = strrchr(fq_name, SSSD_DOMAIN_SEPARATOR);
-        if (sep == NULL) {
-            ret = LDAP_OPERATIONS_ERROR;
+        ret = get_buffer(&buf_len, &buf);
+        if (ret != LDAP_SUCCESS) {
             goto done;
         }
 
-        ret = asprintf(&domain_name, "%s", sep+1);
+        ret = ber_printf(ber,"sss", gecos, homedir, shell);
         if (ret == -1) {
             ret = LDAP_OPERATIONS_ERROR;
-            domain_name = NULL; /* content is undefined according to
-                                   asprintf(3) */
             goto done;
         }
 
-        switch(id_type) {
-        case SSS_ID_TYPE_UID:
-        case SSS_ID_TYPE_BOTH:
-            ret = getpwnam_r(fq_name, &pg_data.data.pwd, buf, buf_len,
-                             &pwd_result);
-            break;
-        case SSS_ID_TYPE_GID:
-            ret = getgrnam_r(fq_name, &pg_data.data.grp, buf, buf_len,
-                             &grp_result);
-            break;
-        default:
-            ret = LDAP_OPERATIONS_ERROR;
-            goto done;
-        }
-        break;
-    case INP_NAME:
-        ret = asprintf(&fq_name, "%s%c%s", req->data.name.object_name,
-                                           SSSD_DOMAIN_SEPARATOR,
-                                           req->data.name.domain_name);
+        ret = ber_printf(ber,"{");
         if (ret == -1) {
             ret = LDAP_OPERATIONS_ERROR;
-            fq_name = NULL; /* content is undefined according to
-                               asprintf(3) */
             goto done;
         }
 
-        if (req->request_type == REQ_SIMPLE) {
-            ret = sss_nss_getsidbyname(fq_name, &sid_str, &id_type);
-        } else {
-            id_type = SSS_ID_TYPE_UID;
-            ret = getpwnam_r(fq_name, &pg_data.data.pwd, buf, buf_len,
-                             &pwd_result);
-            if (ret == 0 && pwd_result == NULL) { /* no user entry found */
-                id_type = SSS_ID_TYPE_GID;
-                ret = getgrnam_r(fq_name, &pg_data.data.grp, buf, buf_len,
-                                 &grp_result);
+        for (c = 0; c < ngroups; c++) {
+            ret = getgrgid_r(groups[c], &grp, buf, buf_len, &grp_result);
+            if (ret != 0) {
+                ret = LDAP_NO_SUCH_OBJECT;
+                goto done;
+            }
+            if (grp_result == NULL) {
+                ret = LDAP_NO_SUCH_OBJECT;
+                goto done;
+            }
+
+            ret = ber_printf(ber, "s", grp.gr_name);
+            if (ret == -1) {
+                ret = LDAP_OPERATIONS_ERROR;
+                goto done;
             }
         }
-        domain_name = strdup(req->data.name.domain_name);
+
+        ret = ber_printf(ber,"}");
+        if (ret == -1) {
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+        single_value_string_array[0] = sid_str;
+        ret = ber_printf(ber,"{{s{v}}}", SSSD_SYSDB_SID_STR,
+                                         single_value_string_array);
+        if (ret == -1) {
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+    }
+
+    ret = ber_printf(ber,"}}");
+    if (ret == -1) {
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    ret = ber_flatten(ber, berval);
+    if (ret == -1) {
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    ret = LDAP_SUCCESS;
+done:
+    free(short_user_name);
+    free(groups);
+    free(buf);
+    ber_free(ber, 1);
+    return ret;
+}
+
+static int pack_ber_group(enum response_types response_type,
+                          const char *domain_name, const char *group_name,
+                          gid_t gid, char **members, const char *sid_str,
+                          struct berval **berval)
+{
+    BerElement *ber = NULL;
+    int ret;
+    size_t c;
+    char *locat;
+    char *short_group_name = NULL;
+    const char *single_value_string_array[] = {NULL, NULL};
+
+    short_group_name = strdup(group_name);
+    if ((locat = strchr(short_group_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
+        if (strcasecmp(locat+1, domain_name) == 0  ) {
+            locat[0] = '\0';
+        } else {
+            ret = LDAP_NO_SUCH_OBJECT;
+            goto done;
+        }
+    }
+
+    ber = ber_alloc_t( LBER_USE_DER );
+    if (ber == NULL) {
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    ret = ber_printf(ber,"{e{ssi", response_type, domain_name, short_group_name,
+                                   gid);
+    if (ret == -1) {
+        ber_free(ber, 1);
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    if (response_type == RESP_GROUP_MEMBERS) {
+        ret = ber_printf(ber,"{");
+        if (ret == -1) {
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+        for (c = 0; members[c] != NULL; c++) {
+            ret = ber_printf(ber, "s", members[c]);
+            if (ret == -1) {
+                ret = LDAP_OPERATIONS_ERROR;
+                goto done;
+            }
+        }
+
+        ret = ber_printf(ber,"}");
+        if (ret == -1) {
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+        single_value_string_array[0] = sid_str;
+        ret = ber_printf(ber,"{{s{v}}}", SSSD_SYSDB_SID_STR,
+                                         single_value_string_array);
+        if (ret == -1) {
+            ret = LDAP_OPERATIONS_ERROR;
+            goto done;
+        }
+
+    }
+
+    ret = ber_printf(ber,"}}");
+    if (ret == -1) {
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    ret = ber_flatten(ber, berval);
+    if (ret == -1) {
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    ret = LDAP_SUCCESS;
+
+done:
+    free(short_group_name);
+    ber_free(ber, 1);
+    return ret;
+}
+
+static int pack_ber_name(const char *domain_name, const char *name,
+                         struct berval **berval)
+{
+    BerElement *ber = NULL;
+    int ret;
+
+    ber = ber_alloc_t( LBER_USE_DER );
+    if (ber == NULL) {
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    ret = ber_printf(ber,"{e{ss}}", RESP_NAME, domain_name, name);
+    if (ret == -1) {
+        ber_free(ber, 1);
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    ret = ber_flatten(ber, berval);
+    ber_free(ber, 1);
+    if (ret == -1) {
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    return LDAP_SUCCESS;
+}
+
+static int handle_uid_request(enum request_types request_type, uid_t uid,
+                              const char *domain_name, struct berval **berval)
+{
+    int ret;
+    struct passwd pwd;
+    struct passwd *pwd_result = NULL;
+    char *sid_str = NULL;
+    enum sss_id_type id_type;
+    size_t buf_len;
+    char *buf = NULL;
+
+    ret = get_buffer(&buf_len, &buf);
+    if (ret != LDAP_SUCCESS) {
+        return ret;
+    }
+
+    if (request_type == REQ_SIMPLE || request_type == REQ_FULL_WITH_GROUPS) {
+        ret = sss_nss_getsidbyid(uid, &sid_str, &id_type);
+        if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
+                            || id_type == SSS_ID_TYPE_BOTH)) {
+            if (ret == ENOENT) {
+                ret = LDAP_NO_SUCH_OBJECT;
+            } else {
+                ret = LDAP_OPERATIONS_ERROR;
+            }
+            goto done;
+        }
+    }
+
+    if (request_type == REQ_SIMPLE) {
+        ret = pack_ber_sid(sid_str, berval);
+    } else {
+        ret = getpwuid_r(uid, &pwd, buf, buf_len, &pwd_result);
+        if (ret != 0) {
+            ret = LDAP_NO_SUCH_OBJECT;
+            goto done;
+        }
+        if (pwd_result == NULL) {
+            ret = LDAP_NO_SUCH_OBJECT;
+            goto done;
+        }
+
+        ret = pack_ber_user((request_type == REQ_FULL ? RESP_USER
+                                                      : RESP_USER_GROUPLIST),
+                            domain_name, pwd.pw_name, pwd.pw_uid,
+                            pwd.pw_gid, pwd.pw_gecos, pwd.pw_dir,
+                            pwd.pw_shell, sid_str, berval);
+    }
+
+done:
+    free(sid_str);
+    free(buf);
+    return ret;
+}
+
+static int handle_gid_request(enum request_types request_type, gid_t gid,
+                              const char *domain_name, struct berval **berval)
+{
+    int ret;
+    struct group grp;
+    struct group *grp_result = NULL;
+    char *sid_str = NULL;
+    enum sss_id_type id_type;
+    size_t buf_len;
+    char *buf = NULL;
+
+    ret = get_buffer(&buf_len, &buf);
+    if (ret != LDAP_SUCCESS) {
+        return ret;
+    }
+
+    if (request_type == REQ_SIMPLE || request_type == REQ_FULL_WITH_GROUPS) {
+        ret = sss_nss_getsidbyid(gid, &sid_str, &id_type);
+        if (ret != 0 || id_type != SSS_ID_TYPE_GID) {
+            if (ret == ENOENT) {
+                ret = LDAP_NO_SUCH_OBJECT;
+            } else {
+                ret = LDAP_OPERATIONS_ERROR;
+            }
+            goto done;
+        }
+    }
+
+    if (request_type == REQ_SIMPLE) {
+        ret = pack_ber_sid(sid_str, berval);
+    } else {
+        ret = getgrgid_r(gid, &grp, buf, buf_len, &grp_result);
+        if (ret != 0) {
+            ret = LDAP_NO_SUCH_OBJECT;
+            goto done;
+        }
+        if (grp_result == NULL) {
+            ret = LDAP_NO_SUCH_OBJECT;
+            goto done;
+        }
+
+        ret = pack_ber_group((request_type == REQ_FULL ? RESP_GROUP
+                                                       : RESP_GROUP_MEMBERS),
+                             domain_name, grp.gr_name, grp.gr_gid,
+                             grp.gr_mem, sid_str, berval);
+    }
+
+done:
+    free(sid_str);
+    free(buf);
+    return ret;
+}
+
+static int handle_sid_request(enum request_types request_type, const char *sid,
+                              struct berval **berval)
+{
+    int ret;
+    struct passwd pwd;
+    struct passwd *pwd_result = NULL;
+    struct group grp;
+    struct group *grp_result = NULL;
+    char *domain_name = NULL;
+    char *fq_name = NULL;
+    char *object_name = NULL;
+    char *sep;
+    size_t buf_len;
+    char *buf = NULL;
+    enum sss_id_type id_type;
+
+    ret = sss_nss_getnamebysid(sid, &fq_name, &id_type);
+    if (ret != 0) {
+        if (ret == ENOENT) {
+            ret = LDAP_NO_SUCH_OBJECT;
+        } else {
+            ret = LDAP_OPERATIONS_ERROR;
+        }
+        goto done;
+    }
+
+    sep = strchr(fq_name, SSSD_DOMAIN_SEPARATOR);
+    if (sep == NULL) {
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    object_name = strndup(fq_name, (sep - fq_name));
+    domain_name = strdup(sep + 1);
+    if (object_name == NULL || domain_name == NULL) {
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+    if (request_type == REQ_SIMPLE) {
+        ret = pack_ber_name(domain_name, object_name, berval);
+        goto done;
+    }
+
+    ret = get_buffer(&buf_len, &buf);
+    if (ret != LDAP_SUCCESS) {
+        return ret;
+    }
+
+    switch(id_type) {
+    case SSS_ID_TYPE_UID:
+    case SSS_ID_TYPE_BOTH:
+        ret = getpwnam_r(fq_name, &pwd, buf, buf_len, &pwd_result);
+        if (ret != 0) {
+            ret = LDAP_NO_SUCH_OBJECT;
+            goto done;
+        }
+
+        if (pwd_result == NULL) {
+            ret = LDAP_NO_SUCH_OBJECT;
+            goto done;
+        }
+
+        ret = pack_ber_user((request_type == REQ_FULL ? RESP_USER
+                                                      : RESP_USER_GROUPLIST),
+                            domain_name, pwd.pw_name, pwd.pw_uid,
+                            pwd.pw_gid, pwd.pw_gecos, pwd.pw_dir,
+                            pwd.pw_shell, sid, berval);
+        break;
+    case SSS_ID_TYPE_GID:
+        ret = getgrnam_r(fq_name, &grp, buf, buf_len, &grp_result);
+        if (ret != 0) {
+            ret = LDAP_NO_SUCH_OBJECT;
+            goto done;
+        }
+
+        if (grp_result == NULL) {
+            ret = LDAP_NO_SUCH_OBJECT;
+            goto done;
+        }
+
+        ret = pack_ber_group((request_type == REQ_FULL ? RESP_GROUP
+                                                       : RESP_GROUP_MEMBERS),
+                             domain_name, grp.gr_name, grp.gr_gid,
+                             grp.gr_mem, sid, berval);
+        break;
+    default:
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
+    }
+
+done:
+    free(fq_name);
+    free(object_name);
+    free(domain_name);
+    free(buf);
+
+    return ret;
+}
+
+static int handle_name_request(enum request_types request_type,
+                               const char *name, const char *domain_name,
+                               struct berval **berval)
+{
+    int ret;
+    char *fq_name = NULL;
+    struct passwd pwd;
+    struct passwd *pwd_result = NULL;
+    struct group grp;
+    struct group *grp_result = NULL;
+    char *sid_str = NULL;
+    enum sss_id_type id_type;
+    size_t buf_len;
+    char *buf = NULL;
+
+    ret = asprintf(&fq_name, "%s%c%s", name, SSSD_DOMAIN_SEPARATOR,
+                                       domain_name);
+    if (ret == -1) {
+        ret = LDAP_OPERATIONS_ERROR;
+        fq_name = NULL; /* content is undefined according to
+                           asprintf(3) */
+        goto done;
+    }
+
+    if (request_type == REQ_SIMPLE || request_type == REQ_FULL_WITH_GROUPS) {
+        ret = sss_nss_getsidbyname(fq_name, &sid_str, &id_type);
+        if (ret != 0) {
+            if (ret == ENOENT) {
+                ret = LDAP_NO_SUCH_OBJECT;
+            } else {
+                ret = LDAP_OPERATIONS_ERROR;
+            }
+           goto done;
+        }
+    }
+
+    if (request_type == REQ_SIMPLE) {
+        ret = pack_ber_sid(sid_str, berval);
+    } else {
+        ret = get_buffer(&buf_len, &buf);
+        if (ret != LDAP_SUCCESS) {
+            goto done;
+        }
+
+        ret = getpwnam_r(fq_name, &pwd, buf, buf_len, &pwd_result);
+        if (ret != 0) {
+            /* according to the man page there are a couple of error codes
+             * which can indicate that the user was not found. To be on the
+             * safe side we fail back to the group lookup on all errors. */
+            pwd_result = NULL;
+        }
+
+        if (pwd_result != NULL) {
+            ret = pack_ber_user((request_type == REQ_FULL ? RESP_USER
+                                                          : RESP_USER_GROUPLIST),
+                                domain_name, pwd.pw_name, pwd.pw_uid,
+                                pwd.pw_gid, pwd.pw_gecos, pwd.pw_dir,
+                                pwd.pw_shell, sid_str, berval);
+        } else { /* no user entry found */
+            ret = getgrnam_r(fq_name, &grp, buf, buf_len, &grp_result);
+            if (ret != 0) {
+                ret = LDAP_NO_SUCH_OBJECT;
+                goto done;
+            }
+
+            if (grp_result == NULL) {
+                ret = LDAP_NO_SUCH_OBJECT;
+                goto done;
+            }
+
+            ret = pack_ber_group((request_type == REQ_FULL ? RESP_GROUP
+                                                           : RESP_GROUP_MEMBERS),
+                                 domain_name, grp.gr_name, grp.gr_gid,
+                                 grp.gr_mem, sid_str, berval);
+        }
+    }
+
+done:
+    free(fq_name);
+    free(sid_str);
+    free(buf);
+
+    return ret;
+}
+
+int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
+                   struct berval **berval)
+{
+    int ret;
+
+    switch (req->input_type) {
+    case INP_POSIX_UID:
+        ret = handle_uid_request(req->request_type, req->data.posix_uid.uid,
+                                 req->data.posix_uid.domain_name, berval);
+
+        break;
+    case INP_POSIX_GID:
+        ret = handle_gid_request(req->request_type, req->data.posix_gid.gid,
+                                 req->data.posix_uid.domain_name, berval);
+
+        break;
+    case INP_SID:
+        ret = handle_sid_request(req->request_type, req->data.sid, berval);
+        break;
+    case INP_NAME:
+        ret = handle_name_request(req->request_type, req->data.name.object_name,
+                                  req->data.name.domain_name, berval);
+
         break;
     default:
         ret = LDAP_PROTOCOL_ERROR;
         goto done;
     }
 
-    if (ret != 0) {
-        ret = LDAP_OPERATIONS_ERROR;
-        goto done;
-    } else if (ret == 0 && pwd_result == NULL && grp_result == NULL &&
-               sid_str == NULL) {
-        ret = LDAP_NO_SUCH_OBJECT;
-        goto done;
-    }
-
-    if (domain_name == NULL) {
-        ret = LDAP_OPERATIONS_ERROR;
-        goto done;
-    }
-
-    ret = create_response(req, &pg_data, sid_str, id_type, domain_name, res);
-    if (ret != 0) {
-        ret = LDAP_OPERATIONS_ERROR;
-        goto done;
-    }
-
-
-    ret = LDAP_SUCCESS;
 
 done:
-    free(buf);
-    free(fq_name);
-    free(domain_name);
-    free(sid_str);
 
     return ret;
 }
-
-int create_response(struct extdom_req *req, struct pwd_grp *pg_data,
-                    const char *sid_str, enum sss_id_type id_type,
-                    const char *domain_name, struct extdom_res **_res)
-{
-    int ret = EFAULT;
-    char *locat = NULL;
-    struct extdom_res *res;
-
-    res = calloc(1, sizeof(struct extdom_res));
-    if (res == NULL) {
-        return ENOMEM;
-    }
-
-    switch (req->request_type) {
-        case REQ_SIMPLE:
-            switch (req->input_type) {
-                case INP_SID:
-                    res->response_type = RESP_NAME;
-                    res->data.name.domain_name = strdup(domain_name);
-                    switch(id_type) {
-                    case SSS_ID_TYPE_UID:
-                    case SSS_ID_TYPE_BOTH:
-                        if ((locat = strchr(pg_data->data.pwd.pw_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
-                            if (strcasecmp(locat+1, domain_name) == 0  ) {
-                                locat[0] = 0;
-                            } else {
-                                ret = LDAP_NO_SUCH_OBJECT;
-                                goto done;
-                            }
-                        }
-                        res->data.name.object_name =
-                                              strdup(pg_data->data.pwd.pw_name);
-                        break;
-                    case SSS_ID_TYPE_GID:
-                        if ((locat = strchr(pg_data->data.grp.gr_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
-                            if (strcasecmp(locat+1, domain_name) == 0) {
-                                locat[0] = 0;
-                            } else {
-                                ret = LDAP_NO_SUCH_OBJECT;
-                                goto done;
-                            }
-                        }
-                        res->data.name.object_name =
-                                              strdup(pg_data->data.grp.gr_name);
-                        break;
-                    default:
-                        ret = EINVAL;
-                        goto done;
-                    }
-
-                    if (res->data.name.domain_name == NULL
-                            || res->data.name.object_name == NULL) {
-                        ret = ENOMEM;
-                        goto done;
-                    }
-                    break;
-                case INP_NAME:
-                case INP_POSIX_UID:
-                case INP_POSIX_GID:
-                    res->response_type = RESP_SID;
-                    res->data.sid = strdup(sid_str);
-                    if (res->data.sid == NULL) {
-                        ret = ENOMEM;
-                        goto done;
-                    }
-                    break;
-                default:
-                    ret = EINVAL;
-                    goto done;
-            }
-            break;
-        case REQ_FULL:
-            switch (id_type) {
-                case SSS_ID_TYPE_UID:
-                case SSS_ID_TYPE_BOTH:
-                    res->response_type = RESP_USER;
-                    res->data.user.domain_name = strdup(domain_name);
-                    if ((locat = strchr(pg_data->data.pwd.pw_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
-                        if (strcasecmp(locat+1, domain_name) == 0) {
-                            locat[0] = 0;
-                        } else {
-                            ret = LDAP_NO_SUCH_OBJECT;
-                            goto done;
-                        }
-                    }
-                    res->data.user.user_name =
-                                              strdup(pg_data->data.pwd.pw_name);
-
-                    if (res->data.user.domain_name == NULL
-                            || res->data.user.user_name == NULL) {
-                        ret = ENOMEM;
-                        goto done;
-                    }
-
-                    res->data.user.uid = pg_data->data.pwd.pw_uid;
-                    res->data.user.gid = pg_data->data.pwd.pw_gid;
-                    break;
-                case SSS_ID_TYPE_GID:
-                    res->response_type = RESP_GROUP;
-                    res->data.group.domain_name = strdup(domain_name);
-                    if ((locat = strchr(pg_data->data.grp.gr_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
-                        if (strcasecmp(locat+1, domain_name) == 0) {
-                            locat[0] = 0;
-                        } else {
-                            ret = LDAP_NO_SUCH_OBJECT;
-                            goto done;
-                        }
-                    }
-                    res->data.group.group_name =
-                                              strdup(pg_data->data.grp.gr_name);
-
-                    if (res->data.group.domain_name == NULL
-                            || res->data.group.group_name == NULL) {
-                        ret = ENOMEM;
-                        goto done;
-                    }
-
-                    res->data.group.gid = pg_data->data.grp.gr_gid;
-                    break;
-                default:
-                    ret = EINVAL;
-                    goto done;
-            }
-            break;
-        default:
-            ret = EINVAL;
-            goto done;
-    }
-
-    ret = 0;
-
-done:
-    if (ret == 0) {
-        *_res = res;
-    } else {
-        free_resp_data(res);
-    }
-
-    if (locat != NULL) {
-        locat[0] = SSSD_DOMAIN_SEPARATOR;
-    }
-
-    return ret;
-}
-
-void free_resp_data(struct extdom_res *res)
-{
-    if (res == NULL) {
-        return;
-    }
-
-    switch (res->response_type) {
-    case RESP_SID:
-        free(res->data.sid);
-        break;
-    case RESP_NAME:
-        free(res->data.name.domain_name);
-        free(res->data.name.object_name);
-        break;
-    case RESP_USER:
-        free(res->data.user.domain_name);
-        free(res->data.user.user_name);
-        break;
-    case RESP_GROUP:
-        free(res->data.group.domain_name);
-        free(res->data.group.group_name);
-        break;
-    }
-
-    free(res);
-}
-
 
 int pack_response(struct extdom_res *res, struct berval **ret_val)
 {
