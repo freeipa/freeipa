@@ -64,12 +64,18 @@
 #include <sss_nss_idmap.h>
 
 #define EXOP_EXTDOM_OID "2.16.840.1.113730.3.8.10.4"
+#define EXOP_EXTDOM_V1_OID "2.16.840.1.113730.3.8.10.4.1"
 
 #define IPA_EXTDOM_PLUGIN_NAME   "ipa-extdom-extop"
 #define IPA_EXTDOM_FEATURE_DESC  "IPA trusted domain ID mapper"
 #define IPA_EXTDOM_PLUGIN_DESC   "Support resolving IDs in trusted domains to names and back"
 
 #define IPA_PLUGIN_NAME IPA_EXTDOM_PLUGIN_NAME
+
+enum extdom_version {
+    EXTDOM_V0 = 0,
+    EXTDOM_V1
+};
 
 enum input_types {
     INP_SID = 1,
@@ -80,14 +86,17 @@ enum input_types {
 
 enum request_types {
     REQ_SIMPLE = 1,
-    REQ_FULL
+    REQ_FULL,
+    REQ_FULL_WITH_GROUPS
 };
 
 enum response_types {
     RESP_SID = 1,
     RESP_NAME,
     RESP_USER,
-    RESP_GROUP
+    RESP_GROUP,
+    RESP_USER_GROUPLIST,
+    RESP_GROUP_MEMBERS
 };
 
 struct extdom_req {
@@ -123,11 +132,18 @@ struct extdom_res {
             char *user_name;
             uid_t uid;
             gid_t gid;
+            char *gecos;
+            char *home;
+            char *shell;
+            size_t ngroups;
+            char **groups;
         } user;
         struct {
             char *domain_name;
             char *group_name;
             gid_t gid;
+            size_t nmembers;
+            char **members;
         } group;
     } data;
 };
@@ -150,15 +166,14 @@ struct pwd_grp {
         struct passwd pwd;
         struct group grp;
     } data;
+    int ngroups;
+    gid_t *groups;
 };
 
 int parse_request_data(struct berval *req_val, struct extdom_req **_req);
 void free_req_data(struct extdom_req *req);
+int check_request(struct extdom_req *req, enum extdom_version version);
 int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
-                   struct extdom_res **res);
-int create_response(struct extdom_req *req, struct pwd_grp *pg_data,
-                    const char *sid_str, enum sss_id_type id_type,
-                    const char *domain_name, struct extdom_res **_res);
-void free_resp_data(struct extdom_res *res);
+                   struct berval **berval);
 int pack_response(struct extdom_res *res, struct berval **ret_val);
 #endif /* _IPA_EXTDOM_H_ */

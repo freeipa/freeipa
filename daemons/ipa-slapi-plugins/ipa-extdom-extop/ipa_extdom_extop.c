@@ -49,6 +49,7 @@ Slapi_PluginDesc ipa_extdom_plugin_desc = {
 
 static char *ipa_extdom_oid_list[] = {
     EXOP_EXTDOM_OID,
+    EXOP_EXTDOM_V1_OID,
     NULL
 };
 
@@ -71,8 +72,8 @@ static int ipa_extdom_extop(Slapi_PBlock *pb)
     struct berval *req_val = NULL;
     struct berval *ret_val = NULL;
     struct extdom_req *req = NULL;
-    struct extdom_res *res = NULL;
     struct ipa_extdom_ctx *ctx;
+    enum extdom_version version;
 
     ret = slapi_pblock_get(pb, SLAPI_EXT_OP_REQ_OID, &oid);
     if (ret != 0) {
@@ -82,7 +83,11 @@ static int ipa_extdom_extop(Slapi_PBlock *pb)
     }
     LOG("Received extended operation request with OID %s\n", oid);
 
-    if (strcasecmp(oid, EXOP_EXTDOM_OID) != 0) {
+    if (strcasecmp(oid, EXOP_EXTDOM_OID) == 0) {
+        version = EXTDOM_V0;
+    } else if (strcasecmp(oid, EXOP_EXTDOM_V1_OID) == 0) {
+        version = EXTDOM_V1;
+    } else {
         return SLAPI_PLUGIN_EXTENDED_NOT_HANDLED;
     }
 
@@ -107,21 +112,21 @@ static int ipa_extdom_extop(Slapi_PBlock *pb)
         goto done;
     }
 
-    ret = handle_request(ctx, req, &res);
+    ret = check_request(req, version);
+    if (ret != LDAP_SUCCESS) {
+        rc = LDAP_UNWILLING_TO_PERFORM;
+        err_msg = "Error in request data.\n";
+        goto done;
+    }
+
+    ret = handle_request(ctx, req, &ret_val);
     if (ret != LDAP_SUCCESS) {
         rc = LDAP_OPERATIONS_ERROR;
         err_msg = "Failed to handle the request.\n";
         goto done;
     }
 
-    ret = pack_response(res, &ret_val);
-    if (ret != LDAP_SUCCESS) {
-        rc = LDAP_OPERATIONS_ERROR;
-        err_msg = "Failed to pack the response.\n";
-        goto done;
-    }
-
-    ret = slapi_pblock_set(pb, SLAPI_EXT_OP_RET_OID, EXOP_EXTDOM_OID);
+    ret = slapi_pblock_set(pb, SLAPI_EXT_OP_RET_OID, oid);
     if (ret != 0) {
         rc = LDAP_OPERATIONS_ERROR;
         err_msg = "Failed to set the OID for the response.\n";
@@ -139,7 +144,6 @@ static int ipa_extdom_extop(Slapi_PBlock *pb)
 
 done:
     free_req_data(req);
-    free_resp_data(res);
     if (err_msg != NULL) {
         LOG("%s", err_msg);
     }
