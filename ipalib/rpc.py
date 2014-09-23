@@ -761,7 +761,7 @@ class RPCClient(Connectible):
 
         return session_url
 
-    def create_connection(self, ccache=None, verbose=False, fallback=True,
+    def create_connection(self, ccache=None, verbose=0, fallback=True,
                           delegate=False, nss_dir=None):
         try:
             rpc_uri = self.env[self.env_rpc_uri_key]
@@ -965,11 +965,15 @@ class JSONServerProxy(object):
         payload = {'method': unicode(name), 'params': args, 'id': 0}
         version = args[1].get('version', VERSION_WITHOUT_CAPABILITIES)
 
+        if self.__verbose >= 2:
+            root_logger.info('Request: %s',
+                             json.dumps(payload, sort_keys=True, indent=4))
+
         response = self.__transport.request(
             self.__host,
             self.__handler,
             json.dumps(json_encode_binary(payload, version)),
-            verbose=self.__verbose,
+            verbose=self.__verbose >= 3,
         )
 
         try:
@@ -977,6 +981,9 @@ class JSONServerProxy(object):
         except ValueError, e:
             raise JSONError(str(e))
 
+        if self.__verbose >= 2:
+            root_logger.info('Response: %s',
+                             json.dumps(response, sort_keys=True, indent=4))
         error = response.get('error')
         if error:
             try:
