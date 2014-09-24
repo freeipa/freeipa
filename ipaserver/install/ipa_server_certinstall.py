@@ -61,6 +61,10 @@ class ServerCertInstall(admintool.AdminTool):
             dest="pin",
             help=optparse.SUPPRESS_HELP)
         parser.add_option(
+            "--cert-name",
+            dest="cert_name", metavar="NAME",
+            help="Name of the certificate to install")
+        parser.add_option(
             "-p", "--dirman-password",
             dest="dirman_password",
             help="Directory Manager password")
@@ -155,7 +159,7 @@ class ServerCertInstall(admintool.AdminTool):
         pkcs12_file, pin, ca_cert = installutils.load_pkcs12(
             cert_files=self.args,
             key_password=pkcs12_passwd,
-            key_nickname=None,
+            key_nickname=self.options.cert_name,
             ca_cert_files=[CACERT],
             host_name=api.env.host)
 
