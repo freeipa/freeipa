@@ -120,6 +120,7 @@ class CertUpdate(admintool.AdminTool):
         criteria = {
             'cert-database': dogtag_constants.ALIAS_DIR,
             'cert-nickname': nickname,
+            'ca-name': 'dogtag-ipa-ca-renew-agent',
         }
         request_id = certmonger.get_request_id(criteria)
         if request_id is not None:
