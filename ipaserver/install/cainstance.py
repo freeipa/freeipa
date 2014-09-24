@@ -654,7 +654,7 @@ class CAInstance(service.Service):
 
         if self.external == 1:
             print "The next step is to get %s signed by your CA and re-run %s as:" % (self.csr_file, sys.argv[0])
-            print "%s --external_cert_file=/path/to/signed_certificate --external_ca_file=/path/to/external_ca_certificate" % sys.argv[0]
+            print "%s --external-cert-file=/path/to/signed_certificate --external-cert-file=/path/to/external_ca_certificate" % sys.argv[0]
             sys.exit(0)
         else:
             shutil.move(paths.CA_BACKUP_KEYS_P12, \
@@ -803,7 +803,7 @@ class CAInstance(service.Service):
 
         if self.external == 1:
             print "The next step is to get %s signed by your CA and re-run %s as:" % (self.csr_file, sys.argv[0])
-            print "%s --external_cert_file=/path/to/signed_certificate --external_ca_file=/path/to/external_ca_certificate" % sys.argv[0]
+            print "%s --external-cert-file=/path/to/signed_certificate --external-cert-file=/path/to/external_ca_certificate" % sys.argv[0]
             sys.exit(0)
 
         # pkisilent makes a copy of the CA PKCS#12 file for us but gives

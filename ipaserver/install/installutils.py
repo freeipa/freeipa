@@ -877,52 +877,77 @@ def check_entropy():
         root_logger.debug("Invalid value in /proc/sys/kernel/random/entropy_avail %s" % \
             e)
 
-def validate_external_cert(cert_file, ca_file, subject_base):
-    extcert = None
-    try:
-        extcert = x509.load_certificate_from_file(cert_file)
-        certsubject = DN(str(extcert.subject))
-        certissuer = DN(str(extcert.issuer))
-    except IOError, e:
-        raise ValueError("Can't load the PEM certificate: %s." % e)
-    except (TypeError, NSPRError):
-        raise ValueError(
-            "'%s' is not a valid PEM-encoded certificate." % cert_file)
-    finally:
-        del extcert
+def load_external_cert(files, subject_base):
+    """
+    Load and verify external CA certificate chain from multiple files.
 
-    wantsubject = DN(('CN', 'Certificate Authority'), subject_base)
-    if certsubject != wantsubject:
-        raise ValueError(
-            "Subject of the external certificate is not correct (got %s, "
-            "expected %s)." % (certsubject, wantsubject))
+    The files are accepted in PEM and DER certificate and PKCS#7 certificate
+    chain formats.
 
-    extchain = None
-    try:
-        extchain = x509.load_certificate_list_from_file(ca_file)
-        certdict = dict((DN(str(cert.subject)), DN(str(cert.issuer)))
-                        for cert in extchain)
-    except IOError, e:
-        raise ValueError("Can't load the external CA chain: %s." % e)
-    except (TypeError, NSPRError):
-        raise ValueError(
-            "'%s' is not a valid PEM-encoded certificate chain." % ca_file)
-    finally:
-        del extchain
+    :param files: Names of files to import
+    :param subject_base: Subject name base for IPA certificates
+    :returns: Temporary file with the IPA CA certificate and temporary file
+        with the external CA certificate chain
+    """
+    with certs.NSSDatabase() as nssdb:
+        db_password = ipautil.ipa_generate_password()
+        db_pwdfile = ipautil.write_tmp_file(db_password)
+        nssdb.create_db(db_pwdfile.name)
 
-    if certissuer not in certdict:
-        raise ValueError(
-            "The external certificate is not signed by the external CA "
-            "(unknown issuer %s)." % certissuer)
-
-    while certsubject != certissuer:
-        certsubject = certissuer
         try:
-            certissuer = certdict[certsubject]
-        except KeyError:
-            raise ValueError(
-                "The external CA chain is incomplete (%s is missing from the "
-                "chain)." % certsubject)
+            nssdb.import_files(files, db_pwdfile.name)
+        except RuntimeError as e:
+            raise ScriptError(str(e))
+
+        ca_subject = DN(('CN', 'Certificate Authority'), subject_base)
+        ca_nickname = None
+        cache = {}
+        for nickname, trust_flags in nssdb.list_certs():
+            cert = nssdb.get_cert(nickname, pem=True)
+
+            nss_cert = x509.load_certificate(cert)
+            subject = DN(str(nss_cert.subject))
+            issuer = DN(str(nss_cert.issuer))
+            del nss_cert
+
+            cache[nickname] = (cert, subject, issuer)
+            if subject == ca_subject:
+                ca_nickname = nickname
+            nssdb.trust_root_cert(nickname)
+
+        if ca_nickname is None:
+            raise ScriptError(
+                "IPA CA certificate not found in %s" % (", ".join(files)))
+
+        trust_chain = reversed(nssdb.get_trust_chain(ca_nickname))
+        ca_cert_chain = []
+        for nickname in trust_chain:
+            cert, subject, issuer = cache[nickname]
+            ca_cert_chain.append(cert)
+            if subject == issuer:
+                break
+        else:
+            raise ScriptError(
+                "CA certificate chain in %s is incomplete" %
+                (", ".join(files)))
+
+        for nickname in trust_chain:
+            try:
+                nssdb.verify_ca_cert_validity(nickname)
+            except ValueError, e:
+                raise ScriptError(
+                    "CA certificate %s in %s is not valid: %s" %
+                    (subject, ", ".join(files), e))
+
+    cert_file = tempfile.NamedTemporaryFile()
+    cert_file.write(ca_cert_chain[0] + '\n')
+    cert_file.flush()
+
+    ca_file = tempfile.NamedTemporaryFile()
+    ca_file.write('\n'.join(ca_cert_chain[1:]) + '\n')
+    ca_file.flush()
+
+    return cert_file, ca_file
 
 
 def create_system_user(name, group, homedir, shell):

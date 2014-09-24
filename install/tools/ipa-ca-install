@@ -30,7 +30,7 @@ from ipaserver.install import installutils, service
 from ipaserver.install import certs
 from ipaserver.install.installutils import (HostnameLocalhost, ReplicaConfig,
         expand_replica_info, read_replica_info, get_host_name, BadHostError,
-        private_ccache, read_replica_info_dogtag_port, validate_external_cert)
+        private_ccache, read_replica_info_dogtag_port, load_external_cert)
 from ipaserver.install import dsinstance, cainstance, bindinstance
 from ipaserver.install.replication import replica_conn_check
 from ipapython import version
@@ -68,10 +68,9 @@ def parse_options():
                       default=False, help="unattended installation never prompts the user")
     parser.add_option("--external-ca", dest="external_ca", action="store_true",
                       default=False, help="Generate a CSR to be signed by an external CA")
-    parser.add_option("--external_cert_file", dest="external_cert_file",
-                      help="PEM file containing a certificate signed by the external CA")
-    parser.add_option("--external_ca_file", dest="external_ca_file",
-                      help="PEM file containing the external CA chain")
+    parser.add_option("--external-cert-file", dest="external_cert_files",
+                      action="append", metavar="FILE",
+                      help="File containing the IPA CA certificate and the external CA certificate chain")
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -86,12 +85,9 @@ def parse_options():
         filename = None
 
         if options.external_ca:
-            if options.external_cert_file:
-                parser.error("You cannot specify --external_cert_file "
+            if options.external_cert_files:
+                parser.error("You cannot specify --external-cert-file "
                              "together with --external-ca")
-            if options.external_ca_file:
-                parser.error("You cannot specify --external_ca_file together "
-                             "with --external-ca")
 
     return safe_options, options, filename
 
@@ -264,23 +260,19 @@ def install_master(safe_options, options):
     if options.external_ca:
         if cainstance.is_step_one_done():
             print ("CA is already installed.\nRun the installer with "
-                   "--external-cert-file and --external-ca-file.")
+                   "--external-cert-file.")
             sys.exit(1)
-    elif options.external_cert_file:
+    elif options.external_cert_files:
         if not cainstance.is_step_one_done():
             print ("CA is not installed yet. To install with an external CA "
                    "is a two-stage process.\nFirst run the installer with "
                    "--external-ca.")
             sys.exit(1)
 
-        try:
-            validate_external_cert(options.external_cert_file,
-                                   options.external_ca_file, subject_base)
-        except ValueError, e:
-            print e
-            sys.exit(1)
+        external_cert_file, external_ca_file = load_external_cert(
+            options.external_cert_files, subject_base)
 
-    if options.external_cert_file:
+    if options.external_cert_files:
         external = 2
     elif options.external_ca:
         external = 1
@@ -329,8 +321,8 @@ def install_master(safe_options, options):
     else:
         ca.configure_instance(host_name, domain_name, dm_password,
                               dm_password,
-                              cert_file=options.external_cert_file,
-                              cert_chain_file=options.external_ca_file,
+                              cert_file=external_cert_file.name,
+                              cert_chain_file=external_ca_file.name,
                               subject_base=subject_base)
 
     ca.stop(ca.dogtag_constants.PKI_INSTANCE_NAME)

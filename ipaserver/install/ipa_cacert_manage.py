@@ -60,11 +60,10 @@ class CACertManage(admintool.AdminTool):
             action='store_false',
             help="Sign the renewed certificate by external CA")
         renew_group.add_option(
-            "--external-cert-file", dest='external_cert_file',
-            help="PEM file containing a certificate signed by the external CA")
-        renew_group.add_option(
-            "--external-ca-file", dest='external_ca_file',
-            help="PEM file containing the external CA chain")
+            "--external-cert-file", dest="external_cert_files",
+            action="append", metavar="FILE",
+            help="File containing the IPA CA certificate and the external CA "
+                 "certificate chain")
         parser.add_option_group(renew_group)
 
         install_group = OptionGroup(parser, "Install options")
@@ -90,10 +89,7 @@ class CACertManage(admintool.AdminTool):
         options = self.options
 
         if command == 'renew':
-            if options.external_cert_file and not options.external_ca_file:
-                parser.error("--external-ca-file not specified")
-            elif not options.external_cert_file and options.external_ca_file:
-                parser.error("--external-cert-file not specified")
+            pass
         elif command == 'install':
             if len(self.args) < 2:
                 parser.error("certificate file name not provided")
@@ -107,7 +103,7 @@ class CACertManage(admintool.AdminTool):
         api.bootstrap(in_server=True)
         api.finalize()
 
-        if ((command == 'renew' and options.external_cert_file) or
+        if ((command == 'renew' and options.external_cert_files) or
             command == 'install'):
             self.conn = self.ldap_connect()
         else:
@@ -166,7 +162,7 @@ class CACertManage(admintool.AdminTool):
         cert = db.get_cert_from_db(self.cert_nickname, pem=False)
 
         options = self.options
-        if options.external_cert_file:
+        if options.external_cert_files:
             return self.renew_external_step_2(ca, cert)
 
         if options.self_signed is not None:
@@ -200,31 +196,25 @@ class CACertManage(admintool.AdminTool):
               "ipa-cacert-manage as:" % paths.IPA_CA_CSR)
         print("ipa-cacert-manage renew "
               "--external-cert-file=/path/to/signed_certificate "
-              "--external-ca-file=/path/to/external_ca_certificate")
+              "--external-cert-file=/path/to/external_ca_certificate")
 
     def renew_external_step_2(self, ca, old_cert):
         print "Importing the renewed CA certificate, please wait"
 
         options = self.options
-        cert_filename = options.external_cert_file
-        ca_filename = options.external_ca_file
+        cert_file, ca_file = installutils.load_external_cert(
+            options.external_cert_files, x509.subject_base())
 
         nss_cert = None
         nss.nss_init(ca.dogtag_constants.ALIAS_DIR)
         try:
-            try:
-                installutils.validate_external_cert(
-                    cert_filename, ca_filename, x509.subject_base())
-            except ValueError, e:
-                raise admintool.ScriptError(e)
-
             nss_cert = x509.load_certificate(old_cert, x509.DER)
             subject = nss_cert.subject
             #pylint: disable=E1101
             pkinfo = nss_cert.subject_public_key_info.format()
             #pylint: enable=E1101
 
-            nss_cert = x509.load_certificate_from_file(cert_filename)
+            nss_cert = x509.load_certificate_from_file(cert_file.name)
             if not nss_cert.is_ca_cert():
                 raise admintool.ScriptError("Not a CA certificate")
             if nss_cert.subject != subject:
@@ -249,7 +239,7 @@ class CACertManage(admintool.AdminTool):
                 raise admintool.ScriptError(
                     "Not compatible with the current CA certificate: %s", e)
 
-            ca_certs = x509.load_certificate_list_from_file(ca_filename)
+            ca_certs = x509.load_certificate_list_from_file(ca_file.name)
             for ca_cert in ca_certs:
                 tmpdb.add_cert(ca_cert.der_data, str(ca_cert.subject), 'C,,')
             del ca_certs
