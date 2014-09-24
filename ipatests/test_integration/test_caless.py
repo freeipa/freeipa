@@ -154,9 +154,9 @@ class CALessBase(IntegrationTest):
 
         args = [
             'ipa-server-install',
-            '--http_pkcs12', http_pkcs12,
-            '--dirsrv_pkcs12', dirsrv_pkcs12,
-            '--root-ca-file', root_ca_file,
+            '--http-cert-file', http_pkcs12,
+            '--dirsrv-cert-file', dirsrv_pkcs12,
+            '--ca-cert-file', root_ca_file,
             '--ip-address', host.ip,
             '-r', host.domain.name,
             '-p', host.config.dirman_password,
@@ -166,9 +166,9 @@ class CALessBase(IntegrationTest):
         ]
 
         if http_pin is not None:
-            args.extend(['--http_pin', http_pin])
+            args.extend(['--http-pin', http_pin])
         if dirsrv_pin is not None:
-            args.extend(['--dirsrv_pin', dirsrv_pin])
+            args.extend(['--dirsrv-pin', dirsrv_pin])
         if unattended:
             args.extend(['-U'])
 
@@ -230,13 +230,13 @@ class CALessBase(IntegrationTest):
         ]
 
         if http_pkcs12:
-            args.extend(['--http_pkcs12', http_pkcs12])
+            args.extend(['--http-cert-file', http_pkcs12])
         if dirsrv_pkcs12:
-            args.extend(['--dirsrv_pkcs12', dirsrv_pkcs12])
+            args.extend(['--dirsrv-cert-file', dirsrv_pkcs12])
         if http_pin is not None:
-            args.extend(['--http_pin', http_pin])
+            args.extend(['--http-pin', http_pin])
         if dirsrv_pin is not None:
-            args.extend(['--dirsrv_pin', dirsrv_pin])
+            args.extend(['--dirsrv-pin', dirsrv_pin])
 
         args.extend([replica.hostname])
 
@@ -428,8 +428,8 @@ class TestServerInstall(CALessBase):
 
         result = self.install_server(http_pin=None)
         assert_error(result,
-                     'ipa-server-install: error: You must specify --http_pin '
-                     'with --http_pkcs12')
+                     'ipa-server-install: error: You must specify --http-pin '
+                     'with --http-cert-file')
 
     def test_missing_ds_password(self):
         "IPA server install with missing DS PKCS#12 password (unattended)"
@@ -441,7 +441,7 @@ class TestServerInstall(CALessBase):
         result = self.install_server(dirsrv_pin=None)
         assert_error(result,
                      'ipa-server-install: error: You must specify '
-                     '--dirsrv_pin with --dirsrv_pkcs12')
+                     '--dirsrv-pin with --dirsrv-cert-file')
 
     def test_incorect_http_pin(self):
         "IPA server install with incorrect HTTP PKCS#12 password"
@@ -784,8 +784,9 @@ class TestReplicaInstall(CALessBase):
                                          raiseonerr=False)
         assert result.returncode > 0
         assert ('Cannot issue certificates: a CA is not installed. Use the '
-                '--http_pkcs12, --dirsrv_pkcs12 options to provide custom '
-                'certificates.' in result.stderr_text), result.stderr_text
+                '--http-cert-file, --dirsrv-cert-file options to provide '
+                'custom certificates.' in result.stderr_text), \
+               result.stderr_text
 
     def test_nonexistent_http_pkcs12_file(self):
         "IPA replica install with non-existent HTTP PKCS#12 file"
@@ -1479,7 +1480,7 @@ class TestCertinstall(CALessBase):
 
         args = ['ipa-server-certinstall',
                 '-w', 'server.p12',
-                '--http_pin', self.cert_password]
+                '--http-pin', self.cert_password]
 
         result = self.certinstall('w', 'ca1/server', args=args)
         assert result.returncode == 0
@@ -1490,7 +1491,7 @@ class TestCertinstall(CALessBase):
 
         args = ['ipa-server-certinstall',
                 '-d', 'server.p12',
-                '--dirsrv_pin', self.cert_password]
+                '--dirsrv-pin', self.cert_password]
         stdin_text = self.master.config.dirman_password + '\n'
 
         result = self.certinstall('d', 'ca1/server',

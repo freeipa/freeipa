@@ -93,26 +93,26 @@ File containing the IPA CA certificate and the external CA certificate chain. Th
 \fB\-\-no\-pkinit\fR
 Disables pkinit setup steps
 .TP
-\fB\-\-dirsrv_pkcs12\fR=\fIFILE\fR
-PKCS#12 file containing the Directory Server SSL Certificate
+\fB\-\-dirsrv\-cert\-file\fR=\fIFILE\fR
+File containing the Directory Server SSL certificate and private key. The files are accepted in PEM and DER certificate, PKCS#7 certificate chain, PKCS#8 and raw private key and PKCS#12 formats. This option may be used multiple times.
 .TP
-\fB\-\-http_pkcs12\fR=\fIFILE\fR
-PKCS#12 file containing the Apache Server SSL Certificate
+\fB\-\-http\-cert\-file\fR=\fIFILE\fR
+File containing the Apache Server SSL certificate and private key. The files are accepted in PEM and DER certificate, PKCS#7 certificate chain, PKCS#8 and raw private key and PKCS#12 formats. This option may be used multiple times.
 .TP
-\fB\-\-pkinit_pkcs12\fR=\fIFILE\fR
-PKCS#12 file containing the Kerberos KDC SSL certificate
+\fB\-\-pkinit\-cert\-file\fR=\fIFILE\fR
+File containing the Kerberos KDC SSL certificate and private key. The files are accepted in PEM and DER certificate, PKCS#7 certificate chain, PKCS#8 and raw private key and PKCS#12 formats. This option may be used multiple times.
 .TP
-\fB\-\-dirsrv_pin\fR=\fIDIRSRV_PIN\fR
-The password of the Directory Server PKCS#12 file
+\fB\-\-dirsrv\-pin\fR=\fIPIN\fR
+The password to unlock the Directory Server private key
 .TP
-\fB\-\-http_pin\fR=\fIHTTP_PIN\fR
-The password of the Apache Server PKCS#12 file
+\fB\-\-http\-pin\fR=\fIPIN\fR
+The password to unlock the Apache Server private key
 .TP
-\fB\-\-pkinit_pin\fR=\fIPKINIT_PIN\fR
-The password of the Kerberos KDC PKCS#12 file
+\fB\-\-pkinit\-pin\fR=\fIPIN\fR
+The password to unlock the Kerberos KDC private key
 .TP
-\fB\-\-root\-ca\-file\fR=\fIFILE\fR
-PEM file containing the CA certificate of the CA which issued the Directory Server, Apache Server and Kerberos KDC SSL certificates. Use this option if the CA certificate is not present in the PKCS#12 files.
+\fB\-\-ca\-cert\-file\fR=\fIFILE\fR
+File containing the CA certificate of the CA which issued the Directory Server, Apache Server and Kerberos KDC certificates. The file is accepted in PEM and DER certificate and PKCS#7 certificate chain formats. This option may be used multiple times. Use this option if the CA certificate is not present in the certificate files.
 .TP
 \fB\-\-subject\fR=\fISUBJECT\fR
 The certificate subject base (default O=REALM.NAME)
