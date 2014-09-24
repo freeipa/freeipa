@@ -38,7 +38,7 @@ import nss.error
 import base64
 import pwd
 import textwrap
-from optparse import OptionGroup, OptionValueError
+from optparse import OptionGroup, OptionValueError, SUPPRESS_HELP
 
 try:
     from ipaserver.install import adtrustinstance
@@ -204,10 +204,15 @@ def parse_options():
     cert_group = OptionGroup(parser, "certificate system options")
     cert_group.add_option("", "--external-ca", dest="external_ca", action="store_true",
                       default=False, help="Generate a CSR for the IPA CA certificate to be signed by an external CA")
-    cert_group.add_option("", "--external_cert_file", dest="external_cert_file",
-                      help="File containing the IPA CA certificate signed by the external CA in PEM format")
-    cert_group.add_option("", "--external_ca_file", dest="external_ca_file",
-                      help="File containing the external CA certificate chain in PEM format")
+    cert_group.add_option("--external-cert-file", dest="external_cert_files",
+                      action="append", metavar="FILE",
+                      help="File containing the IPA CA certificate and the external CA certificate chain")
+    cert_group.add_option("--external_cert_file", dest="external_cert_files",
+                      action="append",
+                      help=SUPPRESS_HELP)
+    cert_group.add_option("--external_ca_file", dest="external_cert_files",
+                      action="append",
+                      help=SUPPRESS_HELP)
     cert_group.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
                       default=True, help="disables pkinit setup steps")
     cert_group.add_option("--dirsrv_pkcs12", dest="dirsrv_pkcs12",
@@ -321,25 +326,19 @@ def parse_options():
         if options.pkinit_pkcs12 and options.pkinit_pin is None:
             parser.error("You must specify --pkinit_pin with --pkinit_pkcs12")
 
-    if (options.external_cert_file or options.external_ca_file) and options.dirsrv_pkcs12:
-        parser.error(
-            "PKCS#12 options cannot be used with the external CA options.")
+    if options.external_cert_files and options.dirsrv_pkcs12:
+        parser.error("Service certificate file options cannot be used with "
+                     "the external CA options.")
 
     if options.external_ca:
-        if options.external_cert_file:
-            parser.error("You cannot specify --external_cert_file together with --external-ca")
-        if options.external_ca_file:
-            parser.error("You cannot specify --external_ca_file together with --external-ca")
+        if options.external_cert_files:
+            parser.error("You cannot specify --external-cert-file "
+                         "together with --external-ca")
         if options.dirsrv_pkcs12:
             parser.error("You cannot specify PKCS#12 options together with --external-ca")
 
-    if ((options.external_cert_file and not options.external_ca_file) or
-       (not options.external_cert_file and options.external_ca_file)):
-        parser.error("if either external CA option is used, both are required.")
-
-    if (options.external_ca_file and not os.path.isabs(options.external_ca_file)):
-        parser.error("--external-ca-file must use an absolute path")
-    if (options.external_cert_file and not os.path.isabs(options.external_cert_file)):
+    if (options.external_cert_files and
+        any(not os.path.isabs(path) for path in options.external_cert_files)):
         parser.error("--external-cert-file must use an absolute path")
 
     if options.idmax == 0:
@@ -393,11 +392,10 @@ def read_cache(dm_password):
         shutil.rmtree(top_dir)
 
     # These are the only ones that may be overridden
-    for opt in ('external_ca_file', 'external_cert_file'):
-        try:
-            del optdict[opt]
-        except KeyError:
-            pass
+    try:
+        del optdict['external_cert_files']
+    except KeyError:
+        pass
 
     return optdict
 
@@ -636,7 +634,7 @@ def main():
     else:
         standard_logging_setup(paths.IPASERVER_INSTALL_LOG, debug=options.debug)
         print "\nThe log file for this installation can be found in /var/log/ipaserver-install.log"
-        if not options.external_ca and not options.external_cert_file and is_ipa_configured():
+        if not options.external_ca and not options.external_cert_files and is_ipa_configured():
             installation_cleanup = False
             sys.exit("IPA server is already configured on this system.\n" +
                 "If you want to reinstall the IPA server, please uninstall " +
@@ -729,14 +727,14 @@ def main():
     if options.external_ca:
         if cainstance.is_step_one_done():
             print ("CA is already installed.\nRun the installer with "
-                   "--external_cert_file and --external_ca_file.")
+                   "--external-cert-file.")
             sys.exit(1)
         if ipautil.file_exists(paths.ROOT_IPA_CSR):
             print ("CA CSR file %s already exists.\nIn order to continue "
                    "remove the file and run the installer again." %
                    paths.ROOT_IPA_CSR)
             sys.exit(1)
-    elif options.external_cert_file:
+    elif options.external_cert_files:
         if not cainstance.is_step_one_done():
             # This can happen if someone passes external_ca_file without
             # already having done the first stage of the CA install.
@@ -758,13 +756,9 @@ def main():
         except Exception, e:
             sys.exit("Cannot process the cache file: %s" % str(e))
 
-    if options.external_cert_file:
-        try:
-            validate_external_cert(options.external_cert_file,
-                                   options.external_ca_file, options.subject)
-        except ValueError, e:
-            print e
-            sys.exit(1)
+    if options.external_cert_files:
+        external_cert_file, external_ca_file = load_external_cert(
+            options.external_cert_files, options.subject)
 
     # We only set up the CA if the PKCS#12 options are not given.
     if options.dirsrv_pkcs12:
@@ -779,7 +773,7 @@ def main():
 
     # Figure out what external CA step we're in. See cainstance.py for more
     # info on the 3 states.
-    if options.external_cert_file:
+    if options.external_cert_files:
         external = 2
     elif options.external_ca:
         external = 1
@@ -1119,8 +1113,8 @@ def main():
             # stage 2 of external CA installation
             ca.configure_instance(host_name, domain_name, dm_password,
                                   dm_password,
-                                  cert_file=options.external_cert_file,
-                                  cert_chain_file=options.external_ca_file,
+                                  cert_file=external_cert_file.name,
+                                  cert_chain_file=external_ca_file.name,
                                   subject_base=options.subject,
                                   ca_signing_algorithm=options.ca_signing_algorithm)
 

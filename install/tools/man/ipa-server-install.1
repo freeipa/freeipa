@@ -87,15 +87,8 @@ An unattended installation that will never prompt for user input
 \fB\-\-external\-ca\fR
 Generate a CSR for the IPA CA certificate to be signed by an external CA.
 .TP
-\fB\-\-external_cert_file\fR=\fIFILE\fR
-File containing the IPA CA certificate signed by the external CA in PEM format. Must be given with \-\-external_ca_file.
-.TP
-\fB\-\-external_ca_file\fR=\fIFILE\fR
-File containing the external CA certificate chain in PEM format. Must be given with \-\-external_cert_file.
-
-If the CA certificate chain is in PKCS#7 format you can convert it to PEM using:
-
-    openssl pkcs7 -in PKCS7_FILE -print_certs -out PEM_FILE
+\fB\-\-external\-cert\-file\fR=\fIFILE\fR
+File containing the IPA CA certificate and the external CA certificate chain. The file is accepted in PEM and DER certificate and PKCS#7 certificate chain formats. This option may be used multiple times.
 .TP
 \fB\-\-no\-pkinit\fR
 Disables pkinit setup steps

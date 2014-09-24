@@ -97,8 +97,8 @@ class TestExternalCA(IntegrationTest):
             'ipa-server-install',
             '-a', self.master.config.admin_password,
             '-p', self.master.config.dirman_password,
-            '--external_cert_file', external_cert_file,
-            '--external_ca_file', external_ca_file
+            '--external-cert-file', external_cert_file,
+            '--external-cert-file', external_ca_file
         ])
 
         # Make sure IPA server is working properly

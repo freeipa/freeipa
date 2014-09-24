@@ -56,10 +56,7 @@ Sign the renewed certificate by itself.
 Sign the renewed certificate by external CA.
 .TP
 \fB\-\-external\-cert\-file\fR=\fIFILE\fR
-PEM file containing a certificate signed by the external CA. Must be given with \-\-external\-ca\-file.
-.TP
-\fB\-\-external\-ca\-file\fR=\fIFILE\fR
-PEM file containing the external CA chain.
+File containing the IPA CA certificate and the external CA certificate chain. The file is accepted in PEM and DER certificate and PKCS#7 certificate chain formats. This option may be used multiple times.
 .TP
 \fB\-n\fR \fINICKNAME\fR, \fB\-\-nickname\fR=\fINICKNAME\fR
 Nickname for the certificate.
