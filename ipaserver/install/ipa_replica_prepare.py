@@ -22,7 +22,7 @@ import os
 import shutil
 import tempfile
 import time
-from optparse import OptionGroup
+from optparse import OptionGroup, SUPPRESS_HELP
 from ConfigParser import SafeConfigParser
 
 import dns.resolver
@@ -75,21 +75,39 @@ class ReplicaPrepare(admintool.AdminTool):
 
         group = OptionGroup(parser, "SSL certificate options",
             "Only used if the server was installed using custom SSL certificates")
-        group.add_option("--dirsrv_pkcs12", dest="dirsrv_pkcs12",
-            metavar="FILE",
-            help="install certificate for the directory server")
-        group.add_option("--http_pkcs12", dest="http_pkcs12",
-            metavar="FILE",
-            help="install certificate for the http server")
-        group.add_option("--pkinit_pkcs12", dest="pkinit_pkcs12",
-            metavar="FILE",
-            help="install certificate for the KDC")
-        group.add_option("--dirsrv_pin", dest="dirsrv_pin", metavar="PIN",
-            help="PIN for the Directory Server PKCS#12 file")
-        group.add_option("--http_pin", dest="http_pin", metavar="PIN",
-            help="PIN for the Apache Server PKCS#12 file")
-        group.add_option("--pkinit_pin", dest="pkinit_pin", metavar="PIN",
-            help="PIN for the KDC pkinit PKCS#12 file")
+        group.add_option("--dirsrv-cert-file", dest="dirsrv_cert_files",
+            action="append", metavar="FILE",
+            help="File containing the Directory Server SSL certificate and private key")
+        group.add_option("--dirsrv_pkcs12", dest="dirsrv_cert_files",
+            action="append",
+            help=SUPPRESS_HELP)
+        group.add_option("--http-cert-file", dest="http_cert_files",
+            action="append", metavar="FILE",
+            help="File containing the Apache Server SSL certificate and private key")
+        group.add_option("--http_pkcs12", dest="http_cert_files",
+            action="append",
+            help=SUPPRESS_HELP)
+        group.add_option("--pkinit-cert-file", dest="pkinit_cert_files",
+            action="append", metavar="FILE",
+            help="File containing the Kerberos KDC SSL certificate and private key")
+        group.add_option("--pkinit_pkcs12", dest="pkinit_cert_files",
+            action="append",
+            help=SUPPRESS_HELP)
+        group.add_option("--dirsrv-pin", dest="dirsrv_pin", sensitive=True,
+            metavar="PIN",
+            help="The password to unlock the Directory Server private key")
+        group.add_option("--dirsrv_pin", dest="dirsrv_pin", sensitive=True,
+            help=SUPPRESS_HELP)
+        group.add_option("--http-pin", dest="http_pin", sensitive=True,
+            metavar="PIN",
+            help="The password to unlock the Apache Server private key")
+        group.add_option("--http_pin", dest="http_pin", sensitive=True,
+            help=SUPPRESS_HELP)
+        group.add_option("--pkinit-pin", dest="pkinit_pin", sensitive=True,
+            metavar="PIN",
+            help="The password to unlock the Kerberos KDC private key")
+        group.add_option("--pkinit_pin", dest="pkinit_pin", sensitive=True,
+            help=SUPPRESS_HELP)
         parser.add_option_group(group)
 
     def validate_options(self):
@@ -112,11 +130,11 @@ class ReplicaPrepare(admintool.AdminTool):
         options.setup_pkinit = False
 
         # If any of the PKCS#12 options are selected, all are required.
-        pkcs12_req = (options.dirsrv_pkcs12, options.http_pkcs12)
-        pkcs12_opt = (options.pkinit_pkcs12,)
-        if any(pkcs12_req + pkcs12_opt) and not all(pkcs12_req):
+        cert_file_req = (options.dirsrv_cert_files, options.http_cert_files)
+        cert_file_opt = (options.pkinit_cert_files,)
+        if any(cert_file_req + cert_file_opt) and not all(cert_file_req):
             self.option_parser.error(
-                "--dirsrv_pkcs12 and --http_pkcs12 are required if any "
+                "--dirsrv-cert-file and --http-cert-file are required if any "
                 "PKCS#12 options are used.")
 
         if len(self.args) < 1:
@@ -134,11 +152,11 @@ class ReplicaPrepare(admintool.AdminTool):
         if api.env.host == self.replica_fqdn:
             raise admintool.ScriptError("You can't create a replica on itself")
 
-        if not api.env.enable_ra and not options.http_pkcs12:
+        if not api.env.enable_ra and not options.http_cert_files:
             raise admintool.ScriptError(
                 "Cannot issue certificates: a CA is not installed. Use the "
-                "--http_pkcs12, --dirsrv_pkcs12 options to provide custom "
-                "certificates.")
+                "--http-cert-file, --dirsrv-cert-file options to provide "
+                "custom certificates.")
 
         config_dir = dsinstance.config_dirname(
             dsinstance.realm_to_serverid(api.env.realm))
@@ -146,11 +164,13 @@ class ReplicaPrepare(admintool.AdminTool):
             raise admintool.ScriptError(
                 "could not find directory instance: %s" % config_dir)
 
-    def check_pkcs12(self, pkcs12_file, pkcs12_pin):
-        return installutils.check_pkcs12(
-            pkcs12_info=(pkcs12_file, pkcs12_pin),
-            ca_file=CACERT,
-            hostname=self.replica_fqdn)
+    def load_pkcs12(self, cert_files, key_password, key_nickname):
+        return installutils.load_pkcs12(
+            cert_files=cert_files,
+            key_password=key_password,
+            key_nickname=key_nickname,
+            ca_cert_files=[CACERT],
+            host_name=self.replica_fqdn)
 
     def ask_for_options(self):
         options = self.options
@@ -231,42 +251,52 @@ class ReplicaPrepare(admintool.AdminTool):
             if disconnect:
                 api.Backend.ldap2.disconnect()
 
-        if options.http_pkcs12:
+        self.http_pin = self.dirsrv_pin = self.pkinit_pin = None
+
+        if options.http_cert_files:
             if options.http_pin is None:
                 options.http_pin = installutils.read_password(
-                    "Enter %s unlock" % options.http_pkcs12,
+                    "Enter Apache Server private key unlock",
                     confirm=False, validate=False)
                 if options.http_pin is None:
                     raise admintool.ScriptError(
-                        "%s unlock password required" % options.http_pkcs12)
-            http_ca_cert = self.check_pkcs12(
-                options.http_pkcs12, options.http_pin)
+                        "Apache Server private key unlock password required")
+            http_pkcs12_file, http_pin, http_ca_cert = self.load_pkcs12(
+                options.http_cert_files, options.http_pin, None)
+            self.http_pkcs12_file = http_pkcs12_file
+            self.http_pin = http_pin
 
-        if options.dirsrv_pkcs12:
+        if options.dirsrv_cert_files:
             if options.dirsrv_pin is None:
                 options.dirsrv_pin = installutils.read_password(
-                    "Enter %s unlock" % options.dirsrv_pkcs12,
+                    "Enter Directory Server private key unlock",
                     confirm=False, validate=False)
                 if options.dirsrv_pin is None:
                     raise admintool.ScriptError(
-                        "%s unlock password required" % options.dirsrv_pkcs12)
-            dirsrv_ca_cert = self.check_pkcs12(
-                options.dirsrv_pkcs12, options.dirsrv_pin)
+                        "Directory Server private key unlock password required")
+            dirsrv_pkcs12_file, dirsrv_pin, dirsrv_ca_cert = self.load_pkcs12(
+                options.dirsrv_cert_files, options.dirsrv_pin, None)
+            self.dirsrv_pkcs12_file = dirsrv_pkcs12_file
+            self.dirsrv_pin = dirsrv_pin
 
-        if options.pkinit_pkcs12:
+        if options.pkinit_cert_files:
             if options.pkinit_pin is None:
                 options.pkinit_pin = installutils.read_password(
-                    "Enter %s unlock" % options.pkinit_pkcs12,
+                    "Enter Kerberos KDC private key unlock",
                     confirm=False, validate=False)
                 if options.pkinit_pin is None:
                     raise admintool.ScriptError(
-                        "%s unlock password required" % options.pkinit_pkcs12)
+                        "Kerberos KDC private key unlock password required")
+            pkinit_pkcs12_file, pkinit_pin, pkinit_ca_cert = self.load_pkcs12(
+                options.pkinit_cert_files, options.pkinit_pin, None)
+            self.pkinit_pkcs12_file = pkinit_pkcs12_file
+            self.pkinit_pin = pkinit_pin
 
-        if (options.http_pkcs12 and options.dirsrv_pkcs12 and
+        if (options.http_cert_files and options.dirsrv_cert_files and
             http_ca_cert != dirsrv_ca_cert):
             raise admintool.ScriptError(
-                "%s and %s are not signed by the same CA certificate" %
-                (options.http_pkcs12, options.dirsrv_pkcs12))
+                "Apache Server SSL certificate and Directory Server SSL "
+                 "certificate are not signed by the same CA certificate")
 
         if (not ipautil.file_exists(
                     dogtag.configured_constants().CS_CFG_PATH) and
@@ -316,13 +346,11 @@ class ReplicaPrepare(admintool.AdminTool):
 
         passwd_fname = os.path.join(self.dir, "dirsrv_pin.txt")
         with open(passwd_fname, "w") as fd:
-            fd.write("%s\n" % (options.dirsrv_pin or ''))
+            fd.write("%s\n" % (self.dirsrv_pin or ''))
 
-        if options.dirsrv_pkcs12:
-            self.log.info(
-                "Copying SSL certificate for the Directory Server from %s",
-                options.dirsrv_pkcs12)
-            self.copy_info_file(options.dirsrv_pkcs12, "dscert.p12")
+        if options.dirsrv_cert_files:
+            self.log.info("Copying SSL certificate for the Directory Server")
+            self.copy_info_file(self.dirsrv_pkcs12_file.name, "dscert.p12")
         else:
             if ipautil.file_exists(options.ca_file):
                 # Since it is possible that the Directory Manager password
@@ -339,7 +367,7 @@ class ReplicaPrepare(admintool.AdminTool):
                 "Creating SSL certificate for the Directory Server")
             self.export_certdb("dscert", passwd_fname)
 
-        if not options.dirsrv_pkcs12:
+        if not options.dirsrv_cert_files:
             self.log.info(
                 "Creating SSL certificate for the dogtag Directory Server")
             self.export_certdb("dogtagcert", passwd_fname)
@@ -354,13 +382,11 @@ class ReplicaPrepare(admintool.AdminTool):
 
         passwd_fname = os.path.join(self.dir, "http_pin.txt")
         with open(passwd_fname, "w") as fd:
-            fd.write("%s\n" % (options.http_pin or ''))
+            fd.write("%s\n" % (self.http_pin or ''))
 
-        if options.http_pkcs12:
-            self.log.info(
-                "Copying SSL certificate for the Web Server from %s",
-                options.http_pkcs12)
-            self.copy_info_file(options.http_pkcs12, "httpcert.p12")
+        if options.http_cert_files:
+            self.log.info("Copying SSL certificate for the Web Server")
+            self.copy_info_file(self.http_pkcs12_file.name, "httpcert.p12")
         else:
             self.log.info("Creating SSL certificate for the Web Server")
             self.export_certdb("httpcert", passwd_fname)
@@ -373,13 +399,11 @@ class ReplicaPrepare(admintool.AdminTool):
 
         passwd_fname = os.path.join(self.dir, "pkinit_pin.txt")
         with open(passwd_fname, "w") as fd:
-            fd.write("%s\n" % (options.pkinit_pin or ''))
+            fd.write("%s\n" % (self.pkinit_pin or ''))
 
-        if options.pkinit_pkcs12:
-            self.log.info(
-                "Copying SSL certificate for the KDC from %s",
-                options.pkinit_pkcs12)
-            self.copy_info_file(options.pkinit_pkcs12, "pkinitcert.p12")
+        if options.pkinit_cert_files:
+            self.log.info("Copying SSL certificate for the KDC")
+            self.copy_info_file(self.pkinit_pkcs12_file.name, "pkinitcert.p12")
         else:
             self.log.info("Creating SSL certificate for the KDC")
             self.export_certdb("pkinitcert", passwd_fname, is_kdc=True)

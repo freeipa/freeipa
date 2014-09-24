@@ -801,72 +801,98 @@ def handle_error(error, log_file_name=None):
     return message, 1
 
 
-def check_pkcs12(pkcs12_info, ca_file, hostname):
-    """Check the given PKCS#12 with server cert and return the cert nickname
-
-    This is used for files given to --*_pkcs12 to ipa-server-install and
-    ipa-replica-prepare.
+def load_pkcs12(cert_files, key_password, key_nickname, ca_cert_files,
+                host_name):
     """
-    pkcs12_filename, pkcs12_passwd = pkcs12_info
-    root_logger.debug('Checking PKCS#12 certificate %s', pkcs12_filename)
-    db_pwd_file = ipautil.write_tmp_file(ipautil.ipa_generate_password())
+    Load and verify server certificate and private key from multiple files
+
+    The files are accepted in PEM and DER certificate, PKCS#7 certificate
+    chain, PKCS#8 and raw private key and PKCS#12 formats.
+
+    :param cert_files: Names of server certificate and private key files to
+        import
+    :param key_password: Password to decrypt private keys
+    :param key_nickname: Nickname of the private key to import from PKCS#12
+        files
+    :param ca_cert_files: Names of CA certificate files to import
+    :param host_name: Host name of the server
+    :returns: Temporary PKCS#12 file with the server certificate, private key
+        and CA certificate chain, password to unlock the PKCS#12 file and
+        the CA certificate of the CA that issued the server certificate
+    """
     with certs.NSSDatabase() as nssdb:
-        nssdb.create_db(db_pwd_file.name)
+        db_password = ipautil.ipa_generate_password()
+        db_pwdfile = ipautil.write_tmp_file(db_password)
+        nssdb.create_db(db_pwdfile.name)
 
-        # Import the CA cert first so it has a known nickname
-        # (if it's present in the PKCS#12 it won't be overwritten)
-        ca_cert_name = 'The Root CA'
-        if ca_file:
-            try:
-                nssdb.import_pem_cert(ca_cert_name, "CT,C,C", ca_file)
-            except (ValueError, RuntimeError) as e:
-                raise ScriptError(str(e))
-
-        # Import everything in the PKCS#12
         try:
-            nssdb.import_pkcs12(
-                pkcs12_filename, db_pwd_file.name, pkcs12_passwd)
+            nssdb.import_files(cert_files, db_pwdfile.name,
+                               True, key_password, key_nickname)
         except RuntimeError as e:
             raise ScriptError(str(e))
 
-        # Check we have exactly one server cert (one with a private key)
-        server_certs = nssdb.find_server_certs()
-        if not server_certs:
-            raise ScriptError(
-                'no server certificate found in %s' % pkcs12_filename)
-        if len(server_certs) > 1:
-            raise ScriptError(
-                '%s server certificates found in %s, expecting only one' %
-                (len(server_certs), pkcs12_filename))
-        [(server_cert_name, _server_cert_trust)] = server_certs
+        if ca_cert_files:
+            try:
+                nssdb.import_files(ca_cert_files, db_pwdfile.name)
+            except RuntimeError as e:
+                raise ScriptError(str(e))
+
+        for nickname, trust_flags in nssdb.list_certs():
+            if 'u' in trust_flags:
+                key_nickname = nickname
+                continue
+            nssdb.trust_root_cert(nickname)
 
         # Check we have the whole cert chain & the CA is in it
-        trust_chain = nssdb.get_trust_chain(server_cert_name)
-        if len(trust_chain) < 2:
-            if ca_file:
-                raise ScriptError(
-                    '%s is not signed by %s, or the full certificate chain is '
-                    'not present in the PKCS#12 file' %
-                    (pkcs12_filename, ca_file))
-            else:
-                raise ScriptError(
-                    'The full certificate chain is not present in %s' %
-                    pkcs12_filename)
-        if ca_file and trust_chain[-2] != ca_cert_name:
+        trust_chain = list(reversed(nssdb.get_trust_chain(key_nickname)))
+        ca_cert = None
+        for nickname in trust_chain[1:]:
+            cert = nssdb.get_cert(nickname)
+            if ca_cert is None:
+                ca_cert = cert
+
+            nss_cert = x509.load_certificate(cert, x509.DER)
+            subject = DN(str(nss_cert.subject))
+            issuer = DN(str(nss_cert.issuer))
+            del nss_cert
+
+            if subject == issuer:
+                break
+        else:
             raise ScriptError(
-                '%s is not signed by %s' % (pkcs12_filename, ca_file))
-        ca_cert_name = trust_chain[-2]
+                "The full certificate chain is not present in %s" %
+                (", ".join(cert_files)))
+
+        for nickname in trust_chain[1:]:
+            try:
+                nssdb.verify_ca_cert_validity(nickname)
+            except ValueError, e:
+                raise ScriptError(
+                    "CA certificate %s in %s is not valid: %s" %
+                    (subject, ", ".join(cert_files), e))
 
         # Check server validity
-        nssdb.trust_root_cert(ca_cert_name)
         try:
-            nssdb.verify_server_cert_validity(server_cert_name, hostname)
+            nssdb.verify_server_cert_validity(key_nickname, host_name)
         except ValueError as e:
             raise ScriptError(
-                'The server certificate in %s is not valid: %s' %
-                (pkcs12_filename, e))
+                "The server certificate in %s is not valid: %s" %
+                (", ".join(cert_files), e))
 
-        return nssdb.get_cert(ca_cert_name)
+        out_file = tempfile.NamedTemporaryFile()
+        out_password = ipautil.ipa_generate_password()
+        out_pwdfile = ipautil.write_tmp_file(out_password)
+        args = [
+            paths.PK12UTIL,
+            '-o', out_file.name,
+            '-n', key_nickname,
+            '-d', nssdb.secdir,
+            '-k', db_pwdfile.name,
+            '-w', out_pwdfile.name,
+        ]
+        ipautil.run(args)
+
+    return out_file, out_password, ca_cert
 
 @contextmanager
 def private_ccache(path=None):

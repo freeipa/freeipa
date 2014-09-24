@@ -36,7 +36,7 @@ from ipaserver.plugins.ldap2 import ldap2
 class ServerCertInstall(admintool.AdminTool):
     command_name = 'ipa-server-certinstall'
 
-    usage = "%prog <-d|-w> [options] <PKCS#12 file>"
+    usage = "%prog <-d|-w> [options] <file> ..."
 
     description = "Install new SSL server certificates."
 
@@ -54,7 +54,7 @@ class ServerCertInstall(admintool.AdminTool):
             help="install certificate for the http server")
         parser.add_option(
             "--pin",
-            dest="pin",
+            dest="pin", metavar="PIN", sensitive=True,
             help="The password of the PKCS#12 file")
         parser.add_option(
             "--dirsrv_pin", "--http_pin",
@@ -73,8 +73,8 @@ class ServerCertInstall(admintool.AdminTool):
         if not self.options.dirsrv and not self.options.http:
             self.option_parser.error("you must specify dirsrv and/or http")
 
-        if len(self.args) != 1:
-            self.option_parser.error("you must provide a pkcs12 filename")
+        if not self.args:
+            self.option_parser.error("you must provide certificate filename")
 
     def ask_for_options(self):
         super(ServerCertInstall, self).ask_for_options()
@@ -88,16 +88,14 @@ class ServerCertInstall(admintool.AdminTool):
 
         if self.options.pin is None:
             self.options.pin = installutils.read_password(
-                "Enter %s unlock" % self.args[0], confirm=False, validate=False)
+                "Enter private key unlock", confirm=False, validate=False)
             if self.options.pin is None:
                 raise admintool.ScriptError(
-                    "%s unlock password required" % self.args[0])
+                    "Private key unlock password required")
 
     def run(self):
         api.bootstrap(in_server=True)
         api.finalize()
-
-        self.pkcs12_fname = self.args[0]
 
         if self.options.dirsrv:
             self.install_dirsrv_cert()
@@ -154,10 +152,12 @@ class ServerCertInstall(admintool.AdminTool):
         os.chown(os.path.join(dirname, 'secmod.db'), 0, pent.pw_gid)
 
     def import_cert(self, dirname, pkcs12_passwd, old_cert, principal, command):
-        installutils.check_pkcs12(
-            pkcs12_info=(self.pkcs12_fname, pkcs12_passwd),
-            ca_file=CACERT,
-            hostname=api.env.host)
+        pkcs12_file, pin, ca_cert = installutils.load_pkcs12(
+            cert_files=self.args,
+            key_password=pkcs12_passwd,
+            key_nickname=None,
+            ca_cert_files=[CACERT],
+            host_name=api.env.host)
 
         cdb = certs.CertDB(api.env.realm, nssdir=dirname)
         try:
@@ -165,7 +165,7 @@ class ServerCertInstall(admintool.AdminTool):
                 cdb.untrack_server_cert(old_cert)
 
             cdb.delete_cert(old_cert)
-            cdb.import_pkcs12(self.pkcs12_fname, pkcs12_passwd)
+            cdb.import_pkcs12(pkcs12_file.name, pin)
             server_cert = cdb.find_server_certs()[0][0]
 
             if api.env.enable_ra:
