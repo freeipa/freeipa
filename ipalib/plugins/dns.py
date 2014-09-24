@@ -2049,10 +2049,7 @@ class DNSZoneBase_remove_permission(LDAPQuery):
             pass
 
         permission_name = self.obj.permission_name(keys[-1])
-        try:
-            self.obj._remove_permission(keys[-1])
-        except errors.NotFound:
-            pass
+        self.obj._remove_permission(keys[-1])
 
         return dict(
             result=True,
