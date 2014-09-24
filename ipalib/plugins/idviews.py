@@ -409,7 +409,7 @@ def resolve_object_to_anchor(ldap, obj_type, obj):
         # The domain prefix, this will need to be reworked once we
         # introduce IPA-IPA trusts
         domain = api.env.domain
-        uuid = entry.single_value.get('ipaUniqueID')
+        uuid = entry.single_value['ipaUniqueID']
 
         return "%s%s:%s" % (IPA_ANCHOR_PREFIX, domain, uuid)
     except errors.NotFound:
@@ -463,7 +463,7 @@ def resolve_anchor_to_object_name(ldap, obj_type, anchor):
 
         # Return the name of the object, which is either cn for
         # groups or uid for users
-        return entry.single_value.get(name_attr)
+        return entry.single_value[name_attr]
 
     elif anchor.startswith(SID_ANCHOR_PREFIX):
 
@@ -527,7 +527,7 @@ class baseidoverride(LDAPObject):
 
     def convert_anchor_to_human_readable_form(self, entry_attrs, **options):
         if not options.get('raw'):
-            anchor = entry_attrs.single_value.get('ipaanchoruuid')
+            anchor = entry_attrs.single_value['ipaanchoruuid']
 
             if anchor:
                 object_name = resolve_anchor_to_object_name(
@@ -659,7 +659,7 @@ class idoverrideuser(baseidoverride):
     override_object = 'user'
 
     def update_original_uid_reference(self, entry_attrs):
-        anchor = entry_attrs.single_value.get('ipaanchoruuid')
+        anchor = entry_attrs.single_value['ipaanchoruuid']
         original_uid = resolve_anchor_to_object_name(self.backend,
                                                      self.override_object,
                                                      anchor)
