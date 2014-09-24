@@ -247,6 +247,15 @@ def parse_options():
                       help="The password to unlock the Kerberos KDC private key")
     cert_group.add_option("--pkinit_pin", dest="pkinit_pin", sensitive=True,
                       help=SUPPRESS_HELP)
+    cert_group.add_option("--dirsrv-cert-name", dest="dirsrv_cert_name",
+                      metavar="NAME",
+                      help="Name of the Directory Server SSL certificate to install")
+    cert_group.add_option("--http-cert-name", dest="http_cert_name",
+                      metavar="NAME",
+                      help="Name of the Apache Server SSL certificate to install")
+    cert_group.add_option("--pkinit-cert-name", dest="pkinit_cert_name",
+                      metavar="NAME",
+                      help="Name of the Kerberos KDC SSL certificate to install")
     cert_group.add_option("--ca-cert-file", dest="ca_cert_files",
                       action="append", metavar="FILE",
                       help="File containing CA certificates for the service certificate files")
@@ -926,7 +935,7 @@ def main():
         http_pkcs12_file, http_pin, http_ca_cert = load_pkcs12(
             cert_files=options.http_cert_files,
             key_password=options.http_pin,
-            key_nickname=None,
+            key_nickname=options.http_cert_name,
             ca_cert_files=options.ca_cert_files,
             host_name=host_name)
         http_pkcs12_info = (http_pkcs12_file.name, http_pin)
@@ -942,7 +951,7 @@ def main():
         dirsrv_pkcs12_file, dirsrv_pin, dirsrv_ca_cert = load_pkcs12(
             cert_files=options.dirsrv_cert_files,
             key_password=options.dirsrv_pin,
-            key_nickname=None,
+            key_nickname=options.dirsrv_cert_name,
             ca_cert_files=options.ca_cert_files,
             host_name=host_name)
         dirsrv_pkcs12_info = (dirsrv_pkcs12_file.name, dirsrv_pin)
@@ -958,7 +967,7 @@ def main():
         pkinit_pkcs12_file, pkinit_pin, pkinit_ca_cert = load_pkcs12(
             cert_files=options.pkinit_cert_files,
             key_password=options.pkinit_pin,
-            key_nickname=None,
+            key_nickname=options.pkinit_cert_name,
             ca_cert_files=options.ca_cert_files,
             host_name=host_name)
         pkinit_pkcs12_info = (pkinit_pkcs12_file.name, pkinit_pin)

@@ -108,6 +108,15 @@ class ReplicaPrepare(admintool.AdminTool):
             help="The password to unlock the Kerberos KDC private key")
         group.add_option("--pkinit_pin", dest="pkinit_pin", sensitive=True,
             help=SUPPRESS_HELP)
+        group.add_option("--dirsrv-cert-name", dest="dirsrv_cert_name",
+            metavar="NAME",
+            help="Name of the Directory Server SSL certificate to install")
+        group.add_option("--http-cert-name", dest="http_cert_name",
+            metavar="NAME",
+            help="Name of the Apache Server SSL certificate to install")
+        group.add_option("--pkinit-cert-name", dest="pkinit_cert_name",
+            metavar="NAME",
+            help="Name of the Kerberos KDC SSL certificate to install")
         parser.add_option_group(group)
 
     def validate_options(self):
@@ -262,7 +271,8 @@ class ReplicaPrepare(admintool.AdminTool):
                     raise admintool.ScriptError(
                         "Apache Server private key unlock password required")
             http_pkcs12_file, http_pin, http_ca_cert = self.load_pkcs12(
-                options.http_cert_files, options.http_pin, None)
+                options.http_cert_files, options.http_pin,
+                options.http_cert_name)
             self.http_pkcs12_file = http_pkcs12_file
             self.http_pin = http_pin
 
@@ -275,7 +285,8 @@ class ReplicaPrepare(admintool.AdminTool):
                     raise admintool.ScriptError(
                         "Directory Server private key unlock password required")
             dirsrv_pkcs12_file, dirsrv_pin, dirsrv_ca_cert = self.load_pkcs12(
-                options.dirsrv_cert_files, options.dirsrv_pin, None)
+                options.dirsrv_cert_files, options.dirsrv_pin,
+                options.dirsrv_cert_name)
             self.dirsrv_pkcs12_file = dirsrv_pkcs12_file
             self.dirsrv_pin = dirsrv_pin
 
@@ -288,7 +299,8 @@ class ReplicaPrepare(admintool.AdminTool):
                     raise admintool.ScriptError(
                         "Kerberos KDC private key unlock password required")
             pkinit_pkcs12_file, pkinit_pin, pkinit_ca_cert = self.load_pkcs12(
-                options.pkinit_cert_files, options.pkinit_pin, None)
+                options.pkinit_cert_files, options.pkinit_pin,
+                options.pkinit_cert_name)
             self.pkinit_pkcs12_file = pkinit_pkcs12_file
             self.pkinit_pin = pkinit_pin
 
