@@ -149,8 +149,11 @@ class CACertManage(admintool.AdminTool):
             raise admintool.ScriptError("CA is not configured on this system")
 
         nss_dir = ca.dogtag_constants.ALIAS_DIR
-        criteria = {'cert-database': nss_dir,
-                    'cert-nickname': self.cert_nickname}
+        criteria = {
+            'cert-database': nss_dir,
+            'cert-nickname': self.cert_nickname,
+            'ca-name': 'dogtag-ipa-ca-renew-agent',
+        }
         self.request_id = certmonger.get_request_id(criteria)
         if self.request_id is None:
             raise admintool.ScriptError(
