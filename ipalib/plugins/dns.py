@@ -294,6 +294,7 @@ _zone_top_record_types = ('NS', 'MX', 'LOC', )
 # attributes derived from record types
 _record_attributes = [str('%srecord' % t.lower()) for t in _record_types]
 
+# Deprecated
 # supported DNS classes, IN = internet, rest is almost never used
 _record_classes = (u'IN', u'CS', u'CH', u'HS')
 
@@ -2142,9 +2143,9 @@ class dnszone(DNSZoneBase):
             maxvalue=2147483647, # see RFC 2181
         ),
         StrEnum('dnsclass?',
+            # Deprecated
             cli_name='class',
-            label=_('SOA class'),
-            doc=_('SOA record class'),
+            flags=['no_option'],
             values=_record_classes,
         ),
         Str('idnsupdatepolicy?',
@@ -2595,9 +2596,9 @@ class dnsrecord(LDAPObject):
             doc=_('Time to live'),
         ),
         StrEnum('dnsclass?',
+            # Deprecated
             cli_name='class',
-            label=_('Class'),
-            doc=_('DNS class'),
+            flags=['no_option'],
             values=_record_classes,
         ),
     ) + _dns_record_options
