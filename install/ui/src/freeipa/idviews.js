@@ -45,7 +45,17 @@ return {
     enable_test: function() {
         return true;
     },
-    facet_groups: ['appliedto', 'overrides', 'settings'],
+    facet_groups: [
+        {
+            name: 'appliedto',
+            label: '@i18n:objects.idview.appliesto_tab'
+        },
+        {
+            name: 'overrides',
+            label: '@i18n:objects.idview.overrides_tab'
+        },
+        'settings'
+    ],
     facets: [
         {
             $type: 'search',
