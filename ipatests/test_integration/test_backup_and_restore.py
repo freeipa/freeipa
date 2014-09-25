@@ -65,6 +65,12 @@ def check_admin_in_cli(host):
     return result
 
 
+def check_admin_in_id(host):
+    result = host.run_command(['id', 'admin'])
+    assert 'admin' in result.stdout_text, result.stdout_text
+    return result
+
+
 def check_certs(host):
     result = host.run_command(['ipa', 'cert-find'])
     assert re.search('^Number of entries returned [1-9]\d*$',
@@ -72,20 +78,43 @@ def check_certs(host):
     return result
 
 
+def check_dns(host):
+    result = host.run_command(['host', host.hostname, 'localhost'])
+    return result
+
+
+def check_kinit(host):
+    result = host.run_command(['kinit', 'admin'],
+                              stdin_text=host.config.admin_password)
+    return result
+
+
+CHECKS = [
+    (check_admin_in_ldap, assert_entries_equal),
+    (check_admin_in_cli, assert_results_equal),
+    (check_admin_in_id, assert_results_equal),
+    (check_certs, assert_results_equal),
+    (check_dns, assert_results_equal),
+    (check_kinit, assert_results_equal),
+]
+
+
 @contextlib.contextmanager
 def restore_checker(host):
     """Check that the IPA at host works the same at context enter and exit"""
     tasks.kinit_admin(host)
 
-    admin_entry = check_admin_in_ldap(host)
-    admin_cli_result = check_admin_in_cli(host)
-    certs_output = check_certs(host)
+    results = []
+    for check, assert_func in CHECKS:
+        log.info('Storing result for %s', check)
+        results.append(check(host))
 
     yield
 
-    assert_entries_equal(admin_entry, check_admin_in_ldap(host))
-    assert_results_equal(admin_cli_result, check_admin_in_cli(host))
-    assert_results_equal(certs_output, check_certs(host))
+    for (check, assert_func), expected in zip(CHECKS, results):
+        log.info('Checking result for %s', check)
+        got = check(host)
+        assert_func(expected, got)
 
 
 def backup(host):
