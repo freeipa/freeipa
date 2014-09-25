@@ -369,12 +369,14 @@
                             "anchor_tooltip": "Enter trusted or IPA group name. Note: search doesn't list groups from trusted domains."
                         },
                         "idview": {
+                            "appliesto_tab": "${primary_key} applies to:",
                             "appliedtohosts": "Applied to hosts",
                             "appliedtohosts_title": "Applied to hosts",
                             "apply_hostgroups": "Apply to host groups",
                             "apply_hostgroups_title": "Apply ID View ${primary_key} on hosts of ${entity}",
                             "apply_hosts": "Apply to hosts",
                             "apply_hosts_title": "Apply ID view ${primary_key} on ${entity}",
+                            "overrides_tab": "${primary_key} overrides:",
                             "unapply_hostgroups": "Un-apply from host groups",
                             "unapply_hostgroups_all_title": "Un-apply ID Views from hosts of hostgroups",
                             "unapply_hostgroups_title": "Un-apply ID View ${primary_key} from hosts of ${entity}",
