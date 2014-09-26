@@ -2457,6 +2457,20 @@ IPA.datetime_formatter = function(spec) {
 };
 
 /**
+ * Format DN into single pkey
+ * @class
+ * @extends IPA.formatter
+ */
+IPA.dn_formatter = function(spec) {
+
+    var that = IPA.formatter(spec);
+    that.format = function(value) {
+        return util.get_val_from_dn(value);
+    };
+    return that;
+};
+
+/**
  * Column for {@link IPA.table_widget}
  *
  * Handles value rendering.
@@ -6180,6 +6194,7 @@ exp.register = function() {
     f.register('boolean', IPA.boolean_formatter);
     f.register('boolean_status', IPA.boolean_status_formatter);
     f.register('datetime', IPA.datetime_formatter);
+    f.register('dn', IPA.dn_formatter);
 };
 
 phases.on('registration', exp.register);

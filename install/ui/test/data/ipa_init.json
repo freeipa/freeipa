@@ -376,6 +376,7 @@
                             "apply_hostgroups_title": "Apply ID View ${primary_key} on hosts of ${entity}",
                             "apply_hosts": "Apply to hosts",
                             "apply_hosts_title": "Apply ID view ${primary_key} on ${entity}",
+                            "ipaassignedidview": "Assigned ID View",
                             "overrides_tab": "${primary_key} overrides:",
                             "unapply_hostgroups": "Un-apply from host groups",
                             "unapply_hostgroups_all_title": "Un-apply ID Views from hosts of hostgroups",

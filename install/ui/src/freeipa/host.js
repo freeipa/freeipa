@@ -112,6 +112,13 @@ return {
                             $type: 'checkbox',
                             acl_param: 'krbticketflags',
                             flags: ['w_if_no_aci']
+                        },
+                        {
+                            name: 'ipaassignedidview',
+                            $type: 'link',
+                            label: '@i18n:objects.idview.ipaassignedidview',
+                            ui_formatter: 'dn',
+                            other_entity: 'idview'
                         }
                     ]
                 },
