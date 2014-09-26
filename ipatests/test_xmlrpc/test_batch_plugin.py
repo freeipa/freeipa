@@ -28,6 +28,7 @@ from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 from ipapython.dn import DN
 
 group1 = u'testgroup1'
+first1 = u'John'
 
 
 def deepequal_list(*expected):
@@ -182,7 +183,7 @@ class test_batch(Declarative):
                 # missing required argument
                 dict(method='user_add', params=([], dict())),
                 # missing required option
-                dict(method='group_add', params=([group1], dict())),
+                dict(method='user_add', params=([], dict(givenname=first1))),
                 # bad type
                 dict(method='group_add', params=([group1], dict(
                         description=u't', gidnumber=u'bad'))),
@@ -216,7 +217,7 @@ class test_batch(Declarative):
                         error_code=3007,
                     ),
                     dict(
-                        error=u"'description' is required",
+                        error=u"'sn' is required",
                         error_name=u'RequirementError',
                         error_code=3007,
                     ),

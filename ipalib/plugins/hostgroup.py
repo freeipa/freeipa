@@ -139,7 +139,7 @@ class hostgroup(LDAPObject):
             primary_key=True,
             normalizer=lambda value: value.lower(),
         ),
-        Str('description',
+        Str('description?',
             cli_name='desc',
             label=_('Description'),
             doc=_('A description of this host-group'),

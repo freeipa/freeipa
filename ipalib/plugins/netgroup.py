@@ -184,7 +184,7 @@ class netgroup(LDAPObject):
             primary_key=True,
             normalizer=lambda value: value.lower(),
         ),
-        Str('description',
+        Str('description?',
             cli_name='desc',
             label=_('Description'),
             doc=_('Netgroup description'),
