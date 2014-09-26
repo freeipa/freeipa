@@ -48,6 +48,22 @@ from ipaplatform.base.tasks import BaseTaskNamespace
 log = log_mgr.get_logger(__name__)
 
 
+def selinux_enabled():
+    """
+    Check if SELinux is enabled.
+    """
+    if os.path.exists(paths.SELINUXENABLED):
+        try:
+            ipautil.run([paths.SELINUXENABLED])
+            return True
+        except ipautil.CalledProcessError:
+            # selinuxenabled returns 1 if not enabled
+            return False
+    else:
+        # No selinuxenabled, no SELinux
+        return False
+
+
 class FedoraTaskNamespace(BaseTaskNamespace):
 
     def restore_context(self, filepath, restorecon=paths.SBIN_RESTORECON):
@@ -59,14 +75,8 @@ class FedoraTaskNamespace(BaseTaskNamespace):
 
         ipautil.run() will do the logging.
         """
-        try:
-            if os.path.exists(paths.SELINUXENABLED):
-                ipautil.run([paths.SELINUXENABLED])
-            else:
-                # No selinuxenabled, no SELinux
-                return
-        except ipautil.CalledProcessError:
-            # selinuxenabled returns 1 if not enabled
+
+        if not selinux_enabled():
             return
 
         if (os.path.exists(restorecon)):
@@ -82,14 +92,7 @@ class FedoraTaskNamespace(BaseTaskNamespace):
         This function returns nothing but may raise a Runtime exception
         if SELinux is enabled but restorecon is not available.
         """
-        try:
-            if os.path.exists(paths.SELINUXENABLED):
-                ipautil.run([paths.SELINUXENABLED])
-            else:
-                # No selinuxenabled, no SELinux
-                return
-        except ipautil.CalledProcessError:
-            # selinuxenabled returns 1 if not enabled
+        if not selinux_enabled():
             return
 
         if not os.path.exists(restorecon):
@@ -354,13 +357,7 @@ class FedoraTaskNamespace(BaseTaskNamespace):
 
             return args
 
-        if (os.path.exists(paths.SELINUXENABLED)):
-            try:
-                ipautil.run([paths.SELINUXENABLED])
-            except ipautil.CalledProcessError:
-                # selinuxenabled returns 1 if not enabled
-                return False
-        else:
+        if not selinux_enabled():
             return False
 
         updated_vars = {}
