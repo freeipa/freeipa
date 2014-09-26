@@ -241,6 +241,13 @@ define([
         return els;
     }
 
+    function get_val_from_dn(dn, pos) {
+        if (!dn) return '';
+        pos = pos === undefined ? 0 : pos;
+        var val = dn.split(',')[pos].split('=')[1];
+        return val;
+    }
+
     /**
      * Module with utility functions
      * @class
@@ -362,7 +369,15 @@ define([
          * @param {string} text
          * @return {Array} array of jQuery elements
          */
-        beautify_message: beautify_message
+        beautify_message: beautify_message,
+
+        /**
+         * Return value of part of DN on specified position
+         * @param {string} dn Distinguished name
+         * @param {Number} [position=0] Zero-based DN part position
+         * @return {string}
+         */
+        get_val_from_dn: get_val_from_dn
     };
 
     return util;

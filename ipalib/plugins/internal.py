@@ -520,6 +520,7 @@ class i18n_messages(Command):
                 "apply_hostgroups_title": _("Apply ID View ${primary_key} on hosts of ${entity}"),
                 "apply_hosts": _("Apply to hosts"),
                 "apply_hosts_title": _("Apply ID view ${primary_key} on ${entity}"),
+                "ipaassignedidview": _("Assigned ID View"),
                 "overrides_tab": _("${primary_key} overrides:"),
                 "unapply_hostgroups": _("Un-apply from host groups"),
                 "unapply_hostgroups_all_title": _("Un-apply ID Views from hosts of hostgroups"),
