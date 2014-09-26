@@ -415,11 +415,12 @@ idviews.apply_action = function(spec) {
     /**
      * Create and open dialog
      */
-    that.show_dialog = function(facet, current_pkeys) {
+    that.show_dialog = function(facet) {
 
         var pkey = facet.get_pkey();
         var other_entity = reg.entity.get(that.other_entity);
         var other_entity_label = other_entity.metadata.label;
+        var exclude = that.get_exclude(facet);
         var title = text.get(that.dialog_title);
         title = title.replace('${entity}', other_entity_label);
         title = title.replace('${primary_key}', pkey);
@@ -430,7 +431,7 @@ idviews.apply_action = function(spec) {
             pkey: pkey,
             other_entity: other_entity,
             attribute_member: that.attribute_member,
-            exclude: current_pkeys || [],
+            exclude: exclude,
             add_button_label: that.confirm_button_label
         });
 
@@ -475,6 +476,25 @@ idviews.apply_action = function(spec) {
 
         command.set_option(other_entity.name, values);
         return command;
+    };
+
+    /**
+     * Get pkeys which should be excluded from offered pkeys in the dialog
+     *
+     * By default it works only for 'host' of 'appliedtohosts' facet since
+     * other facets might contain completely different values or might have
+     * different API.
+     *
+     * @param {facet.facet} facet
+     * @return {string[]}
+     */
+    that.get_exclude = function(facet) {
+        if (facet && facet.name === 'appliedtohosts' &&
+                that.other_entity === 'host') {
+            var records = facet.get_records_map(facet.data);
+            return records.keys;
+        }
+        return [];
     };
 
     /**
