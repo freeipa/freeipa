@@ -102,7 +102,7 @@ class privilege(LDAPObject):
             label=_('Privilege name'),
             primary_key=True,
         ),
-        Str('description',
+        Str('description?',
             cli_name='desc',
             label=_('Description'),
             doc=_('Privilege description'),

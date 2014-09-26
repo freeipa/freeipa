@@ -134,7 +134,7 @@ class role(LDAPObject):
             label=_('Role name'),
             primary_key=True,
         ),
-        Str('description',
+        Str('description?',
             cli_name='desc',
             label=_('Description'),
             doc=_('A description of this role-group'),

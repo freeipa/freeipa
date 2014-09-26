@@ -117,7 +117,6 @@ class TestCLIParsing(object):
         with self.fake_stdin('Test group\n'):
             self.check_command('group-add tgroup1', 'group_add',
                 cn=u'tgroup1',
-                description=u'Test group',
                 nonposix=False,
                 external=False,
                 no_members=False,
