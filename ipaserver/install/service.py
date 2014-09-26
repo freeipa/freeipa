@@ -370,14 +370,15 @@ class Service(object):
                 run_step(full_msg, method)
                 step += 1
         except BaseException as e:
-            # show the traceback, so it's not lost if the cleanup method fails
-            root_logger.debug("%s" % traceback.format_exc())
-            self.print_msg('  [error] %s: %s' % (type(e).__name__, e))
+            if not (isinstance(e, SystemExit) and e.code == 0):
+                # show the traceback, so it's not lost if cleanup method fails
+                root_logger.debug("%s" % traceback.format_exc())
+                self.print_msg('  [error] %s: %s' % (type(e).__name__, e))
 
-            # run through remaining methods marked run_after_failure
-            for message, method, run_after_failure in steps_iter:
-                if run_after_failure:
-                    run_step("  [cleanup]: %s" % message, method)
+                # run through remaining methods marked run_after_failure
+                for message, method, run_after_failure in steps_iter:
+                    if run_after_failure:
+                        run_step("  [cleanup]: %s" % message, method)
 
             raise
 
