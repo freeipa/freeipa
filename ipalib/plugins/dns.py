@@ -87,9 +87,7 @@ ipa dnsrecord-mod --mx-rec="0 mx.example.com." --mx-preference=1
 EXAMPLES:
 """) + _("""
  Add new zone:
-   ipa dnszone-add example.com --name-server=ns \\
-                               --admin-email=admin@example.com \\
-                               --ip-address=192.0.2.1
+   ipa dnszone-add example.com --admin-email=admin@example.com
 """) + _("""
  Add system permission that can be used for per-zone privilege delegation:
    ipa dnszone-add-permission example.com
@@ -105,8 +103,7 @@ EXAMPLES:
    ipa dnszone-mod example.com --allow-transfer=192.0.2.0/24
 """) + _("""
  Add new reverse zone specified by network IP address:
-   ipa dnszone-add --name-from-ip=192.0.2.0/24 \\
-                   --name-server=ns.example.com.
+   ipa dnszone-add --name-from-ip=192.0.2.0/24
 """) + _("""
  Add second nameserver for example.com:
    ipa dnsrecord-add example.com @ --ns-rec=nameserver2.example.com
