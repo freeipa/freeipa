@@ -416,14 +416,19 @@ def resolve_object_to_anchor(ldap, obj_type, obj):
         pass
 
     # If not successfull, try looking up the object in the trusted domain
-    if _dcerpc_bindings_installed:
-        domain_validator = ipaserver.dcerpc.DomainValidator(api)
-        if domain_validator.is_configured():
-            sid = domain_validator.get_trusted_domain_object_sid(obj)
+    try:
+        if _dcerpc_bindings_installed:
+            domain_validator = ipaserver.dcerpc.DomainValidator(api)
+            if domain_validator.is_configured():
+                sid = domain_validator.get_trusted_domain_object_sid(obj)
 
-            # There is no domain prefix since SID contains information
-            # about the domain
-            return SID_ANCHOR_PREFIX + sid
+                # There is no domain prefix since SID contains information
+                # about the domain
+                return SID_ANCHOR_PREFIX + sid
+    except errors.ValidationError:
+        # Domain validator raises Validation Error if object name does not
+        # contain domain part (either NETBIOS\ prefix or @domain.name suffix)
+        pass
 
     # No acceptable object was found
     api.Object[obj_type].handle_not_found(obj)
