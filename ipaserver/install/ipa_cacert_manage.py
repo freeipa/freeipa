@@ -215,8 +215,6 @@ class CACertManage(admintool.AdminTool):
             #pylint: enable=E1101
 
             nss_cert = x509.load_certificate_from_file(cert_file.name)
-            if not nss_cert.is_ca_cert():
-                raise admintool.ScriptError("Not a CA certificate")
             if nss_cert.subject != subject:
                 raise admintool.ScriptError("Subject name mismatch")
             #pylint: disable=E1101
@@ -319,14 +317,23 @@ class CACertManage(admintool.AdminTool):
                     "Can't open \"%s\": %s" % (cert_filename, e))
             except (TypeError, NSPRError), e:
                 raise admintool.ScriptError("Not a valid certificate: %s" % e)
-            if not nss_cert.is_ca_cert():
-                raise admintool.ScriptError("Not a CA certificate")
             subject = nss_cert.subject
             cert = nss_cert.der_data
         finally:
             del nss_cert
 
         nickname = options.nickname or str(subject)
+
+        with certs.NSSDatabase() as tmpdb:
+            pw = ipautil.write_tmp_file(ipautil.ipa_generate_password())
+            tmpdb.create_db(pw.name)
+            tmpdb.add_cert(cert, nickname, 'C,,')
+
+            try:
+                tmpdb.verify_ca_cert_validity(nickname)
+            except ValueError, e:
+                raise admintool.ScriptError(
+                    "Not a valid CA certificate: %s" % e)
 
         trust_flags = options.trust_flags
         if ((set(trust_flags) - set(',CPTcgpuw')) or

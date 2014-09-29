@@ -490,6 +490,10 @@ class NSSDatabase(object):
         try:
             certdb = nss.get_default_certdb()
             cert = nss.find_cert_from_nickname(nickname)
+            if not cert.subject:
+                raise ValueError("has empty subject")
+            if not cert.is_ca_cert():
+                raise ValueError("not a CA certificate")
             intended_usage = nss.certificateUsageSSLCA
             try:
                 approved_usage = cert.verify_now(certdb, True, intended_usage)
