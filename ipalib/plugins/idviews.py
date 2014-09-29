@@ -205,7 +205,14 @@ class idview_show(LDAPRetrieve):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         self.show_id_overrides(dn, entry_attrs)
 
-        if options.get('show_hosts', False):
+        # Enumerating hosts is a potentially expensive operation (uses paged
+        # search to list all the hosts the ID view applies to). Show the list
+        # of the hosts only if explicitly asked for (or asked for --all).
+        # Do not display with --raw, since this attribute does not exist in
+        # LDAP.
+
+        if ((options.get('show_hosts') or options.get('all'))
+            and not options.get('raw')):
             self.enumerate_hosts(dn, entry_attrs)
 
         return dn
