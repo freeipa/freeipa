@@ -117,4 +117,52 @@ class update_default_range(PostUpdate):
 
         return (False, True, [updates])
 
+
+class update_default_trust_view(PostUpdate):
+    """
+    Create Default Trust View for upgraded servers.
+    """
+    order = MIDDLE
+
+    def execute(self, **options):
+        ldap = self.obj.backend
+
+        default_trust_view_dn = DN(('cn', 'Default Trust View'),
+                                   api.env.container_views,
+                                   api.env.basedn)
+
+        default_trust_view_entry = [
+            'objectclass: top',
+            'objectclass: ipaIDView'
+            'cn: Default Trust View',
+            'description: Default Trust View for AD users. '
+                         'Should not be deleted.'
+            ]
+
+        # First, see if trusts are enabled on the server
+        if not self.api.Command.adtrust_is_enabled()['result']:
+            self.log.info('AD Trusts are not enabled on this server')
+            return (False, False, [])
+
+        # Second, make sure the Default Trust View does not exist yet
+        try:
+            ldap.get_entry(default_trust_view_dn)
+        except errors.NotFound:
+            pass
+        else:
+            self.log.info('Default Trust View already present on this server')
+            return (False, False, [])
+
+        # We have a server with AD trust support without Default Trust View.
+        # Create the Default Trust View entry.
+
+        updates = {}
+        updates[default_trust_view_dn] = {
+            'dn': default_trust_view_dn,
+            'default': default_trust_view_entry
+        }
+
+        return (False, True, [updates])
+
 api.register(update_default_range)
+api.register(update_default_trust_view)
