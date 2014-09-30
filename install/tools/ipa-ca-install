@@ -29,7 +29,7 @@ from ipaserver.install import certs
 from ipaserver.install.installutils import (HostnameLocalhost, ReplicaConfig,
         expand_replica_info, read_replica_info, get_host_name, BadHostError,
         private_ccache, read_replica_info_dogtag_port, load_external_cert,
-        create_replica_config, validate_external_cert)
+        create_replica_config)
 from ipaserver.install import dsinstance, cainstance, bindinstance
 from ipaserver.install.replication import replica_conn_check
 from ipapython import version
