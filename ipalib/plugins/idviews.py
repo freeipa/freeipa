@@ -411,7 +411,23 @@ def resolve_object_to_anchor(ldap, obj_type, obj):
 
     try:
         entry = ldap.get_entry(api.Object[obj_type].get_dn(obj),
-                                       attrs_list=['ipaUniqueID'])
+                               attrs_list=['ipaUniqueID', 'objectClass'])
+
+        # First we check this is a valid object to override
+        # - for groups, it must have ipaUserGroup objectclass
+        # - for users, it must have posixAccount objectclass
+
+        required_objectclass = {
+            'user': 'posixaccount',
+            'group': 'ipausergroup',
+        }[obj_type]
+
+        if required_objectclass not in entry['objectclass']:
+            raise errors.ValidationError(
+                    name=_('IPA object'),
+                    error=_('system IPA objects (e.g system groups, user '
+                            'private groups) cannot be overriden')
+                )
 
         # The domain prefix, this will need to be reworked once we
         # introduce IPA-IPA trusts
