@@ -435,6 +435,17 @@ class user(LDAPObject):
                 'homedirectory', 'loginshell',
             },
         },
+        'System: Read User Views Compat Tree': {
+            'non_object': True,
+            'ipapermbindruletype': 'anonymous',
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('cn=users', 'cn=*', 'cn=views', 'cn=compat', api.env.basedn),
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass', 'uid', 'cn', 'gecos', 'gidnumber', 'uidnumber',
+                'homedirectory', 'loginshell',
+            },
+        },
     }
 
     label = _('Users')

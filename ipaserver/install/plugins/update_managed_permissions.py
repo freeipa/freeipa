@@ -117,6 +117,17 @@ NONOBJECT_PERMISSIONS = {
         },
         'default_privileges': {'IPA Masters Readers'},
     },
+    'System: Compat Tree ID View targets': {
+        'replaces_global_anonymous_aci': True,
+        'ipapermlocation':  api.env.basedn,
+        'ipapermtarget': DN('cn=*,cn=compat', api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=ipaOverrideTarget)'},
+        'ipapermbindruletype': 'anonymous',
+        'ipapermright': {'read', 'search', 'compare'},
+        'ipapermdefaultattr': {
+            'ipaAnchorUUID',
+        },
+    },
     'System: Read DNA Configuration': {
         'replaces_global_anonymous_aci': True,
         'ipapermlocation': DN('cn=dna,cn=ipa,cn=etc', api.env.basedn),

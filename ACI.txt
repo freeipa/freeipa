@@ -54,6 +54,8 @@ dn: dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || entryusn || gidnumber || memberuid || modifytimestamp || objectclass")(target = "ldap:///cn=groups,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Group Compat Tree";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "member || memberhost || memberof || memberuid || memberuser")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Read Group Membership";allow (compare,read,search) userdn = "ldap:///all";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "cn || createtimestamp || entryusn || gidnumber || memberuid || modifytimestamp || objectclass")(target = "ldap:///cn=groups,cn=*,cn=views,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Group Views Compat Tree";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "businesscategory || cn || createtimestamp || description || entryusn || gidnumber || ipaexternalmember || ipantsecurityidentifier || ipauniqueid || mepmanagedby || modifytimestamp || o || objectclass || ou || owner || seealso")(targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Read Groups";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
@@ -260,6 +262,8 @@ dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "memberof")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || description || displayname || entryusn || gecos || gidnumber || givenname || homedirectory || initials || ipantsecurityidentifier || loginshell || manager || modifytimestamp || objectclass || sn || title || uid || uidnumber")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User Standard Attributes";allow (compare,read,search) userdn = "ldap:///anyone";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "cn || createtimestamp || entryusn || gecos || gidnumber || homedirectory || loginshell || modifytimestamp || objectclass || uid || uidnumber")(target = "ldap:///cn=users,cn=*,cn=views,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read User Views Compat Tree";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Remove Users";allow (delete) groupdn = "ldap:///cn=System: Remove Users,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
@@ -268,6 +272,8 @@ dn: cn=ca_renewal,cn=ipa,cn=etc,dc=ipa,dc=example
 aci: (target = "ldap:///cn=caSigningCert cert-pki-ca,cn=ca_renewal,cn=ipa,cn=etc,dc=ipa,dc=example")(targetfilter = "(objectclass=pkiuser)")(version 3.0;acl "permission:System: Add CA Certificate For Renewal";allow (add) groupdn = "ldap:///cn=System: Add CA Certificate For Renewal,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=certificates,cn=ipa,cn=etc,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipacertificate)")(version 3.0;acl "permission:System: Add Certificate Store Entry";allow (add) groupdn = "ldap:///cn=System: Add Certificate Store Entry,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "ipaanchoruuid")(target = "ldap:///cn=*,cn=compat,dc=ipa,dc=example")(targetfilter = "(objectclass=ipaOverrideTarget)")(version 3.0;acl "permission:System: Compat Tree ID View targets";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=CAcert,cn=ipa,cn=etc,dc=ipa,dc=example
 aci: (targetattr = "cacertificate")(targetfilter = "(objectclass=pkica)")(version 3.0;acl "permission:System: Modify CA Certificate";allow (write) groupdn = "ldap:///cn=System: Modify CA Certificate,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=ca_renewal,cn=ipa,cn=etc,dc=ipa,dc=example

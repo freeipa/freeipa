@@ -38,6 +38,10 @@ default:schema-compat-entry-attribute: uidNumber=%{uidNumber}
 default:schema-compat-entry-attribute: gidNumber=%{gidNumber}
 default:schema-compat-entry-attribute: loginShell=%{loginShell}
 default:schema-compat-entry-attribute: homeDirectory=%{homeDirectory}
+default:schema-compat-entry-attribute: %ifeq("ipauniqueid","%{ipauniqueid}","objectclass=ipaOverrideTarget","")
+default:schema-compat-entry-attribute: %ifeq("ipauniqueid","%{ipauniqueid}","ipaanchoruuid=:IPA:$DOMAIN:%{ipauniqueid}","")
+default:schema-compat-entry-attribute: ipaanchoruuid=%{ipaanchoruuid}
+default:schema-compat-entry-attribute: %ifeq("ipaanchoruuid","%{ipaanchoruuid}","objectclass=ipaOverrideTarget","")
 
 dn: cn=groups, cn=Schema Compatibility, cn=plugins, cn=config
 default:objectClass: top
@@ -52,6 +56,10 @@ default:schema-compat-entry-attribute: objectclass=posixGroup
 default:schema-compat-entry-attribute: gidNumber=%{gidNumber}
 default:schema-compat-entry-attribute: memberUid=%{memberUid}
 default:schema-compat-entry-attribute: memberUid=%deref_r("member","uid")
+default:schema-compat-entry-attribute: %ifeq("ipauniqueid","%{ipauniqueid}","objectclass=ipaOverrideTarget","")
+default:schema-compat-entry-attribute: %ifeq("ipauniqueid","%{ipauniqueid}","ipaanchoruuid=:IPA:$DOMAIN:%{ipauniqueid}","")
+default:schema-compat-entry-attribute: ipaanchoruuid=%{ipaanchoruuid}
+default:schema-compat-entry-attribute: %ifeq("ipaanchoruuid","%{ipaanchoruuid}","objectclass=ipaOverrideTarget","")
 
 dn: cn=ng,cn=Schema Compatibility,cn=plugins,cn=config
 add:objectClass: top

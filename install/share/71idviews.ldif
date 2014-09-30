@@ -5,3 +5,4 @@ objectClasses: (2.16.840.1.113730.3.8.12.29 NAME 'ipaIDView' SUP nsContainer STR
 objectClasses: (2.16.840.1.113730.3.8.12.30 NAME 'ipaOverrideAnchor' SUP top STRUCTURAL MUST ( ipaAnchorUUID ) MAY ( description ) X-ORIGIN 'IPA v4' )
 objectClasses: (2.16.840.1.113730.3.8.12.31 NAME 'ipaUserOverride' DESC 'Override for User Attributes' SUP ipaOverrideAnchor STRUCTURAL MAY ( uid $ uidNumber $ gidNumber $ homeDirectory $ loginShell $ gecos $ ipaOriginalUid ) X-ORIGIN 'IPA v4' )
 objectClasses: (2.16.840.1.113730.3.8.12.32 NAME 'ipaGroupOverride' DESC 'Override for Group Attributes' SUP ipaOverrideAnchor STRUCTURAL MAY ( gidNumber $ cn ) X-ORIGIN 'IPA v4' )
+objectClasses: (2.16.840.1.113730.3.8.12.34 NAME 'ipaOverrideTarget' SUP top STRUCTURAL MUST ( ipaAnchorUUID ) X-ORIGIN 'IPA v4' )
