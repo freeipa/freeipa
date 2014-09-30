@@ -1699,6 +1699,9 @@ def backup_config(dogtag_constants=None):
     if dogtag_constants is None:
         dogtag_constants = dogtag.configured_constants()
 
+    if services.knownservices.dogtag.is_running():
+        raise RuntimeError("Dogtag must be stopped when creating backup of %s"
+                           % dogtag_constants.CS_CFG_PATH)
     shutil.copy(dogtag_constants.CS_CFG_PATH,
                 dogtag_constants.CS_CFG_PATH + '.ipabkp')
 
