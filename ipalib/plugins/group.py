@@ -212,6 +212,16 @@ class group(LDAPObject):
                 'objectclass', 'cn', 'memberuid', 'gidnumber',
             },
         },
+        'System: Read Group Views Compat Tree': {
+            'non_object': True,
+            'ipapermbindruletype': 'anonymous',
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('cn=groups', 'cn=*', 'cn=views', 'cn=compat', api.env.basedn),
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass', 'cn', 'memberuid', 'gidnumber',
+            },
+        },
     }
 
     label = _('User Groups')

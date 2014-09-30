@@ -61,3 +61,14 @@ dn: cn=Schema Compatibility,cn=plugins,cn=config
 # rewritten to the original entry if needed
 add:nsslapd-pluginprecedence: 49
 
+dn: cn=users,cn=Schema Compatibility,cn=plugins,cn=config
+add:schema-compat-entry-attribute: '%ifeq("ipauniqueid","%{ipauniqueid}","objectclass=ipaOverrideTarget","")'
+add:schema-compat-entry-attribute: '%ifeq("ipauniqueid","%{ipauniqueid}","ipaanchoruuid=:IPA:$DOMAIN:%{ipauniqueid}","")'
+add:schema-compat-entry-attribute: 'ipaanchoruuid=%{ipaanchoruuid}'
+add:schema-compat-entry-attribute: '%ifeq("ipaanchoruuid","%{ipaanchoruuid}","objectclass=ipaOverrideTarget","")'
+
+dn: cn=groups,cn=Schema Compatibility,cn=plugins,cn=config
+add:schema-compat-entry-attribute: '%ifeq("ipauniqueid","%{ipauniqueid}","objectclass=ipaOverrideTarget","")'
+add:schema-compat-entry-attribute: '%ifeq("ipauniqueid","%{ipauniqueid}","ipaanchoruuid=:IPA:$DOMAIN:%{ipauniqueid}","")'
+add:schema-compat-entry-attribute: 'ipaanchoruuid=%{ipaanchoruuid}'
+add:schema-compat-entry-attribute: '%ifeq("ipaanchoruuid","%{ipaanchoruuid}","objectclass=ipaOverrideTarget","")'
