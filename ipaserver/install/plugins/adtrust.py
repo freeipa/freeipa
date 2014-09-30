@@ -132,11 +132,11 @@ class update_default_trust_view(PostUpdate):
                                    api.env.basedn)
 
         default_trust_view_entry = [
-            'objectclass: top',
-            'objectclass: ipaIDView'
-            'cn: Default Trust View',
-            'description: Default Trust View for AD users. '
-                         'Should not be deleted.'
+            'objectclass:top',
+            'objectclass:ipaIDView',
+            'cn:Default Trust View',
+            'description:Default Trust View for AD users. '
+                        'Should not be deleted.',
             ]
 
         # First, see if trusts are enabled on the server
