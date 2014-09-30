@@ -352,9 +352,15 @@ class CAInstance(DogtagInstance):
         self.cert_chain_file = None
         self.create_ra_agent_db = True
 
-        self.canickname = get_ca_nickname(realm)
+        if realm is not None:
+            self.canickname = get_ca_nickname(realm)
+        else:
+            self.canickname = None
         self.ra_agent_db = ra_db
-        self.ra_agent_pwd = self.ra_agent_db + "/pwdfile.txt"
+        if self.ra_agent_db is not None:
+            self.ra_agent_pwd = self.ra_agent_db + "/pwdfile.txt"
+        else:
+            self.ra_agent_pwd = None
         self.ra_cert = None
         self.requestId = None
         self.tracking_reqs = (('Server-Cert cert-pki-ca', None),
