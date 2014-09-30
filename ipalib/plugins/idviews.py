@@ -650,14 +650,14 @@ class idoverrideuser(baseidoverride):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'objectClass', 'ipaAnchorUUID', 'uidNumber', 'description',
-                'homeDirectory', 'uid', 'ipaOriginalUid',
+                'homeDirectory', 'uid', 'ipaOriginalUid', 'loginShell',
             },
         },
     }
 
     object_class = baseidoverride.object_class + ['ipaUserOverride']
     default_attributes = baseidoverride.default_attributes + [
-       'homeDirectory', 'uidNumber', 'uid', 'ipaOriginalUid',
+       'homeDirectory', 'uidNumber', 'uid', 'ipaOriginalUid', 'loginShell',
     ]
 
     takes_params = baseidoverride.takes_params + (
@@ -678,6 +678,10 @@ class idoverrideuser(baseidoverride):
         Str('homedirectory?',
             cli_name='homedir',
             label=_('Home directory'),
+        ),
+        Str('loginshell?',
+            cli_name='shell',
+            label=_('Login shell'),
         ),
         Str('ipaoriginaluid?',
             flags=['no_option', 'no_output']
