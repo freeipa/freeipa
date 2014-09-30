@@ -233,8 +233,10 @@ def upgrade_pki(ca, fstore):
     if not installutils.get_directive(configured_constants.CS_CFG_PATH,
                                       'proxy.securePort', '=') and \
             os.path.exists(paths.PKI_SETUP_PROXY):
-        ipautil.run([paths.PKI_SETUP_PROXY, '-pki_instance_root=/var/lib'
-                     ,'-pki_instance_name=pki-ca','-subsystem_type=ca'])
+        # update proxy configuration with stopped dogtag to prevent corruption
+        # of CS.cfg
+        ipautil.run([paths.PKI_SETUP_PROXY, '-pki_instance_root=/var/lib',
+                     '-pki_instance_name=pki-ca','-subsystem_type=ca'])
         root_logger.debug('Proxy configuration updated')
     else:
         root_logger.debug('Proxy configuration up-to-date')
@@ -1082,28 +1084,30 @@ def main():
     ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
     ca.backup_config()
 
-    # migrate CRL publish dir before the location in ipa.conf is updated
-    ca_restart = migrate_crl_publish_dir(ca)
+    with installutils.stopped_service(configured_constants.SERVICE_NAME,
+            configured_constants.PKI_INSTANCE_NAME):
+        # migrate CRL publish dir before the location in ipa.conf is updated
+        ca_restart = migrate_crl_publish_dir(ca)
 
-    if ca.is_configured():
-        crl = installutils.get_directive(configured_constants.CS_CFG_PATH,
-                                         'ca.crl.MasterCRL.enableCRLUpdates',
-                                         '=')
-        sub_dict['CLONE']='#' if crl.lower() == 'true' else ''
+        if ca.is_configured():
+            crl = installutils.get_directive(configured_constants.CS_CFG_PATH,
+                    'ca.crl.MasterCRL.enableCRLUpdates', '=')
+            sub_dict['CLONE']='#' if crl.lower() == 'true' else ''
 
-    certmap_dir = dsinstance.config_dirname(
-        dsinstance.realm_to_serverid(api.env.realm))
+        certmap_dir = dsinstance.config_dirname(
+            dsinstance.realm_to_serverid(api.env.realm))
 
-    upgrade(sub_dict, paths.HTTPD_IPA_CONF, ipautil.SHARE_DIR + "ipa.conf")
-    upgrade(sub_dict, paths.HTTPD_IPA_REWRITE_CONF, ipautil.SHARE_DIR + "ipa-rewrite.conf")
-    upgrade(sub_dict, paths.HTTPD_IPA_PKI_PROXY_CONF, ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
-    if subject_base:
-        upgrade(
-            sub_dict,
-            os.path.join(certmap_dir, "certmap.conf"),
-            os.path.join(ipautil.SHARE_DIR, "certmap.conf.template")
-        )
-    upgrade_pki(ca, fstore)
+        upgrade(sub_dict, paths.HTTPD_IPA_CONF, ipautil.SHARE_DIR + "ipa.conf")
+        upgrade(sub_dict, paths.HTTPD_IPA_REWRITE_CONF, ipautil.SHARE_DIR + "ipa-rewrite.conf")
+        upgrade(sub_dict, paths.HTTPD_IPA_PKI_PROXY_CONF, ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
+        if subject_base:
+            upgrade(
+                sub_dict,
+                os.path.join(certmap_dir, "certmap.conf"),
+                os.path.join(ipautil.SHARE_DIR, "certmap.conf.template")
+            )
+        upgrade_pki(ca, fstore)
+
     update_dbmodules(api.env.realm)
     uninstall_ipa_kpasswd()
 
