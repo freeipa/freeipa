@@ -731,7 +731,7 @@ class test_service_in_role(Declarative):
                     dn=service1dn,
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
-                    memberof_role=[role1.lower()],
+                    memberof_role=[role1],
                     has_keytab=False,
                 ),
             ),
