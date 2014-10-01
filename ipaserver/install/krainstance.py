@@ -169,7 +169,7 @@ class KRAInstance(DogtagInstance):
                    str(DN(('cn', 'ipa-ca-agent'), self.subject_base)))
         config.set("KRA", "pki_import_admin_cert", "True")
         config.set("KRA", "pki_admin_cert_file", paths.ADMIN_CERT_PATH)
-        config.set("KRA", "pki_client_admin_cert_p12", paths.DOGTAG_AGENT_P12)
+        config.set("KRA", "pki_client_admin_cert_p12", paths.DOGTAG_ADMIN_P12)
 
         # Directory server
         config.set("KRA", "pki_ds_ldap_port", str(self.ds_port))
@@ -259,16 +259,81 @@ class KRAInstance(DogtagInstance):
         """
         Add RA agent created for CA to KRA agent group.
         """
-        conn = ipaldap.IPAdmin(self.fqdn, self.ds_port)
-        conn.do_simple_bind(DN(('cn', 'Directory Manager')), self.dm_password)
 
-        entry_dn = DN(('uid', "ipara"), ('ou', 'People'), ('o', 'ipaca'))
-        dn = DN(('cn', 'Data Recovery Manager Agents'), ('ou', 'groups'),
-                self.basedn)
-        modlist = [(0, 'uniqueMember', '%s' % entry_dn)]
-        conn.modify_s(dn, modlist)
+        # import CA certificate into temporary security database
+        args = ["/usr/bin/pki",
+            "-d", self.agent_db,
+            "-c", self.admin_password,
+            "client-cert-import",
+            "--pkcs12", paths.KRACERT_P12,
+            "--pkcs12-password", self.admin_password]
+        ipautil.run(args)
 
-        conn.unbind()
+        # trust CA certificate
+        args = ["/usr/bin/pki",
+            "-d", self.agent_db,
+            "-c", self.admin_password,
+            "client-cert-mod", "Certificate Authority - %s" % api.env.realm,
+            "--trust", "CT,c,"]
+        ipautil.run(args)
+
+        # import Dogtag admin certificate into temporary security database
+        args = ["/usr/bin/pki",
+            "-d", self.agent_db,
+            "-c", self.admin_password,
+            "client-cert-import",
+            "--pkcs12", paths.DOGTAG_ADMIN_P12,
+            "--pkcs12-password", self.admin_password]
+        ipautil.run(args)
+
+        # as Dogtag admin, create ipakra user in KRA
+        args = ["/usr/bin/pki",
+            "-d", self.agent_db,
+            "-c", self.admin_password,
+            "-n", "ipa-ca-agent",
+            "kra-user-add", "ipakra",
+            "--fullName", "IPA KRA User"]
+        ipautil.run(args)
+
+        # as Dogtag admin, add ipakra into KRA agents group
+        args = ["/usr/bin/pki",
+            "-d", self.agent_db,
+            "-c", self.admin_password,
+            "-n", "ipa-ca-agent",
+            "kra-user-membership-add", "ipakra", "Data Recovery Manager Agents"]
+        ipautil.run(args)
+
+        # assign ipaCert to ipakra
+        (file, filename) = tempfile.mkstemp()
+        os.close(file)
+        try:
+            # export ipaCert without private key
+            args = ["/usr/bin/pki",
+                "-d", paths.HTTPD_ALIAS_DIR,
+                "-C", paths.ALIAS_PWDFILE_TXT,
+                "client-cert-show", "ipaCert",
+                "--cert", filename]
+            ipautil.run(args)
+
+            # as Dogtag admin, upload and assign ipaCert to ipakra
+            args = ["/usr/bin/pki",
+                "-d", self.agent_db,
+                "-c", self.admin_password,
+                "-n", "ipa-ca-agent",
+                "kra-user-cert-add", "ipakra",
+                "--input", filename]
+            ipautil.run(args)
+
+        finally:
+            os.remove(filename)
+
+        # export ipaCert with private key for client authentication
+        args = ["/usr/bin/pki",
+            "-d", paths.HTTPD_ALIAS_DIR,
+            "-C", paths.ALIAS_PWDFILE_TXT,
+            "client-cert-show", "ipaCert",
+            "--client-cert", paths.KRA_AGENT_PEM]
+        ipautil.run(args)
 
     @staticmethod
     def update_cert_config(nickname, cert, dogtag_constants=None):

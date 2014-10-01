@@ -514,7 +514,7 @@ class CAInstance(DogtagInstance):
         config.set("CA", "pki_admin_nickname", "ipa-ca-agent")
         config.set("CA", "pki_admin_subject_dn",
             str(DN(('cn', 'ipa-ca-agent'), self.subject_base)))
-        config.set("CA", "pki_client_admin_cert_p12", paths.DOGTAG_AGENT_P12)
+        config.set("CA", "pki_client_admin_cert_p12", paths.DOGTAG_ADMIN_P12)
 
         # Directory server
         config.set("CA", "pki_ds_ldap_port", str(self.ds_port))
@@ -979,7 +979,7 @@ class CAInstance(DogtagInstance):
         try:
             ipautil.run([paths.PK12UTIL,
                          "-n", "ipa-ca-agent",
-                         "-o", paths.DOGTAG_AGENT_P12,
+                         "-o", paths.DOGTAG_ADMIN_P12,
                          "-d", self.agent_db,
                          "-k", pwd_name,
                          "-w", pwd_name])

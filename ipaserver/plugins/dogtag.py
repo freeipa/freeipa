@@ -1890,122 +1890,36 @@ class kra(Backend):
     """
 
     def __init__(self, kra_port=443):
-        if api.env.in_tree:
-            self.sec_dir = os.path.join(api.env.dot_ipa, 'alias')
-            pwd_file = os.path.join(self.sec_dir, '.pwd')
-            self.pem_file = os.path.join(self.sec_dir, ".pemfile")
-        else:
-            self.sec_dir = paths.HTTPD_ALIAS_DIR
-            pwd_file = paths.ALIAS_PWDFILE_TXT
-            self.pem_file = paths.DOGTAG_AGENT_PEM
 
         self.kra_port = kra_port
-        self.transport_nick = "IPA KRA Transport Cert"
-        self.password = ""
-        with open(pwd_file, "r") as f:
-            self.password = f.readline().strip()
 
-        self.keyclient = None
         super(kra, self).__init__()
 
-    def _create_pem_file(self):
-        """ Create PEM file used by KRA plugin for authentication.
-
-        This function reads the IPA HTTPD database and extracts the
-        Dogtag agent certificate and keys into a PKCS#12 temporary file.
-        The PKCS#12 file is then converted into PEM format so that it
-        can be used by python-requests to authenticate to the KRA.
-
-        :return: None
+    def get_client(self):
         """
-        (p12_pwd_fd, p12_pwd_fname) = tempfile.mkstemp()
-        (p12_fd, p12_fname) = tempfile.mkstemp()
+        Returns an authenticated KRA client to access KRA services.
 
-        try:
-            os.write(p12_pwd_fd, self.password)
-            os.close(p12_pwd_fd)
-            os.close(p12_fd)
-
-            certdb = CertDB(api.env.realm)
-            certdb.export_pkcs12(p12_fname, p12_pwd_fname, "ipaCert")
-
-            certdb.install_pem_from_p12(p12_fname, self.password, self.pem_file)
-        except:
-            self.debug("Error when creating PEM file for KRA operations")
-            raise
-        finally:
-            os.remove(p12_fname)
-            os.remove(p12_pwd_fname)
-
-    def _transport_cert_present(self):
-        """ Check if the client certDB contains the KRA transport certificate
-        :return: True/False
+        Raises a generic exception if KRA is not enabled.
         """
-        # certutil -L -d db_dir -n cert_nick
-        certdb = CertDB(api.env.realm)
-        return certdb.has_nickname(self.transport_nick)
 
-    def _setup(self):
-        """ Do initial setup and crypto initialization of the KRA client
+        if not api.env.enable_kra:
+            # TODO: replace this with a more specific exception
+            raise RuntimeError('KRA service is not enabled')
 
-        Creates a PEM file containing the KRA agent cert/keys to be used for
-        authentication to the KRA (if it does not already exist),  Sets up a
-        connection to the KRA and initializes an NSS certificate database to
-        store the transport certificate,  Retrieves the transport certificate
-        if it is not already present.
-        """
-        #set up pem file if not present
-        if not os.path.exists(self.pem_file):
-            self._create_pem_file()
+        crypto = cryptoutil.NSSCryptoProvider(
+            paths.HTTPD_ALIAS_DIR,
+            password_file=paths.ALIAS_PWDFILE_TXT)
 
-        # set up connection
-        connection = PKIConnection('https',
-                                   self.kra_host,
-                                   str(self.kra_port),
-                                   'kra')
-        connection.set_authentication_cert(self.pem_file)
+        # TODO: obtain KRA host & port from IPA service list or point to KRA load balancer
+        # https://fedorahosted.org/freeipa/ticket/4557
+        connection = PKIConnection(
+            'https',
+            api.env.kra_host,
+            str(self.kra_port),
+            'kra')
 
-        crypto = cryptoutil.NSSCryptoProvider(self.sec_dir, self.password)
+        connection.set_authentication_cert(paths.KRA_AGENT_PEM)
 
-        #create kraclient
-        kraclient = KRAClient(connection, crypto)
-
-        # get transport cert if needed
-        if not self._transport_cert_present():
-            transport_cert = kraclient.system_certs.get_transport_cert()
-            crypto.import_cert(self.transport_nick, transport_cert, "u,u,u")
-
-        crypto.initialize()
-
-        self.keyclient = kraclient.keys
-        self.keyclient.set_transport_cert(self.transport_nick)
-
-    @cachedproperty
-    def kra_host(self):
-        """
-        :return:   host
-                   as str
-
-        Select our KRA host.
-        """
-        ldap2 = self.api.Backend.ldap2
-        if host_has_service(api.env.kra_host, ldap2, "kra"):
-            return api.env.kra_host
-        if api.env.host != api.env.kra_host:
-            if host_has_service(api.env.host, ldap2, "kra"):
-                return api.env.host
-        host = select_any_master(ldap2, "kra")
-        if host:
-            return host
-        else:
-            return api.env.kra_host
-
-    def get_keyclient(self):
-        """Return a keyclient to perform key archival and retrieval.
-        :return: pki.key.keyclient
-        """
-        if self.keyclient is None:
-            self._setup()
-        return self.keyclient
+        return KRAClient(connection, crypto)
 
 api.register(kra)
