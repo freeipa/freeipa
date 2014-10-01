@@ -507,6 +507,15 @@ class test_dns(Declarative):
             },
         ),
 
+        dict(
+            desc='Try to remove value of "idnssomrname" attribute using dnszone-mod --name-server=',
+            command=(
+                'dnszone_mod', [zone2], {
+                    'idnssoamname': None,
+                }
+            ),
+            expected=errors.ValidationError(name='name_server', error=u"is required"),
+        ),
 
         dict(
             desc='Create a zone with upper case name',
@@ -1885,6 +1894,17 @@ class test_dns(Declarative):
             expected=errors.NotFound(reason=u'%s: permission not found'
                                      % zone1_permission)
         ),
+
+
+        dict(
+            desc='Try to remove non-existent per-zone permission for zone %r' % zone1,
+            command=(
+                'dnszone_remove_permission', [zone1], {}
+            ),
+            expected=errors.NotFound(reason=u'%s: permission not found'
+                                     % zone1_permission)
+        ),
+
 
         dict(
             desc='Try to create zone %r with relative nameserver' % zone3,
