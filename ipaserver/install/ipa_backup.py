@@ -132,9 +132,7 @@ class Backup(admintool.AdminTool):
         paths.SYSCONFIG_KRB5KDC_DIR,
         paths.SYSCONFIG_PKI_CA_PKI_CA_DIR,
         paths.ETC_SYSCONFIG_AUTHCONFIG,
-        paths.NSSDB_CERT8_DB,
-        paths.NSSDB_KEY3_DB,
-        paths.NSSDB_SECMOD_DB,
+        paths.IPA_NSSDB_PWDFILE_TXT,
         paths.NSSWITCH_CONF,
         paths.KRB5_KEYTAB,
         paths.SSSD_CONF,
@@ -163,6 +161,10 @@ class Backup(admintool.AdminTool):
         paths.SYSTEMD_CERTMONGER_SERVICE,
         paths.SYSTEMD_PKI_TOMCAT_SERVICE,
         paths.SVC_LIST_FILE,
+    ) + tuple(
+        os.path.join(base, file)
+        for base in (paths.NSS_DB_DIR, paths.IPA_NSSDB_DIR)
+        for file in ('cert8.db', 'key3.db', 'secmod.db')
     )
 
     logs=(
