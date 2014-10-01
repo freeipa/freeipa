@@ -223,7 +223,7 @@ class TestForcedClientReenrollment(IntegrationTest):
             assert result.returncode == 2
             assert 'host not found' in result.stderr_text
         elif enabled:
-            assert 'Certificate:' in result.stdout_text
+            assert 'Certificate:' not in result.stdout_text
             assert 'Keytab: True' in result.stdout_text
         else:
             assert 'Certificate:' not in result.stdout_text
