@@ -28,10 +28,11 @@ from ipalib.plugins.baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPDelete, LDAPUpdate, LDAPSearch,
                                      LDAPRetrieve, LDAPAddMember,
                                      LDAPRemoveMember, host_is_master,
-                                     pkey_to_value)
+                                     pkey_to_value, add_missing_object_class)
 from ipalib.plugins.service import (split_principal, validate_certificate,
     set_certificate_attrs, ticket_flags_params, update_krbticketflags,
-    set_kerberos_attrs)
+    set_kerberos_attrs, rename_ipaallowedtoperform_from_ldap,
+    rename_ipaallowedtoperform_to_ldap)
 from ipalib.plugins.dns import (dns_container_exists, _record_types,
         add_records_for_host_validation, add_records_for_host,
         get_reverse_zone)
@@ -102,6 +103,9 @@ EXAMPLES:
 """) + _("""
  Add a host that can manage this host's keytab and certificate:
    ipa host-add-managedby --hosts=test2 test
+""") + _("""
+ Allow user to create a keytab:
+   ipa host-allow-create-keytab test2 --users=tuser1
 """)
 
 register = Registry()
@@ -201,6 +205,24 @@ host_output_params = (
     Str('sshpubkeyfp*',
         label=_('SSH public key fingerprint'),
     ),
+    Str('ipaallowedtoperform_read_keys_user',
+        label=_('Users allowed to retrieve keytab'),
+    ),
+    Str('ipaallowedtoperform_read_keys_group',
+        label=_('Groups allowed to retrieve keytab'),
+    ),
+    Str('ipaallowedtoperform_write_keys_user',
+        label=_('Users allowed to create keytab'),
+    ),
+    Str('ipaallowedtoperform_write_keys_group',
+        label=_('Groups allowed to create keytab'),
+    ),
+    Str('ipaallowedtoperform_read_keys',
+        label=_('Failed allowed to retrieve keytab'),
+    ),
+    Str('ipaallowedtoperform_write_keys',
+        label=_('Failed allowed to create keytab'),
+    ),
 )
 
 
@@ -241,17 +263,18 @@ class host(LDAPObject):
     object_name = _('host')
     object_name_plural = _('hosts')
     object_class = ['ipaobject', 'nshost', 'ipahost', 'pkiuser', 'ipaservice']
+    possible_objectclasses = ['ipaallowedoperations']
     permission_filter_objectclasses = ['ipahost']
     # object_class_config = 'ipahostobjectclasses'
     search_attributes = [
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
-        'nshardwareplatform', 'nsosversion', 'managedby'
+        'nshardwareplatform', 'nsosversion', 'managedby', 'ipaallowedtoperform'
     ]
     default_attributes = [
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
         'managedby', 'memberindirect', 'memberofindirect', 'macaddress',
-        'userclass'
+        'userclass', 'ipaallowedtoperform'
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -261,6 +284,8 @@ class host(LDAPObject):
         'managing': ['host'],
         'memberofindirect': ['hostgroup', 'netgroup', 'role', 'hbacrule',
         'sudorule'],
+        'ipaallowedtoperform_read_keys': ['user', 'group'],
+        'ipaallowedtoperform_write_keys': ['user', 'group'],
     }
     bindable = True
     relationships = {
@@ -268,6 +293,8 @@ class host(LDAPObject):
         'enrolledby': ('Enrolled by', 'enroll_by_', 'not_enroll_by_'),
         'managedby': ('Managed by', 'man_by_', 'not_man_by_'),
         'managing': ('Managing', 'man_', 'not_man_'),
+        'ipaallowedtoperform_read_keys': ('Allow to retrieve keytab by', 'retrieve_keytab_by_', 'not_retrieve_keytab_by_'),
+        'ipaallowedtoperform_write_keys': ('Allow to create keytab by', 'write_keytab_by_', 'not_write_keytab_by'),
     }
     password_attributes = [('userpassword', 'has_password'),
                            ('krbprincipalkey', 'has_keytab')]
@@ -343,6 +370,14 @@ class host(LDAPObject):
                 '(targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage host keytab";allow (write) groupdn = "ldap:///cn=Manage host keytab,cn=permissions,cn=pbac,$SUFFIX";)',
             ],
             'default_privileges': {'Host Administrators', 'Host Enrollment'},
+        },
+        'System: Manage Host Keytab Permissions': {
+            'ipapermright': {'read', 'search', 'compare', 'write'},
+            'ipapermdefaultattr': {
+                'ipaallowedtoperform;write_keys',
+                'ipaallowedtoperform;read_keys', 'objectclass'
+            },
+            'default_privileges': {'Host Administrators'},
         },
         'System: Modify Hosts': {
             'ipapermright': {'write'},
@@ -629,6 +664,7 @@ class host_add(LDAPCreate):
             )
         set_certificate_attrs(entry_attrs)
         set_kerberos_attrs(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
 
         if options.get('all', False):
             entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
@@ -888,6 +924,7 @@ class host_mod(LDAPUpdate):
             entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
         set_certificate_attrs(entry_attrs)
         set_kerberos_attrs(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         if entry_attrs['has_password']:
             # If an OTP is set there is no keytab, at least not one
@@ -974,6 +1011,7 @@ class host_find(LDAPSearch):
         for entry_attrs in entries:
             set_certificate_attrs(entry_attrs)
             set_kerberos_attrs(entry_attrs, options)
+            rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
             self.obj.get_password_attributes(ldap, entry_attrs.dn, entry_attrs)
             self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
             if entry_attrs['has_password']:
@@ -1012,6 +1050,7 @@ class host_show(LDAPRetrieve):
 
         set_certificate_attrs(entry_attrs)
         set_kerberos_attrs(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
 
         if options.get('all', False):
             entry_attrs['managing'] = self.obj.get_managed_hosts(dn)
@@ -1159,3 +1198,72 @@ class host_remove_managedby(LDAPRemoveMember):
         self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
         return (completed, dn)
 
+
+@register()
+class host_allow_retrieve_keytab(LDAPAddMember):
+    __doc__ = _('Allow users or groups to retrieve a keytab of this host.')
+    member_attributes = ['ipaallowedtoperform_read_keys']
+    has_output_params = LDAPAddMember.has_output_params + host_output_params
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        rename_ipaallowedtoperform_to_ldap(found)
+        rename_ipaallowedtoperform_to_ldap(not_found)
+        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(failed, options)
+        return (completed, dn)
+
+
+@register()
+class host_disallow_retrieve_keytab(LDAPRemoveMember):
+    __doc__ = _('Disallow users or groups to retrieve a keytab of this host.')
+    member_attributes = ['ipaallowedtoperform_read_keys']
+    has_output_params = LDAPRemoveMember.has_output_params + host_output_params
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        rename_ipaallowedtoperform_to_ldap(found)
+        rename_ipaallowedtoperform_to_ldap(not_found)
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(failed, options)
+        return (completed, dn)
+
+
+@register()
+class host_allow_create_keytab(LDAPAddMember):
+    __doc__ = _('Allow users or groups to create a keytab of this host.')
+    member_attributes = ['ipaallowedtoperform_write_keys']
+    has_output_params = LDAPAddMember.has_output_params + host_output_params
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        rename_ipaallowedtoperform_to_ldap(found)
+        rename_ipaallowedtoperform_to_ldap(not_found)
+        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(failed, options)
+        return (completed, dn)
+
+
+@register()
+class host_disallow_create_keytab(LDAPRemoveMember):
+    __doc__ = _('Disallow users or groups to create a keytab of this host.')
+    member_attributes = ['ipaallowedtoperform_write_keys']
+    has_output_params = LDAPRemoveMember.has_output_params + host_output_params
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        rename_ipaallowedtoperform_to_ldap(found)
+        rename_ipaallowedtoperform_to_ldap(not_found)
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(failed, options)
+        return (completed, dn)

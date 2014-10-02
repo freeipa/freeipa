@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=107
-# Last change: jcholast - add ca_is_enabled
+IPA_API_VERSION_MINOR=108
+# Last change: pvoborni - manage authorization of keytab operations
