@@ -792,8 +792,8 @@ class sudorule_add_runasuser(LDAPAddMember):
                                         failed=failed,
                                         completed=0,
                                         memberattr='ipasudorunas',
-                                        membertype='user',
-                                        externalattr='ipasudorunasextuser',
+                                        membertype='group',
+                                        externalattr='ipasudorunasextusergroup',
                                         )
 
         return (completed + completed_ex_users + completed_ex_groups, dn)
