@@ -95,6 +95,8 @@ aci: (targetattr = "userpassword")(targetfilter = "(objectclass=ipahost)")(versi
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krblastpwdchange || krbprincipalkey")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host Keytab";allow (write) groupdn = "ldap:///cn=System: Manage Host Keytab,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "createtimestamp || entryusn || ipaallowedtoperform;read_keys || ipaallowedtoperform;write_keys || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host Keytab Permissions";allow (compare,read,search,write) groupdn = "ldap:///cn=System: Manage Host Keytab Permissions,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "ipasshpubkey")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host SSH Public Keys";allow (write) groupdn = "ldap:///cn=System: Manage Host SSH Public Keys,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "description || ipaassignedidview || l || macaddress || nshardwareplatform || nshostlocation || nsosversion || userclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Modify Hosts";allow (write) groupdn = "ldap:///cn=System: Modify Hosts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
@@ -192,6 +194,8 @@ dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Add Services";allow (add) groupdn = "ldap:///cn=System: Add Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krblastpwdchange || krbprincipalkey")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Manage Service Keytab";allow (write) groupdn = "ldap:///cn=System: Manage Service Keytab,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=services,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "createtimestamp || entryusn || ipaallowedtoperform;read_keys || ipaallowedtoperform;write_keys || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Manage Service Keytab Permissions";allow (compare,read,search,write) groupdn = "ldap:///cn=System: Manage Service Keytab Permissions,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "usercertificate")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Modify Services";allow (write) groupdn = "ldap:///cn=System: Modify Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=services,cn=accounts,dc=ipa,dc=example

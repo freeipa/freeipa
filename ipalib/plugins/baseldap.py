@@ -494,6 +494,23 @@ def host_is_master(ldap, fqdn):
         return
 
 
+def add_missing_object_class(ldap, objectclass, dn, entry_attrs=None, update=True):
+    """
+    Add object class if missing into entry. Fetches entry if not passed. Updates
+    the entry by default.
+
+    Returns the entry
+    """
+
+    if not entry_attrs:
+        entry_attrs = ldap.get_entry(dn, ['objectclass'])
+    if (objectclass.lower() not in (o.lower() for o in entry_attrs['objectclass'])):
+        entry_attrs['objectclass'].append(objectclass)
+        if update:
+            ldap.update_entry(entry_attrs)
+    return entry_attrs
+
+
 class LDAPObject(Object):
     """
     Object representing a LDAP entry.

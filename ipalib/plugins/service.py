@@ -86,7 +86,10 @@ EXAMPLES:
 
  Request a certificate for an IPA service:
    ipa cert-request --principal=HTTP/web.example.com example.csr
-
+""") + _("""
+ Allow user to create a keytab:
+   ipa service-allow-create-keytab HTTP/web.example.com --users=tuser1
+""") + _("""
  Generate and retrieve a keytab for an IPA service:
    ipa-getkeytab -s ipa.example.com -p HTTP/web.example.com -k /etc/httpd/httpd.keytab
 
@@ -127,7 +130,25 @@ output_params = (
     ),
     Str('revocation_reason?',
         label=_('Revocation reason'),
-    )
+    ),
+    Str('ipaallowedtoperform_read_keys_user',
+        label=_('Users allowed to retrieve keytab'),
+    ),
+    Str('ipaallowedtoperform_read_keys_group',
+        label=_('Groups allowed to retrieve keytab'),
+    ),
+    Str('ipaallowedtoperform_write_keys_user',
+        label=_('Users allowed to create keytab'),
+    ),
+    Str('ipaallowedtoperform_write_keys_group',
+        label=_('Groups allowed to create keytab'),
+    ),
+    Str('ipaallowedtoperform_read_keys',
+        label=_('Failed allowed to retrieve keytab'),
+    ),
+    Str('ipaallowedtoperform_write_keys',
+        label=_('Failed allowed to create keytab'),
+    ),
 )
 
 ticket_flags_params = (
@@ -290,6 +311,23 @@ def set_kerberos_attrs(entry_attrs, options):
         if name in options or all_opt:
             entry_attrs[name] = bool(ticket_flags & value)
 
+def rename_ipaallowedtoperform_from_ldap(entry_attrs, options):
+    if options.get('raw', False):
+        return
+
+    for subtype in ('read_keys', 'write_keys'):
+        name = 'ipaallowedtoperform;%s' % subtype
+        if name in entry_attrs:
+            new_name = 'ipaallowedtoperform_%s' % subtype
+            entry_attrs[new_name] = entry_attrs.pop(name)
+
+def rename_ipaallowedtoperform_to_ldap(entry_attrs):
+    for subtype in ('read_keys', 'write_keys'):
+        name = 'ipaallowedtoperform_%s' % subtype
+        if name in entry_attrs:
+            new_name = 'ipaallowedtoperform;%s' % subtype
+            entry_attrs[new_name] = entry_attrs.pop(name)
+
 @register()
 class service(LDAPObject):
     """
@@ -302,19 +340,24 @@ class service(LDAPObject):
         'krbprincipal', 'krbprincipalaux', 'krbticketpolicyaux', 'ipaobject',
         'ipaservice', 'pkiuser'
     ]
-    possible_objectclasses = ['ipakrbprincipal']
+    possible_objectclasses = ['ipakrbprincipal', 'ipaallowedoperations']
     permission_filter_objectclasses = ['ipaservice']
-    search_attributes = ['krbprincipalname', 'managedby', 'ipakrbauthzdata']
+    search_attributes = ['krbprincipalname', 'managedby', 'ipakrbauthzdata',
+        'ipaallowedtoperform']
     default_attributes = ['krbprincipalname', 'usercertificate', 'managedby',
-        'ipakrbauthzdata', 'memberof']
+        'ipakrbauthzdata', 'memberof', 'ipaallowedtoperform']
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
         'managedby': ['host'],
         'memberof': ['role'],
+        'ipaallowedtoperform_read_keys': ['user', 'group'],
+        'ipaallowedtoperform_write_keys': ['user', 'group'],
     }
     bindable = True
     relationships = {
         'managedby': ('Managed by', 'man_by_', 'not_man_by_'),
+        'ipaallowedtoperform_read_keys': ('Allow to retrieve keytab by', 'retrieve_keytab_by_', 'not_retrieve_keytab_by_'),
+        'ipaallowedtoperform_write_keys': ('Allow to create keytab by', 'write_keytab_by_', 'not_write_keytab_by'),
     }
     password_attributes = [('krbprincipalkey', 'has_keytab')]
     managed_permissions = {
@@ -344,6 +387,14 @@ class service(LDAPObject):
             'replaces': [
                 '(targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///krbprincipalname=*,cn=services,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage service keytab";allow (write) groupdn = "ldap:///cn=Manage service keytab,cn=permissions,cn=pbac,$SUFFIX";)',
             ],
+            'default_privileges': {'Service Administrators', 'Host Administrators'},
+        },
+        'System: Manage Service Keytab Permissions': {
+            'ipapermright': {'read', 'search', 'compare', 'write'},
+            'ipapermdefaultattr': {
+                'ipaallowedtoperform;write_keys',
+                'ipaallowedtoperform;read_keys', 'objectclass'
+            },
             'default_privileges': {'Service Administrators', 'Host Administrators'},
         },
         'System: Modify Services': {
@@ -469,6 +520,7 @@ class service_add(LDAPCreate):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         set_kerberos_attrs(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
         return dn
 
 
@@ -561,6 +613,7 @@ class service_mod(LDAPUpdate):
         assert isinstance(dn, DN)
         set_certificate_attrs(entry_attrs)
         set_kerberos_attrs(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
         return dn
 
 
@@ -598,6 +651,7 @@ class service_find(LDAPSearch):
             self.obj.get_password_attributes(ldap, entry_attrs.dn, entry_attrs)
             set_certificate_attrs(entry_attrs)
             set_kerberos_attrs(entry_attrs, options)
+            rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
         return truncated
 
 
@@ -620,6 +674,7 @@ class service_show(LDAPRetrieve):
 
         set_certificate_attrs(entry_attrs)
         set_kerberos_attrs(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
 
         return dn
 
@@ -653,6 +708,75 @@ class service_remove_host(LDAPRemoveMember):
     member_attributes = ['managedby']
     has_output_params = LDAPRemoveMember.has_output_params + output_params
 
+
+@register()
+class service_allow_retrieve_keytab(LDAPAddMember):
+    __doc__ = _('Allow users or groups to retrieve a keytab of this service.')
+    member_attributes = ['ipaallowedtoperform_read_keys']
+    has_output_params = LDAPAddMember.has_output_params + output_params
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        rename_ipaallowedtoperform_to_ldap(found)
+        rename_ipaallowedtoperform_to_ldap(not_found)
+        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(failed, options)
+        return (completed, dn)
+
+
+@register()
+class service_disallow_retrieve_keytab(LDAPRemoveMember):
+    __doc__ = _('Disallow users or groups to retrieve a keytab of this service.')
+    member_attributes = ['ipaallowedtoperform_read_keys']
+    has_output_params = LDAPRemoveMember.has_output_params + output_params
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        rename_ipaallowedtoperform_to_ldap(found)
+        rename_ipaallowedtoperform_to_ldap(not_found)
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(failed, options)
+        return (completed, dn)
+
+
+@register()
+class service_allow_create_keytab(LDAPAddMember):
+    __doc__ = _('Allow users or groups to create a keytab of this service.')
+    member_attributes = ['ipaallowedtoperform_write_keys']
+    has_output_params = LDAPAddMember.has_output_params + output_params
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        rename_ipaallowedtoperform_to_ldap(found)
+        rename_ipaallowedtoperform_to_ldap(not_found)
+        add_missing_object_class(ldap, u'ipaallowedoperations', dn)
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(failed, options)
+        return (completed, dn)
+
+
+@register()
+class service_disallow_create_keytab(LDAPRemoveMember):
+    __doc__ = _('Disallow users or groups to create a keytab of this service.')
+    member_attributes = ['ipaallowedtoperform_write_keys']
+    has_output_params = LDAPRemoveMember.has_output_params + output_params
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        rename_ipaallowedtoperform_to_ldap(found)
+        rename_ipaallowedtoperform_to_ldap(not_found)
+        return dn
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
+        rename_ipaallowedtoperform_from_ldap(failed, options)
+        return (completed, dn)
 
 
 @register()
