@@ -37,9 +37,6 @@ ZONE_DATA = {
     'pkey': ZONE_PKEY,
     'add': [
         ('textbox', 'idnsname', ZONE_PKEY),
-        ('textbox', 'idnssoamname', 'ns'),
-        ('textbox', 'ip_address', '192.168.1.1'),
-        ('checkbox', 'force', 'checked'),
     ],
     'mod': [
         ('checkbox', 'idnsallowsyncptr', 'checked'),
