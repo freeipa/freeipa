@@ -3,7 +3,7 @@ options {
 	listen-on-v6 {any;};
 
 	// Put files that named is allowed to write in the data/ directory:
-	directory "/var/named"; // the default
+	directory "$NAMED_VAR_DIR"; // the default
 	dump-file		"data/cache_dump.db";
 	statistics-file		"data/named_stats.txt";
 	memstatistics-file	"data/named_mem_stats.txt";
@@ -14,8 +14,8 @@ options {
 	// Any host is permitted to issue recursive queries
 	allow-recursion { any; };
 
-	tkey-gssapi-keytab "/etc/named.keytab";
-	pid-file "/run/named/named.pid";
+	tkey-gssapi-keytab "$NAMED_KEYTAB";
+	pid-file "$NAMED_PID";
 
 	dnssec-enable yes;
 
@@ -42,7 +42,7 @@ zone "." IN {
 	file "named.ca";
 };
 
-include "/etc/named.rfc1912.zones";
+include "$RFC1912_ZONES";
 include "$ROOT_KEY";
 
 dynamic-db "ipa" {
