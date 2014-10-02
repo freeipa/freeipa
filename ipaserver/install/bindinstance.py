@@ -666,6 +666,10 @@ class BindInstance(service.Service):
             BINDKEYS_FILE=paths.NAMED_BINDKEYS_FILE,
             MANAGED_KEYS_DIR=paths.NAMED_MANAGED_KEYS_DIR,
             ROOT_KEY=paths.NAMED_ROOT_KEY,
+            NAMED_KEYTAB=paths.NAMED_KEYTAB,
+            RFC1912_ZONES=paths.NAMED_RFC1912_ZONES,
+            NAMED_PID=paths.NAMED_PID,
+            NAMED_VAR_DIR=paths.NAMED_VAR_DIR,
             )
 
     def __setup_dns_container(self):
