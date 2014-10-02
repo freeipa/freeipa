@@ -620,6 +620,123 @@ def named_enable_dnssec():
     return True
 
 
+def named_bindkey_file_option():
+    """
+    Add options bindkey_file to named.conf
+    """
+    if not bindinstance.named_conf_exists():
+        # DNS service may not be configured
+        root_logger.info('DNS is not configured')
+        return False
+
+    if sysupgrade.get_upgrade_state('named.conf', 'bindkey-file_updated'):
+        root_logger.debug('Skip bindkey-file configuration check')
+        return False
+
+    try:
+        bindkey_file = bindinstance.named_conf_get_directive('bindkey-file',
+                bindinstance.NAMED_SECTION_OPTIONS)
+    except IOError, e:
+        root_logger.error('Cannot retrieve bindkey-file option from %s: %s',
+                bindinstance.NAMED_CONF, e)
+        return False
+    else:
+        if bindkey_file:
+            root_logger.debug('bindkey-file configuration already updated')
+            sysupgrade.set_upgrade_state('named.conf', 'bindkey-file_updated', True)
+            return False
+
+    root_logger.info('[Setting "bindkeys-file" option in named.conf]')
+    try:
+        bindinstance.named_conf_set_directive('bindkeys-file',
+                                              paths.NAMED_BINDKEYS_FILE,
+                                              bindinstance.NAMED_SECTION_OPTIONS)
+    except IOError, e:
+        root_logger.error('Cannot update bindkeys-file configuration in %s: %s',
+                bindinstance.NAMED_CONF, e)
+        return False
+
+
+    sysupgrade.set_upgrade_state('named.conf', 'bindkey-file_updated', True)
+    return True
+
+def named_managed_keys_dir_option():
+    """
+    Add options managed_keys_directory to named.conf
+    """
+    if not bindinstance.named_conf_exists():
+        # DNS service may not be configured
+        root_logger.info('DNS is not configured')
+        return False
+
+    if sysupgrade.get_upgrade_state('named.conf', 'managed-keys-directory_updated'):
+        root_logger.debug('Skip managed-keys-directory configuration check')
+        return False
+
+    try:
+        managed_keys = bindinstance.named_conf_get_directive('managed-keys-directory',
+                bindinstance.NAMED_SECTION_OPTIONS)
+    except IOError, e:
+        root_logger.error('Cannot retrieve managed-keys-directory option from %s: %s',
+                bindinstance.NAMED_CONF, e)
+        return False
+    else:
+        if managed_keys:
+            root_logger.debug('managed_keys_directory configuration already updated')
+            sysupgrade.set_upgrade_state('named.conf', 'managed-keys-directory_updated', True)
+            return False
+
+    root_logger.info('[Setting "managed-keys-directory" option in named.conf]')
+    try:
+        bindinstance.named_conf_set_directive('managed-keys-directory',
+                                              paths.NAMED_MANAGED_KEYS_DIR,
+                                              bindinstance.NAMED_SECTION_OPTIONS)
+    except IOError, e:
+        root_logger.error('Cannot update managed-keys-directory configuration in %s: %s',
+                bindinstance.NAMED_CONF, e)
+        return False
+
+
+    sysupgrade.set_upgrade_state('named.conf', 'managed-keys-directory_updated', True)
+    return True
+
+def named_root_key_include():
+    """
+    Add options managed_keys_directory to named.conf
+    """
+    if not bindinstance.named_conf_exists():
+        # DNS service may not be configured
+        root_logger.info('DNS is not configured')
+        return False
+
+    if sysupgrade.get_upgrade_state('named.conf', 'root_key_updated'):
+        root_logger.debug('Skip root key configuration check')
+        return False
+
+    try:
+        root_key = bindinstance.named_conf_include_exists(paths.NAMED_ROOT_KEY)
+    except IOError, e:
+        root_logger.error('Cannot check root key include in %s: %s',
+                bindinstance.NAMED_CONF, e)
+        return False
+    else:
+        if root_key:
+            root_logger.debug('root keys configuration already updated')
+            sysupgrade.set_upgrade_state('named.conf', 'root_key_updated', True)
+            return False
+
+    root_logger.info('[Including named root key in named.conf]')
+    try:
+        bindinstance.named_conf_add_include(paths.NAMED_ROOT_KEY)
+    except IOError, e:
+        root_logger.error('Cannot update named root key include in %s: %s',
+                bindinstance.NAMED_CONF, e)
+        return False
+
+
+    sysupgrade.set_upgrade_state('named.conf', 'root_key_updated', True)
+    return True
+
 def certificate_renewal_update(ca):
     """
     Update certmonger certificate renewal configuration.
@@ -1230,6 +1347,9 @@ def main():
                           named_update_gssapi_configuration(),
                           named_update_pid_file(),
                           named_enable_dnssec(),
+                          named_bindkey_file_option(),
+                          named_managed_keys_dir_option(),
+                          named_root_key_include(),
                          )
 
     if any(named_conf_changes):
