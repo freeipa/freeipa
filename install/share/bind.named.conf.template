@@ -18,6 +18,11 @@ options {
 	pid-file "/run/named/named.pid";
 
 	dnssec-enable yes;
+
+	/* Path to ISC DLV key */
+	bindkeys-file "$BINDKEYS_FILE";
+
+	managed-keys-directory "$MANAGED_KEYS_DIR";
 };
 
 /* If you want to enable debugging, eg. using the 'rndc trace' command,
@@ -38,6 +43,7 @@ zone "." IN {
 };
 
 include "/etc/named.rfc1912.zones";
+include "$ROOT_KEY";
 
 dynamic-db "ipa" {
 	library "ldap.so";

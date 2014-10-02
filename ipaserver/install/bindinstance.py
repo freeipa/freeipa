@@ -55,6 +55,9 @@ named_conf_arg_options_template = "%(indent)s%(name)s \"%(value)s\";\n"
 # non string args for options section
 named_conf_arg_options_re_nonstr = re.compile(r'(?P<indent>\s*)(?P<name>\S+)\s+(?P<value>[^"]+)\s*;')
 named_conf_arg_options_template_nonstr = "%(indent)s%(name)s %(value)s;\n"
+# include directive
+named_conf_include_re = re.compile(r'\s*include\s+"(?P<path>)"\s*;')
+named_conf_include_template = "include \"%(path)s\";\n"
 
 def check_inst(unattended):
     has_bind = True
@@ -202,6 +205,28 @@ def named_conf_set_directive(name, value, section=NAMED_SECTION_IPA,
     # write new configuration
     with open(NAMED_CONF, 'w') as f:
         f.write("".join(new_lines))
+
+def named_conf_include_exists(path):
+    """
+    Check if include exists in named.conf
+    :param path: path in include directive
+    :return: True if include exists, else False
+    """
+    with open(NAMED_CONF, 'r') as f:
+        for line in f:
+            match = named_conf_include_re.match(line)
+            if match and path == match.group('path'):
+                return True
+
+    return False
+
+def named_conf_add_include(path):
+    """
+    append include at the end of file
+    :param path: path to be insert to include directive
+    """
+    with open(NAMED_CONF, 'a') as f:
+        f.write(named_conf_include_template % {'path': path})
 
 def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None,
                          autobind=ipaldap.AUTOBIND_DISABLED):
@@ -638,6 +663,9 @@ class BindInstance(service.Service):
             OPTIONAL_NTP=optional_ntp,
             ZONEMGR=self.zonemgr,
             IPA_CA_RECORD=ipa_ca,
+            BINDKEYS_FILE=paths.NAMED_BINDKEYS_FILE,
+            MANAGED_KEYS_DIR=paths.NAMED_MANAGED_KEYS_DIR,
+            ROOT_KEY=paths.NAMED_ROOT_KEY,
             )
 
     def __setup_dns_container(self):
