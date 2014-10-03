@@ -18,16 +18,5 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 '''
-This Fedora base platform module exports default filesystem paths as common
-in Fedora-based systems.
+This module contains Red Hat OS family specific platform files.
 '''
-
-# Fallback to default path definitions
-from ipaplatform.redhat.paths import RedHatPathNamespace
-
-
-class FedoraPathNamespace(RedHatPathNamespace):
-    pass
-
-
-paths = FedoraPathNamespace()
