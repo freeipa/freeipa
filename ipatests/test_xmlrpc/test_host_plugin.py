@@ -34,6 +34,8 @@ from nose.plugins.skip import SkipTest
 from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, XMLRPC_test,
     fuzzy_uuid, fuzzy_digits, fuzzy_hash, fuzzy_date, fuzzy_issuer,
     fuzzy_hex)
+from ipatests.test_xmlrpc.test_user_plugin import (
+    get_user_result, get_user_dn, get_group_dn)
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.testcert import get_testcert
 import base64
@@ -138,6 +140,13 @@ ipv6_fromip_ptr_dn = DN(('idnsname', ipv6_fromip_ptr), revipv6zone_dn)
 
 sshpubkey = u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6XHBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGIwA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNmcSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM019Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF0L public key test'
 sshpubkeyfp = u'13:67:6B:BF:4E:A2:05:8E:AE:25:8B:A1:31:DE:6F:1B public key test (ssh-rsa)'
+
+user1 = u'tuser1'
+user2 = u'tuser2'
+group1 = u'group1'
+group1_dn = get_group_dn(group1)
+group2 = u'group2'
+group2_dn = get_group_dn(group2)
 
 class test_host(Declarative):
 
@@ -1398,6 +1407,359 @@ class test_host_dns(Declarative):
                     dn=ipv6_fromip_ptr_dn,
                     idnsname=[ipv6_fromip_ptr_dnsname],
                     ptrrecord=[ipv6_fromip_ptrrec],
+                ),
+            ),
+        ),
+    ]
+
+
+class test_host_allowed_to(Declarative):
+    cleanup_commands = [
+        ('user_del', [user1], {}),
+        ('user_del', [user2], {}),
+        ('group_del', [group1], {}),
+        ('group_del', [group2], {}),
+        ('host_del', [fqdn1], {}),
+    ]
+
+    tests = [
+        # prepare entries
+        dict(
+            desc='Create %r' % user1,
+            command=(
+                'user_add', [], dict(givenname=u'Test', sn=u'User1')
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "%s"' % user1,
+                result=get_user_result(user1, u'Test', u'User1', 'add'),
+            ),
+        ),
+        dict(
+            desc='Create %r' % user2,
+            command=(
+                'user_add', [], dict(givenname=u'Test', sn=u'User2')
+            ),
+            expected=dict(
+                value=user2,
+                summary=u'Added user "%s"' % user2,
+                result=get_user_result(user2, u'Test', u'User2', 'add'),
+            ),
+        ),
+        dict(
+            desc='Create group: %r' % group1,
+            command=(
+                'group_add', [group1], dict()
+            ),
+            expected=dict(
+                value=group1,
+                summary=u'Added group "%s"' % group1,
+                result=dict(
+                    cn=[group1],
+                    objectclass=objectclasses.group + [u'posixgroup'],
+                    ipauniqueid=[fuzzy_uuid],
+                    gidnumber=[fuzzy_digits],
+                    dn=group1_dn
+                ),
+            ),
+        ),
+        dict(
+            desc='Create group: %r' % group2,
+            command=(
+                'group_add', [group2], dict()
+            ),
+            expected=dict(
+                value=group2,
+                summary=u'Added group "%s"' % group2,
+                result=dict(
+                    cn=[group2],
+                    objectclass=objectclasses.group + [u'posixgroup'],
+                    ipauniqueid=[fuzzy_uuid],
+                    gidnumber=[fuzzy_digits],
+                    dn=group2_dn
+                ),
+            ),
+        ),
+        dict(
+            desc='Create %r' % fqdn1,
+            command=(
+                'host_add', [fqdn1],
+                dict(
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=fqdn1,
+                summary=u'Added host "%s"' % fqdn1,
+                result=dict(
+                    dn=dn1,
+                    fqdn=[fqdn1],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[fqdn1],
+                    has_keytab=False,
+                    has_password=False,
+                ),
+            ),
+        ),
+
+        # verify
+        dict(
+            desc='Allow %r to a retrieve keytab of %r' % (user1, fqdn1),
+            command=('host_allow_retrieve_keytab', [fqdn1],
+                     dict(user=user1)),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_read_keys=dict(
+                        group=[],
+                        user=[],
+                    ),
+                ),
+                completed=1,
+                result=dict(
+                    dn=dn1,
+                    fqdn=[fqdn1],
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Duplicate add: user %r' % (user1),
+            command=('host_allow_retrieve_keytab', [fqdn1],
+                     dict(user=user1)),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_read_keys=dict(
+                        group=[],
+                        user=[[user1, u'This entry is already a member']],
+                    ),
+                ),
+                completed=0,
+                result=dict(
+                    dn=dn1,
+                    fqdn=[fqdn1],
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Allow %r, %r to a retrieve keytab of %r' % (
+                group1, group2, fqdn1),
+            command=('host_allow_retrieve_keytab', [fqdn1],
+                     dict(group=[group1, group2])),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_read_keys=dict(
+                        group=[],
+                        user=[],
+                    ),
+                ),
+                completed=2,
+                result=dict(
+                    dn=dn1,
+                    fqdn=[fqdn1],
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1, group2],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Invalid removal of retrieve keytab %r' % (user2),
+            command=('host_disallow_retrieve_keytab', [fqdn1],
+                     dict(user=[user2])),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_read_keys=dict(
+                        group=[],
+                        user=[[user2, u'This entry is not a member']],
+                    ),
+                ),
+                completed=0,
+                result=dict(
+                    dn=dn1,
+                    fqdn=[fqdn1],
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1, group2],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Removal of retrieve keytab %r' % (group2),
+            command=('host_disallow_retrieve_keytab', [fqdn1],
+                     dict(group=[group2])),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_read_keys=dict(
+                        group=[],
+                        user=[],
+                    ),
+                ),
+                completed=1,
+                result=dict(
+                    dn=dn1,
+                    fqdn=[fqdn1],
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Allow %r, %r to a create keytab of %r' % (
+                group1, user1, fqdn1),
+            command=('host_allow_create_keytab', [fqdn1],
+                     dict(group=[group1, group2], user=[user1])),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_write_keys=dict(
+                        group=[],
+                        user=[],
+                    ),
+                ),
+                completed=3,
+                result=dict(
+                    dn=dn1,
+                    fqdn=[fqdn1],
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_user=[user1],
+                    ipaallowedtoperform_write_keys_group=[group1, group2],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Duplicate add: %r, %r' % (user1, group1),
+            command=('host_allow_create_keytab', [fqdn1],
+                     dict(group=[group1], user=[user1])),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_write_keys=dict(
+                        group=[[group1, u'This entry is already a member']],
+                        user=[[user1, u'This entry is already a member']],
+                    ),
+                ),
+                completed=0,
+                result=dict(
+                    dn=dn1,
+                    fqdn=[fqdn1],
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_user=[user1],
+                    ipaallowedtoperform_write_keys_group=[group1, group2],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Invalid removal of create keytab %r' % (user2),
+            command=('host_disallow_create_keytab', [fqdn1],
+                     dict(user=[user2])),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_write_keys=dict(
+                        group=[],
+                        user=[[user2, u'This entry is not a member']],
+                    ),
+                ),
+                completed=0,
+                result=dict(
+                    dn=dn1,
+                    fqdn=[fqdn1],
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_user=[user1],
+                    ipaallowedtoperform_write_keys_group=[group1, group2],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Removal of create keytab %r' % (group2),
+            command=('host_disallow_create_keytab', [fqdn1],
+                     dict(group=[group2])),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_write_keys=dict(
+                        group=[],
+                        user=[],
+                    ),
+                ),
+                completed=1,
+                result=dict(
+                    dn=dn1,
+                    fqdn=[fqdn1],
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_user=[user1],
+                    ipaallowedtoperform_write_keys_group=[group1],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Presence of ipaallowedtoperform in show output',
+            command=('host_show', [fqdn1], {}),
+            expected=dict(
+                value=fqdn1,
+                summary=None,
+                result=dict(
+                    dn=dn1,
+                    fqdn=[fqdn1],
+                    has_keytab=False,
+                    has_password=False,
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_user=[user1],
+                    ipaallowedtoperform_write_keys_group=[group1],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Presence of ipaallowedtoperform in mod output',
+            command=(
+                'host_mod', [fqdn1],
+                dict(description=u"desc")),
+            expected=dict(
+                value=fqdn1,
+                summary=u'Modified host "%s"' % fqdn1,
+                result=dict(
+                    description=[u"desc"],
+                    fqdn=[fqdn1],
+                    has_keytab=False,
+                    has_password=False,
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_user=[user1],
+                    ipaallowedtoperform_write_keys_group=[group1],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    managedby_host=[fqdn1],
                 ),
             ),
         ),

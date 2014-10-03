@@ -27,6 +27,8 @@ from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_digits, fuzzy_date, fuzzy_iss
 from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_hex
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.testcert import get_testcert
+from ipatests.test_xmlrpc.test_user_plugin import (
+    get_user_result, get_user_dn, get_group_dn)
 import base64
 from ipapython.dn import DN
 
@@ -46,6 +48,12 @@ role1_dn = DN(('cn', role1), api.env.container_rolegroup, api.env.basedn)
 
 badservercert = 'MIICbzCCAdigAwIBAgICA/4wDQYJKoZIhvcNAQEFBQAwKTEnMCUGA1UEAxMeSVBBIFRlc3QgQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTEwMDgwOTE1MDIyN1oXDTIwMDgwOTE1MDIyN1owKTEMMAoGA1UEChMDSVBBMRkwFwYDVQQDExBwdW1hLmdyZXlvYWsuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwYbfEOQPgGenPn9vt1JFKvWm/Je3y2tawGWA3LXDuqfFJyYtZ8ib3TcBUOnLk9WK5g2qCwHaNlei7bj8ggIfr5hegAVe10cun+wYErjnYo7hsHYd+57VZezeipWrXu+7NoNd4+c4A5lk4A/xJay9j3bYx2oOM8BEox4xWYoWge1ljPrc5JK46f0X7AGW4F2VhnKPnf8rwSuzI1U8VGjutyM9TWNy3m9KMWeScjyG/ggIpOjUDMV7HkJL0Di61lznR9jXubpiEC7gWGbTp84eGl/Nn9bgK1AwHfJ2lHwfoY4uiL7ge1gyP6EvuUlHoBzdb7pekiX28iePjW3iEG9IawIDAQABoyIwIDARBglghkgBhvhCAQEEBAMCBkAwCwYDVR0PBAQDAgUgMA0GCSqGSIb3DQEBBQUAA4GBACRESLemRV9BPxfEgbALuxH5oE8jQm8WZ3pm2pALbpDlAd9wQc3yVf6RtkfVthyDnM18bg7IhxKpd77/p3H8eCnS8w5MLVRda6ktUC6tGhFTS4QKAf0WyDGTcIgkXbeDw0OPAoNHivoXbIXIIRxlw/XgaSaMzJQDBG8iROsN4kCv'
 
+user1 = u'tuser1'
+user2 = u'tuser2'
+group1 = u'group1'
+group1_dn = get_group_dn(group1)
+group2 = u'group2'
+group2_dn = get_group_dn(group2)
 
 class test_service(Declarative):
 
@@ -748,6 +756,366 @@ class test_service_in_role(Declarative):
                     cn=[role1],
                     description=[u'role desc 1'],
                     member_service=[service1],
+                ),
+            ),
+        ),
+    ]
+
+
+class test_service_allowed_to(Declarative):
+    cleanup_commands = [
+        ('user_del', [user1], {}),
+        ('user_del', [user2], {}),
+        ('group_del', [group1], {}),
+        ('group_del', [group2], {}),
+        ('host_del', [fqdn1], {}),
+        ('service_del', [service1], {}),
+    ]
+
+    tests = [
+        # prepare entries
+        dict(
+            desc='Create %r' % user1,
+            command=(
+                'user_add', [], dict(givenname=u'Test', sn=u'User1')
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "%s"' % user1,
+                result=get_user_result(user1, u'Test', u'User1', 'add'),
+            ),
+        ),
+        dict(
+            desc='Create %r' % user2,
+            command=(
+                'user_add', [], dict(givenname=u'Test', sn=u'User2')
+            ),
+            expected=dict(
+                value=user2,
+                summary=u'Added user "%s"' % user2,
+                result=get_user_result(user2, u'Test', u'User2', 'add'),
+            ),
+        ),
+        dict(
+            desc='Create group: %r' % group1,
+            command=(
+                'group_add', [group1], dict()
+            ),
+            expected=dict(
+                value=group1,
+                summary=u'Added group "%s"' % group1,
+                result=dict(
+                    cn=[group1],
+                    objectclass=objectclasses.group + [u'posixgroup'],
+                    ipauniqueid=[fuzzy_uuid],
+                    gidnumber=[fuzzy_digits],
+                    dn=group1_dn
+                ),
+            ),
+        ),
+        dict(
+            desc='Create group: %r' % group2,
+            command=(
+                'group_add', [group2], dict()
+            ),
+            expected=dict(
+                value=group2,
+                summary=u'Added group "%s"' % group2,
+                result=dict(
+                    cn=[group2],
+                    objectclass=objectclasses.group + [u'posixgroup'],
+                    ipauniqueid=[fuzzy_uuid],
+                    gidnumber=[fuzzy_digits],
+                    dn=group2_dn
+                ),
+            ),
+        ),
+        dict(
+            desc='Create %r' % fqdn1,
+            command=(
+                'host_add', [fqdn1],
+                dict(
+                    description=u'Test host 1',
+                    l=u'Undisclosed location 1',
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=fqdn1,
+                summary=u'Added host "%s"' % fqdn1,
+                result=dict(
+                    dn=host1dn,
+                    fqdn=[fqdn1],
+                    description=[u'Test host 1'],
+                    l=[u'Undisclosed location 1'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[u'%s' % fqdn1],
+                    has_keytab=False,
+                    has_password=False,
+                ),
+            ),
+        ),
+        dict(
+            desc='Create %r' % service1,
+            command=('service_add', [service1_no_realm], dict(force=True)),
+            expected=dict(
+                value=service1,
+                summary=u'Added service "%s"' % service1,
+                result=dict(
+                    dn=service1dn,
+                    krbprincipalname=[service1],
+                    objectclass=objectclasses.service,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        # verify
+        dict(
+            desc='Allow %r to a retrieve keytab of %r' % (user1, service1),
+            command=('service_allow_retrieve_keytab', [service1],
+                     dict(user=user1)),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_read_keys=dict(
+                        group=[],
+                        user=[],
+                    ),
+                ),
+                completed=1,
+                result=dict(
+                    dn=service1dn,
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Duplicate add: user %r' % (user1),
+            command=('service_allow_retrieve_keytab', [service1],
+                     dict(user=user1)),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_read_keys=dict(
+                        group=[],
+                        user=[[user1, u'This entry is already a member']],
+                    ),
+                ),
+                completed=0,
+                result=dict(
+                    dn=service1dn,
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Allow %r, %r to a retrieve keytab of %r' % (
+                group1, group2, service1),
+            command=('service_allow_retrieve_keytab', [service1],
+                     dict(group=[group1, group2])),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_read_keys=dict(
+                        group=[],
+                        user=[],
+                    ),
+                ),
+                completed=2,
+                result=dict(
+                    dn=service1dn,
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1, group2],
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Invalid removal of retrieve keytab %r' % (user2),
+            command=('service_disallow_retrieve_keytab', [service1],
+                     dict(user=[user2])),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_read_keys=dict(
+                        group=[],
+                        user=[[user2, u'This entry is not a member']],
+                    ),
+                ),
+                completed=0,
+                result=dict(
+                    dn=service1dn,
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1, group2],
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Removal of retrieve keytab %r' % (group2),
+            command=('service_disallow_retrieve_keytab', [service1],
+                     dict(group=[group2])),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_read_keys=dict(
+                        group=[],
+                        user=[],
+                    ),
+                ),
+                completed=1,
+                result=dict(
+                    dn=service1dn,
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1],
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Allow %r, %r to a create keytab of %r' % (
+                group1, user1, service1),
+            command=('service_allow_create_keytab', [service1],
+                     dict(group=[group1, group2], user=[user1])),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_write_keys=dict(
+                        group=[],
+                        user=[],
+                    ),
+                ),
+                completed=3,
+                result=dict(
+                    dn=service1dn,
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_user=[user1],
+                    ipaallowedtoperform_write_keys_group=[group1, group2],
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Duplicate add: %r, %r' % (user1, group1),
+            command=('service_allow_create_keytab', [service1],
+                     dict(group=[group1], user=[user1])),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_write_keys=dict(
+                        group=[[group1, u'This entry is already a member']],
+                        user=[[user1, u'This entry is already a member']],
+                    ),
+                ),
+                completed=0,
+                result=dict(
+                    dn=service1dn,
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_user=[user1],
+                    ipaallowedtoperform_write_keys_group=[group1, group2],
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Invalid removal of create keytab %r' % (user2),
+            command=('service_disallow_create_keytab', [service1],
+                     dict(user=[user2])),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_write_keys=dict(
+                        group=[],
+                        user=[[user2, u'This entry is not a member']],
+                    ),
+                ),
+                completed=0,
+                result=dict(
+                    dn=service1dn,
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_user=[user1],
+                    ipaallowedtoperform_write_keys_group=[group1, group2],
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Removal of create keytab %r' % (group2),
+            command=('service_disallow_create_keytab', [service1],
+                     dict(group=[group2])),
+            expected=dict(
+                failed=dict(
+                    ipaallowedtoperform_write_keys=dict(
+                        group=[],
+                        user=[],
+                    ),
+                ),
+                completed=1,
+                result=dict(
+                    dn=service1dn,
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_user=[user1],
+                    ipaallowedtoperform_write_keys_group=[group1],
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Presence of ipaallowedtoperform in show output',
+            command=('service_show', [service1_no_realm], {}),
+            expected=dict(
+                value=service1,
+                summary=None,
+                result=dict(
+                    dn=service1dn,
+                    has_keytab=False,
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_user=[user1],
+                    ipaallowedtoperform_write_keys_group=[group1],
+                    krbprincipalname=[service1],
+                    managedby_host=[fqdn1],
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Presence of ipaallowedtoperform in mod output',
+            command=(
+                'service_mod', [service1_no_realm],
+                dict(ipakrbokasdelegate=True)),
+            expected=dict(
+                value=service1,
+                summary=u'Modified service "%s"' % service1,
+                result=dict(
+                    ipaallowedtoperform_read_keys_user=[user1],
+                    ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_user=[user1],
+                    ipaallowedtoperform_write_keys_group=[group1],
+                    ipakrbokasdelegate=True,
+                    krbprincipalname=[service1],
+                    krbticketflags=[u'1048704'],
+                    managedby_host=[fqdn1],
                 ),
             ),
         ),
