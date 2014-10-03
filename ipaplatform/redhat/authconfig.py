@@ -21,7 +21,7 @@
 from ipapython import ipautil
 
 
-class FedoraAuthConfig(object):
+class RedHatAuthConfig(object):
     """
     AuthConfig class implements system-independent interface to configure
     system authentication resources. In Red Hat systems this is done with
