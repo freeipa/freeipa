@@ -298,7 +298,10 @@
                             "add_permission": "Add Permission",
                             "add_permission_confirm":"Are you sure you want to add permission for DNS Zone ${object}?",
                             "remove_permission": "Remove Permission",
-                            "remove_permission_confirm": "Are you sure you want to remove permission for DNS Zone ${object}?"
+                            "remove_permission_confirm": "Are you sure you want to remove permission for DNS Zone ${object}?",
+                            "skip_dns_check": "Skip DNS check",
+                            "soamname_change_message": "Do you want to check if new authoritative nameserver address is in DNS",
+                            "soamname_change_title": "Authoritative nameserver change"
                         },
                         "group": {
                             "details": "Group Settings",
