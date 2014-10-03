@@ -443,6 +443,9 @@ class i18n_messages(Command):
                 "add_permission_confirm":_("Are you sure you want to add permission for DNS Zone ${object}?"),
                 "remove_permission": _("Remove Permission"),
                 "remove_permission_confirm": _("Are you sure you want to remove permission for DNS Zone ${object}?"),
+                "skip_dns_check": _("Skip DNS check"),
+                "soamname_change_message": _("Do you want to check if new authoritative nameserver address is in DNS"),
+                "soamname_change_title": _("Authoritative nameserver change"),
             },
             "group": {
                 "details": _("Group Settings"),

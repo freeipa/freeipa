@@ -516,6 +516,55 @@ IPA.dnszone_details_facet = function(spec, no_init) {
         return batch;
     };
 
+    that.update = function (on_success, on_error) {
+
+        // If update touches 'idnssoamname', open dialog to allow to skip
+        // DNS resolution check (--force option)
+
+        var command = that.create_update_command();
+
+        command.on_success = function (data, text_status, xhr) {
+            that.update_on_success(data, text_status, xhr);
+            if (on_success) on_success.call(this, data, text_status, xhr);
+        };
+
+        command.on_error = function (xhr, text_status, error_thrown) {
+            that.update_on_error(xhr, text_status, error_thrown);
+            if (on_error) on_error.call(this, xhr, text_status, error_thrown);
+        };
+
+        if (command.options.idnssoamname === undefined) {
+            command.execute();
+            return;
+        }
+
+        var dialog = IPA.confirm_dialog({
+            title: '@i18n:objects.dnszone.soamname_change_title',
+            message: '@i18n:objects.dnszone.soamname_change_message',
+            ok_label: '@i18n:objects.realmdomains.check_dns',
+            on_ok: function () {
+                command.execute();
+            }
+        });
+
+        var cancel_button = dialog.get_button('cancel');
+        dialog.buttons.remove('cancel');
+
+        dialog.create_button({
+            name: 'force',
+            label: '@i18n:objects.realmdomains.force_update',
+            visible: true,
+            click: function () {
+                command.set_option('force', true);
+                command.execute();
+                dialog.close();
+            }
+        });
+
+        dialog.add_button(cancel_button);
+        dialog.open();
+    };
+
     that.update_on_success = function(data, text_status, xhr) {
         that.refresh();
         that.on_update.notify();
@@ -979,9 +1028,16 @@ IPA.dns.get_record_metadata = function() {
         {
             name: 'nsrecord',
             attributes: [
-                'ns_part_hostname'
+                'ns_part_hostname',
+                {
+                    $type: 'checkbox',
+                    name: 'force',
+                    label: '@i18n:objects.dnszone.skip_dns_check'
+                }
             ],
-            adder_attributes: [],
+            adder_attributes: [
+                'force'
+            ],
             columns: ['ns_part_hostname']
         },
         {
@@ -1301,8 +1357,12 @@ IPA.dns.record_prepare_editor_for_type = function(type, fields, widgets, update)
         }
 
         var metadata = IPA.get_entity_param('dnsrecord', attribute.name);
-        if (metadata && update && metadata.flags &&
-            metadata.flags.indexOf('no_update') > -1) continue;
+        var no_update = metadata && metadata.flags &&
+                        metadata.flags.indexOf('no_update') > -1;
+        var adder_attr = type.adder_attributes &&
+                         type.adder_attributes.indexOf(attribute.name) > -1;
+
+        if (update && (no_update || adder_attr)) continue;
 
         //create field
         var field = {};
