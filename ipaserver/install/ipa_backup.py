@@ -63,7 +63,6 @@ EOF
       --keyring /root/backup.pub --list-secret-keys
 """
 
-BACKUP_DIR = paths.IPA_BACKUP_DIR
 
 
 def encrypt_file(filename, keyring, remove_original=True):
@@ -539,10 +538,10 @@ class Backup(admintool.AdminTool):
         '''
 
         if data_only:
-            backup_dir = os.path.join(BACKUP_DIR, time.strftime('ipa-data-%Y-%m-%d-%H-%M-%S'))
+            backup_dir = os.path.join(paths.IPA_BACKUP_DIR, time.strftime('ipa-data-%Y-%m-%d-%H-%M-%S'))
             filename = os.path.join(backup_dir, "ipa-data.tar")
         else:
-            backup_dir = os.path.join(BACKUP_DIR, time.strftime('ipa-full-%Y-%m-%d-%H-%M-%S'))
+            backup_dir = os.path.join(paths.IPA_BACKUP_DIR, time.strftime('ipa-full-%Y-%m-%d-%H-%M-%S'))
             filename = os.path.join(backup_dir, "ipa-full.tar")
 
         os.mkdir(backup_dir, 0700)

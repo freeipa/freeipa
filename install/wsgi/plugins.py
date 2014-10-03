@@ -25,14 +25,12 @@ import os
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import root_logger
 
-PLUGINS_DIR = paths.IPA_JS_PLUGINS_DIR
-
 def get_plugin_index():
 
-    if not os.path.isdir(PLUGINS_DIR):
+    if not os.path.isdir(paths.IPA_JS_PLUGINS_DIR):
         raise Exception("Supplied plugin directory path is not a directory")
 
-    dirs = os.listdir(PLUGINS_DIR)
+    dirs = os.listdir(paths.IPA_JS_PLUGINS_DIR)
     index = 'define([],function(){return['
     index += ','.join("'"+x+"'" for x in dirs)
     index += '];});'

@@ -70,10 +70,6 @@ CLIENT_NOT_CONFIGURED = 2
 CLIENT_ALREADY_CONFIGURED = 3
 CLIENT_UNINSTALL_ERROR = 4 # error after restoring files/state
 
-SSH_AUTHORIZEDKEYSCOMMAND = paths.SSS_SSH_AUTHORIZEDKEYS
-SSH_PROXYCOMMAND = paths.SSS_SSH_KNOWNHOSTSPROXY
-SSH_KNOWNHOSTSFILE = paths.SSSD_PUBCONF_KNOWN_HOSTS
-
 def parse_options():
     def validate_ca_cert_file_option(option, opt, value, parser):
         if not os.path.exists(value):
@@ -1355,9 +1351,9 @@ def configure_ssh_config(fstore, options):
         'PubkeyAuthentication': 'yes',
     }
 
-    if options.sssd and file_exists(SSH_PROXYCOMMAND):
-        changes['ProxyCommand'] = '%s -p %%p %%h' % SSH_PROXYCOMMAND
-        changes['GlobalKnownHostsFile'] = SSH_KNOWNHOSTSFILE
+    if options.sssd and file_exists(paths.SSS_SSH_KNOWNHOSTSPROXY):
+        changes['ProxyCommand'] = '%s -p %%p %%h' % paths.SSS_SSH_KNOWNHOSTSPROXY
+        changes['GlobalKnownHostsFile'] = paths.SSSD_PUBCONF_KNOWN_HOSTS
     if options.trust_sshfp:
         changes['VerifyHostKeyDNS'] = 'yes'
         changes['HostKeyAlgorithms'] = 'ssh-rsa,ssh-dss'
@@ -1383,20 +1379,20 @@ def configure_sshd_config(fstore, options):
         'UsePAM': 'yes',
     }
 
-    if options.sssd and file_exists(SSH_AUTHORIZEDKEYSCOMMAND):
+    if options.sssd and file_exists(paths.SSS_SSH_AUTHORIZEDKEYS):
         authorized_keys_changes = None
 
         candidates = (
             {
-                'AuthorizedKeysCommand': SSH_AUTHORIZEDKEYSCOMMAND,
+                'AuthorizedKeysCommand': paths.SSS_SSH_AUTHORIZEDKEYS,
                 'AuthorizedKeysCommandUser': 'nobody',
             },
             {
-                'AuthorizedKeysCommand': SSH_AUTHORIZEDKEYSCOMMAND,
+                'AuthorizedKeysCommand': paths.SSS_SSH_AUTHORIZEDKEYS,
                 'AuthorizedKeysCommandRunAs': 'nobody',
             },
             {
-                'PubKeyAgent': '%s %%u' % SSH_AUTHORIZEDKEYSCOMMAND,
+                'PubKeyAgent': '%s %%u' % paths.SSS_SSH_AUTHORIZEDKEYS,
                 'PubKeyAgentRunAs': 'nobody',
             },
         )

@@ -415,31 +415,29 @@ def signal_handler(signum, frame):
             dsinstance.erase_ds_instance_data (ds.serverid)
     sys.exit(1)
 
-ANSWER_CACHE = paths.ROOT_IPA_CACHE
-
 def read_cache(dm_password):
     """
     Returns a dict of cached answers or empty dict if no cache file exists.
     """
-    if not ipautil.file_exists(ANSWER_CACHE):
+    if not ipautil.file_exists(paths.ROOT_IPA_CACHE):
         return {}
 
     top_dir = tempfile.mkdtemp("ipa")
     fname = "%s/cache" % top_dir
     try:
-        decrypt_file(ANSWER_CACHE, fname, dm_password, top_dir)
+        decrypt_file(paths.ROOT_IPA_CACHE, fname, dm_password, top_dir)
     except Exception, e:
         shutil.rmtree(top_dir)
-        raise Exception("Decryption of answer cache in %s failed, please check your password." % ANSWER_CACHE)
+        raise Exception("Decryption of answer cache in %s failed, please check your password." % paths.ROOT_IPA_CACHE)
 
     try:
         with open(fname, 'rb') as f:
             try:
                 optdict = pickle.load(f)
             except Exception, e:
-                raise Exception("Parse error in %s: %s" % (ANSWER_CACHE, str(e)))
+                raise Exception("Parse error in %s: %s" % (paths.ROOT_IPA_CACHE, str(e)))
     except IOError, e:
-        raise Exception("Read error in %s: %s" % (ANSWER_CACHE, str(e)))
+        raise Exception("Read error in %s: %s" % (paths.ROOT_IPA_CACHE, str(e)))
     finally:
         shutil.rmtree(top_dir)
 
@@ -460,7 +458,7 @@ def write_cache(options):
     try:
         with open(fname, 'wb') as f:
             pickle.dump(options, f)
-        ipautil.encrypt_file(fname, ANSWER_CACHE, options['dm_password'], top_dir)
+        ipautil.encrypt_file(fname, paths.ROOT_IPA_CACHE, options['dm_password'], top_dir)
     except IOError, e:
         raise Exception("Unable to cache command-line options %s" % str(e))
     finally:
@@ -605,7 +603,7 @@ def uninstall():
     tasks.restore_network_configuration(fstore, sstore)
     fstore.restore_all_files()
     try:
-        os.remove(ANSWER_CACHE)
+        os.remove(paths.ROOT_IPA_CACHE)
     except Exception:
         pass
     try:
@@ -818,7 +816,7 @@ def main():
             sys.exit(1)
 
     # This will override any settings passed in on the cmdline
-    if ipautil.file_exists(ANSWER_CACHE):
+    if ipautil.file_exists(paths.ROOT_IPA_CACHE):
         if options.dm_password is not None:
             dm_password = options.dm_password
         else:
@@ -1401,8 +1399,8 @@ def main():
         print "In order for Firefox autoconfiguration to work you will need to"
         print "use a SSL signing certificate. See the IPA documentation for more details."
 
-    if ipautil.file_exists(ANSWER_CACHE):
-        os.remove(ANSWER_CACHE)
+    if ipautil.file_exists(paths.ROOT_IPA_CACHE):
+        os.remove(paths.ROOT_IPA_CACHE)
     return 0
 
 if __name__ == '__main__':

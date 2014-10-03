@@ -33,9 +33,6 @@ from ipapython.ipa_log_manager import *
 from ipaplatform.paths import paths
 from ipaplatform import services
 
-REQUEST_DIR = paths.CERTMONGER_REQUESTS_DIR
-CA_DIR = paths.CERTMONGER_CAS_DIR
-
 DBUS_CM_PATH = '/org/fedorahosted/certmonger'
 DBUS_CM_IF = 'org.fedorahosted.certmonger'
 DBUS_CM_REQUEST_IF = 'org.fedorahosted.certmonger.request'

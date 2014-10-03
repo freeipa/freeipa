@@ -24,7 +24,6 @@ from ipapython import sysrestore
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import *
 
-STATEFILE_DIR = paths.STATEFILE_DIR
 STATEFILE_FILE = 'sysupgrade.state'
 
 _sstore = None
@@ -32,7 +31,7 @@ _sstore = None
 def _load_sstore():
     global _sstore
     if _sstore is None:
-        _sstore = sysrestore.StateFile(STATEFILE_DIR, STATEFILE_FILE)
+        _sstore = sysrestore.StateFile(paths.STATEFILE_DIR, STATEFILE_FILE)
 
 def get_upgrade_state(module, state):
     _load_sstore()
@@ -51,6 +50,6 @@ def remove_upgrade_state(module, state):
 
 def remove_upgrade_file():
     try:
-        os.remove(os.path.join(STATEFILE_DIR, STATEFILE_FILE))
+        os.remove(os.path.join(paths.STATEFILE_DIR, STATEFILE_FILE))
     except Exception, e:
         root_logger.debug('Cannot remove sysupgrade state file: %s', e)

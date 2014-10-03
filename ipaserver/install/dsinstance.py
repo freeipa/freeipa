@@ -45,9 +45,6 @@ from ipapython.dn import DN
 from ipaplatform import services
 from ipaplatform.paths import paths
 
-SERVER_ROOT_64 = paths.USR_LIB_DIRSRV_64
-SERVER_ROOT_32 = paths.USR_LIB_DIRSRV
-
 DS_USER = 'dirsrv'
 DS_GROUP = 'dirsrv'
 
@@ -70,10 +67,10 @@ ALL_SCHEMA_FILES = IPA_SCHEMA_FILES + ("05rfc2247.ldif", )
 
 
 def find_server_root():
-    if ipautil.dir_exists(SERVER_ROOT_64):
-        return SERVER_ROOT_64
+    if ipautil.dir_exists(paths.USR_LIB_DIRSRV_64):
+        return paths.USR_LIB_DIRSRV_64
     else:
-        return SERVER_ROOT_32
+        return paths.USR_LIB_DIRSRV
 
 def realm_to_serverid(realm_name):
     return "-".join(realm_name.split("."))

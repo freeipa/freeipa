@@ -41,11 +41,6 @@ from ipaplatform.tasks import tasks
 from ipaplatform import services
 from ipaplatform.paths import paths
 
-AUTOFS_CONF = paths.SYSCONFIG_AUTOFS
-NSSWITCH_CONF = paths.NSSWITCH_CONF
-AUTOFS_LDAP_AUTH = paths.AUTOFS_LDAP_AUTH_CONF
-NFS_CONF = paths.SYSCONFIG_NFS
-IDMAPD_CONF = paths.IDMAPD_CONF
 
 def parse_options():
     usage = "%prog [options]\n"
@@ -96,10 +91,10 @@ def wait_for_sssd():
 def configure_xml(fstore):
     from lxml import etree
 
-    fstore.backup_file(AUTOFS_LDAP_AUTH)
+    fstore.backup_file(paths.AUTOFS_LDAP_AUTH_CONF)
 
     try:
-        f = open(AUTOFS_LDAP_AUTH, 'r')
+        f = open(paths.AUTOFS_LDAP_AUTH_CONF, 'r')
         lines = f.read()
         f.close()
 
@@ -113,7 +108,7 @@ def configure_xml(fstore):
         root = element[0].getroottree()
 
     if len(element) != 1:
-        raise RuntimeError('Unable to parse %s' % AUTOFS_LDAP_AUTH)
+        raise RuntimeError('Unable to parse %s' % paths.AUTOFS_LDAP_AUTH_CONF)
 
     element[0].set('usetls', 'no')
     element[0].set('tlsrequired', 'no')
@@ -121,20 +116,20 @@ def configure_xml(fstore):
     element[0].set('authtype', 'GSSAPI')
     element[0].set('clientprinc', 'host/%s@%s' % (api.env.host, api.env.realm))
 
-    newconf = open(AUTOFS_LDAP_AUTH, 'w')
+    newconf = open(paths.AUTOFS_LDAP_AUTH_CONF, 'w')
     try:
         root.write(newconf, pretty_print=True, xml_declaration=True, encoding='UTF-8')
         newconf.close()
     except IOError, e:
-        print "Unable to write %s: %s" % (AUTOFS_LDAP_AUTH, e)
-    print "Configured %s" % AUTOFS_LDAP_AUTH
+        print "Unable to write %s: %s" % (paths.AUTOFS_LDAP_AUTH_CONF, e)
+    print "Configured %s" % paths.AUTOFS_LDAP_AUTH_CONF
 
 def configure_nsswitch(fstore, options):
     """
     Point automount to ldap in nsswitch.conf. This function is for non-SSSD
     setups only
     """
-    fstore.backup_file(NSSWITCH_CONF)
+    fstore.backup_file(paths.NSSWITCH_CONF)
 
     conf = ipachangeconf.IPAChangeConf("IPA Installer")
     conf.setOptionAssignment(':')
@@ -144,9 +139,9 @@ def configure_nsswitch(fstore, options):
     opts = [{'name':'automount', 'type':'option', 'action':'set', 'value':nss_value},
             {'name':'empty', 'type':'empty'}]
 
-    conf.changeConf(NSSWITCH_CONF, opts)
+    conf.changeConf(paths.NSSWITCH_CONF, opts)
 
-    print "Configured %s" % NSSWITCH_CONF
+    print "Configured %s" % paths.NSSWITCH_CONF
 
 def configure_autofs_sssd(fstore, statestore, autodiscover, options):
     try:
@@ -221,11 +216,11 @@ def configure_autofs(fstore, statestore, autodiscover, server, options):
     }
 
     ipautil.backup_config_and_replace_variables(fstore,
-        AUTOFS_CONF, replacevars=replacevars)
-    tasks.restore_context(AUTOFS_CONF)
+        paths.SYSCONFIG_AUTOFS, replacevars=replacevars)
+    tasks.restore_context(paths.SYSCONFIG_AUTOFS)
     statestore.backup_state('autofs', 'sssd', False)
 
-    print "Configured %s" % AUTOFS_CONF
+    print "Configured %s" % paths.SYSCONFIG_AUTOFS
 
 def configure_autofs_common(fstore, statestore, options):
     autofs = services.knownservices.autofs
@@ -244,16 +239,16 @@ def configure_autofs_common(fstore, statestore, options):
 
 def uninstall(fstore, statestore):
     print "Restoring configuration"
-    if fstore.has_file(AUTOFS_CONF):
-        fstore.restore_file(AUTOFS_CONF)
-    if fstore.has_file(NSSWITCH_CONF):
-        fstore.restore_file(NSSWITCH_CONF)
-    if fstore.has_file(AUTOFS_LDAP_AUTH):
-        fstore.restore_file(AUTOFS_LDAP_AUTH)
-    if fstore.has_file(NFS_CONF):
-        fstore.restore_file(NFS_CONF)
-    if fstore.has_file(IDMAPD_CONF):
-        fstore.restore_file(IDMAPD_CONF)
+    if fstore.has_file(paths.SYSCONFIG_AUTOFS):
+        fstore.restore_file(paths.SYSCONFIG_AUTOFS)
+    if fstore.has_file(paths.NSSWITCH_CONF):
+        fstore.restore_file(paths.NSSWITCH_CONF)
+    if fstore.has_file(paths.AUTOFS_LDAP_AUTH_CONF):
+        fstore.restore_file(paths.AUTOFS_LDAP_AUTH_CONF)
+    if fstore.has_file(paths.SYSCONFIG_NFS):
+        fstore.restore_file(paths.SYSCONFIG_NFS)
+    if fstore.has_file(paths.IDMAPD_CONF):
+        fstore.restore_file(paths.IDMAPD_CONF)
     if statestore.has_state('autofs'):
         enabled = statestore.restore_state('autofs', 'enabled')
         running = statestore.restore_state('autofs', 'running')
@@ -314,19 +309,19 @@ def configure_nfs(fstore, statestore):
         'SECURE_NFS': 'yes',
     }
     ipautil.backup_config_and_replace_variables(fstore,
-        NFS_CONF, replacevars=replacevars)
-    tasks.restore_context(NFS_CONF)
+        paths.SYSCONFIG_NFS, replacevars=replacevars)
+    tasks.restore_context(paths.SYSCONFIG_NFS)
 
-    print "Configured %s" % NFS_CONF
+    print "Configured %s" % paths.SYSCONFIG_NFS
 
     replacevars = {
         'Domain': api.env.domain,
     }
     ipautil.backup_config_and_replace_variables(fstore,
-        IDMAPD_CONF, replacevars=replacevars)
-    tasks.restore_context(IDMAPD_CONF)
+        paths.IDMAPD_CONF, replacevars=replacevars)
+    tasks.restore_context(paths.IDMAPD_CONF)
 
-    print "Configured %s" % IDMAPD_CONF
+    print "Configured %s" % paths.IDMAPD_CONF
 
     rpcidmapd = services.knownservices.rpcidmapd
     statestore.backup_state('rpcidmapd', 'enabled', rpcidmapd.is_enabled())

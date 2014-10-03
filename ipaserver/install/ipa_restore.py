@@ -41,7 +41,6 @@ from ipaserver.install import adtrustinstance
 from ipapython import ipaldap
 import ipapython.errors
 from ipaplatform.tasks import tasks
-from ipaserver.install.ipa_backup import BACKUP_DIR
 from ipaplatform import services
 from ipaplatform.paths import paths
 
@@ -144,7 +143,7 @@ class Restore(admintool.AdminTool):
 
         dirname = self.args[0]
         if not os.path.isabs(dirname):
-            self.backup_dir = os.path.join(BACKUP_DIR, dirname)
+            self.backup_dir = os.path.join(paths.IPA_BACKUP_DIR, dirname)
         else:
             self.backup_dir = dirname
 
