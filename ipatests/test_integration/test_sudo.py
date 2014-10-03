@@ -199,29 +199,6 @@ class TestSudo(IntegrationTest):
                                  'testrule',
                                  '--groups', 'testgroup2'])
 
-    def test_sudo_rule_restricted_to_one_local_user_setup(self):
-        # Add the localuser to the rule
-        self.master.run_command(['ipa', 'sudorule-add-user',
-                                 'testrule',
-                                 '--users', 'localuser'])
-
-    def test_sudo_rule_restricted_to_one_local_user(self):
-        result1 = self.list_sudo_commands("localuser")
-        assert "(ALL : ALL) NOPASSWD: ALL" in result1.stdout_text
-
-        result2 = self.list_sudo_commands("testuser1", raiseonerr=False)
-        assert result2.returncode != 0
-
-    def test_setting_category_to_all_with_valid_entries_user_local(self):
-        result = self.reset_rule_categories(safe_delete=False)
-        assert result.returncode != 0
-
-    def test_sudo_rule_restricted_to_one_local_user_teardown(self):
-        # Remove the testuser1 from the rule
-        self.master.run_command(['ipa', 'sudorule-remove-user',
-                                 'testrule',
-                                 '--users', 'localuser'])
-
     def test_sudo_rule_restricted_to_one_host_negative_setup(self):
         # Reset testrule configuration
         self.reset_rule_categories()
