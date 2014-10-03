@@ -1,10 +1,24 @@
-# Define ONLY_CLIENT to only make the ipa-client and ipa-python subpackages
+# Define ONLY_CLIENT to only make the ipa-admintools, ipa-client and ipa-python
+# subpackages
 %{!?ONLY_CLIENT:%global ONLY_CLIENT 0}
 
 %global alt_name ipa
+%if 0%{?rhel}
+%global samba_version 4.0.5-1
+%global selinux_policy_version 3.12.1-153
+%else
+%global samba_version 2:4.0.5-1
+%global selinux_policy_version 3.12.1-176
+%endif
+
 %global plugin_dir %{_libdir}/dirsrv/plugins
-%global POLICYCOREUTILSVER 2.1.12-5
 %global gettext_domain ipa
+%if 0%{?rhel}
+%global platform_module rhel
+%else
+%global platform_module fedora
+%endif
+
 %define _hardened_build 1
 
 Name:           freeipa
@@ -21,9 +35,9 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 %if ! %{ONLY_CLIENT}
 BuildRequires:  389-ds-base-devel >= 1.3.3.2
 BuildRequires:  svrcore-devel
-BuildRequires:  policycoreutils >= %{POLICYCOREUTILSVER}
+BuildRequires:  policycoreutils >= 2.1.12-5
 BuildRequires:  systemd-units
-BuildRequires:  samba-devel >= 2:4.0.5-1
+BuildRequires:  samba-devel >= %{samba_version}
 BuildRequires:  samba-python
 BuildRequires:  libwbclient-devel
 BuildRequires:  libtalloc-devel
@@ -110,7 +124,7 @@ Requires: dbus-python
 Requires: systemd-units >= 38
 Requires(pre): systemd-units
 Requires(post): systemd-units
-Requires: selinux-policy >= 3.12.1-176
+Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.47.7
 Requires: pki-ca >= 10.1.1
@@ -122,7 +136,7 @@ Requires(preun): python systemd-units
 Requires(postun): python systemd-units
 Requires: python-dns >= 1.11.1
 Requires: zip
-Requires: policycoreutils >= %{POLICYCOREUTILSVER}
+Requires: policycoreutils >= 2.1.12-5
 Requires: tar
 Requires(pre): certmonger >= 0.75.13
 Requires(pre): 389-ds-base >= 1.3.3.2
@@ -161,7 +175,7 @@ Group: System Environment/Base
 Requires: %{name}-server = %version-%release
 Requires: m2crypto
 Requires: samba-python
-Requires: samba >= 2:4.0.5-1
+Requires: samba >= %{samba_version}
 Requires: samba-winbind
 Requires: libsss_idmap
 Requires: libsss_nss_idmap-python
@@ -304,6 +318,7 @@ export JAVA_STACK_SIZE="8m"
 %endif
 export CFLAGS="%{optflags} $CFLAGS"
 export LDFLAGS="%{__global_ldflags} $LDFLAGS"
+export SUPPORTED_PLATFORM=%{platform_module}
 
 # Force re-generate of platform support
 export IPA_VENDOR_VERSION_SUFFIX=-%{release}
@@ -326,6 +341,7 @@ make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} client
 
 %install
 rm -rf %{buildroot}
+export SUPPORTED_PLATFORM=%{platform_module}
 # Force re-generate of platform support
 export IPA_VENDOR_VERSION_SUFFIX=-%{release}
 rm -f ipapython/version.py
@@ -540,7 +556,7 @@ if [ $1 -gt 1 ] ; then
     fi
 fi
 
-%triggerin -n freeipa-client -- openssh-server
+%triggerin -n %{name}-client -- openssh-server
 # Has the client been configured?
 restore=0
 test -f '/var/lib/ipa-client/sysrestore/sysrestore.index' && restore=$(wc -l '/var/lib/ipa-client/sysrestore/sysrestore.index' | awk '{print $1}')
