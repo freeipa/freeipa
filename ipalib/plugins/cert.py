@@ -365,11 +365,7 @@ class cert_request(VirtualCommand):
             if not add:
                 raise errors.NotFound(reason=_("The service principal for "
                     "this request doesn't exist."))
-            try:
-                service = api.Command['service_add'](principal, force=True)
-            except errors.ACIError:
-                raise errors.ACIError(info=_('You need to be a member of '
-                    'the serviceadmin role to add services'))
+            service = api.Command['service_add'](principal, force=True)
         service = service['result']
         dn = service['dn']
 
