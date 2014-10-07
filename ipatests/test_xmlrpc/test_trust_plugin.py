@@ -39,8 +39,8 @@ default_group_dn = DN(('cn', default_group), api.env.container_group, api.env.ba
 class test_trustconfig(Declarative):
 
     @classmethod
-    def setUpClass(cls):
-        super(test_trustconfig, cls).setUpClass()
+    def setup_class(cls):
+        super(test_trustconfig, cls).setup_class()
         if not api.Backend.rpcclient.isconnected():
             api.Backend.rpcclient.connect(fallback=False)
         try:

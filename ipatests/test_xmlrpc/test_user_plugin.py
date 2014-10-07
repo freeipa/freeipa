@@ -1607,8 +1607,8 @@ class test_denied_bind_with_expired_principal(XMLRPC_test):
     password = u'random'
 
     @classmethod
-    def setUpClass(cls):
-        super(test_denied_bind_with_expired_principal, cls).setUpClass()
+    def setup_class(cls):
+        super(test_denied_bind_with_expired_principal, cls).setup_class()
 
         cls.connection = ldap.initialize('ldap://{host}'
                                          .format(host=api.env.host))

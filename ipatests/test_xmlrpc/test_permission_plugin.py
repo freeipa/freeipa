@@ -3164,8 +3164,8 @@ class test_managed_permissions(Declarative):
     ]
 
     @classmethod
-    def setUpClass(cls):
-        super(test_managed_permissions, cls).setUpClass()
+    def setup_class(cls):
+        super(test_managed_permissions, cls).setup_class()
 
         if not have_ldap2:
             raise nose.SkipTest('server plugin not available')

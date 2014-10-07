@@ -980,7 +980,7 @@ class test_host_false_pwd_change(XMLRPC_test):
     command = "ipa-client/ipa-join"
 
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         [cls.keytabfd,cls.keytabname] = tempfile.mkstemp()
         os.close(cls.keytabfd)
 

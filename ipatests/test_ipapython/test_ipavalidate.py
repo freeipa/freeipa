@@ -25,12 +25,6 @@ import unittest
 from ipapython import ipavalidate
 
 class TestValidate(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
     def test_validEmail(self):
         self.assertEqual(True, ipavalidate.Email("test@freeipa.org"))
         self.assertEqual(True, ipavalidate.Email("", notEmpty=False))

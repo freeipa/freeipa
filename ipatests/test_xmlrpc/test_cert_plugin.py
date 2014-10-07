@@ -70,8 +70,8 @@ def is_db_configured():
 class test_cert(XMLRPC_test):
 
     @classmethod
-    def setUpClass(cls):
-        super(test_cert, cls).setUpClass()
+    def setup_class(cls):
+        super(test_cert, cls).setup_class()
 
         if 'cert_request' not in api.Command:
             raise nose.SkipTest('cert_request not registered')
@@ -83,8 +83,8 @@ class test_cert(XMLRPC_test):
         new_args = new_args + args
         return ipautil.run(new_args, stdin)
 
-    def setUp(self):
-        super(test_cert, self).setUp()
+    def setup(self):
+        super(test_cert, self).setup()
         self.reqdir = tempfile.mkdtemp(prefix = "tmp-")
         self.reqfile = self.reqdir + "/test.csr"
         self.pwname = self.reqdir + "/pwd"
@@ -99,8 +99,8 @@ class test_cert(XMLRPC_test):
 
         self.subject = DN(('CN', self.host_fqdn), x509.subject_base())
 
-    def tearDown(self):
-        super(test_cert, self).tearDown()
+    def teardown(self):
+        super(test_cert, self).teardown()
         shutil.rmtree(self.reqdir, ignore_errors=True)
 
     def generateCSR(self, subject):
@@ -204,8 +204,8 @@ class test_cert(XMLRPC_test):
 class test_cert_find(XMLRPC_test):
 
     @classmethod
-    def setUpClass(cls):
-        super(test_cert_find, cls).setUpClass()
+    def setup_class(cls):
+        super(test_cert_find, cls).setup_class()
 
         if 'cert_find' not in api.Command:
             raise nose.SkipTest('cert_find not registered')

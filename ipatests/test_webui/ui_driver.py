@@ -113,7 +113,7 @@ class UI_driver(object):
     """
 
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         if NO_SELENIUM:
             raise nose.SkipTest('Selenium not installed')
 
@@ -161,7 +161,7 @@ class UI_driver(object):
         if 'type' not in c:
             c['type'] = DEFAULT_TYPE
 
-    def setUp(self):
+    def setup(self):
         """
         Test setup
         """
@@ -169,7 +169,7 @@ class UI_driver(object):
             self.driver = self.get_driver()
             self.driver.maximize_window()
 
-    def tearDown(self):
+    def teardown(self):
         """
         Test clean up
         """

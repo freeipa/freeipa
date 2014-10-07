@@ -448,7 +448,7 @@ class ClassChecker(object):
             'get_subcls()'
         )
 
-    def tearDown(self):
+    def teardown(self):
         """
         nose tear-down fixture.
         """
@@ -533,7 +533,7 @@ class PluginTester(object):
         o = api[namespace][self.plugin.__name__]
         return (o, api, home)
 
-    def tearDown(self):
+    def teardown(self):
         """
         nose tear-down fixture.
         """

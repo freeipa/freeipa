@@ -248,7 +248,7 @@ class test_xmlclient(PluginTester):
 
 class test_xml_introspection(object):
     @classmethod
-    def setUpClass(self):
+    def setup_class(self):
         try:
             api.Backend.xmlclient.connect(fallback=False)
         except (errors.NetworkError, IOError):
@@ -256,7 +256,7 @@ class test_xml_introspection(object):
                                 (__name__, api.env.xmlrpc_uri))
 
     @classmethod
-    def tearDownClass(self):
+    def teardown_class(self):
         request.destroy_context()
 
     def test_list_methods(self):

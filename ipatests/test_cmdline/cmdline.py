@@ -52,7 +52,7 @@ class cmdline_test(XMLRPC_test):
     # some reasonable default command
     command = paths.LS
 
-    def setUp(self):
+    def setup(self):
         # Find the executable in $PATH
         # This is neded because ipautil.run resets the PATH to
         # a system default.
@@ -65,14 +65,14 @@ class cmdline_test(XMLRPC_test):
             raise AssertionError(
                 'Command %r not available' % original_command
             )
-        super(cmdline_test, self).setUp()
+        super(cmdline_test, self).setup()
         if not server_available:
             raise nose.SkipTest(
                 'Server not available: %r' % api.env.xmlrpc_uri
             )
 
-    def tearDown(self):
+    def teardown(self):
         """
         nose tear-down fixture.
         """
-        super(cmdline_test, self).tearDown()
+        super(cmdline_test, self).teardown()

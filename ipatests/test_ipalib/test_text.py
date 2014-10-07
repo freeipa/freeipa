@@ -46,7 +46,7 @@ def test_create_translation():
 
 
 class test_TestLang(object):
-    def setUp(self):
+    def setup(self):
         self.tmp_dir = None
         self.saved_lang  = None
 
@@ -85,7 +85,7 @@ class test_TestLang(object):
 
         self.po_file_iterate = po_file_iterate
 
-    def tearDown(self):
+    def teardown(self):
         if self.saved_lang is not None:
             os.environ['LANG'] = self.saved_lang
 

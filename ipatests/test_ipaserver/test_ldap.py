@@ -44,7 +44,7 @@ class test_ldap(object):
     Test various LDAP client bind methods.
     """
 
-    def setUp(self):
+    def setup(self):
         self.conn = None
         self.ldapuri = 'ldap://%s' % ipautil.format_netloc(api.env.host)
         self.ccache = paths.TMP_KRB5CC % os.getuid()
@@ -52,7 +52,7 @@ class test_ldap(object):
         self.dn = DN(('krbprincipalname','ldap/%s@%s' % (api.env.host, api.env.realm)),
                      ('cn','services'),('cn','accounts'),api.env.basedn)
 
-    def tearDown(self):
+    def teardown(self):
         if self.conn and self.conn.isconnected():
             self.conn.disconnect()
 
@@ -158,14 +158,14 @@ class test_LDAPEntry(object):
     dn1 = DN(('cn', cn1[0]))
     dn2 = DN(('cn', cn2[0]))
 
-    def setUp(self):
+    def setup(self):
         self.ldapuri = 'ldap://%s' % ipautil.format_netloc(api.env.host)
         self.conn = ldap2(shared_instance=False, ldap_uri=self.ldapuri)
         self.conn.connect()
 
         self.entry = self.conn.make_entry(self.dn1, cn=self.cn1)
 
-    def tearDown(self):
+    def teardown(self):
         if self.conn and self.conn.isconnected():
             self.conn.disconnect()
 

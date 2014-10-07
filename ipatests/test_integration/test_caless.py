@@ -340,7 +340,7 @@ class CALessBase(IntegrationTest):
 class TestServerInstall(CALessBase):
     num_replicas = 0
 
-    def tearDown(self):
+    def teardown(self):
         self.uninstall_server()
 
         # Remove CA cert in /etc/pki/nssdb, in case of failed (un)install
@@ -750,7 +750,7 @@ class TestServerInstall(CALessBase):
 class TestReplicaInstall(CALessBase):
     num_replicas = 1
 
-    def setUp(self):
+    def setup(self):
         # Install the master for every test
         self.export_pkcs12('ca1/server')
         with open(self.pem_filename, 'w') as f:
@@ -759,7 +759,7 @@ class TestReplicaInstall(CALessBase):
         result = self.install_server()
         assert result.returncode == 0
 
-    def tearDown(self):
+    def teardown(self):
         # Uninstall both master and replica
         replica = self.replicas[0]
         tasks.kinit_admin(self.master)

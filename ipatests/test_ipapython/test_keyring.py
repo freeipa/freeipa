@@ -36,7 +36,7 @@ class test_keyring(object):
     Test the kernel keyring interface
     """
 
-    def setUp(self):
+    def setup(self):
         try:
             kernel_keyring.del_key(TEST_KEY)
         except ValueError:

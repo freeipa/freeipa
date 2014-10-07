@@ -34,7 +34,7 @@ class test_update(object):
     Test the PKCS#10 Parser.
     """
 
-    def setUp(self):
+    def setup(self):
         nss.nss_init_nodb()
         if ipautil.file_exists("test0.csr"):
             self.testdir="./"

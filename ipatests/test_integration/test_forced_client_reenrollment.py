@@ -44,11 +44,11 @@ class TestForcedClientReenrollment(IntegrationTest):
             'krb5.keytab'
         )
 
-    def setUp(self):
+    def setup(self):
         tasks.prepare_host(self.clients[0])
         tasks.install_client(self.master, self.clients[0])
 
-    def tearDown(self):
+    def teardown(self):
         tasks.uninstall_client(self.clients[0])
         self.delete_client_host_entry()
 

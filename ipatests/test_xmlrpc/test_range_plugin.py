@@ -385,9 +385,9 @@ group1_gid = id_shift + 900100
 
 class test_range(Declarative):
     @classmethod
-    def setUpClass(cls):
-        super(test_range, cls).setUpClass()
-        cls.tearDownClass()
+    def setup_class(cls):
+        super(test_range, cls).setup_class()
+        cls.teardown_class()
         cls.mockldap = MockLDAP()
         cls.mockldap.add_entry(trust_container_dn, trust_container_add)
         cls.mockldap.add_entry(smb_cont_dn, smb_cont_add)
@@ -412,7 +412,7 @@ class test_range(Declarative):
         cls.mockldap.unbind()
 
     @classmethod
-    def tearDownClass(cls):
+    def teardown_class(cls):
         cls.mockldap = MockLDAP()
 
         cls.mockldap.del_entry(domain2_dn)

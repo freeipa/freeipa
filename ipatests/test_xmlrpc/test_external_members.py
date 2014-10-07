@@ -43,8 +43,8 @@ def get_trusted_group_name():
 
 class test_external_members(Declarative):
     @classmethod
-    def setUpClass(cls):
-        super(test_external_members, cls).setUpClass()
+    def setup_class(cls):
+        super(test_external_members, cls).setup_class()
         if not api.Backend.rpcclient.isconnected():
             api.Backend.rpcclient.connect(fallback=False)
 

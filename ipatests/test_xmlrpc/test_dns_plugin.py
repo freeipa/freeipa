@@ -334,8 +334,8 @@ if have_ldap2:
 class test_dns(Declarative):
 
     @classmethod
-    def setUpClass(cls):
-        super(test_dns, cls).setUpClass()
+    def setup_class(cls):
+        super(test_dns, cls).setup_class()
 
         if not api.Backend.rpcclient.isconnected():
             api.Backend.rpcclient.connect(fallback=False)
@@ -3726,8 +3726,8 @@ zone_root_permission_dn = DN(('cn', zone_root_permission),
 class test_root_zone(Declarative):
 
     @classmethod
-    def setUpClass(cls):
-        super(test_root_zone, cls).setUpClass()
+    def setup_class(cls):
+        super(test_root_zone, cls).setup_class()
 
         if not api.Backend.rpcclient.isconnected():
             api.Backend.rpcclient.connect(fallback=False)

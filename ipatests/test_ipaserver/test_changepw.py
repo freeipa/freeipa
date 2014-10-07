@@ -33,8 +33,8 @@ new_password = u'new_password'
 class test_changepw(XMLRPC_test, Unauthorized_HTTP_test):
     app_uri = '/ipa/session/change_password'
 
-    def setUp(self):
-        super(test_changepw, self).setUp()
+    def setup(self):
+        super(test_changepw, self).setup()
         try:
             api.Command['user_add'](uid=testuser, givenname=u'Test', sn=u'User')
             api.Command['passwd'](testuser, password=u'old_password')
@@ -43,12 +43,12 @@ class test_changepw(XMLRPC_test, Unauthorized_HTTP_test):
                 'Cannot set up test user: %s' % e
             )
 
-    def tearDown(self):
+    def teardown(self):
         try:
             api.Command['user_del']([testuser])
         except errors.NotFound:
             pass
-        super(test_changepw, self).tearDown()
+        super(test_changepw, self).teardown()
 
     def _changepw(self, user, old_password, new_password):
         return self.send_request(params={'user': str(user),
