@@ -561,14 +561,13 @@ def uninstall():
 
     kra_instance = krainstance.KRAInstance(
         api.env.realm, dogtag_constants=dogtag_constants)
-    kra_instance.stop_tracking_certificates(dogtag_constants)
+    kra_instance.stop_tracking_certificates()
     if kra_instance.is_installed():
         kra_instance.uninstall()
 
     ca_instance = cainstance.CAInstance(
         api.env.realm, certs.NSS_DIR, dogtag_constants=dogtag_constants)
-    ca_instance.stop_tracking_certificates(dogtag_constants)
-    ca_instance.stop_tracking_agent_certificate(dogtag_constants)
+    ca_instance.stop_tracking_certificates()
     if ca_instance.is_configured():
         ca_instance.uninstall()
 

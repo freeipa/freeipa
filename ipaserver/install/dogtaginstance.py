@@ -22,6 +22,7 @@ import os
 import shutil
 import tempfile
 import traceback
+import dbus
 
 from pki.client import PKIConnection
 import pki.system
@@ -96,6 +97,9 @@ class DogtagInstance(service.Service):
     CA, KRA, and eventually TKS and TPS.
     """
 
+    tracking_reqs = None
+    server_cert_name = None
+
     def __init__(self, realm, subsystem, service_desc, dogtag_constants=None,
                  host_name=None, dm_password=None, ldapi=True):
         """Initializer"""
@@ -126,7 +130,6 @@ class DogtagInstance(service.Service):
         self.server_root = dogtag_constants.SERVER_ROOT
         self.subsystem = subsystem
         self.security_domain_name = "IPA"
-        self.tracking_reqs = None
 
         # replication parameters
         self.master_host = None
@@ -293,6 +296,27 @@ class DogtagInstance(service.Service):
         with open(paths.HTTPD_IPA_PKI_PROXY_CONF, "w") as fd:
             fd.write(template)
 
+    @staticmethod
+    def configure_certmonger_renewal():
+        """
+        Create a new CA type for certmonger that will retrieve updated
+        certificates from the dogtag master server.
+        """
+        cmonger = services.knownservices.certmonger
+        cmonger.enable()
+        services.knownservices.messagebus.start()
+        cmonger.start()
+
+        bus = dbus.SystemBus()
+        obj = bus.get_object('org.fedorahosted.certmonger',
+                             '/org/fedorahosted/certmonger')
+        iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
+        path = iface.find_ca_by_nickname('dogtag-ipa-ca-renew-agent')
+        if not path:
+            iface.add_known_ca(
+                'dogtag-ipa-ca-renew-agent',
+                paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT, [])
+
     def __get_pin(self):
         try:
             return certmonger.get_pin('internal',
@@ -302,22 +326,11 @@ class DogtagInstance(service.Service):
                 'Unable to determine PIN for the Dogtag instance: %s', e)
             raise RuntimeError(e)
 
-    def configure_renewal(self, reqs=None):
-        """ Configure certmonger to renew system certs
-
-        @param reqs: list of nicknames and profiles
-        """
-        cmonger = services.knownservices.certmonger
-        cmonger.enable()
-        services.knownservices.messagebus.start()
-        cmonger.start()
-
+    def configure_renewal(self):
+        """ Configure certmonger to renew system certs """
         pin = self.__get_pin()
 
-        if reqs is None:
-            reqs = self.tracking_reqs
-
-        for nickname, profile in reqs:
+        for nickname, profile in self.tracking_reqs:
             try:
                 certmonger.dogtag_start_tracking(
                     ca='dogtag-ipa-ca-renew-agent',
@@ -332,7 +345,27 @@ class DogtagInstance(service.Service):
                 self.log.error(
                     "certmonger failed to start tracking certificate: %s", e)
 
-    def stop_tracking_certificates(self, dogtag_constants, reqs=None):
+    def track_servercert(self):
+        """
+        Specifically do not tell certmonger to restart the CA. This will be
+        done by the renewal script, renew_ca_cert once all the subsystem
+        certificates are renewed.
+        """
+        pin = self.__get_pin()
+        try:
+            certmonger.dogtag_start_tracking(
+                ca='dogtag-ipa-renew-agent',
+                nickname=self.server_cert_name,
+                pin=pin,
+                pinfile=None,
+                secdir=self.dogtag_constants.ALIAS_DIR,
+                pre_command=None,
+                post_command=None)
+        except RuntimeError, e:
+            self.log.error(
+                "certmonger failed to start tracking certificate: %s" % e)
+
+    def stop_tracking_certificates(self, stop_certmonger=True):
         """Stop tracking our certificates. Called on uninstall.
         """
         self.print_msg(
@@ -343,18 +376,20 @@ class DogtagInstance(service.Service):
         services.knownservices.messagebus.start()
         cmonger.start()
 
-        if reqs is None:
-            reqs = self.tracking_reqs
+        nicknames = [nickname for nickname, profile in self.tracking_reqs]
+        if self.server_cert_name is not None:
+            nicknames.append(self.server_cert_name)
 
-        for nickname, _profile in reqs:
+        for nickname in nicknames:
             try:
                 certmonger.stop_tracking(
-                    dogtag_constants.ALIAS_DIR, nickname=nickname)
+                    self.dogtag_constants.ALIAS_DIR, nickname=nickname)
             except RuntimeError, e:
                 self.log.error(
                     "certmonger failed to stop tracking certificate: %s", e)
 
-        cmonger.stop()
+        if stop_certmonger:
+            cmonger.stop()
 
     @staticmethod
     def update_cert_cs_cfg(nickname, cert, directives, cs_cfg,

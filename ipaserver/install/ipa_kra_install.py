@@ -122,7 +122,7 @@ class KRAUninstaller(KRAInstall):
 
         kra_instance = krainstance.KRAInstance(
             api.env.realm, dogtag_constants=dogtag_constants)
-        kra_instance.stop_tracking_certificates(dogtag_constants)
+        kra_instance.stop_tracking_certificates()
         if kra_instance.is_installed():
             kra_instance.uninstall()
 

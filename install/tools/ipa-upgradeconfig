@@ -727,7 +727,7 @@ def certificate_renewal_update(ca):
 
     # Ok, now we need to stop tracking, then we can start tracking them
     # again with new configuration:
-    ca.stop_tracking_certificates(dogtag_constants)
+    ca.stop_tracking_certificates()
 
     if not sysupgrade.get_upgrade_state('dogtag',
                                         'certificate_renewal_update_1'):

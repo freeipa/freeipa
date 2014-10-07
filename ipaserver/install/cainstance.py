@@ -330,6 +330,12 @@ class CAInstance(DogtagInstance):
        2 = have signed cert, continue installation
     """
 
+    tracking_reqs = (('auditSigningCert cert-pki-ca', None),
+                     ('ocspSigningCert cert-pki-ca', None),
+                     ('subsystemCert cert-pki-ca', None),
+                     ('caSigningCert cert-pki-ca', 'ipaCACertRenewal'))
+    server_cert_name = 'Server-Cert cert-pki-ca'
+
     def __init__(self, realm=None, ra_db=None, dogtag_constants=None,
                  host_name=None, dm_password=None, ldapi=True):
         if dogtag_constants is None:
@@ -363,11 +369,6 @@ class CAInstance(DogtagInstance):
             self.ra_agent_pwd = None
         self.ra_cert = None
         self.requestId = None
-        self.tracking_reqs = (('Server-Cert cert-pki-ca', None),
-                              ('auditSigningCert cert-pki-ca', None),
-                              ('ocspSigningCert cert-pki-ca', None),
-                              ('subsystemCert cert-pki-ca', None),
-                              ('caSigningCert cert-pki-ca', 'ipaCACertRenewal'))
         self.log = log_mgr.get_logger(self)
 
     def configure_instance(self, host_name, domain, dm_password,
@@ -452,7 +453,7 @@ class CAInstance(DogtagInstance):
                 self.step("issuing RA agent certificate", self.__issue_ra_cert)
                 self.step("adding RA agent as a trusted user", self.__configure_ra)
             self.step("configure certmonger for renewals", self.configure_certmonger_renewal)
-            self.step("configure certificate renewals", self.configure_cert_renewal)
+            self.step("configure certificate renewals", self.configure_renewal)
             if not self.clone:
                 self.step("configure RA certificate renewal", self.configure_agent_renewal)
             self.step("configure Server-Cert certificate renewal", self.track_servercert)
@@ -1311,27 +1312,6 @@ class CAInstance(DogtagInstance):
         fd.close()
         os.chmod(location, 0444)
 
-    @staticmethod
-    def configure_certmonger_renewal():
-        """
-        Create a new CA type for certmonger that will retrieve updated
-        certificates from the dogtag master server.
-        """
-        services.knownservices.messagebus.start()
-        cmonger = services.knownservices.certmonger
-        cmonger.enable()
-        cmonger.start()
-
-        bus = dbus.SystemBus()
-        obj = bus.get_object('org.fedorahosted.certmonger',
-                             '/org/fedorahosted/certmonger')
-        iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
-        path = iface.find_ca_by_nickname('dogtag-ipa-ca-renew-agent')
-        if not path:
-            iface.add_known_ca(
-                'dogtag-ipa-ca-renew-agent',
-                paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT, [])
-
     def configure_agent_renewal(self):
         try:
             certmonger.dogtag_start_tracking(
@@ -1346,61 +1326,18 @@ class CAInstance(DogtagInstance):
             self.log.error(
                 "certmonger failed to start tracking certificate: %s", e)
 
-    def __get_ca_pin(self):
-        try:
-            return certmonger.get_pin(
-                'internal',
-                dogtag_constants=self.dogtag_constants)
-        except IOError, e:
-            raise RuntimeError(
-                'Unable to determine PIN for CA instance: %s' % e)
+    def stop_tracking_certificates(self):
+        """Stop tracking our certificates. Called on uninstall.
+        """
+        super(CAInstance, self).stop_tracking_certificates(False)
 
-    def configure_cert_renewal(self):
-        """
-        Configure system certificates for renewal.
-        """
-        reqs = (
-            ('auditSigningCert cert-pki-ca', None),
-            ('ocspSigningCert cert-pki-ca',  None),
-            ('subsystemCert cert-pki-ca',    None),
-            ('caSigningCert cert-pki-ca',    'ipaCACertRenewal'),
-        )
-
-        DogtagInstance.configure_renewal(self, reqs)
-
-    def track_servercert(self):
-        """
-        Specifically do not tell certmonger to restart the CA. This will be
-        done by the renewal script, renew_ca_cert once all the subsystem
-        certificates are renewed.
-        """
-        pin = self.__get_ca_pin()
-        try:
-            certmonger.dogtag_start_tracking(
-                ca='dogtag-ipa-renew-agent',
-                nickname='Server-Cert cert-pki-ca',
-                pin=pin,
-                pinfile=None,
-                secdir=self.dogtag_constants.ALIAS_DIR,
-                pre_command=None,
-                post_command=None)
-        except RuntimeError, e:
-            self.log.error(
-                "certmonger failed to start tracking certificate: %s", e)
-
-    @staticmethod
-    def stop_tracking_agent_certificate(dogtag_constants):
-        """Stop tracking agent certificate. Called on uninstall.
-        """
-        cmonger = services.knownservices.certmonger
-        services.knownservices.messagebus.start()
-        cmonger.start()
         try:
             certmonger.stop_tracking(paths.HTTPD_ALIAS_DIR, nickname='ipaCert')
         except RuntimeError, e:
             root_logger.error(
                 "certmonger failed to stop tracking certificate: %s", e)
-        cmonger.stop()
+
+        services.knownservices.certmonger.stop()
 
     def enable_subject_key_identifier(self):
         """

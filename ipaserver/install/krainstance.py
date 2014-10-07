@@ -52,6 +52,10 @@ class KRAInstance(DogtagInstance):
     be the same for both the CA and KRA.
     """
 
+    tracking_reqs = (('auditSigningCert cert-pki-kra', None),
+                     ('transportCert cert-pki-kra', None),
+                     ('storageCert cert-pki-kra', None))
+
     def __init__(self, realm, dogtag_constants=None):
         if dogtag_constants is None:
             dogtag_constants = dogtag.configured_constants()
@@ -64,9 +68,6 @@ class KRAInstance(DogtagInstance):
         )
 
         self.basedn = DN(('o', 'kra'), ('o', 'ipaca'))
-        self.tracking_reqs = (('auditSigningCert cert-pki-kra', None),
-                              ('transportCert cert-pki-kra', None),
-                              ('storageCert cert-pki-kra', None))
         self.log = log_mgr.get_logger(self)
 
     def configure_instance(self, host_name, domain, dm_password,
@@ -111,6 +112,8 @@ class KRAInstance(DogtagInstance):
             self.step("add RA user to KRA agent group",
                       self.__add_ra_user_to_agent_group)
         self.step("restarting KRA", self.restart_instance)
+        self.step("configure certmonger for renewals",
+                  self.configure_certmonger_renewal)
         self.step("configure certificate renewals", self.configure_renewal)
         self.step("Configure HTTP to proxy connections",
                   self.http_proxy)
