@@ -443,7 +443,7 @@ class ClassChecker(object):
     subcls = property(__get_subcls)
 
     def get_subcls(self):
-        raise NotImplementedError(
+        raise AttributeError(
             self.__class__.__name__,
             'get_subcls()'
         )
