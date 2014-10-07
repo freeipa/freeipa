@@ -61,7 +61,7 @@ BuildRequires:  sssd >= 1.9.2
 BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1 >= 0.0.9a
 BuildRequires:  python-qrcode-core >= 5.0.0
-BuildRequires:  python-dns
+BuildRequires:  python-dns >= 1.11.1
 BuildRequires:  m2crypto
 BuildRequires:  check
 BuildRequires:  libsss_idmap-devel
@@ -119,7 +119,7 @@ Requires: subscription-manager
 %endif
 Requires(preun): python systemd-units
 Requires(postun): python systemd-units
-Requires: python-dns
+Requires: python-dns >= 1.11.1
 Requires: zip
 Requires: policycoreutils >= %{POLICYCOREUTILSVER}
 Requires: tar
@@ -203,7 +203,7 @@ Requires: nss-tools
 Requires: bind-utils
 Requires: oddjob-mkhomedir
 Requires: python-krbV
-Requires: python-dns
+Requires: python-dns >= 1.11.1
 Requires: libsss_autofs
 Requires: autofs
 Requires: libnfsidmap
