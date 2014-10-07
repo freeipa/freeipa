@@ -494,7 +494,12 @@ class NSSDatabase(object):
             cert = nss.find_cert_from_nickname(nickname)
             if not cert.subject:
                 raise ValueError("has empty subject")
-            if not cert.is_ca_cert():
+            try:
+                bc = cert.get_extension(nss.SEC_OID_X509_BASIC_CONSTRAINTS)
+            except KeyError:
+                raise ValueError("missing basic constraints")
+            bc = nss.BasicConstraints(bc.value)
+            if not bc.is_ca:
                 raise ValueError("not a CA certificate")
             intended_usage = nss.certificateUsageSSLCA
             try:
