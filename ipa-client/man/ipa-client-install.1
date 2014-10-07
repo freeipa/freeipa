@@ -166,6 +166,9 @@ file. The CA certificate found in \fICA_FILE\fR is considered
 authoritative and will be installed without checking to see if it's
 valid for the IPA domain.
 .TP
+\fB\-\-request\-cert\fR
+Request certificate for the machine. The certificate will be stored in /etc/ipa/nssdb under the nickname "Local IPA host".
+.TP
 \fB\-\-automount\-location\fR=\fILOCATION\fR
 Configure automount by running ipa\-client\-automount(1) with \fILOCATION\fR as
 automount location.
@@ -226,6 +229,7 @@ Files always created (replacing existing content):
 /etc/krb5.conf\p
 /etc/ipa/ca.crt\p
 /etc/ipa/default.conf\p
+/etc/ipa/nssdb\p
 /etc/openldap/ldap.conf\p
 .TP
 Files updated, existing content is maintained:
