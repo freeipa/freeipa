@@ -254,9 +254,14 @@ def request_cert(nssdb, nickname, subject, principal, passwd_fname=None):
     Execute certmonger to request a server certificate.
     """
     cm = _connect_to_certmonger()
+    ca_path = cm.obj_if.find_ca_by_nickname('IPA')
+    if not ca_path:
+        raise RuntimeError('IPA CA not found')
     request_parameters = dict(KEY_STORAGE='NSSDB', CERT_STORAGE='NSSDB',
                               CERT_LOCATION=nssdb, CERT_NICKNAME=nickname,
-                              SUBJECT=subject, PRINCIPAL=principal,)
+                              KEY_LOCATION=nssdb, KEY_NICKNAME=nickname,
+                              SUBJECT=subject, PRINCIPAL=[principal],
+                              CA=ca_path)
     if passwd_fname:
         request_parameters['KEY_PIN_FILE'] = passwd_fname
     result = cm.obj_if.add_request(request_parameters)
