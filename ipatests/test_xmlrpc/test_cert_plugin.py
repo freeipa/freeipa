@@ -84,7 +84,6 @@ class test_cert(XMLRPC_test):
         return ipautil.run(new_args, stdin)
 
     def setup(self):
-        super(test_cert, self).setup()
         self.reqdir = tempfile.mkdtemp(prefix = "tmp-")
         self.reqfile = self.reqdir + "/test.csr"
         self.pwname = self.reqdir + "/pwd"
@@ -100,7 +99,6 @@ class test_cert(XMLRPC_test):
         self.subject = DN(('CN', self.host_fqdn), x509.subject_base())
 
     def teardown(self):
-        super(test_cert, self).teardown()
         shutil.rmtree(self.reqdir, ignore_errors=True)
 
     def generateCSR(self, subject):

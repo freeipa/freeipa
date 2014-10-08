@@ -172,15 +172,11 @@ class XMLRPC_test(object):
         if not server_available:
             raise nose.SkipTest('%r: Server not available: %r' %
                                 (cls.__module__, api.env.xmlrpc_uri))
-
-    def setup(self):
         if not api.Backend.rpcclient.isconnected():
             api.Backend.rpcclient.connect(fallback=False)
 
-    def teardown(self):
-        """
-        nose tear-down fixture.
-        """
+    @classmethod
+    def teardown_class(cls):
         request.destroy_context()
 
     def failsafe_add(self, obj, pk, **options):

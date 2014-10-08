@@ -52,27 +52,22 @@ class cmdline_test(XMLRPC_test):
     # some reasonable default command
     command = paths.LS
 
-    def setup(self):
+    @classmethod
+    def setup_class(cls):
         # Find the executable in $PATH
         # This is neded because ipautil.run resets the PATH to
         # a system default.
-        original_command = self.command
-        if not os.path.isabs(self.command):
-            self.command = distutils.spawn.find_executable(self.command)
+        original_command = cls.command
+        if not os.path.isabs(cls.command):
+            cls.command = distutils.spawn.find_executable(cls.command)
         # raise an error if the command is missing even if the remote
         # server is not available.
-        if not self.command:
+        if not cls.command:
             raise AssertionError(
                 'Command %r not available' % original_command
             )
-        super(cmdline_test, self).setup()
+        super(cmdline_test, cls).setup_class()
         if not server_available:
             raise nose.SkipTest(
                 'Server not available: %r' % api.env.xmlrpc_uri
             )
-
-    def teardown(self):
-        """
-        nose tear-down fixture.
-        """
-        super(cmdline_test, self).teardown()
