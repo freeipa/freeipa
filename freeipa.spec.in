@@ -127,7 +127,7 @@ Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.54-1
-Requires: pki-ca >= 10.2.0
+Requires: pki-ca >= 10.2.0-3
 Requires: pki-kra >= 10.2.0
 %if 0%{?rhel}
 Requires: subscription-manager
