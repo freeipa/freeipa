@@ -222,7 +222,7 @@ class test_automount(AutomountTest):
         assert_attr_equal(res, 'automountinformation', self.newinfo)
         assert_attr_equal(res, 'automountkey', self.keyname_rename)
 
-    def test_a_automountmap_mod(self):
+    def test_a1_automountmap_mod(self):
         """
         Test the `xmlrpc.automountmap_mod` method.
         """
@@ -244,7 +244,7 @@ class test_automount(AutomountTest):
                     dn=DN(('automountmapname', self.mapname),
                           ('cn', self.locname),
                           ('cn', 'automount'), api.env.basedn),
-                    description=(u'description of map',),
+                    description=(u'new description',),
                     automountmapname=(u'testmap',)),),
                 orphankeys=[(
                     dict(
