@@ -149,8 +149,11 @@ Create a new user with username "foo", first name "foo" and last name "bar".
 \fBipa group\-add bar \-\-desc "this is an example group"
 Create a new group with name "bar" and description "this is an example group".
 .TP
-\fBipa group\-add\-member bar \-\-users=admin,foo\fR
-Add users "admin" and "foo" to the group "bar".
+\fBipa group\-add\-member bar \-\-users=foo\fR
+Add user "foo" to the group "bar".
+.TP
+\fBipa group\-add\-member bar \-\-users={admin,foo}\fR
+Add users "admin" and "foo" to the group "bar". This approach depends on shell expansion feature.
 .TP
 \fBipa user\-show foo \-\-raw\fR
 Display user "foo" as (s)he is stored on the server.
