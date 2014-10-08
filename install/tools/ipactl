@@ -159,7 +159,11 @@ def get_config(dirsrv):
         name = entry.single_value['cn']
         for p in entry['ipaConfigString']:
             if p.startswith('startOrder '):
-                order = p.split()[1]
+                try:
+                    order = int(p.split()[1])
+                except ValueError:
+                    raise IpactlError("Expected order as integer in: %s:%s" % (
+                        name, p))
         svc_list.append([order, name])
 
     ordered_list = []
