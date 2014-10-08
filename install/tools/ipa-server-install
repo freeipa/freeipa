@@ -203,6 +203,9 @@ def parse_options():
     cert_group = OptionGroup(parser, "certificate system options")
     cert_group.add_option("", "--external-ca", dest="external_ca", action="store_true",
                       default=False, help="Generate a CSR for the IPA CA certificate to be signed by an external CA")
+    cert_group.add_option("--external-ca-type", dest="external_ca_type",
+                      type="choice", choices=("generic", "ms-cs"),
+                      help="Type of the external CA")
     cert_group.add_option("--external-cert-file", dest="external_cert_files",
                       action="append", metavar="FILE",
                       help="File containing the IPA CA certificate and the external CA certificate chain")
@@ -373,6 +376,10 @@ def parse_options():
         if options.dirsrv_cert_files:
             parser.error("You cannot specify service certificate file options "
                          "together with --external-ca")
+
+    if options.external_ca_type and not options.external_ca:
+        parser.error(
+            "You cannot specify --external-ca-type without --external-ca")
 
     if (options.external_cert_files and
         any(not os.path.isabs(path) for path in options.external_cert_files)):
@@ -1147,7 +1154,8 @@ def main():
             ca.configure_instance(host_name, domain_name, dm_password,
                                   dm_password, csr_file=paths.ROOT_IPA_CSR,
                                   subject_base=options.subject,
-                                  ca_signing_algorithm=options.ca_signing_algorithm)
+                                  ca_signing_algorithm=options.ca_signing_algorithm,
+                                  ca_type=options.external_ca_type)
         else:
             # stage 2 of external CA installation
             ca.configure_instance(host_name, domain_name, dm_password,

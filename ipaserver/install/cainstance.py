@@ -428,7 +428,8 @@ class CAInstance(service.Service):
                            pkcs12_info=None, master_host=None, csr_file=None,
                            cert_file=None, cert_chain_file=None,
                            master_replication_port=None,
-                           subject_base=None, ca_signing_algorithm=None):
+                           subject_base=None, ca_signing_algorithm=None,
+                           ca_type=None):
         """Create a CA instance.
 
            For Dogtag 9, this may involve creating the pki-ca instance.
@@ -458,6 +459,10 @@ class CAInstance(service.Service):
             self.ca_signing_algorithm = 'SHA256withRSA'
         else:
             self.ca_signing_algorithm = ca_signing_algorithm
+        if ca_type is not None:
+            self.ca_type = ca_type
+        else:
+            self.ca_type = 'generic'
 
         # Determine if we are installing as an externally-signed CA and
         # what stage we're in.
@@ -614,6 +619,13 @@ class CAInstance(service.Service):
         if self.external == 1:
             config.set("CA", "pki_external", "True")
             config.set("CA", "pki_external_csr_path", self.csr_file)
+
+            if self.ca_type == 'ms-cs':
+                # Include MS template name extension in the CSR
+                config.set("CA", "pki_req_ext_add", "True")
+                config.set("CA", "pki_req_ext_oid", "1.3.6.1.4.1.311.20.2")
+                config.set("CA", "pki_req_ext_critical", "False")
+                config.set("CA", "pki_req_ext_data", "1E0A00530075006200430041")
 
         elif self.external == 2:
             cert = x509.load_certificate_from_file(self.cert_file)
