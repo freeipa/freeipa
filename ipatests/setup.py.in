@@ -66,6 +66,7 @@ def setup_package():
             classifiers=filter(None, CLASSIFIERS.split('\n')),
             package_dir = {'ipatests': ''},
             packages = ["ipatests",
+                        "ipatests.pytest_plugins",
                         "ipatests.test_cmdline",
                         "ipatests.test_install",
                         "ipatests.test_integration",
@@ -78,6 +79,7 @@ def setup_package():
                         "ipatests.test_xmlrpc"],
             scripts=['ipa-run-tests', 'ipa-test-config', 'ipa-test-task'],
             package_data = {
+                'ipatests': ['pytest.ini'],
                 'ipatests.test_install': ['*.update'],
                 'ipatests.test_integration': ['scripts/*'],
                 'ipatests.test_pkcs10': ['*.csr'],
