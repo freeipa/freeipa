@@ -163,16 +163,16 @@ Basic rules on handling these values
 1. Reading a serial number from CMS requires conversion from hexadecimal
    by converting it into a Python int or long object, use the int constructor:
 
-   >>> serial_number = int(serial_number, 16)
+        serial_number = int(serial_number, 16)
 
 2. Big integers passed to XMLRPC must be decimal unicode strings
 
-   >>> unicode(serial_number)
+       unicode(serial_number)
 
 3. Big integers received from XMLRPC must be converted back to int or long
    objects from the decimal string representation.
 
-   >>> serial_number = int(serial_number)
+       serial_number = int(serial_number)
 
 Xpath pattern matching on node names:
 -------------------------------------
@@ -202,7 +202,7 @@ want to pass the node name. To do this use the name() function. One way we could
 solve the chapter problem above is by using a predicate which says if the node
 name begins with 'chapter' it's a match. Here is how you can do that.
 
-    >>> doc.xpath("//book/*[starts-with(name(), 'chapter')]/section[2]")
+        doc.xpath("//book/*[starts-with(name(), 'chapter')]/section[2]")
 
 The built-in starts-with() returns true if its first argument starts with its
 second argument. Thus the example above says if the node name of the second
@@ -219,10 +219,10 @@ it to bind to those namespaces during its evaluation. Then we just use the
 EXSLT regular expression match() function on the node name. Here is how this is
 done:
 
-    >>> regexpNS = "http://exslt.org/regular-expressions"
-    >>> find = etree.XPath("//book/*[re:match(name(), '^chapter(_\d+)$')]/section[2]",
-    ...                    namespaces={'re':regexpNS}
-    >>> find(doc)
+        regexpNS = "http://exslt.org/regular-expressions"
+        find = etree.XPath("//book/*[re:match(name(), '^chapter(_\d+)$')]/section[2]",
+                           namespaces={'re':regexpNS}
+        find(doc)
 
 What is happening here is that etree.XPath() has returned us an evaluator
 function which we bind to the name 'find'. We've passed it a set of namespaces
