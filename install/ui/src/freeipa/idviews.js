@@ -236,8 +236,16 @@ return {
                             name: 'description'
                         },
                         'uid',
+                        'gecos',
                         'uidnumber',
-                        'homedirectory'
+                        'gidnumber',
+                        'loginshell',
+                        'homedirectory',
+                        {
+                            $type: 'sshkeys',
+                            name: 'ipasshpubkey',
+                            label: '@i18n:objects.sshkeystore.keys'
+                        }
                     ]
                 }
             ]
@@ -256,7 +264,10 @@ return {
                 tooltip: '@i18n:objects.idoverrideuser.anchor_tooltip'
             },
             'uid',
+            'gecos',
             'uidnumber',
+            'gidnumber',
+            'loginshell',
             'homedirectory',
             {
                 $type: 'textarea',
