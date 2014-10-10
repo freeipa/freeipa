@@ -87,8 +87,8 @@ CONFIG_MOD_DATA = {
 
 class test_dns(UI_driver):
 
-    def __init__(self, *args, **kwargs):
-        super(test_dns, self).__init__(args, kwargs)
+    def setup(self, *args, **kwargs):
+        super(test_dns, self).setup(*args, **kwargs)
 
         if not self.has_dns():
             self.skip('DNS not configured')

@@ -48,7 +48,8 @@ class test_hostgroup(UI_driver):
         Hostgroup associations
         """
         self.init_app()
-        host = host_tasks(self.driver, self.config)
+        host = host_tasks()
+        host.setup(self.driver, self.config)
 
         # prepare
         # -------
@@ -89,7 +90,8 @@ class test_hostgroup(UI_driver):
         Hostgroup indirect associations
         """
         self.init_app()
-        host = host_tasks(self.driver, self.config)
+        host = host_tasks()
+        host.setup(self.driver, self.config)
 
         # add
         # ---

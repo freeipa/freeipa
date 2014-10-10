@@ -117,12 +117,18 @@ class UI_driver(object):
         if NO_SELENIUM:
             raise nose.SkipTest('Selenium not installed')
 
-    def __init__(self, driver=None, config=None):
+    def setup(self, driver=None, config=None):
         self.request_timeout = 30
         self.driver = driver
         self.config = config
         if not config:
             self.load_config()
+            if not self.driver:
+                self.driver = self.get_driver()
+        self.get_driver().maximize_window()
+
+    def teardown(self):
+        self.driver.quit()
 
     def load_config(self):
         """
@@ -160,20 +166,6 @@ class UI_driver(object):
             c['browser'] = DEFAULT_BROWSER
         if 'type' not in c:
             c['type'] = DEFAULT_TYPE
-
-    def setup(self):
-        """
-        Test setup
-        """
-        if not self.driver:
-            self.driver = self.get_driver()
-            self.driver.maximize_window()
-
-    def teardown(self):
-        """
-        Test clean up
-        """
-        self.driver.quit()
 
     def get_driver(self):
         """

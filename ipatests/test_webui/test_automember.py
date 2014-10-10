@@ -93,6 +93,7 @@ class test_automember(UI_driver):
         self.init_app()
 
         host_util = host_tasks()
+        host_util.setup(self.driver, self.config)
         domain = self.config.get('ipa_domain')
         host1 = 'web1.%s' % domain
         host2 = 'web2.%s' % domain

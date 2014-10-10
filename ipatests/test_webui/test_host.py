@@ -34,8 +34,8 @@ ENTITY = 'host'
 
 class host_tasks(UI_driver):
 
-    def __init__(self, *args, **kwargs):
-        super(host_tasks, self).__init__(args, kwargs)
+    def setup(self, *args, **kwargs):
+        super(host_tasks, self).setup(*args, **kwargs)
         self.prep_data()
         self.prep_data2()
 

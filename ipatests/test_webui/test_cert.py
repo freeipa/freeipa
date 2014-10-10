@@ -29,8 +29,8 @@ ENTITY = 'cert'
 
 class test_cert(UI_driver):
 
-    def __init__(self, *args, **kwargs):
-        super(test_cert, self).__init__(args, kwargs)
+    def setup(self, *args, **kwargs):
+        super(test_cert, self).setup(*args, **kwargs)
 
         if not self.has_ca():
             self.skip('CA not configured')
