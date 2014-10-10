@@ -373,11 +373,13 @@
                         },
                         "idoverrideuser": {
                             "anchor_label": "User to override",
-                            "anchor_tooltip": "Enter trusted or IPA user login. Note: search doesn't list users from trusted domains."
+                            "anchor_tooltip": "Enter trusted or IPA user login. Note: search doesn't list users from trusted domains.",
+                            "anchor_tooltip_ad": "Enter trusted user login."
                         },
                         "idoverridegroup": {
                             "anchor_label": "Group to override",
-                            "anchor_tooltip": "Enter trusted or IPA group name. Note: search doesn't list groups from trusted domains."
+                            "anchor_tooltip": "Enter trusted or IPA group name. Note: search doesn't list groups from trusted domains.",
+                            "anchor_tooltip_ad": "Enter trusted group name."
                         },
                         "idview": {
                             "appliesto_tab": "${primary_key} applies to:",
