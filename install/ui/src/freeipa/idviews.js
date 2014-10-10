@@ -185,7 +185,17 @@ return {
                     target_entity: 'host',
                     target_facet: 'details'
                 }
-            ]
+            ],
+            state: {
+                evaluators: [
+                    {
+                        $factory: mod_details.value_state_evaluator,
+                        attribute: 'cn',
+                        value: idviews.DEFAULT_TRUST_VIEW,
+                        representation: 'cn_default_trust_view'
+                    }
+                ]
+            }
         }
     ],
 
@@ -406,6 +416,7 @@ idviews.apply_action = function(spec) {
     spec = spec || {};
     spec.name = spec.name || 'idview_apply';
     spec.label = spec.label || '@i18n:objects.idview.apply_hosts';
+    spec.hide_cond = spec.hide_cond || ['cn_default_trust_view'];
 
     var that = IPA.action(spec);
 
