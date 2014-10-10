@@ -252,23 +252,30 @@ class Declarative(XMLRPC_test):
     cleanup_commands = tuple()
     tests = tuple()
 
-    def cleanup_generate(self, stage):
-        for (i, command) in enumerate(self.cleanup_commands):
-            func = lambda: self.cleanup(command)
-            func.description = '%s %s-cleanup[%d]: %r' % (
-                self.__class__.__name__, stage, i, command
-            )
-            yield (func,)
+    @classmethod
+    def setup_class(cls):
+        super(Declarative, cls).setup_class()
+        for command in cls.cleanup_commands:
+            cls.cleanup(command)
 
-    def cleanup(self, command):
+    @classmethod
+    def teardown_class(cls):
+        for command in cls.cleanup_commands:
+            cls.cleanup(command)
+        super(Declarative, cls).teardown_class()
+
+    @classmethod
+    def cleanup(cls, command):
         (cmd, args, options) = command
+        print 'Cleanup:', cmd, args, options
         if cmd not in api.Command:
             raise nose.SkipTest(
                 'cleanup command %r not in api.Command' % cmd
             )
         try:
             api.Command[cmd](*args, **options)
-        except (errors.NotFound, errors.EmptyModlist):
+        except (errors.NotFound, errors.EmptyModlist) as e:
+            print e
             pass
 
     def test_generator(self):
@@ -277,12 +284,6 @@ class Declarative(XMLRPC_test):
 
         nose reports each one as a seperate test.
         """
-
-        # Iterate through pre-cleanup:
-        for tup in self.cleanup_generate('pre'):
-            yield tup
-
-        # Iterate through the tests:
         name = self.__class__.__name__
         for (i, test) in enumerate(self.tests):
             if callable(test):
@@ -298,10 +299,6 @@ class Declarative(XMLRPC_test):
                 func = lambda: self.check(nice, **test)
                 func.description = nice
             yield (func,)
-
-        # Iterate through post-cleanup:
-        for tup in self.cleanup_generate('post'):
-            yield tup
 
     def check(self, nice, desc, command, expected, extra_check=None):
         (cmd, args, options) = command
