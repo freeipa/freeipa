@@ -278,27 +278,15 @@ class Declarative(XMLRPC_test):
             print e
             pass
 
-    def test_generator(self):
-        """
-        Iterate through tests.
+    def test_command(self, index, declarative_test_definition):
+        """Run an individual test
 
-        nose reports each one as a seperate test.
+        The arguments are provided by the pytest plugin.
         """
-        name = self.__class__.__name__
-        for (i, test) in enumerate(self.tests):
-            if callable(test):
-                func = lambda: test(self)
-                nice = '%s[%d]: call %s: %s' % (
-                    name, i, test.__name__, test.__doc__
-                )
-                func.description = nice
-            else:
-                nice = '%s[%d]: %s: %s' % (
-                    name, i, test['command'][0], test.get('desc', '')
-                )
-                func = lambda: self.check(nice, **test)
-                func.description = nice
-            yield (func,)
+        if callable(declarative_test_definition):
+            declarative_test_definition(self)
+        else:
+            self.check(**declarative_test_definition)
 
     def check(self, nice, desc, command, expected, extra_check=None):
         (cmd, args, options) = command
