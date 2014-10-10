@@ -25,6 +25,8 @@ from ipalib.plugins.hostgroup import get_complete_hostgroup_member_list
 from ipalib import api, Str, Int, Flag, _, ngettext, errors, output
 from ipalib.constants import IPA_ANCHOR_PREFIX, SID_ANCHOR_PREFIX
 from ipalib.plugable import Registry
+from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
+    convert_sshpubkey_post)
 
 from ipapython.dn import DN
 
@@ -658,6 +660,7 @@ class idoverrideuser(baseidoverride):
     object_class = baseidoverride.object_class + ['ipaUserOverride']
     default_attributes = baseidoverride.default_attributes + [
        'homeDirectory', 'uidNumber', 'uid', 'ipaOriginalUid', 'loginShell',
+       'ipaSshPubkey',
     ]
 
     takes_params = baseidoverride.takes_params + (
@@ -686,6 +689,13 @@ class idoverrideuser(baseidoverride):
         Str('ipaoriginaluid?',
             flags=['no_option', 'no_output']
             ),
+        Str('ipasshpubkey*', validate_sshpubkey,
+            cli_name='sshpubkey',
+            label=_('SSH public key'),
+            normalizer=normalize_sshpubkey,
+            csv=True,
+            flags=['no_search'],
+        ),
     )
 
     override_object = 'user'
@@ -758,6 +768,13 @@ class idoverrideuser_add(baseidoverride_add):
         self.obj.update_original_uid_reference(entry_attrs)
         return dn
 
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        dn = super(idoverrideuser_add, self).post_callback(ldap, dn,
+                 entry_attrs, *keys, **options)
+        convert_sshpubkey_post(ldap, dn, entry_attrs)
+        return dn
+
+
 
 @register()
 class idoverrideuser_del(baseidoverride_del):
@@ -777,6 +794,20 @@ class idoverrideuser_mod(baseidoverride_mod):
         # Update the ipaOriginalUid
         self.obj.set_anchoruuid_from_dn(dn, entry_attrs)
         self.obj.update_original_uid_reference(entry_attrs)
+        if 'objectclass' in entry_attrs:
+            obj_classes = entry_attrs['objectclass']
+        else:
+            _entry_attrs = ldap.get_entry(dn, ['objectclass'])
+            obj_classes = entry_attrs['objectclass'] = _entry_attrs['objectclass']
+
+        if 'ipasshpubkey' in entry_attrs and 'ipasshuser' not in obj_classes:
+            obj_classes.append('ipasshuser')
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        dn = super(idoverrideuser_mod, self).post_callback(ldap, dn,
+                 entry_attrs, *keys, **options)
+        convert_sshpubkey_post(ldap, dn, entry_attrs)
         return dn
 
 
@@ -786,10 +817,23 @@ class idoverrideuser_find(baseidoverride_find):
     msg_summary = ngettext('%(count)d User ID override matched',
                            '%(count)d User ID overrides matched', 0)
 
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        truncated = super(idoverrideuser_find, self).post_callback(
+            ldap, entries, truncated, *args, **options)
+        for entry in entries:
+            convert_sshpubkey_post(ldap, entry.dn, entry)
+        return truncated
+
 
 @register()
 class idoverrideuser_show(baseidoverride_show):
     __doc__ = _('Display information about an User ID override.')
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        dn = super(idoverrideuser_show, self).post_callback(ldap, dn,
+                 entry_attrs, *keys, **options)
+        convert_sshpubkey_post(ldap, dn, entry_attrs)
+        return dn
 
 
 @register()
