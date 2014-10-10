@@ -363,7 +363,7 @@ define(['dojo/_base/declare',
                 if (preop_t === 'function') {
                     spec = preop(spec, context);
                 } else if (preop_t === 'object') {
-                    var temp = lang.clone(preop);
+                    var temp = construct.clone(preop);
                     this.spec_mod.mod(spec, temp);
                     this.spec_mod.del_rules(temp);
                     lang.mixin(spec, temp);

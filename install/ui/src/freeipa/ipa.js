@@ -23,7 +23,9 @@
 */
 
 define([
+        'dojo/_base/declare',
         'dojo/Deferred',
+        'dojo/Evented',
         'dojo/keys',
         'dojo/topic',
         './jquery',
@@ -38,8 +40,8 @@ define([
         './text',
         './util',
         'exports'
-    ], function(Deferred, keys, topic, $, JSON, i18n, auth, datetime,
-        metadata_provider, builder, reg, rpc, text, util, exports) {
+    ], function(declare, Deferred, Evented, keys, topic, $, JSON, i18n, auth,
+        datetime, metadata_provider, builder, reg, rpc, text, util, exports) {
 
 /**
  * @class
@@ -337,19 +339,14 @@ var IPA = function () {
         }
     };
 
-    that.obj_cls = function() {};
-    that.obj_cls.prototype.__fw_obj = true;
+    that.obj_cls = declare([Evented]);
 
     return that;
 }();
 
 /**
  * Framework objects created by factories should use this
- * instead of empty object when creating base objects. As an alternative
- * they can just set __fw_obj property.
- *
- * __fw_obj property serves for telling the framework that it's instantiated
- * object and not an object specification (spec).
+ * instead of empty object when creating base objects.
  *
  * @class
  */

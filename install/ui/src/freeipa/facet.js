@@ -124,7 +124,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
 
     spec = spec || {};
 
-    var that = new Evented();
+    var that = IPA.object();
 
     /**
      * Name of preferred facet container

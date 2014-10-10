@@ -83,7 +83,7 @@ IPA.widget = function(spec) {
 
     spec = spec || {};
 
-    var that = new Evented();
+    var that = IPA.object();
 
     /**
      * Normalize tooltip
@@ -1419,7 +1419,7 @@ IPA.option_widget_base = function(spec, that) {
     spec = spec || {};
 
     // when that is specified, this constructor behaves like a mixin
-    that = that || new Evented();
+    that = that || IPA.object();
 
     // classic properties
     that.name = spec.name;
@@ -5230,7 +5230,7 @@ IPA.widget_container = function(spec) {
 
     spec = spec || {};
 
-    var that = new Evented();
+    var that = IPA.object();
 
     that.new_container_for_child = spec.new_container_for_child !== undefined ?
     spec.new_container_for_child : true;
