@@ -660,7 +660,7 @@ class idoverrideuser(baseidoverride):
     object_class = baseidoverride.object_class + ['ipaUserOverride']
     default_attributes = baseidoverride.default_attributes + [
        'homeDirectory', 'uidNumber', 'uid', 'ipaOriginalUid', 'loginShell',
-       'ipaSshPubkey',
+       'ipaSshPubkey', 'gidNumber',
     ]
 
     takes_params = baseidoverride.takes_params + (
@@ -676,6 +676,11 @@ class idoverrideuser(baseidoverride):
             cli_name='uid',
             label=_('UID'),
             doc=_('User ID Number'),
+            minvalue=1,
+        ),
+        Int('gidnumber?',
+            label=_('GID'),
+            doc=_('Group ID Number'),
             minvalue=1,
         ),
         Str('homedirectory?',
