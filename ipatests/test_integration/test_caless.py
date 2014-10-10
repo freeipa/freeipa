@@ -31,7 +31,7 @@ from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
-from ipatests.order_plugin import ordered
+from ipatests.pytest_plugins.ordering import ordered
 
 _DEFAULT = object()
 

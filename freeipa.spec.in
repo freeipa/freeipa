@@ -306,6 +306,7 @@ Requires: %{name}-python = %{version}-%{release}
 Requires: tar
 Requires: xz
 Requires: python-nose
+Requires: pytest >= 2.6
 Requires: python-paste
 Requires: python-coverage
 Requires: python-polib

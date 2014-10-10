@@ -24,7 +24,7 @@ import nose
 from ipapython.ipa_log_manager import log_mgr
 from ipatests.test_integration.config import get_global_config
 from ipatests.test_integration import tasks
-from ipatests.order_plugin import ordered
+from ipatests.pytest_plugins.ordering import ordered
 
 log = log_mgr.get_logger(__name__)
 
