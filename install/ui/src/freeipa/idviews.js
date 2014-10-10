@@ -37,7 +37,9 @@ define([
  * @class
  * @singleton
  */
-var idviews = IPA.idviews = {};
+var idviews = IPA.idviews = {
+    DEFAULT_TRUST_VIEW: 'Default Trust View'
+};
 
 var make_spec = function() {
 return {
@@ -82,6 +84,7 @@ return {
         },
         {
             $type: 'details',
+            header: idviews.idview_facet_header,
             actions: [
                 'delete'
             ],
@@ -104,6 +107,7 @@ return {
         {
             $type: 'nested_search',
             facet_group: 'overrides',
+            header: idviews.idview_facet_header,
             nested_entity: 'idoverrideuser',
             search_all_entries: true,
             label: '@mo:idoverrideuser.label',
@@ -123,6 +127,7 @@ return {
         {
             $type: 'nested_search',
             facet_group: 'overrides',
+            header: idviews.idview_facet_header,
             nested_entity: 'idoverridegroup',
             search_all_entries: true,
             label: '@mo:idoverridegroup.label',
@@ -366,6 +371,25 @@ idviews.appliedtohosts_facet = function(spec, no_init) {
         var command = that.attribute_get_refresh_command();
         command.set_option('show_hosts', true);
         return command;
+    };
+
+    return that;
+};
+
+idviews.idview_facet_header = function(spec) {
+
+    var that = mod_facet.facet_header(spec);
+
+    /**
+     * Set pkeys and hides 'appliedtohosts' facet for 'Default Trust View'
+     * @param {string} value pkey
+     */
+    that.set_pkey = function(value) {
+
+        that.facet_header_set_pkey(value);
+        var display = value === idviews.DEFAULT_TRUST_VIEW ? 'none' : '';
+        $('.facet-group[name="appliedto"]', that.facet_tabs).
+            css('display', display);
     };
 
     return that;
