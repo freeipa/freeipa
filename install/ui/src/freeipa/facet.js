@@ -211,7 +211,8 @@ exp.facet = IPA.facet = function(spec, no_init) {
      * Facet header
      * @property {facet.facet_header}
      */
-    that.header = spec.header || IPA.facet_header({ facet: that });
+    that.header = builder.build('',  spec.header || {}, {},
+        { $pre_ops: [{ facet: that }], $factory: IPA.facet_header });
 
     /**
      * Hard override for `needs_update()` logic. When set, `needs_update`
@@ -1399,6 +1400,8 @@ exp.facet_header = IPA.facet_header = function(spec) {
     that.clear = function() {
         that.load();
     };
+
+    that.facet_header_set_pkey = that.set_pkey;
 
     return that;
 };
