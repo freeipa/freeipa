@@ -240,6 +240,12 @@ class baseidview_apply(LDAPQuery):
             # the ipaAssignedIDView to None
             view_dn = None
 
+        if view == 'Default Trust View':
+            raise errors.ValidationError(
+                name=_('ID View'),
+                error=_('Default Trust View cannot be applied on hosts')
+            )
+
         completed = 0
         succeeded = {'host': []}
         failed = {
