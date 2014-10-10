@@ -75,6 +75,11 @@ def parse_options():
 def get_dirman_password():
     return installutils.read_password("Directory Manager (existing master)", confirm=False, validate=False)
 
+def check_ca():
+    if not cainstance.check_port():
+        print "IPA requires port 8443 for PKI but it is currently in use."
+        sys.exit(1)
+
 def install_dns_records(config, options):
 
     if not bindinstance.dns_container_exists(config.master_host_name,
@@ -176,6 +181,8 @@ def main():
         root_logger.info("Skipping CA DS schema check")
     else:
         cainstance.replica_ca_install_check(config)
+
+    check_ca()
 
     # Configure the CA if necessary
     CA = cainstance.install_replica_ca(config, postinstall=True)

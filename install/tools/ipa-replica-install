@@ -484,6 +484,11 @@ def main():
 
     check_dirsrv()
 
+    if options.setup_ca:
+        if not cainstance.check_port():
+            print "IPA requires port 8443 for PKI but it is currently in use."
+            sys.exit("Aborting installation")
+
     if options.conf_ntp:
         try:
             ipaclient.ntpconf.check_timedate_services()

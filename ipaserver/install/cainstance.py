@@ -105,6 +105,14 @@ def check_inst():
 
     return True
 
+def check_port():
+    """
+    Check that dogtag port (8443) is available.
+
+    Returns True when the port is free, False if it's taken.
+    """
+    return not ipautil.host_port_open(None, 8443)
+
 def get_preop_pin(instance_root, instance_name):
     # Only used for Dogtag 9
     preop_pin = None
