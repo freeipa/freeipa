@@ -20,6 +20,7 @@
  */
 
 define([
+        'dojo/on',
         './ipa',
         './jquery',
         './menu',
@@ -31,7 +32,7 @@ define([
         './facet',
         './search',
         './entity'],
-            function(IPA, $, menu, phases, reg, rpc, text, mod_details, mod_facet) {
+            function(on, IPA, $, menu, phases, reg, rpc, text, mod_details, mod_facet) {
 /**
  * ID Views module
  * @class
@@ -268,6 +269,9 @@ return {
     ],
 
     adder_dialog: {
+        policies: [
+            { $factory: idviews.idoverride_adder_policy }
+        ],
         fields: [
             {
                 $type: 'entity_select',
@@ -277,6 +281,14 @@ return {
                 other_field: 'uid',
                 editable: true,
                 tooltip: '@i18n:objects.idoverrideuser.anchor_tooltip'
+            },
+            {
+                label: '@i18n:objects.idoverrideuser.anchor_label',
+                name: 'ipaanchoruuid_default',
+                param: 'ipaanchoruuid',
+                tooltip: '@i18n:objects.idoverrideuser.anchor_tooltip_ad',
+                visible: false,
+                enabled: false
             },
             'uid',
             'gecos',
@@ -341,6 +353,9 @@ return {
     ],
 
     adder_dialog: {
+        policies: [
+            { $factory: idviews.idoverride_adder_policy }
+        ],
         fields: [
              {
                 $type: 'entity_select',
@@ -350,6 +365,14 @@ return {
                 other_field: 'cn',
                 editable: true,
                 tooltip: '@i18n:objects.idoverridegroup.anchor_tooltip'
+            },
+            {
+                label: '@i18n:objects.idoverridegroup.anchor_label',
+                name: 'ipaanchoruuid_default',
+                param: 'ipaanchoruuid',
+                tooltip: '@i18n:objects.idoverridegroup.anchor_tooltip_ad',
+                visible: false,
+                enabled: false
             },
             'cn',
             'gidnumber',
@@ -400,6 +423,32 @@ idviews.idview_facet_header = function(spec) {
         var display = value === idviews.DEFAULT_TRUST_VIEW ? 'none' : '';
         $('.facet-group[name="appliedto"]', that.facet_tabs).
             css('display', display);
+    };
+
+    return that;
+};
+
+/**
+ * Switches between combobox and textbox for ipaanchoruuid, depending on if
+ * current view is Default Trust View
+ * @class idviews.idoverride_adder_policy
+ * @extends IPA.facet_policy
+ */
+idviews.idoverride_adder_policy = function (spec) {
+    var that = IPA.facet_policy(spec);
+    that.init = function() {
+        on(that.container, 'open', that.on_open);
+    };
+
+    that.on_open = function() {
+        var d = that.container; // dialog
+        var default_view = d.pkey_prefix.slice(-1)[0] === idviews.DEFAULT_TRUST_VIEW;
+        var f1 = d.fields.get_field('ipaanchoruuid');
+        var f2 = d.fields.get_field('ipaanchoruuid_default');
+        f1.set_enabled(!default_view);
+        f1.widget.set_visible(!default_view);
+        f2.set_enabled(default_view);
+        f2.widget.set_visible(default_view);
     };
 
     return that;

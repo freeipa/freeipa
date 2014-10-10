@@ -149,6 +149,12 @@
                 ]
             },
             {
+                "name": "Dialog policies",
+                "classes": [
+                    "idviews.idoverride_adder_policy"
+                ]
+            },
+            {
                 "name": "Evaluators & Summaries",
                 "classes": [
                     "*_evaluator",
