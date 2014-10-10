@@ -43,18 +43,14 @@ define(['dojo/_base/declare',
         /**
          * Finds out if object is a spec object.
          *
-         * Object is not a spec object when any of following applies:
+         * Object is not a spec object when it has an `isInstanceOf` function.
          *
-         * - has `__fw_obj === true`
-         * - has `isInstanceOf` function - basically tells if it's a instance of
-         *                                   dojo-based class
          * @param {Object} obj
          */
         is_spec: function(obj) {
             var ret = false;
             if (typeof obj === 'object') {
-                ret = obj.__fw_obj === true ||
-                      typeof obj.isInstanceOf === 'function';
+                ret = typeof obj.isInstanceOf === 'function';
             }
             return !ret;
         },

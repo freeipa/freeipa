@@ -221,7 +221,7 @@ IPA.dialog = function(spec) {
 
     spec = spec || {};
 
-    var that = new Evented();
+    var that = IPA.object();
 
     /** @property {entity.entity} entity Entity */
     that.entity = IPA.get_entity(spec.entity);

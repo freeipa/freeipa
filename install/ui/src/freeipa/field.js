@@ -60,7 +60,7 @@ var field = {};
 field.field = IPA.field = function(spec) {
     spec = spec || {};
 
-    var that = new Evented();
+    var that = IPA.object();
 
     /**
      * Entity
