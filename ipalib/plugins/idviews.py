@@ -652,7 +652,7 @@ class idoverrideuser(baseidoverride):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'objectClass', 'ipaAnchorUUID', 'uidNumber', 'description',
-                'homeDirectory', 'uid', 'ipaOriginalUid', 'loginShell',
+                'homeDirectory', 'uid', 'ipaOriginalUid', 'loginShell', 'gecos',
             },
         },
     }
@@ -660,7 +660,7 @@ class idoverrideuser(baseidoverride):
     object_class = baseidoverride.object_class + ['ipaUserOverride']
     default_attributes = baseidoverride.default_attributes + [
        'homeDirectory', 'uidNumber', 'uid', 'ipaOriginalUid', 'loginShell',
-       'ipaSshPubkey', 'gidNumber',
+       'ipaSshPubkey', 'gidNumber', 'gecos',
     ]
 
     takes_params = baseidoverride.takes_params + (
@@ -677,6 +677,9 @@ class idoverrideuser(baseidoverride):
             label=_('UID'),
             doc=_('User ID Number'),
             minvalue=1,
+        ),
+        Str('gecos?',
+            label=_('GECOS'),
         ),
         Int('gidnumber?',
             label=_('GID'),
