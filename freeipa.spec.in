@@ -79,7 +79,7 @@ BuildRequires:  python-dns >= 1.11.1
 BuildRequires:  m2crypto
 BuildRequires:  check
 BuildRequires:  libsss_idmap-devel
-BuildRequires:  libsss_nss_idmap-devel
+BuildRequires:  libsss_nss_idmap-devel >= 1.12.2
 BuildRequires:  java-headless
 BuildRequires:  rhino
 BuildRequires:  libverto-devel

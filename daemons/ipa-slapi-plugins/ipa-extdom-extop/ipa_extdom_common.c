@@ -254,6 +254,34 @@ static int get_user_grouplist(const char *name, gid_t gid,
     return LDAP_SUCCESS;
 }
 
+static int add_kv_list(BerElement *ber, struct sss_nss_kv *kv_list)
+{
+    size_t c;
+    int ret;
+    const char *single_value_string_array[] = {NULL, NULL};
+
+    ret = ber_printf(ber,"{");
+    if (ret == -1) {
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    for (c = 0; kv_list[c].key != NULL; c++) {
+        single_value_string_array[0] = kv_list[c].value;
+        ret = ber_printf(ber,"{s{v}}", kv_list[c].key,
+                                       single_value_string_array);
+        if (ret == -1) {
+            return LDAP_OPERATIONS_ERROR;
+        }
+    }
+
+    ret = ber_printf(ber,"}");
+    if (ret == -1) {
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    return LDAP_SUCCESS;
+}
+
 static int pack_ber_sid(const char *sid, struct berval **berval)
 {
     BerElement *ber = NULL;
@@ -285,7 +313,7 @@ static int pack_ber_user(enum response_types response_type,
                          const char *domain_name, const char *user_name,
                          uid_t uid, gid_t gid,
                          const char *gecos, const char *homedir,
-                         const char *shell, const char *sid_str,
+                         const char *shell, struct sss_nss_kv *kv_list,
                          struct berval **berval)
 {
     BerElement *ber = NULL;
@@ -299,7 +327,6 @@ static int pack_ber_user(enum response_types response_type,
     size_t c;
     char *locat;
     char *short_user_name = NULL;
-    const char *single_value_string_array[] = {NULL, NULL};
 
     short_user_name = strdup(user_name);
     if ((locat = strchr(short_user_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
@@ -370,12 +397,11 @@ static int pack_ber_user(enum response_types response_type,
             goto done;
         }
 
-        single_value_string_array[0] = sid_str;
-        ret = ber_printf(ber,"{{s{v}}}", SSSD_SYSDB_SID_STR,
-                                         single_value_string_array);
-        if (ret == -1) {
-            ret = LDAP_OPERATIONS_ERROR;
-            goto done;
+        if (kv_list != NULL) {
+            ret = add_kv_list(ber, kv_list);
+            if (ret != LDAP_SUCCESS) {
+                goto done;
+            }
         }
     }
 
@@ -402,7 +428,7 @@ done:
 
 static int pack_ber_group(enum response_types response_type,
                           const char *domain_name, const char *group_name,
-                          gid_t gid, char **members, const char *sid_str,
+                          gid_t gid, char **members, struct sss_nss_kv *kv_list,
                           struct berval **berval)
 {
     BerElement *ber = NULL;
@@ -410,7 +436,6 @@ static int pack_ber_group(enum response_types response_type,
     size_t c;
     char *locat;
     char *short_group_name = NULL;
-    const char *single_value_string_array[] = {NULL, NULL};
 
     short_group_name = strdup(group_name);
     if ((locat = strchr(short_group_name, SSSD_DOMAIN_SEPARATOR)) != NULL) {
@@ -455,12 +480,11 @@ static int pack_ber_group(enum response_types response_type,
             goto done;
         }
 
-        single_value_string_array[0] = sid_str;
-        ret = ber_printf(ber,"{{s{v}}}", SSSD_SYSDB_SID_STR,
-                                         single_value_string_array);
-        if (ret == -1) {
-            ret = LDAP_OPERATIONS_ERROR;
-            goto done;
+        if (kv_list != NULL) {
+            ret = add_kv_list(ber, kv_list);
+            if (ret != LDAP_SUCCESS) {
+                goto done;
+            }
         }
 
     }
@@ -521,13 +545,14 @@ static int handle_uid_request(enum request_types request_type, uid_t uid,
     enum sss_id_type id_type;
     size_t buf_len;
     char *buf = NULL;
+    struct sss_nss_kv *kv_list = NULL;
 
     ret = get_buffer(&buf_len, &buf);
     if (ret != LDAP_SUCCESS) {
         return ret;
     }
 
-    if (request_type == REQ_SIMPLE || request_type == REQ_FULL_WITH_GROUPS) {
+    if (request_type == REQ_SIMPLE) {
         ret = sss_nss_getsidbyid(uid, &sid_str, &id_type);
         if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
                             || id_type == SSS_ID_TYPE_BOTH)) {
@@ -538,9 +563,7 @@ static int handle_uid_request(enum request_types request_type, uid_t uid,
             }
             goto done;
         }
-    }
 
-    if (request_type == REQ_SIMPLE) {
         ret = pack_ber_sid(sid_str, berval);
     } else {
         ret = getpwuid_r(uid, &pwd, buf, buf_len, &pwd_result);
@@ -553,14 +576,28 @@ static int handle_uid_request(enum request_types request_type, uid_t uid,
             goto done;
         }
 
+        if (request_type == REQ_FULL_WITH_GROUPS) {
+            ret = sss_nss_getorigbyname(pwd.pw_name, &kv_list, &id_type);
+            if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
+                                || id_type == SSS_ID_TYPE_BOTH)) {
+                if (ret == ENOENT) {
+                    ret = LDAP_NO_SUCH_OBJECT;
+                } else {
+                    ret = LDAP_OPERATIONS_ERROR;
+                }
+                goto done;
+            }
+        }
+
         ret = pack_ber_user((request_type == REQ_FULL ? RESP_USER
                                                       : RESP_USER_GROUPLIST),
                             domain_name, pwd.pw_name, pwd.pw_uid,
                             pwd.pw_gid, pwd.pw_gecos, pwd.pw_dir,
-                            pwd.pw_shell, sid_str, berval);
+                            pwd.pw_shell, kv_list, berval);
     }
 
 done:
+    sss_nss_free_kv(kv_list);
     free(sid_str);
     free(buf);
     return ret;
@@ -576,13 +613,14 @@ static int handle_gid_request(enum request_types request_type, gid_t gid,
     enum sss_id_type id_type;
     size_t buf_len;
     char *buf = NULL;
+    struct sss_nss_kv *kv_list = NULL;
 
     ret = get_buffer(&buf_len, &buf);
     if (ret != LDAP_SUCCESS) {
         return ret;
     }
 
-    if (request_type == REQ_SIMPLE || request_type == REQ_FULL_WITH_GROUPS) {
+    if (request_type == REQ_SIMPLE) {
         ret = sss_nss_getsidbyid(gid, &sid_str, &id_type);
         if (ret != 0 || id_type != SSS_ID_TYPE_GID) {
             if (ret == ENOENT) {
@@ -592,9 +630,7 @@ static int handle_gid_request(enum request_types request_type, gid_t gid,
             }
             goto done;
         }
-    }
 
-    if (request_type == REQ_SIMPLE) {
         ret = pack_ber_sid(sid_str, berval);
     } else {
         ret = getgrgid_r(gid, &grp, buf, buf_len, &grp_result);
@@ -607,13 +643,27 @@ static int handle_gid_request(enum request_types request_type, gid_t gid,
             goto done;
         }
 
+        if (request_type == REQ_FULL_WITH_GROUPS) {
+            ret = sss_nss_getorigbyname(grp.gr_name, &kv_list, &id_type);
+            if (ret != 0 || !(id_type == SSS_ID_TYPE_GID
+                                || id_type == SSS_ID_TYPE_BOTH)) {
+                if (ret == ENOENT) {
+                    ret = LDAP_NO_SUCH_OBJECT;
+                } else {
+                    ret = LDAP_OPERATIONS_ERROR;
+                }
+                goto done;
+            }
+        }
+
         ret = pack_ber_group((request_type == REQ_FULL ? RESP_GROUP
                                                        : RESP_GROUP_MEMBERS),
                              domain_name, grp.gr_name, grp.gr_gid,
-                             grp.gr_mem, sid_str, berval);
+                             grp.gr_mem, kv_list, berval);
     }
 
 done:
+    sss_nss_free_kv(kv_list);
     free(sid_str);
     free(buf);
     return ret;
@@ -634,6 +684,7 @@ static int handle_sid_request(enum request_types request_type, const char *sid,
     size_t buf_len;
     char *buf = NULL;
     enum sss_id_type id_type;
+    struct sss_nss_kv *kv_list = NULL;
 
     ret = sss_nss_getnamebysid(sid, &fq_name, &id_type);
     if (ret != 0) {
@@ -682,11 +733,24 @@ static int handle_sid_request(enum request_types request_type, const char *sid,
             goto done;
         }
 
+        if (request_type == REQ_FULL_WITH_GROUPS) {
+            ret = sss_nss_getorigbyname(pwd.pw_name, &kv_list, &id_type);
+            if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
+                                || id_type == SSS_ID_TYPE_BOTH)) {
+                if (ret == ENOENT) {
+                    ret = LDAP_NO_SUCH_OBJECT;
+                } else {
+                    ret = LDAP_OPERATIONS_ERROR;
+                }
+                goto done;
+            }
+        }
+
         ret = pack_ber_user((request_type == REQ_FULL ? RESP_USER
                                                       : RESP_USER_GROUPLIST),
                             domain_name, pwd.pw_name, pwd.pw_uid,
                             pwd.pw_gid, pwd.pw_gecos, pwd.pw_dir,
-                            pwd.pw_shell, sid, berval);
+                            pwd.pw_shell, kv_list, berval);
         break;
     case SSS_ID_TYPE_GID:
         ret = getgrnam_r(fq_name, &grp, buf, buf_len, &grp_result);
@@ -700,10 +764,23 @@ static int handle_sid_request(enum request_types request_type, const char *sid,
             goto done;
         }
 
+        if (request_type == REQ_FULL_WITH_GROUPS) {
+            ret = sss_nss_getorigbyname(grp.gr_name, &kv_list, &id_type);
+            if (ret != 0 || !(id_type == SSS_ID_TYPE_GID
+                                || id_type == SSS_ID_TYPE_BOTH)) {
+                if (ret == ENOENT) {
+                    ret = LDAP_NO_SUCH_OBJECT;
+                } else {
+                    ret = LDAP_OPERATIONS_ERROR;
+                }
+                goto done;
+            }
+        }
+
         ret = pack_ber_group((request_type == REQ_FULL ? RESP_GROUP
                                                        : RESP_GROUP_MEMBERS),
                              domain_name, grp.gr_name, grp.gr_gid,
-                             grp.gr_mem, sid, berval);
+                             grp.gr_mem, kv_list, berval);
         break;
     default:
         ret = LDAP_OPERATIONS_ERROR;
@@ -711,6 +788,7 @@ static int handle_sid_request(enum request_types request_type, const char *sid,
     }
 
 done:
+    sss_nss_free_kv(kv_list);
     free(fq_name);
     free(object_name);
     free(domain_name);
@@ -733,6 +811,7 @@ static int handle_name_request(enum request_types request_type,
     enum sss_id_type id_type;
     size_t buf_len;
     char *buf = NULL;
+    struct sss_nss_kv *kv_list = NULL;
 
     ret = asprintf(&fq_name, "%s%c%s", name, SSSD_DOMAIN_SEPARATOR,
                                        domain_name);
@@ -743,7 +822,7 @@ static int handle_name_request(enum request_types request_type,
         goto done;
     }
 
-    if (request_type == REQ_SIMPLE || request_type == REQ_FULL_WITH_GROUPS) {
+    if (request_type == REQ_SIMPLE) {
         ret = sss_nss_getsidbyname(fq_name, &sid_str, &id_type);
         if (ret != 0) {
             if (ret == ENOENT) {
@@ -751,11 +830,9 @@ static int handle_name_request(enum request_types request_type,
             } else {
                 ret = LDAP_OPERATIONS_ERROR;
             }
-           goto done;
+            goto done;
         }
-    }
 
-    if (request_type == REQ_SIMPLE) {
         ret = pack_ber_sid(sid_str, berval);
     } else {
         ret = get_buffer(&buf_len, &buf);
@@ -772,11 +849,23 @@ static int handle_name_request(enum request_types request_type,
         }
 
         if (pwd_result != NULL) {
+            if (request_type == REQ_FULL_WITH_GROUPS) {
+                ret = sss_nss_getorigbyname(pwd.pw_name, &kv_list, &id_type);
+                if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
+                                    || id_type == SSS_ID_TYPE_BOTH)) {
+                    if (ret == ENOENT) {
+                        ret = LDAP_NO_SUCH_OBJECT;
+                    } else {
+                        ret = LDAP_OPERATIONS_ERROR;
+                    }
+                    goto done;
+                }
+            }
             ret = pack_ber_user((request_type == REQ_FULL ? RESP_USER
                                                           : RESP_USER_GROUPLIST),
                                 domain_name, pwd.pw_name, pwd.pw_uid,
                                 pwd.pw_gid, pwd.pw_gecos, pwd.pw_dir,
-                                pwd.pw_shell, sid_str, berval);
+                                pwd.pw_shell, kv_list, berval);
         } else { /* no user entry found */
             ret = getgrnam_r(fq_name, &grp, buf, buf_len, &grp_result);
             if (ret != 0) {
@@ -789,14 +878,28 @@ static int handle_name_request(enum request_types request_type,
                 goto done;
             }
 
+            if (request_type == REQ_FULL_WITH_GROUPS) {
+                ret = sss_nss_getorigbyname(grp.gr_name, &kv_list, &id_type);
+                if (ret != 0 || !(id_type == SSS_ID_TYPE_GID
+                                    || id_type == SSS_ID_TYPE_BOTH)) {
+                    if (ret == ENOENT) {
+                        ret = LDAP_NO_SUCH_OBJECT;
+                    } else {
+                        ret = LDAP_OPERATIONS_ERROR;
+                    }
+                    goto done;
+                }
+            }
+
             ret = pack_ber_group((request_type == REQ_FULL ? RESP_GROUP
                                                            : RESP_GROUP_MEMBERS),
                                  domain_name, grp.gr_name, grp.gr_gid,
-                                 grp.gr_mem, sid_str, berval);
+                                 grp.gr_mem, kv_list, berval);
         }
     }
 
 done:
+    sss_nss_free_kv(kv_list);
     free(fq_name);
     free(sid_str);
     free(buf);
