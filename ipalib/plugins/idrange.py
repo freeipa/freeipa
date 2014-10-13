@@ -248,6 +248,12 @@ class idrange(LDAPObject):
             if not options.get('all', False) or options.get('pkey_only', False):
                 entry_attrs.pop('objectclass', None)
 
+    def handle_ipabaserid(self, entry_attrs, options):
+        if any((options.get('pkey_only', False), options.get('raw', False))):
+            return
+        if entry_attrs['iparangetype'][0] == u'ipa-ad-trust-posix':
+            entry_attrs.pop('ipabaserid', None)
+
     def check_ids_in_modified_range(self, old_base, old_size, new_base,
                                     new_size):
         if new_base is None and new_size is None:
@@ -414,6 +420,7 @@ class idrange_add(LDAPCreate):
 
         rid_base = kw.get('ipabaserid', None)
         secondary_rid_base = kw.get('ipasecondarybaserid', None)
+        range_type = kw.get('iparangetype', None)
 
         def set_from_prompt(param):
             value = self.prompt_param(self.params[param])
@@ -424,7 +431,7 @@ class idrange_add(LDAPCreate):
             # This is a trusted range
 
             # Prompt for RID base if domain SID / name was given
-            if rid_base is None:
+            if rid_base is None and range_type != u'ipa-ad-trust-posix':
                 set_from_prompt('ipabaserid')
 
         else:
@@ -486,22 +493,32 @@ class idrange_add(LDAPCreate):
             if not is_set('iparangetype'):
                 entry_attrs['iparangetype'] = u'ipa-ad-trust'
 
-            if entry_attrs['iparangetype'] not in (u'ipa-ad-trust',
-                                                   u'ipa-ad-trust-posix'):
+            if entry_attrs['iparangetype'] == u'ipa-ad-trust':
+                if not is_set('ipabaserid'):
+                    raise errors.ValidationError(
+                        name='ID Range setup',
+                        error=_('Options dom-sid/dom-name and rid-base must '
+                                'be used together')
+                    )
+            elif entry_attrs['iparangetype'] == u'ipa-ad-trust-posix':
+                if is_set('ipabaserid') and entry_attrs['ipabaserid'] != 0:
+                    raise errors.ValidationError(
+                        name='ID Range setup',
+                        error=_('Option rid-base must not be used when IPA '
+                                'range type is ipa-ad-trust-posix')
+                    )
+                else:
+                    entry_attrs['ipabaserid'] = 0
+            else:
                 raise errors.ValidationError(name='ID Range setup',
                     error=_('IPA Range type must be one of ipa-ad-trust '
                             'or ipa-ad-trust-posix when SID of the trusted '
-                            'domain is specified.'))
+                            'domain is specified'))
 
             if is_set('ipasecondarybaserid'):
                 raise errors.ValidationError(name='ID Range setup',
                     error=_('Options dom-sid/dom-name and secondary-rid-base '
                             'cannot be used together'))
-
-            if not is_set('ipabaserid'):
-                raise errors.ValidationError(name='ID Range setup',
-                    error=_('Options dom-sid/dom-name and rid-base must '
-                            'be used together'))
 
             # Validate SID as the one of trusted domains
             self.obj.validate_trusted_domain_sid(
@@ -557,6 +574,7 @@ class idrange_add(LDAPCreate):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
+        self.obj.handle_ipabaserid(entry_attrs, options)
         self.obj.handle_iparangetype(entry_attrs, options,
                                      keep_objectclass=True)
         return dn
@@ -628,6 +646,7 @@ class idrange_find(LDAPSearch):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         for entry in entries:
+            self.obj.handle_ipabaserid(entry, options)
             self.obj.handle_iparangetype(entry, options)
         return truncated
 
@@ -643,6 +662,7 @@ class idrange_show(LDAPRetrieve):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
+        self.obj.handle_ipabaserid(entry_attrs, options)
         self.obj.handle_iparangetype(entry_attrs, options)
         return dn
 
@@ -699,11 +719,23 @@ class idrange_mod(LDAPUpdate):
                 raise errors.ValidationError(name='ID Range setup',
                     error=_('Options dom-sid and secondary-rid-base cannot '
                             'be used together'))
-
-            if not in_updated_attrs('ipabaserid'):
-                raise errors.ValidationError(name='ID Range setup',
-                    error=_('Options dom-sid and rid-base must '
-                            'be used together'))
+            range_type = old_attrs['iparangetype'][0]
+            if range_type == u'ipa-ad-trust':
+                if not in_updated_attrs('ipabaserid'):
+                    raise errors.ValidationError(
+                        name='ID Range setup',
+                        error=_('Options dom-sid and rid-base must '
+                                'be used together'))
+            elif (range_type == u'ipa-ad-trust-posix' and
+                  'ipabaserid' in entry_attrs):
+                if entry_attrs['ipabaserid'] is None:
+                    entry_attrs['ipabaserid'] = 0
+                elif entry_attrs['ipabaserid'] != 0:
+                    raise errors.ValidationError(
+                        name='ID Range setup',
+                        error=_('Option rid-base must not be used when IPA '
+                                'range type is ipa-ad-trust-posix')
+                    )
 
             if is_set('ipanttrusteddomainsid'):
                 # Validate SID as the one of trusted domains
@@ -766,6 +798,7 @@ class idrange_mod(LDAPUpdate):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
+        self.obj.handle_ipabaserid(entry_attrs, options)
         self.obj.handle_iparangetype(entry_attrs, options)
         return dn
 
