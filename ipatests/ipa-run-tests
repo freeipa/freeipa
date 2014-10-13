@@ -20,62 +20,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Nose wrapper for running an installed (not in-tree) IPA test suite
+"""Pytest wrapper for running an installed (not in-tree) IPA test suite
 
-Any command-line arguments are passed directly to Nose.
-Note that any relative paths given will be based on the ipatests module's path
+Any command-line arguments are passed directly to py.test.
+The current directory is changed to the locaition of the ipatests package,
+so any relative paths given will be based on the ipatests module's path
 """
 
-import sys
 import os
-from os import path
-import logging
+import sys
 
-import nose
+import pytest
 
-from ipapython.ipa_log_manager import log_mgr
 import ipatests
-from ipatests.beakerlib_plugin import BeakerLibPlugin
-from ipatests.order_plugin import OrderTests
-
-cmd = [
-    sys.argv[0],
-    '--with-doctest',
-    '--doctest-tests',
-    '--with-ordered-tests',
-    '--exclude=plugins',
-    '--nologcapture',
-    '--logging-filter=-paramiko',
-    '--where', os.path.dirname(ipatests.__file__),
-]
-cmd += sys.argv[1:]
-
 
 # This must be set so ipalib.api gets initialized property for tests:
 os.environ['IPA_UNIT_TEST_MODE'] = 'cli_test'
 
+# This is set to store --with-xunit report in an accessible place:
+os.environ['IPATEST_XUNIT_PATH'] = os.path.join(os.getcwd(), 'nosetests.xml')
 
-# Forward IPA logging to a normal Python logger. Nose's logcapture plugin
-# can't work with IPA-managed loggers
-class LogHandler(logging.Handler):
-    name = 'forwarding log handler'
-    logger = logging.getLogger('IPA')
+os.chdir(os.path.dirname(ipatests.__file__))
 
-    def emit(self, record):
-        self.logger.log(record.levelno, self.format(record))
-
-if 'console' in log_mgr.handlers:
-    log_mgr.remove_handler('console')
-log_mgr.configure(
-    {
-        'default_level': 'DEBUG',
-        'handlers': [{'log_handler': LogHandler(),
-                      'format': '[%(name)s] %(message)s',
-                      'level': 'debug'},
-                     {'level': 'debug',
-                      'name': 'console',
-                      'stream': sys.stderr}]},
-    configure_state='tests')
-
-
-nose.main(argv=cmd, addplugins=[BeakerLibPlugin(), OrderTests()])
+sys.exit(pytest.main(sys.argv[1:]))
