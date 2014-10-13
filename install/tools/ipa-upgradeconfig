@@ -1281,7 +1281,11 @@ def main():
 
         upgrade(sub_dict, paths.HTTPD_IPA_CONF, ipautil.SHARE_DIR + "ipa.conf")
         upgrade(sub_dict, paths.HTTPD_IPA_REWRITE_CONF, ipautil.SHARE_DIR + "ipa-rewrite.conf")
-        upgrade(sub_dict, paths.HTTPD_IPA_PKI_PROXY_CONF, ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
+        if ca.is_configured():
+            upgrade(sub_dict, paths.HTTPD_IPA_PKI_PROXY_CONF, ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
+        else:
+            if ipautil.file_exists(paths.HTTPD_IPA_PKI_PROXY_CONF):
+                os.remove(paths.HTTPD_IPA_PKI_PROXY_CONF)
         if subject_base:
             upgrade(
                 sub_dict,
