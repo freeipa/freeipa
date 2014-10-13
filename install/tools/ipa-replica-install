@@ -238,7 +238,8 @@ def install_http(config, auto_redirect):
     http.create_instance(
         config.realm_name, config.host_name, config.domain_name,
         config.dirman_password, False, pkcs12_info,
-        auto_redirect=auto_redirect, ca_file = config.dir + "/ca.crt")
+        auto_redirect=auto_redirect, ca_file = config.dir + "/ca.crt",
+        ca_is_configured=ipautil.file_exists(config.dir + "/cacert.p12"))
 
     # Now copy the autoconfiguration files
     try:

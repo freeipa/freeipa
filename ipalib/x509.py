@@ -71,7 +71,7 @@ def subject_base():
     return _subject_base
 
 def valid_issuer(issuer):
-    if not api.env.enable_ra:
+    if not api.Command.ca_is_enabled()['result']:
         return True
     # Handle all supported forms of issuer -- currently dogtag only.
     if api.env.ra_plugin == 'dogtag':

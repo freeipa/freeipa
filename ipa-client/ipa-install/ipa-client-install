@@ -1093,11 +1093,11 @@ def configure_krb5_conf(cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
     return 0
 
 def configure_certmonger(fstore, subject_base, cli_realm, hostname, options,
-                         remote_env):
+                         ca_enabled):
     if not options.request_cert:
         return
 
-    if not remote_env['enable_ra']:
+    if not ca_enabled:
         root_logger.warning(
             "An RA is not configured on the server. "
             "Not requesting host certificate.")
@@ -1696,11 +1696,11 @@ def print_port_conf_info():
         "     TCP: 464\n"
         "     UDP: 464, 123 (if NTP enabled)")
 
-def get_certs_from_ldap(server, base_dn, realm, enable_ra):
+def get_certs_from_ldap(server, base_dn, realm, ca_enabled):
     conn = ipaldap.IPAdmin(server, sasl_nocanon=True)
     try:
         conn.do_sasl_gssapi_bind()
-        certs = certstore.get_ca_certs(conn, base_dn, realm, enable_ra)
+        certs = certstore.get_ca_certs(conn, base_dn, realm, ca_enabled)
     except errors.NotFound:
         raise errors.NoCertificateError(entry=server)
     except errors.NetworkError, e:
@@ -2640,13 +2640,20 @@ def install(options, env, fstore, statestore):
             return CLIENT_INSTALL_ERROR
 
     # Use the RPC directly so older servers are supported
-    result = api.Backend.rpcclient.forward(
-        'env',
-        server=True,
-        version=u'2.0',
-    )
-    remote_env = result['result']
-    if not remote_env['enable_ra']:
+    try:
+        result = api.Backend.rpcclient.forward(
+            'ca_is_enabled',
+            version=u'2.0',
+        )
+        ca_enabled = result['result']
+    except errors.CommandError:
+        result = api.Backend.rpcclient.forward(
+            'env',
+            server=True,
+            version=u'2.0',
+        )
+        ca_enabled = result['result']['enable_ra']
+    if not ca_enabled:
         disable_ra()
 
     # Create IPA NSS database
@@ -2658,7 +2665,7 @@ def install(options, env, fstore, statestore):
 
     # Get CA certificates from the certificate store
     ca_certs = get_certs_from_ldap(cli_server[0], cli_basedn, cli_realm,
-                                   remote_env['enable_ra'])
+                                   ca_enabled)
     ca_certs_trust = [(c, n, certstore.key_policy_to_trust_flags(t, True, u))
                       for (c, n, t, u) in ca_certs]
 
@@ -2692,7 +2699,7 @@ def install(options, env, fstore, statestore):
     if not options.on_master:
         client_dns(cli_server[0], hostname, options.dns_updates)
         configure_certmonger(fstore, subject_base, cli_realm, hostname,
-                             options, remote_env)
+                             options, ca_enabled)
 
     update_ssh_keys(cli_server[0], hostname, services.knownservices.sshd.get_config_dir(), options.create_sshfp)
 

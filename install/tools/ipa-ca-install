@@ -234,9 +234,6 @@ def install_master(safe_options, options):
     api.bootstrap(in_server=True)
     api.finalize()
 
-    if api.env.enable_ra:
-        sys.exit("CA is already installed.\n")
-
     dm_password = options.password
     if not dm_password:
         if options.unattended:
@@ -250,6 +247,9 @@ def install_master(safe_options, options):
 
     api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
                               bind_pw=dm_password)
+
+    if api.Command.ca_is_enabled()['result']:
+        sys.exit("CA is already installed.\n")
 
     config = api.Command['config_show']()['result']
     subject_base = config['ipacertificatesubjectbase'][0]

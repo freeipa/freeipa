@@ -83,7 +83,7 @@ class ServerCertInstall(admintool.AdminTool):
     def ask_for_options(self):
         super(ServerCertInstall, self).ask_for_options()
 
-        if self.options.dirsrv and not self.options.dirman_password:
+        if not self.options.dirman_password:
             self.options.dirman_password = installutils.read_password(
                 "Directory Manager", confirm=False, validate=False, retry=False)
             if self.options.dirman_password is None:
@@ -101,20 +101,23 @@ class ServerCertInstall(admintool.AdminTool):
         api.bootstrap(in_server=True)
         api.finalize()
 
+        conn = api.Backend.ldap2
+        conn.connect(bind_dn=DN(('cn', 'directory manager')),
+                     bind_pw=self.options.dirman_password)
+
         if self.options.dirsrv:
             self.install_dirsrv_cert()
 
         if self.options.http:
             self.install_http_cert()
 
+        conn.disconnect()
+
     def install_dirsrv_cert(self):
         serverid = dsinstance.realm_to_serverid(api.env.realm)
         dirname = dsinstance.config_dirname(serverid)
 
-        conn = ldap2(shared_instance=False, base_dn='')
-        conn.connect(bind_dn=DN(('cn', 'directory manager')),
-                     bind_pw=self.options.dirman_password)
-
+        conn = api.Backend.ldap2
         entry = conn.get_entry(DN(('cn', 'RSA'), ('cn', 'encryption'),
                                   ('cn', 'config')),
                                ['nssslpersonalityssl'])
@@ -129,8 +132,6 @@ class ServerCertInstall(admintool.AdminTool):
             conn.update_entry(entry)
         except errors.EmptyModlist:
             pass
-
-        conn.disconnect()
 
     def install_http_cert(self):
         dirname = certs.NSS_DIR
@@ -165,14 +166,15 @@ class ServerCertInstall(admintool.AdminTool):
 
         cdb = certs.CertDB(api.env.realm, nssdir=dirname)
         try:
-            if api.env.enable_ra:
+            ca_enabled = api.Command.ca_is_enabled()['result']
+            if ca_enabled:
                 cdb.untrack_server_cert(old_cert)
 
             cdb.delete_cert(old_cert)
             cdb.import_pkcs12(pkcs12_file.name, pin)
             server_cert = cdb.find_server_certs()[0][0]
 
-            if api.env.enable_ra:
+            if ca_enabled:
                 cdb.track_server_cert(server_cert, principal, cdb.passwd_fname,
                                       command)
         except RuntimeError, e:

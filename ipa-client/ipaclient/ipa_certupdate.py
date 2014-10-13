@@ -27,7 +27,7 @@ from ipapython import (admintool, ipautil, ipaldap, sysrestore, dogtag,
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
-from ipalib import api, x509, certstore
+from ipalib import api, errors, x509, certstore
 
 
 class CertUpdate(admintool.AdminTool):
@@ -59,10 +59,26 @@ class CertUpdate(admintool.AdminTool):
             principal = str('host/%s@%s' % (api.env.host, api.env.realm))
             ipautil.kinit_hostprincipal(paths.KRB5_KEYTAB, tmpdir, principal)
 
+            api.Backend.rpcclient.connect()
+            try:
+                result = api.Backend.rpcclient.forward(
+                    'ca_is_enabled',
+                    version=u'2.0',
+                )
+                ca_enabled = result['result']
+            except errors.CommandError:
+                result = api.Backend.rpcclient.forward(
+                    'env',
+                    server=True,
+                    version=u'2.0',
+                )
+                ca_enabled = result['result']['enable_ra']
+            api.Backend.rpcclient.disconnect()
+
             ldap.do_sasl_gssapi_bind()
 
             certs = certstore.get_ca_certs(ldap, api.env.basedn,
-                                           api.env.realm, api.env.enable_ra)
+                                           api.env.realm, ca_enabled)
         finally:
             shutil.rmtree(tmpdir)
 

@@ -980,11 +980,13 @@ def add_ca_dns_records():
         root_logger.info('IPA CA DNS records already processed')
         return
 
-    try:
-        api.Backend.ldap2.connect(autobind=True)
-    except ipalib.errors.PublicError, e:
-        root_logger.error("Cannot connect to LDAP to add DNS records: %s", e)
-        return
+    if not api.Backend.ldap2.isconnected():
+        try:
+            api.Backend.ldap2.connect(autobind=True)
+        except ipalib.errors.PublicError, e:
+            root_logger.error(
+                "Cannot connect to LDAP to add DNS records: %s", e)
+            return
 
     ret = api.Command['dns_is_enabled']()
     if not ret['result']:
@@ -1131,12 +1133,19 @@ def remove_ds_ra_cert(subject_base):
 def fix_trust_flags():
     root_logger.info('[Fixing trust flags in %s]' % paths.HTTPD_ALIAS_DIR)
 
-    if not api.env.enable_ra:
-        root_logger.info("CA is not enabled")
+    if sysupgrade.get_upgrade_state('http', 'fix_trust_flags'):
+        root_logger.info("Trust flags already processed")
         return
 
-    if sysupgrade.get_upgrade_state(service, 'fix_trust_flags'):
-        root_logger.info("Trust flags already fixed")
+    if not api.Backend.ldap2.isconnected():
+        try:
+            api.Backend.ldap2.connect(autobind=True)
+        except ipalib.errors.PublicError, e:
+            root_logger.error("Cannot connect to LDAP: %s", e)
+            return
+
+    if not api.Command.ca_is_enabled()['result']:
+        root_logger.info("CA is not enabled")
         return
 
     db = certs.CertDB(api.env.realm)

@@ -1231,11 +1231,13 @@ def main():
         http.create_instance(
             realm_name, host_name, domain_name, dm_password,
             pkcs12_info=http_pkcs12_info, subject_base=options.subject,
-            auto_redirect=options.ui_redirect)
+            auto_redirect=options.ui_redirect,
+            ca_is_configured=setup_ca)
     else:
         http.create_instance(
             realm_name, host_name, domain_name, dm_password,
-            subject_base=options.subject, auto_redirect=options.ui_redirect)
+            subject_base=options.subject, auto_redirect=options.ui_redirect,
+            ca_is_configured=setup_ca)
     tasks.restore_context(paths.CACHE_IPA_SESSIONS)
 
     # Export full CA chain
