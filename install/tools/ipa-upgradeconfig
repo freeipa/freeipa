@@ -1188,8 +1188,8 @@ def remove_ds_ra_cert(subject_base):
     sysupgrade.set_upgrade_state('ds', 'remove_ra_cert', True)
 
 
-def fix_trust_flags(service, **kwargs):
-    root_logger.info('[Fixing trust_flags in %s NSS database]' % service)
+def fix_trust_flags():
+    root_logger.info('[Fixing trust flags in %s]' % paths.HTTPD_ALIAS_DIR)
 
     if not api.env.enable_ra:
         root_logger.info("CA is not enabled")
@@ -1199,13 +1199,13 @@ def fix_trust_flags(service, **kwargs):
         root_logger.info("Trust flags already fixed")
         return
 
-    db = certs.CertDB(api.env.realm, **kwargs)
+    db = certs.CertDB(api.env.realm)
     nickname = certdb.get_ca_nickname(api.env.realm)
     cert = db.get_cert_from_db(nickname)
     if cert:
         db.trust_root_cert(nickname, 'CT,C,C')
 
-    sysupgrade.set_upgrade_state(service, 'fix_trust_flags', True)
+    sysupgrade.set_upgrade_state('http', 'fix_trust_flags', True)
 
 
 def main():
@@ -1309,7 +1309,7 @@ def main():
     http.change_mod_nss_port_from_http()
 
     http.stop()
-    fix_trust_flags('http')
+    fix_trust_flags()
     http.start()
 
     ds = dsinstance.DsInstance()
@@ -1318,7 +1318,6 @@ def main():
     ds.stop(ds_serverid)
     fix_schema_file_syntax()
     remove_ds_ra_cert(subject_base)
-    fix_trust_flags('ds', nssdir=ds_dirname)
     ds.start(ds_serverid)
 
     uninstall_selfsign(ds, http)
