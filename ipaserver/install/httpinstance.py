@@ -82,12 +82,14 @@ class HTTPInstance(service.Service):
             self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
         self.cert_nickname = cert_nickname
+        self.ca_is_configured = True
 
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
     def create_instance(self, realm, fqdn, domain_name, dm_password=None,
                         autoconfig=True, pkcs12_info=None,
-                        subject_base=None, auto_redirect=True, ca_file=None):
+                        subject_base=None, auto_redirect=True, ca_file=None,
+                        ca_is_configured=None):
         self.fqdn = fqdn
         self.realm = realm
         self.domain = domain_name
@@ -105,6 +107,8 @@ class HTTPInstance(service.Service):
             CRL_PUBLISH_PATH=dogtag.install_constants.CRL_PUBLISH_PATH,
         )
         self.ca_file = ca_file
+        if ca_is_configured is not None:
+            self.ca_is_configured = ca_is_configured
 
         # get a connection to the DS
         self.ldap_connect()
@@ -219,7 +223,7 @@ class HTTPInstance(service.Service):
 
         db = certs.CertDB(self.realm, subject_base=self.subject_base)
         if self.pkcs12_info:
-            if api.env.enable_ra:
+            if self.ca_is_configured:
                 trust_flags = 'CT,C,C'
             else:
                 trust_flags = None
@@ -236,7 +240,7 @@ class HTTPInstance(service.Service):
             nickname = server_certs[0][0]
             self.dercert = db.get_cert_from_db(nickname, pem=False)
 
-            if api.env.enable_ra:
+            if self.ca_is_configured:
                 db.track_server_cert(nickname, self.principal, db.passwd_fname, 'restart_httpd')
 
             self.__set_mod_nss_nickname(nickname)
@@ -267,7 +271,7 @@ class HTTPInstance(service.Service):
 
     def __import_ca_certs(self):
         db = certs.CertDB(self.realm, subject_base=self.subject_base)
-        self.import_ca_certs(db, api.env.enable_ra)
+        self.import_ca_certs(db, self.ca_is_configured)
 
     def __setup_autoconfig(self):
         target_fname = paths.PREFERENCES_HTML

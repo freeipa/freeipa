@@ -34,7 +34,8 @@ class update_upload_cacrt(PostUpdate):
         db = certs.CertDB(self.api.env.realm)
         ca_cert = None
 
-        if self.api.env.enable_ra:
+        ca_enabled = self.api.Command.ca_is_enabled()['result']
+        if ca_enabled:
             ca_nickname = certdb.get_ca_nickname(self.api.env.realm)
         else:
             ca_nickname = None
@@ -49,7 +50,7 @@ class update_upload_cacrt(PostUpdate):
         for nickname, trust_flags in db.list_certs():
             if 'u' in trust_flags:
                 continue
-            if nickname == ca_nickname and self.api.env.enable_ra:
+            if nickname == ca_nickname and ca_enabled:
                 trust_flags = 'CT,C,C'
             cert = db.get_cert_from_db(nickname, pem=False)
             try:
@@ -60,7 +61,7 @@ class update_upload_cacrt(PostUpdate):
                 continue
             if nickname == ca_nickname:
                 ca_cert = cert
-                if self.api.env.enable_ra:
+                if ca_enabled:
                     entry.append('ipaConfigString:ipaCA')
                 entry.append('ipaConfigString:compatCA')
             updates[dn] = {'dn': dn, 'default': entry}

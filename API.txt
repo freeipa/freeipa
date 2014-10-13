@@ -450,6 +450,12 @@ arg: Any('methods*')
 option: Str('version?', exclude='webui')
 output: Output('count', <type 'int'>, None)
 output: Output('results', (<type 'list'>, <type 'tuple'>), None)
+command: ca_is_enabled
+args: 0,1,3
+option: Str('version?', exclude='webui')
+output: Output('result', <type 'bool'>, None)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: PrimaryKey('value', None, None)
 command: cert_find
 args: 0,17,4
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')

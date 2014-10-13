@@ -19,13 +19,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api, SkipPluginModule
-if api.env.enable_ra is not True:
-    # In this case, abort loading this plugin module...
-    raise SkipPluginModule(reason='env.enable_ra is not True')
 import os
 import time
 from ipalib import Command, Str, Int, Bytes, Flag, File
+from ipalib import api
 from ipalib import errors
 from ipalib import pkcs10
 from ipalib import x509
@@ -33,6 +30,7 @@ from ipalib import util
 from ipalib import ngettext
 from ipalib.plugable import Registry
 from ipalib.plugins.virtual import *
+from ipalib.plugins.baseldap import pkey_to_value
 from ipalib.plugins.service import split_principal
 import base64
 import traceback
@@ -214,6 +212,10 @@ def get_host_from_principal(principal):
 
     return hostname
 
+def ca_enabled_check():
+    if not api.Command.ca_is_enabled()['result']:
+        raise errors.NotFound(reason=_('CA is not configured'))
+
 @register()
 class cert_request(VirtualCommand):
     __doc__ = _('Submit a certificate signing request.')
@@ -289,6 +291,8 @@ class cert_request(VirtualCommand):
     }
 
     def execute(self, csr, **kw):
+        ca_enabled_check()
+
         ldap = self.api.Backend.ldap2
         principal = kw.get('principal')
         add = kw.get('add')
@@ -475,6 +479,7 @@ class cert_status(VirtualCommand):
 
 
     def execute(self, request_id, **kw):
+        ca_enabled_check()
         self.check_access()
         return dict(
             result=self.Backend.ra.check_request_status(request_id)
@@ -536,6 +541,7 @@ class cert_show(VirtualCommand):
     operation="retrieve certificate"
 
     def execute(self, serial_number, **options):
+        ca_enabled_check()
         hostname = None
         try:
             self.check_access()
@@ -603,6 +609,7 @@ class cert_revoke(VirtualCommand):
     )
 
     def execute(self, serial_number, **kw):
+        ca_enabled_check()
         hostname = None
         try:
             self.check_access()
@@ -641,6 +648,7 @@ class cert_remove_hold(VirtualCommand):
     operation = "certificate remove hold"
 
     def execute(self, serial_number, **kw):
+        ca_enabled_check()
         self.check_access()
         return dict(
             result=self.Backend.ra.take_certificate_off_hold(serial_number)
@@ -740,6 +748,7 @@ class cert_find(Command):
     )
 
     def execute(self, **options):
+        ca_enabled_check()
         ret = dict(
             result=self.Backend.ra.find(options)
         )
@@ -747,3 +756,24 @@ class cert_find(Command):
         ret['truncated'] = False
         return ret
 
+
+@register()
+class ca_is_enabled(Command):
+    """
+    Checks if any of the servers has the CA service enabled.
+    """
+    NO_CLI = True
+    has_output = output.standard_value
+
+    def execute(self, *args, **options):
+        base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
+                     self.api.env.basedn)
+        filter = '(&(objectClass=ipaConfigObject)(cn=CA))'
+        try:
+            self.api.Backend.ldap2.find_entries(
+                base_dn=base_dn, filter=filter, attrs_list=[])
+        except errors.NotFound:
+            result = False
+        else:
+            result = True
+        return dict(result=result, value=pkey_to_value(None, options))

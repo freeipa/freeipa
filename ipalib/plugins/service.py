@@ -486,7 +486,7 @@ class service_del(LDAPDelete):
         # custom services allow them to manage them.
         (service, hostname, realm) = split_principal(keys[-1])
         check_required_principal(ldap, hostname, service)
-        if self.api.env.enable_ra:
+        if self.api.Command.ca_is_enabled()['result']:
             try:
                 entry_attrs = ldap.get_entry(dn, ['usercertificate'])
             except errors.NotFound:
@@ -676,7 +676,7 @@ class service_disable(LDAPQuery):
         done_work = False
 
         if 'usercertificate' in entry_attrs:
-            if self.api.env.enable_ra:
+            if self.api.Command.ca_is_enabled()['result']:
                 cert = x509.normalize_certificate(entry_attrs.get('usercertificate')[0])
                 try:
                     serial = unicode(x509.get_serial_number(cert, x509.DER))

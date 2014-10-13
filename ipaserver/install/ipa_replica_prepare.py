@@ -161,12 +161,6 @@ class ReplicaPrepare(admintool.AdminTool):
         if api.env.host == self.replica_fqdn:
             raise admintool.ScriptError("You can't create a replica on itself")
 
-        if not api.env.enable_ra and not options.http_cert_files:
-            raise admintool.ScriptError(
-                "Cannot issue certificates: a CA is not installed. Use the "
-                "--http-cert-file, --dirsrv-cert-file options to provide "
-                "custom certificates.")
-
         config_dir = dsinstance.config_dirname(
             dsinstance.realm_to_serverid(api.env.realm))
         if not ipautil.dir_exists(config_dir):
@@ -198,10 +192,11 @@ class ReplicaPrepare(admintool.AdminTool):
         # Try out the password & get the subject base
         suffix = ipautil.realm_to_suffix(api.env.realm)
         try:
-            conn = ldap2(shared_instance=False, base_dn=suffix)
+            conn = api.Backend.ldap2
             conn.connect(bind_dn=DN(('cn', 'directory manager')),
                          bind_pw=self.dirman_password)
             entry_attrs = conn.get_ipa_config()
+            ca_enabled = api.Command.ca_is_enabled()['result']
             conn.disconnect()
         except errors.ACIError:
             raise admintool.ScriptError("The password provided is incorrect "
@@ -211,6 +206,12 @@ class ReplicaPrepare(admintool.AdminTool):
                 "Unable to connect to LDAP server %s" % api.env.host)
         except errors.DatabaseError, e:
             raise admintool.ScriptError(e.desc)
+
+        if not ca_enabled and not options.http_cert_files:
+            raise admintool.ScriptError(
+                "Cannot issue certificates: a CA is not installed. Use the "
+                "--http-cert-file, --dirsrv-cert-file options to provide "
+                "custom certificates.")
 
         self.subject_base = entry_attrs.get(
             'ipacertificatesubjectbase', [None])[0]

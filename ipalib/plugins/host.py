@@ -721,7 +721,7 @@ class host_del(LDAPDelete):
                                             **delkw)
                             break
 
-        if self.api.env.enable_ra:
+        if self.api.Command.ca_is_enabled()['result']:
             try:
                 entry_attrs = ldap.get_entry(dn, ['usercertificate'])
             except errors.NotFound:
@@ -806,7 +806,7 @@ class host_mod(LDAPUpdate):
                 entry_attrs['objectclass'] = obj_classes
         cert = x509.normalize_certificate(entry_attrs.get('usercertificate'))
         if cert:
-            if self.api.env.enable_ra:
+            if self.api.Command.ca_is_enabled()['result']:
                 x509.verify_cert_subject(ldap, keys[-1], cert)
                 entry_attrs_old = ldap.get_entry(dn, ['usercertificate'])
                 oldcert = entry_attrs_old.single_value.get('usercertificate')
@@ -1084,7 +1084,7 @@ class host_disable(LDAPQuery):
             self.obj.handle_not_found(*keys)
         cert = entry_attrs.single_value.get('usercertificate')
         if cert:
-            if self.api.env.enable_ra:
+            if self.api.Command.ca_is_enabled()['result']:
                 cert = x509.normalize_certificate(cert)
                 try:
                     serial = unicode(x509.get_serial_number(cert, x509.DER))
