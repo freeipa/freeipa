@@ -188,6 +188,23 @@ domain2range1_add = get_trusted_dom_range_dict(
     sid=domain2_sid
 )
 
+domain2range2 = u'domain2range2'
+domain2range2_base_id = id_shift + 10200
+domain2range2_size = 50
+domain2range2_base_rid = rid_shift + 10200
+domain2range2_type = u'ipa-ad-trust'
+
+domain2range2_dn = get_range_dn(name=domain2range2)
+
+domain2range2_add = get_trusted_dom_range_dict(
+    name=domain2range2,
+    base_id=domain2range2_base_id,
+    size=domain2range2_size,
+    rangetype=domain2range2_type,
+    base_rid=domain2range2_base_rid,
+    sid=domain2_sid
+)
+
 
 # Domain3 - Posix active AD domain, two posix ranges
 domain3 = u'domain3'
@@ -197,9 +214,9 @@ domain3_sid = u'S-1-5-21-1980929950-1830687243-1002863068'
 domain3_add = get_trusted_dom_dict(domain3, domain3_sid)
 
 domain3range1 = u'domain3range1'
-domain3range1_base_id = id_shift + 10200
+domain3range1_base_id = id_shift + 10300
 domain3range1_size = 50
-domain3range1_base_rid = rid_shift + 10200
+domain3range1_base_rid = 0
 domain3range1_type = u'ipa-ad-trust-posix'
 
 domain3range1_dn = get_range_dn(name=domain3range1)
@@ -214,9 +231,9 @@ domain3range1_add = get_trusted_dom_range_dict(
 )
 
 domain3range2 = u'domain3range2'
-domain3range2_base_id = id_shift + 10300
+domain3range2_base_id = id_shift + 10400
 domain3range2_size = 50
-domain3range2_base_rid = rid_shift + 10300
+domain3range2_base_rid = 0
 domain3range2_type = u'ipa-ad-trust-posix'
 
 domain3range2_dn = get_range_dn(name=domain3range2)
@@ -238,9 +255,9 @@ domain4_sid = u'S-1-5-21-2630044516-2228086573-3500008130'
 domain4_add = get_trusted_dom_dict(domain4, domain4_sid)
 
 domain4range1 = u'domain4range1'
-domain4range1_base_id = id_shift + 10400
+domain4range1_base_id = id_shift + 10500
 domain4range1_size = 50
-domain4range1_base_rid = rid_shift + 10400
+domain4range1_base_rid = 0
 domain4range1_type = u'ipa-ad-trust-posix'
 
 domain4range1_dn = get_range_dn(name=domain4range1)
@@ -262,9 +279,9 @@ domain5_sid = u'S-1-5-21-2936727573-1940715531-2353349748'
 domain5_add = get_trusted_dom_dict(domain5, domain5_sid)
 
 domain5range1 = u'domain5range1'
-domain5range1_base_id = id_shift + 10500
+domain5range1_base_id = id_shift + 10600
 domain5range1_size = 50
-domain5range1_base_rid = rid_shift + 10500
+domain5range1_base_rid = rid_shift + 10600
 domain5range1_type = u'ipa-ad-trust'
 
 domain5range1_dn = get_range_dn(name=domain5range1)
@@ -279,9 +296,9 @@ domain5range1_add = get_trusted_dom_range_dict(
 )
 
 domain5range2 = u'domain5range2'
-domain5range2_base_id = id_shift + 10600
+domain5range2_base_id = id_shift + 10700
 domain5range2_size = 50
-domain5range2_base_rid = rid_shift + 10600
+domain5range2_base_rid = rid_shift + 10700
 domain5range2_type = u'ipa-ad-trust'
 
 domain5range2_dn = get_range_dn(name=domain5range2)
@@ -303,9 +320,9 @@ domain6_sid = u'S-1-5-21-2824814446-180299986-1494994477'
 domain6_add = get_trusted_dom_dict(domain6, domain6_sid)
 
 domain6range1 = u'domain6range1'
-domain6range1_base_id = id_shift + 10700
+domain6range1_base_id = id_shift + 10800
 domain6range1_size = 50
-domain6range1_base_rid = rid_shift + 10700
+domain6range1_base_rid = rid_shift + 10800
 domain6range1_type = u'ipa-ad-trust'
 
 domain6range1_dn = get_range_dn(name=domain6range1)
@@ -319,12 +336,45 @@ domain6range1_add = get_trusted_dom_range_dict(
     sid=domain6_sid
 )
 
+# Domain7 - Posix active AD domain, invalid(defined) RID
+domain7 = u'domain7'
+domain7_dn = get_trust_dn(domain7)
+domain7_sid = u'S-1-5-21-2714542333-175454564-1645457223'
+domain7_add = get_trusted_dom_dict(domain7, domain7_sid)
+
+domain7range1 = u'domain7range1'
+domain7range1_base_id = id_shift + 10900
+domain7range1_size = 50
+domain7range1_base_rid = rid_shift + 10900
+domain7range1_type = u'ipa-ad-trust-posix'
+domain7range1_dn = get_range_dn(name=domain7range1)
 
 # Container for all trusted objects
 
 trust_container_dn = "cn=ad,cn=trusts,{basedn}".format(basedn=api.env.basedn)
 trust_container_add = dict(
     objectClass=["nsContainer", "top"]
+    )
+
+# Convince Domain Validator that adtrust-install was run in order to test
+# adding of ipa-trust-posix range
+
+smb_cont_dn = "{cifsdomains},{basedn}".format(
+    cifsdomains=api.env.container_cifsdomains,
+    basedn=api.env.basedn)
+smb_cont_add = dict(
+    objectClass=["nsContainer", "top"]
+    )
+
+trust_local_dn = "cn={domain},{smbcont}".format(
+    domain=api.env.domain,
+    smbcont=smb_cont_dn)
+
+trust_local_add = dict(
+    objectClass=["ipaNTDomainAttrs", "nsContainer", "top"],
+    ipaNTFlatName=["UNITTESTS"],
+    ipaNTDomainGUID=["4ed70def-bff4-464c-889f-6cd2cfa4dbb7"],
+    ipaNTSecurityIdentifier=["S-1-5-21-2568409255-1212639194-836868319"]
     )
 
 user1 = u'tuser1'
@@ -340,15 +390,19 @@ class test_range(Declarative):
         cls.tearDownClass()
         cls.mockldap = MockLDAP()
         cls.mockldap.add_entry(trust_container_dn, trust_container_add)
+        cls.mockldap.add_entry(smb_cont_dn, smb_cont_add)
+        cls.mockldap.add_entry(trust_local_dn, trust_local_add)
 
         cls.mockldap.add_entry(domain2_dn, domain2_add)
         cls.mockldap.add_entry(domain3_dn, domain3_add)
         cls.mockldap.add_entry(domain4_dn, domain4_add)
         cls.mockldap.add_entry(domain5_dn, domain5_add)
         cls.mockldap.add_entry(domain6_dn, domain6_add)
+        cls.mockldap.add_entry(domain7_dn, domain7_add)
 
         cls.mockldap.add_entry(domain1range1_dn, domain1range1_add)
         cls.mockldap.add_entry(domain2range1_dn, domain2range1_add)
+        cls.mockldap.add_entry(domain2range2_dn, domain2range2_add)
         cls.mockldap.add_entry(domain3range1_dn, domain3range1_add)
         cls.mockldap.add_entry(domain3range2_dn, domain3range2_add)
         cls.mockldap.add_entry(domain4range1_dn, domain4range1_add)
@@ -366,16 +420,21 @@ class test_range(Declarative):
         cls.mockldap.del_entry(domain4_dn)
         cls.mockldap.del_entry(domain5_dn)
         cls.mockldap.del_entry(domain6_dn)
+        cls.mockldap.del_entry(domain7_dn)
 
         cls.mockldap.del_entry(domain1range1_dn)
         cls.mockldap.del_entry(domain2range1_dn)
+        cls.mockldap.del_entry(domain2range2_dn)
         cls.mockldap.del_entry(domain3range1_dn)
         cls.mockldap.del_entry(domain3range2_dn)
         cls.mockldap.del_entry(domain4range1_dn)
         cls.mockldap.del_entry(domain5range1_dn)
         cls.mockldap.del_entry(domain5range2_dn)
         cls.mockldap.del_entry(domain6range1_dn)
+        cls.mockldap.del_entry(domain7range1_dn)
         cls.mockldap.del_entry(trust_container_dn)
+        cls.mockldap.del_entry(trust_local_dn)
+        cls.mockldap.del_entry(smb_cont_dn)
         cls.mockldap.unbind()
 
     cleanup_commands = [
@@ -674,6 +733,53 @@ class test_range(Declarative):
                      'secondary-rid-base cannot be used together'),
         ),
 
+        # Testing framework validation: --rid-base is prohibited with ipa-ad-posix
+
+        dict(
+            desc='Try to create ipa-ad-trust-posix ID range %r with base RID' % (domain7range1),
+            command=('idrange_add', [domain7range1],
+                     dict(ipabaseid=domain7range1_base_id,
+                          ipaidrangesize=domain7range1_size,
+                          ipabaserid=domain7range1_base_rid,
+                          iparangetype=domain7range1_type,
+                          ipanttrusteddomainsid=domain7_sid)),
+            expected=errors.ValidationError(
+                name='ID Range setup',
+                error='Option rid-base must not be used when IPA range '
+                      'type is ipa-ad-trust-posix'),
+        ),
+
+        dict(
+            desc='Create ID range %r' % (domain7range1),
+            command=('idrange_add', [domain7range1],
+                     dict(ipabaseid=domain7range1_base_id,
+                          ipaidrangesize=domain7range1_size,
+                          iparangetype=domain7range1_type,
+                          ipanttrusteddomainsid=domain7_sid)),
+            expected=dict(
+                result=dict(
+                    dn=unicode(domain7range1_dn),
+                    cn=[domain7range1],
+                    objectclass=[u'ipaIDrange', u'ipatrustedaddomainrange'],
+                    ipabaseid=[unicode(domain7range1_base_id)],
+                    ipaidrangesize=[unicode(domain7range1_size)],
+                    ipanttrusteddomainsid=[unicode(domain7_sid)],
+                    iparangetype=[u'Active Directory trust range with POSIX attributes'],
+                ),
+                value=unicode(domain7range1),
+                summary=u'Added ID range "%s"' % (domain7range1),
+            ),
+        ),
+
+        dict(
+            desc='Try to modify ipa-ad-trust-posix ID range %r with base RID' % (domain7range1),
+            command=('idrange_mod', [domain7range1], dict(ipabaserid=domain7range1_base_rid)),
+            expected=errors.ValidationError(
+                name='ID Range setup',
+                error='Option rid-base must not be used when IPA range '
+                      'type is ipa-ad-trust-posix'),
+        ),
+
         # Testing prohibition of deletion of ranges belonging to active
         # trusted domains.
 
@@ -713,7 +819,6 @@ class test_range(Declarative):
                 result=dict(
                     cn=[domain3range2],
                     ipabaseid=[unicode(domain3range1_base_id)],
-                    ipabaserid=[unicode(domain3range2_base_rid)],
                     ipaidrangesize=[unicode(domain3range2_size)],
                     ipanttrusteddomainsid=[unicode(domain3_sid)],
                     iparangetype=[u'Active Directory trust range with POSIX '
@@ -766,26 +871,25 @@ class test_range(Declarative):
         # - RID range overlaps
 
         # 1. Overlaps on base RID ranges are allowed for ranges from different
-        # domains, use domain4range1 and domain5range1
+        # domains, use domain2range1 and domain5range1
 
         dict(
-            desc=('Modify ipa-ad-trust-posix range %r to overlap on base RID'
+            desc=('Modify ipa-ad-trust range %r to overlap on base RID'
                   ' range with nonposix range from different domain'
-                  % (domain4range1)),
-            command=('idrange_mod', [domain4range1],
+                  % (domain2range1)),
+            command=('idrange_mod', [domain2range1],
                      dict(ipabaserid=domain5range1_base_rid)),
             expected=dict(
                 result=dict(
-                    cn=[domain4range1],
-                    ipabaseid=[unicode(domain4range1_base_id)],
+                    cn=[domain2range1],
+                    ipabaseid=[unicode(domain2range1_base_id)],
                     ipabaserid=[unicode(domain5range1_base_rid)],
-                    ipaidrangesize=[unicode(domain4range1_size)],
-                    ipanttrusteddomainsid=[unicode(domain4_sid)],
-                    iparangetype=[u'Active Directory trust range with POSIX '
-                                   'attributes'],
+                    ipaidrangesize=[unicode(domain2range1_size)],
+                    ipanttrusteddomainsid=[unicode(domain2_sid)],
+                    iparangetype=[u'Active Directory domain range'],
                 ),
-                value=domain4range1,
-                summary=u'Modified ID range "%s"' % (domain4range1),
+                value=domain2range1,
+                summary=u'Modified ID range "%s"' % (domain2range1),
             ),
         ),
 
@@ -794,9 +898,9 @@ class test_range(Declarative):
 
         dict(
             desc=('Modify ipa-ad-trust range %r to overlap on base RID range'
-                  ' with range from the same domain' % (domain5range1)),
-            command=('idrange_mod', [domain5range1],
-                     dict(ipabaserid=domain5range2_base_rid)),
+                  ' with range from the same domain' % (domain2range1)),
+            command=('idrange_mod', [domain2range1],
+                     dict(ipabaserid=domain2range2_base_rid)),
             expected=errors.DatabaseError(
                 desc='Constraint violation',
                 info='New primary rid range overlaps with existing primary rid '
