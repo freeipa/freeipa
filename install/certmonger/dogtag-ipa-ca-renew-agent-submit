@@ -31,6 +31,7 @@ import tempfile
 import shutil
 import base64
 import contextlib
+import json
 
 from ipapython import ipautil
 from ipapython.dn import DN
@@ -63,6 +64,78 @@ def ldap_connect():
     finally:
         if conn is not None and conn.isconnected():
             conn.disconnect()
+
+def call_handler(_handler, *args, **kwargs):
+    """
+    Request handler call wrapper
+
+    Before calling the handler, get the original profile name and cookie from
+    the provided cookie, if there is one. If the profile name does not match
+    the requested profile name, drop the cookie and restart the request.
+
+    After calling the handler, put the requested profile name and cookie
+    returned by the handler in a new cookie and return it.
+    """
+    operation = os.environ['CERTMONGER_OPERATION']
+    if operation == 'POLL':
+        cookie = os.environ.pop('CERTMONGER_CA_COOKIE', None)
+        if cookie is not None:
+            try:
+                context = json.loads(cookie)
+                if not isinstance(context, dict):
+                    raise TypeError
+            except (TypeError, ValueError):
+                return (UNCONFIGURED, "Invalid cookie: %r" % cookie)
+        else:
+            return (UNCONFIGURED, "Cookie not provided")
+
+        if 'profile' in context:
+            profile = context.pop('profile')
+            try:
+                if profile is not None:
+                    if not isinstance(profile, unicode):
+                        raise TypeError
+                    profile = profile.encode('raw_unicode_escape')
+            except (TypeError, UnicodeEncodeError):
+                return (UNCONFIGURED,
+                        "Invalid 'profile' in cookie: %r" % profile)
+        else:
+            return (UNCONFIGURED, "No 'profile' in cookie")
+
+        # If profile has changed between SUBMIT and POLL, restart request
+        if os.environ.get('CERTMONGER_CA_PROFILE') != profile:
+            os.environ['CERTMONGER_OPERATION'] = 'SUBMIT'
+            context = {}
+
+        if 'cookie' in context:
+            cookie = context.pop('cookie')
+            try:
+                if not isinstance(cookie, unicode):
+                    raise TypeError
+                cookie = cookie.encode('raw_unicode_escape')
+            except (TypeError, UnicodeEncodeError):
+                return (UNCONFIGURED,
+                        "Invalid 'cookie' in cookie: %r" % cookie)
+            os.environ['CERTMONGER_CA_COOKIE'] = cookie
+    else:
+        context = {}
+
+    result = _handler(*args, **kwargs)
+
+    if result[0] in (WAIT, WAIT_WITH_DELAY):
+        context['cookie'] = result[-1].decode('raw_unicode_escape')
+
+    profile = os.environ.get('CERTMONGER_CA_PROFILE')
+    if profile is not None:
+        profile = profile.decode('raw_unicode_escape')
+    context['profile'] = profile
+
+    cookie = json.dumps(context)
+    os.environ['CERTMONGER_CA_COOKIE'] = cookie
+    if result[0] in (WAIT, WAIT_WITH_DELAY):
+        result = result[:-1] + (cookie,)
+
+    return result
 
 def request_cert():
     """
@@ -144,7 +217,7 @@ def store_cert():
             syslog.syslog(
                 syslog.LOG_ERR,
                 "Updating renewal certificate failed: %s. Sleeping 30s" % e)
-            return (WAIT_WITH_DELAY, 30, attempts)
+            return (WAIT_WITH_DELAY, 30, str(attempts))
         else:
             syslog.syslog(
                 syslog.LOG_ERR,
@@ -179,7 +252,7 @@ def request_and_store_cert():
         else:
             os.environ['CERTMONGER_CA_COOKIE'] = cookie
 
-        result = request_cert()
+        result = call_handler(request_cert)
         if result[0] == WAIT:
             return (result[0], 'request:%s' % result[1])
         elif result[0] == WAIT_WITH_DELAY:
@@ -198,7 +271,7 @@ def request_and_store_cert():
         os.environ['CERTMONGER_CA_COOKIE'] = cookie
     os.environ['CERTMONGER_CERTIFICATE'] = cert
 
-    result = store_cert()
+    result = call_handler(store_cert)
     if result[0] == WAIT:
         return (result[0], 'store:%s:%s' % (cert, result[1]))
     elif result[0] == WAIT_WITH_DELAY:
@@ -258,7 +331,7 @@ def retrieve_cert():
                     syslog.LOG_INFO,
                     "Updated certificate for %s not available" % nickname)
                 # No cert available yet, tell certmonger to wait another 8 hours
-                return (WAIT_WITH_DELAY, 8 * 60 * 60, attempts)
+                return (WAIT_WITH_DELAY, 8 * 60 * 60, str(attempts))
 
         cert = base64.b64encode(cert)
         cert = x509.make_pem(cert)
@@ -323,14 +396,14 @@ def renew_ca_cert():
         return (OPERATION_NOT_SUPPORTED_BY_HELPER,)
 
     if state == 'retrieve':
-        result = retrieve_cert()
+        result = call_handler(retrieve_cert)
         if result[0] == WAIT_WITH_DELAY and not is_self_signed:
             syslog.syslog(syslog.LOG_ALERT,
                           "IPA CA certificate is about to expire, "
                           "use ipa-cacert-manage to renew it")
     elif state == 'request':
         os.environ['CERTMONGER_CA_PROFILE'] = 'caCACert'
-        result = request_and_store_cert()
+        result = call_handler(request_and_store_cert)
 
     if result[0] == WAIT:
         return (result[0], '%s:%s' % (state, result[1]))
@@ -369,7 +442,7 @@ def main():
             else:
                 handler = retrieve_cert
 
-        res = handler()
+        res = call_handler(handler)
         for item in res[1:]:
             print item
         return res[0]
