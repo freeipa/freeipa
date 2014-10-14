@@ -143,14 +143,16 @@ class CertUpdate(admintool.AdminTool):
             timeout = api.env.startup_timeout + 60
 
             self.log.debug("resubmitting certmonger request '%s'", request_id)
-            certmonger.resubmit_request(request_id, profile='ipaRetrieval')
+            certmonger.resubmit_request(
+                request_id, profile='ipaRetrievalOrReuse')
             try:
                 state = certmonger.wait_for_request(request_id, timeout)
             except RuntimeError:
                 raise admintool.ScriptError(
                     "Resubmitting certmonger request '%s' timed out, "
                     "please check the request manually" % request_id)
-            if state != 'MONITORING':
+            ca_error = certmonger.get_request_value(request_id, 'ca-error')
+            if state != 'MONITORING' or ca_error:
                 raise admintool.ScriptError(
                     "Error resubmitting certmonger request '%s', "
                     "please check the request manually" % request_id)
