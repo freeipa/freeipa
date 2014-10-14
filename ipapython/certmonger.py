@@ -278,7 +278,7 @@ def start_tracking(nickname, secdir, password_file=None, command=None):
     certmonger to run when it renews a certificate. This command must
     reside in /usr/lib/ipa/certmonger to work with SELinux.
 
-    Returns True or False
+    Returns certificate nickname.
     """
     cm = _connect_to_certmonger()
     params = {'TRACK': True}
@@ -288,6 +288,10 @@ def start_tracking(nickname, secdir, password_file=None, command=None):
     params['key-nickname'] = nickname
     params['key-database'] = os.path.abspath(secdir)
     params['key-storage'] = 'NSSDB'
+    ca_path = cm.obj_if.find_ca_by_nickname('IPA')
+    if not ca_path:
+        raise RuntimeError('IPA CA not found')
+    params['ca'] = ca_path
     if command:
         params['cert-postsave-command'] = command
     if password_file:
