@@ -26,6 +26,7 @@ import os
 import sys
 import time
 import dbus
+import shlex
 from ipapython import ipautil
 from ipapython import dogtag
 from ipapython.ipa_log_manager import *
@@ -371,7 +372,7 @@ def add_principal_to_cas(principal):
     ca = _find_IPA_ca()
     if ca:
         ext_helper = ca.prop_if.Get(DBUS_CM_CA_IF, 'external-helper')
-        if ext_helper and ext_helper.find('-k') == -1:
+        if ext_helper and '-k' not in shlex.split(ext_helper):
             ext_helper = '%s -k %s' % (ext_helper.strip(), principal)
             ca.prop_if.Set(DBUS_CM_CA_IF, 'external-helper', ext_helper)
 
@@ -383,8 +384,8 @@ def remove_principal_from_cas():
     ca = _find_IPA_ca()
     if ca:
         ext_helper = ca.prop_if.Get(DBUS_CM_CA_IF, 'external-helper')
-        if ext_helper and ext_helper.find('-k'):
-            ext_helper = ext_helper.strip()[0]
+        if ext_helper and '-k' in shlex.split(ext_helper):
+            ext_helper = shlex.split(ext_helper)[0]
             ca.prop_if.Set(DBUS_CM_CA_IF, 'external-helper', ext_helper)
 
 
