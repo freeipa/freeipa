@@ -289,13 +289,9 @@ return {
                 name: 'type',
                 default_value: 'totp',
                 options: [
-                    { label: 'TOTP', value: 'totp' },
-                    { label: 'HOTP', value: 'hotp' }
+                    { label: '@i18n:objects.otptoken.type_totp', value: 'totp' },
+                    { label: '@i18n:objects.otptoken.type_hotp', value: 'hotp' }
                 ]
-            },
-            {
-                name: 'ipatokenuniqueid',
-                required: false
             },
             'description'
         ]
