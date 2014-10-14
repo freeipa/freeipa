@@ -297,7 +297,8 @@ class CACertManage(admintool.AdminTool):
             raise admintool.ScriptError(
                 "Resubmitting certmonger request '%s' timed out, "
                 "please check the request manually" % self.request_id)
-        if state != 'MONITORING':
+        ca_error = certmonger.get_request_value(self.request_id, 'ca-error')
+        if state != 'MONITORING' or ca_error:
             raise admintool.ScriptError(
                 "Error resubmitting certmonger request '%s', "
                 "please check the request manually" % self.request_id)

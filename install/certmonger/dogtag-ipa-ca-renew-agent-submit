@@ -311,25 +311,11 @@ def retrieve_or_reuse_cert():
 
     return (ISSUED, cert)
 
-def retrieve_cert():
+def retrieve_cert_continuous():
     """
-    Retrieve new certificate from LDAP.
+    Retrieve new certificate from LDAP. Repeat every eight hours until the
+    certificate is available.
     """
-    operation = os.environ.get('CERTMONGER_OPERATION')
-    if operation == 'SUBMIT':
-        attempts = 0
-    elif operation == 'POLL':
-        cookie = os.environ.get('CERTMONGER_CA_COOKIE')
-        if not cookie:
-            return (UNCONFIGURED, "Cookie not provided")
-
-        try:
-            attempts = int(cookie)
-        except ValueError:
-            return (UNCONFIGURED, "Invalid cookie: %r" % cookie)
-    else:
-        return (OPERATION_NOT_SUPPORTED_BY_HELPER,)
-
     old_cert = os.environ.get('CERTMONGER_CERTIFICATE')
     if old_cert:
         old_cert = x509.normalize_certificate(old_cert)
@@ -340,11 +326,19 @@ def retrieve_cert():
 
     new_cert = x509.normalize_certificate(result[1])
     if new_cert == old_cert:
-        attempts += 1
-        if attempts < 4:
-            syslog.syslog(syslog.LOG_INFO, "Updated certificate not available")
-            # No cert available yet, tell certmonger to wait another 8 hours
-            return (WAIT_WITH_DELAY, 8 * 60 * 60, str(attempts))
+        syslog.syslog(syslog.LOG_INFO, "Updated certificate not available")
+        # No cert available yet, tell certmonger to wait another 8 hours
+        return (WAIT_WITH_DELAY, 8 * 60 * 60, '')
+
+    return result
+
+def retrieve_cert():
+    """
+    Retrieve new certificate from LDAP.
+    """
+    result = call_handler(retrieve_cert_continuous)
+    if result[0] == WAIT_WITH_DELAY:
+        return (REJECTED, "Updated certificate not available")
 
     return result
 
@@ -451,7 +445,7 @@ def main():
             if ca.is_renewal_master():
                 handler = request_and_store_cert
             else:
-                handler = retrieve_cert
+                handler = retrieve_cert_continuous
 
         res = call_handler(handler)
         for item in res[1:]:
