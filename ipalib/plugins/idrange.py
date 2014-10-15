@@ -241,6 +241,7 @@ class idrange(LDAPObject):
         if not any((options.get('pkey_only', False),
                     options.get('raw', False))):
             range_type = entry_attrs['iparangetype'][0]
+            entry_attrs['iparangetyperaw'] = [range_type]
             entry_attrs['iparangetype'] = [self.range_types.get(range_type, None)]
 
         # Remove the objectclass
