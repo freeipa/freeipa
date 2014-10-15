@@ -15,7 +15,6 @@ AM_CPPFLAGS =							\
 	-DDATADIR=\""$(datadir)"\"				\
 	$(LDAP_CFLAGS)						\
 	$(WARN_CFLAGS)						\
-	$(SSSIDMAP_CFLAGS)					\
 	$(SSSNSSIDMAP_CFLAGS)					\
 	$(NULL)
 
@@ -33,7 +32,6 @@ libipa_extdom_extop_la_LDFLAGS = -avoid-version
 
 libipa_extdom_extop_la_LIBADD = 	\
 	$(LDAP_LIBS)			\
-	$(SSSIDMAP_LIBS)		\
 	$(SSSNSSIDMAP_LIBS)	\
 	$(NULL)
 
@@ -54,7 +52,6 @@ extdom_tests_LDADD = 		\
 	$(CHECK_LIBS)		\
 	$(LDAP_LIBS)		\
 	$(DIRSRV_LIBS)		\
-	$(SSSIDMAP_LIBS)	\
 	$(SSSNSSIDMAP_LIBS)	\
 	$(NULL)
 

@@ -60,7 +60,6 @@
 #include <lber.h>
 #include <time.h>
 
-#include <sss_idmap.h>
 #include <sss_nss_idmap.h>
 
 #define EXOP_EXTDOM_OID "2.16.840.1.113730.3.8.10.4"
@@ -157,7 +156,6 @@ struct domain_info {
     char *flat_name;
     char *sid;
     char *guid;
-    struct sss_idmap_ctx *idmap_ctx;
 };
 
 struct pwd_grp {
