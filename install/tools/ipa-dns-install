@@ -154,8 +154,8 @@ def main():
     reverse_zones = bindinstance.check_reverse_zones(ip_addresses,
         options.reverse_zones, options, options.unattended, True)
 
-    if reverse_zones is not None:
-        print "Using reverse zone %s" % ', '.join(reverse_zones)
+    if reverse_zones:
+        print "Using reverse zone(s) %s" % ', '.join(reverse_zones)
 
     conf_ntp = ntpinstance.NTPInstance(fstore).is_enabled()
 
