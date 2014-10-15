@@ -180,6 +180,7 @@ return {
                     label: '@i18n:objects.otptoken.details',
                     fields: [
                         'ipatokenuniqueid',
+                        'type',
                         {
                             $type: 'textarea',
                             name: 'description'
