@@ -108,6 +108,15 @@ def _check_interval(not_before, not_after):
         return not_before <= not_after
     return True
 
+def _set_token_type(entry_attrs, **options):
+    klasses = [x.lower() for x in entry_attrs.get('objectclass', [])]
+    for ttype in TOKEN_TYPES.keys():
+        cls = 'ipatoken' + ttype
+        if cls.lower() in klasses:
+            entry_attrs['type'] = ttype.upper()
+
+    if not options.get('all', False) or options.get('pkey_only', False):
+        entry_attrs.pop('objectclass', None)
 
 @register()
 class otptoken(LDAPObject):
@@ -146,7 +155,7 @@ class otptoken(LDAPObject):
             label=_('Type'),
             default=u'totp',
             autofill=True,
-            values=tuple(TOKEN_TYPES.keys()),
+            values=tuple(TOKEN_TYPES.keys() + [x.upper() for x in TOKEN_TYPES]),
             flags=('virtual_attribute', 'no_update'),
         ),
         Str('description?',
@@ -259,6 +268,7 @@ class otptoken_add(LDAPCreate):
                                   error='is before the validity start')
 
         # Set the object class and defaults for specific token types
+        options['type'] = options['type'].lower()
         entry_attrs['objectclass'] = otptoken.object_class + ['ipatoken' + options['type']]
         for ttype, tattrs in TOKEN_TYPES.items():
             if ttype != options['type']:
@@ -305,10 +315,12 @@ class otptoken_add(LDAPCreate):
         uri = u'otpauth://%s/%s:%s?%s' % (options['type'], issuer, label, parameters)
         setattr(context, 'uri', uri)
 
+        attrs_list.append("objectclass")
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         entry_attrs['uri'] = getattr(context, 'uri')
+        _set_token_type(entry_attrs, **options)
         _convert_owner(self.api.Object.user, entry_attrs, options)
         return super(otptoken_add, self).post_callback(ldap, dn, entry_attrs, *keys, **options)
 
@@ -360,9 +372,12 @@ class otptoken_mod(LDAPUpdate):
                 raise ValidationError(name='not_before',
                                       error='is after the validity end')
         _normalize_owner(self.api.Object.user, entry_attrs)
+
+        attrs_list.append("objectclass")
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        _set_token_type(entry_attrs, **options)
         _convert_owner(self.api.Object.user, entry_attrs, options)
         return super(otptoken_mod, self).post_callback(ldap, dn, entry_attrs, *keys, **options)
 
@@ -372,7 +387,7 @@ class otptoken_find(LDAPSearch):
     __doc__ = _('Search for OTP token.')
     msg_summary = ngettext('%(count)d OTP token matched', '%(count)d OTP tokens matched', 0)
 
-    def pre_callback(self, ldap, filters, *args, **kwargs):
+    def pre_callback(self, ldap, filters, attrs_list, *args, **kwargs):
         # This is a hack, but there is no other way to
         # replace the objectClass when searching
         type = kwargs.get('type', '')
@@ -381,7 +396,8 @@ class otptoken_find(LDAPSearch):
         filters = filters.replace("(objectclass=ipatoken)",
                                   "(objectclass=ipatoken%s)" % type)
 
-        return super(otptoken_find, self).pre_callback(ldap, filters, *args, **kwargs)
+        attrs_list.append("objectclass")
+        return super(otptoken_find, self).pre_callback(ldap, filters, attrs_list, *args, **kwargs)
 
     def args_options_2_entry(self, *args, **options):
         entry = super(otptoken_find, self).args_options_2_entry(*args, **options)
@@ -390,6 +406,7 @@ class otptoken_find(LDAPSearch):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         for entry in entries:
+            _set_token_type(entry, **options)
             _convert_owner(self.api.Object.user, entry, options)
         return super(otptoken_find, self).post_callback(ldap, entries, truncated, *args, **options)
 
@@ -398,7 +415,12 @@ class otptoken_find(LDAPSearch):
 class otptoken_show(LDAPRetrieve):
     __doc__ = _('Display information about an OTP token.')
 
+    def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
+        attrs_list.append("objectclass")
+        return super(otptoken_show, self).pre_callback(ldap, dn, attrs_list, *keys, **options)
+
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        _set_token_type(entry_attrs, **options)
         _convert_owner(self.api.Object.user, entry_attrs, options)
         return super(otptoken_show, self).post_callback(ldap, dn, entry_attrs, *keys, **options)
 
