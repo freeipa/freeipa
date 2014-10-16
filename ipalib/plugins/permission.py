@@ -972,7 +972,7 @@ class permission_add(baseldap.LDAPCreate):
     def post_callback(self, ldap, dn, entry, *keys, **options):
         try:
             self.obj.add_aci(entry)
-        except Exception:
+        except Exception, e:
             # Adding the ACI failed.
             # We want to be 100% sure the ACI is not there, so try to
             # remove it. (This is a no-op if the ACI was not added.)
@@ -988,6 +988,13 @@ class permission_add(baseldap.LDAPCreate):
                 self.api.Backend['ldap2'].delete_entry(entry)
             except errors.NotFound:
                 pass
+            if isinstance(e, errors.NotFound):
+                # add_aci may raise NotFound if the subtree is only virtual
+                # like cn=compat,SUFFIX and thus passes the LDAP get entry test
+                location = DN(entry.single_value['ipapermlocation'])
+                raise errors.ValidationError(
+                    name='ipapermlocation',
+                    error=_('Cannot store permission ACI to %s') % location)
             # Re-raise original exception
             raise
         self.obj.postprocess_result(entry, options)
