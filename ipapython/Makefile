@@ -3,7 +3,7 @@ PACKAGEDIR ?= $(DESTDIR)/$(PYTHONLIBDIR)/ipa
 CONFIGDIR ?= $(DESTDIR)/etc/ipa
 TESTS = $(wildcard test/*.py)
 
-SUBDIRS = py_default_encoding
+SUBDIRS = py_default_encoding ipap11helper
 
 all:
 	@for subdir in $(SUBDIRS); do \

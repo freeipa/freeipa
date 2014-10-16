@@ -70,6 +70,7 @@ freeipa2-dev-doc
 /ipapython/version.py
 !/ipapython/Makefile
 !/ipapython/py_default_encoding/Makefile
+!/ipapython/ipap11helper/Makefile
 
 /ipaplatform/setup.py
 /ipaplatform/tasks.py
