@@ -53,6 +53,7 @@ from ipaserver.install import cainstance
 from ipaserver.install import certs
 from ipaserver.install import otpdinstance
 from ipaserver.install import sysupgrade
+from ipaserver.install import dnskeysyncinstance
 
 
 def parse_options():
@@ -621,6 +622,37 @@ def named_enable_dnssec():
     sysupgrade.set_upgrade_state('named.conf', 'dnssec_enabled', True)
     return True
 
+def named_validate_dnssec():
+    """
+    Disable dnssec validation in named.conf
+
+    We can't let enable it by default, there can be non-valid dns forwarders
+    which breaks DNSSEC validation
+    """
+    if not bindinstance.named_conf_exists():
+        # DNS service may not be configured
+        root_logger.info('DNS is not configured')
+        return False
+
+    if (not sysupgrade.get_upgrade_state('named.conf', 'dnssec_validation_upgraded')
+        and bindinstance.named_conf_get_directive(
+                'dnssec-validation', bindinstance.NAMED_SECTION_OPTIONS,
+                str_val=False) is None):
+        # dnssec-validation is not configured, disable it
+        root_logger.info('[Disabling "dnssec-validate" configuration in DNS]')
+        try:
+            bindinstance.named_conf_set_directive('dnssec-validation', 'no',
+                                                  bindinstance.NAMED_SECTION_OPTIONS,
+                                                  str_val=False)
+        except IOError, e:
+            root_logger.error('Cannot update dnssec-validate configuration in %s: %s',
+                    bindinstance.NAMED_CONF, e)
+            return False
+    else:
+        root_logger.debug('dnssec-validate already configured in %s' % bindinstance.NAMED_CONF)
+
+    sysupgrade.set_upgrade_state('named.conf', 'dnssec_validation_upgraded', True)
+    return True
 
 def named_bindkey_file_option():
     """
@@ -1105,6 +1137,31 @@ def uninstall_selfsign(ds, http):
     http.stop_tracking_certificates()
 
 
+def mask_named_regular():
+    """Disable named, we need to run only named-pkcs11, running both named and
+    named-pkcs can cause unexpected errors"""
+    if not sysupgrade.get_upgrade_state('dns', 'regular_named_masked'):
+        if bindinstance.named_conf_exists():
+            root_logger.info('[Masking named]')
+            named = services.service('named-regular')
+            try:
+                named.stop()
+            except Exception as e:
+                root_logger.warning('Unable to stop named service (%s)', e)
+
+            try:
+                named.mask()
+            except Exception as e:
+                root_logger.warning('Unable to mask named service (%s)', e)
+
+            return True
+
+        sysupgrade.set_upgrade_state('dns', 'regular_named_masked', True)
+
+    return False
+
+
+
 def fix_schema_file_syntax():
     """Fix syntax errors in schema files
 
@@ -1349,6 +1406,14 @@ def main():
         except ipalib.errors.DuplicateEntry:
             pass
 
+    # install DNSKeySync service only if DNS is configured on server
+    if bindinstance.named_conf_exists():
+            dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore, ldapi=True)
+            if not dnskeysyncd.is_configured():
+                ds.start()
+                dnskeysyncd.create_instance(fqdn, api.env.realm)
+                dnskeysyncd.start_dnskeysyncd()
+
     cleanup_kdc(fstore)
     cleanup_adtrust(fstore)
     setup_firefox_extension(fstore)
@@ -1363,9 +1428,11 @@ def main():
                           named_update_gssapi_configuration(),
                           named_update_pid_file(),
                           named_enable_dnssec(),
+                          named_validate_dnssec(),
                           named_bindkey_file_option(),
                           named_managed_keys_dir_option(),
                           named_root_key_include(),
+                          mask_named_regular(),
                          )
 
     if any(named_conf_changes):
