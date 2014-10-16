@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Managed by IPA - do not edit! -->
+<Configuration>
+
+	<RepositoryList>
+
+		<Repository name="SoftHSM">
+			<Module>$SOFTHSM_LIB</Module>
+			<TokenLabel>$TOKEN_LABEL</TokenLabel>
+			<PIN>$PIN</PIN>
+            <AllowExtraction/>
+		</Repository>
+
+	</RepositoryList>
+
+	<Common>
+		<Logging>
+			<Syslog><Facility>local0</Facility></Syslog>
+		</Logging>
+
+		<PolicyFile>/etc/opendnssec/kasp.xml</PolicyFile>
+		<ZoneListFile>/etc/opendnssec/zonelist.xml</ZoneListFile>
+
+	<!--
+		<ZoneFetchFile>/etc/opendnssec/zonefetch.xml</ZoneFetchFile>
+	-->
+	</Common>
+
+	<Enforcer>
+		<Privileges>
+			<User>ods</User>
+			<Group>ods</Group>
+		</Privileges>
+
+		<Datastore><SQLite>$KASP_DB</SQLite></Datastore>
+		<Interval>PT3600S</Interval>
+		<!-- <ManualKeyGeneration/> -->
+		<!-- <RolloverNotification>P14D</RolloverNotification> -->
+
+		<!-- the <DelegationSignerSubmitCommand> will get all current
+		     DNSKEYs (as a RRset) on standard input
+		-->
+		<!-- <DelegationSignerSubmitCommand>/usr/sbin/eppclient</DelegationSignerSubmitCommand> -->
+	</Enforcer>
+
+</Configuration>
