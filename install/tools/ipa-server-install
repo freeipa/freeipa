@@ -285,6 +285,8 @@ def parse_options():
                       action="append", default=[])
     dns_group.add_option("--no-reverse", dest="no_reverse", action="store_true",
                       default=False, help="Do not create reverse DNS zone")
+    dns_group.add_option("--no-dnssec-validation", dest="no_dnssec_validation", action="store_true",
+                      default=False, help="Disable DNSSEC validation")
     dns_group.add_option("--zonemgr", action="callback", callback=bindinstance.zonemgr_callback,
                       type="string",
                       help="DNS zone manager e-mail address. Defaults to hostmaster@DOMAIN")
@@ -330,6 +332,8 @@ def parse_options():
             parser.error("You cannot specify a --reverse-zone option without the --setup-dns option")
         if options.no_reverse:
             parser.error("You cannot specify a --no-reverse option without the --setup-dns option")
+        if options.no_dnssec_validation:
+            parser.error("You cannot specify a --no-dnssec-validation option without the --setup-dns option")
     elif options.forwarders and options.no_forwarders:
         parser.error("You cannot specify a --forwarder option together with --no-forwarders")
     elif options.reverse_zones and options.no_reverse:
@@ -1017,6 +1021,13 @@ def main():
         else:
             dns_forwarders = read_dns_forwarders()
 
+        #test DNSSEC forwarders
+        if dns_forwarders:
+            if (not bindinstance.check_forwarders(dns_forwarders, root_logger)
+                    and not options.no_dnssec_validation):
+                options.no_dnssec_validation = True
+                print "WARNING: DNSSEC validation will be disabled"
+
         reverse_zones = bindinstance.check_reverse_zones(ip_addresses,
             options.reverse_zones, options, options.unattended)
 
@@ -1250,7 +1261,8 @@ def main():
     bind = bindinstance.BindInstance(fstore, dm_password)
     bind.setup(host_name, ip_addresses, realm_name, domain_name, dns_forwarders,
                options.conf_ntp, reverse_zones, zonemgr=options.zonemgr,
-               ca_configured=setup_ca)
+               ca_configured=setup_ca,
+               no_dnssec_validation=options.no_dnssec_validation)
     if options.setup_dns:
         api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=dm_password)
 

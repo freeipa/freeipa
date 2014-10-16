@@ -18,6 +18,7 @@ options {
 	pid-file "$NAMED_PID";
 
 	dnssec-enable yes;
+	dnssec-validation yes;
 
 	/* Path to ISC DLV key */
 	bindkeys-file "$BINDKEYS_FILE";

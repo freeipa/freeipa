@@ -53,6 +53,8 @@ def parse_options():
                       help="The reverse DNS zone to use")
     parser.add_option("--no-reverse", dest="no_reverse", action="store_true",
                       default=False, help="Do not create new reverse DNS zone")
+    parser.add_option("--no-dnssec-validation", dest="no_dnssec_validation", action="store_true",
+                      default=False, help="Disable DNSSEC validation")
     parser.add_option("--zonemgr", action="callback", callback=bindinstance.zonemgr_callback,
                       type="string",
                       help="DNS zone manager e-mail address. Defaults to hostmaster@DOMAIN")
@@ -141,6 +143,14 @@ def main():
         dns_forwarders = options.forwarders
     else:
         dns_forwarders = read_dns_forwarders()
+
+    # test DNSSEC forwarders
+    if dns_forwarders:
+        if (not bindinstance.check_forwarders(dns_forwarders, root_logger)
+                and not options.no_dnssec_validation):
+            options.no_dnssec_validation = True
+            print "WARNING: DNSSEC validation will be disabled"
+
     root_logger.debug("will use dns_forwarders: %s\n", str(dns_forwarders))
 
     if bind.dm_password:
@@ -165,7 +175,8 @@ def main():
         print ""
 
     bind.setup(api.env.host, ip_addresses, api.env.realm, api.env.domain,
-               dns_forwarders, conf_ntp, reverse_zones, zonemgr=options.zonemgr)
+               dns_forwarders, conf_ntp, reverse_zones, zonemgr=options.zonemgr,
+               no_dnssec_validation=options.no_dnssec_validation)
     bind.create_instance()
 
     # Restart http instance to make sure that python-dns has the right resolver

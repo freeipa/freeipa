@@ -27,6 +27,7 @@ import time
 import socket
 import re
 import decimal
+import dns
 import netaddr
 from types import NoneType
 from weakref import WeakKeyDictionary
@@ -553,3 +554,37 @@ def validate_hostmask(ugettext, hostmask):
         netaddr.IPNetwork(hostmask)
     except (ValueError, AddrFormatError):
         return _('invalid hostmask')
+
+
+def validate_dnssec_forwarder(ip_addr):
+    """Test DNS forwarder properties.
+
+    :returns:
+     True if forwarder works as expected and supports DNSSEC.
+     False if forwarder does not support DNSSEC.
+     None if forwarder does not respond.
+    """
+    ip_addr = str(ip_addr)
+    res = dns.resolver.Resolver()
+    res.nameservers = [ip_addr]
+    res.lifetime = 10  # wait max 10 seconds for reply
+
+    # enable Authenticated Data + Checking Disabled flags
+    res.set_flags(dns.flags.AD | dns.flags.CD)
+
+    # enable EDNS v0 + enable DNSSEC-Ok flag
+    res.use_edns(0, dns.flags.DO, 0)
+
+    # DNS root has to be signed
+    try:
+        ans = res.query('.', 'NS')
+    except DNSException:
+        return None
+
+    try:
+        ans.response.find_rrset(ans.response.answer, dns.name.root,
+                dns.rdataclass.IN, dns.rdatatype.RRSIG, dns.rdatatype.NS)
+    except KeyError:
+        return False
+
+    return True
