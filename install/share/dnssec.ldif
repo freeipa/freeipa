@@ -1,0 +1,11 @@
+dn: cn=sec,cn=dns,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: sec
+
+dn: cn=keys,cn=sec,cn=dns,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: keys

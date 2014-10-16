@@ -62,6 +62,9 @@ class DNSName(dns.name.Name):
         #method named by RFC 3490 and python standard library
         return str(self).decode('ascii')  # must be unicode string
 
+    def canonicalize(self):
+        return DNSName(super(DNSName, self).canonicalize())
+
     def concatenate(self, other):
         return DNSName(super(DNSName, self).concatenate(other))
 

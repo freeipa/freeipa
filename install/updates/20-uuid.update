@@ -1,0 +1,11 @@
+
+# add plugin configuration for ipk11UniqueId
+dn: cn=IPK11 Unique IDs,cn=IPA UUID,cn=plugins,cn=config
+default: objectclass: top
+default: objectclass: extensibleObject
+default: cn: IPK11 Unique IDs
+default: ipaUuidAttr: ipk11UniqueID
+default: ipaUuidMagicRegen: autogenerate
+default: ipaUuidFilter: (objectclass=ipk11Object)
+default: ipaUuidScope: $SUFFIX
+default: ipaUuidEnforce: FALSE

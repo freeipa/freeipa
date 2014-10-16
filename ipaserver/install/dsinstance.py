@@ -537,7 +537,7 @@ class DsInstance(service.Service):
 
     def __config_uuid_module(self):
         self._ldap_mod("uuid-conf.ldif")
-        self._ldap_mod("uuid-ipauniqueid.ldif", self.sub_dict)
+        self._ldap_mod("uuid.ldif", self.sub_dict)
 
     def __config_modrdn_module(self):
         self._ldap_mod("modrdn-conf.ldif")
