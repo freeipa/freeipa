@@ -37,7 +37,9 @@ from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 import ipalib
 from ipalib import api, errors
+from ipaplatform import services
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
         get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy,
         normalize_zone, get_reverse_zone_default, zone_is_reverse,
@@ -63,11 +65,11 @@ named_conf_include_template = "include \"%(path)s\";\n"
 
 def check_inst(unattended):
     has_bind = True
-    # So far this file is always present in both RHEL5 and Fedora if all the necessary
-    # bind packages are installed (RHEL5 requires also the pkg: caching-nameserver)
-    if not os.path.exists(paths.NAMED_RFC1912_ZONES):
+    named = services.knownservices.named
+    if not os.path.exists(named.get_binary_path()):
         print "BIND was not found on this system"
-        print "Please install the 'bind' package and start the installation again"
+        print ("Please install the '%s' package and start the installation again"
+              % named.get_package_name())
         has_bind = False
 
     # Also check for the LDAP BIND plug-in
@@ -533,6 +535,7 @@ class BindInstance(service.Service):
         self.sub_dict = None
         self.reverse_zones = []
         self.dm_password = dm_password
+        self.named_regular = services.service('named-regular')
 
         if fstore:
             self.fstore = fstore
@@ -625,21 +628,34 @@ class BindInstance(service.Service):
         self.step("setting up kerberos principal", self.__setup_principal)
         self.step("setting up named.conf", self.__setup_named_conf)
 
-        self.step("restarting named", self.__start)
-        self.step("configuring named to start on boot", self.__enable)
+        # named has to be started after softhsm initialization
+        # self.step("restarting named", self.__start)
 
+        self.step("configuring named to start on boot", self.__enable)
         self.step("changing resolv.conf to point to ourselves", self.__setup_resolv_conf)
         self.start_creation()
 
+    def start_named(self):
+        self.print_msg("Restarting named")
+        self.__start()
+
     def __start(self):
         try:
-            self.backup_state("running", self.is_running())
+            if self.get_state("running") is None:
+                # first time store status
+                self.backup_state("running", self.is_running())
+                self.backup_state("named-regular-running",
+                                  self.named_regular.is_running())
             self.restart()
-        except:
+        except Exception as e:
+            root_logger.error("Named service failed to start (%s)", e)
             print "named service failed to start"
 
     def __enable(self):
-        self.backup_state("enabled", self.is_running())
+        if self.get_state("enabled") is None:
+            self.backup_state("enabled", self.is_running())
+            self.backup_state("named-regular-enabled",
+                              self.named_regular.is_running())
         # We do not let the system start IPA components on its own,
         # Instead we reply on the IPA init script to start only enabled
         # components as found in our LDAP configuration tree
@@ -649,6 +665,17 @@ class BindInstance(service.Service):
             # service already exists (forced DNS reinstall)
             # don't crash, just report error
             root_logger.error("DNS service already exists")
+
+        # disable named, we need to run named-pkcs11 only
+        try:
+            self.named_regular.stop()
+        except Exception as e:
+            root_logger.debug("Unable to stop named (%s)", e)
+
+        try:
+            self.named_regular.mask()
+        except Exception as e:
+            root_logger.debug("Unable to mask named (%s)", e)
 
     def __setup_sub_dict(self):
         if self.forwarders:
@@ -915,7 +942,9 @@ class BindInstance(service.Service):
             raise
 
     def __setup_named_conf(self):
-        self.fstore.backup_file(NAMED_CONF)
+        if not self.fstore.has_file(NAMED_CONF):
+            self.fstore.backup_file(NAMED_CONF)
+
         named_txt = ipautil.template_file(ipautil.SHARE_DIR + "bind.named.conf.template", self.sub_dict)
         named_fd = open(NAMED_CONF, 'w')
         named_fd.seek(0)
@@ -930,7 +959,9 @@ class BindInstance(service.Service):
                                      str_val=False)
 
     def __setup_resolv_conf(self):
-        self.fstore.backup_file(RESOLV_CONF)
+        if not self.fstore.has_file(RESOLV_CONF):
+            self.fstore.backup_file(RESOLV_CONF)
+
         resolv_txt = "search "+self.domain+"\n"
 
         for ip_address in self.ip_addresses:
@@ -1128,6 +1159,8 @@ class BindInstance(service.Service):
 
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
+        named_regular_running = self.restore_state("named_regular_running")
+        named_regular_enabled = self.restore_state("named_regular_enabled")
 
         self.dns_backup.clear_records(api.Backend.ldap2.isconnected())
 
@@ -1146,3 +1179,10 @@ class BindInstance(service.Service):
 
         if not running is None and running:
             self.start()
+
+        self.named_regular.unmask()
+        if named_regular_enabled:
+            self.named_regular.enable()
+
+        if named_regular_running:
+            self.named_regular.start()
