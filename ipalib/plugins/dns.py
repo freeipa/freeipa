@@ -2208,6 +2208,7 @@ class dnszone(DNSZoneBase):
         ),
     )
     # Permissions will be apllied for forwardzones too
+    # Store permissions into api.env.basedn, dns container could not exists
     managed_permissions = {
         'System: Add DNS Entries': {
             'non_object': True,
@@ -2281,6 +2282,58 @@ class dnszone(DNSZoneBase):
                 '(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy || idnsallowquery || idnsallowtransfer || idnsallowsyncptr || idnsforwardpolicy || idnsforwarders || managedby")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:update dns entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX";)',
             ],
             'default_privileges': {'DNS Administrators', 'DNS Servers'},
+        },
+        'System: Read DNSSEC metadata': {
+            'non_object': True,
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('cn=dns', api.env.basedn),
+            'ipapermtargetfilter': ['(objectclass=idnsSecKey)'],
+            'ipapermdefaultattr': {
+                'idnsSecAlgorithm', 'idnsSecKeyCreated', 'idnsSecKeyPublish',
+                'idnsSecKeyActivate', 'idnsSecKeyInactive', 'idnsSecKeyDelete',
+                'idnsSecKeyZone', 'idnsSecKeyRevoke', 'idnsSecKeySep',
+                'idnsSecKeyRef', 'cn', 'objectclass',
+            },
+            'default_privileges': {'DNS Administrators'},
+        },
+        'System: Manage DNSSEC metadata': {
+            'non_object': True,
+            'ipapermright': {'all'},
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('cn=dns', api.env.basedn),
+            'ipapermtargetfilter': ['(objectclass=idnsSecKey)'],
+            'ipapermdefaultattr': {
+                'idnsSecAlgorithm', 'idnsSecKeyCreated', 'idnsSecKeyPublish',
+                'idnsSecKeyActivate', 'idnsSecKeyInactive', 'idnsSecKeyDelete',
+                'idnsSecKeyZone', 'idnsSecKeyRevoke', 'idnsSecKeySep',
+                'idnsSecKeyRef', 'cn', 'objectclass',
+            },
+            'default_privileges': {'DNS Servers'},
+        },
+        'System: Manage DNSSEC keys': {
+            'non_object': True,
+            'ipapermright': {'all'},
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN('cn=keys', 'cn=sec', 'cn=dns', api.env.basedn),
+            'ipapermdefaultattr': {
+                'ipaPublicKey', 'ipaPrivateKey', 'ipaSecretKey',
+                'ipaWrappingMech','ipaWrappingKey',
+                'ipaSecretKeyRef', 'ipk11Private', 'ipk11Modifiable', 'ipk11Label',
+                'ipk11Copyable', 'ipk11Destroyable', 'ipk11Trusted',
+                'ipk11CheckValue', 'ipk11StartDate', 'ipk11EndDate',
+                'ipk11UniqueId', 'ipk11PublicKeyInfo', 'ipk11Distrusted',
+                'ipk11Subject', 'ipk11Id', 'ipk11Local', 'ipk11KeyType',
+                'ipk11Derive', 'ipk11KeyGenMechanism', 'ipk11AllowedMechanisms',
+                'ipk11Encrypt', 'ipk11Verify', 'ipk11VerifyRecover', 'ipk11Wrap',
+                'ipk11WrapTemplate', 'ipk11Sensitive', 'ipk11Decrypt',
+                'ipk11Sign', 'ipk11SignRecover', 'ipk11Unwrap',
+                'ipk11Extractable', 'ipk11AlwaysSensitive',
+                'ipk11NeverExtractable', 'ipk11WrapWithTrusted',
+                'ipk11UnwrapTemplate', 'ipk11AlwaysAuthenticate',
+                'objectclass',
+            },
+            'default_privileges': {'DNS Servers'},
         },
     }
 
