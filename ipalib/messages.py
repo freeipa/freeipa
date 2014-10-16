@@ -179,6 +179,28 @@ class OptionSemanticChangedWarning(PublicMessage):
                u"%(current_behavior)s.\n%(hint)s")
 
 
+class DNSServerNotRespondingWarning(PublicMessage):
+    """
+    **13006**  Used when a DNS server is not responding to queries
+    """
+
+    errno = 13006
+    type = "warning"
+    format = _(u"DNS server %(server)s not responding.")
+
+
+class DNSServerDoesNotSupportDNSSECWarning(PublicMessage):
+    """
+    **13007** Used when a DNS server does not support DNSSEC validation
+    """
+
+    errno = 13007
+    type = "warning"
+    format = _(u"DNS server %(server)s does not support DNSSEC. "
+               u"If DNSSEC validation is enabled on IPA server(s), "
+               u"please disable it.")
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """

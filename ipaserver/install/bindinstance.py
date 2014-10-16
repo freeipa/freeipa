@@ -40,7 +40,8 @@ from ipalib import api, errors
 from ipaplatform.paths import paths
 from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
         get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy,
-        normalize_zone, get_reverse_zone_default, zone_is_reverse)
+        normalize_zone, get_reverse_zone_default, zone_is_reverse,
+        validate_dnssec_forwarder)
 from ipalib.constants import CACERT
 
 NAMED_CONF = paths.NAMED_CONF
@@ -447,6 +448,25 @@ def check_reverse_zones(ip_addresses, reverse_zones, options, unattended, search
 
     return ret_reverse_zones
 
+def check_forwarders(dns_forwarders, logger):
+    print "Checking forwarders, please wait ..."
+    forwarders_dnssec_valid = True
+    for forwarder in dns_forwarders:
+        logger.debug("Checking forwarder: %s", forwarder)
+        result = validate_dnssec_forwarder(forwarder)
+        if result is None:
+            logger.error("Forwarder %s does not work", forwarder)
+            raise RuntimeError("Forwarder %s does not respond" % forwarder)
+        elif result is False:
+            forwarders_dnssec_valid = False
+            logger.warning("DNS forwarder %s does not return DNSSEC signatures in answers", forwarder)
+            logger.warning("Please fix forwarder configuration to enable DNSSEC support.\n"
+                "(For BIND 9 add directive \"dnssec-enable yes;\" to \"options {}\")")
+            print ("WARNING: DNS forwarder %s is not configured to support "
+                   "DNSSEC" % forwarder)
+
+    return forwarders_dnssec_valid
+
 
 class DnsBackup(object):
     def __init__(self, service):
@@ -523,7 +543,7 @@ class BindInstance(service.Service):
 
     def setup(self, fqdn, ip_addresses, realm_name, domain_name, forwarders, ntp,
               reverse_zones, named_user="named", zonemgr=None,
-              ca_configured=None):
+              ca_configured=None, no_dnssec_validation=False):
         self.named_user = named_user
         self.fqdn = fqdn
         self.ip_addresses = ip_addresses
@@ -535,6 +555,7 @@ class BindInstance(service.Service):
         self.ntp = ntp
         self.reverse_zones = reverse_zones
         self.ca_configured = ca_configured
+        self.no_dnssec_validation=no_dnssec_validation
 
         if not zonemgr:
             self.zonemgr = 'hostmaster.%s' % self.domain
@@ -901,6 +922,12 @@ class BindInstance(service.Service):
         named_fd.truncate(0)
         named_fd.write(named_txt)
         named_fd.close()
+
+        if self.no_dnssec_validation:
+            # disable validation
+            named_conf_set_directive("dnssec-validation", "no",
+                                     section=NAMED_SECTION_OPTIONS,
+                                     str_val=False)
 
     def __setup_resolv_conf(self):
         self.fstore.backup_file(RESOLV_CONF)

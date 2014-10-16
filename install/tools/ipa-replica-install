@@ -116,6 +116,8 @@ def parse_options():
                          action="append", help="The reverse DNS zone to use")
     dns_group.add_option("--no-reverse", dest="no_reverse", action="store_true",
                       default=False, help="Do not create new reverse DNS zone")
+    dns_group.add_option("--no-dnssec-validation", dest="no_dnssec_validation", action="store_true",
+                      default=False, help="Disable DNSSEC validation")
     dns_group.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
                       default=False,
                       help="Do not use DNS for hostname lookup during installation")
@@ -138,6 +140,8 @@ def parse_options():
             parser.error("You cannot specify a --reverse-zone option without the --setup-dns option")
         if options.no_reverse:
             parser.error("You cannot specify a --no-reverse option without the --setup-dns option")
+        if options.no_dnssec_validation:
+            parser.error("You cannot specify a --no-dnssec-validation option without the --setup-dns option")
     elif options.forwarders and options.no_forwarders:
         parser.error("You cannot specify a --forwarder option together with --no-forwarders")
     elif not options.forwarders and not options.no_forwarders:
@@ -268,7 +272,8 @@ def install_bind(config, options):
 
     bind.setup(config.host_name, config.ips, config.realm_name,
                config.domain_name, forwarders, options.conf_ntp,
-               config.reverse_zones, ca_configured=options.setup_ca)
+               config.reverse_zones, ca_configured=options.setup_ca,
+               no_dnssec_validation=options.no_dnssec_validation)
     bind.create_instance()
 
     print ""
@@ -470,6 +475,13 @@ def main():
     # check the bind is installed
     if options.setup_dns:
         check_bind()
+
+    # test DNSSEC forwarders
+    if options.forwarders:
+        if (not bindinstance.check_forwarders(options.forwarders, root_logger)
+                and not options.no_dnssec_validation):
+            options.no_dnssec_validation = True
+            print "WARNING: DNSSEC validation will be disabled"
 
     # Check to see if httpd is already configured to listen on 443
     if httpinstance.httpd_443_configured():

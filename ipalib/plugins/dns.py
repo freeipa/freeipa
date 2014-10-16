@@ -43,7 +43,7 @@ from ipalib.util import (normalize_zonemgr,
                          get_dns_forward_zone_update_policy,
                          get_dns_reverse_zone_update_policy,
                          get_reverse_zone_default, REVERSE_DNS_ZONES,
-                         normalize_zone)
+                         normalize_zone, validate_dnssec_forwarder)
 from ipapython.ipautil import CheckedIPAddress, is_host_resolvable
 from ipapython.dnsutil import DNSName
 
@@ -3882,9 +3882,41 @@ class dnsconfig(LDAPObject):
 class dnsconfig_mod(LDAPUpdate):
     __doc__ = _('Modify global DNS configuration.')
 
+    def interactive_prompt_callback(self, kw):
+        if kw.get('idnsforwarders', False):
+            self.Backend.textui.print_plain("Server will check forwarder(s).")
+            self.Backend.textui.print_plain("This may take some time, please wait ...")
+
     def execute(self, *keys, **options):
+        # test dnssec forwarders
+        non_dnssec_forwarders = []
+        not_responding_forwarders = []
+        for forwarder in options.get('idnsforwarders', []):
+            dnssec_status = validate_dnssec_forwarder(forwarder)
+            if dnssec_status is None:
+                not_responding_forwarders.append(forwarder)
+            elif dnssec_status is False:
+                non_dnssec_forwarders.append(forwarder)
+
         result = super(dnsconfig_mod, self).execute(*keys, **options)
         self.obj.postprocess_result(result)
+
+        # add messages
+        for forwarder in not_responding_forwarders:
+            messages.add_message(
+                options['version'],
+                result, messages.DNSServerNotRespondingWarning(
+                    server=forwarder,
+                )
+            )
+        for forwarder in non_dnssec_forwarders:
+            messages.add_message(
+                options['version'],
+                result, messages.DNSServerDoesNotSupportDNSSECWarning(
+                    server=forwarder,
+                )
+            )
+
         return result
 
 
