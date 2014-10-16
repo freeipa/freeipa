@@ -33,7 +33,7 @@ from ipapython import ipautil
 
 from ipaserver.install import dsinstance, installutils, krbinstance, service
 from ipaserver.install import bindinstance, httpinstance, ntpinstance
-from ipaserver.install import memcacheinstance
+from ipaserver.install import memcacheinstance, dnskeysyncinstance
 from ipaserver.install import otpdinstance
 from ipaserver.install.replication import replica_conn_check, ReplicationManager
 from ipaserver.install.installutils import (ReplicaConfig, expand_replica_info,
@@ -272,7 +272,12 @@ def install_bind(config, options):
                config.reverse_zones, ca_configured=options.setup_ca,
                no_dnssec_validation=options.no_dnssec_validation)
     bind.create_instance()
-
+    print ""
+    dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(
+        dm_password=config.dirman_password)
+    dnskeysyncd.create_instance(api.env.host, api.env.realm)
+    dnskeysyncd.start_dnskeysyncd()
+    bind.start_named()
     print ""
     bind.check_global_configuration()
     print ""
@@ -348,7 +353,8 @@ def check_dirsrv():
         sys.exit(1)
 
 def check_bind():
-    if not bindinstance.check_inst(unattended=True):
+    if not (bindinstance.check_inst(unattended=True) and
+            dnskeysyncinstance.check_inst()):
         print "Aborting installation"
         sys.exit(1)
 

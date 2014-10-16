@@ -49,6 +49,9 @@ except ImportError:
 from ipaserver.install import dsinstance
 from ipaserver.install import krbinstance
 from ipaserver.install import bindinstance
+from ipaserver.install import dnskeysyncinstance
+from ipaserver.install import opendnssecinstance
+from ipaserver.install import odsexporterinstance
 from ipaserver.install import httpinstance
 from ipaserver.install import ntpinstance
 from ipaserver.install import certs
@@ -878,7 +881,8 @@ def main():
 
     # check bind packages are installed
     if options.setup_dns:
-        if not bindinstance.check_inst(options.unattended):
+        if not (bindinstance.check_inst(options.unattended) and
+                dnskeysyncinstance.check_inst()):
             sys.exit("Aborting installation")
 
         # Don't require an external DNS to say who we are if we are
@@ -1267,6 +1271,10 @@ def main():
         api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=dm_password)
 
         bind.create_instance()
+        dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore, dm_password)
+        dnskeysyncd.create_instance(api.env.host, api.env.realm)
+        dnskeysyncd.start_dnskeysyncd()
+        bind.start_named()
         print ""
         bind.check_global_configuration()
         print ""
