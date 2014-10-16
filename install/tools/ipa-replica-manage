@@ -29,6 +29,7 @@ import socket
 from ipapython import ipautil
 from ipaserver.install import replication, dsinstance, installutils
 from ipaserver.install import bindinstance, cainstance, certs
+from ipaserver.install import opendnssecinstance, dnskeysyncinstance
 from ipaserver.plugins import ldap2
 from ipapython import version, ipaldap
 from ipalib import api, errors, util
@@ -687,9 +688,19 @@ def del_master(realm, hostname, options):
             print "Deleting this server is not allowed as it would leave your installation without a CA."
             sys.exit(1)
 
+        other_dns = True
         if 'DNS' in this_services and not any(['DNS' in o for o in other_services]):
+            other_dns = False
             print "Deleting this server will leave your installation without a DNS."
             if not options.force and not ipautil.user_input("Continue to delete?", False):
+                sys.exit("Deletion aborted")
+
+        # test if replica is not DNSSEC master
+        # allow to delete it if is last DNS server
+        if 'DNS' in this_services and other_dns and not options.force:
+            dnssec_masters = opendnssecinstance.get_dnssec_key_masters(delrepl.conn)
+            if hostname in dnssec_masters:
+                print "Replica is active DNSSEC key master. Uninstall could break your DNS system."
                 sys.exit("Deletion aborted")
 
         # Pick CA renewal master
@@ -746,6 +757,9 @@ def del_master(realm, hostname, options):
             bind.remove_master_dns_records(hostname, realm, realm.lower())
             bind.remove_ipa_ca_dns_records(hostname, realm.lower())
             bind.remove_server_ns_records(hostname)
+
+            keysyncd = dnskeysyncinstance.DNSKeySyncInstance()
+            keysyncd.remove_replica_public_keys(hostname)
     except Exception, e:
         print "Failed to cleanup %s DNS entries: %s" % (hostname, e)
         print "You may need to manually remove them from the tree"

@@ -585,7 +585,16 @@ def uninstall():
     if ca_instance.is_configured():
         ca_instance.uninstall()
 
+    ods = opendnssecinstance.OpenDNSSECInstance(fstore)
+    if ods.is_configured():
+        ods.uninstall()
+
+    ods_exporter = odsexporterinstance.ODSExporterInstance(fstore)
+    if ods_exporter.is_configured():
+        ods_exporter.uninstall()
+
     bindinstance.BindInstance(fstore).uninstall()
+    dnskeysyncinstance.DNSKeySyncInstance(fstore).uninstall()
     httpinstance.HTTPInstance(fstore).uninstall()
     krbinstance.KrbInstance(fstore).uninstall()
     dsinstance.DsInstance(fstore=fstore).uninstall()
@@ -743,6 +752,20 @@ def main():
                    "agreements.\n\n")
             print textwrap.fill(msg, width=80, replace_whitespace=False)
         else:
+
+            # test if server is DNSSEC key master
+            masters = opendnssecinstance.get_dnssec_key_masters(conn)
+            if api.env.host in masters:
+                print "This server is active DNSSEC key master. Uninstall could break your DNS system."
+                if not (options.unattended or user_input("Are you sure you "
+                                                         "want to continue "
+                                                         "with the uninstall "
+                                                         "procedure?",
+                                                         False)):
+                    print ""
+                    print "Aborting uninstall operation."
+                    sys.exit(1)
+
             rm = replication.ReplicationManager(
                 realm=api.env.realm,
                 hostname=api.env.host,
