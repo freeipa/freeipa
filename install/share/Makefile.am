@@ -33,6 +33,7 @@ app_DATA =				\
 	replica-acis.ldif		\
 	ds-nfiles.ldif			\
 	dns.ldif			\
+	dnssec.ldif			\
 	kerberos.ldif			\
 	indices.ldif			\
 	bind.named.conf.template	\
@@ -63,7 +64,7 @@ app_DATA =				\
 	managed-entries.ldif		\
 	user_private_groups.ldif	\
 	host_nis_groups.ldif		\
-	uuid-ipauniqueid.ldif		\
+	uuid.ldif		\
 	modrdn-krbprinc.ldif		\
 	entryusn.ldif			\
 	root-autobind.ldif		\

@@ -19,6 +19,7 @@ app_DATA =				\
 	20-syncrepl.update		\
 	20-user_private_groups.update	\
 	20-winsync_index.update		\
+	20-uuid.update  \
 	21-replicas_container.update	\
 	21-ca_renewal_container.update	\
 	21-certstore_container.update	\
