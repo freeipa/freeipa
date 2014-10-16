@@ -88,6 +88,9 @@ BuildRequires:  libunistring-devel
 BuildRequires:  python-lesscpy
 BuildRequires:  python-yubico
 BuildRequires:  python-backports-ssl_match_hostname
+BuildRequires:  softhsm-devel >= 2.0.0b1-3
+BuildRequires:  openssl-devel
+BuildRequires:  p11-kit-devel
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -142,6 +145,10 @@ Requires(pre): certmonger >= 0.75.13
 Requires(pre): 389-ds-base >= 1.3.3.5
 Requires: fontawesome-fonts
 Requires: open-sans-fonts
+Requires: openssl
+Requires: softhsm >= 2.0.0b1-3
+Requires: p11-kit
+Requires: systemd-python
 
 Conflicts: %{alt_name}-server
 Obsoletes: %{alt_name}-server < %{version}
@@ -153,8 +160,10 @@ Obsoletes: freeipa-server-selinux < 3.3.0
 # We have a soft-requires on bind. It is an optional part of
 # IPA but if it is configured we need a way to require versions
 # that work for us.
-Conflicts: bind-dyndb-ldap < 5.0
-Conflicts: bind < 9.8.2-0.4.rc2
+Conflicts: bind-dyndb-ldap < 6.0-4
+Conflicts: bind < 9.9.6-2
+# DNSSEC
+Conflicts: opendnssec < 1.4.6-4
 
 # Versions of nss-pam-ldapd < 0.8.4 require a mapping from uniqueMember to
 # member.
@@ -441,6 +450,7 @@ mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa/backup
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/default.conf
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/ca.crt
+mkdir -p %{buildroot}%{_sysconfdir}/ipa/dnssec
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/nssdb
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
 mkdir -p %{buildroot}%{_sysconfdir}/bash_completion.d
@@ -829,6 +839,7 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/nssdb
+%dir %attr(0755,root,root) %{_sysconfdir}/ipa/dnssec
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/cert8.db
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/key3.db
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/secmod.db
