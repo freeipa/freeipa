@@ -146,6 +146,90 @@ return {
                             label: '@i18n:objects.host.status'
                         }
                     ]
+                },
+                {
+                    $factory: IPA.section,
+                    name: 'divider',
+                    layout_css_class: 'col-sm-12',
+                    fields: []
+                },
+                {
+                    name: 'read',
+                    label: '@i18n:keytab.allowed_to_retrieve',
+                    $factory: IPA.section,
+                    fields: [
+                        {
+                            $type: 'association_table',
+                            id: 'host_ipaallowedtoperform_read_keys_user',
+                            name: 'ipaallowedtoperform_read_keys_user',
+                            add_method: 'allow_retrieve_keytab',
+                            remove_method: 'disallow_retrieve_keytab',
+                            add_title: '@i18n:keytab.add_retrive',
+                            remove_title: '@i18n:keytab.remove_retrieve',
+                            columns: [
+                                {
+                                    name: 'ipaallowedtoperform_read_keys_user',
+                                    label: '@mo:user.label_singular',
+                                    link: true
+                                }
+                            ]
+                        },
+                        {
+                            $type: 'association_table',
+                            id: 'host_ipaallowedtoperform_read_keys_group',
+                            name: 'ipaallowedtoperform_read_keys_group',
+                            add_method: 'allow_retrieve_keytab',
+                            remove_method: 'disallow_retrieve_keytab',
+                            add_title: '@i18n:keytab.add_retrive',
+                            remove_title: '@i18n:keytab.remove_retrieve',
+                            columns: [
+                                {
+                                    name: 'ipaallowedtoperform_read_keys_group',
+                                    label: '@mo:group.label_singular',
+                                    link: true
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    name: 'write',
+                    label: '@i18n:keytab.allowed_to_create',
+                    $factory: IPA.section,
+                    fields: [
+                        {
+                            $type: 'association_table',
+                            id: 'host_ipaallowedtoperform_write_keys_user',
+                            name: 'ipaallowedtoperform_write_keys_user',
+                            add_method: 'allow_create_keytab',
+                            remove_method: 'disallow_create_keytab',
+                            add_title: '@i18n:keytab.add_create',
+                            remove_title: '@i18n:keytab.remove_create',
+                            columns: [
+                                {
+                                    name: 'ipaallowedtoperform_write_keys_user',
+                                    label: '@mo:user.label_singular',
+                                    link: true
+                                }
+                            ]
+                        },
+                        {
+                            $type: 'association_table',
+                            id: 'host_ipaallowedtoperform_write_keys_group',
+                            name: 'ipaallowedtoperform_write_keys_group',
+                            add_method: 'allow_create_keytab',
+                            remove_method: 'disallow_create_keytab',
+                            add_title: '@i18n:keytab.add_create',
+                            remove_title: '@i18n:keytab.remove_create',
+                            columns: [
+                                {
+                                    name: 'ipaallowedtoperform_write_keys_group',
+                                    label: '@mo:group.label_singular',
+                                    link: true
+                                }
+                            ]
+                        }
+                    ]
                 }
             ],
             actions: [
