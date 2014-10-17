@@ -22,7 +22,3 @@ libipa_otp_lasttoken_la_LDFLAGS = -avoid-version -export-symbols ipa-otp-lasttok
 libipa_otp_lasttoken_la_LIBADD =		\
 	$(LDAP_LIBS)				\
 	$(builddir)/../libotp/libotp.la
-
-appdir = $(IPA_DATA_DIR)
-app_DATA = otp-lasttoken-conf.ldif
-EXTRA_DIST = $(app_DATA)
