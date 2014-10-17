@@ -20,3 +20,18 @@ dn: cn=radiusproxy,$SUFFIX
 default: objectClass: nsContainer
 default: objectClass: top
 default: cn: radiusproxy
+
+dn: cn=IPA OTP Last Token,cn=plugins,cn=config
+default:objectclass: top
+default:objectclass: nsSlapdPlugin
+default:objectclass: extensibleObject
+default:cn: IPA OTP Last Token
+default:nsslapd-pluginpath: libipa_otp_lasttoken
+default:nsslapd-plugininitfunc: ipa_otp_lasttoken_init
+default:nsslapd-plugintype: preoperation
+default:nsslapd-pluginenabled: on
+default:nsslapd-pluginid: ipa-otp-lasttoken
+default:nsslapd-pluginversion: 1.0
+default:nsslapd-pluginvendor: Red Hat, Inc.
+default:nsslapd-plugindescription: IPA OTP Last Token plugin
+default:nsslapd-plugin-depends-on-type: database
