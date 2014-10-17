@@ -22,6 +22,7 @@ import os
 import pwd
 import netaddr
 import re
+import time
 
 import ldap
 
@@ -628,6 +629,35 @@ class BindInstance(service.Service):
 
     def __setup_dns_container(self):
         self._ldap_mod("dns.ldif", self.sub_dict)
+        self.__fix_dns_privilege_members()
+
+    def __fix_dns_privilege_members(self):
+        ldap = api.Backend.ldap2
+
+        cn = 'Update PBAC memberOf %s' % time.time()
+        task_dn = DN(('cn', cn), ('cn', 'memberof task'), ('cn', 'tasks'),
+                     ('cn', 'config'))
+        basedn = DN(api.env.container_privilege, api.env.basedn)
+        entry = ldap.make_entry(
+            task_dn,
+            objectclass=['top', 'extensibleObject'],
+            cn=[cn],
+            basedn=[basedn],
+            filter=['(objectclass=*)'],
+            ttl=[10])
+        ldap.add_entry(entry)
+
+        start_time = time.time()
+        while True:
+            try:
+                task = ldap.get_entry(task_dn)
+            except errors.NotFound:
+                break
+            if 'nstaskexitcode' in task:
+                break
+            time.sleep(1)
+            if time.time() > (start_time + 60):
+                raise errors.TaskTimeout(task='memberof', task_dn=task_dn)
 
     def __setup_zone(self):
         nameserver_ip_address = self.ip_address
