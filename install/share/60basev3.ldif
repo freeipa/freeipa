@@ -82,4 +82,5 @@ objectClasses: (2.16.840.1.113730.3.8.12.24 NAME 'ipaPublicKeyObject' DESC 'Wrap
 objectClasses: (2.16.840.1.113730.3.8.12.25 NAME 'ipaPrivateKeyObject' DESC 'Wrapped private keys' SUP top AUXILIARY MUST ( ipaPrivateKey $ ipaWrappingKey $ ipaWrappingMech ) X-ORIGIN 'IPA v4.1' )
 objectClasses: (2.16.840.1.113730.3.8.12.26 NAME 'ipaSecretKeyObject' DESC 'Wrapped secret keys' SUP top AUXILIARY MUST ( ipaSecretKey $ ipaWrappingKey $ ipaWrappingMech ) X-ORIGIN 'IPA v4.1' )
 objectClasses: (2.16.840.1.113730.3.8.12.34 NAME 'ipaSecretKeyRefObject' DESC 'Indirect storage for encoded key material' SUP top AUXILIARY MUST ( ipaSecretKeyRef ) X-ORIGIN 'IPA v4.1' )
-objectClasses: (2.16.840.1.113730.3.8.18.1.1 NAME 'ipaVault' DESC 'IPA vault' SUP top STRUCTURAL MUST ( cn ) MAY ( description $ ipaVaultType $ ipaVaultSalt $ ipaVaultPublicKey ) X-ORIGIN 'IPA v4.2' )
+objectClasses: (2.16.840.1.113730.3.8.18.1.1 NAME 'ipaVault' DESC 'IPA vault' SUP top STRUCTURAL MUST ( cn ) MAY ( description $ ipaVaultType $ ipaVaultSalt $ ipaVaultPublicKey $ owner $ member ) X-ORIGIN 'IPA v4.2' )
+objectClasses: (2.16.840.1.113730.3.8.18.1.2 NAME 'ipaVaultContainer' DESC 'IPA vault container' SUP top STRUCTURAL MUST ( cn ) MAY ( description $ owner ) X-ORIGIN 'IPA v4.2' )

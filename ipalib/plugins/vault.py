@@ -42,7 +42,8 @@ from ipalib import output
 from ipalib.crud import PKQuery, Retrieve, Update
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import LDAPObject, LDAPCreate, LDAPDelete,\
-    LDAPSearch, LDAPUpdate, LDAPRetrieve, pkey_to_value
+    LDAPSearch, LDAPUpdate, LDAPRetrieve, LDAPAddMember, LDAPRemoveMember,\
+    pkey_to_value
 from ipalib.request import context
 from ipalib.plugins.user import split_principal
 from ipalib import _, ngettext
@@ -195,6 +196,18 @@ EXAMPLES:
 """) + _("""
  Retrieve data from asymmetric vault:
    ipa vault-retrieve <name> --out data.bin --private-key-file private.pem
+""") + _("""
+ Add a vault owner:
+   ipa vault-add-owner <name> --users <usernames>
+""") + _("""
+ Delete a vault owner:
+   ipa vault-remove-owner <name> --users <usernames>
+""") + _("""
+ Add a vault member:
+   ipa vault-add-member <name> --users <usernames>
+""") + _("""
+ Delete a vault member:
+   ipa vault-remove-member <name> --users <usernames>
 """)
 
 register = Registry()
@@ -210,7 +223,8 @@ vault_options = (
         doc=_('Shared vault'),
     ),
     Str(
-        'user?',
+        'username?',
+        cli_name='user',
         doc=_('Username of the user vault'),
     ),
 )
@@ -234,12 +248,18 @@ class vault(LDAPObject):
         'ipavaulttype',
         'ipavaultsalt',
         'ipavaultpublickey',
+        'owner',
+        'member',
     ]
     search_display_attributes = [
         'cn',
         'description',
         'ipavaulttype',
     ]
+    attribute_members = {
+        'owner': ['user', 'group'],
+        'member': ['user', 'group'],
+    }
 
     label = _('Vaults')
     label_singular = _('Vault')
@@ -282,6 +302,16 @@ class vault(LDAPObject):
             doc=_('Vault public key'),
             flags=['no_search'],
         ),
+        Str(
+            'owner_user?',
+            label=_('Owner users'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str(
+            'owner_group?',
+            label=_('Owner groups'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
     )
 
     def get_dn(self, *keys, **options):
@@ -291,7 +321,7 @@ class vault(LDAPObject):
 
         service = options.get('service')
         shared = options.get('shared')
-        user = options.get('user')
+        user = options.get('username')
 
         count = 0
         if service:
@@ -337,7 +367,7 @@ class vault(LDAPObject):
 
         return DN(rdns, parent_dn)
 
-    def create_container(self, dn):
+    def create_container(self, dn, owner_dn):
         """
         Creates vault container and its parents.
         """
@@ -354,8 +384,9 @@ class vault(LDAPObject):
             entry = self.backend.make_entry(
                 dn,
                 {
-                    'objectclass': ['nsContainer'],
+                    'objectclass': ['ipaVaultContainer'],
                     'cn': rdn['cn'],
+                    'owner': [owner_dn],
                 })
 
             # if entry can be added, return
@@ -631,11 +662,20 @@ class vault_add_internal(LDAPCreate):
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
+        principal = getattr(context, 'principal')
+        (name, realm) = split_principal(principal)
+        if '/' in name:
+            owner_dn = self.api.Object.service.get_dn(name)
+        else:
+            owner_dn = self.api.Object.user.get_dn(name)
+
         try:
             parent_dn = DN(*dn[1:])
-            self.obj.create_container(parent_dn)
+            self.obj.create_container(parent_dn, owner_dn)
         except errors.DuplicateEntry, e:
             pass
+
+        entry_attrs['owner'] = owner_dn
 
         return dn
 
@@ -686,6 +726,8 @@ class vault_find(LDAPSearch):
     __doc__ = _('Search for vaults.')
 
     takes_options = LDAPSearch.takes_options + vault_options
+
+    has_output_params = LDAPSearch.has_output_params
 
     msg_summary = ngettext(
         '%(count)d vault matched',
@@ -741,6 +783,8 @@ class vault_show(LDAPRetrieve):
     __doc__ = _('Display information about a vault.')
 
     takes_options = LDAPRetrieve.takes_options + vault_options
+
+    has_output_params = LDAPRetrieve.has_output_params
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -1326,6 +1370,68 @@ class vault_retrieve_internal(PKQuery):
         response['summary'] = self.msg_summary % response
 
         return response
+
+
+@register()
+class vault_add_owner(LDAPAddMember):
+    __doc__ = _('Add owners to a vault.')
+
+    takes_options = LDAPAddMember.takes_options + vault_options
+
+    member_attributes = ['owner']
+    member_count_out = ('%i owner added.', '%i owners added.')
+
+    has_output = (
+        output.Entry('result'),
+        output.Output(
+            'failed',
+            type=dict,
+            doc=_('Owners that could not be added'),
+        ),
+        output.Output(
+            'completed',
+            type=int,
+            doc=_('Number of owners added'),
+        ),
+    )
+
+
+@register()
+class vault_remove_owner(LDAPRemoveMember):
+    __doc__ = _('Remove owners from a vault.')
+
+    takes_options = LDAPRemoveMember.takes_options + vault_options
+
+    member_attributes = ['owner']
+    member_count_out = ('%i owner removed.', '%i owners removed.')
+
+    has_output = (
+        output.Entry('result'),
+        output.Output(
+            'failed',
+            type=dict,
+            doc=_('Owners that could not be removed'),
+        ),
+        output.Output(
+            'completed',
+            type=int,
+            doc=_('Number of owners removed'),
+        ),
+    )
+
+
+@register()
+class vault_add_member(LDAPAddMember):
+    __doc__ = _('Add members to a vault.')
+
+    takes_options = LDAPAddMember.takes_options + vault_options
+
+
+@register()
+class vault_remove_member(LDAPRemoveMember):
+    __doc__ = _('Remove members from a vault.')
+
+    takes_options = LDAPRemoveMember.takes_options + vault_options
 
 
 @register()

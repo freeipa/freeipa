@@ -5,20 +5,27 @@ default: cn: kra
 
 dn: cn=vaults,cn=kra,$SUFFIX
 default: objectClass: top
-default: objectClass: nsContainer
+default: objectClass: ipaVaultContainer
 default: cn: vaults
+default: aci: (target="ldap:///cn=*,cn=users,cn=vaults,cn=kra,$SUFFIX")(version 3.0; acl "Allow users to create private container"; allow (add) userdn = "ldap:///uid=($$attr.cn),cn=users,cn=accounts,$SUFFIX";)
+default: aci: (targetfilter="(objectClass=ipaVault)")(targetattr="*")(version 3.0; acl "Container owners can manage vaults in the container"; allow(read, search, compare, add, delete) userattr="parent[1].owner#USERDN";)
+default: aci: (targetfilter="(objectClass=ipaVault)")(targetattr="*")(version 3.0; acl "Indirect container owners can manage vaults in the container"; allow(read, search, compare, add, delete) userattr="parent[1].owner#GROUPDN";)
+default: aci: (targetfilter="(objectClass=ipaVault)")(targetattr="*")(version 3.0; acl "Vault members can access the vault"; allow(read, search, compare) userattr="member#USERDN";)
+default: aci: (targetfilter="(objectClass=ipaVault)")(targetattr="*")(version 3.0; acl "Indirect vault members can access the vault"; allow(read, search, compare) userattr="member#GROUPDN";)
+default: aci: (targetfilter="(objectClass=ipaVault)")(targetattr="*")(version 3.0; acl "Vault owners can manage the vault"; allow(read, search, compare, write) userattr="owner#USERDN";)
+default: aci: (targetfilter="(objectClass=ipaVault)")(targetattr="*")(version 3.0; acl "Indirect vault owners can manage the vault"; allow(read, search, compare, write) userattr="owner#GROUPDN";)
 
 dn: cn=services,cn=vaults,cn=kra,$SUFFIX
 default: objectClass: top
-default: objectClass: nsContainer
+default: objectClass: ipaVaultContainer
 default: cn: services
 
 dn: cn=shared,cn=vaults,cn=kra,$SUFFIX
 default: objectClass: top
-default: objectClass: nsContainer
+default: objectClass: ipaVaultContainer
 default: cn: shared
 
 dn: cn=users,cn=vaults,cn=kra,$SUFFIX
 default: objectClass: top
-default: objectClass: nsContainer
+default: objectClass: ipaVaultContainer
 default: cn: users
