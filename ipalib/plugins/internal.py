@@ -285,6 +285,14 @@ class i18n_messages(Command):
             "search": _("Search"),
         },
         "false": _("False"),
+        "keytab": {
+            "add_create": _("Allow ${other_entity} to create keytab of ${primary_key}"),
+            "add_retrive": _("Allow ${other_entity} to retrieve keytab of ${primary_key}"),
+            "allowed_to_create": _("Allowed to create keytab"),
+            "allowed_to_retrieve": _("Allowed to retrieve keytab"),
+            "remove_create": _("Disallow ${other_entity} to create keytab of ${primary_key}"),
+            "remove_retrieve": _("Disallow ${other_entity} to retrieve keytab of ${primary_key}"),
+        },
         "krbauthzdata": {
             "inherited": _("Inherited from server configuration"),
             "mspac": _("MS-PAC"),

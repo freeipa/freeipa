@@ -406,7 +406,7 @@ IPA.association_table_widget = function (spec) {
 
     spec = spec || {};
 
-    var index = spec.name.indexOf('_');
+    var index = spec.name.lastIndexOf('_');
     spec.attribute_member = spec.attribute_member || spec.name.substring(0, index);
     spec.other_entity = spec.other_entity || spec.name.substring(index+1);
 
@@ -589,7 +589,7 @@ IPA.association_table_widget = function (spec) {
         var i;
         var columns = that.columns.values;
         if (columns.length == 1) { // show pkey only
-            var name = columns[0].name;
+            var name = columns[0].param;
             for (i=0; i<that.values.length; i++) {
                 var record = {};
                 record[name] = that.values[i];
@@ -774,6 +774,12 @@ IPA.association_table_field = function (spec) {
 
     var that = IPA.field(spec);
 
+    that.load = function(data) {
+        that.values = that.adapter.load(data);
+        that.widget.update(that.values);
+        that.widget.unselect_all();
+    };
+
     that.refresh = function() {
 
         function on_success(data, text_status, xhr) {
@@ -821,7 +827,7 @@ exp.association_facet_pre_op = function(spec, context) {
     su.context_entity(spec, context);
     spec.entity = entity;
 
-    var index = spec.name.indexOf('_');
+    var index = spec.name.lastIndexOf('_');
     spec.attribute_member = spec.attribute_member ||
         spec.name.substring(0, index);
     spec.other_entity = spec.other_entity ||

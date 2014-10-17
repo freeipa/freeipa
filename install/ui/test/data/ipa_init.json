@@ -143,6 +143,14 @@
                         "search": "Search"
                     },
                     "false": "False",
+                    "keytab": {
+                        "add_create": "Allow ${other_entity} to create keytab of ${primary_key}",
+                        "add_retrive": "Allow ${other_entity} to retrieve keytab of ${primary_key}",
+                        "allowed_to_create": "Allowed to create keytab",
+                        "allowed_to_retrieve": "Allowed to retrieve keytab",
+                        "remove_create": "Disallow ${other_entity} to create keytab of ${primary_key}",
+                        "remove_retrieve": "Disallow ${other_entity} to retrieve keytab of ${primary_key}"
+                    },
                     "krbauthzdata": {
                         "inherited": "Inherited from server configuration",
                         "mspac": "MS-PAC",
