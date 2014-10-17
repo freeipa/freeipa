@@ -4,7 +4,6 @@ default: objectClass: nsContainer
 default: cn: ranges
 
 dn: cn=IPA Range-Check,cn=plugins,cn=config
-default: changetype: add
 default: objectclass: top
 default: objectclass: nsSlapdPlugin
 default: objectclass: extensibleObject
