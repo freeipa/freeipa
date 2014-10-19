@@ -422,6 +422,17 @@ mkdir -p %{buildroot}%{_usr}/share/ipa/html/
 mkdir -p %{buildroot}%{_initrddir}
 mkdir %{buildroot}%{_sysconfdir}/sysconfig/
 install -m 644 init/ipa_memcached.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa_memcached
+install -m 644 init/ipa-dnskeysyncd.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa-dnskeysyncd
+install -m 644 init/ipa-ods-exporter.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa-ods-exporter
+install -m 644 daemons/dnssec/ipa-ods-exporter.socket %{buildroot}%{_unitdir}/ipa-ods-exporter.socket
+install -m 644 daemons/dnssec/ipa-ods-exporter.service %{buildroot}%{_unitdir}/ipa-ods-exporter.service
+install -m 644 daemons/dnssec/ipa-dnskeysyncd.service %{buildroot}%{_unitdir}/ipa-dnskeysyncd.service
+
+# dnssec daemons
+mkdir -p %{buildroot}%{_libexecdir}/ipa/
+install daemons/dnssec/ipa-dnskeysyncd %{buildroot}%{_libexecdir}/ipa/ipa-dnskeysyncd
+install daemons/dnssec/ipa-dnskeysync-replica %{buildroot}%{_libexecdir}/ipa/ipa-dnskeysync-replica
+install daemons/dnssec/ipa-ods-exporter %{buildroot}%{_libexecdir}/ipa/ipa-ods-exporter
 
 # Web UI plugin dir
 mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
@@ -640,7 +651,13 @@ fi
 %{_sbindir}/ipa-cacert-manage
 %{_libexecdir}/certmonger/dogtag-ipa-ca-renew-agent-submit
 %{_libexecdir}/ipa-otpd
+%dir %{_libexecdir}/ipa
+%{_libexecdir}/ipa/ipa-dnskeysyncd
+%{_libexecdir}/ipa/ipa-dnskeysync-replica
+%{_libexecdir}/ipa/ipa-ods-exporter
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
+%config(noreplace) %{_sysconfdir}/sysconfig/ipa-dnskeysyncd
+%config(noreplace) %{_sysconfdir}/sysconfig/ipa-ods-exporter
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
 %dir %attr(0700,root,root) %{_localstatedir}/run/ipa/
 # NOTE: systemd specific section
@@ -649,6 +666,9 @@ fi
 %attr(644,root,root) %{_unitdir}/ipa_memcached.service
 %attr(644,root,root) %{_unitdir}/ipa-otpd.socket
 %attr(644,root,root) %{_unitdir}/ipa-otpd@.service
+%attr(644,root,root) %{_unitdir}/ipa-dnskeysyncd.service
+%attr(644,root,root) %{_unitdir}/ipa-ods-exporter.socket
+%attr(644,root,root) %{_unitdir}/ipa-ods-exporter.service
 # END
 %dir %{python_sitelib}/ipaserver
 %dir %{python_sitelib}/ipaserver/install
@@ -823,6 +843,8 @@ fi
 %doc COPYING README Contributors.txt
 %dir %{python_sitelib}/ipapython
 %{python_sitelib}/ipapython/*.py*
+%dir %{python_sitelib}/ipapython/dnssec
+%{python_sitelib}/ipapython/dnssec/*.py*
 %dir %{python_sitelib}/ipalib
 %{python_sitelib}/ipalib/*
 %dir %{python_sitelib}/ipaplatform
