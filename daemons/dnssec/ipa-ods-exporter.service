@@ -1,0 +1,15 @@
+[Unit]
+Description=IPA OpenDNSSEC Signer replacement
+Wants=ipa-ods-exporter.socket
+After=ipa-ods-exporter.socket
+
+[Service]
+EnvironmentFile=/etc/sysconfig/ipa-ods-exporter
+ExecStart=/usr/libexec/ipa/ipa-ods-exporter
+User=ods
+PrivateTmp=yes
+Restart=on-failure
+RestartSec=60s
+
+[Install]
+WantedBy=multi-user.target
