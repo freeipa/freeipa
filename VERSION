@@ -20,8 +20,8 @@
 #  ->  "1.0.0"                                         #
 ########################################################
 IPA_VERSION_MAJOR=4
-IPA_VERSION_MINOR=0
-IPA_VERSION_RELEASE=0
+IPA_VERSION_MINOR=1
+IPA_VERSION_RELEASE=99
 
 ########################################################
 # For 'alpha' releases the version will be             #
