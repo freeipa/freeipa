@@ -239,6 +239,16 @@ IPA.dialog = function(spec) {
     that.is_shown = false;
 
     /**
+     * Whether dialog should be opened.
+     *
+     * The actual display state is reflected in `is_shown` property. Dialog can
+     * be `opened` and not `is_shown` at the same time, eg., when other dialog
+     * is displayed. Opposite is invalid state.
+     * @property {boolean}
+     */
+    that.opened = false;
+
+    /**
      * Close dialog on Escape key press
      * @property {boolean} close_on_escape=true
      */
@@ -556,6 +566,7 @@ IPA.dialog = function(spec) {
 
         that.register_listeners();
 
+        this.opened = true;
         this.emit('open', { source: that });
         topic.publish('dialog.open', { source: that });
 
@@ -571,6 +582,7 @@ IPA.dialog = function(spec) {
      * @param  {Function} clb Show callback, called when showing is complete.
      */
     that.show = function(clb) {
+        if (!this.opened) return;
         that.is_shown = true;
         this.dom_node.one('shown.bs.modal', clb);
 
@@ -648,6 +660,12 @@ IPA.dialog = function(spec) {
     that.close = function() {
 
         that.remove_listeners();
+        this.opened = false;
+
+        if (!this.is_shown) {
+            that.emit('closed', { source: that });
+            topic.publish('dialog.closed', { source: that });
+        }
 
         if (!that.dom_node) return;
 
