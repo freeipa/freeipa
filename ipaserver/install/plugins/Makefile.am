@@ -12,6 +12,7 @@ app_PYTHON = 			\
 	update_anonymous_aci.py	\
 	update_pacs.py		\
 	ca_renewal_master.py	\
+	update_uniqueness.py	\
 	$(NULL)
 
 EXTRA_DIST =			\
