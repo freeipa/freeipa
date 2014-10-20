@@ -2354,9 +2354,7 @@ class dnszone(DNSZoneBase):
             if options['idnssecinlinesigning'] is True:
                 messages.add_message(options['version'], result,
                     messages.DNSSECWarning(
-                    additional_info=_("Manual configuration needed, please "
-                    "visit 'http://www.freeipa.org/page/Releases/4.0.0#"
-                    "Experimental_DNSSEC_Support'")
+                    additional_info=_("Visit 'http://www.freeipa.org/page/Releases/4.1.0#DNSSEC_Support'.")
                 ))
             else:
                 messages.add_message(options['version'], result,
