@@ -3826,10 +3826,13 @@ IPA.combobox_widget = function(spec) {
 
     that.list_on_change = function(e) {
 
+        var org_val = that.input.val();
         var value = that.list.val();
-        that.input.val(value);
-        that.value_changed.notify([[value]], that);
-        that.emit('value-change', { source: that, value: value });
+        if (org_val != value) {
+            that.input.val(value);
+            that.value_changed.notify([[value]], that);
+            that.emit('value-change', { source: that, value: value });
+        }
     };
 
     that.list_child_on_blur = function(e) {
@@ -3852,6 +3855,7 @@ IPA.combobox_widget = function(spec) {
         // Close list when user selects and option by click
         // doesn't work in IE, can be fixed by moving the handler to list.click,
         // but it breaks UI automation tests. #3014
+        that.list_on_change();
         that.close();
         IPA.select_range(that.input, 0, 0);
     };
