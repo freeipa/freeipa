@@ -65,6 +65,14 @@ redhat_system_units['pki_cad'] = redhat_system_units['pki-cad']
 redhat_system_units['pki-tomcatd'] = 'pki-tomcatd@pki-tomcat.service'
 redhat_system_units['pki_tomcatd'] = redhat_system_units['pki-tomcatd']
 redhat_system_units['ipa-otpd'] = 'ipa-otpd.socket'
+redhat_system_units['ipa-dnskeysyncd'] = 'ipa-dnskeysyncd.service'
+redhat_system_units['named-regular'] = 'named.service'
+redhat_system_units['named-pkcs11'] = 'named-pkcs11.service'
+redhat_system_units['named'] = redhat_system_units['named-pkcs11']
+redhat_system_units['ods-enforcerd'] = 'ods-enforcerd.service'
+redhat_system_units['ods_enforcerd'] = redhat_system_units['ods-enforcerd']
+redhat_system_units['ods-signerd'] = 'ods-signerd.service'
+redhat_system_units['ods_signerd'] = redhat_system_units['ods-signerd']
 
 
 # Service classes that implement Red Hat OS family-specific behaviour
@@ -201,6 +209,28 @@ class RedHatCAService(RedHatService):
             self.wait_until_running()
 
 
+class RedHatNamedService(RedHatService):
+    def get_user_name(self):
+        return u'named'
+
+    def get_group_name(self):
+        return u'named'
+
+    def get_binary_path(self):
+        return paths.NAMED_PKCS11
+
+    def get_package_name(self):
+        return u"bind-pkcs11"
+
+
+class RedHatODSEnforcerdService(RedHatService):
+    def get_user_name(self):
+        return u'ods'
+
+    def get_group_name(self):
+        return u'ods'
+
+
 # Function that constructs proper Red Hat OS family-specific server classes for
 # services of specified name
 
@@ -213,6 +243,10 @@ def redhat_service_class_factory(name):
         return RedHatSSHService(name)
     if name in ('pki-cad', 'pki_cad', 'pki-tomcatd', 'pki_tomcatd'):
         return RedHatCAService(name)
+    if name == 'named':
+        return RedHatNamedService(name)
+    if name in ('ods-enforcerd', 'ods_enforcerd'):
+        return RedHatODSEnforcerdService(name)
     return RedHatService(name)
 
 
