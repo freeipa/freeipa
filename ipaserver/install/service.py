@@ -44,6 +44,9 @@ SERVICE_LIST = {
     'ADTRUST': ('smb', 60),
     'EXTID': ('winbind', 70),
     'OTPD': ('ipa-otpd', 80),
+    'DNSKeyExporter': ('ipa-ods-exporter', 90),
+    'DNSSEC': ('ods-enforcerd', 100),
+    'DNSKeySync': ('ipa-dnskeysyncd', 110),
 }
 
 def print_msg(message, output_fd=sys.stdout):
