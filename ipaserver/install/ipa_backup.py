@@ -113,6 +113,7 @@ class Backup(admintool.AdminTool):
         paths.VAR_LIB_PKI_CA_DIR,
         paths.SYSRESTORE,
         paths.IPA_CLIENT_SYSRESTORE,
+        paths.IPA_DNSSEC_DIR,
         paths.SSSD_PUBCONF_KRB5_INCLUDE_D_DIR,
         paths.AUTHCONFIG_LAST,
         paths.VAR_LIB_CERTMONGER_DIR,
@@ -131,6 +132,10 @@ class Backup(admintool.AdminTool):
         paths.SYSCONFIG_NTPD,
         paths.SYSCONFIG_KRB5KDC_DIR,
         paths.SYSCONFIG_PKI_CA_PKI_CA_DIR,
+        paths.SYSCONFIG_IPA_DNSKEYSYNCD,
+        paths.SYSOCNFIG_IPA_ODS_EXPORTER,
+        paths.SYSCONFIG_NAMED,
+        paths.SYSCONFIG_ODS,
         paths.ETC_SYSCONFIG_AUTHCONFIG,
         paths.IPA_NSSDB_PWDFILE_TXT,
         paths.NSSWITCH_CONF,
@@ -161,6 +166,12 @@ class Backup(admintool.AdminTool):
         paths.SYSTEMD_CERTMONGER_SERVICE,
         paths.SYSTEMD_PKI_TOMCAT_SERVICE,
         paths.SVC_LIST_FILE,
+        paths.OPENDNSSEC_CONF_FILE,
+        paths.OPENDNSSEC_KASP_FILE,
+        paths.DNSSEC_SOFTHSM2_CONF,
+        paths.DNSSEC_SOFTHSM_PIN_SO,
+        paths.IPA_ODS_EXPORTER_KEYTAB,
+        paths.IPA_DNSKEYSYNCD_KEYTAB,
     ) + tuple(
         os.path.join(base, file)
         for base in (paths.NSS_DB_DIR, paths.IPA_NSSDB_DIR)
