@@ -1,0 +1,19 @@
+dn: cn=vaults,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: cn: vaults
+
+dn: cn=services,cn=vaults,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: cn: services
+
+dn: cn=shared,cn=vaults,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: cn: shared
+
+dn: cn=users,cn=vaults,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: cn: users

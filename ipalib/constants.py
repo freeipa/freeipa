@@ -99,6 +99,7 @@ DEFAULT_CONFIG = (
     ('container_hbacservice', DN(('cn', 'hbacservices'), ('cn', 'hbac'))),
     ('container_hbacservicegroup', DN(('cn', 'hbacservicegroups'), ('cn', 'hbac'))),
     ('container_dns', DN(('cn', 'dns'))),
+    ('container_vault', DN(('cn', 'vaults'))),
     ('container_virtual', DN(('cn', 'virtual operations'), ('cn', 'etc'))),
     ('container_sudorule', DN(('cn', 'sudorules'), ('cn', 'sudo'))),
     ('container_sudocmd', DN(('cn', 'sudocmds'), ('cn', 'sudo'))),
