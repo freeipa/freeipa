@@ -464,8 +464,10 @@ def check_forwarders(dns_forwarders, logger):
             logger.warning("DNS forwarder %s does not return DNSSEC signatures in answers", forwarder)
             logger.warning("Please fix forwarder configuration to enable DNSSEC support.\n"
                 "(For BIND 9 add directive \"dnssec-enable yes;\" to \"options {}\")")
-            print ("WARNING: DNS forwarder %s is not configured to support "
-                   "DNSSEC" % forwarder)
+            print ("WARNING: DNS forwarder %s does not return DNSSEC "
+                   "signatures in answers" % forwarder)
+            print "Please fix forwarder configuration to enable DNSSEC support."
+            print "(For BIND 9 add directive \"dnssec-enable yes;\" to \"options {}\")"
 
     return forwarders_dnssec_valid
 
