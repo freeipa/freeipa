@@ -1159,8 +1159,8 @@ class BindInstance(service.Service):
 
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
-        named_regular_running = self.restore_state("named_regular_running")
-        named_regular_enabled = self.restore_state("named_regular_enabled")
+        named_regular_running = self.restore_state("named-regular-running")
+        named_regular_enabled = self.restore_state("named-regular-enabled")
 
         self.dns_backup.clear_records(api.Backend.ldap2.isconnected())
 
