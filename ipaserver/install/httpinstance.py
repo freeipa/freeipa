@@ -115,6 +115,7 @@ class HTTPInstance(service.Service):
 
 
         self.step("setting mod_nss port to 443", self.__set_mod_nss_port)
+        self.step("setting mod_nss protocol list to TLSv1.0 and TLSv1.1", self.__set_mod_nss_protocol)
         self.step("setting mod_nss password file", self.__set_mod_nss_passwordfile)
         self.step("enabling mod_nss renegotiate", self.enable_mod_nss_renegotiate)
         self.step("adding URL rewriting rules", self.__add_include)
@@ -203,6 +204,9 @@ class HTTPInstance(service.Service):
 
     def __set_mod_nss_nickname(self, nickname):
         installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSNickname', nickname)
+
+    def __set_mod_nss_protocol(self):
+        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSProtocol', 'TLSv1.0,TLSv1.1', False)
 
     def enable_mod_nss_renegotiate(self):
         installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSRenegotiation', 'on', False)
