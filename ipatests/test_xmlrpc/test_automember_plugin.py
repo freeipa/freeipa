@@ -30,6 +30,7 @@ from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 
 
 user1 = u'tuser1'
+user_does_not_exist = u'does_not_exist'
 manager1 = u'mscott'
 fqdn1 = u'web1.%s' % api.env.domain
 short1 = u'web1'
@@ -41,6 +42,7 @@ fqdn4 = u'www5.%s' % api.env.domain
 short4 = u'www5'
 fqdn5 = u'webserver5.%s' % api.env.domain
 short5 = u'webserver5'
+fqdn_does_not_exist = u'does_not_exist.%s' % api.env.domain
 
 group1 = u'group1'
 group1_dn = DN(('cn', group1), ('cn', 'groups'),
@@ -1625,4 +1627,37 @@ class test_automember(Declarative):
             ),
         ),
 
+        dict(
+            desc='Rebuild membership with type hostgroup and --hosts',
+            command=('automember_rebuild', [], {u'type': u'hostgroup', u'hosts': fqdn1}),
+            expected=dict(
+                value=None,
+                summary=u'Automember rebuild task finished. Processed (1) entries.',
+                result={
+                }
+            ),
+        ),
+
+        dict(
+            desc='Rebuild membership with type group and --users',
+            command=('automember_rebuild', [], {u'type': u'group', u'users': user1}),
+            expected=dict(
+                value=None,
+                summary=u'Automember rebuild task finished. Processed (1) entries.',
+                result={
+                }
+            ),
+        ),
+
+        dict(
+            desc='Try to rebuild membership with invalid host in --hosts',
+            command=('automember_rebuild', [], {u'type': u'hostgroup', u'hosts': fqdn_does_not_exist}),
+            expected=errors.NotFound(reason='%s: host not found' % fqdn_does_not_exist),
+        ),
+
+        dict(
+            desc='Try to rebuild membership with invalid user in --users',
+            command=('automember_rebuild', [], {u'type': u'group', u'users': user_does_not_exist}),
+            expected=errors.NotFound(reason='%s: user not found' % user_does_not_exist),
+        ),
     ]

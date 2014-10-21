@@ -735,7 +735,10 @@ class automember_rebuild(Command):
         names = options.get(opt_name)
         if names:
             for name in names:
-                obj.get_dn_if_exists(name)
+                try:
+                    obj.get_dn_if_exists(name)
+                except errors.NotFound:
+                    obj.handle_not_found(name)
             search_filter = ldap.make_filter_from_attr(
                 obj.primary_key.name,
                 names,
