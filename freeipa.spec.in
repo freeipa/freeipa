@@ -211,7 +211,7 @@ Requires: pam_krb5
 Requires: wget
 Requires: libcurl >= 7.21.7-2
 Requires: xmlrpc-c >= 1.27.4
-Requires: sssd >= 1.11.1
+Requires: sssd >= 1.12.2
 Requires: certmonger >= 0.75.6
 Requires: nss-tools
 Requires: bind-utils
