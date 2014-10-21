@@ -3942,12 +3942,14 @@ class dnsconfig_mod(LDAPUpdate):
         # test dnssec forwarders
         non_dnssec_forwarders = []
         not_responding_forwarders = []
-        for forwarder in options.get('idnsforwarders', []):
-            dnssec_status = validate_dnssec_forwarder(forwarder)
-            if dnssec_status is None:
-                not_responding_forwarders.append(forwarder)
-            elif dnssec_status is False:
-                non_dnssec_forwarders.append(forwarder)
+        forwarders = options.get('idnsforwarders')
+        if forwarders:
+            for forwarder in forwarders:
+                dnssec_status = validate_dnssec_forwarder(forwarder)
+                if dnssec_status is None:
+                    not_responding_forwarders.append(forwarder)
+                elif dnssec_status is False:
+                    non_dnssec_forwarders.append(forwarder)
 
         result = super(dnsconfig_mod, self).execute(*keys, **options)
         self.obj.postprocess_result(result)

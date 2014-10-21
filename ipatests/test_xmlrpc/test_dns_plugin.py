@@ -1662,6 +1662,12 @@ class test_dns(Declarative):
             expected={
                 'value': None,
                 'summary': None,
+                u'messages': (
+                    {u'message': u'DNS server 172.16.31.80 not responding.',
+                     u'code': 13006,
+                     u'type':u'warning',
+                     u'name': u'DNSServerNotRespondingWarning'},
+                ),
                 'result': {
                     'idnsforwarders': [fwd_ip],
                 },
