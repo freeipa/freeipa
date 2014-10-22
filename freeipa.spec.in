@@ -312,10 +312,9 @@ This package contains tests that verify IPA functionality.
 %setup -n freeipa-%{version} -q
 
 %build
-%ifarch ppc %{power64} s390 s390x aarch64
 # UI compilation segfaulted on some arches when the stack was lower (#1040576)
 export JAVA_STACK_SIZE="8m"
-%endif
+
 export CFLAGS="%{optflags} $CFLAGS"
 export LDFLAGS="%{__global_ldflags} $LDFLAGS"
 export SUPPORTED_PLATFORM=%{platform_module}
