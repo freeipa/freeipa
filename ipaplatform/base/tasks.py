@@ -22,7 +22,13 @@
 This module contains default platform-specific implementations of system tasks.
 '''
 
+import pwd
+import grp
 from ipaplatform.paths import paths
+from ipapython.ipa_log_manager import log_mgr
+from ipapython import ipautil
+
+log = log_mgr.get_logger(__name__)
 
 
 class BaseTaskNamespace(object):
@@ -149,6 +155,48 @@ class BaseTaskNamespace(object):
         """
 
         return
+
+    def create_system_user(self, name, group, homedir, shell, uid = None, gid = None, comment = None):
+        """Create a system user with a corresponding group"""
+        try:
+            grp.getgrnam(group)
+        except KeyError:
+            log.debug('Adding group %s', group)
+            args = [paths.GROUPADD, '-r', group]
+            if gid:
+                args += ['-g', str(gid)]
+            try:
+                ipautil.run(args)
+                log.debug('Done adding group')
+            except ipautil.CalledProcessError as e:
+                log.critical('Failed to add group: %s', e)
+                raise
+        else:
+            log.debug('group %s exists', group)
+
+        try:
+            pwd.getpwnam(name)
+        except KeyError:
+            log.debug('Adding user %s', name)
+            args = [
+                paths.USERADD,
+                '-g', group,
+                '-d', homedir,
+                '-s', shell,
+                '-M', '-r', name,
+            ]
+            if uid:
+                args += ['-u', str(uid)]
+            if comment:
+                args += ['-c', comment]
+            try:
+                ipautil.run(args)
+                log.debug('Done adding user')
+            except ipautil.CalledProcessError as e:
+                log.critical('Failed to add user: %s', e)
+                raise
+        else:
+            log.debug('user %s exists', name)
 
 
 task_namespace = BaseTaskNamespace()

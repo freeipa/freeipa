@@ -151,7 +151,7 @@ def is_ds_running(server_id=''):
 
 def create_ds_user():
     """Create DS user/group if it doesn't exist yet."""
-    installutils.create_system_user(
+    tasks.create_system_user(
         name=DS_USER,
         group=DS_USER,
         homedir=paths.VAR_LIB_DIRSRV,

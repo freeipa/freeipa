@@ -259,7 +259,7 @@ def is_ca_installed_locally():
 
 def create_ca_user():
     """Create PKI user/group if it doesn't exist yet."""
-    installutils.create_system_user(
+    tasks.create_system_user(
         name=PKI_USER,
         group=PKI_USER,
         homedir=paths.VAR_LIB,

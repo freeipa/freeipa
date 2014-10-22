@@ -390,5 +390,28 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         return True
 
+    def create_system_user(self, name, group, homedir, shell, uid = None, gid = None, comment = None):
+        """
+        Create a system user with a corresponding group
+
+        According to https://fedoraproject.org/wiki/Packaging:UsersAndGroups?rd=Packaging/UsersAndGroups#Soft_static_allocation
+        some system users should have fixed UID, GID and other parameters set.
+        This values should be constant and may be hardcoded.
+        Add other values for other users when needed.
+        """
+        if name == 'pkiuser':
+            if uid is None:
+                uid = 17
+            if gid is None:
+                gid = 17
+            if comment is None:
+                comment = 'CA System User'
+        if name == 'dirsrv':
+            if comment is None:
+                comment = 'DS System User'
+
+        super(RedHatTaskNamespace, self).create_system_user(name, group,
+            homedir, shell, uid, gid, comment)
+
 
 tasks = RedHatTaskNamespace()
