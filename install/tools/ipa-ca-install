@@ -301,7 +301,8 @@ def install_master(safe_options, options):
     domain_name = api.env.domain
     host_name = api.env.host
 
-    check_ca()
+    if external != 2:
+        check_ca()
 
     dirname = dsinstance.config_dirname(
         dsinstance.realm_to_serverid(realm_name))

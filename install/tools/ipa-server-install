@@ -869,10 +869,11 @@ def main():
         # Make sure the 389-ds ports are available
         check_dirsrv(options.unattended)
 
-    if setup_ca:
-        if not cainstance.check_port():
-            print "IPA requires port 8443 for PKI but it is currently in use."
-            sys.exit("Aborting installation")
+        if setup_ca:
+            if not cainstance.check_port():
+                print ("IPA requires port 8443 for PKI but it is currently in "
+                       "use.")
+                sys.exit("Aborting installation")
 
     if options.conf_ntp:
         try:
