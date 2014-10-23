@@ -24,16 +24,17 @@ import nose
 
 from ipapython import ipautil
 
-class CheckIPAddress:
-    def __init__(self, addr):
-        self.description = "Test IP address parsing and verification (%s)" % addr
 
-    def __call__(self, addr, words=None, prefixlen=None):
+def make_ipaddress_checker(addr, words=None, prefixlen=None):
+    def check_ipaddress():
         try:
             ip = ipautil.CheckedIPAddress(addr, match_local=False)
             assert ip.words == words and ip.prefixlen == prefixlen
         except:
             assert words is None and prefixlen is None
+    check_ipaddress.description = "Test IP address parsing and verification (%s)" % addr
+    return check_ipaddress
+
 
 def test_ip_address():
     addrs = [
@@ -66,7 +67,7 @@ def test_ip_address():
     ]
 
     for addr in addrs:
-        yield (CheckIPAddress(addr[0]),) + addr
+        yield make_ipaddress_checker(*addr)
 
 
 class TestCIDict(object):

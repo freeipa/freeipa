@@ -25,16 +25,15 @@ import nose
 
 from ipapython import ssh
 
-class CheckPublicKey:
-    def __init__(self, pk):
-        self.description = "Test SSH public key parsing (%s)" % repr(pk)
-
-    def __call__(self, pk, out):
+def make_public_key_checker(pk, out):
+    def check_public_key():
         try:
             parsed = ssh.SSHPublicKey(pk)
             assert parsed.openssh() == out
         except Exception, e:
             assert type(e) is out
+    check_public_key.description = "Test SSH public key parsing (%s)" % repr(pk)
+    return check_public_key
 
 def test_public_key_parsing():
     b64 = 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6XHBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGIwA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNmcSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM019Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF0L'
@@ -73,4 +72,4 @@ def test_public_key_parsing():
     ]
 
     for pk in pks:
-        yield (CheckPublicKey(pk[0]),) + pk
+        yield make_public_key_checker(*pk)
