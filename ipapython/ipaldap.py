@@ -90,12 +90,6 @@ def value_to_utf8(val):
 
     return unicode(val).encode('utf-8')
 
-# FIXME: Remove when python-ldap tuple compatibility is dropped
-def raise_deprecation_error():
-    raise RuntimeError(
-        "this API has been deprecated, see http://www.freeipa.org/page/"
-        "HowTo/Migrate_your_code_to_the_new_LDAP_API")
-
 class _ServerSchema(object):
     '''
     Properties of a schema retrieved from an LDAP server.
@@ -673,13 +667,6 @@ class IPASimpleLDAPObject(object):
         return self.conn.unbind_s()
 
 
-# Make python-ldap tuple style result compatible with Entry and Entity
-# objects by allowing access to the dn (tuple index 0) via the 'dn'
-# attribute name and the attr dict (tuple index 1) via the 'data'
-# attribute name. Thus:
-# r = result[0]
-# r[0] == r.dn
-# r[1] == r.data
 class LDAPEntry(collections.MutableMapping):
     __slots__ = ('_conn', '_dn', '_names', '_nice', '_raw', '_sync',
                  '_not_list', '_orig', '_raw_view', '_single_value_view')
@@ -938,10 +925,6 @@ class LDAPEntry(collections.MutableMapping):
         return value
 
     def __getitem__(self, name):
-        # FIXME: Remove when python-ldap tuple compatibility is dropped
-        if name in (0, 1):
-            raise_deprecation_error()
-
         return self._get_nice(name)
 
     def __delitem__(self, name):
@@ -1026,49 +1009,9 @@ class LDAPEntry(collections.MutableMapping):
 
         return modlist
 
-    # FIXME: Remove when python-ldap tuple compatibility is dropped
     def __iter__(self):
-        raise_deprecation_error()
+        return iter(self._nice)
 
-    # FIXME: Remove when python-ldap tuple compatibility is dropped
-    def iterkeys(self):
-        return self._nice.iterkeys()
-
-    # FIXME: Remove when python-ldap tuple compatibility is dropped
-    def itervalues(self):
-        for name in self.iterkeys():
-            yield self[name]
-
-    # FIXME: Remove when python-ldap tuple compatibility is dropped
-    def iteritems(self):
-        for name in self.iterkeys():
-            yield (name, self[name])
-
-    # FIXME: Remove when python-ldap tuple compatibility is dropped
-    def keys(self):
-        return list(self.iterkeys())
-
-    # FIXME: Remove when python-ldap tuple compatibility is dropped
-    def values(self):
-        return list(self.itervalues())
-
-    # FIXME: Remove when python-ldap tuple compatibility is dropped
-    def items(self):
-        return list(self.iteritems())
-
-    # FIXME: Remove when python-ldap tuple compatibility is dropped
-    def update(self, _obj={}, **kwargs):
-        _obj = dict(_obj, **kwargs)
-        super(LDAPEntry, self).update(_obj)
-
-    # FIXME: Remove when python-ldap tuple compatibility is dropped
-    def popitem(self):
-        try:
-            name = self.iterkeys().next()
-        except StopIteration:
-            raise KeyError
-
-        return name, self.pop(name)
 
 class LDAPEntryView(collections.MutableMapping):
     __slots__ = ('_entry',)
@@ -1580,14 +1523,11 @@ class LDAPClient(object):
             raise errors.LimitsExceeded()
         return entries[0]
 
-    def add_entry(self, entry, entry_attrs=None):
+    def add_entry(self, entry):
         """Create a new entry.
 
         This should be called as add_entry(entry).
         """
-        if entry_attrs is not None:
-            raise_deprecation_error()
-
         # remove all [] values (python-ldap hates 'em)
         attrs = dict((k, v) for k, v in entry.raw.iteritems() if v)
 
@@ -1627,14 +1567,11 @@ class LDAPClient(object):
                                delold=int(del_old))
             time.sleep(.3)  # Give memberOf plugin a chance to work
 
-    def update_entry(self, entry, entry_attrs=None):
+    def update_entry(self, entry):
         """Update entry's attributes.
 
         This should be called as update_entry(entry).
         """
-        if entry_attrs is not None:
-            raise_deprecation_error()
-
         # generate modlist
         modlist = entry.generate_modlist()
         if not modlist:
