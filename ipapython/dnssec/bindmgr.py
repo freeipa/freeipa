@@ -120,10 +120,40 @@ class BINDMgr(object):
         with open("%s/%s.dn" % (workdir, basename), 'w') as dn_file:
             dn_file.write(attrs['dn'])
 
+    def get_zone_dir_name(self, zone):
+        """Escape zone name to form suitable for file-system.
+
+        This method has to be equivalent to zr_get_zone_path()
+        in bind-dyndb-ldap/zone_register.c."""
+
+        if zone == dns.name.root:
+            return "@"
+
+        # strip final (empty) label
+        zone = zone.relativize(dns.name.root)
+        escaped = ""
+        for label in zone:
+            for char in label:
+                c = ord(char)
+                if ((c >= 0x30 and c <= 0x39) or   # digit
+                   (c >= 0x41 and c <= 0x5A) or    # uppercase
+                   (c >= 0x61 and c <= 0x7A) or    # lowercase
+                   c == 0x2D or                    # hyphen
+                   c == 0x5F):                     # underscore
+                    if (c >= 0x41 and c <= 0x5A):  # downcase
+                        c += 0x20
+                    escaped += chr(c)
+                else:
+                    escaped += "%%%02X" % c
+            escaped += '.'
+
+        # strip trailing period
+        return escaped[:-1]
+
     def sync_zone(self, zone):
         self.log.info('Synchronizing zone %s' % zone)
         zone_path = os.path.join(paths.BIND_LDAP_DNS_ZONE_WORKDIR,
-                zone.to_text(omit_final_dot=True))
+                self.get_zone_dir_name(zone))
         try:
             os.makedirs(zone_path)
         except OSError as e:
