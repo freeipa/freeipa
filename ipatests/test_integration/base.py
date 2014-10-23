@@ -30,6 +30,7 @@ log = log_mgr.get_logger(__name__)
 
 @ordered
 @pytest.mark.usefixtures('integration_config')
+@pytest.mark.usefixtures('integration_logs')
 class IntegrationTest(object):
     num_replicas = 0
     num_clients = 0
@@ -83,10 +84,5 @@ class IntegrationTest(object):
         for client in cls.clients:
             tasks.uninstall_client(client)
 
-    @classmethod
-    def collect_log(cls, host, filename):
-        cls.log.info('Adding %s:%s to list of logs to collect' %
-                     (host.external_hostname, filename))
-        cls.logs_to_collect.setdefault(host, []).append(filename)
 
 IntegrationTest.log = log_mgr.get_logger(IntegrationTest())

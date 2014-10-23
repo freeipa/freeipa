@@ -19,13 +19,137 @@
 
 """Pytest plugin for IPA Integration tests"""
 
+import os
+import tempfile
+import shutil
+
 import pytest
 
+from ipapython import ipautil
+from ipapython.ipa_log_manager import log_mgr
 from ipatests.test_integration.config import get_global_config
 
 
+log = log_mgr.get_logger(__name__)
+
+
+def pytest_addoption(parser):
+    group = parser.getgroup("IPA integration tests")
+
+    group.addoption(
+        '--logfile-dir', dest="logfile_dir", default=None,
+        help="Directory to store integration test logs in.")
+
+
+def collect_test_logs(node, logs_dict, test_config):
+    """Collect logs from a test
+
+    Calls collect_logs
+
+    :param node: The pytest collection node (request.node)
+    :param logs_dict: Mapping of host to list of log filnames to collect
+    :param test_config: Pytest configuration
+    """
+    collect_logs(
+        name=node.nodeid.replace('/', '-').replace('::', '-'),
+        logs_dict=logs_dict,
+        logfile_dir=test_config.getoption('logfile_dir'),
+        beakerlib_plugin=test_config.pluginmanager.getplugin('BeakerLibPlugin'),
+    )
+
+
+def collect_logs(name, logs_dict, logfile_dir=None, beakerlib_plugin=None):
+    """Collect logs from remote hosts
+
+    Calls collect_logs
+
+    :param name: Name under which logs arecollected, e.g. name of the test
+    :param logs_dict: Mapping of host to list of log filnames to collect
+    :param logfile_dir: Directory to log to
+    :param beakerlib_plugin:
+        BeakerLibProcess or BeakerLibPlugin used to collect tests for BeakerLib
+
+    If neither logfile_dir nor beakerlib_plugin is given, no tests are
+    collected.
+    """
+    if logs_dict and (logfile_dir or beakerlib_plugin):
+
+        if logfile_dir:
+            remove_dir = False
+        else:
+            logfile_dir = tempfile.mkdtemp()
+            remove_dir = True
+
+        topdirname = os.path.join(logfile_dir, name)
+
+        for host, logs in logs_dict.items():
+            log.info('Collecting logs from: %s', host.hostname)
+
+            # Tar up the logs on the remote server
+            cmd = host.run_command(['tar', 'cJv'] + logs, log_stdout=False,
+                                   raiseonerr=False)
+            if cmd.returncode:
+                log.warn('Could not collect all requested logs')
+
+            # Unpack on the local side
+            dirname = os.path.join(topdirname, host.hostname)
+            try:
+                os.makedirs(dirname)
+            except OSError:
+                pass
+            tarname = os.path.join(dirname, 'logs.tar.xz')
+            with open(tarname, 'w') as f:
+                f.write(cmd.stdout_text)
+            ipautil.run(['tar', 'xJvf', 'logs.tar.xz'], cwd=dirname,
+                        raiseonerr=False)
+            os.unlink(tarname)
+
+        if beakerlib_plugin:
+            # Use BeakerLib's rlFileSubmit on the indifidual files
+            # The resulting submitted filename will be
+            # $HOSTNAME-$FILENAME (with '/' replaced by '-')
+            beakerlib_plugin.run_beakerlib_command(['pushd', topdirname])
+            try:
+                for dirpath, dirnames, filenames in os.walk(topdirname):
+                    for filename in filenames:
+                        fullname = os.path.relpath(
+                            os.path.join(dirpath, filename), topdirname)
+                        log.debug('Submitting file: %s', fullname)
+                        beakerlib_plugin.run_beakerlib_command(
+                            ['rlFileSubmit', fullname])
+            finally:
+                beakerlib_plugin.run_beakerlib_command(['popd'])
+
+        if remove_dir:
+            if beakerlib_plugin:
+                # The BeakerLib process runs asynchronously, let it clean up
+                # after it's done with the directory
+                beakerlib_plugin.run_beakerlib_command(
+                    ['rm', '-rvf', topdirname])
+            else:
+                shutil.rmtree(topdirname)
+
+        logs_dict.clear()
+
+
+@pytest.fixture(scope='class')
+def class_integration_logs():
+    """Internal fixture providing class-level logs_dict"""
+    return {}
+
+
+@pytest.yield_fixture
+def integration_logs(class_integration_logs, request):
+    """Provides access to test integration logs, and collects after each test
+    """
+    yield class_integration_logs
+    collect_test_logs(request.node, class_integration_logs, request.config)
+
+
 @pytest.yield_fixture(scope='class')
-def integration_config(request):
+def integration_config(request, class_integration_logs):
+    """Integration test Config object
+    """
     cls = request.cls
 
     def get_resources(resource_container, resource_str, num_needed):
@@ -39,7 +163,7 @@ def integration_config(request):
     if not config.domains:
         raise pytest.skip('Integration testing not configured')
 
-    cls.logs_to_collect = {}
+    cls.logs_to_collect = class_integration_logs
 
     cls.domain = config.domains[0]
 
@@ -64,8 +188,13 @@ def integration_config(request):
                           % (missing_extra_roles,
                              available_extra_roles))
 
+    def collect_log(host, filename):
+        log.info('Adding %s:%s to list of logs to collect' %
+                 (host.external_hostname, filename))
+        class_integration_logs.setdefault(host, []).append(filename)
+
     for host in cls.get_all_hosts():
-        host.add_log_collector(cls.collect_log)
+        host.add_log_collector(collect_log)
         cls.prepare_host(host)
 
     try:
@@ -78,6 +207,8 @@ def integration_config(request):
 
     for host in cls.get_all_hosts():
         host.remove_log_collector(collect_log)
+
+    collect_test_logs(request.node, class_integration_logs, request.config)
 
     try:
         cls.uninstall()

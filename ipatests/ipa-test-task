@@ -28,7 +28,8 @@ from ipapython.ipa_log_manager import log_mgr, standard_logging_setup
 from ipatests.test_integration import config
 from ipatests.test_integration import tasks
 from ipatests.test_integration.host import Host
-from ipatests.beakerlib_plugin import BeakerLibProcess
+from ipatests.pytest_plugins.beakerlib import BeakerLibProcess
+from ipatests.pytest_plugins.integration import collect_logs
 
 
 log = log_mgr.get_logger(__name__)
@@ -49,6 +50,9 @@ class TaskRunner(object):
                             dest='with_beakerlib',
                             help="""Issue BeakerLib commands for logging
                                     and log collection""")
+
+        parser.add_argument('--logfile-dir', dest='logfile_dir',
+                            help="""Directory to collect logs in""")
 
         subparsers = parser.add_subparsers(
             metavar='SUBCOMMAND',
@@ -282,8 +286,10 @@ class TaskRunner(object):
             raise
         finally:
             if args.with_beakerlib:
+                collect_logs('ipa-test-task', logs_to_collect,
+                             logfile_dir=args.logfile_dir,
+                             beakerlib_plugin=beakerlib_process)
                 beakerlib_process.end()
-                beakerlib_process.collect_logs(logs_to_collect)
             for host in self._prepared_hosts:
                 host.remove_log_collector(self.collect_log)
 
