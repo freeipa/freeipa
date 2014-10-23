@@ -19,10 +19,9 @@
 
 """Base class for FreeIPA integration tests"""
 
-import nose
+import pytest
 
 from ipapython.ipa_log_manager import log_mgr
-from ipatests.test_integration.config import get_global_config
 from ipatests.test_integration import tasks
 from ipatests.pytest_plugins.ordering import ordered
 
@@ -30,6 +29,7 @@ log = log_mgr.get_logger(__name__)
 
 
 @ordered
+@pytest.mark.usefixtures('integration_config')
 class IntegrationTest(object):
     num_replicas = 0
     num_clients = 0
@@ -39,52 +39,7 @@ class IntegrationTest(object):
 
     @classmethod
     def setup_class(cls):
-
-        def get_resources(resource_container, resource_str, num_needed):
-            if len(resource_container) < num_needed:
-                raise nose.SkipTest(
-                    'Not enough %s available (have %s, need %s)' %
-                    (resource_str, len(resource_container), num_needed))
-            return resource_container[:num_needed]
-
-        config = get_global_config()
-        if not config.domains:
-            raise nose.SkipTest('Integration testing not configured')
-
-        cls.logs_to_collect = {}
-
-        cls.domain = config.domains[0]
-
-        # Check that we have enough resources available
-        cls.master = cls.domain.master
-        cls.replicas = get_resources(cls.domain.replicas, 'replicas',
-                                     cls.num_replicas)
-        cls.clients = get_resources(cls.domain.clients, 'clients',
-                                    cls.num_clients)
-        cls.ad_domains = get_resources(config.ad_domains, 'AD domains',
-                                       cls.num_ad_domains)
-
-        # Check that we have all required extra hosts at our disposal
-        available_extra_roles = [role for domain in cls.get_domains()
-                                        for role in domain.extra_roles]
-        missing_extra_roles = list(set(cls.required_extra_roles) -
-                                     set(available_extra_roles))
-
-        if missing_extra_roles:
-            raise nose.SkipTest("Not all required extra hosts available, "
-                                "missing: %s, available: %s"
-                                % (missing_extra_roles,
-                                   available_extra_roles))
-
-        for host in cls.get_all_hosts():
-            host.add_log_collector(cls.collect_log)
-            cls.prepare_host(host)
-
-        try:
-            cls.install()
-        except:
-            cls.uninstall()
-            raise
+        pass
 
     @classmethod
     def host_by_role(cls, role):
@@ -116,20 +71,9 @@ class IntegrationTest(object):
         else:
             tasks.install_topo(cls.topology,
                                cls.master, cls.replicas, cls.clients)
-
     @classmethod
     def teardown_class(cls):
-        for host in cls.get_all_hosts():
-            host.remove_log_collector(cls.collect_log)
-
-        try:
-            cls.uninstall()
-        finally:
-            del cls.master
-            del cls.replicas
-            del cls.clients
-            del cls.ad_domains
-            del cls.domain
+        pass
 
     @classmethod
     def uninstall(cls):
