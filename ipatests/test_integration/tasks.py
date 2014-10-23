@@ -184,7 +184,7 @@ def enable_replication_debugging(host):
                      stdin_text=logging_ldif)
 
 
-def install_master(host):
+def install_master(host, setup_dns=True):
     host.collect_log(paths.IPASERVER_INSTALL_LOG)
     host.collect_log(paths.IPACLIENT_INSTALL_LOG)
     inst = host.domain.realm.replace('.', '-')
@@ -194,20 +194,27 @@ def install_master(host):
     apply_common_fixes(host)
     fix_apache_semaphores(host)
 
-    host.run_command(['ipa-server-install', '-U',
-                      '-r', host.domain.name,
-                      '-p', host.config.dirman_password,
-                      '-a', host.config.admin_password,
-                      '--setup-dns',
-                      '--forwarder', host.config.dns_forwarder])
+    args = [
+        'ipa-server-install', '-U',
+        '-r', host.domain.name,
+        '-p', host.config.dirman_password,
+        '-a', host.config.admin_password
+    ]
 
+    if setup_dns:
+        args.extend([
+            '--setup-dns',
+            '--forwarder', host.config.dns_forwarder
+        ])
+
+    host.run_command(args)
     enable_replication_debugging(host)
     setup_sssd_debugging(host)
 
     kinit_admin(host)
 
 
-def install_replica(master, replica, setup_ca=True):
+def install_replica(master, replica, setup_ca=True, setup_dns=False):
     replica.collect_log(paths.IPAREPLICA_INSTALL_LOG)
     replica.collect_log(paths.IPAREPLICA_CONNCHECK_LOG)
 
@@ -231,6 +238,11 @@ def install_replica(master, replica, setup_ca=True):
             replica_filename]
     if setup_ca:
         args.append('--setup-ca')
+    if setup_dns:
+        args.extend([
+            '--setup-dns',
+            '--forwarder', replica.config.dns_forwarder
+        ])
     replica.run_command(args)
 
     enable_replication_debugging(replica)
