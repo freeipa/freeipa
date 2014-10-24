@@ -277,6 +277,7 @@ def validate_zonemgr(zonemgr):
 
 def validate_zonemgr_str(zonemgr):
     zonemgr = normalize_zonemgr(zonemgr)
+    zonemgr = DNSName(zonemgr)
     return validate_zonemgr(zonemgr)
 
 def validate_hostname(hostname, check_fqdn=True, allow_underscore=False, allow_slash=False):
