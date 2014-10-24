@@ -100,8 +100,11 @@ def _convert_owner(userobj, entry_attrs, options):
 
 def _normalize_owner(userobj, entry_attrs):
     owner = entry_attrs.get('ipatokenowner', None)
-    if owner is not None:
-        entry_attrs['ipatokenowner'] = userobj.get_dn(owner)
+    if owner:
+        try:
+            entry_attrs['ipatokenowner'] = userobj._normalize_manager(owner)[0]
+        except NotFound:
+            userobj.handle_not_found(owner)
 
 def _check_interval(not_before, not_after):
     if not_before and not_after:
