@@ -18,10 +18,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import base64
+import getpass
 import json
 import os
 import sys
 import tempfile
+
+from cryptography.fernet import Fernet, InvalidToken
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.serialization import load_pem_public_key,\
+    load_pem_private_key
 
 import nss.nss as nss
 import krbV
@@ -50,6 +59,36 @@ Vaults
 """) + _("""
 Manage vaults.
 """) + _("""
+Vault is a secure place to store a secret.
+""") + _("""
+Based on the ownership there are three vault categories:
+* user/private vault
+* service vault
+* shared vault
+""") + _("""
+User vaults are vaults owned used by a particular user. Private
+vaults are vaults owned the current user. Service vaults are
+vaults owned by a service. Shared vaults are owned by the admin
+but they can be used by other users or services.
+""") + _("""
+Based on the security mechanism there are three types of
+vaults:
+* standard vault
+* symmetric vault
+* asymmetric vault
+""") + _("""
+Standard vault uses a secure mechanism to transport and
+store the secret. The secret can only be retrieved by users
+that have access to the vault.
+""") + _("""
+Symmetric vault is similar to the standard vault, but it
+pre-encrypts the secret using a password before transport.
+The secret can only be retrieved using the same password.
+""") + _("""
+Asymmetric vault is similar to the standard vault, but it
+pre-encrypts the secret using a public key before transport.
+The secret can only be retrieved using the private key.
+""") + _("""
 EXAMPLES:
 """) + _("""
  List private vaults:
@@ -75,6 +114,12 @@ EXAMPLES:
 """) + _("""
  Add a user vault:
    ipa vault-add <name> --user <username>
+""") + _("""
+ Add a symmetric vault:
+   ipa vault-add <name> --type symmetric --password-file password.txt
+""") + _("""
+ Add an asymmetric vault:
+   ipa vault-add <name> --type asymmetric --public-key-file public.pem
 """) + _("""
  Show a private vault:
    ipa vault-show <name>
@@ -113,7 +158,7 @@ EXAMPLES:
    ipa vault-del <name> --user <username>
 """) + _("""
  Display vault configuration:
-   ipa vault-config
+   ipa vaultconfig-show
 """) + _("""
  Archive data into private vault:
    ipa vault-archive <name> --in <input file>
@@ -127,6 +172,12 @@ EXAMPLES:
  Archive data into user vault:
    ipa vault-archive <name> --user <username> --in <input file>
 """) + _("""
+ Archive data into symmetric vault:
+   ipa vault-archive <name> --in <input file>
+""") + _("""
+ Archive data into asymmetric vault:
+   ipa vault-archive <name> --in <input file>
+""") + _("""
  Retrieve data from private vault:
    ipa vault-retrieve <name> --out <output file>
 """) + _("""
@@ -137,7 +188,13 @@ EXAMPLES:
    ipa vault-retrieve <name> --shared --out <output file>
 """) + _("""
  Retrieve data from user vault:
-   ipa vault-retrieve <name> --user <user name> --out <output file>
+   ipa vault-retrieve <name> --user <username> --out <output file>
+""") + _("""
+ Retrieve data from symmetric vault:
+   ipa vault-retrieve <name> --out data.bin
+""") + _("""
+ Retrieve data from asymmetric vault:
+   ipa vault-retrieve <name> --out data.bin --private-key-file private.pem
 """)
 
 register = Registry()
@@ -146,7 +203,7 @@ register = Registry()
 vault_options = (
     Str(
         'service?',
-        doc=_('Service name'),
+        doc=_('Service name of the service vault'),
     ),
     Flag(
         'shared?',
@@ -154,7 +211,7 @@ vault_options = (
     ),
     Str(
         'user?',
-        doc=_('Username'),
+        doc=_('Username of the user vault'),
     ),
 )
 
@@ -174,6 +231,14 @@ class vault(LDAPObject):
     default_attributes = [
         'cn',
         'description',
+        'ipavaulttype',
+        'ipavaultsalt',
+        'ipapublickey',
+    ]
+    search_display_attributes = [
+        'cn',
+        'description',
+        'ipavaulttype',
     ]
 
     label = _('Vaults')
@@ -194,6 +259,28 @@ class vault(LDAPObject):
             cli_name='desc',
             label=_('Description'),
             doc=_('Vault description'),
+        ),
+        Str(
+            'ipavaulttype?',
+            cli_name='type',
+            label=_('Type'),
+            doc=_('Vault type'),
+            default=u'standard',
+            autofill=True,
+        ),
+        Bytes(
+            'ipavaultsalt?',
+            cli_name='salt',
+            label=_('Salt'),
+            doc=_('Vault salt'),
+            flags=['no_search'],
+        ),
+        Bytes(
+            'ipapublickey?',
+            cli_name='public_key',
+            label=_('Public key'),
+            doc=_('Vault public key'),
+            flags=['no_search'],
         ),
     )
 
@@ -307,12 +394,232 @@ class vault(LDAPObject):
 
         return 'ipa:' + id
 
+    def get_new_password(self):
+        """
+        Gets new password from user and verify it.
+        """
+        while True:
+            password = getpass.getpass('New password: ').decode(
+                sys.stdin.encoding)
+            password2 = getpass.getpass('Verify password: ').decode(
+                sys.stdin.encoding)
+
+            if password == password2:
+                return password
+
+            print '  ** Passwords do not match! **'
+
+    def get_existing_password(self, new=False):
+        """
+        Gets existing password from user.
+        """
+        return getpass.getpass('Password: ').decode(sys.stdin.encoding)
+
+    def generate_symmetric_key(self, password, salt):
+        """
+        Generates symmetric key from password and salt.
+        """
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=32,
+            salt=salt,
+            iterations=100000,
+            backend=default_backend()
+        )
+
+        return base64.b64encode(kdf.derive(password.encode('utf-8')))
+
+    def encrypt(self, data, symmetric_key=None, public_key=None):
+        """
+        Encrypts data with symmetric key or public key.
+        """
+        if symmetric_key:
+            fernet = Fernet(symmetric_key)
+            return fernet.encrypt(data)
+
+        elif public_key:
+            rsa_public_key = load_pem_public_key(
+                data=public_key,
+                backend=default_backend()
+            )
+            return rsa_public_key.encrypt(
+                data,
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA1()),
+                    algorithm=hashes.SHA1(),
+                    label=None
+                )
+            )
+
+    def decrypt(self, data, symmetric_key=None, private_key=None):
+        """
+        Decrypts data with symmetric key or public key.
+        """
+        if symmetric_key:
+            try:
+                fernet = Fernet(symmetric_key)
+                return fernet.decrypt(data)
+            except InvalidToken:
+                raise errors.AuthenticationError(
+                    message=_('Invalid credentials'))
+
+        elif private_key:
+            try:
+                rsa_private_key = load_pem_private_key(
+                    data=private_key,
+                    password=None,
+                    backend=default_backend()
+                )
+                return rsa_private_key.decrypt(
+                    data,
+                    padding.OAEP(
+                        mgf=padding.MGF1(algorithm=hashes.SHA1()),
+                        algorithm=hashes.SHA1(),
+                        label=None
+                    )
+                )
+            except AssertionError:
+                raise errors.AuthenticationError(
+                    message=_('Invalid credentials'))
+
 
 @register()
-class vault_add(LDAPCreate):
+class vault_add(PKQuery, Local):
     __doc__ = _('Create a new vault.')
 
-    takes_options = LDAPCreate.takes_options + vault_options
+    takes_options = LDAPCreate.takes_options + vault_options + (
+        Str(
+            'description?',
+            cli_name='desc',
+            doc=_('Vault description'),
+        ),
+        Str(
+            'ipavaulttype?',
+            cli_name='type',
+            doc=_('Vault type'),
+        ),
+        Str(
+            'password?',
+            cli_name='password',
+            doc=_('Vault password'),
+        ),
+        Str(  # TODO: use File parameter
+            'password_file?',
+            cli_name='password_file',
+            doc=_('File containing the vault password'),
+        ),
+        Bytes(
+            'ipapublickey?',
+            cli_name='public_key',
+            doc=_('Vault public key'),
+        ),
+        Str(  # TODO: use File parameter
+            'public_key_file?',
+            cli_name='public_key_file',
+            doc=_('File containing the vault public key'),
+        ),
+    )
+
+    has_output = output.standard_entry
+
+    def forward(self, *args, **options):
+
+        vault_type = options.get('ipavaulttype', u'standard')
+        password = options.get('password')
+        password_file = options.get('password_file')
+        public_key = options.get('ipapublickey')
+        public_key_file = options.get('public_key_file')
+
+        # don't send these parameters to server
+        if 'password' in options:
+            del options['password']
+        if 'password_file' in options:
+            del options['password_file']
+        if 'public_key_file' in options:
+            del options['public_key_file']
+
+        if self.api.env.in_server:
+            backend = self.api.Backend.ldap2
+        else:
+            backend = self.api.Backend.rpcclient
+        if not backend.isconnected():
+            backend.connect(ccache=krbV.default_context().default_ccache())
+
+        if vault_type == u'standard':
+
+            pass
+
+        elif vault_type == u'symmetric':
+
+            # get password
+            if password and password_file:
+                raise errors.MutuallyExclusiveError(
+                    reason=_('Password specified multiple times'))
+
+            elif password:
+                pass
+
+            elif password_file:
+                with open(password_file, 'rb') as f:
+                    password = f.read().rstrip('\n').decode('utf-8')
+
+            else:
+                password = self.obj.get_new_password()
+
+            # generate vault salt
+            options['ipavaultsalt'] = os.urandom(16)
+
+        elif vault_type == u'asymmetric':
+
+            # get new vault public key
+            if public_key and public_key_file:
+                raise errors.MutuallyExclusiveError(
+                    reason=_('Public key specified multiple times'))
+
+            elif public_key:
+                pass
+
+            elif public_key_file:
+                with open(public_key_file, 'rb') as f:
+                    public_key = f.read()
+
+                # store vault public key
+                options['ipapublickey'] = public_key
+
+            else:
+                raise errors.ValidationError(
+                    name='ipapublickey',
+                    error=_('Missing vault public key'))
+
+        # create vault
+        response = self.api.Command.vault_add_internal(*args, **options)
+
+        # prepare parameters for archival
+        opts = options.copy()
+        if 'description' in opts:
+            del opts['description']
+        if 'ipavaulttype' in opts:
+            del opts['ipavaulttype']
+
+        if vault_type == u'symmetric':
+            opts['password'] = password
+            del opts['ipavaultsalt']
+
+        elif vault_type == u'asymmetric':
+            del opts['ipapublickey']
+
+        # archive blank data
+        self.api.Command.vault_archive(*args, **opts)
+
+        return response
+
+
+@register()
+class vault_add_internal(LDAPCreate):
+
+    NO_CLI = True
+
+    takes_options = vault_options
 
     msg_summary = _('Added vault "%(value)s"')
 
@@ -513,29 +820,46 @@ class vault_archive(PKQuery, Local):
             'in?',
             doc=_('File containing data to archive'),
         ),
+        Str(
+            'password?',
+            cli_name='password',
+            doc=_('Vault password'),
+        ),
+        Str(  # TODO: use File parameter
+            'password_file?',
+            cli_name='password_file',
+            doc=_('File containing the vault password'),
+        ),
     )
 
     has_output = output.standard_entry
 
-    msg_summary = _('Archived data into vault "%(value)s"')
-
     def forward(self, *args, **options):
+
+        name = args[-1]
 
         data = options.get('data')
         input_file = options.get('in')
+
+        password = options.get('password')
+        password_file = options.get('password_file')
 
         # don't send these parameters to server
         if 'data' in options:
             del options['data']
         if 'in' in options:
             del options['in']
+        if 'password' in options:
+            del options['password']
+        if 'password_file' in options:
+            del options['password_file']
 
         # get data
         if data and input_file:
             raise errors.MutuallyExclusiveError(
                 reason=_('Input data specified multiple times'))
 
-        if input_file:
+        elif input_file:
             with open(input_file, 'rb') as f:
                 data = f.read()
 
@@ -549,13 +873,77 @@ class vault_archive(PKQuery, Local):
         if not backend.isconnected():
             backend.connect(ccache=krbV.default_context().default_ccache())
 
+        # retrieve vault info
+        vault = self.api.Command.vault_show(*args, **options)['result']
+
+        vault_type = vault['ipavaulttype'][0]
+
+        if vault_type == u'standard':
+
+            encrypted_key = None
+
+        elif vault_type == u'symmetric':
+
+            # get password
+            if password and password_file:
+                raise errors.MutuallyExclusiveError(
+                    reason=_('Password specified multiple times'))
+
+            elif password:
+                pass
+
+            elif password_file:
+                with open(password_file) as f:
+                    password = f.read().rstrip('\n').decode('utf-8')
+
+            else:
+                password = self.obj.get_existing_password()
+
+            # verify password by retrieving existing data
+            opts = options.copy()
+            opts['password'] = password
+            try:
+                self.api.Command.vault_retrieve(*args, **opts)
+            except errors.NotFound:
+                pass
+
+            salt = vault['ipavaultsalt'][0]
+
+            # generate encryption key from vault password
+            encryption_key = self.obj.generate_symmetric_key(
+                password, salt)
+
+            # encrypt data with encryption key
+            data = self.obj.encrypt(data, symmetric_key=encryption_key)
+
+            encrypted_key = None
+
+        elif vault_type == u'asymmetric':
+
+            public_key = vault['ipapublickey'][0].encode('utf-8')
+
+            # generate encryption key
+            encryption_key = base64.b64encode(os.urandom(32))
+
+            # encrypt data with encryption key
+            data = self.obj.encrypt(data, symmetric_key=encryption_key)
+
+            # encrypt encryption key with public key
+            encrypted_key = self.obj.encrypt(
+                encryption_key, public_key=public_key)
+
+        else:
+            raise errors.ValidationError(
+                name='vault_type',
+                error=_('Invalid vault type'))
+
         # initialize NSS database
         current_dbdir = paths.IPA_NSSDB_DIR
         nss.nss_init(current_dbdir)
 
         # retrieve transport certificate
-        config = self.api.Command.vaultconfig_show()
-        transport_cert_der = config['result']['transport_cert']
+        config = self.api.Command.vaultconfig_show()['result']
+        transport_cert_der = config['transport_cert']
         nss_transport_cert = nss.Certificate(transport_cert_der)
 
         # generate session key
@@ -579,6 +967,10 @@ class vault_archive(PKQuery, Local):
         vault_data = {}
         vault_data[u'data'] = base64.b64encode(data).decode('utf-8')
 
+        if encrypted_key:
+            vault_data[u'encrypted_key'] = base64.b64encode(encrypted_key)\
+                .decode('utf-8')
+
         json_vault_data = json.dumps(vault_data)
 
         # wrap vault_data with session key
@@ -595,16 +987,12 @@ class vault_archive(PKQuery, Local):
 
         options['vault_data'] = wrapped_vault_data
 
-        response = self.api.Command.vault_archive_encrypted(*args, **options)
-
-        response['result'] = {}
-        del response['summary']
-
-        return response
+        return self.api.Command.vault_archive_internal(*args, **options)
 
 
 @register()
-class vault_archive_encrypted(Update):
+class vault_archive_internal(PKQuery):
+
     NO_CLI = True
 
     takes_options = vault_options + (
@@ -622,6 +1010,10 @@ class vault_archive_encrypted(Update):
         ),
     )
 
+    has_output = output.standard_entry
+
+    msg_summary = _('Archived data into vault "%(value)s"')
+
     def execute(self, *args, **options):
 
         if not self.api.Command.kra_is_enabled()['result']:
@@ -633,8 +1025,7 @@ class vault_archive_encrypted(Update):
         wrapped_session_key = options.pop('session_key')
 
         # retrieve vault info
-        result = self.api.Command.vault_show(*args, **options)
-        vault = result['result']
+        vault = self.api.Command.vault_show(*args, **options)['result']
 
         # connect to KRA
         kra_client = self.api.Backend.kra.get_client()
@@ -666,7 +1057,14 @@ class vault_archive_encrypted(Update):
 
         kra_account.logout()
 
-        return result
+        response = {
+            'value': args[-1],
+            'result': {},
+        }
+
+        response['summary'] = self.msg_summary % response
+
+        return response
 
 
 @register()
@@ -678,6 +1076,26 @@ class vault_retrieve(PKQuery, Local):
             'out?',
             doc=_('File to store retrieved data'),
         ),
+        Str(
+            'password?',
+            cli_name='password',
+            doc=_('Vault password'),
+        ),
+        Str(  # TODO: use File parameter
+            'password_file?',
+            cli_name='password_file',
+            doc=_('File containing the vault password'),
+        ),
+        Bytes(
+            'private_key?',
+            cli_name='private_key',
+            doc=_('Vault private key'),
+        ),
+        Str(  # TODO: use File parameter
+            'private_key_file?',
+            cli_name='private_key_file',
+            doc=_('File containing the vault private key'),
+        ),
     )
 
     has_output = output.standard_entry
@@ -688,15 +1106,28 @@ class vault_retrieve(PKQuery, Local):
         ),
     )
 
-    msg_summary = _('Retrieved data from vault "%(value)s"')
-
     def forward(self, *args, **options):
 
+        name = args[-1]
+
         output_file = options.get('out')
+
+        password = options.get('password')
+        password_file = options.get('password_file')
+        private_key = options.get('private_key')
+        private_key_file = options.get('private_key_file')
 
         # don't send these parameters to server
         if 'out' in options:
             del options['out']
+        if 'password' in options:
+            del options['password']
+        if 'password_file' in options:
+            del options['password_file']
+        if 'private_key' in options:
+            del options['private_key']
+        if 'private_key_file' in options:
+            del options['private_key_file']
 
         if self.api.env.in_server:
             backend = self.api.Backend.ldap2
@@ -705,13 +1136,18 @@ class vault_retrieve(PKQuery, Local):
         if not backend.isconnected():
             backend.connect(ccache=krbV.default_context().default_ccache())
 
+        # retrieve vault info
+        vault = self.api.Command.vault_show(*args, **options)['result']
+
+        vault_type = vault['ipavaulttype'][0]
+
         # initialize NSS database
         current_dbdir = paths.IPA_NSSDB_DIR
         nss.nss_init(current_dbdir)
 
         # retrieve transport certificate
-        config = self.api.Command.vaultconfig_show()
-        transport_cert_der = config['result']['transport_cert']
+        config = self.api.Command.vaultconfig_show()['result']
+        transport_cert_der = config['transport_cert']
         nss_transport_cert = nss.Certificate(transport_cert_der)
 
         # generate session key
@@ -729,7 +1165,7 @@ class vault_retrieve(PKQuery, Local):
         # send retrieval request to server
         options['session_key'] = wrapped_session_key.data
 
-        response = self.api.Command.vault_retrieve_encrypted(*args, **options)
+        response = self.api.Command.vault_retrieve_internal(*args, **options)
 
         result = response['result']
         nonce = result['nonce']
@@ -751,18 +1187,85 @@ class vault_retrieve(PKQuery, Local):
         vault_data = json.loads(json_vault_data)
         data = base64.b64decode(vault_data[u'data'].encode('utf-8'))
 
+        encrypted_key = None
+
+        if 'encrypted_key' in vault_data:
+            encrypted_key = base64.b64decode(vault_data[u'encrypted_key']
+                                             .encode('utf-8'))
+
+        if vault_type == u'standard':
+
+            pass
+
+        elif vault_type == u'symmetric':
+
+            salt = vault['ipavaultsalt'][0]
+
+            # get encryption key from vault password
+            if password and password_file:
+                raise errors.MutuallyExclusiveError(
+                    reason=_('Password specified multiple times'))
+
+            elif password:
+                pass
+
+            elif password_file:
+                with open(password_file) as f:
+                    password = f.read().rstrip('\n').decode('utf-8')
+
+            else:
+                password = self.obj.get_existing_password()
+
+            # generate encryption key from password
+            encryption_key = self.obj.generate_symmetric_key(password, salt)
+
+            # decrypt data with encryption key
+            data = self.obj.decrypt(data, symmetric_key=encryption_key)
+
+        elif vault_type == u'asymmetric':
+
+            # get encryption key with vault private key
+            if private_key and private_key_file:
+                raise errors.MutuallyExclusiveError(
+                    reason=_('Private key specified multiple times'))
+
+            elif private_key:
+                pass
+
+            elif private_key_file:
+                with open(private_key_file, 'rb') as f:
+                    private_key = f.read()
+
+            else:
+                raise errors.ValidationError(
+                    name='private_key',
+                    error=_('Missing vault private key'))
+
+            # decrypt encryption key with private key
+            encryption_key = self.obj.decrypt(
+                encrypted_key, private_key=private_key)
+
+            # decrypt data with encryption key
+            data = self.obj.decrypt(data, symmetric_key=encryption_key)
+
+        else:
+            raise errors.ValidationError(
+                name='vault_type',
+                error=_('Invalid vault type'))
+
         if output_file:
             with open(output_file, 'w') as f:
                 f.write(data)
 
-        response['result'] = {'data': data}
-        del response['summary']
+        else:
+            response['result'] = {'data': data}
 
         return response
 
 
 @register()
-class vault_retrieve_encrypted(Retrieve):
+class vault_retrieve_internal(PKQuery):
+
     NO_CLI = True
 
     takes_options = vault_options + (
@@ -771,6 +1274,10 @@ class vault_retrieve_encrypted(Retrieve):
             doc=_('Session key wrapped with transport certificate'),
         ),
     )
+
+    has_output = output.standard_entry
+
+    msg_summary = _('Retrieved data from vault "%(value)s"')
 
     def execute(self, *args, **options):
 
@@ -781,8 +1288,7 @@ class vault_retrieve_encrypted(Retrieve):
         wrapped_session_key = options.pop('session_key')
 
         # retrieve vault info
-        result = self.api.Command.vault_show(*args, **options)
-        vault = result['result']
+        vault = self.api.Command.vault_show(*args, **options)['result']
 
         # connect to KRA
         kra_client = self.api.Backend.kra.get_client()
@@ -807,12 +1313,19 @@ class vault_retrieve_encrypted(Retrieve):
             key_info.get_key_id(),
             wrapped_session_key)
 
-        vault['vault_data'] = key.encrypted_data
-        vault['nonce'] = key.nonce_data
-
         kra_account.logout()
 
-        return result
+        response = {
+            'value': args[-1],
+            'result': {
+                'vault_data': key.encrypted_data,
+                'nonce': key.nonce_data,
+            },
+        }
+
+        response['summary'] = self.msg_summary % response
+
+        return response
 
 
 @register()

@@ -68,6 +68,7 @@ BuildRequires:  python-ldap
 BuildRequires:  python-setuptools
 BuildRequires:  python-krbV
 BuildRequires:  python-nss
+BuildRequires:  python-cryptography
 BuildRequires:  python-netaddr
 BuildRequires:  python-kerberos >= 1.1-14
 BuildRequires:  python-rhsm
@@ -293,6 +294,7 @@ Requires: iproute
 Requires: keyutils
 Requires: pyOpenSSL
 Requires: python-nss >= 0.16
+Requires: python-cryptography
 Requires: python-lxml
 Requires: python-netaddr
 Requires: libipa_hbac-python

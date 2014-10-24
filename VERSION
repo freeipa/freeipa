@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=137
-# Last change: mbabinsk: Commands to manage user/host/service certificates
+IPA_API_VERSION_MINOR=138
+# Last change: edewata - added symmetric and asymmetric vaults
