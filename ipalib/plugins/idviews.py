@@ -659,6 +659,7 @@ class idoverrideuser(baseidoverride):
             'ipapermdefaultattr': {
                 'objectClass', 'ipaAnchorUUID', 'uidNumber', 'description',
                 'homeDirectory', 'uid', 'ipaOriginalUid', 'loginShell', 'gecos',
+                'gidNumber', 'ipaSshPubkey',
             },
         },
     }
