@@ -44,7 +44,7 @@
 #include <dlfcn.h>
 
 // Load the PKCS#11 library
-CK_C_GetFunctionList loadLibrary(char* module, void** moduleHandle)
+CK_C_GetFunctionList loadLibrary(const char* module, void** moduleHandle)
 {
 	CK_C_GetFunctionList pGetFunctionList = NULL;
 
@@ -54,13 +54,9 @@ CK_C_GetFunctionList loadLibrary(char* module, void** moduleHandle)
 	if (module)
 	{
 		pDynLib = dlopen(module, RTLD_NOW | RTLD_LOCAL);
+	} else {
+		return NULL;
 	}
-	/*
-	else
-	{
-		pDynLib = dlopen(DEFAULT_PKCS11_LIB, RTLD_NOW | RTLD_LOCAL);
-	}
-	*/
 
 	if (pDynLib == NULL)
 	{

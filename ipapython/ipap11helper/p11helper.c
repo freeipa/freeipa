@@ -1659,10 +1659,11 @@ P11_Helper_set_attribute(P11_Helper* self, PyObject *args, PyObject *kwds) {
                 goto final;
             }
             if (PyString_AsStringAndSize(value, (char **) &attribute.pValue,
-                    &attribute.ulValueLen) == -1) {
+                    &len) == -1) {
                 ret = NULL;
                 goto final;
             }
+            attribute.ulValueLen = len;
             break;
         case CKA_LABEL:
             if (!PyUnicode_Check(value)) {

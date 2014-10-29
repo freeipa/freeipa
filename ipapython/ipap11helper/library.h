@@ -42,7 +42,7 @@
 
 #include <p11-kit/pkcs11.h>
 
-CK_C_GetFunctionList loadLibrary(char* module, void** moduleHandle);
+CK_C_GetFunctionList loadLibrary(const char* module, void** moduleHandle);
 void unloadLibrary(void* moduleHandle);
 
 #endif // !_SOFTHSM_V2_BIN_LIBRARY_H
