@@ -55,26 +55,6 @@ class BaseTestLegacyClient(object):
     # To allow custom validation dependent on the trust type
     posix_trust = False
 
-    @classmethod
-    def setup_class(cls):
-        super(BaseTestLegacyClient, cls).setup_class()
-        cls.ad = cls.ad_domains[0].ads[0]
-
-        cls.legacy_client = cls.host_by_role(cls.required_extra_roles[0])
-
-        # Determine whether the subdomain AD is available
-        try:
-            child_ad = cls.host_by_role(cls.optional_extra_roles[0])
-            cls.ad_subdomain = '.'.join(
-                                   child_ad.hostname.split('.')[1:])
-        except LookupError:
-            cls.ad_subdomain = None
-
-        tasks.apply_common_fixes(cls.legacy_client)
-
-        for f in cls.backup_files:
-            tasks.backup_file(cls.legacy_client, f)
-
     def test_apply_advice(self):
         # Obtain the advice from the server
         tasks.kinit_admin(self.master)
@@ -358,6 +338,23 @@ class BaseTestLegacyClient(object):
                                  stdin_text=password_confirmation)
 
         cls.master.run_command(['ipa', 'user-disable', 'disabledipauser'])
+
+        cls.ad = cls.ad_domains[0].ads[0]
+
+        cls.legacy_client = cls.host_by_role(cls.required_extra_roles[0])
+
+        # Determine whether the subdomain AD is available
+        try:
+            child_ad = cls.host_by_role(cls.optional_extra_roles[0])
+            cls.ad_subdomain = '.'.join(
+                                   child_ad.hostname.split('.')[1:])
+        except LookupError:
+            cls.ad_subdomain = None
+
+        tasks.apply_common_fixes(cls.legacy_client)
+
+        for f in cls.backup_files:
+            tasks.backup_file(cls.legacy_client, f)
 
     @classmethod
     def uninstall(cls):

@@ -24,6 +24,7 @@ import base64
 import glob
 import contextlib
 import nose
+import pytest
 
 from ipalib import x509
 from ipapython import ipautil
@@ -31,7 +32,6 @@ from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
-from ipatests.pytest_plugins.ordering import ordered
 
 _DEFAULT = object()
 
@@ -1143,7 +1143,6 @@ class TestClientInstall(CALessBase):
         self.verify_installation()
 
 
-@ordered
 class TestIPACommands(CALessBase):
     @classmethod
     def install(cls):
@@ -1163,24 +1162,18 @@ class TestIPACommands(CALessBase):
         cls.test_hostname = 'testhost.%s' % cls.master.domain.name
         cls.test_service = 'test/%s' % cls.test_hostname
 
-    def check_ipa_command_not_available(self, command):
+    @pytest.mark.parametrize('cmd', (
+        'cert-status',
+        'cert-show',
+        'cert-find',
+        'cert-revoke',
+        'cert-remove-hold',
+        'cert-status'))
+    def test_cert_commands_unavailable(self, cmd):
         "Verify that the given IPA subcommand is not available"
 
         result = self.master.run_command(['ipa', command], raiseonerr=False)
         assert_error(result, "ipa: ERROR: unknown command '%s'" % command)
-
-    def test_cert_commands_unavailable(self):
-        for cmd in (
-                'cert-status',
-                'cert-show',
-                'cert-find',
-                'cert-revoke',
-                'cert-remove-hold',
-                'cert-status'):
-            func = lambda: self.check_ipa_command_not_available(cmd)
-            func.description = 'Verify that %s command is not available' % cmd
-            func.test_argument = cmd
-            yield (func, )
 
     def test_cert_help_unavailable(self):
         "Verify that cert plugin help is not available"
