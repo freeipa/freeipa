@@ -234,7 +234,9 @@ def https_request(host, port, url, secdir, password, nickname, **kw):
     """
 
     def connection_factory(host, port):
-        conn = nsslib.NSSConnection(host, port, dbdir=secdir)
+        conn = nsslib.NSSConnection(host, port, dbdir=secdir,
+                                    tls_version_min=api.env.tls_version_min,
+                                    tls_version_max=api.env.tls_version_max)
         conn.set_debuglevel(0)
         conn.connect()
         conn.sock.set_client_auth_data_callback(

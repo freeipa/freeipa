@@ -68,6 +68,7 @@ from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT
                              KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, KRB5_REALM_CANT_RESOLVE
 from ipapython.dn import DN
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
+from ipalib import api
 
 COOKIE_NAME = 'ipa_session'
 KEYRING_COOKIE_NAME = '%s_cookie:%%s' % COOKIE_NAME
@@ -488,7 +489,9 @@ class SSLTransport(LanguageAwareTransport):
         if sys.version_info < (2, 7):
             conn = NSSHTTPS(host, 443, dbdir=dbdir, no_init=no_init)
         else:
-            conn = NSSConnection(host, 443, dbdir=dbdir, no_init=no_init)
+            conn = NSSConnection(host, 443, dbdir=dbdir, no_init=no_init,
+                                 tls_version_min=api.env.tls_version_min,
+                                 tls_version_max=api.env.tls_version_max)
         self.dbdir=dbdir
 
         conn.connect()
