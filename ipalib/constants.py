@@ -122,6 +122,10 @@ DEFAULT_CONFIG = (
 
     ('rpc_protocol', 'jsonrpc'),
 
+    # Define an inclusive range of SSL/TLS version support
+    ('tls_version_min', 'tls1.0'),
+    ('tls_version_max', 'tls1.2'),
+
     # Time to wait for a service to start, in seconds
     ('startup_timeout', 300),
 

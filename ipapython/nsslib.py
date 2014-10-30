@@ -174,7 +174,8 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
     default_port = httplib.HTTPSConnection.default_port
 
     def __init__(self, host, port=None, strict=None,
-                 dbdir=None, family=socket.AF_UNSPEC, no_init=False):
+                 dbdir=None, family=socket.AF_UNSPEC, no_init=False,
+                 tls_version_min='tls1.1', tls_version_max='tls1.2'):
         """
         :param host: the server to connect to
         :param port: the port to use (default is set in HTTPConnection)
@@ -183,6 +184,8 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
         :param no_init: do not initialize the NSS database. This requires
                         that the database has already been initialized or
                         the request will fail.
+        :param tls_min_version: mininum version of SSL/TLS supported
+        :param tls_max_version: maximum version of SSL/TLS supported.
         """
         httplib.HTTPConnection.__init__(self, host, port, strict)
         NSSAddressFamilyFallback.__init__(self, family)
@@ -210,6 +213,8 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
 
         ssl.set_domestic_policy()
         nss.set_password_callback(self.password_callback)
+        self.tls_version_min = str(tls_version_min)
+        self.tls_version_max = str(tls_version_max)
 
     def _create_socket(self):
         # TODO: remove the try block once python-nss is guaranteed to contain
@@ -229,6 +234,11 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
         self.sock = ssl.SSLSocket(family=self.family)
         self.sock.set_ssl_option(ssl.SSL_SECURITY, True)
         self.sock.set_ssl_option(ssl.SSL_HANDSHAKE_AS_CLIENT, True)
+        try:
+            self.sock.set_ssl_version_range(self.tls_version_min, self.tls_version_max)
+        except NSPRError, e:
+            root_logger.error('Failed to set TLS range to %s, %s' % (self.tls_version_min, self.tls_version_max))
+            raise
         self.sock.set_ssl_option(ssl_require_safe_negotiation, False)
         self.sock.set_ssl_option(ssl_enable_renegotiation, ssl_renegotiate_requires_xtn)
         # Provide a callback which notifies us when the SSL handshake is complete
@@ -247,8 +257,11 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
         """
         Verify callback. If we get here then the certificate is ok.
         """
+        channel = sock.get_ssl_channel_info()
+        suite = ssl.get_cipher_suite_info(channel.cipher_suite)
         root_logger.debug("handshake complete, peer = %s", sock.get_peer_name())
-        pass
+        root_logger.debug('Protocol: %s' % channel.protocol_version_str.upper())
+        root_logger.debug('Cipher: %s' % suite.cipher_suite_name)
 
     def connect(self):
         self.connect_socket(self.host, self.port)
