@@ -122,6 +122,9 @@ class updateclient(backend.Executioner):
         for update in self.order(updatetype):
             (restart, apply_now, res) = self.run(update.name, **kw)
             if restart:
+                # connection has to be closed before restart, otherwise
+                # ld instance will try to reuse old non-valid connection
+                ld.close_connection()
                 self.restart(dm_password, live_run)
 
             if apply_now:
