@@ -138,9 +138,7 @@ return {
                 title: '@mo-param:idrange:ipasecondarybaserid:label'
             },
             {
-                name: 'ipanttrusteddomainsid',
-                label: '@i18n:objects.idrange.ipanttrusteddomainsid',
-                title: '@mo-param:idrange:ipanttrusteddomainsid:label',
+                name: 'ipanttrusteddomainname',
                 enabled: false
             }
         ],
@@ -153,14 +151,14 @@ return {
 IPA.idrange_adder_policy = function(spec) {
     /*
     The logic for enabling/requiring ipabaserid, ipasecondarybaserid and
-    ipanttrusteddomainsid is as follows:
+    ipanttrusteddomainname is as follows:
         1) for AD ranges (range type is ipa-ad-trust or ipa-ad-trust-posix):
-           * ipanttrusteddomainsid is required
+           * ipanttrusteddomainname is required
            * ipabaserid is required for ipa-ad-trust but disabled for
              ipa-ad-trust-posix
            * ipasecondarybaserid is disabled
         2) for local ranges
-           *  ipanttrusteddomainsid is disabled
+           *  ipanttrusteddomainname is disabled
            A) if server has AD trust support:
               * both ipabaserid and ipasecondarybaserid are required
            B) if server does not have AD trust support:
@@ -207,7 +205,7 @@ IPA.idrange_adder_policy = function(spec) {
         var type_f = that.container.fields.get_field('iparangetype');
         var baserid_f = that.container.fields.get_field('ipabaserid');
         var secondarybaserid_f = that.container.fields.get_field('ipasecondarybaserid');
-        var trusteddomainsid_f = that.container.fields.get_field('ipanttrusteddomainsid');
+        var trusteddomainname_f = that.container.fields.get_field('ipanttrusteddomainname');
 
         var type_v = type_f.get_value()[0];
         var baserid_v = baserid_f.get_value()[0] || '';
@@ -221,10 +219,10 @@ IPA.idrange_adder_policy = function(spec) {
             } else {
                 disable(baserid_f);
             }
-            require(trusteddomainsid_f);
+            require(trusteddomainname_f);
             disable(secondarybaserid_f);
         } else {
-            disable(trusteddomainsid_f);
+            disable(trusteddomainname_f);
 
             if (IPA.trust_enabled) {
                 require(baserid_f);

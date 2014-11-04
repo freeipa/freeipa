@@ -74,11 +74,11 @@ class test_range(range_tasks):
 
             self.add_record(trust_mod.ENTITY, trust_data)
 
-            sid = self.get_sid()
+            domain = self.get_domain()
 
             self.navigate_to_entity(ENTITY)
 
-            add = self.get_add_data(pkey_ad, range_type='ipa-ad-trust', sid=sid)
+            add = self.get_add_data(pkey_ad, range_type='ipa-ad-trust', domain=domain)
             data = self.get_data(pkey_ad, add_data=add)
             self.add_record(ENTITY, data, navigate=False)
             self.assert_record_value('Active Directory domain range', pkey_ad, column)
