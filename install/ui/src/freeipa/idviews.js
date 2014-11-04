@@ -112,7 +112,7 @@ return {
             nested_entity: 'idoverrideuser',
             search_all_entries: true,
             label: '@mo:idoverrideuser.label',
-            tab_label: '@mo:idoverrideuser.label',
+            tab_label: '@mo:user.label',
             name: 'idoverrideuser',
             columns: [
                 {
@@ -132,7 +132,7 @@ return {
             nested_entity: 'idoverridegroup',
             search_all_entries: true,
             label: '@mo:idoverridegroup.label',
-            tab_label: '@mo:idoverridegroup.label',
+            tab_label: '@mo:group.label',
             name: 'idoverridegroup',
             columns: [
                 {
@@ -148,7 +148,7 @@ return {
             $type: 'idview_appliedtohosts',
             name: 'appliedtohosts',
             attribute: 'appliedtohosts',
-            tab_label: '@i18n:objects.idview.appliedtohosts',
+            tab_label: '@mo:host.label',
             facet_group: 'appliedto',
             actions: [
                 'idview_apply',
