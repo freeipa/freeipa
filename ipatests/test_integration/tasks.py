@@ -278,7 +278,15 @@ def install_adtrust(host):
 
     # Restart named because it lost connection to dirsrv
     # (Directory server restarts during the ipa-adtrust-install)
-    host.run_command(['systemctl', 'restart', 'named'])
+    # we use two services named and named-pkcs11,
+    # if named is masked restart named-pkcs11
+    result = host.run_command(['systemctl', 'is-enabled', 'named'],
+                              raiseonerr=False)
+    if result.stdout_text.startswith("masked"):
+        host.run_command(['systemctl', 'restart', 'named-pkcs11'])
+    else:
+        host.run_command(['systemctl', 'restart', 'named'])
+
 
     # Check that named is running and has loaded the information from LDAP
     dig_command = ['dig', 'SRV', '+short', '@localhost',
