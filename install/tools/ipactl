@@ -291,12 +291,6 @@ def ipa_stop(options):
             finally:
                 raise IpactlError()
 
-    try:
-        print "Stopping Directory Service"
-        dirsrv.stop(capture_output=False)
-    except:
-        raise IpactlError("Failed to stop Directory Service")
-
     for svc in reversed(svc_list):
         svchandle = services.service(svc)
         try:
@@ -304,6 +298,12 @@ def ipa_stop(options):
             svchandle.stop(capture_output=False)
         except:
             emit_err("Failed to stop %s Service" % svc)
+
+    try:
+        print "Stopping Directory Service"
+        dirsrv.stop(capture_output=False)
+    except:
+        raise IpactlError("Failed to stop Directory Service")
 
     # remove file with list of started services
     try:
