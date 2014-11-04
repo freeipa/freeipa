@@ -59,13 +59,13 @@ class range_tasks(UI_driver):
         self.max_id = max_id
         self.max_rid = max_rid
 
-    def get_sid(self):
+    def get_domain(self):
         result = self.execute_api_from_ui('trust_find', [], {})
         trusts = result['result']['result']
-        sid = None
+        domain = None
         if trusts:
-            sid = trusts[0]['ipanttrusteddomainsid']
-        return sid
+            domain = trusts[0]['cn']
+        return domain
 
     def get_data(self, pkey, size=50, add_data=None):
 
@@ -81,7 +81,7 @@ class range_tasks(UI_driver):
         }
         return data
 
-    def get_add_data(self, pkey, range_type='ipa-local', size=50, shift=100, sid=None):
+    def get_add_data(self, pkey, range_type='ipa-local', size=50, shift=100, domain=None):
 
         base_id = self.max_id + shift
         self.max_id = base_id + size
@@ -98,19 +98,19 @@ class range_tasks(UI_driver):
             ('callback', self.check_range_type_mod, range_type)
         ]
 
-        if not sid:
+        if not domain:
             base_rid = self.max_rid + shift
             self.max_rid = base_rid + size
             add.append(('textbox', 'ipasecondarybaserid', str(base_rid)))
-        if sid:
-            add.append(('textbox', 'ipanttrusteddomainsid', sid))
+        if domain:
+            add.append(('textbox', 'ipanttrusteddomainname', domain))
 
         return add
 
     def check_range_type_mod(self, range_type):
         if range_type == 'ipa-local':
-            self.assert_disabled("[name=ipanttrusteddomainsid]")
+            self.assert_disabled("[name=ipanttrusteddomainname]")
             self.assert_disabled("[name=ipasecondarybaserid]", negative=True)
         elif range_type == 'ipa-ad-trust':
-            self.assert_disabled("[name=ipanttrusteddomainsid]", negative=True)
+            self.assert_disabled("[name=ipanttrusteddomainname]", negative=True)
             self.assert_disabled("[name=ipasecondarybaserid]")
