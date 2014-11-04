@@ -889,3 +889,9 @@ class LDAPUpdate:
         self._run_updates(updates)
 
         return self.modified
+
+    def close_connection(self):
+        """Close ldap connection"""
+        if self.conn:
+            self.conn.unbind()
+            self.conn = None
