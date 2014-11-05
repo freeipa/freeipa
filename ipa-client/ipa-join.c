@@ -463,14 +463,12 @@ static int
 join_ldap(const char *ipaserver, char *hostname, char ** binddn, const char *bindpw, const char *basedn, const char **princ, const char **subject, int quiet)
 {
     LDAP *ld;
-    char *filter = NULL;
     int rval = 0;
     char *oidresult = NULL;
     struct berval valrequest;
     struct berval *valresult = NULL;
     int rc, ret;
     char *ldap_base = NULL;
-    char *search_base = NULL;
 
     *binddn = NULL;
     *princ = NULL;
@@ -542,16 +540,12 @@ join_ldap(const char *ipaserver, char *hostname, char ** binddn, const char *bin
     *princ = strdup(valresult->bv_val);
 
 ldap_done:
-
-    free(filter);
-    free(search_base);
-    free(ldap_base);
-
     if (ld != NULL) {
         ldap_unbind_ext(ld, NULL, NULL);
     }
 
 done:
+    free(ldap_base);
     if (valresult) ber_bvfree(valresult);
     if (oidresult) free(oidresult);
     return rval;
@@ -815,7 +809,8 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
         if (!quiet)
             fprintf(stderr, _("Error parsing \"%1$s\": %2$s.\n"),
                             principal, error_message(krberr));
-        return krberr;
+        rval = 4;
+        goto cleanup;
     }
     strcpy(tgs, KRB5_TGS_NAME);
     snprintf(tgs + strlen(tgs), sizeof(tgs) - strlen(tgs), "/%.*s",
@@ -833,7 +828,8 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
         if (!quiet)
             fprintf(stderr, _("Error obtaining initial credentials: %s.\n"),
                     error_message(krberr));
-        return krberr;
+        rval = 19;
+        goto cleanup;
     }
 
     krberr = krb5_cc_resolve(krbctx, "MEMORY:ipa-join", &ccache);
@@ -852,7 +848,8 @@ unenroll_host(const char *server, const char *hostname, const char *ktname, int 
             fprintf(stderr,
                     _("Error storing creds in credential cache: %s.\n"),
                     error_message(krberr));
-        return krberr;
+        rval = 19;
+        goto cleanup;
     }
     krb5_cc_close(krbctx, ccache);
     ccache = NULL;
@@ -914,6 +911,7 @@ cleanup:
 
     free(user_agent);
     if (keytab) krb5_kt_close(krbctx, keytab);
+    free(host);
     free((char *)principal);
     free((char *)ipaserver);
     if (princ) krb5_free_principal(krbctx, princ);
