@@ -1888,9 +1888,11 @@ void get_authz_data_types(krb5_context context, krb5_db_entry *entry,
         }
 
         ipactx = ipadb_get_context(context);
-        gcfg = ipadb_get_global_config(ipactx);
-        if (gcfg != NULL)
-            tmp = gcfg->authz_data;
+        if (ipactx != NULL) {
+            gcfg = ipadb_get_global_config(ipactx);
+            if (gcfg != NULL)
+                tmp = gcfg->authz_data;
+        }
         if (ipactx == NULL || tmp == NULL) {
             krb5_klog_syslog(LOG_ERR, "No default authorization data types " \
                                       "available, no authorization data will " \
