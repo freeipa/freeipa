@@ -334,8 +334,7 @@ int _find_key(P11_Helper* self, CK_ATTRIBUTE_PTR template,
             if (tmp_objects_ptr == NULL) {
                 *objects_count = 0;
                 PyErr_SetString(ipap11helperError, "_find_key realloc failed");
-                if (result_objects != NULL)
-                    free(result_objects);
+                free(result_objects);
                 return 0;
             } else {
                 result_objects = tmp_objects_ptr;
@@ -346,16 +345,14 @@ int _find_key(P11_Helper* self, CK_ATTRIBUTE_PTR template,
         rv = self->p11->C_FindObjects(self->session, &result_object, 1,
                 &objectCount);
         if (!check_return_value(rv, "Check for duplicated key")) {
-            if (result_objects != NULL)
-                free(result_objects);
+            free(result_objects);
             return 0;
         }
     }
 
     rv = self->p11->C_FindObjectsFinal(self->session);
     if (!check_return_value(rv, "Find objects final")) {
-        if (result_objects != NULL)
-            free(result_objects);
+        free(result_objects);
         return 0;
     }
 
@@ -499,6 +496,8 @@ static int P11_Helper_init(P11_Helper *self, PyObject *args, PyObject *kwds) {
     CK_C_GetFunctionList pGetFunctionList = loadLibrary(library_path,
             &module_handle);
     if (!pGetFunctionList) {
+        if (module_handle != NULL)
+            unloadLibrary(module_handle);
         PyErr_SetString(ipap11helperError, "Could not load the library.");
         return -1;
     }
@@ -933,9 +932,7 @@ P11_Helper_find_keys(P11_Helper* self, PyObject *args, PyObject *kwds) {
     if (result_list == NULL) {
         PyErr_SetString(ipap11helperError,
                 "Unable to create list with results");
-        if (objects != NULL) {
-            free(objects);
-        }
+        free(objects);
         return NULL;
     }
     Py_INCREF(result_list);
@@ -944,13 +941,12 @@ P11_Helper_find_keys(P11_Helper* self, PyObject *args, PyObject *kwds) {
                 == -1) {
             PyErr_SetString(ipap11helperError,
                     "Unable to add to value to result list");
-            if (objects != NULL) {
-                free(objects);
-            }
+            free(objects);
             return NULL;
         }
     }
 
+    free(objects);
     return result_list;
 }
 
@@ -1193,7 +1189,6 @@ P11_Helper_import_RSA_public_key(P11_Helper* self, CK_UTF8CHAR *label,
     if (rsa == NULL) {
         PyErr_SetString(ipap11helperError,
                 "import_RSA_public_key: EVP_PKEY_get1_RSA error");
-        free(pkey);
         return NULL;
     }
 
@@ -1379,8 +1374,8 @@ P11_Helper_export_wrapped_key(P11_Helper* self, PyObject *args, PyObject *kwds) 
     wrapped_key = malloc(wrapped_key_len);
     if (wrapped_key == NULL) {
         rv = CKR_HOST_MEMORY;
-        check_return_value(rv, "key wrapping: buffer allocation");
-        return 0;
+        if (!check_return_value(rv, "key wrapping: buffer allocation"))
+            return 0;
     }
     rv = self->p11->C_WrapKey(self->session, &wrapping_mech,
             object_wrapping_key, object_key, wrapped_key, &wrapped_key_len);
