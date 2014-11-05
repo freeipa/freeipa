@@ -50,6 +50,7 @@
 
 #include "berval.h"
 #include "ldapmod.h"
+#include "util.h"
 
 #include <limits.h>
 
@@ -140,6 +141,7 @@ normalize_input(LDAPMod ***mods, const char *attr, long long ctr)
         case LDAP_MOD_REPLACE:
         case LDAP_MOD_INCREMENT:
             e++;
+            /* fall through */
         default:
             c++;
         }
@@ -284,8 +286,12 @@ preop_mod(Slapi_PBlock *pb)
     cpre = get_counter(epre, attr);
 
     if (repl == 0) {
-        if (normalize_input(&mods, attr, cpre) != 0)
-            slapi_pblock_set(pb, SLAPI_MODIFY_MODS, mods);
+        if (normalize_input(&mods, attr, cpre) != 0) {
+            if (slapi_pblock_set(pb, SLAPI_MODIFY_MODS, mods)) {
+                LOG_FATAL("slapi_pblock_set failed!\n");
+                goto error;
+            }
+        }
     }
 
     if (!simulate(mods, attr, cpre, &cpost) && repl == 0) {
@@ -316,7 +322,9 @@ preop_mod(Slapi_PBlock *pb)
 error:
     rc = LDAP_UNWILLING_TO_PERFORM;
     slapi_send_ldap_result(pb, rc, NULL, msg, 0, NULL);
-    slapi_pblock_set(pb, SLAPI_RESULT_CODE, &rc);
+    if (slapi_pblock_set(pb, SLAPI_RESULT_CODE, &rc)) {
+        LOG_FATAL("slapi_pblock_set failed!\n");
+    }
 
     slapi_ch_free_string(&msg);
     return rc;
