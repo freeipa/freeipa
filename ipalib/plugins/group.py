@@ -287,7 +287,7 @@ class group_add(LDAPCreate):
         if options['external']:
             entry_attrs['objectclass'].append('ipaexternalgroup')
             if 'gidnumber' in options:
-                raise errors.RequirementError(name='gid')
+                raise errors.MutuallyExclusiveError(reason=_('gid cannot be set for external group'))
         elif not options['nonposix']:
             entry_attrs['objectclass'].append('posixgroup')
             if not 'gidnumber' in options:
