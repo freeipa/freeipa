@@ -340,7 +340,8 @@ static int pack_ber_user(enum response_types response_type,
 
     ber = ber_alloc_t( LBER_USE_DER );
     if (ber == NULL) {
-        return LDAP_OPERATIONS_ERROR;
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
     }
 
     ret = ber_printf(ber,"{e{ssii", response_type, domain_name, short_user_name,
@@ -449,14 +450,15 @@ static int pack_ber_group(enum response_types response_type,
 
     ber = ber_alloc_t( LBER_USE_DER );
     if (ber == NULL) {
-        return LDAP_OPERATIONS_ERROR;
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
     }
 
     ret = ber_printf(ber,"{e{ssi", response_type, domain_name, short_group_name,
                                    gid);
     if (ret == -1) {
-        ber_free(ber, 1);
-        return LDAP_OPERATIONS_ERROR;
+        ret = LDAP_OPERATIONS_ERROR;
+        goto done;
     }
 
     if (response_type == RESP_GROUP_MEMBERS) {
@@ -716,7 +718,7 @@ static int handle_sid_request(enum request_types request_type, const char *sid,
 
     ret = get_buffer(&buf_len, &buf);
     if (ret != LDAP_SUCCESS) {
-        return ret;
+        goto done;
     }
 
     switch(id_type) {
