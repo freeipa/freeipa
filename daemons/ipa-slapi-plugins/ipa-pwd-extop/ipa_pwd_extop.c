@@ -1393,6 +1393,7 @@ done:
     if (rc != LDAP_SUCCESS) {
         free(password);
         free(svcname);
+        free(enctypes);
         *_err_msg = err_msg;
     } else {
         *_password = password;
@@ -1639,7 +1640,6 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
     krb5_context krbctx = NULL;
     krb5_error_code krberr;
     struct berval *extop_value = NULL;
-    BerElement *ber = NULL;
     char *service_name = NULL;
     char *svcname;
     Slapi_Entry *target_entry = NULL;
@@ -1827,7 +1827,6 @@ free_and_return:
         }
         free(svals);
     }
-    if (ber) ber_free(ber, 1);
     if (bvp) ber_bvfree(bvp);
 
     return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;

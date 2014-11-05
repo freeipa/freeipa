@@ -86,7 +86,7 @@ bool sync_request_handle(Slapi_ComponentId *plugin_id, Slapi_PBlock *pb,
         }
 
         /* Decode the optional token DN. */
-        ber_scanf(ber, "a", &token_dn);
+        (void)ber_scanf(ber, "a", &token_dn);
 
         /* Process the synchronization. */
         success = false;
