@@ -48,7 +48,7 @@ berval_new_longlong(long long value)
 {
     struct berval *bv;
 
-    bv = (struct berval*) slapi_ch_malloc(sizeof(struct berval*));
+    bv = (struct berval*) slapi_ch_malloc(sizeof(struct berval));
     bv->bv_val = slapi_ch_smprintf("%lld", value);
     bv->bv_len = strlen(bv->bv_val);
 

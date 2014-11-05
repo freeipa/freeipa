@@ -44,6 +44,8 @@
 #include <libotp.h>
 #include <time.h>
 
+#include "util.h"
+
 #define PLUGIN_NAME               "ipa-otp-lasttoken"
 #define LOG(sev, ...) \
     slapi_log_error(SLAPI_LOG_ ## sev, PLUGIN_NAME, \
@@ -100,7 +102,9 @@ static inline int
 send_error(Slapi_PBlock *pb, int rc, char *errstr)
 {
     slapi_send_ldap_result(pb, rc, NULL, errstr, 0, NULL);
-    slapi_pblock_set(pb, SLAPI_RESULT_CODE, &rc);
+    if (slapi_pblock_set(pb, SLAPI_RESULT_CODE, &rc)) {
+        LOG_FATAL("slapi_pblock_set failed!\n");
+    }
     return rc;
 }
 
