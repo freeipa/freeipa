@@ -794,7 +794,7 @@ int main(int argc, const char *argv[])
 	char *password = NULL;
 	krb5_context krbctx;
 	krb5_ccache ccache;
-	krb5_principal uprinc;
+	krb5_principal uprinc = NULL;
 	krb5_principal sprinc;
 	krb5_error_code krberr;
 	struct keys_container keys = { 0 };
