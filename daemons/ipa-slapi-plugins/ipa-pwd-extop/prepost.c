@@ -1446,12 +1446,12 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
 
     /* Try to do OTP first. */
     syncreq = sync_request_present(pb);
-    if (!syncreq && !ipapwd_pre_bind_otp(dn, entry, credentials)) {
-        slapi_entry_free(entry);
-        slapi_send_ldap_result(pb, LDAP_INVALID_CREDENTIALS,
-                               NULL, NULL, 0, NULL);
-        return 1;
-    }
+    if (!syncreq && !ipapwd_pre_bind_otp(dn, entry, credentials))
+        goto invalid_creds;
+
+    /* Ensure that there is a password. */
+    if (credentials->bv_len == 0)
+        goto invalid_creds;
 
     /* Authenticate the user. */
     ret = ipapwd_authenticate(dn, entry, credentials);
@@ -1461,18 +1461,20 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     }
 
     /* Attempt to handle a token synchronization request. */
-    if (syncreq && !sync_request_handle(ipapwd_get_plugin_id(), pb, dn)) {
-        slapi_entry_free(entry);
-        slapi_send_ldap_result(pb, LDAP_INVALID_CREDENTIALS,
-                               NULL, NULL, 0, NULL);
-        return 1;
-    }
+    if (syncreq && !sync_request_handle(ipapwd_get_plugin_id(), pb, dn))
+        goto invalid_creds;
 
     /* Attempt to write out kerberos keys for the user. */
     ipapwd_write_krb_keys(pb, dn, entry, credentials);
 
     slapi_entry_free(entry);
     return 0;
+
+invalid_creds:
+    slapi_entry_free(entry);
+    slapi_send_ldap_result(pb, LDAP_INVALID_CREDENTIALS,
+                           NULL, NULL, 0, NULL);
+    return 1;
 }
 
 /* Init pre ops */
