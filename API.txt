@@ -2592,7 +2592,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: otptoken_add
-args: 1,22,3
+args: 1,23,3
 arg: Str('ipatokenuniqueid', attribute=True, cli_name='id', multivalue=False, primary_key=True, required=False)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -2611,6 +2611,7 @@ option: Int('ipatokentotpclockoffset', attribute=True, autofill=True, cli_name='
 option: Int('ipatokentotptimestep', attribute=True, autofill=True, cli_name='interval', default=30, minvalue=5, multivalue=False, required=False)
 option: Str('ipatokenvendor', attribute=True, cli_name='vendor', multivalue=False, required=False)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
+option: Flag('no_qrcode', autofill=True, default=False)
 option: Flag('qrcode?', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')

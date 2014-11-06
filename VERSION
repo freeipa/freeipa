@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=108
-# Last change: pvoborni - manage authorization of keytab operations
+IPA_API_VERSION_MINOR=109
+# Last change: npmccallum - display qrcode by default

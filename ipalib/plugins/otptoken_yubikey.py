@@ -124,6 +124,7 @@ class otptoken_add_yubikey(Command):
                                                 ipatokenotpalgorithm=u'sha1',
                                                 ipatokenhotpcounter=0,
                                                 ipatokenotpkey=key,
+                                                no_qrcode=True,
                                                 **options)
 
         # Suppress values we don't want to return.
