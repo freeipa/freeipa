@@ -442,11 +442,9 @@ class SystemdService(PlatformService):
                 pass
 
     def mask(self, instance_name=""):
-        if instance_name != "":
-            srv_tgt = os.path.join(paths.ETC_SYSTEMD_SYSTEM_DIR, instance_name)
-            # remove instance file or link before masking
-            if os.path.islink(srv_tgt):
-                os.unlink(srv_tgt)
+        srv_tgt = os.path.join(paths.ETC_SYSTEMD_SYSTEM_DIR, self.service_instance(instance_name))
+        if os.path.exists(srv_tgt):
+            os.unlink(srv_tgt)
         try:
             ipautil.run([paths.SYSTEMCTL, "mask",
                          self.service_instance(instance_name)])
