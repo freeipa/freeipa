@@ -268,7 +268,8 @@ class otptoken_add(LDAPCreate):
     msg_summary = _('Added OTP token "%(value)s"')
 
     takes_options = LDAPCreate.takes_options + (
-        Flag('qrcode?', label=_('Display QR code')),
+        Flag('qrcode?', label=_('(deprecated)'), flags=('no_option')),
+        Flag('no_qrcode', label=_('Do not display QR code'), default=False),
     )
 
     has_output_params = LDAPCreate.has_output_params + (
@@ -348,7 +349,7 @@ class otptoken_add(LDAPCreate):
         rv = super(otptoken_add, self).output_for_cli(textui, output, *args, **options)
 
         # Print QR code to terminal if specified
-        if uri and options.get('qrcode', False):
+        if uri and not options.get('no_qrcode', False):
             print "\n"
             qr = qrcode.QRCode()
             qr.add_data(uri)

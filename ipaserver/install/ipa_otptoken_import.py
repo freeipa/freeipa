@@ -517,7 +517,7 @@ class OTPTokenImport(admintool.AdminTool):
             # Parse tokens
             for keypkg in self.doc.getKeyPackages():
                 try:
-                    api.Command.otptoken_add(keypkg.id, **keypkg.options)
+                    api.Command.otptoken_add(keypkg.id, no_qrcode=True, **keypkg.options)
                 except Exception as e:
                     self.log.warn("Error adding token: %s", e)
                 else:
