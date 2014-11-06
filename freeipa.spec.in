@@ -91,6 +91,7 @@ BuildRequires:  python-backports-ssl_match_hostname
 BuildRequires:  softhsm-devel >= 2.0.0b1-3
 BuildRequires:  openssl-devel
 BuildRequires:  p11-kit-devel
+BuildRequires:  pki-base >= 10.2.1-0.1
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
