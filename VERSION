@@ -20,7 +20,7 @@
 ########################################################
 IPA_VERSION_MAJOR=4
 IPA_VERSION_MINOR=0
-IPA_VERSION_RELEASE=4
+IPA_VERSION_RELEASE=5
 
 ########################################################
 # For 'pre' releases the version will be               #
