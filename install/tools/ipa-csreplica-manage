@@ -303,7 +303,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
 
         dn = DN(('cn', 'CA'), ('cn', replica2), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
                 ipautil.realm_to_suffix(realm))
-        conn.get_entries(dn, conn.SCOPE_ONELEVEL)
+        conn.get_entries(dn, conn.SCOPE_BASE)
         conn.unbind()
     except errors.NotFound:
         sys.exit('%s does not have a CA configured.' % replica2)
