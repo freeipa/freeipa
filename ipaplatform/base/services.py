@@ -436,7 +436,11 @@ class SystemdService(PlatformService):
             except:
                 pass
         else:
-            self.__disable(instance_name)
+            try:
+                ipautil.run([paths.SYSTEMCTL, "disable",
+                             self.service_instance(instance_name)])
+            except ipautil.CalledProcessError:
+                pass
 
     def mask(self, instance_name=""):
         if instance_name != "":
@@ -444,36 +448,22 @@ class SystemdService(PlatformService):
             # remove instance file or link before masking
             if os.path.islink(srv_tgt):
                 os.unlink(srv_tgt)
-
-        self.__mask(instance_name)
-
-    def unmask(self, instance_name=""):
-        self.__unmask(instance_name)
-
-    def __enable(self, instance_name=""):
-        try:
-            ipautil.run([paths.SYSTEMCTL, "enable",
-                         self.service_instance(instance_name)])
-        except ipautil.CalledProcessError:
-            pass
-
-    def __disable(self, instance_name=""):
-        try:
-            ipautil.run([paths.SYSTEMCTL, "disable",
-                         self.service_instance(instance_name)])
-        except ipautil.CalledProcessError:
-            pass
-
-    def __mask(self, instance_name=""):
         try:
             ipautil.run([paths.SYSTEMCTL, "mask",
                          self.service_instance(instance_name)])
         except ipautil.CalledProcessError:
             pass
 
-    def __unmask(self, instance_name=""):
+    def unmask(self, instance_name=""):
         try:
             ipautil.run([paths.SYSTEMCTL, "unmask",
+                         self.service_instance(instance_name)])
+        except ipautil.CalledProcessError:
+            pass
+
+    def __enable(self, instance_name=""):
+        try:
+            ipautil.run([paths.SYSTEMCTL, "enable",
                          self.service_instance(instance_name)])
         except ipautil.CalledProcessError:
             pass
