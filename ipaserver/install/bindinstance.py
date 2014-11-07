@@ -563,7 +563,7 @@ class BindInstance(service.Service):
         self.no_dnssec_validation=no_dnssec_validation
 
         if not zonemgr:
-            self.zonemgr = 'hostmaster.%s' % self.domain
+            self.zonemgr = 'hostmaster.%s' % normalize_zone(self.domain)
         else:
             self.zonemgr = normalize_zonemgr(zonemgr)
 
