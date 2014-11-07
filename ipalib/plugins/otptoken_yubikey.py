@@ -25,6 +25,7 @@ from ipalib.plugins.otptoken import otptoken
 
 import os
 
+import usb.core
 import yubico
 
 __doc__ = _("""
@@ -81,8 +82,10 @@ class otptoken_add_yubikey(Command):
         # Open the YubiKey
         try:
             yk = yubico.find_yubikey()
-        except yubico.yubikey.YubiKeyError, e:
-            raise NotFound(reason=_('No YubiKey found'))
+        except usb.core.USBError as e:
+            raise NotFound(reason="No YubiKey found: %s" % e.strerror)
+        except yubico.yubikey.YubiKeyError as e:
+            raise NotFound(reason=e.reason)
 
         assert yk.version_num() >= (2, 1)
 
