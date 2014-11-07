@@ -160,7 +160,13 @@ Obsoletes: freeipa-server-selinux < 3.3.0
 # IPA but if it is configured we need a way to require versions
 # that work for us.
 Conflicts: bind-dyndb-ldap < 6.0-4
-Conflicts: bind < 9.9.6-2
+%if 0%{?fedora} >= 21
+Conflicts: bind < 9.9.6-3
+Conflicts: bind-utils < 9.9.6-3
+%else
+Conflicts: bind < 9.9.4-19
+Conflicts: bind-utils < 9.9.4-19
+%endif
 # DNSSEC
 Conflicts: opendnssec < 1.4.6-4
 
