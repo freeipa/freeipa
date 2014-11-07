@@ -1,19 +1,8 @@
 # Expand attributes checked by Referential Integrity plugin
 # pres and eq indexes defined in 20-indices.update must be set for all these
 # attributes
+# NOTE: migration to new style is done in update_referint.py
 dn: cn=referential integrity postoperation,cn=plugins,cn=config
-remove: nsslapd-pluginArg7: manager
-remove: nsslapd-pluginArg8: secretary
-remove: nsslapd-pluginArg9: memberuser
-remove: nsslapd-pluginArg10: memberhost
-remove: nsslapd-pluginArg11: sourcehost
-remove: nsslapd-pluginArg12: memberservice
-remove: nsslapd-pluginArg13: managedby
-remove: nsslapd-pluginArg14: memberallowcmd
-remove: nsslapd-pluginArg15: memberdenycmd
-remove: nsslapd-pluginArg16: ipasudorunas
-remove: nsslapd-pluginArg17: ipasudorunasgroup
-remove: nsslapd-pluginArg18: ipatokenradiusconfiglink
 add: referint-membership-attr: manager
 add: referint-membership-attr: secretary
 add: referint-membership-attr: memberuser
