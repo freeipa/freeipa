@@ -86,7 +86,9 @@ class update_dnszones(PostUpdate):
                         api.env.realm)
 
             if update:
-                api.Command.dnszone_mod(zone[u'idnsname'][0], **update)
+                # FIXME: https://fedorahosted.org/freeipa/ticket/4722
+                api.Command.dnszone_mod(zone[u'idnsname'][0].make_absolute(),
+                                        **update)
 
         return (False, False, [])
 
