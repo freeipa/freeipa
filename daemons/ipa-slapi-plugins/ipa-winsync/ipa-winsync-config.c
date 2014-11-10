@@ -905,9 +905,9 @@ ipa_winsync_config_refresh_domain(
 
     if (!iwdc->realm_name) {
         /* error - could not find the IPA config entry with the realm name */
-        LOG_FATAL("Error: could not find the entry containing the realm name for "
-                  "ds subtree [%s] filter [%s] attr [%s]\n",
-                  slapi_sdn_get_dn(ds_subtree), realm_filter, realm_attr);
+        LOG_FATAL("Error: could not find the entry containing the realm name "
+                  "[%d] ds subtree [%s] filter [%s] attr [%s]\n",
+                  ret, slapi_sdn_get_dn(ds_subtree), realm_filter, realm_attr);
         goto out;
     }
 
@@ -918,9 +918,9 @@ ipa_winsync_config_refresh_domain(
                                            &new_user_objclasses, NULL);
     if (!new_user_objclasses) {
         /* error - could not find the entry containing list of objectclasses */
-        LOG_FATAL("Error: could not find the entry containing the new user objectclass list for "
-                  "ds subtree [%s] filter [%s] attr [%s]\n",
-                  slapi_sdn_get_dn(ds_subtree), new_entry_filter, new_user_oc_attr);
+        LOG_FATAL("Error: could not find the entry containing the new user objectclass list "
+                  "[%d] ds subtree [%s] filter [%s] attr [%s]\n",
+                  ret, slapi_sdn_get_dn(ds_subtree), new_entry_filter, new_user_oc_attr);
         goto out;
     }
 
@@ -933,9 +933,9 @@ ipa_winsync_config_refresh_domain(
                                            NULL, &iwdc->homedir_prefix);
     if (!iwdc->homedir_prefix) {
         /* error - could not find the home dir prefix */
-        LOG_FATAL("Error: could not find the entry containing the home directory prefix for "
-                  "ds subtree [%s] filter [%s] attr [%s]\n",
-                  slapi_sdn_get_dn(ds_subtree), new_entry_filter, homedir_prefix_attr);
+        LOG_FATAL("Error: could not find the entry containing the home directory prefix "
+                  "[%d] ds subtree [%s] filter [%s] attr [%s]\n",
+                  ret, slapi_sdn_get_dn(ds_subtree), new_entry_filter, homedir_prefix_attr);
         goto out;
     }
 
@@ -950,8 +950,8 @@ ipa_winsync_config_refresh_domain(
                                                NULL, &iwdc->login_shell);
         if (!iwdc->login_shell) {
             LOG("Warning: could not find the entry containing the login shell "
-                "attribute for ds subtree [%s] filter [%s] attr [%s]\n",
-                slapi_sdn_get_dn(ds_subtree), new_entry_filter,
+                "attribute [%d] ds subtree [%s] filter [%s] attr [%s]\n",
+                ret, slapi_sdn_get_dn(ds_subtree), new_entry_filter,
                 login_shell_attr);
         }
     }
@@ -969,9 +969,9 @@ ipa_winsync_config_refresh_domain(
                                            NULL, &default_group_name);
     if (!default_group_name) {
         /* error - could not find the default group name */
-        LOG_FATAL("Error: could not find the entry containing the default group name for "
-                  "ds subtree [%s] filter [%s] attr [%s]\n",
-                  slapi_sdn_get_dn(ds_subtree), new_entry_filter, default_group_attr);
+        LOG_FATAL("Error: could not find the entry containing the default group name "
+                  "[%d] ds subtree [%s] filter [%s] attr [%s]\n",
+                  ret, slapi_sdn_get_dn(ds_subtree), new_entry_filter, default_group_attr);
         goto out;
     }
 
@@ -1014,9 +1014,9 @@ ipa_winsync_config_refresh_domain(
                                                    NULL, &inactivated_group_dn);
             if (!inactivated_group_dn) {
                 /* error - could not find the inactivated group dn */
-                LOG("Could not find the DN of the inactivated users group ds "
-                    "subtree [%s] filter [%s]. Ignoring\n",
-                    slapi_sdn_get_dn(ds_subtree), inactivated_filter);
+                LOG("Could not find the DN of the inactivated users group "
+                    "[%d] ds subtree [%s] filter [%s]. Ignoring\n",
+                    ret, slapi_sdn_get_dn(ds_subtree), inactivated_filter);
                 goto out;
             }
         }
@@ -1026,9 +1026,9 @@ ipa_winsync_config_refresh_domain(
                                                    NULL, &activated_group_dn);
             if (!activated_group_dn) {
                 /* error - could not find the activated group dn */
-                LOG("Could not find the DN of the activated users group ds "
-                    "subtree [%s] filter [%s]. Ignoring\n",
-                    slapi_sdn_get_dn(ds_subtree), activated_filter);
+                LOG("Could not find the DN of the activated users group "
+                    "[%d] ds subtree [%s] filter [%s]. Ignoring\n",
+                    ret, slapi_sdn_get_dn(ds_subtree), activated_filter);
                 goto out;
             }
         }
