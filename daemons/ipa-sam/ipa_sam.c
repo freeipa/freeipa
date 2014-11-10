@@ -4233,7 +4233,7 @@ static int bind_callback(LDAP *ldap_struct, struct smbldap_state *ldap_state, vo
 	krb5_free_principal(data.context, in_creds.server);
 	krb5_free_principal(data.context, in_creds.client);
 
-	if (rc) {
+	if (rc != 0 && rc != KRB5KRB_AP_ERR_TKT_NYV && rc != KRB5KRB_AP_ERR_TKT_EXPIRED) {
 		rc = bind_callback_obtain_creds(&data);
 		if (rc) {
 			bind_callback_cleanup(&data, rc);
