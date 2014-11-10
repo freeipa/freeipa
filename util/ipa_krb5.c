@@ -730,6 +730,10 @@ struct berval *create_key_control(struct keys_container *keys,
 
         if (ksdata[i].salttype == NO_SALT) {
             ret = ber_printf(be, "}");
+            if (ret == -1) {
+                ber_free(be, 1);
+                return NULL;
+            }
             continue;
         }
 
