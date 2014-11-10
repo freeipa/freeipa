@@ -66,6 +66,7 @@ PyObject_HEAD
 CK_SLOT_ID slot;
 CK_FUNCTION_LIST_PTR p11;
 CK_SESSION_HANDLE session;
+void *module_handle;
 } P11_Helper;
 
 typedef enum {
@@ -478,6 +479,7 @@ P11_Helper_new(PyTypeObject *type, PyObject *args, PyObject *kwds) {
         self->slot = 0;
         self->session = 0;
         self->p11 = NULL;
+        self->module_handle = NULL;
     }
 
     return (PyObject *) self;
@@ -496,11 +498,11 @@ static int P11_Helper_init(P11_Helper *self, PyObject *args, PyObject *kwds) {
     CK_C_GetFunctionList pGetFunctionList = loadLibrary(library_path,
             &module_handle);
     if (!pGetFunctionList) {
-        if (module_handle != NULL)
-            unloadLibrary(module_handle);
         PyErr_SetString(ipap11helperError, "Could not load the library.");
         return -1;
     }
+
+    self->module_handle = module_handle;
 
     /*
      * Load the function list
@@ -567,9 +569,12 @@ P11_Helper_finalize(P11_Helper* self) {
      */
     self->p11->C_Finalize(NULL);
 
+    unloadLibrary(self->module_handle);
+
     self->p11 = NULL;
     self->session = 0;
     self->slot = 0;
+    self->module_handle = NULL;
 
     return Py_None;
 }
