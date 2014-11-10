@@ -4166,8 +4166,8 @@ IPA.link_widget = function(spec) {
 
         that.values = util.normalize_value(values);
         that.value = that.values.slice(-1)[0] || '';
-        that.link.html(that.value);
-        that.nonlink.html(that.value);
+        that.link.text(that.value);
+        that.nonlink.text(that.value);
         that.update_link();
         that.check_entity_link();
         that.on_value_changed(values);

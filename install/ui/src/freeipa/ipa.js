@@ -1133,6 +1133,7 @@ IPA.notify = function(message, type, timeout) {
 
     if (typeof message === 'string') {
         message = text.get(message);
+        message = document.createTextNode(message);
     }
 
     var notification_area = $('#notification .notification-area');

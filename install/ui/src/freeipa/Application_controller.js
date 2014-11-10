@@ -252,12 +252,12 @@ define([
             var error_container = $('<div/>', {
                 'class': 'container facet-content facet-error'
             }).appendTo($('.app-container .content').empty());
-            error_container.append('<h1>'+name+'</h1>');
+            error_container.append($('<h1/>', { text: name }));
             var details = $('<div/>', {
                 'class': 'error-details'
             }).appendTo(error_container);
 
-            details.append('<p> Web UI got in unrecoverable state during "'+error.phase+'" phase.</p>');
+            details.append($('<p/>', { text: 'Web UI got in unrecoverable state during "' + error.phase + '" phase' }));
             if (error.name) window.console.error(error.name);
             if (error.results) {
                 var msg = error.results.message;
