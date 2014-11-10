@@ -2070,7 +2070,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
                             krb5_princ_component(context, ks_client_princ, 1)->length,
                             ipactx->kdc_hostname, strlen(ipactx->kdc_hostname),
                             NULL, NULL, &result) == 0) {
-                kerr = ipadb_reinit_mspac(ipactx, true);
+                (void)ipadb_reinit_mspac(ipactx, true);
             }
         }
 
