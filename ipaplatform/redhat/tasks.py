@@ -161,8 +161,19 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         auth_config.add_option("nostart")
         auth_config.execute()
 
+    def reload_systemwide_ca_store(self):
+        try:
+            ipautil.run([paths.UPDATE_CA_TRUST])
+        except CalledProcessError, e:
+            root_logger.error(
+                "Could not update systemwide CA trust database: %s", e)
+            return False
+        else:
+            root_logger.info("Systemwide CA database updated.")
+            return True
+
     def insert_ca_certs_into_systemwide_ca_store(self, ca_certs):
-        new_cacert_path = os.path.join(paths.SYSTEMWIDE_CA_STORE, 'ipa-ca.crt')
+        new_cacert_path = paths.SYSTEMWIDE_IPA_CA_CRT
 
         if os.path.exists(new_cacert_path):
             try:
@@ -251,24 +262,18 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         f.close()
 
         # Add the CA to the systemwide CA trust database
-        try:
-            ipautil.run([paths.UPDATE_CA_TRUST])
-        except CalledProcessError, e:
-            root_logger.info("Failed to add CA to the systemwide "
-                             "CA trust database: %s" % str(e))
-        else:
-            root_logger.info('Added the CA to the systemwide CA trust '
-                             'database.')
-            return True
+        if not self.reload_systemwide_ca_store():
+            return False
 
-        return False
+        return True
 
     def remove_ca_certs_from_systemwide_ca_store(self):
-        ipa_ca_crt = os.path.join(paths.SYSTEMWIDE_CA_STORE, 'ipa-ca.crt')
+        result = True
         update = False
 
         # Remove CA cert from systemwide store
-        for new_cacert_path in (paths.IPA_P11_KIT, ipa_ca_crt):
+        for new_cacert_path in (paths.IPA_P11_KIT,
+                                paths.SYSTEMWIDE_IPA_CA_CRT):
             if not os.path.exists(new_cacert_path):
                 continue
             try:
@@ -276,21 +281,15 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             except OSError, e:
                 root_logger.error(
                     "Could not remove %s: %s", new_cacert_path, e)
+                result = False
             else:
                 update = True
 
         if update:
-            try:
-                ipautil.run([paths.UPDATE_CA_TRUST])
-            except CalledProcessError, e:
-                root_logger.error(
-                    "Could not update systemwide CA trust database: %s", e)
+            if not self.reload_systemwide_ca_store():
                 return False
-            else:
-                root_logger.info("Systemwide CA database updated.")
-                return True
 
-        return False
+        return result
 
     def backup_and_replace_hostname(self, fstore, statestore, hostname):
         old_hostname = socket.gethostname()

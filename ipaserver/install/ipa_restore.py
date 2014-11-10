@@ -26,7 +26,7 @@ import pwd
 from ConfigParser import SafeConfigParser
 
 from ipalib import api, errors
-from ipapython import version
+from ipapython import version, ipautil, certdb
 from ipapython.ipautil import run, user_input
 from ipapython import admintool
 from ipapython.dn import DN
@@ -277,7 +277,9 @@ class Restore(admintool.AdminTool):
                     create_ca_user()
                 if options.online:
                     raise admintool.ScriptError('File restoration cannot be done online.')
+                self.cert_restore_prepare()
                 self.file_restore(options.no_logs)
+                self.cert_restore()
                 if 'CA' in self.backup_services:
                     self.__create_dogtag_log_dirs()
 
@@ -659,3 +661,34 @@ class Restore(admintool.AdminTool):
             tasks.set_selinux_booleans(bools)
         except ipapython.errors.SetseboolError as e:
             self.log.error('%s', e)
+
+    def cert_restore_prepare(self):
+        for basename in ('cert8.db', 'key3.db', 'secmod.db', 'pwdfile.txt'):
+            filename = os.path.join(paths.IPA_NSSDB_DIR, basename)
+            try:
+                ipautil.backup_file(filename)
+            except OSError as e:
+                self.log.error("Failed to backup %s: %s" % (filename, e))
+
+        tasks.remove_ca_certs_from_systemwide_ca_store()
+
+    def cert_restore(self):
+        if not os.path.exists(os.path.join(paths.IPA_NSSDB_DIR, 'cert8.db')):
+            certdb.create_ipa_nssdb()
+            ipa_db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
+            sys_db = certdb.NSSDatabase(paths.NSS_DB_DIR)
+            for nickname, trust_flags in (('IPA CA', 'CT,C,C'),
+                                          ('External CA cert', 'C,,')):
+                try:
+                    cert = sys_db.get_cert(nickname)
+                except RuntimeError:
+                    pass
+                else:
+                    try:
+                        ipa_db.add_cert(cert, nickname, trust_flags)
+                    except ipautil.CalledProcessError as e:
+                        self.log.error(
+                            "Failed to add %s to %s: %s" %
+                            (nickname, paths.IPA_NSSDB_DIR, e))
+
+        tasks.reload_systemwide_ca_store()

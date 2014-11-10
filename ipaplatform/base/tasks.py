@@ -55,6 +55,15 @@ class BaseTaskNamespace(object):
 
         return
 
+    def reload_systemwide_ca_store(self):
+        """
+        Reloads the systemwide CA store.
+
+        Returns True if the operation succeeded, False otherwise.
+        """
+
+        return True
+
     def insert_ca_certs_into_systemwide_ca_store(self, ca_certs):
         """
         Adds CA certificates from 'ca_certs' to the systemwide CA store
