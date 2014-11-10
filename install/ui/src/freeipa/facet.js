@@ -895,12 +895,12 @@ exp.facet = IPA.facet = function(spec, no_init) {
         title = title.replace('${error}', error_thrown.name);
 
         that.error_container.empty();
-        that.error_container.append('<h1>'+title+'</h1>');
+        that.error_container.append($('<h1/>', { text: title }));
 
         var details = $('<div/>', {
             'class': 'error-details'
         }).appendTo(that.error_container);
-        details.append('<p>'+error_thrown.message+'</p>');
+        details.append($('<p/>', { text: error_thrown.message }));
 
         $('<div/>', {
             text: text.get('@i18n:error_report.options')
@@ -932,7 +932,9 @@ exp.facet = IPA.facet = function(spec, no_init) {
             }
         );
 
-        that.error_container.append('<p>'+text.get('@i18n:error_report.problem_persists')+'</p>');
+        that.error_container.append($('<p/>', {
+            text: text.get('@i18n:error_report.problem_persists')
+        }));
 
         that.show_error();
     };
@@ -1214,7 +1216,7 @@ exp.facet_header = IPA.facet_header = function(spec) {
                 click: item.handler
             }).appendTo(bc_item);
         } else {
-            bc_item.append(item.text);
+            bc_item.text(item.text);
         }
         return bc_item;
     };
@@ -1823,7 +1825,7 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
             function(xhr, text_status, error_thrown) {
                 that.load_records([]);
                 var summary = that.table.summary.empty();
-                summary.append(error_thrown.name+': '+error_thrown.message);
+                summary.text(error_thrown.name+': '+error_thrown.message);
             }
         );
     };

@@ -91,7 +91,7 @@ IPA.rule_radio_widget = function(spec) {
         var param_info = IPA.get_entity_param(that.entity.name, that.name);
         var title = param_info ? param_info.doc : that.name;
 
-        container.append(title + ': ');
+        container.append(document.createTextNode(title + ': '));
         that.widget_create(container);
         that.owb_create(container);
         if (that.undo) {
