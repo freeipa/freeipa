@@ -66,6 +66,11 @@ CK_C_GetFunctionList loadLibrary(const char* module, void** moduleHandle)
 
 	// Retrieve the entry point for C_GetFunctionList
 	pGetFunctionList = (CK_C_GetFunctionList) dlsym(pDynLib, "C_GetFunctionList");
+	if (pGetFunctionList == NULL)
+	{
+		dlclose(pDynLib);
+		return NULL;
+	}
 
 	// Store the handle so we can dlclose it later
 	*moduleHandle = pDynLib;
