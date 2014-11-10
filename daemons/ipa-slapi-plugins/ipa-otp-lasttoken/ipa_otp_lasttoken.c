@@ -47,9 +47,6 @@
 #include "util.h"
 
 #define PLUGIN_NAME               "ipa-otp-lasttoken"
-#define LOG(sev, ...) \
-    slapi_log_error(SLAPI_LOG_ ## sev, PLUGIN_NAME, \
-                    "%s: %s\n", __func__, __VA_ARGS__), -1
 
 static void *plugin_id;
 static const Slapi_PluginDesc preop_desc = {
