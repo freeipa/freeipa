@@ -208,8 +208,11 @@ connect_ldap(const char *hostname, const char *binddn, const char *bindpw) {
     struct berval bindpw_bv;
 
     if (debug) {
-        ldapdebug=2;
+        ldapdebug = 2;
         ret = ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, &ldapdebug);
+        if (ret != LDAP_OPT_SUCCESS) {
+            goto fail;
+        }
     }
 
     if (ldap_set_option(NULL, LDAP_OPT_X_TLS_CACERTFILE, CAFILE) != LDAP_OPT_SUCCESS)
