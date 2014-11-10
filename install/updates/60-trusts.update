@@ -10,12 +10,6 @@ default: member: uid=admin,cn=users,cn=accounts,$SUFFIX
 default: nsAccountLock: FALSE
 default: ipaUniqueID: autogenerate
 
-dn: cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX
-add: objectClass: nestedgroup
-default: objectClass: GroupOfNames
-default: objectClass: top
-default: cn: adtrust agents
-
 dn: cn=ADTrust Agents,cn=privileges,cn=pbac,$SUFFIX
 default: objectClass: top
 default: objectClass: groupofnames

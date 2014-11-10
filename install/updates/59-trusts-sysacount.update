@@ -1,0 +1,8 @@
+# this update must be applied before 60-trusts.update, because current
+# implementation of ipa-ldap-updater doesn't keep the order of updates in
+# filesets
+dn: cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX
+add: objectClass: nestedgroup
+default: objectClass: GroupOfNames
+default: objectClass: top
+default: cn: adtrust agents
