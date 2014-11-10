@@ -41,6 +41,7 @@ app_DATA =				\
 	50-nis.update			\
 	50-ipaconfig.update		\
 	55-pbacmemberof.update		\
+	59-trusts-sysacount.update	\
 	60-trusts.update		\
 	61-trusts-s4u2proxy.update	\
 	62-ranges.update		\
