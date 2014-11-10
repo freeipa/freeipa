@@ -37,13 +37,17 @@ from ipaserver.install.replication import (wait_for_task, ReplicationManager,
                                            get_cs_replication_manager)
 from ipaserver.install import installutils
 from ipaserver.install import httpinstance
-from ipaserver.install import adtrustinstance
 from ipapython import ipaldap
 import ipapython.errors
 from ipaplatform.tasks import tasks
 from ipaserver.install.ipa_backup import BACKUP_DIR
 from ipaplatform import services
 from ipaplatform.paths import paths
+
+try:
+    from ipaserver.install import adtrustinstance
+except ImportError:
+    adtrustinstance = None
 
 
 def recursive_chown(path, uid, gid):
@@ -646,7 +650,12 @@ class Restore(admintool.AdminTool):
     def restore_selinux_booleans(self):
         bools = dict(httpinstance.SELINUX_BOOLEAN_SETTINGS)
         if 'ADTRUST' in self.backup_services:
-            bools.update(adtrustinstance.SELINUX_BOOLEAN_SETTINGS)
+            if adtrustinstance:
+                bools.update(adtrustinstance.SELINUX_BOOLEAN_SETTINGS)
+            else:
+                self.log.error(
+                    'The AD trust package was not found, '
+                    'not setting SELinux booleans.')
         try:
             tasks.set_selinux_booleans(bools)
         except ipapython.errors.SetseboolError as e:
