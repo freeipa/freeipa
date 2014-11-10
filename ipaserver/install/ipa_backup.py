@@ -138,6 +138,8 @@ class Backup(admintool.AdminTool):
         paths.SYSCONFIG_ODS,
         paths.ETC_SYSCONFIG_AUTHCONFIG,
         paths.IPA_NSSDB_PWDFILE_TXT,
+        paths.IPA_P11_KIT,
+        paths.SYSTEMWIDE_IPA_CA_CRT,
         paths.NSSWITCH_CONF,
         paths.KRB5_KEYTAB,
         paths.SSSD_CONF,

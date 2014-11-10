@@ -92,7 +92,7 @@ class BasePathNamespace(object):
     PAM_LDAP_CONF = "/etc/pam_ldap.conf"
     PASSWD = "/etc/passwd"
     ETC_PKI_CA_DIR = "/etc/pki-ca"
-    SYSTEMWIDE_CA_STORE = "/etc/pki/ca-trust/source/anchors/"
+    SYSTEMWIDE_IPA_CA_CRT = "/etc/pki/ca-trust/source/anchors/ipa-ca.crt"
     IPA_P11_KIT = "/etc/pki/ca-trust/source/ipa.p11-kit"
     NSS_DB_DIR = "/etc/pki/nssdb"
     PKI_TOMCAT = "/etc/pki/pki-tomcat"
