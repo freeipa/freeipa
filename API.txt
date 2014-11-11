@@ -2599,6 +2599,31 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
+command: otpconfig_mod
+args: 0,11,3
+option: Str('addattr*', cli_name='addattr', exclude='webui')
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Str('delattr*', cli_name='delattr', exclude='webui')
+option: Int('ipatokenhotpauthwindow', attribute=True, autofill=False, cli_name='hotp_auth_window', minvalue=1, multivalue=False, required=False)
+option: Int('ipatokenhotpsyncwindow', attribute=True, autofill=False, cli_name='hotp_sync_window', minvalue=1, multivalue=False, required=False)
+option: Int('ipatokentotpauthwindow', attribute=True, autofill=False, cli_name='totp_auth_window', minvalue=5, multivalue=False, required=False)
+option: Int('ipatokentotpsyncwindow', attribute=True, autofill=False, cli_name='totp_sync_window', minvalue=5, multivalue=False, required=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Flag('rights', autofill=True, default=False)
+option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Str('version?', exclude='webui')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: PrimaryKey('value', None, None)
+command: otpconfig_show
+args: 0,4,3
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Flag('rights', autofill=True, default=False)
+option: Str('version?', exclude='webui')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: PrimaryKey('value', None, None)
 command: otptoken_add
 args: 1,23,3
 arg: Str('ipatokenuniqueid', attribute=True, cli_name='id', multivalue=False, primary_key=True, required=False)

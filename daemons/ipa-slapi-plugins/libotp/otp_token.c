@@ -38,6 +38,7 @@
  * END COPYRIGHT BLOCK **/
 
 #include "otp_token.h"
+#include "otp_config.h"
 #include "hotp.h"
 
 #include <time.h>
@@ -63,10 +64,11 @@ struct otp_token {
     Slapi_DN *sdn;
     struct hotp_token token;
     enum type type;
+    struct otp_config_window window;
     union {
         struct {
             uint64_t watermark;
-            unsigned int step;
+            int step; /* Seconds. */
             int offset;
         } totp;
         struct {
@@ -247,6 +249,7 @@ static struct otp_token *otp_token_new(const struct otp_config *cfg,
     if (token == NULL)
         return NULL;
     token->cfg = cfg;
+    token->window = otp_config_window(cfg, entry);
 
     /* Get the token type. */
     vals = slapi_entry_attr_get_charray(entry, "objectClass");
@@ -300,7 +303,7 @@ static struct otp_token *otp_token_new(const struct otp_config *cfg,
 
         /* Get step. */
         token->totp.step = slapi_entry_attr_get_uint(entry, T("timeStep"));
-        if (token->totp.step == 0)
+        if (token->totp.step < 5)
             token->totp.step = IPA_OTP_DEFAULT_TOKEN_STEP;
         break;
     case TYPE_HOTP:
@@ -431,41 +434,10 @@ struct otp_token **otp_token_find(const struct otp_config *cfg,
     return find(cfg, user_dn, token_dn, actfilt, filter);
 }
 
-int otp_token_get_digits(struct otp_token *token)
-{
-    return token == NULL ? 0 : token->token.digits;
-}
-
 const Slapi_DN *otp_token_get_sdn(struct otp_token *token)
 {
     return token->sdn;
 }
-
-static bool otp_token_validate(struct otp_token *token, size_t steps,
-                               uint32_t code)
-{
-    time_t now = 0;
-
-    if (token == NULL)
-        return false;
-
-    /* We only need the local time for time-based tokens. */
-    if (token->type == TYPE_TOTP && time(&now) == (time_t) -1)
-        return false;
-
-    for (int i = 0; i <= steps; i++) {
-        /* Validate the positive step. */
-        if (validate(token, now, i, code, NULL))
-            return true;
-
-        /* Validate the negative step. */
-        if (validate(token, now, 0 - i, code, NULL))
-            return true;
-    }
-
-    return false;
-}
-
 
 /*
  *  Convert code berval to decimal.
@@ -474,45 +446,40 @@ static bool otp_token_validate(struct otp_token *token, size_t steps,
  *    1. If we have leading zeros, atol() fails.
  *    2. Neither support limiting conversion by length.
  */
-static bool bvtod(const struct berval *code, uint32_t *out)
+static bool bvtod(const struct berval *code, int digits, uint32_t *out)
 {
     *out = 0;
 
-    for (ber_len_t i = 0; i < code->bv_len; i++) {
+    if (code == NULL || digits <= 0 || code->bv_len < digits)
+        return false;
+
+    for (ber_len_t i = code->bv_len - digits; i < code->bv_len; i++) {
         if (code->bv_val[i] < '0' || code->bv_val[i] > '9')
             return false;
         *out *= 10;
         *out += code->bv_val[i] - '0';
     }
 
-    return code->bv_len != 0;
+    return true;
 }
 
-bool otp_token_validate_berval(struct otp_token *token, size_t steps,
-                               const struct berval *code, bool tail)
+static bool step_is_valid(struct otp_token *token, bool sync, uint32_t i)
 {
-    struct berval tmp;
-    uint32_t otp;
+    uint32_t window = sync ? token->window.sync : token->window.auth;
 
-    if (token == NULL || code == NULL)
+    switch (token->type) {
+    case TYPE_TOTP:
+        return i * token->totp.step < window;
+    case TYPE_HOTP:
+        return i < window;
+    default:
         return false;
-    tmp = *code;
-
-    if (tmp.bv_len < token->token.digits)
-        return false;
-
-    if (tail)
-        tmp.bv_val = &tmp.bv_val[tmp.bv_len - token->token.digits];
-    tmp.bv_len = token->token.digits;
-
-    if (!bvtod(&tmp, &otp))
-        return false;
-
-    return otp_token_validate(token, steps, otp);
+    }
 }
 
-static bool otp_token_sync(struct otp_token * const *tokens, size_t steps,
-                           uint32_t first_code, uint32_t second_code)
+bool otp_token_validate_berval(struct otp_token * const *tokens,
+                               struct berval *first_code,
+                               struct berval *second_code)
 {
     time_t now = 0;
 
@@ -522,33 +489,45 @@ static bool otp_token_sync(struct otp_token * const *tokens, size_t steps,
     if (time(&now) == (time_t) -1)
         return false;
 
-    for (int i = 0; i <= steps; i++) {
+    for (uint32_t i = 0, cnt = 1; cnt != 0; i++) {
+        cnt = 0;
         for (int j = 0; tokens[j] != NULL; j++) {
-            /* Validate the positive step. */
-            if (validate(tokens[j], now, i, first_code, &second_code))
-                return true;
+            uint32_t *secondp = NULL;
+            uint32_t second;
+            uint32_t first;
 
-            /* Validate the negative step. */
-            if (validate(tokens[j], now, 0 - i, first_code, &second_code))
-                return true;
+            /* Don't validate beyond the specified window. */
+            if (!step_is_valid(tokens[j], second_code != NULL, i))
+                continue;
+            cnt++;
+
+            /* Parse the first code. */
+            if (!bvtod(first_code, tokens[j]->token.digits, &first))
+                continue;
+
+            /* Parse the second code. */
+            if (second_code != NULL) {
+                secondp = &second;
+                if (!bvtod(second_code, tokens[j]->token.digits, secondp))
+                    continue;
+            }
+
+            /* Validate the positive/negative steps. */
+            if (!validate(tokens[j], now, i, first, secondp) &&
+                !validate(tokens[j], now, 0 - i, first, secondp))
+                continue;
+
+            /* Codes validated; strip. */
+            first_code->bv_len -= tokens[j]->token.digits;
+            first_code->bv_val[first_code->bv_len] = '\0';
+            if (second_code != NULL) {
+                second_code->bv_len -= tokens[j]->token.digits;
+                second_code->bv_val[second_code->bv_len] = '\0';
+            }
+
+            return true;
         }
     }
 
     return false;
-}
-
-bool otp_token_sync_berval(struct otp_token * const *tokens, size_t steps,
-                           const struct berval *first_code,
-                           const struct berval *second_code)
-{
-    uint32_t second = 0;
-    uint32_t first = 0;
-
-    if (!bvtod(first_code, &first))
-        return false;
-
-    if (!bvtod(second_code, &second))
-        return false;
-
-    return otp_token_sync(tokens, steps, first, second);
 }

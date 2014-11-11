@@ -105,11 +105,50 @@ static uint32_t entry_to_authtypes(Slapi_Entry *e, const char *attr)
     return types;
 }
 
+static uint32_t entry_to_window(Slapi_Entry *e, const char *attr)
+{
+    long long val;
+
+    if (e == NULL)
+        return 0;
+
+    val = slapi_entry_attr_get_longlong(e, attr);
+    return val > 0 ? val : 0;
+}
+
 static const struct spec authtypes = {
     entry_to_authtypes,
     "cn=ipaConfig,cn=etc,%s",
     "ipaUserAuthType",
     OTP_CONFIG_AUTH_TYPE_PASSWORD
+};
+
+static const struct spec totp_auth_window = {
+    entry_to_window,
+    "cn=otp,cn=etc,%s",
+    "ipatokenTOTPauthWindow",
+    300
+};
+
+static const struct spec totp_sync_window = {
+    entry_to_window,
+    "cn=otp,cn=etc,%s",
+    "ipatokenTOTPsyncWindow",
+    86400
+};
+
+static const struct spec hotp_auth_window = {
+    entry_to_window,
+    "cn=otp,cn=etc,%s",
+    "ipatokenHOTPauthWindow",
+    10
+};
+
+static const struct spec hotp_sync_window = {
+    entry_to_window,
+    "cn=otp,cn=etc,%s",
+    "ipatokenHOTPsyncWindow",
+    100
 };
 
 static Slapi_DN *make_sdn(const char *prefix, const Slapi_DN *suffix)
@@ -126,10 +165,14 @@ static uint32_t find_value(const struct otp_config *cfg,
 
     sdn = make_sdn(spec->prefix, suffix);
     for (struct record *rec = cfg->records; rec != NULL; rec = rec->next) {
-        if (rec->spec == spec) {
-            value = PR_ATOMIC_ADD(&rec->value, 0);
-            break;
-        }
+        if (rec->spec != spec)
+            continue;
+
+        if (slapi_sdn_compare(sdn, rec->sdn) != 0)
+            continue;
+
+        value = PR_ATOMIC_ADD(&rec->value, 0);
+        break;
     }
 
     slapi_sdn_free(&sdn);
@@ -162,6 +205,10 @@ struct otp_config *otp_config_init(Slapi_ComponentId *plugin_id)
 {
     static const struct spec *specs[] = {
         &authtypes,
+        &totp_auth_window,
+        &totp_sync_window,
+        &hotp_auth_window,
+        &hotp_sync_window,
         NULL
     };
 
@@ -271,4 +318,38 @@ uint32_t otp_config_auth_types(const struct otp_config *cfg,
         return glbl;
 
     return OTP_CONFIG_AUTH_TYPE_PASSWORD;
+}
+
+struct otp_config_window
+otp_config_window(const struct otp_config *cfg, Slapi_Entry *token_entry)
+{
+    const struct spec *auth = NULL, *sync = NULL;
+    struct otp_config_window wndw = { 0, 0 };
+    const Slapi_DN *sfx;
+    char **clses;
+
+    sfx = slapi_get_suffix_by_dn(slapi_entry_get_sdn_const(token_entry));
+
+    clses = slapi_entry_attr_get_charray(token_entry, SLAPI_ATTR_OBJECTCLASS);
+    for (size_t i = 0; clses != NULL && clses[i] != NULL; i++) {
+        if (strcasecmp(clses[i], "ipatokenTOTP") == 0) {
+            auth = &totp_auth_window;
+            sync = &totp_sync_window;
+            break;
+        }
+
+        if (strcasecmp(clses[i], "ipatokenHOTP") == 0) {
+            auth = &hotp_auth_window;
+            sync = &hotp_sync_window;
+            break;
+        }
+    }
+    slapi_ch_array_free(clses);
+
+    if (auth == NULL || sync == NULL)
+        return wndw;
+
+    wndw.auth = find_value(cfg, sfx, auth);
+    wndw.sync = find_value(cfg, sfx, sync);
+    return wndw;
 }

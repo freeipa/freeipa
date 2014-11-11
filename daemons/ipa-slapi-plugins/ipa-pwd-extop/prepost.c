@@ -68,8 +68,6 @@
 #define IPAPWD_OP_ADD 1
 #define IPAPWD_OP_MOD 2
 
-#define OTP_VALIDATE_STEPS 3
-
 extern Slapi_PluginDesc ipapwd_plugin_desc;
 extern void *ipapwd_plugin_id;
 extern const char *ipa_realm_tree;
@@ -1113,8 +1111,8 @@ done:
 }
 
 /*
- * Authenticates creds against OTP tokens. Returns true when authentication
- * completed successfully against a token OR when a user has no active tokens.
+ * This function handles the bind functionality for OTP. The return value
+ * indicates if the OTP portion of authentication was successful.
  *
  * WARNING: This function DOES NOT authenticate the first factor. Only the OTP
  *          code is validated! You still need to validate the first factor.
@@ -1122,53 +1120,6 @@ done:
  * NOTE: When successful, this function truncates creds to remove the token
  *       value at the end. This leaves only the password in creds for later
  *       validation.
- */
-static bool ipapwd_do_otp_auth(const char *dn, Slapi_Entry *bind_entry,
-                               struct berval *creds)
-{
-    struct otp_token **tokens = NULL;
-    bool success = false;
-
-    /* Find all of the user's active tokens. */
-    tokens = otp_token_find(otp_config, dn, NULL, true, NULL);
-    if (tokens == NULL) {
-        slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
-                        "%s: can't find tokens for '%s'.\n", __func__, dn);
-        return false;
-    }
-
-    /* If the user has no active tokens, succeed. */
-    success = tokens[0] == NULL;
-
-    /* Loop through each token. */
-    for (int i = 0; tokens[i] && !success; i++) {
-        /* Attempt authentication. */
-        success = otp_token_validate_berval(tokens[i], OTP_VALIDATE_STEPS,
-                                           creds, true);
-
-        /* Truncate the password to remove the OTP code at the end. */
-        if (success) {
-            creds->bv_len -= otp_token_get_digits(tokens[i]);
-            creds->bv_val[creds->bv_len] = '\0';
-        }
-
-        slapi_log_error(SLAPI_LOG_PLUGIN, IPAPWD_PLUGIN_NAME,
-                        "%s: token authentication %s "
-                        "(user: '%s', token: '%s\').\n", __func__,
-                        success ? "succeeded" : "failed", dn,
-                        slapi_sdn_get_ndn(otp_token_get_sdn(tokens[i])));
-    }
-
-    otp_token_free_array(tokens);
-    return success;
-}
-
-/*
- * This function handles the bind functionality for OTP. The return value
- * indicates if the OTP portion of authentication was successful.
- *
- * NOTE: This function may modify creds. See explanation in the comment for
- *       ipapwd_do_otp_auth() above.
  */
 static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
                                 struct berval *creds)
@@ -1189,10 +1140,32 @@ static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
      */
 
     if (auth_types & OTP_CONFIG_AUTH_TYPE_OTP) {
+        struct otp_token **tokens = NULL;
+
         LOG_PLUGIN_NAME(IPAPWD_PLUGIN_NAME,
                         "Attempting OTP authentication for '%s'.\n", bind_dn);
-        if (ipapwd_do_otp_auth(bind_dn, entry, creds))
+
+        /* Find all of the user's active tokens. */
+        tokens = otp_token_find(otp_config, bind_dn, NULL, true, NULL);
+        if (tokens == NULL) {
+            slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
+                            "%s: can't find tokens for '%s'.\n",
+                            __func__, bind_dn);
+            return false;
+        }
+
+        /* If the user has no active tokens, succeed. */
+        if (tokens[0] == NULL) {
+            otp_token_free_array(tokens);
             return true;
+        }
+
+        if (otp_token_validate_berval(tokens, creds, NULL)) {
+            otp_token_free_array(tokens);
+            return true;
+        }
+
+        otp_token_free_array(tokens);
     }
 
     return auth_types & OTP_CONFIG_AUTH_TYPE_PASSWORD;

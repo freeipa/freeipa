@@ -40,8 +40,6 @@
 #include "../libotp/otp_token.h"
 #include "syncreq.h"
 
-#define OTP_SYNC_MAX_STEPS 25
-
 bool sync_request_present(Slapi_PBlock *pb)
 {
     LDAPControl **controls = NULL;
@@ -92,7 +90,7 @@ bool sync_request_handle(const struct otp_config *cfg, Slapi_PBlock *pb,
         if (ber_scanf(ber, "}") != LBER_ERROR) {
             tokens = otp_token_find(cfg, user_dn, token_dn, true, NULL);
             if (tokens != NULL) {
-                success = otp_token_sync_berval(tokens, OTP_SYNC_MAX_STEPS, first, second);
+                success = otp_token_validate_berval(tokens, first, second);
                 otp_token_free_array(tokens);
             }
         }
