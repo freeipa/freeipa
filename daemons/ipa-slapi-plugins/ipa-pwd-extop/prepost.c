@@ -1140,11 +1140,11 @@ done:
 static bool ipapwd_do_otp_auth(const char *dn, Slapi_Entry *bind_entry,
                                struct berval *creds)
 {
-    struct otptoken **tokens = NULL;
+    struct otp_token **tokens = NULL;
     bool success = false;
 
     /* Find all of the user's active tokens. */
-    tokens = otptoken_find(ipapwd_plugin_id, dn, NULL, true, NULL);
+    tokens = otp_token_find(ipapwd_plugin_id, dn, NULL, true, NULL);
     if (tokens == NULL) {
         slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
                         "%s: can't find tokens for '%s'.\n", __func__, dn);
@@ -1157,12 +1157,12 @@ static bool ipapwd_do_otp_auth(const char *dn, Slapi_Entry *bind_entry,
     /* Loop through each token. */
     for (int i = 0; tokens[i] && !success; i++) {
         /* Attempt authentication. */
-        success = otptoken_validate_berval(tokens[i], OTP_VALIDATE_STEPS,
+        success = otp_token_validate_berval(tokens[i], OTP_VALIDATE_STEPS,
                                            creds, true);
 
         /* Truncate the password to remove the OTP code at the end. */
         if (success) {
-            creds->bv_len -= otptoken_get_digits(tokens[i]);
+            creds->bv_len -= otp_token_get_digits(tokens[i]);
             creds->bv_val[creds->bv_len] = '\0';
         }
 
@@ -1170,10 +1170,10 @@ static bool ipapwd_do_otp_auth(const char *dn, Slapi_Entry *bind_entry,
                         "%s: token authentication %s "
                         "(user: '%s', token: '%s\').\n", __func__,
                         success ? "succeeded" : "failed", dn,
-                        slapi_sdn_get_ndn(otptoken_get_sdn(tokens[i])));
+                        slapi_sdn_get_ndn(otp_token_get_sdn(tokens[i])));
     }
 
-    otptoken_free_array(tokens);
+    otp_token_free_array(tokens);
     return success;
 }
 

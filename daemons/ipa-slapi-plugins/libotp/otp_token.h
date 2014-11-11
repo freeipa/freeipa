@@ -37,21 +37,16 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
-#ifndef LIBOTP_H_
-#define LIBOTP_H_
-
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#pragma once
 
 #include <dirsrv/slapi-plugin.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
-struct otptoken;
+struct otp_token;
 
 /* Frees the token array. */
-void otptoken_free_array(struct otptoken **tokens);
+void otp_token_free_array(struct otp_token **tokens);
 
 /* Find tokens.
  *
@@ -70,24 +65,23 @@ void otptoken_free_array(struct otptoken **tokens);
  * Returns NULL on error. If no tokens are found, an empty array is returned.
  * The array is NULL terminated.
  */
-struct otptoken **otptoken_find(Slapi_ComponentId *id, const char *user_dn,
-                                const char *token_dn, bool active,
-                                const char *filter);
+struct otp_token **otp_token_find(Slapi_ComponentId *id, const char *user_dn,
+                                  const char *token_dn, bool active,
+                                  const char *filter);
 
 /* Get the length of the token code. */
-int otptoken_get_digits(struct otptoken *token);
+int otp_token_get_digits(struct otp_token *token);
 
 /* Get the SDN of the token. */
-const Slapi_DN *otptoken_get_sdn(struct otptoken *token);
+const Slapi_DN *otp_token_get_sdn(struct otp_token *token);
 
 /* Validate the token code within a range of steps. If tail is true,
  * it will be assumed that the token is specified at the end of the string. */
-bool otptoken_validate_berval(struct otptoken *token, size_t steps,
-                              const struct berval *code, bool tail);
+bool otp_token_validate_berval(struct otp_token *token, size_t steps,
+                               const struct berval *code, bool tail);
 
 /* Synchronize the token within a range of steps. */
-bool otptoken_sync_berval(struct otptoken * const *tokens, size_t steps,
-                          const struct berval *first_code,
-                          const struct berval *second_code);
+bool otp_token_sync_berval(struct otp_token * const *tokens, size_t steps,
+                           const struct berval *first_code,
+                           const struct berval *second_code);
 
-#endif /* LIBOTP_H_ */

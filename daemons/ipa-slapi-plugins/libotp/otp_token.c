@@ -37,8 +37,8 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
-#include "libotp.h"
-#include "librfc.h"
+#include "otp_token.h"
+#include "hotp.h"
 
 #include <time.h>
 #include <errno.h>
@@ -52,18 +52,17 @@
 #define IPA_OTP_OBJCLS_FILTER \
     "(|(objectClass=ipaTokenTOTP)(objectClass=ipaTokenHOTP))"
 
-
-enum otptoken_type {
-    OTPTOKEN_NONE = 0,
-    OTPTOKEN_TOTP,
-    OTPTOKEN_HOTP,
+enum type {
+    TYPE_NONE = 0,
+    TYPE_TOTP,
+    TYPE_HOTP,
 };
 
-struct otptoken {
+struct otp_token {
     Slapi_ComponentId *plugin_id;
     Slapi_DN *sdn;
     struct hotp_token token;
-    enum otptoken_type type;
+    enum type type;
     union {
         struct {
             uint64_t watermark;
@@ -124,7 +123,7 @@ static const struct berval *entry_attr_get_berval(const Slapi_Entry* e,
     return slapi_value_get_berval(v);
 }
 
-static bool writeattr(const struct otptoken *token, const char *attr,
+static bool writeattr(const struct otp_token *token, const char *attr,
                       long long val)
 {
     Slapi_PBlock *pb = NULL;
@@ -164,7 +163,7 @@ error:
  *
  * If the second token code is specified, perform synchronization.
  */
-static bool validate(struct otptoken *token, time_t now, ssize_t step,
+static bool validate(struct otp_token *token, time_t now, ssize_t step,
                      uint32_t first, const uint32_t *second)
 {
     const char *attr;
@@ -172,13 +171,13 @@ static bool validate(struct otptoken *token, time_t now, ssize_t step,
 
     /* Calculate the absolute step. */
     switch (token->type) {
-    case OTPTOKEN_TOTP:
+    case TYPE_TOTP:
         attr = T("watermark");
         step = (now + token->totp.offset) / token->totp.step + step;
         if (token->totp.watermark > 0 && step < token->totp.watermark)
             return false;
         break;
-    case OTPTOKEN_HOTP:
+    case TYPE_HOTP:
         if (step < 0) /* NEVER go backwards! */
             return false;
         attr = H("counter");
@@ -210,7 +209,7 @@ static bool validate(struct otptoken *token, time_t now, ssize_t step,
 
     /* Save our modifications to the object. */
     switch (token->type) {
-    case OTPTOKEN_TOTP:
+    case TYPE_TOTP:
         /* Perform optional synchronization steps. */
         if (second != NULL) {
             tmp = (step - now / token->totp.step) * token->totp.step;
@@ -220,7 +219,7 @@ static bool validate(struct otptoken *token, time_t now, ssize_t step,
         }
         token->totp.watermark = step;
         break;
-    case OTPTOKEN_HOTP:
+    case TYPE_HOTP:
         token->hotp.counter = step;
         break;
     default:
@@ -230,8 +229,7 @@ static bool validate(struct otptoken *token, time_t now, ssize_t step,
     return true;
 }
 
-
-static void otptoken_free(struct otptoken *token)
+static void otp_token_free(struct otp_token *token)
 {
     if (token == NULL)
         return;
@@ -242,24 +240,25 @@ static void otptoken_free(struct otptoken *token)
     free(token);
 }
 
-void otptoken_free_array(struct otptoken **tokens)
+void otp_token_free_array(struct otp_token **tokens)
 {
     if (tokens == NULL)
         return;
 
     for (size_t i = 0; tokens[i] != NULL; i++)
-        otptoken_free(tokens[i]);
+        otp_token_free(tokens[i]);
 
     free(tokens);
 }
 
-static struct otptoken *otptoken_new(Slapi_ComponentId *id, Slapi_Entry *entry)
+static struct otp_token *otp_token_new(Slapi_ComponentId *id,
+                                       Slapi_Entry *entry)
 {
     const struct berval *tmp;
-    struct otptoken *token;
+    struct otp_token *token;
     char **vals;
 
-    token = calloc(1, sizeof(struct otptoken));
+    token = calloc(1, sizeof(struct otp_token));
     if (token == NULL)
         return NULL;
     token->plugin_id = id;
@@ -268,15 +267,15 @@ static struct otptoken *otptoken_new(Slapi_ComponentId *id, Slapi_Entry *entry)
     vals = slapi_entry_attr_get_charray(entry, "objectClass");
     if (vals == NULL)
         goto error;
-    token->type = OTPTOKEN_NONE;
+    token->type = TYPE_NONE;
     for (int i = 0; vals[i] != NULL; i++) {
         if (strcasecmp(vals[i], "ipaTokenTOTP") == 0)
-            token->type = OTPTOKEN_TOTP;
+            token->type = TYPE_TOTP;
         else if (strcasecmp(vals[i], "ipaTokenHOTP") == 0)
-            token->type = OTPTOKEN_HOTP;
+            token->type = TYPE_HOTP;
     }
     slapi_ch_array_free(vals);
-    if (token->type == OTPTOKEN_NONE)
+    if (token->type == TYPE_NONE)
         goto error;
 
     /* Get SDN. */
@@ -307,7 +306,7 @@ static struct otptoken *otptoken_new(Slapi_ComponentId *id, Slapi_Entry *entry)
         goto error;
 
     switch (token->type) {
-    case OTPTOKEN_TOTP:
+    case TYPE_TOTP:
         /* Get offset. */
         token->totp.offset = slapi_entry_attr_get_int(entry, T("clockOffset"));
 
@@ -319,7 +318,7 @@ static struct otptoken *otptoken_new(Slapi_ComponentId *id, Slapi_Entry *entry)
         if (token->totp.step == 0)
             token->totp.step = IPA_OTP_DEFAULT_TOKEN_STEP;
         break;
-    case OTPTOKEN_HOTP:
+    case TYPE_HOTP:
         /* Get counter. */
         token->hotp.counter = slapi_entry_attr_get_int(entry, H("counter"));
         break;
@@ -330,15 +329,15 @@ static struct otptoken *otptoken_new(Slapi_ComponentId *id, Slapi_Entry *entry)
     return token;
 
 error:
-    otptoken_free(token);
+    otp_token_free(token);
     return NULL;
 }
 
-static struct otptoken **find(Slapi_ComponentId *id, const char *user_dn,
-                              const char *token_dn, const char *intfilter,
-                              const char *extfilter)
+static struct otp_token **find(Slapi_ComponentId *id, const char *user_dn,
+                               const char *token_dn, const char *intfilter,
+                               const char *extfilter)
 {
-    struct otptoken **tokens = NULL;
+    struct otp_token **tokens = NULL;
     Slapi_Entry **entries = NULL;
     Slapi_PBlock *pb = NULL;
     Slapi_DN *sdn = NULL;
@@ -403,9 +402,9 @@ static struct otptoken **find(Slapi_ComponentId *id, const char *user_dn,
     if (tokens == NULL)
         goto error;
     for (count = 0; entries[count] != NULL; count++) {
-        tokens[count] = otptoken_new(id, entries[count]);
+        tokens[count] = otp_token_new(id, entries[count]);
         if (tokens[count] == NULL) {
-            otptoken_free_array(tokens);
+            otp_token_free_array(tokens);
             tokens = NULL;
             goto error;
         }
@@ -418,9 +417,9 @@ error:
     return tokens;
 }
 
-struct otptoken **otptoken_find(Slapi_ComponentId *id, const char *user_dn,
-                                const char *token_dn, bool active,
-                                const char *filter)
+struct otp_token **
+otp_token_find(Slapi_ComponentId *id, const char *user_dn, const char *token_dn,
+               bool active, const char *filter)
 {
     static const char template[] =
     "(|(ipatokenNotBefore<=%04d%02d%02d%02d%02d%02dZ)(!(ipatokenNotBefore=*)))"
@@ -450,18 +449,18 @@ struct otptoken **otptoken_find(Slapi_ComponentId *id, const char *user_dn,
     return find(id, user_dn, token_dn, actfilt, filter);
 }
 
-int otptoken_get_digits(struct otptoken *token)
+int otp_token_get_digits(struct otp_token *token)
 {
     return token == NULL ? 0 : token->token.digits;
 }
 
-const Slapi_DN *otptoken_get_sdn(struct otptoken *token)
+const Slapi_DN *otp_token_get_sdn(struct otp_token *token)
 {
     return token->sdn;
 }
 
-static bool otptoken_validate(struct otptoken *token, size_t steps,
-                              uint32_t code)
+static bool otp_token_validate(struct otp_token *token, size_t steps,
+                               uint32_t code)
 {
     time_t now = 0;
 
@@ -469,7 +468,7 @@ static bool otptoken_validate(struct otptoken *token, size_t steps,
         return false;
 
     /* We only need the local time for time-based tokens. */
-    if (token->type == OTPTOKEN_TOTP && time(&now) == (time_t) -1)
+    if (token->type == TYPE_TOTP && time(&now) == (time_t) -1)
         return false;
 
     for (int i = 0; i <= steps; i++) {
@@ -507,8 +506,8 @@ static bool bvtod(const struct berval *code, uint32_t *out)
     return code->bv_len != 0;
 }
 
-bool otptoken_validate_berval(struct otptoken *token, size_t steps,
-                              const struct berval *code, bool tail)
+bool otp_token_validate_berval(struct otp_token *token, size_t steps,
+                               const struct berval *code, bool tail)
 {
     struct berval tmp;
     uint32_t otp;
@@ -527,11 +526,11 @@ bool otptoken_validate_berval(struct otptoken *token, size_t steps,
     if (!bvtod(&tmp, &otp))
         return false;
 
-    return otptoken_validate(token, steps, otp);
+    return otp_token_validate(token, steps, otp);
 }
 
-static bool otptoken_sync(struct otptoken * const *tokens, size_t steps,
-                          uint32_t first_code, uint32_t second_code)
+static bool otp_token_sync(struct otp_token * const *tokens, size_t steps,
+                           uint32_t first_code, uint32_t second_code)
 {
     time_t now = 0;
 
@@ -556,9 +555,9 @@ static bool otptoken_sync(struct otptoken * const *tokens, size_t steps,
     return false;
 }
 
-bool otptoken_sync_berval(struct otptoken * const *tokens, size_t steps,
-                          const struct berval *first_code,
-                          const struct berval *second_code)
+bool otp_token_sync_berval(struct otp_token * const *tokens, size_t steps,
+                           const struct berval *first_code,
+                           const struct berval *second_code)
 {
     uint32_t second = 0;
     uint32_t first = 0;
@@ -569,5 +568,5 @@ bool otptoken_sync_berval(struct otptoken * const *tokens, size_t steps,
     if (!bvtod(second_code, &second))
         return false;
 
-    return otptoken_sync(tokens, steps, first, second);
+    return otp_token_sync(tokens, steps, first, second);
 }

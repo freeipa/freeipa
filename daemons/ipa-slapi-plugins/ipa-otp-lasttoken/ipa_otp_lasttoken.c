@@ -41,7 +41,7 @@
 #  include <config.h>
 #endif
 
-#include <libotp.h>
+#include "../libotp/otp_token.h"
 #include <time.h>
 
 #include "util.h"
@@ -61,7 +61,7 @@ target_is_only_enabled_token(Slapi_PBlock *pb)
 {
     Slapi_DN *target_sdn = NULL;
     Slapi_DN *token_sdn = NULL;
-    struct otptoken **tokens;
+    struct otp_token **tokens;
     char *user_dn = NULL;
     bool match;
 
@@ -75,10 +75,10 @@ target_is_only_enabled_token(Slapi_PBlock *pb)
         return false;
 
     /* Get the SDN of the only enabled token. */
-    tokens = otptoken_find(plugin_id, user_dn, NULL, true, NULL);
+    tokens = otp_token_find(plugin_id, user_dn, NULL, true, NULL);
     if (tokens != NULL && tokens[0] != NULL && tokens[1] == NULL)
-        token_sdn = slapi_sdn_dup(otptoken_get_sdn(tokens[0]));
-    otptoken_free_array(tokens);
+        token_sdn = slapi_sdn_dup(otp_token_get_sdn(tokens[0]));
+    otp_token_free_array(tokens);
     if (token_sdn == NULL)
         return false;
 

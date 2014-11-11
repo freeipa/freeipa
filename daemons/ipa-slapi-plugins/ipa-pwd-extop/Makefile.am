@@ -11,7 +11,6 @@ ASN1_UTIL_DIR=../../../asn1
 AM_CPPFLAGS =							\
 	-I.							\
 	-I$(srcdir)						\
-	-I$(srcdir)/../libotp					\
 	-I$(PLUGIN_COMMON_DIR)					\
 	-I$(KRB5_UTIL_DIR)					\
 	-I$(ASN1_UTIL_DIR)					\

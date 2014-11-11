@@ -42,7 +42,7 @@
  * For details of how these algorithms work, please see the relevant RFCs.
  */
 
-#include "librfc.h"
+#include "hotp.h"
 #include <time.h>
 
 #include <nss.h>

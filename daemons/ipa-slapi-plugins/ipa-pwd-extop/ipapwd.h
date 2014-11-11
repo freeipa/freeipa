@@ -41,7 +41,7 @@
 #  include <config.h>
 #endif
 
-#include <libotp.h>
+#include "../libotp/otp_token.h"
 
 #include <stdio.h>
 #include <string.h>

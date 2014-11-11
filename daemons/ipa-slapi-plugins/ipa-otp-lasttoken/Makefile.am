@@ -3,7 +3,6 @@ PLUGIN_COMMON_DIR = ../common
 AM_CPPFLAGS =							\
 	-I.							\
 	-I$(srcdir)						\
-	-I$(srcdir)/../libotp					\
 	-I$(PLUGIN_COMMON_DIR)					\
 	-I/usr/include/dirsrv					\
 	-DPREFIX=\""$(prefix)"\" 				\
