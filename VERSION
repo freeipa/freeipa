@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=110
-# Last change: pvoborni - allow to retrieve keytab by hosts
+IPA_API_VERSION_MINOR=111
+# Last change: npmccallum - configurable token windows

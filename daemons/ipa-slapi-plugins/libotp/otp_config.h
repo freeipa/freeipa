@@ -49,6 +49,11 @@
 
 struct otp_config;
 
+struct otp_config_window {
+    uint32_t auth;
+    uint32_t sync;
+};
+
 struct otp_config *otp_config_init(Slapi_ComponentId *plugin_id);
 
 void otp_config_fini(struct otp_config **cfg);
@@ -63,3 +68,15 @@ Slapi_ComponentId *otp_config_plugin_id(const struct otp_config *cfg);
  */
 uint32_t otp_config_auth_types(const struct otp_config *cfg,
                                Slapi_Entry *user_entry);
+
+/* Gets the window sizes for a token.
+ *
+ * The entry should be queried for the following attributes:
+ *   objectClass
+ *   ipatokenTOTPauthWindow
+ *   ipatokenTOTPsyncWindow
+ *   ipatokenHOTPauthWindow
+ *   ipatokenHOTPsyncWindow
+ */
+struct otp_config_window otp_config_window(const struct otp_config *cfg,
+                                           Slapi_Entry *token_entry);

@@ -70,19 +70,19 @@ struct otp_token **otp_token_find(const struct otp_config *cfg,
                                   const char *user_dn, const char *token_dn,
                                   bool active, const char *filter);
 
-/* Get the length of the token code. */
-int otp_token_get_digits(struct otp_token *token);
-
 /* Get the SDN of the token. */
 const Slapi_DN *otp_token_get_sdn(struct otp_token *token);
 
-/* Validate the token code within a range of steps. If tail is true,
- * it will be assumed that the token is specified at the end of the string. */
-bool otp_token_validate_berval(struct otp_token *token, size_t steps,
-                               const struct berval *code, bool tail);
-
-/* Synchronize the token within a range of steps. */
-bool otp_token_sync_berval(struct otp_token * const *tokens, size_t steps,
-                           const struct berval *first_code,
-                           const struct berval *second_code);
-
+/* Perform OTP authentication.
+ *
+ * If only the first code is specified, validation will be performed and the
+ * validated token will be stripped.
+ *
+ * If both codes are specified, synchronization will be performed and the
+ * validated tokens will be stripped.
+ *
+ * Returns true if and only if all specified tokens were validated.
+ */
+bool otp_token_validate_berval(struct otp_token * const *tokens,
+                               struct berval *first_code,
+                               struct berval *second_code);

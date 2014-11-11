@@ -3,6 +3,15 @@ default: objectClass: nsContainer
 default: objectClass: top
 default: cn: otp
 
+dn: cn=otp,cn=etc,$SUFFIX
+default: objectClass: ipatokenOTPConfig
+default: objectClass: top
+default: cn: otp
+default: ipatokenTOTPauthWindow: 300
+default: ipatokenTOTPsyncWindow: 86400
+default: ipatokenHOTPauthWindow: 10
+default: ipatokenHOTPsyncWindow: 100
+
 dn: $SUFFIX
 remove: aci:'(target = "ldap:///ipatokenuniqueid=*,cn=otp,$SUFFIX")(targetfilter = "(objectClass=ipaToken)")(version 3.0; acl "Users can create and delete tokens"; allow (add, delete) userattr = "ipatokenOwner#SELFDN";)'
 remove: aci:'(targetfilter = "(objectClass=ipaToken)")(targetattrs = "objectclass || ipatokenUniqueID || description || ipatokenOwner || ipatokenNotBefore || ipatokenNotAfter || ipatokenVendor || ipatokenModel || ipatokenSerial")(version 3.0; acl "Users can read basic token info"; allow (read, search, compare) userattr = "ipatokenOwner#USERDN";)'
