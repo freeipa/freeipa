@@ -1,9 +1,11 @@
 MAINTAINERCLEANFILES = *~ Makefile.in
 AM_CPPFLAGS = -I/usr/include/dirsrv
 
-noinst_LTLIBRARIES = librfc.la libotp.la
-libotp_la_LIBADD = librfc.la
+noinst_LTLIBRARIES = libhotp.la libotp.la
+libhotp_la_SOURCES = hotp.c hotp.h
+libotp_la_SOURCES = otp_token.c otp_token.h
+libotp_la_LIBADD = libhotp.la
 
-check_PROGRAMS = t_librfc
+check_PROGRAMS = t_hotp
 TESTS = $(check_PROGRAMS)
-t_librfc_LDADD = $(NSPR_LIBS) $(NSS_LIBS) librfc.la
+t_hotp_LDADD = $(NSPR_LIBS) $(NSS_LIBS) libhotp.la

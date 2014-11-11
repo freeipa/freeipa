@@ -37,8 +37,7 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
-#ifndef LIBRFC_H_
-#define LIBRFC_H_
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -59,5 +58,3 @@ struct hotp_token {
  * An implementation of HOTP (RFC 4226).
  */
 bool hotp(const struct hotp_token *token, uint64_t counter, uint32_t *out);
-
-#endif /* LIBRFC_H_ */

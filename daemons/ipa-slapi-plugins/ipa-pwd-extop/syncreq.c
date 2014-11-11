@@ -37,8 +37,7 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
-
-#include <libotp.h>
+#include "../libotp/otp_token.h"
 #include "syncreq.h"
 
 #define OTP_SYNC_MAX_STEPS 25
@@ -56,7 +55,7 @@ bool sync_request_present(Slapi_PBlock *pb)
 bool sync_request_handle(Slapi_ComponentId *plugin_id, Slapi_PBlock *pb,
                          const char *user_dn)
 {
-    struct otptoken **tokens = NULL;
+    struct otp_token **tokens = NULL;
     LDAPControl **controls = NULL;
     struct berval *second = NULL;
     struct berval *first = NULL;
@@ -91,10 +90,10 @@ bool sync_request_handle(Slapi_ComponentId *plugin_id, Slapi_PBlock *pb,
         /* Process the synchronization. */
         success = false;
         if (ber_scanf(ber, "}") != LBER_ERROR) {
-            tokens = otptoken_find(plugin_id, user_dn, token_dn, true, NULL);
+            tokens = otp_token_find(plugin_id, user_dn, token_dn, true, NULL);
             if (tokens != NULL) {
-                success = otptoken_sync_berval(tokens, OTP_SYNC_MAX_STEPS, first, second);
-                otptoken_free_array(tokens);
+                success = otp_token_sync_berval(tokens, OTP_SYNC_MAX_STEPS, first, second);
+                otp_token_free_array(tokens);
             }
         }
 

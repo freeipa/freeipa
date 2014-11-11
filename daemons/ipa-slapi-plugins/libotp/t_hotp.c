@@ -37,7 +37,7 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
-#include "librfc.h"
+#include "hotp.h"
 
 #include <assert.h>
 #include <stddef.h>
