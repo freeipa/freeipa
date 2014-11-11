@@ -37,46 +37,29 @@
  * All rights reserved.
  * END COPYRIGHT BLOCK **/
 
-
-#ifndef AUTHCFG_H_
-#define AUTHCFG_H_
+#pragma once
 
 #include <dirsrv/slapi-plugin.h>
-#include <stdbool.h>
 
-#define AUTHCFG_AUTH_TYPE_NONE     0
-#define AUTHCFG_AUTH_TYPE_DISABLED 1
-#define AUTHCFG_AUTH_TYPE_PASSWORD 2
-#define AUTHCFG_AUTH_TYPE_OTP      4
-#define AUTHCFG_AUTH_TYPE_PKINIT   8
-#define AUTHCFG_AUTH_TYPE_RADIUS   16
+#define OTP_CONFIG_AUTH_TYPE_NONE     0
+#define OTP_CONFIG_AUTH_TYPE_PASSWORD (1 << 0)
+#define OTP_CONFIG_AUTH_TYPE_OTP      (1 << 1)
+#define OTP_CONFIG_AUTH_TYPE_PKINIT   (1 << 2)
+#define OTP_CONFIG_AUTH_TYPE_RADIUS   (1 << 3)
 
-/* Initialize authentication configuration.
- *
- * Thread Safety: NO
- */
-bool authcfg_init(void);
+struct otp_config;
 
-/* Free global authentication configuration resources.
- *
- * Thread Safety: NO
- */
-void authcfg_fini(void);
+struct otp_config *otp_config_init(Slapi_ComponentId *plugin_id);
+
+void otp_config_fini(struct otp_config **cfg);
+
+void otp_config_update(struct otp_config *cfg, Slapi_PBlock *pb);
+
+Slapi_ComponentId *otp_config_plugin_id(const struct otp_config *cfg);
 
 /* Gets the permitted authentication types for the given user entry.
  *
  * The entry should be queried for the "ipaUserAuthType" attribute.
- *
- * Thread Safety: YES
  */
-uint32_t authcfg_get_auth_types(Slapi_Entry *user_entry);
-
-/* Reloads configuration from the specified global config entry.
- *
- * If the provided entry isn't a global config entry, this is a no-op.
- *
- * Thread Safety: YES
- */
-void authcfg_reload_global_config(Slapi_DN *sdn, Slapi_Entry *config_entry);
-
-#endif /* AUTHCFG_H_ */
+uint32_t otp_config_auth_types(const struct otp_config *cfg,
+                               Slapi_Entry *user_entry);

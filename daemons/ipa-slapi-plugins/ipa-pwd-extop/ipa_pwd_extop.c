@@ -39,7 +39,7 @@
 
 #include "ipapwd.h"
 #include "util.h"
-#include "authcfg.h"
+#include "../libotp/otp_config.h"
 #include "ipa_asn1.h"
 
 /*
@@ -88,6 +88,8 @@ Slapi_PluginDesc ipapwd_plugin_desc = {
 
 void *ipapwd_plugin_id;
 static int usetxn = 0;
+
+extern struct otp_config *otp_config;
 
 void *ipapwd_get_plugin_id(void)
 {
@@ -1792,16 +1794,6 @@ static int ipapwd_start( Slapi_PBlock *pb )
     Slapi_Entry *config_entry = NULL;
     int ret;
 
-    /* NOTE: We never call authcfg_fini() from a destructor. This is because
-     *       it may race with threaded requests at shutdown. This leak should
-     *       only occur when the DS is exiting, so it isn't a big deal.
-     */
-    if (!authcfg_init()) {
-        LOG_FATAL("AuthConf initialization failed!\n");
-        ret = LDAP_OPERATIONS_ERROR;
-        goto done;
-    }
-
     krberr = krb5_init_context(&krbctx);
     if (krberr) {
         LOG_FATAL("krb5_init_context failed\n");
@@ -1871,11 +1863,16 @@ static int ipapwd_start( Slapi_PBlock *pb )
 
     ret = LDAP_SUCCESS;
 
+    /* NOTE: We never call otp_config_fini() from a destructor. This is because
+     *       it may race with threaded requests at shutdown. This leak should
+     *       only occur when the DS is exiting, so it isn't a big deal.
+     */
+    otp_config = otp_config_init(ipapwd_plugin_id);
+
 done:
     free(realm);
     krb5_free_context(krbctx);
     if (config_entry) slapi_entry_free(config_entry);
-    if (ret != LDAP_SUCCESS) authcfg_fini();
     return ret;
 }
 

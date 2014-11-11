@@ -41,7 +41,7 @@
 #ifndef SYNCREQ_H_
 #define SYNCREQ_H_
 
-#include <dirsrv/slapi-plugin.h>
+#include "../libotp/otp_config.h"
 #include <stdbool.h>
 
 /*
@@ -57,7 +57,7 @@
 
 bool sync_request_present(Slapi_PBlock *pb);
 
-bool sync_request_handle(Slapi_ComponentId *plugin_id, Slapi_PBlock *pb,
+bool sync_request_handle(const struct otp_config *cfg, Slapi_PBlock *pb,
                          const char *user_dn);
 
 #endif /* SYNCREQ_H_ */
