@@ -60,7 +60,6 @@ def dnssec_container_exists(fqdn, suffix, dm_password=None, ldapi=False,
 
     return ret
 
-
 class DNSKeySyncInstance(service.Service):
     def __init__(self, fstore=None, dm_password=None, logger=root_logger,
                  ldapi=False):
@@ -83,6 +82,23 @@ class DNSKeySyncInstance(service.Service):
             self.fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     suffix = ipautil.dn_attribute_property('_suffix')
+
+    def set_dyndb_ldap_workdir_permissions(self):
+        """
+        Setting up correct permissions to allow write/read access for daemons
+        """
+        if self.named_uid is None:
+            self.named_uid = self.__get_named_uid()
+
+        if self.named_gid is None:
+            self.named_gid = self.__get_named_gid()
+
+        if not os.path.exists(paths.BIND_LDAP_DNS_IPA_WORKDIR):
+            os.mkdir(paths.BIND_LDAP_DNS_IPA_WORKDIR, 0770)
+        # dnssec daemons require to have access into the directory
+        os.chmod(paths.BIND_LDAP_DNS_IPA_WORKDIR, 0770)
+        os.chown(paths.BIND_LDAP_DNS_IPA_WORKDIR, self.named_uid,
+                 self.named_gid)
 
     def remove_replica_public_keys(self, replica_fqdn):
         ldap = api.Backend.ldap2
@@ -119,6 +135,8 @@ class DNSKeySyncInstance(service.Service):
         self.ldap_connect()
         # checking status step must be first
         self.step("checking status", self.__check_dnssec_status)
+        self.step("setting up bind-dyndb-ldap working directory",
+                  self.set_dyndb_ldap_workdir_permissions)
         self.step("setting up kerberos principal", self.__setup_principal)
         self.step("setting up SoftHSM", self.__setup_softhsm)
         self.step("adding DNSSEC containers", self.__setup_dnssec_containers)
@@ -127,19 +145,25 @@ class DNSKeySyncInstance(service.Service):
         # we need restart named after setting up this service
         self.start_creation()
 
-    def __check_dnssec_status(self):
+    def __get_named_uid(self):
         named = services.knownservices.named
-        ods_enforcerd = services.knownservices.ods_enforcerd
-
         try:
-            self.named_uid = pwd.getpwnam(named.get_user_name()).pw_uid
+            return pwd.getpwnam(named.get_user_name()).pw_uid
         except KeyError:
             raise RuntimeError("Named UID not found")
 
+    def __get_named_gid(self):
+        named = services.knownservices.named
         try:
-            self.named_gid = grp.getgrnam(named.get_group_name()).gr_gid
+            return grp.getgrnam(named.get_group_name()).gr_gid
         except KeyError:
             raise RuntimeError("Named GID not found")
+
+    def __check_dnssec_status(self):
+        ods_enforcerd = services.knownservices.ods_enforcerd
+
+        self.named_uid = self.__get_named_uid()
+        self.named_gid = self.__get_named_gid()
 
         try:
             self.ods_uid = pwd.getpwnam(ods_enforcerd.get_user_name()).pw_uid

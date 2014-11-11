@@ -190,6 +190,7 @@ class BasePathNamespace(object):
     BIN_WGET = "/usr/bin/wget"
     ZIP = "/usr/bin/zip"
     BIND_LDAP_SO = "/usr/lib/bind/ldap.so"
+    BIND_LDAP_DNS_IPA_WORKDIR = "/var/named/dyndb-ldap/ipa/"
     BIND_LDAP_DNS_ZONE_WORKDIR = "/var/named/dyndb-ldap/ipa/master/"
     USR_LIB_DIRSRV = "/usr/lib/dirsrv"
     USR_LIB_SLAPD_INSTANCE_TEMPLATE = "/usr/lib/dirsrv/slapd-%s"

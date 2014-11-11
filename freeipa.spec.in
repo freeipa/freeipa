@@ -428,7 +428,6 @@ mkdir -p %{buildroot}%{_usr}/share/ipa/html/
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/preferences.html
 mkdir -p %{buildroot}%{_initrddir}
 mkdir %{buildroot}%{_sysconfdir}/sysconfig/
-mkdir -p %{buildroot}%{_localstatedir}/named/dyndb-ldap/ipa/
 install -m 644 init/ipa_memcached.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa_memcached
 install -m 644 init/ipa-dnskeysyncd.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa-dnskeysyncd
 install -m 644 init/ipa-ods-exporter.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa-ods-exporter
@@ -669,7 +668,6 @@ fi
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-ods-exporter
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
 %dir %attr(0700,root,root) %{_localstatedir}/run/ipa/
-%dir %attr(0770,named,named) %{_localstatedir}/named/dyndb-ldap/ipa/
 # NOTE: systemd specific section
 %{_tmpfilesdir}/%{name}.conf
 %attr(644,root,root) %{_unitdir}/ipa.service
@@ -783,6 +781,7 @@ fi
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysupgrade
 %attr(755,root,root) %dir %{_localstatedir}/lib/ipa/pki-ca
 %ghost %{_localstatedir}/lib/ipa/pki-ca/publish
+%ghost %{_localstatedir}/named/dyndb-ldap/ipa
 %attr(755,root,root) %{_libdir}/krb5/plugins/kdb/ipadb.so
 %{_mandir}/man1/ipa-replica-conncheck.1.gz
 %{_mandir}/man1/ipa-replica-install.1.gz
