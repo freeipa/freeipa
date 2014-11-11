@@ -187,8 +187,7 @@ class SystemdService(PlatformService):
         elements = self.systemd_name.split("@")
 
         # Make sure the correct DS instance is returned
-        if (elements[0] == 'dirsrv' and not instance_name and
-            operation == 'is-active'):
+        if elements[0] == 'dirsrv' and not instance_name:
 
             return ('dirsrv@%s.service'
                     % str(self.api.env.realm.replace('.', '-')))
