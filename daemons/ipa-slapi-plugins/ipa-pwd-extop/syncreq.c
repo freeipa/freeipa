@@ -52,7 +52,7 @@ bool sync_request_present(Slapi_PBlock *pb)
     return ldap_control_find(OTP_SYNC_REQUEST_OID, controls, NULL) != NULL;
 }
 
-bool sync_request_handle(Slapi_ComponentId *plugin_id, Slapi_PBlock *pb,
+bool sync_request_handle(const struct otp_config *cfg, Slapi_PBlock *pb,
                          const char *user_dn)
 {
     struct otp_token **tokens = NULL;
@@ -90,7 +90,7 @@ bool sync_request_handle(Slapi_ComponentId *plugin_id, Slapi_PBlock *pb,
         /* Process the synchronization. */
         success = false;
         if (ber_scanf(ber, "}") != LBER_ERROR) {
-            tokens = otp_token_find(plugin_id, user_dn, token_dn, true, NULL);
+            tokens = otp_token_find(cfg, user_dn, token_dn, true, NULL);
             if (tokens != NULL) {
                 success = otp_token_sync_berval(tokens, OTP_SYNC_MAX_STEPS, first, second);
                 otp_token_free_array(tokens);

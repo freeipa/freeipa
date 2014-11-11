@@ -63,7 +63,6 @@
 #include "ipapwd.h"
 #include "util.h"
 #include "syncreq.h"
-#include "authcfg.h"
 
 #define IPAPWD_OP_NULL 0
 #define IPAPWD_OP_ADD 1
@@ -74,6 +73,8 @@
 extern Slapi_PluginDesc ipapwd_plugin_desc;
 extern void *ipapwd_plugin_id;
 extern const char *ipa_realm_tree;
+
+struct otp_config *otp_config = NULL;
 
 /* structure with information for each extension */
 struct ipapwd_op_ext {
@@ -967,23 +968,9 @@ static int ipapwd_regen_nthash(Slapi_PBlock *pb, Slapi_Mods *smods,
     return ret;
 }
 
-static int ipapwd_post_authcfg(Slapi_PBlock *pb)
+static int ipapwd_post_updatecfg(Slapi_PBlock *pb)
 {
-    Slapi_Entry *config_entry = NULL;
-    Slapi_DN *sdn = NULL;
-    int oprc = 0;
-
-    /* Just bail if the operation failed. */
-    if (slapi_pblock_get(pb, SLAPI_PLUGIN_OPRETURN, &oprc) != 0 || oprc != 0)
-        return 0;
-
-    if (slapi_pblock_get(pb, SLAPI_TARGET_SDN, &sdn) != 0)
-        return 0;
-
-    /* Ignore the error here (delete operations). */
-    slapi_pblock_get(pb, SLAPI_ENTRY_POST_OP, &config_entry);
-
-    authcfg_reload_global_config(sdn, config_entry);
+    otp_config_update(otp_config, pb);
     return 0;
 }
 
@@ -1003,8 +990,7 @@ static int ipapwd_post_modadd(Slapi_PBlock *pb)
 
     LOG_TRACE("=>\n");
 
-    /* Ignore error when parsing configuration. */
-    ipapwd_post_authcfg(pb);
+    otp_config_update(otp_config, pb);
 
     /* time to get the operation handler */
     ret = slapi_pblock_get(pb, SLAPI_OPERATION, &op);
@@ -1144,7 +1130,7 @@ static bool ipapwd_do_otp_auth(const char *dn, Slapi_Entry *bind_entry,
     bool success = false;
 
     /* Find all of the user's active tokens. */
-    tokens = otp_token_find(ipapwd_plugin_id, dn, NULL, true, NULL);
+    tokens = otp_token_find(otp_config, dn, NULL, true, NULL);
     if (tokens == NULL) {
         slapi_log_error(SLAPI_LOG_FATAL, IPAPWD_PLUGIN_NAME,
                         "%s: can't find tokens for '%s'.\n", __func__, dn);
@@ -1190,11 +1176,7 @@ static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
     uint32_t auth_types;
 
     /* Get the configured authentication types. */
-    auth_types = authcfg_get_auth_types(entry);
-
-    /* If global disabled flag is set, just punt. */
-    if (auth_types & AUTHCFG_AUTH_TYPE_DISABLED)
-        return true;
+    auth_types = otp_config_auth_types(otp_config, entry);
 
     /*
      * IMPORTANT SECTION!
@@ -1206,14 +1188,14 @@ static bool ipapwd_pre_bind_otp(const char *bind_dn, Slapi_Entry *entry,
      * 2. If PWD is enabled or OTP succeeded, fall through to PWD validation.
      */
 
-    if (auth_types & AUTHCFG_AUTH_TYPE_OTP) {
+    if (auth_types & OTP_CONFIG_AUTH_TYPE_OTP) {
         LOG_PLUGIN_NAME(IPAPWD_PLUGIN_NAME,
                         "Attempting OTP authentication for '%s'.\n", bind_dn);
         if (ipapwd_do_otp_auth(bind_dn, entry, creds))
             return true;
     }
 
-    return auth_types & AUTHCFG_AUTH_TYPE_PASSWORD;
+    return auth_types & OTP_CONFIG_AUTH_TYPE_PASSWORD;
 }
 
 static int ipapwd_authenticate(const char *dn, Slapi_Entry *entry,
@@ -1461,7 +1443,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     }
 
     /* Attempt to handle a token synchronization request. */
-    if (syncreq && !sync_request_handle(ipapwd_get_plugin_id(), pb, dn))
+    if (syncreq && !sync_request_handle(otp_config, pb, dn))
         goto invalid_creds;
 
     /* Attempt to write out kerberos keys for the user. */
@@ -1513,9 +1495,9 @@ int ipapwd_post_init(Slapi_PBlock *pb)
     ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&ipapwd_plugin_desc);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_ADD_FN, (void *)ipapwd_post_modadd);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_DELETE_FN, (void *)ipapwd_post_authcfg);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_DELETE_FN, (void *)ipapwd_post_updatecfg);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODIFY_FN, (void *)ipapwd_post_modadd);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODRDN_FN, (void *)ipapwd_post_authcfg);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODRDN_FN, (void *)ipapwd_post_updatecfg);
 
     return ret;
 }
@@ -1526,10 +1508,10 @@ int ipapwd_intpost_init(Slapi_PBlock *pb)
 
     ret = slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_03);
     if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *)&ipapwd_plugin_desc);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_ADD_FN, (void *)ipapwd_post_authcfg);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_DELETE_FN, (void *)ipapwd_post_authcfg);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_MODIFY_FN, (void *)ipapwd_post_authcfg);
-    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_MODRDN_FN, (void *)ipapwd_post_authcfg);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_ADD_FN, (void *)ipapwd_post_updatecfg);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_DELETE_FN, (void *)ipapwd_post_updatecfg);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_MODIFY_FN, (void *)ipapwd_post_updatecfg);
+    if (!ret) ret = slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_MODRDN_FN, (void *)ipapwd_post_updatecfg);
     return ret;
 }
 

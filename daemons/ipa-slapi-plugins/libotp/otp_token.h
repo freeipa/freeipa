@@ -39,14 +39,15 @@
 
 #pragma once
 
-#include <dirsrv/slapi-plugin.h>
+#include "otp_config.h"
 #include <stdbool.h>
 #include <stdlib.h>
 
 struct otp_token;
 
 /* Frees the token array. */
-void otp_token_free_array(struct otp_token **tokens);
+void
+otp_token_free_array(struct otp_token **tokens);
 
 /* Find tokens.
  *
@@ -65,9 +66,9 @@ void otp_token_free_array(struct otp_token **tokens);
  * Returns NULL on error. If no tokens are found, an empty array is returned.
  * The array is NULL terminated.
  */
-struct otp_token **otp_token_find(Slapi_ComponentId *id, const char *user_dn,
-                                  const char *token_dn, bool active,
-                                  const char *filter);
+struct otp_token **otp_token_find(const struct otp_config *cfg,
+                                  const char *user_dn, const char *token_dn,
+                                  bool active, const char *filter);
 
 /* Get the length of the token code. */
 int otp_token_get_digits(struct otp_token *token);

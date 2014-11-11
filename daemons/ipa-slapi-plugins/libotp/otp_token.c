@@ -59,7 +59,7 @@ enum type {
 };
 
 struct otp_token {
-    Slapi_ComponentId *plugin_id;
+    const struct otp_config *cfg;
     Slapi_DN *sdn;
     struct hotp_token token;
     enum type type;
@@ -74,21 +74,6 @@ struct otp_token {
         } hotp;
     };
 };
-
-static const char *get_basedn(Slapi_DN *dn)
-{
-    Slapi_DN *suffix = NULL;
-    void *node = NULL;
-
-    for (suffix = slapi_get_first_suffix(&node, 0);
-         suffix != NULL;
-         suffix = slapi_get_next_suffix(&node, 0)) {
-        if (slapi_sdn_issuffix(dn, suffix))
-            return (char *) slapi_sdn_get_dn(suffix);
-    }
-
-    return NULL;
-}
 
 static inline bool is_algo_valid(const char *algo)
 {
@@ -142,8 +127,8 @@ static bool writeattr(const struct otp_token *token, const char *attr,
     snprintf(value, sizeof(value), "%lld", val);
 
     pb = slapi_pblock_new();
-    slapi_modify_internal_set_pb(pb, slapi_sdn_get_dn(token->sdn),
-                                 mods, NULL, NULL, token->plugin_id, 0);
+    slapi_modify_internal_set_pb(pb, slapi_sdn_get_dn(token->sdn), mods, NULL,
+                                 NULL, otp_config_plugin_id(token->cfg), 0);
     if (slapi_modify_internal_pb(pb) != 0)
         goto error;
     if (slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &ret) != 0)
@@ -251,7 +236,7 @@ void otp_token_free_array(struct otp_token **tokens)
     free(tokens);
 }
 
-static struct otp_token *otp_token_new(Slapi_ComponentId *id,
+static struct otp_token *otp_token_new(const struct otp_config *cfg,
                                        Slapi_Entry *entry)
 {
     const struct berval *tmp;
@@ -261,7 +246,7 @@ static struct otp_token *otp_token_new(Slapi_ComponentId *id,
     token = calloc(1, sizeof(struct otp_token));
     if (token == NULL)
         return NULL;
-    token->plugin_id = id;
+    token->cfg = cfg;
 
     /* Get the token type. */
     vals = slapi_entry_attr_get_charray(entry, "objectClass");
@@ -333,16 +318,16 @@ error:
     return NULL;
 }
 
-static struct otp_token **find(Slapi_ComponentId *id, const char *user_dn,
+static struct otp_token **find(const struct otp_config *cfg, const char *user_dn,
                                const char *token_dn, const char *intfilter,
                                const char *extfilter)
 {
     struct otp_token **tokens = NULL;
+    const Slapi_DN *basedn = NULL;
     Slapi_Entry **entries = NULL;
     Slapi_PBlock *pb = NULL;
     Slapi_DN *sdn = NULL;
     char *filter = NULL;
-    const char *basedn = NULL;
     size_t count = 0;
     int result = -1;
 
@@ -367,20 +352,19 @@ static struct otp_token **find(Slapi_ComponentId *id, const char *user_dn,
     if (token_dn != NULL) {
         /* Find only the token specified. */
         slapi_search_internal_set_pb(pb, token_dn, LDAP_SCOPE_BASE, filter,
-                                     NULL, 0, NULL, NULL, id, 0);
+                                     NULL, 0, NULL, NULL,
+                                     otp_config_plugin_id(cfg), 0);
     } else {
         sdn = slapi_sdn_new_dn_byval(user_dn);
-        if (sdn == NULL)
-            goto error;
-
-        basedn = get_basedn(sdn);
+        basedn = slapi_get_suffix_by_dn(sdn);
+        slapi_sdn_free(&sdn);
         if (basedn == NULL)
             goto error;
 
         /* Find all user tokens. */
-        slapi_search_internal_set_pb(pb, basedn,
-                                     LDAP_SCOPE_SUBTREE, filter, NULL,
-                                     0, NULL, NULL, id, 0);
+        slapi_search_internal_set_pb(pb, slapi_sdn_get_dn(basedn),
+                                     LDAP_SCOPE_SUBTREE, filter, NULL, 0,
+                                     NULL, NULL, otp_config_plugin_id(cfg), 0);
     }
     slapi_search_internal_pb(pb);
     slapi_ch_free_string(&filter);
@@ -402,7 +386,7 @@ static struct otp_token **find(Slapi_ComponentId *id, const char *user_dn,
     if (tokens == NULL)
         goto error;
     for (count = 0; entries[count] != NULL; count++) {
-        tokens[count] = otp_token_new(id, entries[count]);
+        tokens[count] = otp_token_new(cfg, entries[count]);
         if (tokens[count] == NULL) {
             otp_token_free_array(tokens);
             tokens = NULL;
@@ -411,15 +395,13 @@ static struct otp_token **find(Slapi_ComponentId *id, const char *user_dn,
     }
 
 error:
-    if (sdn != NULL)
-        slapi_sdn_free(&sdn);
     slapi_pblock_destroy(pb);
     return tokens;
 }
 
-struct otp_token **
-otp_token_find(Slapi_ComponentId *id, const char *user_dn, const char *token_dn,
-               bool active, const char *filter)
+struct otp_token **otp_token_find(const struct otp_config *cfg,
+                                  const char *user_dn, const char *token_dn,
+                                  bool active, const char *filter)
 {
     static const char template[] =
     "(|(ipatokenNotBefore<=%04d%02d%02d%02d%02d%02dZ)(!(ipatokenNotBefore=*)))"
@@ -430,7 +412,7 @@ otp_token_find(Slapi_ComponentId *id, const char *user_dn, const char *token_dn,
     time_t now;
 
     if (!active)
-        return find(id, user_dn, token_dn, NULL, filter);
+        return find(cfg, user_dn, token_dn, NULL, filter);
 
     /* Get the current time. */
     if (time(&now) == (time_t) -1)
@@ -446,7 +428,7 @@ otp_token_find(Slapi_ComponentId *id, const char *user_dn, const char *token_dn,
                  tm.tm_hour, tm.tm_min, tm.tm_sec) < 0)
         return NULL;
 
-    return find(id, user_dn, token_dn, actfilt, filter);
+    return find(cfg, user_dn, token_dn, actfilt, filter);
 }
 
 int otp_token_get_digits(struct otp_token *token)

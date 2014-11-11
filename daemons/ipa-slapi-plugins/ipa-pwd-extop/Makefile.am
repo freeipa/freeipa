@@ -44,7 +44,6 @@ libipa_pwd_extop_la_LIBADD  = \
 	$(ASN1_UTIL_DIR)/libipaasn1.la  \
 	$(NULL)
 libipa_pwd_extop_la_SOURCES = 		\
-	authcfg.c			\
 	common.c			\
 	encoding.c			\
 	prepost.c			\
