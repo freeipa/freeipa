@@ -46,112 +46,171 @@
 
 #include "util.h"
 
-#define PLUGIN_NAME               "ipa-otp-lasttoken"
+#define PLUGIN_NAME "ipa-otp-lasttoken"
+#define OTP_CONTAINER "cn=otp,%s"
 
-static void *plugin_id;
-static const Slapi_PluginDesc preop_desc = {
-    PLUGIN_NAME,
-    "FreeIPA",
-    "FreeIPA/1.0",
-    "Protect the user's last active token"
-};
+static struct otp_config *otp_config;
 
-static bool
-target_is_only_enabled_token(Slapi_PBlock *pb)
+static bool entry_is_token(Slapi_Entry *entry)
+{
+    char **ocls;
+
+    ocls = slapi_entry_attr_get_charray(entry, SLAPI_ATTR_OBJECTCLASS);
+    for (size_t i = 0; ocls != NULL && ocls[i] != NULL; i++) {
+        if (strcasecmp(ocls[i], "ipaToken") == 0) {
+            slapi_ch_array_free(ocls);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool sdn_in_otp_container(Slapi_DN *sdn)
+{
+    const Slapi_DN *base;
+    Slapi_DN *container;
+    bool result;
+    char *dn;
+
+    base = slapi_get_suffix_by_dn(sdn);
+    if (base == NULL)
+        return false;
+
+    dn = slapi_ch_smprintf(OTP_CONTAINER, slapi_sdn_get_dn(base));
+    if (dn == NULL)
+        return false;
+
+    container = slapi_sdn_new_dn_passin(dn);
+    result = slapi_sdn_issuffix(sdn, container);
+    slapi_sdn_free(&container);
+
+    return result;
+}
+
+static bool sdn_is_only_enabled_token(Slapi_DN *target_sdn, const char *user_dn)
+{
+    struct otp_token **tokens;
+    bool result = false;
+
+    tokens = otp_token_find(otp_config, user_dn, NULL, true, NULL);
+
+    if (tokens != NULL && tokens[0] != NULL && tokens[1] == NULL) {
+        const Slapi_DN *token_sdn = otp_token_get_sdn(tokens[0]);
+        if (token_sdn != NULL)
+            result = slapi_sdn_compare(token_sdn, target_sdn) == 0;
+    }
+
+    otp_token_free_array(tokens);
+    return result;
+}
+
+static bool is_pwd_enabled(const char *user_dn)
+{
+    char *attrs[] = { "ipaUserAuthType", NULL };
+    Slapi_Entry *entry = NULL;
+    uint32_t authtypes;
+    Slapi_DN *sdn;
+
+    sdn = slapi_sdn_new_dn_byval(user_dn);
+    if (sdn == NULL)
+        return false;
+
+    slapi_search_internal_get_entry(sdn, attrs, &entry,
+                                    otp_config_plugin_id(otp_config));
+    slapi_sdn_free(&sdn);
+    if (entry == NULL)
+        return false;
+
+    authtypes = otp_config_auth_types(otp_config, entry);
+    slapi_entry_free(entry);
+
+    return authtypes & OTP_CONFIG_AUTH_TYPE_PASSWORD;
+}
+
+static bool is_allowed(Slapi_PBlock *pb, Slapi_Entry *entry)
 {
     Slapi_DN *target_sdn = NULL;
-    Slapi_DN *token_sdn = NULL;
-    struct otp_token **tokens;
-    char *user_dn = NULL;
-    bool match;
+    const char *bind_dn;
 
     /* Ignore internal operations. */
     if (slapi_op_internal(pb))
-        return false;
+        return true;
 
-    /* Get the current user's SDN. */
-    slapi_pblock_get(pb, SLAPI_CONN_DN, &user_dn);
-    if (user_dn == NULL)
-        return false;
-
-    /* Get the SDN of the only enabled token. */
-    tokens = otp_token_find(plugin_id, user_dn, NULL, true, NULL);
-    if (tokens != NULL && tokens[0] != NULL && tokens[1] == NULL)
-        token_sdn = slapi_sdn_dup(otp_token_get_sdn(tokens[0]));
-    otp_token_free_array(tokens);
-    if (token_sdn == NULL)
-        return false;
-
-    /* Get the target SDN. */
-    slapi_pblock_get(pb, SLAPI_TARGET_SDN, &target_sdn);
-    if (target_sdn == NULL) {
-        slapi_sdn_free(&token_sdn);
+    /* Load parameters. */
+    (void) slapi_pblock_get(pb, SLAPI_TARGET_SDN, &target_sdn);
+    (void) slapi_pblock_get(pb, SLAPI_CONN_DN, &bind_dn);
+    if (target_sdn == NULL || bind_dn == NULL) {
+        LOG_FATAL("Missing parameters!\n");
         return false;
     }
 
-    /* Does the target SDN match the only enabled token SDN? */
-    match = slapi_sdn_compare(token_sdn, target_sdn) == 0;
-    slapi_sdn_free(&token_sdn);
-    return match;
+    if (entry != NULL
+            ? !entry_is_token(entry)
+            : !sdn_in_otp_container(target_sdn))
+        return true;
+
+    if (!sdn_is_only_enabled_token(target_sdn, bind_dn))
+        return true;
+
+    if (is_pwd_enabled(bind_dn))
+        return true;
+
+    return false;
 }
 
-static inline int
-send_error(Slapi_PBlock *pb, int rc, char *errstr)
+static inline int send_error(Slapi_PBlock *pb, int rc, const char *errstr)
 {
-    slapi_send_ldap_result(pb, rc, NULL, errstr, 0, NULL);
+    slapi_send_ldap_result(pb, rc, NULL, (char *) errstr, 0, NULL);
     if (slapi_pblock_set(pb, SLAPI_RESULT_CODE, &rc)) {
         LOG_FATAL("slapi_pblock_set failed!\n");
     }
     return rc;
 }
 
-static int
-preop_del(Slapi_PBlock *pb)
+static int preop_del(Slapi_PBlock *pb)
 {
-    if (!target_is_only_enabled_token(pb))
+    if (is_allowed(pb, NULL))
         return 0;
 
     return send_error(pb, LDAP_UNWILLING_TO_PERFORM,
                       "Can't delete last active token");
 }
 
-static int
-preop_mod(Slapi_PBlock *pb)
+static int preop_mod(Slapi_PBlock *pb)
 {
-    LDAPMod **mods = NULL;
+    static const struct {
+        const char *attr;
+        const char *msg;
+    } errors[] = {
+        {"ipatokenDisabled",  "Can't disable last active token"},
+        {"ipatokenOwner",     "Can't change last active token's owner"},
+        {"ipatokenNotBefore", "Can't change last active token's start time"},
+        {"ipatokenNotAfter",  "Can't change last active token's end time"},
+        {}
+    };
 
-    if (!target_is_only_enabled_token(pb))
+    const LDAPMod **mods = NULL;
+    Slapi_Entry *entry = NULL;
+
+    (void) slapi_pblock_get(pb, SLAPI_ENTRY_PRE_OP, &entry);
+    (void) slapi_pblock_get(pb, SLAPI_MODIFY_MODS, &mods);
+
+    if (is_allowed(pb, entry))
         return 0;
 
-    /* Do not permit deactivation of the last active token. */
-    slapi_pblock_get(pb, SLAPI_MODIFY_MODS, &mods);
+    /* If a protected attribute is modified, deny. */
     for (int i = 0; mods != NULL && mods[i] != NULL; i++) {
-        if (strcasecmp(mods[i]->mod_type, "ipatokenDisabled") == 0) {
-            return send_error(pb, LDAP_UNWILLING_TO_PERFORM,
-                              "Can't disable last active token");
-        }
-
-        if (strcasecmp(mods[i]->mod_type, "ipatokenOwner") == 0) {
-            return send_error(pb, LDAP_UNWILLING_TO_PERFORM,
-                              "Can't change last active token's owner");
-        }
-
-        if (strcasecmp(mods[i]->mod_type, "ipatokenNotBefore") == 0) {
-            return send_error(pb, LDAP_UNWILLING_TO_PERFORM,
-                              "Can't change last active token's start time");
-        }
-
-        if (strcasecmp(mods[i]->mod_type, "ipatokenNotAfter") == 0) {
-            return send_error(pb, LDAP_UNWILLING_TO_PERFORM,
-                              "Can't change last active token's end time");
+        for (int j = 0; errors[j].attr != NULL; j++) {
+            if (strcasecmp(mods[i]->mod_type, errors[j].attr) == 0)
+                return send_error(pb, LDAP_UNWILLING_TO_PERFORM, errors[j].msg);
         }
     }
 
     return 0;
 }
 
-static int
-preop_init(Slapi_PBlock *pb)
+static int preop_init(Slapi_PBlock *pb)
 {
     int ret = 0;
 
@@ -160,15 +219,59 @@ preop_init(Slapi_PBlock *pb)
     return ret;
 }
 
-int
-ipa_otp_lasttoken_init(Slapi_PBlock *pb)
+static int update_config(Slapi_PBlock *pb)
 {
+    otp_config_update(otp_config, pb);
+    return 0;
+}
+
+static int intpostop_init(Slapi_PBlock *pb)
+{
+    int ret = 0;
+
+    ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_ADD_FN,    (void *) update_config);
+    ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_DELETE_FN, (void *) update_config);
+    ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_MODIFY_FN, (void *) update_config);
+    ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_INTERNAL_POST_MODRDN_FN, (void *) update_config);
+
+    return ret;
+}
+
+static int postop_init(Slapi_PBlock *pb)
+{
+    int ret = 0;
+
+    ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_POST_ADD_FN,    (void *) update_config);
+    ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_POST_DELETE_FN, (void *) update_config);
+    ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODIFY_FN, (void *) update_config);
+    ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_POST_MODRDN_FN, (void *) update_config);
+
+    return ret;
+}
+
+int ipa_otp_lasttoken_init(Slapi_PBlock *pb)
+{
+    static const Slapi_PluginDesc preop_desc = {
+        PLUGIN_NAME,
+        "FreeIPA",
+        "FreeIPA/1.0",
+        "Protect the user's last active token"
+    };
+
+    Slapi_ComponentId *plugin_id = NULL;
     int ret = 0;
 
     ret |= slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY, &plugin_id);
     ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_VERSION, SLAPI_PLUGIN_VERSION_01);
     ret |= slapi_pblock_set(pb, SLAPI_PLUGIN_DESCRIPTION, (void *) &preop_desc);
     ret |= slapi_register_plugin("betxnpreoperation", 1, __func__, preop_init,
-                                 PLUGIN_NAME, NULL, plugin_id);
+                                 PLUGIN_NAME " betxnpreoperation", NULL, plugin_id);
+    ret |= slapi_register_plugin("postoperation", 1, __func__, postop_init,
+                                 PLUGIN_NAME " postoperation", NULL, plugin_id);
+    ret |= slapi_register_plugin("internalpostoperation", 1, __func__, intpostop_init,
+                                 PLUGIN_NAME " internalpostoperation", NULL, plugin_id);
+
+    /* NOTE: leak otp_config on process exit. */
+    otp_config = otp_config_init(plugin_id);
     return ret;
 }
