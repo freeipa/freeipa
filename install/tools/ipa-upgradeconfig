@@ -30,6 +30,7 @@ import shutil
 import pwd
 import fileinput
 import ConfigParser
+import grp
 
 from ipalib import api
 import SSSDConfig
@@ -1161,6 +1162,18 @@ def mask_named_regular():
     return False
 
 
+def fix_dyndb_ldap_workdir_permissions():
+    """Fix dyndb-ldap working dir permissions. DNSSEC daemons requires it"""
+    if sysupgrade.get_upgrade_state('dns', 'dyndb_ipa_workdir_perm'):
+        return
+
+    if bindinstance.named_conf_exists():
+        root_logger.info('[Fix bind-dyndb-ldap IPA working directory]')
+        dnskeysync = dnskeysyncinstance.DNSKeySyncInstance()
+        dnskeysync.set_dyndb_ldap_workdir_permissions()
+
+    sysupgrade.set_upgrade_state('dns', 'dyndb_ipa_workdir_perm', True)
+
 
 def fix_schema_file_syntax():
     """Fix syntax errors in schema files
@@ -1433,6 +1446,7 @@ def main():
                           named_managed_keys_dir_option(),
                           named_root_key_include(),
                           mask_named_regular(),
+                          fix_dyndb_ldap_workdir_permissions(),
                          )
 
     if any(named_conf_changes):
