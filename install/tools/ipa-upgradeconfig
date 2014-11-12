@@ -1081,23 +1081,25 @@ def uninstall_selfsign(ds, http):
 def mask_named_regular():
     """Disable named, we need to run only named-pkcs11, running both named and
     named-pkcs can cause unexpected errors"""
-    if not sysupgrade.get_upgrade_state('dns', 'regular_named_masked'):
-        if bindinstance.named_conf_exists():
-            root_logger.info('[Masking named]')
-            named = services.service('named-regular')
-            try:
-                named.stop()
-            except Exception as e:
-                root_logger.warning('Unable to stop named service (%s)', e)
+    if sysupgrade.get_upgrade_state('dns', 'regular_named_masked'):
+        return False
 
-            try:
-                named.mask()
-            except Exception as e:
-                root_logger.warning('Unable to mask named service (%s)', e)
+    sysupgrade.set_upgrade_state('dns', 'regular_named_masked', True)
 
-            return True
+    if bindinstance.named_conf_exists():
+        root_logger.info('[Masking named]')
+        named = services.service('named-regular')
+        try:
+            named.stop()
+        except Exception as e:
+            root_logger.warning('Unable to stop named service (%s)', e)
 
-        sysupgrade.set_upgrade_state('dns', 'regular_named_masked', True)
+        try:
+            named.mask()
+        except Exception as e:
+            root_logger.warning('Unable to mask named service (%s)', e)
+
+        return True
 
     return False
 
