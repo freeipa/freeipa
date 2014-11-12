@@ -3818,6 +3818,7 @@ IPA.combobox_widget = function(spec) {
     that.list_on_keyup = function(e) {
         if (e.which === keys.ENTER || e.which === keys.SPACE) {
             e.stopPropagation();
+            that.list_on_change();
             that.close();
             IPA.select_range(that.input, 0, 0);
             return false;
