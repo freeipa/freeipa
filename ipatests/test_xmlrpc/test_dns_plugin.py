@@ -497,9 +497,12 @@ class test_dns(Declarative):
                     'objectclass': objectclasses.dnszone,
                 },
                 'messages': (
-                    {'message': u"semantic of '--name-server' option was changed: the option is used only for setting up"
-                                u" the SOA MNAME attribute.\nTo edit NS record(s) in zone apex, use command "
-                                u"'dnsrecord-mod [zone] @ --ns-rec=nameserver'.",
+                    {'message': u"Semantic of setting Authoritative nameserver "
+                                u"was changed. "
+                                u"It is used only for setting the SOA MNAME "
+                                u"attribute.\n"
+                                u"NS record(s) can be edited in zone "
+                                u"apex - '@'. ",
                      'code': 13005,
                      'type': u'warning',
                      'name': u'OptionSemanticChangedWarning'},

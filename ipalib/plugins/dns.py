@@ -2369,11 +2369,10 @@ class dnszone(DNSZoneBase):
             messages.add_message(
                 options['version'],
                 result, messages.OptionSemanticChangedWarning(
-                    option=u"--name-server",
-                    current_behavior=_(u"the option is used only for "
-                                       u"setting up the SOA MNAME attribute"),
-                    hint=_(u"To edit NS record(s) in zone apex, use command "
-                           u"'dnsrecord-mod [zone] @ --ns-rec=nameserver'.")
+                    label=_(u"setting Authoritative nameserver"),
+                    current_behavior=_(u"It is used only for setting the "
+                                       u"SOA MNAME attribute."),
+                    hint=_(u"NS record(s) can be edited in zone apex - '@'. ")
                 )
             )
 
