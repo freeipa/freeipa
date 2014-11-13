@@ -175,8 +175,8 @@ class OptionSemanticChangedWarning(PublicMessage):
 
     errno = 13005
     type = "warning"
-    format = _(u"semantic of '%(option)s' option was changed: "
-               u"%(current_behavior)s.\n%(hint)s")
+    format = _(u"Semantic of %(label)s was changed. %(current_behavior)s\n"
+               u"%(hint)s")
 
 
 class DNSServerNotRespondingWarning(PublicMessage):
