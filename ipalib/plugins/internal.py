@@ -195,6 +195,7 @@ class i18n_messages(Command):
             "type_otp": _("Two factor authentication (password + OTP)"),
             "type_password": _("Password"),
             "type_radius": _("Radius"),
+            "type_disabled": _("Disable per-user override"),
             "user_tooltip": _("Per-user setting, overwrites the global setting if any option is checked."),
         },
         "buttons": {

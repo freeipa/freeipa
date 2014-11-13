@@ -78,6 +78,7 @@ return {
                             name: 'ipauserauthtype',
                             flags: ['w_if_no_aci'],
                             options: [
+                                { label: '@i18n:authtype.type_disabled', value: 'disabled' },
                                 { label: '@i18n:authtype.type_password', value: 'password' },
                                 { label: '@i18n:authtype.type_radius', value: 'radius' },
                                 { label: '@i18n:authtype.type_otp', value: 'otp' }

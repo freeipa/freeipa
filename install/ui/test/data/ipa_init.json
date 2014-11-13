@@ -53,6 +53,7 @@
                         "type_otp": "Two factor authentication (password + OTP)",
                         "type_password": "Password",
                         "type_radius": "Radius",
+                        "type_disabled": "Disable per-user override",
                         "user_tooltip": "Per-user setting, overwrites the global setting if any option is checked."
                     },
                     "buttons": {

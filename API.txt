@@ -533,7 +533,7 @@ option: Int('ipasearchrecordslimit', attribute=True, autofill=False, cli_name='s
 option: Int('ipasearchtimelimit', attribute=True, autofill=False, cli_name='searchtimelimit', minvalue=-1, multivalue=False, required=False)
 option: Str('ipaselinuxusermapdefault', attribute=True, autofill=False, cli_name='ipaselinuxusermapdefault', multivalue=False, required=False)
 option: Str('ipaselinuxusermaporder', attribute=True, autofill=False, cli_name='ipaselinuxusermaporder', multivalue=False, required=False)
-option: StrEnum('ipauserauthtype', attribute=True, autofill=False, cli_name='user_auth_type', csv=True, multivalue=True, required=False, values=(u'password', u'radius', u'otp'))
+option: StrEnum('ipauserauthtype', attribute=True, autofill=False, cli_name='user_auth_type', csv=True, multivalue=True, required=False, values=(u'password', u'radius', u'otp', u'disabled'))
 option: Str('ipauserobjectclasses', attribute=True, autofill=False, cli_name='userobjectclasses', csv=True, multivalue=True, required=False)
 option: IA5Str('ipausersearchfields', attribute=True, autofill=False, cli_name='usersearch', multivalue=False, required=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
