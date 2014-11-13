@@ -1,7 +1,7 @@
 include VERSION
 
-SUBDIRS=daemons install ipapython ipa-client
-CLIENTDIRS=ipapython ipa-client
+SUBDIRS=asn1 daemons install ipapython ipa-client
+CLIENTDIRS=ipapython ipa-client asn1
 
 PRJ_PREFIX=freeipa
 
@@ -80,6 +80,7 @@ bootstrap-autogen: version-update client-autogen
 	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
 client-autogen: version-update
+	cd asn1; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 	cd ipa-client; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 

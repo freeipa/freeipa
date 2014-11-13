@@ -25,6 +25,7 @@ missing
 stamp-h1
 libtool
 build/
+compile
 
 # Python compilation
 *.pyc
