@@ -159,6 +159,17 @@ return {
                                 { label: '@i18n:authtype.type_otp', value: 'otp' }
                             ],
                             tooltip: '@i18n:authtype.user_tooltip'
+                        },
+                        {
+                            $type: 'entity_select',
+                            name: 'ipatokenradiusconfiglink',
+                            flags: ['w_if_no_aci'],
+                            other_entity: 'radiusproxy',
+                            other_field: 'cn'
+                        },
+                        {
+                            name: 'ipatokenradiususername',
+                            flags: ['w_if_no_aci']
                         }
                     ]
                 },
