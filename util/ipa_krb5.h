@@ -1,6 +1,7 @@
 #ifndef __IPA_KRB5_H_
 #define __IPA_KRB5_H_
 
+#include <lber.h>
 #include <krb5/krb5.h>
 #include <kdb.h>
 

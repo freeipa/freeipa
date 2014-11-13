@@ -1,0 +1,37 @@
+KeytabModule DEFINITIONS ::= BEGIN
+
+    Int32 ::= INTEGER (-2147483648..2147483647)
+    -- signed values representable in 32 bits (from RFC4120)
+
+    GetKeytabControl ::= CHOICE {
+        newkeys     [0] GKNewKeys,
+        curkeys     [1] GKCurrentKeys,
+        reply       [2] GKReply
+    }
+
+    GKNewKeys ::= SEQUENCE {
+        serviceIdentity [0] OCTET STRING,
+        enctypes        [1] SEQUENCE OF Int32,
+        password        [2] OCTET STRING OPTIONAL
+    }
+
+    GKCurrentKeys ::= SEQUENCE {
+        serviceIdentity [0] OCTET STRING
+    }
+
+    GKReply ::= SEQUENCE {
+        newkvno     Int32,
+        keys        SEQUENCE OF KrbKey
+    }
+
+    KrbKey ::= SEQUENCE {
+        key         [0] TypeValuePair,
+        salt        [1] TypeValuePair OPTIONAL,
+        s2kparams   [2] OCTET STRING OPTIONAL
+    }
+
+    TypeValuePair ::= SEQUENCE {
+        type    [0] Int32,
+        value   [1] OCTET STRING
+    }
+END
