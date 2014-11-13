@@ -25,7 +25,7 @@ import argparse
 import json
 
 from ipalib.constants import FQDN
-from ipatests.test_integration import config
+from ipatests.test_integration import config, env_config
 
 
 def main(argv):
@@ -92,7 +92,8 @@ def main(argv):
         import yaml
         return yaml.safe_dump(conf.to_dict(), default_flow_style=False)
     else:
-        return config.env_to_script(get_object(conf, args).to_env(**kwargs))
+        env = get_object(conf, args).to_env(**kwargs)
+        return env_config.env_to_script(env)
 
 
 def get_object(conf, args):

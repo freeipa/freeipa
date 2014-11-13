@@ -29,7 +29,7 @@ log = log_mgr.get_logger(__name__)
 
 
 @ordered
-@pytest.mark.usefixtures('integration_config')
+@pytest.mark.usefixtures('mh')
 @pytest.mark.usefixtures('integration_logs')
 class IntegrationTest(object):
     num_replicas = 0
@@ -61,12 +61,7 @@ class IntegrationTest(object):
         return [cls.domain] + cls.ad_domains
 
     @classmethod
-    def prepare_host(cls, host):
-        cls.log.info('Preparing host %s', host.hostname)
-        tasks.prepare_host(host)
-
-    @classmethod
-    def install(cls):
+    def install(cls, mh):
         if cls.topology is None:
             return
         else:
@@ -77,7 +72,7 @@ class IntegrationTest(object):
         pass
 
     @classmethod
-    def uninstall(cls):
+    def uninstall(cls, mh):
         tasks.uninstall_master(cls.master)
         for replica in cls.replicas:
             tasks.uninstall_master(replica)

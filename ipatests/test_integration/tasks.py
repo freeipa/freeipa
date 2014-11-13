@@ -34,7 +34,7 @@ from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
 from ipatests.test_integration import util
-from ipatests.test_integration.config import env_to_script
+from ipatests.test_integration.env_config import env_to_script
 from ipatests.test_integration.host import Host
 
 log = log_mgr.get_logger(__name__)

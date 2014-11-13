@@ -248,6 +248,8 @@ class TaskRunner(object):
 
         args = self.get_parser().parse_args(argv)
         self.config = config.Config.from_env(os.environ)
+        if not self.config:
+            raise EnvironmentError('Multihost environment not configured')
 
         logs_to_collect = {}
 

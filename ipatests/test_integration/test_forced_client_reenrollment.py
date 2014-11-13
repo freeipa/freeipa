@@ -35,7 +35,7 @@ class TestForcedClientReenrollment(IntegrationTest):
     num_clients = 1
 
     @classmethod
-    def install(cls):
+    def install(cls, mh):
         super(TestForcedClientReenrollment, cls).install()
         tasks.install_master(cls.master)
         tasks.install_replica(cls.master, cls.replicas[0], setup_ca=False)
@@ -44,11 +44,11 @@ class TestForcedClientReenrollment(IntegrationTest):
             'krb5.keytab'
         )
 
-    def setup(self):
+    def setUp(self):
         tasks.prepare_host(self.clients[0])
         tasks.install_client(self.master, self.clients[0])
 
-    def teardown(self):
+    def tearDown(self):
         tasks.uninstall_client(self.clients[0])
         self.delete_client_host_entry()
 

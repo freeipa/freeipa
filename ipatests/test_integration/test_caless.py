@@ -24,7 +24,6 @@ import base64
 import glob
 import contextlib
 import nose
-import pytest
 
 from ipalib import x509
 from ipapython import ipautil
@@ -67,7 +66,7 @@ def assert_error(result, stderr_text, returncode=None):
 
 class CALessBase(IntegrationTest):
     @classmethod
-    def install(cls):
+    def install(cls, mh):
         super(CALessBase, cls).install()
         cls.cert_dir = tempfile.mkdtemp(prefix="ipatest-")
         cls.pem_filename = os.path.join(cls.cert_dir, 'root.pem')
@@ -108,7 +107,7 @@ class CALessBase(IntegrationTest):
                 host.transport.put_file(source, dest)
 
     @classmethod
-    def uninstall(cls):
+    def uninstall(cls, mh):
         # Remove the NSS database
         shutil.rmtree(cls.cert_dir)
 
@@ -340,7 +339,7 @@ class CALessBase(IntegrationTest):
 class TestServerInstall(CALessBase):
     num_replicas = 0
 
-    def teardown(self):
+    def tearDown(self):
         self.uninstall_server()
 
         # Remove CA cert in /etc/pki/nssdb, in case of failed (un)install
@@ -750,7 +749,7 @@ class TestServerInstall(CALessBase):
 class TestReplicaInstall(CALessBase):
     num_replicas = 1
 
-    def setup(self):
+    def setUp(self):
         # Install the master for every test
         self.export_pkcs12('ca1/server')
         with open(self.pem_filename, 'w') as f:
@@ -759,7 +758,7 @@ class TestReplicaInstall(CALessBase):
         result = self.install_server()
         assert result.returncode == 0
 
-    def teardown(self):
+    def tearDown(self):
         # Uninstall both master and replica
         replica = self.replicas[0]
         tasks.kinit_admin(self.master)
@@ -1162,18 +1161,24 @@ class TestIPACommands(CALessBase):
         cls.test_hostname = 'testhost.%s' % cls.master.domain.name
         cls.test_service = 'test/%s' % cls.test_hostname
 
-    @pytest.mark.parametrize('cmd', (
-        'cert-status',
-        'cert-show',
-        'cert-find',
-        'cert-revoke',
-        'cert-remove-hold',
-        'cert-status'))
-    def test_cert_commands_unavailable(self, cmd):
+    def check_ipa_command_not_available(self, command):
         "Verify that the given IPA subcommand is not available"
 
         result = self.master.run_command(['ipa', command], raiseonerr=False)
         assert_error(result, "ipa: ERROR: unknown command '%s'" % command)
+
+    def test_cert_commands_unavailable(self):
+        for cmd in (
+                'cert-status',
+                'cert-show',
+                'cert-find',
+                'cert-revoke',
+                'cert-remove-hold',
+                'cert-status'):
+            func = lambda: self.check_ipa_command_not_available(cmd)
+            func.description = 'Verify that %s command is not available' % cmd
+            func.test_argument = cmd
+            yield (func, )
 
     def test_cert_help_unavailable(self):
         "Verify that cert plugin help is not available"
@@ -1241,7 +1246,7 @@ class TestIPACommands(CALessBase):
 
 class TestCertinstall(CALessBase):
     @classmethod
-    def install(cls):
+    def install(cls, mh):
         super(TestCertinstall, cls).install()
 
         cls.export_pkcs12('ca1/server')

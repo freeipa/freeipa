@@ -20,16 +20,6 @@
 import time
 
 
-TESTHOST_PREFIX = 'TESTHOST_'
-
-
-def check_config_dict_empty(dct, name):
-    """Ensure that no keys are left in a configuration dict"""
-    if dct:
-        raise ValueError('Extra keys in confuguration for %s: %s' %
-                         (name, ', '.join(dct)))
-
-
 def run_repeatedly(host, command, assert_zero_rc=True, test=None,
                 timeout=30, **kwargs):
     """

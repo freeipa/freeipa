@@ -33,7 +33,7 @@ class ADTrustBase(IntegrationTest):
     optional_extra_roles = ['ad_subdomain']
 
     @classmethod
-    def install(cls):
+    def install(cls, mh):
         super(ADTrustBase, cls).install()
         cls.ad = cls.ad_domains[0].ads[0]
         cls.install_adtrust()

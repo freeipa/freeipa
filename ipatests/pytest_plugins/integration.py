@@ -24,10 +24,13 @@ import tempfile
 import shutil
 
 import pytest
+from pytest_multihost import make_multihost_fixture
 
 from ipapython import ipautil
 from ipapython.ipa_log_manager import log_mgr
-from ipatests.test_integration.config import get_global_config
+from ipatests.test_integration import tasks
+from ipatests.test_integration.config import Config
+from ipatests.test_integration.env_config import get_global_config
 
 
 log = log_mgr.get_logger(__name__)
@@ -147,74 +150,86 @@ def integration_logs(class_integration_logs, request):
 
 
 @pytest.yield_fixture(scope='class')
-def integration_config(request, class_integration_logs):
-    """Integration test Config object
+def mh(request, class_integration_logs):
+    """IPA's multihost fixture object
     """
     cls = request.cls
 
-    def get_resources(resource_container, resource_str, num_needed):
-        if len(resource_container) < num_needed:
-            raise pytest.skip(
-                'Not enough %s available (have %s, need %s)' %
-                (resource_str, len(resource_container), num_needed))
-        return resource_container[:num_needed]
+    domain_description = {
+        'type': 'IPA',
+        'hosts': {
+            'master': 1,
+            'replica': cls.num_replicas,
+            'client': cls.num_replicas,
+        },
+    }
+    domain_description['hosts'].update(
+        {role: 1 for role in cls.required_extra_roles})
 
-    config = get_global_config()
-    if not config.domains:
-        raise pytest.skip('Integration testing not configured')
+    domain_descriptions = [domain_description]
+    for i in range(cls.num_ad_domains):
+        domain_descriptions.append({
+            'type': 'AD',
+            'hosts': {'ad': 1, 'ad_subdomain': 1},
+        })
+
+    mh = make_multihost_fixture(
+        request,
+        domain_descriptions,
+        config_class=Config,
+        _config=get_global_config(),
+    )
+    config = mh.config
+    mh.domain = mh.config.domains[0]
+    [mh.master] = mh.domain.hosts_by_role('master')
+    mh.replicas = mh.domain.hosts_by_role('replica')
+    mh.clients = mh.domain.hosts_by_role('client')
 
     cls.logs_to_collect = class_integration_logs
-
-    cls.domain = config.domains[0]
-
-    # Check that we have enough resources available
-    cls.master = cls.domain.master
-    cls.replicas = get_resources(cls.domain.replicas, 'replicas',
-                                    cls.num_replicas)
-    cls.clients = get_resources(cls.domain.clients, 'clients',
-                                cls.num_clients)
-    cls.ad_domains = get_resources(config.ad_domains, 'AD domains',
-                                    cls.num_ad_domains)
-
-    # Check that we have all required extra hosts at our disposal
-    available_extra_roles = [role for domain in cls.get_domains()
-                                    for role in domain.extra_roles]
-    missing_extra_roles = list(set(cls.required_extra_roles) -
-                                    set(available_extra_roles))
-
-    if missing_extra_roles:
-        raise pytest.skip("Not all required extra hosts available, "
-                          "missing: %s, available: %s"
-                          % (missing_extra_roles,
-                             available_extra_roles))
 
     def collect_log(host, filename):
         log.info('Adding %s:%s to list of logs to collect' %
                  (host.external_hostname, filename))
         class_integration_logs.setdefault(host, []).append(filename)
 
-    for host in cls.get_all_hosts():
+    print config
+    for host in config.get_all_hosts():
         host.add_log_collector(collect_log)
-        cls.prepare_host(host)
+        cls.log.info('Preparing host %s', host.hostname)
+        tasks.prepare_host(host)
 
-    try:
-        cls.install()
-    except:
-        cls.uninstall()
-        raise
+    setup_class(cls, config)
+    mh._pytestmh_request.addfinalizer(lambda: teardown_class(cls))
 
-    yield config
+    yield mh.install()
 
     for host in cls.get_all_hosts():
         host.remove_log_collector(collect_log)
 
     collect_test_logs(request.node, class_integration_logs, request.config)
 
-    try:
-        cls.uninstall()
-    finally:
-        del cls.master
-        del cls.replicas
-        del cls.clients
-        del cls.ad_domains
-        del cls.domain
+
+def setup_class(cls, config):
+    """Add convenience addributes to the test class
+
+    This is deprecated in favor of the mh fixture.
+    To be removed when no more tests using this.
+    """
+    cls.domain = config.domains[0]
+    cls.master = cls.domain.master
+    cls.replicas = cls.domain.replicas
+    cls.clients = cls.domain.clients
+    cls.ad_domains = config.ad_domains
+
+
+def teardown_class(cls):
+    """Add convenience addributes to the test class
+
+    This is deprecated in favor of the mh fixture.
+    To be removed when no more tests using this.
+    """
+    del cls.master
+    del cls.replicas
+    del cls.clients
+    del cls.ad_domains
+    del cls.domain
