@@ -6,6 +6,7 @@ KRB5_UTIL_DIR = ../../../util
 KRB5_UTIL_SRCS = $(KRB5_UTIL_DIR)/ipa_krb5.c \
 		 $(KRB5_UTIL_DIR)/ipa_pwd.c \
 		 $(KRB5_UTIL_DIR)/ipa_pwd_ntlm.c
+ASN1_UTIL_DIR=../../../asn1
 
 AM_CPPFLAGS =							\
 	-I.							\
@@ -13,6 +14,7 @@ AM_CPPFLAGS =							\
 	-I$(srcdir)/../libotp					\
 	-I$(PLUGIN_COMMON_DIR)					\
 	-I$(KRB5_UTIL_DIR)					\
+	-I$(ASN1_UTIL_DIR)					\
 	-I$(COMMON_BER_DIR)					\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
@@ -38,7 +40,10 @@ AM_LDFLAGS = \
 # Plugin Binary
 plugindir = $(libdir)/dirsrv/plugins
 plugin_LTLIBRARIES = libipa_pwd_extop.la
-libipa_pwd_extop_la_LIBADD  = $(builddir)/../libotp/libotp.la
+libipa_pwd_extop_la_LIBADD  = \
+	$(builddir)/../libotp/libotp.la \
+	$(ASN1_UTIL_DIR)/libipaasn1.la  \
+	$(NULL)
 libipa_pwd_extop_la_SOURCES = 		\
 	authcfg.c			\
 	common.c			\

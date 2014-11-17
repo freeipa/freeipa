@@ -8,6 +8,7 @@ AC_PROG_LIBTOOL
 
 AC_CONFIG_SRCDIR([ipaclient/__init__.py])
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_SUBDIRS([../asn1])
 
 AM_INIT_AUTOMAKE([foreign])
 
@@ -205,6 +206,7 @@ dnl ---------------------------------------------------------------------------
 
 AC_CONFIG_FILES([
     Makefile
+    ../asn1/Makefile
     ipaclient/Makefile
     ipa-install/Makefile
     man/Makefile
