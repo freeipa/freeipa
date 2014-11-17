@@ -40,6 +40,7 @@
 #include "ipapwd.h"
 #include "util.h"
 #include "authcfg.h"
+#include "ipa_asn1.h"
 
 /*
  * Password Modify - LDAP Extended Operation.
@@ -1310,31 +1311,7 @@ free_and_return:
 	return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
 }
 
-/* Format of getkeytab request
- *
- * KeytabGetRequest ::= CHOICE {
- *     newkeys      [0] Newkeys,
- *     curkeys      [1] CurrentKeys,
- *     reply        [2] Reply
- * }
- *
- * NewKeys ::= SEQUENCE {
- *     serviceIdentity [0] OCTET STRING,
- *     enctypes        [1] SEQUENCE OF Int16
- *     password        [2] OCTET STRING OPTIONAL,
- * }
- *
- * CurrentKeys ::= SEQUENCE {
- *     serviceIdentity [0] OCTET STRING,
- * }
- */
-
-#define GK_REQUEST_NEWKEYS (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 0)
-#define GK_REQUEST_CURKEYS (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
-#define GKREQ_SVCNAME_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
-#define GKREQ_ENCTYPES_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
-#define GKREQ_PASSWORD_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 2)
-
+/* decode a getkeytab control request using libipaasn1 helpers */
 static int decode_getkeytab_request(struct berval *extop, bool *wantold,
                                     char **_svcname, char **_password,
                                     krb5_key_salt_tuple **kenctypes,
@@ -1342,96 +1319,44 @@ static int decode_getkeytab_request(struct berval *extop, bool *wantold,
 {
     int rc = LDAP_OPERATIONS_ERROR;
     char *err_msg = NULL;
-    BerElement *ber = NULL;
-    ber_len_t tlen;
-    ber_tag_t rtag;
-    ber_tag_t ttag;
-    ber_tag_t ctag;
     char *svcname = NULL;
     char *password = NULL;
-    ber_int_t enctype;
+    long *etypes = NULL;
+    int numtypes = 0;
     krb5_key_salt_tuple *enctypes = NULL;
-    int num = 0;
+    bool newkt;
+    bool ret;
+    int i;
 
-    ber = ber_init(extop);
-    if (ber == NULL) {
-        err_msg = "KeytabGet Request decode failed.\n";
+    ret = ipaasn1_dec_getkt(extop->bv_val, extop->bv_len, &newkt,
+                            &svcname, &password, &etypes, &numtypes);
+    if (!ret) {
+        err_msg = "Failed to decode GetKeytab Control.\n";
         rc = LDAP_PROTOCOL_ERROR;
         goto done;
     }
 
-    /* check this is a request */
-    rtag = ber_peek_tag(ber, &tlen);
-    if (rtag != GK_REQUEST_NEWKEYS && rtag != GK_REQUEST_CURKEYS) {
-        LOG_FATAL("ber_peek_tag failed, wrong request type\n");
-        err_msg = "Invalid payload.\n";
-        rc = LDAP_PROTOCOL_ERROR;
-        goto done;
-    }
-
-    /* ber parse code */
-    ttag = ber_scanf(ber, "{ta", &ctag, &svcname);
-    if (ttag == LBER_ERROR || ctag != GKREQ_SVCNAME_TAG) {
-        LOG_FATAL("ber_scanf failed to decode service name\n");
-        err_msg = "Invalid payload.\n";
-        rc = LDAP_PROTOCOL_ERROR;
-        goto done;
-    }
-
-    if (rtag == GK_REQUEST_CURKEYS) {
-        rc = LDAP_SUCCESS;
-        goto done;
-    }
-
-    ttag = ber_peek_tag(ber, &tlen);
-    if (ttag != GKREQ_ENCTYPES_TAG) {
-        LOG_FATAL("ber_peek_tag failed to find enctypes\n");
-        err_msg = "Invalid payload.\n";
-        rc = LDAP_PROTOCOL_ERROR;
-        goto done;
-    }
-    ttag = ber_peek_tag(ber, &tlen);
-    for (num = 0; ttag == LBER_INTEGER; num++) {
-        if ((num % 10) == 0) {
-            /* allocate space for at least 10 more enctypes */
-            enctypes = realloc(enctypes,
-                               (num + 10) * sizeof(krb5_key_salt_tuple));
+    if (newkt) {
+        if (numtypes) {
+            enctypes = malloc(numtypes * sizeof(krb5_key_salt_tuple));
             if (!enctypes) {
                 LOG_FATAL("allocation failed\n");
                 err_msg = "Internal error\n";
                 rc = LDAP_OPERATIONS_ERROR;
                 goto done;
             }
-        }
 
-        ttag = ber_scanf(ber, "i", &enctype);
-        if (ttag == LBER_ERROR) {
-            LOG_FATAL("ber_scanf failed to decode enctype\n");
-            err_msg = "Invalid payload.\n";
-            rc = LDAP_PROTOCOL_ERROR;
-            goto done;
-        }
-
-        enctypes[num].ks_enctype = enctype;
-        enctypes[num].ks_salttype = KRB5_KDB_SALTTYPE_NORMAL;
-        ttag = ber_peek_tag(ber, &tlen);
-    }
-
-    /* ttag peek done as last step of the previous for loop */
-    if (ttag == GKREQ_PASSWORD_TAG) {
-        /* optional password present */
-        ttag = ber_scanf(ber, "a", &password);
-        if (ttag == LBER_ERROR) {
-            LOG_FATAL("ber_scanf failed to decode password\n");
-            err_msg = "Invalid payload.\n";
-            rc = LDAP_PROTOCOL_ERROR;
-            goto done;
+            for (i = 0; i < numtypes; i++) {
+                enctypes[i].ks_enctype = etypes[i];
+                enctypes[i].ks_salttype = KRB5_KDB_SALTTYPE_NORMAL;
+            }
         }
     }
 
     rc = LDAP_SUCCESS;
 
 done:
+    free(etypes);
     if (rc != LDAP_SUCCESS) {
         free(password);
         free(svcname);
@@ -1440,46 +1365,12 @@ done:
     } else {
         *_password = password;
         *_svcname = svcname;
-        *wantold = (rtag == GK_REQUEST_CURKEYS);
+        *wantold = (newkt == false);
         *kenctypes = enctypes;
-        *num_kenctypes = num;
+        *num_kenctypes = numtypes;
     }
-    if (ber) ber_free(ber, 1);
     return rc;
 }
-
-/* Format of getkeytab reply
- *
- * Reply ::= SEQUENCE {
- *     new_kvno        Int32
- *     keys            SEQUENCE OF KrbKey,
- * }
- *
- * KrbKey ::= SEQUENCE {
- *     key       [0] EncryptionKey,
- *     salt      [1] KrbSalt OPTIONAL,
- *     s2kparams [2] OCTET STRING OPTIONAL,
- * }
- *
- * EncryptionKey ::= SEQUENCE {
- *     keytype   [0] Int32,
- *     keyvalue  [1] OCTET STRING
- * }
- *
- * KrbSalt ::= SEQUENCE {
- *     type      [0] Int32,
- *     salt      [1] OCTET STRING
- * }
- */
-
-#define GK_REPLY_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 2)
-#define GKREP_KEY_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 0)
-#define GKREP_SALT_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
-#define GKREP_S2KPARAMS_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 2)
-#define GKREP_KEYTYPE_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 0)
-#define GKREP_KEYVALUE_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
-#define GKREP_SALTTYPE_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 0)
-#define GKREP_SALTVALUE_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
 
 static int encode_getkeytab_reply(krb5_context krbctx,
                                   krb5_keyblock *kmkey, int mkvno,
@@ -1487,31 +1378,21 @@ static int encode_getkeytab_reply(krb5_context krbctx,
                                   struct berval **_bvp)
 {
     int rc = LDAP_OPERATIONS_ERROR;
+    struct krb_key_salt ksdata[num_keys];
+    struct keys_container ksc = { num_keys, ksdata };
     struct berval *bvp = NULL;
-    BerElement *ber = NULL;
-    ber_int_t kvno;
-    krb5_data plain = { 0 };
+    int kvno;
+    bool ret;
 
-    ber = ber_alloc();
-    if (!ber) {
-        LOG_OOM();
-        goto done;
-    }
+    memset(ksdata, '\0', num_keys * sizeof(struct krb_key_salt));
 
     /* uses last key kvno */
     kvno = keys[num_keys-1].key_data_kvno;
 
-    rc = ber_printf(ber, "t{i{", GK_REPLY_TAG, kvno);
-    if (rc == -1) {
-        rc = LDAP_OPERATIONS_ERROR;
-        LOG_FATAL("Failed to initiate key buffer\n");
-        goto done;
-    }
-
     for (int i = 0; i < num_keys; i++) {
         krb5_enc_data cipher = { 0 };
+        krb5_data plain = { 0 };
         krb5_int16 plen;
-        void *p;
 
         /* retrieve plain key */
         memcpy(&plen, keys[i].key_data_contents[0], 2);
@@ -1521,13 +1402,12 @@ static int encode_getkeytab_reply(krb5_context krbctx,
         cipher.kvno = mkvno;
 
         plain.length = le16toh(plen);
-        p = realloc(plain.data, plain.length);
-        if (!p) {
+        plain.data = malloc(plain.length);
+        if (!plain.data) {
             LOG_FATAL("Failed to allocate plain buffer\n");
             rc = LDAP_OPERATIONS_ERROR;
             goto done;
         }
-        plain.data = p;
 
         rc = krb5_c_decrypt(krbctx, kmkey, 0, 0, &cipher, &plain);
         if (rc) {
@@ -1536,68 +1416,37 @@ static int encode_getkeytab_reply(krb5_context krbctx,
             goto done;
         }
 
-        rc = ber_printf(ber,
-                        "{t{tito}",
-                        GKREP_KEY_TAG,
-                            GKREP_KEYTYPE_TAG,
-                                (ber_int_t)keys[i].key_data_type[0],
-                            GKREP_KEYVALUE_TAG,
-                                plain.data, (ber_len_t)plain.length);
-        if (rc == -1) {
-            LOG_FATAL("Failed to encode key data\n");
-            rc = LDAP_OPERATIONS_ERROR;
-            goto done;
-        }
+        ksc.ksdata[i].enctype = keys[i].key_data_type[0];
+        ksc.ksdata[i].key.enctype = keys[i].key_data_type[0];
+        ksc.ksdata[i].key.contents = (void *)plain.data;
+        ksc.ksdata[i].key.length = plain.length;
 
         /* if salt available, add it */
         if (keys[i].key_data_length[1] != 0) {
-            rc = ber_printf(ber,
-                            "t{tito}",
-                            GKREP_SALT_TAG,
-                                GKREP_SALTTYPE_TAG,
-                                    (ber_int_t)keys[i].key_data_type[1],
-                                GKREP_SALTVALUE_TAG,
-                                    keys[i].key_data_contents[1],
-                                    (ber_len_t)keys[i].key_data_length[1]);
-            if (rc == -1) {
-                LOG_FATAL("Failed to encode salt data\n");
-                rc = LDAP_OPERATIONS_ERROR;
-                goto done;
-            }
-        }
-
-        rc = ber_printf(ber, "}");
-        if (rc == -1) {
-            LOG_FATAL("Failed to encode data\n");
-            rc = LDAP_OPERATIONS_ERROR;
-            goto done;
+            ksc.ksdata[i].salttype = keys[i].key_data_type[1];
+            ksc.ksdata[i].salt.data = (void *)keys[i].key_data_contents[1];
+            ksc.ksdata[i].salt.length = keys[i].key_data_length[1];
         }
     }
 
-    rc = ber_printf(ber, "}}");
-    if (rc == -1) {
-        LOG_FATAL("Failed to terminate key buffer\n");
-        rc = LDAP_OPERATIONS_ERROR;
-        goto done;
-    }
+    bvp = calloc(1, sizeof(struct berval));
+    if (!bvp) goto done;
 
-    rc = ber_flatten(ber, &bvp);
-    if (rc == -1) {
-        LOG_FATAL("Failed to encode key buffer\n");
-        rc = LDAP_OPERATIONS_ERROR;
-        goto done;
-    }
+    ret = ipaasn1_enc_getktreply(kvno, &ksc,
+                                 (void **)&bvp->bv_val, &bvp->bv_len);
+    if (!ret) goto done;
 
     rc = LDAP_SUCCESS;
 
 done:
+    for (int i = 0; i < ksc.nkeys; i ++) {
+        free(ksc.ksdata[i].key.contents);
+    }
     if (rc != LDAP_SUCCESS) {
         if (bvp) ber_bvfree(bvp);
     } else {
         *_bvp = bvp;
     }
-    if (ber) ber_free(ber, 1);
-    free(plain.data);
     return rc;
 }
 

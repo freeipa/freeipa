@@ -40,6 +40,7 @@
 #include "config.h"
 
 #include "ipa_krb5.h"
+#include "ipa_asn1.h"
 #include "ipa-client-common.h"
 
 static int ldap_sasl_interact(LDAP *ld, unsigned flags, void *priv_data, void *sit)
@@ -295,14 +296,15 @@ done:
     return ret;
 }
 
-static BerElement *get_control_data(LDAPControl **list, const char *repoid)
+static int find_control_data(LDAPControl **list, const char *repoid,
+                             struct berval *data)
 {
     LDAPControl *control = NULL;
     int i;
 
     if (!list) {
         fprintf(stderr, _("Missing reply control list!\n"));
-        return NULL;
+        return LDAP_OPERATIONS_ERROR;
     }
 
     for (i = 0; list[i]; i++) {
@@ -312,10 +314,22 @@ static BerElement *get_control_data(LDAPControl **list, const char *repoid)
     }
     if (!control) {
         fprintf(stderr, _("Missing reply control!\n"));
-        return NULL;
+        return LDAP_OPERATIONS_ERROR;
     }
 
-    return ber_init(&control->ldctl_value);
+    *data = control->ldctl_value;
+    return LDAP_SUCCESS;
+}
+
+static BerElement *get_control_data(LDAPControl **list, const char *repoid)
+{
+    struct berval data;
+    int ret;
+
+    ret = find_control_data(list, repoid, &data);
+    if (ret != LDAP_SUCCESS) return NULL;
+
+    return ber_init(&data);
 }
 
 static int ldap_set_keytab(krb5_context krbctx,
@@ -435,124 +449,42 @@ error_out:
 	return -1;
 }
 
-/* Format of getkeytab control
- *
- * KeytabGetRequest ::= CHOICE {
- *     newkeys      [0] Newkeys,
- *     curkeys      [1] CurrentKeys,
- *     reply        [2] Reply
- * }
- *
- * NewKeys ::= SEQUENCE {
- *     serviceIdentity [0] OCTET STRING,
- *     enctypes        [1] SEQUENCE OF Int16
- *     password        [2] OCTET STRING OPTIONAL,
- * }
- *
- * CurrentKeys ::= SEQUENCE {
- *     serviceIdentity [0] OCTET STRING,
- * }
- *
- * Reply ::= SEQUENCE {
- *     new_kvno        Int32
- *     keys            SEQUENCE OF KrbKey,
- * }
- *
- * KrbKey ::= SEQUENCE {
- *     key       [0] EncryptionKey,
- *     salt      [1] KrbSalt OPTIONAL,
- *     s2kparams [2] OCTET STRING OPTIONAL,
- * }
- *
- * EncryptionKey ::= SEQUENCE {
- *     keytype   [0] Int32,
- *     keyvalue  [1] OCTET STRING
- * }
- *
- * KrbSalt ::= SEQUENCE {
- *     type      [0] Int32,
- *     salt      [1] OCTET STRING
- * }
- */
-
-#define GK_REQUEST_NEWKEYS (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 0)
-#define GK_REQUEST_CURKEYS (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
-#define GKREQ_SVCNAME_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
-#define GKREQ_ENCTYPES_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 1)
-#define GKREQ_PASSWORD_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 2)
-
+/* use asn1c generated code to fill up control */
 static struct berval *create_getkeytab_control(const char *svc_princ, bool gen,
                                                const char *password,
                                                struct krb_key_salt *encsalts,
                                                int num_encsalts)
 {
-    struct berval *bval = NULL;
-    BerElement *be;
-    ber_tag_t ctag;
-    ber_int_t e;
-    int ret, i;
-
-    be = ber_alloc_t(LBER_USE_DER);
-    if (!be) {
-        return NULL;
-    }
+    struct berval *result = NULL;
+    void *buffer = NULL;
+    size_t buflen;
+    long ets[num_encsalts];
+    bool ret;
+    int i;
 
     if (gen) {
-        ctag = GK_REQUEST_NEWKEYS;
-    } else {
-        ctag = GK_REQUEST_CURKEYS;
-    }
-
-    ret = ber_printf(be, "t{ts", ctag, GKREQ_SVCNAME_TAG, svc_princ);
-    if (ret == -1) {
-        ber_free(be, 1);
-        goto done;
-    }
-
-    if (gen) {
-        ret = ber_printf(be, "t{", GKREQ_ENCTYPES_TAG);
-        if (ret == -1) {
-            ber_free(be, 1);
-            goto done;
-        }
         for (i = 0; i < num_encsalts; i++) {
-            e = encsalts[i].enctype;
-            ret = ber_printf(be, "i", e);
-            if (ret == -1) {
-                ber_free(be, 1);
-                goto done;
-            }
-        }
-        ret = ber_printf(be, "}");
-        if (ret == -1) {
-            ber_free(be, 1);
-            goto done;
-        }
-
-        if (password) {
-            ret = ber_printf(be, "ts", GKREQ_PASSWORD_TAG, password);
-            if (ret == -1) {
-                ber_free(be, 1);
-                goto done;
-            }
+            ets[i] = encsalts[i].enctype;
         }
     }
+    ret = ipaasn1_enc_getkt(gen, svc_princ,
+                            password, ets, num_encsalts,
+                            &buffer, &buflen);
+    if (!ret) goto done;
 
-    ret = ber_printf(be, "}");
-    if (ret == -1) {
-        ber_free(be, 1);
-        goto done;
-    }
+    result = malloc(sizeof(struct berval));
+    if (!result) goto done;
 
-    ret = ber_flatten(be, &bval);
-    if (ret == -1) {
-        ber_free(be, 1);
-        goto done;
-    }
+    result->bv_val = buffer;
+    result->bv_len = buflen;
 
 done:
-    ber_free(be, 1);
-    return bval;
+    if (result == NULL) {
+        if (buffer) {
+            free(buffer);
+        }
+    }
+    return result;
 }
 
 #define GK_REPLY_TAG (LBER_CLASS_CONTEXT | LBER_CONSTRUCTED | 2)
@@ -571,13 +503,8 @@ static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
     struct berval *control = NULL;
     LDAP *ld = NULL;
     LDAPControl **srvctrl = NULL;
-    BerElement *ber = NULL;
-    ber_tag_t rtag;
-    ber_tag_t ctag;
-    ber_len_t tlen;
-    ber_int_t vno;
-    ber_int_t tint;
-    struct berval tbval;
+    struct berval data;
+    bool res;
     int ret;
 
     *err_msg = NULL;
@@ -609,98 +536,19 @@ static int ldap_get_keytab(krb5_context krbctx, bool generate, char *password,
         goto done;
     }
 
-    ber = get_control_data(srvctrl, KEYTAB_GET_OID);
-    if (!ber) {
-        *err_msg = _("Failed to find or parse reply control!\n");
+    ret = find_control_data(srvctrl, KEYTAB_GET_OID, &data);
+    if (ret != LDAP_SUCCESS) goto done;
+
+    res = ipaasn1_dec_getktreply(data.bv_val, data.bv_len, kvno, keys);
+    if (!res) {
+        *err_msg = _("Failed to decode control reply!\n");
         ret = LDAP_OPERATIONS_ERROR;
         goto done;
     }
 
-    rtag = ber_scanf(ber, "t{i{", &ctag, &vno);
-    if (rtag == LBER_ERROR || ctag != GK_REPLY_TAG) {
-        *err_msg = _("Failed to parse control head!\n");
-        ret = LDAP_OPERATIONS_ERROR;
-        goto done;
-    }
-
-    keys->nkeys = 0;
-    keys->ksdata = NULL;
-
-    rtag = ber_peek_tag(ber, &tlen);
-    for (int i = 0; rtag == LBER_SEQUENCE; i++) {
-        if ((i % 5) == 0) {
-            struct krb_key_salt *ksdata;
-            ksdata = realloc(keys->ksdata,
-                             (i + 5) * sizeof(struct krb_key_salt));
-            if (!ksdata) {
-                *err_msg = _("Out of memory!\n");
-                ret = LDAP_OPERATIONS_ERROR;
-                goto done;
-            }
-            keys->ksdata = ksdata;
-        }
-        memset(&keys->ksdata[i], 0, sizeof(struct krb_key_salt));
-        keys->nkeys = i + 1;
-
-        rtag = ber_scanf(ber, "{t{io}", &ctag, &tint, &tbval);
-        if (rtag == LBER_ERROR || ctag != GKREP_KEY_TAG) {
-            *err_msg = _("Failed to parse enctype in key data!\n");
-            ret = LDAP_OPERATIONS_ERROR;
-            goto done;
-        }
-        keys->ksdata[i].enctype = tint;
-        keys->ksdata[i].key.enctype = tint;
-        keys->ksdata[i].key.length = tbval.bv_len;
-        keys->ksdata[i].key.contents = malloc(tbval.bv_len);
-        if (!keys->ksdata[i].key.contents) {
-            *err_msg = _("Out of memory!\n");
-            ret = LDAP_OPERATIONS_ERROR;
-            goto done;
-        }
-        memcpy(keys->ksdata[i].key.contents, tbval.bv_val, tbval.bv_len);
-        ber_memfree(tbval.bv_val);
-
-        rtag = ber_peek_tag(ber, &tlen);
-        if (rtag == GKREP_SALT_TAG) {
-            rtag = ber_scanf(ber, "t{io}", &ctag, &tint, &tbval);
-            if (rtag == LBER_ERROR) {
-                *err_msg = _("Failed to parse salt in key data!\n");
-                ret = LDAP_OPERATIONS_ERROR;
-                goto done;
-            }
-            keys->ksdata[i].salttype = tint;
-            keys->ksdata[i].salt.length = tbval.bv_len;
-            keys->ksdata[i].salt.data = malloc(tbval.bv_len);
-            if (!keys->ksdata[i].salt.data) {
-                *err_msg = _("Out of memory!\n");
-                ret = LDAP_OPERATIONS_ERROR;
-                goto done;
-            }
-            memcpy(keys->ksdata[i].salt.data, tbval.bv_val, tbval.bv_len);
-            ber_memfree(tbval.bv_val);
-        }
-        rtag = ber_scanf(ber, "}");
-        if (rtag == LBER_ERROR) {
-            *err_msg = _("Failed to parse ending of key data!\n");
-            ret = LDAP_OPERATIONS_ERROR;
-            goto done;
-        }
-
-        rtag = ber_peek_tag(ber, &tlen);
-    }
-
-    rtag = ber_scanf(ber, "}}");
-    if (rtag == LBER_ERROR) {
-        *err_msg = _("Failed to parse ending of control!\n");
-        ret = LDAP_OPERATIONS_ERROR;
-        goto done;
-    }
-
-    *kvno = vno;
     ret = LDAP_SUCCESS;
 
 done:
-    if (ber) ber_free(ber, 1);
     if (ld) ldap_unbind_ext(ld, NULL, NULL);
     if (control) ber_bvfree(control);
     free(es);
