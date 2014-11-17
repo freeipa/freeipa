@@ -14,11 +14,13 @@ export AM_CFLAGS
 
 KRB5_UTIL_DIR=../util
 KRB5_UTIL_SRCS=$(KRB5_UTIL_DIR)/ipa_krb5.c
+ASN1_UTIL_DIR=../asn1
 
 AM_CPPFLAGS =							\
 	-I.							\
 	-I$(srcdir)						\
 	-I$(KRB5_UTIL_DIR)					\
+	-I$(ASN1_UTIL_DIR)					\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
 	-DLIBDIR=\""$(libdir)"\" 				\
@@ -45,6 +47,7 @@ ipa_getkeytab_SOURCES =		\
 	$(NULL)
 
 ipa_getkeytab_LDADD = 		\
+	../asn1/libipaasn1.la	\
 	$(KRB5_LIBS)		\
 	$(OPENLDAP_LIBS)	\
 	$(SASL_LIBS)		\
@@ -80,6 +83,7 @@ ipa_join_LDADD = 		\
 	$(NULL)
 
 SUBDIRS =			\
+	../asn1			\
 	ipaclient		\
 	ipa-install		\
 	man			\
