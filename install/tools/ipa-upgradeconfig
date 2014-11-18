@@ -1411,6 +1411,10 @@ def main():
             ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
         except ipautil.CalledProcessError, e:
             root_logger.error("Failed to restart %s: %s", ca.service_name, e)
+        # FIXME https://fedorahosted.org/freeipa/ticket/4676
+        # workaround
+        except RuntimeError as e:
+            root_logger.warning(str(e))
 
     set_sssd_domain_option('ipa_server_mode', 'True')
 
