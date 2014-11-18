@@ -16,9 +16,10 @@ IPA_NUM_VERSION ?= $(shell printf %d%02d%02d $(IPA_VERSION_MAJOR) $(IPA_VERSION_
 # target.
 
 ifeq ($(IPA_VERSION_IS_GIT_SNAPSHOT),"yes")
-GIT_VERSION=$(shell git show --pretty=format:"%h" --stat HEAD 2>/dev/null|head -1)
+DATESTR:=$(shell date -u +'%Y%m%d%H%M')
+GIT_VERSION:=$(shell git show --pretty=format:"%h" --stat HEAD 2>/dev/null|head -1)
 ifneq ($(GIT_VERSION),)
-IPA_VERSION=$(IPA_VERSION_MAJOR).$(IPA_VERSION_MINOR).$(IPA_VERSION_RELEASE)GIT$(GIT_VERSION)
+IPA_VERSION=$(IPA_VERSION_MAJOR).$(IPA_VERSION_MINOR).$(IPA_VERSION_RELEASE).$(DATESTR)GIT$(GIT_VERSION)
 endif # in a git tree and git returned a version
 endif # git
 
