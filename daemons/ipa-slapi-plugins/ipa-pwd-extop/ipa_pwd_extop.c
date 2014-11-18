@@ -125,6 +125,48 @@ static void filter_keys(struct ipapwd_krbcfg *krbcfg,
     }
 }
 
+static void filter_enctypes(struct ipapwd_krbcfg *krbcfg,
+                            krb5_key_salt_tuple *kenctypes,
+                            int *num_kenctypes)
+{
+    /* first filter for duplicates */
+    for (int i = 0; i + 1 < *num_kenctypes; i++) {
+        for (int j = i + 1; j < *num_kenctypes; j++) {
+            if (kenctypes[i].ks_enctype == kenctypes[j].ks_enctype) {
+                /* duplicate, filter out */
+                for (int k = j; k + 1 < *num_kenctypes; k++) {
+                    kenctypes[k].ks_enctype = kenctypes[k + 1].ks_enctype;
+                    kenctypes[k].ks_salttype = kenctypes[k + 1].ks_salttype;
+                }
+                (*num_kenctypes)--;
+                j--;
+            }
+        }
+    }
+
+    /* then filter for supported */
+    for (int i = 0; i < *num_kenctypes; i++) {
+        int j;
+
+        /* Check if supported */
+        for (j = 0; j < krbcfg->num_supp_encsalts; j++) {
+            if (kenctypes[i].ks_enctype ==
+                                    krbcfg->supp_encsalts[j].ks_enctype) {
+                break;
+            }
+        }
+        if (j == krbcfg->num_supp_encsalts) {
+            /* Unsupported, filter out */
+            for (int k = i; k + 1 < *num_kenctypes; k++) {
+                kenctypes[k].ks_enctype = kenctypes[k + 1].ks_enctype;
+                kenctypes[k].ks_salttype = kenctypes[k + 1].ks_salttype;
+            }
+            (*num_kenctypes)--;
+            i--;
+        }
+    }
+}
+
 static int ipapwd_to_ldap_pwpolicy_error(int ipapwderr)
 {
     switch (ipapwderr) {
@@ -1740,23 +1782,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
             goto free_and_return;
         }
 
-        for (int i = 0; i < num_kenctypes; i++) {
-
-            /* Check if supported */
-            for (int j = 0; j < krbcfg->num_supp_encsalts; j++) {
-                if (kenctypes[i].ks_enctype ==
-                                        krbcfg->supp_encsalts[j].ks_enctype) {
-                    continue;
-                }
-            }
-            /* Unsupported, filter out */
-            for (int j = i; j + 1 < num_kenctypes; j++) {
-                kenctypes[j].ks_enctype = kenctypes[j + 1].ks_enctype;
-                kenctypes[j].ks_salttype = kenctypes[j + 1].ks_salttype;
-            }
-            num_kenctypes--;
-            i--;
-        }
+        filter_enctypes(krbcfg, kenctypes, &num_kenctypes);
 
         /* check if we have any left */
         if (num_kenctypes == 0 && kenctypes != NULL) {
