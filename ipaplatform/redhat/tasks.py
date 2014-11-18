@@ -366,6 +366,8 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         updated_vars = {}
         failed_vars = {}
         for setting, state in required_settings.iteritems():
+            if state is None:
+                continue
             try:
                 (stdout, stderr, rc) = ipautil.run([paths.GETSEBOOL, setting])
                 original_state = stdout.split()[2]
