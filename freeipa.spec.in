@@ -136,7 +136,7 @@ Requires: slapi-nis >= 0.54.1-1
 # and CentOS until packaging of it's requirements is finished.
 Requires: pki-ca >= 10.1.2-4
 %else
-Requires: pki-ca >= 10.2.0-3
+Requires: pki-ca >= 10.2.1-0.1
 %endif
 %if 0%{?rhel}
 Requires: subscription-manager
