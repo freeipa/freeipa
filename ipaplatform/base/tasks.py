@@ -152,7 +152,8 @@ class BaseTaskNamespace(object):
 
         :param required_settings: A dictionary mapping the boolean names
                                   to desired_values.
-                                  The desired value can be 'on' or 'off'.
+                                  The desired value can be 'on' or 'off',
+                                  or None to leave the setting unchanged.
 
         :param backup_func: A function called for each boolean with two
                             arguments: the name and the previous value
