@@ -24,6 +24,7 @@ Contains Red Hat OS family-specific service class implementations.
 
 import os
 import time
+import xml.dom.minidom
 
 from ipaplatform.tasks import tasks
 from ipaplatform.base import services as base_services
@@ -185,7 +186,31 @@ class RedHatCAService(RedHatService):
         op_timeout = time.time() + timeout
         while time.time() < op_timeout:
             try:
-                status = dogtag.ca_status(use_proxy=use_proxy)
+                # FIXME https://fedorahosted.org/freeipa/ticket/4716
+                # workaround
+                #
+                # status = dogtag.ca_status(use_proxy=use_proxy)
+                #
+                port = 8443
+                if use_proxy:
+                    port = 443
+
+                url = "https://%(host_port)s%(path)s" % {
+                    "host_port": ipautil.format_netloc(api.env.ca_host, port),
+                    "path": "/ca/admin/ca/getStatus"
+                }
+
+                args = [
+                    paths.BIN_WGET,
+                    '-S', '-O', '-',
+                    '--timeout=30',
+                    url
+                ]
+
+                stdout, stderr, returncode = ipautil.run(args)
+
+                status = dogtag._parse_ca_status(stdout)
+                # end of workaround
             except Exception:
                 status = 'check interrupted'
             root_logger.debug('The CA status is: %s' % status)
