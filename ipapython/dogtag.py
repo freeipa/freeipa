@@ -191,6 +191,16 @@ def get_ca_certchain(ca_host=None, dogtag_constants=None):
     return chain
 
 
+def _parse_ca_status(body):
+    doc = xml.dom.minidom.parseString(body)
+    try:
+        item_node = doc.getElementsByTagName("XMLResponse")[0]
+        item_node = item_node.getElementsByTagName("Status")[0]
+        return item_node.childNodes[0].data
+    except IndexError:
+        raise error_from_xml(doc, _("Retrieving CA status failed: %s"))
+
+
 def ca_status(ca_host=None, use_proxy=True):
     """Return the status of the CA, and the httpd proxy in front of it
 
@@ -214,13 +224,7 @@ def ca_status(ca_host=None, use_proxy=True):
     elif status != 200:
         raise errors.RemoteRetrieveError(
             reason=_("Retrieving CA status failed: %s") % reason)
-    doc = xml.dom.minidom.parseString(body)
-    try:
-        item_node = doc.getElementsByTagName("XMLResponse")[0]
-        item_node = item_node.getElementsByTagName("Status")[0]
-        return item_node.childNodes[0].data
-    except IndexError:
-        raise error_from_xml(doc, _("Retrieving CA status failed: %s"))
+    return _parse_ca_status(body)
 
 
 def https_request(host, port, url, secdir, password, nickname, **kw):
