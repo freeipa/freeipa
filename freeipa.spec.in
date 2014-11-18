@@ -147,7 +147,7 @@ Requires: python-dns >= 1.11.1
 Requires: zip
 Requires: policycoreutils >= 2.1.12-5
 Requires: tar
-Requires(pre): certmonger >= 0.75.13
+Requires(pre): certmonger >= 0.76.8
 Requires(pre): 389-ds-base >= 1.3.3.5
 Requires: fontawesome-fonts
 Requires: open-sans-fonts
@@ -234,7 +234,7 @@ Requires: wget
 Requires: libcurl >= 7.21.7-2
 Requires: xmlrpc-c >= 1.27.4
 Requires: sssd >= 1.12.2
-Requires: certmonger >= 0.75.6
+Requires: certmonger >= 0.76.8
 Requires: nss-tools
 Requires: bind-utils
 Requires: oddjob-mkhomedir
