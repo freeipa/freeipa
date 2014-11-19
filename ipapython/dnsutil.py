@@ -26,15 +26,16 @@ class DNSName(dns.name.Name):
     labels = None  # make pylint happy
 
     def __init__(self, labels, origin=None):
-        if isinstance(labels, str):
-            #pylint: disable=E1101
-            labels = dns.name.from_text(labels, origin).labels
-        elif isinstance(labels, unicode):
-            #pylint: disable=E1101
-            labels = dns.name.from_unicode(labels, origin).labels
-        elif isinstance(labels, dns.name.Name):
-            labels = labels.labels
         try:
+            if isinstance(labels, str):
+                #pylint: disable=E1101
+                labels = dns.name.from_text(labels, origin).labels
+            elif isinstance(labels, unicode):
+                #pylint: disable=E1101
+                labels = dns.name.from_unicode(labels, origin).labels
+            elif isinstance(labels, dns.name.Name):
+                labels = labels.labels
+
             super(DNSName, self).__init__(labels)
         except UnicodeError, e:
             # dnspython bug, an invalid domain name returns the UnicodeError
