@@ -196,9 +196,8 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
         entry_attrs.setdefault('loginshell', default_shell)
 
     # do not migrate all attributes
-    for attr in entry_attrs.keys():
-        if attr in attr_blacklist:
-            del entry_attrs[attr]
+    for attr in attr_blacklist:
+        entry_attrs.pop(attr, None)
 
     # do not migrate all object classes
     if 'objectclass' in entry_attrs:
@@ -393,9 +392,8 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
         raise ValueError('Schema %s not supported' % schema)
 
     # do not migrate all attributes
-    for attr in entry_attrs.keys():
-        if attr in attr_blacklist:
-            del entry_attrs[attr]
+    for attr in attr_blacklist:
+        entry_attrs.pop(attr, None)
 
     # do not migrate all object classes
     if 'objectclass' in entry_attrs:
