@@ -1995,8 +1995,10 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
                 time_limit=options.get('timelimit', None),
                 size_limit=options.get('sizelimit', None)
             )
-        except errors.NotFound:
+        except errors.EmptyResult:
             (entries, truncated) = ([], False)
+        except errors.NotFound:
+            self.api.Object[self.obj.parent_object].handle_not_found(*args[:-1])
 
         for callback in self.get_callbacks('post'):
             truncated = callback(self, ldap, entries, truncated, *args, **options)
