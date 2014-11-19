@@ -1329,6 +1329,21 @@ class PosixGroupViolation(ExecutionError):
     errno = 4030
     format = _('This is already a posix group and cannot be converted to external one')
 
+class EmptyResult(NotFound):
+    """
+    **4031** Raised when a LDAP search returned no results.
+
+    For example:
+
+    >>> raise EmptyResult(reason='no matching entry found')
+    Traceback (most recent call last):
+      ...
+    EmptyResult: no matching entry found
+
+    """
+
+    errno = 4031
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).

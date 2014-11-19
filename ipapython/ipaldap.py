@@ -1527,7 +1527,7 @@ class LDAPClient(object):
                     break
 
         if not res and not truncated:
-            raise errors.NotFound(reason='no such entry')
+            raise errors.EmptyResult(reason='no matching entry found')
 
         return (res, truncated)
 
