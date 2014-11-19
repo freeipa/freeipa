@@ -130,7 +130,14 @@ Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.54.1-1
+%if (0%{?fedora} <= 20 || 0%{?rhel})
+# pki-ca 10.1.2-4 contains patches required by FreeIPA 4.1
+# The goal is to lower the requirement of pki-ca in Fedora 20
+# and CentOS until packaging of it's requirements is finished.
+Requires: pki-ca >= 10.1.2-4
+%else
 Requires: pki-ca >= 10.2.0-3
+%endif
 %if 0%{?rhel}
 Requires: subscription-manager
 %endif
