@@ -89,6 +89,26 @@ def strip_header(pem):
 
     return pem
 
+def initialize_nss_database(dbdir=None):
+    """
+    Initializes NSS database, if not initialized yet. Uses a proper database
+    directory (.ipa/alias or HTTPD_ALIAS_DIR), depending on the value of
+    api.env.in_tree.
+    """
+
+    if not nss.nss_is_initialized():
+        if dbdir is None:
+            if 'in_tree' in api.env:
+                if api.env.in_tree:
+                    dbdir = api.env.dot_ipa + os.sep + 'alias'
+                else:
+                    dbdir = paths.HTTPD_ALIAS_DIR
+                nss.nss_init(dbdir)
+            else:
+                nss.nss_init_nodb()
+        else:
+            nss.nss_init(dbdir)
+
 def load_certificate(data, datatype=PEM, dbdir=None):
     """
     Given a base64-encoded certificate, with or without the
@@ -103,18 +123,7 @@ def load_certificate(data, datatype=PEM, dbdir=None):
         data = strip_header(data)
         data = base64.b64decode(data)
 
-    if not nss.nss_is_initialized():
-        if dbdir is None:
-            if 'in_tree' in api.env:
-                if api.env.in_tree:
-                    dbdir = api.env.dot_ipa + os.sep + 'alias'
-                else:
-                    dbdir = paths.HTTPD_ALIAS_DIR
-                nss.nss_init(dbdir)
-            else:
-                nss.nss_init_nodb()
-        else:
-            nss.nss_init(dbdir)
+    initialize_nss_database(dbdir=dbdir)
 
     return nss.Certificate(buffer(data))
 

@@ -21,12 +21,17 @@ import os
 import sys
 import nose
 from nss import nss
+from ipalib.x509 import initialize_nss_database
 
 from ipaserver.install.ipa_otptoken_import import PSKCDocument, ValidationError
 
 basename = os.path.join(os.path.dirname(__file__), "data")
 
 class test_otptoken_import(object):
+
+    def tearDown(self):
+        initialize_nss_database()
+
     def test_figure3(self):
         doc = PSKCDocument(os.path.join(basename, "pskc-figure3.xml"))
         assert doc.keyname is None
