@@ -26,7 +26,7 @@ import pwd
 from ConfigParser import SafeConfigParser
 
 from ipalib import api, errors
-from ipapython import version, ipautil, certdb
+from ipapython import version, ipautil, certdb, dogtag
 from ipapython.ipautil import run, user_input
 from ipapython import admintool
 from ipapython.dn import DN
@@ -36,7 +36,7 @@ from ipaserver.install.cainstance import PKI_USER, create_ca_user
 from ipaserver.install.replication import (wait_for_task, ReplicationManager,
                                            get_cs_replication_manager)
 from ipaserver.install import installutils
-from ipaserver.install import httpinstance
+from ipaserver.install import dsinstance, httpinstance, cainstance
 from ipapython import ipaldap
 import ipapython.errors
 from ipaplatform.tasks import tasks
@@ -675,6 +675,12 @@ class Restore(admintool.AdminTool):
             self.log.error('%s', e)
 
     def cert_restore_prepare(self):
+        cainstance.CAInstance().stop_tracking_certificates(
+            dogtag.configured_constants())
+        httpinstance.HTTPInstance().stop_tracking_certificates()
+        dsinstance.DsInstance().stop_tracking_certificates(
+            realm_to_serverid(api.env.realm))
+
         for basename in ('cert8.db', 'key3.db', 'secmod.db', 'pwdfile.txt'):
             filename = os.path.join(paths.IPA_NSSDB_DIR, basename)
             try:
@@ -704,3 +710,5 @@ class Restore(admintool.AdminTool):
                             (nickname, paths.IPA_NSSDB_DIR, e))
 
         tasks.reload_systemwide_ca_store()
+
+        services.knownservices.certmonger.restart()
