@@ -522,6 +522,8 @@ class Restore(admintool.AdminTool):
         cwd = os.getcwd()
         os.chdir('/')
         args = ['tar',
+                '--xattrs',
+                '--selinux',
                 '-xzf',
                 os.path.join(self.dir, 'files.tar')
                ]
@@ -580,6 +582,8 @@ class Restore(admintool.AdminTool):
         os.chdir(self.dir)
 
         args = ['tar',
+                '--xattrs',
+                '--selinux',
                 '-xzf',
                 filename,
                 '.'
