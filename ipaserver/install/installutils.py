@@ -244,7 +244,7 @@ def read_ip_addresses(host_name, fstore):
         except Exception, e:
             print "Error: Invalid IP Address %s: %s" % (ip, e)
             continue
-        ips.append(ip)
+        ips.append(ip_parsed)
 
     return ips
 
