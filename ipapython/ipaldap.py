@@ -1238,6 +1238,41 @@ class LDAPClient(object):
         # bypass ldap2's locking
         object.__setattr__(self, '_conn', None)
 
+    def simple_bind(self, bind_dn, bind_password, server_controls=None,
+                    client_controls=None):
+        """
+        Perform simple bind operation.
+        """
+        with self.error_handler():
+            self._conn.simple_bind_s(
+                bind_dn, bind_password, server_controls, client_controls)
+
+    def external_bind(self, user_name, server_controls=None,
+                      client_controls=None):
+        """
+        Perform SASL bind operation using the SASL EXTERNAL mechanism.
+        """
+        with self.error_handler():
+            auth_tokens = ldap.sasl.external(user_name)
+            self._conn.sasl_interactive_bind_s(
+                None, auth_tokens, server_controls, client_controls)
+
+    def gssapi_bind(self, server_controls=None, client_controls=None):
+        """
+        Perform SASL bind operation using the SASL GSSAPI mechanism.
+        """
+        with self.error_handler():
+            auth_tokens = ldap.sasl.sasl({}, 'GSSAPI')
+            self._conn.sasl_interactive_bind_s(
+                None, auth_tokens, server_controls, client_controls)
+
+    def unbind(self):
+        """
+        Perform unbind operation.
+        """
+        with self.error_handler():
+            self.conn.unbind_s()
+
     def make_dn_from_attr(self, attr, value, parent_dn=None):
         """
         Make distinguished name from attribute.
