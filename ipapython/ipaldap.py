@@ -1709,14 +1709,11 @@ class IPAdmin(LDAPClient):
         if not ldap_uri:
             ldap_uri = self.__get_ldap_uri(protocol or self.__guess_protocol())
 
-        LDAPClient.__init__(self, ldap_uri)
+        super(IPAdmin, self).__init__(
+            ldap_uri, force_schema_updates=force_schema_updates,
+            no_schema=no_schema, decode_attrs=decode_attrs)
 
         with self.error_handler():
-            self._conn = IPASimpleLDAPObject(ldap_uri,
-                                             force_schema_updates=True,
-                                             no_schema=no_schema,
-                                             decode_attrs=decode_attrs)
-
             if demand_cert:
                 ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, True)
                 self.conn.set_option(ldap.OPT_X_TLS_DEMAND, True)
@@ -1726,12 +1723,6 @@ class IPAdmin(LDAPClient):
 
             if start_tls:
                 self.conn.start_tls_s()
-
-    def _connect(self):
-        pass
-
-    def _disconnect(self):
-        pass
 
     def __str__(self):
         return self.host + ":" + str(self.port)
