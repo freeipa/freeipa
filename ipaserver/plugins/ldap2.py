@@ -145,10 +145,12 @@ class ldap2(LDAPClient, CrudBackend):
         if debug_level:
             _ldap.set_option(_ldap.OPT_DEBUG_LEVEL, debug_level)
 
+        object.__setattr__(self, '_force_schema_updates',
+                           self.api.env.context in ('installer', 'updates'))
+        LDAPClient._connect(self)
+        conn = self._conn
+
         with self.error_handler():
-            force_updates = self.api.env.context in ('installer', 'updates')
-            conn = IPASimpleLDAPObject(
-                self.ldap_uri, force_schema_updates=force_updates)
             if self.ldap_uri.startswith('ldapi://') and ccache:
                 conn.set_option(_ldap.OPT_HOST_NAME, self.api.env.host)
             minssf = conn.get_option(_ldap.OPT_X_SASL_SSF_MIN)
@@ -200,6 +202,11 @@ class ldap2(LDAPClient, CrudBackend):
             # ignore when trying to unbind multiple times
             pass
 
+        try:
+            LDAPClient._disconnect(self)
+        except errors.PublicError:
+            # ignore when trying to unbind multiple times
+            pass
 
     def find_entries(self, filter=None, attrs_list=None, base_dn=None,
                      scope=_ldap.SCOPE_SUBTREE, time_limit=None,
