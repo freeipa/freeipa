@@ -1771,29 +1771,29 @@ class IPAdmin(LDAPClient):
             wait_for_open_ports(host, int(port), timeout)
 
     def __bind_with_wait(self, bind_func, timeout, *args, **kwargs):
-        with self.error_handler():
-            try:
-                bind_func(*args, **kwargs)
-            except (ldap.CONNECT_ERROR, ldap.SERVER_DOWN), e:
-                if not timeout or 'TLS' in e.args[0].get('info', ''):
-                    # No connection to continue on if we have a TLS failure
-                    # https://bugzilla.redhat.com/show_bug.cgi?id=784989
-                    raise
-                self.__wait_for_connection(timeout)
-                bind_func(*args, **kwargs)
+        try:
+            bind_func(*args, **kwargs)
+        except errors.NetworkError as e:
+            if not timeout and 'TLS' in e.error:
+                # No connection to continue on if we have a TLS failure
+                # https://bugzilla.redhat.com/show_bug.cgi?id=784989
+                raise
+        except errors.DatabaseError:
+            pass
+        else:
+            return
+        self.__wait_for_connection(timeout)
+        bind_func(*args, **kwargs)
 
     def do_simple_bind(self, binddn=DN(('cn', 'directory manager')), bindpw="",
                        timeout=DEFAULT_TIMEOUT):
-        self.__bind_with_wait(self.conn.simple_bind_s, timeout, binddn, bindpw)
+        self.__bind_with_wait(self.simple_bind, timeout, binddn, bindpw)
 
     def do_sasl_gssapi_bind(self, timeout=DEFAULT_TIMEOUT):
-        self.__bind_with_wait(
-            self.conn.sasl_interactive_bind_s, timeout, None, SASL_GSSAPI)
+        self.__bind_with_wait(self.gssapi_bind, timeout)
 
     def do_external_bind(self, user_name=None, timeout=DEFAULT_TIMEOUT):
-        auth_tokens = ldap.sasl.external(user_name)
-        self.__bind_with_wait(
-            self.conn.sasl_interactive_bind_s, timeout, None, auth_tokens)
+        self.__bind_with_wait(self.external_bind, timeout, user_name)
 
     def do_bind(self, dm_password="", autobind=AUTOBIND_AUTO, timeout=DEFAULT_TIMEOUT):
         if dm_password:
@@ -1817,6 +1817,3 @@ class IPAdmin(LDAPClient):
     def modify_s(self, *args, **kwargs):
         # FIXME: for backwards compatibility only
         return self.conn.modify_s(*args, **kwargs)
-
-    def unbind(self, *args, **kwargs):
-        return self.conn.unbind_s(*args, **kwargs)
