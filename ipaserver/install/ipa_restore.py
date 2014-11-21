@@ -151,6 +151,9 @@ class Restore(admintool.AdminTool):
         else:
             self.backup_dir = dirname
 
+        if not os.path.isdir(dirname):
+            raise self.option_parser.error("must provide path to backup directory")
+
         if options.gpg_keyring:
             if (not os.path.exists(options.gpg_keyring + '.pub') or
                not os.path.exists(options.gpg_keyring + '.sec')):
@@ -212,7 +215,10 @@ class Restore(admintool.AdminTool):
         try:
             dirsrv = services.knownservices.dirsrv
 
-            self.read_header()
+            try:
+                self.read_header()
+            except IOError as e:
+                raise admintool.ScriptError('Cannot read backup metadata: %s' % e)
             # These two checks would normally be in the validate method but
             # we need to know the type of backup we're dealing with.
             if (self.backup_type != 'FULL' and not options.data_only and
@@ -545,9 +551,9 @@ class Restore(admintool.AdminTool):
         Read the backup file header that contains the meta data about
         this particular backup.
         '''
-        fd = open(self.header)
-        config = SafeConfigParser()
-        config.readfp(fd)
+        with open(self.header) as fd:
+            config = SafeConfigParser()
+            config.readfp(fd)
 
         self.backup_type = config.get('ipa', 'type')
         self.backup_time = config.get('ipa', 'time')
