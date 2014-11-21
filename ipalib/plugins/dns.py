@@ -1733,6 +1733,239 @@ def _normalize_zone(zone):
     return zone
 
 
+def _get_auth_zone_ldap(name):
+    """
+    Find authoritative zone in LDAP for name. Only active zones are considered.
+    :param name:
+    :return: (zone, truncated)
+    zone: authoritative zone, or None if authoritative zone is not in LDAP
+    """
+    assert isinstance(name, DNSName)
+    ldap = api.Backend.ldap2
+
+    # Create all possible parent zone names
+    search_name = name.make_absolute()
+    zone_names = []
+    for i in xrange(len(search_name)):
+        zone_name_abs = DNSName(search_name[i:]).ToASCII()
+        zone_names.append(zone_name_abs)
+        # compatibility with IPA < 4.0, zone name can be relative
+        zone_names.append(zone_name_abs[:-1])
+
+    # Create filters
+    objectclass_filter = ldap.make_filter({'objectclass':'idnszone'})
+    zonenames_filter = ldap.make_filter({'idnsname': zone_names})
+    zoneactive_filter = ldap.make_filter({'idnsZoneActive': 'true'})
+    complete_filter = ldap.combine_filters(
+        [objectclass_filter, zonenames_filter, zoneactive_filter],
+        rules=ldap.MATCH_ALL
+    )
+
+    try:
+        entries, truncated = ldap.find_entries(
+            filter=complete_filter,
+            attrs_list=['idnsname'],
+            base_dn=DN(api.env.container_dns, api.env.basedn),
+            scope=ldap.SCOPE_ONELEVEL
+        )
+    except errors.NotFound:
+        return None, False
+
+    # always use absolute zones
+    matched_auth_zones = [entry.single_value['idnsname'].make_absolute()
+                          for entry in entries]
+
+    # return longest match
+    return max(matched_auth_zones, key=len), truncated
+
+
+def _get_longest_match_ns_delegation_ldap(zone, name):
+    """
+    Searches for deepest delegation for name in LDAP zone.
+
+    NOTE: NS record in zone apex is not considered as delegation.
+    It returns None if there is no delegation outside of zone apex.
+
+    Example:
+    zone: example.com.
+    name: ns.sub.example.com.
+
+    records:
+        extra.ns.sub.example.com.
+        sub.example.com.
+        example.com
+
+    result: sub.example.com.
+
+    :param zone: zone name
+    :param name:
+    :return: (match, truncated);
+    match: delegation name if success, or None if no delegation record exists
+    """
+    assert isinstance(zone, DNSName)
+    assert isinstance(name, DNSName)
+
+    ldap = api.Backend.ldap2
+
+    # get zone DN
+    zone_dn = api.Object.dnszone.get_dn(zone)
+
+    if name.is_absolute():
+        relative_record_name = name.relativize(zone.make_absolute())
+    else:
+        relative_record_name = name
+
+    # Name is zone apex
+    if relative_record_name.is_empty():
+        return None, False
+
+    # create list of possible record names
+    possible_record_names = [DNSName(relative_record_name[i:]).ToASCII()
+                             for i in xrange(len(relative_record_name))]
+
+    # search filters
+    name_filter = ldap.make_filter({'idnsname': [possible_record_names]})
+    objectclass_filter = ldap.make_filter({'objectclass': 'idnsrecord'})
+    complete_filter = ldap.combine_filters(
+        [name_filter, objectclass_filter],
+        rules=ldap.MATCH_ALL
+    )
+
+    try:
+        entries, truncated = ldap.find_entries(
+            filter=complete_filter,
+            attrs_list=['idnsname', 'nsrecord'],
+            base_dn=zone_dn,
+            scope=ldap.SCOPE_ONELEVEL
+        )
+    except errors.NotFound:
+        return None, False
+
+    matched_records = []
+
+    # test if entry contains NS records
+    for entry in entries:
+        if entry.get('nsrecord'):
+            matched_records.append(entry.single_value['idnsname'])
+
+    if not matched_records:
+        return None, truncated
+
+    # return longest match
+    return max(matched_records, key=len), truncated
+
+
+def _find_subtree_forward_zones_ldap(name, child_zones_only=False):
+    """
+    Search for forwardzone <name> and all child forwardzones
+    Filter: (|(*.<name>.)(<name>.))
+    :param name:
+    :param child_zones_only: search only for child zones
+    :return: (list of zonenames,  truncated), list is empty if no zone found
+    """
+    assert isinstance(name, DNSName)
+    ldap = api.Backend.ldap2
+
+    # prepare for filter "*.<name>."
+    search_name = u".%s" % name.make_absolute().ToASCII()
+
+    # we need to search zone with and without last dot, due compatibility
+    # with IPA < 4.0
+    search_names = [search_name, search_name[:-1]]
+
+    # Create filters
+    objectclass_filter = ldap.make_filter({'objectclass':'idnsforwardzone'})
+    zonenames_filter = ldap.make_filter({'idnsname': search_names}, exact=False,
+                                        trailing_wildcard=False)
+    if not child_zones_only:
+        # find also zone with exact name
+        exact_name = name.make_absolute().ToASCII()
+        # we need to search zone with and without last dot, due compatibility
+        # with IPA < 4.0
+        exact_names = [exact_name, exact_name[-1]]
+        exact_name_filter = ldap.make_filter({'idnsname': exact_names})
+        zonenames_filter = ldap.combine_filters([zonenames_filter,
+                                                 exact_name_filter])
+
+    zoneactive_filter = ldap.make_filter({'idnsZoneActive': 'true'})
+    complete_filter = ldap.combine_filters(
+        [objectclass_filter, zonenames_filter, zoneactive_filter],
+        rules=ldap.MATCH_ALL
+    )
+
+    try:
+        entries, truncated = ldap.find_entries(
+            filter=complete_filter,
+            attrs_list=['idnsname'],
+            base_dn=DN(api.env.container_dns, api.env.basedn),
+            scope=ldap.SCOPE_ONELEVEL
+        )
+    except errors.NotFound:
+        return [], False
+
+    result = [entry.single_value['idnsname'].make_absolute()
+              for entry in entries]
+
+    return result, truncated
+
+
+def _get_zone_which_makes_fw_zone_ineffective(fwzonename):
+    """
+    Check if forward zone is effective.
+
+    If parent zone exists as authoritative zone, the forward zone will not
+    forward queries by default. It is necessary to delegate authority
+    to forward zone with a NS record.
+
+    Example:
+
+    Forward zone: sub.example.com
+    Zone: example.com
+
+    Forwarding will not work, because the server thinks it is authoritative
+    for zone and will return NXDOMAIN
+
+    Adding record: sub.example.com NS ns.sub.example.com.
+    will delegate authority, and IPA DNS server will forward DNS queries.
+
+    :param fwzonename: forwardzone
+    :return: (zone, truncated)
+    zone: None if effective, name of authoritative zone otherwise
+    """
+    assert isinstance(fwzonename, DNSName)
+
+    auth_zone, truncated_zone = _get_auth_zone_ldap(fwzonename)
+    if not auth_zone:
+        return None, truncated_zone
+
+    delegation_record_name, truncated_ns =\
+        _get_longest_match_ns_delegation_ldap(auth_zone, fwzonename)
+
+    truncated = truncated_ns or truncated_zone
+
+    if delegation_record_name:
+        return None, truncated
+
+    return auth_zone, truncated
+
+
+def _add_warning_fw_zone_is_not_effective(result, fwzone, version):
+    """
+    Adds warning message to result, if required
+    """
+    authoritative_zone, truncated = \
+        _get_zone_which_makes_fw_zone_ineffective(fwzone)
+    if authoritative_zone:
+        # forward zone is not effective and forwarding will not work
+        messages.add_message(
+            version, result,
+            messages.ForwardzoneIsNotEffectiveWarning(
+                fwzone=fwzone, authzone=authoritative_zone,
+                ns_rec=fwzone.relativize(authoritative_zone)
+            )
+        )
+
+
 class DNSZoneBase(LDAPObject):
     """
     Base class for DNS Zone
@@ -2384,6 +2617,22 @@ class dnszone(DNSZoneBase):
                 )
             )
 
+    def _warning_fw_zone_is_not_effective(self, result, *keys, **options):
+        """
+        Warning if any operation with zone causes, a child forward zone is
+        not effective
+        """
+        zone = keys[-1]
+        affected_fw_zones, truncated = _find_subtree_forward_zones_ldap(
+            zone, child_zones_only=True)
+        if not affected_fw_zones:
+            return
+
+        for fwzone in affected_fw_zones:
+            _add_warning_fw_zone_is_not_effective(result, fwzone,
+                                                  options['version'])
+
+
 @register()
 class dnszone_add(DNSZoneBase_add):
     __doc__ = _('Create new DNS zone (SOA record).')
@@ -2453,6 +2702,7 @@ class dnszone_add(DNSZoneBase_add):
         self.obj._warning_forwarding(result, **options)
         self.obj._warning_dnssec_experimental(result, *keys, **options)
         self.obj._warning_name_server_option(result, context, **options)
+        self.obj._warning_fw_zone_is_not_effective(result, *keys, **options)
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -2482,6 +2732,13 @@ class dnszone_del(DNSZoneBase_del):
     __doc__ = _('Delete DNS zone (SOA record).')
 
     msg_summary = _('Deleted DNS zone "%(value)s"')
+
+    def execute(self, *keys, **options):
+        result = super(dnszone_del, self).execute(*keys, **options)
+        nkeys = keys[-1]  # we can delete more zones
+        for key in nkeys:
+            self.obj._warning_fw_zone_is_not_effective(result, key, **options)
+        return result
 
     def post_callback(self, ldap, dn, *keys, **options):
         super(dnszone_del, self).post_callback(ldap, dn, *keys, **options)
@@ -2603,11 +2860,21 @@ class dnszone_disable(DNSZoneBase_disable):
     __doc__ = _('Disable DNS Zone.')
     msg_summary = _('Disabled DNS zone "%(value)s"')
 
+    def execute(self, *keys, **options):
+        result = super(dnszone_disable, self).execute(*keys, **options)
+        self.obj._warning_fw_zone_is_not_effective(result, *keys, **options)
+        return result
+
 
 @register()
 class dnszone_enable(DNSZoneBase_enable):
     __doc__ = _('Enable DNS Zone.')
     msg_summary = _('Enabled DNS zone "%(value)s"')
+
+    def execute(self, *keys, **options):
+        result = super(dnszone_enable, self).execute(*keys, **options)
+        self.obj._warning_fw_zone_is_not_effective(result, *keys, **options)
+        return result
 
 
 @register()
@@ -3172,6 +3439,25 @@ class dnsrecord(LDAPObject):
             dns_name = entry_name[1].derelativize(dns_domain)
             self.wait_for_modified_attrs(entry, dns_name, dns_domain)
 
+    def warning_if_ns_change_cause_fwzone_ineffective(self, result, *keys,
+                                                      **options):
+        """Detect if NS record change can make forward zones ineffective due
+        missing delegation. Run after parent's execute method.
+        """
+        record_name_absolute = keys[-1]
+        zone = keys[-2]
+
+        if not record_name_absolute.is_absolute():
+            record_name_absolute = record_name_absolute.derelativize(zone)
+
+        affected_fw_zones, truncated = _find_subtree_forward_zones_ldap(
+            record_name_absolute)
+        if not affected_fw_zones:
+            return
+
+        for fwzone in affected_fw_zones:
+            _add_warning_fw_zone_is_not_effective(result, fwzone,
+                                                  options['version'])
 
 
 @register()
@@ -3495,7 +3781,10 @@ class dnsrecord_mod(LDAPUpdate):
 
         if self.api.env['wait_for_dns']:
             self.obj.wait_for_modified_entries(context.dnsrecord_entry_mods)
-
+        if 'nsrecord' in options:
+            self.obj.warning_if_ns_change_cause_fwzone_ineffective(result,
+                                                                   *keys,
+                                                                   **options)
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -3662,19 +3951,23 @@ class dnsrecord_del(LDAPUpdate):
             if self.api.env['wait_for_dns']:
                 entries = {(keys[0], keys[1]): None}
                 self.obj.wait_for_modified_entries(entries)
-            return result
+        else:
+            result = super(dnsrecord_del, self).execute(*keys, **options)
+            result['value'] = pkey_to_value([keys[-1]], options)
 
-        result = super(dnsrecord_del, self).execute(*keys, **options)
-        result['value'] = pkey_to_value([keys[-1]], options)
+            if getattr(context, 'del_all', False) and not \
+                    self.obj.is_pkey_zone_record(*keys):
+                result = self.obj.methods.delentry(*keys,
+                                                   version=options['version'])
+                context.dnsrecord_entry_mods[(keys[0], keys[1])] = None
 
-        if getattr(context, 'del_all', False) and not \
-                self.obj.is_pkey_zone_record(*keys):
-            result = self.obj.methods.delentry(*keys,
-                                               version=options['version'])
-            context.dnsrecord_entry_mods[(keys[0], keys[1])] = None
+            if self.api.env['wait_for_dns']:
+                self.obj.wait_for_modified_entries(context.dnsrecord_entry_mods)
 
-        if self.api.env['wait_for_dns']:
-            self.obj.wait_for_modified_entries(context.dnsrecord_entry_mods)
+        if 'nsrecord' in options or options.get('del_all', False):
+            self.obj.warning_if_ns_change_cause_fwzone_ineffective(result,
+                                                                   *keys,
+                                                                   **options)
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -4006,6 +4299,11 @@ class dnsforwardzone(DNSZoneBase):
     # managed_permissions: permissions was apllied in dnszone class, do NOT
     # add them here, they should not be applied twice.
 
+    def _warning_fw_zone_is_not_effective(self, result, *keys, **options):
+        fwzone = keys[-1]
+        _add_warning_fw_zone_is_not_effective(result, fwzone,
+                                              options['version'])
+
 
 @register()
 class dnsforwardzone_add(DNSZoneBase_add):
@@ -4026,6 +4324,11 @@ class dnsforwardzone_add(DNSZoneBase_add):
                                          error=_('Please specify forwarders.'))
 
         return dn
+
+    def execute(self, *keys, **options):
+        result = super(dnsforwardzone_add, self).execute(*keys, **options)
+        self.obj._warning_fw_zone_is_not_effective(result, *keys, **options)
+        return result
 
 
 @register()
@@ -4090,6 +4393,11 @@ class dnsforwardzone_disable(DNSZoneBase_disable):
 class dnsforwardzone_enable(DNSZoneBase_enable):
     __doc__ = _('Enable DNS Forward Zone.')
     msg_summary = _('Enabled DNS forward zone "%(value)s"')
+
+    def execute(self, *keys, **options):
+        result = super(dnsforwardzone_enable, self).execute(*keys, **options)
+        self.obj._warning_fw_zone_is_not_effective(result, *keys, **options)
+        return result
 
 
 @register()
