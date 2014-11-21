@@ -200,6 +200,19 @@ class DNSServerDoesNotSupportDNSSECWarning(PublicMessage):
                u"If DNSSEC validation is enabled on IPA server(s), "
                u"please disable it.")
 
+class ForwardzoneIsNotEffectiveWarning(PublicMessage):
+    """
+    **13008** Forwardzone is not effective, forwarding will not work because
+    there is authoritative parent zone, without proper NS delegation
+    """
+
+    errno = 13008
+    type = "warning"
+    format = _(u"forward zone \"%(fwzone)s\" is not effective because of "
+               u"missing proper NS delegation in authoritative zone "
+               u"\"%(authzone)s\". Please add NS record "
+               u"\"%(ns_rec)s\" to parent zone \"%(authzone)s\".")
+
 
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
