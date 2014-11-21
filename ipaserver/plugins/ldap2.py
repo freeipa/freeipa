@@ -162,47 +162,41 @@ class ldap2(LDAPClient, CrudBackend):
                 conn.set_option(_ldap.OPT_X_SASL_SSF_MIN, minssf)
                 if maxssf < minssf:
                     conn.set_option(_ldap.OPT_X_SASL_SSF_MAX, minssf)
-            if ccache is not None:
-                if isinstance(ccache, krbV.CCache):
-                    principal = ccache.principal().name
-                    # Get a fully qualified CCACHE name (schema+name)
-                    # As we do not use the krbV.CCache object later,
-                    # we can safely overwrite it
-                    ccache = "%(type)s:%(name)s" % dict(type=ccache.type,
-                                                        name=ccache.name)
-                else:
-                    principal = krbV.CCache(name=ccache,
-                        context=krbV.default_context()).principal().name
 
-                os.environ['KRB5CCNAME'] = ccache
-                conn.sasl_interactive_bind_s(None, SASL_GSSAPI,
-                                             serverctrls=serverctrls,
-                                             clientctrls=clientctrls)
-                setattr(context, 'principal', principal)
+        if ccache is not None:
+            if isinstance(ccache, krbV.CCache):
+                principal = ccache.principal().name
+                # Get a fully qualified CCACHE name (schema+name)
+                # As we do not use the krbV.CCache object later,
+                # we can safely overwrite it
+                ccache = "%(type)s:%(name)s" % dict(type=ccache.type,
+                                                    name=ccache.name)
             else:
-                # no kerberos ccache, use simple bind or external sasl
-                if autobind:
-                    pent = pwd.getpwuid(os.geteuid())
-                    auth_tokens = _ldap.sasl.external(pent.pw_name)
-                    conn.sasl_interactive_bind_s(None, auth_tokens,
-                                                 serverctrls=serverctrls,
-                                                 clientctrls=clientctrls)
-                else:
-                    conn.simple_bind_s(bind_dn, bind_pw,
-                                       serverctrls=serverctrls,
-                                       clientctrls=clientctrls)
+                principal = krbV.CCache(name=ccache,
+                    context=krbV.default_context()).principal().name
+
+            os.environ['KRB5CCNAME'] = ccache
+            self.gssapi_bind(server_controls=serverctrls,
+                             client_controls=clientctrls)
+            setattr(context, 'principal', principal)
+        else:
+            # no kerberos ccache, use simple bind or external sasl
+            if autobind:
+                pent = pwd.getpwuid(os.geteuid())
+                self.external_bind(pent.pw_name,
+                                   server_controls=serverctrls,
+                                   client_controls=clientctrls)
+            else:
+                self.simple_bind(bind_dn, bind_pw,
+                                 server_controls=serverctrls,
+                                 client_controls=clientctrls)
 
         return conn
 
     def destroy_connection(self):
         """Disconnect from LDAP server."""
         try:
-            self.conn.unbind_s()
-        except _ldap.LDAPError:
-            # ignore when trying to unbind multiple times
-            pass
-
-        try:
+            self.unbind()
             LDAPClient._disconnect(self)
         except errors.PublicError:
             # ignore when trying to unbind multiple times
