@@ -55,11 +55,11 @@ class ReplicaPrepare(admintool.AdminTool):
         parser.add_option("-p", "--password", dest="password",
             help="Directory Manager password (for the existing master)")
         parser.add_option("--ip-address", dest="ip_addresses", type="ip",
-            action="append", default=[],
-            help="add A and PTR records of the future replica")
+            action="append", default=[], metavar="IP_ADDRESS",
+            help="add A and PTR records of the future replica. This option can be used multiple times")
         parser.add_option("--reverse-zone", dest="reverse_zones",
-            action="append", default=[],
-            help="the reverse DNS zone to use")
+            action="append", default=[], metavar="REVERSE_ZONE",
+            help="the reverse DNS zone to use. This option can be used multiple times")
         parser.add_option("--no-reverse", dest="no_reverse",
             action="store_true", default=False,
             help="do not create reverse DNS zone")
