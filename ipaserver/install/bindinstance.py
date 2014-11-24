@@ -401,13 +401,14 @@ def zonemgr_callback(option, opt_str, value, parser):
     """
     Properly validate and convert --zonemgr Option to IA5String
     """
-    # validate the value first
-    try:
-        # IDNA support requires unicode
-        value = value.decode(sys.stdin.encoding)
-        validate_zonemgr_str(value)
-    except ValueError, e:
-        parser.error("invalid zonemgr: " + unicode(e))
+    if value is not None:
+        # validate the value first
+        try:
+            # IDNA support requires unicode
+            value = value.decode(getattr(sys.stdin, 'encoding', 'utf-8'))
+            validate_zonemgr_str(value)
+        except ValueError, e:
+            parser.error("invalid zonemgr: " + unicode(e))
 
     parser.values.zonemgr = value
 
