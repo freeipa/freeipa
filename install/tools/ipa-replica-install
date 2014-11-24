@@ -69,7 +69,7 @@ def parse_options():
                       default=False, help="configure a dogtag KRA")
     basic_group.add_option("--ip-address", dest="ip_addresses",
                       type="ip", ip_local=True, action="append", default=[],
-                      help="Replica server IP Address")
+                      help="Replica server IP Address. This option can be used multiple times", metavar="IP_ADDRESS")
     basic_group.add_option("-p", "--password", dest="password", sensitive=True,
                       help="Directory Manager (existing master) password")
     basic_group.add_option("-w", "--admin-password", dest="admin_password", sensitive=True,
@@ -113,7 +113,8 @@ def parse_options():
     dns_group.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
     dns_group.add_option("--reverse-zone", dest="reverse_zones", default=[],
-                         action="append", help="The reverse DNS zone to use")
+                         action="append", help="The reverse DNS zone to use. This option can be used multiple times",
+                        metavar="REVERSE_ZONE")
     dns_group.add_option("--no-reverse", dest="no_reverse", action="store_true",
                       default=False, help="Do not create new reverse DNS zone")
     dns_group.add_option("--no-dnssec-validation", dest="no_dnssec_validation", action="store_true",

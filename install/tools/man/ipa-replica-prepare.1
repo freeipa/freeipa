@@ -67,9 +67,10 @@ Directory Manager (existing master) password
 .TP
 \fB\-\-ip\-address\fR=\fIIP_ADDRESS\fR
 IP address of the replica server. If you provide this option, the A and PTR records will be added to the DNS.
+This this option can be used multiple times to specify more IP addresses of the server (e.g. multihomed and/or dualstacked server).
 .TP
 \fB\-\-reverse\-zone\fR=\fIREVERSE_ZONE\fR
-The reverse DNS zone to use
+The reverse DNS zone to use. This option can be used multiple times to specify multiple reverse zones.
 .TP
 \fB\-\-no\-reverse\fR
 Do not create reverse DNS zone

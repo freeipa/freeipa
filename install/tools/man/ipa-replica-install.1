@@ -40,6 +40,7 @@ certificate operations will be forwarded to a master with a CA installed.
 .TP
 \fB\-\-ip\-address\fR=\fIIP_ADDRESS\fR
 The IP address of this server. If this address does not match the address the host resolves to and \-\-setup\-dns is not selected the installation will fail. If the server hostname is not resolvable, a record for the hostname and IP_ADDRESS is added to /etc/hosts.
+This this option can be used multiple times to specify more IP addresses of the server (e.g. multihomed and/or dualstacked server).
 .TP
 \fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-password\fR=\fIDM_PASSWORD\fR
 Directory Manager (existing master) password
@@ -98,7 +99,7 @@ the \fB\-\-no\-forwarders\fR option is specified.
 Do not add any DNS forwarders. Root DNS servers will be used instead.
 .TP
 \fB\-\-reverse\-zone\fR=\fIREVERSE_ZONE\fR
-The reverse DNS zone to use
+The reverse DNS zone to use. This option can be used multiple times to specify multiple reverse zones.
 .TP
 \fB\-\-no\-reverse\fR
 Do not create new reverse DNS zone. If a reverse DNS zone already exists for the subnet, it will be used.
