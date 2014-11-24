@@ -88,7 +88,10 @@ def main():
         conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
 
         if options.dirman_password:
-            conn.do_simple_bind(bindpw=options.dirman_password)
+            try:
+                conn.do_simple_bind(bindpw=options.dirman_password)
+            except errors.ACIError:
+                sys.exit("Invalid credentials")
         else:
             conn.do_sasl_gssapi_bind()
     except errors.ACIError:
