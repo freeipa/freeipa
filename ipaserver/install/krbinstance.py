@@ -199,7 +199,6 @@ class KrbInstance(service.Service):
         self.__common_setup(realm_name, host_name, domain_name, admin_password)
 
         self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
-        self.step("writing stash file from DS", self.__write_stash_from_ds)
         self.step("configuring KDC", self.__configure_instance)
         self.step("creating a keytab for the directory", self.__create_ds_keytab)
         self.step("creating a keytab for the machine", self.__create_host_keytab)
@@ -372,31 +371,6 @@ class KrbInstance(service.Service):
                                                     replacevars=replacevars,
                                                     appendvars=appendvars)
         tasks.restore_context(paths.SYSCONFIG_KRB5KDC_DIR)
-
-    def __write_stash_from_ds(self):
-        try:
-            entries = self.admin_conn.get_entries(
-                self.get_realm_suffix(), self.admin_conn.SCOPE_SUBTREE)
-            # TODO: Ensure we got only one entry
-            entry = entries[0]
-        except errors.NotFound, e:
-            root_logger.critical("Could not find master key in DS")
-            raise e
-
-        krbMKey = pyasn1.codec.ber.decoder.decode(
-            entry.single_value.get('krbmkey'))
-        keytype = int(krbMKey[0][1][0])
-        keydata = str(krbMKey[0][1][1])
-
-        format = '=hi%ss' % len(keydata)
-        s = struct.pack(format, keytype, len(keydata), keydata)
-        try:
-            fd = open(paths.VAR_KRB5KDC_K5_REALM+self.realm, "w")
-            fd.write(s)
-            fd.close()
-        except os.error, e:
-            root_logger.critical("failed to write stash file")
-            raise e
 
     #add the password extop module
     def __add_pwd_extop_module(self):
