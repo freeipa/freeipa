@@ -77,12 +77,12 @@ bool ipaasn1_enc_getktreply(int kvno, struct keys_container *keys,
 {
     GetKeytabControl_t gkctrl = { 0 };
     bool ret = false;
+    KrbKey_t *KK;
 
     gkctrl.present = GetKeytabControl_PR_reply;
     gkctrl.choice.reply.newkvno = kvno;
 
     for (int i = 0; i < keys->nkeys; i++) {
-        KrbKey_t *KK;
         KK = calloc(1, sizeof(KrbKey_t));
         if (!KK) goto done;
         KK->key.type = keys->ksdata[i].key.enctype;
@@ -109,9 +109,18 @@ bool ipaasn1_enc_getktreply(int kvno, struct keys_container *keys,
     }
 
     ret = encode_GetKeytabControl(&gkctrl, buf, len);
+    KK = NULL;
 
 done:
     ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_GetKeytabControl, &gkctrl);
+    if (KK) {
+        free(KK->key.value.buf);
+        if (KK->salt) {
+            free(KK->salt->value.buf);
+            free(KK->salt);
+        }
+        free(KK);
+    }
     return ret;
 }
 
