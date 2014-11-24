@@ -58,6 +58,7 @@ import pysss
 from ipaplatform.paths import paths
 
 from ldap.filter import escape_filter_chars
+from time import sleep
 
 __doc__ = _("""
 Classes to manage trust joins using DCE-RPC calls
@@ -93,6 +94,8 @@ dcerpc_error_codes = {
 dcerpc_error_messages = {
     "NT_STATUS_OBJECT_NAME_NOT_FOUND":
          errors.NotFound(reason=_('Cannot find specified domain or server name')),
+    "WERR_NO_LOGON_SERVERS":
+         errors.RemoteRetrieveError(reason=_('AD DC was unable to reach any IPA domain controller. Most likely it is a DNS or firewall issue')),
     "NT_STATUS_INVALID_PARAMETER_MIX":
          errors.RequirementError(name=_('At least the domain or IP address should be specified')),
 }
@@ -699,6 +702,7 @@ class TrustDomainInstance(object):
         self._policy_handle = None
         self.read_only = False
         self.ftinfo_records = None
+        self.validation_attempts = 0
 
     def __gen_lsa_connection(self, binding):
        if self.creds is None:
@@ -1011,9 +1015,18 @@ class TrustDomainInstance(object):
                                           netlogon.NETLOGON_CONTROL_TC_VERIFY,
                                           another_domain.info['dns_domain'])
         if (result and (result.flags and netlogon.NETLOGON_VERIFY_STATUS_RETURNED)):
-            # netr_LogonControl2Ex() returns non-None result only if overall call
-            # result was WERR_OK which means verification was correct.
-            # We only check that it was indeed status for verification process
+            if (result.pdc_connection_status[0] != 0) and (result.tc_connection_status[0] != 0):
+                if result.pdc_connection_status[1] == "WERR_ACCESS_DENIED":
+                    # Most likely AD DC hit another IPA replica which yet has no trust secret replicated
+                    # Sleep and repeat again
+                    self.validation_attempts += 1
+                    if self.validation_attempts < 10:
+                        sleep(5)
+                        return self.verify_trust(another_domain)
+                    raise errors.ACIError(reason=_('IPA master denied trust validation requests from AD DC '
+                                                   '%(count)d times. Most likely AD DC contacted a replica '
+                                                   'that has no trust information replicated yet.' % (self.validation_attempts)))
+                raise assess_dcerpc_exception(*result.pdc_connection_status)
             return True
         return False
 
