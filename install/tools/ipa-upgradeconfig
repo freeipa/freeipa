@@ -1227,6 +1227,18 @@ def fix_trust_flags():
     sysupgrade.set_upgrade_state('http', 'fix_trust_flags', True)
 
 
+def update_mod_nss_protocol(http):
+    root_logger.info('[Updating mod_nss protocol versions]')
+
+    if sysupgrade.get_upgrade_state('nss.conf', 'protocol_updated_tls12'):
+        root_logger.info("Protocol versions already updated")
+        return
+
+    http.set_mod_nss_protocol()
+
+    sysupgrade.set_upgrade_state('nss.conf', 'protocol_updated_tls12', True)
+
+
 def main():
     """
     Get some basics about the system. If getting those basics fail then
@@ -1328,6 +1340,7 @@ def main():
     http.change_mod_nss_port_from_http()
 
     http.stop()
+    update_mod_nss_protocol(http)
     fix_trust_flags()
     http.start()
 
