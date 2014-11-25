@@ -405,7 +405,10 @@ def zonemgr_callback(option, opt_str, value, parser):
         # validate the value first
         try:
             # IDNA support requires unicode
-            value = value.decode(getattr(sys.stdin, 'encoding', 'utf-8'))
+            encoding = getattr(sys.stdin, 'encoding', None)
+            if encoding is None:
+                encoding = 'utf-8'
+            value = value.decode(encoding)
             validate_zonemgr_str(value)
         except ValueError, e:
             parser.error("invalid zonemgr: " + unicode(e))
