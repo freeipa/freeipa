@@ -467,7 +467,7 @@ IPA.service.unprovision_dialog = function(spec) {
     that.unprovision = function() {
 
         var principal_f  = that.facet.fields.get_field('krbprincipalname');
-        var pkey = principal_f.values[0];
+        var pkey = principal_f.get_value()[0];
 
         rpc.command({
             entity: that.entity.name,
