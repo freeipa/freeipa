@@ -28,6 +28,7 @@ import socket
 import re
 import decimal
 import dns
+import encodings
 import netaddr
 from types import NoneType
 from weakref import WeakKeyDictionary
@@ -277,6 +278,7 @@ def validate_zonemgr(zonemgr):
 
 def validate_zonemgr_str(zonemgr):
     zonemgr = normalize_zonemgr(zonemgr)
+    validate_idna_domain(zonemgr)
     zonemgr = DNSName(zonemgr)
     return validate_zonemgr(zonemgr)
 
@@ -589,3 +591,46 @@ def validate_dnssec_forwarder(ip_addr):
         return False
 
     return True
+
+
+def validate_idna_domain(value):
+    """
+    Validate if value is valid IDNA domain.
+
+    If domain is not valid, raises ValueError
+    :param value:
+    :return:
+    """
+    error = None
+
+    try:
+        DNSName(value)
+    except dns.name.BadEscape:
+        error = _('invalid escape code in domain name')
+    except dns.name.EmptyLabel:
+        error = _('empty DNS label')
+    except dns.name.NameTooLong:
+        error = _('domain name cannot be longer than 255 characters')
+    except dns.name.LabelTooLong:
+        error = _('DNS label cannot be longer than 63 characters')
+    except dns.exception.SyntaxError:
+        error = _('invalid domain name')
+    else:
+        #compare if IDN normalized and original domain match
+        #there is N:1 mapping between unicode and IDNA names
+        #user should use normalized names to avoid mistakes
+        labels = re.split(u'[.\uff0e\u3002\uff61]', value, flags=re.UNICODE)
+        try:
+            map(lambda label: label.encode("ascii"), labels)
+        except UnicodeError:
+            # IDNA
+            is_nonnorm = any(encodings.idna.nameprep(x) != x for x in labels)
+            if is_nonnorm:
+                error = _("domain name '%(domain)s' should be normalized to"
+                          ": %(normalized)s") % {
+                          'domain': value,
+                          'normalized': '.'.join([encodings.idna.nameprep(x)
+                                                  for x in labels])}
+
+    if error:
+        raise ValueError(error)
