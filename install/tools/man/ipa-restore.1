@@ -57,6 +57,7 @@ If you have older masters you should consider re\-creating them rather than tryi
 .TP
 \fB\-p\fR, \fB\-\-password\fR=\fIPASSWORD\fR
 The Directory Manager password.
+.TP
 \fB\-\-data\fR
 Restore the data only. The default is to restore everything in the backup.
 .TP
@@ -70,11 +71,11 @@ Exclude the IPA service log files in the backup (if they were backed up). Applic
 Perform the restore on\-line. Requires the \-\-data option.
 .TP
 \fB\-\-instance\fR=\fIINSTANCE\fR
-The backend to restore within an instance or instances.
-.TP
 Restore only the databases in this 389\-ds instance. The default is to restore all found (at most this is the IPA REALM instance and the PKI\-IPA instance).
 .TP
 \fB\-\-backend\fR=\fIBACKEND\fR
+The backend to restore within an instance or instances.
+.TP
 \fB\-\-v\fR, \fB\-\-verbose\fR
 Print debugging information
 .TP
