@@ -112,7 +112,7 @@ from errors import ConversionError, RequirementError, ValidationError
 from errors import PasswordMismatch, Base64DecodeError
 from constants import TYPE_ERROR, CALLABLE_ERROR, LDAP_GENERALIZED_TIME_FORMAT
 from text import Gettext, FixMe
-from util import json_serialize
+from util import json_serialize, validate_idna_domain
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 import dns.name
@@ -1950,36 +1950,11 @@ class DNSNameParam(Param):
             error = None
 
             try:
-                domain_name = DNSName(value)
-            except dns.name.BadEscape:
-                error = _('invalid escape code in domain name')
-            except dns.name.EmptyLabel:
-                error = _('empty DNS label')
-            except dns.name.NameTooLong:
-                error = _('domain name cannot be longer than 255 characters')
-            except dns.name.LabelTooLong:
-                error = _('DNS label cannot be longer than 63 characters')
-            except dns.exception.SyntaxError:
-                error = _('invalid domain name')
-            else:
-                #compare if IDN normalized and original domain match
-                #there is N:1 mapping between unicode and IDNA names
-                #user should use normalized names to avoid mistakes
-                labels = re.split(u'[.\uff0e\u3002\uff61]', value, flags=re.UNICODE)
-                try:
-                    map(lambda label: label.encode("ascii"), labels)
-                except UnicodeError:
-                    # IDNA
-                    is_nonnorm = any(encodings.idna.nameprep(x) != x for x in labels)
-                    if is_nonnorm:
-                        error = _("domain name '%(domain)s' should be normalized to"
-                          ": %(normalized)s") % {
-                          'domain': value,
-                          'normalized': '.'.join([encodings.idna.nameprep(x) for x in labels])}
-            if error:
+                validate_idna_domain(value)
+            except ValueError as e:
                 raise ConversionError(name=self.get_param_name(), index=index,
-                                      error=error)
-            value = domain_name
+                                      error=unicode(e))
+            value = DNSName(value)
 
             if self.only_absolute and not value.is_absolute():
                 value = value.make_absolute()
