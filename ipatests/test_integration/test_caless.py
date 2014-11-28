@@ -145,11 +145,11 @@ class CALessBase(IntegrationTest):
         for filename in set(files_to_copy):
             cls.copy_cert(host, filename)
 
-        cls.collect_log(host, paths.IPASERVER_INSTALL_LOG)
-        cls.collect_log(host, paths.IPACLIENT_INSTALL_LOG)
+        host.collect_log(paths.IPASERVER_INSTALL_LOG)
+        host.collect_log(paths.IPACLIENT_INSTALL_LOG)
         inst = host.domain.realm.replace('.', '-')
-        cls.collect_log(host, paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
-        cls.collect_log(host, paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
+        host.collect_log(paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
+        host.collect_log(paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
 
         args = [
             'ipa-server-install',
@@ -216,11 +216,11 @@ class CALessBase(IntegrationTest):
                 os.path.join(self.cert_dir, filename),
                 os.path.join(master.config.test_dir, filename))
 
-        self.collect_log(replica, paths.IPAREPLICA_INSTALL_LOG)
-        self.collect_log(replica, paths.IPACLIENT_INSTALL_LOG)
+        replica.collect_log(paths.IPAREPLICA_INSTALL_LOG)
+        replica.collect_log(paths.IPACLIENT_INSTALL_LOG)
         inst = replica.domain.realm.replace('.', '-')
-        self.collect_log(replica, paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
-        self.collect_log(replica, paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
+        replica.collect_log(paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
+        replica.collect_log(paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
 
         args = [
             'ipa-replica-prepare',
