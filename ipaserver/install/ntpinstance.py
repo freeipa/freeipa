@@ -51,6 +51,7 @@ class NTPInstance(service.Service):
         srv_vals.append("0.%s.pool.ntp.org" % os)
         srv_vals.append("1.%s.pool.ntp.org" % os)
         srv_vals.append("2.%s.pool.ntp.org" % os)
+        srv_vals.append("3.%s.pool.ntp.org" % os)
         srv_vals.append("127.127.1.0")
         fudge = ["fudge", "127.127.1.0", "stratum", "10"]
 
@@ -92,7 +93,7 @@ class NTPInstance(service.Service):
             fd.write("\n### Added by IPA Installer ###\n")
             if len(srv_vals) != 0:
                 for srv in srv_vals:
-                    fd.write("server "+srv+"\n")
+                    fd.write("server "+srv+" iburst\n")
             if not fudge_present:
                 fd.write("fudge 127.127.1.0 stratum 10\n")
             fd.close()
