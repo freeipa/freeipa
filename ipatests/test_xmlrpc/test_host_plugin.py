@@ -147,6 +147,9 @@ group1 = u'group1'
 group1_dn = get_group_dn(group1)
 group2 = u'group2'
 group2_dn = get_group_dn(group2)
+hostgroup1 = u'testhostgroup1'
+hostgroup1_dn = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
+                    api.env.basedn)
 
 class test_host(Declarative):
 
@@ -1420,6 +1423,8 @@ class test_host_allowed_to(Declarative):
         ('group_del', [group1], {}),
         ('group_del', [group2], {}),
         ('host_del', [fqdn1], {}),
+        ('host_del', [fqdn3], {}),
+        ('hostgroup_del', [hostgroup1], {}),
     ]
 
     tests = [
@@ -1503,6 +1508,49 @@ class test_host_allowed_to(Declarative):
                 ),
             ),
         ),
+        dict(
+            desc='Create %r' % fqdn3,
+            command=(
+                'host_add', [fqdn3],
+                dict(
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=fqdn3,
+                summary=u'Added host "%s"' % fqdn3,
+                result=dict(
+                    dn=dn3,
+                    fqdn=[fqdn3],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[fqdn3],
+                    has_keytab=False,
+                    has_password=False,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Create %r' % hostgroup1,
+            command=('hostgroup_add', [hostgroup1],
+                dict(description=u'Test hostgroup 1')
+            ),
+            expected=dict(
+                value=hostgroup1,
+                summary=u'Added hostgroup "testhostgroup1"',
+                result=dict(
+                    dn=hostgroup1_dn,
+                    cn=[hostgroup1],
+                    objectclass=objectclasses.hostgroup,
+                    description=[u'Test hostgroup 1'],
+                    ipauniqueid=[fuzzy_uuid],
+                    mepmanagedentry=[DN(('cn',hostgroup1),('cn','ng'),('cn','alt'),
+                                        api.env.basedn)],
+                ),
+            ),
+        ),
 
         # verify
         dict(
@@ -1513,6 +1561,8 @@ class test_host_allowed_to(Declarative):
                 failed=dict(
                     ipaallowedtoperform_read_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[],
                     ),
                 ),
@@ -1535,6 +1585,8 @@ class test_host_allowed_to(Declarative):
                 failed=dict(
                     ipaallowedtoperform_read_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[[user1, u'This entry is already a member']],
                     ),
                 ),
@@ -1553,20 +1605,25 @@ class test_host_allowed_to(Declarative):
             desc='Allow %r, %r to a retrieve keytab of %r' % (
                 group1, group2, fqdn1),
             command=('host_allow_retrieve_keytab', [fqdn1],
-                     dict(group=[group1, group2])),
+                     dict(group=[group1, group2], host=[fqdn3],
+                          hostgroup=[hostgroup1])),
             expected=dict(
                 failed=dict(
                     ipaallowedtoperform_read_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[],
                     ),
                 ),
-                completed=2,
+                completed=4,
                 result=dict(
                     dn=dn1,
                     fqdn=[fqdn1],
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1, group2],
+                    ipaallowedtoperform_read_keys_host=[fqdn3],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     managedby_host=[fqdn1],
                 ),
@@ -1581,6 +1638,8 @@ class test_host_allowed_to(Declarative):
                 failed=dict(
                     ipaallowedtoperform_read_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[[user2, u'This entry is not a member']],
                     ),
                 ),
@@ -1590,6 +1649,8 @@ class test_host_allowed_to(Declarative):
                     fqdn=[fqdn1],
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1, group2],
+                    ipaallowedtoperform_read_keys_host=[fqdn3],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     managedby_host=[fqdn1],
                 ),
@@ -1604,6 +1665,8 @@ class test_host_allowed_to(Declarative):
                 failed=dict(
                     ipaallowedtoperform_read_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[],
                     ),
                 ),
@@ -1613,6 +1676,8 @@ class test_host_allowed_to(Declarative):
                     fqdn=[fqdn1],
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_read_keys_host=[fqdn3],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     managedby_host=[fqdn1],
                 ),
@@ -1623,22 +1688,29 @@ class test_host_allowed_to(Declarative):
             desc='Allow %r, %r to a create keytab of %r' % (
                 group1, user1, fqdn1),
             command=('host_allow_create_keytab', [fqdn1],
-                     dict(group=[group1, group2], user=[user1])),
+                     dict(group=[group1, group2], user=[user1], host=[fqdn3],
+                          hostgroup=[hostgroup1])),
             expected=dict(
                 failed=dict(
                     ipaallowedtoperform_write_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[],
                     ),
                 ),
-                completed=3,
+                completed=5,
                 result=dict(
                     dn=dn1,
                     fqdn=[fqdn1],
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_read_keys_host=[fqdn3],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     ipaallowedtoperform_write_keys_user=[user1],
                     ipaallowedtoperform_write_keys_group=[group1, group2],
+                    ipaallowedtoperform_write_keys_host=[fqdn3],
+                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     managedby_host=[fqdn1],
                 ),
@@ -1648,12 +1720,15 @@ class test_host_allowed_to(Declarative):
         dict(
             desc='Duplicate add: %r, %r' % (user1, group1),
             command=('host_allow_create_keytab', [fqdn1],
-                     dict(group=[group1], user=[user1])),
+                     dict(group=[group1], user=[user1], host=[fqdn3],
+                          hostgroup=[hostgroup1])),
             expected=dict(
                 failed=dict(
                     ipaallowedtoperform_write_keys=dict(
                         group=[[group1, u'This entry is already a member']],
+                        host=[[fqdn3, u'This entry is already a member']],
                         user=[[user1, u'This entry is already a member']],
+                        hostgroup=[[hostgroup1, u'This entry is already a member']],
                     ),
                 ),
                 completed=0,
@@ -1662,8 +1737,12 @@ class test_host_allowed_to(Declarative):
                     fqdn=[fqdn1],
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_read_keys_host=[fqdn3],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     ipaallowedtoperform_write_keys_user=[user1],
                     ipaallowedtoperform_write_keys_group=[group1, group2],
+                    ipaallowedtoperform_write_keys_host=[fqdn3],
+                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     managedby_host=[fqdn1],
                 ),
@@ -1678,6 +1757,8 @@ class test_host_allowed_to(Declarative):
                 failed=dict(
                     ipaallowedtoperform_write_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[[user2, u'This entry is not a member']],
                     ),
                 ),
@@ -1687,8 +1768,12 @@ class test_host_allowed_to(Declarative):
                     fqdn=[fqdn1],
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_read_keys_host=[fqdn3],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     ipaallowedtoperform_write_keys_user=[user1],
                     ipaallowedtoperform_write_keys_group=[group1, group2],
+                    ipaallowedtoperform_write_keys_host=[fqdn3],
+                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     managedby_host=[fqdn1],
                 ),
@@ -1703,6 +1788,8 @@ class test_host_allowed_to(Declarative):
                 failed=dict(
                     ipaallowedtoperform_write_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[],
                     ),
                 ),
@@ -1712,8 +1799,12 @@ class test_host_allowed_to(Declarative):
                     fqdn=[fqdn1],
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_read_keys_host=[fqdn3],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     ipaallowedtoperform_write_keys_user=[user1],
                     ipaallowedtoperform_write_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_host=[fqdn3],
+                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     managedby_host=[fqdn1],
                 ),
@@ -1733,8 +1824,12 @@ class test_host_allowed_to(Declarative):
                     has_password=False,
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_read_keys_host=[fqdn3],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     ipaallowedtoperform_write_keys_user=[user1],
                     ipaallowedtoperform_write_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_host=[fqdn3],
+                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     managedby_host=[fqdn1],
                 ),
@@ -1756,8 +1851,12 @@ class test_host_allowed_to(Declarative):
                     has_password=False,
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_read_keys_host=[fqdn3],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     ipaallowedtoperform_write_keys_user=[user1],
                     ipaallowedtoperform_write_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_host=[fqdn3],
+                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     managedby_host=[fqdn1],
                 ),

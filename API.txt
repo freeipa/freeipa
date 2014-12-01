@@ -1826,10 +1826,12 @@ output: Output('completed', <type 'int'>, None)
 output: Output('failed', <type 'dict'>, None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 command: host_allow_create_keytab
-args: 1,6,3
+args: 1,8,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('group*', alwaysask=True, cli_name='groups', csv=True)
+option: Str('host*', alwaysask=True, cli_name='hosts', csv=True)
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups', csv=True)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('user*', alwaysask=True, cli_name='users', csv=True)
@@ -1838,10 +1840,12 @@ output: Output('completed', <type 'int'>, None)
 output: Output('failed', <type 'dict'>, None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 command: host_allow_retrieve_keytab
-args: 1,6,3
+args: 1,8,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('group*', alwaysask=True, cli_name='groups', csv=True)
+option: Str('host*', alwaysask=True, cli_name='hosts', csv=True)
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups', csv=True)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('user*', alwaysask=True, cli_name='users', csv=True)
@@ -1866,10 +1870,12 @@ output: Output('result', <type 'bool'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: host_disallow_create_keytab
-args: 1,6,3
+args: 1,8,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('group*', alwaysask=True, cli_name='groups', csv=True)
+option: Str('host*', alwaysask=True, cli_name='hosts', csv=True)
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups', csv=True)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('user*', alwaysask=True, cli_name='users', csv=True)
@@ -1878,10 +1884,12 @@ output: Output('completed', <type 'int'>, None)
 output: Output('failed', <type 'dict'>, None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 command: host_disallow_retrieve_keytab
-args: 1,6,3
+args: 1,8,3
 arg: Str('fqdn', attribute=True, cli_name='hostname', multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('group*', alwaysask=True, cli_name='groups', csv=True)
+option: Str('host*', alwaysask=True, cli_name='hosts', csv=True)
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups', csv=True)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('user*', alwaysask=True, cli_name='users', csv=True)
@@ -3529,10 +3537,12 @@ output: Output('completed', <type 'int'>, None)
 output: Output('failed', <type 'dict'>, None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 command: service_allow_create_keytab
-args: 1,6,3
+args: 1,8,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('group*', alwaysask=True, cli_name='groups', csv=True)
+option: Str('host*', alwaysask=True, cli_name='hosts', csv=True)
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups', csv=True)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('user*', alwaysask=True, cli_name='users', csv=True)
@@ -3541,10 +3551,12 @@ output: Output('completed', <type 'int'>, None)
 output: Output('failed', <type 'dict'>, None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 command: service_allow_retrieve_keytab
-args: 1,6,3
+args: 1,8,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('group*', alwaysask=True, cli_name='groups', csv=True)
+option: Str('host*', alwaysask=True, cli_name='hosts', csv=True)
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups', csv=True)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('user*', alwaysask=True, cli_name='users', csv=True)
@@ -3568,10 +3580,12 @@ output: Output('result', <type 'bool'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: service_disallow_create_keytab
-args: 1,6,3
+args: 1,8,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('group*', alwaysask=True, cli_name='groups', csv=True)
+option: Str('host*', alwaysask=True, cli_name='hosts', csv=True)
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups', csv=True)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('user*', alwaysask=True, cli_name='users', csv=True)
@@ -3580,10 +3594,12 @@ output: Output('completed', <type 'int'>, None)
 output: Output('failed', <type 'dict'>, None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 command: service_disallow_retrieve_keytab
-args: 1,6,3
+args: 1,8,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('group*', alwaysask=True, cli_name='groups', csv=True)
+option: Str('host*', alwaysask=True, cli_name='hosts', csv=True)
+option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups', csv=True)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('user*', alwaysask=True, cli_name='users', csv=True)

@@ -54,6 +54,9 @@ group1 = u'group1'
 group1_dn = get_group_dn(group1)
 group2 = u'group2'
 group2_dn = get_group_dn(group2)
+hostgroup1 = u'testhostgroup1'
+hostgroup1_dn = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
+                    api.env.basedn)
 
 class test_service(Declarative):
 
@@ -770,6 +773,7 @@ class test_service_allowed_to(Declarative):
         ('group_del', [group2], {}),
         ('host_del', [fqdn1], {}),
         ('service_del', [service1], {}),
+        ('hostgroup_del', [hostgroup1], {}),
     ]
 
     tests = [
@@ -858,6 +862,25 @@ class test_service_allowed_to(Declarative):
             ),
         ),
         dict(
+            desc='Create %r' % hostgroup1,
+            command=('hostgroup_add', [hostgroup1],
+                dict(description=u'Test hostgroup 1')
+            ),
+            expected=dict(
+                value=hostgroup1,
+                summary=u'Added hostgroup "testhostgroup1"',
+                result=dict(
+                    dn=hostgroup1_dn,
+                    cn=[hostgroup1],
+                    objectclass=objectclasses.hostgroup,
+                    description=[u'Test hostgroup 1'],
+                    ipauniqueid=[fuzzy_uuid],
+                    mepmanagedentry=[DN(('cn',hostgroup1),('cn','ng'),('cn','alt'),
+                                        api.env.basedn)],
+                ),
+            ),
+        ),
+        dict(
             desc='Create %r' % service1,
             command=('service_add', [service1_no_realm], dict(force=True)),
             expected=dict(
@@ -882,6 +905,8 @@ class test_service_allowed_to(Declarative):
                 failed=dict(
                     ipaallowedtoperform_read_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[],
                     ),
                 ),
@@ -903,6 +928,8 @@ class test_service_allowed_to(Declarative):
                 failed=dict(
                     ipaallowedtoperform_read_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[[user1, u'This entry is already a member']],
                     ),
                 ),
@@ -917,22 +944,27 @@ class test_service_allowed_to(Declarative):
         ),
 
         dict(
-            desc='Allow %r, %r to a retrieve keytab of %r' % (
-                group1, group2, service1),
+            desc='Allow %r, %r, %r to a retrieve keytab of %r' % (
+                group1, group2, fqdn1, service1),
             command=('service_allow_retrieve_keytab', [service1],
-                     dict(group=[group1, group2])),
+                     dict(group=[group1, group2], host=[fqdn1],
+                          hostgroup=[hostgroup1])),
             expected=dict(
                 failed=dict(
                     ipaallowedtoperform_read_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[],
                     ),
                 ),
-                completed=2,
+                completed=4,
                 result=dict(
                     dn=service1dn,
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1, group2],
+                    ipaallowedtoperform_read_keys_host=[fqdn1],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                 ),
@@ -947,6 +979,8 @@ class test_service_allowed_to(Declarative):
                 failed=dict(
                     ipaallowedtoperform_read_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[[user2, u'This entry is not a member']],
                     ),
                 ),
@@ -955,6 +989,8 @@ class test_service_allowed_to(Declarative):
                     dn=service1dn,
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1, group2],
+                    ipaallowedtoperform_read_keys_host=[fqdn1],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                 ),
@@ -969,6 +1005,8 @@ class test_service_allowed_to(Declarative):
                 failed=dict(
                     ipaallowedtoperform_read_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[],
                     ),
                 ),
@@ -977,6 +1015,8 @@ class test_service_allowed_to(Declarative):
                     dn=service1dn,
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_read_keys_host=[fqdn1],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                 ),
@@ -984,24 +1024,31 @@ class test_service_allowed_to(Declarative):
         ),
 
         dict(
-            desc='Allow %r, %r to a create keytab of %r' % (
-                group1, user1, service1),
+            desc='Allow %r, %r, %r to a create keytab of %r' % (
+                group1, user1, fqdn1, service1),
             command=('service_allow_create_keytab', [service1],
-                     dict(group=[group1, group2], user=[user1])),
+                     dict(group=[group1, group2], user=[user1], host=[fqdn1],
+                          hostgroup=[hostgroup1])),
             expected=dict(
                 failed=dict(
                     ipaallowedtoperform_write_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[],
                     ),
                 ),
-                completed=3,
+                completed=5,
                 result=dict(
                     dn=service1dn,
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_read_keys_host=[fqdn1],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     ipaallowedtoperform_write_keys_user=[user1],
                     ipaallowedtoperform_write_keys_group=[group1, group2],
+                    ipaallowedtoperform_write_keys_host=[fqdn1],
+                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                 ),
@@ -1011,12 +1058,15 @@ class test_service_allowed_to(Declarative):
         dict(
             desc='Duplicate add: %r, %r' % (user1, group1),
             command=('service_allow_create_keytab', [service1],
-                     dict(group=[group1], user=[user1])),
+                     dict(group=[group1], user=[user1], host=[fqdn1],
+                          hostgroup=[hostgroup1])),
             expected=dict(
                 failed=dict(
                     ipaallowedtoperform_write_keys=dict(
                         group=[[group1, u'This entry is already a member']],
+                        host=[[fqdn1, u'This entry is already a member']],
                         user=[[user1, u'This entry is already a member']],
+                        hostgroup=[[hostgroup1, u'This entry is already a member']],
                     ),
                 ),
                 completed=0,
@@ -1024,8 +1074,12 @@ class test_service_allowed_to(Declarative):
                     dn=service1dn,
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_read_keys_host=[fqdn1],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     ipaallowedtoperform_write_keys_user=[user1],
                     ipaallowedtoperform_write_keys_group=[group1, group2],
+                    ipaallowedtoperform_write_keys_host=[fqdn1],
+                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                 ),
@@ -1040,6 +1094,8 @@ class test_service_allowed_to(Declarative):
                 failed=dict(
                     ipaallowedtoperform_write_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[[user2, u'This entry is not a member']],
                     ),
                 ),
@@ -1048,8 +1104,12 @@ class test_service_allowed_to(Declarative):
                     dn=service1dn,
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_read_keys_host=[fqdn1],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     ipaallowedtoperform_write_keys_user=[user1],
                     ipaallowedtoperform_write_keys_group=[group1, group2],
+                    ipaallowedtoperform_write_keys_host=[fqdn1],
+                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                 ),
@@ -1064,6 +1124,8 @@ class test_service_allowed_to(Declarative):
                 failed=dict(
                     ipaallowedtoperform_write_keys=dict(
                         group=[],
+                        host=[],
+                        hostgroup=[],
                         user=[],
                     ),
                 ),
@@ -1072,8 +1134,12 @@ class test_service_allowed_to(Declarative):
                     dn=service1dn,
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_read_keys_host=[fqdn1],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     ipaallowedtoperform_write_keys_user=[user1],
                     ipaallowedtoperform_write_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_host=[fqdn1],
+                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                 ),
@@ -1091,8 +1157,12 @@ class test_service_allowed_to(Declarative):
                     has_keytab=False,
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_read_keys_host=[fqdn1],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     ipaallowedtoperform_write_keys_user=[user1],
                     ipaallowedtoperform_write_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_host=[fqdn1],
+                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                 ),
@@ -1110,8 +1180,12 @@ class test_service_allowed_to(Declarative):
                 result=dict(
                     ipaallowedtoperform_read_keys_user=[user1],
                     ipaallowedtoperform_read_keys_group=[group1],
+                    ipaallowedtoperform_read_keys_host=[fqdn1],
+                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
                     ipaallowedtoperform_write_keys_user=[user1],
                     ipaallowedtoperform_write_keys_group=[group1],
+                    ipaallowedtoperform_write_keys_host=[fqdn1],
+                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
                     ipakrbokasdelegate=True,
                     krbprincipalname=[service1],
                     krbticketflags=[u'1048704'],
