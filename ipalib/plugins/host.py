@@ -211,11 +211,23 @@ host_output_params = (
     Str('ipaallowedtoperform_read_keys_group',
         label=_('Groups allowed to retrieve keytab'),
     ),
+    Str('ipaallowedtoperform_read_keys_host',
+        label=_('Hosts allowed to retrieve keytab'),
+    ),
+    Str('ipaallowedtoperform_read_keys_hostgroup',
+        label=_('Host Groups allowed to retrieve keytab'),
+    ),
     Str('ipaallowedtoperform_write_keys_user',
         label=_('Users allowed to create keytab'),
     ),
     Str('ipaallowedtoperform_write_keys_group',
         label=_('Groups allowed to create keytab'),
+    ),
+    Str('ipaallowedtoperform_write_keys_host',
+        label=_('Hosts allowed to create keytab'),
+    ),
+    Str('ipaallowedtoperform_write_keys_hostgroup',
+        label=_('Host Groups allowed to create keytab'),
     ),
     Str('ipaallowedtoperform_read_keys',
         label=_('Failed allowed to retrieve keytab'),
@@ -284,8 +296,8 @@ class host(LDAPObject):
         'managing': ['host'],
         'memberofindirect': ['hostgroup', 'netgroup', 'role', 'hbacrule',
         'sudorule'],
-        'ipaallowedtoperform_read_keys': ['user', 'group'],
-        'ipaallowedtoperform_write_keys': ['user', 'group'],
+        'ipaallowedtoperform_read_keys': ['user', 'group', 'host', 'hostgroup'],
+        'ipaallowedtoperform_write_keys': ['user', 'group', 'host', 'hostgroup'],
     }
     bindable = True
     relationships = {
@@ -1201,7 +1213,8 @@ class host_remove_managedby(LDAPRemoveMember):
 
 @register()
 class host_allow_retrieve_keytab(LDAPAddMember):
-    __doc__ = _('Allow users or groups to retrieve a keytab of this host.')
+    __doc__ = _('Allow users, groups, hosts or host groups to retrieve a keytab'
+                ' of this host.')
     member_attributes = ['ipaallowedtoperform_read_keys']
     has_output_params = LDAPAddMember.has_output_params + host_output_params
 
@@ -1219,7 +1232,8 @@ class host_allow_retrieve_keytab(LDAPAddMember):
 
 @register()
 class host_disallow_retrieve_keytab(LDAPRemoveMember):
-    __doc__ = _('Disallow users or groups to retrieve a keytab of this host.')
+    __doc__ = _('Disallow users, groups, hosts or host groups to retrieve a '
+                'keytab of this host.')
     member_attributes = ['ipaallowedtoperform_read_keys']
     has_output_params = LDAPRemoveMember.has_output_params + host_output_params
 
@@ -1236,7 +1250,8 @@ class host_disallow_retrieve_keytab(LDAPRemoveMember):
 
 @register()
 class host_allow_create_keytab(LDAPAddMember):
-    __doc__ = _('Allow users or groups to create a keytab of this host.')
+    __doc__ = _('Allow users, groups, hosts or host groups to create a keytab '
+                'of this host.')
     member_attributes = ['ipaallowedtoperform_write_keys']
     has_output_params = LDAPAddMember.has_output_params + host_output_params
 
@@ -1254,7 +1269,8 @@ class host_allow_create_keytab(LDAPAddMember):
 
 @register()
 class host_disallow_create_keytab(LDAPRemoveMember):
-    __doc__ = _('Disallow users or groups to create a keytab of this host.')
+    __doc__ = _('Disallow users, groups, hosts or host groups to create a '
+                'keytab of this host.')
     member_attributes = ['ipaallowedtoperform_write_keys']
     has_output_params = LDAPRemoveMember.has_output_params + host_output_params
 
