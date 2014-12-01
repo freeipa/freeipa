@@ -263,7 +263,7 @@ class BasePathNamespace(object):
     VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE = "/var/lib/dirsrv/scripts-%s"
     VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE = "/var/lib/dirsrv/slapd-%s"
     SLAPD_INSTANCE_BACKUP_DIR_TEMPLATE = "/var/lib/dirsrv/slapd-%s/bak/%s"
-    IPACA_DIRSRV_INSTANCE_DB_TEMPLATE = "/var/lib/dirsrv/slapd-%s/db/ipaca"
+    SLAPD_INSTANCE_DB_DIR_TEMPLATE = "/var/lib/dirsrv/slapd-%s/db/%s"
     SLAPD_INSTANCE_LDIF_DIR_TEMPLATE = "/var/lib/dirsrv/slapd-%s/ldif"
     VAR_LIB_SLAPD_PKI_IPA_DIR_TEMPLATE = "/var/lib/dirsrv/slapd-PKI-IPA"
     VAR_LIB_IPA = "/var/lib/ipa"

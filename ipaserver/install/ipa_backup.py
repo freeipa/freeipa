@@ -292,7 +292,7 @@ class Backup(admintool.AdminTool):
 
             for instance in [realm_to_serverid(api.env.realm), 'PKI-IPA']:
                 if os.path.exists(paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % instance):
-                    if os.path.exists(paths.IPACA_DIRSRV_INSTANCE_DB_TEMPLATE % instance):
+                    if os.path.exists(paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE % (instance, 'ipaca')):
                         self.db2ldif(instance, 'ipaca', online=options.online)
                     self.db2ldif(instance, 'userRoot', online=options.online)
                     self.db2bak(instance, online=options.online)

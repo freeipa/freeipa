@@ -187,15 +187,35 @@ class Restore(admintool.AdminTool):
         self.log.info("Preparing restore from %s on %s",
             self.backup_dir, api.env.host)
 
-        if not options.instance:
-            instances = []
-            for instance in [realm_to_serverid(api.env.realm), 'PKI-IPA']:
-                if os.path.exists(paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % instance):
-                    instances.append(instance)
+        if options.instance and options.backend:
+            database = (options.instance, options.backend)
+            if not os.path.exists(paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE %
+                                  database):
+                raise admintool.ScriptError(
+                    "Instance %s with backend %s does not exist" % database)
+
+            databases = [database]
         else:
-            instances = [options.instance]
-        if options.data_only and not instances:
-            raise admintool.ScriptError('No instances to restore to')
+            if options.instance:
+                instances = [options.instance]
+            else:
+                instances = [realm_to_serverid(api.env.realm), 'PKI-IPA']
+
+            if options.backend:
+                backends = [options.backend]
+            else:
+                backends = ['userRoot', 'ipaca']
+
+            databases = []
+            for instance in instances:
+                for backend in backends:
+                    database = (instance, backend)
+                    if os.path.exists(paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE %
+                                      database):
+                        databases.append(database)
+
+            if options.data_only and not databases:
+                raise admintool.ScriptError('No instances to restore to')
 
         create_ds_user()
         pent = pwd.getpwnam(DS_USER)
@@ -222,7 +242,7 @@ class Restore(admintool.AdminTool):
             # These two checks would normally be in the validate method but
             # we need to know the type of backup we're dealing with.
             if (self.backup_type != 'FULL' and not options.data_only and
-                not instances):
+                not databases):
                 raise admintool.ScriptError('Cannot restore a data backup into an empty system')
             if (self.backup_type == 'FULL' and not options.data_only and
                 (options.instance or options.backend)):
@@ -243,6 +263,15 @@ class Restore(admintool.AdminTool):
                     not user_input("Continue to restore?", False)):
                     raise admintool.ScriptError("Aborted")
 
+            self.extract_backup(options.gpg_keyring)
+
+            for database in databases:
+                ldifname = '%s-%s.ldif' % database
+                ldiffile = os.path.join(self.dir, ldifname)
+                if not os.path.exists(ldiffile):
+                    raise admintool.ScriptError(
+                        "Instance %s with backend %s not in backup" % database)
+
             # Big fat warning
             if  (not options.unattended and
                 not user_input("Restoring data will overwrite existing live data. Continue to restore?", False)):
@@ -260,7 +289,6 @@ class Restore(admintool.AdminTool):
             self.log.info("Disabling all replication.")
             self.disable_agreements()
 
-            self.extract_backup(options.gpg_keyring)
             if options.data_only:
                 if not options.online:
                     self.log.info('Stopping Directory Server')
@@ -294,16 +322,8 @@ class Restore(admintool.AdminTool):
             # userRoot backend in it and the main IPA instance. If we
             # have a unified instance we need to restore both userRoot and
             # ipaca.
-            for instance in instances:
-                if os.path.exists(paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % instance):
-                    if options.backend is None:
-                        self.ldif2db(instance, 'userRoot', online=options.online)
-                        if os.path.exists(paths.IPACA_DIRSRV_INSTANCE_DB_TEMPLATE % instance):
-                            self.ldif2db(instance, 'ipaca', online=options.online)
-                    else:
-                        self.ldif2db(instance, options.backend, online=options.online)
-                else:
-                    raise admintool.ScriptError('389-ds instance %s does not exist' % instance)
+            for instance, backend in databases:
+                self.ldif2db(instance, backend, online=options.online)
 
             if options.data_only:
                 if not options.online:
@@ -446,20 +466,15 @@ class Restore(admintool.AdminTool):
             try:
                 conn.add_entry(ent)
             except Exception, e:
-                raise admintool.ScriptError(
-                    'Unable to bind to LDAP server: %s' % e)
+                self.log.error("Unable to bind to LDAP server: %s" % e)
+                return
 
             self.log.info("Waiting for LDIF to finish")
             wait_for_task(conn, dn)
         else:
             args = ['%s/ldif2db' % self.__find_scripts_dir(instance),
-                    '-i', ldiffile]
-            if backend is not None:
-                args.append('-n')
-                args.append(backend)
-            else:
-                args.append('-n')
-                args.append('userRoot')
+                    '-i', ldiffile,
+                    '-n', backend]
             (stdout, stderr, rc) = run(args, raiseonerr=False)
             if rc != 0:
                 self.log.critical("ldif2db failed: %s" % stderr)
