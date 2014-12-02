@@ -1557,7 +1557,6 @@ def do_nsupdate(update_txt):
 
 UPDATE_TEMPLATE_A = """
 debug
-zone $ZONE.
 update delete $HOSTNAME. IN A
 show
 send
@@ -1568,7 +1567,6 @@ send
 
 UPDATE_TEMPLATE_AAAA = """
 debug
-zone $ZONE.
 update delete $HOSTNAME. IN AAAA
 show
 send
@@ -1592,8 +1590,7 @@ def update_dns(server, hostname):
 
     sub_dict = dict(HOSTNAME=hostname,
                     IPADDRESS=ip,
-                    TTL=1200,
-                    ZONE='.'.join(hostname.split('.')[1:])
+                    TTL=1200
                 )
 
     if af == socket.AF_INET:
@@ -1668,10 +1665,9 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
         return
 
     if create_sshfp:
-        zone = '.'.join(hostname.split('.')[1:])
         ttl = 1200
 
-        update_txt = 'debug\nzone %s.\n' % zone
+        update_txt = 'debug\n'
         update_txt += 'update delete %s. IN SSHFP\nshow\nsend\n' % hostname
         for pubkey in pubkeys:
             sshfp = pubkey.fingerprint_dns_sha1()
