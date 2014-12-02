@@ -22,7 +22,7 @@ from nss.error import NSPRError
 import string
 
 from ipalib import api, errors, util
-from ipalib import Str, Flag, Bytes, DNParam
+from ipalib import Str, Flag, Bytes
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPDelete, LDAPUpdate, LDAPSearch,
@@ -162,6 +162,17 @@ def update_sshfp_record(zone, record, entry_attrs):
     except errors.EmptyModlist:
         pass
 
+
+def convert_ipaassignedidview_post(entry_attrs, options):
+    """
+    Converts the ID View DN to its name for the better looking output.
+    """
+
+    if 'ipaassignedidview' in entry_attrs and not options.get('raw'):
+        idview_name = entry_attrs.single_value['ipaassignedidview'][0].value
+        entry_attrs.single_value['ipaassignedidview'] = idview_name
+
+
 host_output_params = (
     Flag('has_keytab',
         label=_('Keytab'),
@@ -286,7 +297,7 @@ class host(LDAPObject):
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
         'managedby', 'memberindirect', 'memberofindirect', 'macaddress',
-        'userclass', 'ipaallowedtoperform'
+        'userclass', 'ipaallowedtoperform', 'ipaassignedidview',
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
@@ -513,7 +524,8 @@ class host(LDAPObject):
             doc=_('Host category (semantics placed on this attribute are for '
                   'local interpretation)'),
         ),
-        DNParam('ipaassignedidview?',
+        Str('ipaassignedidview?',
+            label=_('Assigned ID View'),
             flags=['no_option'],
         ),
     ) + ticket_flags_params
@@ -949,6 +961,7 @@ class host_mod(LDAPUpdate):
         self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
 
         convert_sshpubkey_post(ldap, dn, entry_attrs)
+        convert_ipaassignedidview_post(entry_attrs, options)
 
         return dn
 
@@ -1035,6 +1048,7 @@ class host_find(LDAPSearch):
                 entry_attrs['managing'] = self.obj.get_managed_hosts(entry_attrs.dn)
 
             convert_sshpubkey_post(ldap, entry_attrs.dn, entry_attrs)
+            convert_ipaassignedidview_post(entry_attrs, options)
 
         return truncated
 
@@ -1070,6 +1084,7 @@ class host_show(LDAPRetrieve):
         self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
 
         convert_sshpubkey_post(ldap, dn, entry_attrs)
+        convert_ipaassignedidview_post(entry_attrs, options)
 
         return dn
 
