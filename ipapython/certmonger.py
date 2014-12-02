@@ -261,7 +261,7 @@ def stop_tracking(secdir, request_id=None, nickname=None):
             # Fall back to trying to stop tracking using nickname
             pass
 
-    args = ['/usr/bin/ipa-getcert',
+    args = ['/usr/bin/getcert',
             'stop-tracking',
     ]
     if request_id:
@@ -368,7 +368,8 @@ def get_pin(token, dogtag_constants=None):
                 return pin.strip()
     return None
 
-def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, command):
+def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, pre_command,
+                          post_command):
     """
     Tell certmonger to start tracking a dogtag CA certificate. These
     are handled differently because their renewal must be done directly
@@ -377,7 +378,10 @@ def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, command):
     This uses the generic certmonger command getcert so we can specify
     a different helper.
 
-    command is the script to execute.
+    pre_command is the script to execute before a renewal is done.
+    post_command is the script to execute after a renewal is done.
+
+    Both commands can be None.
 
     Returns the stdout, stderr and returncode from running ipa-getcert
 
@@ -386,19 +390,31 @@ def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, command):
     if not cert_exists(nickname, os.path.abspath(secdir)):
         raise RuntimeError('Nickname "%s" doesn\'t exist in NSS database "%s"' % (nickname, secdir))
 
-    if command is not None and not os.path.isabs(command):
-        if sys.maxsize > 2**32:
-            libpath = 'lib64'
-        else:
-            libpath = 'lib'
-        command = '/usr/%s/ipa/certmonger/%s' % (libpath, command)
-
     args = ["/usr/bin/getcert", "start-tracking",
             "-d", os.path.abspath(secdir),
             "-n", nickname,
             "-c", ca,
-            "-C", command,
            ]
+
+    if pre_command is not None:
+        if not os.path.isabs(pre_command):
+            if sys.maxsize > 2**32:
+                libpath = 'lib64'
+            else:
+                libpath = 'lib'
+            pre_command = '/usr/%s/ipa/certmonger/%s' % (libpath, pre_command)
+        args.append("-B")
+        args.append(pre_command)
+
+    if post_command is not None:
+        if not os.path.isabs(post_command):
+            if sys.maxsize > 2**32:
+                libpath = 'lib64'
+            else:
+                libpath = 'lib'
+            post_command = '/usr/%s/ipa/certmonger/%s' % (libpath, post_command)
+        args.append("-C")
+        args.append(post_command)
 
     if pinfile:
         args.append("-p")
