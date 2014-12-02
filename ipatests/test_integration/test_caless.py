@@ -24,6 +24,7 @@ import base64
 import glob
 import contextlib
 import nose
+import pytest
 
 from ipalib import x509
 from ipapython import ipautil
@@ -1167,18 +1168,16 @@ class TestIPACommands(CALessBase):
         result = self.master.run_command(['ipa', command], raiseonerr=False)
         assert_error(result, "ipa: ERROR: unknown command '%s'" % command)
 
-    def test_cert_commands_unavailable(self):
-        for cmd in (
-                'cert-status',
-                'cert-show',
-                'cert-find',
-                'cert-revoke',
-                'cert-remove-hold',
-                'cert-status'):
-            func = lambda: self.check_ipa_command_not_available(cmd)
-            func.description = 'Verify that %s command is not available' % cmd
-            func.test_argument = cmd
-            yield (func, )
+    @pytest.mark.parametrize('command', (
+        'cert-status',
+        'cert-show',
+        'cert-find',
+        'cert-revoke',
+        'cert-remove-hold',
+        'cert-status'))
+    def test_cert_commands_unavailable(self, command):
+        result = self.master.run_command(['ipa', command], raiseonerr=False)
+        assert_error(result, "ipa: ERROR: unknown command '%s'" % command)
 
     def test_cert_help_unavailable(self):
         "Verify that cert plugin help is not available"
