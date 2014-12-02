@@ -309,6 +309,7 @@ Requires: python-paste
 Requires: python-coverage
 Requires: python-polib
 Requires: python-pytest-multihost >= 0.4
+Requires: python-pytest-sourceorder
 
 Conflicts: %{alt_name}-tests
 Obsoletes: %{alt_name}-tests < %{version}

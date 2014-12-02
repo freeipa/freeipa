@@ -25,7 +25,7 @@ in a specific order:
 - Within a class, test methods are ordered according to source line
 """
 
-from ipatests.pytest_plugins.ordering import ordered
+from pytest_sourceorder import ordered
 
 
 @ordered
