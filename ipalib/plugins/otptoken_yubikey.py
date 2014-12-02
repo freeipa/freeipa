@@ -44,6 +44,9 @@ EXAMPLES:
 
 register = Registry()
 
+topic = ('otp', _('One time password commands'))
+
+
 @register()
 class otptoken_add_yubikey(Command):
     __doc__ = _('Add a new YubiKey OTP token.')
