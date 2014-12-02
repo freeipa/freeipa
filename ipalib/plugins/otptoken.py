@@ -61,6 +61,8 @@ EXAMPLES:
 
 register = Registry()
 
+topic = ('otp', _('One time password commands'))
+
 TOKEN_TYPES = {
     u'totp': ['ipatokentotpclockoffset', 'ipatokentotptimestep'],
     u'hotp': ['ipatokenhotpcounter']

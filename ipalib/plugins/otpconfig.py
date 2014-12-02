@@ -49,6 +49,8 @@ EXAMPLES:
 
 register = Registry()
 
+topic = ('otp', _('One time password commands'))
+
 
 @register()
 class otpconfig(LDAPObject):
