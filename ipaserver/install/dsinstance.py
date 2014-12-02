@@ -840,7 +840,7 @@ class DsInstance(service.Service):
         certdb.cacert_name = cacert_name
         status = True
         try:
-            certdb.load_cacert(cacert_fname)
+            certdb.load_cacert(cacert_fname, 'C,,')
         except ipautil.CalledProcessError, e:
             root_logger.critical("Error importing CA cert file named [%s]: %s" %
                                          (cacert_fname, str(e)))

@@ -238,7 +238,7 @@ class CertDB(object):
                          "-k", self.passwd_fname])
             self.set_perms(self.pk12_fname)
 
-    def load_cacert(self, cacert_fname, trust_flags='C,,'):
+    def load_cacert(self, cacert_fname, trust_flags):
         """
         Load all the certificates from a given file. It is assumed that
         this file creates CA certificates.
@@ -255,11 +255,9 @@ class CertDB(object):
                 (rdn, subject_dn) = get_cert_nickname(cert)
                 if subject_dn == ca_dn:
                     nick = get_ca_nickname(self.realm)
-                    tf = trust_flags
                 else:
                     nick = str(subject_dn)
-                    tf = ',,'
-                self.nssdb.add_cert(cert, nick, tf, pem=True)
+                self.nssdb.add_cert(cert, nick, trust_flags, pem=True)
             except RuntimeError:
                 break
 
