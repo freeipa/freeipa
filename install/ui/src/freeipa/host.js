@@ -117,7 +117,6 @@ return {
                             name: 'ipaassignedidview',
                             $type: 'link',
                             label: '@i18n:objects.idview.ipaassignedidview',
-                            ui_formatter: 'dn',
                             other_entity: 'idview'
                         }
                     ]
