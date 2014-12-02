@@ -28,8 +28,12 @@ from ipapython.ipa_log_manager import log_mgr, standard_logging_setup
 from ipatests.test_integration import config
 from ipatests.test_integration import tasks
 from ipatests.test_integration.host import Host
-from ipatests.pytest_plugins.beakerlib import BeakerLibProcess
 from ipatests.pytest_plugins.integration import collect_logs
+
+try:
+    from pytest_beakerlib import BeakerLibProcess
+except ImportError:
+    BeakerLibProcess = None
 
 
 log = log_mgr.get_logger(__name__)
@@ -245,8 +249,8 @@ class TaskRunner(object):
         return parser
 
     def main(self, argv):
-
-        args = self.get_parser().parse_args(argv)
+        parser = self.get_parser()
+        args = parser.parse_args(argv)
         self.config = config.Config.from_env(os.environ)
         if not self.config:
             raise EnvironmentError('Multihost environment not configured')
@@ -259,6 +263,9 @@ class TaskRunner(object):
         self.collect_log = collect_log
 
         if args.with_beakerlib:
+            if BeakerLibProcess is None:
+                parser.error(
+                    'pytest_beakerlib not installed, cannot use BeakerLib')
             beakerlib_process = BeakerLibProcess()
             args.verbose = True
 
