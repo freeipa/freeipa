@@ -28,7 +28,7 @@ import ldif
 import itertools
 
 from ipalib import api, errors, constants
-from ipapython import version, ipautil, certdb, dogtag
+from ipapython import version, ipautil, certdb
 from ipapython.ipautil import run, user_input
 from ipapython import admintool
 from ipapython.dn import DN
@@ -785,8 +785,7 @@ class Restore(admintool.AdminTool):
             self.log.error('%s', e)
 
     def cert_restore_prepare(self):
-        cainstance.CAInstance().stop_tracking_certificates(
-            dogtag.configured_constants())
+        cainstance.CAInstance().stop_tracking_certificates()
         httpinstance.HTTPInstance().stop_tracking_certificates()
         try:
             dsinstance.DsInstance().stop_tracking_certificates(
