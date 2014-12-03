@@ -408,8 +408,10 @@ def renew_ca_cert():
                           "IPA CA certificate is about to expire, "
                           "use ipa-cacert-manage to renew it")
     elif state == 'request':
+        profile = os.environ['CERTMONGER_CA_PROFILE']
         os.environ['CERTMONGER_CA_PROFILE'] = 'caCACert'
         result = call_handler(request_and_store_cert)
+        os.environ['CERTMONGER_CA_PROFILE'] = profile
 
     if result[0] == WAIT:
         return (result[0], '%s:%s' % (state, result[1]))
