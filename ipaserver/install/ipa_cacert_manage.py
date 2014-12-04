@@ -213,18 +213,21 @@ class CACertManage(admintool.AdminTool):
         try:
             nss_cert = x509.load_certificate(old_cert, x509.DER)
             subject = nss_cert.subject
+            der_subject = x509.get_der_subject(old_cert, x509.DER)
             #pylint: disable=E1101
             pkinfo = nss_cert.subject_public_key_info.format()
             #pylint: enable=E1101
 
             nss_cert = x509.load_certificate_from_file(cert_file.name)
+            cert = nss_cert.der_data
             if nss_cert.subject != subject:
                 raise admintool.ScriptError("Subject name mismatch")
+            if x509.get_der_subject(cert, x509.DER) != der_subject:
+                raise admintool.ScriptError("Subject name encoding mismatch")
             #pylint: disable=E1101
             if nss_cert.subject_public_key_info.format() != pkinfo:
                 raise admintool.ScriptError("Subject public key info mismatch")
             #pylint: enable=E1101
-            cert = nss_cert.der_data
         finally:
             del nss_cert
             nss.nss_shutdown()
@@ -238,7 +241,7 @@ class CACertManage(admintool.AdminTool):
                 tmpdb.add_cert(cert, 'IPA CA', 'C,,')
             except ipautil.CalledProcessError, e:
                 raise admintool.ScriptError(
-                    "Not compatible with the current CA certificate: %s", e)
+                    "Not compatible with the current CA certificate: %s" % e)
 
             ca_certs = x509.load_certificate_list_from_file(ca_file.name)
             for ca_cert in ca_certs:
