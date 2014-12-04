@@ -1437,6 +1437,14 @@ class SSHFPRecord(DNSRecord):
         ),
     )
 
+    def _get_part_values(self, value):
+        # fingerprint part can contain space in LDAP, return it as one part
+        values = value.split(None, 2)
+        if len(values) != len(self.parts):
+            return None
+        return tuple(values)
+
+
 class TARecord(DNSRecord):
     rrtype = 'TA'
     supported = False
