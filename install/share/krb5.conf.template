@@ -12,6 +12,7 @@ includedir /var/lib/sss/pubconf/krb5.include.d/
  rdns = false
  ticket_lifetime = 24h
  forwardable = yes
+ udp_preference_limit = 0
 $OTHER_LIBDEFAULTS
 [realms]
  $REALM = {

@@ -208,6 +208,7 @@ def configure_krb5_conf(realm, kdc, filename):
     libdefaults.append({'name':'rdns', 'type':'option', 'value':'false'})
     libdefaults.append({'name':'ticket_lifetime', 'type':'option', 'value':'24h'})
     libdefaults.append({'name':'forwardable', 'type':'option', 'value':'yes'})
+    libdefaults.append({'name':'udp_preference_limit', 'type':'option', 'value':'0'})
 
     opts.append({'name':'libdefaults', 'type':'section', 'value': libdefaults})
     opts.append({'name':'empty', 'type':'empty'})
