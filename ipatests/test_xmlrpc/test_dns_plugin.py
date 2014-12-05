@@ -290,6 +290,21 @@ zone_findtest_forward_dn = DN(('idnsname', zone_findtest_forward), api.env.conta
 
 zone_fw_wildcard = u'*.wildcardforwardzone.test.'
 
+zone_root = u'.'
+zone_root_dnsname = DNSName(zone_root)
+zone_root_ip = u'172.16.29.222'
+zone_root_dn = DN(('idnsname', zone_root),
+                  api.env.container_dns, api.env.basedn)
+zone_root_ns = u'ns'
+zone_root_ns_dnsname = DNSName(zone_root_ns)
+zone_root_ns_dn = DN(('idnsname', zone_root_ns), zone_root_dn)
+zone_root_rname = u'root.example.com.'
+zone_root_rname_dnsname = DNSName(zone_root_rname)
+zone_root_permission = u'Manage DNS zone %s' % zone_root
+zone_root_permission_dn = DN(('cn', zone_root_permission),
+                             api.env.container_permission, api.env.basedn)
+
+
 def _get_nameservers_ldap(conn):
     base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
     ldap_filter = '(&(objectClass=ipaConfigObject)(cn=DNS))'
@@ -359,17 +374,13 @@ class test_dns(Declarative):
     cleanup_commands = [
         ('dnszone_del', [zone1, zone2, zone3, zone4, zone5, revzone1, revzone2,
                          revzone3_classless1, revzone3_classless2,
-                         idnzone1, revidnzone1, zone_findtest_master],
-            {'continue': True}),
-        ('dnsforwardzone_del', [fwzone1, zone_findtest_forward,
-                                zone_fw_wildcard],
+                         idnzone1, revidnzone1],
             {'continue': True}),
         ('dnsconfig_mod', [], {'idnsforwarders' : None,
                                'idnsforwardpolicy' : None,
                                'idnsallowsyncptr' : None,
                                }),
         ('permission_del', [zone1_permission, idnzone1_permission,
-                            fwzone1_permission,
                             revzone3_classless2_permission], {'force': True}
         ),
     ]
@@ -2841,6 +2852,280 @@ class test_dns(Declarative):
 
 
         dict(
+            desc='Disable zone %r' % zone1,
+            command=('dnszone_disable', [zone1], {}),
+            expected={
+                'value': zone1_absolute_dnsname,
+                'summary': u'Disabled DNS zone "%s"' % zone1_absolute,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Check if zone %r is really disabled' % zone1,
+            command=('dnszone_show', [zone1], {}),
+            expected={
+                'value': zone1_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone1_dn,
+                    'idnsname': [zone1_absolute_dnsname],
+                    'idnszoneactive': [u'FALSE'],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'idnssoarname': [zone1_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'172.16.31.80;'],
+                    'idnsallowquery': [u'!192.0.2.0/24;any;'],
+                    'mxrecord': [u'0 ns1.dnszone.test.'],
+                    'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Enable zone %r' % zone1,
+            command=('dnszone_enable', [zone1], {}),
+            expected={
+                'value': zone1_absolute_dnsname,
+                'summary': u'Enabled DNS zone "%s"' % zone1_absolute,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Check if zone %r is really enabled' % zone1,
+            command=('dnszone_show', [zone1_absolute], {}),
+            expected={
+                'value': zone1_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone1_dn,
+                    'idnsname': [zone1_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'idnssoarname': [zone1_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'172.16.31.80;'],
+                    'idnsallowquery': [u'!192.0.2.0/24;any;'],
+                    'mxrecord': [u'0 ns1.dnszone.test.'],
+                    'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
+                },
+            },
+        ),
+
+        dict(
+            desc='Disable zone %r' % idnzone1,
+            command=('dnszone_disable', [idnzone1], {}),
+            expected={
+                'value': idnzone1_dnsname,
+                'summary': u'Disabled DNS zone "%s"' % idnzone1,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Check if zone %r is really disabled' % idnzone1,
+            command=('dnszone_show', [idnzone1], {}),
+            expected={
+                'value': idnzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': idnzone1_dn,
+                    'idnsname': [idnzone1_dnsname],
+                    'idnszoneactive': [u'FALSE'],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'idnssoarname': [idnzone1_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'mxrecord': [u"0 %s" % idnzone1_mname],
+                    'kxrecord': [u"0 %s" % idnzone1_mname],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Enable zone %r' % idnzone1,
+            command=('dnszone_enable', [idnzone1], {}),
+            expected={
+                'value': idnzone1_dnsname,
+                'summary': u'Enabled DNS zone "%s"' % idnzone1,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Check if zone %r is really enabled' % idnzone1,
+            command=('dnszone_show', [idnzone1], {}),
+            expected={
+                'value': idnzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': idnzone1_dn,
+                    'idnsname': [idnzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'nsrecord': nameservers,
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'idnssoarname': [idnzone1_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'mxrecord': [u"0 %s" % idnzone1_mname],
+                    'kxrecord': [u"0 %s" % idnzone1_mname],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Delete zone %r' % zone1,
+            command=('dnszone_del', [zone1], {}),
+            expected={
+                'value': [zone1_absolute_dnsname],
+                'summary': u'Deleted DNS zone "%s"' % zone1_absolute,
+                'result': {'failed': []},
+            },
+        ),
+
+    ]
+
+
+class test_root_zone(Declarative):
+
+    @classmethod
+    def setUpClass(cls):
+        super(test_root_zone, cls).setUpClass()
+
+        if not api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.connect(fallback=False)
+
+        if not have_ldap2:
+            raise nose.SkipTest('server plugin not available')
+
+        if get_nameservers_error is not None:
+            raise nose.SkipTest('unable to get list of nameservers (%s)' % get_nameservers_error)
+
+        try:
+            api.Command['dnszone_add'](zone1, idnssoarname=zone1_rname,)
+            api.Command['dnszone_del'](zone1)
+        except errors.NotFound:
+            raise nose.SkipTest('DNS is not configured')
+        except errors.DuplicateEntry:
+            pass
+
+    cleanup_commands = [
+        ('dnszone_del', [zone_root, ],
+            {'continue': True}),
+        ('permission_del', [zone_root_permission, ], {'force': True}),
+    ]
+
+    tests = [
+
+        dict(
+            desc='Create zone %r' % zone_root,
+            command=(
+                'dnszone_add', [zone_root], {
+                    'idnssoarname': zone_root_rname,
+                }
+            ),
+            expected={
+                'value': zone_root_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone_root_dn,
+                    'idnsname': [zone_root_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone_root_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+
+        dict(
+            desc='Add per-zone permission for zone %r' % zone_root,
+            command=(
+                'dnszone_add_permission', [zone_root], {}
+            ),
+            expected=dict(
+                result=True,
+                value=zone_root_permission,
+                summary=u'Added system permission "%s"' % zone_root_permission,
+            ),
+        ),
+
+    ]
+
+
+class test_forward_zones(Declarative):
+    # https://fedorahosted.org/freeipa/ticket/4750
+
+    @classmethod
+    def setUpClass(cls):
+        super(test_forward_zones, cls).setUpClass()
+
+        if not api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.connect(fallback=False)
+
+        if not have_ldap2:
+            raise nose.SkipTest('server plugin not available')
+
+        try:
+            api.Command['dnszone_add'](zone1, idnssoarname=zone1_rname,)
+            api.Command['dnszone_del'](zone1)
+        except errors.NotFound:
+            raise nose.SkipTest('DNS is not configured')
+        except errors.DuplicateEntry:
+            pass
+
+
+    cleanup_commands = [
+        ('dnsforwardzone_del', [zone_fw_wildcard, fwzone1],
+            {'continue': True}),
+        ('permission_del', [fwzone1_permission, ], {'force': True}),
+    ]
+
+    tests = [
+
+        dict(
             desc='Try to create forward zone %r with wildcard domain name' % zone_fw_wildcard,
             command=(
                 'dnsforwardzone_add', [zone_fw_wildcard], {'idnsforwardpolicy': u'none'}
@@ -3196,6 +3481,147 @@ class test_dns(Declarative):
         ),
 
 
+
+
+        dict(
+            desc='Disable forward zone %r' % fwzone1,
+            command=('dnsforwardzone_disable', [fwzone1], {}),
+            expected={
+                'value': fwzone1_dnsname,
+                'summary': u'Disabled DNS forward zone "%s"' % fwzone1,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Check if forward zone %r is really disabled' % fwzone1,
+            command=('dnsforwardzone_show', [fwzone1], {}),
+            expected={
+                'value': fwzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': fwzone1_dn,
+                    'idnsname': [fwzone1_dnsname],
+                    'idnszoneactive': [u'FALSE'],
+                    'idnsforwardpolicy': [u'first'],
+                    'idnsforwarders': [forwarder1, forwarder2],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Enable forward zone %r' % fwzone1,
+            command=('dnsforwardzone_enable', [fwzone1], {}),
+            expected={
+                'value': fwzone1_dnsname,
+                'summary': u'Enabled DNS forward zone "%s"' % fwzone1,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Check if forward zone %r is really enabled' % fwzone1,
+            command=('dnsforwardzone_show', [fwzone1], {}),
+            expected={
+                'value': fwzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': fwzone1_dn,
+                    'idnsname': [fwzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'first'],
+                    'idnsforwarders': [forwarder1, forwarder2],
+                },
+            },
+        ),
+
+    ]
+
+
+class test_forward_master_zones_mutual_exlusion(Declarative):
+    # https://fedorahosted.org/freeipa/ticket/4750
+
+    @classmethod
+    def setUpClass(cls):
+        super(test_forward_master_zones_mutual_exlusion, cls).setUpClass()
+
+        if not api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.connect(fallback=False)
+
+        if not have_ldap2:
+            raise nose.SkipTest('server plugin not available')
+
+        try:
+            api.Command['dnszone_add'](zone1, idnssoarname=zone1_rname,)
+            api.Command['dnszone_del'](zone1)
+        except errors.NotFound:
+            raise nose.SkipTest('DNS is not configured')
+        except errors.DuplicateEntry:
+            pass
+
+
+    cleanup_commands = [
+        ('dnszone_del', [zone1, zone_findtest_master], {'continue': True}),
+        ('dnsforwardzone_del', [fwzone1, zone_findtest_forward],
+            {'continue': True}),
+        ('permission_del', [fwzone1_permission, ], {'force': True}),
+    ]
+
+    tests = [
+        dict(
+            desc='Create zone %r' % zone1,
+            command=(
+                'dnszone_add', [zone1], {
+                    'idnssoarname': zone1_rname,
+                }
+            ),
+            expected={
+                'value': zone1_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone1_dn,
+                    'idnsname': [zone1_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': lambda x: True,  # don't care in this test
+                    'nsrecord': lambda x: True,  # don't care in this test
+                    'idnssoarname': lambda x: True,  # don't care in this test
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': lambda x: True,  # don't care in this test
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Create forward zone %r without forwarders with "none" policy' % fwzone1,
+            command=(
+                'dnsforwardzone_add', [fwzone1], {'idnsforwardpolicy': u'none'}
+            ),
+            expected={
+                'value': fwzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': fwzone1_dn,
+                    'idnsname': [fwzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'none'],
+                    'objectclass': objectclasses.dnsforwardzone,
+                },
+            },
+        ),
+
+
         dict(
             desc='Try to create duplicate zone which is already forward zone %r' % fwzone1,
             command=(
@@ -3353,19 +3779,16 @@ class test_dns(Declarative):
                     'dn': zone_findtest_master_dn,
                     'idnsname': [zone_findtest_master_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [self_server_ns_dnsname],
-                    'nsrecord': nameservers,
-                    'idnssoarname': [zone_findtest_master_rname_dnsname],
+                    'idnssoamname': lambda x: True,  # don't care in this test
+                    'nsrecord': lambda x: True,  # don't care in this test
+                    'idnssoarname': lambda x: True,  # don't care in this test
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowdynupdate': [u'FALSE'],
-                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
-                                         u'grant %(realm)s krb5-self * AAAA; '
-                                         u'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
+                    'idnsupdatepolicy': lambda x: True,  # don't care in this test
                     'idnsallowtransfer': [u'none;'],
                     'idnsallowquery': [u'any;'],
                     'objectclass': objectclasses.dnszone,
@@ -3424,9 +3847,9 @@ class test_dns(Declarative):
                     'dn': zone_findtest_master_dn,
                     'idnsname': [zone_findtest_master_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'nsrecord': nameservers,
-                    'idnssoamname': [self_server_ns_dnsname],
-                    'idnssoarname': [zone_findtest_master_rname_dnsname],
+                    'nsrecord': lambda x: True,  # don't care in this test
+                    'idnssoamname': lambda x: True,  # don't care in this test
+                    'idnssoarname': lambda x: True,  # don't care in this test
                     'idnssoaserial': [fuzzy_digits],
                     'idnssoarefresh': [fuzzy_digits],
                     'idnssoaretry': [fuzzy_digits],
@@ -3487,317 +3910,6 @@ class test_dns(Declarative):
                         name='dnszoneidnsname',
                         error=(u'only master zones can contain records')
                     ),
-        ),
-
-
-        dict(
-            desc='Disable zone %r' % zone1,
-            command=('dnszone_disable', [zone1], {}),
-            expected={
-                'value': zone1_absolute_dnsname,
-                'summary': u'Disabled DNS zone "%s"' % zone1_absolute,
-                'result': True,
-            },
-        ),
-
-
-        dict(
-            desc='Check if zone %r is really disabled' % zone1,
-            command=('dnszone_show', [zone1], {}),
-            expected={
-                'value': zone1_absolute_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': zone1_dn,
-                    'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'FALSE'],
-                    'nsrecord': nameservers,
-                    'idnssoamname': [self_server_ns_dnsname],
-                    'idnssoarname': [zone1_rname_dnsname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': [fuzzy_digits],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowtransfer': [u'172.16.31.80;'],
-                    'idnsallowquery': [u'!192.0.2.0/24;any;'],
-                    'mxrecord': [u'0 ns1.dnszone.test.'],
-                    'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
-                },
-            },
-        ),
-
-
-        dict(
-            desc='Enable zone %r' % zone1,
-            command=('dnszone_enable', [zone1], {}),
-            expected={
-                'value': zone1_absolute_dnsname,
-                'summary': u'Enabled DNS zone "%s"' % zone1_absolute,
-                'result': True,
-            },
-        ),
-
-
-        dict(
-            desc='Check if zone %r is really enabled' % zone1,
-            command=('dnszone_show', [zone1_absolute], {}),
-            expected={
-                'value': zone1_absolute_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': zone1_dn,
-                    'idnsname': [zone1_absolute_dnsname],
-                    'idnszoneactive': [u'TRUE'],
-                    'nsrecord': nameservers,
-                    'idnssoamname': [self_server_ns_dnsname],
-                    'idnssoarname': [zone1_rname_dnsname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': [fuzzy_digits],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowtransfer': [u'172.16.31.80;'],
-                    'idnsallowquery': [u'!192.0.2.0/24;any;'],
-                    'mxrecord': [u'0 ns1.dnszone.test.'],
-                    'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
-                },
-            },
-        ),
-
-        dict(
-            desc='Disable zone %r' % idnzone1,
-            command=('dnszone_disable', [idnzone1], {}),
-            expected={
-                'value': idnzone1_dnsname,
-                'summary': u'Disabled DNS zone "%s"' % idnzone1,
-                'result': True,
-            },
-        ),
-
-
-        dict(
-            desc='Check if zone %r is really disabled' % idnzone1,
-            command=('dnszone_show', [idnzone1], {}),
-            expected={
-                'value': idnzone1_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': idnzone1_dn,
-                    'idnsname': [idnzone1_dnsname],
-                    'idnszoneactive': [u'FALSE'],
-                    'nsrecord': nameservers,
-                    'idnssoamname': [self_server_ns_dnsname],
-                    'idnssoarname': [idnzone1_rname_dnsname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': [fuzzy_digits],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
-                    'mxrecord': [u"0 %s" % idnzone1_mname],
-                    'kxrecord': [u"0 %s" % idnzone1_mname],
-                },
-            },
-        ),
-
-
-        dict(
-            desc='Enable zone %r' % idnzone1,
-            command=('dnszone_enable', [idnzone1], {}),
-            expected={
-                'value': idnzone1_dnsname,
-                'summary': u'Enabled DNS zone "%s"' % idnzone1,
-                'result': True,
-            },
-        ),
-
-
-        dict(
-            desc='Check if zone %r is really enabled' % idnzone1,
-            command=('dnszone_show', [idnzone1], {}),
-            expected={
-                'value': idnzone1_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': idnzone1_dn,
-                    'idnsname': [idnzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
-                    'nsrecord': nameservers,
-                    'idnssoamname': [self_server_ns_dnsname],
-                    'idnssoarname': [idnzone1_rname_dnsname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': [fuzzy_digits],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
-                    'mxrecord': [u"0 %s" % idnzone1_mname],
-                    'kxrecord': [u"0 %s" % idnzone1_mname],
-                },
-            },
-        ),
-
-
-        dict(
-            desc='Disable forward zone %r' % fwzone1,
-            command=('dnsforwardzone_disable', [fwzone1], {}),
-            expected={
-                'value': fwzone1_dnsname,
-                'summary': u'Disabled DNS forward zone "%s"' % fwzone1,
-                'result': True,
-            },
-        ),
-
-
-        dict(
-            desc='Check if forward zone %r is really disabled' % fwzone1,
-            command=('dnsforwardzone_show', [fwzone1], {}),
-            expected={
-                'value': fwzone1_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': fwzone1_dn,
-                    'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'FALSE'],
-                    'idnsforwardpolicy': [u'first'],
-                    'idnsforwarders': [forwarder1, forwarder2],
-                },
-            },
-        ),
-
-        dict(
-            desc='Enable forward zone %r' % fwzone1,
-            command=('dnsforwardzone_enable', [fwzone1], {}),
-            expected={
-                'value': fwzone1_dnsname,
-                'summary': u'Enabled DNS forward zone "%s"' % fwzone1,
-                'result': True,
-            },
-        ),
-
-
-        dict(
-            desc='Check if forward zone %r is really enabled' % fwzone1,
-            command=('dnsforwardzone_show', [fwzone1], {}),
-            expected={
-                'value': fwzone1_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': fwzone1_dn,
-                    'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
-                    'idnsforwardpolicy': [u'first'],
-                    'idnsforwarders': [forwarder1, forwarder2],
-                },
-            },
-        ),
-
-        dict(
-            desc='Delete zone %r' % zone1,
-            command=('dnszone_del', [zone1], {}),
-            expected={
-                'value': [zone1_absolute_dnsname],
-                'summary': u'Deleted DNS zone "%s"' % zone1_absolute,
-                'result': {'failed': []},
-            },
-        ),
-
-    ]
-
-
-zone_root = u'.'
-zone_root_dnsname = DNSName(zone_root)
-zone_root_ip = u'172.16.29.222'
-zone_root_dn = DN(('idnsname', zone_root),
-                  api.env.container_dns, api.env.basedn)
-zone_root_ns = u'ns'
-zone_root_ns_dnsname = DNSName(zone_root_ns)
-zone_root_ns_dn = DN(('idnsname', zone_root_ns), zone_root_dn)
-zone_root_rname = u'root.example.com.'
-zone_root_rname_dnsname = DNSName(zone_root_rname)
-zone_root_permission = u'Manage DNS zone %s' % zone_root
-zone_root_permission_dn = DN(('cn', zone_root_permission),
-                             api.env.container_permission, api.env.basedn)
-
-
-class test_root_zone(Declarative):
-
-    @classmethod
-    def setUpClass(cls):
-        super(test_root_zone, cls).setUpClass()
-
-        if not api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.connect(fallback=False)
-
-        if not have_ldap2:
-            raise nose.SkipTest('server plugin not available')
-
-        if get_nameservers_error is not None:
-            raise nose.SkipTest('unable to get list of nameservers (%s)' % get_nameservers_error)
-
-        try:
-            api.Command['dnszone_add'](zone1, idnssoarname=zone1_rname,)
-            api.Command['dnszone_del'](zone1)
-        except errors.NotFound:
-            raise nose.SkipTest('DNS is not configured')
-        except errors.DuplicateEntry:
-            pass
-
-    cleanup_commands = [
-        ('dnszone_del', [zone_root, ],
-            {'continue': True}),
-        ('permission_del', [zone_root_permission, ], {'force': True}),
-    ]
-
-    tests = [
-
-        dict(
-            desc='Create zone %r' % zone_root,
-            command=(
-                'dnszone_add', [zone_root], {
-                    'idnssoarname': zone_root_rname,
-                }
-            ),
-            expected={
-                'value': zone_root_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': zone_root_dn,
-                    'idnsname': [zone_root_dnsname],
-                    'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [self_server_ns_dnsname],
-                    'nsrecord': nameservers,
-                    'idnssoarname': [zone_root_rname_dnsname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': [fuzzy_digits],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
-                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
-                                         u'grant %(realm)s krb5-self * AAAA; '
-                                         u'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
-                    'objectclass': objectclasses.dnszone,
-                },
-            },
-        ),
-
-        dict(
-            desc='Add per-zone permission for zone %r' % zone_root,
-            command=(
-                'dnszone_add_permission', [zone_root], {}
-            ),
-            expected=dict(
-                result=True,
-                value=zone_root_permission,
-                summary=u'Added system permission "%s"' % zone_root_permission,
-            ),
         ),
 
     ]
