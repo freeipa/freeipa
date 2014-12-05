@@ -1198,7 +1198,7 @@ IPA.get_succeeded = function(data) {
  */
 IPA.config = {
     default_priority: 500,
-    message_timeout: 3000, // [ms]
+    message_timeout: 5000, // [ms]
     message_timeout_length: 50 // [chars]
 };
 
