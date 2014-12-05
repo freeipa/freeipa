@@ -2685,7 +2685,8 @@ krb5_error_code ipadb_check_transited_realms(krb5_context kcontext,
 		}
 	}
 
-	ret = KRB5KRB_AP_ERR_ILL_CR_TKT;
+	/* Tell to KDC that we don't handle this transition so that rules in krb5.conf could play its role */
+	ret = KRB5_PLUGIN_NO_HANDLE;
 	if (has_client_realm && has_transited_contents && has_server_realm) {
 		ret = 0;
 	}
