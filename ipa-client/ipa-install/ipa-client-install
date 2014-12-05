@@ -1047,6 +1047,7 @@ def configure_krb5_conf(cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
     libopts.append({'name':'rdns', 'type':'option', 'value':'false'})
     libopts.append({'name':'ticket_lifetime', 'type':'option', 'value':'24h'})
     libopts.append({'name':'forwardable', 'type':'option', 'value':'yes'})
+    libopts.append({'name':'udp_preference_limit', 'type':'option', 'value':'0'})
 
     # Configure KEYRING CCACHE if supported
     if kernel_keyring.is_persistent_keyring_supported():
