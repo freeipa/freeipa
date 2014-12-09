@@ -221,12 +221,21 @@ class CACertManage(admintool.AdminTool):
             nss_cert = x509.load_certificate_from_file(cert_file.name)
             cert = nss_cert.der_data
             if nss_cert.subject != subject:
-                raise admintool.ScriptError("Subject name mismatch")
+                raise admintool.ScriptError(
+                    "Subject name mismatch (visit "
+                    "http://www.freeipa.org/page/Troubleshooting for "
+                    "troubleshooting guide)")
             if x509.get_der_subject(cert, x509.DER) != der_subject:
-                raise admintool.ScriptError("Subject name encoding mismatch")
+                raise admintool.ScriptError(
+                    "Subject name encoding mismatch (visit "
+                    "http://www.freeipa.org/page/Troubleshooting for "
+                    "troubleshooting guide)")
             #pylint: disable=E1101
             if nss_cert.subject_public_key_info.format() != pkinfo:
-                raise admintool.ScriptError("Subject public key info mismatch")
+                raise admintool.ScriptError(
+                    "Subject public key info mismatch (visit "
+                    "http://www.freeipa.org/page/Troubleshooting for "
+                    "troubleshooting guide)")
             #pylint: enable=E1101
         finally:
             del nss_cert
@@ -253,7 +262,9 @@ class CACertManage(admintool.AdminTool):
                 tmpdb.verify_ca_cert_validity('IPA CA')
             except ValueError, e:
                 raise admintool.ScriptError(
-                    "Not a valid CA certificate: %s" % e)
+                    "Not a valid CA certificate: %s (visit "
+                    "http://www.freeipa.org/page/Troubleshooting for "
+                    "troubleshooting guide)" % e)
 
             trust_chain = tmpdb.get_trust_chain('IPA CA')[:-1]
             for nickname in trust_chain:
@@ -340,7 +351,9 @@ class CACertManage(admintool.AdminTool):
                 tmpdb.verify_ca_cert_validity(nickname)
             except ValueError, e:
                 raise admintool.ScriptError(
-                    "Not a valid CA certificate: %s" % e)
+                    "Not a valid CA certificate: %s (visit "
+                    "http://www.freeipa.org/page/Troubleshooting for "
+                    "troubleshooting guide)" % e)
 
         trust_flags = options.trust_flags
         if ((set(trust_flags) - set(',CPTcgpuw')) or
