@@ -24,21 +24,23 @@ Test the `ipalib.plugins.host` module.
 
 import os
 import tempfile
+import base64
+
+import pytest
+from pytest_sourceorder import ordered
+
 from ipapython import ipautil
 from ipalib import api, errors, x509
 from ipalib.util import normalize_zone
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
-from nose.tools import raises, assert_raises  # pylint: disable=E0611
-from nose.plugins.skip import SkipTest
-from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, XMLRPC_test,
+from ipatests.test_xmlrpc.xmlrpc_test import (RPCTest, XMLRPC_test,
     fuzzy_uuid, fuzzy_digits, fuzzy_hash, fuzzy_date, fuzzy_issuer,
-    fuzzy_hex)
-from ipatests.test_xmlrpc.test_user_plugin import (
-    get_user_result, get_user_dn, get_group_dn)
+    fuzzy_hex, raises_exact)
+from ipatests.test_xmlrpc.test_user_plugin import get_group_dn
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.testcert import get_testcert
-import base64
+from ipatests.util import assert_deepequal
 
 self_server_ns = normalize_zone(api.env.host)
 self_server_ns_dnsname = DNSName(self_server_ns)
@@ -151,334 +153,271 @@ hostgroup1 = u'testhostgroup1'
 hostgroup1_dn = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
                     api.env.basedn)
 
-class test_host(Declarative):
 
-    cleanup_commands = [
-        ('host_del', [fqdn1, fqdn2, fqdn3, fqdn4], {'continue': True}),
-        ('service_del', [service1], {}),
-    ]
+@ordered
+class test_host(RPCTest):
 
-    tests = [
+    @classmethod
+    def clean_up(cls):
+        cls.clean('host_del', fqdn1, fqdn2, fqdn3, fqdn4, **{'continue': True})
+        cls.clean('service_del', service1)
 
-        dict(
-            desc='Try to retrieve non-existent %r' % fqdn1,
-            command=('host_show', [fqdn1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: host not found' % fqdn1),
-        ),
+    def test_retrieve_nonexistent(self, command):
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host not found' % fqdn1)):
+            result = command('host_show', fqdn1)
 
+    def test_update_nonexistent(self, command):
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host not found' % fqdn1)):
+            result = command('host_mod', fqdn1, description=u'Nope')
 
-        dict(
-            desc='Try to update non-existent %r' % fqdn1,
-            command=('host_mod', [fqdn1], dict(description=u'Nope')),
-            expected=errors.NotFound(
-                reason=u'%s: host not found' % fqdn1),
-        ),
+    def test_delete_nonexistent(self, command):
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host not found' % fqdn1)):
+            result = command('host_del', fqdn1)
 
-
-        dict(
-            desc='Try to delete non-existent %r' % fqdn1,
-            command=('host_del', [fqdn1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: host not found' % fqdn1),
-        ),
-
-
-        dict(
-            desc='Create %r' % fqdn1,
-            command=('host_add', [fqdn1],
-                dict(
-                    description=u'Test host 1',
-                    l=u'Undisclosed location 1',
-                    force=True,
-                ),
+    def test_create_host(self, command):
+        result = command('host_add', fqdn1,
+                         description=u'Test host 1',
+                         l=u'Undisclosed location 1',
+                         force=True)
+        assert_deepequal(dict(
+            value=fqdn1,
+            summary=u'Added host "%s"' % fqdn1,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                description=[u'Test host 1'],
+                l=[u'Undisclosed location 1'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                objectclass=objectclasses.host,
+                ipauniqueid=[fuzzy_uuid],
+                managedby_host=[fqdn1],
+                has_keytab=False,
+                has_password=False,
             ),
-            expected=dict(
-                value=fqdn1,
-                summary=u'Added host "%s"' % fqdn1,
-                result=dict(
+        ), result)
+
+    def test_create_duplicate(self, command):
+        with raises_exact(errors.DuplicateEntry(
+                message=u'host with name "%s" already exists' % fqdn1)):
+            result = command('host_add', fqdn1,
+                             description=u'Test host 1',
+                             l=u'Undisclosed location 1',
+                             force=True)
+
+    def test_retrieve(self, command):
+        result = command('host_show', fqdn1)
+        assert_deepequal(dict(
+            value=fqdn1,
+            summary=None,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                description=[u'Test host 1'],
+                l=[u'Undisclosed location 1'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                has_keytab=False,
+                has_password=False,
+                managedby_host=[fqdn1],
+            ),
+        ), result)
+
+    def test_retrieve_all(self, command):
+        result = command('host_show', fqdn1, all=True)
+        assert_deepequal(dict(
+            value=fqdn1,
+            summary=None,
+            result=dict(
+                dn=dn1,
+                cn=[fqdn1],
+                fqdn=[fqdn1],
+                description=[u'Test host 1'],
+                l=[u'Undisclosed location 1'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                serverhostname=[u'testhost1'],
+                objectclass=objectclasses.host,
+                managedby_host=[fqdn1],
+                managing_host=[fqdn1],
+                ipauniqueid=[fuzzy_uuid],
+                has_keytab=False,
+                has_password=False,
+                ipakrbokasdelegate=False,
+                ipakrbrequirespreauth=True,
+            ),
+        ), result)
+
+    def test_search(self, command):
+        result = command('host_find', fqdn1)
+        assert_deepequal(dict(
+            count=1,
+            truncated=False,
+            summary=u'1 host matched',
+            result=[
+                dict(
                     dn=dn1,
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
                     l=[u'Undisclosed location 1'],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    objectclass=objectclasses.host,
-                    ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[fqdn1],
+                    managedby_host=[u'%s' % fqdn1],
                     has_keytab=False,
                     has_password=False,
                 ),
-            ),
-        ),
+            ],
+        ), result)
 
-
-        dict(
-            desc='Try to create duplicate %r' % fqdn1,
-            command=('host_add', [fqdn1],
+    def test_search_all(self, command):
+        result = command('host_find', fqdn1, all=True)
+        assert_deepequal(dict(
+            count=1,
+            truncated=False,
+            summary=u'1 host matched',
+            result=[
                 dict(
-                    description=u'Test host 1',
-                    l=u'Undisclosed location 1',
-                    force=True,
-                ),
-            ),
-            expected=errors.DuplicateEntry(message=u'host with name ' +
-                u'"%s" already exists' %  fqdn1),
-        ),
-
-
-        dict(
-            desc='Retrieve %r' % fqdn1,
-            command=('host_show', [fqdn1], {}),
-            expected=dict(
-                value=fqdn1,
-                summary=None,
-                result=dict(
-                    dn=dn1,
-                    fqdn=[fqdn1],
-                    description=[u'Test host 1'],
-                    l=[u'Undisclosed location 1'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    has_keytab=False,
-                    has_password=False,
-                    managedby_host=[fqdn1],
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Retrieve %r with all=True' % fqdn1,
-            command=('host_show', [fqdn1], dict(all=True)),
-            expected=dict(
-                value=fqdn1,
-                summary=None,
-                result=dict(
                     dn=dn1,
                     cn=[fqdn1],
                     fqdn=[fqdn1],
                     description=[u'Test host 1'],
-                    # FIXME: Why is 'localalityname' returned as 'l' with --all?
-                    # It is intuitive for --all to return additional attributes,
-                    # but not to return existing attributes under different
-                    # names.
                     l=[u'Undisclosed location 1'],
                     krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
                     serverhostname=[u'testhost1'],
                     objectclass=objectclasses.host,
-                    managedby_host=[fqdn1],
-                    managing_host=[fqdn1],
                     ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[u'%s' % fqdn1],
+                    managing_host=[u'%s' % fqdn1],
                     has_keytab=False,
                     has_password=False,
                     ipakrbokasdelegate=False,
                     ipakrbrequirespreauth=True,
                 ),
+            ]
+        ), result)
+
+    def test_update(self, command):
+        result = command('host_mod', fqdn1,
+                         description=u'Updated host 1',
+                         usercertificate=get_testcert())
+        assert_deepequal(dict(
+            value=fqdn1,
+            summary=u'Modified host "%s"' % fqdn1,
+            result=dict(
+                description=[u'Updated host 1'],
+                fqdn=[fqdn1],
+                l=[u'Undisclosed location 1'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[u'%s' % fqdn1],
+                usercertificate=[base64.b64decode(get_testcert())],
+                valid_not_before=fuzzy_date,
+                valid_not_after=fuzzy_date,
+                subject=DN(('CN', api.env.host), x509.subject_base()),
+                serial_number=fuzzy_digits,
+                serial_number_hex=fuzzy_hex,
+                md5_fingerprint=fuzzy_hash,
+                sha1_fingerprint=fuzzy_hash,
+                issuer=fuzzy_issuer,
+                has_keytab=False,
+                has_password=False,
             ),
-        ),
+        ), result)
 
-
-        dict(
-            desc='Search for %r' % fqdn1,
-            command=('host_find', [fqdn1], {}),
-            expected=dict(
-                count=1,
-                truncated=False,
-                summary=u'1 host matched',
-                result=[
-                    dict(
-                        dn=dn1,
-                        fqdn=[fqdn1],
-                        description=[u'Test host 1'],
-                        l=[u'Undisclosed location 1'],
-                        krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                        managedby_host=[u'%s' % fqdn1],
-                        has_keytab=False,
-                        has_password=False,
-                    ),
-                ],
+    def test_retrieve_2(self, command):
+        result = command('host_show', fqdn1)
+        assert_deepequal(dict(
+            value=fqdn1,
+            summary=None,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                description=[u'Updated host 1'],
+                l=[u'Undisclosed location 1'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                has_keytab=False,
+                has_password=False,
+                managedby_host=[u'%s' % fqdn1],
+                usercertificate=[base64.b64decode(get_testcert())],
+                valid_not_before=fuzzy_date,
+                valid_not_after=fuzzy_date,
+                subject=DN(('CN', api.env.host), x509.subject_base()),
+                serial_number=fuzzy_digits,
+                serial_number_hex=fuzzy_hex,
+                md5_fingerprint=fuzzy_hash,
+                sha1_fingerprint=fuzzy_hash,
+                issuer=fuzzy_issuer,
             ),
-        ),
+        ), result)
 
-
-        dict(
-            desc='Search for %r with all=True' % fqdn1,
-            command=('host_find', [fqdn1], dict(all=True)),
-            expected=dict(
-                count=1,
-                truncated=False,
-                summary=u'1 host matched',
-                result=[
-                    dict(
-                        dn=dn1,
-                        cn=[fqdn1],
-                        fqdn=[fqdn1],
-                        description=[u'Test host 1'],
-                        # FIXME: Why is 'localalityname' returned as 'l' with --all?
-                        # It is intuitive for --all to return additional attributes,
-                        # but not to return existing attributes under different
-                        # names.
-                        l=[u'Undisclosed location 1'],
-                        krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                        serverhostname=[u'testhost1'],
-                        objectclass=objectclasses.host,
-                        ipauniqueid=[fuzzy_uuid],
-                        managedby_host=[u'%s' % fqdn1],
-                        managing_host=[u'%s' % fqdn1],
-                        has_keytab=False,
-                        has_password=False,
-                        ipakrbokasdelegate=False,
-                        ipakrbrequirespreauth=True,
-                    ),
-                ],
+    @pytest.mark.parametrize(['fqdn', 'dn', 'n'],
+                             [(fqdn3, dn3, 2), (fqdn4, dn4, 4)])
+    def test_create_more(self, command, fqdn, dn, n):
+        result = command('host_add', fqdn,
+                         description=u'Test host %s' % n,
+                         l=u'Undisclosed location %s' % n,
+                         force=True)
+        assert_deepequal(dict(
+            value=fqdn,
+            summary=u'Added host "%s"' % fqdn,
+            result=dict(
+                dn=dn,
+                fqdn=[fqdn],
+                description=[u'Test host %s' % n],
+                l=[u'Undisclosed location %s' % n],
+                krbprincipalname=[u'host/%s@%s' % (fqdn, api.env.realm)],
+                objectclass=objectclasses.host,
+                ipauniqueid=[fuzzy_uuid],
+                managedby_host=[u'%s' % fqdn],
+                has_keytab=False,
+                has_password=False,
             ),
-        ),
+        ), result)
 
-
-        dict(
-            desc='Update %r' % fqdn1,
-            command=('host_mod', [fqdn1], dict(description=u'Updated host 1',
-                usercertificate=get_testcert())),
-            expected=dict(
-                value=fqdn1,
-                summary=u'Modified host "%s"' % fqdn1,
-                result=dict(
-                    description=[u'Updated host 1'],
-                    fqdn=[fqdn1],
-                    l=[u'Undisclosed location 1'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[u'%s' % fqdn1],
-                    usercertificate=[base64.b64decode(get_testcert())],
-                    valid_not_before=fuzzy_date,
-                    valid_not_after=fuzzy_date,
-                    subject=DN(('CN',api.env.host),x509.subject_base()),
-                    serial_number=fuzzy_digits,
-                    serial_number_hex=fuzzy_hex,
-                    md5_fingerprint=fuzzy_hash,
-                    sha1_fingerprint=fuzzy_hash,
-                    issuer=fuzzy_issuer,
-                    has_keytab=False,
-                    has_password=False,
+    def test_add_managed_host(self, command):
+        result = command('host_add_managedby', fqdn3, host=fqdn1)
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                managedby=dict(
+                    host=tuple(),
                 ),
             ),
-        ),
-
-
-        dict(
-            desc='Retrieve %r to verify update' % fqdn1,
-            command=('host_show', [fqdn1], {}),
-            expected=dict(
-                value=fqdn1,
-                summary=None,
-                result=dict(
-                    dn=dn1,
-                    fqdn=[fqdn1],
-                    description=[u'Updated host 1'],
-                    l=[u'Undisclosed location 1'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    has_keytab=False,
-                    has_password=False,
-                    managedby_host=[u'%s' % fqdn1],
-                    usercertificate=[base64.b64decode(get_testcert())],
-                    valid_not_before=fuzzy_date,
-                    valid_not_after=fuzzy_date,
-                    subject=DN(('CN',api.env.host),x509.subject_base()),
-                    serial_number=fuzzy_digits,
-                    serial_number_hex=fuzzy_hex,
-                    md5_fingerprint=fuzzy_hash,
-                    sha1_fingerprint=fuzzy_hash,
-                    issuer=fuzzy_issuer,
-                ),
+            result=dict(
+                dn=dn3,
+                fqdn=[fqdn3],
+                description=[u'Test host 2'],
+                l=[u'Undisclosed location 2'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                managedby_host=[u'%s' % fqdn3, u'%s' % fqdn1],
             ),
-        ),
+        ), result)
 
-        dict(
-            desc='Create %r' % fqdn3,
-            command=('host_add', [fqdn3],
+    def test_show_managed_host(self, command):
+        result = command('host_show', fqdn3)
+        assert_deepequal(dict(
+            value=fqdn3,
+            summary=None,
+            result=dict(
+                dn=dn3,
+                fqdn=[fqdn3],
+                description=[u'Test host 2'],
+                l=[u'Undisclosed location 2'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                has_keytab=False,
+                has_password=False,
+                managedby_host=[u'%s' % fqdn3, u'%s' % fqdn1],
+            ),
+        ), result)
+
+    def test_search_man_noman_hosts(self, command):
+        result = command('host_find', fqdn3,
+                         man_host=fqdn3,
+                         not_man_host=fqdn1)
+        assert_deepequal(dict(
+            count=1,
+            truncated=False,
+            summary=u'1 host matched',
+            result=[
                 dict(
-                    description=u'Test host 2',
-                    l=u'Undisclosed location 2',
-                    force=True,
-                ),
-            ),
-            expected=dict(
-                value=fqdn3,
-                summary=u'Added host "%s"' % fqdn3,
-                result=dict(
-                    dn=dn3,
-                    fqdn=[fqdn3],
-                    description=[u'Test host 2'],
-                    l=[u'Undisclosed location 2'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
-                    objectclass=objectclasses.host,
-                    ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[u'%s' % fqdn3],
-                    has_keytab=False,
-                    has_password=False,
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Create %r' % fqdn4,
-            command=('host_add', [fqdn4],
-                dict(
-                    description=u'Test host 4',
-                    l=u'Undisclosed location 4',
-                    force=True,
-                ),
-            ),
-            expected=dict(
-                value=fqdn4,
-                summary=u'Added host "%s"' % fqdn4,
-                result=dict(
-                    dn=dn4,
-                    fqdn=[fqdn4],
-                    description=[u'Test host 4'],
-                    l=[u'Undisclosed location 4'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn4, api.env.realm)],
-                    objectclass=objectclasses.host,
-                    ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[u'%s' % fqdn4],
-                    has_keytab=False,
-                    has_password=False,
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Add managedby_host %r to %r' % (fqdn1, fqdn3),
-            command=('host_add_managedby', [fqdn3],
-                dict(
-                    host=u'%s' % fqdn1,
-                ),
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    managedby = dict(
-                        host=tuple(),
-                    ),
-                ),
-                result=dict(
-                    dn=dn3,
-                    fqdn=[fqdn3],
-                    description=[u'Test host 2'],
-                    l=[u'Undisclosed location 2'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
-                    managedby_host=[u'%s' % fqdn3, u'%s' % fqdn1],
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Retrieve %r' % fqdn3,
-            command=('host_show', [fqdn3], {}),
-            expected=dict(
-                value=fqdn3,
-                summary=None,
-                result=dict(
                     dn=dn3,
                     fqdn=[fqdn3],
                     description=[u'Test host 2'],
@@ -488,306 +427,233 @@ class test_host(Declarative):
                     has_password=False,
                     managedby_host=[u'%s' % fqdn3, u'%s' % fqdn1],
                 ),
-            ),
-        ),
+            ],
+        ), result)
 
-        dict(
-            desc='Search for hosts with --man-hosts and --not-man-hosts',
-            command=('host_find', [], {'man_host' : fqdn3, 'not_man_host' : fqdn1}),
-            expected=dict(
-                count=1,
-                truncated=False,
-                summary=u'1 host matched',
-                result=[
-                    dict(
-                        dn=dn3,
-                        fqdn=[fqdn3],
-                        description=[u'Test host 2'],
-                        l=[u'Undisclosed location 2'],
-                        krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
-                        has_keytab=False,
-                        has_password=False,
-                        managedby_host=[u'%s' % fqdn3, u'%s' % fqdn1],
-                    ),
-                ],
-            ),
-        ),
+    def test_search_man_hosts(self, command):
+        result = command('host_find', man_host=[fqdn3, fqdn4])
+        assert_deepequal(dict(
+            count=0,
+            truncated=False,
+            summary=u'0 hosts matched',
+            result=[],
+        ), result)
 
-        dict(
-            desc='Try to search for hosts with --man-hosts',
-            command=('host_find', [], {'man_host' : [fqdn3,fqdn4]}),
-            expected=dict(
-                count=0,
-                truncated=False,
-                summary=u'0 hosts matched',
-                result=[],
-            ),
-        ),
-
-        dict(
-            desc='Remove managedby_host %r from %r' % (fqdn1, fqdn3),
-            command=('host_remove_managedby', [fqdn3],
-                dict(
-                    host=u'%s' % fqdn1,
+    def test_remove_man_hosts(self, command):
+        result = command('host_remove_managedby', fqdn3, host=u'%s' % fqdn1)
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                managedby=dict(
+                    host=tuple(),
                 ),
             ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    managedby = dict(
-                        host=tuple(),
-                    ),
-                ),
-                result=dict(
-                    dn=dn3,
-                    fqdn=[fqdn3],
-                    description=[u'Test host 2'],
-                    l=[u'Undisclosed location 2'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
-                    managedby_host=[u'%s' % fqdn3],
-                ),
+            result=dict(
+                dn=dn3,
+                fqdn=[fqdn3],
+                description=[u'Test host 2'],
+                l=[u'Undisclosed location 2'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                managedby_host=[u'%s' % fqdn3],
             ),
-        ),
+        ), result)
 
+    def test_try_show_multiple_matches(self, command):
+        with raises_exact(errors.SingleMatchExpected(found=2)):
+            result = command('host_show', short3)
 
-        dict(
-            desc='Show a host with multiple matches %s' % short3,
-            command=('host_show', [short3], {}),
-            expected=errors.SingleMatchExpected(found=2),
-        ),
+    def test_try_rename(self, command):
+        with raises_exact(errors.NotAllowedOnRDN()):
+            result = command('host_mod', fqdn1,
+                             setattr=u'fqdn=changed.example.com')
 
-
-        dict(
-            desc='Try to rename %r' % fqdn1,
-            command=('host_mod', [fqdn1], dict(setattr=u'fqdn=changed.example.com')),
-            expected=errors.NotAllowedOnRDN()
-        ),
-
-
-        dict(
-            desc='Add MAC address to %r' % fqdn1,
-            command=('host_mod', [fqdn1], dict(macaddress=u'00:50:56:30:F6:5F')),
-            expected=dict(
-                value=fqdn1,
-                summary=u'Modified host "%s"' % fqdn1,
-                result=dict(
-                    description=[u'Updated host 1'],
-                    fqdn=[fqdn1],
-                    l=[u'Undisclosed location 1'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[u'%s' % fqdn1],
-                    usercertificate=[base64.b64decode(get_testcert())],
-                    valid_not_before=fuzzy_date,
-                    valid_not_after=fuzzy_date,
-                    subject=DN(('CN',api.env.host),x509.subject_base()),
-                    serial_number=fuzzy_digits,
-                    serial_number_hex=fuzzy_hex,
-                    md5_fingerprint=fuzzy_hash,
-                    sha1_fingerprint=fuzzy_hash,
-                    macaddress=[u'00:50:56:30:F6:5F'],
-                    issuer=fuzzy_issuer,
-                    has_keytab=False,
-                    has_password=False,
-                ),
+    def test_add_mac_address(self, command):
+        result = command('host_mod', fqdn1, macaddress=u'00:50:56:30:F6:5F')
+        assert_deepequal(dict(
+            value=fqdn1,
+            summary=u'Modified host "%s"' % fqdn1,
+            result=dict(
+                description=[u'Updated host 1'],
+                fqdn=[fqdn1],
+                l=[u'Undisclosed location 1'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[u'%s' % fqdn1],
+                usercertificate=[base64.b64decode(get_testcert())],
+                valid_not_before=fuzzy_date,
+                valid_not_after=fuzzy_date,
+                subject=DN(('CN', api.env.host), x509.subject_base()),
+                serial_number=fuzzy_digits,
+                serial_number_hex=fuzzy_hex,
+                md5_fingerprint=fuzzy_hash,
+                sha1_fingerprint=fuzzy_hash,
+                macaddress=[u'00:50:56:30:F6:5F'],
+                issuer=fuzzy_issuer,
+                has_keytab=False,
+                has_password=False,
             ),
-        ),
+        ), result)
 
-
-        dict(
-            desc='Add another MAC address to %r' % fqdn1,
-            command=('host_mod', [fqdn1], dict(macaddress=[u'00:50:56:30:F6:5F', u'00:50:56:2C:8D:82'])),
-            expected=dict(
-                value=fqdn1,
-                summary=u'Modified host "%s"' % fqdn1,
-                result=dict(
-                    description=[u'Updated host 1'],
-                    fqdn=[fqdn1],
-                    l=[u'Undisclosed location 1'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[u'%s' % fqdn1],
-                    usercertificate=[base64.b64decode(get_testcert())],
-                    valid_not_before=fuzzy_date,
-                    valid_not_after=fuzzy_date,
-                    subject=DN(('CN',api.env.host),x509.subject_base()),
-                    serial_number=fuzzy_digits,
-                    serial_number_hex=fuzzy_hex,
-                    md5_fingerprint=fuzzy_hash,
-                    sha1_fingerprint=fuzzy_hash,
-                    macaddress=[u'00:50:56:30:F6:5F', u'00:50:56:2C:8D:82'],
-                    issuer=fuzzy_issuer,
-                    has_keytab=False,
-                    has_password=False,
-                ),
+    def test_add_mac_addresses(self, command):
+        result = command('host_mod', fqdn1,
+                         macaddress=[u'00:50:56:30:F6:5F',
+                                     u'00:50:56:2C:8D:82'])
+        assert_deepequal(dict(
+            value=fqdn1,
+            summary=u'Modified host "%s"' % fqdn1,
+            result=dict(
+                description=[u'Updated host 1'],
+                fqdn=[fqdn1],
+                l=[u'Undisclosed location 1'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[u'%s' % fqdn1],
+                usercertificate=[base64.b64decode(get_testcert())],
+                valid_not_before=fuzzy_date,
+                valid_not_after=fuzzy_date,
+                subject=DN(('CN', api.env.host), x509.subject_base()),
+                serial_number=fuzzy_digits,
+                serial_number_hex=fuzzy_hex,
+                md5_fingerprint=fuzzy_hash,
+                sha1_fingerprint=fuzzy_hash,
+                macaddress=[u'00:50:56:30:F6:5F', u'00:50:56:2C:8D:82'],
+                issuer=fuzzy_issuer,
+                has_keytab=False,
+                has_password=False,
             ),
-        ),
+        ), result)
 
-
-        dict(
-            desc='Add an illegal MAC address to %r' % fqdn1,
-            command=('host_mod', [fqdn1], dict(macaddress=[u'xx'])),
-            expected=errors.ValidationError(name='macaddress',
+    def test_try_illegal_mac(self, command):
+        with raises_exact(errors.ValidationError(
+                name='macaddress',
                 error=u'Must be of the form HH:HH:HH:HH:HH:HH, where ' +
-                    u'each H is a hexadecimal character.'),
-        ),
+                      u'each H is a hexadecimal character.')):
+            result = command('host_mod', fqdn1, macaddress=[u'xx'])
 
-
-        dict(
-            desc='Add SSH public key to %r' % fqdn1,
-            command=('host_mod', [fqdn1], dict(ipasshpubkey=[sshpubkey])),
-            expected=dict(
-                value=fqdn1,
-                summary=u'Modified host "%s"' % fqdn1,
-                result=dict(
-                    description=[u'Updated host 1'],
-                    fqdn=[fqdn1],
-                    l=[u'Undisclosed location 1'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[u'%s' % fqdn1],
-                    usercertificate=[base64.b64decode(get_testcert())],
-                    valid_not_before=fuzzy_date,
-                    valid_not_after=fuzzy_date,
-                    subject=DN(('CN',api.env.host),x509.subject_base()),
-                    serial_number=fuzzy_digits,
-                    serial_number_hex=fuzzy_hex,
-                    md5_fingerprint=fuzzy_hash,
-                    sha1_fingerprint=fuzzy_hash,
-                    issuer=fuzzy_issuer,
-                    macaddress=[u'00:50:56:30:F6:5F', u'00:50:56:2C:8D:82'],
-                    ipasshpubkey=[sshpubkey],
-                    sshpubkeyfp=[sshpubkeyfp],
-                    has_keytab=False,
-                    has_password=False,
-                ),
+    def test_add_ssh_pubkey(self, command):
+        result = command('host_mod', fqdn1,
+                         ipasshpubkey=[sshpubkey])
+        assert_deepequal(dict(
+            value=fqdn1,
+            summary=u'Modified host "%s"' % fqdn1,
+            result=dict(
+                description=[u'Updated host 1'],
+                fqdn=[fqdn1],
+                l=[u'Undisclosed location 1'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[u'%s' % fqdn1],
+                usercertificate=[base64.b64decode(get_testcert())],
+                valid_not_before=fuzzy_date,
+                valid_not_after=fuzzy_date,
+                subject=DN(('CN', api.env.host), x509.subject_base()),
+                serial_number=fuzzy_digits,
+                serial_number_hex=fuzzy_hex,
+                md5_fingerprint=fuzzy_hash,
+                sha1_fingerprint=fuzzy_hash,
+                issuer=fuzzy_issuer,
+                macaddress=[u'00:50:56:30:F6:5F', u'00:50:56:2C:8D:82'],
+                ipasshpubkey=[sshpubkey],
+                sshpubkeyfp=[sshpubkeyfp],
+                has_keytab=False,
+                has_password=False,
             ),
-        ),
+        ), result)
 
+    def test_try_illegal_ssh_pubkey(self, command):
+        with raises_exact(errors.ValidationError(
+                name='sshpubkey', error=u'options are not allowed')):
+            result = command('host_mod', fqdn1,
+                             ipasshpubkey=[u'no-pty %s' % sshpubkey])
 
-        dict(
-            desc='Add an illegal SSH public key to %r' % fqdn1,
-            command=('host_mod', [fqdn1], dict(ipasshpubkey=[u'no-pty %s' % sshpubkey])),
-            expected=errors.ValidationError(name='sshpubkey',
-                error=u'options are not allowed'),
-        ),
+    def test_delete_host(self, command):
+        result = command('host_del', fqdn1)
+        assert_deepequal(dict(
+            value=[fqdn1],
+            summary=u'Deleted host "%s"' % fqdn1,
+            result=dict(failed=[]),
+        ), result)
 
+    def test_retrieve_nonexistent_2(self, command):
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host not found' % fqdn1)):
+            result = command('host_show', fqdn1)
 
-        dict(
-            desc='Delete %r' % fqdn1,
-            command=('host_del', [fqdn1], {}),
-            expected=dict(
-                value=[fqdn1],
-                summary=u'Deleted host "%s"' % fqdn1,
-                result=dict(failed=[]),
+    def test_update_nonexistent_2(self, command):
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host not found' % fqdn1)):
+            result = command('host_mod', fqdn1, description=u'Nope')
+
+    def test_delete_nonexistent_2(self, command):
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host not found' % fqdn1)):
+            result = command('host_del', fqdn1)
+
+    # Test deletion using a non-fully-qualified hostname. Services
+    # associated with this host should also be removed.
+
+    def test_recreate_host(self, command):
+        result = command('host_add', fqdn1,
+                         description=u'Test host 1',
+                         l=u'Undisclosed location 1',
+                         force=True)
+        assert_deepequal(dict(
+            value=fqdn1,
+            summary=u'Added host "%s"' % fqdn1,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                description=[u'Test host 1'],
+                l=[u'Undisclosed location 1'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                objectclass=objectclasses.host,
+                ipauniqueid=[fuzzy_uuid],
+                managedby_host=[fqdn1],
+                has_keytab=False,
+                has_password=False,
             ),
-        ),
+        ), result)
 
-
-        dict(
-            desc='Try to retrieve non-existent %r' % fqdn1,
-            command=('host_show', [fqdn1], {}),
-            expected=errors.NotFound(reason=u'%s: host not found' % fqdn1),
-        ),
-
-
-        dict(
-            desc='Try to update non-existent %r' % fqdn1,
-            command=('host_mod', [fqdn1], dict(description=u'Nope')),
-            expected=errors.NotFound(reason=u'%s: host not found' % fqdn1),
-        ),
-
-
-        dict(
-            desc='Try to delete non-existent %r' % fqdn1,
-            command=('host_del', [fqdn1], {}),
-            expected=errors.NotFound(reason=u'%s: host not found' % fqdn1),
-        ),
-
-        # Test deletion using a non-fully-qualified hostname. Services
-        # associated with this host should also be removed.
-        dict(
-            desc='Re-create %r' % fqdn1,
-            command=('host_add', [fqdn1],
-                dict(
-                    description=u'Test host 1',
-                    l=u'Undisclosed location 1',
-                    force=True,
-                ),
+    def test_add_service_to_host(self, command):
+        result = command('service_add', service1, force=True)
+        assert_deepequal(dict(
+            value=service1,
+            summary=u'Added service "%s"' % service1,
+            result=dict(
+                dn=service1dn,
+                krbprincipalname=[service1],
+                objectclass=objectclasses.service,
+                managedby_host=[fqdn1],
+                ipauniqueid=[fuzzy_uuid],
             ),
-            expected=dict(
-                value=fqdn1,
-                summary=u'Added host "%s"' % fqdn1,
-                result=dict(
-                    dn=dn1,
-                    fqdn=[fqdn1],
-                    description=[u'Test host 1'],
-                    l=[u'Undisclosed location 1'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    objectclass=objectclasses.host,
-                    ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[u'%s' % fqdn1],
-                    has_keytab=False,
-                    has_password=False,
-                ),
-            ),
-        ),
+        ), result)
 
-        dict(
-            desc='Add a service to host %r' % fqdn1,
-            command=('service_add', [service1], {'force': True}),
-            expected=dict(
-                value=service1,
-                summary=u'Added service "%s"' % service1,
-                result=dict(
-                    dn=service1dn,
-                    krbprincipalname=[service1],
-                    objectclass=objectclasses.service,
-                    managedby_host=[fqdn1],
-                    ipauniqueid=[fuzzy_uuid],
-                ),
-            ),
-        ),
+    def test_delete_using_hostname(self, command):
+        result = command('host_del', short1)
+        assert_deepequal(dict(
+            value=[short1],
+            summary=u'Deleted host "%s"' % short1,
+            result=dict(failed=[]),
+        ), result)
 
-        dict(
-            desc='Delete using host name %r' % short1,
-            command=('host_del', [short1], {}),
-            expected=dict(
-                value=[short1],
-                summary=u'Deleted host "%s"' % short1,
-                result=dict(failed=[]),
-            ),
-        ),
+    def test_try_find_services(self, command):
+        result = command('service_find', fqdn1)
+        assert_deepequal(dict(
+            count=0,
+            truncated=False,
+            summary=u'0 services matched',
+            result=[],
+        ), result)
 
-        dict(
-            desc='Search for services for %r' % fqdn1,
-            command=('service_find', [fqdn1], {}),
-            expected=dict(
-                count=0,
-                truncated=False,
-                summary=u'0 services matched',
-                result=[
-                ],
-            ),
-        ),
+    def test_try_add_not_in_dns(self, command):
+        with raises_exact(errors.DNSNotARecordError(
+                reason=u'Host does not have corresponding DNS A/AAAA record')):
+            result = command('host_add', fqdn2)
 
-
-        dict(
-            desc='Try to add host not in DNS %r without force' % fqdn2,
-            command=('host_add', [fqdn2], {}),
-            expected=errors.DNSNotARecordError(
-                reason=u'Host does not have corresponding DNS A/AAAA record'),
-        ),
-
-
-        dict(
-            desc='Try to add host not in DNS %r with force' % fqdn2,
-            command=('host_add', [fqdn2],
-                dict(
-                    description=u'Test host 2',
-                    l=u'Undisclosed location 2',
-                    userclass=[u'webserver', u'mailserver'],
-                    force=True,
-                ),
-            ),
-            expected=dict(
+    def test_add_not_in_dns(self, command):
+        result = command('host_add', fqdn2,
+                         description=u'Test host 2',
+                         l=u'Undisclosed location 2',
+                         userclass=[u'webserver', u'mailserver'],
+                         force=True)
+        assert_deepequal(dict(
                 value=fqdn2,
                 summary=u'Added host "%s"' % fqdn2,
                 result=dict(
@@ -803,177 +669,119 @@ class test_host(Declarative):
                     has_keytab=False,
                     has_password=False,
                 ),
-            ),
-        ),
+        ), result)
 
+    def test_try_delete_master(self, command):
+        with raises_exact(errors.ValidationError(
+                name='hostname',
+                error=u'An IPA master host cannot be deleted or disabled')):
+            result = command('host_del', api.env.host)
 
-        dict(
-            desc='Retrieve %r' % fqdn2,
-            command=('host_show', [fqdn2], {}),
-            expected=dict(
-                value=fqdn2,
-                summary=None,
-                result=dict(
-                    dn=dn2,
-                    fqdn=[fqdn2],
-                    description=[u'Test host 2'],
-                    l=[u'Undisclosed location 2'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn2, api.env.realm)],
-                    has_keytab=False,
-                    has_password=False,
-                    managedby_host=[fqdn2],
-                    userclass=[u'webserver', u'mailserver'],
-                ),
-            ),
-        ),
+    def test_try_disable_master(self, command):
+        with raises_exact(errors.ValidationError(
+                name='hostname',
+                error=u'An IPA master host cannot be deleted or disabled')):
+            result = command('host_disable', api.env.host)
 
+    def test_try_validate_add(self, command):
+        with raises_exact(errors.ValidationError(
+                name='hostname',
+                error=u"invalid domain-name: only letters, numbers, '-' are " +
+                      u"allowed. DNS label may not start or end with '-'")):
+            result = command('host_add', invalidfqdn1)
 
-        # This test will only succeed when running against lite-server.py
-        # on same box as IPA install.
-        dict(
-            desc='Delete the current host (master?) %s should be caught' % api.env.host,
-            command=('host_del', [api.env.host], {}),
-            expected=errors.ValidationError(name='hostname',
-                error=u'An IPA master host cannot be deleted or disabled'),
-        ),
+    # The assumption on these next 4 tests is that if we don't get a
+    # validation error then the request was processed normally.
 
+    def test_try_validate_mod(self, command):
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host not found' % invalidfqdn1)):
+            result = command('host_mod', invalidfqdn1)
 
-        dict(
-            desc='Disable the current host (master?) %s should be caught' % api.env.host,
-            command=('host_disable', [api.env.host], {}),
-            expected=errors.ValidationError(name='hostname',
-                error=u'An IPA master host cannot be deleted or disabled'),
-        ),
+    def test_try_validate_del(self, command):
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host not found' % invalidfqdn1)):
+            result = command('host_del', invalidfqdn1)
 
+    def test_try_validate_show(self, command):
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host not found' % invalidfqdn1)):
+            result = command('host_show', invalidfqdn1)
 
-        dict(
-            desc='Test that validation is enabled on adds',
-            command=('host_add', [invalidfqdn1], {}),
-            expected=errors.ValidationError(name='hostname',
-                error=u"invalid domain-name: only letters, numbers, '-' " +
-                u"are allowed. DNS label may not start or end with '-'"),
-        ),
-
-
-        # The assumption on these next 4 tests is that if we don't get a
-        # validation error then the request was processed normally.
-        dict(
-            desc='Test that validation is disabled on mods',
-            command=('host_mod', [invalidfqdn1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: host not found' % invalidfqdn1),
-        ),
-
-
-        dict(
-            desc='Test that validation is disabled on deletes',
-            command=('host_del', [invalidfqdn1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: host not found' % invalidfqdn1),
-        ),
-
-
-        dict(
-            desc='Test that validation is disabled on show',
-            command=('host_show', [invalidfqdn1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: host not found' % invalidfqdn1),
-        ),
-
-
-        dict(
-            desc='Test that validation is disabled on find',
-            command=('host_find', [invalidfqdn1], {}),
-            expected=dict(
+    def test_try_validate_find(self, command):
+        result = command('host_find', invalidfqdn1)
+        assert_deepequal(dict(
                 count=0,
                 truncated=False,
                 summary=u'0 hosts matched',
                 result=[],
-            ),
-        ),
+        ), result)
 
-
-        dict(
-            desc='Add managedby_host %r to %r' % (fqdn3, fqdn4),
-            command=('host_add_managedby', [fqdn4], dict(host=fqdn3,),
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    managedby = dict(
-                        host=tuple(),
-                    ),
-                ),
-                result=dict(
-                    dn=dn4,
-                    fqdn=[fqdn4],
-                    description=[u'Test host 4'],
-                    l=[u'Undisclosed location 4'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn4, api.env.realm)],
-                    managedby_host=[fqdn4, fqdn3],
+    def test_add_managed_host_2(self, command):
+        result = command('host_add_managedby', fqdn4, host=fqdn3)
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                managedby=dict(
+                    host=tuple(),
                 ),
             ),
-        ),
-
-
-        dict(
-            desc='Delete %r' % fqdn3,
-            command=('host_del', [fqdn3], {}),
-            expected=dict(
-                value=[fqdn3],
-                summary=u'Deleted host "%s"' % fqdn3,
-                result=dict(failed=[]),
+            result=dict(
+                dn=dn4,
+                fqdn=[fqdn4],
+                description=[u'Test host 4'],
+                l=[u'Undisclosed location 4'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn4, api.env.realm)],
+                managedby_host=[fqdn4, fqdn3],
             ),
-        ),
+        ), result)
 
+    def test_delete_managed_host_2(self, command):
+        result = command('host_del', fqdn3)
+        assert_deepequal(dict(
+            value=[fqdn3],
+            summary=u'Deleted host "%s"' % fqdn3,
+            result=dict(failed=[]),
+        ), result)
 
-        dict(
-            desc='Retrieve %r to verify that %r is gone from managedBy' % (fqdn4, fqdn3),
-            command=('host_show', [fqdn4], {}),
-            expected=dict(
-                value=fqdn4,
-                summary=None,
-                result=dict(
-                    dn=dn4,
-                    fqdn=[fqdn4],
-                    description=[u'Test host 4'],
-                    l=[u'Undisclosed location 4'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn4, api.env.realm)],
-                    has_keytab=False,
-                    has_password=False,
-                    managedby_host=[fqdn4],
-                ),
+    def test_retrieve_managed_host_2(self, command):
+        result = command('host_show', fqdn4)
+        assert_deepequal(dict(
+            value=fqdn4,
+            summary=None,
+            result=dict(
+                dn=dn4,
+                fqdn=[fqdn4],
+                description=[u'Test host 4'],
+                l=[u'Undisclosed location 4'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn4, api.env.realm)],
+                has_keytab=False,
+                has_password=False,
+                managedby_host=[fqdn4],
             ),
-        ),
+        ), result)
 
-
-        dict(
-            desc='Create a host with a NULL password',
-            command=('host_add', [fqdn3],
-                dict(
-                    description=u'Test host 3',
-                    force=True,
-                    userpassword=None,
-                ),
+    def test_add_host_with_null_password(self, command):
+        result = command('host_add', fqdn3,
+                         description=u'Test host 3',
+                         force=True,
+                         userpassword=None)
+        assert_deepequal(dict(
+            value=fqdn3,
+            summary=u'Added host "%s"' % fqdn3,
+            result=dict(
+                dn=dn3,
+                fqdn=[fqdn3],
+                description=[u'Test host 3'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                objectclass=objectclasses.host,
+                ipauniqueid=[fuzzy_uuid],
+                managedby_host=[u'%s' % fqdn3],
+                has_keytab=False,
+                has_password=False,
             ),
-            expected=dict(
-                value=fqdn3,
-                summary=u'Added host "%s"' % fqdn3,
-                result=dict(
-                    dn=dn3,
-                    fqdn=[fqdn3],
-                    description=[u'Test host 3'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
-                    objectclass=objectclasses.host,
-                    ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[u'%s' % fqdn3],
-                    has_keytab=False,
-                    has_password=False,
-                ),
-            ),
-        ),
+        ), result)
 
-    ]
 
 class test_host_false_pwd_change(XMLRPC_test):
 
@@ -984,13 +792,14 @@ class test_host_false_pwd_change(XMLRPC_test):
 
     @classmethod
     def setup_class(cls):
+        super(TestHostFalsePwdChange, cls).setup_class()
         [cls.keytabfd,cls.keytabname] = tempfile.mkstemp()
         os.close(cls.keytabfd)
 
         does_command_exist = os.path.isfile(cls.command)
 
         if not does_command_exist:
-            raise SkipTest("Command '%s' not found" % cls.command)
+            pytest.skip("Command '%s' not found" % cls.command)
 
     # auxiliary function for checking whether the join operation has set
     # correct attributes
@@ -1005,7 +814,8 @@ class test_host_false_pwd_change(XMLRPC_test):
         """
 
         # create a test host with bulk enrollment password
-        random_pass = api.Command['host_add'](self.fqdn1, random=True, force=True)['result']['randompassword']
+        host = api.Command['host_add'](self.fqdn1, random=True, force=True)
+        random_pass = host['result']['randompassword']
 
         # joint the host with the bulk password
         new_args = [self.command,
@@ -1019,24 +829,24 @@ class test_host_false_pwd_change(XMLRPC_test):
             # join operation may fail on 'adding key into keytab', but
             # the keytab is not necessary for further tests
             (out, err, rc) = ipautil.run(new_args, None)
-        except ipautil.CalledProcessError, e:
+        except ipautil.CalledProcessError as e:
             pass
         finally:
             self.host_joined()
 
-    @raises(errors.ValidationError)
     def test_b_try_password(self):
         """
         Try to change the password of enrolled host with specified password
         """
-        api.Command['host_mod'](self.fqdn1, userpassword=self.new_pass)
+        with pytest.raises(errors.ValidationError):
+            api.Command['host_mod'](self.fqdn1, userpassword=self.new_pass)
 
-    @raises(errors.ValidationError)
     def test_c_try_random(self):
         """
         Try to change the password of enrolled host with random password
         """
-        api.Command['host_mod'](self.fqdn1, random=True)
+        with pytest.raises(errors.ValidationError):
+            api.Command['host_mod'](self.fqdn1, random=True)
 
     def test_d_cleanup(self):
         """
@@ -1045,821 +855,591 @@ class test_host_false_pwd_change(XMLRPC_test):
         os.unlink(self.keytabname)
         api.Command['host_del'](self.fqdn1)
         # verify that it's gone
-        with assert_raises(errors.NotFound):
+        with pytest.raises(errors.NotFound):
             api.Command['host_show'](self.fqdn1)
 
 
-class test_host_dns(Declarative):
+@ordered
+class test_host_dns(RPCTest):
 
-    cleanup_commands = [
-        ('host_del', [ipv6only_host_fqdn], {}),
-        ('host_del', [ipv4only_host_fqdn], {}),
-        ('host_del', [ipv46both_host_fqdn], {}),
-        ('host_del', [ipv4_fromip_host_fqdn], {}),
-        ('host_del', [ipv6_fromip_host_fqdn], {}),
-        ('dnszone_del', [dnszone], {}),
-        ('dnszone_del', [revzone], {}),
-        ('dnszone_del', [revipv6zone], {}),
-    ]
+    @classmethod
+    def clean_up(cls):
+        cls.clean('host_del',
+                  ipv6only_host_fqdn, ipv4only_host_fqdn, ipv46both_host_fqdn,
+                  ipv4_fromip_host_fqdn, ipv6_fromip_host_fqdn,
+                  **{'continue': True})
+        cls.clean('dnszone_del', dnszone, revzone, revipv6zone,
+                  **{'continue': True})
 
-    tests = [
-        dict(
-            desc='Create zone %r' % dnszone,
-            command=(
-                'dnszone_add', [dnszone], {
-                    'idnssoarname': dnszone_rname,
-                }
-            ),
-            expected={
-                'value': dnszone_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': dnszone_dn,
-                    'idnsname': [dnszone_dnsname],
-                    'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [self_server_ns_dnsname],
-                    'nsrecord': lambda x: True,
-                    'idnssoarname': [dnszone_rname_dnsname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': [fuzzy_digits],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
-                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
-                                         u'grant %(realm)s krb5-self * AAAA; '
-                                         u'grant %(realm)s krb5-self * SSHFP;'
-                                         % dict(realm=api.env.realm)],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
-                    'objectclass': objectclasses.dnszone,
-                },
+    def test_create_zone(self, command):
+        result = command('dnszone_add', dnszone, idnssoarname=dnszone_rname)
+        assert_deepequal({
+            'value': dnszone_dnsname,
+            'summary': None,
+            'result': {
+                'dn': dnszone_dn,
+                'idnsname': [dnszone_dnsname],
+                'idnszoneactive': [u'TRUE'],
+                'idnssoamname': [self_server_ns_dnsname],
+                'nsrecord': lambda x: True,
+                'idnssoarname': [dnszone_rname_dnsname],
+                'idnssoaserial': [fuzzy_digits],
+                'idnssoarefresh': [fuzzy_digits],
+                'idnssoaretry': [fuzzy_digits],
+                'idnssoaexpire': [fuzzy_digits],
+                'idnssoaminimum': [fuzzy_digits],
+                'idnsallowdynupdate': [u'FALSE'],
+                'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                     u'grant %(realm)s krb5-self * AAAA; '
+                                     u'grant %(realm)s krb5-self * SSHFP;' %
+                                        dict(realm=api.env.realm)],
+                'idnsallowtransfer': [u'none;'],
+                'idnsallowquery': [u'any;'],
+                'objectclass': objectclasses.dnszone,
             },
-        ),
+        }, result)
 
-
-        dict(
-            desc='Create reverse zone %r' % revzone,
-            command=(
-                'dnszone_add', [revzone], {
-                    'idnssoarname': dnszone_rname,
-                }
-            ),
-            expected={
-                'value': revzone_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': revzone_dn,
-                    'idnsname': [revzone_dnsname],
-                    'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [self_server_ns_dnsname],
-                    'nsrecord': lambda x: True,
-                    'idnssoarname': [dnszone_rname_dnsname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': [fuzzy_digits],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
-                    'idnsupdatepolicy': [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
-                                         % dict(realm=api.env.realm, zone=revzone)],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
-                    'objectclass': objectclasses.dnszone,
-                },
+    def test_create_reverse_zone(self, command):
+        result = command('dnszone_add', revzone, idnssoarname=dnszone_rname)
+        assert_deepequal({
+            'value': revzone_dnsname,
+            'summary': None,
+            'result': {
+                'dn': revzone_dn,
+                'idnsname': [revzone_dnsname],
+                'idnszoneactive': [u'TRUE'],
+                'idnssoamname': [self_server_ns_dnsname],
+                'nsrecord': lambda x: True,
+                'idnssoarname': [dnszone_rname_dnsname],
+                'idnssoaserial': [fuzzy_digits],
+                'idnssoarefresh': [fuzzy_digits],
+                'idnssoaretry': [fuzzy_digits],
+                'idnssoaexpire': [fuzzy_digits],
+                'idnssoaminimum': [fuzzy_digits],
+                'idnsallowdynupdate': [u'FALSE'],
+                'idnsupdatepolicy': [
+                    u'grant %(realm)s krb5-subdomain %(zone)s PTR;' %
+                    dict(realm=api.env.realm, zone=revzone)],
+                'idnsallowtransfer': [u'none;'],
+                'idnsallowquery': [u'any;'],
+                'objectclass': objectclasses.dnszone,
             },
-        ),
+        }, result)
 
-
-        dict(
-            desc='Create reverse zone %r' % revipv6zone,
-            command=(
-                'dnszone_add', [revipv6zone], {
-                    'idnssoarname': dnszone_rname,
-                }
-            ),
-            expected={
-                'value': revipv6zone_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': revipv6zone_dn,
-                    'idnsname': [revipv6zone_dnsname],
-                    'idnszoneactive': [u'TRUE'],
-                    'idnssoamname': [self_server_ns_dnsname],
-                    'nsrecord': lambda x: True,
-                    'idnssoarname': [dnszone_rname_dnsname],
-                    'idnssoaserial': [fuzzy_digits],
-                    'idnssoarefresh': [fuzzy_digits],
-                    'idnssoaretry': [fuzzy_digits],
-                    'idnssoaexpire': [fuzzy_digits],
-                    'idnssoaminimum': [fuzzy_digits],
-                    'idnsallowdynupdate': [u'FALSE'],
-                    'idnsupdatepolicy': [u'grant %(realm)s krb5-subdomain %(zone)s PTR;'
-                                         % dict(realm=api.env.realm, zone=revipv6zone)],
-                    'idnsallowtransfer': [u'none;'],
-                    'idnsallowquery': [u'any;'],
-                    'objectclass': objectclasses.dnszone,
-                },
+    def test_create_ipv6_reverse_zone(self, command):
+        result = command('dnszone_add', revipv6zone,
+                         idnssoarname=dnszone_rname)
+        assert_deepequal({
+            'value': revipv6zone_dnsname,
+            'summary': None,
+            'result': {
+                'dn': revipv6zone_dn,
+                'idnsname': [revipv6zone_dnsname],
+                'idnszoneactive': [u'TRUE'],
+                'idnssoamname': [self_server_ns_dnsname],
+                'nsrecord': lambda x: True,
+                'idnssoarname': [dnszone_rname_dnsname],
+                'idnssoaserial': [fuzzy_digits],
+                'idnssoarefresh': [fuzzy_digits],
+                'idnssoaretry': [fuzzy_digits],
+                'idnssoaexpire': [fuzzy_digits],
+                'idnssoaminimum': [fuzzy_digits],
+                'idnsallowdynupdate': [u'FALSE'],
+                'idnsupdatepolicy': [
+                    u'grant %(realm)s krb5-subdomain %(zone)s PTR;' %
+                    dict(realm=api.env.realm, zone=revipv6zone)],
+                'idnsallowtransfer': [u'none;'],
+                'idnsallowquery': [u'any;'],
+                'objectclass': objectclasses.dnszone,
             },
-        ),
+        }, result)
 
-
-        dict(
-            desc='Add A record to %r in zone %r' % (ipv6only, dnszone),
-            command=('dnsrecord_add', [dnszone, ipv6only], {'arecord': arec}),
-            expected={
-                'value': ipv6only_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': ipv6only_dn,
-                    'idnsname': [ipv6only_dnsname],
-                    'arecord': [arec],
-                    'objectclass': objectclasses.dnsrecord,
-                },
+    def test_add_ipv6only_a_record(self, command):
+        result = command('dnsrecord_add', dnszone, ipv6only,
+                         aaaarecord=aaaarec)
+        assert_deepequal({
+            'value': ipv6only_dnsname,
+            'summary': None,
+            'result': {
+                'dn': ipv6only_dn,
+                'idnsname': [ipv6only_dnsname],
+                'aaaarecord': [aaaarec],
+                'objectclass': objectclasses.dnsrecord,
             },
-        ),
+        }, result)
 
-
-        dict(
-            desc='Add A record to %r in zone %r' % (ipv4only, dnszone),
-            command=('dnsrecord_add', [dnszone, ipv4only], {'aaaarecord': aaaarec}),
-            expected={
-                'value': ipv4only_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': ipv4only_dn,
-                    'idnsname': [ipv4only_dnsname],
-                    'aaaarecord': [aaaarec],
-                    'objectclass': objectclasses.dnsrecord,
-                },
+    def test_add_ipv4only_a_record(self, command):
+        result = command('dnsrecord_add', dnszone, ipv4only, arecord=arec)
+        assert_deepequal({
+            'value': ipv4only_dnsname,
+            'summary': None,
+            'result': {
+                'dn': ipv4only_dn,
+                'idnsname': [ipv4only_dnsname],
+                'arecord': [arec],
+                'objectclass': objectclasses.dnsrecord,
             },
-        ),
+        }, result)
 
-
-        dict(
-            desc='Add A record to %r in zone %r' % (ipv46both, dnszone),
-            command=('dnsrecord_add', [dnszone, ipv46both], {'arecord': arec2,
-                                                    'aaaarecord': aaaarec}
-                     ),
-            expected={
-                'value': ipv46both_dnsname,
-                'summary': None,
-                'result': {
-                    'dn': ipv46both_dn,
-                    'idnsname': [ipv46both_dnsname],
-                    'arecord': [arec2],
-                    'aaaarecord': [aaaarec],
-                    'objectclass': objectclasses.dnsrecord,
-                },
+    def test_add_ipv46both_aaaa_records(self, command):
+        result = command('dnsrecord_add', dnszone, ipv46both,
+                         arecord=arec2, aaaarecord=aaaarec)
+        assert_deepequal({
+            'value': ipv46both_dnsname,
+            'summary': None,
+            'result': {
+                'dn': ipv46both_dn,
+                'idnsname': [ipv46both_dnsname],
+                'arecord': [arec2],
+                'aaaarecord': [aaaarec],
+                'objectclass': objectclasses.dnsrecord,
             },
-        ),
+        }, result)
+
+    def test_add_ipv6only_host(self, command):
+        result = command('host_add', ipv6only_host_fqdn,
+                         description=u'Test host 5',
+                         l=u'Undisclosed location 5')
+        assert_deepequal(dict(
+            value=ipv6only_host_fqdn,
+            summary=u'Added host "%s"' % ipv6only_host_fqdn,
+            result=dict(
+                dn=ipv6only_host_dn,
+                fqdn=[ipv6only_host_fqdn],
+                description=[u'Test host 5'],
+                l=[u'Undisclosed location 5'],
+                krbprincipalname=[u'host/%s@%s' % (ipv6only_host_fqdn,
+                                                   api.env.realm)],
+                objectclass=objectclasses.host,
+                ipauniqueid=[fuzzy_uuid],
+                managedby_host=[ipv6only_host_fqdn],
+                has_keytab=False,
+                has_password=False,
+            ),
+        ), result)
+
+    def test_add_ipv4only_host(self, command):
+        result = command('host_add', ipv4only_host_fqdn,
+                         description=u'Test host 6',
+                         l=u'Undisclosed location 6')
+        assert_deepequal(dict(
+            value=ipv4only_host_fqdn,
+            summary=u'Added host "%s"' % ipv4only_host_fqdn,
+            result=dict(
+                dn=ipv4only_host_dn,
+                fqdn=[ipv4only_host_fqdn],
+                description=[u'Test host 6'],
+                l=[u'Undisclosed location 6'],
+                krbprincipalname=[u'host/%s@%s' % (ipv4only_host_fqdn,
+                                                   api.env.realm)],
+                objectclass=objectclasses.host,
+                ipauniqueid=[fuzzy_uuid],
+                managedby_host=[ipv4only_host_fqdn],
+                has_keytab=False,
+                has_password=False,
+            ),
+        ), result)
+
+    def test_add_ipv46both_host(self, command):
+        result = command('host_add', ipv46both_host_fqdn,
+                         description=u'Test host 7',
+                         l=u'Undisclosed location 7')
+        assert_deepequal(dict(
+            value=ipv46both_host_fqdn,
+            summary=u'Added host "%s"' % ipv46both_host_fqdn,
+            result=dict(
+                dn=ipv46both_host_dn,
+                fqdn=[ipv46both_host_fqdn],
+                description=[u'Test host 7'],
+                l=[u'Undisclosed location 7'],
+                krbprincipalname=[u'host/%s@%s' % (ipv46both_host_fqdn,
+                                                   api.env.realm)],
+                objectclass=objectclasses.host,
+                ipauniqueid=[fuzzy_uuid],
+                managedby_host=[ipv46both_host_fqdn],
+                has_keytab=False,
+                has_password=False,
+            ),
+        ), result)
+
+    def test_add_ipv4_host_from_ip(self, command):
+        result = command('host_add', ipv4_fromip_host_fqdn,
+                         description=u'Test host 8',
+                         l=u'Undisclosed location 8',
+                         ip_address=ipv4_fromip_ip)
+        assert_deepequal(dict(
+            value=ipv4_fromip_host_fqdn,
+            summary=u'Added host "%s"' % ipv4_fromip_host_fqdn,
+            result=dict(
+                dn=ipv4_fromip_host_dn,
+                fqdn=[ipv4_fromip_host_fqdn],
+                description=[u'Test host 8'],
+                l=[u'Undisclosed location 8'],
+                krbprincipalname=[u'host/%s@%s' % (ipv4_fromip_host_fqdn,
+                                                   api.env.realm)],
+                objectclass=objectclasses.host,
+                ipauniqueid=[fuzzy_uuid],
+                managedby_host=[ipv4_fromip_host_fqdn],
+                has_keytab=False,
+                has_password=False,
+            ),
+        ), result)
+
+    def test_ipv4_a_record_created(self, command):
+        result = command('dnsrecord_show', dnszone, ipv4_fromip)
+        assert_deepequal(dict(
+            value=ipv4_fromip_dnsname,
+            summary=None,
+            result=dict(
+                dn=ipv4_fromip_dn,
+                idnsname=[ipv4_fromip_dnsname],
+                arecord=[ipv4_fromip_arec],
+            ),
+        ), result)
+
+    def test_ipv4_ptr_record_created(self, command):
+        result = command('dnsrecord_show', revzone, ipv4_fromip_ptr)
+        assert_deepequal(dict(
+            value=ipv4_fromip_ptr_dnsname,
+            summary=None,
+            result=dict(
+                dn=ipv4_fromip_ptr_dn,
+                idnsname=[ipv4_fromip_ptr_dnsname],
+                ptrrecord=[ipv4_fromip_ptrrec],
+            ),
+        ), result)
+
+    def test_add_ipv6_host_from_ip(self, command):
+        result = command('host_add', ipv6_fromip_host_fqdn,
+                         description=u'Test host 9',
+                         l=u'Undisclosed location 9',
+                         ip_address=ipv6_fromip_ipv6)
+        assert_deepequal(dict(
+            value=ipv6_fromip_host_fqdn,
+            summary=u'Added host "%s"' % ipv6_fromip_host_fqdn,
+            result=dict(
+                dn=ipv6_fromip_host_dn,
+                fqdn=[ipv6_fromip_host_fqdn],
+                description=[u'Test host 9'],
+                l=[u'Undisclosed location 9'],
+                krbprincipalname=[u'host/%s@%s' % (ipv6_fromip_host_fqdn,
+                                                   api.env.realm)],
+                objectclass=objectclasses.host,
+                ipauniqueid=[fuzzy_uuid],
+                managedby_host=[ipv6_fromip_host_fqdn],
+                has_keytab=False,
+                has_password=False,
+            ),
+        ), result)
+
+    def test_ipv6_aaaa_record_created(self, command):
+        result = command('dnsrecord_show', dnszone, ipv6_fromip)
+        assert_deepequal(dict(
+            value=ipv6_fromip_dnsname,
+            summary=None,
+            result=dict(
+                dn=ipv6_fromip_dn,
+                idnsname=[ipv6_fromip_dnsname],
+                aaaarecord=[ipv6_fromip_aaaarec],
+            ),
+        ), result)
+
+    def test_ipv6_ptr_record_added(self, command):
+        result = command('dnsrecord_show', revipv6zone, ipv6_fromip_ptr)
+        assert_deepequal(dict(
+            value=ipv6_fromip_ptr_dnsname,
+            summary=None,
+            result=dict(
+                dn=ipv6_fromip_ptr_dn,
+                idnsname=[ipv6_fromip_ptr_dnsname],
+                ptrrecord=[ipv6_fromip_ptrrec],
+            ),
+        ), result)
 
 
-        dict(
-            desc='Create %r (AAAA record exists)' % ipv6only_host_fqdn,
-            command=('host_add', [ipv6only_host_fqdn],
-                dict(
-                    description=u'Test host 5',
-                    l=u'Undisclosed location 5',
-                ),
-            ),
-            expected=dict(
-                value=ipv6only_host_fqdn,
-                summary=u'Added host "%s"' % ipv6only_host_fqdn,
-                result=dict(
-                    dn=ipv6only_host_dn,
-                    fqdn=[ipv6only_host_fqdn],
-                    description=[u'Test host 5'],
-                    l=[u'Undisclosed location 5'],
-                    krbprincipalname=[u'host/%s@%s' % (ipv6only_host_fqdn, api.env.realm)],
-                    objectclass=objectclasses.host,
-                    ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[ipv6only_host_fqdn],
-                    has_keytab=False,
-                    has_password=False,
-                ),
-            ),
-        ),
+@ordered
+class test_host_allowed_to(RPCTest):
 
+    @classmethod
+    def clean_up(cls):
+        cls.clean('user_del', user1, user2, **{'continue': True})
+        cls.clean('group_del', group1, group2, **{'continue': True})
+        cls.clean('host_del', fqdn1, fqdn3, **{'continue': True})
+        cls.clean('hostgroup_del', hostgroup1, **{'continue': True})
 
-        dict(
-            desc='Create %r (A record exists)' % ipv4only_host_fqdn,
-            command=('host_add', [ipv4only_host_fqdn],
-                dict(
-                    description=u'Test host 6',
-                    l=u'Undisclosed location 6',
-                ),
-            ),
-            expected=dict(
-                value=ipv4only_host_fqdn,
-                summary=u'Added host "%s"' % ipv4only_host_fqdn,
-                result=dict(
-                    dn=ipv4only_host_dn,
-                    fqdn=[ipv4only_host_fqdn],
-                    description=[u'Test host 6'],
-                    l=[u'Undisclosed location 6'],
-                    krbprincipalname=[u'host/%s@%s' % (ipv4only_host_fqdn, api.env.realm)],
-                    objectclass=objectclasses.host,
-                    ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[ipv4only_host_fqdn],
-                    has_keytab=False,
-                    has_password=False,
-                ),
-            ),
-        ),
+    def test_prepare_entries(self, command):
+        result = command('user_add', givenname=u'Test', sn=u'User1')
+        result = command('user_add', givenname=u'Test', sn=u'User2')
+        result = command('group_add', group1)
+        result = command('group_add', group2)
+        result = command('host_add', fqdn1, force=True)
+        result = command('host_add', fqdn3, force=True)
+        result = command('hostgroup_add', hostgroup1,
+                         description=u'Test hostgroup 1')
 
+    def test_user_allow_retrieve_keytab(self, command):
+        result = command('host_allow_retrieve_keytab', fqdn1, user=user1)
+        assert_deepequal(dict(
+            failed=dict(
+                ipaallowedtoperform_read_keys=dict(
+                    group=[], host=[], hostgroup=[], user=[]),
+            ),
+            completed=1,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                ipaallowedtoperform_read_keys_user=[user1],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[fqdn1],
+            ),
+        ), result)
 
-        dict(
-            desc='Create %r (A and AAAA records exist)' % ipv46both_host_fqdn,
-            command=('host_add', [ipv46both_host_fqdn],
-                dict(
-                    description=u'Test host 7',
-                    l=u'Undisclosed location 7',
+    def test_duplicate_add_user(self, command):
+        result = command('host_allow_retrieve_keytab', fqdn1, user=user1)
+        assert_deepequal(dict(
+            failed=dict(
+                ipaallowedtoperform_read_keys=dict(
+                    group=[],
+                    host=[],
+                    hostgroup=[],
+                    user=[[user1, u'This entry is already a member']],
                 ),
             ),
-            expected=dict(
-                value=ipv46both_host_fqdn,
-                summary=u'Added host "%s"' % ipv46both_host_fqdn,
-                result=dict(
-                    dn=ipv46both_host_dn,
-                    fqdn=[ipv46both_host_fqdn],
-                    description=[u'Test host 7'],
-                    l=[u'Undisclosed location 7'],
-                    krbprincipalname=[u'host/%s@%s' % (ipv46both_host_fqdn, api.env.realm)],
-                    objectclass=objectclasses.host,
-                    ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[ipv46both_host_fqdn],
-                    has_keytab=False,
-                    has_password=False,
-                ),
+            completed=0,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                ipaallowedtoperform_read_keys_user=[user1],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[fqdn1],
             ),
-        ),
+        ), result)
 
+    def test_group_allow_retrieve_keytab(self, command):
+        result = command('host_allow_retrieve_keytab', fqdn1,
+                         group=[group1, group2], host=[fqdn3],
+                         hostgroup=[hostgroup1])
+        assert_deepequal(dict(
+            failed=dict(
+                ipaallowedtoperform_read_keys=dict(
+                    group=[], host=[], hostgroup=[], user=[]),
+            ),
+            completed=4,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                ipaallowedtoperform_read_keys_user=[user1],
+                ipaallowedtoperform_read_keys_group=[group1, group2],
+                ipaallowedtoperform_read_keys_host=[fqdn3],
+                ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[fqdn1],
+            ),
+        ), result)
 
-        dict(
-            desc='Create %r with --from-ip option' % ipv4_fromip_host_fqdn,
-            command=('host_add', [ipv4_fromip_host_fqdn],
-                dict(
-                    description=u'Test host 8',
-                    l=u'Undisclosed location 8',
-                    ip_address=ipv4_fromip_ip,
+    def test_invalid_disallow_retrieve(self, command):
+        result = command('host_disallow_retrieve_keytab', fqdn1,
+                         user=[user2])
+        assert_deepequal(dict(
+            failed=dict(
+                ipaallowedtoperform_read_keys=dict(
+                    group=[],
+                    host=[],
+                    hostgroup=[],
+                    user=[[user2, u'This entry is not a member']],
                 ),
             ),
-            expected=dict(
-                value=ipv4_fromip_host_fqdn,
-                summary=u'Added host "%s"' % ipv4_fromip_host_fqdn,
-                result=dict(
-                    dn=ipv4_fromip_host_dn,
-                    fqdn=[ipv4_fromip_host_fqdn],
-                    description=[u'Test host 8'],
-                    l=[u'Undisclosed location 8'],
-                    krbprincipalname=[u'host/%s@%s' % (ipv4_fromip_host_fqdn, api.env.realm)],
-                    objectclass=objectclasses.host,
-                    ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[ipv4_fromip_host_fqdn],
-                    has_keytab=False,
-                    has_password=False,
-                ),
+            completed=0,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                ipaallowedtoperform_read_keys_user=[user1],
+                ipaallowedtoperform_read_keys_group=[group1, group2],
+                ipaallowedtoperform_read_keys_host=[fqdn3],
+                ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[fqdn1],
             ),
-        ),
+        ), result)
 
+    def test_disallow_retrieve(self, command):
+        result = command('host_disallow_retrieve_keytab', fqdn1,
+                         group=[group2])
+        assert_deepequal(dict(
+            failed=dict(
+                ipaallowedtoperform_read_keys=dict(
+                    group=[], host=[], hostgroup=[], user=[]),
+            ),
+            completed=1,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                ipaallowedtoperform_read_keys_user=[user1],
+                ipaallowedtoperform_read_keys_group=[group1],
+                ipaallowedtoperform_read_keys_host=[fqdn3],
+                ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[fqdn1],
+            ),
+        ), result)
 
-        dict(
-            desc='Check if A record was created for host %r' % ipv4_fromip_host_fqdn,
-            command=('dnsrecord_show', [dnszone, ipv4_fromip], {}
+    def test_allow_create(self, command):
+        result = command('host_allow_create_keytab', fqdn1,
+                         group=[group1, group2], user=[user1], host=[fqdn3],
+                         hostgroup=[hostgroup1])
+        assert_deepequal(dict(
+            failed=dict(
+                ipaallowedtoperform_write_keys=dict(
+                    group=[], host=[], hostgroup=[], user=[]),
             ),
-            expected=dict(
-                value=ipv4_fromip_dnsname,
-                summary=None,
-                result=dict(
-                    dn=ipv4_fromip_dn,
-                    idnsname=[ipv4_fromip_dnsname],
-                    arecord=[ipv4_fromip_arec],
-                ),
+            completed=5,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                ipaallowedtoperform_read_keys_user=[user1],
+                ipaallowedtoperform_read_keys_group=[group1],
+                ipaallowedtoperform_read_keys_host=[fqdn3],
+                ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
+                ipaallowedtoperform_write_keys_user=[user1],
+                ipaallowedtoperform_write_keys_group=[group1, group2],
+                ipaallowedtoperform_write_keys_host=[fqdn3],
+                ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[fqdn1],
             ),
-        ),
+       ), result)
 
+    def test_duplicate_allow_create(self, command):
+        result = command('host_allow_create_keytab', fqdn1,
+                         group=[group1], user=[user1], host=[fqdn3],
+                         hostgroup=[hostgroup1])
+        assert_deepequal(dict(
+            failed=dict(
+                ipaallowedtoperform_write_keys=dict(
+                    group=[[group1, u'This entry is already a member']],
+                    host=[[fqdn3, u'This entry is already a member']],
+                    user=[[user1, u'This entry is already a member']],
+                    hostgroup=[[hostgroup1,
+                                u'This entry is already a member']],
+                ),
+            ),
+            completed=0,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                ipaallowedtoperform_read_keys_user=[user1],
+                ipaallowedtoperform_read_keys_group=[group1],
+                ipaallowedtoperform_read_keys_host=[fqdn3],
+                ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
+                ipaallowedtoperform_write_keys_user=[user1],
+                ipaallowedtoperform_write_keys_group=[group1, group2],
+                ipaallowedtoperform_write_keys_host=[fqdn3],
+                ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[fqdn1],
+            ),
+       ), result)
 
-        dict(
-            desc='Check if PTR record was created for host %r' % ipv4_fromip_host_fqdn,
-            command=('dnsrecord_show', [revzone, ipv4_fromip_ptr], {}
-            ),
-            expected=dict(
-                value=ipv4_fromip_ptr_dnsname,
-                summary=None,
-                result=dict(
-                    dn=ipv4_fromip_ptr_dn,
-                    idnsname=[ipv4_fromip_ptr_dnsname],
-                    ptrrecord=[ipv4_fromip_ptrrec],
+    def test_invalid_disallow_create(self, command):
+        result = command('host_disallow_create_keytab', fqdn1,
+                         user=[user2])
+        assert_deepequal(dict(
+            failed=dict(
+                ipaallowedtoperform_write_keys=dict(
+                    group=[],
+                    host=[],
+                    hostgroup=[],
+                    user=[[user2, u'This entry is not a member']],
                 ),
             ),
-        ),
+            completed=0,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                ipaallowedtoperform_read_keys_user=[user1],
+                ipaallowedtoperform_read_keys_group=[group1],
+                ipaallowedtoperform_read_keys_host=[fqdn3],
+                ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
+                ipaallowedtoperform_write_keys_user=[user1],
+                ipaallowedtoperform_write_keys_group=[group1, group2],
+                ipaallowedtoperform_write_keys_host=[fqdn3],
+                ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[fqdn1],
+            ),
+       ), result)
 
-        dict(
-            desc='Create %r with --from-ip option (IPv6)' % ipv6_fromip_host_fqdn,
-            command=('host_add', [ipv6_fromip_host_fqdn],
-                dict(
-                    description=u'Test host 9',
-                    l=u'Undisclosed location 9',
-                    ip_address=ipv6_fromip_ipv6,
+    def test_disallow_create(self, command):
+        result = command('host_disallow_create_keytab', fqdn1,
+                         group=[group2])
+        assert_deepequal(dict(
+            failed=dict(
+                ipaallowedtoperform_write_keys=dict(
+                    group=[],
+                    host=[],
+                    hostgroup=[],
+                    user=[],
                 ),
             ),
-            expected=dict(
-                value=ipv6_fromip_host_fqdn,
-                summary=u'Added host "%s"' % ipv6_fromip_host_fqdn,
-                result=dict(
-                    dn=ipv6_fromip_host_dn,
-                    fqdn=[ipv6_fromip_host_fqdn],
-                    description=[u'Test host 9'],
-                    l=[u'Undisclosed location 9'],
-                    krbprincipalname=[u'host/%s@%s' % (ipv6_fromip_host_fqdn, api.env.realm)],
-                    objectclass=objectclasses.host,
-                    ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[ipv6_fromip_host_fqdn],
-                    has_keytab=False,
-                    has_password=False,
-                ),
+            completed=1,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                ipaallowedtoperform_read_keys_user=[user1],
+                ipaallowedtoperform_read_keys_group=[group1],
+                ipaallowedtoperform_read_keys_host=[fqdn3],
+                ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
+                ipaallowedtoperform_write_keys_user=[user1],
+                ipaallowedtoperform_write_keys_group=[group1],
+                ipaallowedtoperform_write_keys_host=[fqdn3],
+                ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[fqdn1],
             ),
-        ),
+       ), result)
 
+    def test_host_show(self, command):
+        result = command('host_show', fqdn1)
+        assert_deepequal(dict(
+            value=fqdn1,
+            summary=None,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                has_keytab=False,
+                has_password=False,
+                ipaallowedtoperform_read_keys_user=[user1],
+                ipaallowedtoperform_read_keys_group=[group1],
+                ipaallowedtoperform_read_keys_host=[fqdn3],
+                ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
+                ipaallowedtoperform_write_keys_user=[user1],
+                ipaallowedtoperform_write_keys_group=[group1],
+                ipaallowedtoperform_write_keys_host=[fqdn3],
+                ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[fqdn1],
+            ),
+       ), result)
 
-        dict(
-            desc='Check if AAAA record was created for host %r' % ipv6_fromip_host_fqdn,
-            command=('dnsrecord_show', [dnszone, ipv6_fromip], {}
+    def test_host_mod(self, command):
+        result = command('host_mod', fqdn1, description=u"desc")
+        assert_deepequal(dict(
+            value=fqdn1,
+            summary=u'Modified host "%s"' % fqdn1,
+            result=dict(
+                description=[u"desc"],
+                fqdn=[fqdn1],
+                has_keytab=False,
+                has_password=False,
+                ipaallowedtoperform_read_keys_user=[user1],
+                ipaallowedtoperform_read_keys_group=[group1],
+                ipaallowedtoperform_read_keys_host=[fqdn3],
+                ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
+                ipaallowedtoperform_write_keys_user=[user1],
+                ipaallowedtoperform_write_keys_group=[group1],
+                ipaallowedtoperform_write_keys_host=[fqdn3],
+                ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                managedby_host=[fqdn1],
             ),
-            expected=dict(
-                value=ipv6_fromip_dnsname,
-                summary=None,
-                result=dict(
-                    dn=ipv6_fromip_dn,
-                    idnsname=[ipv6_fromip_dnsname],
-                    aaaarecord=[ipv6_fromip_aaaarec],
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Check if PTR record was created for host %r' % ipv6_fromip_host_fqdn,
-            command=('dnsrecord_show', [revipv6zone, ipv6_fromip_ptr], {}
-            ),
-            expected=dict(
-                value=ipv6_fromip_ptr_dnsname,
-                summary=None,
-                result=dict(
-                    dn=ipv6_fromip_ptr_dn,
-                    idnsname=[ipv6_fromip_ptr_dnsname],
-                    ptrrecord=[ipv6_fromip_ptrrec],
-                ),
-            ),
-        ),
-    ]
-
-
-class test_host_allowed_to(Declarative):
-    cleanup_commands = [
-        ('user_del', [user1], {}),
-        ('user_del', [user2], {}),
-        ('group_del', [group1], {}),
-        ('group_del', [group2], {}),
-        ('host_del', [fqdn1], {}),
-        ('host_del', [fqdn3], {}),
-        ('hostgroup_del', [hostgroup1], {}),
-    ]
-
-    tests = [
-        # prepare entries
-        dict(
-            desc='Create %r' % user1,
-            command=(
-                'user_add', [], dict(givenname=u'Test', sn=u'User1')
-            ),
-            expected=dict(
-                value=user1,
-                summary=u'Added user "%s"' % user1,
-                result=get_user_result(user1, u'Test', u'User1', 'add'),
-            ),
-        ),
-        dict(
-            desc='Create %r' % user2,
-            command=(
-                'user_add', [], dict(givenname=u'Test', sn=u'User2')
-            ),
-            expected=dict(
-                value=user2,
-                summary=u'Added user "%s"' % user2,
-                result=get_user_result(user2, u'Test', u'User2', 'add'),
-            ),
-        ),
-        dict(
-            desc='Create group: %r' % group1,
-            command=(
-                'group_add', [group1], dict()
-            ),
-            expected=dict(
-                value=group1,
-                summary=u'Added group "%s"' % group1,
-                result=dict(
-                    cn=[group1],
-                    objectclass=objectclasses.group + [u'posixgroup'],
-                    ipauniqueid=[fuzzy_uuid],
-                    gidnumber=[fuzzy_digits],
-                    dn=group1_dn
-                ),
-            ),
-        ),
-        dict(
-            desc='Create group: %r' % group2,
-            command=(
-                'group_add', [group2], dict()
-            ),
-            expected=dict(
-                value=group2,
-                summary=u'Added group "%s"' % group2,
-                result=dict(
-                    cn=[group2],
-                    objectclass=objectclasses.group + [u'posixgroup'],
-                    ipauniqueid=[fuzzy_uuid],
-                    gidnumber=[fuzzy_digits],
-                    dn=group2_dn
-                ),
-            ),
-        ),
-        dict(
-            desc='Create %r' % fqdn1,
-            command=(
-                'host_add', [fqdn1],
-                dict(
-                    force=True,
-                ),
-            ),
-            expected=dict(
-                value=fqdn1,
-                summary=u'Added host "%s"' % fqdn1,
-                result=dict(
-                    dn=dn1,
-                    fqdn=[fqdn1],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    objectclass=objectclasses.host,
-                    ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[fqdn1],
-                    has_keytab=False,
-                    has_password=False,
-                ),
-            ),
-        ),
-        dict(
-            desc='Create %r' % fqdn3,
-            command=(
-                'host_add', [fqdn3],
-                dict(
-                    force=True,
-                ),
-            ),
-            expected=dict(
-                value=fqdn3,
-                summary=u'Added host "%s"' % fqdn3,
-                result=dict(
-                    dn=dn3,
-                    fqdn=[fqdn3],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
-                    objectclass=objectclasses.host,
-                    ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[fqdn3],
-                    has_keytab=False,
-                    has_password=False,
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Create %r' % hostgroup1,
-            command=('hostgroup_add', [hostgroup1],
-                dict(description=u'Test hostgroup 1')
-            ),
-            expected=dict(
-                value=hostgroup1,
-                summary=u'Added hostgroup "testhostgroup1"',
-                result=dict(
-                    dn=hostgroup1_dn,
-                    cn=[hostgroup1],
-                    objectclass=objectclasses.hostgroup,
-                    description=[u'Test hostgroup 1'],
-                    ipauniqueid=[fuzzy_uuid],
-                    mepmanagedentry=[DN(('cn',hostgroup1),('cn','ng'),('cn','alt'),
-                                        api.env.basedn)],
-                ),
-            ),
-        ),
-
-        # verify
-        dict(
-            desc='Allow %r to a retrieve keytab of %r' % (user1, fqdn1),
-            command=('host_allow_retrieve_keytab', [fqdn1],
-                     dict(user=user1)),
-            expected=dict(
-                failed=dict(
-                    ipaallowedtoperform_read_keys=dict(
-                        group=[],
-                        host=[],
-                        hostgroup=[],
-                        user=[],
-                    ),
-                ),
-                completed=1,
-                result=dict(
-                    dn=dn1,
-                    fqdn=[fqdn1],
-                    ipaallowedtoperform_read_keys_user=[user1],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[fqdn1],
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Duplicate add: user %r' % (user1),
-            command=('host_allow_retrieve_keytab', [fqdn1],
-                     dict(user=user1)),
-            expected=dict(
-                failed=dict(
-                    ipaallowedtoperform_read_keys=dict(
-                        group=[],
-                        host=[],
-                        hostgroup=[],
-                        user=[[user1, u'This entry is already a member']],
-                    ),
-                ),
-                completed=0,
-                result=dict(
-                    dn=dn1,
-                    fqdn=[fqdn1],
-                    ipaallowedtoperform_read_keys_user=[user1],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[fqdn1],
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Allow %r, %r to a retrieve keytab of %r' % (
-                group1, group2, fqdn1),
-            command=('host_allow_retrieve_keytab', [fqdn1],
-                     dict(group=[group1, group2], host=[fqdn3],
-                          hostgroup=[hostgroup1])),
-            expected=dict(
-                failed=dict(
-                    ipaallowedtoperform_read_keys=dict(
-                        group=[],
-                        host=[],
-                        hostgroup=[],
-                        user=[],
-                    ),
-                ),
-                completed=4,
-                result=dict(
-                    dn=dn1,
-                    fqdn=[fqdn1],
-                    ipaallowedtoperform_read_keys_user=[user1],
-                    ipaallowedtoperform_read_keys_group=[group1, group2],
-                    ipaallowedtoperform_read_keys_host=[fqdn3],
-                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[fqdn1],
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Invalid removal of retrieve keytab %r' % (user2),
-            command=('host_disallow_retrieve_keytab', [fqdn1],
-                     dict(user=[user2])),
-            expected=dict(
-                failed=dict(
-                    ipaallowedtoperform_read_keys=dict(
-                        group=[],
-                        host=[],
-                        hostgroup=[],
-                        user=[[user2, u'This entry is not a member']],
-                    ),
-                ),
-                completed=0,
-                result=dict(
-                    dn=dn1,
-                    fqdn=[fqdn1],
-                    ipaallowedtoperform_read_keys_user=[user1],
-                    ipaallowedtoperform_read_keys_group=[group1, group2],
-                    ipaallowedtoperform_read_keys_host=[fqdn3],
-                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[fqdn1],
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Removal of retrieve keytab %r' % (group2),
-            command=('host_disallow_retrieve_keytab', [fqdn1],
-                     dict(group=[group2])),
-            expected=dict(
-                failed=dict(
-                    ipaallowedtoperform_read_keys=dict(
-                        group=[],
-                        host=[],
-                        hostgroup=[],
-                        user=[],
-                    ),
-                ),
-                completed=1,
-                result=dict(
-                    dn=dn1,
-                    fqdn=[fqdn1],
-                    ipaallowedtoperform_read_keys_user=[user1],
-                    ipaallowedtoperform_read_keys_group=[group1],
-                    ipaallowedtoperform_read_keys_host=[fqdn3],
-                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[fqdn1],
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Allow %r, %r to a create keytab of %r' % (
-                group1, user1, fqdn1),
-            command=('host_allow_create_keytab', [fqdn1],
-                     dict(group=[group1, group2], user=[user1], host=[fqdn3],
-                          hostgroup=[hostgroup1])),
-            expected=dict(
-                failed=dict(
-                    ipaallowedtoperform_write_keys=dict(
-                        group=[],
-                        host=[],
-                        hostgroup=[],
-                        user=[],
-                    ),
-                ),
-                completed=5,
-                result=dict(
-                    dn=dn1,
-                    fqdn=[fqdn1],
-                    ipaallowedtoperform_read_keys_user=[user1],
-                    ipaallowedtoperform_read_keys_group=[group1],
-                    ipaallowedtoperform_read_keys_host=[fqdn3],
-                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
-                    ipaallowedtoperform_write_keys_user=[user1],
-                    ipaallowedtoperform_write_keys_group=[group1, group2],
-                    ipaallowedtoperform_write_keys_host=[fqdn3],
-                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[fqdn1],
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Duplicate add: %r, %r' % (user1, group1),
-            command=('host_allow_create_keytab', [fqdn1],
-                     dict(group=[group1], user=[user1], host=[fqdn3],
-                          hostgroup=[hostgroup1])),
-            expected=dict(
-                failed=dict(
-                    ipaallowedtoperform_write_keys=dict(
-                        group=[[group1, u'This entry is already a member']],
-                        host=[[fqdn3, u'This entry is already a member']],
-                        user=[[user1, u'This entry is already a member']],
-                        hostgroup=[[hostgroup1, u'This entry is already a member']],
-                    ),
-                ),
-                completed=0,
-                result=dict(
-                    dn=dn1,
-                    fqdn=[fqdn1],
-                    ipaallowedtoperform_read_keys_user=[user1],
-                    ipaallowedtoperform_read_keys_group=[group1],
-                    ipaallowedtoperform_read_keys_host=[fqdn3],
-                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
-                    ipaallowedtoperform_write_keys_user=[user1],
-                    ipaallowedtoperform_write_keys_group=[group1, group2],
-                    ipaallowedtoperform_write_keys_host=[fqdn3],
-                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[fqdn1],
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Invalid removal of create keytab %r' % (user2),
-            command=('host_disallow_create_keytab', [fqdn1],
-                     dict(user=[user2])),
-            expected=dict(
-                failed=dict(
-                    ipaallowedtoperform_write_keys=dict(
-                        group=[],
-                        host=[],
-                        hostgroup=[],
-                        user=[[user2, u'This entry is not a member']],
-                    ),
-                ),
-                completed=0,
-                result=dict(
-                    dn=dn1,
-                    fqdn=[fqdn1],
-                    ipaallowedtoperform_read_keys_user=[user1],
-                    ipaallowedtoperform_read_keys_group=[group1],
-                    ipaallowedtoperform_read_keys_host=[fqdn3],
-                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
-                    ipaallowedtoperform_write_keys_user=[user1],
-                    ipaallowedtoperform_write_keys_group=[group1, group2],
-                    ipaallowedtoperform_write_keys_host=[fqdn3],
-                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[fqdn1],
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Removal of create keytab %r' % (group2),
-            command=('host_disallow_create_keytab', [fqdn1],
-                     dict(group=[group2])),
-            expected=dict(
-                failed=dict(
-                    ipaallowedtoperform_write_keys=dict(
-                        group=[],
-                        host=[],
-                        hostgroup=[],
-                        user=[],
-                    ),
-                ),
-                completed=1,
-                result=dict(
-                    dn=dn1,
-                    fqdn=[fqdn1],
-                    ipaallowedtoperform_read_keys_user=[user1],
-                    ipaallowedtoperform_read_keys_group=[group1],
-                    ipaallowedtoperform_read_keys_host=[fqdn3],
-                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
-                    ipaallowedtoperform_write_keys_user=[user1],
-                    ipaallowedtoperform_write_keys_group=[group1],
-                    ipaallowedtoperform_write_keys_host=[fqdn3],
-                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[fqdn1],
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Presence of ipaallowedtoperform in show output',
-            command=('host_show', [fqdn1], {}),
-            expected=dict(
-                value=fqdn1,
-                summary=None,
-                result=dict(
-                    dn=dn1,
-                    fqdn=[fqdn1],
-                    has_keytab=False,
-                    has_password=False,
-                    ipaallowedtoperform_read_keys_user=[user1],
-                    ipaallowedtoperform_read_keys_group=[group1],
-                    ipaallowedtoperform_read_keys_host=[fqdn3],
-                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
-                    ipaallowedtoperform_write_keys_user=[user1],
-                    ipaallowedtoperform_write_keys_group=[group1],
-                    ipaallowedtoperform_write_keys_host=[fqdn3],
-                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[fqdn1],
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Presence of ipaallowedtoperform in mod output',
-            command=(
-                'host_mod', [fqdn1],
-                dict(description=u"desc")),
-            expected=dict(
-                value=fqdn1,
-                summary=u'Modified host "%s"' % fqdn1,
-                result=dict(
-                    description=[u"desc"],
-                    fqdn=[fqdn1],
-                    has_keytab=False,
-                    has_password=False,
-                    ipaallowedtoperform_read_keys_user=[user1],
-                    ipaallowedtoperform_read_keys_group=[group1],
-                    ipaallowedtoperform_read_keys_host=[fqdn3],
-                    ipaallowedtoperform_read_keys_hostgroup=[hostgroup1],
-                    ipaallowedtoperform_write_keys_user=[user1],
-                    ipaallowedtoperform_write_keys_group=[group1],
-                    ipaallowedtoperform_write_keys_host=[fqdn3],
-                    ipaallowedtoperform_write_keys_hostgroup=[hostgroup1],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    managedby_host=[fqdn1],
-                ),
-            ),
-        ),
-    ]
+       ), result)

@@ -22,7 +22,10 @@ Base class for all XML-RPC tests
 """
 
 import datetime
+
 import nose
+import contextlib
+
 from ipatests.util import assert_deepequal, Fuzzy
 from ipalib import api, request, errors
 from ipalib.x509 import valid_issuer
@@ -225,6 +228,9 @@ KWARGS = """Command %r raised %s with wrong kwargs.
 class Declarative(XMLRPC_test):
     """A declarative-style test suite
 
+    This class is DEPRECATED. Use RPCTest instead.
+    See host plugin tests for an example.
+
     A Declarative test suite is controlled by the ``tests`` and
     ``cleanup_commands`` class variables.
 
@@ -341,3 +347,52 @@ class Declarative(XMLRPC_test):
         assert_deepequal(expected, got, nice)
         if extra_check and not extra_check(got):
             raise AssertionError('Extra check %s failed' % extra_check)
+
+
+@contextlib.contextmanager
+def raises_exact(expected_exception):
+    """Check that a specific PublicError is raised
+
+    Both type and message of the error are checked.
+
+    >>> with raises_exact(errors.ValidationError(name='x', error='y')):
+    ...     raise errors.ValidationError(name='x', error='y')
+    """
+    try:
+        yield
+    except errors.PublicError as got_exception:
+        assert type(expected_exception) is type(got_exception)
+        # FIXME: We should return error information in a structured way.
+        # For now just compare the strings
+        assert expected_exception.strerror == got_exception.strerror
+    else:
+        raise AssertionError('did not raise!')
+
+
+class RPCTest(XMLRPC_test):
+    """Base class for RPC tests"""
+    @classmethod
+    def setup_class(cls):
+        super(RPCTest, cls).setup_class()
+        cls.clean_up()
+
+    @classmethod
+    def teardown_class(cls):
+        cls.clean_up()
+        super(RPCTest, cls).teardown_class()
+
+    @classmethod
+    def clean_up(self):
+        """Cleanup run on both setup and teardown
+
+        To be overridden in subclasses.
+        Usually calls the clean() method.
+        """
+
+    @classmethod
+    def clean(cls, command, *args, **options):
+        """Run a command, ignoring NotFound/EmptyModlist errors"""
+        try:
+            api.Command[command](*args, **options)
+        except (errors.NotFound, errors.EmptyModlist):
+            pass
