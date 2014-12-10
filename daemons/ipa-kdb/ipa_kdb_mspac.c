@@ -1372,7 +1372,7 @@ static krb5_error_code filter_logon_info(krb5_context context,
                                    &domain->parent->sid_blacklist_incoming[k], true);
             if (result) {
                 filter_logon_info_log_message(info->info->info3.base.domain_sid);
-                return EINVAL;
+                return KRB5KDC_ERR_POLICY;
             }
         }
     }
