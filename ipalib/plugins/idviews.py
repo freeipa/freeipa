@@ -260,7 +260,7 @@ class baseidview_apply(LDAPQuery):
             try:
                 hosts_to_apply += get_complete_hostgroup_member_list(hostgroup)
             except errors.NotFound:
-                failed['hostgroup'].append((hostgroup, "not found"))
+                failed['hostgroup'].append((hostgroup, unicode(_("not found"))))
             except errors.PublicError as e:
                 failed['hostgroup'].append((hostgroup, "%s : %s" % (
                                             e.__class__.__name__, str(e))))
@@ -279,10 +279,11 @@ class baseidview_apply(LDAPQuery):
                 completed = completed + 1
                 succeeded['host'].append(host)
             except errors.EmptyModlist:
-                # If view was already applied, do not complain
-                pass
+                # If view was already applied, complain about it
+                failed['host'].append((host,
+                                       unicode(_("ID View already applied"))))
             except errors.NotFound:
-                failed['host'].append((host, "not found"))
+                failed['host'].append((host, unicode(_("not found"))))
             except errors.PublicError as e:
                 failed['host'].append((host, str(e)))
 
