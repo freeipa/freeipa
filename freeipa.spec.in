@@ -138,9 +138,6 @@ Requires: pki-ca >= 10.1.2-4
 %else
 Requires: pki-ca >= 10.2.1-0.1
 %endif
-%if 0%{?rhel}
-Requires: subscription-manager
-%endif
 Requires(preun): python systemd-units
 Requires(postun): python systemd-units
 Requires: python-dns >= 1.11.1
