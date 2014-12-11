@@ -204,6 +204,7 @@ class RedHatCAService(RedHatService):
                     paths.BIN_WGET,
                     '-S', '-O', '-',
                     '--timeout=30',
+                    '--no-check-certificate',
                     url
                 ]
 
