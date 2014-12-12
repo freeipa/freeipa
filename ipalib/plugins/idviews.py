@@ -253,6 +253,12 @@ class baseidview_apply(LDAPQuery):
             'hostgroup': [],
             }
 
+        # Make sure we ignore None passed via host or hostgroup, since it does
+        # not make sense
+        for key in ('host', 'hostgroup'):
+            if key in options and options[key] is None:
+                del options[key]
+
         # Generate a list of all hosts to apply the view to
         hosts_to_apply = list(options.get('host', []))
 
