@@ -411,7 +411,14 @@ def zonemgr_callback(option, opt_str, value, parser):
             value = value.decode(encoding)
             validate_zonemgr_str(value)
         except ValueError, e:
-            parser.error("invalid zonemgr: " + unicode(e))
+            # FIXME we can do this in better way
+            # https://fedorahosted.org/freeipa/ticket/4804
+            # decode to proper stderr encoding
+            stderr_encoding = getattr(sys.stderr, 'encoding', None)
+            if stderr_encoding is None:
+                stderr_encoding = 'utf-8'
+            error = unicode(e).encode(stderr_encoding)
+            parser.error("invalid zonemgr: " + error)
 
     parser.values.zonemgr = value
 
