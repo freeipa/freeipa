@@ -224,6 +224,10 @@ static int ipadb_load_global_config(struct ipadb_context *ipactx)
     int ret;
     char **authz_data_list;
 
+    if (!ipactx || !ipactx->lcontext) {
+        return EINVAL;
+    }
+
     ret = asprintf(&base, "cn=ipaConfig,cn=etc,%s", ipactx->base);
     if (ret == -1) {
         ret = ENOMEM;
@@ -295,10 +299,19 @@ const struct ipadb_global_config *
 ipadb_get_global_config(struct ipadb_context *ipactx)
 {
     time_t now = 0;
+    int ret;
 
-    if (time(&now) != (time_t)-1
-        && now - ipactx->config.last_update > IPADB_GLOBAL_CONFIG_CACHE_TIME)
-        ipadb_load_global_config(ipactx);
+    if (time(&now) != (time_t)-1 &&
+        now - ipactx->config.last_update > IPADB_GLOBAL_CONFIG_CACHE_TIME) {
+        if (!ipactx->lcontext) {
+            ret = ipadb_get_connection(ipactx);
+            if (ret != 0)
+                return NULL;
+        }
+        ret = ipadb_load_global_config(ipactx);
+        if (ret != 0)
+            return NULL;
+    }
 
     return &ipactx->config;
 }
