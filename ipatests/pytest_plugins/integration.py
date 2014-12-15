@@ -160,7 +160,7 @@ def mh(request, class_integration_logs):
         'hosts': {
             'master': 1,
             'replica': cls.num_replicas,
-            'client': cls.num_replicas,
+            'client': cls.num_clients,
         },
     }
     domain_description['hosts'].update(
