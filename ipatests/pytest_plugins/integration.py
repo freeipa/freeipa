@@ -179,7 +179,7 @@ def mh(request, class_integration_logs):
         config_class=Config,
         _config=get_global_config(),
     )
-    config = mh.config
+
     mh.domain = mh.config.domains[0]
     [mh.master] = mh.domain.hosts_by_role('master')
     mh.replicas = mh.domain.hosts_by_role('replica')
@@ -192,13 +192,13 @@ def mh(request, class_integration_logs):
                  (host.external_hostname, filename))
         class_integration_logs.setdefault(host, []).append(filename)
 
-    print config
-    for host in config.get_all_hosts():
+    print mh.config
+    for host in mh.config.get_all_hosts():
         host.add_log_collector(collect_log)
         cls.log.info('Preparing host %s', host.hostname)
         tasks.prepare_host(host)
 
-    setup_class(cls, config)
+    setup_class(cls, mh)
     mh._pytestmh_request.addfinalizer(lambda: teardown_class(cls))
 
     yield mh.install()
@@ -209,21 +209,21 @@ def mh(request, class_integration_logs):
     collect_test_logs(request.node, class_integration_logs, request.config)
 
 
-def setup_class(cls, config):
-    """Add convenience addributes to the test class
+def setup_class(cls, mh):
+    """Add convenience attributes to the test class
 
     This is deprecated in favor of the mh fixture.
     To be removed when no more tests using this.
     """
-    cls.domain = config.domains[0]
-    cls.master = cls.domain.master
-    cls.replicas = cls.domain.replicas
-    cls.clients = cls.domain.clients
-    cls.ad_domains = config.ad_domains
+    cls.domain = mh.domain
+    cls.master = mh.master
+    cls.replicas = mh.replicas
+    cls.clients = mh.clients
+    cls.ad_domains = mh.config.ad_domains
 
 
 def teardown_class(cls):
-    """Add convenience addributes to the test class
+    """Remove convenience attributes from the test class
 
     This is deprecated in favor of the mh fixture.
     To be removed when no more tests using this.
