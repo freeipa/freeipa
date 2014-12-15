@@ -269,9 +269,20 @@ fwzone1_permission = u'Manage DNS zone %s' % fwzone1
 fwzone1_permission_dn = DN(('cn', fwzone1_permission),
                            api.env.container_permission, api.env.basedn)
 
+fwzone2 = u'fwzone2.test.'
+fwzone2_dnsname = DNSName(fwzone2)
+fwzone2_dn = DN(('idnsname', fwzone2), api.env.container_dns, api.env.basedn)
+
+fwzone3 = u'fwzone3.test.'
+fwzone3_dnsname = DNSName(fwzone3)
+fwzone3_dn = DN(('idnsname', fwzone3), api.env.container_dns, api.env.basedn)
+
+fwzone_search_all_name = u'fwzone'
+
 forwarder1 = u'172.16.15.1'
 forwarder2 = u'172.16.15.2'
 forwarder3 = u'172.16.15.3'
+forwarder4 = u'172.16.15.4'
 
 zone_findtest = u'.find.test.'
 
@@ -289,6 +300,9 @@ zone_findtest_forward_dnsname = DNSName(zone_findtest_forward)
 zone_findtest_forward_dn = DN(('idnsname', zone_findtest_forward), api.env.container_dns, api.env.basedn)
 
 zone_fw_wildcard = u'*.wildcardforwardzone.test.'
+
+nonexistent_fwzone = u'non-existent.fwzone.test.'
+nonexistent_fwzone_dnsname = DNSName(nonexistent_fwzone)
 
 zone_root = u'.'
 zone_root_dnsname = DNSName(zone_root)
@@ -3118,12 +3132,48 @@ class test_forward_zones(Declarative):
 
 
     cleanup_commands = [
-        ('dnsforwardzone_del', [zone_fw_wildcard, fwzone1],
+        ('dnsforwardzone_del', [zone_fw_wildcard, fwzone1, fwzone2, fwzone3],
             {'continue': True}),
         ('permission_del', [fwzone1_permission, ], {'force': True}),
     ]
 
     tests = [
+
+        dict(
+            desc='Search for forward zone with --forward-policy=none (no zones)',
+            command=('dnsforwardzone_find', [], {'idnsforwardpolicy': u'none'}),
+            expected={
+                'summary': None,
+                'count': 0,
+                'truncated': False,
+                'result': [],
+            },
+        ),
+
+
+        dict(
+            desc='Search for forward zone with --forward-policy=only (no zones)',
+            command=('dnsforwardzone_find', [], {'idnsforwardpolicy': u'only'}),
+            expected={
+                'summary': None,
+                'count': 0,
+                'truncated': False,
+                'result': [],
+            },
+        ),
+
+
+        dict(
+            desc='Search for forward zone with --forward-policy=first (no zones)',
+            command=('dnsforwardzone_find', [], {'idnsforwardpolicy': u'first'}),
+            expected={
+                'summary': None,
+                'count': 0,
+                'truncated': False,
+                'result': [],
+            },
+        ),
+
 
         dict(
             desc='Try to create forward zone %r with wildcard domain name' % zone_fw_wildcard,
@@ -3132,6 +3182,26 @@ class test_forward_zones(Declarative):
             ),
             expected=errors.ValidationError(name='name',
                                         error=u'should not be a wildcard domain name (RFC 4592 section 4)')
+        ),
+
+
+        dict(
+            desc='Try to create forward zone with empty name',
+            command=(
+                'dnsforwardzone_add', [u''], {}
+            ),
+            expected=errors.RequirementError(name='name')
+        ),
+
+
+        dict(
+            desc='Try to create forward zone %r with invalid name' % 'invalid..name.fwzone.test.',
+            command=(
+                'dnsforwardzone_add', [u'invalid..name.fwzone.test.', ], {}
+            ),
+            expected=errors.ConversionError(
+                name='name',
+                error=u'empty DNS label')
         ),
 
 
@@ -3146,12 +3216,64 @@ class test_forward_zones(Declarative):
 
 
         dict(
-            desc='Try to create forward %r zone without forwarders with "only" policy' % fwzone1,
+            desc='Try to create forward zone %r without forwarders with "only" policy' % fwzone1,
             command=(
                 'dnsforwardzone_add', [fwzone1], {'idnsforwardpolicy': u'only'}
             ),
             expected=errors.ValidationError(name='idnsforwarders',
                                         error=u'Please specify forwarders.')
+        ),
+
+
+        dict(
+            desc='Try to create forward zone %r without forwarders with "first" policy' % fwzone1,
+            command=(
+                'dnsforwardzone_add', [fwzone1], {'idnsforwardpolicy': u'first'}
+            ),
+            expected=errors.ValidationError(
+                name='idnsforwarders',
+                error=u'Please specify forwarders.')
+        ),
+
+
+        dict(
+            desc='Try to create forward zone %r with "only" policy and invalid IP address' % fwzone1,
+            command=(
+                'dnsforwardzone_add', [fwzone1], {
+                    'idnsforwardpolicy': u'only',
+                    'idnsforwarders': [u'127.0.0.999', ]
+                }
+            ),
+            expected=errors.ValidationError(
+                name='forwarder',
+                error=u'invalid IP address format')
+        ),
+
+
+        dict(
+            desc='Try to create forward zone %r with "first" policy and invalid IP address' % fwzone1,
+            command=(
+                'dnsforwardzone_add', [fwzone1], {
+                    'idnsforwardpolicy': u'first',
+                    'idnsforwarders': [u'127.0.0.999', ]
+                }
+            ),
+            expected=errors.ValidationError(
+                name='forwarder',
+                error=u'invalid IP address format')
+        ),
+
+
+        dict(
+            desc='Try to create forward zone %r with invalid policy' % fwzone1,
+            command=(
+                'dnsforwardzone_add', [fwzone1], {
+                    'idnsforwardpolicy': u'invalid',
+                }
+            ),
+            expected=errors.ValidationError(
+                name='forward_policy',
+                error=u"must be one of 'only', 'first', 'none'")
         ),
 
 
@@ -3185,27 +3307,16 @@ class test_forward_zones(Declarative):
 
 
         dict(
-            desc='Delete forward zone %r' % fwzone1,
-            command=('dnsforwardzone_del', [fwzone1], {}),
-            expected={
-                'value': [fwzone1_dnsname],
-                'summary': u'Deleted DNS forward zone "%s"' % fwzone1,
-                'result': {'failed': []},
-            },
-        ),
-
-
-        dict(
-            desc='Create forward zone %r with forwarders with default ("first") policy' % fwzone1,
+            desc='Create forward zone %r with forwarders with default ("first") policy' % fwzone2,
             command=(
-                'dnsforwardzone_add', [fwzone1], {'idnsforwarders': [forwarder1]}
+                'dnsforwardzone_add', [fwzone2], {'idnsforwarders': [forwarder1]}
             ),
             expected={
-                'value': fwzone1_dnsname,
+                'value': fwzone2_dnsname,
                 'summary': None,
                 'result': {
-                    'dn': fwzone1_dn,
-                    'idnsname': [fwzone1_dnsname],
+                    'dn': fwzone2_dn,
+                    'idnsname': [fwzone2_dnsname],
                     'idnszoneactive': [u'TRUE'],
                     'idnsforwardpolicy': [u'first'],
                     'idnsforwarders': [forwarder1],
@@ -3216,32 +3327,33 @@ class test_forward_zones(Declarative):
 
 
         dict(
-            desc='Delete forward zone %r' % fwzone1,
-            command=('dnsforwardzone_del', [fwzone1], {}),
+            desc='Delete forward zone %r (cleanup)' % fwzone2,
+            command=('dnsforwardzone_del', [fwzone2], {}),
             expected={
-                'value': [fwzone1_dnsname],
-                'summary': u'Deleted DNS forward zone "%s"' % fwzone1,
+                'value': [fwzone2_dnsname],
+                'summary': u'Deleted DNS forward zone "%s"' % fwzone2,
                 'result': {'failed': []},
             },
         ),
 
 
         dict(
-            desc='Create forward zone %r with forwarders with "only" policy' % fwzone1,
+            desc='Create forward zone %r with three forwarders with "only" policy' % fwzone2,
             command=(
-                'dnsforwardzone_add', [fwzone1], {
-                    'idnsforwarders': forwarder1, 'idnsforwardpolicy': u'only'
+                'dnsforwardzone_add', [fwzone2], {
+                    'idnsforwarders': [forwarder1, forwarder2, forwarder3],
+                    'idnsforwardpolicy': u'only'
                 }
             ),
             expected={
-                'value': fwzone1_dnsname,
+                'value': fwzone2_dnsname,
                 'summary': None,
                 'result': {
-                    'dn': fwzone1_dn,
-                    'idnsname': [fwzone1_dnsname],
+                    'dn': fwzone2_dn,
+                    'idnsname': [fwzone2_dnsname],
                     'idnszoneactive': [u'TRUE'],
                     'idnsforwardpolicy': [u'only'],
-                    'idnsforwarders': [forwarder1],
+                    'idnsforwarders': [forwarder1, forwarder2, forwarder3],
                     'objectclass': objectclasses.dnsforwardzone,
                 },
             },
@@ -3249,7 +3361,259 @@ class test_forward_zones(Declarative):
 
 
         dict(
-            desc='Modify forward zone %r -- policy "none", no forwarders' % fwzone1,
+            desc='Delete forward zone %r (cleanup)' % fwzone2,
+            command=('dnsforwardzone_del', [fwzone2], {}),
+            expected={
+                'value': [fwzone2_dnsname],
+                'summary': u'Deleted DNS forward zone "%s"' % fwzone2,
+                'result': {'failed': []},
+            },
+        ),
+
+
+        dict(
+            desc='Create forward zone %r with one forwarder with "only" policy' % fwzone2,
+            command=(
+                'dnsforwardzone_add', [fwzone2], {
+                    'idnsforwarders': forwarder2, 'idnsforwardpolicy': u'only'
+                }
+            ),
+            expected={
+                'value': fwzone2_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': fwzone2_dn,
+                    'idnsname': [fwzone2_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'only'],
+                    'idnsforwarders': [forwarder2],
+                    'objectclass': objectclasses.dnsforwardzone,
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Create forward zone %r with three forwarders with "first" policy' % fwzone3,
+            command=(
+                'dnsforwardzone_add', [fwzone3], {
+                    'idnsforwarders': [forwarder1, forwarder2, forwarder3],
+                    'idnsforwardpolicy': u'first'
+                }
+            ),
+            expected={
+                'value': fwzone3_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': fwzone3_dn,
+                    'idnsname': [fwzone3_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'first'],
+                    'idnsforwarders': [forwarder1, forwarder2, forwarder3],
+                    'objectclass': objectclasses.dnsforwardzone,
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Delete forward zone %r (cleanup)' % fwzone3,
+            command=('dnsforwardzone_del', [fwzone3], {}),
+            expected={
+                'value': [fwzone3_dnsname],
+                'summary': u'Deleted DNS forward zone "%s"' % fwzone3,
+                'result': {'failed': []},
+            },
+        ),
+
+
+        dict(
+            desc='Create forward zone %r with one forwarder with "first" policy' % fwzone3,
+            command=(
+                'dnsforwardzone_add', [fwzone3], {
+                    'idnsforwarders': forwarder3, 'idnsforwardpolicy': u'first'
+                }
+            ),
+            expected={
+                'value': fwzone3_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': fwzone3_dn,
+                    'idnsname': [fwzone3_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'first'],
+                    'idnsforwarders': [forwarder3],
+                    'objectclass': objectclasses.dnsforwardzone,
+                },
+            },
+        ),
+
+
+
+        dict(
+            desc='Modify forward zone %r change one forwarder' % fwzone3,
+            command=(
+                'dnsforwardzone_mod', [fwzone3], {
+                    'idnsforwarders': forwarder1,
+                }
+            ),
+            expected={
+                'value': fwzone3_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [fwzone3_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'first'],
+                    'idnsforwarders': [forwarder1],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Modify forward zone %r add one forwarder' % fwzone3,
+            command=(
+                'dnsforwardzone_mod', [fwzone3], {
+                    'idnsforwarders': [forwarder1, forwarder2]
+                }
+            ),
+            expected={
+                'value': fwzone3_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [fwzone3_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'first'],
+                    'idnsforwarders': [forwarder1, forwarder2],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Modify forward zone %r change one forwarder if two exists' % fwzone3,
+            command=(
+                'dnsforwardzone_mod', [fwzone3], {
+                    'idnsforwarders': [forwarder1, forwarder3]
+                }
+            ),
+            expected={
+                'value': fwzone3_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [fwzone3_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'first'],
+                    'idnsforwarders': [forwarder1, forwarder3],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Modify forward zone %r change two forwarders if two exists' % fwzone3,
+            command=(
+                'dnsforwardzone_mod', [fwzone3], {
+                    'idnsforwarders': [forwarder2, forwarder4]
+                }
+            ),
+            expected={
+                'value': fwzone3_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [fwzone3_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'first'],
+                    'idnsforwarders': [forwarder2, forwarder4],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Modify forward zone %r with --policy=none, add forwarders' % fwzone1,
+            command=(
+                'dnsforwardzone_mod', [fwzone1], {
+                    'idnsforwardpolicy': u'none',
+                    'idnsforwarders': [forwarder3],
+                }
+            ),
+            expected={
+                'value': fwzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [fwzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'none'],
+                    'idnsforwarders': [forwarder3],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Modify forward zone %r change --policy=none' % fwzone2,
+            command=(
+                'dnsforwardzone_mod', [fwzone2], {
+                    'idnsforwardpolicy': u'none',
+                }
+            ),
+            expected={
+                'value': fwzone2_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [fwzone2_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'none'],
+                    'idnsforwarders': [forwarder2],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Modify forward zone %r change --policy=only (was "none", FW exists)' % fwzone2,
+            command=(
+                'dnsforwardzone_mod', [fwzone2], {
+                    'idnsforwardpolicy': u'only',
+                }
+            ),
+            expected={
+                'value': fwzone2_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [fwzone2_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'only'],
+                    'idnsforwarders': [forwarder2],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Modify forward zone %r with --policy=first (was "none", FW exists)' % fwzone1,
+            command=(
+                'dnsforwardzone_mod', [fwzone1], {
+                    'idnsforwardpolicy': u'first',
+                    'idnsforwarders': [forwarder3],
+                }
+            ),
+            expected={
+                'value': fwzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [fwzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'first'],
+                    'idnsforwarders': [forwarder3],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Modify forward zone %r with --policy=none, forwarder empty' % fwzone1,
             command=(
                 'dnsforwardzone_mod', [fwzone1], {
                     'idnsforwardpolicy': u'none',
@@ -3265,6 +3629,99 @@ class test_forward_zones(Declarative):
                     'idnsforwardpolicy': [u'none'],
                 },
             },
+        ),
+
+
+        dict(
+            desc='Modify forward zone %r --policy=only, add forwarders"' % fwzone1,
+            command=(
+                'dnsforwardzone_mod', [fwzone1], {
+                    'idnsforwardpolicy': u'only',
+                    'idnsforwarders': [forwarder1, forwarder2]
+                }
+            ),
+            expected={
+                'value': fwzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [fwzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'only'],
+                    'idnsforwarders': [forwarder1, forwarder2],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Modify forward zone %r --policy=first (was "only")' % fwzone1,
+            command=(
+                'dnsforwardzone_mod', [fwzone1], {
+                    'idnsforwardpolicy': u'first',
+                }
+            ),
+            expected={
+                'value': fwzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [fwzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'first'],
+                    'idnsforwarders': [forwarder1, forwarder2],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Modify forward zone %r --policy=only (was "first")' % fwzone1,
+            command=(
+                'dnsforwardzone_mod', [fwzone1], {
+                    'idnsforwardpolicy': u'only',
+                }
+            ),
+            expected={
+                'value': fwzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [fwzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'only'],
+                    'idnsforwarders': [forwarder1, forwarder2],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Modify forward zone %r with --policy=none, forwarder empty (cleanup)' % fwzone1,
+            command=(
+                'dnsforwardzone_mod', [fwzone1], {
+                    'idnsforwardpolicy': u'none',
+                    'idnsforwarders': [],
+                }
+            ),
+            expected={
+                'value': fwzone1_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [fwzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'none'],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Try to modify non-existent forward zone %r' % nonexistent_fwzone,
+            command=(
+                'dnsforwardzone_mod', [nonexistent_fwzone], {
+                    'idnsforwardpolicy': u'only'
+                }
+            ),
+            expected=errors.NotFound(reason="%s: DNS forward zone not found" %
+                                     nonexistent_fwzone)
         ),
 
 
@@ -3293,79 +3750,67 @@ class test_forward_zones(Declarative):
 
 
         dict(
-            desc='Modify forward zone %r -- add forwarders' % fwzone1,
+            desc='Try to modify forward zone %r with "only" policy change empty forwarders' % fwzone2,
             command=(
-                'dnsforwardzone_mod', [fwzone1], {
-                    'idnsforwarders': [forwarder1, forwarder2],
+                'dnsforwardzone_mod', [fwzone2], {
+                    'idnsforwarders': [],
                 }
             ),
-            expected={
-                'value': fwzone1_dnsname,
-                'summary': None,
-                'result': {
-                    'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
-                    'idnsforwardpolicy': [u'none'],
-                    'idnsforwarders': [forwarder1, forwarder2],
-                },
-            },
-        ),
-
-        dict(
-            desc='Modify forward zone %r -- policy "only"' % fwzone1,
-            command=(
-                'dnsforwardzone_mod', [fwzone1], {
-                    'idnsforwardpolicy': u'only',
-                }
-            ),
-            expected={
-                'value': fwzone1_dnsname,
-                'summary': None,
-                'result': {
-                    'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
-                    'idnsforwardpolicy': [u'only'],
-                    'idnsforwarders': [forwarder1, forwarder2],
-                },
-            },
+            expected=errors.ValidationError(
+                name='idnsforwarders',
+                error=u'Please specify forwarders.')
         ),
 
 
         dict(
-            desc='Modify forward zone %r -- policy "first"' % fwzone1,
+            desc='Try to modify forward zone %r with "first" policy change empty forwarders' % fwzone3,
             command=(
-                'dnsforwardzone_mod', [fwzone1], {
-                    'idnsforwardpolicy': u'first',
+                'dnsforwardzone_mod', [fwzone3], {
+                    'idnsforwarders': [],
                 }
             ),
-            expected={
-                'value': fwzone1_dnsname,
-                'summary': None,
-                'result': {
-                    'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
-                    'idnsforwardpolicy': [u'first'],
-                    'idnsforwarders': [forwarder1, forwarder2],
-                },
-            },
+            expected=errors.ValidationError(
+                name='idnsforwarders',
+                error=u'Please specify forwarders.')
         ),
 
 
         dict(
-            desc='Search for forward zone %r' % fwzone1,
-            command=('dnsforwardzone_find', [fwzone1], {}),
-            expected={
-                'summary': None,
-                'count': 1,
-                'truncated': False,
-                'result': [{
-                    'dn': fwzone1_dn,
-                    'idnsname': [fwzone1_dnsname],
-                    'idnszoneactive': [u'TRUE'],
-                    'idnsforwardpolicy': [u'first'],
-                    'idnsforwarders': [forwarder1, forwarder2],
-                }],
-            },
+            desc='Try to modify forward zone %r with "only" policy change invalid forwarder IP' % fwzone2,
+            command=(
+                'dnsforwardzone_mod', [fwzone2], {
+                    'idnsforwarders': [u'127.0.0.999', ],
+                }
+            ),
+            expected=errors.ValidationError(
+                name='forwarder',
+                error=u'invalid IP address format')
+        ),
+
+
+        dict(
+            desc='Try to modify forward zone %r with "first" policy change invalid forwarder IP' % fwzone3,
+            command=(
+                'dnsforwardzone_mod', [fwzone3], {
+                    'idnsforwarders': [u'127.0.0.999', ],
+                }
+            ),
+            expected=errors.ValidationError(
+                name='forwarder',
+                error=u'invalid IP address format')
+        ),
+
+
+        dict(
+            desc='Try to modify forward zone %r with invalid policy' % fwzone1,
+            command=(
+                'dnsforwardzone_mod', [fwzone1], {
+                    'idnsforwardpolicy': u'invalid',
+                }
+            ),
+            expected=errors.ValidationError(
+                name='forward_policy',
+                error=u"must be one of 'only', 'first', 'none'")
         ),
 
 
@@ -3381,10 +3826,272 @@ class test_forward_zones(Declarative):
                     'dn': fwzone1_dn,
                     'idnsname': [fwzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnsforwardpolicy': [u'first'],
-                    'idnsforwarders': [forwarder1, forwarder2],
+                    'idnsforwardpolicy': [u'none'],
                 },
             },
+        ),
+
+
+        dict(
+            desc='Try to retrieve nonexistent forward zone %r' % nonexistent_fwzone,
+            command=(
+                'dnsforwardzone_show', [nonexistent_fwzone], {}
+            ),
+            expected=errors.NotFound(reason="%s: DNS forward zone not found" %
+                                     nonexistent_fwzone)
+        ),
+
+
+        dict(
+            desc='Search for all forward zones',
+            command=('dnsforwardzone_find', [], {}),
+            expected={
+                'summary': None,
+                'count': 3,
+                'truncated': False,
+                'result': [
+                    {
+                        'dn': fwzone1_dn,
+                        'idnsname': [fwzone1_dnsname],
+                        'idnszoneactive': [u'TRUE'],
+                        'idnsforwardpolicy': [u'none'],
+                    },
+                    {
+                        'dn': fwzone2_dn,
+                        'idnsname': [fwzone2_dnsname],
+                        'idnszoneactive': [u'TRUE'],
+                        'idnsforwardpolicy': [u'only'],
+                        'idnsforwarders': [forwarder2],
+                    },
+                    {
+                        'dn': fwzone3_dn,
+                        'idnsname': [fwzone3_dnsname],
+                        'idnszoneactive': [u'TRUE'],
+                        'idnsforwardpolicy': [u'first'],
+                        'idnsforwarders': [forwarder2, forwarder4],
+                    },
+                ],
+            },
+        ),
+
+
+        dict(
+            desc='Search for all forward zones with --pkey-only',
+            command=('dnsforwardzone_find', [], {'pkey_only': True}),
+            expected={
+                'summary': None,
+                'count': 3,
+                'truncated': False,
+                'result': [
+                    {
+                        'dn': fwzone1_dn,
+                        'idnsname': [fwzone1_dnsname],
+                    },
+                    {
+                        'dn': fwzone2_dn,
+                        'idnsname': [fwzone2_dnsname],
+                    },
+                    {
+                        'dn': fwzone3_dn,
+                        'idnsname': [fwzone3_dnsname],
+                    },
+                ],
+            },
+        ),
+
+
+        dict(
+            desc='Search for forward zone %r' % fwzone1,
+            command=('dnsforwardzone_find', [fwzone1], {}),
+            expected={
+                'summary': None,
+                'count': 1,
+                'truncated': False,
+                'result': [{
+                    'dn': fwzone1_dn,
+                    'idnsname': [fwzone1_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'none'],
+                }],
+            },
+        ),
+
+
+        dict(
+            desc='Search for 3 forward zones search with criteria "%r"' % fwzone_search_all_name,
+            command=('dnsforwardzone_find', [fwzone_search_all_name], {}),
+            expected={
+                'summary': None,
+                'count': 3,
+                'truncated': False,
+                'result': [
+                    {
+                        'dn': fwzone1_dn,
+                        'idnsname': [fwzone1_dnsname],
+                        'idnszoneactive': [u'TRUE'],
+                        'idnsforwardpolicy': [u'none'],
+                    },
+                    {
+                        'dn': fwzone2_dn,
+                        'idnsname': [fwzone2_dnsname],
+                        'idnszoneactive': [u'TRUE'],
+                        'idnsforwardpolicy': [u'only'],
+                        'idnsforwarders': [forwarder2],
+                    },
+                    {
+                        'dn': fwzone3_dn,
+                        'idnsname': [fwzone3_dnsname],
+                        'idnszoneactive': [u'TRUE'],
+                        'idnsforwardpolicy': [u'first'],
+                        'idnsforwarders': [forwarder2, forwarder4],
+                    },
+                ],
+            },
+        ),
+
+
+        dict(
+            desc='Search for forward zone with --name %r' % fwzone1,
+            command=('dnsforwardzone_find', [], {'idnsname': fwzone1}),
+            expected={
+                'summary': None,
+                'count': 1,
+                'truncated': False,
+                'result': [
+                    {
+                        'dn': fwzone1_dn,
+                        'idnsname': [fwzone1_dnsname],
+                        'idnszoneactive': [u'TRUE'],
+                        'idnsforwardpolicy': [u'none'],
+                    }
+                ],
+            },
+        ),
+
+
+        dict(
+            desc='Search for forward zone with --forward-policy=none',
+            command=('dnsforwardzone_find', [], {'idnsforwardpolicy': u'none'}),
+            expected={
+                'summary': None,
+                'count': 1,
+                'truncated': False,
+                'result': [
+                    {
+                        'dn': fwzone1_dn,
+                        'idnsname': [fwzone1_dnsname],
+                        'idnszoneactive': [u'TRUE'],
+                        'idnsforwardpolicy': [u'none'],
+                    }
+                ],
+            },
+        ),
+
+
+        dict(
+            desc='Search for forward zone with --forward-policy=only',
+            command=('dnsforwardzone_find', [], {'idnsforwardpolicy': u'only'}),
+            expected={
+                'summary': None,
+                'count': 1,
+                'truncated': False,
+                'result': [
+                    {
+                        'dn': fwzone2_dn,
+                        'idnsname': [fwzone2_dnsname],
+                        'idnszoneactive': [u'TRUE'],
+                        'idnsforwardpolicy': [u'only'],
+                        'idnsforwarders': [forwarder2],
+                    }
+                ],
+            },
+        ),
+
+
+        dict(
+            desc='Search for forward zone with --forward-policy=first',
+            command=('dnsforwardzone_find', [], {'idnsforwardpolicy': u'first'}),
+            expected={
+                'summary': None,
+                'count': 1,
+                'truncated': False,
+                'result': [
+                    {
+                        'dn': fwzone3_dn,
+                        'idnsname': [fwzone3_dnsname],
+                        'idnszoneactive': [u'TRUE'],
+                        'idnsforwardpolicy': [u'first'],
+                        'idnsforwarders': [forwarder2, forwarder4],
+                    }
+                ],
+            },
+        ),
+
+
+        dict(
+            desc='Try to search for non-existent forward zone',
+            command=('dnsforwardzone_find', [nonexistent_fwzone], {}),
+            expected={
+                'summary': None,
+                'count': 0,
+                'truncated': False,
+                'result': [],
+            },
+        ),
+
+
+        dict(
+            desc='Try to search for non-existent forward zone with --name',
+            command=('dnsforwardzone_find', [], {'idnsname': nonexistent_fwzone}),
+            expected={
+                'summary': None,
+                'count': 0,
+                'truncated': False,
+                'result': [],
+            },
+        ),
+
+
+        dict(
+            desc='Delete forward zone %r' % fwzone2,
+            command=('dnsforwardzone_del', [fwzone2], {}),
+            expected={
+                'value': [fwzone2_dnsname],
+                'summary': u'Deleted DNS forward zone "%s"' % fwzone2,
+                'result': {'failed': []},
+            },
+        ),
+
+
+        dict(
+            desc='Delete forward zone %r with --continue' % fwzone3,
+            command=('dnsforwardzone_del', [fwzone3], {'continue': True}),
+            expected={
+                'value': [fwzone3_dnsname],
+                'summary': u'Deleted DNS forward zone "%s"' % fwzone3,
+                'result': {'failed': []},
+            },
+        ),
+
+
+        dict(
+            desc='Try to delete non-existent forward zone',
+            command=('dnsforwardzone_del', [nonexistent_fwzone], {}),
+            expected=errors.NotFound(reason="%s: DNS forward zone not found" %
+                                     nonexistent_fwzone)
+        ),
+
+
+        dict(
+            desc='Try to delete non-existent forward zone with --continue',
+            command=('dnsforwardzone_del', [nonexistent_fwzone], {'continue': True}),
+            expected={
+                'value': [],
+                'summary': u'Deleted DNS forward zone ""',
+                'result': {
+                    'failed': [nonexistent_fwzone_dnsname],
+                }
+            }
         ),
 
 
@@ -3481,6 +4188,14 @@ class test_forward_zones(Declarative):
         ),
 
 
+        dict(
+            desc='Try to remove per-zone permission for forward zone %r (permission does not exist)' % fwzone1,
+            command=(
+                'dnsforwardzone_remove_permission', [fwzone1], {}
+            ),
+            expected=errors.NotFound(reason=u'%s: permission not found'
+                                     % fwzone1_permission)
+        ),
 
 
         dict(
@@ -3504,10 +4219,27 @@ class test_forward_zones(Declarative):
                     'dn': fwzone1_dn,
                     'idnsname': [fwzone1_dnsname],
                     'idnszoneactive': [u'FALSE'],
-                    'idnsforwardpolicy': [u'first'],
-                    'idnsforwarders': [forwarder1, forwarder2],
+                    'idnsforwardpolicy': [u'none'],
                 },
             },
+        ),
+
+
+        dict(
+            desc='Disable already disabled forward zone %r' % fwzone1,
+            command=('dnsforwardzone_disable', [fwzone1], {}),
+            expected={
+                'value': fwzone1_dnsname,
+                'summary': u'Disabled DNS forward zone "%s"' % fwzone1,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Try to disable non-existent forward zone',
+            command=('dnsforwardzone_disable', [nonexistent_fwzone], {}),
+            expected=errors.NotFound(reason="no such entry")
         ),
 
 
@@ -3532,10 +4264,27 @@ class test_forward_zones(Declarative):
                     'dn': fwzone1_dn,
                     'idnsname': [fwzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
-                    'idnsforwardpolicy': [u'first'],
-                    'idnsforwarders': [forwarder1, forwarder2],
+                    'idnsforwardpolicy': [u'none'],
                 },
             },
+        ),
+
+
+        dict(
+            desc='Enable already enabled forward zone %r' % fwzone1,
+            command=('dnsforwardzone_enable', [fwzone1], {}),
+            expected={
+                'value': fwzone1_dnsname,
+                'summary': u'Enabled DNS forward zone "%s"' % fwzone1,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Try to enable non-existent forward zone',
+            command=('dnsforwardzone_enable', [nonexistent_fwzone], {}),
+            expected=errors.NotFound(reason="no such entry")
         ),
 
     ]
