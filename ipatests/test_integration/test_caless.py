@@ -68,7 +68,7 @@ def assert_error(result, stderr_text, returncode=None):
 class CALessBase(IntegrationTest):
     @classmethod
     def install(cls, mh):
-        super(CALessBase, cls).install()
+        super(CALessBase, cls).install(mh)
         cls.cert_dir = tempfile.mkdtemp(prefix="ipatest-")
         cls.pem_filename = os.path.join(cls.cert_dir, 'root.pem')
         scriptfile = os.path.join(os.path.dirname(__file__),
@@ -1145,8 +1145,8 @@ class TestClientInstall(CALessBase):
 
 class TestIPACommands(CALessBase):
     @classmethod
-    def install(cls):
-        super(TestIPACommands, cls).install()
+    def install(cls, mh):
+        super(TestIPACommands, cls).install(mh)
 
         cls.export_pkcs12('ca1/server')
         with open(cls.pem_filename, 'w') as f:

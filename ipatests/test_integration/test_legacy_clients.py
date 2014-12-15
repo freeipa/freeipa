@@ -320,8 +320,8 @@ class BaseTestLegacyClient(object):
         assert result.returncode != 0
 
     @classmethod
-    def install(cls):
-        super(BaseTestLegacyClient, cls).install()
+    def install(cls, mh):
+        super(BaseTestLegacyClient, cls).install(mh)
 
         tasks.kinit_admin(cls.master)
 
@@ -357,7 +357,7 @@ class BaseTestLegacyClient(object):
             tasks.backup_file(cls.legacy_client, f)
 
     @classmethod
-    def uninstall(cls):
+    def uninstall(cls, mh):
         cls.master.run_command(['ipa', 'user-del', 'disabledipauser'],
                                 raiseonerr=False)
 
@@ -365,7 +365,7 @@ class BaseTestLegacyClient(object):
         if hasattr(cls, 'legacy_client'):
             tasks.unapply_fixes(cls.legacy_client)
 
-        super(BaseTestLegacyClient, cls).uninstall()
+        super(BaseTestLegacyClient, cls).uninstall(mh)
 
 
 # Base classes with attributes that are specific for each legacy client test

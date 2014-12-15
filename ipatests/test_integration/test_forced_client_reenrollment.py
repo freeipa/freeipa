@@ -36,7 +36,7 @@ class TestForcedClientReenrollment(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
-        super(TestForcedClientReenrollment, cls).install()
+        super(TestForcedClientReenrollment, cls).install(mh)
         tasks.install_master(cls.master)
         tasks.install_replica(cls.master, cls.replicas[0], setup_ca=False)
         cls.BACKUP_KEYTAB = os.path.join(

@@ -30,8 +30,8 @@ class TestSudo(IntegrationTest):
     topology = 'line'
 
     @classmethod
-    def install(cls):
-        super(TestSudo, cls).install()
+    def install(cls, mh):
+        super(TestSudo, cls).install(mh)
 
         cls.client = cls.clients[0]
 
@@ -70,10 +70,10 @@ class TestSudo(IntegrationTest):
                                 'localuser'])
 
     @classmethod
-    def uninstall(cls):
+    def uninstall(cls, mh):
         cls.client.run_command(['groupdel', 'localgroup'], raiseonerr=False)
         cls.client.run_command(['userdel', 'localuser'], raiseonerr=False)
-        super(TestSudo, cls).uninstall()
+        super(TestSudo, cls).uninstall(mh)
 
     def list_sudo_commands(self, user, raiseonerr=False, verbose=False):
         clear_sssd_cache(self.client)

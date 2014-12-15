@@ -34,7 +34,7 @@ class ADTrustBase(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
-        super(ADTrustBase, cls).install()
+        super(ADTrustBase, cls).install(mh)
         cls.ad = cls.ad_domains[0].ads[0]
         cls.install_adtrust()
         cls.check_sid_generation()
