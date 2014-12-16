@@ -1118,7 +1118,6 @@ def main():
         fstore.restore_file(removed_sysconfig_file)
 
     http = httpinstance.HTTPInstance(fstore)
-    http.remove_httpd_ccache()
     http.configure_selinux_for_httpd()
     http.change_mod_nss_port_from_http()
 
