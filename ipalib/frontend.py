@@ -437,7 +437,9 @@ class Command(HasParam):
         self.validate(**params)
         (args, options) = self.params_2_args_options(**params)
         ret = self.run(*args, **options)
-        if not version_provided and isinstance(ret, dict):
+        if (not version_provided and isinstance(ret, dict) and
+                self.api.env.in_server):
+            # add message only on server side
             messages.add_message(
                 API_VERSION, ret,
                 messages.VersionMissing(server_version=API_VERSION))
