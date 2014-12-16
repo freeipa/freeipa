@@ -21,6 +21,9 @@
 Test the `ipalib.plugable` module.
 """
 
+# FIXME: Pylint errors
+# pylint: disable=no-member
+
 import inspect
 from ipatests.util import raises, no_set, no_del, read_only
 from ipatests.util import getitem, setitem, delitem
@@ -343,7 +346,7 @@ def test_Registrar():
     orig1 = plugin1
     class base1_extended(Base1):
         pass
-    class plugin1(base1_extended):
+    class plugin1(base1_extended):  # pylint: disable=function-redefined
         pass
     e = raises(errors.PluginOverrideError, r, plugin1)
     assert e.base == 'Base1'

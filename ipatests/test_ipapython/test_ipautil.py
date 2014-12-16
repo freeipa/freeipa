@@ -128,6 +128,11 @@ class TestCIDict(object):
         nose.tools.assert_equal(3, len(self.cidict))
         self.cidict.clear()
         nose.tools.assert_equal(0, len(self.cidict))
+        assert self.cidict == {}
+        assert self.cidict.keys() == []
+        assert self.cidict.values() == []
+        assert self.cidict.items() == []
+        assert self.cidict._keys == {}
 
     def test_copy(self):
         copy = self.cidict.copy()
@@ -308,14 +313,6 @@ class TestCIDict(object):
         dct = ipautil.CIDict.fromkeys(('A', 'b', 'C'))
         assert sorted(dct.keys()) == sorted(['A', 'b', 'C'])
         assert sorted(dct.values()) == [None] * 3
-
-    def test_clear(self):
-        self.cidict.clear()
-        assert self.cidict == {}
-        assert self.cidict.keys() == []
-        assert self.cidict.values() == []
-        assert self.cidict.items() == []
-        assert self.cidict._keys == {}
 
 
 class TestTimeParser(object):

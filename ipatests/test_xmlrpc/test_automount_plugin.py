@@ -45,6 +45,10 @@ class MockTextui(list):
 
 class AutomountTest(XMLRPC_test):
     """Provides common functionality for automount tests"""
+
+    locname = u'testlocation'
+    tofiles_output = ''  # To be overridden
+
     def check_tofiles(self):
         """Check automountlocation_tofiles output against self.tofiles_output
         """
@@ -111,7 +115,6 @@ class test_automount(AutomountTest):
     """
     Test the `automount` plugin.
     """
-    locname = u'testlocation'
     mapname = u'testmap'
     keyname = u'testkey'
     keyname_rename = u'testkey_rename'
@@ -320,7 +323,6 @@ class test_automount_direct(AutomountTest):
     """
     Test the `automount` plugin indirect map functionality.
     """
-    locname = u'testlocation'
     mapname = u'auto.direct2'
     keyname = u'/-'
     direct_kw = { 'key' : keyname }
@@ -386,7 +388,6 @@ class test_automount_indirect(AutomountTest):
     """
     Test the `automount` plugin indirect map functionality.
     """
-    locname = u'testlocation'
     mapname = u'auto.home'
     keyname = u'/home'
     parentmap = u'auto.master'
@@ -485,7 +486,6 @@ class test_automount_indirect_no_parent(AutomountTest):
     """
     Test the `automount` plugin Indirect map function.
     """
-    locname = u'testlocation'
     mapname = u'auto.home'
     keyname = u'/home'
     mapname2 = u'auto.direct2'

@@ -21,8 +21,11 @@
 Test the `ipalib.frontend` module.
 """
 
-from ipatests.util import raises, getitem, no_set, no_del, read_only
-from ipatests.util import check_TypeError, ClassChecker, create_test_api
+# FIXME: Pylint errors
+# pylint: disable=no-member
+
+from ipatests.util import raises, read_only
+from ipatests.util import ClassChecker, create_test_api
 from ipatests.util import assert_equal
 from ipalib.constants import TYPE_ERROR
 from ipalib.base import NameSpace
@@ -444,7 +447,7 @@ class test_Command(ClassChecker):
         o = my_cmd()
         o.set_api(api)
         o.finalize()
-        e = o(**kw)
+        e = o(**kw)  # pylint: disable=not-callable
         assert type(e) is dict
         assert 'result' in e
         assert 'option2' in e['result']

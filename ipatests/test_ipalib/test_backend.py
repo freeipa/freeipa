@@ -21,6 +21,10 @@
 Test the `ipalib.backend` module.
 """
 
+# FIXME: Pylint errors
+# pylint: disable=no-member
+# pylint: disable=maybe-no-member
+
 import threading
 from ipatests.util import ClassChecker, raises, create_test_api
 from ipatests.data import unicode_str

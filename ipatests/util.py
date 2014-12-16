@@ -430,7 +430,7 @@ class ClassChecker(object):
 
     def __get_cls(self):
         if self.__cls is None:
-            self.__cls = self._cls
+            self.__cls = self._cls  # pylint: disable=E1101
         assert inspect.isclass(self.__cls)
         return self.__cls
     cls = property(__get_cls)
@@ -453,19 +453,6 @@ class ClassChecker(object):
         nose tear-down fixture.
         """
         context.__dict__.clear()
-
-
-def check_TypeError(value, type_, name, callback, *args, **kw):
-    """
-    Tests a standard TypeError raised with `errors.raise_TypeError`.
-    """
-    e = raises(TypeError, callback, *args, **kw)
-    assert e.value is value
-    assert e.type is type_
-    assert e.name == name
-    assert type(e.name) is str
-    assert str(e) == ipalib.errors.TYPE_ERROR % (name, type_, value)
-    return e
 
 
 def get_api(**kw):
@@ -503,7 +490,7 @@ class PluginTester(object):
 
     def __get_plugin(self):
         if self.__plugin is None:
-            self.__plugin = self._plugin
+            self.__plugin = self._plugin  # pylint: disable=E1101
         assert issubclass(self.__plugin, Plugin)
         return self.__plugin
     plugin = property(__get_plugin)

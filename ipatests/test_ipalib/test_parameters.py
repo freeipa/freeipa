@@ -22,6 +22,9 @@
 Test the `ipalib.parameters` module.
 """
 
+# FIXME: Pylint errors
+# pylint: disable=no-member
+
 import datetime
 import re
 import sys
@@ -219,12 +222,12 @@ class test_Param(ClassChecker):
 
         # Test that ValueError is raised when a kwarg from a subclass
         # conflicts with an attribute:
-        class Subclass(self.cls):
+        class Subclass1(self.cls):
             kwargs = self.cls.kwargs + (
                 ('convert', callable, None),
             )
-        e = raises(ValueError, Subclass, name)
-        assert str(e) == "kwarg 'convert' conflicts with attribute on Subclass"
+        e = raises(ValueError, Subclass1, name)
+        assert str(e) == "kwarg 'convert' conflicts with attribute on Subclass1"
 
         # Test type validation of keyword arguments:
         class Subclass(self.cls):
@@ -593,6 +596,8 @@ class test_Param(ClassChecker):
             type = unicode
 
             def __init__(self, name, **kw):
+                # (Pylint complains because the superclass is unknowm)
+                # pylint: disable=bad-super-call, super-on-old-class
                 self._convert_scalar = PassThrough()
                 super(Str, self).__init__(name, **kw)
 

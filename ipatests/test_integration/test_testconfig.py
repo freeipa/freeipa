@@ -129,6 +129,12 @@ class CheckConfig(object):
         assert_deepequal(self.get_output_dict(), conf.to_dict())
         self.check_config(conf)
 
+    # Settings to override:
+    extra_input_dict = {}
+    extra_input_env = {}
+    extra_output_dict = {}
+    extra_output_env = {}
+
 
 class TestEmptyConfig(CheckConfig):
     extra_input_dict = {}

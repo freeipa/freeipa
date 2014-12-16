@@ -29,24 +29,16 @@ try:
     from pylint import checkers
     from pylint.lint import PyLinter
     from pylint.checkers.typecheck import TypeChecker
-    try:
-        # Pylint 1.0
-        from astroid import Class, Instance, InferenceError
-        from pylint.reporters.text import TextReporter
-        have_pylint_1_0 = True
-    except ImportError:
-        # Older Pylint
-        from logilab.astng import Class, Instance, InferenceError
-        from pylint.reporters.text import ParseableTextReporter
-        have_pylint_1_0 = False
+    from astroid import Class, Instance, Module, InferenceError
+    from pylint.reporters.text import TextReporter
 except ImportError:
     print >> sys.stderr, "To use {0}, please install pylint.".format(sys.argv[0])
     sys.exit(32)
 
 # File names to ignore when searching for python source files
 IGNORE_FILES = ('.*', '*~', '*.in', '*.pyc', '*.pyo')
-IGNORE_PATHS = ('build', 'rpmbuild', 'dist', 'install/po/test_i18n.py',
-    'lite-server.py', 'make-lint', 'make-test', 'ipatests')
+IGNORE_PATHS = (
+    'build', 'rpmbuild', 'dist', 'install/po/test_i18n.py', 'lite-server.py')
 
 class IPATypeChecker(TypeChecker):
     NAMESPACE_ATTRS = ['Command', 'Object', 'Method', 'Backend', 'Updater',
@@ -54,7 +46,7 @@ class IPATypeChecker(TypeChecker):
     LOGGING_ATTRS = ['log', 'debug', 'info', 'warning', 'error', 'exception',
         'critical']
 
-    # 'class': ['generated', 'properties']
+    # 'class or module': ['generated', 'properties']
     ignore = {
         # Python standard library & 3rd party classes
         'krbV.Principal': ['name'],
@@ -65,6 +57,9 @@ class IPATypeChecker(TypeChecker):
         'urlparse.ResultMixin': ['scheme', 'netloc', 'path', 'query',
             'fragment', 'username', 'password', 'hostname', 'port'],
         'urlparse.ParseResult': ['params'],
+        'pytest': ['fixture', 'raises', 'skip', 'yield_fixture', 'mark'],
+        'nose.tools': ['assert_equal', 'assert_raises'],
+        'datetime.tzinfo': ['houroffset', 'minoffset', 'utcoffset', 'dst'],
 
         # IPA classes
         'ipalib.base.NameSpace': ['add', 'mod', 'del', 'show', 'find'],
@@ -96,6 +91,8 @@ class IPATypeChecker(TypeChecker):
         'ipalib.session.SessionManager': LOGGING_ATTRS,
         'ipaserver.install.ldapupdate.LDAPUpdate': LOGGING_ATTRS,
         'ipaserver.rpcserver.KerberosSession': ['api'] + LOGGING_ATTRS,
+        'ipatests.test_integration.base.IntegrationTest': [
+            'domain', 'master', 'replicas', 'clients', 'ad_domains']
     }
 
     def _related_classes(self, klass):
@@ -121,13 +118,15 @@ class IPATypeChecker(TypeChecker):
             inferred = []
 
         for owner in inferred:
-            if not isinstance(owner, Class) and type(owner) is not Instance:
-                continue
-
-            ignored = self._find_ignored_attrs(owner)
-            for pattern in ignored:
-                if fnmatchcase(node.attrname, pattern):
+            if isinstance(owner, Module):
+                if node.attrname in self.ignore.get(owner.name, ()):
                     return
+
+            elif isinstance(owner, Class) or type(owner) is Instance:
+                ignored = self._find_ignored_attrs(owner)
+                for pattern in ignored:
+                    if fnmatchcase(node.attrname, pattern):
+                        return
 
         super(IPATypeChecker, self).visit_getattr(node)
 
@@ -231,13 +230,9 @@ def main():
     if options.errors_only:
         linter.disable_noerror_messages()
         linter.enable('F')
-    if have_pylint_1_0:
-        linter.set_reporter(TextReporter())
-        linter.set_option('msg-template',
-                          '{path}:{line}: [{msg_id}({symbol}), {obj}] {msg})')
-    else:
-        linter.set_reporter(ParseableTextReporter())
-        linter.set_option('include-ids', True)
+    linter.set_reporter(TextReporter())
+    linter.set_option('msg-template',
+                        '{path}:{line}: [{msg_id}({symbol}), {obj}] {msg})')
     linter.set_option('reports', False)
     linter.set_option('persistent', False)
 

@@ -678,7 +678,7 @@ def po_file_iterate(po_file, get_msgstr, get_msgstr_plural):
         return 1
 
     if not n_entries:
-        print >> sys.stderr, "ERROR: no translations found in %s" % (po_filename)
+        print >> sys.stderr, "ERROR: no translations found in %s" % (po_file)
         return 1
 
     if n_fail:

@@ -153,7 +153,7 @@ def test_exc_callback_registration():
 
 
     @callbacktest_base.register_exc_callback
-    def exc_callback(self, keys, options, exc, call_func, *args, **kwargs):
+    def exc_callback_2(self, keys, options, exc, call_func, *args, **kwargs):
         """Callback on super class; doesn't affect the subclass"""
         messages.append('Superclass registered callback')
         raise exc

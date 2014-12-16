@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# FIXME: Pylint errors
+# pylint: disable=no-member
+
 import os
 import re
 
@@ -42,6 +45,10 @@ class BaseTestLegacyClient(object):
                     '/etc/openldap/ldap.conf',
                     '/etc/nsswitch.conf',
                     paths.SSSD_CONF]
+
+    homedir_template = "/home/{domain}/{username}"
+    required_extra_roles = ()
+    optional_extra_roles = ()
 
     # Actual test classes need to override these attributes to set the expected
     # values on the UID and GID results, since this varies with the usage of the
@@ -407,7 +414,6 @@ class BaseTestLegacyClientPosix(BaseTestLegacyClient,
     testuser_gid_regex = '10047'
     subdomain_testuser_uid_regex = '10142'
     subdomain_testuser_gid_regex = '10147'
-    homedir_template = "/home/{domain}/{username}"
     posix_trust = True
 
     def test_remove_trust_with_posix_attributes(self):
@@ -421,7 +427,6 @@ class BaseTestLegacyClientNonPosix(BaseTestLegacyClient,
     testuser_gid_regex = '(?!10047)(\d+)'
     subdomain_testuser_uid_regex = '(?!10142)(\d+)'
     subdomain_testuser_gid_regex = '(?!10147)(\d+)'
-    homedir_template = '/home/{domain}/{username}'
 
     def test_remove_nonposix_trust(self):
         pass

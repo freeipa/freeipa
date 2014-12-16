@@ -29,7 +29,7 @@ from ipalib import api, errors, x509
 from ipalib.util import normalize_zone
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
-from nose.tools import raises, assert_raises
+from nose.tools import raises, assert_raises  # pylint: disable=E0611
 from nose.plugins.skip import SkipTest
 from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, XMLRPC_test,
     fuzzy_uuid, fuzzy_digits, fuzzy_hash, fuzzy_date, fuzzy_issuer,

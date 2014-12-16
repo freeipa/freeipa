@@ -21,6 +21,9 @@
 Test the `ipalib.errors` module.
 """
 
+# FIXME: Pylint errors
+# pylint: disable=no-member
+
 import re
 import inspect
 

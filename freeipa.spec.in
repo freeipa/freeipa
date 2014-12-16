@@ -67,7 +67,7 @@ BuildRequires:  python-netaddr
 BuildRequires:  python-kerberos >= 1.1-14
 BuildRequires:  python-rhsm
 BuildRequires:  pyOpenSSL
-BuildRequires:  pylint
+BuildRequires:  pylint >= 1.0
 BuildRequires:  python-polib
 BuildRequires:  libipa_hbac-python
 BuildRequires:  python-memcached

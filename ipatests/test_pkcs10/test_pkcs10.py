@@ -20,6 +20,9 @@
 Test the `pkcs10.py` module.
 """
 
+# FIXME: Pylint errors
+# pylint: disable=no-member
+
 import os
 import sys
 import nose
