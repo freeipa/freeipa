@@ -154,13 +154,10 @@ hostgroup1_dn = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
                     api.env.basedn)
 
 
-@ordered
-class test_host(RPCTest):
-
+class TestNonexistentHost(RPCTest):
     @classmethod
     def clean_up(cls):
-        cls.clean('host_del', fqdn1, fqdn2, fqdn3, fqdn4, **{'continue': True})
-        cls.clean('service_del', service1)
+        cls.clean('host_del', fqdn1)
 
     def test_retrieve_nonexistent(self, command):
         with raises_exact(errors.NotFound(
@@ -176,6 +173,13 @@ class test_host(RPCTest):
         with raises_exact(errors.NotFound(
                 reason=u'%s: host not found' % fqdn1)):
             result = command('host_del', fqdn1)
+
+
+@ordered
+class TestHost(RPCTest):
+    @classmethod
+    def clean_up(cls):
+        cls.clean('host_del', fqdn1)
 
     def test_create_host(self, command):
         result = command('host_add', fqdn1,
@@ -348,120 +352,6 @@ class test_host(RPCTest):
             ),
         ), result)
 
-    @pytest.mark.parametrize(['fqdn', 'dn', 'n'],
-                             [(fqdn3, dn3, 2), (fqdn4, dn4, 4)])
-    def test_create_more(self, command, fqdn, dn, n):
-        result = command('host_add', fqdn,
-                         description=u'Test host %s' % n,
-                         l=u'Undisclosed location %s' % n,
-                         force=True)
-        assert_deepequal(dict(
-            value=fqdn,
-            summary=u'Added host "%s"' % fqdn,
-            result=dict(
-                dn=dn,
-                fqdn=[fqdn],
-                description=[u'Test host %s' % n],
-                l=[u'Undisclosed location %s' % n],
-                krbprincipalname=[u'host/%s@%s' % (fqdn, api.env.realm)],
-                objectclass=objectclasses.host,
-                ipauniqueid=[fuzzy_uuid],
-                managedby_host=[u'%s' % fqdn],
-                has_keytab=False,
-                has_password=False,
-            ),
-        ), result)
-
-    def test_add_managed_host(self, command):
-        result = command('host_add_managedby', fqdn3, host=fqdn1)
-        assert_deepequal(dict(
-            completed=1,
-            failed=dict(
-                managedby=dict(
-                    host=tuple(),
-                ),
-            ),
-            result=dict(
-                dn=dn3,
-                fqdn=[fqdn3],
-                description=[u'Test host 2'],
-                l=[u'Undisclosed location 2'],
-                krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
-                managedby_host=[u'%s' % fqdn3, u'%s' % fqdn1],
-            ),
-        ), result)
-
-    def test_show_managed_host(self, command):
-        result = command('host_show', fqdn3)
-        assert_deepequal(dict(
-            value=fqdn3,
-            summary=None,
-            result=dict(
-                dn=dn3,
-                fqdn=[fqdn3],
-                description=[u'Test host 2'],
-                l=[u'Undisclosed location 2'],
-                krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
-                has_keytab=False,
-                has_password=False,
-                managedby_host=[u'%s' % fqdn3, u'%s' % fqdn1],
-            ),
-        ), result)
-
-    def test_search_man_noman_hosts(self, command):
-        result = command('host_find', fqdn3,
-                         man_host=fqdn3,
-                         not_man_host=fqdn1)
-        assert_deepequal(dict(
-            count=1,
-            truncated=False,
-            summary=u'1 host matched',
-            result=[
-                dict(
-                    dn=dn3,
-                    fqdn=[fqdn3],
-                    description=[u'Test host 2'],
-                    l=[u'Undisclosed location 2'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
-                    has_keytab=False,
-                    has_password=False,
-                    managedby_host=[u'%s' % fqdn3, u'%s' % fqdn1],
-                ),
-            ],
-        ), result)
-
-    def test_search_man_hosts(self, command):
-        result = command('host_find', man_host=[fqdn3, fqdn4])
-        assert_deepequal(dict(
-            count=0,
-            truncated=False,
-            summary=u'0 hosts matched',
-            result=[],
-        ), result)
-
-    def test_remove_man_hosts(self, command):
-        result = command('host_remove_managedby', fqdn3, host=u'%s' % fqdn1)
-        assert_deepequal(dict(
-            completed=1,
-            failed=dict(
-                managedby=dict(
-                    host=tuple(),
-                ),
-            ),
-            result=dict(
-                dn=dn3,
-                fqdn=[fqdn3],
-                description=[u'Test host 2'],
-                l=[u'Undisclosed location 2'],
-                krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
-                managedby_host=[u'%s' % fqdn3],
-            ),
-        ), result)
-
-    def test_try_show_multiple_matches(self, command):
-        with raises_exact(errors.SingleMatchExpected(found=2)):
-            result = command('host_show', short3)
-
     def test_try_rename(self, command):
         with raises_exact(errors.NotAllowedOnRDN()):
             result = command('host_mod', fqdn1,
@@ -586,6 +476,14 @@ class test_host(RPCTest):
                 reason=u'%s: host not found' % fqdn1)):
             result = command('host_del', fqdn1)
 
+
+@ordered
+class TestHostWithService(RPCTest):
+    @classmethod
+    def clean_up(cls):
+        cls.clean('host_del', fqdn1)
+        cls.clean('service_del', service1)
+
     # Test deletion using a non-fully-qualified hostname. Services
     # associated with this host should also be removed.
 
@@ -642,6 +540,13 @@ class test_host(RPCTest):
             result=[],
         ), result)
 
+
+@ordered
+class TestAddHostNotInDNS(RPCTest):
+    @classmethod
+    def clean_up(cls):
+        cls.clean('host_del', fqdn2)
+
     def test_try_add_not_in_dns(self, command):
         with raises_exact(errors.DNSNotARecordError(
                 reason=u'Host does not have corresponding DNS A/AAAA record')):
@@ -671,51 +576,151 @@ class test_host(RPCTest):
                 ),
         ), result)
 
-    def test_try_delete_master(self, command):
-        with raises_exact(errors.ValidationError(
-                name='hostname',
-                error=u'An IPA master host cannot be deleted or disabled')):
-            result = command('host_del', api.env.host)
 
-    def test_try_disable_master(self, command):
-        with raises_exact(errors.ValidationError(
-                name='hostname',
-                error=u'An IPA master host cannot be deleted or disabled')):
-            result = command('host_disable', api.env.host)
+@ordered
+class TestManagedHosts(RPCTest):
+    @classmethod
+    def clean_up(cls):
+        cls.clean('host_del', fqdn1, fqdn2, fqdn3, fqdn4, **{'continue': True})
+        cls.clean('service_del', service1)
 
-    def test_try_validate_add(self, command):
-        with raises_exact(errors.ValidationError(
-                name='hostname',
-                error=u"invalid domain-name: only letters, numbers, '-' are " +
-                      u"allowed. DNS label may not start or end with '-'")):
-            result = command('host_add', invalidfqdn1)
-
-    # The assumption on these next 4 tests is that if we don't get a
-    # validation error then the request was processed normally.
-
-    def test_try_validate_mod(self, command):
-        with raises_exact(errors.NotFound(
-                reason=u'%s: host not found' % invalidfqdn1)):
-            result = command('host_mod', invalidfqdn1)
-
-    def test_try_validate_del(self, command):
-        with raises_exact(errors.NotFound(
-                reason=u'%s: host not found' % invalidfqdn1)):
-            result = command('host_del', invalidfqdn1)
-
-    def test_try_validate_show(self, command):
-        with raises_exact(errors.NotFound(
-                reason=u'%s: host not found' % invalidfqdn1)):
-            result = command('host_show', invalidfqdn1)
-
-    def test_try_validate_find(self, command):
-        result = command('host_find', invalidfqdn1)
+    def test_create_host(self, command):
+        result = command('host_add', fqdn1,
+                         description=u'Test host 1',
+                         l=u'Undisclosed location 1',
+                         force=True)
         assert_deepequal(dict(
-                count=0,
-                truncated=False,
-                summary=u'0 hosts matched',
-                result=[],
+            value=fqdn1,
+            summary=u'Added host "%s"' % fqdn1,
+            result=dict(
+                dn=dn1,
+                fqdn=[fqdn1],
+                description=[u'Test host 1'],
+                l=[u'Undisclosed location 1'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
+                objectclass=objectclasses.host,
+                ipauniqueid=[fuzzy_uuid],
+                managedby_host=[fqdn1],
+                has_keytab=False,
+                has_password=False,
+            ),
         ), result)
+
+    @pytest.mark.parametrize(['fqdn', 'dn', 'n'],
+                             [(fqdn3, dn3, 2), (fqdn4, dn4, 4)])
+    def test_create_more(self, command, fqdn, dn, n):
+        result = command('host_add', fqdn,
+                         description=u'Test host %s' % n,
+                         l=u'Undisclosed location %s' % n,
+                         force=True)
+        assert_deepequal(dict(
+            value=fqdn,
+            summary=u'Added host "%s"' % fqdn,
+            result=dict(
+                dn=dn,
+                fqdn=[fqdn],
+                description=[u'Test host %s' % n],
+                l=[u'Undisclosed location %s' % n],
+                krbprincipalname=[u'host/%s@%s' % (fqdn, api.env.realm)],
+                objectclass=objectclasses.host,
+                ipauniqueid=[fuzzy_uuid],
+                managedby_host=[u'%s' % fqdn],
+                has_keytab=False,
+                has_password=False,
+            ),
+        ), result)
+
+    def test_add_managed_host(self, command):
+        result = command('host_add_managedby', fqdn3, host=fqdn1)
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                managedby=dict(
+                    host=tuple(),
+                ),
+            ),
+            result=dict(
+                dn=dn3,
+                fqdn=[fqdn3],
+                description=[u'Test host 2'],
+                l=[u'Undisclosed location 2'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                managedby_host=[u'%s' % fqdn3, u'%s' % fqdn1],
+            ),
+        ), result)
+
+    def test_show_managed_host(self, command):
+        result = command('host_show', fqdn3)
+        assert_deepequal(dict(
+            value=fqdn3,
+            summary=None,
+            result=dict(
+                dn=dn3,
+                fqdn=[fqdn3],
+                description=[u'Test host 2'],
+                l=[u'Undisclosed location 2'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                has_keytab=False,
+                has_password=False,
+                managedby_host=[u'%s' % fqdn3, u'%s' % fqdn1],
+            ),
+        ), result)
+
+    def test_search_man_noman_hosts(self, command):
+        result = command('host_find', fqdn3,
+                         man_host=fqdn3,
+                         not_man_host=fqdn1)
+        assert_deepequal(dict(
+            count=1,
+            truncated=False,
+            summary=u'1 host matched',
+            result=[
+                dict(
+                    dn=dn3,
+                    fqdn=[fqdn3],
+                    description=[u'Test host 2'],
+                    l=[u'Undisclosed location 2'],
+                    krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                    has_keytab=False,
+                    has_password=False,
+                    managedby_host=[u'%s' % fqdn3, u'%s' % fqdn1],
+                ),
+            ],
+        ), result)
+
+    def test_search_man_hosts(self, command):
+        result = command('host_find', man_host=[fqdn3, fqdn4])
+        assert_deepequal(dict(
+            count=0,
+            truncated=False,
+            summary=u'0 hosts matched',
+            result=[],
+        ), result)
+
+    def test_remove_man_hosts(self, command):
+        result = command('host_remove_managedby', fqdn3, host=u'%s' % fqdn1)
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                managedby=dict(
+                    host=tuple(),
+                ),
+            ),
+            result=dict(
+                dn=dn3,
+                fqdn=[fqdn3],
+                description=[u'Test host 2'],
+                l=[u'Undisclosed location 2'],
+                krbprincipalname=[u'host/%s@%s' % (fqdn3, api.env.realm)],
+                managedby_host=[u'%s' % fqdn3],
+            ),
+        ), result)
+
+    def test_try_show_multiple_matches(self, command):
+        with raises_exact(errors.SingleMatchExpected(found=2)):
+            result = command('host_show', short3)
+
+    # ---
 
     def test_add_managed_host_2(self, command):
         result = command('host_add_managedby', fqdn4, host=fqdn3)
@@ -761,6 +766,12 @@ class test_host(RPCTest):
             ),
         ), result)
 
+
+class TestAddWithNullPassword(RPCTest):
+    @classmethod
+    def clean_up(cls):
+        cls.clean('host_del', fqdn3)
+
     def test_add_host_with_null_password(self, command):
         result = command('host_add', fqdn3,
                          description=u'Test host 3',
@@ -783,7 +794,58 @@ class test_host(RPCTest):
         ), result)
 
 
-class test_host_false_pwd_change(XMLRPC_test):
+class TestProtectedMaster(RPCTest):
+    def test_try_delete_master(self, command):
+        with raises_exact(errors.ValidationError(
+                name='hostname',
+                error=u'An IPA master host cannot be deleted or disabled')):
+            result = command('host_del', api.env.host)
+
+    def test_try_disable_master(self, command):
+        with raises_exact(errors.ValidationError(
+                name='hostname',
+                error=u'An IPA master host cannot be deleted or disabled')):
+            result = command('host_disable', api.env.host)
+
+
+class TestValidation(RPCTest):
+    def test_try_validate_add(self, command):
+        with raises_exact(errors.ValidationError(
+                name='hostname',
+                error=u"invalid domain-name: only letters, numbers, '-' are " +
+                      u"allowed. DNS label may not start or end with '-'")):
+            result = command('host_add', invalidfqdn1)
+
+    # The assumption on these next 4 tests is that if we don't get a
+    # validation error then the request was processed normally.
+
+    def test_try_validate_mod(self, command):
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host not found' % invalidfqdn1)):
+            result = command('host_mod', invalidfqdn1)
+
+    def test_try_validate_del(self, command):
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host not found' % invalidfqdn1)):
+            result = command('host_del', invalidfqdn1)
+
+    def test_try_validate_show(self, command):
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host not found' % invalidfqdn1)):
+            result = command('host_show', invalidfqdn1)
+
+    def test_try_validate_find(self, command):
+        result = command('host_find', invalidfqdn1)
+        assert_deepequal(dict(
+            count=0,
+            truncated=False,
+            summary=u'0 hosts matched',
+            result=[],
+        ), result)
+
+
+@ordered
+class TestHostFalsePwdChange(XMLRPC_test):
 
     fqdn1 = u'testhost1.%s' % api.env.domain
     short1 = u'testhost1'
@@ -860,7 +922,7 @@ class test_host_false_pwd_change(XMLRPC_test):
 
 
 @ordered
-class test_host_dns(RPCTest):
+class TestHostDNS(RPCTest):
 
     @classmethod
     def clean_up(cls):
@@ -1158,7 +1220,7 @@ class test_host_dns(RPCTest):
 
 
 @ordered
-class test_host_allowed_to(RPCTest):
+class TestHostAllowedTo(RPCTest):
 
     @classmethod
     def clean_up(cls):
