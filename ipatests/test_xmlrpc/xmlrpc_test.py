@@ -367,32 +367,3 @@ def raises_exact(expected_exception):
         assert expected_exception.strerror == got_exception.strerror
     else:
         raise AssertionError('did not raise!')
-
-
-class RPCTest(XMLRPC_test):
-    """Base class for RPC tests"""
-    @classmethod
-    def setup_class(cls):
-        super(RPCTest, cls).setup_class()
-        cls.clean_up()
-
-    @classmethod
-    def teardown_class(cls):
-        cls.clean_up()
-        super(RPCTest, cls).teardown_class()
-
-    @classmethod
-    def clean_up(self):
-        """Cleanup run on both setup and teardown
-
-        To be overridden in subclasses.
-        Usually calls the clean() method.
-        """
-
-    @classmethod
-    def clean(cls, command, *args, **options):
-        """Run a command, ignoring NotFound/EmptyModlist errors"""
-        try:
-            api.Command[command](*args, **options)
-        except (errors.NotFound, errors.EmptyModlist):
-            pass
