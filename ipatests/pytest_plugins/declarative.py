@@ -28,12 +28,12 @@ def pytest_generate_tests(metafunc):
         descriptions = []
         for i, test in enumerate(metafunc.cls.tests):
             if callable(test):
-                description = '%d: %s' % (
-                    i,
+                description = '%s: %s' % (
+                    str(i).zfill(4),
                     test.__name__,  # test is not a dict. pylint: disable=E1103
                 )
             else:
-                description = '%d: %s: %s' % (i,
+                description = '%s: %s: %s' % (str(i).zfill(4),
                                               test['command'][0],
                                               test.get('desc', ''))
                 test = dict(test)
