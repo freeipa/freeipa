@@ -1534,16 +1534,17 @@ class CAInstance(service.Service):
         done by the renewal script, renew_ca_cert once all the subsystem
         certificates are renewed.
         """
+        nickname = 'Server-Cert cert-pki-ca'
         pin = self.__get_ca_pin()
         try:
             certmonger.dogtag_start_tracking(
                 ca='dogtag-ipa-renew-agent',
-                nickname='Server-Cert cert-pki-ca',
+                nickname=nickname,
                 pin=pin,
                 pinfile=None,
                 secdir=self.dogtag_constants.ALIAS_DIR,
-                pre_command=None,
-                post_command=None)
+                pre_command='stop_pkicad',
+                post_command='renew_ca_cert "%s"' % nickname)
         except RuntimeError, e:
             root_logger.error(
                 "certmonger failed to start tracking certificate: %s" % e)

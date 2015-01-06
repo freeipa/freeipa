@@ -779,7 +779,7 @@ def certificate_renewal_update(ca):
     dogtag_constants = dogtag.configured_constants()
 
     # bump version when requests is changed
-    version = 2
+    version = 3
     requests = (
         (
             dogtag_constants.ALIAS_DIR,
@@ -825,8 +825,8 @@ def certificate_renewal_update(ca):
             dogtag_constants.ALIAS_DIR,
             'Server-Cert cert-pki-ca',
             'dogtag-ipa-renew-agent',
-            None,
-            None,
+            'stop_pkicad',
+            'renew_ca_cert',
             None,
         ),
     )
