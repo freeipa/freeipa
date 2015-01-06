@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import ldap as _ldap
+import re
 import traceback
 import time
 
@@ -144,32 +145,6 @@ class update_dns_limits(PostUpdate):
 api.register(update_dns_limits)
 
 
-class update_check_forwardzones(PreSchemaUpdate):
-    """
-    Check if the idnsforwardzone objectclass is in LDAP schema.
-    If not update is required (update_to_forward_zones), set sysupgrade state
-    'update_to_forward_zones' to True
-    """
-
-    def execute(self, **options):
-        state = sysupgrade.get_upgrade_state('dns', 'update_to_forward_zones')
-        if state is False:
-            # no upgrade is needed
-            return (False, False, [])
-        ldap = self.obj.backend
-        if not dns_container_exists(ldap):  # No DNS installed
-            return (False, False, [])
-        result = ldap.schema.get_obj(_ldap.schema.models.ObjectClass, 'idnsforwardzone')
-        if result is None:
-            sysupgrade.set_upgrade_state('dns', 'update_to_forward_zones', True)
-            self.log.info('Prepared upgrade to forward zones')
-        else:
-            sysupgrade.set_upgrade_state('dns', 'update_to_forward_zones', False)
-        return (False, False, [])
-
-api.register(update_check_forwardzones)
-
-
 class update_master_to_dnsforwardzones(PostUpdate):
     """
     Update all zones to meet requirements in the new FreeIPA versions
@@ -188,9 +163,40 @@ class update_master_to_dnsforwardzones(PostUpdate):
 
     def execute(self, **options):
         ldap = self.obj.backend
-        if not sysupgrade.get_upgrade_state('dns', 'update_to_forward_zones'):
-            # forward zones was tranformed before, nothing to do
+        # check LDAP if forwardzones already uses new semantics
+        dns_container_dn = DN(api.env.container_dns, api.env.basedn)
+        try:
+            container_entry = ldap.get_entry(dns_container_dn)
+        except errors.NotFound:
+            # DNS container not found, nothing to upgrade
             return (False, False, [])
+
+        for config_option in container_entry.get("ipaConfigString", []):
+            matched = re.match("^DNSVersion\s+(?P<version>\d+)$",
+                               config_option, flags=re.I)
+            if matched and int(matched.group("version")) >= 1:
+                # forwardzones already uses new semantics,
+                # no upgrade is required
+                return (False, False, [])
+
+        self.log.info('Updating forward zones')
+        # update the DNSVersion, following upgrade can be executed only once
+        container_entry.setdefault(
+            'ipaConfigString', []).append(u"DNSVersion 1")
+        ldap.update_entry(container_entry)
+
+        # Updater in IPA version from 4.0 to 4.1.2 doesn't work well, this
+        # should detect if update in past has been executed, and set proper
+        # DNSVersion into LDAP
+        try:
+            fwzones = api.Command.dnsforwardzone_find()['result']
+        except errors.NotFound:
+            # No forwardzones found, update probably has not been executed yet
+            pass
+        else:
+            if fwzones:
+                # fwzones exist, do not execute upgrade again
+                return (False, False, [])
 
         try:
             # raw values are required to store into ldif
@@ -344,9 +350,6 @@ class update_master_to_dnsforwardzones(PostUpdate):
 
                 self.log.info('Zone %s was sucessfully transformed to forward zone',
                               zone['idnsname'][0])
-
-
-        sysupgrade.set_upgrade_state('dns', 'update_to_forward_zones', False)
 
         return (False, False, [])
 
