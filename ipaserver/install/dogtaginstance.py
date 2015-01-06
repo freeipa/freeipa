@@ -359,8 +359,8 @@ class DogtagInstance(service.Service):
                 pin=pin,
                 pinfile=None,
                 secdir=self.dogtag_constants.ALIAS_DIR,
-                pre_command=None,
-                post_command=None)
+                pre_command='stop_pkicad',
+                post_command='renew_ca_cert "%s"' % self.server_cert_name)
         except RuntimeError, e:
             self.log.error(
                 "certmonger failed to start tracking certificate: %s" % e)
