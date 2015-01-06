@@ -2,8 +2,10 @@ dn: cn=dns,$SUFFIX
 changetype: add
 objectClass: idnsConfigObject
 objectClass: nsContainer
+objectClass: ipaConfigObject
 objectClass: top
 cn: dns
+ipaConfigString: DNSVersion 1
 aci: (targetattr = "*")(version 3.0; acl "Allow read access"; allow (read,search,compare) groupdn = "ldap:///cn=Read DNS Entries,cn=permissions,cn=pbac,$SUFFIX" or userattr = "parent[0,1].managedby#GROUPDN";)
 aci: (target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Add DNS entries in a zone";allow (add) userattr = "parent[1].managedby#GROUPDN";)
 aci: (target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Remove DNS entries from a zone";allow (delete) userattr = "parent[1].managedby#GROUPDN";)
