@@ -198,12 +198,16 @@ class update_master_to_dnsforwardzones(PostUpdate):
                 # fwzones exist, do not execute upgrade again
                 return (False, False, [])
 
+        zones = []
         try:
             # raw values are required to store into ldif
             zones = api.Command.dnszone_find(all=True,
                                              raw=True,
                                              sizelimit=0)['result']
         except errors.NotFound:
+            pass
+
+        if not zones:
             self.log.info('No DNS zone to update found')
             return (False, False, [])
 
