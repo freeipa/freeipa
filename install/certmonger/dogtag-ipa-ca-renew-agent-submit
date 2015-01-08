@@ -38,7 +38,7 @@ from ipapython.dn import DN
 from ipalib import api, errors, pkcs10, x509
 from ipaplatform.paths import paths
 from ipaserver.plugins.ldap2 import ldap2
-from ipaserver.install import cainstance
+from ipaserver.install import cainstance, certs
 
 # This is a certmonger CA helper script for IPA CA subsystem cert renewal. See
 # https://git.fedorahosted.org/cgit/certmonger.git/tree/doc/submit.txt for more
@@ -437,6 +437,7 @@ def main():
         return OPERATION_NOT_SUPPORTED_BY_HELPER
 
     tmpdir = tempfile.mkdtemp(prefix="tmp-")
+    certs.renewal_lock.acquire()
     try:
         principal = str('host/%s@%s' % (api.env.host, api.env.realm))
         ipautil.kinit_hostprincipal(paths.KRB5_KEYTAB, tmpdir, principal)
@@ -456,6 +457,7 @@ def main():
             print item
         return res[0]
     finally:
+        certs.renewal_lock.release()
         shutil.rmtree(tmpdir)
 
 try:

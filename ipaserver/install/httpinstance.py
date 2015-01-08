@@ -23,6 +23,9 @@ import tempfile
 import pwd
 import shutil
 import re
+import dbus
+import shlex
+import pipes
 
 import service
 import certs
@@ -121,6 +124,9 @@ class HTTPInstance(service.Service):
         self.step("enabling mod_nss renegotiate", self.enable_mod_nss_renegotiate)
         self.step("adding URL rewriting rules", self.__add_include)
         self.step("configuring httpd", self.__configure_http)
+        if self.ca_is_configured:
+            self.step("configure certmonger for renewals",
+                      self.configure_certmonger_renewal_guard)
         self.step("setting up ssl", self.__setup_ssl)
         self.step("importing CA certificates from LDAP", self.__import_ca_certs)
         if autoconfig:
@@ -220,6 +226,27 @@ class HTTPInstance(service.Service):
         """This should run after __set_mod_nss_port so is already backed up"""
         if installutils.update_file(paths.HTTPD_NSS_CONF, '</VirtualHost>', 'Include conf.d/ipa-rewrite.conf\n</VirtualHost>') != 0:
             print "Adding Include conf.d/ipa-rewrite to %s failed." % paths.HTTPD_NSS_CONF
+
+    def configure_certmonger_renewal_guard(self):
+        bus = dbus.SystemBus()
+        obj = bus.get_object('org.fedorahosted.certmonger',
+                             '/org/fedorahosted/certmonger')
+        iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
+        path = iface.find_ca_by_nickname('IPA')
+        if path:
+            ca_obj = bus.get_object('org.fedorahosted.certmonger', path)
+            ca_iface = dbus.Interface(ca_obj,
+                                      'org.freedesktop.DBus.Properties')
+            helper = ca_iface.Get('org.fedorahosted.certmonger.ca',
+                                  'external-helper')
+            if helper:
+                args = shlex.split(helper)
+                if args[0] != paths.IPA_SERVER_GUARD:
+                    self.backup_state('certmonger_ipa_helper', helper)
+                    args = [paths.IPA_SERVER_GUARD] + args
+                    helper = ' '.join(pipes.quote(a) for a in args)
+                    ca_iface.Set('org.fedorahosted.certmonger.ca',
+                                 'external-helper', helper)
 
     def __setup_ssl(self):
         fqdn = self.fqdn
@@ -355,6 +382,21 @@ class HTTPInstance(service.Service):
             self.stop()
 
         self.stop_tracking_certificates()
+
+        helper = self.restore_state('certmonger_ipa_helper')
+        if helper:
+            bus = dbus.SystemBus()
+            obj = bus.get_object('org.fedorahosted.certmonger',
+                                 '/org/fedorahosted/certmonger')
+            iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
+            path = iface.find_ca_by_nickname('IPA')
+            if path:
+                ca_obj = bus.get_object('org.fedorahosted.certmonger', path)
+                ca_iface = dbus.Interface(ca_obj,
+                                          'org.freedesktop.DBus.Properties')
+                ca_iface.Set('org.fedorahosted.certmonger.ca',
+                             'external-helper', helper)
+
         if not enabled is None and not enabled:
             self.disable()
 

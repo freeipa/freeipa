@@ -26,6 +26,10 @@ import xml.dom.minidom
 import pwd
 import base64
 from hashlib import sha1
+import fcntl
+import time
+import datetime
+import ConfigParser as configparser
 
 from ipapython.ipa_log_manager import root_logger
 from ipapython import dogtag
@@ -647,3 +651,103 @@ class CertDB(object):
 
     def export_pem_cert(self, nickname, location):
         return self.nssdb.export_pem_cert(nickname, location)
+
+
+class _CrossProcessLock(object):
+    _DATETIME_FORMAT = '%Y%m%d%H%M%S%f'
+
+    def __init__(self, filename):
+        self._filename = filename
+
+    def __enter__(self):
+        self.acquire()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.release()
+
+    def acquire(self, owner=None):
+        self._do(self._acquire, owner)
+
+    def release(self, owner=None):
+        self._do(self._release, owner)
+
+    def _acquire(self, owner):
+        now = datetime.datetime.utcnow()
+
+        if self._locked and now >= self._expire:
+            self._locked = False
+
+        if self._locked:
+            return False
+
+        self._locked = True
+        self._owner = owner
+        self._expire = now + datetime.timedelta(hours=1)
+
+        return True
+
+    def _release(self, owner):
+        if not self._locked or self._owner != owner:
+            raise RuntimeError("lock not acquired by %s" % owner)
+
+        self._locked = False
+        self._owner = None
+        self._expire = None
+
+        return True
+
+    def _do(self, func, owner):
+        if owner is None:
+            owner = '%s[%s]' % (os.path.basename(sys.argv[0]), os.getpid())
+
+        while True:
+            with open(self._filename, 'a+') as f:
+                fcntl.flock(f, fcntl.LOCK_EX)
+
+                f.seek(0)
+                self._read(f)
+
+                if func(owner):
+                    f.seek(0)
+                    f.truncate()
+                    self._write(f)
+                    return
+
+            time.sleep(10)
+
+    def _read(self, fileobj):
+        p = configparser.RawConfigParser()
+        p.readfp(fileobj)
+
+        try:
+            self._locked = p.getboolean('lock', 'locked')
+
+            if self._locked:
+                self._owner = p.get('lock', 'owner')
+
+                expire = p.get('lock', 'expire')
+                try:
+                    self._expire = datetime.datetime.strptime(
+                        expire, self._DATETIME_FORMAT)
+                except ValueError:
+                    raise configparser.Error
+        except configparser.Error:
+            self._locked = False
+            self._owner = None
+            self._expire = None
+
+    def _write(self, fileobj):
+        p = configparser.RawConfigParser()
+        p.add_section('lock')
+
+        locked = '1' if self._locked else '0'
+        p.set('lock', 'locked', locked)
+
+        if self._locked:
+            expire = self._expire.strftime(self._DATETIME_FORMAT)
+            p.set('lock', 'owner', self._owner)
+            p.set('lock', 'expire', expire)
+
+        p.write(fileobj)
+
+renewal_lock = _CrossProcessLock(paths.IPA_RENEWAL_LOCK)

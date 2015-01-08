@@ -37,6 +37,8 @@ import stat
 import syslog
 import ConfigParser
 import dbus
+import shlex
+import pipes
 
 from ipapython import dogtag
 from ipapython.certdb import get_ca_nickname
@@ -1422,6 +1424,16 @@ class CAInstance(service.Service):
         if path:
             iface.remove_known_ca(path)
 
+        helper = self.restore_state('certmonger_dogtag_helper')
+        if helper:
+            path = iface.find_ca_by_nickname('dogtag-ipa-renew-agent')
+            if path:
+                ca_obj = bus.get_object('org.fedorahosted.certmonger', path)
+                ca_iface = dbus.Interface(ca_obj,
+                                          'org.freedesktop.DBus.Properties')
+                ca_iface.Set('org.fedorahosted.certmonger.ca',
+                             'external-helper', helper)
+
         cmonger.stop()
 
         # remove CRL files
@@ -1480,6 +1492,32 @@ class CAInstance(service.Service):
             iface.add_known_ca(
                 'dogtag-ipa-ca-renew-agent',
                 paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT, [])
+
+        self.configure_certmonger_renewal_guard()
+
+    def configure_certmonger_renewal_guard(self):
+        if not self.is_configured():
+            return
+
+        bus = dbus.SystemBus()
+        obj = bus.get_object('org.fedorahosted.certmonger',
+                             '/org/fedorahosted/certmonger')
+        iface = dbus.Interface(obj, 'org.fedorahosted.certmonger')
+        path = iface.find_ca_by_nickname('dogtag-ipa-renew-agent')
+        if path:
+            ca_obj = bus.get_object('org.fedorahosted.certmonger', path)
+            ca_iface = dbus.Interface(ca_obj,
+                                      'org.freedesktop.DBus.Properties')
+            helper = ca_iface.Get('org.fedorahosted.certmonger.ca',
+                                  'external-helper')
+            if helper:
+                args = shlex.split(helper)
+                if args[0] != paths.IPA_SERVER_GUARD:
+                    self.backup_state('certmonger_dogtag_helper', helper)
+                    args = [paths.IPA_SERVER_GUARD] + args
+                    helper = ' '.join(pipes.quote(a) for a in args)
+                    ca_iface.Set('org.fedorahosted.certmonger.ca',
+                                 'external-helper', helper)
 
     def configure_agent_renewal(self):
         try:
