@@ -403,7 +403,7 @@ def renew_ca_cert():
 
     if state == 'retrieve':
         result = call_handler(retrieve_cert)
-        if result[0] == WAIT_WITH_DELAY and not is_self_signed:
+        if result[0] == REJECTED and not is_self_signed:
             syslog.syslog(syslog.LOG_ALERT,
                           "IPA CA certificate is about to expire, "
                           "use ipa-cacert-manage to renew it")
