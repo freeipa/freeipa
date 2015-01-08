@@ -296,8 +296,7 @@ class DogtagInstance(service.Service):
         with open(paths.HTTPD_IPA_PKI_PROXY_CONF, "w") as fd:
             fd.write(template)
 
-    @staticmethod
-    def configure_certmonger_renewal():
+    def configure_certmonger_renewal(self):
         """
         Create a new CA type for certmonger that will retrieve updated
         certificates from the dogtag master server.

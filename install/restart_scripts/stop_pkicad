@@ -25,6 +25,8 @@ import traceback
 from ipapython import dogtag
 from ipalib import api
 from ipaplatform import services
+from ipaserver.install import certs
+
 
 def main():
     api.bootstrap(context='restart')
@@ -33,6 +35,8 @@ def main():
     configured_constants = dogtag.configured_constants(api)
     dogtag_service = services.knownservices[configured_constants.SERVICE_NAME]
     dogtag_instance = configured_constants.PKI_INSTANCE_NAME
+
+    certs.renewal_lock.acquire('renew_ca_cert')
 
     syslog.syslog(syslog.LOG_NOTICE, "Stopping %s" % dogtag_service.service_name)
     try:

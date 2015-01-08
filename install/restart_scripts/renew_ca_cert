@@ -35,7 +35,7 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 
 
-def main():
+def _main():
     nickname = sys.argv[1]
 
     api.bootstrap(context='restart')
@@ -209,6 +209,14 @@ def main():
     else:
         syslog.syslog(
             syslog.LOG_NOTICE, "Started %s" % dogtag_service.service_name)
+
+
+def main():
+    try:
+        _main()
+    finally:
+        certs.renewal_lock.release('renew_ca_cert')
+
 
 try:
     main()

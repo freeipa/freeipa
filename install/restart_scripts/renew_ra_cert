@@ -32,9 +32,10 @@ from ipaserver.install import certs, cainstance
 from ipaplatform import services
 from ipaplatform.paths import paths
 
-nickname = 'ipaCert'
 
-def main():
+def _main():
+    nickname = 'ipaCert'
+
     api.bootstrap(context='restart')
     api.finalize()
 
@@ -67,6 +68,12 @@ def main():
         syslog.syslog(syslog.LOG_ERR, "Cannot restart httpd: %s" % e)
     else:
         syslog.syslog(syslog.LOG_NOTICE, "Restarted httpd")
+
+
+def main():
+    with certs.renewal_lock:
+        _main()
+
 
 try:
     main()

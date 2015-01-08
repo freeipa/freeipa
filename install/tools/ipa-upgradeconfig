@@ -1327,6 +1327,8 @@ def main():
             )
         upgrade_pki(ca, fstore)
 
+    ca.configure_certmonger_renewal_guard()
+
     update_dbmodules(api.env.realm)
     uninstall_ipa_kpasswd()
 
@@ -1339,6 +1341,7 @@ def main():
     http = httpinstance.HTTPInstance(fstore)
     http.configure_selinux_for_httpd()
     http.change_mod_nss_port_from_http()
+    http.configure_certmonger_renewal_guard()
 
     http.stop()
     update_mod_nss_protocol(http)
