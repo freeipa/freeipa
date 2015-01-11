@@ -249,11 +249,9 @@ class Restore(admintool.AdminTool):
                 (options.instance or options.backend)):
                 raise admintool.ScriptError('Restore must be in data-only mode when restoring a specific instance or backend.')
             if self.backup_host != api.env.host:
-                self.log.warning('Host name %s does not match backup name %s' %
+                raise admintool.ScriptError(
+                    'Host name %s does not match backup name %s' %
                     (api.env.host, self.backup_host))
-                if (not options.unattended and
-                    not user_input("Continue to restore?", False)):
-                    raise admintool.ScriptError("Aborted")
             if self.backup_ipa_version != str(version.VERSION):
                 self.log.warning(
                     "Restoring data from a different release of IPA.\n"
