@@ -1007,6 +1007,22 @@ done:
 	return ret;
 }
 
+#if PASSDB_INTERFACE_VERSION >= 24
+/* Since version 24, uid_to_sid() and gid_to_sid() were removed in favor of id_to_sid() */
+static bool ipasam_id_to_sid(struct pdb_methods *methods, struct unixid *id, struct dom_sid *sid)
+{
+	bool result = false;
+
+	if (id->type != ID_TYPE_GID) {
+		result = ldapsam_uid_to_sid(methods, id->id, sid);
+	}
+	if (!result && id->type != ID_TYPE_UID) {
+		result = ldapsam_gid_to_sid(methods, id->id, sid);
+	}
+
+	return result;
+}
+#endif
 
 static char *get_ldap_filter(TALLOC_CTX *mem_ctx, const char *username)
 {
@@ -4579,8 +4595,13 @@ static NTSTATUS pdb_init_ipasam(struct pdb_methods **pdb_method,
 	(*pdb_method)->search_aliases = ldapsam_search_aliases;
 	(*pdb_method)->lookup_rids = ldapsam_lookup_rids;
 	(*pdb_method)->sid_to_id = ldapsam_sid_to_id;
+#if PASSDB_INTERFACE_VERSION >= 24
+/* Since version 24, uid_to_sid() and gid_to_sid() were removed in favor of id_to_sid() */
+	(*pdb_method)->id_to_sid = ipasam_id_to_sid;
+#else
 	(*pdb_method)->uid_to_sid = ldapsam_uid_to_sid;
 	(*pdb_method)->gid_to_sid = ldapsam_gid_to_sid;
+#endif
 
 	(*pdb_method)->capabilities = pdb_ipasam_capabilities;
 	(*pdb_method)->get_domain_info = pdb_ipasam_get_domain_info;
