@@ -24,6 +24,7 @@ import tempfile
 import time
 import pwd
 from ConfigParser import SafeConfigParser
+import ldif
 
 from ipalib import api, errors
 from ipapython import version, ipautil, certdb, dogtag
@@ -92,6 +93,32 @@ def decrypt_file(tmpdir, filename, keyring):
         raise admintool.ScriptError('gpg failed: %s' % stderr)
 
     return dest
+
+
+class RemoveRUVParser(ldif.LDIFParser):
+    def __init__(self, input_file, writer, logger):
+        ldif.LDIFParser.__init__(self, input_file)
+        self.writer = writer
+        self.log = logger
+
+    def handle(self, dn, entry):
+        objectclass = None
+        nsuniqueid = None
+
+        for name, value in entry.iteritems():
+            name = name.lower()
+            if name == 'objectclass':
+                objectclass = [x.lower() for x in value]
+            elif name == 'nsuniqueid':
+                nsuniqueid = [x.lower() for x in value]
+
+        if (objectclass and nsuniqueid and
+            'nstombstone' in objectclass and
+            'ffffffff-ffffffff-ffffffff-ffffffff' in nsuniqueid):
+            self.log.debug("Removing RUV entry %s", dn)
+            return
+
+        self.writer.unparse(dn, entry)
 
 
 class Restore(admintool.AdminTool):
@@ -447,7 +474,14 @@ class Restore(admintool.AdminTool):
         dn = DN(('cn', cn), ('cn', 'import'), ('cn', 'tasks'), ('cn', 'config'))
 
         ldifname = '%s-%s.ldif' % (instance, backend)
-        ldiffile = os.path.join(self.dir, ldifname)
+        srcldiffile = os.path.join(self.dir, ldifname)
+        ldiffile = '%s.noruv' % srcldiffile
+
+        with open(ldiffile, 'wb') as out_file:
+            ldif_writer = ldif.LDIFWriter(out_file)
+            with open(srcldiffile, 'rb') as in_file:
+                ldif_parser = RemoveRUVParser(in_file, ldif_writer, self.log)
+                ldif_parser.parse()
 
         if online:
             conn = self.get_connection()
