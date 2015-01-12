@@ -967,6 +967,7 @@ class JSONServerProxy(object):
     def __request(self, name, args):
         payload = {'method': unicode(name), 'params': args, 'id': 0}
         version = args[1].get('version', VERSION_WITHOUT_CAPABILITIES)
+        payload = json_encode_binary(payload, version)
 
         if self.__verbose >= 2:
             root_logger.info('Request: %s',
@@ -975,7 +976,7 @@ class JSONServerProxy(object):
         response = self.__transport.request(
             self.__host,
             self.__handler,
-            json.dumps(json_encode_binary(payload, version)),
+            json.dumps(payload),
             verbose=self.__verbose >= 3,
         )
 
@@ -985,8 +986,11 @@ class JSONServerProxy(object):
             raise JSONError(str(e))
 
         if self.__verbose >= 2:
-            root_logger.info('Response: %s',
-                             json.dumps(response, sort_keys=True, indent=4))
+            root_logger.info(
+                'Response: %s',
+                json.dumps(json_encode_binary(response, version),
+                           sort_keys=True, indent=4)
+            )
         error = response.get('error')
         if error:
             try:
