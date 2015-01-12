@@ -142,9 +142,7 @@ void convert_py2bool(PyObj2Bool_mapping_t* mapping, int length) {
     for (i = 0; i < length; ++i) {
         PyObject* py_obj = mapping[i].py_obj;
         if (py_obj != NULL) {
-            Py_INCREF(py_obj);
             mapping[i].bool = pyobj_to_bool(py_obj);
-            Py_DECREF(py_obj);
         }
     }
 }
@@ -156,21 +154,32 @@ void convert_py2bool(PyObj2Bool_mapping_t* mapping, int length) {
  * Returns NULL if an error occurs, else pointer to string
  */
 unsigned char* unicode_to_char_array(PyObject *unicode, Py_ssize_t *l) {
+    unsigned char* result = NULL;
     PyObject* utf8_str = PyUnicode_AsUTF8String(unicode);
     if (utf8_str == NULL) {
         PyErr_SetString(ipap11helperError, "Unable to encode UTF-8");
         return NULL;
     }
-    Py_XINCREF(utf8_str);
     unsigned char* bytes = (unsigned char*) PyString_AS_STRING(utf8_str);
     if (bytes == NULL) {
         PyErr_SetString(ipap11helperError, "Unable to get bytes from string");
         *l = 0;
     } else {
         *l = PyString_Size(utf8_str);
+
+        /* Copy string first, then DECREF
+         * https://docs.python.org/2/c-api/string.html#c.PyString_AS_STRING
+         */
+        result = (unsigned char *) malloc((size_t) *l);
+        if (result == NULL){
+            PyErr_SetString(ipap11helperError, "Memory allocation error");
+        } else {
+            memcpy(result, bytes, *l);
+        }
+
     }
-    Py_XDECREF(utf8_str);
-    return bytes;
+    Py_DECREF(utf8_str);
+    return result;
 }
 
 /**
@@ -546,7 +555,7 @@ P11_Helper_finalize(P11_Helper* self) {
     CK_RV rv;
 
     if (self->p11 == NULL)
-        return Py_None;
+        Py_RETURN_NONE;
 
     /*
      * Logout
@@ -576,7 +585,7 @@ P11_Helper_finalize(P11_Helper* self) {
     self->slot = 0;
     self->module_handle = NULL;
 
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /********************************************************************
@@ -636,10 +645,8 @@ P11_Helper_generate_master_key(P11_Helper* self, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
-    Py_XINCREF(label_unicode);
     CK_BYTE *label = (unsigned char*) unicode_to_char_array(label_unicode,
             &label_length);
-    Py_XDECREF(label_unicode);
     CK_MECHANISM mechanism = { //TODO param?
             CKM_AES_KEY_GEN, NULL_PTR, 0 };
 
@@ -688,7 +695,7 @@ P11_Helper_generate_master_key(P11_Helper* self, PyObject *args, PyObject *kwds)
     if (!check_return_value(rv, "generate master key"))
         return NULL;
 
-    return Py_BuildValue("k", master_key);;
+    return Py_BuildValue("k", master_key);
 }
 
 /**
@@ -772,9 +779,7 @@ P11_Helper_generate_replica_key_pair(P11_Helper* self, PyObject *args,
         return NULL;
     }
 
-    Py_XINCREF(label_unicode);
     CK_BYTE *label = unicode_to_char_array(label_unicode, &label_length);
-    Py_XDECREF(label_unicode);
 
     CK_OBJECT_HANDLE public_key, private_key;
     CK_MECHANISM mechanism = {
@@ -887,30 +892,24 @@ P11_Helper_find_keys(P11_Helper* self, PyObject *args, PyObject *kwds) {
     }
 
     if (label_unicode != NULL) {
-        Py_INCREF(label_unicode);
         label = (unsigned char*) unicode_to_char_array(label_unicode,
                 &label_length); //TODO verify signed/unsigned
-        Py_DECREF(label_unicode);
     }
 
     if (cka_wrap_bool != NULL) {
-        Py_INCREF(cka_wrap_bool);
         if (PyObject_IsTrue(cka_wrap_bool)) {
             ckawrap = &true;
         } else {
             ckawrap = &false;
         }
-        Py_DECREF(cka_wrap_bool);
     }
 
     if (cka_unwrap_bool != NULL) {
-        Py_INCREF(cka_unwrap_bool);
         if (PyObject_IsTrue(cka_unwrap_bool)) {
             ckaunwrap = &true;
         } else {
             ckaunwrap = &false;
         }
-        Py_DECREF(cka_unwrap_bool);
     }
 
     if (class == CKO_VENDOR_DEFINED)
@@ -940,13 +939,14 @@ P11_Helper_find_keys(P11_Helper* self, PyObject *args, PyObject *kwds) {
         free(objects);
         return NULL;
     }
-    Py_INCREF(result_list);
+
     for (int i = 0; i < objects_len; ++i) {
         if (PyList_SetItem(result_list, i, Py_BuildValue("k", objects[i]))
                 == -1) {
             PyErr_SetString(ipap11helperError,
                     "Unable to add to value to result list");
             free(objects);
+            Py_DECREF(result_list);
             return NULL;
         }
     }
@@ -972,7 +972,7 @@ P11_Helper_delete_key(P11_Helper* self, PyObject *args, PyObject *kwds) {
         return NULL;
     }
 
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /**
@@ -1293,10 +1293,9 @@ P11_Helper_import_public_key(P11_Helper* self, PyObject *args, PyObject *kwds) {
             &attrs_pub[pub_en_cka_wrap].py_obj)) {
         return NULL;
     }
-    Py_XINCREF(label_unicode);
+
     label = (unsigned char*) unicode_to_char_array(label_unicode,
             &label_length);
-    Py_XDECREF(label_unicode);
 
     r = _id_exists(self, id, id_length, CKO_PUBLIC_KEY);
     if (r == 1) {
@@ -1452,10 +1451,9 @@ P11_Helper_import_wrapped_secret_key(P11_Helper* self, PyObject *args,
             &attrs[sec_en_cka_wrap_with_trusted].py_obj)) {
         return NULL;
     }
-    Py_XINCREF(label_unicode);
+
     label = (unsigned char*) unicode_to_char_array(label_unicode,
             &label_length); //TODO verify signed/unsigned
-    Py_XDECREF(label_unicode);
 
     r = _id_exists(self, id, id_length, key_class);
     if (r == 1) {
@@ -1563,10 +1561,9 @@ P11_Helper_import_wrapped_private_key(P11_Helper* self, PyObject *args,
             &attrs_priv[priv_en_cka_wrap_with_trusted].py_obj)) {
         return NULL;
     }
-    Py_XINCREF(label_unicode);
+
     label = (unsigned char*) unicode_to_char_array(label_unicode,
             &label_length); //TODO verify signed/unsigned
-    Py_XDECREF(label_unicode);
 
     r = _id_exists(self, id, id_length, CKO_SECRET_KEY);
     if (r == 1) {
@@ -1630,7 +1627,7 @@ P11_Helper_set_attribute(P11_Helper* self, PyObject *args, PyObject *kwds) {
             &value)) {
         return NULL;
     }
-    Py_XINCREF(value);
+
     attribute.type = attr;
     switch (attr) {
         case CKA_ALWAYS_AUTHENTICATE:
@@ -1706,7 +1703,7 @@ P11_Helper_set_attribute(P11_Helper* self, PyObject *args, PyObject *kwds) {
     if (!check_return_value(rv, "set_attribute"))
         ret = NULL;
     final:
-    Py_XDECREF(value);
+    Py_XINCREF(ret);
     return ret;
 }
 
