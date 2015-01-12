@@ -33,7 +33,7 @@ Source0:        freeipa-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %if ! %{ONLY_CLIENT}
-BuildRequires:  389-ds-base-devel >= 1.3.3.5
+BuildRequires:  389-ds-base-devel >= 1.3.3.8
 BuildRequires:  svrcore-devel
 BuildRequires:  policycoreutils >= 2.1.12-5
 BuildRequires:  systemd-units
@@ -108,7 +108,7 @@ Group: System Environment/Base
 Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
-Requires: 389-ds-base >= 1.3.3.5
+Requires: 389-ds-base >= 1.3.3.8
 Requires: openldap-clients > 2.4.35-4
 Requires: nss >= 3.14.3-12.0
 Requires: nss-tools >= 3.14.3-12.0
@@ -133,7 +133,7 @@ Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.54.1-1
-Requires: pki-ca >= 10.2.1-0.1
+Requires: pki-ca >= 10.2.1-0.2
 Requires: pki-kra >= 10.2.1-0.1
 Requires(preun): python systemd-units
 Requires(postun): python systemd-units
@@ -142,7 +142,7 @@ Requires: zip
 Requires: policycoreutils >= 2.1.12-5
 Requires: tar
 Requires(pre): certmonger >= 0.76.8
-Requires(pre): 389-ds-base >= 1.3.3.5
+Requires(pre): 389-ds-base >= 1.3.3.8
 Requires: fontawesome-fonts
 Requires: open-sans-fonts
 Requires: openssl
