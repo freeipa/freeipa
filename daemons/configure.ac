@@ -170,12 +170,24 @@ PKG_CHECK_MODULES([SAMBAUTIL], [samba-util])
 SAMBA40EXTRA_LIBPATH="-L`$PKG_CONFIG --variable=libdir samba-util`/samba -Wl,-rpath=`$PKG_CONFIG --variable=libdir samba-util`/samba"
 AC_SUBST(SAMBA40EXTRA_LIBPATH)
 
-AC_CHECK_LIB([pdb],
+LIBPDB_NAME=""
+AC_CHECK_LIB([samba-passdb],
              [make_pdb_method],
-             [HAVE_LIBPDB=1],
-             [AC_MSG_ERROR([libpdb does not have make_pdb_method])],
+             [LIBPDB_NAME="samba-passdb"; HAVE_LIBPDB=1],
+             [LIBPDB_NAME="pdb"],
              [$SAMBA40EXTRA_LIBPATH])
-AC_CHECK_LIB([pdb],[pdb_enum_upn_suffixes],
+
+if test "x$LIB_PDB_NAME" = "xpdb" ; then
+  AC_CHECK_LIB([$LIBPDB_NAME],
+               [make_pdb_method],
+               [HAVE_LIBPDB=1],
+               [AC_MSG_ERROR([Neither libpdb nor libsamba-passdb does have make_pdb_method])],
+               [$SAMBA40EXTRA_LIBPATH])
+fi
+
+AC_SUBST(LIBPDB_NAME)
+
+AC_CHECK_LIB([$LIBPDB_NAME],[pdb_enum_upn_suffixes],
              [AC_DEFINE([HAVE_PDB_ENUM_UPN_SUFFIXES], [1], [Ability to enumerate UPN suffixes])],
              [AC_MSG_WARN([libpdb does not have pdb_enum_upn_suffixes, no support for realm domains in ipasam])],
              [$SAMBA40EXTRA_LIBPATH])

@@ -1,7 +1,8 @@
 NULL =
+LIBPDB_NAME = @LIBPDB_NAME@
 SAMBA40EXTRA_LIBS = $(SAMBA40EXTRA_LIBPATH)	\
 			-lsmbldap		\
-			-lpdb			\
+			-l$(LIBPDB_NAME)			\
 			-lsmbconf		\
 			$(NULL)
 
