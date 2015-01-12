@@ -25,6 +25,7 @@ import time
 import pwd
 from ConfigParser import SafeConfigParser
 import ldif
+import itertools
 
 from ipalib import api, errors
 from ipapython import version, ipautil, certdb, dogtag
@@ -161,32 +162,25 @@ class Restore(admintool.AdminTool):
 
 
     def validate_options(self):
+        parser = self.option_parser
         options = self.options
         super(Restore, self).validate_options(needs_root=True)
-        if options.data_only:
-            installutils.check_server_configuration()
 
         if len(self.args) < 1:
-            self.option_parser.error(
-                "must provide the backup to restore")
+            parser.error("must provide the backup to restore")
         elif len(self.args) > 1:
-            self.option_parser.error(
-                "must provide exactly one name for the backup")
+            parser.error("must provide exactly one name for the backup")
 
         dirname = self.args[0]
         if not os.path.isabs(dirname):
-            self.backup_dir = os.path.join(BACKUP_DIR, dirname)
-        else:
-            self.backup_dir = dirname
-
+            dirname = os.path.join(BACKUP_DIR, dirname)
         if not os.path.isdir(dirname):
-            raise self.option_parser.error("must provide path to backup directory")
+            parser.error("must provide path to backup directory")
 
         if options.gpg_keyring:
             if (not os.path.exists(options.gpg_keyring + '.pub') or
-               not os.path.exists(options.gpg_keyring + '.sec')):
-                raise admintool.ScriptError('No such key %s' %
-                    options.gpg_keyring)
+                    not os.path.exists(options.gpg_keyring + '.sec')):
+                parser.error("no such key %s" % options.gpg_keyring)
 
 
     def ask_for_options(self):
@@ -212,38 +206,88 @@ class Restore(admintool.AdminTool):
         api.bootstrap(in_server=False, context='restore')
         api.finalize()
 
+        self.backup_dir = self.args[0]
+        if not os.path.isabs(self.backup_dir):
+            self.backup_dir = os.path.join(BACKUP_DIR, self.backup_dir)
+
         self.log.info("Preparing restore from %s on %s",
-            self.backup_dir, api.env.host)
+                      self.backup_dir, api.env.host)
 
-        if options.instance and options.backend:
-            database = (options.instance, options.backend)
-            if not os.path.exists(paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE %
-                                  database):
-                raise admintool.ScriptError(
-                    "Instance %s with backend %s does not exist" % database)
+        self.header = os.path.join(self.backup_dir, 'header')
 
-            databases = [database]
+        try:
+            self.read_header()
+        except IOError as e:
+            raise admintool.ScriptError("Cannot read backup metadata: %s" % e)
+
+        if options.data_only:
+            restore_type = 'DATA'
         else:
+            restore_type = self.backup_type
+
+        instances = [realm_to_serverid(api.env.realm), 'PKI-IPA']
+        backends = ['userRoot', 'ipaca']
+
+        # These checks would normally be in the validate method but
+        # we need to know the type of backup we're dealing with.
+        if restore_type == 'FULL':
+            if options.online:
+                raise admintool.ScriptError(
+                    "File restoration cannot be done online")
+            if options.instance or options.backend:
+                raise admintool.ScriptError(
+                    "Restore must be in data-only mode when restoring a "
+                    "specific instance or backend")
+        else:
+            installutils.check_server_configuration()
+
             if options.instance:
+                instance_dir = (paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE %
+                                options.instance)
+                if not os.path.exists(instance_dir):
+                    raise admintool.ScriptError(
+                        "Instance %s does not exist" % options.instance)
+
                 instances = [options.instance]
-            else:
-                instances = [realm_to_serverid(api.env.realm), 'PKI-IPA']
 
             if options.backend:
+                for instance in instances:
+                    db_dir = (paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE %
+                              (instance, options.backend))
+                    if os.path.exists(db_dir):
+                        break
+                else:
+                    raise admintool.ScriptError(
+                        "Backend %s does not exist" % options.backend)
+
                 backends = [options.backend]
+
+            for instance, backend in itertools.product(instances, backends):
+                db_dir = (paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE %
+                          (instance, backend))
+                if os.path.exists(db_dir):
+                    break
             else:
-                backends = ['userRoot', 'ipaca']
+                raise admintool.ScriptError(
+                    "Cannot restore a data backup into an empty system")
 
-            databases = []
-            for instance in instances:
-                for backend in backends:
-                    database = (instance, backend)
-                    if os.path.exists(paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE %
-                                      database):
-                        databases.append(database)
+        self.log.info("Performing %s restore from %s backup" %
+                      (restore_type, self.backup_type))
 
-            if options.data_only and not databases:
-                raise admintool.ScriptError('No instances to restore to')
+        if self.backup_host != api.env.host:
+            raise admintool.ScriptError(
+                "Host name %s does not match backup name %s" %
+                (api.env.host, self.backup_host))
+
+        if self.backup_ipa_version != str(version.VERSION):
+            self.log.warning(
+                "Restoring data from a different release of IPA.\n"
+                "Data is version %s.\n"
+                "Server is running %s." %
+                (self.backup_ipa_version, str(version.VERSION)))
+            if (not options.unattended and
+                    not user_input("Continue to restore?", False)):
+                raise admintool.ScriptError("Aborted")
 
         create_ds_user()
         pent = pwd.getpwnam(DS_USER)
@@ -257,46 +301,35 @@ class Restore(admintool.AdminTool):
 
         os.chown(self.dir, pent.pw_uid, pent.pw_gid)
 
-        self.header = os.path.join(self.backup_dir, 'header')
-
         cwd = os.getcwd()
         try:
             dirsrv = services.knownservices.dirsrv
 
-            try:
-                self.read_header()
-            except IOError as e:
-                raise admintool.ScriptError('Cannot read backup metadata: %s' % e)
-            # These two checks would normally be in the validate method but
-            # we need to know the type of backup we're dealing with.
-            if (self.backup_type != 'FULL' and not options.data_only and
-                not databases):
-                raise admintool.ScriptError('Cannot restore a data backup into an empty system')
-            if (self.backup_type == 'FULL' and not options.data_only and
-                (options.instance or options.backend)):
-                raise admintool.ScriptError('Restore must be in data-only mode when restoring a specific instance or backend.')
-            if self.backup_host != api.env.host:
-                raise admintool.ScriptError(
-                    'Host name %s does not match backup name %s' %
-                    (api.env.host, self.backup_host))
-            if self.backup_ipa_version != str(version.VERSION):
-                self.log.warning(
-                    "Restoring data from a different release of IPA.\n"
-                    "Data is version %s.\n"
-                    "Server is running %s." %
-                    (self.backup_ipa_version, str(version.VERSION)))
-                if (not options.unattended and
-                    not user_input("Continue to restore?", False)):
-                    raise admintool.ScriptError("Aborted")
-
             self.extract_backup(options.gpg_keyring)
 
-            for database in databases:
-                ldifname = '%s-%s.ldif' % database
-                ldiffile = os.path.join(self.dir, ldifname)
-                if not os.path.exists(ldiffile):
+            databases = []
+            for instance in instances:
+                for backend in backends:
+                    database = (instance, backend)
+                    ldiffile = os.path.join(self.dir, '%s-%s.ldif' % database)
+                    if os.path.exists(ldiffile):
+                        databases.append(database)
+
+            if options.instance:
+                for instance, backend in databases:
+                    if instance == options.instance:
+                        break
+                else:
                     raise admintool.ScriptError(
-                        "Instance %s with backend %s not in backup" % database)
+                        "Instance %s not found in backup" % options.instance)
+
+            if options.backend:
+                for instance, backend in databases:
+                    if backend == options.backend:
+                        break
+                else:
+                    raise admintool.ScriptError(
+                        "Backend %s not found in backup" % options.backend)
 
             # Big fat warning
             if  (not options.unattended and
@@ -315,7 +348,7 @@ class Restore(admintool.AdminTool):
             self.log.info("Disabling all replication.")
             self.disable_agreements()
 
-            if options.data_only:
+            if restore_type != 'FULL':
                 if not options.online:
                     self.log.info('Stopping Directory Server')
                     dirsrv.stop(capture_output=False)
@@ -332,11 +365,9 @@ class Restore(admintool.AdminTool):
 
 
             # We do either a full file restore or we restore data.
-            if self.backup_type == 'FULL' and not options.data_only:
+            if restore_type == 'FULL':
                 if 'CA' in self.backup_services:
                     create_ca_user()
-                if options.online:
-                    raise admintool.ScriptError('File restoration cannot be done online.')
                 self.cert_restore_prepare()
                 self.file_restore(options.no_logs)
                 self.cert_restore()
@@ -351,7 +382,7 @@ class Restore(admintool.AdminTool):
             for instance, backend in databases:
                 self.ldif2db(instance, backend, online=options.online)
 
-            if options.data_only:
+            if restore_type != 'FULL':
                 if not options.online:
                     self.log.info('Starting Directory Server')
                     dirsrv.start(capture_output=False)

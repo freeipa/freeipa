@@ -65,16 +65,16 @@ Restore the data only. The default is to restore everything in the backup.
 The full path to a GPG keyring. The keyring consists of two files, a public and a private key (.sec and .pub respectively). Specify the path without an extension.
 .TP
 \fB\-\-no\-logs\fR
-Exclude the IPA service log files in the backup (if they were backed up). Applicable only with a full backup.
+Exclude the IPA service log files in the backup (if they were backed up).
 .TP
 \fB\-\-online\fR
-Perform the restore on\-line. Requires the \-\-data option.
+Perform the restore on\-line. Requires data\-only backup or the \-\-data option.
 .TP
 \fB\-\-instance\fR=\fIINSTANCE\fR
-Restore only the databases in this 389\-ds instance. The default is to restore all found (at most this is the IPA REALM instance and the PKI\-IPA instance).
+Restore only the databases in this 389\-ds instance. The default is to restore all found (at most this is the IPA REALM instance and the PKI\-IPA instance). Requires data\-only backup or the \-\-data option.
 .TP
 \fB\-\-backend\fR=\fIBACKEND\fR
-The backend to restore within an instance or instances.
+The backend to restore within an instance or instances. Requires data\-only backup or the \-\-data option.
 .TP
 \fB\-\-v\fR, \fB\-\-verbose\fR
 Print debugging information
