@@ -691,8 +691,12 @@ class Restore(admintool.AdminTool):
         cainstance.CAInstance().stop_tracking_certificates(
             dogtag.configured_constants())
         httpinstance.HTTPInstance().stop_tracking_certificates()
-        dsinstance.DsInstance().stop_tracking_certificates(
-            realm_to_serverid(api.env.realm))
+        try:
+            dsinstance.DsInstance().stop_tracking_certificates(
+                realm_to_serverid(api.env.realm))
+        except OSError:
+            # When IPA is not installed, DS NSS DB does not exist
+            pass
 
         for basename in ('cert8.db', 'key3.db', 'secmod.db', 'pwdfile.txt'):
             filename = os.path.join(paths.IPA_NSSDB_DIR, basename)
