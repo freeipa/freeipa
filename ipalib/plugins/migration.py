@@ -140,7 +140,6 @@ _dn_err_msg = _('Malformed DN')
 
 _supported_schemas = (u'RFC2307bis', u'RFC2307')
 
-_compat_dn = DN(('cn', 'Schema Compatibility'), ('cn', 'plugins'), ('cn', 'config'))
 
 def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs):
     assert isinstance(dn, DN)
@@ -879,10 +878,8 @@ can use their Kerberos accounts.''')
         #check whether the compat plugin is enabled
         if not options.get('compat'):
             try:
-                check_compat = ldap.get_entry(_compat_dn)
-                if check_compat is not None and \
-                        check_compat.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
-                    return dict(result={}, failed={}, enabled=True, compat=False)
+                ldap.get_entry(DN(('cn', 'compat'), (api.env.basedn)))
+                return dict(result={}, failed={}, enabled=True, compat=False)
             except errors.NotFound:
                 pass
 
