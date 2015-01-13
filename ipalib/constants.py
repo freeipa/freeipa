@@ -147,7 +147,7 @@ DEFAULT_CONFIG = (
     ('debug', False),
     ('startup_traceback', False),
     ('mode', 'production'),
-    ('wait_for_dns', False),
+    ('wait_for_dns', 0),
 
     # CA plugin:
     ('ca_host', FQDN),  # Set in Env._finalize_core()
