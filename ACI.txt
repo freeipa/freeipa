@@ -269,6 +269,8 @@ aci: (targetattr = "krblastadminunlock || krblastfailedauth || krblastpwdchange 
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "memberof")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "ntuniqueid || ntuseracctexpires || ntusercodepage || ntuserdeleteaccount || ntuserdomainid || ntuserlastlogoff || ntuserlastlogon")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User NT Attributes";allow (compare,read,search) groupdn = "ldap:///cn=System: Read User NT Attributes,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || description || displayname || entryusn || gecos || gidnumber || givenname || homedirectory || initials || ipantsecurityidentifier || loginshell || manager || modifytimestamp || objectclass || sn || title || uid || uidnumber")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Read User Standard Attributes";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || entryusn || gecos || gidnumber || homedirectory || loginshell || modifytimestamp || objectclass || uid || uidnumber")(target = "ldap:///cn=users,cn=*,cn=views,cn=compat,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read User Views Compat Tree";allow (compare,read,search) userdn = "ldap:///anyone";)

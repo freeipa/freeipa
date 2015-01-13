@@ -373,10 +373,12 @@ class user(LDAPObject):
             'replaces': [
                 '(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "permission:Change a user password";allow (write) groupdn = "ldap:///cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX";)',
                 '(targetfilter = "(!(memberOf=cn=admins,cn=groups,cn=accounts,$SUFFIX))")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(targetattr = "userpassword || krbprincipalkey || sambalmpassword || sambantpassword || passwordhistory")(version 3.0;acl "permission:Change a user password";allow (write) groupdn = "ldap:///cn=Change a user password,cn=permissions,cn=pbac,$SUFFIX";)',
+                '(targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Windows PassSync service can write passwords"; allow (write) userdn="ldap:///uid=passsync,cn=sysaccounts,cn=etc,$SUFFIX";)',
             ],
             'default_privileges': {
                 'User Administrators',
                 'Modify Users and Reset passwords',
+                'PassSync Service',
             },
         },
         'System: Manage User SSH Public Keys': {
@@ -445,6 +447,16 @@ class user(LDAPObject):
                 'objectclass', 'uid', 'cn', 'gecos', 'gidnumber', 'uidnumber',
                 'homedirectory', 'loginshell',
             },
+        },
+        'System: Read User NT Attributes': {
+            'ipapermbindruletype': 'permission',
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'ntuserdomainid', 'ntuniqueid', 'ntuseracctexpires',
+                'ntusercodepage', 'ntuserdeleteaccount', 'ntuserlastlogoff',
+                'ntuserlastlogon',
+            },
+            'default_privileges': {'PassSync Service'},
         },
     }
 
