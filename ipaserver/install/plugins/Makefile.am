@@ -14,6 +14,7 @@ app_PYTHON = 			\
 	update_referint.py	\
 	ca_renewal_master.py	\
 	update_uniqueness.py	\
+	update_passsync.py	\
 	$(NULL)
 
 EXTRA_DIST =			\

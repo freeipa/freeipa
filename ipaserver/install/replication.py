@@ -528,39 +528,43 @@ class ReplicationManager(object):
         print "The user for the Windows PassSync service is %s" % pass_dn
         try:
             conn.get_entry(pass_dn)
-            print "Windows PassSync entry exists, not resetting password"
-            return
+            print "Windows PassSync system account exists, not resetting password"
         except errors.NotFound:
-            pass
+            # The user doesn't exist, add it
+            print "Adding Windows PassSync system account"
+            entry = conn.make_entry(
+                pass_dn,
+                objectclass=["account", "simplesecurityobject"],
+                uid=["passsync"],
+                userPassword=[password],
+            )
+            conn.add_entry(entry)
 
-        # The user doesn't exist, add it
-        entry = conn.make_entry(
-            pass_dn,
-            objectclass=["account", "simplesecurityobject"],
-            uid=["passsync"],
-            userPassword=[password],
-        )
-        conn.add_entry(entry)
-
-        # Add it to the list of users allowed to bypass password policy
+        # Add the user to the list of users allowed to bypass password policy
         extop_dn = DN(('cn', 'ipa_pwd_extop'), ('cn', 'plugins'), ('cn', 'config'))
         entry = conn.get_entry(extop_dn)
-        pass_mgrs = entry.get('passSyncManagersDNs')
-        if not pass_mgrs:
-            pass_mgrs = []
-        if not isinstance(pass_mgrs, list):
-            pass_mgrs = [pass_mgrs]
+        pass_mgrs = entry.get('passSyncManagersDNs', [])
         pass_mgrs.append(pass_dn)
         mod = [(ldap.MOD_REPLACE, 'passSyncManagersDNs', pass_mgrs)]
-        conn.modify_s(extop_dn, mod)
-
-        # And finally grant it permission to write passwords
-        mod = [(ldap.MOD_ADD, 'aci',
-            ['(targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Windows PassSync service can write passwords"; allow (write) userdn="ldap:///%s";)' % pass_dn])]
         try:
-            conn.modify_s(self.suffix, mod)
+            conn.modify_s(extop_dn, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
-            root_logger.debug("passsync aci already exists in suffix %s on %s" % (self.suffix, conn.host))
+            root_logger.debug("Plugin '%s' already '%s' in passSyncManagersDNs",
+                    extop_dn, pass_dn)
+
+        # And finally add it is a member of PassSync privilege to allow
+        # displaying user NT attributes and reset passwords
+        passsync_privilege_dn = DN(('cn','PassSync Service'),
+                api.env.container_privilege,
+                api.env.basedn)
+        members = entry.get('member', [])
+        members.append(pass_dn)
+        mod = [(ldap.MOD_REPLACE, 'member', members)]
+        try:
+            conn.modify_s(passsync_privilege_dn, mod)
+        except ldap.TYPE_OR_VALUE_EXISTS:
+            root_logger.debug("PassSync service '%s' already have '%s' as member",
+                    passsync_privilege_dn, pass_dn)
 
     def setup_winsync_agmt(self, entry, win_subtree=None):
         if win_subtree is None:
