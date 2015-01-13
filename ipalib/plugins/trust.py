@@ -508,6 +508,8 @@ sides.
             result['verified'])]
 
         del result['verified']
+        result['result'].pop('ipanttrustauthoutgoing', None)
+        result['result'].pop('ipanttrustauthincoming', None)
 
         return result
 
