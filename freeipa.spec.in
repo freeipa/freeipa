@@ -92,6 +92,8 @@ BuildRequires:  softhsm-devel >= 2.0.0b1-3
 BuildRequires:  openssl-devel
 BuildRequires:  p11-kit-devel
 BuildRequires:  pki-base >= 10.2.1-0.1
+BuildRequires:  python-pytest-multihost >= 0.5
+BuildRequires:  python-pytest-sourceorder
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -308,7 +310,7 @@ Requires: pytest >= 2.6
 Requires: python-paste
 Requires: python-coverage
 Requires: python-polib
-Requires: python-pytest-multihost >= 0.4
+Requires: python-pytest-multihost >= 0.5
 Requires: python-pytest-sourceorder
 
 Conflicts: %{alt_name}-tests
