@@ -172,7 +172,7 @@ class Restore(admintool.AdminTool):
 
         dirname = self.args[0]
         if not os.path.isabs(dirname):
-            dirname = os.path.join(BACKUP_DIR, dirname)
+            dirname = os.path.join(paths.IPA_BACKUP_DIR, dirname)
         if not os.path.isdir(dirname):
             parser.error("must provide path to backup directory")
 
@@ -207,7 +207,7 @@ class Restore(admintool.AdminTool):
 
         self.backup_dir = self.args[0]
         if not os.path.isabs(self.backup_dir):
-            self.backup_dir = os.path.join(BACKUP_DIR, self.backup_dir)
+            self.backup_dir = os.path.join(paths.IPA_BACKUP_DIR, self.backup_dir)
 
         self.log.info("Preparing restore from %s on %s",
                       self.backup_dir, api.env.host)
