@@ -462,156 +462,64 @@ class IPASimpleLDAPObject(object):
         else:
             raise TypeError("attempt to pass unsupported type from ldap, value=%s type=%s" %(val, type(val)))
 
-    def convert_result(self, result):
-        '''
-        result is a python-ldap result tuple of the form (dn, attrs),
-        where dn is a string containing the dn (distinguished name) of
-        the entry, and attrs is a dictionary containing the attributes
-        associated with the entry. The keys of attrs are strings, and
-        the associated values are lists of strings.
-
-        We convert the tuple to an LDAPEntry object.
-        '''
-
-        ipa_result = []
-        for dn_tuple in result:
-            original_dn = dn_tuple[0]
-            original_attrs = dn_tuple[1]
-
-            # original_dn is None if referral instead of an entry was
-            # returned from the LDAP server, we need to skip this item
-            if original_dn is None:
-                log_msg = 'Referral entry ignored: {ref}'\
-                          .format(ref=str(original_attrs))
-                self.log.debug(log_msg)
-
-                continue
-
-            ipa_entry = LDAPEntry(self, DN(original_dn))
-
-            for attr, original_values in original_attrs.items():
-                ipa_entry.raw[attr] = original_values
-            ipa_entry.reset_modlist()
-
-            ipa_result.append(ipa_entry)
-
-        if _debug_log_ldap:
-            self.log.debug('ldap.result: %s', ipa_result)
-        return ipa_result
-
     #---------- python-ldap emulations ----------
 
     def add(self, dn, modlist):
-        assert isinstance(dn, DN)
-        dn = str(dn)
-        modlist = self.encode(modlist)
         return self.conn.add(dn, modlist)
 
     def add_ext(self, dn, modlist, serverctrls=None, clientctrls=None):
-        assert isinstance(dn, DN)
-        dn = str(dn)
-        modlist = self.encode(modlist)
         return self.conn.add_ext(dn, modlist, serverctrls, clientctrls)
 
     def add_ext_s(self, dn, modlist, serverctrls=None, clientctrls=None):
-        assert isinstance(dn, DN)
-        dn = str(dn)
-        modlist = self.encode(modlist)
         return self.conn.add_ext_s(dn, modlist, serverctrls, clientctrls)
 
     def add_s(self, dn, modlist):
-        assert isinstance(dn, DN)
-        dn = str(dn)
-        modlist = self.encode(modlist)
         return self.conn.add_s(dn, modlist)
 
     def bind(self, who, cred, method=ldap.AUTH_SIMPLE):
         self.flush_cached_schema()
-        if who is None:
-            who = DN()
-        assert isinstance(who, DN)
-        who = str(who)
-        cred = self.encode(cred)
         return self.conn.bind(who, cred, method)
 
     def delete(self, dn):
-        assert isinstance(dn, DN)
-        dn = str(dn)
         return self.conn.delete(dn)
 
     def delete_s(self, dn):
-        assert isinstance(dn, DN)
-        dn = str(dn)
         return self.conn.delete_s(dn)
 
     def get_option(self, option):
         return self.conn.get_option(option)
 
     def modify_s(self, dn, modlist):
-        assert isinstance(dn, DN)
-        dn = str(dn)
-        modlist = [(x[0], self.encode(x[1]), self.encode(x[2])) for x in modlist]
         return self.conn.modify_s(dn, modlist)
 
     def modrdn_s(self, dn, newrdn, delold=1):
-        assert isinstance(dn, DN)
-        dn = str(dn)
-        assert isinstance(newrdn, (DN, RDN))
-        newrdn = str(newrdn)
         return self.conn.modrdn_s(dn, newrdn, delold)
 
     def passwd_s(self, dn, oldpw, newpw, serverctrls=None, clientctrls=None):
-        assert isinstance(dn, DN)
-        dn = str(dn)
-        oldpw = self.encode(oldpw)
-        newpw = self.encode(newpw)
         return self.conn.passwd_s(dn, oldpw, newpw, serverctrls, clientctrls)
 
     def rename_s(self, dn, newrdn, newsuperior=None, delold=1):
         # NOTICE: python-ldap of version 2.3.10 and lower does not support
         # serverctrls and clientctrls for rename_s operation. Thus, these
         # options are ommited from this command until really needed
-        assert isinstance(dn, DN)
-        dn = str(dn)
-        assert isinstance(newrdn, (DN, RDN))
-        newrdn = str(newrdn)
-        if newsuperior:
-            assert isinstance(newsuperior, DN)
-            newsuperior = str(newsuperior)
         return self.conn.rename_s(dn, newrdn, newsuperior, delold)
 
     def result(self, msgid=ldap.RES_ANY, all=1, timeout=None):
-        resp_type, resp_data = self.conn.result(msgid, all, timeout)
-        resp_data = self.convert_result(resp_data)
-        return resp_type, resp_data
+        return self.conn.result(msgid, all, timeout)
 
     def result3(self, msgid=ldap.RES_ANY, all=1, timeout=None):
-        rtype, rdata, rmsgid, rctrls = self.conn.result3(msgid, all, timeout)
-        rdata = self.convert_result(rdata)
-        return rtype, rdata, rmsgid, rctrls
+        return self.conn.result3(msgid, all, timeout)
 
     def sasl_interactive_bind_s(self, who, auth, serverctrls=None,
                                 clientctrls=None, sasl_flags=ldap.SASL_QUIET):
         self.flush_cached_schema()
-        if who is None:
-            who = DN()
-        assert isinstance(who, DN)
-        who = str(who)
-        return self.conn.sasl_interactive_bind_s(who, auth, serverctrls, clientctrls, sasl_flags)
+        return self.conn.sasl_interactive_bind_s(who, auth, serverctrls,
+                                                 clientctrls, sasl_flags)
 
     def search(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
-        assert isinstance(base, DN)
-        base = str(base)
-        filterstr = self.encode(filterstr)
-        attrlist = self.encode(attrlist)
         return self.conn.search(base, scope, filterstr, attrlist, attrsonly)
 
     def search_ext(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0, serverctrls=None, clientctrls=None, timeout=-1, sizelimit=0):
-        assert isinstance(base, DN)
-        base = str(base)
-        filterstr = self.encode(filterstr)
-        attrlist = self.encode(attrlist)
-
         if _debug_log_ldap:
             self.log.debug(
                 "ldap.search_ext: dn: %s\nfilter: %s\nattrs_list: %s",
@@ -621,42 +529,23 @@ class IPASimpleLDAPObject(object):
         return self.conn.search_ext(base, scope, filterstr, attrlist, attrsonly, serverctrls, clientctrls, timeout, sizelimit)
 
     def search_ext_s(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0, serverctrls=None, clientctrls=None, timeout=-1, sizelimit=0):
-        assert isinstance(base, DN)
-        base = str(base)
-        filterstr = self.encode(filterstr)
-        attrlist = self.encode(attrlist)
-        ldap_result = self.conn.search_ext_s(base, scope, filterstr, attrlist, attrsonly, serverctrls, clientctrls, timeout, sizelimit)
-        ipa_result = self.convert_result(ldap_result)
-        return ipa_result
+        return self.conn.search_ext_s(base, scope, filterstr, attrlist,
+                                      attrsonly, serverctrls, clientctrls,
+                                      timeout, sizelimit)
 
     def search_s(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0):
-        assert isinstance(base, DN)
-        base = str(base)
-        filterstr = self.encode(filterstr)
-        attrlist = self.encode(attrlist)
-        ldap_result = self.conn.search_s(base, scope, filterstr, attrlist, attrsonly)
-        ipa_result = self.convert_result(ldap_result)
-        return ipa_result
+        return self.conn.search_s(base, scope, filterstr, attrlist,
+                                  attrsonly)
 
     def search_st(self, base, scope, filterstr='(objectClass=*)', attrlist=None, attrsonly=0, timeout=-1):
-        assert isinstance(base, DN)
-        base = str(base)
-        filterstr = self.encode(filterstr)
-        attrlist = self.encode(attrlist)
-        ldap_result = self.conn.search_st(base, scope, filterstr, attrlist, attrsonly, timeout)
-        ipa_result = self.convert_result(ldap_result)
-        return ipa_result
+        return self.conn.search_st(base, scope, filterstr, attrlist, attrsonly,
+                                   timeout)
 
     def set_option(self, option, invalue):
         return self.conn.set_option(option, invalue)
 
     def simple_bind_s(self, who=None, cred='', serverctrls=None, clientctrls=None):
         self.flush_cached_schema()
-        if who is None:
-            who = DN()
-        assert isinstance(who, DN)
-        who = str(who)
-        cred = self.encode(cred)
         return self.conn.simple_bind_s(who, cred, serverctrls, clientctrls)
 
     def start_tls_s(self):
@@ -1103,6 +992,49 @@ class LDAPClient(object):
     def conn(self):
         return self._conn
 
+    def encode(self, val):
+        return self.conn.encode(val)
+
+    def decode(self, val, attr):
+        return self.conn.decode(val, attr)
+
+    def _convert_result(self, result):
+        '''
+        result is a python-ldap result tuple of the form (dn, attrs),
+        where dn is a string containing the dn (distinguished name) of
+        the entry, and attrs is a dictionary containing the attributes
+        associated with the entry. The keys of attrs are strings, and
+        the associated values are lists of strings.
+
+        We convert the tuple to an LDAPEntry object.
+        '''
+
+        ipa_result = []
+        for dn_tuple in result:
+            original_dn = dn_tuple[0]
+            original_attrs = dn_tuple[1]
+
+            # original_dn is None if referral instead of an entry was
+            # returned from the LDAP server, we need to skip this item
+            if original_dn is None:
+                log_msg = 'Referral entry ignored: {ref}'\
+                          .format(ref=str(original_attrs))
+                self.log.debug(log_msg)
+
+                continue
+
+            ipa_entry = LDAPEntry(self.conn, DN(original_dn))
+
+            for attr, original_values in original_attrs.items():
+                ipa_entry.raw[attr] = original_values
+            ipa_entry.reset_modlist()
+
+            ipa_result.append(ipa_entry)
+
+        if _debug_log_ldap:
+            self.log.debug('ldap.result: %s', ipa_result)
+        return ipa_result
+
     @contextlib.contextmanager
     def error_handler(self, arg_desc=None):
         """Context manager that handles LDAPErrors
@@ -1244,6 +1176,11 @@ class LDAPClient(object):
         Perform simple bind operation.
         """
         with self.error_handler():
+            if bind_dn is None:
+                bind_dn = DN()
+            assert isinstance(bind_dn, DN)
+            bind_dn = str(bind_dn)
+            bind_password = self.encode(bind_password)
             self._conn.simple_bind_s(
                 bind_dn, bind_password, server_controls, client_controls)
 
@@ -1255,7 +1192,7 @@ class LDAPClient(object):
         with self.error_handler():
             auth_tokens = ldap.sasl.external(user_name)
             self._conn.sasl_interactive_bind_s(
-                None, auth_tokens, server_controls, client_controls)
+                '', auth_tokens, server_controls, client_controls)
 
     def gssapi_bind(self, server_controls=None, client_controls=None):
         """
@@ -1264,7 +1201,7 @@ class LDAPClient(object):
         with self.error_handler():
             auth_tokens = ldap.sasl.sasl({}, 'GSSAPI')
             self._conn.sasl_interactive_bind_s(
-                None, auth_tokens, server_controls, client_controls)
+                '', auth_tokens, server_controls, client_controls)
 
     def unbind(self):
         """
@@ -1504,19 +1441,23 @@ class LDAPClient(object):
 
         # pass arguments to python-ldap
         with self.error_handler():
+            filter = self.encode(filter)
+            attrs_list = self.encode(attrs_list)
+
             while True:
                 if paged_search:
                     sctrls = [SimplePagedResultsControl(0, page_size, cookie)]
 
                 try:
                     id = self.conn.search_ext(
-                        base_dn, scope, filter, attrs_list,
+                        str(base_dn), scope, filter, attrs_list,
                         serverctrls=sctrls, timeout=time_limit,
                         sizelimit=size_limit
                     )
                     while True:
                         result = self.conn.result3(id, 0)
                         objtype, res_list, res_id, res_ctrls = result
+                        res_list = self._convert_result(res_list)
                         if not res_list:
                             break
                         if (objtype == ldap.RES_SEARCH_ENTRY or
@@ -1538,7 +1479,7 @@ class LDAPClient(object):
                         sctrls = [SimplePagedResultsControl(0, 0, cookie)]
                         try:
                             self.conn.search_ext_s(
-                                base_dn, scope, filter, attrs_list,
+                                str(base_dn), scope, filter, attrs_list,
                                 serverctrls=sctrls, timeout=time_limit,
                                 sizelimit=size_limit)
                         except ldap.LDAPError, e:
@@ -1616,7 +1557,8 @@ class LDAPClient(object):
         attrs = dict((k, v) for k, v in entry.raw.iteritems() if v)
 
         with self.error_handler():
-            self.conn.add_s(entry.dn, attrs.items())
+            attrs = self.encode(attrs)
+            self.conn.add_s(str(entry.dn), attrs.items())
 
         entry.reset_modlist()
 
@@ -1644,10 +1586,10 @@ class LDAPClient(object):
         if new_dn[1:] == dn[1:]:
             new_superior = None
         else:
-            new_superior = DN(*new_dn[1:])
+            new_superior = str(DN(*new_dn[1:]))
 
         with self.error_handler():
-            self.conn.rename_s(dn, new_rdn, newsuperior=new_superior,
+            self.conn.rename_s(str(dn), str(new_rdn), newsuperior=new_superior,
                                delold=int(del_old))
             time.sleep(.3)  # Give memberOf plugin a chance to work
 
@@ -1663,7 +1605,9 @@ class LDAPClient(object):
 
         # pass arguments to python-ldap
         with self.error_handler():
-            self.conn.modify_s(entry.dn, modlist)
+            modlist = [(a, self.encode(b), self.encode(c))
+                       for a, b, c in modlist]
+            self.conn.modify_s(str(entry.dn), modlist)
 
         entry.reset_modlist()
 
@@ -1675,7 +1619,7 @@ class LDAPClient(object):
             dn = entry_or_dn.dn
 
         with self.error_handler():
-            self.conn.delete_s(dn)
+            self.conn.delete_s(str(dn))
 
     def entry_exists(self, dn):
         """
@@ -1814,6 +1758,9 @@ class IPAdmin(LDAPClient):
         #fall back
         self.do_sasl_gssapi_bind(timeout=timeout)
 
-    def modify_s(self, *args, **kwargs):
+    def modify_s(self, dn, modlist):
         # FIXME: for backwards compatibility only
-        return self.conn.modify_s(*args, **kwargs)
+        assert isinstance(dn, DN)
+        dn = str(dn)
+        modlist = [(a, self.encode(b), self.encode(c)) for a, b, c in modlist]
+        return self.conn.modify_s(dn, modlist)

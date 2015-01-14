@@ -360,9 +360,11 @@ class ldap2(LDAPClient, CrudBackend):
                     ('cn', 'etc'), self.api.env.basedn)
 
         try:
-            upg_entries = self.conn.search_s(upg_dn, _ldap.SCOPE_BASE,
-                                             attrlist=['*'])
-        except _ldap.NO_SUCH_OBJECT:
+            with self.error_handler():
+                upg_entries = self.conn.search_s(str(upg_dn), _ldap.SCOPE_BASE,
+                                                 attrlist=['*'])
+                upg_entries = self._convert_result(upg_entries)
+        except errors.NotFound:
             upg_entries = None
         if not upg_entries or 'originfilter' not in upg_entries[0]:
             raise errors.ACIError(info=_(
@@ -477,7 +479,9 @@ class ldap2(LDAPClient, CrudBackend):
                 conn.unbind()
 
         with self.error_handler():
-            self.conn.passwd_s(dn, old_pass, new_pass)
+            old_pass = self.encode(old_pass)
+            new_pass = self.encode(new_pass)
+            self.conn.passwd_s(str(dn), old_pass, new_pass)
 
     def add_entry_to_group(self, dn, group_dn, member_attr='member', allow_same=False):
         """
@@ -509,7 +513,9 @@ class ldap2(LDAPClient, CrudBackend):
         # update group entry
         try:
             with self.error_handler():
-                self.conn.modify_s(group_dn, modlist)
+                modlist = [(a, self.encode(b), self.encode(c))
+                           for a, b, c in modlist]
+                self.conn.modify_s(str(group_dn), modlist)
         except errors.DatabaseError:
             raise errors.AlreadyGroupMember()
 
@@ -529,7 +535,9 @@ class ldap2(LDAPClient, CrudBackend):
         # update group entry
         try:
             with self.error_handler():
-                self.conn.modify_s(group_dn, modlist)
+                modlist = [(a, self.encode(b), self.encode(c))
+                           for a, b, c in modlist]
+                self.conn.modify_s(str(group_dn), modlist)
         except errors.MidairCollision:
             raise errors.NotGroupMember()
 
@@ -583,7 +591,7 @@ class ldap2(LDAPClient, CrudBackend):
                (_ldap.MOD_REPLACE, 'krblastpwdchange', None)]
 
         with self.error_handler():
-            self.conn.modify_s(dn, mod)
+            self.conn.modify_s(str(dn), mod)
 
     # CrudBackend methods
 
