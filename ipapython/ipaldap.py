@@ -571,7 +571,7 @@ class LDAPEntry(collections.MutableMapping):
           * LDAPEntry(dn, entry) - create a shallow copy of an existing
             LDAPEntry with a different DN.
           * LDAPEntry(conn, dn, mapping) - create a new LDAPEntry using the
-            specified IPASimpleLDAPObject and DN and optionally initialize
+            specified LDAPClient and DN and optionally initialize
             attributes from the specified mapping object.
 
         Keyword arguments can be used to override values of specific attributes.
@@ -582,7 +582,7 @@ class LDAPEntry(collections.MutableMapping):
             assert _dn is None
             _dn = _conn
             _conn = _conn._conn
-        assert isinstance(_conn, IPASimpleLDAPObject)
+        assert isinstance(_conn, LDAPClient)
 
         if isinstance(_dn, LDAPEntry):
             assert _obj is None
@@ -992,6 +992,9 @@ class LDAPClient(object):
     def conn(self):
         return self._conn
 
+    def get_single_value(self, attr):
+        return self.conn.get_single_value(attr)
+
     def encode(self, val):
         return self.conn.encode(val)
 
@@ -1023,7 +1026,7 @@ class LDAPClient(object):
 
                 continue
 
-            ipa_entry = LDAPEntry(self.conn, DN(original_dn))
+            ipa_entry = LDAPEntry(self, DN(original_dn))
 
             for attr, original_values in original_attrs.items():
                 ipa_entry.raw[attr] = original_values
@@ -1240,7 +1243,7 @@ class LDAPClient(object):
         return DN((primary_key, entry_attrs[primary_key]), parent_dn)
 
     def make_entry(self, _dn=None, _obj=None, **kwargs):
-        return LDAPEntry(self.conn, _dn, _obj, **kwargs)
+        return LDAPEntry(self, _dn, _obj, **kwargs)
 
     # generating filters for find_entry
     # some examples:

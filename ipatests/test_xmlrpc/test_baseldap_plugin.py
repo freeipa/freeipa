@@ -187,7 +187,13 @@ def test_entry_to_dict():
             self._schema = FakeSchema()
             self._has_schema = True
 
-    conn = FakeIPASimpleLDAPObject()
+    class FakeLDAPClient(ipaldap.LDAPClient):
+        def __init__(self):
+            super(FakeLDAPClient, self).__init__('ldap://test',
+                                                 force_schema_updates=False)
+            self._conn = FakeIPASimpleLDAPObject()
+
+    conn = FakeLDAPClient()
     rights = {'nothing': 'is'}
 
     entry = ipaldap.LDAPEntry(
