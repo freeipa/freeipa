@@ -395,6 +395,19 @@ class otptoken_mod(LDAPUpdate):
                                       error='is after the validity end')
         _normalize_owner(self.api.Object.user, entry_attrs)
 
+        # ticket #4681: if the owner of the token is changed and the
+        # user also manages this token, then we should automatically
+        # set the 'managedby' attribute to the new owner
+        if 'ipatokenowner' in entry_attrs and 'managedby' not in entry_attrs:
+            new_owner = entry_attrs.get('ipatokenowner', None)
+            prev_entry = ldap.get_entry(dn, attrs_list=['ipatokenowner',
+                                                        'managedby'])
+            prev_owner = prev_entry.get('ipatokenowner', None)
+            prev_managedby = prev_entry.get('managedby', None)
+
+            if (new_owner != prev_owner) and (prev_owner == prev_managedby):
+                entry_attrs.setdefault('managedby', new_owner)
+
         attrs_list.append("objectclass")
         return dn
 
