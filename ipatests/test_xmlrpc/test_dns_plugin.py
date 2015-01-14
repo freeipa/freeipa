@@ -59,6 +59,21 @@ zone1_permission_dn = DN(('cn',zone1_permission),
                             api.env.container_permission,api.env.basedn)
 zone1_txtrec_dn = DN(('idnsname', '_kerberos'), zone1_dn)
 
+zone1_sub = u'sub.%s' % zone1_absolute
+zone1_sub_dnsname = DNSName(zone1_sub)
+zone1_sub_dn = DN(('idnsname', zone1_sub),
+                  api.env.container_dns, api.env.basedn)
+
+zone1_sub_fw = u'fw.%s' % zone1_sub
+zone1_sub_fw_dnsname = DNSName(zone1_sub_fw)
+zone1_sub_fw_dn = DN(('idnsname', zone1_sub_fw),
+                     api.env.container_dns, api.env.basedn)
+
+zone1_sub2_fw = u'fw.sub2.%s' % zone1_sub
+zone1_sub2_fw_dnsname = DNSName(zone1_sub2_fw)
+zone1_sub2_fw_dn = DN(('idnsname', zone1_sub2_fw),
+                      api.env.container_dns, api.env.basedn)
+
 zone2 = u'zone2.test'
 zone2_dnsname = DNSName(zone2)
 zone2_absolute = u'%s.' % zone2
@@ -4659,6 +4674,459 @@ class test_forward_master_zones_mutual_exlusion(Declarative):
                         name='dnszoneidnsname',
                         error=(u'only master zones can contain records')
                     ),
+        ),
+
+    ]
+
+
+class test_forwardzone_delegation_warnings(Declarative):
+
+    @classmethod
+    def setup_class(cls):
+        super(test_forwardzone_delegation_warnings, cls).setup_class()
+
+        if not api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.connect(fallback=False)
+
+        if not have_ldap2:
+            raise nose.SkipTest('server plugin not available')
+
+        try:
+            api.Command['dnszone_add'](zone1, idnssoarname=zone1_rname,)
+            api.Command['dnszone_del'](zone1)
+        except errors.NotFound:
+            raise nose.SkipTest('DNS is not configured')
+        except errors.DuplicateEntry:
+            pass
+
+
+    cleanup_commands = [
+        ('dnsforwardzone_del', [zone1_sub_fw, zone1_sub2_fw],
+            {'continue': True}),
+        ('dnszone_del', [zone1, zone1_sub],
+            {'continue': True}),
+    ]
+
+    tests = [
+
+        dict(
+            desc='Create forward zone %r without forwarders with "none" '
+                 'policy' % zone1_sub_fw,
+            command=(
+                'dnsforwardzone_add', [zone1_sub_fw],
+                {'idnsforwardpolicy': u'none'}
+            ),
+            expected={
+                'value': zone1_sub_fw_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone1_sub_fw_dn,
+                    'idnsname': [zone1_sub_fw_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'none'],
+                    'objectclass': objectclasses.dnsforwardzone,
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Create zone %r (expected warning for %r)' % (zone1,
+                                                               zone1_sub_fw),
+            command=(
+                'dnszone_add', [zone1_absolute], {}
+            ),
+            expected={
+                'value': zone1_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone1_dn,
+                    'idnsname': [zone1_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': lambda x: True,  # don't care in this test
+                    'nsrecord': lambda x: True,  # don't care in this test
+                    'idnssoarname': lambda x: True,  # don't care in this test
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': lambda x: True,  # don't care in this test
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+                'messages': (
+                    {'message': u'forward zone "fw.sub.dnszone.test." is not '
+                                 u'effective because of missing proper NS '
+                                 u'delegation in authoritative zone '
+                                 u'"dnszone.test.". Please add NS record '
+                                 u'"fw.sub" to parent zone "dnszone.test.".',
+                     'code': 13008,
+                     'type': u'warning',
+                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                ),
+            },
+        ),
+
+
+        dict(
+            desc='Create zone %r (expected warning for %r)' % (zone1_sub,
+                                                               zone1_sub_fw),
+            command=(
+                'dnszone_add', [zone1_sub], {}
+            ),
+            expected={
+                'value': zone1_sub_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone1_sub_dn,
+                    'idnsname': [zone1_sub_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': lambda x: True,  # don't care in this test
+                    'nsrecord': lambda x: True,  # don't care in this test
+                    'idnssoarname': lambda x: True,  # don't care in this test
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': lambda x: True,  # don't care in this test
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+                'messages': (
+                    {'message': u'forward zone "fw.sub.dnszone.test." is not '
+                                u'effective because of missing proper NS '
+                                u'delegation in authoritative zone '
+                                u'"sub.dnszone.test.". Please add NS record '
+                                u'"fw" to parent zone "sub.dnszone.test.".',
+                     'code': 13008,
+                     'type': u'warning',
+                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                ),
+            },
+        ),
+
+
+        dict(
+            desc='Disable zone %r (expected warning for %r)' % (zone1_sub,
+                                                                zone1_sub_fw),
+            command=(
+                'dnszone_disable', [zone1_sub], {}
+            ),
+            expected={
+                'value': zone1_sub_dnsname,
+                'summary': u'Disabled DNS zone "%s"' % zone1_sub,
+                'result': True,
+                'messages': (
+                    {'message': u'forward zone "fw.sub.dnszone.test." is not '
+                                u'effective because of missing proper NS '
+                                u'delegation in authoritative zone '
+                                u'"dnszone.test.". Please add NS record '
+                                u'"fw.sub" to parent zone "dnszone.test.".',
+                     'code': 13008,
+                     'type': u'warning',
+                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                ),
+            },
+        ),
+
+
+        dict(
+            desc='Enable zone %r (expected warning for %r)' % (zone1_sub,
+                                                               zone1_sub_fw),
+            command=(
+                'dnszone_enable', [zone1_sub], {}
+            ),
+            expected={
+                'value': zone1_sub_dnsname,
+                'summary': u'Enabled DNS zone "%s"' % zone1_sub,
+                'result': True,
+                'messages': (
+                    {'message': u'forward zone "fw.sub.dnszone.test." is not '
+                                u'effective because of missing proper NS '
+                                u'delegation in authoritative zone '
+                                u'"sub.dnszone.test.". Please add NS record '
+                                u'"fw" to parent zone "sub.dnszone.test.".',
+                     'code': 13008,
+                     'type': u'warning',
+                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                ),
+            },
+        ),
+
+
+        dict(
+            desc='Disable forward zone %r' % (zone1_sub_fw),
+            command=(
+                'dnsforwardzone_disable', [zone1_sub_fw], {}
+            ),
+            expected={
+                'value': zone1_sub_fw_dnsname,
+                'summary': u'Disabled DNS forward zone "%s"' % zone1_sub_fw,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Enable forward zone %r (expected warning for %r)' % (
+                zone1_sub_fw, zone1_sub_fw),
+            command=(
+                'dnsforwardzone_enable', [zone1_sub_fw], {}
+            ),
+            expected={
+                'value': zone1_sub_fw_dnsname,
+                'summary': u'Enabled DNS forward zone "%s"' % zone1_sub_fw,
+                'result': True,
+                'messages': (
+                    {'message': u'forward zone "fw.sub.dnszone.test." is not '
+                                u'effective because of missing proper NS '
+                                u'delegation in authoritative zone '
+                                u'"sub.dnszone.test.". Please add NS record '
+                                u'"fw" to parent zone "sub.dnszone.test.".',
+                     'code': 13008,
+                     'type': u'warning',
+                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                ),
+            },
+        ),
+
+
+        dict(
+            desc='Delegate zone %r from zone %r using NS record' % (
+                zone1_sub_fw, zone1_sub),
+            command=('dnsrecord_add', [zone1_sub, u'fw'],
+                     {'nsrecord': self_server_ns}),
+            expected={
+                'value': DNSName(u'fw'),
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnsrecord,
+                    'dn': DN(('idnsname', u'fw'), zone1_sub_dn),
+                    'idnsname': [DNSName(u'fw')],
+                    'nsrecord': [self_server_ns],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Disable zone %r (expected warning for %r)' % (zone1_sub,
+                                                                zone1_sub_fw),
+            command=(
+                'dnszone_disable', [zone1_sub], {}
+            ),
+            expected={
+                'value': zone1_sub_dnsname,
+                'summary': u'Disabled DNS zone "%s"' % zone1_sub,
+                'result': True,
+                'messages': (
+                    {'message': u'forward zone "fw.sub.dnszone.test." is not '
+                                u'effective because of missing proper NS '
+                                u'delegation in authoritative zone '
+                                u'"dnszone.test.". Please add NS record '
+                                u'"fw.sub" to parent zone "dnszone.test.".',
+                     'code': 13008,
+                     'type': u'warning',
+                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                ),
+            },
+        ),
+
+
+        dict(
+            desc='Enable zone %r' % (zone1_sub),
+            command=(
+                'dnszone_enable', [zone1_sub], {}
+            ),
+            expected={
+                'value': zone1_sub_dnsname,
+                'summary': u'Enabled DNS zone "%s"' % zone1_sub,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Delete NS record which delegates zone %r from zone %r '
+                 '(expected warning for %r)' % (zone1_sub_fw,
+                                                zone1_sub, zone1_sub_fw),
+            command=('dnsrecord_del', [zone1_sub, u'fw'],
+                     {'del_all': True}),
+            expected={
+                'value': [DNSName(u'fw')],
+                'summary': u'Deleted record "fw"',
+                'result': {
+                    'failed': [],
+                },
+                'messages': (
+                    {'message': u'forward zone "fw.sub.dnszone.test." is not '
+                                u'effective because of missing proper NS '
+                                u'delegation in authoritative zone '
+                                u'"sub.dnszone.test.". Please add NS record '
+                                u'"fw" to parent zone "sub.dnszone.test.".',
+                     'code': 13008,
+                     'type': u'warning',
+                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                ),
+            },
+        ),
+
+
+        dict(
+            desc='Create forward zone %r without forwarders with "none" '
+                 'policy (expected warning)' % zone1_sub2_fw,
+            command=(
+                'dnsforwardzone_add', [zone1_sub2_fw],
+                {'idnsforwardpolicy': u'none'}
+            ),
+            expected={
+                'value': zone1_sub2_fw_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone1_sub2_fw_dn,
+                    'idnsname': [zone1_sub2_fw_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnsforwardpolicy': [u'none'],
+                    'objectclass': objectclasses.dnsforwardzone,
+                },
+                'messages': (
+                    {'message': u'forward zone "fw.sub2.sub.dnszone.test." '
+                                u'is not effective because of missing proper '
+                                u'NS delegation in authoritative zone '
+                                u'"sub.dnszone.test.". Please add NS record '
+                                u'"fw.sub2" to parent zone '
+                                u'"sub.dnszone.test.".',
+                     'code': 13008,
+                     'type': u'warning',
+                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                ),
+            },
+        ),
+
+
+        dict(
+            desc='Delegate zone %r from zone %r using NS record' % (
+                zone1_sub2_fw, zone1_sub),
+            command=('dnsrecord_add', [zone1_sub, u'fw.sub2'],
+                     {'nsrecord': self_server_ns}),
+            expected={
+                'value': DNSName(u'fw.sub2'),
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnsrecord,
+                    'dn': DN(('idnsname', u'fw.sub2'), zone1_sub_dn),
+                    'idnsname': [DNSName(u'fw.sub2')],
+                    'nsrecord': [self_server_ns],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Disable forward zone %r' % (zone1_sub2_fw),
+            command=(
+                'dnsforwardzone_disable', [zone1_sub2_fw], {}
+            ),
+            expected={
+                'value': zone1_sub2_fw_dnsname,
+                'summary': u'Disabled DNS forward zone "%s"' % zone1_sub2_fw,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Enable forward zone %r' % (zone1_sub2_fw),
+            command=(
+                'dnsforwardzone_enable', [zone1_sub2_fw], {}
+            ),
+            expected={
+                'value': zone1_sub2_fw_dnsname,
+                'summary': u'Enabled DNS forward zone "%s"' % zone1_sub2_fw,
+                'result': True,
+            },
+        ),
+
+
+        dict(
+            desc='Delete zone %r (expected warning for %r, %r)' % (
+                zone1_sub, zone1_sub_fw, zone1_sub2_fw),
+            command=('dnszone_del', [zone1_sub], {}),
+            expected={
+                'value': [zone1_sub_dnsname],
+                'summary': u'Deleted DNS zone "%s"' % zone1_sub,
+                'result': {'failed': []},
+                'messages': (
+                    {'message': u'forward zone "fw.sub.dnszone.test." is not '
+                                u'effective because of missing proper NS '
+                                u'delegation in authoritative zone '
+                                u'"dnszone.test.". Please add NS record '
+                                u'"fw.sub" to parent zone "dnszone.test.".',
+                     'code': 13008,
+                     'type': u'warning',
+                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                    {'message': u'forward zone "fw.sub2.sub.dnszone.test." '
+                                 u'is not effective because of missing proper '
+                                 u'NS delegation in authoritative zone '
+                                 u'"dnszone.test.". Please add NS record '
+                                 u'"fw.sub2.sub" to parent zone '
+                                 u'"dnszone.test.".',
+                     'code': 13008,
+                     'type': u'warning',
+                     'name': u'ForwardzoneIsNotEffectiveWarning'}
+                ),
+            },
+        ),
+
+
+        dict(
+            desc='Delegate zone %r from zone %r using NS record' % (
+                zone1_sub2_fw, zone1),
+            command=('dnsrecord_add', [zone1, u'fw.sub2.sub'],
+                     {'nsrecord': self_server_ns}),
+            expected={
+                'value': DNSName(u'fw.sub2.sub'),
+                'summary': None,
+                'result': {
+                    'objectclass': objectclasses.dnsrecord,
+                    'dn': DN(('idnsname', u'fw.sub2.sub'), zone1_dn),
+                    'idnsname': [DNSName(u'fw.sub2.sub')],
+                    'nsrecord': [self_server_ns],
+                },
+            },
+        ),
+
+
+        dict(
+            desc='Delete (using dnsrecord-mod) NS record which delegates '
+                 'zone %r from zone %r (expected warning for %r)' % (
+                zone1_sub2_fw, zone1, zone1_sub2_fw),
+            command=('dnsrecord_mod', [zone1, u'fw.sub2.sub'],
+                     {'nsrecord': None}),
+            expected={
+                'value': DNSName(u'fw.sub2.sub'),
+                'summary': u'Deleted record "fw.sub2.sub"',
+                'result': {
+                    'failed': [],
+                },
+                'messages': (
+                    {'message': u'forward zone "fw.sub2.sub.dnszone.test." is '
+                                u'not effective because of missing proper NS '
+                                u'delegation in authoritative zone '
+                                u'"dnszone.test.". Please add NS record '
+                                u'"fw.sub2.sub" to parent zone '
+                                u'"dnszone.test.".',
+                     'code': 13008,
+                     'type': u'warning',
+                     'name': u'ForwardzoneIsNotEffectiveWarning'},
+                ),
+            },
         ),
 
     ]
