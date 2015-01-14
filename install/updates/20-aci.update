@@ -26,7 +26,7 @@ dn: $SUFFIX
 add:aci:'(targetfilter="(&(objectclass=nsContainer)(!(objectclass=krbPwdPolicy)))")(target!="ldap:///cn=masters,cn=ipa,cn=etc,$SUFFIX")(targetattr="objectclass || cn")(version 3.0; acl "Anonymous read access to containers"; allow(read, search, compare) userdn = "ldap:///anyone";)'
 
 dn: cn=replicas,cn=ipa,cn=etc,$SUFFIX
-add:aci:'(targetfilter="(objectclass=nsContainer)")(version 3.0; acl "Deny read access to replica configuration"; deny(read, search, compare) userdn = "ldap:///anyone";)'
+remove:aci:'(targetfilter="(objectclass=nsContainer)")(version 3.0; acl "Deny read access to replica configuration"; deny(read, search, compare) userdn = "ldap:///anyone";)'
 
 # Read access to masters and their services
 dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
