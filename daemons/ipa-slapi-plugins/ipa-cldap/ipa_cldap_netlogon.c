@@ -154,7 +154,7 @@ char *make_netbios_name(TALLOC_CTX *mem_ctx, const char *s)
 }
 
 #define NETLOGON_SAM_LOGON_RESPONSE_EX_pusher \
-            (ndr_push_flags_fn_t)ndr_push_NETLOGON_SAM_LOGON_RESPONSE_EX
+            (ndr_push_flags_fn_t)ndr_push_NETLOGON_SAM_LOGON_RESPONSE_EX_with_flags
 
 static int ipa_cldap_encode_netlogon(char *fq_hostname, char *domain,
                                      char *guid, char *sid, char *name,
@@ -170,7 +170,7 @@ static int ipa_cldap_encode_netlogon(char *fq_hostname, char *domain,
         return ENOMEM;
     }
 
-    if (!(ntver & NETLOGON_NT_VERSION_5EX)) {
+    if (!(ntver & (NETLOGON_NT_VERSION_5EX|NETLOGON_NT_VERSION_5EX_WITH_IP))) {
         ret = EINVAL;
         goto done;
     }
@@ -197,12 +197,17 @@ static int ipa_cldap_encode_netlogon(char *fq_hostname, char *domain,
     nlr->server_site = "Default-First-Site-Name";
     nlr->client_site = "Default-First-Site-Name";
     /* nlr->sockaddr_size (filled in by ndr_push) */
-    nlr->sockaddr.sockaddr_family = 2;
-    nlr->sockaddr.pdc_ip = "127.0.0.1";
-    nlr->sockaddr.remaining.length = 8;
-    nlr->sockaddr.remaining.data = talloc_zero_size(nlr, 8);
-    /* nlr->next_closest_site */
+
     nlr->nt_version = NETLOGON_NT_VERSION_5EX|NETLOGON_NT_VERSION_1;
+    if (ntver & NETLOGON_NT_VERSION_5EX_WITH_IP) {
+        nlr->nt_version |= NETLOGON_NT_VERSION_5EX_WITH_IP;
+        nlr->sockaddr.sockaddr_family = 2;
+        nlr->sockaddr.pdc_ip = "127.0.0.1";
+        nlr->sockaddr.remaining.length = 8;
+        nlr->sockaddr.remaining.data = talloc_zero_size(nlr, 8);
+    }
+
+    /* nlr->next_closest_site */
     nlr->lmnt_token = 0xFFFF;
     nlr->lm20_token = 0xFFFF;
 
