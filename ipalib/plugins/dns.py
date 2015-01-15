@@ -2081,6 +2081,18 @@ class DNSZoneBase(LDAPObject):
             except errors.NotFound:
                 raise e  # re-raise original exception
 
+    def _make_zonename_absolute(self, entry_attrs, **options):
+        """
+        Zone names can be relative in IPA < 4.0, make sure we always return
+        absolute zone name from ldap
+        """
+        if options.get('raw'):
+            return
+
+        if "idnsname" in entry_attrs:
+            entry_attrs.single_value['idnsname'] = (
+                entry_attrs.single_value['idnsname'].make_absolute())
+
 
 class DNSZoneBase_add(LDAPCreate):
 
@@ -2128,6 +2140,11 @@ class DNSZoneBase_del(LDAPDelete):
 class DNSZoneBase_mod(LDAPUpdate):
     has_output_params = LDAPUpdate.has_output_params + dnszone_output_params
 
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        self.obj._make_zonename_absolute(entry_attrs, **options)
+        return dn
+
 
 class DNSZoneBase_find(LDAPSearch):
     __doc__ = _('Search for DNS zones (SOA records).')
@@ -2162,6 +2179,11 @@ class DNSZoneBase_find(LDAPSearch):
         filter = _create_idn_filter(self, ldap, *args, **options)
         return (filter, base_dn, scope)
 
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        for entry_attrs in entries:
+            self.obj._make_zonename_absolute(entry_attrs, **options)
+        return truncated
+
 
 class DNSZoneBase_show(LDAPRetrieve):
     has_output_params = LDAPRetrieve.has_output_params + dnszone_output_params
@@ -2170,6 +2192,11 @@ class DNSZoneBase_show(LDAPRetrieve):
         assert isinstance(dn, DN)
         if not _check_DN_objectclass(ldap, dn, self.obj.object_class):
             self.obj.handle_not_found(*keys)
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        self.obj._make_zonename_absolute(entry_attrs, **options)
         return dn
 
 
@@ -2796,7 +2823,8 @@ class dnszone_mod(DNSZoneBase_mod):
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        assert isinstance(dn, DN)
+        dn = super(dnszone_mod, self).post_callback(ldap, dn, entry_attrs,
+                                                    *keys, **options)
         self.obj._rr_zone_postprocess(entry_attrs, **options)
         return dn
 
@@ -2833,6 +2861,9 @@ class dnszone_find(DNSZoneBase_find):
         return (filter, base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
+        truncated = super(dnszone_find, self).post_callback(ldap, entries,
+                                                            truncated, *args,
+                                                            **options)
         for entry_attrs in entries:
             self.obj._rr_zone_postprocess(entry_attrs, **options)
         return truncated
@@ -2849,7 +2880,8 @@ class dnszone_show(DNSZoneBase_show):
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        assert isinstance(dn, DN)
+        dn = super(dnszone_show, self).post_callback(ldap, dn, entry_attrs,
+                                                     *keys, **options)
         self.obj._rr_zone_postprocess(entry_attrs, **options)
         return dn
 
