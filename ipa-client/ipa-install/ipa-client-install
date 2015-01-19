@@ -1278,7 +1278,7 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
     domain.set_option('ldap_tls_cacert', CACERT)
 
     if options.dns_updates:
-        domain.set_option('ipa_dyndns_update', True)
+        domain.set_option('dyndns_update', True)
     if options.krb5_offline_passwords:
         domain.set_option('krb5_store_password_if_offline', True)
 
