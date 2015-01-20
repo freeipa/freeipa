@@ -504,10 +504,17 @@ class Restore(admintool.AdminTool):
         cn = time.strftime('import_%Y_%m_%d_%H_%M_%S')
         dn = DN(('cn', cn), ('cn', 'import'), ('cn', 'tasks'), ('cn', 'config'))
 
+        ldifdir = paths.SLAPD_INSTANCE_LDIF_DIR_TEMPLATE % instance
         ldifname = '%s-%s.ldif' % (instance, backend)
+        ldiffile = os.path.join(ldifdir, ldifname)
         srcldiffile = os.path.join(self.dir, ldifname)
-        ldiffile = '%s.noruv' % srcldiffile
 
+        if not os.path.exists(ldifdir):
+            pent = pwd.getpwnam(DS_USER)
+            os.mkdir(ldifdir, 0770)
+            os.chown(ldifdir, pent.pw_uid, pent.pw_gid)
+
+        ipautil.backup_file(ldiffile)
         with open(ldiffile, 'wb') as out_file:
             ldif_writer = ldif.LDIFWriter(out_file)
             with open(srcldiffile, 'rb') as in_file:
