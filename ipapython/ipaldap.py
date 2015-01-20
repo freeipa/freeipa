@@ -830,7 +830,7 @@ class LDAPClient(object):
         if not self._has_schema:
             try:
                 schema = schema_cache.get_schema(
-                    self.conn.uri, self.conn.conn,
+                    self.ldap_uri, self.conn,
                     force_update=self._force_schema_updates)
             except (errors.ExecutionError, IndexError):
                 schema = None
@@ -1137,7 +1137,7 @@ class LDAPClient(object):
         with self.error_handler():
             # bypass ldap2's locking
             object.__setattr__(self, '_conn',
-                               IPASimpleLDAPObject(self.ldap_uri))
+                               ldap.initialize(self.ldap_uri))
 
             if self._start_tls:
                 self._conn.start_tls_s()
