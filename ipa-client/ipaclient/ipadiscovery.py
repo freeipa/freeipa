@@ -390,10 +390,15 @@ class IPADiscovery(object):
                     if trealm == r:
                         return [0, thost, trealm]
                 # must match or something is very wrong
+                root_logger.debug("Realm %s does not match any realm in LDAP "
+                                  "database", trealm)
                 return [REALM_NOT_FOUND]
             else:
                 if len(lrealms) != 1:
                     #which one? we can't attach to a multi-realm server without DNS working
+                    root_logger.debug("Multiple realms found, cannot decide "
+                                      "which realm is the right without "
+                                      "working DNS")
                     return [REALM_NOT_FOUND]
                 else:
                     return [0, thost, lrealms[0]]
