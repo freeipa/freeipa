@@ -29,6 +29,7 @@ import os
 import datetime
 import urlparse
 import json
+import traceback
 
 import ldap.controls
 from pyasn1.type import univ, namedtype
@@ -347,6 +348,8 @@ class WSGIExecutioner(Executioner):
             else:
                 result = self.Command[name](*args, **options)
         except PublicError, e:
+            if self.api.env.debug:
+                self.debug('WSGI wsgi_execute PublicError: %s', traceback.format_exc())
             error = e
         except StandardError, e:
             self.exception(
