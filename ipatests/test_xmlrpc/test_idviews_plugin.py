@@ -39,6 +39,7 @@ idview2 = u'idview2'
 host1 = u'host1.test'
 host2 = u'host2.test'
 host3 = u'host3.test'
+host4 = u'host4.test'
 
 hostgroup1 = u'hostgroup1'
 hostgroup2 = u'hostgroup2'
@@ -52,6 +53,7 @@ nonexistentgroup = u'nonexistentgroup'
 host1 = u'testhost1'
 host2 = u'testhost2'
 host3 = u'testhost3'
+host4 = u'testhost4'
 
 
 # Test helpers
@@ -106,7 +108,7 @@ class test_idviews(Declarative):
 
     cleanup_commands = [
         ('idview_del', [idview1, idview2], {'continue': True}),
-        ('host_del', [host1, host2, host3], {'continue': True}),
+        ('host_del', [host1, host2, host3, host4], {'continue': True}),
         ('hostgroup_del', [hostgroup1, hostgroup2], {'continue': True}),
         ('idoverride_del', [idview1, idoverrideuser1, idoverridegroup1],
             {'continue': True}),
@@ -1332,5 +1334,88 @@ class test_idviews(Declarative):
             ),
         ),
 
+        # Recreate the view, assign it to a host and then delete the view
+        # Check that the host no longer references the view
 
+        dict(
+            desc='Create ID View "%s"' % idview1,
+            command=(
+                'idview_add',
+                [idview1],
+                {}
+            ),
+            expected=dict(
+                value=idview1,
+                summary=u'Added ID View "%s"' % idview1,
+                result=dict(
+                    dn=get_idview_dn(idview1),
+                    objectclass=objectclasses.idview,
+                    cn=[idview1]
+                )
+            ),
+        ),
+
+        dict(
+            desc='Create %r' % host4,
+            command=('host_add', [get_fqdn(host4)],
+                dict(
+                    description=u'Test host 4',
+                    l=u'Undisclosed location 4',
+                    force=True,
+                ),
+            ),
+            expected=dict(
+                value=get_fqdn(host4),
+                summary=u'Added host "%s"' % get_fqdn(host4),
+                result=dict(
+                    dn=get_host_dn(host4),
+                    fqdn=[get_fqdn(host4)],
+                    description=[u'Test host 4'],
+                    l=[u'Undisclosed location 4'],
+                    krbprincipalname=[
+                        u'host/%s@%s' % (get_fqdn(host4), api.env.realm)],
+                    objectclass=objectclasses.host,
+                    ipauniqueid=[fuzzy_uuid],
+                    managedby_host=[get_fqdn(host4)],
+                    has_keytab=False,
+                    has_password=False,
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Delete ID View that is assigned "%s"' % idview1,
+            command=('idview_del', [idview1], {}),
+            expected=dict(
+                result=dict(failed=[]),
+                summary=u'Deleted ID View "%s"' % idview1,
+                value=[idview1],
+            ),
+        ),
+
+        dict(
+            desc='Check that %s has not %s applied' % (host4, idview1),
+            command=('host_show', [get_fqdn(host4)], {'all': True}),
+            expected=dict(
+                value=get_fqdn(host4),
+                summary=None,
+                result=dict(
+                    cn=[get_fqdn(host4)],
+                    dn=get_host_dn(host4),
+                    fqdn=[get_fqdn(host4)],
+                    description=[u'Test host 4'],
+                    l=[u'Undisclosed location 4'],
+                    krbprincipalname=[get_host_principal(host4)],
+                    has_keytab=False,
+                    has_password=False,
+                    managedby_host=[get_fqdn(host4)],
+                    ipakrbokasdelegate=False,
+                    ipakrbrequirespreauth=True,
+                    ipauniqueid=[fuzzy_uuid],
+                    managing_host=[get_fqdn(host4)],
+                    objectclass=objectclasses.host,
+                    serverhostname=[host4],
+                ),
+            ),
+        ),
     ]
