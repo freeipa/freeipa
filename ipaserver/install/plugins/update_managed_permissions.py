@@ -320,6 +320,26 @@ NONOBJECT_PERMISSIONS = {
             'winsyncsubtreepair',
         },
         'default_privileges': {'Replication Administrators'},
+    },
+    'System: Read DUA Profile': {
+        'ipapermlocation': DN('ou=profile', api.env.basedn),
+        'ipapermtargetfilter': {
+            '(|'
+                '(objectclass=organizationalUnit)'
+                '(objectclass=DUAConfigProfile)'
+            ')'
+        },
+        'ipapermbindruletype': 'anonymous',
+        'ipapermright': {'read', 'search', 'compare'},
+        'ipapermdefaultattr': {
+            'objectclass', 'ou', 'cn', 'defaultServerList',
+            'preferredServerList', 'defaultSearchBase', 'defaultSearchScope',
+            'searchTimeLimit', 'bindTimeLimit', 'credentialLevel',
+            'authenticationMethod', 'followReferrals', 'dereferenceAliases',
+            'serviceSearchDescriptor', 'serviceCredentialLevel',
+            'serviceAuthenticationMethod', 'objectclassMap', 'attributeMap',
+            'profileTTL'
+        },
     }
 }
 
