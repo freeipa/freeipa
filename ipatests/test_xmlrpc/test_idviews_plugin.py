@@ -64,7 +64,7 @@ def get_idview_dn(name):
         )
 
 
-def get_idoverride_dn(view, anchor):
+def get_override_dn(view, anchor):
     return Fuzzy(u"ipaanchoruuid=:IPA:{domain}:{uuid},"
                   "cn={view},"
                   "cn=views,cn=accounts,{suffix}"
@@ -110,8 +110,7 @@ class test_idviews(Declarative):
         ('idview_del', [idview1, idview2], {'continue': True}),
         ('host_del', [host1, host2, host3, host4], {'continue': True}),
         ('hostgroup_del', [hostgroup1, hostgroup2], {'continue': True}),
-        ('idoverride_del', [idview1, idoverrideuser1, idoverridegroup1],
-            {'continue': True}),
+        ('idview_del', [idview1], {'continue': True}),
         ('user_del', [idoverrideuser1], {'continue': True}),
         ('group_del', [idoverridegroup1], {'continue': True}),
     ]
@@ -417,7 +416,7 @@ class test_idviews(Declarative):
                 value=idoverrideuser1,
                 summary=u'Added User ID override "%s"' % idoverrideuser1,
                 result=dict(
-                    dn=get_idoverride_dn(idview1, idoverrideuser1),
+                    dn=get_override_dn(idview1, idoverrideuser1),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser1],
                     ipaoriginaluid=[idoverrideuser1],
@@ -451,7 +450,7 @@ class test_idviews(Declarative):
                 value=idoverrideuser1,
                 summary=u'Modified an User ID override "%s"' % idoverrideuser1,
                 result=dict(
-                    dn=get_idoverride_dn(idview1, idoverrideuser1),
+                    dn=get_override_dn(idview1, idoverrideuser1),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser1],
                     ipaoriginaluid=[idoverrideuser1],
@@ -465,7 +464,7 @@ class test_idviews(Declarative):
             desc='Modify ID override "%s" to not override '
                  'uidnumber' % idoverrideuser1,
             command=(
-                'idoverride_mod',
+                'idoverrideuser_mod',
                 [idview1, idoverrideuser1],
                 dict(uidnumber=None, all=True)
             ),
@@ -473,7 +472,7 @@ class test_idviews(Declarative):
                 value=idoverrideuser1,
                 summary=u'Modified an User ID override "%s"' % idoverrideuser1,
                 result=dict(
-                    dn=get_idoverride_dn(idview1, idoverrideuser1),
+                    dn=get_override_dn(idview1, idoverrideuser1),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser1],
                     ipaoriginaluid=[idoverrideuser1],
@@ -485,7 +484,7 @@ class test_idviews(Declarative):
         dict(
             desc='Modify ID override "%s" to override login' % idoverrideuser1,
             command=(
-                'idoverride_mod',
+                'idoverrideuser_mod',
                 [idview1, idoverrideuser1],
                 dict(uid=u'newlogin', all=True)
             ),
@@ -493,7 +492,7 @@ class test_idviews(Declarative):
                 value=idoverrideuser1,
                 summary=u'Modified an User ID override "%s"' % idoverrideuser1,
                 result=dict(
-                    dn=get_idoverride_dn(idview1, idoverrideuser1),
+                    dn=get_override_dn(idview1, idoverrideuser1),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser1],
                     ipaoriginaluid=[idoverrideuser1],
@@ -516,7 +515,7 @@ class test_idviews(Declarative):
                 value=idoverrideuser1,
                 summary=u'Modified an User ID override "%s"' % idoverrideuser1,
                 result=dict(
-                    dn=get_idoverride_dn(idview1, idoverrideuser1),
+                    dn=get_override_dn(idview1, idoverrideuser1),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser1],
                     ipaoriginaluid=[idoverrideuser1],
@@ -552,7 +551,7 @@ class test_idviews(Declarative):
                 value=idoverrideuser1,
                 summary=u'Added User ID override "%s"' % idoverrideuser1,
                 result=dict(
-                    dn=get_idoverride_dn(idview1, idoverrideuser1),
+                    dn=get_override_dn(idview1, idoverrideuser1),
                     objectclass=objectclasses.idoverrideuser,
                     ipaanchoruuid=[idoverrideuser1],
                     ipaoriginaluid=[idoverrideuser1],
@@ -575,7 +574,7 @@ class test_idviews(Declarative):
                 value=idoverridegroup1,
                 summary=u'Added Group ID override "%s"' % idoverridegroup1,
                 result=dict(
-                    dn=get_idoverride_dn(idview1, idoverridegroup1),
+                    dn=get_override_dn(idview1, idoverridegroup1),
                     objectclass=objectclasses.idoverridegroup,
                     ipaanchoruuid=[idoverridegroup1],
                     description=[u'description']
@@ -610,7 +609,7 @@ class test_idviews(Declarative):
                 summary=u'Modified an Group ID override "%s"'
                         % idoverridegroup1,
                 result=dict(
-                    dn=get_idoverride_dn(idview1, idoverridegroup1),
+                    dn=get_override_dn(idview1, idoverridegroup1),
                     objectclass=objectclasses.idoverridegroup,
                     ipaanchoruuid=[idoverridegroup1],
                     description=[u'description'],
@@ -632,7 +631,7 @@ class test_idviews(Declarative):
                 summary=u'Modified an Group ID override "%s"'
                         % idoverridegroup1,
                 result=dict(
-                    dn=get_idoverride_dn(idview1, idoverridegroup1),
+                    dn=get_override_dn(idview1, idoverridegroup1),
                     objectclass=objectclasses.idoverridegroup,
                     ipaanchoruuid=[idoverridegroup1],
                     description=[u'description']
@@ -653,7 +652,7 @@ class test_idviews(Declarative):
                 summary=u'Modified an Group ID override "%s"'
                         % idoverridegroup1,
                 result=dict(
-                    dn=get_idoverride_dn(idview1, idoverridegroup1),
+                    dn=get_override_dn(idview1, idoverridegroup1),
                     objectclass=objectclasses.idoverridegroup,
                     ipaanchoruuid=[idoverridegroup1],
                     description=[u'description'],
@@ -686,7 +685,7 @@ class test_idviews(Declarative):
                 value=idoverridegroup1,
                 summary=u'Added Group ID override "%s"' % idoverridegroup1,
                 result=dict(
-                    dn=get_idoverride_dn(idview1, idoverridegroup1),
+                    dn=get_override_dn(idview1, idoverridegroup1),
                     objectclass=objectclasses.idoverridegroup,
                     ipaanchoruuid=[idoverridegroup1],
                     description=[u'description'],
@@ -1296,7 +1295,7 @@ class test_idviews(Declarative):
                     value=idoverrideuser1,
                     summary=u'Added User ID override "%s"' % idoverrideuser1,
                     result=dict(
-                        dn=get_idoverride_dn(idview1, idoverrideuser1),
+                        dn=get_override_dn(idview1, idoverrideuser1),
                         objectclass=objectclasses.idoverrideuser,
                         ipaanchoruuid=[idoverrideuser1],
                         ipaoriginaluid=[idoverrideuser1],
@@ -1316,7 +1315,7 @@ class test_idviews(Declarative):
                 value=idoverridegroup1,
                 summary=u'Added Group ID override "%s"' % idoverridegroup1,
                 result=dict(
-                    dn=get_idoverride_dn(idview1, idoverridegroup1),
+                    dn=get_override_dn(idview1, idoverridegroup1),
                     objectclass=objectclasses.idoverridegroup,
                     ipaanchoruuid=[idoverridegroup1],
                     description=[u'description'],
