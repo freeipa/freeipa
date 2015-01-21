@@ -64,6 +64,7 @@ IPA_SCHEMA_FILES = ("60kerberos.ldif",
                     "15rfc4876.ldif")
 
 ALL_SCHEMA_FILES = IPA_SCHEMA_FILES + ("05rfc2247.ldif", )
+DS_INSTANCE_PREFIX = 'slapd-'
 
 
 def find_server_root():
@@ -81,29 +82,29 @@ def config_dirname(serverid):
 def schema_dirname(serverid):
     return config_dirname(serverid) + "/schema/"
 
-def erase_ds_instance_data(serverid):
-    installutils.rmtree(paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid)
 
-    installutils.rmtree(paths.USR_LIB_SLAPD_INSTANCE_TEMPLATE % serverid)
+def remove_ds_instance(serverid, force=False):
+    """A wrapper around the 'remove-ds.pl' script used by
+    389ds to remove a single directory server instance. In case of error
+    additional call with the '-f' flag is performed (forced removal). If this
+    also fails, then an exception is raised.
+    """
+    instance_name = ''.join([DS_INSTANCE_PREFIX, serverid])
+    args = [paths.REMOVE_DS_PL, '-i', instance_name]
+    if force:
+        args.append('-f')
+        root_logger.debug("Forcing instance removal")
 
-    installutils.rmtree(paths.USR_LIB_DIRSRV_SLAPD_INSTANCE_DIR_TEMPLATE % serverid)
+    try:
+        ipautil.run(args)
+    except ipautil.CalledProcessError:
+        if force:
+            root_logger.error("Instance removal failed.")
+            raise
+        root_logger.debug("'%s' failed. "
+                          "Attempting to force removal" % paths.REMOVE_DS_PL)
+        remove_ds_instance(serverid, force=True)
 
-    installutils.rmtree(paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % serverid)
-
-    installutils.rmtree(paths.SLAPD_INSTANCE_LOCK_TEMPLATE % serverid)
-
-    installutils.remove_file(paths.SLAPD_INSTANCE_SOCKET_TEMPLATE % serverid)
-
-    installutils.rmtree(paths.VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE % serverid)
-
-    installutils.remove_file(paths.DS_KEYTAB)
-
-    installutils.remove_file(paths.SYSCONFIG_DIRSRV_INSTANCE % serverid)
-
-#    try:
-#        shutil.rmtree(paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % serverid)
-#    except:
-#        pass
 
 def get_ds_instances():
     '''
@@ -113,8 +114,7 @@ def get_ds_instances():
     matches 389ds behavior.
     '''
 
-    dirsrv_instance_dir=paths.ETC_DIRSRV
-    instance_prefix = 'slapd-'
+    dirsrv_instance_dir = paths.ETC_DIRSRV
 
     instances = []
 
@@ -123,9 +123,10 @@ def get_ds_instances():
         # Must be a directory
         if os.path.isdir(pathname):
             # Must start with prefix and not end with .removed
-            if basename.startswith(instance_prefix) and not basename.endswith('.removed'):
+            if (basename.startswith(DS_INSTANCE_PREFIX) and
+                    not basename.endswith('.removed')):
                 # Strip off prefix
-                instance = basename[len(instance_prefix):]
+                instance = basename[len(DS_INSTANCE_PREFIX):]
                 # Must be non-empty
                 if instance:
                     instances.append(instance)
@@ -774,9 +775,16 @@ class DsInstance(service.Service):
             self.disable()
 
         serverid = self.restore_state("serverid")
-        if not serverid is None:
+        if serverid is not None:
             self.stop_tracking_certificates(serverid)
-            erase_ds_instance_data(serverid)
+            root_logger.debug("Removing DS instance %s" % serverid)
+            try:
+                remove_ds_instance(serverid)
+                root_logger.debug("Removing DS keytab")
+                installutils.remove_file(paths.DS_KEYTAB)
+            except ipautil.CalledProcessError:
+                root_logger.error("Failed to remove DS instance. You may "
+                                  "need to remove instance data manually")
 
         # At one time we removed this user on uninstall. That can potentially
         # orphan files, or worse, if another useradd runs in the intermim,

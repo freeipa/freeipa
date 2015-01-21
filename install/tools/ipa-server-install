@@ -414,7 +414,11 @@ def signal_handler(signum, frame):
         print "Removing configuration for %s instance" % ds.serverid
         ds.stop()
         if ds.serverid:
-            dsinstance.erase_ds_instance_data (ds.serverid)
+            try:
+                dsinstance.remove_ds_instance(ds.serverid)
+            except ipautil.CalledProcessError:
+                root_logger.error("Failed to remove DS instance. You may "
+                                  "need to remove instance data manually")
     sys.exit(1)
 
 def read_cache(dm_password):

@@ -308,13 +308,17 @@ class CADSInstance(service.Service):
         if not enabled is None and not enabled:
             services.knownservices.dirsrv.disable()
 
-        if not serverid is None:
+        if serverid is not None:
             # drop the trailing / off the config_dirname so the directory
             # will match what is in certmonger
             dirname = dsinstance.config_dirname(serverid)[:-1]
             dsdb = certs.CertDB(self.realm, nssdir=dirname)
             dsdb.untrack_server_cert("Server-Cert")
-            dsinstance.erase_ds_instance_data(serverid)
+            try:
+                dsinstance.remove_ds_instance(serverid)
+            except ipautil.CalledProcessError:
+                root_logger.error("Failed to remove CA DS instance. You may "
+                                  "need to remove instance data manually")
 
         self.restore_state("user_exists")
 
