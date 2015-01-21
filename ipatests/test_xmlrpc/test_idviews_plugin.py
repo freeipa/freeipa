@@ -334,9 +334,7 @@ class test_idviews(Declarative):
             command=('idoverrideuser_mod',
                      [idview1, idoverrideuser1],
                      dict(uid=u'randomuser')),
-            expected=errors.NotFound(
-                reason=u'%s: User ID override not found' % idoverrideuser1
-            ),
+            expected=errors.NotFound(reason=u'no such entry'),
         ),
 
         dict(
@@ -356,9 +354,7 @@ class test_idviews(Declarative):
             command=('idoverrideuser_mod',
                      [idview1, idoverrideuser1],
                      dict(setattr=u'ipaanchoruuid=:IPA:dom:renamedoverride')),
-            expected=errors.NotFound(
-                reason=u'%s: User ID override not found' % idoverrideuser1
-            ),
+            expected=errors.NotFound(reason=u'no such entry'),
         ),
 
         dict(
@@ -521,7 +517,7 @@ class test_idviews(Declarative):
                     ipaoriginaluid=[idoverrideuser1],
                     description=[u'description'],
                     homedirectory=[u'/home/newhome'],
-                    uidnumber=[u'12345']
+                    uid=[u'newlogin'],
                 )
             ),
         ),
@@ -957,7 +953,7 @@ class test_idviews(Declarative):
                     managing_host=[get_fqdn(host3)],
                     objectclass=objectclasses.host,
                     serverhostname=[host3],
-                    ipaassignedidview=[get_idview_dn(idview1)],
+                    ipaassignedidview=[idview1],
                 ),
             ),
         ),
@@ -1037,7 +1033,7 @@ class test_idviews(Declarative):
                     serverhostname=[host2],
                     memberof_hostgroup=[hostgroup2],
                     memberofindirect_hostgroup=[hostgroup1],
-                    ipaassignedidview=[get_idview_dn(idview1)],
+                    ipaassignedidview=[idview1],
                 ),
             ),
         ),
@@ -1065,7 +1061,7 @@ class test_idviews(Declarative):
                     objectclass=objectclasses.host,
                     serverhostname=[host1],
                     memberof_hostgroup=[hostgroup1],
-                    ipaassignedidview=[get_idview_dn(idview1)],
+                    ipaassignedidview=[idview1],
                 ),
             ),
         ),
@@ -1189,11 +1185,11 @@ class test_idviews(Declarative):
         ),
 
         dict(
-            desc=u'Unapply %s from %s' % (idview1, hostgroup1),
+            desc=u'Unapply %s from %s' % (idview1, hostgroup2),
             command=(
                 'idview_unapply',
                 [],
-                dict(hostgroup=hostgroup1),
+                dict(hostgroup=hostgroup2),
             ),
             expected=dict(
                 completed=1,
