@@ -102,5 +102,9 @@ while watcher_running:
         filterstr=ldap_url.filterstr
     )
 
-    while ldap_connection.syncrepl_poll(all=1, msgid=ldap_search):
-        pass
+    try:
+        while ldap_connection.syncrepl_poll(all=1, msgid=ldap_search):
+            pass
+    except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR) as e:
+        log.exception('syncrepl_poll: LDAP error (%s)', e)
+        sys.exit(1)
