@@ -1737,13 +1737,5 @@ class IPAdmin(LDAPClient):
         # FIXME: for backwards compatibility only
         return self.conn.modify_s(*args, **kwargs)
 
-    def set_option(self, *args, **kwargs):
-        # FIXME: for backwards compatibility only
-        return self.conn.set_option(*args, **kwargs)
-
-    def encode(self, *args, **kwargs):
-        # FIXME: for backwards compatibility only
-        return self.conn.encode(*args, **kwargs)
-
     def unbind(self, *args, **kwargs):
         return self.conn.unbind_s(*args, **kwargs)
