@@ -145,6 +145,9 @@ class ODSMgr(object):
     def del_ods_zone(self, name):
         # ods-ksmutil blows up if zone name has period at the end
         name = name.relativize(dns.name.root)
+        # detect if name is root zone
+        if name == dns.name.empty:
+            name = dns.name.root
         cmd = ['zone', 'delete', '--zone', str(name)]
         output = self.ksmutil(cmd)
         self.log.info(output)
