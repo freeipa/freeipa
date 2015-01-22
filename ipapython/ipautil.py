@@ -1150,7 +1150,7 @@ def wait_for_open_ports(host, ports, timeout=0):
             if port_open:
                 break
             if timeout and time.time() > op_timeout: # timeout exceeded
-                raise socket.timeout()
+                raise socket.timeout("Timeout exceeded")
             time.sleep(1)
 
 def wait_for_open_socket(socket_name, timeout=0):
