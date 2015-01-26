@@ -181,17 +181,12 @@ def test_entry_to_dict():
             elif name == 'dnattr':
                 return FakeAttributeType(name, '1.3.6.1.4.1.1466.115.121.1.12')
 
-    class FakeIPASimpleLDAPObject(ipaldap.IPASimpleLDAPObject):
-        def __init__(self):
-            super(FakeIPASimpleLDAPObject, self).__init__('ldap://test', False)
-            self._schema = FakeSchema()
-            self._has_schema = True
-
     class FakeLDAPClient(ipaldap.LDAPClient):
         def __init__(self):
             super(FakeLDAPClient, self).__init__('ldap://test',
                                                  force_schema_updates=False)
-            self._conn = FakeIPASimpleLDAPObject()
+            self._has_schema = True
+            self._schema = FakeSchema()
 
     conn = FakeLDAPClient()
     rights = {'nothing': 'is'}

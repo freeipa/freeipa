@@ -243,7 +243,7 @@ def entry_to_dict(entry, **options):
         for attr in entry.iterkeys():
             if attr.lower() == 'attributelevelrights':
                 value = entry[attr]
-            elif entry.conn.get_type(attr) is str:
+            elif entry.conn.get_attribute_type(attr) is str:
                 value = entry.raw[attr]
             else:
                 value = list(entry.raw[attr])

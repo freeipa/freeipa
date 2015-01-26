@@ -50,7 +50,6 @@ from ipapython.dnsutil import DNSName
 SASL_GSSAPI = ldap.sasl.sasl({}, 'GSSAPI')
 
 DEFAULT_TIMEOUT = 10
-DN_SYNTAX_OID = '1.3.6.1.4.1.1466.115.121.1.12'
 _debug_log_ldap = False
 
 _missing = object()
@@ -190,277 +189,18 @@ schema_cache = SchemaCache()
 
 class IPASimpleLDAPObject(object):
     '''
-    The purpose of this class is to provide a boundary between IPA and
-    python-ldap. In IPA we use IPA defined types because they are
-    richer and are designed to meet our needs. We also require that we
-    consistently use those types without exception. On the other hand
-    python-ldap uses different types. The goal is to be able to have
-    IPA code call python-ldap methods using the types native to
-    IPA. This class accomplishes that goal by exposing python-ldap
-    methods which take IPA types, convert them to python-ldap types,
-    call python-ldap, and then convert the results returned by
-    python-ldap into IPA types.
-
     IPA code should never call python-ldap directly, it should only
     call python-ldap methods in this class.
     '''
 
-    # Note: the oid for dn syntax is: 1.3.6.1.4.1.1466.115.121.1.12
-
-    _SYNTAX_MAPPING = {
-        '1.3.6.1.4.1.1466.115.121.1.1'   : str, # ACI item
-        '1.3.6.1.4.1.1466.115.121.1.4'   : str, # Audio
-        '1.3.6.1.4.1.1466.115.121.1.5'   : str, # Binary
-        '1.3.6.1.4.1.1466.115.121.1.8'   : str, # Certificate
-        '1.3.6.1.4.1.1466.115.121.1.9'   : str, # Certificate List
-        '1.3.6.1.4.1.1466.115.121.1.10'  : str, # Certificate Pair
-        '1.3.6.1.4.1.1466.115.121.1.23'  : str, # Fax
-        '1.3.6.1.4.1.1466.115.121.1.28'  : str, # JPEG
-        '1.3.6.1.4.1.1466.115.121.1.40'  : str, # OctetString (same as Binary)
-        '1.3.6.1.4.1.1466.115.121.1.49'  : str, # Supported Algorithm
-        '1.3.6.1.4.1.1466.115.121.1.51'  : str, # Teletext Terminal Identifier
-
-        DN_SYNTAX_OID                    : DN,  # DN, member, memberof
-        '2.16.840.1.113730.3.8.3.3'      : DN,  # enrolledBy
-        '2.16.840.1.113730.3.8.3.18'     : DN,  # managedBy
-        '2.16.840.1.113730.3.8.3.5'      : DN,  # memberUser
-        '2.16.840.1.113730.3.8.3.7'      : DN,  # memberHost
-        '2.16.840.1.113730.3.8.3.20'     : DN,  # memberService
-        '2.16.840.1.113730.3.8.11.4'     : DN,  # ipaNTFallbackPrimaryGroup
-        '2.16.840.1.113730.3.8.11.21'    : DN,  # ipaAllowToImpersonate
-        '2.16.840.1.113730.3.8.11.22'    : DN,  # ipaAllowedTarget
-        '2.16.840.1.113730.3.8.7.1'      : DN,  # memberAllowCmd
-        '2.16.840.1.113730.3.8.7.2'      : DN,  # memberDenyCmd
-
-        '2.16.840.1.113719.1.301.4.14.1' : DN,  # krbRealmReferences
-        '2.16.840.1.113719.1.301.4.17.1' : DN,  # krbKdcServers
-        '2.16.840.1.113719.1.301.4.18.1' : DN,  # krbPwdServers
-        '2.16.840.1.113719.1.301.4.26.1' : DN,  # krbPrincipalReferences
-        '2.16.840.1.113719.1.301.4.29.1' : DN,  # krbAdmServers
-        '2.16.840.1.113719.1.301.4.36.1' : DN,  # krbPwdPolicyReference
-        '2.16.840.1.113719.1.301.4.40.1' : DN,  # krbTicketPolicyReference
-        '2.16.840.1.113719.1.301.4.41.1' : DN,  # krbSubTrees
-        '2.16.840.1.113719.1.301.4.52.1' : DN,  # krbObjectReferences
-        '2.16.840.1.113719.1.301.4.53.1' : DN,  # krbPrincContainerRef
-        '1.3.6.1.4.1.1466.115.121.1.24'  : datetime.datetime,
-    }
-
-    # In most cases we lookup the syntax from the schema returned by
-    # the server. However, sometimes attributes may not be defined in
-    # the schema (e.g. extensibleObject which permits undefined
-    # attributes), or the schema was incorrectly defined (i.e. giving
-    # an attribute the syntax DirectoryString when in fact it's really
-    # a DN). This (hopefully sparse) table allows us to trap these
-    # anomalies and force them to be the syntax we know to be in use.
-    #
-    # FWIW, many entries under cn=config are undefined :-(
-
-    _SYNTAX_OVERRIDE = CIDict({
-        'managedtemplate': DN,
-        'managedbase':     DN,
-        'originscope':     DN,
-        'idnsname':        DNSName,
-        'idnssoamname':    DNSName,
-        'idnssoarname':    DNSName,
-        'dnszoneidnsname': DNSName,
-        'nsds5replicalastupdatestart': unicode,
-        'nsds5replicalastupdateend': unicode,
-        'nsds5replicalastinitstart': unicode,
-        'nsds5replicalastinitend': unicode,
-    })
-    _SINGLE_VALUE_OVERRIDE = CIDict({
-        'nsslapd-ssl-check-hostname': True,
-        'nsslapd-lookthroughlimit': True,
-        'nsslapd-idlistscanlimit': True,
-        'nsslapd-anonlimitsdn': True,
-        'nsslapd-minssf-exclude-rootdse': True,
-    })
-
-    def __init__(self, uri, force_schema_updates, no_schema=False,
-                 decode_attrs=True):
+    def __init__(self, uri):
         """An internal LDAP connection object
 
         :param uri: The LDAP URI to connect to
-        :param force_schema_updates:
-            If true, this object will always request a new schema from the
-            server. If false, a cached schema will be reused if it exists.
-
-            Generally, it should be true if the API context is 'installer' or
-            'updates', but it must be given explicitly since the API object
-            is not always available
-        :param no_schema: If true, schema is never requested from the server.
-        :param decode_attrs:
-            If true, attributes are decoded to Python types according to their
-            syntax.
         """
         self.log = log_mgr.get_logger(self)
         self.uri = uri
         self.conn = SimpleLDAPObject(uri)
-        self._no_schema = no_schema
-        self._has_schema = False
-        self._schema = None
-        self._force_schema_updates = force_schema_updates
-        self._decode_attrs = decode_attrs
-
-    def _get_schema(self):
-        if self._no_schema:
-            return None
-        if not self._has_schema:
-            try:
-                self._schema = schema_cache.get_schema(
-                    self.uri, self.conn,
-                    force_update=self._force_schema_updates)
-            except (errors.ExecutionError, IndexError):
-                pass
-            self._has_schema = True
-        return self._schema
-
-    schema = property(_get_schema, None, None, 'schema associated with this LDAP server')
-
-
-    def flush_cached_schema(self):
-        '''
-        Force this instance to forget it's cached schema and reacquire
-        it from the schema cache.
-        '''
-
-        # Currently this is called during bind operations to assure
-        # we're working with valid schema for a specific
-        # connection. This causes self._get_schema() to query the
-        # schema cache for the server's schema passing along a flag
-        # indicating if we're in a context that requires freshly
-        # loading the schema vs. returning the last cached version of
-        # the schema. If we're in a mode that permits use of
-        # previously cached schema the flush and reacquire is a very
-        # low cost operation.
-        #
-        # The schema is reacquired whenever this object is
-        # instantiated or when binding occurs. The schema is not
-        # reacquired for operations during a bound connection, it is
-        # presumed schema cannot change during this interval. This
-        # provides for maximum efficiency in contexts which do need
-        # schema refreshing by only peforming the refresh inbetween
-        # logical operations that have the potential to cause a schema
-        # change.
-
-        self._has_schema = False
-        self._schema = None
-
-    def get_type(self, attr):
-        if isinstance(attr, unicode):
-            attr = attr.encode('utf-8')
-
-        # Is this a special case attribute?
-        if attr in self._SYNTAX_OVERRIDE:
-            return self._SYNTAX_OVERRIDE[attr]
-
-        if self.schema is None:
-            return unicode
-
-        # Try to lookup the syntax in the schema returned by the server
-        obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
-        if obj is None:
-            return unicode
-
-        return self._SYNTAX_MAPPING.get(obj.syntax, unicode)
-
-    def has_dn_syntax(self, attr):
-        """
-        Check the schema to see if the attribute uses DN syntax.
-
-        Returns True/False
-        """
-        return self.get_type(attr) is DN
-
-    def get_single_value(self, attr):
-        """
-        Check the schema to see if the attribute is single-valued.
-
-        If the attribute is in the schema then returns True/False
-
-        If there is a problem loading the schema or the attribute is
-        not in the schema return None
-        """
-        if isinstance(attr, unicode):
-            attr = attr.encode('utf-8')
-
-        if attr in self._SINGLE_VALUE_OVERRIDE:
-            return self._SINGLE_VALUE_OVERRIDE[attr]
-
-        if self.schema is None:
-            return None
-
-        obj = self.schema.get_obj(ldap.schema.AttributeType, attr)
-        if obj is None:
-            return None
-
-        return obj.single_value
-
-
-    def encode(self, val):
-        """
-        Encode attribute value to LDAP representation (str).
-        """
-        # Booleans are both an instance of bool and int, therefore
-        # test for bool before int otherwise the int clause will be
-        # entered for a boolean value instead of the boolean clause.
-        if isinstance(val, bool):
-            if val:
-                return 'TRUE'
-            else:
-                return 'FALSE'
-        elif isinstance(val, (unicode, float, int, long, Decimal, DN)):
-            return value_to_utf8(val)
-        elif isinstance(val, DNSName):
-            return str(val)
-        elif isinstance(val, str):
-            return val
-        elif isinstance(val, list):
-            return [self.encode(m) for m in val]
-        elif isinstance(val, tuple):
-            return tuple(self.encode(m) for m in val)
-        elif isinstance(val, dict):
-            dct = dict((self.encode(k), self.encode(v)) for k, v in val.iteritems())
-            return dct
-        elif isinstance(val, datetime.datetime):
-            return val.strftime(LDAP_GENERALIZED_TIME_FORMAT)
-        elif val is None:
-            return None
-        else:
-            raise TypeError("attempt to pass unsupported type to ldap, value=%s type=%s" %(val, type(val)))
-
-    def decode(self, val, attr):
-        """
-        Decode attribute value from LDAP representation (str).
-        """
-        if isinstance(val, str):
-            if not self._decode_attrs:
-                return val
-            target_type = self.get_type(attr)
-            try:
-                if target_type is str:
-                    return val
-                elif target_type is unicode:
-                    return val.decode('utf-8')
-                elif target_type is datetime.datetime:
-                    return datetime.datetime.strptime(val, LDAP_GENERALIZED_TIME_FORMAT)
-                else:
-                    return target_type(val)
-            except Exception, e:
-                msg = 'unable to convert the attribute %r value %r to type %s' % (attr, val, target_type)
-                self.log.error(msg)
-                raise ValueError(msg)
-        elif isinstance(val, list):
-            return [self.decode(m, attr) for m in val]
-        elif isinstance(val, tuple):
-            return tuple(self.decode(m, attr) for m in val)
-        elif isinstance(val, dict):
-            dct = dict((unicode_from_utf8(k), self.decode(v, k)) for k, v in val.iteritems())
-            return dct
-        elif val is None:
-            return None
-        else:
-            raise TypeError("attempt to pass unsupported type from ldap, value=%s type=%s" %(val, type(val)))
 
     #---------- python-ldap emulations ----------
 
@@ -477,7 +217,6 @@ class IPASimpleLDAPObject(object):
         return self.conn.add_s(dn, modlist)
 
     def bind(self, who, cred, method=ldap.AUTH_SIMPLE):
-        self.flush_cached_schema()
         return self.conn.bind(who, cred, method)
 
     def delete(self, dn):
@@ -512,7 +251,6 @@ class IPASimpleLDAPObject(object):
 
     def sasl_interactive_bind_s(self, who, auth, serverctrls=None,
                                 clientctrls=None, sasl_flags=ldap.SASL_QUIET):
-        self.flush_cached_schema()
         return self.conn.sasl_interactive_bind_s(who, auth, serverctrls,
                                                  clientctrls, sasl_flags)
 
@@ -545,14 +283,12 @@ class IPASimpleLDAPObject(object):
         return self.conn.set_option(option, invalue)
 
     def simple_bind_s(self, who=None, cred='', serverctrls=None, clientctrls=None):
-        self.flush_cached_schema()
         return self.conn.simple_bind_s(who, cred, serverctrls, clientctrls)
 
     def start_tls_s(self):
         return self.conn.start_tls_s()
 
     def unbind_s(self):
-        self.flush_cached_schema()
         return self.conn.unbind_s()
 
 
@@ -880,7 +616,7 @@ class LDAPEntry(collections.MutableMapping):
             # particularly for schema
             adds = [value for value in new if value not in old]
             dels = [value for value in old if value not in new]
-            if adds and self.conn.get_single_value(name):
+            if adds and self.conn.get_attribute_single_value(name):
                 if len(adds) > 1:
                     raise errors.OnlyOneValueAllowed(attr=name)
                 modlist.append((ldap.MOD_REPLACE, name, adds))
@@ -961,8 +697,16 @@ class LDAPClient(object):
     This class abstracts a LDAP connection, providing methods that work with
     LADPEntries.
 
-    This class is not intended to be used directly; instead, use one of its
-    subclasses, IPAdmin or the ldap2 plugin.
+    The purpose of this class is to provide a boundary between IPA and
+    python-ldap. In IPA we use IPA defined types because they are
+    richer and are designed to meet our needs. We also require that we
+    consistently use those types without exception. On the other hand
+    python-ldap uses different types. The goal is to be able to have
+    IPA code call python-ldap methods using the types native to
+    IPA. This class accomplishes that goal by exposing python-ldap
+    methods which take IPA types, convert them to python-ldap types,
+    call python-ldap, and then convert the results returned by
+    python-ldap into IPA types.
     """
 
     # rules for generating filters from entries
@@ -975,8 +719,93 @@ class LDAPClient(object):
     SCOPE_ONELEVEL = ldap.SCOPE_ONELEVEL
     SCOPE_SUBTREE = ldap.SCOPE_SUBTREE
 
+    _SYNTAX_MAPPING = {
+        '1.3.6.1.4.1.1466.115.121.1.1'   : str, # ACI item
+        '1.3.6.1.4.1.1466.115.121.1.4'   : str, # Audio
+        '1.3.6.1.4.1.1466.115.121.1.5'   : str, # Binary
+        '1.3.6.1.4.1.1466.115.121.1.8'   : str, # Certificate
+        '1.3.6.1.4.1.1466.115.121.1.9'   : str, # Certificate List
+        '1.3.6.1.4.1.1466.115.121.1.10'  : str, # Certificate Pair
+        '1.3.6.1.4.1.1466.115.121.1.12'  : DN,  # Distinguished Name
+        '1.3.6.1.4.1.1466.115.121.1.23'  : str, # Fax
+        '1.3.6.1.4.1.1466.115.121.1.24'  : datetime.datetime,
+        '1.3.6.1.4.1.1466.115.121.1.28'  : str, # JPEG
+        '1.3.6.1.4.1.1466.115.121.1.40'  : str, # OctetString (same as Binary)
+        '1.3.6.1.4.1.1466.115.121.1.49'  : str, # Supported Algorithm
+        '1.3.6.1.4.1.1466.115.121.1.51'  : str, # Teletext Terminal Identifier
+
+        '2.16.840.1.113730.3.8.3.3'      : DN,  # enrolledBy
+        '2.16.840.1.113730.3.8.3.18'     : DN,  # managedBy
+        '2.16.840.1.113730.3.8.3.5'      : DN,  # memberUser
+        '2.16.840.1.113730.3.8.3.7'      : DN,  # memberHost
+        '2.16.840.1.113730.3.8.3.20'     : DN,  # memberService
+        '2.16.840.1.113730.3.8.11.4'     : DN,  # ipaNTFallbackPrimaryGroup
+        '2.16.840.1.113730.3.8.11.21'    : DN,  # ipaAllowToImpersonate
+        '2.16.840.1.113730.3.8.11.22'    : DN,  # ipaAllowedTarget
+        '2.16.840.1.113730.3.8.7.1'      : DN,  # memberAllowCmd
+        '2.16.840.1.113730.3.8.7.2'      : DN,  # memberDenyCmd
+
+        '2.16.840.1.113719.1.301.4.14.1' : DN,  # krbRealmReferences
+        '2.16.840.1.113719.1.301.4.17.1' : DN,  # krbKdcServers
+        '2.16.840.1.113719.1.301.4.18.1' : DN,  # krbPwdServers
+        '2.16.840.1.113719.1.301.4.26.1' : DN,  # krbPrincipalReferences
+        '2.16.840.1.113719.1.301.4.29.1' : DN,  # krbAdmServers
+        '2.16.840.1.113719.1.301.4.36.1' : DN,  # krbPwdPolicyReference
+        '2.16.840.1.113719.1.301.4.40.1' : DN,  # krbTicketPolicyReference
+        '2.16.840.1.113719.1.301.4.41.1' : DN,  # krbSubTrees
+        '2.16.840.1.113719.1.301.4.52.1' : DN,  # krbObjectReferences
+        '2.16.840.1.113719.1.301.4.53.1' : DN,  # krbPrincContainerRef
+    }
+
+    # In most cases we lookup the syntax from the schema returned by
+    # the server. However, sometimes attributes may not be defined in
+    # the schema (e.g. extensibleObject which permits undefined
+    # attributes), or the schema was incorrectly defined (i.e. giving
+    # an attribute the syntax DirectoryString when in fact it's really
+    # a DN). This (hopefully sparse) table allows us to trap these
+    # anomalies and force them to be the syntax we know to be in use.
+    #
+    # FWIW, many entries under cn=config are undefined :-(
+
+    _SYNTAX_OVERRIDE = CIDict({
+        'managedtemplate': DN,
+        'managedbase':     DN,
+        'originscope':     DN,
+        'idnsname':        DNSName,
+        'idnssoamname':    DNSName,
+        'idnssoarname':    DNSName,
+        'dnszoneidnsname': DNSName,
+        'nsds5replicalastupdatestart': unicode,
+        'nsds5replicalastupdateend': unicode,
+        'nsds5replicalastinitstart': unicode,
+        'nsds5replicalastinitend': unicode,
+    })
+    _SINGLE_VALUE_OVERRIDE = CIDict({
+        'nsslapd-ssl-check-hostname': True,
+        'nsslapd-lookthroughlimit': True,
+        'nsslapd-idlistscanlimit': True,
+        'nsslapd-anonlimitsdn': True,
+        'nsslapd-minssf-exclude-rootdse': True,
+    })
+
     def __init__(self, ldap_uri, start_tls=False, force_schema_updates=False,
                  no_schema=False, decode_attrs=True):
+        """Create LDAPClient object.
+
+        :param ldap_uri: The LDAP URI to connect to
+        :param start_tls: Use STARTTLS
+        :param force_schema_updates:
+            If true, this object will always request a new schema from the
+            server. If false, a cached schema will be reused if it exists.
+
+            Generally, it should be true if the API context is 'installer' or
+            'updates', but it must be given explicitly since the API object
+            is not always available
+        :param no_schema: If true, schema is never requested from the server.
+        :param decode_attrs:
+            If true, attributes are decoded to Python types according to their
+            syntax.
+        """
         self.ldap_uri = ldap_uri
         self._start_tls = start_tls
         self._force_schema_updates = force_schema_updates
@@ -985,6 +814,8 @@ class LDAPClient(object):
 
         self.log = log_mgr.get_logger(self)
         self._conn = None
+        self._has_schema = False
+        self._schema = None
 
         self._connect()
 
@@ -992,14 +823,166 @@ class LDAPClient(object):
     def conn(self):
         return self._conn
 
-    def get_single_value(self, attr):
-        return self.conn.get_single_value(attr)
+    def _get_schema(self):
+        if self._no_schema:
+            return None
+
+        if not self._has_schema:
+            try:
+                schema = schema_cache.get_schema(
+                    self.conn.uri, self.conn.conn,
+                    force_update=self._force_schema_updates)
+            except (errors.ExecutionError, IndexError):
+                schema = None
+
+            # bypass ldap2's locking
+            object.__setattr__(self, '_schema', schema)
+            object.__setattr__(self, '_has_schema', True)
+
+        return self._schema
+
+    def _flush_schema(self):
+        '''
+        Force this instance to forget it's cached schema and reacquire
+        it from the schema cache.
+        '''
+
+        # Currently this is called during bind operations to assure
+        # we're working with valid schema for a specific
+        # connection. This causes self._get_schema() to query the
+        # schema cache for the server's schema passing along a flag
+        # indicating if we're in a context that requires freshly
+        # loading the schema vs. returning the last cached version of
+        # the schema. If we're in a mode that permits use of
+        # previously cached schema the flush and reacquire is a very
+        # low cost operation.
+        #
+        # The schema is reacquired whenever this object is
+        # instantiated or when binding occurs. The schema is not
+        # reacquired for operations during a bound connection, it is
+        # presumed schema cannot change during this interval. This
+        # provides for maximum efficiency in contexts which do need
+        # schema refreshing by only peforming the refresh inbetween
+        # logical operations that have the potential to cause a schema
+        # change.
+
+        # bypass ldap2's locking
+        object.__setattr__(self, '_has_schema', False)
+        object.__setattr__(self, '_schema', None)
+
+    def get_attribute_type(self, name_or_oid):
+        if not self._decode_attrs:
+            return str
+
+        if isinstance(name_or_oid, unicode):
+            name_or_oid = name_or_oid.encode('utf-8')
+
+        # Is this a special case attribute?
+        if name_or_oid in self._SYNTAX_OVERRIDE:
+            return self._SYNTAX_OVERRIDE[name_or_oid]
+
+        schema = self._get_schema()
+        if schema is not None:
+            # Try to lookup the syntax in the schema returned by the server
+            obj = schema.get_obj(ldap.schema.AttributeType, name_or_oid)
+            if obj is not None and obj.syntax in self._SYNTAX_MAPPING:
+                return self._SYNTAX_MAPPING[obj.syntax]
+
+        return unicode
+
+    def has_dn_syntax(self, name_or_oid):
+        """
+        Check the schema to see if the attribute uses DN syntax.
+
+        Returns True/False
+        """
+        return self.get_attribute_type(name_or_oid) is DN
+
+    def get_attribute_single_value(self, name_or_oid):
+        """
+        Check the schema to see if the attribute is single-valued.
+
+        If the attribute is in the schema then returns True/False
+
+        If there is a problem loading the schema or the attribute is
+        not in the schema return None
+        """
+        if isinstance(name_or_oid, unicode):
+            name_or_oid = name_or_oid.encode('utf-8')
+
+        if name_or_oid in self._SINGLE_VALUE_OVERRIDE:
+            return self._SINGLE_VALUE_OVERRIDE[name_or_oid]
+
+        schema = self._get_schema()
+        if schema is not None:
+            obj = schema.get_obj(ldap.schema.AttributeType, name_or_oid)
+            if obj is not None:
+                return obj.single_value
+
+        return None
 
     def encode(self, val):
-        return self.conn.encode(val)
+        """
+        Encode attribute value to LDAP representation (str).
+        """
+        # Booleans are both an instance of bool and int, therefore
+        # test for bool before int otherwise the int clause will be
+        # entered for a boolean value instead of the boolean clause.
+        if isinstance(val, bool):
+            if val:
+                return 'TRUE'
+            else:
+                return 'FALSE'
+        elif isinstance(val, (unicode, float, int, long, Decimal, DN)):
+            return value_to_utf8(val)
+        elif isinstance(val, DNSName):
+            return str(val)
+        elif isinstance(val, str):
+            return val
+        elif isinstance(val, list):
+            return [self.encode(m) for m in val]
+        elif isinstance(val, tuple):
+            return tuple(self.encode(m) for m in val)
+        elif isinstance(val, dict):
+            dct = dict((self.encode(k), self.encode(v)) for k, v in val.iteritems())
+            return dct
+        elif isinstance(val, datetime.datetime):
+            return val.strftime(LDAP_GENERALIZED_TIME_FORMAT)
+        elif val is None:
+            return None
+        else:
+            raise TypeError("attempt to pass unsupported type to ldap, value=%s type=%s" %(val, type(val)))
 
     def decode(self, val, attr):
-        return self.conn.decode(val, attr)
+        """
+        Decode attribute value from LDAP representation (str).
+        """
+        if isinstance(val, str):
+            target_type = self.get_attribute_type(attr)
+            try:
+                if target_type is str:
+                    return val
+                elif target_type is unicode:
+                    return val.decode('utf-8')
+                elif target_type is datetime.datetime:
+                    return datetime.datetime.strptime(val, LDAP_GENERALIZED_TIME_FORMAT)
+                else:
+                    return target_type(val)
+            except Exception, e:
+                msg = 'unable to convert the attribute %r value %r to type %s' % (attr, val, target_type)
+                self.log.error(msg)
+                raise ValueError(msg)
+        elif isinstance(val, list):
+            return [self.decode(m, attr) for m in val]
+        elif isinstance(val, tuple):
+            return tuple(self.decode(m, attr) for m in val)
+        elif isinstance(val, dict):
+            dct = dict((unicode_from_utf8(k), self.decode(v, k)) for k, v in val.iteritems())
+            return dct
+        elif val is None:
+            return None
+        else:
+            raise TypeError("attempt to pass unsupported type from ldap, value=%s type=%s" %(val, type(val)))
 
     def _convert_result(self, result):
         '''
@@ -1115,10 +1098,7 @@ class LDAPClient(object):
     @property
     def schema(self):
         """schema associated with this LDAP server"""
-        return self.conn.schema
-
-    def has_dn_syntax(self, attr):
-        return self.conn.has_dn_syntax(attr)
+        return self._get_schema()
 
     def get_allowed_attributes(self, objectclasses, raise_on_unknown=False):
         if self.schema is None:
@@ -1157,10 +1137,7 @@ class LDAPClient(object):
         with self.error_handler():
             # bypass ldap2's locking
             object.__setattr__(self, '_conn',
-                               IPASimpleLDAPObject(self.ldap_uri,
-                                                   self._force_schema_updates,
-                                                   self._no_schema,
-                                                   self._decode_attrs))
+                               IPASimpleLDAPObject(self.ldap_uri))
 
             if self._start_tls:
                 self._conn.start_tls_s()
@@ -1179,6 +1156,7 @@ class LDAPClient(object):
         Perform simple bind operation.
         """
         with self.error_handler():
+            self._flush_schema()
             if bind_dn is None:
                 bind_dn = DN()
             assert isinstance(bind_dn, DN)
@@ -1194,6 +1172,7 @@ class LDAPClient(object):
         """
         with self.error_handler():
             auth_tokens = ldap.sasl.external(user_name)
+            self._flush_schema()
             self._conn.sasl_interactive_bind_s(
                 '', auth_tokens, server_controls, client_controls)
 
@@ -1203,6 +1182,7 @@ class LDAPClient(object):
         """
         with self.error_handler():
             auth_tokens = ldap.sasl.sasl({}, 'GSSAPI')
+            self._flush_schema()
             self._conn.sasl_interactive_bind_s(
                 '', auth_tokens, server_controls, client_controls)
 
@@ -1211,6 +1191,7 @@ class LDAPClient(object):
         Perform unbind operation.
         """
         with self.error_handler():
+            self._flush_schema()
             self.conn.unbind_s()
 
     def make_dn_from_attr(self, attr, value, parent_dn=None):
