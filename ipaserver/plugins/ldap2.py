@@ -98,9 +98,12 @@ class ldap2(LDAPClient, CrudBackend):
         except AttributeError:
             return DN()
 
-    def _init_connection(self):
+    def _connect(self):
         # Connectible.conn is a proxy to thread-local storage;
         # do not set it
+        pass
+
+    def _disconnect(self):
         pass
 
     def __del__(self):

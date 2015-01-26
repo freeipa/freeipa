@@ -1086,13 +1086,22 @@ class LDAPClient(object):
     SCOPE_ONELEVEL = ldap.SCOPE_ONELEVEL
     SCOPE_SUBTREE = ldap.SCOPE_SUBTREE
 
-    def __init__(self, ldap_uri):
+    def __init__(self, ldap_uri, start_tls=False, force_schema_updates=False,
+                 no_schema=False, decode_attrs=True):
         self.ldap_uri = ldap_uri
-        self.log = log_mgr.get_logger(self)
-        self._init_connection()
+        self._start_tls = start_tls
+        self._force_schema_updates = force_schema_updates
+        self._no_schema = no_schema
+        self._decode_attrs = decode_attrs
 
-    def _init_connection(self):
-        self.conn = None
+        self.log = log_mgr.get_logger(self)
+        self._conn = None
+
+        self._connect()
+
+    @property
+    def conn(self):
+        return self._conn
 
     @contextlib.contextmanager
     def error_handler(self, arg_desc=None):
@@ -1188,6 +1197,46 @@ class LDAPClient(object):
                 raise errors.NotFound(
                     reason=_('objectclass %s not found') % oc)
         return [unicode(a).lower() for a in list(set(allowed_attributes))]
+
+    def __del__(self):
+        self.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def close(self):
+        """
+        Close the connection.
+        """
+        if self._conn is not None:
+            self._disconnect()
+
+    def _connect(self):
+        if self._conn is not None:
+            raise errors.DatabaseError(
+                desc="Can't connect to server", info="Already connected")
+
+        with self.error_handler():
+            # bypass ldap2's locking
+            object.__setattr__(self, '_conn',
+                               IPASimpleLDAPObject(self.ldap_uri,
+                                                   self._force_schema_updates,
+                                                   self._no_schema,
+                                                   self._decode_attrs))
+
+            if self._start_tls:
+                self._conn.start_tls_s()
+
+    def _disconnect(self):
+        if self._conn is None:
+            raise errors.DatabaseError(
+                desc="Can't disconnect from server", info="Not connected")
+
+        # bypass ldap2's locking
+        object.__setattr__(self, '_conn', None)
 
     def make_dn_from_attr(self, attr, value, parent_dn=None):
         """
@@ -1643,7 +1692,7 @@ class IPAdmin(LDAPClient):
                  realm=None, protocol=None, force_schema_updates=True,
                  start_tls=False, ldap_uri=None, no_schema=False,
                  decode_attrs=True, sasl_nocanon=False, demand_cert=False):
-        self.conn = None
+        self._conn = None
         log_mgr.get_logger(self, True)
         if debug and debug.lower() == "on":
             ldap.set_option(ldap.OPT_DEBUG_LEVEL,255)
@@ -1663,10 +1712,10 @@ class IPAdmin(LDAPClient):
         LDAPClient.__init__(self, ldap_uri)
 
         with self.error_handler():
-            self.conn = IPASimpleLDAPObject(ldap_uri,
-                                            force_schema_updates=True,
-                                            no_schema=no_schema,
-                                            decode_attrs=decode_attrs)
+            self._conn = IPASimpleLDAPObject(ldap_uri,
+                                             force_schema_updates=True,
+                                             no_schema=no_schema,
+                                             decode_attrs=decode_attrs)
 
             if demand_cert:
                 ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, True)
@@ -1677,6 +1726,12 @@ class IPAdmin(LDAPClient):
 
             if start_tls:
                 self.conn.start_tls_s()
+
+    def _connect(self):
+        pass
+
+    def _disconnect(self):
+        pass
 
     def __str__(self):
         return self.host + ":" + str(self.port)
