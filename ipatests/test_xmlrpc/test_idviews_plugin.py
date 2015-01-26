@@ -55,6 +55,16 @@ host2 = u'testhost2'
 host3 = u'testhost3'
 host4 = u'testhost4'
 
+sshpubkey = (u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
+              'HBUAikXPGMzEpVrlLDCZtv00djsFTBi38PkgxBJVkgRWMrcBsr/35lq7P6w8KGI'
+              'wA8GI48Z0qBS2NBMJ2u9WQ2hjLN6GdMlo77O0uJY3251p12pCVIS/bHRSq8kHO2'
+              'No8g7KA9fGGcagPfQH+ee3t7HUkpbQkFTmbPPN++r3V8oVUk5LxbryB3UIIVzNm'
+              'cSIn3JrXynlvui4MixvrtX6zx+O/bBo68o8/eZD26QrahVbA09fivrn/4h3TM01'
+              '9Eu/c2jOdckfU3cHUV/3Tno5d6JicibyaoDDK7S/yjdn5jhaz8MSEayQvFkZkiF'
+              '0L public key test')
+sshpubkeyfp = (u'13:67:6B:BF:4E:A2:05:8E:AE:25:8B:A1:31:DE:6F:1B '
+                'public key test (ssh-rsa)')
+
 
 # Test helpers
 def get_idview_dn(name):
@@ -523,6 +533,54 @@ class test_idviews(Declarative):
         ),
 
         dict(
+            desc='Modify User ID override "%s" to override '
+                 'sshpubkey' % idoverrideuser1,
+            command=(
+                'idoverrideuser_mod',
+                [idview1, idoverrideuser1],
+                dict(ipasshpubkey=sshpubkey, all=True)
+            ),
+            expected=dict(
+                value=idoverrideuser1,
+                summary=u'Modified an User ID override "%s"' % idoverrideuser1,
+                result=dict(
+                    dn=get_override_dn(idview1, idoverrideuser1),
+                    objectclass=objectclasses.idoverrideuser,
+                    ipaanchoruuid=[idoverrideuser1],
+                    ipaoriginaluid=[idoverrideuser1],
+                    description=[u'description'],
+                    homedirectory=[u'/home/newhome'],
+                    uid=[u'newlogin'],
+                    ipasshpubkey=[sshpubkey],
+                    sshpubkeyfp=[sshpubkeyfp],
+                )
+            ),
+        ),
+
+        dict(
+            desc='Modify User ID override "%s" to not override '
+                 'sshpubkey' % idoverrideuser1,
+            command=(
+                'idoverrideuser_mod',
+                [idview1, idoverrideuser1],
+                dict(ipasshpubkey=None, all=True)
+            ),
+            expected=dict(
+                value=idoverrideuser1,
+                summary=u'Modified an User ID override "%s"' % idoverrideuser1,
+                result=dict(
+                    dn=get_override_dn(idview1, idoverrideuser1),
+                    objectclass=objectclasses.idoverrideuser,
+                    ipaanchoruuid=[idoverrideuser1],
+                    ipaoriginaluid=[idoverrideuser1],
+                    description=[u'description'],
+                    homedirectory=[u'/home/newhome'],
+                    uid=[u'newlogin'],
+                )
+            ),
+        ),
+
+        dict(
             desc='Remove User ID override "%s"' % idoverrideuser1,
             command=('idoverrideuser_del', [idview1, idoverrideuser1], {}),
             expected=dict(
@@ -541,6 +599,7 @@ class test_idviews(Declarative):
                      homedirectory=u'/home/newhome',
                      uid=u'newlogin',
                      uidnumber=12345,
+                     ipasshpubkey=sshpubkey,
                 )
             ),
             expected=dict(
@@ -555,6 +614,8 @@ class test_idviews(Declarative):
                     homedirectory=[u'/home/newhome'],
                     uidnumber=[u'12345'],
                     uid=[u'newlogin'],
+                    ipasshpubkey=[sshpubkey],
+                    sshpubkeyfp=[sshpubkeyfp],
                 )
             ),
         ),
