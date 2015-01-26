@@ -712,22 +712,21 @@ class Restore(admintool.AdminTool):
         not exist then tomcat will fail to start.
 
         The directory is different depending on whether we have a d9-based
-        or a d10-based installation. We can tell based on whether there is
-        a PKI-IPA 389-ds instance.
+        or a d10-based installation.
         """
-        if os.path.exists(paths.ETC_SLAPD_PKI_IPA_DIR): # dogtag 9
-            topdir = paths.PKI_CA_LOG_DIR
-            dirs = [topdir,
-                    '/var/log/pki-ca/signedAudit,']
-        else: # dogtag 10
-            topdir = paths.TOMCAT_TOPLEVEL_DIR
-            dirs = [topdir,
-                    paths.TOMCAT_CA_DIR,
-                    paths.TOMCAT_CA_ARCHIVE_DIR,
-                    paths.TOMCAT_SIGNEDAUDIT_DIR,]
-
-        if os.path.exists(topdir):
-            return
+        dirs = []
+        # dogtag 9
+        if (os.path.exists(paths.VAR_LIB_PKI_CA_DIR) and
+                not os.path.exists(paths.PKI_CA_LOG_DIR)):
+            dirs += [paths.PKI_CA_LOG_DIR,
+                     os.path.join(paths.PKI_CA_LOG_DIR, 'signedAudit')]
+        # dogtag 10
+        if (os.path.exists(paths.VAR_LIB_PKI_TOMCAT_DIR) and
+                not os.path.exists(paths.TOMCAT_TOPLEVEL_DIR)):
+            dirs += [paths.TOMCAT_TOPLEVEL_DIR,
+                     paths.TOMCAT_CA_DIR,
+                     paths.TOMCAT_CA_ARCHIVE_DIR,
+                     paths.TOMCAT_SIGNEDAUDIT_DIR]
 
         try:
             pent = pwd.getpwnam(PKI_USER)
