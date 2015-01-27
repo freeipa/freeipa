@@ -672,6 +672,7 @@ class idoverrideuser(baseidoverride):
     }
 
     object_class = baseidoverride.object_class + ['ipaUserOverride']
+    possible_objectclasses = ['ipasshuser', 'ipaSshGroupOfPubKeys']
     default_attributes = baseidoverride.default_attributes + [
        'homeDirectory', 'uidNumber', 'uid', 'ipaOriginalUid', 'loginShell',
        'ipaSshPubkey', 'gidNumber', 'gecos',
@@ -785,6 +786,8 @@ class idoverrideuser_add(baseidoverride_add):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         dn = super(idoverrideuser_add, self).pre_callback(ldap, dn,
                  entry_attrs, attrs_list, *keys, **options)
+
+        entry_attrs['objectclass'].append('ipasshuser')
 
         # Update the ipaOriginalUid
         self.obj.update_original_uid_reference(entry_attrs)
