@@ -82,7 +82,6 @@ class ODSExporterInstance(service.Service):
                              self.suffix)
         except errors.DuplicateEntry:
             root_logger.error("DNSKeyExporter service already exists")
-        self.enable()
 
     def __setup_key_exporter(self):
         installutils.set_directive(paths.SYSOCNFIG_IPA_ODS_EXPORTER,
@@ -155,14 +154,13 @@ class ODSExporterInstance(service.Service):
 
         self.print_msg("Unconfiguring %s" % self.service_name)
 
-        running = self.restore_state("running")
-        enabled = self.restore_state("enabled")
+        # just eat states
+        self.restore_state("running")
+        self.restore_state("enabled")
 
-        if enabled is not None and not enabled:
-            self.disable()
-
-        if running is not None and running:
-            self.start()
+        # stop and disable service (IPA service, we do not need it anymore)
+        self.disable()
+        self.stop()
 
         # restore state of dnssec default signer daemon
         signerd_enabled = self.restore_state("singerd_enabled")

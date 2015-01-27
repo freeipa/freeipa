@@ -146,7 +146,7 @@ class HTTPInstance(service.Service):
         self.restart()
 
     def __enable(self):
-        self.backup_state("enabled", self.is_running())
+        self.backup_state("enabled", self.is_enabled())
         # We do not let the system start IPA components on its own,
         # Instead we reply on the IPA init script to start only enabled
         # components as found in our LDAP configuration tree
@@ -388,8 +388,6 @@ class HTTPInstance(service.Service):
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
 
-        if not running is None:
-            self.stop()
 
         self.stop_tracking_certificates()
 
@@ -406,9 +404,6 @@ class HTTPInstance(service.Service):
                                           'org.freedesktop.DBus.Properties')
                 ca_iface.Set('org.fedorahosted.certmonger.ca',
                              'external-helper', helper)
-
-        if not enabled is None and not enabled:
-            self.disable()
 
         for f in [paths.HTTPD_IPA_CONF, paths.HTTPD_SSL_CONF, paths.HTTPD_NSS_CONF]:
             try:
@@ -430,8 +425,12 @@ class HTTPInstance(service.Service):
         except ipapython.errors.SetseboolError as e:
             self.print_msg('WARNING: ' + str(e))
 
-        if not running is None and running:
-            self.start()
+        if running:
+            self.restart()
+
+        # disabled by default, by ldap_enable()
+        if enabled:
+            self.enable()
 
     def stop_tracking_certificates(self):
         db = certs.CertDB(api.env.realm)

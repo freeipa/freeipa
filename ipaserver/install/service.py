@@ -518,11 +518,14 @@ class SimpleServiceInstance(Service):
         if self.is_configured():
             self.print_msg("Unconfiguring %s" % self.service_name)
 
-        running = self.restore_state("running")
-        enabled = not self.restore_state("enabled")
+        self.stop()
+        self.disable()
 
-        if not running is None and not running:
-            self.stop()
-        if not enabled is None and not enabled:
-            self.disable()
-            self.remove()
+        running = self.restore_state("running")
+        enabled = self.restore_state("enabled")
+
+        # restore the original state of service
+        if running:
+            self.start()
+        if enabled:
+            self.enable()

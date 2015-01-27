@@ -1273,8 +1273,10 @@ class CAInstance(DogtagInstance):
 
     def uninstall(self):
         enabled = self.restore_state("enabled")
-        if not enabled is None and not enabled:
-            self.disable()
+
+        # disabled by default, by ldap_enable()
+        if enabled:
+            self.enable()
 
         if self.dogtag_constants.DOGTAG_VERSION >= 10:
             DogtagInstance.uninstall(self)

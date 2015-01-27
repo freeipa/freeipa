@@ -454,11 +454,12 @@ class KrbInstance(service.Service):
                 root_logger.debug(error)
                 pass
 
-        if not enabled is None and not enabled:
-            self.disable()
+        # disabled by default, by ldap_enable()
+        if enabled:
+            self.enable()
 
-        if not running is None and running:
-            self.start()
+        if running:
+            self.restart()
 
         self.kpasswd = KpasswdInstance()
         self.kpasswd.uninstall()

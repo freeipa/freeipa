@@ -771,8 +771,9 @@ class DsInstance(service.Service):
             root_logger.debug(error)
             pass
 
-        if not enabled is None and not enabled:
-            self.disable()
+        # disabled during IPA installation
+        if enabled:
+            self.enable()
 
         serverid = self.restore_state("serverid")
         if serverid is not None:

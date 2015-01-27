@@ -165,8 +165,10 @@ class NTPInstance(service.Service):
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
 
-        if not running is None:
-            self.stop()
+        # service is not in LDAP, stop and disable service
+        # before restoring configuration
+        self.stop()
+        self.disable()
 
         try:
             self.fstore.restore_file(paths.NTP_CONF)
@@ -174,8 +176,8 @@ class NTPInstance(service.Service):
             root_logger.debug(error)
             pass
 
-        if not enabled is None and not enabled:
-            self.disable()
+        if enabled:
+            self.enable()
 
-        if not running is None and running:
-            self.start()
+        if running:
+            self.restart()

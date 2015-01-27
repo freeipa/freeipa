@@ -1179,8 +1179,6 @@ class BindInstance(service.Service):
 
         self.dns_backup.clear_records(api.Backend.ldap2.isconnected())
 
-        if not running is None:
-            self.stop()
 
         for f in [NAMED_CONF, RESOLV_CONF]:
             try:
@@ -1189,11 +1187,12 @@ class BindInstance(service.Service):
                 root_logger.debug(error)
                 pass
 
-        if not enabled is None and not enabled:
-            self.disable()
+        # disabled by default, by ldap_enable()
+        if enabled:
+            self.enable()
 
-        if not running is None and running:
-            self.start()
+        if running:
+            self.restart()
 
         self.named_regular.unmask()
         if named_regular_enabled:

@@ -124,8 +124,6 @@ class DNSKeySyncInstance(service.Service):
         self.fqdn = fqdn
         self.realm = realm_name
         self.suffix = ipautil.realm_to_suffix(self.realm)
-        self.backup_state("enabled", self.is_enabled())
-        self.backup_state("running", self.is_running())
         try:
             self.stop()
         except:
@@ -417,7 +415,6 @@ class DNSKeySyncInstance(service.Service):
                              self.suffix, self.extra_config)
         except errors.DuplicateEntry:
             self.logger.error("DNSKeySync service already exists")
-        self.enable()
 
     def __setup_principal(self):
         assert self.ods_gid is not None
@@ -480,11 +477,13 @@ class DNSKeySyncInstance(service.Service):
 
         self.print_msg("Unconfiguring %s" % self.service_name)
 
-        running = self.restore_state("running")
-        enabled = self.restore_state("enabled")
+        # Just eat states
+        self.restore_state("running")
+        self.restore_state("enabled")
 
-        if running is not None:
-            self.stop()
+        # stop and disable service (IPA service, we do not need it anymore)
+        self.stop()
+        self.disable()
 
         for f in [paths.SYSCONFIG_NAMED]:
             try:
@@ -500,9 +499,3 @@ class DNSKeySyncInstance(service.Service):
             os.remove(paths.DNSSEC_SOFTHSM_PIN)
         except Exception:
             pass
-
-        if enabled is not None and not enabled:
-            self.disable()
-
-        if running is not None and running:
-            self.start()

@@ -149,7 +149,6 @@ class OpenDNSSECInstance(service.Service):
                              self.suffix, self.extra_config)
         except errors.DuplicateEntry:
             root_logger.error("DNSSEC service already exists")
-        self.enable()
 
     def __setup_conf_files(self):
         if not self.fstore.has_file(paths.OPENDNSSEC_CONF_FILE):
@@ -292,8 +291,9 @@ class OpenDNSSECInstance(service.Service):
                 root_logger.debug(error)
                 pass
 
-        if enabled is not None and not enabled:
-            self.disable()
+        # disabled by default, by ldap_enable()
+        if enabled:
+            self.enable()
 
-        if running is not None and running:
-            self.start()
+        if running:
+            self.restart()
