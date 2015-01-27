@@ -457,6 +457,7 @@ class Restore(admintool.AdminTool):
                                           self.dirman_password)
             except Exception, e:
                 self.log.critical("Unable to disable agreement on %s: %s" % (master, e))
+                continue
 
             master_dn = DN(('cn', master), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
             try:
@@ -481,6 +482,7 @@ class Restore(admintool.AdminTool):
                                                       self.dirman_password)
                 except Exception, e:
                     self.log.critical("Unable to disable agreement on %s: %s" % (master, e))
+                    continue
 
                 host_entries = repl.find_ipa_replication_agreements()
                 hosts = [rep.single_value.get('nsds5replicahost')
