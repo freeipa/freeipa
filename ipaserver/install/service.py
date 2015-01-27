@@ -506,7 +506,6 @@ class SimpleServiceInstance(Service):
         self.restart()
 
     def __enable(self):
-        self.enable()
         self.backup_state("enabled", self.is_enabled())
         if self.gensvc_name == None:
             self.enable()
