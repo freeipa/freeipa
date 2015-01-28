@@ -1030,6 +1030,8 @@ static int ipauuid_pre_op(Slapi_PBlock *pb, int modtype)
 
         default:
             /* never reached, just silence compiler */
+            LOG_TRACE("File '%s' line %d: Got unexpected value of modtype:"
+                      "%d\n", __FILE__, __LINE__, modtype);
             break;
         }
 
