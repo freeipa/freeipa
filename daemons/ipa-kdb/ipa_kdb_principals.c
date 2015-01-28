@@ -1474,10 +1474,38 @@ done:
     return kerr;
 }
 
+static krb5_error_code ipadb_principal_to_mods(krb5_context kcontext,
+                                               struct ipadb_mods *imods,
+                                               char *principal,
+                                               int mod_op)
+{
+    krb5_error_code kerr;
+
+    if (principal == NULL) {
+       kerr = EINVAL;
+       goto done;
+    }
+
+    kerr = ipadb_get_ldap_mod_str(imods, "krbPrincipalName",
+                                  principal, mod_op);
+    if (kerr) {
+        goto done;
+    }
+    kerr = ipadb_get_ldap_mod_str(imods, "ipaKrbPrincipalAlias",
+                                  principal, mod_op);
+    if (kerr) {
+        goto done;
+    }
+
+    kerr = 0;
+
+done:
+    return kerr;
+}
+
 static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
                                            struct ipadb_mods *imods,
                                            krb5_db_entry *entry,
-                                           char *principal,
                                            int mod_op)
 {
     krb5_error_code kerr;
@@ -1485,20 +1513,6 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
     int mkvno;
 
     /* check each mask flag in order */
-
-    /* KADM5_PRINCIPAL */
-    if (entry->mask & KMASK_PRINCIPAL) {
-        kerr = ipadb_get_ldap_mod_str(imods, "krbPrincipalName",
-                                      principal, mod_op);
-        if (kerr) {
-            goto done;
-        }
-        kerr = ipadb_get_ldap_mod_str(imods, "ipaKrbPrincipalAlias",
-                                      principal, mod_op);
-        if (kerr) {
-            goto done;
-        }
-    }
 
     /* KADM5_PRINC_EXPIRE_TIME */
     if (entry->mask & KMASK_PRINC_EXPIRE_TIME) {
@@ -1863,8 +1877,12 @@ static krb5_error_code ipadb_add_principal(krb5_context kcontext,
         goto done;
     }
 
-    kerr = ipadb_entry_to_mods(kcontext, imods,
-                               entry, principal, LDAP_MOD_ADD);
+    kerr = ipadb_principal_to_mods(kcontext, imods, principal, LDAP_MOD_ADD);
+    if (kerr != 0) {
+        goto done;
+    }
+
+    kerr = ipadb_entry_to_mods(kcontext, imods, entry, LDAP_MOD_ADD);
     if (kerr != 0) {
         goto done;
     }
@@ -1895,6 +1913,11 @@ static krb5_error_code ipadb_modify_principal(krb5_context kcontext,
         return KRB5_KDB_DBNOTINITED;
     }
 
+    kerr = new_ipadb_mods(&imods);
+    if (kerr) {
+        goto done;
+    }
+
     ied = (struct ipadb_e_data *)entry->e_data;
     if (!ied || !ied->entry_dn) {
         kerr = krb5_unparse_name(kcontext, entry->princ, &principal);
@@ -1919,15 +1942,16 @@ static krb5_error_code ipadb_modify_principal(krb5_context kcontext,
             kerr = KRB5_KDB_INTERNAL_ERROR;
             goto done;
         }
+
+        kerr = ipadb_principal_to_mods(kcontext, imods, principal,
+                                       LDAP_MOD_REPLACE);
+        if (kerr != 0) {
+            goto done;
+        }
+
     }
 
-    kerr = new_ipadb_mods(&imods);
-    if (kerr) {
-        goto done;
-    }
-
-    kerr = ipadb_entry_to_mods(kcontext, imods,
-                               entry, principal, LDAP_MOD_REPLACE);
+    kerr = ipadb_entry_to_mods(kcontext, imods, entry, LDAP_MOD_REPLACE);
     if (kerr != 0) {
         goto done;
     }
