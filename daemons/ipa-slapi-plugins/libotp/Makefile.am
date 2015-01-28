@@ -1,5 +1,7 @@
 MAINTAINERCLEANFILES = *~ Makefile.in
-AM_CPPFLAGS = -I/usr/include/dirsrv
+PLUGIN_COMMON_DIR = ../common
+AM_CPPFLAGS = -I/usr/include/dirsrv		\
+	-I$(PLUGIN_COMMON_DIR)
 
 noinst_LTLIBRARIES = libhotp.la libotp.la
 libhotp_la_SOURCES = hotp.c hotp.h

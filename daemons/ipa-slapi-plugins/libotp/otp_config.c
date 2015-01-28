@@ -38,6 +38,7 @@
  * END COPYRIGHT BLOCK **/
 
 #include "otp_config.h"
+#include "util.h"
 
 #include <pratom.h>
 #include <plstr.h>
@@ -214,6 +215,7 @@ struct otp_config *otp_config_init(Slapi_ComponentId *plugin_id)
 
     struct otp_config *cfg = NULL;
     void *node = NULL;
+    int search_result = 0;
 
     cfg = (typeof(cfg)) slapi_ch_calloc(1, sizeof(*cfg));
     cfg->plugin_id = plugin_id;
@@ -236,7 +238,14 @@ struct otp_config *otp_config_init(Slapi_ComponentId *plugin_id)
             cfg->records = rec;
 
             /* Load the specified entry. */
-            slapi_search_internal_get_entry(rec->sdn, NULL, &entry, plugin_id);
+            search_result = slapi_search_internal_get_entry(rec->sdn,
+                    NULL, &entry, plugin_id);
+            if (search_result != LDAP_SUCCESS) {
+                LOG_TRACE("File '%s' line %d: Unable to access LDAP entry "
+                        "'%s'. Perhaps it doesn't exist? "
+                        "Error code: %d\n", __FILE__, __LINE__,
+                        slapi_sdn_get_dn(rec->sdn), search_result);
+            }
             update(cfg, rec->sdn, entry);
             slapi_entry_free(entry);
         }
