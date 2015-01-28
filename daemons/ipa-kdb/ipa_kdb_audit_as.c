@@ -20,6 +20,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <syslog.h>
 #include "ipa_kdb.h"
 #include "ipa_pwd.h"
 
@@ -121,6 +122,9 @@ void ipadb_audit_as_req(krb5_context kcontext,
         client->mask |= KMASK_LAST_FAILED;
         break;
     default:
+        krb5_klog_syslog(LOG_ERR,
+                         "File '%s' line %d: Got an unexpected value of "
+                         "error_code: %d\n", __FILE__, __LINE__, error_code);
         return;
     }
 

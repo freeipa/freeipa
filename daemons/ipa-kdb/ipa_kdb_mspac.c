@@ -54,9 +54,6 @@ struct ipadb_mspac {
     time_t last_update;
 };
 
-
-int krb5_klog_syslog(int, const char *, ...);
-
 static char *user_pac_attrs[] = {
     "objectClass",
     "uid",

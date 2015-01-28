@@ -30,6 +30,8 @@ struct keys_container {
 #define KEYTAB_RET_OID "2.16.840.1.113730.3.8.10.2"
 #define KEYTAB_GET_OID "2.16.840.1.113730.3.8.10.5"
 
+int krb5_klog_syslog(int, const char *, ...);
+
 void
 ipa_krb5_free_ktypes(krb5_context context, krb5_enctype *val);
 
