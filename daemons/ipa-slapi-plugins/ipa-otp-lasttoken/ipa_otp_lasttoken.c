@@ -111,13 +111,19 @@ static bool is_pwd_enabled(const char *user_dn)
     Slapi_Entry *entry = NULL;
     uint32_t authtypes;
     Slapi_DN *sdn;
+    int search_result = 0;
 
     sdn = slapi_sdn_new_dn_byval(user_dn);
     if (sdn == NULL)
         return false;
 
-    slapi_search_internal_get_entry(sdn, attrs, &entry,
-                                    otp_config_plugin_id(otp_config));
+    search_result = slapi_search_internal_get_entry(sdn, attrs, &entry,
+            otp_config_plugin_id(otp_config));
+    if (search_result != LDAP_SUCCESS) {
+        LOG_TRACE("File '%s' line %d: Unable to access LDAP entry '%s'. "
+                "Perhaps it doesn't exist? Error code: %d\n", __FILE__,
+                __LINE__, slapi_sdn_get_dn(sdn), search_result);
+    }
     slapi_sdn_free(&sdn);
     if (entry == NULL)
         return false;
