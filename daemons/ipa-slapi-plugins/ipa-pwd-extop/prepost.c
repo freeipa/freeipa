@@ -635,6 +635,8 @@ static int ipapwd_pre_mod(Slapi_PBlock *pb)
                 is_smb = 0;
                 is_ipant = 0;
 
+                /* After examining the output of covscan, we think that this
+                 * fallthrough is intentional.*/
             case LDAP_MOD_ADD:
                 if (!lmod->mod_bvalues ||
                     !lmod->mod_bvalues[0]) {
