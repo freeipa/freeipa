@@ -2071,7 +2071,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
             }
         }
 
-        kerr = ipadb_get_pac(context, client_entry ? client_entry : client, &pac);
+        kerr = ipadb_get_pac(context, client, &pac);
         if (kerr != 0 && kerr != ENOENT) {
             goto done;
         }
