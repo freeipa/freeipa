@@ -653,6 +653,7 @@ class group_detach(LDAPQuery):
         objectclasses = list(set(def_objectclass + objectclasses))
 
         group_attrs['mepManagedBy'] = None
+        group_attrs['objectclass'] = objectclasses
         ldap.update_entry(group_attrs)
 
         return dict(
