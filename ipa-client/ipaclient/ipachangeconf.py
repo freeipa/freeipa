@@ -190,6 +190,9 @@ class IPAChangeConf:
                 continue
             raise SyntaxError('Unknown type: [%s]' % o['type'])
 
+        # append an empty string to the output so that we add eol to the end
+        # of the file contents in a single join()
+        output.append('')
         return self.deol.join(output)
 
     def parseLine(self, line):
