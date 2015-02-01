@@ -116,6 +116,7 @@ struct extdom_req {
             gid_t gid;
         } posix_gid;
     } data;
+    char *err_msg;
 };
 
 struct extdom_res {

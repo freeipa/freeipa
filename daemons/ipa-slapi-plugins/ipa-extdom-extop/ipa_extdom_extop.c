@@ -149,12 +149,15 @@ static int ipa_extdom_extop(Slapi_PBlock *pb)
     rc = LDAP_SUCCESS;
 
 done:
-    free_req_data(req);
+    if (req->err_msg != NULL) {
+        err_msg = req->err_msg;
+    }
     if (err_msg != NULL) {
         LOG("%s", err_msg);
     }
     slapi_send_ldap_result(pb, rc, NULL, err_msg, 0, NULL);
     ber_bvfree(ret_val);
+    free_req_data(req);
     return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
 }
 

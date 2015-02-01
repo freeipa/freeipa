@@ -356,6 +356,7 @@ void free_req_data(struct extdom_req *req)
         break;
     }
 
+    free(req->err_msg);
     free(req);
 }
 
