@@ -213,6 +213,47 @@ void test_getgrgid_r_wrapper(void **state)
     free(buf);
 }
 
+void extdom_req_setup(void **state)
+{
+    struct extdom_req *req;
+
+    req = calloc(sizeof(struct extdom_req), 1);
+    assert_non_null(req);
+
+    *state = req;
+}
+
+void extdom_req_teardown(void **state)
+{
+    struct extdom_req *req;
+
+    req = (struct extdom_req *) *state;
+
+    free_req_data(req);
+}
+
+void test_set_err_msg(void **state)
+{
+    struct extdom_req *req;
+
+    req = (struct extdom_req *) *state;
+    assert_null(req->err_msg);
+
+    set_err_msg(NULL, NULL);
+    assert_null(req->err_msg);
+
+    set_err_msg(req, NULL);
+    assert_null(req->err_msg);
+
+    set_err_msg(req, "Test [%s][%d].", "ABCD", 1234);
+    assert_non_null(req->err_msg);
+    assert_string_equal(req->err_msg, "Test [ABCD][1234].");
+
+    set_err_msg(req, "2nd Test [%s][%d].", "ABCD", 1234);
+    assert_non_null(req->err_msg);
+    assert_string_equal(req->err_msg, "Test [ABCD][1234].");
+}
+
 int main(int argc, const char *argv[])
 {
     const UnitTest tests[] = {
@@ -220,6 +261,8 @@ int main(int argc, const char *argv[])
         unit_test(test_getpwuid_r_wrapper),
         unit_test(test_getgrnam_r_wrapper),
         unit_test(test_getgrgid_r_wrapper),
+        unit_test_setup_teardown(test_set_err_msg,
+                                 extdom_req_setup, extdom_req_teardown),
     };
 
     return run_tests(tests);

@@ -229,6 +229,29 @@ done:
     return ret;
 }
 
+void set_err_msg(struct extdom_req *req, const char *format, ...)
+{
+    int ret;
+    va_list ap;
+
+    if (req == NULL) {
+        return;
+    }
+
+    if (format == NULL || req->err_msg != NULL) {
+        /* Do not override an existing error message. */
+        return;
+    }
+    va_start(ap, format);
+
+    ret = vasprintf(&req->err_msg, format, ap);
+    if (ret == -1) {
+        req->err_msg = strdup("vasprintf failed.\n");
+    }
+
+    va_end(ap);
+}
+
 int parse_request_data(struct berval *req_val, struct extdom_req **_req)
 {
     BerElement *ber = NULL;

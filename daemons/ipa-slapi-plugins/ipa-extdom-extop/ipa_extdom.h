@@ -185,4 +185,5 @@ int getgrnam_r_wrapper(size_t buf_max, const char *name,
                        struct group *grp, char **_buf, size_t *_buf_len);
 int getgrgid_r_wrapper(size_t buf_max, gid_t gid,
                        struct group *grp, char **_buf, size_t *_buf_len);
+void set_err_msg(struct extdom_req *req, const char *format, ...);
 #endif /* _IPA_EXTDOM_H_ */
