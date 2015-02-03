@@ -2111,10 +2111,17 @@ done:
     return kerr;
 }
 
+#if KRB5_KDB_API_VERSION < 8
 krb5_error_code ipadb_iterate(krb5_context kcontext,
                               char *match_entry,
                               int (*func)(krb5_pointer, krb5_db_entry *),
                               krb5_pointer func_arg)
+#else
+krb5_error_code ipadb_iterate(krb5_context kcontext,
+                              char *match_entry,
+                              int (*func)(krb5_pointer, krb5_db_entry *),
+                              krb5_pointer func_arg, krb5_flags iterflags)
+#endif
 {
     struct ipadb_context *ipactx;
     krb5_error_code kerr;
