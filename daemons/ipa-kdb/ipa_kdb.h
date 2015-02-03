@@ -182,10 +182,17 @@ krb5_error_code ipadb_put_principal(krb5_context kcontext,
                                     char **db_args);
 krb5_error_code ipadb_delete_principal(krb5_context kcontext,
                                        krb5_const_principal search_for);
+#if KRB5_KDB_API_VERSION < 8
 krb5_error_code ipadb_iterate(krb5_context kcontext,
                               char *match_entry,
                               int (*func)(krb5_pointer, krb5_db_entry *),
                               krb5_pointer func_arg);
+#else
+krb5_error_code ipadb_iterate(krb5_context kcontext,
+                              char *match_entry,
+                              int (*func)(krb5_pointer, krb5_db_entry *),
+                              krb5_pointer func_arg, krb5_flags iterflags);
+#endif
 
 /* POLICY FUNCTIONS */
 
