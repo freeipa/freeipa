@@ -659,8 +659,6 @@ class BindInstance(service.Service):
             if self.get_state("running") is None:
                 # first time store status
                 self.backup_state("running", self.is_running())
-                self.backup_state("named-regular-running",
-                                  self.named_regular.is_running())
             self.restart()
         except Exception as e:
             root_logger.error("Named service failed to start (%s)", e)
@@ -682,6 +680,10 @@ class BindInstance(service.Service):
             root_logger.error("DNS service already exists")
 
         # disable named, we need to run named-pkcs11 only
+        if self.get_state("named-regular-running") is None:
+            # first time store status
+            self.backup_state("named-regular-running",
+                              self.named_regular.is_running())
         try:
             self.named_regular.stop()
         except Exception as e:
