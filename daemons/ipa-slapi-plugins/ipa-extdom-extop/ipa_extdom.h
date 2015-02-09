@@ -185,5 +185,19 @@ int getgrnam_r_wrapper(size_t buf_max, const char *name,
                        struct group *grp, char **_buf, size_t *_buf_len);
 int getgrgid_r_wrapper(size_t buf_max, gid_t gid,
                        struct group *grp, char **_buf, size_t *_buf_len);
+int pack_ber_sid(const char *sid, struct berval **berval);
+int pack_ber_name(const char *domain_name, const char *name,
+                  struct berval **berval);
+int pack_ber_user(struct ipa_extdom_ctx *ctx,
+                  enum response_types response_type,
+                  const char *domain_name, const char *user_name,
+                  uid_t uid, gid_t gid,
+                  const char *gecos, const char *homedir,
+                  const char *shell, struct sss_nss_kv *kv_list,
+                  struct berval **berval);
+int pack_ber_group(enum response_types response_type,
+                   const char *domain_name, const char *group_name,
+                   gid_t gid, char **members, struct sss_nss_kv *kv_list,
+                   struct berval **berval);
 void set_err_msg(struct extdom_req *req, const char *format, ...);
 #endif /* _IPA_EXTDOM_H_ */

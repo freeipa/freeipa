@@ -213,30 +213,46 @@ void test_getgrgid_r_wrapper(void **state)
     free(buf);
 }
 
+struct test_data {
+    struct extdom_req *req;
+    struct ipa_extdom_ctx *ctx;
+};
+
 void extdom_req_setup(void **state)
 {
-    struct extdom_req *req;
+    struct test_data *test_data;
 
-    req = calloc(sizeof(struct extdom_req), 1);
-    assert_non_null(req);
+    test_data = calloc(sizeof(struct test_data), 1);
+    assert_non_null(test_data);
 
-    *state = req;
+    test_data->req = calloc(sizeof(struct extdom_req), 1);
+    assert_non_null(test_data->req);
+
+    test_data->ctx = calloc(sizeof(struct ipa_extdom_ctx), 1);
+    assert_non_null(test_data->req);
+
+    *state = test_data;
 }
 
 void extdom_req_teardown(void **state)
 {
-    struct extdom_req *req;
+    struct test_data *test_data;
 
-    req = (struct extdom_req *) *state;
+    test_data = (struct test_data *) *state;
 
-    free_req_data(req);
+    free_req_data(test_data->req);
+    free(test_data->ctx);
+    free(test_data);
 }
 
 void test_set_err_msg(void **state)
 {
     struct extdom_req *req;
+    struct test_data *test_data;
 
-    req = (struct extdom_req *) *state;
+    test_data = (struct test_data *) *state;
+    req = test_data->req;
+
     assert_null(req->err_msg);
 
     set_err_msg(NULL, NULL);
@@ -254,6 +270,127 @@ void test_set_err_msg(void **state)
     assert_string_equal(req->err_msg, "Test [ABCD][1234].");
 }
 
+#define TEST_SID "S-1-2-3-4"
+#define TEST_DOMAIN_NAME "DOMAIN"
+
+char res_sid[] = {0x30, 0x0e, 0x0a, 0x01, 0x01, 0x04, 0x09, 0x53, 0x2d, 0x31, \
+                  0x2d, 0x32, 0x2d, 0x33, 0x2d, 0x34};
+char res_nam[] = {0x30, 0x13, 0x0a, 0x01, 0x02, 0x30, 0x0e, 0x04, 0x06, 0x44, \
+                  0x4f, 0x4d, 0x41, 0x49, 0x4e, 0x04, 0x04, 0x74, 0x65, 0x73, \
+                  0x74};
+char res_uid[] = {0x30, 0x1c, 0x0a, 0x01, 0x03, 0x30, 0x17, 0x04, 0x06, 0x44, \
+                  0x4f, 0x4d, 0x41, 0x49, 0x4e, 0x04, 0x04, 0x74, 0x65, 0x73, \
+                  0x74, 0x02, 0x02, 0x30, 0x39, 0x02, 0x03, 0x00, 0xd4, 0x31};
+char res_gid[] = {0x30, 0x1e, 0x0a, 0x01, 0x04, 0x30, 0x19, 0x04, 0x06, 0x44, \
+                  0x4f, 0x4d, 0x41, 0x49, 0x4e, 0x04, 0x0a, 0x74, 0x65, 0x73, \
+                  0x74, 0x5f, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x02, 0x03, 0x00, \
+                  0xd4, 0x31};
+
+void test_encode(void **state)
+{
+    int ret;
+    struct berval *resp_val;
+    struct ipa_extdom_ctx *ctx;
+    struct test_data *test_data;
+
+    test_data = (struct test_data *) *state;
+    ctx = test_data->ctx;
+
+    ctx->max_nss_buf_size = (128*1024*1024);
+
+    ret = pack_ber_sid(TEST_SID, &resp_val);
+    assert_int_equal(ret, LDAP_SUCCESS);
+    assert_int_equal(sizeof(res_sid), resp_val->bv_len);
+    assert_memory_equal(res_sid, resp_val->bv_val, resp_val->bv_len);
+    ber_bvfree(resp_val);
+
+    ret = pack_ber_name(TEST_DOMAIN_NAME, "test", &resp_val);
+    assert_int_equal(ret, LDAP_SUCCESS);
+    assert_int_equal(sizeof(res_nam), resp_val->bv_len);
+    assert_memory_equal(res_nam, resp_val->bv_val, resp_val->bv_len);
+    ber_bvfree(resp_val);
+
+    ret = pack_ber_user(ctx, RESP_USER, TEST_DOMAIN_NAME, "test", 12345, 54321,
+                        NULL, NULL, NULL, NULL, &resp_val);
+    assert_int_equal(ret, LDAP_SUCCESS);
+    assert_int_equal(sizeof(res_uid), resp_val->bv_len);
+    assert_memory_equal(res_uid, resp_val->bv_val, resp_val->bv_len);
+    ber_bvfree(resp_val);
+
+    ret = pack_ber_group(RESP_GROUP, TEST_DOMAIN_NAME, "test_group", 54321,
+                         NULL, NULL, &resp_val);
+    assert_int_equal(ret, LDAP_SUCCESS);
+    assert_int_equal(sizeof(res_gid), resp_val->bv_len);
+    assert_memory_equal(res_gid, resp_val->bv_val, resp_val->bv_len);
+    ber_bvfree(resp_val);
+}
+
+char req_sid[] = {0x30, 0x11, 0x0a, 0x01, 0x01, 0x0a, 0x01, 0x01, 0x04, 0x09, \
+                  0x53, 0x2d, 0x31, 0x2d, 0x32, 0x2d, 0x33, 0x2d, 0x34};
+char req_nam[] = {0x30, 0x16, 0x0a, 0x01, 0x02, 0x0a, 0x01, 0x01, 0x30, 0x0e, \
+                  0x04, 0x06, 0x44, 0x4f, 0x4d, 0x41, 0x49, 0x4e, 0x04, 0x04, \
+                  0x74, 0x65, 0x73, 0x74};
+char req_uid[] = {0x30, 0x14, 0x0a, 0x01, 0x03, 0x0a, 0x01, 0x01, 0x30, 0x0c, \
+                  0x04, 0x06, 0x44, 0x4f, 0x4d, 0x41, 0x49, 0x4e, 0x02, 0x02, \
+                  0x30, 0x39};
+char req_gid[] = {0x30, 0x15, 0x0a, 0x01, 0x04, 0x0a, 0x01, 0x01, 0x30, 0x0d, \
+                  0x04, 0x06, 0x44, 0x4f, 0x4d, 0x41, 0x49, 0x4e, 0x02, 0x03, \
+                  0x00, 0xd4, 0x31};
+
+void test_decode(void **state)
+{
+    struct berval req_val;
+    struct extdom_req *req;
+    int ret;
+
+    req_val.bv_val = req_sid;
+    req_val.bv_len = sizeof(req_sid);
+
+    ret = parse_request_data(&req_val, &req);
+
+    assert_int_equal(ret, LDAP_SUCCESS);
+    assert_int_equal(req->input_type, INP_SID);
+    assert_int_equal(req->request_type, REQ_SIMPLE);
+    assert_string_equal(req->data.sid, "S-1-2-3-4");
+    free_req_data(req);
+
+    req_val.bv_val = req_nam;
+    req_val.bv_len = sizeof(req_nam);
+
+    ret = parse_request_data(&req_val, &req);
+
+    assert_int_equal(ret, LDAP_SUCCESS);
+    assert_int_equal(req->input_type, INP_NAME);
+    assert_int_equal(req->request_type, REQ_SIMPLE);
+    assert_string_equal(req->data.name.domain_name, "DOMAIN");
+    assert_string_equal(req->data.name.object_name, "test");
+    free_req_data(req);
+
+    req_val.bv_val = req_uid;
+    req_val.bv_len = sizeof(req_uid);
+
+    ret = parse_request_data(&req_val, &req);
+
+    assert_int_equal(ret, LDAP_SUCCESS);
+    assert_int_equal(req->input_type, INP_POSIX_UID);
+    assert_int_equal(req->request_type, REQ_SIMPLE);
+    assert_string_equal(req->data.posix_uid.domain_name, "DOMAIN");
+    assert_int_equal(req->data.posix_uid.uid, 12345);
+    free_req_data(req);
+
+    req_val.bv_val = req_gid;
+    req_val.bv_len = sizeof(req_gid);
+
+    ret = parse_request_data(&req_val, &req);
+
+    assert_int_equal(ret, LDAP_SUCCESS);
+    assert_int_equal(req->input_type, INP_POSIX_GID);
+    assert_int_equal(req->request_type, REQ_SIMPLE);
+    assert_string_equal(req->data.posix_gid.domain_name, "DOMAIN");
+    assert_int_equal(req->data.posix_gid.gid, 54321);
+    free_req_data(req);
+}
+
 int main(int argc, const char *argv[])
 {
     const UnitTest tests[] = {
@@ -263,6 +400,9 @@ int main(int argc, const char *argv[])
         unit_test(test_getgrgid_r_wrapper),
         unit_test_setup_teardown(test_set_err_msg,
                                  extdom_req_setup, extdom_req_teardown),
+        unit_test_setup_teardown(test_encode,
+                                 extdom_req_setup, extdom_req_teardown),
+        unit_test(test_decode),
     };
 
     return run_tests(tests);

@@ -464,7 +464,7 @@ static int add_kv_list(BerElement *ber, struct sss_nss_kv *kv_list)
     return LDAP_SUCCESS;
 }
 
-static int pack_ber_sid(const char *sid, struct berval **berval)
+int pack_ber_sid(const char *sid, struct berval **berval)
 {
     BerElement *ber = NULL;
     int ret;
@@ -491,13 +491,13 @@ static int pack_ber_sid(const char *sid, struct berval **berval)
 
 #define SSSD_SYSDB_SID_STR "objectSIDString"
 
-static int pack_ber_user(struct ipa_extdom_ctx *ctx,
-                         enum response_types response_type,
-                         const char *domain_name, const char *user_name,
-                         uid_t uid, gid_t gid,
-                         const char *gecos, const char *homedir,
-                         const char *shell, struct sss_nss_kv *kv_list,
-                         struct berval **berval)
+int pack_ber_user(struct ipa_extdom_ctx *ctx,
+                  enum response_types response_type,
+                  const char *domain_name, const char *user_name,
+                  uid_t uid, gid_t gid,
+                  const char *gecos, const char *homedir,
+                  const char *shell, struct sss_nss_kv *kv_list,
+                  struct berval **berval)
 {
     BerElement *ber = NULL;
     int ret;
@@ -610,10 +610,10 @@ done:
     return ret;
 }
 
-static int pack_ber_group(enum response_types response_type,
-                          const char *domain_name, const char *group_name,
-                          gid_t gid, char **members, struct sss_nss_kv *kv_list,
-                          struct berval **berval)
+int pack_ber_group(enum response_types response_type,
+                   const char *domain_name, const char *group_name,
+                   gid_t gid, char **members, struct sss_nss_kv *kv_list,
+                   struct berval **berval)
 {
     BerElement *ber = NULL;
     int ret;
@@ -694,8 +694,8 @@ done:
     return ret;
 }
 
-static int pack_ber_name(const char *domain_name, const char *name,
-                         struct berval **berval)
+int pack_ber_name(const char *domain_name, const char *name,
+                  struct berval **berval)
 {
     BerElement *ber = NULL;
     int ret;

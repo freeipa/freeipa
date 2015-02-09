@@ -38,11 +38,6 @@ libipa_extdom_extop_la_LIBADD = 	\
 TESTS =
 check_PROGRAMS =
 
-if HAVE_CHECK
-TESTS += extdom_tests
-check_PROGRAMS += extdom_tests
-endif
-
 if HAVE_CMOCKA
 if HAVE_NSS_WRAPPER
 TESTS_ENVIRONMENT = . ./test_data/test_setup.sh;
@@ -50,21 +45,6 @@ TESTS += extdom_cmocka_tests
 check_PROGRAMS += extdom_cmocka_tests
 endif
 endif
-
-extdom_tests_SOURCES = 	\
-	ipa_extdom_tests.c	\
-	ipa_extdom_common.c	\
-	$(NULL)
-extdom_tests_CFLAGS = $(CHECK_CFLAGS)
-extdom_tests_LDFLAGS =	\
-	-rpath $(shell pkg-config --libs-only-L dirsrv | sed -e 's/-L//') \
-	$(NULL)
-extdom_tests_LDADD = 		\
-	$(CHECK_LIBS)		\
-	$(LDAP_LIBS)		\
-	$(DIRSRV_LIBS)		\
-	$(SSSNSSIDMAP_LIBS)	\
-	$(NULL)
 
 extdom_cmocka_tests_SOURCES = 		\
 	ipa_extdom_cmocka_tests.c	\
