@@ -597,8 +597,14 @@ def uninstall():
     if ods_exporter.is_configured():
         ods_exporter.uninstall()
 
-    bindinstance.BindInstance(fstore).uninstall()
-    dnskeysyncinstance.DNSKeySyncInstance(fstore).uninstall()
+    bind = bindinstance.BindInstance(fstore)
+    if bind.is_configured():
+        bind.uninstall()
+
+    dnskeysync = dnskeysyncinstance.DNSKeySyncInstance(fstore)
+    if dnskeysync.is_configured():
+        dnskeysync.uninstall()
+
     httpinstance.HTTPInstance(fstore).uninstall()
     krbinstance.KrbInstance(fstore).uninstall()
     dsinstance.DsInstance(fstore=fstore).uninstall()

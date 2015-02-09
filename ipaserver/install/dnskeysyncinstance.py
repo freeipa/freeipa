@@ -179,6 +179,9 @@ class DNSKeySyncInstance(service.Service):
         ):
             raise RuntimeError("DNS container does not exist")
 
+        # ready to be installed, storing a state is required to run uninstall
+        self.backup_state("configured", True)
+
     def __setup_dnssec_containers(self):
         """
         Setup LDAP containers for DNSSEC
@@ -472,14 +475,13 @@ class DNSKeySyncInstance(service.Service):
 
 
     def uninstall(self):
-        if not self.is_configured():
-            return
-
-        self.print_msg("Unconfiguring %s" % self.service_name)
+        if self.is_configured():
+            self.print_msg("Unconfiguring %s" % self.service_name)
 
         # Just eat states
         self.restore_state("running")
         self.restore_state("enabled")
+        self.restore_state("configured")
 
         # stop and disable service (IPA service, we do not need it anymore)
         self.stop()
