@@ -168,10 +168,10 @@ main(int argc, const char **argv)
         { "debug", 'd', POPT_ARG_NONE, &debug, 0,
           _("Print debugging information"), _("Debugging output") },
         { "principal", 'p', POPT_ARG_STRING, &principal, 0,
-          _("The principal to get a keytab for (ex: ftp/ftp.example.com@EXAMPLE.COM)"),
+          _("The principal to remove from the keytab (ex: ftp/ftp.example.com@EXAMPLE.COM)"),
           _("Kerberos Service Principal Name") },
         { "keytab", 'k', POPT_ARG_STRING, &keytab, 0,
-          _("File were to store the keytab information"), _("Keytab File Name") },
+          _("The keytab file to remove the principcal(s) from"), _("Keytab File Name") },
         { "realm", 'r', POPT_ARG_STRING, &realm, 0,
           _("Remove all principals in this realm"), _("Realm name") },
         POPT_AUTOHELP
