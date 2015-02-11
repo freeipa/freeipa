@@ -56,6 +56,22 @@
 // TODO
 #define CKA_COPYABLE           (0x0017)
 
+#define CKG_MGF1_SHA1         (0x00000001)
+
+#define CKZ_DATA_SPECIFIED    (0x00000001)
+
+struct ck_rsa_pkcs_oaep_params {
+  CK_MECHANISM_TYPE hash_alg;
+  unsigned long mgf;
+  unsigned long source;
+  void *source_data;
+  unsigned long source_data_len;
+};
+
+typedef struct ck_rsa_pkcs_oaep_params CK_RSA_PKCS_OAEP_PARAMS;
+typedef struct ck_rsa_pkcs_oaep_params *CK_RSA_PKCS_OAEP_PARAMS_PTR;
+
+
 CK_BBOOL true = CK_TRUE;
 CK_BBOOL false = CK_FALSE;
 
@@ -119,6 +135,17 @@ typedef struct {
 PyObject* py_obj;
 CK_BBOOL* bool;
 } PyObj2Bool_mapping_t;
+
+/**
+ * Constants
+ */
+static const CK_RSA_PKCS_OAEP_PARAMS CONST_RSA_PKCS_OAEP_PARAMS = {
+    .hash_alg = CKM_SHA_1,
+    .mgf = CKG_MGF1_SHA1,
+    .source = CKZ_DATA_SPECIFIED,
+    .source_data = NULL,
+    .source_data_len = 0
+};
 
 /**
  * ipap11helper Exceptions
@@ -472,6 +499,42 @@ int _id_exists(P11_Helper* self, CK_BYTE_PTR id, CK_ULONG id_len,
 
     return 0; /* Object not found*/
 }
+
+/*
+ * Function set default param values for wrapping mechanism
+ * :param mech_type: mechanism type
+ * :param mech: filled structure with params based on mech type
+ *
+ * :return: 1 if sucessfull, 0 if error (fill proper exception)
+ *
+ * Warning: do not dealloc param values, it is static variables
+ */
+int _set_wrapping_mech_parameters(CK_MECHANISM_TYPE mech_type,
+                                  CK_MECHANISM *mech){
+    switch(mech_type){
+        case CKM_RSA_PKCS:
+        case CKM_AES_KEY_WRAP:
+        case CKM_AES_KEY_WRAP_PAD:
+            mech->pParameter = NULL;
+            mech->ulParameterLen = 0;
+        break;
+
+        case CKM_RSA_PKCS_OAEP:
+            /* Use the same configuration as openSSL
+             * https://www.openssl.org/docs/crypto/RSA_public_encrypt.html
+             */
+             mech->pParameter = (void*) &CONST_RSA_PKCS_OAEP_PARAMS;
+             mech->ulParameterLen = sizeof(CONST_RSA_PKCS_OAEP_PARAMS);
+        break;
+
+        default:
+            PyErr_SetString(ipap11helperError, "Unsupported wrapping mechanism");
+            return 0;
+    }
+    mech->mechanism = mech_type;
+    return 1;
+}
+
 
 /***********************************************************************
  * P11_Helper object
@@ -1362,17 +1425,20 @@ P11_Helper_export_wrapped_key(P11_Helper* self, PyObject *args, PyObject *kwds) 
     CK_BYTE_PTR wrapped_key = NULL;
     CK_ULONG wrapped_key_len = 0;
     CK_MECHANISM wrapping_mech = { CKM_RSA_PKCS, NULL, 0 };
-    CK_MECHANISM_TYPE wrapping_mech_type = CKM_RSA_PKCS;
     /* currently we don't support parameter in mechanism */
 
     static char *kwlist[] = { "key", "wrapping_key", "wrapping_mech", NULL };
     //TODO check long overflow
     //TODO export method
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "kkk|", kwlist, &object_key,
-            &object_wrapping_key, &wrapping_mech_type)) {
+            &object_wrapping_key, &wrapping_mech.mechanism)) {
         return NULL;
     }
-    wrapping_mech.mechanism = wrapping_mech_type;
+
+    // fill mech parameters
+    if (!_set_wrapping_mech_parameters(wrapping_mech.mechanism, &wrapping_mech)){
+        return NULL;
+    }
 
     rv = self->p11->C_WrapKey(self->session, &wrapping_mech,
             object_wrapping_key, object_key, NULL, &wrapped_key_len);
@@ -1452,6 +1518,10 @@ P11_Helper_import_wrapped_secret_key(P11_Helper* self, PyObject *args,
             &attrs[sec_en_cka_unwrap].py_obj, &attrs[sec_en_cka_verify].py_obj,
             &attrs[sec_en_cka_wrap].py_obj,
             &attrs[sec_en_cka_wrap_with_trusted].py_obj)) {
+        return NULL;
+    }
+
+    if (!_set_wrapping_mech_parameters(wrapping_mech.mechanism, &wrapping_mech)){
         return NULL;
     }
 
