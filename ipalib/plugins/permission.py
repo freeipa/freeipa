@@ -236,6 +236,7 @@ class permission(baseldap.LDAPObject):
                   '(read, search, compare, write, add, delete, all)'),
             values=(u'read', u'search', u'compare',
                     u'write', u'add', u'delete', u'all'),
+            flags={'ask_create'},
         ),
         Str('attrs*',
             label=_('Effective attributes'),

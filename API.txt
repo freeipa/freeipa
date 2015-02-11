@@ -2787,7 +2787,7 @@ option: Str('extratargetfilter', attribute=False, cli_name='filter', multivalue=
 option: Str('filter', attribute=False, cli_name='filter', multivalue=True, required=False)
 option: StrEnum('ipapermbindruletype', attribute=True, autofill=True, cli_name='bindtype', default=u'permission', multivalue=False, required=True, values=(u'permission', u'all', u'anonymous'))
 option: DNOrURL('ipapermlocation', alwaysask=True, attribute=True, autofill=False, cli_name='subtree', multivalue=False, query=False, required=False)
-option: StrEnum('ipapermright', attribute=True, cli_name='right', deprecated_cli_aliases=set(['permissions']), multivalue=True, required=False, values=(u'read', u'search', u'compare', u'write', u'add', u'delete', u'all'))
+option: StrEnum('ipapermright', alwaysask=True, attribute=True, autofill=False, cli_name='right', deprecated_cli_aliases=set(['permissions']), multivalue=True, query=False, required=False, values=(u'read', u'search', u'compare', u'write', u'add', u'delete', u'all'))
 option: DNParam('ipapermtarget', attribute=True, cli_name='target', multivalue=False, required=False)
 option: Str('ipapermtargetfilter', attribute=True, cli_name='rawfilter', multivalue=True, required=False)
 option: Str('memberof', alwaysask=True, attribute=False, autofill=False, cli_name='memberof', multivalue=True, query=False, required=False)
