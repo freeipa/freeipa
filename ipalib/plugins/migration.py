@@ -841,6 +841,12 @@ can use their Kerberos accounts.''')
                     api.log.info("%d %ss migrated. %s elapsed." % (migrate_cnt, ldap_obj_name, total_dur))
                 api.log.debug("%d %ss migrated, duration: %s (total %s)" % (migrate_cnt, ldap_obj_name, d, total_dur))
 
+        # if no users/groups were found (all lists in 'migrated' are empty),
+        # we raise an error that there is nothing to migrate
+        if not any(migrated.values()):
+            raise errors.NotFound(
+                reason=_("Found no users/groups to migrate "
+                         "from '%(ds_ldap)s'.") % dict(ds_ldap=ds_ldap))
         _update_default_group(ldap, pkey, config, context, True)
 
         return (migrated, failed)
