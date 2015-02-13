@@ -89,7 +89,7 @@ class otpconfig(LDAPObject):
         ),
         Int('ipatokentotpsyncwindow',
             cli_name='totp_sync_window',
-            label=_('Synchronization Window'),
+            label=_('TOTP Synchronization Window'),
             doc=_('TOTP synchronization time variance (seconds)'),
             minvalue=5,
         ),
