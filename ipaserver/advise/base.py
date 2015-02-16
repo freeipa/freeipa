@@ -19,10 +19,13 @@
 
 import os
 from ipalib import api
+from ipalib.plugable import Plugin, Registry, API
 from ipalib.errors import ValidationError
 from ipapython import admintool
 from textwrap import wrap
 from ipapython.ipa_log_manager import log_mgr
+
+register = Registry()
 
 
 """
@@ -72,6 +75,58 @@ Important! Do not forget to register the class to the API.
 """
 
 
+class _AdviceOutput(object):
+
+    def __init__(self):
+        self.content = []
+        self.prefix = '# '
+        self.options = None
+
+    def comment(self, line, wrapped=True):
+        if wrapped:
+            for wrapped_line in wrap(line, 70):
+                self.content.append(self.prefix + wrapped_line)
+        else:
+            self.content.append(self.prefix + line)
+
+    def debug(self, line):
+        if self.options.verbose:
+            self.comment('DEBUG: ' + line)
+
+    def command(self, line):
+        self.content.append(line)
+
+
+@register.base()
+class Advice(Plugin):
+    """
+    Base class for advices, plugins for ipa-advise.
+    """
+
+    options = None
+    require_root = False
+    description = ''
+
+    def __init__(self):
+        super(Advice, self).__init__()
+        self.log = _AdviceOutput()
+
+    def set_options(self, options):
+        self.options = options
+        self.log.options = options
+
+    def get_info(self):
+        """
+        This method should be overriden by child Advices.
+
+        Returns a string with instructions.
+        """
+
+        raise NotImplementedError
+
+advise_api = API((Advice,), ('ipaserver/advise/plugins',))
+
+
 class IpaAdvise(admintool.AdminTool):
     """
     Admin tool that given systems's configuration provides instructions how to
@@ -104,10 +159,10 @@ class IpaAdvise(admintool.AdminTool):
     def print_config_list(self):
         self.print_header('List of available advices')
 
-        max_keyword_len = max((len(keyword) for keyword in api.Advice))
+        max_keyword_len = max((len(keyword) for keyword in advise_api.Advice))
 
-        for keyword in api.Advice:
-            advice = getattr(api.Advice, keyword, '')
+        for keyword in advise_api.Advice:
+            advice = getattr(advise_api.Advice, keyword, '')
             description = getattr(advice, 'description', '')
             keyword = keyword.replace('_', '-')
 
@@ -139,7 +194,7 @@ class IpaAdvise(admintool.AdminTool):
             print(prefix + '-' * 70)
 
     def print_advice(self, keyword):
-        advice = getattr(api.Advice, keyword, None)
+        advice = getattr(advise_api.Advice, keyword, None)
 
         # Ensure that Configuration class for given --setup option value exists
         if advice is None:
@@ -172,8 +227,10 @@ class IpaAdvise(admintool.AdminTool):
     def run(self):
         super(IpaAdvise, self).run()
 
-        api.bootstrap(in_server=False, context='advise')
+        api.bootstrap(in_server=False, context='cli')
         api.finalize()
+        advise_api.bootstrap(in_server=False, context='cli')
+        advise_api.finalize()
         if not self.options.verbose:
             # Do not print connection information by default
             logger_name = r'ipa\.ipalib\.plugins\.rpcclient'

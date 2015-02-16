@@ -18,9 +18,13 @@
 #
 
 from ipalib import api
-from ipalib.frontend import Advice
+from ipalib.plugable import Registry
+from ipaserver.advise.base import Advice
+
+register = Registry()
 
 
+@register()
 class config_fedora_authconfig(Advice):
     """
     Provides client configuration instructions using authconfig.
@@ -36,6 +40,3 @@ class config_fedora_authconfig(Advice):
                    "--enablerfc2307bis --enablekrb5"
         advice = template.format(server=api.env.host)
         self.log.command(advice)
-
-
-api.register(config_fedora_authconfig)

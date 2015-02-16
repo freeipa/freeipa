@@ -19,8 +19,11 @@
 import os
 
 from ipalib import api
-from ipalib.frontend import Advice
+from ipalib.plugable import Registry
+from ipaserver.advise.base import Advice
 from ipapython.ipautil import template_file, SHARE_DIR
+
+register = Registry()
 
 
 class config_base_legacy_client(Advice):
@@ -80,6 +83,7 @@ class config_base_legacy_client(Advice):
         self.log.command('service sssd start')
 
 
+@register()
 class config_redhat_sssd_before_1_9(config_base_legacy_client):
     """
     Legacy client configuration for Red Hat based systems, using SSSD.
@@ -113,9 +117,7 @@ class config_redhat_sssd_before_1_9(config_base_legacy_client):
         super(config_redhat_sssd_before_1_9, self).configure_ca_cert()
 
 
-api.register(config_redhat_sssd_before_1_9)
-
-
+@register()
 class config_generic_linux_sssd_before_1_9(config_base_legacy_client):
     """
     Legacy client configuration for non Red Hat based linux systems,
@@ -170,9 +172,7 @@ class config_generic_linux_sssd_before_1_9(config_base_legacy_client):
                          '/etc/ldap/ldap.conf\n')
 
 
-api.register(config_generic_linux_sssd_before_1_9)
-
-
+@register()
 class config_redhat_nss_pam_ldapd(config_base_legacy_client):
     """
     Legacy client configuration for Red Hat based systems,
@@ -207,9 +207,7 @@ class config_redhat_nss_pam_ldapd(config_base_legacy_client):
         super(config_redhat_nss_pam_ldapd, self).configure_ca_cert()
 
 
-api.register(config_redhat_nss_pam_ldapd)
-
-
+@register()
 class config_generic_linux_nss_pam_ldapd(config_base_legacy_client):
     """
     Legacy client configuration for non Red Hat based linux systems,
@@ -276,9 +274,7 @@ class config_generic_linux_nss_pam_ldapd(config_base_legacy_client):
                          '/etc/ldap/ldap.conf\n')
 
 
-api.register(config_generic_linux_nss_pam_ldapd)
-
-
+@register()
 class config_freebsd_nss_pam_ldapd(config_base_legacy_client):
     """
     Legacy client configuration for FreeBSD, using nss-pam-ldapd.
@@ -343,9 +339,8 @@ class config_freebsd_nss_pam_ldapd(config_base_legacy_client):
         self.log.command('curl -k https://%s/ipa/config/ca.crt > '
                          '%s' % (api.env.host, cacrt))
 
-api.register(config_freebsd_nss_pam_ldapd)
 
-
+@register()
 class config_redhat_nss_ldap(config_base_legacy_client):
     """
     Legacy client configuration for Red Hat based systems,
@@ -378,5 +373,3 @@ class config_redhat_nss_ldap(config_base_legacy_client):
                          'Therefore, clients older than RHEL5.2 will not be '
                          'able to interoperate with IPA server 3.x.')
         super(config_redhat_nss_ldap, self).configure_ca_cert()
-
-api.register(config_redhat_nss_ldap)

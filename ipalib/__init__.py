@@ -882,7 +882,7 @@ freeIPA.org:
 import os
 import plugable
 from backend import Backend
-from frontend import Command, LocalOrRemote, Updater, Advice
+from frontend import Command, LocalOrRemote, Updater
 from frontend import Object, Method
 from crud import Create, Retrieve, Update, Delete, Search
 from parameters import DefaultFrom, Bool, Flag, Int, Decimal, Bytes, Str, IA5Str, Password, DNParam, DeprecatedParam
@@ -909,8 +909,6 @@ class API(plugable.API):
             self.packages.append('ipaserver')
         if self.env.context in ('installer', 'updates'):
             self.packages.append('ipaserver/install/plugins')
-        if self.env.context in ('advise',):
-            self.packages.append('ipaserver/advise/plugins')
 
 
 def create_api(mode='dummy'):
@@ -926,11 +924,9 @@ def create_api(mode='dummy'):
 
         - `frontend.Method`
 
-        - `frontend.Advice`
-
         - `backend.Backend`
     """
-    api = API((Command, Object, Method, Backend, Updater, Advice))
+    api = API((Command, Object, Method, Backend, Updater))
     if mode is not None:
         api.env.mode = mode
     assert mode != 'production'
