@@ -74,17 +74,93 @@ class Registry(object):
     For forward compatibility, make sure that the module-level instance of
     this object is named "register".
     """
-    # TODO: Instead of auto-loading when plugin modules are imported,
-    # plugins should be stored in this object.
-    # The API should examine it and load plugins explicitly.
-    def __call__(self):
-        from ipalib import api
 
-        def decorator(cls):
-            api.register(cls)
-            return cls
+    __allowed = {}
+    __registered = set()
+
+    def base(self):
+        def decorator(base):
+            if not inspect.isclass(base):
+                raise TypeError('plugin base must be a class; got %r' % base)
+
+            if base in self.__allowed:
+                raise errors.PluginDuplicateError(plugin=base)
+
+            self.__allowed[base] = {}
+
+            return base
 
         return decorator
+
+    def __findbases(self, klass):
+        """
+        Iterates through allowed bases that ``klass`` is a subclass of.
+
+        Raises `errors.PluginSubclassError` if ``klass`` is not a subclass of
+        any allowed base.
+
+        :param klass: The plugin class to find bases for.
+        """
+        found = False
+        for (base, sub_d) in self.__allowed.iteritems():
+            if issubclass(klass, base):
+                found = True
+                yield (base, sub_d)
+        if not found:
+            raise errors.PluginSubclassError(
+                plugin=klass, bases=self.__allowed.keys()
+            )
+
+    def __call__(self, override=False):
+        def decorator(klass):
+            if not inspect.isclass(klass):
+                raise TypeError('plugin must be a class; got %r' % klass)
+
+            # Raise DuplicateError if this exact class was already registered:
+            if klass in self.__registered:
+                raise errors.PluginDuplicateError(plugin=klass)
+
+            # Find the base class or raise SubclassError:
+            for (base, sub_d) in self.__findbases(klass):
+                # Check override:
+                if klass.__name__ in sub_d:
+                    if not override:
+                        # Must use override=True to override:
+                        raise errors.PluginOverrideError(
+                            base=base.__name__,
+                            name=klass.__name__,
+                            plugin=klass,
+                        )
+                else:
+                    if override:
+                        # There was nothing already registered to override:
+                        raise errors.PluginMissingOverrideError(
+                            base=base.__name__,
+                            name=klass.__name__,
+                            plugin=klass,
+                        )
+
+                # The plugin is okay, add to sub_d:
+                sub_d[klass.__name__] = klass
+
+            # The plugin is okay, add to __registered:
+            self.__registered.add(klass)
+
+            return klass
+
+        return decorator
+
+    def __base_iter(self, *allowed):
+        for base in allowed:
+            sub_d = self.__allowed[base]
+            subclasses = set(sub_d.itervalues())
+            yield (base, subclasses)
+
+    def iter(self, *allowed):
+        for base in allowed:
+            if base not in self.__allowed:
+                raise TypeError("unknown plugin base %r" % base)
+        return self.__base_iter(*allowed)
 
 
 class SetProxy(ReadOnly):
@@ -365,110 +441,27 @@ class Plugin(ReadOnly):
         )
 
 
-class Registrar(DictProxy):
-    """
-    Collects plugin classes as they are registered.
-
-    The Registrar does not instantiate plugins... it only implements the
-    override logic and stores the plugins in a namespace per allowed base
-    class.
-
-    The plugins are instantiated when `API.finalize()` is called.
-    """
-    def __init__(self, *allowed):
-        """
-        :param allowed: Base classes from which plugins accepted by this
-            Registrar must subclass.
-        """
-        self.__allowed = dict((base, {}) for base in allowed)
-        self.__registered = set()
-        super(Registrar, self).__init__(
-            dict(self.__base_iter())
-        )
-
-    def __base_iter(self):
-        for (base, sub_d) in self.__allowed.iteritems():
-            if not is_production_mode(self):
-                assert inspect.isclass(base)
-            name = base.__name__
-            if not is_production_mode(self):
-                assert not hasattr(self, name)
-            setattr(self, name, MagicDict(sub_d))
-            yield (name, base)
-
-    def __findbases(self, klass):
-        """
-        Iterates through allowed bases that ``klass`` is a subclass of.
-
-        Raises `errors.PluginSubclassError` if ``klass`` is not a subclass of
-        any allowed base.
-
-        :param klass: The plugin class to find bases for.
-        """
-        if not is_production_mode(self):
-            assert inspect.isclass(klass)
-        found = False
-        for (base, sub_d) in self.__allowed.iteritems():
-            if issubclass(klass, base):
-                found = True
-                yield (base, sub_d)
-        if not found:
-            raise errors.PluginSubclassError(
-                plugin=klass, bases=self.__allowed.keys()
-            )
-
-    def __call__(self, klass, override=False):
-        """
-        Register the plugin ``klass``.
-
-        :param klass: A subclass of `Plugin` to attempt to register.
-        :param override: If true, override an already registered plugin.
-        """
-        if not inspect.isclass(klass):
-            raise TypeError('plugin must be a class; got %r' % klass)
-
-        # Raise DuplicateError if this exact class was already registered:
-        if klass in self.__registered:
-            raise errors.PluginDuplicateError(plugin=klass)
-
-        # Find the base class or raise SubclassError:
-        for (base, sub_d) in self.__findbases(klass):
-            # Check override:
-            if klass.__name__ in sub_d:
-                if not override:
-                    # Must use override=True to override:
-                    raise errors.PluginOverrideError(
-                        base=base.__name__,
-                        name=klass.__name__,
-                        plugin=klass,
-                    )
-            else:
-                if override:
-                    # There was nothing already registered to override:
-                    raise errors.PluginMissingOverrideError(
-                        base=base.__name__,
-                        name=klass.__name__,
-                        plugin=klass,
-                    )
-
-            # The plugin is okay, add to sub_d:
-            sub_d[klass.__name__] = klass
-
-        # The plugin is okay, add to __registered:
-        self.__registered.add(klass)
-
-
 class API(DictProxy):
     """
     Dynamic API object through which `Plugin` instances are accessed.
     """
 
     def __init__(self, *allowed):
+        self.__allowed = allowed
         self.__d = dict()
         self.__done = set()
-        self.register = Registrar(*allowed)
+        self.__registry = Registry()
         self.env = Env()
         super(API, self).__init__(self.__d)
+
+    def register(self, klass, override=False):
+        """
+        Register the plugin ``klass``.
+
+        :param klass: A subclass of `Plugin` to attempt to register.
+        :param override: If true, override an already registered plugin.
+        """
+        self.__registry(override)(klass)
 
     def __doing(self, name):
         if name in self.__done:
@@ -752,11 +745,10 @@ class API(DictProxy):
                 yield p.instance
 
         production_mode = is_production_mode(self)
-        for name in self.register:
-            base = self.register[name]
-            magic = getattr(self.register, name)
+        for base, subclasses in self.__registry.iter(*self.__allowed):
+            name = base.__name__
             namespace = NameSpace(
-                plugin_iter(base, (magic[k] for k in magic))
+                plugin_iter(base, subclasses)
             )
             if not production_mode:
                 assert not (
