@@ -276,7 +276,7 @@ class user(LDAPObject):
             'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {
                 'seealso', 'telephonenumber',
-                'fax', 'l', 'ou', 'st', 'postalcode', 'street',
+                'facsimiletelephonenumber', 'l', 'ou', 'st', 'postalcode', 'street',
                 'destinationindicator', 'internationalisdnnumber',
                 'physicaldeliveryofficename', 'postaladdress', 'postofficebox',
                 'preferreddeliverymethod', 'registeredaddress',
