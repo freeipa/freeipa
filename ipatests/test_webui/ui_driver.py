@@ -123,9 +123,9 @@ class UI_driver(object):
         self.config = config
         if not config:
             self.load_config()
-            if not self.driver:
-                self.driver = self.get_driver()
-        self.get_driver().maximize_window()
+        if not self.driver:
+            self.driver = self.get_driver()
+        self.driver.maximize_window()
 
     def teardown(self):
         self.driver.quit()
