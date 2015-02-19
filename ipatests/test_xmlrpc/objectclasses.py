@@ -192,6 +192,8 @@ idoverrideuser = [
     u'ipaOverrideAnchor',
     u'top',
     u'ipaUserOverride',
+    u'ipasshuser',
+    u'ipaSshGroupOfPubKeys'
 ]
 
 idoverridegroup = [
