@@ -26,7 +26,6 @@
 
 #include <stdbool.h>
 #include <iconv.h>
-#include <openssl/des.h>
 #include <openssl/md4.h>
 #include <dirsrv/slapi-plugin.h>
 
