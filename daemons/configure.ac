@@ -132,8 +132,8 @@ dnl ---------------------------------------------------------------------------
 dnl This is a very simple check, we should probably check also for MD4_Init and
 dnl probably also the version we are using is recent enough
 SSL_LIBS=
-AC_CHECK_HEADER(openssl/des.h, [], [AC_MSG_ERROR([openssl/des.h not found])])
-AC_CHECK_LIB(crypto, DES_set_key_unchecked, [SSL_LIBS="-lcrypto"])
+AC_CHECK_HEADER(openssl/md4.h, [], [AC_MSG_ERROR([openssl/md4.h not found])])
+AC_CHECK_LIB(crypto, MD4_Init, [SSL_LIBS="-lcrypto"])
 AC_SUBST(SSL_LIBS)
 
 dnl ---------------------------------------------------------------------------
