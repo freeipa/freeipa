@@ -18,6 +18,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * This file includes an "OpenSSL license exception", see the
+ * COPYING.openssl file for details.
+ *
  */
 
 #include <stdbool.h>

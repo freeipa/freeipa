@@ -1,6 +1,9 @@
 /*
  * Copyright (C) 2014  FreeIPA Contributors see COPYING for license
  *
+ * This file includes an "OpenSSL license exception", see the
+ * COPYING.openssl file for details.
+ *
  * This code is based on PKCS#11 code snippets from NLnetLabs:
  * http://www.nlnetlabs.nl/publications/hsm/examples/pkcs11/
  * Original license follows:
