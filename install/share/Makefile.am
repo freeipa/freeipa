@@ -29,7 +29,6 @@ app_DATA =				\
 	default-smb-group.ldif		\
 	default-trust-view.ldif		\
 	delegation.ldif			\
-	disable-betxn.ldif		\
 	replica-acis.ldif		\
 	ds-nfiles.ldif			\
 	dns.ldif			\
