@@ -8,8 +8,8 @@ default:nsslapd-pluginPath: libattr-unique-plugin
 default:nsslapd-pluginInitfunc: NSUniqueAttr_Init
 default:nsslapd-pluginType: preoperation
 default:nsslapd-pluginEnabled: on
-default:nsslapd-pluginarg0: cn
-default:nsslapd-pluginarg1: cn=sudorules,cn=sudo,$SUFFIX
+default:uniqueness-attribute-name: cn
+default:uniqueness-subtrees: cn=sudorules,cn=sudo,$SUFFIX
 default:nsslapd-plugin-depends-on-type: database
 default:nsslapd-pluginId: NSUniqueAttr
 default:nsslapd-pluginVersion: 1.1.0
@@ -25,8 +25,8 @@ default:nsslapd-pluginPath: libattr-unique-plugin
 default:nsslapd-pluginInitfunc: NSUniqueAttr_Init
 default:nsslapd-pluginType: preoperation
 default:nsslapd-pluginEnabled: on
-default:nsslapd-pluginarg0: ipaCertSubject
-default:nsslapd-pluginarg1: cn=certificates,cn=ipa,cn=etc,$SUFFIX
+default:uniqueness-attribute-name: ipaCertSubject
+default:uniqueness-subtrees: cn=certificates,cn=ipa,cn=etc,$SUFFIX
 default:nsslapd-plugin-depends-on-type: database
 default:nsslapd-pluginId: NSUniqueAttr
 default:nsslapd-pluginVersion: 1.1.0
@@ -42,8 +42,8 @@ default:nsslapd-pluginPath: libattr-unique-plugin
 default:nsslapd-pluginInitfunc: NSUniqueAttr_Init
 default:nsslapd-pluginType: preoperation
 default:nsslapd-pluginEnabled: on
-default:nsslapd-pluginarg0: ipaCertIssuerSerial
-default:nsslapd-pluginarg1: cn=certificates,cn=ipa,cn=etc,$SUFFIX
+default:uniqueness-attribute-name: ipaCertIssuerSerial
+default:uniqueness-subtrees: cn=certificates,cn=ipa,cn=etc,$SUFFIX
 default:nsslapd-plugin-depends-on-type: database
 default:nsslapd-pluginId: NSUniqueAttr
 default:nsslapd-pluginVersion: 1.1.0
@@ -51,26 +51,26 @@ default:nsslapd-pluginVendor: Fedora Project
 
 # uid uniqueness scopes Active/Delete containers
 dn: cn=attribute uniqueness,cn=plugins,cn=config
-remove:nsslapd-pluginarg1:'$SUFFIX'
-add:nsslapd-pluginarg1:'cn=accounts,$SUFFIX'
-add:nsslapd-pluginarg2:'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
+remove:uniqueness-subtrees:'$SUFFIX'
+add:uniqueness-subtrees:'cn=accounts,$SUFFIX'
+add:uniqueness-subtrees:'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
 remove:nsslapd-pluginenabled:off
 add:nsslapd-pluginenabled:on
 
 # krbPrincipalName uniqueness scopes Active/Delete containers
 dn: cn=krbPrincipalName uniqueness,cn=plugins,cn=config
-remove:nsslapd-pluginarg1:'$SUFFIX'
-add:nsslapd-pluginarg1:'cn=accounts,$SUFFIX'
-add:nsslapd-pluginarg2:'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
+remove:uniqueness-subtrees:'$SUFFIX'
+add:uniqueness-subtrees:'cn=accounts,$SUFFIX'
+add:uniqueness-subtrees:'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
 
 # krbCanonicalName uniqueness scopes Active/Delete containers
 dn: cn=krbCanonicalName uniqueness,cn=plugins,cn=config
-remove:nsslapd-pluginarg1:'$SUFFIX'
-add:nsslapd-pluginarg1:'cn=accounts,$SUFFIX'
-add:nsslapd-pluginarg2:'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
+remove:uniqueness-subtrees:'$SUFFIX'
+add:uniqueness-subtrees:'cn=accounts,$SUFFIX'
+add:uniqueness-subtrees:'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
 
 # ipaUniqueID uniqueness scopes Active/Delete containers
 dn: cn=ipaUniqueID uniqueness,cn=plugins,cn=config
-remove:nsslapd-pluginarg1:'$SUFFIX'
-add:nsslapd-pluginarg1:'cn=accounts,$SUFFIX'
-add:nsslapd-pluginarg2:'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
+remove:uniqueness-subtrees:'$SUFFIX'
+add:uniqueness-subtrees:'cn=accounts,$SUFFIX'
+add:uniqueness-subtrees:'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
