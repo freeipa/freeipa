@@ -53,6 +53,7 @@ protected_default_trust_view_error = errors.ProtectedEntryError(
     reason=_('system ID View')
 )
 
+DEFAULT_TRUST_VIEW_NAME = "default trust view"
 
 @register()
 class idview(LDAPObject):
@@ -106,8 +107,9 @@ class idview_del(LDAPDelete):
     msg_summary = _('Deleted ID View "%(value)s"')
 
     def pre_callback(self, ldap, dn, *keys, **options):
-        if "Default Trust View" in keys:
-            raise protected_default_trust_view_error
+        for key in keys:
+            if key.lower() == DEFAULT_TRUST_VIEW_NAME:
+                raise protected_default_trust_view_error
 
         return dn
 
@@ -118,8 +120,9 @@ class idview_mod(LDAPUpdate):
     msg_summary = _('Modified an ID View "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        if "Default Trust View" in keys:
-            raise protected_default_trust_view_error
+        for key in keys:
+            if key.lower() == DEFAULT_TRUST_VIEW_NAME:
+                raise protected_default_trust_view_error
 
         return dn
 
@@ -240,7 +243,7 @@ class baseidview_apply(LDAPQuery):
             # the ipaAssignedIDView to None
             view_dn = None
 
-        if view == 'Default Trust View':
+        if view.lower() == DEFAULT_TRUST_VIEW_NAME:
             raise errors.ValidationError(
                 name=_('ID View'),
                 error=_('Default Trust View cannot be applied on hosts')
@@ -584,7 +587,7 @@ class baseidoverride(LDAPObject):
         # Check if parent object is Default Trust View, if so, prohibit
         # adding overrides for IPA objects
 
-        if dn[1].value == 'Default Trust View':
+        if dn[1].value.lower() == DEFAULT_TRUST_VIEW_NAME:
             if dn[0].value.startswith(IPA_ANCHOR_PREFIX):
                 raise errors.ValidationError(
                     name=_('ID View'),
