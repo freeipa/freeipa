@@ -49,28 +49,52 @@ default:nsslapd-pluginId: NSUniqueAttr
 default:nsslapd-pluginVersion: 1.1.0
 default:nsslapd-pluginVendor: Fedora Project
 
+dn: cn=uid uniqueness,cn=plugins,cn=config
+default:objectClass: top
+default:objectClass: nsSlapdPlugin
+default:objectClass: extensibleObject
+default:cn: uid uniqueness
+default:nsslapd-pluginPath: libattr-unique-plugin
+default:nsslapd-pluginInitfunc: NSUniqueAttr_Init
+default:nsslapd-pluginType: preoperation
+default:nsslapd-pluginEnabled: on
+default:uniqueness-attribute-name: uid
+default:uniqueness-subtrees: 'cn=accounts,$SUFFIX'
+default:uniqueness-subtrees: 'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
+default:uniqueness-across-all-subtrees: on
+default:uniqueness-subtree-entries-oc: posixAccount
+default:nsslapd-plugin-depends-on-type: database
+default:nsslapd-pluginId: NSUniqueAttr
+default:nsslapd-pluginVersion: 1.1.0
+default:nsslapd-pluginVendor: Fedora Project
+default:nsslapd-pluginDescription: Enforce unique attribute values
+
 # uid uniqueness scopes Active/Delete containers
-dn: cn=attribute uniqueness,cn=plugins,cn=config
-remove:uniqueness-subtrees:'$SUFFIX'
-add:uniqueness-subtrees:'cn=accounts,$SUFFIX'
-add:uniqueness-subtrees:'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
-remove:nsslapd-pluginenabled:off
-add:nsslapd-pluginenabled:on
+dn: cn=uid uniqueness,cn=plugins,cn=config
+remove:uniqueness-subtrees: '$SUFFIX'
+add:uniqueness-subtrees: 'cn=accounts,$SUFFIX'
+add:uniqueness-subtrees: 'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
+remove:uniqueness-across-all-subtrees: off
+add:uniqueness-across-all-subtrees: on
+add:uniqueness-subtree-entries-oc: posixAccount
 
 # krbPrincipalName uniqueness scopes Active/Delete containers
 dn: cn=krbPrincipalName uniqueness,cn=plugins,cn=config
-remove:uniqueness-subtrees:'$SUFFIX'
-add:uniqueness-subtrees:'cn=accounts,$SUFFIX'
-add:uniqueness-subtrees:'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
+remove:uniqueness-subtrees: '$SUFFIX'
+add:uniqueness-subtrees: 'cn=accounts,$SUFFIX'
+add:uniqueness-subtrees: 'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
+add:uniqueness-across-all-subtrees: on
 
 # krbCanonicalName uniqueness scopes Active/Delete containers
 dn: cn=krbCanonicalName uniqueness,cn=plugins,cn=config
-remove:uniqueness-subtrees:'$SUFFIX'
-add:uniqueness-subtrees:'cn=accounts,$SUFFIX'
-add:uniqueness-subtrees:'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
+remove:uniqueness-subtrees: '$SUFFIX'
+add:uniqueness-subtrees: 'cn=accounts,$SUFFIX'
+add:uniqueness-subtrees: 'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
+add:uniqueness-across-all-subtrees: on
 
 # ipaUniqueID uniqueness scopes Active/Delete containers
 dn: cn=ipaUniqueID uniqueness,cn=plugins,cn=config
-remove:uniqueness-subtrees:'$SUFFIX'
-add:uniqueness-subtrees:'cn=accounts,$SUFFIX'
-add:uniqueness-subtrees:'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
+remove:uniqueness-subtrees: '$SUFFIX'
+add:uniqueness-subtrees: 'cn=accounts,$SUFFIX'
+add:uniqueness-subtrees: 'cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX'
+add:uniqueness-across-all-subtrees: on

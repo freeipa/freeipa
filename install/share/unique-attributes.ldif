@@ -9,12 +9,14 @@ nsslapd-pluginInitfunc: NSUniqueAttr_Init
 nsslapd-pluginType: preoperation
 nsslapd-pluginEnabled: on
 uniqueness-attribute-name: krbPrincipalName
-uniqueness-subtrees: $SUFFIX
 nsslapd-plugin-depends-on-type: database
 nsslapd-pluginId: NSUniqueAttr
 nsslapd-pluginVersion: 1.1.0
 nsslapd-pluginVendor: Fedora Project
 nsslapd-pluginDescription: Enforce unique attribute values
+uniqueness-subtrees: cn=accounts,$SUFFIX
+uniqueness-subtrees: cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX
+uniqueness-across-all-subtrees: on
 
 dn: cn=krbCanonicalName uniqueness,cn=plugins,cn=config
 changetype: add
@@ -27,12 +29,14 @@ nsslapd-pluginInitfunc: NSUniqueAttr_Init
 nsslapd-pluginType: preoperation
 nsslapd-pluginEnabled: on
 uniqueness-attribute-name: krbCanonicalName
-uniqueness-subtrees: $SUFFIX
 nsslapd-plugin-depends-on-type: database
 nsslapd-pluginId: NSUniqueAttr
 nsslapd-pluginVersion: 1.1.0
 nsslapd-pluginVendor: Fedora Project
 nsslapd-pluginDescription: Enforce unique attribute values
+uniqueness-subtrees: cn=accounts,$SUFFIX
+uniqueness-subtrees: cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX
+uniqueness-across-all-subtrees: on
 
 dn: cn=netgroup uniqueness,cn=plugins,cn=config
 changetype: add
@@ -63,12 +67,14 @@ nsslapd-pluginInitfunc: NSUniqueAttr_Init
 nsslapd-pluginType: preoperation
 nsslapd-pluginEnabled: on
 uniqueness-attribute-name: ipaUniqueID
-uniqueness-subtrees: $SUFFIX
 nsslapd-plugin-depends-on-type: database
 nsslapd-pluginId: NSUniqueAttr
 nsslapd-pluginVersion: 1.1.0
 nsslapd-pluginVendor: Fedora Project
 nsslapd-pluginDescription: Enforce unique attribute values
+uniqueness-subtrees: cn=accounts,$SUFFIX
+uniqueness-subtrees: cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX
+uniqueness-across-all-subtrees: on
 
 dn: cn=sudorule name uniqueness,cn=plugins,cn=config
 changetype: add
@@ -87,21 +93,3 @@ nsslapd-plugin-depends-on-type: database
 nsslapd-pluginId: NSUniqueAttr
 nsslapd-pluginVersion: 1.1.0
 nsslapd-pluginVendor: Fedora Project
-
-#dn: cn=uid uniqueness,cn=plugins,cn=config
-#objectClass: top
-#objectClass: nsSlapdPlugin
-#objectClass: extensibleObject
-#cn: uid uniqueness
-#nsslapd-pluginPath: libattr-unique-plugin
-#nsslapd-pluginInitfunc: NSUniqueAttr_Init
-#nsslapd-pluginType: preoperation
-#nsslapd-pluginEnabled: on
-#uniqueness-attribute-name: uid
-#uniqueness-subtrees: cn=accounts,$SUFFIX
-#nsslapd-plugin-depends-on-type: database
-#nsslapd-pluginId: NSUniqueAttr
-#nsslapd-pluginVersion: 1.1.0
-#nsslapd-pluginVendor: Fedora Project
-#nsslapd-pluginDescription: Enforce unique attribute values
-#
