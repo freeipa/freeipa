@@ -160,6 +160,12 @@ static PyObject *ipap11helperDuplicationError; //key already exists
  * Support functions
  */
 
+#define GOTO_FAIL     \
+    do {              \
+        error = 1;    \
+        goto final;   \
+    } while(0);
+
 CK_BBOOL* pyobj_to_bool(PyObject* pyobj) {
     if (PyObject_IsTrue(pyobj))
         return &true;
@@ -200,9 +206,11 @@ unsigned char* unicode_to_char_array(PyObject *unicode, Py_ssize_t *l) {
         /* Copy string first, then DECREF
          * https://docs.python.org/2/c-api/string.html#c.PyString_AS_STRING
          */
-        result = (unsigned char *) malloc((size_t) *l);
+        result = (unsigned char *) PyMem_Malloc((size_t) *l);
         if (result == NULL){
-            PyErr_SetString(ipap11helperError, "Memory allocation error");
+            Py_DECREF(utf8_str);
+            PyErr_NoMemory();
+            return NULL;
         } else {
             memcpy(result, bytes, *l);
         }
@@ -689,7 +697,9 @@ P11_Helper_generate_master_key(P11_Helper* self, PyObject *args, PyObject *kwds)
 
     PyObject *label_unicode = NULL;
     Py_ssize_t label_length = 0;
+    CK_BYTE *label = NULL;
     int r;
+    int error = 0;
     static char *kwlist[] = { "subject", "id", "key_length", "cka_copyable",
             "cka_decrypt", "cka_derive", "cka_encrypt", "cka_extractable",
             "cka_modifiable", "cka_private", "cka_sensitive", "cka_sign",
@@ -711,26 +721,26 @@ P11_Helper_generate_master_key(P11_Helper* self, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
-    CK_BYTE *label = (unsigned char*) unicode_to_char_array(label_unicode,
+    label = (unsigned char*) unicode_to_char_array(label_unicode,
             &label_length);
+    if (label == NULL) GOTO_FAIL;
+
     CK_MECHANISM mechanism = { //TODO param?
             CKM_AES_KEY_GEN, NULL_PTR, 0 };
 
     if ((key_length != 16) && (key_length != 24) && (key_length != 32)) {
         PyErr_SetString(ipap11helperError,
                 "generate_master_key: key length allowed values are: 16, 24 and 32");
-        return NULL;
+        GOTO_FAIL;
     }
 
-    //TODO free label if check failed
-    //TODO is label freed inside???? dont we use freed value later
     r = _id_exists(self, id, id_length, CKO_SECRET_KEY);
     if (r == 1) {
         PyErr_SetString(ipap11helperDuplicationError,
                 "Master key with same ID already exists");
-        return NULL;
+        GOTO_FAIL;
     } else if (r == -1) {
-        return NULL;
+        GOTO_FAIL;
     }
 
     /* Process keyword boolean arguments */
@@ -758,9 +768,13 @@ P11_Helper_generate_master_key(P11_Helper* self, PyObject *args, PyObject *kwds)
 
     rv = self->p11->C_GenerateKey(self->session, &mechanism, symKeyTemplate,
             sizeof(symKeyTemplate) / sizeof(CK_ATTRIBUTE), &master_key);
-    if (!check_return_value(rv, "generate master key"))
-        return NULL;
+    if (!check_return_value(rv, "generate master key")){
+        GOTO_FAIL;
+    }
+final:
+    if (label != NULL) PyMem_Free(label);
 
+    if (error) return NULL;
     return Py_BuildValue("k", master_key);
 }
 
@@ -779,6 +793,8 @@ P11_Helper_generate_replica_key_pair(P11_Helper* self, PyObject *args,
     int id_length = 0;
     PyObject* label_unicode = NULL;
     Py_ssize_t label_length = 0;
+    CK_BYTE *label = NULL;
+    int error = 0;
 
     PyObj2Bool_mapping_t attrs_pub[] = { { NULL, &true }, //pub_en_cka_copyable
             { NULL, &false }, //pub_en_cka_derive
@@ -845,30 +861,29 @@ P11_Helper_generate_replica_key_pair(P11_Helper* self, PyObject *args,
         return NULL;
     }
 
-    CK_BYTE *label = unicode_to_char_array(label_unicode, &label_length);
+    label = unicode_to_char_array(label_unicode, &label_length);
+    if (label == NULL) GOTO_FAIL;
 
     CK_OBJECT_HANDLE public_key, private_key;
     CK_MECHANISM mechanism = {
     CKM_RSA_PKCS_KEY_PAIR_GEN, NULL_PTR, 0 };
 
-    //TODO free variables
-
     r = _id_exists(self, id, id_length, CKO_PRIVATE_KEY);
     if (r == 1) {
         PyErr_SetString(ipap11helperDuplicationError,
                 "Private key with same ID already exists");
-        return NULL;
+        GOTO_FAIL;
     } else if (r == -1) {
-        return NULL;
+        GOTO_FAIL;
     }
 
     r = _id_exists(self, id, id_length, CKO_PUBLIC_KEY);
     if (r == 1) {
         PyErr_SetString(ipap11helperDuplicationError,
                 "Public key with same ID already exists");
-        return NULL;
+        GOTO_FAIL;
     } else if (r == -1) {
-        return NULL;
+        GOTO_FAIL;
     }
 
     /* Process keyword boolean arguments */
@@ -917,9 +932,14 @@ P11_Helper_generate_replica_key_pair(P11_Helper* self, PyObject *args,
             privateKeyTemplate,
             sizeof(privateKeyTemplate) / sizeof(CK_ATTRIBUTE), &public_key,
             &private_key);
-    if (!check_return_value(rv, "generate key pair"))
-        return NULL;
+    if (!check_return_value(rv, "generate key pair")){
+        GOTO_FAIL;
+    }
 
+final:
+    if (label != NULL) PyMem_Free(label);
+
+    if (error) return NULL;
     return Py_BuildValue("(kk)", public_key, private_key);
 }
 
@@ -930,7 +950,7 @@ static PyObject *
 P11_Helper_find_keys(P11_Helper* self, PyObject *args, PyObject *kwds) {
     CK_OBJECT_CLASS class = CKO_VENDOR_DEFINED;
     CK_OBJECT_CLASS *class_ptr = &class;
-    CK_BYTE *id = NULL; //TODO free
+    CK_BYTE *id = NULL;
     CK_BBOOL *ckawrap = NULL;
     CK_BBOOL *ckaunwrap = NULL;
     int id_length = 0;
@@ -941,12 +961,13 @@ P11_Helper_find_keys(P11_Helper* self, PyObject *args, PyObject *kwds) {
     CK_OBJECT_HANDLE *objects = NULL;
     unsigned int objects_len = 0;
     PyObject *result_list = NULL;
-    const char *uri_str = NULL; //TODO free?
+    const char *uri_str = NULL;
     P11KitUri *uri = NULL;
-    CK_BYTE *label = NULL; //TODO free
+    CK_BYTE *label = NULL;
     CK_ATTRIBUTE template_static[MAX_TEMPLATE_LEN];
     CK_ATTRIBUTE_PTR template = template_static;
     CK_ULONG template_len = MAX_TEMPLATE_LEN;
+    int error = 0;
 
     static char *kwlist[] = { "objclass", "label", "id", "cka_wrap",
             "cka_unwrap", "uri", NULL };
@@ -954,12 +975,13 @@ P11_Helper_find_keys(P11_Helper* self, PyObject *args, PyObject *kwds) {
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iUz#OOs", kwlist, &class,
             &label_unicode, &id, &id_length, &cka_wrap_bool, &cka_unwrap_bool,
             &uri_str)) {
-        return NULL;
+        GOTO_FAIL;
     }
 
     if (label_unicode != NULL) {
         label = (unsigned char*) unicode_to_char_array(label_unicode,
                 &label_length); //TODO verify signed/unsigned
+        if (label == NULL) GOTO_FAIL;
     }
 
     if (cka_wrap_bool != NULL) {
@@ -985,25 +1007,23 @@ P11_Helper_find_keys(P11_Helper* self, PyObject *args, PyObject *kwds) {
         _fill_template_from_parts(template, &template_len, id, id_length, label,
                 label_length, class_ptr, ckawrap, ckaunwrap);
     else {
-        if (!_parse_uri(uri_str, &uri))
-            return 0;
+        if (!_parse_uri(uri_str, &uri)) {
+            GOTO_FAIL;
+        }
         template = p11_kit_uri_get_attributes(uri, &template_len);
         /* Do not deallocate URI while you are using the template.
          * Template contains pointers to values inside URI! */
     }
 
-    if (!_find_key(self, template, template_len, &objects, &objects_len))
-        return NULL;
-
-    if (uri != NULL)
-        p11_kit_uri_free(uri);
+    if (!_find_key(self, template, template_len, &objects, &objects_len)){
+        GOTO_FAIL;
+    }
 
     result_list = PyList_New(objects_len);
     if (result_list == NULL) {
         PyErr_SetString(ipap11helperError,
                 "Unable to create list with results");
-        free(objects);
-        return NULL;
+        GOTO_FAIL;
     }
 
     for (int i = 0; i < objects_len; ++i) {
@@ -1011,13 +1031,16 @@ P11_Helper_find_keys(P11_Helper* self, PyObject *args, PyObject *kwds) {
                 == -1) {
             PyErr_SetString(ipap11helperError,
                     "Unable to add to value to result list");
-            free(objects);
             Py_DECREF(result_list);
-            return NULL;
+            GOTO_FAIL;
         }
     }
+final:
+    if (label != NULL) PyMem_Free(label);
+    if (objects != NULL) free(objects);
+    if (uri != NULL) p11_kit_uri_free(uri);
 
-    free(objects);
+    if (error) return NULL;
     return result_list;
 }
 
@@ -1107,38 +1130,49 @@ P11_Helper_export_RSA_public_key(P11_Helper* self, CK_OBJECT_HANDLE object) {
     CK_BYTE_PTR exponent = NULL;
     CK_OBJECT_CLASS class = CKO_PUBLIC_KEY;
     CK_KEY_TYPE key_type = CKK_RSA;
+    int error = 0;
 
     CK_ATTRIBUTE obj_template[] = { { CKA_MODULUS, NULL_PTR, 0 }, {
             CKA_PUBLIC_EXPONENT, NULL_PTR, 0 }, { CKA_CLASS, &class,
             sizeof(class) }, { CKA_KEY_TYPE, &key_type, sizeof(key_type) } };
 
     rv = self->p11->C_GetAttributeValue(self->session, object, obj_template, 4);
-    if (!check_return_value(rv, "get RSA public key values - prepare"))
-        return NULL;
+    if (!check_return_value(rv, "get RSA public key values - prepare")){
+        GOTO_FAIL;
+    }
 
     /* Set proper size for attributes*/
-    modulus = (CK_BYTE_PTR) malloc(
+    modulus = (CK_BYTE_PTR) PyMem_Malloc(
             obj_template[0].ulValueLen * sizeof(CK_BYTE));
+    if (modulus == NULL){
+        PyErr_NoMemory();
+        GOTO_FAIL;
+    }
     obj_template[0].pValue = modulus;
-    exponent = (CK_BYTE_PTR) malloc(
+    exponent = (CK_BYTE_PTR) PyMem_Malloc(
             obj_template[1].ulValueLen * sizeof(CK_BYTE));
+    if (exponent == NULL){
+        PyErr_NoMemory();
+        GOTO_FAIL;
+    }
     obj_template[1].pValue = exponent;
 
     rv = self->p11->C_GetAttributeValue(self->session, object, obj_template, 4);
-    if (!check_return_value(rv, "get RSA public key values"))
-        return NULL;
+    if (!check_return_value(rv, "get RSA public key values")){
+        GOTO_FAIL;
+    }
 
     /* Check if the key is RSA public key */
     if (class != CKO_PUBLIC_KEY) {
         PyErr_SetString(ipap11helperError,
                 "export_RSA_public_key: required public key class");
-        return NULL;
+        GOTO_FAIL;
     }
 
     if (key_type != CKK_RSA) {
         PyErr_SetString(ipap11helperError,
                 "export_RSA_public_key: required RSA key type");
-        return NULL;
+        GOTO_FAIL;
     }
 
     rsa = RSA_new();
@@ -1148,7 +1182,7 @@ P11_Helper_export_RSA_public_key(P11_Helper* self, CK_OBJECT_HANDLE object) {
     if (n == NULL) {
         PyErr_SetString(ipap11helperError,
                 "export_RSA_public_key: internal error: unable to convert modulus");
-        goto final;
+        GOTO_FAIL;
     }
 
     e = BN_bin2bn((const unsigned char *) exponent,
@@ -1156,7 +1190,7 @@ P11_Helper_export_RSA_public_key(P11_Helper* self, CK_OBJECT_HANDLE object) {
     if (e == NULL) {
         PyErr_SetString(ipap11helperError,
                 "export_RSA_public_key: internal error: unable to convert exponent");
-        goto final;
+        GOTO_FAIL;
     }
 
     /* set modulus and exponent */
@@ -1166,13 +1200,14 @@ P11_Helper_export_RSA_public_key(P11_Helper* self, CK_OBJECT_HANDLE object) {
     if (EVP_PKEY_set1_RSA(pkey, rsa) == 0) {
         PyErr_SetString(ipap11helperError,
                 "export_RSA_public_key: internal error: EVP_PKEY_set1_RSA failed");
-        goto final;
+        GOTO_FAIL;
     }
 
     pp_len = i2d_PUBKEY(pkey, &pp);
     ret = Py_BuildValue("s#", pp, pp_len);
 
-    final: if (rsa != NULL) {
+final:
+    if (rsa != NULL) {
         RSA_free(rsa); // this free also 'n' and 'e'
     } else {
         if (n != NULL)
@@ -1181,10 +1216,12 @@ P11_Helper_export_RSA_public_key(P11_Helper* self, CK_OBJECT_HANDLE object) {
             BN_free(e);
     }
 
-    if (pkey != NULL)
-        EVP_PKEY_free(pkey);
-    if (pp != NULL)
-        free(pp);
+    if (pkey != NULL) EVP_PKEY_free(pkey);
+    if (pp != NULL) free(pp);
+    if (modulus != NULL) PyMem_Free(modulus);
+    if (exponent != NULL) PyMem_Free(exponent);
+
+    if (error) return NULL;
     return ret;
 }
 
@@ -1250,36 +1287,43 @@ P11_Helper_import_RSA_public_key(P11_Helper* self, CK_UTF8CHAR *label,
     int modulus_len = 0;
     CK_BYTE_PTR exponent = NULL;
     int exponent_len = 0;
+    int error = 0;
 
     if (pkey->type != EVP_PKEY_RSA) {
         PyErr_SetString(ipap11helperError, "Required RSA public key");
-        return NULL;
+        GOTO_FAIL;
     }
 
     rsa = EVP_PKEY_get1_RSA(pkey);
     if (rsa == NULL) {
         PyErr_SetString(ipap11helperError,
                 "import_RSA_public_key: EVP_PKEY_get1_RSA error");
-        return NULL;
+        GOTO_FAIL;
     }
 
     /* convert BIGNUM to binary array */
-    modulus = (CK_BYTE_PTR) malloc(BN_num_bytes(rsa->n));
+    modulus = (CK_BYTE_PTR) PyMem_Malloc(BN_num_bytes(rsa->n));
+    if (modulus == NULL){
+        PyErr_NoMemory();
+        GOTO_FAIL;
+    }
     modulus_len = BN_bn2bin(rsa->n, (unsigned char *) modulus);
     if (modulus == NULL) {
         PyErr_SetString(ipap11helperError,
                 "import_RSA_public_key: BN_bn2bin modulus error");
-        //TODO free
-        return NULL;
+        GOTO_FAIL;
     }
 
-    exponent = (CK_BYTE_PTR) malloc(BN_num_bytes(rsa->e));
+    exponent = (CK_BYTE_PTR) PyMem_Malloc(BN_num_bytes(rsa->e));
+    if (exponent == NULL){
+        PyErr_NoMemory();
+        GOTO_FAIL;
+    }
     exponent_len = BN_bn2bin(rsa->e, (unsigned char *) exponent);
     if (exponent == NULL) {
         PyErr_SetString(ipap11helperError,
                 "import_RSA_public_key: BN_bn2bin exponent error");
-        //TODO free
-        return NULL;
+        GOTO_FAIL;
     }
 
     CK_ATTRIBUTE template[] = {
@@ -1304,11 +1348,14 @@ P11_Helper_import_RSA_public_key(P11_Helper* self, CK_UTF8CHAR *label,
     rv = self->p11->C_CreateObject(self->session, template,
             sizeof(template) / sizeof(CK_ATTRIBUTE), &object);
     if (!check_return_value(rv, "create public key object"))
-        return NULL;
+        GOTO_FAIL;
 
-    if (rsa != NULL)
-        RSA_free(rsa);
+final:
+    if (rsa != NULL) RSA_free(rsa);
+    if (modulus != NULL) PyMem_Free(modulus);
+    if (exponent != NULL) PyMem_Free(exponent);
 
+    if (error) return NULL;
     return Py_BuildValue("k", object);
 }
 
@@ -1328,6 +1375,7 @@ P11_Helper_import_public_key(P11_Helper* self, PyObject *args, PyObject *kwds) {
     Py_ssize_t data_length = 0;
     Py_ssize_t label_length = 0;
     EVP_PKEY *pkey = NULL;
+    int error = 0;
 
     PyObj2Bool_mapping_t attrs_pub[] = { { NULL, &true }, //pub_en_cka_copyable
             { NULL, &false }, //pub_en_cka_derive
@@ -1362,14 +1410,15 @@ P11_Helper_import_public_key(P11_Helper* self, PyObject *args, PyObject *kwds) {
 
     label = (unsigned char*) unicode_to_char_array(label_unicode,
             &label_length);
+    if (label == NULL) GOTO_FAIL;
 
     r = _id_exists(self, id, id_length, CKO_PUBLIC_KEY);
     if (r == 1) {
         PyErr_SetString(ipap11helperDuplicationError,
                 "Public key with same ID already exists");
-        return NULL;
+        GOTO_FAIL;
     } else if (r == -1) {
-        return NULL;
+        GOTO_FAIL;
     }
 
     /* Process keyword boolean arguments */
@@ -1381,7 +1430,7 @@ P11_Helper_import_public_key(P11_Helper* self, PyObject *args, PyObject *kwds) {
     if (pkey == NULL) {
         PyErr_SetString(ipap11helperError,
                 "import_public_key: d2i_PUBKEY error");
-        return NULL;
+        GOTO_FAIL;
     }
     switch (pkey->type) {
         case EVP_PKEY_RSA:
@@ -1397,19 +1446,22 @@ P11_Helper_import_public_key(P11_Helper* self, PyObject *args, PyObject *kwds) {
                     attrs_pub[pub_en_cka_wrap].bool);
             break;
         case EVP_PKEY_DSA:
-            ret = NULL;
+            error = 1;
             PyErr_SetString(ipap11helperError, "DSA is not supported");
             break;
         case EVP_PKEY_EC:
-            ret = NULL;
+            error = 1;
             PyErr_SetString(ipap11helperError, "EC is not supported");
             break;
         default:
-            ret = NULL;
+            error = 1;
             PyErr_SetString(ipap11helperError, "Unsupported key type");
     }
-    if (pkey != NULL)
-        EVP_PKEY_free(pkey);
+final:
+    if (pkey != NULL) EVP_PKEY_free(pkey);
+    if (label != NULL) PyMem_Free(label);
+
+    if (error) return NULL;
     return ret;
 }
 
@@ -1426,36 +1478,50 @@ P11_Helper_export_wrapped_key(P11_Helper* self, PyObject *args, PyObject *kwds) 
     CK_ULONG wrapped_key_len = 0;
     CK_MECHANISM wrapping_mech = { CKM_RSA_PKCS, NULL, 0 };
     /* currently we don't support parameter in mechanism */
+    PyObject *result = NULL;
+    int error = 0;
 
     static char *kwlist[] = { "key", "wrapping_key", "wrapping_mech", NULL };
     //TODO check long overflow
     //TODO export method
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "kkk|", kwlist, &object_key,
             &object_wrapping_key, &wrapping_mech.mechanism)) {
-        return NULL;
+        GOTO_FAIL;
     }
 
     // fill mech parameters
     if (!_set_wrapping_mech_parameters(wrapping_mech.mechanism, &wrapping_mech)){
-        return NULL;
+        GOTO_FAIL;
     }
 
     rv = self->p11->C_WrapKey(self->session, &wrapping_mech,
             object_wrapping_key, object_key, NULL, &wrapped_key_len);
-    if (!check_return_value(rv, "key wrapping: get buffer length"))
-        return 0;
-    wrapped_key = malloc(wrapped_key_len);
+    if (!check_return_value(rv, "key wrapping: get buffer length")){
+        GOTO_FAIL;
+    }
+    wrapped_key = PyMem_Malloc(wrapped_key_len);
+    if (wrapped_key == NULL){
+        PyErr_NoMemory();
+        GOTO_FAIL;
+    }
     if (wrapped_key == NULL) {
         rv = CKR_HOST_MEMORY;
-        if (!check_return_value(rv, "key wrapping: buffer allocation"))
-            return 0;
+        if (!check_return_value(rv, "key wrapping: buffer allocation")){
+            GOTO_FAIL;
+        }
     }
     rv = self->p11->C_WrapKey(self->session, &wrapping_mech,
             object_wrapping_key, object_key, wrapped_key, &wrapped_key_len);
-    if (!check_return_value(rv, "key wrapping: wrapping"))
-        return NULL;
+    if (!check_return_value(rv, "key wrapping: wrapping")){
+        GOTO_FAIL;
+    }
+    result = Py_BuildValue("s#", wrapped_key, wrapped_key_len);
 
-    return Py_BuildValue("s#", wrapped_key, wrapped_key_len);
+final:
+    if (wrapped_key != NULL) PyMem_Free(wrapped_key);
+
+    if (error) return NULL;
+    return result;
 
 }
 
@@ -1480,6 +1546,7 @@ P11_Helper_import_wrapped_secret_key(P11_Helper* self, PyObject *args,
     CK_MECHANISM wrapping_mech = { CKM_RSA_PKCS, NULL, 0 };
     CK_OBJECT_CLASS key_class = CKO_SECRET_KEY;
     CK_KEY_TYPE key_type = CKK_RSA;
+    int error = 0;
 
     PyObj2Bool_mapping_t attrs[] = { { NULL, &true }, //sec_en_cka_copyable
             { NULL, &false }, //sec_en_cka_decrypt
@@ -1526,15 +1593,16 @@ P11_Helper_import_wrapped_secret_key(P11_Helper* self, PyObject *args,
     }
 
     label = (unsigned char*) unicode_to_char_array(label_unicode,
-            &label_length); //TODO verify signed/unsigned
+            &label_length);
+    if (label == NULL) GOTO_FAIL;
 
     r = _id_exists(self, id, id_length, key_class);
     if (r == 1) {
         PyErr_SetString(ipap11helperDuplicationError,
                 "Secret key with same ID already exists");
-        return NULL;
+        GOTO_FAIL;
     } else if (r == -1) {
-        return NULL;
+        GOTO_FAIL;
     }
 
     /* Process keyword boolean arguments */
@@ -1565,9 +1633,12 @@ P11_Helper_import_wrapped_secret_key(P11_Helper* self, PyObject *args,
             unwrapping_key_object, wrapped_key, wrapped_key_len, template,
             sizeof(template) / sizeof(CK_ATTRIBUTE), &unwrapped_key_object);
     if (!check_return_value(rv, "import_wrapped_key: key unwrapping")) {
-        return NULL;
+        GOTO_FAIL;
     }
+final:
+    if (label != NULL) PyMem_Free(label);
 
+    if (error) return NULL;
     return Py_BuildValue("k", unwrapped_key_object);
 
 }
@@ -1593,6 +1664,7 @@ P11_Helper_import_wrapped_private_key(P11_Helper* self, PyObject *args,
     CK_MECHANISM wrapping_mech = { CKM_RSA_PKCS, NULL, 0 };
     CK_OBJECT_CLASS key_class = CKO_PRIVATE_KEY;
     CK_KEY_TYPE key_type = CKK_RSA;
+    int error = 0;
 
     PyObj2Bool_mapping_t attrs_priv[] = { { NULL, &false }, //priv_en_cka_always_authenticate
             { NULL, &true }, //priv_en_cka_copyable
@@ -1636,15 +1708,16 @@ P11_Helper_import_wrapped_private_key(P11_Helper* self, PyObject *args,
     }
 
     label = (unsigned char*) unicode_to_char_array(label_unicode,
-            &label_length); //TODO verify signed/unsigned
+            &label_length);
+    if (label == NULL) GOTO_FAIL;
 
     r = _id_exists(self, id, id_length, CKO_SECRET_KEY);
     if (r == 1) {
         PyErr_SetString(ipap11helperDuplicationError,
                 "Secret key with same ID already exists");
-        return NULL;
+        GOTO_FAIL;
     } else if (r == -1) {
-        return NULL;
+        GOTO_FAIL;
     }
 
     /* Process keyword boolean arguments */
@@ -1675,9 +1748,12 @@ P11_Helper_import_wrapped_private_key(P11_Helper* self, PyObject *args,
             unwrapping_key_object, wrapped_key, wrapped_key_len, template,
             sizeof(template) / sizeof(CK_ATTRIBUTE), &unwrapped_key_object);
     if (!check_return_value(rv, "import_wrapped_key: key unwrapping")) {
-        return NULL;
+        GOTO_FAIL;
     }
+final:
+    if (label != NULL) PyMem_Free(label);
 
+    if (error) return NULL;
     return PyLong_FromUnsignedLong(unwrapped_key_object);
 
 }
@@ -1694,6 +1770,8 @@ P11_Helper_set_attribute(P11_Helper* self, PyObject *args, PyObject *kwds) {
     CK_ATTRIBUTE attribute;
     CK_RV rv;
     Py_ssize_t len = 0;
+    CK_UTF8CHAR *label = NULL;
+    int error = 0;
 
     static char *kwlist[] = { "key_object", "attr", "value", NULL };
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "kkO|", kwlist, &object, &attr,
@@ -1730,53 +1808,49 @@ P11_Helper_set_attribute(P11_Helper* self, PyObject *args, PyObject *kwds) {
         case CKA_ID:
             if (!PyString_Check(value)) {
                 PyErr_SetString(ipap11helperError, "String value expected");
-                ret = NULL;
-                goto final;
+                GOTO_FAIL;
             }
             if (PyString_AsStringAndSize(value, (char **) &attribute.pValue,
                     &len) == -1) {
-                ret = NULL;
-                goto final;
+                GOTO_FAIL;
             }
             attribute.ulValueLen = len;
             break;
         case CKA_LABEL:
             if (!PyUnicode_Check(value)) {
                 PyErr_SetString(ipap11helperError, "Unicode value expected");
-                ret = NULL;
-                goto final;
+                GOTO_FAIL;
             }
-            attribute.pValue = unicode_to_char_array(value, &len);
-            /* check for conversion error */
-            if (attribute.pValue == NULL) {
-                ret = NULL;
-                goto final;
-            }
+            label = unicode_to_char_array(value, &len);
+             /* check for conversion error */
+            if (label == NULL) GOTO_FAIL;
+            attribute.pValue = label;
             attribute.ulValueLen = len;
             break;
         case CKA_KEY_TYPE:
             if (!PyInt_Check(value)) {
                 PyErr_SetString(ipap11helperError, "Integer value expected");
-                ret = NULL;
-                goto final;
+                GOTO_FAIL;
             }
             unsigned long lv = PyInt_AsUnsignedLongMask(value);
             attribute.pValue = &lv;
             attribute.ulValueLen = sizeof(unsigned long);
             break;
         default:
-            ret = NULL;
             PyErr_SetString(ipap11helperError, "Unknown attribute");
-            goto final;
+            GOTO_FAIL;
     }
 
     CK_ATTRIBUTE template[] = { attribute };
 
     rv = self->p11->C_SetAttributeValue(self->session, object, template, 1);
     if (!check_return_value(rv, "set_attribute"))
-        ret = NULL;
-    final:
+        GOTO_FAIL;
+final:
+    if (label != NULL) PyMem_Free(label);
     Py_XINCREF(ret);
+
+    if (error) return NULL;
     return ret;
 }
 
@@ -1791,6 +1865,7 @@ P11_Helper_get_attribute(P11_Helper* self, PyObject *args, PyObject *kwds) {
     unsigned long attr = 0;
     CK_ATTRIBUTE attribute;
     CK_RV rv;
+    int error = 0;
 
     static char *kwlist[] = { "key_object", "attr", NULL };
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "kk|", kwlist, &object,
@@ -1808,20 +1883,21 @@ P11_Helper_get_attribute(P11_Helper* self, PyObject *args, PyObject *kwds) {
     if (rv == CKR_ATTRIBUTE_TYPE_INVALID
             || template[0].ulValueLen == (unsigned long) -1) {
         PyErr_SetString(ipap11helperNotFound, "attribute does not exist");
-        ret = NULL;
-        goto final;
+        GOTO_FAIL;
     }
     if (!check_return_value(rv, "get_attribute init")) {
-        ret = NULL;
-        goto final;
+        GOTO_FAIL;
     }
-    value = malloc(template[0].ulValueLen);
+    value = PyMem_Malloc(template[0].ulValueLen);
+    if (value == NULL){
+        PyErr_NoMemory();
+        GOTO_FAIL;
+    }
     template[0].pValue = value;
 
     rv = self->p11->C_GetAttributeValue(self->session, object, template, 1);
     if (!check_return_value(rv, "get_attribute")) {
-        ret = NULL;
-        goto final;
+        GOTO_FAIL;
     }
 
     switch (attr) {
@@ -1864,13 +1940,14 @@ P11_Helper_get_attribute(P11_Helper* self, PyObject *args, PyObject *kwds) {
             ret = Py_BuildValue("k", *(unsigned long *) value);
             break;
         default:
-            ret = NULL;
             PyErr_SetString(ipap11helperError, "Unknown attribute");
-            goto final;
+            GOTO_FAIL;
     }
 
-    final: if (value != NULL)
-        free(value);
+final:
+    if (value != NULL) PyMem_Free(value);
+
+    if (error) return NULL;
     return ret;
 }
 
