@@ -545,8 +545,9 @@ static int ipa_range_check_pre_op(Slapi_PBlock *pb, int modtype)
             ret = slapi_search_internal_get_entry(dn, NULL, &entry,
                                                   ctx->plugin_id);
             if (ret != 0 || entry == NULL) {
-                LOG_FATAL("Missing entry to modify.\n");
-                ret = LDAP_NO_SUCH_OBJECT;
+                LOG("Missing entry to modify.\n");
+                /* No range object, nothing to do. */
+                ret = 0;
                 goto done;
             }
             free_entry = true;
