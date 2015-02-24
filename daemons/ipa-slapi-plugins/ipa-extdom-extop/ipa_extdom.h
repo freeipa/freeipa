@@ -174,4 +174,13 @@ int check_request(struct extdom_req *req, enum extdom_version version);
 int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
                    struct berval **berval);
 int pack_response(struct extdom_res *res, struct berval **ret_val);
+int get_buffer(size_t *_buf_len, char **_buf);
+int getpwnam_r_wrapper(size_t buf_max, const char *name,
+                       struct passwd *pwd, char **_buf, size_t *_buf_len);
+int getpwuid_r_wrapper(size_t buf_max, uid_t uid,
+                       struct passwd *pwd, char **_buf, size_t *_buf_len);
+int getgrnam_r_wrapper(size_t buf_max, const char *name,
+                       struct group *grp, char **_buf, size_t *_buf_len);
+int getgrgid_r_wrapper(size_t buf_max, gid_t gid,
+                       struct group *grp, char **_buf, size_t *_buf_len);
 #endif /* _IPA_EXTDOM_H_ */
