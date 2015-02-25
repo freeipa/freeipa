@@ -1065,54 +1065,6 @@ P11_Helper_delete_key(P11_Helper* self, PyObject *args, PyObject *kwds) {
 }
 
 /**
- * export secret key
- */
-//TODO remove, we don't want to export secret key
-static PyObject *
-P11_Helper_export_secret_key(P11_Helper* self, PyObject *args, PyObject *kwds) {
-    CK_RV rv;
-    CK_UTF8CHAR_PTR value = NULL;
-    CK_OBJECT_HANDLE key_handle = 0;
-    PyObject *ret = NULL;
-    static char *kwlist[] = { "key_handle", NULL };
-    //TODO check long overflow
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "k|", kwlist, &key_handle)) {
-        return NULL;
-    }
-
-    //TODO which attributes should be returned ????
-    CK_ATTRIBUTE obj_template[] = { { CKA_VALUE, NULL_PTR, 0 } };
-
-    rv = self->p11->C_GetAttributeValue(self->session, key_handle, obj_template,
-            1);
-    if (!check_return_value(rv, "get attribute value - prepare")) {
-        return NULL;
-    }
-
-    /* Set proper size for attributes*/
-    value = (CK_UTF8CHAR_PTR) malloc(
-            obj_template[0].ulValueLen * sizeof(CK_BYTE));
-    obj_template[0].pValue = value;
-
-    rv = self->p11->C_GetAttributeValue(self->session, key_handle, obj_template,
-            1);
-    if (!check_return_value(rv, "get attribute value")) {
-        free(value);
-        return NULL;
-    }
-
-    if (obj_template[0].ulValueLen <= 0) {
-        PyErr_SetString(ipap11helperNotFound, "Value not found");
-        free(value);
-        return NULL;
-    }
-    ret = Py_BuildValue("{s:s#}", "value", obj_template[0].pValue,
-            obj_template[0].ulValueLen);
-    free(value);
-    return ret;
-}
-
-/**
  * export RSA public key
  */
 static PyObject *
@@ -1962,9 +1914,6 @@ static PyMethodDef P11_Helper_methods[] = { { "finalize",
         (PyCFunction) P11_Helper_find_keys, METH_VARARGS | METH_KEYWORDS,
         "Find keys" }, { "delete_key", (PyCFunction) P11_Helper_delete_key,
         METH_VARARGS | METH_KEYWORDS, "Delete key" }, {
-        "export_secret_key", //TODO deprecated, delete it
-        (PyCFunction) P11_Helper_export_secret_key,
-        METH_VARARGS | METH_KEYWORDS, "Export secret key" }, {
         "export_public_key", (PyCFunction) P11_Helper_export_public_key,
         METH_VARARGS | METH_KEYWORDS, "Export public key" }, {
         "import_public_key", (PyCFunction) P11_Helper_import_public_key,
