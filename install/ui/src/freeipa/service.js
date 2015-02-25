@@ -112,6 +112,11 @@ return {
                             name: 'ipakrbokasdelegate',
                             $type: 'checkbox',
                             acl_param: 'krbticketflags'
+                        },
+                        {
+                            name: 'ipakrbrequirespreauth',
+                            $type: 'checkbox',
+                            acl_param: 'krbticketflags'
                         }
                     ]
                 },
