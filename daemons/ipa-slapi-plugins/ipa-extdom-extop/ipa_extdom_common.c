@@ -386,7 +386,7 @@ static int get_user_grouplist(const char *name, gid_t gid,
 
     ret = getgrouplist(name, gid, groups, &ngroups);
     if (ret == -1) {
-        new_groups = realloc(groups, ngroups);
+        new_groups = realloc(groups, ngroups * sizeof(gid_t));
         if (new_groups == NULL) {
             free(groups);
             return LDAP_OPERATIONS_ERROR;
