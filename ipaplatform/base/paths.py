@@ -186,6 +186,7 @@ class BasePathNamespace(object):
     SSLGET = "/usr/bin/sslget"
     SSS_SSH_AUTHORIZEDKEYS = "/usr/bin/sss_ssh_authorizedkeys"
     SSS_SSH_KNOWNHOSTSPROXY = "/usr/bin/sss_ssh_knownhostsproxy"
+    BIN_TIMEOUT = "/usr/bin/timeout"
     UPDATE_CA_TRUST = "/usr/bin/update-ca-trust"
     BIN_WGET = "/usr/bin/wget"
     ZIP = "/usr/bin/zip"

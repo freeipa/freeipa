@@ -249,7 +249,7 @@ def shell_quote(string):
 
 def run(args, stdin=None, raiseonerr=True,
         nolog=(), env=None, capture_output=True, skip_output=False, cwd=None,
-        runas=None):
+        runas=None, timeout=None):
     """
     Execute a command and return stdin, stdout and the process return code.
 
@@ -277,6 +277,8 @@ def run(args, stdin=None, raiseonerr=True,
     :param cwd: Current working directory
     :param runas: Name of a user that the command shold be run as. The spawned
         process will have both real and effective UID and GID set.
+    :param timeout: Timeout if the command hasn't returned within the specified
+        number of seconds.
     """
     p_in = None
     p_out = None
@@ -301,6 +303,11 @@ def run(args, stdin=None, raiseonerr=True,
     elif capture_output:
         p_out = subprocess.PIPE
         p_err = subprocess.PIPE
+
+    if timeout:
+        # If a timeout was provided, use the timeout command
+        # to execute the requested command.
+        args[0:0] = [paths.BIN_TIMEOUT, str(timeout)]
 
     arg_string = nolog_replace(' '.join(shell_quote(a) for a in args), nolog)
     root_logger.debug('Starting external process')
@@ -331,6 +338,9 @@ def run(args, stdin=None, raiseonerr=True,
     finally:
         if skip_output:
             p_out.close()   # pylint: disable=E1103
+
+    if timeout and p.returncode == 124:
+        root_logger.debug('Process did not complete before timeout')
 
     root_logger.debug('Process finished, return code=%s', p.returncode)
 
