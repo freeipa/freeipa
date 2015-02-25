@@ -18,6 +18,7 @@
 #
 
 from ipapython import ipautil
+from ipapython.ipa_log_manager import root_logger
 import shutil
 import os
 from ipaplatform.tasks import tasks
@@ -149,7 +150,12 @@ def synconce_ntp(server_fqdn):
 
     tmp_ntp_conf = ipautil.write_tmp_file('server %s' % server_fqdn)
     try:
-        ipautil.run([ntpd, '-qgc', tmp_ntp_conf.name])
+        # The ntpd command will never exit if it is unable to reach the
+        # server, so timeout after 15 seconds.
+        timeout = 15
+        root_logger.info('Attempting to sync time using ntpd.  '
+                         'Will timeout after %d seconds' % timeout)
+        ipautil.run([ntpd, '-qgc', tmp_ntp_conf.name], timeout=timeout)
         return True
     except ipautil.CalledProcessError:
         return False
