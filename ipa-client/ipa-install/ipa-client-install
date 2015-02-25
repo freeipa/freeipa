@@ -2324,8 +2324,9 @@ def install(options, env, fstore, statestore):
         # hostname if different from system hostname
         tasks.backup_and_replace_hostname(fstore, statestore, options.hostname)
 
-    if not options.on_master:
+    if not options.on_master and options.conf_ntp:
         # Attempt to sync time with IPA server.
+        # If we're skipping NTP configuration, we also skip the time sync here.
         # We assume that NTP servers are discoverable through SRV records in the DNS
         # If that fails, we try to sync directly with IPA server, assuming it runs NTP
         root_logger.info('Synchronizing time with KDC...')
