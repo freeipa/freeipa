@@ -20,8 +20,7 @@
 from ipalib import api
 from ipalib import Updater, Object
 from ipaserver.install import service
-from ipaserver.install.plugins import (PRE_UPDATE, POST_UPDATE,
-                                       PRE_SCHEMA_UPDATE, MIDDLE)
+from ipaserver.install.plugins import (PRE_UPDATE, POST_UPDATE, MIDDLE)
 
 class DSRestart(service.Service):
     """
@@ -55,17 +54,6 @@ class update(Object):
     backend_name = 'ldap2'
 
 api.register(update)
-
-
-class PreSchemaUpdate(Updater):
-    """
-    Base class for updates that run after file processing.
-    """
-    updatetype = PRE_SCHEMA_UPDATE
-    order = MIDDLE
-
-    def __init__(self):
-        super(PreSchemaUpdate, self).__init__()
 
 
 class PreUpdate(Updater):

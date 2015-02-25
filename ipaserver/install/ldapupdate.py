@@ -42,8 +42,7 @@ from ipalib import api
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
-from ipaserver.install.plugins import (PRE_UPDATE, POST_UPDATE,
-                                       PRE_SCHEMA_UPDATE)
+from ipaserver.install.plugins import (PRE_UPDATE, POST_UPDATE)
 from ipaserver.plugins import ldap2
 
 UPDATES_DIR=paths.UPDATES_DIR
@@ -802,18 +801,6 @@ class LDAPUpdate:
         sorted_updates.reverse()
         for dn, update in sorted_updates:
             self._delete_record(update)
-
-    def pre_schema_update(self, ordered=False):
-        """Execute the update before the LDPA schema is updated.
-        """
-        if self.plugins:
-            self.info('PRE_SCHEMA_UPDATE')
-            all_updates = {}
-            updates = api.Backend.updateclient.update(PRE_SCHEMA_UPDATE, self.dm_password, self.ldapi, self.live_run)
-            self.merge_updates(all_updates, updates)
-            self._run_updates(all_updates)
-
-        return self.modified
 
     def update(self, files, ordered=False):
         """Execute the update. files is a list of the update files to use.

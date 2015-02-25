@@ -77,7 +77,6 @@ class IPAUpgrade(service.Service):
         self.step("saving configuration", self.__save_config)
         self.step("disabling listeners", self.__disable_listeners)
         self.step("starting directory server", self.__start_nowait)
-        self.step("preparing server upgrade", self.__pre_schema_upgrade)
         if self.schema_files:
             self.step("updating schema", self.__update_schema)
         self.step("upgrading server", self.__upgrade)
@@ -121,22 +120,6 @@ class IPAUpgrade(service.Service):
             'off', quotes=False, separator=':')
         installutils.set_directive(self.filename, 'nsslapd-ldapientrysearchbase',
             None, quotes=False, separator=':')
-
-    def __pre_schema_upgrade(self):
-        try:
-            ld = ldapupdate.LDAPUpdate(dm_password='', ldapi=True, live_run=self.live_run, plugins=True)
-            self.modified = (ld.pre_schema_update(ordered=True) or
-                             self.modified)
-        except ldapupdate.BadSyntax, e:
-            root_logger.error('Bad syntax in pre schema upgrade %s' % str(e))
-            self.modified = False
-            self.badsyntax = True
-        except Exception, e:
-            # Bad things happened, return gracefully
-            self.modified = False
-            self.upgradefailed = True
-            root_logger.error('Pre schema upgrade failed with %s' % str(e))
-            root_logger.debug('%s', traceback.format_exc())
 
     def __update_schema(self):
         self.modified = schemaupdate.update_schema(

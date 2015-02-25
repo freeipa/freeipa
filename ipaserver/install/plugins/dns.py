@@ -25,8 +25,7 @@ import time
 from ldif import LDIFWriter
 
 from ipaserver.install.plugins import MIDDLE, LAST
-from ipaserver.install.plugins.baseupdate import (PostUpdate, PreUpdate,
-                                                  PreSchemaUpdate)
+from ipaserver.install.plugins.baseupdate import (PostUpdate, PreUpdate)
 from ipaserver.install import sysupgrade
 from ipalib import api, errors, util
 from ipapython.dn import DN
