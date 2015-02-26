@@ -185,6 +185,8 @@ int getgrnam_r_wrapper(size_t buf_max, const char *name,
                        struct group *grp, char **_buf, size_t *_buf_len);
 int getgrgid_r_wrapper(size_t buf_max, gid_t gid,
                        struct group *grp, char **_buf, size_t *_buf_len);
+int get_user_grouplist(const char *name, gid_t gid,
+                       size_t *_ngroups, gid_t **_groups);
 int pack_ber_sid(const char *sid, struct berval **berval);
 int pack_ber_name(const char *domain_name, const char *name,
                   struct berval **berval);

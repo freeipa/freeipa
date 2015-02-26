@@ -213,6 +213,46 @@ void test_getgrgid_r_wrapper(void **state)
     free(buf);
 }
 
+void test_get_user_grouplist(void **state)
+{
+    int ret;
+    size_t ngroups;
+    gid_t *groups;
+    size_t c;
+
+    /* This is a bit odd behaviour of getgrouplist() it does not check if the
+     * user exists, only if memberships of the user can be found. */
+    ret = get_user_grouplist("non_exisiting_user", 23456, &ngroups, &groups);
+    assert_int_equal(ret, LDAP_SUCCESS);
+    assert_int_equal(ngroups, 1);
+    assert_int_equal(groups[0], 23456);
+    free(groups);
+
+    ret = get_user_grouplist("member0001", 23456, &ngroups, &groups);
+    assert_int_equal(ret, LDAP_SUCCESS);
+    assert_int_equal(ngroups, 3);
+    assert_int_equal(groups[0], 23456);
+    assert_int_equal(groups[1], 11111);
+    assert_int_equal(groups[2], 22222);
+    free(groups);
+
+    ret = get_user_grouplist("member0003", 23456, &ngroups, &groups);
+    assert_int_equal(ret, LDAP_SUCCESS);
+    assert_int_equal(ngroups, 2);
+    assert_int_equal(groups[0], 23456);
+    assert_int_equal(groups[1], 22222);
+    free(groups);
+
+    ret = get_user_grouplist("user_big", 23456, &ngroups, &groups);
+    assert_int_equal(ret, LDAP_SUCCESS);
+    assert_int_equal(ngroups, 1001);
+    assert_int_equal(groups[0], 23456);
+    for (c = 1; c < ngroups; c++) {
+        assert_int_equal(groups[c], 29999 + c);
+    }
+    free(groups);
+}
+
 struct test_data {
     struct extdom_req *req;
     struct ipa_extdom_ctx *ctx;
@@ -398,6 +438,7 @@ int main(int argc, const char *argv[])
         unit_test(test_getpwuid_r_wrapper),
         unit_test(test_getgrnam_r_wrapper),
         unit_test(test_getgrgid_r_wrapper),
+        unit_test(test_get_user_grouplist),
         unit_test_setup_teardown(test_set_err_msg,
                                  extdom_req_setup, extdom_req_teardown),
         unit_test_setup_teardown(test_encode,

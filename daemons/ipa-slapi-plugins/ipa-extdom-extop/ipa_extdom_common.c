@@ -400,8 +400,8 @@ int check_request(struct extdom_req *req, enum extdom_version version)
     return LDAP_SUCCESS;
 }
 
-static int get_user_grouplist(const char *name, gid_t gid,
-                              size_t *_ngroups, gid_t **_groups )
+int get_user_grouplist(const char *name, gid_t gid,
+                       size_t *_ngroups, gid_t **_groups)
 {
     int ret;
     int ngroups;
