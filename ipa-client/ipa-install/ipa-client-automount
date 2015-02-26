@@ -374,6 +374,10 @@ def main():
     api.bootstrap(**cfg)
     api.finalize()
 
+    ca_cert_path = None
+    if os.path.exists(paths.IPA_CA_CRT):
+        ca_cert_path = paths.IPA_CA_CRT
+
     if options.uninstall:
         return uninstall(fstore, statestore)
 
@@ -385,7 +389,7 @@ def main():
     ds = ipadiscovery.IPADiscovery()
     if not options.server:
         print "Searching for IPA server..."
-        ret = ds.search()
+        ret = ds.search(ca_cert_path=ca_cert_path)
         root_logger.debug('Executing DNS discovery')
         if ret == ipadiscovery.NO_LDAP_SERVER:
             root_logger.debug('Autodiscovery did not find LDAP server')
@@ -401,11 +405,13 @@ def main():
     else:
         server = options.server
         root_logger.debug("Verifying that %s is an IPA server" % server)
-        ldapret = ds.ipacheckldap(server, api.env.realm)
+        ldapret = ds.ipacheckldap(server, api.env.realm, ca_cert_path)
         if ldapret[0] == ipadiscovery.NO_ACCESS_TO_LDAP:
             print "Anonymous access to the LDAP server is disabled."
             print "Proceeding without strict verification."
             print "Note: This is not an error if anonymous access has been explicitly restricted."
+        elif ldapret[0] == ipadiscovery.NO_TLS_LDAP:
+            root_logger.warning("Unencrypted access to LDAP is not supported.")
         elif ldapret[0] != 0:
             sys.exit('Unable to confirm that %s is an IPA server' % server)
 
