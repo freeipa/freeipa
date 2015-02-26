@@ -784,22 +784,11 @@ class LDAPUpdate:
             raise RuntimeError("Offline updates are not supported.")
 
     def _run_updates(self, all_updates):
-        # For adds and updates we want to apply updates from shortest
-        # to greatest length of the DN.
-        # For deletes we want the reverse
-        def update_sort_key(dn_update):
-            dn, update = dn_update
-            assert isinstance(dn, DN)
-            return len(dn)
 
-        sorted_updates = sorted(all_updates.iteritems(), key=update_sort_key)
-
-        for dn, update in sorted_updates:
+        for dn, update in all_updates.iteritems():
             self._update_record(update)
 
-        # Now run the deletes in reversed order
-        sorted_updates.reverse()
-        for dn, update in sorted_updates:
+        for dn, update in all_updates.iteritems():
             self._delete_record(update)
 
     def update(self, files, ordered=False):
