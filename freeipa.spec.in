@@ -195,6 +195,9 @@ Requires: samba >= %{samba_version}
 Requires: samba-winbind
 Requires: libsss_idmap
 Requires: libsss_nss_idmap-python
+%if (0%{?fedora} >= 22)
+Requires: python-sss
+%endif
 # We use alternatives to divert winbind_krb5_locator.so plugin to libkrb5
 # on the installes where server-trust-ad subpackage is installed because
 # IPA AD trusts cannot be used at the same time with the locator plugin
@@ -288,6 +291,9 @@ Requires: python-qrcode-core >= 5.0.0
 Requires: python-pyasn1
 Requires: python-dateutil
 Requires: python-yubico
+%if (0%{?fedora} >= 22)
+Requires: python-sss-murmur
+%endif
 Requires: wget
 Requires: dbus-python
 
