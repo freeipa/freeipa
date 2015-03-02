@@ -150,6 +150,7 @@ struct extdom_res {
 struct ipa_extdom_ctx {
     Slapi_ComponentId *plugin_id;
     char *base_dn;
+    size_t max_nss_buf_size;
 };
 
 struct domain_info {
