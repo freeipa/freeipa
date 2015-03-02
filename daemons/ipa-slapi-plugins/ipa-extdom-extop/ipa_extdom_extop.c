@@ -40,6 +40,8 @@
 #include "ipa_extdom.h"
 #include "util.h"
 
+#define DEFAULT_MAX_NSS_BUFFER (128*1024*1024)
+
 Slapi_PluginDesc ipa_extdom_plugin_desc = {
     IPA_EXTDOM_FEATURE_DESC,
     "FreeIPA project",
@@ -185,6 +187,14 @@ static int ipa_extdom_init_ctx(Slapi_PBlock *pb, struct ipa_extdom_ctx **_ctx)
         goto done;
     }
 
+    ctx->max_nss_buf_size = slapi_entry_attr_get_uint(e,
+                                                      "ipaExtdomMaxNssBufSize");
+    if (ctx->max_nss_buf_size == 0) {
+        ctx->max_nss_buf_size = DEFAULT_MAX_NSS_BUFFER;
+    }
+    LOG("Maximal nss buffer size set to [%d]!\n", ctx->max_nss_buf_size);
+
+    ret = 0;
 
 done:
     if (ret) {

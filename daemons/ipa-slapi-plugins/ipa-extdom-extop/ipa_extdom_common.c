@@ -49,9 +49,6 @@
 
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define SSSD_DOMAIN_SEPARATOR '@'
-#define MAX_BUF (1024*1024*1024)
-
-
 
 int get_buffer(size_t *_buf_len, char **_buf)
 {
@@ -464,7 +461,8 @@ static int pack_ber_sid(const char *sid, struct berval **berval)
 
 #define SSSD_SYSDB_SID_STR "objectSIDString"
 
-static int pack_ber_user(enum response_types response_type,
+static int pack_ber_user(struct ipa_extdom_ctx *ctx,
+                         enum response_types response_type,
                          const char *domain_name, const char *user_name,
                          uid_t uid, gid_t gid,
                          const char *gecos, const char *homedir,
@@ -529,7 +527,8 @@ static int pack_ber_user(enum response_types response_type,
         }
 
         for (c = 0; c < ngroups; c++) {
-            ret = getgrgid_r_wrapper(MAX_BUF, groups[c], &grp, &buf, &buf_len);
+            ret = getgrgid_r_wrapper(ctx->max_nss_buf_size,
+                                     groups[c], &grp, &buf, &buf_len);
             if (ret != 0) {
                 if (ret == ENOMEM || ret == ERANGE) {
                     ret = LDAP_OPERATIONS_ERROR;
@@ -691,7 +690,8 @@ static int pack_ber_name(const char *domain_name, const char *name,
     return LDAP_SUCCESS;
 }
 
-static int handle_uid_request(enum request_types request_type, uid_t uid,
+static int handle_uid_request(struct ipa_extdom_ctx *ctx,
+                              enum request_types request_type, uid_t uid,
                               const char *domain_name, struct berval **berval)
 {
     int ret;
@@ -721,7 +721,8 @@ static int handle_uid_request(enum request_types request_type, uid_t uid,
 
         ret = pack_ber_sid(sid_str, berval);
     } else {
-        ret = getpwuid_r_wrapper(MAX_BUF, uid, &pwd, &buf, &buf_len);
+        ret = getpwuid_r_wrapper(ctx->max_nss_buf_size, uid, &pwd, &buf,
+                                 &buf_len);
         if (ret != 0) {
             if (ret == ENOMEM || ret == ERANGE) {
                 ret = LDAP_OPERATIONS_ERROR;
@@ -744,7 +745,8 @@ static int handle_uid_request(enum request_types request_type, uid_t uid,
             }
         }
 
-        ret = pack_ber_user((request_type == REQ_FULL ? RESP_USER
+        ret = pack_ber_user(ctx,
+                            (request_type == REQ_FULL ? RESP_USER
                                                       : RESP_USER_GROUPLIST),
                             domain_name, pwd.pw_name, pwd.pw_uid,
                             pwd.pw_gid, pwd.pw_gecos, pwd.pw_dir,
@@ -758,7 +760,8 @@ done:
     return ret;
 }
 
-static int handle_gid_request(enum request_types request_type, gid_t gid,
+static int handle_gid_request(struct ipa_extdom_ctx *ctx,
+                              enum request_types request_type, gid_t gid,
                               const char *domain_name, struct berval **berval)
 {
     int ret;
@@ -787,7 +790,8 @@ static int handle_gid_request(enum request_types request_type, gid_t gid,
 
         ret = pack_ber_sid(sid_str, berval);
     } else {
-        ret = getgrgid_r_wrapper(MAX_BUF, gid, &grp, &buf, &buf_len);
+        ret = getgrgid_r_wrapper(ctx->max_nss_buf_size, gid, &grp, &buf,
+                                 &buf_len);
         if (ret != 0) {
             if (ret == ENOMEM || ret == ERANGE) {
                 ret = LDAP_OPERATIONS_ERROR;
@@ -823,7 +827,8 @@ done:
     return ret;
 }
 
-static int handle_sid_request(enum request_types request_type, const char *sid,
+static int handle_sid_request(struct ipa_extdom_ctx *ctx,
+                              enum request_types request_type, const char *sid,
                               struct berval **berval)
 {
     int ret;
@@ -874,7 +879,8 @@ static int handle_sid_request(enum request_types request_type, const char *sid,
     switch(id_type) {
     case SSS_ID_TYPE_UID:
     case SSS_ID_TYPE_BOTH:
-        ret = getpwnam_r_wrapper(MAX_BUF, fq_name, &pwd, &buf, &buf_len);
+        ret = getpwnam_r_wrapper(ctx->max_nss_buf_size, fq_name, &pwd, &buf,
+                                 &buf_len);
         if (ret != 0) {
             if (ret == ENOMEM || ret == ERANGE) {
                 ret = LDAP_OPERATIONS_ERROR;
@@ -897,14 +903,16 @@ static int handle_sid_request(enum request_types request_type, const char *sid,
             }
         }
 
-        ret = pack_ber_user((request_type == REQ_FULL ? RESP_USER
+        ret = pack_ber_user(ctx,
+                            (request_type == REQ_FULL ? RESP_USER
                                                       : RESP_USER_GROUPLIST),
                             domain_name, pwd.pw_name, pwd.pw_uid,
                             pwd.pw_gid, pwd.pw_gecos, pwd.pw_dir,
                             pwd.pw_shell, kv_list, berval);
         break;
     case SSS_ID_TYPE_GID:
-        ret = getgrnam_r_wrapper(MAX_BUF, fq_name, &grp, &buf, &buf_len);
+        ret = getgrnam_r_wrapper(ctx->max_nss_buf_size, fq_name, &grp, &buf,
+                                 &buf_len);
         if (ret != 0) {
             if (ret == ENOMEM || ret == ERANGE) {
                 ret = LDAP_OPERATIONS_ERROR;
@@ -947,7 +955,8 @@ done:
     return ret;
 }
 
-static int handle_name_request(enum request_types request_type,
+static int handle_name_request(struct ipa_extdom_ctx *ctx,
+                               enum request_types request_type,
                                const char *name, const char *domain_name,
                                struct berval **berval)
 {
@@ -988,7 +997,8 @@ static int handle_name_request(enum request_types request_type,
             goto done;
         }
 
-        ret = getpwnam_r_wrapper(MAX_BUF, fq_name, &pwd, &buf, &buf_len);
+        ret = getpwnam_r_wrapper(ctx->max_nss_buf_size, fq_name, &pwd, &buf,
+                                 &buf_len);
         if (ret == 0) {
             if (request_type == REQ_FULL_WITH_GROUPS) {
                 ret = sss_nss_getorigbyname(pwd.pw_name, &kv_list, &id_type);
@@ -1002,7 +1012,8 @@ static int handle_name_request(enum request_types request_type,
                     goto done;
                 }
             }
-            ret = pack_ber_user((request_type == REQ_FULL ? RESP_USER
+            ret = pack_ber_user(ctx,
+                                (request_type == REQ_FULL ? RESP_USER
                                                           : RESP_USER_GROUPLIST),
                                 domain_name, pwd.pw_name, pwd.pw_uid,
                                 pwd.pw_gid, pwd.pw_gecos, pwd.pw_dir,
@@ -1015,7 +1026,8 @@ static int handle_name_request(enum request_types request_type,
              * error codes which can indicate that the user was not found. To
              * be on the safe side we fail back to the group lookup on all
              * errors. */
-            ret = getgrnam_r_wrapper(MAX_BUF, fq_name, &grp, &buf, &buf_len);
+            ret = getgrnam_r_wrapper(ctx->max_nss_buf_size, fq_name, &grp, &buf,
+                                     &buf_len);
             if (ret != 0) {
                 if (ret == ENOMEM || ret == ERANGE) {
                     ret = LDAP_OPERATIONS_ERROR;
@@ -1061,20 +1073,23 @@ int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
 
     switch (req->input_type) {
     case INP_POSIX_UID:
-        ret = handle_uid_request(req->request_type, req->data.posix_uid.uid,
+        ret = handle_uid_request(ctx, req->request_type,
+                                 req->data.posix_uid.uid,
                                  req->data.posix_uid.domain_name, berval);
 
         break;
     case INP_POSIX_GID:
-        ret = handle_gid_request(req->request_type, req->data.posix_gid.gid,
+        ret = handle_gid_request(ctx, req->request_type,
+                                 req->data.posix_gid.gid,
                                  req->data.posix_uid.domain_name, berval);
 
         break;
     case INP_SID:
-        ret = handle_sid_request(req->request_type, req->data.sid, berval);
+        ret = handle_sid_request(ctx, req->request_type, req->data.sid, berval);
         break;
     case INP_NAME:
-        ret = handle_name_request(req->request_type, req->data.name.object_name,
+        ret = handle_name_request(ctx, req->request_type,
+                                  req->data.name.object_name,
                                   req->data.name.domain_name, berval);
 
         break;
