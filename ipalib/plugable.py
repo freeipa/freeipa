@@ -446,8 +446,9 @@ class API(DictProxy):
     Dynamic API object through which `Plugin` instances are accessed.
     """
 
-    def __init__(self, *allowed):
+    def __init__(self, allowed, packages):
         self.__allowed = allowed
+        self.packages = packages
         self.__d = dict()
         self.__done = set()
         self.__registry = Registry()
@@ -635,13 +636,8 @@ class API(DictProxy):
         self.__do_if_not_done('bootstrap')
         if self.env.mode in ('dummy', 'unit_test'):
             return
-        self.import_plugins('ipalib')
-        if self.env.context in ('server', 'lite'):
-            self.import_plugins('ipaserver')
-        if self.env.context in ('installer', 'updates'):
-            self.import_plugins('ipaserver/install/plugins')
-        if self.env.context in ('advise'):
-            self.import_plugins('ipaserver/advise/plugins')
+        for package in self.packages:
+            self.import_plugins(package)
 
     # FIXME: This method has no unit test
     def import_plugins(self, package):

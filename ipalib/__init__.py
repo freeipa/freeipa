@@ -898,6 +898,21 @@ else:
     __version__ = '%d.%d.%d.%s.%d' % version_info
 
 
+class API(plugable.API):
+    def __init__(self, allowed):
+        super(API, self).__init__(allowed, ['ipalib'])
+
+    def bootstrap(self, parser=None, **overrides):
+        super(API, self).bootstrap(parser, **overrides)
+
+        if self.env.context in ('server', 'lite'):
+            self.packages.append('ipaserver')
+        if self.env.context in ('installer', 'updates'):
+            self.packages.append('ipaserver/install/plugins')
+        if self.env.context in ('advise',):
+            self.packages.append('ipaserver/advise/plugins')
+
+
 def create_api(mode='dummy'):
     """
     Return standard `plugable.API` instance.
@@ -915,7 +930,7 @@ def create_api(mode='dummy'):
 
         - `backend.Backend`
     """
-    api = plugable.API(Command, Object, Method, Backend, Updater, Advice)
+    api = API((Command, Object, Method, Backend, Updater, Advice))
     if mode is not None:
         api.env.mode = mode
     assert mode != 'production'
