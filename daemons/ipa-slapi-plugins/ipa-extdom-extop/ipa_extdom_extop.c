@@ -123,8 +123,12 @@ static int ipa_extdom_extop(Slapi_PBlock *pb)
 
     ret = handle_request(ctx, req, &ret_val);
     if (ret != LDAP_SUCCESS) {
-        rc = LDAP_OPERATIONS_ERROR;
-        err_msg = "Failed to handle the request.\n";
+        if (ret == LDAP_NO_SUCH_OBJECT) {
+            rc = LDAP_NO_SUCH_OBJECT;
+        } else {
+            rc = LDAP_OPERATIONS_ERROR;
+            err_msg = "Failed to handle the request.\n";
+        }
         goto done;
     }
 
