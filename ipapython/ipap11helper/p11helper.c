@@ -1127,7 +1127,7 @@ static PyObject *P11_Helper_export_RSA_public_key(P11_Helper *self,
     };
 
     rv = self->p11->C_GetAttributeValue(self->session, object, obj_template,
-                                        4); // FIXME: sizeof
+                                        sizeof(obj_template) / sizeof(CK_ATTRIBUTE));
     if (!check_return_value(rv, "get RSA public key values - prepare"))
         GOTO_FAIL;
 
@@ -1150,7 +1150,7 @@ static PyObject *P11_Helper_export_RSA_public_key(P11_Helper *self,
     obj_template[1].pValue = exponent;
 
     rv = self->p11->C_GetAttributeValue(self->session, object, obj_template,
-                                        4); // FIXME: fixeof
+                                        sizeof(obj_template) / sizeof(CK_ATTRIBUTE));
     if (!check_return_value(rv, "get RSA public key values")) {
         GOTO_FAIL;
     }
@@ -1246,7 +1246,7 @@ static PyObject *P11_Helper_export_public_key(P11_Helper *self,
     };
 
     rv = self->p11->C_GetAttributeValue(self->session, object, obj_template,
-                                        2);
+                                        sizeof(obj_template) / sizeof(CK_ATTRIBUTE));
     if (!check_return_value
         (rv, "export_public_key: get RSA public key values"))
         return NULL;
@@ -1890,9 +1890,11 @@ static PyObject *P11_Helper_set_attribute(P11_Helper *self, PyObject *args,
 
     CK_ATTRIBUTE template[] = { attribute };
 
-    rv = self->p11->C_SetAttributeValue(self->session, object, template, 1);
+    rv = self->p11->C_SetAttributeValue(self->session, object, template,
+                                        sizeof(template) / sizeof(CK_ATTRIBUTE));
     if (!check_return_value(rv, "set_attribute"))
         GOTO_FAIL;
+
 final:
     if (label != NULL)
         PyMem_Free(label);
@@ -1927,7 +1929,8 @@ static PyObject *P11_Helper_get_attribute(P11_Helper *self, PyObject *args,
     attribute.ulValueLen = 0;
     CK_ATTRIBUTE template[] = { attribute };
 
-    rv = self->p11->C_GetAttributeValue(self->session, object, template, 1);
+    rv = self->p11->C_GetAttributeValue(self->session, object, template,
+                                        sizeof(template) / sizeof(CK_ATTRIBUTE));
     // attribute doesn't exists
     if (rv == CKR_ATTRIBUTE_TYPE_INVALID
         || template[0].ulValueLen == (unsigned long) -1) {
@@ -1944,7 +1947,8 @@ static PyObject *P11_Helper_get_attribute(P11_Helper *self, PyObject *args,
     }
     template[0].pValue = value;
 
-    rv = self->p11->C_GetAttributeValue(self->session, object, template, 1);
+    rv = self->p11->C_GetAttributeValue(self->session, object, template,
+                                        sizeof(template) / sizeof(CK_ATTRIBUTE));
     if (!check_return_value(rv, "get_attribute")) {
         GOTO_FAIL;
     }
