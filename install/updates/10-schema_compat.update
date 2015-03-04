@@ -22,6 +22,7 @@ remove: schema-compat-ignore-subtree: cn=changelog
 remove: schema-compat-ignore-subtree: o=ipaca
 add: schema-compat-restrict-subtree: '$SUFFIX'
 add: schema-compat-restrict-subtree: 'cn=Schema Compatibility,cn=plugins,cn=config'
+add: schema-compat-ignore-subtree: 'cn=dna,cn=ipa,cn=etc,$SUFFIX'
 
 # Change padding for host and userCategory so the pad returns the same value
 # as the original, '' or -.
@@ -31,6 +32,7 @@ remove: schema-compat-ignore-subtree: cn=changelog
 remove: schema-compat-ignore-subtree: o=ipaca
 add: schema-compat-restrict-subtree: '$SUFFIX'
 add: schema-compat-restrict-subtree: 'cn=Schema Compatibility,cn=plugins,cn=config'
+add: schema-compat-ignore-subtree: 'cn=dna,cn=ipa,cn=etc,$SUFFIX'
 
 dn: cn=computers, cn=Schema Compatibility, cn=plugins, cn=config
 default:objectClass: top
@@ -49,6 +51,7 @@ remove: schema-compat-ignore-subtree: cn=changelog
 remove: schema-compat-ignore-subtree: o=ipaca
 add: schema-compat-restrict-subtree: '$SUFFIX'
 add: schema-compat-restrict-subtree: 'cn=Schema Compatibility,cn=plugins,cn=config'
+add: schema-compat-ignore-subtree: 'cn=dna,cn=ipa,cn=etc,$SUFFIX'
 
 dn: cn=sudoers,cn=Schema Compatibility,cn=plugins,cn=config
 add:schema-compat-entry-attribute: sudoOrder=%{sudoOrder}
@@ -58,12 +61,14 @@ remove: schema-compat-ignore-subtree: cn=changelog
 remove: schema-compat-ignore-subtree: o=ipaca
 add: schema-compat-restrict-subtree: '$SUFFIX'
 add: schema-compat-restrict-subtree: 'cn=Schema Compatibility,cn=plugins,cn=config'
+add: schema-compat-ignore-subtree: 'cn=dna,cn=ipa,cn=etc,$SUFFIX'
 
 dn: cn=groups,cn=Schema Compatibility,cn=plugins,cn=config
 remove: schema-compat-ignore-subtree: cn=changelog
 remove: schema-compat-ignore-subtree: o=ipaca
 add: schema-compat-restrict-subtree: '$SUFFIX'
 add: schema-compat-restrict-subtree: 'cn=Schema Compatibility,cn=plugins,cn=config'
+add: schema-compat-ignore-subtree: 'cn=dna,cn=ipa,cn=etc,$SUFFIX'
 
 dn: cn=Schema Compatibility,cn=plugins,cn=config
 # We need to run schema-compat pre-bind callback before
