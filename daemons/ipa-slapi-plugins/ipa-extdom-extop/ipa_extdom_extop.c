@@ -154,6 +154,7 @@ done:
         LOG("%s", err_msg);
     }
     slapi_send_ldap_result(pb, rc, NULL, err_msg, 0, NULL);
+    ber_bvfree(ret_val);
     return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
 }
 
