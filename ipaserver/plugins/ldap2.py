@@ -63,21 +63,40 @@ class ldap2(LDAPClient, CrudBackend):
 
     def __init__(self, shared_instance=True, ldap_uri=None, base_dn=None,
                  schema=None):
-        try:
-            ldap_uri = ldap_uri or api.env.ldap_uri
-        except AttributeError:
-            ldap_uri = 'ldap://example.com'
+        self.__ldap_uri = None
 
         CrudBackend.__init__(self, shared_instance=shared_instance)
         LDAPClient.__init__(self, ldap_uri)
 
+        self.__base_dn = base_dn
+
+    @property
+    def api(self):
+        self_api = super(ldap2, self).api
+        if self_api is None:
+            self_api = api
+        return self_api
+
+    @property
+    def ldap_uri(self):
         try:
-            if base_dn is not None:
-                self.base_dn = DN(base_dn)
-            else:
-                self.base_dn = DN(api.env.basedn)
+            return self.__ldap_uri or self.api.env.ldap_uri
         except AttributeError:
-            self.base_dn = DN()
+            return 'ldap://example.com'
+
+    @ldap_uri.setter
+    def ldap_uri(self, value):
+        self.__ldap_uri = value
+
+    @property
+    def base_dn(self):
+        try:
+            if self.__base_dn is not None:
+                return DN(self.__base_dn)
+            else:
+                return DN(self.api.env.basedn)
+        except AttributeError:
+            return DN()
 
     def _init_connection(self):
         # Connectible.conn is a proxy to thread-local storage;
@@ -124,11 +143,11 @@ class ldap2(LDAPClient, CrudBackend):
             _ldap.set_option(_ldap.OPT_DEBUG_LEVEL, debug_level)
 
         with self.error_handler():
-            force_updates = api.env.context in ('installer', 'updates')
+            force_updates = self.api.env.context in ('installer', 'updates')
             conn = IPASimpleLDAPObject(
                 self.ldap_uri, force_schema_updates=force_updates)
             if self.ldap_uri.startswith('ldapi://') and ccache:
-                conn.set_option(_ldap.OPT_HOST_NAME, api.env.host)
+                conn.set_option(_ldap.OPT_HOST_NAME, self.api.env.host)
             minssf = conn.get_option(_ldap.OPT_X_SASL_SSF_MIN)
             maxssf = conn.get_option(_ldap.OPT_X_SASL_SSF_MAX)
             # Always connect with at least an SSF of 56, confidentiality
@@ -297,7 +316,7 @@ class ldap2(LDAPClient, CrudBackend):
     def get_ipa_config(self, attrs_list=None):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
 
-        dn = api.Object.config.get_dn()
+        dn = self.api.Object.config.get_dn()
         assert isinstance(dn, DN)
 
         try:
@@ -334,7 +353,7 @@ class ldap2(LDAPClient, CrudBackend):
         """
 
         upg_dn = DN(('cn', 'UPG Definition'), ('cn', 'Definitions'), ('cn', 'Managed Entries'),
-                    ('cn', 'etc'), api.env.basedn)
+                    ('cn', 'etc'), self.api.env.basedn)
 
         try:
             upg_entries = self.conn.search_s(upg_dn, _ldap.SCOPE_BASE,
@@ -359,7 +378,7 @@ class ldap2(LDAPClient, CrudBackend):
 
         principal = getattr(context, 'principal')
         entry = self.find_entry_by_attr("krbprincipalname", principal,
-            "krbPrincipalAux", base_dn=api.env.basedn)
+            "krbPrincipalAux", base_dn=self.api.env.basedn)
         sctrl = [GetEffectiveRightsControl(True, "dn: " + str(entry.dn))]
         self.conn.set_option(_ldap.OPT_SERVER_CONTROLS, sctrl)
         try:
