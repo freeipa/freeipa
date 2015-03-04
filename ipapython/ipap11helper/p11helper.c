@@ -237,7 +237,9 @@ int check_return_value(CK_RV rv, const char *message) {
             (&errmsg, "Error at %s: 0x%x\n", message, (unsigned int) rv)
             == -1) {
             PyErr_SetString(ipap11helperError,
-                            "DOUBLE ERROR: Creating the error message caused an error");
+                            "An error occured during error message generation. "
+                            "Please report this problem. Developers will use "
+                            "a crystal ball to find out the root cause.");
             return 0;
         }
         if (errmsg != NULL) {
