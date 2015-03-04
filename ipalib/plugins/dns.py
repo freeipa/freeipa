@@ -836,9 +836,10 @@ class DNSRecord(Str):
         label = self.part_label_format % (self.rrtype, unicode(part.label))
         option_group = self.option_group_format % self.rrtype
         flags = list(part.flags) + ['dnsrecord_part', 'virtual_attribute',]
-
         if not part.required:
             flags.append('dnsrecord_optional')
+        if not self.supported:
+            flags.append("no_option")
 
         return part.clone_rename(name,
                      cli_name=cli_name,
