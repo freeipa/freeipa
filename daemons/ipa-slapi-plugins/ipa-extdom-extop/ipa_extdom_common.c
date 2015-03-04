@@ -300,24 +300,32 @@ int parse_request_data(struct berval *req_val, struct extdom_req **_req)
  * }
  */
 
+    req = calloc(sizeof(struct extdom_req), 1);
+    if (req == NULL) {
+        /* Since we return req even in the case of an error we make sure is is
+         * always safe to call free_req_data() on the returned data. */
+        *_req = NULL;
+        return LDAP_OPERATIONS_ERROR;
+    }
+
+    *_req = req;
+
     if (req_val == NULL || req_val->bv_val == NULL || req_val->bv_len == 0) {
+        set_err_msg(req, "Missing request data");
         return LDAP_PROTOCOL_ERROR;
     }
 
     ber = ber_init(req_val);
     if (ber == NULL) {
+        set_err_msg(req, "Cannot initialize BER struct");
         return LDAP_PROTOCOL_ERROR;
     }
 
     tag = ber_scanf(ber, "{ee", &input_type, &request_type);
     if (tag == LBER_ERROR) {
         ber_free(ber, 1);
+        set_err_msg(req, "Cannot read input and request type");
         return LDAP_PROTOCOL_ERROR;
-    }
-
-    req = calloc(sizeof(struct extdom_req), 1);
-    if (req == NULL) {
-        return LDAP_OPERATIONS_ERROR;
     }
 
     req->input_type = input_type;
@@ -343,16 +351,14 @@ int parse_request_data(struct berval *req_val, struct extdom_req **_req)
             break;
         default:
             ber_free(ber, 1);
-            free(req);
+            set_err_msg(req, "Unknown input type");
             return LDAP_PROTOCOL_ERROR;
     }
     ber_free(ber, 1);
     if (tag == LBER_ERROR) {
-        free(req);
+        set_err_msg(req, "Failed to decode BER data");
         return LDAP_PROTOCOL_ERROR;
     }
-
-    *_req = req;
 
     return LDAP_SUCCESS;
 }
@@ -715,6 +721,7 @@ static int pack_ber_name(const char *domain_name, const char *name,
 }
 
 static int handle_uid_request(struct ipa_extdom_ctx *ctx,
+                              struct extdom_req *req,
                               enum request_types request_type, uid_t uid,
                               const char *domain_name, struct berval **berval)
 {
@@ -738,6 +745,7 @@ static int handle_uid_request(struct ipa_extdom_ctx *ctx,
             if (ret == ENOENT) {
                 ret = LDAP_NO_SUCH_OBJECT;
             } else {
+                set_err_msg(req, "Failed to lookup SID by UID");
                 ret = LDAP_OPERATIONS_ERROR;
             }
             goto done;
@@ -760,6 +768,7 @@ static int handle_uid_request(struct ipa_extdom_ctx *ctx,
             ret = sss_nss_getorigbyname(pwd.pw_name, &kv_list, &id_type);
             if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
                                 || id_type == SSS_ID_TYPE_BOTH)) {
+                set_err_msg(req, "Failed to read original data");
                 if (ret == ENOENT) {
                     ret = LDAP_NO_SUCH_OBJECT;
                 } else {
@@ -785,6 +794,7 @@ done:
 }
 
 static int handle_gid_request(struct ipa_extdom_ctx *ctx,
+                              struct extdom_req *req,
                               enum request_types request_type, gid_t gid,
                               const char *domain_name, struct berval **berval)
 {
@@ -807,6 +817,7 @@ static int handle_gid_request(struct ipa_extdom_ctx *ctx,
             if (ret == ENOENT) {
                 ret = LDAP_NO_SUCH_OBJECT;
             } else {
+                set_err_msg(req, "Failed to lookup SID by GID");
                 ret = LDAP_OPERATIONS_ERROR;
             }
             goto done;
@@ -829,6 +840,7 @@ static int handle_gid_request(struct ipa_extdom_ctx *ctx,
             ret = sss_nss_getorigbyname(grp.gr_name, &kv_list, &id_type);
             if (ret != 0 || !(id_type == SSS_ID_TYPE_GID
                                 || id_type == SSS_ID_TYPE_BOTH)) {
+                set_err_msg(req, "Failed to read original data");
                 if (ret == ENOENT) {
                     ret = LDAP_NO_SUCH_OBJECT;
                 } else {
@@ -852,6 +864,7 @@ done:
 }
 
 static int handle_sid_request(struct ipa_extdom_ctx *ctx,
+                              struct extdom_req *req,
                               enum request_types request_type, const char *sid,
                               struct berval **berval)
 {
@@ -872,6 +885,7 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
         if (ret == ENOENT) {
             ret = LDAP_NO_SUCH_OBJECT;
         } else {
+            set_err_msg(req, "Failed to lookup name by SID");
             ret = LDAP_OPERATIONS_ERROR;
         }
         goto done;
@@ -879,6 +893,7 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
 
     sep = strchr(fq_name, SSSD_DOMAIN_SEPARATOR);
     if (sep == NULL) {
+        set_err_msg(req, "Failed to split fully qualified name");
         ret = LDAP_OPERATIONS_ERROR;
         goto done;
     }
@@ -886,6 +901,7 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
     object_name = strndup(fq_name, (sep - fq_name));
     domain_name = strdup(sep + 1);
     if (object_name == NULL || domain_name == NULL) {
+        set_err_msg(req, "Missing name or domain");
         ret = LDAP_OPERATIONS_ERROR;
         goto done;
     }
@@ -918,6 +934,7 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
             ret = sss_nss_getorigbyname(pwd.pw_name, &kv_list, &id_type);
             if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
                                 || id_type == SSS_ID_TYPE_BOTH)) {
+                set_err_msg(req, "Failed to read original data");
                 if (ret == ENOENT) {
                     ret = LDAP_NO_SUCH_OBJECT;
                 } else {
@@ -950,6 +967,7 @@ static int handle_sid_request(struct ipa_extdom_ctx *ctx,
             ret = sss_nss_getorigbyname(grp.gr_name, &kv_list, &id_type);
             if (ret != 0 || !(id_type == SSS_ID_TYPE_GID
                                 || id_type == SSS_ID_TYPE_BOTH)) {
+                set_err_msg(req, "Failed to read original data");
                 if (ret == ENOENT) {
                     ret = LDAP_NO_SUCH_OBJECT;
                 } else {
@@ -980,6 +998,7 @@ done:
 }
 
 static int handle_name_request(struct ipa_extdom_ctx *ctx,
+                               struct extdom_req *req,
                                enum request_types request_type,
                                const char *name, const char *domain_name,
                                struct berval **berval)
@@ -998,6 +1017,7 @@ static int handle_name_request(struct ipa_extdom_ctx *ctx,
                                        domain_name);
     if (ret == -1) {
         ret = LDAP_OPERATIONS_ERROR;
+        set_err_msg(req, "Failed to create fully qualified name");
         fq_name = NULL; /* content is undefined according to
                            asprintf(3) */
         goto done;
@@ -1009,6 +1029,7 @@ static int handle_name_request(struct ipa_extdom_ctx *ctx,
             if (ret == ENOENT) {
                 ret = LDAP_NO_SUCH_OBJECT;
             } else {
+                set_err_msg(req, "Failed to lookup SID by name");
                 ret = LDAP_OPERATIONS_ERROR;
             }
             goto done;
@@ -1028,6 +1049,7 @@ static int handle_name_request(struct ipa_extdom_ctx *ctx,
                 ret = sss_nss_getorigbyname(pwd.pw_name, &kv_list, &id_type);
                 if (ret != 0 || !(id_type == SSS_ID_TYPE_UID
                                     || id_type == SSS_ID_TYPE_BOTH)) {
+                    set_err_msg(req, "Failed to read original data");
                     if (ret == ENOENT) {
                         ret = LDAP_NO_SUCH_OBJECT;
                     } else {
@@ -1068,6 +1090,7 @@ static int handle_name_request(struct ipa_extdom_ctx *ctx,
                     if (ret == ENOENT) {
                         ret = LDAP_NO_SUCH_OBJECT;
                     } else {
+                        set_err_msg(req, "Failed to read original data");
                         ret = LDAP_OPERATIONS_ERROR;
                     }
                     goto done;
@@ -1097,27 +1120,29 @@ int handle_request(struct ipa_extdom_ctx *ctx, struct extdom_req *req,
 
     switch (req->input_type) {
     case INP_POSIX_UID:
-        ret = handle_uid_request(ctx, req->request_type,
+        ret = handle_uid_request(ctx, req, req->request_type,
                                  req->data.posix_uid.uid,
                                  req->data.posix_uid.domain_name, berval);
 
         break;
     case INP_POSIX_GID:
-        ret = handle_gid_request(ctx, req->request_type,
+        ret = handle_gid_request(ctx, req, req->request_type,
                                  req->data.posix_gid.gid,
                                  req->data.posix_uid.domain_name, berval);
 
         break;
     case INP_SID:
-        ret = handle_sid_request(ctx, req->request_type, req->data.sid, berval);
+        ret = handle_sid_request(ctx, req, req->request_type, req->data.sid,
+                                 berval);
         break;
     case INP_NAME:
-        ret = handle_name_request(ctx, req->request_type,
+        ret = handle_name_request(ctx, req, req->request_type,
                                   req->data.name.object_name,
                                   req->data.name.domain_name, berval);
 
         break;
     default:
+        set_err_msg(req, "Unknown input type");
         ret = LDAP_PROTOCOL_ERROR;
         goto done;
     }
