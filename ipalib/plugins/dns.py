@@ -976,6 +976,17 @@ class ForwardRecord(DNSRecord):
                         reason=_('Cannot create reverse record for "%(value)s": %(exc)s') \
                                 % dict(value=record, exc=unicode(e)))
 
+class UnsupportedDNSRecord(DNSRecord):
+    """
+    Records which are not supported by IPA CLI, but we allow to show them if
+    LDAP contains these records.
+    """
+    supported = False
+
+    def _get_part_values(self, value):
+        return tuple()
+
+
 class ARecord(ForwardRecord):
     rrtype = 'A'
     rfc = 1035
@@ -1023,10 +1034,9 @@ class AFSDBRecord(DNSRecord):
         ),
     )
 
-class APLRecord(DNSRecord):
+class APLRecord(UnsupportedDNSRecord):
     rrtype = 'APL'
     rfc = 3123
-    supported = False
 
 class CERTRecord(DNSRecord):
     rrtype = 'CERT'
@@ -1062,10 +1072,9 @@ class CNAMERecord(DNSRecord):
         ),
     )
 
-class DHCIDRecord(DNSRecord):
+class DHCIDRecord(UnsupportedDNSRecord):
     rrtype = 'DHCID'
     rfc = 4701
-    supported = False
 
 class DNAMERecord(DNSRecord):
     rrtype = 'DNAME'
@@ -1076,10 +1085,9 @@ class DNAMERecord(DNSRecord):
         ),
     )
 
-class DNSKEYRecord(DNSRecord):
+class DNSKEYRecord(UnsupportedDNSRecord):
     rrtype = 'DNSKEY'
     rfc = 4034
-    supported = False
 
 class DSRecord(DNSRecord):
     rrtype = 'DS'
@@ -1114,20 +1122,18 @@ class DLVRecord(DSRecord):
     rfc = 4431
 
 
-class HIPRecord(DNSRecord):
+class HIPRecord(UnsupportedDNSRecord):
     rrtype = 'HIP'
     rfc = 5205
-    supported = False
 
-class KEYRecord(DNSRecord):
+class KEYRecord(UnsupportedDNSRecord):
+    # managed by BIND itself
     rrtype = 'KEY'
     rfc = 2535
-    supported = False  # managed by BIND itself
 
-class IPSECKEYRecord(DNSRecord):
+class IPSECKEYRecord(UnsupportedDNSRecord):
     rrtype = 'IPSECKEY'
     rfc = 4025
-    supported = False
 
 class KXRecord(DNSRecord):
     rrtype = 'KX'
@@ -1300,20 +1306,19 @@ class NSRecord(DNSRecord):
         ),
     )
 
-class NSECRecord(DNSRecord):
+class NSECRecord(UnsupportedDNSRecord):
+    # managed by BIND itself
     rrtype = 'NSEC'
     rfc = 4034
-    supported = False  # managed by BIND itself
 
-class NSEC3Record(DNSRecord):
+class NSEC3Record(UnsupportedDNSRecord):
     rrtype = 'NSEC3'
     rfc = 5155
-    supported = False
 
-class NSEC3PARAMRecord(DNSRecord):
+class NSEC3PARAMRecord(UnsupportedDNSRecord):
+    # this is part of zone in IPA
     rrtype = 'NSEC3PARAM'
     rfc = 5155
-    supported = False  # this is part of zone in IPA
 
 def _validate_naptr_flags(ugettext, flags):
     allowed_flags = u'SAUP'
@@ -1365,10 +1370,9 @@ class PTRRecord(DNSRecord):
         ),
     )
 
-class RPRecord(DNSRecord):
+class RPRecord(UnsupportedDNSRecord):
     rrtype = 'RP'
     rfc = 1183
-    supported = False
 
 class SRVRecord(DNSRecord):
     rrtype = 'SRV'
@@ -1403,20 +1407,19 @@ def _sig_time_validator(ugettext, value):
         return _('the value does not follow "YYYYMMDDHHMMSS" time format')
 
 
-class SIGRecord(DNSRecord):
+class SIGRecord(UnsupportedDNSRecord):
+    # managed by BIND itself
     rrtype = 'SIG'
     rfc = 2535
-    supported = False  # managed by BIND itself
 
-class SPFRecord(DNSRecord):
+class SPFRecord(UnsupportedDNSRecord):
     rrtype = 'SPF'
     rfc = 4408
-    supported = False
 
-class RRSIGRecord(SIGRecord):
+class RRSIGRecord(UnsupportedDNSRecord):
+    # managed by BIND itself
     rrtype = 'RRSIG'
     rfc = 4034
-    supported = False  # managed by BIND itself
 
 class SSHFPRecord(DNSRecord):
     rrtype = 'SSHFP'
@@ -1445,9 +1448,8 @@ class SSHFPRecord(DNSRecord):
         return tuple(values)
 
 
-class TARecord(DNSRecord):
+class TARecord(UnsupportedDNSRecord):
     rrtype = 'TA'
-    supported = False
 
 
 class TLSARecord(DNSRecord):
@@ -1475,13 +1477,11 @@ class TLSARecord(DNSRecord):
     )
 
 
-class TKEYRecord(DNSRecord):
+class TKEYRecord(UnsupportedDNSRecord):
     rrtype = 'TKEY'
-    supported = False
 
-class TSIGRecord(DNSRecord):
+class TSIGRecord(UnsupportedDNSRecord):
     rrtype = 'TSIG'
-    supported = False
 
 class TXTRecord(DNSRecord):
     rrtype = 'TXT'
