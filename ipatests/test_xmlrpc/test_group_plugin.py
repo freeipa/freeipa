@@ -1078,3 +1078,72 @@ class test_group_remove_group_from_protected_group(Declarative):
             ),
         ),
     ]
+
+class test_group_full_set_of_objectclass_not_available_post_detach(Declarative):
+    # https://fedorahosted.org/freeipa/ticket/4909#comment:1
+    cleanup_commands = [
+        ('group_del', [user1], {}),
+        ('user_del', [user1], {}),
+    ]
+
+    tests = [
+        dict(
+            desc='Create %r' % user1,
+            command=(
+                'user_add', [], dict(givenname=u'Test', sn=u'User1')
+            ),
+            expected=dict(
+                value=user1,
+                summary=u'Added user "%s"' % user1,
+                result=get_user_result(user1, u'Test', u'User1', 'add'),
+            ),
+        ),
+
+        dict(
+            desc='Detach managed group %r' % user1,
+            command=('group_detach', [user1], {}),
+            expected=dict(
+                result=True,
+                value=user1,
+                summary=u'Detached group "%s" from user "%s"' % (user1, user1),
+            ),
+        ),
+
+        dict(
+            desc='Show group - check objectclass',
+            command=('group_show', [user1], dict(all=True)),
+            expected=dict(
+                value=user1,
+                result={
+                    'cn':[user1],
+                    'description': [u'User private group for tuser1'],
+                    'gidnumber': [fuzzy_digits],
+                    'dn': get_group_dn('tuser1'),
+                    'ipauniqueid': [fuzzy_uuid],
+                    'objectclass': objectclasses.posixgroup,
+                },
+                summary=None,
+            ),
+        ),
+
+        dict(
+            desc='Add member back to the detached group',
+            command=('group_add_member', [user1], dict(user=user1)),
+            expected=dict(
+                completed=1,
+                failed=dict(
+                    member=dict(
+                        group=tuple(),
+                        user=tuple(),
+                    ),
+                ),
+                result={
+                        'dn': get_group_dn('tuser1'),
+                        'member_user': [user1],
+                        'gidnumber': [fuzzy_digits],
+                        'cn': [user1],
+                        'description': [u'User private group for tuser1'],
+                },
+            ),
+        ),
+    ]
