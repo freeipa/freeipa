@@ -805,7 +805,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: dnsrecord_add
-args: 2,101,3
+args: 2,100,3
 arg: DNSNameParam('dnszoneidnsname', cli_name='dnszone', multivalue=False, only_absolute=True, primary_key=True, query=True, required=True)
 arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, required=True)
 option: Str('a6_part_data', attribute=False, cli_name='a6_data', multivalue=False, option_group=u'A6 Record', required=False)
@@ -876,7 +876,6 @@ option: Str('naptr_part_replacement', attribute=False, cli_name='naptr_replaceme
 option: Str('naptr_part_service', attribute=False, cli_name='naptr_service', multivalue=False, option_group=u'NAPTR Record', required=False)
 option: NAPTRRecord('naptrrecord', attribute=True, cli_name='naptr_rec', csv=True, multivalue=True, option_group=u'NAPTR Record', required=False)
 option: DNSNameParam('ns_part_hostname', attribute=False, cli_name='ns_hostname', multivalue=False, option_group=u'NS Record', required=False)
-option: NSEC3PARAMRecord('nsec3paramrecord', attribute=True, cli_name='nsec3param_rec', csv=True, multivalue=True, option_group=u'NSEC3PARAM Record', required=False)
 option: NSEC3Record('nsec3record', attribute=True, cli_name='nsec3_rec', csv=True, multivalue=True, option_group=u'NSEC3 Record', required=False)
 option: NSECRecord('nsecrecord', attribute=True, cli_name='nsec_rec', csv=True, multivalue=True, option_group=u'NSEC Record', required=False)
 option: NSRecord('nsrecord', attribute=True, cli_name='ns_rec', csv=True, multivalue=True, option_group=u'NS Record', required=False)
@@ -913,7 +912,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: dnsrecord_del
-args: 2,40,3
+args: 2,39,3
 arg: DNSNameParam('dnszoneidnsname', cli_name='dnszone', multivalue=False, only_absolute=True, primary_key=True, query=True, required=True)
 arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: A6Record('a6record', attribute=True, autofill=False, cli_name='a6_rec', csv=True, multivalue=True, option_group=None, required=False)
@@ -938,7 +937,6 @@ option: KXRecord('kxrecord', attribute=True, autofill=False, cli_name='kx_rec', 
 option: LOCRecord('locrecord', attribute=True, autofill=False, cli_name='loc_rec', csv=True, multivalue=True, option_group=None, required=False)
 option: MXRecord('mxrecord', attribute=True, autofill=False, cli_name='mx_rec', csv=True, multivalue=True, option_group=None, required=False)
 option: NAPTRRecord('naptrrecord', attribute=True, autofill=False, cli_name='naptr_rec', csv=True, multivalue=True, option_group=None, required=False)
-option: NSEC3PARAMRecord('nsec3paramrecord', attribute=True, autofill=False, cli_name='nsec3param_rec', csv=True, multivalue=True, option_group=None, required=False)
 option: NSEC3Record('nsec3record', attribute=True, autofill=False, cli_name='nsec3_rec', csv=True, multivalue=True, option_group=None, required=False)
 option: NSECRecord('nsecrecord', attribute=True, autofill=False, cli_name='nsec_rec', csv=True, multivalue=True, option_group=None, required=False)
 option: NSRecord('nsrecord', attribute=True, autofill=False, cli_name='ns_rec', csv=True, multivalue=True, option_group=None, required=False)
@@ -969,7 +967,7 @@ output: Output('result', <type 'dict'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: ListOfPrimaryKeys('value', None, None)
 command: dnsrecord_find
-args: 2,45,4
+args: 2,44,4
 arg: DNSNameParam('dnszoneidnsname', cli_name='dnszone', multivalue=False, only_absolute=True, primary_key=True, query=True, required=True)
 arg: Str('criteria?', noextrawhitespace=False)
 option: A6Record('a6record', attribute=True, autofill=False, cli_name='a6_rec', csv=True, multivalue=True, option_group=None, query=True, required=False)
@@ -995,7 +993,6 @@ option: KXRecord('kxrecord', attribute=True, autofill=False, cli_name='kx_rec', 
 option: LOCRecord('locrecord', attribute=True, autofill=False, cli_name='loc_rec', csv=True, multivalue=True, option_group=None, query=True, required=False)
 option: MXRecord('mxrecord', attribute=True, autofill=False, cli_name='mx_rec', csv=True, multivalue=True, option_group=None, query=True, required=False)
 option: NAPTRRecord('naptrrecord', attribute=True, autofill=False, cli_name='naptr_rec', csv=True, multivalue=True, option_group=None, query=True, required=False)
-option: NSEC3PARAMRecord('nsec3paramrecord', attribute=True, autofill=False, cli_name='nsec3param_rec', csv=True, multivalue=True, option_group=None, query=True, required=False)
 option: NSEC3Record('nsec3record', attribute=True, autofill=False, cli_name='nsec3_rec', csv=True, multivalue=True, option_group=None, query=True, required=False)
 option: NSECRecord('nsecrecord', attribute=True, autofill=False, cli_name='nsec_rec', csv=True, multivalue=True, option_group=None, query=True, required=False)
 option: NSRecord('nsrecord', attribute=True, autofill=False, cli_name='ns_rec', csv=True, multivalue=True, option_group=None, query=True, required=False)
@@ -1022,7 +1019,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: dnsrecord_mod
-args: 2,101,3
+args: 2,100,3
 arg: DNSNameParam('dnszoneidnsname', cli_name='dnszone', multivalue=False, only_absolute=True, primary_key=True, query=True, required=True)
 arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('a6_part_data', attribute=False, autofill=False, cli_name='a6_data', multivalue=False, option_group=u'A6 Record', required=False)
@@ -1091,7 +1088,6 @@ option: Str('naptr_part_replacement', attribute=False, autofill=False, cli_name=
 option: Str('naptr_part_service', attribute=False, autofill=False, cli_name='naptr_service', multivalue=False, option_group=u'NAPTR Record', required=False)
 option: NAPTRRecord('naptrrecord', attribute=True, autofill=False, cli_name='naptr_rec', csv=True, multivalue=True, option_group=u'NAPTR Record', required=False)
 option: DNSNameParam('ns_part_hostname', attribute=False, autofill=False, cli_name='ns_hostname', multivalue=False, option_group=u'NS Record', required=False)
-option: NSEC3PARAMRecord('nsec3paramrecord', attribute=True, autofill=False, cli_name='nsec3param_rec', csv=True, multivalue=True, option_group=u'NSEC3PARAM Record', required=False)
 option: NSEC3Record('nsec3record', attribute=True, autofill=False, cli_name='nsec3_rec', csv=True, multivalue=True, option_group=u'NSEC3 Record', required=False)
 option: NSECRecord('nsecrecord', attribute=True, autofill=False, cli_name='nsec_rec', csv=True, multivalue=True, option_group=u'NSEC Record', required=False)
 option: NSRecord('nsrecord', attribute=True, autofill=False, cli_name='ns_rec', csv=True, multivalue=True, option_group=u'NS Record', required=False)

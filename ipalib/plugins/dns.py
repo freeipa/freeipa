@@ -276,7 +276,7 @@ register = Registry()
 _record_types = (
     u'A', u'AAAA', u'A6', u'AFSDB', u'APL', u'CERT', u'CNAME', u'DHCID', u'DLV',
     u'DNAME', u'DNSKEY', u'DS', u'HIP', u'IPSECKEY', u'KEY', u'KX', u'LOC',
-    u'MX', u'NAPTR', u'NS', u'NSEC', u'NSEC3', u'NSEC3PARAM', u'PTR',
+    u'MX', u'NAPTR', u'NS', u'NSEC', u'NSEC3', u'PTR',
     u'RRSIG', u'RP', u'SIG', u'SPF', u'SRV', u'SSHFP', u'TA', u'TKEY',
     u'TLSA', u'TSIG', u'TXT',
 )
@@ -1316,11 +1316,6 @@ class NSEC3Record(UnsupportedDNSRecord):
     rrtype = 'NSEC3'
     rfc = 5155
 
-class NSEC3PARAMRecord(UnsupportedDNSRecord):
-    # this is part of zone in IPA
-    rrtype = 'NSEC3PARAM'
-    rfc = 5155
-
 def _validate_naptr_flags(ugettext, flags):
     allowed_flags = u'SAUP'
     flags = flags.replace('"','').replace('\'','')
@@ -1520,7 +1515,6 @@ _dns_records = (
     NSRecord(),
     NSECRecord(),
     NSEC3Record(),
-    NSEC3PARAMRecord(),
     PTRRecord(),
     RRSIGRecord(),
     RPRecord(),
