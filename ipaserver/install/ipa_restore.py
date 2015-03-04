@@ -27,7 +27,7 @@ from ConfigParser import SafeConfigParser
 import ldif
 import itertools
 
-from ipalib import api, errors
+from ipalib import api, errors, constants
 from ipapython import version, ipautil, certdb, dogtag
 from ipapython.ipautil import run, user_input
 from ipapython import admintool
@@ -202,15 +202,12 @@ class Restore(admintool.AdminTool):
         options = self.options
         super(Restore, self).run()
 
-        api.bootstrap(in_server=False, context='restore')
-        api.finalize()
-
         self.backup_dir = self.args[0]
         if not os.path.isabs(self.backup_dir):
             self.backup_dir = os.path.join(paths.IPA_BACKUP_DIR, self.backup_dir)
 
         self.log.info("Preparing restore from %s on %s",
-                      self.backup_dir, api.env.host)
+                      self.backup_dir, constants.FQDN)
 
         self.header = os.path.join(self.backup_dir, 'header')
 
@@ -223,9 +220,6 @@ class Restore(admintool.AdminTool):
             restore_type = 'DATA'
         else:
             restore_type = self.backup_type
-
-        instances = [realm_to_serverid(api.env.realm), 'PKI-IPA']
-        backends = ['userRoot', 'ipaca']
 
         # These checks would normally be in the validate method but
         # we need to know the type of backup we're dealing with.
@@ -240,6 +234,8 @@ class Restore(admintool.AdminTool):
         else:
             installutils.check_server_configuration()
 
+            self.init_api()
+
             if options.instance:
                 instance_dir = (paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE %
                                 options.instance)
@@ -247,10 +243,10 @@ class Restore(admintool.AdminTool):
                     raise admintool.ScriptError(
                         "Instance %s does not exist" % options.instance)
 
-                instances = [options.instance]
+                self.instances = [options.instance]
 
             if options.backend:
-                for instance in instances:
+                for instance in self.instances:
                     db_dir = (paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE %
                               (instance, options.backend))
                     if os.path.exists(db_dir):
@@ -259,9 +255,10 @@ class Restore(admintool.AdminTool):
                     raise admintool.ScriptError(
                         "Backend %s does not exist" % options.backend)
 
-                backends = [options.backend]
+                self.backends = [options.backend]
 
-            for instance, backend in itertools.product(instances, backends):
+            for instance, backend in itertools.product(self.instances,
+                                                       self.backends):
                 db_dir = (paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE %
                           (instance, backend))
                 if os.path.exists(db_dir):
@@ -273,10 +270,10 @@ class Restore(admintool.AdminTool):
         self.log.info("Performing %s restore from %s backup" %
                       (restore_type, self.backup_type))
 
-        if self.backup_host != api.env.host:
+        if self.backup_host != constants.FQDN:
             raise admintool.ScriptError(
                 "Host name %s does not match backup name %s" %
-                (api.env.host, self.backup_host))
+                (constants.FQDN, self.backup_host))
 
         if self.backup_ipa_version != str(version.VERSION):
             self.log.warning(
@@ -306,9 +303,13 @@ class Restore(admintool.AdminTool):
 
             self.extract_backup(options.gpg_keyring)
 
+            if restore_type == 'FULL':
+                self.restore_default_conf()
+                self.init_api(confdir=self.dir + paths.ETC_IPA)
+
             databases = []
-            for instance in instances:
-                for backend in backends:
+            for instance in self.instances:
+                for backend in self.backends:
                     database = (instance, backend)
                     ldiffile = os.path.join(self.dir, '%s-%s.ldif' % database)
                     if os.path.exists(ldiffile):
@@ -606,6 +607,30 @@ class Restore(admintool.AdminTool):
                 self.log.critical("bak2db failed: %s" % stderr)
 
 
+    def restore_default_conf(self):
+        '''
+        Restore paths.IPA_DEFAULT_CONF to temporary directory.
+
+        Primary purpose of this method is to get cofiguration for api
+        finalization when restoring ipa after uninstall.
+        '''
+        cwd = os.getcwd()
+        os.chdir(self.dir)
+        args = ['tar',
+                '--xattrs',
+                '--selinux',
+                '-xzf',
+                os.path.join(self.dir, 'files.tar'),
+                paths.IPA_DEFAULT_CONF[1:],
+               ]
+
+        (stdout, stderr, rc) = run(args, raiseonerr=False)
+        if rc != 0:
+            self.log.critical('Restoring %s failed: %s' %
+                              (paths.IPA_DEFAULT_CONF, stderr))
+        os.chdir(cwd)
+
+
     def file_restore(self, nologs=False):
         '''
         Restore all the files in the tarball.
@@ -802,3 +827,10 @@ class Restore(admintool.AdminTool):
         tasks.reload_systemwide_ca_store()
 
         services.knownservices.certmonger.restart()
+
+    def init_api(self, **overrides):
+        api.bootstrap(in_server=False, context='restore', **overrides)
+        api.finalize()
+
+        self.instances = [realm_to_serverid(api.env.realm), 'PKI-IPA']
+        self.backends = ['userRoot', 'ipaca']
