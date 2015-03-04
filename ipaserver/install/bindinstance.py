@@ -255,7 +255,7 @@ def dns_container_exists(fqdn, suffix, dm_password=None, ldapi=False, realm=None
 
     return ret
 
-def dns_zone_exists(name):
+def dns_zone_exists(name, api=api):
     try:
         zone = api.Command.dnszone_show(unicode(name))
     except ipalib.errors.NotFound:
@@ -284,12 +284,12 @@ def verify_reverse_zone(zone, ip_address):
 
     return True
 
-def find_reverse_zone(ip_address):
+def find_reverse_zone(ip_address, api=api):
     ip = netaddr.IPAddress(ip_address)
     zone = normalize_zone(ip.reverse_dns)
 
     while len(zone) > 0:
-        if dns_zone_exists(zone):
+        if dns_zone_exists(zone, api):
             return zone
         foo, bar, zone = zone.partition('.')
 
@@ -311,7 +311,7 @@ def read_reverse_zone(default, ip_address):
     return normalize_zone(zone)
 
 def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None,
-       update_policy=None, force=False):
+       update_policy=None, force=False, api=api):
 
     # always normalize zones
     name = normalize_zone(name)
@@ -341,7 +341,7 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None,
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
 
-def add_rr(zone, name, type, rdata, dns_backup=None, **kwargs):
+def add_rr(zone, name, type, rdata, dns_backup=None, api=api, **kwargs):
     addkw = { '%srecord' % str(type.lower()) : unicode(rdata) }
     addkw.update(kwargs)
     try:
@@ -351,16 +351,16 @@ def add_rr(zone, name, type, rdata, dns_backup=None, **kwargs):
     if dns_backup:
         dns_backup.add(zone, type, name, rdata)
 
-def add_fwd_rr(zone, host, ip_address):
+def add_fwd_rr(zone, host, ip_address, api=api):
     addr = netaddr.IPAddress(ip_address)
     if addr.version == 4:
-        add_rr(zone, host, "A", ip_address)
+        add_rr(zone, host, "A", ip_address, None, api)
     elif addr.version == 6:
-        add_rr(zone, host, "AAAA", ip_address)
+        add_rr(zone, host, "AAAA", ip_address, None, api)
 
-def add_ptr_rr(zone, ip_address, fqdn, dns_backup=None):
+def add_ptr_rr(zone, ip_address, fqdn, dns_backup=None, api=api):
     name = get_reverse_record_name(zone, ip_address)
-    add_rr(zone, name, "PTR", normalize_zone(fqdn), dns_backup)
+    add_rr(zone, name, "PTR", normalize_zone(fqdn), dns_backup, api)
 
 def add_ns_rr(zone, hostname, dns_backup=None, force=True):
     hostname = normalize_zone(hostname)
@@ -384,7 +384,7 @@ def del_fwd_rr(zone, host, ip_address):
 def del_ns_rr(zone, name, rdata):
     del_rr(zone, name, 'NS', rdata)
 
-def get_rr(zone, name, type):
+def get_rr(zone, name, type, api=api):
     rectype = '%srecord' % unicode(type.lower())
     ret = api.Command.dnsrecord_find(unicode(zone), unicode(name))
     if ret['count'] > 0:
@@ -394,8 +394,8 @@ def get_rr(zone, name, type):
 
     return []
 
-def get_fwd_rr(zone, host):
-    return [x for t in ("A", "AAAA") for x in get_rr(zone, host, t)]
+def get_fwd_rr(zone, host, api=api):
+    return [x for t in ("A", "AAAA") for x in get_rr(zone, host, t, api)]
 
 def zonemgr_callback(option, opt_str, value, parser):
     """
@@ -533,7 +533,7 @@ class DnsBackup(object):
 
 
 class BindInstance(service.Service):
-    def __init__(self, fstore=None, dm_password=None):
+    def __init__(self, fstore=None, dm_password=None, api=api):
         service.Service.__init__(self, "named",
             service_desc="DNS",
             dm_password=dm_password,
@@ -550,6 +550,7 @@ class BindInstance(service.Service):
         self.sub_dict = None
         self.reverse_zones = []
         self.dm_password = dm_password
+        self.api = api
         self.named_regular = services.service('named-regular')
 
         if fstore:
@@ -815,9 +816,9 @@ class BindInstance(service.Service):
             )
 
         for (rname, rdata) in srv_records:
-            add_rr(self.domain, rname, "SRV", rdata, self.dns_backup)
+            add_rr(self.domain, rname, "SRV", rdata, self.dns_backup, self.api)
 
-        if not dns_zone_exists(zone):
+        if not dns_zone_exists(zone, self.api):
             # add DNS domain for host first
             root_logger.debug(
                 "Host domain (%s) is different from DNS domain (%s)!" % (
@@ -825,15 +826,15 @@ class BindInstance(service.Service):
             root_logger.debug("Add DNS zone for host first.")
 
             add_zone(zone, self.zonemgr, dns_backup=self.dns_backup,
-                     ns_hostname=self.fqdn, force=True)
+                     ns_hostname=self.fqdn, force=True, api=self.api)
 
         # Add forward and reverse records to self
         for addr in addrs:
-            add_fwd_rr(zone, host, addr)
+            add_fwd_rr(zone, host, addr, self.api)
 
-            reverse_zone = find_reverse_zone(addr)
+            reverse_zone = find_reverse_zone(addr, self.api)
             if reverse_zone:
-                add_ptr_rr(reverse_zone, addr, fqdn)
+                add_ptr_rr(reverse_zone, addr, fqdn, None, self.api)
 
     def __add_self(self):
         self.__add_master_records(self.fqdn, self.ip_addresses)
@@ -863,10 +864,10 @@ class BindInstance(service.Service):
             # add the CA record. So we need to find out
             root_logger.debug("Check if CA is enabled for this host")
             base_dn = DN(('cn', fqdn), ('cn', 'masters'), ('cn', 'ipa'),
-                         ('cn', 'etc'), api.env.basedn)
+                         ('cn', 'etc'), self.api.env.basedn)
             ldap_filter = '(&(objectClass=ipaConfigObject)(cn=CA))'
             try:
-                api.Backend.ldap2.find_entries(filter=ldap_filter, base_dn=base_dn)
+                self.api.Backend.ldap2.find_entries(filter=ldap_filter, base_dn=base_dn)
             except ipalib.errors.NotFound:
                 root_logger.debug("CA is not configured")
                 return
@@ -875,7 +876,7 @@ class BindInstance(service.Service):
 
         try:
             for addr in addrs:
-                add_fwd_rr(self.domain, IPA_CA_RECORD, addr)
+                add_fwd_rr(self.domain, IPA_CA_RECORD, addr, self.api)
         except errors.ValidationError:
             # there is a CNAME record in ipa-ca, we can't add A/AAAA records
             pass
@@ -885,7 +886,7 @@ class BindInstance(service.Service):
                                   self.ca_configured)
 
         if self.first_instance:
-            ldap = api.Backend.ldap2
+            ldap = self.api.Backend.ldap2
             try:
                 entries = ldap.get_entries(
                     DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
@@ -902,8 +903,8 @@ class BindInstance(service.Service):
                     continue
 
                 host, zone = fqdn.split('.', 1)
-                if dns_zone_exists(zone):
-                    addrs = get_fwd_rr(zone, host)
+                if dns_zone_exists(zone, self.api):
+                    addrs = get_fwd_rr(zone, host, self.api)
                 else:
                     addrs = installutils.resolve_host(fqdn)
 

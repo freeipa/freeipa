@@ -41,7 +41,7 @@ from ipaserver.install.installutils import (
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import cainstance
 from ipaserver.install import krainstance
-from ipalib import api, errors, util, certstore, x509
+from ipalib import api, create_api, errors, util, certstore, x509
 from ipalib.constants import CACERT
 from ipapython import version
 from ipapython.config import IPAOptionParser
@@ -287,62 +287,34 @@ def install_bind(config, options):
     print ""
 
 
-@contextmanager
-def temporary_ldap2_connection(host_name, bind_pw, bind_dn=DIRMAN_DN):
-    """Context in which the ldap2 backend is connected to the given host
-
-    When the context is entered, forcefully change the ldap2's URI and connect
-    with the given password.
-    When it's exited, disconnect and restore ldap2 to previous configuration.
-
-    Needed to use the standard IPA tools on the remote master, before the
-    DS on localhost is installed.
-    """
-    # TODO: We shouldn't have to resort to such hacks
-    cur_uri = api.Backend.ldap2.ldap_uri
-    # ldap2 is finalized at this point, so use __setattr__ directly
-    object.__setattr__(api.Backend.ldap2, 'ldap_uri',
-                       'ldaps://%s' % ipautil.format_netloc(host_name))
-    api.Backend.ldap2.connect(bind_dn=DIRMAN_DN, bind_pw=bind_pw,
-                              tls_cacertfile=CACERT)
-    yield
-
-    api.Backend.ldap2.disconnect()
-    #set it back to the default
-    object.__setattr__(api.Backend.ldap2, 'ldap_uri', cur_uri)
-
-
-def install_dns_records(config, options):
+def install_dns_records(config, options, remote_api):
 
     if not bindinstance.dns_container_exists(config.master_host_name,
                                              ipautil.realm_to_suffix(config.realm_name),
                                              dm_password=config.dirman_password):
         return
 
-    # We have to force to connect to the remote master because we do this step
-    # before our DS server is installed.
-    with temporary_ldap2_connection(
-            config.master_host_name, config.dirman_password):
-        try:
-            bind = bindinstance.BindInstance(dm_password=config.dirman_password)
-            for ip in config.ips:
-                reverse_zone = bindinstance.find_reverse_zone(ip)
+    try:
+        bind = bindinstance.BindInstance(dm_password=config.dirman_password,
+                                         api=remote_api)
+        for ip in config.ips:
+            reverse_zone = bindinstance.find_reverse_zone(ip, remote_api)
 
-                bind.add_master_dns_records(config.host_name,
-                                            str(ip),
-                                            config.realm_name,
-                                            config.domain_name,
-                                            reverse_zone,
-                                            options.conf_ntp,
-                                            options.setup_ca)
-        except errors.NotFound, e:
-            root_logger.debug('Replica DNS records could not be added '
-                              'on master: %s', str(e))
+            bind.add_master_dns_records(config.host_name,
+                                        str(ip),
+                                        config.realm_name,
+                                        config.domain_name,
+                                        reverse_zone,
+                                        options.conf_ntp,
+                                        options.setup_ca)
+    except errors.NotFound, e:
+        root_logger.debug('Replica DNS records could not be added '
+                          'on master: %s', str(e))
 
-        # we should not fail here no matter what
-        except Exception, e:
-            root_logger.info('Replica DNS records could not be added '
-                             'on master: %s', str(e))
+    # we should not fail here no matter what
+    except Exception, e:
+        root_logger.info('Replica DNS records could not be added '
+                         'on master: %s', str(e))
 
 
 def check_dirsrv():
@@ -604,93 +576,96 @@ def main():
                            "ipa-replica-prepare to create a new replica file.")
 
     ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
-    replman = conn = None
+    remote_api = create_api(mode=None)
+    remote_api.bootstrap(in_server=True, context='installer',
+                         ldap_uri=ldapuri, basedn=DN())
+    remote_api.finalize()
+    conn = remote_api.Backend.ldap2
+    replman = None
     try:
-        # Try out the password
-        conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
-        conn.connect(bind_dn=DIRMAN_DN, bind_pw=config.dirman_password,
-                     tls_cacertfile=cafile)
-        replman = ReplicationManager(config.realm_name, config.master_host_name,
-                                     config.dirman_password)
-
-        # Check that we don't already have a replication agreement
         try:
-            (agreement_cn, agreement_dn) = replman.agreement_dn(config.host_name)
-            entry = conn.get_entry(agreement_dn, ['*'])
-        except errors.NotFound:
-            pass
+            # Try out the password
+            conn.connect(bind_dn=DIRMAN_DN, bind_pw=config.dirman_password,
+                         tls_cacertfile=cafile)
+            replman = ReplicationManager(config.realm_name, config.master_host_name,
+                                         config.dirman_password)
+
+            # Check that we don't already have a replication agreement
+            try:
+                (agreement_cn, agreement_dn) = replman.agreement_dn(config.host_name)
+                entry = conn.get_entry(agreement_dn, ['*'])
+            except errors.NotFound:
+                pass
+            else:
+                root_logger.info('Error: A replication agreement for this host '
+                    'already exists.')
+                print ('A replication agreement for this host already exists. '
+                       'It needs to be removed.')
+                print "Run this on the master that generated the info file:"
+                print "    %% ipa-replica-manage del %s --force" % config.host_name
+                exit(3)
+
+            # Check pre-existing host entry
+            try:
+                entry = conn.find_entries(u'fqdn=%s' % config.host_name, ['fqdn'], DN(api.env.container_host, api.env.basedn))
+            except errors.NotFound:
+                pass
+            else:
+                root_logger.info(
+                    'Error: Host %s already exists on the master server.' % config.host_name)
+                print 'The host %s already exists on the master server.' % config.host_name
+                print "You should remove it before proceeding:"
+                print "    %% ipa host-del %s" % config.host_name
+                exit(3)
+
+            # Install CA cert so that we can do SSL connections with ldap
+            install_ca_cert(conn, api.env.basedn, api.env.realm, cafile)
+
+            dns_masters = remote_api.Object['dnsrecord'].get_dns_masters()
+            if dns_masters:
+                if not options.no_host_dns:
+                    master = config.master_host_name
+                    root_logger.debug('Check forward/reverse DNS resolution')
+                    resolution_ok = (
+                        check_dns_resolution(master, dns_masters) and
+                        check_dns_resolution(config.host_name, dns_masters))
+                    if not resolution_ok and not options.unattended:
+                        if not ipautil.user_input("Continue?", False):
+                            sys.exit(0)
+            else:
+                root_logger.debug('No IPA DNS servers, '
+                    'skipping forward/reverse resolution check')
+
+        except errors.ACIError:
+            sys.exit("\nThe password provided is incorrect for LDAP server %s" % config.master_host_name)
+        except errors.LDAPError:
+            sys.exit("\nUnable to connect to LDAP server %s" % config.master_host_name)
+        finally:
+            if replman and replman.conn:
+                replman.conn.unbind()
+
+        if options.skip_schema_check:
+            root_logger.info("Skipping CA DS schema check")
         else:
-            root_logger.info('Error: A replication agreement for this host '
-                'already exists.')
-            print ('A replication agreement for this host already exists. '
-                   'It needs to be removed.')
-            print "Run this on the master that generated the info file:"
-            print "    %% ipa-replica-manage del %s --force" % config.host_name
-            exit(3)
+            cainstance.replica_ca_install_check(config)
 
-        # Check pre-existing host entry
-        try:
-            entry = conn.find_entries(u'fqdn=%s' % config.host_name, ['fqdn'], DN(api.env.container_host, api.env.basedn))
-        except errors.NotFound:
-            pass
-        else:
-            root_logger.info(
-                'Error: Host %s already exists on the master server.' % config.host_name)
-            print 'The host %s already exists on the master server.' % config.host_name
-            print "You should remove it before proceeding:"
-            print "    %% ipa host-del %s" % config.host_name
-            exit(3)
+        # Configure ntpd
+        if options.conf_ntp:
+            ipaclient.ntpconf.force_ntpd(sstore)
+            ntp = ntpinstance.NTPInstance()
+            ntp.create_instance()
 
-        # Install CA cert so that we can do SSL connections with ldap
-        install_ca_cert(conn, api.env.basedn, api.env.realm, cafile)
+        # Configure dirsrv
+        ds = install_replica_ds(config)
 
-        # If remote host has DNS, check forward/reverse resolution
-        with temporary_ldap2_connection(
-                config.master_host_name, config.dirman_password):
-            dns_masters = api.Object['dnsrecord'].get_dns_masters()
-        if dns_masters:
-            if not options.no_host_dns:
-                master = config.master_host_name
-                root_logger.debug('Check forward/reverse DNS resolution')
-                resolution_ok = (
-                    check_dns_resolution(master, dns_masters) and
-                    check_dns_resolution(config.host_name, dns_masters))
-                if not resolution_ok and not options.unattended:
-                    if not ipautil.user_input("Continue?", False):
-                        sys.exit(0)
-        else:
-            root_logger.debug('No IPA DNS servers, '
-                'skipping forward/reverse resolution check')
+        # Configure the CA if necessary
+        CA = cainstance.install_replica_ca(config)
 
-    except errors.ACIError:
-        sys.exit("\nThe password provided is incorrect for LDAP server %s" % config.master_host_name)
-    except errors.LDAPError:
-        sys.exit("\nUnable to connect to LDAP server %s" % config.master_host_name)
+        # Always try to install DNS records
+        install_dns_records(config, options, remote_api)
     finally:
-        if conn and conn.isconnected():
+        if conn.isconnected():
             conn.disconnect()
-        if replman and replman.conn:
-            replman.conn.unbind()
-
-    if options.skip_schema_check:
-        root_logger.info("Skipping CA DS schema check")
-    else:
-        cainstance.replica_ca_install_check(config)
-
-    # Configure ntpd
-    if options.conf_ntp:
-        ipaclient.ntpconf.force_ntpd(sstore)
-        ntp = ntpinstance.NTPInstance()
-        ntp.create_instance()
-
-    # Configure dirsrv
-    ds = install_replica_ds(config)
-
-    # Configure the CA if necessary
-    CA = cainstance.install_replica_ca(config)
-
-    # Always try to install DNS records
-    install_dns_records(config, options)
 
     # We need to ldap_enable the CA now that DS is up and running
     if CA and config.setup_ca:
