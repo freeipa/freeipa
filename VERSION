@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=114
-# Last change: Gabe - Add flag "ask_create" to ipapermright
+IPA_API_VERSION_MINOR=115
+# Last change: mbasti - Remove NSEC3PARAM record from dnsrecord-* commands
