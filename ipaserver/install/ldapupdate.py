@@ -797,7 +797,7 @@ class LDAPUpdate:
 
         returns True if anything was changed, otherwise False
         """
-
+        self.modified = False
         all_updates = {}
         try:
             self.create_connection()
@@ -841,6 +841,7 @@ class LDAPUpdate:
         Apply updates internally as opposed to from a file.
         updates is a dictionary containing the updates
         """
+        self.modified = False
         if not self.conn:
             self.create_connection()
 
