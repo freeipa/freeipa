@@ -78,6 +78,8 @@ DEFAULT_CONFIG = (
     # LDAP containers:
     ('container_accounts', DN(('cn', 'accounts'))),
     ('container_user', DN(('cn', 'users'), ('cn', 'accounts'))),
+    ('container_deleteuser', DN(('cn', 'deleted users'), ('cn', 'accounts'), ('cn', 'provisioning'))),
+    ('container_stageuser',  DN(('cn', 'staged users'),  ('cn', 'accounts'), ('cn', 'provisioning'))),
     ('container_group', DN(('cn', 'groups'), ('cn', 'accounts'))),
     ('container_service', DN(('cn', 'services'), ('cn', 'accounts'))),
     ('container_host', DN(('cn', 'computers'), ('cn', 'accounts'))),

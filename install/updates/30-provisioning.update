@@ -1,21 +1,26 @@
 # bootstrap the user life cycle DIT structure.
 
 dn: cn=provisioning,$SUFFIX
-add: objectclass: top
-add: objectclass: nsContainer
-add: cn: provisioning
+default: objectclass: top
+default: objectclass: nsContainer
+default: cn: provisioning
 
 dn: cn=accounts,cn=provisioning,$SUFFIX
-add: objectclass: top
-add: objectclass: nsContainer
-add: cn: accounts
+default: objectclass: top
+default: objectclass: nsContainer
+default: cn: accounts
 
 dn: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
-add: objectclass: top
-add: objectclass: nsContainer
-add: cn: staged users
+default: objectclass: top
+default: objectclass: nsContainer
+default: cn: staged users
 
 dn: cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX
-add: objectclass: top
-add: objectclass: nsContainer
-add: cn: staged users
+default: objectclass: top
+default: objectclass: nsContainer
+default: cn: staged users
+
+# This is used for the admin to know if credential are set for stage users
+# We can do a query on a DN to see if an attribute exists.
+dn: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
+add:aci: '(targetattr="userPassword || krbPrincipalKey")(version 3.0; acl "Search existence of password and kerberos keys"; allow(search) userdn = "ldap:///uid=admin,cn=users,cn=accounts,$SUFFIX";)'

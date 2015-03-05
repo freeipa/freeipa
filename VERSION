@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=115
-# Last change: mbasti - Remove NSEC3PARAM record from dnsrecord-* commands
+IPA_API_VERSION_MINOR=116
+# Last change: tbordaz - Add stageuser_add command"
