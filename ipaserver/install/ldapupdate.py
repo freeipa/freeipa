@@ -793,44 +793,27 @@ class LDAPUpdate:
 
     def update(self, files, ordered=False):
         """Execute the update. files is a list of the update files to use.
+        :param ordered: Update files are executed in alphabetical order
 
-           If ordered is True then the updates the file must be of the form
-           ##-name.update where ## is an integer between 10 and 89. The
-           changes are applied to LDAP at the end of each value divisible
-           by 10, so after 20, 30, etc.
-
-           returns True if anything was changed, otherwise False
+        returns True if anything was changed, otherwise False
         """
 
-        pat = re.compile(r'(\d+)-.*\.update')
         all_updates = {}
-        r = 20
-        if self.plugins:
-            self.info('PRE_UPDATE')
-            updates = api.Backend.updateclient.update(PRE_UPDATE, self.dm_password, self.ldapi, self.live_run)
-            self.merge_updates(all_updates, updates)
         try:
             self.create_connection()
-            if ordered and all_updates:
+            if self.plugins:
+                self.info('PRE_UPDATE')
+                updates = api.Backend.updateclient.update(PRE_UPDATE, self.dm_password, self.ldapi, self.live_run)
+                self.merge_updates(all_updates, updates)
                 # flush out PRE_UPDATE plugin updates before we begin
                 self._run_updates(all_updates)
                 all_updates = {}
 
-            for f in files:
-                name = os.path.basename(f)
-                if ordered:
-                    m = pat.match(name)
-                    if not m:
-                        raise RuntimeError("Filename does not match format #-name.update: %s" % f)
-                    index = int(m.group(1))
-                    if index < 10 or index > 90:
-                        raise RuntimeError("Index not legal range: %d" % index)
+            upgrade_files = files
+            if ordered:
+                upgrade_files = sorted(files)
 
-                    if index >= r:
-                        self._run_updates(all_updates)
-                        all_updates = {}
-                        r += 10
-
+            for f in upgrade_files:
                 try:
                     self.info("Parsing update file '%s'" % f)
                     data = self.read_file(f)
@@ -839,17 +822,16 @@ class LDAPUpdate:
                     sys.exit(e)
 
                 self.parse_update_file(f, data, all_updates)
+                self._run_updates(all_updates)
+                all_updates = {}
 
-            self._run_updates(all_updates)
+            if self.plugins:
+                self.info('POST_UPDATE')
+                updates = api.Backend.updateclient.update(POST_UPDATE, self.dm_password, self.ldapi, self.live_run)
+                self.merge_updates(all_updates, updates)
+                self._run_updates(all_updates)
         finally:
-            if self.conn: self.conn.unbind()
-
-        if self.plugins:
-            self.info('POST_UPDATE')
-            all_updates = {}
-            updates = api.Backend.updateclient.update(POST_UPDATE, self.dm_password, self.ldapi, self.live_run)
-            self.merge_updates(all_updates, updates)
-            self._run_updates(all_updates)
+            self.close_connection()
 
         return self.modified
 
