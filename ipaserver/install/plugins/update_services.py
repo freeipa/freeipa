@@ -33,6 +33,10 @@ class update_service_principalalias(PostUpdate):
     order = MIDDLE
 
     def execute(self, **options):
+        if not options.get('live_run'):
+            self.log.info("Test mode: skipping 'update_service_principalalias'")
+            return False, False, ()
+
         ldap = self.obj.backend
 
         base_dn = DN(api.env.container_service, api.env.basedn)

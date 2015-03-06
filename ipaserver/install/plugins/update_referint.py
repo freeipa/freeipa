@@ -28,6 +28,9 @@ class update_referint(PreUpdate):
                            ('cn', 'plugins'), ('cn', 'config'))
 
     def execute(self, **options):
+        if not options.get('live_run'):
+            self.log.info("Test mode: skipping 'update_referint'")
+            return False, False, ()
 
         root_logger.debug("Upgrading referential integrity plugin configuration")
         ldap = self.obj.backend
