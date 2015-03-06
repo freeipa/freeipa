@@ -137,22 +137,20 @@ class LDAPUpdate:
             4: 'cn=bob,ou=people,dc=example,dc=com',
         }
 
-        all_updates = {
-        'dn': 'cn=config,dc=example,dc=com':
+        all_updates = [
             {
                 'dn': 'cn=config,dc=example,dc=com',
                 'default': ['attr1':default1'],
                 'updates': ['action:attr1:value1',
                             'action:attr2:value2]
             },
-        'dn': 'cn=bob,ou=people,dc=example,dc=com':
             {
                 'dn': 'cn=bob,ou=people,dc=example,dc=com',
                 'default': ['attr3':default3'],
                 'updates': ['action:attr3:value3',
                             'action:attr4:value4],
             }
-        }
+        ]
 
         The default and update lists are "dispositions"
 
@@ -279,49 +277,6 @@ class LDAPUpdate:
         if fd != sys.stdin: fd.close()
         return text
 
-    def _combine_updates(self, all_updates, update):
-        'Combine a new update with the list of total updates'
-        dn = update.get('dn')
-        assert isinstance(dn, DN)
-
-        if not all_updates.get(dn):
-            all_updates[dn] = update
-            return
-
-        existing_update = all_updates[dn]
-        if 'default' in update:
-            disposition_list = existing_update.setdefault('default', [])
-            disposition_list.extend(update['default'])
-        elif 'updates' in update:
-            disposition_list = existing_update.setdefault('updates', [])
-            disposition_list.extend(update['updates'])
-        else:
-            self.debug("Unknown key in updates %s" % update.keys())
-
-    def merge_updates(self, all_updates, updates):
-        '''
-        Add the new_update dict to the all_updates dict.  If an entry
-        in the new_update already has an entry in all_updates merge
-        the two entries sensibly assuming the new entries take
-        precedence. Otherwise just add the new entry.
-        '''
-
-        for new_update in updates:
-            for new_dn, new_entry in new_update.iteritems():
-                existing_entry = all_updates.get(new_dn)
-                if existing_entry:
-                    # If the existing entry is marked for deletion but the
-                    # new entry is not also a delete then clear the delete
-                    # flag otherwise the newer update will be lost.
-                    if existing_entry.has_key('deleteentry') and not new_entry.has_key('deleteentry'):
-                        self.warning("ldapupdate: entry '%s' previously marked for deletion but" +
-                                     " this subsequent update reestablishes it: %s", new_dn, new_entry)
-                        del existing_entry['deleteentry']
-                    existing_entry.update(new_entry)
-                else:
-                    all_updates[new_dn] = new_entry
-
-
     def parse_update_file(self, data_source_name, source_data, all_updates):
         """Parse the update file into a dictonary of lists and apply the update
            for each DN in the file."""
@@ -380,11 +335,12 @@ class LDAPUpdate:
 
         def emit_update(update):
             '''
-            When processing a dn is completed emit the update by merging it into
-            the set of all updates.
+            When processing a dn is completed emit the update by appending it
+            into list of all updates
             '''
-
-            self._combine_updates(all_updates, update)
+            dn = update.get('dn')
+            assert isinstance(dn, DN)
+            all_updates.append(update)
 
         # Iterate over source input lines
         for source_line in source_data:
@@ -421,7 +377,6 @@ class LDAPUpdate:
                     continue
                 else:
                     emit_item(logical_line)
-                    logical_line = ''
                     logical_line = source_line
 
         if dn is not None:
@@ -784,11 +739,10 @@ class LDAPUpdate:
             raise RuntimeError("Offline updates are not supported.")
 
     def _run_updates(self, all_updates):
-
-        for dn, update in all_updates.iteritems():
+        for update in all_updates:
             self._update_record(update)
 
-        for dn, update in all_updates.iteritems():
+        for update in all_updates:
             self._delete_record(update)
 
     def update(self, files, ordered=False):
@@ -798,16 +752,14 @@ class LDAPUpdate:
         returns True if anything was changed, otherwise False
         """
         self.modified = False
-        all_updates = {}
+        all_updates = []
         try:
             self.create_connection()
             if self.plugins:
                 self.info('PRE_UPDATE')
                 updates = api.Backend.updateclient.update(PRE_UPDATE, self.dm_password, self.ldapi, self.live_run)
-                self.merge_updates(all_updates, updates)
                 # flush out PRE_UPDATE plugin updates before we begin
-                self._run_updates(all_updates)
-                all_updates = {}
+                self._run_updates(updates)
 
             upgrade_files = files
             if ordered:
@@ -823,13 +775,12 @@ class LDAPUpdate:
 
                 self.parse_update_file(f, data, all_updates)
                 self._run_updates(all_updates)
-                all_updates = {}
+                all_updates = []
 
             if self.plugins:
                 self.info('POST_UPDATE')
                 updates = api.Backend.updateclient.update(POST_UPDATE, self.dm_password, self.ldapi, self.live_run)
-                self.merge_updates(all_updates, updates)
-                self._run_updates(all_updates)
+                self._run_updates(updates)
         finally:
             self.close_connection()
 

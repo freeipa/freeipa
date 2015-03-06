@@ -133,13 +133,11 @@ class update_dns_limits(PostUpdate):
         for limit in self.limit_attributes:
             limit_updates.append('only:%s:%s' % (limit, self.limit_value))
 
-        dnsupdates = {}
-        dnsupdates[dns_service_dn] = {'dn': dns_service_dn,
-                                      'updates': limit_updates}
+        dnsupdate = {'dn': dns_service_dn, 'updates': limit_updates}
         root_logger.debug("DNS: limits for service %s will be updated" % dns_service_dn)
 
 
-        return (False, True, [dnsupdates])
+        return (False, True, [dnsupdate])
 
 api.register(update_dns_limits)
 

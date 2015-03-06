@@ -98,7 +98,8 @@ class GenerateUpdateMixin(object):
                     old_update = {'dn': entry.dn, 'deleteentry': None}
 
                     # Add the delete and replacement updates to the list of all updates
-                    update_list.append({entry.dn: old_update, new_dn: new_update})
+                    update_list.append(old_update)
+                    update_list.append(new_update)
 
             else:
                 # Update the template dn by replacing the old containter with the new container
@@ -125,11 +126,11 @@ class GenerateUpdateMixin(object):
                               'default': entry_to_update(entry)}
 
                 # Add the replacement update to the collection of all updates
-                update_list.append({new_dn: new_update})
+                update_list.append(new_update)
 
         if len(update_list) > 0:
             restart = True
-            update_list.sort(reverse=True)
+            update_list.sort(reverse=True, key=lambda x: x['dn'])
 
         return (restart, update_list)
 

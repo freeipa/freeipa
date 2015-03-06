@@ -98,10 +98,8 @@ class update_ca_renewal_master(PostUpdate):
 
         dn = DN(('cn', 'CA'), ('cn', self.api.env.host), base_dn)
         update = {
-            dn: {
                 'dn': dn,
                 'updates': ['add:ipaConfigString: caRenewalMaster'],
-            },
         }
 
         return (False, True, [update])

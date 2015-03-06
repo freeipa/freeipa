@@ -70,9 +70,8 @@ class update_passync_privilege_update(PostUpdate):
 
         update = {'dn': passsync_privilege_dn,
                   'updates': ["add:member:'%s'" % passsync_dn]}
-        updates = {passsync_privilege_dn: update}
 
         sysupgrade.set_upgrade_state('winsync', 'passsync_privilege_updated', True)
-        return (False, True, [updates])
+        return (False, True, [update])
 
 api.register(update_passync_privilege_update)

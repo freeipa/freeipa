@@ -128,10 +128,7 @@ class updateclient(backend.Executioner):
                 self.restart(dm_password, live_run)
 
             if apply_now:
-                updates = {}
-                for entry in res:
-                    updates.update(entry)
-                ld.update_from_dict(updates)
+                ld.update_from_dict(res)
             elif res:
                 result.extend(res)
 

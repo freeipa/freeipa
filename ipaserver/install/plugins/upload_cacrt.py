@@ -45,7 +45,7 @@ class update_upload_cacrt(PostUpdate):
                 if ca_chain:
                     ca_nickname = ca_chain[-1]
 
-        updates = {}
+        updates = []
 
         for nickname, trust_flags in db.list_certs():
             if 'u' in trust_flags:
@@ -64,7 +64,7 @@ class update_upload_cacrt(PostUpdate):
                 if ca_enabled:
                     entry.append('ipaConfigString:ipaCA')
                 entry.append('ipaConfigString:compatCA')
-            updates[dn] = {'dn': dn, 'default': entry}
+            updates.append({'dn': dn, 'default': entry})
 
         if ca_cert:
             dn = DN(('cn', 'CACert'), ('cn', 'ipa'), ('cn','etc'),
@@ -74,9 +74,9 @@ class update_upload_cacrt(PostUpdate):
                      'cn:CAcert',
                      'cACertificate;binary:%s' % ca_cert,
                     ]
-            updates[dn] = {'dn': dn, 'default': entry}
+            updates.append({'dn': dn, 'default': entry})
 
-        return (False, True, [updates])
+        return (False, True, updates)
 
     def _make_entry(self, cert, nickname, trust_flags):
         dn = DN(('cn', nickname), ('cn', 'certificates'), ('cn', 'ipa'),

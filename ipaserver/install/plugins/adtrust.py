@@ -65,11 +65,10 @@ class update_default_range(PostUpdate):
                        'iparangetype:ipa-local',
                       ]
 
-        updates = {}
         dn = DN(('cn', '%s_id_range' % api.env.realm),
                 api.env.container_ranges, api.env.basedn)
 
-        updates[dn] = {'dn': dn, 'default': range_entry}
+        update = {'dn': dn, 'default': range_entry}
 
         # Default range entry has a hard-coded range size to 200000 which is
         # a default range size in ipa-server-install. This could cause issues
@@ -115,7 +114,7 @@ class update_default_range(PostUpdate):
 
                 root_logger.error("default_range: %s", "\n".join(msg))
 
-        return (False, True, [updates])
+        return (False, True, [update])
 
 
 class update_default_trust_view(PostUpdate):
@@ -156,13 +155,12 @@ class update_default_trust_view(PostUpdate):
         # We have a server with AD trust support without Default Trust View.
         # Create the Default Trust View entry.
 
-        updates = {}
-        updates[default_trust_view_dn] = {
+        update = {
             'dn': default_trust_view_dn,
             'default': default_trust_view_entry
         }
 
-        return (False, True, [updates])
+        return (False, True, [update])
 
 api.register(update_default_range)
 api.register(update_default_trust_view)

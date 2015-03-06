@@ -218,7 +218,7 @@ class update_uniqueness_plugins_to_new_syntax(PreUpdate):
                                   "plugin %s (%s)",
                                   entry.dn, e)
 
-            update_list.append({entry.dn: update})
+            update_list.append(update)
 
         return False, True, update_list
 
