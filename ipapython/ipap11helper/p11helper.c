@@ -1320,7 +1320,7 @@ static PyObject *P11_Helper_import_RSA_public_key(P11_Helper *self,
         GOTO_FAIL;
     }
     modulus_len = BN_bn2bin(rsa->n, (unsigned char *) modulus);
-    if (modulus == NULL) {
+    if (modulus_len == 0) {
         PyErr_SetString(ipap11helperError,
                         "import_RSA_public_key: BN_bn2bin modulus error");
         GOTO_FAIL;
@@ -1332,7 +1332,7 @@ static PyObject *P11_Helper_import_RSA_public_key(P11_Helper *self,
         GOTO_FAIL;
     }
     exponent_len = BN_bn2bin(rsa->e, (unsigned char *) exponent);
-    if (exponent == NULL) {
+    if (exponent_len == 0) {
         PyErr_SetString(ipap11helperError,
                         "import_RSA_public_key: BN_bn2bin exponent error");
         GOTO_FAIL;
@@ -1531,11 +1531,7 @@ static PyObject *P11_Helper_export_wrapped_key(P11_Helper *self,
         PyErr_NoMemory();
         GOTO_FAIL;
     }
-    if (wrapped_key == NULL) {
-        rv = CKR_HOST_MEMORY;
-        if (!check_return_value(rv, "key wrapping: buffer allocation"))
-            GOTO_FAIL;
-    }
+
     rv = self->p11->C_WrapKey(self->session, &wrapping_mech,
                               object_wrapping_key, object_key, wrapped_key,
                               &wrapped_key_len);
