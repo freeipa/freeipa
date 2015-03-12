@@ -61,13 +61,14 @@ def check_inst():
 
 
 class OpenDNSSECInstance(service.Service):
-    def __init__(self, fstore=None, dm_password=None):
+    def __init__(self, fstore=None, dm_password=None, start_tls=False):
         service.Service.__init__(
             self, "ods-enforcerd",
             service_desc="OpenDNSSEC enforcer daemon",
             dm_password=dm_password,
             ldapi=False,
-            autobind=ipaldap.AUTOBIND_DISABLED
+            autobind=ipaldap.AUTOBIND_DISABLED,
+            start_tls=start_tls
         )
         self.dm_password = dm_password
         self.ods_uid = None

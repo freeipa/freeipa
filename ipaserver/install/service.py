@@ -72,8 +72,9 @@ def format_seconds(seconds):
 
 
 class Service(object):
-    def __init__(self, service_name, service_desc=None, sstore=None, dm_password=None, ldapi=True,
-                 autobind=ipaldap.AUTOBIND_AUTO):
+    def __init__(self, service_name, service_desc=None, sstore=None,
+                 dm_password=None, ldapi=True, autobind=ipaldap.AUTOBIND_AUTO,
+                 start_tls=False):
         self.service_name = service_name
         self.service_desc = service_desc
         self.service = services.service(service_name)
@@ -82,6 +83,7 @@ class Service(object):
         self.dm_password = dm_password
         self.ldapi = ldapi
         self.autobind = autobind
+        self.start_tls = start_tls
 
         self.fqdn = socket.gethostname()
         self.admin_conn = None
@@ -107,6 +109,10 @@ class Service(object):
                 if not self.realm:
                     raise errors.NotFound(reason="realm is missing for %s" % (self))
                 conn = ipaldap.IPAdmin(ldapi=self.ldapi, realm=self.realm)
+            elif self.start_tls:
+                conn = ipaldap.IPAdmin(self.fqdn, port=389, protocol='ldap',
+                                       cacert=paths.IPA_CA_CRT,
+                                       start_tls=self.start_tls)
             else:
                 conn = ipaldap.IPAdmin(self.fqdn, port=389)
 

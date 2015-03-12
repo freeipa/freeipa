@@ -62,13 +62,14 @@ def dnssec_container_exists(fqdn, suffix, dm_password=None, ldapi=False,
 
 class DNSKeySyncInstance(service.Service):
     def __init__(self, fstore=None, dm_password=None, logger=root_logger,
-                 ldapi=False):
+                 ldapi=False, start_tls=False):
         service.Service.__init__(
             self, "ipa-dnskeysyncd",
             service_desc="DNS key synchronization service",
             dm_password=dm_password,
-            ldapi=ldapi
-            )
+            ldapi=ldapi,
+            start_tls=start_tls
+        )
         self.dm_password = dm_password
         self.logger = logger
         self.extra_config = [u'dnssecVersion 1', ]  # DNSSEC enabled

@@ -152,7 +152,7 @@ def main():
                                              confirm=False, validate=False)
     if dm_password is None:
         sys.exit("Directory Manager password required")
-    bind = bindinstance.BindInstance(fstore, dm_password)
+    bind = bindinstance.BindInstance(fstore, dm_password, start_tls=True)
 
     # try the connection
     try:
@@ -161,7 +161,8 @@ def main():
     except errors.ACIError:
         sys.exit("Password is not valid!")
 
-    ods = opendnssecinstance.OpenDNSSECInstance(fstore, dm_password)
+    ods = opendnssecinstance.OpenDNSSECInstance(fstore, dm_password,
+                                                start_tls=True)
     if options.dnssec_master:
         dnssec_masters = ods.get_masters()
         # we can reinstall current server if it is dnssec master
@@ -215,10 +216,13 @@ def main():
     bind.create_instance()
 
     # on dnssec master this must be installed last
-    dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore, dm_password)
+    dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore, dm_password,
+                                                        start_tls=True)
     dnskeysyncd.create_instance(api.env.host, api.env.realm)
     if options.dnssec_master:
-        ods_exporter = odsexporterinstance.ODSExporterInstance(fstore, dm_password)
+        ods_exporter = odsexporterinstance.ODSExporterInstance(fstore,
+                                                               dm_password,
+                                                               start_tls=True)
 
         ods_exporter.create_instance(api.env.host, api.env.realm)
         ods.create_instance(api.env.host, api.env.realm)
