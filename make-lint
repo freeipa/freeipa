@@ -57,7 +57,7 @@ class IPATypeChecker(TypeChecker):
         'urlparse.ResultMixin': ['scheme', 'netloc', 'path', 'query',
             'fragment', 'username', 'password', 'hostname', 'port'],
         'urlparse.ParseResult': ['params'],
-        'pytest': ['fixture', 'raises', 'skip', 'yield_fixture', 'mark'],
+        'pytest': ['fixture', 'raises', 'skip', 'yield_fixture', 'mark', 'fail'],
         'nose.tools': ['assert_equal', 'assert_raises'],
         'datetime.tzinfo': ['houroffset', 'minoffset', 'utcoffset', 'dst'],
 
