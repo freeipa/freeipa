@@ -21,14 +21,13 @@
 
 from optparse import OptionGroup, SUPPRESS_HELP
 
-import krbV
-
 from ipaserver.install import (service, bindinstance, ntpinstance,
     httpinstance, dnskeysyncinstance, opendnssecinstance, odsexporterinstance)
 from ipaserver.install.installutils import *
 from ipaserver.install import installutils
 from ipapython import version
 from ipapython import ipautil, sysrestore
+from ipapython.ipaldap import AUTOBIND_ENABLED
 from ipalib import api, errors, util
 from ipaplatform.paths import paths
 from ipapython.config import IPAOptionParser
@@ -40,7 +39,7 @@ log_file_name = paths.IPASERVER_INSTALL_LOG
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
     parser.add_option("-p", "--ds-password", dest="dm_password",
-                      sensitive=True, help="admin password")
+                      sensitive=True, help=SUPPRESS_HELP)
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="print debugging information")
     parser.add_option("--ip-address", dest="ip_addresses", metavar="IP_ADDRESS",
@@ -77,6 +76,9 @@ def parse_options():
         if not options.forwarders and not options.no_forwarders:
             parser.error("You must specify at least one --forwarder option or --no-forwarders option")
 
+    if options.dm_password:
+        print ("WARNING: Option -p/--ds-password is deprecated "
+               "and should not be used anymore.")
     return safe_options, options
 
 def main():
@@ -144,26 +146,16 @@ def main():
     api.bootstrap(**cfg)
     api.finalize()
 
-    # Create a BIND instance
-    if options.unattended and not options.dm_password:
-        sys.exit("\nIn unattended mode you need to provide at least the -p option")
 
-    dm_password = options.dm_password or read_password("Directory Manager",
-                                             confirm=False, validate=False)
-    if dm_password is None:
-        sys.exit("Directory Manager password required")
-    bind = bindinstance.BindInstance(fstore, dm_password, start_tls=True)
+    # create BIND and OpenDNSSec instances
 
-    # try the connection
-    try:
-        bind.ldap_connect()
-        bind.ldap_disconnect()
-    except errors.ACIError:
-        sys.exit("Password is not valid!")
+    bind = bindinstance.BindInstance(fstore, ldapi=True,
+                                     autobind=AUTOBIND_ENABLED)
 
-    ods = opendnssecinstance.OpenDNSSECInstance(fstore, dm_password,
-                                                start_tls=True)
+    ods = opendnssecinstance.OpenDNSSECInstance(fstore, ldapi=True,
+                                                autobind=AUTOBIND_ENABLED)
     if options.dnssec_master:
+        ods.realm = api.env.realm
         dnssec_masters = ods.get_masters()
         # we can reinstall current server if it is dnssec master
         if not api.env.host in dnssec_masters and dnssec_masters:
@@ -189,12 +181,7 @@ def main():
 
     root_logger.debug("will use dns_forwarders: %s\n", str(dns_forwarders))
 
-    if bind.dm_password:
-        api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=bind.dm_password)
-    else:
-        # See if our LDAP server is up and we can talk to it over GSSAPI
-        ccache = krbV.default_context().default_ccache()
-        api.Backend.ldap2.connect(ccache)
+    api.Backend.ldap2.connect(autobind=True)
 
     reverse_zones = bindinstance.check_reverse_zones(ip_addresses,
         options.reverse_zones, options, options.unattended, True)
@@ -216,13 +203,11 @@ def main():
     bind.create_instance()
 
     # on dnssec master this must be installed last
-    dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore, dm_password,
-                                                        start_tls=True)
+    dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore, ldapi=True)
     dnskeysyncd.create_instance(api.env.host, api.env.realm)
     if options.dnssec_master:
-        ods_exporter = odsexporterinstance.ODSExporterInstance(fstore,
-                                                               dm_password,
-                                                               start_tls=True)
+        ods_exporter = odsexporterinstance.ODSExporterInstance(
+            fstore, ldapi=True, autobind=AUTOBIND_ENABLED)
 
         ods_exporter.create_instance(api.env.host, api.env.realm)
         ods.create_instance(api.env.host, api.env.realm)
@@ -251,6 +236,5 @@ def main():
     return 0
 
 if __name__ == '__main__':
-    with private_ccache():
-        installutils.run_script(main, log_file_name=log_file_name,
-            operation_name='ipa-dns-install')
+    installutils.run_script(main, log_file_name=log_file_name,
+                            operation_name='ipa-dns-install')

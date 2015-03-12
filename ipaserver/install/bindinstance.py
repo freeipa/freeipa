@@ -533,14 +533,14 @@ class DnsBackup(object):
 
 
 class BindInstance(service.Service):
-    def __init__(self, fstore=None, dm_password=None, api=api,
-                 start_tls=False):
+    def __init__(self, fstore=None, dm_password=None, api=api, ldapi=False,
+                 start_tls=False, autobind=ipaldap.AUTOBIND_DISABLED):
         service.Service.__init__(
             self, "named",
             service_desc="DNS",
             dm_password=dm_password,
-            ldapi=False,
-            autobind=ipaldap.AUTOBIND_DISABLED,
+            ldapi=ldapi,
+            autobind=autobind,
             start_tls=start_tls
         )
         self.dns_backup = DnsBackup(self)
@@ -586,7 +586,7 @@ class BindInstance(service.Service):
 
         self.first_instance = not dns_container_exists(
             self.fqdn, self.suffix, realm=self.realm, ldapi=True,
-            dm_password=self.dm_password)
+            dm_password=self.dm_password, autobind=self.autobind)
 
         self.__setup_sub_dict()
 

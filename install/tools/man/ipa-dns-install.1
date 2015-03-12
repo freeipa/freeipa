@@ -25,9 +25,6 @@ ipa\-dns\-install [\fIOPTION\fR]...
 Adds DNS as an IPA\-managed service. This requires that the IPA server is already installed and configured.
 .SH "OPTIONS"
 .TP
-\fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-ds\-password\fR=\fIDM_PASSWORD\fR
-The password to be used by the Directory Server for the Directory Manager user
-.TP
 \fB\-d\fR, \fB\-\-debug\fR
 Enable debug logging when more verbose output is needed
 .TP
@@ -52,6 +49,10 @@ The e\-mail address of the DNS zone manager. Defaults to hostmaster@DOMAIN
 .TP
 \fB\-U\fR, \fB\-\-unattended\fR
 An unattended installation that will never prompt for user input
+.SH "DEPRECATED OPTIONS"
+.TP
+\fB\-p\fR \fIDM_PASSWORD\fR, \fB\-\-ds\-password\fR=\fIDM_PASSWORD\fR
+The password to be used by the Directory Server for the Directory Manager user
 .SH "EXIT STATUS"
 0 if the installation was successful
 

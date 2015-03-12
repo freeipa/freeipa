@@ -19,13 +19,14 @@ from ipalib import errors
 
 
 class ODSExporterInstance(service.Service):
-    def __init__(self, fstore=None, dm_password=None, start_tls=False):
+    def __init__(self, fstore=None, dm_password=None, ldapi=False,
+                 start_tls=False, autobind=ipaldap.AUTOBIND_DISABLED):
         service.Service.__init__(
             self, "ipa-ods-exporter",
             service_desc="IPA OpenDNSSEC exporter daemon",
             dm_password=dm_password,
-            ldapi=False,
-            autobind=ipaldap.AUTOBIND_DISABLED,
+            ldapi=ldapi,
+            autobind=autobind,
             start_tls=start_tls
         )
         self.dm_password = dm_password
