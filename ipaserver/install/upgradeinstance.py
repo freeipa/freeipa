@@ -131,8 +131,7 @@ class IPAUpgrade(service.Service):
             ld = ldapupdate.LDAPUpdate(dm_password='', ldapi=True, live_run=self.live_run, plugins=True)
             if len(self.files) == 0:
                 self.files = ld.get_all_files(ldapupdate.UPDATES_DIR)
-            self.modified = (ld.update(self.files, ordered=True) or
-                             self.modified)
+            self.modified = (ld.update(self.files) or self.modified)
         except ldapupdate.BadSyntax, e:
             root_logger.error('Bad syntax in upgrade %s' % str(e))
             self.modified = False

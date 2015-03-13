@@ -745,7 +745,7 @@ class LDAPUpdate:
         for update in all_updates:
             self._delete_record(update)
 
-    def update(self, files, ordered=False):
+    def update(self, files, ordered=True):
         """Execute the update. files is a list of the update files to use.
         :param ordered: Update files are executed in alphabetical order
 
