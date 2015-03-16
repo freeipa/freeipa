@@ -55,9 +55,11 @@ class CertUpdate(admintool.AdminTool):
         ldap = ipaldap.IPAdmin(server)
 
         tmpdir = tempfile.mkdtemp(prefix="tmp-")
+        ccache_name = os.path.join(tmpdir, 'ccache')
         try:
             principal = str('host/%s@%s' % (api.env.host, api.env.realm))
-            ipautil.kinit_hostprincipal(paths.KRB5_KEYTAB, tmpdir, principal)
+            ipautil.kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_name)
+            os.environ['KRB5CCNAME'] = ccache_name
 
             api.Backend.rpcclient.connect()
             try:

@@ -440,7 +440,9 @@ def main():
     certs.renewal_lock.acquire()
     try:
         principal = str('host/%s@%s' % (api.env.host, api.env.realm))
-        ipautil.kinit_hostprincipal(paths.KRB5_KEYTAB, tmpdir, principal)
+        ccache_filename = os.path.join(tmpdir, 'ccache')
+        os.environ['KRB5CCNAME'] = ccache_filename
+        ipautil.kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_filename)
 
         profile = os.environ.get('CERTMONGER_CA_PROFILE')
         if profile:

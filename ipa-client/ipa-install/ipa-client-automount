@@ -26,6 +26,7 @@ import os
 import urlparse
 import time
 import tempfile
+from krbV import Krb5Error
 
 import SSSDConfig
 
@@ -436,10 +437,11 @@ def main():
     os.close(ccache_fd)
     try:
         try:
+            host_princ = str('host/%s@%s' % (api.env.host, api.env.realm))
+            ipautil.kinit_keytab(host_princ, paths.KRB5_KEYTAB, ccache_name)
             os.environ['KRB5CCNAME'] = ccache_name
-            ipautil.run([paths.KINIT, '-k', '-t', paths.KRB5_KEYTAB, 'host/%s@%s' % (api.env.host, api.env.realm)])
-        except ipautil.CalledProcessError, e:
-            sys.exit("Failed to obtain host TGT.")
+        except Krb5Error as e:
+            sys.exit("Failed to obtain host TGT: %s" % e)
         # Now we have a TGT, connect to IPA
         try:
             api.Backend.rpcclient.connect()

@@ -65,7 +65,9 @@ log = root_logger
 # Kerberos initialization
 PRINCIPAL = str('%s/%s' % (DAEMONNAME, api.env.host))
 log.debug('Kerberos principal: %s', PRINCIPAL)
-ipautil.kinit_hostprincipal(KEYTAB_FB, WORKDIR, PRINCIPAL)
+ccache_filename = os.path.join(WORKDIR, 'ccache')
+ipautil.kinit_keytab(PRINCIPAL, KEYTAB_FB, ccache_filename)
+os.environ['KRB5CCNAME'] = ccache_filename
 
 # LDAP initialization
 basedn = DN(api.env.container_dns, api.env.basedn)
