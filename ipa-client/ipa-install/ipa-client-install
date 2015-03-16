@@ -31,6 +31,7 @@ try:
     from ConfigParser import RawConfigParser
     from optparse import SUPPRESS_HELP, OptionGroup, OptionValueError
     import shutil
+    from krbV import Krb5Error
 
     import nss.nss as nss
     import SSSDConfig
@@ -95,6 +96,14 @@ def parse_options():
 
         parser.values.ca_cert_file = value
 
+    def kinit_attempts_callback(option, opt, value, parser):
+        if value < 1:
+            raise OptionValueError(
+                "Option %s expects an integer greater than 0."
+                % opt)
+
+        parser.values.kinit_attempts = value
+
     parser = IPAOptionParser(version=version.VERSION)
 
     basic_group = OptionGroup(parser, "basic options")
@@ -148,6 +157,11 @@ def parse_options():
                       help="do not modify the nsswitch.conf and PAM configuration")
     basic_group.add_option("-f", "--force", dest="force", action="store_true",
                       default=False, help="force setting of LDAP/Kerberos conf")
+    basic_group.add_option('--kinit-attempts', dest='kinit_attempts',
+                           action='callback', type='int', default=5,
+                           callback=kinit_attempts_callback,
+                           help=("number of attempts to obtain host TGT"
+                                 " (defaults to %default)."))
     basic_group.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="print debugging information")
     basic_group.add_option("-U", "--unattended", dest="unattended",
@@ -2356,6 +2370,7 @@ def install(options, env, fstore, statestore):
             root_logger.debug(
                 "will use principal provided as option: %s", options.principal)
 
+    host_principal = 'host/%s@%s' % (hostname, cli_realm)
     if not options.on_master:
         nolog = tuple()
         # First test out the kerberos configuration
@@ -2376,7 +2391,6 @@ def install(options, env, fstore, statestore):
             env['KRB5_CONFIG'] = krb_name
             (ccache_fd, ccache_name) = tempfile.mkstemp()
             os.close(ccache_fd)
-            env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = ccache_name
             join_args = [paths.SBIN_IPA_JOIN,
                          "-s", cli_server[0],
                          "-b", str(realm_to_suffix(cli_realm)),
@@ -2414,29 +2428,23 @@ def install(options, env, fstore, statestore):
                         else:
                             stdin = sys.stdin.readline()
 
-                (stderr, stdout, returncode) = run(["kinit", principal],
-                                                    raiseonerr=False,
-                                                    stdin=stdin,
-                                                    env=env)
-                if returncode != 0:
+                try:
+                    ipautil.kinit_password(principal, stdin, ccache_name)
+                except RuntimeError as e:
                     print_port_conf_info()
-                    root_logger.error("Kerberos authentication failed")
-                    root_logger.info("%s", stdout)
+                    root_logger.error("Kerberos authentication failed: %s" % e)
                     return CLIENT_INSTALL_ERROR
             elif options.keytab:
                 join_args.append("-f")
                 if os.path.exists(options.keytab):
-                    (stderr, stdout, returncode) = run(
-                        [paths.KINIT,'-k', '-t', options.keytab,
-                            'host/%s@%s' % (hostname, cli_realm)],
-                        env=env,
-                        raiseonerr=False)
-
-                    if returncode != 0:
+                    try:
+                        ipautil.kinit_keytab(host_principal, options.keytab,
+                                             ccache_name,
+                                             attempts=options.kinit_attempts)
+                    except Krb5Error as e:
                         print_port_conf_info()
-                        root_logger.error("Kerberos authentication failed "
-                                          "using keytab: %s", options.keytab)
-                        root_logger.info("%s", stdout)
+                        root_logger.error("Kerberos authentication failed: %s"
+                                          % e)
                         return CLIENT_INSTALL_ERROR
                 else:
                     root_logger.error("Keytab file could not be found: %s"
@@ -2462,6 +2470,7 @@ def install(options, env, fstore, statestore):
                 join_args.append(password)
                 nolog = (password,)
 
+            env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = ccache_name
             # Get the CA certificate
             try:
                 os.environ['KRB5_CONFIG'] = env['KRB5_CONFIG']
@@ -2506,12 +2515,14 @@ def install(options, env, fstore, statestore):
             # only the KDC we're installing under is contacted.
             # Other KDCs might not have replicated the principal yet.
             # Once we have the TGT, it's usable on any server.
-            env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = CCACHE_FILE
             try:
-                run([paths.KINIT, '-k', '-t', paths.KRB5_KEYTAB,
-                        'host/%s@%s' % (hostname, cli_realm)], env=env)
-            except CalledProcessError, e:
-                root_logger.error("Failed to obtain host TGT.")
+                ipautil.kinit_keytab(host_principal, paths.KRB5_KEYTAB,
+                                     CCACHE_FILE,
+                                     attempts=options.kinit_attempts)
+                env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = CCACHE_FILE
+            except Krb5Error as e:
+                print_port_conf_info()
+                root_logger.error("Failed to obtain host TGT: %s" % e)
                 # failure to get ticket makes it impossible to login and bind
                 # from sssd to LDAP, abort installation and rollback changes
                 return CLIENT_INSTALL_ERROR
@@ -2548,16 +2559,16 @@ def install(options, env, fstore, statestore):
             return CLIENT_INSTALL_ERROR
         root_logger.info("Configured /etc/sssd/sssd.conf")
 
-    host_principal = 'host/%s@%s' % (hostname, cli_realm)
     if options.on_master:
         # If on master assume kerberos is already configured properly.
         # Get the host TGT.
-        os.environ['KRB5CCNAME'] = CCACHE_FILE
         try:
-            run([paths.KINIT, '-k', '-t', paths.KRB5_KEYTAB,
-                    host_principal])
-        except CalledProcessError, e:
-            root_logger.error("Failed to obtain host TGT.")
+            ipautil.kinit_keytab(host_principal, paths.KRB5_KEYTAB,
+                                 CCACHE_FILE,
+                                 attempts=options.kinit_attempts)
+            os.environ['KRB5CCNAME'] = CCACHE_FILE
+        except Krb5Error as e:
+            root_logger.error("Failed to obtain host TGT: %s" % e)
             return CLIENT_INSTALL_ERROR
     else:
         # Configure krb5.conf

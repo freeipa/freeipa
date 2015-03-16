@@ -152,6 +152,14 @@ Do not use Authconfig to modify the nsswitch.conf and PAM configuration.
 \fB\-f\fR, \fB\-\-force\fR
 Force the settings even if errors occur
 .TP
+\fB\-\-kinit\-attempts\fR=\fIKINIT_ATTEMPTS\fR
+In case of unresponsive KDC (e.g. when enrolling multiple hosts at once in a
+heavy load environment) repeat the request for host Kerberos ticket up to a
+total number of \fIKINIT_ATTEMPTS\fR times before giving up and aborting client
+installation. Default number of attempts is 5. The request is not repeated when
+there is a problem with host credentials themselves (e.g. wrong keytab format
+or invalid principal) so using this option will not lead to account lockouts.
+.TP
 \fB\-d\fR, \fB\-\-debug\fR
 Print debugging information to stdout
 .TP
