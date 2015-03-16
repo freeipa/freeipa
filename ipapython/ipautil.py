@@ -1185,27 +1185,64 @@ def wait_for_open_socket(socket_name, timeout=0):
             else:
                 raise e
 
-def kinit_hostprincipal(keytab, ccachedir, principal):
-    """
-    Given a ccache directory and a principal kinit as that user.
 
-    This blindly overwrites the current CCNAME so if you need to save
-    it do so before calling this function.
-
-    Thus far this is used to kinit as the local host.
+def kinit_keytab(principal, keytab, ccache_name, attempts=1):
     """
-    try:
-        ccache_file = 'FILE:%s/ccache' % ccachedir
-        krbcontext = krbV.default_context()
-        ktab = krbV.Keytab(name=keytab, context=krbcontext)
-        princ = krbV.Principal(name=principal, context=krbcontext)
-        os.environ['KRB5CCNAME'] = ccache_file
-        ccache = krbV.CCache(name=ccache_file, context=krbcontext, primary_principal=princ)
-        ccache.init(princ)
-        ccache.init_creds_keytab(keytab=ktab, principal=princ)
-        return ccache_file
-    except krbV.Krb5Error, e:
-        raise StandardError('Error initializing principal %s in %s: %s' % (principal, keytab, str(e)))
+    Given a ccache_path, keytab file and a principal kinit as that user.
+
+    The optional parameter 'attempts' specifies how many times the credential
+    initialization should be attempted in case of non-responsive KDC.
+    """
+    errors_to_retry = {krbV.KRB5KDC_ERR_SVC_UNAVAILABLE,
+                       krbV.KRB5_KDC_UNREACH}
+    root_logger.debug("Initializing principal %s using keytab %s"
+                      % (principal, keytab))
+    root_logger.debug("using ccache %s" % ccache_name)
+    for attempt in range(1, attempts + 1):
+        try:
+            krbcontext = krbV.default_context()
+            ktab = krbV.Keytab(name=keytab, context=krbcontext)
+            princ = krbV.Principal(name=principal, context=krbcontext)
+            ccache = krbV.CCache(name=ccache_name, context=krbcontext,
+                                 primary_principal=princ)
+            ccache.init(princ)
+            ccache.init_creds_keytab(keytab=ktab, principal=princ)
+            root_logger.debug("Attempt %d/%d: success"
+                              % (attempt, attempts))
+            return
+        except krbV.Krb5Error as e:
+            if e.args[0] not in errors_to_retry:
+                raise
+            root_logger.debug("Attempt %d/%d: failed: %s"
+                              % (attempt, attempts, e))
+            if attempt == attempts:
+                root_logger.debug("Maximum number of attempts (%d) reached"
+                                  % attempts)
+                raise
+            root_logger.debug("Waiting 5 seconds before next retry")
+            time.sleep(5)
+
+
+def kinit_password(principal, password, ccache_name, armor_ccache_name=None):
+    """
+    perform interactive kinit as principal using password. If using FAST for
+    web-based authentication, use armor_ccache_path to specify http service
+    ccache.
+    """
+    root_logger.debug("Initializing principal %s using password" % principal)
+    args = [paths.KINIT, principal, '-c', ccache_name]
+    if armor_ccache_name is not None:
+        root_logger.debug("Using armor ccache %s for FAST webauth"
+                          % armor_ccache_name)
+        args.extend(['-T', armor_ccache_name])
+
+    # this workaround enables us to capture stderr and put it
+    # into the raised exception in case of unsuccessful authentication
+    (stdout, stderr, retcode) = run(args, stdin=password, env={'LC_ALL': 'C'},
+                                    raiseonerr=False)
+    if retcode:
+        raise RuntimeError(stderr)
+
 
 def dn_attribute_property(private_name):
     '''
