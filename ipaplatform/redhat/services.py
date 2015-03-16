@@ -212,8 +212,8 @@ class RedHatCAService(RedHatService):
 
                 status = dogtag._parse_ca_status(stdout)
                 # end of workaround
-            except Exception:
-                status = 'check interrupted'
+            except Exception as e:
+                status = 'check interrupted due to error: %s' % e
             root_logger.debug('The CA status is: %s' % status)
             if status == 'running':
                 break
