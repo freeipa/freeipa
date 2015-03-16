@@ -283,8 +283,11 @@ class FileStore:
 
 class StateFile:
     """A metadata file for recording system state which can
-    be backed up and later restored. The format is something
-    like:
+    be backed up and later restored.
+    StateFile gets reloaded every time to prevent loss of information
+    recorded by child processes. But we do not solve concurrency
+    because there is no need for it right now.
+    The format is something like:
 
     [httpd]
     running=True
@@ -363,6 +366,8 @@ class StateFile:
         if not isinstance(value, (str, bool, unicode)):
             raise ValueError("Only strings, booleans or unicode strings are supported")
 
+        self._load()
+
         if not self.modules.has_key(module):
             self.modules[module] = {}
 
@@ -378,6 +383,8 @@ class StateFile:
         If the item doesn't exist, #None will be returned, otherwise
         the original string or boolean value is returned.
         """
+        self._load()
+
         if not self.modules.has_key(module):
             return None
 
@@ -389,6 +396,8 @@ class StateFile:
 
         If the item doesn't exist, no change is done.
         """
+        self._load()
+
         try:
             del self.modules[module][key]
         except KeyError:
