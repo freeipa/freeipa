@@ -30,6 +30,7 @@ import datetime
 import urlparse
 import json
 import traceback
+from krbV import Krb5Error
 
 import ldap.controls
 from pyasn1.type import univ, namedtype
@@ -958,8 +959,8 @@ class login_password(Backend, KerberosSession, HTTP_Status):
 
     def kinit(self, user, realm, password, ccache_name):
         # get http service ccache as an armor for FAST to enable OTP authentication
-        armor_principal = krb5_format_service_principal_name(
-            'HTTP', self.api.env.host, realm)
+        armor_principal = str(krb5_format_service_principal_name(
+            'HTTP', self.api.env.host, realm))
         keytab = paths.IPA_KEYTAB
         armor_name = "%sA_%s" % (krbccache_prefix, user)
         armor_path = os.path.join(krbccache_dir, armor_name)
@@ -967,34 +968,29 @@ class login_password(Backend, KerberosSession, HTTP_Status):
         self.debug('Obtaining armor ccache: principal=%s keytab=%s ccache=%s',
                    armor_principal, keytab, armor_path)
 
-        (stdout, stderr, returncode) = ipautil.run(
-            [paths.KINIT, '-kt', keytab, armor_principal],
-            env={'KRB5CCNAME': armor_path}, raiseonerr=False)
-
-        if returncode != 0:
-            raise CCacheError()
+        try:
+            ipautil.kinit_keytab(armor_principal, paths.IPA_KEYTAB, armor_path)
+        except Krb5Error as e:
+            raise CCacheError(str(e))
 
         # Format the user as a kerberos principal
         principal = krb5_format_principal_name(user, realm)
 
-        (stdout, stderr, returncode) = ipautil.run(
-            [paths.KINIT, principal, '-T', armor_path],
-            env={'KRB5CCNAME': ccache_name, 'LC_ALL': 'C'},
-            stdin=password, raiseonerr=False)
+        try:
+            ipautil.kinit_password(principal, password, ccache_name,
+                                   armor_ccache_name=armor_path)
 
-        self.debug('kinit: principal=%s returncode=%s, stderr="%s"',
-                   principal, returncode, stderr)
-
-        self.debug('Cleanup the armor ccache')
-        ipautil.run(
-            [paths.KDESTROY, '-A', '-c', armor_path],
-            env={'KRB5CCNAME': armor_path},
-            raiseonerr=False)
-
-        if returncode != 0:
-            if stderr.strip() == 'kinit: Cannot read password while getting initial credentials':
-                raise PasswordExpired(principal=principal, message=unicode(stderr))
-            raise InvalidSessionPassword(principal=principal, message=unicode(stderr))
+            self.debug('Cleanup the armor ccache')
+            ipautil.run(
+                [paths.KDESTROY, '-A', '-c', armor_path],
+                env={'KRB5CCNAME': armor_path},
+                raiseonerr=False)
+        except RuntimeError as e:
+            if ('kinit: Cannot read password while '
+                    'getting initial credentials') in str(e):
+                raise PasswordExpired(principal=principal, message=unicode(e))
+            raise InvalidSessionPassword(principal=principal,
+                                         message=unicode(e))
 
 class change_password(Backend, HTTP_Status):
 

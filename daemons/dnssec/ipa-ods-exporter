@@ -399,7 +399,9 @@ ipalib.api.finalize()
 # Kerberos initialization
 PRINCIPAL = str('%s/%s' % (DAEMONNAME, ipalib.api.env.host))
 log.debug('Kerberos principal: %s', PRINCIPAL)
-ipautil.kinit_hostprincipal(paths.IPA_ODS_EXPORTER_KEYTAB, WORKDIR, PRINCIPAL)
+ccache_name = os.path.join(WORKDIR, 'ccache')
+ipautil.kinit_keytab(PRINCIPAL, paths.IPA_ODS_EXPORTER_KEYTAB, ccache_name)
+os.environ['KRB5CCNAME'] = ccache_name
 log.debug('Got TGT')
 
 # LDAP initialization
@@ -407,7 +409,7 @@ dns_dn = DN(ipalib.api.env.container_dns, ipalib.api.env.basedn)
 ldap = ipalib.api.Backend[ldap2]
 # fixme
 log.debug('Connecting to LDAP')
-ldap.connect(ccache="%s/ccache" % WORKDIR)
+ldap.connect(ccache=ccache_name)
 log.debug('Connected')
 
 

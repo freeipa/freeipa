@@ -21,6 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+import os
 import syslog
 import tempfile
 import shutil
@@ -42,8 +43,10 @@ def _main():
     tmpdir = tempfile.mkdtemp(prefix="tmp-")
     try:
         principal = str('host/%s@%s' % (api.env.host, api.env.realm))
-        ccache = ipautil.kinit_hostprincipal(paths.KRB5_KEYTAB, tmpdir,
-                                             principal)
+        ccache_filename = os.path.join(tmpdir, 'ccache')
+        ipautil.kinit_keytab(principal, paths.KRB5_KEYTAB,
+                             ccache_filename)
+        os.environ['KRB5CCNAME'] = ccache_filename
 
         ca = cainstance.CAInstance(host_name=api.env.host, ldapi=False)
         if ca.is_renewal_master():

@@ -21,6 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+import os
 import syslog
 import tempfile
 import shutil
@@ -73,8 +74,9 @@ def _main():
     tmpdir = tempfile.mkdtemp(prefix="tmp-")
     try:
         principal = str('host/%s@%s' % (api.env.host, api.env.realm))
-        ccache = ipautil.kinit_hostprincipal(paths.KRB5_KEYTAB, tmpdir,
-                                             principal)
+        ccache_filename = os.path.join(tmpdir, 'ccache')
+        ipautil.kinit_keytab(principal, paths.KRB5_KEYTAB, ccache_filename)
+        os.environ['KRB5CCNAME'] = ccache_filename
 
         ca = cainstance.CAInstance(host_name=api.env.host, ldapi=False)
         ca.update_cert_config(nickname, cert, configured_constants)
@@ -139,7 +141,7 @@ def _main():
             conn = None
             try:
                 conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)
-                conn.connect(ccache=ccache)
+                conn.connect(ccache=ccache_filename)
             except Exception, e:
                 syslog.syslog(
                     syslog.LOG_ERR, "Failed to connect to LDAP: %s" % e)
