@@ -38,10 +38,10 @@ class updateclient(backend.Executioner):
                   returns. Otherwise the update is cached until all
                   plugins of that update type are complete, then they
                   are applied together.
-    3. updates: A dictionary of updates to be applied.
+    3. updates: A list of updates to be applied.
 
-    updates is a dictionary keyed on dn. The value of an update is a
-    dictionary with the following possible values:
+    The value of an update is a dictionary with the following possible
+    values:
       - dn: DN, equal to the dn attribute
       - updates: list of updates against the dn
       - default: list of the default entry to be added if it doesn't
@@ -54,15 +54,15 @@ class updateclient(backend.Executioner):
       replace:krbPwdLockoutDuration:10::600
       replace: krbPwdMaxFailure:3::6
 
-    Generates this update dictionary:
+    Generates this list which contain the update dictionary:
 
-    dict('cn=global_policy,cn=EXAMPLE.COM,cn=kerberos,dc=example,dc=com':
+    [
       dict(
         'dn': 'cn=global_policy,cn=EXAMPLE.COM,cn=kerberos,dc=example,dc=com',
         'updates': ['replace:krbPwdLockoutDuration:10::600',
                     'replace:krbPwdMaxFailure:3::6']
       )
-    )
+    ]
 
     Here is another example showing how a default entry is configured:
 
@@ -73,7 +73,7 @@ class updateclient(backend.Executioner):
 
     This generates:
 
-    dict('cn=Managed Entries,cn=etc,dc=example,dc=com',
+    [
       dict(
         'dn': 'cn=Managed Entries,cn=etc,dc=example,dc=com',
         'default': ['objectClass:nsContainer',
@@ -81,7 +81,7 @@ class updateclient(backend.Executioner):
                     'cn:Managed Entries'
                    ]
        )
-    )
+    ]
 
     Note that the variable substitution in both examples has been completed.
 
