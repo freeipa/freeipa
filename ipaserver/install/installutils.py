@@ -572,7 +572,7 @@ def read_replica_info_kra_enabled(config_dir):
             config = SafeConfigParser()
             config.readfp(fd)
 
-            enable_kra = bool(config.get("global", "enable_kra"))
+            enable_kra = config.getboolean("global", "enable_kra")
             return enable_kra
 
 
