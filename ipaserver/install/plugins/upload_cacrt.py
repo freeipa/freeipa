@@ -20,7 +20,7 @@
 from ipaserver.install.plugins import MIDDLE
 from ipaserver.install.plugins.baseupdate import PostUpdate
 from ipaserver.install import certs
-from ipalib import api, certstore
+from ipalib import api, errors, certstore
 from ipapython import certdb
 from ipapython.dn import DN
 
@@ -45,7 +45,7 @@ class update_upload_cacrt(PostUpdate):
                 if ca_chain:
                     ca_nickname = ca_chain[-1]
 
-        updates = {}
+        ldap = self.obj.backend
 
         for nickname, trust_flags in db.list_certs():
             if 'u' in trust_flags:
@@ -53,40 +53,46 @@ class update_upload_cacrt(PostUpdate):
             if nickname == ca_nickname and ca_enabled:
                 trust_flags = 'CT,C,C'
             cert = db.get_cert_from_db(nickname, pem=False)
+            trust, ca, eku = certstore.trust_flags_to_key_policy(trust_flags)
+
+            dn = DN(('cn', nickname), ('cn', 'certificates'), ('cn', 'ipa'),
+                    ('cn','etc'), self.api.env.basedn)
+            entry = ldap.make_entry(dn)
+
             try:
-                dn, entry = self._make_entry(cert, nickname, trust_flags)
+                certstore.init_ca_entry(entry, cert, nickname, trust, eku)
             except Exception, e:
                 self.log.warning("Failed to create entry for %s: %s",
                                  nickname, e)
                 continue
             if nickname == ca_nickname:
                 ca_cert = cert
+                config = entry.setdefault('ipaConfigString', [])
                 if ca_enabled:
-                    entry.append('ipaConfigString:ipaCA')
-                entry.append('ipaConfigString:compatCA')
-            updates[dn] = {'dn': dn, 'default': entry}
+                    config.append('ipaCa')
+                config.append('ipaCa')
+
+            try:
+                ldap.add_entry(entry)
+            except errors.DuplicateEntry:
+                pass
 
         if ca_cert:
             dn = DN(('cn', 'CACert'), ('cn', 'ipa'), ('cn','etc'),
                     self.api.env.basedn)
-            entry = ['objectclass:nsContainer',
-                     'objectclass:pkiCA',
-                     'cn:CAcert',
-                     'cACertificate;binary:%s' % ca_cert,
-                    ]
-            updates[dn] = {'dn': dn, 'default': entry}
+            try:
+                entry = ldap.get_entry(dn)
+            except errors.NotFound:
+                entry = ldap.make_entry(dn)
+                entry['objectclass'] = ['nsContainer', 'pkiCA']
+                entry.single_value['cn'] = 'CAcert'
+                entry.single_value['cACertificate;binary'] = ca_cert
+                ldap.add_entry(entry)
+            else:
+                if '' in entry['cACertificate;binary']:
+                    entry.single_value['cACertificate;binary'] = ca_cert
+                    ldap.update_entry(entry)
 
-        return (False, True, [updates])
-
-    def _make_entry(self, cert, nickname, trust_flags):
-        dn = DN(('cn', nickname), ('cn', 'certificates'), ('cn', 'ipa'),
-                ('cn','etc'), self.api.env.basedn)
-
-        entry = dict()
-        trust, ca, eku = certstore.trust_flags_to_key_policy(trust_flags)
-        certstore.init_ca_entry(entry, cert, nickname, trust, eku)
-        entry = ['%s:%s' % (a, v) for a, vs in entry.iteritems() for v in vs]
-
-        return dn, entry
+        return (False, False, [])
 
 api.register(update_upload_cacrt)
