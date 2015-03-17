@@ -2577,14 +2577,15 @@ def install(options, env, fstore, statestore):
     except ValueError:
         pass
 
+    ca_certs = x509.load_certificate_list_from_file(CACERT)
+    ca_certs = [cert.der_data for cert in ca_certs]
+
     with certdb.NSSDatabase() as tmp_db:
         # Add CA certs to a temporary NSS database
         try:
             pwd_file = ipautil.write_tmp_file(ipautil.ipa_generate_password())
             tmp_db.create_db(pwd_file.name)
 
-            ca_certs = x509.load_certificate_list_from_file(CACERT)
-            ca_certs = [cert.der_data for cert in ca_certs]
             for i, cert in enumerate(ca_certs):
                 tmp_db.add_cert(cert, 'CA certificate %d' % (i + 1), 'C,,')
         except CalledProcessError, e:
@@ -2657,8 +2658,16 @@ def install(options, env, fstore, statestore):
         return CLIENT_INSTALL_ERROR
 
     # Get CA certificates from the certificate store
-    ca_certs = get_certs_from_ldap(cli_server[0], cli_basedn, cli_realm,
-                                   ca_enabled)
+    try:
+        ca_certs = get_certs_from_ldap(cli_server[0], cli_basedn, cli_realm,
+                                       ca_enabled)
+    except errors.NoCertificateError:
+        if ca_enabled:
+            ca_subject = DN(('CN', 'Certificate Authority'), subject_base)
+        else:
+            ca_subject = None
+        ca_certs = certstore.make_compat_ca_certs(ca_certs, cli_realm,
+                                                  ca_subject)
     ca_certs_trust = [(c, n, certstore.key_policy_to_trust_flags(t, True, u))
                       for (c, n, t, u) in ca_certs]
 
