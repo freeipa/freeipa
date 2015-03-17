@@ -268,7 +268,7 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
 def _post_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx):
     assert isinstance(dn, DN)
 
-    _update_default_group(ldap, pkey, config, ctx, False)
+    _update_default_group(ldap, ctx, False)
 
     if 'description' in entry_attrs and NO_UPG_MAGIC in entry_attrs['description']:
         entry_attrs['description'].remove(NO_UPG_MAGIC)
@@ -279,7 +279,7 @@ def _post_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx):
         except (errors.EmptyModlist, errors.NotFound):
             pass
 
-def _update_default_group(ldap, pkey, config, ctx, force):
+def _update_default_group(ldap, ctx, force):
     migrate_cnt = ctx['migrate_cnt']
     group_dn = ctx['def_group_dn']
 
@@ -841,13 +841,7 @@ can use their Kerberos accounts.''')
                     api.log.info("%d %ss migrated. %s elapsed." % (migrate_cnt, ldap_obj_name, total_dur))
                 api.log.debug("%d %ss migrated, duration: %s (total %s)" % (migrate_cnt, ldap_obj_name, d, total_dur))
 
-        # if no users/groups were found (all lists in 'migrated' are empty),
-        # we raise an error that there is nothing to migrate
-        if not any(migrated.values()):
-            raise errors.NotFound(
-                reason=_("Found no users/groups to migrate "
-                         "from '%(ds_ldap)s'.") % dict(ds_ldap=ds_ldap))
-        _update_default_group(ldap, pkey, config, context, True)
+        _update_default_group(ldap, context, True)
 
         return (migrated, failed)
 
@@ -920,6 +914,7 @@ can use their Kerberos accounts.''')
         if not result['compat']:
             textui.print_plain("The compat plug-in is enabled. This can increase the memory requirements during migration. Disable the compat plug-in with \'ipa-compat-manage disable\' or re-run this script with \'--with-compat\' option.")
             return 1
+        any_migrated = any(result['result'].values())
         textui.print_plain('Migrated:')
         textui.print_entry1(
             result['result'], attr_order=self.migrate_order,
@@ -932,5 +927,9 @@ can use their Kerberos accounts.''')
                 one_value_per_line=True,
             )
         textui.print_plain('-' * len(self.name))
+        if not any_migrated:
+            textui.print_plain('No users/groups were migrated from %s' %
+                               ldapuri)
+            return 1
         textui.print_plain(unicode(self.pwd_migration_msg))
 
