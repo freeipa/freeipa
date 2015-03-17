@@ -184,7 +184,7 @@ class update_uniqueness_plugins_to_new_syntax(PreUpdate):
         except errors.NotFound:
             root_logger.debug("No uniqueness plugin entries with old style "
                               "configuration found")
-            return False, False, []
+            return False, []
 
         update_list = []
         new_attributes = [
@@ -220,6 +220,6 @@ class update_uniqueness_plugins_to_new_syntax(PreUpdate):
 
             update_list.append(update)
 
-        return False, True, update_list
+        return False, update_list
 
 api.register(update_uniqueness_plugins_to_new_syntax)

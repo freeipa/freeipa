@@ -16,7 +16,7 @@ class update_passync_privilege_check(PreUpdate):
         update_done = sysupgrade.get_upgrade_state('winsync', 'passsync_privilege_updated')
         if update_done:
             root_logger.debug("PassSync privilege update pre-check not needed")
-            return False, False, []
+            return False, []
 
         root_logger.debug("Check if there is existing PassSync privilege")
 
@@ -34,7 +34,7 @@ class update_passync_privilege_check(PreUpdate):
             root_logger.debug("PassSync privilege found, skip updating PassSync")
             sysupgrade.set_upgrade_state('winsync', 'passsync_privilege_updated', True)
 
-        return False, False, []
+        return False, []
 
 api.register(update_passync_privilege_check)
 
@@ -49,7 +49,7 @@ class update_passync_privilege_update(PostUpdate):
         update_done = sysupgrade.get_upgrade_state('winsync', 'passsync_privilege_updated')
         if update_done:
             root_logger.debug("PassSync privilege update not needed")
-            return False, False, []
+            return False, []
 
         root_logger.debug("Add PassSync user as a member of PassSync privilege")
         ldap = self.obj.backend
@@ -64,7 +64,7 @@ class update_passync_privilege_update(PostUpdate):
         except errors.NotFound:
             root_logger.debug("PassSync user not found, no update needed")
             sysupgrade.set_upgrade_state('winsync', 'passsync_privilege_updated', True)
-            return False, False, []
+            return False, []
         else:
             root_logger.debug("PassSync user found, do update")
 
@@ -72,6 +72,6 @@ class update_passync_privilege_update(PostUpdate):
                   'updates': ["add:member:'%s'" % passsync_dn]}
 
         sysupgrade.set_upgrade_state('winsync', 'passsync_privilege_updated', True)
-        return (False, True, [update])
+        return False, [update]
 
 api.register(update_passync_privilege_update)

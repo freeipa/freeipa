@@ -51,18 +51,18 @@ class update_idrange_type(PostUpdate):
             except errors.NotFound:
                 root_logger.debug("update_idrange_type: no ID range without "
                                   "type set found")
-                return (False, False, [])
+                return False, []
 
             except errors.ExecutionError, e:
                 root_logger.error("update_idrange_type: cannot retrieve list "
                                   "of ranges with no type set: %s", e)
-                return (False, False, [])
+                return False, []
 
             if not entries:
                 # No entry was returned, rather break than continue cycling
                 root_logger.debug("update_idrange_type: no ID range was "
                                   "returned")
-                return (False, False, [])
+                return False, []
 
             root_logger.debug("update_idrange_type: found %d "
                               "idranges to update, truncated: %s",
@@ -101,15 +101,15 @@ class update_idrange_type(PostUpdate):
                 # Exit loop to avoid infinite cycles
                 root_logger.error("update_idrange_type: error(s) "
                                   "detected during idrange type update")
-                return (False, False, [])
+                return False, []
 
             elif not truncated:
                 # All affected entries updated, exit the loop
                 root_logger.debug("update_idrange_type: all affected idranges "
                                   "were assigned types")
-                return (False, False, [])
+                return False, []
 
-        return (False, False, [])
+        return False, []
 
 
 class update_idrange_baserid(PostUpdate):
@@ -140,12 +140,12 @@ class update_idrange_baserid(PostUpdate):
         except errors.NotFound:
             root_logger.debug("update_idrange_baserid: no AD domain "
                               "range with posix attributes found")
-            return (False, False, [])
+            return False, []
 
         except errors.ExecutionError, e:
             root_logger.error("update_idrange_baserid: cannot retrieve "
                               "list of affected ranges: %s", e)
-            return (False, False, [])
+            return False, []
 
         root_logger.debug("update_idrange_baserid: found %d "
                           "idranges possible to update",
@@ -175,7 +175,7 @@ class update_idrange_baserid(PostUpdate):
             root_logger.debug("update_idrange_baserid: all affected "
                               "idranges updated")
 
-        return (False, False, [])
+        return False, []
 
 api.register(update_idrange_type)
 api.register(update_idrange_baserid)

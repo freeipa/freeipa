@@ -39,7 +39,7 @@ class update_pacs(PostUpdate):
             pacs = entry.get('ipakrbauthzdata', [])
         except errors.NotFound:
             self.log.warning('Error retrieving: %s' % str(dn))
-            return (False, False, [])
+            return False, []
 
         nfs_pac_set = any(pac.startswith('nfs:') for pac in pacs)
 
@@ -52,6 +52,6 @@ class update_pacs(PostUpdate):
         else:
             self.log.debug('PAC for nfs is already set, not adding nfs:NONE.')
 
-        return (False, False, [])
+        return False, []
 
 api.register(update_pacs)

@@ -65,7 +65,7 @@ class update_replica_attribute_lists(PreUpdate):
 
         self.log.debug("Done updating agreements")
 
-        return (False, False, [])  # No restart, no apply now, no updates
+        return False, []  # No restart, no updates
 
     def _update_attr(self, repl, replica, attribute, values, template='%s'):
         """Add or update an attribute of a replication agreement

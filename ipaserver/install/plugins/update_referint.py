@@ -35,7 +35,7 @@ class update_referint(PreUpdate):
             entry = ldap.get_entry(self.referint_dn)
         except errors.NotFound:
             root_logger.error("Referential integrity configuration not found")
-            return False, False, []
+            return False, []
 
         referint_membership_attrs = []
 
@@ -49,7 +49,7 @@ class update_referint(PreUpdate):
             entry['nsslapd-pluginArg0'] = None
         else:
             root_logger.info("Plugin already uses new style, skipping")
-            return False, False, []
+            return False, []
 
         # nsslapd-pluginArg1    -> referint-logfile
         logfile = entry.get('nsslapd-pluginArg1')
@@ -83,8 +83,8 @@ class update_referint(PreUpdate):
             ldap.update_entry(entry)
         except errors.EmptyModlist:
             root_logger.debug("No modifications required")
-            return False, False, []
+            return False, []
 
-        return False, True, []
+        return False, []
 
 api.register(update_referint)

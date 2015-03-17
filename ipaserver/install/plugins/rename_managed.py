@@ -144,7 +144,7 @@ class update_managed_post_first(PreUpdate, GenerateUpdateMixin):
         # Never need to restart with the pre-update changes
         (ignore, update_list) = self.generate_update(False)
 
-        return (False, True, update_list)
+        return False, update_list
 
 api.register(update_managed_post_first)
 
@@ -157,6 +157,6 @@ class update_managed_post(PostUpdate, GenerateUpdateMixin):
     def execute(self, **options):
         (restart, update_list) = self.generate_update(True)
 
-        return (restart, True, update_list)
+        return restart, update_list
 
 api.register(update_managed_post)

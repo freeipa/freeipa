@@ -51,16 +51,16 @@ class update_service_principalalias(PostUpdate):
             except errors.NotFound:
                 root_logger.debug("update_service_principalalias: no service "
                                   "to update found")
-                return (False, False, [])
+                return False, []
             except errors.ExecutionError, e:
                 root_logger.error("update_service_principalalias: cannot "
                                   "retrieve list of affected services: %s", e)
-                return (False, False, [])
+                return False, []
             if not entries:
                 # no entry was returned, rather break than continue cycling
                 root_logger.debug("update_service_principalalias: no service "
                                   "was returned")
-                return (False, False, [])
+                return False, []
             root_logger.debug("update_service_principalalias: found %d "
                               "services to update, truncated: %s",
                               len(entries), truncated)
@@ -83,12 +83,12 @@ class update_service_principalalias(PostUpdate):
                 # exit loop to avoid infinite cycles
                 root_logger.error("update_service_principalalias: error(s)"
                                   "detected during service update")
-                return (False, False, [])
+                return False, []
             elif not truncated:
                 # all affected entries updated, exit the loop
                 root_logger.debug("update_service_principalalias: all affected"
                                   " services updated")
-                return (False, False, [])
-        return (False, False, [])
+                return False, []
+        return False, []
 
 api.register(update_service_principalalias)

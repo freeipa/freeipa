@@ -62,13 +62,13 @@ class update_dnszones(PostUpdate):
     def execute(self, **options):
         ldap = self.obj.backend
         if not dns_container_exists(ldap):
-            return (False, False, [])
+            return False, []
 
         try:
             zones = api.Command.dnszone_find(all=True)['result']
         except errors.NotFound:
             self.log.info('No DNS zone to update found')
-            return (False, False, [])
+            return False, []
 
         for zone in zones:
             update = {}
@@ -90,7 +90,7 @@ class update_dnszones(PostUpdate):
                 api.Command.dnszone_mod(zone[u'idnsname'][0].make_absolute(),
                                         **update)
 
-        return (False, False, [])
+        return False, []
 
 api.register(update_dnszones)
 
@@ -109,7 +109,7 @@ class update_dns_limits(PostUpdate):
         ldap = self.obj.backend
 
         if not dns_container_exists(ldap):
-            return (False, False, [])
+            return False, []
 
         dns_principal = 'DNS/%s@%s' % (self.env.host, self.env.realm)
         dns_service_dn = DN(('krbprincipalname', dns_principal),
@@ -121,12 +121,12 @@ class update_dns_limits(PostUpdate):
         except errors.NotFound:
             # this host may not have DNS service set
             root_logger.debug("DNS: service %s not found, no need to update limits" % dns_service_dn)
-            return (False, False, [])
+            return False, []
 
         if all(entry.get(limit.lower(), [None])[0] == self.limit_value for limit in self.limit_attributes):
             root_logger.debug("DNS: limits for service %s already set" % dns_service_dn)
             # service is already updated
-            return (False, False, [])
+            return False, []
 
         limit_updates = []
 
@@ -137,7 +137,7 @@ class update_dns_limits(PostUpdate):
         root_logger.debug("DNS: limits for service %s will be updated" % dns_service_dn)
 
 
-        return (False, True, [dnsupdate])
+        return False, [dnsupdate]
 
 api.register(update_dns_limits)
 
@@ -166,7 +166,7 @@ class update_master_to_dnsforwardzones(PostUpdate):
             container_entry = ldap.get_entry(dns_container_dn)
         except errors.NotFound:
             # DNS container not found, nothing to upgrade
-            return (False, False, [])
+            return False, []
 
         for config_option in container_entry.get("ipaConfigString", []):
             matched = re.match("^DNSVersion\s+(?P<version>\d+)$",
@@ -174,7 +174,7 @@ class update_master_to_dnsforwardzones(PostUpdate):
             if matched and int(matched.group("version")) >= 1:
                 # forwardzones already uses new semantics,
                 # no upgrade is required
-                return (False, False, [])
+                return False, []
 
         self.log.info('Updating forward zones')
         # update the DNSVersion, following upgrade can be executed only once
@@ -193,7 +193,7 @@ class update_master_to_dnsforwardzones(PostUpdate):
         else:
             if fwzones:
                 # fwzones exist, do not execute upgrade again
-                return (False, False, [])
+                return False, []
 
         zones = []
         try:
@@ -206,7 +206,7 @@ class update_master_to_dnsforwardzones(PostUpdate):
 
         if not zones:
             self.log.info('No DNS zone to update found')
-            return (False, False, [])
+            return False, []
 
         zones_to_transform = []
 
@@ -271,7 +271,7 @@ class update_master_to_dnsforwardzones(PostUpdate):
                             self.log.error('Unable to backup zone %s' %
                                            zone['idnsname'][0])
                             self.log.error(traceback.format_exc())
-                            return (False, False, [])
+                            return False, []
 
                     for privilege_dn in privileges_to_ldif:
                         try:
@@ -281,13 +281,13 @@ class update_master_to_dnsforwardzones(PostUpdate):
                             self.log.error('Unable to backup privilege %s' %
                                            privilege_dn)
                             self.log.error(traceback.format_exc())
-                            return (False, False, [])
+                            return False, []
 
                     f.close()
             except Exception:
                 self.log.error('Unable to create backup file')
                 self.log.error(traceback.format_exc())
-                return (False, False, [])
+                return False, []
 
             # update
             for zone in zones_to_transform:
@@ -352,6 +352,6 @@ class update_master_to_dnsforwardzones(PostUpdate):
                 self.log.info('Zone %s was sucessfully transformed to forward zone',
                               zone['idnsname'][0])
 
-        return (False, False, [])
+        return False, []
 
 api.register(update_master_to_dnsforwardzones)

@@ -93,6 +93,6 @@ class update_upload_cacrt(PostUpdate):
                     entry.single_value['cACertificate;binary'] = ca_cert
                     ldap.update_entry(entry)
 
-        return (False, False, [])
+        return False, []
 
 api.register(update_upload_cacrt)

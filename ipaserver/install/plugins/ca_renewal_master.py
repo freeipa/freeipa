@@ -37,7 +37,7 @@ class update_ca_renewal_master(PostUpdate):
         ca = cainstance.CAInstance(self.api.env.realm, certs.NSS_DIR)
         if not ca.is_configured():
             self.debug("CA is not configured on this host")
-            return (False, False, [])
+            return False, []
 
         ldap = self.obj.backend
         base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
@@ -50,7 +50,7 @@ class update_ca_renewal_master(PostUpdate):
             pass
         else:
             self.debug("found CA renewal master %s", entries[0].dn[1].value)
-            return (False, False, [])
+            return False, []
 
         criteria = {
             'cert-database': paths.HTTPD_ALIAS_DIR,
@@ -65,20 +65,20 @@ class update_ca_renewal_master(PostUpdate):
                 self.warning(
                     "certmonger request for ipaCert is missing ca_name, "
                     "assuming local CA is renewal slave")
-                return (False, False, [])
+                return False, []
             ca_name = ca_name.strip()
 
             if ca_name == 'dogtag-ipa-renew-agent':
                 pass
             elif ca_name == 'dogtag-ipa-retrieve-agent-submit':
-                return (False, False, [])
+                return False, []
             elif ca_name == 'dogtag-ipa-ca-renew-agent':
-                return (False, False, [])
+                return False, []
             else:
                 self.warning(
                     "certmonger request for ipaCert has unknown ca_name '%s', "
                     "assuming local CA is renewal slave", ca_name)
-                return (False, False, [])
+                return False, []
         else:
             self.debug("certmonger request for ipaCert not found")
 
@@ -89,7 +89,7 @@ class update_ca_renewal_master(PostUpdate):
             if config == 'New':
                 pass
             elif config == 'Clone':
-                return (False, False, [])
+                return False, []
             else:
                 self.warning(
                     "CS.cfg has unknown subsystem.select value '%s', "
@@ -102,4 +102,4 @@ class update_ca_renewal_master(PostUpdate):
                 'updates': ['add:ipaConfigString: caRenewalMaster'],
         }
 
-        return (False, True, [update])
+        return False, [update]

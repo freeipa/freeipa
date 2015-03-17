@@ -32,13 +32,9 @@ class updateclient(backend.Executioner):
     An update plugin can be executed before the file-based plugins or
     afterward. Each plugin returns three values:
 
-    1. restart: dirsrv needs to be restarted BEFORE this update is
+    1. restart: dirsrv will be restarted AFTER this update is
                  applied.
-    2. apply_now: when True the update is applied when the plugin
-                  returns. Otherwise the update is cached until all
-                  plugins of that update type are complete, then they
-                  are applied together.
-    3. updates: A list of updates to be applied.
+    2. updates: A list of updates to be applied.
 
     The value of an update is a dictionary with the following possible
     values:
@@ -120,17 +116,14 @@ class updateclient(backend.Executioner):
         result = []
         ld = LDAPUpdate(dm_password=dm_password, sub_dict={}, ldapi=ldapi)
         for update in self.order(updatetype):
-            (restart, apply_now, res) = self.run(update.name, **kw)
+            restart, res = self.run(update.name, **kw)
+
+            ld.update_from_dict(res)
             if restart:
                 # connection has to be closed before restart, otherwise
                 # ld instance will try to reuse old non-valid connection
                 ld.close_connection()
                 self.restart(dm_password)
-
-            if apply_now:
-                ld.update_from_dict(res)
-            elif res:
-                result.extend(res)
 
         self.destroy_context()
 

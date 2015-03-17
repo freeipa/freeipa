@@ -441,7 +441,7 @@ class update_managed_permissions(PostUpdate):
             else:
                 self.log.info('Obsolete permission deleted: %s', obsolete_name)
 
-        return False, False, ()
+        return False, ()
 
     def update_permission(self, ldap, obj, name, template, anonymous_read_aci):
         """Update the given permission and the corresponding ACI"""

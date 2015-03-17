@@ -42,7 +42,7 @@ class update_default_range(PostUpdate):
             pass
         else:
             root_logger.debug("default_range: ipaDomainIDRange entry found, skip plugin")
-            return (False, False, [])
+            return False, []
 
         dn = DN(('cn', 'admins'), api.env.container_group, api.env.basedn)
         try:
@@ -50,7 +50,7 @@ class update_default_range(PostUpdate):
         except errors.NotFound:
             root_logger.error("default_range: No local ID range and no admins "
                               "group found. Cannot create default ID range")
-            return (False, False, [])
+            return False, []
 
         id_range_base_id = admins_entry['gidnumber'][0]
         id_range_name = '%s_id_range' % api.env.realm
@@ -114,7 +114,7 @@ class update_default_range(PostUpdate):
 
                 root_logger.error("default_range: %s", "\n".join(msg))
 
-        return (False, True, [update])
+        return False, [update]
 
 
 class update_default_trust_view(PostUpdate):
@@ -141,7 +141,7 @@ class update_default_trust_view(PostUpdate):
         # First, see if trusts are enabled on the server
         if not self.api.Command.adtrust_is_enabled()['result']:
             self.log.info('AD Trusts are not enabled on this server')
-            return (False, False, [])
+            return False, []
 
         # Second, make sure the Default Trust View does not exist yet
         try:
@@ -150,7 +150,7 @@ class update_default_trust_view(PostUpdate):
             pass
         else:
             self.log.info('Default Trust View already present on this server')
-            return (False, False, [])
+            return False, []
 
         # We have a server with AD trust support without Default Trust View.
         # Create the Default Trust View entry.
@@ -160,7 +160,7 @@ class update_default_trust_view(PostUpdate):
             'default': default_trust_view_entry
         }
 
-        return (False, True, [update])
+        return False, [update]
 
 api.register(update_default_range)
 api.register(update_default_trust_view)
