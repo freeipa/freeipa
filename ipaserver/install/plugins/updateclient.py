@@ -111,21 +111,21 @@ class updateclient(backend.Executioner):
         ordered.sort(key=lambda p: p.order)
         return ordered
 
-    def update(self, updatetype, dm_password, ldapi, live_run):
+    def update(self, updatetype, dm_password, ldapi):
         """
         Execute all update plugins of type updatetype.
         """
         self.create_context(dm_password)
-        kw = dict(live_run=live_run)
+        kw = dict()
         result = []
-        ld = LDAPUpdate(dm_password=dm_password, sub_dict={}, live_run=live_run, ldapi=ldapi)
+        ld = LDAPUpdate(dm_password=dm_password, sub_dict={}, ldapi=ldapi)
         for update in self.order(updatetype):
             (restart, apply_now, res) = self.run(update.name, **kw)
             if restart:
                 # connection has to be closed before restart, otherwise
                 # ld instance will try to reuse old non-valid connection
                 ld.close_connection()
-                self.restart(dm_password, live_run)
+                self.restart(dm_password)
 
             if apply_now:
                 ld.update_from_dict(res)
@@ -142,16 +142,13 @@ class updateclient(backend.Executioner):
         """
         return self.Updater[method](**kw)
 
-    def restart(self, dm_password, live_run):
+    def restart(self, dm_password):
         dsrestart = DSRestart()
         socket_name = paths.SLAPD_INSTANCE_SOCKET_TEMPLATE % \
             api.env.realm.replace('.','-')
-        if live_run:
-            self.destroy_context()
-            dsrestart.create_instance()
-            wait_for_open_socket(socket_name)
-            self.create_context(dm_password)
-        else:
-            self.log.warn("Test mode, skipping restart")
+        self.destroy_context()
+        dsrestart.create_instance()
+        wait_for_open_socket(socket_name)
+        self.create_context(dm_password)
 
 api.register(updateclient)

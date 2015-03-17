@@ -112,7 +112,7 @@ def safe_output(attr, values):
 class LDAPUpdate:
     action_keywords = ["default", "add", "remove", "only", "onlyifexist", "deleteentry", "replace", "addifnew", "addifexist"]
 
-    def __init__(self, dm_password, sub_dict={}, live_run=True,
+    def __init__(self, dm_password, sub_dict={},
                  online=True, ldapi=False, plugins=False):
         '''
         :parameters:
@@ -120,8 +120,6 @@ class LDAPUpdate:
                 Directory Manager password
             sub_dict
                 substitution dictionary
-            live_run
-                Apply the changes or just test
             online
                 Do an online LDAP update or use an experimental LDIF updater
             ldapi
@@ -158,7 +156,6 @@ class LDAPUpdate:
         '''
         log_mgr.get_logger(self, True)
         self.sub_dict = sub_dict
-        self.live_run = live_run
         self.dm_password = dm_password
         self.conn = None
         self.modified = False
@@ -391,8 +388,7 @@ class LDAPUpdate:
         """Create a task to update an index for an attribute"""
 
         # Sleep a bit to ensure previous operations are complete
-        if self.live_run:
-            time.sleep(5)
+        time.sleep(5)
 
         cn_uuid = uuid.uuid1()
         # cn_uuid.time is in nanoseconds, but other users of LDAPUpdate expect
@@ -412,8 +408,7 @@ class LDAPUpdate:
         self.info("Creating task to index attribute: %s", attribute)
         self.debug("Task id: %s", dn)
 
-        if self.live_run:
-            self.conn.add_entry(e)
+        self.conn.add_entry(e)
 
         return dn
 
@@ -422,10 +417,6 @@ class LDAPUpdate:
         """
 
         assert isinstance(dn, DN)
-
-        if not self.live_run:
-            # If not doing this live there is nothing to monitor
-            return
 
         # Pause for a moment to give the task time to be created
         time.sleep(1)
@@ -642,19 +633,18 @@ class LDAPUpdate:
         updated = False
         if not found:
             try:
-                if self.live_run:
-                    if len(entry):
-                        # addifexist may result in an entry with only a
-                        # dn defined. In that case there is nothing to do.
-                        # It means the entry doesn't exist, so skip it.
-                        try:
-                            self.conn.add_entry(entry)
-                        except errors.NotFound:
-                            # parent entry of the added entry does not exist
-                            # this may not be an error (e.g. entries in NIS container)
-                            self.info("Parent DN of %s may not exist, cannot create the entry",
-                                    entry.dn)
-                            return
+                if len(entry):
+                    # addifexist may result in an entry with only a
+                    # dn defined. In that case there is nothing to do.
+                    # It means the entry doesn't exist, so skip it.
+                    try:
+                        self.conn.add_entry(entry)
+                    except errors.NotFound:
+                        # parent entry of the added entry does not exist
+                        # this may not be an error (e.g. entries in NIS container)
+                        self.info("Parent DN of %s may not exist, cannot create the entry",
+                                entry.dn)
+                        return
                 added = True
                 self.modified = True
             except Exception, e:
@@ -669,8 +659,8 @@ class LDAPUpdate:
                 for (type, attr, values) in changes:
                     safe_changes.append((type, attr, safe_output(attr, values)))
                 self.debug("%s" % safe_changes)
-                self.debug("Live %d, updated %d" % (self.live_run, updated))
-                if self.live_run and updated:
+                self.debug("Updated %d" % updated)
+                if updated:
                     self.conn.update_entry(entry)
                 self.info("Done")
             except errors.EmptyModlist:
@@ -709,8 +699,7 @@ class LDAPUpdate:
         dn = updates['dn']
         try:
             self.info("Deleting entry %s", dn)
-            if self.live_run:
-                self.conn.delete_entry(dn)
+            self.conn.delete_entry(dn)
             self.modified = True
         except errors.NotFound, e:
             self.info("%s did not exist:%s", dn, e)
@@ -757,7 +746,8 @@ class LDAPUpdate:
             self.create_connection()
             if self.plugins:
                 self.info('PRE_UPDATE')
-                updates = api.Backend.updateclient.update(PRE_UPDATE, self.dm_password, self.ldapi, self.live_run)
+                updates = api.Backend.updateclient.update(
+                    PRE_UPDATE, self.dm_password, self.ldapi)
                 # flush out PRE_UPDATE plugin updates before we begin
                 self._run_updates(updates)
 
@@ -779,7 +769,8 @@ class LDAPUpdate:
 
             if self.plugins:
                 self.info('POST_UPDATE')
-                updates = api.Backend.updateclient.update(POST_UPDATE, self.dm_password, self.ldapi, self.live_run)
+                updates = api.Backend.updateclient.update(
+                    POST_UPDATE, self.dm_password, self.ldapi)
                 self._run_updates(updates)
         finally:
             self.close_connection()

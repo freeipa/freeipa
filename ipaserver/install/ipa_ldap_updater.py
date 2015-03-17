@@ -46,9 +46,6 @@ class LDAPUpdater(admintool.AdminTool):
     def add_options(cls, parser):
         super(LDAPUpdater, cls).add_options(parser, debug_option=True)
 
-        parser.add_option("-t", "--test", action="store_true", dest="test",
-            default=False,
-            help="run through the update without changing anything")
         parser.add_option("-y", dest="password",
             help="file containing the Directory Manager password")
         parser.add_option("-l", '--ldapi', action="store_true", dest="ldapi",
@@ -139,7 +136,7 @@ class LDAPUpdater_Upgrade(LDAPUpdater):
 
         updates = None
         realm = krbV.default_context().default_realm
-        upgrade = IPAUpgrade(realm, self.files, live_run=not options.test,
+        upgrade = IPAUpgrade(realm, self.files,
                              schema_files=options.schema_files)
         upgrade.create_instance()
         upgradefailed = upgrade.upgradefailed
@@ -149,9 +146,10 @@ class LDAPUpdater_Upgrade(LDAPUpdater):
                 'Bad syntax detected in upgrade file(s).', 1)
         elif upgrade.upgradefailed:
             raise admintool.ScriptError('IPA upgrade failed.', 1)
-        elif upgrade.modified and options.test:
-            self.log.info('Update complete, changes to be made, test mode')
-            return 2
+        elif upgrade.modified:
+            self.log.info('Update complete')
+        else:
+            self.log.info('Update complete, no data were modified')
 
 
 class LDAPUpdater_NonUpgrade(LDAPUpdater):
@@ -195,13 +193,11 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
             modified = schemaupdate.update_schema(
                 options.schema_files,
                 dm_password=self.dirman_password,
-                live_run=not options.test,
                 ldapi=options.ldapi) or modified
 
         ld = LDAPUpdate(
             dm_password=self.dirman_password,
             sub_dict={},
-            live_run=not options.test,
             ldapi=options.ldapi,
             plugins=options.plugins or self.run_plugins)
 
@@ -210,6 +206,7 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
 
         modified = ld.update(self.files) or modified
 
-        if modified and options.test:
-            self.log.info('Update complete, changes to be made, test mode')
-            return 2
+        if modified:
+            self.log.info('Update complete')
+        else:
+            self.log.info('Update complete, no data were modified')

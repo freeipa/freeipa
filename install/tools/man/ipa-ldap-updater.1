@@ -81,9 +81,6 @@ Schema files should be in LDIF format, and may only specify attributeTypes and o
 \fB\-d\fR, \fB\-\-debug\fR
 Enable debug logging when more verbose output is needed
 .TP
-\fB\-t\fR, \fB\-\-test\fR
-Run through the update without changing anything. If changes are available then the command returns 2. If no updates are available it returns 0.
-.TP
 \fB\-y\fR
 File containing the Directory Manager password
 .TP
@@ -108,5 +105,3 @@ Specify a schema file. May be used multiple times. Implies \-\-schema.
 0 if the command was successful
 
 1 if an error occurred
-
-2 if run with in test mode (\-t) and updates are available

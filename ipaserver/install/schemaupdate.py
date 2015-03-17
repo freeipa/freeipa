@@ -83,7 +83,7 @@ def _get_oid_dependency_order(schema, cls):
     return ordered_oid_groups
 
 
-def update_schema(schema_files, ldapi=False, dm_password=None, live_run=True):
+def update_schema(schema_files, ldapi=False, dm_password=None,):
     """Update schema to match the given ldif files
 
     Schema elements present in the LDIF files but missing from the DS schema
@@ -99,11 +99,9 @@ def update_schema(schema_files, ldapi=False, dm_password=None, live_run=True):
     :param schema_files: List of filenames to update from
     :param ldapi: if true, use ldapi to connect
     :param dm_password: directory manager password
-    :live_run: if false, changes will not be applied
 
     :return:
         True if modifications were made
-        (or *would be* made, for live_run=false)
     """
     SCHEMA_ELEMENT_CLASSES_KEYS = [x[0] for x in SCHEMA_ELEMENT_CLASSES]
 
@@ -162,11 +160,9 @@ def update_schema(schema_files, ldapi=False, dm_password=None, live_run=True):
                 if new_elements:
                     modlist = schema_entry.generate_modlist()
                     log.debug("Schema modlist:\n%s", pprint.pformat(modlist))
+                    conn.update_entry(schema_entry)
 
-                    if live_run:
-                        conn.update_entry(schema_entry)
-
-    if not (modified and live_run):
+    if not modified:
         log.info('Not updating schema')
 
     return modified

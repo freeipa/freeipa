@@ -39,11 +39,10 @@ class IPAUpgrade(service.Service):
     listeners and updating over ldapi. This way we know the server is
     quiet.
     """
-    def __init__(self, realm_name, files=[], live_run=True, schema_files=[]):
+    def __init__(self, realm_name, files=[], schema_files=[]):
         """
         realm_name: kerberos realm name, used to determine DS instance dir
         files: list of update files to process. If none use UPDATEDIR
-        live_run: boolean that defines if we are in test or live mode.
         """
 
         ext = ''
@@ -55,7 +54,6 @@ class IPAUpgrade(service.Service):
         serverid = dsinstance.realm_to_serverid(realm_name)
         self.filename = '%s/%s' % (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid, DSE)
         self.savefilename = '%s/%s.ipa.%s' % (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid, DSE, ext)
-        self.live_run = live_run
         self.files = files
         self.modified = False
         self.badsyntax = False
@@ -124,11 +122,11 @@ class IPAUpgrade(service.Service):
     def __update_schema(self):
         self.modified = schemaupdate.update_schema(
             self.schema_files,
-            dm_password='', ldapi=True, live_run=self.live_run) or self.modified
+            dm_password='', ldapi=True) or self.modified
 
     def __upgrade(self):
         try:
-            ld = ldapupdate.LDAPUpdate(dm_password='', ldapi=True, live_run=self.live_run, plugins=True)
+            ld = ldapupdate.LDAPUpdate(dm_password='', ldapi=True, plugins=True)
             if len(self.files) == 0:
                 self.files = ld.get_all_files(ldapupdate.UPDATES_DIR)
             self.modified = (ld.update(self.files) or self.modified)
