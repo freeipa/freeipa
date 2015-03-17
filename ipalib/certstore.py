@@ -239,6 +239,31 @@ def put_ca_cert(ldap, base_dn, dercert, nickname, trusted=None,
         pass
 
 
+def make_compat_ca_certs(certs, realm, ipa_ca_subject):
+    """
+    Make CA certificates and associated key policy from DER certificates.
+    """
+    result = []
+
+    for cert in certs:
+        subject, issuer_serial, public_key_info = _parse_cert(cert)
+        subject = DN(subject)
+
+        if ipa_ca_subject is not None and subject == DN(ipa_ca_subject):
+            nickname = get_ca_nickname(realm)
+            ext_key_usage = {x509.EKU_SERVER_AUTH,
+                             x509.EKU_CLIENT_AUTH,
+                             x509.EKU_EMAIL_PROTECTION,
+                             x509.EKU_CODE_SIGNING}
+        else:
+            nickname = str(subject)
+            ext_key_usage = {x509.EKU_SERVER_AUTH}
+
+        result.append((cert, nickname, True, ext_key_usage))
+
+    return result
+
+
 def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
                  filter_subject=None):
     """
@@ -250,6 +275,7 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
         filter_subject = [str(subj).replace('\\;', '\\3b')
                           for subj in filter_subject]
 
+    certs = []
     config_dn = DN(('cn', 'ipa'), ('cn', 'etc'), base_dn)
     container_dn = DN(('cn', 'certificates'), config_dn)
     try:
@@ -265,7 +291,6 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
                         'ipaPublicKey', 'ipaKeyTrust', 'ipaKeyExtUsage',
                         'cACertificate;binary'])
 
-        certs = []
         for entry in result:
             nickname = entry.single_value['cn']
             trusted = entry.single_value.get('ipaKeyTrust', 'unknown').lower()
@@ -281,34 +306,39 @@ def get_ca_certs(ldap, base_dn, compat_realm, compat_ipa_ca,
                 ext_key_usage.discard(x509.EKU_PLACEHOLDER)
 
             for cert in entry.get('cACertificate;binary', []):
+                try:
+                    _parse_cert(cert)
+                except ValueError:
+                    certs = []
+                    break
                 certs.append((cert, nickname, trusted, ext_key_usage))
-
-        return certs
     except errors.NotFound:
         try:
             ldap.get_entry(container_dn, [''])
         except errors.NotFound:
-            pass
-        else:
-            return []
+            # Fallback to cn=CAcert,cn=ipa,cn=etc,SUFFIX
+            dn = DN(('cn', 'CAcert'), config_dn)
+            entry = ldap.get_entry(dn, ['cACertificate;binary'])
 
-        # Fallback to cn=CAcert,cn=ipa,cn=etc,SUFFIX
-        dn = DN(('cn', 'CAcert'), config_dn)
-        entry = ldap.get_entry(dn, ['cACertificate;binary'])
+            cert = entry.single_value['cACertificate;binary']
+            try:
+                subject, issuer_serial, public_key_info = _parse_cert(cert)
+            except ValueError:
+                pass
+            else:
+                if filter_subject is not None and subject not in filter_subject:
+                    raise errors.NotFound(reason="no matching entry found")
 
-        cert = entry.single_value['cACertificate;binary']
-        subject, issuer_serial, public_key_info = _parse_cert(cert)
-        if filter_subject is not None and subject not in filter_subject:
-            return []
+                if compat_ipa_ca:
+                    ca_subject = subject
+                else:
+                    ca_subject = None
+                certs = make_compat_ca_certs([cert], compat_realm, ca_subject)
 
-        nickname = get_ca_nickname(compat_realm)
-        ext_key_usage = {x509.EKU_SERVER_AUTH}
-        if compat_ipa_ca:
-            ext_key_usage |= {x509.EKU_CLIENT_AUTH,
-                              x509.EKU_EMAIL_PROTECTION,
-                              x509.EKU_CODE_SIGNING}
-
-        return [(cert, nickname, True, ext_key_usage)]
+    if certs:
+        return certs
+    else:
+        raise errors.NotFound(reason="no such entry")
 
 
 def trust_flags_to_key_policy(trust_flags):
