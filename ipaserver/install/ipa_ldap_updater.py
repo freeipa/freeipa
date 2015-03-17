@@ -119,12 +119,10 @@ class LDAPUpdater_Upgrade(LDAPUpdater):
         super(LDAPUpdater_Upgrade, self).run()
         options = self.options
 
-        updates = None
         realm = krbV.default_context().default_realm
         upgrade = IPAUpgrade(realm, self.files,
                              schema_files=options.schema_files)
         upgrade.create_instance()
-        upgradefailed = upgrade.upgradefailed
 
         if upgrade.badsyntax:
             raise admintool.ScriptError(
