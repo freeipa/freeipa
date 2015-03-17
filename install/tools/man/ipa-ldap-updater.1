@@ -81,20 +81,11 @@ Schema files should be in LDIF format, and may only specify attributeTypes and o
 \fB\-d\fR, \fB\-\-debug\fR
 Enable debug logging when more verbose output is needed
 .TP
-\fB\-y\fR
-File containing the Directory Manager password
-.TP
-\fB\-l\fR, \fB\-\-ldapi\fR
-Connect to the LDAP server using the ldapi socket
-.TP
 \fB\-p\fR, \fB\-\-plugins\fR
 Execute update plugins as well as any update files. There is no way to execute only the plugins.
 .TP
 \fB\-u\fR, \fB\-\-upgrade\fR
 Upgrade an installed server in offline mode (implies \-\-ldapi, \-\-plugins, and \-\-schema)
-.TP
-\fB\-W\fR, \fB\-\-password\fR
-Prompt for the Directory Manager password
 .TP
 \fB\-s\fR, \fB\-\-schema\fR
 Also update the LDAP schema. If no \-\-schema-file is specified, update to the built-in IPA schema.

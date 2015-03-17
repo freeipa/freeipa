@@ -45,12 +45,6 @@ class LDAPUpdater(admintool.AdminTool):
     @classmethod
     def add_options(cls, parser):
         super(LDAPUpdater, cls).add_options(parser, debug_option=True)
-
-        parser.add_option("-y", dest="password",
-            help="file containing the Directory Manager password")
-        parser.add_option("-l", '--ldapi', action="store_true", dest="ldapi",
-            default=False,
-            help="connect to the LDAP server using the ldapi socket")
         parser.add_option("-u", '--upgrade', action="store_true",
             dest="upgrade", default=False,
             help="upgrade an installed server in offline mode")
@@ -65,9 +59,6 @@ class LDAPUpdater(admintool.AdminTool):
         parser.add_option("-S", '--schema-file', action="append",
             dest="schema_files",
             help="custom schema ldif file to use (implies -s)")
-        parser.add_option("-W", '--password', action="store_true",
-            dest="ask_password",
-            help="prompt for the Directory Manager password")
 
     @classmethod
     def get_command_class(cls, options, args):
@@ -95,12 +86,6 @@ class LDAPUpdater(admintool.AdminTool):
         elif not os.path.exists(paths.IPA_DEFAULT_CONF):
             print "IPA is not configured on this system."
             sys.exit(1)
-
-        if options.password:
-            pw = ipautil.template_file(options.password, [])
-            self.dirman_password = pw.strip()
-        else:
-            self.dirman_password = None
 
         if options.schema_files or not self.files:
             options.update_schema = True
@@ -171,18 +156,6 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
                 # Can't log to the default file as non-root
                 self.log_file_name = None
 
-    def ask_for_options(self):
-        super(LDAPUpdater_NonUpgrade, self).ask_for_options()
-        options = self.options
-        if not self.dirman_password:
-            if options.ask_password or not options.ldapi:
-                password = installutils.read_password("Directory Manager",
-                    confirm=False, validate=False)
-                if password is None:
-                    raise admintool.ScriptError(
-                        "Directory Manager password required")
-                self.dirman_password = password
-
     def run(self):
         super(LDAPUpdater_NonUpgrade, self).run()
         options = self.options
@@ -192,13 +165,11 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
         if options.update_schema:
             modified = schemaupdate.update_schema(
                 options.schema_files,
-                dm_password=self.dirman_password,
-                ldapi=options.ldapi) or modified
+                ldapi=True) or modified
 
         ld = LDAPUpdate(
-            dm_password=self.dirman_password,
             sub_dict={},
-            ldapi=options.ldapi,
+            ldapi=True,
             plugins=options.plugins or self.run_plugins)
 
         if not self.files:
