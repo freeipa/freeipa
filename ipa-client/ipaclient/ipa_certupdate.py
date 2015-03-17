@@ -63,10 +63,10 @@ class CertUpdate(admintool.AdminTool):
             try:
                 result = api.Backend.rpcclient.forward(
                     'ca_is_enabled',
-                    version=u'2.0',
+                    version=u'2.107',
                 )
                 ca_enabled = result['result']
-            except errors.CommandError:
+            except (errors.CommandError, errors.NetworkError):
                 result = api.Backend.rpcclient.forward(
                     'env',
                     server=True,
