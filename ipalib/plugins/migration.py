@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+from ldap import MOD_ADD
 
 from ipalib import api, errors, output
 from ipalib import Command, Password, Str, Flag, StrEnum, DNParam, File
@@ -291,31 +292,25 @@ def _update_default_group(ldap, ctx, force):
         try:
             (result, truncated) = ldap.find_entries(searchfilter,
                 [''], DN(api.env.container_user, api.env.basedn),
-                scope=ldap.SCOPE_SUBTREE, time_limit = -1)
+                scope=ldap.SCOPE_SUBTREE, time_limit=-1, size_limit=-1)
         except errors.NotFound:
             api.log.debug('All users have default group set')
             return
-        new_members = []
-        group_entry_attrs = ldap.get_entry(group_dn, ['member'])
-        existing_members = set(group_entry_attrs.get('member', []))
-        for m in result:
-            if m.dn not in existing_members:
-                new_members.append(m.dn)
 
-        if new_members:
-            members = group_entry_attrs.setdefault('member', [])
-            members.extend(new_members)
-
-            try:
-                ldap.update_entry(group_entry_attrs)
-            except errors.EmptyModlist:
-                pass
+        member_dns = [m.dn for m in result]
+        modlist = [(MOD_ADD, 'member', ldap.encode(member_dns))]
+        try:
+            with ldap.error_handler():
+                ldap.conn.modify_s(str(group_dn), modlist)
+        except errors.DatabaseError as e:
+            api.log.error('Adding new members to default group failed: %s \n'
+                          'members: %s', e, ','.join(member_dns))
 
         e = datetime.datetime.now()
         d = e - s
         mode = " (forced)" if force else ""
-        api.log.debug('Adding %d users to group%s duration %s',
-                len(new_members), mode, d)
+        api.log.info('Adding %d users to group%s duration %s',
+                      len(member_dns), mode, d)
 
 # GROUP MIGRATION CALLBACKS AND VARS
 
