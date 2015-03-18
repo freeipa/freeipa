@@ -631,17 +631,37 @@ class LDAPObject(Object):
     def convert_attribute_members(self, entry_attrs, *keys, **options):
         if options.get('raw', False):
             return
+
+        container_dns = {}
+        new_attrs = {}
+
         for attr in self.attribute_members:
-            for member in entry_attrs.setdefault(attr, []):
+            try:
+                value = entry_attrs.raw[attr]
+            except KeyError:
+                continue
+            del entry_attrs[attr]
+
+            for member in value:
+                memberdn = DN(member)
                 for ldap_obj_name in self.attribute_members[attr]:
                     ldap_obj = self.api.Object[ldap_obj_name]
-                    container_dn = DN(ldap_obj.container_dn, api.env.basedn)
-                    if member.endswith(container_dn):
-                        new_attr = '%s_%s' % (attr, ldap_obj.name)
-                        entry_attrs.setdefault(new_attr, []).append(
-                            ldap_obj.get_primary_key_from_dn(member)
-                        )
-            del entry_attrs[attr]
+                    try:
+                        container_dn = container_dns[ldap_obj_name]
+                    except KeyError:
+                        container_dn = DN(ldap_obj.container_dn, api.env.basedn)
+                        container_dns[ldap_obj_name] = container_dn
+
+                    if memberdn.endswith(container_dn):
+                        new_value = ldap_obj.get_primary_key_from_dn(memberdn)
+                        new_attr_name = '%s_%s' % (attr, ldap_obj.name)
+                        try:
+                            new_attr = new_attrs[new_attr_name]
+                        except KeyError:
+                            new_attr = entry_attrs.setdefault(new_attr_name, [])
+                            new_attrs[new_attr_name] = new_attr
+                        new_attr.append(new_value)
+                        break
 
     def get_password_attributes(self, ldap, dn, entry_attrs):
         """
