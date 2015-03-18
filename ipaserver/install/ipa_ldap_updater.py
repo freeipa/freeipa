@@ -48,10 +48,6 @@ class LDAPUpdater(admintool.AdminTool):
         parser.add_option("-u", '--upgrade', action="store_true",
             dest="upgrade", default=False,
             help="upgrade an installed server in offline mode")
-        parser.add_option("-p", '--plugins', action="store_true",
-            dest="plugins", default=False,
-            help="execute update plugins " +
-                "(implied when no input files are given)")
         parser.add_option("-s", '--schema', action="store_true",
             dest="update_schema", default=False,
             help="update the schema "
@@ -140,10 +136,6 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
 
     def validate_options(self):
         super(LDAPUpdater_NonUpgrade, self).validate_options()
-        options = self.options
-
-        # Only run plugins if no files are given
-        self.run_plugins = not self.files or options.plugins
 
         # Need root for running plugins
         if os.getegid() != 0:
@@ -167,8 +159,7 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
 
         ld = LDAPUpdate(
             sub_dict={},
-            ldapi=True,
-            plugins=options.plugins or self.run_plugins)
+            ldapi=True)
 
         if not self.files:
             self.files = ld.get_all_files(UPDATES_DIR)

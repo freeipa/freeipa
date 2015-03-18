@@ -69,7 +69,11 @@ A few rules:
    6. If a DN does exist the default values are skipped
    7. Only the first rule on a line is respected
 
-Adds and updates are applied from shortest to longest length of DN. Deletes are done from longest to shortest.
+ipa-ldap-updater allows to execute update plugins.
+Plugins to be executed are specified with following keyword, in update files:
+    * plugin: name of plugin
+
+This keyword is not bounded to DN, and plugin names have to be registered in API.
 
 Additionally, ipa-ldap-updater can update the schema based on LDIF files.
 Any missing object classes and attribute types are added, and differing ones are updated to match the LDIF file.
@@ -81,11 +85,8 @@ Schema files should be in LDIF format, and may only specify attributeTypes and o
 \fB\-d\fR, \fB\-\-debug\fR
 Enable debug logging when more verbose output is needed
 .TP
-\fB\-p\fR, \fB\-\-plugins\fR
-Execute update plugins as well as any update files. There is no way to execute only the plugins.
-.TP
 \fB\-u\fR, \fB\-\-upgrade\fR
-Upgrade an installed server in offline mode (implies \-\-ldapi, \-\-plugins, and \-\-schema)
+Upgrade an installed server in offline mode (implies \-\-schema)
 .TP
 \fB\-s\fR, \fB\-\-schema\fR
 Also update the LDAP schema. If no \-\-schema-file is specified, update to the built-in IPA schema.

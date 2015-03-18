@@ -507,7 +507,8 @@ class DsInstance(service.Service):
         conn.unbind()
 
     def apply_updates(self):
-        ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password, sub_dict=self.sub_dict, plugins=True)
+        ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password,
+                                   sub_dict=self.sub_dict)
         files = ld.get_all_files(ldapupdate.UPDATES_DIR)
         ld.update(files)
 

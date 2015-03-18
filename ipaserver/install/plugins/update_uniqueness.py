@@ -17,14 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipaserver.install.plugins import MIDDLE
-from ipaserver.install.plugins.baseupdate import PostUpdate, PreUpdate
 from ipalib import api, errors
+from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 
 
-class update_uniqueness_plugins_to_new_syntax(PreUpdate):
+class update_uniqueness_plugins_to_new_syntax(Updater):
     """
     Migrate uniqueness plugins to new style syntax
 
@@ -165,7 +164,7 @@ class update_uniqueness_plugins_to_new_syntax(PreUpdate):
         return update
 
     def execute(self, **options):
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
 
         old_style_plugin_search_filter = (
             "(&"

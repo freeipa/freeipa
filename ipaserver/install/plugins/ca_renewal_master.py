@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipaserver.install.plugins.baseupdate import PostUpdate
 from ipaserver.install import installutils, certs, cainstance
 from ipalib import errors
+from ipalib import Updater
 from ipalib.plugable import Registry
 from ipapython import certmonger, dogtag
 from ipaplatform.paths import paths
@@ -28,7 +28,7 @@ from ipapython.dn import DN
 register = Registry()
 
 @register()
-class update_ca_renewal_master(PostUpdate):
+class update_ca_renewal_master(Updater):
     """
     Set CA renewal master in LDAP.
     """
@@ -39,7 +39,7 @@ class update_ca_renewal_master(PostUpdate):
             self.debug("CA is not configured on this host")
             return False, []
 
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
         base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
                      self.api.env.basedn)
         filter = '(&(cn=CA)(ipaConfigString=caRenewalMaster))'

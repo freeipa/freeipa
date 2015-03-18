@@ -17,9 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipaserver.install.plugins import FIRST, LAST
-from ipaserver.install.plugins.baseupdate import PreUpdate, PostUpdate
 from ipalib import api, errors
+from ipalib import Updater
 from ipapython import ipautil
 from ipapython.dn import DN, EditableDN
 
@@ -47,7 +46,7 @@ class GenerateUpdateMixin(object):
         We need to separate the deletes that need to happen from the
         new entries that need to be added.
         """
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
 
         suffix = ipautil.realm_to_suffix(api.env.realm)
         searchfilter = '(objectclass=*)'
@@ -134,11 +133,10 @@ class GenerateUpdateMixin(object):
 
         return (restart, update_list)
 
-class update_managed_post_first(PreUpdate, GenerateUpdateMixin):
+class update_managed_post_first(Updater, GenerateUpdateMixin):
     """
     Update managed entries
     """
-    order=FIRST
 
     def execute(self, **options):
         # Never need to restart with the pre-update changes
@@ -148,11 +146,10 @@ class update_managed_post_first(PreUpdate, GenerateUpdateMixin):
 
 api.register(update_managed_post_first)
 
-class update_managed_post(PostUpdate, GenerateUpdateMixin):
+class update_managed_post(Updater, GenerateUpdateMixin):
     """
     Update managed entries
     """
-    order=LAST
 
     def execute(self, **options):
         (restart, update_list) = self.generate_update(True)

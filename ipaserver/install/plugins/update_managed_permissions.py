@@ -89,11 +89,9 @@ from ipalib.plugable import Registry
 from ipalib.plugins import aci
 from ipalib.plugins.permission import permission, permission_del
 from ipalib.aci import ACI
+from ipalib import Updater
 from ipapython import ipautil
 from ipaserver.plugins.ldap2 import ldap2
-from ipaserver.install.plugins import LAST
-from ipaserver.install.plugins.baseupdate import PostUpdate
-
 
 register = Registry()
 
@@ -349,14 +347,13 @@ class IncompatibleACIModification(Exception):
 
 
 @register()
-class update_managed_permissions(PostUpdate):
+class update_managed_permissions(Updater):
     """Update managed permissions after an update.
 
     Update managed permissions according to templates specified in plugins.
     For read permissions, puts any attributes specified in the legacy
     Anonymous access ACI in the exclude list when creating the permission.
     """
-    order = LAST
 
     def get_anonymous_read_aci(self, ldap):
         aciname = u'Enable Anonymous access'
@@ -402,7 +399,7 @@ class update_managed_permissions(PostUpdate):
 
 
     def execute(self, **options):
-        ldap = self.api.Backend[ldap2]
+        ldap = self.api.Backend.ldap2
 
         anonymous_read_aci = self.get_anonymous_read_aci(ldap)
 

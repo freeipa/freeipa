@@ -17,21 +17,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipaserver.install.plugins import MIDDLE
-from ipaserver.install.plugins.baseupdate import PostUpdate
 from ipalib import api, errors
+from ipalib import Updater
 from ipapython.dn import DN
 
 
-class update_pacs(PostUpdate):
+class update_pacs(Updater):
     """
     Includes default nfs:None only if no nfs: PAC present in ipakrbauthzdata.
     """
 
-    order = MIDDLE
-
     def execute(self, **options):
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
 
         try:
             dn = DN('cn=ipaConfig', 'cn=etc', api.env.basedn)

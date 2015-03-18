@@ -2,6 +2,7 @@ NULL =
 
 appdir = $(IPA_DATA_DIR)/updates
 app_DATA =				\
+	05-pre_upgrade_plugins.update	\
 	10-config.update		\
 	10-enable-betxn.update		\
 	10-selinuxusermap.update	\
@@ -47,6 +48,7 @@ app_DATA =				\
 	61-trusts-s4u2proxy.update	\
 	62-ranges.update		\
 	71-idviews.update		\
+	90-post_upgrade_plugins.update	\
 	$(NULL)
 
 EXTRA_DIST =				\

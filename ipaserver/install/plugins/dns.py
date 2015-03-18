@@ -24,16 +24,14 @@ import time
 
 from ldif import LDIFWriter
 
-from ipaserver.install.plugins import MIDDLE, LAST
-from ipaserver.install.plugins.baseupdate import (PostUpdate, PreUpdate)
-from ipaserver.install import sysupgrade
 from ipalib import api, errors, util
+from ipalib import Updater
 from ipapython.dn import DN
 from ipalib.plugins.dns import dns_container_exists
 from ipapython.ipa_log_manager import *
 
 
-class update_dnszones(PostUpdate):
+class update_dnszones(Updater):
     """
     Update all zones to meet requirements in the new FreeIPA versions
 
@@ -57,10 +55,9 @@ class update_dnszones(PostUpdate):
 
     This module extends the original policy to allow the SSHFP updates.
     """
-    order=MIDDLE
 
     def execute(self, **options):
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
         if not dns_container_exists(ldap):
             return False, []
 
@@ -95,7 +92,7 @@ class update_dnszones(PostUpdate):
 api.register(update_dnszones)
 
 
-class update_dns_limits(PostUpdate):
+class update_dns_limits(Updater):
     """
     bind-dyndb-ldap persistent search queries LDAP for all DNS records.
     The LDAP connection must have no size or time limits to work
@@ -106,7 +103,7 @@ class update_dns_limits(PostUpdate):
     limit_value = '-1'
 
     def execute(self, **options):
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
 
         if not dns_container_exists(ldap):
             return False, []
@@ -142,7 +139,7 @@ class update_dns_limits(PostUpdate):
 api.register(update_dns_limits)
 
 
-class update_master_to_dnsforwardzones(PostUpdate):
+class update_master_to_dnsforwardzones(Updater):
     """
     Update all zones to meet requirements in the new FreeIPA versions
 
@@ -152,14 +149,12 @@ class update_master_to_dnsforwardzones(PostUpdate):
 
     This should be applied only once, and only if original version was lower than 4.0
     """
-    order = LAST
-
     backup_dir = u'/var/lib/ipa/backup/'
     backup_filename = u'dns-forward-zones-backup-%Y-%m-%d-%H-%M-%S.ldif'
     backup_path = u'%s%s' % (backup_dir, backup_filename)
 
     def execute(self, **options):
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
         # check LDAP if forwardzones already uses new semantics
         dns_container_dn = DN(api.env.container_dns, api.env.basedn)
         try:

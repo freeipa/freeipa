@@ -126,7 +126,7 @@ class IPAUpgrade(service.Service):
 
     def __upgrade(self):
         try:
-            ld = ldapupdate.LDAPUpdate(dm_password='', ldapi=True, plugins=True)
+            ld = ldapupdate.LDAPUpdate(dm_password='', ldapi=True)
             if len(self.files) == 0:
                 self.files = ld.get_all_files(ldapupdate.UPDATES_DIR)
             self.modified = (ld.update(self.files) or self.modified)

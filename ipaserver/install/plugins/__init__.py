@@ -20,9 +20,3 @@
 """
 Provide a separate api for updates.
 """
-PRE_UPDATE = 1
-POST_UPDATE = 2
-
-FIRST = 1
-MIDDLE = 2
-LAST = 4

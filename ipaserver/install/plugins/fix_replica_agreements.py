@@ -20,22 +20,19 @@
 import os
 import pwd
 from ipapython import ipaldap
-from ipaserver.install.plugins import MIDDLE
-from ipaserver.install.plugins.baseupdate import PreUpdate
 from ipaserver.install import replication
 from ipalib import api
+from ipalib import Updater
 
 EXCLUDE_TEMPLATE = '(objectclass=*) $ EXCLUDE %s'
 
 
-class update_replica_attribute_lists(PreUpdate):
+class update_replica_attribute_lists(Updater):
     """
     Run through all replication agreements and ensure that EXCLUDE list
     has all the required attributes so that we don't cause replication
     storms.
     """
-
-    order = MIDDLE
 
     def execute(self, **options):
         # We need an IPAdmin connection to the backend

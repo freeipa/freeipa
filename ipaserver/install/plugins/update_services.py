@@ -17,23 +17,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipaserver.install.plugins import MIDDLE
-from ipaserver.install.plugins.baseupdate import PostUpdate
 from ipalib import api, errors
+from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 
 
-class update_service_principalalias(PostUpdate):
+class update_service_principalalias(Updater):
     """
     Update all services which do not have ipakrbprincipalalias attribute
     used for case-insensitive principal searches filled. This applies for
     all services created prior IPA 3.0.
     """
-    order = MIDDLE
 
     def execute(self, **options):
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
 
         base_dn = DN(api.env.container_service, api.env.basedn)
         search_filter = ("(&(objectclass=krbprincipal)(objectclass=ipaservice)"

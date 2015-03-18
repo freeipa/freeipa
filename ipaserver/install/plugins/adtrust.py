@@ -17,22 +17,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipaserver.install.plugins import MIDDLE
-from ipaserver.install.plugins.baseupdate import PostUpdate
 from ipalib import api, errors
+from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 
 DEFAULT_ID_RANGE_SIZE = 200000
 
-class update_default_range(PostUpdate):
+class update_default_range(Updater):
     """
     Create default ID range for upgraded servers.
     """
-    order=MIDDLE
 
     def execute(self, **options):
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
 
         dn = DN(api.env.container_ranges, api.env.basedn)
         search_filter = "objectclass=ipaDomainIDRange"
@@ -117,14 +115,13 @@ class update_default_range(PostUpdate):
         return False, [update]
 
 
-class update_default_trust_view(PostUpdate):
+class update_default_trust_view(Updater):
     """
     Create Default Trust View for upgraded servers.
     """
-    order = MIDDLE
 
     def execute(self, **options):
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
 
         default_trust_view_dn = DN(('cn', 'Default Trust View'),
                                    api.env.container_views,

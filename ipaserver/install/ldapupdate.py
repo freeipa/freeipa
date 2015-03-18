@@ -36,13 +36,14 @@ import krbV
 import ldap
 
 from ipaserver.install import installutils
+from ipaserver.install.plugins.baseupdate import DSRestart
 from ipapython import ipautil, ipaldap
 from ipalib import errors
-from ipalib import api
+from ipalib import api, create_api
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
-from ipaserver.install.plugins import (PRE_UPDATE, POST_UPDATE)
+from ipapython.ipautil import wait_for_open_socket
 from ipaserver.plugins import ldap2
 
 UPDATES_DIR=paths.UPDATES_DIR
@@ -113,7 +114,7 @@ class LDAPUpdate:
     action_keywords = ["default", "add", "remove", "only", "onlyifexist", "deleteentry", "replace", "addifnew", "addifexist"]
 
     def __init__(self, dm_password=None, sub_dict={},
-                 online=True, ldapi=False, plugins=False):
+                 online=True, ldapi=False):
         '''
         :parameters:
             dm_password
@@ -124,8 +125,6 @@ class LDAPUpdate:
                 Do an online LDAP update or use an experimental LDIF updater
             ldapi
                 Bind using ldapi. This assumes autobind is enabled.
-            plugins
-                execute the pre/post update plugins
 
         Data Structure Example:
         -----------------------
@@ -152,6 +151,67 @@ class LDAPUpdate:
 
         The default and update lists are "dispositions"
 
+        Plugins:
+
+        Plugins has to be specified in update file to be executed, using
+        'plugin' directive
+
+        Example:
+        plugin: update_uniqueness_plugins_to_new_syntax
+
+        Each plugin returns two values:
+
+        1. restart: dirsrv will be restarted AFTER this update is
+                     applied.
+        2. updates: A list of updates to be applied.
+
+        The value of an update is a dictionary with the following possible
+        values:
+          - dn: DN, equal to the dn attribute
+          - updates: list of updates against the dn
+          - default: list of the default entry to be added if it doesn't
+                     exist
+          - deleteentry: list of dn's to be deleted (typically single dn)
+
+        For example, this update file:
+
+          dn: cn=global_policy,cn=$REALM,cn=kerberos,$SUFFIX
+          replace:krbPwdLockoutDuration:10::600
+          replace: krbPwdMaxFailure:3::6
+
+        Generates this list which contain the update dictionary:
+
+        [
+          dict(
+            'dn': 'cn=global_policy,cn=EXAMPLE.COM,cn=kerberos,dc=example,dc=com',
+            'updates': ['replace:krbPwdLockoutDuration:10::600',
+                        'replace:krbPwdMaxFailure:3::6']
+          )
+        ]
+
+        Here is another example showing how a default entry is configured:
+
+          dn: cn=Managed Entries,cn=etc,$SUFFIX
+          default: objectClass: nsContainer
+          default: objectClass: top
+          default: cn: Managed Entries
+
+        This generates:
+
+        [
+          dict(
+            'dn': 'cn=Managed Entries,cn=etc,dc=example,dc=com',
+            'default': ['objectClass:nsContainer',
+                        'objectClass:top',
+                        'cn:Managed Entries'
+                       ]
+           )
+        ]
+
+        Note that the variable substitution in both examples has been completed.
+
+        Either may make changes directly in LDAP or can return updates in
+        update format.
 
         '''
         log_mgr.get_logger(self, True)
@@ -161,9 +221,15 @@ class LDAPUpdate:
         self.modified = False
         self.online = online
         self.ldapi = ldapi
-        self.plugins = plugins
         self.pw_name = pwd.getpwuid(os.geteuid()).pw_name
         self.realm = None
+        self.socket_name = (
+            paths.SLAPD_INSTANCE_SOCKET_TEMPLATE %
+            api.env.realm.replace('.', '-')
+        )
+        self.ldapuri = 'ldapi://%s' % ipautil.format_netloc(
+            self.socket_name
+        )
         suffix = None
 
         if sub_dict.get("REALM"):
@@ -202,13 +268,14 @@ class LDAPUpdate:
             self.sub_dict["TIME"] = int(time.time())
         if not self.sub_dict.get("DOMAIN") and domain is not None:
             self.sub_dict["DOMAIN"] = domain
-
+        self.api = create_api(mode=None)
+        self.api.bootstrap(in_server=True, context='updates')
+        self.api.finalize()
         if online:
             # Try out the connection/password
             # (This will raise if the server is not available)
             self.create_connection()
-            self.conn.unbind()
-            self.conn = None
+            self.close_connection()
         else:
             raise RuntimeError("Offline updates are not supported.")
 
@@ -333,6 +400,13 @@ class LDAPUpdate:
             assert isinstance(dn, DN)
             all_updates.append(update)
 
+        def emit_plugin_update(update):
+            '''
+            When processing a plugin is complete emit the plugin update by
+            appending it into list of all updates
+            '''
+            all_updates.append(update)
+
         # Iterate over source input lines
         for source_line in source_data:
             lcount += 1
@@ -344,18 +418,38 @@ class LDAPUpdate:
             if source_line.startswith('#') or source_line == '':
                 continue
 
-            if source_line.lower().startswith('dn:'):
-                # Starting new dn
-                if dn is not None:
-                    # Emit previous dn
-                    emit_item(logical_line)
-                    logical_line = ''
-                    emit_update(update)
-                    update = {}
+            state = None
+            emit_previous_dn = False
 
+            # parse special keywords
+            if source_line.lower().startswith('dn:'):
+                state = 'dn'
+                emit_previous_dn = True
+            elif source_line.lower().startswith('plugin:'):
+                state = 'plugin'
+                emit_previous_dn = True
+
+            if emit_previous_dn and dn is not None:
+                # Emit previous dn
+                emit_item(logical_line)
+                logical_line = ''
+                emit_update(update)
+                update = {}
+                dn = None
+
+            if state == 'dn':
+                # Starting new dn
                 dn = source_line[3:].strip()
                 dn = DN(self._template_str(dn))
                 update['dn'] = dn
+            elif state == 'plugin':
+                # plugin specification is online only
+                plugin_name = source_line[7:].strip()
+                if not plugin_name:
+                    raise BadSyntax("plugin name is not defined")
+                update['plugin'] = plugin_name
+                emit_plugin_update(update)
+                update = {}
             else:
                 # Process items belonging to dn
                 if dn is None:
@@ -589,10 +683,6 @@ class LDAPUpdate:
     def _update_record(self, update):
         found = False
 
-        # If the entry is going to be deleted no point in processing it.
-        if update.has_key('deleteentry'):
-            return
-
         new_entry = self._create_default_entry(update.get('dn'),
                                                update.get('default'))
 
@@ -687,9 +777,6 @@ class LDAPUpdate:
         and child in the wrong order.
         """
 
-        if not updates.has_key('deleteentry'):
-            return
-
         dn = updates['dn']
         try:
             self.info("Deleting entry %s", dn)
@@ -713,20 +800,36 @@ class LDAPUpdate:
         f.sort()
         return f
 
+    def _run_update_plugin(self, plugin_name):
+        self.log.info("Executing upgrade plugin: %s", plugin_name)
+        restart_ds, updates = self.api.Updater[plugin_name]()
+        if updates:
+            self._run_updates(updates)
+        # restart may be required even if no updates were returned
+        # from plugin, plugin may change LDAP data directly
+        if restart_ds:
+            self.close_connection()
+            self.restart_ds()
+            self.create_connection()
+
     def create_connection(self):
         if self.online:
-            self.conn = connect(
-                ldapi=self.ldapi, realm=self.realm, fqdn=self.sub_dict['FQDN'],
-                dm_password=self.dm_password, pw_name=self.pw_name)
+            self.api.Backend.ldap2.connect(
+                bind_dn=DN(('cn', 'Directory Manager')),
+                bind_pw=self.dm_password,
+                autobind=self.ldapi)
+            self.conn = self.api.Backend.ldap2
         else:
             raise RuntimeError("Offline updates are not supported.")
 
     def _run_updates(self, all_updates):
         for update in all_updates:
-            self._update_record(update)
-
-        for update in all_updates:
-            self._delete_record(update)
+            if 'deleteentry' in update:
+                self._delete_record(update)
+            elif 'plugin' in update:
+                self._run_update_plugin(update['plugin'])
+            else:
+                self._update_record(update)
 
     def update(self, files, ordered=True):
         """Execute the update. files is a list of the update files to use.
@@ -738,12 +841,6 @@ class LDAPUpdate:
         all_updates = []
         try:
             self.create_connection()
-            if self.plugins:
-                self.info('PRE_UPDATE')
-                updates = api.Backend.updateclient.update(
-                    PRE_UPDATE, self.dm_password, self.ldapi)
-                # flush out PRE_UPDATE plugin updates before we begin
-                self._run_updates(updates)
 
             upgrade_files = files
             if ordered:
@@ -760,17 +857,10 @@ class LDAPUpdate:
                 self.parse_update_file(f, data, all_updates)
                 self._run_updates(all_updates)
                 all_updates = []
-
-            if self.plugins:
-                self.info('POST_UPDATE')
-                updates = api.Backend.updateclient.update(
-                    POST_UPDATE, self.dm_password, self.ldapi)
-                self._run_updates(updates)
         finally:
             self.close_connection()
 
         return self.modified
-
 
     def update_from_dict(self, updates):
         """
@@ -788,5 +878,11 @@ class LDAPUpdate:
     def close_connection(self):
         """Close ldap connection"""
         if self.conn:
-            self.conn.unbind()
+            self.api.Backend.ldap2.disconnect()
             self.conn = None
+
+    def restart_ds(self):
+        dsrestart = DSRestart()
+
+        dsrestart.create_instance()
+        wait_for_open_socket(self.socket_name)

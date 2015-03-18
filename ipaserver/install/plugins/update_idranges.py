@@ -17,23 +17,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipaserver.install.plugins import MIDDLE, LAST
-from ipaserver.install.plugins.baseupdate import PostUpdate
 from ipalib import api, errors
+from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 
 
-class update_idrange_type(PostUpdate):
+class update_idrange_type(Updater):
     """
     Update all ID ranges that do not have ipaRangeType attribute filled.
     This applies to all ID ranges prior to IPA 3.3.
     """
 
-    order = MIDDLE
-
     def execute(self, **options):
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
 
         base_dn = DN(api.env.container_ranges, api.env.basedn)
         search_filter = ("(&(objectClass=ipaIDrange)(!(ipaRangeType=*)))")
@@ -112,16 +109,14 @@ class update_idrange_type(PostUpdate):
         return False, []
 
 
-class update_idrange_baserid(PostUpdate):
+class update_idrange_baserid(Updater):
     """
     Update ipa-ad-trust-posix ranges' base RID to 0. This applies to AD trust
     posix ranges prior to IPA 4.1.
     """
 
-    order = LAST
-
     def execute(self, **options):
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
 
         base_dn = DN(api.env.container_ranges, api.env.basedn)
         search_filter = ("(&(objectClass=ipaTrustedADDomainRange)"

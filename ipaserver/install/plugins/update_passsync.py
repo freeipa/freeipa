@@ -2,15 +2,13 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
-from ipaserver.install.plugins import MIDDLE, LAST
-from ipaserver.install.plugins.baseupdate import PreUpdate, PostUpdate
 from ipalib import api, errors
+from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import sysupgrade
 
-class update_passync_privilege_check(PreUpdate):
-    order = MIDDLE
+class update_passync_privilege_check(Updater):
 
     def execute(self, **options):
         update_done = sysupgrade.get_upgrade_state('winsync', 'passsync_privilege_updated')
@@ -24,7 +22,7 @@ class update_passync_privilege_check(PreUpdate):
                 self.api.env.container_privilege,
                 self.api.env.basedn)
 
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
         try:
             ldap.get_entry(passsync_privilege_dn, [''])
         except errors.NotFound:
@@ -38,12 +36,10 @@ class update_passync_privilege_check(PreUpdate):
 
 api.register(update_passync_privilege_check)
 
-class update_passync_privilege_update(PostUpdate):
+class update_passync_privilege_update(Updater):
     """
         Add PassSync user as a member of PassSync privilege, if it exists
     """
-
-    order = LAST
 
     def execute(self, **options):
         update_done = sysupgrade.get_upgrade_state('winsync', 'passsync_privilege_updated')
@@ -52,7 +48,7 @@ class update_passync_privilege_update(PostUpdate):
             return False, []
 
         root_logger.debug("Add PassSync user as a member of PassSync privilege")
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
         passsync_dn = DN(('uid','passsync'), ('cn', 'sysaccounts'), ('cn', 'etc'),
             api.env.basedn)
         passsync_privilege_dn = DN(('cn','PassSync Service'),

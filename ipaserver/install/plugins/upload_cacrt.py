@@ -17,18 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipaserver.install.plugins import MIDDLE
-from ipaserver.install.plugins.baseupdate import PostUpdate
 from ipaserver.install import certs
 from ipalib import api, errors, certstore
+from ipalib import Updater
 from ipapython import certdb
 from ipapython.dn import DN
 
-class update_upload_cacrt(PostUpdate):
+class update_upload_cacrt(Updater):
     """
     Upload public CA certificate to LDAP
     """
-    order=MIDDLE
 
     def execute(self, **options):
         db = certs.CertDB(self.api.env.realm)
@@ -45,7 +43,7 @@ class update_upload_cacrt(PostUpdate):
                 if ca_chain:
                     ca_nickname = ca_chain[-1]
 
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
 
         for nickname, trust_flags in db.list_certs():
             if 'u' in trust_flags:

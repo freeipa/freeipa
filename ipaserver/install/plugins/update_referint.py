@@ -2,13 +2,12 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
-from ipaserver.install.plugins import MIDDLE
-from ipaserver.install.plugins.baseupdate import PreUpdate
 from ipalib import api, errors
+from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 
-class update_referint(PreUpdate):
+class update_referint(Updater):
     """
     Update referential integrity configuration to new style
     http://directory.fedoraproject.org/docs/389ds/design/ri-plugin-configuration.html
@@ -22,15 +21,13 @@ class update_referint(PreUpdate):
     Old and new style cannot be mixed, all nslapd-pluginArg* attrs have to be removed
     """
 
-    order = MIDDLE
-
     referint_dn = DN(('cn', 'referential integrity postoperation'),
                            ('cn', 'plugins'), ('cn', 'config'))
 
     def execute(self, **options):
 
         root_logger.debug("Upgrading referential integrity plugin configuration")
-        ldap = self.obj.backend
+        ldap = self.api.Backend.ldap2
         try:
             entry = ldap.get_entry(self.referint_dn)
         except errors.NotFound:

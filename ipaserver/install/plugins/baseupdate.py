@@ -18,9 +18,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api
-from ipalib import Updater, Object
+from ipalib import Object
 from ipaserver.install import service
-from ipaserver.install.plugins import (PRE_UPDATE, POST_UPDATE, MIDDLE)
 
 class DSRestart(service.Service):
     """
@@ -46,32 +45,3 @@ class DSRestart(service.Service):
         self.step("starting directory server", self.start)
         self.start_creation(start_message="Restarting Directory server "
                             "to apply updates", show_service_name=False)
-
-class update(Object):
-    """
-    Generic object used to register all updates into a single namespace.
-    """
-    backend_name = 'ldap2'
-
-api.register(update)
-
-
-class PreUpdate(Updater):
-    """
-    Base class for updates that run prior to file processing.
-    """
-    updatetype = PRE_UPDATE
-    order = MIDDLE
-
-    def __init__(self):
-        super(PreUpdate, self).__init__()
-
-class PostUpdate(Updater):
-    """
-    Base class for updates that run after file processing.
-    """
-    updatetype = POST_UPDATE
-    order = MIDDLE
-
-    def __init__(self):
-        super(PostUpdate, self).__init__()

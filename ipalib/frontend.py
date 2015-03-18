@@ -1371,7 +1371,7 @@ class Method(Attribute, Command):
 
 
 @register.base()
-class Updater(Method):
+class Updater(Plugin):
     """
     An LDAP update with an associated object (always update).
 
@@ -1397,8 +1397,8 @@ class Updater(Method):
     >>> api.Updater.my_update # doctest:+ELLIPSIS
     ipalib.frontend.my_update()
     """
-    def __init__(self):
-        super(Updater, self).__init__()
+    def execute(self, **options):
+        raise NotImplementedError('%s.execute()' % self.name)
 
     def __call__(self, **options):
         self.debug(

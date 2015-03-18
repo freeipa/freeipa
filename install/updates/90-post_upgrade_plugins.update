@@ -1,0 +1,20 @@
+# first
+
+
+# middle
+plugin: update_dnszones
+plugin: update_dns_limits
+plugin: update_default_range
+plugin: update_default_trust_view
+plugin: update_ca_renewal_master
+plugin: update_idrange_type
+plugin: update_pacs
+plugin: update_service_principalalias
+plugin: update_upload_cacrt
+
+# last
+plugin: update_master_to_dnsforwardzones
+plugin: update_managed_post
+plugin: update_managed_permissions
+plugin: update_idrange_baserid
+plugin: update_passync_privilege_update
