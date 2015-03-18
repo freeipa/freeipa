@@ -14,7 +14,6 @@ AM_CPPFLAGS =							\
 	-I$(PLUGIN_COMMON_DIR)					\
 	-I$(KRB5_UTIL_DIR)					\
 	-I$(ASN1_UTIL_DIR)					\
-	-I$(COMMON_BER_DIR)					\
 	-DPREFIX=\""$(prefix)"\" 				\
 	-DBINDIR=\""$(bindir)"\"				\
 	-DLIBDIR=\""$(libdir)"\" 				\
