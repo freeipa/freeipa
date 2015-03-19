@@ -62,7 +62,7 @@ class update_dnszones(Updater):
             return False, []
 
         try:
-            zones = api.Command.dnszone_find(all=True)['result']
+            zones = self.api.Command.dnszone_find(all=True)['result']
         except errors.NotFound:
             self.log.info('No DNS zone to update found')
             return False, []
@@ -77,14 +77,15 @@ class update_dnszones(Updater):
                 # do not open zone transfers by default
                 update['idnsallowtransfer'] = u'none;'
 
-            old_policy = util.get_dns_forward_zone_update_policy(api.env.realm, ('A', 'AAAA'))
+            old_policy = util.get_dns_forward_zone_update_policy(
+                self.api.env.realm, ('A', 'AAAA'))
             if zone.get('idnsupdatepolicy', [''])[0] == old_policy:
                 update['idnsupdatepolicy'] = util.get_dns_forward_zone_update_policy(\
-                        api.env.realm)
+                        self.api.env.realm)
 
             if update:
                 # FIXME: https://fedorahosted.org/freeipa/ticket/4722
-                api.Command.dnszone_mod(zone[u'idnsname'][0].make_absolute(),
+                self.api.Command.dnszone_mod(zone[u'idnsname'][0].make_absolute(),
                                         **update)
 
         return False, []
@@ -156,7 +157,7 @@ class update_master_to_dnsforwardzones(Updater):
     def execute(self, **options):
         ldap = self.api.Backend.ldap2
         # check LDAP if forwardzones already uses new semantics
-        dns_container_dn = DN(api.env.container_dns, api.env.basedn)
+        dns_container_dn = DN(self.api.env.container_dns, self.api.env.basedn)
         try:
             container_entry = ldap.get_entry(dns_container_dn)
         except errors.NotFound:
@@ -181,7 +182,7 @@ class update_master_to_dnsforwardzones(Updater):
         # should detect if update in past has been executed, and set proper
         # DNSVersion into LDAP
         try:
-            fwzones = api.Command.dnsforwardzone_find()['result']
+            fwzones = self.api.Command.dnsforwardzone_find()['result']
         except errors.NotFound:
             # No forwardzones found, update probably has not been executed yet
             pass
@@ -193,7 +194,7 @@ class update_master_to_dnsforwardzones(Updater):
         zones = []
         try:
             # raw values are required to store into ldif
-            zones = api.Command.dnszone_find(all=True,
+            zones = self.api.Command.dnszone_find(all=True,
                                              raw=True,
                                              sizelimit=0)['result']
         except errors.NotFound:
@@ -249,7 +250,7 @@ class update_master_to_dnsforwardzones(Updater):
                                     zone_to_privileges[zone['idnsname'][0]] = entry['member']
 
                             # raw values are required to store into ldif
-                            records = api.Command['dnsrecord_find'](
+                            records = self.api.Command['dnsrecord_find'](
                                         zone['idnsname'][0],
                                         all=True,
                                         raw=True,
@@ -288,7 +289,7 @@ class update_master_to_dnsforwardzones(Updater):
             for zone in zones_to_transform:
                 # delete master zone
                 try:
-                    api.Command['dnszone_del'](zone['idnsname'])
+                    self.api.Command['dnszone_del'](zone['idnsname'])
                 except Exception, e:
                     self.log.error('Transform to forwardzone terminated: '
                                    'removing zone %s failed (%s)' % (
@@ -303,7 +304,7 @@ class update_master_to_dnsforwardzones(Updater):
                         'idnsforwarders': zone.get('idnsforwarders', []),
                         'idnsforwardpolicy': zone.get('idnsforwardpolicy', [u'first'])[0]
                     }
-                    api.Command['dnsforwardzone_add'](zone['idnsname'][0], **kw)
+                    self.api.Command['dnsforwardzone_add'](zone['idnsname'][0], **kw)
                 except Exception, e:
                     self.log.error('Transform to forwardzone terminated: creating '
                                    'forwardzone %s failed' %
@@ -314,7 +315,7 @@ class update_master_to_dnsforwardzones(Updater):
                 # create permission if original zone has one
                 if 'managedBy' in zone:
                     try:
-                        perm_name = api.Command['dnsforwardzone_add_permission'](
+                        perm_name = self.api.Command['dnsforwardzone_add_permission'](
                                         zone['idnsname'][0])['value']
                     except Exception, e:
                         self.log.error('Transform to forwardzone terminated: '
@@ -332,7 +333,7 @@ class update_master_to_dnsforwardzones(Updater):
                                 dn[0].value for dn in zone_to_privileges[zone['idnsname'][0]]
                             ]
                             try:
-                                api.Command['permission_add_member'](perm_name,
+                                self.api.Command['permission_add_member'](perm_name,
                                                     privilege=privileges)
                             except Exception, e:
                                 self.log.error('Unable to restore privileges for '

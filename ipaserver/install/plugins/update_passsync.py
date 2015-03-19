@@ -50,7 +50,7 @@ class update_passync_privilege_update(Updater):
         root_logger.debug("Add PassSync user as a member of PassSync privilege")
         ldap = self.api.Backend.ldap2
         passsync_dn = DN(('uid','passsync'), ('cn', 'sysaccounts'), ('cn', 'etc'),
-            api.env.basedn)
+            self.api.env.basedn)
         passsync_privilege_dn = DN(('cn','PassSync Service'),
                 self.api.env.container_privilege,
                 self.api.env.basedn)

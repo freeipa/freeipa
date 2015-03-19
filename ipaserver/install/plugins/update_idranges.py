@@ -32,7 +32,7 @@ class update_idrange_type(Updater):
     def execute(self, **options):
         ldap = self.api.Backend.ldap2
 
-        base_dn = DN(api.env.container_ranges, api.env.basedn)
+        base_dn = DN(self.api.env.container_ranges, self.api.env.basedn)
         search_filter = ("(&(objectClass=ipaIDrange)(!(ipaRangeType=*)))")
         root_logger.debug("update_idrange_type: search for ID ranges with no "
                           "type set")
@@ -118,7 +118,7 @@ class update_idrange_baserid(Updater):
     def execute(self, **options):
         ldap = self.api.Backend.ldap2
 
-        base_dn = DN(api.env.container_ranges, api.env.basedn)
+        base_dn = DN(self.api.env.container_ranges, self.api.env.basedn)
         search_filter = ("(&(objectClass=ipaTrustedADDomainRange)"
                          "(ipaRangeType=ipa-ad-trust-posix)"
                          "(!(ipaBaseRID=0)))")

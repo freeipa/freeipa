@@ -32,7 +32,7 @@ class update_default_range(Updater):
     def execute(self, **options):
         ldap = self.api.Backend.ldap2
 
-        dn = DN(api.env.container_ranges, api.env.basedn)
+        dn = DN(self.api.env.container_ranges, self.api.env.basedn)
         search_filter = "objectclass=ipaDomainIDRange"
         try:
             (entries, truncated) = ldap.find_entries(search_filter, [], dn)
@@ -42,7 +42,8 @@ class update_default_range(Updater):
             root_logger.debug("default_range: ipaDomainIDRange entry found, skip plugin")
             return False, []
 
-        dn = DN(('cn', 'admins'), api.env.container_group, api.env.basedn)
+        dn = DN(('cn', 'admins'), self.api.env.container_group,
+                self.api.env.basedn)
         try:
             admins_entry = ldap.get_entry(dn, ['gidnumber'])
         except errors.NotFound:
@@ -51,7 +52,7 @@ class update_default_range(Updater):
             return False, []
 
         id_range_base_id = admins_entry['gidnumber'][0]
-        id_range_name = '%s_id_range' % api.env.realm
+        id_range_name = '%s_id_range' % self.api.env.realm
         id_range_size = DEFAULT_ID_RANGE_SIZE
 
         range_entry = ['objectclass:top',
@@ -63,8 +64,8 @@ class update_default_range(Updater):
                        'iparangetype:ipa-local',
                       ]
 
-        dn = DN(('cn', '%s_id_range' % api.env.realm),
-                api.env.container_ranges, api.env.basedn)
+        dn = DN(('cn', '%s_id_range' % self.api.env.realm),
+                self.api.env.container_ranges, self.api.env.basedn)
 
         update = {'dn': dn, 'default': range_entry}
 
@@ -74,7 +75,7 @@ class update_default_range(Updater):
         # bigger range (option --idmax).
         # We should make our best to check if this is the case and provide
         # user with an information how to fix it.
-        dn = DN(api.env.container_dna_posix_ids, api.env.basedn)
+        dn = DN(self.api.env.container_dna_posix_ids, self.api.env.basedn)
         search_filter = "objectclass=dnaSharedConfig"
         attrs = ['dnaHostname', 'dnaRemainingValues']
         try:
@@ -124,8 +125,8 @@ class update_default_trust_view(Updater):
         ldap = self.api.Backend.ldap2
 
         default_trust_view_dn = DN(('cn', 'Default Trust View'),
-                                   api.env.container_views,
-                                   api.env.basedn)
+                                   self.api.env.container_views,
+                                   self.api.env.basedn)
 
         default_trust_view_entry = [
             'objectclass:top',

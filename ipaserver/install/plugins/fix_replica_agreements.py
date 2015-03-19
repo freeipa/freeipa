@@ -37,10 +37,12 @@ class update_replica_attribute_lists(Updater):
     def execute(self, **options):
         # We need an IPAdmin connection to the backend
         self.log.debug("Start replication agreement exclude list update task")
-        conn = ipaldap.IPAdmin(api.env.host, ldapi=True, realm=api.env.realm)
+        conn = ipaldap.IPAdmin(self.api.env.host, ldapi=True,
+                               realm=self.api.env.realm)
         conn.do_external_bind(pwd.getpwuid(os.geteuid()).pw_name)
 
-        repl = replication.ReplicationManager(api.env.realm, api.env.host,
+        repl = replication.ReplicationManager(self.api.env.realm,
+                                              self.api.env.host,
                                               None, conn=conn)
 
         # We need to update only IPA replica agreements, not winsync

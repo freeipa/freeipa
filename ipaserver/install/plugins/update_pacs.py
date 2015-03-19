@@ -31,7 +31,7 @@ class update_pacs(Updater):
         ldap = self.api.Backend.ldap2
 
         try:
-            dn = DN('cn=ipaConfig', 'cn=etc', api.env.basedn)
+            dn = DN('cn=ipaConfig', 'cn=etc', self.api.env.basedn)
             entry = ldap.get_entry(dn, ['ipakrbauthzdata'])
             pacs = entry.get('ipakrbauthzdata', [])
         except errors.NotFound:

@@ -33,7 +33,7 @@ class update_service_principalalias(Updater):
     def execute(self, **options):
         ldap = self.api.Backend.ldap2
 
-        base_dn = DN(api.env.container_service, api.env.basedn)
+        base_dn = DN(self.api.env.container_service, self.api.env.basedn)
         search_filter = ("(&(objectclass=krbprincipal)(objectclass=ipaservice)"
                          "(!(objectclass=ipakrbprincipal)))")
         root_logger.debug("update_service_principalalias: search for affected "

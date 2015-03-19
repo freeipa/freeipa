@@ -48,7 +48,7 @@ class GenerateUpdateMixin(object):
         """
         ldap = self.api.Backend.ldap2
 
-        suffix = ipautil.realm_to_suffix(api.env.realm)
+        suffix = ipautil.realm_to_suffix(self.api.env.realm)
         searchfilter = '(objectclass=*)'
         definitions_managed_entries = []
 
