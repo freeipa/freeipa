@@ -31,10 +31,6 @@ class update_pacs(PostUpdate):
     order = MIDDLE
 
     def execute(self, **options):
-        if not options.get('live_run'):
-            self.log.info("Test mode: skipping 'update_pacs'")
-            return False, False, ()
-
         ldap = self.obj.backend
 
         try:

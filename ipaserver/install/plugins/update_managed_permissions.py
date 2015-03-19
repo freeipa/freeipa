@@ -402,10 +402,6 @@ class update_managed_permissions(PostUpdate):
 
 
     def execute(self, **options):
-        if not options.get('live_run'):
-            self.log.info("Test mode: skipping 'update_managed_permissions'")
-            return False, False, ()
-
         ldap = self.api.Backend[ldap2]
 
         anonymous_read_aci = self.get_anonymous_read_aci(ldap)

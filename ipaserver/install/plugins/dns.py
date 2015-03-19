@@ -60,10 +60,6 @@ class update_dnszones(PostUpdate):
     order=MIDDLE
 
     def execute(self, **options):
-        if not options.get('live_run'):
-            self.log.info("Test mode: skipping 'update_dnszones'")
-            return False, False, ()
-
         ldap = self.obj.backend
         if not dns_container_exists(ldap):
             return (False, False, [])
@@ -163,11 +159,6 @@ class update_master_to_dnsforwardzones(PostUpdate):
     backup_path = u'%s%s' % (backup_dir, backup_filename)
 
     def execute(self, **options):
-        if not options.get('live_run'):
-            self.log.info("Test mode: skipping "
-                          "'update_master_to_dnsforwardzones'")
-            return False, False, ()
-
         ldap = self.obj.backend
         # check LDAP if forwardzones already uses new semantics
         dns_container_dn = DN(api.env.container_dns, api.env.basedn)

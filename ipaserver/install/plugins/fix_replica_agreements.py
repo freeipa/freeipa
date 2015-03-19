@@ -38,10 +38,6 @@ class update_replica_attribute_lists(PreUpdate):
     order = MIDDLE
 
     def execute(self, **options):
-        if not options.get('live_run'):
-            self.log.info("Test mode: skipping "
-                          "'update_replica_attribute_lists'")
-            return False, False, ()
         # We need an IPAdmin connection to the backend
         self.log.debug("Start replication agreement exclude list update task")
         conn = ipaldap.IPAdmin(api.env.host, ldapi=True, realm=api.env.realm)
