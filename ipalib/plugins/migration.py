@@ -21,7 +21,7 @@ import re
 from ldap import MOD_ADD
 
 from ipalib import api, errors, output
-from ipalib import Command, Password, Str, Flag, StrEnum, DNParam, File
+from ipalib import Command, Password, Str, Flag, StrEnum, DNParam, File, Bool
 from ipalib.cli import to_cli
 from ipalib.plugable import Registry
 from ipalib.plugins.user import NO_UPG_MAGIC
@@ -269,7 +269,8 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
 def _post_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx):
     assert isinstance(dn, DN)
 
-    _update_default_group(ldap, ctx, False)
+    if 'def_group_dn' in ctx:
+        _update_default_group(ldap, ctx, False)
 
     if 'description' in entry_attrs and NO_UPG_MAGIC in entry_attrs['description']:
         entry_attrs['description'].remove(NO_UPG_MAGIC)
@@ -602,6 +603,14 @@ class migrate_ds(Command):
             doc=_('Load CA certificate of LDAP server from FILE'),
             default=None
         ),
+        Bool('use_def_group?',
+            cli_name='use_default_group',
+            label=_('Add to default group'),
+            doc=_('Add migrated users without a group to a default group '
+                  '(default: true)'),
+            default=True,
+            autofill=True,
+        ),
     )
 
     has_output = (
@@ -745,7 +754,7 @@ can use their Kerberos accounts.''')
                     blacklists[blacklist] = tuple()
 
             # get default primary group for new users
-            if 'def_group_dn' not in context:
+            if 'def_group_dn' not in context and options.get('use_def_group'):
                 def_group = config.get('ipadefaultprimarygroup')
                 context['def_group_dn'] = api.Object.group.get_dn(def_group)
                 try:
@@ -836,7 +845,8 @@ can use their Kerberos accounts.''')
                     api.log.info("%d %ss migrated. %s elapsed." % (migrate_cnt, ldap_obj_name, total_dur))
                 api.log.debug("%d %ss migrated, duration: %s (total %s)" % (migrate_cnt, ldap_obj_name, d, total_dur))
 
-        _update_default_group(ldap, context, True)
+        if 'def_group_dn' in context:
+            _update_default_group(ldap, context, True)
 
         return (migrated, failed)
 
