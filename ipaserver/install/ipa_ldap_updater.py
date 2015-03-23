@@ -63,9 +63,9 @@ class LDAPUpdater(admintool.AdminTool):
         else:
             return LDAPUpdater_NonUpgrade
 
-    def validate_options(self, **kwargs):
+    def validate_options(self):
         options = self.options
-        super(LDAPUpdater, self).validate_options(**kwargs)
+        super(LDAPUpdater, self).validate_options(needs_root=True)
 
         self.files = self.args
 
@@ -73,14 +73,10 @@ class LDAPUpdater(admintool.AdminTool):
             if not os.path.exists(filename):
                 raise admintool.ScriptError("%s: file not found" % filename)
 
-        if os.getegid() == 0:
-            try:
-                installutils.check_server_configuration()
-            except RuntimeError, e:
-                print unicode(e)
-                sys.exit(1)
-        elif not os.path.exists(paths.IPA_DEFAULT_CONF):
-            print "IPA is not configured on this system."
+        try:
+            installutils.check_server_configuration()
+        except RuntimeError, e:
+            print unicode(e)
             sys.exit(1)
 
         if options.schema_files or not self.files:
@@ -105,12 +101,6 @@ class LDAPUpdater(admintool.AdminTool):
 class LDAPUpdater_Upgrade(LDAPUpdater):
     log_file_name = paths.IPAUPGRADE_LOG
 
-    def validate_options(self):
-        if os.getegid() != 0:
-            raise admintool.ScriptError('Must be root to do an upgrade.', 1)
-
-        super(LDAPUpdater_Upgrade, self).validate_options(needs_root=True)
-
     def run(self):
         super(LDAPUpdater_Upgrade, self).run()
         options = self.options
@@ -133,18 +123,6 @@ class LDAPUpdater_Upgrade(LDAPUpdater):
 
 class LDAPUpdater_NonUpgrade(LDAPUpdater):
     log_file_name = paths.IPAUPGRADE_LOG
-
-    def validate_options(self):
-        super(LDAPUpdater_NonUpgrade, self).validate_options()
-
-        # Need root for running plugins
-        if os.getegid() != 0:
-            if self.run_plugins:
-                raise admintool.ScriptError(
-                    'Plugins can only be run as root.', 1)
-            else:
-                # Can't log to the default file as non-root
-                self.log_file_name = None
 
     def run(self):
         super(LDAPUpdater_NonUpgrade, self).run()
