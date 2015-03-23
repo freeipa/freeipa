@@ -758,12 +758,10 @@ can use their Kerberos accounts.''')
                 def_group = config.get('ipadefaultprimarygroup')
                 context['def_group_dn'] = api.Object.group.get_dn(def_group)
                 try:
-                    g_attrs = ldap.get_entry(context['def_group_dn'], ['gidnumber', 'cn'])
+                    ldap.get_entry(context['def_group_dn'], ['gidnumber', 'cn'])
                 except errors.NotFound:
                     error_msg = _('Default group for new users not found')
                     raise errors.NotFound(reason=error_msg)
-                if 'gidnumber' in g_attrs:
-                    context['def_group_gid'] = g_attrs['gidnumber'][0]
 
             context['has_upg'] = ldap.has_upg()
 
