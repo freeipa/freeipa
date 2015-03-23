@@ -166,11 +166,11 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                     'gidnumber', entry_attrs['gidnumber'][0], 'posixgroup',
                     [''], search_bases['group']
                 )
-                valid_gids.append(entry_attrs['gidnumber'][0])
+                valid_gids.add(entry_attrs['gidnumber'][0])
             except errors.NotFound:
                 api.log.warn('GID number %s of migrated user %s does not point to a known group.' \
                              % (entry_attrs['gidnumber'][0], pkey))
-                invalid_gids.append(entry_attrs['gidnumber'][0])
+                invalid_gids.add(entry_attrs['gidnumber'][0])
             except errors.SingleMatchExpected, e:
                 # GID number matched more groups, this should not happen
                 api.log.warn('GID number %s of migrated user %s should match 1 group, but it matched %d groups' \
@@ -765,8 +765,8 @@ can use their Kerberos accounts.''')
 
             context['has_upg'] = ldap.has_upg()
 
-            valid_gids = []
-            invalid_gids = []
+            valid_gids = set()
+            invalid_gids = set()
             migrate_cnt = 0
             context['migrate_cnt'] = 0
             for entry_attrs in entries:
