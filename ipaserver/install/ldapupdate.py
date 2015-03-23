@@ -868,10 +868,11 @@ class LDAPUpdate:
         updates is a dictionary containing the updates
         """
         self.modified = False
-        if not self.conn:
+        try:
             self.create_connection()
-
-        self._run_updates(updates)
+            self._run_updates(updates)
+        finally:
+            self.close_connection()
 
         return self.modified
 
