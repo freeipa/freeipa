@@ -36,11 +36,11 @@ import krbV
 import ldap
 
 from ipaserver.install import installutils
-from ipaserver.install.plugins.baseupdate import DSRestart
 from ipapython import ipautil, ipaldap
 from ipalib import errors
 from ipalib import api, create_api
 from ipaplatform.paths import paths
+from ipaplatform import services
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 from ipapython.ipautil import wait_for_open_socket
@@ -883,7 +883,7 @@ class LDAPUpdate:
             self.conn = None
 
     def restart_ds(self):
-        dsrestart = DSRestart()
-
-        dsrestart.create_instance()
+        dirsrv = services.knownservices.dirsrv
+        self.log.info('Restarting directory server to apply updates')
+        dirsrv.restart()
         wait_for_open_socket(self.socket_name)
