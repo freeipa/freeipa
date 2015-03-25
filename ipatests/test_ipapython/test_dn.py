@@ -129,9 +129,9 @@ class TestAVA(unittest.TestCase):
             with self.assertRaises(TypeError):
                 AVA_class()
 
-            # Create with more than 2 args should fail
+            # Create with more than 3 args should fail
             with self.assertRaises(TypeError):
-                AVA_class(self.attr1, self.value1, self.attr1)
+                AVA_class(self.attr1, self.value1, self.attr1, self.attr1)
 
             # Create with 1 arg which is not string should fail
             with self.assertRaises(TypeError):
@@ -164,11 +164,14 @@ class TestAVA(unittest.TestCase):
 
             self.assertEqual(ava1[self.attr1], self.value1)
 
+            self.assertEqual(ava1[0], self.attr1)
+            self.assertEqual(ava1[1], self.value1)
+
             with self.assertRaises(KeyError):
                 ava1['foo']
 
-            with self.assertRaises(TypeError):
-                ava1[0]
+            with self.assertRaises(KeyError):
+                ava1[3]
 
     def test_properties(self):
         for AVA_class in (AVA, EditableAVA):
@@ -1413,7 +1416,7 @@ class TestDN(unittest.TestCase):
             dn3 = DN_class(self.dn3)
 
             self.assertEqual(len(dn1), 1)
-            self.assertEqual(dn1[:], [self.rdn1])
+            self.assertEqual(dn1[:], self.rdn1)
             for i, ava in enumerate(dn1):
                 if i == 0:
                     self.assertEqual(ava, self.rdn1)
@@ -1421,7 +1424,7 @@ class TestDN(unittest.TestCase):
                     self.fail("got iteration index %d, but len=%d" % (i, len(self.rdn1)))
 
             self.assertEqual(len(dn2), 1)
-            self.assertEqual(dn2[:], [self.rdn2])
+            self.assertEqual(dn2[:], self.rdn2)
             for i, ava in enumerate(dn2):
                 if i == 0:
                     self.assertEqual(ava, self.rdn2)
@@ -1429,7 +1432,7 @@ class TestDN(unittest.TestCase):
                     self.fail("got iteration index %d, but len=%d" % (i, len(self.rdn2)))
 
             self.assertEqual(len(dn3), 2)
-            self.assertEqual(dn3[:], [self.rdn1, self.rdn2])
+            self.assertEqual(dn3[:], DN_class(self.rdn1, self.rdn2))
             for i, ava in enumerate(dn3):
                 if i == 0:
                     self.assertEqual(ava, self.rdn1)
