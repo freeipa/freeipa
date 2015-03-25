@@ -500,7 +500,7 @@ static int ipalockout_postop(Slapi_PBlock *pb)
             getPluginID());
 
     if (ldrc != LDAP_SUCCESS) {
-            LOG_FATAL("Failed to retrieve entry \"%s\": %d\n", dn, ldrc);
+            LOG_TRACE("Failed to retrieve entry \"%s\": %d\n", dn, ldrc);
             goto done;
     }
 
@@ -746,7 +746,7 @@ static int ipalockout_preop(Slapi_PBlock *pb)
             getPluginID());
 
     if (ldrc != LDAP_SUCCESS) {
-        LOG_FATAL("Failed to retrieve entry \"%s\": %d\n", dn, ldrc);
+        LOG_TRACE("Failed to retrieve entry \"%s\": %d\n", dn, ldrc);
         goto done;
     }
 
