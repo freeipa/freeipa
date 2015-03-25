@@ -61,7 +61,7 @@ class ldap2(LDAPClient, CrudBackend):
     LDAP Backend Take 2.
     """
 
-    def __init__(self, shared_instance=True, ldap_uri=None, base_dn=None,
+    def __init__(self, shared_instance=False, ldap_uri=None, base_dn=None,
                  schema=None):
         self.__ldap_uri = None
 
