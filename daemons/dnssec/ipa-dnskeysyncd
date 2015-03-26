@@ -56,7 +56,7 @@ signal.signal(signal.SIGTERM, commenceShutdown)
 signal.signal(signal.SIGINT, commenceShutdown)
 
 # IPA framework initialization
-api.bootstrap()
+api.bootstrap(in_server=True, log=None)  # no logging to file
 api.finalize()
 standard_logging_setup(verbose=True, debug=api.env.debug)
 log = root_logger

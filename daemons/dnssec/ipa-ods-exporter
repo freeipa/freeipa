@@ -393,7 +393,7 @@ if len(sys.argv) != 1:
     sys.exit(1)
 
 # IPA framework initialization
-ipalib.api.bootstrap()
+ipalib.api.bootstrap(in_server=True, log=None)  # no logging to file
 ipalib.api.finalize()
 
 # Kerberos initialization
