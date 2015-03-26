@@ -147,6 +147,8 @@ void idmap_cache_set_sid2unixid(const struct dom_sid *sid, struct unixid *unix_i
 #define LDAP_OBJ_KRB_PRINCIPAL_AUX "krbPrincipalAux"
 #define LDAP_OBJ_KRB_TICKET_POLICY_AUX "krbTicketPolicyAux"
 #define LDAP_ATTRIBUTE_KRB_PRINCIPAL "krbPrincipalName"
+#define LDAP_ATTRIBUTE_KRB_TICKET_FLAGS "krbTicketFlags"
+#define LDAP_ATTRIBUTE_IPAOPALLOW "ipaAllowedToPerform;read_keys"
 
 #define LDAP_OBJ_IPAOBJECT "ipaObject"
 #define LDAP_OBJ_IPAHOST "ipaHost"
@@ -157,8 +159,12 @@ void idmap_cache_set_sid2unixid(const struct dom_sid *sid, struct unixid *unix_i
 #define LDAP_OBJ_IPAUSERGROUP "ipaUserGroup"
 #define LDAP_OBJ_POSIXGROUP "posixGroup"
 #define LDAP_OBJ_DOMAINRELATED "domainRelatedObject"
+#define LDAP_OBJ_IPAOPALLOW "ipaAllowedOperations"
 
 #define LDAP_CN_REALM_DOMAINS "cn=Realm Domains,cn=ipa,cn=etc"
+
+#define LDAP_CN_ADTRUST_AGENTS "cn=adtrust agents,cn=sysaccounts,cn=etc"
+#define LDAP_CN_ADTRUST_ADMINS "cn=trust admins,cn=groups,cn=accounts"
 
 #define HAS_KRB_PRINCIPAL (1<<0)
 #define HAS_KRB_PRINCIPAL_AUX (1<<1)
@@ -170,6 +176,9 @@ void idmap_cache_set_sid2unixid(const struct dom_sid *sid, struct unixid *unix_i
 #define HAS_IPAUSERGROUP (1<<7)
 #define HAS_POSIXGROUP (1<<8)
 #define HAS_KRB_TICKET_POLICY_AUX (1<<9)
+
+/* krbTicketFlags flag to don't allow issuing any ticket, keep in decimal form for LDAP use*/
+#define IPASAM_DISALLOW_ALL_TIX 64
 
 const struct dom_sid global_sid_Builtin = { 1, 1, {0,0,0,0,0,5},
 					   {32,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
@@ -1677,11 +1686,16 @@ static bool search_krb_princ(struct ldapsam_privates *ldap_state,
 	return true;
 }
 
+#define KRB_PRINC_DEFAULT_ENCTYPES "aes256-cts-hmac-sha1-96,aes128-cts-hmac-sha1-96,arcfour-hmac"
+
 static int set_cross_realm_pw(struct ldapsam_privates *ldap_state,
 			      TALLOC_CTX *mem_ctx,
-			      const char *princ, const char *pwd,
+			      const char *princ,
+			      const char *saltprinc,
+			      const char *pwd,
 			      const char *base_dn)
 {
+
 	int ret;
 	krb5_error_code krberr;
 	krb5_context krbctx;
@@ -1699,14 +1713,14 @@ static int set_cross_realm_pw(struct ldapsam_privates *ldap_state,
 		goto done;
 	}
 
-	krberr = krb5_parse_name(krbctx, princ, &service_princ);
+	krberr = krb5_parse_name(krbctx, (saltprinc != NULL) ? saltprinc : princ, &service_princ);
 	if (krberr != 0) {
 		DEBUG(1, ("Invalid Service Principal Name [%s]\n", princ));
 		ret = krberr;
 		goto done;
 	}
 
-	ret = create_keys(krbctx, service_princ, discard_const(pwd), NULL,
+	ret = create_keys(krbctx, service_princ, discard_const(pwd), KRB_PRINC_DEFAULT_ENCTYPES,
                           &keys, &err_msg);
 	krb5_free_principal(krbctx, service_princ);
 	if (!ret) {
@@ -1748,10 +1762,16 @@ done:
 	return ret;
 }
 
+#define KRB_PRINC_CREATE_DEFAULT            0x00000000
+#define KRB_PRINC_CREATE_DISABLED           0x00000001
+#define KRB_PRINC_CREATE_AGENT_PERMISSION   0x00000002
+
 static bool set_krb_princ(struct ldapsam_privates *ldap_state,
 			  TALLOC_CTX *mem_ctx,
-			  const char *princ, const char *pwd,
-			  const char *base_dn)
+			  const char *princ, const char *saltprinc,
+			  const char *pwd,
+			  const char *base_dn,
+			  uint32_t   create_flags)
 {
 	LDAPMessage *entry = NULL;
 	LDAPMod **mods = NULL;
@@ -1805,6 +1825,33 @@ static bool set_krb_princ(struct ldapsam_privates *ldap_state,
 	smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
 			 LDAP_ATTRIBUTE_KRB_PRINCIPAL, princ);
 
+	if ((create_flags & KRB_PRINC_CREATE_DISABLED)) {
+		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+				LDAP_ATTRIBUTE_KRB_TICKET_FLAGS, __TALLOC_STRING_LINE2__(IPASAM_DISALLOW_ALL_TIX));
+	}
+
+	if ((create_flags & KRB_PRINC_CREATE_AGENT_PERMISSION)) {
+		char *agent_dn = NULL;
+		agent_dn = talloc_asprintf(mem_ctx, LDAP_CN_ADTRUST_AGENTS",%s", ldap_state->ipasam_privates->base_dn);
+		if (agent_dn == NULL) {
+			DEBUG(1, ("error configuring cross realm principal data!\n"));
+			return false;
+		}
+		smbldap_set_mod(&mods, LDAP_MOD_ADD,
+				LDAP_ATTRIBUTE_OBJECTCLASS,
+				LDAP_OBJ_IPAOPALLOW);
+		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+				LDAP_ATTRIBUTE_IPAOPALLOW, agent_dn);
+		agent_dn = talloc_asprintf(mem_ctx, LDAP_CN_ADTRUST_ADMINS",%s", ldap_state->ipasam_privates->base_dn);
+		if (agent_dn == NULL) {
+			DEBUG(1, ("error configuring cross realm principal data for trust admins!\n"));
+			return false;
+		}
+		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+				LDAP_ATTRIBUTE_IPAOPALLOW, agent_dn);
+	}
+
+
 	if (entry == NULL) {
 		ret = smbldap_add(ldap_state->smbldap_state, dn, mods);
 	} else {
@@ -1815,7 +1862,7 @@ static bool set_krb_princ(struct ldapsam_privates *ldap_state,
 		return false;
 	}
 
-	ret = set_cross_realm_pw(ldap_state, mem_ctx, princ, pwd, base_dn);
+	ret = set_cross_realm_pw(ldap_state, mem_ctx, princ, saltprinc, pwd, base_dn);
 	if (ret != 0) {
 		DEBUG(1, ("set_cross_realm_pw failed.\n"));
 		return false;
@@ -1858,11 +1905,14 @@ enum princ_mod {
 
 static bool handle_cross_realm_princs(struct ldapsam_privates *ldap_state,
 				      const char *domain, const char *pwd,
+				      uint32_t trust_direction,
 				      enum princ_mod mod)
 {
 	char *trusted_dn;
 	char *princ_l;
 	char *princ_r;
+	char *princ_tdo;
+	char *saltprinc_tdo;
 	char *remote_realm;
 	bool ok;
 	TALLOC_CTX *tmp_ctx;
@@ -1885,27 +1935,40 @@ static bool handle_cross_realm_princs(struct ldapsam_privates *ldap_state,
 	princ_r = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
 			ldap_state->ipasam_privates->realm, remote_realm);
 
-	if (trusted_dn == NULL || princ_l == NULL || princ_r == NULL) {
+	princ_tdo = talloc_asprintf(tmp_ctx, "%s$@%s",
+			ldap_state->ipasam_privates->flat_name, remote_realm);
+
+	saltprinc_tdo = talloc_asprintf(tmp_ctx, "krbtgt/%s@%s",
+			ldap_state->ipasam_privates->flat_name, remote_realm);
+
+	if (trusted_dn == NULL || princ_l == NULL ||
+	    princ_r == NULL || princ_tdo == NULL || saltprinc_tdo == NULL) {
 		ok = false;
 		goto done;
 	}
 
 	switch (mod) {
 		case SET_PRINC:
-			if (!set_krb_princ(ldap_state, tmp_ctx, princ_l, pwd,
-					   trusted_dn) ||
-			    !set_krb_princ(ldap_state, tmp_ctx, princ_r, pwd,
-					   trusted_dn)) {
-				ok = false;
+			/* Create Kerberos principal for inbound trust, enabled by default */
+			ok   = set_krb_princ(ldap_state, tmp_ctx, princ_r, NULL, pwd, trusted_dn, KRB_PRINC_CREATE_DEFAULT);
+			/* Create Kerberos principal corresponding to TDO in AD for SSSD usage, disabled by default */
+			ok |= set_krb_princ(ldap_state, tmp_ctx, princ_tdo, saltprinc_tdo, pwd, trusted_dn,
+					    KRB_PRINC_CREATE_DISABLED | KRB_PRINC_CREATE_AGENT_PERMISSION);
+			if ((trust_direction & LSA_TRUST_DIRECTION_OUTBOUND) != 0) {
+				/* Create Kerberos principal for outbound trust, enabled by default */
+				ok |= set_krb_princ(ldap_state, tmp_ctx, princ_l, NULL, pwd, trusted_dn, KRB_PRINC_CREATE_DEFAULT);
+			}
+			if (!ok) {
 				goto done;
 			}
 			break;
 		case DEL_PRINC:
-			if (!del_krb_princ(ldap_state, tmp_ctx, princ_l,
-					   trusted_dn) ||
-			    !del_krb_princ(ldap_state, tmp_ctx, princ_r,
-					   trusted_dn)) {
-				ok = false;
+			ok  = del_krb_princ(ldap_state, tmp_ctx, princ_r, trusted_dn);
+			ok |= del_krb_princ(ldap_state, tmp_ctx, princ_tdo, trusted_dn);
+			if ((trust_direction & LSA_TRUST_DIRECTION_OUTBOUND) != 0) {
+				ok |= del_krb_princ(ldap_state, tmp_ctx, princ_l, trusted_dn);
+			}
+			if (!ok) {
 				goto done;
 			}
 			break;
@@ -1922,15 +1985,16 @@ done:
 }
 
 static bool set_cross_realm_princs(struct ldapsam_privates *ldap_state,
-				   const char *domain, const char *pwd)
+				   const char *domain, const char *pwd, uint32_t trust_direction)
 {
-	return handle_cross_realm_princs(ldap_state, domain, pwd, SET_PRINC);
+	return handle_cross_realm_princs(ldap_state, domain, pwd, trust_direction, SET_PRINC);
 }
 
 static bool del_cross_realm_princs(struct ldapsam_privates *ldap_state,
 				   const char *domain)
 {
-	return handle_cross_realm_princs(ldap_state, domain, NULL, DEL_PRINC);
+	uint32_t trust_direction = LSA_TRUST_DIRECTION_INBOUND | LSA_TRUST_DIRECTION_OUTBOUND;
+	return handle_cross_realm_princs(ldap_state, domain, NULL, trust_direction, DEL_PRINC);
 }
 
 static bool get_trusted_domain_int(struct ldapsam_privates *ldap_state,
@@ -2518,7 +2582,7 @@ static NTSTATUS ipasam_set_trusted_domain(struct pdb_methods *methods,
 			goto done;
 		}
 		res = set_cross_realm_princs(ldap_state, td->domain_name,
-					     trustpw);
+					     trustpw, td->trust_direction);
 		memset(trustpw, 0, strlen(trustpw));
 		if (!res) {
 			DEBUG(1, ("error writing cross realm principals!\n"));
