@@ -130,7 +130,7 @@ def ldap2replica_zone_keys_sync(log, ldapkeydb, localhsm):
 
 
 # IPA framework initialization
-ipalib.api.bootstrap()
+ipalib.api.bootstrap(in_server=True, log=None)  # no logging to file
 ipalib.api.finalize()
 standard_logging_setup(verbose=True, debug = True)  # debug=ipalib.api.env.debug)
 log = root_logger
