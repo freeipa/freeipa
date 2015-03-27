@@ -152,7 +152,7 @@ class IPALinter(PyLinter):
             return
         super(IPALinter, self).register_checker(checker)
 
-    def add_message(self, msg_id, line=None, node=None, args=None):
+    def add_message(self, msg_id, line=None, node=None, args=None, confidence=None):
         if line is None and node is not None:
             line = node.fromlineno
 
@@ -244,6 +244,7 @@ def main():
                         '{path}:{line}: [{msg_id}({symbol}), {obj}] {msg})')
     linter.set_option('reports', False)
     linter.set_option('persistent', False)
+    linter.set_option('disable', 'python3')
 
     linter.check(files)
 

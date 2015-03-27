@@ -60,6 +60,7 @@ def convertDate(value):
 
     dt = dateutil.parser.parse(value)
 
+    # pylint: disable=E1101
     if dt.tzinfo is None:
         dt = datetime.datetime(*dt.timetuple()[0:6],
                                tzinfo=dateutil.tz.tzlocal())
