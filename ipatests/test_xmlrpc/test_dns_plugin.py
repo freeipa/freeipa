@@ -120,6 +120,51 @@ zone5_ns_dnsname = DNSName(zone5_ns)
 zone5_rname = u'root.%s' % zone5
 zone5_rname_dnsname = DNSName(zone5_rname)
 
+zone6b = u'zone6b.test'
+zone6b_absolute = u'%s.' % zone6b
+zone6b_dnsname = DNSName(zone6b)
+zone6b_absolute_dnsname = DNSName(zone6b_absolute)
+zone6b_dn = DN(('idnsname', zone6b), api.env.container_dns, api.env.basedn)
+zone6b_absolute_dn = DN(('idnsname', zone6b_absolute),
+                        api.env.container_dns, api.env.basedn)
+zone6b_rname = u'hostmaster'
+zone6b_rname_dnsname = DNSName(zone6b_rname)
+zone6b_ip = u'172.16.70.1'
+zone6b_ns_arec = u'ns'
+zone6b_ns = u'%s.%s' % (zone6b_ns_arec, zone6b_absolute)
+zone6b_ns_arec_dnsname = DNSName(zone6b_ns_arec)
+zone6b_ns_arec_dn = DN(('idnsname', zone6b_ns_arec), zone6b_dn)
+zone6b_ns_dnsname = DNSName(zone6b_ns)
+zone6b_absolute_arec_dn = DN(('idnsname', zone6b_ns_arec), zone6b_absolute_dn)
+
+zone6 = u'zone6.test'
+zone6_invalid = u'invalid-zone.zone6..test'
+zone6_absolute = u'%s.' % zone6
+zone6_dnsname = DNSName(zone6)
+zone6_absolute_dnsname = DNSName(zone6_absolute)
+zone6_dn = DN(('idnsname', zone6), api.env.container_dns, api.env.basedn)
+zone6_absolute_dn = DN(('idnsname', zone6_absolute),
+                       api.env.container_dns, api.env.basedn)
+zone6_ns_relative = u'ns1'
+zone6_absolute_arec_dn = DN(('idnsname', zone6_ns_relative), zone6_absolute_dn)
+zone6_ns = u'%s.%s' % (zone6_ns_relative, zone6_absolute)
+zone6_ns_relative_dnsname = DNSName(zone6_ns_relative)
+zone6_ns_dnsname = DNSName(zone6_ns)
+zone6_ns_arec_dnsname = DNSName(zone6_ns_relative)
+zone6_ns_invalid_dnsname = u'invalid name server! ..%s' % zone6_absolute
+zone6_rname = u'root.%s' % zone6_absolute
+zone6_rname_dnsname = DNSName(zone6_rname)
+zone6_rname_default = u'hostmaster'
+zone6_rname_default_dnsname = DNSName(zone6_rname_default)
+zone6_rname_relative_dnsname = DNSName(u'root')
+zone6_rname_absolute_dnsname = DNSName(u'root.%s' % zone6_absolute)
+zone6_rname_invalid_dnsname = u'invalid ! @ ! .. root..%s' % zone6_absolute
+zone6_unresolvable_ns_relative = u'unresolvable'
+zone6_unresolvable_ns = u'%s.%s' % (zone6_unresolvable_ns_relative,
+                                    zone6_absolute)
+zone6_unresolvable_ns_dnsname = DNSName(zone6_unresolvable_ns)
+zone6_unresolvable_ns_relative_dnsname = DNSName(zone6_unresolvable_ns_relative)
+
 revzone1 = u'31.16.172.in-addr.arpa.'
 revzone1_dnsname = DNSName(revzone1)
 revzone1_ip = u'172.16.31.0'
@@ -5129,4 +5174,716 @@ class test_forwardzone_delegation_warnings(Declarative):
             },
         ),
 
+    ]
+
+
+# https://fedorahosted.org/freeipa/ticket/4746
+# http://www.freeipa.org/page/V4/DNS:_Automatic_Zone_NS/SOA_Record_Maintenance
+class test_dns_soa(Declarative):
+
+    @classmethod
+    def setup_class(cls):
+        super(test_dns_soa, cls).setup_class()
+
+        if not api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.connect(fallback=False)
+
+        if not have_ldap2:
+            raise nose.SkipTest('server plugin not available')
+
+        if get_nameservers_error is not None:
+            raise nose.SkipTest('unable to get list of nameservers (%s)' %
+                                get_nameservers_error)
+        try:
+            api.Command['dnszone_add'](zone1,
+                                       idnssoarname=zone1_rname,)
+            api.Command['dnszone_del'](zone1)
+        except errors.NotFound:
+            raise nose.SkipTest('DNS is not configured')
+        except errors.DuplicateEntry:
+            pass
+
+    cleanup_commands = [
+        ('dnszone_del', [zone6, zone6b], {'continue': True}),
+    ]
+
+    tests = [
+
+        dict(
+            desc='Try to retrieve non-existent zone %r' % zone6,
+            command=('dnszone_show', [zone6], {}),
+            expected=errors.NotFound(
+                reason=u'%s: DNS zone not found' % zone6_absolute),
+            ),
+
+        dict(
+            desc='Create zone %r' % zone6b,
+            command=(
+                'dnszone_add', [zone6b], {
+                    'idnssoarname': zone6b_rname,
+                }
+            ),
+            expected={
+                'value': zone6b_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone6b_absolute_dn,
+                    'idnsname': [zone6b_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone6b_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+
+        dict(
+            desc='Add A record to %r in zone %r' % (zone6b_ns_arec, zone6b),
+            command=('dnsrecord_add',
+                     [zone6b, zone6b_ns],
+                     {'arecord': zone6b_ip}),
+            expected={
+                'value': zone6b_ns_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone6b_absolute_arec_dn,
+                    'idnsname': [zone6b_ns_arec_dnsname],
+                    'arecord': [zone6b_ip],
+                    'objectclass': objectclasses.dnsrecord,
+                },
+            },
+        ),
+
+        dict(
+            desc='Adding a zone - %r - just with zone name' % zone6,
+            command=('dnszone_add', [zone6], {}),
+            expected={
+                'value': zone6_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone6_absolute_dn,
+                    'idnsname': [zone6_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone6_rname_default_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+
+        dict(
+            desc='Updating a zone - %r - with relative '
+                 'admin\'s e-mail' %
+                 zone6,
+            command=(
+                'dnszone_mod', [zone6], {
+                    'idnssoarname': zone6_rname_relative_dnsname,
+                }
+            ),
+            expected={
+                'value': zone6_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [zone6_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone6_rname_relative_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Updating a zone - %r - with absolute '
+                 'admin\'s e-mail' %
+                 zone6,
+            command=(
+                'dnszone_mod', [zone6], {
+                    'idnssoarname': zone6_rname_absolute_dnsname,
+                }
+            ),
+            expected={
+                'value': zone6_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [zone6_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone6_rname_absolute_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Updating a zone - %r - with default admin\'s e-mail' % zone6,
+            command=(
+                'dnszone_mod', [zone6], {
+                    'idnssoarname': zone6_rname_default_dnsname,
+                }
+            ),
+            expected={
+                'value': zone6_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [zone6_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone6_rname_default_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                },
+            },
+        ),
+
+        dict(
+            desc='Updating a zone - %r - with name-server absolute' % zone6,
+            command=(
+                'dnszone_mod', [zone6], {
+                    'idnssoamname': zone6b_ns,
+                }
+            ),
+            expected={
+                'value': zone6_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [zone6_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [zone6b_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone6b_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                },
+                'messages': [{
+                    'message': u"Semantic of setting Authoritative nameserver "
+                               u"was changed. "
+                               u"It is used only for setting the SOA MNAME "
+                               u"attribute.\n"
+                               u"NS record(s) can be edited in zone "
+                               u"apex - '@'. ",
+                    'code': 13005,
+                    'type': u'warning',
+                    'name': u'OptionSemanticChangedWarning',
+                }],
+            },
+        ),
+
+        dict(
+            desc='Add A record to %r in zone %r' % (zone6_ns, zone6),
+            command=('dnsrecord_add',
+                     [zone6, zone6_ns],
+                     {'arecord': zone6b_ip}),
+            expected={
+                'value': zone6_ns_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone6_absolute_arec_dn,
+                    'idnsname': [zone6_ns_arec_dnsname],
+                    'arecord': [zone6b_ip],
+                    'objectclass': objectclasses.dnsrecord,
+                },
+            },
+        ),
+
+        dict(
+            desc='Updating a zone - %r - with name-server relative' % zone6,
+            command=(
+                'dnszone_mod', [zone6], {
+                    'idnssoamname': zone6_ns_relative,
+                }
+            ),
+            expected={
+                'value': zone6_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [zone6_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [zone6_ns_arec_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone6_rname_default_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                },
+                'messages': [{
+                    'message': u"Semantic of setting Authoritative nameserver "
+                               u"was changed. "
+                               u"It is used only for setting the SOA MNAME "
+                               u"attribute.\n"
+                               u"NS record(s) can be edited in zone "
+                               u"apex - '@'. ",
+                    'code': 13005,
+                    'type': u'warning',
+                    'name': u'OptionSemanticChangedWarning',
+                }],
+            },
+        ),
+
+        dict(
+            desc='Updating a zone - %r - with unresolvable name-server '
+                 'absolute with --force' %
+                 zone6,
+            command=(
+                'dnszone_mod', [zone6], {
+                    'idnssoamname': zone6_unresolvable_ns,
+                    'force': True,
+                }
+            ),
+            expected={
+                'value': zone6_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [zone6_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [zone6_unresolvable_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone6_rname_default_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                },
+                'messages': [{
+                    'message': u"Semantic of setting Authoritative nameserver "
+                               u"was changed. "
+                               u"It is used only for setting the SOA MNAME "
+                               u"attribute.\n"
+                               u"NS record(s) can be edited in zone "
+                               u"apex - '@'. ",
+                    'code': 13005,
+                    'type': u'warning',
+                    'name': u'OptionSemanticChangedWarning',
+                }],
+            },
+        ),
+
+        dict(
+            desc='Updating a zone - %r - with unresolvable name-server '
+                 'relative with --force' %
+                 zone6,
+            command=(
+                'dnszone_mod', [zone6], {
+                    'idnssoamname': zone6_unresolvable_ns_relative,
+                    'force': True,
+                }
+            ),
+            expected={
+                'value': zone6_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'idnsname': [zone6_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [zone6_unresolvable_ns_relative_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone6_rname_default_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                },
+                'messages': [{
+                    'message': u"Semantic of setting Authoritative nameserver "
+                               u"was changed. "
+                               u"It is used only for setting the SOA MNAME "
+                               u"attribute.\n"
+                               u"NS record(s) can be edited in zone "
+                               u"apex - '@'. ",
+                    'code': 13005,
+                    'type': u'warning',
+                    'name': u'OptionSemanticChangedWarning',
+                }],
+            },
+        ),
+
+        dict(
+            desc='Updating a zone - %r - with invalid s e-mail - %r' %
+                 (zone6, zone6_rname_invalid_dnsname),
+            command=(
+                'dnszone_mod', [zone6], {
+                    'idnssoarname': zone6_rname_invalid_dnsname,
+                }),
+            expected=errors.ConversionError(
+                name='admin_email',
+                error=u'empty DNS label'),
+        ),
+
+        dict(
+            desc='Updating a zone - %r - with invalid name-server - %r' %
+                 (zone6, zone6_ns_invalid_dnsname),
+            command=(
+                'dnszone_mod', [zone6], {
+                    'idnssoamname': zone6_ns_invalid_dnsname,
+                }),
+            expected=errors.ConversionError(
+                name='name_server',
+                error=u'empty DNS label'),
+        ),
+
+        dict(
+            desc='Updating a zone - %r - with unresolvable name-server - %r' %
+                 (zone6, zone6_unresolvable_ns),
+            command=(
+                'dnszone_mod', [zone6], {
+                    'idnssoamname': zone6_unresolvable_ns,
+                }),
+            expected=errors.NotFound(
+                reason=u"Nameserver '%s' does not have a corresponding "
+                       u"A/AAAA record" %
+                       zone6_unresolvable_ns_dnsname,),
+        ),
+
+        dict(
+            desc='Updating a zone - %r - with unresolvable relative '
+                 'name-server - %r' %
+                 (zone6, zone6_unresolvable_ns_relative),
+            command=(
+                'dnszone_mod', [zone6], {
+                    'idnssoamname': zone6_unresolvable_ns_relative,
+                }),
+            expected=errors.NotFound(
+                reason=u"Nameserver '%s' does not have a corresponding "
+                       u"A/AAAA record" %
+                       zone6_unresolvable_ns_dnsname,),
+        ),
+
+        dict(
+            desc='Updating a zone - %r - with empty name-server - %r' %
+                 (zone6, zone6_unresolvable_ns_relative),
+            command=(
+                'dnszone_mod', [zone6], {
+                    'idnssoamname': "",
+                }),
+            expected=errors.ValidationError(name='name_server',
+                                            error=u'is required'),
+        ),
+
+        dict(
+            desc='Deleting a zone - %r' % zone6,
+            command=('dnszone_del', [zone6], {}),
+            expected={
+                'value': [zone6_absolute_dnsname],
+                'summary': u'Deleted DNS zone "%s"' % zone6_absolute,
+                'result': {'failed': []},
+            },
+        ),
+
+        dict(
+            desc='Adding a zone - %r - with relative admin\'s e-mail' % zone6,
+            command=(
+                'dnszone_add', [zone6], {
+                    'idnssoarname': zone6_rname_relative_dnsname,
+                }
+            ),
+            expected={
+                'value': zone6_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone6_absolute_dn,
+                    'idnsname': [zone6_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone6_rname_relative_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+        dict(
+            desc='Deleting a zone - %r' % zone6,
+            command=('dnszone_del', [zone6], {}),
+            expected={
+                'value': [zone6_absolute_dnsname],
+                'summary': u'Deleted DNS zone "%s"' % zone6_absolute,
+                'result': {'failed': []},
+            },
+        ),
+
+        dict(
+            desc='Adding a zone - %r - with absolute admin\'s e-mail' % zone6,
+            command=(
+                'dnszone_add', [zone6], {
+                    'idnssoarname': zone6_rname_absolute_dnsname,
+                }
+            ),
+            expected={
+                'value': zone6_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone6_absolute_dn,
+                    'idnsname': [zone6_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [self_server_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone6_rname_absolute_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+            },
+        ),
+        dict(
+            desc='Deleting a zone - %r' % zone6,
+            command=('dnszone_del', [zone6], {}),
+            expected={
+                'value': [zone6_absolute_dnsname],
+                'summary': u'Deleted DNS zone "%s"' % zone6_absolute,
+                'result': {'failed': []},
+            },
+        ),
+
+        dict(
+            desc='Adding a zone - %r - with name-server %r' %
+                 (zone6, zone6_ns_dnsname),
+            command=(
+                'dnszone_add', [zone6], {
+                    'idnssoamname': zone6b_ns,
+                }),
+            expected={
+                'value': zone6_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone6_absolute_dn,
+                    'idnsname': [zone6_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [zone6b_ns_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone6b_rname_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+                'messages': [{
+                    'message': u"Semantic of setting Authoritative nameserver "
+                               u"was changed. "
+                               u"It is used only for setting the SOA MNAME "
+                               u"attribute.\n"
+                               u"NS record(s) can be edited in zone "
+                               u"apex - '@'. ",
+                    'code': 13005,
+                    'type': u'warning',
+                    'name': u'OptionSemanticChangedWarning',
+                }], },
+        ),
+        dict(
+            desc='Deleting a zone - %r' % zone6,
+            command=('dnszone_del', [zone6], {}),
+            expected={
+                'value': [zone6_absolute_dnsname],
+                'summary': u'Deleted DNS zone "%s"' % zone6_absolute,
+                'result': {'failed': []},
+            },
+        ),
+
+        dict(
+            desc='Adding a zone - %r - with unresolvable name-server '
+                 'relative with --force' %
+                 zone6,
+            command=(
+                'dnszone_add', [zone6], {
+                    'idnssoamname': zone6_unresolvable_ns_relative,
+                    'force': True,
+                }
+            ),
+            expected={
+                'value': zone6_absolute_dnsname,
+                'summary': None,
+                'result': {
+                    'dn': zone6_absolute_dn,
+                    'idnsname': [zone6_absolute_dnsname],
+                    'idnszoneactive': [u'TRUE'],
+                    'idnssoamname': [zone6_unresolvable_ns_relative_dnsname],
+                    'nsrecord': nameservers,
+                    'idnssoarname': [zone6_rname_default_dnsname],
+                    'idnssoaserial': [fuzzy_digits],
+                    'idnssoarefresh': [fuzzy_digits],
+                    'idnssoaretry': [fuzzy_digits],
+                    'idnssoaexpire': [fuzzy_digits],
+                    'idnssoaminimum': [fuzzy_digits],
+                    'idnsallowdynupdate': [u'FALSE'],
+                    'idnsupdatepolicy': [u'grant %(realm)s krb5-self * A; '
+                                         u'grant %(realm)s krb5-self * AAAA; '
+                                         u'grant %(realm)s krb5-self * SSHFP;'
+                                         % dict(realm=api.env.realm)],
+                    'idnsallowtransfer': [u'none;'],
+                    'idnsallowquery': [u'any;'],
+                    'objectclass': objectclasses.dnszone,
+                },
+                'messages': [{
+                    'message': u"Semantic of setting Authoritative nameserver "
+                               u"was changed. "
+                               u"It is used only for setting the SOA MNAME "
+                               u"attribute.\n"
+                               u"NS record(s) can be edited in zone "
+                               u"apex - '@'. ",
+                    'code': 13005,
+                    'type': u'warning',
+                    'name': u'OptionSemanticChangedWarning',
+                }],
+            },
+        ),
+        dict(
+            desc='Deleting a zone - %r' % zone6,
+            command=('dnszone_del', [zone6], {}),
+            expected={
+                'value': [zone6_absolute_dnsname],
+                'summary': u'Deleted DNS zone "%s"' % zone6_absolute,
+                'result': {'failed': []},
+            },
+        ),
+
+
+        dict(
+            desc='Adding zone with invalid zone name - %r' % zone6_invalid,
+            command=('dnszone_add', [zone6_invalid], {}),
+            expected=errors.ConversionError(
+                name='name',
+                error=u'empty DNS label'
+            ),
+        ),
+
+        dict(
+            desc='Adding a zone - %r - with invalid s e-mail - %r' %
+                 (zone6, zone6_rname_invalid_dnsname),
+            command=(
+                'dnszone_add', [zone6], {
+                    'idnssoarname': zone6_rname_invalid_dnsname,
+                }),
+            expected=errors.ConversionError(
+                name='admin_email',
+                error=u'empty DNS label'),
+        ),
+
+        dict(
+            desc='Adding a zone - %r - with invalid name-server - %r' %
+                 (zone6, zone6_ns_invalid_dnsname),
+            command=(
+                'dnszone_add', [zone6], {
+                    'idnssoamname': zone6_ns_invalid_dnsname,
+                }),
+            expected=errors.ConversionError(
+                name='name_server',
+                error=u'empty DNS label'),
+        ),
+
+        dict(
+            desc='Adding a zone - %r - with unresolvable name-server - %r' %
+                 (zone6, zone6_unresolvable_ns),
+            command=(
+                'dnszone_add', [zone6], {
+                    'idnssoamname': zone6_unresolvable_ns,
+                }),
+            expected=errors.NotFound(
+                reason=u"Nameserver '%s' does not have a corresponding "
+                       u"A/AAAA record" %
+                       zone6_unresolvable_ns_dnsname,),
+        ),
+
+        dict(
+            desc='Adding a zone - %r - with unresolvable '
+                 'relative name-server - %r' %
+                 (zone6,
+                  zone6_unresolvable_ns_relative),
+            command=(
+                'dnszone_add', [zone6], {
+                    'idnssoamname': zone6_unresolvable_ns_relative,
+                }),
+            expected=errors.NotFound(
+                reason=u"Nameserver '%s' does not have a corresponding "
+                       u"A/AAAA record" %
+                       zone6_unresolvable_ns_dnsname,),
+        ),
     ]
