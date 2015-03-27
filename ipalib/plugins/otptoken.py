@@ -547,6 +547,7 @@ class otptoken_sync(Local):
         query = urllib.urlencode(query)
 
         # Sync the token.
+        # pylint: disable=E1101
         handler = HTTPSHandler(ca_certs=os.path.join(self.api.env.confdir, 'ca.crt'),
                                cert_reqs=ssl.CERT_REQUIRED,
                                ssl_version=ssl.PROTOCOL_TLSv1)
