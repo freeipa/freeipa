@@ -2374,11 +2374,12 @@ def install(options, env, fstore, statestore):
         synced_ntp = False
         if ntp_servers:
             for s in ntp_servers:
-                synced_ntp = ipaclient.ntpconf.synconce_ntp(s)
+                synced_ntp = ipaclient.ntpconf.synconce_ntp(s, options.debug)
                 if synced_ntp:
                     break
         if not synced_ntp:
-            synced_ntp = ipaclient.ntpconf.synconce_ntp(cli_server[0])
+            synced_ntp = ipaclient.ntpconf.synconce_ntp(cli_server[0],
+                                                        options.debug)
         if not synced_ntp:
             root_logger.warning("Unable to sync time with IPA NTP " +
                 "server, assuming the time is in sync. Please check " +
