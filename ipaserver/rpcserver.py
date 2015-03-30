@@ -858,7 +858,7 @@ class login_kerberos(Backend, KerberosSession, HTTP_Status):
     def __call__(self, environ, start_response):
         self.debug('WSGI login_kerberos.__call__:')
 
-        # Get the ccache created by mod_auth_kerb
+        # Get the ccache created by mod_auth_gssapi
         user_ccache_name=environ.get('KRB5CCNAME')
         if user_ccache_name is None:
             return self.internal_error(environ, start_response,

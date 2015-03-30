@@ -484,7 +484,7 @@ improve authentication performance. First some definitions.
 There are 4 major players:
 
   1. client
-  2. mod_auth_kerb (in Apache process)
+  2. mod_auth_gssapi (in Apache process)
   3. wsgi handler (in IPA wsgi python process)
   4. ds (directory server)
 
@@ -506,12 +506,12 @@ This describes how things work in our current system for the web UI.
 
   2. Client sends post to /ipa/json.
 
-  3. mod_auth_kerb is configured to protect /ipa/json, replies 401
+  3. mod_auth_gssapi is configured to protect /ipa/json, replies 401
      authenticate negotiate.
 
   4. Client resends with credentials
 
-  5. mod_auth_kerb validates credentials
+  5. mod_auth_gssapi validates credentials
 
      a. if invalid replies 403 access denied (stops here)
 
@@ -550,7 +550,7 @@ A few notes about the session implementation.
 Changes to Apache's resource protection
 ---------------------------------------
 
-  * /ipa/json is no longer protected by mod_auth_kerb. This is
+  * /ipa/json is no longer protected by mod_auth_gssapi. This is
     necessary to avoid the negotiate expense in steps 3,4,5
     above. Instead the /ipa/json resource will be protected in our wsgi
     handler via the session cookie.
@@ -583,15 +583,15 @@ The new sequence is:
 
   5. client sends request to /ipa/login to obtain session credentials
 
-  6. mod_auth_kerb replies 401 negotiate on /ipa/login
+  6. mod_auth_gssapi replies 401 negotiate on /ipa/login
 
   7. client sends credentials to /ipa/login
 
-  8. mod_auth_kerb validates credentials
+  8. mod_auth_gssapi validates credentials
 
      a. if valid
 
-        - mod_auth_kerb permits access to /ipa/login. wsgi handler is
+        - mod_auth_gssapi permits access to /ipa/login. wsgi handler is
           invoked and does the following:
 
           * establishes session for client
@@ -600,7 +600,7 @@ The new sequence is:
 
      a. if invalid
 
-        - mod_auth_kerb sends 403 access denied (processing stops)
+        - mod_auth_gssapi sends 403 access denied (processing stops)
 
   9. client now posts the same data again to /ipa/json including
      session cookie. Processing repeats starting at step 2 and since
@@ -617,12 +617,12 @@ and xmlrpc API's are the same, they differ only on how their procedure
 calls are marshalled and unmarshalled.
 
 Under the new scheme /ipa/xml will continue to be Kerberos protected
-at all times. Apache's mod_auth_kerb will continue to require the
+at all times. Apache's mod_auth_gssapi will continue to require the
 client provides valid Kerberos credentials.
 
 When the WSGI handler routes to /ipa/xml the Kerberos credentials will
 be extracted from the KRB5CCNAME environment variable as provided by
-mod_auth_kerb. Everything else remains the same.
+mod_auth_gssapi. Everything else remains the same.
 
 '''
 

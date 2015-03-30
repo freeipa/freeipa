@@ -118,7 +118,7 @@ Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
 Requires: httpd >= 2.4.6-6
 Requires: mod_wsgi
-Requires: mod_auth_kerb >= 5.4-16
+Requires: mod_auth_gssapi >= 1.1.0-2
 Requires: mod_nss >= 1.0.8-26
 Requires: python-ldap >= 2.4.15
 Requires: python-krbV
@@ -463,6 +463,7 @@ install -m 0644 init/systemd/ipa.conf.tmpfiles %{buildroot}%{_tmpfilesdir}/%{nam
 mkdir -p %{buildroot}%{_localstatedir}/run/
 install -d -m 0700 %{buildroot}%{_localstatedir}/run/ipa_memcached/
 install -d -m 0700 %{buildroot}%{_localstatedir}/run/ipa/
+install -d -m 0700 %{buildroot}%{_localstatedir}/run/httpd/clientcaches
 
 mkdir -p %{buildroot}%{_libdir}/krb5/plugins/libkrb5
 touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
@@ -680,6 +681,7 @@ fi
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-ods-exporter
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
 %dir %attr(0700,root,root) %{_localstatedir}/run/ipa/
+%dir %attr(0700,apache,apache) %{_localstatedir}/run/httpd/clientcaches/
 # NOTE: systemd specific section
 %{_tmpfilesdir}/%{name}.conf
 %attr(644,root,root) %{_unitdir}/ipa.service
