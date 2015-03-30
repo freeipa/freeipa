@@ -137,7 +137,7 @@ def config_ntp(ntp_servers, fstore = None, sysstore = None):
     services.knownservices.ntpd.restart()
 
 
-def synconce_ntp(server_fqdn):
+def synconce_ntp(server_fqdn, debug=False):
     """
     Syncs time with specified server using ntpd.
     Primarily designed to be used before Kerberos setup
@@ -150,13 +150,16 @@ def synconce_ntp(server_fqdn):
         return False
 
     tmp_ntp_conf = ipautil.write_tmp_file('server %s' % server_fqdn)
+    args = [ntpd, '-qgc', tmp_ntp_conf.name]
+    if debug:
+        args.append('-d')
     try:
         # The ntpd command will never exit if it is unable to reach the
         # server, so timeout after 15 seconds.
         timeout = 15
         root_logger.info('Attempting to sync time using ntpd.  '
                          'Will timeout after %d seconds' % timeout)
-        ipautil.run([ntpd, '-qgc', tmp_ntp_conf.name], timeout=timeout)
+        ipautil.run(args, timeout=timeout)
         return True
     except ipautil.CalledProcessError:
         return False
