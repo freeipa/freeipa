@@ -86,7 +86,7 @@ BuildRequires:  libverto-devel
 BuildRequires:  systemd
 BuildRequires:  libunistring-devel
 BuildRequires:  python-lesscpy
-BuildRequires:  python-yubico
+BuildRequires:  python-yubico >= 1.2.3
 BuildRequires:  python-backports-ssl_match_hostname
 BuildRequires:  softhsm-devel >= 2.0.0b1-3
 BuildRequires:  openssl-devel
@@ -290,7 +290,7 @@ Requires: libipa_hbac-python
 Requires: python-qrcode-core >= 5.0.0
 Requires: python-pyasn1
 Requires: python-dateutil
-Requires: python-yubico
+Requires: python-yubico >= 1.2.3
 %if (0%{?fedora} >= 22)
 Requires: python-sss-murmur
 %endif
