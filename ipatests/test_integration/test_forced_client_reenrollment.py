@@ -19,6 +19,7 @@
 import os
 import subprocess
 from ipaplatform.paths import paths
+import pytest
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
@@ -44,15 +45,7 @@ class TestForcedClientReenrollment(IntegrationTest):
             'krb5.keytab'
         )
 
-    def setUp(self):
-        tasks.prepare_host(self.clients[0])
-        tasks.install_client(self.master, self.clients[0])
-
-    def tearDown(self):
-        tasks.uninstall_client(self.clients[0])
-        self.delete_client_host_entry()
-
-    def test_reenroll_with_force_join(self):
+    def test_reenroll_with_force_join(self, client):
         """
         Client re-enrollment using admin credentials (--force-join)
         """
@@ -63,7 +56,7 @@ class TestForcedClientReenrollment(IntegrationTest):
         sshfp_record_post = self.get_sshfp_record()
         assert sshfp_record_pre == sshfp_record_post
 
-    def test_reenroll_with_keytab(self):
+    def test_reenroll_with_keytab(self, client):
         """
         Client re-enrollment using keytab
         """
@@ -76,7 +69,7 @@ class TestForcedClientReenrollment(IntegrationTest):
         sshfp_record_post = self.get_sshfp_record()
         assert sshfp_record_pre == sshfp_record_post
 
-    def test_reenroll_with_both_force_join_and_keytab(self):
+    def test_reenroll_with_both_force_join_and_keytab(self, client):
         """
         Client re-enrollment using both --force-join and --keytab options
         """
@@ -89,7 +82,7 @@ class TestForcedClientReenrollment(IntegrationTest):
         sshfp_record_post = self.get_sshfp_record()
         assert sshfp_record_pre == sshfp_record_post
 
-    def test_reenroll_to_replica(self):
+    def test_reenroll_to_replica(self, client):
         """
         Client re-enrollment using keytab, to a replica
         """
@@ -102,7 +95,7 @@ class TestForcedClientReenrollment(IntegrationTest):
         sshfp_record_post = self.get_sshfp_record()
         assert sshfp_record_pre == sshfp_record_post
 
-    def test_try_to_reenroll_with_disabled_host(self):
+    def test_try_to_reenroll_with_disabled_host(self, client):
         """
         Client re-enrollment using keytab, with disabled host
         """
@@ -113,7 +106,7 @@ class TestForcedClientReenrollment(IntegrationTest):
         self.restore_keytab()
         self.reenroll_client(keytab=self.BACKUP_KEYTAB, expect_fail=True)
 
-    def test_try_to_reenroll_with_uninstalled_host(self):
+    def test_try_to_reenroll_with_uninstalled_host(self, client):
         """
         Client re-enrollment using keytab, with uninstalled host
         """
@@ -124,7 +117,7 @@ class TestForcedClientReenrollment(IntegrationTest):
         self.restore_keytab()
         self.reenroll_client(keytab=self.BACKUP_KEYTAB, expect_fail=True)
 
-    def test_try_to_reenroll_with_deleted_host(self):
+    def test_try_to_reenroll_with_deleted_host(self, client):
         """
         Client re-enrollment using keytab, with deleted host
         """
@@ -135,7 +128,7 @@ class TestForcedClientReenrollment(IntegrationTest):
         self.restore_keytab()
         self.reenroll_client(keytab=self.BACKUP_KEYTAB, expect_fail=True)
 
-    def test_try_to_reenroll_with_incorrect_keytab(self):
+    def test_try_to_reenroll_with_incorrect_keytab(self, client):
         """
         Client re-enrollment using keytab, with incorrect keytab file
         """
@@ -234,10 +227,11 @@ class TestForcedClientReenrollment(IntegrationTest):
             ['ipa', 'host-disable', self.clients[0].hostname]
         )
 
-    def delete_client_host_entry(self):
+    @classmethod
+    def delete_client_host_entry(cls):
         try:
-            self.master.run_command(
-                ['ipa', 'host-del', self.clients[0].hostname]
+            cls.master.run_command(
+                ['ipa', 'host-del', cls.clients[0].hostname]
             )
         except subprocess.CalledProcessError as e:
             if e.returncode != 2:
@@ -281,3 +275,14 @@ class TestForcedClientReenrollment(IntegrationTest):
         if not contents.startswith(nameserver):
             contents = nameserver + contents.replace(nameserver, '')
             client.put_file_contents(paths.RESOLV_CONF, contents)
+
+
+@pytest.fixture()
+def client(request):
+    tasks.prepare_host(request.cls.clients[0])
+    tasks.install_client(request.cls.master, request.cls.clients[0])
+
+    def teardown_client():
+        tasks.uninstall_client(request.cls.clients[0])
+        request.cls.delete_client_host_entry()
+    request.addfinalizer(teardown_client)
