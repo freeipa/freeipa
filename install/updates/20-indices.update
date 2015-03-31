@@ -27,7 +27,7 @@ default:nsSystemIndex: false
 only:nsIndexType: eq,pres,sub
 
 dn: cn=member,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-only:nsIndexType: eq,sub
+only:nsIndexType: eq,pres,sub
 
 dn: cn=uniquemember,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 only:nsIndexType: eq,sub

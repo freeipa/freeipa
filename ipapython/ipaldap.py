@@ -665,6 +665,8 @@ class LDAPClient(object):
     _SYNTAX_OVERRIDE = CIDict({
         'managedtemplate': DN,
         'managedbase':     DN,
+        'memberindirect':  DN,
+        'memberofindirect':DN,
         'originscope':     DN,
         'idnsname':        DNSName,
         'idnssoamname':    DNSName,

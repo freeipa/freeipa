@@ -296,7 +296,7 @@ class host(LDAPObject):
     default_attributes = [
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
         'nshardwareplatform', 'nsosversion', 'usercertificate', 'memberof',
-        'managedby', 'memberindirect', 'memberofindirect', 'macaddress',
+        'managedby', 'memberofindirect', 'macaddress',
         'userclass', 'ipaallowedtoperform', 'ipaassignedidview',
     ]
     uuid_attribute = 'ipauniqueid'

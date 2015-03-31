@@ -71,9 +71,11 @@ class role(LDAPObject):
     object_name_plural = _('roles')
     object_class = ['groupofnames', 'nestedgroup']
     permission_filter_objectclasses = ['groupofnames']
-    default_attributes = ['cn', 'description', 'member', 'memberof',
-        'memberindirect', 'memberofindirect',
-    ]
+    default_attributes = ['cn', 'description', 'member', 'memberof']
+    # Role could have a lot of indirect members, but they are not in
+    # attribute_members therefore they don't have to be in default_attributes
+    # 'memberindirect', 'memberofindirect',
+
     attribute_members = {
         'member': ['user', 'group', 'host', 'hostgroup', 'service'],
         'memberof': ['privilege'],

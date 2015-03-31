@@ -220,101 +220,11 @@ class ldap2(LDAPClient, CrudBackend):
         if size_limit is None:
             size_limit = _get_limits()['size']
 
-        has_memberindirect = False
-        has_memberofindirect = False
-        if attrs_list:
-            new_attrs_list = []
-            for attr_name in attrs_list:
-                if attr_name == 'memberindirect':
-                    has_memberindirect = True
-                elif attr_name == 'memberofindirect':
-                    has_memberofindirect = True
-                else:
-                    new_attrs_list.append(attr_name)
-            attrs_list = new_attrs_list
-
         res, truncated = super(ldap2, self).find_entries(
             filter=filter, attrs_list=attrs_list, base_dn=base_dn, scope=scope,
             time_limit=time_limit, size_limit=size_limit,
             search_refs=search_refs, paged_search=paged_search)
-
-        if has_memberindirect or has_memberofindirect:
-
-            # For the memberof searches, we want to apply the global limit
-            # if it's larger than the requested one, so decreasing limits on
-            # the individual query only affects the query itself.
-            # See https://fedorahosted.org/freeipa/ticket/4398
-            def _max_with_none(a, b):
-                """Maximum of a and b, treating None as infinity"""
-                if a is None or b is None:
-                    return None
-                else:
-                    return max(a, b)
-            time_limit = _max_with_none(time_limit, _get_limits()['time'])
-            size_limit = _max_with_none(size_limit, _get_limits()['size'])
-
-            for entry in res:
-                if has_memberindirect:
-                    self._process_memberindirect(
-                        entry, time_limit=time_limit, size_limit=size_limit)
-                if has_memberofindirect:
-                    self._process_memberofindirect(
-                        entry, time_limit=time_limit, size_limit=size_limit)
-
         return (res, truncated)
-
-    def _process_memberindirect(self, group_entry, time_limit=None,
-                                size_limit=None):
-        filter = self.make_filter({'memberof': group_entry.dn})
-        try:
-            result, truncated = self.find_entries(
-                base_dn=self.api.env.basedn,
-                filter=filter,
-                attrs_list=['member'],
-                time_limit=time_limit,
-                size_limit=size_limit,
-                paged_search=True)
-            if truncated:
-                raise errors.LimitsExceeded()
-        except errors.NotFound:
-            result = []
-
-        indirect = set()
-        for entry in result:
-            indirect.update(entry.get('member', []))
-        indirect.difference_update(group_entry.get('member', []))
-
-        if indirect:
-            group_entry['memberindirect'] = list(indirect)
-
-    def _process_memberofindirect(self, entry, time_limit=None,
-                                  size_limit=None):
-        dn = entry.dn
-        filter = self.make_filter(
-            {'member': dn, 'memberuser': dn, 'memberhost': dn})
-        try:
-            result, truncated = self.find_entries(
-                base_dn=self.api.env.basedn,
-                filter=filter,
-                attrs_list=[''],
-                time_limit=time_limit,
-                size_limit=size_limit)
-            if truncated:
-                raise errors.LimitsExceeded()
-        except errors.NotFound:
-            result = []
-
-        direct = set()
-        indirect = set(entry.get('memberof', []))
-        for group_entry in result:
-            dn = group_entry.dn
-            if dn in indirect:
-                indirect.remove(dn)
-                direct.add(dn)
-
-        entry['memberof'] = list(direct)
-        if indirect:
-            entry['memberofindirect'] = list(indirect)
 
     config_defaults = {'ipasearchtimelimit': [2], 'ipasearchrecordslimit': [0]}
     def get_ipa_config(self, attrs_list=None):

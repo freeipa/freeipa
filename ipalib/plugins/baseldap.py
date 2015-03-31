@@ -663,6 +663,67 @@ class LDAPObject(Object):
                         new_attr.append(new_value)
                         break
 
+    def get_indirect_members(self, entry_attrs, attrs_list):
+        if 'memberindirect' in attrs_list:
+            self.get_memberindirect(entry_attrs)
+        if 'memberofindirect' in attrs_list:
+            self.get_memberofindirect(entry_attrs)
+
+    def get_memberindirect(self, group_entry):
+        """
+        Get indirect members
+        """
+
+        mo_filter = self.backend.make_filter({'memberof': group_entry.dn})
+        filter = self.backend.combine_filters(
+            ('(member=*)', mo_filter), self.backend.MATCH_ALL)
+        try:
+            result, truncated = self.backend.find_entries(
+                base_dn=self.api.env.basedn,
+                filter=filter,
+                attrs_list=['member'],
+                size_limit=-1, # paged search will get everything anyway
+                paged_search=True)
+            if truncated:
+                raise errors.LimitsExceeded()
+        except errors.NotFound:
+            result = []
+
+        indirect = set()
+        for entry in result:
+            indirect.update(entry.raw.get('member', []))
+        indirect.difference_update(group_entry.raw.get('member', []))
+
+        if indirect:
+            group_entry.raw['memberindirect'] = list(indirect)
+
+    def get_memberofindirect(self, entry):
+
+        dn = entry.dn
+        filter = self.backend.make_filter(
+            {'member': dn, 'memberuser': dn, 'memberhost': dn})
+        try:
+            result, truncated = self.backend.find_entries(
+                base_dn=self.api.env.basedn,
+                filter=filter,
+                attrs_list=[''])
+            if truncated:
+                raise errors.LimitsExceeded()
+        except errors.NotFound:
+            result = []
+
+        direct = set()
+        indirect = set(entry.raw.get('memberof', []))
+        for group_entry in result:
+            dn = str(group_entry.dn)
+            if dn in indirect:
+                indirect.remove(dn)
+                direct.add(dn)
+
+        entry.raw['memberof'] = list(direct)
+        if indirect:
+            entry.raw['memberofindirect'] = list(indirect)
+
     def get_password_attributes(self, ldap, dn, entry_attrs):
         """
         Search on the entry to determine if it has a password or
@@ -1205,6 +1266,8 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
+        self.obj.get_indirect_members(entry_attrs, attrs_list)
+
         for callback in self.get_callbacks('post'):
             entry_attrs.dn = callback(
                 self, ldap, entry_attrs.dn, entry_attrs, *keys, **options)
@@ -1327,6 +1390,8 @@ class LDAPRetrieve(LDAPQuery):
             )
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
+
+        self.obj.get_indirect_members(entry_attrs, attrs_list)
 
         if options.get('rights', False) and options.get('all', False):
             entry_attrs['attributelevelrights'] = get_effective_rights(
@@ -1477,6 +1542,8 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             raise errors.MidairCollision(
                 format=_('the entry was deleted while being modified')
             )
+
+        self.obj.get_indirect_members(entry_attrs, attrs_list)
 
         if options.get('rights', False) and options.get('all', False):
             entry_attrs['attributelevelrights'] = get_effective_rights(
@@ -1712,6 +1779,8 @@ class LDAPAddMember(LDAPModMember):
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
 
+        self.obj.get_indirect_members(entry_attrs, attrs_list)
+
         for callback in self.get_callbacks('post'):
             (completed, entry_attrs.dn) = callback(
                 self, ldap, completed, failed, entry_attrs.dn, entry_attrs,
@@ -1813,6 +1882,8 @@ class LDAPRemoveMember(LDAPModMember):
             )
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
+
+        self.obj.get_indirect_members(entry_attrs, attrs_list)
 
         for callback in self.get_callbacks('post'):
             (completed, entry_attrs.dn) = callback(
@@ -2034,6 +2105,7 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
 
         if not options.get('raw', False):
             for e in entries:
+                self.obj.get_indirect_members(e, attrs_list)
                 self.obj.convert_attribute_members(e, *args, **options)
 
         for (i, e) in enumerate(entries):
