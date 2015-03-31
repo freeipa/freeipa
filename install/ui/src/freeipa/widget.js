@@ -37,6 +37,7 @@ define(['dojo/_base/array',
        './entity',
        './ipa',
        './jquery',
+       './metadata',
        './navigation',
        './phases',
        './reg',
@@ -45,8 +46,9 @@ define(['dojo/_base/array',
        './util',
        'exports'
        ],
-       function(array, lang, construct, Evented, has, keys, on, string, topic, builder, config,
-                datetime, entity_mod, IPA, $, navigation, phases, reg, rpc, text, util, exp) {
+       function(array, lang, construct, Evented, has, keys, on, string,
+                topic, builder, config, datetime, entity_mod, IPA, $,
+                metadata, navigation, phases, reg, rpc, text, util, exp) {
 
 /**
  * Widget module
@@ -4051,12 +4053,17 @@ IPA.entity_select_widget = function(spec) {
     that.filter_options = spec.filter_options || {};
 
     that.create_search_command = function(filter) {
-        return rpc.command({
+        var cmd  = rpc.command({
             entity: that.other_entity.name,
             method: 'find',
             args: [filter],
             options: that.filter_options
         });
+        var no_members = metadata.get('@mc-opt:' + cmd.get_command() + ':no_members');
+        if (no_members) {
+            cmd.set_option('no_members', true);
+        }
+        return cmd;
     };
 
     that.search = function(filter, on_success, on_error) {
