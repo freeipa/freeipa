@@ -20,7 +20,7 @@
 from ipalib import api, errors
 from ipalib import Updater
 from ipapython import ipautil
-from ipapython.dn import DN, EditableDN
+from ipapython.dn import DN
 
 def entry_to_update(entry):
     """
@@ -40,7 +40,19 @@ def entry_to_update(entry):
 
     return update
 
+
 class GenerateUpdateMixin(object):
+    def _dn_suffix_replace(self, dn, old_suffix, new_suffix):
+        """Replace all occurences of "old" AVAs in a DN by "new"
+
+        If the input DN doesn't end with old_suffix, log, an raise ValueError.
+        """
+        if not dn.endswith(old_suffix):
+            self.error("unable to replace suffix '%s' with '%s' in '%s'",
+                       old_suffix, new_suffix, dn)
+            raise ValueError('no replacement made')
+        return DN(*dn[:-len(old_suffix)]) + new_suffix
+
     def generate_update(self, deletes=False):
         """
         We need to separate the deletes that need to happen from the
@@ -81,13 +93,13 @@ class GenerateUpdateMixin(object):
                     pass
                 else:
                     # Compute the new dn by replacing the old container with the new container
-                    new_dn = EditableDN(entry.dn)
-                    if new_dn.replace(old_template_container, new_template_container) != 1:
-                        self.error("unable to replace '%s' with '%s' in '%s'",
-                                   old_template_container, new_template_container, entry.dn)
+                    try:
+                        new_dn = self._dn_suffix_replace(
+                            entry.dn,
+                            old_suffix=old_template_container,
+                            new_suffix=new_template_container)
+                    except ValueError:
                         continue
-
-                    new_dn = DN(new_dn)
 
                     # The old attributes become defaults for the new entry
                     new_update = {'dn': new_dn,
@@ -102,23 +114,23 @@ class GenerateUpdateMixin(object):
 
             else:
                 # Update the template dn by replacing the old containter with the new container
-                old_dn = entry['managedtemplate'][0]
-                new_dn = EditableDN(old_dn)
-                if new_dn.replace(old_template_container, new_template_container) != 1:
-                    self.error("unable to replace '%s' with '%s' in '%s'",
-                               old_template_container, new_template_container, old_dn)
+                try:
+                    new_dn = self._dn_suffix_replace(
+                        entry['managedtemplate'][0],
+                        old_suffix=old_template_container,
+                        new_suffix=new_template_container)
+                except ValueError:
                     continue
-                new_dn = DN(new_dn)
                 entry['managedtemplate'] = new_dn
 
-                # Edit the dn, then convert it back to an immutable DN
-                old_dn = entry.dn
-                new_dn = EditableDN(old_dn)
-                if new_dn.replace(old_definition_container, new_definition_container) != 1:
-                    self.error("unable to replace '%s' with '%s' in '%s'",
-                               old_definition_container, new_definition_container, old_dn)
+                # Update the entry dn similarly
+                try:
+                    new_dn = self._dn_suffix_replace(
+                        entry.dn,
+                        old_suffix=old_definition_container,
+                        new_suffix=new_definition_container)
+                except ValueError:
                     continue
-                new_dn = DN(new_dn)
 
                 # The old attributes become defaults for the new entry
                 new_update = {'dn': new_dn,
