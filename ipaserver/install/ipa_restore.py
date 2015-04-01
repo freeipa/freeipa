@@ -544,7 +544,13 @@ class Restore(admintool.AdminTool):
             self.log.info("Waiting for LDIF to finish")
             wait_for_task(conn, dn)
         else:
-            args = ['%s/ldif2db' % self.__find_scripts_dir(instance),
+            try:
+                os.makedirs(paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % instance)
+            except OSError as e:
+                pass
+
+            args = [paths.LDIF2DB,
+                    '-Z', instance,
                     '-i', ldiffile,
                     '-n', backend]
             (stdout, stderr, rc) = run(args, raiseonerr=False)
@@ -596,7 +602,8 @@ class Restore(admintool.AdminTool):
             self.log.info("Waiting for restore to finish")
             wait_for_task(conn, dn)
         else:
-            args = ['%s/bak2db' % self.__find_scripts_dir(instance),
+            args = [paths.BAK2DB,
+                    '-Z', instance,
                     os.path.join(self.dir, instance)]
             if backend is not None:
                 args.append('-n')

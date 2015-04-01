@@ -338,6 +338,10 @@ class BasePathNamespace(object):
     ALL_SLAPD_INSTANCE_SOCKETS = "/var/run/slapd-*.socket"
     ADMIN_CERT_PATH = '/root/.dogtag/pki-tomcat/ca_admin.cert'
     ENTROPY_AVAIL = '/proc/sys/kernel/random/entropy_avail'
+    LDIF2DB = '/usr/sbin/ldif2db'
+    DB2LDIF = '/usr/sbin/db2ldif'
+    BAK2DB = '/usr/sbin/bak2db'
+    DB2BAK = '/usr/sbin/db2bak'
 
 
 

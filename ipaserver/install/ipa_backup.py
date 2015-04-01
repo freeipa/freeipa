@@ -417,7 +417,8 @@ class Backup(admintool.AdminTool):
             self.log.info("Waiting for LDIF to finish")
             wait_for_task(conn, dn)
         else:
-            args = ['%s/db2ldif' % self.__find_scripts_dir(instance),
+            args = [paths.DB2LDIF,
+                    '-Z', instance,
                     '-r',
                     '-n', backend,
                     '-a', ldiffile]
@@ -464,7 +465,7 @@ class Backup(admintool.AdminTool):
             self.log.info("Waiting for BAK to finish")
             wait_for_task(conn, dn)
         else:
-            args = ['%s/db2bak' % self.__find_scripts_dir(instance), bakdir]
+            args = [paths.DB2BAK, bakdir, '-Z', instance]
             (stdout, stderr, rc) = run(args, raiseonerr=False)
             if rc != 0:
                 self.log.critical("db2bak failed: %s" % stderr)
