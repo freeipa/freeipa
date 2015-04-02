@@ -660,6 +660,7 @@ fi
 %{_sbindir}/ipa-replica-manage
 %{_sbindir}/ipa-csreplica-manage
 %{_sbindir}/ipa-server-certinstall
+%{_sbindir}/ipa-server-upgrade
 %{_sbindir}/ipa-ldap-updater
 %{_sbindir}/ipa-otptoken-import
 %{_sbindir}/ipa-compat-manage
@@ -804,6 +805,7 @@ fi
 %{_mandir}/man1/ipa-replica-prepare.1.gz
 %{_mandir}/man1/ipa-server-certinstall.1.gz
 %{_mandir}/man1/ipa-server-install.1.gz
+%{_mandir}/man1/ipa-server-upgrade.1.gz
 %{_mandir}/man1/ipa-dns-install.1.gz
 %{_mandir}/man1/ipa-ca-install.1.gz
 %{_mandir}/man1/ipa-kra-install.1.gz

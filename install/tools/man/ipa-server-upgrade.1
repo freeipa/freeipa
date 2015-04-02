@@ -1,0 +1,40 @@
+.\"
+.\" Copyright (C) 2015  FreeIPA Contributors see COPYING for license
+.\"
+
+.TH "ipa-server-upgrade" "1" "April 02 2015" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-server\-upgrade \- upgrade IPA server
+.SH "SYNOPSIS"
+ipa\-server\-upgrade [options]
+.SH "DESCRIPTION"
+ipa\-server\-upgrade is used to upgrade IPA server when the IPA packages are being updated. It is not intended to be executed by end\-users.
+
+ipa\-server\-upgrade will:
+
+    * update LDAP schema
+    * process all files with the extension .update in /usr/share/ipa/updates (including update plugins).
+    * upgrade local configurations of IPA services
+
+.SH "OPTIONS"
+.TP
+\fB\-\-version\fR
+Show IPA version
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show help message and exit
+.TP
+\fB\-v\fR, \fB\-\-verbose\fR
+Print debugging information
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Output only errors
+.TP
+\fB-\-log-file=FILE\fR
+Log to given file
+.TP
+
+.SH "EXIT STATUS"
+0 if the command was successful
+
+1 if an error occurred

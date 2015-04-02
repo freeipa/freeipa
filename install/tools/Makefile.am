@@ -16,6 +16,7 @@ sbin_SCRIPTS =			\
 	ipa-replica-manage	\
 	ipa-csreplica-manage	\
 	ipa-server-certinstall  \
+	ipa-server-upgrade	\
 	ipactl			\
 	ipa-compat-manage	\
 	ipa-nis-manage		\

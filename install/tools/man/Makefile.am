@@ -12,6 +12,7 @@ man1_MANS = 				\
 	ipa-replica-prepare.1		\
 	ipa-server-certinstall.1	\
 	ipa-server-install.1		\
+	ipa-server-upgrade.1		\
 	ipa-dns-install.1		\
 	ipa-adtrust-install.1		\
 	ipa-ca-install.1		\
