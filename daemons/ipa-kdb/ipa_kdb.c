@@ -56,6 +56,7 @@ static void ipadb_context_free(krb5_context kcontext,
             ldap_unbind_ext_s((*ctx)->lcontext, NULL, NULL);
         }
         free((*ctx)->supp_encs);
+        free((*ctx)->def_encs);
         ipadb_mspac_struct_free(&(*ctx)->mspac);
         krb5_free_default_realm(kcontext, (*ctx)->realm);
 
@@ -383,6 +384,43 @@ int ipadb_get_connection(struct ipadb_context *ipactx)
         goto done;
     }
 
+    /* defaults first, this is used to tell what default enc:salts to use
+     * for kadmin password changes */
+    vals = ldap_get_values_len(ipactx->lcontext, first,
+                               "krbDefaultEncSaltTypes");
+    if (!vals || !vals[0]) {
+        goto done;
+    }
+
+    for (c = 0; vals[c]; c++) /* count */ ;
+    cvals = calloc(c, sizeof(char *));
+    if (!cvals) {
+        ret = ENOMEM;
+        goto done;
+    }
+    for (i = 0; i < c; i++) {
+        cvals[i] = strndup(vals[i]->bv_val, vals[i]->bv_len);
+        if (!cvals[i]) {
+            ret = ENOMEM;
+            goto done;
+        }
+    }
+
+    ret = parse_bval_key_salt_tuples(ipactx->kcontext,
+                                     (const char * const *)cvals, c,
+                                     &kst, &n_kst);
+    if (ret) {
+        goto done;
+    }
+
+    if (ipactx->def_encs) {
+        free(ipactx->def_encs);
+    }
+    ipactx->def_encs = kst;
+    ipactx->n_def_encs = n_kst;
+
+    /* supported enc salt types, use to tell kadmin what to accept
+     * but also to detect if kadmin is requesting the default set */
     vals = ldap_get_values_len(ipactx->lcontext, first,
                                "krbSupportedEncSaltTypes");
     if (!vals || !vals[0]) {

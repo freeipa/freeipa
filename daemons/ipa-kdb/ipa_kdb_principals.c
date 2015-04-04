@@ -348,6 +348,83 @@ static enum ipadb_user_auth ipadb_get_user_auth(struct ipadb_context *ipactx,
     return ua;
 }
 
+#define OSA_ADB_PRINC_VERSION_1  0x12345C01
+/* The XDR encoding of OSA_PRINC_ENC is as follows:
+    version:        int (signed 32 bit integer)
+    name:           nullstring (null terminated variable string)
+    aux_attributes: long (signed 32 bit integer)
+    old_key_next:   u_int (unsigned 32 bit integer)
+    adm_hist_kvno:  u_char (unisgned char)
+    old_keys:       array of keys, we do not care so alway u_int of 0
+*/
+#define OSA_PRINC_ENC_BASE_SIZE 20
+
+static krb5_error_code ipadb_policydn_to_kdam_tl_data(const char *policydn,
+                                                      krb5_db_entry *entry)
+{
+    krb5_error_code kerr;
+    uint32_t tmp;
+    char *policy_name = NULL;
+    char *p;
+    uint8_t *buf = NULL;
+    size_t buf_len;
+    int slen;
+    int plen;
+    int cur;
+
+    /* policy objects must use cn as the RDN */
+    if (strncmp(policydn, "cn=", 3) != 0) {
+        return KRB5_KDB_INTERNAL_ERROR;
+    }
+
+    /* Should we try to consider the case where a ',' is part of the polict
+     * name ? */
+    policy_name = strdup(&policydn[3]);
+    if (!policy_name) {
+        kerr = ENOMEM;
+        goto done;
+    }
+    p = strchr(policy_name, ',');
+    if (p) *p = '\0';
+
+    /* Now we open code a basic KRB5_TL_KADM_DATA which is a XDR encoded
+     * structure in MIT code */
+
+    slen = strlen(policy_name) + 1;
+    /* A xdr varstring is preceeded by a 32bit len field and is always 32
+     * bit aligned */
+    plen = slen + 4;
+    plen = (((plen + 3) / 4) * 4);
+
+    buf_len = OSA_PRINC_ENC_BASE_SIZE + plen;
+    buf = calloc(1, buf_len);
+    if (!buf) {
+        kerr = ENOMEM;
+        goto done;
+    }
+
+    /* version */
+    cur = 0;
+    tmp = htobe32(OSA_ADB_PRINC_VERSION_1);
+    memcpy(&buf[cur], &tmp, 4);
+    cur += 4;
+
+    /* name */
+    tmp = htobe32(slen);
+    memcpy(&buf[cur], &tmp, 4);
+    memcpy(&buf[cur + 4], policy_name, slen);
+    cur += plen;
+
+    /* All the other fileds are left empty */
+
+    kerr = ipadb_set_tl_data(entry, KRB5_TL_KADM_DATA, buf_len, buf);
+
+done:
+    free(policy_name);
+    free(buf);
+    return kerr;
+}
+
 static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                               char *principal,
                                               LDAPMessage *lentry,
@@ -615,6 +692,9 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         goto done;
     }
     ied->pw_policy_dn = restring;
+
+    kerr = ipadb_policydn_to_kdam_tl_data(restring, entry);
+    if (kerr) goto done;
 
     ret = ipadb_ldap_attr_to_strlist(lcontext, lentry,
                                      "passwordHistory", &restrlist);

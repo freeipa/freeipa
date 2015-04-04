@@ -106,6 +106,8 @@ struct ipadb_context {
     bool override_restrictions;
     krb5_key_salt_tuple *supp_encs;
     int n_supp_encs;
+    krb5_key_salt_tuple *def_encs;
+    int n_def_encs;
     struct ipadb_mspac *mspac;
 
     /* Don't access this directly, use ipadb_get_global_config(). */
