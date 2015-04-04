@@ -81,4 +81,6 @@ int create_keys(krb5_context krbctx,
                 const char *enctypes_string,
                 struct keys_container *keys,
                 char **err_msg);
+
+int ipa_kstuples_to_string(krb5_key_salt_tuple *kst, int n_kst, char **str);
 #endif /* __IPA_KRB5_H_ */

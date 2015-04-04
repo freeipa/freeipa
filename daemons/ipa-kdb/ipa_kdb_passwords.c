@@ -159,6 +159,22 @@ krb5_error_code ipadb_change_pwd(krb5_context context,
     pwd.data = passwd;
     pwd.length = strlen(passwd);
 
+    /* detect if kadmin is just passing along the default set */
+    if (ks_tuple_count == ipactx->n_supp_encs) {
+        for (i = 0; i < ks_tuple_count; i++) {
+            if (ks_tuple[i].ks_enctype != ipactx->supp_encs[i].ks_enctype)
+                break;
+            if (ks_tuple[i].ks_salttype != ipactx->supp_encs[i].ks_salttype)
+                break;
+        }
+        if (i == ks_tuple_count) {
+            /* we got passed the default supported enctypes, replace with
+             * the actual default enctypes to use */
+            ks_tuple = ipactx->def_encs;
+            ks_tuple_count = ipactx->n_def_encs;
+        }
+    }
+
     /* We further filter supported enctypes to restrict to the list
      * we have in ldap */
     kerr = filter_key_salt_tuples(context, ks_tuple, ks_tuple_count,

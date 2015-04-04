@@ -1075,3 +1075,88 @@ int create_keys(krb5_context krbctx,
     return nkeys;
 }
 
+int ipa_kstuples_to_string(krb5_key_salt_tuple *kst, int n_kst, char **str)
+{
+    char *buf = NULL;
+    char *tmp;
+    int buf_avail;
+    int buf_size;
+    int buf_cur;
+    int len;
+    int ret = 0;
+    int i;
+
+    buf_size = 512; /* should be enough for the default supported enctypes */
+    buf = malloc(buf_size);
+    if (!buf) {
+        ret = ENOMEM;
+        goto done;
+    }
+
+    buf_cur = 0;
+    for (i = 0; i < n_kst; i++) {
+        /* grow if too tight */
+        if (ret == ENOMEM) {
+            buf_size *= 2;
+            /* hard limit at 8k, do not eat all memory by mistake */
+            if (buf_size > 8192) goto done;
+            tmp = realloc(buf, buf_size);
+            if (!tmp) {
+                ret = ENOMEM;
+                goto done;
+            }
+            buf = tmp;
+        }
+
+        buf_avail = buf_size - buf_cur;
+        len = 0;
+
+        /* append separator if necessary */
+        if (buf_cur > 0) {
+            buf[buf_cur] = ',';
+            len++;
+        }
+
+        ret = krb5_enctype_to_name(kst[i].ks_enctype, 0,
+                                   &buf[buf_cur + len], buf_avail - len);
+        if (ret == ENOMEM) {
+            i--;
+            continue;
+        } else if (ret != 0) {
+            goto done;
+        }
+
+        len += strlen(&buf[buf_cur + len]);
+        buf[buf_cur + len] = ':';
+        len++;
+
+        ret = krb5_salttype_to_string(kst[i].ks_salttype,
+                                     &buf[buf_cur + len], buf_avail - len);
+        if (ret == ENOMEM) {
+            i--;
+            continue;
+        } else if (ret != 0) {
+            goto done;
+        }
+
+        len += strlen(&buf[buf_cur + len]);
+
+        if (buf_avail - len < 2) {
+            ret = ENOMEM;
+            i--;
+            continue;
+        }
+
+        buf_cur += len;
+    }
+
+    buf[buf_cur] = '\0';
+    *str = buf;
+    ret = 0;
+
+done:
+    if (ret) {
+        free(buf);
+    }
+    return ret;
+}
