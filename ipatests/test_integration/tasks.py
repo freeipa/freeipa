@@ -231,7 +231,6 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False):
                                     'replica-info.gpg')
     replica.put_file_contents(replica_filename, replica_bundle)
     args = ['ipa-replica-install', '-U',
-            '--setup-ca',
             '-p', replica.config.dirman_password,
             '-w', replica.config.admin_password,
             '--ip-address', replica.ip,
