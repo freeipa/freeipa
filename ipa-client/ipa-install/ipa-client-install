@@ -2343,6 +2343,8 @@ def install(options, env, fstore, statestore):
             root_logger.warning("Unable to sync time with IPA NTP " +
                 "server, assuming the time is in sync. Please check " +
                 "that 123 UDP port is opened.")
+    else:
+        root_logger.info('Skipping synchronizing time with IPA NTP server.')
 
     if not options.unattended:
         if (options.principal is None and options.password is None and
