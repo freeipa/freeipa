@@ -34,7 +34,7 @@ import krbV
 import ldap as _ldap
 
 from ipapython.dn import DN
-from ipapython.ipaldap import SASL_GSSAPI, IPASimpleLDAPObject, LDAPClient
+from ipapython.ipaldap import SASL_GSSAPI, LDAPClient
 
 
 try:
@@ -471,11 +471,10 @@ class ldap2(LDAPClient, CrudBackend):
             pw = old_pass
             if (otp):
                 pw = old_pass+otp
-            with self.error_handler():
-                conn = IPASimpleLDAPObject(
-                    self.ldap_uri, force_schema_updates=False)
-                conn.simple_bind_s(dn, pw)
-                conn.unbind_s()
+
+            with LDAPClient(self.ldap_uri, force_schema_updates=False) as conn:
+                conn.simple_bind(dn, pw)
+                conn.unbind()
 
         with self.error_handler():
             self.conn.passwd_s(dn, old_pass, new_pass)
