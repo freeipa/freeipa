@@ -30,16 +30,7 @@ from argparse import ArgumentParser
 
 from ipalib import api
 from ipapython.dn import DN
-from ipapython.ipaldap import LDAPEntry, IPASimpleLDAPObject, LDAPClient
-
-
-class FakeLDAPClient(LDAPClient):
-    """A LDAP client that can't do any LDAP operations
-
-    Used to create and manipulate entries without an LDAP connection.
-    """
-    def _init_connection(self):
-        self.conn = IPASimpleLDAPObject('', False, no_schema=True)
+from ipapython.ipaldap import LDAPEntry, LDAPClient
 
 
 def parse_options():
@@ -57,7 +48,7 @@ def generate_aci_lines(api):
     """Yields ACI lines as they appear in ACI.txt, with trailing newline"""
     update_plugin = api.Updater['update_managed_permissions']
     perm_plugin = api.Object['permission']
-    fake_ldap = FakeLDAPClient('')
+    fake_ldap = LDAPClient('', force_schema_updates=False, no_schema=True)
     for name, template, obj in update_plugin.get_templates():
         dn = perm_plugin.get_dn(name)
         entry = fake_ldap.make_entry(dn)
