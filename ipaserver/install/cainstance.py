@@ -1643,13 +1643,14 @@ def replica_ca_install_check(config):
     objectclass = 'ipaObject'
     root_logger.debug('Checking if IPA schema is present in %s', ca_ldap_url)
     try:
-        connection = ldap2.IPASimpleLDAPObject(
-            ca_ldap_url, force_schema_updates=False)
-        connection.start_tls_s()
-        connection.simple_bind_s(DN(('cn', 'Directory Manager')),
-                                config.dirman_password)
-        rschema = connection.schema
-        result = rschema.get_obj(ldap.schema.models.ObjectClass, objectclass)
+        with ipaldap.LDAPClient(ca_ldap_url,
+                                start_tls=True,
+                                force_schema_updates=False) as connection:
+            connection.simple_bind(DN(('cn', 'Directory Manager')),
+                                   config.dirman_password)
+            rschema = connection.schema
+            result = rschema.get_obj(ldap.schema.models.ObjectClass,
+                                     objectclass)
     except Exception:
         root_logger.critical(
             'CA DS schema check failed. Make sure the PKI service on the '
