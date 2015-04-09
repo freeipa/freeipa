@@ -338,11 +338,11 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
                 continue
 
             if m.endswith(search_bases['user']):
-                api.log.info('migrating %s user %s' % (member_attr, m))
+                api.log.debug('migrating %s user %s', member_attr, m)
                 m = DN((api.Object.user.primary_key.name, rdnval),
                        api.env.container_user, api.env.basedn)
             elif m.endswith(search_bases['group']):
-                api.log.info('migrating %s group %s' % (member_attr, m))
+                api.log.debug('migrating %s group %s', member_attr, m)
                 m = DN((api.Object.group.primary_key.name, rdnval),
                        api.env.container_group, api.env.basedn)
             else:
