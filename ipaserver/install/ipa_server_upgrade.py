@@ -21,10 +21,20 @@ class ServerUpgrade(admintool.AdminTool):
 
     @classmethod
     def add_options(cls, parser):
-        super(ServerUpgrade, cls).add_options(parser, debug_option=True)
+        super(ServerUpgrade, cls).add_options(parser)
+        parser.add_option("--force", action="store_true",
+                          dest="force", default=False,
+                          help="force upgrade (alias for --skip-version-check)")
+        parser.add_option("--skip-version-check", action="store_true",
+                          dest="skip_version_check", default=False,
+                          help="skip version check. WARNING: this may break "
+                               "your system")
 
     def validate_options(self):
         super(ServerUpgrade, self).validate_options(needs_root=True)
+
+        if self.options.force:
+            self.options.skip_version_check = True
 
         try:
             installutils.check_server_configuration()
@@ -43,6 +53,24 @@ class ServerUpgrade(admintool.AdminTool):
 
         options = self.options
 
+        if not options.skip_version_check:
+            # check IPA version and data version
+            try:
+                installutils.check_version()
+            except (installutils.UpgradePlatformError,
+                    installutils.UpgradeDataNewerVersionError) as e:
+                raise admintool.ScriptError(
+                    'Unable to execute IPA upgrade: %s' % e, 1)
+            except installutils.UpgradeMissingVersionError as e:
+                self.log.info("Missing version: %s", e)
+            except installutils.UpgradeVersionError:
+                # Ignore other errors
+                pass
+        else:
+            self.log.info("Skipping version check")
+            self.log.warning("Upgrade without version check may break your "
+                             "system")
+
         realm = krbV.default_context().default_realm
         data_upgrade = IPAUpgrade(realm)
         data_upgrade.create_instance()
@@ -56,6 +84,9 @@ class ServerUpgrade(admintool.AdminTool):
             self.log.info('Data update complete')
         else:
             self.log.info('Data update complete, no data were modified')
+
+        # store new data version after upgrade
+        installutils.store_version()
 
         # FIXME: remove this when new installer will be ready
         # execute upgrade of configuration

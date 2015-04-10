@@ -90,16 +90,40 @@ def parse_options():
     parser.add_option("-d", "--debug", action="store_true", dest="debug",
                       help="Display debugging information")
     parser.add_option("-f", "--force", action="store_true", dest="force",
-                      help="If any service start fails, do not rollback the"
-                      + " services, continue with the operation")
+                      help="Force IPA to start. Combine options "
+                           "--skip-version-check and --ignore-service-failures")
+    parser.add_option("--ignore-service-failures", action="store_true",
+                      dest="ignore_service_failures",
+                      help="If any service start fails, do not rollback the "
+                           "services, continue with the operation")
+    parser.add_option("--skip-version-check", action="store_true",
+                      dest="skip_version_check", default=False,
+                      help="skip version check")
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
+
+    if options.force:
+        options.ignore_service_failures = True
+        options.skip_version_check = True
 
     return safe_options, options, args
 
 def emit_err(err):
     sys.stderr.write(err + '\n')
+
+
+def version_check():
+    try:
+        installutils.check_version()
+    except (installutils.UpgradeMissingVersionError,
+            installutils.UpgradeDataOlderVersionError):
+        emit_err("Upgrade required: please run ipa-server-upgrade command")
+        raise IpactlError("Aborting ipactl")
+    except installutils.UpgradeVersionError as e:
+        emit_err("IPA version error: %s" % e)
+        raise IpactlError("Aborting ipactl")
+
 
 def get_config(dirsrv):
     base = DN(('cn', api.env.host), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
@@ -217,6 +241,11 @@ def stop_dirsrv(dirsrv):
 
 def ipa_start(options):
 
+    if not options.skip_version_check:
+        version_check()
+    else:
+        print "Skipping version check"
+
     if os.path.isfile(tasks.get_svc_list_file()):
         emit_err("Existing service file detected!")
         emit_err("Assuming stale, cleaning and proceeding")
@@ -241,7 +270,7 @@ def ipa_start(options):
         emit_err("Failed to read data from service file: " + str(e))
         emit_err("Shutting down")
 
-        if not options.force:
+        if not options.ignore_service_failures:
             stop_dirsrv(dirsrv)
 
         if isinstance(e, IpactlError):
@@ -261,8 +290,9 @@ def ipa_start(options):
             svchandle.start(capture_output=get_capture_output(svc, options.debug))
         except Exception:
             emit_err("Failed to start %s Service" % svc)
-            #if force start specified, skip rollback and continue with the next service
-            if options.force:
+            # if ignore_service_failures is specified, skip rollback and
+            # continue with the next service
+            if options.ignore_service_failures:
                 emit_err("Forced start, ignoring %s Service, continuing normal operation" % svc)
                 continue
 
@@ -313,6 +343,11 @@ def ipa_stop(options):
 
 
 def ipa_restart(options):
+    if not options.skip_version_check:
+        version_check()
+    else:
+        print "Skipping version check"
+
     dirsrv = services.knownservices.dirsrv
     new_svc_list = []
     dirsrv_restart = True
@@ -379,7 +414,7 @@ def ipa_restart(options):
         emit_err("Failed to restart Directory Service: " + str(e))
         emit_err("Shutting down")
 
-        if not options.force:
+        if not options.ignore_service_failures:
             stop_services(reversed(svc_list))
             stop_dirsrv(dirsrv)
 
@@ -395,8 +430,9 @@ def ipa_restart(options):
                 svchandle.restart(capture_output=get_capture_output(svc, options.debug))
             except Exception:
                 emit_err("Failed to restart %s Service" % svc)
-                #if force start specified, skip rollback and continue with the next service
-                if options.force:
+                # if ignore_service_failures is specified,
+                # skip rollback and continue with the next service
+                if options.ignore_service_failures:
                     emit_err("Forced restart, ignoring %s Service, continuing normal operation" % svc)
                     continue
 
@@ -415,8 +451,9 @@ def ipa_restart(options):
                 svchandle.start(capture_output=get_capture_output(svc, options.debug))
             except Exception:
                 emit_err("Failed to start %s Service" % svc)
-                #if force start specified, skip rollback and continue with the next service
-                if options.force:
+                # if ignore_service_failures is specified, skip rollback and
+                # continue with the next service
+                if options.ignore_service_failures:
                     emit_err("Forced start, ignoring %s Service, continuing normal operation" % svc)
                     continue
 

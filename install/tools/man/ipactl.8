@@ -41,5 +41,11 @@ Stop then start all of the services that make up IPA
 \fB\-d\fR, \fB\-\-debug\fR
 Display debugging information
 .TP
-\fB\-f\fR, \fB\-\-force\fR
+\fB\-\-skip\-version\-check\fR
+Skip version check
+.TP
+\fB\-\-ignore\-service\-failures\fR
 If any service start fails, do not rollback the services, continue with the operation
+.TP
+\fB\-f\fR, \fB\-\-force\fR
+Force IPA to start. Combine options --skip-version-check and --ignore-service-failures

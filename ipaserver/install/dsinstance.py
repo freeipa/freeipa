@@ -511,6 +511,8 @@ class DsInstance(service.Service):
                                    sub_dict=self.sub_dict)
         files = ld.get_all_files(ldapupdate.UPDATES_DIR)
         ld.update(files)
+        installutils.store_version()
+
 
     def __add_referint_module(self):
         self._ldap_mod("referint-conf.ldif")

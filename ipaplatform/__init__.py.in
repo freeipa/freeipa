@@ -1,0 +1,12 @@
+#
+# Copyright (C) 2015  FreeIPA Contributors see COPYING for license
+#
+
+'''
+Module containing platform-specific functionality for every platform.
+'''
+
+NAME = "__PLATFORM__"
+
+# FIXME: too much cyclic dependencies
+# from __PLATFORM__ import paths, tasks, services

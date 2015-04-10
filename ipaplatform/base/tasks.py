@@ -24,6 +24,9 @@ This module contains default platform-specific implementations of system tasks.
 
 import pwd
 import grp
+
+from pkg_resources import parse_version
+
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import log_mgr
 from ipapython import ipautil
@@ -207,6 +210,13 @@ class BaseTaskNamespace(object):
                 raise
         else:
             log.debug('user %s exists', name)
+
+    def parse_ipa_version(self, version):
+        """
+        :param version: textual version
+        :return: object implementing proper __cmp__ method for version compare
+        """
+        return parse_version(version)
 
 
 task_namespace = BaseTaskNamespace()

@@ -157,6 +157,8 @@ version-update: release-update
 		> ipa-client/version.m4
 
 	if [ "$(SUPPORTED_PLATFORM)" != "" ]; then \
+		sed -e s/__PLATFORM__/$(SUPPORTED_PLATFORM)/ \
+			ipaplatform/__init__.py.in > ipaplatform/__init__.py; \
 		rm -f ipaplatform/paths.py ipaplatform/services.py ipaplatform/tasks.py; \
 		ln -s $(SUPPORTED_PLATFORM)/paths.py ipaplatform/paths.py; \
 		ln -s $(SUPPORTED_PLATFORM)/services.py ipaplatform/services.py; \

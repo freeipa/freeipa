@@ -35,6 +35,8 @@ from dns.exception import DNSException
 import ldap
 from nss.error import NSPRError
 
+import ipaplatform
+
 from ipapython import ipautil, sysrestore, admintool, dogtag, version
 from ipapython.admintool import ScriptError
 from ipapython.ipa_log_manager import root_logger, log_mgr
@@ -42,9 +44,10 @@ from ipalib.util import validate_hostname
 from ipapython import config
 from ipalib import errors, x509
 from ipapython.dn import DN
-from ipaserver.install import certs, service
+from ipaserver.install import certs, service, sysupgrade
 from ipaplatform import services
 from ipaplatform.paths import paths
+from ipaplatform.tasks import tasks
 
 # Used to determine install status
 IPA_MODULES = [
@@ -66,6 +69,27 @@ class HostReverseLookupError(HostLookupError):
 
 class HostnameLocalhost(HostLookupError):
     pass
+
+
+class UpgradeVersionError(Exception):
+    pass
+
+
+class UpgradePlatformError(UpgradeVersionError):
+    pass
+
+
+class UpgradeDataOlderVersionError(UpgradeVersionError):
+    pass
+
+
+class UpgradeDataNewerVersionError(UpgradeVersionError):
+    pass
+
+
+class UpgradeMissingVersionError(UpgradeVersionError):
+    pass
+
 
 class ReplicaConfig:
     def __init__(self, top_dir=None):
@@ -1037,3 +1061,47 @@ def load_external_cert(files, subject_base):
     ca_file.flush()
 
     return cert_file, ca_file
+
+
+def store_version():
+    """Store current data version and platform. This is required for check if
+    upgrade is required.
+    """
+    sysupgrade.set_upgrade_state('ipa', 'data_version',
+                                 version.VENDOR_VERSION)
+    sysupgrade.set_upgrade_state('ipa', 'platform', ipaplatform.NAME)
+
+
+def check_version():
+    """
+    :raise UpgradePlatformError: if platform is not the same
+    :raise UpgradeDataOlderVersionError: if data needs to be upgraded
+    :raise UpgradeDataNewerVersionError: older version of IPA was detected than data
+    :raise UpgradeMissingVersionError: if platform or version is missing
+    """
+    platform = sysupgrade.get_upgrade_state('ipa', 'platform')
+    if platform is not None:
+        if platform != ipaplatform.NAME:
+            raise UpgradePlatformError(
+                "platform mismatch (expected '%s', current '%s')" % (
+                platform, ipaplatform.NAME)
+            )
+    else:
+        raise UpgradeMissingVersionError("no platform stored")
+
+    data_version = sysupgrade.get_upgrade_state('ipa', 'data_version')
+    if data_version is not None:
+        parsed_data_ver = tasks.parse_ipa_version(data_version)
+        parsed_ipa_ver = tasks.parse_ipa_version(version.VENDOR_VERSION)
+        if parsed_data_ver < parsed_ipa_ver:
+            raise UpgradeDataOlderVersionError(
+                "data needs to be upgraded (expected version '%s', current "
+                "version '%s')" % (version.VENDOR_VERSION, data_version)
+            )
+        elif parsed_data_ver > parsed_ipa_ver:
+            raise UpgradeDataNewerVersionError(
+                "data are in newer version than IPA (data version '%s', IPA "
+                "version '%s')" % (data_version, version.VENDOR_VERSION)
+            )
+    else:
+        raise UpgradeMissingVersionError("no data_version stored")
