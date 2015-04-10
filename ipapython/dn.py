@@ -387,14 +387,6 @@ if container_dn in dn:
 # the respective components of each are pair-wise compared until one
 # is discovered to be  non-equal. The comparison is case insensitive.
 
-Cloning (Object Copy):
-
-All the class types are capable of cloning by passing an object of the
-same type (or subclass) to the constructor. The new object is a copy
-of the object passed as input to the constructor. One place this is
-useful is when you want to coerce between immutable and mutable
-versions in order to modify an object.
-
 Concatenation, In-Place Addition, Insertion:
 
 # DN's and RDN's can be concatenated.
@@ -414,63 +406,15 @@ dn1.insert(0, RDN('cn', 'Bob'))
 Finally see the unittest for a more complete set of ways you can
 manipulate these objects.
 
-Mutability
-----------
+Immutability
+------------
 
-Python makes a clear distinction between mutable and immutable
-objects. Examples of immutable Python objects are strings, integers
-and floats. Examples of mutable Python objects are lists, dicts, and
-sets. Immutable objects cannot be modified, mutable objects can be
-modified. An object's mutability affects how the object behaves when
-passed to a function or method, this is because it's the object's
-reference which is always passed, thus immutable objects behave as if
-it were "call by value" and mutable objects behave as if it were "call
-by reference" (mutable objects can be modifed inside the
-function/method and that modification will be visible to the
-caller. On object's mutability also affects how an object will behave
-when used as a key in a dict or as a member of a set.
+All the class types are immutable.
+As with other immutable types (such as str and int), you must not rely on
+the object identity operator ("is") for comparisons.
 
-The following discussion applies equally to AVA, RDN and DN object
-class variants.
-
-The AVA, RDN and DN classes have both immutable and mutable
-variants. The base classes (AVA, RDN, DN) are immutable. Each of the
-immutable base classes have a mutable subclass whose name begins with
-'Editable'. Thus the DN class is immutable, instances of that class
-cannot be modified, there is a mutable class EditableDN derived from
-DN whose instances can be modified. The primary difference between the
-immutable and mutable variants is:
-
-* Immutable variants are preferred.
-
-* Mutable variants are exactly identical in behavior to their
-  immutable parent class (except for supporting assignment, etc.)
-
-* Immutable objects that test as equal will be the same as dict keys
-  and set members even if they are different objects. Mutable variants
-  are not hashable and thus cannot be used as a dict key nor inserted
-  into a set.
-
-* Only mutable variants support modification via assignment, insert or
-  in-place addition (e.g. +=).
-
-* In-place addtion (e.g. +=) works for both immutable and mutable
-  variants. The distinction is for immutable objects the lhs is
-  replaced with a new immutable result while a mutable object will be
-  modfied in place and lhs object remains the same object.
-
-It is trival to coerce between an mutable and immutable AVA, RDN and
-DN types. These classes can clone their objects by passing an object
-of the same type to the constructor. For example:
-
-  dn1 = DN(('cn', 'Bob')) # dn1 is immutable
-  dn2 = EditableDN(dn1)   # dn2 is mutable copy of dn1,
-                          # equal to dn1 until it's modified
-
-  and visa-versa
-
-  dn1 = EditableDN(('cn', 'Bob')) # dn1 is mutable
-  dn2 = DN(dn1)                   # dn2 is immutable copy of dn1, equal to dn1
+It is possible to "copy" an object by passing an object of the same type
+to the constructor. The result may share underlying structure.
 
 '''
 
@@ -478,7 +422,7 @@ from ldap.dn import str2dn, dn2str
 from ldap import DECODING_ERROR
 import sys
 
-__all__ = ['AVA', 'EditableAVA', 'RDN', 'EditableRDN', 'DN', 'EditableDN']
+__all__ = 'AVA', 'RDN', 'DN'
 
 def _adjust_indices(start, end, length):
     'helper to fixup start/end slice values'
@@ -516,7 +460,7 @@ def str2rdn(value):
     return rdns[0]
 
 
-def get_ava(*args, **kwds):
+def get_ava(*args):
     """
     Get AVA from args in open ldap format(raw). Optimized for construction
     from openldap format.
@@ -535,10 +479,7 @@ def get_ava(*args, **kwds):
     ava = None
     l = len(args)
     if l == 3:  # raw values - constructed FROM RDN
-        if kwds.get('mutable', False):
-            ava = args
-        else:
-            ava = (args[0], args[1], args[2])
+        ava = args
     elif l == 2:  # user defined values
         ava = [_normalize_ava_input(args[0]), _normalize_ava_input(args[1]), 0]
     elif l == 1:  # slow mode, tuple, string,
@@ -642,10 +583,8 @@ class AVA(object):
     The str method of an AVA returns the string representation in RFC 4514 DN
     syntax with proper escaping.
     '''
-    is_mutable = False
-
-    def __init__(self, *args, **kwds):
-        self._ava = get_ava(*args, **{'mutable': self.is_mutable})
+    def __init__(self, *args):
+        self._ava = get_ava(*args)
 
     def _get_attr(self):
         return self._ava[0].decode('utf-8')
@@ -690,7 +629,7 @@ class AVA(object):
             raise KeyError("\"%s\" not found in %s" % (key, self.__str__()))
 
     def __hash__(self):
-        # Hash is computed from AVA's string representation because it's immutable.
+        # Hash is computed from AVA's string representation.
         #
         # Because attrs & values are comparison case-insensitive the
         # hash value between two objects which compare as equal but
@@ -736,24 +675,6 @@ class AVA(object):
             raise TypeError("expected AVA but got %s" % (other.__class__.__name__))
 
         return cmp_avas(self._ava, other._ava)
-
-class EditableAVA(AVA):
-    '''
-    Exactly identical to the AVA class except
-
-    * Hash value is based on object identity, not object
-      value. Objects that test as equal will be non-unique when
-      used as a dict key or member of a set.
-
-    * The attr and value properties may be modified after object creation.
-
-    '''
-    is_mutable = True
-    __hash__ = None
-
-    attr  = property(AVA._get_attr, AVA._set_attr)
-    value = property(AVA._get_value, AVA._set_value)
-
 
 
 class RDN(object):
@@ -862,7 +783,6 @@ class RDN(object):
     syntax with proper escaping.
     '''
 
-    is_mutable = False
     AVA_type = AVA
 
     def __init__(self, *args, **kwds):
@@ -874,14 +794,7 @@ class RDN(object):
         ava_count = len(args)
 
         if raw:  # fast raw mode
-            try:
-                if self.is_mutable:
-                    avas = args
-                else:
-                    for arg in args:
-                        avas.append((arg[0], arg[1], arg[2]))
-            except KeyError as e:
-                raise TypeError('all AVA values in RAW mode must be in open ldap format')
+            avas = args
         elif ava_count == 1 and isinstance(args[0], basestring):
             avas = str2rdn(args[0])
             sort = 1
@@ -957,7 +870,7 @@ class RDN(object):
     value = property(_get_value)
 
     def __hash__(self):
-        # Hash is computed from RDN's string representation because it's immutable
+        # Hash is computed from RDN's string representation.
         #
         # Because attrs & values are comparison case-insensitive the
         # hash value between two objects which compare as equal but
@@ -1007,69 +920,6 @@ class RDN(object):
         sort_avas(result._avas)
         return result
 
-class EditableRDN(RDN):
-    '''
-    Exactly identical to the RDN class except
-
-    * Hash value is based on object identity, not object
-      value. Objects that test as equal will be non-unique when
-      used as a dict key or member of a set.
-
-    * AVA components may be assigned via assignment statements.
-
-    * In-place addition modifes the lhs object.
-
-    * The attr and value properties may be modified after object creation.
-    '''
-
-    is_mutable = True
-    __hash__ = None
-    AVA_type = EditableAVA
-
-    def __setitem__(self, key, value):
-
-        if isinstance(key, (int, long)):
-            self._avas[key] = get_ava(value)
-        elif isinstance(key, slice):
-            avas = self._avas_from_sequence(value)
-            self._avas[key] = avas
-        elif isinstance(key, basestring):
-            if isinstance(value, list):
-                raise TypeError("cannot assign multiple AVA's to single entry")
-            new_ava = get_ava(value)
-            found = False
-            i = 0
-            while i < len(self._avas):
-                if key == self._avas[i][0].decode('utf-8'):
-                    found = True
-                    self._avas[i] = new_ava
-                    break
-                i += 1
-            if not found:
-                raise KeyError("\"%s\" not found in %s" % (key, self.__str__()))
-        else:
-            raise TypeError("unsupported type for RDN indexing, must be int, basestring or slice; not %s" % \
-                                (key.__class__.__name__))
-        sort_avas(self._avas)
-
-    attr  = property(RDN._get_attr, RDN._set_attr)
-    value = property(RDN._get_value, RDN._set_value)
-
-
-    def __iadd__(self, other):
-        # If __iadd__ is not available Python will emulate += by
-        # replacing the lhs object with the result of __add__ (if available).
-        if isinstance(other, RDN):
-            self._avas.extend(other.to_openldap())
-        elif isinstance(other, AVA):
-            self._avas.append(other.to_openldap())
-        elif isinstance(other, basestring):
-            self._avas.extend(self._avas_from_sequence([other]))
-        else:
-            raise TypeError("expected RDN, AVA or basestring but got %s" % (other.__class__.__name__))
-
-        sort_avas(self._avas)
-        return self
 
 class DN(object):
     '''
@@ -1218,7 +1068,6 @@ class DN(object):
     syntax with proper escaping.
     '''
 
-    is_mutable = False
     AVA_type = AVA
     RDN_type = RDN
 
@@ -1236,8 +1085,6 @@ class DN(object):
                 if isinstance(value, unicode):
                     value = value.encode('utf-8')
                 rdns = str2dn(value)
-                if self.is_mutable:
-                    self._copy_rdns(rdns)  # AVAs to be list instead of tuple
             except DECODING_ERROR:
                 raise ValueError("malformed RDN string = \"%s\"" % value)
             for rdn in rdns:
@@ -1263,11 +1110,6 @@ class DN(object):
         return rdns
 
     def __deepcopy__(self, memo):
-        if self.is_mutable:
-            cls = self.__class__
-            clone = cls.__new__(cls)
-            clone.rdns = self._copy_rdns()
-            return clone
         return self
 
     def _get_rdn(self, rdn):
@@ -1301,8 +1143,6 @@ class DN(object):
             cls = self.__class__
             new_dn = cls.__new__(cls)
             new_dn.rdns = self.rdns[key]
-            if self.is_mutable:
-                new_dn.rdns = self._copy_rdns(new_dn.rdns)
             return new_dn
         elif isinstance(key, basestring):
             for rdn in self.rdns:
@@ -1315,7 +1155,7 @@ class DN(object):
                                 (key.__class__.__name__))
 
     def __hash__(self):
-        # Hash is computed from DN's string representation because it's immutable
+        # Hash is computed from DN's string representation.
         #
         # Because attrs & values are comparison case-insensitive the
         # hash value between two objects which compare as equal but
@@ -1542,114 +1382,3 @@ class DN(object):
         if i == -1:
             raise ValueError("pattern not found")
         return i
-
-class EditableDN(DN):
-    '''
-    Exactly identical to the DN class except
-
-    * Hash value is based on object identity, not object
-      value. Objects that test as equal will be non-unique when
-      used as a dict key or member of a set.
-
-    * RDN components may be assigned via assignment statements.
-
-    * RDN components may be inserted.
-
-    * In-place addition modifes the lhs object.
-
-    '''
-
-    is_mutable = True
-    __hash__ = None
-    AVA_type = EditableAVA
-    RDN_type = EditableRDN
-
-    def __setitem__(self, key, value):
-        if isinstance(key, (int, long)):
-            new_rdns = self._rdns_from_value(value)
-            if len(new_rdns) > 1:
-                raise TypeError("cannot assign multiple RDN's to single entry")
-            self.rdns[key] = new_rdns[0]
-        elif isinstance(key, slice):
-            rdns = self._rdns_from_sequence(value)
-            self.rdns[key] = rdns
-        elif isinstance(key, basestring):
-            new_rdns = self._rdns_from_value(value)
-            if len(new_rdns) > 1:
-                raise TypeError("cannot assign multiple values to single entry")
-            found = False
-            i = 0
-            while i < len(self.rdns):
-                if key == self.rdns[i][0][0].decode('utf-8'):
-                    found = True
-                    self.rdns[i] = new_rdns[0]
-                    break
-                i += 1
-            if not found:
-                raise KeyError("\"%s\" not found in %s" % (key, self.__str__()))
-        else:
-            raise TypeError("unsupported type for DN indexing, must be int, basestring or slice; not %s" % \
-                                (key.__class__.__name__))
-
-    def __iadd__(self, other):
-        # If __iadd__ is not available Python will emulate += by
-        # replacing the lhs object with the result of __add__ (if available).
-        if isinstance(other, DN):
-            self.rdns.extend(other._copy_rdns())
-        elif isinstance(other, RDN):
-            self.rdns.append(other.to_openldap())
-        elif isinstance(other, basestring):
-            dn = self.__class__(other)
-            self.__iadd__(dn)
-        else:
-            raise TypeError("expected DN, RDN or basestring but got %s" % (other.__class__.__name__))
-
-        return self
-
-    def insert(self, i, x):
-        '''
-        x must be a 2-value tuple or list promotable to an RDN object,
-        or a RDN object.
-
-        dn.insert(i, x) is the same as s[i:i] = [x]
-
-        When a negative index is passed as the first parameter to the
-        insert() method, the list length is added, as for slice
-        indices. If it is still negative, it is truncated to zero, as
-        for slice indices.
-        '''
-
-        rdns = self._rdns_from_value(x)
-        if len(rdns) > 1:
-            raise TypeError("cannot assign multiple RDN's to single entry")
-
-        self.rdns.insert(i, rdns[0])
-
-    def replace(self, old, new, count=sys.maxsize):
-        '''
-        Replace all occurrences of old DN (or RDN) with new DN (or
-        RDN). If the optional argument count is given, only the first
-        count occurrences are replaced.
-
-        Returns the number of replacements made.
-        '''
-
-        if not isinstance(old, (DN, RDN)):
-            raise TypeError("old must be DN or RDN but got %s" % (old.__class__.__name__))
-        if not isinstance(new, (DN, RDN)):
-            raise TypeError("new must be DN or RDN but got %s" % (new.__class__.__name__))
-
-
-        start = 0
-        pat_len = len(old)
-        n_replaced = 0
-        while n_replaced < count:
-            index = self.find(old, start)
-            if index < 0:
-                return n_replaced
-            self[index : index+pat_len] = new
-            n_replaced += 1
-            start = index + pat_len
-
-        return n_replaced
-
