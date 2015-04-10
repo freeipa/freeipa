@@ -513,8 +513,7 @@ fi
 %posttrans server
 # This must be run in posttrans so that updates from previous
 # execution that may no longer be shipped are not applied.
-/usr/sbin/ipa-ldap-updater --upgrade --quiet >/dev/null || :
-/usr/sbin/ipa-upgradeconfig --quiet >/dev/null || :
+/usr/sbin/ipa-server-upgrade --quiet >/dev/null || :
 
 # Restart IPA processes. This must be also run in postrans so that plugins
 # and software is in consistent state
