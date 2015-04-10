@@ -429,15 +429,6 @@ You must make sure these network ports are open:
 \t  * 389: (C)LDAP
 \t  * 445: microsoft-ds
 
-Additionally you have to make sure the FreeIPA LDAP server is not reachable
-by any domain controller in the Active Directory domain by closing down
-the following ports for these servers:
-\tTCP Ports:
-\t  * 389, 636: LDAP/LDAPS
-
-You may want to choose to REJECT the network packets instead of DROPing
-them to avoid timeouts on the AD domain controllers.
-
 =============================================================================
 """
     if admin_password:
