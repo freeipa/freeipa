@@ -2308,7 +2308,7 @@ def install(options, env, fstore, statestore):
     root_logger.debug("will use discovered basedn: %s", cli_basedn)
     subject_base = DN(('O', cli_realm))
 
-    root_logger.info("Hostname: %s", hostname)
+    root_logger.info("Client hostname: %s", hostname)
     root_logger.debug("Hostname source: %s", hostname_source)
     root_logger.info("Realm: %s", cli_realm)
     root_logger.debug("Realm source: %s", cli_realm_source)
