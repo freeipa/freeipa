@@ -1158,9 +1158,6 @@ def main():
     # Must be readable for everyone
     os.chmod(target_fname, 0644)
 
-    api.bootstrap(**cfg)
-    api.finalize()
-
     if not options.unattended:
         print ""
         print "The following operations may take some minutes to complete."
@@ -1172,6 +1169,12 @@ def main():
                       % (host_name, system_hostname))
         # configure /etc/sysconfig/network to contain the custom hostname
         tasks.backup_and_replace_hostname(fstore, sstore, host_name)
+        # update `api.env.ca_host` to correct hostname
+        # https://fedorahosted.org/freeipa/ticket/4936
+        api.env.ca_host = host_name
+
+    api.bootstrap(**cfg)
+    api.finalize()
 
     # Create DS user/group if it doesn't exist yet
     dsinstance.create_ds_user()
