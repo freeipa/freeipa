@@ -367,7 +367,7 @@ class Service(object):
                     end_message = "Done configuring %s." % self.service_desc
 
         if runtime > 0:
-            self.print_msg('%s: Estimated time %s' % (start_message,
+            self.print_msg('%s. Estimated time: %s' % (start_message,
                                                       format_seconds(runtime)))
         else:
             self.print_msg(start_message)
