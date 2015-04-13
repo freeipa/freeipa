@@ -274,24 +274,23 @@ def read_ip_addresses(host_name, fstore):
 
     return ips
 
+
 def read_dns_forwarders():
     addrs = []
     if ipautil.user_input("Do you want to configure DNS forwarders?", True):
-        print "Enter the IP address of DNS forwarder to use, or press Enter to finish."
-
         while True:
-            ip = ipautil.user_input("Enter IP address for a DNS forwarder",
-                                    allow_empty=True)
+            ip = ipautil.user_input("Enter an IP address for a DNS forwarder, "
+                                    "or press Enter to skip", allow_empty=True)
             if not ip:
                 break
             try:
                 ip_parsed = ipautil.CheckedIPAddress(ip, parse_netmask=False)
             except Exception, e:
                 print "Error: Invalid IP Address %s: %s" % (ip, e)
-                print "DNS forwarder %s not added" % ip
+                print "DNS forwarder %s not added." % ip
                 continue
 
-            print "DNS forwarder %s added" % ip
+            print "DNS forwarder %s added. You may add another." % ip
             addrs.append(str(ip_parsed))
 
     if not addrs:
