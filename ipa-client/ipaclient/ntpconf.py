@@ -41,7 +41,7 @@ restrict -6 ::1
 
 # Use public servers from the pool.ntp.org project.
 # Please consider joining the pool (http://www.pool.ntp.org/join.html).
-server $SERVER
+$SERVERS_BLOCK
 
 #broadcast 192.168.1.255 key 42		# broadcast server
 #broadcastclient			# broadcast client
@@ -84,7 +84,7 @@ SYNC_HWCLOCK=yes
 NTPDATE_OPTIONS=""
 """
 ntp_step_tickers = """# Use IPA-provided NTP server for initial time
-$SERVER
+$TICKER_SERVERS_BLOCK
 """
 def __backup_config(path, fstore = None):
     if fstore:
@@ -97,12 +97,13 @@ def __write_config(path, content):
     fd.write(content)
     fd.close()
 
-def config_ntp(server_fqdn, fstore = None, sysstore = None):
+def config_ntp(ntp_servers, fstore = None, sysstore = None):
     path_step_tickers = paths.NTP_STEP_TICKERS
     path_ntp_conf = paths.NTP_CONF
     path_ntp_sysconfig = paths.SYSCONFIG_NTPD
-    sub_dict = { }
-    sub_dict["SERVER"] = server_fqdn
+    sub_dict = {}
+    sub_dict["SERVERS_BLOCK"] = "\n".join("server %s" % s for s in ntp_servers)
+    sub_dict["TICKER_SERVERS_BLOCK"] = "\n".join(ntp_servers)
 
     nc = ipautil.template_str(ntp_conf, sub_dict)
     config_step_tickers = False

@@ -127,7 +127,9 @@ def parse_options():
     basic_group.add_option("", "--force-join", dest="force_join",
                       action="store_true", default=False,
                       help="Force client enrollment even if already enrolled")
-    basic_group.add_option("--ntp-server", dest="ntp_server", help="ntp server to use")
+    basic_group.add_option("--ntp-server", dest="ntp_servers", action="append",
+                           help="ntp server to use. This option can be used "
+                                "multiple times")
     basic_group.add_option("-N", "--no-ntp", action="store_false",
                       help="do not configure ntp", default=True, dest="conf_ntp")
     basic_group.add_option("", "--force-ntpd", dest="force_ntpd",
@@ -2344,10 +2346,11 @@ def install(options, env, fstore, statestore):
         # We assume that NTP servers are discoverable through SRV records in the DNS
         # If that fails, we try to sync directly with IPA server, assuming it runs NTP
         root_logger.info('Synchronizing time with KDC...')
-        ntp_servers = ds.ipadns_search_srv(cli_domain, '_ntp._udp', None, break_on_first=False)
+        ntp_srv_servers = ds.ipadns_search_srv(cli_domain, '_ntp._udp',
+                                               None, break_on_first=False)
         synced_ntp = False
-        if ntp_servers:
-            for s in ntp_servers:
+        if ntp_srv_servers:
+            for s in ntp_srv_servers:
                 synced_ntp = ipaclient.ntpconf.synconce_ntp(s)
                 if synced_ntp:
                     break
@@ -2849,11 +2852,11 @@ def install(options, env, fstore, statestore):
         # disable other time&date services first
         if options.force_ntpd:
             ipaclient.ntpconf.force_ntpd(statestore)
-        if options.ntp_server:
-            ntp_server = options.ntp_server
+        if options.ntp_servers:
+            ntp_servers = options.ntp_servers
         else:
-            ntp_server = cli_server[0]
-        ipaclient.ntpconf.config_ntp(ntp_server, fstore, statestore)
+            ntp_servers = cli_server
+        ipaclient.ntpconf.config_ntp(ntp_servers, fstore, statestore)
         root_logger.info("NTP enabled")
 
     if options.conf_ssh:
