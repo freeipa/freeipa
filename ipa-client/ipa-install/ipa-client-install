@@ -236,6 +236,25 @@ def logging_setup(options):
         console_format='%(message)s')
 
 
+def remove_file(filename):
+    """
+    Deletes a file. If the file does not exist (OSError 2) does nothing.
+    Otherwise logs an error message and instructs the user to remove the
+    offending file manually
+    :param filename: name of the file to be removed
+    """
+
+    try:
+        os.remove(filename)
+    except OSError as e:
+        if e.errno == 2:
+            return
+
+        root_logger.error("Failed to remove file %s: %s", filename, e)
+        root_logger.error('Please remove %s manually, as it can cause '
+                          'subsequent installation to fail.', filename)
+
+
 def log_service_error(name, action, error):
     root_logger.error("%s failed to %s: %s", name, action, str(error))
 
@@ -541,10 +560,7 @@ def uninstall(options, env):
                      os.path.join(ipa_db.secdir, 'key3.db'),
                      os.path.join(ipa_db.secdir, 'secmod.db'),
                      os.path.join(ipa_db.secdir, 'pwdfile.txt')):
-        try:
-            os.remove(filename)
-        except OSError, e:
-            root_logger.error("Failed to remove %s: %s", filename, e)
+        remove_file(filename)
 
     for nickname, trust_flags in ipa_certs:
         while sys_db.has_nickname(nickname):
@@ -772,25 +788,13 @@ def uninstall(options, env):
             'to its pre-installation state.')
 
     # Remove the IPA configuration file
-    try:
-        os.remove(paths.IPA_DEFAULT_CONF)
-    except OSError, e:
-        root_logger.warning('/etc/ipa/default.conf could not be removed: %s',
-                            str(e))
-        root_logger.warning('Please remove /etc/ipa/default.conf manually, '
-                            'as it can cause subsequent installation to fail.')
+    remove_file(paths.IPA_DEFAULT_CONF)
 
     # Remove the CA cert from the systemwide certificate store
     tasks.remove_ca_certs_from_systemwide_ca_store()
 
     # Remove the CA cert
-    try:
-        os.remove(CACERT)
-    except OSError, e:
-        root_logger.warning('%s could not be removed: %s', CACERT, str(e))
-        root_logger.warning('Please remove %s manually, '
-                            'as it can cause subsequent '
-                            'installation to fail.', CACERT)
+    remove_file(CACERT)
 
     root_logger.info("Client uninstall complete.")
 
