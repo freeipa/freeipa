@@ -1417,10 +1417,12 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             if self.obj.rdn_is_primary_key and self.obj.primary_key.name in entry_attrs:
                 try:
                     # RDN change
-                    self._exc_wrapper(keys, options, ldap.update_entry_rdn)(
+                    new_dn = DN((self.obj.primary_key.name,
+                                 entry_attrs[self.obj.primary_key.name]),
+                                *entry_attrs.dn[1:])
+                    self._exc_wrapper(keys, options, ldap.move_entry)(
                         entry_attrs.dn,
-                        RDN((self.obj.primary_key.name,
-                             entry_attrs[self.obj.primary_key.name])))
+                        new_dn)
 
                     rdnkeys = keys[:-1] + (entry_attrs[self.obj.primary_key.name], )
                     entry_attrs.dn = self.obj.get_dn(*rdnkeys)

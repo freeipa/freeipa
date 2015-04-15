@@ -581,6 +581,9 @@ class IPASimpleLDAPObject(object):
         dn = str(dn)
         assert isinstance(newrdn, (DN, RDN))
         newrdn = str(newrdn)
+        if newsuperior:
+            assert isinstance(newsuperior, DN)
+            newsuperior = str(newsuperior)
         return self.conn.rename_s(dn, newrdn, newsuperior, delold)
 
     def result(self, msgid=ldap.RES_ANY, all=1, timeout=None):
@@ -1593,21 +1596,35 @@ class LDAPClient(object):
 
         entry.reset_modlist()
 
-    def update_entry_rdn(self, dn, new_rdn, del_old=True):
+    def move_entry(self, dn, new_dn, del_old=True):
         """
-        Update entry's relative distinguished name.
+        Move an entry (either to a new superior or/and changing relative distinguished name)
 
         Keyword arguments:
+        dn: DN of the source entry
+        new_dn: DN of the target entry
         del_old -- delete old RDN value (default True)
+
+        :raises:
+        errors.NotFound if source entry or target superior entry doesn't exist
+        errors.EmptyModlist if source and target are identical
         """
-
         assert isinstance(dn, DN)
-        assert isinstance(new_rdn, RDN)
+        assert isinstance(new_dn, DN)
 
-        if dn[0] == new_rdn:
+        if new_dn == dn:
             raise errors.EmptyModlist()
+
+        new_rdn = new_dn[0]
+
+        if new_dn[1:] == dn[1:]:
+            new_superior = None
+        else:
+            new_superior = DN(*new_dn[1:])
+
         with self.error_handler():
-            self.conn.rename_s(dn, new_rdn, delold=int(del_old))
+            self.conn.rename_s(dn, new_rdn, newsuperior=new_superior,
+                               delold=int(del_old))
             time.sleep(.3)  # Give memberOf plugin a chance to work
 
     def update_entry(self, entry, entry_attrs=None):
