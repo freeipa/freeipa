@@ -2350,19 +2350,25 @@ def install(options, env, fstore, statestore):
         ntp_srv_servers = ds.ipadns_search_srv(cli_domain, '_ntp._udp',
                                                None, break_on_first=False)
         synced_ntp = False
-        if ntp_srv_servers:
-            for s in ntp_srv_servers:
-                synced_ntp = ipaclient.ntpconf.synconce_ntp(s)
-                if synced_ntp:
-                    break
-        if not synced_ntp:
+        ntp_servers = ntp_srv_servers
+
+        # use user specified NTP servers if there are any
+        if options.ntp_servers:
+            ntp_servers = options.ntp_servers
+
+        for s in ntp_servers:
+            synced_ntp = ipaclient.ntpconf.synconce_ntp(s)
+            if synced_ntp:
+                break
+
+        if not synced_ntp and not options.ntp_servers:
             synced_ntp = ipaclient.ntpconf.synconce_ntp(cli_server[0])
         if not synced_ntp:
-            root_logger.warning("Unable to sync time with IPA NTP " +
+            root_logger.warning("Unable to sync time with NTP " +
                 "server, assuming the time is in sync. Please check " +
                 "that 123 UDP port is opened.")
     else:
-        root_logger.info('Skipping synchronizing time with IPA NTP server.')
+        root_logger.info('Skipping synchronizing time with NTP server.')
 
     if not options.unattended:
         if (options.principal is None and options.password is None and
@@ -2854,7 +2860,7 @@ def install(options, env, fstore, statestore):
         if options.force_ntpd:
             ipaclient.ntpconf.force_ntpd(statestore)
 
-        if options.ntp_server:
+        if options.ntp_servers:
             ntp_servers = options.ntp_servers
         elif ntp_srv_servers:
             ntp_servers = ntp_srv_servers
