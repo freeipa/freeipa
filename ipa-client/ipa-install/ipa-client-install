@@ -2340,6 +2340,7 @@ def install(options, env, fstore, statestore):
         # hostname if different from system hostname
         tasks.backup_and_replace_hostname(fstore, statestore, options.hostname)
 
+    ntp_srv_servers = []
     if not options.on_master and options.conf_ntp:
         # Attempt to sync time with IPA server.
         # If we're skipping NTP configuration, we also skip the time sync here.
@@ -2852,10 +2853,16 @@ def install(options, env, fstore, statestore):
         # disable other time&date services first
         if options.force_ntpd:
             ipaclient.ntpconf.force_ntpd(statestore)
-        if options.ntp_servers:
+
+        if options.ntp_server:
             ntp_servers = options.ntp_servers
+        elif ntp_srv_servers:
+            ntp_servers = ntp_srv_servers
         else:
+            root_logger.warning("No SRV records of NTP servers found. IPA "
+                                "server address will be used")
             ntp_servers = cli_server
+
         ipaclient.ntpconf.config_ntp(ntp_servers, fstore, statestore)
         root_logger.info("NTP enabled")
 
