@@ -65,7 +65,7 @@ log = root_logger
 # Kerberos initialization
 PRINCIPAL = str('%s/%s' % (DAEMONNAME, api.env.host))
 log.debug('Kerberos principal: %s', PRINCIPAL)
-ccache_filename = os.path.join(WORKDIR, 'ccache')
+ccache_filename = os.path.join(WORKDIR, 'ipa-dnskeysyncd.ccache')
 ipautil.kinit_keytab(PRINCIPAL, KEYTAB_FB, ccache_filename)
 os.environ['KRB5CCNAME'] = ccache_filename
 

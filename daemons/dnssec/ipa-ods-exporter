@@ -399,7 +399,7 @@ ipalib.api.finalize()
 # Kerberos initialization
 PRINCIPAL = str('%s/%s' % (DAEMONNAME, ipalib.api.env.host))
 log.debug('Kerberos principal: %s', PRINCIPAL)
-ccache_name = os.path.join(WORKDIR, 'ccache')
+ccache_name = os.path.join(WORKDIR, 'ipa-ods-exporter.ccache')
 ipautil.kinit_keytab(PRINCIPAL, paths.IPA_ODS_EXPORTER_KEYTAB, ccache_name)
 os.environ['KRB5CCNAME'] = ccache_name
 log.debug('Got TGT')
