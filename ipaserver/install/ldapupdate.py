@@ -769,12 +769,7 @@ class LDAPUpdate:
 
     def _delete_record(self, updates):
         """
-        Run through all the updates again looking for any that should be
-        deleted.
-
-        This must use a reversed list so that the longest entries are
-        considered first so we don't end up trying to delete a parent
-        and child in the wrong order.
+        Delete record
         """
 
         dn = updates['dn']
