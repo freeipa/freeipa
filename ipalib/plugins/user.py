@@ -335,6 +335,33 @@ class user(baseuser):
         ),
     )
 
+    def get_dn(self, *keys, **options):
+        '''
+        Returns the DN of a user
+        The user can be active (active container) or delete (delete container)
+        If the user does not exist, returns the Active user DN
+        '''
+        ldap = self.backend
+        # Check that this value is a Active user
+        try:
+            active_dn = super(user, self).get_dn(*keys, **options)
+            ldap.get_entry(active_dn, ['dn'])
+
+            # The Active user exists
+            dn = active_dn
+        except errors.NotFound:
+            # Check that this value is a Delete user
+            delete_dn = DN(active_dn[0], self.delete_container_dn, api.env.basedn)
+            try:
+                ldap.get_entry(delete_dn, ['dn'])
+
+                # The Delete user exists
+                dn = delete_dn
+            except errors.NotFound:
+                # The user is neither Active/Delete -> returns that Active DN
+                dn = active_dn
+
+        return dn
 
     def _normalize_manager(self, manager):
         """
@@ -360,6 +387,7 @@ class user_add(baseuser_add):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
+        self.log.error("====> user-add pre_callback 1 %s " % dn)
         if not options.get('noprivate', False):
             try:
                 # The Managed Entries plugin will allow a user to be created
@@ -466,6 +494,7 @@ class user_add(baseuser_add):
 
             answer = self.api.Object['radiusproxy'].get_dn_if_exists(rcl)
             entry_attrs['ipatokenradiusconfiglink'] = answer
+        self.log.error("====> user-add pre_callback %s " % dn)
 
         return dn
 
@@ -522,23 +551,105 @@ class user_del(baseuser_del):
 
     msg_summary = _('Deleted user "%(value)s"')
 
+    takes_options = baseuser_del.takes_options + (
+        Flag('preserve?',
+            doc=_('Delete a user, keeping the entry available for future use'),
+            cli_name='preserve',
+            default=False,
+        ),
+        Flag('permanently?',
+            doc=_('Delete a user'),
+            cli_name='permanently',
+            default=False,
+        ),
+    )
+
     def pre_callback(self, ldap, dn, *keys, **options):
         assert isinstance(dn, DN)
-        check_protected_member(keys[-1])
 
-        # Delete all tokens owned and managed by this user.
-        # Orphan all tokens owned but not managed by this user.
-        owner = self.api.Object.user.get_primary_key_from_dn(dn)
-        results = self.api.Command.otptoken_find(ipatokenowner=owner)['result']
-        for token in results:
-            orphan = not [x for x in token.get('managedby_user', []) if x == owner]
-            token = self.api.Object.otptoken.get_primary_key_from_dn(token['dn'])
-            if orphan:
-                self.api.Command.otptoken_mod(token, ipatokenowner=None)
-            else:
-                self.api.Command.otptoken_del(token)
+        # For User life Cycle: user-del is a common plugin
+        # command to delete active user (active container) and
+        # delete user (delete container).
+        # If the target entry is a Delete entry, skip the updates
+        # protected member and otptoken owner
+        if not dn.endswith(DN(self.obj.delete_container_dn, api.env.basedn)):
+            check_protected_member(keys[-1])
+
+            # Delete all tokens owned and managed by this user.
+            # Orphan all tokens owned but not managed by this user.
+            owner = self.api.Object.user.get_primary_key_from_dn(dn)
+            results = self.api.Command.otptoken_find(ipatokenowner=owner)['result']
+            for token in results:
+                orphan = not [x for x in token.get('managedby_user', []) if x == owner]
+                token = self.api.Object.otptoken.get_primary_key_from_dn(token['dn'])
+                if orphan:
+                    self.api.Command.otptoken_mod(token, ipatokenowner=None)
+                else:
+                    self.api.Command.otptoken_del(token)
 
         return dn
+
+    def execute(self, *keys, **options):
+
+        dn = self.obj.get_dn(*keys, **options)
+
+        if options['permanently'] or dn.endswith(DN(self.obj.delete_container_dn, api.env.basedn)):
+            # We are going to permanent delete or the user is already in the delete container.
+            # So we issue a true DEL on that entry
+            return super(user_del, self).execute(*keys, **options)
+
+        # The user to delete is active and there is no 'permanently' option
+        if options['preserve']:
+
+            ldap = self.obj.backend
+
+            # need to handle multiple keys (e.g. keys[-1]=(u'tb8', u'tb9')..
+            active_dn = self.obj.get_dn(*keys, **options)
+            superior_dn = DN(self.obj.delete_container_dn, api.env.basedn)
+            delete_dn = DN(active_dn[0], self.obj.delete_container_dn, api.env.basedn)
+            self.log.debug("preserve move %s -> %s" % (active_dn, delete_dn))
+
+            # Check that this value is a Active user
+            try:
+                original_entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(active_dn, ['dn'])
+            except errors.NotFound:
+                raise
+
+            # start to move the entry to Delete container
+            self._exc_wrapper(keys, options, ldap.update_entry_rdn)(active_dn, new_rdn=active_dn[0], new_superior=superior_dn, del_old=True)
+
+            # Then clear the credential attributes
+            attrs_to_clear = ['krbPrincipalKey', 'krbLastPwdChange', 'krbPasswordExpiration', 'userPassword']
+            try:
+                entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(delete_dn, attrs_to_clear)
+            except errors.NotFound:
+                raise
+            clearedCredential = False
+            for attr in attrs_to_clear:
+                if attr.lower() in entry_attrs:
+                    del entry_attrs[attr]
+                    clearedCredential = True
+            if clearedCredential:
+                self._exc_wrapper(keys, options, ldap.update_entry)(entry_attrs)
+
+            # Then restore some original entry attributes
+            attrs_to_restore = [ 'secretary', 'managedby', 'manager', 'ipauniqueid', 'uidnumber', 'gidnumber', 'passwordHistory']
+            try:
+                entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(delete_dn, attrs_to_restore)
+            except errors.NotFound:
+                raise
+            restoreAttr = False
+            for attr in attrs_to_restore:
+                if (attr.lower() in original_entry_attrs) and not (attr.lower() in entry_attrs):
+                    restoreAttr = True
+                    entry_attrs[attr.lower()] = original_entry_attrs[attr.lower()]
+            if restoreAttr:
+                self._exc_wrapper(keys, options, ldap.update_entry)(entry_attrs)
+
+            val = dict(result=dict(failed=[]), value=[keys[-1][0]])
+            return val
+        else:
+            return super(user_del, self).execute(*keys, **options)
 
 
 @register()
