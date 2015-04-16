@@ -22,6 +22,8 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function(map) {
 
     var that = {};
 
+    that._key_indicies = {};
+
     /**
      * These variables can be read directly but should not be
      * modified directly. Use the provided methods instead.
@@ -46,12 +48,14 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function(map) {
             if (typeof position !== 'number') {
                 that.keys.push(key);
                 that.values.push(value);
+                that._key_indicies[key] = that.keys.length -1;
                 that.length = that.keys.length;
             } else {
                 if (position < 0) position = 0;
                 else if (position > that.length) position = that.length;
                 that.keys.splice(position, 0, key);
                 that.values.splice(position, 0, value);
+                that._key_indicies[key] = position;
                 that.length = that.keys.length;
             }
         }
@@ -112,6 +116,7 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function(map) {
 
         var value = that.map[key];
         delete that.map[key];
+        delete that._key_indicies[key];
         that.length = that.keys.length;
         return value;
     };
@@ -120,12 +125,13 @@ jQuery.ordered_map = jQuery.fn.ordered_map = function(map) {
         that.keys = [];
         that.values = [];
         that.map = {};
+        that._key_indicies = {};
         that.length = that.keys.length;
         return that;
     };
 
     that.get_key_index = function(key) {
-        return that.keys.indexOf(key);
+        return that._key_indicies[key];
     };
 
     that.get_key_by_index = function(index) {
