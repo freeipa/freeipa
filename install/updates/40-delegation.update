@@ -15,7 +15,7 @@ default:cn: Write IPA Configuration
 default:member: cn=Write IPA Configuration,cn=privileges,cn=pbac,$SUFFIX
 
 dn: $SUFFIX
-add:aci: '(targetattr = "ipausersearchfields || ipagroupsearchfields || ipasearchtimelimit || ipasearchrecordslimit || ipacustomfields || ipahomesrootdir || ipadefaultloginshell || ipadefaultprimarygroup || ipamaxusernamelength || ipapwdexpadvnotify || ipauserobjectclasses || ipagroupobjectclasses || ipadefaultemaildomain || ipamigrationenabled || ipacertificatesubjectbase || ipaconfigstring")(target = "ldap:///cn=ipaconfig,cn=etc,$SUFFIX" )(version 3.0 ; acl "permission:Write IPA Configuration"; allow (write) groupdn = "ldap:///cn=Write IPA Configuration,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: (targetattr = "ipausersearchfields || ipagroupsearchfields || ipasearchtimelimit || ipasearchrecordslimit || ipacustomfields || ipahomesrootdir || ipadefaultloginshell || ipadefaultprimarygroup || ipamaxusernamelength || ipapwdexpadvnotify || ipauserobjectclasses || ipagroupobjectclasses || ipadefaultemaildomain || ipamigrationenabled || ipacertificatesubjectbase || ipaconfigstring")(target = "ldap:///cn=ipaconfig,cn=etc,$SUFFIX" )(version 3.0 ; acl "permission:Write IPA Configuration"; allow (write) groupdn = "ldap:///cn=Write IPA Configuration,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Host-Based Access Control
 dn: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
@@ -43,13 +43,13 @@ default:cn: Password Policy Administrator
 default:description: Password Policy Administrator
 
 dn: cn=Host Enrollment,cn=privileges,cn=pbac,$SUFFIX
-add:member: 'cn=admins,cn=groups,cn=accounts,$SUFFIX'
+add:member: cn=admins,cn=groups,cn=accounts,$SUFFIX
 
 # The original DNS permissions lacked the tag.
 dn: $SUFFIX
-remove:aci:'(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Add DNS entries";allow (add) groupdn = "ldap:///cn=add dns entries,cn=permissions,cn=pbac,$SUFFIX";)'
-remove:aci:'(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Remove DNS entries";allow (delete) groupdn = "ldap:///cn=remove dns entries,cn=permissions,cn=pbac,$SUFFIX";)'
-remove:aci:'(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Update DNS entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX";)'
+remove:aci:(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Add DNS entries";allow (add) groupdn = "ldap:///cn=add dns entries,cn=permissions,cn=pbac,$SUFFIX";)
+remove:aci:(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Remove DNS entries";allow (delete) groupdn = "ldap:///cn=remove dns entries,cn=permissions,cn=pbac,$SUFFIX";)
+remove:aci:(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "Update DNS entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX";)
 
 # SELinux User Mapping
 dn: cn=SELinux User Map Administrators,cn=privileges,cn=pbac,$SUFFIX
@@ -60,22 +60,22 @@ default:cn: SELinux User Map Administrators
 default:description: SELinux User Map Administrators
 
 dn: cn=ipa,cn=etc,$SUFFIX
-add:aci:'(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,$SUFFIX")(version 3.0; acl "Add CA Certificates for renewals"; allow(add) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)'
-add:aci:'(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,$SUFFIX")(targetattr = "userCertificate")(version 3.0; acl "Modify CA Certificates for renewals"; allow(write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)'
+add:aci:(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,$SUFFIX")(version 3.0; acl "Add CA Certificates for renewals"; allow(add) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)
+add:aci:(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,$SUFFIX")(targetattr = "userCertificate")(version 3.0; acl "Modify CA Certificates for renewals"; allow(write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)
 
 # Add permissions "Retrieve Certificates from the CA" and "Revoke Certificate"
 # to privilege "Host Administrators"
 dn: cn=Retrieve Certificates from the CA,cn=permissions,cn=pbac,$SUFFIX
-add: member: 'cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX'
+add: member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
 
 dn: cn=Revoke Certificate,cn=permissions,cn=pbac,$SUFFIX
-add: member: 'cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX'
+add: member: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
 
 dn: cn=ipa,cn=etc,$SUFFIX
-add:aci:'(target = "ldap:///cn=CAcert,cn=ipa,cn=etc,$SUFFIX")(targetattr = cACertificate)(version 3.0; acl "Modify CA Certificate"; allow (write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)'
+add:aci:(target = "ldap:///cn=CAcert,cn=ipa,cn=etc,$SUFFIX")(targetattr = cACertificate)(version 3.0; acl "Modify CA Certificate"; allow (write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)
 
 dn: cn=certificates,cn=ipa,cn=etc,$SUFFIX
-add:aci:'(targetfilter = "(&(objectClass=ipaCertificate)(ipaConfigString=ipaCA))")(targetattr = "ipaCertIssuerSerial || cACertificate")(version 3.0; acl "Modify CA Certificate Store Entry"; allow (write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)'
+add:aci:(targetfilter = "(&(objectClass=ipaCertificate)(ipaConfigString=ipaCA))")(targetattr = "ipaCertIssuerSerial || cACertificate")(version 3.0; acl "Modify CA Certificate Store Entry"; allow (write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)
 
 # Automember tasks
 dn: cn=Automember Task Administrator,cn=privileges,cn=pbac,$SUFFIX
@@ -94,7 +94,7 @@ default:member: cn=Automember Task Administrator,cn=privileges,cn=pbac,$SUFFIX
 default:ipapermissiontype: SYSTEM
 
 dn: cn=config
-add:aci: '(target = "ldap:///cn=automember rebuild membership,cn=tasks,cn=config")(targetattr=*)(version 3.0;acl "permission:Add Automember Rebuild Membership Task";allow (add) groupdn = "ldap:///cn=Add Automember Rebuild Membership Task,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: (target = "ldap:///cn=automember rebuild membership,cn=tasks,cn=config")(targetattr=*)(version 3.0;acl "permission:Add Automember Rebuild Membership Task";allow (add) groupdn = "ldap:///cn=Add Automember Rebuild Membership Task,cn=permissions,cn=pbac,$SUFFIX";)
 
 
 # Virtual operations
@@ -142,7 +142,7 @@ default:cn: Request Certificate with SubjectAltName
 default:member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
 
 dn: $SUFFIX
-add:aci:'(targetattr = "objectclass")(target = "ldap:///cn=request certificate with subjectaltname,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0; acl "permission:Request Certificate with SubjectAltName"; allow (write) groupdn = "ldap:///cn=Request Certificate with SubjectAltName,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci:(targetattr = "objectclass")(target = "ldap:///cn=request certificate with subjectaltname,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0; acl "permission:Request Certificate with SubjectAltName"; allow (write) groupdn = "ldap:///cn=Request Certificate with SubjectAltName,cn=permissions,cn=pbac,$SUFFIX";)
 
 
 # Read privileges
@@ -182,8 +182,8 @@ default:cn: IPA Masters Readers
 default:description: Read list of IPA masters
 
 dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
-add:aci:'(targetfilter = "(objectClass=nsContainer)")(targetattr = "cn || objectClass || ipaConfigString")(version 3.0; acl "Read IPA Masters"; allow (read, search, compare) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)'
-add:aci:'(targetfilter = "(objectClass=nsContainer)")(targetattr = "ipaConfigString")(version 3.0; acl "Modify IPA Masters"; allow (write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)'
+add:aci:(targetfilter = "(objectClass=nsContainer)")(targetattr = "cn || objectClass || ipaConfigString")(version 3.0; acl "Read IPA Masters"; allow (read, search, compare) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)
+add:aci:(targetfilter = "(objectClass=nsContainer)")(targetattr = "ipaConfigString")(version 3.0; acl "Modify IPA Masters"; allow (write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)
 
 # PassSync
 dn: cn=PassSync Service,cn=privileges,cn=pbac,$SUFFIX
@@ -202,7 +202,7 @@ default:member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 default:ipapermissiontype: SYSTEM
 
 dn: cn=config
-add:aci: '(targetattr = "cn || createtimestamp || entryusn || modifytimestamp || objectclass || passsyncmanagersdns*")(target = "ldap:///cn=ipa_pwd_extop,cn=plugins,cn=config")(version 3.0;acl "permission:Read PassSync Managers Configuration";allow (compare,read,search) groupdn = "ldap:///cn=Read PassSync Managers Configuration,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: (targetattr = "cn || createtimestamp || entryusn || modifytimestamp || objectclass || passsyncmanagersdns*")(target = "ldap:///cn=ipa_pwd_extop,cn=plugins,cn=config")(version 3.0;acl "permission:Read PassSync Managers Configuration";allow (compare,read,search) groupdn = "ldap:///cn=Read PassSync Managers Configuration,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: cn=Modify PassSync Managers Configuration,cn=permissions,cn=pbac,$SUFFIX
 default:objectClass: groupofnames
@@ -213,7 +213,7 @@ default:member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 default:ipapermissiontype: SYSTEM
 
 dn: cn=config
-add:aci: '(targetattr = "passsyncmanagersdns*")(target = "ldap:///cn=ipa_pwd_extop,cn=plugins,cn=config")(version 3.0;acl "permission:Modify PassSync Managers Configuration";allow (write) groupdn = "ldap:///cn=Modify PassSync Managers Configuration,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: (targetattr = "passsyncmanagersdns*")(target = "ldap:///cn=ipa_pwd_extop,cn=plugins,cn=config")(version 3.0;acl "permission:Modify PassSync Managers Configuration";allow (write) groupdn = "ldap:///cn=Modify PassSync Managers Configuration,cn=permissions,cn=pbac,$SUFFIX";)
 
 # Replication Administrators
 dn: cn=Read LDBM Database Configuration,cn=permissions,cn=pbac,$SUFFIX
@@ -225,7 +225,7 @@ default:member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 default:ipapermissiontype: SYSTEM
 
 dn: cn=config
-add:aci: '(targetattr = "cn || createtimestamp || entryusn || modifytimestamp || nsslapd-directory* || objectclass")(target = "ldap:///cn=config,cn=ldbm database,cn=plugins,cn=config")(version 3.0;acl "permission:Read LDBM Database Configuration";allow (compare,read,search) groupdn = "ldap:///cn=Read LDBM Database Configuration,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: (targetattr = "cn || createtimestamp || entryusn || modifytimestamp || nsslapd-directory* || objectclass")(target = "ldap:///cn=config,cn=ldbm database,cn=plugins,cn=config")(version 3.0;acl "permission:Read LDBM Database Configuration";allow (compare,read,search) groupdn = "ldap:///cn=Read LDBM Database Configuration,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: cn=Add Configuration Sub-Entries,cn=permissions,cn=pbac,$SUFFIX
 default:objectClass: groupofnames
@@ -236,4 +236,4 @@ default:member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 default:ipapermissiontype: SYSTEM
 
 dn: cn=config
-add:aci: '(version 3.0;acl "permission:Add Configuration Sub-Entries";allow (add) groupdn = "ldap:///cn=Add Configuration Sub-Entries,cn=permissions,cn=pbac,$SUFFIX";)'
+add:aci: (version 3.0;acl "permission:Add Configuration Sub-Entries";allow (add) groupdn = "ldap:///cn=Add Configuration Sub-Entries,cn=permissions,cn=pbac,$SUFFIX";)

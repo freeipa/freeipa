@@ -23,10 +23,10 @@ default:cn: User Administrator
 default:description: Responsible for creating Users and Groups
 
 dn: cn=User Administrators,cn=privileges,cn=pbac,$SUFFIX
-add: member: 'cn=User Administrator,cn=roles,cn=accounts,$SUFFIX'
+add: member: cn=User Administrator,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=Group Administrators,cn=privileges,cn=pbac,$SUFFIX
-add: member: 'cn=User Administrator,cn=roles,cn=accounts,$SUFFIX'
+add: member: cn=User Administrator,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=IT Specialist,cn=roles,cn=accounts,$SUFFIX
 default:objectClass: groupofnames
@@ -36,16 +36,16 @@ default:cn: IT Specialist
 default:description: IT Specialist
 
 dn: cn=Host Administrators,cn=privileges,cn=pbac,$SUFFIX
-add:member: 'cn=IT Specialist,cn=roles,cn=accounts,$SUFFIX'
+add:member: cn=IT Specialist,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=Host Group Administrators,cn=privileges,cn=pbac,$SUFFIX
-add:member: 'cn=IT Specialist,cn=roles,cn=accounts,$SUFFIX'
+add:member: cn=IT Specialist,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=Service Administrators,cn=privileges,cn=pbac,$SUFFIX
-add:member: 'cn=IT Specialist,cn=roles,cn=accounts,$SUFFIX'
+add:member: cn=IT Specialist,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=Automount Administrators,cn=privileges,cn=pbac,$SUFFIX
-add:member: 'cn=IT Specialist,cn=roles,cn=accounts,$SUFFIX'
+add:member: cn=IT Specialist,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=IT Security Specialist,cn=roles,cn=accounts,$SUFFIX
 default:objectClass: groupofnames
@@ -55,13 +55,13 @@ default:cn: IT Security Specialist
 default:description: IT Security Specialist
 
 dn: cn=Netgroups Administrators,cn=privileges,cn=pbac,$SUFFIX
-add:member: 'cn=IT Security Specialist,cn=roles,cn=accounts,$SUFFIX'
+add:member: cn=IT Security Specialist,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=HBAC Administrator,cn=privileges,cn=pbac,$SUFFIX
-add:member: 'cn=IT Security Specialist,cn=roles,cn=accounts,$SUFFIX'
+add:member: cn=IT Security Specialist,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=Sudo administrator,cn=privileges,cn=pbac,$SUFFIX
-add:member: 'cn=IT Security Specialist,cn=roles,cn=accounts,$SUFFIX'
+add:member: cn=IT Security Specialist,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=Security Architect,cn=roles,cn=accounts,$SUFFIX
 default:objectClass: groupofnames
@@ -71,14 +71,14 @@ default:cn: Security Architect
 default:description: Security Architect
 
 dn: cn=Delegation Administrator,cn=privileges,cn=pbac,$SUFFIX
-add:member: 'cn=Security Architect,cn=roles,cn=accounts,$SUFFIX'
+add:member: cn=Security Architect,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
-add:member: 'cn=Security Architect,cn=roles,cn=accounts,$SUFFIX'
+add:member: cn=Security Architect,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=Write IPA Configuration,cn=privileges,cn=pbac,$SUFFIX
-add:member: 'cn=Security Architect,cn=roles,cn=accounts,$SUFFIX'
+add:member: cn=Security Architect,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
-add:member: 'cn=Security Architect,cn=roles,cn=accounts,$SUFFIX'
+add:member: cn=Security Architect,cn=roles,cn=accounts,$SUFFIX
 

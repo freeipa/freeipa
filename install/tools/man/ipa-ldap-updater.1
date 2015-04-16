@@ -34,16 +34,14 @@ Blank lines and lines beginning with # are ignored.
 There are 7 keywords:
 
     * default: the starting value
-    * add: add a value (or values) to an attribute
-    * remove: remove a value (or values) from an attribute
+    * add: add a value to an attribute
+    * remove: remove a value from an attribute
     * only: set an attribute to this
     * onlyifexist: set an attribute to this only if the entry exists
     * deleteentry: remove the entry
     * replace: replace an existing value, format is old: new
     * addifnew: add a new attribute and value only if the attribute doesn't already exist. Only works with single\-value attributes.
     * addifexist: add a new attribute and value only if the entry exists. This is used to update optional entries.
-
-Values is a comma\-separated field so multi\-values may be added at one time. Double or single quotes may be put around individual values that contain embedded commas.
 
 The difference between the default and add keywords is if the DN of the entry exists then default is ignored. So for updating something like schema, which will be under cn=schema, you must always use add (because cn=schema is guaranteed to exist). It will not re\-add the same information again and again.
 

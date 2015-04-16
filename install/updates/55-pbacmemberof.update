@@ -5,7 +5,7 @@ dn: cn=Update PBAC memberOf $TIME, cn=memberof task, cn=tasks, cn=config
 add: objectClass: top
 add: objectClass: extensibleObject
 add: cn: IPA PBAC memberOf $TIME
-add: basedn: 'cn=privileges,cn=pbac,$SUFFIX'
+add: basedn: cn=privileges,cn=pbac,$SUFFIX
 add: filter: (objectclass=*)
 add: ttl: 10
 
@@ -13,6 +13,6 @@ dn: cn=Update Role memberOf $TIME, cn=memberof task, cn=tasks, cn=config
 add: objectClass: top
 add: objectClass: extensibleObject
 add: cn: Update Role memberOf $TIME
-add: basedn: 'cn=roles,cn=accounts,$SUFFIX'
+add: basedn: cn=roles,cn=accounts,$SUFFIX
 add: filter: (objectclass=*)
 add: ttl: 10

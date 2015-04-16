@@ -1,6 +1,6 @@
 # Don't allow managed netgroups to be modified
 dn: cn=ng,cn=alt,$SUFFIX
-add:aci: '(targetfilter = "(objectClass=mepManagedEntry)")(targetattr = "*")(version 3.0; acl "Managed netgroups cannot be modified"; deny (write) userdn = "ldap:///all";)'
+add:aci: (targetfilter = "(objectClass=mepManagedEntry)")(targetattr = "*")(version 3.0; acl "Managed netgroups cannot be modified"; deny (write) userdn = "ldap:///all";)
 
 # This is used for the host/service one-time passwordn and keytab indirectors.
 # We can do a query on a DN to see if an attribute exists.
@@ -9,73 +9,73 @@ add:aci: (targetattr="userPassword || krbPrincipalKey")(version 3.0; acl "Search
 
 # SSH public keys
 dn: $SUFFIX
-add:aci:'(targetattr = "ipasshpubkey")(version 3.0;acl "selfservice:Users can manage their own SSH public keys";allow (write) userdn = "ldap:///self";)'
+add:aci:(targetattr = "ipasshpubkey")(version 3.0;acl "selfservice:Users can manage their own SSH public keys";allow (write) userdn = "ldap:///self";)
 
 dn: cn=computers,cn=accounts,$SUFFIX
-add:aci:'(targetattr="ipasshpubkey")(version 3.0; acl "Hosts can modify their own SSH public keys"; allow(write) userdn = "ldap:///self";)'
+add:aci:(targetattr="ipasshpubkey")(version 3.0; acl "Hosts can modify their own SSH public keys"; allow(write) userdn = "ldap:///self";)
 
 dn: cn=computers,cn=accounts,$SUFFIX
-add:aci:'(targetattr="ipasshpubkey")(version 3.0; acl "Hosts can manage other host SSH public keys"; allow(write) userattr = "parent[0,1].managedby#USERDN";)'
+add:aci:(targetattr="ipasshpubkey")(version 3.0; acl "Hosts can manage other host SSH public keys"; allow(write) userattr = "parent[0,1].managedby#USERDN";)
 
 # Read access to $SUFFIX itself
 dn: $SUFFIX
-add:aci:'(targetfilter="(objectclass=domain)")(targetattr="objectclass || dc || info || nisDomain || associatedDomain")(version 3.0; acl "Anonymous read access to DIT root"; allow(read, search, compare) userdn = "ldap:///anyone";)'
+add:aci:(targetfilter="(objectclass=domain)")(targetattr="objectclass || dc || info || nisDomain || associatedDomain")(version 3.0; acl "Anonymous read access to DIT root"; allow(read, search, compare) userdn = "ldap:///anyone";)
 
 # Read access to containers
 dn: $SUFFIX
-add:aci:'(targetfilter="(&(objectclass=nsContainer)(!(objectclass=krbPwdPolicy)))")(target!="ldap:///cn=masters,cn=ipa,cn=etc,$SUFFIX")(targetattr="objectclass || cn")(version 3.0; acl "Anonymous read access to containers"; allow(read, search, compare) userdn = "ldap:///anyone";)'
+add:aci:(targetfilter="(&(objectclass=nsContainer)(!(objectclass=krbPwdPolicy)))")(target!="ldap:///cn=masters,cn=ipa,cn=etc,$SUFFIX")(targetattr="objectclass || cn")(version 3.0; acl "Anonymous read access to containers"; allow(read, search, compare) userdn = "ldap:///anyone";)
 
 dn: cn=replicas,cn=ipa,cn=etc,$SUFFIX
-remove:aci:'(targetfilter="(objectclass=nsContainer)")(version 3.0; acl "Deny read access to replica configuration"; deny(read, search, compare) userdn = "ldap:///anyone";)'
+remove:aci:(targetfilter="(objectclass=nsContainer)")(version 3.0; acl "Deny read access to replica configuration"; deny(read, search, compare) userdn = "ldap:///anyone";)
 
 # Read access to masters and their services
 dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
-add:aci:'(targetfilter="(objectclass=nsContainer)")(targetattr="objectclass || cn")(version 3.0; acl "Read access to masters"; allow(read, search, compare) userdn = "ldap:///all";)'
+add:aci:(targetfilter="(objectclass=nsContainer)")(targetattr="objectclass || cn")(version 3.0; acl "Read access to masters"; allow(read, search, compare) userdn = "ldap:///all";)
 
 # Read access to Kerberos container (cn=kerberos) and realm containers (cn=$REALM,cn=kerberos)
 dn: cn=kerberos,$SUFFIX
-add:aci:'(targetattr = "cn || objectclass")(targetfilter = "(|(objectclass=krbrealmcontainer)(objectclass=krbcontainer))")(version 3.0;acl "Anonymous read access to Kerberos containers";allow (read,compare,search) userdn = "ldap:///anyone";)'
+add:aci:(targetattr = "cn || objectclass")(targetfilter = "(|(objectclass=krbrealmcontainer)(objectclass=krbcontainer))")(version 3.0;acl "Anonymous read access to Kerberos containers";allow (read,compare,search) userdn = "ldap:///anyone";)
 
 # Access for high-level admins
 dn: $SUFFIX
 # Read/write
-remove:aci:'(targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || krbPrincipalName || krbCanonicalName || krbUPEnabled || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount || krbTicketFlags || ipaUniqueId || memberOf || serverHostName || enrolledBy")(version 3.0; acl "Admin can manage any entry"; allow (all) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)'
-remove:aci:'(targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || krbPrincipalName || krbCanonicalName || krbUPEnabled || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount || krbTicketFlags || ipaUniqueId || memberOf || serverHostName || enrolledBy || ipaNTHash")(version 3.0; acl "Admin can manage any entry"; allow (all) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)'
-remove:aci:'(targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || krbPrincipalName || krbCanonicalName || krbUPEnabled || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount || ipaUniqueId || memberOf || serverHostName || enrolledBy || ipaNTHash")(version 3.0; acl "Admin can manage any entry"; allow (all) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)'
-remove:aci:'(targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || krbPrincipalName || krbCanonicalName || krbUPEnabled || krbTicketPolicyReference || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount || ipaUniqueId || memberOf || serverHostName || enrolledBy || ipaNTHash")(version 3.0; acl "Admin can manage any entry"; allow (all) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)'
-add:aci:'(targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || krbPrincipalName || krbCanonicalName || krbPasswordExpiration || krbPwdHistory || krbLastPwdChange || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || ipaUniqueId || memberOf || enrolledBy || ipaNTHash || ipaProtectedOperation")(version 3.0; acl "Admin can manage any entry"; allow (all) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)'
+remove:aci:(targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || krbPrincipalName || krbCanonicalName || krbUPEnabled || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount || krbTicketFlags || ipaUniqueId || memberOf || serverHostName || enrolledBy")(version 3.0; acl "Admin can manage any entry"; allow (all) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+remove:aci:(targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || krbPrincipalName || krbCanonicalName || krbUPEnabled || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount || krbTicketFlags || ipaUniqueId || memberOf || serverHostName || enrolledBy || ipaNTHash")(version 3.0; acl "Admin can manage any entry"; allow (all) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+remove:aci:(targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || krbPrincipalName || krbCanonicalName || krbUPEnabled || krbTicketPolicyReference || krbPrincipalExpiration || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount || ipaUniqueId || memberOf || serverHostName || enrolledBy || ipaNTHash")(version 3.0; acl "Admin can manage any entry"; allow (all) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+remove:aci:(targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || krbPrincipalName || krbCanonicalName || krbUPEnabled || krbTicketPolicyReference || krbPasswordExpiration || krbPwdPolicyReference || krbPrincipalType || krbPwdHistory || krbLastPwdChange || krbPrincipalAliases || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || krbLoginFailedCount || ipaUniqueId || memberOf || serverHostName || enrolledBy || ipaNTHash")(version 3.0; acl "Admin can manage any entry"; allow (all) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+add:aci:(targetattr != "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || krbMKey || krbPrincipalName || krbCanonicalName || krbPasswordExpiration || krbPwdHistory || krbLastPwdChange || krbExtraData || krbLastSuccessfulAuth || krbLastFailedAuth || ipaUniqueId || memberOf || enrolledBy || ipaNTHash || ipaProtectedOperation")(version 3.0; acl "Admin can manage any entry"; allow (all) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 # Write-only
-remove:aci:'(targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Admins can write passwords"; allow (add,delete,write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)'
-add:aci:'(targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || ipaNTHash")(version 3.0; acl "Admins can write passwords"; allow (add,delete,write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)'
-add:aci:'(targetfilter = "(objectClass=krbPwdPolicy)")(targetattr = "krbMaxPwdLife || krbMinPwdLife || krbPwdMinDiffChars || krbPwdMinLength || krbPwdHistoryLength")(version 3.0;acl "Admins can write password policies"; allow (read, search, compare, write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)'
+remove:aci:(targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "Admins can write passwords"; allow (add,delete,write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+add:aci:(targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory || ipaNTHash")(version 3.0; acl "Admins can write passwords"; allow (add,delete,write) groupdn="ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+add:aci:(targetfilter = "(objectClass=krbPwdPolicy)")(targetattr = "krbMaxPwdLife || krbMinPwdLife || krbPwdMinDiffChars || krbPwdMinLength || krbPwdHistoryLength")(version 3.0;acl "Admins can write password policies"; allow (read, search, compare, write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 # Read-only
-add:aci:'(targetattr="ipaUniqueId || memberOf || enrolledBy || krbExtraData || krbPrincipalName || krbCanonicalName || krbPasswordExpiration || krbLastPwdChange || krbLastSuccessfulAuth || krbLastFailedAuth")(version 3.0; acl "Admin read-only attributes"; allow (read, search, compare) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)'
+add:aci:(targetattr="ipaUniqueId || memberOf || enrolledBy || krbExtraData || krbPrincipalName || krbCanonicalName || krbPasswordExpiration || krbLastPwdChange || krbLastSuccessfulAuth || krbLastFailedAuth")(version 3.0; acl "Admin read-only attributes"; allow (read, search, compare) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 
 dn: cn=tasks,cn=config
-add:aci:'(targetattr="*")(version 3.0; acl "Admin can read all tasks"; allow (read, compare, search) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)'
+add:aci:(targetattr="*")(version 3.0; acl "Admin can read all tasks"; allow (read, compare, search) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
 
 # Removal of obsolete ACIs
 dn: cn=config
 # Replaced by 'System: Read Replication Agreements'
-remove:aci: '(targetattr != aci)(version 3.0; aci "replica admins read access"; allow (read, search, compare) groupdn = "ldap:///cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)'
+remove:aci: (targetattr != aci)(version 3.0; aci "replica admins read access"; allow (read, search, compare) groupdn = "ldap:///cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
 
 dn: $SUFFIX
-remove:aci: '(targetattr = "*")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0; acl "No anonymous access to roles"; deny (read,search,compare) userdn != "ldap:///all";)'
-remove:aci: '(targetattr = "memberOf || memberHost || memberUser")(version 3.0; acl "No anonymous access to member information"; deny (read,search,compare) userdn != "ldap:///all";)'
-remove:aci: '(targetattr = "*")(target = "ldap:///cn=*,ou=SUDOers,$SUFFIX")(version 3.0; acl "No anonymous access to sudo"; deny (read,search,compare) userdn != "ldap:///all";)'
+remove:aci: (targetattr = "*")(target = "ldap:///cn=*,cn=roles,cn=accounts,$SUFFIX")(version 3.0; acl "No anonymous access to roles"; deny (read,search,compare) userdn != "ldap:///all";)
+remove:aci: (targetattr = "memberOf || memberHost || memberUser")(version 3.0; acl "No anonymous access to member information"; deny (read,search,compare) userdn != "ldap:///all";)
+remove:aci: (targetattr = "*")(target = "ldap:///cn=*,ou=SUDOers,$SUFFIX")(version 3.0; acl "No anonymous access to sudo"; deny (read,search,compare) userdn != "ldap:///all";)
 
 dn: cn=hbac,$SUFFIX
-remove:aci: '(targetattr = "*")(version 3.0; acl "No anonymous access to hbac"; deny (read,search,compare) userdn != "ldap:///all";)'
+remove:aci: (targetattr = "*")(version 3.0; acl "No anonymous access to hbac"; deny (read,search,compare) userdn != "ldap:///all";)
 
 dn: cn=sudo,$SUFFIX
-remove:aci: '(targetattr = "*")(version 3.0; acl "No anonymous access to sudo"; deny (read,search,compare) userdn != "ldap:///all";)'
+remove:aci: (targetattr = "*")(version 3.0; acl "No anonymous access to sudo"; deny (read,search,compare) userdn != "ldap:///all";)
 
 # Get Keytab operation Access Control
 dn: cn=accounts,$SUFFIX
-add:aci: '(targetattr="ipaProtectedOperation;read_keys")(version 3.0; acl "Users allowed to retrieve keytab keys"; allow(read) userattr="ipaAllowedToPerform;read_keys#USERDN";)'
-add:aci: '(targetattr="ipaProtectedOperation;read_keys")(version 3.0; acl "Groups allowed to retrieve keytab keys"; allow(read) userattr="ipaAllowedToPerform;read_keys#GROUPDN";)'
-add:aci: '(targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Users allowed to create keytab keys"; allow(write) userattr="ipaAllowedToPerform;write_keys#USERDN";)'
-add:aci: '(targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Groups allowed to create keytab keys"; allow(write) userattr="ipaAllowedToPerform;write_keys#GROUPDN";)'
-add:aci: '(targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Entities are allowed to rekey themselves"; allow(write) userdn="ldap:///self";)'
-add:aci: '(targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Admins are allowed to rekey any entity"; allow(write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)'
-add:aci: '(targetfilter="(|(objectclass=ipaHost)(objectclass=ipaService))")(targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Entities are allowed to rekey managed entries"; allow(write) userattr="managedby#USERDN";)'
+add:aci: (targetattr="ipaProtectedOperation;read_keys")(version 3.0; acl "Users allowed to retrieve keytab keys"; allow(read) userattr="ipaAllowedToPerform;read_keys#USERDN";)
+add:aci: (targetattr="ipaProtectedOperation;read_keys")(version 3.0; acl "Groups allowed to retrieve keytab keys"; allow(read) userattr="ipaAllowedToPerform;read_keys#GROUPDN";)
+add:aci: (targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Users allowed to create keytab keys"; allow(write) userattr="ipaAllowedToPerform;write_keys#USERDN";)
+add:aci: (targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Groups allowed to create keytab keys"; allow(write) userattr="ipaAllowedToPerform;write_keys#GROUPDN";)
+add:aci: (targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Entities are allowed to rekey themselves"; allow(write) userdn="ldap:///self";)
+add:aci: (targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Admins are allowed to rekey any entity"; allow(write) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+add:aci: (targetfilter="(|(objectclass=ipaHost)(objectclass=ipaService))")(targetattr="ipaProtectedOperation;write_keys")(version 3.0; acl "Entities are allowed to rekey managed entries"; allow(write) userattr="managedby#USERDN";)

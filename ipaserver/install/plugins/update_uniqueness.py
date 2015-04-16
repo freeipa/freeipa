@@ -54,13 +54,11 @@ class update_uniqueness_plugins_to_new_syntax(Updater):
     plugins_dn = DN(('cn', 'plugins'), ('cn', 'config'))
 
     def __remove_update(self, update, key, value):
-        # ldapupdate uses CSV, use '' for DN value
-        statement = "remove:%s:'%s'" % (key, value)
+        statement = "remove:%s:%s" % (key, value)
         update.setdefault('updates', []).append(statement)
 
     def __add_update(self, update, key, value):
-        # ldapupdate uses CSV, use '' for DN value
-        statement = "add:%s:'%s'" % (key, value)
+        statement = "add:%s:%s" % (key, value)
         update.setdefault('updates', []).append(statement)
 
     def __subtree_style(self, entry):

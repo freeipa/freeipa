@@ -1,6 +1,6 @@
 # Add all supported automember LDAP objects
 dn: cn=Auto Membership Plugin,cn=plugins,cn=config
-addifnew: nsslapd-pluginConfigArea: 'cn=automember,cn=etc,$SUFFIX'
+addifnew: nsslapd-pluginConfigArea: cn=automember,cn=etc,$SUFFIX
 
 dn: cn=automember,cn=etc,$SUFFIX
 default: objectClass: top

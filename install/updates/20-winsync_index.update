@@ -3,8 +3,10 @@
 #
 
 dn: cn=ntUniqueId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-only: nsIndexType: eq,pres
+only: nsIndexType: eq
+only: nsIndexType: pres
 
 dn: cn=ntUserDomainId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
-only: nsIndexType: eq,pres
+only: nsIndexType: eq
+only: nsIndexType: pres
 

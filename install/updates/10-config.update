@@ -31,13 +31,13 @@ default:nsSizeLimit: 5000
 default:nsLookThroughLimit: 5000
 
 dn: cn=config
-only:nsslapd-anonlimitsdn:'cn=anonymous-limits,cn=etc,$SUFFIX'
+only:nsslapd-anonlimitsdn:cn=anonymous-limits,cn=etc,$SUFFIX
 
 # Add a defaultNamingContext if one hasn't already been set. This was
 # introduced in 389-ds-base-1.2.10-0.9.a8. Adding this to a server that
 # doesn't support it generates a non-fatal error.
 dn: cn=config
-add:nsslapd-defaultNamingContext:'$SUFFIX'
+add:nsslapd-defaultNamingContext:$SUFFIX
 
 # Allow the root DSE to be searched even with minssf set
 dn: cn=config

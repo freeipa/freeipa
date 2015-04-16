@@ -29,7 +29,6 @@ import time
 import os
 import pwd
 import fnmatch
-import csv
 import re
 
 import krbV
@@ -279,22 +278,6 @@ class LDAPUpdate:
         else:
             raise RuntimeError("Offline updates are not supported.")
 
-    # The following 2 functions were taken from the Python
-    # documentation at http://docs.python.org/library/csv.html
-    def _utf_8_encoder(self, unicode_csv_data):
-        for line in unicode_csv_data:
-            yield line.encode('utf-8')
-
-    def _unicode_csv_reader(self, unicode_csv_data, quote_char="'", dialect=csv.excel, **kwargs):
-        # csv.py doesn't do Unicode; encode temporarily as UTF-8:
-        csv_reader = csv.reader(self._utf_8_encoder(unicode_csv_data),
-                                dialect=dialect, delimiter=',',
-                                quotechar=quote_char,
-                                skipinitialspace=True,
-                                **kwargs)
-        for row in csv_reader:
-            yield row
-
     def _identify_arch(self):
         """On multi-arch systems some libraries may be in /lib64, /usr/lib64,
            etc.  Determine if a suffix is needed based on the current
@@ -312,20 +295,6 @@ class LDAPUpdate:
             return ipautil.template_str(s, self.sub_dict)
         except KeyError, e:
             raise BadSyntax("Unknown template keyword %s" % e)
-
-    def _parse_values(self, line):
-        """Parse a comma-separated string into separate values and convert them
-           into a list. This should handle quoted-strings with embedded commas
-        """
-        if   line[0] == "'":
-            quote_char = "'"
-        else:
-            quote_char = '"'
-        reader = self._unicode_csv_reader([line], quote_char)
-        value = []
-        for row in reader:
-            value = value + row
-        return value
 
     def read_file(self, filename):
         if filename == '-':
@@ -589,83 +558,81 @@ class LDAPUpdate:
         only = {}
         for update in updates:
             # We already do syntax-parsing so this is safe
-            (action, attr, update_values) = update.split(':',2)
-            update_values = self._parse_values(update_values)
+            (action, attr, update_value) = update.split(':', 2)
             entry_values = entry.get(attr, [])
-            for update_value in update_values:
-                if action == 'remove':
-                    self.debug("remove: '%s' from %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr,entry_values))
-                    try:
-                        entry_values.remove(update_value)
-                    except ValueError:
-                        self.warning("remove: '%s' not in %s", update_value, attr)
-                        pass
-                    entry[attr] = entry_values
-                    self.debug('remove: updated value %s', safe_output(attr, entry_values))
-                elif action == 'add':
-                    self.debug("add: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
-                    # Remove it, ignoring errors so we can blindly add it later
-                    try:
-                        entry_values.remove(update_value)
-                    except ValueError:
-                        pass
+            if action == 'remove':
+                self.debug("remove: '%s' from %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr,entry_values))
+                try:
+                    entry_values.remove(update_value)
+                except ValueError:
+                    self.warning("remove: '%s' not in %s", update_value, attr)
+                    pass
+                entry[attr] = entry_values
+                self.debug('remove: updated value %s', safe_output(attr, entry_values))
+            elif action == 'add':
+                self.debug("add: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
+                # Remove it, ignoring errors so we can blindly add it later
+                try:
+                    entry_values.remove(update_value)
+                except ValueError:
+                    pass
+                entry_values.append(update_value)
+                self.debug('add: updated value %s', safe_output(attr, entry_values))
+                entry[attr] = entry_values
+            elif action == 'addifnew':
+                self.debug("addifnew: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
+                # Only add the attribute if it doesn't exist. Only works
+                # with single-value attributes.
+                if len(entry_values) == 0:
                     entry_values.append(update_value)
-                    self.debug('add: updated value %s', safe_output(attr, entry_values))
+                    self.debug('addifnew: set %s to %s', attr, safe_output(attr, entry_values))
                     entry[attr] = entry_values
-                elif action == 'addifnew':
-                    self.debug("addifnew: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
-                    # Only add the attribute if it doesn't exist. Only works
-                    # with single-value attributes.
-                    if len(entry_values) == 0:
-                        entry_values.append(update_value)
-                        self.debug('addifnew: set %s to %s', attr, safe_output(attr, entry_values))
-                        entry[attr] = entry_values
-                elif action == 'addifexist':
-                    self.debug("addifexist: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
-                    # Only add the attribute if the entry doesn't exist. We
-                    # determine this based on whether it has an objectclass
-                    if entry.get('objectclass'):
-                        entry_values.append(update_value)
-                        self.debug('addifexist: set %s to %s', attr, safe_output(attr, entry_values))
-                        entry[attr] = entry_values
-                elif action == 'only':
-                    self.debug("only: set %s to '%s', current value %s", attr, safe_output(attr, update_value), safe_output(attr, entry_values))
+            elif action == 'addifexist':
+                self.debug("addifexist: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
+                # Only add the attribute if the entry doesn't exist. We
+                # determine this based on whether it has an objectclass
+                if entry.get('objectclass'):
+                    entry_values.append(update_value)
+                    self.debug('addifexist: set %s to %s', attr, safe_output(attr, entry_values))
+                    entry[attr] = entry_values
+            elif action == 'only':
+                self.debug("only: set %s to '%s', current value %s", attr, safe_output(attr, update_value), safe_output(attr, entry_values))
+                if only.get(attr):
+                    entry_values.append(update_value)
+                else:
+                    entry_values = [update_value]
+                    only[attr] = True
+                entry[attr] = entry_values
+                self.debug('only: updated value %s', safe_output(attr, entry_values))
+            elif action == 'onlyifexist':
+                self.debug("onlyifexist: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
+                # Only set the attribute if the entry exist's. We
+                # determine this based on whether it has an objectclass
+                if entry.get('objectclass'):
                     if only.get(attr):
                         entry_values.append(update_value)
                     else:
                         entry_values = [update_value]
                         only[attr] = True
+                    self.debug('onlyifexist: set %s to %s', attr, safe_output(attr, entry_values))
                     entry[attr] = entry_values
-                    self.debug('only: updated value %s', safe_output(attr, entry_values))
-                elif action == 'onlyifexist':
-                    self.debug("onlyifexist: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
-                    # Only set the attribute if the entry exist's. We
-                    # determine this based on whether it has an objectclass
-                    if entry.get('objectclass'):
-                        if only.get(attr):
-                            entry_values.append(update_value)
-                        else:
-                            entry_values = [update_value]
-                            only[attr] = True
-                        self.debug('onlyifexist: set %s to %s', attr, safe_output(attr, entry_values))
-                        entry[attr] = entry_values
-                elif action == 'deleteentry':
-                    # skip this update type, it occurs in  __delete_entries()
-                    return None
-                elif action == 'replace':
-                    # value has the format "old::new"
-                    try:
-                        (old, new) = update_value.split('::', 1)
-                    except ValueError:
-                        raise BadSyntax, "bad syntax in replace, needs to be in the format old::new in %s" % update_value
-                    try:
-                        entry_values.remove(old)
-                    except ValueError:
-                        self.debug('replace: %s not found, skipping', safe_output(attr, old))
-                    else:
-                        entry_values.append(new)
-                        self.debug('replace: updated value %s', safe_output(attr, entry_values))
-                        entry[attr] = entry_values
+            elif action == 'deleteentry':
+                # skip this update type, it occurs in  __delete_entries()
+                return None
+            elif action == 'replace':
+                # value has the format "old::new"
+                try:
+                    (old, new) = update_value.split('::', 1)
+                except ValueError:
+                    raise BadSyntax, "bad syntax in replace, needs to be in the format old::new in %s" % update_value
+                try:
+                    entry_values.remove(old)
+                except ValueError:
+                    self.debug('replace: %s not found, skipping', safe_output(attr, old))
+                else:
+                    entry_values.append(new)
+                    self.debug('replace: updated value %s', safe_output(attr, entry_values))
+                    entry[attr] = entry_values
 
         return entry
 

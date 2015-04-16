@@ -23,4 +23,4 @@ default: cn: staged users
 # This is used for the admin to know if credential are set for stage users
 # We can do a query on a DN to see if an attribute exists.
 dn: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
-add:aci: '(targetattr="userPassword || krbPrincipalKey")(version 3.0; acl "Search existence of password and kerberos keys"; allow(search) userdn = "ldap:///uid=admin,cn=users,cn=accounts,$SUFFIX";)'
+add:aci: (targetattr="userPassword || krbPrincipalKey")(version 3.0; acl "Search existence of password and kerberos keys"; allow(search) userdn = "ldap:///uid=admin,cn=users,cn=accounts,$SUFFIX";)
