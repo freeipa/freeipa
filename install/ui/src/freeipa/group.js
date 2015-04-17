@@ -68,7 +68,15 @@ return {
                                 posixgroup: '@i18n:objects.group.posix'
                             }
                         },
-                        'gidnumber'
+                        'gidnumber',
+                        {
+                            $type: 'link',
+                            name: 'pwpolicy',
+                            param: 'cn',
+                            label: '@mo:pwpolicy.label_singular',
+                            other_entity: 'pwpolicy',
+                            require_link: true
+                        }
                     ]
                 }
             ],

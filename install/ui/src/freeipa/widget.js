@@ -4143,6 +4143,12 @@ IPA.link_widget = function(spec) {
      */
     that.no_check = spec.no_check;
 
+    /**
+     * Whether value can be displayed even if link is not valid.
+     * @property {boolean}
+     */
+    that.require_link = spec.require_link !== undefined ? spec.require_link : false;
+
     that.value = '';
     that.values = [];
 
@@ -4182,18 +4188,17 @@ IPA.link_widget = function(spec) {
     };
 
     that.update_link = function() {
+
+        var link = false;
+        var nonlink = false;
+
         if (that.value) {
-            if(that.is_link) {
-                that.link.css('display','');
-                that.nonlink.css('display','none');
-            } else {
-                that.link.css('display','none');
-                that.nonlink.css('display','');
-            }
-        } else {
-            that.link.css('display','none');
-            that.nonlink.css('display','none');
+            link = !!that.is_link;
+            nonlink = !that.is_link && !that.require_link;
         }
+
+        that.link.css('display', link ? '' : 'none');
+        that.nonlink.css('display', nonlink ? '' : 'none');
     };
 
     /**
