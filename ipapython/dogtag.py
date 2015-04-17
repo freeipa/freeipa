@@ -55,7 +55,9 @@ class Dogtag10Constants(object):
     DESTROY_BINARY = paths.PKIDESTROY
 
     SERVER_ROOT = paths.VAR_LIB_PKI_DIR
+    PKI_INSTALL_LOG = paths.PKI_CA_INSTALL_LOG
     PKI_INSTANCE_NAME = 'pki-tomcat'
+    PKI_LOG_TOP_LEVEL = os.path.join(paths.VAR_LOG_PKI_DIR, PKI_INSTANCE_NAME)
     PKI_ROOT = '%s/%s' % (SERVER_ROOT, PKI_INSTANCE_NAME)
     CRL_PUBLISH_PATH = paths.PKI_CA_PUBLISH_DIR
     CS_CFG_PATH = '%s/conf/ca/CS.cfg' % PKI_ROOT
@@ -88,7 +90,9 @@ class Dogtag9Constants(object):
     DESTROY_BINARY = paths.PKISILENT
 
     SERVER_ROOT = paths.VAR_LIB
+    PKI_INSTALL_LOG = paths.PKI_CA_INSTALL_LOG
     PKI_INSTANCE_NAME = 'pki-ca'
+    PKI_LOG_TOP_LEVEL = paths.PKI_CA_LOG_DIR
     PKI_ROOT = '%s/%s' % (SERVER_ROOT, PKI_INSTANCE_NAME)
     CRL_PUBLISH_PATH = paths.PKI_CA_PUBLISH_DIR
     CS_CFG_PATH = '%s/conf/CS.cfg' % PKI_ROOT

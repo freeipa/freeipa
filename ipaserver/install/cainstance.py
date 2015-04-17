@@ -669,8 +669,7 @@ class CAInstance(service.Service):
         try:
             ipautil.run(args, nolog=nolog)
         except ipautil.CalledProcessError, e:
-            root_logger.critical("failed to configure ca instance %s" % e)
-            raise RuntimeError('Configuration of CA failed')
+            self.handle_setup_error(e)
         finally:
             os.remove(cfg_file)
 
@@ -820,8 +819,7 @@ class CAInstance(service.Service):
 
             ipautil.run(args, env={'PKI_HOSTNAME':self.fqdn}, nolog=nolog)
         except ipautil.CalledProcessError, e:
-            root_logger.critical("failed to configure ca instance %s" % e)
-            raise RuntimeError('Configuration of CA failed')
+            self.handle_setup_error(e)
 
         if self.external == 1:
             print "The next step is to get %s signed by your CA and re-run %s as:" % (self.csr_file, sys.argv[0])
@@ -1763,6 +1761,19 @@ class CAInstance(service.Service):
         if master_entry is not None:
             master_entry['ipaConfigString'].append('caRenewalMaster')
             self.admin_conn.update_entry(master_entry)
+
+    def handle_setup_error(self, e):
+        root_logger.critical("Failed to configure CA instance: %s"
+                          % e)
+        root_logger.critical("See the installation logs and the following "
+                          "files/directories for more information:")
+        logs = [self.dogtag_constants.PKI_INSTALL_LOG,
+                self.dogtag_constants.PKI_LOG_TOP_LEVEL]
+
+        for log in logs:
+            root_logger.critical("  %s" % log)
+
+        raise RuntimeError("CA configuration failed.")
 
 
 def replica_ca_install_check(config):
