@@ -30,7 +30,6 @@ test("Testing $.ordered_map constructor.", function() {
     strictEqual(test.length, 0, "Checking length.");
     deepEqual(test.keys, [], "Checking keys.");
     deepEqual(test.values, [], "Checking values.");
-    deepEqual(test.map, {}, "Checking map.");
 });
 
 test("Testing $.ordered_map.put().", function() {
@@ -84,7 +83,6 @@ test("Testing $.ordered_map.put().", function() {
     strictEqual(test.length, 8, 'Checking length.');
     deepEqual(test.keys, [key5, key4, key1, key3, key2, key6, key7, key8], 'Checking keys.');
     deepEqual(test.values, [value5, value4, value1, value3, value2, value6, value7, value8], 'Checking values.');
-    deepEqual(test.map, map, 'Checking map.');
 });
 
 test("Testing $.ordered_map.get().", function() {
@@ -110,7 +108,6 @@ test("Testing $.ordered_map.get().", function() {
     strictEqual(test.length, 2, 'Checking length.');
     deepEqual(test.keys, [key1, key2], 'Checking keys.');
     deepEqual(test.values, [value1, value2], 'Checking values.');
-    deepEqual(test.map, map, 'Checking map.');
     strictEqual(result1, value1, 'Checking result 1.');
     strictEqual(result2, value2, 'Checking result 2.');
 });
@@ -136,7 +133,6 @@ test("Testing $.ordered_map.remove().", function() {
     strictEqual(test.length, 1, 'Checking length.');
     deepEqual(test.keys, [key2], 'Checking keys.');
     deepEqual(test.values, [value2], 'Checking values.');
-    deepEqual(test.map, map, 'Checking map.');
     strictEqual(result1, value1, 'Checking result.');
 });
 
@@ -158,7 +154,6 @@ test("Testing $.ordered_map.empty().", function() {
     strictEqual(test.length, 0, 'Checking length.');
     deepEqual(test.keys, [], 'Checking keys.');
     deepEqual(test.values, [], 'Checking values.');
-    deepEqual(test.map, {}, 'Checking map.');
 });
 
 };});
