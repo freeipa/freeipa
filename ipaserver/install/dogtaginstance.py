@@ -176,9 +176,7 @@ class DogtagInstance(service.Service):
         try:
             ipautil.run(args, nolog=nolog)
         except ipautil.CalledProcessError, e:
-            self.log.critical("failed to configure %s instance %s",
-                              subsystem, e)
-            raise RuntimeError('Configuration of %s failed' % subsystem)
+            self.handle_setup_error(e)
 
     def enable(self):
         self.backup_state("enabled", self.is_enabled())
@@ -438,3 +436,16 @@ class DogtagInstance(service.Service):
                 conn.unbind()
 
         return base64.b64encode(admin_cert)
+
+    def handle_setup_error(self, e):
+        self.log.critical("Failed to configure %s instance: %s"
+                          % (self.subsystem, e))
+        self.log.critical("See the installation logs and the following "
+                          "files/directories for more information:")
+        logs = [self.dogtag_constants.PKI_INSTALL_LOG,
+                self.dogtag_constants.PKI_LOG_TOP_LEVEL]
+
+        for log in logs:
+            self.log.critical("  %s" % log)
+
+        raise RuntimeError("%s configuration failed." % self.subsystem)

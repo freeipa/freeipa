@@ -754,8 +754,7 @@ class CAInstance(DogtagInstance):
 
             ipautil.run(args, env={'PKI_HOSTNAME':self.fqdn}, nolog=nolog)
         except ipautil.CalledProcessError, e:
-            self.log.critical("failed to configure ca instance %s", e)
-            raise RuntimeError('Configuration of CA failed')
+            self.handle_setup_error(e)
 
         if self.external == 1:
             print "The next step is to get %s signed by your CA and re-run %s as:" % (self.csr_file, sys.argv[0])
