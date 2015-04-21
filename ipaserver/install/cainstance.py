@@ -503,6 +503,7 @@ class CAInstance(DogtagInstance):
         config.set("CA", "pki_restart_configured_instance", "False")
         config.set("CA", "pki_backup_keys", "True")
         config.set("CA", "pki_backup_password", self.admin_password)
+        config.set("CA", "pki_profiles_in_ldap", "True")
 
         # Client security database
         config.set("CA", "pki_client_database_dir", self.agent_db)

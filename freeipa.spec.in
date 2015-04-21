@@ -92,7 +92,7 @@ BuildRequires:  python-backports-ssl_match_hostname
 BuildRequires:  softhsm-devel >= 2.0.0b1-3
 BuildRequires:  openssl-devel
 BuildRequires:  p11-kit-devel
-BuildRequires:  pki-base >= 10.2.1-0.1
+BuildRequires:  pki-base >= 10.2.4-1
 BuildRequires:  python-pytest-multihost >= 0.5
 BuildRequires:  python-pytest-sourceorder
 
@@ -135,8 +135,8 @@ Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
 Requires(post): selinux-policy-base
 Requires: slapi-nis >= 0.54.2-1
-Requires: pki-ca >= 10.2.1-0.2
-Requires: pki-kra >= 10.2.1-0.1
+Requires: pki-ca >= 10.2.4-1
+Requires: pki-kra >= 10.2.4-1
 Requires(preun): python systemd-units
 Requires(postun): python systemd-units
 Requires: python-dns >= 1.11.1
