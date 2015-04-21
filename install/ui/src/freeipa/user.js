@@ -125,7 +125,7 @@ return {
                     fields: [
                         'uid',
                         {
-                            $factory: IPA.user_password_widget,
+                            $factory: IPA.user.password_widget,
                             name: 'has_password',
                             metadata: '@mo-param:user:userpassword'
                         },
@@ -361,7 +361,7 @@ return {
         $pre_ops: [ IPA.user.association_facet_ss_pre_op ]
     },
     adder_dialog: {
-        $factory: IPA.user_adder_dialog,
+        $factory: IPA.user.adder_dialog,
         sections: [
             {
                 fields: [
@@ -472,7 +472,7 @@ IPA.user.association_facet_ss_pre_op = function(spec, context) {
 };
 
 
-IPA.user_adder_dialog = function(spec) {
+IPA.user.adder_dialog = function(spec) {
 
     var that = IPA.entity_adder_dialog(spec);
 
@@ -501,7 +501,7 @@ IPA.user_adder_dialog = function(spec) {
     return that;
 };
 
-IPA.user_password_widget = function(spec) {
+IPA.user.password_widget = function(spec) {
 
     spec = spec || {};
     spec.read_only = true;
