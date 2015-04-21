@@ -16,6 +16,7 @@ app_DATA =				\
 	60basev3.ldif			\
 	60ipadns.ldif			\
 	60ipapk11.ldif			\
+	60certificate-profiles.ldif	\
 	61kerberos-ipav3.ldif		\
 	65ipacertstore.ldif		\
 	65ipasudo.ldif			\

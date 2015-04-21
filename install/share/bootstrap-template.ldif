@@ -429,3 +429,15 @@ cn: ${REALM}_id_range
 ipaBaseID: $IDSTART
 ipaIDRangeSize: $IDRANGE_SIZE
 ipaRangeType: ipa-local
+
+dn: cn=ca,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: ca
+
+dn: cn=certprofiles,cn=ca,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: certprofiles

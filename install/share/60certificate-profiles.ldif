@@ -1,0 +1,3 @@
+dn: cn=schema
+attributeTypes: (2.16.840.1.113730.3.8.21.1.1 NAME 'ipaCertProfileStoreIssued' DESC 'Store certificates issued using this profile' EQUALITY booleanMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 SINGLE-VALUE X-ORIGIN 'IPA v4.2' )
+objectClasses: (2.16.840.1.113730.3.8.21.2.1 NAME 'ipaCertProfile' SUP top STRUCTURAL MUST ( cn $ description $ ipaCertProfileStoreIssued ) X-ORIGIN 'IPA v4.2' )
