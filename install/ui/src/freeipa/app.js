@@ -47,6 +47,7 @@ define([
     './service',
     './sudo',
     './trust',
+    './topology',
     './user',
     './stageuser',
     'dojo/domReady!'

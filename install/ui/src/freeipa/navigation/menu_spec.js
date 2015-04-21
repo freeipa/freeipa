@@ -184,6 +184,28 @@ var nav = {};
                         { entity: 'trustconfig' }
                     ]
                 },
+                {
+                    entity: 'topologysuffix',
+                    label: '@i18n:tabs.topology',
+                    facet: 'search',
+                    children: [
+                        {
+                            entity: 'topologysuffix',
+                            facet: 'search',
+                            hidden: true
+                        },
+                        {
+                            entity: 'server',
+                            facet: 'search',
+                            hidden: true
+                        },
+                        {
+                            entity: 'domainlevel',
+                            facet: 'details',
+                            hidden: true
+                        }
+                    ]
+                },
                 { entity: 'config' }
             ]
         }

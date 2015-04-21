@@ -252,6 +252,7 @@
                     "otptoken",
                     "radiusproxy",
                     "stageuser",
+                    "topology",
                     "user",
                     "plugins.load",
                     "plugins.login",

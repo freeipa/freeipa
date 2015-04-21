@@ -307,6 +307,12 @@
                             "soamname_change_message": "Do you want to check if new authoritative nameserver address is in DNS",
                             "soamname_change_title": "Authoritative nameserver change"
                         },
+                        "domainlevel": {
+                            "label": "Domain Level",
+                            "label_singular": "Domain Level",
+                            "ipadomainlevel": "Level",
+                            "set": "Set Domain Level"
+                        },
                         "group": {
                             "details": "Group Settings",
                             "external": "External",
@@ -545,6 +551,10 @@
                             "specified_users": "Specified Users and Groups",
                             "user": "Who"
                         },
+                        "topology": {
+                            "segment_details": "Segment details",
+                            "replication_config": "Replication configuration",
+                        },
                         "trust": {
                             "account": "Account",
                             "admin_account": "Administrative account",
@@ -641,6 +651,7 @@
                         "policy": "Policy",
                         "role": "Role Based Access Control",
                         "sudo": "Sudo",
+                        "topology": "Topology",
                         "trust": "Trusts"
                     },
                     "true": "True",

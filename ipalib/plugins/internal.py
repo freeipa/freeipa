@@ -452,6 +452,12 @@ class i18n_messages(Command):
                 "soamname_change_message": _("Do you want to check if new authoritative nameserver address is in DNS"),
                 "soamname_change_title": _("Authoritative nameserver change"),
             },
+            "domainlevel": {
+                "label": _("Domain Level"),
+                "label_singular": _("Domain Level"),
+                "ipadomainlevel": _("Level"),
+                "set": _("Set Domain Level"),
+            },
             "group": {
                 "details": _("Group Settings"),
                 "external": _("External"),
@@ -691,6 +697,10 @@ class i18n_messages(Command):
                 "specified_users": _("Specified Users and Groups"),
                 "user": _("Who"),
             },
+            "topology": {
+                "segment_details": _("Segment details"),
+                "replication_config": _("Replication configuration"),
+            },
             "trust": {
                 "account": _("Account"),
                 "admin_account": _("Administrative account"),
@@ -787,6 +797,7 @@ class i18n_messages(Command):
             "policy": _("Policy"),
             "role": _("Role Based Access Control"),
             "sudo": _("Sudo"),
+            "topology": _("Topology"),
             "trust": _("Trusts"),
         },
         "true": _("True"),

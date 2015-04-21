@@ -821,7 +821,7 @@ field.Adapter = declare(null, {
         var dr = data.result;
         var record = null;
         if (dr) {
-            if (dr.result) record = dr.result;
+            if (IPA.defined(dr.result)) record = dr.result;
             else if (dr.results) {
                 var result = dr.results[this.result_index];
                 if (result) record = result.result;
