@@ -69,6 +69,10 @@ define(['dojo/_base/declare',
                     obj = this._map[type] = this.builder.build(type);
                 } catch (e) {
                     if (e.code === 'no-ctor-fac') obj = null;
+                    else {
+                        window.console.error('Error while building: ' + type);
+                        throw e;
+                    }
                 }
             }
 

@@ -356,6 +356,7 @@ define(['dojo/_base/declare',
                     // object is not to be built
                     obj = null;
                 } else {
+                    window.console.error(e.stack);
                     throw e;
                 }
             }

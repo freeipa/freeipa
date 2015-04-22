@@ -74,6 +74,12 @@ define(['dojo/_base/declare',
             for (i=0; i<this.action_names.length; i++) {
                 name = this.action_names[i];
                 action = this.facet.actions.get(name);
+                if (!action) {
+                    window.console.error(
+                        "ActionDropDown: cannot find action: " + name +
+                        "\nFacet: "+facet.name);
+                    continue;
+                }
                 this.add_action(action, true);
             }
             this.recreate_options();

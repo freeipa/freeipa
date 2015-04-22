@@ -262,7 +262,6 @@ define([
             if (error.results) {
                 var msg = error.results.message;
                 var stack = error.results.stack.toString();
-                window.console.error(msg);
                 window.console.error(stack);
                 details.append('<h3>Technical details:</h3>');
                 details.append($('<div/>', { text: error.results.message }));
