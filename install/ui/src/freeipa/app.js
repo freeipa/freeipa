@@ -48,6 +48,7 @@ define([
     './sudo',
     './trust',
     './user',
+    './stageuser',
     'dojo/domReady!'
 ],function(app_container) {
     return app_container;

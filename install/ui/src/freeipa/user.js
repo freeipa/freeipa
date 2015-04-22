@@ -43,7 +43,17 @@ define([
  * @alternateClassName IPA.user
  * @singleton
  */
-var exp = IPA.user = {};
+var exp = IPA.user = {
+    search_facet_group: {
+        name: 'search',
+        label: '@i18n:objects.stageuser.user_categories',
+        facets: {
+            search_normal: 'user_search',
+            search: 'stageuser_search',
+            search_preserved: 'user_search_preserved'
+        }
+    }
+};
 
 var make_spec = function() {
 return {
@@ -51,6 +61,11 @@ return {
     facets: [
         {
             $type: 'search',
+            label: '@i18n:objects.user.activeuser_label',
+            tab_label: '@i18n:objects.user.activeuser_label',
+            disable_facet_tabs: false,
+            tabs_in_sidebar: true,
+            facet_groups: [exp.search_facet_group],
             row_disabled_attribute: 'nsaccountlock',
             columns: [
                 'uid',

@@ -200,6 +200,7 @@ class i18n_messages(Command):
         },
         "buttons": {
             "about": _("About"),
+            "activate": _("Activate"),
             "add": _("Add"),
             "add_and_add_another": _("Add and Add Another"),
             "add_and_close": _("Add and Close"),
@@ -653,6 +654,15 @@ class i18n_messages(Command):
                 "status_new_ns": _("New: key not set"),
                 "status_new_s": _("New: key set"),
             },
+            "stageuser": {
+                "activate_confirm": _("Are you sure you want to activate selected users?"),
+                "activate_success": _("${count} user(s) activated"),
+                "label": _("Stage users"),
+                "preserved_label": _("Preserved users"),
+                "undel_confirm": _("Are you sure you want to restore selected users?"),
+                "undel_success": _("${count} user(s) restored"),
+                "user_categories": _("User categories"),
+            },
             "sudocmd": {
                 "groups": _("Groups"),
             },
@@ -701,6 +711,7 @@ class i18n_messages(Command):
             "user": {
                 "account": _("Account Settings"),
                 "account_status": _("Account Status"),
+                "activeuser_label": _("Active users"),
                 "contact": _("Contact Settings"),
                 "employee": _("Employee Information"),
                 "error_changing_status": _("Error changing account status"),

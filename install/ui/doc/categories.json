@@ -250,6 +250,7 @@
                     "idviews",
                     "otptoken",
                     "radiusproxy",
+                    "stageuser",
                     "user",
                     "plugins.load",
                     "plugins.login",

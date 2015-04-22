@@ -36,7 +36,22 @@ var nav = {};
             name: 'identity',
             label: '@i18n:tabs.identity',
             children: [
-                { entity: 'user' },
+                {
+                    entity: 'user',
+                    facet: 'search',
+                    children: [
+                        {
+                            entity: 'stageuser',
+                            facet: 'search',
+                            hidden: true
+                        },
+                        {
+                            entity: 'user',
+                            facet: 'search_preserved',
+                            hidden: true
+                        }
+                    ]
+                },
                 { entity: 'group' },
                 { entity: 'host' },
                 { entity: 'hostgroup' },

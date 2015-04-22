@@ -508,6 +508,15 @@
                             "status_new_ns": "New: key not set",
                             "status_new_s": "New: key set"
                         },
+                        "stageuser": {
+                            "activate_confirm": "Are you sure you want to activate selected users?",
+                            "activate_success": "${count} user(s) activated",
+                            "label": "Stage users",
+                            "preserved_label": "Preserved users",
+                            "undel_confirm": "Are you sure you want to restore selected users?",
+                            "undel_success": "${count} user(s) restored",
+                            "user_categories": "User categories",
+                        },
                         "sudocmd": {
                             "groups": "Groups"
                         },
@@ -556,6 +565,7 @@
                         "user": {
                             "account": "Account Settings",
                             "account_status": "Account Status",
+                            "activeuser_label": "Active users",
                             "contact": "Contact Settings",
                             "employee": "Employee Information",
                             "error_changing_status": "Error changing account status",
