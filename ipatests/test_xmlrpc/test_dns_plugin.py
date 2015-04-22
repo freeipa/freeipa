@@ -1751,10 +1751,11 @@ class test_dns(Declarative):
                 'value': None,
                 'summary': None,
                 u'messages': (
-                    {u'message': u'DNS server 172.16.31.80 not responding.',
+                    {u'message': lambda x: x.startswith(
+                        u"DNS server %s: query '. SOA':" % fwd_ip),
                      u'code': 13006,
                      u'type':u'warning',
-                     u'name': u'DNSServerNotRespondingWarning'},
+                     u'name': u'DNSServerValidationWarning'},
                 ),
                 'result': {
                     'idnsforwarders': [fwd_ip],

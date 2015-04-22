@@ -42,7 +42,8 @@ from ipaplatform.tasks import tasks
 from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
         get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy,
         normalize_zone, get_reverse_zone_default, zone_is_reverse,
-        validate_dnssec_forwarder)
+        validate_dnssec_global_forwarder, DNSSECSignatureMissingError,
+        EDNS0UnsupportedError, UnresolvableRecordError)
 from ipalib.constants import CACERT
 
 NAMED_CONF = paths.NAMED_CONF
@@ -463,23 +464,32 @@ def check_reverse_zones(ip_addresses, reverse_zones, options, unattended, search
     return ret_reverse_zones
 
 def check_forwarders(dns_forwarders, logger):
-    print "Checking forwarders, please wait ..."
+    print "Checking DNS forwarders, please wait ..."
     forwarders_dnssec_valid = True
     for forwarder in dns_forwarders:
-        logger.debug("Checking forwarder: %s", forwarder)
-        result = validate_dnssec_forwarder(forwarder)
-        if result is None:
-            logger.error("Forwarder %s does not work", forwarder)
-            raise RuntimeError("Forwarder %s does not respond" % forwarder)
-        elif result is False:
+        logger.debug("Checking DNS server: %s", forwarder)
+        try:
+            validate_dnssec_global_forwarder(forwarder, log=logger)
+        except DNSSECSignatureMissingError as e:
             forwarders_dnssec_valid = False
-            logger.warning("DNS forwarder %s does not return DNSSEC signatures in answers", forwarder)
+            logger.warning("DNS server %s does not support DNSSEC: %s",
+                           forwarder, e)
             logger.warning("Please fix forwarder configuration to enable DNSSEC support.\n"
                 "(For BIND 9 add directive \"dnssec-enable yes;\" to \"options {}\")")
-            print ("WARNING: DNS forwarder %s does not return DNSSEC "
-                   "signatures in answers" % forwarder)
+            print "DNS server %s: %s" % (forwarder, e)
             print "Please fix forwarder configuration to enable DNSSEC support."
             print "(For BIND 9 add directive \"dnssec-enable yes;\" to \"options {}\")"
+        except EDNS0UnsupportedError as e:
+            forwarders_dnssec_valid = False
+            logger.warning("DNS server %s does not support ENDS0 "
+                           "(RFC 6891): %s", forwarder, e)
+            logger.warning("Please fix forwarder configuration. "
+                           "DNSSEC support cannot be enabled without EDNS0")
+            print ("WARNING: DNS server %s does not support EDNS0 "
+                   "(RFC 6891): %s" % (forwarder, e))
+        except UnresolvableRecordError as e:
+            logger.error("DNS server %s: %s", forwarder, e)
+            raise RuntimeError("DNS server %s: %s" % (forwarder, e))
 
     return forwarders_dnssec_valid
 
