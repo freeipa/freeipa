@@ -179,14 +179,14 @@ class OptionSemanticChangedWarning(PublicMessage):
                u"%(hint)s")
 
 
-class DNSServerNotRespondingWarning(PublicMessage):
+class DNSServerValidationWarning(PublicMessage):
     """
-    **13006**  Used when a DNS server is not responding to queries
+    **13006**  Used when a DNS server is not to able to resolve query
     """
 
     errno = 13006
     type = "warning"
-    format = _(u"DNS server %(server)s not responding.")
+    format = _(u"DNS server %(server)s: %(error)s.")
 
 
 class DNSServerDoesNotSupportDNSSECWarning(PublicMessage):
@@ -196,9 +196,10 @@ class DNSServerDoesNotSupportDNSSECWarning(PublicMessage):
 
     errno = 13007
     type = "warning"
-    format = _(u"DNS server %(server)s does not support DNSSEC. "
+    format = _(u"DNS server %(server)s does not support DNSSEC: %(error)s.\n"
                u"If DNSSEC validation is enabled on IPA server(s), "
                u"please disable it.")
+
 
 class ForwardzoneIsNotEffectiveWarning(PublicMessage):
     """
@@ -212,6 +213,20 @@ class ForwardzoneIsNotEffectiveWarning(PublicMessage):
                u"missing proper NS delegation in authoritative zone "
                u"\"%(authzone)s\". Please add NS record "
                u"\"%(ns_rec)s\" to parent zone \"%(authzone)s\".")
+
+
+class DNSServerDoesNotSupportEDNS0Warning(PublicMessage):
+    """
+    **13009** Used when a DNS server does not support EDNS0, required for
+    DNSSEC support
+    """
+
+    errno = 13009
+    type = "warning"
+    format = _(u"DNS server %(server)s does not support EDNS0 (RFC 6891): "
+               u"%(error)s.\n"
+               u"If DNSSEC validation is enabled on IPA server(s), "
+               u"please disable it.")
 
 
 def iter_messages(variables, base):
