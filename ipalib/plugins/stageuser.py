@@ -115,6 +115,17 @@ class stageuser(baseuser):
           #
           # Stage container
           #
+          # Stage user provisioning and Stage user Administrators,
+          # allowed to create stage users
+        'System: Add Stage Users by Provisioning and Administrators': {
+            'ipapermlocation': DN(baseuser.stage_container_dn, api.env.basedn),
+            'ipapermbindruletype': 'permission',
+            'ipapermtarget': DN('uid=*', baseuser.stage_container_dn, api.env.basedn),
+            'ipapermtargetfilter': {'(objectclass=*)'},
+            'ipapermright': {'add'},
+            'ipapermdefaultattr': {'*'},
+            'default_privileges': {'Stage User Administrators', 'Stage User Provisioning'},
+        },
           # Stage user administrators allowed to read kerberos/password
           # when the user is activated (to copy them in the active entry)
          'System: Read Stage User kerberos principal key and password': {
@@ -128,14 +139,14 @@ class stageuser(baseuser):
             },
             'default_privileges': {'Stage User Administrators'},
         },
-        # Stage user administrator allowed to create/delete stage users and
+        # Stage user administrator allowed to delete stage users and
         # to update them
-        'System: Add delete modify Stage Users by administrators': {
+        'System: Delete modify Stage Users by administrators': {
             'ipapermlocation': DN(baseuser.stage_container_dn, api.env.basedn),
             'ipapermbindruletype': 'permission',
             'ipapermtarget': DN('uid=*', baseuser.stage_container_dn, api.env.basedn),
             'ipapermtargetfilter': {'(objectclass=*)'},
-            'ipapermright': {'add','delete','write'},
+            'ipapermright': {'delete','write'},
             'ipapermdefaultattr': {'*'},
             'default_privileges': {'Stage User Administrators'},
         },

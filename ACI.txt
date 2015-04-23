@@ -213,7 +213,9 @@ aci: (targetattr = "createtimestamp || entryusn || ipakrbauthzdata || ipakrbprin
 dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Remove Services";allow (delete) groupdn = "ldap:///cn=System: Remove Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=staged users,cn=accounts,cn=provisioning,dc=ipa,dc=example
-aci: (targetattr = "*")(target = "ldap:///uid=*,cn=staged users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(targetfilter = "(objectclass=*)")(version 3.0;acl "permission:System: Add delete modify Stage Users by administrators";allow (add,delete,write) groupdn = "ldap:///cn=System: Add delete modify Stage Users by administrators,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+aci: (targetattr = "*")(target = "ldap:///uid=*,cn=staged users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(targetfilter = "(objectclass=*)")(version 3.0;acl "permission:System: Add Stage Users by Provisioning and Administrators";allow (add) groupdn = "ldap:///cn=System: Add Stage Users by Provisioning and Administrators,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=staged users,cn=accounts,cn=provisioning,dc=ipa,dc=example
+aci: (targetattr = "*")(target = "ldap:///uid=*,cn=staged users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(targetfilter = "(objectclass=*)")(version 3.0;acl "permission:System: Delete modify Stage Users by administrators";allow (delete,write) groupdn = "ldap:///cn=System: Delete modify Stage Users by administrators,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: dc=ipa,dc=example
 aci: (target_to = "ldap:///cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(target_from = "ldap:///cn=users,cn=accounts,dc=ipa,dc=example")(targetfilter = "(objectclass=nsContainer)")(version 3.0;acl "permission:System: Preserve an active user to a delete Users";allow (moddn) groupdn = "ldap:///cn=System: Preserve an active user to a delete Users,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: dc=ipa,dc=example

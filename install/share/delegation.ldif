@@ -137,6 +137,14 @@ objectClass: nestedgroup
 cn: Stage User Administrators
 description: Stage User Administrators
 
+dn: cn=Stage User Provisioning,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Stage User Provisioning
+description: Stage User Provisioning
+
 ############################################
 # Default permissions.
 ############################################
