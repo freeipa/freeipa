@@ -29,7 +29,8 @@ try:
     from pylint import checkers
     from pylint.lint import PyLinter
     from pylint.checkers.typecheck import TypeChecker
-    from astroid import Class, Instance, Module, InferenceError
+    from pylint.checkers.utils import safe_infer
+    from astroid import Class, Instance, Module, InferenceError, Function
     from pylint.reporters.text import TextReporter
 except ImportError:
     print >> sys.stderr, "To use {0}, please install pylint.".format(sys.argv[0])
@@ -58,7 +59,7 @@ class IPATypeChecker(TypeChecker):
             'fragment', 'username', 'password', 'hostname', 'port'],
         'urlparse.ParseResult': ['params'],
         'pytest': ['fixture', 'raises', 'skip', 'yield_fixture', 'mark', 'fail'],
-        'nose.tools': ['assert_equal', 'assert_raises'],
+        'unittest.case': ['assertEqual', 'assertRaises'],
         'datetime.tzinfo': ['houroffset', 'minoffset', 'utcoffset', 'dst'],
 
         # IPA classes
@@ -129,6 +130,14 @@ class IPATypeChecker(TypeChecker):
                         return
 
         super(IPATypeChecker, self).visit_getattr(node)
+
+    def visit_callfunc(self, node):
+        called = safe_infer(node.func)
+        if isinstance(called, Function):
+            if called.name in self.ignore.get(called.root().name, []):
+                return
+
+        super(IPATypeChecker, self).visit_callfunc(node)
 
 class IPALinter(PyLinter):
     ignore = (TypeChecker,)
