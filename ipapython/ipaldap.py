@@ -1089,7 +1089,7 @@ class LDAPClient(object):
         """
         with self.error_handler():
             self._flush_schema()
-            self.conn.unbind_s()
+            self._conn.unbind_s()
 
     def make_dn_from_attr(self, attr, value, parent_dn=None):
         """

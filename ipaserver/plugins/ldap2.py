@@ -196,8 +196,9 @@ class ldap2(LDAPClient, CrudBackend):
     def destroy_connection(self):
         """Disconnect from LDAP server."""
         try:
-            self.unbind()
-            LDAPClient._disconnect(self)
+            if self._conn is not None:
+                self.unbind()
+                LDAPClient._disconnect(self)
         except errors.PublicError:
             # ignore when trying to unbind multiple times
             pass
