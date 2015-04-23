@@ -93,11 +93,23 @@ exp.search_facet_pre_op = function(spec, context) {
     return spec;
 };
 
+/**
+ * Search facet
+ * @class  IPA.search_facet
+ */
 IPA.search_facet = function(spec, no_init) {
 
     spec = spec || {};
 
     var that = IPA.table_facet(spec, true);
+
+    /**
+     * Additional command options which are added to refresh command on
+     * refresh.
+     *
+     * @property {Object}
+     */
+    that.command_options = spec.command_options || {};
 
     that.deleter_dialog = spec.deleter_dialog || IPA.search_deleter_dialog;
 
@@ -232,6 +244,15 @@ IPA.search_facet = function(spec, no_init) {
         return args;
     };
 
+    /**
+     * Provide RPC options for refresh command
+     * - override point
+     */
+    that.get_refresh_command_options = function() {
+
+        return that.command_options;
+    };
+
     that.create_refresh_command = function() {
 
         var args = that.get_refresh_command_args();
@@ -242,6 +263,8 @@ IPA.search_facet = function(spec, no_init) {
             method: 'find',
             args: args
         });
+
+        command.set_options(that.get_refresh_command_options());
 
         if (that.pagination) {
             if (!that.search_all_entries) command.set_option('pkey_only', true);
