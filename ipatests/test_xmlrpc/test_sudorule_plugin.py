@@ -27,11 +27,13 @@ import six
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
+import pytest
 
 if six.PY3:
     unicode = str
 
 
+@pytest.mark.tier1
 class test_sudorule(XMLRPC_test):
     """
     Test the `sudorule` plugin.

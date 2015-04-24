@@ -29,6 +29,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import (
     fuzzy_automember_message)
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 
+import pytest
 
 user1 = u'tuser1'
 user_does_not_exist = u'does_not_exist'
@@ -66,6 +67,7 @@ hostgroup_exclude_regex2 = u'^www5'
 hostgroup_exclude_regex3 = u'^webserver5'
 
 
+@pytest.mark.tier1
 class test_automember(Declarative):
 
     cleanup_commands = [

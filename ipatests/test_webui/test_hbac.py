@@ -25,8 +25,10 @@ from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_hbac as hbac
 import ipatests.test_webui.data_hostgroup as hostgroup
+import pytest
 
 
+@pytest.mark.tier1
 class test_hbac(UI_driver):
 
     @screenshot

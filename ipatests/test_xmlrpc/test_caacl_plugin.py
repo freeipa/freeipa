@@ -414,11 +414,13 @@ def staged_user(request):
     return tracker.make_fixture(request)
 
 
+@pytest.mark.tier0
 class TestDefaultACL(XMLRPC_test):
     def test_default_acl_present(self, default_acl):
         default_acl.retrieve()
 
 
+@pytest.mark.tier1
 class TestCAACLbasicCRUD(XMLRPC_test):
     def test_create(self, crud_acl):
         crud_acl.create()
@@ -447,6 +449,7 @@ class TestCAACLbasicCRUD(XMLRPC_test):
         crud_acl.find()
 
 
+@pytest.mark.tier1
 class TestCAACLMembers(XMLRPC_test):
     def test_category_member_exclusivity(self, category_acl, default_profile):
         category_acl.create()

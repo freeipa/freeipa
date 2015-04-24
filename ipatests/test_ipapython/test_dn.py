@@ -1,5 +1,7 @@
 import contextlib
 import unittest
+import pytest
+from ipapython.dn import *  # FIXME
 
 import six
 
@@ -28,6 +30,8 @@ if six.PY3:
             assert not a <= b
             assert a >= b
             return 1
+
+pytestmark = pytest.mark.tier0
 
 
 def expected_class(klass, component):

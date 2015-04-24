@@ -27,6 +27,7 @@ import ipatests.test_webui.data_user as user
 import ipatests.test_webui.data_group as group
 import ipatests.test_webui.data_hostgroup as hostgroup
 from ipatests.test_webui.test_host import host_tasks, ENTITY as HOST_ENTITY
+import pytest
 
 ENTITY = 'selinuxusermap'
 PKEY = 'itest-selinuxusermap'
@@ -42,6 +43,7 @@ DATA = {
 }
 
 
+@pytest.mark.tier1
 class test_selinuxusermap(UI_driver):
 
     @screenshot

@@ -100,6 +100,7 @@ def smime_group(request):
     return u'smime_users'
 
 
+@pytest.mark.tier1
 class TestCertSignMIME(XMLRPC_test):
 
     def test_cert_import(self, smime_profile):
@@ -125,6 +126,7 @@ class TestCertSignMIME(XMLRPC_test):
                                      profile_id=smime_profile.name)
 
 
+@pytest.mark.tier1
 class TestSignWithDisabledACL(XMLRPC_test):
 
     def test_import_profile_and_acl(self, smime_profile, smime_acl):
@@ -162,6 +164,7 @@ class TestSignWithDisabledACL(XMLRPC_test):
             principal=smime_user)
 
 
+@pytest.mark.tier1
 class TestSignWithoutGroupMembership(XMLRPC_test):
 
     def test_import_profile_and_acl(self, smime_profile, smime_acl):
@@ -197,6 +200,7 @@ class TestSignWithoutGroupMembership(XMLRPC_test):
             principal=smime_user)
 
 
+@pytest.mark.tier1
 class TestSignWithChangedProfile(XMLRPC_test):
     """ Test to verify that the updated profile is used.
 

@@ -27,6 +27,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
 from ipapython.dn import DN
 from ipatests.util import Fuzzy
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
+import pytest
 
 rule1 = u'selinuxrule1'
 selinuxuser1 = u'guest_u:s0'
@@ -55,6 +56,7 @@ fuzzy_hbacruledn = Fuzzy(
 allow_all_rule_dn = api.Command['hbacrule_show'](u'allow_all')['result']['dn']
 
 
+@pytest.mark.tier1
 class test_selinuxusermap(Declarative):
     cleanup_commands = [
         ('selinuxusermap_del', [rule1], {}),

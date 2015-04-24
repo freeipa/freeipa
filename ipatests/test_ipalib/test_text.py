@@ -30,6 +30,7 @@ import re
 import nose
 import locale
 import six
+import pytest
 
 from ipatests.util import raises, assert_equal
 from ipatests.i18n import create_po, po_file_iterate
@@ -40,6 +41,8 @@ from ipapython.ipautil import file_exists
 
 if six.PY3:
     unicode = str
+
+pytestmark = pytest.mark.tier0
 
 singular = '%(count)d goose makes a %(dish)s'
 plural = '%(count)d geese make a %(dish)s'

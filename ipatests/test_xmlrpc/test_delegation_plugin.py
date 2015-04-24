@@ -26,10 +26,13 @@ from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
                                               fuzzy_uuid)
 from ipapython.dn import DN
+import pytest
 
 delegation1 = u'testdelegation'
 member1 = u'admins'
 
+
+@pytest.mark.tier1
 class test_delegation(Declarative):
 
     cleanup_commands = [

@@ -24,6 +24,10 @@ import email.utils
 import calendar
 from ipapython.cookie import Cookie
 
+import pytest
+
+pytestmark = pytest.mark.tier0
+
 class TestParse(unittest.TestCase):
 
     def test_parse(self):

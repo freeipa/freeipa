@@ -11,6 +11,7 @@ from ipapython.dn import DN
 import pytest
 
 
+@pytest.mark.tier1
 class TestTopologyPlugin(object):
     """
     Test Topology plugin from the DS point of view

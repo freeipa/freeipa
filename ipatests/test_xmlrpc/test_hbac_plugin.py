@@ -25,7 +25,10 @@ from nose.tools import raises, assert_raises  # pylint: disable=E0611
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
+import pytest
 
+
+@pytest.mark.tier1
 class test_hbac(XMLRPC_test):
     """
     Test the `hbacrule` plugin.

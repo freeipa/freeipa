@@ -36,6 +36,7 @@ import nose
 import base64
 from ipaplatform.paths import paths
 from ipapython.dn import DN
+import pytest
 
 if six.PY3:
     unicode = str
@@ -71,6 +72,8 @@ def is_db_configured():
 # The API tested depends on the value of ~/.ipa/default/ra_plugin when
 # running as the lite-server.
 
+
+@pytest.mark.tier1
 class test_cert(XMLRPC_test):
 
     @classmethod
@@ -203,6 +206,8 @@ class test_cert(XMLRPC_test):
         res = api.Command['service_find'](self.service_princ)
         assert res['count'] == 0
 
+
+@pytest.mark.tier1
 class test_cert_find(XMLRPC_test):
 
     @classmethod

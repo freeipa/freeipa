@@ -28,10 +28,12 @@ import ipatests.test_webui.data_netgroup as netgroup
 import ipatests.test_webui.data_hbac as hbac
 import ipatests.test_webui.test_rbac as rbac
 import ipatests.test_webui.data_sudo as sudo
+import pytest
 
 ENTITY = 'host'
 
 
+@pytest.mark.tier1
 class host_tasks(UI_driver):
 
     def setup(self, *args, **kwargs):
@@ -103,6 +105,7 @@ class host_tasks(UI_driver):
         return csr
 
 
+@pytest.mark.tier1
 class test_host(host_tasks):
 
     @screenshot

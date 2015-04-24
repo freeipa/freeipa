@@ -31,6 +31,7 @@ import sys
 from decimal import Decimal
 from inspect import isclass
 from six.moves.xmlrpc_client import MAXINT, MININT
+import pytest
 
 import six
 
@@ -47,6 +48,9 @@ if six.PY3:
     long = int
 
 NULLS = (None, b'', u'', tuple(), [])
+
+pytestmark = pytest.mark.tier0
+
 
 class test_DefaultFrom(ClassChecker):
     """

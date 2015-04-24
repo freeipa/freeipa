@@ -27,9 +27,12 @@ import six
 
 from ipatests import util
 from ipatests.util import raises, TYPE, VALUE, LEN, KEYS
+import pytest
 
 if six.PY3:
     unicode = str
+
+pytestmark = pytest.mark.tier0
 
 
 class Prop(object):

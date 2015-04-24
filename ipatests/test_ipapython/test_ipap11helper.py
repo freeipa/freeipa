@@ -19,6 +19,7 @@ from ipaplatform.paths import paths
 
 import _ipap11helper
 
+pytestmark = pytest.mark.tier0
 
 CONFIG_DATA = """
 # SoftHSM v2 configuration file

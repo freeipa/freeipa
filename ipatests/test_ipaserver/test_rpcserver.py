@@ -22,6 +22,7 @@ Test the `ipaserver.rpc` module.
 """
 
 import json
+import pytest
 
 import six
 
@@ -33,6 +34,7 @@ from ipaserver import rpcserver
 if six.PY3:
     unicode = str
 
+pytestmark = pytest.mark.tier0
 
 class StartResponse(object):
     def __init__(self):

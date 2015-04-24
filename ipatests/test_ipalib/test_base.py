@@ -22,6 +22,7 @@ Test the `ipalib.base` module.
 """
 
 import six
+import pytest
 
 from ipatests.util import ClassChecker, raises
 from ipalib.constants import NAME_REGEX, NAME_ERROR
@@ -30,6 +31,9 @@ from ipalib import base
 
 if six.PY3:
     unicode = str
+
+
+pytestmark = pytest.mark.tier0
 
 
 class test_ReadOnly(ClassChecker):

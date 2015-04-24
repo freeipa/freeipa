@@ -31,6 +31,9 @@ from ipatests.util import ClassChecker, create_test_api
 from ipalib import plugable, errors, text
 from ipaplatform.paths import paths
 
+import pytest
+
+pytestmark = pytest.mark.tier0
 
 class test_Plugin(ClassChecker):
     """

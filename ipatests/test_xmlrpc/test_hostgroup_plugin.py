@@ -26,6 +26,7 @@ from ipalib import api, errors
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from ipatests.test_xmlrpc import objectclasses
 from ipapython.dn import DN
+import pytest
 
 hostgroup1 = u'testhostgroup1'
 dn1 = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
@@ -42,6 +43,7 @@ host_dn1 = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),
 invalidhostgroup1 = u'@invalid'
 
 
+@pytest.mark.tier1
 class test_hostgroup(Declarative):
 
     cleanup_commands = [

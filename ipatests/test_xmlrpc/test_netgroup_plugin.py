@@ -31,6 +31,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
 from ipatests.test_xmlrpc import objectclasses
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
+import pytest
 
 # Global so we can save the value between tests
 netgroup_dn = None
@@ -63,6 +64,8 @@ invalidnisdomain1=u'domain1,domain2'
 invalidnisdomain2=u'+invalidnisdomain'
 invalidhost=u'+invalid&host'
 
+
+@pytest.mark.tier1
 class test_netgroup(Declarative):
     """
     Test the `netgroup` plugin.

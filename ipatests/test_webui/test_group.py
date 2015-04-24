@@ -29,8 +29,10 @@ import ipatests.test_webui.data_netgroup as netgroup
 import ipatests.test_webui.data_hbac as hbac
 import ipatests.test_webui.test_rbac as rbac
 import ipatests.test_webui.data_sudo as sudo
+import pytest
 
 
+@pytest.mark.tier1
 class test_group(UI_driver):
 
     @screenshot

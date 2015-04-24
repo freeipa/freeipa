@@ -21,8 +21,11 @@ import sys
 sys.path.insert(0, ".")
 
 import unittest
+import pytest
 
 from ipapython import ipavalidate
+
+pytestmark = pytest.mark.tier0
 
 class TestValidate(unittest.TestCase):
     def test_validEmail(self):

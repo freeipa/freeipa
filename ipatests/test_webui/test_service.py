@@ -23,10 +23,12 @@ Service tests
 
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
+import pytest
 
 ENTITY = 'service'
 
 
+@pytest.mark.tier1
 class sevice_tasks(UI_driver):
 
     def prep_data(self):
@@ -59,6 +61,7 @@ class sevice_tasks(UI_driver):
         return pkey
 
 
+@pytest.mark.tier1
 class test_service(sevice_tasks):
 
     @screenshot

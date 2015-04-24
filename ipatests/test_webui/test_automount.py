@@ -23,6 +23,7 @@ Automount tests
 
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
+import pytest
 
 LOC_ENTITY = 'automountlocation'
 MAP_ENTITY = 'automountmap'
@@ -61,6 +62,7 @@ KEY_DATA = {
 }
 
 
+@pytest.mark.tier1
 class test_automount(UI_driver):
 
     @screenshot

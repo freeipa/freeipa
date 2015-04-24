@@ -30,7 +30,10 @@ from ipalib import pkcs10
 from ipapython import ipautil
 import nss.nss as nss
 from nss.error import NSPRError
+import pytest
 
+
+@pytest.mark.tier0
 class test_update(object):
     """
     Test the PKCS#10 Parser.

@@ -26,11 +26,13 @@ from six import StringIO
 
 from ipalib import api, errors
 from ipalib.plugins.user import user_add
+import pytest
 
 if six.PY3:
     unicode = str
 
 
+@pytest.mark.tier0
 class CLITestContext(object):
     """Context manager that replaces stdout & stderr, and catches SystemExit
 

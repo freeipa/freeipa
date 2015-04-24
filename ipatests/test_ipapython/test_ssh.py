@@ -24,11 +24,14 @@ import base64
 
 import six
 import nose
+import pytest
 
 from ipapython import ssh
 
 if six.PY3:
     unicode = str
+
+pytestmark = pytest.mark.tier0
 
 
 def make_public_key_checker(pk, out):

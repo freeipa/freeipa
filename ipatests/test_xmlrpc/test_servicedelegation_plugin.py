@@ -9,6 +9,7 @@ from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 from ipapython.dn import DN
+import pytest
 
 rule1 = u'test1'
 rule2 = u'test rule two'
@@ -22,6 +23,7 @@ def get_servicedelegation_dn(cn):
     return DN(('cn', cn), api.env.container_s4u2proxy, api.env.basedn)
 
 
+@pytest.mark.tier1
 class test_servicedelegation(Declarative):
     cleanup_commands = [
         ('servicedelegationrule_del', [rule1], {}),

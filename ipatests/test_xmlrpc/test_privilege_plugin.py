@@ -26,6 +26,7 @@ from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
                                               fuzzy_uuid)
 from ipapython.dn import DN
+import pytest
 
 permission1 = u'testperm'
 permission1_dn = DN(('cn',permission1),
@@ -42,6 +43,7 @@ privilege1_dn = DN(('cn',privilege1),
 users_dn = DN(api.env.container_user, api.env.basedn)
 
 
+@pytest.mark.tier1
 class test_privilege(Declarative):
 
     cleanup_commands = [

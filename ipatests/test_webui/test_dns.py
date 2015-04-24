@@ -23,6 +23,7 @@ DNS tests
 
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
+import pytest
 
 ZONE_ENTITY = 'dnszone'
 FORWARD_ZONE_ENTITY = 'dnsforwardzone'
@@ -85,6 +86,7 @@ CONFIG_MOD_DATA = {
 }
 
 
+@pytest.mark.tier1
 class test_dns(UI_driver):
 
     def setup(self, *args, **kwargs):

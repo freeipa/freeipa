@@ -26,6 +26,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
                                               fuzzy_uuid)
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
+import pytest
 
 group1 = u'testgroup1'
 group2 = u'testgroup2'
@@ -48,6 +49,7 @@ host_dn1 = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),
               api.env.basedn)
 
 
+@pytest.mark.tier1
 class test_nesting(Declarative):
     cleanup_commands = [
         ('group_del', [group1], {}),

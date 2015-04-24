@@ -29,7 +29,10 @@ from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (XMLRPC_test, assert_attr_equal,
                                               Declarative)
+import pytest
 
+
+@pytest.mark.tier1
 class test_pwpolicy(XMLRPC_test):
     """
     Test the `pwpolicy` plugin.
@@ -245,6 +248,7 @@ class test_pwpolicy(XMLRPC_test):
         api.Command['user_del'](self.user)
 
 
+@pytest.mark.tier1
 class test_pwpolicy_mod_cospriority(Declarative):
     """Tests for cospriority modifications"""
     cleanup_commands = [

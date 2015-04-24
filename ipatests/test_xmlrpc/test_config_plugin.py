@@ -24,7 +24,10 @@ Test the `ipalib/plugins/config.py` module.
 from ipalib import errors
 from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
                                               fuzzy_uuid)
+import pytest
 
+
+@pytest.mark.tier1
 class test_config(Declarative):
 
     cleanup_commands = [

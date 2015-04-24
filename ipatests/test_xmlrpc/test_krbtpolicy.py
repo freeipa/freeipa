@@ -24,9 +24,12 @@ from ipalib import api, errors
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
+import pytest
 
 user1 = u'tuser1'
 
+
+@pytest.mark.tier1
 class test_krbtpolicy(Declarative):
     cleanup_commands = [
         ('user_del', [user1], {}),
@@ -100,7 +103,7 @@ class test_krbtpolicy(Declarative):
 
 
         dict(
-            desc='Update user ticket policy',
+                desc='Update user ticket policy',
             command=(
                 'krbtpolicy_mod', [user1], dict(krbmaxticketlife=3600)
             ),

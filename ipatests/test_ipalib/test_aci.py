@@ -25,6 +25,10 @@ from __future__ import print_function
 
 from ipalib.aci import ACI
 
+import pytest
+
+pytestmark = pytest.mark.tier0
+
 def check_aci_parsing(source, expected):
     a = ACI(source)
     print('ACI was: ', a)

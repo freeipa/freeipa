@@ -29,8 +29,10 @@ import ipatests.test_webui.data_user as user
 import ipatests.test_webui.data_group as group
 import ipatests.test_webui.data_hostgroup as hostgroup
 from ipatests.test_webui.test_host import host_tasks, ENTITY as HOST_ENTITY
+import pytest
 
 
+@pytest.mark.tier1
 class test_sudo(UI_driver):
 
     @screenshot

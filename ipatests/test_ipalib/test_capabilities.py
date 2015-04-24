@@ -23,6 +23,9 @@ Test the `ipalib.errors` module.
 
 from ipalib.capabilities import capabilities, client_has_capability
 
+import pytest
+
+pytestmark = pytest.mark.tier0
 
 def test_client_has_capability():
     assert capabilities['messages'] == u'2.52'

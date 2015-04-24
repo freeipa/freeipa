@@ -24,6 +24,7 @@ from ipalib import api, errors
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative
+import pytest
 
 
 cn = u'Realm Domains'
@@ -34,6 +35,7 @@ new_domain_2 = u'example2.com'
 bad_domain = u'doesnotexist.test'
 
 
+@pytest.mark.tier1
 class test_realmdomains(Declarative):
 
     # Make sure your environment has sound DNS configuration where

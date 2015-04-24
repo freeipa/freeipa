@@ -34,7 +34,9 @@ from ipalib.frontend import Command
 from ipalib import  backend, plugable, errors, base
 from ipapython.version import API_VERSION
 
+import pytest
 
+pytestmark = pytest.mark.tier0
 
 class test_Backend(ClassChecker):
     """

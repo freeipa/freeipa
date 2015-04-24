@@ -19,6 +19,7 @@
 
 import nose
 import ldap
+import pytest
 
 from ipatests.test_ipaserver.httptest import Unauthorized_HTTP_test
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
@@ -30,6 +31,8 @@ testuser = u'tuser'
 old_password = u'old_password'
 new_password = u'new_password'
 
+
+@pytest.mark.tier1
 class test_changepw(XMLRPC_test, Unauthorized_HTTP_test):
     app_uri = '/ipa/session/change_password'
 

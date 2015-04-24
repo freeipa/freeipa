@@ -24,6 +24,7 @@ Trust tests
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 from ipatests.test_webui.task_range import range_tasks
+import pytest
 
 ENTITY = 'trust'
 CONFIG_ENTITY = 'trustconfig'
@@ -41,6 +42,7 @@ CONFIG_DATA2 = {
 }
 
 
+@pytest.mark.tier1
 class trust_tasks(UI_driver):
 
     def get_data(self, add_data=None):
@@ -93,6 +95,7 @@ class trust_tasks(UI_driver):
         return domain.upper() + '_id_range'
 
 
+@pytest.mark.tier1
 class test_trust(trust_tasks):
 
     def setup(self, *args, **kwargs):

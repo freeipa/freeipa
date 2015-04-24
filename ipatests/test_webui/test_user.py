@@ -29,6 +29,7 @@ import ipatests.test_webui.data_netgroup as netgroup
 import ipatests.test_webui.data_hbac as hbac
 import ipatests.test_webui.test_rbac as rbac
 import ipatests.test_webui.data_sudo as sudo
+import pytest
 
 try:
     from selenium.webdriver.common.by import By
@@ -36,6 +37,7 @@ except ImportError:
     pass
 
 
+@pytest.mark.tier1
 class test_user(UI_driver):
 
     @screenshot

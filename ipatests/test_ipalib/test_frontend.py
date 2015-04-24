@@ -23,6 +23,7 @@ Test the `ipalib.frontend` module.
 
 # FIXME: Pylint errors
 # pylint: disable=no-member
+import pytest
 
 import six
 
@@ -38,6 +39,9 @@ from ipapython.version import API_VERSION
 
 if six.PY3:
     unicode = str
+
+
+pytestmark = pytest.mark.tier0
 
 
 def test_RULE_FLAG():

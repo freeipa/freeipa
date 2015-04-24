@@ -22,8 +22,10 @@ Tests for the `ipaserver.service` module.
 """
 
 from ipaserver.install import service
+import pytest
 
 
+@pytest.mark.tier0
 def test_format_seconds():
     assert service.format_seconds(0) == '0 seconds'
     assert service.format_seconds(1) == '1 second'

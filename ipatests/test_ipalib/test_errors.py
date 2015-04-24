@@ -26,6 +26,7 @@ Test the `ipalib.errors` module.
 
 import re
 import inspect
+import pytest
 
 import six
 
@@ -36,6 +37,9 @@ from ipalib.constants import TYPE_ERROR
 
 if six.PY3:
     unicode = str
+
+
+pytestmark = pytest.mark.tier0
 
 
 class PrivateExceptionTester(object):

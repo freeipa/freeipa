@@ -25,6 +25,7 @@ from ipalib import errors
 from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_sudocmddn,
     fuzzy_uuid)
 from ipatests.test_xmlrpc import objectclasses
+import pytest
 
 sudocmd1 = u'/usr/bin/sudotestcmd1'
 sudocmd1_camelcase = u'/usr/bin/sudoTestCmd1'
@@ -32,6 +33,7 @@ sudocmd1_camelcase = u'/usr/bin/sudoTestCmd1'
 sudorule1 = u'test_sudorule1'
 
 
+@pytest.mark.tier1
 class test_sudocmd(Declarative):
 
     cleanup_commands = [

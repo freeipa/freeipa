@@ -23,6 +23,7 @@ Selfservice tests
 
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
+import pytest
 
 ENTITY = 'selfservice'
 PKEY = 'itest-selfservice-rule'
@@ -39,6 +40,7 @@ DATA = {
 }
 
 
+@pytest.mark.tier1
 class test_selfservice(UI_driver):
 
     @screenshot

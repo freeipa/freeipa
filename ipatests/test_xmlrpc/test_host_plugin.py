@@ -318,6 +318,7 @@ def ipv6_fromip_host(request):
     return tracker.make_fixture(request)
 
 
+@pytest.mark.tier1
 class TestNonexistentHost(XMLRPC_test):
     def test_retrieve_nonexistent(self, host):
         host.ensure_missing()
@@ -341,6 +342,7 @@ class TestNonexistentHost(XMLRPC_test):
             command()
 
 
+@pytest.mark.tier1
 class TestCRUD(XMLRPC_test):
     def test_create_duplicate(self, host):
         host.ensure_exists()
@@ -461,6 +463,7 @@ class TestCRUD(XMLRPC_test):
         host.check_create(result)
 
 
+@pytest.mark.tier1
 class TestMultipleMatches(XMLRPC_test):
     def test_try_show_multiple_matches_with_shortname(self, host, lab_host):
         host.ensure_exists()
@@ -471,6 +474,7 @@ class TestMultipleMatches(XMLRPC_test):
             command()
 
 
+@pytest.mark.tier1
 class TestHostWithService(XMLRPC_test):
     """Test deletion using a non-fully-qualified hostname.
     Services associated with this host should also be removed.
@@ -516,6 +520,7 @@ class TestHostWithService(XMLRPC_test):
                 pass
 
 
+@pytest.mark.tier1
 class TestManagedHosts(XMLRPC_test):
     def test_managed_hosts(self, host, host2, host3):
         host.ensure_exists()
@@ -580,6 +585,7 @@ class TestManagedHosts(XMLRPC_test):
         ), result)
 
 
+@pytest.mark.tier1
 class TestProtectedMaster(XMLRPC_test):
     def test_try_delete_master(self, this_host):
         command = this_host.make_delete_command()
@@ -596,6 +602,7 @@ class TestProtectedMaster(XMLRPC_test):
             command()
 
 
+@pytest.mark.tier1
 class TestValidation(XMLRPC_test):
     def test_try_validate_create(self, invalid_host):
         command = invalid_host.make_create_command()
@@ -647,6 +654,7 @@ def keytabname(request):
         os.unlink(keytabname)
 
 
+@pytest.mark.tier1
 class TestHostFalsePwdChange(XMLRPC_test):
 
     def test_join_host(self, host, keytabname):
@@ -732,6 +740,7 @@ def dns_setup(host):
             pass
 
 
+@pytest.mark.tier1
 class TestHostDNS(XMLRPC_test):
     def test_add_ipv6only_host(self, dns_setup, ipv6only_host):
         ipv6only_host.run_command('dnsrecord_add', dnszone,
@@ -858,6 +867,7 @@ def allowedto_context(request, host3):
                       description=u'Test hostgroup 1')
 
 
+@pytest.mark.tier1
 class TestHostAllowedTo(XMLRPC_test):
 
     def test_user_allow_retrieve_keytab(self, allowedto_context, host):

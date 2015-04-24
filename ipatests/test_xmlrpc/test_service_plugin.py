@@ -31,6 +31,7 @@ from ipatests.test_xmlrpc.test_user_plugin import (
     get_user_result, get_user_dn, get_group_dn)
 import base64
 from ipapython.dn import DN
+import pytest
 
 fqdn1 = u'testhost1.%s' % api.env.domain
 fqdn2 = u'testhost2.%s' % api.env.domain
@@ -60,6 +61,8 @@ hostgroup1 = u'testhostgroup1'
 hostgroup1_dn = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
                     api.env.basedn)
 
+
+@pytest.mark.tier1
 class test_service(Declarative):
 
     cleanup_commands = [
@@ -648,6 +651,7 @@ class test_service(Declarative):
     ]
 
 
+@pytest.mark.tier1
 class test_service_in_role(Declarative):
     cleanup_commands = [
         ('host_del', [fqdn1], {}),
@@ -771,6 +775,7 @@ class test_service_in_role(Declarative):
     ]
 
 
+@pytest.mark.tier1
 class test_service_allowed_to(Declarative):
     cleanup_commands = [
         ('user_del', [user1], {}),

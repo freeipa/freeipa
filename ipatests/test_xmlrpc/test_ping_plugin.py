@@ -25,8 +25,10 @@ from ipalib import api, errors, messages, _
 from ipatests.util import Fuzzy
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 from ipapython.version import API_VERSION
+import pytest
 
 
+@pytest.mark.tier1
 class test_ping(Declarative):
 
     tests = [
