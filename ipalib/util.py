@@ -34,6 +34,7 @@ from types import NoneType
 from weakref import WeakKeyDictionary
 from dns import resolver, rdatatype
 from dns.exception import DNSException
+from dns.resolver import NXDOMAIN
 from netaddr.core import AddrFormatError
 
 from ipalib import errors, messages
@@ -580,6 +581,11 @@ class DNSSECSignatureMissingError(ForwarderValidationError):
                "signatures (no RRSIG data)")
 
 
+class DNSSECValidationError(ForwarderValidationError):
+    format = _("requested record '%(owner)s %(rtype)s' was refused by IPA "
+               "server %(ip)s because DNSSEC signature is not valid")
+
+
 def _log_response(log, e):
     """
     If exception contains response from server, log this response to debug log
@@ -594,11 +600,12 @@ def _log_response(log, e):
 
 
 def _resolve_record(owner, rtype, nameserver_ip=None, edns0=False,
-                    dnssec=False, timeout=10):
+                    dnssec=False, flag_cd=False, timeout=10):
     """
     :param nameserver_ip: if None, default resolvers will be used
     :param edns0: enables EDNS0
     :param dnssec: enabled EDNS0, flags: DO
+    :param flag_cd: requires dnssec=True, adds flag CD
     :raise DNSException: if error occurs
     """
     assert isinstance(nameserver_ip, basestring)
@@ -615,7 +622,10 @@ def _resolve_record(owner, rtype, nameserver_ip=None, edns0=False,
 
     if dnssec:
         res.use_edns(0, dns.flags.DO, 4096)
-        res.set_flags(dns.flags.RD)
+        flags = dns.flags.RD
+        if flag_cd:
+            flags = flags | dns.flags.CD
+        res.set_flags(flags)
     elif edns0:
         res.use_edns(0, 0, 4096)
 
@@ -679,6 +689,52 @@ def validate_dnssec_global_forwarder(ip_addr, log=None, timeout=10):
     except KeyError:
         raise DNSSECSignatureMissingError(owner=owner, rtype=rtype, ip=ip_addr)
 
+
+def validate_dnssec_zone_forwarder_step1(ip_addr, fwzone, log=None, timeout=10):
+    """
+    Only forwarders in forward zones can be validated in this way
+    :raise UnresolvableRecordError: record cannot be resolved
+    :raise EDNS0UnsupportedError: ENDS0 is not supported by forwarder
+    """
+    _validate_edns0_forwarder(fwzone, "SOA", ip_addr, log=log, timeout=timeout)
+
+
+def validate_dnssec_zone_forwarder_step2(ipa_ip_addr, fwzone, log=None,
+                                         timeout=10):
+    """
+    This step must be executed after forwarders is added into LDAP, and only
+    when we are sure the forwarders work.
+    Query will be send to IPA DNS server, to verify if reply passed,
+    or DNSSEC validation failed.
+    Only forwarders in forward zones can be validated in this way
+    :raise UnresolvableRecordError: record cannot be resolved
+    :raise DNSSECValidationError: response from forwarder is not DNSSEC valid
+    """
+    rtype = "SOA"
+    try:
+        _resolve_record(fwzone, rtype, nameserver_ip=ipa_ip_addr, edns0=True,
+                        timeout=timeout)
+    except DNSException as e:
+        _log_response(log, e)
+    else:
+        return
+
+    try:
+        _resolve_record(fwzone, rtype, nameserver_ip=ipa_ip_addr, dnssec=True,
+                        flag_cd=True, timeout=timeout)
+    except NXDOMAIN as e:
+        # sometimes CD flag is ignored and NXDomain is returned
+        # this may cause false positive detection
+        _log_response(log, e)
+        raise DNSSECValidationError(owner=fwzone, rtype=rtype, ip=ipa_ip_addr)
+    except DNSException as e:
+        _log_response(log, e)
+        raise UnresolvableRecordError(owner=fwzone, rtype=rtype, ip=ipa_ip_addr,
+                                      error=e)
+    else:
+        # record is not DNSSEC valid, because it can be received with CD flag
+        # only
+        raise DNSSECValidationError(owner=fwzone, rtype=rtype, ip=ipa_ip_addr)
 
 
 def validate_idna_domain(value):

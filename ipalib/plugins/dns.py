@@ -26,6 +26,7 @@ import re
 import binascii
 import dns.name
 import dns.exception
+import dns.rdatatype
 import dns.resolver
 import encodings.idna
 
@@ -45,7 +46,9 @@ from ipalib.util import (normalize_zonemgr,
                          get_reverse_zone_default, REVERSE_DNS_ZONES,
                          normalize_zone, validate_dnssec_global_forwarder,
                          DNSSECSignatureMissingError, UnresolvableRecordError,
-                         EDNS0UnsupportedError)
+                         EDNS0UnsupportedError, DNSSECValidationError,
+                         validate_dnssec_zone_forwarder_step1,
+                         validate_dnssec_zone_forwarder_step2)
 
 from ipapython.ipautil import CheckedIPAddress, is_host_resolvable
 from ipapython.dnsutil import DNSName
@@ -4340,10 +4343,99 @@ class dnsforwardzone(DNSZoneBase):
         _add_warning_fw_zone_is_not_effective(result, fwzone,
                                               options['version'])
 
+    def _warning_if_forwarders_do_not_work(self, result, new_zone,
+                                           *keys, **options):
+        fwzone = keys[-1]
+        forwarders = options.get('idnsforwarders', [])
+        any_forwarder_work = False
+
+        for forwarder in forwarders:
+            try:
+                validate_dnssec_zone_forwarder_step1(forwarder, fwzone,
+                                                     log=self.log)
+            except UnresolvableRecordError as e:
+                messages.add_message(
+                    options['version'],
+                    result, messages.DNSServerValidationWarning(
+                        server=forwarder, error=e
+                    )
+                )
+            except EDNS0UnsupportedError as e:
+                messages.add_message(
+                    options['version'],
+                    result, messages.DNSServerDoesNotSupportEDNS0Warning(
+                        server=forwarder, error=e
+                    )
+                )
+            else:
+                any_forwarder_work = True
+
+        if not any_forwarder_work:
+            # do not test DNSSEC validation if there is no valid forwarder
+            return
+
+        # resolve IP address of any DNS replica
+        # FIXME: https://fedorahosted.org/bind-dyndb-ldap/ticket/143
+        # we currenly should to test all IPA DNS replica, because DNSSEC
+        # validation is configured just in named.conf per replica
+
+        ipa_dns_masters = [normalize_zone(x) for x in
+                           api.Object.dnsrecord.get_dns_masters()]
+
+        if not ipa_dns_masters:
+            # something very bad happened, DNS is installed, but no IPA DNS
+            # servers available
+            self.log.error("No IPA DNS server can be found, but integrated DNS "
+                           "is installed")
+            return
+
+        ipa_dns_ip = None
+        for rdtype in (dns.rdatatype.A, dns.rdatatype.AAAA):
+            try:
+                ans = dns.resolver.query(ipa_dns_masters[0], rdtype)
+            except dns.exception.DNSException:
+                continue
+            else:
+                ipa_dns_ip = str(ans.rrset.items[0])
+                break
+
+        if not ipa_dns_ip:
+            self.log.error("Cannot resolve %s hostname", ipa_dns_masters[0])
+            return
+
+        # sleep a bit, adding new zone to BIND from LDAP may take a while
+        if new_zone:
+            time.sleep(5)
+
+        # Test if IPA is able to receive replies from forwarders
+        try:
+            validate_dnssec_zone_forwarder_step2(ipa_dns_ip, fwzone,
+                                                 log=self.log)
+        except DNSSECValidationError as e:
+            messages.add_message(
+                options['version'],
+                result, messages.DNSSECValidationFailingWarning(error=e)
+            )
+        except UnresolvableRecordError as e:
+            messages.add_message(
+                options['version'],
+                result, messages.DNSServerValidationWarning(
+                    server=ipa_dns_ip, error=e
+                )
+            )
 
 @register()
 class dnsforwardzone_add(DNSZoneBase_add):
     __doc__ = _('Create new DNS forward zone.')
+
+    def interactive_prompt_callback(self, kw):
+        # show informative message on client side
+        # server cannot send messages asynchronous
+        if kw.get('idnsforwarders', False):
+            self.Backend.textui.print_plain(
+                _("Server will check DNS forwarder(s)."))
+            self.Backend.textui.print_plain(
+                _("This may take some time, please wait ..."))
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
@@ -4364,6 +4456,10 @@ class dnsforwardzone_add(DNSZoneBase_add):
     def execute(self, *keys, **options):
         result = super(dnsforwardzone_add, self).execute(*keys, **options)
         self.obj._warning_fw_zone_is_not_effective(result, *keys, **options)
+        if options.get('idnsforwarders'):
+            print result, keys, options
+            self.obj._warning_if_forwarders_do_not_work(
+                result, True, *keys, **options)
         return result
 
 
@@ -4377,6 +4473,15 @@ class dnsforwardzone_del(DNSZoneBase_del):
 @register()
 class dnsforwardzone_mod(DNSZoneBase_mod):
     __doc__ = _('Modify DNS forward zone.')
+
+    def interactive_prompt_callback(self, kw):
+        # show informative message on client side
+        # server cannot send messages asynchronous
+        if kw.get('idnsforwarders', False):
+            self.Backend.textui.print_plain(
+                _("Server will check DNS forwarder(s)."))
+            self.Backend.textui.print_plain(
+                _("This may take some time, please wait ..."))
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         try:
@@ -4406,6 +4511,12 @@ class dnsforwardzone_mod(DNSZoneBase_mod):
 
         return dn
 
+    def execute(self, *keys, **options):
+        result = super(dnsforwardzone_mod, self).execute(*keys, **options)
+        if options.get('idnsforwarders'):
+            self.obj._warning_if_forwarders_do_not_work(result, False, *keys,
+                                                        **options)
+        return result
 
 @register()
 class dnsforwardzone_find(DNSZoneBase_find):
