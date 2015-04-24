@@ -23,6 +23,7 @@ Basic ui tests
 
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
+import pytest
 
 
 ENTITIES = [
@@ -65,6 +66,7 @@ ENTITIES = [
 ]
 
 
+@pytest.mark.tier1
 class test_navigation(UI_driver):
 
     @screenshot

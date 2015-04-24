@@ -31,6 +31,7 @@ from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 from ipatests.test_xmlrpc.test_group_plugin import get_group_dn
 from ipatests.util import Fuzzy
 from ipapython.dn import DN
+import pytest
 
 
 idview1 = u'idview1'
@@ -117,6 +118,7 @@ def get_hostgroup_netgroup_dn(hostgroup):
               api.env.basedn)
 
 
+@pytest.mark.tier1
 class test_idviews(Declarative):
 
     cleanup_commands = [

@@ -24,6 +24,7 @@ from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_uuid, fuzzy_sudocmddn
 from ipapython.dn import DN
+import pytest
 
 sudocmdgroup1 = u'testsudocmdgroup1'
 sudocmdgroup2 = u'testsudocmdgroup2'
@@ -50,6 +51,8 @@ def create_command(sudocmd):
         ),
     )
 
+
+@pytest.mark.tier1
 class test_sudocmdgroup(Declarative):
     cleanup_commands = [
         ('sudocmdgroup_del', [sudocmdgroup1], {}),

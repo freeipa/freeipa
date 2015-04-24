@@ -8,8 +8,10 @@ import nose
 from ipatests import util
 from ipalib import api, errors
 from ipapython.version import API_VERSION
+import pytest
 
 
+@pytest.mark.tier0
 class TestCLIParsing(object):
     """Tests that commandlines are correctly parsed to Command keyword args
     """

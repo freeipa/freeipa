@@ -25,6 +25,7 @@ import sys
 import textwrap
 import tempfile
 import shutil
+import pytest
 
 from ipalib import api
 from ipalib import errors
@@ -111,6 +112,8 @@ class AutomountTest(XMLRPC_test):
         # Success; delete the temporary directory
         shutil.rmtree(conf_directory)
 
+
+@pytest.mark.tier1
 class test_automount(AutomountTest):
     """
     Test the `automount` plugin.
@@ -319,6 +322,7 @@ class test_automount(AutomountTest):
             api.Command['automountkey_show'](self.locname, self.mapname, **key_kw)
 
 
+@pytest.mark.tier1
 class test_automount_direct(AutomountTest):
     """
     Test the `automount` plugin indirect map functionality.
@@ -384,6 +388,7 @@ class test_automount_direct(AutomountTest):
         self.check_import_roundtrip()
 
 
+@pytest.mark.tier1
 class test_automount_indirect(AutomountTest):
     """
     Test the `automount` plugin indirect map functionality.
@@ -482,6 +487,8 @@ class test_automount_indirect(AutomountTest):
         """
         self.check_import_roundtrip()
 
+
+@pytest.mark.tier1
 class test_automount_indirect_no_parent(AutomountTest):
     """
     Test the `automount` plugin Indirect map function.

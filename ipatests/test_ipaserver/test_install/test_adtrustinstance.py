@@ -22,9 +22,12 @@ Test `adtrustinstance`
 
 import os
 import nose
+import pytest
 
 from ipaserver.install import adtrustinstance
 
+
+@pytest.mark.tier0
 class test_adtrustinstance:
     """
     Test `adtrustinstance`.

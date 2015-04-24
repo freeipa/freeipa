@@ -26,6 +26,7 @@ from ipalib import api
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_uuid, fuzzy_user_or_group_sid
+import pytest
 
 group_name = u'external_group'
 group_desc = u'Test external group'
@@ -41,6 +42,7 @@ def get_trusted_group_name():
     return u'%s\Domain Admins' % ad_netbios
 
 
+@pytest.mark.tier1
 class test_external_members(Declarative):
     @classmethod
     def setup_class(cls):

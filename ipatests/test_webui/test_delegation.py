@@ -23,6 +23,7 @@ Delegation tests
 
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
+import pytest
 
 ENTITY = 'delegation'
 PKEY = 'itest-delegation-rule'
@@ -42,6 +43,7 @@ DATA = {
 }
 
 
+@pytest.mark.tier1
 class test_delegation(UI_driver):
 
     @screenshot

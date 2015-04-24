@@ -31,6 +31,8 @@ import sys
 from types import NoneType
 from decimal import Decimal
 from inspect import isclass
+import pytest
+
 from ipatests.util import raises, ClassChecker, read_only
 from ipatests.util import dummy_ugettext, assert_equal
 from ipatests.data import binary_bytes, utf8_bytes, unicode_str
@@ -41,6 +43,9 @@ from ipalib import _
 from xmlrpclib import MAXINT, MININT
 
 NULLS = (None, '', u'', tuple(), [])
+
+pytestmark = pytest.mark.tier0
+
 
 class test_DefaultFrom(ClassChecker):
     """

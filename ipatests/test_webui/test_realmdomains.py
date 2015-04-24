@@ -23,10 +23,12 @@ Realm domains tests
 
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
+import pytest
 
 ENTITY = 'realmdomains'
 
 
+@pytest.mark.tier1
 class test_realmdomains(UI_driver):
 
     @screenshot

@@ -24,6 +24,7 @@ Test the `ipalib/plugins/vault.py` module.
 import nose
 from ipalib import api, errors
 from xmlrpc_test import Declarative, fuzzy_string
+import pytest
 
 vault_name = u'test_vault'
 service_name = u'HTTP/server.example.com'
@@ -124,6 +125,7 @@ veCYju6ok4ZWnMiH8MR1jgC39RWtjJZwynCuPXUP2/vZkoVf1tCZyz7dSm8TdS/2
 """
 
 
+@pytest.mark.tier1
 class test_vault_plugin(Declarative):
 
     @classmethod

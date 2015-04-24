@@ -25,8 +25,10 @@ from nose.tools import assert_raises  # pylint: disable=E0611
 
 from ipalib import api, errors
 from ipalib.plugins.user import user_add
+import pytest
 
 
+@pytest.mark.tier0
 class CLITestContext(object):
     """Context manager that replaces stdout & stderr, and catches SystemExit
 

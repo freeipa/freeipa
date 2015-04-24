@@ -32,6 +32,7 @@ import tempfile
 import krbV
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython.dn import DN
+import pytest
 
 def use_keytab(principal, keytab):
     try:
@@ -55,6 +56,8 @@ def use_keytab(principal, keytab):
         if tmpdir:
             shutil.rmtree(tmpdir)
 
+
+@pytest.mark.tier0
 class test_ipagetkeytab(cmdline_test):
     """
     Test `ipa-getkeytab`.

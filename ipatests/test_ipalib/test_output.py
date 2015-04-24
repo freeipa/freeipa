@@ -27,6 +27,10 @@ from ipalib.frontend import Command
 from ipalib import _
 from ipapython.version import API_VERSION
 
+import pytest
+
+pytestmark = pytest.mark.tier0
+
 class test_Output(ClassChecker):
     """
     Test the `ipalib.output.Output` class.

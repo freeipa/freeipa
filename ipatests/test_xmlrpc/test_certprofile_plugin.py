@@ -221,6 +221,7 @@ def xmlprofile(request):
     return tracker
 
 
+@pytest.mark.tier0
 class TestDefaultProfile(XMLRPC_test):
     def test_default_profile_present(self, default_profile):
         default_profile.retrieve()
@@ -243,6 +244,7 @@ class TestDefaultProfile(XMLRPC_test):
             command()
 
 
+@pytest.mark.tier1
 class TestProfileCRUD(XMLRPC_test):
     def test_create_duplicate(self, user_profile):
         msg = u'Certificate Profile with name "{}" already exists'
@@ -329,12 +331,14 @@ class TestProfileCRUD(XMLRPC_test):
             command()
 
 
+@pytest.mark.tier1
 class TestMalformedProfile(XMLRPC_test):
     def test_malformed_import(self, malformed):
         with pytest.raises(errors.ExecutionError):
             malformed.create()
 
 
+@pytest.mark.tier1
 class TestImportFromXML(XMLRPC_test):
     def test_import_xml(self, xmlprofile):
         with pytest.raises(errors.ExecutionError):

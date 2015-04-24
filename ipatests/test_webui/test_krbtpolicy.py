@@ -23,6 +23,7 @@ Kerberos policy tests
 
 from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
+import pytest
 
 ENTITY = 'krbtpolicy'
 
@@ -41,6 +42,7 @@ DATA2 = {
 }
 
 
+@pytest.mark.tier1
 class test_krbtpolicy(UI_driver):
 
     @screenshot

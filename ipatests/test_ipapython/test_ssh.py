@@ -22,8 +22,13 @@ Test the `ipapython/ssh.py` module.
 
 import base64
 import nose
+import pytest
 
 from ipapython import ssh
+
+
+pytestmark = pytest.mark.tier0
+
 
 def make_public_key_checker(pk, out):
     def check_public_key():

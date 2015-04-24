@@ -26,12 +26,16 @@ from ipalib import api
 from ipalib import errors
 from types import NoneType
 from nose.tools import raises
+import pytest
 
 # Test strategy:
 # 1. Create few allow rules: with user categories, with explicit users, with user groups, with groups, with services
 # 2. Create users for test
 # 3. Run detailed and non-detailed tests for explicitly specified rules, check expected result
 #
+
+
+@pytest.mark.tier1
 class test_hbactest(XMLRPC_test):
     """
     Test the `hbactest` plugin.

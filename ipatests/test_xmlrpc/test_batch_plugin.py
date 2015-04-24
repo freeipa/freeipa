@@ -26,6 +26,7 @@ from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import assert_equal, Fuzzy, assert_deepequal
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
 from ipapython.dn import DN
+import pytest
 
 group1 = u'testgroup1'
 first1 = u'John'
@@ -47,6 +48,7 @@ def deepequal_list(*expected):
     return checker
 
 
+@pytest.mark.tier1
 class test_batch(Declarative):
 
     cleanup_commands = [

@@ -24,11 +24,13 @@ Range tests
 import ipatests.test_webui.test_trust as trust_mod
 from ipatests.test_webui.ui_driver import screenshot
 from ipatests.test_webui.task_range import range_tasks
+import pytest
 
 ENTITY = 'idrange'
 PKEY = 'itest-range'
 
 
+@pytest.mark.tier1
 class test_range(range_tasks):
 
     @screenshot

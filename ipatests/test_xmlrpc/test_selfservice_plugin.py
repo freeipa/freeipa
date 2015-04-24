@@ -24,10 +24,13 @@ Test the `ipalib/plugins/selfservice.py` module.
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+import pytest
 
 selfservice1 = u'testself'
 invalid_selfservice1 = u'bad+name'
 
+
+@pytest.mark.tier1
 class test_selfservice(Declarative):
 
     cleanup_commands = [

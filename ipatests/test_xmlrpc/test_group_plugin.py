@@ -53,6 +53,8 @@ external_sid1=u'S-1-1-123456-789-1'
 def get_group_dn(cn):
     return DN(('cn', cn), api.env.container_group, api.env.basedn)
 
+
+@pytest.mark.tier1
 class test_group(Declarative):
     cleanup_commands = [
         ('group_del', [group1], {}),
@@ -1019,6 +1021,8 @@ class test_group(Declarative):
         ),
     ]
 
+
+@pytest.mark.tier1
 class test_group_remove_group_from_protected_group(Declarative):
     cleanup_commands = [
         ('group_del', [group1], {}),
@@ -1087,6 +1091,8 @@ class test_group_remove_group_from_protected_group(Declarative):
         ),
     ]
 
+
+@pytest.mark.tier1
 class test_group_full_set_of_objectclass_not_available_post_detach(Declarative):
     # https://fedorahosted.org/freeipa/ticket/4909#comment:1
     cleanup_commands = [

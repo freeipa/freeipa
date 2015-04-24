@@ -27,12 +27,17 @@ import tempfile
 import re
 import nose
 import locale
+import pytest
+
 from ipatests.util import raises, assert_equal
 from ipatests.i18n import create_po, po_file_iterate
 from ipalib.request import context
 from ipalib import request
 from ipalib import text
 from ipapython.ipautil import file_exists
+
+
+pytestmark = pytest.mark.tier0
 
 singular = '%(count)d goose makes a %(dish)s'
 plural = '%(count)d geese make a %(dish)s'

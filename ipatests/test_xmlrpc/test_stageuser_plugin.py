@@ -384,6 +384,7 @@ def user7(request):
     return tracker.make_fixture_restore(request)
 
 
+@pytest.mark.tier1
 class TestNonexistentStagedUser(XMLRPC_test):
     def test_retrieve_nonexistent(self, stageduser):
         stageduser.ensure_missing()
@@ -421,6 +422,7 @@ class TestNonexistentStagedUser(XMLRPC_test):
             command()
 
 
+@pytest.mark.tier1
 class TestStagedUser(XMLRPC_test):
     def test_create_duplicate(self, stageduser):
         stageduser.ensure_exists()
@@ -513,6 +515,7 @@ class TestStagedUser(XMLRPC_test):
         stageduser.retrieve()
 
 
+@pytest.mark.tier1
 class TestCreateInvalidAttributes(XMLRPC_test):
     def test_create_invalid_uid(self):
         invalid = StageUserTracker(invaliduser1, u'invalid', u'user')
@@ -581,6 +584,7 @@ class TestCreateInvalidAttributes(XMLRPC_test):
             command()
 
 
+@pytest.mark.tier1
 class TestUpdateInvalidAttributes(XMLRPC_test):
     def test_update_uid_string(self, stageduser):
         stageduser.ensure_exists()
@@ -615,6 +619,7 @@ class TestUpdateInvalidAttributes(XMLRPC_test):
             command()
 
 
+@pytest.mark.tier1
 class TestActive(XMLRPC_test):
     def test_delete(self, user):
         user.ensure_exists()
@@ -654,6 +659,7 @@ class TestActive(XMLRPC_test):
             command()
 
 
+@pytest.mark.tier1
 class TestPreserved(XMLRPC_test):
     def test_search_preserved_invalid(self, user):
         user.make_preserved_user()
@@ -747,6 +753,7 @@ class TestPreserved(XMLRPC_test):
         stageduser.delete()
 
 
+@pytest.mark.tier1
 class TestManagers(XMLRPC_test):
     def test_staged_manager(self, user, stageduser):
         user.ensure_exists()
@@ -790,6 +797,7 @@ class TestManagers(XMLRPC_test):
             assert False
 
 
+@pytest.mark.tier1
 class TestDuplicates(XMLRPC_test):
     def test_active_same_as_preserved(self, user4, user5):
         user4.ensure_missing()
@@ -846,6 +854,7 @@ def group(request):
     return tracker.make_fixture(request)
 
 
+@pytest.mark.tier1
 class TestGroups(XMLRPC_test):
     def test_stageduser_membership(self, stageduser, group):
         stageduser.ensure_exists()

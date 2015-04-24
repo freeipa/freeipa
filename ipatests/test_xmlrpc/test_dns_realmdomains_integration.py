@@ -28,6 +28,7 @@ from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipatests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits
+import pytest
 
 
 cn = u'Realm Domains'
@@ -83,6 +84,7 @@ def assert_realmdomain_and_txt_record_not_present(response):
         return True
 
 
+@pytest.mark.tier1
 class test_dns_realmdomains_integration(Declarative):
     cleanup_commands = [
         ('realmdomains_mod', [], {'associateddomain': [our_domain]}),

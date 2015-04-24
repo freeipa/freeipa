@@ -23,6 +23,7 @@ from ipapython.dn import DN
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 from ipatests.test_xmlrpc import objectclasses
+import pytest
 
 radius1 = u'testradius'
 radius1_fqdn = u'testradius.test'
@@ -31,6 +32,7 @@ user1 = u'tuser1'
 password1 = u'very*secure123'
 
 
+@pytest.mark.tier1
 class test_raduisproxy(Declarative):
 
     cleanup_commands = [

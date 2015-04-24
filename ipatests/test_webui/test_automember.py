@@ -25,6 +25,7 @@ from ipatests.test_webui.ui_driver import UI_driver
 from ipatests.test_webui.ui_driver import screenshot
 import ipatests.test_webui.data_hostgroup as hostgroup
 from ipatests.test_webui.test_host import host_tasks
+import pytest
 
 ENTITY = 'automember'
 
@@ -50,6 +51,7 @@ HOST_GROUP_DATA = {
 }
 
 
+@pytest.mark.tier1
 class test_automember(UI_driver):
 
     @screenshot

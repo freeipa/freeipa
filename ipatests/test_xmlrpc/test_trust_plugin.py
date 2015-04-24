@@ -26,6 +26,7 @@ from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
 from xmlrpc_test import (Declarative, fuzzy_guid, fuzzy_domain_sid, fuzzy_string,
         fuzzy_uuid, fuzzy_digits)
+import pytest
 
 
 trustconfig_ad_config = DN(('cn', api.env.domain),
@@ -36,6 +37,8 @@ testgroup_dn = DN(('cn', testgroup), api.env.container_group, api.env.basedn)
 default_group = u'Default SMB Group'
 default_group_dn = DN(('cn', default_group), api.env.container_group, api.env.basedn)
 
+
+@pytest.mark.tier1
 class test_trustconfig(Declarative):
 
     @classmethod

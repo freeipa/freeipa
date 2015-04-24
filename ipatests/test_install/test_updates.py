@@ -24,6 +24,7 @@ import unittest
 import os
 
 import nose
+import pytest
 
 from ipalib import api
 from ipalib import errors
@@ -45,6 +46,8 @@ have occurred as expected.
 The DM password needs to be set in ~/.ipa/.dmpw
 """
 
+
+@pytest.mark.tier0
 class test_update(unittest.TestCase):
     """
     Test the LDAP updater.

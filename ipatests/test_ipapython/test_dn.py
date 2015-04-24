@@ -2,6 +2,12 @@
 
 import unittest
 from ipapython.dn import *
+import pytest
+from ipapython.dn import *  # FIXME
+
+
+pytestmark = pytest.mark.tier0
+
 
 def expected_class(klass, component):
     if klass is AVA:

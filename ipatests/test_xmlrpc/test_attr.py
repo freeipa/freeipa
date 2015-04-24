@@ -24,9 +24,12 @@ Test --setattr and --addattr and other attribute-specific issues
 from ipalib import errors
 from xmlrpc_test import Declarative
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
+import pytest
 
 user1=u'tuser1'
 
+
+@pytest.mark.tier1
 class test_attr(Declarative):
 
     cleanup_commands = [

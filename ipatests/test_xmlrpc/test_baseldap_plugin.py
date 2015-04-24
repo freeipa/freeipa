@@ -28,8 +28,10 @@ from ipapython import ipaldap
 from ipalib import errors
 from ipalib.plugins import baseldap
 from ipatests.util import assert_deepequal
+import pytest
 
 
+@pytest.mark.tier0
 def test_exc_wrapper():
     """Test the CallbackInterface._exc_wrapper helper method"""
     handled_exceptions = []
@@ -73,6 +75,7 @@ def test_exc_wrapper():
     assert handled_exceptions == [None, errors.ExecutionError]
 
 
+@pytest.mark.tier0
 def test_callback_registration():
     class callbacktest_base(baseldap.CallbackInterface):
         _callback_registry = dict(test={})
@@ -117,6 +120,7 @@ def test_callback_registration():
             ('Subclass registered callback', 42)]
 
 
+@pytest.mark.tier0
 def test_exc_callback_registration():
     messages = []
     class callbacktest_base(baseldap.BaseLDAPCommand):
@@ -169,6 +173,7 @@ def test_exc_callback_registration():
     assert messages == ['Base exc_callback', 'Subclass registered callback']
 
 
+@pytest.mark.tier0
 def test_entry_to_dict():
     class FakeAttributeType(object):
         def __init__(self, name, syntax):

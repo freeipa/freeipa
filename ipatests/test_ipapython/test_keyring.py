@@ -23,6 +23,10 @@ Test the `kernel_keyring.py` module.
 from nose.tools import raises, assert_raises  # pylint: disable=E0611
 from ipapython import kernel_keyring
 
+import pytest
+
+pytestmark = pytest.mark.tier0
+
 TEST_KEY = 'ipa_test'
 TEST_VALUE = 'abc123'
 UPDATE_VALUE = '123abc'

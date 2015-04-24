@@ -24,6 +24,10 @@ import nose
 
 from ipapython import ipautil
 
+import pytest
+
+pytestmark = pytest.mark.tier0
+
 
 def make_ipaddress_checker(addr, words=None, prefixlen=None):
     def check_ipaddress():

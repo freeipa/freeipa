@@ -31,6 +31,7 @@ from ipatests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative
 from ipapython.dn import DN
 import inspect
+import pytest
 
 try:
     from ipaserver.plugins.ldap2 import ldap2
@@ -145,6 +146,7 @@ def lineinfo(level):
     return '%s:%s' % (filename, lineno)
 
 
+@pytest.mark.tier1
 class test_permission_negative(Declarative):
     """Make sure invalid operations fail"""
 
@@ -386,6 +388,7 @@ class test_permission_negative(Declarative):
     ]
 
 
+@pytest.mark.tier1
 class test_permission(Declarative):
     """Misc. tests for the permission plugin"""
     cleanup_commands = [
@@ -1722,6 +1725,7 @@ class test_permission_rollback(Declarative):
     ] + _verifications
 
 
+@pytest.mark.tier1
 class test_permission_sync_attributes(Declarative):
     """Test the effects of setting permission attributes"""
     cleanup_commands = [
@@ -2244,6 +2248,7 @@ class test_permission_sync_nice(Declarative):
     ]
 
 
+@pytest.mark.tier1
 class test_permission_targetfilter(Declarative):
     """Test the targetfilter options on permissions"""
     cleanup_commands = [
@@ -2807,6 +2812,7 @@ def _make_permission_flag_tests(flags, expected_message):
     ]
 
 
+@pytest.mark.tier1
 class test_permission_flags(Declarative):
     """Test that permission flags are handled correctly"""
     cleanup_commands = [
@@ -2852,6 +2858,8 @@ def check_legacy_results(results):
     assert len(legacy_permissions) == 9, len(legacy_permissions)
     return True
 
+
+@pytest.mark.tier1
 class test_permission_legacy(Declarative):
     """Tests for non-upgraded permissions"""
 
@@ -2870,6 +2878,7 @@ class test_permission_legacy(Declarative):
     ]
 
 
+@pytest.mark.tier1
 class test_permission_bindtype(Declarative):
     cleanup_commands = [
         ('permission_del', [permission1], {'force': True}),
@@ -3159,6 +3168,7 @@ class test_permission_bindtype(Declarative):
     ]
 
 
+@pytest.mark.tier1
 class test_managed_permissions(Declarative):
     cleanup_commands = [
         ('permission_del', [permission1], {'force': True}),
@@ -3689,6 +3699,7 @@ class test_managed_permissions(Declarative):
     ]
 
 
+@pytest.mark.tier1
 class test_permission_filters(Declarative):
     """Test multi-valued filters, type, memberof"""
     cleanup_commands = [

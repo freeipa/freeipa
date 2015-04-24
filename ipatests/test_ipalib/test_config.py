@@ -34,6 +34,9 @@ from ipalib.constants import NAME_REGEX, NAME_ERROR
 from ipalib import config, constants, base
 from ipaplatform.paths import paths
 
+import pytest
+
+pytestmark = pytest.mark.tier0
 
 # Valid environment variables in (key, raw, value) tuples:
 #    key: the name of the environment variable

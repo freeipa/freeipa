@@ -39,6 +39,8 @@ from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 
+
+@pytest.mark.tier0
 class test_ldap(object):
     """
     Test various LDAP client bind methods.
@@ -149,6 +151,7 @@ class test_ldap(object):
         assert serial is not None
 
 
+@pytest.mark.tier0
 class test_LDAPEntry(object):
     """
     Test the LDAPEntry class

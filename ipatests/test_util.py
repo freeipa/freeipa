@@ -24,6 +24,10 @@ Test the `tests.util` module.
 import re
 import util
 from util import raises, TYPE, VALUE, LEN, KEYS
+import pytest
+
+
+pytestmark = pytest.mark.tier0
 
 
 class Prop(object):

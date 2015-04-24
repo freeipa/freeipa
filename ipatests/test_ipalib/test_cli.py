@@ -24,6 +24,9 @@ Test the `ipalib.cli` module.
 from ipatests.util import raises, get_api, ClassChecker
 from ipalib import cli, plugable, frontend, backend
 
+import pytest
+
+pytestmark = pytest.mark.tier0
 
 class test_textui(ClassChecker):
     _cls = cli.textui

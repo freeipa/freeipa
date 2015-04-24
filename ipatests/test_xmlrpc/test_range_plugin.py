@@ -27,6 +27,7 @@ from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import MockLDAP
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
+import pytest
 
 # Determine the test shift used
 
@@ -383,6 +384,7 @@ group1 = u'group1'
 group1_gid = id_shift + 900100
 
 
+@pytest.mark.tier1
 class test_range(Declarative):
     @classmethod
     def setup_class(cls):

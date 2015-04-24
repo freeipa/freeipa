@@ -27,8 +27,10 @@ from nose.tools import assert_raises  # pylint: disable=E0611
 from xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
+import pytest
 
 
+@pytest.mark.tier1
 class test_passwd(XMLRPC_test):
     """
     Test the `passwd` plugin.

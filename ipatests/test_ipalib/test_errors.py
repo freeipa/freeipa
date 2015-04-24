@@ -26,11 +26,15 @@ Test the `ipalib.errors` module.
 
 import re
 import inspect
+import pytest
 
 from ipatests.util import assert_equal, raises
 from ipalib import errors, text
 from ipaplatform.paths import paths
 from ipalib.constants import TYPE_ERROR
+
+
+pytestmark = pytest.mark.tier0
 
 
 class PrivateExceptionTester(object):

@@ -22,12 +22,15 @@ Test the `ipaserver.rpc` module.
 """
 
 import json
+import pytest
 
 from ipatests.util import create_test_api, assert_equal, raises, PluginTester
 from ipatests.data import unicode_str
 from ipalib import errors, Command
 from ipaserver import rpcserver
 
+
+pytestmark = pytest.mark.tier0
 
 class StartResponse(object):
     def __init__(self):

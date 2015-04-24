@@ -37,6 +37,7 @@ from xmlrpc_test import (
     fuzzy_string, fuzzy_dergeneralizedtime, add_sid, add_oc, raises_exact)
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.ldaptracker import Tracker
+import pytest
 
 user1 = u'tuser1'
 user2 = u'tuser2'
@@ -181,6 +182,7 @@ def not_upg_check(response):
     return True
 
 
+@pytest.mark.tier1
 class test_user(Declarative):
 
     cleanup_commands = [
@@ -1608,6 +1610,7 @@ class test_user(Declarative):
     ]
 
 
+@pytest.mark.tier1
 class test_denied_bind_with_expired_principal(XMLRPC_test):
 
     password = u'random'

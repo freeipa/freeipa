@@ -27,6 +27,7 @@ from ipapython.dnsutil import DNSName
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
 from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+import pytest
 
 try:
     from ipaserver.plugins.ldap2 import ldap2
@@ -420,6 +421,7 @@ if have_ldap2:
             get_nameservers_error = "No DNS servers found in LDAP"
 
 
+@pytest.mark.tier1
 class test_dns(Declarative):
 
     @classmethod
@@ -3090,6 +3092,7 @@ class test_dns(Declarative):
     ]
 
 
+@pytest.mark.tier1
 class test_root_zone(Declarative):
 
     @classmethod
@@ -3170,6 +3173,7 @@ class test_root_zone(Declarative):
     ]
 
 
+@pytest.mark.tier1
 class test_forward_zones(Declarative):
     # https://fedorahosted.org/freeipa/ticket/4750
 
@@ -4370,6 +4374,7 @@ class test_forward_zones(Declarative):
     ]
 
 
+@pytest.mark.tier1
 class test_forward_master_zones_mutual_exlusion(Declarative):
     # https://fedorahosted.org/freeipa/ticket/4750
 
@@ -4745,6 +4750,7 @@ class test_forward_master_zones_mutual_exlusion(Declarative):
     ]
 
 
+@pytest.mark.tier1
 class test_forwardzone_delegation_warnings(Declarative):
 
     @classmethod
@@ -5200,6 +5206,7 @@ class test_forwardzone_delegation_warnings(Declarative):
 
 # https://fedorahosted.org/freeipa/ticket/4746
 # http://www.freeipa.org/page/V4/DNS:_Automatic_Zone_NS/SOA_Record_Maintenance
+@pytest.mark.tier1
 class test_dns_soa(Declarative):
 
     @classmethod

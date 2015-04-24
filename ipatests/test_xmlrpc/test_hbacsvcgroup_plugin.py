@@ -25,6 +25,7 @@ from ipalib import api, errors
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from ipatests.test_xmlrpc import objectclasses
 from ipapython.dn import DN
+import pytest
 
 hbacsvcgroup1 = u'testhbacsvcgroup1'
 dn1 = DN(('cn',hbacsvcgroup1),('cn','hbacservicegroups'),('cn','hbac'),
@@ -35,6 +36,7 @@ hbacsvc_dn1 = DN(('cn',hbacsvc1),('cn','hbacservices'),('cn','hbac'),
                  api.env.basedn)
 
 
+@pytest.mark.tier1
 class test_hbacsvcgroup(Declarative):
 
     cleanup_commands = [

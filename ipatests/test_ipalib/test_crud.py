@@ -25,6 +25,9 @@ from ipatests.util import read_only, raises, get_api, ClassChecker
 from ipalib import crud, frontend, plugable, config
 from ipalib.parameters import Str
 
+import pytest
+
+pytestmark = pytest.mark.tier0
 
 class CrudChecker(ClassChecker):
     """

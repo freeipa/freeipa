@@ -25,6 +25,9 @@ from ipalib import messages
 from ipalib.capabilities import capabilities
 from ipatests.test_ipalib import test_errors
 
+import pytest
+
+pytestmark = pytest.mark.tier0
 
 class HelloMessage(messages.PublicMessage):
     type = 'info'

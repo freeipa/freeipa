@@ -10,8 +10,10 @@ from ipatests.util import assert_deepequal, raises
 from xmlrpc_test import XMLRPC_test
 from ipapython.dn import DN
 from testcert import get_testcert
+import pytest
 
 
+@pytest.mark.tier1
 class CertManipCmdTestBase(XMLRPC_test):
     entity_class = ''
     entity_pkey = None
@@ -270,6 +272,7 @@ class CertManipCmdTestBase(XMLRPC_test):
         )
 
 
+@pytest.mark.tier1
 class TestCertManipCmdUser(CertManipCmdTestBase):
     entity_class = 'user'
     entity_pkey = u'tuser'
@@ -299,6 +302,7 @@ class TestCertManipCmdUser(CertManipCmdTestBase):
             cls.default_caacl, **cls.cmd_options['caacl'])
 
 
+@pytest.mark.tier1
 class TestCertManipCmdHost(CertManipCmdTestBase):
     entity_class = 'host'
     entity_pkey = u'host.example.com'
@@ -317,6 +321,7 @@ class TestCertManipCmdHost(CertManipCmdTestBase):
     cert_del_summary = u'Removed certificates from host "%s"'
 
 
+@pytest.mark.tier1
 class TestCertManipCmdService(CertManipCmdTestBase):
     entity_class = 'service'
     entity_pkey = u'testservice/%s@%s' % (TestCertManipCmdHost.entity_pkey,
