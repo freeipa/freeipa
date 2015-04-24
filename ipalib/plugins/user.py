@@ -852,7 +852,7 @@ class user_status(LDAPQuery):
                 count += 1
 
             if host != api.env.host:
-                other_ldap.destroy_connection()
+                other_ldap.disconnect()
 
         return dict(result=entries,
                     count=count,

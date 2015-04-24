@@ -1077,7 +1077,7 @@ class change_password(Backend, HTTP_Status):
                 message = "Password was changed."
             finally:
                 if conn.isconnected():
-                    conn.destroy_connection()
+                    conn.disconnect()
 
         self.info('%s: %s', status, message)
 
@@ -1182,7 +1182,7 @@ class sync_token(Backend, HTTP_Status):
                        data['user'], str(e))
         finally:
             if conn.isconnected():
-                conn.destroy_connection()
+                conn.disconnect()
 
         # Report status and return.
         response_headers.append(('X-IPA-TokenSync-Result', result))
