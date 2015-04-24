@@ -3375,6 +3375,14 @@ class test_forward_zones(Declarative):
             expected={
                 'value': fwzone2_dnsname,
                 'summary': None,
+                u'messages': (
+                    {u'message': lambda x: x.startswith(
+                        u"DNS server %s: query '%s SOA':" %
+                        (forwarder1, fwzone2)),
+                     u'code': 13006,
+                     u'type':u'warning',
+                     u'name': u'DNSServerValidationWarning'},
+                ),
                 'result': {
                     'dn': fwzone2_dn,
                     'idnsname': [fwzone2_dnsname],
@@ -3409,6 +3417,7 @@ class test_forward_zones(Declarative):
             expected={
                 'value': fwzone2_dnsname,
                 'summary': None,
+                'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'dn': fwzone2_dn,
                     'idnsname': [fwzone2_dnsname],
@@ -3442,6 +3451,7 @@ class test_forward_zones(Declarative):
             expected={
                 'value': fwzone2_dnsname,
                 'summary': None,
+                'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'dn': fwzone2_dn,
                     'idnsname': [fwzone2_dnsname],
@@ -3465,6 +3475,7 @@ class test_forward_zones(Declarative):
             expected={
                 'value': fwzone3_dnsname,
                 'summary': None,
+                'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'dn': fwzone3_dn,
                     'idnsname': [fwzone3_dnsname],
@@ -3498,6 +3509,7 @@ class test_forward_zones(Declarative):
             expected={
                 'value': fwzone3_dnsname,
                 'summary': None,
+                'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'dn': fwzone3_dn,
                     'idnsname': [fwzone3_dnsname],
@@ -3521,6 +3533,7 @@ class test_forward_zones(Declarative):
             expected={
                 'value': fwzone3_dnsname,
                 'summary': None,
+                'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'idnsname': [fwzone3_dnsname],
                     'idnszoneactive': [u'TRUE'],
@@ -3541,6 +3554,7 @@ class test_forward_zones(Declarative):
             expected={
                 'value': fwzone3_dnsname,
                 'summary': None,
+                'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'idnsname': [fwzone3_dnsname],
                     'idnszoneactive': [u'TRUE'],
@@ -3561,6 +3575,7 @@ class test_forward_zones(Declarative):
             expected={
                 'value': fwzone3_dnsname,
                 'summary': None,
+                'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'idnsname': [fwzone3_dnsname],
                     'idnszoneactive': [u'TRUE'],
@@ -3581,6 +3596,7 @@ class test_forward_zones(Declarative):
             expected={
                 'value': fwzone3_dnsname,
                 'summary': None,
+                'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'idnsname': [fwzone3_dnsname],
                     'idnszoneactive': [u'TRUE'],
@@ -3602,6 +3618,7 @@ class test_forward_zones(Declarative):
             expected={
                 'value': fwzone1_dnsname,
                 'summary': None,
+                'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'idnsname': [fwzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
@@ -3663,6 +3680,7 @@ class test_forward_zones(Declarative):
             expected={
                 'value': fwzone1_dnsname,
                 'summary': None,
+                'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'idnsname': [fwzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
@@ -3704,6 +3722,7 @@ class test_forward_zones(Declarative):
             expected={
                 'value': fwzone1_dnsname,
                 'summary': None,
+                'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'idnsname': [fwzone1_dnsname],
                     'idnszoneactive': [u'TRUE'],
@@ -4616,6 +4635,7 @@ class test_forward_master_zones_mutual_exlusion(Declarative):
             expected={
                 'value': zone_findtest_forward_dnsname,
                 'summary': None,
+                'messages': lambda x: True,  # fake forwarders - ignore message
                 'result': {
                     'dn': zone_findtest_forward_dn,
                     'idnsname': [zone_findtest_forward_dnsname],

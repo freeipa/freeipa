@@ -229,6 +229,18 @@ class DNSServerDoesNotSupportEDNS0Warning(PublicMessage):
                u"please disable it.")
 
 
+class DNSSECValidationFailingWarning(PublicMessage):
+    """
+    **13010** Used when a DNSSEC validation failed on IPA DNS server
+    """
+
+    errno = 13010
+    type = "warning"
+    format = _(u"DNSSEC validation failed: %(error)s.\n"
+               u"Please verify your DNSSEC signatures or disable DNSSEC "
+               u"validation on all IPA servers.")
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
