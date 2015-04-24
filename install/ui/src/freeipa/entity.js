@@ -299,6 +299,14 @@ exp.entity = IPA.entity = function(spec) {
         }
     };
 
+    that.create_facet_type = function(facet_name) {
+
+        // Keep names unique among all facets.
+        // Facets added later should also follow this pattern but it's not
+        // enforced.
+        return that.name + '_' + facet_name;
+    };
+
     /**
      * Get facet with given name.
      *
@@ -315,13 +323,15 @@ exp.entity = IPA.entity = function(spec) {
      */
     that.get_facet = function(name) {
 
-        var i, facets;
+        var i, l, facets;
 
         //build all facets on the first time
         if(!that.facets_created) {
-            facets = builder.build('facet', that.facet_specs, { entity: that });
-            for (i=0; i<facets.length; i++) {
-                var facet = facets[i];
+
+            var facet_specs = that.facet_specs;
+            for (i=0,l=facet_specs.length; i<l; i++) {
+                var type_name = that.create_facet_type(facet_specs[i].name);
+                var facet = reg.facet.get(type_name);
                 that.add_facet(facet);
                 if (facet.name === 'search') {
                     that.add_redirect_info(facet.name);
@@ -361,7 +371,6 @@ exp.entity = IPA.entity = function(spec) {
      * @param {string} facet.facet_group - facet group to add the facet
      */
     that.add_facet = function(facet) {
-        facet.entity = that;
 
         that.facets.put(facet.name, facet);
 
@@ -788,6 +797,27 @@ exp.entity_post_ops = {
             entity.builder.deleter_dialog(spec.deleter_dialog);
         }
         return entity;
+    },
+
+    facets: function(entity, spec, context) {
+
+        var facet_specs = entity.facet_specs;
+
+        for (var i=0,l=facet_specs.length; i<l; i++) {
+            var f_spec = facet_specs[i];
+
+            if (!f_spec.entity) {
+                f_spec.entity = entity;
+            }
+
+            reg.facet.register_from_spec(function(spec) {
+                // replace the original spec with the merged one so there is
+                // only one
+                facet_specs[i] = spec;
+                return entity.create_facet_type(spec.name);
+            }, f_spec);
+        }
+        return entity;
     }
 };
 
@@ -1066,7 +1096,8 @@ registry.builder.post_ops.push(
     exp.entity_post_ops.containing_entity,
     exp.entity_post_ops.standard_association_facets,
     exp.entity_post_ops.adder_dialog,
-    exp.entity_post_ops.deleter_dialog);
+    exp.entity_post_ops.deleter_dialog,
+    exp.entity_post_ops.facets);
 
 return exp;
 });

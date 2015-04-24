@@ -823,9 +823,8 @@ exp.association_facet_pre_op = function(spec, context) {
         return has_indirect;
     };
 
-    var entity = context.entity;
     su.context_entity(spec, context);
-    spec.entity = entity;
+    var entity = reg.entity.get(spec.entity);
 
     var index = spec.name.lastIndexOf('_');
     spec.attribute_member = spec.attribute_member ||
@@ -1298,8 +1297,8 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
  */
 exp.attribute_facet_pre_op = function(spec, context) {
 
-    var entity = context.entity;
     su.context_entity(spec, context);
+    var entity = reg.entity.get(spec.entity);
 
     spec.title = spec.title || entity.metadata.label_singular;
     spec.label = spec.label || entity.metadata.label_singular;

@@ -461,8 +461,8 @@ exp.facet_policies = IPA.facet_policies = function(spec) {
  */
 exp.details_facet_pre_op = function(spec, context) {
 
-    var entity = context.entity;
     su.context_entity(spec, context);
+    var entity = reg.entity.get(spec.entity);
 
     spec.name = spec.name || 'details';
     spec.title = spec.title || entity.metadata.label_singular;
@@ -2019,7 +2019,8 @@ exp.register = function() {
         factory: IPA.details_facet,
         pre_ops: [
             exp.details_facet_pre_op
-        ]
+        ],
+        spec: { name: 'details' }
     });
 };
 

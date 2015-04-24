@@ -321,6 +321,14 @@ exp.facet = IPA.facet = function(spec, no_init) {
      */
     that.state = new FacetState();
 
+
+    that.get_full_name = function() {
+        if (that.entity) {
+            return that.entity.create_facet_type(that.name);
+        }
+        return that.name;
+    };
+
     /**
      * Set and normalize pkeys. Merges with existing if present. If keys length
      * differs, the alignment is from the last one to the first one.

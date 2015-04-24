@@ -74,8 +74,8 @@ exp.search_facet_control_buttons_pre_op = function(spec, context) {
 
 exp.search_facet_pre_op = function(spec, context) {
 
-    var entity = context.entity;
     su.context_entity(spec, context);
+    var entity = reg.entity.get(spec.entity);
 
     spec.name = spec.name || 'search';
     spec.title = spec.title || entity.metadata.label;
@@ -397,8 +397,8 @@ IPA.search_deleter_dialog = function(spec) {
 
 exp.nested_search_facet_preop = function(spec, context) {
 
-    var entity = context.entity;
     su.context_entity(spec, context);
+    var entity = reg.entity.get(spec.entity);
 
     spec.name = spec.name || 'search';
     spec.title = spec.title || entity.metadata.label_singular;
@@ -597,7 +597,8 @@ exp.register = function() {
         factory: IPA.search_facet,
         pre_ops: [
             exp.search_facet_pre_op
-        ]
+        ],
+        spec: { name: 'search' }
     });
 
     f.register({
@@ -605,7 +606,8 @@ exp.register = function() {
         factory: IPA.nested_search_facet,
         pre_ops: [
             exp.nested_search_facet_preop
-        ]
+        ],
+        spec: { name: 'nestedsearch' }
     });
 };
 
