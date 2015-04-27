@@ -235,7 +235,7 @@ class KrbInstance(service.Service):
                              SUFFIX=self.suffix,
                              DOMAIN=self.domain,
                              HOST=self.host,
-                             SERVER_ID=dsinstance.realm_to_serverid(self.realm),
+                             SERVER_ID=installutils.realm_to_serverid(self.realm),
                              REALM=self.realm)
 
         # IPA server/KDC is not a subdomain of default domain

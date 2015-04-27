@@ -284,7 +284,7 @@ def install_master(safe_options, options):
         check_ca()
 
     dirname = dsinstance.config_dirname(
-        dsinstance.realm_to_serverid(realm_name))
+        installutils.realm_to_serverid(realm_name))
     cadb = certs.CertDB(realm_name, subject_base=subject_base)
     dsdb = certs.CertDB(realm_name, nssdir=dirname, subject_base=subject_base)
 

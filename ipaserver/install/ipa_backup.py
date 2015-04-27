@@ -34,7 +34,7 @@ from ipapython.ipautil import run, write_tmp_file
 from ipapython import admintool
 from ipapython.config import IPAOptionParser
 from ipapython.dn import DN
-from ipaserver.install.dsinstance import realm_to_serverid, DS_USER
+from ipaserver.install.dsinstance import DS_USER
 from ipaserver.install.replication import wait_for_task
 from ipaserver.install import installutils
 from ipapython import ipaldap
@@ -290,7 +290,9 @@ class Backup(admintool.AdminTool):
                 self.log.info('Stopping IPA services')
                 run(['ipactl', 'stop'])
 
-            for instance in [realm_to_serverid(api.env.realm), 'PKI-IPA']:
+            for instance in [
+                installutils.realm_to_serverid(api.env.realm), 'PKI-IPA'
+            ]:
                 if os.path.exists(paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % instance):
                     if os.path.exists(paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE % (instance, 'ipaca')):
                         self.db2ldif(instance, 'ipaca', online=options.online)
@@ -323,10 +325,12 @@ class Backup(admintool.AdminTool):
         NOTE: this adds some things that may not get backed up, like the PKI-IPA
               instance.
         '''
+        serverid = installutils.realm_to_serverid(api.env.realm)
+
         for dir in [
-                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % realm_to_serverid(api.env.realm),
-                paths.VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE % realm_to_serverid(api.env.realm),
-                paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % realm_to_serverid(api.env.realm),
+                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid,
+                paths.VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE % serverid,
+                paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % serverid,
                 paths.VAR_LIB_SLAPD_PKI_IPA_DIR_TEMPLATE,
                 paths.USR_LIB_SLAPD_PKI_IPA_DIR,
                 paths.ETC_SLAPD_PKI_IPA_DIR,
@@ -337,13 +341,14 @@ class Backup(admintool.AdminTool):
                 self.dirs.append(dir)
 
         for file in [
-                paths.SYSCONFIG_DIRSRV_INSTANCE % realm_to_serverid(api.env.realm),
+                paths.SYSCONFIG_DIRSRV_INSTANCE % serverid,
                 paths.SYSCONFIG_DIRSRV_PKI_IPA_DIR]:
             if os.path.exists(file):
                 self.files.append(file)
 
         for log in [
-              paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % realm_to_serverid(api.env.realm),]:
+            paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % serverid,
+        ]:
             self.logs.append(log)
 
 

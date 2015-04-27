@@ -1132,7 +1132,7 @@ def fix_schema_file_syntax():
         root_logger.info('Syntax already fixed')
         return
 
-    serverid = dsinstance.realm_to_serverid(api.env.realm)
+    serverid = installutils.realm_to_serverid(api.env.realm)
     ds_dir = dsinstance.config_dirname(serverid)
 
     # 1. 60ipadns.ldif: Add parenthesis to idnsRecord
@@ -1191,7 +1191,7 @@ def remove_ds_ra_cert(subject_base):
         return
 
     dbdir = dsinstance.config_dirname(
-        dsinstance.realm_to_serverid(api.env.realm))
+        installutils.realm_to_serverid(api.env.realm))
     dsdb = certs.CertDB(api.env.realm, nssdir=dbdir, subject_base=subject_base)
 
     nickname = 'CN=IPA RA,%s' % subject_base
@@ -1309,7 +1309,7 @@ def main():
                     'ca.crl.MasterCRL.enableCRLUpdates', '=')
             sub_dict['CLONE']='#' if crl.lower() == 'true' else ''
 
-        ds_serverid = dsinstance.realm_to_serverid(api.env.realm)
+        ds_serverid = installutils.realm_to_serverid(api.env.realm)
         ds_dirname = dsinstance.config_dirname(ds_serverid)
 
         upgrade(sub_dict, paths.HTTPD_IPA_CONF, ipautil.SHARE_DIR + "ipa.conf")

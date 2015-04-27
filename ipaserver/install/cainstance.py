@@ -1771,7 +1771,7 @@ def update_people_entry(dercert):
     issuer = x509.get_issuer(dercert, datatype=x509.DER)
 
     attempts = 0
-    server_id = dsinstance.realm_to_serverid(api.env.realm)
+    server_id = installutils.realm_to_serverid(api.env.realm)
     dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
     updated = False
 

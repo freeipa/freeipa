@@ -30,7 +30,6 @@ import ldap
 import installutils
 import service
 from ipaserver.plugins import ldap2
-from ipaserver.install.dsinstance import realm_to_serverid
 from ipaserver.install.cainstance import IPA_CA_RECORD
 from ipapython import sysrestore, ipautil, ipaldap
 from ipapython.ipa_log_manager import *
@@ -727,7 +726,7 @@ class BindInstance(service.Service):
             DOMAIN=self.domain,
             HOST=self.host,
             REALM=self.realm,
-            SERVER_ID=realm_to_serverid(self.realm),
+            SERVER_ID=installutils.realm_to_serverid(self.realm),
             FORWARDERS=fwds,
             SUFFIX=self.suffix,
             OPTIONAL_NTP=optional_ntp,

@@ -1105,3 +1105,6 @@ def check_version():
             )
     else:
         raise UpgradeMissingVersionError("no data_version stored")
+
+def realm_to_serverid(realm_name):
+    return "-".join(realm_name.split("."))

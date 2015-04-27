@@ -162,7 +162,7 @@ class ReplicaPrepare(admintool.AdminTool):
             raise admintool.ScriptError("You can't create a replica on itself")
 
         config_dir = dsinstance.config_dirname(
-            dsinstance.realm_to_serverid(api.env.realm))
+            installutils.realm_to_serverid(api.env.realm))
         if not ipautil.dir_exists(config_dir):
             raise admintool.ScriptError(
                 "could not find directory instance: %s" % config_dir)

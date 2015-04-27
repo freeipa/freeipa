@@ -114,7 +114,7 @@ class ServerCertInstall(admintool.AdminTool):
         conn.disconnect()
 
     def install_dirsrv_cert(self):
-        serverid = dsinstance.realm_to_serverid(api.env.realm)
+        serverid = installutils.realm_to_serverid(api.env.realm)
         dirname = dsinstance.config_dirname(serverid)
 
         conn = api.Backend.ldap2

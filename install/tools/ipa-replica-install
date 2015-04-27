@@ -544,7 +544,8 @@ def main():
         fd.write("realm=%s\n" % config.realm_name)
         fd.write("domain=%s\n" % config.domain_name)
         fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % ipautil.format_netloc(config.host_name))
-        fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(config.realm_name))
+        fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" %
+                 installutils.realm_to_serverid(config.realm_name))
         if ipautil.file_exists(config.dir + "/cacert.p12"):
             fd.write("enable_ra=True\n")
             fd.write("ra_plugin=dogtag\n")

@@ -73,9 +73,6 @@ def find_server_root():
     else:
         return paths.USR_LIB_DIRSRV
 
-def realm_to_serverid(realm_name):
-    return "-".join(realm_name.split("."))
-
 def config_dirname(serverid):
     return (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid) + "/"
 
@@ -266,7 +263,7 @@ class DsInstance(service.Service):
     def init_info(self, realm_name, fqdn, domain_name, dm_password,
                   subject_base, idstart, idmax, pkcs12_info, ca_file=None):
         self.realm = realm_name.upper()
-        self.serverid = realm_to_serverid(self.realm)
+        self.serverid = installutils.realm_to_serverid(self.realm)
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.fqdn = fqdn
         self.dm_password = dm_password
@@ -844,7 +841,7 @@ class DsInstance(service.Service):
         # shutdown the server
         self.stop()
 
-        dirname = config_dirname(realm_to_serverid(self.realm))
+        dirname = config_dirname(installutils.realm_to_serverid(self.realm))
         certdb = certs.CertDB(self.realm, nssdir=dirname, subject_base=self.subject_base)
         if not cacert_name or len(cacert_name) == 0:
             cacert_name = "Imported CA"
@@ -981,7 +978,7 @@ class DsInstance(service.Service):
                               'certmap.conf')
 
             certmap_dir = config_dirname(
-                realm_to_serverid(api.env.realm)
+                installutils.realm_to_serverid(api.env.realm)
             )
             try:
                 with open(os.path.join(certmap_dir, 'certmap.conf')) as f:

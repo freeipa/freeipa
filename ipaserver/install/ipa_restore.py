@@ -32,8 +32,7 @@ from ipapython import version, ipautil, certdb, dogtag
 from ipapython.ipautil import run, user_input
 from ipapython import admintool
 from ipapython.dn import DN
-from ipaserver.install.dsinstance import (realm_to_serverid,
-                                          create_ds_user, DS_USER)
+from ipaserver.install.dsinstance import create_ds_user, DS_USER
 from ipaserver.install.cainstance import PKI_USER, create_ca_user
 from ipaserver.install.replication import (wait_for_task, ReplicationManager,
                                            get_cs_replication_manager)
@@ -791,7 +790,7 @@ class Restore(admintool.AdminTool):
         httpinstance.HTTPInstance().stop_tracking_certificates()
         try:
             dsinstance.DsInstance().stop_tracking_certificates(
-                realm_to_serverid(api.env.realm))
+                installutils.realm_to_serverid(api.env.realm))
         except OSError:
             # When IPA is not installed, DS NSS DB does not exist
             pass
@@ -832,5 +831,7 @@ class Restore(admintool.AdminTool):
         api.bootstrap(in_server=False, context='restore', **overrides)
         api.finalize()
 
-        self.instances = [realm_to_serverid(api.env.realm), 'PKI-IPA']
+        self.instances = [
+            installutils.realm_to_serverid(api.env.realm), 'PKI-IPA'
+        ]
         self.backends = ['userRoot', 'ipaca']

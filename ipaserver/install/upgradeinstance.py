@@ -26,7 +26,6 @@ from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import *
 
 from ipaserver.install import installutils
-from ipaserver.install import dsinstance
 from ipaserver.install import schemaupdate
 from ipaserver.install import ldapupdate
 from ipaserver.install import service
@@ -51,7 +50,7 @@ class IPAUpgrade(service.Service):
             h = "%02x" % rand.randint(0,255)
             ext += h
         service.Service.__init__(self, "dirsrv")
-        serverid = dsinstance.realm_to_serverid(realm_name)
+        serverid = installutils.realm_to_serverid(realm_name)
         self.filename = '%s/%s' % (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid, DSE)
         self.savefilename = '%s/%s.ipa.%s' % (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid, DSE, ext)
         self.files = files

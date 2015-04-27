@@ -28,7 +28,6 @@ import re
 
 from ipaserver.install import service
 from ipaserver.install import installutils
-from ipaserver.install.dsinstance import realm_to_serverid
 from ipaserver.install.bindinstance import get_rr, add_rr, del_rr, \
                                            dns_zone_exists
 from ipalib import errors, api
@@ -155,7 +154,7 @@ class ADTRUSTInstance(service.Service):
         self.cifs_principal = "cifs/" + self.fqdn + "@" + self.realm
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.ldapi_socket = "%%2fvar%%2frun%%2fslapd-%s.socket" % \
-                            realm_to_serverid(self.realm)
+                            installutils.realm_to_serverid(self.realm)
 
         # DN definitions
         self.trust_dn = DN(api.env.container_trusts, self.suffix)

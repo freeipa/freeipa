@@ -655,7 +655,8 @@ def uninstall():
                           'mean your system hasn\'t be restored to its pre-installation state.' % SYSRESTORE_DIR_PATH)
 
     # Note that this name will be wrong after the first uninstall.
-    dirname = dsinstance.config_dirname(dsinstance.realm_to_serverid(api.env.realm))
+    dirname = dsinstance.config_dirname(
+        installutils.realm_to_serverid(api.env.realm))
     dirs = [dirname, dogtag_constants.ALIAS_DIR, certs.NSS_DIR]
     ids = certmonger.check_state(dirs)
     if ids:
@@ -666,7 +667,7 @@ def uninstall():
 
 def set_subject_in_config(realm_name, dm_password, suffix, subject_base):
         ldapuri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % (
-            dsinstance.realm_to_serverid(realm_name)
+            installutils.realm_to_serverid(realm_name)
         )
         try:
             conn = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn=suffix)
@@ -1134,7 +1135,8 @@ def main():
     fd.write("realm=%s\n" % realm_name)
     fd.write("domain=%s\n" % domain_name)
     fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % format_netloc(host_name))
-    fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" % dsinstance.realm_to_serverid(realm_name))
+    fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" %
+             installutils.realm_to_serverid(realm_name))
     if setup_ca:
         fd.write("enable_ra=True\n")
         fd.write("ra_plugin=dogtag\n")
