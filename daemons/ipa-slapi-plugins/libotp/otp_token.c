@@ -489,7 +489,7 @@ bool otp_token_validate_berval(struct otp_token * const *tokens,
     if (time(&now) == (time_t) -1)
         return false;
 
-    for (uint32_t i = 0, cnt = 1; cnt != 0; i++) {
+    for (ssize_t i = 0, cnt = 1; cnt != 0; i++) {
         cnt = 0;
         for (int j = 0; tokens[j] != NULL; j++) {
             uint32_t *secondp = NULL;
@@ -513,8 +513,8 @@ bool otp_token_validate_berval(struct otp_token * const *tokens,
             }
 
             /* Validate the positive/negative steps. */
-            if (!validate(tokens[j], now, i, first, secondp) &&
-                !validate(tokens[j], now, 0 - i, first, secondp))
+            if (!validate(tokens[j], now,  i, first, secondp) &&
+                !validate(tokens[j], now, -i, first, secondp))
                 continue;
 
             /* Codes validated; strip. */
