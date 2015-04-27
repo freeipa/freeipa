@@ -36,6 +36,7 @@ import ldap
 from ipaserver.install import ldapupdate
 from ipaserver.install import replication
 from ipaserver.install import sysupgrade
+from ipaserver.install import upgradeinstance
 from ipalib import api
 from ipalib import certstore
 from ipalib import errors
@@ -504,10 +505,8 @@ class DsInstance(service.Service):
         conn.unbind()
 
     def apply_updates(self):
-        ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password,
-                                   sub_dict=self.sub_dict)
-        files = ld.get_all_files(ldapupdate.UPDATES_DIR)
-        ld.update(files)
+        data_upgrade = upgradeinstance.IPAUpgrade(self.realm)
+        data_upgrade.create_instance()
         installutils.store_version()
 
 

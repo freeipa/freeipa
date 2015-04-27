@@ -25,6 +25,7 @@ import random
 import traceback
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import *
+from ipapython import ipaldap
 
 from ipaserver.install import installutils
 from ipaserver.install import schemaupdate
@@ -170,6 +171,7 @@ class IPAUpgrade(service.Service):
         self.upgradefailed = False
         self.serverid = serverid
         self.schema_files = schema_files
+        self.realm = realm_name
 
     def __start_nowait(self):
         # Don't wait here because we've turned off port 389. The connection
@@ -184,6 +186,7 @@ class IPAUpgrade(service.Service):
         self.step("stopping directory server", self.__stop_instance)
         self.step("saving configuration", self.__save_config)
         self.step("disabling listeners", self.__disable_listeners)
+        self.step("enabling DS global lock", self.__enable_ds_global_write_lock)
         self.step("starting directory server", self.__start_nowait)
         if self.schema_files:
             self.step("updating schema", self.__update_schema)
@@ -223,9 +226,31 @@ class IPAUpgrade(service.Service):
             else:
                 self.backup_state('nsslapd-security', security)
 
+            try:
+                global_lock = config_entry['nsslapd-global-backend-lock'][0]
+            except KeyError:
+                pass
+            else:
+                self.backup_state('nsslapd-global-backend-lock', global_lock)
+
+    def __enable_ds_global_write_lock(self):
+        ldif_outfile = "%s.modified.out" % self.filename
+        with open(ldif_outfile, "wb") as out_file:
+            ldif_writer = ldif.LDIFWriter(out_file)
+            with open(self.filename, "rb") as in_file:
+                parser = ModifyLDIF(in_file, ldif_writer)
+
+                parser.remove_value("cn=config", "nsslapd-global-backend-lock")
+                parser.add_value("cn=config", "nsslapd-global-backend-lock",
+                                 "on")
+                parser.parse()
+
+        shutil.copy2(ldif_outfile, self.filename)
+
     def __restore_config(self):
         port = self.restore_state('nsslapd-port')
         security = self.restore_state('nsslapd-security')
+        global_lock = self.restore_state('nsslapd-global-backend-lock')
 
         ldif_outfile = "%s.modified.out" % self.filename
         with open(ldif_outfile, "wb") as out_file:
@@ -239,6 +264,12 @@ class IPAUpgrade(service.Service):
                 if security is not None:
                     parser.remove_value("cn=config", "nsslapd-security")
                     parser.add_value("cn=config", "nsslapd-security", security)
+
+                # disable global lock by default
+                parser.remove_value("cn=config", "nsslapd-global-backend-lock")
+                if global_lock is not None:
+                    parser.add_value("cn=config", "nsslapd-global-backend-lock",
+                                     global_lock)
 
                 parser.parse()
 
