@@ -60,6 +60,7 @@ class IPATypeChecker(TypeChecker):
         'urlparse.ParseResult': ['params'],
         'pytest': ['fixture', 'raises', 'skip', 'yield_fixture', 'mark', 'fail'],
         'unittest.case': ['assertEqual', 'assertRaises'],
+        'nose.tools': ['assert_equal', 'assert_raises'],
         'datetime.tzinfo': ['houroffset', 'minoffset', 'utcoffset', 'dst'],
 
         # IPA classes
