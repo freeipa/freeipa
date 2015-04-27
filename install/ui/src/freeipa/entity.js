@@ -323,7 +323,7 @@ exp.entity = IPA.entity = function(spec) {
      */
     that.get_facet = function(name) {
 
-        var i, l, facets;
+        var i, l, facets, facet;
 
         //build all facets on the first time
         if(!that.facets_created) {
@@ -331,7 +331,7 @@ exp.entity = IPA.entity = function(spec) {
             var facet_specs = that.facet_specs;
             for (i=0,l=facet_specs.length; i<l; i++) {
                 var type_name = that.create_facet_type(facet_specs[i].name);
-                var facet = reg.facet.get(type_name);
+                facet = reg.facet.get(type_name);
                 that.add_facet(facet);
                 if (facet.name === 'search') {
                     that.add_redirect_info(facet.name);
@@ -358,7 +358,14 @@ exp.entity = IPA.entity = function(spec) {
             return that.facets.values[0];
         }
 
-        return that.facets.get(name);
+
+        facet = that.facets.get(name);
+        // maybe the facet is in central facet registry
+        if (!facet) {
+            facet = reg.facet.get(that.create_facet_type(name));
+        }
+
+        return facet;
     };
 
     /**

@@ -284,6 +284,17 @@ exp.facet = IPA.facet = function(spec, no_init) {
     that.dom_node = null;
 
     /**
+     * Facet groups
+     *
+     * Entity facet groups are used if not defined
+     *
+     * @property {IPA.facet_group[]}
+     */
+    that.facet_groups = builder.build('', spec.facet_groups, {}, {
+        $factory: IPA.facet_group
+    });
+
+    /**
      * Facet group name
      * @property {string}
      */
@@ -1280,9 +1291,24 @@ exp.facet_header = IPA.facet_header = function(spec) {
 
         var facets = facet_group.facets.values;
         for (var i=0; i<facets.length; i++) {
-            var facet = facets[i];
+            var facet = reg.facet.get(facets[i]);
             that.create_facet_link(ul, facet);
         }
+    };
+
+    /**
+     * Get facet groups for current facet.
+     *
+     * By default facet groups are defined in entity. In certain circumstances
+     * it could be overridden, i.e., if different facet contained in the facet
+     * groups uses different entity.
+     * @return {Array} Array of facet groups
+     */
+    that.get_facet_groups = function() {
+        if (that.facet.facet_groups) {
+            return that.facet.facet_groups;
+        }
+        return that.facet.entity.facet_groups.values;
     };
 
     /**
@@ -1308,7 +1334,7 @@ exp.facet_header = IPA.facet_header = function(spec) {
                 'class': 'facet-tabs'
             }).appendTo(container);
 
-            var facet_groups = that.facet.entity.facet_groups.values;
+            var facet_groups = that.get_facet_groups();
             for (var i=0; i<facet_groups.length; i++) {
                 var facet_group = facet_groups[i];
                 if (facet_group.facets.length) {
@@ -2080,7 +2106,7 @@ exp.facet_group = IPA.facet_group = function(spec) {
      * Facet collection
      * @property {ordered_map}
      */
-    that.facets = $.ordered_map();
+    that.facets = $.ordered_map(spec.facets);
 
     /**
      * Add facet to the map
