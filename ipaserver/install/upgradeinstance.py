@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import ldif
 import os
 import sys
 import shutil
@@ -31,6 +32,116 @@ from ipaserver.install import ldapupdate
 from ipaserver.install import service
 
 DSE = 'dse.ldif'
+
+
+class GetEntryFromLDIF(ldif.LDIFParser):
+    """
+    LDIF parser.
+    To get results, method parse() must be called first, then method
+    get_results() which return parsed entries
+    """
+    def __init__(self, input_file, entries_dn=[]):
+        """
+        Parse LDIF file.
+        :param input_file: an LDIF file to be parsed
+        :param entries_dn: list of DN which will be returned. All entries are
+         returned if list is empty.
+        """
+        ldif.LDIFParser.__init__(self, input_file)
+        self.entries_dn = entries_dn
+        self.results = {}
+
+    def get_results(self):
+        """
+        Returns results in dictionary {DN: entry, ...}
+        """
+        return self.results
+
+    def handle(self, dn, entry):
+        if self.entries_dn and dn not in self.entries_dn:
+            return
+
+        self.results[dn] = entry
+
+
+class ModifyLDIF(ldif.LDIFParser):
+    """
+    Allows to modify LDIF file.
+
+    Remove operations are executed before add operations
+    """
+    def __init__(self, input_file, writer):
+        """
+        :param input_file: an LDIF
+        :param writer: ldif.LDIFWriter instance where modified LDIF will
+        be written
+        """
+        ldif.LDIFParser.__init__(self, input_file)
+        self.writer = writer
+
+        self.add_dict = {}
+        self.remove_dict = {}
+
+    def add_value(self, dn, attr, value):
+        """
+        Add value to LDIF.
+        :param dn: DN of entry (must exists)
+        :param attr: attribute name
+        :param value: value to be added
+        """
+        attr = attr.lower()
+        entry = self.add_dict.setdefault(dn, {})
+        attribute = entry.setdefault(attr, [])
+        if value not in attribute:
+            attribute.append(value)
+
+    def remove_value(self, dn, attr, value=None):
+        """
+        Remove value from LDIF.
+        :param dn: DN of entry
+        :param attr: attribute name
+        :param value: value to be removed, if value is None, attribute will
+        be removed
+        """
+        attr = attr.lower()
+        entry = self.remove_dict.setdefault(dn, {})
+
+        if entry is None:
+            return
+        attribute = entry.setdefault(attr, [])
+        if value is None:
+            # remove all values
+            entry[attr] = None
+            return
+        elif attribute is None:
+            # already marked to remove all values
+            return
+        if value not in attribute:
+            attribute.append(value)
+
+    def handle(self, dn, entry):
+        if dn in self.remove_dict:
+            for name, value in self.remove_dict[dn].iteritems():
+                if value is None:
+                    attribute = []
+                else:
+                    attribute = entry.setdefault(name, [])
+                    attribute = [v for v in attribute if v not in value]
+                entry[name] = attribute
+
+                if not attribute:  # empty
+                    del entry[name]
+
+        if dn in self.add_dict:
+            for name, value in self.add_dict[dn].iteritems():
+                attribute = entry.setdefault(name, [])
+                attribute.extend([v for v in value if v not in attribute])
+
+        if not entry:  # empty
+            return
+
+        self.writer.unparse(dn, entry)
+
 
 class IPAUpgrade(service.Service):
     """
@@ -89,34 +200,68 @@ class IPAUpgrade(service.Service):
 
     def __save_config(self):
         shutil.copy2(self.filename, self.savefilename)
-        port = installutils.get_directive(self.filename, 'nsslapd-port',
-               separator=':')
-        security = installutils.get_directive(self.filename, 'nsslapd-security',
-                   separator=':')
+        with open(self.filename, "rb") as in_file:
+            parser = GetEntryFromLDIF(in_file, entries_dn=["cn=config"])
+            parser.parse()
+            try:
+                config_entry = parser.get_results()["cn=config"]
+            except KeyError:
+                raise RuntimeError("Unable to find cn=config entry in %s" %
+                                   self.filename)
 
-        self.backup_state('nsslapd-port', port)
-        self.backup_state('nsslapd-security', security)
+            try:
+                port = config_entry['nsslapd-port'][0]
+            except KeyError:
+                pass
+            else:
+                self.backup_state('nsslapd-port', port)
+
+            try:
+                security = config_entry['nsslapd-security'][0]
+            except KeyError:
+                pass
+            else:
+                self.backup_state('nsslapd-security', security)
 
     def __restore_config(self):
         port = self.restore_state('nsslapd-port')
         security = self.restore_state('nsslapd-security')
 
-        if port is not None:
-            installutils.set_directive(
-                self.filename, 'nsslapd-port', port,
-                quotes=False, separator=':')
-        if security is not None:
-            installutils.set_directive(
-                self.filename, 'nsslapd-security', security,
-                quotes=False, separator=':')
+        ldif_outfile = "%s.modified.out" % self.filename
+        with open(ldif_outfile, "wb") as out_file:
+            ldif_writer = ldif.LDIFWriter(out_file)
+            with open(self.filename, "rb") as in_file:
+                parser = ModifyLDIF(in_file, ldif_writer)
+
+                if port is not None:
+                    parser.remove_value("cn=config", "nsslapd-port")
+                    parser.add_value("cn=config", "nsslapd-port", port)
+                if security is not None:
+                    parser.remove_value("cn=config", "nsslapd-security")
+                    parser.add_value("cn=config", "nsslapd-security", security)
+
+                parser.parse()
+
+        shutil.copy2(ldif_outfile, self.filename)
 
     def __disable_listeners(self):
-        installutils.set_directive(self.filename, 'nsslapd-port',
-            0, quotes=False, separator=':')
-        installutils.set_directive(self.filename, 'nsslapd-security',
-            'off', quotes=False, separator=':')
-        installutils.set_directive(self.filename, 'nsslapd-ldapientrysearchbase',
-            None, quotes=False, separator=':')
+        ldif_outfile = "%s.modified.out" % self.filename
+        with open(ldif_outfile, "wb") as out_file:
+            ldif_writer = ldif.LDIFWriter(out_file)
+            with open(self.filename, "rb") as in_file:
+                parser = ModifyLDIF(in_file, ldif_writer)
+
+                parser.remove_value("cn=config", "nsslapd-port")
+                parser.add_value("cn=config", "nsslapd-port", "0")
+
+                parser.remove_value("cn=config", "nsslapd-security")
+                parser.add_value("cn=config", "nsslapd-security", "off")
+
+                parser.remove_value("cn=config", "nsslapd-ldapientrysearchbase")
+
+                parser.parse()
+
+        shutil.copy2(ldif_outfile, self.filename)
 
     def __update_schema(self):
         self.modified = schemaupdate.update_schema(
