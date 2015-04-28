@@ -1,0 +1,4 @@
+.include /usr/lib/systemd/system/httpd.service
+
+[Service]
+Environment=KRB5CCNAME=/var/run/httpd/krbcache/krb5ccache

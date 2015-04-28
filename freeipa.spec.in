@@ -12,6 +12,7 @@
 %endif
 
 %global plugin_dir %{_libdir}/dirsrv/plugins
+%global etc_systemd_dir %{_sysconfdir}/systemd/system
 %global gettext_domain ipa
 %if 0%{?rhel}
 %global platform_module rhel
@@ -150,6 +151,7 @@ Requires: openssl
 Requires: softhsm >= 2.0.0b1-3
 Requires: p11-kit
 Requires: systemd-python
+Requires: %{etc_systemd_dir}
 
 Conflicts: %{alt_name}-server
 Obsoletes: %{alt_name}-server < %{version}
@@ -470,8 +472,10 @@ touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 
 # NOTE: systemd specific section
 mkdir -p %{buildroot}%{_unitdir}
+mkdir -p %{buildroot}%{etc_systemd_dir}
 install -m 644 init/systemd/ipa.service %{buildroot}%{_unitdir}/ipa.service
 install -m 644 init/systemd/ipa_memcached.service %{buildroot}%{_unitdir}/ipa_memcached.service
+install -m 644 init/systemd/httpd.service %{buildroot}%{etc_systemd_dir}/httpd.service
 # END
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa/backup
 %endif # ONLY_CLIENT
@@ -691,6 +695,7 @@ fi
 %attr(644,root,root) %{_unitdir}/ipa-dnskeysyncd.service
 %attr(644,root,root) %{_unitdir}/ipa-ods-exporter.socket
 %attr(644,root,root) %{_unitdir}/ipa-ods-exporter.service
+%attr(644,root,root) %{etc_systemd_dir}/httpd.service
 # END
 %dir %{python_sitelib}/ipaserver
 %dir %{python_sitelib}/ipaserver/install
