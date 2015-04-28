@@ -39,8 +39,6 @@ def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
     parser.add_option("-d", "--debug", dest="debug", action="store_true",
                       default=False, help="print debugging information")
-    parser.add_option("--ip-address", dest="ip_address",
-                      type="ip", ip_local=True, help="Master Server IP Address")
     parser.add_option("--netbios-name", dest="netbios_name",
                       help="NetBIOS name of the IPA domain")
     parser.add_option("--no-msdcs", dest="no_msdcs", action="store_true",
@@ -290,38 +288,6 @@ def main():
     if not options.unattended and not options.enable_compat:
         options.enable_compat = enable_compat_tree()
 
-    # Check we have a public IP that is associated with the hostname
-    ip = None
-    try:
-        hostaddr = resolve_host(api.env.host)
-        if len(hostaddr) > 1:
-            print >> sys.stderr, "The server hostname resolves to more than one address:"
-            for addr in hostaddr:
-                print >> sys.stderr, "  %s" % addr
-
-            if options.ip_address:
-                if str(options.ip_address) not in hostaddr:
-                    print >> sys.stderr, "Address passed in --ip-address did not match any resolved"
-                    print >> sys.stderr, "address!"
-                    sys.exit(1)
-                print "Selected IP address:", str(options.ip_address)
-                ip = options.ip_address
-            else:
-                if options.unattended:
-                    print >> sys.stderr, "Please use --ip-address option to specify the address"
-                    sys.exit(1)
-                else:
-                    ip = read_ip_address(api.env.host, fstore)
-        else:
-                ip = hostaddr and ipautil.CheckedIPAddress(hostaddr[0], match_local=True)
-    except Exception, e:
-        print "Error: Invalid IP Address %s: %s" % (ip, e)
-        print "Aborting installation"
-        sys.exit(1)
-
-    ip_address = str(ip)
-    root_logger.debug("will use ip_address: %s\n", ip_address)
-
     admin_password = options.admin_password
     if not (options.unattended or admin_password):
         admin_password = read_admin_password(options.admin_name)
@@ -406,7 +372,7 @@ def main():
     smb = adtrustinstance.ADTRUSTInstance(fstore)
     smb.realm = api.env.realm
     smb.autobind = ipaldap.AUTOBIND_ENABLED
-    smb.setup(api.env.host, ip_address, api.env.realm, api.env.domain,
+    smb.setup(api.env.host, api.env.realm, api.env.domain,
               netbios_name, reset_netbios_name,
               options.rid_base, options.secondary_rid_base,
               options.no_msdcs, options.add_sids,

@@ -108,7 +108,6 @@ class ADTRUSTInstance(service.Service):
     FALLBACK_GROUP_NAME = u'Default SMB Group'
 
     def __init__(self, fstore=None):
-        self.ip_address = None
         self.netbios_name = None
         self.reset_netbios_name = None
         self.no_msdcs = None
@@ -774,11 +773,10 @@ class ADTRUSTInstance(service.Service):
                              LDAPI_SOCKET = self.ldapi_socket,
                              FQDN = self.fqdn)
 
-    def setup(self, fqdn, ip_address, realm_name, domain_name, netbios_name,
+    def setup(self, fqdn, realm_name, domain_name, netbios_name,
               reset_netbios_name, rid_base, secondary_rid_base,
               no_msdcs=False, add_sids=False, smbd_user="samba", enable_compat=False):
         self.fqdn = fqdn
-        self.ip_address = ip_address
         self.realm = realm_name
         self.domain_name = domain_name
         self.netbios_name = netbios_name
