@@ -106,13 +106,7 @@ define(['dojo/_base/declare',
          * @return {Object}
          */
         register: function(type, func, default_spec) {
-            if (!lang.exists('builder.registry', this)) {
-                throw {
-                    error: 'Object Initialized Exception: builder not initalized',
-                    context: this
-                };
-            }
-
+            this._check_builder();
             this.builder.registry.register(type, func, default_spec);
         },
 
@@ -125,13 +119,35 @@ define(['dojo/_base/declare',
          * @param {Object} construct_spec Construction specification
          */
         copy: function(org_type, new_type, construct_spec) {
+            this._check_builder();
+            this.builder.registry.copy(org_type, new_type, construct_spec);
+        },
+
+        /**
+         * Create new construction specification based on an existing one and
+         * a specification object. Save it as a new type.
+         * @param  {string|Function} type New type or a callback to get
+         *                                the type: `callback(spec)`
+         * @param  {Object} spec Construction specification
+         */
+        register_from_spec: function(type, spec) {
+            this._check_builder();
+            var cs = this.builder.merge_spec(spec, true);
+            if (typeof type === 'function') {
+                cs.type = type(cs.spec);
+            } else {
+                cs.type = type;
+            }
+            this.builder.registry.register(cs);
+        },
+
+        _check_builder: function() {
             if (!lang.exists('builder.registry', this)) {
                 throw {
                     error: 'Object Initialized Exception: builder not initalized',
                     context: this
                 };
             }
-            this.builder.registry.copy(org_type, new_type, construct_spec);
         },
 
         constructor: function(spec) {

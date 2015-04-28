@@ -188,21 +188,13 @@ define(['dojo/_base/declare',
         },
 
         /**
-         * Build single object
-         * @protected
+         * Create new construction spec from an existing one based on object
+         * specification object and save the new construction spec
+         *
+         * @param  {Object}             spec        Specification object
+         * @return {Object}                         Construction specification
          */
-        _build: function(spec, context) {
-            var cs = this._get_construction_spec(spec);
-            var obj = this._build_core(cs, context);
-            return obj;
-        },
-
-        /**
-         * Normalizes construction specification
-         * @protected
-         */
-        _get_construction_spec: function(spec) {
-
+        merge_spec: function(spec, force_mixin) {
             var cs = {};
 
             if (typeof spec === 'function') {
@@ -219,7 +211,7 @@ define(['dojo/_base/declare',
             } else if (typeof spec === 'object') {
                 var c = spec.$ctor,
                     f = spec.$factory,
-                    m = spec.$mixim_spec,
+                    m = spec.$mixim_spec || force_mixin,
                     t = spec.$type,
                     pre = spec.$pre_ops,
                     post = spec.$post_ops;
@@ -251,7 +243,26 @@ define(['dojo/_base/declare',
                 if (pre) cs.pre_ops.push.apply(cs.pre_ops, pre);
                 if (post) cs.post_ops.push.apply(cs.post_ops, post);
             }
+            return cs;
+        },
 
+        /**
+         * Build single object
+         * @protected
+         */
+        _build: function(spec, context) {
+            var cs = this._get_construction_spec(spec);
+            var obj = this._build_core(cs, context);
+            return obj;
+        },
+
+        /**
+         * Normalizes construction specification
+         * @protected
+         */
+        _get_construction_spec: function(spec) {
+
+            var cs = this.merge_spec(spec);
             cs.spec = cs.spec || {};
             if (!cs.factory && !cs.ctor) {
                 if (this.ctor) cs.ctor = this.ctor;
