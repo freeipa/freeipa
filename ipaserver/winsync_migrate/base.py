@@ -46,6 +46,50 @@ class MigrateWinsync(admintool.AdminTool):
         "For more information, see `man ipa-migrate-winsync`."
         )
 
+    @classmethod
+    def add_options(cls, parser):
+        """
+        Adds command line options to the tool.
+        """
+        super(MigrateWinsync, cls).add_options(parser)
+
+        parser.add_option(
+            "--realm",
+            dest="realm",
+            help="The AD realm the winsynced users belong to")
+        parser.add_option(
+            "-U", "--unattended",
+            dest="interactive",
+            action="store_false",
+            default=True,
+            help="Never prompt for user input")
+
+    def validate_options(self):
+        """
+        Validates the options passed by the user:
+            - Checks that trust has been established with
+              the realm passed via --realm option
+        """
+
+        super(MigrateWinsync, self).validate_options()
+
+        if self.options.realm is None:
+            raise admintool.ScriptError(
+                "AD realm the winsynced users belong to needs to be "
+                "specified.")
+        else:
+            try:
+                api.Command['trust_show'](unicode(self.options.realm))
+            except errors.NotFound:
+                raise admintool.ScriptError(
+                    "Trust with the given realm %s could not be found. "
+                    "Please establish the trust prior to migration."
+                    % self.options.realm)
+            except Exception as e:
+                raise admintool.ScriptError(
+                    "An error occured during detection of the established "
+                    "trust with %s: %s" % (self.options.realm, str(e)))
+
     def create_id_user_override(self, entry):
         """
         Creates ID override corresponding to this user entry.
