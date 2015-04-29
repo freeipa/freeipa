@@ -365,14 +365,14 @@ define([
                 items = this.menu.query({ entity: facet.entity.name, facet: facet.name });
             }
 
-            // normal facets
-            if (!items.total) {
-                items = this.menu.query({ facet: facet.name });
-            }
-
             // entity fallback
             if (!items.total && facet.entity) {
                 items = this.menu.query({ entity: facet.entity.name });
+            }
+
+            // normal facets
+            if (!items.total) {
+                items = this.menu.query({ facet: facet.name });
             }
 
             // fallback: Top level item
