@@ -402,39 +402,28 @@ define([
 
         _navigate_to_menu_item: function(menu_item) {
 
-            var child;
-
-            // always go deeper if child previuosly selected
-            if (menu_item.selected_child) {
-                child = this.menu.items.get(menu_item.selected_child);
-                if (child) {
-                    this._navigate_to_menu_item(child);
-                }
-            }
-            if (!child) {
-                if(menu_item.entity) {
-                    // entity pages
-                    routing.navigate([
-                        'entity',
-                        menu_item.entity,
-                        menu_item.facet,
-                        menu_item.pkeys,
-                        menu_item.args]);
-                } else if (menu_item.facet) {
-                    // concrete facets
-                    routing.navigate(['generic', menu_item.facet, menu_item.args]);
-                } else {
-                    // categories, select first posible child, it may be the last
-                    var children = this.menu.query({parent: menu_item.name });
-                    if (children.total) {
-                        var success = false;
-                        for (var i=0; i<children.total;i++) {
-                            success = this._navigate_to_menu_item(children[i]);
-                            if (success) break;
-                        }
-                    } else {
-                        return false;
+            if (menu_item.entity) {
+                // entity pages
+                routing.navigate([
+                    'entity',
+                    menu_item.entity,
+                    menu_item.facet,
+                    menu_item.pkeys,
+                    menu_item.args]);
+            } else if (menu_item.facet) {
+                // concrete facets
+                routing.navigate(['generic', menu_item.facet, menu_item.args]);
+            } else {
+                // categories, select first posible child, it may be the last
+                var children = this.menu.query({parent: menu_item.name });
+                if (children.total) {
+                    var success = false;
+                    for (var i=0; i<children.total;i++) {
+                        success = this._navigate_to_menu_item(children[i]);
+                        if (success) break;
                     }
+                } else {
+                    return false;
                 }
             }
 
