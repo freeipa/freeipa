@@ -24,6 +24,7 @@ from ipalib import api
 from ipalib import errors
 from ipapython import admintool
 from ipapython.dn import DN
+from ipapython.ipautil import realm_to_suffix
 from ipapython.ipa_log_manager import log_mgr
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import replication
@@ -124,6 +125,36 @@ class MigrateWinsync(admintool.AdminTool):
                     "Replication agreement between %s and %s is not winsync."
                     % (api.env.host, self.options.server))
 
+            # Save the reference to the replication manager in the object
+            self.manager = manager
+
+    def delete_winsync_agreement(self):
+        """
+        Deletes the winsync agreement between the current master and the
+        given AD server.
+        """
+
+        try:
+            self.manager.delete_agreement(self.options.server)
+            self.manager.delete_referral(self.options.server)
+
+            dn = DN(('cn', self.options.server),
+                    ('cn', 'replicas'),
+                    ('cn', 'ipa'),
+                    ('cn', 'etc'),
+                    realm_to_suffix(api.env.realm))
+            entries = self.manager.conn.get_entries(dn,
+                                                    self.ldap.SCOPE_SUBTREE)
+            if entries:
+                entries.sort(key=len, reverse=True)
+                for entry in entries:
+                    self.ldap.delete_entry(entry)
+
+        except Exception as e:
+            raise admintool.ScriptError(
+                "Deletion of the winsync agreement failed: %s" % str(e))
+
+
     def create_id_user_override(self, entry):
         """
         Creates ID override corresponding to this user entry.
@@ -197,7 +228,11 @@ class MigrateWinsync(admintool.AdminTool):
     def run(self):
         super(MigrateWinsync, self).run()
 
+        # Stop winsync agreement with the given host
+        self.delete_winsync_agreement()
+
         # Create ID overrides replacing the user winsync entries
         entries = self.find_winsync_users()
         for entry in entries:
             self.create_id_user_override(entry)
+            self.ldap.delete_entry(entry)
