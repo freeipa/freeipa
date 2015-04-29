@@ -342,9 +342,6 @@ exp.entity = IPA.entity = function(spec) {
         }
 
         if (name === undefined) {
-            // return the current facet
-            if (that.facet) return that.facet;
-
             // return the main facet
             return that.facets.values[0];
 
