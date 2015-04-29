@@ -84,8 +84,17 @@ return declare([Evented],
 
         // each item must have a name and a label
         // FIXME: consider to move entity and facet stuff outside of this object
-        item.name = item.name || item.facet || item.entity;
-        if (!name) throw 'Missing menu item property: name';
+        if (!item.name) {
+            if (item.facet && item.entity) {
+                item.name = item.entity + '_' + item.facet;
+            } else {
+                item.name = item.facet || item.entity;
+            }
+        }
+        if (!item.name) {
+            window.console.error('Missing menu item property: \'name\'', item);
+            return false;
+        }
         if (item.label) item.label = text.get(item.label);
         if (item.title) item.title = text.get(item.title);
 
@@ -101,7 +110,6 @@ return declare([Evented],
             if (!facet) {
                 return false; //quit
             }
-            item.name = facet.name;
             if (!item.label) item.label = facet.label;
             if (!item.title) item.title = facet.title;
         }
@@ -135,7 +143,12 @@ return declare([Evented],
         delete item.children;
 
         // finally add the item
-        this.items.add(item);
+        try {
+            this.items.add(item);
+        } catch(e) {
+            window.console.error("Unable to add menu item", item);
+            throw e;
+        }
 
         // add children
         if (children) {
