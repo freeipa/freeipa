@@ -552,6 +552,8 @@ class DomainValidator(object):
         if returncode == 0:
             return (ccache_path, principal)
         else:
+            root_logger.debug('Kinit failed, stout: %s, stderr: %s'
+                              % (stdout, stderr))
             return (None, None)
 
     def search_in_dc(self, domain, filter, attrs, scope, basedn=None,
