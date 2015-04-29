@@ -1,0 +1,27 @@
+.\" A man page for ipa-advise
+.\" Copyright (C) 2013 Red Hat, Inc.
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation, either version 3 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful, but
+.\" WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+.\" General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License
+.\" along with this program.  If not, see <http://www.gnu.org/licenses/>.
+.\"
+.\" Author: Tomas Babej <tbabej@redhat.com>
+.\"
+.TH "ipa-advise" "1" "Mar 10 2015" "FreeIPA" "FreeIPA Manual Pages"
+.SH "NAME"
+ipa\-winsync\-migrate \- Seamless migration of AD users created by winsync to native AD users.
+.SH "SYNOPSIS"
+ipa\-winsync\-migrate
+.SH "DESCRIPTION"
+Migrates AD users created by winsync agreement to ID overrides in
+the Default Trust View, thus preserving the actual POSIX attributes
+already established.

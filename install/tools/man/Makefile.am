@@ -26,6 +26,7 @@ man1_MANS = 				\
 	ipa-advise.1			\
 	ipa-otptoken-import.1		\
 	ipa-cacert-manage.1		\
+	ipa-winsync-migrate.1		\
         $(NULL)
 
 man8_MANS =				\
