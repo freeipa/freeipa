@@ -326,11 +326,16 @@ class DomainValidator(object):
 
         return entries
 
-    def get_trusted_domain_object_sid(self, object_name):
+    def get_trusted_domain_object_sid(self, object_name, fallback_to_ldap=True):
         result = pysss_nss_idmap.getsidbyname(object_name)
         if object_name in result and (pysss_nss_idmap.SID_KEY in result[object_name]):
             object_sid = result[object_name][pysss_nss_idmap.SID_KEY]
             return object_sid
+
+        # If fallback to AD DC LDAP is not allowed, bail out
+        if not fallback_to_ldap:
+            raise errors.ValidationError(name=_('trusted domain object'),
+               error= _('SSSD was unable to resolve the object to a valid SID'))
 
         # Else, we are going to contact AD DC LDAP
         components = normalize_name(object_name)

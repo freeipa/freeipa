@@ -56,6 +56,14 @@ protected_default_trust_view_error = errors.ProtectedEntryError(
     reason=_('system ID View')
 )
 
+fallback_to_ldap_option = Flag(
+    'fallback_to_ldap?',
+    default=False,
+    label=_('Fallback to AD DC LDAP'),
+    doc=_("Allow falling back to AD DC LDAP when resolving AD "
+          "trusted objects. For two-way trusts only."),
+)
+
 DEFAULT_TRUST_VIEW_NAME = "default trust view"
 
 ANCHOR_REGEX = re.compile(
@@ -63,6 +71,7 @@ ANCHOR_REGEX = re.compile(
     r'|'
     r':SID:S-[0-9\-]+'
 )
+
 
 @register()
 class idview(LDAPObject):
@@ -423,7 +432,7 @@ class idview_unapply(baseidview_apply):
 
 
 # ID overrides helper methods
-def resolve_object_to_anchor(ldap, obj_type, obj):
+def resolve_object_to_anchor(ldap, obj_type, obj, fallback_to_ldap):
     """
     Resolves the user/group name to the anchor uuid:
         - first it tries to find the object as user or group in IPA (depending
@@ -470,7 +479,8 @@ def resolve_object_to_anchor(ldap, obj_type, obj):
         if _dcerpc_bindings_installed:
             domain_validator = ipaserver.dcerpc.DomainValidator(api)
             if domain_validator.is_configured():
-                sid = domain_validator.get_trusted_domain_object_sid(obj)
+                sid = domain_validator.get_trusted_domain_object_sid(obj,
+                        fallback_to_ldap=fallback_to_ldap)
 
                 # There is no domain prefix since SID contains information
                 # about the domain
@@ -602,7 +612,8 @@ class baseidoverride(LDAPObject):
             anchor = resolve_object_to_anchor(
                 self.backend,
                 self.override_object,
-                keys[-1]
+                keys[-1],
+                fallback_to_ldap=options['fallback_to_ldap']
             )
 
         keys = keys[:-1] + (anchor, )
@@ -645,6 +656,8 @@ class baseidoverride_add(LDAPCreate):
     __doc__ = _('Add a new ID override.')
     msg_summary = _('Added ID override "%(value)s"')
 
+    takes_options = LDAPCreate.takes_options + (fallback_to_ldap_option,)
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         self.obj.set_anchoruuid_from_dn(dn, entry_attrs)
         self.obj.prohibit_ipa_users_in_default_view(dn, entry_attrs)
@@ -659,10 +672,14 @@ class baseidoverride_del(LDAPDelete):
     __doc__ = _('Delete an ID override.')
     msg_summary = _('Deleted ID override "%(value)s"')
 
+    takes_options = LDAPDelete.takes_options + (fallback_to_ldap_option,)
+
 
 class baseidoverride_mod(LDAPUpdate):
     __doc__ = _('Modify an ID override.')
     msg_summary = _('Modified an ID override "%(value)s"')
+
+    takes_options = LDAPUpdate.takes_options + (fallback_to_ldap_option,)
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         if 'rename' in options:
@@ -684,6 +701,8 @@ class baseidoverride_find(LDAPSearch):
     msg_summary = ngettext('%(count)d ID override matched',
                            '%(count)d ID overrides matched', 0)
 
+    takes_options = LDAPSearch.takes_options + (fallback_to_ldap_option,)
+
     def post_callback(self, ldap, entries, truncated, *args, **options):
         for entry in entries:
             try:
@@ -697,6 +716,8 @@ class baseidoverride_find(LDAPSearch):
 
 class baseidoverride_show(LDAPRetrieve):
     __doc__ = _('Display information about an ID override.')
+
+    takes_options = LDAPRetrieve.takes_options + (fallback_to_ldap_option,)
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         try:

@@ -2347,13 +2347,14 @@ args: 0,1,1
 option: Str('version?', exclude='webui')
 output: Output('texts', <type 'dict'>, None)
 command: idoverridegroup_add
-args: 2,8,3
+args: 2,9,3
 arg: Str('idviewcn', cli_name='idview', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('ipaanchoruuid', attribute=True, cli_name='anchor', multivalue=False, primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('cn', attribute=True, cli_name='group_name', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', required=False)
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
+option: Flag('fallback_to_ldap?', autofill=True, default=False)
 option: Int('gidnumber', attribute=True, cli_name='gid', minvalue=1, multivalue=False, required=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
@@ -2362,21 +2363,23 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: idoverridegroup_del
-args: 2,2,3
+args: 2,3,3
 arg: Str('idviewcn', cli_name='idview', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('ipaanchoruuid', attribute=True, cli_name='anchor', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Flag('fallback_to_ldap?', autofill=True, default=False)
 option: Str('version?', exclude='webui')
 output: Output('result', <type 'dict'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: ListOfPrimaryKeys('value', None, None)
 command: idoverridegroup_find
-args: 2,10,4
+args: 2,11,4
 arg: Str('idviewcn', cli_name='idview', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('criteria?', noextrawhitespace=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('cn', attribute=True, autofill=False, cli_name='group_name', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', query=True, required=False)
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, query=True, required=False)
+option: Flag('fallback_to_ldap?', autofill=True, default=False)
 option: Int('gidnumber', attribute=True, autofill=False, cli_name='gid', minvalue=1, multivalue=False, query=True, required=False)
 option: Str('ipaanchoruuid', attribute=True, autofill=False, cli_name='anchor', multivalue=False, primary_key=True, query=True, required=False)
 option: Flag('pkey_only?', autofill=True, default=False)
@@ -2389,7 +2392,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: idoverridegroup_mod
-args: 2,11,3
+args: 2,12,3
 arg: Str('idviewcn', cli_name='idview', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('ipaanchoruuid', attribute=True, cli_name='anchor', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
@@ -2397,6 +2400,7 @@ option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui
 option: Str('cn', attribute=True, autofill=False, cli_name='group_name', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', required=False)
 option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
+option: Flag('fallback_to_ldap?', autofill=True, default=False)
 option: Int('gidnumber', attribute=True, autofill=False, cli_name='gid', minvalue=1, multivalue=False, required=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('rename', cli_name='rename', multivalue=False, primary_key=True, required=False)
@@ -2407,10 +2411,11 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: idoverridegroup_show
-args: 2,4,3
+args: 2,5,3
 arg: Str('idviewcn', cli_name='idview', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('ipaanchoruuid', attribute=True, cli_name='anchor', multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('fallback_to_ldap?', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?', exclude='webui')
@@ -2418,12 +2423,13 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: idoverrideuser_add
-args: 2,14,3
+args: 2,15,3
 arg: Str('idviewcn', cli_name='idview', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('ipaanchoruuid', attribute=True, cli_name='anchor', multivalue=False, primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('description', attribute=True, cli_name='desc', multivalue=False, required=False)
+option: Flag('fallback_to_ldap?', autofill=True, default=False)
 option: Str('gecos', attribute=True, cli_name='gecos', multivalue=False, required=False)
 option: Int('gidnumber', attribute=True, cli_name='gidnumber', minvalue=1, multivalue=False, required=False)
 option: Str('homedirectory', attribute=True, cli_name='homedir', multivalue=False, required=False)
@@ -2439,20 +2445,22 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: idoverrideuser_del
-args: 2,2,3
+args: 2,3,3
 arg: Str('idviewcn', cli_name='idview', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('ipaanchoruuid', attribute=True, cli_name='anchor', multivalue=True, primary_key=True, query=True, required=True)
 option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Flag('fallback_to_ldap?', autofill=True, default=False)
 option: Str('version?', exclude='webui')
 output: Output('result', <type 'dict'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: ListOfPrimaryKeys('value', None, None)
 command: idoverrideuser_find
-args: 2,15,4
+args: 2,16,4
 arg: Str('idviewcn', cli_name='idview', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('criteria?', noextrawhitespace=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, query=True, required=False)
+option: Flag('fallback_to_ldap?', autofill=True, default=False)
 option: Str('gecos', attribute=True, autofill=False, cli_name='gecos', multivalue=False, query=True, required=False)
 option: Int('gidnumber', attribute=True, autofill=False, cli_name='gidnumber', minvalue=1, multivalue=False, query=True, required=False)
 option: Str('homedirectory', attribute=True, autofill=False, cli_name='homedir', multivalue=False, query=True, required=False)
@@ -2471,13 +2479,14 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: idoverrideuser_mod
-args: 2,17,3
+args: 2,18,3
 arg: Str('idviewcn', cli_name='idview', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('ipaanchoruuid', attribute=True, cli_name='anchor', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: Str('description', attribute=True, autofill=False, cli_name='desc', multivalue=False, required=False)
+option: Flag('fallback_to_ldap?', autofill=True, default=False)
 option: Str('gecos', attribute=True, autofill=False, cli_name='gecos', multivalue=False, required=False)
 option: Int('gidnumber', attribute=True, autofill=False, cli_name='gidnumber', minvalue=1, multivalue=False, required=False)
 option: Str('homedirectory', attribute=True, autofill=False, cli_name='homedir', multivalue=False, required=False)
@@ -2495,10 +2504,11 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: idoverrideuser_show
-args: 2,4,3
+args: 2,5,3
 arg: Str('idviewcn', cli_name='idview', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('ipaanchoruuid', attribute=True, cli_name='anchor', multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('fallback_to_ldap?', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?', exclude='webui')
