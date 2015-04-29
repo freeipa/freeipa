@@ -359,7 +359,7 @@ class DomainValidator(object):
                error= _('Trusted domain did not return a valid SID for the object'))
 
     def get_trusted_domain_object_from_sid(self, sid):
-        root_logger.info("Converting SID to object name: %s" % sid)
+        root_logger.debug("Converting SID to object name: %s" % sid)
 
         # Check if the given SID is valid
         if not self.is_trusted_sid_valid(sid):
@@ -377,7 +377,7 @@ class DomainValidator(object):
                 return result.get(pysss_nss_idmap.NAME_KEY)
 
         # If unsuccessful, search AD DC LDAP
-        root_logger.info("Searching AD DC LDAP")
+        root_logger.debug("Searching AD DC LDAP")
 
         escaped_sid = escape_filter_chars(
             security.dom_sid(sid).__ndr_pack__(),
