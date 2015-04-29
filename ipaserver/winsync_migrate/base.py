@@ -134,8 +134,12 @@ class MigrateWinsync(admintool.AdminTool):
 
         return entries
 
-    def run(self):
-        super(MigrateWinsync, self).run()
+    @classmethod
+    def main(cls, argv):
+        """
+        Sets up API and LDAP connection for the tool, then runs the rest of
+        the plumbing.
+        """
 
         # Finalize API
         api.bootstrap(in_server=True, context='server')
@@ -146,13 +150,18 @@ class MigrateWinsync(admintool.AdminTool):
             ctx = krbV.default_context()
             ccache = ctx.default_ccache()
             api.Backend.ldap2.connect(ccache)
-            self.ldap = api.Backend.ldap2
+            cls.ldap = api.Backend.ldap2
         except krbV.Krb5Error, e:
             sys.exit("Must have Kerberos credentials to migrate Winsync users.")
         except errors.ACIError, e:
             sys.exit("Outdated Kerberos credentials. Use kdestroy and kinit to update your ticket.")
         except errors.DatabaseError, e:
             sys.exit("Cannot connect to the LDAP database. Please check if IPA is running.")
+
+        super(MigrateWinsync, cls).main(argv)
+
+    def run(self):
+        super(MigrateWinsync, self).run()
 
         # Create ID overrides replacing the user winsync entries
         entries = self.find_winsync_users()
