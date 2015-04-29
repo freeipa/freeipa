@@ -686,7 +686,12 @@ class baseidoverride_find(LDAPSearch):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         for entry in entries:
-            self.obj.convert_anchor_to_human_readable_form(entry, **options)
+            try:
+                self.obj.convert_anchor_to_human_readable_form(entry, **options)
+            except errors.NotFound:
+                # If the conversion to readle form went wrong, do not
+                # abort the whole find command. Use non-converted entry.
+                pass
         return truncated
 
 
@@ -694,7 +699,12 @@ class baseidoverride_show(LDAPRetrieve):
     __doc__ = _('Display information about an ID override.')
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        self.obj.convert_anchor_to_human_readable_form(entry_attrs, **options)
+        try:
+            self.obj.convert_anchor_to_human_readable_form(entry_attrs, **options)
+        except errors.NotFound:
+            # If the conversion to readle form went wrong, do not
+            # abort the whole show command. Use non-converted entry.
+            pass
         return dn
 
 
