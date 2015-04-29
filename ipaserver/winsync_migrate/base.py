@@ -32,7 +32,7 @@ from ipaserver.install import replication
 DEFAULT_TRUST_VIEW_NAME = u'Default Trust View'
 
 
-class MigrateWinsync(admintool.AdminTool):
+class WinsyncMigrate(admintool.AdminTool):
     """
     Tool to migrate winsync users.
     """
@@ -53,7 +53,7 @@ class MigrateWinsync(admintool.AdminTool):
         """
         Adds command line options to the tool.
         """
-        super(MigrateWinsync, cls).add_options(parser)
+        super(WinsyncMigrate, cls).add_options(parser)
 
         parser.add_option(
             "--realm",
@@ -77,8 +77,7 @@ class MigrateWinsync(admintool.AdminTool):
               the realm passed via --realm option
         """
 
-        # Require root to have access to HTTP keytab
-        super(MigrateWinsync, self).validate_options(needs_root=True)
+        super(WinsyncMigrate, self).validate_options(needs_root=True)
 
         if self.options.realm is None:
             raise admintool.ScriptError(
@@ -223,10 +222,10 @@ class MigrateWinsync(admintool.AdminTool):
         except errors.DatabaseError, e:
             sys.exit("Cannot connect to the LDAP database. Please check if IPA is running.")
 
-        super(MigrateWinsync, cls).main(argv)
+        super(WinsyncMigrate, cls).main(argv)
 
     def run(self):
-        super(MigrateWinsync, self).run()
+        super(WinsyncMigrate, self).run()
 
         # Stop winsync agreement with the given host
         self.delete_winsync_agreement()
