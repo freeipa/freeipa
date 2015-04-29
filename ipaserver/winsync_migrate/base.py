@@ -44,6 +44,23 @@ class MigrateWinsync(admintool.AdminTool):
         "For more information, see `man ipa-migrate-winsync`."
         )
 
+    def find_winsync_users(self):
+        """
+        Finds all users that were mirrored from AD using winsync.
+        """
+
+        user_filter = "(&(objectclass=ntuser)(ntUserDomainId=*))"
+        user_base = DN(api.env.container_user, api.env.basedn)
+        entries, _ = self.ldap.find_entries(
+            filter=user_filter,
+            base_dn=user_base,
+            paged_search=True)
+
+        for entry in entries:
+            self.log.debug("Discovered entry: %s" % entry)
+
+        return entries
+
     def run(self):
         super(MigrateWinsync, self).run()
 
@@ -55,13 +72,13 @@ class MigrateWinsync(admintool.AdminTool):
         try:
             ctx = krbV.default_context()
             ccache = ctx.default_ccache()
-        except krbV.Krb5Error, e:
-            sys.exit("Must have Kerberos credentials to migrate Winsync users.")
-
-        try:
             api.Backend.ldap2.connect(ccache)
             self.ldap = api.Backend.ldap2
+        except krbV.Krb5Error, e:
+            sys.exit("Must have Kerberos credentials to migrate Winsync users.")
         except errors.ACIError, e:
             sys.exit("Outdated Kerberos credentials. Use kdestroy and kinit to update your ticket.")
         except errors.DatabaseError, e:
             sys.exit("Cannot connect to the LDAP database. Please check if IPA is running.")
+
+        entries = self.find_winsync_users()
