@@ -18,6 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from ipaserver.winsync_migrate.base import WinsyncMigrate
+from ipaserver.install.ipa_winsync_migrate import WinsyncMigrate
 
 WinsyncMigrate.run_cli()
