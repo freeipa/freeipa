@@ -26,6 +26,7 @@ from ipapython import admintool
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
 from ipaserver.plugins.ldap2 import ldap2
+from ipaserver.install import replication
 
 DEFAULT_TRUST_VIEW_NAME = u'Default Trust View'
 
@@ -57,6 +58,10 @@ class MigrateWinsync(admintool.AdminTool):
             "--realm",
             dest="realm",
             help="The AD realm the winsynced users belong to")
+        parser.add_option(
+            "--server",
+            dest="server",
+            help="The AD DC the winsync agreement is established with")
         parser.add_option(
             "-U", "--unattended",
             dest="interactive",
@@ -90,6 +95,34 @@ class MigrateWinsync(admintool.AdminTool):
                 raise admintool.ScriptError(
                     "An error occured during detection of the established "
                     "trust with %s: %s" % (self.options.realm, str(e)))
+
+        if self.options.server is None:
+            raise admintool.ScriptError(
+                "The AD DC the winsync agreement is established with "
+                "needs to be specified.")
+        else:
+            # Validate the replication agreement between given host and localhost
+            try:
+                manager = replication.ReplicationManager(
+                    api.env.realm,
+                    api.env.host,
+                    None)  # Use GSSAPI instead of raw directory manager access
+
+                replica_type = manager.get_agreement_type(self.options.server)
+            except errors.ACIError as e:
+                raise admintool.ScriptError(
+                    "Used Kerberos account does not have privileges to access "
+                    "the replication agreement info: %s" % str(e))
+            except errors.NotFound as e:
+                raise admintool.ScriptError(
+                    "The replication agreement between %s and %s could not "
+                    "be detected" % (api.env.host, self.options.server))
+
+            # Check that the replication agreement is indeed WINSYNC
+            if replica_type != replication.WINSYNC:
+                raise admintool.ScriptError(
+                    "Replication agreement between %s and %s is not winsync."
+                    % (api.env.host, self.options.server))
 
     def create_id_user_override(self, entry):
         """
