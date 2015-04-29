@@ -71,7 +71,8 @@ class MigrateWinsync(admintool.AdminTool):
               the realm passed via --realm option
         """
 
-        super(MigrateWinsync, self).validate_options()
+        # Require root to have access to HTTP keytab
+        super(MigrateWinsync, self).validate_options(needs_root=True)
 
         if self.options.realm is None:
             raise admintool.ScriptError(
