@@ -233,9 +233,12 @@ def ca_status(ca_host=None, use_proxy=True):
     return _parse_ca_status(body)
 
 
-def https_request(host, port, url, secdir, password, nickname, **kw):
+def https_request(host, port, url, secdir, password, nickname,
+        method='POST', headers=None, body=None, **kw):
     """
+    :param method: HTTP request method (defalut: 'POST')
     :param url: The path (not complete URL!) to post to.
+    :param body: The request body (encodes kw if None)
     :param kw:  Keyword arguments to encode into POST body.
     :return:   (http_status, http_reason_phrase, http_headers, http_body)
                as (integer, unicode, dict, str)
@@ -254,9 +257,11 @@ def https_request(host, port, url, secdir, password, nickname, **kw):
             nickname, password, nss.get_default_certdb())
         return conn
 
-    body = urlencode(kw)
+    if body is None:
+        body = urlencode(kw)
     return _httplib_request(
-        'https', host, port, url, connection_factory, body)
+        'https', host, port, url, connection_factory, body,
+        method=method, headers=headers)
 
 
 def http_request(host, port, url, **kw):
@@ -288,11 +293,13 @@ def unauthenticated_https_request(host, port, url, **kw):
 
 
 def _httplib_request(
-        protocol, host, port, path, connection_factory, request_body):
+        protocol, host, port, path, connection_factory, request_body,
+        method='POST', headers=None):
     """
     :param request_body: Request body
     :param connection_factory: Connection class to use. Will be called
         with the host and port arguments.
+    :param method: HTTP request method (default: 'POST')
 
     Perform a HTTP(s) request.
     """
@@ -301,13 +308,17 @@ def _httplib_request(
     uri = '%s://%s%s' % (protocol, ipautil.format_netloc(host, port), path)
     root_logger.debug('request %r', uri)
     root_logger.debug('request body %r', request_body)
+
+    headers = headers or {}
+    if (
+        method == 'POST'
+        and 'content-type' not in (str(k).lower() for k in headers.viewkeys())
+    ):
+        headers['content-type'] = 'application/x-www-form-urlencoded'
+
     try:
         conn = connection_factory(host, port)
-        conn.request(
-            'POST', uri,
-            body=request_body,
-            headers={'Content-type': 'application/x-www-form-urlencoded'},
-        )
+        conn.request(method, uri, body=request_body, headers=headers)
         res = conn.getresponse()
 
         http_status = res.status

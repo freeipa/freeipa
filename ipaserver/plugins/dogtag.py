@@ -4,8 +4,9 @@
 #   Jason Gerard DeRose <jderose@redhat.com>
 #   Rob Crittenden <rcritten@@redhat.com>
 #   John Dennis <jdennis@redhat.com>
+#   Fraser Tweedale <ftweedal@redhat.com>
 #
-# Copyright (C) 2014  Red Hat
+# Copyright (C) 2014, 2015  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -238,17 +239,21 @@ digits and nothing else follows.
 '''
 
 import datetime
+import json
 from lxml import etree
+import os
 import tempfile
 import time
 import urllib2
 
+import pki
 from pki.client import PKIConnection
 import pki.crypto as cryptoutil
 from pki.kra import KRAClient
 
 from ipalib import Backend
 from ipapython.dn import DN
+import ipapython.cookie
 import ipapython.dogtag
 from ipapython import ipautil
 from ipaserver.install.certs import CertDB
@@ -1262,13 +1267,12 @@ def select_any_master(ldap2, service='CA'):
 
 #-------------------------------------------------------------------------------
 
-from ipalib import api, SkipPluginModule
+from ipalib import api, errors, SkipPluginModule
 if api.env.ra_plugin != 'dogtag':
     # In this case, abort loading this plugin module...
     raise SkipPluginModule(reason='dogtag not selected as RA plugin')
 import os, random
 from ipaserver.plugins import rabase
-from ipalib.errors import CertificateOperationError
 from ipalib.constants import TYPE_ERROR
 from ipalib.util import cachedproperty
 from ipapython import dogtag
@@ -1318,7 +1322,7 @@ class ra(rabase.rabase):
             err_msg = u'%s (%s)' % (err_msg, detail)
 
         self.error('%s.%s(): %s', self.fullname, func_name, err_msg)
-        raise CertificateOperationError(error=err_msg)
+        raise errors.CertificateOperationError(error=err_msg)
 
     @cachedproperty
     def ca_host(self):
@@ -1923,3 +1927,167 @@ class kra(Backend):
         return KRAClient(connection, crypto)
 
 api.register(kra)
+
+
+class RestClient(Backend):
+    """Simple Dogtag REST client to be subclassed by other backends.
+
+    This class is a context manager.  Authenticated calls must be
+    executed in a ``with`` suite::
+
+        class ra_certprofile(RestClient):
+            path = 'profile'
+            ...
+
+        api.register(ra_certprofile)
+
+        with api.Backend.ra_certprofile as profile_api:
+            # REST client is now logged in
+            profile_api.create_profile(...)
+
+    """
+    path = None
+
+    @staticmethod
+    def _parse_dogtag_error(body):
+        try:
+            return pki.PKIException.from_json(json.loads(body))
+        except:
+            return None
+
+    def __init__(self):
+        if api.env.in_tree:
+            self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
+            self.pwd_file = self.sec_dir + os.sep + '.pwd'
+        else:
+            self.sec_dir = paths.HTTPD_ALIAS_DIR
+            self.pwd_file = paths.ALIAS_PWDFILE_TXT
+        self.noise_file = self.sec_dir + os.sep + '.noise'
+        self.ipa_key_size = "2048"
+        self.ipa_certificate_nickname = "ipaCert"
+        self.ca_certificate_nickname = "caCert"
+        try:
+            f = open(self.pwd_file, "r")
+            self.password = f.readline().strip()
+            f.close()
+        except IOError:
+            self.password = ''
+        super(RestClient, self).__init__()
+
+        # session cookie
+        self.cookie = None
+
+    @cachedproperty
+    def ca_host(self):
+        """
+        :return:   host
+                   as str
+
+        Select our CA host.
+        """
+        ldap2 = self.api.Backend.ldap2
+        if host_has_service(api.env.ca_host, ldap2, "CA"):
+            return api.env.ca_host
+        if api.env.host != api.env.ca_host:
+            if host_has_service(api.env.host, ldap2, "CA"):
+                return api.env.host
+        host = select_any_master(ldap2)
+        if host:
+            return host
+        else:
+            return api.env.ca_host
+
+    def __enter__(self):
+        """Log into the REST API"""
+        if self.cookie is not None:
+            return
+        status, status_text, resp_headers, resp_body = dogtag.https_request(
+            self.ca_host, self.env.ca_agent_port, '/ca/rest/account/login',
+            self.sec_dir, self.password, self.ipa_certificate_nickname,
+            method='GET'
+        )
+        cookies = ipapython.cookie.Cookie.parse(resp_headers.get('set-cookie', ''))
+        if status != 200 or len(cookies) == 0:
+            raise errors.RemoteRetrieveError(reason=_('Failed to authenticate to CA REST API'))
+        self.cookie = str(cookies[0])
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """Log out of the REST API"""
+        dogtag.https_request(
+            self.ca_host, self.env.ca_agent_port, '/ca/rest/account/logout',
+            self.sec_dir, self.password, self.ipa_certificate_nickname,
+            method='GET'
+        )
+        self.cookie = None
+
+    def _ssldo(self, method, path, headers=None, body=None):
+        """
+        :param url: The URL to post to.
+        :param kw:  Keyword arguments to encode into POST body.
+        :return:   (http_status, http_reason_phrase, http_headers, http_body)
+                   as (integer, unicode, dict, str)
+
+        Perform an HTTPS request
+        """
+        if self.cookie is None:
+            raise errors.RemoteRetrieveError(
+                reason=_("REST API is not logged in."))
+
+        headers = headers or {}
+        headers['Cookie'] = self.cookie
+
+        resource = os.path.join('/ca/rest', self.path, path)
+
+        # perform main request
+        status, status_text, resp_headers, resp_body = dogtag.https_request(
+            self.ca_host, self.env.ca_agent_port, resource,
+            self.sec_dir, self.password, self.ipa_certificate_nickname,
+            method=method, headers=headers, body=body
+        )
+        if status < 200 or status >= 300:
+            explanation = self._parse_dogtag_error(resp_body) or ''
+            raise errors.RemoteRetrieveError(
+                reason=_('Non-2xx response from CA REST API: %(status)d %(status_text)s. %(explanation)s')
+                % {'status': status, 'status_text': status_text, 'explanation': explanation}
+            )
+        return (status, status_text, resp_headers, resp_body)
+
+
+class ra_certprofile(RestClient):
+    """
+    Profile management backend plugin.
+    """
+    path = 'profiles'
+
+    def create_profile(self, profile_data):
+        """
+        Import the profile into Dogtag
+        """
+        self._ssldo('POST', 'raw',
+            headers={
+                'Content-type': 'application/xml',
+                'Accept': 'application/json',
+            },
+            body=profile_data
+        )
+
+    def enable_profile(self, profile_id):
+        """
+        Enable the profile in Dogtag
+        """
+        self._ssldo('POST', profile_id + '?action=enable')
+
+    def disable_profile(self, profile_id):
+        """
+        Enable the profile in Dogtag
+        """
+        self._ssldo('POST', profile_id + '?action=disable')
+
+    def delete_profile(self, profile_id):
+        """
+        Delete the profile from Dogtag
+        """
+        self._ssldo('DELETE', profile_id, headers={'Accept': 'application/json'})
+
+api.register(ra_certprofile)

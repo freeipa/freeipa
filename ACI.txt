@@ -22,6 +22,14 @@ dn: cn=automount,dc=ipa,dc=example
 aci: (targetattr = "automountmapname || description")(targetfilter = "(objectclass=automountmap)")(version 3.0;acl "permission:System: Modify Automount Maps";allow (write) groupdn = "ldap:///cn=System: Modify Automount Maps,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=automount,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=automountmap)")(version 3.0;acl "permission:System: Remove Automount Maps";allow (delete) groupdn = "ldap:///cn=System: Remove Automount Maps,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=certprofiles,cn=ca,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipacertprofile)")(version 3.0;acl "permission:System: Delete Certificate Profile";allow (delete) groupdn = "ldap:///cn=System: Delete Certificate Profile,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=certprofiles,cn=ca,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipacertprofile)")(version 3.0;acl "permission:System: Import Certificate Profile";allow (add) groupdn = "ldap:///cn=System: Import Certificate Profile,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=certprofiles,cn=ca,dc=ipa,dc=example
+aci: (targetattr = "cn || description || ipacertprofilestoreissued")(targetfilter = "(objectclass=ipacertprofile)")(version 3.0;acl "permission:System: Modify Certificate Profile";allow (write) groupdn = "ldap:///cn=System: Modify Certificate Profile,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=certprofiles,cn=ca,dc=ipa,dc=example
+aci: (targetattr = "cn || createtimestamp || description || entryusn || ipacertprofilestoreissued || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipacertprofile)")(version 3.0;acl "permission:System: Read Certificate Profiles";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=ipaconfig,cn=etc,dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || entryusn || ipacertificatesubjectbase || ipaconfigstring || ipacustomfields || ipadefaultemaildomain || ipadefaultloginshell || ipadefaultprimarygroup || ipagroupobjectclasses || ipagroupsearchfields || ipahomesrootdir || ipakrbauthzdata || ipamaxusernamelength || ipamigrationenabled || ipapwdexpadvnotify || ipasearchrecordslimit || ipasearchtimelimit || ipaselinuxusermapdefault || ipaselinuxusermaporder || ipauserauthtype || ipauserobjectclasses || ipausersearchfields || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaguiconfig)")(version 3.0;acl "permission:System: Read Global Configuration";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=costemplates,cn=accounts,dc=ipa,dc=example

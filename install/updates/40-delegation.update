@@ -237,3 +237,11 @@ default:ipapermissiontype: SYSTEM
 
 dn: cn=config
 add:aci: (version 3.0;acl "permission:Add Configuration Sub-Entries";allow (add) groupdn = "ldap:///cn=Add Configuration Sub-Entries,cn=permissions,cn=pbac,$SUFFIX";)
+
+# CA Administrators
+dn: cn=CA Administrator,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: nestedgroup
+default:objectClass: groupofnames
+default:objectClass: top
+default:cn: CA Administrator
+default:description: CA Administrator
