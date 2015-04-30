@@ -1114,6 +1114,9 @@ exp.facet_header = IPA.facet_header = function(spec) {
         that.facet.action_state.changed.attach(that.update_summary);
 
         that.title_widget = IPA.facet_title();
+        that.tabs_widget = new exp.FacetGroupsWidget({
+            facet: this.facet
+        });
     };
 
     /**
@@ -1121,14 +1124,11 @@ exp.facet_header = IPA.facet_header = function(spec) {
      */
     that.select_tab = function() {
         if (that.facet.disable_facet_tabs) return;
-
-        $(that.facet_tabs).find('a').removeClass('selected');
         var facet_name = that.facet.name;
-
         if (!facet_name || facet_name === 'default') {
-            that.facet_tabs.find('a:first').addClass('selected');
+            that.tabs_widget.select_first();
         } else {
-            that.facet_tabs.find('a#' + facet_name ).addClass('selected');
+            that.tabs_widget.select(that.facet.get_full_name());
         }
     };
 
@@ -1159,6 +1159,12 @@ exp.facet_header = IPA.facet_header = function(spec) {
     that.update_breadcrumb = function(pkey) {
 
         if (!that.breadcrumb) return;
+
+        if (pkey === undefined) {
+            pkey = that.facet.get_pkey();
+            var pkey_max = that.get_max_pkey_length();
+            pkey = IPA.limit_text(pkey, pkey_max);
+        }
 
         var items = [];
         var item, i, l, keys, target_facet, target_facet_keys, containing_entity;
@@ -1240,60 +1246,11 @@ exp.facet_header = IPA.facet_header = function(spec) {
         return bc_item;
     };
 
-    /**
-     * Create link for facet tab
-     * @protected
-     * @param {jQuery} container
-     * @param {facet.facet} other_facet
-     */
-    that.create_facet_link = function(container, other_facet) {
-
-        var li = $('<li/>', {
-            name: other_facet.name,
-            click: function() {
-                if (li.hasClass('entity-facet-disabled')) {
-                    return false;
-                }
-
-                var pkeys = that.facet.get_pkeys();
-                navigation.show(other_facet, pkeys);
-
-                return false;
-            }
-        }).appendTo(container);
-
-        $('<a/>', {
-            text: other_facet.tab_label,
-            id: other_facet.name
-        }).appendTo(li);
-    };
-
-    /**
-     * Create facet tab group
-     * @protected
-     * @param {jQuery} container
-     * @param {Object} facet_group
-     */
-    that.create_facet_group = function(container, facet_group) {
-
-        var section = $('<div/>', {
-            name: facet_group.name,
-            'class': 'facet-group'
-        }).appendTo(container);
-
-        $('<div/>', {
-            'class': 'facet-group-label'
-        }).appendTo(section);
-
-        var ul = $('<ul/>', {
-            'class': 'facet-tab'
-        }).appendTo(section);
-
-        var facets = facet_group.facets.values;
-        for (var i=0; i<facets.length; i++) {
-            var facet = reg.facet.get(facets[i]);
-            that.create_facet_link(ul, facet);
-        }
+    that.create_facet_groups = function(container) {
+        var facet_groups = that.get_facet_groups();
+        this.tabs_widget.groups = facet_groups;
+        var tabs = this.tabs_widget.render();
+        container.append(tabs);
     };
 
     /**
@@ -1330,17 +1287,7 @@ exp.facet_header = IPA.facet_header = function(spec) {
         that.title_widget.update({ text: that.facet.label });
 
         if (!that.facet.disable_facet_tabs) {
-            that.facet_tabs = $('<div/>', {
-                'class': 'facet-tabs'
-            }).appendTo(container);
-
-            var facet_groups = that.get_facet_groups();
-            for (var i=0; i<facet_groups.length; i++) {
-                var facet_group = facet_groups[i];
-                if (facet_group.facets.length) {
-                    that.create_facet_group(that.facet_tabs, facet_group);
-                }
-            }
+            that.create_facet_groups(container);
         }
     };
 
@@ -1362,36 +1309,29 @@ exp.facet_header = IPA.facet_header = function(spec) {
         if (!that.facet.disable_facet_tabs) {
             var pkey = that.facet.get_pkey();
 
-            var facet_groups = that.facet.entity.facet_groups.values;
+            var facet_groups = that.get_facet_groups();
             for (var i=0; i<facet_groups.length; i++) {
                 var facet_group = facet_groups[i];
-
-                var span = $('.facet-group[name='+facet_group.name+']', that.facet_tabs);
-                if (!span.length) continue;
 
                 var label = facet_group.label;
                 if (pkey && label) {
                     var limited_pkey = IPA.limit_text(pkey, 20);
                     label = label.replace('${primary_key}', limited_pkey);
-                } else {
+                } else if (!label) {
                     label = '';
                 }
 
-                var label_container = $('.facet-group-label', span);
-                label_container.text(label);
-                if (pkey) label_container.attr('title', pkey);
+                this.tabs_widget.update_group(facet_group.name, label, pkey);
 
                 var facets = facet_group.facets.values;
                 for (var j=0; j<facets.length; j++) {
-                    var facet = facets[j];
-                    var link = $('li[name='+facet.name+'] a', span);
-
+                    var facet =  reg.facet.get(facets[j]);
                     var values = result ? result[facet.name] : null;
+                    label = facet.tab_label;
                     if (values) {
-                        link.text(facet.tab_label+' ('+values.length+')');
-                    } else {
-                        link.text(facet.tab_label);
+                        label = facet.tab_label + ' (' + values.length + ')';
                     }
+                    this.tabs_widget.update_tab(facet.get_full_name(), label);
                 }
             }
         }
@@ -1441,6 +1381,146 @@ exp.facet_header = IPA.facet_header = function(spec) {
 
     return that;
 };
+
+exp.FacetGroupsWidget = declare([], {
+
+    facet: null,
+    groups: null,
+    group_els: null,
+    el: null,
+    css_class: 'facet-tabs',
+    group_el_type: '<div/>',
+    group_class: 'facet-group',
+    group_label_el_type: '<div/>',
+    group_label_class: 'facet-group-label',
+    group_label_title_el_type: '<span/>',
+    group_label_title_class: '',
+    tab_cont_el_type: '<div/>',
+    tab_cont_class: '',
+    tab_list_el_type: '<ul/>',
+    tab_list_class: 'facet-tab',
+    tab_el_type: '<li/>',
+    tab_class: 't',
+    selected_class: 'selected',
+
+    render: function() {
+
+        this.group_els = {};
+        this.tab_els = {};
+
+        this.el = $('<div/>', { 'class': this.css_class });
+
+        for (var i=0; i<this.groups.length; i++) {
+            var group = this.groups[i];
+            if (group.facets.length) {
+                var group_el = this.render_group(group);
+                this.el.append(group_el);
+            }
+        }
+        return this.el;
+    },
+
+    render_group: function(group) {
+
+        var gr = this.group_els[group.name] = { tab_els: {}};
+
+        gr.group_el = $(this.group_el_type, {
+            'class': this.group_class,
+            name: group.name
+        });
+
+        gr.label_el = $(this.group_label_el_type, {
+            'class': this.group_label_class
+        }).appendTo(gr.group_el);
+
+        gr.label_title_el = $(this.group_label_title_el_type, {
+            'class': this.group_label_title_class,
+            text: ''
+        }).appendTo(gr.label_el);
+
+
+        var tab_cont = $(this.tab_cont_el_type, { 'class': this.tab_cont_class });
+        var tab_list = $(this.tab_list_el_type, { 'class': this.tab_list_class });
+        tab_list.appendTo(tab_cont);
+        var facets = group.facets.values;
+        for (var i=0,l=facets.length; i<l ;i++) {
+            var facet = reg.facet.get(facets[i]);
+            var tab_el = this.tab_els[facet.get_full_name()] = this.render_tab(facet);
+            tab_list.append(tab_el);
+        }
+        gr.group_el.append(tab_cont);
+
+        return gr.group_el;
+    },
+
+    render_tab: function(tab) {
+        var self = this;
+        var el = $(this.tab_el_type, {
+            name: tab.name,
+            'class': this.tab_class,
+            click: function() {
+                if (el.hasClass('entity-facet-disabled')) {
+                    return false;
+                }
+                self.on_click(tab);
+                return false;
+            }
+        });
+
+        $('<a/>', {
+            text: tab.tab_label,
+            'class': 'tab-link',
+            href: "#" + navigation.create_hash(tab, {}),
+            name: tab.name
+        }).appendTo(el);
+
+        return el;
+    },
+
+    on_click: function(facet) {
+        var pkeys = this.facet.get_pkeys();
+        navigation.show(facet, pkeys);
+    },
+
+    update_group: function(group_name, text, title) {
+        if (!this.group_els[group_name]) return;
+        var label_el = this.group_els[group_name].label_title_el;
+        label_el.text(text);
+        if (title) label_el.attr('title', title);
+    },
+
+    update_tab: function(tab_name, text, title) {
+        var tab_el = this.tab_els[tab_name];
+        var label_el = $('a', tab_el);
+        label_el.text(text);
+        if (title) label_el.attr('title', title);
+    },
+
+    select: function(tab_name) {
+        if (!this.el) return;
+        var cls = this.selected_class;
+        var tab_el = this.tab_els[tab_name];
+
+        this.el.find(this.tab_class).removeClass(cls);
+        this.el.find('.tab-link').removeClass(cls);
+
+        tab_el.addClass(cls);
+        tab_el.find('.tab-link').addClass(cls);
+    },
+
+    select_first: function() {
+        if (!this.el) return;
+        this.el.find('.tab-link').removeClass(this.selected_class);
+        this.el.find(this.tab_class).removeClass(this.selected_class);
+        var first = this.el.find('.tab-link:first');
+        first.addClass(this.selected_class);
+        first.parent().addClass(this.selected_class);
+    },
+
+    constructor: function(spec) {
+        lang.mixin(this, spec);
+    }
+});
 
 /**
  * Facet title widget

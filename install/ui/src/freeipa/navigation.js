@@ -152,6 +152,10 @@ define([
          */
         show_default: function() {
             routing.navigate(routing.default_path);
+        },
+
+        create_hash: function(facet, option) {
+            return routing.create_hash(facet, option);
         }
     };
     return navigation;
