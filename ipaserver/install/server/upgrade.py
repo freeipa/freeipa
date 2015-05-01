@@ -289,6 +289,16 @@ def setup_firefox_extension(fstore):
     http.setup_firefox_extension(realm, domain)
 
 
+def ca_configure_profiles_acl(ca):
+    root_logger.info('[Authorizing RA Agent to modify profiles]')
+
+    if not ca.is_configured():
+        root_logger.info('CA is not configured')
+        return False
+
+    return cainstance.configure_profiles_acl()
+
+
 def upgrade_ipa_profile(ca, domain, fqdn):
     """
     Update the IPA Profile provided by dogtag
@@ -1370,6 +1380,7 @@ def upgrade_configuration():
         upgrade_ipa_profile(ca, api.env.domain, fqdn),
         certificate_renewal_update(ca),
         ca_enable_pkix(ca),
+        ca_configure_profiles_acl(ca),
     ])
 
     if ca_restart:

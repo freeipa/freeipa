@@ -469,6 +469,7 @@ class CAInstance(DogtagInstance):
                 self.step("requesting RA certificate from CA", self.__request_ra_certificate)
                 self.step("issuing RA agent certificate", self.__issue_ra_cert)
                 self.step("adding RA agent as a trusted user", self.__configure_ra)
+                self.step("authorizing RA to modify profiles", self.__configure_profiles_acl)
             self.step("configure certmonger for renewals", self.configure_certmonger_renewal)
             self.step("configure certificate renewals", self.configure_renewal)
             if not self.clone:
@@ -939,6 +940,10 @@ class CAInstance(DogtagInstance):
         conn.modify_s(dn, modlist)
 
         conn.unbind()
+
+    def __configure_profiles_acl(self):
+        """Allow the Certificate Manager Agents group to modify profiles."""
+        configure_profiles_acl()
 
     def __run_certutil(self, args, database=None, pwd_file=None, stdin=None):
         if not database:
@@ -1824,6 +1829,30 @@ def update_people_entry(dercert):
         return False
 
     return True
+
+def configure_profiles_acl():
+    server_id = installutils.realm_to_serverid(api.env.realm)
+    dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
+    updated = False
+
+    dn = DN(('cn', 'aclResources'), ('o', 'ipaca'))
+    rule = (
+        'certServer.profile.configuration:read,modify:allow (read,modify) '
+        'group="Certificate Manager Agents":'
+        'Certificate Manager agents may modify (create/update/delete) and read profiles'
+    )
+    modlist = [(ldap.MOD_ADD, 'resourceACLS', [rule])]
+
+    conn = ldap2.ldap2(shared_instance=False, ldap_uri=dogtag_uri)
+    if not conn.isconnected():
+        conn.connect(autobind=True)
+    rules = conn.get_entry(dn).get('resourceACLS', [])
+    if rule not in rules:
+        conn.conn.modify_s(str(dn), modlist)
+        updated = True
+
+    conn.disconnect()
+    return updated
 
 if __name__ == "__main__":
     standard_logging_setup("install.log")
