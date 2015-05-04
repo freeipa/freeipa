@@ -21,6 +21,7 @@ import time
 import datetime
 import sys
 import os
+from random import randint
 
 import ldap
 
@@ -230,34 +231,59 @@ class ReplicationManager(object):
 
         # Ok, either the entry doesn't exist or the attribute isn't set
         # so get it from the other master
-        retval = -1
+        return self._get_and_update_id_from_master(master_conn)
+
+    def _get_and_update_id_from_master(self, master_conn, attempts=5):
+        """
+        Fetch replica ID from remote master and update nsDS5ReplicaId attribute
+        on 'cn=replication,cn=etc,$SUFFIX' entry. Do it as MOD_DELETE+MOD_ADD
+        operations and retry when conflict occurs, e.g. due to simultaneous
+        update from another replica.
+        :param master_conn: LDAP connection to master
+        :param attempts: number of attempts to update nsDS5ReplicaId
+        :return: value of nsDS5ReplicaId before incrementation
+        """
         dn = DN(('cn','replication'),('cn','etc'), self.suffix)
-        try:
-            replica = master_conn.get_entry(dn)
-        except errors.NotFound:
-            root_logger.debug("Unable to retrieve nsDS5ReplicaId from remote server")
-            raise
-        else:
-            id_values = replica.get('nsDS5ReplicaId')
-            if not id_values:
+
+        for a in range(1, attempts + 1):
+            try:
+                root_logger.debug('Fetching nsDS5ReplicaId from master '
+                                  '[attempt %d/%d]', a, attempts)
+                replica = master_conn.get_entry(dn)
+                id_values = replica.get('nsDS5ReplicaId')
+                if not id_values:
+                    root_logger.debug("Unable to retrieve nsDS5ReplicaId from remote server")
+                    raise RuntimeError("Unable to retrieve nsDS5ReplicaId from remote server")
+                # nsDS5ReplicaId is single-valued now, but historically it could
+                # contain multiple values, of which we need the highest.
+                # see bug: https://fedorahosted.org/freeipa/ticket/3394
+                retval = max(int(v) for v in id_values)
+
+                # Now update the value on the master
+                mod_list = [(ldap.MOD_DELETE, 'nsDS5ReplicaId', str(retval)),
+                            (ldap.MOD_ADD, 'nsDS5ReplicaId', str(retval + 1))]
+
+                master_conn.modify_s(dn, mod_list)
+                root_logger.debug('Successfully updated nsDS5ReplicaId.')
+                return retval
+
+            except errors.NotFound:
                 root_logger.debug("Unable to retrieve nsDS5ReplicaId from remote server")
-                raise RuntimeError("Unable to retrieve nsDS5ReplicaId from remote server")
+                raise
+            # these errors signal a conflict in updating replica ID.
+            # We then wait for a random time interval and try again
+            except (ldap.NO_SUCH_ATTRIBUTE, ldap.OBJECT_CLASS_VIOLATION) as e:
+                sleep_interval = randint(1, 5)
+                root_logger.debug("Update failed (%s). Conflicting operation?",
+                                  e)
+                time.sleep(sleep_interval)
+            # in case of other error we bail out
+            except ldap.LDAPError as e:
+                root_logger.debug("Problem updating nsDS5ReplicaID %s" % e)
+                raise
 
-        # nsDS5ReplicaId is single-valued now, but historically it could
-        # contain multiple values, of which we need the highest.
-        # see bug: https://fedorahosted.org/freeipa/ticket/3394
-        retval = max(int(v) for v in id_values)
-
-        # Now update the value on the master
-        mod = [(ldap.MOD_REPLACE, 'nsDS5ReplicaId', str(retval + 1))]
-
-        try:
-            master_conn.modify_s(dn, mod)
-        except Exception, e:
-            root_logger.debug("Problem updating nsDS5ReplicaID %s" % e)
-            raise
-
-        return retval
+        raise RuntimeError("Failed to update nsDS5ReplicaId in %d attempts"
+                           % attempts)
 
     def get_agreement_filter(self, agreement_types=None, host=None):
         """
