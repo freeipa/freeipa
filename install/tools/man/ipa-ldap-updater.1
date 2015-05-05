@@ -39,7 +39,7 @@ There are 7 keywords:
     * only: set an attribute to this
     * onlyifexist: set an attribute to this only if the entry exists
     * deleteentry: remove the entry
-    * replace: replace an existing value, format is old: new
+    * replace: replace an existing value, format is old::new
     * addifnew: add a new attribute and value only if the attribute doesn't already exist. Only works with single\-value attributes.
     * addifexist: add a new attribute and value only if the entry exists. This is used to update optional entries.
 
@@ -56,6 +56,12 @@ The available template variables are:
     * $ESCAPED_SUFFIX \- the ldap\-escaped IPA LDAP suffix
     * $LIBARCH \- set to 64 on x86_64 systems to be used for plugin paths
     * $TIME \- an integer representation of current time
+
+For base64 encoded values a double colon ('::') must be used between attribute and value.
+
+Base64 format examples:
+    add:binaryattr::d2UgbG92ZSBiYXNlNjQ=
+    replace:binaryattr::SVBBIGlzIGdyZWF0::SVBBIGlzIHJlYWxseSBncmVhdA==
 
 A few rules:
 

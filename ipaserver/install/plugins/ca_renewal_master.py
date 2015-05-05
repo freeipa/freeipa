@@ -99,7 +99,10 @@ class update_ca_renewal_master(Updater):
         dn = DN(('cn', 'CA'), ('cn', self.api.env.host), base_dn)
         update = {
                 'dn': dn,
-                'updates': ['add:ipaConfigString: caRenewalMaster'],
+                'updates': [
+                    dict(action='add', attr='ipaConfigString',
+                         value='caRenewalMaster')
+                ],
         }
 
         return False, [update]

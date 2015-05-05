@@ -34,9 +34,9 @@ def entry_to_update(entry):
     for attr in entry.keys():
         if isinstance(entry[attr], list):
             for i in xrange(len(entry[attr])):
-                update.append('%s:%s' % (str(attr), str(entry[attr][i])))
+                update.append(dict(attr=str(attr), value=str(entry[attr][i])))
         else:
-            update.append('%s:%s' % (str(attr), str(entry[attr])))
+            update.append(dict(attr=str(attr), value=str(entry[attr])))
 
     return update
 

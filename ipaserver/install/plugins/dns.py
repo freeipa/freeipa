@@ -129,7 +129,8 @@ class update_dns_limits(Updater):
         limit_updates = []
 
         for limit in self.limit_attributes:
-            limit_updates.append('only:%s:%s' % (limit, self.limit_value))
+            limit_updates.append(dict(action='only', attr=limit,
+                                      value=self.limit_value))
 
         dnsupdate = {'dn': dns_service_dn, 'updates': limit_updates}
         root_logger.debug("DNS: limits for service %s will be updated" % dns_service_dn)

@@ -54,11 +54,11 @@ class update_uniqueness_plugins_to_new_syntax(Updater):
     plugins_dn = DN(('cn', 'plugins'), ('cn', 'config'))
 
     def __remove_update(self, update, key, value):
-        statement = "remove:%s:%s" % (key, value)
+        statement = dict(action='remove', attr=key, value=value)
         update.setdefault('updates', []).append(statement)
 
     def __add_update(self, update, key, value):
-        statement = "add:%s:%s" % (key, value)
+        statement = dict(action='add', attr=key, value=value)
         update.setdefault('updates', []).append(statement)
 
     def __subtree_style(self, entry):

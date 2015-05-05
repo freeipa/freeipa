@@ -65,7 +65,10 @@ class update_passync_privilege_update(Updater):
             root_logger.debug("PassSync user found, do update")
 
         update = {'dn': passsync_privilege_dn,
-                  'updates': ["add:member:'%s'" % passsync_dn]}
+                  'updates': [
+                      dict(action='add', attr='member', value=passsync_dn),
+                  ]
+        }
 
         sysupgrade.set_upgrade_state('winsync', 'passsync_privilege_updated', True)
         return False, [update]

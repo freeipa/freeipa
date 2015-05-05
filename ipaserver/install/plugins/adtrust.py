@@ -55,14 +55,15 @@ class update_default_range(Updater):
         id_range_name = '%s_id_range' % self.api.env.realm
         id_range_size = DEFAULT_ID_RANGE_SIZE
 
-        range_entry = ['objectclass:top',
-                       'objectclass:ipaIDrange',
-                       'objectclass:ipaDomainIDRange',
-                       'cn:%s' % id_range_name,
-                       'ipabaseid:%s' % id_range_base_id,
-                       'ipaidrangesize:%s' % id_range_size,
-                       'iparangetype:ipa-local',
-                      ]
+        range_entry = [
+            dict(attr='objectclass', value='top'),
+            dict(attr='objectclass', value='ipaIDrange'),
+            dict(attr='objectclass', value='ipaDomainIDRange'),
+            dict(attr='cn', value=id_range_name),
+            dict(attr='ipabaseid', value=id_range_base_id),
+            dict(attr='ipaidrangesize', value=id_range_size),
+            dict(attr='iparangetype', value='ipa-local'),
+        ]
 
         dn = DN(('cn', '%s_id_range' % self.api.env.realm),
                 self.api.env.container_ranges, self.api.env.basedn)
@@ -129,12 +130,12 @@ class update_default_trust_view(Updater):
                                    self.api.env.basedn)
 
         default_trust_view_entry = [
-            'objectclass:top',
-            'objectclass:ipaIDView',
-            'cn:Default Trust View',
-            'description:Default Trust View for AD users. '
-                        'Should not be deleted.',
-            ]
+            dict(attr='objectclass', value='top'),
+            dict(attr='objectclass', value='ipaIDView'),
+            dict(attr='cn', value='Default Trust View'),
+            dict(attr='description', value='Default Trust View for AD users. '
+                 'Should not be deleted.'),
+        ]
 
         # First, see if trusts are enabled on the server
         if not self.api.Command.adtrust_is_enabled()['result']:

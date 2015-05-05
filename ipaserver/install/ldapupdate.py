@@ -22,6 +22,7 @@
 # TODO
 # save undo files?
 
+import base64
 import sys
 import uuid
 import platform
@@ -106,8 +107,30 @@ def safe_output(attr, values):
             return ['XXXXXXX'] * len(values)
         else:
             return 'XXXXXXXX'
-    else:
+
+    if values is None:
+        return
+
+    is_list = type(values) in (tuple, list)
+
+    if is_list and None in values:
         return values
+
+    if not is_list:
+        values = [values]
+
+    try:
+        all(v.decode('ascii') for v in values)
+    except UnicodeDecodeError:
+        try:
+            values = [base64.b64encode(v) for v in values]
+        except TypeError:
+            pass
+
+    if not is_list:
+        values = values[0]
+    return values
+
 
 class LDAPUpdate:
     action_keywords = ["default", "add", "remove", "only", "onlyifexist", "deleteentry", "replace", "addifnew", "addifexist"]
@@ -136,17 +159,27 @@ class LDAPUpdate:
         all_updates = [
             {
                 'dn': 'cn=config,dc=example,dc=com',
-                'default': ['attr1':default1'],
-                'updates': ['action:attr1:value1',
-                            'action:attr2:value2]
+                'default': [
+                    dict(attr='attr1', value='default1'),
+                ],
+                'updates': [
+                    dict(action='action', attr='attr1', value='value1'),
+                    dict(action='replace', attr='attr2', value=['old', 'new']),
+                ]
             },
             {
                 'dn': 'cn=bob,ou=people,dc=example,dc=com',
-                'default': ['attr3':default3'],
-                'updates': ['action:attr3:value3',
-                            'action:attr4:value4],
+                'default': [
+                    dict(attr='attr3', value='default3'),
+                ],
+                'updates': [
+                    dict(action='action', attr='attr3', value='value3'),
+                    dict(action='action', attr='attr4', value='value4'),
+                }
             }
         ]
+
+        Please notice the replace action requires two values in list
 
         The default and update lists are "dispositions"
 
@@ -181,11 +214,15 @@ class LDAPUpdate:
         Generates this list which contain the update dictionary:
 
         [
-          dict(
+          {
             'dn': 'cn=global_policy,cn=EXAMPLE.COM,cn=kerberos,dc=example,dc=com',
-            'updates': ['replace:krbPwdLockoutDuration:10::600',
-                        'replace:krbPwdMaxFailure:3::6']
-          )
+            'updates': [
+              dict(action='replace', attr='krbPwdLockoutDuration',
+                   value=['10','600']),
+              dict(action='replace', attr='krbPwdMaxFailure',
+                   value=['3','6']),
+            ]
+          }
         ]
 
         Here is another example showing how a default entry is configured:
@@ -198,13 +235,14 @@ class LDAPUpdate:
         This generates:
 
         [
-          dict(
+          {
             'dn': 'cn=Managed Entries,cn=etc,dc=example,dc=com',
-            'default': ['objectClass:nsContainer',
-                        'objectClass:top',
-                        'cn:Managed Entries'
-                       ]
-           )
+            'default': [
+              dict(attr='objectClass', value='nsContainer'),
+              dict(attr='objectClass', value='top'),
+              dict(attr='cn', value='Managed Entries'),
+            ]
+          }
         ]
 
         Note that the variable substitution in both examples has been completed.
@@ -348,13 +386,52 @@ class LDAPUpdate:
                     raise BadSyntax, "Bad formatting on line %s:%d: %s" % (data_source_name, lcount, logical_line)
 
                 attr = items[1].strip()
-                value = items[2].strip()
+                # do not strip here, we need detect '::' due to base64 encoded
+                # values, strip may result into fake detection
+                value = items[2]
+
+                # detect base64 encoding
+                # value which start with ':' are base64 encoded
+                # decode it as a binary value
+                if value.startswith(':'):
+                    value = value[1:]
+                    binary = True
+                else:
+                    binary = False
+                value = value.strip()
+
+                if action == 'replace':
+                    try:
+                        value = value.split('::', 1)
+                    except ValueError:
+                        raise BadSyntax(
+                            "Bad syntax in replace on line %s:%d: %s, needs to "
+                            "be in the format old::new in %s" % (
+                                data_source_name, lcount, logical_line, value)
+                        )
+                else:
+                    value = [value]
+
+                if binary:
+                    for i, v in enumerate(value):
+                        try:
+                            value[i] = base64.b64decode(v)
+                        except TypeError as e:
+                            raise BadSyntax(
+                                "Base64 encoded value %s on line %s:%d: %s is "
+                                "incorrect (%s)" % (v, data_source_name,
+                                                    lcount, logical_line, e)
+                            )
+
+                if action != 'replace':
+                    value = value[0]
 
                 if action == "default":
-                    new_value = attr + ":" + value
+                    new_value = {'attr': attr, 'value': value}
                     disposition = "default"
                 else:
-                    new_value = action + ":" + attr + ":" + value
+                    new_value = {'action': action, "attr": attr,
+                                 'value': value}
                     disposition = "updates"
 
             disposition_list = update.setdefault(disposition, [])
@@ -520,7 +597,9 @@ class LDAPUpdate:
 
         for item in default:
             # We already do syntax-parsing so this is safe
-            (attr, value) = item.split(':',1)
+            attr = item['attr']
+            value = item['value']
+
             e = entry.get(attr)
             if e:
                 # multi-valued attribute
@@ -558,8 +637,11 @@ class LDAPUpdate:
         only = {}
         for update in updates:
             # We already do syntax-parsing so this is safe
-            (action, attr, update_value) = update.split(':', 2)
-            entry_values = entry.get(attr, [])
+            action = update['action']
+            attr = update['attr']
+            update_value = update['value']
+
+            entry_values = entry.raw.get(attr, [])
             if action == 'remove':
                 self.debug("remove: '%s' from %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr,entry_values))
                 try:
@@ -620,11 +702,9 @@ class LDAPUpdate:
                 # skip this update type, it occurs in  __delete_entries()
                 return None
             elif action == 'replace':
-                # value has the format "old::new"
-                try:
-                    (old, new) = update_value.split('::', 1)
-                except ValueError:
-                    raise BadSyntax, "bad syntax in replace, needs to be in the format old::new in %s" % update_value
+                # replace values were store as list
+                old, new = update_value
+
                 try:
                     entry_values.remove(old)
                 except ValueError:
@@ -642,7 +722,7 @@ class LDAPUpdate:
         if message:
             self.debug("%s", message)
         self.debug("dn: %s", e.dn)
-        for a, value in e.items():
+        for a, value in e.raw.items():
             self.debug('%s:', a)
             for l in value:
                 self.debug("\t%s", safe_output(a, l))
