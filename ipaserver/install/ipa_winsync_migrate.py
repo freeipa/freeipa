@@ -198,55 +198,109 @@ class WinsyncMigrate(admintool.AdminTool):
 
         return entries
 
-    def migrate_memberships(self, entry):
+    def migrate_memberships(self, user_entry, winsync_group_prefix,
+                            object_membership_command,
+                            object_info_command,
+                            user_dn_attribute,
+                            object_group_membership_key,
+                            object_container_dn):
         """
-        Migrates user memberships to the external identity.
+        Migrates user memberships to theier external identities.
+
+        All migrated users for the given object are migrated to a common
+        external group which is then assigned to the given object as a
+        (user) member group.
         """
 
-        def winsync_group_name(group_entry):
+        def winsync_group_name(object_entry):
             """
             Returns the generated name of group containing migrated external users
             """
 
-            return u"%s_winsync_external" % group_entry['cn'][0]
+            return u"{0}_{1}_winsync_external".format(
+                winsync_group_prefix,
+                object_entry['cn'][0]
+            )
 
-        def create_winsync_group(group_entry):
+        def create_winsync_group(object_entry):
             """
             Creates the group containing migrated external users that were
             previously available via winsync.
             """
 
-            name = winsync_group_name(group_entry)
+            name = winsync_group_name(object_entry)
             api.Command['group_add'](name, external=True)
-            api.Command['group_add_member'](group_entry['cn'][0], group=[name])
+            api.Command[object_membership_command](object_entry['cn'][0], group=[name])
 
-        # Search for all groups containing the given user as a direct member
-        member_filter = self.ldap.make_filter_from_attr('member', entry.dn)
+        # Search for all objects containing the given user as a direct member
+        member_filter = self.ldap.make_filter_from_attr(user_dn_attribute,
+                                                        user_entry.dn)
 
         try:
-            groups, _ = self.ldap.find_entries(member_filter,
-                                               base_dn=api.env.basedn)
+            objects, _ = self.ldap.find_entries(member_filter,
+                                                base_dn=object_container_dn)
         except errors.EmptyResult:
             # If there's nothing to migrate, then let's get out of here
             return
 
-        # The external user cannot be added directly to the IPA groups, hence
-        # we need to wrap all the external users into one new external group,
-        # which will be then added to the original IPA group as a member.
+        # The external user cannot be added directly as member of the IPA
+        # objects, hence we need to wrap all the external users into one
+        # new external group, which will be then added to the original IPA
+        # object as a member.
 
-        for group in groups:
+        for obj in objects:
             # Check for existence of winsync external group
-            name = winsync_group_name(group)
-            info = api.Command['group_show'](group['cn'][0])['result']
+            name = winsync_group_name(obj)
+            info = api.Command[object_info_command](obj['cn'][0])['result']
 
             # If it was not created yet, do it now
-            if name not in info.get('member_group', []):
-                create_winsync_group(group)
+            if name not in info.get(object_group_membership_key, []):
+                create_winsync_group(obj)
 
             # Add the user to the external group. Membership is migrated
             # at this point.
-            user_identifier = u"%s@%s" % (entry['uid'][0], self.options.realm)
+            user_identifier = u"%s@%s" % (user_entry['uid'][0], self.options.realm)
             api.Command['group_add_member'](name, ipaexternalmember=[user_identifier])
+
+    def migrate_group_memberships(self, user_entry):
+        return self.migrate_memberships(user_entry,
+            winsync_group_prefix="group",
+            user_dn_attribute="member",
+            object_membership_command="group_add_member",
+            object_info_command="group_show",
+            object_group_membership_key="member_group",
+            object_container_dn=DN(api.env.container_group, api.env.basedn),
+        )
+
+    def migrate_role_memberships(self, user_entry):
+        return self.migrate_memberships(user_entry,
+            winsync_group_prefix="role",
+            user_dn_attribute="member",
+            object_membership_command="role_add_member",
+            object_info_command="role_show",
+            object_group_membership_key="member_group",
+            object_container_dn=DN(api.env.container_rolegroup, api.env.basedn),
+        )
+
+    def migrate_hbac_memberships(self, user_entry):
+        return self.migrate_memberships(user_entry,
+            winsync_group_prefix="hbacrule",
+            user_dn_attribute="memberuser",
+            object_membership_command="hbacrule_add_user",
+            object_info_command="hbacrule_show",
+            object_group_membership_key="memberuser_group",
+            object_container_dn=DN(api.env.container_hbac, api.env.basedn),
+        )
+
+    def migrate_selinux_memberships(self, user_entry):
+        return self.migrate_memberships(user_entry,
+            winsync_group_prefix="selinux",
+            user_dn_attribute="memberuser",
+            object_membership_command="selinuxusermap_add_user",
+            object_info_command="selinuxusermap_show",
+            object_group_membership_key="memberuser_group",
+            object_container_dn=DN(api.env.container_selinux, api.env.basedn),
+        )
 
     @classmethod
     def main(cls, argv):
@@ -284,5 +338,8 @@ class WinsyncMigrate(admintool.AdminTool):
         entries = self.find_winsync_users()
         for entry in entries:
             self.create_id_user_override(entry)
-            self.migrate_memberships(entry)
+            self.migrate_group_memberships(entry)
+            self.migrate_role_memberships(entry)
+            self.migrate_hbac_memberships(entry)
+            self.migrate_selinux_memberships(entry)
             self.ldap.delete_entry(entry)
