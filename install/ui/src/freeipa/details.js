@@ -453,8 +453,8 @@ exp.facet_policies = IPA.facet_policies = function(spec) {
  * - sets name, title, label if not present
  * - adds default actions and related buttons
  *   - refresh
- *   - reset
- *   - update
+ *   - revert
+ *   - save
  * - adds dirty state evaluator
  *
  * @member details
@@ -472,21 +472,21 @@ exp.details_facet_pre_op = function(spec, context) {
     spec.actions = spec.actions || [];
     spec.actions.unshift(
         'refresh',
-        'reset',
-        'update');
+        'revert',
+        'save');
 
     spec.control_buttons = spec.control_buttons || [];
 
     if (!spec.no_update) {
         spec.control_buttons.unshift(
             {
-                name: 'reset',
-                label: '@i18n:buttons.reset',
+                name: 'revert',
+                label: '@i18n:buttons.revert',
                 icon: 'fa-undo'
             },
             {
-                name: 'update',
-                label: '@i18n:buttons.update',
+                name: 'save',
+                label: '@i18n:buttons.save',
                 icon: 'fa-upload'
             });
     }
@@ -1404,8 +1404,8 @@ exp.refresh_action = IPA.refresh_action = function(spec) {
 exp.reset_action = IPA.reset_action = function(spec) {
 
     spec = spec || {};
-    spec.name = spec.name || 'reset';
-    spec.label = spec.label || '@i18n:buttons.reset';
+    spec.name = spec.name || 'revert';
+    spec.label = spec.label || '@i18n:buttons.revert';
     spec.enable_cond = spec.enable_cond || ['dirty'];
 
     var that = IPA.action(spec);
@@ -1426,8 +1426,8 @@ exp.reset_action = IPA.reset_action = function(spec) {
 exp.update_action = IPA.update_action = function(spec) {
 
     spec = spec || {};
-    spec.name = spec.name || 'update';
-    spec.label = spec.label || '@i18n:buttons.update';
+    spec.name = spec.name || 'save';
+    spec.label = spec.label || '@i18n:buttons.save';
     spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : false;
     spec.enable_cond = spec.enable_cond || ['dirty'];
 
@@ -2007,8 +2007,8 @@ exp.register = function() {
     var f = reg.facet;
 
     a.register('refresh', exp.refresh_action);
-    a.register('reset', exp.reset_action);
-    a.register('update', exp.update_action);
+    a.register('revert', exp.reset_action);
+    a.register('save', exp.update_action);
     a.register('object', exp.object_action);
     a.register('enable', exp.enable_action);
     a.register('disable', exp.disable_action);

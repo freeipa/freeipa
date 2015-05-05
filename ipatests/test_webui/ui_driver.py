@@ -1226,7 +1226,7 @@ class UI_driver(object):
             new_count = len(self.get_rows())
             self.assert_row_count(count, new_count)
 
-    def mod_record(self, entity, data, facet='details', facet_btn='update'):
+    def mod_record(self, entity, data, facet='details', facet_btn='save'):
         """
         Mod record
 
@@ -1251,7 +1251,7 @@ class UI_driver(object):
                    add_facet_btn='add',
                    add_dialog_btn='add',
                    add_dialog_name='add',
-                   update_btn='update',
+                   update_btn='save',
                    breadcrumb=None,
                    navigate=True,
                    delete=True):
@@ -1469,7 +1469,7 @@ class UI_driver(object):
 
         # update
         self.assert_rule_tables_enabled(t_list, False)
-        self.facet_button_click('update')
+        self.facet_button_click('save')
         self.wait_for_request(n=3, d=0.3)
         self.assert_rule_tables_enabled(t_list, False)
 
@@ -1488,7 +1488,7 @@ class UI_driver(object):
         for cat in categories:
             self.check_option(cat, '')
         self.assert_rule_tables_enabled(t_list, True)
-        self.facet_button_click('update')
+        self.facet_button_click('save')
         self.wait_for_request(n=3, d=0.3)
         self.assert_rule_tables_enabled(t_list, True)
 

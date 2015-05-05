@@ -754,8 +754,8 @@ IPA.dirty_dialog = function(spec) {
     };
 
     that.create_button({
-        name: 'update',
-        label: '@i18n:buttons.update',
+        name: 'save',
+        label: '@i18n:buttons.save',
         click: function() {
             that.facet.update(function() {
                 that.close();
@@ -765,8 +765,8 @@ IPA.dirty_dialog = function(spec) {
     });
 
     that.create_button({
-        name: 'reset',
-        label: '@i18n:buttons.reset',
+        name: 'revert',
+        label: '@i18n:buttons.revert',
         click: function() {
             that.facet.reset();
             that.close();

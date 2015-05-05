@@ -1961,7 +1961,7 @@ IPA.dns.record_type_table_widget = function(spec) {
 
         dialog.create_button({
             name: 'modify',
-            label: '@i18n:buttons.update',
+            label: '@i18n:buttons.save',
             click: function() {
                 dialog.modify();
             }
