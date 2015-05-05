@@ -39,13 +39,13 @@ class test_realmdomains(UI_driver):
 
         # add
         self.add_multivalued('associateddomain', 'itest.bar')
-        self.facet_button_click('update')
+        self.facet_button_click('save')
         self.dialog_button_click('force')
         self.wait_for_request()
 
         # delete
         self.del_multivalued('associateddomain', 'itest.bar')
-        self.facet_button_click('update')
+        self.facet_button_click('save')
         self.dialog_button_click('force')
         self.wait_for_request()
         self.wait_for_request()
