@@ -198,6 +198,56 @@ class WinsyncMigrate(admintool.AdminTool):
 
         return entries
 
+    def migrate_memberships(self, entry):
+        """
+        Migrates user memberships to the external identity.
+        """
+
+        def winsync_group_name(group_entry):
+            """
+            Returns the generated name of group containing migrated external users
+            """
+
+            return u"%s_winsync_external" % group_entry['cn'][0]
+
+        def create_winsync_group(group_entry):
+            """
+            Creates the group containing migrated external users that were
+            previously available via winsync.
+            """
+
+            name = winsync_group_name(group_entry)
+            api.Command['group_add'](name, external=True)
+            api.Command['group_add_member'](group_entry['cn'][0], group=[name])
+
+        # Search for all groups containing the given user as a direct member
+        member_filter = self.ldap.make_filter_from_attr('member', entry.dn)
+
+        try:
+            groups, _ = self.ldap.find_entries(member_filter,
+                                               base_dn=api.env.basedn)
+        except errors.EmptyResult:
+            # If there's nothing to migrate, then let's get out of here
+            return
+
+        # The external user cannot be added directly to the IPA groups, hence
+        # we need to wrap all the external users into one new external group,
+        # which will be then added to the original IPA group as a member.
+
+        for group in groups:
+            # Check for existence of winsync external group
+            name = winsync_group_name(group)
+            info = api.Command['group_show'](group['cn'][0])['result']
+
+            # If it was not created yet, do it now
+            if name not in info.get('member_group', []):
+                create_winsync_group(group)
+
+            # Add the user to the external group. Membership is migrated
+            # at this point.
+            user_identifier = u"%s@%s" % (entry['uid'][0], self.options.realm)
+            api.Command['group_add_member'](name, ipaexternalmember=[user_identifier])
+
     @classmethod
     def main(cls, argv):
         """
@@ -234,4 +284,5 @@ class WinsyncMigrate(admintool.AdminTool):
         entries = self.find_winsync_users()
         for entry in entries:
             self.create_id_user_override(entry)
+            self.migrate_memberships(entry)
             self.ldap.delete_entry(entry)
