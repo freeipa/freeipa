@@ -1178,7 +1178,7 @@ class ReplicationManager(object):
                 self.suffix, ldap.SCOPE_SUBTREE,
                 filter='(krbprincipalname=*/%s@%s)' % (replica, realm))
             if entries:
-                entries.sort(key=len, reverse=True)
+                entries.sort(key=lambda x: len(x.dn), reverse=True)
                 for entry in entries:
                     self.conn.delete_entry(entry)
         except errors.NotFound:
@@ -1220,7 +1220,7 @@ class ReplicationManager(object):
                     ('cn', 'etc'), self.suffix)
             entries = self.conn.get_entries(dn, ldap.SCOPE_SUBTREE)
             if entries:
-                entries.sort(key=len, reverse=True)
+                entries.sort(key=lambda x: len(x.dn), reverse=True)
                 for entry in entries:
                     self.conn.delete_entry(entry)
         except errors.NotFound:

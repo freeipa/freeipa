@@ -322,7 +322,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
                     ipautil.realm_to_suffix(realm))
             entries = repl1.conn.get_entries(dn, repl1.conn.SCOPE_SUBTREE)
             if entries:
-                entries.sort(key=len, reverse=True)
+                entries.sort(key=lambda x: len(x.dn), reverse=True)
                 for entry in entries:
                     repl1.conn.delete_entry(entry)
         except Exception, e:
