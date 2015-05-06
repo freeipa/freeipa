@@ -58,7 +58,8 @@ class test_selinuxusermap(UI_driver):
         Mod: selinuxusermap
         """
         self.init_app()
-        host = host_tasks(self.driver, self.config)
+        host = host_tasks()
+        host.setup(self.driver, self.config)
 
         self.add_record(user.ENTITY, user.DATA)
         self.add_record(user.ENTITY, user.DATA2, navigate=False)

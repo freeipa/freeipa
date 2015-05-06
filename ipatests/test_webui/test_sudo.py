@@ -50,7 +50,8 @@ class test_sudo(UI_driver):
         Mod: sudo
         """
         self.init_app()
-        host = host_tasks(self.driver, self.config)
+        host = host_tasks()
+        host.setup(self.driver, self.config)
 
         self.add_record(netgroup.ENTITY, netgroup.DATA2)
 
