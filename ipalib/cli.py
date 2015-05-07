@@ -48,7 +48,7 @@ from errors import (PublicError, CommandError, HelpError, InternalError,
                     NoSuchNamespaceError, ValidationError, NotFound,
                     NotConfiguredError, PromptFailed)
 from constants import CLI_TAB, LDAP_GENERALIZED_TIME_FORMAT
-from parameters import File, Str, Enum, Any
+from parameters import File, Str, Enum, Any, Flag
 from text import _
 from ipapython.version import API_VERSION
 from ipapython.dnsutil import DNSName
@@ -1150,7 +1150,7 @@ class cli(backend.Executioner):
                 continue
             if option.password and self.env.interactive:
                 kw['action'] = 'store_true'
-            elif option.type is bool and option.autofill:
+            elif isinstance(option, Flag):
                 if option.default is True:
                     kw['action'] = 'store_false'
                 else:
