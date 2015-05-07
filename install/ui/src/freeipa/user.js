@@ -58,6 +58,10 @@ var exp = IPA.user = {
 var make_spec = function() {
 return {
     name: 'user',
+    policies: [
+        IPA.search_facet_update_policy,
+        IPA.details_facet_update_policy
+    ],
     facets: [
         {
             $type: 'search',

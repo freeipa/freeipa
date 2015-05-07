@@ -40,6 +40,16 @@ var make_stageuser_spec = function() {
 return {
     name: 'stageuser',
     facet_groups: ['settings'],
+    policies: [
+        IPA.search_facet_update_policy,
+        IPA.details_facet_update_policy,
+        {
+            $factory: IPA.facet_update_policy,
+            source_facet: 'search',
+            dest_entity: 'user',
+            dest_facet: 'search'
+        }
+    ],
     facets: [
         {
             $type: 'search',
@@ -294,6 +304,29 @@ stageuser.search_preserved_facet_spec = {
         }
     ]
 };
+
+mod_user.entity_spec.policies = mod_user.entity_spec.policies || {};
+mod_user.entity_spec.policies.push(
+    {
+        $factory: IPA.facet_update_policy,
+        source_facet: 'search',
+        dest_entity: 'stageuser',
+        dest_facet: 'search'
+    },
+    {
+        $factory: IPA.facet_update_policy,
+        source_facet: 'search_preserved',
+        dest_entity: 'user',
+        dest_facet: 'search'
+    },
+    {
+        $factory: IPA.facet_update_policy,
+        source_facet: 'search',
+        dest_entity: 'user',
+        dest_facet: 'search_preserved'
+    }
+);
+
 
 stageuser.batch_activate_action = function(spec) {
 
