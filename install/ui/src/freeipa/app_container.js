@@ -21,13 +21,14 @@
 define([
     'dojo/_base/lang',
     'dojo/Deferred',
+    'dojo/on',
     'dojo/when',
     './plugin_loader',
     './phases',
     './reg',
     './Application_controller',
     'exports'
-],function(lang, Deferred, when, plugin_loader, phases, reg, Application_controller, app) {
+],function(lang, Deferred, on, when, plugin_loader, phases, reg, Application_controller, app) {
 
     /**
      * Application wrapper
@@ -58,6 +59,21 @@ define([
                 var app = this.app = new this.App_class();
                 app.init();
                 return app;
+            }));
+
+            phases.on('init', lang.hitch(this, function() {
+                var deferred = new Deferred();
+                if (window.sessionStorage.getItem('logout')) {
+                    window.sessionStorage.removeItem('logout');
+                    var login_facet = reg.facet.get('login');
+                    this.app.show_facet(login_facet);
+                    on.once(login_facet, "logged_in", function() {
+                        deferred.resolve();
+                    });
+                } else {
+                    deferred.resolve();
+                }
+                return deferred.promise;
             }));
 
             phases.on('metadata', lang.hitch(this, function() {

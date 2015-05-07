@@ -409,6 +409,7 @@ IPA.logout = function() {
     }
 
     function reload () {
+        window.sessionStorage.setItem('logout', true);
         var l = window.location;
         l.assign(l.href.split('#')[0]);
     }
