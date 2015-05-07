@@ -8,6 +8,7 @@ app_DATA =				\
 	jquery.ordered-map.js 		\
 	json2.js 			\
 	loader.js 			\
+	patternfly.js		\
 	qrcode.js 			\
 	$(NULL)
 
