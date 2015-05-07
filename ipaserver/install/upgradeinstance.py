@@ -183,7 +183,9 @@ class IPAUpgrade(service.Service):
         super(IPAUpgrade, self).stop(self.serverid)
 
     def create_instance(self):
-        self.step("stopping directory server", self.__stop_instance)
+        ds_running = super(IPAUpgrade, self).is_running()
+        if ds_running:
+            self.step("stopping directory server", self.__stop_instance)
         self.step("saving configuration", self.__save_config)
         self.step("disabling listeners", self.__disable_listeners)
         self.step("enabling DS global lock", self.__enable_ds_global_write_lock)
@@ -196,8 +198,8 @@ class IPAUpgrade(service.Service):
                   run_after_failure=True)
         self.step("restoring configuration", self.__restore_config,
                   run_after_failure=True)
-        self.step("starting directory server", self.start)
-
+        if ds_running:
+            self.step("starting directory server", self.start)
         self.start_creation(start_message="Upgrading IPA:",
                             show_service_name=False)
 
