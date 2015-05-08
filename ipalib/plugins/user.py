@@ -614,7 +614,7 @@ class user_del(baseuser_del):
                 raise
 
             # start to move the entry to Delete container
-            self._exc_wrapper(keys, options, ldap.update_entry_rdn)(active_dn, new_rdn=active_dn[0], new_superior=superior_dn, del_old=True)
+            self._exc_wrapper(keys, options, ldap.move_entry)(active_dn, delete_dn, del_old=True)
 
             # Then clear the credential attributes
             attrs_to_clear = ['krbPrincipalKey', 'krbLastPwdChange', 'krbPasswordExpiration', 'userPassword']
@@ -738,6 +738,51 @@ class user_show(baseuser_show):
         self.post_common_callback(ldap, dn, entry_attrs, **options)
         return dn
 
+@register()
+class user_undel(LDAPQuery):
+    __doc__ = _('Undelete a delete user account.')
+
+    has_output = output.standard_value
+    msg_summary = _('Undeleted user account "%(value)s"')
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+
+        # First check that the user exists and is a delete one
+        delete_dn = self.obj.get_dn(*keys, **options)
+        if delete_dn.endswith(DN(self.obj.active_container_dn, api.env.basedn)):
+            raise errors.ValidationError(
+                        name=self.obj.primary_key.cli_name,
+                        error=_('User %r is already active') % keys[-1][0])
+        try:
+            entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(delete_dn)
+        except errors.NotFound:
+            raise errors.ValidationError(
+                        name=self.obj.primary_key.cli_name,
+                        error=_('User %r not found') % keys[-1][0])
+
+        active_dn = DN(delete_dn[0], self.obj.active_container_dn, api.env.basedn)
+
+        # start to move the entry to the Active container
+        self._exc_wrapper(keys, options, ldap.move_entry)(delete_dn, active_dn, del_old=True)
+
+        # add the user we just undelete into the default primary group
+        config = ldap.get_ipa_config()
+        def_primary_group = config.get('ipadefaultprimarygroup')
+        group_dn = self.api.Object['group'].get_dn(def_primary_group)
+
+        # if the user is already a member of default primary group,
+        # do not raise error
+        # this can happen if automember rule or default group is set
+        try:
+            ldap.add_entry_to_group(active_dn, group_dn)
+        except errors.AlreadyGroupMember:
+            pass
+
+        return dict(
+            result=True,
+            value=pkey_to_value(keys[0], options),
+        )
 
 @register()
 class user_disable(LDAPQuery):
