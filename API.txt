@@ -3692,6 +3692,16 @@ command: sidgen_was_run
 args: 0,1,1
 option: Str('version?', exclude='webui')
 output: Output('result', None, None)
+command: stageuser_activate
+args: 1,4,3
+arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('no_members', autofill=True, default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Str('version?', exclude='webui')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: PrimaryKey('value', None, None)
 command: stageuser_add
 args: 1,43,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, required=True)

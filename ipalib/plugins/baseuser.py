@@ -445,6 +445,22 @@ class baseuser(LDAPObject):
             for m in xrange(len(entry_attrs['manager'])):
                 entry_attrs['manager'][m] = self.get_primary_key_from_dn(entry_attrs['manager'][m])
 
+    def _user_status(self, user, container):
+        assert isinstance(user, DN)
+        return user.endswith(container)
+
+    def active_user(self, user):
+        assert isinstance(user, DN)
+        return self._user_status(user, DN(self.active_container_dn, api.env.basedn))
+
+    def stage_user(self, user):
+        assert isinstance(user, DN)
+        return self._user_status(user, DN(self.stage_container_dn, api.env.basedn))
+
+    def delete_user(self, user):
+        assert isinstance(user, DN)
+        return self._user_status(user, DN(self.delete_container_dn, api.env.basedn))
+
 class baseuser_add(LDAPCreate):
     """
     Prototype command plugin to be implemented by real plugin

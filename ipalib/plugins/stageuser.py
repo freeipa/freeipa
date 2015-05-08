@@ -22,10 +22,11 @@ import string
 import posixpath
 import os
 
+from copy import deepcopy
 from ipalib import api, errors
 from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import LDAPCreate, DN, entry_to_dict
+from ipalib.plugins.baseldap import LDAPCreate, LDAPQuery, LDAPSearch, DN, entry_to_dict, pkey_to_value
 from ipalib.plugins import baseldap
 from ipalib.plugins.baseuser import baseuser, baseuser_add, baseuser_del, \
     baseuser_mod, baseuser_find, baseuser_show, \
@@ -344,3 +345,207 @@ class stageuser_show(baseuser_show):
         entry_attrs['nsaccountlock'] = True
         self.post_common_callback(ldap, dn, entry_attrs, **options)
         return dn
+
+
+@register()
+class stageuser_activate(LDAPQuery):
+    __doc__ = _('Activate a stage user.')
+
+    msg_summary = _('Activate a stage user "%(value)s"')
+
+    preserved_DN_syntax_attrs = ('manager', 'managedby', 'secretary')
+
+    searched_operational_attributes = ['uidNumber', 'gidNumber', 'nsAccountLock', 'ipauniqueid']
+
+    has_output = output.standard_entry
+    has_output_params = LDAPQuery.has_output_params + stageuser_output_params
+
+    def __dict_new_entry(self, *args, **options):
+        ldap = self.obj.backend
+
+        entry_attrs = self.args_options_2_entry(*args, **options)
+        entry_attrs = ldap.make_entry(DN(), entry_attrs)
+
+        self.process_attr_options(entry_attrs, None, args, options)
+
+        entry_attrs['objectclass'] = deepcopy(self.obj.object_class)
+
+        if self.obj.object_class_config:
+            config = ldap.get_ipa_config()
+            entry_attrs['objectclass'] = config.get(
+                self.obj.object_class_config, entry_attrs['objectclass']
+            )
+
+        return(entry_attrs)
+
+    def __merge_values(self, args, options, entry_from, entry_to, attr):
+        '''
+        This routine merges the values of attr taken from entry_from, into entry_to.
+        If attr is a syntax DN attribute, it is replaced by an empty value. It is a preferable solution
+        compare to skiping it because the final entry may no longer conform the schema.
+        An exception of this is for a limited set of syntax DN attribute that we want to
+        preserved (defined in preserved_DN_syntax_attrs)
+        see http://www.freeipa.org/page/V3/User_Life-Cycle_Management#Adjustment_of_DN_syntax_attributes
+        '''
+        if not attr in entry_to:
+            if isinstance(entry_from[attr], (list, tuple)):
+                # attr is multi value attribute
+                entry_to[attr] = []
+            else:
+                # attr single valued attribute
+                entry_to[attr] = None
+
+        # At this point entry_to contains for all resulting attributes
+        # either a list (possibly empty) or a value (possibly None)
+
+        for value in entry_from[attr]:
+                # merge all the values from->to
+                v = self.__value_2_add(args, options, attr, value)
+                if (isinstance(value, str) and v in ('', None)) or \
+                   (isinstance(value, unicode) and v in (u'', None)):
+                    try:
+                        v.decode('utf-8')
+                        self.log.debug("merge: %s:%r wiped" % (attr, v))
+                    except:
+                        self.log.debug("merge %s: [no_print %s]" % (attr, v.__class__.__name__))
+                        pass
+                    if isinstance(entry_to[attr], (list, tuple)):
+                        # multi value attribute
+                        if v not in entry_to[attr]:
+                            # it may has been added before in the loop
+                            # so add it only if it not present
+                            entry_to[attr].append(v)
+                    else:
+                        # single value attribute
+                        # keep the value defined in staging
+                        entry_to[attr] = v
+                else:
+                    try:
+                        v.decode('utf-8')
+                        self.log.debug("Add: %s:%r" % (attr, v))
+                    except:
+                        self.log.debug("Add %s: [no_print %s]" % (attr, v.__class__.__name__))
+                        pass
+                    if isinstance(entry_to[attr], (list, tuple)):
+                        # multi value attribute
+                        if value not in entry_to[attr]:
+                            entry_to[attr].append(value)
+                    else:
+                        # single value attribute
+                        if value:
+                            entry_to[attr] = value
+
+    def __value_2_add(self, args, options, attr, value):
+        '''
+        If the attribute is NOT syntax DN it returns its value.
+        Else it checks if the value can be preserved.
+        To be preserved:
+            - attribute must be in preserved_DN_syntax_attrs
+            - value must be an active user DN (in Active container)
+            - the active user entry exists
+        '''
+        ldap = self.obj.backend
+
+        if ldap.has_dn_syntax(attr):
+            if attr.lower() in self.preserved_DN_syntax_attrs:
+                # we are about to add a DN syntax value
+                # Check this is a valid DN
+                if not isinstance(value, DN):
+                    return u''
+
+                if not self.obj.active_user(value):
+                    return u''
+
+                # Check that this value is a Active user
+                try:
+                    entry_attrs = self._exc_wrapper(args, options, ldap.get_entry)(value, ['dn'])
+                    return value
+                except errors.NotFound:
+                    return u''
+            else:
+                return u''
+        else:
+            return value
+
+    def execute(self, *args, **options):
+
+        ldap = self.obj.backend
+
+        staging_dn = self.obj.get_dn(*args, **options)
+        assert isinstance(staging_dn, DN)
+
+        # retrieve the current entry
+        try:
+            entry_attrs = self._exc_wrapper(args, options, ldap.get_entry)(
+                staging_dn, ['*']
+            )
+        except errors.NotFound:
+            self.obj.handle_not_found(*args)
+        entry_attrs = dict((k.lower(), v) for (k, v) in entry_attrs.iteritems())
+
+        # Check it does not exist an active entry with the same RDN
+        active_dn = DN(staging_dn[0], api.env.container_user, api.env.basedn)
+        try:
+            test_entry_attrs = self._exc_wrapper(args, options, ldap.get_entry)(
+                active_dn, ['dn']
+            )
+            assert isinstance(staging_dn, DN)
+            raise errors.DuplicateEntry(message=_('Active user %(user)s already exists') % dict(
+                            user=test_entry_attrs.dn))
+        except errors.NotFound:
+            pass
+
+
+        # Time to build the new entry
+        result_entry = {'dn' : active_dn}
+        new_entry_attrs = self.__dict_new_entry()
+        for (attr, values) in entry_attrs.iteritems():
+            self.__merge_values(args, options, entry_attrs, new_entry_attrs, attr)
+            result_entry[attr] = values
+
+        # Allow Managed entry plugin to do its work
+        if 'description' in new_entry_attrs and NO_UPG_MAGIC in new_entry_attrs['description']:
+            new_entry_attrs['description'].remove(NO_UPG_MAGIC)
+            if result_entry['description'] == NO_UPG_MAGIC:
+                del result_entry['description']
+
+        for (k,v) in new_entry_attrs.iteritems():
+            self.log.debug("new entry: k=%r and v=%r)"  % (k, v))
+
+        # Add the Active entry
+        entry = ldap.make_entry(active_dn, new_entry_attrs)
+        self._exc_wrapper(args, options, ldap.add_entry)(entry)
+
+        # Now delete the Staging entry
+        try:
+            self._exc_wrapper(args, options, ldap.delete_entry)(staging_dn)
+        except:
+            try:
+                self.log.error("Fail to delete the Staging user after activating it %s " % (staging_dn))
+                self._exc_wrapper(args, options, ldap.delete_entry)(active_dn)
+            except:
+                self.log.error("Fail to cleanup activation. The user remains active %s" % (active_dn))
+                pass
+            raise
+
+        # add the user we just created into the default primary group
+        config = ldap.get_ipa_config()
+        def_primary_group = config.get('ipadefaultprimarygroup')
+        group_dn = self.api.Object['group'].get_dn(def_primary_group)
+
+        # if the user is already a member of default primary group,
+        # do not raise error
+        # this can happen if automember rule or default group is set
+        try:
+            ldap.add_entry_to_group(active_dn, group_dn)
+        except errors.AlreadyGroupMember:
+            pass
+
+        # Now retrieve the activated entry
+        result_entry = self._exc_wrapper(args, options, ldap.get_entry)(active_dn)
+        result_entry = entry_to_dict(result_entry, **options)
+        result_entry['dn'] = active_dn
+
+        return dict(result=result_entry,
+                    summary=unicode(_('Stage user %s activated' % staging_dn[0].value)),
+                    value=pkey_to_value(args[-1], options))

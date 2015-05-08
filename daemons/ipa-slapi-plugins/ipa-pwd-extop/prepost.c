@@ -151,6 +151,43 @@ done:
     return value;
 }
 
+static bool has_krbprincipalkey(Slapi_Entry *entry) {
+    int rc;
+    krb5_key_data *keys = NULL;
+    int num_keys = 0;
+    int mkvno = 0;
+    int hint;
+    Slapi_Attr *attr;
+    Slapi_Value *keys_value;
+    const struct berval *bval;
+
+
+    if (slapi_entry_attr_find(entry, "krbPrincipalKey", &attr)) {
+        return false;
+    }
+
+    /* It exists a krbPrincipalKey attribute checks it exists a valid value */
+    for (hint = slapi_attr_first_value(attr, &keys_value);
+            hint != -1; hint = slapi_attr_next_value(attr, hint, &keys_value)) {
+        bval = slapi_value_get_berval(keys_value);
+        if (NULL != bval && NULL != bval->bv_val) {
+            rc = ber_decode_krb5_key_data(discard_const(bval),
+                    &mkvno, &num_keys, &keys);
+
+            if (rc || (num_keys <= 0)) {
+                /* this one is not valid, ignore it */
+                if (keys) ipa_krb5_free_key_data(keys, num_keys);
+            } else {
+                /* It exists at least this one that is valid, no need to continue */
+                if (keys) ipa_krb5_free_key_data(keys, num_keys);
+                return true;
+            }
+        }
+
+    }
+    return false;
+}
+
 
 /* PRE ADD Operation:
  * Gets the clean text password (fail the operation if the password came
@@ -242,6 +279,17 @@ static int ipapwd_pre_add(Slapi_PBlock *pb)
                 if (NULL == enabled) {
                     LOG("no ipaMigrationEnabled in config, assuming FALSE\n");
                 } else if (0 == strcmp(enabled, "TRUE")) {
+                    return 0;
+                }
+
+                /* With User Life Cycle, it could be a stage user that is activated.
+                 * The userPassword and krb keys were set while the user was a stage user.
+                 * Accept hashed userPassword and krb keys at the condition, it already contains
+                 * a valid krbPrincipalKey
+                 */
+                if (has_krbprincipalkey(e)) {
+                    slapi_pblock_get(pb, SLAPI_TARGET_DN, &dn);
+                    LOG("User Life Cycle: %s is a activated stage user (with prehashed password and krb keys)\n", dn ? dn : "unknown");
                     return 0;
                 }
 
