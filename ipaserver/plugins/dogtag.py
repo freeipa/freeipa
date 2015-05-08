@@ -1284,6 +1284,8 @@ class ra(rabase.rabase):
     """
     Request Authority backend plugin.
     """
+    DEFAULT_PROFILE = dogtag.DEFAULT_PROFILE
+
     def __init__(self):
         if api.env.in_tree:
             self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
@@ -1541,9 +1543,10 @@ class ra(rabase.rabase):
         return cmd_result
 
 
-    def request_certificate(self, csr, request_type='pkcs10'):
+    def request_certificate(self, csr, profile_id, request_type='pkcs10'):
         """
         :param csr: The certificate signing request.
+        :param profile_id: The profile to use for the request.
         :param request_type: The request type (defaults to ``'pkcs10'``).
 
         Submit certificate signing request.
@@ -1575,7 +1578,7 @@ class ra(rabase.rabase):
         http_status, http_reason_phrase, http_headers, http_body = \
             self._sslget('/ca/eeca/ca/profileSubmitSSLClient',
                          self.env.ca_ee_port,
-                         profileId='caIPAserviceCert',
+                         profileId=profile_id,
                          cert_request_type=request_type,
                          cert_request=csr,
                          xml='true')

@@ -47,6 +47,8 @@ INCLUDED_PROFILES = {
     (u'caIPAserviceCert', u'Standard profile for network services', True),
     }
 
+DEFAULT_PROFILE = u'caIPAserviceCert'
+
 class Dogtag10Constants(object):
     DOGTAG_VERSION = 10
     UNSECURE_PORT = 8080

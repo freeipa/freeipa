@@ -436,7 +436,7 @@ class cert_request(VirtualCommand):
 
         # Request the certificate
         result = self.Backend.ra.request_certificate(
-            csr, request_type=request_type)
+            csr, 'caIPAserviceCert', request_type=request_type)
         cert = x509.load_certificate(result['certificate'])
         result['issuer'] = unicode(cert.issuer)
         result['valid_not_before'] = unicode(cert.valid_not_before_str)

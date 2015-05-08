@@ -386,7 +386,7 @@ class CertDB(object):
         # We just want the CSR bits, make sure there is nothing else
         csr = pkcs10.strip_header(csr)
 
-        params = {'profileId': 'caIPAserviceCert',
+        params = {'profileId': dogtag.DEFAULT_PROFILE,
                 'cert_request_type': 'pkcs10',
                 'requestor_name': 'IPA Installer',
                 'cert_request': csr,

@@ -67,11 +67,12 @@ class rabase(Backend):
         """
         raise errors.NotImplementedError(name='%s.get_certificate' % self.name)
 
-    def request_certificate(self, csr, request_type='pkcs10'):
+    def request_certificate(self, csr, profile_id, request_type='pkcs10'):
         """
         Submit certificate signing request.
 
         :param csr: The certificate signing request.
+        :param profile_id: Profile to use for this request.
         :param request_type: The request type (defaults to ``'pkcs10'``).
         """
         raise errors.NotImplementedError(name='%s.request_certificate' % self.name)
