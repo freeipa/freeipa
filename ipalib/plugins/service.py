@@ -185,19 +185,24 @@ _ticket_flags_map = {
 
 _ticket_flags_default = _ticket_flags_map['ipakrbrequirespreauth']
 
-def split_principal(principal):
+def split_any_principal(principal):
     service = hostname = realm = None
 
     # Break down the principal into its component parts, which may or
     # may not include the realm.
     sp = principal.split('/')
-    if len(sp) != 2:
-        raise errors.MalformedServicePrincipal(reason=_('missing service'))
+    name_and_realm = None
+    if len(sp) > 2:
+        raise errors.MalformedServicePrincipal(reason=_('unable to determine service'))
+    elif len(sp) == 2:
+        service = sp[0]
+        if len(service) == 0:
+            raise errors.MalformedServicePrincipal(reason=_('blank service'))
+        name_and_realm = sp[1]
+    else:
+        name_and_realm = sp[0]
 
-    service = sp[0]
-    if len(service) == 0:
-        raise errors.MalformedServicePrincipal(reason=_('blank service'))
-    sr = sp[1].split('@')
+    sr = name_and_realm.split('@')
     if len(sr) > 2:
         raise errors.MalformedServicePrincipal(
             reason=_('unable to determine realm'))
@@ -212,7 +217,13 @@ def split_principal(principal):
         realm = api.env.realm
 
     # Note that realm may be None.
-    return (service, hostname, realm)
+    return service, hostname, realm
+
+def split_principal(principal):
+    service, name, realm = split_any_principal(principal)
+    if service is None:
+        raise errors.MalformedServicePrincipal(reason=_('missing service'))
+    return service, name, realm
 
 def validate_principal(ugettext, principal):
     (service, hostname, principal) = split_principal(principal)
