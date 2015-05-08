@@ -89,6 +89,10 @@ dcerpc_error_codes = {
     -1073741811: # NT_STATUS_INVALID_PARAMETER
         errors.RemoteRetrieveError(
             reason=_('AD domain controller complains about communication sequence. It may mean unsynchronized time on both sides, for example')),
+    -1073741776: # NT_STATUS_INVALID_PARAMETER_MIX, we simply will skip the binding
+        access_denied_error,
+    -1073741772: # NT_STATUS_OBJECT_NAME_NOT_FOUND
+        errors.RemoteRetrieveError(reason=_('CIFS server configuration does not allow access to \\\\pipe\\lsarpc')),
 }
 
 dcerpc_error_messages = {
@@ -728,16 +732,20 @@ class TrustDomainInstance(object):
             return
 
         attempts = 0
+        session_attempts = 0
         bindings = self.__gen_lsa_bindings(remote_host)
         for binding in bindings:
             try:
                 self._pipe = self.__gen_lsa_connection(binding)
-                if self._pipe:
+                if self._pipe and self._pipe.session_key:
                     break
             except errors.ACIError, e:
                 attempts = attempts + 1
+            except RuntimeError, e:
+                # When session key is not available, we just skip this binding
+                session_attempts = session_attempts + 1
 
-        if self._pipe is None and attempts == len(bindings):
+        if self._pipe is None and (attempts + session_attempts) == len(bindings):
             raise errors.ACIError(
                 info=_('CIFS server %(host)s denied your credentials') % dict(host=remote_host))
 
@@ -745,6 +753,7 @@ class TrustDomainInstance(object):
             raise errors.RemoteRetrieveError(
                 reason=_('Cannot establish LSA connection to %(host)s. Is CIFS server running?') % dict(host=remote_host))
         self.binding = binding
+        self.session_key = self._pipe.session_key
 
     def __gen_lsa_bindings(self, remote_host):
         """
@@ -753,11 +762,11 @@ class TrustDomainInstance(object):
         Generate all we can use. init_lsa_pipe() will try them one by one until
         there is one working.
 
-        We try NCACN_NP before NCACN_IP_TCP and signed sessions before unsigned.
+        We try NCACN_NP before NCACN_IP_TCP and use SMB2 before SMB1 or defaults.
         """
         transports = (u'ncacn_np', u'ncacn_ip_tcp')
-        options = ( u',', u'')
-        binding_template=lambda x,y,z: u'%s:%s[%s]' % (x, y, z)
+        options = ( u'smb2', u'smb1', u'')
+        binding_template=lambda x,y,z: u'%s:%s[%s,print]' % (x, y, z)
         return [binding_template(t, remote_host, o) for t in transports for o in options]
 
     def retrieve_anonymously(self, remote_host, discover_srv=False, search_pdc=False):
