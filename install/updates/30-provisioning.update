@@ -26,6 +26,7 @@ dn: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
 add:aci: (targetattr="userPassword || krbPrincipalKey")(version 3.0; acl "Search existence of password and kerberos keys"; allow(read, search) userdn = "ldap:///uid=admin,cn=users,cn=accounts,$SUFFIX";)
 
 # This is used for the admin to reset the delete users credential
+# No one is allowed to add entry in Delete container
 dn: cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX
 add:aci: (targetattr="userPassword || krbPrincipalKey || krbPasswordExpiration || krbLastPwdChange")(version 3.0; acl "Admins allowed to reset password and kerberos keys"; allow(read, search, write) userdn = "ldap:///uid=admin,cn=users,cn=accounts,$SUFFIX";)
 add:aci: (targetattr = "*")(version 3.0; acl "No one can add entry in Delete container"; deny (add) userdn = "ldap:///all";)

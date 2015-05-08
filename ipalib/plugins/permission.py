@@ -302,6 +302,22 @@ class permission(baseldap.LDAPObject):
                   '(must be in the subtree, but may not yet exist)'),
         ),
 
+        DNParam(
+            'ipapermtargetto?',
+            cli_name='targetto',
+            label=_('Target DN subtree'),
+            doc=_('Optional DN subtree where an entry can be moved to '
+                  '(must be in the subtree, but may not yet exist)'),
+        ),
+
+        DNParam(
+            'ipapermtargetfrom?',
+            cli_name='targetfrom',
+            label=_('Origin DN subtree'),
+            doc=_('Optional DN subtree from where an entry can be moved '
+                  '(must be in the subtree, but may not yet exist)'),
+        ),
+
         Str('memberof*',
             label=_('Member of group'),  # FIXME: Does this label make sense?
             doc=_('Target members of a group (sets memberOf targetfilter)'),
@@ -531,6 +547,18 @@ class permission(baseldap.LDAPObject):
         if ipapermtarget:
             aci_parts.append("(target = \"%s\")" %
                              'ldap:///%s' % ipapermtarget)
+
+        # target_to
+        ipapermtargetto = entry.single_value.get('ipapermtargetto')
+        if ipapermtargetto:
+            aci_parts.append("(target_to = \"%s\")" %
+                             'ldap:///%s' % ipapermtargetto)
+
+        # target_from
+        ipapermtargetfrom = entry.single_value.get('ipapermtargetfrom')
+        if ipapermtargetfrom:
+            aci_parts.append("(target_from = \"%s\")" %
+                             'ldap:///%s' % ipapermtargetfrom)
 
         # targetfilter
         ipapermtargetfilter = entry.get('ipapermtargetfilter')

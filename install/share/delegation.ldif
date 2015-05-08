@@ -129,6 +129,14 @@ objectClass: nestedgroup
 cn: Host Enrollment
 description: Host Enrollment
 
+dn: cn=Stage User Administrators,cn=privileges,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: nestedgroup
+cn: Stage User Administrators
+description: Stage User Administrators
+
 ############################################
 # Default permissions.
 ############################################

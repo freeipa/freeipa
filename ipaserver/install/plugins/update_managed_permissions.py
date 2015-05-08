@@ -40,13 +40,13 @@ dict of the same format is defined in this module.
 The permission name must start with the "System:" prefix.
 
 The template dictionary can have the following keys:
-* ipapermtarget, ipapermtargetfilter, ipapermlocation, ipapermright, objectclass
+* ipapermtarget, ipapermtargetfilter, ipapermlocation, ipapermright, ,ipapermtargetto, ipapermtargetfrom, objectclass
   - Directly used as attributes on the permission.
   - Replaced when upgrading an existing permission
   - If not specified, these default to the defaults of a permission of the
     corresponding --type, or, if non_object is specified, or if not on an
     object, to general permission defaults .
-  - ipapermlocation and ipapermtarget must be DNs
+  - ipapermlocation, ipatargetto, ipapermtargetfrom, ipapermtarget must be DNs
   - ipapermtargetfilter and objectclass must be iterables of strings
 * ipapermbindruletype
   - Directly used as attribute on the permission.
@@ -669,6 +669,14 @@ class update_managed_permissions(Updater):
         ipapermtarget = template.pop('ipapermtarget', None)
         if ipapermtarget is not None:
             entry['ipapermtarget'] = ipapermtarget
+
+        ipapermtargetto = template.pop('ipapermtargetto', None)
+        if ipapermtargetto is not None:
+            entry['ipapermtargetto'] = ipapermtargetto
+
+        ipapermtargetfrom = template.pop('ipapermtargetfrom', None)
+        if ipapermtargetfrom is not None:
+            entry['ipapermtargetfrom'] = ipapermtargetfrom
 
         # Attributes from template
         bindruletype = template.pop('ipapermbindruletype', 'permission')

@@ -81,6 +81,8 @@ permission3_attributelevelrights = {
                                     'nsaccountlock': u'rscwo',
                                     'description': u'rscwo',
                                     'ipapermtargetfilter': u'rscwo',
+                                    'ipapermtargetto': u'rscwo',
+                                    'ipapermtargetfrom': u'rscwo',
                                     'ipapermbindruletype': u'rscwo',
                                     'ipapermlocation': u'rscwo',
                                     'ipapermtarget': u'rscwo',

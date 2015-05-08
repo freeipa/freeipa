@@ -76,6 +76,8 @@ permission3_attributelevelrights = {
                                      'ipapermright': u'rscwo',
                                      'ipapermtarget': u'rscwo',
                                      'ipapermtargetfilter': u'rscwo',
+                                     'ipapermtargetto': u'rscwo',
+                                     'ipapermtargetfrom': u'rscwo',
                                    }
 
 privilege1 = u'testpriv1'

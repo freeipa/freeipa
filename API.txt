@@ -2775,7 +2775,7 @@ output: Output('result', <type 'bool'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: permission_add
-args: 1,19,3
+args: 1,21,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, pattern='^[-_ a-zA-Z0-9.]+$', primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -2787,6 +2787,8 @@ option: DNOrURL('ipapermlocation', alwaysask=True, attribute=True, autofill=Fals
 option: StrEnum('ipapermright', alwaysask=True, attribute=True, autofill=False, cli_name='right', deprecated_cli_aliases=set(['permissions']), multivalue=True, query=False, required=False, values=(u'read', u'search', u'compare', u'write', u'add', u'delete', u'all'))
 option: DNParam('ipapermtarget', attribute=True, cli_name='target', multivalue=False, required=False)
 option: Str('ipapermtargetfilter', attribute=True, cli_name='rawfilter', multivalue=True, required=False)
+option: DNParam('ipapermtargetfrom', attribute=True, cli_name='targetfrom', multivalue=False, required=False)
+option: DNParam('ipapermtargetto', attribute=True, cli_name='targetto', multivalue=False, required=False)
 option: Str('memberof', alwaysask=True, attribute=False, autofill=False, cli_name='memberof', multivalue=True, query=False, required=False)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Str('permissions', attribute=False, cli_name='permissions', multivalue=True, required=False)
@@ -2831,7 +2833,7 @@ output: Output('result', <type 'dict'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: ListOfPrimaryKeys('value', None, None)
 command: permission_find
-args: 1,24,4
+args: 1,26,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('attrs', attribute=False, autofill=False, cli_name='attrs', multivalue=True, query=True, required=False)
@@ -2846,6 +2848,8 @@ option: DNOrURL('ipapermlocation', attribute=True, autofill=False, cli_name='sub
 option: StrEnum('ipapermright', attribute=True, autofill=False, cli_name='right', deprecated_cli_aliases=set(['permissions']), multivalue=True, query=True, required=False, values=(u'read', u'search', u'compare', u'write', u'add', u'delete', u'all'))
 option: DNParam('ipapermtarget', attribute=True, autofill=False, cli_name='target', multivalue=False, query=True, required=False)
 option: Str('ipapermtargetfilter', attribute=True, autofill=False, cli_name='rawfilter', multivalue=True, query=True, required=False)
+option: DNParam('ipapermtargetfrom', attribute=True, autofill=False, cli_name='targetfrom', multivalue=False, query=True, required=False)
+option: DNParam('ipapermtargetto', attribute=True, autofill=False, cli_name='targetto', multivalue=False, query=True, required=False)
 option: Str('memberof', attribute=False, autofill=False, cli_name='memberof', multivalue=True, query=True, required=False)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Str('permissions', attribute=False, autofill=False, cli_name='permissions', multivalue=True, query=True, required=False)
@@ -2862,7 +2866,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: permission_mod
-args: 1,24,3
+args: 1,26,3
 arg: Str('cn', attribute=True, cli_name='name', multivalue=False, pattern='^[-_ a-zA-Z0-9.:/]+$', primary_key=True, query=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -2877,6 +2881,8 @@ option: DNOrURL('ipapermlocation', attribute=True, autofill=False, cli_name='sub
 option: StrEnum('ipapermright', attribute=True, autofill=False, cli_name='right', deprecated_cli_aliases=set(['permissions']), multivalue=True, required=False, values=(u'read', u'search', u'compare', u'write', u'add', u'delete', u'all'))
 option: DNParam('ipapermtarget', attribute=True, autofill=False, cli_name='target', multivalue=False, required=False)
 option: Str('ipapermtargetfilter', attribute=True, autofill=False, cli_name='rawfilter', multivalue=True, required=False)
+option: DNParam('ipapermtargetfrom', attribute=True, autofill=False, cli_name='targetfrom', multivalue=False, required=False)
+option: DNParam('ipapermtargetto', attribute=True, autofill=False, cli_name='targetto', multivalue=False, required=False)
 option: Str('memberof', attribute=False, autofill=False, cli_name='memberof', multivalue=True, required=False)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Str('permissions', attribute=False, autofill=False, cli_name='permissions', multivalue=True, required=False)
