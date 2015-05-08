@@ -36,6 +36,7 @@ from ipaserver.install import cainstance
 from ipaserver.install import certs
 from ipaserver.install import otpdinstance
 from ipaserver.install import schemaupdate
+from ipaserver.install import custodiainstance
 from ipaserver.install import sysupgrade
 from ipaserver.install import dnskeysyncinstance
 from ipaserver.install import krainstance
@@ -1490,7 +1491,7 @@ def upgrade_configuration():
         service.ldapi = True
         try:
             if not service.is_configured():
-                # 389-ds needs to be running to create the memcache instance
+                # 389-ds needs to be running to create the instances
                 # because we record the new service in cn=masters.
                 ds.start()
                 service.create_instance(ldap_name, fqdn, None,
@@ -1538,6 +1539,9 @@ def upgrade_configuration():
             bind.restart()
         except ipautil.CalledProcessError as e:
             root_logger.error("Failed to restart %s: %s", bind.service_name, e)
+
+    custodia = custodiainstance.CustodiaInstance()
+    custodia.upgrade_instance(api.env.realm)
 
     ca_restart = any([
         ca_restart,

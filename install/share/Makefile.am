@@ -28,6 +28,7 @@ app_DATA =				\
 	anonymous-vlv.ldif		\
 	bootstrap-template.ldif		\
 	caJarSigningCert.cfg.template	\
+	custodia.conf.template		\
 	default-aci.ldif		\
 	default-caacl.ldif		\
 	default-hbac.ldif		\

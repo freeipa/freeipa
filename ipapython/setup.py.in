@@ -67,6 +67,7 @@ def setup_package():
             package_dir = {'ipapython': ''},
             packages = ["ipapython",
                         "ipapython.dnssec",
+                        "ipapython.secrets",
                         "ipapython.install"],
         )
     finally:

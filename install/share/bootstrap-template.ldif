@@ -167,6 +167,12 @@ objectClass: nsContainer
 objectClass: top
 cn: certificates
 
+dn: cn=custodia,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: custodia
+
 dn: cn=s4u2proxy,cn=etc,$SUFFIX
 changetype: add
 objectClass: nsContainer

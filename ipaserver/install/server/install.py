@@ -33,7 +33,7 @@ import ipaclient.ntpconf
 from ipaserver.install import (
     bindinstance, ca, cainstance, certs, dns, dsinstance, httpinstance,
     installutils, kra, krbinstance, memcacheinstance, ntpinstance,
-    otpdinstance, replication, service, sysupgrade)
+    otpdinstance, custodiainstance, replication, service, sysupgrade)
 from ipaserver.install.installutils import (
     IPA_MODULES, BadHostError, get_fqdn, get_server_ip_address,
     is_ipa_configured, load_pkcs12, read_password, verify_fqdn,
@@ -814,6 +814,11 @@ def install(installer):
     otpd.create_instance('OTPD', host_name, dm_password,
                          ipautil.realm_to_suffix(realm_name))
 
+    custodia = custodiainstance.CustodiaInstance()
+    custodia.create_instance('KEYS', host_name, dm_password,
+                             ipautil.realm_to_suffix(realm_name),
+                             realm_name)
+
     # Create a HTTP instance
     http = httpinstance.HTTPInstance(fstore)
     if options.http_cert_files:
@@ -1078,6 +1083,7 @@ def uninstall(installer):
     dsinstance.DsInstance(fstore=fstore).uninstall()
     if _server_trust_ad_installed:
         adtrustinstance.ADTRUSTInstance(fstore).uninstall()
+    custodiainstance.CustodiaInstance().uninstall()
     memcacheinstance.MemcacheInstance().uninstall()
     otpdinstance.OtpdInstance().uninstall()
     tasks.restore_network_configuration(fstore, sstore)

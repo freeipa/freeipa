@@ -97,6 +97,8 @@ BuildRequires:  python-pytest-multihost >= 0.5
 BuildRequires:  python-pytest-sourceorder
 BuildRequires:  python-kdcproxy >= 0.3
 BuildRequires:  python-six
+BuildRequires:  python-jwcrypto
+BuildRequires:  custodia
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -158,6 +160,8 @@ Requires: p11-kit
 Requires: systemd-python
 Requires: %{etc_systemd_dir}
 Requires: gzip
+Requires: python-gssapi >= 1.1.0
+Requires: custodia
 
 Conflicts: %{alt_name}-server
 Obsoletes: %{alt_name}-server < %{version}
@@ -322,6 +326,7 @@ Requires: wget
 Requires: dbus-python
 Requires: python-setuptools
 Requires: python-six
+Requires: python-jwcrypto
 
 Conflicts: %{alt_name}-python
 Obsoletes: %{alt_name}-python < %{version}
@@ -512,6 +517,7 @@ mkdir -p %{buildroot}%{etc_systemd_dir}
 install -m 644 init/systemd/ipa.service %{buildroot}%{_unitdir}/ipa.service
 install -m 644 init/systemd/ipa_memcached.service %{buildroot}%{_unitdir}/ipa_memcached.service
 install -m 644 init/systemd/httpd.service %{buildroot}%{etc_systemd_dir}/httpd.service
+install -m 644 init/systemd/ipa-custodia.service %{buildroot}%{_unitdir}/ipa-custodia.service
 # END
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa/backup
 %endif # ONLY_CLIENT
@@ -536,6 +542,10 @@ mkdir -p %{buildroot}%{_sysconfdir}/cron.d
 (cd %{buildroot}/%{python_sitelib}/ipatests && find . -type f  | \
     sed -e 's,\.py.*$,.*,g' | sort -u | \
     sed -e 's,\./,%%{python_sitelib}/ipatests/,g' ) >tests-python.list
+
+mkdir -p %{buildroot}%{_sysconfdir}/ipa/custodia
+
+
 %endif # ONLY_CLIENT
 
 %clean
@@ -739,6 +749,7 @@ fi
 %attr(644,root,root) %{_unitdir}/ipa-dnskeysyncd.service
 %attr(644,root,root) %{_unitdir}/ipa-ods-exporter.socket
 %attr(644,root,root) %{_unitdir}/ipa-ods-exporter.service
+%attr(644,root,root) %{_unitdir}/ipa-custodia.service
 %attr(644,root,root) %{etc_systemd_dir}/httpd.service
 # END
 %dir %{python_sitelib}/ipaserver
@@ -856,6 +867,7 @@ fi
 %ghost %{_localstatedir}/lib/ipa/pki-ca/publish
 %ghost %{_localstatedir}/named/dyndb-ldap/ipa
 %attr(755,root,root) %{_libdir}/krb5/plugins/kdb/ipadb.so
+%dir %attr(0700,root,root) %{_sysconfdir}/ipa/custodia
 %{_mandir}/man1/ipa-replica-conncheck.1.gz
 %{_mandir}/man1/ipa-replica-install.1.gz
 %{_mandir}/man1/ipa-replica-manage.1.gz
@@ -938,6 +950,8 @@ fi
 %{python_sitelib}/ipapython/dnssec/*.py*
 %dir %{python_sitelib}/ipapython/install
 %{python_sitelib}/ipapython/install/*.py*
+%dir %{python_sitelib}/ipapython/secrets
+%{python_sitelib}/ipapython/secrets/*.py*
 %dir %{python_sitelib}/ipalib
 %{python_sitelib}/ipalib/*
 %dir %{python_sitelib}/ipaplatform

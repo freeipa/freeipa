@@ -35,6 +35,7 @@ from contextlib import contextmanager
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 import ldap
+import ldapurl
 from nss.error import NSPRError
 import six
 from six.moves.configparser import SafeConfigParser, NoOptionError
@@ -1096,6 +1097,13 @@ def check_version():
 
 def realm_to_serverid(realm_name):
     return "-".join(realm_name.split("."))
+
+
+def realm_to_ldapi_uri(realm_name):
+    serverid = realm_to_serverid(realm_name)
+    socketname = paths.SLAPD_INSTANCE_SOCKET_TEMPLATE % (serverid,)
+    return 'ldapi://' + ldapurl.ldapUrlEscape(socketname)
+
 
 def enable_and_start_oddjobd(sstore):
     oddjobd = services.service('oddjobd')

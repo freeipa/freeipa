@@ -356,5 +356,9 @@ class BasePathNamespace(object):
     KDCPROXY_CONFIG = '/etc/ipa/kdcproxy/kdcproxy.conf'
     CERTMONGER = '/usr/sbin/certmonger'
     NETWORK_MANAGER_CONFIG_DIR = '/etc/NetworkManager/conf.d'
+    IPA_CUSTODIA_CONF_DIR = '/etc/ipa/custodia'
+    IPA_CUSTODIA_CONF = '/etc/ipa/custodia/custodia.conf'
+    IPA_CUSTODIA_SOCKET = '/run/httpd/ipa-custodia.sock'
+    IPA_CUSTODIA_AUDIT_LOG = '/var/log/ipa-custodia.audit.log'
 
 path_namespace = BasePathNamespace

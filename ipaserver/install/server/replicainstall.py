@@ -28,7 +28,7 @@ import ipaclient.ntpconf
 from ipaserver.install import (
     bindinstance, ca, cainstance, certs, dns, dsinstance, httpinstance,
     installutils, kra, krbinstance, memcacheinstance, ntpinstance,
-    otpdinstance, service)
+    otpdinstance, custodiainstance, service)
 from ipaserver.install.installutils import create_replica_config
 from ipaserver.install.replication import (
     ReplicationManager, replica_conn_check)
@@ -595,6 +595,13 @@ def install(installer):
         CA.configure_certmonger_renewal()
         CA.import_ra_cert(config.dir + "/ra.p12")
         CA.fix_ra_perms()
+
+    # FIXME: must be done earlier in replica to fetch keys for CA/ldap server
+    # before they are configured
+    custodia = custodiainstance.CustodiaInstance()
+    custodia.create_instance('KEYS', config.host_name,
+                             config.dirman_password,
+                             ipautil.realm_to_suffix(config.realm_name))
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated

@@ -1,0 +1,13 @@
+[Unit]
+Description=IPA Custodia Service
+
+[Service]
+Type=simple
+
+ExecStart=/usr/sbin/custodia /etc/ipa/custodia/custodia.conf
+PrivateTmp=yes
+Restart=on-failure
+RestartSec=60s
+
+[Install]
+WantedBy=multi-user.target

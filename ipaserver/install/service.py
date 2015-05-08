@@ -40,6 +40,7 @@ SERVICE_LIST = {
     'DNS': ('named', 30),
     'MEMCACHE': ('ipa_memcached', 39),
     'HTTP': ('httpd', 40),
+    'KEYS': ('ipa-custodia', 41),
     'CA': ('%sd' % dogtag.configured_constants().PKI_INSTANCE_NAME, 50),
     'KRA': ('%sd' % dogtag.configured_constants().PKI_INSTANCE_NAME, 51),
     'ADTRUST': ('smb', 60),
