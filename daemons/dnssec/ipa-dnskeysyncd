@@ -22,6 +22,17 @@ from ipaplatform.paths import paths
 
 from ipapython.dnssec.keysyncer import KeySyncer
 
+# IPA framework initialization
+api.bootstrap(in_server=True, log=None)  # no logging to file
+api.finalize()
+standard_logging_setup(verbose=True, debug=api.env.debug)
+log = root_logger
+#log.addHandler(systemd.journal.JournalHandler())
+
+# Global state
+watcher_running = True
+ldap_connection = False
+
 DAEMONNAME = 'ipa-dnskeysyncd'
 PRINCIPAL = None  # not initialized yet
 WORKDIR = '/tmp' # private temp
@@ -47,20 +58,9 @@ def commenceShutdown(signum, stack):
 
 os.umask(007)
 
-# Global state
-watcher_running = True
-ldap_connection = False
-
 # Signal handlers
 signal.signal(signal.SIGTERM, commenceShutdown)
 signal.signal(signal.SIGINT, commenceShutdown)
-
-# IPA framework initialization
-api.bootstrap(in_server=True, log=None)  # no logging to file
-api.finalize()
-standard_logging_setup(verbose=True, debug=api.env.debug)
-log = root_logger
-#log.addHandler(systemd.journal.JournalHandler())
 
 # Kerberos initialization
 PRINCIPAL = str('%s/%s' % (DAEMONNAME, api.env.host))
