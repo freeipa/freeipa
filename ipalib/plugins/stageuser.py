@@ -21,7 +21,6 @@ from time import gmtime, strftime
 import string
 import posixpath
 import os
-
 from copy import deepcopy
 from ipalib import api, errors
 from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime
@@ -312,7 +311,6 @@ class stageuser_find(baseuser_find):
     member_attributes = ['memberof']
     has_output_params = baseuser_find.has_output_params + stageuser_output_params
 
-
     def execute(self, *args, **options):
         newoptions = {}
         self.common_enhance_options(newoptions, **options)
@@ -323,7 +321,13 @@ class stageuser_find(baseuser_find):
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *keys, **options):
         assert isinstance(base_dn, DN)
 
-        return (filter, base_dn, scope)
+        container_filter = "(objectclass=posixaccount)"
+        # provisioning system can create non posixaccount stage user
+        # but then they have to create inetOrgPerson stage user
+        stagefilter = filter.replace(container_filter,
+                                     "(|%s(objectclass=inetOrgPerson))" % container_filter)
+        self.log.debug("stageuser_find: pre_callback new filter=%s " % (stagefilter))
+        return (stagefilter, base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if options.get('pkey_only', False):
@@ -359,6 +363,50 @@ class stageuser_activate(LDAPQuery):
 
     has_output = output.standard_entry
     has_output_params = LDAPQuery.has_output_params + stageuser_output_params
+
+    def _check_validy(self, dn, entry):
+        if dn[0].attr != 'uid':
+            raise errors.ValidationError(
+                        name=self.obj.primary_key.cli_name,
+                        error=_('Entry RDN is not \'uid\''),
+                        )
+        for attr in ('cn', 'sn', 'uid'):
+            if attr not in entry:
+                raise errors.ValidationError(
+                            name=self.obj.primary_key.cli_name,
+                            error=_('Entry has no \'cn\''),
+                            )
+
+    def _build_new_entry(self, ldap, dn, entry_from, entry_to):
+        config = ldap.get_ipa_config()
+
+        if 'uidnumber' not in entry_from:
+            entry_to['uidnumber'] = baseldap.DNA_MAGIC
+        if 'gidnumber' not in entry_from:
+            entry_to['gidnumber'] = baseldap.DNA_MAGIC
+        if 'homedirectory' not in entry_from:
+            # get home's root directory from config
+            homes_root = config.get('ipahomesrootdir', [paths.HOME_DIR])[0]
+            # build user's home directory based on his uid
+            entry_to['homedirectory'] = posixpath.join(homes_root, dn[0].value)
+        if 'ipamaxusernamelength' in config:
+            if len(dn[0].value) > int(config.get('ipamaxusernamelength')[0]):
+                raise errors.ValidationError(
+                    name=self.obj.primary_key.cli_name,
+                    error=_('can be at most %(len)d characters') % dict(
+                        len = int(config.get('ipamaxusernamelength')[0])
+                    )
+                )
+        if 'loginshell' not in entry_from:
+            default_shell = config.get('ipadefaultloginshell', [paths.SH])[0]
+            if default_shell:
+                entry_to.setdefault('loginshell', default_shell)
+
+        if 'givenname' not in entry_from:
+            entry_to['givenname'] = entry_from['cn'][0].split()[0]
+
+        if 'krbprincipalname' not in entry_from:
+            entry_to['krbprincipalname'] = '%s@%s' % (entry_from['uid'][0], api.env.realm)
 
     def __dict_new_entry(self, *args, **options):
         ldap = self.obj.backend
@@ -401,8 +449,8 @@ class stageuser_activate(LDAPQuery):
         for value in entry_from[attr]:
                 # merge all the values from->to
                 v = self.__value_2_add(args, options, attr, value)
-                if (isinstance(value, str) and v in ('', None)) or \
-                   (isinstance(value, unicode) and v in (u'', None)):
+                if (isinstance(v, str) and v in ('', None)) or \
+                   (isinstance(v, unicode) and v in (u'', None)):
                     try:
                         v.decode('utf-8')
                         self.log.debug("merge: %s:%r wiped" % (attr, v))
@@ -428,8 +476,14 @@ class stageuser_activate(LDAPQuery):
                         pass
                     if isinstance(entry_to[attr], (list, tuple)):
                         # multi value attribute
-                        if value not in entry_to[attr]:
-                            entry_to[attr].append(value)
+                        if attr.lower() == 'objectclass':
+                            entry_to[attr] = [oc.lower() for oc in entry_to[attr]]
+                            value = value.lower()
+                            if value not in entry_to[attr]:
+                                entry_to[attr].append(value)
+                        else:
+                            if value not in entry_to[attr]:
+                                entry_to[attr].append(value)
                     else:
                         # single value attribute
                         if value:
@@ -495,6 +549,8 @@ class stageuser_activate(LDAPQuery):
         except errors.NotFound:
             pass
 
+        # Check the original entry is valid
+        self._check_validy(staging_dn, entry_attrs)
 
         # Time to build the new entry
         result_entry = {'dn' : active_dn}
@@ -511,6 +567,8 @@ class stageuser_activate(LDAPQuery):
 
         for (k,v) in new_entry_attrs.iteritems():
             self.log.debug("new entry: k=%r and v=%r)"  % (k, v))
+
+        self._build_new_entry(ldap, staging_dn, entry_attrs, new_entry_attrs)
 
         # Add the Active entry
         entry = ldap.make_entry(active_dn, new_entry_attrs)
