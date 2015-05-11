@@ -4563,7 +4563,7 @@ output: Output('result', <type 'bool'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: user_find
-args: 1,54,4
+args: 1,55,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('carlicense', attribute=True, autofill=False, cli_name='carlicense', multivalue=True, query=True, required=False)
@@ -4605,6 +4605,7 @@ option: Str('pager', attribute=True, autofill=False, cli_name='pager', multivalu
 option: Flag('pkey_only?', autofill=True, default=False)
 option: Str('postalcode', attribute=True, autofill=False, cli_name='postalcode', multivalue=False, query=True, required=False)
 option: Str('preferredlanguage', attribute=True, autofill=False, cli_name='preferredlanguage', multivalue=False, pattern='^(([a-zA-Z]{1,8}(-[a-zA-Z]{1,8})?(;q\\=((0(\\.[0-9]{0,3})?)|(1(\\.0{0,3})?)))?(\\s*,\\s*[a-zA-Z]{1,8}(-[a-zA-Z]{1,8})?(;q\\=((0(\\.[0-9]{0,3})?)|(1(\\.0{0,3})?)))?)*)|(\\*))$', query=True, required=False)
+option: Flag('preserved?', autofill=True, cli_name='preserved', default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Int('sizelimit?', autofill=False, minvalue=0)
 option: Str('sn', attribute=True, autofill=False, cli_name='last', multivalue=False, query=True, required=False)

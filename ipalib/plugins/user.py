@@ -387,7 +387,6 @@ class user_add(baseuser_add):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
-        self.log.error("====> user-add pre_callback 1 %s " % dn)
         if not options.get('noprivate', False):
             try:
                 # The Managed Entries plugin will allow a user to be created
@@ -494,7 +493,6 @@ class user_add(baseuser_add):
 
             answer = self.api.Object['radiusproxy'].get_dn_if_exists(rcl)
             entry_attrs['ipatokenradiusconfiglink'] = answer
-        self.log.error("====> user-add pre_callback %s " % dn)
 
         return dn
 
@@ -682,14 +680,32 @@ class user_find(baseuser_find):
             label=_('Self'),
             doc=_('Display user record for current Kerberos principal'),
         ),
+        Flag('preserved?',
+            doc=_('Display preserved deleted user'),
+            cli_name='preserved',
+            default=False,
+        ),
     )
 
     def execute(self, *args, **options):
+        if self.original_msg_summary:
+            object.__setattr__(self, 'msg_summary', self.original_msg_summary)
         newoptions = {}
         self.common_enhance_options(newoptions, **options)
         options.update(newoptions)
 
-        return super(user_find, self).execute(self, *args, **options)
+        for arg in args:
+            self.log.debug("user-find- exec arg %r" % (arg))
+        if options['preserved']:
+            self.obj.container_dn = baseuser.delete_container_dn
+            self.msg_summary = ngettext('%(count)d (delete) user matched', '%(count)d (delete) users matched', 0)
+
+            ret = super(user_find, self).execute(self, *args, **options)
+
+            self.obj.container_dn = baseuser.active_container_dn
+            return ret
+        else:
+            return super(user_find, self).execute(self, *args, **options)
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *keys, **options):
         assert isinstance(base_dn, DN)
@@ -708,6 +724,7 @@ class user_find(baseuser_find):
     msg_summary = ngettext(
         '%(count)d user matched', '%(count)d users matched', 0
     )
+    original_msg_summary = msg_summary
 
 
 @register()
