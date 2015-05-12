@@ -718,6 +718,7 @@ class i18n_messages(Command):
                 "krbpasswordexpiration": _("Password expiration"),
                 "mailing": _("Mailing Address"),
                 "misc": _("Misc. Information"),
+                "noprivate": _("No private group"),
                 "status_confirmation": _("Are you sure you want to ${action} the user?<br/>The change will take effect immediately."),
                 "status_link": _("Click to ${action}"),
                 "unlock": _("Unlock"),

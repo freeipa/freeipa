@@ -572,6 +572,7 @@
                             "krbpasswordexpiration": "Password expiration",
                             "mailing": "Mailing Address",
                             "misc": "Misc. Information",
+                            "noprivate": "No private group",
                             "status_confirmation": "Are you sure you want to ${action} the user?<br/>The change will take effect immediately.",
                             "status_link": "Click to ${action}",
                             "unlock": "Unlock",

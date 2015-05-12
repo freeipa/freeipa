@@ -424,7 +424,13 @@ return {
                     },
                     'givenname',
                     'sn',
-                    'userclass'
+                    'userclass',
+                    {
+                        $type: 'checkbox',
+                        name: 'noprivate',
+                        label: '@i18n:objects.user.noprivate',
+                        metadata: '@mc-opt:user_add:noprivate'
+                    }
                 ]
             },
             {
