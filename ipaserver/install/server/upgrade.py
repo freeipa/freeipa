@@ -18,6 +18,7 @@ import ipalib.errors
 from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipapython import ipautil, sysrestore, version, certdb
+from ipapython import ipaldap
 from ipapython.ipa_log_manager import *
 from ipapython import certmonger
 from ipapython import dogtag
@@ -1254,6 +1255,18 @@ def update_mod_nss_protocol(http):
 
     sysupgrade.set_upgrade_state('nss.conf', 'protocol_updated_tls12', True)
 
+def ds_enable_sidgen_extdom_plugins(ds):
+    """For AD trust agents, make sure we enable sidgen and extdom plugins
+    """
+    root_logger.info('[Enable sidgen and extdom plugins by default]')
+
+    if sysupgrade.get_upgrade_state('ds', 'enable_ds_sidgen_extdom_plugins'):
+        root_logger.info('sidgen and extdom plugins are enabled already')
+        return
+
+    ds._add_sidgen_plugin()
+    ds._add_extdom_plugin()
+    sysupgrade.set_upgrade_state('ds', 'enable_ds_sidgen_extdom_plugins', True)
 
 def ca_upgrade_schema(ca):
     root_logger.info('[Upgrading CA schema]')
@@ -1411,6 +1424,14 @@ def upgrade_configuration():
     fix_schema_file_syntax()
     remove_ds_ra_cert(subject_base)
     ds.start(ds_serverid)
+
+    # Force enabling plugins via LDAPI and external bind
+    ds.ldapi = True
+    ds.autobind = ipaldap.AUTOBIND_ENABLED
+    ds.fqdn = fqdn
+    ds.realm = api.env.realm
+    ds.suffix = ipautil.realm_to_suffix(api.env.realm)
+    ds_enable_sidgen_extdom_plugins(ds)
 
     uninstall_selfsign(ds, http)
 

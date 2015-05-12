@@ -299,7 +299,7 @@ aci: (targetattr = "cmdcategory || cn || createtimestamp || description || entry
 dn: dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || description || entryusn || modifytimestamp || objectclass || ou || sudocommand || sudohost || sudonotafter || sudonotbefore || sudooption || sudoorder || sudorunas || sudorunasgroup || sudorunasuser || sudouser")(target = "ldap:///ou=sudoers,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Sudoers compat tree";allow (compare,read,search) userdn = "ldap:///anyone";)
 dn: cn=trusts,dc=ipa,dc=example
-aci: (targetattr = "cn || createtimestamp || entryusn || ipantflatname || ipantsecurityidentifier || ipantsidblacklistincoming || ipantsidblacklistoutgoing || ipanttrusteddomainsid || ipanttrustpartner || modifytimestamp || objectclass")(version 3.0;acl "permission:System: Read Trust Information";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "cn || createtimestamp || entryusn || ipantflatname || ipantsecurityidentifier || ipantsidblacklistincoming || ipantsidblacklistoutgoing || ipanttrustdirection || ipanttrusteddomainsid || ipanttrustpartner || modifytimestamp || objectclass")(version 3.0;acl "permission:System: Read Trust Information";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=trusts,dc=ipa,dc=example
 aci: (targetattr = "gidnumber || krbprincipalname || uidnumber")(version 3.0;acl "permission:System: Read system trust accounts";allow (compare,read,search) groupdn = "ldap:///cn=System: Read system trust accounts,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=groups,cn=accounts,dc=ipa,dc=example

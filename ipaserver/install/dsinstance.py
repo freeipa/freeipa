@@ -265,6 +265,8 @@ class DsInstance(service.Service):
         self.step("adding replication acis", self.__add_replication_acis)
         self.step("enabling compatibility plugin",
                   self.__enable_compat_plugin)
+        self.step("activating sidgen plugin", self._add_sidgen_plugin)
+        self.step("activating extdom plugin", self._add_extdom_plugin)
         self.step("tuning directory server", self.__tuning)
 
         self.step("configuring directory to start on boot", self.__enable)
@@ -922,6 +924,20 @@ class DsInstance(service.Service):
 
     def __add_range_check_plugin(self):
         self._ldap_mod("range-check-conf.ldif", self.sub_dict)
+
+    # These two methods are not local, they are also called from the upgrade code
+    def _add_sidgen_plugin(self):
+        """
+        Add sidgen directory server plugin configuration if it does not already exist.
+        """
+        self._ldap_mod('ipa-sidgen-conf.ldif', self.sub_dict)
+
+    def _add_extdom_plugin(self):
+        """
+        Add directory server configuration for the extdom extended operation
+        if it does not already exist.
+        """
+        self._ldap_mod('ipa-extdom-extop-conf.ldif', self.sub_dict)
 
     def replica_populate(self):
         self.ldap_connect()

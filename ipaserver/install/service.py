@@ -71,6 +71,33 @@ def format_seconds(seconds):
             parts[-1] += 's'
     return ' '.join(parts)
 
+def add_principals_to_group(admin_conn, group, member_attr, principals):
+    """Add principals to a GroupOfNames LDAP group
+    admin_conn  -- LDAP connection with admin rights
+    group       -- DN of the group
+    member_attr -- attribute to represent members
+    principals  -- list of DNs to add as members
+    """
+    try:
+        current = admin_conn.get_entry(group)
+        members = current.get(member_attr, [])
+        if len(members) == 0:
+            current[member_attr] = []
+        for amember in principals:
+            if not(amember in members):
+                current[member_attr].extend([amember])
+        admin_conn.update_entry(current)
+    except errors.NotFound:
+        entry = admin_conn.make_entry(
+                group,
+                objectclass=["top", "GroupOfNames"],
+                cn=[group['cn']],
+                member=principals,
+        )
+        admin_conn.add_entry(entry)
+    except errors.EmptyModlist:
+        # If there are no changes just pass
+        pass
 
 class Service(object):
     def __init__(self, service_name, service_desc=None, sstore=None,

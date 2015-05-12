@@ -171,6 +171,9 @@ class ADTRUSTInstance(service.Service):
         self.cifs_agent = DN(('krbprincipalname', self.cifs_principal.lower()),
                              api.env.container_service,
                              self.suffix)
+        self.host_princ = DN(('fqdn', self.fqdn),
+                             api.env.container_host,
+                             self.suffix)
 
 
     def __gen_sid_string(self):
@@ -450,12 +453,11 @@ class ADTRUSTInstance(service.Service):
         """
         self.__add_plugin_conf('CLDAP', 'ipa_cldap', 'ipa-cldap-conf.ldif')
 
-    def __add_sidgen_module(self):
+    def __add_sidgen_task(self):
         """
         Add sidgen directory server plugin configuration and the related task
         if they not already exist.
         """
-        self.__add_plugin_conf('Sidgen', 'IPA SIDGEN', 'ipa-sidgen-conf.ldif')
         self.__add_plugin_conf('Sidgen task', 'ipa-sidgen-task',
                                'ipa-sidgen-task-conf.ldif')
 
@@ -468,14 +470,6 @@ class ADTRUSTInstance(service.Service):
             self._ldap_mod("ipa-sidgen-task-run.ldif", self.sub_dict)
         except:
             pass
-
-    def __add_extdom_module(self):
-        """
-        Add directory server configuration for the extdom extended operation
-        if it not already exists.
-        """
-        self.__add_plugin_conf('Extdom', 'ipa_extdom_extop',
-                               'ipa-extdom-extop-conf.ldif')
 
     def __add_s4u2proxy_target(self):
         """
@@ -509,6 +503,13 @@ class ADTRUSTInstance(service.Service):
         finally:
             os.remove(tmp_name)
 
+    def __setup_group_membership(self):
+        # Add the CIFS and host principals to the 'adtrust agents' group
+        # as 389-ds only operates with GroupOfNames, we have to use
+        # the principal's proper dn as defined in self.cifs_agent
+        service.add_principals_to_group(self.admin_conn, self.smb_dn, "member",
+                                        [self.cifs_agent, self.host_princ])
+
     def __setup_principal(self):
         try:
             api.Command.service_add(unicode(self.cifs_principal))
@@ -519,24 +520,6 @@ class ADTRUSTInstance(service.Service):
             pass
         except Exception, e:
             self.print_msg("Cannot add CIFS service: %s" % e)
-
-        # Add the principal to the 'adtrust agents' group
-        # as 389-ds only operates with GroupOfNames, we have to use
-        # the principal's proper dn as defined in self.cifs_agent
-        try:
-            current = self.admin_conn.get_entry(self.smb_dn)
-            members = current.get('member', [])
-            if not(self.cifs_agent in members):
-                current["member"] = members + [self.cifs_agent]
-                self.admin_conn.update_entry(current)
-        except errors.NotFound:
-            entry = self.admin_conn.make_entry(
-                self.smb_dn,
-                objectclass=["top", "GroupOfNames"],
-                cn=[self.smb_dn['cn']],
-                member=[self.cifs_agent],
-            )
-            self.admin_conn.add_entry(entry)
 
         self.clean_samba_keytab()
 
@@ -846,14 +829,15 @@ class ADTRUSTInstance(service.Service):
         self.step("creating samba config registry", self.__write_smb_registry)
         self.step("writing samba config file", self.__write_smb_conf)
         self.step("adding cifs Kerberos principal", self.__setup_principal)
+        self.step("adding cifs and host Kerberos principals to the adtrust agents group", \
+                  self.__setup_group_membership)
         self.step("check for cifs services defined on other replicas", self.__check_replica)
         self.step("adding cifs principal to S4U2Proxy targets", self.__add_s4u2proxy_target)
         self.step("adding admin(group) SIDs", self.__add_admin_sids)
         self.step("adding RID bases", self.__add_rid_bases)
         self.step("updating Kerberos config", self.__update_krb5_conf)
         self.step("activating CLDAP plugin", self.__add_cldap_module)
-        self.step("activating sidgen plugin and task", self.__add_sidgen_module)
-        self.step("activating extdom plugin", self.__add_extdom_module)
+        self.step("activating sidgen task", self.__add_sidgen_task)
         self.step("configuring smbd to start on boot", self.__enable)
         self.step("adding special DNS service records", \
                   self.__add_dns_service_records)

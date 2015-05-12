@@ -327,7 +327,8 @@ class trust(LDAPObject):
                 'cn', 'objectclass',
                 'ipantflatname', 'ipantsecurityidentifier',
                 'ipanttrusteddomainsid', 'ipanttrustpartner',
-                'ipantsidblacklistincoming', 'ipantsidblacklistoutgoing'
+                'ipantsidblacklistincoming', 'ipantsidblacklistoutgoing',
+                'ipanttrustdirection'
             },
         },
 
