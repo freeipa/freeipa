@@ -317,21 +317,3 @@ class IPAUpgrade(service.Service):
             self.upgradefailed = True
             root_logger.error('Upgrade failed with %s' % str(e))
             root_logger.debug('%s', traceback.format_exc())
-
-def main():
-    if os.getegid() != 0:
-        print "Must be root to set up server"
-        return 1
-
-    update = IPAUpgrade('EXAMPLE.COM')
-    update.create_instance()
-
-    return 0
-
-try:
-    if __name__ == "__main__":
-        sys.exit(main())
-except SystemExit, e:
-    sys.exit(e)
-except KeyboardInterrupt, e:
-    sys.exit(1)
