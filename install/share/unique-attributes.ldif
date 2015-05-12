@@ -14,8 +14,8 @@ nsslapd-pluginId: NSUniqueAttr
 nsslapd-pluginVersion: 1.1.0
 nsslapd-pluginVendor: Fedora Project
 nsslapd-pluginDescription: Enforce unique attribute values
-uniqueness-subtrees: cn=accounts,$SUFFIX
-uniqueness-subtrees: cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX
+uniqueness-subtrees: $SUFFIX
+uniqueness-exclude-subtrees: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
 uniqueness-across-all-subtrees: on
 
 dn: cn=krbCanonicalName uniqueness,cn=plugins,cn=config
@@ -34,8 +34,8 @@ nsslapd-pluginId: NSUniqueAttr
 nsslapd-pluginVersion: 1.1.0
 nsslapd-pluginVendor: Fedora Project
 nsslapd-pluginDescription: Enforce unique attribute values
-uniqueness-subtrees: cn=accounts,$SUFFIX
-uniqueness-subtrees: cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX
+uniqueness-subtrees: $SUFFIX
+uniqueness-exclude-subtrees: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
 uniqueness-across-all-subtrees: on
 
 dn: cn=netgroup uniqueness,cn=plugins,cn=config
@@ -72,8 +72,8 @@ nsslapd-pluginId: NSUniqueAttr
 nsslapd-pluginVersion: 1.1.0
 nsslapd-pluginVendor: Fedora Project
 nsslapd-pluginDescription: Enforce unique attribute values
-uniqueness-subtrees: cn=accounts,$SUFFIX
-uniqueness-subtrees: cn=deleted users,cn=accounts,cn=provisioning,$SUFFIX
+uniqueness-subtrees: $SUFFIX
+uniqueness-exclude-subtrees: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
 uniqueness-across-all-subtrees: on
 
 dn: cn=sudorule name uniqueness,cn=plugins,cn=config
