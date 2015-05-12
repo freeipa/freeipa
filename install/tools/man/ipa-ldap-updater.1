@@ -21,11 +21,8 @@
 ipa\-ldap\-updater \- Update the IPA LDAP configuration
 .SH "SYNOPSIS"
 ipa\-ldap\-updater [options] input_file(s)
-ipa\-ldap\-updater [options]
 .SH "DESCRIPTION"
-ipa\-ldap\-updater is used to apply updates to the IPA LDAP server when the IPA packages are being updated. It is not intended to be executed by end\-users.
-
-When run with no file arguments, ipa\-ldap\-updater will process all files with the extension .update in /usr/share/ipa/updates.
+ipa\-ldap\-updater is utility which can be used to update the IPA LDAP server.
 
 An update file describes an LDAP entry and a set of operations to be performed on that entry. It can be used to add new entries or modify existing entries.
 
@@ -81,7 +78,7 @@ This keyword is not bounded to DN, and plugin names have to be registered in API
 
 Additionally, ipa-ldap-updater can update the schema based on LDIF files.
 Any missing object classes and attribute types are added, and differing ones are updated to match the LDIF file.
-To enable this behavior, use the \-\-schema or \-\-schema-file options.
+To enable this behavior, use the \-\-schema-file options.
 Schema files should be in LDIF format, and may only specify attributeTypes and objectClasses attributes of cn=schema.
 
 .SH "OPTIONS"
@@ -91,9 +88,6 @@ Enable debug logging when more verbose output is needed
 .TP
 \fB\-u\fR, \fB\-\-upgrade\fR
 Upgrade an installed server in offline mode (implies \-\-schema)
-.TP
-\fB\-s\fR, \fB\-\-schema\fR
-Also update the LDAP schema. If no \-\-schema-file is specified, update to the built-in IPA schema.
 .TP
 \fB\-S\fR, \fB\-\-schema\-file\fR
 Specify a schema file. May be used multiple times. Implies \-\-schema.

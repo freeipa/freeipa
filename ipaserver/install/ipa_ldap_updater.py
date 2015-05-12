@@ -40,7 +40,6 @@ class LDAPUpdater(admintool.AdminTool):
     command_name = 'ipa-ldap-updater'
 
     usage = "%prog [options] input_file(s)\n"
-    usage += "%prog [options]\n"
 
     @classmethod
     def add_options(cls, parser):
@@ -48,10 +47,6 @@ class LDAPUpdater(admintool.AdminTool):
         parser.add_option("-u", '--upgrade', action="store_true",
             dest="upgrade", default=False,
             help="upgrade an installed server in offline mode")
-        parser.add_option("-s", '--schema', action="store_true",
-            dest="update_schema", default=False,
-            help="update the schema "
-                "(implied when no input files are given)")
         parser.add_option("-S", '--schema-file', action="append",
             dest="schema_files",
             help="custom schema ldif file to use (implies -s)")
@@ -69,6 +64,12 @@ class LDAPUpdater(admintool.AdminTool):
 
         self.files = self.args
 
+        if not (self.files or options.schema_files):
+            self.log.info("To execute overall IPA upgrade please use "
+                          "'ipa-server-upgrade' command")
+            raise admintool.ScriptError("No update files or schema file were "
+                                        "specified")
+
         for filename in self.files:
             if not os.path.exists(filename):
                 raise admintool.ScriptError("%s: file not found" % filename)
@@ -78,12 +79,6 @@ class LDAPUpdater(admintool.AdminTool):
         except RuntimeError, e:
             print unicode(e)
             sys.exit(1)
-
-        if options.schema_files or not self.files:
-            options.update_schema = True
-        if not options.schema_files:
-            options.schema_files = [os.path.join(ipautil.SHARE_DIR, f) for f
-                                    in dsinstance.ALL_SCHEMA_FILES]
 
     def setup_logging(self):
         super(LDAPUpdater, self).setup_logging(log_file_mode='a')
@@ -132,7 +127,7 @@ class LDAPUpdater_NonUpgrade(LDAPUpdater):
 
         modified = False
 
-        if options.update_schema:
+        if options.schema_files:
             modified = schemaupdate.update_schema(
                 options.schema_files,
                 ldapi=True) or modified
