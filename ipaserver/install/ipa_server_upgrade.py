@@ -11,6 +11,7 @@ from ipaplatform.paths import paths
 from ipapython import admintool, ipautil
 from ipaserver.install import installutils
 from ipaserver.install.upgradeinstance import IPAUpgrade
+from ipaserver.install.ldapupdate import BadSyntax
 
 
 class ServerUpgrade(admintool.AdminTool):
@@ -73,17 +74,19 @@ class ServerUpgrade(admintool.AdminTool):
 
         realm = krbV.default_context().default_realm
         data_upgrade = IPAUpgrade(realm)
-        data_upgrade.create_instance()
 
-        if data_upgrade.badsyntax:
+        try:
+            data_upgrade.create_instance()
+        except BadSyntax:
             raise admintool.ScriptError(
                 'Bad syntax detected in upgrade file(s).', 1)
-        elif data_upgrade.upgradefailed:
+        except RuntimeError:
             raise admintool.ScriptError('IPA upgrade failed.', 1)
-        elif data_upgrade.modified:
-            self.log.info('Data update complete')
         else:
-            self.log.info('Data update complete, no data were modified')
+            if data_upgrade.modified:
+                self.log.info('Update complete')
+            else:
+                self.log.info('Update complete, no data were modified')
 
         # store new data version after upgrade
         installutils.store_version()

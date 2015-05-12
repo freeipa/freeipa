@@ -32,7 +32,7 @@ from ipalib import api
 from ipapython import ipautil, admintool
 from ipaplatform.paths import paths
 from ipaserver.install import installutils, dsinstance, schemaupdate
-from ipaserver.install.ldapupdate import LDAPUpdate, UPDATES_DIR
+from ipaserver.install.ldapupdate import LDAPUpdate, UPDATES_DIR, BadSyntax
 from ipaserver.install.upgradeinstance import IPAUpgrade
 
 
@@ -108,17 +108,19 @@ class LDAPUpdater_Upgrade(LDAPUpdater):
         realm = krbV.default_context().default_realm
         upgrade = IPAUpgrade(realm, self.files,
                              schema_files=options.schema_files)
-        upgrade.create_instance()
 
-        if upgrade.badsyntax:
+        try:
+            upgrade.create_instance()
+        except BadSyntax:
             raise admintool.ScriptError(
                 'Bad syntax detected in upgrade file(s).', 1)
-        elif upgrade.upgradefailed:
+        except RuntimeError:
             raise admintool.ScriptError('IPA upgrade failed.', 1)
-        elif upgrade.modified:
-            self.log.info('Update complete')
         else:
-            self.log.info('Update complete, no data were modified')
+            if upgrade.modified:
+                self.log.info('Update complete')
+            else:
+                self.log.info('Update complete, no data were modified')
 
 
 class LDAPUpdater_NonUpgrade(LDAPUpdater):

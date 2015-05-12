@@ -506,7 +506,11 @@ class DsInstance(service.Service):
 
     def apply_updates(self):
         data_upgrade = upgradeinstance.IPAUpgrade(self.realm)
-        data_upgrade.create_instance()
+        try:
+            data_upgrade.create_instance()
+        except Exception as e:
+            # very fatal errors only will raise exception
+            raise RuntimeError("Update failed: %s" % e)
         installutils.store_version()
 
 

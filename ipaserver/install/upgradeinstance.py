@@ -167,8 +167,6 @@ class IPAUpgrade(service.Service):
         self.savefilename = '%s/%s.ipa.%s' % (paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid, DSE, ext)
         self.files = files
         self.modified = False
-        self.badsyntax = False
-        self.upgradefailed = False
         self.serverid = serverid
         self.schema_files = schema_files
         self.realm = realm_name
@@ -307,13 +305,11 @@ class IPAUpgrade(service.Service):
             if len(self.files) == 0:
                 self.files = ld.get_all_files(ldapupdate.UPDATES_DIR)
             self.modified = (ld.update(self.files) or self.modified)
-        except ldapupdate.BadSyntax, e:
-            root_logger.error('Bad syntax in upgrade %s' % str(e))
-            self.modified = False
-            self.badsyntax = True
-        except Exception, e:
+        except ldapupdate.BadSyntax as e:
+            root_logger.error('Bad syntax in upgrade %s', e)
+            raise
+        except Exception as e:
             # Bad things happened, return gracefully
-            self.modified = False
-            self.upgradefailed = True
-            root_logger.error('Upgrade failed with %s' % str(e))
+            root_logger.error('Upgrade failed with %s', e)
             root_logger.debug('%s', traceback.format_exc())
+            raise RuntimeError(e)
