@@ -894,7 +894,7 @@ class LDAPUpdate:
                     data = self.read_file(f)
                 except Exception, e:
                     self.error("error reading update file '%s'", f)
-                    sys.exit(e)
+                    raise RuntimeError(e)
 
                 self.parse_update_file(f, data, all_updates)
                 self._run_updates(all_updates)
