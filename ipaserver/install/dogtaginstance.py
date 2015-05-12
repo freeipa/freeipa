@@ -178,14 +178,6 @@ class DogtagInstance(service.Service):
         except ipautil.CalledProcessError, e:
             self.handle_setup_error(e)
 
-    def enable(self):
-        self.backup_state("enabled", self.is_enabled())
-        # We do not let the system start IPA components on its own,
-        # Instead we reply on the IPA init script to start only enabled
-        # components as found in our LDAP configuration tree
-        # We need to install DS before we can actually ldap_enable a service.
-        # so actual enablement is delayed.
-
     def restart_instance(self):
         try:
             self.restart(self.dogtag_constants.PKI_INSTANCE_NAME)

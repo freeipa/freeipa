@@ -464,8 +464,6 @@ class CAInstance(DogtagInstance):
             self.step("enabling Subject Alternative Name", self.enable_subject_alternative_name)
             self.step("enabling CRL and OCSP extensions for certificates", self.__set_crl_ocsp_extensions)
             self.step("setting audit signing renewal to 2 years", self.set_audit_renewal)
-            self.step("configuring certificate server to start on boot",
-                      self.enable)
             if not self.clone:
                 self.step("restarting certificate server", self.restart_instance)
                 self.step("requesting RA certificate from CA", self.__request_ra_certificate)
@@ -1271,11 +1269,8 @@ class CAInstance(DogtagInstance):
             print "Updating subject_base in CA template failed"
 
     def uninstall(self):
-        enabled = self.restore_state("enabled")
-
-        # disabled by default, by ldap_enable()
-        if enabled:
-            self.enable()
+        # just eat state
+        self.restore_state("enabled")
 
         if self.dogtag_constants.DOGTAG_VERSION >= 10:
             DogtagInstance.uninstall(self)
