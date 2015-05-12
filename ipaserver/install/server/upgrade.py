@@ -299,6 +299,45 @@ def ca_configure_profiles_acl(ca):
     return cainstance.configure_profiles_acl()
 
 
+def ca_enable_ldap_profile_subsystem(ca):
+    root_logger.info('[Ensuring CA is using LDAPProfileSubsystem]')
+    if not ca.is_configured():
+        root_logger.info('CA is not configured')
+        return False
+
+    caconfig = dogtag.configured_constants()
+
+    needs_update = False
+    directive = None
+    try:
+        for i in range(15):
+            directive = "subsystem.{}.class".format(i)
+            value = installutils.get_directive(
+                caconfig.CS_CFG_PATH,
+                directive,
+                separator='=')
+            if value == 'com.netscape.cmscore.profile.ProfileSubsystem':
+                needs_update = True
+                break
+    except OSError, e:
+        root_logger.error('Cannot read CA configuration file "%s": %s',
+                caconfig.CS_CFG_PATH, e)
+        return False
+
+    if needs_update:
+        installutils.set_directive(
+            caconfig.CS_CFG_PATH,
+            directive,
+            'com.netscape.cmscore.profile.LDAPProfileSubsystem',
+            quotes=False,
+            separator='=')
+
+    # TODO import file-based profiles into Dogtag
+    # More code needed on Dogtag side for this.
+
+    return needs_update
+
+
 def upgrade_ipa_profile(ca, domain, fqdn):
     """
     Update the IPA Profile provided by dogtag
@@ -1381,6 +1420,7 @@ def upgrade_configuration():
         certificate_renewal_update(ca),
         ca_enable_pkix(ca),
         ca_configure_profiles_acl(ca),
+        ca_enable_ldap_profile_subsystem(ca),
     ])
 
     if ca_restart:
