@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=117
-# Last change: pvoborni - added --use-default-group option to migrate-ds
+IPA_API_VERSION_MINOR=118
+# Last change: tbordaz - Add stageuser_find, stageuser_mod, stageuser_del, stageuser_show

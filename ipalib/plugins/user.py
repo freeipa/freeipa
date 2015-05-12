@@ -550,67 +550,12 @@ class user_mod(baseuser_mod):
     has_output_params = baseuser_mod.has_output_params + user_output_params
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        assert isinstance(dn, DN)
-        if options.get('rename') is not None:
-            config = ldap.get_ipa_config()
-            if 'ipamaxusernamelength' in config:
-                if len(options['rename']) > int(config.get('ipamaxusernamelength')[0]):
-                    raise errors.ValidationError(
-                        name=self.obj.primary_key.cli_name,
-                        error=_('can be at most %(len)d characters') % dict(
-                            len = int(config.get('ipamaxusernamelength')[0])
-                        )
-                    )
-        if 'mail' in entry_attrs:
-            entry_attrs['mail'] = self.obj.normalize_and_validate_email(entry_attrs['mail'])
-        if 'manager' in entry_attrs:
-            entry_attrs['manager'] = self.obj.normalize_manager(entry_attrs['manager'], self.obj.active_container_dn)
+        self.pre_common_callback(ldap, dn, entry_attrs, **options)
         validate_nsaccountlock(entry_attrs)
-        if 'userpassword' not in entry_attrs and options.get('random'):
-            entry_attrs['userpassword'] = ipa_generate_password(baseuser_pwdchars)
-            # save the password so it can be displayed in post_callback
-            setattr(context, 'randompassword', entry_attrs['userpassword'])
-        if ('ipasshpubkey' in entry_attrs or 'ipauserauthtype' in entry_attrs
-            or 'userclass' in entry_attrs or 'ipatokenradiusconfiglink' in entry_attrs):
-            if 'objectclass' in entry_attrs:
-                obj_classes = entry_attrs['objectclass']
-            else:
-                _entry_attrs = ldap.get_entry(dn, ['objectclass'])
-                obj_classes = entry_attrs['objectclass'] = _entry_attrs['objectclass']
-
-            if 'ipasshpubkey' in entry_attrs and 'ipasshuser' not in obj_classes:
-                obj_classes.append('ipasshuser')
-
-            if 'ipauserauthtype' in entry_attrs and 'ipauserauthtypeclass' not in obj_classes:
-                obj_classes.append('ipauserauthtypeclass')
-
-            if 'userclass' in entry_attrs and 'ipauser' not in obj_classes:
-                obj_classes.append('ipauser')
-
-            if 'ipatokenradiusconfiglink' in entry_attrs:
-                cl = entry_attrs['ipatokenradiusconfiglink']
-                if cl:
-                    if 'ipatokenradiusproxyuser' not in obj_classes:
-                        obj_classes.append('ipatokenradiusproxyuser')
-
-                    answer = self.api.Object['radiusproxy'].get_dn_if_exists(cl)
-                    entry_attrs['ipatokenradiusconfiglink'] = answer
-
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        assert isinstance(dn, DN)
-        if options.get('random', False):
-            try:
-                entry_attrs['randompassword'] = unicode(getattr(context, 'randompassword'))
-            except AttributeError:
-                # if both randompassword and userpassword options were used
-                pass
-        convert_nsaccountlock(entry_attrs)
-        self.obj.convert_manager(entry_attrs, **options)
-        self.obj.get_password_attributes(ldap, dn, entry_attrs)
-        convert_sshpubkey_post(ldap, dn, entry_attrs)
-        radius_dn2pk(self.api, entry_attrs)
+        self.post_common_callback(ldap, dn, entry_attrs, **options)
         return dn
 
 
@@ -629,15 +574,9 @@ class user_find(baseuser_find):
     )
 
     def execute(self, *args, **options):
-        # assure the manager attr is a dn, not just a bare uid
-        manager = options.get('manager')
-        if manager is not None:
-            options['manager'] = self.obj.normalize_manager(manager, self.obj.active_container_dn)
-
-        # Ensure that the RADIUS config link is a dn, not just the name
-        cl = 'ipatokenradiusconfiglink'
-        if cl in options:
-            options[cl] = self.api.Object['radiusproxy'].get_dn(options[cl])
+        newoptions = {}
+        self.common_enhance_options(newoptions, **options)
+        options.update(newoptions)
 
         return super(user_find, self).execute(self, *args, **options)
 
@@ -652,11 +591,7 @@ class user_find(baseuser_find):
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if options.get('pkey_only', False):
             return truncated
-        for attrs in entries:
-            self.obj.convert_manager(attrs, **options)
-            self.obj.get_password_attributes(ldap, attrs.dn, attrs)
-            convert_nsaccountlock(attrs)
-            convert_sshpubkey_post(ldap, attrs.dn, attrs)
+        self.post_common_callback(ldap, entries, lockout=False, **options)
         return truncated
 
     msg_summary = ngettext(
@@ -671,12 +606,8 @@ class user_show(baseuser_show):
     has_output_params = baseuser_show.has_output_params + user_output_params
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        assert isinstance(dn, DN)
         convert_nsaccountlock(entry_attrs)
-        self.obj.convert_manager(entry_attrs, **options)
-        self.obj.get_password_attributes(ldap, dn, entry_attrs)
-        convert_sshpubkey_post(ldap, dn, entry_attrs)
-        radius_dn2pk(self.api, entry_attrs)
+        self.post_common_callback(ldap, dn, entry_attrs, **options)
         return dn
 
 

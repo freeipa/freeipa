@@ -27,7 +27,8 @@ from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import LDAPCreate, DN, entry_to_dict
 from ipalib.plugins import baseldap
-from ipalib.plugins.baseuser import baseuser, baseuser_add, baseuser_mod, baseuser_find, \
+from ipalib.plugins.baseuser import baseuser, baseuser_add, baseuser_del, \
+    baseuser_mod, baseuser_find, baseuser_show, \
     NO_UPG_MAGIC, radius_dn2pk, \
     baseuser_pwdchars, fix_addressbook_permission_bindrule, normalize_principal, validate_principal, \
     baseuser_output_params, status_baseuser_output_params
@@ -274,4 +275,72 @@ class stageuser_add(baseuser_add):
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         convert_sshpubkey_post(ldap, dn, entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
+        return dn
+
+@register()
+class stageuser_del(baseuser_del):
+    __doc__ = _('Delete a stage user.')
+
+    msg_summary = _('Deleted stage user "%(value)s"')
+
+@register()
+class stageuser_mod(baseuser_mod):
+    __doc__ = _('Modify a stage user.')
+
+    msg_summary = _('Modified stage user "%(value)s"')
+
+    has_output_params = baseuser_mod.has_output_params + stageuser_output_params
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        self.pre_common_callback(ldap, dn, entry_attrs, **options)
+        # Make sure it is not possible to authenticate with a Stage user account
+        if 'nsaccountlock' in entry_attrs:
+            del entry_attrs['nsaccountlock']
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.post_common_callback(ldap, dn, entry_attrs, **options)
+        if 'nsaccountlock' in entry_attrs:
+            del entry_attrs['nsaccountlock']
+        return dn
+
+@register()
+class stageuser_find(baseuser_find):
+    __doc__ = _('Search for stage users.')
+
+    member_attributes = ['memberof']
+    has_output_params = baseuser_find.has_output_params + stageuser_output_params
+
+
+    def execute(self, *args, **options):
+        newoptions = {}
+        self.common_enhance_options(newoptions, **options)
+        options.update(newoptions)
+
+        return super(stageuser_find, self).execute(self, *args, **options)
+
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *keys, **options):
+        assert isinstance(base_dn, DN)
+
+        return (filter, base_dn, scope)
+
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        if options.get('pkey_only', False):
+            return truncated
+        self.post_common_callback(ldap, entries, lockout=True, **options)
+        return truncated
+
+    msg_summary = ngettext(
+        '%(count)d user matched', '%(count)d users matched', 0
+    )
+
+@register()
+class stageuser_show(baseuser_show):
+    __doc__ = _('Display information about a stage user.')
+
+    has_output_params = baseuser_show.has_output_params + stageuser_output_params
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        entry_attrs['nsaccountlock'] = True
+        self.post_common_callback(ldap, dn, entry_attrs, **options)
         return dn
