@@ -748,6 +748,9 @@ def install(options):
         api.env.ca_host = host_name
 
     api.bootstrap(**cfg)
+    if setup_ca:
+        # ensure profile backend is available
+        import ipaserver.plugins.dogtag
     api.finalize()
 
     # Create DS user/group if it doesn't exist yet
@@ -902,6 +905,9 @@ def install(options):
     if setup_ca:
         service.print_msg("Restarting the certificate server")
         ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
+
+        service.print_msg("Importing certificate profiles")
+        cainstance.import_included_profiles()
 
     if options.setup_dns:
         api.Backend.ldap2.connect(autobind=True)

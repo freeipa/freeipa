@@ -1966,16 +1966,18 @@ class RestClient(Backend):
         self.ipa_key_size = "2048"
         self.ipa_certificate_nickname = "ipaCert"
         self.ca_certificate_nickname = "caCert"
-        try:
-            f = open(self.pwd_file, "r")
-            self.password = f.readline().strip()
-            f.close()
-        except IOError:
-            self.password = ''
+        self._read_password()
         super(RestClient, self).__init__()
 
         # session cookie
         self.cookie = None
+
+    def _read_password(self):
+        try:
+            with open(self.pwd_file) as f:
+                self.password = f.readline().strip()
+        except IOError:
+            self.password = ''
 
     @cachedproperty
     def ca_host(self):

@@ -459,10 +459,6 @@ class CAInstance(DogtagInstance):
             self.step("importing CA chain to RA certificate database", self.__import_ca_chain)
             self.step("fixing RA database permissions", self.fix_ra_perms)
             self.step("setting up signing cert profile", self.__setup_sign_profile)
-            self.step("set certificate subject base", self.__set_subject_in_config)
-            self.step("enabling Subject Key Identifier", self.enable_subject_key_identifier)
-            self.step("enabling Subject Alternative Name", self.enable_subject_alternative_name)
-            self.step("enabling CRL and OCSP extensions for certificates", self.__set_crl_ocsp_extensions)
             self.step("setting audit signing renewal to 2 years", self.set_audit_renewal)
             if not self.clone:
                 self.step("restarting certificate server", self.restart_instance)
@@ -1125,94 +1121,6 @@ class CAInstance(DogtagInstance):
 
         return publishdir
 
-    def __set_crl_ocsp_extensions(self):
-        self.set_crl_ocsp_extensions(self.domain, self.fqdn)
-
-    def set_crl_ocsp_extensions(self, domain, fqdn):
-        """
-        Configure CRL and OCSP extensions in default IPA certificate profile
-        if not done already.
-        """
-        changed = False
-
-        # OCSP extension
-        ocsp_url = 'http://%s.%s/ca/ocsp' % (IPA_CA_RECORD, ipautil.format_netloc(domain))
-
-        ocsp_location_0 = installutils.get_directive(
-            self.dogtag_constants.IPA_SERVICE_PROFILE,
-            'policyset.serverCertSet.5.default.params.authInfoAccessADLocation_0',
-            separator='=')
-
-        if ocsp_location_0 != ocsp_url:
-            # Set the first OCSP URI
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.5.default.params.authInfoAccessADLocation_0',
-                ocsp_url, quotes=False, separator='=')
-            changed = True
-
-        ocsp_profile_count = installutils.get_directive(
-            self.dogtag_constants.IPA_SERVICE_PROFILE,
-            'policyset.serverCertSet.5.default.params.authInfoAccessNumADs',
-            separator='=')
-
-        if ocsp_profile_count != '1':
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.5.default.params.authInfoAccessNumADs',
-                '1', quotes=False, separator='=')
-            changed = True
-
-
-        # CRL extension
-        crl_url = 'http://%s.%s/ipa/crl/MasterCRL.bin'% (IPA_CA_RECORD, ipautil.format_netloc(domain))
-
-        crl_point_0 = installutils.get_directive(
-            self.dogtag_constants.IPA_SERVICE_PROFILE,
-            'policyset.serverCertSet.9.default.params.crlDistPointsPointName_0',
-            separator='=')
-
-        if crl_point_0 != crl_url:
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.9.default.params.crlDistPointsIssuerName_0',
-                'CN=Certificate Authority,o=ipaca', quotes=False, separator='=')
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.9.default.params.crlDistPointsIssuerType_0',
-                'DirectoryName', quotes=False, separator='=')
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.9.default.params.crlDistPointsPointName_0',
-                crl_url, quotes=False, separator='=')
-            changed = True
-
-        crl_profile_count = installutils.get_directive(
-            self.dogtag_constants.IPA_SERVICE_PROFILE,
-            'policyset.serverCertSet.9.default.params.crlDistPointsNum',
-            separator='=')
-
-        if crl_profile_count != '1':
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.9.default.params.crlDistPointsNum',
-                '1', quotes=False, separator='=')
-            changed = True
-
-        # CRL extension is not enabled by default
-        setlist = installutils.get_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-            'policyset.serverCertSet.list', separator='=')
-        new_set_list = None
-
-        if setlist == '1,2,3,4,5,6,7,8':
-            new_set_list = '1,2,3,4,5,6,7,8,9'
-        elif setlist == '1,2,3,4,5,6,7,8,10':
-            new_set_list = '1,2,3,4,5,6,7,8,9,10'
-        elif setlist == '1,2,3,4,5,6,7,8,10,11':
-            new_set_list = '1,2,3,4,5,6,7,8,9,10,11'
-
-        if new_set_list:
-            installutils.set_directive(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.list',
-                new_set_list, quotes=False, separator='=')
-            changed = True
-
-        return changed
-
 
     def __enable_crl_publish(self):
         """
@@ -1266,13 +1174,6 @@ class CAInstance(DogtagInstance):
             installutils.set_directive(caconfig, 'ca.crl.MasterCRL.enableCRLCache', 'false', quotes=False, separator='=')
             installutils.set_directive(caconfig, 'ca.crl.MasterCRL.enableCRLUpdates', 'false', quotes=False, separator='=')
             installutils.set_directive(caconfig, 'ca.listenToCloneModifications', 'false', quotes=False, separator='=')
-
-    def __set_subject_in_config(self):
-        # dogtag ships with an IPA-specific profile that forces a subject
-        # format. We need to update that template with our base subject
-        if installutils.update_file(self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'OU=pki-ipa, O=IPA', str(self.subject_base)):
-            print "Updating subject_base in CA template failed"
 
     def uninstall(self):
         # just eat state
@@ -1407,100 +1308,6 @@ class CAInstance(DogtagInstance):
 
         services.knownservices.certmonger.stop()
 
-    def enable_subject_key_identifier(self):
-        """
-        See if Subject Key Identifier is set in the profile and if not, add it.
-        """
-        setlist = installutils.get_directive(
-            self.dogtag_constants.IPA_SERVICE_PROFILE,
-            'policyset.serverCertSet.list', separator='=')
-
-        # this is the default setting from pki-ca/pki-tomcat. Don't touch it
-        # if a user has manually modified it.
-        if setlist == '1,2,3,4,5,6,7,8' or setlist == '1,2,3,4,5,6,7,8,9':
-            setlist += ',10'
-            installutils.set_directive(
-                self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.list',
-                setlist,
-                quotes=False, separator='=')
-            installutils.set_directive(
-                self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.10.constraint.class_id',
-                'noConstraintImpl',
-                quotes=False, separator='=')
-            installutils.set_directive(
-                self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.10.constraint.name',
-                'No Constraint',
-                quotes=False, separator='=')
-            installutils.set_directive(
-                self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.10.default.class_id',
-                'subjectKeyIdentifierExtDefaultImpl',
-                quotes=False, separator='=')
-            installutils.set_directive(
-                self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.10.default.name',
-                'Subject Key Identifier Extension Default',
-                quotes=False, separator='=')
-            installutils.set_directive(
-                self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.10.default.params.critical',
-                'false',
-                quotes=False, separator='=')
-            return True
-
-        # No update was done
-        return False
-
-    def enable_subject_alternative_name(self):
-        """
-        See if Subject Alternative Name is set in the profile and if not, add
-        it.
-        """
-        setlist = installutils.get_directive(
-            self.dogtag_constants.IPA_SERVICE_PROFILE,
-            'policyset.serverCertSet.list', separator='=')
-
-        # this is the default setting from pki-ca/pki-tomcat. Don't touch it
-        # if a user has manually modified it.
-        if setlist == '1,2,3,4,5,6,7,8,10' or setlist == '1,2,3,4,5,6,7,8,9,10':
-            setlist += ',11'
-            installutils.set_directive(
-                self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.list',
-                setlist,
-                quotes=False, separator='=')
-            installutils.set_directive(
-                self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.11.constraint.class_id',
-                'noConstraintImpl',
-                quotes=False, separator='=')
-            installutils.set_directive(
-                self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.11.constraint.name',
-                'No Constraint',
-                quotes=False, separator='=')
-            installutils.set_directive(
-                self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.11.default.class_id',
-                'userExtensionDefaultImpl',
-                quotes=False, separator='=')
-            installutils.set_directive(
-                self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.11.default.name',
-                'User Supplied Extension Default',
-                quotes=False, separator='=')
-            installutils.set_directive(
-                self.dogtag_constants.IPA_SERVICE_PROFILE,
-                'policyset.serverCertSet.11.default.params.userExtOID',
-                '2.5.29.17',
-                quotes=False, separator='=')
-            return True
-
-        # No update was done
-        return False
 
     def set_audit_renewal(self):
         """
@@ -1585,7 +1392,6 @@ class CAInstance(DogtagInstance):
         if master_entry is not None:
             master_entry['ipaConfigString'].append('caRenewalMaster')
             self.admin_conn.update_entry(master_entry)
-
 
     @staticmethod
     def update_cert_config(nickname, cert, dogtag_constants=None):
@@ -1853,6 +1659,65 @@ def configure_profiles_acl():
 
     conn.disconnect()
     return updated
+
+def import_included_profiles():
+    sub_dict = dict(
+        DOMAIN=ipautil.format_netloc(api.env.domain),
+        IPA_CA_RECORD=IPA_CA_RECORD,
+        CRL_ISSUER='CN=Certificate Authority,o=ipaca',
+        SUBJECT_DN_O=str(DN(('O', api.env.realm))),
+    )
+
+    server_id = installutils.realm_to_serverid(api.env.realm)
+    dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
+    conn = ldap2.ldap2(shared_instance=False, ldap_uri=dogtag_uri)
+    if not conn.isconnected():
+        conn.connect(autobind=True)
+
+    for (profile_id, desc, store_issued) in dogtag.INCLUDED_PROFILES:
+        dn = DN(('cn', profile_id),
+            api.env.container_certprofile, api.env.basedn)
+        try:
+            conn.get_entry(dn)
+            continue  # the profile is present
+        except errors.NotFound:
+            # profile not found; add it
+            profile_data = ipautil.template_file(
+                '/usr/share/ipa/profiles/{}.cfg'.format(profile_id), sub_dict)
+
+            entry = conn.make_entry(
+                dn,
+                objectclass=['ipacertprofile'],
+                cn=[profile_id],
+                description=[desc],
+                ipacertprofilestoreissued=['TRUE' if store_issued else 'FALSE'],
+            )
+            conn.add_entry(entry)
+            api.Backend.ra_certprofile._read_password()
+            with api.Backend.ra_certprofile as profile_api:
+                # import the profile
+                try:
+                    profile_api.create_profile(profile_data)
+                except errors.RemoteRetrieveError:
+                    # conflicting profile; replace it if we are
+                    # installing IPA, but keep it for upgrades
+                    if api.env.context == 'installer':
+                        try:
+                            profile_api.disable_profile(profile_id)
+                        except errors.RemoteRetrieveError:
+                            pass
+                        profile_api.delete_profile(profile_id)
+                        profile_api.create_profile(profile_data)
+
+                # enable the profile
+                try:
+                    profile_api.enable_profile(profile_id)
+                except errors.RemoteRetrieveError:
+                    pass
+
+            root_logger.info("Imported profile '%s'", profile_id)
+
+    conn.disconnect()
 
 if __name__ == "__main__":
     standard_logging_setup("install.log")

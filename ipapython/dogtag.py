@@ -42,6 +42,11 @@ from ipapython.ipa_log_manager import *
 # the configured version.
 
 
+INCLUDED_PROFILES = {
+    # ( profile_id    ,         description      ,      store_issued)
+    (u'caIPAserviceCert', u'Standard profile for network services', True),
+    }
+
 class Dogtag10Constants(object):
     DOGTAG_VERSION = 10
     UNSECURE_PORT = 8080
@@ -71,7 +76,6 @@ class Dogtag10Constants(object):
 
     RACERT_LINE_SEP = '\n'
 
-    IPA_SERVICE_PROFILE = '%s/caIPAserviceCert.cfg' % SERVICE_PROFILE_DIR
     SIGN_PROFILE = '%s/caJarSigningCert.cfg' % SERVICE_PROFILE_DIR
     SHARED_DB = True
     DS_USER = "dirsrv"
@@ -110,7 +114,6 @@ class Dogtag9Constants(object):
     EE_CLIENT_AUTH_PORT = 9446
     TOMCAT_SERVER_PORT = 9701
 
-    IPA_SERVICE_PROFILE = '%s/caIPAserviceCert.cfg' % SERVICE_PROFILE_DIR
     SIGN_PROFILE = '%s/caJarSigningCert.cfg' % SERVICE_PROFILE_DIR
     SHARED_DB = False
     DS_USER = "pkisrv"

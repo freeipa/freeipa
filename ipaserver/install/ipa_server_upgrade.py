@@ -41,6 +41,7 @@ class ServerUpgrade(admintool.AdminTool):
         super(ServerUpgrade, self).run()
 
         api.bootstrap(in_server=True, context='updates')
+        import ipaserver.plugins.dogtag  # ensure profile backend gets loaded
         api.finalize()
 
         try:

@@ -338,32 +338,28 @@ def ca_enable_ldap_profile_subsystem(ca):
     return needs_update
 
 
-def upgrade_ipa_profile(ca, domain, fqdn):
+def ca_import_included_profiles(ca):
+    root_logger.info('[Ensuring presence of included profiles]')
+
+    if not ca.is_configured():
+        root_logger.info('CA is not configured')
+        return False
+
+    return cainstance.import_included_profiles()
+
+
+def upgrade_ca_audit_cert_validity(ca):
     """
-    Update the IPA Profile provided by dogtag
+    Update the Dogtag audit signing certificate.
 
     Returns True if restart is needed, False otherwise.
     """
-    root_logger.info('[Verifying that CA service certificate profile is updated]')
+    root_logger.info('[Verifying that CA audit signing cert has 2 year validity]')
     if ca.is_configured():
-        ski = ca.enable_subject_key_identifier()
-        if ski:
-            root_logger.debug('Subject Key Identifier updated.')
-        else:
-            root_logger.debug('Subject Key Identifier already set.')
-        san = ca.enable_subject_alternative_name()
-        if san:
-            root_logger.debug('Subject Alternative Name updated.')
-        else:
-            root_logger.debug('Subject Alternative Name already set.')
-        audit = ca.set_audit_renewal()
-        uri = ca.set_crl_ocsp_extensions(domain, fqdn)
-        if audit or ski or san or uri:
-            return True
+        return ca.set_audit_renewal()
     else:
         root_logger.info('CA is not configured')
-
-    return False
+        return False
 
 
 def named_remove_deprecated_options():
@@ -1416,7 +1412,7 @@ def upgrade_configuration():
 
     ca_restart = any([
         ca_restart,
-        upgrade_ipa_profile(ca, api.env.domain, fqdn),
+        upgrade_ca_audit_cert_validity(ca),
         certificate_renewal_update(ca),
         ca_enable_pkix(ca),
         ca_configure_profiles_acl(ca),
@@ -1429,6 +1425,12 @@ def upgrade_configuration():
             ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
         except ipautil.CalledProcessError as e:
             root_logger.error("Failed to restart %s: %s", ca.service_name, e)
+
+    # This step MUST be done after ca_enable_ldap_profile_subsystem and
+    # ca_configure_profiles_acl, and the consequent restart, but does not
+    # itself require a restart.
+    #
+    ca_import_included_profiles(ca)
 
     set_sssd_domain_option('ipa_server_mode', 'True')
 

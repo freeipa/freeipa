@@ -21,7 +21,6 @@
 
 import sys
 
-
 if __name__ == '__main__':
     sys.exit("Please run the 'ipa-server-upgrade' command to upgrade the "
              "IPA server.")
