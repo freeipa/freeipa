@@ -9,6 +9,9 @@ import os
 import pwd
 import grp
 import stat
+import shutil
+
+from subprocess import CalledProcessError
 
 import _ipap11helper
 
@@ -31,7 +34,7 @@ def get_dnssec_key_masters(conn):
     """
     assert conn is not None
 
-    dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+    dn = DN(api.env.container_masters, api.env.basedn)
 
     filter_attrs = {
         u'cn': u'DNSSEC',
@@ -62,7 +65,7 @@ def check_inst():
 
 class OpenDNSSECInstance(service.Service):
     def __init__(self, fstore=None, dm_password=None, ldapi=False,
-                 start_tls=False, autobind=ipaldap.AUTOBIND_DISABLED):
+                 start_tls=False, autobind=ipaldap.AUTOBIND_ENABLED):
         service.Service.__init__(
             self, "ods-enforcerd",
             service_desc="OpenDNSSEC enforcer daemon",
@@ -94,12 +97,14 @@ class OpenDNSSECInstance(service.Service):
             self.ldap_connect()
         return get_dnssec_key_masters(self.admin_conn)
 
-    def create_instance(self, fqdn, realm_name, generate_master_key=True):
+    def create_instance(self, fqdn, realm_name, generate_master_key=True,
+                        kasp_db_file=None):
         self.backup_state("enabled", self.is_enabled())
         self.backup_state("running", self.is_running())
         self.fqdn = fqdn
         self.realm = realm_name
         self.suffix = ipautil.realm_to_suffix(self.realm)
+        self.kasp_db_file = kasp_db_file
 
         try:
             self.stop()
@@ -151,6 +156,21 @@ class OpenDNSSECInstance(service.Service):
                              self.suffix, self.extra_config)
         except errors.DuplicateEntry:
             root_logger.error("DNSSEC service already exists")
+
+        # add the KEYMASTER identifier into ipaConfigString
+        # this is needed for the re-enabled DNSSEC master
+        dn = DN(('cn', 'DNSSEC'), ('cn', self.fqdn), api.env.container_masters,
+                api.env.basedn)
+        try:
+            entry = self.admin_conn.get_entry(dn, ['ipaConfigString'])
+        except errors.NotFound as e:
+            root_logger.error(
+                "DNSSEC service entry not found in the LDAP (%s)", e)
+        else:
+            config = entry.setdefault('ipaConfigString', [])
+            if KEYMASTER not in config:
+                config.append(KEYMASTER)
+                self.admin_conn.update_entry(entry)
 
     def __setup_conf_files(self):
         if not self.fstore.has_file(paths.OPENDNSSEC_CONF_FILE):
@@ -250,7 +270,7 @@ class OpenDNSSECInstance(service.Service):
 
     def __setup_dnssec(self):
         # run once only
-        if self.get_state("KASP_DB_configured"):
+        if self.get_state("KASP_DB_configured") and not self.kasp_db_file:
             root_logger.debug("Already configured, skipping step")
             return
 
@@ -259,13 +279,33 @@ class OpenDNSSECInstance(service.Service):
         if not self.fstore.has_file(paths.OPENDNSSEC_KASP_DB):
             self.fstore.backup_file(paths.OPENDNSSEC_KASP_DB)
 
-        command = [
-            paths.ODS_KSMUTIL,
-            'setup'
-        ]
+        if self.kasp_db_file:
+            # copy user specified kasp.db to proper location and set proper
+            # privileges
+            shutil.copy(self.kasp_db_file, paths.OPENDNSSEC_KASP_DB)
+            os.chown(paths.OPENDNSSEC_KASP_DB, self.ods_uid, self.ods_gid)
+            os.chmod(paths.OPENDNSSEC_KASP_DB, 0660)
 
-        ods_enforcerd = services.knownservices.ods_enforcerd
-        ipautil.run(command, stdin="y", runas=ods_enforcerd.get_user_name())
+            # regenerate zonelist.xml
+            ods_enforcerd = services.knownservices.ods_enforcerd
+            cmd = [paths.ODS_KSMUTIL, 'zonelist', 'export']
+            stdout, stderr, retcode = ipautil.run(cmd,
+                                          runas=ods_enforcerd.get_user_name())
+            with open(paths.OPENDNSSEC_ZONELIST_FILE, 'w') as zonelistf:
+                zonelistf.write(stdout)
+                os.chown(paths.OPENDNSSEC_ZONELIST_FILE,
+                         self.ods_uid, self.ods_gid)
+                os.chmod(paths.OPENDNSSEC_ZONELIST_FILE, 0660)
+
+        else:
+            # initialize new kasp.db
+            command = [
+                paths.ODS_KSMUTIL,
+                'setup'
+            ]
+
+            ods_enforcerd = services.knownservices.ods_enforcerd
+            ipautil.run(command, stdin="y", runas=ods_enforcerd.get_user_name())
 
     def __setup_dnskeysyncd(self):
         # set up dnskeysyncd this is DNSSEC master
@@ -285,6 +325,44 @@ class OpenDNSSECInstance(service.Service):
 
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
+
+        # stop DNSSEC services before backing up kasp.db
+        try:
+            self.stop()
+        except Exception:
+            pass
+
+        ods_exporter = services.service('ipa-ods-exporter')
+        try:
+            ods_exporter.stop()
+        except Exception:
+            pass
+
+        # remove directive from ipa-dnskeysyncd, this server is not DNSSEC
+        # master anymore
+        installutils.set_directive(paths.SYSCONFIG_IPA_DNSKEYSYNCD,
+                                   'ISMASTER', None,
+                                   quotes=False, separator='=')
+
+        if ipautil.file_exists(paths.OPENDNSSEC_KASP_DB):
+
+            # force to export data
+            ods_enforcerd = services.knownservices.ods_enforcerd
+            cmd = [paths.IPA_ODS_EXPORTER, 'ipa-full-update']
+            try:
+                ipautil.run(cmd, runas=ods_enforcerd.get_user_name())
+            except CalledProcessError:
+                root_logger.debug("OpenDNSSEC database has not been updated")
+
+            try:
+                shutil.copy(paths.OPENDNSSEC_KASP_DB,
+                            paths.IPA_KASP_DB_BACKUP)
+            except IOError as e:
+                root_logger.error(
+                    "Unable to backup OpenDNSSEC database: %s", e)
+            else:
+                root_logger.info("OpenDNSSEC database backed up in %s",
+                                 paths.IPA_KASP_DB_BACKUP)
 
         for f in [paths.OPENDNSSEC_CONF_FILE, paths.OPENDNSSEC_KASP_FILE,
                   paths.OPENDNSSEC_KASP_DB, paths.SYSCONFIG_ODS]:

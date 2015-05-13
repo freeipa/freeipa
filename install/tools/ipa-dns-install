@@ -61,6 +61,15 @@ def parse_options():
                       help="DNS zone manager e-mail address. Defaults to hostmaster@DOMAIN")
     parser.add_option("-U", "--unattended", dest="unattended", action="store_true",
                       default=False, help="unattended installation never prompts the user")
+    parser.add_option("--disable-dnssec-master", dest="disable_dnssec_master",
+                      action="store_true", default=False, help="Disable the "
+                      "DNSSEC master on this server")
+    parser.add_option("--kasp-db", dest="kasp_db_file", type="string",
+                      metavar="FILE", action="store", help="Copy OpenDNSSEC "
+                      "metadata from the specified file (will not create a new "
+                      "kasp.db file)")
+    parser.add_option("--force", dest="force", action="store_true",
+                      help="Force install")
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -73,6 +82,9 @@ def parse_options():
     if options.unattended:
         if not options.forwarders and not options.no_forwarders:
             parser.error("You must specify at least one --forwarder option or --no-forwarders option")
+
+    if options.kasp_db_file and not ipautil.file_exists(options.kasp_db_file):
+        parser.error("File %s does not exist" % options.kasp_db_file)
 
     if options.dm_password:
         print ("WARNING: Option -p/--ds-password is deprecated "

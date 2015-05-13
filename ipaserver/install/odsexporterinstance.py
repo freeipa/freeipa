@@ -15,12 +15,12 @@ from ipapython.dn import DN
 from ipapython import sysrestore, ipautil, ipaldap
 from ipaplatform.paths import paths
 from ipaplatform import services
-from ipalib import errors
+from ipalib import errors, api
 
 
 class ODSExporterInstance(service.Service):
     def __init__(self, fstore=None, dm_password=None, ldapi=False,
-                 start_tls=False, autobind=ipaldap.AUTOBIND_DISABLED):
+                 start_tls=False, autobind=ipaldap.AUTOBIND_ENABLED):
         service.Service.__init__(
             self, "ipa-ods-exporter",
             service_desc="IPA OpenDNSSEC exporter daemon",
@@ -149,6 +149,14 @@ class ODSExporterInstance(service.Service):
 
     def __start(self):
         self.start()
+
+    def remove_service(self):
+        dns_exporter_principal = ("ipa-ods-exporter/%s@%s" % (self.fqdn,
+                                                              self.realm))
+        try:
+            api.Command.service_del(dns_exporter_principal)
+        except errors.NotFound:
+            pass
 
     def uninstall(self):
         if not self.is_configured():

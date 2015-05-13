@@ -1326,6 +1326,25 @@ class ServerDNS(common.Installable, core.Group, core.Composite):
         description="Setup server to be DNSSEC key master",
     )
 
+    disable_dnssec_master = Knob(
+        bool, False,
+        initializable=False,
+        description="Disable the DNSSEC master on this server",
+    )
+
+    kasp_db_file = Knob(
+        str, None,
+        initializable=False,
+        description="Copy OpenDNSSEC metadata from the specified file (will "
+                    "not create a new kasp.db file)",
+    )
+
+    force = Knob(
+        bool, False,
+        initializable=False,
+        description="Force install",
+    )
+
     zonemgr = Knob(
         str, None,
         description=("DNS zone manager e-mail address. Defaults to "
@@ -1614,7 +1633,6 @@ class Server(common.Installable, common.Interactive, core.Composite):
         self.ca_cert_files = self.ca.ca_cert_files
         self.subject = self.ca.subject
         self.ca_signing_algorithm = self.ca.ca_signing_algorithm
-
         self.setup_dns = self.dns.setup_dns
         self.forwarders = self.dns.forwarders
         self.no_forwarders = self.dns.no_forwarders
@@ -1622,6 +1640,9 @@ class Server(common.Installable, common.Interactive, core.Composite):
         self.no_reverse = self.dns.no_reverse
         self.no_dnssec_validation = self.dns.no_dnssec_validation
         self.dnssec_master = self.dns.dnssec_master
+        self.disable_dnssec_master = self.dns.disable_dnssec_master
+        self.kasp_db_file = self.dns.kasp_db_file
+        self.force = self.dns.force
         self.zonemgr = self.dns.zonemgr
         self.no_host_dns = self.dns.no_host_dns
         self.no_dns_sshfp = self.dns.no_dns_sshfp
