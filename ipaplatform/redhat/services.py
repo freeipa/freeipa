@@ -171,16 +171,6 @@ class RedHatSSHService(RedHatService):
 
 class RedHatCAService(RedHatService):
     def wait_until_running(self):
-        # We must not wait for the httpd proxy if httpd is not set up yet.
-        # Unfortunately, knownservices.httpd.is_installed() can return
-        # false positives, so check for existence of our configuration file.
-        # TODO: Use a cleaner solution
-        use_proxy = True
-        if not (os.path.exists('/etc/httpd/conf.d/ipa.conf') and
-                os.path.exists(paths.HTTPD_IPA_PKI_PROXY_CONF)):
-            root_logger.debug(
-                'The httpd proxy is not installed, wait on local port')
-            use_proxy = False
         root_logger.debug('Waiting until the CA is running')
         timeout = float(api.env.startup_timeout)
         op_timeout = time.time() + timeout
@@ -192,8 +182,6 @@ class RedHatCAService(RedHatService):
                 # status = dogtag.ca_status(use_proxy=use_proxy)
                 #
                 port = 8443
-                if use_proxy:
-                    port = 443
 
                 url = "https://%(host_port)s%(path)s" % {
                     "host_port": ipautil.format_netloc(api.env.ca_host, port),
