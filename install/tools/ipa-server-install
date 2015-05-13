@@ -49,9 +49,6 @@ except ImportError:
 from ipaserver.install import dsinstance
 from ipaserver.install import krbinstance
 from ipaserver.install import bindinstance
-from ipaserver.install import dnskeysyncinstance
-from ipaserver.install import opendnssecinstance
-from ipaserver.install import odsexporterinstance
 from ipaserver.install import httpinstance
 from ipaserver.install import ntpinstance
 from ipaserver.install import certs
@@ -61,6 +58,7 @@ from ipaserver.install import memcacheinstance
 from ipaserver.install import otpdinstance
 from ipaserver.install import sysupgrade
 from ipaserver.install import replication
+from ipaserver.install import dns as dns_installer
 from ipaserver.install import service, installutils
 from ipapython import version
 from ipapython import certmonger
@@ -405,6 +403,8 @@ def parse_options():
     #Automatically disable pkinit w/ dogtag until that is supported
     options.setup_pkinit = False
 
+    options.dnssec_master = False
+
     return safe_options, options
 
 def signal_handler(signum, frame):
@@ -589,21 +589,7 @@ def uninstall():
     if ca_instance.is_configured():
         ca_instance.uninstall()
 
-    ods = opendnssecinstance.OpenDNSSECInstance(fstore)
-    if ods.is_configured():
-        ods.uninstall()
-
-    ods_exporter = odsexporterinstance.ODSExporterInstance(fstore)
-    if ods_exporter.is_configured():
-        ods_exporter.uninstall()
-
-    bind = bindinstance.BindInstance(fstore)
-    if bind.is_configured():
-        bind.uninstall()
-
-    dnskeysync = dnskeysyncinstance.DNSKeySyncInstance(fstore)
-    if dnskeysync.is_configured():
-        dnskeysync.uninstall()
+    dns_installer.uninstall()
 
     httpinstance.HTTPInstance(fstore).uninstall()
     krbinstance.KrbInstance(fstore).uninstall()
@@ -769,19 +755,8 @@ def main():
                    "agreements.\n\n")
             print textwrap.fill(msg, width=80, replace_whitespace=False)
         else:
-
-            # test if server is DNSSEC key master
-            masters = opendnssecinstance.get_dnssec_key_masters(conn)
-            if api.env.host in masters:
-                print "This server is active DNSSEC key master. Uninstall could break your DNS system."
-                if not (options.unattended or user_input("Are you sure you "
-                                                         "want to continue "
-                                                         "with the uninstall "
-                                                         "procedure?",
-                                                         False)):
-                    print ""
-                    print "Aborting uninstall operation."
-                    sys.exit(1)
+            api.Backend.ldap2.connect(autobind=True)
+            dns_installer.uninstall_check(options)
 
             rm = replication.ReplicationManager(
                 realm=api.env.realm,
@@ -861,6 +836,7 @@ def main():
         #  Until then users that want to install the KRA need to use ipa-install-kra
         # TODO set setup_kra = True when Dogtag 10.2 is available
         setup_kra = False
+    options.setup_ca = setup_ca
 
     # Figure out what external CA step we're in. See cainstance.py for more
     # info on the 3 states.
@@ -922,13 +898,6 @@ def main():
     if httpinstance.httpd_443_configured():
         sys.exit("Aborting installation")
 
-    realm_name = ""
-    host_name = ""
-    domain_name = ""
-    ip_addresses = []
-    master_password = ""
-    dm_password = ""
-    admin_password = ""
     reverse_zones = []
 
     if not options.setup_dns and not options.unattended:
@@ -938,10 +907,6 @@ def main():
 
     # check bind packages are installed
     if options.setup_dns:
-        if not (bindinstance.check_inst(options.unattended) and
-                dnskeysyncinstance.check_inst()):
-            sys.exit("Aborting installation")
-
         # Don't require an external DNS to say who we are if we are
         # setting up a local DNS server.
         options.no_host_dns = True
@@ -988,9 +953,6 @@ def main():
         domain_name = options.domain_name
 
     domain_name = domain_name.lower()
-
-    ip_addresses = get_server_ip_address(host_name, fstore,
-        options.unattended, options.setup_dns, options.ip_addresses)
 
     if not options.realm_name:
         realm_name = read_realm_name(domain_name, options.unattended)
@@ -1075,28 +1037,11 @@ def main():
         admin_password = options.admin_password
 
     if options.setup_dns:
-        if options.no_forwarders:
-            dns_forwarders = ()
-        elif options.forwarders:
-            dns_forwarders = options.forwarders
-        else:
-            dns_forwarders = read_dns_forwarders()
-
-        #test DNSSEC forwarders
-        if dns_forwarders:
-            if (not bindinstance.check_forwarders(dns_forwarders, root_logger)
-                    and not options.no_dnssec_validation):
-                options.no_dnssec_validation = True
-                print "WARNING: DNSSEC validation will be disabled"
-
-        reverse_zones = bindinstance.check_reverse_zones(ip_addresses,
-            options.reverse_zones, options, options.unattended)
-
-        if reverse_zones:
-            print "Using reverse zone(s) %s" % ", ".join(str(rz) for rz in reverse_zones)
+        dns_installer.install_check(False, False, options, host_name)
+        ip_addresses = dns_installer.ip_addresses
     else:
-        dns_forwarders = ()
-    root_logger.debug("will use dns_forwarders: %s\n" % str(dns_forwarders))
+        ip_addresses = get_server_ip_address(host_name, fstore,
+            options.unattended, False, options.ip_addresses)
 
     print
     print "The IPA Master Server will be configured with:"
@@ -1108,10 +1053,15 @@ def main():
 
     if options.setup_dns:
         print "BIND DNS server will be configured to serve IPA domain with:"
-        print "Forwarders:    %s" % ("No forwarders" if not dns_forwarders \
-                else ", ".join([str(ip) for ip in dns_forwarders]))
-        print "Reverse zone(s):  %s" % ("No reverse zone" if options.no_reverse \
-                or reverse_zones is None else ", ".join(str(rz) for rz in reverse_zones))
+        print "Forwarders:    %s" % (
+            "No forwarders" if not dns_installer.dns_forwarders
+            else ", ".join([str(ip) for ip in dns_installer.dns_forwarders])
+        )
+        print "Reverse zone(s):  %s" % (
+            "No reverse zone" if options.no_reverse
+            or not dns_installer.reverse_zones
+            else ", ".join(str(rz) for rz in dns_installer.reverse_zones)
+        )
         print
 
     # If domain name and realm does not match, IPA server will not be able
@@ -1225,7 +1175,7 @@ def main():
             options.admin_password = admin_password
             options.host_name = host_name
             options.unattended = True
-            options.forwarders = dns_forwarders
+            options.forwarders = dns_installer.dns_forwarders
             options.reverse_zones = reverse_zones
             write_cache(vars(options))
             ca.configure_instance(host_name, domain_name, dm_password,
@@ -1323,24 +1273,16 @@ def main():
         service.print_msg("Restarting the certificate server")
         ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
 
-    # Create a BIND instance
-    bind = bindinstance.BindInstance(fstore, dm_password)
-    bind.setup(host_name, ip_addresses, realm_name, domain_name, dns_forwarders,
-               options.conf_ntp, reverse_zones, zonemgr=options.zonemgr,
-               ca_configured=setup_ca,
-               no_dnssec_validation=options.no_dnssec_validation)
     if options.setup_dns:
-        api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=dm_password)
-
-        bind.create_instance()
-        dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore, dm_password)
-        dnskeysyncd.create_instance(api.env.host, api.env.realm)
-        dnskeysyncd.start_dnskeysyncd()
-        bind.start_named()
-        print ""
-        bind.check_global_configuration()
-        print ""
+        api.Backend.ldap2.connect(autobind=True)
+        dns_installer.install(False, False, options)
     else:
+        # Create a BIND instance
+        bind = bindinstance.BindInstance(fstore, dm_password)
+        bind.setup(host_name, ip_addresses, realm_name,
+                   domain_name, (), options.conf_ntp, (),
+                   zonemgr=options.zonemgr, ca_configured=setup_ca,
+                   no_dnssec_validation=options.no_dnssec_validation)
         bind.create_sample_bind_zone()
 
     # Restart httpd to pick up the new IPA configuration

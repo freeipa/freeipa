@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import absolute_import
+
 import shutil
 import fileinput
 import re
@@ -26,8 +28,8 @@ import pwd
 import socket
 import dns.name
 
-import service
-import installutils
+from ipaserver.install import service
+from ipaserver.install import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import kernel_keyring
@@ -42,7 +44,7 @@ from ipaserver.install import dsinstance
 import pyasn1.codec.ber.decoder
 import struct
 
-import certs
+from ipaserver.install import certs
 from distutils import version
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths

@@ -41,6 +41,7 @@ from ipaserver.install.installutils import (
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import cainstance
 from ipaserver.install import krainstance
+from ipaserver.install import dns as dns_installer
 from ipalib import api, create_api, errors, util, certstore, x509
 from ipalib.constants import CACERT
 from ipapython import version
@@ -149,6 +150,9 @@ def parse_options():
         parser.error("You must specify at least one --forwarder option or --no-forwarders option")
     elif options.reverse_zones and options.no_reverse:
         parser.error("You cannot specify a --reverse-zone option together with --no-reverse")
+
+    options.zonemgr = None
+    options.dnssec_master = False
 
     return safe_options, options, args[0]
 
@@ -261,31 +265,6 @@ def install_http(config, auto_redirect):
     http.setup_firefox_extension(config.realm_name, config.domain_name)
 
     return http
-
-def install_bind(config, options):
-    api.Backend.ldap2.connect(bind_dn=DIRMAN_DN,
-                              bind_pw=config.dirman_password)
-    if options.forwarders:
-        forwarders = options.forwarders
-    else:
-        forwarders = ()
-    bind = bindinstance.BindInstance(dm_password=config.dirman_password)
-
-    bind.setup(config.host_name, config.ips, config.realm_name,
-               config.domain_name, forwarders, options.conf_ntp,
-               config.reverse_zones, ca_configured=options.setup_ca,
-               no_dnssec_validation=options.no_dnssec_validation)
-    bind.create_instance()
-    print ""
-    dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(
-        dm_password=config.dirman_password)
-    dnskeysyncd.create_instance(api.env.host, api.env.realm)
-    dnskeysyncd.start_dnskeysyncd()
-    bind.start_named()
-    print ""
-    bind.check_global_configuration()
-    print ""
-
 
 def install_dns_records(config, options, remote_api):
 
@@ -451,17 +430,6 @@ def main():
     global fstore
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
-    # check the bind is installed
-    if options.setup_dns:
-        check_bind()
-
-    # test DNSSEC forwarders
-    if options.forwarders:
-        if (not bindinstance.check_forwarders(options.forwarders, root_logger)
-                and not options.no_dnssec_validation):
-            options.no_dnssec_validation = True
-            print "WARNING: DNSSEC validation will be disabled"
-
     # Check to see if httpd is already configured to listen on 443
     if httpinstance.httpd_443_configured():
         sys.exit("Aborting installation")
@@ -514,23 +482,18 @@ def main():
 
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
 
+    if options.setup_dns:
+        dns_installer.install_check(False, True, options, config.host_name)
+    else:
+        installutils.get_server_ip_address(config.host_name, fstore,
+                                           options.unattended, False,
+                                           options.ip_addresses)
+
     # check connection
     if not options.skip_conncheck:
         replica_conn_check(
             config.master_host_name, config.host_name, config.realm_name,
             options.setup_ca, config.ca_ds_port, options.admin_password)
-
-
-    # check replica host IP resolution
-    config.ips = installutils.get_server_ip_address(config.host_name, fstore,
-        options.unattended, options.setup_dns, options.ip_addresses)
-
-    ip_addresses = [str(ip) for ip in config.ips]
-    config.reverse_zones = bindinstance.check_reverse_zones(ip_addresses,
-        options.reverse_zones, options, True)
-
-    if config.reverse_zones is not None:
-        print "Using reverse zone(s) %s" % ', '.join(config.reverse_zones)
 
 
     # Create the management framework config file
@@ -713,7 +676,8 @@ def main():
         CA.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
 
     if options.setup_dns:
-        install_bind(config, options)
+        api.Backend.ldap2.connect(autobind=True)
+        dns_installer.install(False, True, options)
 
     # Restart httpd to pick up the new IPA configuration
     service.print_msg("Restarting the web server")

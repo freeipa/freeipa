@@ -21,18 +21,16 @@
 
 from optparse import OptionGroup, SUPPRESS_HELP
 
-from ipaserver.install import (service, bindinstance, ntpinstance,
-    httpinstance, dnskeysyncinstance, opendnssecinstance, odsexporterinstance)
+from ipaserver.install import bindinstance, httpinstance
 from ipaserver.install.installutils import *
 from ipaserver.install import installutils
 from ipapython import version
-from ipapython import ipautil, sysrestore
-from ipapython.ipaldap import AUTOBIND_ENABLED
-from ipalib import api, errors, util
+from ipalib import api
 from ipaplatform.paths import paths
 from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import standard_logging_setup, root_logger
-from ipapython.ipautil import DN
+
+from ipaserver.install import dns as dns_installer
 
 log_file_name = paths.IPASERVER_INSTALL_LOG
 
@@ -96,48 +94,6 @@ def main():
 
     installutils.check_server_configuration()
 
-    global fstore
-    fstore = sysrestore.FileStore(paths.SYSRESTORE)
-
-    print "=============================================================================="
-    print "This program will setup DNS for the FreeIPA Server."
-    print ""
-    print "This includes:"
-    print "  * Configure DNS (bind)"
-    print "  * Configure SoftHSM (required by DNSSEC)"
-    print "  * Configure ipa-dnskeysyncd (required by DNSSEC)"
-    if options.dnssec_master:
-        print "  * Configure ipa-ods-exporter (required by DNSSEC key master)"
-        print "  * Configure OpenDNSSEC (required by DNSSEC key master)"
-        print "  * Generate DNSSEC master key (required by DNSSEC key master)"
-    print ""
-    print "NOTE: DNSSEC zone signing is not enabled by default"
-    print ""
-    if options.dnssec_master:
-        print "DNSSEC support is experimental!"
-        print ""
-        print "Plan carefully, current version doesn't allow you to move DNSSEC"
-        print "key master to different server and master cannot be uninstalled"
-        print ""
-    print ""
-    print "To accept the default shown in brackets, press the Enter key."
-    print ""
-
-    if options.dnssec_master and not options.unattended and not ipautil.user_input(
-            "Do you want to setup this IPA server as DNSSEC key master?",
-            False):
-        sys.exit("Aborted")
-
-    # Check bind packages are installed
-    if not (bindinstance.check_inst(options.unattended) and
-            dnskeysyncinstance.check_inst()):
-        sys.exit("Aborting installation.")
-
-    if options.dnssec_master:
-        # check opendnssec packages are installed
-        if not opendnssecinstance.check_inst():
-            sys.exit("Aborting installation")
-
     # Initialize the ipalib api
     cfg = dict(
         in_server=True,
@@ -146,92 +102,19 @@ def main():
     api.bootstrap(**cfg)
     api.finalize()
 
-
-    # create BIND and OpenDNSSec instances
-
-    bind = bindinstance.BindInstance(fstore, ldapi=True,
-                                     autobind=AUTOBIND_ENABLED)
-
-    ods = opendnssecinstance.OpenDNSSECInstance(fstore, ldapi=True,
-                                                autobind=AUTOBIND_ENABLED)
-    if options.dnssec_master:
-        ods.realm = api.env.realm
-        dnssec_masters = ods.get_masters()
-        # we can reinstall current server if it is dnssec master
-        if not api.env.host in dnssec_masters and dnssec_masters:
-            print "DNSSEC key master(s):", u','.join(dnssec_masters)
-            sys.exit("Only one DNSSEC key master is supported in current version.")
-
-    ip_addresses = get_server_ip_address(api.env.host, fstore,
-        options.unattended, True, options.ip_addresses)
-
-    if options.no_forwarders:
-        dns_forwarders = ()
-    elif options.forwarders:
-        dns_forwarders = options.forwarders
-    else:
-        dns_forwarders = read_dns_forwarders()
-
-    # test DNSSEC forwarders
-    if dns_forwarders:
-        if (not bindinstance.check_forwarders(dns_forwarders, root_logger)
-                and not options.no_dnssec_validation):
-            options.no_dnssec_validation = True
-            print "WARNING: DNSSEC validation will be disabled"
-
-    root_logger.debug("will use dns_forwarders: %s\n", str(dns_forwarders))
-
     api.Backend.ldap2.connect(autobind=True)
 
-    reverse_zones = bindinstance.check_reverse_zones(ip_addresses,
-        options.reverse_zones, options, options.unattended, True)
+    options.setup_ca = False
 
-    if reverse_zones:
-        print "Using reverse zone(s) %s" % ', '.join(reverse_zones)
-
-    conf_ntp = ntpinstance.NTPInstance(fstore).is_enabled()
-
-    if not options.unattended:
-        print ""
-        print "The following operations may take some minutes to complete."
-        print "Please wait until the prompt is returned."
-        print ""
-
-    bind.setup(api.env.host, ip_addresses, api.env.realm, api.env.domain,
-               dns_forwarders, conf_ntp, reverse_zones, zonemgr=options.zonemgr,
-               no_dnssec_validation=options.no_dnssec_validation)
-    bind.create_instance()
-
-    # on dnssec master this must be installed last
-    dnskeysyncd = dnskeysyncinstance.DNSKeySyncInstance(fstore, ldapi=True)
-    dnskeysyncd.create_instance(api.env.host, api.env.realm)
-    if options.dnssec_master:
-        ods_exporter = odsexporterinstance.ODSExporterInstance(
-            fstore, ldapi=True, autobind=AUTOBIND_ENABLED)
-
-        ods_exporter.create_instance(api.env.host, api.env.realm)
-        ods.create_instance(api.env.host, api.env.realm)
-
-    dnskeysyncd.start_dnskeysyncd()
-    bind.start_named()
+    dns_installer.install_check(True, False, options, hostname=api.env.host)
+    dns_installer.install(True, False, options)
 
     # Restart http instance to make sure that python-dns has the right resolver
     # https://bugzilla.redhat.com/show_bug.cgi?id=800368
+    fstore = sysrestore.FileStore(paths.SYSRESTORE)
     http = httpinstance.HTTPInstance(fstore)
     service.print_msg("Restarting the web server")
     http.restart()
-
-    print "=============================================================================="
-    print "Setup complete"
-    print ""
-    bind.check_global_configuration()
-    print ""
-    print ""
-    print "\tYou must make sure these network ports are open:"
-    print "\t\tTCP Ports:"
-    print "\t\t  * 53: bind"
-    print "\t\tUDP Ports:"
-    print "\t\t  * 53: bind"
 
     return 0
 
