@@ -78,6 +78,9 @@ return {
                     label: '@i18n:buttons.activate',
                     icon: 'fa-check'
                 }
+            ],
+            policies: [
+                mod_user.stageuser_sidebar_policy
             ]
         },
         {
@@ -209,22 +212,16 @@ return {
             state: {
                 evaluators: [
                     {
-                        $factory: IPA.enable_state_evaluator,
-                        field: 'nsaccountlock',
-                        adapter: { $type: 'batch', result_index: 0 },
-                        invert_value: true
-                    },
-                    {
-                        $factory: IPA.acl_state_evaluator,
-                        name: 'reset_password_acl_evaluator',
-                        adapter: { $type: 'batch', result_index: 0 },
-                        attribute: 'userpassword'
-                    },
-                    IPA.user.self_service_other_user_evaluator
+                        $factory: mod_facet.noop_state_evaluator,
+                        state: ['staging']
+                    }
                 ],
                 summary_conditions: [
-                    IPA.enabled_summary_cond,
-                    IPA.disabled_summary_cond
+                    {
+                        pos: ['staging'],
+                        state: ['staging'],
+                        description: 'Staging user'
+                    }
                 ]
             }
         }
@@ -302,6 +299,9 @@ stageuser.search_preserved_facet_spec = {
             label: '@i18n:buttons.restore',
             icon: 'fa-heart'
         }
+    ],
+    policies: [
+        mod_user.stageuser_sidebar_policy
     ]
 };
 

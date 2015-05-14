@@ -144,6 +144,8 @@
                 "classes": [
                     "*facet_policy",
                     "IPA.hide_empty_row_policy",
+                    "IPA.user.preserved_user_policy",
+                    "IPA.user.stageuser_sidebar_policy",
                     "aci.permission_target_policy",
                     "aci.permission_managed_policy"
                 ]
@@ -158,8 +160,8 @@
                 "name": "Evaluators & Summaries",
                 "classes": [
                     "*_evaluator",
-                    "details.enabled_summary_cond",
-                    "details.disabled_summary_cond"
+                    "facet.summary_cond",
+                    "*_summary_cond"
                 ]
             },
 

@@ -1494,7 +1494,9 @@ reg.set('validator', field.validator_builder.registry);
 field.adapter_builder = builder.get('adapter');
 field.adapter_builder.ctor = field.Adapter;
 field.adapter_builder.post_ops.push(function(obj, spec, context) {
-        obj.context = context.context;
+        if (context.context) {
+            obj.context = context.context;
+        }
         return obj;
     }
 );

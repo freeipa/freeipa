@@ -504,6 +504,16 @@ table.scrollable tbody {
     margin-right: 5px;
 }
 
+.facet-title.preserved .header-icon:before {
+    content: "\f014";
+    margin-right: 5px;
+}
+
+.facet-title.staging .header-icon:before {
+    content: "\f0ad";
+    margin-right: 5px;
+}
+
 .facet-title.disabled h1,
 .facet-title.disabled h1 .facet-pkey{
     color: gray;

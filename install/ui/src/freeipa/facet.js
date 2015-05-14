@@ -2716,7 +2716,8 @@ exp.state = IPA.state = function(spec) {
      * Summary conditions
      * @property {Array.<Object>}
      */
-    that.summary_conditions = builder.build('', spec.summary_conditions) || [];
+    that.summary_conditions = builder.build('', spec.summary_conditions, {},
+                                    { $factory: exp.summary_cond }) || [];
 
     /**
      * Initializes evaluators
@@ -2790,6 +2791,42 @@ exp.state = IPA.state = function(spec) {
 
         that.changed.notify([state], that);
     };
+
+    return that;
+};
+
+/**
+ * Summary condition base class
+ *
+ * @class facet.summary_cond
+ */
+exp.summary_cond = function(spec) {
+
+    var that = IPA.object();
+
+    /**
+     * State which must be present in order to be positively evaluated
+     * @property {string[]}
+     */
+    that.pos = spec.pos || [];
+
+    /**
+     * State which must not be present in order to be positively evaluated
+     * @property {string[]}
+     */
+    that.neg = spec.neg || [];
+
+    /**
+     * States which will be set in positive evaluation
+     * @property {string[]}
+     */
+    that.state = spec.state || [];
+
+    /**
+     * Description which will be set in positive evaluation
+     * @property {string}
+     */
+    that.description = spec.description || '';
 
     return that;
 };
@@ -2925,6 +2962,37 @@ exp.state_evaluator = IPA.state_evaluator = function(spec) {
 
     return that;
 };
+
+/**
+ * Noop evaluator always sets the state on post_load on the first time
+ * @class facet.noop_state_evaluator
+ * @extends facet.state_evaluator
+ * @alternateClassName IPA.noop_state_evaluator
+ */
+exp.noop_state_evaluator = IPA.noop_state_evaluator = function(spec) {
+
+    spec = spec || {};
+    spec.event = spec.event || 'post_load';
+
+    var that = IPA.state_evaluator(spec);
+    that.name = spec.name || 'noop_state_evaluator';
+
+    /**
+     * States to be set
+     * @property {string[]}
+     */
+    that.state = spec.state || [];
+
+    /**
+     * @inheritDoc
+     */
+    that.on_event = function() {
+        that.notify_on_change(that.state);
+    };
+
+    return that;
+};
+
 
 /**
  * Sets 'dirty' state when facet is dirty

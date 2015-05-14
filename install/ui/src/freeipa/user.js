@@ -117,6 +117,9 @@ return {
                     icon: 'fa-check'
                 }
             ],
+            policies: [
+                IPA.user.stageuser_sidebar_policy
+            ],
             deleter_dialog: {
                 $factory: IPA.user.deleter_dialog
             }
@@ -302,22 +305,40 @@ return {
                 }
             ],
             actions: [
-                'add_otptoken',
-                'enable',
-                'disable',
+                {
+                    $type: 'add_otptoken',
+                    hide_cond: ['preserved-user']
+                },
+                {
+                    $type: 'enable',
+                    hide_cond: ['preserved-user']
+                },
+                {
+                    $type: 'disable',
+                    hide_cond: ['preserved-user']
+                },
+                {
+                    $type: 'enable',
+                    hide_cond: ['preserved-user']
+                },
                 'delete',
-                'reset_password',
+                {
+                    $type: 'reset_password',
+                    hide_cond: ['preserved-user']
+                },
                 {
                     $factory: IPA.object_action,
                     name: 'unlock',
                     method: 'unlock',
                     label: '@i18n:objects.user.unlock',
                     needs_confirm: true,
+                    hide_cond: ['preserved-user'],
                     confirm_msg: '@i18n:objects.user.unlock_confirm'
                 },
                 {
                     $type: 'automember_rebuild',
                     name: 'automember_rebuild',
+                    hide_cond: ['preserved-user'],
                     label: '@i18n:actions.automember_rebuild'
                 }
             ],
@@ -336,13 +357,23 @@ return {
                         adapter: { $type: 'batch', result_index: 0 },
                         attribute: 'userpassword'
                     },
-                    IPA.user.self_service_other_user_evaluator
+                    IPA.user.self_service_other_user_evaluator,
+                    IPA.user.preserved_user_evaluator
                 ],
                 summary_conditions: [
+                    {
+                        pos: ['preserved-user'],
+                        neg: [],
+                        state: ['preserved'],
+                        description: 'Preserved user'
+                    },
                     IPA.enabled_summary_cond,
                     IPA.disabled_summary_cond
                 ]
-            }
+            },
+            policies: [
+                IPA.user.preserved_user_policy
+            ]
         },
         {
             $type: 'association',
@@ -690,6 +721,85 @@ IPA.user.self_service_other_user_evaluator = function(spec) {
         }
 
         that.notify_on_change(old_state);
+    };
+
+    return that;
+};
+
+/**
+ * Evaluates if user is "preserved" user
+ * @class IPA.user.preserved_user_evaluator
+ */
+IPA.user.preserved_user_evaluator = function(spec) {
+
+    spec = spec || {};
+    spec.event = spec.event || 'post_load';
+
+    var that = IPA.state_evaluator(spec);
+    that.name = spec.name || 'preserved_user_evaluator';
+    that.param = spec.param || 'dn';
+    that.adapter = builder.build('adapter', { $type: 'adapter'}, { context: that });
+
+    /**
+     * Evaluates if user is preserved, i.e. is in provisioning tree
+     */
+    that.on_event = function(data) {
+
+        var old_state = that.state;
+        that.state = [];
+
+        var dn = that.adapter.load(data)[0];
+        if (dn.indexOf('cn=provisioning') > 0) {
+            that.state.push('preserved-user');
+        }
+
+        that.notify_on_change(old_state);
+    };
+
+    return that;
+};
+
+/**
+ * Change breadcrumb navigation and therefore also target facet on first
+ * navigation item based on user state (active/preserved)
+ * @class
+ */
+IPA.user.preserved_user_policy = function(spec) {
+
+    var that = IPA.facet_policy(spec);
+    that.post_load = function(data) {
+        var adapter = builder.build('adapter', {
+            $type: 'adapter',
+            result_index: 0,
+            context: { param: 'dn' }
+        });
+        var dn = adapter.load(data)[0];
+        var preserved_user = dn.indexOf('cn=provisioning') > 0;
+        var details_facet = that.container;
+        details_facet.set_tabs_visible(!preserved_user);
+        details_facet.redirect_info = { entity: 'user', facet: 'search' };
+        if (preserved_user) {
+            details_facet.redirect_info.facet = 'search_preserved';
+        }
+        details_facet.header.update_breadcrumb();
+    };
+
+    return that;
+};
+
+
+/**
+ * Display sidebar (facet tabs) only if user can view stage and preserved user.
+ * Atm. the sidebar is hidden only in self-service. Should be extended by a
+ * check if user can actually read it.
+ * @class
+ */
+IPA.user.stageuser_sidebar_policy = function(spec) {
+
+    var that = IPA.facet_policy(spec);
+
+    that.post_create = function(data) {
+        that.container.set_tabs_visible(!IPA.is_selfservice);
     };
 
     return that;

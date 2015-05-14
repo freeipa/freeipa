@@ -34,7 +34,8 @@ define([
         './widget',
         './facet',
         './add'],
-    function(lang, builder, IPA, $, phases, reg, rpc, su, text, widget_mod) {
+    function(lang, builder, IPA, $, phases, reg, rpc, su, text, widget_mod,
+             facet_mod) {
 
 /**
  * Details module
@@ -1957,11 +1958,11 @@ exp.delete_action = IPA.delete_action = function(spec) {
  *
  * @class details.enabled_summary_cond
  * @alternateClassName IPA.enabled_summary_cond
+ * @extends facet.summary_cond
  */
 exp.enabled_summary_cond = IPA.enabled_summary_cond = function() {
 
-    var that = IPA.object();
-    lang.mixin(that, {
+    var that = facet_mod.summary_cond ({
         pos: ['enabled'],
         neg: [],
         description: text.get('@i18n:status.enabled'),
@@ -1975,10 +1976,10 @@ exp.enabled_summary_cond = IPA.enabled_summary_cond = function() {
  *
  * @class details.disabled_summary_cond
  * @alternateClassName IPA.disabled_summary_cond
+ * @extends facet.summary_cond
  */
 exp.disabled_summary_cond = IPA.disabled_summary_cond = function() {
-    var that = IPA.object();
-    lang.mixin(that, {
+    var that = facet_mod.summary_cond({
         pos: [],
         neg: ['enabled'],
         description: text.get('@i18n:status.disabled'),
