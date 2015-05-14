@@ -53,7 +53,12 @@ define([
  * @class facet
  * @singleton
  */
-var exp = {};
+var exp = {
+    sidebar_class: 'sidebar-pf sidebar-pf-left',
+    sidebar_width: ' col-sm-3 col-md-2 col-sm-pull-9 col-md-pull-10',
+    sidebar_content_width: ' col-sm-9 col-md-10 col-sm-push-3 col-md-push-2',
+    sidebar_content_full_width: 'col-md-12'
+};
 exp.facet_spec = {};
 
 /**
@@ -188,6 +193,19 @@ exp.facet = IPA.facet = function(spec, no_init) {
      * @property {boolean}
      */
     that.disable_facet_tabs = spec.disable_facet_tabs;
+
+    /**
+     * Facet tabs in sidebar
+     *
+     * There is and effort (#4625) to move all facet tabs into sidebar but it
+     * was not user tested, therefore they remain on the old place for the
+     * time  being.
+     *
+     * This option should be changed when ^^ is removed.
+     * @property {boolean}
+     */
+    that.tabs_in_sidebar = spec.tabs_in_sidebar !== undefined ?
+        spec.tabs_in_sidebar : false;
 
     /**
      * State object for actions
@@ -586,7 +604,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
             that.dom_node.detach();
         } else {
             that.dom_node = $('<div/>', {
-                'class': 'facet active-facet fluid-container',
+                'class': 'facet active-facet container-fluid',
                 name: that.name,
                 'data-name': that.name,
                 'data-entity': entity_name
@@ -602,22 +620,41 @@ exp.facet = IPA.facet = function(spec, no_init) {
         var node = dom_node[0];
         construct.place(node,that.container_node);
 
+        var row = $('<div/>', {
+            'class': 'row'
+        }).appendTo(dom_node);
+        var content_cont = row;
 
-        if (that.disable_facet_tabs) dom_node.addClass('no-facet-tabs');
+
+        // header
+        if (that.disable_facet_tabs) {
+            dom_node.addClass('no-facet-tabs');
+        } else if (that.tabs_in_sidebar) {
+            that.sidebar_content_el = $('<div/>', {
+                'class': exp.sidebar_content_width
+            }).appendTo(row);
+            content_cont = $('<div/>', {
+                'class': 'row'
+            }).appendTo(that.sidebar_content_el);
+
+            that.sidebar_el = $('<div/>', {
+                'class': exp.sidebar_class  + exp.sidebar_width
+            }).appendTo(row);
+        }
         dom_node.addClass(that.display_class);
 
         that.header_container = $('<div/>', {
             'class': 'facet-header col-sm-12'
-        }).appendTo(dom_node);
+        }).appendTo(content_cont);
         that.create_header(that.header_container);
 
         that.content = $('<div/>', {
             'class': 'facet-content col-sm-12'
-        }).appendTo(dom_node);
+        }).appendTo(content_cont);
 
         that.error_container = $('<div/>', {
             'class': 'facet-content facet-error col-sm-12'
-        }).appendTo(dom_node);
+        }).appendTo(content_cont);
 
         that.create_content(that.content);
         dom_node.removeClass('active-facet');
@@ -1114,9 +1151,30 @@ exp.facet_header = IPA.facet_header = function(spec) {
         that.facet.action_state.changed.attach(that.update_summary);
 
         that.title_widget = IPA.facet_title();
-        that.tabs_widget = new exp.FacetGroupsWidget({
-            facet: this.facet
-        });
+
+        if (!that.facet.tabs_in_sidebar) {
+            that.tabs_widget = new exp.FacetGroupsWidget({
+                facet: this.facet
+            });
+        } else {
+            that.tabs_widget = new exp.FacetGroupsWidget({
+                facet: this.facet,
+                css_class: '',
+                group_el_type: '<div/>',
+                group_class: '',
+                group_label_el_type: '<div/>',
+                group_label_class: 'nav-category',
+                group_label_title_el_type: '<h2/>',
+                group_label_title_class: '',
+                tab_cont_el_type: '<div/>',
+                tab_cont_class: '',
+                tab_list_el_type: '<ul/>',
+                tab_list_class: 'nav nav-pills nav-stacked',
+                tab_el_type: '<li/>',
+                tab_class: 't',
+                selected_class: 'active'
+            });
+        }
     };
 
     /**
@@ -1287,8 +1345,15 @@ exp.facet_header = IPA.facet_header = function(spec) {
         that.title_widget.update({ text: that.facet.label });
 
         if (!that.facet.disable_facet_tabs) {
-            that.create_facet_groups(container);
+
+            var tab_cont = container;
+            if (that.facet.tabs_in_sidebar) {
+                tab_cont = that.facet.sidebar_el;
+            }
+            that.create_facet_groups(tab_cont);
+            $(window).trigger('resize');
         }
+
     };
 
     /**
