@@ -237,6 +237,18 @@ field.field = IPA.field = function(spec) {
     that.metadata = spec.metadata;
 
     /**
+     * Override of metadata.minvalue
+     * @property {number}
+     */
+    that.minvalue = spec.minvalue;
+
+    /**
+     * Override of metadata.maxvalue
+     * @property {number}
+     */
+    that.maxvalue = spec.maxvalue;
+
+    /**
      * Validators
      * @property {Array.<IPA.validator>}
      */
@@ -955,6 +967,16 @@ field.metadata_validator = IPA.metadata_validator = function(spec) {
 
     var that = IPA.validator(spec);
 
+    that.get_property = function(name, obj, metadata) {
+        var prop = null;
+        if (IPA.defined(obj[name], true)) {
+            prop = obj[name];
+        } else if (IPA.defined(metadata[name], true)) {
+            prop = metadata[name];
+        }
+        return prop;
+    };
+
     /**
      * @inheritDoc
      */
@@ -980,13 +1002,17 @@ field.metadata_validator = IPA.metadata_validator = function(spec) {
 
         if (number) {
 
-            if (IPA.defined(metadata.minvalue, true) && Number(value) < Number(metadata.minvalue)) {
+            var numVal = Number(value);
+            var minvalue = that.get_property('minvalue', context, metadata);
+            var maxvalue = that.get_property('maxvalue', context, metadata);
+
+            if (IPA.defined(minvalue) &&  numVal < Number(minvalue)) {
                 message = text.get('@i18n:widget.validation.min_value');
                 message = message.replace('${value}', metadata.minvalue);
                 return that.false_result(message);
             }
 
-            if (IPA.defined(metadata.maxvalue, true) && Number(value) > Number(metadata.maxvalue)) {
+            if (IPA.defined(maxvalue) && numVal > Number(maxvalue)) {
                 message = text.get('@i18n:widget.validation.max_value');
                 message = message.replace('${value}', metadata.maxvalue);
                 return that.false_result(message);
