@@ -39,6 +39,7 @@ from ipaserver.install import installutils
 from ipapython import ipautil, ipaldap
 from ipalib import errors
 from ipalib import api, create_api
+from ipalib import constants
 from ipaplatform.paths import paths
 from ipaplatform import services
 from ipapython.dn import DN
@@ -305,6 +306,10 @@ class LDAPUpdate:
             self.sub_dict["TIME"] = int(time.time())
         if not self.sub_dict.get("DOMAIN") and domain is not None:
             self.sub_dict["DOMAIN"] = domain
+        if not self.sub_dict.get("MIN_DOMAIN_LEVEL"):
+            self.sub_dict["MIN_DOMAIN_LEVEL"] = str(constants.MIN_DOMAIN_LEVEL)
+        if not self.sub_dict.get("MAX_DOMAIN_LEVEL"):
+            self.sub_dict["MAX_DOMAIN_LEVEL"] = str(constants.MAX_DOMAIN_LEVEL)
         self.api = create_api(mode=None)
         self.api.bootstrap(in_server=True, context='updates')
         self.api.finalize()

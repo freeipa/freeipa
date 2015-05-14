@@ -1344,6 +1344,22 @@ class EmptyResult(NotFound):
 
     errno = 4031
 
+class InvalidDomainLevelError(ExecutionError):
+    """
+    **4032** Raised when a operation could not be completed due to a invalid
+             domain level.
+
+    For example:
+
+    >>> raise InvalidDomainLevelError(reason='feature requires domain level 4')
+    Traceback (most recent call last):
+      ...
+    InvalidDomainLevelError: feature requires domain level 4
+
+    """
+
+    errno = 4032
+
 class BuiltinError(ExecutionError):
     """
     **4100** Base class for builtin execution errors (*4100 - 4199*).

@@ -70,7 +70,7 @@ from ipapython import sysrestore
 from ipapython.ipautil import *
 from ipapython import ipautil
 from ipapython import dogtag
-from ipalib import api, errors, util, x509
+from ipalib import api, errors, util, x509, constants
 from ipapython.config import IPAOptionParser
 from ipalib.util import validate_domain_name
 from ipalib.constants import CACERT
@@ -176,6 +176,8 @@ def parse_options():
                            help="create home directories for users "
                                 "on their first login")
     basic_group.add_option("--hostname", dest="host_name", help="fully qualified name of server")
+    basic_group.add_option("--domain-level", dest="domainlevel", help="IPA domain level",
+                           default=constants.MAX_DOMAIN_LEVEL, type=int)
     basic_group.add_option("--ip-address", dest="ip_addresses",
                       type="ip", ip_local=True, action="append", default=[],
                       help="Master Server IP Address. This option can be used multiple times",
@@ -326,6 +328,15 @@ def parse_options():
             validate_domain_name(options.domain_name)
         except ValueError, e:
             parser.error("invalid domain: " + unicode(e))
+
+    # Check that Domain Level is within the allowed range
+    if not options.uninstall:
+        if options.domainlevel < constants.MIN_DOMAIN_LEVEL:
+            parser.error("Domain Level cannot be lower than {0}"
+                         .format(constants.MIN_DOMAIN_LEVEL))
+        elif options.domainlevel > constants.MAX_DOMAIN_LEVEL:
+            parser.error("Domain Level cannot be higher than {0}"
+                         .format(constants.MAX_DOMAIN_LEVEL))
 
     if not options.setup_dns:
         if options.forwarders:
@@ -1143,21 +1154,24 @@ def main():
                 ntp.create_instance()
 
         if options.dirsrv_cert_files:
-            ds = dsinstance.DsInstance(fstore=fstore)
+            ds = dsinstance.DsInstance(fstore=fstore,
+                                       domainlevel=options.domainlevel)
             ds.create_instance(realm_name, host_name, domain_name,
                             dm_password, dirsrv_pkcs12_info,
                             idstart=options.idstart, idmax=options.idmax,
                             subject_base=options.subject,
                             hbac_allow=not options.hbac_allow)
         else:
-            ds = dsinstance.DsInstance(fstore=fstore)
+            ds = dsinstance.DsInstance(fstore=fstore,
+                                       domainlevel=options.domainlevel)
             ds.create_instance(realm_name, host_name, domain_name,
                             dm_password,
                             idstart=options.idstart, idmax=options.idmax,
                             subject_base=options.subject,
                             hbac_allow=not options.hbac_allow)
     else:
-        ds = dsinstance.DsInstance(fstore=fstore)
+        ds = dsinstance.DsInstance(fstore=fstore,
+                                   domainlevel=options.domainlevel)
         ds.init_info(
             realm_name, host_name, domain_name, dm_password,
             options.subject, 1101, 1100, None)

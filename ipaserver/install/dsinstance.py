@@ -40,6 +40,7 @@ from ipaserver.install import upgradeinstance
 from ipalib import api
 from ipalib import certstore
 from ipalib import errors
+from ipalib import constants
 from ipaplatform.tasks import tasks
 from ipalib.constants import CACERT
 from ipapython.dn import DN
@@ -62,6 +63,7 @@ IPA_SCHEMA_FILES = ("60kerberos.ldif",
                     "70ipaotp.ldif",
                     "70topology.ldif",
                     "71idviews.ldif",
+                    "72domainlevels.ldif",
                     "15rfc2307bis.ldif",
                     "15rfc4876.ldif")
 
@@ -186,7 +188,7 @@ info: IPA V2.0
 
 class DsInstance(service.Service):
     def __init__(self, realm_name=None, domain_name=None, dm_password=None,
-                 fstore=None):
+                 fstore=None, domainlevel=None):
         service.Service.__init__(self, "dirsrv",
             service_desc="directory server",
             dm_password=dm_password,
@@ -209,6 +211,7 @@ class DsInstance(service.Service):
         self.subject_base = None
         self.open_ports = []
         self.run_init_memberof = True
+        self.domainlevel = domainlevel
         if realm_name:
             self.suffix = ipautil.realm_to_suffix(self.realm)
             self.__setup_sub_dict()
@@ -254,6 +257,7 @@ class DsInstance(service.Service):
     def __common_post_setup(self):
         self.step("initializing group membership", self.init_memberof)
         self.step("adding master entry", self.__add_master_entry)
+        self.step("initializing domain level", self.__set_domain_level)
         self.step("configuring Posix uid/gid generation",
                   self.__config_uidgid_gen)
         self.step("adding replication acis", self.__add_replication_acis)
@@ -395,7 +399,10 @@ class DsInstance(service.Service):
                              IDMAX=self.idmax, HOST=self.fqdn,
                              ESCAPED_SUFFIX=str(self.suffix),
                              GROUP=DS_GROUP,
-                             IDRANGE_SIZE=idrange_size
+                             IDRANGE_SIZE=idrange_size,
+                             DOMAIN_LEVEL=self.domainlevel,
+                             MAX_DOMAIN_LEVEL=constants.MAX_DOMAIN_LEVEL,
+                             MIN_DOMAIN_LEVEL=constants.MIN_DOMAIN_LEVEL,
                          )
 
     def __create_instance(self):
@@ -1011,3 +1018,8 @@ class DsInstance(service.Service):
         root_logger.debug('Unable to find certificate subject base in '
                           'certmap.conf')
         return None
+
+    def __set_domain_level(self):
+        # Create global domain level entry and set the domain level
+        if self.domainlevel is not None:
+            self._ldap_mod("domainlevel.ldif", self.sub_dict)

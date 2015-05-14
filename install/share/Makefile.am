@@ -22,6 +22,7 @@ app_DATA =				\
 	70ipaotp.ldif			\
 	70topology.ldif			\
 	71idviews.ldif			\
+	72domainlevels.ldif			\
 	anonymous-vlv.ldif		\
 	bootstrap-template.ldif		\
 	caJarSigningCert.cfg.template	\
@@ -34,6 +35,7 @@ app_DATA =				\
 	ds-nfiles.ldif			\
 	dns.ldif			\
 	dnssec.ldif			\
+	domainlevel.ldif			\
 	kerberos.ldif			\
 	indices.ldif			\
 	bind.named.conf.template	\

@@ -49,6 +49,7 @@ app_DATA =				\
 	61-trusts-s4u2proxy.update	\
 	62-ranges.update		\
 	71-idviews.update		\
+	72-domainlevels.update		\
 	90-post_upgrade_plugins.update	\
 	$(NULL)
 

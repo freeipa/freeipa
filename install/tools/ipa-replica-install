@@ -43,7 +43,7 @@ from ipaserver.install import cainstance
 from ipaserver.install import kra
 from ipaserver.install import dns as dns_installer
 from ipalib import api, create_api, errors, util, certstore, x509
-from ipalib.constants import CACERT
+from ipalib import constants
 from ipapython import version
 from ipapython.config import IPAOptionParser
 from ipapython import sysrestore
@@ -224,12 +224,12 @@ def install_ca_cert(ldap, base_dn, realm, cafile):
         try:
             certs = certstore.get_ca_certs(ldap, base_dn, realm, False)
         except errors.NotFound:
-            shutil.copy(cafile, CACERT)
+            shutil.copy(cafile, constants.CACERT)
         else:
             certs = [c[0] for c in certs if c[2] is not False]
-            x509.write_certificate_list(certs, CACERT)
+            x509.write_certificate_list(certs, constants.CACERT)
 
-        os.chmod(CACERT, 0444)
+        os.chmod(constants.CACERT, 0444)
     except Exception, e:
         print "error copying files: " + str(e)
         sys.exit(1)
@@ -567,6 +567,30 @@ def main():
                        'It needs to be removed.')
                 print "Run this on the master that generated the info file:"
                 print "    %% ipa-replica-manage del %s --force" % config.host_name
+                exit(3)
+
+            # Detect the current domain level
+            try:
+                current = remote_api.Command['domainlevel_get']()['result']
+            except errors.NotFound:
+                # If we're joining an older master, domain entry is not
+                # available
+                current = 0
+
+            # Detect if current level is out of supported range
+            # for this IPA version
+            under_lower_bound = current < constants.MIN_DOMAIN_LEVEL
+            above_upper_bound = current > constants.MAX_DOMAIN_LEVEL
+
+            if under_lower_bound or above_upper_bound:
+                message = ("This version of FreeIPA does not support "
+                           "the Domain Level which is currently set for "
+                           "this domain. The Domain Level needs to be "
+                           "raised before installing a replica with "
+                           "this version is allowed to be installed "
+                           "within this domain.")
+                root_logger.error(message)
+                print(message)
                 exit(3)
 
             # Check pre-existing host entry

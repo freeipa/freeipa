@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=119
-# Last change: edewata - Added vault plugin
+IPA_API_VERSION_MINOR=120
+# Last change: tbabej - Add Domain Level feature

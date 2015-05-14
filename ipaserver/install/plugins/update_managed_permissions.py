@@ -338,7 +338,16 @@ NONOBJECT_PERMISSIONS = {
             'serviceAuthenticationMethod', 'objectclassMap', 'attributeMap',
             'profileTTL'
         },
-    }
+    },
+    'System: Read Domain Level': {
+        'ipapermlocation': DN('cn=Domain Level,cn=ipa,cn=etc', api.env.basedn),
+        'ipapermtargetfilter': {'(objectclass=ipadomainlevelconfig)'},
+        'ipapermbindruletype': 'all',
+        'ipapermright': {'read', 'search', 'compare'},
+        'ipapermdefaultattr': {
+            'ipadomainlevel', 'objectclass',
+        },
+    },
 }
 
 

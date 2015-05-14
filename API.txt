@@ -1283,6 +1283,15 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
+command: domainlevel_get
+args: 0,1,1
+option: Str('version?', exclude='webui')
+output: Output('result', <type 'int'>, None)
+command: domainlevel_set
+args: 1,1,1
+arg: Int('ipadomainlevel', cli_name='level', minvalue=0)
+option: Str('version?', exclude='webui')
+output: Output('result', <type 'int'>, None)
 command: env
 args: 1,3,4
 arg: Str('variables*')
