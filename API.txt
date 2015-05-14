@@ -485,10 +485,11 @@ arg: Str('serial_number')
 option: Str('version?', exclude='webui')
 output: Output('result', None, None)
 command: cert_request
-args: 1,4,1
+args: 1,5,1
 arg: File('csr', cli_name='csr_file')
 option: Flag('add', autofill=True, default=False)
 option: Str('principal')
+option: Str('profile_id?')
 option: Str('request_type', autofill=True, default=u'pkcs10')
 option: Str('version?', exclude='webui')
 output: Output('result', <type 'dict'>, None)
