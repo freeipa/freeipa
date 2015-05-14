@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=122
-# Last change: ftweedal - allow multiple host/service certificates
+IPA_API_VERSION_MINOR=123
+# Last change: rcritten - added service constraint delegation plugin

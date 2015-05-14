@@ -201,3 +201,14 @@ idoverridegroup = [
     u'top',
     u'ipaGroupOverride',
 ]
+
+servicedelegationrule = [
+    u'top',
+    u'groupofprincipals',
+    u'ipakrb5delegationacl',
+]
+
+servicedelegationtarget = [
+    u'top',
+    u'groupofprincipals',
+]

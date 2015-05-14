@@ -16,3 +16,4 @@ add: referint-membership-attr: ipasudorunas
 add: referint-membership-attr: ipasudorunasgroup
 add: referint-membership-attr: ipatokenradiusconfiglink
 add: referint-membership-attr: ipaassignedidview
+add: referint-membership-attr: ipaallowedtarget

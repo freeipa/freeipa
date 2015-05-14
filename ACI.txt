@@ -212,6 +212,22 @@ dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "createtimestamp || entryusn || ipakrbauthzdata || ipakrbprincipalalias || ipauniqueid || krbcanonicalname || krblastpwdchange || krbobjectreferences || krbpasswordexpiration || krbprincipalaliases || krbprincipalexpiration || krbprincipalname || managedby || memberof || modifytimestamp || objectclass || usercertificate")(targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Read Services";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=services,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipaservice)")(version 3.0;acl "permission:System: Remove Services";allow (delete) groupdn = "ldap:///cn=System: Remove Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=s4u2proxy,cn=etc,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=groupofprincipals)")(version 3.0;acl "permission:System: Add Service Delegations";allow (add) groupdn = "ldap:///cn=System: Add Service Delegations,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=s4u2proxy,cn=etc,dc=ipa,dc=example
+aci: (targetattr = "ipaallowedtarget || memberprincipal")(targetfilter = "(objectclass=groupofprincipals)")(version 3.0;acl "permission:System: Modify Service Delegation Membership";allow (write) groupdn = "ldap:///cn=System: Modify Service Delegation Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=s4u2proxy,cn=etc,dc=ipa,dc=example
+aci: (targetattr = "cn || createtimestamp || entryusn || ipaallowedtarget || memberprincipal || modifytimestamp || objectclass")(targetfilter = "(objectclass=groupofprincipals)")(version 3.0;acl "permission:System: Read Service Delegations";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Service Delegations,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=s4u2proxy,cn=etc,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=groupofprincipals)")(version 3.0;acl "permission:System: Remove Service Delegations";allow (delete) groupdn = "ldap:///cn=System: Remove Service Delegations,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=s4u2proxy,cn=etc,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=groupofprincipals)")(version 3.0;acl "permission:System: Add Service Delegations";allow (add) groupdn = "ldap:///cn=System: Add Service Delegations,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=s4u2proxy,cn=etc,dc=ipa,dc=example
+aci: (targetattr = "ipaallowedtarget || memberprincipal")(targetfilter = "(objectclass=groupofprincipals)")(version 3.0;acl "permission:System: Modify Service Delegation Membership";allow (write) groupdn = "ldap:///cn=System: Modify Service Delegation Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=s4u2proxy,cn=etc,dc=ipa,dc=example
+aci: (targetattr = "cn || createtimestamp || entryusn || ipaallowedtarget || memberprincipal || modifytimestamp || objectclass")(targetfilter = "(objectclass=groupofprincipals)")(version 3.0;acl "permission:System: Read Service Delegations";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Service Delegations,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=s4u2proxy,cn=etc,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=groupofprincipals)")(version 3.0;acl "permission:System: Remove Service Delegations";allow (delete) groupdn = "ldap:///cn=System: Remove Service Delegations,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=staged users,cn=accounts,cn=provisioning,dc=ipa,dc=example
 aci: (targetattr = "*")(target = "ldap:///uid=*,cn=staged users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(targetfilter = "(objectclass=*)")(version 3.0;acl "permission:System: Add Stage Users by Provisioning and Administrators";allow (add) groupdn = "ldap:///cn=System: Add Stage Users by Provisioning and Administrators,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=staged users,cn=accounts,cn=provisioning,dc=ipa,dc=example
