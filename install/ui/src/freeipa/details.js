@@ -574,15 +574,6 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
      */
     that.fields = IPA.field_container({ container: that });
 
-    /**
-     * Policies
-     * @property {IPA.facet_policies}
-     */
-    that.policies = IPA.facet_policies({
-        container: that,
-        policies: spec.policies
-    });
-
     that.fields.add_field = function(field) {
 
         if (field.dirty_changed) {
@@ -634,7 +625,6 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         }
 
         that.facet_create(container);
-        that.policies.post_create();
     };
 
     /**

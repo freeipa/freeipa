@@ -226,6 +226,15 @@ exp.facet = IPA.facet = function(spec, no_init) {
     that.header_actions = spec.header_actions || [];
 
     /**
+     * Policies
+     * @property {IPA.facet_policies}
+     */
+    that.policies = IPA.facet_policies({
+        container: that,
+        policies: spec.policies
+    });
+
+    /**
      * Facet header
      * @property {facet.facet_header}
      */
@@ -658,6 +667,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
 
         that.create_content(that.content);
         dom_node.removeClass('active-facet');
+        that.policies.post_create();
     };
 
     /**
@@ -1897,7 +1907,7 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
         }
 
         that.table.refresh_pagination();
-
+        that.policies.post_load(data);
         that.post_load.notify([data], that);
         that.clear_expired_flag();
     };

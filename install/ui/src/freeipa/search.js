@@ -314,6 +314,7 @@ IPA.search_facet = function(spec, no_init) {
         that.init_facet();
         that.init_table_columns();
         that.init_table(that.managed_entity);
+        that.policies.init();
     };
 
     if (!no_init) that.init_search_facet();

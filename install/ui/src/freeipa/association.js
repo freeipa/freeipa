@@ -1283,6 +1283,7 @@ exp.association_facet = IPA.association_facet = function (spec, no_init) {
         that.init_facet();
         that.init_table_columns();
         init();
+        that.policies.init();
     };
 
     if (!no_init) that.init_association_facet();
@@ -1535,6 +1536,7 @@ exp.attribute_facet = IPA.attribute_facet = function(spec, no_init) {
         that.init_facet();
         that.init_table_columns();
         that.init_table(that.entity);
+        that.policies.init();
     };
 
     if (!no_init) that.init_attribute_facet();
