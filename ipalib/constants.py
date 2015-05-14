@@ -122,6 +122,7 @@ DEFAULT_CONFIG = (
     ('container_topology', DN(('cn', 'topology'), ('cn', 'ipa'), ('cn', 'etc'))),
     ('container_caacl', DN(('cn', 'caacls'), ('cn', 'ca'))),
     ('container_locations', DN(('cn', 'locations'), ('cn', 'etc'))),
+    ('container_ca', DN(('cn', 'cas'), ('cn', 'ca'))),
 
     # Ports, hosts, and URIs:
     ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),
@@ -265,3 +266,4 @@ REPL_AGMT_STRIP_ATTRS = ('modifiersName',
 DOMAIN_SUFFIX_NAME = 'domain'
 CA_SUFFIX_NAME = 'ca'
 PKI_GSSAPI_SERVICE_NAME = 'dogtag'
+IPA_CA_CN = u'ipa'

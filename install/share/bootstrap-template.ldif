@@ -476,3 +476,9 @@ changetype: add
 objectClass: nsContainer
 objectClass: top
 cn: caacls
+
+dn: cn=cas,cn=ca,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: cas

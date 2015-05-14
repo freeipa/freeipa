@@ -2073,7 +2073,10 @@ class RestClient(Backend):
         headers = headers or {}
         headers['Cookie'] = self.cookie
 
-        resource = os.path.join('/ca/rest', self.path, path)
+        if path is not None:
+            resource = os.path.join('/ca/rest', self.path, path)
+        else:
+            resource = os.path.join('/ca/rest', self.path)
 
         # perform main request
         status, resp_headers, resp_body = dogtag.https_request(
@@ -2147,3 +2150,52 @@ class ra_certprofile(RestClient):
         Delete the profile from Dogtag
         """
         self._ssldo('DELETE', profile_id, headers={'Accept': 'application/json'})
+
+
+@register()
+class ra_lightweight_ca(RestClient):
+    """
+    Lightweight CA management backend plugin.
+    """
+    path = 'authorities'
+
+    def create_ca(self, dn):
+        """Create CA with the given DN.
+
+        New CA is issued by IPA CA.  Nested sub-CAs and unrelated
+        root CAs are not yet supported.
+
+        Return the (parsed) JSON response from server.
+
+        """
+
+        assert isinstance(dn, DN)
+        status, resp_headers, resp_body = self._ssldo(
+            'POST', None,
+            headers={
+                'Content-type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body=json.dumps({"parentID": "host-authority", "dn": unicode(dn)}),
+        )
+        try:
+            return json.loads(resp_body)
+        except:
+            raise errors.RemoteRetrieveError(reason=_("Response from CA was not valid JSON"))
+
+    def read_ca(self, ca_id):
+        status, resp_headers, resp_body = self._ssldo(
+            'GET', ca_id, headers={'Accept': 'application/json'})
+        try:
+            return json.loads(resp_body)
+        except:
+            raise errors.RemoteRetrieveError(reason=_("Response from CA was not valid JSON"))
+
+    def disable_ca(self, ca_id):
+        self._ssldo(
+            'POST', ca_id + '/disable',
+            headers={'Accept': 'application/json'},
+        )
+
+    def delete_ca(self, ca_id):
+        self._ssldo('DELETE', ca_id)

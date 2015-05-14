@@ -345,6 +345,16 @@ def ca_import_included_profiles(ca):
     return cainstance.import_included_profiles()
 
 
+def ca_ensure_lightweight_cas_container(ca):
+    root_logger.info('[Ensuring Lightweight CAs container exists in Dogtag database]')
+
+    if not ca.is_configured():
+        root_logger.info('CA is not configured')
+        return False
+
+    return cainstance.ensure_lightweight_cas_container()
+
+
 def upgrade_ca_audit_cert_validity(ca):
     """
     Update the Dogtag audit signing certificate.
@@ -1438,7 +1448,10 @@ def ca_upgrade_schema(ca):
         root_logger.info('CA is not configured')
         return False
 
-    schema_files=['/usr/share/pki/server/conf/schema-certProfile.ldif']
+    schema_files=[
+        '/usr/share/pki/server/conf/schema-certProfile.ldif',
+        '/usr/share/pki/server/conf/schema-authority.ldif',
+    ]
     try:
         modified = schemaupdate.update_schema(schema_files, ldapi=True)
     except Exception as e:
@@ -1698,6 +1711,7 @@ def upgrade_configuration():
         except ipautil.CalledProcessError as e:
             root_logger.error("Failed to restart %s: %s", ca.service_name, e)
 
+    ca_ensure_lightweight_cas_container(ca)
     ca_enable_ldap_profile_subsystem(ca)
 
     # This step MUST be done after ca_enable_ldap_profile_subsystem and

@@ -1629,6 +1629,13 @@ def ensure_ldap_profiles_container():
         ou=['certificateProfiles'],
     )
 
+def ensure_lightweight_cas_container():
+    ensure_entry(
+        DN(('ou', 'authorities'), ('ou', 'ca'), ('o', 'ipaca')),
+        objectclass=['top', 'organizationalUnit'],
+        ou=['authorities'],
+    )
+
 
 def ensure_entry(dn, **attrs):
     server_id = installutils.realm_to_serverid(api.env.realm)
