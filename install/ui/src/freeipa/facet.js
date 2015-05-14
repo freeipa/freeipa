@@ -714,6 +714,23 @@ exp.facet = IPA.facet = function(spec, no_init) {
     };
 
     /**
+     * Display or hide facet tabs - either in sidebar or facet header
+     * @param {boolean} visible
+     */
+    that.set_tabs_visible = function(visible) {
+
+        if (that.disable_facet_tabs) return;
+        if (that.tabs_in_sidebar && that.sidebar_el) {
+            var a = visible ? exp.sidebar_content_width : exp.sidebar_content_full_width;
+            var r = visible ? exp.sidebar_content_full_width : exp.sidebar_content_width;
+            that.sidebar_content_el.removeClass(r);
+            that.sidebar_content_el.addClass(a);
+            that.sidebar_el.css('display', visible ? '' : 'none');
+        }
+        that.header.set_tabs_visible(visible);
+    };
+
+    /**
      * Update h1 element in title container
      *
      * @deprecated Please update title in facet header or it's widget instead.
@@ -1178,6 +1195,15 @@ exp.facet_header = IPA.facet_header = function(spec) {
     };
 
     /**
+     * Display or hide facet tabs
+     * @param {boolean} visible
+     */
+    that.set_tabs_visible = function(visible) {
+        if (!this.tabs_widget) return;
+        this.tabs_widget.set_visible(visible);
+    };
+
+    /**
      * Select tab with the same name as related facet or default
      */
     that.select_tab = function() {
@@ -1453,6 +1479,7 @@ exp.FacetGroupsWidget = declare([], {
     groups: null,
     group_els: null,
     el: null,
+    visible: true,
     css_class: 'facet-tabs',
     group_el_type: '<div/>',
     group_class: 'facet-group',
@@ -1580,6 +1607,16 @@ exp.FacetGroupsWidget = declare([], {
         var first = this.el.find('.tab-link:first');
         first.addClass(this.selected_class);
         first.parent().addClass(this.selected_class);
+    },
+
+    set_visible: function(visible) {
+        this.visible = visible;
+        this._apply_visible();
+    },
+
+    _apply_visible: function() {
+        if (!this.el) return;
+        this.el.css('display', this.visible ? '' : 'none');
     },
 
     constructor: function(spec) {
