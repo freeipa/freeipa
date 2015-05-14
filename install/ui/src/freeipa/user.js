@@ -112,7 +112,10 @@ return {
                     label: '@i18n:buttons.enable',
                     icon: 'fa-check'
                 }
-            ]
+            ],
+            deleter_dialog: {
+                $factory: IPA.user.deleter_dialog
+            }
         },
         {
             $type: 'details',
@@ -683,6 +686,59 @@ IPA.user.self_service_other_user_evaluator = function(spec) {
         }
 
         that.notify_on_change(old_state);
+    };
+
+    return that;
+};
+
+IPA.user.deleter_dialog = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.search_deleter_dialog(spec);
+
+    /**
+     * Adds options to user-del command
+     * @type {IPA.radio_widget}
+     */
+    that.option_radio = null;
+
+    that.create_content = function() {
+
+        that.deleter_dialog_create_content();
+
+        that.option_layout = IPA.fluid_layout({
+            label_cls: 'col-sm-3',
+            widget_cls: 'col-sm-9'
+        });
+
+        that.option_radio = IPA.radio_widget({
+            name: 'deletemode',
+            label: 'Delete mode',
+            options: [
+                { label: 'default', value: '' },
+                { label: 'delete permanently', value: 'permanently' },
+                { label: 'preserve', value: 'preserve' }
+            ]
+        });
+
+        var html = that.option_layout.create([that.option_radio]);
+        that.container.append(html);
+        that.option_radio.set_value(['']);
+    };
+
+    that.create_command = function() {
+        var batch = that.search_deleter_dialog_create_command();
+        var option = that.option_radio.get_value()[0];
+
+        if (option) {
+            for (var i=0; i<batch.commands.length; i++) {
+                var command = batch.commands[i];
+                command.set_option(option, true);
+            }
+        }
+
+        return batch;
     };
 
     return that;
