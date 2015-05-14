@@ -1,20 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!--
-
-  NOTE:  The default policy below is a TEMPLATE ONLY and should be reviewed
-         before used in any production environment. The administrator should
-         consult the OpenDNSSEC documentation before changing any parameters.
-
-         If you can read this message, it is likely that this file has not
-         been reviewed nor updated.
-
-  -->
-
 <KASP>
 
 	<Policy name="default">
-		<Description>A default policy that will amaze you and your friends</Description>
+		<Description>IPA default policy</Description>
 		<Signatures>
 			<Resign>PT2H</Resign>
 			<Refresh>P3D</Refresh>
@@ -49,8 +38,8 @@
 
 			<!-- Parameters for KSK only -->
 			<KSK>
-				<Algorithm length="2048">8</Algorithm>
-				<Lifetime>P1Y</Lifetime>
+				<Algorithm length="3072">8</Algorithm>
+				<Lifetime>P2Y</Lifetime>
 				<Repository>SoftHSM</Repository>
 			</KSK>
 
@@ -85,66 +74,4 @@
 
 	</Policy>
 
-	<Policy name="lab">
-		<Description>Quick turnaround policy for lab work</Description>
-		<Signatures>
-			<Resign>PT10M</Resign>
-			<Refresh>PT30M</Refresh>
-			<Validity>
-				<Default>PT1H</Default>
-				<Denial>PT1H</Denial>
-			</Validity>
-			<Jitter>PT1M</Jitter>
-			<InceptionOffset>PT3600S</InceptionOffset>
-		</Signatures>
-
-		<Denial>
-			<NSEC/>
-		</Denial>
-
-		<Keys>
-			<!-- Parameters for both KSK and ZSK -->
-			<TTL>PT300S</TTL>
-			<RetireSafety>PT360S</RetireSafety>
-			<PublishSafety>PT360S</PublishSafety>
-			<!-- <ShareKeys/> -->
-			<Purge>P14D</Purge>
-
-			<!-- Parameters for KSK only -->
-			<KSK>
-				<Algorithm length="2048">8</Algorithm>
-				<Lifetime>P1Y</Lifetime>
-				<Repository>SoftHSM</Repository>
-			</KSK>
-
-			<!-- Parameters for ZSK only -->
-			<ZSK>
-				<Algorithm length="2048">8</Algorithm>
-				<Lifetime>PT4H</Lifetime>
-				<Repository>SoftHSM</Repository>
-				<!-- <ManualRollover/> -->
-			</ZSK>
-		</Keys>
-
-		<Zone>
-			<PropagationDelay>PT300S</PropagationDelay>
-			<SOA>
-				<TTL>PT300S</TTL>
-				<Minimum>PT300S</Minimum>
-				<Serial>unixtime</Serial>
-			</SOA>
-		</Zone>
-
-		<Parent>
-			<PropagationDelay>PT9999S</PropagationDelay>
-			<DS>
-				<TTL>PT3600S</TTL>
-			</DS>
-			<SOA>
-				<TTL>PT172800S</TTL>
-				<Minimum>PT10800S</Minimum>
-			</SOA>
-		</Parent>
-
-	</Policy>
 </KASP>
