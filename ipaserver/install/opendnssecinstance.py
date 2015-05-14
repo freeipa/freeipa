@@ -252,6 +252,7 @@ class OpenDNSSECInstance(service.Service):
         # run once only
         if self.get_state("KASP_DB_configured"):
             root_logger.debug("Already configured, skipping step")
+            return
 
         self.backup_state("KASP_DB_configured", True)
 
