@@ -37,10 +37,10 @@ from ipaserver.install import memcacheinstance, dnskeysyncinstance
 from ipaserver.install import otpdinstance
 from ipaserver.install.replication import replica_conn_check, ReplicationManager
 from ipaserver.install.installutils import (
-    create_replica_config, read_replica_info_kra_enabled, private_ccache)
+    create_replica_config, private_ccache)
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import cainstance
-from ipaserver.install import krainstance
+from ipaserver.install import kra
 from ipaserver.install import dns as dns_installer
 from ipalib import api, create_api, errors, util, certstore, x509
 from ipalib.constants import CACERT
@@ -473,12 +473,12 @@ def main():
 
     config.setup_kra = options.setup_kra
     if config.setup_kra:
-        if not config.setup_ca:
-            print "CA must be installed with the KRA"
-            sys.exit(1)
-        if not read_replica_info_kra_enabled(config.dir):
-            print "KRA is not installed on the master system"
-            sys.exit(1)
+        try:
+            kra.install_check(config, options, False,
+                              dogtag.install_constants.DOGTAG_VERSION)
+        except RuntimeError as e:
+            print str(e)
+            exit(1)
 
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
 
@@ -660,10 +660,7 @@ def main():
     ds.apply_updates()
 
     if options.setup_kra:
-        kra = krainstance.install_replica_kra(config)
-        service.print_msg("Restarting the directory server")
-        ds.restart()
-        kra.enable_client_auth_to_db(kra.dogtag_constants.KRA_CS_CFG_PATH)
+        kra.install(config, options, dirman_password)
     else:
         service.print_msg("Restarting the directory server")
         ds.restart()

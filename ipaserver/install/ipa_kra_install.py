@@ -18,22 +18,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from ConfigParser import RawConfigParser
 from textwrap import dedent
 from ipalib import api
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipapython import admintool
-from ipapython import dogtag
 from ipapython import ipautil
-from ipaserver.install import cainstance
-from ipaserver.install import dogtaginstance
-from ipaserver.install import krainstance
-from ipaserver.install import dsinstance
 from ipaserver.install import installutils
-from ipaserver.install import service
-from ipaserver.install.installutils import (
-    read_replica_info_kra_enabled, create_replica_config)
+from ipaserver.install.installutils import create_replica_config
+from ipaserver.install import dogtaginstance
+from ipaserver.install import kra
 
 
 class KRAInstall(admintool.AdminTool):
@@ -101,21 +95,7 @@ class KRAUninstaller(KRAInstall):
 
     def run(self):
         super(KRAUninstaller, self).run()
-        dogtag_constants = dogtag.configured_constants()
-
-        kra_instance = krainstance.KRAInstance(
-            api.env.realm, dogtag_constants=dogtag_constants)
-        kra_instance.stop_tracking_certificates()
-        if kra_instance.is_installed():
-            kra_instance.uninstall()
-
-        # Update config file
-        parser = RawConfigParser()
-        parser.read(paths.IPA_DEFAULT_CONF)
-        parser.set('global', 'enable_kra', 'False')
-
-        with open(paths.IPA_DEFAULT_CONF, 'w') as f:
-            parser.write(f)
+        kra.uninstall()
 
 
 class KRAInstaller(KRAInstall):
@@ -141,26 +121,8 @@ class KRAInstaller(KRAInstall):
                 " in unattended mode"
             )
 
-        dogtag_version = int(api.env.dogtag_version)
-        enable_kra = api.env.enable_kra
-
-        if enable_kra:
-            self.option_parser.error("KRA is already installed.")
-
-        ca_installed = cainstance.is_ca_installed_locally()
-
-        if ca_installed:
-            if dogtag_version >= 10:
-                # correct dogtag version of CA installed
-                pass
-            else:
-                self.option_parser.error(
-                    "Dogtag must be version 10.2 or above to install KRA")
-        else:
-            self.option_parser.error(
-                "Dogtag CA is not installed.  Please install the CA first")
-
         self.installing_replica = dogtaginstance.is_installing_replica("KRA")
+
         if self.installing_replica:
             if not self.args:
                 self.option_parser.error("A replica file is required.")
@@ -191,45 +153,26 @@ class KRAInstaller(KRAInstall):
         super(KRAInstaller, self).run()
         print dedent(self.INSTALLER_START_MESSAGE)
 
-        subject = dsinstance.DsInstance().find_subject_base()
         if not self.installing_replica:
-            kra = krainstance.KRAInstance(
-                api.env.realm,
-                dogtag_constants=dogtag.install_constants)
-
-            kra.configure_instance(
-                api.env.host, api.env.domain, self.options.password,
-                self.options.password, subject_base=subject)
+            replica_config = None
         else:
             replica_config = create_replica_config(
                 self.options.password,
                 self.replica_file,
                 self.options)
 
-            if not read_replica_info_kra_enabled(replica_config.dir):
-                raise admintool.ScriptError(
-                    "Either KRA is not installed on the master system or "
-                    "your replica file is out of date"
-                )
+        self.options.setup_ca = False
 
-            kra = krainstance.install_replica_kra(replica_config)
-            service.print_msg("Restarting the directory server")
+        try:
+            kra.install_check(replica_config, self.options, api.env.enable_kra,
+                              int(api.env.dogtag_version))
+        except RuntimeError as e:
+            raise admintool.ScriptError(str(e))
 
-            ds = dsinstance.DsInstance()
-            ds.restart()
-
-        kra.enable_client_auth_to_db(kra.dogtag_constants.KRA_CS_CFG_PATH)
+        kra.install(replica_config, self.options, self.options.password)
 
         # Restart apache for new proxy config file
         services.knownservices.httpd.restart(capture_output=True)
-
-        # Update config file
-        parser = RawConfigParser()
-        parser.read(paths.IPA_DEFAULT_CONF)
-        parser.set('global', 'enable_kra', 'True')
-
-        with open(paths.IPA_DEFAULT_CONF, 'w') as f:
-            parser.write(f)
 
     def run(self):
         try:

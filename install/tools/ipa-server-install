@@ -53,13 +53,13 @@ from ipaserver.install import httpinstance
 from ipaserver.install import ntpinstance
 from ipaserver.install import certs
 from ipaserver.install import cainstance
-from ipaserver.install import krainstance
 from ipaserver.install import memcacheinstance
 from ipaserver.install import otpdinstance
 from ipaserver.install import sysupgrade
 from ipaserver.install import replication
 from ipaserver.install import dns as dns_installer
 from ipaserver.install import service, installutils
+from ipaserver.install import kra
 from ipapython import version
 from ipapython import certmonger
 from ipapython import ipaldap
@@ -577,11 +577,7 @@ def uninstall():
         if cads_instance.is_configured():
             cads_instance.uninstall()
 
-    kra_instance = krainstance.KRAInstance(
-        api.env.realm, dogtag_constants=dogtag_constants)
-    kra_instance.stop_tracking_certificates()
-    if kra_instance.is_installed():
-        kra_instance.uninstall()
+    kra.uninstall()
 
     ca_instance = cainstance.CAInstance(
         api.env.realm, certs.NSS_DIR, dogtag_constants=dogtag_constants)
@@ -1036,6 +1032,14 @@ def main():
     else:
         admin_password = options.admin_password
 
+    if setup_kra:
+        try:
+            kra.install_check(None, options, False,
+                              dogtag.install_constants.DOGTAG_VERSION)
+        except RuntimeError as e:
+            print str(e)
+            exit(1)
+
     if options.setup_dns:
         dns_installer.install_check(False, False, options, host_name)
         ip_addresses = dns_installer.ip_addresses
@@ -1290,18 +1294,7 @@ def main():
     http.restart()
 
     if setup_kra:
-        kra = krainstance.KRAInstance(realm_name,
-            dogtag_constants=dogtag.install_constants)
-        kra.configure_instance(host_name, domain_name, dm_password,
-                               dm_password, subject_base=options.subject)
-
-        # This is done within stopped_service context, which restarts KRA
-        service.print_msg("Restarting the directory server")
-        ds.restart()
-
-        service.print_msg("Enabling KRA to authenticate with the database "
-                          "using client certificates")
-        kra.enable_client_auth_to_db(kra.dogtag_constants.KRA_CS_CFG_PATH)
+        kra.install(None, options, dm_password)
 
     # Set the admin user kerberos password
     ds.change_admin_password(admin_password)
