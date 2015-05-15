@@ -756,7 +756,7 @@ class LDAPObject(Object):
     def handle_duplicate_entry(self, *keys):
         try:
             pkey = keys[-1]
-        except KeyError:
+        except IndexError:
             pkey = ''
         raise errors.DuplicateEntry(
             message=self.already_exists_msg % {
