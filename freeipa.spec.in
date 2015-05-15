@@ -465,7 +465,9 @@ install -m 0644 init/systemd/ipa.conf.tmpfiles %{buildroot}%{_tmpfilesdir}/%{nam
 mkdir -p %{buildroot}%{_localstatedir}/run/
 install -d -m 0700 %{buildroot}%{_localstatedir}/run/ipa_memcached/
 install -d -m 0700 %{buildroot}%{_localstatedir}/run/ipa/
-install -d -m 0700 %{buildroot}%{_localstatedir}/run/httpd/clientcaches
+install -d -m 0700 %{buildroot}%{_localstatedir}/run/httpd/ipa
+install -d -m 0700 %{buildroot}%{_localstatedir}/run/httpd/ipa/clientcaches
+install -d -m 0700 %{buildroot}%{_localstatedir}/run/httpd/ipa/krbcache
 
 mkdir -p %{buildroot}%{_libdir}/krb5/plugins/libkrb5
 touch %{buildroot}%{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
@@ -685,7 +687,9 @@ fi
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-ods-exporter
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
 %dir %attr(0700,root,root) %{_localstatedir}/run/ipa/
-%dir %attr(0700,apache,apache) %{_localstatedir}/run/httpd/clientcaches/
+%dir %attr(0700,apache,apache) %{_localstatedir}/run/httpd/ipa/
+%dir %attr(0700,apache,apache) %{_localstatedir}/run/httpd/ipa/clientcaches/
+%dir %attr(0700,apache,apache) %{_localstatedir}/run/httpd/ipa/krbcache/
 # NOTE: systemd specific section
 %{_tmpfilesdir}/%{name}.conf
 %attr(644,root,root) %{_unitdir}/ipa.service
