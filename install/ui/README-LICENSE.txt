@@ -7,6 +7,10 @@ Bootstrap - code licensed under Apache License v2.0
  * css/bootstrap.css
  * src/libs/bootrap.js
 
+bootstrap-datepicker - Apache License v2.0
+ * css/bootstrap-datepicker3.min.css
+ * src/libs/bootrap-datepicker.js
+
 jQuery - licensed under MIT license
  * jquery.js
 http://jquery.org/license/

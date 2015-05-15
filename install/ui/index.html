@@ -35,13 +35,19 @@
 
         (function() {
             var ie = !!document.getElementById('ie-detector');
-            var styles = ['css/patternfly.css', 'css/ipa.css', 'ipa.css'];
+            var styles = [
+                'css/patternfly.css',
+                'css/bootstrap-datepicker3.min.css',
+                'css/ipa.css',
+                'ipa.css'
+            ];
             if (ie) styles.push('ie.css');
             var icons = ['favicon.ico'];
             var scripts = [
                 'js/libs/json2.js',
                 'js/libs/jquery.js',
                 'js/libs/bootstrap.js',
+                'js/libs/bootstrap-datepicker.js',
                 'js/libs/patternfly.js',
                 'js/libs/jquery.ordered-map.js',
                 'js/libs/browser.js',

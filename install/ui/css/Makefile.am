@@ -2,6 +2,7 @@ NULL =
 
 appdir = $(IPA_DATA_DIR)/ui/css
 app_DATA =				\
+	bootstrap-datepicker3.min.css	\
 	patternfly.css 			\
 	ipa.css 			\
 	$(NULL)
