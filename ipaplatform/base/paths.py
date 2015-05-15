@@ -327,6 +327,7 @@ class BasePathNamespace(object):
     VAR_OPENDNSSEC_DIR = "/var/opendnssec"
     OPENDNSSEC_KASP_DB = "/var/opendnssec/kasp.db"
     VAR_RUN_DIRSRV_DIR = "/var/run/dirsrv"
+    KRB5CC_HTTPD = "/var/run/httpd/ipa/krbcache/krb5ccache"
     IPA_RENEWAL_LOCK = "/var/run/ipa/renewal.lock"
     SVC_LIST_FILE = "/var/run/ipa/services.list"
     IPA_MEMCACHED_DIR = "/var/run/ipa_memcached"

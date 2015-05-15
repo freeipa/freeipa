@@ -412,6 +412,10 @@ class HTTPInstance(service.Service):
                 root_logger.debug(error)
                 pass
 
+        # Remove the ccache file for the HTTPD service
+        ipautil.run([paths.KDESTROY, '-c', paths.KRB5CC_HTTPD], runas='apache',
+                    raiseonerr=False)
+
         # Remove the configuration files we create
         installutils.remove_file(paths.HTTPD_IPA_REWRITE_CONF)
         installutils.remove_file(paths.HTTPD_IPA_CONF)
