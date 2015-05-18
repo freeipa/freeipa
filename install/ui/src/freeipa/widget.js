@@ -2473,6 +2473,255 @@ IPA.dn_formatter = function(spec) {
 };
 
 /**
+ * Datetime widget
+ * @class
+ * @extends IPA.input_widget
+ */
+IPA.datetime_widget = function(spec) {
+
+    spec = spec || {};
+
+    var that = IPA.input_widget(spec);
+
+    that.base_css_class = that.base_css_class + ' datetime-widget';
+    that.date_format = spec.data_format || 'yyyy-mm-dd';
+    that.date_format_tmpl = spec.date_format_tmpl || '${YYYY}-${MM}-${DD}';
+    that._seconds = null;
+    that._tab_pressed = false;
+
+    /**
+     * bootstrap-datepicker options
+     *
+     * spec property: 'options'
+     *
+     * @property {Object}
+     */
+    that.datepicker_options = lang.extend({
+        format: that.date_format,
+        clearBtn: true,
+        autoclose: true,
+        todayHighlight: true
+    }, spec.options || {});
+
+    /**
+     * @inheritDoc
+     */
+    that.create = function(container) {
+
+        that.widget_create(container);
+
+        var id_date = IPA.html_util.get_next_id(that.name);
+        var id_hour = IPA.html_util.get_next_id(that.name);
+        var id_min = IPA.html_util.get_next_id(that.name);
+
+        // UI used if user doesn't have write rights:
+        that.display_control = $('<p/>', {
+            name: that.name,
+            'class': 'form-control-static',
+            style: 'display: none;'
+        }).appendTo(container);
+
+        // editable UI:
+        that.input_group = $('<div/>', {
+            'class': 'input-group',
+            keyup: function(e) {
+                if (e.keyCode === 9) that._tab_pressed = false;
+            }
+        }).appendTo(container);
+
+        that.date_input = $('<input/>', {
+            type: 'text',
+            name: that.name,
+            id: id_date,
+            placeholder: that.date_format.toUpperCase(),
+            'class': 'form-control datetime-date',
+            keydown: function(e) {
+                if (e.keyCode === 9) that._tab_pressed = true;
+            }
+        }).appendTo(that.input_group);
+
+        var time_cnt = $('<div/>', {
+            'class': 'time-cnt'
+        }).appendTo(that.input_group);
+
+        that.time_group = $('<div/>', {
+            'class': 'time-group'
+        }).appendTo(time_cnt);
+
+        that.hour_input = $('<input/>', {
+            type: 'text',
+            size: '2',
+            maxlength: '2',
+            name: that.name,
+            id: id_hour,
+            'class': 'form-control datetime-hour',
+            placeholder: 'hh',
+            keyup: function() {
+                that.on_value_changed();
+            }
+        }).appendTo(that.time_group);
+
+        $('<div/>', {
+            'class': 'input-group-addon time-separator',
+            text: ':'
+        }).appendTo(that.time_group);
+
+        that.minutes_input = $('<input/>', {
+            type: 'text',
+            size: '2',
+            maxlength: '2',
+            name: that.name,
+            id: id_min,
+            'class': 'form-control datetime-minutes',
+            placeholder: 'mm',
+            keyup: function() {
+                that.on_value_changed();
+            }
+        }).appendTo(that.time_group);
+
+        $('<div/>', {
+            'class': 'input-group-addon',
+            text: 'UTC'
+        }).appendTo(that.time_group);
+
+        that.input_group_btn = $('<div/>', {
+            'class': 'input-group-btn'
+        }).appendTo(that.input_group);
+
+        that.date_input.bind('input', function() {
+            that.on_value_changed();
+        });
+        that.hour_input.bind('input', function() {
+            that.on_value_changed();
+        });
+        that.minutes_input.bind('input', function() {
+            that.on_value_changed();
+        });
+        that.date_input.datepicker(that.datepicker_options);
+        that.date_input.on('changeDate', function(e) {
+            that.on_value_changed();
+        });
+
+        that.date_input.on('hide', function(e) {
+            if (!that._tab_pressed) {
+                that.hour_input.select();
+                that._tab_pressed = false;
+            }
+        });
+
+
+        if (that.undo) {
+            that.create_undo(that.input_group_btn);
+        }
+
+        that.create_error_link(container);
+        that.set_enabled(that.enabled);
+        that.update_read_only();
+    };
+
+    /**
+     * @inheritDoc
+     */
+    that.get_input = function() {
+
+        if (that.date_input) return that.date_input;
+        return null;
+    };
+
+    /**
+     * Expects Date object
+     * @inheritDoc
+     */
+    that.update = function(values) {
+        var date = values && values.length ? values[0] : '';
+
+        var fullstr = '';
+        var datestr = '';
+        var hourstr = '';
+        var minstr = '';
+
+        if (date) {
+            fullstr =datetime.format(date);
+            datestr = datetime.format(date, that.date_format_tmpl);
+            hourstr = datetime.format(date, '${HH}');
+            minstr = datetime.format(date, '${mm}');
+            that._seconds = datetime.format(date, '${ss}');
+        }
+
+        that.display_control.text(fullstr);
+        that.date_input.datepicker('update', datestr);
+        that.hour_input.val(hourstr);
+        that.minutes_input.val(minstr);
+        that.on_value_changed(values);
+    };
+
+    /**
+     * @inheritDoc
+     */
+    that.update_read_only = function() {
+        if (!that.input_group) return;
+        if (!that.is_writable()) {
+            that.display_control.css('display', '');
+            that.input_group.css('display', 'none');
+        } else {
+            that.display_control.css('display', 'none');
+            that.input_group.css('display', '');
+        }
+    };
+
+    /**
+     * Return generalized time string or []
+     * @inheritDoc
+     */
+    that.save = function() {
+
+        var date = that.date_input.val();
+        var hh = that.hour_input.val() || '00';
+        var mm = that.minutes_input.val() || '00';
+        var ss = that._seconds || '00';
+        hh = string.pad(hh, 2, '0');
+        mm = string.pad(mm, 2, '0');
+        // turn into generalized time
+        var val = [date + ' ' + hh + ':' + mm + ':' + ss + 'Z'];
+
+        // date must be set otherwise it's treated as nothing is set
+        if (!date) {
+            val = [];
+        }
+        return val;
+    };
+
+    /**
+     * @inheritDoc
+     */
+    that.clear = function() {
+        that.display_control.text('');
+        that.date_input.val('');
+        that.hour_input.val('');
+        that.minutes_input.val('');
+        that.on_value_changed([]);
+    };
+
+    /**
+     * @inheritDoc
+     */
+    that.set_deleted = function(deleted) {
+        var c = 'strikethrough';
+        if(deleted) {
+            that.date_input.addClass(c);
+            that.hour_input.addClass(c);
+            that.minutes_input.addClass(c);
+        } else {
+            that.date_input.removeClass(c);
+            that.hour_input.removeClass(c);
+            that.minutes_input.removeClass(c);
+        }
+    };
+
+    return that;
+};
+
+/**
  * Column for {@link IPA.table_widget}
  *
  * Handles value rendering.
@@ -6188,10 +6437,10 @@ exp.register = function() {
     w.register('checkboxes', IPA.checkboxes_widget);
     w.register('combobox', IPA.combobox_widget);
     w.register('composite_widget', IPA.composite_widget);
+    w.register('datetime', IPA.datetime_widget);
     w.register('details_section', IPA.details_section);
     w.register('details_table_section', IPA.details_table_section);
     w.register('details_table_section_nc', IPA.details_section);
-    w.register('datetime', IPA.text_widget);
     w.register('multiple_choice_section', IPA.multiple_choice_section);
     w.register('enable', IPA.enable_widget);
     w.register('entity_select', IPA.entity_select_widget);

@@ -1122,10 +1122,6 @@ field.datetime_field = IPA.datetime_field = function(spec) {
         template: datetime.templates.generalized
     };
     spec.data_parser = spec.formatter || 'datetime';
-    spec.ui_formatter = spec.ui_formatter || spec.formatter || {
-        $type: 'datetime',
-        template: datetime.templates.human
-    };
     spec.ui_parser = spec.ui_parser || 'datetime';
 
     var that = IPA.field(spec);

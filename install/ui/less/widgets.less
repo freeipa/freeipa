@@ -91,5 +91,31 @@
     max-width: 400px;
 }
 
+// Datetime widget
+.input-group .form-control.datetime-hour,
+.input-group .form-control.datetime-minutes {
+    width: 30px;
+}
+
+.datetime-widget .time-cnt {
+    width: 1%;
+    display: table-cell;
+
+    .input-group-addon {
+        border: 0;
+        background: transparent;
+    }
+
+    .time-separator {
+        padding-left: 2px;
+        padding-right: 2px;
+    }
+}
+
+.datetime-widget .time-group {
+    display: table;
+    padding-left: 10px
+}
+
 // workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=409254
 tbody:empty { display: none; }
