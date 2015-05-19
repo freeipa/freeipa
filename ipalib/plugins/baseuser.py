@@ -23,10 +23,11 @@ import posixpath
 import os
 
 from ipalib import api, errors
-from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime
+from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime, Bytes
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import DN, LDAPObject, \
     LDAPCreate, LDAPUpdate, LDAPSearch, LDAPDelete, LDAPRetrieve
+from ipalib.plugins.service import validate_certificate
 from ipalib.plugins import baseldap
 from ipalib.request import context
 from ipalib import _, ngettext
@@ -188,7 +189,7 @@ class baseuser(LDAPObject):
         'telephonenumber', 'title', 'memberof', 'nsaccountlock',
         'memberofindirect', 'ipauserauthtype', 'userclass',
         'ipatokenradiusconfiglink', 'ipatokenradiususername',
-        'krbprincipalexpiration'
+        'krbprincipalexpiration', 'usercertificate',
     ]
     search_display_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
@@ -382,6 +383,11 @@ class baseuser(LDAPObject):
             pattern='^(([a-zA-Z]{1,8}(-[a-zA-Z]{1,8})?(;q\=((0(\.[0-9]{0,3})?)|(1(\.0{0,3})?)))?' \
              + '(\s*,\s*[a-zA-Z]{1,8}(-[a-zA-Z]{1,8})?(;q\=((0(\.[0-9]{0,3})?)|(1(\.0{0,3})?)))?)*)|(\*))$',
             pattern_errmsg='must match RFC 2068 - 14.4, e.g., "da, en-gb;q=0.8, en;q=0.7"',
+        ),
+        Bytes('usercertificate*', validate_certificate,
+            cli_name='certificate',
+            label=_('Certificate'),
+            doc=_('Base-64 encoded server certificate'),
         ),
     )
 

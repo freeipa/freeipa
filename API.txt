@@ -3960,7 +3960,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: stageuser_add
-args: 1,43,3
+args: 1,44,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -4002,6 +4002,7 @@ option: Str('street', attribute=True, cli_name='street', multivalue=False, requi
 option: Str('telephonenumber', attribute=True, cli_name='phone', multivalue=True, required=False)
 option: Str('title', attribute=True, cli_name='title', multivalue=False, required=False)
 option: Int('uidnumber', attribute=True, cli_name='uid', minvalue=1, multivalue=False, required=False)
+option: Bytes('usercertificate', attribute=True, cli_name='certificate', multivalue=True, required=False)
 option: Str('userclass', attribute=True, cli_name='class', multivalue=True, required=False)
 option: Password('userpassword', attribute=True, cli_name='password', exclude='webui', multivalue=False, required=False)
 option: Str('version?', exclude='webui')
@@ -4017,7 +4018,7 @@ output: Output('result', <type 'dict'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: ListOfPrimaryKeys('value', None, None)
 command: stageuser_find
-args: 1,52,4
+args: 1,53,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('carlicense', attribute=True, autofill=False, cli_name='carlicense', multivalue=True, query=True, required=False)
@@ -4068,6 +4069,7 @@ option: Int('timelimit?', autofill=False, minvalue=0)
 option: Str('title', attribute=True, autofill=False, cli_name='title', multivalue=False, query=True, required=False)
 option: Str('uid', attribute=True, autofill=False, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=False)
 option: Int('uidnumber', attribute=True, autofill=False, cli_name='uid', minvalue=1, multivalue=False, query=True, required=False)
+option: Bytes('usercertificate', attribute=True, autofill=False, cli_name='certificate', multivalue=True, query=True, required=False)
 option: Str('userclass', attribute=True, autofill=False, cli_name='class', multivalue=True, query=True, required=False)
 option: Password('userpassword', attribute=True, autofill=False, cli_name='password', exclude='webui', multivalue=False, query=True, required=False)
 option: Str('version?', exclude='webui')
@@ -4076,7 +4078,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: stageuser_mod
-args: 1,44,3
+args: 1,45,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -4119,6 +4121,7 @@ option: Str('street', attribute=True, autofill=False, cli_name='street', multiva
 option: Str('telephonenumber', attribute=True, autofill=False, cli_name='phone', multivalue=True, required=False)
 option: Str('title', attribute=True, autofill=False, cli_name='title', multivalue=False, required=False)
 option: Int('uidnumber', attribute=True, autofill=False, cli_name='uid', minvalue=1, multivalue=False, required=False)
+option: Bytes('usercertificate', attribute=True, autofill=False, cli_name='certificate', multivalue=True, required=False)
 option: Str('userclass', attribute=True, autofill=False, cli_name='class', multivalue=True, required=False)
 option: Password('userpassword', attribute=True, autofill=False, cli_name='password', exclude='webui', multivalue=False, required=False)
 option: Str('version?', exclude='webui')
@@ -4746,7 +4749,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: user_add
-args: 1,44,3
+args: 1,45,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -4789,6 +4792,7 @@ option: Str('street', attribute=True, cli_name='street', multivalue=False, requi
 option: Str('telephonenumber', attribute=True, cli_name='phone', multivalue=True, required=False)
 option: Str('title', attribute=True, cli_name='title', multivalue=False, required=False)
 option: Int('uidnumber', attribute=True, cli_name='uid', minvalue=1, multivalue=False, required=False)
+option: Bytes('usercertificate', attribute=True, cli_name='certificate', multivalue=True, required=False)
 option: Str('userclass', attribute=True, cli_name='class', multivalue=True, required=False)
 option: Password('userpassword', attribute=True, cli_name='password', exclude='webui', multivalue=False, required=False)
 option: Str('version?', exclude='webui')
@@ -4820,7 +4824,7 @@ output: Output('result', <type 'bool'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: user_find
-args: 1,55,4
+args: 1,56,4
 arg: Str('criteria?', noextrawhitespace=False)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('carlicense', attribute=True, autofill=False, cli_name='carlicense', multivalue=True, query=True, required=False)
@@ -4873,6 +4877,7 @@ option: Int('timelimit?', autofill=False, minvalue=0)
 option: Str('title', attribute=True, autofill=False, cli_name='title', multivalue=False, query=True, required=False)
 option: Str('uid', attribute=True, autofill=False, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=False)
 option: Int('uidnumber', attribute=True, autofill=False, cli_name='uid', minvalue=1, multivalue=False, query=True, required=False)
+option: Bytes('usercertificate', attribute=True, autofill=False, cli_name='certificate', multivalue=True, query=True, required=False)
 option: Str('userclass', attribute=True, autofill=False, cli_name='class', multivalue=True, query=True, required=False)
 option: Password('userpassword', attribute=True, autofill=False, cli_name='password', exclude='webui', multivalue=False, query=True, required=False)
 option: Str('version?', exclude='webui')
@@ -4882,7 +4887,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: user_mod
-args: 1,45,3
+args: 1,46,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -4926,6 +4931,7 @@ option: Str('street', attribute=True, autofill=False, cli_name='street', multiva
 option: Str('telephonenumber', attribute=True, autofill=False, cli_name='phone', multivalue=True, required=False)
 option: Str('title', attribute=True, autofill=False, cli_name='title', multivalue=False, required=False)
 option: Int('uidnumber', attribute=True, autofill=False, cli_name='uid', minvalue=1, multivalue=False, required=False)
+option: Bytes('usercertificate', attribute=True, autofill=False, cli_name='certificate', multivalue=True, required=False)
 option: Str('userclass', attribute=True, autofill=False, cli_name='class', multivalue=True, required=False)
 option: Password('userpassword', attribute=True, autofill=False, cli_name='password', exclude='webui', multivalue=False, required=False)
 option: Str('version?', exclude='webui')

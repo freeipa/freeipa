@@ -267,7 +267,7 @@ class user(baseuser):
                 'mepmanagedentry', 'mobile', 'objectclass', 'ou', 'pager',
                 'postalcode', 'roomnumber', 'secretary', 'seealso', 'sn', 'st',
                 'street', 'telephonenumber', 'title', 'userclass',
-                'preferredlanguage',
+                'preferredlanguage', 'usercertificate',
             },
             'replaces': [
                 '(targetattr = "givenname || sn || cn || displayname || title || initials || loginshell || gecos || homephone || mobile || pager || facsimiletelephonenumber || telephonenumber || street || roomnumber || l || st || postalcode || manager || secretary || description || carlicense || labeleduri || inetuserhttpurl || seealso || employeetype || businesscategory || ou || mepmanagedentry || objectclass")(target = "ldap:///uid=*,cn=users,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Users";allow (write) groupdn = "ldap:///cn=Modify Users,cn=permissions,cn=pbac,$SUFFIX";)',
