@@ -74,25 +74,8 @@ class KRAInstall(admintool.AdminTool):
 
         installutils.check_server_configuration()
 
-        if self.options.unattended and self.options.password is None:
-            self.option_parser.error(
-                "Directory Manager password must be specified using -p"
-                " in unattended mode"
-            )
-
         api.bootstrap(in_server=True)
         api.finalize()
-
-    def ask_for_options(self):
-        super(KRAInstall, self).ask_for_options()
-
-        if not self.options.password:
-            self.options.password = installutils.read_password(
-                "Directory Manager", confirm=False,
-                validate=False, retry=False)
-            if self.options.password is None:
-                raise admintool.ScriptError(
-                    "Directory Manager password required")
 
     @classmethod
     def get_command_class(cls, options, args):
@@ -152,6 +135,12 @@ class KRAInstaller(KRAInstall):
     def validate_options(self, needs_root=True):
         super(KRAInstaller, self).validate_options(needs_root=True)
 
+        if self.options.unattended and self.options.password is None:
+            self.option_parser.error(
+                "Directory Manager password must be specified using -p"
+                " in unattended mode"
+            )
+
         dogtag_version = int(api.env.dogtag_version)
         enable_kra = api.env.enable_kra
 
@@ -186,6 +175,17 @@ class KRAInstaller(KRAInstall):
             if self.args:
                 self.option_parser.error("Too many parameters provided.  "
                                          "No replica file is required.")
+
+    def ask_for_options(self):
+        super(KRAInstaller, self).ask_for_options()
+
+        if not self.options.unattended and self.options.password is None:
+            self.options.password = installutils.read_password(
+                "Directory Manager", confirm=False,
+                validate=False, retry=False)
+            if self.options.password is None:
+                raise admintool.ScriptError(
+                    "Directory Manager password required")
 
     def _run(self):
         super(KRAInstaller, self).run()
