@@ -22,6 +22,7 @@
  */
 
 define([
+        './builder',
         './ipa',
         './jquery',
         './phases',
@@ -30,7 +31,7 @@ define([
         './spec_util',
         './text',
         './facet'],
-    function(IPA, $, phases, reg, rpc, su, text, mod_facet) {
+    function(builder, IPA, $, phases, reg, rpc, su, text, mod_facet) {
 
 var exp = {};
 
@@ -111,7 +112,7 @@ IPA.search_facet = function(spec, no_init) {
      */
     that.command_options = spec.command_options || {};
 
-    that.deleter_dialog = spec.deleter_dialog || IPA.search_deleter_dialog;
+    that.deleter_dialog = spec.deleter_dialog;
 
     that.create_header = function(container) {
 
@@ -191,10 +192,12 @@ IPA.search_facet = function(spec, no_init) {
             return null;
         }
 
-        var dialog = that.managed_entity.get_dialog('remove');
-
+        var dialog = builder.build('', that.deleter_dialog);
         if (!dialog) {
-            dialog = that.deleter_dialog();
+            dialog = that.managed_entity.get_dialog('remove');
+        }
+        if (!dialog) {
+            dialog = IPA.search_deleter_dialog();
         }
 
         dialog.entity_name = that.managed_entity.name;
