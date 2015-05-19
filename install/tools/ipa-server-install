@@ -952,7 +952,7 @@ def main():
     else:
         domain_name = options.domain_name
 
-    domain_name = domain_name.lower()
+    domain_name = domain_name.lower()  # pylint: disable=E1103
 
     if not options.realm_name:
         realm_name = read_realm_name(domain_name, options.unattended)
