@@ -2441,7 +2441,8 @@ def install(options, env, fstore, statestore):
                             stdin = sys.stdin.readline()
 
                 try:
-                    ipautil.kinit_password(principal, stdin, ccache_name)
+                    ipautil.kinit_password(principal, stdin, ccache_name,
+                                           config=krb_name)
                 except RuntimeError as e:
                     print_port_conf_info()
                     root_logger.error("Kerberos authentication failed: %s" % e)
@@ -2452,6 +2453,7 @@ def install(options, env, fstore, statestore):
                     try:
                         ipautil.kinit_keytab(host_principal, options.keytab,
                                              ccache_name,
+                                             config=krb_name,
                                              attempts=options.kinit_attempts)
                     except Krb5Error as e:
                         print_port_conf_info()
@@ -2530,6 +2532,7 @@ def install(options, env, fstore, statestore):
             try:
                 ipautil.kinit_keytab(host_principal, paths.KRB5_KEYTAB,
                                      CCACHE_FILE,
+                                     config=krb_name,
                                      attempts=options.kinit_attempts)
                 env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = CCACHE_FILE
             except Krb5Error as e:
