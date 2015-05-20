@@ -1186,7 +1186,7 @@ def wait_for_open_socket(socket_name, timeout=0):
                 raise e
 
 
-def kinit_keytab(principal, keytab, ccache_name, attempts=1):
+def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
     """
     Given a ccache_path, keytab file and a principal kinit as that user.
 
@@ -1199,6 +1199,11 @@ def kinit_keytab(principal, keytab, ccache_name, attempts=1):
                       % (principal, keytab))
     root_logger.debug("using ccache %s" % ccache_name)
     for attempt in range(1, attempts + 1):
+        old_config = os.environ.get('KRB5_CONFIG')
+        if config is not None:
+            os.environ['KRB5_CONFIG'] = config
+        else:
+            os.environ.pop('KRB5_CONFIG', None)
         try:
             krbcontext = krbV.default_context()
             ktab = krbV.Keytab(name=keytab, context=krbcontext)
@@ -1221,9 +1226,15 @@ def kinit_keytab(principal, keytab, ccache_name, attempts=1):
                 raise
             root_logger.debug("Waiting 5 seconds before next retry")
             time.sleep(5)
+        finally:
+            if old_config is not None:
+                os.environ['KRB5_CONFIG'] = old_config
+            else:
+                os.environ.pop('KRB5_CONFIG', None)
 
 
-def kinit_password(principal, password, ccache_name, armor_ccache_name=None):
+def kinit_password(principal, password, ccache_name, config=None,
+                   armor_ccache_name=None):
     """
     perform interactive kinit as principal using password. If using FAST for
     web-based authentication, use armor_ccache_path to specify http service
@@ -1236,9 +1247,13 @@ def kinit_password(principal, password, ccache_name, armor_ccache_name=None):
                           % armor_ccache_name)
         args.extend(['-T', armor_ccache_name])
 
+    env = {'LC_ALL': 'C'}
+    if config is not None:
+        env['KRB5_CONFIG'] = config
+
     # this workaround enables us to capture stderr and put it
     # into the raised exception in case of unsuccessful authentication
-    (stdout, stderr, retcode) = run(args, stdin=password, env={'LC_ALL': 'C'},
+    (stdout, stderr, retcode) = run(args, stdin=password, env=env,
                                     raiseonerr=False)
     if retcode:
         raise RuntimeError(stderr)
