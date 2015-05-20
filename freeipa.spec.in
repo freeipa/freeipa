@@ -405,6 +405,7 @@ rm %{buildroot}/%{plugin_dir}/libipa_extdom_extop.la
 rm %{buildroot}/%{plugin_dir}/libipa_range_check.la
 rm %{buildroot}/%{plugin_dir}/libipa_otp_counter.la
 rm %{buildroot}/%{plugin_dir}/libipa_otp_lasttoken.la
+rm %{buildroot}/%{plugin_dir}/libtopology.la
 rm %{buildroot}/%{_libdir}/krb5/plugins/kdb/ipadb.la
 rm %{buildroot}/%{_libdir}/samba/pdb/ipasam.la
 
@@ -798,6 +799,7 @@ fi
 %attr(755,root,root) %{plugin_dir}/libipa_range_check.so
 %attr(755,root,root) %{plugin_dir}/libipa_otp_counter.so
 %attr(755,root,root) %{plugin_dir}/libipa_otp_lasttoken.so
+%attr(755,root,root) %{plugin_dir}/libtopology.so
 %dir %{_localstatedir}/lib/ipa
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/backup
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore

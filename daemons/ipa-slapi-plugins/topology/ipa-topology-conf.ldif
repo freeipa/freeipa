@@ -1,0 +1,20 @@
+dn: cn=IPA Topology Configuration,cn=plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: nsSlapdPlugin
+objectClass: extensibleObject
+cn: IPA Topology Configuration
+nsslapd-pluginPath: libtopology
+nsslapd-pluginInitfunc: ipa_topo_init
+nsslapd-pluginType: object
+nsslapd-pluginEnabled: on
+nsslapd-topo-plugin-shared-config-base: cn=ipa,cn=etc,$SUFFIX
+nsslapd-topo-plugin-shared-replica-root: $SUFFIX
+nsslapd-topo-plugin-shared-binddngroup: cn=replication managers,cn=etc,$SUFFIX
+nsslapd-topo-plugin-startup-delay: 20
+nsslapd-pluginId: none
+nsslapd-plugin-depends-on-named: ldbm database
+nsslapd-plugin-depends-on-named: Multimaster Replication Plugin
+nsslapd-pluginVersion: 1.0
+nsslapd-pluginVendor: none
+nsslapd-pluginDescription: none

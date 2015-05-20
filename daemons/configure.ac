@@ -362,6 +362,7 @@ AC_CONFIG_FILES([
     ipa-slapi-plugins/ipa-modrdn/Makefile
     ipa-slapi-plugins/ipa-sidgen/Makefile
     ipa-slapi-plugins/ipa-range-check/Makefile
+    ipa-slapi-plugins/topology/Makefile
 ])
 
 AC_OUTPUT

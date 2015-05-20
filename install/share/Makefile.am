@@ -20,6 +20,7 @@ app_DATA =				\
 	65ipacertstore.ldif		\
 	65ipasudo.ldif			\
 	70ipaotp.ldif			\
+	70topology.ldif			\
 	71idviews.ldif			\
 	anonymous-vlv.ldif		\
 	bootstrap-template.ldif		\

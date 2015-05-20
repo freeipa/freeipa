@@ -16,6 +16,7 @@ SUBDIRS =			\
 	ipa-winsync		\
 	ipa-sidgen		\
 	ipa-range-check		\
+	topology		\
 	$(NULL)
 
 EXTRA_DIST =			\
