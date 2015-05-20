@@ -1394,7 +1394,15 @@ static krb5_error_code filter_logon_info(krb5_context context,
             if (result) {
                 filter_logon_info_log_message(info->info->info3.sids[i].sid);
             } else {
+                /* Go over incoming SID blacklist */
                 for(k = 0; k < domain->len_sid_blacklist_incoming; k++) {
+                    /* if SID is an exact match, filter it out */
+                    result = dom_sid_check(&domain->sid_blacklist_incoming[k], info->info->info3.sids[i].sid, true);
+                    if (result) {
+                        filter_logon_info_log_message(info->info->info3.sids[i].sid);
+                        break;
+                    }
+                    /* if SID is a suffix of the blacklist element, filter it out*/
                     result = dom_sid_is_prefix(&domain->sid_blacklist_incoming[k], info->info->info3.sids[i].sid);
                     if (result) {
                         filter_logon_info_log_message(info->info->info3.sids[i].sid);
@@ -1403,11 +1411,17 @@ static krb5_error_code filter_logon_info(krb5_context context,
                 }
             }
             if (result) {
+                k = count - i - j - 1;
+                if (k != 0) {
+                    memmove(info->info->info3.sids+i,
+                            info->info->info3.sids+i+1,
+                            sizeof(struct netr_SidAttr)*k);
+                }
                 j++;
-                memmove(info->info->info3.sids+i, info->info->info3.sids+i+1, count-i-1);
+            } else {
+                i++;
             }
-            i++;
-        } while (i < count);
+        } while ((i + j) < count);
 
         if (j != 0) {
             count = count-j;
