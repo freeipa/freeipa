@@ -49,7 +49,8 @@ class update_replica_attribute_lists(Updater):
         self.log.debug("Found %d agreement(s)", len(ipa_replicas))
 
         for replica in ipa_replicas:
-            self.log.debug(replica.single_value.get('description'))
+            for desc in replica.get('description', []):
+                self.log.debug(desc)
 
             self._update_attr(repl, replica,
                 'nsDS5ReplicatedAttributeList',

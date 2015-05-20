@@ -416,6 +416,7 @@ class ReplicationManager(object):
         assert isinstance(replica_binddn, DN)
         dn = self.replica_dn()
         assert isinstance(dn, DN)
+        replica_groupdn = DN(('cn', 'replication managers'), ('cn', 'etc'), self.suffix)
 
         try:
             entry = conn.get_entry(dn)
@@ -443,6 +444,8 @@ class ReplicationManager(object):
             nsds5replicatype=[replica_type],
             nsds5flags=["1"],
             nsds5replicabinddn=[replica_binddn],
+            nsds5replicabinddngroup=[replica_groupdn],
+            nsds5replicabinddngroupcheckinterval=["60"],
             nsds5replicalegacyconsumer=["off"],
         )
         conn.add_entry(entry)
@@ -756,6 +759,7 @@ class ReplicationManager(object):
         """
 
         rep_dn = self.replica_dn()
+        group_dn = DN(('cn', 'replication managers'), ('cn', 'etc'), self.suffix)
         assert isinstance(rep_dn, DN)
         (a_dn, b_dn) = self.get_replica_principal_dns(a, b, retries=100)
         assert isinstance(a_dn, DN)
@@ -772,6 +776,18 @@ class ReplicationManager(object):
             b.modify_s(rep_dn, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
+        # Add kerberos principal DNs as valid bindDNs to bindDN group
+        try:
+            mod = [(ldap.MOD_ADD, "member", b_dn)]
+            a.modify_s(group_dn, mod)
+        except ldap.TYPE_OR_VALUE_EXISTS:
+            pass
+        try:
+            mod = [(ldap.MOD_ADD, "member", a_dn)]
+            b.modify_s(group_dn, mod)
+        except ldap.TYPE_OR_VALUE_EXISTS:
+            pass
+
 
     def gssapi_update_agreements(self, a, b):
 

@@ -64,6 +64,7 @@ app_DATA =				\
 	wsgi.py				\
 	repoint-managed-entries.ldif	\
 	managed-entries.ldif		\
+	topology-entries.ldif		\
 	user_private_groups.ldif	\
 	host_nis_groups.ldif		\
 	uuid.ldif		\

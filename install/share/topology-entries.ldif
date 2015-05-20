@@ -1,0 +1,13 @@
+dn: cn=topology,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectclass: top
+objectclass: nsContainer
+cn: topology
+
+# default topology configuration area
+dn: cn=realm,cn=topology,cn=ipa,cn=etc,$SUFFIX
+changetype: add
+objectclass: top
+objectclass: iparepltopoconf
+ipaReplTopoConfRoot: $SUFFIX
+cn: realm

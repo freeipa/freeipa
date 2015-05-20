@@ -60,6 +60,7 @@ IPA_SCHEMA_FILES = ("60kerberos.ldif",
                     "65ipacertstore.ldif",
                     "65ipasudo.ldif",
                     "70ipaotp.ldif",
+                    "70topology.ldif",
                     "71idviews.ldif",
                     "15rfc2307bis.ldif",
                     "15rfc4876.ldif")
@@ -238,6 +239,7 @@ class DsInstance(service.Service):
         self.step("configuring DNS plugin", self.__config_dns_module)
         self.step("enabling entryUSN plugin", self.__enable_entryusn)
         self.step("configuring lockout plugin", self.__config_lockout_module)
+        self.step("configuring topology plugin", self.__config_topology_module)
         self.step("creating indices", self.__create_indices)
         self.step("enabling referential integrity plugin", self.__add_referint_module)
         if enable_ssl:
@@ -300,6 +302,7 @@ class DsInstance(service.Service):
         self.step("adding range check plugin", self.__add_range_check_plugin)
         if hbac_allow:
             self.step("creating default HBAC rule allow_all", self.add_hbac)
+        self.step("adding entries for topology management", self.__add_topology_entries)
 
         self.__common_post_setup()
 
@@ -526,6 +529,9 @@ class DsInstance(service.Service):
     def __add_master_entry(self):
         self._ldap_mod("master-entry.ldif", self.sub_dict)
 
+    def __add_topology_entries(self):
+        self._ldap_mod("topology-entries.ldif", self.sub_dict)
+
     def __add_winsync_module(self):
         self._ldap_mod("ipa-winsync-conf.ldif")
 
@@ -553,6 +559,9 @@ class DsInstance(service.Service):
 
     def __config_lockout_module(self):
         self._ldap_mod("lockout-conf.ldif")
+
+    def __config_topology_module(self):
+        self._ldap_mod("ipa-topology-conf.ldif", self.sub_dict)
 
     def __repoint_managed_entries(self):
         self._ldap_mod("repoint-managed-entries.ldif", self.sub_dict)
