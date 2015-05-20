@@ -333,6 +333,11 @@ class user(baseuser):
             label=_('Account disabled'),
             flags=['no_option'],
         ),
+        Bool('preserved?',
+            label=_('Preserved user'),
+            default=False,
+            flags=['virtual_attribute', 'no_create', 'no_update'],
+        ),
     )
 
     def get_dn(self, *keys, **options):
@@ -368,6 +373,15 @@ class user(baseuser):
         Given a userid verify the user's existence and return the dn.
         """
         return super(user, self).normalize_manager(manager, self.active_container_dn)
+
+    def get_preserved_attribute(self, entry, options):
+        if options.get('raw', False):
+            return
+        delete_container_dn = DN(self.delete_container_dn, api.env.basedn)
+        if entry.dn.endswith(delete_container_dn):
+            entry['preserved'] = True
+        elif options.get('all', False):
+            entry['preserved'] = False
 
 
 @register()
@@ -540,6 +554,7 @@ class user_add(baseuser_add):
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         convert_sshpubkey_post(ldap, dn, entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
+        self.obj.get_preserved_attribute(entry_attrs, options)
         return dn
 
 
@@ -665,6 +680,7 @@ class user_mod(baseuser_mod):
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         self.post_common_callback(ldap, dn, entry_attrs, **options)
+        self.obj.get_preserved_attribute(entry_attrs, options)
         return dn
 
 
@@ -675,56 +691,56 @@ class user_find(baseuser_find):
     member_attributes = ['memberof']
     has_output_params = baseuser_find.has_output_params + user_output_params
 
+    msg_summary = ngettext(
+        '%(count)d user matched', '%(count)d users matched', 0
+    )
+
     takes_options = LDAPSearch.takes_options + (
         Flag('whoami',
             label=_('Self'),
             doc=_('Display user record for current Kerberos principal'),
         ),
-        Flag('preserved?',
-            doc=_('Display preserved deleted user'),
-            cli_name='preserved',
-            default=False,
-        ),
     )
 
-    def execute(self, *args, **options):
-        if self.original_msg_summary:
-            object.__setattr__(self, 'msg_summary', self.original_msg_summary)
+    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *keys, **options):
+        assert isinstance(base_dn, DN)
+
+        if options.get('whoami'):
+            return ("(&(objectclass=posixaccount)(krbprincipalname=%s))"%\
+                        getattr(context, 'principal'), base_dn, scope)
+
         newoptions = {}
         self.common_enhance_options(newoptions, **options)
         options.update(newoptions)
 
-        for arg in args:
-            self.log.debug("user-find- exec arg %r" % (arg))
-        if options['preserved']:
-            self.obj.container_dn = baseuser.delete_container_dn
-            self.msg_summary = ngettext('%(count)d (delete) user matched', '%(count)d (delete) users matched', 0)
-
-            ret = super(user_find, self).execute(self, *args, **options)
-
-            self.obj.container_dn = baseuser.active_container_dn
-            return ret
+        preserved = options.get('preserved', False)
+        if preserved is None:
+            base_dn = self.api.env.basedn
+            scope = ldap.SCOPE_SUBTREE
+        elif preserved:
+            base_dn = DN(self.obj.delete_container_dn, self.api.env.basedn)
         else:
-            return super(user_find, self).execute(self, *args, **options)
-
-    def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *keys, **options):
-        assert isinstance(base_dn, DN)
-        if options.get('whoami'):
-            return ("(&(objectclass=posixaccount)(krbprincipalname=%s))"%\
-                        getattr(context, 'principal'), base_dn, scope)
+            base_dn = DN(self.obj.active_container_dn, self.api.env.basedn)
 
         return (filter, base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if options.get('pkey_only', False):
             return truncated
-        self.post_common_callback(ldap, entries, lockout=False, **options)
-        return truncated
 
-    msg_summary = ngettext(
-        '%(count)d user matched', '%(count)d users matched', 0
-    )
-    original_msg_summary = msg_summary
+        if options.get('preserved', False) is None:
+            base_dns = (
+                DN(self.obj.active_container_dn, self.api.env.basedn),
+                DN(self.obj.delete_container_dn, self.api.env.basedn),
+            )
+            entries[:] = [e for e in entries
+                          if any(e.dn.endswith(bd) for bd in base_dns)]
+
+        self.post_common_callback(ldap, entries, lockout=False, **options)
+        for entry in entries:
+            self.obj.get_preserved_attribute(entry, options)
+
+        return truncated
 
 
 @register()
@@ -736,6 +752,7 @@ class user_show(baseuser_show):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         convert_nsaccountlock(entry_attrs)
         self.post_common_callback(ldap, dn, entry_attrs, **options)
+        self.obj.get_preserved_attribute(entry_attrs, options)
         return dn
 
 @register()
@@ -944,6 +961,7 @@ class user_status(LDAPQuery):
                 convert_nsaccountlock(entry)
                 if 'nsaccountlock' in entry:
                     disabled = entry['nsaccountlock']
+                self.obj.get_preserved_attribute(entry, options)
                 entries.append(newresult)
                 count += 1
             except errors.NotFound:
