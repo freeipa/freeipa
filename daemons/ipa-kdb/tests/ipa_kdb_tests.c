@@ -1,49 +1,30 @@
-/** BEGIN COPYRIGHT BLOCK
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * Additional permission under GPLv3 section 7:
- *
- * In the following paragraph, "GPL" means the GNU General Public
- * License, version 3 or any later version, and "Non-GPL Code" means
- * code that is governed neither by the GPL nor a license
- * compatible with the GPL.
- *
- * You may link the code of this Program with Non-GPL Code and convey
- * linked combinations including the two, provided that such Non-GPL
- * Code only links to the code of this Program through those well
- * defined interfaces identified in the file named EXCEPTION found in
- * the source code files (the "Approved Interfaces"). The files of
- * Non-GPL Code may instantiate templates or use macros or inline
- * functions from the Approved Interfaces without causing the resulting
- * work to be covered by the GPL. Only the copyright holders of this
- * Program may make changes or additions to the list of Approved
- * Interfaces.
- *
- * Authors:
- * Sumit Bose <sbose@redhat.com>
- *
- * Copyright (C) 2013 Red Hat, Inc.
- * All rights reserved.
- * END COPYRIGHT BLOCK **/
+/*
+    Authors:
+        Sumit Bose <sbose@redhat.com>
 
-#include <check.h>
-#include <stdlib.h>
+    Copyright (C) 2015 Red Hat
+
+    ipa-kdb tests
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include <errno.h>
 #include <stdarg.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include <krb5/krb5.h>
-#include <kdb.h>
+#include <stddef.h>
+#include <setjmp.h>
+#include <cmocka.h>
 
 #include "ipa-kdb/ipa_kdb.h"
 
@@ -74,7 +55,7 @@ int krb5_klog_syslog(int l, const char *format, ...)
 extern void get_authz_data_types(krb5_context context, krb5_db_entry *entry,
                                  bool *with_pac, bool *with_pad);
 
-START_TEST(test_get_authz_data_types)
+void test_get_authz_data_types(void **state)
 {
     bool with_pac;
     bool with_pad;
@@ -100,40 +81,40 @@ START_TEST(test_get_authz_data_types)
 
     with_pad = true;
     get_authz_data_types(NULL, NULL, NULL, &with_pad);
-    fail_unless(!with_pad, "with_pad not false with NULL inuput.");
+    assert_false(with_pad);
 
     with_pac = true;
     get_authz_data_types(NULL, NULL, &with_pac, NULL);
-    fail_unless(!with_pac, "with_pac not false with NULL inuput.");
+    assert_false(with_pad);
 
     with_pad = true;
     with_pac = true;
     get_authz_data_types(NULL, NULL, &with_pac, &with_pad);
-    fail_unless(!with_pad, "with_pad not false with NULL inuput.");
-    fail_unless(!with_pac, "with_pac not false with NULL inuput.");
+    assert_false(with_pac);
+    assert_false(with_pad);
 
     entry = calloc(1, sizeof(krb5_db_entry));
-    fail_unless(entry != NULL, "calloc krb5_db_entry failed.");
+    assert_non_null(entry);
 
     ied = calloc(1, sizeof(struct ipadb_e_data));
-    fail_unless(ied != NULL, "calloc struct ipadb_e_data failed.");
+    assert_non_null(ied);
     entry->e_data = (void *) ied;
 
     kerr = krb5_init_context(&krb5_ctx);
-    fail_unless(kerr == 0, "krb5_init_context failed.");
+    assert_int_equal(kerr, 0);
     kerr = krb5_db_setup_lib_handle(krb5_ctx);
-    fail_unless(kerr == 0, "krb5_db_setup_lib_handle failed.\n");
+    assert_int_equal(kerr, 0);
     ipa_ctx = calloc(1, sizeof(struct ipadb_context));
-    fail_unless(ipa_ctx != NULL, "calloc failed.\n");
+    assert_non_null(ipa_ctx);
     ipa_ctx->kcontext = krb5_ctx;
     kerr = krb5_db_set_context(krb5_ctx, ipa_ctx);
-    fail_unless(kerr == 0, "krb5_db_set_context failed.\n");
+    assert_int_equal(kerr, 0);
 
     kerr = krb5_parse_name(krb5_ctx, NFS_PRINC_STRING, &nfs_princ);
-    fail_unless(kerr == 0, "krb5_parse_name failed.");
+    assert_int_equal(kerr, 0);
 
     kerr = krb5_parse_name(krb5_ctx, NON_NFS_PRINC_STRING, &non_nfs_princ);
-    fail_unless(kerr == 0, "krb5_parse_name failed.");
+    assert_int_equal(kerr, 0);
 
     struct test_set {
         char **authz_data;
@@ -179,12 +160,8 @@ START_TEST(test_get_authz_data_types)
         ipa_ctx->config.last_update = time(NULL);
         entry->princ = test_set[c].princ;
         get_authz_data_types(krb5_ctx, entry, &with_pac, &with_pad);
-        fail_unless(with_pad == test_set[c].exp_with_pad, "with_pad not %s %s.",
-                    test_set[c].exp_with_pad ? "true" : "false",
-                    test_set[c].err_msg);
-        fail_unless(with_pac == test_set[c].exp_with_pac, "with_pac not %s %s.",
-                    test_set[c].exp_with_pac ? "true" : "false",
-                    test_set[c].err_msg);
+        assert_true(with_pad == test_set[c].exp_with_pad);
+        assert_true(with_pac == test_set[c].exp_with_pac);
     }
 
     krb5_free_principal(krb5_ctx, nfs_princ);
@@ -192,28 +169,12 @@ START_TEST(test_get_authz_data_types)
     krb5_db_fini(krb5_ctx);
     krb5_free_context(krb5_ctx);
 }
-END_TEST
 
-Suite * ipa_kdb_suite(void)
+int main(int argc, const char *argv[])
 {
-    Suite *s = suite_create("IPA kdb");
+    const UnitTest tests[] = {
+        unit_test(test_get_authz_data_types),
+    };
 
-    TCase *tc_helper = tcase_create("Helper functions");
-    tcase_add_test(tc_helper, test_get_authz_data_types);
-    suite_add_tcase(s, tc_helper);
-
-    return s;
-}
-
-int main(void)
-{
-    int number_failed;
-
-    Suite *s = ipa_kdb_suite ();
-    SRunner *sr = srunner_create (s);
-    srunner_run_all (sr, CK_VERBOSE);
-    number_failed = srunner_ntests_failed (sr);
-    srunner_free (sr);
-
-    return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+    return run_tests(tests);
 }

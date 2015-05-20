@@ -55,7 +55,7 @@ ipadb_la_LIBADD = 		\
 	$(NSS_LIBS)             \
 	$(NULL)
 
-if HAVE_CHECK
+if HAVE_CMOCKA
 TESTS = ipa_kdb_tests
 check_PROGRAMS = ipa_kdb_tests
 endif
@@ -73,9 +73,9 @@ ipa_kdb_tests_SOURCES =        \
        ipa_kdb_audit_as.c      \
        $(KRB5_UTIL_SRCS)       \
        $(NULL)
-ipa_kdb_tests_CFLAGS = $(CHECK_CFLAGS)
+ipa_kdb_tests_CFLAGS = $(CMOCKA_CFLAGS)
 ipa_kdb_tests_LDADD =          \
-       $(CHECK_LIBS)           \
+       $(CMOCKA_LIBS)          \
        $(KRB5_LIBS)            \
        $(LDAP_LIBS)            \
        $(NDRPAC_LIBS)          \
