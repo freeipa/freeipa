@@ -60,6 +60,7 @@ default:nsslapd-pluginType: preoperation
 default:nsslapd-pluginEnabled: on
 default:uniqueness-attribute-name: uid
 default:uniqueness-subtrees: $SUFFIX
+default:uniqueness-exclude-subtrees: cn=compat,$SUFFIX
 default:uniqueness-exclude-subtrees: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
 default:uniqueness-across-all-subtrees: on
 default:uniqueness-subtree-entries-oc: posixAccount
@@ -71,6 +72,7 @@ default:nsslapd-pluginDescription: Enforce unique attribute values
 
 # uid uniqueness scopes Active/Delete containers
 dn: cn=uid uniqueness,cn=plugins,cn=config
+add:uniqueness-exclude-subtrees: cn=compat,$SUFFIX
 add:uniqueness-exclude-subtrees: cn=staged users,cn=accounts,cn=provisioning,$SUFFIX
 remove:uniqueness-across-all-subtrees: off
 add:uniqueness-across-all-subtrees: on
