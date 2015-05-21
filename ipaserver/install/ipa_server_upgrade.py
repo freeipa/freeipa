@@ -2,6 +2,7 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+import os
 import sys
 
 import krbV
@@ -9,6 +10,7 @@ import krbV
 from ipalib import api
 from ipaplatform.paths import paths
 from ipapython import admintool, ipautil
+from ipaserver.install import dsinstance
 from ipaserver.install import installutils
 from ipaserver.install.upgradeinstance import IPAUpgrade
 from ipaserver.install.ldapupdate import BadSyntax
@@ -73,7 +75,9 @@ class ServerUpgrade(admintool.AdminTool):
                              "system")
 
         realm = krbV.default_context().default_realm
-        data_upgrade = IPAUpgrade(realm)
+        schema_files = [os.path.join(ipautil.SHARE_DIR, f) for f
+                        in dsinstance.ALL_SCHEMA_FILES]
+        data_upgrade = IPAUpgrade(realm, schema_files=schema_files)
 
         try:
             data_upgrade.create_instance()
