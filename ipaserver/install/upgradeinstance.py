@@ -171,10 +171,8 @@ class IPAUpgrade(service.Service):
         self.schema_files = schema_files
         self.realm = realm_name
 
-    def __start_nowait(self):
-        # Don't wait here because we've turned off port 389. The connection
-        # we make will wait for the socket.
-        super(IPAUpgrade, self).start(wait=False)
+    def __start(self):
+        super(IPAUpgrade, self).start()
 
     def __stop_instance(self):
         """Stop only the main DS instance"""
@@ -187,7 +185,7 @@ class IPAUpgrade(service.Service):
         self.step("saving configuration", self.__save_config)
         self.step("disabling listeners", self.__disable_listeners)
         self.step("enabling DS global lock", self.__enable_ds_global_write_lock)
-        self.step("starting directory server", self.__start_nowait)
+        self.step("starting directory server", self.__start)
         if self.schema_files:
             self.step("updating schema", self.__update_schema)
         self.step("upgrading server", self.__upgrade)

@@ -153,6 +153,20 @@ class RedHatDirectoryService(RedHatService):
         super(RedHatDirectoryService, self).restart(instance_name,
             capture_output=capture_output, wait=wait)
 
+    def wait_for_open_ports(self, instance_name=""):
+        if instance_name.endswith('.service'):
+            instance_name = instance_name[:-8]
+        if instance_name.startswith('dirsrv@'):
+            instance_name = instance_name[7:]
+
+        if instance_name:
+
+            ipautil.wait_for_open_socket(
+                paths.SLAPD_INSTANCE_SOCKET_TEMPLATE % instance_name,
+                self.api.env.startup_timeout)
+        else:
+            super(RedHatDirectoryService, self).wait_for_open_ports()
+
 
 class RedHatIPAService(RedHatService):
     # Enforce restart of IPA services when we do enable it
