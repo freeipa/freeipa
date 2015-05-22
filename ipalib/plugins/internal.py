@@ -259,6 +259,7 @@ class i18n_messages(Command):
             "remove_empty": _("Select entries to be removed."),
             "remove_title": _("Remove ${entity}"),
             "show_details": _("Show details"),
+            "success": _("Success"),
             "validation_title": _("Validation error"),
             "validation_message": _("Input form contains invalid or missing values."),
         },

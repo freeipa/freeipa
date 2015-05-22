@@ -30,12 +30,14 @@ define([
        './jquery',
        './phases',
        './reg',
+       './rpc',
        './text',
        './field',
        './widget'],
-       function(lang, keys, topic, Evented, builder, IPA, $, phases, reg, text,
-        field_mod, widget_mod) {
+       function(lang, keys, topic, Evented, builder, IPA, $, phases, reg, rpc,
+        text, field_mod, widget_mod) {
 
+var dialogs = {};
 
 /**
  * Opened dialogs
@@ -1571,6 +1573,200 @@ IPA.confirm_mixin = function() {
     };
 };
 
+
+/**
+ * Dialog's post_ops
+ */
+dialogs.command_dialog_post_op = function(dialog, spec) {
+    dialog.init();
+    return dialog;
+};
+
+
+/**
+ * General command dialog
+ * @class
+ * @extends IPA.dialog
+ * @mixins IPA.confirm_mixin
+ */
+IPA.command_dialog = dialogs.command_dialog = function(spec) {
+
+    var that = IPA.dialog(spec);
+
+    IPA.confirm_mixin().apply(that);
+
+    /**
+     * Method for setting password
+     * @property {string}
+     */
+    that.method = spec.method || 'mod';
+
+    /**
+     * Command args
+     * @property {string[]}
+     */
+    that.args = spec.args || [];
+
+    /**
+     * Command additional options
+     * @property {Object}
+     */
+    that.options = spec.options || {};
+
+    /**
+     * Success message
+     * @property {string}
+     */
+    that.success_message = spec.success_message || '@i18n:dialogs.success';
+
+    /**
+     * Set button label
+     * @property {string}
+     */
+    that.confirm_button_label = spec.confirm_button_label || '@i18n:buttons.ok';
+
+    /**
+     * Failed event
+     * @event
+     */
+    that.failed = IPA.observer();
+
+    /**
+     * Succeeded event
+     * @event
+     */
+    that.succeeded = IPA.observer();
+
+    /**
+     * Execute change
+     */
+    that.execute = function() {
+
+        var command = that.create_command();
+        command.execute();
+    };
+
+    /**
+     * Confirm handler
+     * @protected
+     */
+    that.on_confirm = function() {
+
+        if (!that.validate()) return;
+        that.execute();
+        that.close();
+    };
+
+    /**
+     * Create buttons
+     * @protected
+     */
+    that.create_buttons = function() {
+
+        that.create_button({
+            name: 'confirm',
+            label: that.confirm_button_label,
+            click: function() {
+                that.on_confirm();
+            }
+        });
+
+        that.create_button({
+            name: 'cancel',
+            label: '@i18n:buttons.cancel',
+            click: function() {
+                that.close();
+            }
+        });
+    };
+
+    /**
+     * Make options for command
+     * @protected
+     */
+    that.make_otions = function() {
+
+        var options = {};
+        lang.mixin(options, that.options);
+
+        var fields = that.fields.get_fields();
+        for (var j=0; j<fields.length; j++) {
+            var field = fields[j];
+            var values = field.save();
+            if (!values || values.length === 0 || !field.enabled) continue;
+            if (field.flags.indexOf('no_command') > -1) continue;
+
+            if (values.length === 1) {
+                options[field.param] = values[0];
+            } else {
+                options[field.param] = values;
+            }
+        }
+        return options;
+    };
+
+    /**
+     * Create command
+     * @protected
+     */
+    that.create_command = function() {
+
+        var options = that.make_otions();
+        var entity = null;
+        if (that.entity) entity = that.entity.name;
+        var command = rpc.command({
+            entity: entity,
+            method: that.method,
+            args: that.args,
+            options: options,
+            on_success: function(data) {
+                that.on_success();
+            },
+            on_error: function() {
+                that.on_error();
+            }
+        });
+        return command;
+    };
+
+    /**
+     * Get success message
+     * @protected
+     */
+    that.get_success_message = function() {
+        return text.get(that.success_message);
+    };
+
+    /**
+     * Success handler
+     * @protected
+     * @param {Object} data
+     */
+    that.on_success = function(data) {
+        that.succeeded.notify([data], that);
+        IPA.notify_success(that.get_success_message());
+    };
+
+    /**
+     * Error handler
+     * @protected
+     */
+    that.on_error = function(xhr, status, error) {
+        that.failed.notify([xhr, status, error], that);
+    };
+
+    /**
+     * Init function
+     *
+     * - should be called right after instance creation
+     */
+    that.init = function() {
+        that.create_buttons();
+    };
+
+    return that;
+};
+
 /**
  * Dialog builder
  * - added as builder for 'dialog' registry
@@ -1580,5 +1776,21 @@ var dialog_builder = builder.get('dialog');
 dialog_builder.factory = IPA.dialog;
 reg.set('dialog', dialog_builder.registry);
 
-return {};
+/**
+ * Register dialog
+ */
+dialogs.register = function() {
+
+    var d = reg.dialog;
+
+    d.register({
+        type: 'command',
+        factory: dialogs.command_dialog,
+        post_ops: [dialogs.command_dialog_post_op]
+    });
+};
+
+phases.on('registration', dialogs.register);
+
+return dialogs;
 });

@@ -116,6 +116,7 @@
                         "remove_empty": "Select entries to be removed.",
                         "remove_title": "Remove ${entity}",
                         "show_details": "Show details",
+                        "success": "Success",
                         "validation_message": "Input form contains invalid or missing values.",
                         "validation_title": "Validation error"
                     },
