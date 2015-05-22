@@ -295,3 +295,6 @@ void ipadb_parse_user_auth(LDAP *lcontext, LDAPMessage *le,
                            enum ipadb_user_auth *user_auth);
 const struct ipadb_global_config *
 ipadb_get_global_config(struct ipadb_context *ipactx);
+int ipadb_get_enc_salt_types(struct ipadb_context *ipactx, LDAPMessage *entry,
+                             char *attr, krb5_key_salt_tuple **enc_salt_types,
+                             int *n_enc_salt_types);
