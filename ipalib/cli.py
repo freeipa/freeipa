@@ -799,7 +799,10 @@ class help(frontend.Local):
 
     def _writer(self, outfile):
         def writer(string=''):
-            print >> outfile, unicode(string)
+            try:
+                print >> outfile, unicode(string)
+            except IOError:
+                pass
         return writer
 
     def print_topics(self, outfile):
