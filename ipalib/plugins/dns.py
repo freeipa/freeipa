@@ -2509,7 +2509,7 @@ class dnszone(DNSZoneBase):
                 'mxrecord', 'naptrrecord', 'nsecrecord', 'nsec3paramrecord',
                 'nsrecord', 'nxtrecord', 'ptrrecord', 'rrsigrecord',
                 'sigrecord', 'srvrecord', 'sshfprecord', 'tlsarecord',
-                'txtrecord',
+                'txtrecord', 'unknownrecord',
             },
             'replaces_system': ['Read DNS Entries'],
             'default_privileges': {'DNS Administrators', 'DNS Servers'},
@@ -2543,7 +2543,7 @@ class dnszone(DNSZoneBase):
                 'mxrecord', 'naptrrecord', 'nsecrecord', 'nsec3paramrecord',
                 'nsrecord', 'nxtrecord', 'ptrrecord', 'rrsigrecord',
                 'sigrecord', 'srvrecord', 'sshfprecord', 'tlsarecord',
-                'txtrecord',
+                'txtrecord', 'unknownrecord',
             },
             'replaces': [
                 '(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:update dns entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX";)',
