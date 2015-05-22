@@ -119,6 +119,7 @@ DEFAULT_CONFIG = (
     ('container_views', DN(('cn', 'views'), ('cn', 'accounts'))),
     ('container_masters', DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'))),
     ('container_certprofile', DN(('cn', 'certprofiles'), ('cn', 'ca'))),
+    ('container_topology', DN(('cn', 'topology'), ('cn', 'ipa'), ('cn', 'etc'))),
 
     # Ports, hosts, and URIs:
     ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),
