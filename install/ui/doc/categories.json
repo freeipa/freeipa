@@ -49,7 +49,6 @@
                     "IPA.opened_dialogs",
                     "IPA.dialog_button",
                     "IPA.confirm_mixin",
-                    "dialogs.password.dialog",
                     "*_dialog"
                 ]
             },
