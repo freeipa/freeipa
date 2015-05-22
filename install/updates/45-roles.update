@@ -29,6 +29,11 @@ dn: cn=Group Administrators,cn=privileges,cn=pbac,$SUFFIX
 add: member: cn=User Administrator,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=Stage User Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: groupofnames
+default:objectClass: nestedgroup
+default:objectClass: top
+default:cn: Stage User Administrators
+default:description: Stage User Administrators
 add: member: cn=User Administrator,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=IT Specialist,cn=roles,cn=accounts,$SUFFIX
