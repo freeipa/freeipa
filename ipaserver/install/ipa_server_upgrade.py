@@ -12,6 +12,7 @@ from ipaplatform.paths import paths
 from ipapython import admintool, ipautil
 from ipaserver.install import dsinstance
 from ipaserver.install import installutils
+from ipaserver.install.server import upgrade_configuration
 from ipaserver.install.upgradeinstance import IPAUpgrade
 from ipaserver.install.ldapupdate import BadSyntax
 
@@ -95,16 +96,10 @@ class ServerUpgrade(admintool.AdminTool):
         # store new data version after upgrade
         installutils.store_version()
 
-        # FIXME: remove this when new installer will be ready
-        # execute upgrade of configuration
-        cmd = ['ipa-upgradeconfig', ]
-        if options.verbose:
-            cmd.append('--debug')
-        if options.quiet:
-            cmd.append('--quiet')
-
-        self.log.info('Executing ipa-upgradeconfig, please wait')
-        ipautil.run(cmd)
+        print 'Upgrading IPA services'
+        self.log.info('Upgrading the configuration of the IPA services')
+        upgrade_configuration()
+        self.log.info('The IPA services were upgraded')
 
     def handle_error(self, exception):
         return installutils.handle_error(exception, self.log_file_name)
