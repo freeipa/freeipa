@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=127
-# Last change: jcholast - add kra_is_enabled
+IPA_API_VERSION_MINOR=128
+# Last change: ftweedal - add caacl plugin

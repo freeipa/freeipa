@@ -227,3 +227,23 @@ ObjectClass: top
 ObjectClass: nsIndex
 nsSystemIndex: false
 nsIndexType: eq
+
+dn: cn=ipaMemberCa,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: ipaMemberCa
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres
+nsIndexType: sub
+
+dn: cn=ipaMemberCertProfile,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: ipaMemberCertProfile
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres
+nsIndexType: sub

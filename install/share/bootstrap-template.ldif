@@ -441,3 +441,9 @@ changetype: add
 objectClass: nsContainer
 objectClass: top
 cn: certprofiles
+
+dn: cn=caacls,cn=ca,$SUFFIX
+changetype: add
+objectClass: nsContainer
+objectClass: top
+cn: caacls

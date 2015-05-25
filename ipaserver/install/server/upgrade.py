@@ -1254,6 +1254,30 @@ def update_mod_nss_protocol(http):
     sysupgrade.set_upgrade_state('nss.conf', 'protocol_updated_tls12', True)
 
 
+def add_default_caacl(ca):
+    root_logger.info('[Add default CA ACL]')
+
+    if sysupgrade.get_upgrade_state('caacl', 'add_default_caacl'):
+        root_logger.info('Default CA ACL already added')
+        return
+
+    if ca.is_configured():
+        if not api.Backend.ldap2.isconnected():
+            try:
+                api.Backend.ldap2.connect(autobind=True)
+            except ipalib.errors.PublicError as e:
+                root_logger.error("Cannot connect to LDAP to add CA ACLs: %s", e)
+                return
+
+        if not api.Command.caacl_find()['result']:
+            api.Command.caacl_add(u'hosts_services_caIPAserviceCert',
+                hostcategory=u'all', usercategory=u'all')
+            api.Command.caacl_add_profile(u'hosts_services_caIPAserviceCert',
+                certprofile=(u'caIPAserviceCert',))
+
+    sysupgrade.set_upgrade_state('caacl', 'add_default_caacl', True)
+
+
 def upgrade_configuration():
     """
     Execute configuration upgrade of the IPA services
@@ -1431,6 +1455,7 @@ def upgrade_configuration():
     # itself require a restart.
     #
     ca_import_included_profiles(ca)
+    add_default_caacl(ca)
 
     set_sssd_domain_option('ipa_server_mode', 'True')
 

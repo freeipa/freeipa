@@ -22,6 +22,16 @@ dn: cn=automount,dc=ipa,dc=example
 aci: (targetattr = "automountmapname || description")(targetfilter = "(objectclass=automountmap)")(version 3.0;acl "permission:System: Modify Automount Maps";allow (write) groupdn = "ldap:///cn=System: Modify Automount Maps,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=automount,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=automountmap)")(version 3.0;acl "permission:System: Remove Automount Maps";allow (delete) groupdn = "ldap:///cn=System: Remove Automount Maps,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=caacls,cn=ca,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipacaacl)")(version 3.0;acl "permission:System: Add CA ACL";allow (add) groupdn = "ldap:///cn=System: Add CA ACL,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=caacls,cn=ca,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipacaacl)")(version 3.0;acl "permission:System: Delete CA ACL";allow (delete) groupdn = "ldap:///cn=System: Delete CA ACL,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=caacls,cn=ca,dc=ipa,dc=example
+aci: (targetattr = "hostcategory || ipacacategory || ipacertprofilecategory || ipamemberca || ipamembercertprofile || memberhost || memberservice || memberuser || servicecategory || usercategory")(targetfilter = "(objectclass=ipacaacl)")(version 3.0;acl "permission:System: Manage CA ACL Membership";allow (write) groupdn = "ldap:///cn=System: Manage CA ACL Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=caacls,cn=ca,dc=ipa,dc=example
+aci: (targetattr = "cn || description || ipaenabledflag")(targetfilter = "(objectclass=ipacaacl)")(version 3.0;acl "permission:System: Modify CA ACL";allow (write) groupdn = "ldap:///cn=System: Modify CA ACL,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=caacls,cn=ca,dc=ipa,dc=example
+aci: (targetattr = "cn || createtimestamp || description || entryusn || hostcategory || ipacacategory || ipacertprofilecategory || ipaenabledflag || ipamemberca || ipamembercertprofile || ipauniqueid || member || memberhost || memberservice || memberuser || modifytimestamp || objectclass || servicecategory || usercategory")(targetfilter = "(objectclass=ipacaacl)")(version 3.0;acl "permission:System: Read CA ACLs";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=certprofiles,cn=ca,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipacertprofile)")(version 3.0;acl "permission:System: Delete Certificate Profile";allow (delete) groupdn = "ldap:///cn=System: Delete Certificate Profile,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=certprofiles,cn=ca,dc=ipa,dc=example

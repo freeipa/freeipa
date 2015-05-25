@@ -29,6 +29,7 @@ app_DATA =				\
 	bootstrap-template.ldif		\
 	caJarSigningCert.cfg.template	\
 	default-aci.ldif		\
+	default-caacl.ldif		\
 	default-hbac.ldif		\
 	default-smb-group.ldif		\
 	default-trust-view.ldif		\

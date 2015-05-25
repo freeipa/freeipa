@@ -34,6 +34,7 @@ app_DATA =				\
 	40-automember.update		\
 	40-certprofile.update		\
 	40-otp.update			\
+	41-caacl.update			\
 	45-roles.update			\
 	50-7_bit_check.update	        \
 	50-dogtag10-migration.update	\

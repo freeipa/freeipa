@@ -1,0 +1,11 @@
+# default CA ACL that grants use of caIPAserviceCert on top-level CA to all hosts and services
+dn: ipauniqueid=autogenerate,cn=caacls,cn=ca,$SUFFIX
+changetype: add
+objectclass: ipaassociation
+objectclass: ipacaacl
+ipauniqueid: autogenerate
+cn: hosts_services_caIPAserviceCert
+ipaenabledflag: TRUE
+ipamembercertprofile: cn=caIPAserviceCert,cn=certprofiles,cn=ca,$SUFFIX
+hostcategory: all
+servicecategory: all
