@@ -26,7 +26,6 @@ Test the `ipalib.plugins.host` module.
 import os
 import tempfile
 import base64
-import functools
 
 import pytest
 
@@ -34,6 +33,7 @@ from ipapython import ipautil
 from ipalib import api, errors, x509
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
+from ipatests.test_xmlrpc.ldaptracker import Tracker
 from ipatests.test_xmlrpc.xmlrpc_test import (XMLRPC_test,
     fuzzy_uuid, fuzzy_digits, fuzzy_hash, fuzzy_date, fuzzy_issuer,
     fuzzy_hex, raises_exact)
@@ -41,7 +41,6 @@ from ipatests.test_xmlrpc.test_user_plugin import get_group_dn
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.testcert import get_testcert
 from ipatests.util import assert_deepequal
-from ipapython.version import API_VERSION
 
 # Constants DNS integration tests
 # TODO: Use tracker fixtures for zones/records/users/groups
@@ -96,33 +95,12 @@ hostgroup1_dn = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
                     api.env.basedn)
 
 
-class HostTracker(object):
+class HostTracker(Tracker):
     """Wraps and tracks modifications to a Host object
 
-    Stores a copy of state of a Host object, and allows checking that
-    the state in the database is the same as expected.
-    This allows creating independent tests: the individual tests check
-    that the relevant changes have been made. At the same time
-    the Host doesn't heet to be recreated and cleaned up for each test.
+    Implements the helper functions for host plugin.
 
-    Two attributes are used for tracking: ``exists`` (true if the Host is
-    supposed to exist) and ``attrs`` (a dict of LDAP attributes that are
-    expected to be returned from IPA commands).
-
-    For commonly used operations, there is a helper method, e.g.
-    ``create``, ``update``, or ``find``, that does these steps:
-
-    * ensure the Host exists (or does not exist, for "create")
-    * store the expected modifications
-    * get the IPA command to run, and run it
-    * check that the result matches the expected state
-
-    Tests that require customization of these steps are expected to do them
-    manually, using lower-level methods.
-    Especially the first step (ensure the Host exists) is important for
-    achieving independent tests.
-
-    The HostTracker object also stores information about the host, e.g.
+    The HostTracker object stores information about the host, e.g.
     ``fqdn`` and ``dn``.
     """
     retrieve_keys = {
@@ -148,8 +126,7 @@ class HostTracker(object):
     allowedto_keys = retrieve_keys - {'has_keytab', 'has_password'}
 
     def __init__(self, name, fqdn=None, default_version=None):
-        self.api = api
-        self.default_version = default_version or API_VERSION
+        super(HostTracker, self).__init__(default_version=default_version)
 
         self.shortname = name
         if fqdn:
@@ -161,75 +138,6 @@ class HostTracker(object):
 
         self.description = u'Test host <%s>' % name
         self.location = u'Undisclosed location <%s>' % name
-
-        self.exists = False
-
-    def filter_attrs(self, keys):
-        """Return a dict of expected attrs, filtered by the given keys"""
-        return {k: v for k, v in self.attrs.items() if k in keys}
-
-    def run_command(self, name, *args, **options):
-        """Run the given IPA command
-
-        Logs the command using print for easier debugging
-        """
-        cmd = self.api.Command[name]
-
-        options.setdefault('version', self.default_version)
-
-        args_repr = ', '.join(
-            [repr(a) for a in args] +
-            ['%s=%r' % item for item in options.items()])
-        try:
-            result = cmd(*args, **options)
-        except Exception as e:
-            print 'Ran command: %s(%s): %s: %s' % (cmd, args_repr,
-                                                    type(e).__name__, e)
-            raise
-        else:
-            print 'Ran command: %s(%s): OK' % (cmd, args_repr)
-        return result
-
-    def make_command(self, name, *args, **options):
-        """Make a functools.partial function to run the given command"""
-        return functools.partial(self.run_command, name, *args, **options)
-
-    def make_fixture(self, request):
-        """Make a pytest fixture for this tracker
-
-        The fixture ensures the host does not exist before and after the tests
-        that use it.
-        """
-        del_command = self.make_delete_command()
-        try:
-            del_command()
-        except errors.NotFound:
-            pass
-
-        def cleanup():
-            existed = self.exists
-            try:
-                del_command()
-            except errors.NotFound:
-                if existed:
-                    raise
-            self.exists = False
-
-        request.addfinalizer(cleanup)
-
-        return self
-
-    def ensure_exists(self):
-        """If the host does not exist (according to tracker state), create it
-        """
-        if not self.exists:
-            self.create(force=True)
-
-    def ensure_missing(self):
-        """If the host exists (according to tracker state), delete it
-        """
-        if self.exists:
-            self.delete()
 
     def make_create_command(self, force=True):
         """Make function that creates this host using host_add"""
@@ -257,14 +165,6 @@ class HostTracker(object):
     def make_update_command(self, updates):
         """Make function that modifies the host using host_mod"""
         return self.make_command('host_mod', self.fqdn, **updates)
-
-    def create(self, force=True):
-        """Helper function to create a host and check the result"""
-        self.ensure_missing()
-        self.track_create()
-        command = self.make_create_command(force=force)
-        result = command()
-        self.check_create(result)
 
     def track_create(self):
         """Update expected state for host creation"""
@@ -295,19 +195,6 @@ class HostTracker(object):
             result=self.filter_attrs(self.create_keys),
         ), result)
 
-    def delete(self):
-        """Helper function to delete a host and check the result"""
-        self.ensure_exists()
-        self.track_delete()
-        command = self.make_delete_command()
-        result = command()
-        self.check_delete(result)
-
-    def track_delete(self):
-        """Update expected state for host deletion"""
-        self.exists = False
-        self.attrs = {}
-
     def check_delete(self, result):
         """Check `host_del` command result"""
         assert_deepequal(dict(
@@ -315,13 +202,6 @@ class HostTracker(object):
             summary=u'Deleted host "%s"' % self.fqdn,
             result=dict(failed=[]),
         ), result)
-
-    def retrieve(self, all=False, raw=False):
-        """Helper function to retrieve a host and check the result"""
-        self.ensure_exists()
-        command = self.make_retrieve_command(all=all, raw=raw)
-        result = command()
-        self.check_retrieve(result, all=all, raw=raw)
 
     def check_retrieve(self, result, all=False, raw=False):
         """Check `host_show` command result"""
@@ -335,13 +215,6 @@ class HostTracker(object):
             result=expected,
         ), result)
 
-    def find(self, all=False, raw=False):
-        """Helper function to search for this hosts and check the result"""
-        self.ensure_exists()
-        command = self.make_find_command(self.fqdn, all=all, raw=raw)
-        result = command()
-        self.check_find(result, all=all, raw=raw)
-
     def check_find(self, result, all=False, raw=False):
         """Check `host_find` command result"""
         if all:
@@ -354,24 +227,6 @@ class HostTracker(object):
             summary=u'1 host matched',
             result=[expected],
         ), result)
-
-    def update(self, updates, expected_updates=None):
-        """Helper function to update this hosts and check the result
-
-        The ``updates`` are used as options to the *_mod command,
-        and the self.attrs is updated with this dict.
-        Additionally, self.attrs is updated with ``expected_updates``.
-        """
-        if expected_updates is None:
-            expected_updates = {}
-
-        self.ensure_exists()
-        command = self.make_update_command(updates)
-        result = command()
-        self.attrs.update(updates)
-        self.attrs.update(expected_updates)
-        self.check_update(result, extra_keys=set(updates.keys()) |
-                                             set(expected_updates.keys()))
 
     def check_update(self, result, extra_keys=()):
         """Check `host_update` command result"""
