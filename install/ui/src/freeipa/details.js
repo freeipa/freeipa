@@ -552,6 +552,15 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
     that.check_rights = spec.check_rights !== undefined ? spec.check_rights : true;
 
     /**
+     * Get all fields
+     *
+     * Controls obtaining of all attributes on refresh and update
+     *
+     * @property {boolean}
+     */
+    that.get_all_attrs = spec.get_all_attrs !== undefined ? spec.get_all_attrs: true;
+
+    /**
      * Facet label
      * @property {string}
      */
@@ -868,7 +877,8 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
 
         var args = that.get_pkeys();
 
-        var options = { all: true };
+        var options = {};
+        if (that.get_all_attrs) options.all = true;
         if (that.check_rights) options.rights = true;
 
         var command = rpc.command({
@@ -992,7 +1002,8 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
      */
     that.create_refresh_command = function() {
 
-        var options = { all: true };
+        var options = {};
+        if (that.get_all_attrs) options.all = true;
         if (that.check_rights) options.rights = true;
 
         var command = rpc.command({
