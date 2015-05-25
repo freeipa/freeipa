@@ -25,6 +25,7 @@ Contains Red Hat OS family-specific service class implementations.
 import os
 import time
 import xml.dom.minidom
+import contextlib
 
 from ipaplatform.tasks import tasks
 from ipaplatform.base import services as base_services
@@ -124,7 +125,8 @@ class RedHatDirectoryService(RedHatService):
 
         return True
 
-    def restart(self, instance_name="", capture_output=True, wait=True):
+    def restart(self, instance_name="", capture_output=True, wait=True,
+                ldapi=False):
     # We need to explicitly enable instances to install proper symlinks as
     # dirsrv.target.wants/ dependencies. Standard systemd service class does it
     # on enable() method call. Unfortunately, ipa-server-install does not do
@@ -150,22 +152,35 @@ class RedHatDirectoryService(RedHatService):
                 os.unlink(srv_lnk)
                 os.symlink(srv_etc, srv_lnk)
 
-        super(RedHatDirectoryService, self).restart(instance_name,
-            capture_output=capture_output, wait=wait)
+        with self.__wait(instance_name, wait, ldapi) as wait:
+            super(RedHatDirectoryService, self).restart(
+                instance_name, capture_output=capture_output, wait=wait)
 
-    def wait_for_open_ports(self, instance_name=""):
-        if instance_name.endswith('.service'):
-            instance_name = instance_name[:-8]
-        if instance_name.startswith('dirsrv@'):
-            instance_name = instance_name[7:]
+    def start(self, instance_name="", capture_output=True, wait=True,
+              ldapi=False):
+        with self.__wait(instance_name, wait, ldapi) as wait:
+            super(RedHatDirectoryService, self).start(
+                instance_name, capture_output=capture_output, wait=wait)
 
-        if instance_name:
-
-            ipautil.wait_for_open_socket(
-                paths.SLAPD_INSTANCE_SOCKET_TEMPLATE % instance_name,
-                self.api.env.startup_timeout)
+    @contextlib.contextmanager
+    def __wait(self, instance_name, wait, ldapi):
+        if ldapi:
+            instance_name = self.service_instance(instance_name)
+            if instance_name.endswith('.service'):
+                instance_name = instance_name[:-8]
+            if instance_name.startswith('dirsrv'):
+                # this is intentional, return the empty string if the instance
+                # name is 'dirsrv'
+                instance_name = instance_name[7:]
+            if not instance_name:
+                ldapi = False
+        if ldapi:
+            yield False
+            socket_name = paths.SLAPD_INSTANCE_SOCKET_TEMPLATE % instance_name
+            ipautil.wait_for_open_socket(socket_name,
+                                         self.api.env.startup_timeout)
         else:
-            super(RedHatDirectoryService, self).wait_for_open_ports()
+            yield wait
 
 
 class RedHatIPAService(RedHatService):

@@ -24,6 +24,7 @@ import shutil
 import random
 import traceback
 from ipaplatform.paths import paths
+from ipaplatform import services
 from ipapython.ipa_log_manager import *
 from ipapython import ipaldap
 
@@ -172,7 +173,7 @@ class IPAUpgrade(service.Service):
         self.realm = realm_name
 
     def __start(self):
-        super(IPAUpgrade, self).start()
+        services.service(self.service_name).start(self.serverid, ldapi=True)
 
     def __stop_instance(self):
         """Stop only the main DS instance"""
