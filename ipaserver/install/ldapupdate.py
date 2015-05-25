@@ -648,9 +648,10 @@ class LDAPUpdate:
                     entry_values.remove(update_value)
                 except ValueError:
                     self.warning("remove: '%s' not in %s", update_value, attr)
-                    pass
-                entry[attr] = entry_values
-                self.debug('remove: updated value %s', safe_output(attr, entry_values))
+                else:
+                    entry[attr] = entry_values
+                    self.debug('remove: updated value %s', safe_output(
+                        attr, entry_values))
             elif action == 'add':
                 self.debug("add: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
                 # Remove it, ignoring errors so we can blindly add it later
