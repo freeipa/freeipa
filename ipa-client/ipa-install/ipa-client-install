@@ -1274,6 +1274,15 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
         # the master should only use itself for Kerberos
         domain.set_option('ipa_server', cli_server[0])
 
+        # increase memcache timeout to 10 minutes when in server mode
+        try:
+            nss_service = sssdconfig.get_service('nss')
+        except SSSDConfig.NoServiceError:
+            nss_service = sssdconfig.new_service('nss')
+
+        nss_service.set_option('memcache_timeout', 600)
+        sssdconfig.save_service(nss_service)
+
     domain.set_option('ipa_domain', cli_domain)
     domain.set_option('ipa_hostname', client_hostname)
     if cli_domain.lower() != cli_realm.lower():
