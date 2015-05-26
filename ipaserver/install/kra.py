@@ -67,7 +67,7 @@ def install(replica_config, options, dm_password):
 
 
 def uninstall():
-    dogtag_constants = dogtag.configured_constants()
+    dogtag_constants = dogtag.configured_constants(api=api)
 
     kra_instance = krainstance.KRAInstance(
         api.env.realm, dogtag_constants=dogtag_constants)
