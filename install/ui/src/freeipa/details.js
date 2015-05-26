@@ -522,6 +522,15 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
      */
     that.entity = IPA.get_entity(spec.entity);
 
+
+    /**
+     * Name of refresh RPC command
+     *
+     * - defaults to 'show'
+     * @property {string}
+     */
+    that.refresh_command_name = spec.refresh_command_name || 'show';
+
     /**
      * Name of update command
      *
@@ -992,7 +1001,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
      * @return {string}
      */
     that.get_refresh_command_name = function() {
-        return that.entity.name+'_show';
+        return that.entity.name+'_'+that.refresh_command_name;
     };
 
     /**
@@ -1009,7 +1018,7 @@ exp.details_facet = IPA.details_facet = function(spec, no_init) {
         var command = rpc.command({
             name: that.get_refresh_command_name(),
             entity: that.entity.name,
-            method: 'show',
+            method: that.refresh_command_name,
             options: options
         });
 
