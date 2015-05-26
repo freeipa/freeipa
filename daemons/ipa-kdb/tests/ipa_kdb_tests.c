@@ -22,11 +22,19 @@
 
 #include <errno.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <setjmp.h>
 #include <cmocka.h>
 
+#include <talloc.h>
+
+#include "gen_ndr/ndr_krb5pac.h"
+#include "gen_ndr/netlogon.h"
+
 #include "ipa-kdb/ipa_kdb.h"
+#include "ipa-kdb/ipa_kdb_mspac_private.h"
 
 #define NFS_PRINC_STRING "nfs/fully.qualified.host.name@REALM.NAME"
 #define NON_NFS_PRINC_STRING "abcdef/fully.qualified.host.name@REALM.NAME"
@@ -50,6 +58,240 @@ int krb5_klog_syslog(int l, const char *format, ...)
     free(s);
 
     return 0;
+}
+
+struct test_ctx {
+    krb5_context krb5_ctx;
+};
+
+#define DOMAIN_NAME "my.domain"
+#define REALM "MY.DOMAIN"
+#define REALM_LEN (sizeof(REALM) - 1)
+#define FLAT_NAME "MYDOM"
+#define DOM_SID "S-1-5-21-1-2-3"
+#define DOM_SID_TRUST "S-1-5-21-4-5-6"
+#define BLACKLIST_SID "S-1-5-1"
+
+void setup(void **state)
+{
+    int ret;
+    krb5_context krb5_ctx;
+    krb5_error_code kerr;
+    struct ipadb_context *ipa_ctx;
+    struct test_ctx *test_ctx;
+
+    kerr = krb5_init_context(&krb5_ctx);
+    assert_int_equal(kerr, 0);
+    kerr = krb5_db_setup_lib_handle(krb5_ctx);
+    assert_int_equal(kerr, 0);
+
+    ipa_ctx = calloc(1, sizeof(struct ipadb_context));
+    assert_non_null(ipa_ctx);
+
+    ipa_ctx->mspac = calloc(1, sizeof(struct ipadb_mspac));
+    assert_non_null(ipa_ctx->mspac);
+
+    /* make sure data is not read from LDAP */
+    ipa_ctx->mspac->last_update = time(NULL) - 1;
+
+    ret = string_to_sid(DOM_SID, &ipa_ctx->mspac->domsid);
+    assert_int_equal(ret, 0);
+
+    ipa_ctx->mspac->num_trusts = 1;
+    ipa_ctx->mspac->trusts = calloc(1, sizeof(struct ipadb_adtrusts));
+    assert_non_null(ipa_ctx->mspac->trusts);
+
+    ipa_ctx->mspac->trusts[0].domain_name = strdup(DOMAIN_NAME);
+    assert_non_null(ipa_ctx->mspac->trusts[0].domain_name);
+
+    ipa_ctx->mspac->trusts[0].flat_name = strdup(FLAT_NAME);
+    assert_non_null(ipa_ctx->mspac->trusts[0].flat_name);
+
+    ipa_ctx->mspac->trusts[0].domain_sid = strdup(DOM_SID_TRUST);
+    assert_non_null(ipa_ctx->mspac->trusts[0].domain_sid);
+
+    ret = string_to_sid(DOM_SID_TRUST, &ipa_ctx->mspac->trusts[0].domsid);
+    assert_int_equal(ret, 0);
+
+    ipa_ctx->mspac->trusts[0].len_sid_blacklist_incoming = 1;
+    ipa_ctx->mspac->trusts[0].sid_blacklist_incoming = calloc(
+                           ipa_ctx->mspac->trusts[0].len_sid_blacklist_incoming,
+                           sizeof(struct dom_sid));
+    assert_non_null(ipa_ctx->mspac->trusts[0].sid_blacklist_incoming);
+    ret = string_to_sid(BLACKLIST_SID,
+                        &ipa_ctx->mspac->trusts[0].sid_blacklist_incoming[0]);
+    assert_int_equal(ret, 0);
+
+    struct dom_sid *sid_blacklist_incoming;
+    int len_sid_blacklist_incoming;
+
+    ipa_ctx->kcontext = krb5_ctx;
+    kerr = krb5_db_set_context(krb5_ctx, ipa_ctx);
+    assert_int_equal(kerr, 0);
+
+    test_ctx = talloc(NULL, struct test_ctx);
+    assert_non_null(test_ctx);
+
+    test_ctx->krb5_ctx = krb5_ctx;
+
+    *state = test_ctx;
+}
+
+void teardown(void **state)
+{
+    struct test_ctx *test_ctx;
+    struct ipadb_context *ipa_ctx;
+
+    test_ctx = (struct test_ctx *) *state;
+
+    ipa_ctx = ipadb_get_context(test_ctx->krb5_ctx);
+    assert_non_null(ipa_ctx);
+    ipadb_mspac_struct_free(&ipa_ctx->mspac);
+
+    krb5_db_fini(test_ctx->krb5_ctx);
+    krb5_free_context(test_ctx->krb5_ctx);
+
+    talloc_free(test_ctx);
+}
+
+extern krb5_error_code filter_logon_info(krb5_context context,
+                                  TALLOC_CTX *memctx,
+                                  krb5_data realm,
+                                  struct PAC_LOGON_INFO_CTR *info);
+
+void test_filter_logon_info(void **state)
+{
+    krb5_error_code kerr;
+    krb5_data realm = {KV5M_DATA, REALM_LEN, REALM};
+    struct test_ctx *test_ctx;
+    struct PAC_LOGON_INFO_CTR *info;
+    int ret;
+    struct dom_sid dom_sid;
+    size_t c;
+    size_t d;
+
+    test_ctx = (struct test_ctx *) *state;
+
+    info = talloc_zero(test_ctx, struct PAC_LOGON_INFO_CTR);
+    assert_non_null(info);
+    info->info = talloc_zero(info, struct PAC_LOGON_INFO);
+    assert_non_null(info->info);
+
+    /* wrong flat name */
+    info->info->info3.base.logon_domain.string = talloc_strdup(info->info,
+                                                               "WRONG");
+    assert_non_null(info->info->info3.base.logon_domain.string);
+
+    kerr = filter_logon_info(test_ctx->krb5_ctx, test_ctx, realm, info);
+    assert_int_equal(kerr, EINVAL);
+
+    info->info->info3.base.logon_domain.string = talloc_strdup(info->info,
+                                                               FLAT_NAME);
+    assert_non_null(info->info->info3.base.logon_domain.string);
+
+    /* missing domain SID */
+    kerr = filter_logon_info(test_ctx->krb5_ctx, test_ctx, realm, info);
+    assert_int_equal(kerr, EINVAL);
+
+    /* wrong domain SID */
+    ret = string_to_sid("S-1-5-21-1-1-1", &dom_sid);
+    assert_int_equal(ret, 0);
+    info->info->info3.base.domain_sid = &dom_sid;
+
+    kerr = filter_logon_info(test_ctx->krb5_ctx, test_ctx, realm, info);
+    assert_int_equal(kerr, EINVAL);
+
+    /* matching domain SID */
+    ret = string_to_sid(DOM_SID_TRUST, &dom_sid);
+    assert_int_equal(ret, 0);
+    info->info->info3.base.domain_sid = &dom_sid;
+
+    kerr = filter_logon_info(test_ctx->krb5_ctx, test_ctx, realm, info);
+    assert_int_equal(kerr, 0);
+
+    /* empty SIDs */
+    info->info->info3.sidcount = 3;
+    info->info->info3.sids = talloc_zero_array(info->info,
+                                               struct netr_SidAttr,
+                                               info->info->info3.sidcount);
+    assert_non_null(info->info->info3.sids);
+    for(c = 0; c < info->info->info3.sidcount; c++) {
+        info->info->info3.sids[c].sid = talloc_zero(info->info->info3.sids,
+                                                    struct dom_sid2);
+        assert_non_null(info->info->info3.sids[c].sid);
+    }
+
+    kerr = filter_logon_info(test_ctx->krb5_ctx, NULL, realm, info);
+    assert_int_equal(kerr, 0);
+    assert_int_equal(info->info->info3.sidcount, 3);
+
+    struct test_data {
+        size_t sidcount;
+        const char *sids[3];
+        size_t exp_sidcount;
+        const char *exp_sids[3];
+    } test_data[] = {
+        /* only allowed SIDs */
+        {3, {DOM_SID_TRUST"-1000", DOM_SID_TRUST"-1001", DOM_SID_TRUST"-1002"},
+         3, {DOM_SID_TRUST"-1000", DOM_SID_TRUST"-1001", DOM_SID_TRUST"-1002"}},
+        /* last SID filtered */
+        {3, {DOM_SID_TRUST"-1000", DOM_SID_TRUST"-1001", BLACKLIST_SID"-1002"},
+         2, {DOM_SID_TRUST"-1000", DOM_SID_TRUST"-1001"}},
+        /* center SID filtered */
+        {3, {DOM_SID_TRUST"-1000", BLACKLIST_SID"-1001", DOM_SID_TRUST"-1002"},
+         2, {DOM_SID_TRUST"-1000", DOM_SID_TRUST"-1002"}},
+        /* first SID filtered */
+        {3, {BLACKLIST_SID"-1000", DOM_SID_TRUST"-1001", DOM_SID_TRUST"-1002"},
+         2, {DOM_SID_TRUST"-1001", DOM_SID_TRUST"-1002"}},
+        /* first and last SID filtered */
+        {3, {BLACKLIST_SID"-1000", DOM_SID_TRUST"-1001", BLACKLIST_SID"-1002"},
+         1, {DOM_SID_TRUST"-1001"}},
+        /* two SIDs in a rwo filtered */
+        {3, {BLACKLIST_SID"-1000", BLACKLIST_SID"-1001", DOM_SID_TRUST"-1002"},
+         1, {DOM_SID_TRUST"-1002"}},
+        /* all SIDs filtered*/
+        {3, {BLACKLIST_SID"-1000", BLACKLIST_SID"-1001", BLACKLIST_SID"-1002"},
+         0, NULL},
+        {0, NULL, 0 , NULL}
+    };
+
+    for (c = 0; test_data[c].sidcount != 0; c++) {
+        talloc_free(info->info->info3.sids);
+
+        info->info->info3.sidcount = test_data[c].sidcount;
+        info->info->info3.sids = talloc_zero_array(info->info,
+                                                   struct netr_SidAttr,
+                                                   info->info->info3.sidcount);
+        assert_non_null(info->info->info3.sids);
+        for(d = 0; d < info->info->info3.sidcount; d++) {
+            info->info->info3.sids[d].sid = talloc_zero(info->info->info3.sids,
+                                                        struct dom_sid2);
+            assert_non_null(info->info->info3.sids[d].sid);
+        }
+
+        for (d = 0; d < info->info->info3.sidcount; d++) {
+            ret = string_to_sid(test_data[c].sids[d],
+                                info->info->info3.sids[d].sid);
+            assert_int_equal(ret, 0);
+        }
+
+        kerr = filter_logon_info(test_ctx->krb5_ctx, NULL, realm, info);
+        assert_int_equal(kerr, 0);
+        assert_int_equal(info->info->info3.sidcount, test_data[c].exp_sidcount);
+        if (test_data[c].exp_sidcount == 0) {
+            assert_null(info->info->info3.sids);
+        } else {
+            for (d = 0; d < test_data[c].exp_sidcount; d++) {
+                assert_string_equal(test_data[c].exp_sids[d],
+                                 dom_sid_string(info->info->info3.sids,
+                                                info->info->info3.sids[d].sid));
+            }
+        }
+    }
+
+
+    talloc_free(info);
+
 }
 
 extern void get_authz_data_types(krb5_context context, krb5_db_entry *entry,
@@ -76,6 +318,11 @@ void test_get_authz_data_types(void **state)
     struct ipadb_context *ipa_ctx;
     krb5_principal nfs_princ;
     krb5_principal non_nfs_princ;
+    struct test_ctx *test_ctx;
+
+    test_ctx = (struct test_ctx *) *state;
+    ipa_ctx = ipadb_get_context(test_ctx->krb5_ctx);
+    assert_non_null(ipa_ctx);
 
     get_authz_data_types(NULL, NULL, NULL, NULL);
 
@@ -100,20 +347,11 @@ void test_get_authz_data_types(void **state)
     assert_non_null(ied);
     entry->e_data = (void *) ied;
 
-    kerr = krb5_init_context(&krb5_ctx);
-    assert_int_equal(kerr, 0);
-    kerr = krb5_db_setup_lib_handle(krb5_ctx);
-    assert_int_equal(kerr, 0);
-    ipa_ctx = calloc(1, sizeof(struct ipadb_context));
-    assert_non_null(ipa_ctx);
-    ipa_ctx->kcontext = krb5_ctx;
-    kerr = krb5_db_set_context(krb5_ctx, ipa_ctx);
+    kerr = krb5_parse_name(test_ctx->krb5_ctx, NFS_PRINC_STRING, &nfs_princ);
     assert_int_equal(kerr, 0);
 
-    kerr = krb5_parse_name(krb5_ctx, NFS_PRINC_STRING, &nfs_princ);
-    assert_int_equal(kerr, 0);
-
-    kerr = krb5_parse_name(krb5_ctx, NON_NFS_PRINC_STRING, &non_nfs_princ);
+    kerr = krb5_parse_name(test_ctx->krb5_ctx, NON_NFS_PRINC_STRING,
+                           &non_nfs_princ);
     assert_int_equal(kerr, 0);
 
     struct test_set {
@@ -159,21 +397,22 @@ void test_get_authz_data_types(void **state)
         /* Set last_update to avoid LDAP lookups during tests */
         ipa_ctx->config.last_update = time(NULL);
         entry->princ = test_set[c].princ;
-        get_authz_data_types(krb5_ctx, entry, &with_pac, &with_pad);
+        get_authz_data_types(test_ctx->krb5_ctx, entry, &with_pac, &with_pad);
         assert_true(with_pad == test_set[c].exp_with_pad);
         assert_true(with_pac == test_set[c].exp_with_pac);
     }
 
-    krb5_free_principal(krb5_ctx, nfs_princ);
-    krb5_free_principal(krb5_ctx, non_nfs_princ);
-    krb5_db_fini(krb5_ctx);
-    krb5_free_context(krb5_ctx);
+    free(ied);
+    free(entry);
+    krb5_free_principal(test_ctx->krb5_ctx, nfs_princ);
+    krb5_free_principal(test_ctx->krb5_ctx, non_nfs_princ);
 }
 
 int main(int argc, const char *argv[])
 {
     const UnitTest tests[] = {
-        unit_test(test_get_authz_data_types),
+        unit_test_setup_teardown(test_get_authz_data_types, setup, teardown),
+        unit_test_setup_teardown(test_filter_logon_info, setup, teardown),
     };
 
     return run_tests(tests);

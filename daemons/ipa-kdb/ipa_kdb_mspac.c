@@ -28,31 +28,7 @@
 #include "util/time.h"
 #include "gen_ndr/ndr_krb5pac.h"
 
-struct ipadb_adtrusts {
-    char *domain_name;
-    char *flat_name;
-    char *domain_sid;
-    struct dom_sid domsid;
-    struct dom_sid *sid_blacklist_incoming;
-    int len_sid_blacklist_incoming;
-    struct dom_sid *sid_blacklist_outgoing;
-    int len_sid_blacklist_outgoing;
-    struct ipadb_adtrusts *parent;
-    char *parent_name;
-};
-
-struct ipadb_mspac {
-    char *flat_domain_name;
-    char *flat_server_name;
-    struct dom_sid domsid;
-
-    char *fallback_group;
-    uint32_t fallback_rid;
-
-    int num_trusts;
-    struct ipadb_adtrusts *trusts;
-    time_t last_update;
-};
+#include "ipa_kdb_mspac_private.h"
 
 static char *user_pac_attrs[] = {
     "objectClass",
@@ -113,10 +89,11 @@ static struct {
 #define AUTHZ_DATA_TYPE_PAD "PAD"
 #define AUTHZ_DATA_TYPE_NONE "NONE"
 
-static int string_to_sid(char *str, struct dom_sid *sid)
+int string_to_sid(const char *str, struct dom_sid *sid)
 {
     unsigned long val;
-    char *s, *t;
+    const char *s;
+    char *t;
     int i;
 
     memset(sid, '\0', sizeof(struct dom_sid));
@@ -174,7 +151,7 @@ static int string_to_sid(char *str, struct dom_sid *sid)
     return 0;
 }
 
-static char *dom_sid_string(TALLOC_CTX *memctx, const struct dom_sid *dom_sid)
+char *dom_sid_string(TALLOC_CTX *memctx, const struct dom_sid *dom_sid)
 {
     size_t c;
     size_t len;
@@ -1333,10 +1310,10 @@ static void filter_logon_info_log_message_rid(struct dom_sid *sid, uint32_t rid)
     }
 }
 
-static krb5_error_code filter_logon_info(krb5_context context,
-                                         TALLOC_CTX *memctx,
-                                         krb5_data realm,
-                                         struct PAC_LOGON_INFO_CTR *info)
+krb5_error_code filter_logon_info(krb5_context context,
+                                  TALLOC_CTX *memctx,
+                                  krb5_data realm,
+                                  struct PAC_LOGON_INFO_CTR *info)
 {
 
     /* We must refuse a PAC that comes signed with a cross realm TGT
