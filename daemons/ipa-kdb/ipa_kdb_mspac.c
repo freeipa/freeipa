@@ -96,6 +96,10 @@ int string_to_sid(const char *str, struct dom_sid *sid)
     char *t;
     int i;
 
+    if (str == NULL) {
+        return EINVAL;
+    }
+
     memset(sid, '\0', sizeof(struct dom_sid));
 
     s = str;
@@ -159,13 +163,18 @@ char *dom_sid_string(TALLOC_CTX *memctx, const struct dom_sid *dom_sid)
     uint32_t ia;
     char *buf;
 
-    if (dom_sid == NULL) {
+    if (dom_sid == NULL
+            || dom_sid->num_auths < 0
+            || dom_sid->num_auths > SID_SUB_AUTHS) {
         return NULL;
     }
 
     len = 25 + dom_sid->num_auths * 11;
 
     buf = talloc_zero_size(memctx, len);
+    if (buf == NULL) {
+        return NULL;
+    }
 
     ia = (dom_sid->id_auth[5]) +
          (dom_sid->id_auth[4] << 8 ) +
