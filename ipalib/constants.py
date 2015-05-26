@@ -117,6 +117,7 @@ DEFAULT_CONFIG = (
     ('container_otp', DN(('cn', 'otp'))),
     ('container_radiusproxy', DN(('cn', 'radiusproxy'))),
     ('container_views', DN(('cn', 'views'), ('cn', 'accounts'))),
+    ('container_masters', DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'))),
 
     # Ports, hosts, and URIs:
     ('xmlrpc_uri', 'http://localhost:8888/ipa/xml'),

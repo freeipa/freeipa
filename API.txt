@@ -3545,6 +3545,33 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
+command: server_find
+args: 1,10,4
+arg: Str('criteria?', noextrawhitespace=False)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Str('cn', attribute=True, autofill=False, cli_name='name', multivalue=False, primary_key=True, query=True, required=False)
+option: Int('ipamaxdomainlevel', attribute=True, autofill=False, cli_name='maxlevel', multivalue=False, query=True, required=False)
+option: Int('ipamindomainlevel', attribute=True, autofill=False, cli_name='minlevel', multivalue=False, query=True, required=False)
+option: Str('iparepltopomanagedsuffix', attribute=True, autofill=False, cli_name='suffix', multivalue=False, query=True, required=False)
+option: Flag('pkey_only?', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Int('sizelimit?', autofill=False, minvalue=0)
+option: Int('timelimit?', autofill=False, minvalue=0)
+option: Str('version?', exclude='webui')
+output: Output('count', <type 'int'>, None)
+output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list of LDAP entries', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: Output('truncated', <type 'bool'>, None)
+command: server_show
+args: 1,4,3
+arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Flag('rights', autofill=True, default=False)
+option: Str('version?', exclude='webui')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: PrimaryKey('value', None, None)
 command: service_add
 args: 1,11,3
 arg: Str('krbprincipalname', attribute=True, cli_name='principal', multivalue=False, primary_key=True, required=True)
