@@ -33,6 +33,7 @@ from ipalib.plugins.virtual import *
 from ipalib.plugins.baseldap import pkey_to_value
 from ipalib.plugins.service import split_any_principal
 from ipalib.plugins.certprofile import validate_profile_id
+import ipalib.plugins.caacl
 import base64
 import traceback
 from ipalib.text import _
@@ -325,6 +326,22 @@ class cert_request(VirtualCommand):
             principal_type = HOST
         else:
             principal_type = SERVICE
+
+        principal_type_map = {USER: 'user', HOST: 'host', SERVICE: 'service'}
+        ca = '.'  # top-level CA hardcoded until subca plugin implemented
+        if not ipalib.plugins.caacl.acl_evaluate(
+                principal_type_map[principal_type],
+                principal_string, ca, profile_id):
+            raise errors.ACIError(info=_(
+                    "Principal '%(principal)s' "
+                    "is not permitted to use CA '%(ca)s' "
+                    "with profile '%(profile_id)s' for certificate issuance."
+                ) % dict(
+                    principal=principal_string,
+                    ca=ca or '.',
+                    profile_id=profile_id
+                )
+            )
 
         bind_principal = split_any_principal(getattr(context, 'principal'))
         bind_service, bind_name, bind_realm = bind_principal

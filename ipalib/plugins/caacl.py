@@ -2,6 +2,8 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+import pyhbac
+
 from ipalib import api, errors, output
 from ipalib import Bool, Str, StrEnum
 from ipalib.plugable import Registry
@@ -10,6 +12,7 @@ from ipalib.plugins.baseldap import (
     LDAPUpdate, LDAPRetrieve, LDAPAddMember, LDAPRemoveMember,
     global_output_params, pkey_to_value)
 from ipalib.plugins.hbacrule import is_all
+from ipalib.plugins.service import normalize_principal, split_any_principal
 from ipalib import _, ngettext
 from ipapython.dn import DN
 
@@ -48,6 +51,79 @@ EXAMPLES:
 """)
 
 register = Registry()
+
+
+def _acl_make_request(principal_type, principal, ca_ref, profile_id):
+    """Construct HBAC request for the given principal, CA and profile"""
+    req = pyhbac.HbacRequest()
+    req.targethost.name = ca_ref
+    req.service.name = profile_id
+    if principal_type == 'user':
+        req.user.name = principal
+    elif principal_type == 'host':
+        req.user.name = principal[:5]  # strip 'host/'
+    elif principal_type == 'service':
+        req.user.name = normalize_principal(principal)
+    groups = []
+    if principal_type == 'user':
+        user_obj = api.Command.user_show(principal)['result']
+        groups = user_obj.get('memberof_group', [])
+        groups += user_obj.get('memberofindirect_group', [])
+    elif principal_type == 'host':
+        service, hostname, realm = split_any_principal(principal)
+        host_obj = api.Command.host_show(hostname)['result']
+        groups = host_obj.get('memberof_hostgroup', [])
+        groups += host_obj.get('memberofindirect_hostgroup', [])
+    req.user.groups = sorted(set(groups))
+    return req
+
+
+def _acl_make_rule(principal_type, obj):
+    """Turn CA ACL object into HBAC rule.
+
+    ``principal_type``
+        String in {'user', 'host', 'service'}
+    """
+    rule = pyhbac.HbacRule(obj['cn'][0])
+    rule.enabled = obj['ipaenabledflag'][0]
+    rule.srchosts.category = {pyhbac.HBAC_CATEGORY_ALL}
+
+    # add CA(s)
+    # Hardcoded until caacl plugin arrives
+    rule.targethosts.category = {pyhbac.HBAC_CATEGORY_ALL}
+    #if 'ipacacategory' in obj and obj['ipacacategory'][0].lower() == 'all':
+    #    rule.targethosts.category = {pyhbac.HBAC_CATEGORY_ALL}
+    #else:
+    #    rule.targethosts.names = obj.get('ipacaaclcaref', [])
+
+    # add profiles
+    if ('ipacertprofilecategory' in obj
+            and obj['ipacertprofilecategory'][0].lower() == 'all'):
+        rule.services.category = {pyhbac.HBAC_CATEGORY_ALL}
+    else:
+        attr = 'ipamembercertprofile_certprofile'
+        rule.services.names = obj.get(attr, [])
+
+    # add principals and principal's groups
+    m = {'user': 'group', 'host': 'hostgroup', 'service': None}
+    category_attr = '{}category'.format(principal_type)
+    if category_attr in obj and obj[category_attr][0].lower() == 'all':
+        rule.users.category = {pyhbac.HBAC_CATEGORY_ALL}
+    else:
+        principal_attr = 'member{}_{}'.format(principal_type, principal_type)
+        rule.users.names = obj.get(principal_attr, [])
+        if m[principal_type] is not None:
+            group_attr = 'member{}_{}'.format(principal_type, m[principal_type])
+            rule.users.groups = obj.get(group_attr, [])
+
+    return rule
+
+
+def acl_evaluate(principal_type, principal, ca_ref, profile_id):
+    req = _acl_make_request(principal_type, principal, ca_ref, profile_id)
+    acls = api.Command.caacl_find()['result']
+    rules = [_acl_make_rule(principal_type, obj) for obj in acls]
+    return req.evaluate(rules) == pyhbac.HBAC_EVAL_ALLOW
 
 
 @register()
