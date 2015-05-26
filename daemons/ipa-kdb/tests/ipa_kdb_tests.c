@@ -408,11 +408,71 @@ void test_get_authz_data_types(void **state)
     krb5_free_principal(test_ctx->krb5_ctx, non_nfs_princ);
 }
 
+void test_string_to_sid(void **state)
+{
+    int ret;
+    struct dom_sid sid;
+    struct dom_sid exp_sid = {1, 5, {0, 0, 0, 0, 0, 5},
+                              {21, 2127521184, 1604012920, 1887927527, 72713,
+                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+
+    ret = string_to_sid(NULL, &sid);
+    assert_int_equal(ret, EINVAL);
+
+    ret = string_to_sid("abc", &sid);
+    assert_int_equal(ret, EINVAL);
+
+    ret = string_to_sid("S-", &sid);
+    assert_int_equal(ret, EINVAL);
+
+    ret = string_to_sid("S-ABC", &sid);
+    assert_int_equal(ret, EINVAL);
+
+    ret = string_to_sid("S-123", &sid);
+    assert_int_equal(ret, EINVAL);
+
+    ret = string_to_sid("S-1-123-1-2-3-4-5-6-7-8-9-0-1-2-3-4-5-6", &sid);
+    assert_int_equal(ret, EINVAL);
+
+    ret = string_to_sid("S-1-5-21-2127521184-1604012920-1887927527-72713",
+                        &sid);
+    assert_int_equal(ret, 0);
+    assert_memory_equal(&exp_sid, &sid, sizeof(struct dom_sid));
+}
+
+void test_dom_sid_string(void **state)
+{
+    struct test_ctx *test_ctx;
+    char *str_sid;
+    struct dom_sid test_sid = {1, 5, {0, 0, 0, 0, 0, 5},
+                               {21, 2127521184, 1604012920, 1887927527, 72713,
+                                0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
+
+    test_ctx = (struct test_ctx *) *state;
+
+    str_sid = dom_sid_string(test_ctx, NULL);
+    assert_null(str_sid);
+
+    str_sid = dom_sid_string(test_ctx, &test_sid);
+    assert_non_null(str_sid);
+    assert_string_equal(str_sid,
+                        "S-1-5-21-2127521184-1604012920-1887927527-72713");
+
+    test_sid.num_auths = -3;
+    str_sid = dom_sid_string(test_ctx, &test_sid);
+
+    test_sid.num_auths = 16;
+    str_sid = dom_sid_string(test_ctx, &test_sid);
+}
+
+
 int main(int argc, const char *argv[])
 {
     const UnitTest tests[] = {
         unit_test_setup_teardown(test_get_authz_data_types, setup, teardown),
         unit_test_setup_teardown(test_filter_logon_info, setup, teardown),
+        unit_test(test_string_to_sid),
+        unit_test_setup_teardown(test_dom_sid_string, setup, teardown),
     };
 
     return run_tests(tests);
