@@ -30,12 +30,14 @@ from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
 
 from ipapython.dn import DN
 
+_dcerpc_bindings_installed = False
+
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         import ipaserver.dcerpc
         _dcerpc_bindings_installed = True
     except ImportError:
-        _dcerpc_bindings_installed = False
+        pass
 
 __doc__ = _("""
 ID Views
