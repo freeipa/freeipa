@@ -437,7 +437,7 @@ class service(LDAPObject):
             primary_key=True,
             normalizer=lambda value: normalize_principal(value),
         ),
-        Bytes('usercertificate?', validate_certificate,
+        Bytes('usercertificate*', validate_certificate,
             cli_name='certificate',
             label=_('Certificate'),
             doc=_('Base-64 encoded server certificate'),
@@ -503,11 +503,11 @@ class service_add(LDAPCreate):
 
         self.obj.validate_ipakrbauthzdata(entry_attrs)
 
-        cert = options.get('usercertificate')
-        if cert:
-            dercert = x509.normalize_certificate(cert)
+        certs = options.get('usercertificate', [])
+        certs_der = map(x509.normalize_certificate, certs)
+        for dercert in certs_der:
             x509.verify_cert_subject(ldap, hostname, dercert)
-            entry_attrs['usercertificate'] = dercert
+        entry_attrs['usercertificate'] = certs_der
 
         if not options.get('force', False):
              # We know the host exists if we've gotten this far but we
@@ -555,9 +555,7 @@ class service_del(LDAPDelete):
                 entry_attrs = ldap.get_entry(dn, ['usercertificate'])
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
-            cert = entry_attrs.get('usercertificate')
-            if cert:
-                cert = cert[0]
+            for cert in entry_attrs.get('usercertificate', []):
                 try:
                     serial = unicode(x509.get_serial_number(cert, x509.DER))
                     try:
@@ -597,25 +595,44 @@ class service_mod(LDAPUpdate):
 
         self.obj.validate_ipakrbauthzdata(entry_attrs)
 
-        if 'usercertificate' in options:
-            (service, hostname, realm) = split_principal(keys[-1])
-            cert = options.get('usercertificate')
-            if cert:
-                dercert = x509.normalize_certificate(cert)
-                x509.verify_cert_subject(ldap, hostname, dercert)
+        (service, hostname, realm) = split_principal(keys[-1])
+
+        # verify certificates
+        certs = options.get('usercertificate') or []
+        certs_der = map(x509.normalize_certificate, certs)
+        for dercert in certs_der:
+            x509.verify_cert_subject(ldap, hostname, dercert)
+
+        # revoke removed certificates
+        if self.api.Command.ca_is_enabled()['result']:
+            entry_attrs_old = ldap.get_entry(dn, ['usercertificate'])
+            old_certs = entry_attrs_old.get('usercertificate', [])
+            old_certs_der = map(x509.normalize_certificate, old_certs)
+            removed_certs_der = set(old_certs_der) - set(certs_der)
+            for cert in removed_certs_der:
                 try:
-                    entry_attrs_old = ldap.get_entry(dn, ['usercertificate'])
-                except errors.NotFound:
-                    self.obj.handle_not_found(*keys)
-                if 'usercertificate' in entry_attrs_old:
-                    # FIXME: what to do here? do we revoke the old cert?
-                    fmt = 'entry already has a certificate, serial number: %s' % (
-                        x509.get_serial_number(entry_attrs_old['usercertificate'][0], x509.DER)
-                    )
-                    raise errors.GenericError(format=fmt)
-                entry_attrs['usercertificate'] = dercert
-            else:
-                entry_attrs['usercertificate'] = None
+                    serial = unicode(x509.get_serial_number(cert, x509.DER))
+                    try:
+                        result = api.Command['cert_show'](serial)['result']
+                        if 'revocation_reason' not in result:
+                            try:
+                                api.Command['cert_revoke'](
+                                    serial, revocation_reason=4)
+                            except errors.NotImplementedError:
+                                # some CA's might not implement revoke
+                                pass
+                    except errors.NotImplementedError:
+                        # some CA's might not implement revoke
+                        pass
+                except NSPRError, nsprerr:
+                    if nsprerr.errno == -8183:
+                        # If we can't decode the cert them proceed with
+                        # modifying the host.
+                        self.log.info("Problem decoding certificate %s" %
+                                      nsprerr.args[1])
+                    else:
+                        raise nsprerr
+        entry_attrs['usercertificate'] = certs_der
 
         update_krbticketflags(ldap, entry_attrs, attrs_list, options, True)
 
@@ -695,8 +712,14 @@ class service_show(LDAPRetrieve):
             util.check_writable_file(options['out'])
             result = super(service_show, self).forward(*keys, **options)
             if 'usercertificate' in result['result']:
-                x509.write_certificate(result['result']['usercertificate'][0], options['out'])
-                result['summary'] = _('Certificate stored in file \'%(file)s\'') % dict(file=options['out'])
+                x509.write_certificate_list(
+                    result['result']['usercertificate'],
+                    options['out']
+                )
+                result['summary'] = (
+                    _('Certificate(s) stored in file \'%(file)s\'')
+                    % dict(file=options['out'])
+                )
                 return result
             else:
                 raise errors.NoCertificateError(entry=keys[-1])
@@ -815,9 +838,9 @@ class service_disable(LDAPQuery):
         # See if we do any work at all here and if not raise an exception
         done_work = False
 
-        if 'usercertificate' in entry_attrs:
-            if self.api.Command.ca_is_enabled()['result']:
-                cert = x509.normalize_certificate(entry_attrs.get('usercertificate')[0])
+        if self.api.Command.ca_is_enabled()['result']:
+            certs = entry_attrs.get('usercertificate', [])
+            for cert in map(x509.normalize_certificate, certs):
                 try:
                     serial = unicode(x509.get_serial_number(cert, x509.DER))
                     try:
@@ -839,10 +862,11 @@ class service_disable(LDAPQuery):
                     else:
                         raise nsprerr
 
-            # Remove the usercertificate altogether
-            entry_attrs['usercertificate'] = None
-            ldap.update_entry(entry_attrs)
-            done_work = True
+            if len(certs) > 0:
+                # Remove the usercertificate altogether
+                entry_attrs['usercertificate'] = None
+                ldap.update_entry(entry_attrs)
+                done_work = True
 
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         if entry_attrs['has_keytab']:
