@@ -31,6 +31,7 @@ from ipalib.plugins.baseuser import baseuser, baseuser_add, baseuser_del, \
     status_baseuser_output_params, baseuser_pwdchars, \
     validate_nsaccountlock, radius_dn2pk, convert_nsaccountlock, split_principal, validate_principal, \
     normalize_principal, fix_addressbook_permission_bindrule
+from ipalib.plugins.idviews import remove_ipaobject_overrides
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins import baseldap
@@ -620,11 +621,15 @@ class user_del(baseuser_del):
 
         dn = self.obj.get_dn(*keys, **options)
 
-        if (not options.get('preserve', True) or
-                dn.endswith(DN(self.obj.delete_container_dn,
-                               self.api.env.basedn))):
-            # We are going to permanent delete or the user is already in the delete container.
-            # So we issue a true DEL on that entry
+        # We are going to permanent delete or the user is already in the delete container.
+        delete_container = DN(self.obj.delete_container_dn, self.api.env.basedn)
+        user_from_delete_container = dn.endswith(delete_container)
+
+        if not options.get('preserve', True) or user_from_delete_container:
+            # Remove any ID overrides tied with this user
+            remove_ipaobject_overrides(self.obj.backend, self.obj.api, dn)
+
+            # Issue a true DEL on that entry
             return super(user_del, self).execute(*keys, **options)
 
         # The user to delete is active and there is no 'no_preserve' option

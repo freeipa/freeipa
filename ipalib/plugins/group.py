@@ -22,6 +22,7 @@ from ipalib import api
 from ipalib import Int, Str
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
+from ipalib.plugins.idviews import remove_ipaobject_overrides
 from ipalib.plugins import baseldap
 from ipalib import _, ngettext
 if api.env.in_server and api.env.context in ['lite', 'server']:
@@ -316,6 +317,10 @@ class group_del(LDAPDelete):
                 reason=_(u'privileged group'))
         if 'mepmanagedby' in group_attrs:
             raise errors.ManagedGroupError()
+
+        # Remove any ID overrides tied with this group
+        remove_ipaobject_overrides(ldap, self.obj.api, dn)
+
         return dn
 
     def post_callback(self, ldap, dn, *keys, **options):
