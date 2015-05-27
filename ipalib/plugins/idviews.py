@@ -17,6 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import re
 
 from ipalib.plugins.baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPDelete, LDAPUpdate, LDAPSearch,
@@ -56,6 +57,12 @@ protected_default_trust_view_error = errors.ProtectedEntryError(
 )
 
 DEFAULT_TRUST_VIEW_NAME = "default trust view"
+
+ANCHOR_REGEX = re.compile(
+    r':IPA:.*:[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}'
+    r'|'
+    r':SID:S-[0-9\-]+'
+)
 
 @register()
 class idview(LDAPObject):
@@ -559,11 +566,19 @@ class baseidoverride(LDAPObject):
     override_object = None
 
     def get_dn(self, *keys, **options):
-        anchor = resolve_object_to_anchor(
-            self.backend,
-            self.override_object,
-            keys[-1]
-        )
+        # If user passed raw anchor, do not try
+        # to translate it.
+        if ANCHOR_REGEX.match(keys[-1]):
+            anchor = keys[-1]
+
+        # Otherwise, translate object into a
+        # legitimate object anchor.
+        else:
+            anchor = resolve_object_to_anchor(
+                self.backend,
+                self.override_object,
+                keys[-1]
+            )
 
         keys = keys[:-1] + (anchor, )
         return super(baseidoverride, self).get_dn(*keys, **options)
@@ -578,12 +593,17 @@ class baseidoverride(LDAPObject):
             anchor = entry_attrs.single_value['ipaanchoruuid']
 
             if anchor:
-                object_name = resolve_anchor_to_object_name(
-                    self.backend,
-                    self.override_object,
-                    anchor
-                )
-                entry_attrs.single_value['ipaanchoruuid'] = object_name
+                try:
+                    object_name = resolve_anchor_to_object_name(
+                        self.backend,
+                        self.override_object,
+                        anchor
+                    )
+                    entry_attrs.single_value['ipaanchoruuid'] = object_name
+                except errors.NotFound:
+                    # If we were unable to resolve the anchor,
+                    # keep it in the raw form
+                    pass
 
     def prohibit_ipa_users_in_default_view(self, dn, entry_attrs):
         # Check if parent object is Default Trust View, if so, prohibit
