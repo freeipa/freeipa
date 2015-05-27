@@ -705,6 +705,7 @@ fi
 %dir %{python_sitelib}/ipaserver
 %dir %{python_sitelib}/ipaserver/install
 %dir %{python_sitelib}/ipaserver/install/plugins
+%dir %{python_sitelib}/ipaserver/install/server
 %dir %{python_sitelib}/ipaserver/advise
 %dir %{python_sitelib}/ipaserver/advise/plugins
 %dir %{python_sitelib}/ipaserver/plugins

@@ -84,6 +84,7 @@ setup(
         'ipaserver.plugins',
         'ipaserver.install',
         'ipaserver.install.plugins',
+        'ipaserver.install.server',
     ],
     scripts=['ipa'],
     data_files = [('share/man/man1', ["ipa.1"])],
