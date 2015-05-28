@@ -1317,6 +1317,22 @@ static void filter_logon_info_log_message(struct dom_sid *sid)
     }
 }
 
+static void filter_logon_info_log_message_rid(struct dom_sid *sid, uint32_t rid)
+{
+    char *domstr = NULL;
+
+    domstr = dom_sid_string(NULL, sid);
+    if (domstr) {
+        krb5_klog_syslog(LOG_ERR, "PAC filtering issue: SID [%s-%d] is not allowed "
+                                  "from a trusted source and will be excluded.", domstr, rid);
+        talloc_free(domstr);
+    } else {
+        krb5_klog_syslog(LOG_ERR, "PAC filtering issue: SID is not allowed "
+                                  "from a trusted source and will be excluded."
+                                  "Unable to allocate memory to display SID.");
+    }
+}
+
 static krb5_error_code filter_logon_info(krb5_context context,
                                          TALLOC_CTX *memctx,
                                          krb5_data realm,
@@ -1328,9 +1344,21 @@ static krb5_error_code filter_logon_info(krb5_context context,
      * attempt at getting us to sign fake credentials with the help of a
      * compromised trusted realm */
 
+    /* NOTE: there are two outcomes from filtering:
+     * REJECT TICKET -- ticket is rejected if domain SID of
+     *                  the principal with MS-PAC is filtered out or
+     *                  its primary group RID is filtered out
+     *
+     * REMOVE SID    -- SIDs are removed from the list of SIDs associated
+     *                  with the principal if they are filtered out
+     *                  This applies also to secondary RIDs of the principal
+     *                  if domain_sid-<secondary RID> is filtered out
+     */
+
     struct ipadb_context *ipactx;
     struct ipadb_adtrusts *domain;
-    int i, j, k, count;
+    int i, j, k, l, count;
+    uint32_t rid;
     bool result;
     char *domstr = NULL;
 
@@ -1373,6 +1401,76 @@ static krb5_error_code filter_logon_info(krb5_context context,
             if (result) {
                 filter_logon_info_log_message(info->info->info3.base.domain_sid);
                 return KRB5KDC_ERR_POLICY;
+            }
+        }
+    }
+
+    /* Check if this user's SIDs membership is filtered too */
+    for(k = 0; k < domain->len_sid_blacklist_incoming; k++) {
+        /* Short-circuit if there are no RIDs. This may happen if we filtered everything already.
+         * In normal situation there would be at least primary gid as RID in the RIDs array
+         * but if we filtered out the primary RID, this MS-PAC is invalid */
+        count = info->info->info3.base.groups.count;
+        result = dom_sid_is_prefix(info->info->info3.base.domain_sid,
+                                   &domain->sid_blacklist_incoming[k]);
+        if (result) {
+            i = 0;
+            j = 0;
+            if (domain->sid_blacklist_incoming[k].num_auths - info->info->info3.base.domain_sid->num_auths != 1) {
+                krb5_klog_syslog(LOG_ERR, "Incoming SID blacklist element matching domain [%s with SID %s] "
+                                          "has more than one RID component. Invalid check skipped.",
+                                 domain->domain_name, domain->domain_sid);
+                break;
+            }
+            rid = domain->sid_blacklist_incoming[k].sub_auths[domain->sid_blacklist_incoming[k].num_auths - 1];
+            if (rid == info->info->info3.base.rid) {
+                filter_logon_info_log_message_rid(info->info->info3.base.domain_sid, rid);
+                /* Actual user's SID is filtered out */
+                return KRB5KDC_ERR_POLICY;
+            }
+            if (rid == info->info->info3.base.primary_gid) {
+                /* User's primary group SID is filtered out */
+                return KRB5KDC_ERR_POLICY;
+            }
+            if (count == 0) {
+                /* Having checked actual user's SID and primary group SID, and having no other RIDs,
+                 * skip checks below and continue to next blacklist element */
+                continue;
+            }
+
+            do {
+                if (rid == info->info->info3.base.groups.rids[i].rid) {
+                    filter_logon_info_log_message_rid(info->info->info3.base.domain_sid, rid);
+                    /* If this is just a non-primary RID, we simply remove it from the array of RIDs */
+                    l = count - i - j - 1;
+                    if (l != 0) {
+                         memmove(info->info->info3.base.groups.rids+i,
+                                 info->info->info3.base.groups.rids+i+1,
+                                 sizeof(struct samr_RidWithAttribute)*l);
+                    }
+                    j++;
+                } else {
+                    i++;
+                }
+            } while ((i + j) < count);
+
+            if (j != 0) {
+                count = count-j;
+                if (count == 0) {
+                    /* All RIDs were filtered out. Unusual but MS-KILE 3.3.5.6.3.1 says SHOULD, not MUST for GroupCount */
+                    info->info->info3.base.groups.count = 0;
+                    talloc_free(info->info->info3.base.groups.rids);
+                    info->info->info3.base.groups.rids = NULL;
+                } else {
+                    info->info->info3.base.groups.rids = talloc_realloc(memctx,
+                                                                        info->info->info3.base.groups.rids,
+                                                                        struct samr_RidWithAttribute, count);
+                    if (!info->info->info3.base.groups.rids) {
+                        info->info->info3.base.groups.count = 0;
+                        return ENOMEM;
+                    }
+                    info->info->info3.base.groups.count = count;
+                }
             }
         }
     }
