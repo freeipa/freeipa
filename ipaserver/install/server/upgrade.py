@@ -8,6 +8,8 @@ import shutil
 import pwd
 import fileinput
 import ConfigParser
+import sys
+import krbV
 
 from ipalib import api
 import SSSDConfig
@@ -31,6 +33,9 @@ from ipaserver.install import certs
 from ipaserver.install import otpdinstance
 from ipaserver.install import sysupgrade
 from ipaserver.install import dnskeysyncinstance
+from ipaserver.install.upgradeinstance import IPAUpgrade
+from ipaserver.install.ldapupdate import BadSyntax
+
 
 class KpasswdInstance(service.SimpleServiceInstance):
     def __init__(self):
@@ -134,7 +139,7 @@ def find_version(filename):
     else:
         return -1
 
-def upgrade(sub_dict, filename, template, add=False):
+def upgrade_file(sub_dict, filename, template, add=False):
     """
     Get the version from the current and template files and update the
     installed configuration file if there is a new template.
@@ -1253,17 +1258,18 @@ def upgrade_configuration():
         ds_serverid = installutils.realm_to_serverid(api.env.realm)
         ds_dirname = dsinstance.config_dirname(ds_serverid)
 
-        upgrade(sub_dict, paths.HTTPD_IPA_CONF, ipautil.SHARE_DIR + "ipa.conf")
-        upgrade(sub_dict, paths.HTTPD_IPA_REWRITE_CONF,
-                ipautil.SHARE_DIR + "ipa-rewrite.conf")
+        upgrade_file(sub_dict, paths.HTTPD_IPA_CONF,
+                     ipautil.SHARE_DIR + "ipa.conf")
+        upgrade_file(sub_dict, paths.HTTPD_IPA_REWRITE_CONF,
+                     ipautil.SHARE_DIR + "ipa-rewrite.conf")
         if ca.is_configured():
-            upgrade(sub_dict, paths.HTTPD_IPA_PKI_PROXY_CONF,
-                    ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
+            upgrade_file(sub_dict, paths.HTTPD_IPA_PKI_PROXY_CONF,
+                         ipautil.SHARE_DIR + "ipa-pki-proxy.conf", add=True)
         else:
             if ipautil.file_exists(paths.HTTPD_IPA_PKI_PROXY_CONF):
                 os.remove(paths.HTTPD_IPA_PKI_PROXY_CONF)
         if subject_base:
-            upgrade(
+            upgrade_file(
                 sub_dict,
                 os.path.join(ds_dirname, "certmap.conf"),
                 os.path.join(ipautil.SHARE_DIR, "certmap.conf.template")
@@ -1374,3 +1380,57 @@ def upgrade_configuration():
             root_logger.error("Failed to restart %s: %s", ca.service_name, e)
 
     set_sssd_domain_option('ipa_server_mode', 'True')
+
+
+def upgrade_check(options):
+    try:
+        installutils.check_server_configuration()
+    except RuntimeError as e:
+        print unicode(e)
+        sys.exit(1)
+
+    if not options.skip_version_check:
+        # check IPA version and data version
+        try:
+            installutils.check_version()
+        except (installutils.UpgradePlatformError,
+                installutils.UpgradeDataNewerVersionError) as e:
+            raise RuntimeError(
+                'Unable to execute IPA upgrade: %s' % e, 1)
+        except installutils.UpgradeMissingVersionError as e:
+            root_logger.info("Missing version: %s", e)
+        except installutils.UpgradeVersionError:
+            # Ignore other errors
+            pass
+    else:
+        root_logger.info("Skipping version check")
+        root_logger.warning("Upgrade without version check may break your "
+                         "system")
+
+
+def upgrade():
+    realm = krbV.default_context().default_realm
+    schema_files = [os.path.join(ipautil.SHARE_DIR, f) for f
+                    in dsinstance.ALL_SCHEMA_FILES]
+    data_upgrade = IPAUpgrade(realm, schema_files=schema_files)
+
+    try:
+        data_upgrade.create_instance()
+    except BadSyntax:
+        raise RuntimeError(
+            'Bad syntax detected in upgrade file(s).', 1)
+    except RuntimeError:
+        raise RuntimeError('IPA upgrade failed.', 1)
+    else:
+        if data_upgrade.modified:
+            root_logger.info('Update complete')
+        else:
+            root_logger.info('Update complete, no data were modified')
+
+    # store new data version after upgrade
+    installutils.store_version()
+
+    print 'Upgrading IPA services'
+    root_logger.info('Upgrading the configuration of the IPA services')
+    upgrade_configuration()
+    root_logger.info('The IPA services were upgraded')

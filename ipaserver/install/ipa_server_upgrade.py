@@ -3,18 +3,12 @@
 #
 
 import os
-import sys
-
-import krbV
 
 from ipalib import api
 from ipaplatform.paths import paths
-from ipapython import admintool, ipautil
-from ipaserver.install import dsinstance
+from ipapython import admintool
 from ipaserver.install import installutils
-from ipaserver.install.server import upgrade_configuration
-from ipaserver.install.upgradeinstance import IPAUpgrade
-from ipaserver.install.ldapupdate import BadSyntax
+from ipaserver.install import server
 
 
 class ServerUpgrade(admintool.AdminTool):
@@ -40,12 +34,6 @@ class ServerUpgrade(admintool.AdminTool):
         if self.options.force:
             self.options.skip_version_check = True
 
-        try:
-            installutils.check_server_configuration()
-        except RuntimeError as e:
-            print unicode(e)
-            sys.exit(1)
-
     def setup_logging(self):
         super(ServerUpgrade, self).setup_logging(log_file_mode='a')
 
@@ -55,51 +43,11 @@ class ServerUpgrade(admintool.AdminTool):
         api.bootstrap(in_server=True, context='updates')
         api.finalize()
 
-        options = self.options
-
-        if not options.skip_version_check:
-            # check IPA version and data version
-            try:
-                installutils.check_version()
-            except (installutils.UpgradePlatformError,
-                    installutils.UpgradeDataNewerVersionError) as e:
-                raise admintool.ScriptError(
-                    'Unable to execute IPA upgrade: %s' % e, 1)
-            except installutils.UpgradeMissingVersionError as e:
-                self.log.info("Missing version: %s", e)
-            except installutils.UpgradeVersionError:
-                # Ignore other errors
-                pass
-        else:
-            self.log.info("Skipping version check")
-            self.log.warning("Upgrade without version check may break your "
-                             "system")
-
-        realm = krbV.default_context().default_realm
-        schema_files = [os.path.join(ipautil.SHARE_DIR, f) for f
-                        in dsinstance.ALL_SCHEMA_FILES]
-        data_upgrade = IPAUpgrade(realm, schema_files=schema_files)
-
         try:
-            data_upgrade.create_instance()
-        except BadSyntax:
-            raise admintool.ScriptError(
-                'Bad syntax detected in upgrade file(s).', 1)
-        except RuntimeError:
-            raise admintool.ScriptError('IPA upgrade failed.', 1)
-        else:
-            if data_upgrade.modified:
-                self.log.info('Update complete')
-            else:
-                self.log.info('Update complete, no data were modified')
-
-        # store new data version after upgrade
-        installutils.store_version()
-
-        print 'Upgrading IPA services'
-        self.log.info('Upgrading the configuration of the IPA services')
-        upgrade_configuration()
-        self.log.info('The IPA services were upgraded')
+            server.upgrade_check(self.options)
+            server.upgrade()
+        except RuntimeError as e:
+            raise admintool.ScriptError(str(e))
 
     def handle_error(self, exception):
         return installutils.handle_error(exception, self.log_file_name)
