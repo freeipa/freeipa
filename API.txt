@@ -5000,10 +5000,11 @@ output: Output('result', <type 'dict'>, None)
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: ListOfPrimaryKeys('value', None, None)
 command: trust_fetch_domains
-args: 1,4,4
+args: 1,5,4
 arg: Str('cn', attribute=True, cli_name='realm', multivalue=False, primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Str('realm_server?', cli_name='server')
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?', exclude='webui')
 output: Output('count', <type 'int'>, None)

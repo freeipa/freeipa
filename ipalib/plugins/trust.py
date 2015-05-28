@@ -1302,9 +1302,10 @@ def fetch_domains_from_trust(self, trustinstance, trust_entry, **options):
             sp.insert(0, trustinstance.remote_domain.info['name'])
         creds = u"{name}%{password}".format(name="\\".join(sp),
                                             password=password)
+    server = options.get('realm_server', None)
     domains = ipaserver.dcerpc.fetch_domains(self.api,
                                              trustinstance.local_flatname,
-                                             trust_name, creds=creds)
+                                             trust_name, creds=creds, server=server)
     result = []
     if not domains:
         return result
@@ -1342,6 +1343,12 @@ class trust_fetch_domains(LDAPRetrieve):
     __doc__ = _('Refresh list of the domains associated with the trust')
 
     has_output = output.standard_list_of_entries
+    takes_options = LDAPRetrieve.takes_options + (
+        Str('realm_server?',
+            cli_name='server',
+            label=_('Domain controller for the Active Directory domain (optional)'),
+        ),
+    )
 
     def execute(self, *keys, **options):
         if not _bindings_installed:

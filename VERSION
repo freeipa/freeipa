@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=142
-# Last change: mbabinsk: Add option to skip client API version check
+IPA_API_VERSION_MINOR=143
+# Last change: ab - trusts: pass AD DC hostname if specified explicitly

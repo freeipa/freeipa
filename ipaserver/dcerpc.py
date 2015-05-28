@@ -1048,7 +1048,7 @@ class TrustDomainInstance(object):
         return False
 
 
-def fetch_domains(api, mydomain, trustdomain, creds=None):
+def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
     trust_flags = dict(
                 NETR_TRUST_FLAG_IN_FOREST = 0x00000001,
                 NETR_TRUST_FLAG_OUTBOUND  = 0x00000002,
@@ -1089,8 +1089,12 @@ def fetch_domains(api, mydomain, trustdomain, creds=None):
     cr.set_workstation(domain_validator.flatname)
     netrc = net.Net(creds=cr, lp=td.parm)
     try:
-        result = netrc.finddc(domain=trustdomain,
-                              flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
+        if server:
+            result = netrc.finddc(address=server,
+                                  flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
+        else:
+            result = netrc.finddc(domain=trustdomain,
+                                  flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
     except RuntimeError, e:
         raise assess_dcerpc_exception(message=str(e))
 
