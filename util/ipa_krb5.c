@@ -1075,6 +1075,65 @@ int create_keys(krb5_context krbctx,
     return nkeys;
 }
 
+/* in older versions of libkrb5 the krb5_salttype_to_string() function is
+ * faulty and returns strings that do not match the expected format.
+ * Later version of krb5 were fixed to return the proper string.
+ * Do lazy detection the first time the function is invoked to determine
+ * if we can use the library provided function or if we have to use a
+ * fallback map which includes the salt types known up to krb5 1.12 (the
+ * fault is fixed upstream in 1.13). */
+static int ipa_salttype_to_string(krb5_int32 salttype,
+                                  char *buffer, size_t buflen)
+{
+    static int faulty_function = -1;
+
+    static const struct {
+        krb5_int32 salttype;
+        const char *name;
+    } fallback_map[] = {
+        { KRB5_KDB_SALTTYPE_NORMAL, "normal" },
+        { KRB5_KDB_SALTTYPE_V4, "v4" },
+        { KRB5_KDB_SALTTYPE_NOREALM, "norealm" },
+        { KRB5_KDB_SALTTYPE_ONLYREALM, "onlyrealm" },
+        { KRB5_KDB_SALTTYPE_SPECIAL, "special" },
+        { KRB5_KDB_SALTTYPE_AFS3, "afs3" },
+        { -1, NULL }
+    };
+
+    if (faulty_function == -1) {
+        /* haven't checked yet, let's find out */
+        char testbuf[100];
+        size_t len = 100;
+        int ret;
+
+        ret = krb5_salttype_to_string(KRB5_KDB_SALTTYPE_NORMAL, testbuf, len);
+        if (ret) return ret;
+
+        if (strcmp(buffer, "normal") == 0) {
+            faulty_function = 0;
+        } else {
+            faulty_function = 1;
+        }
+    }
+
+    if (faulty_function == 0) {
+        return krb5_salttype_to_string(salttype, buffer, buflen);
+    } else {
+        size_t len;
+        int i;
+        for (i = 0; fallback_map[i].name != NULL; i++) {
+            if (salttype == fallback_map[i].salttype) break;
+        }
+        if (fallback_map[i].name == NULL) return EINVAL;
+
+        len = strlen(fallback_map[i].name);
+        if (len >= buflen) return ENOMEM;
+
+        memcpy(buffer, fallback_map[i].name, len + 1);
+        return 0;
+    }
+}
+
 int ipa_kstuples_to_string(krb5_key_salt_tuple *kst, int n_kst, char **str)
 {
     char *buf = NULL;
@@ -1130,7 +1189,7 @@ int ipa_kstuples_to_string(krb5_key_salt_tuple *kst, int n_kst, char **str)
         buf[buf_cur + len] = ':';
         len++;
 
-        ret = krb5_salttype_to_string(kst[i].ks_salttype,
+        ret = ipa_salttype_to_string(kst[i].ks_salttype,
                                      &buf[buf_cur + len], buf_avail - len);
         if (ret == ENOMEM) {
             i--;
