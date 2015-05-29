@@ -70,7 +70,8 @@ int
 ipa_topo_agmt_new(char *hostname, TopoReplica *conf, TopoReplicaAgmt *agmt)
 {
     int ret = 0;
-    if (strcasecmp(agmt->repl_bind_method,"SASL/GSSAPI") == 0) {
+    if ((agmt->repl_bind_method == NULL) /* use GSSAPI as default */ ||
+         (strcasecmp(agmt->repl_bind_method,"SASL/GSSAPI") == 0)) {
         ret = ipa_topo_agmt_setup(hostname, conf, agmt, 1);
     } else {
         ret = ipa_topo_agmt_setup(hostname, conf, agmt, 0);

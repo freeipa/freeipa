@@ -225,12 +225,12 @@ static int
 ipa_topo_close(Slapi_PBlock * pb)
 {
 
+    ipa_topo_set_plugin_active(0);
     slapi_config_remove_callback(SLAPI_OPERATION_SEARCH, DSE_FLAG_PREOP,
             "", LDAP_SCOPE_BASE, "(objectclass=*)", ipa_topo_rootdse_search);
     slapi_unregister_backend_state_change((void *)ipa_topo_be_state_change);
     ipa_topo_free_plugin_config();
     return 0;
-
 }
 static int
 ipa_topo_rootdse_init(Slapi_PBlock *pb)

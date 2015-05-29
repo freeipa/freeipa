@@ -329,9 +329,6 @@ ipa_topo_util_agmt_from_entry(Slapi_Entry *entry, char *replRoot, char *fromHost
             ipa_topo_util_set_segm_attr(agmt, mattrs[i], mval);
         }
     }
-    if (agmt->repl_bind_method == NULL) {
-        agmt->repl_bind_method = slapi_ch_strdup("SASL/GSSAPI");
-    }
     return agmt;
 }
 TopoReplicaSegment *
