@@ -41,6 +41,7 @@ SYSRESTORE_DIR_PATH = paths.SYSRESTORE
 
 installation_cleanup = True
 original_ccache = None
+temp_ccache = None
 
 
 def validate_dm_password(password):
@@ -248,24 +249,28 @@ def set_subject_in_config(realm_name, dm_password, suffix, subject_base):
 
 
 def init_private_ccache():
-    (desc, path) = tempfile.mkstemp(prefix='krbcc')
+    global original_ccache
+    global temp_ccache
+
+    (desc, temp_ccache) = tempfile.mkstemp(prefix='krbcc')
     os.close(desc)
 
-    original_ccache = os.environ.get('KRB5CCNAME', None)
+    original_ccache = os.environ.get('KRB5CCNAME')
 
-    os.environ['KRB5CCNAME'] = path
+    os.environ['KRB5CCNAME'] = temp_ccache
 
 
 def destroy_private_ccache():
-    path = os.environ.get('KRB5CCNAME')
+    global original_ccache
+    global temp_ccache
 
     if original_ccache is not None:
         os.environ['KRB5CCNAME'] = original_ccache
     else:
         os.environ.pop('KRB5CCNAME', None)
 
-    if os.path.exists(path):
-        os.remove(path)
+    if os.path.exists(temp_ccache):
+        os.remove(temp_ccache)
 
 
 def common_cleanup(func):
