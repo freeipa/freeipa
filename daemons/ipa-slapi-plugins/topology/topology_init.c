@@ -264,7 +264,7 @@ ipa_topo_rootdse_search(Slapi_PBlock *pb, Slapi_Entry* e, Slapi_Entry* entryAfte
     /* we expose temporarily the domain level in this function, should
      * finally be handled in a plugin managing the domain level
      */
-    char *level = slapi_ch_smprintf("%d", ipa_topo_get_domain_level_major());
+    char *level = slapi_ch_smprintf("%d", ipa_topo_get_domain_level());
     slapi_entry_attr_set_charptr(e, "ipaDomainLevel", level);
     slapi_ch_free_string(&version);
     slapi_ch_free_string(&level);

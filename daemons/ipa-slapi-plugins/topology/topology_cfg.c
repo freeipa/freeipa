@@ -10,7 +10,8 @@
  */
 static TopoPluginConf topo_plugin_conf = {0};
 static TopoReplicaConf topo_shared_conf = {0};
-static IpaDomainLevel ipa_domain_level = {0,0};
+static int ipa_domain_level = 0;
+static int topo_min_domain_level = 1;
 
 char *ipa_topo_plugin_managed_attrs[] = {
         "nsds5ReplicaStripAttrs",
@@ -95,15 +96,15 @@ ipa_topo_get_domain_level_entry_dn(void)
 }
 
 int
-ipa_topo_get_domain_level_major(void)
+ipa_topo_get_min_domain_level(void)
 {
-    return ipa_domain_level.major;
+    return topo_min_domain_level;
 }
 
 int
-ipa_topo_get_domain_level_minor(void)
+ipa_topo_get_domain_level(void)
 {
-    return ipa_domain_level.minor;
+    return ipa_domain_level;
 }
 
 char *
@@ -199,22 +200,12 @@ ipa_topo_set_plugin_shared_bindgroup(char *bindgroup)
 void
 ipa_topo_set_domain_level(char *level)
 {
-    char *minor;
-
     if (level == NULL) {
-        ipa_domain_level.major = 0;
-        ipa_domain_level.minor = 0;
+        ipa_domain_level = 0;
         return;
     }
 
-    minor = strchr(level,'.');
-    if (minor) {
-        *minor = '\0';
-        ipa_domain_level.minor = atoi(++minor);
-    } else {
-        ipa_domain_level.minor = 0;
-    }
-    ipa_domain_level.major = atoi(level);
+    ipa_domain_level = atoi(level);
 }
 
 void

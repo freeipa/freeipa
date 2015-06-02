@@ -125,11 +125,6 @@ typedef struct topo_plugin_config {
     int activated;
 } TopoPluginConf;
 
-typedef struct ipa_domain_level {
-    int major;
-    int minor;
-} IpaDomainLevel;
-
 #define CONFIG_ATTR_SHARED_BASE "nsslapd-topo-plugin-shared-config-base"
 #define CONFIG_ATTR_REPLICA_ROOT "nsslapd-topo-plugin-shared-replica-root"
 #define CONFIG_ATTR_SHARED_BINDDNGROUP "nsslapd-topo-plugin-shared-binddngroup"
@@ -158,8 +153,8 @@ int ipa_topo_get_plugin_version_major(void);
 int ipa_topo_get_plugin_version_minor(void);
 char *ipa_topo_get_domain_level_entry(void);
 Slapi_DN *ipa_topo_get_domain_level_entry_dn(void);
-int ipa_topo_get_domain_level_major(void);
-int ipa_topo_get_domain_level_minor(void);
+int ipa_topo_get_domain_level(void);
+int ipa_topo_get_min_domain_level(void);
 int ipa_topo_get_plugin_startup_delay(void);
 void ipa_topo_set_plugin_id(void *plg_id);
 void ipa_topo_set_plugin_active(int state);

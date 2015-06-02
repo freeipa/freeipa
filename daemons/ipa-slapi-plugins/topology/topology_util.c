@@ -110,9 +110,7 @@ ipa_topo_util_get_pluginhost(void)
 void
 ipa_topo_util_check_plugin_active(void)
 {
-    if (ipa_topo_get_plugin_version_major() < ipa_topo_get_domain_level_major() ||
-        (ipa_topo_get_plugin_version_major() == ipa_topo_get_domain_level_major() &&
-         ipa_topo_get_plugin_version_minor() <= ipa_topo_get_domain_level_minor())) {
+    if (ipa_topo_get_min_domain_level() <= ipa_topo_get_domain_level()) {
         ipa_topo_set_plugin_active(1);
     } else {
         ipa_topo_set_plugin_active(0);
