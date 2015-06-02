@@ -1201,7 +1201,15 @@ void
 ipa_topo_util_disable_repl_from_host(char *repl_root, char *delhost)
 {
     char *principal = ipa_topo_util_get_ldap_principal(repl_root, delhost);
-    ipa_topo_util_disable_repl_for_principal(repl_root, principal);
+    if (principal) {
+        ipa_topo_util_disable_repl_for_principal(repl_root, principal);
+        slapi_ch_free_string(&principal);
+    } else {
+        slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                            "ipa_topo_util_disable_repl_from_host: "
+                            "failed to get ldap principal for host: %s \n",
+                             delhost);
+    }
 }
 
 void
@@ -1322,10 +1330,10 @@ char *
 ipa_topo_util_get_ldap_principal(char *repl_root, char *hostname)
 {
     int rc = 0;
-    Slapi_Entry **entries;
+    Slapi_Entry **entries = NULL;
     Slapi_PBlock *pb = NULL;
     char *filter;
-    char *dn;
+    char *dn = NULL;
 
     filter = slapi_ch_smprintf("krbprincipalname=ldap/%s*",hostname);
     pb = slapi_pblock_new();
