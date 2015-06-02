@@ -10,6 +10,7 @@ import os
 import shutil
 import socket
 import sys
+import tempfile
 
 from ipapython import dogtag, ipautil, sysrestore
 from ipapython.dn import DN
@@ -25,8 +26,6 @@ from ipaserver.install import (
 from ipaserver.install.installutils import create_replica_config
 from ipaserver.install.replication import (
     ReplicationManager, replica_conn_check)
-from ipaserver.install.server.install import (
-    init_private_ccache, destroy_private_ccache)
 
 DIRMAN_DN = DN(('cn', 'directory manager'))
 REPLICA_INFO_TOP_DIR = None
@@ -284,6 +283,31 @@ def remove_replica_info_dir():
             shutil.rmtree(REPLICA_INFO_TOP_DIR)
     except OSError:
         pass
+
+
+def init_private_ccache():
+    global original_ccache
+    global temp_ccache
+
+    (desc, temp_ccache) = tempfile.mkstemp(prefix='krbcc')
+    os.close(desc)
+
+    original_ccache = os.environ.get('KRB5CCNAME')
+
+    os.environ['KRB5CCNAME'] = temp_ccache
+
+
+def destroy_private_ccache():
+    global original_ccache
+    global temp_ccache
+
+    if original_ccache is not None:
+        os.environ['KRB5CCNAME'] = original_ccache
+    else:
+        os.environ.pop('KRB5CCNAME', None)
+
+    if os.path.exists(temp_ccache):
+        os.remove(temp_ccache)
 
 
 def common_cleanup(func):

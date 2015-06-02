@@ -5,6 +5,7 @@
 import os
 import pickle
 import pwd
+import random
 import shutil
 import sys
 import tempfile
@@ -12,13 +13,16 @@ import textwrap
 
 from ipapython import certmonger, dogtag, ipaldap, ipautil, sysrestore
 from ipapython.dn import DN
+from ipapython.install import common, core
+from ipapython.install.common import step
+from ipapython.install.core import Knob
 from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import (
     decrypt_file, format_netloc, ipa_generate_password, run, user_input)
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
-from ipalib import api, errors, x509
+from ipalib import api, constants, errors, x509
 from ipalib.constants import CACERT
 from ipalib.util import validate_domain_name
 import ipaclient.ntpconf
@@ -38,9 +42,13 @@ except ImportError:
 
 SYSRESTORE_DIR_PATH = paths.SYSRESTORE
 
-installation_cleanup = True
-original_ccache = None
-temp_ccache = None
+VALID_SUBJECT_ATTRS = ['st', 'o', 'ou', 'dnqualifier', 'c',
+                       'serialnumber', 'l', 'title', 'sn', 'givenname',
+                       'initials', 'generationqualifier', 'dc', 'mail',
+                       'uid', 'postaladdress', 'postalcode', 'postofficebox',
+                       'houseidentifier', 'e', 'street', 'pseudonym',
+                       'incorporationlocality', 'incorporationstate',
+                       'incorporationcountry', 'businesscategory']
 
 
 def validate_dm_password(password):
@@ -247,44 +255,15 @@ def set_subject_in_config(realm_name, dm_password, suffix, subject_base):
         conn.disconnect()
 
 
-def init_private_ccache():
-    global original_ccache
-    global temp_ccache
-
-    (desc, temp_ccache) = tempfile.mkstemp(prefix='krbcc')
-    os.close(desc)
-
-    original_ccache = os.environ.get('KRB5CCNAME')
-
-    os.environ['KRB5CCNAME'] = temp_ccache
-
-
-def destroy_private_ccache():
-    global original_ccache
-    global temp_ccache
-
-    if original_ccache is not None:
-        os.environ['KRB5CCNAME'] = original_ccache
-    else:
-        os.environ.pop('KRB5CCNAME', None)
-
-    if os.path.exists(temp_ccache):
-        os.remove(temp_ccache)
-
-
 def common_cleanup(func):
-    def decorated(*args, **kwargs):
+    def decorated(installer):
         success = False
 
         try:
-            try:
-                func(*args, **kwargs)
-            except BaseException:
-                destroy_private_ccache()
-                raise
+            func(installer)
             success = True
         except KeyboardInterrupt:
-            global ds
+            ds = installer._ds
             print "\nCleaning up..."
             if ds:
                 print "Removing configuration for %s instance" % ds.serverid
@@ -298,12 +277,11 @@ def common_cleanup(func):
                                           "manually")
             sys.exit(1)
         finally:
-            global installation_cleanup
-            if not success and installation_cleanup:
+            if not success and installer._installation_cleanup:
                 # Do a cautious clean up as we don't know what failed and
                 # what is the state of the environment
                 try:
-                    fstore.restore_file(paths.HOSTS)
+                    installer._fstore.restore_file(paths.HOSTS)
                 except:
                     pass
 
@@ -311,24 +289,17 @@ def common_cleanup(func):
 
 
 @common_cleanup
-def install_check(options):
-    global dirsrv_pkcs12_file
-    global http_pkcs12_file
-    global pkinit_pkcs12_file
-    global dirsrv_pkcs12_info
-    global http_pkcs12_info
-    global pkinit_pkcs12_info
-    global external_cert_file
-    global external_ca_file
-    global http_ca_cert
-
-    global ds
-    global installation_cleanup
-
-    # Use private ccache
-    init_private_ccache()
-
-    ds = None
+def install_check(installer):
+    options = installer
+    dirsrv_pkcs12_file = installer._dirsrv_pkcs12_file
+    http_pkcs12_file = installer._http_pkcs12_file
+    pkinit_pkcs12_file = installer._pkinit_pkcs12_file
+    dirsrv_pkcs12_info = installer._dirsrv_pkcs12_info
+    http_pkcs12_info = installer._http_pkcs12_info
+    pkinit_pkcs12_info = installer._pkinit_pkcs12_info
+    external_cert_file = installer._external_cert_file
+    external_ca_file = installer._external_ca_file
+    http_ca_cert = installer._ca_cert
 
     tasks.check_selinux_status()
 
@@ -339,27 +310,25 @@ def install_check(options):
                "manually.")
         print textwrap.fill(msg, width=79, replace_whitespace=False)
 
-    installation_cleanup = True
+    installer._installation_cleanup = True
 
     print("\nThe log file for this installation can be found in "
           "/var/log/ipaserver-install.log")
     if (not options.external_ca and not options.external_cert_files and
             is_ipa_configured()):
-        installation_cleanup = False
+        installer._installation_cleanup = False
         sys.exit("IPA server is already configured on this system.\n"
                  "If you want to reinstall the IPA server, please uninstall "
                  "it first using 'ipa-server-install --uninstall'.")
 
     client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     if client_fstore.has_files():
-        installation_cleanup = False
+        installer._installation_cleanup = False
         sys.exit("IPA client is already configured on this system.\n"
                  "Please uninstall it before configuring the IPA server, "
                  "using 'ipa-client-install --uninstall'")
 
-    global fstore
     fstore = sysrestore.FileStore(SYSRESTORE_DIR_PATH)
-    global sstore
     sstore = sysrestore.StateFile(SYSRESTORE_DIR_PATH)
 
     # This will override any settings passed in on the cmdline
@@ -371,7 +340,13 @@ def install_check(options):
         if dm_password is None:
             sys.exit("Directory Manager password required")
         try:
-            options._update_loose(read_cache(dm_password))
+            cache_vars = read_cache(dm_password)
+            for name, value in cache_vars.iteritems():
+                if name not in options.__dict__:
+                    options.__dict__[name] = value
+            if cache_vars.get('external_ca', False):
+                options.external_ca = False
+                options.interactive = False
         except Exception, e:
             sys.exit("Cannot process the cache file: %s" % str(e))
 
@@ -399,29 +374,29 @@ def install_check(options):
               "management")
     if setup_kra:
         print "  * Configure a stand-alone KRA (dogtag) for key storage"
-    if options.conf_ntp:
+    if not options.no_ntp:
         print "  * Configure the Network Time Daemon (ntpd)"
     print "  * Create and configure an instance of Directory Server"
     print "  * Create and configure a Kerberos Key Distribution Center (KDC)"
     print "  * Configure Apache (httpd)"
     if options.setup_dns:
         print "  * Configure DNS (bind)"
-    if options.setup_pkinit:
+    if not options.no_pkinit:
         print "  * Configure the KDC to enable PKINIT"
-    if not options.conf_ntp:
+    if options.no_ntp:
         print ""
         print "Excluded by options:"
         print "  * Configure the Network Time Daemon (ntpd)"
-    if not options.unattended:
+    if installer.interactive:
         print ""
         print "To accept the default shown in brackets, press the Enter key."
     print ""
 
     if not options.external_cert_files:
         # Make sure the 389-ds ports are available
-        check_dirsrv(options.unattended)
+        check_dirsrv(not installer.interactive)
 
-    if options.conf_ntp:
+    if not options.no_ntp:
         try:
             ipaclient.ntpconf.check_timedate_services()
         except ipaclient.ntpconf.NTPConflictingService, e:
@@ -436,7 +411,7 @@ def install_check(options):
     if httpinstance.httpd_443_configured():
         sys.exit("Aborting installation")
 
-    if not options.setup_dns and not options.unattended:
+    if not options.setup_dns and installer.interactive:
         if ipautil.user_input("Do you want to configure integrated DNS "
                               "(BIND)?", False):
             options.setup_dns = True
@@ -459,7 +434,7 @@ def install_check(options):
         host_default = get_fqdn()
 
     try:
-        if options.unattended or options.host_name:
+        if not installer.interactive or options.host_name:
             verify_fqdn(host_default, options.no_host_dns)
             host_name = host_default
         else:
@@ -482,7 +457,7 @@ def install_check(options):
 
     if not options.domain_name:
         domain_name = read_domain_name(host_name[host_name.find(".")+1:],
-                                       options.unattended)
+                                       not installer.interactive)
         root_logger.debug("read domain_name: %s\n" % domain_name)
         try:
             validate_domain_name(domain_name)
@@ -494,7 +469,7 @@ def install_check(options):
     domain_name = domain_name.lower()
 
     if not options.realm_name:
-        realm_name = read_realm_name(domain_name, options.unattended)
+        realm_name = read_realm_name(domain_name, not installer.interactive)
         root_logger.debug("read realm_name: %s\n" % realm_name)
     else:
         realm_name = options.realm_name.upper()
@@ -591,7 +566,7 @@ def install_check(options):
         ip_addresses = dns.ip_addresses
     else:
         ip_addresses = get_server_ip_address(host_name, fstore,
-                                             options.unattended, False,
+                                             not installer.interactive, False,
                                              options.ip_addresses)
 
     print
@@ -625,7 +600,7 @@ def install_check(options):
               "Directory unless\nthe realm name of the IPA server matches "
               "its domain name.\n\n")
 
-    if not options.unattended and not user_input(
+    if installer.interactive and not user_input(
             "Continue to configure the system with these values?", False):
         sys.exit("Installation aborted")
 
@@ -635,20 +610,35 @@ def install_check(options):
     options.master_password = master_password
     options.admin_password = admin_password
     options.host_name = host_name
-    options.ip_address = ip_addresses
+    options.ip_addresses = ip_addresses
+
+    installer._fstore = fstore
+    installer._sstore = sstore
+    installer._dirsrv_pkcs12_file = dirsrv_pkcs12_file
+    installer._http_pkcs12_file = http_pkcs12_file
+    installer._pkinit_pkcs12_file = pkinit_pkcs12_file
+    installer._dirsrv_pkcs12_info = dirsrv_pkcs12_info
+    installer._http_pkcs12_info = http_pkcs12_info
+    installer._pkinit_pkcs12_info = pkinit_pkcs12_info
+    installer._external_cert_file = external_cert_file
+    installer._external_ca_file = external_ca_file
+    installer._ca_cert = http_ca_cert
 
 
 @common_cleanup
-def install(options):
-    global dirsrv_pkcs12_file
-    global http_pkcs12_file
-    global pkinit_pkcs12_file
-    global dirsrv_pkcs12_info
-    global http_pkcs12_info
-    global pkinit_pkcs12_info
-    global external_cert_file
-    global external_ca_file
-    global http_ca_cert
+def install(installer):
+    options = installer
+    fstore = installer._fstore
+    sstore = installer._sstore
+    dirsrv_pkcs12_file = installer._dirsrv_pkcs12_file
+    http_pkcs12_file = installer._http_pkcs12_file
+    pkinit_pkcs12_file = installer._pkinit_pkcs12_file
+    dirsrv_pkcs12_info = installer._dirsrv_pkcs12_info
+    http_pkcs12_info = installer._http_pkcs12_info
+    pkinit_pkcs12_info = installer._pkinit_pkcs12_info
+    external_cert_file = installer._external_cert_file
+    external_ca_file = installer._external_ca_file
+    http_ca_cert = installer._ca_cert
 
     realm_name = options.realm_name
     domain_name = options.domain_name
@@ -656,25 +646,21 @@ def install(options):
     master_password = options.master_password
     admin_password = options.admin_password
     host_name = options.host_name
-    ip_addresses = options.ip_address
+    ip_addresses = options.ip_addresses
     setup_ca = options.setup_ca
     setup_kra = options.setup_kra
-
-    global ds
-    global installation_cleanup
 
     dogtag_constants = dogtag.install_constants
 
     # Installation has started. No IPA sysrestore items are restored in case of
     # failure to enable root cause investigation
-    installation_cleanup = False
+    installer._installation_cleanup = False
 
     # Configuration for ipalib, we will bootstrap and finalize later, after
     # we are sure we have the configuration file ready.
     cfg = dict(
         context='installer',
         in_server=True,
-        debug=options.debug
     )
 
     # Create the management framework config file and finalize api
@@ -702,7 +688,7 @@ def install(options):
     # Must be readable for everyone
     os.chmod(target_fname, 0644)
 
-    if not options.unattended:
+    if installer.interactive:
         print ""
         print "The following operations may take some minutes to complete."
         print "Please wait until the prompt is returned."
@@ -730,7 +716,7 @@ def install(options):
     # Create a directory server instance
     if not options.external_cert_files:
         # Configure ntpd
-        if options.conf_ntp:
+        if not options.no_ntp:
             ipaclient.ntpconf.force_ntpd(sstore)
             ntp = ntpinstance.NTPInstance(fstore)
             if not ntp.is_configured():
@@ -739,22 +725,25 @@ def install(options):
         if options.dirsrv_cert_files:
             ds = dsinstance.DsInstance(fstore=fstore,
                                        domainlevel=options.domainlevel)
+            installer._ds = ds
             ds.create_instance(realm_name, host_name, domain_name,
                                dm_password, dirsrv_pkcs12_info,
                                idstart=options.idstart, idmax=options.idmax,
                                subject_base=options.subject,
-                               hbac_allow=not options.hbac_allow)
+                               hbac_allow=not options.no_hbac_allow)
         else:
             ds = dsinstance.DsInstance(fstore=fstore,
                                        domainlevel=options.domainlevel)
+            installer._ds = ds
             ds.create_instance(realm_name, host_name, domain_name,
                                dm_password,
                                idstart=options.idstart, idmax=options.idmax,
                                subject_base=options.subject,
-                               hbac_allow=not options.hbac_allow)
+                               hbac_allow=not options.no_hbac_allow)
     else:
         ds = dsinstance.DsInstance(fstore=fstore,
                                    domainlevel=options.domainlevel)
+        installer._ds = ds
         ds.init_info(
             realm_name, host_name, domain_name, dm_password,
             options.subject, 1101, 1100, None)
@@ -768,10 +757,10 @@ def install(options):
             options.dm_password = dm_password
             options.admin_password = admin_password
             options.host_name = host_name
-            options.unattended = True
             options.forwarders = dns.dns_forwarders
             options.reverse_zones = dns.reverse_zones
-            write_cache(vars(options))
+            cache_vars = {n: getattr(options, n) for o, n in installer.knobs()}
+            write_cache(cache_vars)
 
         ca.install_step_0(False, None, options)
 
@@ -794,13 +783,13 @@ def install(options):
     if options.pkinit_cert_files:
         krb.create_instance(realm_name, host_name, domain_name,
                             dm_password, master_password,
-                            setup_pkinit=options.setup_pkinit,
+                            setup_pkinit=not options.no_pkinit,
                             pkcs12_info=pkinit_pkcs12_info,
                             subject_base=options.subject)
     else:
         krb.create_instance(realm_name, host_name, domain_name,
                             dm_password, master_password,
-                            setup_pkinit=options.setup_pkinit,
+                            setup_pkinit=not options.no_pkinit,
                             subject_base=options.subject)
 
     # The DS instance is created before the keytab, add the SSL cert we
@@ -821,12 +810,13 @@ def install(options):
         http.create_instance(
             realm_name, host_name, domain_name, dm_password,
             pkcs12_info=http_pkcs12_info, subject_base=options.subject,
-            auto_redirect=options.ui_redirect,
+            auto_redirect=not options.no_ui_redirect,
             ca_is_configured=setup_ca)
     else:
         http.create_instance(
             realm_name, host_name, domain_name, dm_password,
-            subject_base=options.subject, auto_redirect=options.ui_redirect,
+            subject_base=options.subject,
+            auto_redirect=not options.no_ui_redirect,
             ca_is_configured=setup_ca)
     tasks.restore_context(paths.CACHE_IPA_SESSIONS)
 
@@ -861,7 +851,7 @@ def install(options):
         # Create a BIND instance
         bind = bindinstance.BindInstance(fstore, dm_password)
         bind.setup(host_name, ip_addresses, realm_name,
-                   domain_name, (), options.conf_ntp, (),
+                   domain_name, (), not options.no_ntp, (),
                    zonemgr=options.zonemgr, ca_configured=setup_ca,
                    no_dnssec_validation=options.no_dnssec_validation)
         bind.create_sample_bind_zone()
@@ -881,13 +871,13 @@ def install(options):
         args = [paths.IPA_CLIENT_INSTALL, "--on-master", "--unattended",
                 "--domain", domain_name, "--server", host_name,
                 "--realm", realm_name, "--hostname", host_name]
-        if not options.create_sshfp:
+        if options.no_dns_sshfp:
             args.append("--no-dns-sshfp")
-        if options.trust_sshfp:
+        if options.ssh_trust_dns:
             args.append("--ssh-trust-dns")
-        if not options.conf_ssh:
+        if options.no_ssh:
             args.append("--no-ssh")
-        if not options.conf_sshd:
+        if options.no_sshd:
             args.append("--no-sshd")
         if options.mkhomedir:
             args.append("--mkhomedir")
@@ -915,7 +905,7 @@ def install(options):
     print "\t\t  * 88, 464: kerberos"
     if options.setup_dns:
         print "\t\t  * 53: bind"
-    if options.conf_ntp:
+    if not options.no_ntp:
         print "\t\t  * 123: ntp"
     print ""
     print("\t2. You can now obtain a kerberos ticket using the command: "
@@ -946,19 +936,10 @@ def install(options):
     if ipautil.file_exists(paths.ROOT_IPA_CACHE):
         os.remove(paths.ROOT_IPA_CACHE)
 
-    # Use private ccache
-    destroy_private_ccache()
-
 
 @common_cleanup
-def uninstall_check(options):
-    global ds
-    global installation_cleanup
-
-    # Use private ccache
-    init_private_ccache()
-
-    ds = None
+def uninstall_check(installer):
+    options = installer
 
     tasks.check_selinux_status()
 
@@ -969,11 +950,9 @@ def uninstall_check(options):
                "manually.")
         print textwrap.fill(msg, width=79, replace_whitespace=False)
 
-    installation_cleanup = False
+    installer._installation_cleanup = False
 
-    global fstore
     fstore = sysrestore.FileStore(SYSRESTORE_DIR_PATH)
-    global sstore
     sstore = sysrestore.StateFile(SYSRESTORE_DIR_PATH)
 
     # Configuration for ipalib, we will bootstrap and finalize later, after
@@ -981,7 +960,6 @@ def uninstall_check(options):
     cfg = dict(
         context='installer',
         in_server=True,
-        debug=options.debug
     )
 
     # We will need at least api.env, finalize api now. This system is
@@ -989,7 +967,7 @@ def uninstall_check(options):
     api.bootstrap(**cfg)
     api.finalize()
 
-    if not options.unattended:
+    if installer.interactive:
         print("\nThis is a NON REVERSIBLE operation and will delete all data "
               "and configuration!\n")
         if not user_input("Are you sure you want to continue with the "
@@ -1036,18 +1014,22 @@ def uninstall_check(options):
             cmd = "$ ipa-replica-manage del %s\n" % api.env.host
             print textwrap.fill(msg, width=80, replace_whitespace=False)
             print cmd
-            if not (options.unattended or user_input("Are you sure you "
-                                                     "want to continue "
-                                                     "with the uninstall "
-                                                     "procedure?",
-                                                     False)):
+            if (installer.interactive and
+                not user_input("Are you sure you want to continue with the "
+                               "uninstall procedure?", False)):
                 print ""
                 print "Aborting uninstall operation."
                 sys.exit(1)
 
+    installer._fstore = fstore
+    installer._sstore = sstore
+
 
 @common_cleanup
-def uninstall(options):
+def uninstall(installer):
+    fstore = installer._fstore
+    sstore = installer._sstore
+
     rv = 0
 
     print "Shutting down all IPA services"
@@ -1150,7 +1132,514 @@ def uninstall(options):
                           ' # getcert stop-tracking -i <request_id>\n'
                           'for each id in: %s' % ', '.join(ids))
 
-    # Use private ccache
-    destroy_private_ccache()
-
     sys.exit(rv)
+
+
+class ServerCA(common.Installable, core.Group, core.Composite):
+    description = "certificate system"
+
+    setup_ca = Knob(
+        bool, False,
+        initializable=False,
+        description="configure a dogtag CA",
+    )
+
+    setup_kra = Knob(
+        bool, False,
+        initializable=False,
+        description="configure a dogtag KRA",
+    )
+
+    external_ca = Knob(
+        bool, False,
+        description=("Generate a CSR for the IPA CA certificate to be signed "
+                     "by an external CA"),
+    )
+
+    external_ca_type = Knob(
+        {'generic', 'ms-cs'}, None,
+        description="Type of the external CA",
+    )
+
+    external_cert_files = Knob(
+        (list, str), None,
+        description=("File containing the IPA CA certificate and the external "
+                     "CA certificate chain (can be specified multiple times)"),
+        cli_name='external_cert_file',
+        cli_aliases=['--external_cert_file', '--external_ca_file'],
+        cli_metavar='FILE',
+    )
+
+    @external_cert_files.validator
+    def external_cert_files(self, value):
+        if any(not os.path.isabs(path) for path in value):
+            raise ValueError("must use an absolute path")
+
+    no_pkinit = Knob(
+        bool, False,
+        description="disables pkinit setup steps",
+    )
+
+    dirsrv_cert_files = Knob(
+        (list, str), None,
+        description=("File containing the Directory Server SSL certificate "
+                     "and private key"),
+        cli_name='dirsrv_cert_file',
+        cli_aliases=['--dirsrv_pkcs12'],
+        cli_metavar='FILE',
+    )
+
+    http_cert_files = Knob(
+        (list, str), None,
+        description=("File containing the Apache Server SSL certificate and "
+                     "private key"),
+        cli_name='http_cert_file',
+        cli_aliases=['--http_pkcs12'],
+        cli_metavar='FILE',
+    )
+
+    pkinit_cert_files = Knob(
+        (list, str), None,
+        description=("File containing the Kerberos KDC SSL certificate and "
+                     "private key"),
+        cli_name='pkinit_cert_file',
+        cli_aliases=['--pkinit_pkcs12'],
+        cli_metavar='FILE',
+    )
+
+    dirsrv_pin = Knob(
+        str, None,
+        sensitive=True,
+        description="The password to unlock the Directory Server private key",
+        cli_aliases=['--dirsrv_pin'],
+        cli_metavar='PIN',
+    )
+
+    http_pin = Knob(
+        str, None,
+        sensitive=True,
+        description="The password to unlock the Apache Server private key",
+        cli_aliases=['--http_pin'],
+        cli_metavar='PIN',
+    )
+
+    pkinit_pin = Knob(
+        str, None,
+        sensitive=True,
+        description="The password to unlock the Kerberos KDC private key",
+        cli_aliases=['--pkinit_pin'],
+        cli_metavar='PIN',
+    )
+
+    dirsrv_cert_name = Knob(
+        str, None,
+        description="Name of the Directory Server SSL certificate to install",
+        cli_metavar='NAME',
+    )
+
+    http_cert_name = Knob(
+        str, None,
+        description="Name of the Apache Server SSL certificate to install",
+        cli_metavar='NAME',
+    )
+
+    pkinit_cert_name = Knob(
+        str, None,
+        description="Name of the Kerberos KDC SSL certificate to install",
+        cli_metavar='NAME',
+    )
+
+    ca_cert_files = Knob(
+        (list, str), None,
+        description=("File containing CA certificates for the service "
+                     "certificate files"),
+        cli_name='ca_cert_file',
+        cli_aliases=['--root-ca-file'],
+        cli_metavar='FILE',
+    )
+
+    subject = Knob(
+        str, None,
+        description="The certificate subject base (default O=<realm-name>)",
+    )
+
+    @subject.validator
+    def subject(self, value):
+        v = unicode(value, 'utf-8')
+        if any(ord(c) < 0x20 for c in v):
+            raise ValueError("must not contain control characters")
+        if '&' in v:
+            raise ValueError("must not contain an ampersand (\"&\")")
+        try:
+            dn = DN(v)
+            for rdn in dn:
+                if rdn.attr.lower() not in VALID_SUBJECT_ATTRS:
+                    raise ValueError("invalid attribute: \"%s\"" % rdn.attr)
+        except ValueError, e:
+            raise ValueError("invalid subject base format: %s" % e)
+
+    ca_signing_algorithm = Knob(
+        {'SHA1withRSA', 'SHA256withRSA', 'SHA512withRSA'}, None,
+        description="Signing algorithm of the IPA CA certificate",
+    )
+
+
+class ServerDNS(common.Installable, core.Group, core.Composite):
+    description = "DNS"
+
+    setup_dns = Knob(
+        bool, False,
+        description="configure bind with our zone",
+    )
+
+    forwarders = Knob(
+        (list, 'ip'), None,
+        description=("Add a DNS forwarder. This option can be used multiple "
+                     "times"),
+        cli_name='forwarder',
+    )
+
+    no_forwarders = Knob(
+        bool, False,
+        description="Do not add any DNS forwarders, use root servers instead",
+    )
+
+    reverse_zones = Knob(
+        (list, str), [],
+        description=("The reverse DNS zone to use. This option can be used "
+                     "multiple times"),
+        cli_name='reverse_zone',
+    )
+
+    no_reverse = Knob(
+        bool, False,
+        description="Do not create reverse DNS zone",
+    )
+
+    no_dnssec_validation = Knob(
+        bool, False,
+        description="Disable DNSSEC validation",
+    )
+
+    dnssec_master = Knob(
+        bool, False,
+        initializable=False,
+        description="Setup server to be DNSSEC key master",
+    )
+
+    zonemgr = Knob(
+        str, None,
+        description=("DNS zone manager e-mail address. Defaults to "
+                     "hostmaster@DOMAIN"),
+    )
+
+    @zonemgr.validator
+    def zonemgr(self, value):
+        # validate the value first
+        try:
+            # IDNA support requires unicode
+            encoding = getattr(sys.stdin, 'encoding', None)
+            if encoding is None:
+                encoding = 'utf-8'
+            value = value.decode(encoding)
+            bindinstance.validate_zonemgr_str(value)
+        except ValueError, e:
+            # FIXME we can do this in better way
+            # https://fedorahosted.org/freeipa/ticket/4804
+            # decode to proper stderr encoding
+            stderr_encoding = getattr(sys.stderr, 'encoding', None)
+            if stderr_encoding is None:
+                stderr_encoding = 'utf-8'
+            error = unicode(e).encode(stderr_encoding)
+            raise ValueError(error)
+
+    no_host_dns = Knob(
+        bool, False,
+        description="Do not use DNS for hostname lookup during installation",
+    )
+
+    no_dns_sshfp = Knob(
+        bool, False,
+        description="Do not automatically create DNS SSHFP records",
+    )
+
+
+class Server(common.Installable, common.Interactive, core.Composite):
+    realm_name = Knob(
+        str, None,
+        description="realm name",
+        cli_name='realm',
+        cli_short_name='r',
+    )
+
+    domain_name = Knob(
+        str, None,
+        description="domain name",
+        cli_name='domain',
+        cli_short_name='n',
+    )
+
+    @domain_name.validator
+    def domain_name(self, value):
+        validate_domain_name(value)
+
+    dm_password = Knob(
+        str, None,
+        sensitive=True,
+        description="Directory Manager password",
+        cli_name='ds_password',
+        cli_short_name='p',
+    )
+
+    @dm_password.validator
+    def dm_password(self, value):
+        validate_dm_password(value)
+
+    master_password = Knob(
+        str, None,
+        sensitive=True,
+        deprecated=True,
+        description="kerberos master password (normally autogenerated)",
+        cli_short_name='P',
+    )
+
+    admin_password = Knob(
+        str, None,
+        sensitive=True,
+        description="admin user kerberos password",
+        cli_short_name='a',
+    )
+
+    @admin_password.validator
+    def admin_password(self, value):
+        validate_admin_password(value)
+
+    mkhomedir = Knob(
+        bool, False,
+        description="create home directories for users on their first login",
+    )
+
+    host_name = Knob(
+        str, None,
+        description="fully qualified name of server",
+        cli_name='hostname',
+    )
+
+    domainlevel = Knob(
+        int, constants.MAX_DOMAIN_LEVEL,
+        description="IPA domain level",
+        cli_name='domain_level',
+    )
+
+    @domainlevel.validator
+    def domainlevel(self, value):
+        # Check that Domain Level is within the allowed range
+        if value < constants.MIN_DOMAIN_LEVEL:
+            raise ValueError(
+                "Domain Level cannot be lower than {0}".format(
+                    constants.MIN_DOMAIN_LEVEL))
+        elif value > constants.MAX_DOMAIN_LEVEL:
+            raise ValueError(
+                "Domain Level cannot be higher than {0}".format(
+                    constants.MAX_DOMAIN_LEVEL))
+
+    ip_addresses = Knob(
+        (list, 'ip-local'), None,
+        description=("Master Server IP Address. This option can be used "
+                     "multiple times"),
+        cli_name='ip_address',
+    )
+
+    no_ntp = Knob(
+        bool, False,
+        description="do not configure ntp",
+    )
+
+    idstart = Knob(
+        int, random.randint(1, 10000) * 200000,
+        description="The starting value for the IDs range (default random)",
+    )
+
+    idmax = Knob(
+        int,
+        description=("The max value for the IDs range (default: "
+                     "idstart+199999)"),
+    )
+
+    @idmax.default_getter
+    def idmax(self):
+        return self.idstart + 200000 - 1
+
+    no_hbac_allow = Knob(
+        bool, False,
+        description="Don't install allow_all HBAC rule",
+        cli_aliases=['--no_hbac_allow'],
+    )
+
+    no_ui_redirect = Knob(
+        bool, False,
+        description="Do not automatically redirect to the Web UI",
+    )
+
+    ssh_trust_dns = Knob(
+        bool, False,
+        description="configure OpenSSH client to trust DNS SSHFP records",
+    )
+
+    no_ssh = Knob(
+        bool, False,
+        description="do not configure OpenSSH client",
+    )
+
+    no_sshd = Knob(
+        bool, False,
+        description="do not configure OpenSSH server",
+    )
+
+    def __init__(self, **kwargs):
+        super(Server, self).__init__(**kwargs)
+
+        self._installation_cleanup = True
+        self._ds = None
+
+        self._dirsrv_pkcs12_file = None
+        self._http_pkcs12_file = None
+        self._pkinit_pkcs12_file = None
+        self._dirsrv_pkcs12_info = None
+        self._http_pkcs12_info = None
+        self._pkinit_pkcs12_info = None
+        self._external_cert_file = None
+        self._external_ca_file = None
+        self._ca_cert = None
+
+        #pylint: disable=no-member
+
+        if not self.dns.setup_dns:
+            if self.dns.forwarders:
+                raise RuntimeError(
+                    "You cannot specify a --forwarder option without the "
+                    "--setup-dns option")
+            if self.dns.no_forwarders:
+                raise RuntimeError(
+                    "You cannot specify a --no-forwarders option without the "
+                    "--setup-dns option")
+            if self.dns.reverse_zones:
+                raise RuntimeError(
+                    "You cannot specify a --reverse-zone option without the "
+                    "--setup-dns option")
+            if self.dns.no_reverse:
+                raise RuntimeError(
+                    "You cannot specify a --no-reverse option without the "
+                    "--setup-dns option")
+            if self.dns.no_dnssec_validation:
+                raise RuntimeError(
+                    "You cannot specify a --no-dnssec-validation option "
+                    "without the --setup-dns option")
+        elif self.dns.forwarders and self.dns.no_forwarders:
+            raise RuntimeError(
+                "You cannot specify a --forwarder option together with "
+                "--no-forwarders")
+        elif self.dns.reverse_zones and self.dns.no_reverse:
+            raise RuntimeError(
+                "You cannot specify a --reverse-zone option together with "
+                "--no-reverse")
+
+        if self.uninstalling:
+            if (self.realm_name or self.admin_password or
+                    self.master_password):
+                raise RuntimeError(
+                    "In uninstall mode, -a, -r and -P options are not allowed")
+        elif not self.interactive:
+            if (not self.realm_name or not self.dm_password or
+                    not self.admin_password):
+                raise RuntimeError(
+                    "In unattended mode you need to provide at least -r, -p "
+                    "and -a options")
+            if self.dns.setup_dns:
+                if not self.dns.forwarders and not self.dns.no_forwarders:
+                    raise RuntimeError(
+                        "You must specify at least one --forwarder option or "
+                        "--no-forwarders option")
+
+        # If any of the key file options are selected, all are required.
+        cert_file_req = (self.ca.dirsrv_cert_files, self.ca.http_cert_files)
+        cert_file_opt = (self.ca.pkinit_cert_files,)
+        if any(cert_file_req + cert_file_opt) and not all(cert_file_req):
+            raise RuntimeError(
+                "--dirsrv-cert-file and --http-cert-file are required if any "
+                "key file options are used.")
+
+        if not self.interactive:
+            if self.ca.dirsrv_cert_files and self.ca.dirsrv_pin is None:
+                raise RuntimeError(
+                    "You must specify --dirsrv-pin with --dirsrv-cert-file")
+            if self.ca.http_cert_files and self.ca.http_pin is None:
+                raise RuntimeError(
+                    "You must specify --http-pin with --http-cert-file")
+            if self.ca.pkinit_cert_files and self.ca.pkinit_pin is None:
+                raise RuntimeError(
+                    "You must specify --pkinit-pin with --pkinit-cert-file")
+
+        if self.ca.external_cert_files and self.ca.dirsrv_cert_files:
+            raise RuntimeError(
+                "Service certificate file options cannot be used with the "
+                "external CA options.")
+
+        if self.ca.external_ca_type and not self.ca.external_ca:
+            raise RuntimeError(
+                "You cannot specify --external-ca-type without --external-ca")
+
+        if self.idmax < self.idstart:
+            raise RuntimeError(
+                "idmax (%s) cannot be smaller than idstart (%s)" %
+                (self.idmax, self.idstart))
+
+        # Automatically disable pkinit w/ dogtag until that is supported
+        self.ca.no_pkinit = True
+
+        self.setup_ca = self.ca.setup_ca
+        self.setup_kra = self.ca.setup_kra
+        self.external_ca = self.ca.external_ca
+        self.external_ca_type = self.ca.external_ca_type
+        self.external_cert_files = self.ca.external_cert_files
+        self.no_pkinit = self.ca.no_pkinit
+        self.dirsrv_cert_files = self.ca.dirsrv_cert_files
+        self.http_cert_files = self.ca.http_cert_files
+        self.pkinit_cert_files = self.ca.pkinit_cert_files
+        self.dirsrv_pin = self.ca.dirsrv_pin
+        self.http_pin = self.ca.http_pin
+        self.pkinit_pin = self.ca.pkinit_pin
+        self.dirsrv_cert_name = self.ca.dirsrv_cert_name
+        self.http_cert_name = self.ca.http_cert_name
+        self.pkinit_cert_name = self.ca.pkinit_cert_name
+        self.ca_cert_files = self.ca.ca_cert_files
+        self.subject = self.ca.subject
+        self.ca_signing_algorithm = self.ca.ca_signing_algorithm
+
+        self.setup_dns = self.dns.setup_dns
+        self.forwarders = self.dns.forwarders
+        self.no_forwarders = self.dns.no_forwarders
+        self.reverse_zones = self.dns.reverse_zones
+        self.no_reverse = self.dns.no_reverse
+        self.no_dnssec_validation = self.dns.no_dnssec_validation
+        self.dnssec_master = self.dns.dnssec_master
+        self.zonemgr = self.dns.zonemgr
+        self.no_host_dns = self.dns.no_host_dns
+        self.no_dns_sshfp = self.dns.no_dns_sshfp
+
+        self.unattended = not self.interactive
+
+    @step()
+    def main(self):
+        install_check(self)
+        yield
+        install(self)
+
+    @main.uninstaller
+    def main(self):
+        uninstall_check(self)
+        yield
+        uninstall(self)
+
+    ca = core.Component(ServerCA)
+    dns = core.Component(ServerDNS)
