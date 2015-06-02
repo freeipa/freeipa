@@ -780,12 +780,12 @@ class ReplicationManager(object):
         try:
             mod = [(ldap.MOD_ADD, "member", b_dn)]
             a.modify_s(group_dn, mod)
-        except ldap.TYPE_OR_VALUE_EXISTS:
+        except (ldap.TYPE_OR_VALUE_EXISTS, ldap.NO_SUCH_OBJECT):
             pass
         try:
             mod = [(ldap.MOD_ADD, "member", a_dn)]
             b.modify_s(group_dn, mod)
-        except ldap.TYPE_OR_VALUE_EXISTS:
+        except (ldap.TYPE_OR_VALUE_EXISTS, ldap.NO_SUCH_OBJECT):
             pass
 
 
