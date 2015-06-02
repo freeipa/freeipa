@@ -10,6 +10,7 @@ all:
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
+.PHONY: install
 install:
 	if [ "$(DESTDIR)" = "" ]; then \
 		python2 setup.py install; \

@@ -884,6 +884,8 @@ fi
 %{python_sitelib}/ipapython/*.py*
 %dir %{python_sitelib}/ipapython/dnssec
 %{python_sitelib}/ipapython/dnssec/*.py*
+%dir %{python_sitelib}/ipapython/install
+%{python_sitelib}/ipapython/install/*.py*
 %dir %{python_sitelib}/ipalib
 %{python_sitelib}/ipalib/*
 %dir %{python_sitelib}/ipaplatform
