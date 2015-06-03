@@ -598,7 +598,7 @@ class service_mod(LDAPUpdate):
         (service, hostname, realm) = split_principal(keys[-1])
 
         # verify certificates
-        certs = options.get('usercertificate') or []
+        certs = entry_attrs.get('usercertificate') or []
         certs_der = map(x509.normalize_certificate, certs)
         for dercert in certs_der:
             x509.verify_cert_subject(ldap, hostname, dercert)
