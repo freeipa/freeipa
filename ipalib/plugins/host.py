@@ -871,8 +871,11 @@ class host_mod(LDAPUpdate):
             x509.verify_cert_subject(ldap, keys[-1], cert)
 
         # revoke removed certificates
-        if self.api.Command.ca_is_enabled()['result']:
-            entry_attrs_old = ldap.get_entry(dn, ['usercertificate'])
+        if certs and self.api.Command.ca_is_enabled()['result']:
+            try:
+                entry_attrs_old = ldap.get_entry(dn, ['usercertificate'])
+            except errors.NotFound:
+                self.obj.handle_not_found(*keys)
             old_certs = entry_attrs_old.get('usercertificate', [])
             old_certs_der = map(x509.normalize_certificate, old_certs)
             removed_certs_der = set(old_certs_der) - set(certs_der)
@@ -899,7 +902,8 @@ class host_mod(LDAPUpdate):
                                       nsprerr.args[1])
                     else:
                         raise nsprerr
-        entry_attrs['usercertificate'] = certs_der
+        if certs:
+            entry_attrs['usercertificate'] = certs_der
 
         if options.get('random'):
             entry_attrs['userpassword'] = ipa_generate_password(characters=host_pwd_chars)
