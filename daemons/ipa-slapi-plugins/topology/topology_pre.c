@@ -279,21 +279,31 @@ ipa_topo_check_connect_reject(Slapi_PBlock *pb)
     if (pi && 0 == strcasecmp(pi, ipa_topo_get_plugin_id())) {
         return 0;
     }
-    slapi_pblock_get(pb,SLAPI_DELETE_EXISTING_ENTRY,&add_entry);
+    slapi_pblock_get(pb,SLAPI_ADD_ENTRY,&add_entry);
     if (TOPO_SEGMENT_ENTRY != ipa_topo_check_entry_type(add_entry)) {
         return 0;
     } else {
         /* a new segment is added
          * verify that the segment does not yet exist
          */
-        TopoReplicaSegment *tsegm;
-        TopoReplica *tconf = ipa_topo_util_get_conf_for_segment(add_entry);
-        tsegm = ipa_topo_util_find_segment(tconf, add_entry);
-        if (tsegm) {
-            slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
-                            "segment to be added does already exist\n");
-            rc = 1;
+        char *leftnode = slapi_entry_attr_get_charptr(add_entry,"ipaReplTopoSegmentLeftNode");
+        char *rightnode = slapi_entry_attr_get_charptr(add_entry,"ipaReplTopoSegmentRightNode");
+        if (0 == strcasecmp(leftnode,rightnode)) {
+                slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                                "segment is self referential\n");
+                rc = 1;
+        } else {
+            TopoReplicaSegment *tsegm;
+            TopoReplica *tconf = ipa_topo_util_get_conf_for_segment(add_entry);
+            tsegm = ipa_topo_util_find_segment(tconf, add_entry);
+            if (tsegm) {
+                slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                                "segment to be added does already exist\n");
+                rc = 1;
+            }
         }
+        slapi_ch_free_string(&leftnode);
+        slapi_ch_free_string(&rightnode);
     }
     return rc;
 }
@@ -378,8 +388,8 @@ int ipa_topo_pre_add(Slapi_PBlock *pb)
     } else if (ipa_topo_check_connect_reject(pb)) {
         int rc = LDAP_UNWILLING_TO_PERFORM;
         char *errtxt;
-        errtxt = slapi_ch_smprintf("Segment already exists in topology."
-                                   "Add rejected.\n");
+        errtxt = slapi_ch_smprintf("Segment already exists in topology or"
+                                   " is self referential. Add rejected.\n");
         slapi_pblock_set(pb, SLAPI_PB_RESULT_TEXT, errtxt);
         slapi_pblock_set(pb, SLAPI_RESULT_CODE, &rc);
         result = SLAPI_PLUGIN_FAILURE;
