@@ -2522,7 +2522,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: migrate_ds
-args: 2,19,4
+args: 2,20,4
 arg: Str('ldapuri', cli_name='ldap_uri')
 arg: Password('bindpw', cli_name='password', confirm=False)
 option: DNParam('basedn?', cli_name='base_dn')
@@ -2538,6 +2538,7 @@ option: Str('groupignoreobjectclass*', autofill=True, cli_name='group_ignore_obj
 option: Str('groupobjectclass+', autofill=True, cli_name='group_objectclass', csv=True, default=(u'groupOfUniqueNames', u'groupOfNames'))
 option: Flag('groupoverwritegid', autofill=True, cli_name='group_overwrite_gid', default=False)
 option: StrEnum('schema?', autofill=True, cli_name='schema', default=u'RFC2307bis', values=(u'RFC2307bis', u'RFC2307'))
+option: StrEnum('scope', autofill=True, cli_name='scope', default=u'onelevel', values=(u'base', u'subtree', u'onelevel'))
 option: Bool('use_def_group?', autofill=True, cli_name='use_default_group', default=True)
 option: DNParam('usercontainer', autofill=True, cli_name='user_container', default=ipapython.dn.DN('ou=people'))
 option: Str('userignoreattribute*', autofill=True, cli_name='user_ignore_attribute', csv=True, default=())

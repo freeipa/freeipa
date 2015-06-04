@@ -19,6 +19,7 @@
 
 import re
 from ldap import MOD_ADD
+from ldap import SCOPE_BASE, SCOPE_ONELEVEL, SCOPE_SUBTREE
 
 from ipalib import api, errors, output
 from ipalib import Command, Password, Str, Flag, StrEnum, DNParam, File, Bool
@@ -140,6 +141,10 @@ _ref_err_msg = _('Migration of LDAP search reference is not supported.')
 _dn_err_msg = _('Malformed DN')
 
 _supported_schemas = (u'RFC2307bis', u'RFC2307')
+
+# search scopes for users and groups when migrating
+_supported_scopes = {u'base': SCOPE_BASE, u'onelevel': SCOPE_ONELEVEL, u'subtree': SCOPE_SUBTREE}
+_default_scope = u'onelevel'
 
 
 def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs):
@@ -611,6 +616,15 @@ class migrate_ds(Command):
             default=True,
             autofill=True,
         ),
+        StrEnum('scope',
+            cli_name='scope',
+            label=_('Search scope'),
+            doc=_('LDAP search scope for users and groups: base, onelevel, or '
+                  'subtree. Defaults to onelevel'),
+            values=tuple(_supported_scopes.keys()),
+            default=_default_scope,
+            autofill=True,
+        ),
     )
 
     has_output = (
@@ -705,6 +719,9 @@ can use their Kerberos accounts.''')
         failed = {} # {'OBJ': {'PKEY1': 'Failed 'cos blabla', ...}, ...}
         search_bases = self._get_search_bases(options, ds_base_dn, self.migrate_order)
         migration_start = datetime.datetime.now()
+
+        scope = _supported_scopes[options.get('scope')]
+
         for ldap_obj_name in self.migrate_order:
             ldap_obj = self.api.Object[ldap_obj_name]
 
@@ -721,7 +738,7 @@ can use their Kerberos accounts.''')
             try:
                 entries, truncated = ds_ldap.find_entries(
                     search_filter, ['*'], search_bases[ldap_obj_name],
-                    ds_ldap.SCOPE_ONELEVEL,
+                    scope,
                     time_limit=0, size_limit=-1,
                     search_refs=True    # migrated DS may contain search references
                 )
