@@ -237,7 +237,7 @@ class DNSSECValidationFailingWarning(PublicMessage):
     errno = 13010
     type = "warning"
     format = _(u"DNSSEC validation failed: %(error)s.\n"
-               u"Please verify your DNSSEC signatures or disable DNSSEC "
+               u"Please verify your DNSSEC configuration or disable DNSSEC "
                u"validation on all IPA servers.")
 
 

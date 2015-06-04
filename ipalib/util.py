@@ -582,8 +582,8 @@ class DNSSECSignatureMissingError(ForwarderValidationError):
 
 
 class DNSSECValidationError(ForwarderValidationError):
-    format = _("requested record '%(owner)s %(rtype)s' was refused by IPA "
-               "server %(ip)s because DNSSEC signature is not valid")
+    format = _("record '%(owner)s %(rtype)s' "
+               "failed DNSSEC validation on server %(ip)s")
 
 
 def _log_response(log, e):
@@ -702,7 +702,7 @@ def validate_dnssec_zone_forwarder_step1(ip_addr, fwzone, log=None, timeout=10):
 def validate_dnssec_zone_forwarder_step2(ipa_ip_addr, fwzone, log=None,
                                          timeout=10):
     """
-    This step must be executed after forwarders is added into LDAP, and only
+    This step must be executed after forwarders are added into LDAP, and only
     when we are sure the forwarders work.
     Query will be send to IPA DNS server, to verify if reply passed,
     or DNSSEC validation failed.
@@ -712,19 +712,17 @@ def validate_dnssec_zone_forwarder_step2(ipa_ip_addr, fwzone, log=None,
     """
     rtype = "SOA"
     try:
-        _resolve_record(fwzone, rtype, nameserver_ip=ipa_ip_addr, edns0=True,
-                        timeout=timeout)
+        ans_cd = _resolve_record(fwzone, rtype, nameserver_ip=ipa_ip_addr,
+                                 edns0=True, dnssec=True, flag_cd=True,
+                                 timeout=timeout)
     except DNSException as e:
         _log_response(log, e)
-    else:
-        return
 
     try:
-        _resolve_record(fwzone, rtype, nameserver_ip=ipa_ip_addr, dnssec=True,
-                        flag_cd=True, timeout=timeout)
+        ans_do = _resolve_record(fwzone, rtype, nameserver_ip=ipa_ip_addr,
+                                 edns0=True, dnssec=True, timeout=timeout)
     except NXDOMAIN as e:
         # sometimes CD flag is ignored and NXDomain is returned
-        # this may cause false positive detection
         _log_response(log, e)
         raise DNSSECValidationError(owner=fwzone, rtype=rtype, ip=ipa_ip_addr)
     except DNSException as e:
@@ -732,8 +730,12 @@ def validate_dnssec_zone_forwarder_step2(ipa_ip_addr, fwzone, log=None,
         raise UnresolvableRecordError(owner=fwzone, rtype=rtype, ip=ipa_ip_addr,
                                       error=e)
     else:
-        # record is not DNSSEC valid, because it can be received with CD flag
-        # only
+        if (ans_do.canonical_name == ans_cd.canonical_name
+            and ans_do.rrset == ans_cd.rrset):
+            return
+        # records received with and without CD flag are not equivalent:
+        # this might be caused by an DNSSEC validation failure in cases where
+        # existing zone id being 'shadowed' by another zone on forwarder
         raise DNSSECValidationError(owner=fwzone, rtype=rtype, ip=ipa_ip_addr)
 
 
