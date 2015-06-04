@@ -76,7 +76,7 @@ are needed for the IPA domain which should point to all IPA servers:
 \(bu _kerberos._udp.Default-First-Site-Name._sites.dc._msdcs
 .TP
 \fB\-\-add\-sids\fR
-Add SIDs to existing users and groups as a final step of the
+Add SIDs to existing users and groups as on of final steps of the
 ipa\-adtrust\-install run. If there a many existing users and groups and a
 couple of replicas in the environment this operation might lead to a high
 replication traffic and a performance degradation of all IPA servers in the
@@ -84,6 +84,19 @@ environment. To avoid this the SID generation can be run after
 ipa\-adtrust\-install is run and scheduled independently. To start this task
 you have to load an edited version of ipa-sidgen-task-run.ldif with the
 ldapmodify command info the directory server.
+.TP
+\fB\-\-add\-agents\fR
+Add IPA masters to the list that allows to serve information about
+users from trusted forests. Starting with FreeIPA 4.2, a regular IPA master
+can provide this information to SSSD clients. IPA masters aren't added
+to the list automatically as restart of the LDAP service on each of them
+is required. The host where ipa\-adtrust\-install is being run is added
+automatically.
+.IP
+Note that IPA masters where ipa\-adtrust\-install wasn't run, can serve
+information about users from trusted forests only if they are enabled
+via \ipa-adtrust\-install run on any other IPA master. At least SSSD
+version 1.13 on IPA master is required to be able to perform as a trust agent.
 .TP
 \fB\-U\fR, \fB\-\-unattended\fR
 An unattended installation that will never prompt for user input

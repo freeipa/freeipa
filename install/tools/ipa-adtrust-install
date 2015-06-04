@@ -61,6 +61,9 @@ def parse_options():
     parser.add_option("--add-sids", dest="add_sids", action="store_true",
                       default=False, help="Add SIDs for existing users and" \
                                           " groups as the final step")
+    parser.add_option("--add-agents", dest="add_agents", action="store_true",
+                      default=False, help="Add IPA masters to a list of hosts allowed to serve" \
+                                          "information about users from trusted forests")
     parser.add_option("--enable-compat",
                       dest="enable_compat", default=False, action="store_true",
                       help="Enable support for trusted domains for old clients")
@@ -379,6 +382,84 @@ def main():
               enable_compat = options.enable_compat)
     smb.find_local_id_range()
     smb.create_instance()
+
+    if options.add_agents:
+        # Find out IPA masters which are not part of the cn=adtrust agents
+        # and propose them to be added to the list
+        base_dn = api.env.basedn
+        masters_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), base_dn)
+        agents_dn = DN(('cn', 'adtrust agents'), ('cn', 'sysaccounts'), ('cn', 'etc'), base_dn)
+        new_agents = []
+        entries_m = []
+        entries_a = []
+        try:
+            # Search only masters which have support for domain levels
+            # because only these masters will have SSSD recent enough to support AD trust agents
+            (entries_m, truncated) = smb.admin_conn.find_entries(
+                filter="(&(objectclass=ipaSupportedDomainLevelConfig)(!(ipaMaxDomainLevel=0)))",
+                base_dn=masters_dn, attrs_list=['cn'], scope=ldap.SCOPE_ONELEVEL)
+        except errors.NotFound:
+            pass
+        except (errors.DatabaseError, errors.NetworkError), e:
+           print "Could not retrieve a list of existing IPA masters:"
+           print unicode(e)
+
+        try:
+           (entries_a, truncated) = smb.admin_conn.find_entries(filter="",
+               base_dn=agents_dn, attrs_list=['member'], scope=ldap.SCOPE_BASE)
+        except errors.NotFound:
+            pass
+        except (errors.DatabaseError, errors.NetworkError), e:
+            print "Could not retrieve a list of adtrust agents:"
+            print unicode(e)
+
+        if len(entries_m) > 0:
+            existing_masters = [x['cn'][0] for x in entries_m]
+            adtrust_agents = entries_a[0]['member']
+            potential_agents = []
+            for m in existing_masters:
+                mdn = DN(('fqdn', m), api.env.container_host, api.env.basedn)
+                found = False
+                for a in adtrust_agents:
+                    if mdn == a:
+                        found = True
+                        break
+                if not found:
+                    potential_agents += [[m, mdn]]
+
+            object_count = len(potential_agents)
+            if object_count > 0:
+                print ""
+                print "WARNING: %d IPA masters are not yet able to serve information about users from trusted forests." \
+                      % (object_count)
+                print "Installer can add them to the list of IPA masters allowed to access infromation about trusts."
+                print "If you choose to do so, you also need to restart LDAP service on those masters."
+                print "Refer to ipa-adtrust-install(1) man page for details."
+                print ""
+                if options.unattended:
+                    print "Unattended mode was selected, installer will NOT add other IPA masters to the list of allowed to"
+                    print "access information about trusted forests!"
+                else:
+                    print "Do you want to allow following IPA masters to serve information about users from trusted forests?"
+                    for (name, dn) in potential_agents:
+                        if name == api.env.host:
+                            # Don't add this host here
+                            # it shouldn't be here as it was added by the adtrustinstance setup code
+                            continue
+                        if ipautil.user_input("IPA master [%s]?" % (name), default=False, allow_empty=False):
+                            new_agents += [[name, dn]]
+
+            if len(new_agents) > 0:
+                # Add the CIFS and host principals to the 'adtrust agents' group
+                # as 389-ds only operates with GroupOfNames, we have to use
+                # the principal's proper dn as defined in self.cifs_agent
+                service.add_principals_to_group(smb.admin_conn, agents_dn, "member",
+                                                [x[1] for x in new_agents])
+                print """
+WARNING: you MUST restart (e.g. ipactl restart) the following IPA masters in order
+to activate them to serve information about users from trusted forests:"""
+                for x in new_agents:
+                    print x[0]
 
     print """
 =============================================================================
