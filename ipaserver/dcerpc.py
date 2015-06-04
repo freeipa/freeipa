@@ -590,7 +590,7 @@ class DomainValidator(object):
         (ccache_name, principal) = self.kinit_as_http(info['dns_domain'])
 
         if ccache_name:
-            with installutils.private_ccache(path=ccache_name):
+            with ipautil.private_ccache(path=ccache_name):
                 entries = None
 
                 try:
@@ -1093,7 +1093,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None):
         td.creds = credentials.Credentials()
         td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
         if ccache_name:
-            with installutils.private_ccache(path=ccache_name):
+            with ipautil.private_ccache(path=ccache_name):
                 td.creds.guess(td.parm)
                 td.creds.set_workstation(domain_validator.flatname)
                 domains = communicate(td)

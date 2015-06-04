@@ -28,8 +28,7 @@ from ipaserver.install import (
     otpdinstance, replication, service, sysupgrade)
 from ipaserver.install.installutils import (
     IPA_MODULES, BadHostError, get_fqdn, get_server_ip_address,
-    is_ipa_configured, load_pkcs12, private_ccache,
-    read_password, verify_fqdn)
+    is_ipa_configured, load_pkcs12, read_password, verify_fqdn)
 from ipaserver.plugins.ldap2 import ldap2
 try:
     from ipaserver.install import adtrustinstance

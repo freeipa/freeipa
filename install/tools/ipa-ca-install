@@ -25,8 +25,7 @@ from ipapython import ipautil
 
 from ipaserver.install import installutils
 from ipaserver.install import certs
-from ipaserver.install.installutils import (private_ccache,
-    create_replica_config)
+from ipaserver.install.installutils import create_replica_config
 from ipaserver.install import dsinstance, ca
 from ipapython import version
 from ipalib import api
@@ -209,7 +208,7 @@ Run /usr/sbin/ipa-server-install --uninstall to clean up.
 
 if __name__ == '__main__':
     try:
-        with private_ccache():
+        with ipautil.private_ccache():
             installutils.run_script(main, log_file_name=log_file_name,
                                     operation_name='ipa-ca-install',
                                     fail_message=fail_message)

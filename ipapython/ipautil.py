@@ -38,6 +38,7 @@ import krbV
 import pwd
 from dns import resolver, rdatatype
 from dns.exception import DNSException
+from contextlib import contextmanager
 
 from ipapython.ipa_log_manager import *
 from ipapython import ipavalidate
@@ -1300,3 +1301,26 @@ def restore_hostname(statestore):
             run([paths.BIN_HOSTNAME, old_hostname])
         except CalledProcessError, e:
             print >>sys.stderr, "Failed to set this machine hostname back to %s: %s" % (old_hostname, str(e))
+
+
+@contextmanager
+def private_ccache(path=None):
+
+    if path is None:
+        (desc, path) = tempfile.mkstemp(prefix='krbcc')
+        os.close(desc)
+
+    original_value = os.environ.get('KRB5CCNAME', None)
+
+    os.environ['KRB5CCNAME'] = path
+
+    try:
+        yield
+    finally:
+        if original_value is not None:
+            os.environ['KRB5CCNAME'] = original_value
+        else:
+            os.environ.pop('KRB5CCNAME')
+
+        if os.path.exists(path):
+            os.remove(path)

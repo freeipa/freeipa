@@ -915,28 +915,6 @@ def load_pkcs12(cert_files, key_password, key_nickname, ca_cert_files,
 
     return out_file, out_password, ca_cert
 
-@contextmanager
-def private_ccache(path=None):
-
-    if path is None:
-        (desc, path) = tempfile.mkstemp(prefix='krbcc')
-        os.close(desc)
-
-    original_value = os.environ.get('KRB5CCNAME', None)
-
-    os.environ['KRB5CCNAME'] = path
-
-    try:
-        yield
-    finally:
-        if original_value is not None:
-            os.environ['KRB5CCNAME'] = original_value
-        else:
-            os.environ.pop('KRB5CCNAME')
-
-        if os.path.exists(path):
-            os.remove(path)
-
 
 @contextmanager
 def stopped_service(service, instance_name=""):
