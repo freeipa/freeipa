@@ -104,7 +104,7 @@ static int ipa_sidgen_add_post_op(Slapi_PBlock *pb)
     if (ctx->dom_sid == NULL) {
         ret = get_dom_sid(ctx->plugin_id, ctx->base_dn, &ctx->dom_sid);
         if (ret != 0) {
-            LOG_FATAL("Domain SID not available, nothing to do.\n");
+            LOG("Domain SID not available, nothing to do.\n");
             ret = 0;
             goto done;
         }
