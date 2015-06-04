@@ -416,7 +416,9 @@ class ReplicationManager(object):
         assert isinstance(replica_binddn, DN)
         dn = self.replica_dn()
         assert isinstance(dn, DN)
-        replica_groupdn = DN(('cn', 'replication managers'), ('cn', 'etc'), self.suffix)
+        replica_groupdn = DN(
+            ('cn', 'replication managers'), ('cn', 'sysaccounts'),
+            ('cn', 'etc'), self.suffix)
 
         try:
             entry = conn.get_entry(dn)
@@ -759,7 +761,8 @@ class ReplicationManager(object):
         """
 
         rep_dn = self.replica_dn()
-        group_dn = DN(('cn', 'replication managers'), ('cn', 'etc'), self.suffix)
+        group_dn = DN(('cn', 'replication managers'), ('cn', 'sysaccounts'),
+                      ('cn', 'etc'), self.suffix)
         assert isinstance(rep_dn, DN)
         (a_dn, b_dn) = self.get_replica_principal_dns(a, b, retries=100)
         assert isinstance(a_dn, DN)

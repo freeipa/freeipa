@@ -9,5 +9,5 @@ default: nsDS5ReplicaId: 3
 default: nsDS5ReplicaRoot: $SUFFIX
 
 # Group containing replication bind dns
-dn: cn=replication managers,cn=etc,$SUFFIX
+dn: cn=replication managers,cn=sysaccounts,cn=etc,$SUFFIX
 default: objectclass: groupofnames
