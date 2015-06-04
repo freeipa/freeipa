@@ -780,12 +780,16 @@ def handle_error(error, log_file_name=None):
     if isinstance(error, ldap.INSUFFICIENT_ACCESS):
         return "Insufficient access", 1
     if isinstance(error, ldap.LOCAL_ERROR):
-        return error.args[0]['info'], 1
+        return error.args[0].get('info', ''), 1
     if isinstance(error, ldap.SERVER_DOWN):
         return error.args[0]['desc'], 1
     if isinstance(error, ldap.LDAPError):
-        return 'LDAP error: %s\n%s' % (
-            type(error).__name__, error.args[0]['info']), 1
+        message = 'LDAP error: %s\n%s\n%s' % (
+            type(error).__name__,
+            error.args[0]['desc'].strip(),
+            error.args[0].get('info', '').strip()
+        )
+        return message, 1
 
     if isinstance(error, config.IPAConfigError):
         message = "An IPA server to update cannot be found. Has one been configured yet?"
