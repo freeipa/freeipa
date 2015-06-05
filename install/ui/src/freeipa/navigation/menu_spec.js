@@ -206,6 +206,12 @@ var nav = {};
                         }
                     ]
                 },
+                {
+                    name: 'apibrowser',
+                    label: 'API browser',
+                    facet: 'apibrowser',
+                    args: { 'type': 'command' }
+                },
                 { entity: 'config' }
             ]
         }

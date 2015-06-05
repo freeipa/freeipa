@@ -24,6 +24,7 @@ define([
     './plugins/sync_otp',
     './plugins/login',
     './plugins/login_process',
+    './plugins/api_browser',
     // entities
     './aci',
     './automember',

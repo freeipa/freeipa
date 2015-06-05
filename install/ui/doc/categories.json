@@ -39,7 +39,8 @@
                 "classes": [
                     "facet.facet",
                     "facets.Facet",
-                    "*_facet"
+                    "*_facet",
+                    "*Facet"
                 ]
             },
             {
@@ -254,6 +255,7 @@
                     "stageuser",
                     "topology",
                     "user",
+                    "plugins.api_browser",
                     "plugins.load",
                     "plugins.login",
                     "plugins.login_process",
