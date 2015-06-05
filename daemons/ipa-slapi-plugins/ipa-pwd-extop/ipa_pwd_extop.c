@@ -1612,8 +1612,8 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
                                            READKEYS_OP_CHECK, NULL,
                                            SLAPI_ACL_READ);
         if (!acl_ok) {
-            LOG_FATAL("Not allowed to retrieve keytab on [%s]!\n",
-                      service_name);
+            LOG_FATAL("Not allowed to retrieve keytab on [%s] as user [%s]!\n",
+                      service_name, bind_dn);
             err_msg = "Insufficient access rights\n";
             rc = LDAP_INSUFFICIENT_ACCESS;
             goto free_and_return;
