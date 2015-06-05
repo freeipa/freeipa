@@ -17,16 +17,33 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import base64
+import json
+import os
+import sys
+import tempfile
+
+import nss.nss as nss
+import krbV
+
+from ipalib.frontend import Command, Object, Local
 from ipalib import api, errors
-from ipalib import Str, Flag
+from ipalib import Bytes, Str, Flag
 from ipalib import output
+from ipalib.crud import PKQuery, Retrieve, Update
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import LDAPObject, LDAPCreate, LDAPDelete,\
     LDAPSearch, LDAPUpdate, LDAPRetrieve
 from ipalib.request import context
 from ipalib.plugins.user import split_principal
 from ipalib import _, ngettext
+from ipaplatform.paths import paths
 from ipapython.dn import DN
+from ipapython.nsslib import current_dbdir
+
+if api.env.in_server:
+    import pki.account
+    import pki.key
 
 __doc__ = _("""
 Vaults
@@ -94,6 +111,33 @@ EXAMPLES:
 """) + _("""
  Delete a user vault:
    ipa vault-del <name> --user <username>
+""") + _("""
+ Display vault configuration:
+   ipa vault-config
+""") + _("""
+ Archive data into private vault:
+   ipa vault-archive <name> --in <input file>
+""") + _("""
+ Archive data into service vault:
+   ipa vault-archive <name> --service <service name> --in <input file>
+""") + _("""
+ Archive data into shared vault:
+   ipa vault-archive <name> --shared --in <input file>
+""") + _("""
+ Archive data into user vault:
+   ipa vault-archive <name> --user <username> --in <input file>
+""") + _("""
+ Retrieve data from private vault:
+   ipa vault-retrieve <name> --out <output file>
+""") + _("""
+ Retrieve data from service vault:
+   ipa vault-retrieve <name> --service <service name> --out <output file>
+""") + _("""
+ Retrieve data from shared vault:
+   ipa vault-retrieve <name> --shared --out <output file>
+""") + _("""
+ Retrieve data from user vault:
+   ipa vault-retrieve <name> --user <user name> --out <output file>
 """)
 
 register = Registry()
@@ -243,6 +287,26 @@ class vault(LDAPObject):
         for entry in entries:
             self.backend.add_entry(entry)
 
+    def get_key_id(self, dn):
+        """
+        Generates a client key ID to archive/retrieve data in KRA.
+        """
+
+        # TODO: create container_dn after object initialization then reuse it
+        container_dn = DN(self.container_dn, self.api.env.basedn)
+
+        # make sure the DN is a vault DN
+        if not dn.endswith(container_dn, 1):
+            raise ValueError('Invalid vault DN: %s' % dn)
+
+        # construct the vault ID from the bottom up
+        id = u''
+        for rdn in dn[:-len(container_dn)]:
+            name = rdn['cn']
+            id = u'/' + name + id
+
+        return 'ipa:' + id
+
 
 @register()
 class vault_add(LDAPCreate):
@@ -255,6 +319,10 @@ class vault_add(LDAPCreate):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
                      **options):
         assert isinstance(dn, DN)
+
+        if not self.api.env.enable_kra:
+            raise errors.InvocationError(
+                format=_('KRA service is not enabled'))
 
         try:
             parent_dn = DN(*dn[1:])
@@ -273,6 +341,38 @@ class vault_del(LDAPDelete):
 
     msg_summary = _('Deleted vault "%(value)s"')
 
+    def pre_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
+
+        if not self.api.env.enable_kra:
+            raise errors.InvocationError(
+                format=_('KRA service is not enabled'))
+
+        return dn
+
+    def post_callback(self, ldap, dn, *args, **options):
+        assert isinstance(dn, DN)
+
+        kra_client = self.api.Backend.kra.get_client()
+
+        kra_account = pki.account.AccountClient(kra_client.connection)
+        kra_account.login()
+
+        client_key_id = self.obj.get_key_id(dn)
+
+        # deactivate vault record in KRA
+        response = kra_client.keys.list_keys(
+            client_key_id, pki.key.KeyClient.KEY_STATUS_ACTIVE)
+
+        for key_info in response.key_infos:
+            kra_client.keys.modify_key_status(
+                key_info.get_key_id(),
+                pki.key.KeyClient.KEY_STATUS_INACTIVE)
+
+        kra_account.logout()
+
+        return True
+
 
 @register()
 class vault_find(LDAPSearch):
@@ -289,6 +389,10 @@ class vault_find(LDAPSearch):
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args,
                      **options):
         assert isinstance(base_dn, DN)
+
+        if not self.api.env.enable_kra:
+            raise errors.InvocationError(
+                format=_('KRA service is not enabled'))
 
         base_dn = self.obj.get_dn(*args, **options)
 
@@ -313,9 +417,399 @@ class vault_mod(LDAPUpdate):
 
     msg_summary = _('Modified vault "%(value)s"')
 
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list,
+                     *keys, **options):
+
+        assert isinstance(dn, DN)
+
+        if not self.api.env.enable_kra:
+            raise errors.InvocationError(
+                format=_('KRA service is not enabled'))
+
+        return dn
+
 
 @register()
 class vault_show(LDAPRetrieve):
     __doc__ = _('Display information about a vault.')
 
     takes_options = LDAPRetrieve.takes_options + vault_options
+
+    def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
+
+        if not self.api.env.enable_kra:
+            raise errors.InvocationError(
+                format=_('KRA service is not enabled'))
+
+        return dn
+
+
+@register()
+class vaultconfig(Object):
+    __doc__ = _('Vault configuration')
+
+    takes_params = (
+        Bytes(
+            'transport_cert',
+            label=_('Transport Certificate'),
+        ),
+    )
+
+
+@register()
+class vaultconfig_show(Retrieve):
+    __doc__ = _('Show vault configuration.')
+
+    takes_options = (
+        Str(
+            'transport_out?',
+            doc=_('Output file to store the transport certificate'),
+        ),
+    )
+
+    def forward(self, *args, **options):
+
+        file = options.get('transport_out')
+
+        # don't send these parameters to server
+        if 'transport_out' in options:
+            del options['transport_out']
+
+        response = super(vaultconfig_show, self).forward(*args, **options)
+
+        if file:
+            with open(file, 'w') as f:
+                f.write(response['result']['transport_cert'])
+
+        return response
+
+    def execute(self, *args, **options):
+
+        if not self.api.env.enable_kra:
+            raise errors.InvocationError(
+                format=_('KRA service is not enabled'))
+
+        kra_client = self.api.Backend.kra.get_client()
+        transport_cert = kra_client.system_certs.get_transport_cert()
+        return {
+            'result': {
+                'transport_cert': transport_cert.binary
+            },
+            'value': None,
+        }
+
+
+@register()
+class vault_archive(PKQuery, Local):
+    __doc__ = _('Archive data into a vault.')
+
+    takes_options = vault_options + (
+        Bytes(
+            'data?',
+            doc=_('Binary data to archive'),
+        ),
+        Str(  # TODO: use File parameter
+            'in?',
+            doc=_('File containing data to archive'),
+        ),
+    )
+
+    has_output = output.standard_entry
+
+    msg_summary = _('Archived data into vault "%(value)s"')
+
+    def forward(self, *args, **options):
+
+        data = options.get('data')
+        input_file = options.get('in')
+
+        # don't send these parameters to server
+        if 'data' in options:
+            del options['data']
+        if 'in' in options:
+            del options['in']
+
+        # get data
+        if data and input_file:
+            raise errors.MutuallyExclusiveError(
+                reason=_('Input data specified multiple times'))
+
+        if input_file:
+            with open(input_file, 'rb') as f:
+                data = f.read()
+
+        elif not data:
+            data = ''
+
+        if self.api.env.in_server:
+            backend = self.api.Backend.ldap2
+        else:
+            backend = self.api.Backend.rpcclient
+        if not backend.isconnected():
+            backend.connect(ccache=krbV.default_context().default_ccache())
+
+        # initialize NSS database
+        current_dbdir = paths.IPA_NSSDB_DIR
+        nss.nss_init(current_dbdir)
+
+        # retrieve transport certificate
+        config = self.api.Command.vaultconfig_show()
+        transport_cert_der = config['result']['transport_cert']
+        nss_transport_cert = nss.Certificate(transport_cert_der)
+
+        # generate session key
+        mechanism = nss.CKM_DES3_CBC_PAD
+        slot = nss.get_best_slot(mechanism)
+        key_length = slot.get_best_key_length(mechanism)
+        session_key = slot.key_gen(mechanism, None, key_length)
+
+        # wrap session key with transport certificate
+        public_key = nss_transport_cert.subject_public_key_info.public_key
+        wrapped_session_key = nss.pub_wrap_sym_key(mechanism,
+                                                   public_key,
+                                                   session_key)
+
+        options['session_key'] = wrapped_session_key.data
+
+        nonce_length = nss.get_iv_length(mechanism)
+        nonce = nss.generate_random(nonce_length)
+        options['nonce'] = nonce
+
+        vault_data = {}
+        vault_data[u'data'] = base64.b64encode(data).decode('utf-8')
+
+        json_vault_data = json.dumps(vault_data)
+
+        # wrap vault_data with session key
+        iv_si = nss.SecItem(nonce)
+        iv_param = nss.param_from_iv(mechanism, iv_si)
+
+        encoding_ctx = nss.create_context_by_sym_key(mechanism,
+                                                     nss.CKA_ENCRYPT,
+                                                     session_key,
+                                                     iv_param)
+
+        wrapped_vault_data = encoding_ctx.cipher_op(json_vault_data)\
+            + encoding_ctx.digest_final()
+
+        options['vault_data'] = wrapped_vault_data
+
+        response = self.api.Command.vault_archive_encrypted(*args, **options)
+
+        response['result'] = {}
+        del response['summary']
+
+        return response
+
+
+@register()
+class vault_archive_encrypted(Update):
+    NO_CLI = True
+
+    takes_options = vault_options + (
+        Bytes(
+            'session_key',
+            doc=_('Session key wrapped with transport certificate'),
+        ),
+        Bytes(
+            'vault_data',
+            doc=_('Vault data encrypted with session key'),
+        ),
+        Bytes(
+            'nonce',
+            doc=_('Nonce'),
+        ),
+    )
+
+    def execute(self, *args, **options):
+
+        if not self.api.env.enable_kra:
+            raise errors.InvocationError(
+                format=_('KRA service is not enabled'))
+
+        wrapped_vault_data = options.pop('vault_data')
+        nonce = options.pop('nonce')
+        wrapped_session_key = options.pop('session_key')
+
+        # retrieve vault info
+        result = self.api.Command.vault_show(*args, **options)
+        vault = result['result']
+
+        # connect to KRA
+        kra_client = self.api.Backend.kra.get_client()
+
+        kra_account = pki.account.AccountClient(kra_client.connection)
+        kra_account.login()
+
+        client_key_id = self.obj.get_key_id(vault['dn'])
+
+        # deactivate existing vault record in KRA
+        response = kra_client.keys.list_keys(
+            client_key_id,
+            pki.key.KeyClient.KEY_STATUS_ACTIVE)
+
+        for key_info in response.key_infos:
+            kra_client.keys.modify_key_status(
+                key_info.get_key_id(),
+                pki.key.KeyClient.KEY_STATUS_INACTIVE)
+
+        # forward wrapped data to KRA
+        kra_client.keys.archive_encrypted_data(
+            client_key_id,
+            pki.key.KeyClient.PASS_PHRASE_TYPE,
+            wrapped_vault_data,
+            wrapped_session_key,
+            None,
+            nonce,
+        )
+
+        kra_account.logout()
+
+        return result
+
+
+@register()
+class vault_retrieve(PKQuery, Local):
+    __doc__ = _('Retrieve a data from a vault.')
+
+    takes_options = vault_options + (
+        Str(
+            'out?',
+            doc=_('File to store retrieved data'),
+        ),
+    )
+
+    has_output = output.standard_entry
+    has_output_params = (
+        Bytes(
+            'data',
+            label=_('Data'),
+        ),
+    )
+
+    msg_summary = _('Retrieved data from vault "%(value)s"')
+
+    def forward(self, *args, **options):
+
+        output_file = options.get('out')
+
+        # don't send these parameters to server
+        if 'out' in options:
+            del options['out']
+
+        if self.api.env.in_server:
+            backend = self.api.Backend.ldap2
+        else:
+            backend = self.api.Backend.rpcclient
+        if not backend.isconnected():
+            backend.connect(ccache=krbV.default_context().default_ccache())
+
+        # initialize NSS database
+        current_dbdir = paths.IPA_NSSDB_DIR
+        nss.nss_init(current_dbdir)
+
+        # retrieve transport certificate
+        config = self.api.Command.vaultconfig_show()
+        transport_cert_der = config['result']['transport_cert']
+        nss_transport_cert = nss.Certificate(transport_cert_der)
+
+        # generate session key
+        mechanism = nss.CKM_DES3_CBC_PAD
+        slot = nss.get_best_slot(mechanism)
+        key_length = slot.get_best_key_length(mechanism)
+        session_key = slot.key_gen(mechanism, None, key_length)
+
+        # wrap session key with transport certificate
+        public_key = nss_transport_cert.subject_public_key_info.public_key
+        wrapped_session_key = nss.pub_wrap_sym_key(mechanism,
+                                                   public_key,
+                                                   session_key)
+
+        # send retrieval request to server
+        options['session_key'] = wrapped_session_key.data
+
+        response = self.api.Command.vault_retrieve_encrypted(*args, **options)
+
+        result = response['result']
+        nonce = result['nonce']
+
+        # unwrap data with session key
+        wrapped_vault_data = result['vault_data']
+
+        iv_si = nss.SecItem(nonce)
+        iv_param = nss.param_from_iv(mechanism, iv_si)
+
+        decoding_ctx = nss.create_context_by_sym_key(mechanism,
+                                                     nss.CKA_DECRYPT,
+                                                     session_key,
+                                                     iv_param)
+
+        json_vault_data = decoding_ctx.cipher_op(wrapped_vault_data)\
+            + decoding_ctx.digest_final()
+
+        vault_data = json.loads(json_vault_data)
+        data = base64.b64decode(vault_data[u'data'].encode('utf-8'))
+
+        if output_file:
+            with open(output_file, 'w') as f:
+                f.write(data)
+
+        response['result'] = {'data': data}
+        del response['summary']
+
+        return response
+
+
+@register()
+class vault_retrieve_encrypted(Retrieve):
+    NO_CLI = True
+
+    takes_options = vault_options + (
+        Bytes(
+            'session_key',
+            doc=_('Session key wrapped with transport certificate'),
+        ),
+    )
+
+    def execute(self, *args, **options):
+
+        if not self.api.env.enable_kra:
+            raise errors.InvocationError(
+                format=_('KRA service is not enabled'))
+
+        wrapped_session_key = options.pop('session_key')
+
+        # retrieve vault info
+        result = self.api.Command.vault_show(*args, **options)
+        vault = result['result']
+
+        # connect to KRA
+        kra_client = self.api.Backend.kra.get_client()
+
+        kra_account = pki.account.AccountClient(kra_client.connection)
+        kra_account.login()
+
+        client_key_id = self.obj.get_key_id(vault['dn'])
+
+        # find vault record in KRA
+        response = kra_client.keys.list_keys(
+            client_key_id,
+            pki.key.KeyClient.KEY_STATUS_ACTIVE)
+
+        if not len(response.key_infos):
+            raise errors.NotFound(reason=_('No archived data.'))
+
+        key_info = response.key_infos[0]
+
+        # retrieve encrypted data from KRA
+        key = kra_client.keys.retrieve_key(
+            key_info.get_key_id(),
+            wrapped_session_key)
+
+        vault['vault_data'] = key.encrypted_data
+        vault['nonce'] = key.nonce_data
+
+        kra_account.logout()
+
+        return result

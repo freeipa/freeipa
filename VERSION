@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=125
-# Last change: derny - migration now accepts scope as argument 
+IPA_API_VERSION_MINOR=126
+# Last change: edewata - added vault-archive and vault-retrieve

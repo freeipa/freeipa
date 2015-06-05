@@ -22,11 +22,14 @@ Test the `ipalib/plugins/vault.py` module.
 """
 
 from ipalib import api, errors
-from xmlrpc_test import Declarative, fuzzy_string
+from xmlrpc_test import Declarative
 
 vault_name = u'test_vault'
 service_name = u'HTTP/server.example.com'
 user_name = u'testuser'
+
+# binary data from \x00 to \xff
+secret = ''.join(map(chr, xrange(0, 256)))
 
 
 class test_vault_plugin(Declarative):
@@ -432,6 +435,73 @@ class test_vault_plugin(Declarative):
                 {
                     'user': user_name,
                 },
+            ),
+            'expected': {
+                'value': [vault_name],
+                'summary': u'Deleted vault "%s"' % vault_name,
+                'result': {
+                    'failed': (),
+                },
+            },
+        },
+
+        {
+            'desc': 'Create vault for archival',
+            'command': (
+                'vault_add',
+                [vault_name],
+                {},
+            ),
+            'expected': {
+                'value': vault_name,
+                'summary': 'Added vault "%s"' % vault_name,
+                'result': {
+                    'dn': u'cn=%s,cn=admin,cn=users,cn=vaults,%s'
+                          % (vault_name, api.env.basedn),
+                    'objectclass': [u'top', u'ipaVault'],
+                    'cn': [vault_name],
+                },
+            },
+        },
+
+        {
+            'desc': 'Archive secret',
+            'command': (
+                'vault_archive',
+                [vault_name],
+                {
+                    'data': secret,
+                },
+            ),
+            'expected': {
+                'value': vault_name,
+                'summary': 'Archived data into vault "%s"' % vault_name,
+                'result': {},
+            },
+        },
+
+        {
+            'desc': 'Retrieve secret',
+            'command': (
+                'vault_retrieve',
+                [vault_name],
+                {},
+            ),
+            'expected': {
+                'value': vault_name,
+                'summary': 'Retrieved data from vault "%s"' % vault_name,
+                'result': {
+                    'data': secret,
+                },
+            },
+        },
+
+        {
+            'desc': 'Delete vault for archival',
+            'command': (
+                'vault_del',
+                [vault_name],
+                {},
             ),
             'expected': {
                 'value': [vault_name],

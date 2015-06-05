@@ -62,6 +62,7 @@ class IPATypeChecker(TypeChecker):
         'unittest.case': ['assertEqual', 'assertRaises'],
         'nose.tools': ['assert_equal', 'assert_raises'],
         'datetime.tzinfo': ['houroffset', 'minoffset', 'utcoffset', 'dst'],
+        'nss.nss.subject_public_key_info': ['public_key'],
 
         # IPA classes
         'ipalib.base.NameSpace': ['add', 'mod', 'del', 'show', 'find'],
