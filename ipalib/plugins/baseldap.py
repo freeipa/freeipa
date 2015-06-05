@@ -1299,17 +1299,6 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
     def interactive_prompt_callback(self, kw):
         return
 
-    # list of attributes we want exported to JSON
-    json_friendly_attributes = (
-        'takes_args',
-    )
-
-    def __json__(self):
-        json_dict = dict(
-            (a, getattr(self, a)) for a in self.json_friendly_attributes
-        )
-        json_dict['takes_options'] = list(self.get_json_options())
-        return json_dict
 
 class LDAPQuery(BaseLDAPCommand, crud.PKQuery):
     """
@@ -1321,17 +1310,6 @@ class LDAPQuery(BaseLDAPCommand, crud.PKQuery):
         for arg in super(LDAPQuery, self).get_args():
             yield arg
 
-    # list of attributes we want exported to JSON
-    json_friendly_attributes = (
-        'takes_args',
-    )
-
-    def __json__(self):
-        json_dict = dict(
-            (a, getattr(self, a)) for a in self.json_friendly_attributes
-        )
-        json_dict['takes_options'] = list(self.get_json_options())
-        return json_dict
 
 class LDAPMultiQuery(LDAPQuery):
     """
@@ -2131,17 +2109,6 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
     def interactive_prompt_callback(self, kw):
         return
 
-    # list of attributes we want exported to JSON
-    json_friendly_attributes = (
-        'takes_args',
-    )
-
-    def __json__(self):
-        json_dict = dict(
-            (a, getattr(self, a)) for a in self.json_friendly_attributes
-        )
-        json_dict['takes_options'] = list(self.get_json_options())
-        return json_dict
 
 class LDAPModReverseMember(LDAPQuery):
     """

@@ -240,6 +240,9 @@ class DefaultFrom(ReadOnly):
         except StandardError:
             pass
 
+    def __json__(self):
+        return self.keys
+
 
 def parse_param_spec(spec):
     """
@@ -917,30 +920,14 @@ class Param(ReadOnly):
     def sort_key(self, value):
         return value
 
-    json_exclude_attrs = (
-        'alwaysask', 'autofill', 'cli_name', 'cli_short_name', 'csv',
-        'sortorder', 'falsehoods', 'truths', 'version',
-    )
-
     def __json__(self):
         json_dict = {}
-        for (a, k, d) in self.kwargs:
-            if a in self.json_exclude_attrs:
-                continue
-            if k in (callable, DefaultFrom):
-                continue
-            elif isinstance(getattr(self, a), frozenset):
-                json_dict[a] = [k for k in getattr(self, a, [])]
-            else:
-                val = getattr(self, a, '')
-                if val is None or val is False:
-                    # ignore False and not set because lack of their presence is
-                    # the information itself
-                    continue;
-                json_dict[a] = json_serialize(val)
+        for key in self.__kw:
+            json_dict[key] = json_serialize(self.__kw[key])
         json_dict['class'] = self.__class__.__name__
         json_dict['name'] = self.name
         json_dict['type'] = self.type.__name__
+        json_dict['flags'] = json_serialize([f for f in self.flags])
         return json_dict
 
 
