@@ -1665,7 +1665,7 @@ def import_included_profiles():
         DOMAIN=ipautil.format_netloc(api.env.domain),
         IPA_CA_RECORD=IPA_CA_RECORD,
         CRL_ISSUER='CN=Certificate Authority,o=ipaca',
-        SUBJECT_DN_O=str(DN(('O', api.env.realm))),
+        SUBJECT_DN_O=dsinstance.DsInstance().find_subject_base(),
     )
 
     server_id = installutils.realm_to_serverid(api.env.realm)
