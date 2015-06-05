@@ -292,6 +292,7 @@ class BasePathNamespace(object):
     KRA_BACKUP_KEYS_P12 = "/var/lib/pki/pki-tomcat/alias/kra_backup_keys.p12"
     KRACERT_P12 = "/root/kracert.p12"
     SAMBA_DIR = "/var/lib/samba/"
+    SSSD_DB = "/var/lib/sss/db"
     SSSD_MC_GROUP = "/var/lib/sss/mc/group"
     SSSD_MC_PASSWD = "/var/lib/sss/mc/passwd"
     SSSD_PUBCONF_KNOWN_HOSTS = "/var/lib/sss/pubconf/known_hosts"

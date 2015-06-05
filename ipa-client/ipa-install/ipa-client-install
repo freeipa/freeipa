@@ -628,6 +628,19 @@ def uninstall(options, env):
             "Failed to remove krb5/LDAP configuration: %s", str(e))
         return CLIENT_INSTALL_ERROR
 
+    # Clean up the SSSD cache before SSSD service is stopped or restarted
+    remove_file(paths.SSSD_MC_GROUP)
+    remove_file(paths.SSSD_MC_PASSWD)
+
+    ipa_domain = domain.get_option('ipa_domain')
+    sssd_domain_ldb = "cache_" + ipa_domain + ".ldb"
+    sssd_ldb_file = os.path.join(paths.SSSD_DB, sssd_domain_ldb)
+    remove_file(sssd_ldb_file)
+
+    sssd_domain_ccache = "ccache_" + ipa_domain.upper()
+    sssd_ccache_file = os.path.join(paths.SSSD_DB, sssd_domain_ccache)
+    remove_file(sssd_domain_ccache)
+
     # Next if-elif-elif construction deals with sssd.conf file.
     # Old pre-IPA domains are preserved due merging the old sssd.conf
     # during the installation of ipa-client but any new domains are
