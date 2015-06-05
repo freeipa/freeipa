@@ -66,6 +66,10 @@ The code in this module relies heavily on samba4-python package
 and Samba4 python bindings.
 """)
 
+# Both constants can be used as masks against trust direction
+# because bi-directional has two lower bits set.
+TRUST_ONEWAY        = 1
+TRUST_BIDIRECTIONAL = 3
 
 def is_sid_valid(sid):
     try:
@@ -949,7 +953,7 @@ class TrustDomainInstance(object):
             # We can ignore the error here -- setting up name suffix routes may fail
             pass
 
-    def establish_trust(self, another_domain, trustdom_secret):
+    def establish_trust(self, another_domain, trustdom_secret, trust_type='bidirectional'):
         """
         Establishes trust between our and another domain
         Input: another_domain -- instance of TrustDomainInstance, initialized with #retrieve call
@@ -967,7 +971,9 @@ class TrustDomainInstance(object):
         info.domain_name.string = another_domain.info['dns_domain']
         info.netbios_name.string = another_domain.info['name']
         info.sid = security.dom_sid(another_domain.info['sid'])
-        info.trust_direction = lsa.LSA_TRUST_DIRECTION_INBOUND | lsa.LSA_TRUST_DIRECTION_OUTBOUND
+        info.trust_direction = lsa.LSA_TRUST_DIRECTION_INBOUND
+        if trust_type == TRUST_BIDIRECTIONAL:
+            info.trust_direction |= lsa.LSA_TRUST_DIRECTION_OUTBOUND
         info.trust_type = lsa.LSA_TRUST_TYPE_UPLEVEL
         info.trust_attributes = 0
 
@@ -1005,7 +1011,8 @@ class TrustDomainInstance(object):
             pass
 
         try:
-            info.trust_attributes = lsa.LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE
+            info = self._pipe.QueryTrustedDomainInfo(trustdom_handle, lsa.LSA_TRUSTED_DOMAIN_INFO_INFO_EX)
+            info.trust_attributes |= lsa.LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE
             self._pipe.SetInformationTrustedDomain(trustdom_handle, lsa.LSA_TRUSTED_DOMAIN_INFO_INFO_EX, info)
         except RuntimeError, e:
             root_logger.error('unable to set trust to transitive: %s' % (str(e)))
@@ -1014,10 +1021,10 @@ class TrustDomainInstance(object):
             self.update_ftinfo(another_domain)
 
     def verify_trust(self, another_domain):
-        def retrieve_netlogon_info_2(domain, function_code, data):
+        def retrieve_netlogon_info_2(logon_server, domain, function_code, data):
             try:
                 netr_pipe = netlogon.netlogon(domain.binding, domain.parm, domain.creds)
-                result = netr_pipe.netr_LogonControl2Ex(logon_server=None,
+                result = netr_pipe.netr_LogonControl2Ex(logon_server=logon_server,
                                            function_code=function_code,
                                            level=2,
                                            data=data
@@ -1026,7 +1033,7 @@ class TrustDomainInstance(object):
             except RuntimeError, (num, message):
                 raise assess_dcerpc_exception(num=num, message=message)
 
-        result = retrieve_netlogon_info_2(self,
+        result = retrieve_netlogon_info_2(None, self,
                                           netlogon.NETLOGON_CONTROL_TC_VERIFY,
                                           another_domain.info['dns_domain'])
         if (result and (result.flags and netlogon.NETLOGON_VERIFY_STATUS_RETURNED)):
@@ -1100,6 +1107,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
 
     td.info['dc'] = unicode(result.pdc_dns_name)
     if creds is None:
+        # Attempt to authenticate as HTTP/ipa.master and use cross-forest trust
         domval = DomainValidator(api)
         (ccache_name, principal) = domval.kinit_as_http(trustdomain)
         td.creds = credentials.Credentials()
@@ -1109,7 +1117,15 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
                 td.creds.guess(td.parm)
                 td.creds.set_workstation(domain_validator.flatname)
                 domains = communicate(td)
+    elif type(creds) is bool:
+        # Rely on existing Kerberos credentials in the environment
+        td.creds = credentials.Credentials()
+        td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
+        td.creds.guess(td.parm)
+        td.creds.set_workstation(domain_validator.flatname)
+        domains = communicate(td)
     else:
+        # Assume we've got credentials as a string user%password
         td.creds = credentials.Credentials()
         td.creds.set_kerberos_state(credentials.DONT_USE_KERBEROS)
         td.creds.guess(td.parm)
@@ -1222,7 +1238,7 @@ class TrustDomainJoins(object):
             ftinfo['rec_type'] = lsa.LSA_FOREST_TRUST_TOP_LEVEL_NAME
             self.local_domain.ftinfo_records.append(ftinfo)
 
-    def join_ad_full_credentials(self, realm, realm_server, realm_admin, realm_passwd):
+    def join_ad_full_credentials(self, realm, realm_server, realm_admin, realm_passwd, trust_type):
         if not self.configured:
             return None
 
@@ -1240,13 +1256,17 @@ class TrustDomainJoins(object):
         if not self.remote_domain.read_only:
             trustdom_pass = samba.generate_random_password(128, 128)
             self.get_realmdomains()
-            self.remote_domain.establish_trust(self.local_domain, trustdom_pass)
-            self.local_domain.establish_trust(self.remote_domain, trustdom_pass)
-            result = self.remote_domain.verify_trust(self.local_domain)
+            self.remote_domain.establish_trust(self.local_domain, trustdom_pass, trust_type)
+            self.local_domain.establish_trust(self.remote_domain, trustdom_pass, trust_type)
+            # if trust is inbound, we don't need to verify it because AD DC will respond
+            # with WERR_NO_SUCH_DOMAIN -- in only does verification for outbound trusts.
+            result = True
+            if trust_type == TRUST_BIDIRECTIONAL:
+                result = self.remote_domain.verify_trust(self.local_domain)
             return dict(local=self.local_domain, remote=self.remote_domain, verified=result)
         return None
 
-    def join_ad_ipa_half(self, realm, realm_server, trustdom_passwd):
+    def join_ad_ipa_half(self, realm, realm_server, trustdom_passwd, trust_type):
         if not self.configured:
             return None
 
@@ -1256,5 +1276,5 @@ class TrustDomainJoins(object):
         if self.remote_domain.info['dns_domain'] != self.remote_domain.info['dns_forest']:
             raise errors.NotAForestRootError(forest=self.remote_domain.info['dns_forest'], domain=self.remote_domain.info['dns_domain'])
 
-        self.local_domain.establish_trust(self.remote_domain, trustdom_passwd)
+        self.local_domain.establish_trust(self.remote_domain, trustdom_passwd, trust_type)
         return dict(local=self.local_domain, remote=self.remote_domain, verified=False)

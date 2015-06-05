@@ -205,6 +205,7 @@ Requires: samba >= %{samba_version}
 Requires: samba-winbind
 Requires: libsss_idmap
 Requires: libsss_nss_idmap-python
+Requires: oddjob
 %if (0%{?fedora} >= 22)
 Requires: python-sss
 %endif
@@ -583,6 +584,8 @@ fi
 %post server-trust-ad
 %{_sbindir}/update-alternatives --install %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so \
         winbind_krb5_locator.so /dev/null 90
+/bin/systemctl reload-or-try-restart dbus
+/bin/systemctl reload-or-try-restart oddjobd
 
 %posttrans server-trust-ad
 python2 -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
@@ -595,6 +598,8 @@ fi
 %preun server-trust-ad
 if [ $1 -eq 0 ]; then
     %{_sbindir}/update-alternatives --remove winbind_krb5_locator.so /dev/null
+    /bin/systemctl reload-or-try-restart dbus
+    /bin/systemctl reload-or-try-restart oddjobd
 fi
 
 %endif # ONLY_CLIENT
@@ -832,6 +837,9 @@ fi
 %attr(755,root,root) %{plugin_dir}/libipa_otp_counter.so
 %attr(755,root,root) %{plugin_dir}/libipa_otp_lasttoken.so
 %attr(755,root,root) %{plugin_dir}/libtopology.so
+%attr(755,root,root) %{plugin_dir}/libipa_sidgen.so
+%attr(755,root,root) %{plugin_dir}/libipa_sidgen_task.so
+%attr(755,root,root) %{plugin_dir}/libipa_extdom_extop.so
 %dir %{_localstatedir}/lib/ipa
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/backup
 %attr(700,root,root) %dir %{_localstatedir}/lib/ipa/sysrestore
@@ -866,15 +874,15 @@ fi
 
 %files server-trust-ad
 %{_sbindir}/ipa-adtrust-install
-%attr(755,root,root) %{plugin_dir}/libipa_extdom_extop.so
 %{_usr}/share/ipa/smb.conf.empty
 %attr(755,root,root) %{_libdir}/samba/pdb/ipasam.so
-%attr(755,root,root) %{plugin_dir}/libipa_sidgen.so
-%attr(755,root,root) %{plugin_dir}/libipa_sidgen_task.so
 %{_mandir}/man1/ipa-adtrust-install.1.gz
 %{python_sitelib}/ipaserver/dcerpc*
 %{python_sitelib}/ipaserver/install/adtrustinstance*
 %ghost %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
+%{_sysconfdir}/dbus-1/system.d/oddjob-ipa-trust.conf
+%{_sysconfdir}/oddjobd.conf.d/oddjobd-ipa-trust.conf
+%%attr(755,root,root) %{_libexecdir}/ipa/com.redhat.idm.trust-fetch-domains
 
 %endif # ONLY_CLIENT
 

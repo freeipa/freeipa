@@ -1,0 +1,198 @@
+#!/usr/bin/python2
+
+from ipaserver import dcerpc
+from ipaserver.install.installutils import is_ipa_configured, ScriptError
+from ipapython import config, ipautil
+from ipalib import api, errors
+from ipapython.dn import DN
+from ipalib.config import Env
+from ipalib.constants import DEFAULT_CONFIG
+from ipalib.krb_utils import KRB5_CCache
+import sys
+import os, pwd
+import krbV
+import time
+
+# This version is different from the original in ipapyton.ipautil
+# in the fact that it returns a krbV.CCache object.
+def kinit_keytab(principal, keytab, ccache_name, attempts=1):
+    errors_to_retry = {krbV.KRB5KDC_ERR_SVC_UNAVAILABLE,
+                       krbV.KRB5_KDC_UNREACH}
+    for attempt in range(1, attempts + 1):
+        try:
+            krbcontext = krbV.default_context()
+            ktab = krbV.Keytab(name=keytab, context=krbcontext)
+            princ = krbV.Principal(name=principal, context=krbcontext)
+            ccache = krbV.CCache(name=ccache_name, context=krbcontext,
+                                 primary_principal=princ)
+            ccache.init(princ)
+            ccache.init_creds_keytab(keytab=ktab, principal=princ)
+            return ccache
+        except krbV.Krb5Error as e:
+            if e.args[0] not in errors_to_retry:
+                raise
+            if attempt == attempts:
+                raise
+            time.sleep(5)
+
+def retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal):
+    getkeytab_args = ["/usr/sbin/ipa-getkeytab",
+                      "-s", api.env.host,
+                      "-p", oneway_principal,
+                      "-k", oneway_keytab_name,
+                      "-r"]
+    (stdout, stderr, retcode) = ipautil.run(getkeytab_args,
+                                            env={'KRB5CCNAME': ccache_name, 'LANG': 'C'},
+                                            raiseonerr=False)
+    # Make sure SSSD is able to read the keytab
+    sssd = pwd.getpwnam('sssd')
+    os.chown(oneway_keytab_name, sssd[2], sssd[3])
+
+
+def parse_options():
+    usage = "%prog <trusted domain name>\n"
+    parser = config.IPAOptionParser(usage=usage,
+                                    formatter=config.IPAFormatter())
+
+    parser.add_option("-d", "--debug", action="store_true", dest="debug",
+                      help="Display debugging information")
+
+    options, args = parser.parse_args()
+    safe_options = parser.get_safe_opts(options)
+
+    return safe_options, options, args
+
+
+if not is_ipa_configured():
+    # LSB status code 6: program is not configured
+    raise ScriptError("IPA is not configured " +
+                      "(see man pages of ipa-server-install for help)", 6)
+
+if not os.getegid() == 0:
+    # LSB status code 4: user had insufficient privilege
+    raise ScriptError("You must be root to run ipactl.", 4)
+
+safe_options, options, args = parse_options()
+
+if len(args) != 1:
+    # LSB status code 2: invalid or excess argument(s)
+    raise ScriptError("You must specify trusted domain name", 2)
+
+trusted_domain = unicode(args[0].lower())
+
+env = Env()
+env._bootstrap(context='server', debug=options.debug, log=None)
+env._finalize_core(**dict(DEFAULT_CONFIG))
+
+# Initialize the API with the proper debug level
+api.bootstrap(context='server', debug=env.debug, log=None)
+api.finalize()
+
+# Only import trust plugin after api is initialized or internal imports
+# within the plugin will not work
+from ipalib.plugins import trust
+
+# We have to dance with two different credentials caches:
+# ccache_name         --  for cifs/ipa.master@IPA.REALM to communicate with LDAP
+# oneway_ccache_name  --  for IPA$@AD.REALM to communicate with AD DCs
+#
+# ccache_name may not exist, we'll have to initialize it from Samba's keytab
+#
+# oneway_ccache_name may not exist either but to initialize it, we need
+# to check if oneway_keytab_name keytab exists and fetch it first otherwise.
+#
+# to fetch oneway_keytab_name keytab, we need to initialize ccache_name ccache first
+# and retrieve our own NetBIOS domain name and use cifs/ipa.master@IPA.REALM to
+# retrieve the keys to oneway_keytab_name.
+
+keytab_name = '/etc/samba/samba.keytab'
+oneway_keytab_name = '/var/lib/sss/keytabs/' + trusted_domain + '.keytab'
+
+principal = str('cifs/' + api.env.host)
+
+oneway_ccache_name = '/var/run/ipa/krb5cc_oddjob_trusts_fetch'
+ccache_name = '/var/run/ipa/krb5cc_oddjob_trusts'
+
+# Standard sequence:
+# - check if ccache exists
+#   - if not, initialize it from Samba's keytab
+# - check if ccache contains valid TGT
+#   - if not, initialize it from Samba's keytab
+# - refer the correct ccache object for further use
+#
+if not os.path.isfile(ccache_name):
+    ccache = kinit_keytab(principal, keytab_name, ccache_name)
+
+ccache_check = KRB5_CCache(ccache_name)
+if not ccache_check.credential_is_valid(principal):
+    ccache = kinit_keytab(principal, keytab_name, ccache_name)
+else:
+    ccache = ccache_check.ccache
+
+old_ccache = os.environ.get('KRB5CCNAME')
+api.Backend.ldap2.connect(ccache)
+
+own_trust_dn = DN(('cn', api.env.domain),('cn','ad'), ('cn', 'etc'), api.env.basedn)
+own_trust_entry = api.Backend.ldap2.get_entry(own_trust_dn, ['ipantflatname'])
+own_trust_flatname = own_trust_entry['ipantflatname'][0].upper()
+
+oneway_principal = str('%s$@%s' % (own_trust_flatname, trusted_domain.upper()))
+
+# If keytab does not exist, retrieve it
+if not os.path.isfile(oneway_keytab_name):
+    retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal)
+
+oneway_ccache = None
+try:
+    # The keytab may have stale key material (from older trust-add run)
+    if not os.path.isfile(oneway_ccache_name):
+        oneway_ccache = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
+except krbV.Krb5Error as e:
+    # If there was failure on using keytab, assume it is stale and retrieve again
+    retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal)
+
+if oneway_ccache:
+    # There wasn existing ccache, validate its content
+    oneway_ccache_check = KRB5_CCache(oneway_ccache_name)
+    if not oneway_ccache_check.credential_is_valid(oneway_principal):
+        # If credentials were invalid, obtain them again
+        oneway_ccache = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
+    else:
+        oneway_ccache = oneway_ccache_check.ccache
+else:
+    oneway_ccache = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
+
+# We are done: we have ccache with TDO credentials and can fetch domains
+ipa_domain = api.env.domain
+os.environ['KRB5CCNAME'] = oneway_ccache_name
+domains = dcerpc.fetch_domains(api, ipa_domain, trusted_domain, creds=True)
+
+if domains:
+    # trust range must exist by the time fetch_domains_from_trust is called
+    range_name = unicode(trusted_domain.upper() + '_id_range')
+    old_range = api.Command.idrange_show(range_name, raw=True)['result']
+    idrange_type = old_range['iparangetype'][0]
+
+    result = []
+    for dom in domains:
+        dom['trust_type'] = u'ad'
+        try:
+            name = dom['cn']
+            del dom['cn']
+
+            res = api.Command.trustdomain_add(trusted_domain, name, **dom)
+            result.append(res['result'])
+
+            if idrange_type != u'ipa-ad-trust-posix':
+                range_name = name.upper() + '_id_range'
+                dom['range_type'] = u'ipa-ad-trust'
+                trust.add_range(range_name, dom['ipanttrusteddomainsid'],
+                                trusted_domain, name, **dom)
+        except errors.DuplicateEntry:
+            # Ignore updating duplicate entries
+            pass
+
+if old_ccache:
+   os.environ['KRB5CCNAME'] = old_ccache
+
+sys.exit(0)

@@ -103,6 +103,7 @@ AC_CONFIG_FILES([
     po/Makefile
     restart_scripts/Makefile
     wsgi/Makefile
+    oddjob/Makefile
 ])
 
 AC_OUTPUT

@@ -22,6 +22,7 @@ from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.dns import dns_container_exists
 from ipapython.ipautil import realm_to_suffix
+from ipapython.ipa_log_manager import root_logger
 from ipalib import api, Str, StrEnum, Password, Bool, _, ngettext
 from ipalib import Command
 from ipalib import errors
@@ -43,6 +44,8 @@ except Exception, e:
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         import ipaserver.dcerpc #pylint: disable=F0401
+        from ipaserver.dcerpc import TRUST_ONEWAY, TRUST_BIDIRECTIONAL
+        import dbus, dbus.mainloop.glib
         _bindings_installed = True
     except ImportError:
         _bindings_installed = False
@@ -161,6 +164,8 @@ _trust_type_option = StrEnum('trust_type',
 
 DEFAULT_RANGE_SIZE = 200000
 
+DBUS_IFACE_TRUST = 'com.redhat.idm.trust'
+
 def trust_type_string(level):
     """
     Returns a string representing a type of the trust. The original field is an enum:
@@ -191,7 +196,7 @@ def make_trust_dn(env, trust_type, dn):
         return DN(dn, container_dn)
     return dn
 
-def add_range(self, range_name, dom_sid, *keys, **options):
+def add_range(myapi, range_name, dom_sid, *keys, **options):
     """
     First, we try to derive the parameters of the ID range based on the
     information contained in the Active Directory.
@@ -224,7 +229,7 @@ def add_range(self, range_name, dom_sid, *keys, **options):
                   + basedn
 
         # Get the domain validator
-        domain_validator = ipaserver.dcerpc.DomainValidator(self.api)
+        domain_validator = ipaserver.dcerpc.DomainValidator(myapi)
         if not domain_validator.is_configured():
             raise errors.NotFound(
                 reason=_('Cannot search in trusted domains without own '
@@ -251,10 +256,10 @@ def add_range(self, range_name, dom_sid, *keys, **options):
 
         if not info_list:
             # We were unable to gain UNIX specific info from the AD
-            self.log.debug("Unable to gain POSIX info from the AD")
+            root_logger.debug("Unable to gain POSIX info from the AD")
         else:
             if all(attr in info for attr in required_msSFU_attrs):
-                self.log.debug("Able to gain POSIX info from the AD")
+                root_logger.debug("Able to gain POSIX info from the AD")
                 range_type = u'ipa-ad-trust-posix'
 
                 max_uid = info.get('msSFU30MaxUidNumber')
@@ -288,16 +293,43 @@ def add_range(self, range_name, dom_sid, *keys, **options):
         ) * DEFAULT_RANGE_SIZE
 
     # Finally, add new ID range
-    self.api.Command['idrange_add'](range_name,
-                                    ipabaseid=base_id,
-                                    ipaidrangesize=range_size,
-                                    ipabaserid=0,
-                                    iparangetype=range_type,
-                                    ipanttrusteddomainsid=dom_sid)
+    myapi.Command['idrange_add'](range_name,
+                                 ipabaseid=base_id,
+                                 ipaidrangesize=range_size,
+                                 ipabaserid=0,
+                                 iparangetype=range_type,
+                                 ipanttrusteddomainsid=dom_sid)
 
     # Return the values that were generated inside this function
     return range_type, range_size, base_id
 
+def fetch_trusted_domains_over_dbus(myapi, log, forest_name):
+    if not _bindings_installed:
+        return
+    # Calling oddjobd-activated service via DBus has some quirks:
+    # - Oddjobd registers multiple canonical names on the same address
+    # - python-dbus only follows name owner changes when mainloop is in use
+    # See https://fedorahosted.org/oddjob/ticket/2 for details
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+    try:
+        _ret = 0
+        _stdout = ''
+        _stderr = ''
+        bus = dbus.SystemBus()
+        intf = bus.get_object(DBUS_IFACE_TRUST,"/", follow_name_owner_changes=True)
+        fetch_domains_method = intf.get_dbus_method('fetch_domains', dbus_interface=DBUS_IFACE_TRUST)
+        (_ret, _stdout, _stderr) = fetch_domains_method(forest_name)
+    except dbus.DBusException, e:
+        log.error('Failed to call %(iface)s.fetch_domains helper.'
+                       'DBus exception is %(exc)s.' % dict(iface=DBUS_IFACE_TRUST, exc=str(e)))
+        if _ret != 0:
+            log.error('Helper was called for forest %(forest)s, return code is %(ret)d' % dict(forest=forest_name, ret=_ret))
+            log.error('Standard output from the helper:\n%s---\n' % (_stdout))
+            log.error('Error output from the helper:\n%s--\n' % (_stderr))
+        raise errors.ServerCommandError(server=myapi.env.host,
+                                        error=_('Fetching domains from trusted forest failed. '
+                                                'See details in the error_log'))
+    return
 
 @register()
 class trust(LDAPObject):
@@ -463,6 +495,12 @@ sides.
                  .format(vals=', '.join(range_types.keys())))),
             values=tuple(range_types.keys()),
         ),
+        Bool('bidirectional?',
+             label=_('Two-way trust'),
+             cli_name='two_way',
+             doc=(_('Establish bi-directional trust. By default trust is inbound one-way only.')),
+             default=False,
+        ),
     )
 
     msg_summary = _('Added Active Directory trust for realm "%(value)s"')
@@ -478,7 +516,7 @@ sides.
             # Store the created range type, since for POSIX trusts no
             # ranges for the subdomains should be added, POSIX attributes
             # provide a global mapping across all subdomains
-            (created_range_type, _, _) = add_range(self, range_name, dom_sid,
+            (created_range_type, _, _) = add_range(self.api, range_name, dom_sid,
                                                    *keys, **options)
         else:
             created_range_type = old_range['result']['iparangetype'][0]
@@ -486,19 +524,35 @@ sides.
         trust_filter = "cn=%s" % result['value']
         ldap = self.obj.backend
         (trusts, truncated) = ldap.find_entries(
-                         base_dn=DN(api.env.container_trusts, api.env.basedn),
+                         base_dn=DN(self.api.env.container_trusts, self.api.env.basedn),
                          filter=trust_filter)
 
         result['result'] = entry_to_dict(trusts[0], **options)
 
         # Fetch topology of the trust forest -- we need always to do it
         # for AD trusts, regardless of the type of idranges associated with it
-        # Note that fetch_domains_from_trust will add needed ranges for
+        # Note that add_new_domains_from_trust will add needed ranges for
         # the algorithmic ID mapping case.
         if (options.get('trust_type') == u'ad' and
             options.get('trust_secret') is None):
-            domains = fetch_domains_from_trust(self, self.trustinstance,
+            if options.get('bidirectional') == True:
+                # Bidirectional trust allows us to use cross-realm TGT, so we can
+                # run the call under original user's credentials
+                res = fetch_domains_from_trust(self.api, self.trustinstance,
                                                result['result'], **options)
+                domains = add_new_domains_from_trust(self.api, self.trustinstance,
+                                                     result['result'], res, **options)
+            else:
+                # One-way trust is more complex. We don't have cross-realm TGT
+                # and cannot use IPA principals to authenticate against AD.
+                # Instead, we have to use our trusted domain object's (TDO)
+                # account in AD. Access to the credentials is limited and IPA
+                # framework cannot access it directly.  Instead, we call out to
+                # oddjobd-activated higher privilege process that will use TDO
+                # object credentials to authenticate to AD with Kerberos,
+                # run DCE RPC calls to do discovery and will call
+                # add_new_domains_from_trust() on its own.
+                fetch_trusted_domains_over_dbus(self.api, self.log, result['value'])
 
         # Format the output into human-readable values
         result['result']['trusttype'] = [trust_type_string(
@@ -570,7 +624,7 @@ sides.
         # If domain name and realm does not match, IPA server is not be able
         # to establish trust with Active Directory.
 
-        realm_not_matching_domain = (api.env.domain.upper() != api.env.realm)
+        realm_not_matching_domain = (self.api.env.domain.upper() != self.api.env.realm)
 
         if options['trust_type'] == u'ad' and realm_not_matching_domain:
             raise errors.ValidationError(
@@ -627,7 +681,7 @@ sides.
         range_type = options.get('range_type')
 
         try:
-            old_range = api.Command['idrange_show'](range_name, raw=True)
+            old_range = self.api.Command['idrange_show'](range_name, raw=True)
         except errors.NotFound:
             old_range = None
 
@@ -699,6 +753,9 @@ sides.
         except errors.NotFound:
             dn = None
 
+        trust_type = TRUST_ONEWAY
+        if options.get('bidirectional', False):
+            trust_type = TRUST_BIDIRECTIONAL
         # 1. Full access to the remote domain. Use admin credentials and
         # generate random trustdom password to do work on both sides
         if full_join:
@@ -707,14 +764,15 @@ sides.
                     keys[-1],
                     self.realm_server,
                     self.realm_admin,
-                    self.realm_passwd
+                    self.realm_passwd,
+                    trust_type
                 )
             except errors.NotFound:
                 error_message=_("Unable to resolve domain controller for '%s' domain. ") % (keys[-1])
                 instructions=[]
                 if dns_container_exists(self.obj.backend):
                     try:
-                        dns_zone = api.Command.dnszone_show(keys[-1])['result']
+                        dns_zone = self.api.Command.dnszone_show(keys[-1])['result']
                         if ('idnsforwardpolicy' in dns_zone) and dns_zone['idnsforwardpolicy'][0] == u'only':
                             instructions.append(_("Forward policy is defined for it in IPA DNS, "
                                                    "perhaps forwarder points to incorrect host?"))
@@ -755,7 +813,8 @@ sides.
             result = self.trustinstance.join_ad_ipa_half(
                 keys[-1],
                 self.realm_server,
-                options['trust_secret']
+                options['trust_secret'],
+                trust_type
             )
             ret = dict(
                 value=pkey_to_value(
@@ -940,7 +999,7 @@ class trustconfig(LDAPObject):
                     group,
                     ['posixgroup'],
                     [''],
-                    DN(api.env.container_group, api.env.basedn))
+                    DN(self.api.env.container_group, self.api.env.basedn))
             except errors.NotFound:
                 self.api.Object['group'].handle_not_found(group)
             else:
@@ -1066,11 +1125,11 @@ class adtrust_is_enabled(Command):
         ldap = self.api.Backend.ldap2
         adtrust_dn = DN(
             ('cn', 'ADTRUST'),
-            ('cn', api.env.host),
+            ('cn', self.api.env.host),
             ('cn', 'masters'),
             ('cn', 'ipa'),
             ('cn', 'etc'),
-            api.env.basedn
+            self.api.env.basedn
         )
 
         try:
@@ -1281,7 +1340,7 @@ class trustdomain_del(LDAPDelete):
                 raise errors.ValidationError(name='domain',
                     error=_("cannot delete root domain of the trust, use trust-del to delete the trust itself"))
             try:
-                res = api.Command.trustdomain_enable(keys[0], domain)
+                res = self.api.Command.trustdomain_enable(keys[0], domain)
             except errors.AlreadyActive:
                 pass
         result = super(trustdomain_del, self).execute(*keys, **options)
@@ -1291,7 +1350,7 @@ class trustdomain_del(LDAPDelete):
 
 
 
-def fetch_domains_from_trust(self, trustinstance, trust_entry, **options):
+def fetch_domains_from_trust(myapi, trustinstance, trust_entry, **options):
     trust_name = trust_entry['cn'][0]
     creds = None
     password = options.get('realm_passwd', None)
@@ -1303,16 +1362,20 @@ def fetch_domains_from_trust(self, trustinstance, trust_entry, **options):
         creds = u"{name}%{password}".format(name="\\".join(sp),
                                             password=password)
     server = options.get('realm_server', None)
-    domains = ipaserver.dcerpc.fetch_domains(self.api,
+    domains = ipaserver.dcerpc.fetch_domains(myapi,
                                              trustinstance.local_flatname,
                                              trust_name, creds=creds, server=server)
+    return domains
+
+def add_new_domains_from_trust(myapi, trustinstance, trust_entry, domains, **options):
     result = []
     if not domains:
         return result
 
-    # trust range must exist by the time fetch_domains_from_trust is called
+    trust_name = trust_entry['cn'][0]
+    # trust range must exist by the time add_new_domains_from_trust is called
     range_name = trust_name.upper() + '_id_range'
-    old_range = api.Command.idrange_show(range_name, raw=True)['result']
+    old_range = myapi.Command.idrange_show(range_name, raw=True)['result']
     idrange_type = old_range['iparangetype'][0]
 
     for dom in domains:
@@ -1325,13 +1388,13 @@ def fetch_domains_from_trust(self, trustinstance, trust_entry, **options):
             if 'raw' in options:
                 dom['raw'] = options['raw']
 
-            res = self.api.Command.trustdomain_add(trust_name, name, **dom)
+            res = myapi.Command.trustdomain_add(trust_name, name, **dom)
             result.append(res['result'])
 
             if idrange_type != u'ipa-ad-trust-posix':
                 range_name = name.upper() + '_id_range'
                 dom['range_type'] = u'ipa-ad-trust'
-                add_range(self, range_name, dom['ipanttrusteddomainsid'],
+                add_range(myapi, range_name, dom['ipanttrusteddomainsid'],
                           trust_name, name, **dom)
         except errors.DuplicateEntry:
             # Ignore updating duplicate entries
@@ -1362,6 +1425,17 @@ class trust_fetch_domains(LDAPRetrieve):
             )
         trust = self.api.Command.trust_show(keys[0], raw=True)['result']
 
+        result = dict()
+        result['result'] = []
+        result['count'] = 0
+        result['truncated'] = False
+
+        # For one-way trust fetch over DBus. we don't get the list in this case.
+        if trust['ipanttrustdirection'] & TRUST_BIDIRECTIONAL != TRUST_BIDIRECTIONAL:
+            fetch_trusted_domains_over_dbus(self.api, self.log, keys[0])
+            result['summary'] = unicode(_('List of trust domains successfully refreshed. Use trustdomain-find command to list them.'))
+            return result
+
         trustinstance = ipaserver.dcerpc.TrustDomainJoins(self.api)
         if not trustinstance.configured:
             raise errors.NotFound(
@@ -1372,8 +1446,8 @@ class trust_fetch_domains(LDAPRetrieve):
                     'on the IPA server first'
                 )
             )
-        domains = fetch_domains_from_trust(self, trustinstance, trust)
-        result = dict()
+        res = fetch_domains_from_trust(self.api, trustinstance, trust, **options)
+        domains = add_new_domains_from_trust(self.api, trustinstance, trust, res, **options)
 
         if len(domains) > 0:
             result['summary'] = unicode(_('List of trust domains successfully refreshed'))
@@ -1382,7 +1456,6 @@ class trust_fetch_domains(LDAPRetrieve):
 
         result['result'] = domains
         result['count'] = len(domains)
-        result['truncated'] = False
         return result
 
 
@@ -1413,7 +1486,7 @@ class trustdomain_enable(LDAPQuery):
                 trust_entry['ipantsidblacklistincoming'].remove(sid)
                 ldap.update_entry(trust_entry)
                 # Force MS-PAC cache re-initialization on KDC side
-                domval = ipaserver.dcerpc.DomainValidator(api)
+                domval = ipaserver.dcerpc.DomainValidator(self.api)
                 (ccache_name, principal) = domval.kinit_as_http(keys[0])
             else:
                 raise errors.AlreadyActive()
@@ -1453,7 +1526,7 @@ class trustdomain_disable(LDAPQuery):
                 trust_entry['ipantsidblacklistincoming'].append(sid)
                 ldap.update_entry(trust_entry)
                 # Force MS-PAC cache re-initialization on KDC side
-                domval = ipaserver.dcerpc.DomainValidator(api)
+                domval = ipaserver.dcerpc.DomainValidator(self.api)
                 (ccache_name, principal) = domval.kinit_as_http(keys[0])
             else:
                 raise errors.AlreadyInactive()

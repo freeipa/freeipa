@@ -4973,11 +4973,12 @@ arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=Tr
 option: Str('version?', exclude='webui')
 output: Output('result', None, None)
 command: trust_add
-args: 1,13,3
+args: 1,14,3
 arg: Str('cn', attribute=True, cli_name='realm', multivalue=False, primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Int('base_id?', cli_name='base_id')
+option: Bool('bidirectional?', cli_name='two_way', default=False)
 option: Int('range_size?', cli_name='range_size')
 option: StrEnum('range_type?', cli_name='range_type', values=(u'ipa-ad-trust-posix', u'ipa-ad-trust'))
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
