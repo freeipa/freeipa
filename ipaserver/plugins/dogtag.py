@@ -1973,6 +1973,7 @@ class RestClient(Backend):
         super(RestClient, self).__init__()
 
         # session cookie
+        self.override_port = None
         self.cookie = None
 
     def _read_password(self):
@@ -2007,7 +2008,8 @@ class RestClient(Backend):
         if self.cookie is not None:
             return
         status, status_text, resp_headers, resp_body = dogtag.https_request(
-            self.ca_host, self.env.ca_agent_port, '/ca/rest/account/login',
+            self.ca_host, self.override_port or self.env.ca_agent_port,
+            '/ca/rest/account/login',
             self.sec_dir, self.password, self.ipa_certificate_nickname,
             method='GET'
         )
@@ -2020,7 +2022,8 @@ class RestClient(Backend):
     def __exit__(self, exc_type, exc_value, traceback):
         """Log out of the REST API"""
         dogtag.https_request(
-            self.ca_host, self.env.ca_agent_port, '/ca/rest/account/logout',
+            self.ca_host, self.override_port or self.env.ca_agent_port,
+            '/ca/rest/account/logout',
             self.sec_dir, self.password, self.ipa_certificate_nickname,
             method='GET'
         )
@@ -2046,7 +2049,8 @@ class RestClient(Backend):
 
         # perform main request
         status, status_text, resp_headers, resp_body = dogtag.https_request(
-            self.ca_host, self.env.ca_agent_port, resource,
+            self.ca_host, self.override_port or self.env.ca_agent_port,
+            resource,
             self.sec_dir, self.password, self.ipa_certificate_nickname,
             method=method, headers=headers, body=body
         )

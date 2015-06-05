@@ -473,6 +473,9 @@ class CAInstance(DogtagInstance):
             self.step("configure Server-Cert certificate renewal", self.track_servercert)
             self.step("Configure HTTP to proxy connections",
                       self.http_proxy)
+            if not self.clone:
+                self.step("restarting certificate server", self.restart_instance)
+                self.step("Importing IPA certificate profiles", import_included_profiles)
 
         self.start_creation(runtime=210)
 
@@ -1694,6 +1697,7 @@ def import_included_profiles():
             )
             conn.add_entry(entry)
             api.Backend.ra_certprofile._read_password()
+            api.Backend.ra_certprofile.override_port = 8443
             with api.Backend.ra_certprofile as profile_api:
                 # import the profile
                 try:
@@ -1715,6 +1719,7 @@ def import_included_profiles():
                 except errors.RemoteRetrieveError:
                     pass
 
+            api.Backend.ra_certprofile.override_port = None
             root_logger.info("Imported profile '%s'", profile_id)
 
     conn.disconnect()

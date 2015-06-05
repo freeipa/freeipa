@@ -906,9 +906,6 @@ def install(options):
         service.print_msg("Restarting the certificate server")
         ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
 
-        service.print_msg("Importing certificate profiles")
-        cainstance.import_included_profiles()
-
     if options.setup_dns:
         api.Backend.ldap2.connect(autobind=True)
         dns.install(False, False, options)
