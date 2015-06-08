@@ -45,7 +45,7 @@ class update_referint(Updater):
             entry['referint-update-delay'] = update_delay
             entry['nsslapd-pluginArg0'] = None
         else:
-            root_logger.info("Plugin already uses new style, skipping")
+            root_logger.debug("Plugin already uses new style, skipping")
             return False, []
 
         # nsslapd-pluginArg1    -> referint-logfile

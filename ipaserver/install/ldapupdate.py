@@ -543,7 +543,7 @@ class LDAPUpdate:
             nsIndexAttribute=[attribute],
         )
 
-        self.info("Creating task to index attribute: %s", attribute)
+        self.debug("Creating task to index attribute: %s", attribute)
         self.debug("Task id: %s", dn)
 
         self.conn.add_entry(e)
@@ -579,7 +579,7 @@ class LDAPUpdate:
                 continue
 
             if status.lower().find("finished") > -1:
-                self.info("Indexing finished")
+                self.debug("Indexing finished")
                 break
 
             self.debug("Indexing in progress")
@@ -651,7 +651,7 @@ class LDAPUpdate:
                 try:
                     entry_values.remove(update_value)
                 except ValueError:
-                    self.warning("remove: '%s' not in %s", update_value, attr)
+                    self.debug("remove: '%s' not in %s", update_value, attr)
                 else:
                     entry[attr] = entry_values
                     self.debug('remove: updated value %s', safe_output(
@@ -745,15 +745,15 @@ class LDAPUpdate:
                 raise BadSyntax, "More than 1 entry returned on a dn search!? %s" % new_entry.dn
             entry = e[0]
             found = True
-            self.info("Updating existing entry: %s", entry.dn)
+            self.debug("Updating existing entry: %s", entry.dn)
         except errors.NotFound:
             # Doesn't exist, start with the default entry
             entry = new_entry
-            self.info("New entry: %s", entry.dn)
+            self.debug("New entry: %s", entry.dn)
         except errors.DatabaseError:
             # Doesn't exist, start with the default entry
             entry = new_entry
-            self.info("New entry, using default value: %s", entry.dn)
+            self.debug("New entry, using default value: %s", entry.dn)
 
         self.print_entity(entry, "Initial value")
 
@@ -778,8 +778,8 @@ class LDAPUpdate:
                     except errors.NotFound:
                         # parent entry of the added entry does not exist
                         # this may not be an error (e.g. entries in NIS container)
-                        self.info("Parent DN of %s may not exist, cannot create the entry",
-                                entry.dn)
+                        self.error("Parent DN of %s may not exist, cannot "
+                                   "create the entry", entry.dn)
                         return
                 added = True
                 self.modified = True
@@ -798,9 +798,9 @@ class LDAPUpdate:
                 self.debug("Updated %d" % updated)
                 if updated:
                     self.conn.update_entry(entry)
-                self.info("Done")
+                self.debug("Done")
             except errors.EmptyModlist:
-                self.info("Entry already up-to-date")
+                self.debug("Entry already up-to-date")
                 updated = False
             except errors.DatabaseError, e:
                 self.error("Update failed: %s", e)
@@ -826,11 +826,11 @@ class LDAPUpdate:
 
         dn = updates['dn']
         try:
-            self.info("Deleting entry %s", dn)
+            self.debug("Deleting entry %s", dn)
             self.conn.delete_entry(dn)
             self.modified = True
         except errors.NotFound, e:
-            self.info("%s did not exist:%s", dn, e)
+            self.debug("%s did not exist:%s", dn, e)
             self.modified = True
         except errors.DatabaseError, e:
             self.error("Delete failed: %s", e)
@@ -848,7 +848,7 @@ class LDAPUpdate:
         return f
 
     def _run_update_plugin(self, plugin_name):
-        self.log.info("Executing upgrade plugin: %s", plugin_name)
+        self.log.debug("Executing upgrade plugin: %s", plugin_name)
         restart_ds, updates = self.api.Updater[plugin_name]()
         if updates:
             self._run_updates(updates)
@@ -895,7 +895,7 @@ class LDAPUpdate:
 
             for f in upgrade_files:
                 try:
-                    self.info("Parsing update file '%s'" % f)
+                    self.debug("Parsing update file '%s'" % f)
                     data = self.read_file(f)
                 except Exception, e:
                     self.error("error reading update file '%s'", f)
@@ -931,6 +931,6 @@ class LDAPUpdate:
 
     def restart_ds(self):
         dirsrv = services.knownservices.dirsrv
-        self.log.info('Restarting directory server to apply updates')
+        self.log.debug('Restarting directory server to apply updates')
         dirsrv.restart()
         wait_for_open_socket(self.socket_name)

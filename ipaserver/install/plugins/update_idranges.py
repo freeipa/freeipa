@@ -152,7 +152,7 @@ class update_idrange_baserid(Updater):
         for entry in entries:
             entry['ipabaserid'] = 0
             try:
-                root_logger.info("Updating existing idrange: %s" % (entry.dn))
+                root_logger.debug("Updating existing idrange: %s" % (entry.dn))
                 ldap.update_entry(entry)
                 root_logger.info("Done")
             except (errors.EmptyModlist, errors.NotFound):

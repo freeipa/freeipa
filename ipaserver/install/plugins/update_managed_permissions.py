@@ -383,7 +383,7 @@ class update_managed_permissions(Updater):
 
         for acistr in acistrs:
             if ACI(acistr).isequal(anonymous_read_aci):
-                self.log.info('Removing anonymous ACI: %s', acistr)
+                self.log.debug('Removing anonymous ACI: %s', acistr)
                 acistrs.remove(acistr)
                 break
         else:
@@ -412,18 +412,18 @@ class update_managed_permissions(Updater):
         anonymous_read_aci = self.get_anonymous_read_aci(ldap)
 
         if anonymous_read_aci:
-            self.log.info('Anonymous read ACI: %s', anonymous_read_aci)
+            self.log.debug('Anonymous read ACI: %s', anonymous_read_aci)
         else:
-            self.log.info('Anonymous ACI not found')
+            self.log.debug('Anonymous ACI not found')
 
         current_obj = ()  # initially distinct from any obj value, even None
         for name, template, obj in self.get_templates():
             if current_obj != obj:
                 if obj:
-                    self.log.info('Updating managed permissions for %s',
+                    self.log.debug('Updating managed permissions for %s',
                                   obj.name)
                 else:
-                    self.log.info('Updating non-object managed permissions')
+                    self.log.debug('Updating non-object managed permissions')
                 current_obj = obj
 
             self.update_permission(ldap,
@@ -444,7 +444,7 @@ class update_managed_permissions(Updater):
             except errors.NotFound:
                 self.log.debug('Obsolete permission not found')
             else:
-                self.log.info('Obsolete permission deleted: %s', obsolete_name)
+                self.log.debug('Obsolete permission deleted: %s', obsolete_name)
 
         return False, ()
 
@@ -536,7 +536,7 @@ class update_managed_permissions(Updater):
             permission_plugin.update_aci(entry)
 
         if remove_legacy:
-            self.log.info("Removing legacy permission '%s'", legacy_name)
+            self.log.debug("Removing legacy permission '%s'", legacy_name)
             self.api.Command[permission_del](unicode(legacy_name))
 
         for name in template.get('replaces_system', ()):
@@ -545,14 +545,14 @@ class update_managed_permissions(Updater):
                 entry = ldap.get_entry(permission_plugin.get_dn(name),
                                        ['ipapermissiontype'])
             except errors.NotFound:
-                self.log.info("Legacy permission '%s' not found", name)
+                self.log.debug("Legacy permission '%s' not found", name)
             else:
                 flags = entry.get('ipapermissiontype', [])
                 if list(flags) == ['SYSTEM']:
-                    self.log.info("Removing legacy permission '%s'", name)
+                    self.log.debug("Removing legacy permission '%s'", name)
                     self.api.Command[permission_del](name, force=True)
                 else:
-                    self.log.info("Ignoring V2 permission '%s'", name)
+                    self.log.debug("Ignoring V2 permission '%s'", name)
 
     def get_upgrade_attr_lists(self, current_acistring, default_acistrings):
         """Compute included and excluded attributes for a new permission
@@ -715,7 +715,7 @@ class update_managed_permissions(Updater):
                 anonymous_read_aci.target['targetattr']['expression'])
             read_blacklist &= attributes
             if read_blacklist:
-                self.log.info('Excluded attributes for %s: %s',
+                self.log.debug('Excluded attributes for %s: %s',
                               name, ', '.join(read_blacklist))
                 entry['ipapermexcludedattr'] = list(read_blacklist)
 

@@ -124,7 +124,7 @@ def update_schema(schema_files, ldapi=False, dm_password=None,):
                           for attr in schema_entry[attrname]}
 
     for filename in schema_files:
-        log.info('Processing schema LDIF file %s', filename)
+        log.debug('Processing schema LDIF file %s', filename)
         dn, new_schema = ldap.schema.subentry.urlfetch(filename)
 
         for attrname, cls in SCHEMA_ELEMENT_CLASSES:
@@ -147,10 +147,10 @@ def update_schema(schema_files, ldapi=False, dm_password=None,):
 
                         if old_obj:
                             old_attr = old_entries_by_oid.get(oid)
-                            log.info('Replace: %s', old_attr)
-                            log.info('   with: %s', value)
+                            log.debug('Replace: %s', old_attr)
+                            log.debug('   with: %s', value)
                         else:
-                            log.info('Add: %s', value)
+                            log.debug('Add: %s', value)
 
                 modified = modified or new_elements
                 schema_entry[attrname].extend(new_elements)
@@ -163,7 +163,7 @@ def update_schema(schema_files, ldapi=False, dm_password=None,):
                     conn.update_entry(schema_entry)
 
     if not modified:
-        log.info('Not updating schema')
+        log.debug('Not updating schema')
 
     return modified
 

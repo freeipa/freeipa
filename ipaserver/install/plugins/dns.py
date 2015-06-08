@@ -64,7 +64,7 @@ class update_dnszones(Updater):
         try:
             zones = self.api.Command.dnszone_find(all=True)['result']
         except errors.NotFound:
-            self.log.info('No DNS zone to update found')
+            self.log.debug('No DNS zone to update found')
             return False, []
 
         for zone in zones:
@@ -173,7 +173,7 @@ class update_master_to_dnsforwardzones(Updater):
                 # no upgrade is required
                 return False, []
 
-        self.log.info('Updating forward zones')
+        self.log.debug('Updating forward zones')
         # update the DNSVersion, following upgrade can be executed only once
         container_entry.setdefault(
             'ipaConfigString', []).append(u"DNSVersion 1")
@@ -202,7 +202,7 @@ class update_master_to_dnsforwardzones(Updater):
             pass
 
         if not zones:
-            self.log.info('No DNS zone to update found')
+            self.log.debug('No DNS zone to update found')
             return False, []
 
         zones_to_transform = []
@@ -346,7 +346,7 @@ class update_master_to_dnsforwardzones(Updater):
                                               zone['idnsname'][0])
                                 continue
 
-                self.log.info('Zone %s was sucessfully transformed to forward zone',
+                self.log.debug('Zone %s was sucessfully transformed to forward zone',
                               zone['idnsname'][0])
 
         return False, []

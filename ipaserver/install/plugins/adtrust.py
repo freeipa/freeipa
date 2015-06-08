@@ -139,7 +139,7 @@ class update_default_trust_view(Updater):
 
         # First, see if trusts are enabled on the server
         if not self.api.Command.adtrust_is_enabled()['result']:
-            self.log.info('AD Trusts are not enabled on this server')
+            self.log.debug('AD Trusts are not enabled on this server')
             return False, []
 
         # Second, make sure the Default Trust View does not exist yet
@@ -148,7 +148,7 @@ class update_default_trust_view(Updater):
         except errors.NotFound:
             pass
         else:
-            self.log.info('Default Trust View already present on this server')
+            self.log.debug('Default Trust View already present on this server')
             return False, []
 
         # We have a server with AD trust support without Default Trust View.

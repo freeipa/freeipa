@@ -648,7 +648,7 @@ class permission(baseldap.LDAPObject):
         try:
             ldap.update_entry(acientry)
         except errors.EmptyModlist:
-            self.log.info('No changes to ACI')
+            self.log.debug('No changes to ACI')
         return acientry, acistring
 
     def _get_aci_entry_and_string(self, permission_entry, name=None,
