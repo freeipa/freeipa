@@ -25,9 +25,6 @@ def install_check(standalone, replica_config, options):
     host_name = options.host_name
     subject_base = options.subject
 
-    if replica_config is None and options.external_cert_files:
-        return
-
     if replica_config is not None:
         if standalone and api.env.ra_plugin == 'selfsign':
             sys.exit('A selfsign CA can not be added')
@@ -51,17 +48,7 @@ def install_check(standalone, replica_config, options):
     if standalone and api.Command.ca_is_enabled()['result']:
         sys.exit("CA is already installed.\n")
 
-    if options.external_ca:
-        if cainstance.is_step_one_done():
-            print("CA is already installed.\nRun the installer with "
-                  "--external-cert-file.")
-            sys.exit(1)
-        if ipautil.file_exists(paths.ROOT_IPA_CSR):
-            print("CA CSR file %s already exists.\nIn order to continue "
-                  "remove the file and run the installer again." %
-                  paths.ROOT_IPA_CSR)
-            sys.exit(1)
-    elif options.external_cert_files:
+    if options.external_cert_files:
         if not cainstance.is_step_one_done():
             # This can happen if someone passes external_ca_file without
             # already having done the first stage of the CA install.
@@ -72,10 +59,21 @@ def install_check(standalone, replica_config, options):
 
         external_cert_file, external_ca_file = installutils.load_external_cert(
             options.external_cert_files, options.subject)
+    elif options.external_ca:
+        if cainstance.is_step_one_done():
+            print("CA is already installed.\nRun the installer with "
+                  "--external-cert-file.")
+            sys.exit(1)
+        if ipautil.file_exists(paths.ROOT_IPA_CSR):
+            print("CA CSR file %s already exists.\nIn order to continue "
+                  "remove the file and run the installer again." %
+                  paths.ROOT_IPA_CSR)
+            sys.exit(1)
 
-    if not cainstance.check_port():
-        print ("IPA requires port 8443 for PKI but it is currently in use.")
-        sys.exit("Aborting installation")
+    if not options.external_cert_files:
+        if not cainstance.check_port():
+            print("IPA requires port 8443 for PKI but it is currently in use.")
+            sys.exit("Aborting installation")
 
     if standalone:
         dirname = dsinstance.config_dirname(

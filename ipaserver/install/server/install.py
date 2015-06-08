@@ -422,8 +422,6 @@ def install_check(options):
         # Make sure the 389-ds ports are available
         check_dirsrv(options.unattended)
 
-    ca.install_check(False, None, options)
-
     if options.conf_ntp:
         try:
             ipaclient.ntpconf.check_timedate_services()
@@ -577,6 +575,9 @@ def install_check(options):
             sys.exit("IPA admin password required")
     else:
         admin_password = options.admin_password
+
+    if setup_ca:
+        ca.install_check(False, None, options)
 
     if setup_kra:
         try:
@@ -760,7 +761,7 @@ def install(options):
             options.subject, 1101, 1100, None)
 
     if setup_ca:
-        if options.external_ca:
+        if not options.external_cert_files and options.external_ca:
             # stage 1 of external CA installation
             options.realm_name = realm_name
             options.domain_name = domain_name
