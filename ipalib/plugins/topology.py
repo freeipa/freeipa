@@ -236,7 +236,8 @@ class topologysegment_mod(LDAPUpdate):
 
 @register()
 class topologysegment_refresh(LDAPQuery):
-    __doc__ = _('Request a replication refresh of specified node.')
+    __doc__ = _('Request a full re-initialization of the node '
+                'retrieving data from the other node.')
 
     has_output = output.standard_value
     msg_summary = _('%(value)s')
@@ -272,17 +273,23 @@ class topologysegment_refresh(LDAPQuery):
         left = options.get('left')
         right = options.get('right')
         stop = options.get('stop')
+
+        if not left and not right:
+            raise errors.OptionError(
+                _('left or right node has to be specified')
+            )
+
+        if left and right:
+            raise errors.OptionError(
+                _('only one node can be specified')
+            )
+
         action = u'start'
         msg = _('Replication refresh for segment: "%(pkey)s" requested.')
         if stop:
             action = u'stop'
             msg = _('Stopping of replication refresh for segment: "'
                     '%(pkey)s" requested.')
-
-        if not left and not right:
-            raise errors.OptionError(
-                _('at least one node has to be specified')
-            )
 
         if left:
             entry['nsds5beginreplicarefresh;left'] = [action]
