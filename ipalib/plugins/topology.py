@@ -355,6 +355,8 @@ class topologysuffix_find(LDAPSearch):
 class topologysuffix_del(LDAPDelete):
     __doc__ = _('Delete a topology suffix.')
 
+    NO_CLI = True
+
     msg_summary = _('Deleted topology suffix "%(value)s"')
 
     def pre_callback(self, ldap, dn, *keys, **options):
@@ -367,6 +369,8 @@ class topologysuffix_del(LDAPDelete):
 class topologysuffix_add(LDAPCreate):
     __doc__ = _('Add a new topology suffix to be managed.')
 
+    NO_CLI = True
+
     msg_summary = _('Added topology suffix "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -378,6 +382,8 @@ class topologysuffix_add(LDAPCreate):
 @register()
 class topologysuffix_mod(LDAPUpdate):
     __doc__ = _('Modify a topology suffix.')
+
+    NO_CLI = True
 
     msg_summary = _('Modified topology suffix "%(value)s"')
 
