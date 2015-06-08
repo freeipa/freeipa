@@ -20,7 +20,7 @@ from ipaplatform.paths import paths
 from ipalib import api, certstore, constants, create_api, errors, x509
 import ipaclient.ntpconf
 from ipaserver.install import (
-    bindinstance, cainstance, dns, dsinstance, httpinstance, installutils, kra,
+    bindinstance, ca, dns, dsinstance, httpinstance, installutils, kra,
     krbinstance, memcacheinstance, ntpinstance, otpdinstance, service)
 from ipaserver.install.installutils import create_replica_config
 from ipaserver.install.replication import (
@@ -326,11 +326,6 @@ def install_check(filename, options):
 
     check_dirsrv()
 
-    if options.setup_ca:
-        if not cainstance.check_port():
-            print "IPA requires port 8443 for PKI but it is currently in use."
-            sys.exit("Aborting installation")
-
     if options.conf_ntp:
         try:
             ipaclient.ntpconf.check_timedate_services()
@@ -356,12 +351,14 @@ def install_check(filename, options):
     global REPLICA_INFO_TOP_DIR
     REPLICA_INFO_TOP_DIR = config.top_dir
     config.setup_ca = options.setup_ca
-
-    if config.setup_ca and not ipautil.file_exists(config.dir + "/cacert.p12"):
-        print 'CA cannot be installed in CA-less setup.'
-        sys.exit(1)
-
     config.setup_kra = options.setup_kra
+
+    if options.setup_ca:
+        options.realm_name = config.realm_name
+        options.host_name = config.host_name
+        options.subject = config.subject_base
+        ca.install_check(False, config, options)
+
     if config.setup_kra:
         try:
             kra.install_check(config, options, False,
@@ -398,6 +395,8 @@ def install_check(filename, options):
 def install(filename, options):
     global config
 
+    dogtag_constants = dogtag.install_constants
+
     # Create the management framework config file
     # Note: We must do this before bootstraping and finalizing ipalib.api
     old_umask = os.umask(022)   # must be readable for httpd
@@ -416,8 +415,7 @@ def install(filename, options):
         if ipautil.file_exists(config.dir + "/cacert.p12"):
             fd.write("enable_ra=True\n")
             fd.write("ra_plugin=dogtag\n")
-            fd.write("dogtag_version=%s\n" %
-                     dogtag.install_constants.DOGTAG_VERSION)
+            fd.write("dogtag_version=%s\n" % dogtag_constants.DOGTAG_VERSION)
         else:
             fd.write("enable_ra=False\n")
             fd.write("ra_plugin=none\n")
@@ -538,11 +536,6 @@ def install(filename, options):
             if replman and replman.conn:
                 replman.conn.unbind()
 
-        if options.skip_schema_check:
-            root_logger.info("Skipping CA DS schema check")
-        else:
-            cainstance.replica_ca_install_check(config)
-
         # Configure ntpd
         if options.conf_ntp:
             ipaclient.ntpconf.force_ntpd(sstore)
@@ -552,22 +545,19 @@ def install(filename, options):
         # Configure dirsrv
         ds = install_replica_ds(config)
 
-        # Configure the CA if necessary
-        CA = cainstance.install_replica_ca(config)
-
         # Always try to install DNS records
         install_dns_records(config, options, remote_api)
     finally:
         if conn.isconnected():
             conn.disconnect()
 
-    # We need to ldap_enable the CA now that DS is up and running
-    if CA and config.setup_ca:
-        CA.ldap_enable('CA', config.host_name, config.dirman_password,
-                       ipautil.realm_to_suffix(config.realm_name))
+    if config.setup_ca:
+        options.realm_name = config.realm_name
+        options.domain_name = config.domain_name
+        options.dm_password = config.dirman_password
+        options.host_name = config.host_name
 
-        # This is done within stopped_service context, which restarts CA
-        CA.enable_client_auth_to_db(CA.dogtag_constants.CS_CFG_PATH)
+        ca.install(False, config, options)
 
     krb = install_krb(config, setup_pkinit=options.setup_pkinit)
     http = install_http(config, auto_redirect=options.ui_redirect)
@@ -575,11 +565,6 @@ def install(filename, options):
     otpd = otpdinstance.OtpdInstance()
     otpd.create_instance('OTPD', config.host_name, config.dirman_password,
                          ipautil.realm_to_suffix(config.realm_name))
-
-    if CA:
-        CA.configure_certmonger_renewal()
-        CA.import_ra_cert(config.dir + "/ra.p12")
-        CA.fix_ra_perms()
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated
@@ -598,9 +583,9 @@ def install(filename, options):
     service.print_msg("Restarting the KDC")
     krb.restart()
 
-    if CA and config.setup_ca:
-        service.print_msg("Restarting the certificate server")
-        CA.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
+    if config.setup_ca:
+        dogtag_service = services.knownservices[dogtag_constants.SERVICE_NAME]
+        dogtag_service.restart(dogtag_constants.PKI_INSTANCE_NAME)
 
     if options.setup_dns:
         api.Backend.ldap2.connect(autobind=True)

@@ -128,6 +128,9 @@ def parse_options():
     elif options.reverse_zones and options.no_reverse:
         parser.error("You cannot specify a --reverse-zone option together with --no-reverse")
 
+    options.external_ca = None
+    options.external_cert_files = None
+
     options.zonemgr = None
     options.dnssec_master = False
 

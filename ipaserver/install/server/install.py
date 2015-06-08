@@ -23,12 +23,12 @@ from ipalib.constants import CACERT
 from ipalib.util import validate_domain_name
 import ipaclient.ntpconf
 from ipaserver.install import (
-    bindinstance, cainstance, certs, dns, dsinstance, httpinstance,
+    bindinstance, ca, cainstance, certs, dns, dsinstance, httpinstance,
     installutils, kra, krbinstance, memcacheinstance, ntpinstance,
     otpdinstance, replication, service, sysupgrade)
 from ipaserver.install.installutils import (
     IPA_MODULES, BadHostError, get_fqdn, get_server_ip_address,
-    is_ipa_configured, load_external_cert, load_pkcs12, private_ccache,
+    is_ipa_configured, load_pkcs12, private_ccache,
     read_password, verify_fqdn)
 from ipaserver.plugins.ldap2 import ldap2
 try:
@@ -360,25 +360,6 @@ def install_check(options):
     global sstore
     sstore = sysrestore.StateFile(SYSRESTORE_DIR_PATH)
 
-    if options.external_ca:
-        if cainstance.is_step_one_done():
-            print("CA is already installed.\nRun the installer with "
-                  "--external-cert-file.")
-            sys.exit(1)
-        if ipautil.file_exists(paths.ROOT_IPA_CSR):
-            print("CA CSR file %s already exists.\nIn order to continue "
-                  "remove the file and run the installer again." %
-                  paths.ROOT_IPA_CSR)
-            sys.exit(1)
-    elif options.external_cert_files:
-        if not cainstance.is_step_one_done():
-            # This can happen if someone passes external_ca_file without
-            # already having done the first stage of the CA install.
-            print("CA is not installed yet. To install with an external CA "
-                  "is a two-stage process.\nFirst run the installer with "
-                  "--external-ca.")
-            sys.exit(1)
-
     # This will override any settings passed in on the cmdline
     if ipautil.file_exists(paths.ROOT_IPA_CACHE):
         if options.dm_password is not None:
@@ -391,10 +372,6 @@ def install_check(options):
             options._update_loose(read_cache(dm_password))
         except Exception, e:
             sys.exit("Cannot process the cache file: %s" % str(e))
-
-    if options.external_cert_files:
-        external_cert_file, external_ca_file = load_external_cert(
-            options.external_cert_files, options.subject)
 
     # We only set up the CA if the PKCS#12 options are not given.
     if options.dirsrv_cert_files:
@@ -442,11 +419,7 @@ def install_check(options):
         # Make sure the 389-ds ports are available
         check_dirsrv(options.unattended)
 
-        if setup_ca:
-            if not cainstance.check_port():
-                print("IPA requires port 8443 for PKI but it is currently in "
-                      "use.")
-                sys.exit("Aborting installation")
+    ca.install_check(False, None, options)
 
     if options.conf_ntp:
         try:
@@ -684,6 +657,8 @@ def install(options):
     global ds
     global installation_cleanup
 
+    dogtag_constants = dogtag.install_constants
+
     # Installation has started. No IPA sysrestore items are restored in case of
     # failure to enable root cause investigation
     installation_cleanup = False
@@ -695,15 +670,6 @@ def install(options):
         in_server=True,
         debug=options.debug
     )
-
-    # Figure out what external CA step we're in. See cainstance.py for more
-    # info on the 3 states.
-    if options.external_cert_files:
-        external = 2
-    elif options.external_ca:
-        external = 1
-    else:
-        external = 0
 
     # Create the management framework config file and finalize api
     target_fname = paths.IPA_DEFAULT_CONF
@@ -719,8 +685,7 @@ def install(options):
     if setup_ca:
         fd.write("enable_ra=True\n")
         fd.write("ra_plugin=dogtag\n")
-        fd.write("dogtag_version=%s\n" %
-                 dogtag.install_constants.DOGTAG_VERSION)
+        fd.write("dogtag_version=%s\n" % dogtag_constants.DOGTAG_VERSION)
     else:
         fd.write("enable_ra=False\n")
         fd.write("ra_plugin=none\n")
@@ -757,7 +722,7 @@ def install(options):
     dsinstance.create_ds_user()
 
     # Create a directory server instance
-    if external != 2:
+    if not options.external_cert_files:
         # Configure ntpd
         if options.conf_ntp:
             ipaclient.ntpconf.force_ntpd(sstore)
@@ -789,14 +754,7 @@ def install(options):
             options.subject, 1101, 1100, None)
 
     if setup_ca:
-        ca = cainstance.CAInstance(realm_name, certs.NSS_DIR,
-                                   dogtag_constants=dogtag.install_constants)
-        if external == 0:
-            ca.configure_instance(
-                host_name, domain_name, dm_password, dm_password,
-                subject_base=options.subject,
-                ca_signing_algorithm=options.ca_signing_algorithm)
-        elif external == 1:
+        if options.external_ca:
             # stage 1 of external CA installation
             options.realm_name = realm_name
             options.domain_name = domain_name
@@ -808,23 +766,13 @@ def install(options):
             options.forwarders = dns.dns_forwarders
             options.reverse_zones = dns.reverse_zones
             write_cache(vars(options))
-            ca.configure_instance(
-                host_name, domain_name, dm_password, dm_password,
-                csr_file=paths.ROOT_IPA_CSR,
-                subject_base=options.subject,
-                ca_signing_algorithm=options.ca_signing_algorithm,
-                ca_type=options.external_ca_type)
-        else:
-            # stage 2 of external CA installation
-            ca.configure_instance(
-                host_name, domain_name, dm_password, dm_password,
-                cert_file=external_cert_file.name,
-                cert_chain_file=external_ca_file.name,
-                subject_base=options.subject,
-                ca_signing_algorithm=options.ca_signing_algorithm)
+
+        ca.install_step_0(False, None, options)
 
         # Now put the CA cert where other instances exepct it
-        ca.publish_ca_cert(CACERT)
+        ca_instance = cainstance.CAInstance(realm_name, certs.NSS_DIR,
+                                            dogtag_constants=dogtag_constants)
+        ca_instance.publish_ca_cert(CACERT)
     else:
         # Put the CA cert where other instances expect it
         x509.write_certificate(http_ca_cert, CACERT)
@@ -834,13 +782,7 @@ def install(options):
     ds.enable_ssl()
 
     if setup_ca:
-        # We need to ldap_enable the CA now that DS is up and running
-        ca.ldap_enable('CA', host_name, dm_password,
-                       ipautil.realm_to_suffix(realm_name),
-                       ['caRenewalMaster'])
-
-        # This is done within stopped_service context, which restarts CA
-        ca.enable_client_auth_to_db(ca.dogtag_constants.CS_CFG_PATH)
+        ca.install_step_1(False, None, options)
 
     krb = krbinstance.KrbInstance(fstore)
     if options.pkinit_cert_files:
@@ -903,8 +845,8 @@ def install(options):
     krb.restart()
 
     if setup_ca:
-        service.print_msg("Restarting the certificate server")
-        ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
+        dogtag_service = services.knownservices[dogtag_constants.SERVICE_NAME]
+        dogtag_service.restart(dogtag_constants.PKI_INSTANCE_NAME)
 
     if options.setup_dns:
         api.Backend.ldap2.connect(autobind=True)
@@ -1125,19 +1067,10 @@ def uninstall(options):
         print "ipa-client-install returned: " + str(e)
 
     ntpinstance.NTPInstance(fstore).uninstall()
-    if not dogtag_constants.SHARED_DB:
-        cads_instance = cainstance.CADSInstance(
-            dogtag_constants=dogtag_constants)
-        if cads_instance.is_configured():
-            cads_instance.uninstall()
 
     kra.uninstall()
 
-    ca_instance = cainstance.CAInstance(
-        api.env.realm, certs.NSS_DIR, dogtag_constants=dogtag_constants)
-    ca_instance.stop_tracking_certificates()
-    if ca_instance.is_configured():
-        ca_instance.uninstall()
+    ca.uninstall(dogtag_constants)
 
     dns.uninstall()
 
