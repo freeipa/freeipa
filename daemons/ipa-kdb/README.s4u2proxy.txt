@@ -31,7 +31,7 @@ principals that are being considered proxies[1]. That is: the
 principals of the services that want to impersonate client principals
 against other services.
 
-The ipaAllowedToImpersonate must point to a groupOfPrincipal based
+The ipaAllowToImpersonate must point to a groupOfPrincipal based
 object that contains the list of client principals (normally these are
 user principals) that can be impersonated by this service.
 If the attribute is missing than the service is allowed to impersonate
@@ -46,7 +46,7 @@ order to allow a service to access it impersonating another principal.
 At the moment no wildcarding is implemented so services have to be
 explicitly listed in their respective groups.
 I have some idea of adding wildcard support at least for the
-ipaAllowedToImpersonate group in order to separate user principals by
+ipaAllowToImpersonate group in order to separate user principals by
 REALM. So you can say all users of REALM1 can be impersonated by this
 service but no users of REALM2.
 
@@ -94,6 +94,15 @@ This is done with:
 kdamin.local
 modprinc +ok_to_auth_as_delegate HTTP/ipaserver.example.com
 
+NOTE: Do not grant +ok_to_auth_as_delegate in production without
+carefully considering the outcome. This flags grants a service the
+ability to impersonate any user to itself, which, combined with the
+permission to proxy, means it will be allowed to impersonate any user
+to the target service w/o any explicit user permission/delegation.
+This flag is *NOT* necessary to permit proxying, it is used in this
+example only because the kvno utility is hardwired to test both s4u2self
+and s4u2proxy at the same time and would fail to operate without it.
+
 Then run kvno as follows:
 
 # Init credntials as HTTP
@@ -109,6 +118,9 @@ ldap/ipaserver.example.com
 
 If this works it means you successfully impersonated the admin user with
 the HTTP service against the ldap service.
+
+Cleanup by removing the self-impersonation flag:
+modprinc -ok_to_auth_as_delegate HTTP/ipaserver.example.com
 
 Simo.
 
