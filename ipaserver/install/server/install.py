@@ -313,6 +313,9 @@ def common_cleanup(func):
 
 @common_cleanup
 def install_check(options):
+    global dirsrv_pkcs12_file
+    global http_pkcs12_file
+    global pkinit_pkcs12_file
     global dirsrv_pkcs12_info
     global http_pkcs12_info
     global pkinit_pkcs12_info
@@ -637,6 +640,9 @@ def install_check(options):
 
 @common_cleanup
 def install(options):
+    global dirsrv_pkcs12_file
+    global http_pkcs12_file
+    global pkinit_pkcs12_file
     global dirsrv_pkcs12_info
     global http_pkcs12_info
     global pkinit_pkcs12_info
