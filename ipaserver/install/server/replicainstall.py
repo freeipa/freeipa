@@ -29,6 +29,7 @@ from ipaserver.install.server.install import (
     init_private_ccache, destroy_private_ccache)
 
 DIRMAN_DN = DN(('cn', 'directory manager'))
+REPLICA_INFO_TOP_DIR = None
 
 
 def get_dirman_password():
