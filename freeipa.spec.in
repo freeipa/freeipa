@@ -89,7 +89,7 @@ BuildRequires:  libunistring-devel
 BuildRequires:  python-lesscpy
 BuildRequires:  python-yubico >= 1.2.3
 BuildRequires:  python-backports-ssl_match_hostname
-BuildRequires:  softhsm-devel >= 2.0.0b1-3
+BuildRequires:  softhsm-devel >= 2.0.0rc1-1
 BuildRequires:  openssl-devel
 BuildRequires:  p11-kit-devel
 BuildRequires:  pki-base >= 10.2.4-1

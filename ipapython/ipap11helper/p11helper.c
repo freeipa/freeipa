@@ -50,8 +50,8 @@
 #include "library.h"
 
 // compat TODO
-#define CKM_AES_KEY_WRAP           (0x1090)
-#define CKM_AES_KEY_WRAP_PAD       (0x1091)
+#define CKM_AES_KEY_WRAP           (0x2109)
+#define CKM_AES_KEY_WRAP_PAD       (0x210a)
 
 // TODO
 #define CKA_COPYABLE           (0x0017)
