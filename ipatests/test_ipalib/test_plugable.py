@@ -97,16 +97,6 @@ class test_Plugin(ClassChecker):
         o.finalize()
         assert o.__islocked__()
 
-    def test_call(self):
-        """
-        Test the `ipalib.plugable.Plugin.call` method.
-        """
-        o = self.cls()
-        o.call(paths.BIN_TRUE) is None
-        e = raises(errors.SubprocessError, o.call, paths.BIN_FALSE)
-        assert e.returncode == 1
-        assert e.argv == (paths.BIN_FALSE,)
-
 
 def test_Registrar():
     """

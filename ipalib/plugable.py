@@ -31,7 +31,6 @@ import inspect
 import threading
 import os
 from os import path
-import subprocess
 import optparse
 import errors
 import textwrap
@@ -228,23 +227,6 @@ class Plugin(ReadOnly):
                 raise AttributeError(
                     "attribute '%s' of plugin '%s' was not set in finalize()" % (self.name, obj.name)
                 )
-
-    def call(self, executable, *args):
-        """
-        Call ``executable`` with ``args`` using subprocess.call().
-
-        If the call exits with a non-zero exit status,
-        `ipalib.errors.SubprocessError` is raised, from which you can retrieve
-        the exit code by checking the SubprocessError.returncode attribute.
-
-        This method does *not* return what ``executable`` sent to stdout... for
-        that, use `Plugin.callread()`.
-        """
-        argv = (executable,) + args
-        self.debug('Calling %r', argv)
-        code = subprocess.call(argv)
-        if code != 0:
-            raise errors.SubprocessError(returncode=code, argv=argv)
 
     def __repr__(self):
         """
