@@ -14,6 +14,9 @@ import tempfile
 
 from ipapython import dogtag, ipautil, sysrestore
 from ipapython.dn import DN
+from ipapython.install import common, core
+from ipapython.install.common import step
+from ipapython.install.core import Knob
 from ipapython.ipa_log_manager import root_logger
 from ipaplatform import services
 from ipaplatform.tasks import tasks
@@ -28,7 +31,6 @@ from ipaserver.install.replication import (
     ReplicationManager, replica_conn_check)
 
 DIRMAN_DN = DN(('cn', 'directory manager'))
-REPLICA_INFO_TOP_DIR = None
 
 
 def get_dirman_password():
@@ -162,7 +164,7 @@ def install_dns_records(config, options, remote_api):
                                         config.realm_name,
                                         config.domain_name,
                                         reverse_zone,
-                                        options.conf_ntp,
+                                        not options.no_ntp,
                                         options.setup_ca)
     except errors.NotFound, e:
         root_logger.debug('Replica DNS records could not be added '
@@ -276,60 +278,38 @@ def check_dns_resolution(host_name, dns_servers):
     return no_errors
 
 
-def remove_replica_info_dir():
+def remove_replica_info_dir(installer):
     # always try to remove decrypted replica file
     try:
-        if REPLICA_INFO_TOP_DIR:
-            shutil.rmtree(REPLICA_INFO_TOP_DIR)
+        if installer._top_dir is not None:
+            shutil.rmtree(installer._top_dir)
     except OSError:
         pass
 
 
-def init_private_ccache():
-    global original_ccache
-    global temp_ccache
-
-    (desc, temp_ccache) = tempfile.mkstemp(prefix='krbcc')
-    os.close(desc)
-
-    original_ccache = os.environ.get('KRB5CCNAME')
-
-    os.environ['KRB5CCNAME'] = temp_ccache
-
-
-def destroy_private_ccache():
-    global original_ccache
-    global temp_ccache
-
-    if original_ccache is not None:
-        os.environ['KRB5CCNAME'] = original_ccache
-    else:
-        os.environ.pop('KRB5CCNAME', None)
-
-    if os.path.exists(temp_ccache):
-        os.remove(temp_ccache)
-
-
 def common_cleanup(func):
-    def decorated(*args, **kwargs):
+    def decorated(installer):
         try:
             try:
-                func(*args, **kwargs)
+                func(installer)
             except BaseException:
-                destroy_private_ccache()
-                remove_replica_info_dir()
+                remove_replica_info_dir(installer)
                 raise
         except KeyboardInterrupt:
             sys.exit(1)
+        except Exception:
+            print(
+                "Your system may be partly configured.\n"
+                "Run /usr/sbin/ipa-server-install --uninstall to clean up.\n")
+            raise
 
     return decorated
 
 
 @common_cleanup
-def install_check(filename, options):
-    global config
-
-    init_private_ccache()
+def install_check(installer):
+    options = installer
+    filename = installer.replica_file
 
     tasks.check_selinux_status()
 
@@ -339,10 +319,8 @@ def install_check(filename, options):
                  "Please uninstall it first before configuring the replica, "
                  "using 'ipa-client-install --uninstall'.")
 
-    global sstore
     sstore = sysrestore.StateFile(paths.SYSRESTORE)
 
-    global fstore
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     # Check to see if httpd is already configured to listen on 443
@@ -351,7 +329,7 @@ def install_check(filename, options):
 
     check_dirsrv()
 
-    if options.conf_ntp:
+    if not options.no_ntp:
         try:
             ipaclient.ntpconf.check_timedate_services()
         except ipaclient.ntpconf.NTPConflictingService, e:
@@ -373,8 +351,7 @@ def install_check(filename, options):
             sys.exit("Directory Manager password required")
 
     config = create_replica_config(dirman_password, filename, options)
-    global REPLICA_INFO_TOP_DIR
-    REPLICA_INFO_TOP_DIR = config.top_dir
+    installer._top_dir = config.top_dir
     config.setup_ca = options.setup_ca
     config.setup_kra = options.setup_kra
 
@@ -398,7 +375,7 @@ def install_check(filename, options):
         dns.install_check(False, True, options, config.host_name)
     else:
         installutils.get_server_ip_address(config.host_name, fstore,
-                                           options.unattended, False,
+                                           not installer.interactive, False,
                                            options.ip_addresses)
 
     # check connection
@@ -407,18 +384,22 @@ def install_check(filename, options):
             config.master_host_name, config.host_name, config.realm_name,
             options.setup_ca, config.ca_ds_port, options.admin_password)
 
-    # Automatically disable pkinit w/ dogtag until that is supported
-    options.setup_pkinit = False
-
     cafile = config.dir + "/ca.crt"
     if not ipautil.file_exists(cafile):
         raise RuntimeError("CA cert file is not available. Please run "
                            "ipa-replica-prepare to create a new replica file.")
 
+    installer._fstore = fstore
+    installer._sstore = sstore
+    installer._config = config
+
 
 @common_cleanup
-def install(filename, options):
-    global config
+def install(installer):
+    options = installer
+    fstore = installer._fstore
+    sstore = installer._sstore
+    config = installer._config
 
     dogtag_constants = dogtag.install_constants
 
@@ -544,7 +525,7 @@ def install(filename, options):
                     resolution_ok = (
                         check_dns_resolution(master, dns_masters) and
                         check_dns_resolution(config.host_name, dns_masters))
-                    if not resolution_ok and not options.unattended:
+                    if not resolution_ok and installer.interactive:
                         if not ipautil.user_input("Continue?", False):
                             sys.exit(0)
             else:
@@ -562,7 +543,7 @@ def install(filename, options):
                 replman.conn.unbind()
 
         # Configure ntpd
-        if options.conf_ntp:
+        if not options.no_ntp:
             ipaclient.ntpconf.force_ntpd(sstore)
             ntp = ntpinstance.NTPInstance()
             ntp.create_instance()
@@ -584,8 +565,8 @@ def install(filename, options):
 
         ca.install(False, config, options)
 
-    krb = install_krb(config, setup_pkinit=options.setup_pkinit)
-    http = install_http(config, auto_redirect=options.ui_redirect)
+    krb = install_krb(config, setup_pkinit=not options.no_pkinit)
+    http = install_http(config, auto_redirect=not options.no_ui_redirect)
 
     otpd = otpdinstance.OtpdInstance()
     otpd.create_instance('OTPD', config.host_name, config.dirman_password,
@@ -625,13 +606,13 @@ def install(filename, options):
         args = [paths.IPA_CLIENT_INSTALL, "--on-master", "--unattended",
                 "--domain", config.domain_name, "--server", config.host_name,
                 "--realm", config.realm_name]
-        if not options.create_sshfp:
+        if options.no_dns_sshfp:
             args.append("--no-dns-sshfp")
-        if options.trust_sshfp:
+        if options.ssh_trust_dns:
             args.append("--ssh-trust-dns")
-        if not options.conf_ssh:
+        if options.no_ssh:
             args.append("--no-ssh")
-        if not options.conf_sshd:
+        if options.no_sshd:
             args.append("--no-sshd")
         if options.mkhomedir:
             args.append("--mkhomedir")
@@ -646,5 +627,228 @@ def install(filename, options):
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()
 
-    destroy_private_ccache()
-    remove_replica_info_dir()
+    remove_replica_info_dir(installer)
+
+
+class ReplicaCA(common.Installable, core.Group, core.Composite):
+    description = "certificate system"
+
+    no_pkinit = Knob(
+        bool, False,
+        description="disables pkinit setup steps",
+    )
+
+    skip_schema_check = Knob(
+        bool, False,
+        description="skip check for updated CA DS schema on the remote master",
+    )
+
+
+class ReplicaDNS(common.Installable, core.Group, core.Composite):
+    description = "DNS"
+
+    setup_dns = Knob(
+        bool, False,
+        description="configure bind with our zone",
+    )
+
+    forwarders = Knob(
+        (list, 'ip'), None,
+        description=("Add a DNS forwarder. This option can be used multiple "
+                     "times"),
+        cli_name='forwarder',
+    )
+
+    no_forwarders = Knob(
+        bool, False,
+        description="Do not add any DNS forwarders, use root servers instead",
+    )
+
+    reverse_zones = Knob(
+        (list, str), [],
+        description=("The reverse DNS zone to use. This option can be used "
+                     "multiple times"),
+        cli_name='reverse-zone',
+    )
+
+    no_reverse = Knob(
+        bool, False,
+        description="Do not create new reverse DNS zone",
+    )
+
+    no_dnssec_validation = Knob(
+        bool, False,
+        description="Disable DNSSEC validation",
+    )
+
+    no_host_dns = Knob(
+        bool, False,
+        description="Do not use DNS for hostname lookup during installation",
+    )
+
+    no_dns_sshfp = Knob(
+        bool, False,
+        description="do not automatically create DNS SSHFP records",
+    )
+
+
+class Replica(common.Installable, common.Interactive, core.Composite):
+    replica_file = Knob(
+        str, None,
+        description="a file generated by ipa-replica-prepare",
+    )
+
+    setup_ca = Knob(
+        bool, False,
+        initializable=False,
+        description="configure a dogtag CA",
+    )
+
+    setup_kra = Knob(
+        bool, False,
+        initializable=False,
+        description="configure a dogtag KRA",
+    )
+
+    ip_addresses = Knob(
+        (list, 'ip-local'), None,
+        description=("Replica server IP Address. This option can be used "
+                     "multiple times"),
+        cli_name='ip-address',
+    )
+
+    password = Knob(
+        str, None,
+        sensitive=True,
+        description="Directory Manager (existing master) password",
+        cli_short_name='p',
+    )
+
+    master_password = Knob(
+        str, None,
+        sensitive=True,
+        deprecated=True,
+        description="kerberos master password (normally autogenerated)",
+        cli_short_name='P',
+    )
+
+    admin_password = Knob(
+        str, None,
+        sensitive=True,
+        description="Admin user Kerberos password used for connection check",
+        cli_short_name='w',
+    )
+
+    mkhomedir = Knob(
+        bool, False,
+        description="create home directories for users on their first login",
+    )
+
+    no_ntp = Knob(
+        bool, False,
+        description="do not configure ntp",
+    )
+
+    no_ui_redirect = Knob(
+        bool, False,
+        description="Do not automatically redirect to the Web UI",
+    )
+
+    ssh_trust_dns = Knob(
+        bool, False,
+        description="configure OpenSSH client to trust DNS SSHFP records",
+    )
+
+    no_ssh = Knob(
+        bool, False,
+        description="do not configure OpenSSH client",
+    )
+
+    no_sshd = Knob(
+        bool, False,
+        description="do not configure OpenSSH server",
+    )
+
+    skip_conncheck = Knob(
+        bool, False,
+        description="skip connection check to remote master",
+    )
+
+    def __init__(self, **kwargs):
+        super(Replica, self).__init__(**kwargs)
+
+        self._top_dir = None
+        self._config = None
+
+        #pylint: disable=no-member
+
+        if self.replica_file is None:
+            raise RuntimeError(
+                "you must provide a file generated by ipa-replica-prepare")
+        if not ipautil.file_exists(self.replica_file):
+            raise RuntimeError(
+                "Replica file %s does not exist" % self.replica_file)
+
+        if not self.dns.setup_dns:
+            if self.dns.forwarders:
+                raise RuntimeError(
+                    "You cannot specify a --forwarder option without the "
+                    "--setup-dns option")
+            if self.dns.no_forwarders:
+                raise RuntimeError(
+                    "You cannot specify a --no-forwarders option without the "
+                    "--setup-dns option")
+            if self.dns.reverse_zones:
+                raise RuntimeError(
+                    "You cannot specify a --reverse-zone option without the "
+                    "--setup-dns option")
+            if self.dns.no_reverse:
+                raise RuntimeError(
+                    "You cannot specify a --no-reverse option without the "
+                    "--setup-dns option")
+            if self.dns.no_dnssec_validation:
+                raise RuntimeError(
+                    "You cannot specify a --no-dnssec-validation option "
+                    "without the --setup-dns option")
+        elif self.dns.forwarders and self.dns.no_forwarders:
+            raise RuntimeError(
+                "You cannot specify a --forwarder option together with "
+                "--no-forwarders")
+        elif not self.dns.forwarders and not self.dns.no_forwarders:
+            raise RuntimeError(
+                "You must specify at least one --forwarder option or "
+                "--no-forwarders option")
+        elif self.dns.reverse_zones and self.dns.no_reverse:
+            raise RuntimeError(
+                "You cannot specify a --reverse-zone option together with "
+                "--no-reverse")
+
+        # Automatically disable pkinit w/ dogtag until that is supported
+        self.ca.no_pkinit = True
+
+        self.external_ca = False
+        self.external_cert_files = None
+        self.no_pkinit = self.ca.no_pkinit
+        self.skip_schema_check = self.ca.skip_schema_check
+
+        self.setup_dns = self.dns.setup_dns
+        self.forwarders = self.dns.forwarders
+        self.no_forwarders = self.dns.no_forwarders
+        self.reverse_zones = self.dns.reverse_zones
+        self.no_reverse = self.dns.no_reverse
+        self.no_dnssec_validation = self.dns.no_dnssec_validation
+        self.dnssec_master = False
+        self.zonemgr = None
+        self.no_host_dns = self.dns.no_host_dns
+        self.no_dns_sshfp = self.dns.no_dns_sshfp
+
+        self.unattended = not self.interactive
+
+    @step()
+    def main(self):
+        install_check(self)
+        yield
+        install(self)
+
+    ca = core.Component(ReplicaCA)
+    dns = core.Component(ReplicaDNS)

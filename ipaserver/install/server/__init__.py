@@ -3,7 +3,6 @@
 #
 
 from .install import Server
+from .replicainstall import Replica
 
-from .replicainstall import install_check as replica_install_check
-from .replicainstall import install as replica_install
 from .upgrade import upgrade_check, upgrade

@@ -18,148 +18,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import sys
-import os
-from optparse import OptionGroup
-
-from ipapython import ipautil
-from ipaserver.install import installutils
-from ipaserver.install import server
-from ipapython import version
-from ipapython.config import IPAOptionParser
-from ipapython.ipa_log_manager import root_logger, standard_logging_setup
-from ipapython.dn import DN
+from ipapython.install import cli
 from ipaplatform.paths import paths
-
-log_file_name = paths.IPAREPLICA_INSTALL_LOG
-DIRMAN_DN = DN(('cn', 'directory manager'))
-REPLICA_INFO_TOP_DIR = None
+from ipaserver.install.server import Replica
 
 
-def parse_options():
-    usage = "%prog [options] REPLICA_FILE"
-    parser = IPAOptionParser(usage=usage, version=version.VERSION)
-
-    basic_group = OptionGroup(parser, "basic options")
-    basic_group.add_option("--setup-ca", dest="setup_ca", action="store_true",
-                      default=False, help="configure a dogtag CA")
-    basic_group.add_option("--setup-kra", dest="setup_kra", action="store_true",
-                      default=False, help="configure a dogtag KRA")
-    basic_group.add_option("--ip-address", dest="ip_addresses",
-                      type="ip", ip_local=True, action="append", default=[],
-                      help="Replica server IP Address. This option can be used multiple times", metavar="IP_ADDRESS")
-    basic_group.add_option("-p", "--password", dest="password", sensitive=True,
-                      help="Directory Manager (existing master) password")
-    basic_group.add_option("-w", "--admin-password", dest="admin_password", sensitive=True,
-                      help="Admin user Kerberos password used for connection check")
-    basic_group.add_option("--mkhomedir",
-                           dest="mkhomedir",
-                           action="store_true",
-                           default=False,
-                           help="create home directories for users "
-                                "on their first login")
-    basic_group.add_option("-N", "--no-ntp", dest="conf_ntp", action="store_false",
-                      help="do not configure ntp", default=True)
-    basic_group.add_option("--no-ui-redirect", dest="ui_redirect", action="store_false",
-                      default=True, help="Do not automatically redirect to the Web UI")
-    basic_group.add_option("--ssh-trust-dns", dest="trust_sshfp", default=False, action="store_true",
-                      help="configure OpenSSH client to trust DNS SSHFP records")
-    basic_group.add_option("--no-ssh", dest="conf_ssh", default=True, action="store_false",
-                      help="do not configure OpenSSH client")
-    basic_group.add_option("--no-sshd", dest="conf_sshd", default=True, action="store_false",
-                      help="do not configure OpenSSH server")
-    basic_group.add_option("--skip-conncheck", dest="skip_conncheck", action="store_true",
-                      default=False, help="skip connection check to remote master")
-    basic_group.add_option("-d", "--debug", dest="debug", action="store_true",
-                      default=False, help="gather extra debugging information")
-    basic_group.add_option("-U", "--unattended", dest="unattended", action="store_true",
-                      default=False, help="unattended installation never prompts the user")
-    parser.add_option_group(basic_group)
-
-    cert_group = OptionGroup(parser, "certificate system options")
-    cert_group.add_option("--no-pkinit", dest="setup_pkinit", action="store_false",
-                      default=True, help="disables pkinit setup steps")
-    cert_group.add_option("--skip-schema-check", dest="skip_schema_check", action="store_true",
-                      default=False, help="skip check for updated CA DS schema on the remote master")
-    parser.add_option_group(cert_group)
-
-    dns_group = OptionGroup(parser, "DNS options")
-    dns_group.add_option("--setup-dns", dest="setup_dns", action="store_true",
-                      default=False, help="configure bind with our zone")
-    dns_group.add_option("--forwarder", dest="forwarders", action="append",
-                      type="ip", help="Add a DNS forwarder. This option can be used multiple times")
-    dns_group.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
-                      default=False, help="Do not add any DNS forwarders, use root servers instead")
-    dns_group.add_option("--reverse-zone", dest="reverse_zones", default=[],
-                         action="append", help="The reverse DNS zone to use. This option can be used multiple times",
-                        metavar="REVERSE_ZONE")
-    dns_group.add_option("--no-reverse", dest="no_reverse", action="store_true",
-                      default=False, help="Do not create new reverse DNS zone")
-    dns_group.add_option("--no-dnssec-validation", dest="no_dnssec_validation", action="store_true",
-                      default=False, help="Disable DNSSEC validation")
-    dns_group.add_option("--no-host-dns", dest="no_host_dns", action="store_true",
-                      default=False,
-                      help="Do not use DNS for hostname lookup during installation")
-    dns_group.add_option("--no-dns-sshfp", dest="create_sshfp", default=True, action="store_false",
-                      help="do not automatically create DNS SSHFP records")
-    parser.add_option_group(dns_group)
-
-    options, args = parser.parse_args()
-    safe_options = parser.get_safe_opts(options)
-
-    if len(args) != 1:
-        parser.error("you must provide a file generated by ipa-replica-prepare")
-
-    if not options.setup_dns:
-        if options.forwarders:
-            parser.error("You cannot specify a --forwarder option without the --setup-dns option")
-        if options.no_forwarders:
-            parser.error("You cannot specify a --no-forwarders option without the --setup-dns option")
-        if options.reverse_zones:
-            parser.error("You cannot specify a --reverse-zone option without the --setup-dns option")
-        if options.no_reverse:
-            parser.error("You cannot specify a --no-reverse option without the --setup-dns option")
-        if options.no_dnssec_validation:
-            parser.error("You cannot specify a --no-dnssec-validation option without the --setup-dns option")
-    elif options.forwarders and options.no_forwarders:
-        parser.error("You cannot specify a --forwarder option together with --no-forwarders")
-    elif not options.forwarders and not options.no_forwarders:
-        parser.error("You must specify at least one --forwarder option or --no-forwarders option")
-    elif options.reverse_zones and options.no_reverse:
-        parser.error("You cannot specify a --reverse-zone option together with --no-reverse")
-
-    options.external_ca = None
-    options.external_cert_files = None
-
-    options.zonemgr = None
-    options.dnssec_master = False
-
-    return safe_options, options, args[0]
+ReplicaInstall = cli.install_tool(
+    Replica,
+    command_name='ipa-replica-install',
+    positional_arguments='replica_file',
+    usage='%prog [options] REPLICA_FILE',
+    log_file_name=paths.IPAREPLICA_INSTALL_LOG,
+    debug_option=True,
+)
 
 
-def main():
-    safe_options, options, filename = parse_options()
-
-    if os.geteuid() != 0:
-        sys.exit("\nYou must be root to run this script.\n")
-
-    standard_logging_setup(log_file_name, debug=options.debug)
-    root_logger.debug('%s was invoked with argument "%s" and options: %s' % (sys.argv[0], filename, safe_options))
-    root_logger.debug('IPA version %s' % version.VENDOR_VERSION)
-
-    if not ipautil.file_exists(filename):
-        sys.exit("Replica file %s does not exist" % filename)
-
-    server.replica_install_check(filename, options)
-    server.replica_install(filename, options)
-
-
-fail_message = '''
-Your system may be partly configured.
-Run /usr/sbin/ipa-server-install --uninstall to clean up.
-'''
-
-if __name__ == '__main__':
-    installutils.run_script(main, log_file_name=log_file_name,
-                            operation_name='ipa-replica-install',
-                            fail_message=fail_message)
+ReplicaInstall.run_cli()
