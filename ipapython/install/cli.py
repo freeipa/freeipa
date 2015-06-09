@@ -19,16 +19,18 @@ __all__ = ['install_tool', 'uninstall_tool']
 
 
 def install_tool(configurable_class, command_name, log_file_name,
-                 positional_arguments=None, debug_option=False,
+                 positional_arguments=None, usage=None, debug_option=False,
                  uninstall_log_file_name=None,
-                 uninstall_positional_arguments=None):
+                 uninstall_positional_arguments=None, uninstall_usage=None):
     if (uninstall_log_file_name is not None or
-            uninstall_positional_arguments is not None):
+            uninstall_positional_arguments is not None or
+            uninstall_usage is not None):
         uninstall_kwargs = dict(
             configurable_class=configurable_class,
             command_name=command_name,
             log_file_name=uninstall_log_file_name,
             positional_arguments=uninstall_positional_arguments,
+            usage=uninstall_usage,
             debug_option=debug_option,
         )
     else:
@@ -42,6 +44,7 @@ def install_tool(configurable_class, command_name, log_file_name,
             command_name=command_name,
             log_file_name=log_file_name,
             positional_arguments=positional_arguments,
+            usage=usage,
             debug_option=debug_option,
             uninstall_kwargs=uninstall_kwargs,
         )
@@ -49,7 +52,7 @@ def install_tool(configurable_class, command_name, log_file_name,
 
 
 def uninstall_tool(configurable_class, command_name, log_file_name,
-                   positional_arguments=None, debug_option=False):
+                   positional_arguments=None, usage=None, debug_option=False):
     return type(
         'uninstall_tool({0})'.format(configurable_class.__name__),
         (UninstallTool,),
@@ -58,6 +61,7 @@ def uninstall_tool(configurable_class, command_name, log_file_name,
             command_name=command_name,
             log_file_name=log_file_name,
             positional_arguments=positional_arguments,
+            usage=usage,
             debug_option=debug_option,
         )
     )
