@@ -32,7 +32,7 @@ from ipapython import config
 from ipapython import ipa_log_manager
 
 
-class ScriptError(StandardError):
+class ScriptError(Exception):
     """An exception that records an error message and a return value
     """
     def __init__(self, msg='', rval=1):
@@ -169,7 +169,7 @@ class AdminTool(object):
             self.ask_for_options()
             self.setup_logging()
             return_value = self.run()
-        except BaseException, exception:
+        except BaseException as exception:
             traceback = sys.exc_info()[2]
             error_message, return_value = self.handle_error(exception)
             if return_value:
