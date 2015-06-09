@@ -114,8 +114,8 @@ class ConfigureTool(admintool.AdminTool):
                 short_opt_str = '-{0}'.format(knob_cls.cli_short_name)
             else:
                 short_opt_str = ''
-            cli_name = knob_cls.cli_name or name
-            opt_str = '--{0}'.format(cli_name.replace('_', '-'))
+            cli_name = knob_cls.cli_name or name.replace('_', '-')
+            opt_str = '--{0}'.format(cli_name)
             if not knob_cls.deprecated:
                 help = knob_cls.description
             else:
@@ -127,8 +127,9 @@ class ConfigureTool(admintool.AdminTool):
             )
 
             if knob_cls.cli_aliases:
+                opt_strs = ['--{0}'.format(a) for a in knob_cls.cli_aliases]
                 opt_group.add_option(
-                    *knob_cls.cli_aliases,
+                    *opt_strs,
                     help=optparse.SUPPRESS_HELP,
                     **kwargs
                 )
@@ -201,8 +202,8 @@ class ConfigureTool(admintool.AdminTool):
             cfgr = transformed_cls(**kwargs)
         except core.KnobValueError as e:
             knob_cls = getattr(transformed_cls, e.name)
-            cli_name = knob_cls.cli_name or e.name
-            opt_str = '--{0}'.format(cli_name.replace('_', '-'))
+            cli_name = knob_cls.cli_name or e.name.replace('_', '-')
+            opt_str = '--{0}'.format(cli_name)
             self.option_parser.error("option {0}: {1}".format(opt_str, e))
         except RuntimeError as e:
             self.option_parser.error(str(e))

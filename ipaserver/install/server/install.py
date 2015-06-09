@@ -1165,8 +1165,8 @@ class ServerCA(common.Installable, core.Group, core.Composite):
         (list, str), None,
         description=("File containing the IPA CA certificate and the external "
                      "CA certificate chain (can be specified multiple times)"),
-        cli_name='external_cert_file',
-        cli_aliases=['--external_cert_file', '--external_ca_file'],
+        cli_name='external-cert-file',
+        cli_aliases=['external_cert_file', 'external_ca_file'],
         cli_metavar='FILE',
     )
 
@@ -1184,8 +1184,8 @@ class ServerCA(common.Installable, core.Group, core.Composite):
         (list, str), None,
         description=("File containing the Directory Server SSL certificate "
                      "and private key"),
-        cli_name='dirsrv_cert_file',
-        cli_aliases=['--dirsrv_pkcs12'],
+        cli_name='dirsrv-cert-file',
+        cli_aliases=['dirsrv_pkcs12'],
         cli_metavar='FILE',
     )
 
@@ -1193,8 +1193,8 @@ class ServerCA(common.Installable, core.Group, core.Composite):
         (list, str), None,
         description=("File containing the Apache Server SSL certificate and "
                      "private key"),
-        cli_name='http_cert_file',
-        cli_aliases=['--http_pkcs12'],
+        cli_name='http-cert-file',
+        cli_aliases=['http_pkcs12'],
         cli_metavar='FILE',
     )
 
@@ -1202,8 +1202,8 @@ class ServerCA(common.Installable, core.Group, core.Composite):
         (list, str), None,
         description=("File containing the Kerberos KDC SSL certificate and "
                      "private key"),
-        cli_name='pkinit_cert_file',
-        cli_aliases=['--pkinit_pkcs12'],
+        cli_name='pkinit-cert-file',
+        cli_aliases=['pkinit_pkcs12'],
         cli_metavar='FILE',
     )
 
@@ -1211,7 +1211,7 @@ class ServerCA(common.Installable, core.Group, core.Composite):
         str, None,
         sensitive=True,
         description="The password to unlock the Directory Server private key",
-        cli_aliases=['--dirsrv_pin'],
+        cli_aliases=['dirsrv_pin'],
         cli_metavar='PIN',
     )
 
@@ -1219,7 +1219,7 @@ class ServerCA(common.Installable, core.Group, core.Composite):
         str, None,
         sensitive=True,
         description="The password to unlock the Apache Server private key",
-        cli_aliases=['--http_pin'],
+        cli_aliases=['http_pin'],
         cli_metavar='PIN',
     )
 
@@ -1227,7 +1227,7 @@ class ServerCA(common.Installable, core.Group, core.Composite):
         str, None,
         sensitive=True,
         description="The password to unlock the Kerberos KDC private key",
-        cli_aliases=['--pkinit_pin'],
+        cli_aliases=['pkinit_pin'],
         cli_metavar='PIN',
     )
 
@@ -1253,8 +1253,8 @@ class ServerCA(common.Installable, core.Group, core.Composite):
         (list, str), None,
         description=("File containing CA certificates for the service "
                      "certificate files"),
-        cli_name='ca_cert_file',
-        cli_aliases=['--root-ca-file'],
+        cli_name='ca-cert-file',
+        cli_aliases=['root-ca-file'],
         cli_metavar='FILE',
     )
 
@@ -1308,7 +1308,7 @@ class ServerDNS(common.Installable, core.Group, core.Composite):
         (list, str), [],
         description=("The reverse DNS zone to use. This option can be used "
                      "multiple times"),
-        cli_name='reverse_zone',
+        cli_name='reverse-zone',
     )
 
     no_reverse = Knob(
@@ -1387,7 +1387,7 @@ class Server(common.Installable, common.Interactive, core.Composite):
         str, None,
         sensitive=True,
         description="Directory Manager password",
-        cli_name='ds_password',
+        cli_name='ds-password',
         cli_short_name='p',
     )
 
@@ -1428,7 +1428,7 @@ class Server(common.Installable, common.Interactive, core.Composite):
     domainlevel = Knob(
         int, constants.MAX_DOMAIN_LEVEL,
         description="IPA domain level",
-        cli_name='domain_level',
+        cli_name='domain-level',
     )
 
     @domainlevel.validator
@@ -1447,7 +1447,7 @@ class Server(common.Installable, common.Interactive, core.Composite):
         (list, 'ip-local'), None,
         description=("Master Server IP Address. This option can be used "
                      "multiple times"),
-        cli_name='ip_address',
+        cli_name='ip-address',
     )
 
     no_ntp = Knob(
@@ -1473,7 +1473,7 @@ class Server(common.Installable, common.Interactive, core.Composite):
     no_hbac_allow = Knob(
         bool, False,
         description="Don't install allow_all HBAC rule",
-        cli_aliases=['--no_hbac_allow'],
+        cli_name='no_hbac_allow',
     )
 
     no_ui_redirect = Knob(
