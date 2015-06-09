@@ -83,3 +83,7 @@ add:aci: (targetfilter="(|(objectclass=ipaHost)(objectclass=ipaService))")(targe
 # User certificates
 dn: $SUFFIX
 add:aci:(targetattr = "usercertificate")(version 3.0;acl "selfservice:Users can manage their own X.509 certificates";allow (write) userdn = "ldap:///self";)
+
+# Hosts can add their own services
+dn: cn=services,cn=accounts,$SUFFIX
+add:aci: (target = "ldap:///krbprincipalname=*/($$dn)@$REALM,cn=services,cn=accounts,$SUFFIX")(targetfilter = "(objectClass=ipaKrbPrincipal)")(version 3.0;acl "Hosts can add own services"; allow(add) userdn="ldap:///fqdn=($$dn),cn=computers,cn=accounts,$SUFFIX";)

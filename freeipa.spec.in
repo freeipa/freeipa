@@ -38,7 +38,7 @@ Source0:        freeipa-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %if ! %{ONLY_CLIENT}
-BuildRequires:  389-ds-base-devel >= 1.3.3.9
+BuildRequires:  389-ds-base-devel >= 1.3.4.0
 BuildRequires:  svrcore-devel
 BuildRequires:  policycoreutils >= 2.1.12-5
 BuildRequires:  systemd-units
@@ -114,7 +114,7 @@ Group: System Environment/Base
 Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: %{name}-admintools = %{version}-%{release}
-Requires: 389-ds-base >= 1.3.4.a1
+Requires: 389-ds-base >= 1.3.4.0
 Requires: openldap-clients > 2.4.35-4
 Requires: nss >= 3.14.3-12.0
 Requires: nss-tools >= 3.14.3-12.0
@@ -151,7 +151,7 @@ Requires: zip
 Requires: policycoreutils >= 2.1.12-5
 Requires: tar
 Requires(pre): certmonger >= 0.76.8
-Requires(pre): 389-ds-base >= 1.3.4.a1
+Requires(pre): 389-ds-base >= 1.3.4.0
 Requires: fontawesome-fonts
 Requires: open-sans-fonts
 Requires: openssl
