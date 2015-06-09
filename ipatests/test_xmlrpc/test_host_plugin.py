@@ -94,6 +94,9 @@ hostgroup1 = u'testhostgroup1'
 hostgroup1_dn = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
                     api.env.basedn)
 
+host_cert = get_testcert(DN(('CN', api.env.host), x509.subject_base()),
+                         'host/%s@%s' % (api.env.host, api.env.realm))
+
 
 class HostTracker(Tracker):
     """Wraps and tracks modifications to a Host object
@@ -360,10 +363,10 @@ class TestCRUD(XMLRPC_test):
     def test_update_simple(self, host):
         host.update(dict(
                         description=u'Updated host 1',
-                        usercertificate=get_testcert()),
+                        usercertificate=host_cert),
                     expected_updates=dict(
                         description=[u'Updated host 1'],
-                        usercertificate=[base64.b64decode(get_testcert())],
+                        usercertificate=[base64.b64decode(host_cert)],
                         issuer=fuzzy_issuer,
                         md5_fingerprint=fuzzy_hash,
                         serial_number=fuzzy_digits,

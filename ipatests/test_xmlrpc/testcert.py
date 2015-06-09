@@ -34,18 +34,15 @@ from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 
-_testcert = None
 
-
-def get_testcert():
+def get_testcert(subject, principal):
     """Get the certificate, creating it if it doesn't exist"""
-    global _testcert
-    if _testcert is None:
-        reqdir = tempfile.mkdtemp(prefix="tmp-")
-        try:
-            _testcert = makecert(reqdir)
-        finally:
-            shutil.rmtree(reqdir)
+    reqdir = tempfile.mkdtemp(prefix="tmp-")
+    try:
+        _testcert = makecert(reqdir, subject,
+                             principal)
+    finally:
+        shutil.rmtree(reqdir)
     return x509.strip_header(_testcert)
 
 
@@ -72,9 +69,9 @@ def generate_csr(reqdir, pwname, subject):
         return fp.read()
 
 
-def makecert(reqdir):
+def makecert(reqdir, subject, principal):
     """
-    Generate a service certificate that can be used during unit testing.
+    Generate a certificate that can be used during unit testing.
     """
 
     ra = rabase.rabase()
@@ -96,9 +93,7 @@ def makecert(reqdir):
     subject_base = res['result']['ipacertificatesubjectbase'][0]
 
     cert = None
-    subject = DN(('CN', api.env.host), subject_base)
-    princ = 'unittest/%s@%s' % (api.env.host, api.env.realm)
     csr = unicode(generate_csr(reqdir, pwname, str(subject)))
 
-    res = api.Command['cert_request'](csr, principal=princ, add=True)
+    res = api.Command['cert_request'](csr, principal=principal, add=True)
     return x509.make_pem(res['result']['certificate'])

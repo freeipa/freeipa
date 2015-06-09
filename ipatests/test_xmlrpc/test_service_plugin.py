@@ -46,6 +46,8 @@ host3dn = DN(('fqdn',fqdn3),('cn','computers'),('cn','accounts'),api.env.basedn)
 role1 = u'Test Role'
 role1_dn = DN(('cn', role1), api.env.container_rolegroup, api.env.basedn)
 
+servercert= get_testcert(DN(('CN', api.env.host), x509.subject_base()),
+                         'unittest/%s@%s' % (api.env.host, api.env.realm))
 badservercert = 'MIICbzCCAdigAwIBAgICA/4wDQYJKoZIhvcNAQEFBQAwKTEnMCUGA1UEAxMeSVBBIFRlc3QgQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTEwMDgwOTE1MDIyN1oXDTIwMDgwOTE1MDIyN1owKTEMMAoGA1UEChMDSVBBMRkwFwYDVQQDExBwdW1hLmdyZXlvYWsuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwYbfEOQPgGenPn9vt1JFKvWm/Je3y2tawGWA3LXDuqfFJyYtZ8ib3TcBUOnLk9WK5g2qCwHaNlei7bj8ggIfr5hegAVe10cun+wYErjnYo7hsHYd+57VZezeipWrXu+7NoNd4+c4A5lk4A/xJay9j3bYx2oOM8BEox4xWYoWge1ljPrc5JK46f0X7AGW4F2VhnKPnf8rwSuzI1U8VGjutyM9TWNy3m9KMWeScjyG/ggIpOjUDMV7HkJL0Di61lznR9jXubpiEC7gWGbTp84eGl/Nn9bgK1AwHfJ2lHwfoY4uiL7ge1gyP6EvuUlHoBzdb7pekiX28iePjW3iEG9IawIDAQABoyIwIDARBglghkgBhvhCAQEEBAMCBkAwCwYDVR0PBAQDAgUgMA0GCSqGSIb3DQEBBQUAA4GBACRESLemRV9BPxfEgbALuxH5oE8jQm8WZ3pm2pALbpDlAd9wQc3yVf6RtkfVthyDnM18bg7IhxKpd77/p3H8eCnS8w5MLVRda6ktUC6tGhFTS4QKAf0WyDGTcIgkXbeDw0OPAoNHivoXbIXIIRxlw/XgaSaMzJQDBG8iROsN4kCv'
 
 user1 = u'tuser1'
@@ -78,7 +80,7 @@ class test_service(Declarative):
 
         dict(
             desc='Try to update non-existent %r' % service1,
-            command=('service_mod', [service1], dict(usercertificate=get_testcert())),
+            command=('service_mod', [service1], dict(usercertificate=servercert)),
             expected=errors.NotFound(
                 reason=u'%s: service not found' % service1),
         ),
@@ -390,12 +392,12 @@ class test_service(Declarative):
 
         dict(
             desc='Update %r' % service1,
-            command=('service_mod', [service1], dict(usercertificate=get_testcert())),
+            command=('service_mod', [service1], dict(usercertificate=servercert)),
             expected=dict(
                 value=service1,
                 summary=u'Modified service "%s"' % service1,
                 result=dict(
-                    usercertificate=[base64.b64decode(get_testcert())],
+                    usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                     valid_not_before=fuzzy_date,
@@ -430,7 +432,7 @@ class test_service(Declarative):
                 value=service1,
                 summary=u'Modified service "%s"' % service1,
                 result=dict(
-                    usercertificate=[base64.b64decode(get_testcert())],
+                    usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                     ipakrbauthzdata=[u'MS-PAC'],
@@ -455,7 +457,7 @@ class test_service(Declarative):
                 summary=None,
                 result=dict(
                     dn=service1dn,
-                    usercertificate=[base64.b64decode(get_testcert())],
+                    usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
                     has_keytab=False,
                     managedby_host=[fqdn1],
@@ -482,7 +484,7 @@ class test_service(Declarative):
                 value=service1,
                 summary=u'Modified service "%s"' % service1,
                 result=dict(
-                    usercertificate=[base64.b64decode(get_testcert())],
+                    usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                     ipakrbauthzdata=[u'MS-PAC'],
@@ -509,7 +511,7 @@ class test_service(Declarative):
                 value=service1,
                 summary=u'Modified service "%s"' % service1,
                 result=dict(
-                    usercertificate=[base64.b64decode(get_testcert())],
+                    usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                     ipakrbauthzdata=[u'MS-PAC'],
@@ -534,7 +536,7 @@ class test_service(Declarative):
                 value=service1,
                 summary=u'Modified service "%s"' % service1,
                 result=dict(
-                    usercertificate=[base64.b64decode(get_testcert())],
+                    usercertificate=[base64.b64decode(servercert)],
                     krbprincipalname=[service1],
                     managedby_host=[fqdn1],
                     ipakrbauthzdata=[u'MS-PAC'],
@@ -574,7 +576,7 @@ class test_service(Declarative):
 
         dict(
             desc='Try to update non-existent %r' % service1,
-            command=('service_mod', [service1], dict(usercertificate=get_testcert())),
+            command=('service_mod', [service1], dict(usercertificate=servercert)),
             expected=errors.NotFound(
                 reason=u'%s: service not found' % service1),
         ),
