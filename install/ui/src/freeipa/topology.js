@@ -127,14 +127,7 @@ return {
                             other_field: 'cn',
                             z_index: 1
                         },
-                        {
-                            $type: 'radio',
-                            name: 'iparepltoposegmentdirection',
-                            options: IPA.create_options([
-                                'both', 'left-right', 'right-left', 'none'
-                            ]),
-                            default_value: 'both'
-                        }
+                        'iparepltoposegmentdirection'
                     ]
                 },
                 {
@@ -180,7 +173,7 @@ return {
                 $type: 'radio',
                 name: 'iparepltoposegmentdirection',
                 options: IPA.create_options([
-                    'both', 'left-right', 'right-left', 'none'
+                    'both', 'left-right', 'right-left'
                 ]),
                 default_value: 'both'
             }

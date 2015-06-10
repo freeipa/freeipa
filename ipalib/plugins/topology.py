@@ -98,10 +98,11 @@ class topologysegment(LDAPObject):
             'iparepltoposegmentdirection',
             cli_name='direction',
             label=_('Connectivity'),
-            values=(u'both', u'left-right', u'right-left', u'none'),
+            values=(u'both', u'left-right', u'right-left'),
             default=u'both',
             doc=_('Direction of replication between left and right replication '
                   'node'),
+            flags={'no_update'},
         ),
         Str(
             'nsds5replicastripattrs?',
