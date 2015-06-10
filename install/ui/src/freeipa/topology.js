@@ -52,6 +52,7 @@ return {
             $type: 'search',
             disable_facet_tabs: false,
             tabs_in_sidebar: true,
+            no_update: true,
             tab_label: '@mo:topologysuffix.label',
             facet_groups: [topology.search_facet_group],
             facet_group: 'search',
@@ -77,23 +78,21 @@ return {
         },
         {
             $type: 'details',
+            no_update: true,
             sections: [
                 {
                     name: 'details',
                     fields: [
                         'cn',
-                        'iparepltopoconfroot'
+                        {
+                            name: 'iparepltopoconfroot',
+                            read_only: true
+                        }
                     ]
                 }
             ]
         }
-    ],
-    adder_dialog: {
-        fields: [
-            'cn',
-            'iparepltopoconfroot'
-        ]
-    }
+    ]
 };};
 
 
