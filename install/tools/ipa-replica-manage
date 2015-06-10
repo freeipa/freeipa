@@ -241,23 +241,32 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
     """
 
     repl2 = None
+    what = "Removal of IPA replication agreement"
+    managed_topology = has_managed_topology()
 
     try:
         repl1 = replication.ReplicationManager(realm, replica1, dirman_passwd)
-
         type1 = repl1.get_agreement_type(replica2)
-
-        repl_list = repl1.find_ipa_replication_agreements()
-        if not force and len(repl_list) <= 1 and type1 == replication.IPA_REPLICA:
-            print "Cannot remove the last replication link of '%s'" % replica1
-            print "Please use the 'del' command to remove it from the domain"
-            return False
-
     except errors.NotFound:
-        print "'%s' has no replication agreement for '%s'" % (replica1, replica2)
+        # it's possible that the agreement could not have been found because of
+        # the new topology plugin naming convention: <A>-to-<B> instead of
+        # meTo<B>.
+        if managed_topology:
+            print "'%s' has no winsync replication agreement for '%s'" % (replica1, replica2)
+            exit_on_managed_topology(what)
+        else:
+            print "'%s' has no replication agreement for '%s'" % (replica1, replica2)
         return False
     except Exception, e:
-        print "Failed to determine agreement type for '%s': %s" % (replica1, e)
+        print "Failed to determine agreement type for '%s': %s" % (replica2, e)
+
+    if type1 == replication.IPA_REPLICA and managed_topology:
+        exit_on_managed_topology(what)
+
+    repl_list = repl1.find_ipa_replication_agreements()
+    if not force and len(repl_list) <= 1 and type1 == replication.IPA_REPLICA:
+        print "Cannot remove the last replication link of '%s'" % replica1
+        print "Please use the 'del' command to remove it from the domain"
         return False
 
     if type1 == replication.IPA_REPLICA:
@@ -747,12 +756,6 @@ def del_master(realm, hostname, options):
     try:
         if bindinstance.dns_container_exists(options.host, thisrepl.suffix,
                                              dm_password=options.dirman_passwd):
-            if options.dirman_passwd:
-                api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
-                                          bind_pw=options.dirman_passwd)
-            else:
-                ccache = krbV.default_context().default_ccache()
-                api.Backend.ldap2.connect(ccache=ccache)
             bind = bindinstance.BindInstance()
             bind.remove_master_dns_records(hostname, realm, realm.lower())
             bind.remove_ipa_ca_dns_records(hostname, realm.lower())
@@ -777,6 +780,8 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
         if os.getegid() != 0:
             root_logger.error("winsync agreements need to be created as root")
             sys.exit(1)
+    elif has_managed_topology():
+        exit_on_managed_topology("Creation of IPA replication agreement")
 
     try:
         repl = replication.ReplicationManager(realm, replica1, dirman_passwd)
@@ -1167,6 +1172,14 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
         except Exception, e:
             sys.exit("Updating range failed: %s" % e)
 
+def has_managed_topology():
+    domainlevel = api.Command['domainlevel_get']().get('result', 0)
+    return domainlevel > 0
+
+def exit_on_managed_topology(what):
+    sys.exit("{0} is deprecated with managed IPA replication topology. "
+             "Please use `ipa topologysegment-*` commands to manage "
+             "the topology.".format(what))
 
 def main():
     if os.getegid() == 0:
@@ -1208,6 +1221,14 @@ def main():
                 sys.exit("Directory Manager password required")
 
     options.dirman_passwd = dirman_passwd
+
+    # Initialize the LDAP connection
+    if options.dirman_passwd:
+        api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
+                                  bind_pw=options.dirman_passwd)
+    else:
+        ccache = krbV.default_context().default_ccache()
+        api.Backend.ldap2.connect(ccache=ccache)
 
     if args[0] == "list":
         replica = None
