@@ -2487,6 +2487,12 @@ option: Str('version?', exclude='webui')
 output: Output('commands', <type 'dict'>, None)
 output: Output('methods', <type 'dict'>, None)
 output: Output('objects', <type 'dict'>, None)
+command: kra_is_enabled
+args: 0,1,3
+option: Str('version?', exclude='webui')
+output: Output('result', <type 'bool'>, None)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: PrimaryKey('value', None, None)
 command: krbtpolicy_mod
 args: 1,9,3
 arg: Str('uid', attribute=True, cli_name='user', multivalue=False, primary_key=True, query=True, required=False)

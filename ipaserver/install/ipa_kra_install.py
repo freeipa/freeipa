@@ -23,7 +23,10 @@ from ipalib import api
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipapython import admintool
+from ipapython import dogtag
 from ipapython import ipautil
+from ipapython.dn import DN
+from ipaserver.install import krainstance
 from ipaserver.install import installutils
 from ipaserver.install.installutils import create_replica_config
 from ipaserver.install import dogtaginstance
@@ -80,7 +83,7 @@ class KRAInstall(admintool.AdminTool):
 
 
 class KRAUninstaller(KRAInstall):
-    log_file_name = paths.PKI_KRA_UNINSTALL_LOG
+    log_file_name = paths.IPASERVER_KRA_UNINSTALL_LOG
 
     def validate_options(self, needs_root=True):
         super(KRAUninstaller, self).validate_options(needs_root=True)
@@ -88,18 +91,20 @@ class KRAUninstaller(KRAInstall):
         if self.args:
             self.option_parser.error("Too many parameters provided.")
 
-        if not api.env.enable_kra:
+        dogtag_constants = dogtag.configured_constants(api)
+        _kra = krainstance.KRAInstance(api, dogtag_constants=dogtag_constants)
+        if not _kra.is_installed():
             self.option_parser.error(
                 "Cannot uninstall.  There is no KRA installed on this system."
             )
 
     def run(self):
         super(KRAUninstaller, self).run()
-        kra.uninstall()
+        kra.uninstall(True)
 
 
 class KRAInstaller(KRAInstall):
-    log_file_name = paths.PKI_KRA_INSTALL_LOG
+    log_file_name = paths.IPASERVER_KRA_INSTALL_LOG
 
     INSTALLER_START_MESSAGE = '''
         ===================================================================
@@ -161,15 +166,18 @@ class KRAInstaller(KRAInstall):
                 self.replica_file,
                 self.options)
 
+        self.options.dm_password = self.options.password
         self.options.setup_ca = False
 
+        api.Backend.ldap2.connect(bind_dn=DN('cn=Directory Manager'),
+                                  bind_pw=self.options.dm_password)
+
         try:
-            kra.install_check(replica_config, self.options, api.env.enable_kra,
-                              int(api.env.dogtag_version))
+            kra.install_check(api, replica_config, self.options)
         except RuntimeError as e:
             raise admintool.ScriptError(str(e))
 
-        kra.install(replica_config, self.options, self.options.password)
+        kra.install(api, replica_config, self.options)
 
         # Restart apache for new proxy config file
         services.knownservices.httpd.restart(capture_output=True)

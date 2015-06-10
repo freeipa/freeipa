@@ -1909,7 +1909,7 @@ class kra(Backend):
         Raises a generic exception if KRA is not enabled.
         """
 
-        if not api.env.enable_kra:
+        if not self.api.Command.kra_is_enabled()['result']:
             # TODO: replace this with a more specific exception
             raise RuntimeError('KRA service is not enabled')
 

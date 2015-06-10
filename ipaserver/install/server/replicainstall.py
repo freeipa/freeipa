@@ -379,8 +379,6 @@ def install_check(installer):
             fd.write("enable_ra=False\n")
             fd.write("ra_plugin=none\n")
 
-        fd.write("enable_kra=%s\n" % config.setup_kra)
-
         fd.write("mode=production\n")
         fd.close()
     finally:
@@ -480,6 +478,18 @@ def install_check(installer):
             root_logger.debug('No IPA DNS servers, '
                               'skipping forward/reverse resolution check')
 
+        if options.setup_ca:
+            options.realm_name = config.realm_name
+            options.host_name = config.host_name
+            options.subject = config.subject_base
+            ca.install_check(False, config, options)
+
+        if config.setup_kra:
+            try:
+                kra.install_check(remote_api, config, options)
+            except RuntimeError as e:
+                print str(e)
+                sys.exit(1)
     except errors.ACIError:
         sys.exit("\nThe password provided is incorrect for LDAP server "
                  "%s" % config.master_host_name)
@@ -491,20 +501,6 @@ def install_check(installer):
             replman.conn.unbind()
         if conn.isconnected():
             conn.disconnect()
-
-    if options.setup_ca:
-        options.realm_name = config.realm_name
-        options.host_name = config.host_name
-        options.subject = config.subject_base
-        ca.install_check(False, config, options)
-
-    if config.setup_kra:
-        try:
-            kra.install_check(config, options, False,
-                              dogtag.install_constants.DOGTAG_VERSION)
-        except RuntimeError as e:
-            print str(e)
-            sys.exit(1)
 
     if options.setup_dns:
         dns.install_check(False, True, options, config.host_name)
@@ -567,10 +563,11 @@ def install(installer):
         if conn.isconnected():
             conn.disconnect()
 
+    options.dm_password = config.dirman_password
+
     if config.setup_ca:
         options.realm_name = config.realm_name
         options.domain_name = config.domain_name
-        options.dm_password = config.dirman_password
         options.host_name = config.host_name
 
         ca.install(False, config, options)
@@ -591,7 +588,7 @@ def install(installer):
     ds.apply_updates()
 
     if options.setup_kra:
-        kra.install(config, options, config.dirman_password)
+        kra.install(api, config, options)
     else:
         service.print_msg("Restarting the directory server")
         ds.restart()

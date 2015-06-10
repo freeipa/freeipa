@@ -602,8 +602,7 @@ def install_check(installer):
 
     if setup_kra:
         try:
-            kra.install_check(None, options, False,
-                              dogtag.install_constants.DOGTAG_VERSION)
+            kra.install_check(api, None, options)
         except RuntimeError as e:
             print str(e)
             sys.exit(1)
@@ -865,7 +864,7 @@ def install(installer):
     http.restart()
 
     if setup_kra:
-        kra.install(None, options, dm_password)
+        kra.install(api, None, options)
 
     # Set the admin user kerberos password
     ds.change_admin_password(admin_password)
@@ -1060,7 +1059,7 @@ def uninstall(installer):
 
     ntpinstance.NTPInstance(fstore).uninstall()
 
-    kra.uninstall()
+    kra.uninstall(False)
 
     ca.uninstall(dogtag_constants)
 

@@ -41,6 +41,7 @@ SERVICE_LIST = {
     'MEMCACHE': ('ipa_memcached', 39),
     'HTTP': ('httpd', 40),
     'CA': ('%sd' % dogtag.configured_constants().PKI_INSTANCE_NAME, 50),
+    'KRA': ('%sd' % dogtag.configured_constants().PKI_INSTANCE_NAME, 51),
     'ADTRUST': ('smb', 60),
     'EXTID': ('winbind', 70),
     'OTPD': ('ipa-otpd', 80),

@@ -2,25 +2,25 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-import os
-from ConfigParser import RawConfigParser
-from ipalib import api
-from ipaplatform.paths import paths
+from ipalib import api, errors
 from ipapython import dogtag
+from ipapython.dn import DN
 from ipaserver.install import cainstance
 from ipaserver.install import krainstance
 from ipaserver.install import dsinstance
 from ipaserver.install import service
-from ipaserver.install.installutils import read_replica_info_kra_enabled
 
 
-def install_check(replica_config, options, enable_kra, dogtag_version):
-    if enable_kra:
+def install_check(api, replica_config, options):
+    dogtag_constants = dogtag.configured_constants(api=api)
+    kra = krainstance.KRAInstance(api.env.realm,
+                                  dogtag_constants=dogtag_constants)
+    if kra.is_installed():
         raise RuntimeError("KRA is already installed.")
 
     if not options.setup_ca:
         if cainstance.is_ca_installed_locally():
-            if dogtag_version >= 10:
+            if api.env.dogtag_version >= 10:
                 # correct dogtag version of CA installed
                 pass
             else:
@@ -31,14 +31,11 @@ def install_check(replica_config, options, enable_kra, dogtag_version):
                 "Dogtag CA is not installed.  Please install the CA first")
 
     if replica_config is not None:
-        if not read_replica_info_kra_enabled(replica_config.dir):
-            raise RuntimeError(
-                "Either KRA is not installed on the master system or "
-                "your replica file is out of date"
-            )
+        if not api.Command.kra_is_enabled()['result']:
+            raise RuntimeError("KRA is not installed on the master system")
 
 
-def install(replica_config, options, dm_password):
+def install(api, replica_config, options):
     subject = dsinstance.DsInstance().find_subject_base()
     if replica_config is None:
         kra = krainstance.KRAInstance(
@@ -55,31 +52,25 @@ def install(replica_config, options, dm_password):
     ds = dsinstance.DsInstance()
     ds.restart()
 
+    kra.ldap_enable('KRA', api.env.host, options.dm_password, api.env.basedn)
+
     kra.enable_client_auth_to_db(kra.dogtag_constants.KRA_CS_CFG_PATH)
 
-    # Update config file
-    parser = RawConfigParser()
-    parser.read(paths.IPA_DEFAULT_CONF)
-    parser.set('global', 'enable_kra', 'True')
 
-    with open(paths.IPA_DEFAULT_CONF, 'w') as f:
-        parser.write(f)
+def uninstall(standalone):
+    dogtag_constants = dogtag.configured_constants(api)
+    kra = krainstance.KRAInstance(api.env.realm,
+                                  dogtag_constants=dogtag_constants)
 
+    if standalone:
+        kra.ldap_connect()
+        try:
+            kra.admin_conn.delete_entry(DN(('cn', 'KRA'), ('cn', api.env.host),
+                                           ('cn', 'masters'), ('cn', 'ipa'),
+                                           ('cn', 'etc'), api.env.basedn))
+        except errors.NotFound:
+            pass
 
-def uninstall():
-    dogtag_constants = dogtag.configured_constants(api=api)
-
-    kra_instance = krainstance.KRAInstance(
-        api.env.realm, dogtag_constants=dogtag_constants)
-    kra_instance.stop_tracking_certificates()
-    if kra_instance.is_installed():
-        kra_instance.uninstall()
-
-    # Check if config file exists, then update it
-    if os.path.exists(paths.IPA_DEFAULT_CONF):
-        parser = RawConfigParser()
-        parser.read(paths.IPA_DEFAULT_CONF)
-        parser.set('global', 'enable_kra', 'False')
-
-        with open(paths.IPA_DEFAULT_CONF, 'w') as f:
-            parser.write(f)
+    kra.stop_tracking_certificates()
+    if kra.is_installed():
+        kra.uninstall()

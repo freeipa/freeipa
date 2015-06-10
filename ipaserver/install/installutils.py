@@ -584,22 +584,6 @@ def read_replica_info_dogtag_port(config_dir):
 
     return dogtag_master_ds_port
 
-def read_replica_info_kra_enabled(config_dir):
-    """
-    Check the replica info to determine if a KRA has been installed
-    on the master
-    """
-    default_file = config_dir + "/default.conf"
-    if not ipautil.file_exists(default_file):
-        return False
-    else:
-        with open(default_file) as fd:
-            config = SafeConfigParser()
-            config.readfp(fd)
-
-            enable_kra = config.getboolean("global", "enable_kra")
-            return enable_kra
-
 
 def create_replica_config(dirman_password, filename, options):
     top_dir = None

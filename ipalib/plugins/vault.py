@@ -33,7 +33,7 @@ from ipalib import output
 from ipalib.crud import PKQuery, Retrieve, Update
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import LDAPObject, LDAPCreate, LDAPDelete,\
-    LDAPSearch, LDAPUpdate, LDAPRetrieve
+    LDAPSearch, LDAPUpdate, LDAPRetrieve, pkey_to_value
 from ipalib.request import context
 from ipalib.plugins.user import split_principal
 from ipalib import _, ngettext
@@ -320,7 +320,7 @@ class vault_add(LDAPCreate):
                      **options):
         assert isinstance(dn, DN)
 
-        if not self.api.env.enable_kra:
+        if not self.api.Command.kra_is_enabled()['result']:
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
@@ -344,7 +344,7 @@ class vault_del(LDAPDelete):
     def pre_callback(self, ldap, dn, *keys, **options):
         assert isinstance(dn, DN)
 
-        if not self.api.env.enable_kra:
+        if not self.api.Command.kra_is_enabled()['result']:
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
@@ -390,7 +390,7 @@ class vault_find(LDAPSearch):
                      **options):
         assert isinstance(base_dn, DN)
 
-        if not self.api.env.enable_kra:
+        if not self.api.Command.kra_is_enabled()['result']:
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
@@ -422,7 +422,7 @@ class vault_mod(LDAPUpdate):
 
         assert isinstance(dn, DN)
 
-        if not self.api.env.enable_kra:
+        if not self.api.Command.kra_is_enabled()['result']:
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
@@ -438,7 +438,7 @@ class vault_show(LDAPRetrieve):
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
-        if not self.api.env.enable_kra:
+        if not self.api.Command.kra_is_enabled()['result']:
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
@@ -486,7 +486,7 @@ class vaultconfig_show(Retrieve):
 
     def execute(self, *args, **options):
 
-        if not self.api.env.enable_kra:
+        if not self.api.Command.kra_is_enabled()['result']:
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
@@ -624,7 +624,7 @@ class vault_archive_encrypted(Update):
 
     def execute(self, *args, **options):
 
-        if not self.api.env.enable_kra:
+        if not self.api.Command.kra_is_enabled()['result']:
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
@@ -774,7 +774,7 @@ class vault_retrieve_encrypted(Retrieve):
 
     def execute(self, *args, **options):
 
-        if not self.api.env.enable_kra:
+        if not self.api.Command.kra_is_enabled()['result']:
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
@@ -813,3 +813,23 @@ class vault_retrieve_encrypted(Retrieve):
         kra_account.logout()
 
         return result
+
+
+@register()
+class kra_is_enabled(Command):
+    NO_CLI = True
+
+    has_output = output.standard_value
+
+    def execute(self, *args, **options):
+        base_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
+                     self.api.env.basedn)
+        filter = '(&(objectClass=ipaConfigObject)(cn=KRA))'
+        try:
+            self.api.Backend.ldap2.find_entries(
+                base_dn=base_dn, filter=filter, attrs_list=[])
+        except errors.NotFound:
+            result = False
+        else:
+            result = True
+        return dict(result=result, value=pkey_to_value(None, options))
