@@ -4825,7 +4825,7 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
-command: topologysegment_refresh
+command: topologysegment_reinitialize
 args: 2,4,3
 arg: Str('topologysuffixcn', cli_name='topologysuffix', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('cn', attribute=True, cli_name='name', maxlength=255, multivalue=False, primary_key=True, query=True, required=True)

@@ -235,7 +235,7 @@ class topologysegment_mod(LDAPUpdate):
 
 
 @register()
-class topologysegment_refresh(LDAPQuery):
+class topologysegment_reinitialize(LDAPQuery):
     __doc__ = _('Request a full re-initialization of the node '
                 'retrieving data from the other node.')
 
