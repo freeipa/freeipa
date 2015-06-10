@@ -1369,6 +1369,11 @@ def upgrade_configuration():
     ds = dsinstance.DsInstance()
     ds.configure_dirsrv_ccache()
 
+    # ldap2 connection is not valid after DS restart, close connection otherwise
+    # it will cause network errors
+    if api.Backend.ldap2.isconnected():
+        api.Backend.ldap2.disconnect()
+
     ds.stop(ds_serverid)
     fix_schema_file_syntax()
     remove_ds_ra_cert(subject_base)
