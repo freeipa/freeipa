@@ -82,6 +82,7 @@ app_DATA =				\
 	copy-schema-to-ca.py		\
 	sasl-mapping-fallback.ldif	\
 	schema-update.ldif		\
+	vault.update			\
 	$(NULL)
 
 EXTRA_DIST =				\

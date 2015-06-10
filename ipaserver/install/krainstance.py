@@ -28,11 +28,11 @@ from ipalib import api
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipapython import dogtag
-from ipapython import ipaldap
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipaserver.install import certs
 from ipaserver.install import cainstance
+from ipaserver.install import ldapupdate
 from ipaserver.install import service
 from ipaserver.install.dogtaginstance import DogtagInstance
 from ipaserver.install.dogtaginstance import DEFAULT_DSPORT, PKI_USER
@@ -70,7 +70,7 @@ class KRAInstance(DogtagInstance):
         self.basedn = DN(('o', 'kra'), ('o', 'ipaca'))
         self.log = log_mgr.get_logger(self)
 
-    def configure_instance(self, host_name, domain, dm_password,
+    def configure_instance(self, realm_name, host_name, domain, dm_password,
                            admin_password, ds_port=DEFAULT_DSPORT,
                            pkcs12_info=None, master_host=None,
                            master_replication_port=None,
@@ -93,6 +93,8 @@ class KRAInstance(DogtagInstance):
             self.subject_base = DN(('O', self.realm))
         else:
             self.subject_base = subject_base
+        self.realm = realm_name
+        self.suffix = ipautil.realm_to_suffix(realm_name)
 
         # Confirm that a KRA does not already exist
         if self.is_installed():
@@ -115,8 +117,9 @@ class KRAInstance(DogtagInstance):
         self.step("configure certmonger for renewals",
                   self.configure_certmonger_renewal)
         self.step("configure certificate renewals", self.configure_renewal)
-        self.step("Configure HTTP to proxy connections",
+        self.step("configure HTTP to proxy connections",
                   self.http_proxy)
+        self.step("add vault container", self.__add_vault_container)
 
         self.start_creation(runtime=126)
 
@@ -335,6 +338,15 @@ class KRAInstance(DogtagInstance):
             "--client-cert", paths.KRA_AGENT_PEM]
         ipautil.run(args)
 
+    def __add_vault_container(self):
+        sub_dict = {
+            'SUFFIX': self.suffix,
+        }
+
+        ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password,
+                                   sub_dict=sub_dict)
+        ld.update([paths.VAULT_UPDATE])
+
     @staticmethod
     def update_cert_config(nickname, cert, dogtag_constants=None):
         """
@@ -391,7 +403,8 @@ def install_replica_kra(config, postinstall=False):
     if _kra.is_installed():
         sys.exit("A KRA is already configured on this system.")
 
-    _kra.configure_instance(config.host_name, config.domain_name,
+    _kra.configure_instance(config.realm_name,
+                            config.host_name, config.domain_name,
                             config.dirman_password, config.dirman_password,
                             pkcs12_info=(krafile,),
                             master_host=config.master_host_name,

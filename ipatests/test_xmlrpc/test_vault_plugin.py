@@ -57,7 +57,7 @@ class test_vault_plugin(Declarative):
                 'value': vault_name,
                 'summary': 'Added vault "%s"' % vault_name,
                 'result': {
-                    'dn': u'cn=%s,cn=admin,cn=users,cn=vaults,%s'
+                    'dn': u'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
                           % (vault_name, api.env.basedn),
                     'objectclass': [u'top', u'ipaVault'],
                     'cn': [vault_name],
@@ -78,7 +78,7 @@ class test_vault_plugin(Declarative):
                 'summary': u'1 vault matched',
                 'result': [
                     {
-                        'dn': u'cn=%s,cn=admin,cn=users,cn=vaults,%s'
+                        'dn': u'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
                               % (vault_name, api.env.basedn),
                         'cn': [vault_name],
                     },
@@ -97,7 +97,7 @@ class test_vault_plugin(Declarative):
                 'value': vault_name,
                 'summary': None,
                 'result': {
-                    'dn': u'cn=%s,cn=admin,cn=users,cn=vaults,%s'
+                    'dn': u'cn=%s,cn=admin,cn=users,cn=vaults,cn=kra,%s'
                           % (vault_name, api.env.basedn),
                     'cn': [vault_name],
                 },
@@ -152,7 +152,7 @@ class test_vault_plugin(Declarative):
                 'value': vault_name,
                 'summary': u'Added vault "%s"' % vault_name,
                 'result': {
-                    'dn': u'cn=%s,cn=%s,cn=services,cn=vaults,%s'
+                    'dn': u'cn=%s,cn=%s,cn=services,cn=vaults,cn=kra,%s'
                           % (vault_name, service_name, api.env.basedn),
                     'objectclass': [u'top', u'ipaVault'],
                     'cn': [vault_name],
@@ -175,7 +175,7 @@ class test_vault_plugin(Declarative):
                 'summary': u'1 vault matched',
                 'result': [
                     {
-                        'dn': u'cn=%s,cn=%s,cn=services,cn=vaults,%s'
+                        'dn': u'cn=%s,cn=%s,cn=services,cn=vaults,cn=kra,%s'
                               % (vault_name, service_name, api.env.basedn),
                         'cn': [vault_name],
                     },
@@ -196,7 +196,7 @@ class test_vault_plugin(Declarative):
                 'value': vault_name,
                 'summary': None,
                 'result': {
-                    'dn': u'cn=%s,cn=%s,cn=services,cn=vaults,%s'
+                    'dn': u'cn=%s,cn=%s,cn=services,cn=vaults,cn=kra,%s'
                           % (vault_name, service_name, api.env.basedn),
                     'cn': [vault_name],
                 },
@@ -254,7 +254,7 @@ class test_vault_plugin(Declarative):
                 'value': vault_name,
                 'summary': u'Added vault "%s"' % vault_name,
                 'result': {
-                    'dn': u'cn=%s,cn=shared,cn=vaults,%s'
+                    'dn': u'cn=%s,cn=shared,cn=vaults,cn=kra,%s'
                           % (vault_name, api.env.basedn),
                     'objectclass': [u'top', u'ipaVault'],
                     'cn': [vault_name],
@@ -277,7 +277,7 @@ class test_vault_plugin(Declarative):
                 'summary': u'1 vault matched',
                 'result': [
                     {
-                        'dn': u'cn=%s,cn=shared,cn=vaults,%s'
+                        'dn': u'cn=%s,cn=shared,cn=vaults,cn=kra,%s'
                               % (vault_name, api.env.basedn),
                         'cn': [vault_name],
                     },
@@ -298,7 +298,7 @@ class test_vault_plugin(Declarative):
                 'value': vault_name,
                 'summary': None,
                 'result': {
-                    'dn': u'cn=%s,cn=shared,cn=vaults,%s'
+                    'dn': u'cn=%s,cn=shared,cn=vaults,cn=kra,%s'
                           % (vault_name, api.env.basedn),
                     'cn': [vault_name],
                 },
@@ -356,7 +356,7 @@ class test_vault_plugin(Declarative):
                 'value': vault_name,
                 'summary': u'Added vault "%s"' % vault_name,
                 'result': {
-                    'dn': u'cn=%s,cn=%s,cn=users,cn=vaults,%s'
+                    'dn': u'cn=%s,cn=%s,cn=users,cn=vaults,cn=kra,%s'
                           % (vault_name, user_name, api.env.basedn),
                     'objectclass': [u'top', u'ipaVault'],
                     'cn': [vault_name],
@@ -379,7 +379,7 @@ class test_vault_plugin(Declarative):
                 'summary': u'1 vault matched',
                 'result': [
                     {
-                        'dn': u'cn=%s,cn=%s,cn=users,cn=vaults,%s'
+                        'dn': u'cn=%s,cn=%s,cn=users,cn=vaults,cn=kra,%s'
                               % (vault_name, user_name, api.env.basedn),
                         'cn': [vault_name],
                     },
@@ -400,7 +400,7 @@ class test_vault_plugin(Declarative):
                 'value': vault_name,
                 'summary': None,
                 'result': {
-                    'dn': u'cn=%s,cn=%s,cn=users,cn=vaults,%s'
+                    'dn': u'cn=%s,cn=%s,cn=users,cn=vaults,cn=kra,%s'
                           % (vault_name, user_name, api.env.basedn),
                     'cn': [vault_name],
                 },
