@@ -212,3 +212,8 @@ servicedelegationtarget = [
     u'top',
     u'groupofprincipals',
 ]
+
+certprofile = [
+    u'top',
+    u'ipacertprofile',
+]
