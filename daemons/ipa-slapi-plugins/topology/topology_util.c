@@ -292,9 +292,9 @@ ipa_topo_util_agmt_from_entry(Slapi_Entry *entry, char *replRoot, char *fromHost
                               char *toHost, char *direction)
 {
     TopoReplicaAgmt *agmt = NULL;
-    char **mattrs;
-    char *mattr;
-    char *mval;
+    char **mattrs = NULL;
+    char *mattr = NULL;
+    char *mval = NULL;
     int i;
 
     agmt = (TopoReplicaAgmt *) slapi_ch_calloc(1,sizeof(TopoReplicaAgmt));
@@ -302,18 +302,8 @@ ipa_topo_util_agmt_from_entry(Slapi_Entry *entry, char *replRoot, char *fromHost
     agmt->target = slapi_ch_strdup(toHost);
     agmt->repl_root = slapi_ch_strdup(replRoot);
 
-    mattr = slapi_ch_smprintf("ipaReplTopoSegmentGenerated;%s",direction);
-    mval = slapi_entry_attr_get_charptr(entry,mattr);
-    if (mval == 0) {
-        mval = slapi_entry_attr_get_charptr(entry,"ipaReplTopoSegmentGenerated");
-    }
-    if (mval) {
-        agmt->rdn = ipa_topo_agmt_gen_rdn(fromHost,toHost);
-    } else {
-        agmt->rdn = ipa_topo_agmt_std_rdn(toHost);
-    }
-    slapi_ch_free_string(&mattr);
-    slapi_ch_free_string(&mval);
+    /* use std agmt rdn, it may be updated when matching real agmt is found */
+    agmt->rdn = ipa_topo_agmt_std_rdn(toHost);
 
     mattrs = ipa_topo_get_plugin_managed_attrs();
     for (i=0; mattrs[i]; i++) {
@@ -520,9 +510,20 @@ ipa_topo_util_update_agmt_list(TopoReplica *conf, TopoReplicaSegmentList *repl_s
                                                     ipa_topo_get_plugin_hostname(),
                                                     targetHost);
         if (topo_agmt) {
-            /* if segment found update agreement params */
-            char * segm_attr_val;
-            char * agmt_attr_val;
+            /* compare rdns, use rdn of existing agreement */
+            const Slapi_DN *agmt_dn = slapi_entry_get_sdn_const(repl_agmt);
+            Slapi_RDN *agmt_rdn = slapi_rdn_new();
+            slapi_sdn_get_rdn(agmt_dn, agmt_rdn);
+            const char *agmt_rdn_str  = slapi_rdn_get_rdn(agmt_rdn);
+            if (strcasecmp(agmt_rdn_str, topo_agmt->rdn)) {
+                slapi_ch_free_string(&topo_agmt->rdn);
+                topo_agmt->rdn = slapi_ch_strdup(agmt_rdn_str);
+            }
+            slapi_rdn_free(&agmt_rdn);
+
+            /* update agreement params which are different in the segment*/
+            char *segm_attr_val;
+            char *agmt_attr_val;
             Slapi_Mods *smods = slapi_mods_new();
             char **mattrs = ipa_topo_get_plugin_managed_attrs();
             for (i=0; mattrs[i]; i++) {
