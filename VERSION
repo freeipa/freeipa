@@ -90,6 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=129
-# Last change: pvoborni - rename topologysegment_refresh to
-# topologysegment_reinitialize
+IPA_API_VERSION_MINOR=130
+# Last change: pvoborni - disallow mod of topologysegment nodes

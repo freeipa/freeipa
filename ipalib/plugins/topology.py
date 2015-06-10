@@ -81,6 +81,7 @@ class topologysegment(LDAPObject):
             label=_('Left node'),
             normalizer=lambda value: value.lower(),
             doc=_('Left replication node - an IPA server'),
+            flags={'no_update'},
         ),
         Str(
             'iparepltoposegmentrightnode',
@@ -91,6 +92,7 @@ class topologysegment(LDAPObject):
             label=_('Right node'),
             normalizer=lambda value: value.lower(),
             doc=_('Right replication node - an IPA server'),
+            flags={'no_update'},
         ),
         StrEnum(
             'iparepltoposegmentdirection',

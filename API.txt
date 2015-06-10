@@ -4804,15 +4804,13 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: topologysegment_mod
-args: 2,15,3
+args: 2,13,3
 arg: Str('topologysuffixcn', cli_name='topologysuffix', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('cn', attribute=True, cli_name='name', maxlength=255, multivalue=False, primary_key=True, query=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('delattr*', cli_name='delattr', exclude='webui')
 option: StrEnum('iparepltoposegmentdirection', attribute=True, autofill=False, cli_name='direction', default=u'both', multivalue=False, required=False, values=(u'both', u'left-right', u'right-left', u'none'))
-option: Str('iparepltoposegmentleftnode', attribute=True, autofill=False, cli_name='leftnode', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9.][a-zA-Z0-9.-]{0,252}[a-zA-Z0-9.$-]?$', required=False)
-option: Str('iparepltoposegmentrightnode', attribute=True, autofill=False, cli_name='rightnode', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9.][a-zA-Z0-9.-]{0,252}[a-zA-Z0-9.$-]?$', required=False)
 option: StrEnum('nsds5replicaenabled', attribute=True, autofill=False, cli_name='enabled', multivalue=False, required=False, values=(u'on', u'off'))
 option: Str('nsds5replicastripattrs', attribute=True, autofill=False, cli_name='stripattrs', multivalue=False, required=False)
 option: Str('nsds5replicatedattributelist', attribute=True, autofill=False, cli_name='replattrs', multivalue=False, required=False)
