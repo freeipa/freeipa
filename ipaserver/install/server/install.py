@@ -301,6 +301,8 @@ def install_check(installer):
     external_ca_file = installer._external_ca_file
     http_ca_cert = installer._ca_cert
 
+    dogtag_constants = dogtag.install_constants
+
     tasks.check_selinux_status()
 
     if options.master_password:
@@ -550,6 +552,51 @@ def install_check(installer):
     else:
         admin_password = options.admin_password
 
+    # Configuration for ipalib, we will bootstrap and finalize later, after
+    # we are sure we have the configuration file ready.
+    cfg = dict(
+        context='installer',
+        in_server=True,
+    )
+
+    # Create the management framework config file and finalize api
+    target_fname = paths.IPA_DEFAULT_CONF
+    fd = open(target_fname, "w")
+    fd.write("[global]\n")
+    fd.write("host=%s\n" % host_name)
+    fd.write("basedn=%s\n" % ipautil.realm_to_suffix(realm_name))
+    fd.write("realm=%s\n" % realm_name)
+    fd.write("domain=%s\n" % domain_name)
+    fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % format_netloc(host_name))
+    fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" %
+             installutils.realm_to_serverid(realm_name))
+    if setup_ca:
+        fd.write("enable_ra=True\n")
+        fd.write("ra_plugin=dogtag\n")
+        fd.write("dogtag_version=%s\n" % dogtag_constants.DOGTAG_VERSION)
+    else:
+        fd.write("enable_ra=False\n")
+        fd.write("ra_plugin=none\n")
+    fd.write("mode=production\n")
+    fd.close()
+
+    # Must be readable for everyone
+    os.chmod(target_fname, 0644)
+
+    system_hostname = get_fqdn()
+    if host_name != system_hostname:
+        root_logger.debug("Chosen hostname (%s) differs from system hostname "
+                          "(%s) - change it" % (host_name, system_hostname))
+        # update `api.env.ca_host` to correct hostname
+        # https://fedorahosted.org/freeipa/ticket/4936
+        api.env.ca_host = host_name
+
+    api.bootstrap(**cfg)
+    if setup_ca:
+        # ensure profile backend is available
+        import ipaserver.plugins.dogtag
+    api.finalize()
+
     if setup_ca:
         ca.install_check(False, None, options)
 
@@ -656,38 +703,6 @@ def install(installer):
     # failure to enable root cause investigation
     installer._installation_cleanup = False
 
-    # Configuration for ipalib, we will bootstrap and finalize later, after
-    # we are sure we have the configuration file ready.
-    cfg = dict(
-        context='installer',
-        in_server=True,
-    )
-
-    # Create the management framework config file and finalize api
-    target_fname = paths.IPA_DEFAULT_CONF
-    fd = open(target_fname, "w")
-    fd.write("[global]\n")
-    fd.write("host=%s\n" % host_name)
-    fd.write("basedn=%s\n" % ipautil.realm_to_suffix(realm_name))
-    fd.write("realm=%s\n" % realm_name)
-    fd.write("domain=%s\n" % domain_name)
-    fd.write("xmlrpc_uri=https://%s/ipa/xml\n" % format_netloc(host_name))
-    fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" %
-             installutils.realm_to_serverid(realm_name))
-    if setup_ca:
-        fd.write("enable_ra=True\n")
-        fd.write("ra_plugin=dogtag\n")
-        fd.write("dogtag_version=%s\n" % dogtag_constants.DOGTAG_VERSION)
-    else:
-        fd.write("enable_ra=False\n")
-        fd.write("ra_plugin=none\n")
-    fd.write("enable_kra=%s\n" % setup_kra)
-    fd.write("mode=production\n")
-    fd.close()
-
-    # Must be readable for everyone
-    os.chmod(target_fname, 0644)
-
     if installer.interactive:
         print ""
         print "The following operations may take some minutes to complete."
@@ -696,19 +711,8 @@ def install(installer):
 
     system_hostname = get_fqdn()
     if host_name != system_hostname:
-        root_logger.debug("Chosen hostname (%s) differs from system hostname "
-                          "(%s) - change it" % (host_name, system_hostname))
         # configure /etc/sysconfig/network to contain the custom hostname
         tasks.backup_and_replace_hostname(fstore, sstore, host_name)
-        # update `api.env.ca_host` to correct hostname
-        # https://fedorahosted.org/freeipa/ticket/4936
-        api.env.ca_host = host_name
-
-    api.bootstrap(**cfg)
-    if setup_ca:
-        # ensure profile backend is available
-        import ipaserver.plugins.dogtag
-    api.finalize()
 
     # Create DS user/group if it doesn't exist yet
     dsinstance.create_ds_user()

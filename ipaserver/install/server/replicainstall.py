@@ -355,54 +355,6 @@ def install_check(installer):
     config.setup_ca = options.setup_ca
     config.setup_kra = options.setup_kra
 
-    if options.setup_ca:
-        options.realm_name = config.realm_name
-        options.host_name = config.host_name
-        options.subject = config.subject_base
-        ca.install_check(False, config, options)
-
-    if config.setup_kra:
-        try:
-            kra.install_check(config, options, False,
-                              dogtag.install_constants.DOGTAG_VERSION)
-        except RuntimeError as e:
-            print str(e)
-            sys.exit(1)
-
-    installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
-
-    if options.setup_dns:
-        dns.install_check(False, True, options, config.host_name)
-    else:
-        installutils.get_server_ip_address(config.host_name, fstore,
-                                           not installer.interactive, False,
-                                           options.ip_addresses)
-
-    # check connection
-    if not options.skip_conncheck:
-        replica_conn_check(
-            config.master_host_name, config.host_name, config.realm_name,
-            options.setup_ca, config.ca_ds_port, options.admin_password)
-
-    cafile = config.dir + "/ca.crt"
-    if not ipautil.file_exists(cafile):
-        raise RuntimeError("CA cert file is not available. Please run "
-                           "ipa-replica-prepare to create a new replica file.")
-
-    installer._fstore = fstore
-    installer._sstore = sstore
-    installer._config = config
-
-
-@common_cleanup
-def install(installer):
-    options = installer
-    fstore = installer._fstore
-    sstore = installer._sstore
-    config = installer._config
-
-    dogtag_constants = dogtag.install_constants
-
     # Create the management framework config file
     # Note: We must do this before bootstraping and finalizing ipalib.api
     old_umask = os.umask(022)   # must be readable for httpd
@@ -421,7 +373,8 @@ def install(installer):
         if ipautil.file_exists(config.dir + "/cacert.p12"):
             fd.write("enable_ra=True\n")
             fd.write("ra_plugin=dogtag\n")
-            fd.write("dogtag_version=%s\n" % dogtag_constants.DOGTAG_VERSION)
+            fd.write("dogtag_version=%s\n" %
+                     dogtag.install_constants.DOGTAG_VERSION)
         else:
             fd.write("enable_ra=False\n")
             fd.write("ra_plugin=none\n")
@@ -436,111 +389,168 @@ def install(installer):
     api.bootstrap(in_server=True, context='installer')
     api.finalize()
 
-    # Create DS user/group if it doesn't exist yet
-    dsinstance.create_ds_user()
+    installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
 
     cafile = config.dir + "/ca.crt"
 
     ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
     remote_api = create_api(mode=None)
     remote_api.bootstrap(in_server=True, context='installer',
-                         ldap_uri=ldapuri, basedn=DN())
+                         ldap_uri=ldapuri)
     remote_api.finalize()
     conn = remote_api.Backend.ldap2
     replman = None
     try:
+        # Try out the password
+        conn.connect(bind_dn=DIRMAN_DN, bind_pw=config.dirman_password,
+                     tls_cacertfile=cafile)
+        replman = ReplicationManager(config.realm_name,
+                                     config.master_host_name,
+                                     config.dirman_password)
+
+        # Check that we don't already have a replication agreement
         try:
-            # Try out the password
-            conn.connect(bind_dn=DIRMAN_DN, bind_pw=config.dirman_password,
-                         tls_cacertfile=cafile)
-            replman = ReplicationManager(config.realm_name,
-                                         config.master_host_name,
-                                         config.dirman_password)
+            (agreement_cn, agreement_dn) = replman.agreement_dn(
+                config.host_name)
+            entry = conn.get_entry(agreement_dn, ['*'])
+        except errors.NotFound:
+            pass
+        else:
+            root_logger.info('Error: A replication agreement for this '
+                             'host already exists.')
+            print('A replication agreement for this host already exists. '
+                  'It needs to be removed.')
+            print "Run this on the master that generated the info file:"
+            print("    %% ipa-replica-manage del %s --force" %
+                  config.host_name)
+            sys.exit(3)
 
-            # Check that we don't already have a replication agreement
-            try:
-                (agreement_cn, agreement_dn) = replman.agreement_dn(
-                    config.host_name)
-                entry = conn.get_entry(agreement_dn, ['*'])
-            except errors.NotFound:
-                pass
-            else:
-                root_logger.info('Error: A replication agreement for this '
-                                 'host already exists.')
-                print('A replication agreement for this host already exists. '
-                      'It needs to be removed.')
-                print "Run this on the master that generated the info file:"
-                print("    %% ipa-replica-manage del %s --force" %
-                      config.host_name)
-                sys.exit(3)
+        # Detect the current domain level
+        try:
+            current = remote_api.Command['domainlevel_get']()['result']
+        except errors.NotFound:
+            # If we're joining an older master, domain entry is not
+            # available
+            current = 0
 
-            # Detect the current domain level
-            try:
-                current = remote_api.Command['domainlevel_get']()['result']
-            except errors.NotFound:
-                # If we're joining an older master, domain entry is not
-                # available
-                current = 0
+        # Detect if current level is out of supported range
+        # for this IPA version
+        under_lower_bound = current < constants.MIN_DOMAIN_LEVEL
+        above_upper_bound = current > constants.MAX_DOMAIN_LEVEL
 
-            # Detect if current level is out of supported range
-            # for this IPA version
-            under_lower_bound = current < constants.MIN_DOMAIN_LEVEL
-            above_upper_bound = current > constants.MAX_DOMAIN_LEVEL
+        if under_lower_bound or above_upper_bound:
+            message = ("This version of FreeIPA does not support "
+                       "the Domain Level which is currently set for "
+                       "this domain. The Domain Level needs to be "
+                       "raised before installing a replica with "
+                       "this version is allowed to be installed "
+                       "within this domain.")
+            root_logger.error(message)
+            print(message)
+            sys.exit(3)
 
-            if under_lower_bound or above_upper_bound:
-                message = ("This version of FreeIPA does not support "
-                           "the Domain Level which is currently set for "
-                           "this domain. The Domain Level needs to be "
-                           "raised before installing a replica with "
-                           "this version is allowed to be installed "
-                           "within this domain.")
-                root_logger.error(message)
-                print(message)
-                sys.exit(3)
+        # Check pre-existing host entry
+        try:
+            entry = conn.find_entries(u'fqdn=%s' % config.host_name,
+                                      ['fqdn'], DN(api.env.container_host,
+                                                   api.env.basedn))
+        except errors.NotFound:
+            pass
+        else:
+            root_logger.info('Error: Host %s already exists on the master '
+                             'server.' % config.host_name)
+            print('The host %s already exists on the master server.' %
+                  config.host_name)
+            print "You should remove it before proceeding:"
+            print "    %% ipa host-del %s" % config.host_name
+            sys.exit(3)
 
-            # Check pre-existing host entry
-            try:
-                entry = conn.find_entries(u'fqdn=%s' % config.host_name,
-                                          ['fqdn'], DN(api.env.container_host,
-                                                       api.env.basedn))
-            except errors.NotFound:
-                pass
-            else:
-                root_logger.info('Error: Host %s already exists on the master '
-                                 'server.' % config.host_name)
-                print('The host %s already exists on the master server.' %
-                      config.host_name)
-                print "You should remove it before proceeding:"
-                print "    %% ipa host-del %s" % config.host_name
-                sys.exit(3)
+        dns_masters = remote_api.Object['dnsrecord'].get_dns_masters()
+        if dns_masters:
+            if not options.no_host_dns:
+                master = config.master_host_name
+                root_logger.debug('Check forward/reverse DNS resolution')
+                resolution_ok = (
+                    check_dns_resolution(master, dns_masters) and
+                    check_dns_resolution(config.host_name, dns_masters))
+                if not resolution_ok and installer.interactive:
+                    if not ipautil.user_input("Continue?", False):
+                        sys.exit(0)
+        else:
+            root_logger.debug('No IPA DNS servers, '
+                              'skipping forward/reverse resolution check')
 
-            # Install CA cert so that we can do SSL connections with ldap
-            install_ca_cert(conn, api.env.basedn, api.env.realm, cafile)
+    except errors.ACIError:
+        sys.exit("\nThe password provided is incorrect for LDAP server "
+                 "%s" % config.master_host_name)
+    except errors.LDAPError:
+        sys.exit("\nUnable to connect to LDAP server %s" %
+                 config.master_host_name)
+    finally:
+        if replman and replman.conn:
+            replman.conn.unbind()
+        if conn.isconnected():
+            conn.disconnect()
 
-            dns_masters = remote_api.Object['dnsrecord'].get_dns_masters()
-            if dns_masters:
-                if not options.no_host_dns:
-                    master = config.master_host_name
-                    root_logger.debug('Check forward/reverse DNS resolution')
-                    resolution_ok = (
-                        check_dns_resolution(master, dns_masters) and
-                        check_dns_resolution(config.host_name, dns_masters))
-                    if not resolution_ok and installer.interactive:
-                        if not ipautil.user_input("Continue?", False):
-                            sys.exit(0)
-            else:
-                root_logger.debug('No IPA DNS servers, '
-                                  'skipping forward/reverse resolution check')
+    if options.setup_ca:
+        options.realm_name = config.realm_name
+        options.host_name = config.host_name
+        options.subject = config.subject_base
+        ca.install_check(False, config, options)
 
-        except errors.ACIError:
-            sys.exit("\nThe password provided is incorrect for LDAP server "
-                     "%s" % config.master_host_name)
-        except errors.LDAPError:
-            sys.exit("\nUnable to connect to LDAP server %s" %
-                     config.master_host_name)
-        finally:
-            if replman and replman.conn:
-                replman.conn.unbind()
+    if config.setup_kra:
+        try:
+            kra.install_check(config, options, False,
+                              dogtag.install_constants.DOGTAG_VERSION)
+        except RuntimeError as e:
+            print str(e)
+            sys.exit(1)
+
+    if options.setup_dns:
+        dns.install_check(False, True, options, config.host_name)
+    else:
+        installutils.get_server_ip_address(config.host_name, fstore,
+                                           not installer.interactive, False,
+                                           options.ip_addresses)
+
+    # check connection
+    if not options.skip_conncheck:
+        replica_conn_check(
+            config.master_host_name, config.host_name, config.realm_name,
+            options.setup_ca, config.ca_ds_port, options.admin_password)
+
+    if not ipautil.file_exists(cafile):
+        raise RuntimeError("CA cert file is not available. Please run "
+                           "ipa-replica-prepare to create a new replica file.")
+
+    installer._remote_api = remote_api
+    installer._fstore = fstore
+    installer._sstore = sstore
+    installer._config = config
+
+
+@common_cleanup
+def install(installer):
+    options = installer
+    fstore = installer._fstore
+    sstore = installer._sstore
+    config = installer._config
+
+    dogtag_constants = dogtag.install_constants
+
+    # Create DS user/group if it doesn't exist yet
+    dsinstance.create_ds_user()
+
+    cafile = config.dir + "/ca.crt"
+
+    remote_api = installer._remote_api
+    conn = remote_api.Backend.ldap2
+    try:
+        conn.connect(bind_dn=DIRMAN_DN, bind_pw=config.dirman_password,
+                     tls_cacertfile=cafile)
+
+        # Install CA cert so that we can do SSL connections with ldap
+        install_ca_cert(conn, api.env.basedn, api.env.realm, cafile)
 
         # Configure ntpd
         if not options.no_ntp:
