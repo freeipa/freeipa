@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=131
-# Last change: pvoborni - toposegment direction restrictions
+IPA_API_VERSION_MINOR=132
+# Last change: dkupka: User life cycle permissions naming and split

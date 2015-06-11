@@ -112,12 +112,11 @@ class stageuser(baseuser):
     object_name               = _('stage user')
     object_name_plural        = _('stage users')
     managed_permissions       = {
-          #
-          # Stage container
-          #
-          # Stage user provisioning and Stage user Administrators,
-          # allowed to create stage users
-        'System: Add Stage Users by Provisioning and Administrators': {
+        #
+        # Stage container
+        #
+        # Allowed to create stage user
+        'System: Add Stage User': {
             'ipapermlocation': DN(baseuser.stage_container_dn, api.env.basedn),
             'ipapermbindruletype': 'permission',
             'ipapermtarget': DN('uid=*', baseuser.stage_container_dn, api.env.basedn),
@@ -126,33 +125,40 @@ class stageuser(baseuser):
             'ipapermdefaultattr': {'*'},
             'default_privileges': {'Stage User Administrators', 'Stage User Provisioning'},
         },
-          # Stage user administrators allowed to read kerberos/password
-          # when the user is activated (to copy them in the active entry)
-         'System: Read Stage User kerberos principal key and password': {
-            'ipapermlocation': DN(baseuser.stage_container_dn, api.env.basedn),
-            'ipapermbindruletype': 'permission',
-            'ipapermtarget': DN('uid=*', baseuser.stage_container_dn, api.env.basedn),
-            'ipapermtargetfilter': {'(objectclass=*)'},
-            'ipapermright': {'read', 'search', 'compare'},
-            'ipapermdefaultattr': {
-                'userPassword', 'krbPrincipalKey',
-            },
-            'default_privileges': {'Stage User Administrators'},
+        # Allow to read kerberos/password
+        'System: Read Stage User password': {
+           'ipapermlocation': DN(baseuser.stage_container_dn, api.env.basedn),
+           'ipapermbindruletype': 'permission',
+           'ipapermtarget': DN('uid=*', baseuser.stage_container_dn, api.env.basedn),
+           'ipapermtargetfilter': {'(objectclass=*)'},
+           'ipapermright': {'read', 'search', 'compare'},
+           'ipapermdefaultattr': {
+               'userPassword', 'krbPrincipalKey',
+           },
+           'default_privileges': {'Stage User Administrators'},
         },
-        # Stage user administrator allowed to delete stage users and
-        # to update them
-        'System: Delete modify Stage Users by administrators': {
+        # Allow to update stage user
+        'System: Modify Stage User': {
             'ipapermlocation': DN(baseuser.stage_container_dn, api.env.basedn),
             'ipapermbindruletype': 'permission',
             'ipapermtarget': DN('uid=*', baseuser.stage_container_dn, api.env.basedn),
             'ipapermtargetfilter': {'(objectclass=*)'},
-            'ipapermright': {'delete','write'},
+            'ipapermright': {'write'},
             'ipapermdefaultattr': {'*'},
             'default_privileges': {'Stage User Administrators'},
         },
-        # Stage user administrator allowed to read any attributes
-        # of stage users
-        'System: Read Stage Users by administrators': {
+        # Allow to delete stage user
+        'System: Remove Stage User': {
+            'ipapermlocation': DN(baseuser.stage_container_dn, api.env.basedn),
+            'ipapermbindruletype': 'permission',
+            'ipapermtarget': DN('uid=*', baseuser.stage_container_dn, api.env.basedn),
+            'ipapermtargetfilter': {'(objectclass=*)'},
+            'ipapermright': {'delete'},
+            'ipapermdefaultattr': {'*'},
+            'default_privileges': {'Stage User Administrators'},
+        },
+        # Allow to read any attributes of stage users
+        'System: Read Stage Users': {
             'ipapermlocation': DN(baseuser.stage_container_dn, api.env.basedn),
             'ipapermbindruletype': 'permission',
             'ipapermtarget': DN('uid=*', baseuser.stage_container_dn, api.env.basedn),
@@ -162,36 +168,30 @@ class stageuser(baseuser):
             'default_privileges': {'Stage User Administrators'},
         },
         #
-        # Delete container
+        # Preserve container
         #
-        # Stage user administrator allow to read all attributes (when delete
-        # an active user with preserve flag)
-        # We also need to reset some of the attributes syntax DN/credential
-        # so allowed write on all the attributes
-        'System: Read/Write delete Users by administrators': {
+        # Allow to read Preserved User
+        'System: Read Preserved Users': {
             'ipapermlocation': DN(baseuser.delete_container_dn, api.env.basedn),
             'ipapermbindruletype': 'permission',
             'ipapermtarget': DN('uid=*', baseuser.delete_container_dn, api.env.basedn),
             'ipapermtargetfilter': {'(objectclass=posixaccount)'},
-            'ipapermright': {'read', 'search', 'compare', 'write'},
+            'ipapermright': {'read', 'search', 'compare'},
             'ipapermdefaultattr': {'*'},
             'default_privileges': {'Stage User Administrators'},
         },
-        #
-        # Stage user administrator allows to write the RDN
-        # when the delete user is undeleted
-        'System: Write Delete Users RDN by administrators': {
+        # Allow to update Preserved User
+        'System: Modify Preserved Users': {
             'ipapermlocation': DN(baseuser.delete_container_dn, api.env.basedn),
             'ipapermbindruletype': 'permission',
             'ipapermtarget': DN('uid=*', baseuser.delete_container_dn, api.env.basedn),
             'ipapermtargetfilter': {'(objectclass=posixaccount)'},
             'ipapermright': {'write'},
-            'ipapermdefaultattr': {'uid'},
+            'ipapermdefaultattr': {'*'},
             'default_privileges': {'Stage User Administrators'},
         },
-        # Stage user administrator allows to reset kerberos/password
-        # when a deleted user is preserved
-        'System: Reset userPassord and kerberos keys of delete users by administrator': {
+        # Allow to reset Preserved User password
+        'System: Reset Preserved User password': {
             'ipapermlocation': DN(baseuser.delete_container_dn, api.env.basedn),
             'ipapermbindruletype': 'permission',
             'ipapermtarget': DN('uid=*', baseuser.delete_container_dn, api.env.basedn),
@@ -207,7 +207,7 @@ class stageuser(baseuser):
         #
         # Stage user administrators need write right on RDN when
         # the active user is deleted (preserved)
-        'System: Write Active Users RDN by administrators': {
+        'System: Modify User RDN': {
             'ipapermlocation': DN(baseuser.active_container_dn, api.env.basedn),
             'ipapermbindruletype': 'permission',
             'ipapermtarget': DN('uid=*', baseuser.active_container_dn, api.env.basedn),
@@ -219,10 +219,9 @@ class stageuser(baseuser):
         #
         # Cross containers autorization
         #
-        # Stage user administrators need a moddn right when preserving
-        # a delete user.
+        # Allow to move active user to preserve container (user-del --preserve)
         # Note: targetfilter is the target parent container
-        'System: Preserve an active user to a delete Users': {
+        'System: Preserve User': {
             'ipapermlocation': DN(api.env.basedn),
             'ipapermbindruletype': 'permission',
             'ipapermtargetfrom': DN(baseuser.active_container_dn, api.env.basedn),
@@ -231,10 +230,9 @@ class stageuser(baseuser):
             'ipapermright': {'moddn'},
             'default_privileges': {'Stage User Administrators'},
         },
-        # Stage user administrators need a moddn right when undelete
-        # a delete user.
+        # Allow to move preserved user to active container (user-undel)
         # Note: targetfilter is the target parent container
-        'System: Reactive delete users': {
+        'System: Undelete User': {
             'ipapermlocation': DN(api.env.basedn),
             'ipapermbindruletype': 'permission',
             'ipapermtargetfrom': DN(baseuser.delete_container_dn, api.env.basedn),
