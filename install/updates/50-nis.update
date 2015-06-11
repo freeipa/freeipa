@@ -1,3 +1,21 @@
+# NIS Server plugin must be disabled by default
+# command 'ipa-nis-manage enable' enables NIS server
+dn: cn=NIS Server,cn=plugins,cn=config
+default:objectclass: top
+default:objectclass: nsSlapdPlugin
+default:objectclass: extensibleObject
+default:cn: NIS Server
+default:nsslapd-pluginpath: /usr/lib$LIBARCH/dirsrv/plugins/nisserver-plugin.so
+default:nsslapd-plugininitfunc: nis_plugin_init
+default:nsslapd-plugintype: object
+default:nsslapd-pluginbetxn: on
+default:nsslapd-pluginenabled: off
+default:nsslapd-pluginid: nis-server
+default:nsslapd-pluginversion: 0.10
+default:nsslapd-pluginvendor: redhat.com
+default:nsslapd-plugindescription: NIS Server Plugin
+default:nis-tcp-wrappers-name: nis-server
+
 # Correct syntax error that caused users to not appear
 dn: nis-domain=$DOMAIN+nis-map=netgroup, cn=NIS Server, cn=plugins, cn=config
 replace:nis-value-format: %merge(" ","%{memberNisNetgroup}","(%link(\"%ifeq(\\\"hostCategory\\\",\\\"all\\\",\\\"\\\",\\\"%collect(\\\\\\\"%{externalHost}\\\\\\\",\\\\\\\"%deref(\\\\\\\\\\\\\\\"memberHost\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"fqdn\\\\\\\\\\\\\\\")\\\\\\\",\\\\\\\"%deref_r(\\\\\\\\\\\\\\\"member\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"fqdn\\\\\\\\\\\\\\\")\\\\\\\",\\\\\\\"%deref_r(\\\\\\\\\\\\\\\"memberHost\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"member\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"fqdn\\\\\\\\\\\\\\\")\\\\\\\")\\\")\",\"-\",\",\",\"%ifeq(\\\"userCategory\\\",\\\"all\\\",\\\"\\\",\\\"%collect(\\\"%deref(\\\\\\\"memberUser\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\",\\\"%deref_r(\\\\\\\"memberUser\\\\\\\",\\\\\\\"member\\\\\\\",\\\\\\\"uid\\\\\\\")\\\")\\\")\",\"-\"),%{nisDomainName:-})")::%merge(" ","%{memberNisNetgroup}","(%link(\"%ifeq(\\\"hostCategory\\\",\\\"all\\\",\\\"\\\",\\\"%collect(\\\\\\\"%{externalHost}\\\\\\\",\\\\\\\"%deref(\\\\\\\\\\\\\\\"memberHost\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"fqdn\\\\\\\\\\\\\\\")\\\\\\\",\\\\\\\"%deref_r(\\\\\\\\\\\\\\\"member\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"fqdn\\\\\\\\\\\\\\\")\\\\\\\",\\\\\\\"%deref_r(\\\\\\\\\\\\\\\"memberHost\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"member\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"fqdn\\\\\\\\\\\\\\\")\\\\\\\")\\\")\",\"-\",\",\",\"%ifeq(\\\"userCategory\\\",\\\"all\\\",\\\"\\\",\\\"%collect(\\\\\\\"%deref(\\\\\\\\\\\\\\\"memberUser\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"uid\\\\\\\\\\\\\\\")\\\\\\\",\\\\\\\"%deref_r(\\\\\\\\\\\\\\\"member\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"uid\\\\\\\\\\\\\\\")\\\\\\\",\\\\\\\"%deref_r(\\\\\\\\\\\\\\\"memberUser\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"member\\\\\\\\\\\\\\\",\\\\\\\\\\\\\\\"uid\\\\\\\\\\\\\\\")\\\\\\\")\\\")\",\"-\"),%{nisDomainName:-})")
