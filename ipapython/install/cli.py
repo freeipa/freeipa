@@ -10,7 +10,7 @@ import collections
 import optparse
 import signal
 
-from ipapython import admintool
+from ipapython import admintool, ipa_log_manager
 from ipapython.ipautil import CheckedIPAddress, private_ccache
 
 from . import core, common
@@ -255,6 +255,21 @@ class ConfigureTool(admintool.AdminTool):
                 setattr(self.options, name, value)
 
                 index += 1
+
+    def _setup_logging(self, log_file_mode='w', no_file=False):
+        if no_file:
+            log_file_name = None
+        elif self.options.log_file:
+            log_file_name = self.options.log_file
+        else:
+            log_file_name = self.log_file_name
+        ipa_log_manager.standard_logging_setup(log_file_name,
+                                               debug=self.options.verbose)
+        self.log = ipa_log_manager.log_mgr.get_logger(self)
+        if log_file_name:
+            self.log.debug('Logging to %s' % log_file_name)
+        elif not no_file:
+            self.log.debug('Not logging to a file')
 
     def run(self):
         kwargs = {}
