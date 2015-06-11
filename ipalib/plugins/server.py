@@ -87,3 +87,10 @@ class server_find(LDAPSearch):
 @register()
 class server_show(LDAPRetrieve):
     __doc__ = _('Show IPA server.')
+
+
+@register()
+class server_del(LDAPDelete):
+    __doc__ = _('Delete IPA server.')
+    NO_CLI = True
+    msg_summary = _('Deleted IPA server "%(value)s"')

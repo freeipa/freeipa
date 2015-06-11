@@ -3799,6 +3799,14 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
+command: server_del
+args: 1,2,3
+arg: Str('cn', attribute=True, cli_name='name', multivalue=True, primary_key=True, query=True, required=True)
+option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
+output: Output('result', <type 'dict'>, None)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: ListOfPrimaryKeys('value', None, None)
 command: server_find
 args: 1,10,4
 arg: Str('criteria?', noextrawhitespace=False)
