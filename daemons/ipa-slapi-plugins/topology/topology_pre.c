@@ -60,7 +60,7 @@ int ipa_topo_is_entry_managed(Slapi_PBlock *pb)
 
 }
 int
-ipa_topo_is_modattr_restricted(Slapi_PBlock *pb)
+ipa_topo_is_agmt_attr_restricted(Slapi_PBlock *pb)
 {
     LDAPMod **mods;
     int i;
@@ -69,6 +69,24 @@ ipa_topo_is_modattr_restricted(Slapi_PBlock *pb)
     slapi_pblock_get(pb, SLAPI_MODIFY_MODS, &mods);
     for (i = 0; (mods != NULL) && (mods[i] != NULL); i++) {
         if (ipa_topo_cfg_attr_is_restricted(mods[i]->mod_type)) {
+            rc = 1;
+            break;
+        }
+    }
+    return rc;
+}
+int
+ipa_topo_is_segm_attr_restricted(Slapi_PBlock *pb)
+{
+    LDAPMod **mods;
+    int i;
+    int rc = 0;
+
+    slapi_pblock_get(pb, SLAPI_MODIFY_MODS, &mods);
+    for (i = 0; (mods != NULL) && (mods[i] != NULL); i++) {
+        if ((0 == strcasecmp(mods[i]->mod_type, "ipaReplTopoSegmentDirection")) ||
+            (0 == strcasecmp(mods[i]->mod_type, "ipaReplTopoSegmentLeftNode")) ||
+            (0 == strcasecmp(mods[i]->mod_type, "ipaReplTopoSegmentRightNode"))) {
             rc = 1;
             break;
         }
@@ -266,7 +284,7 @@ ipa_topo_connection_exists(struct node_fanout *fanout, char* from, char *to)
 }
 
 int
-ipa_topo_check_connect_reject(Slapi_PBlock *pb)
+ipa_topo_check_segment_is_valid(Slapi_PBlock *pb)
 {
     int rc = 0;
     Slapi_Entry *add_entry;
@@ -309,7 +327,29 @@ ipa_topo_check_connect_reject(Slapi_PBlock *pb)
 }
 
 int
-ipa_topo_check_disconnect_reject(Slapi_PBlock *pb)
+ipa_topo_check_segment_updates(Slapi_PBlock *pb)
+{
+    int rc = 0;
+    Slapi_Entry *mod_entry;
+    char *pi;
+
+    /* we have to check if the operation is triggered by the
+     * topology plugin itself - allow it
+     */
+    slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY,&pi);
+    if (pi && 0 == strcasecmp(pi, ipa_topo_get_plugin_id())) {
+        return 0;
+    }
+    slapi_pblock_get(pb,SLAPI_MODIFY_EXISTING_ENTRY,&mod_entry);
+    if (TOPO_SEGMENT_ENTRY == ipa_topo_check_entry_type(mod_entry) &&
+        (ipa_topo_is_segm_attr_restricted(pb))) {
+        rc = 1;
+    }
+    return rc;
+}
+
+int
+ipa_topo_check_topology_disconnect(Slapi_PBlock *pb)
 {
     int rc = 1;
     Slapi_Entry *del_entry;
@@ -385,7 +425,7 @@ int ipa_topo_pre_add(Slapi_PBlock *pb)
         slapi_pblock_set(pb, SLAPI_PB_RESULT_TEXT, errtxt);
         slapi_pblock_set(pb, SLAPI_RESULT_CODE, &rc);
         result = SLAPI_PLUGIN_FAILURE;
-    } else if (ipa_topo_check_connect_reject(pb)) {
+    } else if (ipa_topo_check_segment_is_valid(pb)) {
         int rc = LDAP_UNWILLING_TO_PERFORM;
         char *errtxt;
         errtxt = slapi_ch_smprintf("Segment already exists in topology or"
@@ -403,6 +443,7 @@ ipa_topo_pre_mod(Slapi_PBlock *pb)
 {
 
     int result = SLAPI_PLUGIN_SUCCESS;
+    char *errtxt = NULL;
 
     slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                     "--> ipa_topo_pre_mod\n");
@@ -415,11 +456,21 @@ ipa_topo_pre_mod(Slapi_PBlock *pb)
 
     if (ipa_topo_pre_ignore_op(pb)) return result;
 
-    if (ipa_topo_is_entry_managed(pb) && ipa_topo_is_modattr_restricted(pb)) {
+    if (ipa_topo_is_entry_managed(pb)){
+        /* this means it is a replication agreement targeting a managed server
+         * next check is if it tries to modify restricted attributes
+         */
+        if(ipa_topo_is_agmt_attr_restricted(pb)) {
+            errtxt = slapi_ch_smprintf("Entry and attributes are managed by topology plugin."
+                                       "No direct modifications allowed.\n");
+        }
+    } else if (ipa_topo_check_segment_updates(pb)) {
+        /* some updates to segments are not supported */
+        errtxt = slapi_ch_smprintf("Modification of connectivity and segment nodes "
+                                   " is not supported.\n");
+    }
+    if (errtxt) {
         int rc = LDAP_UNWILLING_TO_PERFORM;
-        char *errtxt;
-        errtxt = slapi_ch_smprintf("Entry and attributes are managed by topology plugin."
-                                   "No direct modifications allowed.\n");
         slapi_pblock_set(pb, SLAPI_PB_RESULT_TEXT, errtxt);
         slapi_pblock_set(pb, SLAPI_RESULT_CODE, &rc);
         result = SLAPI_PLUGIN_FAILURE;
@@ -453,7 +504,7 @@ ipa_topo_pre_del(Slapi_PBlock *pb)
         slapi_pblock_set(pb, SLAPI_PB_RESULT_TEXT, errtxt);
         slapi_pblock_set(pb, SLAPI_RESULT_CODE, &rc);
         result = SLAPI_PLUGIN_FAILURE;
-    } else if (ipa_topo_check_disconnect_reject(pb)) {
+    } else if (ipa_topo_check_topology_disconnect(pb)) {
         int rc = LDAP_UNWILLING_TO_PERFORM;
         char *errtxt;
         errtxt = slapi_ch_smprintf("Removal of Segment disconnects topology."
