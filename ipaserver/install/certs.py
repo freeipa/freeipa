@@ -653,6 +653,18 @@ class CertDB(object):
     def export_pem_cert(self, nickname, location):
         return self.nssdb.export_pem_cert(nickname, location)
 
+    def request_service_cert(self, nickname, principal, host, pwdconf=False):
+        self.create_from_cacert(paths.IPA_CA_CRT)
+        if pwdconf:
+            self.create_password_conf()
+        reqid = certmonger.request_cert(nssdb=self.secdir,
+                                        nickname=nickname,
+                                        principal=principal,
+                                        subject=host,
+                                        passwd_fname=self.passwd_fname)
+        # Now wait for the cert to appear. Check three times then abort
+        certmonger.wait_for_request(reqid, timeout=15)
+
 
 class _CrossProcessLock(object):
     _DATETIME_FORMAT = '%Y%m%d%H%M%S%f'

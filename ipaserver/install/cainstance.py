@@ -260,6 +260,32 @@ def is_step_one_done():
     return False
 
 
+def find_ca_server(host_name, conn, api=api):
+    """
+    :param host_name: the preferred server
+    :param conn: a connection to the LDAP server
+    :return: the selected host name
+
+    Find a server that is a CA.
+    """
+    dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+    query_filter = conn.make_filter({'objectClass': 'ipaConfigObject',
+                                     'ipaConfigString': 'enabledService',
+                                     'cn': 'CA'}, rules='&')
+    try:
+        entries, trunc = conn.find_entries(filter=query_filter, base_dn=dn)
+    except errors.NotFound:
+        return None
+    if len(entries):
+        if host_name is not None:
+            for entry in entries:
+                if entry.dn[1].value == host_name:
+                    return host_name
+        # if the preferred is not found, return the first in the list
+        return entries[0].dn[1].value
+    return None
+
+
 def is_ca_installed_locally():
     """Check if CA is installed locally by checking for existence of CS.cfg
     :return:True/False

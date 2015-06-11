@@ -8,13 +8,15 @@ import dns.exception as dnsexception
 import dns.name as dnsname
 import dns.resolver as dnsresolver
 import dns.reversename as dnsreversename
+import getpass
+import gssapi
 import os
 import shutil
 import socket
 import sys
 import tempfile
 
-from ipapython import dogtag, ipautil, sysrestore
+from ipapython import certmonger, dogtag, ipaldap, ipautil, sysrestore
 from ipapython.dn import DN
 from ipapython.install import common, core
 from ipapython.install.common import step
@@ -24,14 +26,19 @@ from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 from ipalib import api, certstore, constants, create_api, errors, x509
+import ipaclient.ipachangeconf
 import ipaclient.ntpconf
 from ipaserver.install import (
     bindinstance, ca, cainstance, certs, dns, dsinstance, httpinstance,
     installutils, kra, krbinstance, memcacheinstance, ntpinstance,
     otpdinstance, custodiainstance, service)
 from ipaserver.install.installutils import create_replica_config
+from ipaserver.install.installutils import ReplicaConfig
 from ipaserver.install.replication import (
     ReplicationManager, replica_conn_check)
+import SSSDConfig
+from subprocess import CalledProcessError
+from binascii import hexlify
 
 from .common import BaseServer
 
@@ -60,7 +67,29 @@ def make_pkcs12_info(directory, cert_name, password_name):
         return None
 
 
-def install_replica_ds(config):
+def install_http_certs(config, fstore):
+
+    # Obtain keytab for the HTTP service
+    fstore.backup_file(paths.IPA_KEYTAB)
+    try:
+        os.unlink(paths.IPA_KEYTAB)
+    except OSError:
+        pass
+
+    principal = 'HTTP/%s@%s' % (config.host_name, config.realm_name)
+    installutils.install_service_keytab(principal,
+                                        config.master_host_name,
+                                        paths.IPA_KEYTAB)
+
+    # Obtain certificate for the HTTP service
+    nssdir = certs.NSS_DIR
+    subject = DN(('O', config.realm_name))
+    db = certs.CertDB(config.realm_name, nssdir=nssdir, subject_base=subject)
+    db.request_service_cert('Server-Cert', principal, config.host_name, True)
+    # FIXME: need Signing-Cert too ?
+
+
+def install_replica_ds(config, promote=False):
     dsinstance.check_ports()
 
     # if we have a pkcs12 file, create the cert db from
@@ -79,12 +108,13 @@ def install_replica_ds(config):
         pkcs12_info=pkcs12_info,
         ca_is_configured=ipautil.file_exists(config.dir + "/cacert.p12"),
         ca_file=config.dir + "/ca.crt",
+        promote=promote,
     )
 
     return ds
 
 
-def install_krb(config, setup_pkinit=False):
+def install_krb(config, setup_pkinit=False, promote=False):
     krb = krbinstance.KrbInstance()
 
     # pkinit files
@@ -94,7 +124,7 @@ def install_krb(config, setup_pkinit=False):
     krb.create_replica(config.realm_name,
                        config.master_host_name, config.host_name,
                        config.domain_name, config.dirman_password,
-                       setup_pkinit, pkcs12_info)
+                       setup_pkinit, pkcs12_info, promote=promote)
 
     return krb
 
@@ -115,7 +145,7 @@ def install_ca_cert(ldap, base_dn, realm, cafile):
         sys.exit(1)
 
 
-def install_http(config, auto_redirect):
+def install_http(config, auto_redirect, promote=False):
     # if we have a pkcs12 file, create the cert db from
     # that. Otherwise the ds setup will create the CA
     # cert
@@ -131,7 +161,8 @@ def install_http(config, auto_redirect):
         config.realm_name, config.host_name, config.domain_name,
         config.dirman_password, False, pkcs12_info,
         auto_redirect=auto_redirect, ca_file=config.dir + "/ca.crt",
-        ca_is_configured=ipautil.file_exists(config.dir + "/cacert.p12"))
+        ca_is_configured=ipautil.file_exists(config.dir + "/cacert.p12"),
+        promote=promote)
 
     # Now copy the autoconfiguration files
     try:
@@ -153,9 +184,10 @@ def install_http(config, auto_redirect):
 def install_dns_records(config, options, remote_api):
 
     if not bindinstance.dns_container_exists(
-            config.master_host_name,
+            config.host_name,
             ipautil.realm_to_suffix(config.realm_name),
-            dm_password=config.dirman_password):
+            realm=config.realm_name, ldapi=True,
+            autobind=ipaldap.AUTOBIND_ENABLED):
         return
 
     try:
@@ -283,6 +315,43 @@ def check_dns_resolution(host_name, dns_servers):
     return no_errors
 
 
+def check_ca_enabled(api):
+    try:
+        api.Backend.rpcclient.connect()
+        result = api.Backend.rpcclient.forward(
+            'ca_is_enabled',
+            version=u'2.112'    # All the way back to 3.0 servers
+        )
+        return result['result']
+    finally:
+        if api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.disconnect()
+
+
+def configure_certmonger():
+    messagebus = services.knownservices.messagebus
+    try:
+        messagebus.start()
+    except Exception, e:
+        print("Messagebus service unavailable: %s" % str(e))
+        sys.exit(3)
+
+    # Ensure that certmonger has been started at least once to generate the
+    # cas files in /var/lib/certmonger/cas.
+    cmonger = services.knownservices.certmonger
+    try:
+        cmonger.restart()
+    except Exception, e:
+        print("Certmonger service unavailable: %s" % str(e))
+        sys.exit(3)
+
+    try:
+        cmonger.enable()
+    except Exception, e:
+        print("Failed to enable Certmonger: %s" % str(e))
+        sys.exit(3)
+
+
 def remove_replica_info_dir(installer):
     # always try to remove decrypted replica file
     try:
@@ -309,6 +378,37 @@ def common_cleanup(func):
             raise
 
     return decorated
+
+
+def promote_sssd(host_name):
+    sssdconfig = SSSDConfig.SSSDConfig()
+    sssdconfig.import_config()
+    domains = sssdconfig.list_active_domains()
+
+    ipa_domain = None
+
+    for name in domains:
+        domain = sssdconfig.get_domain(name)
+        try:
+            hostname = domain.get_option('ipa_hostname')
+            if hostname == host_name:
+                ipa_domain = domain
+        except SSSDConfig.NoOptionError:
+            continue
+
+    if ipa_domain is None:
+        raise RuntimeError("Couldn't find IPA domain in sssd.conf")
+    else:
+        domain.set_option('ipa_server', host_name)
+        domain.set_option('ipa_server_mode', True)
+        sssdconfig.save_domain(domain)
+        sssdconfig.write()
+
+        sssd = services.service('sssd')
+        try:
+            sssd.restart()
+        except CalledProcessError:
+            root_logger.warning("SSSD service restart was unsuccessful.")
 
 
 @common_cleanup
@@ -432,6 +532,14 @@ def install_check(installer):
             # If we're joining an older master, domain entry is not
             # available
             current = 0
+
+        if current != 0:
+            raise RuntimeError(
+                "You cannot use a replica file to join a replica when the "
+                "domain is above level 0. Please join the system to the "
+                "domain by running ipa-client-install first, the try again "
+                "without a replica file."
+            )
 
         # Detect if current level is out of supported range
         # for this IPA version
@@ -596,12 +704,9 @@ def install(installer):
         CA.import_ra_cert(config.dir + "/ra.p12")
         CA.fix_ra_perms()
 
-    # FIXME: must be done earlier in replica to fetch keys for CA/ldap server
-    # before they are configured
-    custodia = custodiainstance.CustodiaInstance()
-    custodia.create_instance('KEYS', config.host_name,
-                             config.dirman_password,
-                             ipautil.realm_to_suffix(config.realm_name))
+    custodia = custodiainstance.CustodiaInstance(config.host_name,
+                                                 config.realm_name)
+    custodia.create_instance(config.dirman_password)
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated
@@ -662,6 +767,412 @@ def install(installer):
     remove_replica_info_dir(installer)
 
 
+@common_cleanup
+def promote_check(installer):
+    options = installer
+
+    # FIXME: to implement yet
+    if options.setup_ca:
+        raise NotImplementedError
+    if options.setup_kra:
+        raise NotImplementedError
+    if options.setup_dns:
+        raise NotImplementedError
+
+    tasks.check_selinux_status()
+
+    client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
+    if not client_fstore.has_files():
+        sys.exit("IPA client is not configured on this system.\n"
+                 "You must use a replica file or join the system "
+                 "using 'ipa-client-install'.")
+
+    sstore = sysrestore.StateFile(paths.SYSRESTORE)
+
+    fstore = sysrestore.FileStore(paths.SYSRESTORE)
+
+    # Check to see if httpd is already configured to listen on 443
+    if httpinstance.httpd_443_configured():
+        sys.exit("Aborting installation")
+
+    check_dirsrv()
+
+    if not options.no_ntp:
+        try:
+            ipaclient.ntpconf.check_timedate_services()
+        except ipaclient.ntpconf.NTPConflictingService, e:
+            print("WARNING: conflicting time&date synchronization service '%s'"
+                  " will" % e.conflicting_service)
+            print("be disabled in favor of ntpd")
+            print("")
+        except ipaclient.ntpconf.NTPConfigurationError:
+            pass
+
+    api.bootstrap(context='installer')
+    api.finalize()
+
+    config = ReplicaConfig()
+    config.realm_name = api.env.realm
+    config.host_name = api.env.host
+    config.domain_name = api.env.domain
+    config.master_host_name = api.env.server
+    config.setup_ca = options.setup_ca
+    config.setup_kra = options.setup_kra
+
+    installutils.verify_fqdn(config.host_name, options.no_host_dns)
+    installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
+
+    # Check if ccache is available
+    try:
+        root_logger.debug('KRB5CCNAME set to %s' %
+                          os.environ.get('KRB5CCNAME', None))
+        # get default creds, will raise if none found
+        default_cred = gssapi.creds.Credentials()
+        principal = str(default_cred.name)
+    except gssapi.raw.misc.GSSError as e:
+        root_logger.debug('Failed to find default ccache: %s' % e)
+        principal = None
+
+    # Check if the principal matches the requested one (if any)
+    if principal is not None and options.principal is not None:
+        op = options.principal
+        if op.find('@') == -1:
+            op = '%s@%s' % (op, config.realm_name)
+        if principal != op:
+            root_logger.debug('Specified principal %s does not match '
+                              'available credentials (%s)' %
+                              (options.principal, principal))
+            principal = None
+
+    if principal is None:
+        (ccache_fd, ccache_name) = tempfile.mkstemp()
+        os.close(ccache_fd)
+
+        if options.principal is not None:
+            principal = options.principal
+        else:
+            principal = 'admin'
+        stdin = None
+        if principal.find('@') == -1:
+            principal = '%s@%s' % (principal, config.realm_name)
+        if options.password is not None:
+            stdin = options.password
+        else:
+            if not options.unattended:
+                try:
+                    stdin = getpass.getpass("Password for %s: " % principal)
+                except EOFError:
+                    stdin = None
+                if not stdin:
+                    raise RuntimeError("Password must be provided for %s."
+                                       % principal)
+            else:
+                if sys.stdin.isatty():
+                    root_logger.info("Password must be provided in " +
+                                     "non-interactive mode. " +
+                                     "This can be done via " +
+                                     "echo password | ipa-client-install " +
+                                     "... or with the -w option.")
+                    raise RuntimeError("Password must be provided in " +
+                                       "non-interactive mode.")
+                else:
+                    stdin = sys.stdin.readline()
+
+        try:
+            ipautil.kinit_password(principal, stdin, ccache_name)
+        except RuntimeError as e:
+            raise RuntimeError("Kerberos authentication failed: %s" % e)
+
+        os.environ['KRB5CCNAME'] = ccache_name
+
+    cafile = paths.IPA_CA_CRT
+    if not ipautil.file_exists(cafile):
+        raise RuntimeError("CA cert file is not available! Please reinstall"
+                           "the client and try again.")
+
+    ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
+    remote_api = create_api(mode=None)
+    remote_api.bootstrap(in_server=True, context='installer',
+                         ldap_uri=ldapuri)
+    remote_api.finalize()
+    conn = remote_api.Backend.ldap2
+    replman = None
+    try:
+        # Try out authentication
+        conn.connect(ccache=os.environ.get('KRB5CCNAME'))
+        replman = ReplicationManager(config.realm_name,
+                                     config.master_host_name, None)
+
+        # Check that we don't already have a replication agreement
+        try:
+            (acn, adn) = replman.agreement_dn(config.host_name)
+            entry = conn.get_entry(adn, ['*'])
+        except errors.NotFound:
+            pass
+        else:
+            root_logger.info('Error: A replication agreement for this '
+                             'host already exists.')
+            print('A replication agreement for this host already exists. '
+                  'It needs to be removed.')
+            print("Run this command:")
+            print("    %% ipa-replica-manage del %s --force" %
+                  config.host_name)
+            sys.exit(3)
+
+        # Detect the current domain level
+        try:
+            current = remote_api.Command['domainlevel_get']()['result']
+        except errors.NotFound:
+            # If we're joining an older master, domain entry is not
+            # available
+            current = 0
+
+        if current == 0:
+            raise RuntimeError(
+                "You must provide a file generated by ipa-replica-prepare to "
+                "create a replica when the domain is at level 0."
+            )
+
+        # Detect if current level is out of supported range
+        # for this IPA version
+        under_lower_bound = current < constants.MIN_DOMAIN_LEVEL
+        above_upper_bound = current > constants.MAX_DOMAIN_LEVEL
+
+        if under_lower_bound or above_upper_bound:
+            message = ("This version of FreeIPA does not support "
+                       "the Domain Level which is currently set for "
+                       "this domain. The Domain Level needs to be "
+                       "raised before installing a replica with "
+                       "this version is allowed to be installed "
+                       "within this domain.")
+            root_logger.error(message)
+            sys.exit(3)
+
+        # Detect if the other master can handle replication managers
+        # cn=replication managers,cn=sysaccounts,cn=etc,$SUFFIX
+        dn = DN(('cn', 'replication managers'), ('cn', 'sysaccounts'),
+                ('cn', 'etc'), ipautil.realm_to_suffix(config.realm_name))
+        try:
+            entry = conn.get_entry(dn)
+        except errors.NotFound:
+            msg = ("The Replication Managers group is not available in "
+                   "the domain. Replica promotion requires the use of "
+                   "Replication Managers to be able to replicate data. "
+                   "Upgrade the peer master or use the ipa-replica-prepare "
+                   "command on the master and use a prep file to install "
+                   "this replica.")
+            root_logger.error(msg)
+            sys.exit(3)
+
+        dns_masters = remote_api.Object['dnsrecord'].get_dns_masters()
+        if dns_masters:
+            if not options.no_host_dns:
+                root_logger.debug('Check forward/reverse DNS resolution')
+                resolution_ok = (
+                    check_dns_resolution(config.master_host_name,
+                                         dns_masters) and
+                    check_dns_resolution(config.host_name, dns_masters))
+                if not resolution_ok and installer.interactive:
+                    if not ipautil.user_input("Continue?", False):
+                        sys.exit(0)
+        else:
+            root_logger.debug('No IPA DNS servers, '
+                              'skipping forward/reverse resolution check')
+
+        entry_attrs = conn.get_ipa_config()
+        subject_base = entry_attrs.get('ipacertificatesubjectbase', [None])[0]
+        if subject_base is not None:
+            config.subject_base = DN(subject_base)
+
+        # Find if any server has a CA
+        ca_host = cainstance.find_ca_server(api.env.server, conn)
+        if ca_host is not None:
+            config.ca_host_name = ca_host
+            ca_enabled = True
+        else:
+            # FIXME: add way to pass in certificates
+            root_logger.error("The remote master does not have a CA "
+                              "installed, can't proceed without certs")
+            sys.exit(3)
+
+        if options.setup_ca:
+            if not ca_enabled:
+                root_logger.error("The remote master does not have a CA "
+                                  "installed, can't set up CA")
+                sys.exit(3)
+
+            options.realm_name = config.realm_name
+            options.host_name = config.host_name
+            options.subject = config.subject_base
+            ca.install_check(False, None, options)
+
+        if config.setup_kra:
+            try:
+                kra.install_check(remote_api, config, options)
+            except RuntimeError as e:
+                print(str(e))
+                sys.exit(1)
+    except errors.ACIError:
+        sys.exit("\nInsufficiently privileges to promote the server.")
+    except errors.LDAPError:
+        sys.exit("\nUnable to connect to LDAP server %s" %
+                 config.master_host_name)
+    finally:
+        if replman and replman.conn:
+            replman.conn.unbind()
+        if conn.isconnected():
+            conn.disconnect()
+
+    if options.setup_dns:
+        dns.install_check(False, True, options, config.host_name)
+    else:
+        config.ips = installutils.get_server_ip_address(
+            config.host_name, not installer.interactive,
+            False, options.ip_addresses)
+
+    # check connection
+    if not options.skip_conncheck:
+        replica_conn_check(
+            config.master_host_name, config.host_name, config.realm_name,
+            options.setup_ca, dogtag.Dogtag10Constants.DS_PORT)
+
+    if not ipautil.file_exists(cafile):
+        raise RuntimeError("CA cert file is not available.")
+
+    installer._ca_enabled = ca_enabled
+    installer._remote_api = remote_api
+    installer._fstore = fstore
+    installer._sstore = sstore
+    installer._config = config
+
+
+@common_cleanup
+def promote(installer):
+    options = installer
+    fstore = installer._fstore
+    sstore = installer._sstore
+    config = installer._config
+
+    # Save client file and merge in server directives
+    target_fname = paths.IPA_DEFAULT_CONF
+    fstore.backup_file(target_fname)
+    ipaconf = ipaclient.ipachangeconf.IPAChangeConf("IPA Replica Promote")
+    ipaconf.setOptionAssignment(" = ")
+    ipaconf.setSectionNameDelimiters(("[", "]"))
+
+    config.promote = installer.promote
+    config.dirman_password = hexlify(ipautil.ipa_generate_password())
+
+    dogtag_constants = dogtag.install_constants
+
+    # FIXME: allow to use passed in certs instead
+    if installer._ca_enabled:
+        configure_certmonger()
+
+    # Create DS user/group if it doesn't exist yet
+    dsinstance.create_ds_user()
+
+    # Configure ntpd
+    if not options.no_ntp:
+        ipaclient.ntpconf.force_ntpd(sstore)
+        ntp = ntpinstance.NTPInstance()
+        ntp.create_instance()
+
+    # Configure dirsrv
+    ds = install_replica_ds(config, promote=True)
+
+    # Always try to install DNS records
+    install_dns_records(config, options, api)
+
+    # Must install http certs before changing ipa configuration file
+    # or certmonger will fail to contact the peer master
+    install_http_certs(config, fstore)
+
+    # Create the management framework config file
+    gopts = [
+        ipaconf.setOption('host', config.host_name),
+        ipaconf.rmOption('server'),
+        ipaconf.setOption('xmlrpc_uri',
+                          'https://%s/ipa/xml' %
+                          ipautil.format_netloc(config.host_name)),
+        ipaconf.setOption('ldap_uri',
+                          installutils.realm_to_ldapi_uri(config.realm_name)),
+        ipaconf.setOption('mode', 'production'),
+        ipaconf.setOption('enable_ra', 'True'),
+        ipaconf.setOption('ra_plugin', 'dogtag'),
+        ipaconf.setOption('dogtag_version',
+                          dogtag.install_constants.DOGTAG_VERSION)]
+    opts = [ipaconf.setSection('global', gopts)]
+
+    ipaconf.changeConf(target_fname, opts)
+    os.chmod(target_fname, 0o644)   # must be readable for httpd
+
+    custodia = custodiainstance.CustodiaInstance(config.host_name,
+                                                 config.realm_name)
+    custodia.create_replica(config.master_host_name)
+
+    if config.setup_ca:
+        options.realm_name = config.realm_name
+        options.domain_name = config.domain_name
+        options.host_name = config.host_name
+        options.dm_password = config.dirman_password
+
+        ca.install(False, config, options)
+
+    krb = install_krb(config,
+                      setup_pkinit=not options.no_pkinit,
+                      promote=True)
+
+    http = install_http(config,
+                        auto_redirect=not options.no_ui_redirect,
+                        promote=True)
+
+    otpd = otpdinstance.OtpdInstance()
+    otpd.create_instance('OTPD', config.host_name, config.dirman_password,
+                         ipautil.realm_to_suffix(config.realm_name))
+
+    CA = cainstance.CAInstance(
+        config.realm_name, certs.NSS_DIR,
+        dogtag_constants=dogtag_constants)
+    CA.dm_password = config.dirman_password
+    CA.configure_certmonger_renewal()
+    CA.fix_ra_perms()
+
+    # Apply any LDAP updates. Needs to be done after the replica is synced-up
+    service.print_msg("Applying LDAP updates")
+    ds.apply_updates()
+
+    if options.setup_kra:
+        kra.install(api, config, options)
+    else:
+        service.print_msg("Restarting the directory server")
+        ds.restart()
+
+    service.print_msg("Restarting the KDC")
+    krb.restart()
+
+    if config.setup_ca:
+        dogtag_service = services.knownservices[dogtag_constants.SERVICE_NAME]
+        dogtag_service.restart(dogtag_constants.PKI_INSTANCE_NAME)
+
+    if options.setup_dns:
+        api.Backend.ldap2.connect(autobind=True)
+        dns.install(False, True, options)
+
+    # Restart httpd to pick up the new IPA configuration
+    service.print_msg("Restarting the web server")
+    http.restart()
+
+    ds.replica_populate()
+
+    custodia.import_dm_password(config.master_host_name)
+
+    promote_sssd(config.host_name)
+
+    # Everything installed properly, activate ipa service.
+    services.knownservices.ipa.enable()
+
+
 class Replica(BaseServer):
     replica_file = Knob(
         str, None,
@@ -710,6 +1221,15 @@ class Replica(BaseServer):
         description="skip connection check to remote master",
     )
 
+    principal = Knob(
+        str, None,
+        sensitive=True,
+        description="User Principal allowed to promote replicas",
+        cli_short_name='P',
+    )
+
+    promote = False
+
     # ca
     external_ca = None
     external_ca_type = None
@@ -742,11 +1262,11 @@ class Replica(BaseServer):
         self._update_hosts_file = False
 
         if self.replica_file is None:
-            raise RuntimeError(
-                "you must provide a file generated by ipa-replica-prepare")
-        if not ipautil.file_exists(self.replica_file):
-            raise RuntimeError(
-                "Replica file %s does not exist" % self.replica_file)
+            self.promote = True
+        else:
+            if not ipautil.file_exists(self.replica_file):
+                raise RuntimeError("Replica file %s does not exist"
+                                   % self.replica_file)
 
         if self.setup_dns:
             #pylint: disable=no-member
@@ -759,6 +1279,12 @@ class Replica(BaseServer):
 
     @step()
     def main(self):
-        install_check(self)
-        yield
-        install(self)
+        if self.promote:
+            promote_check(self)
+            yield
+            promote(self)
+        else:
+            with ipautil.private_ccache():
+                install_check(self)
+                yield
+                install(self)

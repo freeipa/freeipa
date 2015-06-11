@@ -1605,6 +1605,96 @@ class ReplicationManager(object):
         except errors.EmptyModlist:
             pass
 
+    def join_replication_managers(self, conn):
+        """
+        Create a pseudo user to use for replication.
+        """
+        dn = DN(('cn', 'replication managers'), ('cn', 'sysaccounts'),
+                ('cn', 'etc'), self.suffix)
+        mydn = DN(('krbprincipalname', 'ldap/%s@%s' % (self.hostname,
+                                                       self.realm)),
+                  ('cn', 'services'), ('cn', 'accounts'), self.suffix)
+
+        entry = conn.get_entry(dn)
+        if mydn not in entry['member']:
+            entry['member'].append(mydn)
+
+        try:
+            conn.update_entry(entry)
+        except errors.EmptyModlist:
+            pass
+
+    def add_temp_sasl_mapping(self, conn, r_hostname):
+        """
+        Create a special user to let SASL Mapping find a valid user
+        on first replication.
+        """
+        name = 'ldap/%s@%s' % (r_hostname, self.realm)
+        replica_binddn = DN(('cn', name), ('cn', 'config'))
+        entry = conn.make_entry(
+            replica_binddn,
+            objectclass=["top", "person"],
+            cn=[name],
+            sn=["replication manager pseudo user"]
+        )
+        conn.add_entry(entry)
+
+        entry = conn.get_entry(self.replica_dn())
+        entry['nsDS5ReplicaBindDN'].append(replica_binddn)
+        conn.update_entry(entry)
+
+        entry = conn.make_entry(
+            DN(('cn', 'Peer Master'), ('cn', 'mapping'), ('cn', 'sasl'),
+                ('cn', 'config')),
+            objectclass=["top", "nsSaslMapping"],
+            cn=["Peer Master"],
+            nsSaslMapRegexString=['^[^:@]+$'],
+            nsSaslMapBaseDNTemplate=[DN(('cn', 'config'))],
+            nsSaslMapFilterTemplate=['(cn=&@%s)' % self.realm],
+            nsSaslMapPriority=['1'],
+        )
+        conn.add_entry(entry)
+
+    def remove_temp_replication_user(self, conn, r_hostname):
+        """
+        Remove the special SASL Mapping user created in a previous step.
+        """
+        name = 'ldap/%s@%s' % (r_hostname, self.realm)
+        replica_binddn = DN(('cn', name), ('cn', 'config'))
+        conn.delete_entry(replica_binddn)
+
+        entry = conn.get_entry(self.replica_dn())
+        while replica_binddn in entry['nsDS5ReplicaBindDN']:
+            entry['nsDS5ReplicaBindDN'].remove(replica_binddn)
+        conn.update_entry(entry)
+
+    def setup_promote_replication(self, r_hostname):
+        # note - there appears to be a bug in python-ldap - it does not
+        # allow connections using two different CA certs
+        r_conn = ipaldap.IPAdmin(r_hostname, port=389, protocol='ldap')
+        r_conn.do_sasl_gssapi_bind()
+
+        # Setup the first half
+        l_id = self._get_replica_id(self.conn, r_conn)
+        self.basic_replication_setup(self.conn, l_id, self.repl_man_dn, None)
+        self.add_temp_sasl_mapping(self.conn, r_hostname)
+
+        # Now setup the other half
+        r_id = self._get_replica_id(r_conn, r_conn)
+        self.basic_replication_setup(r_conn, r_id, self.repl_man_dn, None)
+        self.join_replication_managers(r_conn)
+
+        self.setup_agreement(r_conn, self.conn.host, isgssapi=True)
+        self.setup_agreement(self.conn, r_hostname, isgssapi=True)
+
+        # Finally start replication
+        ret = self.start_replication(r_conn, master=False)
+        if ret != 0:
+            raise RuntimeError("Failed to start replication")
+
+        self.remove_temp_replication_user(self.conn, r_hostname)
+
+
 class CSReplicationManager(ReplicationManager):
     """ReplicationManager specific to CA agreements
 

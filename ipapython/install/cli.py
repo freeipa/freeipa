@@ -25,6 +25,7 @@ if six.PY3:
 
 def install_tool(configurable_class, command_name, log_file_name,
                  positional_arguments=None, usage=None, debug_option=False,
+                 use_private_ccache=True,
                  uninstall_log_file_name=None,
                  uninstall_positional_arguments=None, uninstall_usage=None):
     if (uninstall_log_file_name is not None or
@@ -52,6 +53,7 @@ def install_tool(configurable_class, command_name, log_file_name,
             usage=usage,
             debug_option=debug_option,
             uninstall_kwargs=uninstall_kwargs,
+            use_private_ccache=use_private_ccache,
         )
     )
 
@@ -76,6 +78,7 @@ class ConfigureTool(admintool.AdminTool):
     configurable_class = None
     debug_option = False
     positional_arguments = None
+    use_private_ccache = True
 
     @staticmethod
     def _transform(configurable_class):
@@ -305,10 +308,12 @@ class ConfigureTool(admintool.AdminTool):
 
         signal.signal(signal.SIGTERM, self.__signal_handler)
 
-        # Use private ccache
-        with private_ccache():
+        if self.use_private_ccache:
+            with private_ccache():
+                super(ConfigureTool, self).run()
+                cfgr.run()
+        else:
             super(ConfigureTool, self).run()
-
             cfgr.run()
 
     @staticmethod

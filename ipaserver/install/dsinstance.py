@@ -255,8 +255,8 @@ class DsInstance(service.Service):
         self.step("configure autobind for root", self.__root_autobind)
         self.step("configure new location for managed entries", self.__repoint_managed_entries)
         self.step("configure dirsrv ccache", self.configure_dirsrv_ccache)
-        self.step("enable SASL mapping fallback", self.__enable_sasl_mapping_fallback)
-        self.step("restarting directory server", self.__restart_instance)
+        self.step("enabling SASL mapping fallback",
+                  self.__enable_sasl_mapping_fallback)
 
     def __common_post_setup(self):
         self.step("initializing group membership", self.init_memberof)
@@ -301,6 +301,7 @@ class DsInstance(service.Service):
             subject_base, idstart, idmax, pkcs12_info, ca_file=ca_file)
 
         self.__common_setup()
+        self.step("restarting directory server", self.__restart_instance)
 
         self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
         self.step("adding default layout", self.__add_default_layout)
@@ -314,6 +315,8 @@ class DsInstance(service.Service):
         if hbac_allow:
             self.step("creating default HBAC rule allow_all", self.add_hbac)
         self.step("creating default CA ACL rule", self.add_caacl)
+        self.step("adding sasl mappings to the directory",
+                  self.__configure_sasl_mappings)
         self.step("adding entries for topology management", self.__add_topology_entries)
 
         self.__common_post_setup()
@@ -331,7 +334,8 @@ class DsInstance(service.Service):
 
     def create_replica(self, realm_name, master_fqdn, fqdn,
                        domain_name, dm_password, subject_base,
-                       pkcs12_info=None, ca_file=None, ca_is_configured=None):
+                       pkcs12_info=None, ca_file=None,
+                       ca_is_configured=None, promote=False):
         # idstart and idmax are configured so that the range is seen as
         # depleted by the DNA plugin and the replica will go and get a
         # new range from the master.
@@ -353,8 +357,15 @@ class DsInstance(service.Service):
         self.master_fqdn = master_fqdn
         if ca_is_configured is not None:
             self.ca_is_configured = ca_is_configured
+        self.promote = promote
 
-        self.__common_setup(True)
+        self.__common_setup(enable_ssl=(not self.promote))
+        self.step("restarting directory server", self.__restart_instance)
+
+        if self.promote:
+            self.step("creating DS keytab", self.__get_ds_keytab)
+            self.step("retriving DS Certificate", self.__get_ds_cert)
+            self.step("restarting directory server", self.__restart_instance)
 
         self.step("setting up initial replication", self.__setup_replica)
         self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
@@ -374,14 +385,25 @@ class DsInstance(service.Service):
             self.realm,
             self.dm_password)
 
+        # Always connect to self over ldapi
+        conn = ipaldap.IPAdmin(self.fqdn, ldapi=True, realm=self.realm)
+        conn.do_external_bind('root')
         repl = replication.ReplicationManager(self.realm,
                                               self.fqdn,
-                                              self.dm_password)
-        repl.setup_replication(self.master_fqdn,
-                               r_binddn=DN(('cn', 'Directory Manager')),
-                               r_bindpw=self.dm_password)
+                                              self.dm_password, conn=conn)
+        if self.promote:
+            repl.setup_promote_replication(self.master_fqdn)
+        else:
+            repl.setup_replication(self.master_fqdn,
+                                   r_binddn=DN(('cn', 'Directory Manager')),
+                                   r_bindpw=self.dm_password)
         self.run_init_memberof = repl.needs_memberof_fixup()
 
+        # Now that the server is up make sure all changes happen against
+        # the local server (as repica pomotion does not have the DM password.
+        if self.admin_conn:
+            self.ldap_disconnect()
+        self.ldapi = True
 
     def __configure_sasl_mappings(self):
         # we need to remove any existing SASL mappings in the directory as otherwise they
@@ -1128,3 +1150,58 @@ class DsInstance(service.Service):
         # Create global domain level entry and set the domain level
         if self.domainlevel is not None:
             self._ldap_mod("domainlevel.ldif", self.sub_dict)
+
+    def __get_ds_keytab(self):
+
+        self.fstore.backup_file(paths.DS_KEYTAB)
+        try:
+            os.unlink(paths.DS_KEYTAB)
+        except OSError:
+            pass
+
+        installutils.install_service_keytab(self.principal,
+                                            self.master_fqdn,
+                                            paths.DS_KEYTAB)
+
+        # Configure DS to use the keytab
+        vardict = {"KRB5_KTNAME": paths.DS_KEYTAB}
+        ipautil.config_replace_variables(paths.SYSCONFIG_DIRSRV,
+                                         replacevars=vardict)
+
+        # Keytab must be owned by DS itself
+        pent = pwd.getpwnam(DS_USER)
+        os.chown(paths.DS_KEYTAB, pent.pw_uid, pent.pw_gid)
+
+    def __get_ds_cert(self):
+        subject = DN(('O', self.realm))
+        nssdb_dir = config_dirname(self.serverid)
+        db = certs.CertDB(self.realm, nssdir=nssdb_dir, subject_base=subject)
+        db.request_service_cert(self.nickname, self.principal, self.fqdn)
+        db.create_pin_file()
+
+        # Connect to self over ldapi as Directory Manager and configure SSL
+        conn = ipaldap.IPAdmin(self.fqdn, ldapi=True, realm=self.realm)
+        conn.do_external_bind('root')
+
+        mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
+               (ldap.MOD_REPLACE, "nsSSL3Ciphers", "+all"),
+               (ldap.MOD_REPLACE, "allowWeakCipher", "off")]
+        conn.modify_s(DN(('cn', 'encryption'), ('cn', 'config')), mod)
+
+        mod = [(ldap.MOD_ADD, "nsslapd-security", "on")]
+        conn.modify_s(DN(('cn', 'config')), mod)
+
+        entry = conn.make_entry(
+            DN(('cn', 'RSA'), ('cn', 'encryption'), ('cn', 'config')),
+            objectclass=["top", "nsEncryptionModule"],
+            cn=["RSA"],
+            nsSSLPersonalitySSL=[self.nickname],
+            nsSSLToken=["internal (software)"],
+            nsSSLActivation=["on"],
+        )
+        conn.add_entry(entry)
+
+        conn.unbind()
+
+        # check for open secure port 636 from now on
+        self.open_ports.append(636)

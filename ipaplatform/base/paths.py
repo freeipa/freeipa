@@ -360,5 +360,6 @@ class BasePathNamespace(object):
     IPA_CUSTODIA_CONF = '/etc/ipa/custodia/custodia.conf'
     IPA_CUSTODIA_SOCKET = '/run/httpd/ipa-custodia.sock'
     IPA_CUSTODIA_AUDIT_LOG = '/var/log/ipa-custodia.audit.log'
+    IPA_GETKEYTAB = '/usr/sbin/ipa-getkeytab'
 
 path_namespace = BasePathNamespace

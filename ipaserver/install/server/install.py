@@ -814,10 +814,8 @@ def install(installer):
     otpd.create_instance('OTPD', host_name, dm_password,
                          ipautil.realm_to_suffix(realm_name))
 
-    custodia = custodiainstance.CustodiaInstance()
-    custodia.create_instance('KEYS', host_name, dm_password,
-                             ipautil.realm_to_suffix(realm_name),
-                             realm_name)
+    custodia = custodiainstance.CustodiaInstance(host_name, realm_name)
+    custodia.create_instance(dm_password)
 
     # Create a HTTP instance
     http = httpinstance.HTTPInstance(fstore)

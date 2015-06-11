@@ -1540,8 +1540,8 @@ def upgrade_configuration():
         except ipautil.CalledProcessError as e:
             root_logger.error("Failed to restart %s: %s", bind.service_name, e)
 
-    custodia = custodiainstance.CustodiaInstance()
-    custodia.upgrade_instance(api.env.realm)
+    custodia = custodiainstance.CustodiaInstance(api.env.host, api.env.realm)
+    custodia.upgrade_instance()
 
     ca_restart = any([
         ca_restart,

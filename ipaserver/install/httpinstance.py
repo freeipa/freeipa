@@ -112,7 +112,7 @@ class HTTPInstance(service.Service):
     def create_instance(self, realm, fqdn, domain_name, dm_password=None,
                         autoconfig=True, pkcs12_info=None,
                         subject_base=None, auto_redirect=True, ca_file=None,
-                        ca_is_configured=None):
+                        ca_is_configured=None, promote=False):
         self.fqdn = fqdn
         self.realm = realm
         self.domain = domain_name
@@ -132,6 +132,7 @@ class HTTPInstance(service.Service):
         self.ca_file = ca_file
         if ca_is_configured is not None:
             self.ca_is_configured = ca_is_configured
+        self.promote = promote
 
         # get a connection to the DS
         self.ldap_connect()
@@ -147,12 +148,13 @@ class HTTPInstance(service.Service):
         if self.ca_is_configured:
             self.step("configure certmonger for renewals",
                       self.configure_certmonger_renewal_guard)
+        self.step("setting up httpd keytab", self.__create_http_keytab)
         self.step("setting up ssl", self.__setup_ssl)
         self.step("importing CA certificates from LDAP", self.__import_ca_certs)
         if autoconfig:
             self.step("setting up browser autoconfig", self.__setup_autoconfig)
-        self.step("publish CA cert", self.__publish_ca_cert)
-        self.step("creating a keytab for httpd", self.__create_http_keytab)
+        if not self.promote:
+            self.step("publish CA cert", self.__publish_ca_cert)
         self.step("clean up any existing httpd ccache", self.remove_httpd_ccache)
         self.step("configuring SELinux for httpd", self.configure_selinux_for_httpd)
         if not self.is_kdcproxy_configured():
@@ -183,10 +185,10 @@ class HTTPInstance(service.Service):
             self.print_msg(e.format_service_warning('web interface'))
 
     def __create_http_keytab(self):
-        installutils.kadmin_addprinc(self.principal)
-        installutils.create_keytab(paths.IPA_KEYTAB, self.principal)
-        self.move_service(self.principal)
-        self.add_cert_to_service()
+        if not self.promote:
+            installutils.kadmin_addprinc(self.principal)
+            installutils.create_keytab(paths.IPA_KEYTAB, self.principal)
+            self.move_service(self.principal)
 
         pent = pwd.getpwnam("apache")
         os.chown(paths.IPA_KEYTAB, pent.pw_uid, pent.pw_gid)
@@ -309,14 +311,16 @@ class HTTPInstance(service.Service):
                 db.track_server_cert(nickname, self.principal, db.passwd_fname, 'restart_httpd')
 
             self.__set_mod_nss_nickname(nickname)
-        else:
+            self.add_cert_to_service()
 
+        elif not self.promote:
             db.create_password_conf()
             self.dercert = db.create_server_cert(self.cert_nickname, self.fqdn,
                                                  ca_db)
             db.track_server_cert(self.cert_nickname, self.principal,
                                  db.passwd_fname, 'restart_httpd')
             db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
+            self.add_cert_to_service()
 
         # Fix the database permissions
         os.chmod(certs.NSS_DIR + "/cert8.db", 0o660)

@@ -173,7 +173,7 @@ class KrbInstance(service.Service):
                        master_fqdn, host_name,
                        domain_name, admin_password,
                        setup_pkinit=False, pkcs12_info=None,
-                       subject_base=None):
+                       subject_base=None, promote=False):
         self.pkcs12_info = pkcs12_info
         self.subject_base = subject_base
         self.master_fqdn = master_fqdn
@@ -181,12 +181,17 @@ class KrbInstance(service.Service):
         self.__common_setup(realm_name, host_name, domain_name, admin_password)
 
         self.step("configuring KDC", self.__configure_instance)
-        self.step("creating a keytab for the directory", self.__create_ds_keytab)
-        self.step("creating a keytab for the machine", self.__create_host_keytab)
+        if not promote:
+            self.step("creating a keytab for the directory",
+                      self.__create_ds_keytab)
+            self.step("creating a keytab for the machine",
+                      self.__create_host_keytab)
         self.step("adding the password extension to the directory", self.__add_pwd_extop_module)
         if setup_pkinit:
             self.step("installing X509 Certificate for PKINIT", self.__setup_pkinit)
-        self.step("enable GSSAPI for replication", self.__convert_to_gssapi_replication)
+        if not promote:
+            self.step("enable GSSAPI for replication",
+                      self.__convert_to_gssapi_replication)
 
         self.__common_post_setup()
 

@@ -47,12 +47,14 @@ from ipapython.admintool import ScriptError
 from ipapython.ipa_log_manager import root_logger, log_mgr
 from ipalib.util import validate_hostname
 from ipapython import config
-from ipalib import errors, x509
+from ipalib import api, errors, x509
 from ipapython.dn import DN
 from ipaserver.install import certs, service, sysupgrade
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
+from ipapython import certmonger
+
 
 if six.PY3:
     unicode = str
@@ -1115,3 +1117,28 @@ def enable_and_start_oddjobd(sstore):
         oddjobd.start()
     except Exception as e:
         root_logger.critical("Unable to start oddjobd: {0}".format(str(e)))
+
+
+def install_service_keytab(principal, server, path):
+
+    try:
+        api.Backend.rpcclient.connect()
+
+        # Create services if none exists (we use the .forward method
+        # here so that we can control the client version number and avoid
+        # errors. This is a workaround until the API becomes version
+        # independent: FIXME
+
+        api.Backend.rpcclient.forward(
+            'service_add',
+            krbprincipalname=principal,
+            version=u'2.112'    # All the way back to 3.0 servers
+        )
+    except errors.DuplicateEntry:
+        pass
+    finally:
+        if api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.disconnect()
+
+    args = [paths.IPA_GETKEYTAB, '-k', path, '-p', principal, '-s', server]
+    ipautil.run(args)
