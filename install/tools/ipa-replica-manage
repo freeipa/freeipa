@@ -25,6 +25,7 @@ import traceback
 from urllib2 import urlparse
 import ldap
 import socket
+import time
 
 from ipapython import ipautil
 from ipaserver.install import replication, dsinstance, installutils
@@ -564,6 +565,13 @@ def check_last_link(delrepl, realm, dirman_passwd, force):
     else:
         return None
 
+def check_last_link_managed(api, masters, hostname, force):
+    # segments = api.Command.topologysegment_find(u'realm', sizelimit=0).get('result')
+    # replica_names = [m.single_value('cn') for m in masters]
+    # orphaned = []
+    # TODO add proper graph traversing algorithm here
+    return None
+
 def enforce_host_existence(host, message=None):
     if host is not None and not ipautil.host_exists(host):
         if message is None:
@@ -571,7 +579,160 @@ def enforce_host_existence(host, message=None):
 
         sys.exit(message)
 
+def ensure_last_services(conn, hostname, masters, options):
+    """
+    1. When deleting master, check if there will be at least one remaining
+       DNS and CA server.
+    2. Pick CA renewal master
+
+    Return this_services, other_services, ca_hostname
+    """
+
+    this_services = []
+    other_services = []
+    ca_hostname = None
+
+    for master in masters:
+        master_cn = master['cn'][0]
+        try:
+            services = conn.get_entries(master['dn'], conn.SCOPE_ONELEVEL)
+        except errors.NotFound:
+            continue
+        services_cns = [s.single_value['cn'] for s in services]
+        if master_cn == hostname:
+            this_services = services_cns
+        else:
+            other_services.append(services_cns)
+            if ca_hostname is None and 'CA' in services_cns:
+                ca_hostname = master_cn
+
+    if 'CA' in this_services and not any(['CA' in o for o in other_services]):
+        print "Deleting this server is not allowed as it would leave your installation without a CA."
+        sys.exit(1)
+
+    other_dns = True
+    if 'DNS' in this_services and not any(['DNS' in o for o in other_services]):
+        other_dns = False
+        print "Deleting this server will leave your installation without a DNS."
+        if not options.force and not ipautil.user_input("Continue to delete?", False):
+            sys.exit("Deletion aborted")
+
+    # test if replica is not DNSSEC master
+    # allow to delete it if is last DNS server
+    if 'DNS' in this_services and other_dns and not options.force:
+        dnssec_masters = opendnssecinstance.get_dnssec_key_masters(conn)
+        if hostname in dnssec_masters:
+            print "Replica is active DNSSEC key master. Uninstall could break your DNS system."
+            sys.exit("Deletion aborted")
+
+    ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
+    if ca.is_renewal_master(hostname):
+        try:
+            ca.set_renewal_master(options.host)
+        except errors.NotFound:
+            ca.set_renewal_master(ca_hostname)
+
+    return this_services, other_services, ca_hostname
+
+
+def cleanup_server_dns_entries(realm, hostname, suffix, options):
+    try:
+        if bindinstance.dns_container_exists(options.host, suffix,
+                                             dm_password=options.dirman_passwd):
+            bind = bindinstance.BindInstance()
+            bind.remove_master_dns_records(hostname, realm, realm.lower())
+            bind.remove_ipa_ca_dns_records(hostname, realm.lower())
+            bind.remove_server_ns_records(hostname)
+
+            keysyncd = dnskeysyncinstance.DNSKeySyncInstance()
+            keysyncd.remove_replica_public_keys(hostname)
+    except Exception, e:
+        print "Failed to cleanup %s DNS entries: %s" % (hostname, e)
+        print "You may need to manually remove them from the tree"
+
+
 def del_master(realm, hostname, options):
+
+    if has_managed_topology():
+        del_master_managed(realm, hostname, options)
+    else:
+        del_master_direct(realm, hostname, options)
+
+def del_master_managed(realm, hostname, options):
+    """
+    Removing of master in managed_topology
+    """
+
+    hostname_u = unicode(hostname)
+    if hostname == options.host:
+        print "Can't remove itself: %s" % (options.host)
+        sys.exit(1)
+
+    # 1. Connect to the local server
+    try:
+        thisrepl = replication.ReplicationManager(realm, options.host,
+                                                  options.dirman_passwd)
+    except Exception as e:
+        print "Failed to connect to server %s: %s" % (options.host, e)
+        sys.exit(1)
+
+    # 2. Get all masters
+    masters = api.Command.server_find('', sizelimit=0)['result']
+
+    # 3. Check topology
+    orphans = check_last_link_managed(api, masters, hostname, options.force)
+
+    # 4. Check that we are not leaving the installation without CA and/or DNS
+    #    And pick new CA master.
+    ensure_last_services(api.Backend.ldap2, hostname, masters, options)
+
+    # Save the RID value before we start deleting
+    rid = get_rid_by_host(realm, options.host, hostname,
+                          options.dirman_passwd, options.nolookup)
+
+    # 5. Remove master entry. Topology plugin will remove replication agreements.
+    try:
+        api.Command.server_del(hostname_u)
+    except errors.NotFound:
+        print "Server entry already deleted: %s" % (hostname)
+
+    # 6. Cleanup
+    try:
+        thisrepl.replica_cleanup(hostname, realm, force=True)
+    except Exception, e:
+        print "Failed to cleanup %s entries: %s" % (hostname, e)
+        print "You may need to manually remove them from the tree"
+
+    # 7. Clean RUV for the deleted master
+    # Wait for topology plugin to delete segments
+    i = 0
+    while True:
+        left = api.Command.topologysegment_find(
+            u'realm', iparepltoposegmentleftnode=hostname_u, sizelimit=0)['result']
+        right = api.Command.topologysegment_find(
+            u'realm', iparepltoposegmentrightnode=hostname_u, sizelimit=0)['result']
+        if not left and not right:
+            print "Agreements deleted"
+            break
+        time.sleep(1)
+        if i == 5: # taking too long, something is wrong, report
+            print "Waiting for removal of replication agreements"
+        i += 1
+
+    # Clean RUV
+    if rid is not None:
+        try:
+            thisrepl.cleanallruv(rid)
+        except KeyboardInterrupt:
+            print "Wait for task interrupted. It will continue to run in the background"
+
+    # 8. And clean up the removed replica DNS entries if any.
+    cleanup_server_dns_entries(realm, hostname, thisrepl.suffix, options)
+
+def del_master_direct(realm, hostname, options):
+    """
+    Removing of master for realm without managed topology (domain level < 1)
+    """
 
     force_del = False
     delrepl = None
@@ -651,10 +812,8 @@ def del_master(realm, hostname, options):
 
     # Check for orphans if the remote server is up.
     if delrepl and not winsync:
-        masters_dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
         try:
-            masters = delrepl.conn.get_entries(
-                masters_dn, delrepl.conn.SCOPE_ONELEVEL)
+            masters = api.Command.server_find('', sizelimit=0)['result']
         except Exception, e:
             masters = []
             print "Failed to read masters data from '%s': %s" % (
@@ -672,53 +831,9 @@ def del_master(realm, hostname, options):
                 print "You will need to reconfigure your replication topology to delete this server."
                 sys.exit(1)
 
-        # Check that we are not leaving the installation without CA and/or DNS
-        this_services = []
-        other_services = []
-        ca_hostname = None
-
-        for master_cn in [m.single_value['cn'] for m in masters]:
-            master_dn = DN(('cn', master_cn), ('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
-            try:
-                services = delrepl.conn.get_entries(master_dn,
-                                                    delrepl.conn.SCOPE_ONELEVEL)
-            except errors.NotFound:
-                continue
-            services_cns = [s.single_value['cn'] for s in services]
-
-            if master_cn == hostname:
-                this_services = services_cns
-            else:
-                other_services.append(services_cns)
-                if ca_hostname is None and 'CA' in services_cns:
-                    ca_hostname = master_cn
-
-        if 'CA' in this_services and not any(['CA' in o for o in other_services]):
-            print "Deleting this server is not allowed as it would leave your installation without a CA."
-            sys.exit(1)
-
-        other_dns = True
-        if 'DNS' in this_services and not any(['DNS' in o for o in other_services]):
-            other_dns = False
-            print "Deleting this server will leave your installation without a DNS."
-            if not options.force and not ipautil.user_input("Continue to delete?", False):
-                sys.exit("Deletion aborted")
-
-        # test if replica is not DNSSEC master
-        # allow to delete it if is last DNS server
-        if 'DNS' in this_services and other_dns and not options.force:
-            dnssec_masters = opendnssecinstance.get_dnssec_key_masters(delrepl.conn)
-            if hostname in dnssec_masters:
-                print "Replica is active DNSSEC key master. Uninstall could break your DNS system."
-                sys.exit("Deletion aborted")
-
-        # Pick CA renewal master
-        ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
-        if ca.is_renewal_master(hostname):
-            try:
-                ca.set_renewal_master(options.host)
-            except errors.NotFound:
-                ca.set_renewal_master(ca_hostname)
+        # 4. Check that we are not leaving the installation without CA and/or DNS
+        #    And pick new CA master.
+        ensure_last_services(thisrepl.conn, hostname, masters, options)
     else:
         print "Skipping calculation to determine if one or more masters would be orphaned."
 
@@ -753,19 +868,7 @@ def del_master(realm, hostname, options):
         print "You may need to manually remove them from the tree"
 
     # 7. And clean up the removed replica DNS entries if any.
-    try:
-        if bindinstance.dns_container_exists(options.host, thisrepl.suffix,
-                                             dm_password=options.dirman_passwd):
-            bind = bindinstance.BindInstance()
-            bind.remove_master_dns_records(hostname, realm, realm.lower())
-            bind.remove_ipa_ca_dns_records(hostname, realm.lower())
-            bind.remove_server_ns_records(hostname)
-
-            keysyncd = dnskeysyncinstance.DNSKeySyncInstance()
-            keysyncd.remove_replica_public_keys(hostname)
-    except Exception, e:
-        print "Failed to cleanup %s DNS entries: %s" % (hostname, e)
-        print "You may need to manually remove them from the tree"
+    cleanup_server_dns_entries(realm, hostname, thisrepl.suffix, options)
 
 def add_link(realm, replica1, replica2, dirman_passwd, options):
 
