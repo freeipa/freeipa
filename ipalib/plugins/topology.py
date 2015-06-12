@@ -294,9 +294,11 @@ class topologysegment_reinitialize(LDAPQuery):
             msg = _('Stopping of replication refresh for segment: "'
                     '%(pkey)s" requested.')
 
-        if left:
-            entry['nsds5beginreplicarefresh;left'] = [action]
+        # left and right are swapped because internally it's a push not
+        # pull operation
         if right:
+            entry['nsds5beginreplicarefresh;left'] = [action]
+        if left:
             entry['nsds5beginreplicarefresh;right'] = [action]
 
         self.obj.backend.update_entry(entry)
