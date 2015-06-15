@@ -433,8 +433,6 @@ class API(ReadOnly):
         self.modules = modules
         self.__done = set()
         self.env = Env()
-        if not is_production_mode(self):
-            lock(self)
 
     def __len__(self):
         """
@@ -501,14 +499,14 @@ class API(ReadOnly):
         self.__doing('bootstrap')
         self.env._bootstrap(**overrides)
         self.env._finalize_core(**dict(DEFAULT_CONFIG))
-        object.__setattr__(self, 'log_mgr', log_mgr)
+        self.log_mgr = log_mgr
         log = log_mgr.root_logger
-        object.__setattr__(self, 'log', log)
+        self.log = log
 
         # Add the argument parser
         if not parser:
             parser = self.build_global_parser()
-        object.__setattr__(self, 'parser', parser)
+        self.parser = parser
 
         # If logging has already been configured somewhere else (like in the
         # installer), don't add handlers or change levels:
@@ -796,7 +794,7 @@ class API(ReadOnly):
 
             if not production_mode:
                 assert not hasattr(self, name)
-            object.__setattr__(self, name, NameSpace(members))
+            setattr(self, name, NameSpace(members))
 
         for klass, instance in plugins.iteritems():
             if not production_mode:
@@ -806,10 +804,11 @@ class API(ReadOnly):
                 if not production_mode:
                     assert islocked(instance)
 
-        object.__setattr__(self, '_API__finalized', True)
-        object.__setattr__(self, 'plugins',
-            tuple((k, tuple(v)) for k, v in plugin_info.iteritems())
-        )
+        self.__finalized = True
+        self.plugins = tuple((k, tuple(v)) for k, v in plugin_info.iteritems())
+
+        if not production_mode:
+            lock(self)
 
 
 class IPAHelpFormatter(optparse.IndentedHelpFormatter):
