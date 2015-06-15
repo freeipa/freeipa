@@ -76,28 +76,6 @@ def get_current_principal():
         raise errors.CCacheError()
 
 
-# FIXME: This function has no unit test
-def find_modules_in_dir(src_dir):
-    """
-    Iterate through module names found in ``src_dir``.
-    """
-    if not (os.path.abspath(src_dir) == src_dir and os.path.isdir(src_dir)):
-        return
-    if os.path.islink(src_dir):
-        return
-    suffix = '.py'
-    for name in sorted(os.listdir(src_dir)):
-        if not name.endswith(suffix):
-            continue
-        pyfile = os.path.join(src_dir, name)
-        if not os.path.isfile(pyfile):
-            continue
-        module = name[:-len(suffix)]
-        if module == '__init__':
-            continue
-        yield (module, pyfile)
-
-
 def validate_host_dns(log, fqdn):
     """
     See if the hostname has a DNS A/AAAA record.

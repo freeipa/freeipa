@@ -38,7 +38,6 @@ import textwrap
 import collections
 
 from config import Env
-import util
 import text
 from text import _
 from base import ReadOnly, NameSpace, lock, islocked, check_name
@@ -59,6 +58,28 @@ def is_production_mode(obj):
     if getattr(obj.env, 'mode', None) is None:
         return False
     return obj.env.mode == 'production'
+
+
+# FIXME: This function has no unit test
+def find_modules_in_dir(src_dir):
+    """
+    Iterate through module names found in ``src_dir``.
+    """
+    if not (os.path.abspath(src_dir) == src_dir and os.path.isdir(src_dir)):
+        return
+    if os.path.islink(src_dir):
+        return
+    suffix = '.py'
+    for name in sorted(os.listdir(src_dir)):
+        if not name.endswith(suffix):
+            continue
+        pyfile = os.path.join(src_dir, name)
+        if not os.path.isfile(pyfile):
+            continue
+        module = name[:-len(suffix)]
+        if module == '__init__':
+            continue
+        yield (module, pyfile)
 
 
 class Registry(object):
@@ -625,7 +646,7 @@ class API(DictProxy):
                 name=subpackage, file=plugins.__file__
             )
         self.log.debug('importing all plugin modules in %r...', plugins_dir)
-        for (name, pyfile) in util.find_modules_in_dir(plugins_dir):
+        for (name, pyfile) in find_modules_in_dir(plugins_dir):
             fullname = '%s.%s' % (subpackage, name)
             self.log.debug('importing plugin module %r', pyfile)
             try:
