@@ -408,13 +408,7 @@ def install_check(installer):
                                      config.dirman_password)
 
         # Check that we don't already have a replication agreement
-        try:
-            (agreement_cn, agreement_dn) = replman.agreement_dn(
-                config.host_name)
-            entry = conn.get_entry(agreement_dn, ['*'])
-        except errors.NotFound:
-            pass
-        else:
+        if replman.get_replication_agreement(config.host_name):
             root_logger.info('Error: A replication agreement for this '
                              'host already exists.')
             print('A replication agreement for this host already exists. '

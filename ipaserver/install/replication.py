@@ -1167,10 +1167,8 @@ class ReplicationManager(object):
         conn.modify_s(dn, mod)
 
     def get_agreement_type(self, hostname):
-        cn, dn = self.agreement_dn(hostname)
 
-        entry = self.conn.get_entry(dn)
-
+        entry = self.get_replication_agreement(hostname)
         objectclass = entry.get("objectclass")
 
         for o in objectclass:
@@ -1578,9 +1576,7 @@ class ReplicationManager(object):
         """
         Disable the replication agreement to hostname.
         """
-        cn, dn = self.agreement_dn(hostname)
-
-        entry = self.conn.get_entry(dn)
+        entry = self.get_replication_agreement(hostname)
         entry['nsds5ReplicaEnabled'] = 'off'
 
         try:
@@ -1594,9 +1590,7 @@ class ReplicationManager(object):
 
         Note: for replication to work it needs to be enabled both ways.
         """
-        cn, dn = self.agreement_dn(hostname)
-
-        entry = self.conn.get_entry(dn)
+        entry = self.get_replication_agreement(hostname)
         entry['nsds5ReplicaEnabled'] = 'on'
 
         try:
