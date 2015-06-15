@@ -252,6 +252,8 @@ dn: cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example
 aci: (targetattr = "*")(target = "ldap:///uid=*,cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Modify Preserved Users";allow (write) groupdn = "ldap:///cn=System: Modify Preserved Users,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=staged users,cn=accounts,cn=provisioning,dc=ipa,dc=example
 aci: (targetattr = "*")(target = "ldap:///uid=*,cn=staged users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(targetfilter = "(objectclass=*)")(version 3.0;acl "permission:System: Modify Stage User";allow (write) groupdn = "ldap:///cn=System: Modify Stage User,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=users,cn=accounts,dc=ipa,dc=example
+aci: (targetattr = "uid")(target = "ldap:///uid=*,cn=users,cn=accounts,dc=ipa,dc=example")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Modify User RDN";allow (write) groupdn = "ldap:///cn=System: Modify User RDN,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: dc=ipa,dc=example
 aci: (target_to = "ldap:///cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(target_from = "ldap:///cn=users,cn=accounts,dc=ipa,dc=example")(targetfilter = "(objectclass=nsContainer)")(version 3.0;acl "permission:System: Preserve User";allow (moddn) groupdn = "ldap:///cn=System: Preserve User,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example
@@ -266,8 +268,6 @@ dn: cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example
 aci: (targetattr = "krblastpwdchange || krbpasswordexpiration || krbprincipalkey || userpassword")(target = "ldap:///uid=*,cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Reset Preserved User password";allow (read,search,write) groupdn = "ldap:///cn=System: Reset Preserved User password,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: dc=ipa,dc=example
 aci: (target_to = "ldap:///cn=users,cn=accounts,dc=ipa,dc=example")(target_from = "ldap:///cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(targetfilter = "(objectclass=nsContainer)")(version 3.0;acl "permission:System: Undelete User";allow (moddn) groupdn = "ldap:///cn=System: Undelete User,cn=permissions,cn=pbac,dc=ipa,dc=example";)
-dn: cn=users,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "uid")(target = "ldap:///uid=*,cn=users,cn=accounts,dc=ipa,dc=example")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Write Active Users RDN by administrators";allow (write) groupdn = "ldap:///cn=System: Write Active Users RDN by administrators,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=sudocmds,cn=sudo,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipasudocmd)")(version 3.0;acl "permission:System: Add Sudo Command";allow (add) groupdn = "ldap:///cn=System: Add Sudo Command,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=sudocmds,cn=sudo,dc=ipa,dc=example
