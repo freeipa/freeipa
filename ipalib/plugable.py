@@ -420,7 +420,7 @@ class Registrar(collections.Mapping):
         return len(self.__registry)
 
 
-class API(DictProxy):
+class API(ReadOnly):
     """
     Dynamic API object through which `Plugin` instances are accessed.
     """
@@ -428,12 +428,57 @@ class API(DictProxy):
     register = Registrar()
 
     def __init__(self, allowed, modules):
+        super(API, self).__init__()
         self.__plugins = {base: {} for base in allowed}
         self.modules = modules
-        self.__d = dict()
         self.__done = set()
         self.env = Env()
-        super(API, self).__init__(self.__d)
+        if not is_production_mode(self):
+            lock(self)
+
+    def __len__(self):
+        """
+        Return the number of plugin namespaces in this API object.
+        """
+        return len(self.__plugins)
+
+    def __iter__(self):
+        """
+        Iterate (in ascending order) through plugin namespace names.
+        """
+        return (base.__name__ for base in self.__plugins)
+
+    def __contains__(self, name):
+        """
+        Return True if this API object contains plugin namespace ``name``.
+
+        :param name: The plugin namespace name to test for membership.
+        """
+        return name in set(self)
+
+    def __getitem__(self, name):
+        """
+        Return the plugin namespace corresponding to ``name``.
+
+        :param name: The name of the plugin namespace you wish to retrieve.
+        """
+        if name in self:
+            try:
+                return getattr(self, name)
+            except AttributeError:
+                pass
+
+        raise KeyError(name)
+
+    def __call__(self):
+        """
+        Iterate (in ascending order by name) through plugin namespaces.
+        """
+        for name in self:
+            try:
+                yield getattr(self, name)
+            except AttributeError:
+                raise KeyError(name)
 
     def __doing(self, name):
         if name in self.__done:
@@ -749,13 +794,9 @@ class API(DictProxy):
                     '%s.%s' % (klass.__module__, klass.__name__),
                     []).append(name)
 
-            namespace = NameSpace(members)
             if not production_mode:
-                assert not (
-                    name in self.__d or hasattr(self, name)
-                )
-            self.__d[name] = namespace
-            object.__setattr__(self, name, namespace)
+                assert not hasattr(self, name)
+            object.__setattr__(self, name, NameSpace(members))
 
         for klass, instance in plugins.iteritems():
             if not production_mode:
