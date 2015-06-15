@@ -202,7 +202,11 @@ class test_API(ClassChecker):
             def method(self, n):
                 return n + 1
 
-        api = plugable.API([base0, base1], [])
+        class API(plugable.API):
+            bases = (base0, base1)
+            modules = ()
+
+        api = API()
         api.env.mode = 'unit_test'
         api.env.in_tree = True
         r = api.add_plugin

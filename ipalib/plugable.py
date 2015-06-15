@@ -306,24 +306,31 @@ class API(ReadOnly):
 
     register = Registrar()
 
-    def __init__(self, allowed, modules):
+    def __init__(self):
         super(API, self).__init__()
-        self.__plugins = {base: {} for base in allowed}
-        self.modules = modules
+        self.__plugins = {}
         self.__done = set()
         self.env = Env()
+
+    @property
+    def bases(self):
+        raise NotImplementedError
+
+    @property
+    def modules(self):
+        raise NotImplementedError
 
     def __len__(self):
         """
         Return the number of plugin namespaces in this API object.
         """
-        return len(self.__plugins)
+        return len(self.bases)
 
     def __iter__(self):
         """
         Iterate (in ascending order) through plugin namespace names.
         """
-        return (base.__name__ for base in self.__plugins)
+        return (base.__name__ for base in self.bases)
 
     def __contains__(self, name):
         """
@@ -614,10 +621,11 @@ class API(ReadOnly):
 
         # Find the base class or raise SubclassError:
         found = False
-        for (base, sub_d) in self.__plugins.iteritems():
+        for base in self.bases:
             if not issubclass(klass, base):
                 continue
 
+            sub_d = self.__plugins.setdefault(base, {})
             found = True
 
             if sub_d.get(klass.__name__) is klass:
@@ -647,7 +655,7 @@ class API(ReadOnly):
         if not found:
             raise errors.PluginSubclassError(
                 plugin=klass,
-                bases=self.__plugins.keys(),
+                bases=self.bases,
             )
 
     def finalize(self):
@@ -664,8 +672,9 @@ class API(ReadOnly):
         plugins = {}
         plugin_info = {}
 
-        for base, sub_d in self.__plugins.iteritems():
+        for base in self.bases:
             name = base.__name__
+            sub_d = self.__plugins.get(base, {})
 
             members = []
             for klass in sub_d.itervalues():

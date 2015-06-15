@@ -899,16 +899,16 @@ else:
 
 
 class API(plugable.API):
-    def __init__(self, allowed):
-        super(API, self).__init__(allowed, ['ipalib.plugins.*'])
+    bases = (Command, Object, Method, Backend, Updater)
 
-    def bootstrap(self, parser=None, **overrides):
-        super(API, self).bootstrap(parser, **overrides)
-
+    @property
+    def modules(self):
+        result = ('ipalib.plugins.*',)
         if self.env.in_server:
-            self.modules.append('ipaserver.plugins.*')
+            result += ('ipaserver.plugins.*',)
         if self.env.context in ('installer', 'updates'):
-            self.modules.append('ipaserver.install.plugins.*')
+            result += ('ipaserver.install.plugins.*',)
+        return result
 
 
 def create_api(mode='dummy'):
@@ -926,7 +926,7 @@ def create_api(mode='dummy'):
 
         - `backend.Backend`
     """
-    api = API((Command, Object, Method, Backend, Updater))
+    api = API()
     if mode is not None:
         api.env.mode = mode
     assert mode != 'production'
