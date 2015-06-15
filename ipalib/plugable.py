@@ -36,6 +36,7 @@ import optparse
 import errors
 import textwrap
 import collections
+import importlib
 
 from config import Env
 import text
@@ -79,7 +80,7 @@ def find_modules_in_dir(src_dir):
         module = name[:-len(suffix)]
         if module == '__init__':
             continue
-        yield (module, pyfile)
+        yield module
 
 
 class Registry(object):
@@ -429,9 +430,9 @@ class API(DictProxy):
 
     register = Registrar()
 
-    def __init__(self, allowed, packages):
+    def __init__(self, allowed, modules):
         self.__plugins = {base: {} for base in allowed}
-        self.packages = packages
+        self.modules = modules
         self.__d = dict()
         self.__done = set()
         self.env = Env()
@@ -609,56 +610,55 @@ class API(DictProxy):
         self.__do_if_not_done('bootstrap')
         if self.env.mode in ('dummy', 'unit_test'):
             return
-        for package in self.packages:
-            self.import_plugins(package)
+        for module in self.modules:
+            self.import_plugins(module)
         for klass, kwargs in self.register.iteritems():
             self.add_plugin(klass, **kwargs)
 
     # FIXME: This method has no unit test
-    def import_plugins(self, package):
+    def import_plugins(self, module):
         """
-        Import modules in ``plugins`` sub-package of ``package``.
+        Import plugins from ``module``.
+
+        :param module: Name of the module to import. This might be a wildcard
+                       in the form ```package.*``` in which case all modules
+                       from the given package are loaded.
         """
-        package = package.replace(os.path.sep, '.')
-        subpackage = '%s.plugins' % package
-        try:
-            parent = __import__(package)
-            parts = package.split('.')[1:]
-            if parts:
-                for part in parts:
-                    if part == 'plugins':
-                        plugins = subpackage.plugins
-                        subpackage = plugins.__name__
-                        break
-                    subpackage = parent.__getattribute__(part)
-                    parent = subpackage
-            else:
-                plugins = __import__(subpackage).plugins
-        except ImportError, e:
-            self.log.error(
-                'cannot import plugins sub-package %s: %s', subpackage, e
-            )
-            raise e
-        parent_dir = path.dirname(path.abspath(parent.__file__))
-        plugins_dir = path.dirname(path.abspath(plugins.__file__))
-        if parent_dir == plugins_dir:
-            raise errors.PluginsPackageError(
-                name=subpackage, file=plugins.__file__
-            )
-        self.log.debug('importing all plugin modules in %r...', plugins_dir)
-        for (name, pyfile) in find_modules_in_dir(plugins_dir):
-            fullname = '%s.%s' % (subpackage, name)
-            self.log.debug('importing plugin module %r', pyfile)
+        if module.endswith('.*'):
+            subpackage = module[:-2]
             try:
-                __import__(fullname)
-            except errors.SkipPluginModule, e:
-                self.log.debug(
-                    'skipping plugin module %s: %s', fullname, e.reason
+                plugins = importlib.import_module(subpackage)
+            except ImportError, e:
+                self.log.error("cannot import plugins sub-package %s: %s",
+                               subpackage, e)
+                raise
+            package, dot, part = subpackage.rpartition('.')
+            parent = sys.modules[package]
+
+            parent_dir = path.dirname(path.abspath(parent.__file__))
+            plugins_dir = path.dirname(path.abspath(plugins.__file__))
+            if parent_dir == plugins_dir:
+                raise errors.PluginsPackageError(
+                    name=subpackage, file=plugins.__file__
                 )
+
+            self.log.debug("importing all plugin modules in %s...", subpackage)
+            modules = find_modules_in_dir(plugins_dir)
+            modules = ['.'.join((subpackage, name)) for name in modules]
+        else:
+            modules = [module]
+
+        for name in modules:
+            self.log.debug("importing plugin module %s", name)
+            try:
+                importlib.import_module(name)
+            except errors.SkipPluginModule, e:
+                self.log.debug("skipping plugin module %s: %s", name, e.reason)
             except StandardError, e:
                 if self.env.startup_traceback:
                     import traceback
-                    self.log.error('could not load plugin module %r\n%s', pyfile, traceback.format_exc())
+                    self.log.error("could not load plugin module %s\n%s", name,
+                                   traceback.format_exc())
                 raise
 
     def add_plugin(self, klass, override=False):

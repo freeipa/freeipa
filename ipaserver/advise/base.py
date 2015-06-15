@@ -121,7 +121,7 @@ class Advice(Plugin):
 
         raise NotImplementedError
 
-advise_api = API((Advice,), ('ipaserver/advise/plugins',))
+advise_api = API((Advice,), ('ipaserver.advise.plugins.*',))
 
 
 class IpaAdvise(admintool.AdminTool):

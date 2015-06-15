@@ -900,15 +900,15 @@ else:
 
 class API(plugable.API):
     def __init__(self, allowed):
-        super(API, self).__init__(allowed, ['ipalib'])
+        super(API, self).__init__(allowed, ['ipalib.plugins.*'])
 
     def bootstrap(self, parser=None, **overrides):
         super(API, self).bootstrap(parser, **overrides)
 
         if self.env.in_server:
-            self.packages.append('ipaserver')
+            self.modules.append('ipaserver.plugins.*')
         if self.env.context in ('installer', 'updates'):
-            self.packages.append('ipaserver/install/plugins')
+            self.modules.append('ipaserver.install.plugins.*')
 
 
 def create_api(mode='dummy'):
