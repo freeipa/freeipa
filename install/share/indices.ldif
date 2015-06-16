@@ -247,3 +247,12 @@ nsSystemIndex: false
 nsIndexType: eq
 nsIndexType: pres
 nsIndexType: sub
+
+dn: cn=userCertificate,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+changetype: add
+cn: userCertificate
+ObjectClass: top
+ObjectClass: nsIndex
+nsSystemIndex: false
+nsIndexType: eq
+nsIndexType: pres

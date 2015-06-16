@@ -209,3 +209,11 @@ default:nsSystemIndex: false
 only:nsIndexType: eq
 only:nsIndexType: pres
 only:nsIndexType: sub
+
+dn: cn=userCertificate,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: userCertificate
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+only:nsSystemIndex: false
+only:nsIndexType: eq
+only:nsIndexType: pres
