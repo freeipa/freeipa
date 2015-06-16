@@ -1639,6 +1639,29 @@ def update_people_entry(dercert):
 
     return True
 
+def ensure_ldap_profiles_container():
+    server_id = installutils.realm_to_serverid(api.env.realm)
+    dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
+
+    conn = ldap2.ldap2(shared_instance=False, ldap_uri=dogtag_uri)
+    if not conn.isconnected():
+        conn.connect(autobind=True)
+
+    dn = DN(('ou', 'certificateProfiles'), ('ou', 'ca'), ('o', 'ipaca'))
+    try:
+        conn.get_entry(dn)
+    except errors.NotFound:
+        # entry doesn't exist; add it
+        entry = conn.make_entry(
+            dn,
+            objectclass=['top', 'organizationalUnit'],
+            ou=['certificateProfiles'],
+        )
+        conn.add_entry(entry)
+
+    conn.disconnect()
+
+
 def configure_profiles_acl():
     server_id = installutils.realm_to_serverid(api.env.realm)
     dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
@@ -1677,6 +1700,9 @@ def import_included_profiles():
     if not conn.isconnected():
         conn.connect(autobind=True)
 
+    api.Backend.ra_certprofile._read_password()
+    api.Backend.ra_certprofile.override_port = 8443
+
     for (profile_id, desc, store_issued) in dogtag.INCLUDED_PROFILES:
         dn = DN(('cn', profile_id),
             api.env.container_certprofile, api.env.basedn)
@@ -1685,9 +1711,6 @@ def import_included_profiles():
             continue  # the profile is present
         except errors.NotFound:
             # profile not found; add it
-            profile_data = ipautil.template_file(
-                '/usr/share/ipa/profiles/{}.cfg'.format(profile_id), sub_dict)
-
             entry = conn.make_entry(
                 dn,
                 objectclass=['ipacertprofile'],
@@ -1696,33 +1719,92 @@ def import_included_profiles():
                 ipacertprofilestoreissued=['TRUE' if store_issued else 'FALSE'],
             )
             conn.add_entry(entry)
-            api.Backend.ra_certprofile._read_password()
-            api.Backend.ra_certprofile.override_port = 8443
-            with api.Backend.ra_certprofile as profile_api:
-                # import the profile
-                try:
-                    profile_api.create_profile(profile_data)
-                except errors.RemoteRetrieveError:
-                    # conflicting profile; replace it if we are
-                    # installing IPA, but keep it for upgrades
-                    if api.env.context == 'installer':
-                        try:
-                            profile_api.disable_profile(profile_id)
-                        except errors.RemoteRetrieveError:
-                            pass
-                        profile_api.delete_profile(profile_id)
-                        profile_api.create_profile(profile_data)
-
-                # enable the profile
-                try:
-                    profile_api.enable_profile(profile_id)
-                except errors.RemoteRetrieveError:
-                    pass
-
-            api.Backend.ra_certprofile.override_port = None
+            profile_data = ipautil.template_file(
+                '/usr/share/ipa/profiles/{}.cfg'.format(profile_id), sub_dict)
+            _create_dogtag_profile(profile_id, profile_data)
             root_logger.info("Imported profile '%s'", profile_id)
 
+    api.Backend.ra_certprofile.override_port = None
     conn.disconnect()
+
+
+def migrate_profiles_to_ldap():
+    """Migrate profiles from filesystem to LDAP.
+
+    This must be run *after* switching to the LDAPProfileSubsystem
+    and restarting the CA.
+
+    The profile might already exist, e.g. if a replica was already
+    upgraded, so this case is ignored.
+
+    """
+    ensure_ldap_profiles_container()
+
+    api.Backend.ra_certprofile._read_password()
+    api.Backend.ra_certprofile.override_port = 8443
+
+    with open(dogtag.configured_constants().CS_CFG_PATH) as f:
+        cs_cfg = f.read()
+    match = re.search(r'^profile\.list=(\S*)', cs_cfg, re.MULTILINE)
+    profile_ids = match.group(1).split(',')
+
+    for profile_id in profile_ids:
+        match = re.search(
+            r'^profile\.{}\.config=(\S*)'.format(profile_id),
+            cs_cfg, re.MULTILINE
+        )
+        if match is None:
+            root_logger.info("No file for profile '%s'; skipping", profile_id)
+            continue
+        filename = match.group(1)
+
+        match = re.search(
+            r'^profile\.{}\.class_id=(\S*)'.format(profile_id),
+            cs_cfg, re.MULTILINE
+        )
+        if match is None:
+            root_logger.info("No class_id for profile '%s'; skipping", profile_id)
+            continue
+        class_id = match.group(1)
+
+        root_logger.info("Migrating profile '%s' to LDAP", profile_id)
+        with open(filename) as f:
+            profile_data = f.read()
+            if profile_data[-1] != '\n':
+                profile_data += '\n'
+            profile_data += 'profileId={}\n'.format(profile_id)
+            profile_data += 'classId={}\n'.format(class_id)
+            _create_dogtag_profile(profile_id, profile_data)
+
+    api.Backend.ra_certprofile.override_port = None
+
+
+def _create_dogtag_profile(profile_id, profile_data):
+    with api.Backend.ra_certprofile as profile_api:
+        # import the profile
+        try:
+            profile_api.create_profile(profile_data)
+        except errors.RemoteRetrieveError:
+            # conflicting profile; replace it if we are
+            # installing IPA, but keep it for upgrades
+            if api.env.context == 'installer':
+                try:
+                    profile_api.disable_profile(profile_id)
+                except errors.RemoteRetrieveError:
+                    root_logger.debug(
+                        "Failed to disable profile '%s' "
+                        "(it is probably already disabled)")
+                profile_api.delete_profile(profile_id)
+                profile_api.create_profile(profile_data)
+
+        # enable the profile
+        try:
+            profile_api.enable_profile(profile_id)
+        except errors.RemoteRetrieveError:
+            root_logger.debug(
+                "Failed to enable profile '%s' "
+                "(it is probably already enabled)")
+
 
 if __name__ == "__main__":
     standard_logging_setup("install.log")

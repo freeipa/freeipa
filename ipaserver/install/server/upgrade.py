@@ -333,8 +333,8 @@ def ca_enable_ldap_profile_subsystem(ca):
             quotes=False,
             separator='=')
 
-    # TODO import file-based profiles into Dogtag
-    # More code needed on Dogtag side for this.
+        ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
+        cainstance.migrate_profiles_to_ldap()
 
     return needs_update
 
@@ -1479,7 +1479,6 @@ def upgrade_configuration():
         certificate_renewal_update(ca),
         ca_enable_pkix(ca),
         ca_configure_profiles_acl(ca),
-        ca_enable_ldap_profile_subsystem(ca),
     ])
 
     if ca_restart:
@@ -1488,6 +1487,8 @@ def upgrade_configuration():
             ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
         except ipautil.CalledProcessError as e:
             root_logger.error("Failed to restart %s: %s", ca.service_name, e)
+
+    ca_enable_ldap_profile_subsystem(ca)
 
     # This step MUST be done after ca_enable_ldap_profile_subsystem and
     # ca_configure_profiles_acl, and the consequent restart, but does not
