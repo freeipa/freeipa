@@ -192,7 +192,11 @@ ipa_topo_util_get_replica_conf(char *repl_root)
     slapi_free_search_results_internal(pb);
     slapi_pblock_destroy(pb);
 
-    if (0 != ipa_topo_cfg_replica_add(topoRepl)) {
+    if (0 == topoRepl) {
+        slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                        "ipa_topo_util_get_replica_conf: "
+                        "cannot create replica\n");
+    } else if (0 != ipa_topo_cfg_replica_add(topoRepl)) {
         slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
                         "ipa_topo_util_get_replica_conf: "
                         "replica already exists\n");
@@ -1324,6 +1328,14 @@ ipa_topo_util_delete_segments_for_host(char *repl_root, char *delhost)
     TopoReplicaSegment *segm = NULL;
     TopoReplica *tconf = ipa_topo_cfg_replica_find(repl_root, 1);
     int check_reverse = 1;
+
+    if (NULL == tconf) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                            "ipa_topo_util_delete_segments_for_host: "
+                            "failed to get replica object for suffix: %s \n",
+                             repl_root);
+        return;
+    }
 
     /* first check if a segment originating at localhost exists */
     segm = ipa_topo_cfg_segment_find(repl_root, ipa_topo_get_plugin_hostname(),
