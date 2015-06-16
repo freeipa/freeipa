@@ -306,7 +306,13 @@ ipa_topo_check_segment_is_valid(Slapi_PBlock *pb)
          */
         char *leftnode = slapi_entry_attr_get_charptr(add_entry,"ipaReplTopoSegmentLeftNode");
         char *rightnode = slapi_entry_attr_get_charptr(add_entry,"ipaReplTopoSegmentRightNode");
-        if (0 == strcasecmp(leftnode,rightnode)) {
+        char *dir = slapi_entry_attr_get_charptr(add_entry,"ipaReplTopoSegmentDirection");
+        if (strcasecmp(dir,SEGMENT_DIR_BOTH) && strcasecmp(dir,SEGMENT_DIR_LEFT_ORIGIN) &&
+            strcasecmp(dir,SEGMENT_DIR_RIGHT_ORIGIN)) {
+                slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                                "segment has unknown direction: %s\n", dir);
+                rc = 1;
+        } else if (0 == strcasecmp(leftnode,rightnode)) {
                 slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
                                 "segment is self referential\n");
                 rc = 1;
@@ -322,6 +328,7 @@ ipa_topo_check_segment_is_valid(Slapi_PBlock *pb)
         }
         slapi_ch_free_string(&leftnode);
         slapi_ch_free_string(&rightnode);
+        slapi_ch_free_string(&dir);
     }
     return rc;
 }

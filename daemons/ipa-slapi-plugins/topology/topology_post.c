@@ -129,14 +129,16 @@ ipa_topo_post_mod(Slapi_PBlock *pb)
     int result = SLAPI_PLUGIN_SUCCESS;
     int entry_type;
     Slapi_Entry *mod_entry = NULL;
+    Slapi_Entry *pre_entry = NULL;
 
     slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                     "--> ipa_topo_post_mod\n");
 
     /* 1. get entry  */
     slapi_pblock_get(pb,SLAPI_ENTRY_POST_OP,&mod_entry);
+    slapi_pblock_get(pb,SLAPI_ENTRY_PRE_OP,&pre_entry);
 
-    if (mod_entry == NULL) {
+    if (mod_entry == NULL || pre_entry == NULL) {
         slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM, "no entry\n");
         return (1);
     }
@@ -155,8 +157,8 @@ ipa_topo_post_mod(Slapi_PBlock *pb)
     case TOPO_SEGMENT_ENTRY: {
         LDAPMod **mods;
         TopoReplica *tconf = ipa_topo_util_get_conf_for_segment(mod_entry);
-        TopoReplicaSegment *tsegm;
-        tsegm = ipa_topo_util_find_segment(tconf, mod_entry);
+        TopoReplicaSegment *tsegm = NULL;
+        if (tconf) tsegm = ipa_topo_util_find_segment(tconf, pre_entry);
         if (tsegm == NULL) {
             slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
                             "ipa_topo_post_mod - segment to be modified does not exist\n");

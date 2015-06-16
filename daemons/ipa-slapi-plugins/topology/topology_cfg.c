@@ -545,19 +545,25 @@ ipa_topo_cfg_host_del(Slapi_Entry *hostentry)
 }
 
 TopoReplicaSegment *
-ipa_topo_cfg_replica_segment_find(TopoReplica *replica, char *leftHost, char *rightHost, int lock)
+ipa_topo_cfg_replica_segment_find(TopoReplica *replica, char *leftHost, char *rightHost, int dir, int lock)
 {
     TopoReplicaSegment *tsegm = NULL;
     TopoReplicaSegmentList *segments = NULL;
+    int reverse_dir = SEGMENT_BIDIRECTIONAL;
+
+    if (dir == SEGMENT_LEFT_RIGHT) reverse_dir = SEGMENT_RIGHT_LEFT;
+    else if (dir == SEGMENT_RIGHT_LEFT) reverse_dir = SEGMENT_LEFT_RIGHT;
+    else reverse_dir = SEGMENT_BIDIRECTIONAL;
 
     if (lock) slapi_lock_mutex(replica->repl_lock);
     segments = replica->repl_segments;
     while (segments) {
+
         tsegm = segments->segm;
         if ( (!strcasecmp(leftHost,tsegm->from) && !strcasecmp(rightHost,tsegm->to) &&
-             (tsegm->direct == SEGMENT_BIDIRECTIONAL || tsegm->direct == SEGMENT_LEFT_RIGHT)) ||
+             (tsegm->direct & dir)) ||
              (!strcasecmp(leftHost,tsegm->to) && !strcasecmp(rightHost,tsegm->from) &&
-             (tsegm->direct == SEGMENT_BIDIRECTIONAL || tsegm->direct == SEGMENT_RIGHT_LEFT))) {
+             (tsegm->direct & reverse_dir))) {
            break;
         }
         tsegm = NULL;
@@ -680,7 +686,7 @@ ipa_topo_cfg_segment_dup(TopoReplicaSegment *orig)
 }
 
 TopoReplicaSegment *
-ipa_topo_cfg_segment_find(char *repl_root, char *leftHost, char *rightHost)
+ipa_topo_cfg_segment_find(char *repl_root, char *leftHost, char *rightHost, int dir)
 {
     TopoReplicaSegment *tsegm = NULL;
     TopoReplica *replica = NULL;
@@ -689,7 +695,7 @@ ipa_topo_cfg_segment_find(char *repl_root, char *leftHost, char *rightHost)
 
     replica = ipa_topo_cfg_replica_find(repl_root, 0);
     if (replica) {
-        tsegm = ipa_topo_cfg_replica_segment_find(replica,leftHost,rightHost, 1);
+        tsegm = ipa_topo_cfg_replica_segment_find(replica,leftHost,rightHost, dir, 1);
     }
     slapi_unlock_mutex(topo_shared_conf.conf_lock);
     return tsegm;
@@ -731,7 +737,7 @@ ipa_topo_cfg_segment_add(TopoReplica *replica, TopoReplicaSegment *tsegm)
     slapi_lock_mutex(replica->repl_lock);
     if (ipa_topo_cfg_replica_segment_find(replica,
                                           tsegm->from,
-                                          tsegm->to, 0)){
+                                          tsegm->to, tsegm->direct, 0)){
         /* already exists: log error */
         slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                         "ipa_topo_cfg_segment_add: error: segment exists: %s\n",

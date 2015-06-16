@@ -319,20 +319,38 @@ ipa_topo_util_agmt_from_entry(Slapi_Entry *entry, char *replRoot, char *fromHost
     }
     return agmt;
 }
+
+int
+ipa_topo_util_segm_dir(char *direction)
+{
+    int dir = -1;
+    if (strcasecmp(direction,SEGMENT_DIR_BOTH) == 0){
+        dir = SEGMENT_BIDIRECTIONAL;
+    } else if (strcasecmp(direction,SEGMENT_DIR_LEFT_ORIGIN) == 0) {
+        dir = SEGMENT_LEFT_RIGHT;
+    } else if (strcasecmp(direction,SEGMENT_DIR_RIGHT_ORIGIN) == 0) {
+        dir = SEGMENT_RIGHT_LEFT;
+    }
+    return dir;
+}
+
 TopoReplicaSegment *
 ipa_topo_util_find_segment(TopoReplica *conf, Slapi_Entry *entry)
 {
     char *leftHost;
     char *rightHost;
+    char *direction;
     TopoReplicaSegment *segment = NULL;
 
     leftHost = slapi_entry_attr_get_charptr(entry,"ipaReplTopoSegmentLeftNode");
     rightHost = slapi_entry_attr_get_charptr(entry,"ipaReplTopoSegmentRightNode");
+    direction = slapi_entry_attr_get_charptr(entry,"ipaReplTopoSegmentDirection");
 
-    segment = ipa_topo_cfg_segment_find(conf->repl_root, leftHost, rightHost);
+    segment = ipa_topo_cfg_segment_find(conf->repl_root, leftHost, rightHost, ipa_topo_util_segm_dir(direction));
 
     slapi_ch_free((void **)&leftHost);
     slapi_ch_free((void **)&rightHost);
+    slapi_ch_free((void **)&direction);
     return segment;
 }
 
@@ -450,13 +468,63 @@ ipa_topo_util_conf_from_entry(Slapi_Entry *entry)
     }
 }
 
+void
+ipa_topo_util_set_agmt_rdn(TopoReplicaAgmt *topo_agmt, Slapi_Entry *repl_agmt)
+{
+    const Slapi_DN *agmt_dn = slapi_entry_get_sdn_const(repl_agmt);
+    Slapi_RDN *agmt_rdn = slapi_rdn_new();
+    slapi_sdn_get_rdn(agmt_dn, agmt_rdn);
+    const char *agmt_rdn_str  = slapi_rdn_get_rdn(agmt_rdn);
+    if (strcasecmp(agmt_rdn_str, topo_agmt->rdn)) {
+        slapi_ch_free_string(&topo_agmt->rdn);
+        topo_agmt->rdn = slapi_ch_strdup(agmt_rdn_str);
+    }
+    slapi_rdn_free(&agmt_rdn);
+}
+
+int
+ipa_topo_util_update_agmt_rdn(TopoReplica *conf, TopoReplicaAgmt *agmt,
+                              char *toHost)
+{
+    int rc = 0;
+    Slapi_PBlock *pb = NULL;
+    Slapi_Entry **entries = NULL;
+    char *filter;
+
+    pb = slapi_pblock_new();
+    filter = slapi_ch_smprintf("(&(objectclass=nsds5replicationagreement)"
+                               "(nsds5replicaroot=%s)(nsds5replicahost=%s))",
+                               conf->repl_root, toHost);
+    slapi_search_internal_set_pb(pb, "cn=config", LDAP_SCOPE_SUB,
+                                 filter, NULL, 0, NULL, NULL,
+                                 ipa_topo_get_plugin_id(), 0);
+    slapi_search_internal_pb(pb);
+    slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &rc);
+    if (rc == 0) {
+        slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES, &entries);
+    }
+
+    if (NULL == entries || NULL == entries[0]) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                            "ipa_topo_util_update_agmt_rdn: "
+                            "no agreements found\n");
+    } else {
+        ipa_topo_util_set_agmt_rdn(agmt, entries[0]);
+    }
+
+    slapi_free_search_results_internal(pb);
+    slapi_ch_free_string(&filter);
+    slapi_pblock_destroy(pb);
+    return rc;
+}
+
 int
 ipa_topo_util_update_agmt_list(TopoReplica *conf, TopoReplicaSegmentList *repl_segments)
 {
     int rc = 0;
     int i;
     int nentries;
-    Slapi_Entry **entries;
+    Slapi_Entry **entries = NULL;
     Slapi_Entry *repl_agmt;
     Slapi_PBlock *pb = NULL;
     char *filter;
@@ -482,7 +550,7 @@ ipa_topo_util_update_agmt_list(TopoReplica *conf, TopoReplicaSegmentList *repl_s
         if (NULL == entries || NULL == entries[0]) {
             slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                             "ipa_topo_util_update_agmts_list: "
-                            "no agrements found\n");
+                            "no agreements found\n");
             goto update_only;
         }
     }
@@ -511,15 +579,7 @@ ipa_topo_util_update_agmt_list(TopoReplica *conf, TopoReplicaSegmentList *repl_s
                                                     targetHost);
         if (topo_agmt) {
             /* compare rdns, use rdn of existing agreement */
-            const Slapi_DN *agmt_dn = slapi_entry_get_sdn_const(repl_agmt);
-            Slapi_RDN *agmt_rdn = slapi_rdn_new();
-            slapi_sdn_get_rdn(agmt_dn, agmt_rdn);
-            const char *agmt_rdn_str  = slapi_rdn_get_rdn(agmt_rdn);
-            if (strcasecmp(agmt_rdn_str, topo_agmt->rdn)) {
-                slapi_ch_free_string(&topo_agmt->rdn);
-                topo_agmt->rdn = slapi_ch_strdup(agmt_rdn_str);
-            }
-            slapi_rdn_free(&agmt_rdn);
+            ipa_topo_util_set_agmt_rdn(topo_agmt, repl_agmt);
 
             /* update agreement params which are different in the segment*/
             char *segm_attr_val;
@@ -742,10 +802,29 @@ ipa_topo_util_segment_update(TopoReplica *repl_conf,
         case LDAP_MOD_REPLACE:
             if (0 == strcasecmp(mods[i]->mod_type,"ipaReplTopoSegmentDirection")) {
                 if (0 == strcasecmp(mods[i]->mod_bvalues[0]->bv_val,"both")) {
+                    TopoReplicaSegment *ex_segm;
                     if (segment->direct == SEGMENT_LEFT_RIGHT) {
-                        segment->right = ipa_topo_cfg_agmt_dup_reverse(segment->left);
+                        ex_segm = ipa_topo_cfg_replica_segment_find(repl_conf, segment->from, segment->to,
+                                                    SEGMENT_RIGHT_LEFT, 1);
+                        if (ex_segm) {
+                            segment->right = ipa_topo_cfg_agmt_dup(ex_segm->left?ex_segm->left:ex_segm->right);
+                        } else {
+                            segment->right = ipa_topo_cfg_agmt_dup_reverse(segment->left);
+                            if(0 == strcasecmp(fromHost,segment->right->origin)) {
+                                ipa_topo_util_update_agmt_rdn(repl_conf, segment->right, segment->right->target);
+                            }
+                        }
                     } else if (segment->direct == SEGMENT_RIGHT_LEFT) {
-                        segment->left = ipa_topo_cfg_agmt_dup_reverse(segment->right);
+                        ex_segm = ipa_topo_cfg_replica_segment_find(repl_conf, segment->from, segment->to,
+                                                    SEGMENT_LEFT_RIGHT, 1);
+                        if (ex_segm) {
+                            segment->left = ipa_topo_cfg_agmt_dup(ex_segm->left?ex_segm->left:ex_segm->right);
+                        } else {
+                            segment->left = ipa_topo_cfg_agmt_dup_reverse(segment->right);
+                            if(0 == strcasecmp(fromHost,segment->left->origin)) {
+                                ipa_topo_util_update_agmt_rdn(repl_conf, segment->left, segment->left->target);
+                            }
+                        }
                     }
                     segment->direct = SEGMENT_BIDIRECTIONAL;
                 } else {
@@ -983,6 +1062,32 @@ ipa_topo_util_segm_order(TopoReplicaSegment *l, TopoReplicaSegment *r)
 }
 
 void
+ipa_topo_util_segment_do_merge(TopoReplica *tconf,
+                               TopoReplicaSegment *ex_segm, TopoReplicaSegment *tsegm)
+{
+    /* we are merging two one directional segments, tehy can have been created in 
+     * several ways and we need to find the agreeemnt to copy 
+     */
+    if (NULL == tsegm->right) {
+        if(ex_segm->left) {
+            tsegm->right = ipa_topo_cfg_agmt_dup(ex_segm->left);
+        } else {
+            tsegm->right = ipa_topo_cfg_agmt_dup(ex_segm->right);
+        }
+    } else {
+        if(ex_segm->left) {
+            tsegm->left = ipa_topo_cfg_agmt_dup(ex_segm->left);
+        } else {
+            tsegm->left = ipa_topo_cfg_agmt_dup(ex_segm->right);
+        }
+    }
+    ipa_topo_util_segm_update(tconf,ex_segm, SEGMENT_OBSOLETE);
+    ipa_topo_util_segm_remove(tconf, ex_segm);
+    ipa_topo_util_segm_update(tconf,tsegm, SEGMENT_BIDIRECTIONAL);
+}
+
+
+void
 ipa_topo_util_segment_merge(TopoReplica *tconf,
                                  TopoReplicaSegment *tsegm)
 {
@@ -996,7 +1101,13 @@ ipa_topo_util_segment_merge(TopoReplica *tconf,
         return;
     }
 
-    ex_segm = ipa_topo_cfg_replica_segment_find(tconf, tsegm->to, tsegm->from, 1 /*lock*/);
+    if (tsegm->direct == SEGMENT_LEFT_RIGHT) {
+        ex_segm = ipa_topo_cfg_replica_segment_find(tconf, tsegm->from, tsegm->to,
+                                                    SEGMENT_RIGHT_LEFT, 1 /*lock*/);
+    } else {
+        ex_segm = ipa_topo_cfg_replica_segment_find(tconf, tsegm->from, tsegm->to,
+                                                    SEGMENT_LEFT_RIGHT, 1 /*lock*/);
+    }
     if (ex_segm == NULL) return;
 
     /* to avoid conflicts merging has to be done only once and
@@ -1005,17 +1116,11 @@ ipa_topo_util_segment_merge(TopoReplica *tconf,
      */
     if (ipa_topo_util_segm_order(ex_segm, tsegm) > 0) {
         if (0 == strcasecmp(tsegm->from,ipa_topo_get_plugin_hostname())) {
-            tsegm->right = ipa_topo_cfg_agmt_dup(ex_segm->left);
-            ipa_topo_util_segm_update(tconf,ex_segm, SEGMENT_OBSOLETE);
-            ipa_topo_util_segm_remove(tconf, ex_segm);
-            ipa_topo_util_segm_update(tconf,tsegm, SEGMENT_BIDIRECTIONAL);
+            ipa_topo_util_segment_do_merge(tconf, ex_segm, tsegm);
         }
     } else {
         if (0 == strcasecmp(ex_segm->from,ipa_topo_get_plugin_hostname())) {
-            ex_segm->right = ipa_topo_cfg_agmt_dup(tsegm->left);
-            ipa_topo_util_segm_update(tconf,tsegm, SEGMENT_OBSOLETE);
-            ipa_topo_util_segm_remove(tconf, tsegm);
-            ipa_topo_util_segm_update(tconf,ex_segm, SEGMENT_BIDIRECTIONAL);
+            ipa_topo_util_segment_do_merge(tconf, tsegm, ex_segm);
         }
     }
 
@@ -1221,8 +1326,8 @@ ipa_topo_util_delete_segments_for_host(char *repl_root, char *delhost)
     int check_reverse = 1;
 
     /* first check if a segment originating at localhost exists */
-    segm = ipa_topo_cfg_segment_find(repl_root,
-                                     ipa_topo_get_plugin_hostname(), delhost);
+    segm = ipa_topo_cfg_segment_find(repl_root, ipa_topo_get_plugin_hostname(),
+                                     delhost, SEGMENT_LEFT_RIGHT);
     if (segm) {
         /* mark segment as removable, bypass connectivity check when replicated */
         if (segm->direct == SEGMENT_BIDIRECTIONAL) check_reverse = 0;
@@ -1233,8 +1338,8 @@ ipa_topo_util_delete_segments_for_host(char *repl_root, char *delhost)
     }
     /* check if one directional segment in reverse direction exists */
     if (check_reverse) {
-        segm = ipa_topo_cfg_segment_find(repl_root,
-                                     delhost, ipa_topo_get_plugin_hostname());
+        segm = ipa_topo_cfg_segment_find(repl_root, delhost,
+                                         ipa_topo_get_plugin_hostname(), SEGMENT_LEFT_RIGHT);
         if (segm) {
             ipa_topo_util_segm_update(tconf,segm, SEGMENT_REMOVED);
             /* mark and delete, no repl agmt on this server */

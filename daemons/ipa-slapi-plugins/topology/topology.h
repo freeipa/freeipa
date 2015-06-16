@@ -177,11 +177,12 @@ void ipa_topo_cfg_host_add(Slapi_Entry *hostentry);
 void ipa_topo_cfg_host_del(Slapi_Entry *hostentry);
 TopoReplicaHost *ipa_topo_cfg_host_find(TopoReplica *tconf, char *host, int lock);
 TopoReplicaHost *ipa_topo_cfg_host_new(char *newhost);
+int ipa_topo_util_segm_dir(char *direction);
 TopoReplicaSegment *
-ipa_topo_cfg_segment_find(char *repl_root, char *leftHost, char *rightHost);
+ipa_topo_cfg_segment_find(char *repl_root, char *leftHost, char *rightHosti, int dir);
 TopoReplicaSegment *
 ipa_topo_cfg_replica_segment_find(TopoReplica *tconf, char *leftHost,
-                                  char *rightHost, int lock);
+                                  char *rightHost, int dir, int lock);
 void ipa_topo_cfg_segment_set_visited(TopoReplica *tconf, TopoReplicaSegment *tsegm);
 void ipa_topo_cfg_segment_add(TopoReplica *tconf, TopoReplicaSegment *tsegm);
 void ipa_topo_cfg_segment_del(TopoReplica *tconf, TopoReplicaSegment *tsegm);
