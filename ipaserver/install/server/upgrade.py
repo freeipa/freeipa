@@ -31,6 +31,7 @@ from ipaserver.install import service
 from ipaserver.install import cainstance
 from ipaserver.install import certs
 from ipaserver.install import otpdinstance
+from ipaserver.install import schemaupdate
 from ipaserver.install import sysupgrade
 from ipaserver.install import dnskeysyncinstance
 from ipaserver.install.upgradeinstance import IPAUpgrade
@@ -1254,6 +1255,27 @@ def update_mod_nss_protocol(http):
     sysupgrade.set_upgrade_state('nss.conf', 'protocol_updated_tls12', True)
 
 
+def ca_upgrade_schema(ca):
+    root_logger.info('[Upgrading CA schema]')
+    if not ca.is_configured():
+        root_logger.info('CA is not configured')
+        return False
+
+    schema_files=['/usr/share/pki/server/conf/schema-certProfile.ldif']
+    try:
+        modified = schemaupdate.update_schema(schema_files, ldapi=True)
+    except Exception as e:
+        root_logger.error("%s", e)
+        raise RuntimeError('CA schema upgrade failed.', 1)
+    else:
+        if modified:
+            root_logger.info('CA schema update complete')
+            return True
+        else:
+            root_logger.info('CA schema update complete (no changes)')
+            return False
+
+
 def add_default_caacl(ca):
     root_logger.info('[Add default CA ACL]')
 
@@ -1452,6 +1474,7 @@ def upgrade_configuration():
 
     ca_restart = any([
         ca_restart,
+        ca_upgrade_schema(ca),
         upgrade_ca_audit_cert_validity(ca),
         certificate_renewal_update(ca),
         ca_enable_pkix(ca),
