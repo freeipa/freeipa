@@ -4911,6 +4911,11 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
+command: topologysuffix_verify
+args: 1,1,1
+arg: Str('cn', attribute=True, cli_name='name', multivalue=False, primary_key=True, query=True, required=True)
+option: Str('version?', exclude='webui')
+output: Output('result', None, None)
 command: trust_add
 args: 1,13,3
 arg: Str('cn', attribute=True, cli_name='realm', multivalue=False, primary_key=True, required=True)

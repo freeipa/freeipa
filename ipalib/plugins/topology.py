@@ -10,6 +10,7 @@ from ipalib.plugins.baseldap import (
     LDAPRetrieve)
 from ipalib import _, ngettext
 from ipalib import output
+from ipalib.util import create_topology_graph, get_topology_connection_errors
 from ipapython.dn import DN
 
 
@@ -401,3 +402,85 @@ class topologysuffix_mod(LDAPUpdate):
 @register()
 class topologysuffix_show(LDAPRetrieve):
     __doc__ = _('Show managed suffix.')
+
+
+@register()
+class topologysuffix_verify(LDAPQuery):
+    __doc__ = _('''
+Verify replication topology for suffix.
+
+Checks done:
+  1. check if a topology is not disconnected. In other words if there are
+     replication paths between all servers.
+  2. check if servers don't have more than the recommended number of
+     replication agreements
+''')
+
+    def execute(self, *keys, **options):
+
+        validate_domain_level(self.api)
+
+        masters = self.api.Command.server_find('', sizelimit=0)['result']
+        segments = self.api.Command.topologysegment_find(
+            keys[0], sizelimit=0)['result']
+        graph = create_topology_graph(masters, segments)
+        master_cns = [m['cn'][0] for m in masters]
+        master_cns.sort()
+
+        # check if each master can contact others
+        connect_errors = get_topology_connection_errors(graph)
+
+        # check if suggested maximum number of agreements per replica
+        max_agmts_errors = []
+        for m in master_cns:
+            # chosen direction doesn't matter much given that 'both' is the
+            # only allowed direction
+            suppliers = graph.get_tails(m)
+            if len(suppliers) > self.api.env.recommended_max_agmts:
+                max_agmts_errors.append((m, suppliers))
+
+        return dict(
+            result={
+                'in_order': not connect_errors and not max_agmts_errors,
+                'connect_errors': connect_errors,
+                'max_agmts_errors': max_agmts_errors,
+                'max_agmts': self.api.env.recommended_max_agmts
+            },
+        )
+
+    def output_for_cli(self, textui, output, *args, **options):
+
+        in_order = output['result']['in_order']
+        connect_errors = output['result']['connect_errors']
+        max_agmts_errors = output['result']['max_agmts_errors']
+
+        if in_order:
+            header = _('Replication topology of suffix "%(suffix)s" '
+                       'is in order.')
+        else:
+            header = _('Replication topology of suffix "%(suffix)s" contains '
+                       'errors.')
+        textui.print_h1(header % {'suffix': args[0]})
+
+        if connect_errors:
+            textui.print_dashed(unicode(_('Topology is disconnected')))
+            for err in connect_errors:
+                msg = _("Server %(srv)s can't contact servers: %(replicas)s")
+                msg = msg % {'srv': err[0], 'replicas': ', '.join(err[2])}
+                textui.print_indented(msg)
+
+        if max_agmts_errors:
+            textui.print_dashed(unicode(_('Recommended maximum number of '
+                                          'agreements per replica exceeded')))
+            textui.print_attribute(
+                unicode(_("Maximum number of agreements per replica")),
+                [output['result']['max_agmts']]
+            )
+            for err in max_agmts_errors:
+                msg = _('Server "%(srv)s" has %(n)d agreements with servers:')
+                msg = msg % {'srv': err[0], 'n': len(err[1])}
+                textui.print_indented(msg)
+                for replica in err[1]:
+                    textui.print_indented(replica, 2)
+
+        return 0

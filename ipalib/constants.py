@@ -170,6 +170,10 @@ DEFAULT_CONFIG = (
     # KRA plugin
     ('kra_host', FQDN),  # Set in Env._finalize_core()
 
+    # Topology plugin
+    ('recommended_max_agmts', 4),  # Recommended maximum number of replication
+                                   # agreements
+
     # Special CLI:
     ('prompt_all', False),
     ('interactive', True),
