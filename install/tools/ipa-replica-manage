@@ -663,6 +663,7 @@ def ensure_last_services(conn, hostname, masters, options):
         dnssec_masters = opendnssecinstance.get_dnssec_key_masters(conn)
         if hostname in dnssec_masters:
             print "Replica is active DNSSEC key master. Uninstall could break your DNS system."
+            print "Please disable or replace DNSSEC key master first."
             sys.exit("Deletion aborted")
 
     ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)

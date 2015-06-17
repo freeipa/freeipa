@@ -154,8 +154,15 @@ def install_check(standalone, replica, options, hostname):
         if dnssec_zones and not options.force:
             raise RuntimeError(
                 "Cannot disable DNSSEC key master, DNSSEC signing is still "
-                "enabled for following zone(s): %s\n"
-                "Use --force option to skip this check." %
+                "enabled for following zone(s):\n"
+                "%s\n"
+                "It is possible to move DNSSEC key master role to a different "
+                "server by using --force option to skip this check.\n\n"
+                "WARNING: You have to immediatelly copy kasp.db file to a new "
+                "server and run command 'ipa-dns-install --dnssec-master "
+                "--kasp-db'.\n"
+                "Your DNS zones will become unavailable if you "
+                "do not reinstall the DNSSEC key master role immediatelly." %
                 ", ".join([str(zone) for zone in dnssec_zones]))
     elif options.dnssec_master:
         # check opendnssec packages are installed
@@ -186,8 +193,10 @@ def install_check(standalone, replica, options, hostname):
                             suplementary_groups=[named.get_group_name()])
             except CalledProcessError as e:
                 root_logger.debug("%s", e)
-                raise RuntimeError("IPA server cannot be the new DNSSEC master "
-                                   "(some keys are missing)")
+                raise RuntimeError("This IPA server cannot be promoted to "
+                                   "DNSSEC master role because some keys were "
+                                   "not replicated from the original "
+                                   "DNSSEC master server")
             finally:
                 if dnskeysyncd_running:
                     dnskeysyncd.start()
@@ -195,9 +204,14 @@ def install_check(standalone, replica, options, hostname):
             # some zones have --dnssec=true, make sure a user really want to
             # install new database
             raise RuntimeError(
-                "DNSSEC is enabled for following zone(s): %s\n"
-                "Please use option --kasp-db to keep current OpenDNSSEC "
-                "database or use --force option to skip this check." %
+                "DNSSEC signing is already enabled for following zone(s): %s\n"
+                "Installation cannot continue without the OpenDNSSEC database "
+                "file from the original DNSSEC master server.\n"
+                "Please use option --kasp-db to specify location "
+                "of the kasp.db file copied from the original "
+                "DNSSEC master server.\n"
+                "WARNING: Zones will become unavailable if you do not provide "
+                "the original kasp.db file." %
                 ", ".join([str(zone) for zone in dnssec_zones]))
 
 
