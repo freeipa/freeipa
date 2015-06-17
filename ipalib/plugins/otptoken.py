@@ -325,7 +325,7 @@ class otptoken_add(LDAPCreate):
         args['issuer'] = issuer
         args['secret'] = base64.b32encode(entry_attrs['ipatokenotpkey'])
         args['digits'] = entry_attrs['ipatokenotpdigits']
-        args['algorithm'] = entry_attrs['ipatokenotpalgorithm']
+        args['algorithm'] = entry_attrs['ipatokenotpalgorithm'].upper()
         if options['type'] == 'totp':
             args['period'] = entry_attrs['ipatokentotptimestep']
         elif options['type'] == 'hotp':
