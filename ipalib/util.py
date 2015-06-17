@@ -42,6 +42,7 @@ from ipalib.text import _
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN, RDN
 from ipapython.dnsutil import DNSName
+from ipapython.graph import Graph
 
 
 def json_serialize(obj):
@@ -780,3 +781,53 @@ def validate_idna_domain(value):
 
     if error:
         raise ValueError(error)
+
+
+def create_topology_graph(masters, segments):
+    """
+    Create an oriented graph from topology defined by masters and segments.
+
+    :param masters
+    :param segments
+    :returns: Graph
+    """
+    graph = Graph()
+
+    for m in masters:
+        graph.add_vertex(m['cn'][0])
+
+    for s in segments:
+        direction = s['iparepltoposegmentdirection'][0]
+        left = s['iparepltoposegmentleftnode'][0]
+        right = s['iparepltoposegmentrightnode'][0]
+        try:
+            if direction == u'both':
+                graph.add_edge(left, right)
+                graph.add_edge(right, left)
+            elif direction == u'left-right':
+                graph.add_edge(left, right)
+            elif direction == u'right-left':
+                graph.add_edge(right, left)
+        except ValueError:  # ignore segments with deleted master
+            pass
+
+    return graph
+
+
+def get_topology_connection_errors(graph):
+    """
+    Traverse graph from each master and find out which masters are not
+    reachable.
+
+    :param graph: topology graph where vertices are masters
+    :returns: list of errors, error is: (master, visited, not_visited)
+    """
+    connect_errors = []
+    master_cns = list(graph.vertices)
+    master_cns.sort()
+    for m in master_cns:
+        visited = graph.bfs(m)
+        not_visited = graph.vertices - visited
+        if not_visited:
+            connect_errors.append((m, list(visited), list(not_visited)))
+    return connect_errors
