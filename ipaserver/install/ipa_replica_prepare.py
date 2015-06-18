@@ -482,7 +482,7 @@ class ReplicaPrepare(admintool.AdminTool):
             add_zone(domain)
         except errors.PublicError, e:
             raise admintool.ScriptError(
-                "Could not create forward DNS zone for the replica: %s" % e)
+                "Could not create master DNS zone for the replica: %s" % e)
 
         for reverse_zone in options.reverse_zones:
             self.log.info("Adding reverse zone %s", reverse_zone)
@@ -494,7 +494,7 @@ class ReplicaPrepare(admintool.AdminTool):
                 add_fwd_rr(domain, name, ip_address)
             except errors.PublicError, e:
                 raise admintool.ScriptError(
-                    "Could not add forward DNS record for the replica: %s" % e)
+                    "Could not add A/AAAA DNS record for the replica: %s" % e)
 
             if not options.no_reverse:
                 reverse_zone = bindinstance.find_reverse_zone(ip)
@@ -502,7 +502,7 @@ class ReplicaPrepare(admintool.AdminTool):
                     add_ptr_rr(reverse_zone, ip_address, self.replica_fqdn)
                 except errors.PublicError, e:
                     raise admintool.ScriptError(
-                        "Could not add reverse DNS record for the replica: %s"
+                        "Could not add PTR DNS record for the replica: %s"
                         % e)
 
     def check_dns(self, replica_fqdn):
