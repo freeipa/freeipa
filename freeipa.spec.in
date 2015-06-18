@@ -148,7 +148,7 @@ Requires(pre): 389-ds-base >= 1.3.4.a1
 Requires: fontawesome-fonts
 Requires: open-sans-fonts
 Requires: openssl
-Requires: softhsm >= 2.0.0b1-3
+Requires: softhsm >= 2.0.0rc1-1
 Requires: p11-kit
 Requires: systemd-python
 Requires: %{etc_systemd_dir}
