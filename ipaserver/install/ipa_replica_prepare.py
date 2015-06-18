@@ -231,8 +231,9 @@ class ReplicaPrepare(admintool.AdminTool):
                             api.env.host, api.env.basedn,
                             dm_password=self.dirman_password,
                             ldapi=True, realm=api.env.realm):
-                        self.log.info('Add the --ip-address argument to '
-                            'create a DNS entry.')
+                        self.log.info('You might use the --ip-address option '
+                                      'to create a DNS entry if the DNS zone '
+                                      'is managed by IPA.')
                     raise
                 else:
                     # The host doesn't exist in DNS but we're adding it.
