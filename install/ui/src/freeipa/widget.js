@@ -1425,8 +1425,8 @@ IPA.option_widget_base = function(spec, that) {
 
     // classic properties
     that.name = spec.name;
-    that.label = spec.label;
-    that.title = spec.title;
+    that.label = text.get(spec.label);
+    that.title = text.get(spec.title);
     that.sort = spec.sort === undefined ? false : spec.sort;
     that.value_changed = that.value_changed || IPA.observer();
 

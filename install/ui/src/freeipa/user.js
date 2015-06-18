@@ -833,13 +833,13 @@ IPA.user.deleter_dialog = function(spec) {
         });
 
         that.option_radio = IPA.radio_widget({
-            name: 'deletemode',
-            label: 'Delete mode',
+            name: 'preserve',
+            label: '@i18n:objects.user.delete_mode',
             options: [
-                { label: 'default', value: '' },
-                { label: 'delete permanently', value: 'permanently' },
-                { label: 'preserve', value: 'preserve' }
-            ]
+                { label: '@i18n:objects.user.mode_delete', value: 'false' },
+                { label: '@i18n:objects.user.mode_preserve', value: 'true' }
+            ],
+            default_value: 'false'
         });
 
         var html = that.option_layout.create([that.option_radio]);
@@ -849,13 +849,11 @@ IPA.user.deleter_dialog = function(spec) {
 
     that.create_command = function() {
         var batch = that.search_deleter_dialog_create_command();
-        var option = that.option_radio.get_value()[0];
+        var preserve = that.option_radio.get_value()[0];
 
-        if (option) {
-            for (var i=0; i<batch.commands.length; i++) {
-                var command = batch.commands[i];
-                command.set_option(option, true);
-            }
+        for (var i=0; i<batch.commands.length; i++) {
+            var command = batch.commands[i];
+            command.set_option('preserve', preserve);
         }
 
         return batch;
