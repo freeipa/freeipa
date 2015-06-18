@@ -122,13 +122,7 @@ def install_step_0(standalone, replica_config, options):
             postinstall = True
         else:
             postinstall = False
-        ca = cainstance.install_replica_ca(replica_config, postinstall)
-
-        if not standalone:
-            ca.configure_certmonger_renewal()
-            ca.import_ra_cert(replica_config.dir + "/ra.p12")
-            ca.fix_ra_perms()
-
+        cainstance.install_replica_ca(replica_config, postinstall)
         return
 
     if options.external_cert_files:

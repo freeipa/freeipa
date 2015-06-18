@@ -24,8 +24,9 @@ from ipaplatform.paths import paths
 from ipalib import api, certstore, constants, create_api, errors, x509
 import ipaclient.ntpconf
 from ipaserver.install import (
-    bindinstance, ca, dns, dsinstance, httpinstance, installutils, kra,
-    krbinstance, memcacheinstance, ntpinstance, otpdinstance, service)
+    bindinstance, ca, cainstance, certs, dns, dsinstance, httpinstance,
+    installutils, kra, krbinstance, memcacheinstance, ntpinstance,
+    otpdinstance, service)
 from ipaserver.install.installutils import create_replica_config
 from ipaserver.install.replication import (
     ReplicationManager, replica_conn_check)
@@ -578,6 +579,16 @@ def install(installer):
     otpd = otpdinstance.OtpdInstance()
     otpd.create_instance('OTPD', config.host_name, config.dirman_password,
                          ipautil.realm_to_suffix(config.realm_name))
+
+    if ipautil.file_exists(cafile):
+        CA = cainstance.CAInstance(
+            config.realm_name, certs.NSS_DIR,
+            dogtag_constants=dogtag_constants)
+        CA.dm_password = config.dirman_password
+
+        CA.configure_certmonger_renewal()
+        CA.import_ra_cert(config.dir + "/ra.p12")
+        CA.fix_ra_perms()
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated
