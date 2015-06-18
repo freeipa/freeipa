@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=134
-# Last change: jcholast - User life cycle: provide preserved user virtual attribute
+IPA_API_VERSION_MINOR=135
+# Last change: jcholast - User life cycle: Make user-del flags CLI-specific

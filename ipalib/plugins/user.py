@@ -565,17 +565,31 @@ class user_del(baseuser_del):
     msg_summary = _('Deleted user "%(value)s"')
 
     takes_options = baseuser_del.takes_options + (
-        Flag('preserve?',
-            doc=_('Delete a user, keeping the entry available for future use'),
-            cli_name='preserve',
-            default=False,
+        Bool('preserve?',
+            exclude='cli',
         ),
-        Flag('permanently?',
+        Flag('preserve?',
+            include='cli',
+            doc=_('Delete a user, keeping the entry available for future use'),
+        ),
+        Flag('no_preserve?',
+            include='cli',
             doc=_('Delete a user'),
-            cli_name='permanently',
-            default=False,
         ),
     )
+
+    def forward(self, *keys, **options):
+        if self.api.env.context == 'cli':
+            if options['no_preserve'] and options['preserve']:
+                raise errors.MutuallyExclusiveError(
+                    reason=_("preserve and no-preserve cannot be both set"))
+            elif options['no_preserve']:
+                options['preserve'] = False
+            elif not options['preserve']:
+                del options['preserve']
+            del options['no_preserve']
+
+        return super(user_del, self).forward(*keys, **options)
 
     def pre_callback(self, ldap, dn, *keys, **options):
         assert isinstance(dn, DN)
@@ -606,13 +620,15 @@ class user_del(baseuser_del):
 
         dn = self.obj.get_dn(*keys, **options)
 
-        if options['permanently'] or dn.endswith(DN(self.obj.delete_container_dn, api.env.basedn)):
+        if (not options.get('preserve', True) or
+                dn.endswith(DN(self.obj.delete_container_dn,
+                               self.api.env.basedn))):
             # We are going to permanent delete or the user is already in the delete container.
             # So we issue a true DEL on that entry
             return super(user_del, self).execute(*keys, **options)
 
-        # The user to delete is active and there is no 'permanently' option
-        if options['preserve']:
+        # The user to delete is active and there is no 'no_preserve' option
+        if options.get('preserve', False):
 
             ldap = self.obj.backend
 
