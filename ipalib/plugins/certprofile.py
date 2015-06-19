@@ -246,7 +246,7 @@ class certprofile_del(LDAPDelete):
 @register()
 class certprofile_mod(LDAPUpdate):
     __doc__ = _("Modify Certificate Profile configuration.")
-    msg_summary = _('Modified Certificate Profile "%(value)s')
+    msg_summary = _('Modified Certificate Profile "%(value)s"')
 
     def execute(self, *args, **kwargs):
         ca_enabled_check()
