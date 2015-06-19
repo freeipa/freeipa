@@ -305,6 +305,7 @@ Requires: python-sss-murmur
 %endif
 Requires: wget
 Requires: dbus-python
+Requires: python-setuptools
 
 Conflicts: %{alt_name}-python
 Obsoletes: %{alt_name}-python < %{version}
