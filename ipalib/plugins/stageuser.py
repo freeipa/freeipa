@@ -202,6 +202,16 @@ class stageuser(baseuser):
             },
             'default_privileges': {'Stage User Administrators'},
         },
+        # Allow to delete preserved user
+        'System: Remove preserved User': {
+            'ipapermlocation': DN(baseuser.delete_container_dn, api.env.basedn),
+            'ipapermbindruletype': 'permission',
+            'ipapermtarget': DN('uid=*', baseuser.delete_container_dn, api.env.basedn),
+            'ipapermtargetfilter': {'(objectclass=*)'},
+            'ipapermright': {'delete'},
+            'ipapermdefaultattr': {'*'},
+            'default_privileges': {'Stage User Administrators'},
+        },
         #
         # Active container
         #

@@ -265,6 +265,8 @@ aci: (targetattr = "*")(target = "ldap:///uid=*,cn=staged users,cn=accounts,cn=p
 dn: cn=staged users,cn=accounts,cn=provisioning,dc=ipa,dc=example
 aci: (targetattr = "*")(target = "ldap:///uid=*,cn=staged users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(targetfilter = "(objectclass=*)")(version 3.0;acl "permission:System: Remove Stage User";allow (delete) groupdn = "ldap:///cn=System: Remove Stage User,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example
+aci: (targetattr = "*")(target = "ldap:///uid=*,cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(targetfilter = "(objectclass=*)")(version 3.0;acl "permission:System: Remove preserved User";allow (delete) groupdn = "ldap:///cn=System: Remove preserved User,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example
 aci: (targetattr = "krblastpwdchange || krbpasswordexpiration || krbprincipalkey || userpassword")(target = "ldap:///uid=*,cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Reset Preserved User password";allow (read,search,write) groupdn = "ldap:///cn=System: Reset Preserved User password,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: dc=ipa,dc=example
 aci: (target_to = "ldap:///cn=users,cn=accounts,dc=ipa,dc=example")(target_from = "ldap:///cn=deleted users,cn=accounts,cn=provisioning,dc=ipa,dc=example")(targetfilter = "(objectclass=nsContainer)")(version 3.0;acl "permission:System: Undelete User";allow (moddn) groupdn = "ldap:///cn=System: Undelete User,cn=permissions,cn=pbac,dc=ipa,dc=example";)
