@@ -29,7 +29,6 @@ import ldap
 
 import installutils
 import service
-from ipaserver.plugins import ldap2
 from ipaserver.install.cainstance import IPA_CA_RECORD
 from ipapython import sysrestore, ipautil, ipaldap
 from ipapython.ipa_log_manager import *

@@ -592,9 +592,6 @@ def install_check(installer):
         api.env.ca_host = host_name
 
     api.bootstrap(**cfg)
-    if setup_ca:
-        # ensure profile backend is available
-        import ipaserver.plugins.dogtag
     api.finalize()
 
     if setup_ca:

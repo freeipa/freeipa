@@ -95,6 +95,7 @@ def main(options):
         basedn=DN('dc=ipa,dc=example'),
         realm='IPA.EXAMPLE',
     )
+    from ipaserver.plugins import ldap2
     from ipaserver.install.plugins.update_managed_permissions import (
         update_managed_permissions)
     from ipalib.plugins.permission import permission

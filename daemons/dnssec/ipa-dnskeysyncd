@@ -17,7 +17,6 @@ from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython import ipaldap
 from ipapython import ipautil
-from ipaserver.plugins.ldap2 import ldap2
 from ipaplatform.paths import paths
 
 from ipapython.dnssec.keysyncer import KeySyncer

@@ -31,7 +31,6 @@ from ipapython import ipautil
 from ipaserver.install import replication, dsinstance, installutils
 from ipaserver.install import bindinstance, cainstance, certs
 from ipaserver.install import opendnssecinstance, dnskeysyncinstance
-from ipaserver.plugins import ldap2
 from ipapython import version, ipaldap
 from ipalib import api, errors, util
 from ipalib.constants import CACERT

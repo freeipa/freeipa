@@ -11,7 +11,6 @@ import ipalib
 from ipapython.dn import DN
 from ipapython import ipaldap
 from ipapython import ipautil
-from ipaserver.plugins.ldap2 import ldap2
 from ipaplatform.paths import paths
 
 from abshsm import attrs_name2id, attrs_id2name, bool_attr_names, populate_pkcs11_metadata, AbstractHSM

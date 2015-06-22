@@ -748,7 +748,8 @@ class jsonserver_session(jsonserver, KerberosSession):
 
     def __init__(self):
         super(jsonserver_session, self).__init__()
-        auth_mgr = AuthManagerKerb(self.__class__.__name__)
+        name = '{0}_{1}'.format(self.__class__.__name__, id(self))
+        auth_mgr = AuthManagerKerb(name)
         session_mgr.auth_mgr.register(auth_mgr.name, auth_mgr)
 
     def _on_finalize(self):
@@ -1200,7 +1201,8 @@ class xmlserver_session(xmlserver, KerberosSession):
 
     def __init__(self):
         super(xmlserver_session, self).__init__()
-        auth_mgr = AuthManagerKerb(self.__class__.__name__)
+        name = '{0}_{1}'.format(self.__class__.__name__, id(self))
+        auth_mgr = AuthManagerKerb(name)
         session_mgr.auth_mgr.register(auth_mgr.name, auth_mgr)
 
     def _on_finalize(self):

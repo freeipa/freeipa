@@ -38,8 +38,6 @@ from ipapython.ipavalidate import Email
 from ipalib.capabilities import client_has_capability
 from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
     convert_sshpubkey_post)
-if api.env.in_server and api.env.context in ['lite', 'server']:
-    from ipaserver.plugins.ldap2 import ldap2
 
 __doc__ = _("""
 Baseuser

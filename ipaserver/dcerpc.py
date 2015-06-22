@@ -31,7 +31,6 @@ from ipapython import ipautil
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipaserver.install import installutils
-from ipaserver.plugins import ldap2
 from ipalib.util import normalize_name
 
 import os, string, struct, copy

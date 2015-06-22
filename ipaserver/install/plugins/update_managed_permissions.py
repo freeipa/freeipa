@@ -91,7 +91,6 @@ from ipalib.plugins.permission import permission, permission_del
 from ipalib.aci import ACI
 from ipalib import Updater
 from ipapython import ipautil
-from ipaserver.plugins.ldap2 import ldap2
 
 register = Registry()
 

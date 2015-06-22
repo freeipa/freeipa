@@ -905,7 +905,7 @@ class API(plugable.API):
     def bootstrap(self, parser=None, **overrides):
         super(API, self).bootstrap(parser, **overrides)
 
-        if self.env.context in ('server', 'lite'):
+        if self.env.in_server:
             self.packages.append('ipaserver')
         if self.env.context in ('installer', 'updates'):
             self.packages.append('ipaserver/install/plugins')
