@@ -219,7 +219,8 @@ class test_Plugin(ClassChecker):
         """
         Test the `ipalib.plugable.Plugin.__init__` method.
         """
-        o = self.cls()
+        api = 'the api instance'
+        o = self.cls(api)
         assert o.name == 'Plugin'
         assert o.module == 'ipalib.plugable'
         assert o.fullname == 'ipalib.plugable.Plugin'
@@ -234,7 +235,7 @@ class test_Plugin(ClassChecker):
 
             One more paragraph.
             """
-        o = some_subclass()
+        o = some_subclass(api)
         assert o.name == 'some_subclass'
         assert o.module == __name__
         assert o.fullname == '%s.some_subclass' % __name__
@@ -242,36 +243,23 @@ class test_Plugin(ClassChecker):
         assert isinstance(o.doc, text.Gettext)
         class another_subclass(self.cls):
             pass
-        o = another_subclass()
+        o = another_subclass(api)
         assert o.summary == '<%s>' % o.fullname
 
         # Test that Plugin makes sure the subclass hasn't defined attributes
         # whose names conflict with the logger methods set in Plugin.__init__():
         class check(self.cls):
             info = 'whatever'
-        e = raises(StandardError, check)
+        e = raises(StandardError, check, api)
         assert str(e) == \
             "info is already bound to ipatests.test_ipalib.test_plugable.check()"
-
-    def test_set_api(self):
-        """
-        Test the `ipalib.plugable.Plugin.set_api` method.
-        """
-        api = 'the api instance'
-        o = self.cls()
-        assert o.api is None
-        e = raises(AssertionError, o.set_api, None)
-        assert str(e) == 'set_api() argument cannot be None'
-        o.set_api(api)
-        assert o.api is api
-        e = raises(AssertionError, o.set_api, api)
-        assert str(e) == 'set_api() can only be called once'
 
     def test_finalize(self):
         """
         Test the `ipalib.plugable.Plugin.finalize` method.
         """
-        o = self.cls()
+        api = 'the api instance'
+        o = self.cls(api)
         assert not o.__islocked__()
         o.finalize()
         assert o.__islocked__()

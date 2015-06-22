@@ -45,7 +45,7 @@ def use_keytab(principal, keytab):
         ccache = krbV.CCache(name=ccache_file, context=krbcontext, primary_principal=principal)
         ccache.init(principal)
         ccache.init_creds_keytab(keytab=keytab, principal=principal)
-        conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri, base_dn=api.env.basedn)
+        conn = ldap2(api)
         conn.connect(ccache=ccache)
         conn.disconnect()
     except krbV.Krb5Error, e:

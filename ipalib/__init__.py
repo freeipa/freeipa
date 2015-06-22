@@ -292,7 +292,7 @@ does that, and the backend plugins are only installed on the server.  The
 ``user_add.execute()`` method, which is only called when in a server context,
 is implemented as a series of calls to methods on the ``ldap`` backend plugin.
 
-When `plugable.Plugin.set_api()` is called, each plugin stores a reference to
+When `plugable.Plugin.__init__()` is called, each plugin stores a reference to
 the `plugable.API` instance it has been loaded into.  So your plugin can
 access the ``my_backend`` plugin as ``self.api.Backend.my_backend``.
 
@@ -668,7 +668,7 @@ See the `ipalib.cli.textui` plugin for a description of its methods.
 Logging from your plugin
 ------------------------
 
-After `plugable.Plugin.set_api()` is called, your plugin will have a
+After `plugable.Plugin.__init__()` is called, your plugin will have a
 ``self.log`` attribute.  Plugins should only log through this attribute.
 For example:
 

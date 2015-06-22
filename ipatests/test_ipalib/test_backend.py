@@ -71,12 +71,13 @@ class test_Connectible(ClassChecker):
         Test the `ipalib.backend.Connectible.connect` method.
         """
         # Test that connection is created:
+        api = 'the api instance'
         class example(self.cls):
             def create_connection(self, *args, **kw):
                 object.__setattr__(self, 'args', args)
                 object.__setattr__(self, 'kw', kw)
                 return 'The connection.'
-        o = example(shared_instance=True)
+        o = example(api, shared_instance=True)
         args = ('Arg1', 'Arg2', 'Arg3')
         kw = dict(key1='Val1', key2='Val2', key3='Val3')
         assert not hasattr(context, 'example')
@@ -101,10 +102,11 @@ class test_Connectible(ClassChecker):
         """
         Test the `ipalib.backend.Connectible.create_connection` method.
         """
+        api = 'the api instance'
         class example(self.cls):
             pass
         for klass in (self.cls, example):
-            o = klass(shared_instance=True)
+            o = klass(api, shared_instance=True)
             e = raises(NotImplementedError, o.create_connection)
             assert str(e) == '%s.create_connection()' % klass.__name__
 
@@ -112,9 +114,10 @@ class test_Connectible(ClassChecker):
         """
         Test the `ipalib.backend.Connectible.disconnect` method.
         """
+        api = 'the api instance'
         class example(self.cls):
             destroy_connection = Disconnect()
-        o = example(shared_instance=True)
+        o = example(api, shared_instance=True)
 
         m = "disconnect: 'context.%s' does not exist in thread %r"
         e = raises(StandardError, o.disconnect)
@@ -128,10 +131,11 @@ class test_Connectible(ClassChecker):
         """
         Test the `ipalib.backend.Connectible.destroy_connection` method.
         """
+        api = 'the api instance'
         class example(self.cls):
             pass
         for klass in (self.cls, example):
-            o = klass(shared_instance=True)
+            o = klass(api, shared_instance=True)
             e = raises(NotImplementedError, o.destroy_connection)
             assert str(e) == '%s.destroy_connection()' % klass.__name__
 
@@ -139,10 +143,11 @@ class test_Connectible(ClassChecker):
         """
         Test the `ipalib.backend.Connectible.isconnected` method.
         """
+        api = 'the api instance'
         class example(self.cls):
             pass
         for klass in (self.cls, example):
-            o = klass(shared_instance=True)
+            o = klass(api, shared_instance=True)
             assert o.isconnected() is False
             conn = 'whatever'
             setattr(context, klass.__name__, conn)
@@ -153,11 +158,12 @@ class test_Connectible(ClassChecker):
         """
         Test the `ipalib.backend.Connectible.conn` property.
         """
+        api = 'the api instance'
         msg = 'no context.%s in thread %r'
         class example(self.cls):
             pass
         for klass in (self.cls, example):
-            o = klass(shared_instance=True)
+            o = klass(api, shared_instance=True)
             e = raises(AttributeError, getattr, o, 'conn')
             assert str(e) == msg % (
                 klass.__name__, threading.currentThread().getName()
@@ -211,8 +217,7 @@ class test_Executioner(ClassChecker):
         api.add_plugin(with_name)
 
         api.finalize()
-        o = self.cls()
-        o.set_api(api)
+        o = self.cls(api)
         o.finalize()
 
         # Test that CommandError is raised:

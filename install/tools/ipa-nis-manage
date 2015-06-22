@@ -120,7 +120,7 @@ def main():
     conn = None
     try:
         try:
-            conn = ldap2(shared_instance=False, base_dn='')
+            conn = ldap2(api)
             conn.connect(
                 bind_dn=DN(('cn', 'directory manager')), bind_pw=dirman_password
             )

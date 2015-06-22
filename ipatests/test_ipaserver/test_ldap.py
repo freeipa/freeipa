@@ -60,7 +60,7 @@ class test_ldap(object):
         """
         Test an anonymous LDAP bind using ldap2
         """
-        self.conn = ldap2(shared_instance=False, ldap_uri=self.ldapuri)
+        self.conn = ldap2(api, ldap_uri=self.ldapuri)
         self.conn.connect()
         dn = api.env.basedn
         entry_attrs = self.conn.get_entry(dn, ['associateddomain'])
@@ -73,7 +73,7 @@ class test_ldap(object):
         """
         if not ipautil.file_exists(self.ccache):
             raise nose.SkipTest('Missing ccache %s' % self.ccache)
-        self.conn = ldap2(shared_instance=False, ldap_uri=self.ldapuri)
+        self.conn = ldap2(api, ldap_uri=self.ldapuri)
         self.conn.connect(ccache='FILE:%s' % self.ccache)
         entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
@@ -92,7 +92,7 @@ class test_ldap(object):
             fp.close()
         else:
             raise nose.SkipTest("No directory manager password in %s" % pwfile)
-        self.conn = ldap2(shared_instance=False, ldap_uri=self.ldapuri)
+        self.conn = ldap2(api, ldap_uri=self.ldapuri)
         self.conn.connect(bind_dn=DN(('cn', 'directory manager')), bind_pw=dm_password)
         entry_attrs = self.conn.get_entry(self.dn, ['usercertificate'])
         cert = entry_attrs.get('usercertificate')
@@ -137,7 +137,7 @@ class test_ldap(object):
         Test an autobind LDAP bind using ldap2
         """
         ldapuri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % api.env.realm.replace('.','-')
-        self.conn = ldap2(shared_instance=False, ldap_uri=ldapuri)
+        self.conn = ldap2(api, ldap_uri=ldapuri)
         try:
             self.conn.connect(autobind=True)
         except errors.ACIError:
@@ -160,7 +160,7 @@ class test_LDAPEntry(object):
 
     def setup(self):
         self.ldapuri = 'ldap://%s' % ipautil.format_netloc(api.env.host)
-        self.conn = ldap2(shared_instance=False, ldap_uri=self.ldapuri)
+        self.conn = ldap2(api, ldap_uri=self.ldapuri)
         self.conn.connect()
 
         self.entry = self.conn.make_entry(self.dn1, cn=self.cn1)

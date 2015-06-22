@@ -56,47 +56,20 @@ from ipalib.crud import CrudBackend
 from ipalib.request import context
 
 
-class ldap2(LDAPClient, CrudBackend):
+class ldap2(CrudBackend, LDAPClient):
     """
     LDAP Backend Take 2.
     """
 
-    def __init__(self, shared_instance=False, ldap_uri=None, base_dn=None,
-                 schema=None):
-        self.__ldap_uri = None
+    def __init__(self, api, ldap_uri=None):
+        if ldap_uri is None:
+            ldap_uri = api.env.ldap_uri
 
-        CrudBackend.__init__(self, shared_instance=shared_instance)
-        LDAPClient.__init__(self, ldap_uri)
+        force_schema_updates = api.env.context in ('installer', 'updates')
 
-        self.__base_dn = base_dn
-
-    @property
-    def api(self):
-        self_api = super(ldap2, self).api
-        if self_api is None:
-            self_api = api
-        return self_api
-
-    @property
-    def ldap_uri(self):
-        try:
-            return self.__ldap_uri or self.api.env.ldap_uri
-        except AttributeError:
-            return 'ldap://example.com'
-
-    @ldap_uri.setter
-    def ldap_uri(self, value):
-        self.__ldap_uri = value
-
-    @property
-    def base_dn(self):
-        try:
-            if self.__base_dn is not None:
-                return DN(self.__base_dn)
-            else:
-                return DN(self.api.env.basedn)
-        except AttributeError:
-            return DN()
+        CrudBackend.__init__(self, api)
+        LDAPClient.__init__(self, ldap_uri,
+                            force_schema_updates=force_schema_updates)
 
     def _connect(self):
         # Connectible.conn is a proxy to thread-local storage;
@@ -145,8 +118,6 @@ class ldap2(LDAPClient, CrudBackend):
         if debug_level:
             _ldap.set_option(_ldap.OPT_DEBUG_LEVEL, debug_level)
 
-        object.__setattr__(self, '_force_schema_updates',
-                           self.api.env.context in ('installer', 'updates'))
         LDAPClient._connect(self)
         conn = self._conn
 

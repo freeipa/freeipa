@@ -1286,7 +1286,7 @@ class ra(rabase.rabase):
     """
     DEFAULT_PROFILE = dogtag.DEFAULT_PROFILE
 
-    def __init__(self):
+    def __init__(self, api):
         if api.env.in_tree:
             self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
             self.pwd_file = self.sec_dir + os.sep + '.pwd'
@@ -1303,7 +1303,7 @@ class ra(rabase.rabase):
             f.close()
         except IOError:
             self.password = ''
-        super(ra, self).__init__()
+        super(ra, self).__init__(api)
 
     def raise_certificate_operation_error(self, func_name, err_msg=None, detail=None):
         """
@@ -1896,11 +1896,11 @@ class kra(Backend):
     KRA backend plugin (for Vault)
     """
 
-    def __init__(self, kra_port=443):
+    def __init__(self, api, kra_port=443):
 
         self.kra_port = kra_port
 
-        super(kra, self).__init__()
+        super(kra, self).__init__(api)
 
     def get_client(self):
         """
@@ -1958,7 +1958,7 @@ class RestClient(Backend):
         except:
             return None
 
-    def __init__(self):
+    def __init__(self, api):
         if api.env.in_tree:
             self.sec_dir = api.env.dot_ipa + os.sep + 'alias'
             self.pwd_file = self.sec_dir + os.sep + '.pwd'
@@ -1970,7 +1970,7 @@ class RestClient(Backend):
         self.ipa_certificate_nickname = "ipaCert"
         self.ca_certificate_nickname = "caCert"
         self._read_password()
-        super(RestClient, self).__init__()
+        super(RestClient, self).__init__(api)
 
         # session cookie
         self.override_port = None

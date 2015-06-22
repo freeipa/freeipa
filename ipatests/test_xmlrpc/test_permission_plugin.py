@@ -3174,7 +3174,7 @@ class test_managed_permissions(Declarative):
 
     def add_managed_permission(self):
         """Add a managed permission and the corresponding ACI"""
-        ldap = ldap2(shared_instance=False)
+        ldap = ldap2(api)
         ldap.connect(ccache=krbV.default_context().default_ccache())
 
         result = api.Command.permission_add(permission1, type=u'user',

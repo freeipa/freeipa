@@ -71,9 +71,10 @@ class test_ListOfEntries(ClassChecker):
         """
         Test the `ipalib.output.ListOfEntries.validate` method.
         """
+        api = 'the api instance'
         class example(Command):
             pass
-        cmd = example()
+        cmd = example(api)
         inst = self.cls('stuff')
 
         okay = dict(foo='bar')

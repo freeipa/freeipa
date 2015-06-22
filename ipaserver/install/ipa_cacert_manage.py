@@ -121,7 +121,7 @@ class CACertManage(admintool.AdminTool):
         return rc
 
     def ldap_connect(self):
-        conn = ldap2()
+        conn = ldap2(api)
 
         password = self.options.password
         if not password:

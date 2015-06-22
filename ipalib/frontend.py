@@ -1250,12 +1250,12 @@ class Attribute(Plugin):
     # Create stubs for attributes that are set in _on_finalize()
     __obj = Plugin.finalize_attr('_Attribute__obj')
 
-    def __init__(self):
+    def __init__(self, api):
         m = self.NAME_REGEX.match(type(self).__name__)
         assert m
         self.__obj_name = m.group('obj')
         self.__attr_name = m.group('attr')
-        super(Attribute, self).__init__()
+        super(Attribute, self).__init__(api)
 
     def __get_obj_name(self):
         return self.__obj_name
@@ -1346,9 +1346,6 @@ class Method(Attribute, Command):
     """
     extra_options_first = False
     extra_args_first = False
-
-    def __init__(self):
-        super(Method, self).__init__()
 
     def get_output_params(self):
         for param in self.obj.params():

@@ -47,7 +47,8 @@ class StartResponse(object):
 
 
 def test_not_found():
-    f = rpcserver.HTTP_Status()
+    api = 'the api instance'
+    f = rpcserver.HTTP_Status(api)
     t = rpcserver._not_found_template
     s = StartResponse()
 
@@ -72,7 +73,8 @@ def test_not_found():
 
 
 def test_bad_request():
-    f = rpcserver.HTTP_Status()
+    api = 'the api instance'
+    f = rpcserver.HTTP_Status(api)
     t = rpcserver._bad_request_template
     s = StartResponse()
 
@@ -85,7 +87,8 @@ def test_bad_request():
 
 
 def test_internal_error():
-    f = rpcserver.HTTP_Status()
+    api = 'the api instance'
+    f = rpcserver.HTTP_Status(api)
     t = rpcserver._internal_error_template
     s = StartResponse()
 
@@ -98,7 +101,8 @@ def test_internal_error():
 
 
 def test_unauthorized_error():
-    f = rpcserver.HTTP_Status()
+    api = 'the api instance'
+    f = rpcserver.HTTP_Status(api)
     t = rpcserver._unauthorized_template
     s = StartResponse()
 
@@ -139,7 +143,8 @@ class test_session(object):
                 [environ[k] for k in ('SCRIPT_NAME', 'PATH_INFO')]
             )
 
-        inst = self.klass()
+        api = 'the api instance'
+        inst = self.klass(api)
         inst.mount(app1, '/foo/stuff')
         inst.mount(app2, '/bar')
 
@@ -157,7 +162,8 @@ class test_session(object):
             pass
 
         # Test that mount works:
-        inst = self.klass()
+        api = 'the api instance'
+        inst = self.klass(api)
         inst.mount(app1, 'foo')
         assert inst['foo'] is app1
         assert list(inst) == ['foo']

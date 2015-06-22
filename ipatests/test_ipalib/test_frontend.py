@@ -89,31 +89,32 @@ class test_HasParam(ClassChecker):
         """
         Test the `ipalib.frontend.HasParam._get_param_iterable` method.
         """
+        api = 'the api instance'
         class WithTuple(self.cls):
             takes_stuff = ('one', 'two')
-        o = WithTuple()
+        o = WithTuple(api)
         assert o._get_param_iterable('stuff') is WithTuple.takes_stuff
 
         junk = ('three', 'four')
         class WithCallable(self.cls):
             def takes_stuff(self):
                 return junk
-        o = WithCallable()
+        o = WithCallable(api)
         assert o._get_param_iterable('stuff') is junk
 
         class WithParam(self.cls):
             takes_stuff = parameters.Str('five')
-        o = WithParam()
+        o = WithParam(api)
         assert o._get_param_iterable('stuff') == (WithParam.takes_stuff,)
 
         class WithStr(self.cls):
             takes_stuff = 'six'
-        o = WithStr()
+        o = WithStr(api)
         assert o._get_param_iterable('stuff') == ('six',)
 
         class Wrong(self.cls):
             takes_stuff = ['seven', 'eight']
-        o = Wrong()
+        o = Wrong(api)
         e = raises(TypeError, o._get_param_iterable, 'stuff')
         assert str(e) == '%s.%s must be a tuple, callable, or spec; got %r' % (
             'Wrong', 'takes_stuff', Wrong.takes_stuff
@@ -123,6 +124,7 @@ class test_HasParam(ClassChecker):
         """
         Test the `ipalib.frontend.HasParam._filter_param_by_context` method.
         """
+        api = 'the api instance'
         class Example(self.cls):
             def get_stuff(self):
                 return (
@@ -132,7 +134,7 @@ class test_HasParam(ClassChecker):
                     parameters.Str('four', exclude='server'),
                     parameters.Str('five', exclude=['whatever', 'cli']),
                 )
-        o = Example()
+        o = Example(api)
 
         # Test when env is None:
         params = list(o._filter_param_by_context('stuff'))
@@ -161,7 +163,7 @@ class test_HasParam(ClassChecker):
         # Test with no get_stuff:
         class Missing(self.cls):
             pass
-        o = Missing()
+        o = Missing(api)
         gen = o._filter_param_by_context('stuff')
         e = raises(NotImplementedError, list, gen)
         assert str(e) == 'Missing.get_stuff()'
@@ -169,7 +171,7 @@ class test_HasParam(ClassChecker):
         # Test when get_stuff is not callable:
         class NotCallable(self.cls):
             get_stuff = ('one', 'two')
-        o = NotCallable()
+        o = NotCallable(api)
         gen = o._filter_param_by_context('stuff')
         e = raises(TypeError, list, gen)
         assert str(e) == '%s.%s must be a callable; got %r' % (
@@ -219,10 +221,11 @@ class test_Command(ClassChecker):
         """
         Helper method used to test args and options.
         """
+        api = 'the api instance'
         class example(self.cls):
             takes_args = args
             takes_options = options
-        o = example()
+        o = example(api)
         o.finalize()
         return o
 
@@ -237,7 +240,8 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.get_args` method.
         """
-        assert list(self.cls().get_args()) == []
+        api = 'the api instance'
+        assert list(self.cls(api).get_args()) == []
         args = ('login', 'stuff')
         o = self.get_instance(args=args)
         assert tuple(o.get_args()) == args
@@ -246,7 +250,8 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.get_options` method.
         """
-        options = list(self.cls().get_options())
+        api = 'the api instance'
+        options = list(self.cls(api).get_options())
         assert len(options) == 1
         assert options[0].name == 'version'
         options = ('verbose', 'debug')
@@ -259,8 +264,8 @@ class test_Command(ClassChecker):
         """
         Test the ``ipalib.frontend.Command.args`` instance attribute.
         """
-        assert self.cls().args is None
-        o = self.cls()
+        api = 'the api instance'
+        o = self.cls(api)
         o.finalize()
         assert type(o.args) is plugable.NameSpace
         assert len(o.args) == 0
@@ -308,8 +313,8 @@ class test_Command(ClassChecker):
         """
         Test the ``ipalib.frontend.Command.options`` instance attribute.
         """
-        assert self.cls().options is None
-        o = self.cls()
+        api = 'the api instance'
+        o = self.cls(api)
         o.finalize()
         assert type(o.options) is plugable.NameSpace
         assert len(o.options) == 1
@@ -329,8 +334,8 @@ class test_Command(ClassChecker):
         """
         Test the ``ipalib.frontend.Command.output`` instance attribute.
         """
-        inst = self.cls()
-        assert inst.output is None
+        api = 'the api instance'
+        inst = self.cls(api)
         inst.finalize()
         assert type(inst.output) is plugable.NameSpace
         assert list(inst.output) == ['result']
@@ -340,9 +345,10 @@ class test_Command(ClassChecker):
         """
         Test the ``ipalib.frontend.Command._iter_output`` instance attribute.
         """
+        api = 'the api instance'
         class Example(self.cls):
             pass
-        inst = Example()
+        inst = Example(api)
 
         inst.has_output = tuple()
         assert list(inst._iter_output()) == []
@@ -373,6 +379,8 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.soft_validate` method.
         """
+        class api(object):
+            env = config.Env(context='cli')
         class user_add(frontend.Command):
             takes_args = parameters.Str('uid',
                 normalizer=lambda value: value.lower(),
@@ -381,8 +389,7 @@ class test_Command(ClassChecker):
 
             takes_options = ('givenname', 'sn')
 
-        cmd = user_add()
-        cmd.env = config.Env(context='cli')
+        cmd = user_add(api)
         cmd.finalize()
         assert list(cmd.params) == ['givenname', 'sn', 'uid', 'version']
         ret = cmd.soft_validate({})
@@ -398,11 +405,12 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.convert` method.
         """
+        api = 'the api instance'
         kw = dict(
             option0=u'1.5',
             option1=u'7',
         )
-        o = self.subcls()
+        o = self.subcls(api)
         o.finalize()
         for (key, value) in o.convert(**kw).iteritems():
             assert_equal(unicode(kw[key]), value)
@@ -411,12 +419,13 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.normalize` method.
         """
+        api = 'the api instance'
         kw = dict(
             option0=u'OPTION0',
             option1=u'OPTION1',
         )
         norm = dict((k, v.lower()) for (k, v) in kw.items())
-        sub = self.subcls()
+        sub = self.subcls(api)
         sub.finalize()
         assert sub.normalize(**kw) == norm
 
@@ -444,8 +453,7 @@ class test_Command(ClassChecker):
 
         (api, home) = create_test_api()
         api.finalize()
-        o = my_cmd()
-        o.set_api(api)
+        o = my_cmd(api)
         o.finalize()
         e = o(**kw)  # pylint: disable=not-callable
         assert type(e) is dict
@@ -457,9 +465,10 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.validate` method.
         """
+        class api(object):
+            env = config.Env(context='cli')
 
-        sub = self.subcls()
-        sub.env = config.Env(context='cli')
+        sub = self.subcls(api)
         sub.finalize()
 
         # Check with valid values
@@ -491,7 +500,8 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.execute` method.
         """
-        o = self.cls()
+        api = 'the api instance'
+        o = self.cls(api)
         e = raises(NotImplementedError, o.execute)
         assert str(e) == 'Command.execute()'
 
@@ -568,8 +578,7 @@ class test_Command(ClassChecker):
 
         (api, home) = create_test_api()
         api.finalize()
-        o = my_cmd()
-        o.set_api(api)
+        o = my_cmd(api)
         o.finalize()
         e = o.run(*args, **kw)
         assert type(e) is dict
@@ -608,8 +617,7 @@ class test_Command(ClassChecker):
         # Test in server context:
         (api, home) = create_test_api(in_server=True)
         api.finalize()
-        o = my_cmd()
-        o.set_api(api)
+        o = my_cmd(api)
         assert o.run.im_func is self.cls.run.im_func
         out = o.run(*args, **kw)
         assert ('execute', args, kw) == out
@@ -617,8 +625,7 @@ class test_Command(ClassChecker):
         # Test in non-server context
         (api, home) = create_test_api(in_server=False)
         api.finalize()
-        o = my_cmd()
-        o.set_api(api)
+        o = my_cmd(api)
         assert o.run.im_func is self.cls.run.im_func
         assert ('forward', args, kw) == o.run(*args, **kw)
 
@@ -650,16 +657,14 @@ class test_Command(ClassChecker):
         # Test in server context:
         (api, home) = create_test_api(in_server=True)
         api.finalize()
-        o = my_cmd()
-        o.set_api(api)
+        o = my_cmd(api)
         assert o.run.im_func is self.cls.run.im_func
         assert {'name': 'execute', 'messages': expected} == o.run(*args, **kw)
 
         # Test in non-server context
         (api, home) = create_test_api(in_server=False)
         api.finalize()
-        o = my_cmd()
-        o.set_api(api)
+        o = my_cmd(api)
         assert o.run.im_func is self.cls.run.im_func
         assert {'name': 'forward', 'messages': expected} == o.run(*args, **kw)
 
@@ -667,10 +672,11 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.validate_output` method.
         """
+        api = 'the api instance'
         class Example(self.cls):
             has_output = ('foo', 'bar', 'baz')
 
-        inst = Example()
+        inst = Example(api)
         inst.finalize()
 
         # Test with wrong type:
@@ -705,13 +711,14 @@ class test_Command(ClassChecker):
         """
         Test `ipalib.frontend.Command.validate_output` per-type validation.
         """
+        api = 'the api instance'
 
         class Complex(self.cls):
             has_output = (
                 output.Output('foo', int),
                 output.Output('bar', list),
             )
-        inst = Complex()
+        inst = Complex(api)
         inst.finalize()
 
         wrong = dict(foo=17.9, bar=[18])
@@ -730,6 +737,7 @@ class test_Command(ClassChecker):
         """
         Test `ipalib.frontend.Command.validate_output` nested validation.
         """
+        api = 'the api instance'
 
         class Subclass(output.ListOfEntries):
             pass
@@ -740,7 +748,7 @@ class test_Command(ClassChecker):
                 output.Output('hello', int),
                 Subclass('world'),
             )
-        inst = nested()
+        inst = nested(api)
         inst.finalize()
         okay = dict(foo='bar')
         nope = ('aye', 'bee')
@@ -761,6 +769,7 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.get_output_params` method.
         """
+        api = 'the api instance'
         class example(self.cls):
             has_output_params = (
                 'one',
@@ -775,8 +784,7 @@ class test_Command(ClassChecker):
                 'baz',
             )
 
-        inst = example()
-        assert list(inst.get_output_params()) == ['one', 'two', 'three']
+        inst = example(api)
         inst.finalize()
         assert list(inst.get_output_params()) == [
             'one', 'two', 'three', inst.params.foo, inst.params.baz
@@ -794,7 +802,8 @@ class test_LocalOrRemote(ClassChecker):
         """
         Test the `ipalib.frontend.LocalOrRemote.__init__` method.
         """
-        o = self.cls()
+        api = 'the api instance'
+        o = self.cls(api)
         o.finalize()
         assert list(o.args) == []
         assert list(o.options) == ['server', 'version']
@@ -872,16 +881,6 @@ class test_Object(ClassChecker):
         """
         Test the `ipalib.frontend.Object.__init__` method.
         """
-        o = self.cls()
-        assert o.backend is None
-        assert o.methods is None
-        assert o.params is None
-        assert o.params_minus_pk is None
-
-    def test_set_api(self):
-        """
-        Test the `ipalib.frontend.Object.set_api` method.
-        """
         # Setup for test:
         class DummyAttribute(object):
             def __init__(self, obj_name, attr_name, name=None):
@@ -908,20 +907,22 @@ class test_Object(ClassChecker):
         cnt = 10
         methods_format = 'method_%d'
 
-        _d = dict(
-            Method=plugable.NameSpace(
+        class FakeAPI(object):
+            Method = plugable.NameSpace(
                 get_attributes(cnt, methods_format)
-            ),
-        )
-        api = plugable.MagicDict(_d)
+            )
+            def __contains__(self, key):
+                return hasattr(self, key)
+            def __getitem__(self, key):
+                return getattr(self, key)
+        api = FakeAPI()
         assert len(api.Method) == cnt * 3
 
         class user(self.cls):
             pass
 
         # Actually perform test:
-        o = user()
-        o.set_api(api)
+        o = user(api)
         assert read_only(o, 'api') is api
 
         namespace = o.methods
@@ -938,15 +939,13 @@ class test_Object(ClassChecker):
             assert attr.name == '%s_%s' % ('user', attr_name)
 
         # Test params instance attribute
-        o = self.cls()
-        o.set_api(api)
+        o = self.cls(api)
         ns = o.params
         assert type(ns) is plugable.NameSpace
         assert len(ns) == 0
         class example(self.cls):
             takes_params = ('banana', 'apple')
-        o = example()
-        o.set_api(api)
+        o = example(api)
         ns = o.params
         assert type(ns) is plugable.NameSpace
         assert len(ns) == 2, repr(ns)
@@ -969,8 +968,7 @@ class test_Object(ClassChecker):
                 'one',
                 'two',
             )
-        o = example1()
-        o.set_api(api)
+        o = example1(api)
         assert o.primary_key is None
 
         # Test with 1 primary key:
@@ -981,8 +979,7 @@ class test_Object(ClassChecker):
                 parameters.Str('three', primary_key=True),
                 'four',
             )
-        o = example2()
-        o.set_api(api)
+        o = example2(api)
         pk = o.primary_key
         assert type(pk) is parameters.Str
         assert pk.name == 'three'
@@ -999,8 +996,7 @@ class test_Object(ClassChecker):
                 'three',
                 parameters.Str('four', primary_key=True),
             )
-        o = example3()
-        o.set_api(api)
+        o = example3(api)
         e = raises(ValueError, o.finalize)
         assert str(e) == \
             'example3 (Object) has multiple primary keys: one, two, four'
@@ -1025,12 +1021,13 @@ class test_Object(ClassChecker):
         """
         Test the `ipalib.frontend.Object.get_dn` method.
         """
-        o = self.cls()
+        api = 'the api instance'
+        o = self.cls(api)
         e = raises(NotImplementedError, o.get_dn, 'primary key')
         assert str(e) == 'Object.get_dn()'
         class user(self.cls):
             pass
-        o = user()
+        o = user(api)
         e = raises(NotImplementedError, o.get_dn, 'primary key')
         assert str(e) == 'user.get_dn()'
 
@@ -1040,9 +1037,9 @@ class test_Object(ClassChecker):
         """
         class example(self.cls):
             takes_params = ('one', 'two', 'three', 'four')
-        o = example()
         (api, home) = create_test_api()
-        o.set_api(api)
+        api.finalize()
+        o = example(api)
         p = o.params
         assert tuple(o.params_minus()) == tuple(p())
         assert tuple(o.params_minus([])) == tuple(p())
@@ -1073,28 +1070,16 @@ class test_Attribute(ClassChecker):
         """
         Test the `ipalib.frontend.Attribute.__init__` method.
         """
-        class user_add(self.cls):
-            pass
-        o = user_add()
-        assert read_only(o, 'obj') is None
-        assert read_only(o, 'obj_name') == 'user'
-        assert read_only(o, 'attr_name') == 'add'
-
-    def test_set_api(self):
-        """
-        Test the `ipalib.frontend.Attribute.set_api` method.
-        """
         user_obj = 'The user frontend.Object instance'
         class api(object):
             Object = dict(user=user_obj)
         class user_add(self.cls):
             pass
-        o = user_add()
-        assert read_only(o, 'api') is None
-        assert read_only(o, 'obj') is None
-        o.set_api(api)
+        o = user_add(api)
         assert read_only(o, 'api') is api
         assert read_only(o, 'obj') is user_obj
+        assert read_only(o, 'obj_name') == 'user'
+        assert read_only(o, 'attr_name') == 'add'
 
 
 class test_Method(ClassChecker):
@@ -1133,9 +1118,10 @@ class test_Method(ClassChecker):
         """
         Test the `ipalib.frontend.Method.__init__` method.
         """
+        api = 'the api instance'
         class user_add(self.cls):
             pass
-        o = user_add()
+        o = user_add(api)
         assert o.name == 'user_add'
         assert o.obj_name == 'user'
         assert o.attr_name == 'add'

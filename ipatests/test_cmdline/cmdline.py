@@ -36,7 +36,7 @@ from ipaserver.plugins.ldap2 import ldap2
 ccache = krbV.default_context().default_ccache()
 
 try:
-    conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri, base_dn=api.env.basedn)
+    conn = ldap2(api)
     conn.connect(ccache=ccache)
     conn.disconnect()
     server_available = True

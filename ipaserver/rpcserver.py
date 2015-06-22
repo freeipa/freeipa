@@ -238,8 +238,8 @@ class wsgi_dispatch(Executioner, HTTP_Status):
     handler which is specific to the authentication and RPC mechanism.
     """
 
-    def __init__(self):
-        super(wsgi_dispatch, self).__init__()
+    def __init__(self, api):
+        super(wsgi_dispatch, self).__init__(api)
         self.__apps = {}
 
     def __iter__(self):
@@ -301,14 +301,11 @@ class WSGIExecutioner(Executioner):
 
     _system_commands = {}
 
-    def set_api(self, api):
-        super(WSGIExecutioner, self).set_api(api)
-        if 'wsgi_dispatch' in self.api.Backend:
-            self.api.Backend.wsgi_dispatch.mount(self, self.key)
-
     def _on_finalize(self):
         self.url = self.env.mount_ipa + self.key
         super(WSGIExecutioner, self)._on_finalize()
+        if 'wsgi_dispatch' in self.api.Backend:
+            self.api.Backend.wsgi_dispatch.mount(self, self.key)
 
     def wsgi_execute(self, environ):
         result = None
@@ -746,8 +743,8 @@ class jsonserver_session(jsonserver, KerberosSession):
 
     key = '/session/json'
 
-    def __init__(self):
-        super(jsonserver_session, self).__init__()
+    def __init__(self, api):
+        super(jsonserver_session, self).__init__(api)
         name = '{0}_{1}'.format(self.__class__.__name__, id(self))
         auth_mgr = AuthManagerKerb(name)
         session_mgr.auth_mgr.register(auth_mgr.name, auth_mgr)
@@ -849,9 +846,6 @@ class jsonserver_kerb(jsonserver, KerberosWSGIExecutioner):
 class login_kerberos(Backend, KerberosSession, HTTP_Status):
     key = '/session/login_kerberos'
 
-    def __init__(self):
-        super(login_kerberos, self).__init__()
-
     def _on_finalize(self):
         super(login_kerberos, self)._on_finalize()
         self.api.Backend.wsgi_dispatch.mount(self, self.key)
@@ -872,9 +866,6 @@ class login_password(Backend, KerberosSession, HTTP_Status):
 
     content_type = 'text/plain'
     key = '/session/login_password'
-
-    def __init__(self):
-        super(login_password, self).__init__()
 
     def _on_finalize(self):
         super(login_password, self)._on_finalize()
@@ -998,9 +989,6 @@ class change_password(Backend, HTTP_Status):
     content_type = 'text/plain'
     key = '/session/change_password'
 
-    def __init__(self):
-        super(change_password, self).__init__()
-
     def _on_finalize(self):
         super(change_password, self)._on_finalize()
         self.api.Backend.wsgi_dispatch.mount(self, self.key)
@@ -1051,8 +1039,7 @@ class change_password(Backend, HTTP_Status):
             pw = data['old_password']
             if data.get('otp'):
                 pw = data['old_password'] + data['otp']
-            conn = ldap2(shared_instance=False,
-                         ldap_uri=self.api.env.ldap_uri)
+            conn = ldap2(self.api)
             conn.connect(bind_dn=bind_dn, bind_pw=pw)
         except (NotFound, ACIError):
             result = 'invalid-password'
@@ -1103,9 +1090,6 @@ class sync_token(Backend, HTTP_Status):
             namedtype.NamedType('secondCode', univ.OctetString()),
             namedtype.OptionalNamedType('tokenDN', univ.OctetString())
         )
-
-    def __init__(self):
-        super(sync_token, self).__init__()
 
     def _on_finalize(self):
         super(sync_token, self)._on_finalize()
@@ -1165,7 +1149,7 @@ class sync_token(Backend, HTTP_Status):
         title = 'Token sync rejected'
 
         # Perform the synchronization.
-        conn = ldap2(shared_instance=False, ldap_uri=self.api.env.ldap_uri)
+        conn = ldap2(self.api)
         try:
             conn.connect(bind_dn=bind_dn,
                          bind_pw=data['password'],
@@ -1199,8 +1183,8 @@ class xmlserver_session(xmlserver, KerberosSession):
 
     key = '/session/xml'
 
-    def __init__(self):
-        super(xmlserver_session, self).__init__()
+    def __init__(self, api):
+        super(xmlserver_session, self).__init__(api)
         name = '{0}_{1}'.format(self.__class__.__name__, id(self))
         auth_mgr = AuthManagerKerb(name)
         session_mgr.auth_mgr.register(auth_mgr.name, auth_mgr)

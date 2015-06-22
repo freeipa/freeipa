@@ -44,7 +44,8 @@ def test_exc_wrapper():
             assert kwargs == dict(a=1, b=2)
             raise errors.ExecutionError('failure')
 
-    instance = test_callback()
+    api = 'the api instance'
+    instance = test_callback(api)
 
     # Test with one callback first
 
@@ -96,8 +97,10 @@ def test_callback_registration():
     callbacktest_subclass.register_callback('test', subclass_callback)
 
 
+    api = 'the api instance'
+
     messages = []
-    instance = callbacktest_base()
+    instance = callbacktest_base(api)
     for callback in instance.get_callbacks('test'):
         callback(instance, 42)
     assert messages == [
@@ -106,7 +109,7 @@ def test_callback_registration():
             ('Registered callback from another class', 42)]
 
     messages = []
-    instance = callbacktest_subclass()
+    instance = callbacktest_subclass(api)
     for callback in instance.get_callbacks('test'):
         callback(instance, 42)
     assert messages == [
@@ -134,7 +137,9 @@ def test_exc_callback_registration():
             """Raise an error"""
             raise errors.ExecutionError('failure')
 
-    base_instance = callbacktest_base()
+    api = 'the api instance'
+
+    base_instance = callbacktest_base(api)
 
     class callbacktest_subclass(callbacktest_base):
         pass
@@ -145,7 +150,7 @@ def test_exc_callback_registration():
         messages.append('Subclass registered callback')
         raise exc
 
-    subclass_instance = callbacktest_subclass()
+    subclass_instance = callbacktest_subclass(api)
 
     # Make sure exception in base class is only handled by the base class
     base_instance.test_fail()

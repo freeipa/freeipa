@@ -43,8 +43,8 @@ class Connectible(Backend):
     `request.destroy_context()` can properly close all open connections.
     """
 
-    def __init__(self, shared_instance=False):
-        Backend.__init__(self)
+    def __init__(self, api, shared_instance=False):
+        Backend.__init__(self, api)
         if shared_instance:
             self.id = self.name
         else:

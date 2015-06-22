@@ -224,8 +224,9 @@ class Plugin(ReadOnly):
 
     label = None
 
-    def __init__(self):
-        self.__api = None
+    def __init__(self, api):
+        assert api is not None
+        self.__api = api
         self.__finalize_called = False
         self.__finalized = False
         self.__finalize_lock = threading.RLock()
@@ -254,14 +255,27 @@ class Plugin(ReadOnly):
                 )
             )
 
-    def __get_api(self):
+    @property
+    def api(self):
         """
-        Return `API` instance passed to `set_api()`.
-
-        If `set_api()` has not yet been called, None is returned.
+        Return `API` instance passed to `__init__()`.
         """
         return self.__api
-    api = property(__get_api)
+
+    # FIXME: for backward compatibility only
+    @property
+    def env(self):
+        return self.__api.env
+
+    # FIXME: for backward compatibility only
+    @property
+    def Backend(self):
+        return self.__api.Backend
+
+    # FIXME: for backward compatibility only
+    @property
+    def Command(self):
+        return self.__api.Command
 
     def finalize(self):
         """
@@ -335,23 +349,6 @@ class Plugin(ReadOnly):
                 raise AttributeError(
                     "attribute '%s' of plugin '%s' was not set in finalize()" % (self.name, obj.name)
                 )
-
-    def set_api(self, api):
-        """
-        Set reference to `API` instance.
-        """
-        assert self.__api is None, 'set_api() can only be called once'
-        assert api is not None, 'set_api() argument cannot be None'
-        self.__api = api
-        if not isinstance(api, API):
-            return
-        for name in api:
-            assert not hasattr(self, name)
-            setattr(self, name, api[name])
-        for name in ('env', 'context'):
-            if hasattr(api, name):
-                assert not hasattr(self, name)
-                setattr(self, name, getattr(api, name))
 
     def call(self, executable, *args):
         """
@@ -746,7 +743,7 @@ class API(DictProxy):
                 try:
                     instance = plugins[klass]
                 except KeyError:
-                    instance = plugins[klass] = klass()
+                    instance = plugins[klass] = klass(self)
                 members.append(instance)
                 plugin_info.setdefault(
                     '%s.%s' % (klass.__module__, klass.__name__),
@@ -759,9 +756,6 @@ class API(DictProxy):
                 )
             self.__d[name] = namespace
             object.__setattr__(self, name, namespace)
-
-        for instance in plugins.itervalues():
-            instance.set_api(self)
 
         for klass, instance in plugins.iteritems():
             if not production_mode:

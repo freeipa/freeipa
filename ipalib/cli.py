@@ -715,7 +715,7 @@ class help(frontend.Local):
         self._builtins = []
 
         # build help topics
-        for c in self.Command():
+        for c in self.api.Command():
             if c.NO_CLI:
                 continue
 

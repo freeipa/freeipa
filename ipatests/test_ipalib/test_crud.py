@@ -202,10 +202,11 @@ class test_CrudBackend(ClassChecker):
         return ldap
 
     def check_method(self, name, *args):
-        o = self.cls()
+        api = 'the api instance'
+        o = self.cls(api)
         e = raises(NotImplementedError, getattr(o, name), *args)
         assert str(e) == 'CrudBackend.%s()' % name
-        sub = self.subcls()
+        sub = self.subcls(api)
         e = raises(NotImplementedError, getattr(sub, name), *args)
         assert str(e) == 'ldap.%s()' % name
 

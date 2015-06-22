@@ -1588,7 +1588,7 @@ def update_people_entry(dercert):
     while attempts < 10:
         conn = None
         try:
-            conn = ldap2.ldap2(shared_instance=False, ldap_uri=dogtag_uri)
+            conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
             conn.connect(autobind=True)
 
             db_filter = conn.make_filter(
@@ -1643,7 +1643,7 @@ def ensure_ldap_profiles_container():
     server_id = installutils.realm_to_serverid(api.env.realm)
     dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
 
-    conn = ldap2.ldap2(shared_instance=False, ldap_uri=dogtag_uri)
+    conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
     if not conn.isconnected():
         conn.connect(autobind=True)
 
@@ -1675,7 +1675,7 @@ def configure_profiles_acl():
     )
     modlist = [(ldap.MOD_ADD, 'resourceACLS', [rule])]
 
-    conn = ldap2.ldap2(shared_instance=False, ldap_uri=dogtag_uri)
+    conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
     if not conn.isconnected():
         conn.connect(autobind=True)
     rules = conn.get_entry(dn).get('resourceACLS', [])
@@ -1696,7 +1696,7 @@ def import_included_profiles():
 
     server_id = installutils.realm_to_serverid(api.env.realm)
     dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
-    conn = ldap2.ldap2(shared_instance=False, ldap_uri=dogtag_uri)
+    conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
     if not conn.isconnected():
         conn.connect(autobind=True)
 

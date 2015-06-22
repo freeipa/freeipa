@@ -104,8 +104,8 @@ class Advice(Plugin):
     require_root = False
     description = ''
 
-    def __init__(self):
-        super(Advice, self).__init__()
+    def __init__(self, api):
+        super(Advice, self).__init__(api)
         self.log = _AdviceOutput()
 
     def set_options(self, options):

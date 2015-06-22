@@ -1297,7 +1297,7 @@ class test_netgroup(Declarative):
 #        """
 #        # Do an LDAP query to the compat area and verify that the entry
 #        # is correct
-#        conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri, base_dn=api.env.basedn)
+#        conn = ldap2(api)
 #        conn.connect(ccache=ccache)
 #        try:
 #            entries = conn.find_entries('cn=%s' % self.ng_cn,

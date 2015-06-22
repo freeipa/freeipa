@@ -400,7 +400,7 @@ def _get_nameservers_ldap(conn):
 
 
 def get_nameservers():
-        ldap = ldap2(shared_instance=False)
+        ldap = ldap2(api)
         ldap.connect(ccache=krbV.default_context().default_ccache())
         nameservers = [normalize_zone(x) for x in _get_nameservers_ldap(ldap)]
         return nameservers

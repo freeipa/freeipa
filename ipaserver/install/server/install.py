@@ -240,8 +240,7 @@ def set_subject_in_config(realm_name, dm_password, suffix, subject_base):
             installutils.realm_to_serverid(realm_name)
         )
         try:
-            conn = ldap2(shared_instance=False, ldap_uri=ldapuri,
-                         base_dn=suffix)
+            conn = ldap2(api, ldap_uri=ldapuri)
             conn.connect(bind_dn=DN(('cn', 'directory manager')),
                          bind_pw=dm_password)
         except errors.ExecutionError, e:

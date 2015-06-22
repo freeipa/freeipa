@@ -1179,7 +1179,7 @@ class BindInstance(service.Service):
         print "Global DNS configuration in LDAP server is not empty"
         print "The following configuration options override local settings in named.conf:"
         print ""
-        textui = ipalib.cli.textui()
+        textui = ipalib.cli.textui(api)
         api.Command.dnsconfig_show.output_for_cli(textui, result, None, reverse=False)
 
     def uninstall(self):

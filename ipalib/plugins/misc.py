@@ -133,11 +133,6 @@ class plugins(LocalOrRemote):
     )
 
     def execute(self, **options):
-        plugins = sorted(self.api.plugins, key=lambda o: o.plugin)
         return dict(
-            result=dict(
-                (p.plugin, p.bases) for p in plugins
-            ),
-            count=len(plugins),
+            result=dict(self.api.plugins),
         )
-

@@ -507,7 +507,7 @@ class OTPTokenImport(admintool.AdminTool):
         api.bootstrap(in_server=True)
         api.finalize()
 
-        conn = ldap2()
+        conn = ldap2(api)
         try:
             ccache = krbV.default_context().default_ccache()
             conn.connect(ccache=ccache)

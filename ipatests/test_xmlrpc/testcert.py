@@ -74,7 +74,7 @@ def makecert(reqdir, subject, principal):
     Generate a certificate that can be used during unit testing.
     """
 
-    ra = rabase.rabase()
+    ra = rabase.rabase(api)
     if (not os.path.exists(ra.sec_dir) and
             api.env.xmlrpc_uri == 'http://localhost:8888/ipa/xml'):
         raise AssertionError('The self-signed CA is not configured, '

@@ -637,7 +637,7 @@ class ReplicaPrepare(admintool.AdminTool):
             os.remove(agent_name)
 
     def update_pki_admin_password(self):
-        ldap = ldap2(shared_instance=False)
+        ldap = ldap2(api)
         ldap.connect(
             bind_dn=DN(('cn', 'directory manager')),
             bind_pw=self.dirman_password

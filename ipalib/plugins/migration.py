@@ -879,7 +879,7 @@ can use their Kerberos accounts.''')
             return dict(result={}, failed={}, enabled=False, compat=True)
 
         # connect to DS
-        ds_ldap = ldap2(shared_instance=False, ldap_uri=ldapuri, base_dn='')
+        ds_ldap = ldap2(self.api, ldap_uri=ldapuri)
 
         cacert = None
         if options.get('cacertfile') is not None:

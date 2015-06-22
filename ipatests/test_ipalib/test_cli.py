@@ -32,7 +32,8 @@ class test_textui(ClassChecker):
         """
         Test the `ipalib.cli.textui.max_col_width` method.
         """
-        o = self.cls()
+        api = 'the api instance'
+        o = self.cls(api)
         e = raises(TypeError, o.max_col_width, 'hello')
         assert str(e) == 'rows: need %r or %r; got %r' % (list, tuple, 'hello')
         rows = [

@@ -140,7 +140,7 @@ def _main():
 
             conn = None
             try:
-                conn = ldap2(shared_instance=False, ldap_uri=api.env.ldap_uri)
+                conn = ldap2(api)
                 conn.connect(ccache=ccache_filename)
             except Exception, e:
                 syslog.syslog(

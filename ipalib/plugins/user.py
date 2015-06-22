@@ -945,9 +945,7 @@ class user_status(LDAPQuery):
             if host == api.env.host:
                 other_ldap = self.obj.backend
             else:
-                other_ldap = ldap2(shared_instance=False,
-                                   ldap_uri='ldap://%s' % host,
-                                   base_dn=self.api.env.basedn)
+                other_ldap = ldap2(self.api, ldap_uri='ldap://%s' % host)
                 try:
                     other_ldap.connect(ccache=os.environ['KRB5CCNAME'])
                 except Exception, e:
