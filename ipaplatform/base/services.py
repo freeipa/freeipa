@@ -26,11 +26,11 @@ interacting with system services.
 import os
 import json
 import time
+import collections
 
 import ipalib
 from ipapython import ipautil
 from ipaplatform.paths import paths
-from ipalib.plugable import MagicDict
 
 # Canonical names of services as IPA wants to see them. As we need to have
 # *some* naming, set them as in Red Hat distributions. Actual implementation
@@ -57,13 +57,34 @@ wellknownports = {
 SERVICE_POLL_INTERVAL = 0.1 # seconds
 
 
-class KnownServices(MagicDict):
+class KnownServices(collections.Mapping):
     """
     KnownServices is an abstract class factory that should give out instances
     of well-known platform services. Actual implementation must create these
     instances as its own attributes on first access (or instance creation)
     and cache them.
     """
+
+    def __init__(self, d):
+        self.__d = d
+
+    def __getitem__(self, key):
+        return self.__d[key]
+
+    def __iter__(self):
+        return iter(self.__d)
+
+    def __len__(self):
+        return len(self.__d)
+
+    def __call__(self):
+        return self.__d.itervalues()
+
+    def __getattr__(self, name):
+        try:
+            return self.__d[name]
+        except KeyError:
+            raise AttributeError(name)
 
 
 class PlatformService(object):
