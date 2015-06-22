@@ -221,7 +221,10 @@ class test_Command(ClassChecker):
         """
         Helper method used to test args and options.
         """
-        api = 'the api instance'
+        class api(object):
+            @staticmethod
+            def is_production_mode():
+                return False
         class example(self.cls):
             takes_args = args
             takes_options = options
@@ -264,7 +267,10 @@ class test_Command(ClassChecker):
         """
         Test the ``ipalib.frontend.Command.args`` instance attribute.
         """
-        api = 'the api instance'
+        class api(object):
+            @staticmethod
+            def is_production_mode():
+                return False
         o = self.cls(api)
         o.finalize()
         assert type(o.args) is plugable.NameSpace
@@ -313,7 +319,10 @@ class test_Command(ClassChecker):
         """
         Test the ``ipalib.frontend.Command.options`` instance attribute.
         """
-        api = 'the api instance'
+        class api(object):
+            @staticmethod
+            def is_production_mode():
+                return False
         o = self.cls(api)
         o.finalize()
         assert type(o.options) is plugable.NameSpace
@@ -334,7 +343,10 @@ class test_Command(ClassChecker):
         """
         Test the ``ipalib.frontend.Command.output`` instance attribute.
         """
-        api = 'the api instance'
+        class api(object):
+            @staticmethod
+            def is_production_mode():
+                return False
         inst = self.cls(api)
         inst.finalize()
         assert type(inst.output) is plugable.NameSpace
@@ -381,6 +393,9 @@ class test_Command(ClassChecker):
         """
         class api(object):
             env = config.Env(context='cli')
+            @staticmethod
+            def is_production_mode():
+                return False
         class user_add(frontend.Command):
             takes_args = parameters.Str('uid',
                 normalizer=lambda value: value.lower(),
@@ -405,7 +420,10 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.convert` method.
         """
-        api = 'the api instance'
+        class api(object):
+            @staticmethod
+            def is_production_mode():
+                return False
         kw = dict(
             option0=u'1.5',
             option1=u'7',
@@ -419,7 +437,10 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.normalize` method.
         """
-        api = 'the api instance'
+        class api(object):
+            @staticmethod
+            def is_production_mode():
+                return False
         kw = dict(
             option0=u'OPTION0',
             option1=u'OPTION1',
@@ -467,6 +488,9 @@ class test_Command(ClassChecker):
         """
         class api(object):
             env = config.Env(context='cli')
+            @staticmethod
+            def is_production_mode():
+                return False
 
         sub = self.subcls(api)
         sub.finalize()
@@ -672,7 +696,10 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.validate_output` method.
         """
-        api = 'the api instance'
+        class api(object):
+            @staticmethod
+            def is_production_mode():
+                return False
         class Example(self.cls):
             has_output = ('foo', 'bar', 'baz')
 
@@ -711,7 +738,10 @@ class test_Command(ClassChecker):
         """
         Test `ipalib.frontend.Command.validate_output` per-type validation.
         """
-        api = 'the api instance'
+        class api(object):
+            @staticmethod
+            def is_production_mode():
+                return False
 
         class Complex(self.cls):
             has_output = (
@@ -737,7 +767,10 @@ class test_Command(ClassChecker):
         """
         Test `ipalib.frontend.Command.validate_output` nested validation.
         """
-        api = 'the api instance'
+        class api(object):
+            @staticmethod
+            def is_production_mode():
+                return False
 
         class Subclass(output.ListOfEntries):
             pass
@@ -769,7 +802,10 @@ class test_Command(ClassChecker):
         """
         Test the `ipalib.frontend.Command.get_output_params` method.
         """
-        api = 'the api instance'
+        class api(object):
+            @staticmethod
+            def is_production_mode():
+                return False
         class example(self.cls):
             has_output_params = (
                 'one',
@@ -802,7 +838,10 @@ class test_LocalOrRemote(ClassChecker):
         """
         Test the `ipalib.frontend.LocalOrRemote.__init__` method.
         """
-        api = 'the api instance'
+        class api(object):
+            @staticmethod
+            def is_production_mode():
+                return False
         o = self.cls(api)
         o.finalize()
         assert list(o.args) == []
@@ -915,6 +954,8 @@ class test_Object(ClassChecker):
                 return hasattr(self, key)
             def __getitem__(self, key):
                 return getattr(self, key)
+            def is_production_mode(self):
+                return False
         api = FakeAPI()
         assert len(api.Method) == cnt * 3
 
@@ -1073,6 +1114,9 @@ class test_Attribute(ClassChecker):
         user_obj = 'The user frontend.Object instance'
         class api(object):
             Object = dict(user=user_obj)
+            @staticmethod
+            def is_production_mode():
+                return False
         class user_add(self.cls):
             pass
         o = user_add(api)

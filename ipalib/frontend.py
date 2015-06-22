@@ -27,7 +27,7 @@ from distutils import version
 from ipapython.version import API_VERSION
 from ipapython.ipa_log_manager import root_logger
 from base import NameSpace
-from plugable import Plugin, is_production_mode
+from plugable import Plugin
 from parameters import create_param, Param, Str, Flag, Password
 from output import Output, Entry, ListOfEntries
 from text import _
@@ -359,7 +359,7 @@ class HasParam(Plugin):
             self._filter_param_by_context(name, env),
             sort=False
         )
-        if not is_production_mode(self):
+        if not self.api.is_production_mode():
             check = getattr(self, 'check_' + name, None)
             if callable(check):
                 check(namespace)

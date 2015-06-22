@@ -49,17 +49,6 @@ from ipapython.version import VERSION, API_VERSION
 # FIXME: Updated constants.TYPE_ERROR to use this clearer format from wehjit:
 TYPE_ERROR = '%s: need a %r; got a %r: %r'
 
-def is_production_mode(obj):
-    """
-    If the object has self.env.mode defined and that mode is
-    production return True, otherwise return False.
-    """
-    if getattr(obj, 'env', None) is None:
-        return False
-    if getattr(obj.env, 'mode', None) is None:
-        return False
-    return obj.env.mode == 'production'
-
 
 # FIXME: This function has no unit test
 def find_modules_in_dir(src_dir):
@@ -184,7 +173,7 @@ class Plugin(ReadOnly):
             self.__finalize_called = True
             self._on_finalize()
             self.__finalized = True
-            if not is_production_mode(self):
+            if not self.__api.is_production_mode():
                 lock(self)
 
     def _on_finalize(self):
@@ -367,6 +356,13 @@ class API(ReadOnly):
                 yield getattr(self, name)
             except AttributeError:
                 raise KeyError(name)
+
+    def is_production_mode(self):
+        """
+        If the object has self.env.mode defined and that mode is
+        production return True, otherwise return False.
+        """
+        return getattr(self.env, 'mode', None) == 'production'
 
     def __doing(self, name):
         if name in self.__done:
@@ -664,7 +660,7 @@ class API(ReadOnly):
         self.__doing('finalize')
         self.__do_if_not_done('load_plugins')
 
-        production_mode = is_production_mode(self)
+        production_mode = self.is_production_mode()
         plugins = {}
         plugin_info = {}
 

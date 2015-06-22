@@ -88,7 +88,10 @@ class test_Plugin(ClassChecker):
         """
         Test the `ipalib.plugable.Plugin.finalize` method.
         """
-        api = 'the api instance'
+        class api(object):
+            @staticmethod
+            def is_production_mode():
+                return False
         o = self.cls(api)
         assert not o.__islocked__()
         o.finalize()
