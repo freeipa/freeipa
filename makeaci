@@ -95,10 +95,8 @@ def main(options):
         basedn=DN('dc=ipa,dc=example'),
         realm='IPA.EXAMPLE',
     )
-    from ipaserver.plugins import ldap2
-    from ipaserver.install.plugins.update_managed_permissions import (
-        update_managed_permissions)
-    from ipalib.plugins.permission import permission
+    api.import_plugins('ipaserver.plugins.ldap2')
+    api.import_plugins('ipaserver.install.plugins.update_managed_permissions')
     api.finalize()
 
     output_lines = list(generate_aci_lines(api))

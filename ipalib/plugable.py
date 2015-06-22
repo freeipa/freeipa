@@ -612,8 +612,6 @@ class API(DictProxy):
             return
         for module in self.modules:
             self.import_plugins(module)
-        for klass, kwargs in self.register.iteritems():
-            self.add_plugin(klass, **kwargs)
 
     # FIXME: This method has no unit test
     def import_plugins(self, module):
@@ -651,7 +649,7 @@ class API(DictProxy):
         for name in modules:
             self.log.debug("importing plugin module %s", name)
             try:
-                importlib.import_module(name)
+                module = importlib.import_module(name)
             except errors.SkipPluginModule, e:
                 self.log.debug("skipping plugin module %s: %s", name, e.reason)
             except StandardError, e:
@@ -660,6 +658,23 @@ class API(DictProxy):
                     self.log.error("could not load plugin module %s\n%s", name,
                                    traceback.format_exc())
                 raise
+            else:
+                self.add_module(module)
+
+    def add_module(self, module):
+        """
+        Add plugins from the ``module``.
+
+        :param module: A module from which to add plugins.
+        """
+        for name in dir(module):
+            klass = getattr(module, name)
+            if not inspect.isclass(klass):
+                continue
+            if klass not in self.register:
+                continue
+            kwargs = self.register[klass]
+            self.add_plugin(klass, **kwargs)
 
     def add_plugin(self, klass, override=False):
         """
@@ -678,6 +693,9 @@ class API(DictProxy):
                 continue
 
             found = True
+
+            if sub_d.get(klass.__name__) is klass:
+                continue
 
             # Check override:
             if klass.__name__ in sub_d:

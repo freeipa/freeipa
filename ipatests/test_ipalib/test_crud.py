@@ -47,8 +47,8 @@ class CrudChecker(ClassChecker):
         class user_verb(self.cls):
             takes_args = args
             takes_options = options
-        api.register(user)
-        api.register(user_verb)
+        api.add_plugin(user)
+        api.add_plugin(user_verb)
         api.finalize()
         return api
 

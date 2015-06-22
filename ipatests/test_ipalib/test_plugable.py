@@ -384,7 +384,7 @@ class test_API(ClassChecker):
         api = plugable.API([base0, base1], [])
         api.env.mode = 'unit_test'
         api.env.in_tree = True
-        r = api.register
+        r = api.add_plugin
 
         class base0_plugin0(base0):
             pass

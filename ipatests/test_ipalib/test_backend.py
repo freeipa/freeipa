@@ -186,7 +186,7 @@ class test_Executioner(ClassChecker):
             def execute(self, *args, **options):
                 assert type(args[1]) is tuple
                 return dict(result=args + (options,))
-        api.register(echo)
+        api.add_plugin(echo)
 
         class good(Command):
             def execute(self, **options):
@@ -194,12 +194,12 @@ class test_Executioner(ClassChecker):
                     name='nurse',
                     error=u'Not naughty!',
                 )
-        api.register(good)
+        api.add_plugin(good)
 
         class bad(Command):
             def execute(self, **options):
                 raise ValueError('This is private.')
-        api.register(bad)
+        api.add_plugin(bad)
 
         class with_name(Command):
             """
@@ -208,7 +208,7 @@ class test_Executioner(ClassChecker):
             takes_options = 'name'
             def execute(self, **options):
                 return dict(result=options['name'].upper())
-        api.register(with_name)
+        api.add_plugin(with_name)
 
         api.finalize()
         o = self.cls()

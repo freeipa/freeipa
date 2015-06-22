@@ -817,7 +817,7 @@ class test_LocalOrRemote(ClassChecker):
 
         # Test when in_server=False:
         (api, home) = create_test_api(in_server=False)
-        api.register(example)
+        api.add_plugin(example)
         api.finalize()
         cmd = api.Command.example
         assert cmd(version=u'2.47') == dict(
@@ -835,7 +835,7 @@ class test_LocalOrRemote(ClassChecker):
 
         # Test when in_server=True (should always call execute):
         (api, home) = create_test_api(in_server=True)
-        api.register(example)
+        api.add_plugin(example)
         api.finalize()
         cmd = api.Command.example
         assert cmd(version=u'2.47') == dict(
@@ -1012,10 +1012,10 @@ class test_Object(ClassChecker):
         (api, home) = create_test_api()
         class ldap(backend.Backend):
             whatever = 'It worked!'
-        api.register(ldap)
+        api.add_plugin(ldap)
         class user(frontend.Object):
             backend_name = 'ldap'
-        api.register(user)
+        api.add_plugin(user)
         api.finalize()
         b = api.Object.user.backend
         assert isinstance(b, ldap)
@@ -1118,8 +1118,8 @@ class test_Method(ClassChecker):
         class user_verb(self.cls):
             takes_args = args
             takes_options = options
-        api.register(user)
-        api.register(user_verb)
+        api.add_plugin(user)
+        api.add_plugin(user_verb)
         api.finalize()
         return api
 

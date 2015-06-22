@@ -936,7 +936,7 @@ api = create_api(mode=None)
 
 if os.environ.get('IPA_UNIT_TEST_MODE', None) == 'cli_test':
     from cli import cli_plugins
-    for klass in cli_plugins:
-        api.register(klass)
     api.bootstrap(context='cli', in_server=False, in_tree=True)
+    for klass in cli_plugins:
+        api.add_plugin(klass)
     api.finalize()

@@ -505,9 +505,9 @@ class PluginTester(object):
         :param kw: Additional \**kw args to pass to `create_test_api`.
         """
         (api, home) = create_test_api(**kw)
-        api.register(self.plugin)
+        api.add_plugin(self.plugin)
         for p in plugins:
-            api.register(p)
+            api.add_plugin(p)
         return (api, home)
 
     def finalize(self, *plugins, **kw):

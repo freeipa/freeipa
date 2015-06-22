@@ -110,10 +110,10 @@ class test_ldap(object):
         # we need for the test.
         myapi = create_api(mode=None)
         myapi.bootstrap(context='cli', in_server=True, in_tree=True)
-        myapi.register(ldap2)
-        myapi.register(host)
-        myapi.register(service)
-        myapi.register(service_show)
+        myapi.add_plugin(ldap2)
+        myapi.add_plugin(host)
+        myapi.add_plugin(service)
+        myapi.add_plugin(service_show)
         myapi.finalize()
 
         pwfile = api.env.dot_ipa + os.sep + ".dmpw"

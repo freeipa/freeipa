@@ -1333,8 +1333,7 @@ def run(api):
     try:
         (options, argv) = api.bootstrap_with_global_options(context='cli')
         for klass in cli_plugins:
-            api.register(klass)
-        api.load_plugins()
+            api.add_plugin(klass)
         api.finalize()
         if not 'config_loaded' in api.env and not 'help' in argv:
             raise NotConfiguredError()
