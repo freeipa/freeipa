@@ -2367,3 +2367,117 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
 
     def interactive_prompt_callback(self, kw):
         return
+
+
+class LDAPModAttribute(LDAPQuery):
+
+    attribute = None
+
+    has_output = output.standard_entry
+
+    def get_options(self):
+        for option in super(LDAPModAttribute, self).get_options():
+            yield option
+
+        option = self.obj.params[self.attribute]
+        attribute = 'virtual_attribute' not in option.flags
+        yield option.clone(attribute=attribute, alwaysask=True)
+
+    def _update_attrs(self, update, entry_attrs):
+        raise NotImplementedError("%s.update_attrs()", self.__class__.__name__)
+
+    def execute(self, *keys, **options):
+        ldap = self.obj.backend
+
+        dn = self.obj.get_dn(*keys, **options)
+        entry_attrs = ldap.make_entry(dn, self.args_options_2_entry(**options))
+
+        if options.get('all', False):
+            attrs_list = ['*', self.obj.primary_key.name]
+        else:
+            attrs_list = {self.obj.primary_key.name}
+            attrs_list.update(entry_attrs.keys())
+            attrs_list = list(attrs_list)
+
+        for callback in self.get_callbacks('pre'):
+            entry_attrs.dn = callback(
+                self, ldap, entry_attrs.dn, entry_attrs, attrs_list,
+                *keys, **options)
+
+        try:
+            update = self._exc_wrapper(keys, options, ldap.get_entry)(
+                entry_attrs.dn, entry_attrs.keys())
+            self._update_attrs(update, entry_attrs)
+
+            self._exc_wrapper(keys, options, ldap.update_entry)(update)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
+        try:
+            entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(
+                entry_attrs.dn, attrs_list)
+        except errors.NotFound:
+            raise errors.MidairCollision(
+                format=_('the entry was deleted while being modified')
+            )
+
+        for callback in self.get_callbacks('post'):
+            entry_attrs.dn = callback(
+                self, ldap, entry_attrs.dn, entry_attrs, *keys, **options)
+
+        entry_attrs = entry_to_dict(entry_attrs, **options)
+
+        if self.obj.primary_key:
+            pkey = keys[-1]
+        else:
+            pkey = None
+
+        return dict(result=entry_attrs, value=pkey_to_value(pkey, options))
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                     **options):
+        assert isinstance(dn, DN)
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        return dn
+
+    def exc_callback(self, keys, options, exc, call_func, *call_args,
+                     **call_kwargs):
+        raise exc
+
+    def interactive_prompt_callback(self, kw):
+        return
+
+
+class LDAPAddAttribute(LDAPModAttribute):
+    msg_summary = _('added attribute value to entry %(value)')
+
+    def _update_attrs(self, update, entry_attrs):
+        for name, value in entry_attrs.iteritems():
+            old_value = set(update.get(name, []))
+            value_to_add = set(value)
+
+            if not old_value.isdisjoint(value_to_add):
+                raise errors.ExecutionError(
+                    message=_('\'%s\' already contains one or more values'
+                              % name)
+                )
+
+            update[name] = list(old_value | value_to_add)
+
+
+class LDAPRemoveAttribute(LDAPModAttribute):
+    msg_summary = _('removed attribute values from entry %(value)')
+
+    def _update_attrs(self, update, entry_attrs):
+        for name, value in entry_attrs.iteritems():
+            old_value = set(update.get(name, []))
+            value_to_remove = set(value)
+
+            if not value_to_remove.issubset(old_value):
+                raise errors.AttrValueNotFound(
+                    attr=name, value=_("one or more values to remove"))
+
+            update[name] = list(old_value - value_to_remove)
