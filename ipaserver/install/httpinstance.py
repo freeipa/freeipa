@@ -33,14 +33,15 @@ import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import dogtag
+from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 import ipapython.errors
 from ipaserver.install import sysupgrade
 from ipalib import api
+from ipalib import errors
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 from ipaplatform import services
-
 
 SELINUX_BOOLEAN_SETTINGS = dict(
     httpd_can_network_connect='on',
@@ -136,6 +137,9 @@ class HTTPInstance(service.Service):
         self.step("creating a keytab for httpd", self.__create_http_keytab)
         self.step("clean up any existing httpd ccache", self.remove_httpd_ccache)
         self.step("configuring SELinux for httpd", self.configure_selinux_for_httpd)
+        if not self.is_kdcproxy_configured():
+            self.step("create KDC proxy config", self.create_kdcproxy_conf)
+            self.step("enable KDC proxy", self.enable_kdcproxy)
         self.step("restarting httpd", self.__start)
         self.step("configuring httpd to start on boot", self.__enable)
 
@@ -381,6 +385,63 @@ class HTTPInstance(service.Service):
         ca_db = certs.CertDB(self.realm)
         ca_db.publish_ca_cert(paths.CA_CRT)
 
+    def is_kdcproxy_configured(self):
+        """Check if KDC proxy has already been configured in the past"""
+        return os.path.isfile(paths.HTTPD_IPA_KDCPROXY_CONF)
+
+    def enable_kdcproxy(self):
+        """Add ipaConfigString=kdcProxyEnabled to cn=KDC"""
+        entry_name = DN(('cn', 'KDC'), ('cn', self.fqdn), ('cn', 'masters'),
+                        ('cn', 'ipa'), ('cn', 'etc'), self.suffix)
+        attr_name = 'kdcProxyEnabled'
+
+        try:
+            entry = self.admin_conn.get_entry(entry_name, ['ipaConfigString'])
+        except errors.NotFound:
+            pass
+        else:
+            if any(attr_name.lower() == val.lower()
+                   for val in entry.get('ipaConfigString', [])):
+                root_logger.debug("service KDCPROXY already enabled")
+                return
+
+            entry.setdefault('ipaConfigString', []).append(attr_name)
+            try:
+                self.admin_conn.update_entry(entry)
+            except errors.EmptyModlist:
+                root_logger.debug("service KDCPROXY already enabled")
+                return
+            except:
+                root_logger.debug("failed to enable service KDCPROXY")
+                raise
+
+            root_logger.debug("service KDCPROXY enabled")
+            return
+
+        entry = self.admin_conn.make_entry(
+            entry_name,
+            objectclass=["nsContainer", "ipaConfigObject"],
+            cn=['KDC'],
+            ipaconfigstring=[attr_name]
+        )
+
+        try:
+            self.admin_conn.add_entry(entry)
+        except errors.DuplicateEntry:
+            root_logger.debug("failed to add service KDCPROXY entry")
+            raise
+
+    def create_kdcproxy_conf(self):
+        """Create ipa-kdc-proxy.conf in /etc/ipa/kdcproxy"""
+        target_fname = paths.HTTPD_IPA_KDCPROXY_CONF
+        sub_dict = dict(KDCPROXY_CONFIG=paths.KDCPROXY_CONFIG)
+        http_txt = ipautil.template_file(
+            ipautil.SHARE_DIR + "ipa-kdc-proxy.conf.template", sub_dict)
+        self.fstore.backup_file(target_fname)
+        with open(target_fname, 'w') as f:
+            f.write(http_txt)
+        os.chmod(target_fname, 0644)
+
     def uninstall(self):
         if self.is_configured():
             self.print_msg("Unconfiguring web server")
@@ -420,6 +481,8 @@ class HTTPInstance(service.Service):
         installutils.remove_file(paths.HTTPD_IPA_REWRITE_CONF)
         installutils.remove_file(paths.HTTPD_IPA_CONF)
         installutils.remove_file(paths.HTTPD_IPA_PKI_PROXY_CONF)
+        installutils.remove_file(paths.HTTPD_IPA_KDCPROXY_CONF)
+        installutils.remove_file(paths.HTTPD_IPA_KDCPROXY_CONF_SYMLINK)
 
         # Restore SELinux boolean states
         boolean_states = {name: self.restore_state(name)

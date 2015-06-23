@@ -1361,6 +1361,11 @@ def upgrade_configuration():
     http.change_mod_nss_port_from_http()
     http.configure_certmonger_renewal_guard()
 
+    if not http.is_kdcproxy_configured():
+        root_logger.info('[Enabling KDC Proxy]')
+        http.create_kdcproxy_conf()
+        http.enable_kdcproxy()
+
     http.stop()
     update_mod_nss_protocol(http)
     fix_trust_flags()

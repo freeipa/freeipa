@@ -35,6 +35,11 @@ EXTRA_DIST =			\
 	$(sbin_SCRIPTS)		\
 	$(NULL)
 
+appdir = $(libexecdir)/ipa/
+app_SCRIPTS =			\
+	ipa-httpd-kdcproxy	\
+	$(NULL)
+
 MAINTAINERCLEANFILES =		\
 	*~			\
 	Makefile.in

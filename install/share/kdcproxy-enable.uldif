@@ -1,0 +1,6 @@
+# Enable MS-KKDCP protocol for the current host
+dn: cn=KDC,cn=$FQDN,cn=masters,cn=ipa,cn=etc,$SUFFIX
+default:objectClass: nsContainer
+default:objectClass: ipaConfigObject
+default:cn: KDC
+add: ipaConfigString: kdcProxyEnabled

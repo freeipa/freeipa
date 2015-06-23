@@ -1,0 +1,30 @@
+# Kerberos over HTTP / MS-KKDCP support (Kerberos KDC Proxy)
+#
+# The symlink from /etc/ipa/kdcproxy/ to /etc/httpd/conf.d/ is maintained
+# by the ExecStartPre script /usr/libexec/ipa/ipa-httpd-kdcproxy in
+# httpd.service. The service also sets the environment variable
+# KDCPROXY_CONFIG to $KDCPROXY_CONFIG.
+#
+# Disable KDC Proxy on the current host:
+#   # ipa-ldap-updater /usr/share/ipa/kdcproxy-disable.uldif
+#   # systemctl restart httpd.service
+#
+# Enable KDC Proxy on the current host:
+#   # ipa-ldap-updater /usr/share/ipa/kdcproxy-enable.uldif
+#   # systemctl restart httpd.service
+#
+
+WSGIDaemonProcess kdcproxy processes=2 threads=15 maximum-requests=5000 \
+  user=kdcproxy group=kdcproxy display-name=%{GROUP}
+WSGIImportScript /usr/lib/python2.7/site-packages/kdcproxy/__init__.py \
+  process-group=kdcproxy application-group=kdcproxy
+WSGIScriptAlias /KdcProxy /usr/lib/python2.7/site-packages/kdcproxy/__init__.py
+WSGIScriptReloading Off
+
+<Location "/KdcProxy">
+  Satisfy Any
+  Order Deny,Allow
+  Allow from all
+  WSGIProcessGroup kdcproxy
+  WSGIApplicationGroup kdcproxy
+</Location>

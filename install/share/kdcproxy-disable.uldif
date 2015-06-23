@@ -1,0 +1,3 @@
+# Disable MS-KKDCP protocol for the current host
+dn: cn=KDC,cn=$FQDN,cn=masters,cn=ipa,cn=etc,$SUFFIX
+remove:ipaConfigString:kdcProxyEnabled

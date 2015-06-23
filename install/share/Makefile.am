@@ -84,6 +84,9 @@ app_DATA =				\
 	sasl-mapping-fallback.ldif	\
 	schema-update.ldif		\
 	vault.update			\
+	kdcproxy.conf			\
+	kdcproxy-enable.uldif		\
+	kdcproxy-disable.uldif		\
 	$(NULL)
 
 EXTRA_DIST =				\

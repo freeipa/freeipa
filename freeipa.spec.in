@@ -22,6 +22,10 @@
 
 %define _hardened_build 1
 
+%define kdcproxy_user kdcproxy
+%define kdcproxy_group kdcproxy
+%define kdcproxy_home %{_sharedstatedir}/kdcproxy
+
 Name:           freeipa
 Version:        __VERSION__
 Release:        __RELEASE__%{?dist}
@@ -95,6 +99,7 @@ BuildRequires:  p11-kit-devel
 BuildRequires:  pki-base >= 10.2.4-1
 BuildRequires:  python-pytest-multihost >= 0.5
 BuildRequires:  python-pytest-sourceorder
+BuildRequires:  python-kdcproxy >= 0.3
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -130,6 +135,7 @@ Requires: memcached
 Requires: python-memcached
 Requires: dbus-python
 Requires: systemd-units >= 38
+Requires(pre): shadow-utils
 Requires(pre): systemd-units
 Requires(post): systemd-units
 Requires: selinux-policy >= %{selinux_policy_version}
@@ -140,6 +146,7 @@ Requires: pki-kra >= 10.2.4-1
 Requires(preun): python systemd-units
 Requires(postun): python systemd-units
 Requires: python-dns >= 1.11.1
+Requires: python-kdcproxy >= 0.3
 Requires: zip
 Requires: policycoreutils >= 2.1.12-5
 Requires: tar
@@ -429,6 +436,7 @@ ln -s ../../../..%{_sysconfdir}/ipa/html/browserconfig.html \
 # So we can own our Apache configuration
 mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d/
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa.conf
+/bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-kdc-proxy.conf
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 mkdir -p %{buildroot}%{_usr}/share/ipa/html/
@@ -457,6 +465,10 @@ install daemons/dnssec/ipa-ods-exporter %{buildroot}%{_libexecdir}/ipa/ipa-ods-e
 
 # Web UI plugin dir
 mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
+
+# KDC proxy config (Apache config sets KDCPROXY_CONFIG to load this file)
+mkdir -p %{buildroot}%{_sysconfdir}/ipa/kdcproxy/
+install -m 644 install/share/kdcproxy.conf %{buildroot}%{_sysconfdir}/ipa/kdcproxy/kdcproxy.conf
 
 # NOTE: systemd specific section
 mkdir -p %{buildroot}%{_tmpfilesdir}
@@ -550,6 +562,13 @@ if [ -e /usr/sbin/ipa_kpasswd ]; then
     /bin/systemctl stop ipa_kpasswd.service >/dev/null 2>&1 || :
 # END
 fi
+
+# create kdcproxy user
+getent group %{kdcproxy_group} >/dev/null || groupadd -r %{kdcproxy_group}
+getent passwd %{kdcproxy_user} >/dev/null || \
+    /usr/sbin/useradd -r -m -c "IPA KDC Proxy User" -s /sbin/nologin \
+    -g %{kdcproxy_group} -d %{kdcproxy_home} %{kdcproxy_user}
+exit 0
 
 %postun server-trust-ad
 if [ "$1" -ge "1" ]; then
@@ -683,9 +702,11 @@ fi
 %{_libexecdir}/ipa/ipa-dnskeysyncd
 %{_libexecdir}/ipa/ipa-dnskeysync-replica
 %{_libexecdir}/ipa/ipa-ods-exporter
+%{_libexecdir}/ipa/ipa-httpd-kdcproxy
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-dnskeysyncd
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-ods-exporter
+%config(noreplace) %{_sysconfdir}/ipa/kdcproxy/kdcproxy.conf
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/ipa_memcached/
 %dir %attr(0700,root,root) %{_localstatedir}/run/ipa/
 %dir %attr(0700,apache,apache) %{_localstatedir}/run/httpd/ipa/
@@ -777,10 +798,13 @@ fi
 %config(noreplace) %{_sysconfdir}/ipa/html/browserconfig.html
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa.conf
+%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-kdc-proxy.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
+%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/kdcproxy/ipa-kdc-proxy.conf
 %{_usr}/share/ipa/ipa.conf
 %{_usr}/share/ipa/ipa-rewrite.conf
 %{_usr}/share/ipa/ipa-pki-proxy.conf
+%{_usr}/share/ipa/kdcproxy.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_usr}/share/ipa/html/ca.crt
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/configure.jar
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/kerberosauth.xpi
@@ -903,6 +927,7 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/nssdb
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/dnssec
+%dir %attr(0755,root,root) %{_sysconfdir}/ipa/kdcproxy
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/cert8.db
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/key3.db
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/secmod.db
