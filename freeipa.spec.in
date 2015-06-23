@@ -175,8 +175,8 @@ Conflicts: bind-dyndb-ldap < 6.0-4
 Conflicts: bind < 9.9.6-3
 Conflicts: bind-utils < 9.9.6-3
 %else
-Conflicts: bind < 9.9.4-19
-Conflicts: bind-utils < 9.9.4-19
+Conflicts: bind < 9.9.4-21
+Conflicts: bind-utils < 9.9.4-21
 %endif
 # DNSSEC
 Conflicts: opendnssec < 1.4.6-4
