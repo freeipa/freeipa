@@ -66,7 +66,12 @@ signal.signal(signal.SIGINT, commenceShutdown)
 PRINCIPAL = str('%s/%s' % (DAEMONNAME, api.env.host))
 log.debug('Kerberos principal: %s', PRINCIPAL)
 ccache_filename = os.path.join(WORKDIR, 'ipa-dnskeysyncd.ccache')
-ipautil.kinit_keytab(PRINCIPAL, KEYTAB_FB, ccache_filename)
+try:
+    ipautil.kinit_keytab(PRINCIPAL, KEYTAB_FB, ccache_filename)
+except Exception as ex:
+    log.critical(ex)
+    # signal failure and let init system to restart the daemon
+    sys.exit(1)
 os.environ['KRB5CCNAME'] = ccache_filename
 
 # LDAP initialization
