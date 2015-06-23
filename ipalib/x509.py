@@ -294,16 +294,24 @@ def normalize_certificate(rawcert):
     # was base64-encoded and now its not or it came in as DER format.
     # Let's decode it and see. Fetching the serial number will pass the
     # certificate through the NSS DER parser.
+    validate_certificate(dercert, datatype=DER)
+
+    return dercert
+
+
+def validate_certificate(cert, datatype=PEM, dbdir=None):
+    """
+    Perform certificate validation by trying to load it into NSS database
+    """
     try:
-        serial = unicode(get_serial_number(dercert, DER))
-    except NSPRError, nsprerr:
+        load_certificate(cert, datatype=datatype, dbdir=dbdir)
+    except NSPRError as nsprerr:
         if nsprerr.errno == -8183: # SEC_ERROR_BAD_DER
             raise errors.CertificateFormatError(
                 error=_('improperly formatted DER-encoded certificate'))
         else:
             raise errors.CertificateFormatError(error=str(nsprerr))
 
-    return dercert
 
 def write_certificate(rawcert, filename):
     """

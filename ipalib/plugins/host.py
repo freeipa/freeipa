@@ -786,30 +786,8 @@ class host_del(LDAPDelete):
                 entry_attrs = ldap.get_entry(dn, ['usercertificate'])
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
-            for cert in entry_attrs.get('usercertificate', []):
-                cert = x509.normalize_certificate(cert)
-                try:
-                    serial = unicode(x509.get_serial_number(cert, x509.DER))
-                    try:
-                        result = api.Command['cert_show'](serial)['result']
-                        if 'revocation_reason' not in result:
-                            try:
-                                api.Command['cert_revoke'](serial,
-                                                           revocation_reason=4)
-                            except errors.NotImplementedError:
-                                # some CA's might not implement revoke
-                                pass
-                    except errors.NotImplementedError:
-                        # some CA's might not implement revoke
-                        pass
-                except NSPRError, nsprerr:
-                    if nsprerr.errno == -8183:
-                        # If we can't decode the cert them proceed with
-                        # removing the host.
-                        self.log.info("Problem decoding certificate %s" %
-                                      nsprerr.args[1])
-                    else:
-                        raise nsprerr
+
+            revoke_certs(entry_attrs.get('usercertificate', []), self.log)
 
         return dn
 
@@ -879,29 +857,8 @@ class host_mod(LDAPUpdate):
             old_certs = entry_attrs_old.get('usercertificate', [])
             old_certs_der = map(x509.normalize_certificate, old_certs)
             removed_certs_der = set(old_certs_der) - set(certs_der)
-            for cert in removed_certs_der:
-                try:
-                    serial = unicode(x509.get_serial_number(cert, x509.DER))
-                    try:
-                        result = api.Command['cert_show'](serial)['result']
-                        if 'revocation_reason' not in result:
-                            try:
-                                api.Command['cert_revoke'](
-                                    serial, revocation_reason=4)
-                            except errors.NotImplementedError:
-                                # some CA's might not implement revoke
-                                pass
-                    except errors.NotImplementedError:
-                        # some CA's might not implement revoke
-                        pass
-                except NSPRError, nsprerr:
-                    if nsprerr.errno == -8183:
-                        # If we can't decode the cert them proceed with
-                        # modifying the host.
-                        self.log.info("Problem decoding certificate %s" %
-                                      nsprerr.args[1])
-                    else:
-                        raise nsprerr
+            revoke_certs(removed_certs_der, self.log)
+
         if certs:
             entry_attrs['usercertificate'] = certs_der
 
@@ -1163,31 +1120,9 @@ class host_disable(LDAPQuery):
             self.obj.handle_not_found(*keys)
         if self.api.Command.ca_is_enabled()['result']:
             certs = entry_attrs.get('usercertificate', [])
-            for cert in map(x509.normalize_certificate, certs):
-                try:
-                    serial = unicode(x509.get_serial_number(cert, x509.DER))
-                    try:
-                        result = api.Command['cert_show'](serial)['result']
-                        if 'revocation_reason' not in result:
-                            try:
-                                api.Command['cert_revoke'](serial,
-                                                           revocation_reason=4)
-                            except errors.NotImplementedError:
-                                # some CA's might not implement revoke
-                                pass
-                    except errors.NotImplementedError:
-                        # some CA's might not implement revoke
-                        pass
-                except NSPRError, nsprerr:
-                    if nsprerr.errno == -8183:
-                        # If we can't decode the cert them proceed with
-                        # disabling the host.
-                        self.log.info("Problem decoding certificate %s" %
-                                      nsprerr.args[1])
-                    else:
-                        raise nsprerr
 
             if certs:
+                revoke_certs(certs, self.log)
                 # Remove the usercertificate altogether
                 entry_attrs['usercertificate'] = None
                 ldap.update_entry(entry_attrs)
