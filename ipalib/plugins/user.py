@@ -1001,3 +1001,55 @@ class user_status(LDAPQuery):
                     summary=unicode(_('Account disabled: %(disabled)s' %
                         dict(disabled=disabled))),
         )
+
+
+@register()
+class user_add_cert(LDAPAddAttribute):
+    __doc__ = _('Add one or more certificates to the user entry')
+    msg_summary = _('Added certificates to user "%(value)s"')
+    attribute = 'usercertificate'
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                     **options):
+        assert isinstance(dn, DN)
+
+        new_attr_name = '%s;binary' % self.attribute
+        if self.attribute in entry_attrs:
+            entry_attrs[new_attr_name] = entry_attrs.pop(self.attribute)
+
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+
+        old_attr_name = '%s;binary' % self.attribute
+        if old_attr_name in entry_attrs:
+            entry_attrs[self.attribute] = entry_attrs.pop(old_attr_name)
+
+        return dn
+
+
+@register()
+class user_remove_cert(LDAPRemoveAttribute):
+    __doc__ = _('Remove one or more certificates to the user entry')
+    msg_summary = _('Removed certificates from user "%(value)s"')
+    attribute = 'usercertificate'
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                     **options):
+        assert isinstance(dn, DN)
+
+        new_attr_name = '%s;binary' % self.attribute
+        if self.attribute in entry_attrs:
+            entry_attrs[new_attr_name] = entry_attrs.pop(self.attribute)
+
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+
+        old_attr_name = '%s;binary' % self.attribute
+        if old_attr_name in entry_attrs:
+            entry_attrs[self.attribute] = entry_attrs.pop(old_attr_name)
+
+        return dn

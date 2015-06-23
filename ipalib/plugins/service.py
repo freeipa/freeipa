@@ -861,3 +861,24 @@ class service_disable(LDAPQuery):
             value=pkey_to_value(keys[0], options),
         )
 
+
+@register()
+class service_add_cert(LDAPAddAttribute):
+    __doc__ = _('Add new certificates to a service')
+    msg_summary = _('Added certificates to service principal "%(value)s"')
+    attribute = 'usercertificate'
+
+
+@register()
+class service_remove_cert(LDAPRemoveAttribute):
+    __doc__ = _('Remove certificates from a service')
+    msg_summary = _('Removed certificates from service principal "%(value)s"')
+    attribute = 'usercertificate'
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+
+        if 'usercertificate' in options:
+            revoke_certs(options['usercertificate'], self.log)
+
+        return dn

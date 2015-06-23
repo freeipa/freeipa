@@ -28,11 +28,12 @@ from ipalib.plugins.baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPDelete, LDAPUpdate, LDAPSearch,
                                      LDAPRetrieve, LDAPAddMember,
                                      LDAPRemoveMember, host_is_master,
-                                     pkey_to_value, add_missing_object_class)
+                                     pkey_to_value, add_missing_object_class,
+                                     LDAPAddAttribute, LDAPRemoveAttribute)
 from ipalib.plugins.service import (split_principal, validate_certificate,
     set_certificate_attrs, ticket_flags_params, update_krbticketflags,
     set_kerberos_attrs, rename_ipaallowedtoperform_from_ldap,
-    rename_ipaallowedtoperform_to_ldap)
+    rename_ipaallowedtoperform_to_ldap, revoke_certs)
 from ipalib.plugins.dns import (dns_container_exists, _record_types,
         add_records_for_host_validation, add_records_for_host,
         get_reverse_zone)
@@ -1246,3 +1247,25 @@ class host_disallow_create_keytab(LDAPRemoveMember):
         rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
         rename_ipaallowedtoperform_from_ldap(failed, options)
         return (completed, dn)
+
+
+@register()
+class host_add_cert(LDAPAddAttribute):
+    __doc__ = _('Add certificates to host entry')
+    msg_summary = _('Added certificates to host "%(value)s"')
+    attribute = 'usercertificate'
+
+
+@register()
+class host_remove_cert(LDAPRemoveAttribute):
+    __doc__ = _('Remove certificates from host entry')
+    msg_summary = _('Removed certificates from host "%(value)s"')
+    attribute = 'usercertificate'
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+
+        if 'usercertificate' in options:
+            revoke_certs(options['usercertificate'], self.log)
+
+        return dn
