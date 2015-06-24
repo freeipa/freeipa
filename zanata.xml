@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<config xmlns="http://zanata.org/namespace/config/">
+  <url>https://fedora.zanata.org/</url>
+  <project>freeipa</project>
+  <project-version>master</project-version>
+  <project-type>gettext</project-type>
+  <src-dir>.</src-dir>
+  <trans-dir>.</trans-dir>
+
+  <locales>
+    <locale map-from='bn_IN'>bn-IN</locale>
+    <locale>ca</locale>
+    <locale>cs</locale>
+    <locale>de</locale>
+    <locale>es</locale>
+    <locale>eu</locale>
+    <locale>fr</locale>
+    <locale>hi</locale>
+    <locale>hu</locale>
+    <locale>id</locale>
+    <locale>ja</locale>
+    <locale>kn</locale>
+    <locale>nl</locale>
+    <locale>pl</locale>
+    <locale>ru</locale>
+    <locale>tg</locale>
+    <locale>uk</locale>
+    <locale map-from='zh_CN'>zh-CN</locale>
+  </locales>
+  <rules/>
+</config>
