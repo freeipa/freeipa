@@ -287,9 +287,9 @@ class test_Plugin(ClassChecker):
         assert e.argv == (paths.BIN_FALSE,)
 
 
-def test_Registry():
+def test_Registrar():
     """
-    Test the `ipalib.plugable.Registry` class
+    Test the `ipalib.plugable.Registrar` class
     """
     class Base1(object):
         pass
@@ -304,47 +304,8 @@ def test_Registry():
     class plugin3(Base3):
         pass
 
-    # Test creation of Registry:
-    register = plugable.Registry()
-    def b(klass):
-        register.base()(klass)
-    def r(klass, override=False):
-        register(override=override)(klass)
-
-    # Check that TypeError is raised trying to register base that isn't
-    # a class:
-    p = Base1()
-    e = raises(TypeError, b, p)
-    assert str(e) == 'plugin base must be a class; got %r' % p
-
-    # Check that base registration works
-    b(Base1)
-    i = tuple(register.iter(Base1))
-    assert len(i) == 1
-    assert i[0][0] is Base1
-    assert not i[0][1]
-
-    # Check that DuplicateError is raised trying to register exact class
-    # again:
-    e = raises(errors.PluginDuplicateError, b, Base1)
-    assert e.plugin is Base1
-
-    # Test that another base can be registered:
-    b(Base2)
-    i = tuple(register.iter(Base2))
-    assert len(i) == 1
-    assert i[0][0] is Base2
-    assert not i[0][1]
-
-    # Test iter:
-    i = tuple(register.iter(Base1, Base2))
-    assert len(i) == 2
-    assert i[0][0] is Base1
-    assert not i[0][1]
-    assert i[1][0] is Base2
-    assert not i[1][1]
-    e = raises(TypeError, register.iter, Base1, Base2, Base3)
-    assert str(e) == 'unknown plugin base %r' % Base3
+    # Test creation of Registrar:
+    r = plugable.Registrar()
 
     # Check that TypeError is raised trying to register something that isn't
     # a class:
@@ -352,59 +313,33 @@ def test_Registry():
     e = raises(TypeError, r, p)
     assert str(e) == 'plugin must be a class; got %r' % p
 
-    # Check that SubclassError is raised trying to register a class that is
-    # not a subclass of an allowed base:
-    e = raises(errors.PluginSubclassError, r, plugin3)
-    assert e.plugin is plugin3
-
     # Check that registration works
     r(plugin1)
-    i = tuple(register.iter(Base1))
-    assert len(i) == 1
-    assert i[0][0] is Base1
-    assert i[0][1] == {plugin1}
+    assert len(r) == 1
+    assert plugin1 in r
+    assert r[plugin1] == dict(override=False)
 
     # Check that DuplicateError is raised trying to register exact class
     # again:
     e = raises(errors.PluginDuplicateError, r, plugin1)
     assert e.plugin is plugin1
 
-    # Check that OverrideError is raised trying to register class with same
-    # name and same base:
+    # Check that overriding works
     orig1 = plugin1
     class base1_extended(Base1):
         pass
     class plugin1(base1_extended):  # pylint: disable=function-redefined
         pass
-    e = raises(errors.PluginOverrideError, r, plugin1)
-    assert e.base == 'Base1'
-    assert e.name == 'plugin1'
-    assert e.plugin is plugin1
-
-    # Check that overriding works
     r(plugin1, override=True)
-    i = tuple(register.iter(Base1))
-    assert len(i) == 1
-    assert i[0][0] is Base1
-    assert i[0][1] == {plugin1}
-
-    # Check that MissingOverrideError is raised trying to override a name
-    # not yet registerd:
-    e = raises(errors.PluginMissingOverrideError, r, plugin2, override=True)
-    assert e.base == 'Base2'
-    assert e.name == 'plugin2'
-    assert e.plugin is plugin2
+    assert len(r) == 2
+    assert plugin1 in r
+    assert r[plugin1] == dict(override=True)
 
     # Test that another plugin can be registered:
-    i = tuple(register.iter(Base2))
-    assert len(i) == 1
-    assert i[0][0] is Base2
-    assert not i[0][1]
     r(plugin2)
-    i = tuple(register.iter(Base2))
-    assert len(i) == 1
-    assert i[0][0] is Base2
-    assert i[0][1] == {plugin2}
+    assert len(r) == 3
+    assert plugin2 in r
+    assert r[plugin2] == dict(override=False)
 
     # Setup to test more registration:
     class plugin1a(Base1):
@@ -423,14 +358,6 @@ def test_Registry():
         pass
     r(plugin2b)
 
-    # Again test iter:
-    i = tuple(register.iter(Base1, Base2))
-    assert len(i) == 2
-    assert i[0][0] is Base1
-    assert i[0][1] == {plugin1, plugin1a, plugin1b}
-    assert i[1][0] is Base2
-    assert i[1][1] == {plugin2, plugin2a, plugin2b}
-
 
 class test_API(ClassChecker):
     """
@@ -445,15 +372,11 @@ class test_API(ClassChecker):
         """
         assert issubclass(plugable.API, plugable.ReadOnly)
 
-        register = plugable.Registry()
-
         # Setup the test bases, create the API:
-        @register.base()
         class base0(plugable.Plugin):
             def method(self, n):
                 return n
 
-        @register.base()
         class base1(plugable.Plugin):
             def method(self, n):
                 return n + 1
@@ -461,30 +384,31 @@ class test_API(ClassChecker):
         api = plugable.API([base0, base1], [])
         api.env.mode = 'unit_test'
         api.env.in_tree = True
+        r = api.register
 
-        @register()
         class base0_plugin0(base0):
             pass
+        r(base0_plugin0)
 
-        @register()
         class base0_plugin1(base0):
             pass
+        r(base0_plugin1)
 
-        @register()
         class base0_plugin2(base0):
             pass
+        r(base0_plugin2)
 
-        @register()
         class base1_plugin0(base1):
             pass
+        r(base1_plugin0)
 
-        @register()
         class base1_plugin1(base1):
             pass
+        r(base1_plugin1)
 
-        @register()
         class base1_plugin2(base1):
             pass
+        r(base1_plugin2)
 
         # Test API instance:
         assert api.isdone('bootstrap') is False

@@ -27,7 +27,7 @@ from distutils import version
 from ipapython.version import API_VERSION
 from ipapython.ipa_log_manager import root_logger
 from base import NameSpace
-from plugable import Plugin, Registry, is_production_mode
+from plugable import Plugin, is_production_mode
 from parameters import create_param, Param, Str, Flag, Password
 from output import Output, Entry, ListOfEntries
 from text import _
@@ -39,9 +39,6 @@ from textwrap import wrap
 
 
 RULE_FLAG = 'validation_rule'
-
-register = Registry()
-
 
 def rule(obj):
     assert not hasattr(obj, RULE_FLAG)
@@ -369,7 +366,6 @@ class HasParam(Plugin):
         setattr(self, name, namespace)
 
 
-@register.base()
 class Command(HasParam):
     """
     A public IPA atomic operation.
@@ -1124,7 +1120,6 @@ class Local(Command):
         return self.forward(*args, **options)
 
 
-@register.base()
 class Object(HasParam):
     finalize_early = False
 
@@ -1283,7 +1278,6 @@ class Attribute(Plugin):
         super(Attribute, self)._on_finalize()
 
 
-@register.base()
 class Method(Attribute, Command):
     """
     A command with an associated object.
@@ -1370,7 +1364,6 @@ class Method(Attribute, Command):
             yield param
 
 
-@register.base()
 class Updater(Plugin):
     """
     An LDAP update with an associated object (always update).

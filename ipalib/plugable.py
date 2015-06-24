@@ -35,6 +35,7 @@ import subprocess
 import optparse
 import errors
 import textwrap
+import collections
 
 from config import Env
 import util
@@ -74,93 +75,12 @@ class Registry(object):
     For forward compatibility, make sure that the module-level instance of
     this object is named "register".
     """
-
-    __allowed = {}
-    __registered = set()
-
-    def base(self):
-        def decorator(base):
-            if not inspect.isclass(base):
-                raise TypeError('plugin base must be a class; got %r' % base)
-
-            if base in self.__allowed:
-                raise errors.PluginDuplicateError(plugin=base)
-
-            self.__allowed[base] = {}
-
-            return base
+    def __call__(self):
+        def decorator(cls):
+            API.register(cls)
+            return cls
 
         return decorator
-
-    def __findbases(self, klass):
-        """
-        Iterates through allowed bases that ``klass`` is a subclass of.
-
-        Raises `errors.PluginSubclassError` if ``klass`` is not a subclass of
-        any allowed base.
-
-        :param klass: The plugin class to find bases for.
-        """
-        found = False
-        for (base, sub_d) in self.__allowed.iteritems():
-            if issubclass(klass, base):
-                found = True
-                yield (base, sub_d)
-        if not found:
-            raise errors.PluginSubclassError(
-                plugin=klass, bases=self.__allowed.keys()
-            )
-
-    def __call__(self, override=False):
-        def decorator(klass):
-            if not inspect.isclass(klass):
-                raise TypeError('plugin must be a class; got %r' % klass)
-
-            # Raise DuplicateError if this exact class was already registered:
-            if klass in self.__registered:
-                raise errors.PluginDuplicateError(plugin=klass)
-
-            # Find the base class or raise SubclassError:
-            for (base, sub_d) in self.__findbases(klass):
-                # Check override:
-                if klass.__name__ in sub_d:
-                    if not override:
-                        # Must use override=True to override:
-                        raise errors.PluginOverrideError(
-                            base=base.__name__,
-                            name=klass.__name__,
-                            plugin=klass,
-                        )
-                else:
-                    if override:
-                        # There was nothing already registered to override:
-                        raise errors.PluginMissingOverrideError(
-                            base=base.__name__,
-                            name=klass.__name__,
-                            plugin=klass,
-                        )
-
-                # The plugin is okay, add to sub_d:
-                sub_d[klass.__name__] = klass
-
-            # The plugin is okay, add to __registered:
-            self.__registered.add(klass)
-
-            return klass
-
-        return decorator
-
-    def __base_iter(self, *allowed):
-        for base in allowed:
-            sub_d = self.__allowed[base]
-            subclasses = set(sub_d.itervalues())
-            yield (base, subclasses)
-
-    def iter(self, *allowed):
-        for base in allowed:
-            if base not in self.__allowed:
-                raise TypeError("unknown plugin base %r" % base)
-        return self.__base_iter(*allowed)
 
 
 class SetProxy(ReadOnly):
@@ -441,28 +361,60 @@ class Plugin(ReadOnly):
         )
 
 
-class API(DictProxy):
+class Registrar(collections.Mapping):
     """
-    Dynamic API object through which `Plugin` instances are accessed.
+    Collects plugin classes as they are registered.
+
+    The Registrar does not instantiate plugins... it only implements the
+    override logic and stores the plugins in a namespace per allowed base
+    class.
+
+    The plugins are instantiated when `API.finalize()` is called.
     """
+    def __init__(self):
+        self.__registry = collections.OrderedDict()
 
-    def __init__(self, allowed, packages):
-        self.__allowed = allowed
-        self.packages = packages
-        self.__d = dict()
-        self.__done = set()
-        self.__registry = Registry()
-        self.env = Env()
-        super(API, self).__init__(self.__d)
-
-    def register(self, klass, override=False):
+    def __call__(self, klass, override=False):
         """
         Register the plugin ``klass``.
 
         :param klass: A subclass of `Plugin` to attempt to register.
         :param override: If true, override an already registered plugin.
         """
-        self.__registry(override)(klass)
+        if not inspect.isclass(klass):
+            raise TypeError('plugin must be a class; got %r' % klass)
+
+        # Raise DuplicateError if this exact class was already registered:
+        if klass in self.__registry:
+            raise errors.PluginDuplicateError(plugin=klass)
+
+        # The plugin is okay, add to __registry:
+        self.__registry[klass] = dict(override=override)
+
+    def __getitem__(self, key):
+        return self.__registry[key]
+
+    def __iter__(self):
+        return iter(self.__registry)
+
+    def __len__(self):
+        return len(self.__registry)
+
+
+class API(DictProxy):
+    """
+    Dynamic API object through which `Plugin` instances are accessed.
+    """
+
+    register = Registrar()
+
+    def __init__(self, allowed, packages):
+        self.__plugins = {base: {} for base in allowed}
+        self.packages = packages
+        self.__d = dict()
+        self.__done = set()
+        self.env = Env()
+        super(API, self).__init__(self.__d)
 
     def __doing(self, name):
         if name in self.__done:
@@ -638,6 +590,8 @@ class API(DictProxy):
             return
         for package in self.packages:
             self.import_plugins(package)
+        for klass, kwargs in self.register.iteritems():
+            self.add_plugin(klass, **kwargs)
 
     # FIXME: This method has no unit test
     def import_plugins(self, package):
@@ -686,6 +640,51 @@ class API(DictProxy):
                     self.log.error('could not load plugin module %r\n%s', pyfile, traceback.format_exc())
                 raise
 
+    def add_plugin(self, klass, override=False):
+        """
+        Add the plugin ``klass``.
+
+        :param klass: A subclass of `Plugin` to attempt to add.
+        :param override: If true, override an already added plugin.
+        """
+        if not inspect.isclass(klass):
+            raise TypeError('plugin must be a class; got %r' % klass)
+
+        # Find the base class or raise SubclassError:
+        found = False
+        for (base, sub_d) in self.__plugins.iteritems():
+            if not issubclass(klass, base):
+                continue
+
+            found = True
+
+            # Check override:
+            if klass.__name__ in sub_d:
+                if not override:
+                    # Must use override=True to override:
+                    raise errors.PluginOverrideError(
+                        base=base.__name__,
+                        name=klass.__name__,
+                        plugin=klass,
+                    )
+            else:
+                if override:
+                    # There was nothing already registered to override:
+                    raise errors.PluginMissingOverrideError(
+                        base=base.__name__,
+                        name=klass.__name__,
+                        plugin=klass,
+                    )
+
+            # The plugin is okay, add to sub_d:
+            sub_d[klass.__name__] = klass
+
+        if not found:
+            raise errors.PluginSubclassError(
+                plugin=klass,
+                bases=self.__plugins.keys(),
+            )
+
     def finalize(self):
         """
         Finalize the registration, instantiate the plugins.
@@ -696,56 +695,25 @@ class API(DictProxy):
         self.__doing('finalize')
         self.__do_if_not_done('load_plugins')
 
-        class PluginInstance(object):
-            """
-            Represents a plugin instance.
-            """
-
-            i = 0
-
-            def __init__(self, klass):
-                self.created = self.next()
-                self.klass = klass
-                self.instance = klass()
-                self.bases = []
-
-            @classmethod
-            def next(cls):
-                cls.i += 1
-                return cls.i
-
-        class PluginInfo(ReadOnly):
-            def __init__(self, p):
-                assert isinstance(p, PluginInstance)
-                self.created = p.created
-                self.name = p.klass.__name__
-                self.module = str(p.klass.__module__)
-                self.plugin = '%s.%s' % (self.module, self.name)
-                self.bases = tuple(b.__name__ for b in p.bases)
-                if not is_production_mode(self):
-                    lock(self)
-
-        plugins = {}
-        tofinalize = set()
-        def plugin_iter(base, subclasses):
-            for klass in subclasses:
-                assert issubclass(klass, base)
-                if klass not in plugins:
-                    plugins[klass] = PluginInstance(klass)
-                p = plugins[klass]
-                if not is_production_mode(self):
-                    assert base not in p.bases
-                p.bases.append(base)
-                if klass.finalize_early or not self.env.plugins_on_demand:
-                    tofinalize.add(p)
-                yield p.instance
-
         production_mode = is_production_mode(self)
-        for base, subclasses in self.__registry.iter(*self.__allowed):
+        plugins = {}
+        plugin_info = {}
+
+        for base, sub_d in self.__plugins.iteritems():
             name = base.__name__
-            namespace = NameSpace(
-                plugin_iter(base, subclasses)
-            )
+
+            members = []
+            for klass in sub_d.itervalues():
+                try:
+                    instance = plugins[klass]
+                except KeyError:
+                    instance = plugins[klass] = klass()
+                members.append(instance)
+                plugin_info.setdefault(
+                    '%s.%s' % (klass.__module__, klass.__name__),
+                    []).append(name)
+
+            namespace = NameSpace(members)
             if not production_mode:
                 assert not (
                     name in self.__d or hasattr(self, name)
@@ -753,19 +721,20 @@ class API(DictProxy):
             self.__d[name] = namespace
             object.__setattr__(self, name, namespace)
 
-        for p in plugins.itervalues():
-            p.instance.set_api(self)
-            if not production_mode:
-                assert p.instance.api is self
+        for instance in plugins.itervalues():
+            instance.set_api(self)
 
-        for p in tofinalize:
-            p.instance.ensure_finalized()
+        for klass, instance in plugins.iteritems():
             if not production_mode:
-                assert islocked(p.instance) is True
+                assert instance.api is self
+            if klass.finalize_early or not self.env.plugins_on_demand:
+                instance.ensure_finalized()
+                if not production_mode:
+                    assert islocked(instance)
+
         object.__setattr__(self, '_API__finalized', True)
-        tuple(PluginInfo(p) for p in plugins.itervalues())
         object.__setattr__(self, 'plugins',
-            tuple(PluginInfo(p) for p in plugins.itervalues())
+            tuple((k, tuple(v)) for k, v in plugin_info.iteritems())
         )
 
 

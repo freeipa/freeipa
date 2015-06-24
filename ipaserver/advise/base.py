@@ -19,13 +19,11 @@
 
 import os
 from ipalib import api
-from ipalib.plugable import Plugin, Registry, API
+from ipalib.plugable import Plugin, API
 from ipalib.errors import ValidationError
 from ipapython import admintool
 from textwrap import wrap
 from ipapython.ipa_log_manager import log_mgr
-
-register = Registry()
 
 
 """
@@ -97,7 +95,6 @@ class _AdviceOutput(object):
         self.content.append(line)
 
 
-@register.base()
 class Advice(Plugin):
     """
     Base class for advices, plugins for ipa-advise.

@@ -27,10 +27,7 @@ import os
 from errors import PublicError, InternalError, CommandError
 from request import context, Connection, destroy_context
 
-register = plugable.Registry()
 
-
-@register.base()
 class Backend(plugable.Plugin):
     """
     Base class for all backend plugins.
