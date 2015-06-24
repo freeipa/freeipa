@@ -7,19 +7,20 @@
 # jdennis <jdennis@redhat.com>, 2011
 msgid ""
 msgstr ""
-"Project-Id-Version: FreeIPA\n"
+"Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2014-07-07 15:24+0200\n"
-"PO-Revision-Date: 2014-07-03 08:37+0000\n"
+"POT-Creation-Date: 2015-06-24 13:48+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2014-09-23 08:41-0400\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Kannada (http://www.transifex.com/projects/p/freeipa/language/"
 "kn/)\n"
 "Language: kn\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Zanata 3.6.2\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -325,6 +326,60 @@ msgstr "ಹೋಸ್ಟ್-ಗುಂಪಿನ ಸದಸ್ಯ"
 msgid "External host"
 msgstr "ಹೊರಗಿನ ಹೋಸ್ಟ್"
 
+msgid "User"
+msgstr "ಬಳಕೆದಾರ"
+
+msgid "User login"
+msgstr "ಬಳಕೆದಾರನ ಪ್ರವೇಶ"
+
+msgid "First name"
+msgstr "ಮೊದಲ ಹೆಸರು"
+
+msgid "Last name"
+msgstr "ಕೊನೆಯ ಹೆಸರು"
+
+msgid "Login shell"
+msgstr "ಪ್ರವೇಶ ಶೆಲ್"
+
+msgid "Kerberos principal"
+msgstr "Kerberos principal"
+
+msgid "Email address"
+msgstr "ಇಮೇಲ್ ವಿಳಾಸ"
+
+msgid "UID"
+msgstr "UID"
+
+msgid "GID"
+msgstr "GID"
+
+msgid "Street address"
+msgstr "ಕೇರಿ ವಿಳಾಸ"
+
+msgid "Class"
+msgstr "ವರ್ಗ"
+
+msgid "Certificate"
+msgstr "ಪ್ರಮಾಣಪತ್ರ"
+
+msgid "Base-64 encoded server certificate"
+msgstr "Base-64 ಎನ್‌ಕೋಡೆಡ್ ಸರ್ವರ್ ಪ್ರಮಾಣಪತ್ರ"
+
+msgid "User category"
+msgstr "ಬಳಕೆದಾರನ ವರ್ಗ"
+
+msgid "Host category"
+msgstr "ಹೋಸ್ಟ್ ವರ್ಗ"
+
+msgid "User Groups"
+msgstr "ಬಳಕೆದಾರರ ಗುಂಪುಗಳು"
+
+msgid "Host Groups"
+msgstr "ಹೋಸ್ಟ್ ಗುಂಪುಗಳು"
+
+msgid "Services"
+msgstr "ಸೇವೆಗಳು(ಸರ್ವೀಸಸ್)"
+
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr "ಪ್ರಮಾಣಪತ್ರದ ಸಹಿಯ ಕೋರಿಕೆಯ ಡಿಕೋಡಿಂಗ್‌ನ ವಿಫಲತೆ: %s"
@@ -332,14 +387,8 @@ msgstr "ಪ್ರಮಾಣಪತ್ರದ ಸಹಿಯ ಕೋರಿಕೆಯ ಡ
 msgid "Principal"
 msgstr "Principal"
 
-msgid "Service principal for this certificate (e.g. HTTP/test.example.com)"
-msgstr "ಈ ಪ್ರಮಾಣಪತ್ರಕ್ಕಾಗಿ Service principal (e.g. HTTP/test.example.com)"
-
 msgid "automatically add the principal if it doesn't exist"
 msgstr "ಸ್ವಯಂಚಾಲಿತವಾಗಿ principal ಸೇರಿಸಿ ಅದು ಅಸ್ತಿತ್ವದಲ್ಲಿ ಇಲ್ಲದಿದ್ದಲ್ಲಿ"
-
-msgid "Certificate"
-msgstr "ಪ್ರಮಾಣಪತ್ರ"
 
 msgid "Subject"
 msgstr "ವಿಷಯ"
@@ -422,26 +471,14 @@ msgstr "SOA minimum"
 msgid "Time to live"
 msgstr "ಉಳಿದಿರಬೇಕಾದ ಸಮಯ"
 
-msgid "SOA class"
-msgstr "SOA class"
-
 msgid "BIND update policy"
 msgstr "BIND update policy"
-
-msgid "Class"
-msgstr "ವರ್ಗ"
-
-msgid "User Groups"
-msgstr "ಬಳಕೆದಾರರ ಗುಂಪುಗಳು"
 
 msgid "Group name"
 msgstr "ಗುಂಪಿನ ಹೆಸರು"
 
 msgid "Group description"
 msgstr "ಗುಂಪಿನ ವಿವರಣೆ"
-
-msgid "GID"
-msgstr "GID"
 
 msgid "GID (use this option to set it manually)"
 msgstr "GID (ಇದನ್ನು ಮ್ಯಾನ್ಯೂವಲ್ ಆಗಿ ಸೆಟ್ ಮಾಡಲು ಈ ಆಯ್ಕೆಯನ್ನು ಬಳಸಿ)"
@@ -461,23 +498,11 @@ msgstr "\"%(value)s\" ಗುಂಪನ್ನು ಬದಲಾಯಿಸಲಾಗಿ
 msgid "Rule name"
 msgstr "ನಿಯಮದ ಹೆಸರು"
 
-msgid "User category"
-msgstr "ಬಳಕೆದಾರನ ವರ್ಗ"
-
 msgid "User category the rule applies to"
 msgstr "ನಿಯಮ ಅನ್ವಯಿಸುವಂತಹ ಬಳಕೆದಾರನ ವರ್ಗ"
 
-msgid "Host category"
-msgstr "ಹೋಸ್ಟ್ ವರ್ಗ"
-
 msgid "Host category the rule applies to"
 msgstr "ನಿಯಮ ಅನ್ವಯಿಸುವಂತಹ ಹೋಸ್ಟ್ ವರ್ಗ"
-
-msgid "Host Groups"
-msgstr "ಹೋಸ್ಟ್ ಗುಂಪುಗಳು"
-
-msgid "Services"
-msgstr "ಸೇವೆಗಳು(ಸರ್ವೀಸಸ್)"
 
 msgid "Access time"
 msgstr "ಪ್ರವೇಶದ ಸಮಯ"
@@ -521,9 +546,6 @@ msgstr "ಬಳಕೆದಾರನ ಗುಪ್ತಪದ"
 msgid "Password used in bulk enrollment"
 msgstr "ದೊಡ್ಡ ಪ್ರಮಾಣದ ದಾಖಲಾತಿಯಲ್ಲಿ ಬಳಸಲಾದ ಗುಪ್ತಪದ"
 
-msgid "Base-64 encoded server certificate"
-msgstr "Base-64 ಎನ್‌ಕೋಡೆಡ್ ಸರ್ವರ್ ಪ್ರಮಾಣಪತ್ರ"
-
 msgid "Principal name"
 msgstr "Principal ಹೆಸರು"
 
@@ -565,9 +587,6 @@ msgstr "\"%(value)s\" ಹೋಸ್ಟ್‌ಗ್ರೂಪನ್ನು ಬದಲ
 
 msgid "Data"
 msgstr "ದತ್ತಾಂಶ"
-
-msgid "User"
-msgstr "ಬಳಕೆದಾರ"
 
 msgid "Groups"
 msgstr "ಗುಂಪುಗಳು"
@@ -664,30 +683,6 @@ msgstr "\"%(value)s\" ಸೇವೆ(ಸರ್ವೀಸ್)ಯನ್ನು ಸೇ�
 #, python-format
 msgid "Deleted service \"%(value)s\""
 msgstr "\"%(value)s\" ಸೇವೆ(ಸರ್ವೀಸ್)ಯನ್ನು ಅಳಿಸಲಾಗಿದೆ"
-
-msgid "User login"
-msgstr "ಬಳಕೆದಾರನ ಪ್ರವೇಶ"
-
-msgid "First name"
-msgstr "ಮೊದಲ ಹೆಸರು"
-
-msgid "Last name"
-msgstr "ಕೊನೆಯ ಹೆಸರು"
-
-msgid "Login shell"
-msgstr "ಪ್ರವೇಶ ಶೆಲ್"
-
-msgid "Kerberos principal"
-msgstr "Kerberos principal"
-
-msgid "Email address"
-msgstr "ಇಮೇಲ್ ವಿಳಾಸ"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "Street address"
-msgstr "ಕೇರಿ ವಿಳಾಸ"
 
 #, python-format
 msgid "Added user \"%(value)s\""

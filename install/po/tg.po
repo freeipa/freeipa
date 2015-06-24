@@ -6,19 +6,20 @@
 # Petr Viktorin <encukou@gmail.com>, 2012
 msgid ""
 msgstr ""
-"Project-Id-Version: FreeIPA\n"
+"Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2014-07-07 15:24+0200\n"
-"PO-Revision-Date: 2014-07-03 08:37+0000\n"
+"POT-Creation-Date: 2015-06-24 13:48+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2014-09-23 08:41-0400\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Tajik (http://www.transifex.com/projects/p/freeipa/language/"
 "tg/)\n"
 "Language: tg\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Zanata 3.6.2\n"
 
 #, c-format
 msgid "Passwords do not match!"
@@ -90,6 +91,42 @@ msgstr "Вуруд"
 msgid "Rename"
 msgstr "Азнавномгузорӣ"
 
+msgid "User"
+msgstr "Корбар"
+
+msgid "First name"
+msgstr "Ном"
+
+msgid "Last name"
+msgstr "Насаб"
+
+msgid "Display name"
+msgstr "Номи намоишӣ"
+
+msgid "Initials"
+msgstr "Ному насаб"
+
+msgid "City"
+msgstr "Шаҳр"
+
+msgid "ZIP"
+msgstr "Рамзи ZIP"
+
+msgid "Fax Number"
+msgstr "Рақами факс"
+
+msgid "Job Title"
+msgstr "Вазифа"
+
+msgid "Manager"
+msgstr "Диспетчер"
+
+msgid "Class"
+msgstr "Синф"
+
+msgid "Enabled"
+msgstr "Фаъолшуда"
+
 msgid "Principal"
 msgstr "Асосӣ"
 
@@ -123,14 +160,8 @@ msgstr "Хидмат"
 msgid "Force"
 msgstr "Маҷбурӣ"
 
-msgid "Class"
-msgstr "Синф"
-
 msgid "Delete all?"
 msgstr "Ҳамаро нест мекунед?"
-
-msgid "Enabled"
-msgstr "Фаъолшуда"
 
 msgid "User name"
 msgstr "Номи корбар"
@@ -219,9 +250,6 @@ msgstr "Маълумот"
 msgid "Host Name"
 msgstr "Номи мизбон"
 
-msgid "User"
-msgstr "Корбар"
-
 msgid "Groups"
 msgstr "Гуруҳҳо"
 
@@ -249,35 +277,8 @@ msgstr "Сиёсат"
 msgid "Sudo"
 msgstr "Sudo"
 
-msgid "Manager"
-msgstr "Диспетчер"
-
 msgid "Group"
 msgstr "Гурӯҳ"
-
-msgid "First name"
-msgstr "Ном"
-
-msgid "Last name"
-msgstr "Насаб"
-
-msgid "Display name"
-msgstr "Номи намоишӣ"
-
-msgid "Initials"
-msgstr "Ному насаб"
-
-msgid "City"
-msgstr "Шаҳр"
-
-msgid "ZIP"
-msgstr "Рамзи ZIP"
-
-msgid "Fax Number"
-msgstr "Рақами факс"
-
-msgid "Job Title"
-msgstr "Вазифа"
 
 #, c-format
 msgid "out of memory\n"
@@ -295,10 +296,6 @@ msgstr "Берун аз хотира \n"
 msgid "Out of Memory!\n"
 msgstr "Берун аз хотира!\n"
 
-#, c-format
-msgid "Out of memory!\n"
-msgstr "Берун аз хотира!\n"
-
 msgid "Server Name"
 msgstr "Номи сервер"
 
@@ -311,6 +308,10 @@ msgstr "Пароли LDAP"
 #, c-format
 msgid "Out of memory!"
 msgstr "Берун аз хотира!"
+
+#, c-format
+msgid "Out of memory!\n"
+msgstr "Берун аз хотира!\n"
 
 #, c-format
 msgid "Incorrect password.\n"

@@ -6,35 +6,45 @@
 # Fabian Affolter <fab@fedoraproject.org>, 2011
 # Mario Blättermann <mario.blaettermann@gmail.com>, 2011,2014
 # Mario Blättermann <mario.blaettermann@gmail.com>, 2011
+# David Kreitschmann <david@kreitschmann.de>, 2015. #zanata
+# Martin Kosek <mkosek@redhat.com>, 2015. #zanata
+# Tomas Babej <tbabej@redhat.com>, 2015. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: FreeIPA\n"
+"Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2014-07-07 15:24+0200\n"
-"PO-Revision-Date: 2014-07-03 08:37+0000\n"
-"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
-"Language-Team: German (http://www.transifex.com/projects/p/freeipa/language/"
-"de/)\n"
-"Language: de\n"
+"POT-Creation-Date: 2015-06-24 13:48+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2015-06-24 10:35-0400\n"
+"Last-Translator: Tomas Babej <tbabej@redhat.com>\n"
+"Language-Team: German (http://www.transifex.com/projects/p/freeipa/language/"
+"de/)\n"
+"Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Zanata 3.6.2\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
-msgstr "Geben Sie %(label)s zum Überprüfen ein:"
+msgstr "Geben Sie %(label)s zur Bestätigung nochmals ein: "
 
 #, c-format
 msgid "Passwords do not match!"
 msgstr "Passwörter stimmen nicht überein!"
+
+msgid "No matching entries found"
+msgstr "Keine passenden Einträge gefunden"
 
 msgid "Command name"
 msgstr "Befehlsname"
 
 msgid "Positional arguments"
 msgstr "Positionale Argumente"
+
+msgid "Deprecated options"
+msgstr "Veraltete Optionen"
 
 msgid "No file to read"
 msgstr "Keine Datei zum Lesen"
@@ -64,6 +74,10 @@ msgstr "Kerberos-Fehler: %(major)s/%(minor)s"
 
 msgid "did not receive Kerberos credentials"
 msgstr "Kerberos-Anmeldedaten wurden nicht empfangen"
+
+#, python-format
+msgid "Service '%(service)s' not found in Kerberos database"
+msgstr "Service '%(service)s' in Kerberos-Datenbank nicht gefunden"
 
 msgid "No credentials cache found"
 msgstr "Keine Anmeldeinformationen-Cache gefunden"
@@ -152,9 +166,6 @@ msgstr "Eine Gruppe kann nicht als Mitglied von sich selbst hinzugefügt werden"
 
 msgid "The default users group cannot be removed"
 msgstr "Die vorgegebene Benutzergruppe kann nicht entfernt werden"
-
-msgid "Host does not have corresponding DNS A record"
-msgstr "Host verfügt nicht über einen entsprechenden DNS-A-Datensatz."
 
 msgid "Deleting a managed group is not allowed. It must be detached first."
 msgstr ""
@@ -417,6 +428,9 @@ msgstr "ACIs"
 msgid "ACI name"
 msgstr "ACI-Name"
 
+msgid "Permission"
+msgstr "Berechtigung"
+
 msgid "User group"
 msgstr "Benutzer-Gruppe"
 
@@ -475,8 +489,32 @@ msgstr "Anzahl der entfernten Bedingungen"
 msgid "Users"
 msgstr "Benutzer"
 
+msgid "automount location"
+msgstr "Automount-Ort"
+
+msgid "automount locations"
+msgstr "Automount-Orte"
+
+msgid "Automount Locations"
+msgstr "Automount-Orte"
+
+msgid "Automount Location"
+msgstr "Automount-Ort"
+
 msgid "Location"
 msgstr "Ort"
+
+msgid "Automount location name."
+msgstr "Automount-Ort"
+
+msgid "Create a new automount location."
+msgstr "Neuen Automount-Ort erstellen."
+
+msgid "Master file"
+msgstr "Masterdatei"
+
+msgid "Automount master file."
+msgstr "Automount-Masterdatei"
 
 #, python-format
 msgid "File %(file)s not found"
@@ -499,6 +537,51 @@ msgstr "Einhängepunkt"
 
 msgid "Password"
 msgstr "Passwort"
+
+msgid "Member users"
+msgstr "Mitglieds-Benutzer"
+
+msgid "Member groups"
+msgstr "Mitglieds-Gruppen"
+
+msgid "Member of groups"
+msgstr "Mitglied der Gruppen"
+
+msgid "Member hosts"
+msgstr "Mitglieds-Hosts"
+
+msgid "Member host-groups"
+msgstr "Mitglieds-Hostgruppen"
+
+msgid "Member of host-groups"
+msgstr "Mitglied von Host-Gruppen"
+
+msgid "Roles"
+msgstr "Rollen"
+
+msgid "Sudo Command Groups"
+msgstr "Sudo-Befehlsgruppen"
+
+msgid "Indirect Member users"
+msgstr "Indirekte Mitglieds-Benutzer"
+
+msgid "Indirect Member groups"
+msgstr "Indirekte Mitglieds-Gruppen"
+
+msgid "Indirect Member hosts"
+msgstr "Indirekte Mitglieds-Hosts"
+
+msgid "Indirect Member host-groups"
+msgstr "Indirekte Mitglieds-Hostgruppen"
+
+msgid "Indirect Member of roles"
+msgstr "Indirektes Mitglied von Rollen"
+
+msgid "Indirect Member permissions"
+msgstr "Indirekte Mitglieds-Berechtigungen"
+
+msgid "Indirect Member HBAC service"
+msgstr "Indirekte Mitgli"
 
 msgid "Failed to remove"
 msgstr "Entfernen fehlgeschlagen"
@@ -580,6 +663,10 @@ msgstr "Das %(ldap_obj_name)s-Objekt umbenennen"
 msgid "the entry was deleted while being modified"
 msgstr "Der Eintrag wurde während der Änderung entfernt."
 
+#, python-format
+msgid "member %s"
+msgstr "Mitglied %s"
+
 msgid "Members that could not be added"
 msgstr "Mitglieder, die nicht hinzugefügt werden konnten"
 
@@ -604,6 +691,153 @@ msgstr "Zeitbegrenzung für den Suchvorgang in Sekunden"
 msgid "Maximum number of entries returned"
 msgstr "Maximale Anzahl der zurückgegebenen Einträge"
 
+msgid "Kerberos keys available"
+msgstr "Kerberos-Schlüssel verfügbar"
+
+msgid "SSH public key fingerprint"
+msgstr "Fingerabdruck des öffentlichen SSH-Schlüssels"
+
+msgid "User"
+msgstr "Benutzer"
+
+msgid "User login"
+msgstr "Anmeldename"
+
+msgid "First name"
+msgstr "Vorname"
+
+msgid "Last name"
+msgstr "Nachname"
+
+msgid "Full name"
+msgstr "Vollständiger Name"
+
+msgid "Display name"
+msgstr "Angezeigter Name"
+
+msgid "Initials"
+msgstr "Initialen"
+
+msgid "Home directory"
+msgstr "Home-Verzeichnis"
+
+msgid "Login shell"
+msgstr "Anmeldeshell"
+
+msgid "Kerberos principal"
+msgstr "Kerberos-Principal"
+
+msgid "Kerberos principal expiration"
+msgstr "Kerberos-Principal Ablauf"
+
+msgid "Email address"
+msgstr "Email-Adresse"
+
+msgid "Prompt to set the user password"
+msgstr "Zum Setzen des Passworts auffordern"
+
+msgid "Generate a random user password"
+msgstr "Ein zufälliges Benutzerpasswort erzeugen"
+
+msgid "Random password"
+msgstr "Zufälliges Passwort"
+
+msgid "UID"
+msgstr "UID"
+
+msgid "User ID Number (system will assign one if not provided)"
+msgstr ""
+"Benutzer-ID (wird durch das System zugewiesen, falls diese nicht angegeben "
+"wird)"
+
+msgid "GID"
+msgstr "Gruppen-ID"
+
+msgid "Group ID Number"
+msgstr "Gruppen-ID"
+
+msgid "Street address"
+msgstr "Straße"
+
+msgid "City"
+msgstr "Ort"
+
+msgid "State/Province"
+msgstr "Staat/Bundesland"
+
+msgid "ZIP"
+msgstr "Postleitzahl"
+
+msgid "Telephone Number"
+msgstr "Telefonnummer"
+
+msgid "Mobile Telephone Number"
+msgstr "Mobiltelefonnummer"
+
+msgid "Pager Number"
+msgstr "Pagernummer"
+
+msgid "Fax Number"
+msgstr "Faxnummer"
+
+msgid "Org. Unit"
+msgstr "Org. Einheit"
+
+msgid "Job Title"
+msgstr "Tätigkeit"
+
+msgid "User authentication types"
+msgstr "Benutzerauthentifizierungstypen"
+
+msgid "Types of supported user authentication"
+msgstr "Typen der unterstützten Benutzerauthentifizierung"
+
+msgid "Class"
+msgstr "Klasse"
+
+msgid "RADIUS proxy configuration"
+msgstr "RADIUS-Proxy Konfiguration"
+
+msgid "RADIUS proxy username"
+msgstr "RADIUS-Proxy Benutzername"
+
+msgid "Department Number"
+msgstr "Abteilungsnummer"
+
+msgid "Employee Number"
+msgstr "Personalnummer"
+
+msgid "Employee Type"
+msgstr "Personaltyp"
+
+msgid "Preferred Language"
+msgstr "Bevorzugte Sprache"
+
+msgid "Certificate"
+msgstr "Zertifikat"
+
+#, python-format
+msgid "can be at most %(len)d characters"
+msgstr "darf höchstens %(len)d Zeichen lang sein"
+
+msgid "Enabled"
+msgstr "Aktiviert"
+
+msgid "User category"
+msgstr "Benutzerkategorie"
+
+msgid "Host category"
+msgstr "Host-Kategorie"
+
+msgid "User Groups"
+msgstr "Benutzergruppen"
+
+msgid "Host Groups"
+msgstr "Host-Gruppen"
+
+msgid "Services"
+msgstr "Dienste"
+
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr "Fehler beim Dekodieren der Signaturanfrage für das Zertifikat: %s"
@@ -614,14 +848,8 @@ msgstr "CSR"
 msgid "Principal"
 msgstr "Principal"
 
-msgid "Service principal for this certificate (e.g. HTTP/test.example.com)"
-msgstr "Dienst-Principal für dieses Zertifikat (z.B. HTTP/test.example.com)"
-
 msgid "automatically add the principal if it doesn't exist"
 msgstr "Den Principal automatisch hinzufügen, falls dieser nicht existiert"
-
-msgid "Certificate"
-msgstr "Zertifikat"
 
 msgid "Subject"
 msgstr "Betreff"
@@ -724,6 +952,24 @@ msgstr "Vorgegebene Gruppe für neue Benutzer"
 msgid "Enable migration mode"
 msgstr "Migrationsmodus aktivieren"
 
+msgid "Default group objectclasses"
+msgstr "Standard objectclass für Gruppen"
+
+msgid "Default group objectclasses (comma-separated list)"
+msgstr "Standard objectclass für Gruppen (komma-separierte Liste)"
+
+msgid "Default user objectclasses"
+msgstr "Standard objectclass für Benutzer"
+
+msgid "Default user objectclasses (comma-separated list)"
+msgstr "Standard objectclass für Benutzer (komma-separierte Liste)"
+
+msgid "Password Expiration Notification (days)"
+msgstr "Benachrichtigung über den Passwortablauf (Tage)"
+
+msgid "Number of days's notice of impending password expiration"
+msgstr "Anzahl der Tage die vor einem Passwortablauf gewarnt wird"
+
 msgid "Password plugin features"
 msgstr "Passwort-Plugin-Funktionen"
 
@@ -823,6 +1069,9 @@ msgstr "Vertikale Genauigkeit"
 msgid "'%(required)s' must not be empty when '%(name)s' is set"
 msgstr "»%(required)s« darf nicht leer sein, wenn »%(name)s« gesetzt ist."
 
+msgid "Order"
+msgstr "Reihenfolge"
+
 msgid "Flags"
 msgstr "Flags"
 
@@ -837,6 +1086,9 @@ msgstr "Ersetzung"
 
 msgid "Priority"
 msgstr "Priorität"
+
+msgid "Weight"
+msgstr "Gewicht"
 
 msgid "Port"
 msgstr "Port"
@@ -898,12 +1150,6 @@ msgstr "Dynamische Aktualisierungen erlauben."
 msgid "Record name"
 msgstr "Datensatzname"
 
-msgid "Class"
-msgstr "Klasse"
-
-msgid "DNS class"
-msgstr "DNS-Klasse"
-
 msgid "Structured"
 msgstr "Strukturiert"
 
@@ -961,9 +1207,6 @@ msgstr "Gruppe"
 msgid "groups"
 msgstr "Gruppen"
 
-msgid "User Groups"
-msgstr "Benutzergruppen"
-
 msgid "User Group"
 msgstr "Benutzergruppe"
 
@@ -972,9 +1215,6 @@ msgstr "Gruppenname"
 
 msgid "Group description"
 msgstr "Gruppenbeschreibung"
-
-msgid "GID"
-msgstr "Gruppen-ID"
 
 msgid "GID (use this option to set it manually)"
 msgstr "Gruppen-ID (verwenden Sie diese Option, um die ID manuell anzugeben)"
@@ -1043,7 +1283,7 @@ msgid "HBAC rules"
 msgstr "HBAC-Regeln"
 
 msgid "HBAC Rules"
-msgstr "Es ist nicht erlaubt, Benutzereinträge zu ändern."
+msgstr "HBAC-Regeln"
 
 msgid "HBAC Rule"
 msgstr "HBAC-Regel"
@@ -1057,23 +1297,29 @@ msgstr "Regeltyp (erlauben)"
 msgid "Rule type"
 msgstr "Regeltyp"
 
-msgid "User category"
-msgstr "Benutzerkategorie"
-
 msgid "User category the rule applies to"
 msgstr "Benutzerkategorie, auf welche die Regel angewendet werden soll"
-
-msgid "Host category"
-msgstr "Host-Kategorie"
 
 msgid "Host category the rule applies to"
 msgstr "Host-Kategorie, auf welche die Regel angewendet werden soll"
 
-msgid "Enabled"
-msgstr "Aktiviert"
+#, python-format
+msgid "Added HBAC rule \"%(value)s\""
+msgstr "HBAC-Regel \"%(value)s\" hinzugefügt"
 
-msgid "Services"
-msgstr "Dienste"
+msgid "Delete an HBAC rule."
+msgstr "HBAC-Regel löschen"
+
+#, python-format
+msgid "Deleted HBAC rule \"%(value)s\""
+msgstr "HBAC-Regel \"%(value)s\" gelöscht"
+
+msgid "Modify an HBAC rule."
+msgstr "HBAC-Regel ändern"
+
+#, python-format
+msgid "Modified HBAC rule \"%(value)s\""
+msgstr "HBAC-Regel \"%(value)s\" geändert"
 
 msgid "Access time"
 msgstr "Zugriffszeit"
@@ -1105,6 +1351,45 @@ msgstr "Nach HBAC-Diensten suchen."
 msgid "Display information about an HBAC service."
 msgstr "Informationen zu einem HBAC-Dienst anzeigen."
 
+msgid "HBAC service group"
+msgstr "HBAC-Dienstgruppe"
+
+msgid "HBAC service groups"
+msgstr "HBAC-Dienstgruppen"
+
+msgid "HBAC Service Groups"
+msgstr "HBAC-Dienstgruppen"
+
+msgid "HBAC Service Group"
+msgstr "HBAC-Dienstgruppe"
+
+msgid "Service group name"
+msgstr "Dienstgruppenname"
+
+msgid "HBAC service group description"
+msgstr "Beschreibung der HBAC-Dienstgruppe"
+
+msgid "Add a new HBAC service group."
+msgstr "Eine neue HBAC-Dienstgruppe hinzufügen."
+
+#, python-format
+msgid "Added HBAC service group \"%(value)s\""
+msgstr "HBAC-Dienstgruppe »%(value)s« hinzugefügt"
+
+msgid "Delete an HBAC service group."
+msgstr "HBAC-Dienstgruppe löschen"
+
+#, python-format
+msgid "Deleted HBAC service group \"%(value)s\""
+msgstr "HBAC-Dienstgruppe »%(value)s« gelöscht"
+
+msgid "Modify an HBAC service group."
+msgstr "HBAC-Dienstgruppe bearbeiten"
+
+#, python-format
+msgid "Modified HBAC service group \"%(value)s\""
+msgstr "HBAC-Dienstgruppe »%(value)s« geändert"
+
 msgid "Warning"
 msgstr "Warnung"
 
@@ -1121,9 +1406,6 @@ msgstr "Zugriff gewährt: %s"
 msgid "Serial Number"
 msgstr "Seriennummer"
 
-msgid "SSH public key fingerprint"
-msgstr "Fingerabdruck des öffentlichen SSH-Schlüssels"
-
 #, python-format
 msgid "invalid domain-name: %s"
 msgstr "Ungültiger Domainname: %s"
@@ -1136,9 +1418,6 @@ msgstr "Betriebssystem"
 
 msgid "User password"
 msgstr "Benutzerpasswort"
-
-msgid "Random password"
-msgstr "Zufälliges Passwort"
 
 msgid "Principal name"
 msgstr "Principal-Name"
@@ -1155,11 +1434,31 @@ msgstr "Name des zu exportierenden Methode"
 msgid "Name of command to export"
 msgstr "Name des zu exportierenden Befehls"
 
+msgid "Actions"
+msgstr "Aktionen"
+
+msgid "Direct Membership"
+msgstr "Direkte Migliedschaft"
+
+msgid "Indirect Membership"
+msgstr "Indirekte Mitgliedschaft"
+
 msgid "No entries."
 msgstr "Keine Einträge."
 
+#, python-brace-format
+msgid "Showing ${start} to ${end} of ${total} entries."
+msgstr "Zeige ${start} bis ${end} von ${total} Einträgen."
+
+#, python-brace-format
+msgid "${count} item(s) removed"
+msgstr "${count} Einträge gelöscht"
+
 msgid "Show Results"
 msgstr "Ergebnisse anzeigen"
+
+msgid "About"
+msgstr "Über"
 
 msgid "Add"
 msgstr "Hinzufügen"
@@ -1172,6 +1471,12 @@ msgstr "Hinzufügen und schließen"
 
 msgid "Add and Edit"
 msgstr "Hinzufügen und bearbeiten"
+
+msgid "Add Many"
+msgstr "Mehrere hinzufügen"
+
+msgid "Back"
+msgstr "Zurück"
 
 msgid "Cancel"
 msgstr "Abbrechen"
@@ -1191,11 +1496,14 @@ msgstr "Aktivieren"
 msgid "Find"
 msgstr "Suchen"
 
+msgid "Get"
+msgstr "Hollen"
+
 msgid "OK"
 msgstr "OK"
 
 msgid "Refresh"
-msgstr "Aktualisieren"
+msgstr "Neu laden"
 
 msgid "Delete"
 msgstr "Löschen"
@@ -1203,14 +1511,23 @@ msgstr "Löschen"
 msgid "Reset"
 msgstr "Zurücksetzen"
 
+msgid "Reset Password and Login"
+msgstr "Passwort zurücksetzen und Einloggen"
+
 msgid "Restore"
 msgstr "Wiederherstellen"
+
+msgid "Retry"
+msgstr "Erneut versuchen"
 
 msgid "Revoke"
 msgstr "Widerrufen"
 
+msgid "Set"
+msgstr "Setzen"
+
 msgid "Update"
-msgstr "Aktualisieren"
+msgstr "Speichern"
 
 msgid "View"
 msgstr "Ansicht"
@@ -1220,6 +1537,9 @@ msgstr "Alle einklappen"
 
 msgid "Expand All"
 msgstr "Alle aufklappen"
+
+msgid "Identity Settings"
+msgstr "Identitätseinstellungen"
 
 msgid "Back to Top"
 msgstr "Zurück nach oben"
@@ -1234,11 +1554,26 @@ msgstr "Verfügbar"
 msgid "Confirmation"
 msgstr "Bestätigung"
 
+msgid "This page has unsaved changes. Please save or revert."
+msgstr ""
+"Diese Seite hat nicht gespeicherte Änderungen. Bitte Speichern oder "
+"Rückgängig machen"
+
 msgid "Unsaved Changes"
 msgstr "Ungespeicherte Änderungen"
 
+#, python-brace-format
+msgid "Edit ${entity}"
+msgstr "${entity} bearbeiten"
+
 msgid "Hide details"
 msgstr "Details verbergen"
+
+msgid "Redirection"
+msgstr "Umleitung"
+
+msgid "Select entries to be removed."
+msgstr "Einträge zum löschen auswählen."
 
 #, python-brace-format
 msgid "Remove ${entity}"
@@ -1265,6 +1600,14 @@ msgstr "Unbekannter Fehler"
 msgid "URL"
 msgstr "URL"
 
+#, python-brace-format
+msgid "${primary_key} members:"
+msgstr "${primary_key} Mitglieder:"
+
+#, python-brace-format
+msgid "${primary_key} is a member of:"
+msgstr "${primary_key} ist Mitglied von:"
+
 msgid "Settings"
 msgstr "Einstellungen"
 
@@ -1274,14 +1617,38 @@ msgstr "Suchen"
 msgid "Logged In As"
 msgstr "Angemeldet als"
 
+msgid "Login"
+msgstr "Einloggen"
+
+msgid "Logout"
+msgstr "Ausloggen"
+
+msgid "Logout error"
+msgstr "Fehler beim Ausloggen"
+
+msgid "Sync OTP Token"
+msgstr "OTP Token synchronisieren"
+
 msgid "Username"
 msgstr "Benutzername"
+
+msgid "number of passwords"
+msgstr "Anzahl der Passwörter"
+
+msgid "seconds"
+msgstr "Sekunden"
 
 msgid "Attribute"
 msgstr "Attribut"
 
 msgid "Add Rule"
 msgstr "Regel hinzufügen"
+
+msgid "Default host group"
+msgstr "Standard Hostgruppe"
+
+msgid "Default user group"
+msgstr "Standard Benutzergruppe"
 
 msgid "Expression"
 msgstr "Ausdruck"
@@ -1304,6 +1671,9 @@ msgstr "Ausgegeben von"
 msgid "Issued On"
 msgstr "Ausgegeben am"
 
+msgid "Issued To"
+msgstr "Ausgegeben an"
+
 msgid "MD5 Fingerprint"
 msgstr "MD5-Fingerabdruck"
 
@@ -1315,6 +1685,9 @@ msgstr "Neues Zertifikat"
 
 msgid "Organization"
 msgstr "Organisation"
+
+msgid "Organizational Unit"
+msgstr "Organisationseinheit"
 
 msgid "SHA1 Fingerprint"
 msgstr "SHA1-Fingerabdruck"
@@ -1361,20 +1734,62 @@ msgstr "Jeder Host"
 msgid "Any Service"
 msgstr "Jeder Dienst"
 
+msgid "Anyone"
+msgstr "Jeder"
+
+msgid "Accessing"
+msgstr "Greift zu"
+
+msgid "Rule status"
+msgstr "Regelstatus"
+
+msgid "Via Service"
+msgstr "Mit Dienst"
+
+msgid "Specified Hosts and Groups"
+msgstr "Spezifische Hosts und Gruppen"
+
+msgid "Specified Services and Groups"
+msgstr "Spezifische Dienste und Gruppen"
+
+msgid "Specified Users and Groups"
+msgstr "Spezifische Benutzer und Gruppen"
+
+msgid "Who"
+msgstr "Wer"
+
 msgid "Access Denied"
 msgstr "Zugriff verweigert"
 
 msgid "Access Granted"
 msgstr "Zugriff gewährt"
 
+msgid "HBAC Test"
+msgstr "HBAC Test"
+
 msgid "New Test"
 msgstr "Neuer Test"
+
+msgid "Rules"
+msgstr "Regeln"
+
+msgid "Run Test"
+msgstr "Test Starten"
+
+msgid "Host Certificate"
+msgstr "Host-Zertifikat"
+
+msgid "Host Name"
+msgstr "Host-Name"
+
+msgid "Host Settings"
+msgstr "Host Einstellungen"
 
 msgid "Kerberos Key"
 msgstr "Kerberos-Schlüssel"
 
-msgid "User"
-msgstr "Benutzer"
+msgid "Password Policy"
+msgstr "Passwort-Regeln"
 
 msgid "Groups"
 msgstr "Gruppen"
@@ -1385,14 +1800,74 @@ msgstr "Befehle"
 msgid "Allow"
 msgstr "Erlauben"
 
+msgid "Any Command"
+msgstr "Jeder Befehl"
+
+msgid "Any Group"
+msgstr "Jede Gruppe"
+
 msgid "Run Commands"
 msgstr "Befehle ausführen"
 
 msgid "Deny"
 msgstr "Verweigern"
 
+msgid "Access this host"
+msgstr "Zugriff auf diesen Host"
+
+msgid "Specified Commands and Groups"
+msgstr "Spezifische Befehle und Gruppen"
+
+msgid "Specified Groups"
+msgstr "Spezifische Gruppe"
+
 msgid "Account"
 msgstr "Konto"
+
+msgid "Administrative account"
+msgstr "Administratives Konto"
+
+msgid "Trust Settings"
+msgstr "Vertrauenseinstellungen"
+
+msgid "Domain"
+msgstr "Domain"
+
+msgid "Account Settings"
+msgstr "Kontoeinstellungen"
+
+msgid "Account Status"
+msgstr "Kontostatus"
+
+msgid "Contact Settings"
+msgstr "Kontakteinstellungen"
+
+msgid "Employee Information"
+msgstr "Mitarbeiterinformationen"
+
+msgid "Password expiration"
+msgstr "Passwortablauf"
+
+msgid "Mailing Address"
+msgstr "Anschrift"
+
+msgid "Misc. Information"
+msgstr "Weitere Informationen"
+
+#, python-brace-format
+msgid ""
+"Are you sure you want to ${action} the user?<br/>The change will take effect "
+"immediately."
+msgstr ""
+"Sind sie sicher, dass sie den Nutzer ${action} möchten?<br/>Die Änderung "
+"wird sofort aktiv."
+
+#, python-brace-format
+msgid "Click to ${action}"
+msgstr "Klicken um zu ${action}"
+
+msgid "Unlock"
+msgstr "Entsperren"
 
 msgid "Current Password"
 msgstr "Aktuelles Passwort"
@@ -1403,14 +1878,32 @@ msgstr "Aktuelles Passwort ist erforderlich"
 msgid "New Password"
 msgstr "Neues Passwort"
 
+msgid "New password is required"
+msgstr "Neues Passwort wird benötigt"
+
+msgid "Password or Password+One-Time-Password"
+msgstr "Passwort oder Passwort+Einmalpasswort"
+
 msgid "Password change complete"
 msgstr "Passwortänderung abgeschlossen"
 
 msgid "Passwords must match"
 msgstr "Passwörter müssen übereinstimmen"
 
+msgid "Password reset was not successful."
+msgstr "Passwort konnte nicht zurückgesetzt werden"
+
 msgid "Reset Password"
 msgstr "Passwort zurücksetzen"
+
+msgid "Reset your password."
+msgstr "Passwort zurücksetzen."
+
+msgid "Second OTP"
+msgstr "Zweites OTP"
+
+msgid "Token ID"
+msgstr "Token ID"
 
 msgid "Verify Password"
 msgstr "Passwort verifizieren"
@@ -1421,6 +1914,9 @@ msgstr "Sind Sie sicher, dass Sie die ausgewählten Einträge löschen wollen?"
 msgid "Some entries were not deleted"
 msgstr "Einige Einträge wurden nicht gelöscht"
 
+msgid "Quick Links"
+msgstr "Schnell Links"
+
 msgid "Select All"
 msgstr "Alle auswählen"
 
@@ -1429,6 +1925,12 @@ msgstr "Alle abwählen"
 
 msgid "Disabled"
 msgstr "Deaktiviert"
+
+msgid "Working"
+msgstr "Arbeite"
+
+msgid "Authentication"
+msgstr "Authentifizierung"
 
 msgid "Automount"
 msgstr "Automount"
@@ -1442,8 +1944,29 @@ msgstr "Identität"
 msgid "IPA Server"
 msgstr "IPA-Server"
 
+msgid "Network Services"
+msgstr "Netzwerkdienste"
+
+msgid "Policy"
+msgstr "Regeln"
+
 msgid "Sudo"
 msgstr "Sudo"
+
+msgid "First"
+msgstr "Erste"
+
+msgid "Last"
+msgstr "Letzte"
+
+msgid "Next"
+msgstr "Nächste"
+
+msgid "Page"
+msgstr "Seite"
+
+msgid "Prev"
+msgstr "Vorherige"
 
 msgid "Must be an integer"
 msgstr "Muss eine Ganzzahl sein"
@@ -1515,6 +2038,16 @@ msgstr[1] "%(count)d Plugins geladen"
 msgid "Number of plugins loaded"
 msgstr "Anzahl der geladenen Plugins"
 
+msgid "Member Host"
+msgstr "Mitglieds-Host"
+
+#, python-format
+msgid "Changed password for \"%(value)s\""
+msgstr "Passwort für \"%(value)s\" geändert"
+
+msgid "Invalid credentials"
+msgstr "Ungültige Zugangsdaten"
+
 msgid "PKINIT"
 msgstr "PKINIT"
 
@@ -1579,6 +2112,12 @@ msgstr ""
 #, python-format
 msgid "Disabled service \"%(value)s\""
 msgstr "Dienst »%(value)s« deaktiviert"
+
+#, python-format
+msgid "%(count)d user matched"
+msgid_plural "%(count)d users matched"
+msgstr[0] "%(count)d passender Benutzer"
+msgstr[1] "%(count)d passende Benutzer"
 
 msgid "commands for controlling sudo configuration"
 msgstr "Befehle zum Steuern der sudo-Konfiguration"
@@ -1681,74 +2220,6 @@ msgstr "Sudo-Regel »%s« wurde deaktiviert."
 msgid "Realm name"
 msgstr "Realm-Name"
 
-msgid "Kerberos keys available"
-msgstr "Kerberos-Schlüssel verfügbar"
-
-msgid "User login"
-msgstr "Anmeldename"
-
-msgid "First name"
-msgstr "Vorname"
-
-msgid "Last name"
-msgstr "Nachname"
-
-msgid "Full name"
-msgstr "Vollständiger Name"
-
-msgid "Display name"
-msgstr "Angezeigter Name"
-
-msgid "Initials"
-msgstr "Initialen"
-
-msgid "Home directory"
-msgstr "Home-Verzeichnis"
-
-msgid "Login shell"
-msgstr "Anmeldeshell"
-
-msgid "Kerberos principal"
-msgstr "Kerberos-Principal"
-
-msgid "Email address"
-msgstr "Email-Adresse"
-
-msgid "Generate a random user password"
-msgstr "Ein zufälliges Benutzerpasswort erzeugen"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "User ID Number (system will assign one if not provided)"
-msgstr ""
-"Benutzer-ID (wird durch das System zugewiesen, falls diese nicht angegeben "
-"wird)"
-
-msgid "Group ID Number"
-msgstr "Gruppen-ID"
-
-msgid "Street address"
-msgstr "Straße"
-
-msgid "City"
-msgstr "Ort"
-
-msgid "State/Province"
-msgstr "Staat/Bundesland"
-
-msgid "ZIP"
-msgstr "Postleitzahl"
-
-msgid "Telephone Number"
-msgstr "Telefonnummer"
-
-msgid "Mobile Telephone Number"
-msgstr "Mobiltelefonnummer"
-
-msgid "Fax Number"
-msgstr "Faxnummer"
-
 msgid "Account disabled"
 msgstr "Konto ist deaktiviert"
 
@@ -1758,10 +2229,6 @@ msgstr "Einen neuen Benutzer hinzufügen."
 #, python-format
 msgid "Added user \"%(value)s\""
 msgstr "Benutzer »%(value)s« hinzugefügt"
-
-#, python-format
-msgid "can be at most %(len)d characters"
-msgstr "darf höchstens %(len)d Zeichen lang sein"
 
 msgid "Delete a user."
 msgstr "Einen Benutzer löschen."
@@ -1780,14 +2247,11 @@ msgstr "Benutzer »%(value)s« geändert"
 msgid "Search for users."
 msgstr "Nach Benutzern suchen."
 
+msgid "Self"
+msgstr "Selbst"
+
 msgid "Display user record for current Kerberos principal"
 msgstr "Benutzer-Datensatz für den aktuellen Kerberos-Principal anzeigen"
-
-#, python-format
-msgid "%(count)d user matched"
-msgid_plural "%(count)d users matched"
-msgstr[0] "%(count)d passender Benutzer"
-msgstr[1] "%(count)d passende Benutzer"
 
 msgid "Display information about a user."
 msgstr "Informationen zu einem Benutzer anzeigen."
@@ -1866,10 +2330,6 @@ msgstr "Nicht genügend Speicher\n"
 #, c-format
 msgid "Unable to initialize ldap library!\n"
 msgstr "ldap-Bibliothek konnte nicht initialisiert werden!\n"
-
-#, c-format
-msgid "Operation failed! %s\n"
-msgstr "Operation fehlgeschlagen! %s\n"
 
 #, c-format
 msgid "Out of Memory!\n"

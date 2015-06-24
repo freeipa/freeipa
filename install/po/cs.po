@@ -4,21 +4,123 @@
 #
 # Translators:
 # Petr Viktorin <encukou@gmail.com>, 2013
+# Josef Hruška <josef.hruska@upcmail.cz>, 2015. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: FreeIPA\n"
+"Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2014-07-07 15:24+0200\n"
-"PO-Revision-Date: 2014-07-03 08:37+0000\n"
-"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
-"Language-Team: Czech (http://www.transifex.com/projects/p/freeipa/language/"
-"cs/)\n"
-"Language: cs\n"
+"POT-Creation-Date: 2015-06-24 13:48+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2015-06-29 01:17-0400\n"
+"Last-Translator: Josef Hruška <josef.hruska@upcmail.cz>\n"
+"Language-Team: Czech (http://www.transifex.com/projects/p/freeipa/language/"
+"cs/)\n"
+"Language: cs\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Zanata 3.6.2\n"
+
+#, python-format
+msgid "Enter %(label)s again to verify: "
+msgstr "Vložte znovu své %(label)s, aby se ověřila jeho správnost."
+
+#, c-format
+msgid "Passwords do not match!"
+msgstr "Hesla se neshodují!"
+
+msgid "No matching entries found"
+msgstr "Nenalezeny žádné shodné položky"
+
+msgid "Topic or Command"
+msgstr "Téma nebo příkaz"
+
+msgid "The topic or command name."
+msgstr "Název tématu nebo příkazu."
+
+msgid "Topic commands:"
+msgstr "Příkazy tématu:"
+
+msgid "To get command help, use:"
+msgstr "Chceteli získat nápovědu k příkazu, použijte:"
+
+msgid "  ipa <command> --help"
+msgstr "  ipa <command> --help"
+
+msgid "Command name"
+msgstr "Název příkazu"
+
+msgid "Positional arguments"
+msgstr "Poziční argumenty"
+
+#, python-format
+msgid "Same as --%s"
+msgstr "Stejné jako --%s"
+
+msgid "Deprecated options"
+msgstr "Zastaralé volby"
+
+msgid "No file to read"
+msgstr "Žádný soubor k přečtení"
+
+msgid "A string searched in all relevant object attributes"
+msgstr "Řetězec vyhledávaný ve všech odpovídajících atributech objektu"
+
+#, python-format
+msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
+msgstr ""
+"Verze %(cver)s klienta není kompatibilní s verzí %(sver)s serveru "
+"'%(server)s'"
+
+#, python-format
+msgid "unknown error %(code)d from %(server)s: %(error)s"
+msgstr "neznámý kód %(code)d chyby ze serveru %(server)s: %(error)s"
+
+msgid "an internal error has occurred"
+msgstr "Vyskytla se vnitřní chyba"
+
+#, python-format
+msgid "an internal error has occurred on server at '%(server)s'"
+msgstr "na serveru '%(server)s' se vyskytla interní chyba"
+
+#, python-format
+msgid "unknown command '%(name)s'"
+msgstr "neznámý příkaz '%(name)s'"
+
+#, python-format
+msgid "error on server '%(server)s': %(error)s"
+msgstr "chyba na serveru '%(server)s': %(error)s"
+
+#, python-format
+msgid "cannot connect to '%(uri)s': %(error)s"
+msgstr "nelze se připojit k '%(uri)s': %(error)s"
+
+#, python-format
+msgid "Invalid JSON-RPC request: %(error)s"
+msgstr "Neplatný požadavek JSON-RPC: %(error)s"
+
+#, python-format
+msgid "error marshalling data for XML-RPC transport: %(error)s"
+msgstr "chyba marshallingu dat pro přenos XML-RPC: %(error)s"
+
+#, python-format
+msgid "Missing or invalid HTTP Referer, %(referer)s"
+msgstr "Chybějící nebo neplatný HTTP Referer, %(referer)s"
+
+#, python-format
+msgid "Kerberos error: %(major)s/%(minor)s"
+msgstr "Chyba Kerberos: %(major)s/%(minor)s"
+
+msgid "did not receive Kerberos credentials"
+msgstr "neobdrženy ověřovací údaje Kerberos"
+
+#, python-format
+msgid "Service '%(service)s' not found in Kerberos database"
+msgstr "Služba '%(service)s' nenalezena v databázi Kerberosu"
+
+msgid "No credentials cache found"
+msgstr "Nenalezena mezipamět ověřovacích údajů"
 
 #, python-format
 msgid "%(reason)s"

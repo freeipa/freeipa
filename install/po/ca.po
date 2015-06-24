@@ -6,19 +6,20 @@
 # Jordi Mas <jmas@softcatala.org>, 2013
 msgid ""
 msgstr ""
-"Project-Id-Version: FreeIPA\n"
+"Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2014-07-07 15:24+0200\n"
-"PO-Revision-Date: 2014-07-03 08:37+0000\n"
+"POT-Creation-Date: 2015-06-24 13:48+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2014-09-23 08:41-0400\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Catalan (http://www.transifex.com/projects/p/freeipa/language/"
 "ca/)\n"
 "Language: ca\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Zanata 3.6.2\n"
 
 msgid "Passwords do not match"
 msgstr "Les contrasenyes no coincideixen"
@@ -77,8 +78,74 @@ msgstr "Drets"
 msgid "Rename"
 msgstr "Canvia el nom"
 
+msgid "Server"
+msgstr "Servidor"
+
+msgid "Time now"
+msgstr "L'hora actual"
+
+msgid "User"
+msgstr "Usuari"
+
+msgid "User login"
+msgstr "Entrada"
+
+msgid "First name"
+msgstr "Nom"
+
+msgid "Last name"
+msgstr "Cognom"
+
+msgid "Full name"
+msgstr "Nom complet"
+
+msgid "Initials"
+msgstr "Inicials"
+
+msgid "Home directory"
+msgstr "Directori de l'usuari"
+
+msgid "Login shell"
+msgstr "Intèrpret d'ordres de l'inici de sessió"
+
+msgid "Email address"
+msgstr "Adreça de correu electrònic"
+
+msgid "UID"
+msgstr "UID"
+
+msgid "City"
+msgstr "Ciutat"
+
+msgid "State/Province"
+msgstr "Estat/província"
+
+msgid "Telephone Number"
+msgstr "Número de telèfon"
+
+msgid "Pager Number"
+msgstr "Número de buscapersones"
+
+msgid "Fax Number"
+msgstr "Número de fax"
+
+msgid "Job Title"
+msgstr "Càrrec"
+
+msgid "Manager"
+msgstr "Gestor"
+
+msgid "Class"
+msgstr "Classe"
+
 msgid "Certificate"
 msgstr "Certificat"
+
+msgid "Enabled"
+msgstr "S'ha habilitat"
+
+msgid "Services"
+msgstr "Serveis"
 
 msgid "Subject"
 msgstr "Assumpte"
@@ -149,20 +216,11 @@ msgstr "Empremta"
 msgid "Force"
 msgstr "Força"
 
-msgid "Class"
-msgstr "Classe"
-
 msgid "group"
 msgstr "grup"
 
 msgid "Group name"
 msgstr "Nom del grup"
-
-msgid "Enabled"
-msgstr "S'ha habilitat"
-
-msgid "Services"
-msgstr "Serveis"
 
 msgid "Access time"
 msgstr "Temps d'accés"
@@ -407,9 +465,6 @@ msgstr "No coincideix"
 msgid "Host Name"
 msgstr "Nom de l'ordinador"
 
-msgid "User"
-msgstr "Usuari"
-
 msgid "Active Directory domain"
 msgstr "Domini d'Active Directory"
 
@@ -473,17 +528,11 @@ msgstr "Pàgina"
 msgid "Prev"
 msgstr "Anterior"
 
-msgid "undo"
-msgstr "desfés"
-
 msgid "Continue"
 msgstr "Continua"
 
 msgid "Netgroup name"
 msgstr "Nom de grup de xarxa"
-
-msgid "Manager"
-msgstr "Gestor"
 
 msgid "Invalid credentials"
 msgstr "Credencials no vàlides"
@@ -493,9 +542,6 @@ msgstr "permisos"
 
 msgid "Group"
 msgstr "Grup"
-
-msgid "Server"
-msgstr "Servidor"
 
 msgid "Role"
 msgstr "Rol"
@@ -514,54 +560,6 @@ msgstr "Desconegut"
 
 msgid "Trust"
 msgstr "Confiança"
-
-msgid "Time now"
-msgstr "L'hora actual"
-
-msgid "User login"
-msgstr "Entrada"
-
-msgid "First name"
-msgstr "Nom"
-
-msgid "Last name"
-msgstr "Cognom"
-
-msgid "Full name"
-msgstr "Nom complet"
-
-msgid "Initials"
-msgstr "Inicials"
-
-msgid "Home directory"
-msgstr "Directori de l'usuari"
-
-msgid "Login shell"
-msgstr "Intèrpret d'ordres de l'inici de sessió"
-
-msgid "Email address"
-msgstr "Adreça de correu electrònic"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "City"
-msgstr "Ciutat"
-
-msgid "State/Province"
-msgstr "Estat/província"
-
-msgid "Telephone Number"
-msgstr "Número de telèfon"
-
-msgid "Pager Number"
-msgstr "Número de buscapersones"
-
-msgid "Fax Number"
-msgstr "Número de fax"
-
-msgid "Job Title"
-msgstr "Càrrec"
 
 msgid "Self"
 msgstr "Ell mateix"

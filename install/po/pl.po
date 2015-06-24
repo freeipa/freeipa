@@ -8,20 +8,21 @@
 # Piotr Drąg <piotrdrag@gmail.com>, 2010,2013
 msgid ""
 msgstr ""
-"Project-Id-Version: FreeIPA\n"
+"Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2014-07-07 15:24+0200\n"
-"PO-Revision-Date: 2014-07-03 08:37+0000\n"
+"POT-Creation-Date: 2015-06-24 13:48+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2014-09-23 08:41-0400\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Polish (http://www.transifex.com/projects/p/freeipa/language/"
 "pl/)\n"
 "Language: pl\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
+"X-Generator: Zanata 3.6.2\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -115,9 +116,6 @@ msgstr "Nie można dodać grupy jako elementu jej samej"
 
 msgid "The default users group cannot be removed"
 msgstr "Nie można usunąć domyślnej grupy użytkowników"
-
-msgid "Host does not have corresponding DNS A record"
-msgstr "Komputer nie posiada pasującego wpisu DNS A"
 
 msgid "Deleting a managed group is not allowed. It must be detached first."
 msgstr ""
@@ -447,6 +445,92 @@ msgstr "Ograniczenie rozmiaru"
 msgid "Maximum number of entries returned"
 msgstr "Maksymalna liczba zwróconych wpisów"
 
+msgid "User"
+msgstr "Użytkownik"
+
+msgid "User login"
+msgstr "Login użytkownika"
+
+msgid "First name"
+msgstr "Imię"
+
+msgid "Last name"
+msgstr "Nazwisko"
+
+msgid "Full name"
+msgstr "Pełna nazwa"
+
+msgid "Home directory"
+msgstr "Katalog domowy"
+
+msgid "Login shell"
+msgstr "Powłoka logowania"
+
+msgid "Kerberos principal"
+msgstr "Naczelnik Kerberosa"
+
+msgid "Email address"
+msgstr "Adres e-mail"
+
+msgid "UID"
+msgstr "UID"
+
+msgid "User ID Number (system will assign one if not provided)"
+msgstr ""
+"Numer identyfikacyjny użytkownika (system go przydzieli, jeśli nie zostanie "
+"podany)"
+
+msgid "GID"
+msgstr "GID"
+
+msgid "Street address"
+msgstr "Adres zamieszkania"
+
+msgid "City"
+msgstr "Miasto"
+
+msgid "Telephone Number"
+msgstr "Numer telefonu"
+
+msgid "Mobile Telephone Number"
+msgstr "Numer telefonu komórkowego"
+
+msgid "Pager Number"
+msgstr "Numer pagera"
+
+msgid "Fax Number"
+msgstr "Numer faksu"
+
+msgid "Class"
+msgstr "Klasa"
+
+msgid "Certificate"
+msgstr "Certyfikat"
+
+msgid "Base-64 encoded server certificate"
+msgstr "Certyfikat serwera zakodowany za pomocą Base-64"
+
+msgid "Enabled"
+msgstr "Włączone"
+
+msgid "User category"
+msgstr "Kategoria użytkowników"
+
+msgid "Host category"
+msgstr "Kategoria komputerów"
+
+msgid "Service category"
+msgstr "Kategoria usług"
+
+msgid "User Groups"
+msgstr "Grupy użytkowników"
+
+msgid "Host Groups"
+msgstr "Grupy komputerów"
+
+msgid "Services"
+msgstr "Usługi"
+
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr "Dekodowanie żądania podpisywania certyfikatu nie powiodło się: %s"
@@ -454,14 +538,8 @@ msgstr "Dekodowanie żądania podpisywania certyfikatu nie powiodło się: %s"
 msgid "Principal"
 msgstr "Naczelnik"
 
-msgid "Service principal for this certificate (e.g. HTTP/test.example.com)"
-msgstr "Naczelnik usługi dla tego certyfikatu (np. HTTP/test.przykład.pl)"
-
 msgid "automatically add the principal if it doesn't exist"
 msgstr "automatycznie dodaj naczelnika, jeśli nie istnieje"
-
-msgid "Certificate"
-msgstr "Certyfikat"
 
 msgid "Subject"
 msgstr "Temat"
@@ -593,14 +671,8 @@ msgstr "Minimalne SOA"
 msgid "Time to live"
 msgstr "Czas życia"
 
-msgid "SOA class"
-msgstr "Klasa SOA"
-
 msgid "BIND update policy"
 msgstr "Polityka aktualizacji BIND"
-
-msgid "Class"
-msgstr "Klasa"
 
 msgid "Delete all associated records"
 msgstr "Usuń wszystkie powiązane wpisy"
@@ -616,17 +688,11 @@ msgstr "Odnaleziono \"%(value)s\""
 msgid "Host '%(host)s' not found"
 msgstr "Nie odnaleziono komputera \"%(host)s\""
 
-msgid "User Groups"
-msgstr "Grupy użytkowników"
-
 msgid "Group name"
 msgstr "Nazwa grupy"
 
 msgid "Group description"
 msgstr "Opis grupy"
-
-msgid "GID"
-msgstr "GID"
 
 msgid "GID (use this option to set it manually)"
 msgstr "GID (ta opcja umożliwia jego ręczne ustawienie)"
@@ -672,32 +738,14 @@ msgstr "Nazwa reguły"
 msgid "Rule type"
 msgstr "Typ reguły"
 
-msgid "User category"
-msgstr "Kategoria użytkowników"
-
 msgid "User category the rule applies to"
 msgstr "Kategoria użytkowników, do których zastosowywana jest reguła"
-
-msgid "Host category"
-msgstr "Kategoria komputerów"
 
 msgid "Host category the rule applies to"
 msgstr "Kategoria komputerów, do których zastosowywana jest reguła"
 
-msgid "Service category"
-msgstr "Kategoria usług"
-
 msgid "Service category the rule applies to"
 msgstr "Kategoria usług, do których zastosowywana jest reguła"
-
-msgid "Enabled"
-msgstr "Włączone"
-
-msgid "Host Groups"
-msgstr "Grupy komputerów"
-
-msgid "Services"
-msgstr "Usługi"
 
 msgid "Service Groups"
 msgstr "Grupy usług"
@@ -752,9 +800,6 @@ msgstr "Hasło użytkownika"
 
 msgid "Password used in bulk enrollment"
 msgstr "Hasło używane w zapisywaniu większej części"
-
-msgid "Base-64 encoded server certificate"
-msgstr "Certyfikat serwera zakodowany za pomocą Base-64"
 
 msgid "Principal name"
 msgstr "Nazwa naczelnika"
@@ -886,9 +931,6 @@ msgstr "Ustaw OTP"
 
 msgid "Kerberos Ticket Policy"
 msgstr "Polityka zgłoszeń Kerberosa"
-
-msgid "User"
-msgstr "Użytkownik"
 
 msgid "Password Policy"
 msgstr "Polityka haseł"
@@ -1145,6 +1187,13 @@ msgstr[0] "Pasuje %(count)d usługa"
 msgstr[1] "Pasuje %(count)d usługi"
 msgstr[2] "Pasuje %(count)d usług"
 
+#, python-format
+msgid "%(count)d user matched"
+msgid_plural "%(count)d users matched"
+msgstr[0] "Pasuje %(count)d użytkownik"
+msgstr[1] "Pasuje %(count)d użytkowników"
+msgstr[2] "Pasuje %(count)d użytkowników"
+
 msgid "Sudo Command"
 msgstr "Polecenie sudo"
 
@@ -1159,56 +1208,6 @@ msgstr "Polecenia zabronione sudo"
 
 msgid "Realm name"
 msgstr "Nazwa obszaru"
-
-msgid "User login"
-msgstr "Login użytkownika"
-
-msgid "First name"
-msgstr "Imię"
-
-msgid "Last name"
-msgstr "Nazwisko"
-
-msgid "Full name"
-msgstr "Pełna nazwa"
-
-msgid "Home directory"
-msgstr "Katalog domowy"
-
-msgid "Login shell"
-msgstr "Powłoka logowania"
-
-msgid "Kerberos principal"
-msgstr "Naczelnik Kerberosa"
-
-msgid "Email address"
-msgstr "Adres e-mail"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "User ID Number (system will assign one if not provided)"
-msgstr ""
-"Numer identyfikacyjny użytkownika (system go przydzieli, jeśli nie zostanie "
-"podany)"
-
-msgid "Street address"
-msgstr "Adres zamieszkania"
-
-msgid "City"
-msgstr "Miasto"
-
-msgid "Telephone Number"
-msgstr "Numer telefonu"
-
-msgid "Mobile Telephone Number"
-msgstr "Numer telefonu komórkowego"
-
-msgid "Pager Number"
-msgstr "Numer pagera"
-
-msgid "Fax Number"
-msgstr "Numer faksu"
 
 #, python-format
 msgid "Added user \"%(value)s\""
@@ -1227,13 +1226,6 @@ msgstr "Własny"
 
 msgid "Display user record for current Kerberos principal"
 msgstr "Wyświetlenie wpisu użytkownika dla bieżącego naczelnika Kerberosa"
-
-#, python-format
-msgid "%(count)d user matched"
-msgid_plural "%(count)d users matched"
-msgstr[0] "Pasuje %(count)d użytkownik"
-msgstr[1] "Pasuje %(count)d użytkowników"
-msgstr[2] "Pasuje %(count)d użytkowników"
 
 #, python-format
 msgid "Disabled user account \"%(value)s\""
@@ -1288,10 +1280,6 @@ msgid "Simple bind failed\n"
 msgstr "Proste dowiązanie nie powiodło się\n"
 
 #, c-format
-msgid "Operation failed! %s\n"
-msgstr "Działanie nie powiodło się. %s\n"
-
-#, c-format
 msgid "Missing reply control!\n"
 msgstr "Brak kontroli odpowiedzi.\n"
 
@@ -1306,10 +1294,6 @@ msgstr "Utworzenie kontroli nie powiodło się.\n"
 #, c-format
 msgid "ber_init() failed, Invalid control ?!\n"
 msgstr "ber_init() nie powiodło się, nieprawidłowa kontrola?\n"
-
-#, c-format
-msgid "Out of memory!\n"
-msgstr "Brak pamięci.\n"
 
 msgid "New Principal Password"
 msgstr "Nowe hasło naczelnika"
@@ -1457,6 +1441,10 @@ msgstr "Dowiązanie nie powiodło się: %s\n"
 #, c-format
 msgid "No values for %s"
 msgstr "Brak wartości dla %s"
+
+#, c-format
+msgid "Out of memory!\n"
+msgstr "Brak pamięci.\n"
 
 #, c-format
 msgid "Search for ipaCertificateSubjectBase failed with error %d"

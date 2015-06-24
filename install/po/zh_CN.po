@@ -5,21 +5,23 @@
 # Translators:
 # Jake Li <gnozil@gmail.com>, 2010
 # jdennis <jdennis@redhat.com>, 2011
+# Martin Liu <martin@aws-faq.com>, 2015. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: FreeIPA\n"
+"Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2014-07-07 15:24+0200\n"
-"PO-Revision-Date: 2014-07-03 08:37+0000\n"
-"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
-"Language-Team: Chinese (China) (http://www.transifex.com/projects/p/freeipa/"
-"language/zh_CN/)\n"
-"Language: zh_CN\n"
+"POT-Creation-Date: 2015-06-24 13:48+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2015-03-12 12:06-0400\n"
+"Last-Translator: Martin Liu <martin@aws-faq.com>\n"
+"Language-Team: Chinese (China) (http://www.transifex.com/projects/p/freeipa/"
+"language/zh_CN/)\n"
+"Language: zh-CN\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Zanata 3.6.2\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -29,12 +31,40 @@ msgstr "再次输入 %(label)s进行校验: "
 msgid "Passwords do not match!"
 msgstr "密码不匹配！"
 
+msgid "No matching entries found"
+msgstr "发现了不匹配的条目"
+
+#, python-format
+msgid "Same as --%s"
+msgstr "相同于  --%s"
+
+msgid "Deprecated options"
+msgstr "已弃用的选项"
+
+msgid "No file to read"
+msgstr "无文件可读"
+
+msgid "A string searched in all relevant object attributes"
+msgstr "在所有相关对象中搜索字符串"
+
 msgid "an internal error has occurred"
-msgstr "发生了一个内部错误"
+msgstr "发生了内部错误"
+
+#, python-format
+msgid "an internal error has occurred on server at '%(server)s'"
+msgstr "服务器  '%(server)s' 已经发生了一次内部错误"
 
 #, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
 msgstr "无效的JSON-RPC请求: %(error)s"
+
+#, python-format
+msgid "Missing or invalid HTTP Referer, %(referer)s"
+msgstr "丢失或者无效的 HTTP Referer, %(referer)s"
+
+#, python-format
+msgid "Kerberos error: %(major)s/%(minor)s"
+msgstr "Kerberos 错误： %(major)s/%(minor)s"
 
 msgid "Passwords do not match"
 msgstr "密码不匹配"
@@ -175,8 +205,53 @@ msgstr "主机组成员"
 msgid "External host"
 msgstr "外部主机"
 
+msgid "User"
+msgstr "用户"
+
+msgid "User login"
+msgstr "用户登录名"
+
+msgid "First name"
+msgstr "名"
+
+msgid "Last name"
+msgstr "姓"
+
+msgid "Login shell"
+msgstr "登录shell"
+
+msgid "Email address"
+msgstr "邮件地址"
+
+msgid "UID"
+msgstr "UID"
+
+msgid "GID"
+msgstr "GID"
+
+msgid "Street address"
+msgstr "街道地址"
+
 msgid "Certificate"
 msgstr "证书"
+
+msgid "Base-64 encoded server certificate"
+msgstr "Base-64 编码格式的服务器证书"
+
+msgid "User category"
+msgstr "用户类别"
+
+msgid "Host category"
+msgstr "主机类别"
+
+msgid "User Groups"
+msgstr "用户组"
+
+msgid "Host Groups"
+msgstr "主机组"
+
+msgid "Services"
+msgstr "服务"
 
 msgid "Subject"
 msgstr "主题"
@@ -223,17 +298,11 @@ msgstr "用户搜索字段"
 msgid "Priority"
 msgstr "优先级"
 
-msgid "User Groups"
-msgstr "用户组"
-
 msgid "Group name"
 msgstr "组名"
 
 msgid "Group description"
 msgstr "组描述"
-
-msgid "GID"
-msgstr "GID"
 
 #, python-format
 msgid "Added group \"%(value)s\""
@@ -249,18 +318,6 @@ msgstr "已修改组\"%(value)s\""
 
 msgid "Rule name"
 msgstr "规则名"
-
-msgid "User category"
-msgstr "用户类别"
-
-msgid "Host category"
-msgstr "主机类别"
-
-msgid "Host Groups"
-msgstr "主机组"
-
-msgid "Services"
-msgstr "服务"
 
 msgid "Access time"
 msgstr "访问时间"
@@ -295,9 +352,6 @@ msgstr "主机操作系统及版本(e.g. \"Fedora 9\")"
 msgid "User password"
 msgstr "用户密码"
 
-msgid "Base-64 encoded server certificate"
-msgstr "Base-64 编码格式的服务器证书"
-
 #, python-format
 msgid "Added host \"%(value)s\""
 msgstr "新增主机 \"%(value)s\""
@@ -318,9 +372,6 @@ msgstr "主机组名称"
 
 msgid "Data"
 msgstr "数据"
-
-msgid "User"
-msgstr "用户"
 
 msgid "Groups"
 msgstr "用户组"
@@ -357,27 +408,6 @@ msgstr "最小长度"
 
 msgid "A description of this role-group"
 msgstr "该角色组的描述"
-
-msgid "User login"
-msgstr "用户登录名"
-
-msgid "First name"
-msgstr "名"
-
-msgid "Last name"
-msgstr "姓"
-
-msgid "Login shell"
-msgstr "登录shell"
-
-msgid "Email address"
-msgstr "邮件地址"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "Street address"
-msgstr "街道地址"
 
 #, python-format
 msgid "Added user \"%(value)s\""

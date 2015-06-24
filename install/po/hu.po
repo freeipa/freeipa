@@ -6,19 +6,20 @@
 # Endre ZELENA, 2014
 msgid ""
 msgstr ""
-"Project-Id-Version: FreeIPA\n"
+"Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2014-07-07 15:24+0200\n"
-"PO-Revision-Date: 2014-07-03 08:37+0000\n"
+"POT-Creation-Date: 2015-06-24 13:48+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2014-09-23 08:41-0400\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Hungarian (http://www.transifex.com/projects/p/freeipa/"
 "language/hu/)\n"
 "Language: hu\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Zanata 3.6.2\n"
 
 msgid "Passwords do not match"
 msgstr "A jelszavak nem egyeznek meg"
@@ -59,8 +60,14 @@ msgstr "Jogosultságok"
 msgid "Description"
 msgstr "Leírás"
 
+msgid "GID"
+msgstr "GID"
+
 msgid "Certificate"
 msgstr "Tanúsítvány"
+
+msgid "Services"
+msgstr "Szolgáltatások"
 
 msgid "Subject"
 msgstr "Tárgy"
@@ -110,9 +117,6 @@ msgstr "Zóna neve (FQDN)"
 msgid "SOA serial"
 msgstr "SOA sorozatszám"
 
-msgid "GID"
-msgstr "GID"
-
 msgid "GID (use this option to set it manually)"
 msgstr "GID (kézzel történő beállításhoz)"
 
@@ -121,9 +125,6 @@ msgstr "POSIX-csoportra módosít"
 
 msgid "Rule name"
 msgstr "Szabály neve"
-
-msgid "Services"
-msgstr "Szolgáltatások"
 
 msgid "Service Groups"
 msgstr "Szolgáltatás-csoportok"

@@ -3,8 +3,8 @@
 # This file is distributed under the same license as the PACKAGE package.
 #
 # Translators:
-# Adolfo Jayme Barrientos <fitoschido@ubuntu.com>, 2013
-# Adolfo Jayme Barrientos <fitoschido@ubuntu.com>, 2014
+# Adolfo Jayme Barrientos <fito@libreoffice.org>, 2013
+# Adolfo Jayme Barrientos <fito@libreoffice.org>, 2014
 # Eduardo Villagrán M <gotencool@gmail.com>, 2012
 # vareli <ehespinosa@ya.com>, 2013
 # Gladys Guerrero <gguerrer@redhat.com>, 2011
@@ -14,19 +14,20 @@
 # Petr Viktorin <encukou@gmail.com>, 2012
 msgid ""
 msgstr ""
-"Project-Id-Version: FreeIPA\n"
+"Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2014-07-07 15:24+0200\n"
-"PO-Revision-Date: 2014-07-03 08:37+0000\n"
+"POT-Creation-Date: 2015-06-24 13:48+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2014-09-23 08:41-0400\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/projects/p/freeipa/language/"
 "es/)\n"
 "Language: es\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Zanata 3.6.2\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -169,9 +170,6 @@ msgstr "Un grupo no puede ser agregado como miembro de sí mismo"
 
 msgid "The default users group cannot be removed"
 msgstr "El grupo de usuarios predeterminado no puede ser eliminado"
-
-msgid "Host does not have corresponding DNS A record"
-msgstr "El equipo no posee un registro DNS A con el que se corresponda "
 
 msgid "Deleting a managed group is not allowed. It must be detached first."
 msgstr ""
@@ -1185,8 +1183,146 @@ msgstr "Tamaño límite"
 msgid "Maximum number of entries returned"
 msgstr "Cantidad máxima de entradas obtenidas"
 
+msgid "Kerberos keys available"
+msgstr "Claves Kerberos disponibles"
+
+msgid "Server"
+msgstr "Servidor"
+
+msgid "Failed logins"
+msgstr "Inicios de sesión fallidos"
+
+msgid "User"
+msgstr "Usuario"
+
+msgid "User login"
+msgstr "Ingreso de usuario"
+
+msgid "First name"
+msgstr "Nombre"
+
+msgid "Last name"
+msgstr "Apellido"
+
+msgid "Full name"
+msgstr "Nombre y apellidos"
+
+msgid "Display name"
+msgstr "Mostrar nombre"
+
+msgid "Initials"
+msgstr "Iniciales"
+
+msgid "Home directory"
+msgstr "Directorio principal"
+
+msgid "Login shell"
+msgstr "Shell de ingreso"
+
+msgid "Kerberos principal"
+msgstr "Principal kerberos"
+
+msgid "Email address"
+msgstr "Dirección de correo electrónico"
+
+msgid "Prompt to set the user password"
+msgstr "Solicita establecer la contraseña de usuario"
+
+msgid "Random password"
+msgstr "Contraseña aleatoria"
+
+msgid "UID"
+msgstr "UID"
+
+msgid "User ID Number (system will assign one if not provided)"
+msgstr ""
+"Número de ID de usuario (el sistema le asignará uno si no se indica ninguno)"
+
+msgid "GID"
+msgstr "GID"
+
+msgid "Group ID Number"
+msgstr "Número de Identificación de Grupo"
+
+msgid "Street address"
+msgstr "Dirección postal"
+
+msgid "City"
+msgstr "Ciudad"
+
+msgid "State/Province"
+msgstr "Estado / Provincia"
+
+msgid "ZIP"
+msgstr "Zona "
+
+msgid "Telephone Number"
+msgstr "Número de teléfono"
+
+msgid "Mobile Telephone Number"
+msgstr "Número de teléfono celular"
+
+msgid "Pager Number"
+msgstr "Número de página"
+
+msgid "Fax Number"
+msgstr "Número de fx"
+
+msgid "Org. Unit"
+msgstr "Unidad. org"
+
+msgid "Job Title"
+msgstr "Cargo"
+
+msgid "Manager"
+msgstr "Manager"
+
+msgid "Car License"
+msgstr "Licencia de conducción"
+
+msgid "SSH public key"
+msgstr "Clave pública SSH"
+
+msgid "Class"
+msgstr "Clase"
+
+msgid "Certificate"
+msgstr "Certificado"
+
+msgid "Base-64 encoded server certificate"
+msgstr "Certificado del servidor codificado con base-64"
+
+#, python-format
+msgid "manager %(manager)s not found"
+msgstr "Administrador %(manager)s no encontrado"
+
+#, python-format
+msgid "can be at most %(len)d characters"
+msgstr "puede ser a lo sumo%(len)d caracteres"
+
 msgid "Nested Methods to execute"
 msgstr "Métodos anidados para ejecutar"
+
+msgid "Enabled"
+msgstr "Habilitado"
+
+msgid "User category"
+msgstr "Categoría de usuario"
+
+msgid "Host category"
+msgstr "Categoría del equipo"
+
+msgid "Service category"
+msgstr "   Añadir servicios a una regla de HBAC"
+
+msgid "User Groups"
+msgstr "Grupos de usuarios"
+
+msgid "Host Groups"
+msgstr "Grupos de equipo"
+
+msgid "Services"
+msgstr "Sevicios HBAC"
 
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
@@ -1203,15 +1339,8 @@ msgstr "CSR"
 msgid "Principal"
 msgstr "Principal"
 
-msgid "Service principal for this certificate (e.g. HTTP/test.example.com)"
-msgstr ""
-"Principal del servicio para este certificado (p.ej. HTTP/prueba.ejemplo.com)"
-
 msgid "automatically add the principal if it doesn't exist"
 msgstr "si no existe, agregar automáticamente el principal"
-
-msgid "Certificate"
-msgstr "Certificado"
 
 msgid "Subject"
 msgstr "Asunto"
@@ -1685,12 +1814,6 @@ msgstr "¿Por cuánto tiempo las respuestas negativas deben guardarse en cache?"
 msgid "Time to live"
 msgstr "Tiempo para abandonar"
 
-msgid "SOA class"
-msgstr "Clase SOA"
-
-msgid "SOA record class"
-msgstr "Clase de registro SOA "
-
 msgid "BIND update policy"
 msgstr "Política de actualización de BIND"
 
@@ -1755,12 +1878,6 @@ msgstr "Registro de Recurso de DNS"
 
 msgid "Record name"
 msgstr "Nombre de registro"
-
-msgid "Class"
-msgstr "Clase"
-
-msgid "DNS class"
-msgstr "Clase DNS"
 
 msgid "Structured"
 msgstr "Estructurado"
@@ -1843,9 +1960,6 @@ msgstr "grupo"
 msgid "groups"
 msgstr "grupos"
 
-msgid "User Groups"
-msgstr "Grupos de usuarios"
-
 msgid "User Group"
 msgstr "Grupo Usuario"
 
@@ -1854,9 +1968,6 @@ msgstr "Nombre del grupo"
 
 msgid "Group description"
 msgstr "Descripción del grupo"
-
-msgid "GID"
-msgstr "GID"
 
 msgid "GID (use this option to set it manually)"
 msgstr "GID (utilice esta opción para definirlo manualmente)"
@@ -1952,32 +2063,14 @@ msgstr "Tipo de regla (permitir)"
 msgid "Rule type"
 msgstr "Tipo de regla"
 
-msgid "User category"
-msgstr "Categoría de usuario"
-
 msgid "User category the rule applies to"
 msgstr "Categoría de usuario al que se aplica la regla"
-
-msgid "Host category"
-msgstr "Categoría del equipo"
 
 msgid "Host category the rule applies to"
 msgstr "Categoría del equipo al que se aplica la regla"
 
-msgid "Service category"
-msgstr "   Añadir servicios a una regla de HBAC"
-
 msgid "Service category the rule applies to"
 msgstr "Categoría de servicio a la que se aplica la regla"
-
-msgid "Enabled"
-msgstr "Habilitado"
-
-msgid "Host Groups"
-msgstr "Grupos de equipo"
-
-msgid "Services"
-msgstr "Sevicios HBAC"
 
 msgid "Service Groups"
 msgstr "    Búsqueda de servicios HBAC."
@@ -2316,20 +2409,11 @@ msgstr "Contraseña utilizada en el registro bruto"
 msgid "Generate a random password to be used in bulk enrollment"
 msgstr "Generar una contraseña aleatoria que se utilizará en la inscripción "
 
-msgid "Random password"
-msgstr "Contraseña aleatoria"
-
-msgid "Base-64 encoded server certificate"
-msgstr "Certificado del servidor codificado con base-64"
-
 msgid "Principal name"
 msgstr "Nombre principal"
 
 msgid "MAC address"
 msgstr "Dirección MAC"
-
-msgid "SSH public key"
-msgstr "Clave pública SSH"
 
 msgid "Add a new host."
 msgstr "Añadir un n uevo host."
@@ -2392,10 +2476,6 @@ msgstr "Mostrar información sobre un host."
 
 msgid "file to store certificate in"
 msgstr "archivo para almacenar"
-
-#, python-format
-msgid "Certificate stored in file '%(file)s'"
-msgstr "Certificado almacenado en el archivo '%(file)s'"
 
 msgid "Disable the Kerberos key, SSL certificate and all services of a host."
 msgstr ""
@@ -3125,9 +3205,6 @@ msgstr " Política de tiquete de Kerberos"
 msgid "Netgroup Settings"
 msgstr "Configuración de Netgroup"
 
-msgid "User"
-msgstr "Usuario"
-
 msgid "Privilege Settings"
 msgstr "Configuración de privilegios"
 
@@ -3315,12 +3392,6 @@ msgstr "Página"
 
 msgid "Prev"
 msgstr "Anterior"
-
-msgid "undo"
-msgstr "deshacer"
-
-msgid "undo all"
-msgstr "deshacer todo"
 
 msgid "Text does not match field pattern"
 msgstr "El texto no coincide con el patrón de campo"
@@ -3706,9 +3777,6 @@ msgstr "Añadir miembros a un grupo de red."
 
 msgid "Remove members from a netgroup."
 msgstr "Borrar miembros de un grupo de red."
-
-msgid "Manager"
-msgstr "Manager"
 
 msgid ""
 "\n"
@@ -4147,9 +4215,6 @@ msgstr "Ofrece la política efectiva para un determinado usuario"
 msgid "Search for group password policies."
 msgstr "Buscar grupo de políticas de contraseña."
 
-msgid "Server"
-msgstr "Servidor"
-
 msgid "role"
 msgstr "rol"
 
@@ -4324,6 +4389,12 @@ msgstr "Deshabilitar la clave Kerberos y el certificado SSL de un servicio."
 #, python-format
 msgid "Disabled service \"%(value)s\""
 msgstr "Servicio  inhabilitado \"%(value)s\""
+
+#, python-format
+msgid "%(count)d user matched"
+msgid_plural "%(count)d users matched"
+msgstr[0] "%(count)d usuario coincidente"
+msgstr[1] "%(count)d usuarios coincidentes"
 
 msgid ""
 "\n"
@@ -4651,94 +4722,8 @@ msgstr "Nombre"
 msgid "SID"
 msgstr "SID"
 
-msgid "Kerberos keys available"
-msgstr "Claves Kerberos disponibles"
-
-msgid "Failed logins"
-msgstr "Inicios de sesión fallidos"
-
-msgid "User login"
-msgstr "Ingreso de usuario"
-
-msgid "First name"
-msgstr "Nombre"
-
-msgid "Last name"
-msgstr "Apellido"
-
-msgid "Full name"
-msgstr "Nombre y apellidos"
-
-msgid "Display name"
-msgstr "Mostrar nombre"
-
-msgid "Initials"
-msgstr "Iniciales"
-
-msgid "Home directory"
-msgstr "Directorio principal"
-
-msgid "Login shell"
-msgstr "Shell de ingreso"
-
-msgid "Kerberos principal"
-msgstr "Principal kerberos"
-
-msgid "Email address"
-msgstr "Dirección de correo electrónico"
-
-msgid "Prompt to set the user password"
-msgstr "Solicita establecer la contraseña de usuario"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "User ID Number (system will assign one if not provided)"
-msgstr ""
-"Número de ID de usuario (el sistema le asignará uno si no se indica ninguno)"
-
-msgid "Group ID Number"
-msgstr "Número de Identificación de Grupo"
-
-msgid "Street address"
-msgstr "Dirección postal"
-
-msgid "City"
-msgstr "Ciudad"
-
-msgid "State/Province"
-msgstr "Estado / Provincia"
-
-msgid "ZIP"
-msgstr "Zona "
-
-msgid "Telephone Number"
-msgstr "Número de teléfono"
-
-msgid "Mobile Telephone Number"
-msgstr "Número de teléfono celular"
-
-msgid "Pager Number"
-msgstr "Número de página"
-
-msgid "Fax Number"
-msgstr "Número de fx"
-
-msgid "Org. Unit"
-msgstr "Unidad. org"
-
-msgid "Job Title"
-msgstr "Cargo"
-
-msgid "Car License"
-msgstr "Licencia de conducción"
-
 msgid "Account disabled"
 msgstr "Cuenta inhabilitada "
-
-#, python-format
-msgid "manager %(manager)s not found"
-msgstr "Administrador %(manager)s no encontrado"
 
 msgid "Add a new user."
 msgstr "Añadir un nuevo usuario."
@@ -4749,10 +4734,6 @@ msgstr "Ha sido agregado el usuario \"%(value)s\""
 
 msgid "Don't create user private group"
 msgstr "No crear grupo privado de usuario"
-
-#, python-format
-msgid "can be at most %(len)d characters"
-msgstr "puede ser a lo sumo%(len)d caracteres"
 
 msgid "Delete a user."
 msgstr "Borrar un usuario."
@@ -4776,12 +4757,6 @@ msgstr "Self"
 
 msgid "Display user record for current Kerberos principal"
 msgstr "Muestra el registro del usuario para el principal de Kerberos actual"
-
-#, python-format
-msgid "%(count)d user matched"
-msgid_plural "%(count)d users matched"
-msgstr[0] "%(count)d usuario coincidente"
-msgstr[1] "%(count)d usuarios coincidentes"
 
 msgid "Display information about a user."
 msgstr "Mostrar información sobre un usuario."
@@ -4908,10 +4883,6 @@ msgid "Simple bind failed\n"
 msgstr "¡Falló vinculación sencilla!\n"
 
 #, c-format
-msgid "Operation failed! %s\n"
-msgstr "¡Falló operación! %s\n"
-
-#, c-format
 msgid "Missing reply control!\n"
 msgstr "¡Falta control de respuesta!\n"
 
@@ -4926,10 +4897,6 @@ msgstr "¡Falló crear control!\n"
 #, c-format
 msgid "ber_init() failed, Invalid control ?!\n"
 msgstr "Falló ber_init(), ¿control inválido?\n"
-
-#, c-format
-msgid "Out of memory!\n"
-msgstr "¡Memoria insuficiente!\n"
 
 msgid "New Principal Password"
 msgstr "Nueva contraseña principal"
@@ -5092,6 +5059,10 @@ msgstr "Búsqueda de IPA namingContext fallada con error %d \n"
 #, c-format
 msgid "IPA namingContext not found\n"
 msgstr "IPA namingContext no encontrado \n"
+
+#, c-format
+msgid "Out of memory!\n"
+msgstr "¡Memoria insuficiente!\n"
 
 #, c-format
 msgid "Search for ipaCertificateSubjectBase failed with error %d"

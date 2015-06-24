@@ -6,19 +6,20 @@
 # Asier Iturralde Sarasola <asier.iturralde@gmail.com>, 2012
 msgid ""
 msgstr ""
-"Project-Id-Version: FreeIPA\n"
+"Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2014-07-07 15:24+0200\n"
-"PO-Revision-Date: 2014-07-03 08:37+0000\n"
+"POT-Creation-Date: 2015-06-24 13:48+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2014-09-23 08:41-0400\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Basque (http://www.transifex.com/projects/p/freeipa/language/"
 "eu/)\n"
 "Language: eu\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Zanata 3.6.2\n"
 
 #, c-format
 msgid "Passwords do not match!"
@@ -133,8 +134,65 @@ msgstr "Berrizendatu"
 msgid "Rename the %(ldap_obj_name)s object"
 msgstr "%(ldap_obj_name)s objektua berrizendatu"
 
+msgid "User"
+msgstr "Erabiltzailea"
+
+msgid "First name"
+msgstr "Izena"
+
+msgid "Last name"
+msgstr "Abizena"
+
+msgid "Full name"
+msgstr "Izen osoa"
+
+msgid "Display name"
+msgstr "Bistaratu izena"
+
+msgid "Email address"
+msgstr "E-posta helbidea"
+
+msgid "Random password"
+msgstr "Ausazko pasahitza"
+
+msgid "UID"
+msgstr "UID"
+
+msgid "Street address"
+msgstr "Kalea"
+
+msgid "Telephone Number"
+msgstr "Telefono-zenbakia"
+
+msgid "Mobile Telephone Number"
+msgstr "Mugikor-zenbakia"
+
+msgid "Pager Number"
+msgstr "Bilagailu-zenbakia"
+
+msgid "Fax Number"
+msgstr "Fax-zenbakia"
+
+msgid "Manager"
+msgstr "Kudeatzailea"
+
+msgid "Class"
+msgstr "Klasea"
+
 msgid "Certificate"
 msgstr "Ziurtagiria"
+
+msgid "Enabled"
+msgstr "Gaituta"
+
+msgid "User Groups"
+msgstr "Erabiltzaile-taldeak"
+
+msgid "Host Groups"
+msgstr "Ostalari-taldeak"
+
+msgid "Services"
+msgstr "Zerbitzuak"
 
 msgid "Subject"
 msgstr "Gaia"
@@ -205,17 +263,11 @@ msgstr "Administratzailearen e-posta helbidea"
 msgid "Force"
 msgstr "Behartu"
 
-msgid "Class"
-msgstr "Klasea"
-
 msgid "group"
 msgstr "taldea"
 
 msgid "groups"
 msgstr "taldeak"
-
-msgid "User Groups"
-msgstr "Erabiltzaile-taldeak"
 
 msgid "User Group"
 msgstr "Erabiltzaile-taldea"
@@ -243,15 +295,6 @@ msgstr "HBAC arauak"
 
 msgid "Rule type"
 msgstr "Arau-mota"
-
-msgid "Enabled"
-msgstr "Gaituta"
-
-msgid "Host Groups"
-msgstr "Ostalari-taldeak"
-
-msgid "Services"
-msgstr "Zerbitzuak"
 
 msgid "Service Groups"
 msgstr "Zerbitzu-taldeak"
@@ -291,9 +334,6 @@ msgstr "Ostalariaren sistema eragilea eta bertsioa (adibidez, \"Fedora 9\")"
 
 msgid "User password"
 msgstr "Erabiltzailearen pasahitza"
-
-msgid "Random password"
-msgstr "Ausazko pasahitza"
 
 #, python-format
 msgid "Added host \"%(value)s\""
@@ -389,9 +429,6 @@ msgstr "Ostalari-izena"
 msgid "Set OTP"
 msgstr "Ezarri OTP"
 
-msgid "User"
-msgstr "Erabiltzailea"
-
 msgid "Groups"
 msgstr "Taldeak"
 
@@ -446,9 +483,6 @@ msgstr "LDAP URI baliogabea."
 msgid "NIS domain name"
 msgstr "NIS domeinu-izena"
 
-msgid "Manager"
-msgstr "Kudeatzailea"
-
 msgid "PKINIT"
 msgstr "PKINIT"
 
@@ -483,39 +517,6 @@ msgstr "Exekutatu kanpoko talde bezala"
 
 msgid "Sudo Option"
 msgstr "Sudo aukera"
-
-msgid "First name"
-msgstr "Izena"
-
-msgid "Last name"
-msgstr "Abizena"
-
-msgid "Full name"
-msgstr "Izen osoa"
-
-msgid "Display name"
-msgstr "Bistaratu izena"
-
-msgid "Email address"
-msgstr "E-posta helbidea"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "Street address"
-msgstr "Kalea"
-
-msgid "Telephone Number"
-msgstr "Telefono-zenbakia"
-
-msgid "Mobile Telephone Number"
-msgstr "Mugikor-zenbakia"
-
-msgid "Pager Number"
-msgstr "Bilagailu-zenbakia"
-
-msgid "Fax Number"
-msgstr "Fax-zenbakia"
 
 #, python-format
 msgid "Added user \"%(value)s\""

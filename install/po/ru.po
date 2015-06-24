@@ -9,20 +9,21 @@
 # jdennis <jdennis@redhat.com>, 2011
 msgid ""
 msgstr ""
-"Project-Id-Version: FreeIPA\n"
+"Project-Id-Version: ipa\n"
 "Report-Msgid-Bugs-To: https://hosted.fedoraproject.org/projects/freeipa/"
 "newticket\n"
-"POT-Creation-Date: 2014-07-07 15:24+0200\n"
-"PO-Revision-Date: 2014-07-03 08:37+0000\n"
+"POT-Creation-Date: 2015-06-24 13:48+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2014-09-23 08:41-0400\n"
 "Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
 "Language-Team: Russian (http://www.transifex.com/projects/p/freeipa/language/"
 "ru/)\n"
 "Language: ru\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Zanata 3.6.2\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -126,9 +127,6 @@ msgstr "Группа не может быть добавлена сама в с�
 
 msgid "The default users group cannot be removed"
 msgstr "Группа по умолчанию для пользователя не может быть удалена"
-
-msgid "Host does not have corresponding DNS A record"
-msgstr "Узел не имеет соответствующей A-записи в DNS"
 
 msgid "Deleting a managed group is not allowed. It must be detached first."
 msgstr ""
@@ -360,15 +358,121 @@ msgstr "Ограничение времени поиска в секундах"
 msgid "Size Limit"
 msgstr "Ограничение по размеру"
 
+msgid "User"
+msgstr "Пользователь"
+
+msgid "First name"
+msgstr "Имя"
+
+msgid "Last name"
+msgstr "Фамилия"
+
+msgid "Full name"
+msgstr "Полное имя"
+
+msgid "Display name"
+msgstr "Отображаемое имя"
+
+msgid "Initials"
+msgstr "Инициалы"
+
+msgid "Home directory"
+msgstr "Домашний каталог"
+
+msgid "Email address"
+msgstr "Электронный адрес"
+
+msgid "Prompt to set the user password"
+msgstr "Запросить пароль у пользователя"
+
+msgid "Generate a random user password"
+msgstr "Сгенерировать случайный пользовательский пароль"
+
+msgid "Random password"
+msgstr "Случайный пароль"
+
+msgid "UID"
+msgstr "UID"
+
+msgid "User ID Number (system will assign one if not provided)"
+msgstr "ID пользователя (если не указан, система назначит его самостоятельно)"
+
+msgid "GID"
+msgstr "ID группы"
+
+msgid "Group ID Number"
+msgstr "ID группы"
+
+msgid "Street address"
+msgstr "Адрес"
+
+msgid "City"
+msgstr "Город"
+
+msgid "State/Province"
+msgstr "Область/республика"
+
+msgid "ZIP"
+msgstr "Индекс"
+
+msgid "Telephone Number"
+msgstr "Телефонный номер"
+
+msgid "Mobile Telephone Number"
+msgstr "Мобильный телефонный номер"
+
+msgid "Pager Number"
+msgstr "Номер пейджера"
+
+msgid "Fax Number"
+msgstr "Номер факса"
+
+msgid "Org. Unit"
+msgstr "Отдел"
+
+msgid "Job Title"
+msgstr "Должность"
+
+msgid "Manager"
+msgstr "Руководитель"
+
+msgid "Car License"
+msgstr "Номер автомобиля"
+
+msgid "Class"
+msgstr "Класс"
+
+msgid "Certificate"
+msgstr "Сертификат"
+
+#, python-format
+msgid "manager %(manager)s not found"
+msgstr "руководитель %(manager)s не найден"
+
+msgid "Enabled"
+msgstr "Включено"
+
+msgid "User category"
+msgstr "Категория пользователя"
+
+msgid "Service category"
+msgstr "Категория службы"
+
+msgid "User Groups"
+msgstr "Группы пользователей"
+
+msgid "Host Groups"
+msgstr "Группы узлов"
+
+msgid "Services"
+msgstr "Службы"
+
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr "Сбой при декодировании запроса на создание сертификата: %s"
 
 msgid "CSR"
 msgstr "CSR"
-
-msgid "Certificate"
-msgstr "Сертификат"
 
 msgid "Issuer"
 msgstr "Издатель"
@@ -562,9 +666,6 @@ msgstr "Создать новую зону DNS (SOA-запись)"
 msgid "Force"
 msgstr "Принудительно"
 
-msgid "Class"
-msgstr "Класс"
-
 msgid "Delete all?"
 msgstr "Удалить все?"
 
@@ -578,17 +679,11 @@ msgstr "группа"
 msgid "groups"
 msgstr "группы"
 
-msgid "User Groups"
-msgstr "Группы пользователей"
-
 msgid "Group name"
 msgstr "Имя группы"
 
 msgid "Group description"
 msgstr "Описание группы"
-
-msgid "GID"
-msgstr "ID группы"
 
 msgid "Create a new group."
 msgstr "Создать новую группу."
@@ -642,21 +737,6 @@ msgstr "Имя правила"
 msgid "Rule type"
 msgstr "Тип правила"
 
-msgid "User category"
-msgstr "Категория пользователя"
-
-msgid "Service category"
-msgstr "Категория службы"
-
-msgid "Enabled"
-msgstr "Включено"
-
-msgid "Host Groups"
-msgstr "Группы узлов"
-
-msgid "Services"
-msgstr "Службы"
-
 msgid "Service Groups"
 msgstr "Группы сервисов"
 
@@ -696,9 +776,6 @@ msgstr "Операционная система узла и ее версия (�
 
 msgid "User password"
 msgstr "Пароль пользователя"
-
-msgid "Random password"
-msgstr "Случайный пароль"
 
 msgid "MAC address"
 msgstr "MAC-адрес"
@@ -873,9 +950,6 @@ msgstr "Установить ОРП"
 msgid "Set One-Time-Password"
 msgstr "Установить одноразовый пароль"
 
-msgid "User"
-msgstr "Пользователь"
-
 msgid "SSH public keys"
 msgstr "Открытые ключи SSH"
 
@@ -897,12 +971,6 @@ msgstr "Страница"
 msgid "Prev"
 msgstr "Назад"
 
-msgid "undo"
-msgstr "отменить"
-
-msgid "undo all"
-msgstr "отменить всё"
-
 msgid "Bind DN"
 msgstr "Bind DN"
 
@@ -919,9 +987,6 @@ msgid_plural "%(count)d plugins loaded"
 msgstr[0] "Загружен %(count)d подключаемый модуль"
 msgstr[1] "Загружено %(count)d подключаемых модуля"
 msgstr[2] "Загружено %(count)d подключаемых модулей"
-
-msgid "Manager"
-msgstr "Руководитель"
 
 msgid "permission"
 msgstr "разрешение"
@@ -952,87 +1017,21 @@ msgstr "Добавлена служба «%(value)s»"
 msgid "Deleted service \"%(value)s\""
 msgstr "Удалена служба «%(value)s»"
 
+#, python-format
+msgid "%(count)d user matched"
+msgid_plural "%(count)d users matched"
+msgstr[0] "Найден %(count)d пользователь"
+msgstr[1] "Найдено %(count)d пользователя"
+msgstr[2] "Найдено %(count)d пользователей"
+
 msgid "user"
 msgstr "пользователь"
 
 msgid "users"
 msgstr "пользователи"
 
-msgid "First name"
-msgstr "Имя"
-
-msgid "Last name"
-msgstr "Фамилия"
-
-msgid "Full name"
-msgstr "Полное имя"
-
-msgid "Display name"
-msgstr "Отображаемое имя"
-
-msgid "Initials"
-msgstr "Инициалы"
-
-msgid "Home directory"
-msgstr "Домашний каталог"
-
-msgid "Email address"
-msgstr "Электронный адрес"
-
-msgid "Prompt to set the user password"
-msgstr "Запросить пароль у пользователя"
-
-msgid "Generate a random user password"
-msgstr "Сгенерировать случайный пользовательский пароль"
-
-msgid "UID"
-msgstr "UID"
-
-msgid "User ID Number (system will assign one if not provided)"
-msgstr "ID пользователя (если не указан, система назначит его самостоятельно)"
-
-msgid "Group ID Number"
-msgstr "ID группы"
-
-msgid "Street address"
-msgstr "Адрес"
-
-msgid "City"
-msgstr "Город"
-
-msgid "State/Province"
-msgstr "Область/республика"
-
-msgid "ZIP"
-msgstr "Индекс"
-
-msgid "Telephone Number"
-msgstr "Телефонный номер"
-
-msgid "Mobile Telephone Number"
-msgstr "Мобильный телефонный номер"
-
-msgid "Pager Number"
-msgstr "Номер пейджера"
-
-msgid "Fax Number"
-msgstr "Номер факса"
-
-msgid "Org. Unit"
-msgstr "Отдел"
-
-msgid "Job Title"
-msgstr "Должность"
-
-msgid "Car License"
-msgstr "Номер автомобиля"
-
 msgid "Account disabled"
 msgstr "Учетная запись отключена"
-
-#, python-format
-msgid "manager %(manager)s not found"
-msgstr "руководитель %(manager)s не найден"
 
 msgid "Add a new user."
 msgstr "Добавить нового пользователя."
@@ -1060,13 +1059,6 @@ msgstr "Изменен пользователь «%(value)s»"
 
 msgid "Search for users."
 msgstr "Поиск пользователей."
-
-#, python-format
-msgid "%(count)d user matched"
-msgid_plural "%(count)d users matched"
-msgstr[0] "Найден %(count)d пользователь"
-msgstr[1] "Найдено %(count)d пользователя"
-msgstr[2] "Найдено %(count)d пользователей"
 
 msgid "Disable a user account."
 msgstr "Отключить учетную запись пользователя."
