@@ -261,6 +261,7 @@ topology.domainlevel_metadata = function(spec, context) {
         name: 'domainlevel',
         label: text.get('@i18n:objects.domainlevel.label'),
         label_singular: text.get('@i18n:objects.domainlevel.label_singular'),
+        only_webui: true,
         takes_params: [
             {
                 'class': "Int",

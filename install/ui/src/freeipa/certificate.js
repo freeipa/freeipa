@@ -970,7 +970,7 @@ exp.create_cert_metadata = function() {
         'show',
         'status'
     ];
-    entity.name = "certificate";
+    entity.name = "cert";
     entity.object_name = "certificate";
     entity.object_name_plural = "certificates";
     entity.parent_object = "";
@@ -978,6 +978,7 @@ exp.create_cert_metadata = function() {
     entity.rdn_attribute = "";
     entity.relationships = {};
     entity.takes_params = lang.clone(entity.takes_options);
+    entity.only_webui = true;
 
     get_param(entity.takes_params, 'subject').flags = ['no_update'];
     var reason = get_param(entity.takes_params, 'revocation_reason');
