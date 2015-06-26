@@ -29,11 +29,18 @@ class Graph():
         self._adj[tail].append(head)
 
     def remove_edge(self, tail, head):
-        self.edges.remove((tail, head))
+        try:
+            self.edges.remove((tail, head))
+        except KeyError:
+            raise ValueError(
+                "graph does not contain edge: (%s, %s)" % (tail, head))
         self._adj[tail].remove(head)
 
     def remove_vertex(self, vertex):
-        self.vertices.remove(vertex)
+        try:
+            self.vertices.remove(vertex)
+        except KeyError:
+            raise ValueError("graph does not contain vertex: %s" % vertex)
 
         # delete _adjacencies
         del self._adj[vertex]
