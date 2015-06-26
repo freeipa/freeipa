@@ -117,10 +117,13 @@ def sql2ldap_keyid(sql_keyid):
 class ods_db_lock(object):
     def __enter__(self):
         self.f = open(ODS_DB_LOCK_PATH, 'w')
+        log.debug('waiting for lock %r', self.f)
         fcntl.lockf(self.f, fcntl.LOCK_EX)
+        log.debug('acquired lock %r', self.f)
 
     def __exit__(self, *args):
         fcntl.lockf(self.f, fcntl.LOCK_UN)
+        log.debug('released lock %r', self.f)
         self.f.close()
 
 def get_ldap_zone(ldap, dns_base, name):
