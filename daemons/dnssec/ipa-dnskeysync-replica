@@ -74,6 +74,7 @@ def ldap2replica_master_keys_sync(log, ldapkeydb, localhsm):
     log.debug("new master keys in LDAP HSM: %s", hex_set(new_keys))
     for mkey_id in new_keys:
         mkey_ldap = ldapkeydb.master_keys[mkey_id]
+        assert mkey_ldap.wrapped_entries, "Master key 0x%s in LDAP is missing key material referenced by ipaSecretKeyRefObject attribute" % hexlify(mkey_id)
         for wrapped_ldap in mkey_ldap.wrapped_entries:
             unwrapping_key = find_unwrapping_key(log, localhsm,
                     wrapped_ldap.single_value['ipaWrappingKey'])
