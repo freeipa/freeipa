@@ -157,49 +157,42 @@ def get_ldap_keys(ldap, zone_dn):
     return ldap_keys
 
 def get_ods_keys(zone_name):
-    # Open DB directly and read key timestamps etc.
-    with ods_db_lock():
-        db = sqlite3.connect(paths.OPENDNSSEC_KASP_DB,
-                isolation_level="EXCLUSIVE")
-        db.row_factory = sqlite3.Row
-        db.execute('BEGIN')
+    # get zone ID
+    cur = db.execute("SELECT id FROM zones WHERE LOWER(name)=LOWER(?)",
+                     (zone_name,))
+    rows = cur.fetchall()
+    assert len(rows) == 1, "exactly one DNS zone should exist in ODS DB"
+    zone_id = rows[0][0]
 
-        # get zone ID
-        cur = db.execute("SELECT id FROM zones WHERE LOWER(name)=LOWER(?)",
-                         (zone_name,))
-        rows = cur.fetchall()
-        assert len(rows) == 1, "exactly one DNS zone should exist in ODS DB"
-        zone_id = rows[0][0]
+    # get all keys for given zone ID
+    cur = db.execute("SELECT kp.HSMkey_id, kp.generate, kp.algorithm, dnsk.publish, dnsk.active, dnsk.retire, dnsk.dead, dnsk.keytype "
+             "FROM keypairs AS kp JOIN dnsseckeys AS dnsk ON kp.id = dnsk.id "
+             "WHERE dnsk.zone_id = ?", (zone_id,))
+    keys = {}
+    for row in cur:
+        key_data = sql2datetimes(row)
+        if 'idnsSecKeyDelete' in key_data \
+            and key_data['idnsSecKeyDelete'] > datetime.now():
+                continue  # ignore deleted keys
 
-        # get all keys for given zone ID
-        cur = db.execute("SELECT kp.HSMkey_id, kp.generate, kp.algorithm, dnsk.publish, dnsk.active, dnsk.retire, dnsk.dead, dnsk.keytype "
-                 "FROM keypairs AS kp JOIN dnsseckeys AS dnsk ON kp.id = dnsk.id "
-                 "WHERE dnsk.zone_id = ?", (zone_id,))
-        keys = {}
-        for row in cur:
-            key_data = sql2datetimes(row)
-            if 'idnsSecKeyDelete' in key_data \
-                and key_data['idnsSecKeyDelete'] > datetime.now():
-                    continue  # ignore deleted keys
+        key_data.update(sql2ldap_flags(row['keytype']))
+        log.debug("%s", key_data)
+        assert key_data.get('idnsSecKeyZONE', None) == 'TRUE', \
+                'unexpected key type 0x%x' % row['keytype']
+        if key_data.get('idnsSecKeySEP', 'FALSE') == 'TRUE':
+            key_type = 'KSK'
+        else:
+            key_type = 'ZSK'
 
-            key_data.update(sql2ldap_flags(row['keytype']))
-            log.debug("%s", key_data)
-            assert key_data.get('idnsSecKeyZONE', None) == 'TRUE', \
-                    'unexpected key type 0x%x' % row['keytype']
-            if key_data.get('idnsSecKeySEP', 'FALSE') == 'TRUE':
-                key_type = 'KSK'
-            else:
-                key_type = 'ZSK'
+        key_data.update(sql2ldap_algorithm(row['algorithm']))
+        key_id = "%s-%s-%s" % (key_type,
+                               datetime2ldap(key_data['idnsSecKeyCreated']),
+                               row['HSMkey_id'])
 
-            key_data.update(sql2ldap_algorithm(row['algorithm']))
-            key_id = "%s-%s-%s" % (key_type,
-                                   datetime2ldap(key_data['idnsSecKeyCreated']),
-                                   row['HSMkey_id'])
+        key_data.update(sql2ldap_keyid(row['HSMkey_id']))
+        keys[key_id] = key_data
 
-            key_data.update(sql2ldap_keyid(row['HSMkey_id']))
-            keys[key_id] = key_data
-
-        return keys
+    return keys
 
 def sync_set_metadata_2ldap(log, source_set, target_set):
     """sync metadata from source key set to target key set in LDAP
@@ -365,11 +358,16 @@ def parse_command(cmd):
                 'HSM synchronization finished, exiting.',
                 None)
 
+    elif cmd == 'ipa-full-update':
+        return (None,
+                'Synchronization of all zones requested.',
+                None)
+
     elif not cmd.startswith('update '):
         return (0,
                 'Command "%s" is not supported by IPA; '
                 'HSM synchronization was finished and the command '
-                'will be ignored.\n' % cmd,
+                'will be ignored.' % cmd,
                 None)
 
     else:
@@ -394,6 +392,7 @@ def cmd2ods_zone_name(cmd):
     return zone_name
 
 def sync_zone(log, ldap, dns_dn, zone_name):
+    log.debug('synchronizing zone "%s"', zone_name)
     ods_keys = get_ods_keys(zone_name)
     ods_keys_id = set(ods_keys.keys())
 
@@ -530,6 +529,19 @@ if exitcode is not None:
 else:
     log.debug(msg)
 
-sync_zone(log, ldap, dns_dn, zone_name)
+# Open DB directly and read key timestamps etc.
+with ods_db_lock():
+    db = sqlite3.connect(paths.OPENDNSSEC_KASP_DB,
+            isolation_level="EXCLUSIVE")
+    db.row_factory = sqlite3.Row
+    db.execute('BEGIN')
+
+    if zone_name is not None:
+        # only one zone should be processed
+        sync_zone(log, ldap, dns_dn, zone_name)
+    else:
+        # process all zones
+        for zone_row in db.execute("SELECT name FROM zones"):
+            sync_zone(log, ldap, dns_dn, zone_row['name'])
 
 log.debug('Done')
