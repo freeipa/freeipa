@@ -25,6 +25,7 @@ interacting with system services.
 
 import os
 import json
+import time
 
 import ipalib
 from ipapython import ipautil
@@ -52,6 +53,8 @@ wellknownports = {
     'pki-tomcat': [8080, 8443],
     'pki-tomcatd': [8080, 8443],  # used if the incoming instance name is blank
 }
+
+SERVICE_POLL_INTERVAL = 0.1 # seconds
 
 
 class KnownServices(MagicDict):
@@ -303,11 +306,13 @@ class SystemdService(PlatformService):
                 )
             except ipautil.CalledProcessError as e:
                 if e.returncode == 3 and 'activating' in str(e.output):
+                    time.sleep(SERVICE_POLL_INTERVAL)
                     continue
                 return False
             else:
                 # activating
                 if rcode == 3 and 'activating' in str(sout):
+                    time.sleep(SERVICE_POLL_INTERVAL)
                     continue
                 # active
                 if rcode == 0:
