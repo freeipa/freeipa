@@ -66,7 +66,6 @@ define(['dojo/_base/declare',
          */
         ignore_next: false,
 
-
         /**
          * Register a route-handler pair to a dojo.router
          * Handler will be run in context of this object
@@ -111,6 +110,7 @@ define(['dojo/_base/declare',
          * @param {boolean} Whether to suppress following hash change handler
          */
         update_hash: function(hash, ignore_change) {
+            if (window.location.hash === "#" + hash) return;
             this.ignore_next = !!ignore_change;
             router.go(hash);
         },

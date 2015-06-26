@@ -379,9 +379,36 @@ define([
                 items = this.menu.query({ parent: null });
             }
 
-            // select first
             if (items.total) {
-                return items[0];
+                if (items.total === 1) return items[0];
+
+                // select the menu item with the most similar state as the facet
+                var best = items[0];
+                var best_score = 0;
+                var item, i, j, l, score;
+                var state = facet.state;
+                for (i=0, l=items.total; i<l; i++) {
+                    item = items[i];
+                    score = 0;
+                    if (item.pkeys && facet.get_pkeys) {
+                        var pkeys = facet.get_pkeys();
+                        for (j=0, j=item.pkeys.length; j<l; j++) {
+                            if (pkeys.indexOf(item.pkeys[j]) > -1) score++;
+                        }
+                    }
+                    if (item.args) {
+                        for (var name in item.args) {
+                            if (!item.args.hasOwnProperty(name)) continue;
+                            if (state[name] == item.args[name]) score++;
+                        }
+                    }
+                    if (score > best_score) {
+                        best_score = score;
+                        best = item;
+                    }
+                }
+
+                return best;
             }
         },
 

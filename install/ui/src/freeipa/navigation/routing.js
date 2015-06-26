@@ -166,7 +166,7 @@ var routing = {
      */
     navigate_to_facet: function(facet, options) {
         var hash = this.create_hash(facet, options);
-        return this.router.navigate_to_hash(hash);
+        return this.router.navigate_to_hash(hash, facet);
     },
 
     update_hash: function(facet, options) {
@@ -494,7 +494,7 @@ routing.init = function(router) {
     var entity_n = new routing.EntityNavigator();
     this.add_hash_creator(generic_hc);
     this.add_hash_creator(entity_hc);
-    this.add_route(this.routes, generic_rh);
+    this.add_route(this.page_routes, generic_rh);
     this.add_route(this.entity_routes, entity_rh);
     this.add_navigator(generic_n);
     this.add_navigator(entity_n);
