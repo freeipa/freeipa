@@ -1477,6 +1477,9 @@ def upgrade_check(options):
         print unicode(e)
         sys.exit(1)
 
+    if not services.knownservices.certmonger.is_running():
+        raise RuntimeError('Certmonger is not running. Start certmonger and run upgrade again.')
+
     if not options.skip_version_check:
         # check IPA version and data version
         try:
