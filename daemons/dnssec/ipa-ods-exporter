@@ -390,6 +390,69 @@ def cmd2ods_zone_name(cmd):
 
     return zone_name
 
+def sync_zone(log, ldap, dns_dn, zone_name):
+    ods_keys = get_ods_keys(zone_name)
+    ods_keys_id = set(ods_keys.keys())
+
+    ldap_zone = get_ldap_zone(ldap, dns_dn, zone_name)
+    zone_dn = ldap_zone.dn
+
+    keys_dn = get_ldap_keys_dn(zone_dn)
+    try:
+        ldap_keys = get_ldap_keys(ldap, zone_dn)
+    except ipalib.errors.NotFound:
+        # cn=keys container does not exist, create it
+        ldap_keys = []
+        ldap_keys_container = ldap.make_entry(keys_dn,
+                                              objectClass=['nsContainer'])
+        try:
+            ldap.add_entry(ldap_keys_container)
+        except ipalib.errors.DuplicateEntry:
+            # ldap.get_entries() does not distinguish non-existent base DN
+            # from empty result set so addition can fail because container
+            # itself exists already
+            pass
+
+    ldap_keys_dict = {}
+    for ldap_key in ldap_keys:
+        cn = ldap_key['cn'][0]
+        ldap_keys_dict[cn] = ldap_key
+
+    ldap_keys = ldap_keys_dict  # shorthand
+    ldap_keys_id = set(ldap_keys.keys())
+
+    new_keys_id = ods_keys_id - ldap_keys_id
+    log.info('new keys from ODS: %s', new_keys_id)
+    for key_id in new_keys_id:
+        cn = "cn=%s" % key_id
+        key_dn = DN(cn, keys_dn)
+        log.debug('adding key "%s" to LDAP', key_dn)
+        ldap_key = ldap.make_entry(key_dn,
+                                   objectClass=['idnsSecKey'],
+                                   **ods_keys[key_id])
+        ldap.add_entry(ldap_key)
+
+    deleted_keys_id = ldap_keys_id - ods_keys_id
+    log.info('deleted keys in LDAP: %s', deleted_keys_id)
+    for key_id in deleted_keys_id:
+        cn = "cn=%s" % key_id
+        key_dn = DN(cn, keys_dn)
+        log.debug('deleting key "%s" from LDAP', key_dn)
+        ldap.delete_entry(key_dn)
+
+    update_keys_id = ldap_keys_id.intersection(ods_keys_id)
+    log.info('keys in LDAP & ODS: %s', update_keys_id)
+    for key_id in update_keys_id:
+        ldap_key = ldap_keys[key_id]
+        ods_key = ods_keys[key_id]
+        log.debug('updating key "%s" in LDAP', ldap_key.dn)
+        ldap_key.update(ods_key)
+        try:
+            ldap.update_entry(ldap_key)
+        except ipalib.errors.EmptyModlist:
+            continue
+
+
 log = logging.getLogger('root')
 # this service is usually socket-activated
 log.addHandler(systemd.journal.JournalHandler())
@@ -464,65 +527,6 @@ if exitcode is not None:
 else:
     log.debug(msg)
 
-ods_keys = get_ods_keys(zone_name)
-ods_keys_id = set(ods_keys.keys())
-
-ldap_zone = get_ldap_zone(ldap, dns_dn, zone_name)
-zone_dn = ldap_zone.dn
-
-keys_dn = get_ldap_keys_dn(zone_dn)
-try:
-    ldap_keys = get_ldap_keys(ldap, zone_dn)
-except ipalib.errors.NotFound:
-    # cn=keys container does not exist, create it
-    ldap_keys = []
-    ldap_keys_container = ldap.make_entry(keys_dn,
-                                          objectClass=['nsContainer'])
-    try:
-        ldap.add_entry(ldap_keys_container)
-    except ipalib.errors.DuplicateEntry:
-        # ldap.get_entries() does not distinguish non-existent base DN
-        # from empty result set so addition can fail because container
-        # itself exists already
-        pass
-
-ldap_keys_dict = {}
-for ldap_key in ldap_keys:
-    cn = ldap_key['cn'][0]
-    ldap_keys_dict[cn] = ldap_key
-
-ldap_keys = ldap_keys_dict  # shorthand
-ldap_keys_id = set(ldap_keys.keys())
-
-new_keys_id = ods_keys_id - ldap_keys_id
-log.info('new keys from ODS: %s', new_keys_id)
-for key_id in new_keys_id:
-    cn = "cn=%s" % key_id
-    key_dn = DN(cn, keys_dn)
-    log.debug('adding key "%s" to LDAP', key_dn)
-    ldap_key = ldap.make_entry(key_dn,
-                               objectClass=['idnsSecKey'],
-                               **ods_keys[key_id])
-    ldap.add_entry(ldap_key)
-
-deleted_keys_id = ldap_keys_id - ods_keys_id
-log.info('deleted keys in LDAP: %s', deleted_keys_id)
-for key_id in deleted_keys_id:
-    cn = "cn=%s" % key_id
-    key_dn = DN(cn, keys_dn)
-    log.debug('deleting key "%s" from LDAP', key_dn)
-    ldap.delete_entry(key_dn)
-
-update_keys_id = ldap_keys_id.intersection(ods_keys_id)
-log.info('keys in LDAP & ODS: %s', update_keys_id)
-for key_id in update_keys_id:
-    ldap_key = ldap_keys[key_id]
-    ods_key = ods_keys[key_id]
-    log.debug('updating key "%s" in LDAP', ldap_key.dn)
-    ldap_key.update(ods_key)
-    try:
-        ldap.update_entry(ldap_key)
-    except ipalib.errors.EmptyModlist:
-        continue
+sync_zone(log, ldap, dns_dn, zone_name)
 
 log.debug('Done')
