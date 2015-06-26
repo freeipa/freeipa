@@ -548,7 +548,8 @@ class KerbTransport(SSLTransport):
         service = "HTTP@" + host.split(':')[0]
 
         try:
-            (rc, vc) = kerberos.authGSSClientInit(service, self.flags)
+            (rc, vc) = kerberos.authGSSClientInit(service=service,
+                                                  gssflags=self.flags)
         except kerberos.GSSError, e:
             self._handle_exception(e)
 
