@@ -217,3 +217,17 @@ default:ObjectClass: nsIndex
 only:nsSystemIndex: false
 only:nsIndexType: eq
 only:nsIndexType: pres
+
+dn: cn=ntUniqueId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: ntUniqueId
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+only:nsIndexType: eq
+only:nsIndexType: pres
+
+dn: cn=ntUserDomainId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: ntUserDomainId
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+only:nsIndexType: eq
+only:nsIndexType: pres
