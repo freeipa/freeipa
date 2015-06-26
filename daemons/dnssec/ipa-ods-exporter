@@ -176,7 +176,6 @@ def get_ods_keys(zone_name):
                 continue  # ignore deleted keys
 
         key_data.update(sql2ldap_flags(row['keytype']))
-        log.debug("%s", key_data)
         assert key_data.get('idnsSecKeyZONE', None) == 'TRUE', \
                 'unexpected key type 0x%x' % row['keytype']
         if key_data.get('idnsSecKeySEP', 'FALSE') == 'TRUE':
@@ -191,6 +190,7 @@ def get_ods_keys(zone_name):
 
         key_data.update(sql2ldap_keyid(row['HSMkey_id']))
         keys[key_id] = key_data
+        log.debug("key %s metadata: %s", key_id, key_data)
 
     return keys
 
