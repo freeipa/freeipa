@@ -36,6 +36,7 @@ import netaddr
 import time
 import krbV
 import pwd
+import grp
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 from contextlib import contextmanager
@@ -250,7 +251,7 @@ def shell_quote(string):
 
 def run(args, stdin=None, raiseonerr=True,
         nolog=(), env=None, capture_output=True, skip_output=False, cwd=None,
-        runas=None, timeout=None):
+        runas=None, timeout=None, suplementary_groups=[]):
     """
     Execute a command and return stdin, stdout and the process return code.
 
@@ -276,11 +277,15 @@ def run(args, stdin=None, raiseonerr=True,
     :param capture_output: Capture stderr and stdout
     :param skip_output: Redirect the output to /dev/null and do not capture it
     :param cwd: Current working directory
-    :param runas: Name of a user that the command shold be run as. The spawned
+    :param runas: Name of a user that the command should be run as. The spawned
         process will have both real and effective UID and GID set.
     :param timeout: Timeout if the command hasn't returned within the specified
         number of seconds.
+    :param suplementary_groups: List of group names that will be used as
+        suplementary groups for subporcess.
+        The option runas must be specified together with this option.
     """
+    assert isinstance(suplementary_groups, list)
     p_in = None
     p_out = None
     p_err = None
@@ -317,11 +322,22 @@ def run(args, stdin=None, raiseonerr=True,
     preexec_fn = None
     if runas is not None:
         pent = pwd.getpwnam(runas)
+
+        suplementary_gids = [
+            grp.getgrnam(group).gr_gid for group in suplementary_groups
+        ]
+
         root_logger.debug('runas=%s (UID %d, GID %s)', runas,
             pent.pw_uid, pent.pw_gid)
+        if suplementary_groups:
+            for group, gid in zip(suplementary_groups, suplementary_gids):
+                root_logger.debug('suplementary_group=%s (GID %d)', group, gid)
 
-        preexec_fn = lambda: (os.setregid(pent.pw_gid, pent.pw_gid),
-                              os.setreuid(pent.pw_uid, pent.pw_uid))
+        preexec_fn = lambda: (
+            os.setgroups(suplementary_gids),
+            os.setregid(pent.pw_gid, pent.pw_gid),
+            os.setreuid(pent.pw_uid, pent.pw_uid),
+        )
 
     try:
         p = subprocess.Popen(args, stdin=p_in, stdout=p_out, stderr=p_err,
