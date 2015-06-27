@@ -536,3 +536,24 @@ class IPAChangeConf:
             except IOError:
                 pass
         return True
+
+    @staticmethod
+    def setOption(name, value):
+        return {'name': name,
+                'type': 'option',
+                'action': 'set',
+                'value': value}
+
+    @staticmethod
+    def rmOption(name):
+        return {'name': name,
+                'type': 'option',
+                'action': 'remove',
+                'value': None}
+
+    @staticmethod
+    def setSection(name, options):
+        return {'name': name,
+                'type': 'section',
+                'action': 'set',
+                'value': options}
