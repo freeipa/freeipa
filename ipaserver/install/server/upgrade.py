@@ -1363,6 +1363,12 @@ def upgrade_configuration():
 
     if not http.is_kdcproxy_configured():
         root_logger.info('[Enabling KDC Proxy]')
+        if http.admin_conn is None:
+            http.ldapi = True
+            http.fqdn = fqdn
+            http.realm = api.env.realm
+            http.suffix = ipautil.realm_to_suffix(api.env.realm)
+            http.ldap_connect()
         http.create_kdcproxy_conf()
         http.enable_kdcproxy()
 
