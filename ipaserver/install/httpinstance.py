@@ -481,8 +481,8 @@ class HTTPInstance(service.Service):
         installutils.remove_file(paths.HTTPD_IPA_REWRITE_CONF)
         installutils.remove_file(paths.HTTPD_IPA_CONF)
         installutils.remove_file(paths.HTTPD_IPA_PKI_PROXY_CONF)
-        installutils.remove_file(paths.HTTPD_IPA_KDCPROXY_CONF)
         installutils.remove_file(paths.HTTPD_IPA_KDCPROXY_CONF_SYMLINK)
+        installutils.remove_file(paths.HTTPD_IPA_KDCPROXY_CONF)
 
         # Restore SELinux boolean states
         boolean_states = {name: self.restore_state(name)

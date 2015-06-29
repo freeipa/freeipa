@@ -657,7 +657,7 @@ def remove_file(filename):
     Remove a file and log any exceptions raised.
     """
     try:
-        if os.path.exists(filename):
+        if os.path.lexists(filename):
             os.unlink(filename)
     except Exception, e:
         root_logger.error('Error removing %s: %s' % (filename, str(e)))
