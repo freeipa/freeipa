@@ -36,7 +36,7 @@ EXAMPLES:
 
   Import a profile that will not store issued certificates:
     ipa certprofile-import ShortLivedUserCert \\
-      --file UserCert.profile --summary "User Certificates" \\
+      --file UserCert.profile --desc "User Certificates" \\
       --store=false
 
   Delete a certificate profile:
