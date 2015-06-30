@@ -74,6 +74,10 @@ def parse_options():
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
 
+    if options.dnssec_master and options.disable_dnssec_master:
+        parser.error("Invalid combination of parameters: --dnssec-master and "
+                     "--disable-dnssec-master")
+
     if options.forwarders and options.no_forwarders:
         parser.error("You cannot specify a --forwarder option together with --no-forwarders")
     elif options.reverse_zones and options.no_reverse:
