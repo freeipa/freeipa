@@ -391,6 +391,9 @@ def install_check(installer):
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
 
     cafile = config.dir + "/ca.crt"
+    if not ipautil.file_exists(cafile):
+        raise RuntimeError("CA cert file is not available. Please run "
+                           "ipa-replica-prepare to create a new replica file.")
 
     ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
     remote_api = create_api(mode=None)
@@ -510,10 +513,6 @@ def install_check(installer):
             config.master_host_name, config.host_name, config.realm_name,
             options.setup_ca, config.ca_ds_port, options.admin_password)
 
-    if not ipautil.file_exists(cafile):
-        raise RuntimeError("CA cert file is not available. Please run "
-                           "ipa-replica-prepare to create a new replica file.")
-
     installer._remote_api = remote_api
     installer._fstore = fstore
     installer._sstore = sstore
@@ -574,15 +573,14 @@ def install(installer):
     otpd.create_instance('OTPD', config.host_name, config.dirman_password,
                          ipautil.realm_to_suffix(config.realm_name))
 
-    if ipautil.file_exists(cafile):
-        CA = cainstance.CAInstance(
-            config.realm_name, certs.NSS_DIR,
-            dogtag_constants=dogtag_constants)
-        CA.dm_password = config.dirman_password
+    CA = cainstance.CAInstance(
+        config.realm_name, certs.NSS_DIR,
+        dogtag_constants=dogtag_constants)
+    CA.dm_password = config.dirman_password
 
-        CA.configure_certmonger_renewal()
-        CA.import_ra_cert(config.dir + "/ra.p12")
-        CA.fix_ra_perms()
+    CA.configure_certmonger_renewal()
+    CA.import_ra_cert(config.dir + "/ra.p12")
+    CA.fix_ra_perms()
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated
