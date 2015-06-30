@@ -123,6 +123,7 @@ typedef struct topo_plugin_config {
     char **managed_attrs;
     char **restricted_attrs;
     int activated;
+    int post_init;
 } TopoPluginConf;
 
 #define CONFIG_ATTR_SHARED_BASE "nsslapd-topo-plugin-shared-config-base"
@@ -138,6 +139,7 @@ void ipa_topo_init_shared_config(void);
 int ipa_topo_init_config(Slapi_PBlock *pb);
 void *ipa_topo_get_plugin_id(void);
 int ipa_topo_get_plugin_active(void);
+int ipa_topo_get_post_init(void);
 char *ipa_topo_get_plugin_shared_config(void);
 Slapi_DN *ipa_topo_get_plugin_shared_topo_dn(void);
 Slapi_DN *ipa_topo_get_plugin_shared_hosts_dn(void);
@@ -158,6 +160,7 @@ int ipa_topo_get_min_domain_level(void);
 int ipa_topo_get_plugin_startup_delay(void);
 void ipa_topo_set_plugin_id(void *plg_id);
 void ipa_topo_set_plugin_active(int state);
+void ipa_topo_set_post_init(int state);
 void ipa_topo_set_plugin_shared_config(char *);
 void ipa_topo_set_plugin_hostname(char *hostname);
 void ipa_topo_set_plugin_replica_root(char **roots);
@@ -296,3 +299,4 @@ char *ipa_topo_util_get_pluginhost(void);
 TopoReplica *ipa_topo_util_get_replica_conf(char *repl_root);
 TopoReplicaSegmentList *ipa_topo_util_get_replica_segments(TopoReplica *replica);
 void ipa_topo_util_set_domain_level(void);
+void ipa_topo_util_reset_init(char *repl_root);

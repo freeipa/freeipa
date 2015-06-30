@@ -471,6 +471,54 @@ ipa_topo_util_conf_from_entry(Slapi_Entry *entry)
         return conf;
     }
 }
+void
+ipa_topo_util_segm_modify (TopoReplica *tconf,
+                               TopoReplicaSegment *tsegm,
+                               Slapi_Mods *smods)
+{
+    char *dn = NULL;
+
+    dn = ipa_topo_segment_dn(tconf, tsegm->name);
+
+    if (dn  == NULL) return;
+
+    if (slapi_mods_get_num_mods(smods) > 0) {
+        Slapi_DN *sdn = slapi_sdn_new_normdn_byref(dn);
+        ipa_topo_util_modify(sdn, smods);
+        slapi_sdn_free(&sdn);
+    }
+
+    slapi_ch_free_string(&dn);
+}
+
+void
+ipa_topo_util_remove_init_attr(TopoReplica *repl_conf, TopoReplicaAgmt *topo_agmt)
+{
+    TopoReplicaSegmentList *seglist = repl_conf->repl_segments;
+    TopoReplicaSegment *segment = NULL;
+    char *dirattr = NULL;
+
+    while (seglist) {
+        segment = seglist->segm;
+        if (segment->left == topo_agmt) {
+            dirattr = "nsds5beginreplicarefresh;left";
+            break;
+        } else if (segment->right == topo_agmt) {
+            dirattr = "nsds5beginreplicarefresh;right";
+            break;
+        } else {
+            segment = NULL;
+        }
+        seglist = seglist->next;
+    }
+    if (segment) {
+        Slapi_Mods *smods = slapi_mods_new();
+        slapi_mods_add_string(smods, LDAP_MOD_DELETE,
+                              dirattr, "");
+        ipa_topo_util_segm_modify (repl_conf, segment, smods);
+        slapi_mods_free(&smods);
+    }
+}
 
 void
 ipa_topo_util_set_agmt_rdn(TopoReplicaAgmt *topo_agmt, Slapi_Entry *repl_agmt)
@@ -593,6 +641,14 @@ ipa_topo_util_update_agmt_list(TopoReplica *conf, TopoReplicaSegmentList *repl_s
             for (i=0; mattrs[i]; i++) {
                 segm_attr_val = ipa_topo_util_get_segm_attr(topo_agmt,mattrs[i]);
                 if (segm_attr_val) {
+                    if (0 == strcasecmp(mattrs[i], "nsds5BeginReplicaRefresh")) {
+                        /* we have to remove this attr from the segment, this is
+                         * processed on a server, which is the supplier side of
+                         * an agreement.
+                         */
+                        ipa_topo_util_remove_init_attr(conf, topo_agmt);
+                        continue;
+                    }
                     agmt_attr_val =  slapi_entry_attr_get_charptr(repl_agmt,mattrs[i]);
                     if (agmt_attr_val == NULL ||
                         strcasecmp(agmt_attr_val,segm_attr_val)) {
@@ -1558,5 +1614,49 @@ ipa_topo_util_disable_repl_for_principal(char *repl_root, char *principal)
     slapi_sdn_free(&sdn);
     slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                             "<-- ipa_topo_util_disable_repl_for_principal\n");
+}
 
+void
+ipa_topo_util_reset_init(char *repl_root)
+{
+    TopoReplica *replica_config = NULL;
+    TopoReplicaSegmentList *seglist = NULL;
+    TopoReplicaSegment *segment = NULL;
+    char *localhost = ipa_topo_get_plugin_hostname();
+    char *dirattr;
+
+    replica_config = ipa_topo_cfg_replica_find(repl_root, 1);
+    if (replica_config) {
+        seglist = ipa_topo_util_get_replica_segments(replica_config);
+    } else {
+        slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                        "ipa_topo_util_reset_init: no replica found for: %s\n", repl_root);
+        return;
+    }
+
+    while (seglist) {
+        /* this is executed after an online init completed, reset the init in segments
+         * which target this server
+         */
+        segment = seglist->segm;
+        if (segment->left && (0 == strcasecmp(localhost,segment->left->target))
+                && ipa_topo_util_get_segm_attr(segment->left,"nsds5BeginReplicaRefresh")) {
+            dirattr = "nsds5BeginReplicaRefresh;left";
+            break;
+        } else if (segment->right && (0 == strcasecmp(localhost,segment->right->target))
+                && ipa_topo_util_get_segm_attr(segment->right,"nsds5BeginReplicaRefresh")) {
+            dirattr = "nsds5BeginReplicaRefresh;right";
+            break;
+        } else {
+            segment = NULL;
+        }
+        seglist = seglist->next;
+    }
+    if (segment) {
+        Slapi_Mods *smods = slapi_mods_new();
+        slapi_mods_add_string(smods, LDAP_MOD_DELETE,
+                              dirattr, "");
+        ipa_topo_util_segm_modify (replica_config, segment, smods);
+        slapi_mods_free(&smods);
+    }
 }

@@ -160,6 +160,18 @@ ipa_topo_apply_shared_config(void)
     /* initialize the list of managed servers */
     rc = ipa_topo_setup_managed_servers();
 
+    if (ipa_topo_get_post_init()) {
+        /* this server has just been initialized, we reset the init
+         * flag in the segments which triggered this init
+         */
+        i = 0;
+        while(shared_replica_root[i]) {
+            ipa_topo_util_reset_init(shared_replica_root[i]);
+            i++;
+        }
+        ipa_topo_set_post_init(0);
+    }
+
     ipa_topo_release_startup_inprogress();
     return (rc);
 }
@@ -295,6 +307,7 @@ ipa_topo_be_state_change(void *handle, char *be_name,
         ipa_topo_util_set_domain_level();
         ipa_topo_util_check_plugin_active();
         if (ipa_topo_get_plugin_active()) {
+            ipa_topo_set_post_init(1);
             ipa_topo_util_start(1);
         }
     } else if (new_be_state == SLAPI_BE_STATE_OFFLINE) {

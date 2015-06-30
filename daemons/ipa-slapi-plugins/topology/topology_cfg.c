@@ -171,6 +171,18 @@ ipa_topo_get_plugin_active(void)
     return topo_plugin_conf.activated;
 }
 
+
+void
+ipa_topo_set_post_init(int state)
+{
+     topo_plugin_conf.post_init = state;
+}
+int
+ipa_topo_get_post_init(void)
+{
+    return topo_plugin_conf.post_init;
+}
+
 void
 ipa_topo_set_plugin_shared_config(char *cfg)
 {
