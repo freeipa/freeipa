@@ -779,9 +779,17 @@ def del_master_managed(realm, hostname, options):
         if not left and not right:
             print "Agreements deleted"
             break
-        time.sleep(1)
-        if i == 5: # taking too long, something is wrong, report
+        time.sleep(2)
+        if i == 2: # taking too long, something is wrong, report
             print "Waiting for removal of replication agreements"
+        if i > 90:
+            print "Taking too long, skipping"
+            print "Following segments were not deleted:"
+            for s in left:
+                print "  %s" % s['cn'][0]
+            for s in right:
+                print "  %s" % s['cn'][0]
+            break
         i += 1
 
     # Clean RUV
