@@ -69,7 +69,7 @@ class topologysegment(LDAPObject):
             primary_key=True,
             label=_('Segment name'),
             default_from=lambda iparepltoposegmentleftnode, iparepltoposegmentrightnode:
-                         '%s-%s' % (iparepltoposegmentleftnode, iparepltoposegmentrightnode),
+                         '%s-to-%s' % (iparepltoposegmentleftnode, iparepltoposegmentrightnode),
             normalizer=lambda value: value.lower(),
             doc=_('Arbitrary string identifying the segment'),
         ),
