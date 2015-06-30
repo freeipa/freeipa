@@ -94,6 +94,7 @@ def install_check(standalone, replica, options, hostname):
     global ip_addresses
     global dns_forwarders
     global reverse_zones
+    fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     if standalone:
         print "=============================================================================="
@@ -164,7 +165,18 @@ def install_check(standalone, replica, options, hostname):
                 "Your DNS zones will become unavailable if you "
                 "do not reinstall the DNSSEC key master role immediatelly." %
                 ", ".join([str(zone) for zone in dnssec_zones]))
+
     elif options.dnssec_master:
+        ods = opendnssecinstance.OpenDNSSECInstance(
+            fstore, ldapi=True)
+        ods.realm = api.env.realm
+        dnssec_masters = ods.get_masters()
+        # we can reinstall current server if it is dnssec master
+        if dnssec_masters and api.env.host not in dnssec_masters:
+            print "DNSSEC key master(s):", u','.join(dnssec_masters)
+            sys.exit("Only one DNSSEC key master is supported in current "
+                     "version.")
+
         # check opendnssec packages are installed
         if not opendnssecinstance.check_inst():
             sys.exit("Aborting installation")
@@ -213,20 +225,6 @@ def install_check(standalone, replica, options, hostname):
                 "WARNING: Zones will become unavailable if you do not provide "
                 "the original kasp.db file." %
                 ", ".join([str(zone) for zone in dnssec_zones]))
-
-
-    fstore = sysrestore.FileStore(paths.SYSRESTORE)
-
-    if options.dnssec_master:
-        ods = opendnssecinstance.OpenDNSSECInstance(
-            fstore, ldapi=True)
-        ods.realm = api.env.realm
-        dnssec_masters = ods.get_masters()
-        # we can reinstall current server if it is dnssec master
-        if api.env.host not in dnssec_masters and dnssec_masters:
-            print "DNSSEC key master(s):", u','.join(dnssec_masters)
-            sys.exit("Only one DNSSEC key master is supported in current "
-                     "version.")
 
     ip_addresses = get_server_ip_address(
         hostname, fstore, options.unattended, True, options.ip_addresses)
