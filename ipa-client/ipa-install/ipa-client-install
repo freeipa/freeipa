@@ -481,6 +481,7 @@ def uninstall(options, env):
     statestore._load()
 
     hostname = None
+    ipa_domain = None
     was_sssd_configured = False
     try:
         sssdconfig = SSSDConfig.SSSDConfig()
@@ -505,6 +506,10 @@ def uninstall(options, env):
                     hostname = domain.get_option('ipa_hostname')
                 except SSSDConfig.NoOptionError:
                     continue
+                try:
+                    ipa_domain = domain.get_option('ipa_domain')
+                except SSSDConfig.NoOptionError:
+                    pass
     except Exception, e:
         # We were unable to read existing SSSD config. This might mean few things:
         # - sssd wasn't installed
@@ -634,14 +639,14 @@ def uninstall(options, env):
     remove_file(paths.SSSD_MC_GROUP)
     remove_file(paths.SSSD_MC_PASSWD)
 
-    ipa_domain = domain.get_option('ipa_domain')
-    sssd_domain_ldb = "cache_" + ipa_domain + ".ldb"
-    sssd_ldb_file = os.path.join(paths.SSSD_DB, sssd_domain_ldb)
-    remove_file(sssd_ldb_file)
+    if ipa_domain:
+        sssd_domain_ldb = "cache_" + ipa_domain + ".ldb"
+        sssd_ldb_file = os.path.join(paths.SSSD_DB, sssd_domain_ldb)
+        remove_file(sssd_ldb_file)
 
-    sssd_domain_ccache = "ccache_" + ipa_domain.upper()
-    sssd_ccache_file = os.path.join(paths.SSSD_DB, sssd_domain_ccache)
-    remove_file(sssd_domain_ccache)
+        sssd_domain_ccache = "ccache_" + ipa_domain.upper()
+        sssd_ccache_file = os.path.join(paths.SSSD_DB, sssd_domain_ccache)
+        remove_file(sssd_ccache_file)
 
     # Next if-elif-elif construction deals with sssd.conf file.
     # Old pre-IPA domains are preserved due merging the old sssd.conf
