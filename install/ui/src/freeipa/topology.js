@@ -138,7 +138,8 @@ return {
                             $type: 'radio',
                             name: 'nsds5replicaenabled',
                             options: ['on', 'off'],
-                            default_value: 'on'
+                            default_value: 'on',
+                            read_only: true
                         },
                         'nsds5replicatimeout',
                         'nsds5replicastripattrs',
@@ -168,14 +169,6 @@ return {
                 other_entity: 'server',
                 other_field: 'cn',
                 z_index: 1
-            },
-            {
-                $type: 'radio',
-                name: 'iparepltoposegmentdirection',
-                options: IPA.create_options([
-                    'both', 'left-right', 'right-left'
-                ]),
-                default_value: 'both'
             }
         ]
     }

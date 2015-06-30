@@ -103,7 +103,7 @@ class topologysegment(LDAPObject):
             default=u'both',
             doc=_('Direction of replication between left and right replication '
                   'node'),
-            flags={'no_update'},
+            flags={'no_option', 'no_update'},
         ),
         Str(
             'nsds5replicastripattrs?',
@@ -145,6 +145,7 @@ class topologysegment(LDAPObject):
             doc=_('Whether a replication agreement is active, meaning whether '
                   'replication is occurring per that agreement'),
             values=(u'on', u'off'),
+            flags={'no_option'},
         ),
     )
 
