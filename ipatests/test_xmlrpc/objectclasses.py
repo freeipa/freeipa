@@ -217,3 +217,8 @@ certprofile = [
     u'top',
     u'ipacertprofile',
 ]
+
+caacl = [
+    u'ipaassociation',
+    u'ipacaacl'
+]
