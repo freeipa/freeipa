@@ -66,9 +66,14 @@ ipa_topo_post_add(Slapi_PBlock *pb)
         /* initialize the shared topology data for a replica */
         break;
     case TOPO_SEGMENT_ENTRY: {
-        TopoReplicaSegment *tsegm;
+        TopoReplicaSegment *tsegm = NULL;
         TopoReplica *tconf = ipa_topo_util_get_conf_for_segment(add_entry);
         char *status;
+        if (tconf == NULL) {
+            slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                            "ipa_topo_post_add - config area for segment not found\n");
+            break;
+        }
         /* TBD check that one node is the current server and
          * that the other node is also managed by the
          * shared config.
@@ -225,9 +230,9 @@ ipa_topo_post_del(Slapi_PBlock *pb)
     case TOPO_SEGMENT_ENTRY: {
         /* check if corresponding agreement exists and delete */
         TopoReplica *tconf = ipa_topo_util_get_conf_for_segment(del_entry);
-        TopoReplicaSegment *tsegm;
+        TopoReplicaSegment *tsegm = NULL;
         char *status;
-        tsegm = ipa_topo_util_find_segment(tconf, del_entry);
+        if (tconf) tsegm = ipa_topo_util_find_segment(tconf, del_entry);
         if (tsegm == NULL) {
             slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
                             "segment to be deleted does not exist\n");

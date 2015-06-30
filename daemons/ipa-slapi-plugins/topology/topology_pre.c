@@ -284,7 +284,7 @@ ipa_topo_connection_exists(struct node_fanout *fanout, char* from, char *to)
 }
 
 int
-ipa_topo_check_segment_is_valid(Slapi_PBlock *pb)
+ipa_topo_check_segment_is_valid(Slapi_PBlock *pb, char **errtxt)
 {
     int rc = 0;
     Slapi_Entry *add_entry;
@@ -307,20 +307,38 @@ ipa_topo_check_segment_is_valid(Slapi_PBlock *pb)
         char *leftnode = slapi_entry_attr_get_charptr(add_entry,"ipaReplTopoSegmentLeftNode");
         char *rightnode = slapi_entry_attr_get_charptr(add_entry,"ipaReplTopoSegmentRightNode");
         char *dir = slapi_entry_attr_get_charptr(add_entry,"ipaReplTopoSegmentDirection");
-        if (strcasecmp(dir,SEGMENT_DIR_BOTH) && strcasecmp(dir,SEGMENT_DIR_LEFT_ORIGIN) &&
+        if (leftnode == NULL || rightnode == NULL || dir == NULL) {
+                *errtxt = slapi_ch_smprintf("Segment definition is incomplete"
+                                   ". Add rejected.\n");
+            rc = 1;
+        } else if (strcasecmp(dir,SEGMENT_DIR_BOTH) && strcasecmp(dir,SEGMENT_DIR_LEFT_ORIGIN) &&
             strcasecmp(dir,SEGMENT_DIR_RIGHT_ORIGIN)) {
+                *errtxt = slapi_ch_smprintf("Segment has unsupported direction"
+                                   ". Add rejected.\n");
                 slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
                                 "segment has unknown direction: %s\n", dir);
                 rc = 1;
         } else if (0 == strcasecmp(leftnode,rightnode)) {
+                *errtxt = slapi_ch_smprintf("Segment is self referential"
+                                   ". Add rejected.\n");
                 slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
                                 "segment is self referential\n");
                 rc = 1;
         } else {
-            TopoReplicaSegment *tsegm;
+            TopoReplicaSegment *tsegm = NULL;
             TopoReplica *tconf = ipa_topo_util_get_conf_for_segment(add_entry);
-            tsegm = ipa_topo_util_find_segment(tconf, add_entry);
+            if (tconf == NULL ) {
+                *errtxt = slapi_ch_smprintf("Segment configuration suffix not found"
+                                   ". Add rejected.\n");
+                slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                                "topology not configured for segment\n");
+                rc = 1;
+            } else {
+                tsegm = ipa_topo_util_find_segment(tconf, add_entry);
+            }
             if (tsegm) {
+                *errtxt = slapi_ch_smprintf("Segment already exists in topology"
+                                   ". Add rejected.\n");
                 slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
                                 "segment to be added does already exist\n");
                 rc = 1;
@@ -375,7 +393,13 @@ ipa_topo_check_topology_disconnect(Slapi_PBlock *pb)
         return 0;
     } else {
         TopoReplica *tconf = ipa_topo_util_get_conf_for_segment(del_entry);
-        TopoReplicaSegment *tsegm;
+        if (tconf == NULL) {
+            slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                            "topology not configured for segment\n");
+            rc = 0; /* this segment is not controlled by the plugin */
+            goto done;
+        }
+        TopoReplicaSegment *tsegm = NULL;
         tsegm = ipa_topo_util_find_segment(tconf, del_entry);
         if (tsegm == NULL) {
             slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
@@ -412,6 +436,7 @@ ipa_topo_pre_ignore_op(Slapi_PBlock *pb)
 int ipa_topo_pre_add(Slapi_PBlock *pb)
 {
     int result = SLAPI_PLUGIN_SUCCESS;
+    char *errtxt  = NULL;
 
     slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                     "--> ipa_topo_pre_add\n");
@@ -432,11 +457,8 @@ int ipa_topo_pre_add(Slapi_PBlock *pb)
         slapi_pblock_set(pb, SLAPI_PB_RESULT_TEXT, errtxt);
         slapi_pblock_set(pb, SLAPI_RESULT_CODE, &rc);
         result = SLAPI_PLUGIN_FAILURE;
-    } else if (ipa_topo_check_segment_is_valid(pb)) {
+    } else if (ipa_topo_check_segment_is_valid(pb, &errtxt)) {
         int rc = LDAP_UNWILLING_TO_PERFORM;
-        char *errtxt;
-        errtxt = slapi_ch_smprintf("Segment already exists in topology or"
-                                   " is self referential. Add rejected.\n");
         slapi_pblock_set(pb, SLAPI_PB_RESULT_TEXT, errtxt);
         slapi_pblock_set(pb, SLAPI_RESULT_CODE, &rc);
         result = SLAPI_PLUGIN_FAILURE;

@@ -448,8 +448,10 @@ ipa_topo_util_get_conf_for_segment(Slapi_Entry *segment_entry)
     char *parent = slapi_dn_parent(slapi_entry_get_dn_const(segment_entry));
 
     Slapi_Entry *conf = ipa_topo_util_get_entry(parent);
-    tconf = ipa_topo_util_conf_from_entry(conf);
-    slapi_entry_free(conf);
+    if (conf) {
+        tconf = ipa_topo_util_conf_from_entry(conf);
+        slapi_entry_free(conf);
+    }
 
     return tconf;
 }
