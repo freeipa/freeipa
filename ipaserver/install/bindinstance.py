@@ -62,25 +62,8 @@ named_conf_arg_options_template_nonstr = "%(indent)s%(name)s %(value)s;\n"
 named_conf_include_re = re.compile(r'\s*include\s+"(?P<path>)"\s*;')
 named_conf_include_template = "include \"%(path)s\";\n"
 
+
 def check_inst(unattended):
-    has_bind = True
-    named = services.knownservices.named
-    if not os.path.exists(named.get_binary_path()):
-        print "BIND was not found on this system"
-        print ("Please install the '%s' package and start the installation again"
-              % named.get_package_name())
-        has_bind = False
-
-    # Also check for the LDAP BIND plug-in
-    if not os.path.exists(paths.BIND_LDAP_SO) and \
-       not os.path.exists(paths.BIND_LDAP_SO_64):
-        print "The BIND LDAP plug-in was not found on this system"
-        print "Please install the 'bind-dyndb-ldap' package and start the installation again"
-        has_bind = False
-
-    if not has_bind:
-        return False
-
     if not unattended and os.path.exists(NAMED_CONF):
         msg = "Existing BIND configuration detected, overwrite?"
         return ipautil.user_input(msg, False)

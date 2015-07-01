@@ -55,14 +55,6 @@ def get_dnssec_key_masters(conn):
     return keymasters_list
 
 
-def check_inst():
-    if not os.path.exists(paths.ODS_KSMUTIL):
-        print ("Please install the 'opendnssec' package and start "
-               "the installation again")
-        return False
-    return True
-
-
 class OpenDNSSECInstance(service.Service):
     def __init__(self, fstore=None, dm_password=None, ldapi=False,
                  start_tls=False, autobind=ipaldap.AUTOBIND_ENABLED):

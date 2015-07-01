@@ -9,6 +9,7 @@ from subprocess import CalledProcessError
 from ipalib import api
 from ipalib import errors
 from ipaplatform.paths import paths
+from ipaplatform.constants import constants
 from ipaplatform import services
 from ipapython import ipautil
 from ipapython import sysrestore
@@ -96,6 +97,10 @@ def install_check(standalone, replica, options, hostname):
     global reverse_zones
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
+    if not ipautil.file_exists(paths.IPA_DNS_INSTALL):
+        raise RuntimeError("Integrated DNS requires '%s' package" %
+                           constants.IPA_DNS_PACKAGE_NAME)
+
     if standalone:
         print "=============================================================================="
         print "This program will setup DNS for the FreeIPA Server."
@@ -141,8 +146,7 @@ def install_check(standalone, replica, options, hostname):
         sys.exit("Aborted")
 
     # Check bind packages are installed
-    if not (bindinstance.check_inst(options.unattended) and
-            dnskeysyncinstance.check_inst()):
+    if not bindinstance.check_inst(options.unattended):
         sys.exit("Aborting installation.")
 
     if options.disable_dnssec_master:
@@ -177,9 +181,6 @@ def install_check(standalone, replica, options, hostname):
             sys.exit("Only one DNSSEC key master is supported in current "
                      "version.")
 
-        # check opendnssec packages are installed
-        if not opendnssecinstance.check_inst():
-            sys.exit("Aborting installation")
         if options.kasp_db_file:
             dnskeysyncd = services.service('ipa-dnskeysyncd')
 

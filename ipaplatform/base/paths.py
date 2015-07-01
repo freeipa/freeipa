@@ -218,6 +218,7 @@ class BasePathNamespace(object):
     GROUPADD = "/usr/sbin/groupadd"
     HTTPD = "/usr/sbin/httpd"
     IPA_CLIENT_INSTALL = "/usr/sbin/ipa-client-install"
+    IPA_DNS_INSTALL = "/usr/sbin/ipa-dns-install"
     SBIN_IPA_JOIN = "/usr/sbin/ipa-join"
     IPA_REPLICA_CONNCHECK = "/usr/sbin/ipa-replica-conncheck"
     IPA_RMKEYTAB = "/usr/sbin/ipa-rmkeytab"
