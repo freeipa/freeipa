@@ -3,7 +3,9 @@
 #
 
 from ipalib import api, errors
+from ipapython import certdb
 from ipapython import dogtag
+from ipapython import ipautil
 from ipapython.dn import DN
 from ipaserver.install import cainstance
 from ipaserver.install import krainstance
@@ -33,6 +35,20 @@ def install_check(api, replica_config, options):
     if replica_config is not None:
         if not api.Command.kra_is_enabled()['result']:
             raise RuntimeError("KRA is not installed on the master system")
+
+        with certdb.NSSDatabase() as tmpdb:
+            pw = ipautil.write_tmp_file(ipautil.ipa_generate_password())
+            tmpdb.create_db(pw.name)
+            tmpdb.import_pkcs12(replica_config.dir + "/cacert.p12", pw.name,
+                                replica_config.dirman_password)
+            kra_cert_nicknames = [
+                "storageCert cert-pki-kra", "transportCert cert-pki-kra",
+                "auditSigningCert cert-pki-kra"
+            ]
+            if not all(tmpdb.has_nickname(nickname)
+                       for nickname in kra_cert_nicknames):
+                raise RuntimeError("Missing KRA certificates, please create a "
+                                   "new replica file.")
 
 
 def install(api, replica_config, options):
