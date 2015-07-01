@@ -49,26 +49,6 @@ from distutils import version
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 
-def update_key_val_in_file(filename, key, val):
-    if os.path.exists(filename):
-        pattern = "^[\s#]*%s\s*=\s*%s\s*" % (re.escape(key), re.escape(val))
-        p = re.compile(pattern)
-        for line in fileinput.input(filename):
-            if p.search(line):
-                fileinput.close()
-                return
-        fileinput.close()
-
-        pattern = "^[\s#]*%s\s*=" % re.escape(key)
-        p = re.compile(pattern)
-        for line in fileinput.input(filename, inplace=1):
-            if not p.search(line):
-                sys.stdout.write(line)
-        fileinput.close()
-    f = open(filename, "a")
-    f.write("%s=%s\n" % (key, val))
-    f.close()
-
 class KpasswdInstance(service.SimpleServiceInstance):
     def __init__(self):
         service.SimpleServiceInstance.__init__(self, "kadmin")
@@ -386,7 +366,9 @@ class KrbInstance(service.Service):
         self.fstore.backup_file(paths.DS_KEYTAB)
         installutils.create_keytab(paths.DS_KEYTAB, ldap_principal)
 
-        update_key_val_in_file(paths.SYSCONFIG_DIRSRV, "KRB5_KTNAME", paths.DS_KEYTAB)
+        vardict = {"KRB5_KTNAME": paths.DS_KEYTAB}
+        ipautil.config_replace_variables(paths.SYSCONFIG_DIRSRV,
+                                         replacevars=vardict)
         pent = pwd.getpwnam(dsinstance.DS_USER)
         os.chown(paths.DS_KEYTAB, pent.pw_uid, pent.pw_gid)
 
