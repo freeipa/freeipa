@@ -2021,6 +2021,9 @@ class DNSZoneBase(LDAPObject):
     )
 
     def get_dn(self, *keys, **options):
+        if not dns_container_exists(self.api.Backend.ldap2):
+            raise errors.NotFound(reason=_('DNS is not configured'))
+
         zone = keys[-1]
         assert isinstance(zone, DNSName)
         assert zone.is_absolute()
@@ -2101,8 +2104,6 @@ class DNSZoneBase_add(LDAPCreate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
-        if not dns_container_exists(self.api.Backend.ldap2):
-            raise errors.NotFound(reason=_('DNS is not configured'))
 
         try:
             entry = ldap.get_entry(dn)
@@ -2177,6 +2178,9 @@ class DNSZoneBase_find(LDAPSearch):
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *args, **options):
         assert isinstance(base_dn, DN)
+        # Check if DNS container exists must be here for find methods
+        if not dns_container_exists(self.api.Backend.ldap2):
+            raise errors.NotFound(reason=_('DNS is not configured'))
         filter = _create_idn_filter(self, ldap, *args, **options)
         return (filter, base_dn, scope)
 
@@ -3087,6 +3091,9 @@ class dnsrecord(LDAPObject):
 
 
     def get_dn(self, *keys, **options):
+        if not dns_container_exists(self.api.Backend.ldap2):
+            raise errors.NotFound(reason=_('DNS is not configured'))
+
         dn = self.check_zone(keys[-2], **options)
 
         if self.is_pkey_zone_record(*keys):
@@ -4249,6 +4256,8 @@ class dnsconfig(LDAPObject):
     }
 
     def get_dn(self, *keys, **kwargs):
+        if not dns_container_exists(self.api.Backend.ldap2):
+            raise errors.NotFound(reason=_('DNS is not configured'))
         return DN(api.env.container_dns, api.env.basedn)
 
     def get_dnsconfig(self, ldap):
