@@ -197,8 +197,13 @@ class ReplicaPrepare(admintool.AdminTool):
             conn = api.Backend.ldap2
             conn.connect(bind_dn=DN(('cn', 'directory manager')),
                          bind_pw=self.dirman_password)
+
             entry_attrs = conn.get_ipa_config()
+            self.subject_base = entry_attrs.get(
+                'ipacertificatesubjectbase', [None])[0]
+
             ca_enabled = api.Command.ca_is_enabled()['result']
+
             conn.disconnect()
         except errors.ACIError:
             raise admintool.ScriptError("The password provided is incorrect "
@@ -215,8 +220,6 @@ class ReplicaPrepare(admintool.AdminTool):
                 "--http-cert-file, --dirsrv-cert-file options to provide "
                 "custom certificates.")
 
-        self.subject_base = entry_attrs.get(
-            'ipacertificatesubjectbase', [None])[0]
         if self.subject_base is not None:
             self.subject_base = DN(self.subject_base)
 
