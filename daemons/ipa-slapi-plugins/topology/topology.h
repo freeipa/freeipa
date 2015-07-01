@@ -283,6 +283,7 @@ void ipa_topo_util_delete_segments_for_host(char *repl_root, char *delhost);
 
 int ipa_topo_util_entry_is_candidate(Slapi_Entry *e);
 int ipa_topo_util_target_is_managed(Slapi_Entry *e);
+int ipa_topo_util_segment_is_managed(TopoReplica *tconf, TopoReplicaSegment *tsegm);
 char * ipa_topo_util_get_segm_attr(TopoReplicaAgmt *agmt, char *attr_type);
 void ipa_topo_util_set_segm_attr(TopoReplicaAgmt *agmt, char *attr_type,
                                  char *attr_val);

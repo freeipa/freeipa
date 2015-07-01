@@ -1036,6 +1036,17 @@ ipa_topo_util_target_is_managed(Slapi_Entry *e)
 
 }
 
+int ipa_topo_util_segment_is_managed(TopoReplica *tconf, TopoReplicaSegment *tsegm)
+{
+    int ret = 0;
+
+    if (ipa_topo_cfg_host_find(tconf, tsegm->from, 1) &&
+        ipa_topo_cfg_host_find(tconf, tsegm->to, 1)) {
+        ret = 1;
+    }
+    return ret;
+}
+
 void
 ipa_topo_util_segm_update (TopoReplica *tconf,
                                TopoReplicaSegment *tsegm,

@@ -406,6 +406,11 @@ ipa_topo_check_topology_disconnect(Slapi_PBlock *pb)
                             "segment to be deleted does not exist\n");
             goto done;
         }
+        if (!ipa_topo_util_segment_is_managed(tconf,tsegm)) {
+            /* not both endpoints are managed servers, delete is ok */
+            rc = 0;
+            goto done;
+        }
         /* check if removal of segment would break connectivity */
         fanout = ipa_topo_connection_fanout(tconf, tsegm);
         if (fanout == NULL) goto done;
