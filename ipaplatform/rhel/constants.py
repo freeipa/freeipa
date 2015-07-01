@@ -11,6 +11,6 @@ from ipaplatform.redhat.constants import RedHatConstantsNamespace
 
 
 class RHELConstantsNamespace(RedHatConstantsNamespace):
-    pass
+    IPA_DNS_PACKAGE_NAME = "ipa-server-dns"
 
 constants = RHELConstantsNamespace()

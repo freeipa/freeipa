@@ -30,12 +30,6 @@ softhsm_token_label = u'ipaDNSSEC'
 softhsm_slot = 0
 replica_keylabel_template = u"dnssec-replica:%s"
 
-def check_inst():
-    if not os.path.exists(paths.DNSSEC_KEYFROMLABEL):
-        print ("Please install the 'bind-pkcs11-utils' package and start "
-               "the installation again")
-        return False
-    return True
 
 def dnssec_container_exists(fqdn, suffix, dm_password=None, ldapi=False,
                             realm=None, autobind=ipaldap.AUTOBIND_DISABLED):

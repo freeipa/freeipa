@@ -8,4 +8,4 @@ This base platform module exports platform dependant constants.
 
 
 class BaseConstantsNamespace(object):
-    pass
+    IPA_DNS_PACKAGE_NAME = "freeipa-server-dns"
