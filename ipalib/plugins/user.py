@@ -28,6 +28,7 @@ from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins import baseldap
+from ipalib.plugins.idviews import remove_ipaobject_overrides
 from ipalib.request import context
 from ipalib import _, ngettext
 from ipalib import output
@@ -900,6 +901,9 @@ class user_del(LDAPDelete):
                 self.api.Command.otptoken_mod(token, ipatokenowner=None)
             else:
                 self.api.Command.otptoken_del(token)
+
+        # Remove any ID overrides tied with this group
+        remove_ipaobject_overrides(ldap, self.obj.api, dn)
 
         return dn
 

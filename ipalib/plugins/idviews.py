@@ -537,6 +537,31 @@ def resolve_anchor_to_object_name(ldap, obj_type, anchor):
                % dict(anchor=anchor))
 
 
+def remove_ipaobject_overrides(ldap, api, dn):
+    """
+    Removes all ID overrides for given object. This method is to be
+    consumed by -del commands of the given objects (users, groups).
+    """
+
+    entry = ldap.get_entry(dn, attrs_list=['ipaUniqueID'])
+    object_uuid = entry.single_value['ipaUniqueID']
+
+    override_filter = '(ipaanchoruuid=:IPA:{0}:{1})'.format(api.env.domain,
+                                                            object_uuid)
+    try:
+        entries, truncated = ldap.find_entries(
+            override_filter,
+            base_dn=DN(api.env.container_views, api.env.basedn),
+            paged_search=True
+        )
+    except errors.EmptyResult:
+        pass
+    else:
+        # In case we found something, delete it
+        for entry in entries:
+            ldap.delete_entry(entry)
+
+
 # This is not registered on purpose, it's a base class for ID overrides
 class baseidoverride(LDAPObject):
     """
