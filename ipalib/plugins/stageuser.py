@@ -512,7 +512,7 @@ class stageuser_activate(LDAPQuery):
             if attr not in entry:
                 raise errors.ValidationError(
                             name=self.obj.primary_key.cli_name,
-                            error=_('Entry has no \'cn\''),
+                            error=_('Entry has no \'%(attribute)s\'') % dict(attribute=attr),
                             )
 
     def _build_new_entry(self, ldap, dn, entry_from, entry_to):
