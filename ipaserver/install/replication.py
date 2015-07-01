@@ -1169,6 +1169,9 @@ class ReplicationManager(object):
     def get_agreement_type(self, hostname):
 
         entry = self.get_replication_agreement(hostname)
+        if not entry:
+            raise errors.NotFound(
+                "Replication agreement for %s not found" % hostname)
         objectclass = entry.get("objectclass")
 
         for o in objectclass:
