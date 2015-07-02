@@ -159,10 +159,11 @@ version-update: release-update
 	if [ "$(SUPPORTED_PLATFORM)" != "" ]; then \
 		sed -e s/__PLATFORM__/$(SUPPORTED_PLATFORM)/ \
 			ipaplatform/__init__.py.in > ipaplatform/__init__.py; \
-		rm -f ipaplatform/paths.py ipaplatform/services.py ipaplatform/tasks.py; \
+		rm -f ipaplatform/paths.py ipaplatform/services.py ipaplatform/tasks.py ipaplatform/constants.py; \
 		ln -s $(SUPPORTED_PLATFORM)/paths.py ipaplatform/paths.py; \
 		ln -s $(SUPPORTED_PLATFORM)/services.py ipaplatform/services.py; \
 		ln -s $(SUPPORTED_PLATFORM)/tasks.py ipaplatform/tasks.py; \
+		ln -s $(SUPPORTED_PLATFORM)/constants.py ipaplatform/constants.py; \
 	fi
 
 	if [ "$(SKIP_API_VERSION_CHECK)" != "yes" ]; then \
