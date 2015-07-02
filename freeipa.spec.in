@@ -381,6 +381,7 @@ rm -f ipapython/version.py
 rm -f ipaplatform/services.py
 rm -f ipaplatform/tasks.py
 rm -f ipaplatform/paths.py
+rm -f ipaplatform/constants.py
 make version-update
 cd ipa-client; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 %if ! %{ONLY_CLIENT}
@@ -403,6 +404,7 @@ rm -f ipapython/version.py
 rm -f ipaplatform/services.py
 rm -f ipaplatform/tasks.py
 rm -f ipaplatform/paths.py
+rm -f ipaplatform/constants.py
 make version-update
 %if ! %{ONLY_CLIENT}
 make install DESTDIR=%{buildroot}
