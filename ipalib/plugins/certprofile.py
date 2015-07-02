@@ -13,6 +13,7 @@ from ipalib.plugins.baseldap import (
     LDAPDelete, LDAPUpdate, LDAPRetrieve)
 from ipalib import ngettext
 from ipalib.text import _
+from ipapython.version import API_VERSION
 
 from ipalib import errors
 
@@ -245,7 +246,6 @@ class certprofile_import(LDAPCreate):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         """Import the profile into Dogtag and enable it.
 
-        If the operation succeeds, update the LDAP entry to 'enabled'.
         If the operation fails, remove the LDAP entry.
         """
         try:
@@ -281,6 +281,35 @@ class certprofile_mod(LDAPUpdate):
     __doc__ = _("Modify Certificate Profile configuration.")
     msg_summary = _('Modified Certificate Profile "%(value)s"')
 
-    def execute(self, *args, **kwargs):
+    takes_options = LDAPUpdate.takes_options + (
+        File('file?',
+            label=_('File containing profile configuration'),
+            cli_name='file',
+            flags=('virtual_attribute',),
+        ),
+    )
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         ca_enabled_check()
-        return super(certprofile_mod, self).execute(*args, **kwargs)
+        if 'file' in options:
+            with self.api.Backend.ra_certprofile as profile_api:
+                profile_api.disable_profile(keys[0])
+                try:
+                    profile_api.update_profile(keys[0], options['file'])
+                finally:
+                    profile_api.enable_profile(keys[0])
+
+        return dn
+
+    def execute(self, *keys, **options):
+        try:
+            return super(certprofile_mod, self).execute(*keys, **options)
+        except errors.EmptyModlist:
+            if 'file' in options:
+                # The profile data in Dogtag was updated.
+                # Do not fail; return result of certprofile-show instead
+                return self.api.Command.certprofile_show(keys[0],
+                    version=API_VERSION)
+            else:
+                # This case is actually an error; re-raise
+                raise

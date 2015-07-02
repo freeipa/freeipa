@@ -2089,6 +2089,18 @@ class ra_certprofile(RestClient):
             'GET', profile_id + '/raw')
         return resp_body
 
+    def update_profile(self, profile_id, profile_data):
+        """
+        Update the profile configuration in Dogtag
+        """
+        self._ssldo('PUT', profile_id + '/raw',
+            headers={
+                'Content-type': 'application/xml',
+                'Accept': 'application/json',
+            },
+            body=profile_data
+        )
+
     def enable_profile(self, profile_id):
         """
         Enable the profile in Dogtag
