@@ -217,6 +217,3 @@ class BaseTaskNamespace(object):
         :return: object implementing proper __cmp__ method for version compare
         """
         return parse_version(version)
-
-
-task_namespace = BaseTaskNamespace()
