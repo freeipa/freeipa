@@ -1019,6 +1019,15 @@ exp.create_cert_metadata = function() {
     return entity;
 };
 
+exp.facet_group = {
+    name: 'certificates',
+    label: '@i18n:tabs.cert',
+    facets: {
+        certificates: 'cert_search',
+        profiles: 'certprofile_search'
+    }
+};
+
 var make_spec = function() {
 return {
     name: 'cert',
@@ -1051,6 +1060,11 @@ return {
         {
             $type: 'search',
             $factory: IPA.cert.search_facet,
+            disable_facet_tabs: false,
+            tabs_in_sidebar: true,
+            tab_label: '@i18n:tabs.cert',
+            facet_groups: [exp.facet_group],
+            facet_group: 'certificates',
             pagination: false,
             no_update: true,
             columns: [

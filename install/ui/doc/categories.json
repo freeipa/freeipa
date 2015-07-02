@@ -256,6 +256,7 @@
                     "topology",
                     "user",
                     "plugins.api_browser",
+                    "plugins.certprofile",
                     "plugins.load",
                     "plugins.login",
                     "plugins.login_process",

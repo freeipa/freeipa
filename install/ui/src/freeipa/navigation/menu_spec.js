@@ -123,7 +123,23 @@ var nav = {};
             name: 'authentication',
             label: '@i18n:tabs.authentication',
             children: [
-                { entity: 'cert', label: '@i18n:tabs.cert' },
+                {
+                    entity: 'cert',
+                    facet: 'search',
+                    label: '@i18n:tabs.cert',
+                    children: [
+                        {
+                            entity: 'certprofile',
+                            facet: 'search',
+                            hidden: true
+                        },
+                        {
+                            entity: 'cert',
+                            facet: 'search',
+                            hidden: true
+                        }
+                    ]
+                },
                 { entity: 'otptoken' },
                 { entity: 'radiusproxy' }
             ]
