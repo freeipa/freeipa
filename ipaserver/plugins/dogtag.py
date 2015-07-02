@@ -2081,6 +2081,14 @@ class ra_certprofile(RestClient):
             body=profile_data
         )
 
+    def read_profile(self, profile_id):
+        """
+        Read the profile configuration from Dogtag
+        """
+        status, status_text, resp_headers, resp_body = self._ssldo(
+            'GET', profile_id + '/raw')
+        return resp_body
+
     def enable_profile(self, profile_id):
         """
         Enable the profile in Dogtag

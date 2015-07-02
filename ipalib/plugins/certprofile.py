@@ -5,7 +5,7 @@
 import re
 
 from ipalib import api, Bool, File, Str
-from ipalib import output
+from ipalib import output, util
 from ipalib.plugable import Registry
 from ipalib.plugins.virtual import VirtualCommand
 from ipalib.plugins.baseldap import (
@@ -175,9 +175,42 @@ class certprofile_find(LDAPSearch):
 class certprofile_show(LDAPRetrieve):
     __doc__ = _("Display the properties of a Certificate Profile.")
 
-    def execute(self, *args, **kwargs):
+    has_output_params = LDAPRetrieve.has_output_params + (
+        Str('config',
+            label=_('Profile configuration'),
+        ),
+    )
+
+    takes_options = LDAPRetrieve.takes_options + (
+        Str('out?',
+            doc=_('Write profile configuration to file'),
+        ),
+    )
+
+    def execute(self, *keys, **options):
         ca_enabled_check()
-        return super(certprofile_show, self).execute(*args, **kwargs)
+        result = super(certprofile_show, self).execute(*keys, **options)
+
+        if 'out' in options:
+            with self.api.Backend.ra_certprofile as profile_api:
+                result['result']['config'] = profile_api.read_profile(keys[0])
+
+        return result
+
+    def forward(self, *keys, **options):
+        if 'out' in options:
+            util.check_writable_file(options['out'])
+
+        result = super(certprofile_show, self).forward(*keys, **options)
+        if 'out' in options and 'config' in result['result']:
+            with open(options['out'], 'w') as f:
+                f.write(result['result'].pop('config'))
+            result['summary'] = (
+                _("Profile configuration stored in file '%(file)s'")
+                % dict(file=options['out'])
+            )
+
+        return result
 
 
 @register()
