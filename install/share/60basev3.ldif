@@ -58,6 +58,7 @@ attributeTypes: (2.16.840.1.113730.3.8.11.70 NAME 'ipaPermTargetTo' DESC 'Destin
 attributeTypes: (2.16.840.1.113730.3.8.11.71 NAME 'ipaPermTargetFrom' DESC 'Source location from where moving an entry IPA permission ACI' EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE X-ORIGIN 'IPA v4.0' )
 attributeTypes: (2.16.840.1.113730.3.8.18.2.1 NAME 'ipaVaultType' DESC 'IPA vault type' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 X-ORIGIN 'IPA v4.2')
 attributeTypes: (2.16.840.1.113730.3.8.18.2.2 NAME 'ipaVaultSalt' DESC 'IPA vault salt' EQUALITY octetStringMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 X-ORIGIN 'IPA v4.2' )
+attributeTypes: (2.16.840.1.113730.3.8.18.2.3 NAME 'ipaVaultPublicKey' DESC 'IPA vault public key' SUP ipaPublicKey X-ORIGIN 'IPA v4.2' )
 objectClasses: (2.16.840.1.113730.3.8.12.1 NAME 'ipaExternalGroup' SUP top STRUCTURAL MUST ( cn ) MAY ( ipaExternalMember $ memberOf $ description $ owner) X-ORIGIN 'IPA v3' )
 objectClasses: (2.16.840.1.113730.3.8.12.2 NAME 'ipaNTUserAttrs' SUP top AUXILIARY MUST ( ipaNTSecurityIdentifier ) MAY ( ipaNTHash $ ipaNTLogonScript $ ipaNTProfilePath $ ipaNTHomeDirectory $ ipaNTHomeDirectoryDrive ) X-ORIGIN 'IPA v3' )
 objectClasses: (2.16.840.1.113730.3.8.12.3 NAME 'ipaNTGroupAttrs' SUP top AUXILIARY MUST ( ipaNTSecurityIdentifier ) X-ORIGIN 'IPA v3' )
@@ -81,4 +82,4 @@ objectClasses: (2.16.840.1.113730.3.8.12.24 NAME 'ipaPublicKeyObject' DESC 'Wrap
 objectClasses: (2.16.840.1.113730.3.8.12.25 NAME 'ipaPrivateKeyObject' DESC 'Wrapped private keys' SUP top AUXILIARY MUST ( ipaPrivateKey $ ipaWrappingKey $ ipaWrappingMech ) X-ORIGIN 'IPA v4.1' )
 objectClasses: (2.16.840.1.113730.3.8.12.26 NAME 'ipaSecretKeyObject' DESC 'Wrapped secret keys' SUP top AUXILIARY MUST ( ipaSecretKey $ ipaWrappingKey $ ipaWrappingMech ) X-ORIGIN 'IPA v4.1' )
 objectClasses: (2.16.840.1.113730.3.8.12.34 NAME 'ipaSecretKeyRefObject' DESC 'Indirect storage for encoded key material' SUP top AUXILIARY MUST ( ipaSecretKeyRef ) X-ORIGIN 'IPA v4.1' )
-objectClasses: (2.16.840.1.113730.3.8.18.1.1 NAME 'ipaVault' DESC 'IPA vault' SUP top STRUCTURAL MUST ( cn ) MAY ( description $ ipaVaultType $ ipaVaultSalt $ ipaPublicKey ) X-ORIGIN 'IPA v4.2' )
+objectClasses: (2.16.840.1.113730.3.8.18.1.1 NAME 'ipaVault' DESC 'IPA vault' SUP top STRUCTURAL MUST ( cn ) MAY ( description $ ipaVaultType $ ipaVaultSalt $ ipaVaultPublicKey ) X-ORIGIN 'IPA v4.2' )

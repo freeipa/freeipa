@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=138
-# Last change: edewata - added symmetric and asymmetric vaults
+IPA_API_VERSION_MINOR=139
+# Last change: edewata - added ipaVaultPublicKey attribute

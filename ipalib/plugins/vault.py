@@ -233,7 +233,7 @@ class vault(LDAPObject):
         'description',
         'ipavaulttype',
         'ipavaultsalt',
-        'ipapublickey',
+        'ipavaultpublickey',
     ]
     search_display_attributes = [
         'cn',
@@ -276,7 +276,7 @@ class vault(LDAPObject):
             flags=['no_search'],
         ),
         Bytes(
-            'ipapublickey?',
+            'ipavaultpublickey?',
             cli_name='public_key',
             label=_('Public key'),
             doc=_('Vault public key'),
@@ -509,7 +509,7 @@ class vault_add(PKQuery, Local):
             doc=_('File containing the vault password'),
         ),
         Bytes(
-            'ipapublickey?',
+            'ipavaultpublickey?',
             cli_name='public_key',
             doc=_('Vault public key'),
         ),
@@ -527,7 +527,7 @@ class vault_add(PKQuery, Local):
         vault_type = options.get('ipavaulttype', u'standard')
         password = options.get('password')
         password_file = options.get('password_file')
-        public_key = options.get('ipapublickey')
+        public_key = options.get('ipavaultpublickey')
         public_key_file = options.get('public_key_file')
 
         # don't send these parameters to server
@@ -584,11 +584,11 @@ class vault_add(PKQuery, Local):
                     public_key = f.read()
 
                 # store vault public key
-                options['ipapublickey'] = public_key
+                options['ipavaultpublickey'] = public_key
 
             else:
                 raise errors.ValidationError(
-                    name='ipapublickey',
+                    name='ipavaultpublickey',
                     error=_('Missing vault public key'))
 
         # create vault
@@ -606,7 +606,7 @@ class vault_add(PKQuery, Local):
             del opts['ipavaultsalt']
 
         elif vault_type == u'asymmetric':
-            del opts['ipapublickey']
+            del opts['ipavaultpublickey']
 
         # archive blank data
         self.api.Command.vault_archive(*args, **opts)
@@ -920,7 +920,7 @@ class vault_archive(PKQuery, Local):
 
         elif vault_type == u'asymmetric':
 
-            public_key = vault['ipapublickey'][0].encode('utf-8')
+            public_key = vault['ipavaultpublickey'][0].encode('utf-8')
 
             # generate encryption key
             encryption_key = base64.b64encode(os.urandom(32))

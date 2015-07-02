@@ -634,7 +634,7 @@ class test_vault_plugin(Declarative):
                 [asymmetric_vault_name],
                 {
                     'ipavaulttype': u'asymmetric',
-                    'ipapublickey': public_key,
+                    'ipavaultpublickey': public_key,
                 },
             ),
             'expected': {
@@ -646,7 +646,7 @@ class test_vault_plugin(Declarative):
                     'objectclass': [u'top', u'ipaVault'],
                     'cn': [asymmetric_vault_name],
                     'ipavaulttype': [u'asymmetric'],
-                    'ipapublickey': [public_key],
+                    'ipavaultpublickey': [public_key],
                 },
             },
         },
