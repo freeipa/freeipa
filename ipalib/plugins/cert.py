@@ -220,6 +220,22 @@ def ca_enabled_check():
     if not api.Command.ca_is_enabled()['result']:
         raise errors.NotFound(reason=_('CA is not configured'))
 
+def caacl_check(principal_type, principal_string, ca, profile_id):
+    principal_type_map = {USER: 'user', HOST: 'host', SERVICE: 'service'}
+    if not ipalib.plugins.caacl.acl_evaluate(
+            principal_type_map[principal_type],
+            principal_string, ca, profile_id):
+        raise errors.ACIError(info=_(
+                "Principal '%(principal)s' "
+                "is not permitted to use CA '%(ca)s' "
+                "with profile '%(profile_id)s' for certificate issuance."
+            ) % dict(
+                principal=principal_string,
+                ca=ca or '.',
+                profile_id=profile_id
+            )
+        )
+
 @register()
 class cert_request(VirtualCommand):
     __doc__ = _('Submit a certificate signing request.')
@@ -305,6 +321,7 @@ class cert_request(VirtualCommand):
         add = kw.get('add')
         request_type = kw.get('request_type')
         profile_id = kw.get('profile_id', self.Backend.ra.DEFAULT_PROFILE)
+        ca = '.'  # top-level CA hardcoded until subca plugin implemented
 
         """
         Access control is partially handled by the ACI titled
@@ -327,21 +344,7 @@ class cert_request(VirtualCommand):
         else:
             principal_type = SERVICE
 
-        principal_type_map = {USER: 'user', HOST: 'host', SERVICE: 'service'}
-        ca = '.'  # top-level CA hardcoded until subca plugin implemented
-        if not ipalib.plugins.caacl.acl_evaluate(
-                principal_type_map[principal_type],
-                principal_string, ca, profile_id):
-            raise errors.ACIError(info=_(
-                    "Principal '%(principal)s' "
-                    "is not permitted to use CA '%(ca)s' "
-                    "with profile '%(profile_id)s' for certificate issuance."
-                ) % dict(
-                    principal=principal_string,
-                    ca=ca or '.',
-                    profile_id=profile_id
-                )
-            )
+        caacl_check(principal_type, principal_string, ca, profile_id)
 
         bind_principal = split_any_principal(getattr(context, 'principal'))
         bind_service, bind_name, bind_realm = bind_principal
@@ -439,13 +442,15 @@ class cert_request(VirtualCommand):
             if name_type == pkcs10.SAN_DNSNAME:
                 name = unicode(name)
                 alt_principal_obj = None
+                alt_principal_string = None
                 try:
                     if principal_type == HOST:
+                        alt_principal_string = 'host/%s@%s' % (name, realm)
                         alt_principal_obj = api.Command['host_show'](name, all=True)
                     elif principal_type == SERVICE:
-                        altprincipal = '%s/%s@%s' % (servicename, name, realm)
+                        alt_principal_string = '%s/%s@%s' % (servicename, name, realm)
                         alt_principal_obj = api.Command['service_show'](
-                            altprincipal, all=True)
+                            alt_principal_string, all=True)
                     elif principal_type == USER:
                         raise errors.ValidationError(
                             name='csr',
@@ -465,6 +470,9 @@ class cert_request(VirtualCommand):
                         raise errors.ACIError(info=_(
                             "Insufficient privilege to create a certificate "
                             "with subject alt name '%s'.") % name)
+                if alt_principal_string is not None:
+                    caacl_check(
+                        principal_type, alt_principal_string, ca, profile_id)
             elif name_type in (pkcs10.SAN_OTHERNAME_KRB5PRINCIPALNAME,
                                pkcs10.SAN_OTHERNAME_UPN):
                 if name != principal_string:
