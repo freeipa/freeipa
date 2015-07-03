@@ -264,6 +264,14 @@ class ReplicaPrepare(admintool.AdminTool):
             options.reverse_zones = bindinstance.check_reverse_zones(
                 options.ip_addresses, options.reverse_zones, options, False,
                 True)
+
+            host, zone = self.replica_fqdn.split('.', 1)
+            if not bindinstance.dns_zone_exists(zone, api=api):
+                self.log.error("DNS zone %s does not exist in IPA managed DNS "
+                               "server. Either create DNS zone or omit "
+                               "--ip-address option." % zone)
+                raise admintool.ScriptError("Cannot add DNS record")
+
             if disconnect:
                 api.Backend.ldap2.disconnect()
 
@@ -481,11 +489,6 @@ class ReplicaPrepare(admintool.AdminTool):
             api.Backend.ldap2.connect(
                 bind_dn=DN(('cn', 'Directory Manager')),
                 bind_pw=self.dirman_password)
-        try:
-            add_zone(domain)
-        except errors.PublicError, e:
-            raise admintool.ScriptError(
-                "Could not create master DNS zone for the replica: %s" % e)
 
         for reverse_zone in options.reverse_zones:
             self.log.info("Adding reverse zone %s", reverse_zone)
