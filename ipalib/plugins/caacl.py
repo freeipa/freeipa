@@ -55,13 +55,15 @@ register = Registry()
 
 def _acl_make_request(principal_type, principal, ca_ref, profile_id):
     """Construct HBAC request for the given principal, CA and profile"""
+    service, name, realm = split_any_principal(principal)
+
     req = pyhbac.HbacRequest()
     req.targethost.name = ca_ref
     req.service.name = profile_id
     if principal_type == 'user':
         req.user.name = principal
     elif principal_type == 'host':
-        req.user.name = principal[:5]  # strip 'host/'
+        req.user.name = name
     elif principal_type == 'service':
         req.user.name = normalize_principal(principal)
     groups = []
@@ -70,8 +72,7 @@ def _acl_make_request(principal_type, principal, ca_ref, profile_id):
         groups = user_obj.get('memberof_group', [])
         groups += user_obj.get('memberofindirect_group', [])
     elif principal_type == 'host':
-        service, hostname, realm = split_any_principal(principal)
-        host_obj = api.Command.host_show(hostname)['result']
+        host_obj = api.Command.host_show(name)['result']
         groups = host_obj.get('memberof_hostgroup', [])
         groups += host_obj.get('memberofindirect_hostgroup', [])
     req.user.groups = sorted(set(groups))
