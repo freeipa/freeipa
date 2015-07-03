@@ -423,7 +423,7 @@ class Command(HasParam):
         version_provided = 'version' in options
         if version_provided:
             self.verify_client_version(unicode(options['version']))
-        else:
+        elif self.api.env.in_server or not self.api.env.skip_version_check:
             options['version'] = API_VERSION
         params = self.args_options_2_params(*args, **options)
         self.debug(
@@ -451,7 +451,7 @@ class Command(HasParam):
         ):
             ret['summary'] = self.get_summary_default(ret)
         if self.use_output_validation and (self.output or ret is not None):
-            self.validate_output(ret, options['version'])
+            self.validate_output(ret, options.get('version', API_VERSION))
         return ret
 
     def soft_validate(self, values):

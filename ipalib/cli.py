@@ -1082,7 +1082,6 @@ class cli(backend.Executioner):
             else:
                 for callback in callbacks:
                     callback(cmd, kw)
-        kw['version'] = API_VERSION
         self.load_files(cmd, kw)
         return kw
 

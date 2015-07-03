@@ -188,6 +188,10 @@ DEFAULT_CONFIG = (
     # Used when verifying that the API hasn't changed. Not for production.
     ('validate_api', False),
 
+    # Skip client vs. server API version checking. Can lead to errors/strange
+    # behavior when newer clients talk to older servers. Use with caution.
+    ('skip_version_check', False),
+
     # ********************************************************
     #  The remaining keys are never set from the values here!
     # ********************************************************
