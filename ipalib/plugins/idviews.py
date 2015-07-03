@@ -339,7 +339,7 @@ class baseidview_apply(LDAPQuery):
 class idview_apply(baseidview_apply):
     __doc__ = _('Applies ID View to specified hosts or current members of '
                 'specified hostgroups. If any other ID View is applied to '
-                'the host, it is overriden.')
+                'the host, it is overridden.')
 
     member_count_out = (_('ID View applied to %i host.'),
                         _('ID View applied to %i hosts.'))
@@ -462,7 +462,7 @@ def resolve_object_to_anchor(ldap, obj_type, obj, fallback_to_ldap):
             raise errors.ValidationError(
                     name=_('IPA object'),
                     error=_('system IPA objects (e.g system groups, user '
-                            'private groups) cannot be overriden')
+                            'private groups) cannot be overridden')
                 )
 
         # The domain prefix, this will need to be reworked once we

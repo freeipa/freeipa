@@ -70,7 +70,7 @@ class Tracker(object):
     managedby_keys = None
     allowedto_keys = None
 
-    _override_me_msg = "This method needs to be overriden in a subclass"
+    _override_me_msg = "This method needs to be overridden in a subclass"
 
     def __init__(self, default_version=None):
         self.api = api

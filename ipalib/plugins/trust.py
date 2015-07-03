@@ -244,7 +244,7 @@ def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
     If that was not successful, we go for our usual defaults (random base,
     range size 200 000, ipa-ad-trust range type).
 
-    Any of these can be overriden by passing appropriate CLI options
+    Any of these can be overridden by passing appropriate CLI options
     to the trust-add command.
     """
 

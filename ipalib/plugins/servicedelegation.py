@@ -65,7 +65,7 @@ the bound user's behalf.
 
 It is strongly discouraged to modify the delegations that ship with
 IPA, ipa-http-delegation and its targets ipa-cifs-delegation-targets and
-ipa-ldap-delegation-targets. Incorrect changes can remove the ablity
+ipa-ldap-delegation-targets. Incorrect changes can remove the ability
 to delegate, causing the framework to stop functioning.
 """)
 

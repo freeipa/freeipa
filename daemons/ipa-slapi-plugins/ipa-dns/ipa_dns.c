@@ -129,7 +129,7 @@ ipadns_entry_iszone( Slapi_Entry *entry ) {
  * The server calls this plug-in function before executing LDAP ADD operation.
  *
  * ipadns_add function adds default value to idnsSOAserial attribute
- * in idnsZone objects if the the attribute is not present.
+ * in idnsZone objects if the attribute is not present.
  *
  * Default value is added only to objects coming from other servers
  * via replication.

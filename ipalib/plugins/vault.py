@@ -111,7 +111,7 @@ EXAMPLES:
    ipa vault-add <name> --service <service name>
 """) + _("""
  Add a shared vault:
-   ipa vault-add <ame> --shared
+   ipa vault-add <name> --shared
 """) + _("""
  Add a user vault:
    ipa vault-add <name> --user <username>

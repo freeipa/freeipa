@@ -711,7 +711,7 @@ assume these variables will all exist by the time the module containing their
 plugin (or plugins) is imported.
 
 `Env._bootstrap()`, which is called by `API.bootstrap()`, will create several
-run-time variables that connot be overriden in configuration files or through
+run-time variables that cannot be overridden in configuration files or through
 command-line options.  Here is an overview of this run-time information:
 
 =============  =============================  =======================

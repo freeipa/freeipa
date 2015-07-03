@@ -114,7 +114,7 @@ class Advice(Plugin):
 
     def get_info(self):
         """
-        This method should be overriden by child Advices.
+        This method should be overridden by child Advices.
 
         Returns a string with instructions.
         """
