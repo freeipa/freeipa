@@ -57,7 +57,7 @@ Active user entries are Posix users directly under the container: "cn=accounts, 
 User can authenticate with Active entries, at the condition they have
 credentials
 
-Delete user enties are Posix users directly under the container: "cn=deleted users,
+Delete user entries are Posix users directly under the container: "cn=deleted users,
 cn=accounts, cn=provisioning, SUFFIX".
 User can not authenticate with those entries (even if the entries contain credentials)
 

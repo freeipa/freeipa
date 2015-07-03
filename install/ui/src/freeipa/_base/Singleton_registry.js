@@ -54,7 +54,7 @@ define(['dojo/_base/declare',
          *
          * When an object is passed in, the function returns it.
          *
-         * @param {string|Object} type Type's name. Or the the object itself.
+         * @param {string|Object} type Type's name. Or the object itself.
          * @return {Object|null}
          */
         get: function(type) {
