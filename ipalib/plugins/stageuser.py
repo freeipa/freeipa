@@ -62,24 +62,24 @@ Manage stage user entries.
 
 Stage user entries are directly under the container: "cn=stage users,
 cn=accounts, cn=provisioning, SUFFIX".
-User can not authenticate with those entries (even if the entries
-contain credentials) and are candidate to become Active entries.
+Users can not authenticate with those entries (even if the entries
+contain credentials). Those entries are only candidate to become Active entries.
 
 Active user entries are Posix users directly under the container: "cn=accounts, SUFFIX".
-User can authenticate with Active entries, at the condition they have
-credentials
+Users can authenticate with Active entries, at the condition they have
+credentials.
 
-Delete user entries are Posix users directly under the container: "cn=deleted users,
+Deleted user entries are Posix users directly under the container: "cn=deleted users,
 cn=accounts, cn=provisioning, SUFFIX".
-User can not authenticate with those entries (even if the entries contain credentials)
+Users can not authenticate with those entries, even if the entries contain credentials.
 
-The stage user container contains entries
-    - created by 'stageuser-add' commands that are Posix users
-    - created by external provisioning system
+The stage user container contains entries:
+    - created by 'stageuser-add' commands that are Posix users,
+    - created by external provisioning system.
 
-A valid stage user entry MUST:
-    - entry RDN is 'uid'
-    - ipaUniqueID is 'autogenerate'
+A valid stage user entry MUST have:
+    - entry RDN is 'uid',
+    - ipaUniqueID is 'autogenerate'.
 
 IPA supports a wide range of username formats, but you need to be aware of any
 restrictions that may apply to your particular environment. For example,
@@ -93,7 +93,7 @@ EXAMPLES:
  Add a new stageuser:
    ipa stageuser-add --first=Tim --last=User --password tuser1
 
- Add a stageuser from the Delete container
+ Add a stageuser from the deleted users container:
    ipa stageuser-add  --first=Tim --last=User --from-delete tuser1
 
 """)
