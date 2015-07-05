@@ -354,6 +354,7 @@ class DsInstance(service.Service):
         self.__common_setup(True)
 
         self.step("setting up initial replication", self.__setup_replica)
+        self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
         self.step("updating schema", self.__update_schema)
         # See LDIFs for automember configuration during replica install
         self.step("setting Auto Member configuration", self.__add_replica_automember_config)
@@ -377,6 +378,56 @@ class DsInstance(service.Service):
                                r_binddn=DN(('cn', 'Directory Manager')),
                                r_bindpw=self.dm_password)
         self.run_init_memberof = repl.needs_memberof_fixup()
+
+
+    def __configure_sasl_mappings(self):
+        # we need to remove any existing SASL mappings in the directory as otherwise they
+        # they may conflict.
+
+        if not self.admin_conn:
+            self.ldap_connect()
+
+        try:
+            res = self.admin_conn.get_entries(
+                DN(('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')),
+                self.admin_conn.SCOPE_ONELEVEL,
+                "(objectclass=nsSaslMapping)")
+            for r in res:
+                try:
+                    self.admin_conn.delete_entry(r)
+                except Exception, e:
+                    root_logger.critical(
+                        "Error during SASL mapping removal: %s", e)
+                    raise
+        except Exception, e:
+            root_logger.critical("Error while enumerating SASL mappings %s", e)
+            raise
+
+        entry = self.admin_conn.make_entry(
+            DN(
+                ('cn', 'Full Principal'), ('cn', 'mapping'), ('cn', 'sasl'),
+                ('cn', 'config')),
+            objectclass=["top", "nsSaslMapping"],
+            cn=["Full Principal"],
+            nsSaslMapRegexString=['\(.*\)@\(.*\)'],
+            nsSaslMapBaseDNTemplate=[self.suffix],
+            nsSaslMapFilterTemplate=['(krbPrincipalName=\\1@\\2)'],
+            nsSaslMapPriority=['10'],
+        )
+        self.admin_conn.add_entry(entry)
+
+        entry = self.admin_conn.make_entry(
+            DN(
+                ('cn', 'Name Only'), ('cn', 'mapping'), ('cn', 'sasl'),
+                ('cn', 'config')),
+            objectclass=["top", "nsSaslMapping"],
+            cn=["Name Only"],
+            nsSaslMapRegexString=['^[^:@]+$'],
+            nsSaslMapBaseDNTemplate=[self.suffix],
+            nsSaslMapFilterTemplate=['(krbPrincipalName=&@%s)' % self.realm],
+            nsSaslMapPriority=['10'],
+        )
+        self.admin_conn.add_entry(entry)
 
     def __update_schema(self):
         # FIXME: https://fedorahosted.org/389/ticket/47490

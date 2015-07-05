@@ -150,7 +150,6 @@ class KrbInstance(service.Service):
 
         self.__common_setup(realm_name, host_name, domain_name, admin_password)
 
-        self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
         self.step("adding kerberos container to the directory", self.__add_krb_container)
         self.step("configuring KDC", self.__configure_instance)
         self.step("initialize kerberos container", self.__init_ipa_kdb)
@@ -180,7 +179,6 @@ class KrbInstance(service.Service):
 
         self.__common_setup(realm_name, host_name, domain_name, admin_password)
 
-        self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
         self.step("configuring KDC", self.__configure_instance)
         self.step("creating a keytab for the directory", self.__create_ds_keytab)
         self.step("creating a keytab for the machine", self.__create_host_keytab)
@@ -244,52 +242,6 @@ class KrbInstance(service.Service):
         else:
             root_logger.debug("Persistent keyring CCACHE is not enabled")
             self.sub_dict['OTHER_LIBDEFAULTS'] = ''
-
-    def __configure_sasl_mappings(self):
-        # we need to remove any existing SASL mappings in the directory as otherwise they
-        # they may conflict.
-
-        try:
-            res = self.admin_conn.get_entries(
-                DN(('cn', 'mapping'), ('cn', 'sasl'), ('cn', 'config')),
-                self.admin_conn.SCOPE_ONELEVEL,
-                "(objectclass=nsSaslMapping)")
-            for r in res:
-                try:
-                    self.admin_conn.delete_entry(r)
-                except Exception as e:
-                    root_logger.critical(
-                        "Error during SASL mapping removal: %s", e)
-                    raise
-        except Exception as e:
-            root_logger.critical("Error while enumerating SASL mappings %s", e)
-            raise
-
-        entry = self.admin_conn.make_entry(
-            DN(
-                ('cn', 'Full Principal'), ('cn', 'mapping'), ('cn', 'sasl'),
-                ('cn', 'config')),
-            objectclass=["top", "nsSaslMapping"],
-            cn=["Full Principal"],
-            nsSaslMapRegexString=['\(.*\)@\(.*\)'],
-            nsSaslMapBaseDNTemplate=[self.suffix],
-            nsSaslMapFilterTemplate=['(krbPrincipalName=\\1@\\2)'],
-            nsSaslMapPriority=['10'],
-        )
-        self.admin_conn.add_entry(entry)
-
-        entry = self.admin_conn.make_entry(
-            DN(
-                ('cn', 'Name Only'), ('cn', 'mapping'), ('cn', 'sasl'),
-                ('cn', 'config')),
-            objectclass=["top", "nsSaslMapping"],
-            cn=["Name Only"],
-            nsSaslMapRegexString=['^[^:@]+$'],
-            nsSaslMapBaseDNTemplate=[self.suffix],
-            nsSaslMapFilterTemplate=['(krbPrincipalName=&@%s)' % self.realm],
-            nsSaslMapPriority=['10'],
-        )
-        self.admin_conn.add_entry(entry)
 
     def __add_krb_container(self):
         self._ldap_mod("kerberos.ldif", self.sub_dict)
