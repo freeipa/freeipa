@@ -166,6 +166,9 @@ DEFAULT_RANGE_SIZE = 200000
 
 DBUS_IFACE_TRUST = 'com.redhat.idm.trust'
 
+CRED_STYLE_SAMBA = 1
+CRED_STYLE_KERBEROS = 2
+
 def trust_type_string(level):
     """
     Returns a string representing a type of the trust. The original field is an enum:
@@ -196,7 +199,44 @@ def make_trust_dn(env, trust_type, dn):
         return DN(dn, container_dn)
     return dn
 
-def add_range(myapi, range_name, dom_sid, *keys, **options):
+def generate_creds(trustinstance, style, **options):
+    """
+    Generate string representing credentials using trust instance
+    Input:
+       trustinstance -- ipaserver.dcerpc.TrustInstance object
+       style         -- style of credentials
+                        CRED_STYLE_SAMBA -- for using with Samba bindings
+                        CRED_STYLE_KERBEROS -- for obtaining Kerberos ticket
+       **options     -- options with realm_admin and realm_passwd keys
+
+    Result:
+       a string representing credentials with first % separating username and password
+       None is returned if realm_passwd key returns nothing from options
+    """
+    creds = None
+    password = options.get('realm_passwd', None)
+    if password:
+        admin_name = options.get('realm_admin')
+        sp = []
+        sep = '@'
+        if style == CRED_STYLE_SAMBA:
+            sep = "\\"
+            sp = admin_name.split(sep)
+            if len(sp) == 1:
+                sp.insert(0, trustinstance.remote_domain.info['name'])
+        elif style == CRED_STYLE_KERBEROS:
+            sp = admin_name.split('\\')
+            if len(sp) > 1:
+               sp = [sp[1]]
+            else:
+               sp = admin_name.split(sep)
+            if len(sp) == 1:
+                sp.append(trustinstance.remote_domain.info['dns_forest'].upper())
+        creds = u"{name}%{password}".format(name=sep.join(sp),
+                                            password=password)
+    return creds
+
+def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
     """
     First, we try to derive the parameters of the ID range based on the
     information contained in the Active Directory.
@@ -236,6 +276,12 @@ def add_range(myapi, range_name, dom_sid, *keys, **options):
                          'domain configured. Make sure you have run '
                          'ipa-adtrust-install on the IPA server first'))
 
+        creds = None
+        if trustinstance:
+            # Re-use AD administrator credentials if they were provided
+            creds = generate_creds(trustinstance, style=CRED_STYLE_KERBEROS, **options)
+            if creds:
+                domain_validator._admin_creds = creds
         # KDC might not get refreshed data at the first time,
         # retry several times
         for retry in range(10):
@@ -516,7 +562,8 @@ sides.
             # Store the created range type, since for POSIX trusts no
             # ranges for the subdomains should be added, POSIX attributes
             # provide a global mapping across all subdomains
-            (created_range_type, _, _) = add_range(self.api, range_name, dom_sid,
+            (created_range_type, _, _) = add_range(self.api, self.trustinstance,
+                                                   range_name, dom_sid,
                                                    *keys, **options)
         else:
             created_range_type = old_range['result']['iparangetype'][0]
@@ -1348,19 +1395,9 @@ class trustdomain_del(LDAPDelete):
         return result
 
 
-
-
 def fetch_domains_from_trust(myapi, trustinstance, trust_entry, **options):
     trust_name = trust_entry['cn'][0]
-    creds = None
-    password = options.get('realm_passwd', None)
-    if password:
-        admin_name = options.get('realm_admin')
-        sp = admin_name.split('\\')
-        if len(sp) == 1:
-            sp.insert(0, trustinstance.remote_domain.info['name'])
-        creds = u"{name}%{password}".format(name="\\".join(sp),
-                                            password=password)
+    creds = generate_creds(trustinstance, style=CRED_STYLE_SAMBA, **options)
     server = options.get('realm_server', None)
     domains = ipaserver.dcerpc.fetch_domains(myapi,
                                              trustinstance.local_flatname,
@@ -1394,7 +1431,7 @@ def add_new_domains_from_trust(myapi, trustinstance, trust_entry, domains, **opt
             if idrange_type != u'ipa-ad-trust-posix':
                 range_name = name.upper() + '_id_range'
                 dom['range_type'] = u'ipa-ad-trust'
-                add_range(myapi, range_name, dom['ipanttrusteddomainsid'],
+                add_range(myapi, trustinstance, range_name, dom['ipanttrusteddomainsid'],
                           trust_name, name, **dom)
         except errors.DuplicateEntry:
             # Ignore updating duplicate entries

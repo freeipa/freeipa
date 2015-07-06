@@ -151,6 +151,7 @@ class DomainValidator(object):
         self._domains = None
         self._info = dict()
         self._creds = None
+        self._admin_creds = None
         self._parm = None
 
     def is_configured(self):
@@ -565,6 +566,52 @@ class DomainValidator(object):
                               % (stdout, stderr))
             return (None, None)
 
+    def kinit_as_administrator(self, domain):
+        """
+        Initializes ccache with http service credentials.
+
+        Applies session code defaults for ccache directory and naming prefix.
+        Session code uses krbccache_prefix+<pid>, we use
+        krbccache_prefix+<TD>+<domain netbios name> so there is no clash.
+
+        Returns tuple (ccache path, principal) where (None, None) signifes an
+        error on ccache initialization
+        """
+
+        if self._admin_creds == None:
+            return (None, None)
+
+        domain_suffix = domain.replace('.', '-')
+
+        ccache_name = "%sTDA%s" % (krbccache_prefix, domain_suffix)
+        ccache_path = os.path.join(krbccache_dir, ccache_name)
+
+        (principal, password) = self._admin_creds.split('%', 1)
+
+        # Destroy the contents of the ccache
+        root_logger.debug('Destroying the contents of the separate ccache')
+
+        (stdout, stderr, returncode) = ipautil.run(
+            [paths.KDESTROY, '-A', '-c', ccache_path],
+            env={'KRB5CCNAME': ccache_path},
+            raiseonerr=False)
+
+        # Destroy the contents of the ccache
+        root_logger.debug('Running kinit with credentials of AD administrator')
+
+        (stdout, stderr, returncode) = ipautil.run(
+            [paths.KINIT, principal],
+            env={'KRB5CCNAME': ccache_path},
+            stdin=password,
+            raiseonerr=False)
+
+        if returncode == 0:
+            return (ccache_path, principal)
+        else:
+            root_logger.debug('Kinit failed, stout: %s, stderr: %s'
+                              % (stdout, stderr))
+            return (None, None)
+
     def search_in_dc(self, domain, filter, attrs, scope, basedn=None,
                      quiet=False):
         """
@@ -597,7 +644,8 @@ class DomainValidator(object):
         Returns LDAP result or None.
         """
 
-        (ccache_name, principal) = self.kinit_as_http(info['dns_domain'])
+        if self._admin_creds:
+            (ccache_name, principal) = self.kinit_as_administrator(info['dns_domain'])
 
         if ccache_name:
             with ipautil.private_ccache(path=ccache_name):
@@ -1106,18 +1154,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
         raise assess_dcerpc_exception(message=str(e))
 
     td.info['dc'] = unicode(result.pdc_dns_name)
-    if creds is None:
-        # Attempt to authenticate as HTTP/ipa.master and use cross-forest trust
-        domval = DomainValidator(api)
-        (ccache_name, principal) = domval.kinit_as_http(trustdomain)
-        td.creds = credentials.Credentials()
-        td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
-        if ccache_name:
-            with ipautil.private_ccache(path=ccache_name):
-                td.creds.guess(td.parm)
-                td.creds.set_workstation(domain_validator.flatname)
-                domains = communicate(td)
-    elif type(creds) is bool:
+    if type(creds) is bool:
         # Rely on existing Kerberos credentials in the environment
         td.creds = credentials.Credentials()
         td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
@@ -1125,13 +1162,23 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
         td.creds.set_workstation(domain_validator.flatname)
         domains = communicate(td)
     else:
-        # Assume we've got credentials as a string user%password
+        # Attempt to authenticate as HTTP/ipa.master and use cross-forest trust
+        # or as passed-in user in case of a one-way trust
+        domval = DomainValidator(api)
+        ccache_name = None
+        principal = None
+        if creds:
+            domval._admin_creds = creds
+            (ccache_name, principal) = domval.kinit_as_administrator(trustdomain)
+        else:
+            (ccache_name, principal) = domval.kinit_as_http(trustdomain)
         td.creds = credentials.Credentials()
-        td.creds.set_kerberos_state(credentials.DONT_USE_KERBEROS)
-        td.creds.guess(td.parm)
-        td.creds.parse_string(creds)
-        td.creds.set_workstation(domain_validator.flatname)
-        domains = communicate(td)
+        td.creds.set_kerberos_state(credentials.MUST_USE_KERBEROS)
+        if ccache_name:
+            with ipautil.private_ccache(path=ccache_name):
+                td.creds.guess(td.parm)
+                td.creds.set_workstation(domain_validator.flatname)
+                domains = communicate(td)
 
     if domains is None:
         return None

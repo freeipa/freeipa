@@ -186,7 +186,9 @@ if domains:
             if idrange_type != u'ipa-ad-trust-posix':
                 range_name = name.upper() + '_id_range'
                 dom['range_type'] = u'ipa-ad-trust'
-                trust.add_range(range_name, dom['ipanttrusteddomainsid'],
+                # Do not pass ipaserver.dcerpc.TrustInstance to trust.add_range
+                # to force it using existing credentials cache
+                trust.add_range(None, range_name, dom['ipanttrusteddomainsid'],
                                 trusted_domain, name, **dom)
         except errors.DuplicateEntry:
             # Ignore updating duplicate entries
