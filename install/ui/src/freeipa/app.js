@@ -48,7 +48,8 @@ define([
     './service',
     './sudo',
     './trust',
-    './topology',
+    // Hide topology for now
+    // './topology',
     './user',
     './stageuser',
     'dojo/domReady!'
