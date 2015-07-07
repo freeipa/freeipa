@@ -348,3 +348,7 @@ class BasePathNamespace(object):
     BAK2DB = '/usr/sbin/bak2db'
     DB2BAK = '/usr/sbin/db2bak'
     KDCPROXY_CONFIG = '/etc/ipa/kdcproxy/kdcproxy.conf'
+    CERTMONGER = '/usr/sbin/certmonger'
+
+
+path_namespace = BasePathNamespace
