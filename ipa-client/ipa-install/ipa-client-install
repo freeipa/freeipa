@@ -522,20 +522,7 @@ def uninstall(options, env):
     ipa_db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
     sys_db = certdb.NSSDatabase(paths.NSS_DB_DIR)
 
-    # Always start certmonger. We can't untrack something if it isn't
-    # running
-    messagebus = services.knownservices.messagebus
-    try:
-        messagebus.start()
-    except Exception, e:
-        log_service_error(messagebus.service_name, 'start', e)
-
     cmonger = services.knownservices.certmonger
-    try:
-        cmonger.start()
-    except Exception, e:
-        log_service_error(cmonger.service_name, 'start', e)
-
     if ipa_db.has_nickname('Local IPA host'):
         try:
             certmonger.stop_tracking(paths.IPA_NSSDB_DIR,
@@ -576,13 +563,13 @@ def uninstall(options, env):
                                   nickname, sys_db.secdir, e)
                 break
 
+    # Remove any special principal names we added to the IPA CA helper
+    certmonger.remove_principal_from_cas()
+
     try:
         cmonger.stop()
     except Exception, e:
         log_service_error(cmonger.service_name, 'stop', e)
-
-    # Remove any special principal names we added to the IPA CA helper
-    certmonger.remove_principal_from_cas()
 
     try:
         cmonger.disable()
@@ -1138,41 +1125,14 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options,
             "Not requesting host certificate.")
         return
 
-    started = True
     principal = 'host/%s@%s' % (hostname, cli_realm)
 
-    messagebus = services.knownservices.messagebus
-    try:
-        messagebus.start()
-    except Exception, e:
-        log_service_error(messagebus.service_name, 'start', e)
-
-    # Ensure that certmonger has been started at least once to generate the
-    # cas files in /var/lib/certmonger/cas.
-    cmonger = services.knownservices.certmonger
-    try:
-        cmonger.restart()
-    except Exception, e:
-        log_service_error(cmonger.service_name, 'restart', e)
-
     if options.hostname:
-        # It needs to be stopped if we touch them
-        try:
-            cmonger.stop()
-        except Exception, e:
-            log_service_error(cmonger.service_name, 'stop', e)
         # If the hostname is explicitly set then we need to tell certmonger
         # which principal name to use when requesting certs.
         certmonger.add_principal_to_cas(principal)
 
-    try:
-        cmonger.restart()
-    except Exception, e:
-        log_service_error(cmonger.service_name, 'restart', e)
-        root_logger.warning(
-            "Automatic certificate management will not be available")
-        started = False
-
+    cmonger = services.knownservices.certmonger
     try:
         cmonger.enable()
     except Exception, e:
@@ -1183,18 +1143,17 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options,
             "Automatic certificate management will not be available")
 
     # Request our host cert
-    if started:
-        subject = str(DN(('CN', hostname), subject_base))
-        passwd_fname = os.path.join(paths.IPA_NSSDB_DIR, 'pwdfile.txt')
-        try:
-            certmonger.request_cert(nssdb=paths.IPA_NSSDB_DIR,
-                                    nickname='Local IPA host',
-                                    subject=subject,
-                                    principal=principal,
-                                    passwd_fname=passwd_fname)
-        except Exception:
-            root_logger.error("%s request for host certificate failed",
-                              cmonger.service_name)
+    subject = str(DN(('CN', hostname), subject_base))
+    passwd_fname = os.path.join(paths.IPA_NSSDB_DIR, 'pwdfile.txt')
+    try:
+        certmonger.request_cert(nssdb=paths.IPA_NSSDB_DIR,
+                                nickname='Local IPA host',
+                                subject=subject,
+                                principal=principal,
+                                passwd_fname=passwd_fname)
+    except Exception:
+        root_logger.error("%s request for host certificate failed",
+                          cmonger.service_name)
 
 def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, client_domain, client_hostname):
     try:
