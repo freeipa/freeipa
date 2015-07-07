@@ -120,7 +120,7 @@ def main():
 
     api.Backend.ldap2.connect(autobind=True)
 
-    options.setup_ca = False
+    options.setup_ca = None  # must be None to enable autodetection
 
     dns_installer.install_check(True, False, options, hostname=api.env.host)
     dns_installer.install(True, False, options)
