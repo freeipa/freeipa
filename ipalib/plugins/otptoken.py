@@ -24,8 +24,9 @@ from ipalib.plugable import Registry
 from ipalib.errors import PasswordMismatch, ConversionError, LastMemberError, NotFound, ValidationError
 from ipalib.request import context
 from ipalib.frontend import Local
+from ipaplatform.paths import paths
+from ipapython.nsslib import NSSConnection
 
-from backports.ssl_match_hostname import match_hostname
 import base64
 import uuid
 import urllib
@@ -34,7 +35,6 @@ import httplib
 import urlparse
 import qrcode
 import os
-import ssl
 
 __doc__ = _("""
 OTP Tokens
@@ -471,28 +471,6 @@ class otptoken_remove_managedby(LDAPRemoveMember):
 
     member_attributes = ['managedby']
 
-class HTTPSConnection(httplib.HTTPConnection):
-    "Generates an SSL HTTP connection that performs hostname validation."
-
-    ssl_kwargs = ssl.wrap_socket.func_code.co_varnames[1:ssl.wrap_socket.func_code.co_argcount] #pylint: disable=E1101
-    default_port = httplib.HTTPS_PORT
-
-    def __init__(self, host, **kwargs):
-        # Strip out arguments we want to pass to ssl.wrap_socket()
-        self.__kwargs = {k: v for k, v in kwargs.items() if k in self.ssl_kwargs}
-        for k in self.__kwargs:
-            del kwargs[k]
-
-        # Can't use super() because the parent is an old-style class.
-        httplib.HTTPConnection.__init__(self, host, **kwargs)
-
-    def connect(self):
-        # Create the raw socket and wrap it in ssl.
-        httplib.HTTPConnection.connect(self)
-        self.sock = ssl.wrap_socket(self.sock, **self.__kwargs)
-
-        # Verify the remote hostname.
-        match_hostname(self.sock.getpeercert(), self.host.split(':', 1)[0])
 
 class HTTPSHandler(urllib2.HTTPSHandler):
     "Opens SSL HTTPS connections that perform hostname validation."
@@ -506,7 +484,9 @@ class HTTPSHandler(urllib2.HTTPSHandler):
     def __inner(self, host, **kwargs):
         tmp = self.__kwargs.copy()
         tmp.update(kwargs)
-        return HTTPSConnection(host, **tmp)
+        # NSSConnection doesn't support timeout argument
+        tmp.pop('timeout', None)
+        return NSSConnection(host, **tmp)
 
     def https_open(self, req):
         return self.do_open(self.__inner, req)
@@ -548,9 +528,9 @@ class otptoken_sync(Local):
 
         # Sync the token.
         # pylint: disable=E1101
-        handler = HTTPSHandler(ca_certs=os.path.join(self.api.env.confdir, 'ca.crt'),
-                               cert_reqs=ssl.CERT_REQUIRED,
-                               ssl_version=ssl.PROTOCOL_TLSv1)
+        handler = HTTPSHandler(dbdir=paths.IPA_NSSDB_DIR,
+                               tls_version_min=api.env.tls_version_min,
+                               tls_version_max=api.env.tls_version_max)
         rsp = urllib2.build_opener(handler).open(sync_uri, query)
         if rsp.getcode() == 200:
             status['result'][self.header] = rsp.info().get(self.header, 'unknown')
