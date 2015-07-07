@@ -95,7 +95,6 @@ BuildRequires:  systemd
 BuildRequires:  libunistring-devel
 BuildRequires:  python-lesscpy
 BuildRequires:  python-yubico >= 1.2.3
-BuildRequires:  python-backports-ssl_match_hostname
 BuildRequires:  softhsm-devel >= 2.0.0rc1-1
 BuildRequires:  openssl-devel
 BuildRequires:  p11-kit-devel
@@ -272,7 +271,6 @@ Requires: libsss_autofs
 Requires: autofs
 Requires: libnfsidmap
 Requires: nfs-utils
-Requires: python-backports-ssl_match_hostname
 Requires(post): policycoreutils
 
 Conflicts: %{alt_name}-client
