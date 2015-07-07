@@ -1038,9 +1038,11 @@ class TrustDomainInstance(object):
                     if self.validation_attempts < 10:
                         sleep(5)
                         return self.verify_trust(another_domain)
-                    raise errors.ACIError(reason=_('IPA master denied trust validation requests from AD DC '
-                                                   '%(count)d times. Most likely AD DC contacted a replica '
-                                                   'that has no trust information replicated yet.' % (self.validation_attempts)))
+                    raise errors.ACIError(
+                            info=_('IPA master denied trust validation requests from AD DC '
+                                   '%(count)d times. Most likely AD DC contacted a replica '
+                                   'that has no trust information replicated yet.')
+                                   % dict(count=self.validation_attempts))
                 raise assess_dcerpc_exception(*result.pdc_connection_status)
             return True
         return False
