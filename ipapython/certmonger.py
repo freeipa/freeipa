@@ -27,6 +27,8 @@ import sys
 import time
 import dbus
 import shlex
+import subprocess
+import tempfile
 from ipapython import ipautil
 from ipapython import dogtag
 from ipapython.ipa_log_manager import *
@@ -35,6 +37,7 @@ from ipaplatform import services
 
 DBUS_CM_PATH = '/org/fedorahosted/certmonger'
 DBUS_CM_IF = 'org.fedorahosted.certmonger'
+DBUS_CM_NAME = 'org.fedorahosted.certmonger'
 DBUS_CM_REQUEST_IF = 'org.fedorahosted.certmonger.request'
 DBUS_CM_CA_IF = 'org.fedorahosted.certmonger.ca'
 DBUS_PROPERTY_IF = 'org.freedesktop.DBus.Properties'
@@ -44,7 +47,7 @@ class _cm_dbus_object(object):
     """
     Auxiliary class for convenient DBus object handling.
     """
-    def __init__(self, bus, object_path, object_dbus_interface,
+    def __init__(self, bus, parent, object_path, object_dbus_interface,
                  parent_dbus_interface=None, property_interface=False):
         """
         bus - DBus bus object, result of dbus.SystemBus() or dbus.SessionBus()
@@ -60,6 +63,7 @@ class _cm_dbus_object(object):
         if parent_dbus_interface is None:
             parent_dbus_interface = object_dbus_interface
         self.bus = bus
+        self.parent = parent
         self.path = object_path
         self.obj_dbus_if = object_dbus_interface
         self.parent_dbus_if = parent_dbus_interface
@@ -69,36 +73,83 @@ class _cm_dbus_object(object):
             self.prop_if = dbus.Interface(self.obj, DBUS_PROPERTY_IF)
 
 
-def _start_certmonger():
+class _certmonger(_cm_dbus_object):
     """
-    Start certmonger daemon. If it's already running systemctl just ignores
-    the command.
+    Create a connection to certmonger.
+    By default use SystemBus. When not available use private connection
+    over Unix socket.
+    This solution is really ugly and should be removed as soon as DBus
+    SystemBus is available at system install time.
     """
-    if not services.knownservices.certmonger.is_running():
+    timeout = 300
+
+    def _start_private_conn(self):
+        sock_filename = os.path.join(tempfile.mkdtemp(), 'certmonger')
+        self._proc = subprocess.Popen([paths.CERTMONGER, '-n', '-L', '-P',
+                                       sock_filename])
+        for t in range(0, self.timeout, 5):
+            if os.path.exists(sock_filename):
+                return "unix:path=%s" % sock_filename
+            time.sleep(5)
+        self._stop_private_conn()
+        raise RuntimeError("Failed to start certmonger: Timed out")
+
+    def _stop_private_conn(self):
+        if self._proc:
+            retcode = self._proc.poll()
+            if retcode is not None:
+                return
+            self._proc.terminate()
+            for t in range(0, self.timeout, 5):
+                retcode = self._proc.poll()
+                if retcode is not None:
+                    return
+                time.sleep(5)
+            root_logger.error("Failed to stop certmonger.")
+
+    def __del__(self):
+        self._stop_private_conn()
+
+    def __init__(self):
+        self._proc = None
+        self._bus = None
         try:
-            services.knownservices.certmonger.start()
-        except Exception, e:
-            root_logger.error('Failed to start certmonger: %s' % e)
-            raise
+            self._bus = dbus.SystemBus()
+        except dbus.DBusException as e:
+            err_name = e.get_dbus_name()
+            if err_name not in ['org.freedesktop.DBus.Error.NoServer',
+                                'org.freedesktop.DBus.Error.FileNotFound']:
+                root_logger.error("Failed to connect to certmonger over "
+                                  "SystemBus: %s" % e)
+                raise
+            try:
+                self._private_sock = self._start_private_conn()
+                self._bus = dbus.connection.Connection(self._private_sock)
+            except dbus.DBusException as e:
+                root_logger.error("Failed to connect to certmonger over "
+                                  "private socket: %s" % e)
+                raise
+        else:
+            try:
+                self._bus.get_name_owner(DBUS_CM_NAME)
+            except dbus.DBusException:
+                try:
+                    services.knownservices.certmonger.start()
+                except Exception as e:
+                    root_logger.error("Failed to start certmonger: %s" % e)
+                    raise
 
+                for t in range(0, self.timeout, 5):
+                    try:
+                        self._bus.get_name_owner(DBUS_CM_NAME)
+                        break
+                    except dbus.DBusException:
+                        pass
+                    time.sleep(5)
+                    raise RuntimeError('Failed to start certmonger')
 
-def _connect_to_certmonger():
-    """
-    Start certmonger daemon and connect to it via DBus.
-    """
-    try:
-        _start_certmonger()
-    except (KeyboardInterrupt, OSError), e:
-        root_logger.error('Failed to start certmonger: %s' % e)
-        raise
-
-    try:
-        bus = dbus.SystemBus()
-        cm = _cm_dbus_object(bus, DBUS_CM_PATH, DBUS_CM_IF)
-    except dbus.DBusException, e:
-        root_logger.error("Failed to access certmonger over DBus: %s", e)
-        raise
-    return cm
+        super(_certmonger, self).__init__(self._bus, None, DBUS_CM_PATH,
+                                          DBUS_CM_IF)
 
 
 def _get_requests(criteria=dict()):
@@ -108,7 +159,7 @@ def _get_requests(criteria=dict()):
     if not isinstance(criteria, dict):
         raise TypeError('"criteria" must be dict.')
 
-    cm = _connect_to_certmonger()
+    cm = _certmonger()
     requests = []
     requests_paths = []
     if 'nickname' in criteria:
@@ -119,12 +170,12 @@ def _get_requests(criteria=dict()):
         requests_paths = cm.obj_if.get_requests()
 
     for request_path in requests_paths:
-        request = _cm_dbus_object(cm.bus, request_path, DBUS_CM_REQUEST_IF,
+        request = _cm_dbus_object(cm.bus, cm, request_path, DBUS_CM_REQUEST_IF,
                                   DBUS_CM_IF, True)
         for criterion in criteria:
             if criterion == 'ca-name':
                 ca_path = request.obj_if.get_ca()
-                ca = _cm_dbus_object(cm.bus, ca_path, DBUS_CM_CA_IF,
+                ca = _cm_dbus_object(cm.bus, cm, ca_path, DBUS_CM_CA_IF,
                                      DBUS_CM_IF)
                 value = ca.obj_if.get_nickname()
             else:
@@ -133,6 +184,7 @@ def _get_requests(criteria=dict()):
                 break
         else:
             requests.append(request)
+
     return requests
 
 
@@ -166,7 +218,7 @@ def get_request_value(request_id, directive):
     if request:
         if directive == 'ca-name':
             ca_path = request.obj_if.get_ca()
-            ca = _cm_dbus_object(request.bus, ca_path, DBUS_CM_CA_IF,
+            ca = _cm_dbus_object(request.bus, request, ca_path, DBUS_CM_CA_IF,
                                  DBUS_CM_IF)
             return ca.obj_if.get_nickname()
         else:
@@ -250,7 +302,7 @@ def request_cert(nssdb, nickname, subject, principal, passwd_fname=None):
     """
     Execute certmonger to request a server certificate.
     """
-    cm = _connect_to_certmonger()
+    cm = _certmonger()
     ca_path = cm.obj_if.find_ca_by_nickname('IPA')
     if not ca_path:
         raise RuntimeError('IPA CA not found')
@@ -264,7 +316,7 @@ def request_cert(nssdb, nickname, subject, principal, passwd_fname=None):
     result = cm.obj_if.add_request(request_parameters)
     try:
         if result[0]:
-            request = _cm_dbus_object(cm.bus, result[1], DBUS_CM_REQUEST_IF,
+            request = _cm_dbus_object(cm.bus, cm, result[1], DBUS_CM_REQUEST_IF,
                                       DBUS_CM_IF, True)
     except TypeError:
         root_logger.error('Failed to get create new request.')
@@ -283,7 +335,7 @@ def start_tracking(nickname, secdir, password_file=None, command=None):
 
     Returns certificate nickname.
     """
-    cm = _connect_to_certmonger()
+    cm = _certmonger()
     params = {'TRACK': True}
     params['cert-nickname'] = nickname
     params['cert-database'] = os.path.abspath(secdir)
@@ -302,7 +354,7 @@ def start_tracking(nickname, secdir, password_file=None, command=None):
     result = cm.obj_if.add_request(params)
     try:
         if result[0]:
-            request = _cm_dbus_object(cm.bus, result[1], DBUS_CM_REQUEST_IF,
+            request = _cm_dbus_object(cm.bus, cm, result[1], DBUS_CM_REQUEST_IF,
                                       DBUS_CM_IF, True)
     except TypeError, e:
         root_logger.error('Failed to add new request.')
@@ -330,8 +382,7 @@ def stop_tracking(secdir, request_id=None, nickname=None):
         root_logger.error('Failed to get request: %s' % e)
         raise
     if request:
-        cm = _connect_to_certmonger()
-        cm.obj_if.remove_request(request.path)
+        request.parent.obj_if.remove_request(request.path)
 
 
 def modify(request_id, profile=None):
@@ -357,9 +408,9 @@ def _find_IPA_ca():
     We can use find_request_value because the ca files have the
     same file format.
     """
-    cm = _connect_to_certmonger()
+    cm = _certmonger()
     ca_path = cm.obj_if.find_ca_by_nickname('IPA')
-    return _cm_dbus_object(cm.bus, ca_path, DBUS_CM_CA_IF, DBUS_CM_IF, True)
+    return _cm_dbus_object(cm.bus, cm, ca_path, DBUS_CM_CA_IF, DBUS_CM_IF, True)
 
 
 def add_principal_to_cas(principal):
@@ -423,7 +474,7 @@ def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, pre_command,
     Both commands can be None.
     """
 
-    cm = _connect_to_certmonger()
+    cm = _certmonger()
     certmonger_cmd_template = paths.CERTMONGER_COMMAND_TEMPLATE
 
     params = {'TRACK': True}
