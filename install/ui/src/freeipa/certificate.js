@@ -1000,6 +1000,95 @@ IPA.cert.status_field = function(spec) {
     return that;
 };
 
+IPA.cert.cert_widget = function(spec) {
+
+    spec = spec || {};
+    spec.css_class = spec.css_class || 'certificate-widget';
+
+    var that = IPA.input_widget(spec);
+    that.certs_visible = false;
+
+    that.create = function(container) {
+
+        that.widget_create(container);
+        that.content_el = $('<div>').appendTo(container);
+    };
+
+    that.create_status = function(name, text, icon) {
+
+        var status = $('<label/>', {
+            'class': 'certificate-status'
+        });
+
+        $('<i/>', {
+            'class': icon
+        }).appendTo(status);
+
+        status.append(" " + text);
+
+        return status;
+    };
+
+    that.create_certs = function() {
+
+        that.content_el.empty();
+        var l = that.certificates.length;
+
+        if (l && that.certs_visible) {
+            for (var i=0; i<l; i++) {
+                $('<div/>', {
+                    'class': 'certificate',
+                    text: that.certificates[i]
+                }).appendTo(that.content_el);
+            }
+            $('<div/>').append(
+                IPA.button({
+                    name: 'hide',
+                    label: '@i18n:buttons.hide',
+                    click: function() {
+                        that.certs_visible = false;
+                        that.create_certs();
+                    }
+                })).
+            appendTo(that.content_el);
+        }
+
+        if (!l) {
+            that.content_el.append(that.create_status(
+                'missing',
+                text.get('@i18n:objects.cert.missing'),
+                'fa fa-warning'));
+        }
+
+        if (l && !that.certs_visible) {
+
+            var msg = text.get('@i18n:objects.cert.present');
+            msg = msg.replace('${count}', l);
+            that.content_el.append(
+                that.create_status('present', msg, 'fa fa-check'));
+
+            IPA.button({
+                name: 'show',
+                label: '@i18n:buttons.show',
+                click: function() {
+                    that.certs_visible = true;
+                    that.create_certs();
+                }
+            }).appendTo(that.content_el);
+        }
+    };
+
+    that.update = function(values) {
+        that.certificates = values;
+        that.create_certs();
+    };
+
+    that.clear = function() {
+        that.content_el.empty();
+    };
+
+    return that;
+};
 
 exp.create_cert_metadata = function() {
 
@@ -1409,6 +1498,7 @@ exp.register = function() {
     var f = reg.field;
     var a = reg.action;
 
+    w.register('certificate', IPA.cert.cert_widget);
     w.register('certificate_status', IPA.cert.status_widget);
     f.register('certificate_status', IPA.cert.status_field);
 

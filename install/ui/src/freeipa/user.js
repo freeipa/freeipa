@@ -175,6 +175,10 @@ return {
                             label: '@i18n:objects.sshkeystore.keys'
                         },
                         {
+                            $type: 'certificate',
+                            name: 'usercertificate'
+                        },
+                        {
                             $type: 'checkboxes',
                             name: 'ipauserauthtype',
                             flags: ['w_if_no_aci'],

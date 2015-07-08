@@ -134,9 +134,8 @@ return {
                     name: 'certificate',
                     fields: [
                         {
-                            $type: 'certificate_status',
-                            name: 'certificate_status',
-                            label: '@i18n:objects.service.status'
+                            $type: 'certificate',
+                            name: 'usercertificate'
                         }
                     ]
                 },

@@ -73,6 +73,7 @@
                         "filter": "Filter",
                         "find": "Find",
                         "get": "Get",
+                        "hide": "Hide",
                         "issue": "Issue",
                         "ok": "OK",
                         "refresh": "Refresh",
@@ -85,6 +86,7 @@
                         "revoke": "Revoke",
                         "save": "Save",
                         "set": "Set",
+                        "show": "Show",
                         "unapply": "Un-apply",
                         "update": "Update",
                         "view": "View"
@@ -253,6 +255,7 @@
                             "note": "Note",
                             "organization": "Organization",
                             "organizational_unit": "Organizational Unit",
+                            "present": "${count} certificate(s) present",
                             "privilege_withdrawn": "Privilege Withdrawn",
                             "reason": "Reason for Revocation",
                             "remove_from_crl": "Remove from CRL",
