@@ -226,19 +226,11 @@ return {
             ],
             actions: [
                 'service_unprovision',
-                'cert_view',
-                'cert_get',
-                'cert_request',
-                'cert_revoke',
-                'cert_restore'
+                'cert_request'
             ],
             header_actions: [
                 'unprovision',
-                'request_cert',
-                'view_cert',
-                'get_cert',
-                'revoke_cert',
-                'restore_cert'
+                'request_cert'
             ],
             state: {
                 evaluators: [

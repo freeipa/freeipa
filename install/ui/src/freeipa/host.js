@@ -264,14 +264,10 @@ return {
                     enable_cond: ['userpassword_w'],
                     show_cond: ['has_password']
                 },
-                'cert_view',
-                'cert_get',
-                'cert_request',
-                'cert_revoke',
-                'cert_restore'
+                'cert_request'
             ],
             header_actions: ['automember_rebuild', 'unprovision', 'set_otp', 'reset_otp',
-                'request_cert', 'view_cert', 'get_cert', 'revoke_cert', 'restore_cert'],
+                'request_cert'],
             state: {
                 evaluators: [
                     IPA.host.has_password_evaluator,
