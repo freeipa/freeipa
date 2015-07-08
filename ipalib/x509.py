@@ -264,7 +264,7 @@ def make_pem(data):
     Convert a raw base64-encoded blob into something that looks like a PE
     file with lines split to 64 characters and proper headers.
     """
-    pemcert = '\n'.join([data[x:x+64] for x in range(0, len(data), 64)])
+    pemcert = '\r\n'.join([data[x:x+64] for x in range(0, len(data), 64)])
     return '-----BEGIN CERTIFICATE-----\n' + \
     pemcert + \
     '\n-----END CERTIFICATE-----'
