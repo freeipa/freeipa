@@ -1135,6 +1135,7 @@ return {
             $type: 'details',
             $factory: IPA.cert.details_facet,
             no_update: true,
+            disable_facet_tabs: true,
             actions: [
                 'cert_revoke',
                 'cert_restore'
