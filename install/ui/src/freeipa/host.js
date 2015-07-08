@@ -912,7 +912,11 @@ IPA.host.certificate_policy = function(spec) {
         return values ? values[0] : null;
     };
 
-    spec.get_hostname = spec.get_hostname || spec.get_name;
+    spec.get_cn = spec.get_cn || spec.get_name;
+
+    spec.get_cn_name = spec.get_cn_name || function(result) {
+        return "hostname";
+    };
 
     var that = IPA.cert.load_policy(spec);
     return that;

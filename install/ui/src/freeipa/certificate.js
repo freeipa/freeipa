@@ -21,6 +21,7 @@
 
 define([
     'dojo/_base/lang',
+    './builder',
     './metadata',
     './ipa',
     './jquery',
@@ -30,7 +31,9 @@ define([
     './rpc',
     './text',
     './dialog'],
-        function(lang, metadata_provider, IPA, $, menu, phases, reg, rpc, text) {
+    function(
+        lang, builder, metadata_provider, IPA, $, menu,
+        phases, reg, rpc, text) {
 
 var exp = IPA.cert = {};
 
@@ -395,11 +398,42 @@ IPA.cert.request_dialog = function(spec) {
 
     spec = spec || {};
 
+    spec.sections = spec.sections || [];
+    var section = { fields: [] };
+    spec.sections.push(section);
+
+    if (spec.show_principal) {
+        section.fields.push(
+            {
+                $type: 'text',
+                name: 'principal',
+                label: '@mc-opt:cert_request:principal:label',
+                required: true
+            },
+            {
+                $type: 'checkbox',
+                name: 'add',
+                label: '@i18n:objects.cert.add_principal',
+                tooltip: '@mc-opt:cert_request:add:doc'
+            }
+        );
+    }
+    section.fields.push(
+        {
+            $type: 'entity_select',
+            name: 'profile_id',
+            other_entity: 'certprofile',
+            other_field: 'cn',
+            label: '@mc-opt:cert_request:profile_id:label'
+        }
+    );
+
     var that = IPA.dialog(spec);
 
     that.width = spec.width || 600;
     that.height = spec.height || 480;
     that.message = text.get(spec.message);
+    that.show_principal = spec.show_principal;
 
     that.request = spec.request;
 
@@ -408,8 +442,10 @@ IPA.cert.request_dialog = function(spec) {
         label: '@i18n:buttons.issue',
         click: function() {
             var values = {};
+            that.save(values);
             var request = $.trim(that.textarea.val());
             values.request = IPA.cert.pem_csr_format(request);
+
             if (that.request) {
                 that.request(values);
             }
@@ -426,11 +462,16 @@ IPA.cert.request_dialog = function(spec) {
     });
 
     that.create_content = function() {
-        that.container.append(that.message);
-
+        that.dialog_create_content();
+        var node = $("<div/>", {
+            'class': 'col-sm-12'
+        });
+        node.append(that.message);
         that.textarea = $('<textarea/>', {
             'class': 'certificate'
-        }).appendTo(that.container);
+        }).appendTo(node);
+        that.body_node.append(node);
+        return that.body_node;
     };
 
     return that;
@@ -444,10 +485,13 @@ IPA.cert.loader = function(spec) {
     that.get_pkey = spec.get_pkey;
     that.get_name = spec.get_name;
     that.get_principal = spec.get_principal;
-    that.get_hostname = spec.get_hostname;
+    that.get_cn = spec.get_cn;
+    that.get_cn_name = spec.get_cn_name;
+    that.adapter = builder.build('adapter', spec.adapter || 'adapter', {});
 
-    that.load = function (result) {
+    that.load = function (data) {
 
+        var result = that.adapter.get_record(data);
         var certificate = {
             issuer: result.issuer,
             certificate: result.certificate,
@@ -474,7 +518,8 @@ IPA.cert.loader = function(spec) {
         if (that.get_pkey) info.pkey = that.get_pkey(result);
         if (that.get_name) info.name = that.get_name(result);
         if (that.get_principal) info.principal = that.get_principal(result);
-        if (that.get_hostname) info.hostname = that.get_hostname(result);
+        if (that.get_cn_name) info.cn_name = that.get_cn_name(result);
+        if (that.get_cn) info.cn = that.get_cn(result);
 
         certificate.entity_info = info;
 
@@ -492,7 +537,9 @@ IPA.cert.load_policy = function(spec) {
         get_pkey: spec.get_pkey,
         get_name: spec.get_name,
         get_principal: spec.get_principal,
-        get_hostname: spec.get_hostname
+        get_cn: spec.get_cn,
+        get_cn_name: spec.get_cn_name,
+        adapter: spec.adapter
     };
 
     var that = IPA.facet_policy();
@@ -502,7 +549,7 @@ IPA.cert.load_policy = function(spec) {
     that.post_load = function(data) {
 
         // update cert info in facet (show at least something)
-        var certificate = that.loader.load(data.result.result);
+        var certificate = that.loader.load(data);
 
         //store cert directly to facet. FIXME: introduce concept of models
         that.container.certificate = certificate;
@@ -518,6 +565,8 @@ IPA.cert.load_policy = function(spec) {
     };
 
     that.load_revocation_reason = function(serial_number) {
+        if (serial_number === null || serial_number === undefined) return;
+
         rpc.command({
             entity: 'cert',
             method: 'show',
@@ -622,41 +671,59 @@ IPA.cert.request_action = function(spec) {
 
     var that = IPA.action(spec);
     that.entity_label = spec.entity_label;
+    that.generic = spec.generic !== undefined ? spec.generic : false;
 
     that.execute_action = function(facet) {
 
-        var certificate = facet.certificate;
-        if (!certificate) facet.refresh();
+        var entity_principal = null;
+        var cn_name = 'common name';
+        var cn = '&ltcommon name&gt';
+        var title = text.get('@i18n:objects.cert.issue_certificate_generic');
+        if (!that.generic) {
+            var certificate = facet.certificate;
+            if (!certificate) facet.refresh();
 
-        var entity_principal = certificate.entity_info.principal;
-        var entity_label = that.entity_label || facet.entity.metadata.label_singular;
-        var entity_name = certificate.entity_info.name;
-        var hostname = certificate.entity_info.hostname;
+            var entity_label = that.entity_label || facet.entity.metadata.label_singular;
 
-        var title = text.get('@i18n:objects.cert.issue_certificate');
-        title = title.replace('${entity}', entity_label);
-        title = title.replace('${primary_key}', entity_name);
+            entity_principal = certificate.entity_info.principal;
+            var entity_name = certificate.entity_info.name;
+            cn = certificate.entity_info.cn || cn;
+            cn_name = certificate.entity_info.cn_name || cn_name;
+
+            title = text.get('@i18n:objects.cert.issue_certificate');
+            title = title.replace('${entity}', entity_label);
+            title = title.replace('${primary_key}', entity_name);
+        }
 
         var request_message = text.get('@i18n:objects.cert.request_message');
-        request_message = request_message.replace(/\$\{hostname\}/g, hostname);
+        request_message = request_message.replace(/\$\{cn_name\}/g, cn_name);
+        request_message = request_message.replace(/\$\{cn\}/g, cn);
         request_message = request_message.replace(/\$\{realm\}/g, IPA.env.realm);
 
         var dialog = IPA.cert.request_dialog({
             title: title,
             message: request_message,
+            show_principal: !entity_principal,
             request: function(values) {
+
+                var options = {
+                    'principal': entity_principal
+                };
+                if (values.profile_id) options.profile_id = values.profile_id[0];
+                if (values.principal) options.principal = values.principal[0];
+                if (values.add) options.add = values.add[0];
 
                 rpc.command({
                     entity: 'cert',
                     method: 'request',
                     args: [values.request],
-                    options: {
-                        'principal': entity_principal
-                    },
+                    options: options,
                     on_success: function(data, text_status, xhr) {
                         facet.refresh();
                         IPA.notify_success('@i18n:objects.cert.requested');
-                        facet.certificate_updated.notify([], that.facet);
+                        if (facet.certificate_updated) {
+                            facet.certificate_updated.notify([], that.facet);
+                        }
                     }
                 }).execute();
             }
@@ -1052,6 +1119,12 @@ return {
             source_facet: 'details',
             dest_entity: 'service',
             dest_facet: 'details'
+        },
+        {
+            $factory: IPA.cert.cert_update_policy,
+            source_facet: 'details',
+            dest_entity: 'user',
+            dest_facet: 'details'
         }
     ],
     enable_test: function() {
@@ -1078,6 +1151,20 @@ return {
                 {
                     name: 'status',
                     width: '120px'
+                }
+            ],
+            control_buttons: [
+                 {
+                    name: 'request_cert',
+                    label: '@i18n:buttons.issue',
+                    icon: 'fa-plus'
+                }
+            ],
+            actions: [
+                {
+                    $type: 'cert_request',
+                    enable_cond: [],
+                    generic: true
                 }
             ],
             search_options:  [
@@ -1322,8 +1409,6 @@ exp.register = function() {
     var f = reg.field;
     var a = reg.action;
 
-    e.register({type: 'cert', spec: exp.entity_spec});
-
     w.register('certificate_status', IPA.cert.status_widget);
     f.register('certificate_status', IPA.cert.status_field);
 
@@ -1335,6 +1420,8 @@ exp.register = function() {
     a.register('cert_request', IPA.cert.request_action);
     a.register('cert_revoke', IPA.cert.revoke_action);
     a.register('cert_restore', IPA.cert.restore_action);
+
+    e.register({type: 'cert', spec: exp.entity_spec});
 };
 
 phases.on('registration', exp.register);

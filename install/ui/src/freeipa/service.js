@@ -554,12 +554,16 @@ IPA.service.certificate_policy = function(spec) {
 
     spec.get_principal = spec.get_principal || get_pkey;
 
-    spec.get_hostname = spec.get_hostname || function(result) {
+    spec.get_cn = spec.get_cn || function(result) {
         var value = get_pkey(result);
         if (value) {
             value = value.replace(/@.*$/, '').replace(/^.*\//, '');
         }
         return value;
+    };
+
+    spec.get_cn_name = spec.get_cn_name || function(result) {
+        return "hostname";
     };
 
     var that = IPA.cert.load_policy(spec);

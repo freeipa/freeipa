@@ -340,9 +340,16 @@ return {
                     name: 'automember_rebuild',
                     hide_cond: ['preserved-user'],
                     label: '@i18n:actions.automember_rebuild'
+                },
+                {
+                    $type: 'cert_request',
+                    hide_cond: ['preserved-user']
                 }
             ],
-            header_actions: ['reset_password', 'enable', 'disable', 'delete', 'unlock', 'add_otptoken', 'automember_rebuild'],
+            header_actions: [
+                'reset_password', 'enable', 'disable', 'delete',
+                'unlock', 'add_otptoken', 'automember_rebuild', 'request_cert'
+            ],
             state: {
                 evaluators: [
                     {
@@ -358,7 +365,8 @@ return {
                         attribute: 'userpassword'
                     },
                     IPA.user.self_service_other_user_evaluator,
-                    IPA.user.preserved_user_evaluator
+                    IPA.user.preserved_user_evaluator,
+                    IPA.cert.certificate_evaluator
                 ],
                 summary_conditions: [
                     {
@@ -372,7 +380,8 @@ return {
                 ]
             },
             policies: [
-                IPA.user.preserved_user_policy
+                IPA.user.preserved_user_policy,
+                IPA.user.certificate_policy
             ]
         },
         {
@@ -451,11 +460,13 @@ return {
     }
 };};
 
-IPA.user.details_facet = function(spec) {
+IPA.user.details_facet = function(spec, no_init) {
 
     spec = spec || {};
 
-    var that = IPA.details_facet(spec);
+    var that = IPA.details_facet(spec, true);
+    that.certificate_loaded = IPA.observer();
+    that.certificate_updated = IPA.observer();
 
     that.create_refresh_command = function() {
 
@@ -512,6 +523,8 @@ IPA.user.details_facet = function(spec) {
 
         return batch;
     };
+
+    if (!no_init) that.init_details_facet();
 
     return that;
 };
@@ -700,6 +713,28 @@ IPA.user.add_otptoken_action = function(spec) {
         }
     };
 
+    return that;
+};
+
+IPA.user.certificate_policy = function(spec) {
+
+    spec = spec || {};
+
+    function get_pkey(result) {
+        var values = result.uid;
+        return values ? values[0] : null;
+    }
+
+    spec.adapter = { result_index: 0 };
+    spec.get_pkey = spec.get_pkey || get_pkey;
+    spec.get_name = spec.get_name || get_pkey;
+    spec.get_principal = spec.get_principal || get_pkey;
+    spec.get_cn = spec.get_cn || get_pkey;
+    spec.get_cn_name = spec.get_cn_name || function(result) {
+        return "uid";
+    };
+
+    var that = IPA.cert.load_policy(spec);
     return that;
 };
 
