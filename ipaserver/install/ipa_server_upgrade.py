@@ -50,4 +50,9 @@ class ServerUpgrade(admintool.AdminTool):
             raise admintool.ScriptError(str(e))
 
     def handle_error(self, exception):
+        if not isinstance(exception, SystemExit):
+            # do not log this message when ipa is not installed
+            self.log.error("IPA server upgrade failed: Inspect "
+                              "/var/log/ipaupgrade.log and run command "
+                              "ipa-server-upgrade manually.")
         return installutils.handle_error(exception, self.log_file_name)
