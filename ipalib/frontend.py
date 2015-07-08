@@ -26,6 +26,7 @@ from distutils import version
 
 from ipapython.version import API_VERSION
 from ipapython.ipa_log_manager import root_logger
+from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from base import NameSpace
 from plugable import Plugin
 from parameters import create_param, Param, Str, Flag, Password
@@ -423,7 +424,9 @@ class Command(HasParam):
         version_provided = 'version' in options
         if version_provided:
             self.verify_client_version(unicode(options['version']))
-        elif self.api.env.in_server or not self.api.env.skip_version_check:
+        elif self.api.env.skip_version_check and not self.api.env.in_server:
+            options['version'] = VERSION_WITHOUT_CAPABILITIES
+        else:
             options['version'] = API_VERSION
         params = self.args_options_2_params(*args, **options)
         self.debug(
@@ -451,7 +454,7 @@ class Command(HasParam):
         ):
             ret['summary'] = self.get_summary_default(ret)
         if self.use_output_validation and (self.output or ret is not None):
-            self.validate_output(ret, options.get('version', API_VERSION))
+            self.validate_output(ret, options['version'])
         return ret
 
     def soft_validate(self, values):

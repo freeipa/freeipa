@@ -166,6 +166,9 @@ Specifies how the expiration of a session is computed. With \fBinactivity_timeou
 .B server <hostname>
 Specifies the IPA Server hostname.
 .TP
+.B skip_version_check <boolean>
+Skip client vs. server API version checking. Can lead to errors/strange behavior when newer clients talk to older servers. Use with caution.
+.TP
 .B startup_timeout <time in seconds>
 Controls the amount of time waited when starting a service. The default value is 120 seconds.
 .TP

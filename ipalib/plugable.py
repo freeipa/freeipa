@@ -484,12 +484,6 @@ class API(ReadOnly):
                 dest='fallback',
                 help='Only use the server configured in /etc/ipa/default.conf'
             )
-            parser.add_option(
-                '--skip-version-check',
-                action='store_true',
-                dest='skip_version_check',
-                help=optparse.SUPPRESS_HELP
-            )
 
         return parser
 
@@ -509,7 +503,7 @@ class API(ReadOnly):
                     pass
                 overrides[str(key.strip())] = value.strip()
         for key in ('conf', 'debug', 'verbose', 'prompt_all', 'interactive',
-            'fallback', 'delegate', 'skip_version_check'):
+            'fallback', 'delegate'):
             value = getattr(options, key, None)
             if value is not None:
                 overrides[key] = value
