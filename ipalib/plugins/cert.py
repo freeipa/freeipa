@@ -412,9 +412,7 @@ class cert_request(VirtualCommand):
             if cn != principal_name:
                 raise errors.ValidationError(
                     name='csr',
-                    error=_(
-                        "DN commonName does not match "
-                        "any of user's email addresses")
+                    error=_("DN commonName does not match user's login")
                 )
 
             # check email address
