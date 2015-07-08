@@ -137,6 +137,11 @@ var nav = {};
                             entity: 'cert',
                             facet: 'search',
                             hidden: true
+                        },
+                        {
+                            entity: 'caacl',
+                            facet: 'search',
+                            hidden: true
                         }
                     ]
                 },

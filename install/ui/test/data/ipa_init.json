@@ -203,6 +203,19 @@
                             "indirect": "Indirect",
                             "map_type": "Map Type"
                         },
+                        "caacl": {
+                            "any_host": "Any Host",
+                            "any_service": "Any Service",
+                            "any_profile": "Any Profile",
+                            "anyone": "Anyone",
+                            "ipaenabledflag": "Rule status",
+                            "profile": "Profiles",
+                            "specified_hosts": "Specified Hosts and Groups",
+                            "specified_profiles": "Specified Profiles",
+                            "specified_services": "Specified Services and Groups",
+                            "specified_users": "Specified Users and Groups",
+                            "who": "Permitted to have certificates issued"
+                        },
                         "cert": {
                             "aa_compromise": "AA Compromise",
                             "affiliation_changed": "Affiliation Changed",

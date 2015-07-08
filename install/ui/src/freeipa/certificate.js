@@ -1024,7 +1024,8 @@ exp.facet_group = {
     label: '@i18n:tabs.cert',
     facets: {
         certificates: 'cert_search',
-        profiles: 'certprofile_search'
+        profiles: 'certprofile_search',
+        acls: 'caacl_search'
     }
 };
 

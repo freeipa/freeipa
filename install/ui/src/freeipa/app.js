@@ -29,6 +29,7 @@ define([
     './aci',
     './automember',
     './automount',
+    './plugins/caacl',
     './plugins/certprofile',
     './dns',
     './group',
