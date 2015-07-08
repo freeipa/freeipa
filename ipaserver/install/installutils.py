@@ -1081,3 +1081,14 @@ def check_version():
 
 def realm_to_serverid(realm_name):
     return "-".join(realm_name.split("."))
+
+def enable_and_start_oddjobd(sstore):
+    oddjobd = services.service('oddjobd')
+    sstore.backup_state('oddjobd', 'running', oddjobd.is_running())
+    sstore.backup_state('oddjobd', 'enabled', oddjobd.is_enabled())
+
+    try:
+        oddjobd.enable()
+        oddjobd.start()
+    except Exception as e:
+        root_logger.critical("Unable to start oddjobd: {0}".format(str(e)))
