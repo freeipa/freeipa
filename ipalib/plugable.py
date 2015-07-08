@@ -372,11 +372,11 @@ class API(ReadOnly):
         Initialize environment variables and logging.
         """
         self.__doing('bootstrap')
-        self.env._bootstrap(**overrides)
-        self.env._finalize_core(**dict(DEFAULT_CONFIG))
         self.log_mgr = log_mgr
         log = log_mgr.root_logger
         self.log = log
+        self.env._bootstrap(**overrides)
+        self.env._finalize_core(**dict(DEFAULT_CONFIG))
 
         # Add the argument parser
         if not parser:
