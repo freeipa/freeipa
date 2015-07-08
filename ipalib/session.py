@@ -26,7 +26,6 @@ from urllib2 import urlparse
 from text import _
 from ipapython.ipa_log_manager import *
 from ipalib import api, errors
-from ipalib import Command
 from ipaplatform.paths import paths
 from ipalib.krb_utils import *
 from ipapython.cookie import Cookie
@@ -1277,33 +1276,5 @@ def release_ipa_ccache(ccache_name):
                 root_logger.error('unable to delete session ccache file "%s", %s', name, e)
     else:
         raise ValueError('ccache scheme "%s" unsupported (%s)', scheme, ccache_name)
-
-
-#-------------------------------------------------------------------------------
-
-from ipalib.request import context
-
-class session_logout(Command):
-    '''
-    RPC command used to log the current user out of their session.
-    '''
-
-    def execute(self, *args, **options):
-        session_data = getattr(context, 'session_data', None)
-        if session_data is None:
-            self.debug('session logout command: no session_data found')
-        else:
-            session_id = session_data.get('session_id')
-            self.debug('session logout command: session_id=%s', session_id)
-
-            # Notifiy registered listeners
-            session_mgr.auth_mgr.logout(session_data)
-
-        return dict(result=None)
-
-api.register(session_logout)
-
-#-------------------------------------------------------------------------------
-
 
 session_mgr = MemcacheSessionManager()

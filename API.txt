@@ -4201,6 +4201,10 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
+command: session_logout
+args: 0,1,1
+option: Str('version?', exclude='webui')
+output: Output('result', None, None)
 command: sidgen_was_run
 args: 0,1,1
 option: Str('version?', exclude='webui')
