@@ -77,7 +77,7 @@ BuildRequires:  pylint >= 1.0
 BuildRequires:  python-polib
 BuildRequires:  libipa_hbac-python
 BuildRequires:  python-memcached
-BuildRequires:  sssd >= 1.9.2
+BuildRequires:  sssd >= 1.13.0
 BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1 >= 0.0.9a
 BuildRequires:  python-qrcode-core >= 5.0.0
@@ -151,7 +151,7 @@ Requires: python-kdcproxy >= 0.3
 Requires: zip
 Requires: policycoreutils >= 2.1.12-5
 Requires: tar
-Requires(pre): certmonger >= 0.76.8
+Requires(pre): certmonger >= 0.78
 Requires(pre): 389-ds-base >= 1.3.4.0
 Requires: fontawesome-fonts
 Requires: open-sans-fonts
@@ -206,9 +206,7 @@ Requires: samba-winbind
 Requires: libsss_idmap
 Requires: libsss_nss_idmap-python
 Requires: oddjob
-%if (0%{?fedora} >= 22)
 Requires: python-sss
-%endif
 # We use alternatives to divert winbind_krb5_locator.so plugin to libkrb5
 # on the installes where server-trust-ad subpackage is installed because
 # IPA AD trusts cannot be used at the same time with the locator plugin
@@ -242,9 +240,9 @@ Requires: pam_krb5
 Requires: wget
 Requires: libcurl >= 7.21.7-2
 Requires: xmlrpc-c >= 1.27.4
-Requires: sssd >= 1.12.3
+Requires: sssd >= 1.13.0
 Requires: python-sssdconfig
-Requires: certmonger >= 0.76.8
+Requires: certmonger >= 0.78
 Requires: nss-tools
 Requires: bind-utils
 Requires: oddjob-mkhomedir
@@ -303,9 +301,7 @@ Requires: python-qrcode-core >= 5.0.0
 Requires: python-pyasn1
 Requires: python-dateutil
 Requires: python-yubico >= 1.2.3
-%if (0%{?fedora} >= 22)
 Requires: python-sss-murmur
-%endif
 Requires: wget
 Requires: dbus-python
 Requires: python-setuptools
