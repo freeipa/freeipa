@@ -89,12 +89,14 @@ nsMatchingRule: integerOrderingMatch
 dn: cn=ntUniqueId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 changetype: modify
 replace: nsIndexType
-nsIndexType: eq,pres
+nsIndexType: eq
+nsIndexType: pres
 
 dn: cn=ntUserDomainId,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 changetype: modify
 replace: nsIndexType
-nsIndexType: eq,pres
+nsIndexType: eq
+nsIndexType: pres
 
 dn: cn=fqdn,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 changetype: add
