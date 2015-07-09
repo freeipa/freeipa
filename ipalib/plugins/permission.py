@@ -21,6 +21,7 @@ import re
 import traceback
 
 from ipalib.plugins import baseldap
+from ipalib.plugins.privilege import validate_permission_to_privilege
 from ipalib import errors
 from ipalib.parameters import Str, StrEnum, DNParam, Flag
 from ipalib import api, _, ngettext
@@ -1376,6 +1377,12 @@ class permission_show(baseldap.LDAPRetrieve):
 class permission_add_member(baseldap.LDAPAddMember):
     """Add members to a permission."""
     NO_CLI = True
+
+    def pre_callback(self, ldap, dn, member_dns, failed, *keys, **options):
+        # We can only add permissions with bind rule type set to
+        # "permission" (or old-style permissions)
+        validate_permission_to_privilege(self.api, keys[-1])
+        return dn
 
 
 @register()
