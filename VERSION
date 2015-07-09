@@ -31,7 +31,7 @@ IPA_VERSION_RELEASE=0
 # e.g. IPA_VERSION_ALPHA_RELEASE=1                     #
 #  ->  "1.0.0alpha1"                                   #
 ########################################################
-IPA_VERSION_ALPHA_RELEASE=1
+IPA_VERSION_ALPHA_RELEASE=
 
 ########################################################
 # For 'beta' releases the version will be              #
