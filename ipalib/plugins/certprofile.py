@@ -291,6 +291,9 @@ class certprofile_mod(LDAPUpdate):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         ca_enabled_check()
+        # Once a profile id is set it cannot be changed
+        if 'cn' in entry_attrs:
+            raise errors.ACIError(info=_('cn is immutable'))
         if 'file' in options:
             with self.api.Backend.ra_certprofile as profile_api:
                 profile_api.disable_profile(keys[0])
