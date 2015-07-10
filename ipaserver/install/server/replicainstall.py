@@ -503,9 +503,9 @@ def install_check(installer):
     if options.setup_dns:
         dns.install_check(False, True, options, config.host_name)
     else:
-        installutils.get_server_ip_address(config.host_name, fstore,
-                                           not installer.interactive, False,
-                                           options.ip_addresses)
+        config.ips = installutils.get_server_ip_address(
+            config.host_name, fstore, not installer.interactive, False,
+            options.ip_addresses)
 
     # check connection
     if not options.skip_conncheck:
