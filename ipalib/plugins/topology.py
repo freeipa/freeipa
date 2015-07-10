@@ -41,7 +41,6 @@ class topologysegment(LDAPObject):
     """
     Topology segment.
     """
-    NO_CLI = True
     parent_object = 'topologysuffix'
     container_dn = api.env.container_topology
     object_name = _('segment')
@@ -196,7 +195,6 @@ class topologysegment(LDAPObject):
 class topologysegment_find(LDAPSearch):
     __doc__ = _('Search for topology segments.')
 
-    NO_CLI = True
     msg_summary = ngettext(
         '%(count)d segment matched',
         '%(count)d segments matched', 0
@@ -207,7 +205,6 @@ class topologysegment_find(LDAPSearch):
 class topologysegment_add(LDAPCreate):
     __doc__ = _('Add a new segment.')
 
-    NO_CLI = True
     msg_summary = _('Added segment "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -221,7 +218,6 @@ class topologysegment_add(LDAPCreate):
 class topologysegment_del(LDAPDelete):
     __doc__ = _('Delete a segment.')
 
-    NO_CLI = True
     msg_summary = _('Deleted segment "%(value)s"')
 
     def pre_callback(self, ldap, dn, *keys, **options):
@@ -234,7 +230,6 @@ class topologysegment_del(LDAPDelete):
 class topologysegment_mod(LDAPUpdate):
     __doc__ = _('Modify a segment.')
 
-    NO_CLI = True
     msg_summary = _('Modified segment "%(value)s"')
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -249,7 +244,6 @@ class topologysegment_reinitialize(LDAPQuery):
     __doc__ = _('Request a full re-initialization of the node '
                 'retrieving data from the other node.')
 
-    NO_CLI = True
     has_output = output.standard_value
     msg_summary = _('%(value)s')
 
@@ -321,7 +315,6 @@ class topologysegment_reinitialize(LDAPQuery):
 @register()
 class topologysegment_show(LDAPRetrieve):
     __doc__ = _('Display a segment.')
-    NO_CLI = True
 
 
 @register()
@@ -329,7 +322,6 @@ class topologysuffix(LDAPObject):
     """
     Suffix managed by the topology plugin.
     """
-    NO_CLI = True
     container_dn = api.env.container_topology
     object_name = _('suffix')
     object_name_plural = _('suffices')
@@ -360,7 +352,6 @@ class topologysuffix(LDAPObject):
 class topologysuffix_find(LDAPSearch):
     __doc__ = _('Search for topology suffices.')
 
-    NO_CLI = True
     msg_summary = ngettext(
         '%(count)d topology suffix matched',
         '%(count)d topology suffices matched', 0
@@ -412,7 +403,6 @@ class topologysuffix_mod(LDAPUpdate):
 @register()
 class topologysuffix_show(LDAPRetrieve):
     __doc__ = _('Show managed suffix.')
-    NO_CLI = True
 
 
 @register()
@@ -426,7 +416,6 @@ Checks done:
   2. check if servers don't have more than the recommended number of
      replication agreements
 ''')
-    NO_CLI = True
 
     def execute(self, *keys, **options):
 

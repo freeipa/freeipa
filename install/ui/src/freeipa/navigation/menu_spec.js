@@ -205,7 +205,7 @@ var nav = {};
                         { entity: 'trustconfig' }
                     ]
                 },
-/*              {
+                {
                     entity: 'topologysuffix',
                     label: '@i18n:tabs.topology',
                     facet: 'search',
@@ -226,7 +226,7 @@ var nav = {};
                             hidden: true
                         }
                     ]
-                },*/
+                },
                 {
                     name: 'apibrowser',
                     label: 'API browser',

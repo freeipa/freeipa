@@ -74,7 +74,6 @@ def get_master_entries(ldap, api):
 @register()
 class domainlevel_get(Command):
     __doc__ = _('Query current Domain Level.')
-    NO_CLI = True
 
     has_output = domainlevel_output
 
@@ -91,7 +90,6 @@ class domainlevel_get(Command):
 @register()
 class domainlevel_set(Command):
     __doc__ = _('Change current Domain Level.')
-    NO_CLI = True
 
     has_output = domainlevel_output
 
