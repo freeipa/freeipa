@@ -682,8 +682,9 @@ class stageuser_activate(LDAPQuery):
                 active_dn, ['dn']
             )
             assert isinstance(staging_dn, DN)
-            raise errors.DuplicateEntry(message=_('Active user %(user)s already exists') % dict(
-                            user=test_entry_attrs.dn))
+            raise errors.DuplicateEntry(
+                message=_('active user with name "%(user)s" already exists') %
+                dict(user=args[-1]))
         except errors.NotFound:
             pass
 
