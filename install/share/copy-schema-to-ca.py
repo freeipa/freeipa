@@ -15,6 +15,8 @@ import sys
 import pwd
 import shutil
 
+from hashlib import sha1
+
 from ipapython import ipautil, dogtag
 from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipaserver.install.dsinstance import DS_USER, schema_dirname
@@ -42,6 +44,11 @@ SCHEMA_FILENAMES = (
 )
 
 
+def _sha1_file(filename):
+    with open(filename, 'rb') as f:
+        return sha1(f.read()).hexdigest()
+
+
 def add_ca_schema():
     """Copy IPA schema files into the CA DS instance
     """
@@ -54,9 +61,25 @@ def add_ca_schema():
             root_logger.debug('File does not exist: %s', source_fname)
             continue
         if os.path.exists(target_fname):
-            root_logger.info(
-                'Target exists, not overwriting: %s', target_fname)
-            continue
+            target_sha1 = _sha1_file(target_fname)
+            source_sha1 = _sha1_file(source_fname)
+            if target_sha1 != source_sha1:
+                target_size = os.stat(target_fname).st_size
+                source_size = os.stat(source_fname).st_size
+                root_logger.info('Target file %s exists but the content is '
+                                 'different', target_fname)
+                root_logger.info('\tTarget file: sha1: %s, size: %s B',
+                                 target_sha1, target_size)
+                root_logger.info('\tSource file: sha1: %s, size: %s B',
+                                 source_sha1, source_size)
+                if not ipautil.user_input("Do you want replace %s file?" %
+                                          target_fname, True):
+                    continue
+
+            else:
+                root_logger.info(
+                    'Target exists, not overwriting: %s', target_fname)
+                continue
         try:
             shutil.copyfile(source_fname, target_fname)
         except IOError, e:
