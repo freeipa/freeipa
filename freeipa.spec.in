@@ -75,7 +75,7 @@ BuildRequires:  python-rhsm
 BuildRequires:  pyOpenSSL
 BuildRequires:  pylint >= 1.0
 BuildRequires:  python-polib
-BuildRequires:  libipa_hbac-python
+BuildRequires:  python-libipa_hbac
 BuildRequires:  python-memcached
 BuildRequires:  sssd >= 1.13.0
 BuildRequires:  python-lxml
@@ -204,7 +204,7 @@ Requires: samba-python
 Requires: samba >= %{samba_version}
 Requires: samba-winbind
 Requires: libsss_idmap
-Requires: libsss_nss_idmap-python
+Requires: python-libsss_nss_idmap
 Requires: oddjob
 Requires: python-sss
 # We use alternatives to divert winbind_krb5_locator.so plugin to libkrb5
@@ -296,7 +296,7 @@ Requires: python-nss >= 0.16
 Requires: python-cryptography
 Requires: python-lxml
 Requires: python-netaddr
-Requires: libipa_hbac-python
+Requires: python-libipa_hbac
 Requires: python-qrcode-core >= 5.0.0
 Requires: python-pyasn1
 Requires: python-dateutil
