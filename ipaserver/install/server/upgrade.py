@@ -1396,22 +1396,6 @@ def upgrade_configuration():
     http.change_mod_nss_port_from_http()
     http.configure_certmonger_renewal_guard()
 
-    if not http.is_kdcproxy_configured():
-        root_logger.info('[Enabling KDC Proxy]')
-        if http.admin_conn is None:
-            http.ldapi = True
-            http.fqdn = fqdn
-            http.realm = api.env.realm
-            http.suffix = ipautil.realm_to_suffix(api.env.realm)
-            http.ldap_connect()
-        http.create_kdcproxy_conf()
-        http.enable_kdcproxy()
-
-    http.stop()
-    update_mod_nss_protocol(http)
-    fix_trust_flags()
-    http.start()
-
     ds = dsinstance.DsInstance()
     ds.configure_dirsrv_ccache()
 
@@ -1432,6 +1416,25 @@ def upgrade_configuration():
     ds.realm = api.env.realm
     ds.suffix = ipautil.realm_to_suffix(api.env.realm)
     ds_enable_sidgen_extdom_plugins(ds)
+
+    # Now 389-ds is available, run the remaining http tasks
+    if not http.is_kdcproxy_configured():
+        root_logger.info('[Enabling KDC Proxy]')
+        if http.admin_conn is None:
+             # 389-ds needs to be running
+            ds.start()
+            http.ldapi = True
+            http.fqdn = fqdn
+            http.realm = api.env.realm
+            http.suffix = ipautil.realm_to_suffix(api.env.realm)
+            http.ldap_connect()
+        http.create_kdcproxy_conf()
+        http.enable_kdcproxy()
+
+    http.stop()
+    update_mod_nss_protocol(http)
+    fix_trust_flags()
+    http.start()
 
     uninstall_selfsign(ds, http)
 
