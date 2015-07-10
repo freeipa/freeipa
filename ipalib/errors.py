@@ -1359,6 +1359,7 @@ class InvalidDomainLevelError(ExecutionError):
     """
 
     errno = 4032
+    format = _('%(reason)s')
 
 class BuiltinError(ExecutionError):
     """
