@@ -50,6 +50,7 @@ from errors import (PublicError, CommandError, HelpError, InternalError,
 from constants import CLI_TAB, LDAP_GENERALIZED_TIME_FORMAT
 from parameters import File, Str, Enum, Any, Flag
 from text import _
+from ipalib import api
 from ipapython.version import API_VERSION
 from ipapython.dnsutil import DNSName
 
@@ -100,7 +101,7 @@ class textui(backend.Backend):
 
         For example:
 
-        >>> ui = textui()
+        >>> ui = textui(api)
         >>> rows = [
         ...     ('a', 'package'),
         ...     ('an', 'egg'),
@@ -178,7 +179,7 @@ class textui(backend.Backend):
 
         For example:
 
-        >>> ui = textui()
+        >>> ui = textui(api)
         >>> ui.print_line('This line can fit!', width=18)
         This line can fit!
         >>> ui.print_line('This line wont quite fit!', width=18)
@@ -204,7 +205,7 @@ class textui(backend.Backend):
         ... Python is a dynamic object-oriented programming language that can
         ... be used for many kinds of software development.
         ... '''
-        >>> ui = textui()
+        >>> ui = textui(api)
         >>> ui.print_paragraph(text, width=45)
         Python is a dynamic object-oriented
         programming language that can be used for
@@ -229,7 +230,7 @@ class textui(backend.Backend):
 
         For example:
 
-        >>> ui = textui()
+        >>> ui = textui(api)
         >>> ui.print_indented('One indentation level.')
           One indentation level.
         >>> ui.print_indented('Two indentation levels.', indent=2)
@@ -249,7 +250,7 @@ class textui(backend.Backend):
         ...     ('in_server', True),
         ...     ('mode', u'production'),
         ... ]
-        >>> ui = textui()
+        >>> ui = textui(api)
         >>> ui.print_keyval(items)
           in_server = True
           mode = u'production'
@@ -269,7 +270,7 @@ class textui(backend.Backend):
         For example:
 
         >>> attr = 'dn'
-        >>> ui = textui()
+        >>> ui = textui(api)
         >>> ui.print_attribute(attr, u'dc=example,dc=com')
           dn: dc=example,dc=com
         >>> attr = 'objectClass'
@@ -407,7 +408,7 @@ class textui(backend.Backend):
 
         For example:
 
-        >>> ui = textui()
+        >>> ui = textui(api)
         >>> ui.print_dashed('Dashed above and below.')
         -----------------------
         Dashed above and below.
@@ -434,7 +435,7 @@ class textui(backend.Backend):
 
         For example:
 
-        >>> ui = textui()
+        >>> ui = textui(api)
         >>> ui.print_h1('A primary header')
         ================
         A primary header
@@ -448,7 +449,7 @@ class textui(backend.Backend):
 
         For example:
 
-        >>> ui = textui()
+        >>> ui = textui(api)
         >>> ui.print_h2('A secondary header')
           ------------------
           A secondary header
@@ -464,7 +465,7 @@ class textui(backend.Backend):
         command.  For example, a hypothetical ``show_status`` command would
         output something like this:
 
-        >>> ui = textui()
+        >>> ui = textui(api)
         >>> ui.print_name('show_status')
         ------------
         show-status:
@@ -481,7 +482,7 @@ class textui(backend.Backend):
 
         For example:
 
-        >>> ui = textui()
+        >>> ui = textui(api)
         >>> ui.print_summary('Added user "jdoe"')
         -----------------
         Added user "jdoe"
@@ -500,7 +501,7 @@ class textui(backend.Backend):
 
         For example:
 
-        >>> ui = textui()
+        >>> ui = textui(api)
         >>> ui.print_count(1, '%d goose', '%d geese')
         -------
         1 goose
