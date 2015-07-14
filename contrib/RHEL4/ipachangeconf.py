@@ -29,13 +29,13 @@ def openLocked(filename, perms):
         fd = os.open(filename, os.O_RDWR | os.O_CREAT, perms)
         
         fcntl.lockf(fd, fcntl.LOCK_EX)
-    except OSError, (errno, strerr):
+    except OSError as e:
         if fd != -1:
             try:
                 os.close(fd)
             except OSError:
                 pass
-        raise IOError(errno, strerr)
+        raise IOError(e.errno, e.strerror)
     return os.fdopen(fd, "r+")
 
 
