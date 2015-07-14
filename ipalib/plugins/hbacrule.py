@@ -124,7 +124,7 @@ class hbacrule(LDAPObject):
         'description', 'usercategory', 'hostcategory',
         'servicecategory', 'ipaenabledflag',
         'memberuser', 'sourcehost', 'memberhost', 'memberservice',
-        'memberhostgroup', 'externalhost',
+        'externalhost',
     ]
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
