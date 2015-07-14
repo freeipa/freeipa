@@ -462,13 +462,14 @@ class hbactest(Command):
                         matched_rules.append(ipa_rule.name)
                     if res == pyhbac.HBAC_EVAL_DENY:
                         notmatched_rules.append(ipa_rule.name)
-                except pyhbac.HbacError as (code, rule_name):
+                except pyhbac.HbacError as e:
+                    code, rule_name = e.args
                     if code == pyhbac.HBAC_EVAL_ERROR:
                         error_rules.append(rule_name)
                         self.log.info('Native IPA HBAC rule "%s" parsing error: %s' % \
                                       (rule_name, pyhbac.hbac_result_string(code)))
-                except (TypeError, IOError) as (info):
-                    self.log.error('Native IPA HBAC module error: %s' % (info))
+                except (TypeError, IOError) as info:
+                    self.log.error('Native IPA HBAC module error: %s' % info)
 
             access_granted = len(matched_rules) > 0
         else:
