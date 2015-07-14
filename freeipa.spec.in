@@ -708,6 +708,7 @@ fi
 %{_libexecdir}/ipa/ipa-dnskeysync-replica
 %{_libexecdir}/ipa/ipa-ods-exporter
 %{_libexecdir}/ipa/ipa-httpd-kdcproxy
+%dir %attr(0755,root,root) %{_sysconfdir}/ipa/kdcproxy
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-dnskeysyncd
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-ods-exporter
@@ -936,7 +937,6 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/nssdb
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/dnssec
-%dir %attr(0755,root,root) %{_sysconfdir}/ipa/kdcproxy
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/cert8.db
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/key3.db
 %ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/secmod.db
