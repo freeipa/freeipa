@@ -93,9 +93,8 @@ class FileStore:
         for (key, value) in self.files.items():
             p.set('files', key, str(value))
 
-        f = file(self._index, "w")
-        p.write(f)
-        f.close()
+        with open(self._index, "w") as f:
+            p.write(f)
 
     def backup_file(self, path):
         """Create a copy of the file at @path - so long as a copy
@@ -354,9 +353,8 @@ class StateFile:
             for (key, value) in self.modules[module].items():
                 p.set(module, key, str(value))
 
-        f = file(self._path, "w")
-        p.write(f)
-        f.close()
+        with open(self._path, "w") as f:
+            p.write(f)
 
     def backup_state(self, module, key, value):
         """Backup an item of system state from @module, identified
