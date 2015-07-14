@@ -29,13 +29,14 @@ define([
         './reg',
         './rpc',
         './text',
+        './dialog',
         './dialogs/password',
         './details',
         './search',
         './association',
         './entity',
         './certificate'],
-    function(builder, IPA, $, phases, reg, rpc, text, password_dialog) {
+    function(builder, IPA, $, phases, reg, rpc, text, dialogs) {
 
 /**
  * User module
@@ -638,7 +639,7 @@ IPA.user.password_dialog_pre_op = function(spec) {
 
 IPA.user.password_dialog = function(spec) {
 
-    var that = password_dialog.dialog(spec);
+    var that = dialogs.command_dialog(spec);
 
     that.is_self_service = function() {
         var self_service = that.args[0] === IPA.whoami.uid[0];

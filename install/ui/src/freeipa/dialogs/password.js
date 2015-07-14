@@ -48,7 +48,6 @@ dialogs.password.default_fields_pre_op =  function(spec) {
 
     spec.title = spec.title || '@i18n:password.reset_password';
     spec.width = spec.width || 400;
-    spec.method = spec.method || 'mod';
     spec.success_message = spec.success_message || '@i18n:password.password_change_complete';
     spec.confirm_button_label = spec.confirm_button_label || '@i18n:password.reset_password';
     spec.sections = spec.sections || [
