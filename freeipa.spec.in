@@ -8,7 +8,7 @@
 %global selinux_policy_version 3.12.1-153
 %else
 %global samba_version 2:4.0.5-1
-%global selinux_policy_version 3.12.1-179
+%global selinux_policy_version 3.13.1-128.6
 %endif
 
 %define krb5_base_version %(LC_ALL=C rpm -q --qf '%%{VERSION}' krb5-devel | grep -Eo '^[^.]+\.[^.]+')
