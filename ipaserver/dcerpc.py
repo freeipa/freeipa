@@ -1084,22 +1084,44 @@ class TrustDomainInstance(object):
         result = retrieve_netlogon_info_2(None, self,
                                           netlogon.NETLOGON_CONTROL_TC_VERIFY,
                                           another_domain.info['dns_domain'])
-        if (result and (result.flags and netlogon.NETLOGON_VERIFY_STATUS_RETURNED)):
-            if (result.pdc_connection_status[0] != 0) and (result.tc_connection_status[0] != 0):
+
+        if result and result.flags and netlogon.NETLOGON_VERIFY_STATUS_RETURNED:
+            if result.pdc_connection_status[0] != 0 and result.tc_connection_status[0] != 0:
                 if result.pdc_connection_status[1] == "WERR_ACCESS_DENIED":
                     # Most likely AD DC hit another IPA replica which yet has no trust secret replicated
+
                     # Sleep and repeat again
                     self.validation_attempts += 1
                     if self.validation_attempts < 10:
                         sleep(5)
                         return self.verify_trust(another_domain)
-                    raise errors.ACIError(
-                            info=_('IPA master denied trust validation requests from AD DC '
-                                   '%(count)d times. Most likely AD DC contacted a replica '
-                                   'that has no trust information replicated yet.')
-                                   % dict(count=self.validation_attempts))
+
+                    # If we get here, we already failed 10 times
+                    srv_record_templates = (
+                        '_ldap._tcp.%s',
+                        '_ldap._tcp.Default-First-Site-Name._sites.dc._msdcs.%s'
+                    )
+
+                    srv_records = ', '.join(
+                        [srv_record % api.env.domain
+                         for srv_record in srv_record_templates]
+                    )
+
+                    error_message = _(
+                        'IPA master denied trust validation requests from AD '
+                        'DC %(count)d times. Most likely AD DC contacted a '
+                        'replica that has no trust information replicated '
+                        'yet. Additionally, please check that AD DNS is able '
+                        'to resolve %(records)s SRV records to the correct '
+                        'IPA server.') % dict(count=self.validation_attempts,
+                                              records=srv_records)
+
+                    raise errors.ACIError(info=error_message)
+
                 raise assess_dcerpc_exception(*result.pdc_connection_status)
+
             return True
+
         return False
 
 
