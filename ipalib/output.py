@@ -77,6 +77,8 @@ class Output(ReadOnly):
     def __init__(self, name, type=None, doc=None, flags=[]):
         self.name = name
         if type is not None:
+            if not isinstance(type, tuple):
+                type = (type,)
             self.type = type
         if doc is not None:
             self.doc = doc
@@ -84,9 +86,22 @@ class Output(ReadOnly):
         lock(self)
 
     def __repr__(self):
-        return '%s(%r, %r, %r)' % (
-            self.__class__.__name__, self.name, self.type, self.doc,
+        return '%s(%s)' % (
+            self.__class__.__name__,
+            ', '.join(self.__repr_iter())
         )
+
+    def __repr_iter(self):
+        yield repr(self.name)
+        for key in ('type', 'doc', 'flags'):
+            value = self.__dict__.get(key)
+            if not value:
+                continue
+            if isinstance(value, tuple):
+                value = repr(list(value))
+            else:
+                value = repr(value)
+            yield '%s=%s' % (key, value)
 
 
 class Entry(Output):

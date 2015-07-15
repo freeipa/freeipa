@@ -44,18 +44,40 @@ API_NO_FILE = 4
 API_DOC_ERROR = 8
 
 # attributes removed from Param.__kw dictionary
-PARAM_IGNORED_KW_ATTRIBUTES = ('label',
-                               'doc',
-                               'normalizer',
-                               'default_from',
-                               'hint',
-                               'flags',
-                               'sortorder',
-                               'pattern_errmsg',)
+PARAM_IGNORED_KW_ATTRIBUTES = (
+    'attribute',
+    'csv',
+    'default_from',
+    'doc',
+    'exclude',
+    'exponential',
+    'flags',
+    'hint',
+    'include',
+    'label',
+    'length',
+    'maxlength',
+    'maxvalue',
+    'minlength',
+    'minvalue',
+    'noextrawhitespace',
+    'normalizer',
+    'numberclass',
+    'only_absolute',
+    'only_relative',
+    'pattern',
+    'pattern_errmsg',
+    'precision',
+    'primary_key',
+    'query',
+    'sortorder',
+)
 
 # attributes removed from Output object
-OUTPUT_IGNORED_ATTRIBUTES = ('doc',
-                             'flags',)
+OUTPUT_IGNORED_ATTRIBUTES = (
+    'doc',
+    'flags',
+)
 
 def parse_options():
     from optparse import OptionParser

@@ -221,7 +221,7 @@ class DefaultFrom(ReadOnly):
         lock(self)
 
     def __repr__(self):
-        args = (self.callback.__name__,) + tuple(repr(k) for k in self.keys)
+        args = tuple(repr(k) for k in self.keys)
         return '%s(%s)' % (
             self.__class__.__name__,
             ', '.join(args)
@@ -426,61 +426,34 @@ class Param(ReadOnly):
         return (self.type,)
 
     def __init__(self, name, *rules, **kw):
-        # We keep these values to use in __repr__():
-        self.param_spec = name
-        self.__kw = dict(kw)
-
         # Merge in kw from parse_param_spec():
         (name, kw_from_spec) = parse_param_spec(name)
+        check_name(name)
         if not 'required' in kw:
             kw['required'] = kw_from_spec['required']
         if not 'multivalue' in kw:
             kw['multivalue'] = kw_from_spec['multivalue']
-        self.name = check_name(name)
-        self.nice = '%s(%r)' % (self.__class__.__name__, self.param_spec)
 
-        # Add 'default' to self.kwargs and makes sure no unknown kw were given:
-        assert all(type(t) is type for t in self.allowed_types)
+        # Add 'default' to self.kwargs
         if kw.get('multivalue', True):
             self.kwargs += (('default', tuple, None),)
         else:
             self.kwargs += (('default', self.type, None),)
-        if not set(t[0] for t in self.kwargs).issuperset(self.__kw):
-            extra = set(kw) - set(t[0] for t in self.kwargs)
-            raise TypeError(
-                '%s: takes no such kwargs: %s' % (self.nice,
-                    ', '.join(repr(k) for k in sorted(extra))
-                )
-            )
-
-        # Merge in default for 'cli_name', label, doc if not given:
-        if kw.get('cli_name') is None:
-            kw['cli_name'] = self.name
-
-        if kw.get('label') is None:
-            kw['label'] = FixMe(self.name)
-
-        if kw.get('doc') is None:
-            kw['doc'] = kw['label']
 
         # Wrap 'default_from' in a DefaultFrom if not already:
-        df = kw.get('default_from', None)
+        df = kw.get('default_from')
         if callable(df) and not isinstance(df, DefaultFrom):
             kw['default_from'] = DefaultFrom(df)
 
-        # We keep this copy with merged values also to use when cloning:
-        self.__clonekw = kw
-
-        # Perform type validation on kw, add in class rules:
-        class_rules = []
+        # Perform type validation on kw:
         for (key, kind, default) in self.kwargs:
-            value = kw.get(key, default)
+            value = kw.get(key)
             if value is not None:
-                if kind is frozenset:
-                    if type(value) in (list, tuple, set):
-                        value = frozenset(value)
+                if kind in (tuple, frozenset):
+                    if type(value) in (list, tuple, set, frozenset):
+                        value = kind(value)
                     elif type(value) is str:
-                        value = frozenset([value])
+                        value = kind([value])
                 if (
                     type(kind) is type and not isinstance(value, kind)
                     or
@@ -493,6 +466,55 @@ class Param(ReadOnly):
                     raise TypeError(
                         CALLABLE_ERROR % (key, value, type(value))
                     )
+                kw[key] = value
+            else:
+                kw.pop(key, None)
+
+        # We keep these values to use in __repr__():
+        if kw['required']:
+            if kw['multivalue']:
+                self.param_spec = name + '+'
+            else:
+                self.param_spec = name
+        else:
+            if kw['multivalue']:
+                self.param_spec = name + '*'
+            else:
+                self.param_spec = name + '?'
+        self.__kw = dict(kw)
+        del self.__kw['required']
+        del self.__kw['multivalue']
+
+        self.name = name
+        self.nice = '%s(%r)' % (self.__class__.__name__, self.param_spec)
+
+        # Make sure no unknown kw were given:
+        assert all(type(t) is type for t in self.allowed_types)
+        if not set(t[0] for t in self.kwargs).issuperset(self.__kw):
+            extra = set(kw) - set(t[0] for t in self.kwargs)
+            raise TypeError(
+                '%s: takes no such kwargs: %s' % (self.nice,
+                    ', '.join(repr(k) for k in sorted(extra))
+                )
+            )
+
+        # We keep this copy with merged values also to use when cloning:
+        self.__clonekw = dict(kw)
+
+        # Merge in default for 'cli_name', label, doc if not given:
+        if kw.get('cli_name') is None:
+            kw['cli_name'] = self.name
+
+        if kw.get('label') is None:
+            kw['label'] = FixMe(self.name)
+
+        if kw.get('doc') is None:
+            kw['doc'] = kw['label']
+
+        # Add in class rules:
+        class_rules = []
+        for (key, kind, default) in self.kwargs:
+            value = kw.get(key, default)
             if hasattr(self, key):
                 raise ValueError('kwarg %r conflicts with attribute on %s' % (
                     key, self.__class__.__name__)
@@ -560,6 +582,8 @@ class Param(ReadOnly):
                 value = value.__name__
             elif isinstance(value, six.integer_types):
                 value = str(value)
+            elif isinstance(value, (tuple, set, frozenset)):
+                value = repr(list(value))
             else:
                 value = repr(value)
             yield '%s=%s' % (key, value)
