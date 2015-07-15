@@ -281,10 +281,9 @@ register = Registry()
 # supported resource record types
 _record_types = (
     u'A', u'AAAA', u'A6', u'AFSDB', u'APL', u'CERT', u'CNAME', u'DHCID', u'DLV',
-    u'DNAME', u'DNSKEY', u'DS', u'HIP', u'IPSECKEY', u'KEY', u'KX', u'LOC',
-    u'MX', u'NAPTR', u'NS', u'NSEC', u'NSEC3', u'PTR',
-    u'RRSIG', u'RP', u'SIG', u'SPF', u'SRV', u'SSHFP', u'TA', u'TKEY',
-    u'TLSA', u'TSIG', u'TXT',
+    u'DNAME', u'DS', u'HIP', u'HINFO', u'IPSECKEY', u'KEY', u'KX', u'LOC',
+    u'MD', u'MINFO', u'MX', u'NAPTR', u'NS', u'NSEC', u'NXT', u'PTR', u'RRSIG',
+    u'RP', u'SIG', u'SPF', u'SRV', u'SSHFP', u'TLSA', u'TXT',
 )
 
 # DNS zone record identificator
@@ -1092,9 +1091,6 @@ class DNAMERecord(DNSRecord):
         ),
     )
 
-class DNSKEYRecord(UnsupportedDNSRecord):
-    rrtype = 'DNSKEY'
-    rfc = 4034
 
 class DSRecord(DNSRecord):
     rrtype = 'DS'
@@ -1127,6 +1123,11 @@ class DLVRecord(DSRecord):
     # must use same attributes as DSRecord
     rrtype = 'DLV'
     rfc = 4431
+
+
+class HINFORecord(UnsupportedDNSRecord):
+    rrtype = 'HINFO'
+    rfc = 1035
 
 
 class HIPRecord(UnsupportedDNSRecord):
@@ -1287,6 +1288,18 @@ class LOCRecord(DNSRecord):
                                              name=target_cli_name)
                     raise errors.ValidationError(name=self.name, error=error)
 
+
+class MDRecord(UnsupportedDNSRecord):
+    # obsoleted, use MX instead
+    rrtype = 'MD'
+    rfc = 1035
+
+
+class MINFORecord(UnsupportedDNSRecord):
+    rrtype = 'MINFO'
+    rfc = 1035
+
+
 class MXRecord(DNSRecord):
     rrtype = 'MX'
     rfc = 1035
@@ -1318,9 +1331,6 @@ class NSECRecord(UnsupportedDNSRecord):
     rrtype = 'NSEC'
     rfc = 4034
 
-class NSEC3Record(UnsupportedDNSRecord):
-    rrtype = 'NSEC3'
-    rfc = 5155
 
 def _validate_naptr_flags(ugettext, flags):
     allowed_flags = u'SAUP'
@@ -1360,6 +1370,12 @@ class NAPTRRecord(DNSRecord):
             label=_('Replacement'),
         ),
     )
+
+
+class NXTRecord(UnsupportedDNSRecord):
+    rrtype = 'NXT'
+    rfc = 2535
+
 
 class PTRRecord(DNSRecord):
     rrtype = 'PTR'
@@ -1450,10 +1466,6 @@ class SSHFPRecord(DNSRecord):
         return tuple(values)
 
 
-class TARecord(UnsupportedDNSRecord):
-    rrtype = 'TA'
-
-
 class TLSARecord(DNSRecord):
     rrtype = 'TLSA'
     rfc = 6698
@@ -1479,12 +1491,6 @@ class TLSARecord(DNSRecord):
     )
 
 
-class TKEYRecord(UnsupportedDNSRecord):
-    rrtype = 'TKEY'
-
-class TSIGRecord(UnsupportedDNSRecord):
-    rrtype = 'TSIG'
-
 class TXTRecord(DNSRecord):
     rrtype = 'TXT'
     rfc = 1035
@@ -1509,7 +1515,6 @@ _dns_records = (
     DHCIDRecord(),
     DLVRecord(),
     DNAMERecord(),
-    DNSKEYRecord(),
     DSRecord(),
     HIPRecord(),
     IPSECKEYRecord(),
@@ -1520,7 +1525,6 @@ _dns_records = (
     NAPTRRecord(),
     NSRecord(),
     NSECRecord(),
-    NSEC3Record(),
     PTRRecord(),
     RRSIGRecord(),
     RPRecord(),
@@ -1528,10 +1532,7 @@ _dns_records = (
     SPFRecord(),
     SRVRecord(),
     SSHFPRecord(),
-    TARecord(),
     TLSARecord(),
-    TKEYRecord(),
-    TSIGRecord(),
     TXTRecord(),
 )
 
@@ -2500,20 +2501,21 @@ class dnszone(DNSZoneBase):
             'ipapermtarget': DN('idnsname=*', 'cn=dns', api.env.basedn),
             'ipapermdefaultattr': {
                 'objectclass',
-                'a6record', 'aaaarecord', 'afsdbrecord', 'arecord',
-                'certrecord', 'cn', 'cnamerecord', 'dlvrecord', 'dnamerecord',
-                'dnsclass', 'dnsttl', 'dsrecord', 'hinforecord',
-                'idnsallowdynupdate', 'idnsallowquery', 'idnsallowsyncptr',
-                'idnsallowtransfer', 'idnsforwarders', 'idnsforwardpolicy',
-                'idnsname', 'idnssecinlinesigning', 'idnssoaexpire',
-                'idnssoaminimum', 'idnssoamname', 'idnssoarefresh',
-                'idnssoaretry', 'idnssoarname', 'idnssoaserial',
-                'idnsupdatepolicy', 'idnszoneactive', 'keyrecord', 'kxrecord',
+                'a6record', 'aaaarecord', 'afsdbrecord', 'aplrecord', 'arecord',
+                'certrecord', 'cn', 'cnamerecord', 'dhcidrecord', 'dlvrecord',
+                'dnamerecord', 'dnsclass', 'dnsttl', 'dsrecord',
+                'hinforecord', 'hiprecord', 'idnsallowdynupdate',
+                'idnsallowquery', 'idnsallowsyncptr', 'idnsallowtransfer',
+                'idnsforwarders', 'idnsforwardpolicy', 'idnsname',
+                'idnssecinlinesigning', 'idnssoaexpire', 'idnssoaminimum',
+                'idnssoamname', 'idnssoarefresh', 'idnssoaretry',
+                'idnssoarname', 'idnssoaserial', 'idnsupdatepolicy',
+                'idnszoneactive', 'ipseckeyrecord','keyrecord', 'kxrecord',
                 'locrecord', 'managedby', 'mdrecord', 'minforecord',
                 'mxrecord', 'naptrrecord', 'nsecrecord', 'nsec3paramrecord',
-                'nsrecord', 'nxtrecord', 'ptrrecord', 'rrsigrecord',
-                'sigrecord', 'srvrecord', 'sshfprecord', 'tlsarecord',
-                'txtrecord', 'unknownrecord',
+                'nsrecord', 'nxtrecord', 'ptrrecord', 'rprecord', 'rrsigrecord',
+                'sigrecord', 'spfrecord', 'srvrecord', 'sshfprecord',
+                'tlsarecord', 'txtrecord', 'unknownrecord',
             },
             'replaces_system': ['Read DNS Entries'],
             'default_privileges': {'DNS Administrators', 'DNS Servers'},
@@ -2534,20 +2536,21 @@ class dnszone(DNSZoneBase):
             'ipapermlocation': api.env.basedn,
             'ipapermtarget': DN('idnsname=*', 'cn=dns', api.env.basedn),
             'ipapermdefaultattr': {
-                'a6record', 'aaaarecord', 'afsdbrecord', 'arecord',
-                'certrecord', 'cn', 'cnamerecord', 'dlvrecord', 'dnamerecord',
-                'dnsclass', 'dnsttl', 'dsrecord', 'hinforecord',
-                'idnsallowdynupdate', 'idnsallowquery', 'idnsallowsyncptr',
-                'idnsallowtransfer', 'idnsforwarders', 'idnsforwardpolicy',
-                'idnsname', 'idnssecinlinesigning', 'idnssoaexpire',
-                'idnssoaminimum', 'idnssoamname', 'idnssoarefresh',
-                'idnssoaretry', 'idnssoarname', 'idnssoaserial',
-                'idnsupdatepolicy', 'idnszoneactive', 'keyrecord', 'kxrecord',
+                'a6record', 'aaaarecord', 'afsdbrecord', 'aplrecord', 'arecord',
+                'certrecord', 'cn', 'cnamerecord', 'dhcidrecord', 'dlvrecord',
+                'dnamerecord', 'dnsclass', 'dnsttl', 'dsrecord',
+                'hinforecord', 'hiprecord', 'idnsallowdynupdate',
+                'idnsallowquery', 'idnsallowsyncptr', 'idnsallowtransfer',
+                'idnsforwarders', 'idnsforwardpolicy', 'idnsname',
+                'idnssecinlinesigning', 'idnssoaexpire', 'idnssoaminimum',
+                'idnssoamname', 'idnssoarefresh', 'idnssoaretry',
+                'idnssoarname', 'idnssoaserial', 'idnsupdatepolicy',
+                'idnszoneactive', 'ipseckeyrecord','keyrecord', 'kxrecord',
                 'locrecord', 'managedby', 'mdrecord', 'minforecord',
                 'mxrecord', 'naptrrecord', 'nsecrecord', 'nsec3paramrecord',
-                'nsrecord', 'nxtrecord', 'ptrrecord', 'rrsigrecord',
-                'sigrecord', 'srvrecord', 'sshfprecord', 'tlsarecord',
-                'txtrecord', 'unknownrecord',
+                'nsrecord', 'nxtrecord', 'ptrrecord', 'rprecord', 'rrsigrecord',
+                'sigrecord', 'spfrecord', 'srvrecord', 'sshfprecord',
+                'tlsarecord', 'txtrecord', 'unknownrecord',
             },
             'replaces': [
                 '(targetattr = "idnsname || cn || idnsallowdynupdate || dnsttl || dnsclass || arecord || aaaarecord || a6record || nsrecord || cnamerecord || ptrrecord || srvrecord || txtrecord || mxrecord || mdrecord || hinforecord || minforecord || afsdbrecord || sigrecord || keyrecord || locrecord || nxtrecord || naptrrecord || kxrecord || certrecord || dnamerecord || dsrecord || sshfprecord || rrsigrecord || nsecrecord || idnsname || idnszoneactive || idnssoamname || idnssoarname || idnssoaserial || idnssoarefresh || idnssoaretry || idnssoaexpire || idnssoaminimum || idnsupdatepolicy")(target = "ldap:///idnsname=*,cn=dns,$SUFFIX")(version 3.0;acl "permission:update dns entries";allow (write) groupdn = "ldap:///cn=update dns entries,cn=permissions,cn=pbac,$SUFFIX";)',
