@@ -187,7 +187,9 @@ class FileStore:
         if new_path is not None:
             path = new_path
 
-        shutil.move(backup_path, path)
+        shutil.copy(backup_path, path)  # SELinux needs copy
+        os.remove(backup_path)
+
         os.chown(path, int(uid), int(gid))
         os.chmod(path, int(mode))
 
@@ -218,7 +220,9 @@ class FileStore:
                 root_logger.debug("  -> Not restoring - '%s' doesn't exist", backup_path)
                 continue
 
-            shutil.move(backup_path, path)
+            shutil.copy(backup_path, path)  # SELinux needs copy
+            os.remove(backup_path)
+
             os.chown(path, int(uid), int(gid))
             os.chmod(path, int(mode))
 
