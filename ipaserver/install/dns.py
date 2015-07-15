@@ -262,7 +262,7 @@ def install_check(standalone, replica, options, hostname):
         print("Using reverse zone(s) %s" % ', '.join(reverse_zones))
 
 
-def install(standalone, replica, options):
+def install(standalone, replica, options, api=api):
     global ip_addresses
     global dns_forwarders
     global reverse_zones
@@ -280,7 +280,7 @@ def install(standalone, replica, options):
         # otherwise this is done by server/replica installer
         update_hosts_file(ip_addresses, api.env.host, fstore)
 
-    bind = bindinstance.BindInstance(fstore, ldapi=True,
+    bind = bindinstance.BindInstance(fstore, ldapi=True, api=api,
                                      autobind=AUTOBIND_ENABLED)
     bind.setup(api.env.host, ip_addresses, api.env.realm, api.env.domain,
                dns_forwarders, conf_ntp, reverse_zones, zonemgr=options.zonemgr,

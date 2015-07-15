@@ -776,8 +776,6 @@ def promote_check(installer):
         raise NotImplementedError
     if options.setup_kra:
         raise NotImplementedError
-    if options.setup_dns:
-        raise NotImplementedError
 
     tasks.check_selinux_status()
 
@@ -1040,7 +1038,6 @@ def promote_check(installer):
         raise RuntimeError("CA cert file is not available.")
 
     installer._ca_enabled = ca_enabled
-    installer._remote_api = remote_api
     installer._fstore = fstore
     installer._sstore = sstore
     installer._config = config
@@ -1088,6 +1085,8 @@ def promote(installer):
     # or certmonger will fail to contact the peer master
     install_http_certs(config, fstore)
 
+    ldapi_uri = installutils.realm_to_ldapi_uri(config.realm_name)
+
     # Create the management framework config file
     gopts = [
         ipaconf.setOption('host', config.host_name),
@@ -1095,8 +1094,7 @@ def promote(installer):
         ipaconf.setOption('xmlrpc_uri',
                           'https://%s/ipa/xml' %
                           ipautil.format_netloc(config.host_name)),
-        ipaconf.setOption('ldap_uri',
-                          installutils.realm_to_ldapi_uri(config.realm_name)),
+        ipaconf.setOption('ldap_uri', ldapi_uri),
         ipaconf.setOption('mode', 'production'),
         ipaconf.setOption('enable_ra', 'True'),
         ipaconf.setOption('ra_plugin', 'dogtag'),
@@ -1155,10 +1153,6 @@ def promote(installer):
         dogtag_service = services.knownservices[dogtag_constants.SERVICE_NAME]
         dogtag_service.restart(dogtag_constants.PKI_INSTANCE_NAME)
 
-    if options.setup_dns:
-        api.Backend.ldap2.connect(autobind=True)
-        dns.install(False, True, options)
-
     # Restart httpd to pick up the new IPA configuration
     service.print_msg("Restarting the web server")
     http.restart()
@@ -1168,6 +1162,16 @@ def promote(installer):
     custodia.import_dm_password(config.master_host_name)
 
     promote_sssd(config.host_name)
+
+    # Switch API so that it uses the new servr configuration
+    server_api = create_api(mode=None)
+    server_api.bootstrap(in_server=True, context='installer')
+    server_api.finalize()
+
+    if options.setup_dns:
+        server_api.Backend.rpcclient.connect()
+        server_api.Backend.ldap2.connect(autobind=True)
+        dns.install(False, True, options, server_api)
 
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()

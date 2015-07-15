@@ -343,27 +343,31 @@ def add_ptr_rr(zone, ip_address, fqdn, dns_backup=None, api=api):
     name = get_reverse_record_name(zone, ip_address)
     add_rr(zone, name, "PTR", normalize_zone(fqdn), dns_backup, api)
 
-def add_ns_rr(zone, hostname, dns_backup=None, force=True):
+
+def add_ns_rr(zone, hostname, dns_backup=None, force=True, api=api):
     hostname = normalize_zone(hostname)
     add_rr(zone, "@", "NS", hostname, dns_backup=dns_backup,
-            force=force)
+           force=force, api=api)
 
-def del_rr(zone, name, type, rdata):
+
+def del_rr(zone, name, type, rdata, api=api):
     delkw = { '%srecord' % str(type.lower()) : unicode(rdata) }
     try:
         api.Command.dnsrecord_del(unicode(zone), unicode(name), **delkw)
     except (errors.NotFound, errors.AttrValueNotFound, errors.EmptyModlist):
         pass
 
-def del_fwd_rr(zone, host, ip_address):
+
+def del_fwd_rr(zone, host, ip_address, api=api):
     addr = netaddr.IPAddress(ip_address)
     if addr.version == 4:
-        del_rr(zone, host, "A", ip_address)
+        del_rr(zone, host, "A", ip_address, api=api)
     elif addr.version == 6:
-        del_rr(zone, host, "AAAA", ip_address)
+        del_rr(zone, host, "AAAA", ip_address, api=api)
 
-def del_ns_rr(zone, name, rdata):
-    del_rr(zone, name, 'NS', rdata)
+
+def del_ns_rr(zone, name, rdata, api=api):
+    del_rr(zone, name, 'NS', rdata, api=api)
 
 def get_rr(zone, name, type, api=api):
     rectype = '%srecord' % unicode(type.lower())
@@ -622,7 +626,7 @@ class BindInstance(service.Service):
         if self.first_instance:
             self.step("adding DNS container", self.__setup_dns_container)
 
-        if not dns_zone_exists(self.domain):
+        if not dns_zone_exists(self.domain, self.api):
             self.step("setting up our zone", self.__setup_zone)
         if self.reverse_zones:
             self.step("setting up reverse zone", self.__setup_reverse_zone)
@@ -737,12 +741,12 @@ class BindInstance(service.Service):
         self.__fix_dns_privilege_members()
 
     def __fix_dns_privilege_members(self):
-        ldap = api.Backend.ldap2
+        ldap = self.api.Backend.ldap2
 
         cn = 'Update PBAC memberOf %s' % time.time()
         task_dn = DN(('cn', cn), ('cn', 'memberof task'), ('cn', 'tasks'),
                      ('cn', 'config'))
-        basedn = DN(api.env.container_privilege, api.env.basedn)
+        basedn = DN(self.api.env.container_privilege, self.api.env.basedn)
         entry = ldap.make_entry(
             task_dn,
             objectclass=['top', 'extensibleObject'],
@@ -767,24 +771,25 @@ class BindInstance(service.Service):
     def __setup_zone(self):
         # Always use force=True as named is not set up yet
         add_zone(self.domain, self.zonemgr, dns_backup=self.dns_backup,
-                ns_hostname=api.env.host, force=True)
+                 ns_hostname=self.api.env.host, force=True, api=self.api)
 
-        add_rr(self.domain, "_kerberos", "TXT", self.realm)
+        add_rr(self.domain, "_kerberos", "TXT", self.realm, api=self.api)
 
     def __add_self_ns(self):
         # add NS record to all zones
-        ns_hostname = normalize_zone(api.env.host)
-        result = api.Command.dnszone_find()
+        ns_hostname = normalize_zone(self.api.env.host)
+        result = self.api.Command.dnszone_find()
         for zone in result['result']:
             zone = unicode(zone['idnsname'][0])  # we need unicode due to backup
             root_logger.debug("adding self NS to zone %s apex", zone)
-            add_ns_rr(zone, ns_hostname, self.dns_backup, force=True)
+            add_ns_rr(zone, ns_hostname, self.dns_backup, force=True,
+                      api=self.api)
 
     def __setup_reverse_zone(self):
         # Always use force=True as named is not set up yet
         for reverse_zone in self.reverse_zones:
-            add_zone(reverse_zone, self.zonemgr, ns_hostname=api.env.host,
-                dns_backup=self.dns_backup, force=True)
+            add_zone(reverse_zone, self.zonemgr, ns_hostname=self.api.env.host,
+                     dns_backup=self.dns_backup, force=True, api=self.api)
 
     def __add_master_records(self, fqdn, addrs):
         host, zone = fqdn.split(".", 1)
@@ -809,7 +814,8 @@ class BindInstance(service.Service):
             )
 
         for (rname, rdata) in srv_records:
-            add_rr(self.domain, rname, "SRV", rdata, self.dns_backup, self.api)
+            add_rr(self.domain, rname, "SRV", rdata, self.dns_backup,
+                   api=self.api)
 
         if not dns_zone_exists(zone, self.api):
             # add DNS domain for host first
@@ -823,11 +829,11 @@ class BindInstance(service.Service):
 
         # Add forward and reverse records to self
         for addr in addrs:
-            add_fwd_rr(zone, host, addr, self.api)
+            add_fwd_rr(zone, host, addr, api=self.api)
 
             reverse_zone = find_reverse_zone(addr, self.api)
             if reverse_zone:
-                add_ptr_rr(reverse_zone, addr, fqdn, None, self.api)
+                add_ptr_rr(reverse_zone, addr, fqdn, None, api=self.api)
 
     def __add_self(self):
         self.__add_master_records(self.fqdn, self.ip_addresses)
@@ -869,7 +875,7 @@ class BindInstance(service.Service):
 
         try:
             for addr in addrs:
-                add_fwd_rr(self.domain, IPA_CA_RECORD, addr, self.api)
+                add_fwd_rr(self.domain, IPA_CA_RECORD, addr, api=self.api)
         except errors.ValidationError:
             # there is a CNAME record in ipa-ca, we can't add A/AAAA records
             pass
@@ -883,7 +889,7 @@ class BindInstance(service.Service):
             try:
                 entries = ldap.get_entries(
                     DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
-                       api.env.basedn),
+                       self.api.env.basedn),
                     ldap.SCOPE_SUBTREE, '(&(objectClass=ipaConfigObject)(cn=CA))',
                     ['dn'])
             except errors.NotFound:
@@ -897,7 +903,7 @@ class BindInstance(service.Service):
 
                 host, zone = fqdn.split('.', 1)
                 if dns_zone_exists(zone, self.api):
-                    addrs = get_fwd_rr(zone, host, self.api)
+                    addrs = get_fwd_rr(zone, host, api=self.api)
                 else:
                     addrs = installutils.resolve_host(fqdn)
 
@@ -1016,8 +1022,8 @@ class BindInstance(service.Service):
 
     def add_ipa_ca_dns_records(self, fqdn, domain_name, ca_configured=True):
         host, zone = fqdn.split(".", 1)
-        if dns_zone_exists(zone):
-            addrs = get_fwd_rr(zone, host)
+        if dns_zone_exists(zone, self.api):
+            addrs = get_fwd_rr(zone, host, api=self.api)
         else:
             addrs = installutils.resolve_host(fqdn)
 
@@ -1027,7 +1033,7 @@ class BindInstance(service.Service):
 
     def convert_ipa_ca_cnames(self, domain_name):
         # get ipa-ca CNAMEs
-        cnames = get_rr(domain_name, IPA_CA_RECORD, "CNAME")
+        cnames = get_rr(domain_name, IPA_CA_RECORD, "CNAME", api=self.api)
         if not cnames:
             return
 
@@ -1043,11 +1049,11 @@ class BindInstance(service.Service):
             cname_fqdn[cname] = fqdn
 
         # get FQDNs of all IPA masters
-        ldap = api.Backend.ldap2
+        ldap = self.api.Backend.ldap2
         try:
             entries = ldap.get_entries(
                 DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'),
-                   api.env.basedn),
+                   self.api.env.basedn),
                 ldap.SCOPE_ONELEVEL, None, ['cn'])
             masters = set(e['cn'][0] for e in entries)
         except errors.NotFound:
@@ -1064,7 +1070,7 @@ class BindInstance(service.Service):
 
         # delete all CNAMEs
         for cname in cnames:
-            del_rr(domain_name, IPA_CA_RECORD, "CNAME", cname)
+            del_rr(domain_name, IPA_CA_RECORD, "CNAME", cname, api=self.api)
 
         # add A/AAAA records
         for cname in cnames:
@@ -1090,32 +1096,33 @@ class BindInstance(service.Service):
         )
 
         for (record, type, rdata) in resource_records:
-            del_rr(self.domain, record, type, rdata)
+            del_rr(self.domain, record, type, rdata, api=self.api)
 
-        areclist = get_fwd_rr(zone, host)
+        areclist = get_fwd_rr(zone, host, api=self.api)
         for rdata in areclist:
-            del_fwd_rr(zone, host, rdata)
+            del_fwd_rr(zone, host, rdata, api=self.api)
 
             rzone = find_reverse_zone(rdata)
             if rzone is not None:
                 record = get_reverse_record_name(rzone, rdata)
-                del_rr(rzone, record, "PTR", normalize_zone(fqdn))
+                del_rr(rzone, record, "PTR", normalize_zone(fqdn),
+                       api=self.api)
 
     def remove_ipa_ca_dns_records(self, fqdn, domain_name):
         host, zone = fqdn.split(".", 1)
-        if dns_zone_exists(zone):
-            addrs = get_fwd_rr(zone, host)
+        if dns_zone_exists(zone, self.api):
+            addrs = get_fwd_rr(zone, host, api=self.api)
         else:
             addrs = installutils.resolve_host(fqdn)
 
         for addr in addrs:
-            del_fwd_rr(domain_name, IPA_CA_RECORD, addr)
+            del_fwd_rr(domain_name, IPA_CA_RECORD, addr, api=self.api)
 
     def remove_server_ns_records(self, fqdn):
         """
         Remove all NS records pointing to this server
         """
-        ldap = api.Backend.ldap2
+        ldap = self.api.Backend.ldap2
         ns_rdata = normalize_zone(fqdn)
 
         # find all NS records pointing to this server
@@ -1123,7 +1130,7 @@ class BindInstance(service.Service):
         search_kw['nsrecord'] = ns_rdata
         attr_filter = ldap.make_filter(search_kw, rules=ldap.MATCH_ALL)
         attributes = ['idnsname', 'objectclass']
-        dn = DN(api.env.container_dns, api.env.basedn)
+        dn = DN(self.api.env.container_dns, self.api.env.basedn)
 
         entries, truncated = ldap.find_entries(attr_filter, attributes, base_dn=dn)
 
@@ -1136,21 +1143,21 @@ class BindInstance(service.Service):
                 # zone record
                 zone = entry.single_value['idnsname']
                 root_logger.debug("zone record %s", zone)
-                del_ns_rr(zone, u'@', ns_rdata)
+                del_ns_rr(zone, u'@', ns_rdata, api=self.api)
             else:
                 zone = entry.dn[1].value  # get zone from DN
                 record = entry.single_value['idnsname']
                 root_logger.debug("record %s in zone %s", record, zone)
-                del_ns_rr(zone, record, ns_rdata)
+                del_ns_rr(zone, record, ns_rdata, api=self.api)
 
     def check_global_configuration(self):
         """
         Check global DNS configuration in LDAP server and inform user when it
         set and thus overrides his configured options in named.conf.
         """
-        result = api.Command.dnsconfig_show()
+        result = self.api.Command.dnsconfig_show()
         global_conf_set = any(param in result['result'] for \
-                              param in api.Object['dnsconfig'].params)
+                              param in self.api.Object['dnsconfig'].params)
 
         if not global_conf_set:
             print("Global DNS configuration in LDAP server is empty")
@@ -1161,8 +1168,9 @@ class BindInstance(service.Service):
         print("Global DNS configuration in LDAP server is not empty")
         print("The following configuration options override local settings in named.conf:")
         print("")
-        textui = ipalib.cli.textui(api)
-        api.Command.dnsconfig_show.output_for_cli(textui, result, None, reverse=False)
+        textui = ipalib.cli.textui(self.api)
+        self.api.Command.dnsconfig_show.output_for_cli(textui, result, None,
+                                                       reverse=False)
 
     def uninstall(self):
         if self.is_configured():
@@ -1173,7 +1181,7 @@ class BindInstance(service.Service):
         named_regular_running = self.restore_state("named-regular-running")
         named_regular_enabled = self.restore_state("named-regular-enabled")
 
-        self.dns_backup.clear_records(api.Backend.ldap2.isconnected())
+        self.dns_backup.clear_records(self.api.Backend.ldap2.isconnected())
 
 
         for f in [NAMED_CONF, RESOLV_CONF]:
