@@ -27,6 +27,7 @@ app_DATA =				\
 	72domainlevels.ldif			\
 	anonymous-vlv.ldif		\
 	bootstrap-template.ldif		\
+	ca-topology.uldif		\
 	caJarSigningCert.cfg.template	\
 	custodia.conf.template		\
 	default-aci.ldif		\

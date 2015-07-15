@@ -2,6 +2,7 @@
 
 
 # middle
+plugin: update_ca_topology
 plugin: update_dnszones
 plugin: update_dns_limits
 plugin: update_default_range

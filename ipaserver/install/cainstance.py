@@ -63,6 +63,7 @@ from ipapython.ipa_log_manager import log_mgr,\
 from ipaserver.install import certs
 from ipaserver.install import dsinstance
 from ipaserver.install import installutils
+from ipaserver.install import ldapupdate
 from ipaserver.install import service
 from ipaserver.install.dogtaginstance import (
     DEFAULT_DSPORT, PKI_USER, export_kra_agent_pem, DogtagInstance)
@@ -805,6 +806,15 @@ class CAInstance(DogtagInstance):
             backup_config(self.dogtag_constants)
         except Exception as e:
             root_logger.warning("Failed to backup CS.cfg: %s", e)
+
+    def __update_topology(self):
+        ld = ldapupdate.LDAPUpdate(ldapi=True, sub_dict={
+            'SUFFIX': api.env.basedn,
+            'FQDN': self.fqdn,
+        })
+        rv = ld.update([paths.CA_TOPOLOGY_ULDIF])
+        if not rv:
+            raise RuntimeError("Failed to update CA topology configuration")
 
     def __disable_nonce(self):
         # Turn off Nonces

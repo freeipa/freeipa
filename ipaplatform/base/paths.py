@@ -237,6 +237,7 @@ class BasePathNamespace(object):
     SMBD = "/usr/sbin/smbd"
     USERADD = "/usr/sbin/useradd"
     USR_SHARE_IPA_DIR = "/usr/share/ipa/"
+    CA_TOPOLOGY_ULDIF = "/usr/share/ipa/ca-topology.uldif"
     FFEXTENSION = "/usr/share/ipa/ffextension"
     IPA_HTML_DIR = "/usr/share/ipa/html"
     CA_CRT = "/usr/share/ipa/html/ca.crt"

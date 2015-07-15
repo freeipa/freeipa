@@ -1,0 +1,15 @@
+# add IPA CA managed suffix to master entry
+dn: cn=$FQDN,cn=masters,cn=ipa,cn=etc,$SUFFIX
+add: objectclass: ipaReplTopoManagedServer
+add: ipaReplTopoManagedSuffix: o=ipaca
+
+# add IPA CA topology configuration area
+dn: cn=ipaca,cn=topology,cn=ipa,cn=etc,$SUFFIX
+default: objectclass: top
+default: objectclass: iparepltopoconf
+default: ipaReplTopoConfRoot: o=ipaca
+default: cn: ipaca
+
+# Update CA replication settings
+dn: cn=replica,cn=o\3Dipaca,cn=mapping tree,cn=config
+onlyifexist: nsds5replicabinddngroup: cn=replication managers,cn=sysaccounts,cn=etc,$SUFFIX
