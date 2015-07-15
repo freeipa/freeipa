@@ -640,6 +640,8 @@ sides.
                            self.params['realm_passwd'].label, confirm=False)
 
     def validate_options(self, *keys, **options):
+        trusted_realm_domain = keys[-1]
+
         if not _bindings_installed:
             raise errors.NotFound(
                 name=_('AD Trust setup'),
@@ -692,6 +694,23 @@ sides.
                 )
             )
 
+        # Obtain a list of IPA realm domains
+        result = self.api.Command.realmdomains_show()['result']
+        realm_domains = result['associateddomain']
+
+        # Do not allow the AD's trusted realm domain in the list
+        # of our realm domains
+        if trusted_realm_domain.lower() in realm_domains:
+            raise errors.ValidationError(
+                name=_('AD Trust setup'),
+                error=_(
+                    'Trusted domain %(domain)s is included among '
+                    'IPA realm domains. It needs to be removed '
+                    'prior to establishing the trust. See the '
+                    '"ipa realmdomains-mod --del-domain" command.'
+                ) % dict(domain=trusted_realm_domain)
+            )
+
         self.realm_server = options.get('realm_server')
         self.realm_admin = options.get('realm_admin')
         self.realm_passwd = options.get('realm_passwd')
@@ -702,7 +721,7 @@ sides.
             if len(names) > 1:
                 # realm admin name is in UPN format, user@realm, check that
                 # realm is the same as the one that we are attempting to trust
-                if keys[-1].lower() != names[-1].lower():
+                if trusted_realm_domain.lower() != names[-1].lower():
                     raise errors.ValidationError(
                         name=_('AD Trust setup'),
                         error=_(
