@@ -11,6 +11,8 @@
 %global selinux_policy_version 3.12.1-179
 %endif
 
+%define krb5_base_version %(LC_ALL=C rpm -q --qf '%%{VERSION}' krb5-devel | grep -Eo '^[^.]+\.[^.]+')
+
 %global plugin_dir %{_libdir}/dirsrv/plugins
 %global etc_systemd_dir %{_sysconfdir}/systemd/system
 %global gettext_domain ipa
@@ -52,7 +54,7 @@ BuildRequires:  nspr-devel
 BuildRequires:  nss-devel
 BuildRequires:  openssl-devel
 BuildRequires:  openldap-devel
-BuildRequires:  krb5-devel >= 1.11
+BuildRequires:  krb5-devel >= 1.13
 BuildRequires:  krb5-workstation
 BuildRequires:  libuuid-devel
 BuildRequires:  libcurl-devel >= 7.21.7-2
@@ -119,7 +121,7 @@ Requires: 389-ds-base >= 1.3.4.0
 Requires: openldap-clients > 2.4.35-4
 Requires: nss >= 3.14.3-12.0
 Requires: nss-tools >= 3.14.3-12.0
-Requires: krb5-server >= 1.11.5-5
+Requires(post): krb5-server >= %{krb5_base_version}, krb5-server < %{krb5_base_version}.100
 Requires: krb5-pkinit-openssl
 Requires: cyrus-sasl-gssapi%{?_isa}
 Requires: ntp
