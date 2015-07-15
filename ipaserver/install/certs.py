@@ -293,7 +293,7 @@ class CertDB(object):
         /usr/lib[64]/ipa/certmonger.
         """
         if command is not None and not os.path.isabs(command):
-            if sys.maxsize > 2**32L:
+            if sys.maxsize > 2**32:
                 libpath = 'lib64'
             else:
                 libpath = 'lib'
@@ -647,7 +647,7 @@ class CertDB(object):
 
     def publish_ca_cert(self, location):
         shutil.copy(self.cacert_fname, location)
-        os.chmod(location, 0444)
+        os.chmod(location, 0o444)
 
     def export_pem_cert(self, nickname, location):
         return self.nssdb.export_pem_cert(nickname, location)

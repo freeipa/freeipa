@@ -1832,7 +1832,7 @@ class test_dns(Declarative):
 
         dict(
             desc='Set SOA serial of zone %r to high number' % zone1,
-            command=('dnszone_mod', [zone1], {'idnssoaserial': 4294967295L}),
+            command=('dnszone_mod', [zone1], {'idnssoaserial': 4294967295}),
             expected={
                 'value': zone1_absolute_dnsname,
                 'summary': None,

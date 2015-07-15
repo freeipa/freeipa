@@ -105,7 +105,7 @@ def install_ca_cert(ldap, base_dn, realm, cafile):
             certs = [c[0] for c in certs if c[2] is not False]
             x509.write_certificate_list(certs, constants.CACERT)
 
-        os.chmod(constants.CACERT, 0444)
+        os.chmod(constants.CACERT, 0o444)
     except Exception, e:
         print "error copying files: " + str(e)
         sys.exit(1)
@@ -358,7 +358,7 @@ def install_check(installer):
 
     # Create the management framework config file
     # Note: We must do this before bootstraping and finalizing ipalib.api
-    old_umask = os.umask(022)   # must be readable for httpd
+    old_umask = os.umask(0o22)   # must be readable for httpd
     try:
         fd = open(paths.IPA_DEFAULT_CONF, "w")
         fd.write("[global]\n")

@@ -334,7 +334,7 @@ def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
         base_id = DEFAULT_RANGE_SIZE + (
             pysss_murmur.murmurhash3(
                 dom_sid,
-                len(dom_sid), 0xdeadbeefL
+                len(dom_sid), 0xdeadbeef
             ) % 10000
         ) * DEFAULT_RANGE_SIZE
 

@@ -1090,9 +1090,9 @@ class CAInstance(DogtagInstance):
             raise RuntimeError("Unable to submit RA cert request")
 
     def fix_ra_perms(self):
-        os.chmod(self.ra_agent_db + "/cert8.db", 0640)
-        os.chmod(self.ra_agent_db + "/key3.db", 0640)
-        os.chmod(self.ra_agent_db + "/secmod.db", 0640)
+        os.chmod(self.ra_agent_db + "/cert8.db", 0o640)
+        os.chmod(self.ra_agent_db + "/key3.db", 0o640)
+        os.chmod(self.ra_agent_db + "/secmod.db", 0o640)
 
         pent = pwd.getpwnam("apache")
         os.chown(self.ra_agent_db + "/cert8.db", 0, pent.pw_gid )
@@ -1116,7 +1116,7 @@ class CAInstance(DogtagInstance):
         if not os.path.exists(publishdir):
             os.mkdir(publishdir)
 
-        os.chmod(publishdir, 0775)
+        os.chmod(publishdir, 0o775)
         pent = pwd.getpwnam(PKI_USER)
         os.chown(publishdir, 0, pent.pw_gid)
 
@@ -1252,7 +1252,7 @@ class CAInstance(DogtagInstance):
         fd = open(location, "w+")
         fd.write(cert)
         fd.close()
-        os.chmod(location, 0444)
+        os.chmod(location, 0o444)
 
 
     def configure_certmonger_renewal(self):

@@ -580,7 +580,7 @@ def install_check(installer):
     fd.close()
 
     # Must be readable for everyone
-    os.chmod(target_fname, 0644)
+    os.chmod(target_fname, 0o644)
 
     system_hostname = get_fqdn()
     if host_name != system_hostname:
@@ -770,7 +770,7 @@ def install(installer):
     else:
         # Put the CA cert where other instances expect it
         x509.write_certificate(http_ca_cert, CACERT)
-        os.chmod(CACERT, 0444)
+        os.chmod(CACERT, 0o444)
 
     # we now need to enable ssl on the ds
     ds.enable_ssl()
@@ -821,7 +821,7 @@ def install(installer):
 
     # Export full CA chain
     ca_db = certs.CertDB(realm_name)
-    os.chmod(CACERT, 0644)
+    os.chmod(CACERT, 0o644)
     ca_db.publish_ca_cert(CACERT)
 
     set_subject_in_config(realm_name, dm_password,

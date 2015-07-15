@@ -2374,7 +2374,7 @@ class dnszone(DNSZoneBase):
             label=_('SOA serial'),
             doc=_('SOA record serial number'),
             minvalue=1,
-            maxvalue=4294967295L,
+            maxvalue=4294967295,
             default_from=_create_zone_serial,
             autofill=True,
         ),

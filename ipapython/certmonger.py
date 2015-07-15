@@ -493,7 +493,7 @@ def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, pre_command,
         params['KEY_PIN_FILE'] = os.path.abspath(pinfile)
     if pre_command:
         if not os.path.isabs(pre_command):
-            if sys.maxsize > 2**32L:
+            if sys.maxsize > 2**32:
                 libpath = 'lib64'
             else:
                 libpath = 'lib'
@@ -501,7 +501,7 @@ def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, pre_command,
         params['cert-presave-command'] = pre_command
     if post_command:
         if not os.path.isabs(post_command):
-            if sys.maxsize > 2**32L:
+            if sys.maxsize > 2**32:
                 libpath = 'lib64'
             else:
                 libpath = 'lib'

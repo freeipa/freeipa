@@ -108,7 +108,7 @@ class ODSExporterInstance(service.Service):
             dns_exporter_principal_dn = p
 
         # Make sure access is strictly reserved to the ods user
-        os.chmod(paths.IPA_ODS_EXPORTER_KEYTAB, 0440)
+        os.chmod(paths.IPA_ODS_EXPORTER_KEYTAB, 0o440)
         os.chown(paths.IPA_ODS_EXPORTER_KEYTAB, 0, self.ods_gid)
 
         dns_group = DN(('cn', 'DNS Servers'), ('cn', 'privileges'),

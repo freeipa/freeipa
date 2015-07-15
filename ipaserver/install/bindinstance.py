@@ -922,7 +922,7 @@ class BindInstance(service.Service):
         # Make sure access is strictly reserved to the named user
         pent = pwd.getpwnam(self.named_user)
         os.chown(paths.NAMED_KEYTAB, pent.pw_uid, pent.pw_gid)
-        os.chmod(paths.NAMED_KEYTAB, 0400)
+        os.chmod(paths.NAMED_KEYTAB, 0o400)
 
         # modify the principal so that it is marked as an ipa service so that
         # it can host the memberof attribute, then also add it to the

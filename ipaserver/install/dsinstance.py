@@ -425,7 +425,7 @@ class DsInstance(service.Service):
         base_fd.close()
 
         # Must be readable for dirsrv
-        os.chmod(target_fname, 0440)
+        os.chmod(target_fname, 0o440)
         os.chown(target_fname, pent.pw_uid, pent.pw_gid)
 
         inf_txt = ipautil.template_str(INF_TEMPLATE, self.sub_dict)
@@ -463,7 +463,7 @@ class DsInstance(service.Service):
         for schema_fname in IPA_SCHEMA_FILES:
             target_fname = schema_dirname(self.serverid) + schema_fname
             shutil.copyfile(ipautil.SHARE_DIR + schema_fname, target_fname)
-            os.chmod(target_fname, 0440)    # read access for dirsrv user/group
+            os.chmod(target_fname, 0o440)    # read access for dirsrv user/group
             os.chown(target_fname, pent.pw_uid, pent.pw_gid)
 
         try:
@@ -472,7 +472,7 @@ class DsInstance(service.Service):
 
             target_fname = schema_dirname(self.serverid) + "05rfc2247.ldif"
             shutil.copyfile(ipautil.SHARE_DIR + "05rfc2247.ldif", target_fname)
-            os.chmod(target_fname, 0440)
+            os.chmod(target_fname, 0o440)
             os.chown(target_fname, pent.pw_uid, pent.pw_gid)
         except IOError:
             # Does not apply with newer DS releases

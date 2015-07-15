@@ -401,7 +401,7 @@ class IPAChangeConf:
             #Do not catch an unexisting file error, we want to fail in that case
             shutil.copy2(file, file+".ipabkp")
 
-            f = openLocked(file, 0644)
+            f = openLocked(file, 0o644)
 
             oldopts = self.parse(f)
 
@@ -440,7 +440,7 @@ class IPAChangeConf:
                     # The orign file did not exist
                     pass
 
-            f = openLocked(file, 0644)
+            f = openLocked(file, 0o644)
 
             # Trunkate
             f.seek(0)

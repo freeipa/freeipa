@@ -847,7 +847,7 @@ def configure_ipa_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, ho
     target_fname = paths.IPA_DEFAULT_CONF
     fstore.backup_file(target_fname)
     ipaconf.newConf(target_fname, opts)
-    os.chmod(target_fname, 0644)
+    os.chmod(target_fname, 0o644)
 
     return 0
 
@@ -1016,7 +1016,7 @@ def configure_openldap_conf(fstore, cli_basedn, cli_server):
         root_logger.debug(error_msg.format(path=target_fname, err=str(e)))
         return False
 
-    os.chmod(target_fname, 0644)
+    os.chmod(target_fname, 0o644)
     return True
 
 def hardcode_ldap_server(cli_server):
@@ -1110,7 +1110,7 @@ def configure_krb5_conf(cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
     root_logger.debug("%s", krbconf.dump(opts))
 
     krbconf.newConf(filename, opts)
-    os.chmod(filename, 0644)
+    os.chmod(filename, 0o644)
 
     return 0
 
@@ -1981,7 +1981,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
 
     # Make sure the file permissions are correct
     try:
-        os.chmod(CACERT, 0644)
+        os.chmod(CACERT, 0o644)
     except Exception, e:
         raise errors.FileError(reason=u"Unable set permissions on ca "
                                u"cert '%s': %s" % (CACERT, e))

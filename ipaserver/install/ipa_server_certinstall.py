@@ -147,9 +147,9 @@ class ServerCertInstall(admintool.AdminTool):
                                    'NSSNickname', server_cert)
 
         # Fix the database permissions
-        os.chmod(os.path.join(dirname, 'cert8.db'), 0640)
-        os.chmod(os.path.join(dirname, 'key3.db'), 0640)
-        os.chmod(os.path.join(dirname, 'secmod.db'), 0640)
+        os.chmod(os.path.join(dirname, 'cert8.db'), 0o640)
+        os.chmod(os.path.join(dirname, 'key3.db'), 0o640)
+        os.chmod(os.path.join(dirname, 'secmod.db'), 0o640)
 
         pent = pwd.getpwnam("apache")
         os.chown(os.path.join(dirname, 'cert8.db'), 0, pent.pw_gid)

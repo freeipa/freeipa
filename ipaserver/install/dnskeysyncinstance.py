@@ -89,9 +89,9 @@ class DNSKeySyncInstance(service.Service):
             self.named_gid = self.__get_named_gid()
 
         if not os.path.exists(paths.BIND_LDAP_DNS_IPA_WORKDIR):
-            os.mkdir(paths.BIND_LDAP_DNS_IPA_WORKDIR, 0770)
+            os.mkdir(paths.BIND_LDAP_DNS_IPA_WORKDIR, 0o770)
         # dnssec daemons require to have access into the directory
-        os.chmod(paths.BIND_LDAP_DNS_IPA_WORKDIR, 0770)
+        os.chmod(paths.BIND_LDAP_DNS_IPA_WORKDIR, 0o770)
         os.chown(paths.BIND_LDAP_DNS_IPA_WORKDIR, self.named_uid,
                  self.named_gid)
 
@@ -200,7 +200,7 @@ class DNSKeySyncInstance(service.Service):
         # create dnssec directory
         if not os.path.exists(paths.IPA_DNSSEC_DIR):
             self.logger.debug("Creating %s directory", paths.IPA_DNSSEC_DIR)
-            os.mkdir(paths.IPA_DNSSEC_DIR, 0770)
+            os.mkdir(paths.IPA_DNSSEC_DIR, 0o770)
             # chown ods:named
             os.chown(paths.IPA_DNSSEC_DIR, self.ods_uid, self.named_gid)
 
@@ -245,7 +245,7 @@ class DNSKeySyncInstance(service.Service):
                           paths.DNSSEC_TOKENS_DIR)
         # sticky bit is required by daemon
         os.mkdir(paths.DNSSEC_TOKENS_DIR)
-        os.chmod(paths.DNSSEC_TOKENS_DIR, 0770 | stat.S_ISGID)
+        os.chmod(paths.DNSSEC_TOKENS_DIR, 0o770 | stat.S_ISGID)
         # chown to ods:named
         os.chown(paths.DNSSEC_TOKENS_DIR, self.ods_uid, self.named_gid)
 
@@ -261,7 +261,7 @@ class DNSKeySyncInstance(service.Service):
         named_fd.truncate(0)
         named_fd.write(pin)
         named_fd.close()
-        os.chmod(paths.DNSSEC_SOFTHSM_PIN, 0770)
+        os.chmod(paths.DNSSEC_SOFTHSM_PIN, 0o770)
         # chown to ods:named
         os.chown(paths.DNSSEC_SOFTHSM_PIN, self.ods_uid, self.named_gid)
 
@@ -272,7 +272,7 @@ class DNSKeySyncInstance(service.Service):
         named_fd.write(pin_so)
         named_fd.close()
         # owner must be root
-        os.chmod(paths.DNSSEC_SOFTHSM_PIN_SO, 0400)
+        os.chmod(paths.DNSSEC_SOFTHSM_PIN_SO, 0o400)
 
         # initialize SoftHSM
 
@@ -398,12 +398,12 @@ class DNSKeySyncInstance(service.Service):
         for (root, dirs, files) in os.walk(paths.DNSSEC_TOKENS_DIR):
             for directory in dirs:
                 dir_path = os.path.join(root, directory)
-                os.chmod(dir_path, 0770 | stat.S_ISGID)
+                os.chmod(dir_path, 0o770 | stat.S_ISGID)
                 # chown to ods:named
                 os.chown(dir_path, self.ods_uid, self.named_gid)
             for filename in files:
                 file_path = os.path.join(root, filename)
-                os.chmod(file_path, 0770 | stat.S_ISGID)
+                os.chmod(file_path, 0o770 | stat.S_ISGID)
                 # chown to ods:named
                 os.chown(file_path, self.ods_uid, self.named_gid)
 
@@ -432,7 +432,7 @@ class DNSKeySyncInstance(service.Service):
 
         # Make sure access is strictly reserved to the named user
         os.chown(paths.IPA_DNSKEYSYNCD_KEYTAB, 0, self.ods_gid)
-        os.chmod(paths.IPA_DNSKEYSYNCD_KEYTAB, 0440)
+        os.chmod(paths.IPA_DNSKEYSYNCD_KEYTAB, 0o440)
 
         dns_group = DN(('cn', 'DNS Servers'), ('cn', 'privileges'),
                        ('cn', 'pbac'), self.suffix)

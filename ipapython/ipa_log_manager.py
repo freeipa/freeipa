@@ -180,7 +180,7 @@ def standard_logging_setup(filename=None, verbose=False, debug=False,
         file_handler = dict(name='file',
                             filename=filename,
                             filemode=filemode,
-                            permission=0600,
+                            permission=0o600,
                             level='debug',
                             format=LOGGING_FORMAT_STANDARD_FILE)
         handlers.append(file_handler)

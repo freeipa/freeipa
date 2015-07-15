@@ -57,10 +57,10 @@ def recursive_chown(path, uid, gid):
     for root, dirs, files in os.walk(path):
         for dir in dirs:
             os.chown(os.path.join(root, dir), uid, gid)
-            os.chmod(os.path.join(root, dir), 0750)
+            os.chmod(os.path.join(root, dir), 0o750)
         for file in files:
             os.chown(os.path.join(root, file), uid, gid)
-            os.chmod(os.path.join(root, file), 0640)
+            os.chmod(os.path.join(root, file), 0o640)
 
 
 def decrypt_file(tmpdir, filename, keyring):
@@ -290,9 +290,9 @@ class Restore(admintool.AdminTool):
         # Temporary directory for decrypting files before restoring
         self.top_dir = tempfile.mkdtemp("ipa")
         os.chown(self.top_dir, pent.pw_uid, pent.pw_gid)
-        os.chmod(self.top_dir, 0750)
+        os.chmod(self.top_dir, 0o750)
         self.dir = os.path.join(self.top_dir, "ipa")
-        os.mkdir(self.dir, 0750)
+        os.mkdir(self.dir, 0o750)
 
         os.chown(self.dir, pent.pw_uid, pent.pw_gid)
 
@@ -512,7 +512,7 @@ class Restore(admintool.AdminTool):
 
         if not os.path.exists(ldifdir):
             pent = pwd.getpwnam(DS_USER)
-            os.mkdir(ldifdir, 0770)
+            os.mkdir(ldifdir, 0o770)
             os.chown(ldifdir, pent.pw_uid, pent.pw_gid)
 
         ipautil.backup_file(ldiffile)
@@ -733,7 +733,7 @@ class Restore(admintool.AdminTool):
         if instance != 'PKI-IPA':
             return os.path.join(paths.VAR_LIB_DIRSRV, 'scripts-%s' % instance)
         else:
-            if sys.maxsize > 2**32L:
+            if sys.maxsize > 2**32:
                 libpath = 'lib64'
             else:
                 libpath = 'lib'
@@ -770,7 +770,7 @@ class Restore(admintool.AdminTool):
         for dir in dirs:
             try:
                 self.log.debug('Creating %s' % dir)
-                os.mkdir(dir, 0770)
+                os.mkdir(dir, 0o770)
                 os.chown(dir, pent.pw_uid, pent.pw_gid)
                 tasks.restore_context(dir)
             except Exception, e:

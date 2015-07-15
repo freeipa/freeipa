@@ -55,7 +55,7 @@ def commenceShutdown(signum, stack):
     sys.exit(0)
 
 
-os.umask(007)
+os.umask(0o07)
 
 # Signal handlers
 signal.signal(signal.SIGTERM, commenceShutdown)

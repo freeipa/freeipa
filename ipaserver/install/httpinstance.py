@@ -186,7 +186,7 @@ class HTTPInstance(service.Service):
         http_fd = open(target_fname, "w")
         http_fd.write(http_txt)
         http_fd.close()
-        os.chmod(target_fname, 0644)
+        os.chmod(target_fname, 0o644)
 
         target_fname = paths.HTTPD_IPA_REWRITE_CONF
         http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa-rewrite.conf", self.sub_dict)
@@ -194,7 +194,7 @@ class HTTPInstance(service.Service):
         http_fd = open(target_fname, "w")
         http_fd.write(http_txt)
         http_fd.close()
-        os.chmod(target_fname, 0644)
+        os.chmod(target_fname, 0o644)
 
     def change_mod_nss_port_from_http(self):
         # mod_ssl enforces SSLEngine on for vhost on 443 even though
@@ -301,10 +301,10 @@ class HTTPInstance(service.Service):
             db.create_signing_cert("Signing-Cert", "Object Signing Cert", ca_db)
 
         # Fix the database permissions
-        os.chmod(certs.NSS_DIR + "/cert8.db", 0660)
-        os.chmod(certs.NSS_DIR + "/key3.db", 0660)
-        os.chmod(certs.NSS_DIR + "/secmod.db", 0660)
-        os.chmod(certs.NSS_DIR + "/pwdfile.txt", 0660)
+        os.chmod(certs.NSS_DIR + "/cert8.db", 0o660)
+        os.chmod(certs.NSS_DIR + "/key3.db", 0o660)
+        os.chmod(certs.NSS_DIR + "/secmod.db", 0o660)
+        os.chmod(certs.NSS_DIR + "/pwdfile.txt", 0o660)
 
         pent = pwd.getpwnam("apache")
         os.chown(certs.NSS_DIR + "/cert8.db", 0, pent.pw_gid )
@@ -325,7 +325,7 @@ class HTTPInstance(service.Service):
         ipautil.copy_template_file(
             ipautil.SHARE_DIR + "preferences.html.template",
             target_fname, self.sub_dict)
-        os.chmod(target_fname, 0644)
+        os.chmod(target_fname, 0o644)
 
         # The signing cert is generated in __setup_ssl
         db = certs.CertDB(self.realm, subject_base=self.subject_base)
@@ -342,7 +342,7 @@ class HTTPInstance(service.Service):
                             "-e", ".html", "-p", pwd,
                             tmpdir])
             shutil.rmtree(tmpdir)
-            os.chmod(target_fname, 0644)
+            os.chmod(target_fname, 0o644)
         else:
             root_logger.warning('Object-signing certificate was not found; '
                 'therefore, configure.jar was not created.')
@@ -361,7 +361,7 @@ class HTTPInstance(service.Service):
 
         ipautil.copy_template_file(ipautil.SHARE_DIR + "krb.js.template",
             target_fname, sub_dict)
-        os.chmod(target_fname, 0644)
+        os.chmod(target_fname, 0o644)
 
         # Setup extension
         tmpdir = tempfile.mkdtemp(prefix="tmp-")
@@ -380,7 +380,7 @@ class HTTPInstance(service.Service):
             ipautil.run([paths.ZIP, '-r', target_fname] + filenames,
                 cwd=extdir)
         shutil.rmtree(tmpdir)
-        os.chmod(target_fname, 0644)
+        os.chmod(target_fname, 0o644)
 
     def __publish_ca_cert(self):
         ca_db = certs.CertDB(self.realm)
@@ -441,7 +441,7 @@ class HTTPInstance(service.Service):
         self.fstore.backup_file(target_fname)
         with open(target_fname, 'w') as f:
             f.write(http_txt)
-        os.chmod(target_fname, 0644)
+        os.chmod(target_fname, 0o644)
 
     def uninstall(self):
         if self.is_configured():

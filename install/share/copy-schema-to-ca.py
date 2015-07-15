@@ -86,7 +86,7 @@ def add_ca_schema():
             root_logger.warning('Could not install %s: %s', target_fname, e)
         else:
             root_logger.info('Installed %s', target_fname)
-        os.chmod(target_fname, 0440)    # read access for dirsrv user/group
+        os.chmod(target_fname, 0o440)    # read access for dirsrv user/group
         os.chown(target_fname, pki_pent.pw_uid, ds_pent.pw_gid)
 
 

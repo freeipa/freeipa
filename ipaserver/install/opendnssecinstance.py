@@ -212,24 +212,24 @@ class OpenDNSSECInstance(service.Service):
         for (root, dirs, files) in os.walk(paths.ETC_OPENDNSSEC_DIR):
             for directory in dirs:
                 dir_path = os.path.join(root, directory)
-                os.chmod(dir_path, 0770)
+                os.chmod(dir_path, 0o770)
                 # chown to root:ods
                 os.chown(dir_path, 0, self.ods_gid)
             for filename in files:
                 file_path = os.path.join(root, filename)
-                os.chmod(file_path, 0660)
+                os.chmod(file_path, 0o660)
                 # chown to root:ods
                 os.chown(file_path, 0, self.ods_gid)
 
         for (root, dirs, files) in os.walk(paths.VAR_OPENDNSSEC_DIR):
             for directory in dirs:
                 dir_path = os.path.join(root, directory)
-                os.chmod(dir_path, 0770)
+                os.chmod(dir_path, 0o770)
                 # chown to ods:ods
                 os.chown(dir_path, self.ods_uid, self.ods_gid)
             for filename in files:
                 file_path = os.path.join(root, filename)
-                os.chmod(file_path, 0660)
+                os.chmod(file_path, 0o660)
                 # chown to ods:ods
                 os.chown(file_path, self.ods_uid, self.ods_gid)
 
@@ -250,11 +250,11 @@ class OpenDNSSECInstance(service.Service):
             for (root, dirs, files) in os.walk(paths.DNSSEC_TOKENS_DIR):
                 for directory in dirs:
                     dir_path = os.path.join(root, directory)
-                    os.chmod(dir_path, 0770 | stat.S_ISGID)
+                    os.chmod(dir_path, 0o770 | stat.S_ISGID)
                     os.chown(dir_path, self.ods_uid, self.named_gid)  # chown to ods:named
                 for filename in files:
                     file_path = os.path.join(root, filename)
-                    os.chmod(file_path, 0770 | stat.S_ISGID)
+                    os.chmod(file_path, 0o770 | stat.S_ISGID)
                     os.chown(file_path, self.ods_uid, self.named_gid)  # chown to ods:named
 
         finally:
@@ -276,7 +276,7 @@ class OpenDNSSECInstance(service.Service):
             # privileges
             shutil.copy(self.kasp_db_file, paths.OPENDNSSEC_KASP_DB)
             os.chown(paths.OPENDNSSEC_KASP_DB, self.ods_uid, self.ods_gid)
-            os.chmod(paths.OPENDNSSEC_KASP_DB, 0660)
+            os.chmod(paths.OPENDNSSEC_KASP_DB, 0o660)
 
             # regenerate zonelist.xml
             ods_enforcerd = services.knownservices.ods_enforcerd
@@ -287,7 +287,7 @@ class OpenDNSSECInstance(service.Service):
                 zonelistf.write(stdout)
                 os.chown(paths.OPENDNSSEC_ZONELIST_FILE,
                          self.ods_uid, self.ods_gid)
-                os.chmod(paths.OPENDNSSEC_ZONELIST_FILE, 0660)
+                os.chmod(paths.OPENDNSSEC_ZONELIST_FILE, 0o660)
 
         else:
             # initialize new kasp.db

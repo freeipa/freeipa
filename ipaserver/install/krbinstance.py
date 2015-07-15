@@ -317,7 +317,7 @@ class KrbInstance(service.Service):
     def __add_default_acis(self):
         self._ldap_mod("default-aci.ldif", self.sub_dict)
 
-    def __template_file(self, path, chmod=0644):
+    def __template_file(self, path, chmod=0o644):
         template = os.path.join(ipautil.SHARE_DIR, os.path.basename(path) + ".template")
         conf = ipautil.template_file(template, self.sub_dict)
         self.fstore.backup_file(path)
@@ -399,7 +399,7 @@ class KrbInstance(service.Service):
 
         # Make sure access is strictly reserved to root only for now
         os.chown(paths.KRB5_KEYTAB, 0, 0)
-        os.chmod(paths.KRB5_KEYTAB, 0600)
+        os.chmod(paths.KRB5_KEYTAB, 0o600)
 
         self.move_service_to_host(host_principal)
 

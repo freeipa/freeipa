@@ -40,7 +40,7 @@ class test_otptoken_import(object):
                 'ipatokenotpkey': u'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ',
                 'ipatokenvendor': u'Manufacturer',
                 'ipatokenserial': u'987654321',
-                'ipatokenhotpcounter': 0L,
+                'ipatokenhotpcounter': 0,
                 'ipatokenotpdigits': 8,
                 'type': u'hotp',
                 })]
@@ -76,7 +76,7 @@ class test_otptoken_import(object):
                     'ipatokenotpkey': u'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ',
                     'ipatokenvendor': u'Manufacturer',
                     'ipatokenserial': u'987654321',
-                    'ipatokenhotpcounter': 0L,
+                    'ipatokenhotpcounter': 0,
                     'ipatokenotpdigits': 8,
                     'type': u'hotp'})]
         finally:
@@ -147,7 +147,7 @@ class test_otptoken_import(object):
                     'ipatokenvendor': u'iana.dummy',
                     'description': u'FriendlyName',
                     'ipatokentotptimestep': 200,
-                    'ipatokenhotpcounter': 0L,
+                    'ipatokenhotpcounter': 0,
                     'ipatokenmodel': u'Model',
                     'ipatokenotpdigits': 8,
                     'type': u'hotp',

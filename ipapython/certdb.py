@@ -48,12 +48,12 @@ def create_ipa_nssdb():
 
     with open(pwdfile, 'w') as f:
         f.write(ipautil.ipa_generate_password(pwd_len=40))
-    os.chmod(pwdfile, 0600)
+    os.chmod(pwdfile, 0o600)
 
     db.create_db(pwdfile)
-    os.chmod(os.path.join(db.secdir, 'cert8.db'), 0644)
-    os.chmod(os.path.join(db.secdir, 'key3.db'), 0644)
-    os.chmod(os.path.join(db.secdir, 'secmod.db'), 0644)
+    os.chmod(os.path.join(db.secdir, 'cert8.db'), 0o644)
+    os.chmod(os.path.join(db.secdir, 'key3.db'), 0o644)
+    os.chmod(os.path.join(db.secdir, 'secmod.db'), 0o644)
 
 
 def find_cert_from_txt(cert, start=0):
@@ -420,7 +420,7 @@ class NSSDatabase(object):
         cert = self.get_cert(nickname)
         with open(location, "w+") as fd:
             fd.write(cert)
-        os.chmod(location, 0444)
+        os.chmod(location, 0o444)
 
     def import_pem_cert(self, nickname, flags, location):
         """Import a cert form the given PEM file.

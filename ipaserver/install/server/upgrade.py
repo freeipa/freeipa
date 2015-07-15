@@ -175,7 +175,7 @@ def check_certs():
     if not os.path.exists(paths.CA_CRT):
         ca_file = paths.ALIAS_CACERT_ASC
         if os.path.exists(ca_file):
-            old_umask = os.umask(022)   # make sure its readable by httpd
+            old_umask = os.umask(0o22)   # make sure its readable by httpd
             try:
                 shutil.copyfile(ca_file, paths.CA_CRT)
             finally:
