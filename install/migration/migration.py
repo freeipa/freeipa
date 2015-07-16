@@ -22,14 +22,13 @@ Password migration script
 
 import cgi
 import errno
-import glob
 from wsgiref.util import request_uri
 
 from ipapython.ipa_log_manager import root_logger
 from ipapython.ipautil import get_ipa_basedn
 from ipapython.dn import DN
 from ipapython.ipaldap import IPAdmin
-from ipalib import errors
+from ipalib import errors, create_api
 from ipaplatform.paths import paths
 
 
@@ -43,23 +42,6 @@ def get_ui_url(environ):
     if index == -1:
         raise ValueError('Cannot strip the script URL from full URL "%s"' % full_url)
     return full_url[:index] + "/ipa/ui"
-
-
-def get_base_dn(ldap_uri):
-    """
-    Retrieve LDAP server base DN.
-    """
-    try:
-        conn = IPAdmin(ldap_uri=ldap_uri)
-        conn.do_simple_bind(DN(), '')
-        base_dn = get_ipa_basedn(conn)
-    except Exception, e:
-        root_logger.error('migration context search failed: %s' % e)
-        return ''
-    finally:
-        conn.unbind()
-
-    return base_dn
 
 
 def bind(ldap_uri, base_dn, username, password):
@@ -90,16 +72,11 @@ def application(environ, start_response):
     if not form_data.has_key('username') or not form_data.has_key('password'):
         return wsgi_redirect(start_response, 'invalid.html')
 
-    slapd_sockets = glob.glob(paths.ALL_SLAPD_INSTANCE_SOCKETS)
-    if slapd_sockets:
-        ldap_uri = 'ldapi://%s' % slapd_sockets[0].replace('/', '%2f')
-    else:
-        ldap_uri = 'ldaps://localhost:636'
-
-    base_dn = get_base_dn(ldap_uri)
-
+    # API object only for configuration, finalize() not needed
+    api = create_api(mode=None)
+    api.bootstrap(context='server', in_server=True)
     try:
-        bind(ldap_uri, base_dn,
+        bind(api.env.ldap_uri, api.env.basedn,
              form_data['username'].value, form_data['password'].value)
     except IOError as err:
         if err.errno == errno.EPERM:
