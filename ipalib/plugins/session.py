@@ -2,10 +2,12 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-from ipalib import Command
+from ipalib import api, Command
 from ipalib.request import context
-from ipalib.session import session_mgr
 from ipalib.plugable import Registry
+
+if api.env.in_server:
+    from ipalib.session import session_mgr
 
 register = Registry()
 
