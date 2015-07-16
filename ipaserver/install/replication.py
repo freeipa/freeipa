@@ -1451,7 +1451,7 @@ class ReplicationManager(object):
 
         wait_for_task(self.conn, dn)
 
-    def abortcleanallruv(self, replicaId):
+    def abortcleanallruv(self, replicaId, force=False):
         """
         Create a task to abort a CLEANALLRUV operation.
         """
@@ -1465,6 +1465,7 @@ class ReplicationManager(object):
                 'replica-id': [replicaId],
                 'objectclass': ['top', 'extensibleObject'],
                 'cn': ['abort %d' % replicaId],
+                'replica-certify-all': ['no'] if force else ['yes'],
             }
         )
         try:

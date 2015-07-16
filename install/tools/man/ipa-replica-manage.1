@@ -49,7 +49,7 @@ Manages the replication agreements of an IPA server. The available commands are:
 \- Run the CLEANALLRUV task to remove a replication ID.
 .TP
 \fBabort\-clean\-ruv\fR [REPLICATION_ID]
-\- Abort a running CLEANALLRUV task.
+\- Abort a running CLEANALLRUV task. With \-\-force option the task does not wait for all the replica servers to have been sent the abort task, or be online, before completing.
 .TP
 \fBlist\-clean\-ruv\fR
 \- List all running CLEANALLRUV and abort CLEANALLRUV tasks.
