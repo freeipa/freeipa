@@ -143,7 +143,7 @@ class selinuxusermap(LDAPObject):
         'cn', 'ipaenabledflag',
         'description', 'usercategory', 'hostcategory',
         'ipaenabledflag', 'memberuser', 'memberhost',
-        'memberhostgroup', 'seealso', 'ipaselinuxuser',
+        'seealso', 'ipaselinuxuser',
     ]
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
