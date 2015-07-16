@@ -72,7 +72,7 @@ BuildRequires:  python-krbV
 BuildRequires:  python-nss
 BuildRequires:  python-cryptography
 BuildRequires:  python-netaddr
-BuildRequires:  python-kerberos >= 1.1-14
+BuildRequires:  python-gssapi >= 1.1.1
 BuildRequires:  python-rhsm
 BuildRequires:  pyOpenSSL
 BuildRequires:  pylint >= 1.0
@@ -303,7 +303,7 @@ IPA administrators.
 %package python
 Summary: Python libraries used by IPA
 Group: System Environment/Libraries
-Requires: python-kerberos >= 1.1-14
+Requires: python-gssapi >= 1.1.1
 Requires: gnupg
 Requires: iproute
 Requires: keyutils

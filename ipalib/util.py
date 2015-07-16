@@ -63,15 +63,12 @@ def json_serialize(obj):
 
 def get_current_principal():
     try:
-        import kerberos
-        rc, vc = kerberos.authGSSClientInit("notempty")
-        rc = kerberos.authGSSClientInquireCred(vc)
-        username = kerberos.authGSSClientUserName(vc)
-        kerberos.authGSSClientClean(vc)
-        return unicode(username)
+        import gssapi
+        cred = gssapi.Credentials(usage='initiate')
+        return unicode(cred.name)
     except ImportError:
-        raise RuntimeError('python-kerberos is not available.')
-    except kerberos.GSSError, e:
+        raise RuntimeError('python-gssapi is not available.')
+    except gssapi.exceptions.GSSError:
         #TODO: do a kinit?
         raise errors.CCacheError()
 

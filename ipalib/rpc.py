@@ -44,7 +44,7 @@ from urllib2 import urlparse
 
 from xmlrpclib import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
         Transport, ProtocolError, MININT, MAXINT)
-import kerberos
+import gssapi
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 from nss.error import NSPRError
@@ -510,24 +510,32 @@ class KerbTransport(SSLTransport):
     """
     Handles Kerberos Negotiation authentication to an XML-RPC server.
     """
-    flags = kerberos.GSS_C_MUTUAL_FLAG | kerberos.GSS_C_SEQUENCE_FLAG
+    flags = [gssapi.RequirementFlag.mutual_authentication,
+             gssapi.RequirementFlag.out_of_sequence_detection]
+
+    def __init__(self, *args, **kwargs):
+        SSLTransport.__init__(self, *args, **kwargs)
+        self._sec_context = None
 
     def _handle_exception(self, e, service=None):
-        (major, minor) = ipautil.get_gsserror(e)
-        if minor[1] == KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN:
+        # kerberos library coerced error codes to signed, gssapi uses unsigned
+        minor = e.min_code
+        if minor & (1 << 31):
+            minor -= 1 << 32
+        if minor == KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN:
             raise errors.ServiceError(service=service)
-        elif minor[1] == KRB5_FCC_NOFILE:
+        elif minor == KRB5_FCC_NOFILE:
             raise errors.NoCCacheError()
-        elif minor[1] == KRB5KRB_AP_ERR_TKT_EXPIRED:
+        elif minor == KRB5KRB_AP_ERR_TKT_EXPIRED:
             raise errors.TicketExpired()
-        elif minor[1] == KRB5_FCC_PERM:
+        elif minor == KRB5_FCC_PERM:
             raise errors.BadCCachePerms()
-        elif minor[1] == KRB5_CC_FORMAT:
+        elif minor == KRB5_CC_FORMAT:
             raise errors.BadCCacheFormat()
-        elif minor[1] == KRB5_REALM_CANT_RESOLVE:
+        elif minor == KRB5_REALM_CANT_RESOLVE:
             raise errors.CannotResolveKDC()
         else:
-            raise errors.KerberosError(major=major, minor=minor)
+            raise errors.KerberosError(major=e.maj_code, minor=minor)
 
     def get_host_info(self, host):
         """
@@ -548,30 +556,83 @@ class KerbTransport(SSLTransport):
         service = "HTTP@" + host.split(':')[0]
 
         try:
-            (rc, vc) = kerberos.authGSSClientInit(service=service,
-                                                  gssflags=self.flags)
-        except kerberos.GSSError, e:
-            self._handle_exception(e)
-
-        try:
-            kerberos.authGSSClientStep(vc, "")
-        except kerberos.GSSError, e:
+            name = gssapi.Name(service, gssapi.NameType.hostbased_service)
+            self._sec_context = gssapi.SecurityContext(name=name, flags=self.flags)
+            response = self._sec_context.step()
+        except gssapi.exceptions.GSSError as e:
             self._handle_exception(e, service=service)
 
+        self._set_auth_header(extra_headers, response)
+
+        return (host, extra_headers, x509)
+
+    def _set_auth_header(self, extra_headers, token):
         for (h, v) in extra_headers:
             if h == 'Authorization':
                 extra_headers.remove((h, v))
                 break
 
-        extra_headers.append(
-            ('Authorization', 'negotiate %s' % kerberos.authGSSClientResponse(vc))
-        )
+        if token:
+            extra_headers.append(
+                ('Authorization', 'negotiate %s' % base64.b64encode(token))
+            )
 
-        return (host, extra_headers, x509)
+    def _auth_complete(self, response):
+        if self._sec_context:
+            header = response.getheader('www-authenticate', '')
+            token = None
+            for field in header.split(','):
+                k, _, v = field.strip().partition(' ')
+                if k.lower() == 'negotiate':
+                    try:
+                        token = base64.b64decode(v)
+                        break
+                    # b64decode raises TypeError on invalid input
+                    except TypeError:
+                        pass
+            if not token:
+                raise KerberosError("No valid Negotiate header in server response")
+            token = self._sec_context.step(token=token)
+            if self._sec_context.complete:
+                self._sec_context = None
+                return True
+            self._set_auth_header(self._extra_headers, token)
+            return False
+        return True
 
     def single_request(self, host, handler, request_body, verbose=0):
+        # Based on xmlrpclib.Transport.single_request
         try:
-            return SSLTransport.single_request(self, host, handler, request_body, verbose)
+            h = SSLTransport.make_connection(self, host)
+            if verbose:
+                h.set_debuglevel(1)
+
+            while True:
+                self.send_request(h, handler, request_body)
+                self.send_host(h, host)
+                self.send_user_agent(h)
+                self.send_content(h, request_body)
+
+                response = h.getresponse(buffering=True)
+                if response.status != 200:
+                    if (response.getheader("content-length", 0)):
+                        response.read()
+
+                    if response.status == 401:
+                        if not self._auth_complete(response):
+                            continue
+
+                    raise ProtocolError(
+                        host + handler,
+                        response.status, response.reason,
+                        response.msg)
+
+                self.verbose = verbose
+                if not self._auth_complete(response):
+                    continue
+                return self.parse_response(response)
+        except gssapi.exceptions.GSSError as e:
+            self._handle_exception(e)
         finally:
             self.close()
 
@@ -632,8 +693,9 @@ class DelegatedKerbTransport(KerbTransport):
     Handles Kerberos Negotiation authentication and TGT delegation to an
     XML-RPC server.
     """
-    flags = kerberos.GSS_C_DELEG_FLAG |  kerberos.GSS_C_MUTUAL_FLAG | \
-            kerberos.GSS_C_SEQUENCE_FLAG
+    flags = [gssapi.RequirementFlag.delegate_to_peer,
+             gssapi.RequirementFlag.mutual_authentication,
+             gssapi.RequirementFlag.out_of_sequence_detection]
 
 
 class RPCClient(Connectible):

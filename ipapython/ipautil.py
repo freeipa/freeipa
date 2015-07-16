@@ -783,23 +783,6 @@ def user_input(prompt, default = None, allow_empty = True):
                 return ret
 
 
-def get_gsserror(e):
-    """
-    A GSSError exception looks differently in python 2.4 than it does
-    in python 2.5. Deal with it.
-    """
-
-    try:
-       major = e[0]
-       minor = e[1]
-    except:
-       major = e[0][0]
-       minor = e[0][1]
-
-    return (major, minor)
-
-
-
 def host_port_open(host, port, socket_type=socket.SOCK_STREAM, socket_timeout=None):
     for res in socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket_type):
         af, socktype, proto, canonname, sa = res

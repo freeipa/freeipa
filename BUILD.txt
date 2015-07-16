@@ -20,7 +20,7 @@ systemd-units samba-devel samba-python libwbclient-devel libtalloc-devel \
 libtevent-devel nspr-devel nss-devel openssl-devel openldap-devel krb5-devel \
 krb5-workstation libuuid-devel libcurl-devel xmlrpc-c-devel popt-devel \
 autoconf automake m4 libtool gettext python-devel python-ldap \
-python-setuptools python-krbV python-nss python-netaddr python-kerberos \
+python-setuptools python-krbV python-nss python-netaddr python-gssapi \
 python-rhsm pyOpenSSL pylint python-polib libipa_hbac-python python-memcached \
 sssd python-lxml python-pyasn1 python-qrcode-core python-dns m2crypto \
 check libsss_idmap-devel libsss_nss_idmap-devel java-headless rhino \
