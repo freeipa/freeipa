@@ -470,7 +470,7 @@ def abort_clean_ruv(realm, ruv, options):
     print
     thisrepl = replication.ReplicationManager(realm, options.host,
                                               options.dirman_passwd)
-    thisrepl.abortcleanallruv(ruv)
+    thisrepl.abortcleanallruv(ruv, options.force)
 
     print "Cleanup task stopped"
 
