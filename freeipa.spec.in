@@ -170,19 +170,8 @@ Obsoletes: %{alt_name}-server < %{version}
 # entire SELinux policy is stored in the system policy
 Obsoletes: freeipa-server-selinux < 3.3.0
 
-# We have a soft-requires on bind. It is an optional part of
-# IPA but if it is configured we need a way to require versions
-# that work for us.
-Conflicts: bind-dyndb-ldap < 6.0-4
-%if 0%{?fedora} >= 21
-Conflicts: bind < 9.9.6-3
-Conflicts: bind-utils < 9.9.6-3
-%else
-Conflicts: bind < 9.9.4-21
-Conflicts: bind-utils < 9.9.4-21
-%endif
-# DNSSEC
-Conflicts: opendnssec < 1.4.6-4
+# upgrade path from monolithic -server to -server + -server-dns
+Obsoletes: %{name}-server <= 4.2.0
 
 # Versions of nss-pam-ldapd < 0.8.4 require a mapping from uniqueMember to
 # member.
@@ -195,6 +184,35 @@ user, virtual machines, groups, authentication credentials), Policy
 logs, analysis thereof). If you are installing an IPA server you need
 to install this package (in other words, most people should NOT install
 this package).
+
+
+%package server-dns
+Summary: IPA integrated DNS server with support for automatic DNSSEC signing
+Group: System Environment/Base
+Requires: %{name}-server = %{version}-%{release}
+Requires: bind-dyndb-ldap >= 6.0-4
+%if 0%{?fedora} >= 21
+Requires: bind >= 9.9.6-3
+Requires: bind-utils >= 9.9.6-3
+Requires: bind-pkcs11 >= 9.9.6-3
+Requires: bind-pkcs11-utils >= 9.9.6-3
+%else
+Requires: bind >= 9.9.4-21
+Requires: bind-utils >= 9.9.4-21
+Requires: bind-pkcs11 >= 9.9.4-21
+Requires: bind-pkcs11-utils >= 9.9.4-21
+%endif
+Requires: opendnssec >= 1.4.6-4
+
+Conflicts: %{alt_name}-server-dns
+Obsoletes: %{alt_name}-server-dns < %{version}
+
+# upgrade path from monolithic -server to -server + -server-dns
+Obsoletes: %{name}-server <= 4.2.0
+
+%description server-dns
+IPA integrated DNS server with support for automatic DNSSEC signing.
+Integrated DNS server is BIND 9. OpenDNSSEC provides key management.
 
 
 %package server-trust-ad
@@ -683,7 +701,6 @@ fi
 %{_sbindir}/ipa-backup
 %{_sbindir}/ipa-restore
 %{_sbindir}/ipa-ca-install
-%{_sbindir}/ipa-dns-install
 %{_sbindir}/ipa-kra-install
 %{_sbindir}/ipa-server-install
 %{_sbindir}/ipa-replica-conncheck
@@ -857,7 +874,6 @@ fi
 %{_mandir}/man1/ipa-server-certinstall.1.gz
 %{_mandir}/man1/ipa-server-install.1.gz
 %{_mandir}/man1/ipa-server-upgrade.1.gz
-%{_mandir}/man1/ipa-dns-install.1.gz
 %{_mandir}/man1/ipa-ca-install.1.gz
 %{_mandir}/man1/ipa-kra-install.1.gz
 %{_mandir}/man1/ipa-compat-manage.1.gz
@@ -872,6 +888,10 @@ fi
 %{_mandir}/man1/ipa-otptoken-import.1.gz
 %{_mandir}/man1/ipa-cacert-manage.1.gz
 %{_mandir}/man1/ipa-winsync-migrate.1.gz
+
+%files server-dns
+%{_sbindir}/ipa-dns-install
+%{_mandir}/man1/ipa-dns-install.1.gz
 
 %files server-trust-ad
 %{_sbindir}/ipa-adtrust-install
