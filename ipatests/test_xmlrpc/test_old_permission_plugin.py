@@ -1030,7 +1030,7 @@ class test_old_permission(Declarative):
                 'permission_add', [permission3], dict(
                      type=u'user',
                      permissions=u'write',
-		     attrs=[u'cn']
+                     attrs=[u'cn']
                 )
             ),
             expected=dict(
@@ -1057,7 +1057,7 @@ class test_old_permission(Declarative):
                 value=permission3,
                 summary=None,
                 result=dict(
-		    dn=permission3_dn,
+                    dn=permission3_dn,
                     cn=[permission3],
                     objectclass=objectclasses.permission,
                     type=u'user',
@@ -1080,7 +1080,7 @@ class test_old_permission(Declarative):
                 value=permission3,
                 summary=u'Modified permission "%s"' % permission3,
                 result=dict(
-		    dn=permission3_dn,
+                    dn=permission3_dn,
                     cn=[permission3],
                     objectclass=objectclasses.permission,
                     type=u'user',

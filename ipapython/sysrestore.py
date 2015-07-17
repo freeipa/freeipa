@@ -228,7 +228,7 @@ class FileStore:
 
             tasks.restore_context(path)
 
-	#force file to be deleted
+        # force file to be deleted
         self.files = {}
         self.save()
 

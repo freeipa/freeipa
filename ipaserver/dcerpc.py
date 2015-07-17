@@ -1270,7 +1270,7 @@ class TrustDomainJoins(object):
         if self.local_domain.read_only:
             return
 
-	self.local_domain.ftinfo_records = []
+        self.local_domain.ftinfo_records = []
 
         realm_domains = self.api.Command.realmdomains_show()['result']
         # Use realmdomains' modification timestamp to judge records last update time
