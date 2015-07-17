@@ -631,16 +631,14 @@ if [ $1 -gt 1 ] ; then
         if ! grep -E -q '/var/lib/sss/pubconf/krb5.include.d/' /etc/krb5.conf  2>/dev/null ; then
             echo "includedir /var/lib/sss/pubconf/krb5.include.d/" > /etc/krb5.conf.ipanew
             cat /etc/krb5.conf >> /etc/krb5.conf.ipanew
-            mv /etc/krb5.conf.ipanew /etc/krb5.conf
-            /sbin/restorecon /etc/krb5.conf
+            mv -Z /etc/krb5.conf.ipanew /etc/krb5.conf
         fi
     fi
 
     if [ -f '/etc/sysconfig/ntpd' -a $restore -ge 2 ]; then
         if grep -E -q 'OPTIONS=.*-u ntp:ntp' /etc/sysconfig/ntpd 2>/dev/null; then
             sed -r '/OPTIONS=/ { s/\s+-u ntp:ntp\s+/ /; s/\s*-u ntp:ntp\s*// }' /etc/sysconfig/ntpd >/etc/sysconfig/ntpd.ipanew
-            mv /etc/sysconfig/ntpd.ipanew /etc/sysconfig/ntpd
-            /sbin/restorecon /etc/sysconfig/ntpd
+            mv -Z /etc/sysconfig/ntpd.ipanew /etc/sysconfig/ntpd
 
             /bin/systemctl condrestart ntpd.service 2>&1 || :
         fi
@@ -686,8 +684,7 @@ if [ -f '/etc/ssh/sshd_config' -a $restore -ge 2 ]; then
             ' /etc/ssh/sshd_config.ipanew
         fi
 
-        mv /etc/ssh/sshd_config.ipanew /etc/ssh/sshd_config
-        /sbin/restorecon /etc/ssh/sshd_config
+        mv -Z /etc/ssh/sshd_config.ipanew /etc/ssh/sshd_config
         chmod 600 /etc/ssh/sshd_config
 
         /bin/systemctl condrestart sshd.service 2>&1 || :
