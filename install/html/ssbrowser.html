@@ -54,38 +54,8 @@
     <div class="col-sm-12">
     <div class="ssbrowser">
         <h1>Browser Kerberos Setup</h1>
-        <h2><img alt="Internet Explorer" src="../ui/images/ie-icon.png">Internet Explorer Configuration</h2>
-        <p>
-            Once you are able to log into the workstation with your kerberos key you are now able to use that ticket in Internet Explorer.
-        </p>
-        <p>
-            <strong>Login to the Windows machine using an account of your Kerberos realm (administrative domain)</strong>
-        </p>
-        <p>
-            <strong>In Internet Explorer, click Tools, and then click Internet Options.</strong>
-        </p>
-        <div>
-            <ol>
-                <li>Click the Security tab</li>
-                <li>Click Local intranet</li>
-                <li>Click Sites </li>
-                <li>Click Advanced </li>
-                <li>Add your domain to the list</li>
-            </ol>
-            <ol>
-                <li>Click the Security tab</li>
-                <li>Click Local intranet</li>
-                <li>Click Custom Level</li>
-                <li>Select Automatic logon only in Intranet zone</li>
-            </ol>
 
-            <ol>
-                <li> Visit a kerberized web site using IE (You must use the fully-qualified Domain Name in the URL)</li>
-                <li><strong> You are all set.</strong></li>
-            </ol>
-        </div>
-
-        <h2><img alt="Firefox" src="../ui/images/firefox-icon.png">Firefox Configuration</h2>
+        <h2>Firefox</h2>
 
         <p>
             You can configure Firefox to use Kerberos for Single Sign-on. The following instructions will guide you in configuring your web browser to send your Kerberos credentials to the appropriate Key Distribution Center which enables Single Sign-on.
@@ -116,6 +86,85 @@
                 <div id="configurefirefox" style="display:none"></div>
             </li>
         </ol>
+
+        <h2>Chrome</h2>
+
+        <p>
+            You can configure Chrome to use Kerberos for Single Sign-on. The following instructions will guide you in configuring your web browser to send your Kerberos credentials to the appropriate Key Distribution Center which enables Single Sign-on.
+        </p>
+
+        <h3>Import CA Certificate</h3>
+        <ol>
+            <li>
+                Download the <a href="ca.crt">CA certificate</a>. Alternatively, if the host is also an IdM client, you can find the certificate in /etc/ipa/ca.crt.
+            </li>
+            <li>
+                Click the menu button with the <em>Customize and control Google Chrome</em> tooltip, which is by default in the top right-hand corner of Chrome, and click <em>Settings</em>.
+            </li>
+            <li>
+                Click <em>Show advanced settings</em> to display more options, and then click the <em>Manage certificates</em> button located under the HTTPS/SSL heading.
+            </li>
+            <li>
+                In the <em>Authorities</em> tab, click the <em>Import</em> button at the bottom.
+            </li>
+            <li>Select the CA certificate file that you downloaded in the first step.</li>
+        </ol>
+
+        <h3>
+            Enable SPNEGO (Simple and Protected GSSAPI Negotiation Mechanism) to Use Kerberos Authentication
+            in Chrome
+        </h3>
+        <ol>
+            <li>
+                Make sure you have the necessary directory created by running:
+                <div><code>
+                    [root@client]# mkdir -p /etc/opt/chrome/policies/managed/
+                </code></div>
+            </li>
+            <li>
+                Create a new <code>/etc/opt/chrome/policies/managed/mydomain.json</code> file with write privileges limited to the system administrator or root, and include the following line:
+                <div><code>
+                    { "AuthServerWhitelist": "*<span class="example-domain">.example.com.</span>" }
+                </code></div>
+                <div>
+                    You can do this by running:
+                </div>
+                <div><code>
+                    [root@server]# echo '{ "AuthServerWhitelist": "*<span class="example-domain">.example.com.</span>" }' > /etc/opt/chrome/policies/managed/mydomain.json
+                </code></div>
+            </li>
+        </ol>
+
+        <h2>Internet Explorer</h2>
+        <p>
+            Once you are able to log into the workstation with your kerberos key you are now able to use that ticket in Internet Explorer.
+        </p>
+        <p>
+            <strong>Login to the Windows machine using an account of your Kerberos realm (administrative domain)</strong>
+        </p>
+        <p>
+            <strong>In Internet Explorer, click Tools, and then click Internet Options.</strong>
+        </p>
+        <div>
+            <ol>
+                <li>Click the Security tab</li>
+                <li>Click Local intranet</li>
+                <li>Click Sites </li>
+                <li>Click Advanced </li>
+                <li>Add your domain to the list</li>
+            </ol>
+            <ol>
+                <li>Click the Security tab</li>
+                <li>Click Local intranet</li>
+                <li>Click Custom Level</li>
+                <li>Select Automatic logon only in Intranet zone</li>
+            </ol>
+
+            <ol>
+                <li> Visit a kerberized web site using IE (You must use the fully-qualified Domain Name in the URL)</li>
+                <li><strong> You are all set.</strong></li>
+            </ol>
+        </div>
 
     </div>
     </div>
