@@ -77,6 +77,14 @@ fuzzy_sudocmddn = Fuzzy(
     '(?i)ipauniqueid=%s,cn=sudocmds,cn=sudo,%s' % (uuid_re, api.env.basedn)
 )
 
+# Matches caacl dn
+fuzzy_caacldn = Fuzzy(
+    '(?i)ipauniqueid=%s,cn=caacls,cn=ca,%s' % (uuid_re, api.env.basedn)
+)
+
+# Matches fuzzy ipaUniqueID DN group (RDN)
+fuzzy_ipauniqueid = Fuzzy('(?i)ipauniqueid=%s' % uuid_re)
+
 # Matches a hash signature, not enforcing length
 fuzzy_hash = Fuzzy('^([a-f0-9][a-f0-9]:)+[a-f0-9][a-f0-9]$', type=six.string_types)
 
