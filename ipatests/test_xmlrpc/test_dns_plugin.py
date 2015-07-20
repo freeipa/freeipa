@@ -34,7 +34,6 @@ try:
 except ImportError:
     have_ldap2 = False
 else:
-    import krbV
     have_ldap2 = True
 
 _dns_zone_record = DNSName(u'@')
@@ -402,7 +401,7 @@ def _get_nameservers_ldap(conn):
 
 def get_nameservers():
         ldap = ldap2(api)
-        ldap.connect(ccache=krbV.default_context().default_ccache())
+        ldap.connect()
         nameservers = [normalize_zone(x) for x in _get_nameservers_ldap(ldap)]
         return nameservers
 

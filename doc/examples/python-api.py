@@ -37,9 +37,7 @@ api.finalize()
 # Backend.ldap.connect(), otherwise Backend.rpcclient.connect().
 
 if api.env.in_server:
-    api.Backend.ldap2.connect(
-        ccache=api.Backend.krb.default_ccname()
-     )
+    api.Backend.ldap2.connect()
 else:
     api.Backend.rpcclient.connect()
 

@@ -34,7 +34,6 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key,\
     load_pem_private_key
 
 import nss.nss as nss
-import krbV
 
 from ipalib.frontend import Command, Object, Local
 from ipalib import api, errors
@@ -640,7 +639,7 @@ class vault_add(PKQuery, Local):
         else:
             backend = self.api.Backend.rpcclient
         if not backend.isconnected():
-            backend.connect(ccache=krbV.default_context().default_ccache())
+            backend.connect()
 
         if vault_type == u'standard':
 
@@ -1239,7 +1238,7 @@ class vault_archive(PKQuery, Local):
         else:
             backend = self.api.Backend.rpcclient
         if not backend.isconnected():
-            backend.connect(ccache=krbV.default_context().default_ccache())
+            backend.connect()
 
         # retrieve vault info
         vault = self.api.Command.vault_show(*args, **options)['result']
@@ -1508,7 +1507,7 @@ class vault_retrieve(PKQuery, Local):
         else:
             backend = self.api.Backend.rpcclient
         if not backend.isconnected():
-            backend.connect(ccache=krbV.default_context().default_ccache())
+            backend.connect()
 
         # retrieve vault info
         vault = self.api.Command.vault_show(*args, **options)['result']

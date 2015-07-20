@@ -34,7 +34,7 @@ import xmlrpclib
 import datetime
 import netaddr
 import time
-import krbV
+import gssapi
 import pwd
 import grp
 from dns import resolver, rdatatype
@@ -53,6 +53,11 @@ PLUGINS_SHARE_DIR = paths.IPA_PLUGINS
 GEN_PWD_LEN = 12
 
 IPA_BASEDN_INFO = 'ipa v2.0'
+
+# Having this in krb_utils would cause circular import
+KRB5_KDC_UNREACH = 2529639068 # Cannot contact any KDC for requested realm
+KRB5KDC_ERR_SVC_UNAVAILABLE = 2529638941 # A service is not available that is
+                                         # required to process the request
 
 try:
     from subprocess import CalledProcessError
@@ -1206,8 +1211,8 @@ def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
     The optional parameter 'attempts' specifies how many times the credential
     initialization should be attempted in case of non-responsive KDC.
     """
-    errors_to_retry = {krbV.KRB5KDC_ERR_SVC_UNAVAILABLE,
-                       krbV.KRB5_KDC_UNREACH}
+    errors_to_retry = {KRB5KDC_ERR_SVC_UNAVAILABLE,
+                       KRB5_KDC_UNREACH}
     root_logger.debug("Initializing principal %s using keytab %s"
                       % (principal, keytab))
     root_logger.debug("using ccache %s" % ccache_name)
@@ -1218,18 +1223,15 @@ def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
         else:
             os.environ.pop('KRB5_CONFIG', None)
         try:
-            krbcontext = krbV.default_context()
-            ktab = krbV.Keytab(name=keytab, context=krbcontext)
-            princ = krbV.Principal(name=principal, context=krbcontext)
-            ccache = krbV.CCache(name=ccache_name, context=krbcontext,
-                                 primary_principal=princ)
-            ccache.init(princ)
-            ccache.init_creds_keytab(keytab=ktab, principal=princ)
+            name = gssapi.Name(principal, gssapi.NameType.kerberos_principal)
+            store = {'ccache': ccache_name,
+                     'client_keytab': keytab}
+            cred = gssapi.Credentials(name=name, store=store, usage='initiate')
             root_logger.debug("Attempt %d/%d: success"
                               % (attempt, attempts))
-            return
-        except krbV.Krb5Error as e:
-            if e.args[0] not in errors_to_retry:
+            return cred
+        except gssapi.exceptions.GSSError as e:
+            if e.min_code not in errors_to_retry:
                 raise
             root_logger.debug("Attempt %d/%d: failed: %s"
                               % (attempt, attempts, e))

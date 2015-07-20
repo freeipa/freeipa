@@ -61,18 +61,6 @@ def json_serialize(obj):
         return ''
     return json_serialize(obj.__json__())
 
-def get_current_principal():
-    try:
-        import gssapi
-        cred = gssapi.Credentials(usage='initiate')
-        return unicode(cred.name)
-    except ImportError:
-        raise RuntimeError('python-gssapi is not available.')
-    except gssapi.exceptions.GSSError:
-        #TODO: do a kinit?
-        raise errors.CCacheError()
-
-
 def validate_host_dns(log, fqdn):
     """
     See if the hostname has a DNS A/AAAA record.

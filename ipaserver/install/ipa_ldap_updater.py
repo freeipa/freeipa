@@ -26,8 +26,6 @@
 import os
 import sys
 
-import krbV
-
 from ipalib import api
 from ipapython import ipautil, admintool
 from ipaplatform.paths import paths
@@ -100,7 +98,7 @@ class LDAPUpdater_Upgrade(LDAPUpdater):
         super(LDAPUpdater_Upgrade, self).run()
         options = self.options
 
-        realm = krbV.default_context().default_realm
+        realm = api.env.realm
         upgrade = IPAUpgrade(realm, self.files,
                              schema_files=options.schema_files)
 

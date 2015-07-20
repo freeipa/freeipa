@@ -37,13 +37,27 @@ from paste import httpserver
 import paste.gzipper
 from paste.urlmap import URLMap
 from ipalib import api
+from subprocess import check_output, CalledProcessError
+import re
+
+# Ugly hack for test purposes only. GSSAPI has no way to get default ccache
+# name, but we don't need it outside test server
+def get_default_ccache_name():
+    try:
+        out = check_output(['klist'])
+    except CalledProcessError:
+        raise RuntimeError("Default ccache not found. Did you kinit?")
+    match = re.match(r'^Ticket cache:\s*(\S+)', out)
+    if not match:
+        raise RuntimeError("Cannot obtain ccache name")
+    return match.group(1)
 
 
 class KRBCheater(object):
     def __init__(self, app):
         self.app = app
         self.url = app.url
-        self.ccname = api.Backend.krb.default_ccname()
+        self.ccname = get_default_ccache_name()
 
     def __call__(self, environ, start_response):
         environ['KRB5CCNAME'] = self.ccname

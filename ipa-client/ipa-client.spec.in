@@ -9,7 +9,7 @@ URL:            http://www.freeipa.org
 Source0:        %{name}-%{version}.tgz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-Requires: python python-ldap python-krbV ipa-python cyrus-sasl-gssapi
+Requires: python python-ldap python-gssapi ipa-python cyrus-sasl-gssapi
 
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 

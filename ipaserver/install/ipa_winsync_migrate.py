@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import krbV
+import gssapi
 import sys
 
 from ipalib import api
@@ -321,12 +321,10 @@ class WinsyncMigrate(admintool.AdminTool):
 
         # Setup LDAP connection
         try:
-            ctx = krbV.default_context()
-            ccache = ctx.default_ccache()
-            api.Backend.ldap2.connect(ccache)
+            api.Backend.ldap2.connect()
             cls.ldap = api.Backend.ldap2
-        except krbV.Krb5Error as e:
-            sys.exit("Must have Kerberos credentials to migrate Winsync users.")
+        except gssapi.exceptions.GSSError as e:
+            sys.exit("Must have Kerberos credentials to migrate Winsync users. Error: %s" % e)
         except errors.ACIError as e:
             sys.exit("Outdated Kerberos credentials. Use kdestroy and kinit to update your ticket.")
         except errors.DatabaseError as e:

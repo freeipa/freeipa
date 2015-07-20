@@ -37,7 +37,6 @@ try:
 except ImportError:
     have_ldap2 = False
 else:
-    import krbV
     have_ldap2 = True
 
 permission1 = u'testperm'
@@ -3175,7 +3174,7 @@ class test_managed_permissions(Declarative):
     def add_managed_permission(self):
         """Add a managed permission and the corresponding ACI"""
         ldap = ldap2(api)
-        ldap.connect(ccache=krbV.default_context().default_ccache())
+        ldap.connect()
 
         result = api.Command.permission_add(permission1, type=u'user',
                                             ipapermright=u'write',

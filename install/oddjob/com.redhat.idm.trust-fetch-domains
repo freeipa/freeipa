@@ -7,33 +7,10 @@ from ipalib import api, errors
 from ipapython.dn import DN
 from ipalib.config import Env
 from ipalib.constants import DEFAULT_CONFIG
-from ipalib.krb_utils import KRB5_CCache
+from ipapython.ipautil import kinit_keytab
 import sys
 import os, pwd
-import krbV
-import time
-
-# This version is different from the original in ipapyton.ipautil
-# in the fact that it returns a krbV.CCache object.
-def kinit_keytab(principal, keytab, ccache_name, attempts=1):
-    errors_to_retry = {krbV.KRB5KDC_ERR_SVC_UNAVAILABLE,
-                       krbV.KRB5_KDC_UNREACH}
-    for attempt in range(1, attempts + 1):
-        try:
-            krbcontext = krbV.default_context()
-            ktab = krbV.Keytab(name=keytab, context=krbcontext)
-            princ = krbV.Principal(name=principal, context=krbcontext)
-            ccache = krbV.CCache(name=ccache_name, context=krbcontext,
-                                 primary_principal=princ)
-            ccache.init(princ)
-            ccache.init_creds_keytab(keytab=ktab, principal=princ)
-            return ccache
-        except krbV.Krb5Error as e:
-            if e.args[0] not in errors_to_retry:
-                raise
-            if attempt == attempts:
-                raise
-            time.sleep(5)
+import gssapi
 
 def retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal):
     getkeytab_args = ["/usr/sbin/ipa-getkeytab",
@@ -127,17 +104,21 @@ ccache_name = '/var/run/ipa/krb5cc_oddjob_trusts'
 #   - if not, initialize it from Samba's keytab
 # - refer the correct ccache object for further use
 #
-if not os.path.isfile(ccache_name):
-    ccache = kinit_keytab(principal, keytab_name, ccache_name)
-
-ccache_check = KRB5_CCache(ccache_name)
-if not ccache_check.credential_is_valid(principal):
-    ccache = kinit_keytab(principal, keytab_name, ccache_name)
-else:
-    ccache = ccache_check.ccache
+have_ccache = False
+try:
+    cred = kinit_keytab(principal, keytab_name, ccache_name)
+    if cred.lifetime > 0:
+        have_ccache = True
+except gssapi.exceptions.ExpiredCredentialsError:
+    pass
+if not have_ccache:
+    # delete stale ccache and try again
+    if os.path.exists(oneway_ccache_name):
+        os.unlink(ccache_name)
+    cred = kinit_keytab(principal, keytab_name, ccache_name)
 
 old_ccache = os.environ.get('KRB5CCNAME')
-api.Backend.ldap2.connect(ccache)
+api.Backend.ldap2.connect(ccache_name)
 
 # Retrieve own NetBIOS name and trusted forest's name.
 # We use script's input to retrieve the trusted forest's name to sanitize input
@@ -159,32 +140,25 @@ oneway_principal = str('%s$@%s' % (own_trust_flatname, trusted_domain.upper()))
 if not os.path.isfile(oneway_keytab_name):
     retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal)
 
-oneway_ccache = None
 try:
-    # The keytab may have stale key material (from older trust-add run)
-    if not os.path.isfile(oneway_ccache_name):
-        oneway_ccache = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
-    else:
-        oneway_ccache_check = KRB5_CCache(oneway_ccache_name)
-        if not oneway_ccache_check.credential_is_valid(oneway_principal):
-            # If credentials were invalid, obtain them again
-            oneway_ccache = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
-        else:
-            oneway_ccache = oneway_ccache_check.ccache
-except krbV.Krb5Error as e:
+    have_ccache = False
+    try:
+        # The keytab may have stale key material (from older trust-add run)
+        cred = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
+        if cred.lifetime > 0:
+            have_ccache = True
+    except gssapi.exceptions.ExpiredCredentialsError:
+        pass
+    if not have_ccache:
+        if os.path.exists(oneway_ccache_name):
+            os.unlink(oneway_ccache_name)
+        kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
+except gssapi.exceptions.GSSError:
     # If there was failure on using keytab, assume it is stale and retrieve again
     retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal)
-
-try:
-    # There wasn existing ccache, validate its content
-    oneway_ccache_check = KRB5_CCache(oneway_ccache_name)
-    if not oneway_ccache_check.credential_is_valid(oneway_principal):
-        # If credentials were invalid, obtain them again
-        oneway_ccache = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
-    else:
-        oneway_ccache = oneway_ccache_check.ccache
-except krbV.Krb5Error as e:
-    oneway_ccache = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
+    if os.path.exists(oneway_ccache_name):
+        os.unlink(oneway_ccache_name)
+    kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
 
 # We are done: we have ccache with TDO credentials and can fetch domains
 ipa_domain = api.env.domain

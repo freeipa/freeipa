@@ -12,7 +12,7 @@ from binascii import hexlify
 from datetime import datetime
 import dns.dnssec
 import fcntl
-from krbV import Krb5Error
+from gssapi.exceptions import GSSError
 import logging
 import os
 from pprint import pprint
@@ -146,7 +146,7 @@ ccache_filename = os.path.join(WORKDIR, 'ipa-dnskeysync-replica.ccache')
 try:
     ipautil.kinit_keytab(PRINCIPAL, paths.IPA_DNSKEYSYNCD_KEYTAB,
                          ccache_filename, attempts=5)
-except Krb5Error as e:
+except GSSError as e:
     log.critical('Kerberos authentication failed: %s', e)
     sys.exit(1)
 

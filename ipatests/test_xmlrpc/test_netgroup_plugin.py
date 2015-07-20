@@ -22,7 +22,6 @@ Test the `ipalib/plugins/netgroup.py` module.
 """
 
 import nose
-import krbV
 
 from ipalib import api
 from ipalib import errors
@@ -35,9 +34,6 @@ from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 
 # Global so we can save the value between tests
 netgroup_dn = None
-
-# See if our LDAP server is up and we can talk to it over GSSAPI
-ccache = krbV.default_context().default_ccache().name
 
 netgroup1 = u'netgroup1'
 netgroup2 = u'netgroup2'
@@ -1298,7 +1294,7 @@ class test_netgroup(Declarative):
 #        # Do an LDAP query to the compat area and verify that the entry
 #        # is correct
 #        conn = ldap2(api)
-#        conn.connect(ccache=ccache)
+#        conn.connect()
 #        try:
 #            entries = conn.find_entries('cn=%s' % self.ng_cn,
 #                      base_dn='cn=ng,cn=compat,%s' % api.env.basedn)

@@ -26,10 +26,10 @@ from cmdline import cmdline_test
 from ipalib import api
 from ipalib import errors
 import tempfile
-from ipapython import ipautil
+from ipapython import ipautil, ipaldap
 import nose
 import tempfile
-import krbV
+import gssapi
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython.dn import DN
 
@@ -37,21 +37,18 @@ def use_keytab(principal, keytab):
     try:
         tmpdir = tempfile.mkdtemp(prefix = "tmp-")
         ccache_file = 'FILE:%s/ccache' % tmpdir
-        krbcontext = krbV.default_context()
-        principal = str(principal)
-        keytab = krbV.Keytab(name=keytab, context=krbcontext)
-        principal = krbV.Principal(name=principal, context=krbcontext)
+        name = gssapi.Name(principal, gssapi.NameType.kerberos_principal)
+        store = {'ccache': ccache_file,
+                 'client_keytab': keytab}
         os.environ['KRB5CCNAME'] = ccache_file
-        ccache = krbV.CCache(name=ccache_file, context=krbcontext, primary_principal=principal)
-        ccache.init(principal)
-        ccache.init_creds_keytab(keytab=keytab, principal=principal)
+        gssapi.Credentials(name=name, usage='initiate', store=store)
         conn = ldap2(api)
-        conn.connect(ccache=ccache)
+        conn.connect(autobind=ipaldap.AUTOBIND_DISABLED)
         conn.disconnect()
-    except krbV.Krb5Error as e:
-        raise StandardError('Unable to bind to LDAP. Error initializing principal %s in %s: %s' % (principal.name, keytab, str(e)))
+    except gssapi.exceptions.GSSError as e:
+        raise StandardError('Unable to bind to LDAP. Error initializing principal %s in %s: %s' % (principal, keytab, str(e)))
     finally:
-        del os.environ['KRB5CCNAME']
+        os.environ.pop('KRB5CCNAME', None)
         if tmpdir:
             shutil.rmtree(tmpdir)
 

@@ -30,11 +30,12 @@ Backend plugin for LDAP.
 import os
 import pwd
 
-import krbV
 import ldap as _ldap
 
+from ipalib import krb_utils
 from ipapython.dn import DN
-from ipapython.ipaldap import SASL_GSSAPI, LDAPClient
+from ipapython.ipaldap import (LDAPClient, AUTOBIND_AUTO, AUTOBIND_ENABLED,
+                               AUTOBIND_DISABLED)
 
 
 try:
@@ -88,13 +89,14 @@ class ldap2(CrudBackend, LDAPClient):
 
     def create_connection(self, ccache=None, bind_dn=None, bind_pw='',
             tls_cacertfile=None, tls_certfile=None, tls_keyfile=None,
-            debug_level=0, autobind=False, serverctrls=None, clientctrls=None):
+            debug_level=0, autobind=AUTOBIND_AUTO, serverctrls=None,
+            clientctrls=None):
         """
         Connect to LDAP server.
 
         Keyword arguments:
         ldapuri -- the LDAP server to connect to
-        ccache -- Kerberos V5 ccache object or name
+        ccache -- Kerberos ccache name
         bind_dn -- dn used to bind to the server
         bind_pw -- password used to bind to the server
         debug_level -- LDAP debug level option
@@ -122,8 +124,6 @@ class ldap2(CrudBackend, LDAPClient):
         conn = self._conn
 
         with self.error_handler():
-            if self.ldap_uri.startswith('ldapi://') and ccache:
-                conn.set_option(_ldap.OPT_HOST_NAME, self.api.env.host)
             minssf = conn.get_option(_ldap.OPT_X_SASL_SSF_MIN)
             maxssf = conn.get_option(_ldap.OPT_X_SASL_SSF_MAX)
             # Always connect with at least an SSF of 56, confidentiality
@@ -134,33 +134,37 @@ class ldap2(CrudBackend, LDAPClient):
                 if maxssf < minssf:
                     conn.set_option(_ldap.OPT_X_SASL_SSF_MAX, minssf)
 
-        if ccache is not None:
-            if isinstance(ccache, krbV.CCache):
-                principal = ccache.principal().name
-                # Get a fully qualified CCACHE name (schema+name)
-                # As we do not use the krbV.CCache object later,
-                # we can safely overwrite it
-                ccache = "%(type)s:%(name)s" % dict(type=ccache.type,
-                                                    name=ccache.name)
-            else:
-                principal = krbV.CCache(name=ccache,
-                    context=krbV.default_context()).principal().name
+        ldapi = self.ldap_uri.startswith('ldapi://')
 
-            os.environ['KRB5CCNAME'] = ccache
+        if bind_pw:
+            self.simple_bind(bind_dn, bind_pw,
+                             server_controls=serverctrls,
+                             client_controls=clientctrls)
+        elif autobind != AUTOBIND_DISABLED and os.getegid() == 0 and ldapi:
+            try:
+                pw_name = pwd.getpwuid(os.geteuid()).pw_name
+                self.external_bind(pw_name,
+                                   server_controls=serverctrls,
+                                   client_controls=clientctrls)
+            except errors.NotFound:
+                if autobind == AUTOBIND_ENABLED:
+                    # autobind was required and failed, raise
+                    # exception that it failed
+                    raise
+        else:
+            if ldapi:
+                with self.error_handler():
+                    conn.set_option(_ldap.OPT_HOST_NAME, self.api.env.host)
+            if ccache is None:
+                os.environ.pop('KRB5CCNAME', None)
+            else:
+                os.environ['KRB5CCNAME'] = ccache
+
+            principal = krb_utils.get_principal(ccache_name=ccache)
+
             self.gssapi_bind(server_controls=serverctrls,
                              client_controls=clientctrls)
             setattr(context, 'principal', principal)
-        else:
-            # no kerberos ccache, use simple bind or external sasl
-            if autobind:
-                pent = pwd.getpwuid(os.geteuid())
-                self.external_bind(pent.pw_name,
-                                   server_controls=serverctrls,
-                                   client_controls=clientctrls)
-            else:
-                self.simple_bind(bind_dn, bind_pw,
-                                 server_controls=serverctrls,
-                                 client_controls=clientctrls)
 
         return conn
 

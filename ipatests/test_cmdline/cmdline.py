@@ -22,7 +22,6 @@ Base class for all cmdline tests
 """
 
 import nose
-import krbV
 import distutils.spawn
 import os
 
@@ -33,11 +32,9 @@ from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipaserver.plugins.ldap2 import ldap2
 
 # See if our LDAP server is up and we can talk to it over GSSAPI
-ccache = krbV.default_context().default_ccache()
-
 try:
     conn = ldap2(api)
-    conn.connect(ccache=ccache)
+    conn.connect()
     conn.disconnect()
     server_available = True
 except errors.DatabaseError:

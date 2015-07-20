@@ -20,7 +20,7 @@ from datetime import datetime
 import dateutil.tz
 import dns.dnssec
 import fcntl
-from krbV import Krb5Error
+from gssapi.exceptions import GSSError
 import logging
 import os
 import subprocess
@@ -487,7 +487,7 @@ ccache_name = os.path.join(WORKDIR, 'ipa-ods-exporter.ccache')
 try:
     ipautil.kinit_keytab(PRINCIPAL, paths.IPA_ODS_EXPORTER_KEYTAB, ccache_name,
                          attempts=5)
-except Krb5Error as e:
+except GSSError as e:
     log.critical('Kerberos authentication failed: %s', e)
     sys.exit(1)
 

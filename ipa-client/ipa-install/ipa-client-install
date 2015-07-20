@@ -31,8 +31,8 @@ try:
     from ConfigParser import RawConfigParser
     from optparse import SUPPRESS_HELP, OptionGroup, OptionValueError
     import shutil
-    from krbV import Krb5Error
     import dns
+    import gssapi
 
     import nss.nss as nss
     import SSSDConfig
@@ -2618,7 +2618,7 @@ def install(options, env, fstore, statestore):
                                              ccache_name,
                                              config=krb_name,
                                              attempts=options.kinit_attempts)
-                    except Krb5Error as e:
+                    except gssapi.exceptions.GSSError as e:
                         print_port_conf_info()
                         root_logger.error("Kerberos authentication failed: %s"
                                           % e)
@@ -2698,7 +2698,7 @@ def install(options, env, fstore, statestore):
                                      config=krb_name,
                                      attempts=options.kinit_attempts)
                 env['KRB5CCNAME'] = os.environ['KRB5CCNAME'] = CCACHE_FILE
-            except Krb5Error as e:
+            except gssapi.exceptions.GSSError as e:
                 print_port_conf_info()
                 root_logger.error("Failed to obtain host TGT: %s" % e)
                 # failure to get ticket makes it impossible to login and bind
@@ -2745,7 +2745,7 @@ def install(options, env, fstore, statestore):
                                  CCACHE_FILE,
                                  attempts=options.kinit_attempts)
             os.environ['KRB5CCNAME'] = CCACHE_FILE
-        except Krb5Error as e:
+        except gssapi.exceptions.GSSError as e:
             root_logger.error("Failed to obtain host TGT: %s" % e)
             return CLIENT_INSTALL_ERROR
     else:

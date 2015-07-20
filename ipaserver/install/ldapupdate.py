@@ -32,7 +32,6 @@ import pwd
 import fnmatch
 import re
 
-import krbV
 import ldap
 
 from ipaserver.install import installutils
@@ -272,13 +271,8 @@ class LDAPUpdate:
         if sub_dict.get("REALM"):
             self.realm = sub_dict["REALM"]
         else:
-            krbctx = krbV.default_context()
-            try:
-                self.realm = krbctx.default_realm
-                suffix = ipautil.realm_to_suffix(self.realm)
-            except krbV.Krb5Error:
-                self.realm = None
-                suffix = None
+            self.realm = api.env.realm
+            suffix = ipautil.realm_to_suffix(self.realm) if self.realm else None
 
         if suffix is not None:
             assert isinstance(suffix, DN)

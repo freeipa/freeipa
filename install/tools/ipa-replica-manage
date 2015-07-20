@@ -20,7 +20,7 @@
 import sys
 import os
 
-import re, krbV
+import re
 import traceback
 from urllib2 import urlparse
 import ldap
@@ -1379,7 +1379,7 @@ def main():
     api.finalize()
 
     dirman_passwd = None
-    realm = krbV.default_context().default_realm
+    realm = api.env.realm
 
     if options.host:
         host = options.host
@@ -1404,8 +1404,7 @@ def main():
         api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
                                   bind_pw=options.dirman_passwd)
     else:
-        ccache = krbV.default_context().default_ccache()
-        api.Backend.ldap2.connect(ccache=ccache)
+        api.Backend.ldap2.connect()
 
     if args[0] == "list":
         replica = None

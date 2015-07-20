@@ -21,22 +21,11 @@
 Joining an IPA domain
 """
 
-import krbV
-
 from ipalib import api
 from ipalib import Command, Str
 from ipalib import errors
 from ipalib import _
 from ipaserver.install import installutils
-
-
-def get_realm():
-    """
-    Returns the default kerberos realm configured for this server.
-    """
-    krbctx = krbV.default_context()
-
-    return unicode(krbctx.default_realm)
 
 
 def validate_host(ugettext, cn):
@@ -66,7 +55,7 @@ class join(Command):
     takes_options = (
         Str('realm',
             doc=_("The IPA realm"),
-            default_from=lambda: get_realm(),
+            default_from=lambda: api.env.realm,
             autofill=True,
         ),
         Str('nshardwareplatform?',

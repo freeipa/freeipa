@@ -68,7 +68,6 @@ BuildRequires:  gettext
 BuildRequires:  python-devel
 BuildRequires:  python-ldap
 BuildRequires:  python-setuptools
-BuildRequires:  python-krbV
 BuildRequires:  python-nss
 BuildRequires:  python-cryptography
 BuildRequires:  python-netaddr
@@ -128,7 +127,7 @@ Requires: mod_wsgi
 Requires: mod_auth_gssapi >= 1.1.0-2
 Requires: mod_nss >= 1.0.8-26
 Requires: python-ldap >= 2.4.15
-Requires: python-krbV
+Requires: python-gssapi >= 1.1.2
 Requires: python-sssdconfig
 Requires: acl
 Requires: python-pyasn1
@@ -263,7 +262,7 @@ Requires: certmonger >= 0.78
 Requires: nss-tools
 Requires: bind-utils
 Requires: oddjob-mkhomedir
-Requires: python-krbV
+Requires: python-gssapi >= 1.1.2
 Requires: python-dns >= 1.11.1
 Requires: libsss_autofs
 Requires: autofs
@@ -287,7 +286,6 @@ Summary: IPA administrative tools
 Group: System Environment/Base
 Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
-Requires: python-krbV
 Requires: python-ldap
 
 Conflicts: %{alt_name}-admintools

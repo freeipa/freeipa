@@ -23,7 +23,7 @@ from optparse import OptionGroup
 import base64
 from nss import nss
 from nss.error import NSPRError
-import krbV
+import gssapi
 
 from ipapython import admintool, certmonger, ipautil
 from ipapython.dn import DN
@@ -126,9 +126,8 @@ class CACertManage(admintool.AdminTool):
         password = self.options.password
         if not password:
             try:
-                ccache = krbV.default_context().default_ccache()
-                conn.connect(ccache=ccache)
-            except (krbV.Krb5Error, errors.ACIError):
+                conn.connect()
+            except (gssapi.exceptions.GSSError, errors.ACIError):
                 pass
             else:
                 return conn

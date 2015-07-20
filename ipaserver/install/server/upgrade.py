@@ -9,7 +9,6 @@ import pwd
 import fileinput
 import ConfigParser
 import sys
-import krbV
 
 from ipalib import api
 import SSSDConfig
@@ -1567,7 +1566,7 @@ def upgrade_check(options):
 
 
 def upgrade():
-    realm = krbV.default_context().default_realm
+    realm = api.env.realm
     schema_files = [os.path.join(ipautil.SHARE_DIR, f) for f
                     in dsinstance.ALL_SCHEMA_FILES]
     data_upgrade = IPAUpgrade(realm, schema_files=schema_files)

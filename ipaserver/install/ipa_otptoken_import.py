@@ -30,7 +30,7 @@ from lxml import etree
 import dateutil.parser
 import dateutil.tz
 import nss.nss as nss
-import krbV
+import gssapi
 
 from ipapython import admintool
 from ipalib import api, errors
@@ -509,9 +509,8 @@ class OTPTokenImport(admintool.AdminTool):
 
         conn = ldap2(api)
         try:
-            ccache = krbV.default_context().default_ccache()
-            conn.connect(ccache=ccache)
-        except (krbV.Krb5Error, errors.ACIError):
+            conn.connect()
+        except (gssapi.exceptions.GSSError, errors.ACIError):
             raise admintool.ScriptError("Unable to connect to LDAP! Did you kinit?")
 
         try:

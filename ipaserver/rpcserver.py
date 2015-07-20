@@ -30,7 +30,8 @@ import datetime
 import urlparse
 import json
 import traceback
-from krbV import Krb5Error
+import gssapi
+import time
 
 import ldap.controls
 from pyasn1.type import univ, namedtype
@@ -54,8 +55,8 @@ from ipalib.session import (
     default_max_session_duration, krbccache_dir, krbccache_prefix)
 from ipalib.backend import Backend
 from ipalib.krb_utils import (
-    KRB5_CCache, krb_ticket_expiration_threshold, krb5_format_principal_name,
-    krb5_format_service_principal_name)
+    krb_ticket_expiration_threshold, krb5_format_principal_name,
+    krb5_format_service_principal_name, get_credentials, get_credentials_if_valid)
 from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.version import VERSION
@@ -593,8 +594,8 @@ class KerberosSession(object):
         session_data['ccache_data'] = load_ccache_data(ccache_name)
 
         # Set when the session will expire
-        cc = KRB5_CCache(ccache_name)
-        endtime = cc.endtime(self.api.env.host, self.api.env.realm)
+        creds = get_credentials(ccache_name=ccache_name)
+        endtime = creds.lifetime + time.time()
         self.update_session_expiration(session_data, endtime)
 
         # Store the session data now that it's been updated with the ccache
@@ -789,15 +790,15 @@ class jsonserver_session(jsonserver, KerberosSession):
         ipa_ccache_name = bind_ipa_ccache(ccache_data)
 
         # Redirect to login if Kerberos credentials are expired
-        cc = KRB5_CCache(ipa_ccache_name)
-        if not cc.valid(self.api.env.host, self.api.env.realm):
+        creds = get_credentials_if_valid(ccache_name=ipa_ccache_name)
+        if not creds:
             self.debug('ccache expired, deleting session, need login')
             # The request is finished with the ccache, destroy it.
             release_ipa_ccache(ipa_ccache_name)
             return self.need_login(start_response)
 
         # Update the session expiration based on the Kerberos expiration
-        endtime = cc.endtime(self.api.env.host, self.api.env.realm)
+        endtime = creds.lifetime + time.time()
         self.update_session_expiration(session_data, endtime)
 
         # Store the session data in the per-thread context
@@ -962,7 +963,7 @@ class login_password(Backend, KerberosSession, HTTP_Status):
 
         try:
             ipautil.kinit_keytab(armor_principal, paths.IPA_KEYTAB, armor_path)
-        except Krb5Error as e:
+        except gssapi.exceptions.GSSError as e:
             raise CCacheError(str(e))
 
         # Format the user as a kerberos principal
@@ -1229,15 +1230,15 @@ class xmlserver_session(xmlserver, KerberosSession):
         ipa_ccache_name = bind_ipa_ccache(ccache_data)
 
         # Redirect to /ipa/xml if Kerberos credentials are expired
-        cc = KRB5_CCache(ipa_ccache_name)
-        if not cc.valid(self.api.env.host, self.api.env.realm):
+        creds = get_credentials_if_valid(ccache_name=ipa_ccache_name)
+        if not creds:
             self.debug('xmlserver_session.__call_: ccache expired, deleting session, need login')
             # The request is finished with the ccache, destroy it.
             release_ipa_ccache(ipa_ccache_name)
             return self.need_login(start_response)
 
         # Update the session expiration based on the Kerberos expiration
-        endtime = cc.endtime(self.api.env.host, self.api.env.realm)
+        endtime = creds.lifetime + time.time()
         self.update_session_expiration(session_data, endtime)
 
         # Store the session data in the per-thread context

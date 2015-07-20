@@ -21,14 +21,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import gssapi
 from ipaserver.install import adtrustinstance
 from ipaserver.install.installutils import *
 from ipaserver.install import service
 from ipapython import version
 from ipapython import ipautil, sysrestore, ipaldap
-from ipalib import api, errors, util
+from ipalib import api, errors, krb_utils
 from ipapython.config import IPAOptionParser
-import krbV
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
@@ -302,21 +302,19 @@ def main():
             print "Proceeding with credentials that existed before"
 
     try:
-        ctx = krbV.default_context()
-        ccache = ctx.default_ccache()
-        principal = ccache.principal()
-    except krbV.Krb5Error as e:
-        sys.exit("Must have Kerberos credentials to setup AD trusts on server")
+        principal = krb_utils.get_principal()
+    except gssapi.exceptions.GSSError as e:
+        sys.exit("Must have Kerberos credentials to setup AD trusts on server: %s" % e.message)
 
     try:
-        api.Backend.ldap2.connect(ccache)
+        api.Backend.ldap2.connect()
     except errors.ACIError as e:
         sys.exit("Outdated Kerberos credentials. Use kdestroy and kinit to update your ticket")
     except errors.DatabaseError as e:
         sys.exit("Cannot connect to the LDAP database. Please check if IPA is running")
 
     try:
-        user = api.Command.user_show(unicode(principal[0]))['result']
+        user = api.Command.user_show(principal.partition('@')[0].partition('/')[0])['result']
         group = api.Command.group_show(u'admins')['result']
         if not (user['uid'][0] in group['member_user'] and
                 group['cn'][0] in user['memberof_group']):

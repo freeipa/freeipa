@@ -20,9 +20,9 @@
 import pprint
 
 import ldap.schema
-import krbV
 
 import ipapython.version
+from ipalib import api
 from ipapython.ipa_log_manager import log_mgr
 from ipapython.dn import DN
 from ipaserver.install.ldapupdate import connect
@@ -106,7 +106,7 @@ def update_schema(schema_files, ldapi=False, dm_password=None,):
     SCHEMA_ELEMENT_CLASSES_KEYS = [x[0] for x in SCHEMA_ELEMENT_CLASSES]
 
     conn = connect(ldapi=ldapi, dm_password=dm_password,
-                   realm=krbV.default_context().default_realm,
+                   realm=api.env.realm,
                    fqdn=installutils.get_fqdn())
 
     old_schema = conn.schema

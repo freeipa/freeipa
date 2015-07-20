@@ -22,12 +22,11 @@
 import sys
 import os
 
-import krbV
 from ipapython.ipa_log_manager import *
 
 from ipaserver.install import (replication, installutils, bindinstance,
     cainstance, certs)
-from ipalib import api, errors, util
+from ipalib import api, errors
 from ipalib.constants import CACERT
 from ipapython import ipautil, ipaldap, version, dogtag
 from ipapython.dn import DN
@@ -407,7 +406,7 @@ def main():
     api.finalize()
 
     dirman_passwd = None
-    realm = krbV.default_context().default_realm
+    realm = api.env.realm
 
     if options.host:
         host = options.host

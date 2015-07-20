@@ -55,7 +55,6 @@ from ipalib.errors import (public_errors, UnknownError, NetworkError,
     KerberosError, XMLRPCMarshallError, JSONError, ConversionError)
 from ipalib import errors, capabilities
 from ipalib.request import context, Connection
-from ipalib.util import get_current_principal
 from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil
 from ipapython import kernel_keyring
@@ -66,7 +65,8 @@ from ipalib.text import _
 import ipapython.nsslib
 from ipapython.nsslib import NSSHTTPS, NSSConnection
 from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
-                             KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, KRB5_REALM_CANT_RESOLVE
+                             KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, \
+                             KRB5_REALM_CANT_RESOLVE, get_principal
 from ipapython.dn import DN
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib import api
@@ -518,10 +518,7 @@ class KerbTransport(SSLTransport):
         self._sec_context = None
 
     def _handle_exception(self, e, service=None):
-        # kerberos library coerced error codes to signed, gssapi uses unsigned
         minor = e.min_code
-        if minor & (1 << 31):
-            minor -= 1 << 32
         if minor == KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN:
             raise errors.ServiceError(service=service)
         elif minor == KRB5_FCC_NOFILE:
@@ -835,7 +832,7 @@ class RPCClient(Connectible):
                           delegate=False, nss_dir=None):
         try:
             rpc_uri = self.env[self.env_rpc_uri_key]
-            principal = get_current_principal()
+            principal = get_principal()
             setattr(context, 'principal', principal)
             # We have a session cookie, try using the session URI to see if it
             # is still valid

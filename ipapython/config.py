@@ -176,17 +176,6 @@ def __parse_config(discover_server = True):
 def __discover_config(discover_server = True):
     servers = []
     try:
-        if not config.default_realm:
-            try:
-                # only import krbV when we need it
-                import krbV
-                krbctx = krbV.default_context()
-                config.default_realm = krbctx.default_realm
-            except ImportError:
-                pass
-            if not config.default_realm:
-                return False
-
         if not config.default_domain:
             # try once with REALM -> domain
             domain = str(config.default_realm).lower()

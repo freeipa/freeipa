@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api, errors, util
+from ipalib import api, errors, krb_utils
 from ipalib import Command
 from ipalib import Str, Password
 from ipalib import _
@@ -58,7 +58,7 @@ def get_current_password(principal):
     current password is prompted for, otherwise return a fixed value to
     be ignored later.
     """
-    current_principal = util.get_current_principal()
+    current_principal = krb_utils.get_principal()
     if current_principal == normalize_principal(principal):
         return None
     else:
@@ -74,7 +74,7 @@ class passwd(Command):
             label=_('User name'),
             primary_key=True,
             autofill=True,
-            default_from=lambda: util.get_current_principal(),
+            default_from=lambda: krb_utils.get_principal(),
             normalizer=lambda value: normalize_principal(value),
         ),
         Password('password',

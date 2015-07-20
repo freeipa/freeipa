@@ -50,7 +50,6 @@ class IPATypeChecker(TypeChecker):
     # 'class or module': ['generated', 'properties']
     ignore = {
         # Python standard library & 3rd party classes
-        'krbV.Principal': ['name'],
         'socket._socketobject': ['sendall'],
         # should be 'subprocess.Popen'
         '.Popen': ['stdin', 'stdout', 'stderr', 'pid', 'returncode', 'poll',
@@ -68,7 +67,6 @@ class IPATypeChecker(TypeChecker):
         'ipalib.base.NameSpace': ['add', 'mod', 'del', 'show', 'find'],
         'ipalib.cli.Collector': ['__options'],
         'ipalib.config.Env': ['*'],
-        'ipalib.krb_utils.KRB5_CCache': LOGGING_ATTRS,
         'ipalib.parameters.Param': ['cli_name', 'cli_short_name', 'label',
             'default', 'doc', 'required', 'multivalue', 'primary_key',
             'normalizer', 'default_from', 'autofill', 'query', 'attribute',
@@ -261,7 +259,7 @@ Errors were found during the static code check.
             for mod in sorted(linter.missing):
                 print >> sys.stderr, "    " + mod
             print >> sys.stderr, """
-Please make sure all of the required and optional (python-krbV, python-rhsm)
+Please make sure all of the required and optional (python-gssapi, python-rhsm)
 python packages are installed.
 """
 
