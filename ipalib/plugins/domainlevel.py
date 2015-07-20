@@ -120,7 +120,7 @@ class domainlevel_set(Command):
         # Domain level cannot be lowered
         if int(desired_value) < int(current_value):
             message = _("Domain Level cannot be lowered.")
-            raise errors.InvalidDomainLevelError(message)
+            raise errors.InvalidDomainLevelError(reason=message)
 
         # Check if every master supports the desired level
         for master in get_master_entries(ldap, self.api):
@@ -130,7 +130,7 @@ class domainlevel_set(Command):
                 message = _("Domain Level cannot be raised to {0}, server {1} "
                             "does not support it."
                             .format(desired_value, master['cn'][0]))
-                raise errors.InvalidDomainLevelError(message)
+                raise errors.InvalidDomainLevelError(reason=message)
 
         current_entry.single_value['ipaDomainLevel'] = desired_value
         ldap.update_entry(current_entry)

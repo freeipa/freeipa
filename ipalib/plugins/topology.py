@@ -31,8 +31,8 @@ def validate_domain_level(api):
     current = int(api.Command.domainlevel_get()['result'])
     if current < MINIMUM_DOMAIN_LEVEL:
         raise errors.InvalidDomainLevelError(
-            _('Topology management requires minimum domain level {0} '
-              .format(MINIMUM_DOMAIN_LEVEL))
+            reason=_('Topology management requires minimum domain level {0} '
+                   .format(MINIMUM_DOMAIN_LEVEL))
         )
 
 
