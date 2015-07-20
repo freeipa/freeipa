@@ -27,3 +27,7 @@ default: objectclass: top
 default: objectclass: iparepltopoconf
 default: ipaReplTopoConfRoot: $SUFFIX
 default: cn: realm
+
+# Set replication changelog limit (#5086)
+dn: cn=changelog5,cn=config
+addifnew: nsslapd-changelogmaxage: 7d

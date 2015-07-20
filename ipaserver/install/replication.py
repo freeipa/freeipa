@@ -468,6 +468,7 @@ class ReplicationManager(object):
                 'objectclass': ["top", "extensibleobject"],
                 'cn': ["changelog5"],
                 'nsslapd-changelogdir': [os.path.join(dbdir, "cldb")],
+                'nsslapd-changelogmaxage': ['7d'],
             }
         )
         try:
