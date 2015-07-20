@@ -149,7 +149,7 @@ static int ipa_extdom_extop(Slapi_PBlock *pb)
     rc = LDAP_SUCCESS;
 
 done:
-    if (req->err_msg != NULL) {
+    if ((req != NULL) && (req->err_msg != NULL)) {
         err_msg = req->err_msg;
     }
     if (err_msg != NULL) {
