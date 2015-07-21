@@ -383,7 +383,11 @@ class test_service(Declarative):
 
         dict(
             desc='Update %r with a bad certificate' % service1,
-            command=('service_mod', [service1], dict(usercertificate=badservercert)),
+            command=(
+                'service_mod',
+                [service1],
+                dict(usercertificate=base64.b64decode(badservercert))
+                ),
             expected=errors.CertificateOperationError(
                 error=u'Issuer "CN=IPA Test Certificate Authority" does not ' +
                     u'match the expected issuer'),
