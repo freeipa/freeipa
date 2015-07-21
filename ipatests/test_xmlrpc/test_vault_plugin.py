@@ -21,6 +21,7 @@
 Test the `ipalib/plugins/vault.py` module.
 """
 
+import nose
 from ipalib import api, errors
 from xmlrpc_test import Declarative, fuzzy_string
 
@@ -81,6 +82,16 @@ kUlCMj24a8XsShzYTWBIyW2ngvGe3pQ9PfjkUdm0LGZjYITCBvgOKw==
 
 
 class test_vault_plugin(Declarative):
+
+    @classmethod
+    def setup_class(cls):
+        if not api.Backend.rpcclient.isconnected():
+            api.Backend.rpcclient.connect(fallback=False)
+
+        if not api.Command.kra_is_enabled()['result']:
+            raise nose.SkipTest('KRA service is not enabled')
+
+        super(test_vault_plugin, cls).setup_class()
 
     cleanup_commands = [
         ('vault_del', [vault_name], {'continue': True}),
