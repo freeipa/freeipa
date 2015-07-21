@@ -663,8 +663,8 @@ class LDAPUpdate:
             elif action == 'addifnew':
                 self.debug("addifnew: '%s' to %s, current value %s", safe_output(attr, update_value), attr, safe_output(attr, entry_values))
                 # Only add the attribute if it doesn't exist. Only works
-                # with single-value attributes.
-                if len(entry_values) == 0:
+                # with single-value attributes. Entry must exist.
+                if entry.get('objectclass') and len(entry_values) == 0:
                     entry_values.append(update_value)
                     self.debug('addifnew: set %s to %s', attr, safe_output(attr, entry_values))
                     entry[attr] = entry_values
