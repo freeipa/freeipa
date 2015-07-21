@@ -36,6 +36,9 @@ bad_domain = u'doesnotexist.test'
 
 class test_realmdomains(Declarative):
 
+    # Make sure your environment has sound DNS configuration where
+    # the IPA domain has either NS or SOA record. Check your resolver
+    # if getting errors with the realmdomains_mod cleanup command.
     cleanup_commands = [
         ('realmdomains_mod', [], {'associateddomain': [our_domain]}),
     ]
