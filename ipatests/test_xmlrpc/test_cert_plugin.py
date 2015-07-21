@@ -183,10 +183,10 @@ class test_cert(XMLRPC_test):
         global cert, newcert
 
         res = api.Command['service_show'](self.service_princ)['result']
-        # It should no longer match our old cert
-        assert base64.b64encode(res['usercertificate'][0]) != cert
-        # And it should match the new one
-        assert base64.b64encode(res['usercertificate'][0]) == newcert
+
+        # Both the old and the new certs should be listed as certificates now
+        certs_encoded = (base64.b64encode(cert) for cert in res['usercertificate'])
+        assert set(certs_encoded) == set([cert, newcert])
 
     def test_0007_cleanup(self):
         """
