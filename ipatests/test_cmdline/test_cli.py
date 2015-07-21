@@ -42,8 +42,7 @@ class TestCLIParsing(object):
         sys.stdin = old_stdin
 
     def test_ping(self):
-        self.check_command('ping', 'ping',
-            version=API_VERSION)
+        self.check_command('ping', 'ping')
 
     def test_user_show(self):
         self.check_command('user-show admin', 'user_show',
@@ -51,8 +50,7 @@ class TestCLIParsing(object):
             rights=False,
             no_members=False,
             raw=False,
-            all=False,
-            version=API_VERSION)
+            all=False)
 
     def test_user_show_underscore(self):
         self.check_command('user_show admin', 'user_show',
@@ -60,8 +58,7 @@ class TestCLIParsing(object):
             rights=False,
             no_members=False,
             raw=False,
-            all=False,
-            version=API_VERSION)
+            all=False)
 
     def test_group_add(self):
         self.check_command('group-add tgroup1 --desc="Test group"',
@@ -72,8 +69,7 @@ class TestCLIParsing(object):
             external=False,
             no_members=False,
             raw=False,
-            all=False,
-            version=API_VERSION)
+            all=False)
 
     def test_sudocmdgroup_add_member(self):
         # Test CSV splitting is not done
@@ -85,8 +81,7 @@ class TestCLIParsing(object):
             sudocmd=[u'ab,c', u'd'],
             no_members=False,
             raw=False,
-            all=False,
-            version=API_VERSION)
+            all=False)
 
     def test_group_add_nonposix(self):
         self.check_command('group-add tgroup1 --desc="Test group" --nonposix',
@@ -97,8 +92,7 @@ class TestCLIParsing(object):
             external=False,
             no_members=False,
             raw=False,
-            all=False,
-            version=API_VERSION)
+            all=False)
 
     def test_group_add_gid(self):
         self.check_command('group-add tgroup1 --desc="Test group" --gid=1234',
@@ -110,8 +104,7 @@ class TestCLIParsing(object):
             external=False,
             no_members=False,
             raw=False,
-            all=False,
-            version=API_VERSION)
+            all=False)
 
     def test_group_add_interactive(self):
         with self.fake_stdin('Test group\n'):
@@ -121,8 +114,7 @@ class TestCLIParsing(object):
                 external=False,
                 no_members=False,
                 raw=False,
-                all=False,
-                version=API_VERSION)
+                all=False)
 
     def test_dnsrecord_add(self):
         self.check_command('dnsrecord-add test-example.com ns --a-rec=1.2.3.4',
@@ -133,8 +125,7 @@ class TestCLIParsing(object):
             structured=False,
             force=False,
             raw=False,
-            all=False,
-            version=API_VERSION)
+            all=False)
 
     def test_dnsrecord_del_all(self):
         try:
@@ -151,16 +142,14 @@ class TestCLIParsing(object):
                     dnszoneidnsname=u'test-example.com',
                     idnsname=u'ns',
                     del_all=True,
-                    structured=False,
-                    version=API_VERSION)
+                    structured=False)
             with self.fake_stdin('YeS\n'):
                 self.check_command('dnsrecord_del test-example.com ns',
                     'dnsrecord_del',
                     dnszoneidnsname=u'test-example.com',
                     idnsname=u'ns',
                     del_all=True,
-                    structured=False,
-                    version=API_VERSION)
+                    structured=False)
         finally:
             self.run_command('dnszone_del', idnsname=u'test-example.com')
 
@@ -183,8 +172,7 @@ class TestCLIParsing(object):
                     idnsname=u'ns',
                     del_all=False,
                     sshfprecord=records,
-                    structured=False,
-                    version=API_VERSION)
+                    structured=False)
         finally:
             self.run_command('dnszone_del', idnsname=u'test-example.com')
 
@@ -202,8 +190,7 @@ class TestCLIParsing(object):
                 structured=False,
                 raw=False,
                 all=False,
-                force=False,
-                version=API_VERSION)
+                force=False)
 
         # NOTE: when a DNS record part is passed via command line, it is not
         # converted to its base type when transfered via wire
@@ -219,8 +206,7 @@ class TestCLIParsing(object):
                 structured=False,
                 raw=False,
                 all=False,
-                force=False,
-                version=API_VERSION)
+                force=False)
 
         with self.fake_stdin(sshfp_parts[2]):
             self.check_command('dnsrecord-add test-example.com sshfp ' \
@@ -234,8 +220,7 @@ class TestCLIParsing(object):
                 structured=False,
                 raw=False,
                 all=False,
-                force=False,
-                version=API_VERSION)
+                force=False)
 
     def test_dnsrecord_del_comma(self):
         try:
@@ -257,8 +242,7 @@ class TestCLIParsing(object):
                     idnsname=u'test',
                     del_all=False,
                     txtrecord=[u'"A pretty little problem," said Holmes.'],
-                    structured=False,
-                    version=API_VERSION)
+                    structured=False)
         finally:
             self.run_command('dnszone_del', idnsname=u'test-example.com')
 
@@ -278,7 +262,6 @@ class TestCLIParsing(object):
                     ipasecondarybaserid=500000,
                     all=False,
                     raw=False,
-                    version=API_VERSION
                 )
 
         def test_with_command_line_options():
@@ -293,7 +276,6 @@ class TestCLIParsing(object):
                 ipasecondarybaserid=u'500000',
                 all=False,
                 raw=False,
-                version=API_VERSION
             )
 
         def test_without_options():
@@ -305,7 +287,6 @@ class TestCLIParsing(object):
                 ipaidrangesize=u'1',
                 all=False,
                 raw=False,
-                version=API_VERSION
             )
 
         adtrust_dn = 'cn=ADTRUST,cn=%s,cn=masters,cn=ipa,cn=etc,%s' % \
