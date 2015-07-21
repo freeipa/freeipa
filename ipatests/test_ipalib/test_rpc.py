@@ -229,6 +229,9 @@ class test_xmlclient(PluginTester):
             ),
 
         )
+
+        # Create connection for the current thread
+        setattr(context, o.id, Connection(conn, lambda: None))
         context.xmlclient = Connection(conn, lambda: None)
 
         # Test with a successful return value:
