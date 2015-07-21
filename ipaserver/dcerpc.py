@@ -42,7 +42,8 @@ from samba.ndr import ndr_pack, ndr_print
 from samba import net
 import samba
 import random
-from M2Crypto import RC4
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms
+from cryptography.hazmat.backends import default_backend
 try:
     from ldap.controls import RequestControl as LDAPControl #pylint: disable=F0401
 except ImportError:
@@ -127,6 +128,14 @@ def assess_dcerpc_exception(num=None,message=None):
     reason = _('''CIFS server communication error: code "%(num)s",
                   message "%(message)s" (both may be "None")''') % dict(num=num, message=message)
     return errors.RemoteRetrieveError(reason=reason)
+
+
+def arcfour_encrypt(key, data):
+    algorithm = algorithms.ARC4(key)
+    cipher = Cipher(algorithm, mode=None, backend=default_backend())
+    encryptor = cipher.encryptor()
+    return encryptor.update(data)
+
 
 class ExtendedDNControl(LDAPControl):
     # This class attempts to implement LDAP control that would work
@@ -941,10 +950,6 @@ class TrustDomainInstance(object):
         self.info['is_pdc'] = (result.role == lsa.LSA_ROLE_PRIMARY)
 
     def generate_auth(self, trustdom_secret):
-        def arcfour_encrypt(key, data):
-            c = RC4.RC4(key)
-            return c.update(data)
-
         password_blob = string_to_array(trustdom_secret.encode('utf-16-le'))
 
         clear_value = drsblobs.AuthInfoClear()

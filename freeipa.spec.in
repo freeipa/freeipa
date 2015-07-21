@@ -84,7 +84,6 @@ BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1 >= 0.0.9a
 BuildRequires:  python-qrcode-core >= 5.0.0
 BuildRequires:  python-dns >= 1.11.1
-BuildRequires:  m2crypto
 BuildRequires:  check
 BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_nss_idmap-devel >= 1.12.2
@@ -218,7 +217,6 @@ Integrated DNS server is BIND 9. OpenDNSSEC provides key management.
 Summary: Virtual package to install packages required for Active Directory trusts
 Group: System Environment/Base
 Requires: %{name}-server = %version-%release
-Requires: m2crypto
 Requires: samba-python
 Requires: samba >= %{samba_version}
 Requires: samba-winbind
