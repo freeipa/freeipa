@@ -300,7 +300,8 @@ class test_user(Declarative):
                         objectclass=add_oc(
                             objectclasses.user,
                             u'ipantuserattrs'
-                        ) + [u'ipauser']
+                        ) + [u'ipauser'],
+                        preserved=False
                     ),
                 ],
                 summary=u'1 user matched',
@@ -1162,6 +1163,7 @@ class test_user(Declarative):
                     manager=[renameduser1],
                     objectclass=add_oc(objectclasses.user_base,
                                        u'ipantuserattrs'),
+                    preserved=False,
                     omit=['mepmanagedentry'],
                 ),
                 value=user2,
@@ -1191,6 +1193,7 @@ class test_user(Declarative):
                     memberof_group=[group1],
                     objectclass=add_oc(objectclasses.user_base,
                                        u'ipantuserattrs'),
+                    preserved=False,
                     omit=['mepmanagedentry'],
                 ),
                 value=user2,
