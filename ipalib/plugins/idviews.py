@@ -256,16 +256,18 @@ class baseidview_apply(LDAPQuery):
         if not options.get('clear_view', False):
             view_dn = self.api.Object['idview'].get_dn_if_exists(view)
             assert isinstance(view_dn, DN)
+
+            # Check that we're not applying the Default Trust View
+            if view.lower() == DEFAULT_TRUST_VIEW_NAME:
+                raise errors.ValidationError(
+                    name=_('ID View'),
+                    error=_('Default Trust View cannot be applied on hosts')
+                )
+
         else:
             # In case we are removing assigned view, we modify the host setting
             # the ipaAssignedIDView to None
             view_dn = None
-
-        if view.lower() == DEFAULT_TRUST_VIEW_NAME:
-            raise errors.ValidationError(
-                name=_('ID View'),
-                error=_('Default Trust View cannot be applied on hosts')
-            )
 
         completed = 0
         succeeded = {'host': []}
