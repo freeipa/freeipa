@@ -107,6 +107,14 @@ dcerpc_error_messages = {
          errors.RequirementError(name=_('At least the domain or IP address should be specified')),
 }
 
+pysss_type_key_translation_dict = {
+    pysss_nss_idmap.ID_USER: 'user',
+    pysss_nss_idmap.ID_GROUP: 'group',
+    # Used for users with magic private groups
+    pysss_nss_idmap.ID_BOTH: 'both',
+}
+
+
 def assess_dcerpc_exception(num=None,message=None):
     """
     Takes error returned by Samba bindings and converts it into
@@ -367,6 +375,27 @@ class DomainValidator(object):
         except TypeError, e:
             raise errors.ValidationError(name=_('trusted domain object'),
                error= _('Trusted domain did not return a valid SID for the object'))
+
+    def get_trusted_domain_object_type(self, name_or_sid):
+        """
+        Return the type of the object corresponding to the given name in
+        the trusted domain, which is either 'user', 'group' or 'both'.
+        The 'both' types is used for users with magic private groups.
+        """
+
+        object_type = None
+
+        if is_sid_valid(name_or_sid):
+            result = pysss_nss_idmap.getnamebysid(name_or_sid)
+        else:
+            result = pysss_nss_idmap.getsidbyname(name_or_sid)
+
+        if name_or_sid in result:
+            object_type = result[name_or_sid].get(pysss_nss_idmap.TYPE_KEY)
+
+        # Do the translation to hide pysss_nss_idmap constants
+        # from higher-level code
+        return pysss_type_key_translation_dict.get(object_type)
 
     def get_trusted_domain_object_from_sid(self, sid):
         root_logger.debug("Converting SID to object name: %s" % sid)
