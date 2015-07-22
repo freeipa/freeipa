@@ -644,6 +644,8 @@ class DomainValidator(object):
         Returns LDAP result or None.
         """
 
+        ccache_name = None
+
         if self._admin_creds:
             (ccache_name, principal) = self.kinit_as_administrator(info['dns_domain'])
 
