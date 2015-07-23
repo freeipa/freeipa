@@ -730,10 +730,6 @@ class user_find(baseuser_find):
             return ("(&(objectclass=posixaccount)(krbprincipalname=%s))"%\
                         getattr(context, 'principal'), base_dn, scope)
 
-        newoptions = {}
-        self.common_enhance_options(newoptions, **options)
-        options.update(newoptions)
-
         preserved = options.get('preserved', False)
         if preserved is None:
             base_dn = self.api.env.basedn

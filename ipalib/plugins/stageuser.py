@@ -449,13 +449,6 @@ class stageuser_find(baseuser_find):
     member_attributes = ['memberof']
     has_output_params = baseuser_find.has_output_params + stageuser_output_params
 
-    def execute(self, *args, **options):
-        newoptions = {}
-        self.common_enhance_options(newoptions, **options)
-        options.update(newoptions)
-
-        return super(stageuser_find, self).execute(self, *args, **options)
-
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *keys, **options):
         assert isinstance(base_dn, DN)
 
