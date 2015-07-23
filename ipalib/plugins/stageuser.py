@@ -377,16 +377,17 @@ class stageuser_add(baseuser_add):
 
             staging_dn = self.obj.get_dn(*keys, **options)
             delete_dn = DN(staging_dn[0], self.obj.delete_container_dn, api.env.basedn)
-
+            new_dn = DN(staging_dn[0], self.obj.stage_container_dn, api.env.basedn)
             # Check that this value is a Active user
             try:
                 entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(delete_dn, ['dn'])
             except errors.NotFound:
-                raise
-            self._exc_wrapper(keys, options, ldap.move_entry_newsuperior)(delete_dn, str(DN(self.obj.stage_container_dn, api.env.basedn)))
+                self.obj.handle_not_found(*keys)
 
+            self._exc_wrapper(keys, options, ldap.move_entry)(
+                delete_dn, new_dn)
             entry_attrs = entry_to_dict(entry_attrs, **options)
-            entry_attrs['dn'] = delete_dn
+            entry_attrs['dn'] = new_dn
 
             if self.obj.primary_key and keys[-1] is not None:
                 return dict(result=entry_attrs, value=keys[-1])
