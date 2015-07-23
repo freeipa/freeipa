@@ -26,10 +26,11 @@ import re
 ACIPat = re.compile(r'\(version\s+3.0\s*;\s*ac[li]\s+\"([^\"]*)\"\s*;\s*([^;]*);\s*\)', re.UNICODE)
 
 # Break the permissions/bind_rules out
-PermPat = re.compile(r'(\w+)\s*\((.*)\)\s+(.*)', re.UNICODE)
+PermPat = re.compile(r'(\w+)\s*\(([^()]*)\)\s*(.*)', re.UNICODE)
 
 # Break the bind rule out
-BindPat = re.compile(r'([a-zA-Z0-9;\.]+)\s*(\!?=)\s*(.*)', re.UNICODE)
+BindPat = re.compile(r'\(?([a-zA-Z0-9;\.]+)\s*(\!?=)\s*\"(.*)\"\)?',
+                     re.UNICODE)
 
 ACTIONS = ["allow", "deny"]
 
@@ -193,6 +194,9 @@ class ACI:
         self.target['target']['operator'] = operator
 
     def set_bindrule(self, bindrule):
+        if bindrule.startswith('(') != bindrule.endswith(')'):
+            raise SyntaxError("non-matching parentheses in bindrule")
+
         match = BindPat.match(bindrule)
         if not match or len(match.groups()) < 3:
             raise SyntaxError, "malformed bind rule"
