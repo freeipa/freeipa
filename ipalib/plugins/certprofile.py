@@ -11,6 +11,7 @@ from ipalib.plugins.virtual import VirtualCommand
 from ipalib.plugins.baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate,
     LDAPDelete, LDAPUpdate, LDAPRetrieve)
+from ipalib.request import context
 from ipalib import ngettext
 from ipalib.text import _
 from ipapython.version import API_VERSION
@@ -230,11 +231,12 @@ class certprofile_import(LDAPCreate):
 
     def pre_callback(self, ldap, dn, entry, entry_attrs, *keys, **options):
         ca_enabled_check()
+        context.profile = options['file']
 
         match = self.PROFILE_ID_PATTERN.search(options['file'])
         if match is None:
-            raise errors.ValidationError(name='file',
-                error=_("Profile ID is not present in profile data"))
+            # no profileId found, use CLI value as profileId.
+            context.profile = u'profileId=%s\n%s' % (keys[0], context.profile)
         elif keys[0] != match.group(1):
             raise errors.ValidationError(name='file',
                 error=_("Profile ID '%(cli_value)s' does not match profile data '%(file_value)s'")
@@ -250,7 +252,7 @@ class certprofile_import(LDAPCreate):
         """
         try:
             with self.api.Backend.ra_certprofile as profile_api:
-                profile_api.create_profile(options['file'])
+                profile_api.create_profile(context.profile)
                 profile_api.enable_profile(keys[0])
         except:
             # something went wrong ; delete entry
