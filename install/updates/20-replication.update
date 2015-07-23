@@ -49,6 +49,7 @@ default: nsslapd-pluginType: object
 default: nsslapd-pluginEnabled: on
 default: nsslapd-topo-plugin-shared-config-base: cn=ipa,cn=etc,$SUFFIX
 default: nsslapd-topo-plugin-shared-replica-root: $SUFFIX
+default: nsslapd-topo-plugin-shared-replica-root: o=ipaca
 default: nsslapd-topo-plugin-shared-binddngroup: cn=replication managers,cn=sysaccounts,cn=etc,$SUFFIX
 default: nsslapd-topo-plugin-startup-delay: 20
 default: nsslapd-pluginId: none

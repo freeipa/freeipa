@@ -10,6 +10,7 @@ nsslapd-pluginType: object
 nsslapd-pluginEnabled: on
 nsslapd-topo-plugin-shared-config-base: cn=ipa,cn=etc,$SUFFIX
 nsslapd-topo-plugin-shared-replica-root: $SUFFIX
+nsslapd-topo-plugin-shared-replica-root: o=ipaca
 nsslapd-topo-plugin-shared-binddngroup: cn=replication managers,cn=sysaccounts,cn=etc,$SUFFIX
 nsslapd-topo-plugin-startup-delay: 20
 nsslapd-pluginId: none
