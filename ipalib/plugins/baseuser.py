@@ -561,6 +561,14 @@ class baseuser_find(LDAPSearch):
     """
     Prototype command plugin to be implemented by real plugin
     """
+    def args_options_2_entry(self, *args, **options):
+        newoptions = {}
+        self.common_enhance_options(newoptions, **options)
+        options.update(newoptions)
+
+        return super(baseuser_find, self).args_options_2_entry(
+            *args, **options)
+
     def common_enhance_options(self, newoptions, **options):
         # assure the manager attr is a dn, not just a bare uid
         manager = options.get('manager')
