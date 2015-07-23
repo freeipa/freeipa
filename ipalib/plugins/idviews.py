@@ -718,6 +718,25 @@ class baseidoverride_del(LDAPDelete):
 
     takes_options = LDAPDelete.takes_options + (fallback_to_ldap_option,)
 
+    def pre_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
+
+        # Make sure the entry we're deleting has all the objectclasses
+        # this object requires
+        try:
+            entry = ldap.get_entry(dn, ['objectclass'])
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
+        required_object_classes = set(self.obj.object_class)
+        actual_object_classes = set(entry['objectclass'])
+
+        # If not, treat it as a failed search
+        if not required_object_classes.issubset(actual_object_classes):
+            self.obj.handle_not_found(*keys)
+
+        return dn
+
 
 class baseidoverride_mod(LDAPUpdate):
     __doc__ = _('Modify an ID override.')
