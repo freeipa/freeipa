@@ -220,7 +220,7 @@ class certprofile_import(LDAPCreate):
     msg_summary = _('Imported profile "%(value)s"')
     takes_options = (
         File('file',
-            label=_('Filename'),
+            label=_('Filename of a raw profile. The XML format is not supported.'),
             cli_name='file',
             flags=('virtual_attribute',),
         ),
