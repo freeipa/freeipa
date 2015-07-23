@@ -434,6 +434,36 @@ class idview_unapply(baseidview_apply):
 
 
 # ID overrides helper methods
+def verify_trusted_domain_object_type(validator, desired_type, name_or_sid):
+
+    object_type = validator.get_trusted_domain_object_type(name_or_sid)
+
+    if object_type == desired_type:
+        # In case SSSD returns the same type as the type being
+        # searched, no problems here.
+        return True
+
+    elif desired_type == 'user' and object_type == 'both':
+        # Type both denotes users with magic private groups.
+        # Overriding attributes for such users is OK.
+        return True
+
+    elif desired_type == 'group' and object_type == 'both':
+        # However, overriding attributes for magic private groups
+        # does not make sense. One should override the GID of
+        # the user itself.
+
+        raise errors.ConversionError(
+            name='identifier',
+            error=_('You are trying to reference a magic private group '
+                    'which is not allowed to be overriden. '
+                    'Try overriding the GID attribute of the '
+                    'corresponding user instead.')
+            )
+
+    return False
+
+
 def resolve_object_to_anchor(ldap, obj_type, obj, fallback_to_ldap):
     """
     Resolves the user/group name to the anchor uuid:
@@ -484,9 +514,15 @@ def resolve_object_to_anchor(ldap, obj_type, obj, fallback_to_ldap):
                 sid = domain_validator.get_trusted_domain_object_sid(obj,
                         fallback_to_ldap=fallback_to_ldap)
 
-                # There is no domain prefix since SID contains information
-                # about the domain
-                return SID_ANCHOR_PREFIX + sid
+                # We need to verify that the object type is correct
+                type_correct = verify_trusted_domain_object_type(
+                        domain_validator, obj_type, sid)
+
+                if type_correct:
+                    # There is no domain prefix since SID contains information
+                    # about the domain
+                    return SID_ANCHOR_PREFIX + sid
+
     except errors.ValidationError:
         # Domain validator raises Validation Error if object name does not
         # contain domain part (either NETBIOS\ prefix or @domain.name suffix)
@@ -541,7 +577,13 @@ def resolve_anchor_to_object_name(ldap, obj_type, anchor):
             domain_validator = ipaserver.dcerpc.DomainValidator(api)
             if domain_validator.is_configured():
                 name = domain_validator.get_trusted_domain_object_from_sid(sid)
-                return name
+
+                # We need to verify that the object type is correct
+                type_correct = verify_trusted_domain_object_type(
+                        domain_validator, obj_type, name)
+
+                if type_correct:
+                    return name
 
     # No acceptable object was found
     raise errors.NotFound(
