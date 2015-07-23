@@ -665,6 +665,19 @@ class vault_add(PKQuery, Local):
                     name='ipavaultpublickey',
                     error=_('Missing vault public key'))
 
+            # validate public key and prevent users from accidentally
+            # sending a private key to the server.
+            try:
+                load_pem_public_key(
+                    data=public_key,
+                    backend=default_backend()
+                )
+            except ValueError as e:
+                raise errors.ValidationError(
+                    name='ipavaultpublickey',
+                    error=_('Invalid or unsupported vault public key: %s') % e,
+                )
+
         # create vault
         response = self.api.Command.vault_add_internal(*args, **options)
 
