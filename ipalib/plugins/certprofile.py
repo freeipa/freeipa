@@ -47,8 +47,28 @@ EXAMPLES:
   Show information about a profile:
     ipa certprofile-show ShortLivedUserCert
 
+  Save profile configuration to a file:
+    ipa certprofile-show caIPAserviceCert --out caIPAserviceCert.cfg
+
   Search for profiles that do not store certificates:
     ipa certprofile-find --store=false
+
+PROFILE CONFIGURATION FORMAT:
+
+The profile configuration format is the raw property-list format
+used by Dogtag Certificate System.  The XML format is not supported.
+
+The following restrictions apply to profiles managed by FreeIPA:
+
+- When importing a profile the "profileId" field, if present, must
+  match the ID given on the command line.
+
+- The "classId" field must be set to "caEnrollImpl"
+
+- The "auth.instance_id" field must be set to "raCertAuth"
+
+- The "certReqInputImpl" input class and "certOutputImpl" output
+  class must be used.
 
 """)
 
