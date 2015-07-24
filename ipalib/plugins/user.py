@@ -23,7 +23,7 @@ import string
 import posixpath
 import os
 
-from ipalib import api, errors
+from ipalib import api, errors, util
 from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime
 from ipalib.plugins.baseuser import baseuser, baseuser_add, baseuser_del, \
     baseuser_mod, baseuser_find, baseuser_show, \
@@ -38,6 +38,7 @@ from ipalib.plugins import baseldap
 from ipalib.request import context
 from ipalib import _, ngettext
 from ipalib import output
+from ipalib import x509
 from ipaplatform.paths import paths
 from ipapython.ipautil import ipa_generate_password
 from ipapython.ipavalidate import Email
@@ -765,12 +766,36 @@ class user_show(baseuser_show):
     __doc__ = _('Display information about a user.')
 
     has_output_params = baseuser_show.has_output_params + user_output_params
+    takes_options = baseuser_show.takes_options + (
+        Str('out?',
+            doc=_('file to store certificate in'),
+        ),
+    )
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         convert_nsaccountlock(entry_attrs)
         self.post_common_callback(ldap, dn, entry_attrs, **options)
         self.obj.get_preserved_attribute(entry_attrs, options)
         return dn
+
+    def forward(self, *keys, **options):
+        if 'out' in options:
+            util.check_writable_file(options['out'])
+            result = super(user_show, self).forward(*keys, **options)
+            if 'usercertificate' in result['result']:
+                x509.write_certificate_list(
+                    result['result']['usercertificate'],
+                    options['out']
+                )
+                result['summary'] = (
+                    _('Certificate(s) stored in file \'%(file)s\'')
+                    % dict(file=options['out'])
+                )
+                return result
+            else:
+                raise errors.NoCertificateError(entry=keys[-1])
+        else:
+            return super(user_show, self).forward(*keys, **options)
 
 @register()
 class user_undel(LDAPQuery):
