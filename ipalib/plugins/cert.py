@@ -312,6 +312,7 @@ class cert_request(VirtualCommand):
         '2.5.29.17': 'request certificate with subjectaltname',
         '2.5.29.19': None,      # Basic Constraints
         '2.5.29.37': None,      # Extended Key Usage
+        '1.2.840.10070.8.1': None, # IECUserRoles (DNP3 / IEC 62351-8)
     }
 
     def execute(self, csr, **kw):

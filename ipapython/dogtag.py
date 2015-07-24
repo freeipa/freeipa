@@ -45,6 +45,7 @@ from ipapython.ipa_log_manager import *
 INCLUDED_PROFILES = {
     # ( profile_id    ,         description      ,      store_issued)
     (u'caIPAserviceCert', u'Standard profile for network services', True),
+    (u'IECUserRoles', u'User profile that includes IECUserRoles extension from request', True),
     }
 
 DEFAULT_PROFILE = u'caIPAserviceCert'
