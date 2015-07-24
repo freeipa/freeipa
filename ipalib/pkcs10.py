@@ -53,7 +53,20 @@ def get_extensions(csr, datatype=PEM):
     The return value is a tuple of strings
     """
     request = load_certificate_request(csr, datatype)
-    return tuple(nss.oid_dotted_decimal(ext.oid_tag)[4:]
+
+    # Work around a bug in python-nss where nss.oid_dotted_decimal
+    # errors on unrecognised OIDs
+    #
+    # https://bugzilla.redhat.com/show_bug.cgi?id=1246729
+    #
+    def get_prefixed_oid_str(ext):
+        """Returns a string like 'OID.1.2...'."""
+        if ext.oid_tag == 0:
+            return repr(ext)
+        else:
+            return nss.oid_dotted_decimal(ext.oid)
+
+    return tuple(get_prefixed_oid_str(ext)[4:]
                  for ext in request.extensions)
 
 class _PrincipalName(univ.Sequence):
