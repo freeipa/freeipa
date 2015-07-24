@@ -5360,10 +5360,11 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: user_show
-args: 1,5,3
+args: 1,6,3
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
+option: Str('out?')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Flag('rights', autofill=True, default=False)
 option: Str('version?', exclude='webui')
