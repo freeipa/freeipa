@@ -11,6 +11,7 @@ import functools
 from ipalib import api, errors
 from ipapython.dn import DN
 from ipapython.version import API_VERSION
+from ipatests.util import Fuzzy
 
 
 class Tracker(object):
@@ -88,8 +89,8 @@ class Tracker(object):
 
     @dn.setter
     def dn(self, value):
-        if not isinstance(value, DN):
-            raise ValueError('The value must be an instance of DN.')
+        if not (isinstance(value, DN) or isinstance(value, Fuzzy)):
+            raise ValueError('The value must be an instance of DN or Fuzzy.')
         self._dn = value
 
     @property
