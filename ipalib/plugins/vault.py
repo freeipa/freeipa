@@ -486,11 +486,11 @@ class vault(LDAPObject):
             return fernet.encrypt(data)
 
         elif public_key:
-            rsa_public_key = load_pem_public_key(
+            public_key_obj = load_pem_public_key(
                 data=public_key,
                 backend=default_backend()
             )
-            return rsa_public_key.encrypt(
+            return public_key_obj.encrypt(
                 data,
                 padding.OAEP(
                     mgf=padding.MGF1(algorithm=hashes.SHA1()),
@@ -513,12 +513,12 @@ class vault(LDAPObject):
 
         elif private_key:
             try:
-                rsa_private_key = load_pem_private_key(
+                private_key_obj = load_pem_private_key(
                     data=private_key,
                     password=None,
                     backend=default_backend()
                 )
-                return rsa_private_key.decrypt(
+                return private_key_obj.decrypt(
                     data,
                     padding.OAEP(
                         mgf=padding.MGF1(algorithm=hashes.SHA1()),
