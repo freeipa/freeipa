@@ -40,11 +40,12 @@ import errno
 from socket import SOCK_STREAM, SOCK_DGRAM
 import distutils.spawn
 from ipaplatform.paths import paths
+import gssapi
 
 CONNECT_TIMEOUT = 5
 RESPONDERS = [ ]
 QUIET = False
-CCACHE_FILE = paths.CONNCHECK_CCACHE
+CCACHE_FILE = None
 KRB5_CONFIG = None
 
 class SshExec(object):
@@ -64,12 +65,22 @@ class SshExec(object):
             self.cmd,
             '-o StrictHostKeychecking=no',
             '-o UserKnownHostsFile=%s' % tmpf.name,
+            '-o GSSAPIAuthentication=yes',
             '%s@%s' % (self.user, self.addr), command
         ]
         if verbose:
             cmd.insert(1, '-v')
 
-        env = {'KRB5_CONFIG': KRB5_CONFIG, 'KRB5CCNAME': CCACHE_FILE}
+        env = dict()
+        if KRB5_CONFIG is not None:
+            env['KRB5_CONFIG'] = KRB5_CONFIG
+        elif 'KRB5_CONFIG' in os.environ:
+            env['KRB5_CONFIG'] = os.environ['KRB5_CONFIG']
+        if CCACHE_FILE is not None:
+            env['KRB5CCNAME'] = CCACHE_FILE
+        elif 'KRB5CCNAME' in os.environ:
+            env['KRB5CCNAME'] = os.environ['KRB5CCNAME']
+
         return ipautil.run(cmd, env=env, raiseonerr=False)
 
 
@@ -110,7 +121,7 @@ def parse_options():
     replica_group.add_option("-k", "--kdc", dest="kdc",
                       help="Master KDC. Defaults to master address")
     replica_group.add_option("-p", "--principal", dest="principal",
-                      default="admin", help="Principal to use to log in to remote master")
+                      default=None, help="Principal to use to log in to remote master")
     replica_group.add_option("-w", "--password", dest="password", sensitive=True,
                       help="Password for the principal"),
     parser.add_option_group(replica_group)
@@ -352,45 +363,63 @@ def main():
         remote_check_opts = ['--replica %s' % options.hostname]
 
         if options.auto_master_check:
-            (krb_fd, krb_name) = tempfile.mkstemp()
-            os.close(krb_fd)
-            configure_krb5_conf(options.realm, options.kdc, krb_name)
-            global KRB5_CONFIG
-            KRB5_CONFIG = krb_name
-
             print_info("Get credentials to log in to remote master")
-            if options.principal.find('@') == -1:
-                principal = '%s@%s' % (options.principal, options.realm)
-                user = options.principal
+            cred = None
+            if options.principal is None:
+                # Check if ccache is available
+                try:
+                    root_logger.debug('KRB5CCNAME set to %s' %
+                                      os.environ.get('KRB5CCNAME', None))
+                    # get default creds, will raise if none found
+                    cred = gssapi.creds.Credentials()
+                    principal = str(cred.name)
+                except gssapi.raw.misc.GSSError as e:
+                    root_logger.debug('Failed to find default ccache: %s' % e)
+                    # Use admin as the default principal
+                    principal = "admin"
             else:
                 principal = options.principal
-                user = options.principal.partition('@')[0]
 
-            if options.password:
-                password=options.password
-            else:
-                password = installutils.read_password(principal, confirm=False,
-                           validate=False, retry=False)
-                if password is None:
-                    sys.exit("Principal password required")
+            if cred is None:
+                (krb_fd, krb_name) = tempfile.mkstemp()
+                os.close(krb_fd)
+                configure_krb5_conf(options.realm, options.kdc, krb_name)
+                global KRB5_CONFIG
+                KRB5_CONFIG = krb_name
+                (ccache_fd, ccache_name) = tempfile.mkstemp()
+                os.close(ccache_fd)
+                global CCACHE_FILE
+                CCACHE_FILE = ccache_name
+
+                if principal.find('@') == -1:
+                    principal = '%s@%s' % (principal, options.realm)
+
+                if options.password:
+                    password=options.password
+                else:
+                    password = installutils.read_password(principal, confirm=False,
+                               validate=False, retry=False)
+                    if password is None:
+                        sys.exit("Principal password required")
 
 
-            stderr=''
-            (stdout, stderr, returncode) = ipautil.run([paths.KINIT, principal],
-                 env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME':CCACHE_FILE},
-                 stdin=password, raiseonerr=False)
-            if returncode != 0:
-                raise RuntimeError("Cannot acquire Kerberos ticket: %s" % stderr)
+                stderr=''
+                (stdout, stderr, returncode) = ipautil.run([paths.KINIT, principal],
+                     env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME':CCACHE_FILE},
+                    stdin=password, raiseonerr=False)
+                if returncode != 0:
+                    raise RuntimeError("Cannot acquire Kerberos ticket: %s" % stderr)
 
-            # Verify kinit was actually successful
-            stderr=''
-            (stdout, stderr, returncode) = ipautil.run([paths.BIN_KVNO,
-                 'host/%s' % options.master],
-                 env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME':CCACHE_FILE},
-                 raiseonerr=False)
-            if returncode != 0:
-                raise RuntimeError("Could not get ticket for master server: %s" % stderr)
+                # Verify kinit was actually successful
+                stderr=''
+                (stdout, stderr, returncode) = ipautil.run([paths.BIN_KVNO,
+                     'host/%s' % options.master],
+                    env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME':CCACHE_FILE},
+                    raiseonerr=False)
+                if returncode != 0:
+                    raise RuntimeError("Could not get ticket for master server: %s" % stderr)
 
+            user = principal.partition('@')[0]
             ssh = SshExec(user, options.master)
 
             print_info("Check SSH connection to remote master")

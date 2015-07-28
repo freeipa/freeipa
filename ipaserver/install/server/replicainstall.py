@@ -821,6 +821,7 @@ def promote_check(installer):
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
 
     # Check if ccache is available
+    default_cred = None
     try:
         root_logger.debug('KRB5CCNAME set to %s' %
                           os.environ.get('KRB5CCNAME', None))
@@ -853,8 +854,8 @@ def promote_check(installer):
         stdin = None
         if principal.find('@') == -1:
             principal = '%s@%s' % (principal, config.realm_name)
-        if options.password is not None:
-            stdin = options.password
+        if options.admin_password is not None:
+            stdin = options.admin_password
         else:
             if not options.unattended:
                 try:
@@ -875,6 +876,9 @@ def promote_check(installer):
                                        "non-interactive mode.")
                 else:
                     stdin = sys.stdin.readline()
+
+            # set options.admin_password for future use
+            options.admin_password = stdin
 
         try:
             ipautil.kinit_password(principal, stdin, ccache_name)
@@ -1030,9 +1034,13 @@ def promote_check(installer):
 
     # check connection
     if not options.skip_conncheck:
+        p = None
+        if default_cred is None:
+            p = principal
         replica_conn_check(
             config.master_host_name, config.host_name, config.realm_name,
-            options.setup_ca, dogtag.Dogtag10Constants.DS_PORT)
+            options.setup_ca, dogtag.Dogtag10Constants.DS_PORT,
+            options.admin_password, principal=p)
 
     if not ipautil.file_exists(cafile):
         raise RuntimeError("CA cert file is not available.")

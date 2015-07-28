@@ -64,7 +64,8 @@ STRIP_ATTRS = ('modifiersName',
 
 
 def replica_conn_check(master_host, host_name, realm, check_ca,
-                       dogtag_master_ds_port, admin_password=None):
+                       dogtag_master_ds_port, admin_password=None,
+                       principal="admin"):
     """
     Check the ports used by the replica both locally and remotely to be sure
     that replication will work.
@@ -74,9 +75,11 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
     print("Run connection check to master")
     args = [paths.IPA_REPLICA_CONNCHECK, "--master", master_host,
             "--auto-master-check", "--realm", realm,
-            "--principal", "admin",
             "--hostname", host_name]
     nolog=tuple()
+
+    if principal is not None:
+        args.extend(["--principal", principal])
 
     if admin_password:
         args.extend(["--password", admin_password])
