@@ -32,6 +32,7 @@ define([
         './json2',
         './_base/i18n',
         './auth',
+        './config',
         './datetime',
         './metadata',
         './builder',
@@ -41,7 +42,8 @@ define([
         './util',
         'exports'
     ], function(declare, Deferred, Evented, keys, topic, $, JSON, i18n, auth,
-        datetime, metadata_provider, builder, reg, rpc, text, util, exports) {
+        config, datetime, metadata_provider, builder, reg, rpc, text,
+        util, exports) {
 
 /**
  * @class
@@ -127,11 +129,9 @@ var IPA = function () {
         // if current path matches live server path, use live data
         if (that.url && window.location.pathname.substring(0, that.url.length) === that.url) {
             that.json_url = params.url || '/ipa/session/json';
-            that.login_url = params.url || '/ipa/session/login_kerberos';
 
         } else { // otherwise use fixtures
             that.json_path = params.url || "test/data";
-            // that.login_url is not needed for fixtures
         }
 
         $.ajaxSetup(that.ajax_options);
@@ -377,7 +377,7 @@ IPA.get_credentials = function() {
     }
 
     var request = {
-        url: IPA.login_url,
+        url: config.krb_login_url,
         cache: false,
         type: "GET",
         success: success_handler,
