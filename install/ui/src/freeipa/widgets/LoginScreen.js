@@ -232,8 +232,8 @@ define(['dojo/_base/declare',
                     this.set('view', 'reset');
                     val_summary.add_info('login', this.password_expired);
                 } else {
-                    val_summary.add_error('login', this.form_auth_failed);
                     password_f.set_value('');
+                    val_summary.add_error('login', this.form_auth_failed);
                 }
             }));
         },
