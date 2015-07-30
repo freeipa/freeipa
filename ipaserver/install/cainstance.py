@@ -106,7 +106,7 @@ def get_preop_pin(instance_root, instance_name):
     # read the config file and get the preop pin
     try:
         f = open(filename)
-    except IOError, e:
+    except IOError as e:
         root_logger.error("Cannot open configuration file." + str(e))
         raise e
     data = f.read()
@@ -752,7 +752,7 @@ class CAInstance(DogtagInstance):
             nolog = (self.admin_password, self.dm_password,)
 
             ipautil.run(args, env={'PKI_HOSTNAME':self.fqdn}, nolog=nolog)
-        except ipautil.CalledProcessError, e:
+        except ipautil.CalledProcessError as e:
             self.handle_setup_error(e)
 
         if self.external == 1:
@@ -770,7 +770,7 @@ class CAInstance(DogtagInstance):
     def backup_config(self):
         try:
             backup_config(self.dogtag_constants)
-        except Exception, e:
+        except Exception as e:
             root_logger.warning("Failed to backup CS.cfg: %s", e)
 
     def __disable_nonce(self):
@@ -976,7 +976,7 @@ class CAInstance(DogtagInstance):
         try:
             return dogtag.get_ca_certchain(ca_host=self.fqdn,
                 dogtag_constants=self.dogtag_constants)
-        except Exception, e:
+        except Exception as e:
             raise RuntimeError("Unable to retrieve CA chain: %s" % str(e))
 
     def __create_ca_agent_pkcs12(self):
@@ -1194,7 +1194,7 @@ class CAInstance(DogtagInstance):
                              "-pki_instance_name=%s" %
                                 self.dogtag_constants.PKI_INSTANCE_NAME,
                              "--force"])
-            except ipautil.CalledProcessError, e:
+            except ipautil.CalledProcessError as e:
                 self.log.critical("failed to uninstall CA instance %s", e)
 
         self.restore_state("installed")
@@ -1234,7 +1234,7 @@ class CAInstance(DogtagInstance):
             for f in get_crl_files():
                 self.log.debug("Remove %s", f)
                 installutils.remove_file(f)
-        except OSError, e:
+        except OSError as e:
             self.log.warning("Error while removing old CRL files: %s", e)
 
         # remove CRL directory
@@ -1242,7 +1242,7 @@ class CAInstance(DogtagInstance):
         if os.path.exists(self.dogtag_constants.CRL_PUBLISH_PATH):
             try:
                 shutil.rmtree(self.dogtag_constants.CRL_PUBLISH_PATH)
-            except OSError, e:
+            except OSError as e:
                 self.log.warning("Error while removing CRL publish "
                                     "directory: %s", e)
 
@@ -1294,7 +1294,7 @@ class CAInstance(DogtagInstance):
                 secdir=paths.HTTPD_ALIAS_DIR,
                 pre_command=None,
                 post_command='renew_ra_cert')
-        except RuntimeError, e:
+        except RuntimeError as e:
             self.log.error(
                 "certmonger failed to start tracking certificate: %s", e)
 
@@ -1305,7 +1305,7 @@ class CAInstance(DogtagInstance):
 
         try:
             certmonger.stop_tracking(paths.HTTPD_ALIAS_DIR, nickname='ipaCert')
-        except RuntimeError, e:
+        except RuntimeError as e:
             root_logger.error(
                 "certmonger failed to stop tracking certificate: %s", e)
 
@@ -1418,7 +1418,7 @@ class CAInstance(DogtagInstance):
 
         try:
             backup_config(dogtag_constants)
-        except Exception, e:
+        except Exception as e:
             syslog.syslog(syslog.LOG_ERR, "Failed to backup CS.cfg: %s" % e)
 
         DogtagInstance.update_cert_cs_cfg(
@@ -1613,7 +1613,7 @@ def update_people_entry(dercert):
                     conn.update_entry(entry)
                 except errors.EmptyModlist:
                     pass
-                except Exception, e:
+                except Exception as e:
                     syslog.syslog(
                         syslog.LOG_ERR,
                         'Updating entry %s failed: %s' % (str(entry.dn), e))
@@ -1626,7 +1626,7 @@ def update_people_entry(dercert):
                 'Connection to %s failed, sleeping 30s' % dogtag_uri)
             time.sleep(30)
             attempts += 1
-        except Exception, e:
+        except Exception as e:
             syslog.syslog(syslog.LOG_ERR, 'Caught unhandled exception: %s' % e)
             break
         finally:

@@ -1134,7 +1134,7 @@ class Decimal(Number):
             if isinstance(value, (basestring, float)):
                 try:
                     value = decimal.Decimal(value)
-                except Exception, e:
+                except Exception as e:
                     raise ValueError(
                        '%s: cannot parse kwarg %s: %s' % (
                         name, kwparam, str(e)))
@@ -1189,7 +1189,7 @@ class Decimal(Number):
             quantize_exp = decimal.Decimal(10) ** -self.precision
             try:
                 value = value.quantize(quantize_exp)
-            except decimal.DecimalException, e:
+            except decimal.DecimalException as e:
                 raise ConversionError(name=self.get_param_name(),
                                       error=unicode(e))
         return value
@@ -1203,7 +1203,7 @@ class Decimal(Number):
                 value = value.quantize(decimal.Decimal(1)) \
                         if value == value.to_integral() \
                         else value.normalize()
-            except decimal.DecimalException, e:
+            except decimal.DecimalException as e:
                 raise ConversionError(name=self.get_param_name(),
                                       error=unicode(e))
 
@@ -1224,7 +1224,7 @@ class Decimal(Number):
         if isinstance(value, (basestring, float)):
             try:
                 value = decimal.Decimal(value)
-            except decimal.DecimalException, e:
+            except decimal.DecimalException as e:
                 raise ConversionError(name=self.get_param_name(), index=index,
                                       error=unicode(e))
 
@@ -1363,7 +1363,7 @@ class Bytes(Data):
         if isinstance(value, unicode):
             try:
                 value = base64.b64decode(value)
-            except TypeError, e:
+            except TypeError as e:
                 raise Base64DecodeError(reason=str(e))
         return super(Bytes, self)._convert_scalar(value, index)
 
@@ -1826,7 +1826,7 @@ class AccessTime(Str):
     def _rule_required(self, _, value):
         try:
             self._check(value)
-        except ValueError, e:
+        except ValueError as e:
             raise ValidationError(name=self.get_param_name(), error=e.args[0])
         except IndexError:
             raise ValidationError(
@@ -1847,7 +1847,7 @@ class DNParam(Param):
 
         try:
             dn = DN(value)
-        except Exception, e:
+        except Exception as e:
             raise ConversionError(name=self.get_param_name(), index=index,
                                   error=ugettext(e))
         return dn

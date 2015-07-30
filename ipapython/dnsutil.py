@@ -37,7 +37,7 @@ class DNSName(dns.name.Name):
                 labels = labels.labels
 
             super(DNSName, self).__init__(labels)
-        except UnicodeError, e:
+        except UnicodeError as e:
             # dnspython bug, an invalid domain name returns the UnicodeError
             # instead of a dns.exception
             raise dns.exception.SyntaxError(e)

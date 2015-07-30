@@ -95,7 +95,7 @@ class CertDB(object):
         self.subject_base = subject_base
         try:
             self.cwd = os.getcwd()
-        except OSError, e:
+        except OSError as e:
             raise RuntimeError("Unable to determine the current directory: %s" % str(e))
 
         if not subject_base:
@@ -300,7 +300,7 @@ class CertDB(object):
             command = paths.CERTMONGER_COMMAND_TEMPLATE % (libpath, command)
         try:
             request_id = certmonger.start_tracking(nickname, self.secdir, password_file, command)
-        except RuntimeError, e:
+        except RuntimeError as e:
             root_logger.error("certmonger failed starting to track certificate: %s" % str(e))
             return
 
@@ -316,7 +316,7 @@ class CertDB(object):
         """
         try:
             certmonger.stop_tracking(self.secdir, nickname=nickname)
-        except RuntimeError, e:
+        except RuntimeError as e:
             root_logger.error("certmonger failed to stop tracking certificate: %s" % str(e))
 
     def create_server_cert(self, nickname, hostname, other_certdb=None, subject=None):

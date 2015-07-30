@@ -105,7 +105,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
             except errors.NotFound:
                 peers[ent.single_value['cn']] = ['CA not configured', '']
 
-    except Exception, e:
+    except Exception as e:
         sys.exit(
             "Failed to get data from '%s' while trying to list replicas: %s" %
             (host, e))
@@ -119,7 +119,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
 
     try:
         repl = replication.get_cs_replication_manager(realm, replica, dirman_passwd)
-    except Exception, e:
+    except Exception as e:
         sys.exit(str(e))
 
     entries = repl.find_replication_agreements()
@@ -162,9 +162,9 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
         repl1.hostnames = [replica1, replica2]
 
-    except errors.NetworkError, e:
+    except errors.NetworkError as e:
         sys.exit("Unable to connect to %s: %s" % (replica1, e))
-    except Exception, e:
+    except Exception as e:
         sys.exit("Failed to get data from '%s': %s" % (replica1, e))
 
     try:
@@ -201,7 +201,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         print "'%s' has no replication agreement for '%s'" % (replica2, replica1)
         if not force:
             return
-    except Exception, e:
+    except Exception as e:
         print "Failed to get data from '%s': %s" % (replica2, e)
         if not force:
             sys.exit(1)
@@ -211,7 +211,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         try:
             repl2.delete_agreement(replica1, replica2_dn)
             repl2.delete_referral(replica1, repl1.port)
-        except Exception, e:
+        except Exception as e:
             print "Unable to remove agreement on %s: %s" % (replica2, e)
             failed = True
 
@@ -239,7 +239,7 @@ def del_master(realm, hostname, options):
     try:
         thisrepl = replication.get_cs_replication_manager(realm, options.host,
                                                           options.dirman_passwd)
-    except Exception, e:
+    except Exception as e:
         sys.exit("Failed to connect to server %s: %s" % (options.host, e))
 
     # 2. Ensure we have an agreement with the master
@@ -250,7 +250,7 @@ def del_master(realm, hostname, options):
     try:
         delrepl = replication.get_cs_replication_manager(realm, hostname,
                                                          options.dirman_passwd)
-    except Exception, e:
+    except Exception as e:
         if not options.force:
             print "Unable to delete replica %s: %s" % (hostname, e)
             sys.exit(1)
@@ -271,7 +271,7 @@ def del_master(realm, hostname, options):
     for r in replica_names:
         try:
             del_link(realm, r, hostname, options.dirman_passwd, force=True)
-        except Exception, e:
+        except Exception as e:
             sys.exit("There were issues removing a connection: %s" % e)
 
     # 6. Pick CA renewal master
@@ -287,7 +287,7 @@ def del_master(realm, hostname, options):
                                       bind_pw=options.dirman_passwd)
             bind = bindinstance.BindInstance()
             bind.remove_ipa_ca_dns_records(hostname, realm.lower())
-    except Exception, e:
+    except Exception as e:
         print "Failed to cleanup %s DNS entries: %s" % (hostname, e)
         print "You may need to manually remove them from the tree"
 
@@ -295,7 +295,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
     try:
         repl2 = replication.get_cs_replication_manager(realm, replica2,
                                                        dirman_passwd)
-    except Exception, e:
+    except Exception as e:
         sys.exit(str(e))
     try:
         conn = ipaldap.IPAdmin(replica2, 636, cacert=CACERT)
@@ -307,9 +307,9 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
         conn.unbind()
     except errors.NotFound:
         sys.exit('%s does not have a CA configured.' % replica2)
-    except errors.NetworkError, e:
+    except errors.NetworkError as e:
         sys.exit("Unable to connect to %s: %s" % (ipautil.format_netloc(replica2, 636), str(e)))
-    except Exception, e:
+    except Exception as e:
         sys.exit("Failed to get data while trying to bind to '%s': %s" % (replica1, str(e)))
 
     try:
@@ -323,9 +323,9 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
 
     except errors.NotFound:
         sys.exit("Cannot find replica '%s'" % replica1)
-    except errors.NetworkError, e:
+    except errors.NetworkError as e:
         sys.exit("Unable to connect to %s: %s" % (replica1, e))
-    except Exception, e:
+    except Exception as e:
         sys.exit(
             "Failed to get data from '%s' while trying to get current "
             "agreements: %s" % (replica1, e))
@@ -347,7 +347,7 @@ def re_initialize(realm, options):
                                                       options.dirman_passwd)
         thisrepl = replication.get_cs_replication_manager(realm, thishost,
                                                           options.dirman_passwd)
-    except Exception, e:
+    except Exception as e:
         sys.exit(str(e))
 
     filter = repl.get_agreement_filter(host=thishost)
@@ -373,7 +373,7 @@ def force_sync(realm, thishost, fromhost, dirman_passwd):
         repl = replication.get_cs_replication_manager(realm, fromhost,
                                                       dirman_passwd)
         repl.force_sync(repl.conn, thishost)
-    except Exception, e:
+    except Exception as e:
         sys.exit(str(e))
 
 def set_renewal_master(realm, replica):
@@ -386,7 +386,7 @@ def set_renewal_master(realm, replica):
 
     try:
         ca.set_renewal_master(replica)
-    except Exception, e:
+    except Exception as e:
         sys.exit("Failed to set renewal master to %s: %s" % (replica, e))
 
     print "%s is now the renewal master" % replica
@@ -465,7 +465,7 @@ try:
     main()
 except KeyboardInterrupt:
     sys.exit(1)
-except SystemExit, e:
+except SystemExit as e:
     sys.exit(e)
-except Exception, e:
+except Exception as e:
     sys.exit("unexpected error: %s" % e)

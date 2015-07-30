@@ -1283,7 +1283,7 @@ class cli(backend.Executioner):
                         f = open(fname, 'r')
                         raw = f.read()
                         f.close()
-                    except IOError, e:
+                    except IOError as e:
                         raise ValidationError(
                             name=to_cli(p.cli_name),
                             error='%s: %s:' % (fname, e[1])
@@ -1291,7 +1291,7 @@ class cli(backend.Executioner):
                 elif p.stdin_if_missing:
                     try:
                         raw = sys.stdin.read()
-                    except IOError, e:
+                    except IOError as e:
                         raise ValidationError(
                             name=to_cli(p.cli_name), error=e[1]
                         )
@@ -1341,9 +1341,9 @@ def run(api):
     except KeyboardInterrupt:
         print ''
         api.log.info('operation aborted')
-    except PublicError, e:
+    except PublicError as e:
         error = e
-    except StandardError, e:
+    except StandardError as e:
         api.log.exception('%s: %s', e.__class__.__name__, str(e))
         error = InternalError()
     if error is not None:

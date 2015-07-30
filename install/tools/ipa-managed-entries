@@ -102,7 +102,7 @@ def main():
             conn.do_simple_bind(bindpw=dirman_password)
         except errors.ACIError:
             sys.exit("Invalid credentials")
-    except errors.ExecutionError, lde:
+    except errors.ExecutionError as lde:
         sys.exit("An error occurred while connecting to the server.\n%s\n" %
             str(lde))
 
@@ -112,7 +112,7 @@ def main():
         try:
             entries = conn.get_entries(
                 managed_entry_definitions_dn, conn.SCOPE_SUBTREE, filter)
-        except Exception, e:
+        except Exception as e:
             root_logger.debug("Search for managed entries failed: %s" % str(e))
             sys.exit("Unable to find managed entries at %s" % managed_entry_definitions_dn)
         managed_entries = [entry.single_value['cn'] for entry in entries]
@@ -140,7 +140,7 @@ def main():
                 sys.exit("%s is not a valid Managed Entry" % def_dn)
         except errors.NotFound:
             sys.exit("%s is not a valid Managed Entry" % def_dn)
-        except errors.ExecutionError, lde:
+        except errors.ExecutionError as lde:
             print "An error occurred while talking to the server."
             print lde
 
@@ -166,7 +166,7 @@ def main():
                     retval = 0
             except errors.NotFound:
                 print "Enabling Plugin"
-            except errors.ExecutionError, lde:
+            except errors.ExecutionError as lde:
                 print "An error occurred while talking to the server."
                 print lde
                 retval = 1
@@ -190,11 +190,11 @@ def main():
             except errors.NotFound:
                 print "Plugin is already disabled"
                 retval = 2
-            except errors.DatabaseError, dbe:
+            except errors.DatabaseError as dbe:
                 print "An error occurred while talking to the server."
                 print dbe
                 retval = 1
-            except errors.ExecutionError, lde:
+            except errors.ExecutionError as lde:
                 print "An error occurred while talking to the server."
                 print lde
                 retval = 1

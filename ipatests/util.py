@@ -361,7 +361,7 @@ def raises(exception, callback, *args, **kw):
     raised = False
     try:
         callback(*args, **kw)
-    except exception, e:
+    except exception as e:
         raised = True
     if not raised:
         raise ExceptionNotRaised(exception)

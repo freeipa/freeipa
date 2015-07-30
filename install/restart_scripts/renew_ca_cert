@@ -56,7 +56,7 @@ def _main():
             syslog.LOG_NOTICE, "Stopping %s" % dogtag_service.service_name)
         try:
             dogtag_service.stop(dogtag_instance)
-        except Exception, e:
+        except Exception as e:
             syslog.syslog(
                 syslog.LOG_ERR,
                 "Cannot stop %s: %s" % (dogtag_service.service_name, e))
@@ -142,7 +142,7 @@ def _main():
             try:
                 conn = ldap2(api)
                 conn.connect(ccache=ccache_filename)
-            except Exception, e:
+            except Exception as e:
                 syslog.syslog(
                     syslog.LOG_ERR, "Failed to connect to LDAP: %s" % e)
             else:
@@ -152,7 +152,7 @@ def _main():
                         certstore.update_ca_cert(conn, api.env.basedn, cert)
                     except errors.EmptyModlist:
                         pass
-                    except Exception, e:
+                    except Exception as e:
                         syslog.syslog(
                             syslog.LOG_ERR,
                             "Updating CA certificate failed: %s" % e)
@@ -163,7 +163,7 @@ def _main():
                     ca_certs = certstore.get_ca_certs(
                         conn, api.env.basedn, api.env.realm, False,
                         filter_subject=ca_issuer)
-                except Exception, e:
+                except Exception as e:
                     syslog.syslog(
                         syslog.LOG_ERR,
                         "Failed to get external CA certificates from LDAP: "
@@ -185,7 +185,7 @@ def _main():
 
                     try:
                         db.add_cert(ca_cert, nick, flags)
-                    except ipautil.CalledProcessError, e:
+                    except ipautil.CalledProcessError as e:
                         syslog.syslog(
                             syslog.LOG_ERR,
                             "Failed to add certificate %s" % ca_nick)
@@ -204,7 +204,7 @@ def _main():
         'Starting %s' % dogtag_service.service_name)
     try:
         dogtag_service.start(dogtag_instance)
-    except Exception, e:
+    except Exception as e:
         syslog.syslog(
             syslog.LOG_ERR,
             "Cannot start %s: %s" % (dogtag_service.service_name, e))

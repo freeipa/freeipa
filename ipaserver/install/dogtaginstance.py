@@ -175,7 +175,7 @@ class DogtagInstance(service.Service):
 
         try:
             ipautil.run(args, nolog=nolog)
-        except ipautil.CalledProcessError, e:
+        except ipautil.CalledProcessError as e:
             self.handle_setup_error(e)
 
     def restart_instance(self):
@@ -270,7 +270,7 @@ class DogtagInstance(service.Service):
             ipautil.run([paths.PKIDESTROY, "-i",
                          self.dogtag_constants.PKI_INSTANCE_NAME,
                          "-s", self.subsystem])
-        except ipautil.CalledProcessError, e:
+        except ipautil.CalledProcessError as e:
             self.log.critical("failed to uninstall %s instance %s",
                               self.subsystem, e)
 
@@ -310,7 +310,7 @@ class DogtagInstance(service.Service):
         try:
             return certmonger.get_pin('internal',
                                       dogtag_constants=self.dogtag_constants)
-        except IOError, e:
+        except IOError as e:
             self.log.debug(
                 'Unable to determine PIN for the Dogtag instance: %s', e)
             raise RuntimeError(e)
@@ -330,7 +330,7 @@ class DogtagInstance(service.Service):
                     pre_command='stop_pkicad',
                     post_command='renew_ca_cert "%s"' % nickname,
                     profile=profile)
-            except RuntimeError, e:
+            except RuntimeError as e:
                 self.log.error(
                     "certmonger failed to start tracking certificate: %s", e)
 
@@ -350,7 +350,7 @@ class DogtagInstance(service.Service):
                 secdir=self.dogtag_constants.ALIAS_DIR,
                 pre_command='stop_pkicad',
                 post_command='renew_ca_cert "%s"' % self.server_cert_name)
-        except RuntimeError, e:
+        except RuntimeError as e:
             self.log.error(
                 "certmonger failed to start tracking certificate: %s" % e)
 
@@ -373,7 +373,7 @@ class DogtagInstance(service.Service):
             try:
                 certmonger.stop_tracking(
                     self.dogtag_constants.ALIAS_DIR, nickname=nickname)
-            except RuntimeError, e:
+            except RuntimeError as e:
                 self.log.error(
                     "certmonger failed to stop tracking certificate: %s", e)
 

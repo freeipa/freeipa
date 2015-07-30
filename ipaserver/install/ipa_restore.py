@@ -401,7 +401,7 @@ class Restore(admintool.AdminTool):
         finally:
             try:
                 os.chdir(cwd)
-            except Exception, e:
+            except Exception as e:
                 self.log.error('Cannot change directory to %s: %s' % (cwd, e))
             shutil.rmtree(self.top_dir)
 
@@ -421,7 +421,7 @@ class Restore(admintool.AdminTool):
         try:
             pw_name = pwd.getpwuid(os.geteuid()).pw_name
             self._conn.do_external_bind(pw_name)
-        except Exception, e:
+        except Exception as e:
             raise admintool.ScriptError('Unable to bind to LDAP server: %s'
                 % e)
         return self._conn
@@ -435,14 +435,14 @@ class Restore(admintool.AdminTool):
         '''
         try:
             conn = self.get_connection()
-        except Exception, e :
+        except Exception as e:
             self.log.error('Unable to get connection, skipping disabling agreements: %s' % e)
             return
         masters = []
         dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
         try:
             entries = conn.get_entries(dn, conn.SCOPE_ONELEVEL)
-        except Exception, e:
+        except Exception as e:
             raise admintool.ScriptError(
                 "Failed to read master data: %s" % e)
         else:
@@ -455,7 +455,7 @@ class Restore(admintool.AdminTool):
             try:
                 repl = ReplicationManager(api.env.realm, master,
                                           self.dirman_password)
-            except Exception, e:
+            except Exception as e:
                 self.log.critical("Unable to disable agreement on %s: %s" % (master, e))
                 continue
 
@@ -480,7 +480,7 @@ class Restore(admintool.AdminTool):
                 try:
                     repl = get_cs_replication_manager(api.env.realm, master,
                                                       self.dirman_password)
-                except Exception, e:
+                except Exception as e:
                     self.log.critical("Unable to disable agreement on %s: %s" % (master, e))
                     continue
 
@@ -537,7 +537,7 @@ class Restore(admintool.AdminTool):
 
             try:
                 conn.add_entry(ent)
-            except Exception, e:
+            except Exception as e:
                 self.log.error("Unable to bind to LDAP server: %s" % e)
                 return
 
@@ -595,7 +595,7 @@ class Restore(admintool.AdminTool):
 
             try:
                 conn.add_entry(ent)
-            except Exception, e:
+            except Exception as e:
                 raise admintool.ScriptError('Unable to bind to LDAP server: %s'
                     % e)
 
@@ -773,7 +773,7 @@ class Restore(admintool.AdminTool):
                 os.mkdir(dir, 0o770)
                 os.chown(dir, pent.pw_uid, pent.pw_gid)
                 tasks.restore_context(dir)
-            except Exception, e:
+            except Exception as e:
                 # This isn't so fatal as to side-track the restore
                 self.log.error('Problem with %s: %s' % (dir, e))
 

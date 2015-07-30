@@ -429,7 +429,7 @@ class API(ReadOnly):
                                               filename=self.env.log,
                                               level=level,
                                               format=LOGGING_FORMAT_FILE)])
-        except IOError, e:
+        except IOError as e:
             log.error('Cannot open log file %r: %s', self.env.log, e)
             return
 
@@ -541,7 +541,7 @@ class API(ReadOnly):
             subpackage = module[:-2]
             try:
                 plugins = importlib.import_module(subpackage)
-            except ImportError, e:
+            except ImportError as e:
                 self.log.error("cannot import plugins sub-package %s: %s",
                                subpackage, e)
                 raise
@@ -565,9 +565,9 @@ class API(ReadOnly):
             self.log.debug("importing plugin module %s", name)
             try:
                 module = importlib.import_module(name)
-            except errors.SkipPluginModule, e:
+            except errors.SkipPluginModule as e:
                 self.log.debug("skipping plugin module %s: %s", name, e.reason)
-            except StandardError, e:
+            except StandardError as e:
                 if self.env.startup_traceback:
                     import traceback
                     self.log.error("could not load plugin module %s\n%s", name,

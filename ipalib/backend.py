@@ -127,14 +127,14 @@ class Executioner(Backend):
             if _name not in self.Command:
                 raise CommandError(name=_name)
             result = self.Command[_name](*args, **options)
-        except PublicError, e:
+        except PublicError as e:
             error = e
-        except StandardError, e:
+        except StandardError as e:
             self.exception(
                 'non-public: %s: %s', e.__class__.__name__, str(e)
             )
             error = InternalError()
-        except Exception, e:
+        except Exception as e:
             self.exception(
                 'unhandled exception: %s: %s', e.__class__.__name__, str(e)
             )

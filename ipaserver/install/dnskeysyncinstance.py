@@ -442,7 +442,7 @@ class DNSKeySyncInstance(service.Service):
             self.admin_conn.modify_s(dns_group, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
-        except Exception, e:
+        except Exception as e:
             self.logger.critical("Could not modify principal's %s entry: %s"
                                  % (dnssynckey_principal_dn, str(e)))
             raise
@@ -456,7 +456,7 @@ class DNSKeySyncInstance(service.Service):
                (ldap.MOD_REPLACE, 'nsLookThroughLimit', '-1')]
         try:
             self.admin_conn.modify_s(dnssynckey_principal_dn, mod)
-        except Exception, e:
+        except Exception as e:
             self.logger.critical("Could not set principal's %s LDAP limits: %s"
                                  % (dnssynckey_principal_dn, str(e)))
             raise
@@ -485,7 +485,7 @@ class DNSKeySyncInstance(service.Service):
         for f in [paths.SYSCONFIG_NAMED]:
             try:
                 self.fstore.restore_file(f)
-            except ValueError, error:
+            except ValueError as error:
                 self.logger.debug(error)
                 pass
 

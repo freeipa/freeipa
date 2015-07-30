@@ -79,7 +79,7 @@ class GenerateUpdateMixin(object):
             definitions_managed_entries, truncated = ldap.find_entries(
                 searchfilter, ['*'], old_definition_container,
                 ldap.SCOPE_ONELEVEL)
-        except errors.NotFound, e:
+        except errors.NotFound as e:
             return (False, update_list)
 
         for entry in definitions_managed_entries:
@@ -89,7 +89,7 @@ class GenerateUpdateMixin(object):
                 assert isinstance(old_dn, DN)
                 try:
                     entry = ldap.get_entry(old_dn, ['*'])
-                except errors.NotFound, e:
+                except errors.NotFound as e:
                     pass
                 else:
                     # Compute the new dn by replacing the old container with the new container

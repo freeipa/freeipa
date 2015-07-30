@@ -360,7 +360,7 @@ class OpenDNSSECInstance(service.Service):
                   paths.OPENDNSSEC_KASP_DB, paths.SYSCONFIG_ODS]:
             try:
                 self.fstore.restore_file(f)
-            except ValueError, error:
+            except ValueError as error:
                 root_logger.debug(error)
                 pass
 

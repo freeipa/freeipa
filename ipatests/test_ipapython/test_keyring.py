@@ -59,7 +59,7 @@ class test_keyring(object):
         # Make sure it is gone
         try:
             result = kernel_keyring.read_key(TEST_KEY)
-        except ValueError, e:
+        except ValueError as e:
             assert e.message == 'key %s not found' % TEST_KEY
 
     def test_02(self):

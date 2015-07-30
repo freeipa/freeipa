@@ -715,7 +715,7 @@ class vault_add_internal(LDAPCreate):
         try:
             parent_dn = DN(*dn[1:])
             self.obj.create_container(parent_dn, owner_dn)
-        except errors.DuplicateEntry, e:
+        except errors.DuplicateEntry as e:
             pass
 
         entry_attrs['owner'] = owner_dn

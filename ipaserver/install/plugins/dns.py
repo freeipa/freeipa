@@ -264,7 +264,7 @@ class update_master_to_dnsforwardzones(Updater):
                                 del record['dn']
                                 writer.unparse(dn, record)
 
-                        except Exception, e:
+                        except Exception as e:
                             self.log.error('Unable to backup zone %s' %
                                            zone['idnsname'][0])
                             self.log.error(traceback.format_exc())
@@ -274,7 +274,7 @@ class update_master_to_dnsforwardzones(Updater):
                         try:
                             entry = ldap.get_entry(privilege_dn)
                             writer.unparse(str(entry.dn), dict(entry.raw))
-                        except Exception, e:
+                        except Exception as e:
                             self.log.error('Unable to backup privilege %s' %
                                            privilege_dn)
                             self.log.error(traceback.format_exc())
@@ -291,7 +291,7 @@ class update_master_to_dnsforwardzones(Updater):
                 # delete master zone
                 try:
                     self.api.Command['dnszone_del'](zone['idnsname'])
-                except Exception, e:
+                except Exception as e:
                     self.log.error('Transform to forwardzone terminated: '
                                    'removing zone %s failed (%s)' % (
                                        zone['idnsname'][0], e)
@@ -306,7 +306,7 @@ class update_master_to_dnsforwardzones(Updater):
                         'idnsforwardpolicy': zone.get('idnsforwardpolicy', [u'first'])[0]
                     }
                     self.api.Command['dnsforwardzone_add'](zone['idnsname'][0], **kw)
-                except Exception, e:
+                except Exception as e:
                     self.log.error('Transform to forwardzone terminated: creating '
                                    'forwardzone %s failed' %
                                    zone['idnsname'][0])
@@ -318,7 +318,7 @@ class update_master_to_dnsforwardzones(Updater):
                     try:
                         perm_name = self.api.Command['dnsforwardzone_add_permission'](
                                         zone['idnsname'][0])['value']
-                    except Exception, e:
+                    except Exception as e:
                         self.log.error('Transform to forwardzone terminated: '
                                        'Adding managed by permission to forward zone'
                                        ' %s failed' % zone['idnsname'])
@@ -336,7 +336,7 @@ class update_master_to_dnsforwardzones(Updater):
                             try:
                                 self.api.Command['permission_add_member'](perm_name,
                                                     privilege=privileges)
-                            except Exception, e:
+                            except Exception as e:
                                 self.log.error('Unable to restore privileges for '
                                        'permission %s, for zone %s'
                                         % (perm_name, zone['idnsname']))

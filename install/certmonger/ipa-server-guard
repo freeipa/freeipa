@@ -49,7 +49,7 @@ def main():
 
 try:
     sys.exit(main())
-except Exception, e:
+except Exception as e:
     syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
     print "Internal error"
     sys.exit(3)

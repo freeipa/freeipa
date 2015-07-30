@@ -520,7 +520,7 @@ class group_add_member(LDAPAddMember):
                 else:
                     try:
                         actual_sid = domain_validator.get_trusted_domain_object_sid(sid)
-                    except errors.PublicError, e:
+                    except errors.PublicError as e:
                         failed_sids.append((sid, e.strerror))
                     else:
                         sids.append(actual_sid)
@@ -577,7 +577,7 @@ class group_remove_member(LDAPRemoveMember):
                 else:
                     try:
                         actual_sid = domain_validator.get_trusted_domain_object_sid(sid)
-                    except errors.PublicError, e:
+                    except errors.PublicError as e:
                         failed_sids.append((sid, unicode(e)))
                     else:
                         sids.append(actual_sid)

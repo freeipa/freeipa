@@ -1002,7 +1002,7 @@ class permission_add(baseldap.LDAPCreate):
     def post_callback(self, ldap, dn, entry, *keys, **options):
         try:
             self.obj.add_aci(entry)
-        except Exception, e:
+        except Exception as e:
             # Adding the ACI failed.
             # We want to be 100% sure the ACI is not there, so try to
             # remove it. (This is a no-op if the ACI was not added.)
@@ -1185,7 +1185,7 @@ class permission_mod(baseldap.LDAPUpdate):
             context.permision_moving_aci = True
             try:
                 context.old_aci_info = self.obj.remove_aci(old_entry)
-            except errors.NotFound, e:
+            except errors.NotFound as e:
                 self.log.error('permission ACI not found: %s' % e)
 
         # To pass data to postcallback, we currently need to use the context

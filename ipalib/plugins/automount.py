@@ -407,7 +407,7 @@ class automountlocation_import(LDAPQuery):
             fp = open(filename, 'r')
             map = fp.readlines()
             fp.close()
-        except IOError, e:
+        except IOError as e:
             if e.errno == 2:
                 raise errors.NotFound(
                     reason=_('File %(file)s not found') % {'file': filename}
@@ -453,7 +453,7 @@ class automountlocation_import(LDAPQuery):
                             automountkey=unicode(am[0]),
                             automountinformation=unicode(' '.join(am[1:])))
                 result['keys'].append([am[0], u'auto.master'])
-            except errors.DuplicateEntry, e:
+            except errors.DuplicateEntry as e:
                 if unicode(am[0]) in DEFAULT_KEYS:
                     # ignore conflict when the key was pre-created by the framework
                     pass
@@ -469,7 +469,7 @@ class automountlocation_import(LDAPQuery):
                 try:
                     api.Command['automountmap_add'](args[0], unicode(am[1]))
                     result['maps'].append(am[1])
-                except errors.DuplicateEntry, e:
+                except errors.DuplicateEntry as e:
                     if unicode(am[1]) in DEFAULT_MAPS:
                         # ignore conflict when the map was pre-created by the framework
                         pass
@@ -515,7 +515,7 @@ class automountlocation_import(LDAPQuery):
                             automountkey=key,
                             automountinformation=unicode(' '.join(am[1:])))
                     result['keys'].append([key,m])
-                except errors.DuplicateEntry, e:
+                except errors.DuplicateEntry as e:
                     if options.get('continue', False):
                         result['duplicatekeys'].append(am[0])
                         pass

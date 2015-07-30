@@ -166,7 +166,7 @@ class KRB5_CCache(object):
             self.scheme, self.name = krb5_parse_ccache(ccache)
             self.ccache = krbV.CCache(name=str(ccache), context=self.context)
             self.principal = self.ccache.principal()
-        except krbV.Krb5Error, e:
+        except krbV.Krb5Error as e:
             error_code = e.args[0]
             message = e.args[1]
             if error_code == KRB5_FCC_NOFILE:
@@ -212,7 +212,7 @@ class KRB5_CCache(object):
         else:
             try:
                 krbV_principal = krbV.Principal(str(principal), self.context)
-            except Exception, e:
+            except Exception as e:
                 self.error('could not create krbV principal from "%s", %s', principal, e)
                 raise e
 
@@ -227,13 +227,13 @@ class KRB5_CCache(object):
                        None)         # adlist
         try:
             cred = self.ccache.get_credentials(creds_tuple, KRB5_GC_CACHED)
-        except krbV.Krb5Error, e:
+        except krbV.Krb5Error as e:
             error_code = e.args[0]
             if error_code == KRB5_CC_NOTFOUND:
                 raise KeyError('"%s" credential not found in "%s" ccache' % \
                                (krbV_principal.name, self.ccache_str()))
             raise e
-        except Exception, e:
+        except Exception as e:
             raise e
 
         return cred
@@ -273,7 +273,7 @@ class KRB5_CCache(object):
         else:
             try:
                 krbV_principal = krbV.Principal(str(principal), self.context)
-            except Exception, e:
+            except Exception as e:
                 self.error('could not create krbV principal from "%s", %s', principal, e)
                 raise e
 
@@ -288,9 +288,9 @@ class KRB5_CCache(object):
 
             return authtime, starttime, endtime, renew_till
 
-        except KeyError, e:
+        except KeyError as e:
             raise e
-        except Exception, e:
+        except Exception as e:
             self.error('get_credential_times failed, principal="%s" error="%s"', krbV_principal.name, e)
             raise e
 
@@ -314,9 +314,9 @@ class KRB5_CCache(object):
 
         try:
             authtime, starttime, endtime, renew_till = self.get_credential_times(principal)
-        except KeyError, e:
+        except KeyError as e:
             return False
-        except Exception, e:
+        except Exception as e:
             self.error('credential_is_valid failed, principal="%s" error="%s"', principal, e)
             raise e
 

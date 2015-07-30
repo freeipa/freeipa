@@ -29,7 +29,7 @@ from ipalib.plugins.user import NO_UPG_MAGIC
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         from ipaserver.plugins.ldap2 import ldap2
-    except StandardError, e:
+    except StandardError as e:
         raise e
 from ipalib import _
 from ipapython.dn import DN
@@ -176,11 +176,11 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                 api.log.warn('GID number %s of migrated user %s does not point to a known group.' \
                              % (entry_attrs['gidnumber'][0], pkey))
                 invalid_gids.add(entry_attrs['gidnumber'][0])
-            except errors.SingleMatchExpected, e:
+            except errors.SingleMatchExpected as e:
                 # GID number matched more groups, this should not happen
                 api.log.warn('GID number %s of migrated user %s should match 1 group, but it matched %d groups' \
                              % (entry_attrs['gidnumber'][0], pkey, e.found))
-            except errors.LimitsExceeded, e:
+            except errors.LimitsExceeded as e:
                 api.log.warn('Search limit exceeded searching for GID %s' % entry_attrs['gidnumber'][0])
 
     # We don't want to create a UPG so set the magic value in description
@@ -240,7 +240,7 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                         ', convert it', pkey, value, type(value), attr)
                     try:
                         value = DN(value)
-                    except ValueError, e:
+                    except ValueError as e:
                         api.log.warn('%s: skipping normalization of value %s of type %s '
                             'in attribute %s which could not be converted to DN: %s',
                                 pkey, value, type(value), attr, e)
@@ -331,7 +331,7 @@ def _pre_migrate_group(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwarg
         for m in entry_attrs[member_attr]:
             try:
                 m = DN(m)
-            except ValueError, e:
+            except ValueError as e:
                 # This should be impossible unless the remote server
                 # doesn't enforce syntax checking.
                 api.log.error('Malformed DN %s: %s'  % (m, e))
@@ -826,19 +826,19 @@ can use their Kerberos accounts.''')
                         )
                         if not entry_attrs.dn:
                             continue
-                    except errors.NotFound, e:
+                    except errors.NotFound as e:
                         failed[ldap_obj_name][pkey] = unicode(e.reason)
                         continue
 
                 try:
                     ldap.add_entry(entry_attrs)
-                except errors.ExecutionError, e:
+                except errors.ExecutionError as e:
                     callback = self.migrate_objects[ldap_obj_name]['exc_callback']
                     if callable(callback):
                         try:
                             callback(
                                 ldap, entry_attrs.dn, entry_attrs, e, options)
-                        except errors.ExecutionError, e:
+                        except errors.ExecutionError as e:
                             failed[ldap_obj_name][pkey] = unicode(e)
                             continue
                     else:
@@ -916,7 +916,7 @@ can use their Kerberos accounts.''')
                 try:
                     ds_base_dn = DN(entries[0]['namingcontexts'][0])
                     assert isinstance(ds_base_dn, DN)
-                except (IndexError, KeyError), e:
+                except (IndexError, KeyError) as e:
                     raise StandardError(str(e))
 
         # migrate!

@@ -277,11 +277,11 @@ class KrbInstance(service.Service):
             for r in res:
                 try:
                     self.admin_conn.delete_entry(r)
-                except Exception, e:
+                except Exception as e:
                     root_logger.critical(
                         "Error during SASL mapping removal: %s", e)
                     raise
-        except Exception, e:
+        except Exception as e:
             root_logger.critical("Error while enumerating SASL mappings %s", e)
             raise
 
@@ -343,7 +343,7 @@ class KrbInstance(service.Service):
         )
         try:
             ipautil.run(args, nolog=(self.master_password,), stdin=''.join(dialogue))
-        except ipautil.CalledProcessError, e:
+        except ipautil.CalledProcessError as e:
             print "Failed to initialize the realm container"
 
     def __configure_instance(self):
@@ -452,7 +452,7 @@ class KrbInstance(service.Service):
         for f in [paths.KRB5KDC_KDC_CONF, paths.KRB5_CONF]:
             try:
                 self.fstore.restore_file(f)
-            except ValueError, error:
+            except ValueError as error:
                 root_logger.debug(error)
                 pass
 

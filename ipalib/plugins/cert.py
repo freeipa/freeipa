@@ -134,7 +134,7 @@ def validate_pkidate(ugettext, value):
     """
     try:
         ts = time.strptime(value, '%Y-%m-%d')
-    except ValueError, e:
+    except ValueError as e:
         return str(e)
 
     return None
@@ -151,9 +151,9 @@ def validate_csr(ugettext, csr):
             return
     try:
         request = pkcs10.load_certificate_request(csr)
-    except TypeError, e:
+    except TypeError as e:
         raise errors.Base64DecodeError(reason=str(e))
-    except Exception, e:
+    except Exception as e:
         raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request: %s') % e)
 
 def normalize_csr(csr):
@@ -365,7 +365,7 @@ class cert_request(VirtualCommand):
             subject = pkcs10.get_subject(csr)
             extensions = pkcs10.get_extensions(csr)
             subjectaltname = pkcs10.get_subjectaltname(csr) or ()
-        except (NSPRError, PyAsn1Error), e:
+        except (NSPRError, PyAsn1Error) as e:
             raise errors.CertificateOperationError(
                 error=_("Failure decoding Certificate Signing Request: %s") % e)
 
@@ -613,7 +613,7 @@ class cert_show(VirtualCommand):
         hostname = None
         try:
             self.check_access()
-        except errors.ACIError, acierr:
+        except errors.ACIError as acierr:
             self.debug("Not granted by ACI to retrieve certificate, looking at principal")
             bind_principal = getattr(context, 'principal')
             if not bind_principal.startswith('host/'):
@@ -681,7 +681,7 @@ class cert_revoke(VirtualCommand):
         hostname = None
         try:
             self.check_access()
-        except errors.ACIError, acierr:
+        except errors.ACIError as acierr:
             self.debug("Not granted by ACI to revoke certificate, looking at principal")
             try:
                 # Let cert_show() handle verifying that the subject of the

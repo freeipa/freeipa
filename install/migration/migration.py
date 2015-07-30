@@ -52,12 +52,12 @@ def bind(ldap_uri, base_dn, username, password):
     try:
         conn = IPAdmin(ldap_uri=ldap_uri)
         conn.do_simple_bind(bind_dn, password)
-    except (errors.ACIError, errors.DatabaseError, errors.NotFound), e:
+    except (errors.ACIError, errors.DatabaseError, errors.NotFound) as e:
         root_logger.error(
             'migration invalid credentials for %s: %s' % (bind_dn, e))
         raise IOError(
             errno.EPERM, 'Invalid LDAP credentials for user %s' % username)
-    except Exception, e:
+    except Exception as e:
         root_logger.error('migration bind failed: %s' % e)
         raise IOError(errno.EIO, 'Bind error')
     finally:

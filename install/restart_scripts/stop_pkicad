@@ -41,7 +41,7 @@ def main():
     syslog.syslog(syslog.LOG_NOTICE, "Stopping %s" % dogtag_service.service_name)
     try:
         dogtag_service.stop(dogtag_instance)
-    except Exception, e:
+    except Exception as e:
         syslog.syslog(
             syslog.LOG_ERR, "Cannot stop %s: %s" % (dogtag_service.service_name, e))
     else:

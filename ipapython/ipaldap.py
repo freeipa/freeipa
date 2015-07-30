@@ -168,7 +168,7 @@ class SchemaCache(object):
         except ldap.SERVER_DOWN:
             raise errors.NetworkError(uri=url,
                                error=u'LDAP Server Down, unable to retrieve LDAP schema')
-        except ldap.LDAPError, e:
+        except ldap.LDAPError as e:
             desc = e.args[0]['desc'].strip()
             info = e.args[0].get('info', '').strip()
             raise errors.DatabaseError(desc = u'uri=%s' % url,
@@ -865,7 +865,7 @@ class LDAPClient(object):
                     return datetime.datetime.strptime(val, LDAP_GENERALIZED_TIME_FORMAT)
                 else:
                     return target_type(val)
-            except Exception, e:
+            except Exception as e:
                 msg = 'unable to convert the attribute %r value %r to type %s' % (attr, val, target_type)
                 self.log.error(msg)
                 raise ValueError(msg)
@@ -927,7 +927,7 @@ class LDAPClient(object):
                 yield
             except ldap.TIMEOUT:
                 raise errors.DatabaseTimeout()
-            except ldap.LDAPError, e:
+            except ldap.LDAPError as e:
                 desc = e.args[0]['desc'].strip()
                 info = e.args[0].get('info', '').strip()
                 if arg_desc is not None:
@@ -984,7 +984,7 @@ class LDAPClient(object):
             raise errors.DatabaseError(desc=desc, info=info)
         except ldap.AUTH_UNKNOWN:
             raise errors.ACIError(info='%s (%s)' % (info,desc))
-        except ldap.LDAPError, e:
+        except ldap.LDAPError as e:
             if 'NOT_ALLOWED_TO_DELEGATE' in info:
                 raise errors.ACIError(
                     info="KDC returned NOT_ALLOWED_TO_DELEGATE")
@@ -1354,7 +1354,7 @@ class LDAPClient(object):
                                 break
                         else:
                             cookie = ''
-                except ldap.LDAPError, e:
+                except ldap.LDAPError as e:
                     # If paged search is in progress, try to cancel it
                     if paged_search and cookie:
                         sctrls = [SimplePagedResultsControl(0, 0, cookie)]
@@ -1363,7 +1363,7 @@ class LDAPClient(object):
                                 str(base_dn), scope, filter, attrs_list,
                                 serverctrls=sctrls, timeout=time_limit,
                                 sizelimit=size_limit)
-                        except ldap.LDAPError, e:
+                        except ldap.LDAPError as e:
                             self.log.warning(
                                 "Error cancelling paged search: %s", e)
                         cookie = ''
@@ -1630,7 +1630,7 @@ class IPAdmin(LDAPClient):
                 pw_name = pwd.getpwuid(os.geteuid()).pw_name
                 self.do_external_bind(pw_name, timeout=timeout)
                 return
-            except errors.NotFound, e:
+            except errors.NotFound as e:
                 if autobind == AUTOBIND_ENABLED:
                     # autobind was required and failed, raise
                     # exception that it failed

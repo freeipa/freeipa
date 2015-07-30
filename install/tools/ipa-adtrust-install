@@ -194,7 +194,7 @@ def set_and_check_netbios_name(netbios_name, unattended):
 def ensure_admin_kinit(admin_name, admin_password):
     try:
         ipautil.run(['kinit', admin_name], stdin=admin_password+'\n')
-    except ipautil.CalledProcessError, e:
+    except ipautil.CalledProcessError as e:
         print "There was error to automatically re-kinit your admin user ticket."
         return False
     return True
@@ -305,14 +305,14 @@ def main():
         ctx = krbV.default_context()
         ccache = ctx.default_ccache()
         principal = ccache.principal()
-    except krbV.Krb5Error, e:
+    except krbV.Krb5Error as e:
         sys.exit("Must have Kerberos credentials to setup AD trusts on server")
 
     try:
         api.Backend.ldap2.connect(ccache)
-    except errors.ACIError, e:
+    except errors.ACIError as e:
         sys.exit("Outdated Kerberos credentials. Use kdestroy and kinit to update your ticket")
-    except errors.DatabaseError, e:
+    except errors.DatabaseError as e:
         sys.exit("Cannot connect to the LDAP database. Please check if IPA is running")
 
     try:
@@ -321,9 +321,9 @@ def main():
         if not (user['uid'][0] in group['member_user'] and
                 group['cn'][0] in user['memberof_group']):
             raise errors.RequirementError(name='admins group membership')
-    except errors.RequirementError, e:
+    except errors.RequirementError as e:
         sys.exit("Must have administrative privileges to setup AD trusts on server")
-    except Exception, e:
+    except Exception as e:
         sys.exit("Unrecognized error during check of admin rights: %s" % (str(e)))
 
     (netbios_name, reset_netbios_name) = \
@@ -344,7 +344,7 @@ def main():
         except errors.NotFound:
             # All objects have SIDs assigned
             pass
-        except (errors.DatabaseError, errors.NetworkError), e:
+        except (errors.DatabaseError, errors.NetworkError) as e:
             print "Could not retrieve a list of objects that need a SID identifier assigned:"
             print unicode(e)
         else:
@@ -400,7 +400,7 @@ def main():
                 base_dn=masters_dn, attrs_list=['cn'], scope=ldap.SCOPE_ONELEVEL)
         except errors.NotFound:
             pass
-        except (errors.DatabaseError, errors.NetworkError), e:
+        except (errors.DatabaseError, errors.NetworkError) as e:
            print "Could not retrieve a list of existing IPA masters:"
            print unicode(e)
 
@@ -409,7 +409,7 @@ def main():
                base_dn=agents_dn, attrs_list=['member'], scope=ldap.SCOPE_BASE)
         except errors.NotFound:
             pass
-        except (errors.DatabaseError, errors.NetworkError), e:
+        except (errors.DatabaseError, errors.NetworkError) as e:
             print "Could not retrieve a list of adtrust agents:"
             print unicode(e)
 

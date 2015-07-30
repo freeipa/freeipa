@@ -83,7 +83,7 @@ def parse_options():
         initialized = nss.nss_is_initialized()
         try:
             cert = x509.load_certificate_from_file(value)
-        except Exception, e:
+        except Exception as e:
             raise OptionValueError("%s option '%s' is not a valid certificate file" % (opt, value))
         else:
             del(cert)
@@ -470,7 +470,7 @@ def uninstall(options, env):
 
     try:
         run(["ipa-client-automount", "--uninstall", "--debug"])
-    except Exception, e:
+    except Exception as e:
         root_logger.error(
             "Unconfigured automount client failed: %s", str(e))
 
@@ -508,7 +508,7 @@ def uninstall(options, env):
                     ipa_domain = domain.get_option('ipa_domain')
                 except SSSDConfig.NoOptionError:
                     pass
-    except Exception, e:
+    except Exception as e:
         # We were unable to read existing SSSD config. This might mean few things:
         # - sssd wasn't installed
         # - sssd was removed after install and before uninstall
@@ -527,7 +527,7 @@ def uninstall(options, env):
         try:
             certmonger.stop_tracking(paths.IPA_NSSDB_DIR,
                                      nickname='Local IPA host')
-        except RuntimeError, e:
+        except RuntimeError as e:
             root_logger.error("%s failed to stop tracking certificate: %s",
                               cmonger.service_name, e)
 
@@ -536,14 +536,14 @@ def uninstall(options, env):
         try:
             certmonger.stop_tracking(paths.NSS_DB_DIR,
                                      nickname=client_nss_nickname)
-        except RuntimeError, e:
+        except RuntimeError as e:
             root_logger.error("%s failed to stop tracking certificate: %s",
                               cmonger.service_name, e)
 
     # Remove our host cert and CA cert
     try:
         ipa_certs = ipa_db.list_certs()
-    except CalledProcessError, e:
+    except CalledProcessError as e:
         root_logger.error(
             "Failed to list certificates in %s: %s", ipa_db.secdir, e)
         ipa_certs = []
@@ -558,7 +558,7 @@ def uninstall(options, env):
         while sys_db.has_nickname(nickname):
             try:
                 sys_db.delete_cert(nickname)
-            except Exception, e:
+            except Exception as e:
                 root_logger.error("Failed to remove %s from %s: %s",
                                   nickname, sys_db.secdir, e)
                 break
@@ -568,12 +568,12 @@ def uninstall(options, env):
 
     try:
         cmonger.stop()
-    except Exception, e:
+    except Exception as e:
         log_service_error(cmonger.service_name, 'stop', e)
 
     try:
         cmonger.disable()
-    except Exception, e:
+    except Exception as e:
         root_logger.error(
             "Failed to disable automatic startup of the %s service: %s",
             cmonger.service_name, str(e))
@@ -598,7 +598,7 @@ def uninstall(options, env):
             fp.close()
             realm = parser.get('global', 'realm')
             run([paths.IPA_RMKEYTAB, "-k", paths.KRB5_KEYTAB, "-r", realm])
-        except Exception, e:
+        except Exception as e:
             root_logger.error(
                 "Failed to remove Kerberos service principals: %s", str(e))
 
@@ -615,7 +615,7 @@ def uninstall(options, env):
                                                    statestore,
                                                    was_sssd_installed,
                                                    was_sssd_configured)
-    except Exception, e:
+    except Exception as e:
         root_logger.error(
             "Failed to remove krb5/LDAP configuration: %s", str(e))
         return CLIENT_INSTALL_ERROR
@@ -701,7 +701,7 @@ def uninstall(options, env):
 
         try:
             sssd.disable()
-        except CalledProcessError, e:
+        except CalledProcessError as e:
             root_logger.warning(
                 "Failed to disable automatic startup of the SSSD daemon: %s", e)
 
@@ -753,7 +753,7 @@ def uninstall(options, env):
 
     try:
         ipaclient.ntpconf.restore_forced_ntpd(statestore)
-    except CalledProcessError, e:
+    except CalledProcessError as e:
         root_logger.error('Failed to start chronyd: %s', e)
 
     if was_sshd_configured and services.knownservices.sshd.is_running():
@@ -767,7 +767,7 @@ def uninstall(options, env):
             if file_exists(preferences_fname):
                 try:
                     os.remove(preferences_fname)
-                except Exception, e:
+                except Exception as e:
                     root_logger.warning("'%s' could not be removed: %s." % preferences_fname, str(e))
                     root_logger.warning("Please remove file '%s' manually." % preferences_fname)
 
@@ -815,7 +815,7 @@ def uninstall(options, env):
             if user_input("Do you want to reboot the machine?", False):
                 try:
                     run([paths.SBIN_REBOOT])
-                except Exception, e:
+                except Exception as e:
                     root_logger.error(
                         "Reboot command failed to exceute: %s", str(e))
                     return CLIENT_UNINSTALL_ERROR
@@ -901,7 +901,7 @@ def configure_ldap_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, d
         try:
             fstore.backup_file(filename)
             ldapconf.newConf(filename, opts)
-        except Exception, e:
+        except Exception as e:
             root_logger.error("Creation of %s failed: %s", filename, str(e))
             return (1, 'LDAP', filename)
 
@@ -937,7 +937,7 @@ def configure_nslcd_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, 
         try:
             fstore.backup_file(filename)
             nslcdconf.newConf(filename, opts)
-        except Exception, e:
+        except Exception as e:
             root_logger.error("Creation of %s failed: %s", filename, str(e))
             return (1, None, None)
 
@@ -945,12 +945,12 @@ def configure_nslcd_conf(fstore, cli_basedn, cli_realm, cli_domain, cli_server, 
     if nslcd.is_installed():
         try:
             nslcd.restart()
-        except Exception, e:
+        except Exception as e:
             log_service_error(nslcd.service_name, 'restart', e)
 
         try:
             nslcd.enable()
-        except Exception, e:
+        except Exception as e:
             root_logger.error(
                 "Failed to enable automatic startup of the %s daemon: %s",
                 nslcd.service_name, str(e))
@@ -1004,15 +1004,15 @@ def configure_openldap_conf(fstore, cli_basedn, cli_server):
 
     try:
         ldapconf.changeConf(target_fname, opts)
-    except SyntaxError, e:
+    except SyntaxError as e:
         root_logger.info("Could not parse {path}".format(path=target_fname))
         root_logger.debug(error_msg.format(path=target_fname, err=str(e)))
         return False
-    except IOError,e :
+    except IOError as e :
         root_logger.info("{path} does not exist.".format(path=target_fname))
         root_logger.debug(error_msg.format(path=target_fname, err=str(e)))
         return False
-    except Exception, e: #  we do not want to fail in an optional step
+    except Exception as e: #  we do not want to fail in an optional step
         root_logger.debug(error_msg.format(path=target_fname, err=str(e)))
         return False
 
@@ -1135,7 +1135,7 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options,
     cmonger = services.knownservices.certmonger
     try:
         cmonger.enable()
-    except Exception, e:
+    except Exception as e:
         root_logger.error(
             "Failed to configure automatic startup of the %s daemon: %s",
             cmonger.service_name, str(e))
@@ -1159,7 +1159,7 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
     try:
         sssdconfig = SSSDConfig.SSSDConfig()
         sssdconfig.import_config()
-    except Exception, e:
+    except Exception as e:
         if os.path.exists(paths.SSSD_CONF) and options.preserve_sssd:
             # SSSD config is in place but we are unable to read it
             # In addition, we are instructed to preserve it
@@ -1301,7 +1301,7 @@ def change_ssh_config(filename, changes, sections):
 
     try:
         f = open(filename, 'r')
-    except IOError, e:
+    except IOError as e:
         root_logger.error("Failed to open '%s': %s", filename, str(e))
         return False
 
@@ -1334,7 +1334,7 @@ def change_ssh_config(filename, changes, sections):
 
     try:
         f = open(filename, 'w')
-    except IOError, e:
+    except IOError as e:
         root_logger.error("Failed to open '%s': %s", filename, str(e))
         return False
 
@@ -1429,7 +1429,7 @@ def configure_sshd_config(fstore, options):
     if sshd.is_running():
         try:
             sshd.restart()
-        except Exception, e:
+        except Exception as e:
             log_service_error(sshd.service_name, 'restart', e)
 
 
@@ -1448,7 +1448,7 @@ def configure_automount(options):
 
     try:
         stdout, _, _ = run(args)
-    except Exception, e:
+    except Exception as e:
         root_logger.error('Automount configuration failed: %s', str(e))
     else:
         root_logger.info(stdout)
@@ -1464,7 +1464,7 @@ def configure_nisdomain(options, domain):
     if os.path.exists(paths.BIN_NISDOMAINNAME):
         try:
             nis_domain_name, _, _ = ipautil.run([paths.BIN_NISDOMAINNAME])
-        except CalledProcessError, e:
+        except CalledProcessError as e:
             pass
 
     statestore.backup_state('network', 'nisdomain', nis_domain_name)
@@ -1515,7 +1515,7 @@ def resolve_ipaddress(server):
         af, socktype, proto, canonname, sa = res
         try:
             s = socket.socket(af, socktype, proto)
-        except socket.error, e:
+        except socket.error as e:
             last_socket_error = e
             s = None
             continue
@@ -1526,7 +1526,7 @@ def resolve_ipaddress(server):
 
             # For both IPv4 and IPv6 own IP address is always the first item
             return (sockname[0], af)
-        except socket.error, e:
+        except socket.error as e:
             last_socket_error = e
         finally:
             if s:
@@ -1548,7 +1548,7 @@ def do_nsupdate(update_txt):
     try:
         ipautil.run([paths.NSUPDATE, '-g', UPDATE_FILE])
         result = True
-    except CalledProcessError, e:
+    except CalledProcessError as e:
         root_logger.debug('nsupdate failed: %s', str(e))
 
     try:
@@ -1585,7 +1585,7 @@ def update_dns(server, hostname):
 
     try:
         (ip, af) = resolve_ipaddress(server)
-    except socket.gaierror, e:
+    except socket.gaierror as e:
         root_logger.debug("update_dns: could not connect to server: %s", e)
         root_logger.error("Cannot update DNS records! "
                           "Failed to connect to server '%s'.", server)
@@ -1634,7 +1634,7 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
 
         try:
             f = open(filename, 'r')
-        except IOError, e:
+        except IOError as e:
             root_logger.warning("Failed to open '%s': %s", filename, str(e))
             continue
 
@@ -1644,7 +1644,7 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
                 continue
             try:
                 pubkey = SSHPublicKey(line)
-            except ValueError, UnicodeDecodeError:
+            except ValueError as UnicodeDecodeError:
                 continue
             root_logger.info("Adding SSH public key from %s", filename)
             pubkeys.append(pubkey)
@@ -1662,7 +1662,7 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
         )
     except errors.EmptyModlist:
         pass
-    except StandardError, e:
+    except StandardError as e:
         root_logger.info("host_mod: %s", str(e))
         root_logger.warning("Failed to upload host SSH public keys.")
         return
@@ -1702,9 +1702,9 @@ def get_certs_from_ldap(server, base_dn, realm, ca_enabled):
         certs = certstore.get_ca_certs(conn, base_dn, realm, ca_enabled)
     except errors.NotFound:
         raise errors.NoCertificateError(entry=server)
-    except errors.NetworkError, e:
+    except errors.NetworkError as e:
         raise errors.NetworkError(uri=conn.ldap_uri, error=str(e))
-    except Exception, e:
+    except Exception as e:
         raise errors.LDAPError(str(e))
     finally:
         conn.unbind()
@@ -1739,7 +1739,7 @@ def get_ca_certs_from_file(url):
     root_logger.debug("trying to retrieve CA cert from file %s", filename)
     try:
         certs = x509.load_certificate_list_from_file(filename)
-    except Exception, e:
+    except Exception as e:
         raise errors.NoCertificateError(entry=filename)
 
     return certs
@@ -1760,7 +1760,7 @@ def get_ca_certs_from_http(url, warn=True):
     try:
 
         stdout, stderr, rc = run([paths.BIN_WGET, "-O", "-", url])
-    except CalledProcessError, e:
+    except CalledProcessError as e:
         raise errors.NoCertificateError(entry=url)
 
     try:
@@ -1787,7 +1787,7 @@ def get_ca_certs_from_ldap(server, basedn, realm):
 
     try:
         certs = get_certs_from_ldap(server, basedn, realm, False)
-    except Exception, e:
+    except Exception as e:
         root_logger.debug("get_ca_certs_from_ldap() error: %s", e)
         raise
 
@@ -1879,10 +1879,10 @@ def get_ca_certs(fstore, options, server, basedn, realm):
         url = file_url()
         try:
             ca_certs = get_ca_certs_from_file(url)
-        except errors.FileError, e:
+        except errors.FileError as e:
             root_logger.debug(e)
             raise
-        except Exception, e:
+        except Exception as e:
             root_logger.debug(e)
             raise errors.NoCertificateError(entry=url)
         root_logger.debug("CA cert provided by user, use it!")
@@ -1892,7 +1892,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                 try:
                     existing_ca_certs = x509.load_certificate_list_from_file(
                         CACERT)
-                except Exception, e:
+                except Exception as e:
                     raise errors.FileError(reason=u"Unable to load existing" +
                                            " CA cert '%s': %s" % (CACERT, e))
             else:
@@ -1912,7 +1912,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                             " download declined by user")
                 try:
                     ca_certs = get_ca_certs_from_http(url, override)
-                except Exception, e:
+                except Exception as e:
                     root_logger.debug(e)
                     raise errors.NoCertificateError(entry=url)
 
@@ -1924,10 +1924,10 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                 url = ldap_url()
                 ca_certs = get_ca_certs_from_ldap(server, basedn, realm)
                 validate_new_ca_certs(existing_ca_certs, ca_certs, interactive)
-            except errors.FileError, e:
+            except errors.FileError as e:
                 root_logger.debug(e)
                 raise
-            except (errors.NoCertificateError, errors.LDAPError), e:
+            except (errors.NoCertificateError, errors.LDAPError) as e:
                 root_logger.debug(str(e))
                 url = http_url()
                 if existing_ca_certs:
@@ -1950,12 +1950,12 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                 else:
                     try:
                         ca_certs = get_ca_certs_from_http(url)
-                    except Exception, e:
+                    except Exception as e:
                         root_logger.debug(e)
                         raise errors.NoCertificateError(entry=url)
                     validate_new_ca_certs(existing_ca_certs, ca_certs,
                                           interactive)
-            except Exception, e:
+            except Exception as e:
                 root_logger.debug(str(e))
                 raise errors.NoCertificateError(entry=url)
 
@@ -1967,11 +1967,11 @@ def get_ca_certs(fstore, options, server, basedn, realm):
         try:
             ca_certs = [cert.der_data for cert in ca_certs]
             x509.write_certificate_list(ca_certs, ca_file)
-        except Exception, e:
+        except Exception as e:
             if os.path.exists(ca_file):
                 try:
                     os.unlink(ca_file)
-                except OSError, e:
+                except OSError as e:
                     root_logger.error(
                         "Failed to remove '%s': %s", ca_file, e)
             raise errors.FileError(reason =
@@ -1982,7 +1982,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
     # Make sure the file permissions are correct
     try:
         os.chmod(CACERT, 0o644)
-    except Exception, e:
+    except Exception as e:
         raise errors.FileError(reason=u"Unable set permissions on ca "
                                u"cert '%s': %s" % (CACERT, e))
 
@@ -2046,14 +2046,14 @@ def configure_firefox(options, statestore, domain):
                     f.write(update_txt)
                 root_logger.info("Firefox sucessfully configured.")
                 statestore.backup_state('firefox', 'preferences_fname', preferences_fname)
-            except Exception, e:
+            except Exception as e:
                 root_logger.debug("An error occured during creating preferences file: %s." % str(e))
                 root_logger.error("Firefox configuration failed.")
         else:
             root_logger.debug("Firefox preferences directory not found.")
             root_logger.error("Firefox configuration failed.")
 
-    except Exception, e:
+    except Exception as e:
         root_logger.debug(str(e))
         root_logger.error("Firefox configuration failed.")
 
@@ -2071,7 +2071,7 @@ def install(options, env, fstore, statestore):
     if options.conf_ntp and not options.on_master and not options.force_ntpd:
         try:
             ipaclient.ntpconf.check_timedate_services()
-        except ipaclient.ntpconf.NTPConflictingService, e:
+        except ipaclient.ntpconf.NTPConflictingService as e:
             print "WARNING: ntpd time&date synchronization service will not" \
                   " be configured as"
             print "conflicting service (%s) is enabled" % e.conflicting_service
@@ -2314,7 +2314,7 @@ def install(options, env, fstore, statestore):
         try:
             ipautil.run([paths.IPA_RMKEYTAB,
                 '-k', paths.KRB5_KEYTAB, '-r', cli_realm])
-        except CalledProcessError, e:
+        except CalledProcessError as e:
             if e.returncode not in (3, 5):
                 # 3 - Unable to open keytab
                 # 5 - Principal name or realm not found in keytab
@@ -2478,10 +2478,10 @@ def install(options, env, fstore, statestore):
                 get_ca_certs(fstore, options, cli_server[0], cli_basedn,
                              cli_realm)
                 del os.environ['KRB5_CONFIG']
-            except errors.FileError, e:
+            except errors.FileError as e:
                 root_logger.error(e)
                 return CLIENT_INSTALL_ERROR
-            except Exception, e:
+            except Exception as e:
                 root_logger.error("Cannot obtain CA certificate\n%s", e)
                 return CLIENT_INSTALL_ERROR
 
@@ -2606,7 +2606,7 @@ def install(options, env, fstore, statestore):
 
             for i, cert in enumerate(ca_certs):
                 tmp_db.add_cert(cert, 'CA certificate %d' % (i + 1), 'C,,')
-        except CalledProcessError, e:
+        except CalledProcessError as e:
             root_logger.info("Failed to add CA to temporary NSS database.")
             return CLIENT_INSTALL_ERROR
 
@@ -2617,7 +2617,7 @@ def install(options, env, fstore, statestore):
             connected = True
             root_logger.debug("Try RPC connection")
             api.Backend.rpcclient.forward('ping')
-        except errors.KerberosError, e:
+        except errors.KerberosError as e:
             if connected:
                 api.Backend.rpcclient.disconnect()
             root_logger.info(
@@ -2640,13 +2640,13 @@ def install(options, env, fstore, statestore):
                 root_logger.warning(
                     "Some capabilities including the ipa command capability "
                     "may not be available")
-            except errors.PublicError, e2:
+            except errors.PublicError as e2:
                 root_logger.warning(
                     "Second connect with delegate=True also failed: %s", e2)
                 root_logger.error(
                     "Cannot connect to the IPA server RPC interface: %s", e2)
                 return CLIENT_INSTALL_ERROR
-        except errors.PublicError, e:
+        except errors.PublicError as e:
             root_logger.error(
                 "Cannot connect to the server due to generic error: %s", e)
             return CLIENT_INSTALL_ERROR
@@ -2671,7 +2671,7 @@ def install(options, env, fstore, statestore):
     # Create IPA NSS database
     try:
         certdb.create_ipa_nssdb()
-    except ipautil.CalledProcessError, e:
+    except ipautil.CalledProcessError as e:
         root_logger.error("Failed to create IPA NSS database: %s", e)
         return CLIENT_INSTALL_ERROR
 
@@ -2695,7 +2695,7 @@ def install(options, env, fstore, statestore):
     for cert, nickname, trust_flags in ca_certs_trust:
         try:
             ipa_db.add_cert(cert, nickname, trust_flags)
-        except CalledProcessError, e:
+        except CalledProcessError as e:
             root_logger.error(
                 "Failed to add %s to the IPA NSS database.", nickname)
             return CLIENT_INSTALL_ERROR
@@ -2710,7 +2710,7 @@ def install(options, env, fstore, statestore):
     for cert, nickname, trust_flags in ca_certs_trust:
         try:
             sys_db.add_cert(cert, nickname, trust_flags)
-        except CalledProcessError, e:
+        except CalledProcessError as e:
             root_logger.error(
                 "Failed to add %s to the default NSS database.", nickname)
             return CLIENT_INSTALL_ERROR
@@ -2793,7 +2793,7 @@ def install(options, env, fstore, statestore):
 
             try:
                 sssd.enable()
-            except CalledProcessError, e:
+            except CalledProcessError as e:
                 root_logger.warning(
                     "Failed to enable automatic startup of the SSSD daemon: %s", e)
 
@@ -2829,7 +2829,7 @@ def install(options, env, fstore, statestore):
                 try:
                     ipautil.run(["getent", "passwd", "admin@%s" % cli_domain])
                     found = True
-                except Exception, e:
+                except Exception as e:
                     time.sleep(1)
                     n = n + 1
 
@@ -2845,7 +2845,7 @@ def install(options, env, fstore, statestore):
 
                 try:
                     hardcode_ldap_server(cli_server)
-                except Exception, e:
+                except Exception as e:
                     root_logger.error("Adding hardcoded server name to " +
                         "/etc/ldap.conf failed: %s", str(e))
 
@@ -2935,11 +2935,11 @@ def main():
 try:
     if __name__ == "__main__":
         sys.exit(main())
-except SystemExit, e:
+except SystemExit as e:
     sys.exit(e)
 except KeyboardInterrupt:
     sys.exit(1)
-except RuntimeError, e:
+except RuntimeError as e:
     sys.exit(e)
 finally:
     try:

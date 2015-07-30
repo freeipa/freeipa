@@ -106,7 +106,7 @@ class batch(Command):
                     '%s: batch: %s(%s): SUCCESS', context.principal, name, ', '.join(api.Command[name]._repr_iter(**params))
                 )
                 result['error']=None
-            except Exception, e:
+            except Exception as e:
                 if isinstance(e, errors.RequirementError) or \
                     isinstance(e, errors.CommandError):
                     self.info(

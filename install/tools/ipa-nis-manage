@@ -124,7 +124,7 @@ def main():
             conn.connect(
                 bind_dn=DN(('cn', 'directory manager')), bind_pw=dirman_password
             )
-        except errors.ExecutionError, lde:
+        except errors.ExecutionError as lde:
             sys.exit("An error occurred while connecting to the server: %s" % str(lde))
         except errors.AuthorizationError:
             sys.exit("Incorrect password")
@@ -136,7 +136,7 @@ def main():
             entry = None
             try:
                 entry = get_entry(nis_config_dn, conn)
-            except errors.ExecutionError, lde:
+            except errors.ExecutionError as lde:
                 print "An error occurred while talking to the server."
                 print lde
                 retval = 1
@@ -146,13 +146,13 @@ def main():
                 portmap = services.knownservices.portmap
                 portmap.enable()
                 servicemsg = portmap.service_name
-            except ipautil.CalledProcessError, cpe:
+            except ipautil.CalledProcessError as cpe:
                 if cpe.returncode == 1:
                     try:
                         rpcbind = services.knownservices.rpcbind
                         rpcbind.enable()
                         servicemsg = rpcbind.service_name
-                    except ipautil.CalledProcessError, cpe:
+                    except ipautil.CalledProcessError as cpe:
                         print "Unable to enable either %s or %s" % (portmap.service_name, rpcbind.service_name)
                         retval = 3
 
@@ -180,7 +180,7 @@ def main():
             except (errors.NotFound, errors.EmptyModlist):
                 print "Plugin is already disabled"
                 retval = 2
-            except errors.LDAPError, lde:
+            except errors.LDAPError as lde:
                 print "An error occurred while talking to the server."
                 print lde
                 retval = 1

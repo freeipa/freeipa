@@ -350,7 +350,7 @@ class IPADiscovery(object):
             except errors.ACIError:
                 root_logger.debug("LDAP Error: Anonymous access not allowed")
                 return [NO_ACCESS_TO_LDAP]
-            except errors.DatabaseError, err:
+            except errors.DatabaseError as err:
                 root_logger.error("Error checking LDAP: %s" % err.strerror)
                 # We should only get UNWILLING_TO_PERFORM if the remote LDAP
                 # server has minssf > 0 and we have attempted a non-TLS conn.
@@ -409,16 +409,16 @@ class IPADiscovery(object):
         except errors.DatabaseTimeout:
             root_logger.debug("LDAP Error: timeout")
             return [NO_LDAP_SERVER]
-        except errors.NetworkError, err:
+        except errors.NetworkError as err:
             root_logger.debug("LDAP Error: %s" % err.strerror)
             return [NO_LDAP_SERVER]
         except errors.ACIError:
             root_logger.debug("LDAP Error: Anonymous access not allowed")
             return [NO_ACCESS_TO_LDAP]
-        except errors.DatabaseError, err:
+        except errors.DatabaseError as err:
             root_logger.debug("Error checking LDAP: %s" % err.strerror)
             return [UNKNOWN_ERROR]
-        except Exception, err:
+        except Exception as err:
             root_logger.debug("Error checking LDAP: %s" % err)
 
             return [UNKNOWN_ERROR]
@@ -447,7 +447,7 @@ class IPADiscovery(object):
 
         try:
             answers = resolver.query(qname, rdatatype.SRV)
-        except DNSException, e:
+        except DNSException as e:
             root_logger.debug("DNS record not found: %s", e.__class__.__name__)
             answers = []
 
@@ -476,7 +476,7 @@ class IPADiscovery(object):
 
         try:
             answers = resolver.query(qname, rdatatype.TXT)
-        except DNSException, e:
+        except DNSException as e:
             root_logger.debug("DNS record not found: %s", e.__class__.__name__)
             answers = []
 

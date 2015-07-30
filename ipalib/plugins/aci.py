@@ -244,7 +244,7 @@ def _make_aci(ldap, current, aciname, kw):
         # This will raise NotFound if the permission doesn't exist
         try:
             entry_attrs = api.Command['permission_show'](kw['permission'])['result']
-        except errors.NotFound, e:
+        except errors.NotFound as e:
             if 'test' in kw and not kw.get('test'):
                 raise e
             else:
@@ -304,7 +304,7 @@ def _make_aci(ldap, current, aciname, kw):
             if not target.startswith('ldap:///'):
                 target = 'ldap:///%s' % target
             a.set_target(target)
-    except SyntaxError, e:
+    except SyntaxError as e:
         raise errors.ValidationError(name='target', error=_('Syntax Error: %(error)s') % dict(error=str(e)))
 
     return a
@@ -370,7 +370,7 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
             entry = ldap.make_entry(dn)
             try:
                 entry = ldap.get_entry(groupdn, ['cn'])
-            except errors.NotFound, e:
+            except errors.NotFound as e:
                 # FIXME, use real name here
                 if test:
                     dn = DN(('cn', 'test'), api.env.container_permission,
@@ -389,7 +389,7 @@ def _convert_strings_to_acis(acistrs):
     for a in acistrs:
         try:
             acis.append(ACI(a))
-        except SyntaxError, e:
+        except SyntaxError as e:
             root_logger.warning("Failed to parse: %s" % a)
     return acis
 
@@ -651,7 +651,7 @@ class aci_mod(crud.Update):
 
         try:
             result = self.api.Command['aci_add'](aciname, **newkw)['result']
-        except Exception, e:
+        except Exception as e:
             # ACI could not be added, try to restore the old deleted ACI and
             # report the ADD error back to user
             try:

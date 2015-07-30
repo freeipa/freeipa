@@ -59,7 +59,7 @@ class update_upload_cacrt(Updater):
 
             try:
                 certstore.init_ca_entry(entry, cert, nickname, trust, eku)
-            except Exception, e:
+            except Exception as e:
                 self.log.warning("Failed to create entry for %s: %s",
                                  nickname, e)
                 continue

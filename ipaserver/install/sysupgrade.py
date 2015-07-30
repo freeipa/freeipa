@@ -51,5 +51,5 @@ def remove_upgrade_state(module, state):
 def remove_upgrade_file():
     try:
         os.remove(os.path.join(paths.STATEFILE_DIR, STATEFILE_FILE))
-    except Exception, e:
+    except Exception as e:
         root_logger.debug('Cannot remove sysupgrade state file: %s', e)

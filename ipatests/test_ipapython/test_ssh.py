@@ -30,7 +30,7 @@ def make_public_key_checker(pk, out):
         try:
             parsed = ssh.SSHPublicKey(pk)
             assert parsed.openssh() == out
-        except Exception, e:
+        except Exception as e:
             assert type(e) is out
     check_public_key.description = "Test SSH public key parsing (%s)" % repr(pk)
     return check_public_key

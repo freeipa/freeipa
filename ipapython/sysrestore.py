@@ -276,7 +276,7 @@ class FileStore:
 
         try:
             os.unlink(backup_path)
-        except Exception, e:
+        except Exception as e:
             root_logger.error('Error removing %s: %s' % (backup_path, str(e)))
 
         del self.files[filename]

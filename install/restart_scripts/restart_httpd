@@ -30,7 +30,7 @@ def _main():
 
     try:
         services.knownservices.httpd.restart()
-    except Exception, e:
+    except Exception as e:
         syslog.syslog(syslog.LOG_ERR, "Cannot restart httpd: %s" % str(e))
 
 

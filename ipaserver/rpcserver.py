@@ -345,11 +345,11 @@ class WSGIExecutioner(Executioner):
                 raise CommandError(name=name)
             else:
                 result = self.Command[name](*args, **options)
-        except PublicError, e:
+        except PublicError as e:
             if self.api.env.debug:
                 self.debug('WSGI wsgi_execute PublicError: %s', traceback.format_exc())
             error = e
-        except StandardError, e:
+        except StandardError as e:
             self.exception(
                 'non-public: %s: %s', e.__class__.__name__, str(e)
             )
@@ -361,7 +361,7 @@ class WSGIExecutioner(Executioner):
         if name and name in self.Command:
             try:
                 params = self.Command[name].args_options_2_params(*args, **options)
-            except Exception, e:
+            except Exception as e:
                 self.info(
                    'exception %s caught when converting options: %s', e.__class__.__name__, str(e)
                 )
@@ -402,7 +402,7 @@ class WSGIExecutioner(Executioner):
             status = HTTP_STATUS_SUCCESS
             response = self.wsgi_execute(environ)
             headers = [('Content-Type', self.content_type + '; charset=utf-8')]
-        except StandardError, e:
+        except StandardError as e:
             self.exception('WSGI %s.__call__():', self.name)
             status = HTTP_STATUS_SERVER_ERROR
             response = status
@@ -470,7 +470,7 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
     def unmarshal(self, data):
         try:
             d = json.loads(data)
-        except ValueError, e:
+        except ValueError as e:
             raise JSONError(error=e)
         if not isinstance(d, dict):
             raise JSONError(error=_('Request must be a dict'))
@@ -548,7 +548,7 @@ class KerberosSession(object):
             seconds = parse_time_duration(self.api.env.session_auth_duration)
             self.session_auth_duration = int(seconds)
             self.debug("session_auth_duration: %s", datetime.timedelta(seconds=self.session_auth_duration))
-        except Exception, e:
+        except Exception as e:
             self.session_auth_duration = default_max_session_duration
             self.error('unable to parse session_auth_duration, defaulting to %d: %s',
                        self.session_auth_duration, e)
@@ -645,7 +645,7 @@ class KerberosWSGIExecutioner(WSGIExecutioner, HTTP_Status, KerberosSession):
             if (session_data is None and self.env.context != 'lite'):
                 self.finalize_kerberos_acquisition(
                     'xmlserver', user_ccache, environ, start_response, headers)
-        except PublicError, e:
+        except PublicError as e:
             status = HTTP_STATUS_SUCCESS
             response = status
             start_response(status, headers)
@@ -806,7 +806,7 @@ class jsonserver_session(jsonserver, KerberosSession):
         # This may fail if a ticket from wrong realm was handled via browser
         try:
             self.create_context(ccache=ipa_ccache_name)
-        except ACIError, e:
+        except ACIError as e:
             return self.unauthorized(environ, start_response, str(e), 'denied')
 
         try:
@@ -888,7 +888,7 @@ class login_password(Backend, KerberosSession, HTTP_Status):
 
         try:
             query_dict = urlparse.parse_qs(query_string)
-        except Exception, e:
+        except Exception as e:
             return self.bad_request(environ, start_response, "cannot parse query data")
 
         user = query_dict.get('user', None)
@@ -1009,7 +1009,7 @@ class change_password(Backend, HTTP_Status):
 
         try:
             query_dict = urlparse.parse_qs(query_string)
-        except Exception, e:
+        except Exception as e:
             return self.bad_request(environ, start_response, "cannot parse query data")
 
         data = {}
@@ -1044,18 +1044,18 @@ class change_password(Backend, HTTP_Status):
         except (NotFound, ACIError):
             result = 'invalid-password'
             message = 'The old password or username is not correct.'
-        except Exception, e:
+        except Exception as e:
             message = "Could not connect to LDAP server."
             self.error("change_password: cannot authenticate '%s' to LDAP server: %s",
                     data['user'], str(e))
         else:
             try:
                 conn.modify_password(bind_dn, data['new_password'], data['old_password'], skip_bind=True)
-            except ExecutionError, e:
+            except ExecutionError as e:
                 result = 'policy-error'
                 policy_error = escape(str(e))
                 message = "Password change was rejected: %s" % escape(str(e))
-            except Exception, e:
+            except Exception as e:
                 message = "Could not change the password"
                 self.error("change_password: cannot change password of '%s': %s",
                         data['user'], str(e))
@@ -1111,7 +1111,7 @@ class sync_token(Backend, HTTP_Status):
         # Parse the query string to a dictionary.
         try:
             query_dict = urlparse.parse_qs(query_string)
-        except Exception, e:
+        except Exception as e:
             return self.bad_request(environ, start_response, "cannot parse query data")
         data = {}
         for field in ('user', 'password', 'first_code', 'second_code', 'token'):
@@ -1160,7 +1160,7 @@ class sync_token(Backend, HTTP_Status):
         except (NotFound, ACIError):
             result = 'invalid-credentials'
             message = 'The username, password or token codes are not correct.'
-        except Exception, e:
+        except Exception as e:
             result = 'error'
             message = "Could not connect to LDAP server."
             self.error("token_sync: cannot authenticate '%s' to LDAP server: %s",

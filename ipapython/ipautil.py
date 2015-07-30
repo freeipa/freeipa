@@ -803,7 +803,7 @@ def host_port_open(host, port, socket_type=socket.SOCK_STREAM, socket_timeout=No
                 s.recv(512)
 
             return True
-        except socket.error, e:
+        except socket.error as e:
             pass
         finally:
             if s:
@@ -824,14 +824,14 @@ def bind_port_responder(port, socket_type=socket.SOCK_STREAM, socket_timeout=Non
         try:
             addr_infos = socket.getaddrinfo(host, port, family, socket_type, 0,
                             socket.AI_PASSIVE)
-        except socket.error, e:
+        except socket.error as e:
             last_socket_error = e
             continue
         for res in addr_infos:
             af, socktype, proto, canonname, sa = res
             try:
                 s = socket.socket(af, socktype, proto)
-            except socket.error, e:
+            except socket.error as e:
                 last_socket_error = e
                 s = None
                 continue
@@ -870,7 +870,7 @@ def bind_port_responder(port, socket_type=socket.SOCK_STREAM, socket_timeout=Non
                 # Timeout is expectable as it was requested by caller, raise
                 # the exception back to him
                 raise
-            except socket.error, e:
+            except socket.error as e:
                 last_socket_error = e
                 s.close()
                 s = None
@@ -1177,7 +1177,7 @@ def wait_for_open_socket(socket_name, timeout=0):
             s.connect(socket_name)
             s.close()
             break
-        except socket.error, e:
+        except socket.error as e:
             if e.errno in (2,111):  # 111: Connection refused, 2: File not found
                 if timeout and time.time() > op_timeout: # timeout exceeded
                     raise e
@@ -1298,7 +1298,7 @@ def restore_hostname(statestore):
     if old_hostname is not None and old_hostname != system_hostname:
         try:
             run([paths.BIN_HOSTNAME, old_hostname])
-        except CalledProcessError, e:
+        except CalledProcessError as e:
             print >>sys.stderr, "Failed to set this machine hostname back to %s: %s" % (old_hostname, str(e))
 
 

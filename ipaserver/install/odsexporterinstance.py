@@ -119,7 +119,7 @@ class ODSExporterInstance(service.Service):
             self.admin_conn.modify_s(dns_group, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
-        except Exception, e:
+        except Exception as e:
             root_logger.critical("Could not modify principal's %s entry: %s"
                                  % (dns_exporter_principal_dn, str(e)))
             raise
@@ -132,7 +132,7 @@ class ODSExporterInstance(service.Service):
                (ldap.MOD_REPLACE, 'nsLookThroughLimit', '-1')]
         try:
             self.admin_conn.modify_s(dns_exporter_principal_dn, mod)
-        except Exception, e:
+        except Exception as e:
             root_logger.critical("Could not set principal's %s LDAP limits: %s"
                                  % (dns_exporter_principal_dn, str(e)))
             raise

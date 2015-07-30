@@ -314,7 +314,7 @@ class Backup(admintool.AdminTool):
         finally:
             try:
                 os.chdir(cwd)
-            except Exception, e:
+            except Exception as e:
                 self.log.error('Cannot change directory to %s: %s' % (cwd, e))
             shutil.rmtree(self.top_dir)
 
@@ -368,7 +368,7 @@ class Backup(admintool.AdminTool):
         try:
             pw_name = pwd.getpwuid(os.geteuid()).pw_name
             self._conn.do_external_bind(pw_name)
-        except Exception, e:
+        except Exception as e:
             self.log.error("Unable to bind to LDAP server %s: %s" %
                 (self._conn.host, e))
 
@@ -411,7 +411,7 @@ class Backup(admintool.AdminTool):
 
             try:
                 conn.add_entry(ent)
-            except Exception, e:
+            except Exception as e:
                 raise admintool.ScriptError('Unable to add LDIF task: %s'
                     % e)
 
@@ -459,7 +459,7 @@ class Backup(admintool.AdminTool):
 
             try:
                 conn.add_entry(ent)
-            except Exception, e:
+            except Exception as e:
                 raise admintool.ScriptError('Unable to to add backup task: %s'
                     % e)
 
@@ -523,7 +523,7 @@ class Backup(admintool.AdminTool):
         except errors.NetworkError:
             self.log.critical(
               "Unable to obtain list of master services, continuing anyway")
-        except Exception, e:
+        except Exception as e:
             self.log.error("Failed to read services from '%s': %s" %
                 (conn.host, e))
         else:

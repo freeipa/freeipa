@@ -102,7 +102,7 @@ def read_cache(dm_password):
     fname = "%s/cache" % top_dir
     try:
         decrypt_file(paths.ROOT_IPA_CACHE, fname, dm_password, top_dir)
-    except Exception, e:
+    except Exception as e:
         shutil.rmtree(top_dir)
         raise Exception("Decryption of answer cache in %s failed, please "
                         "check your password." % paths.ROOT_IPA_CACHE)
@@ -111,10 +111,10 @@ def read_cache(dm_password):
         with open(fname, 'rb') as f:
             try:
                 optdict = pickle.load(f)
-            except Exception, e:
+            except Exception as e:
                 raise Exception("Parse error in %s: %s" %
                                 (paths.ROOT_IPA_CACHE, str(e)))
-    except IOError, e:
+    except IOError as e:
         raise Exception("Read error in %s: %s" %
                         (paths.ROOT_IPA_CACHE, str(e)))
     finally:
@@ -140,7 +140,7 @@ def write_cache(options):
             pickle.dump(options, f)
         ipautil.encrypt_file(fname, paths.ROOT_IPA_CACHE,
                              options['dm_password'], top_dir)
-    except IOError, e:
+    except IOError as e:
         raise Exception("Unable to cache command-line options %s" % str(e))
     finally:
         shutil.rmtree(top_dir)
@@ -243,7 +243,7 @@ def set_subject_in_config(realm_name, dm_password, suffix, subject_base):
             conn = ldap2(api, ldap_uri=ldapuri)
             conn.connect(bind_dn=DN(('cn', 'directory manager')),
                          bind_pw=dm_password)
-        except errors.ExecutionError, e:
+        except errors.ExecutionError as e:
             root_logger.critical("Could not connect to the Directory Server "
                                  "on %s" % realm_name)
             raise e
@@ -348,7 +348,7 @@ def install_check(installer):
             if cache_vars.get('external_ca', False):
                 options.external_ca = False
                 options.interactive = False
-        except Exception, e:
+        except Exception as e:
             sys.exit("Cannot process the cache file: %s" % str(e))
 
     # We only set up the CA if the PKCS#12 options are not given.
@@ -400,7 +400,7 @@ def install_check(installer):
     if not options.no_ntp:
         try:
             ipaclient.ntpconf.check_timedate_services()
-        except ipaclient.ntpconf.NTPConflictingService, e:
+        except ipaclient.ntpconf.NTPConflictingService as e:
             print("WARNING: conflicting time&date synchronization service '%s'"
                   " will be disabled" % e.conflicting_service)
             print "in favor of ntpd"
@@ -440,7 +440,7 @@ def install_check(installer):
             host_name = host_default
         else:
             host_name = read_host_name(host_default, options.no_host_dns)
-    except BadHostError, e:
+    except BadHostError as e:
         sys.exit(str(e) + "\n")
 
     host_name = host_name.lower()
@@ -462,7 +462,7 @@ def install_check(installer):
         root_logger.debug("read domain_name: %s\n" % domain_name)
         try:
             validate_domain_name(domain_name)
-        except ValueError, e:
+        except ValueError as e:
             sys.exit("Invalid domain name: %s" % unicode(e))
     else:
         domain_name = options.domain_name
@@ -881,7 +881,7 @@ def install(installer):
         if options.mkhomedir:
             args.append("--mkhomedir")
         run(args)
-    except Exception, e:
+    except Exception as e:
         sys.exit("Configuration of client side components failed!\n"
                  "ipa-client-install returned: " + str(e))
 
@@ -1034,7 +1034,7 @@ def uninstall(installer):
     print "Shutting down all IPA services"
     try:
         (stdout, stderr, rc) = run([paths.IPACTL, "stop"], raiseonerr=False)
-    except Exception, e:
+    except Exception as e:
         pass
 
     # Need to get dogtag info before /etc/ipa/default.conf is removed
@@ -1048,7 +1048,7 @@ def uninstall(installer):
         if rc not in [0, 2]:
             root_logger.debug("ipa-client-install returned %d" % rc)
             raise RuntimeError(stdout)
-    except Exception, e:
+    except Exception as e:
         rv = 1
         print "Uninstall of client side components failed!"
         print "ipa-client-install returned: " + str(e)
@@ -1262,7 +1262,7 @@ class ServerCA(common.Installable, core.Group, core.Composite):
             for rdn in dn:
                 if rdn.attr.lower() not in VALID_SUBJECT_ATTRS:
                     raise ValueError("invalid attribute: \"%s\"" % rdn.attr)
-        except ValueError, e:
+        except ValueError as e:
             raise ValueError("invalid subject base format: %s" % e)
 
     ca_signing_algorithm = Knob(
@@ -1325,7 +1325,7 @@ class ServerDNS(common.Installable, core.Group, core.Composite):
                 encoding = 'utf-8'
             value = value.decode(encoding)
             bindinstance.validate_zonemgr_str(value)
-        except ValueError, e:
+        except ValueError as e:
             # FIXME we can do this in better way
             # https://fedorahosted.org/freeipa/ticket/4804
             # decode to proper stderr encoding

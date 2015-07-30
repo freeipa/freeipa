@@ -32,13 +32,13 @@ from time import sleep
 try:
     import pysss_murmur #pylint: disable=F0401
     _murmur_installed = True
-except Exception, e:
+except Exception as e:
     _murmur_installed = False
 
 try:
     import pysss_nss_idmap #pylint: disable=F0401
     _nss_idmap_installed = True
-except Exception, e:
+except Exception as e:
     _nss_idmap_installed = False
 
 if api.env.in_server and api.env.context in ['lite', 'server']:
@@ -365,7 +365,7 @@ def fetch_trusted_domains_over_dbus(myapi, log, forest_name):
         intf = bus.get_object(DBUS_IFACE_TRUST,"/", follow_name_owner_changes=True)
         fetch_domains_method = intf.get_dbus_method('fetch_domains', dbus_interface=DBUS_IFACE_TRUST)
         (_ret, _stdout, _stderr) = fetch_domains_method(forest_name)
-    except dbus.DBusException, e:
+    except dbus.DBusException as e:
         log.error('Failed to call %(iface)s.fetch_domains helper.'
                        'DBus exception is %(exc)s.' % dict(iface=DBUS_IFACE_TRUST, exc=str(e)))
         if _ret != 0:
@@ -1173,7 +1173,7 @@ class trust_resolve(Command):
                 entry['name'] = [unicode(xlate[sid][pysss_nss_idmap.NAME_KEY])]
                 entry['type'] = [idmap_type_string(xlate[sid][pysss_nss_idmap.TYPE_KEY])]
                 result.append(entry)
-        except ValueError, e:
+        except ValueError as e:
             pass
 
         return dict(result=result)

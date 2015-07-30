@@ -248,7 +248,7 @@ class CACertManage(admintool.AdminTool):
 
             try:
                 tmpdb.add_cert(cert, 'IPA CA', 'C,,')
-            except ipautil.CalledProcessError, e:
+            except ipautil.CalledProcessError as e:
                 raise admintool.ScriptError(
                     "Not compatible with the current CA certificate: %s" % e)
 
@@ -260,7 +260,7 @@ class CACertManage(admintool.AdminTool):
 
             try:
                 tmpdb.verify_ca_cert_validity('IPA CA')
-            except ValueError, e:
+            except ValueError as e:
                 raise admintool.ScriptError(
                     "Not a valid CA certificate: %s (visit "
                     "http://www.freeipa.org/page/Troubleshooting for "
@@ -330,10 +330,10 @@ class CACertManage(admintool.AdminTool):
         try:
             try:
                 nss_cert = x509.load_certificate_from_file(cert_filename)
-            except IOError, e:
+            except IOError as e:
                 raise admintool.ScriptError(
                     "Can't open \"%s\": %s" % (cert_filename, e))
-            except (TypeError, NSPRError), e:
+            except (TypeError, NSPRError) as e:
                 raise admintool.ScriptError("Not a valid certificate: %s" % e)
             subject = nss_cert.subject
             cert = nss_cert.der_data
@@ -349,7 +349,7 @@ class CACertManage(admintool.AdminTool):
 
             try:
                 tmpdb.verify_ca_cert_validity(nickname)
-            except ValueError, e:
+            except ValueError as e:
                 raise admintool.ScriptError(
                     "Not a valid CA certificate: %s (visit "
                     "http://www.freeipa.org/page/Troubleshooting for "
@@ -363,7 +363,7 @@ class CACertManage(admintool.AdminTool):
         try:
             certstore.put_ca_cert_nss(
                 self.conn, api.env.basedn, cert, nickname, trust_flags)
-        except ValueError, e:
+        except ValueError as e:
             raise admintool.ScriptError(
                 "Failed to install the certificate: %s" % e)
 

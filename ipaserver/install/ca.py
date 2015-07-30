@@ -248,7 +248,7 @@ def install_step_1(standalone, replica_config, options):
                        str(dogtag_constants.DOGTAG_VERSION))
             with open(paths.IPA_DEFAULT_CONF, 'w') as f:
                 parser.write(f)
-        except IOError, e:
+        except IOError as e:
             print "Failed to update /etc/ipa/default.conf"
             root_logger.error(str(e))
             sys.exit(1)

@@ -38,7 +38,7 @@ env._finalize_core(**dict(DEFAULT_CONFIG))
 api.bootstrap(context='server', debug=env.debug, log=None)
 try:
     api.finalize()
-except StandardError, e:
+except StandardError as e:
     api.log.error('Failed to start IPA: %s' % e)
 else:
     api.log.info('*** PROCESS START ***')

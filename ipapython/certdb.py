@@ -178,7 +178,7 @@ class NSSDatabase(object):
             args = args + ["-w", paths.DEV_STDIN]
         try:
             ipautil.run(args, stdin=pkcs12_passwd)
-        except ipautil.CalledProcessError, e:
+        except ipautil.CalledProcessError as e:
             if e.returncode == 17:
                 raise RuntimeError("incorrect password for pkcs#12 file %s" %
                     pkcs12_filename)
@@ -390,7 +390,7 @@ class NSSDatabase(object):
             try:
                 self.run_certutil(["-M", "-n", root_nickname,
                                    "-t", trust_flags])
-            except ipautil.CalledProcessError, e:
+            except ipautil.CalledProcessError as e:
                 raise RuntimeError(
                     "Setting trust on %s failed" % root_nickname)
 
@@ -470,7 +470,7 @@ class NSSDatabase(object):
             intended_usage = nss.certificateUsageSSLServer
             try:
                 approved_usage = cert.verify_now(certdb, True, intended_usage)
-            except NSPRError, e:
+            except NSPRError as e:
                 if e.errno != -8102:
                     raise ValueError(e.strerror)
                 approved_usage = 0
@@ -504,7 +504,7 @@ class NSSDatabase(object):
             intended_usage = nss.certificateUsageSSLCA
             try:
                 approved_usage = cert.verify_now(certdb, True, intended_usage)
-            except NSPRError, e:
+            except NSPRError as e:
                 if e.errno != -8102:    # SEC_ERROR_INADEQUATE_KEY_USAGE
                     raise ValueError(e.strerror)
                 approved_usage = 0

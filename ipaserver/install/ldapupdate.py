@@ -73,7 +73,7 @@ def connect(ldapi=False, realm=None, fqdn=None, dm_password=None, pw_name=None):
     except ldap.INVALID_CREDENTIALS:
         raise RuntimeError(
             "The password provided is incorrect for LDAP server %s" % fqdn)
-    except ldap.LOCAL_ERROR, e:
+    except ldap.LOCAL_ERROR as e:
         raise RuntimeError('%s' % e.args[0].get('info', '').strip())
     return conn
 
@@ -335,7 +335,7 @@ class LDAPUpdate:
     def _template_str(self, s):
         try:
             return ipautil.template_str(s, self.sub_dict)
-        except KeyError, e:
+        except KeyError as e:
             raise BadSyntax("Unknown template keyword %s" % e)
 
     def read_file(self, filename):
@@ -565,10 +565,10 @@ class LDAPUpdate:
         while True:
             try:
                 entry = self.conn.get_entry(dn, attrlist)
-            except errors.NotFound, e:
+            except errors.NotFound as e:
                 self.error("Task not found: %s", dn)
                 return
-            except errors.DatabaseError, e:
+            except errors.DatabaseError as e:
                 self.error("Task lookup failure %s", e)
                 return
 
@@ -783,7 +783,7 @@ class LDAPUpdate:
                         return
                 added = True
                 self.modified = True
-            except Exception, e:
+            except Exception as e:
                 self.error("Add failure %s", e)
         else:
             # Update LDAP
@@ -802,10 +802,10 @@ class LDAPUpdate:
             except errors.EmptyModlist:
                 self.debug("Entry already up-to-date")
                 updated = False
-            except errors.DatabaseError, e:
+            except errors.DatabaseError as e:
                 self.error("Update failed: %s", e)
                 updated = False
-            except errors.ACIError, e:
+            except errors.ACIError as e:
                 self.error("Update failed: %s", e)
                 updated = False
 
@@ -829,10 +829,10 @@ class LDAPUpdate:
             self.debug("Deleting entry %s", dn)
             self.conn.delete_entry(dn)
             self.modified = True
-        except errors.NotFound, e:
+        except errors.NotFound as e:
             self.debug("%s did not exist:%s", dn, e)
             self.modified = True
-        except errors.DatabaseError, e:
+        except errors.DatabaseError as e:
             self.error("Delete failed: %s", e)
 
     def get_all_files(self, root, recursive=False):
@@ -897,7 +897,7 @@ class LDAPUpdate:
                 try:
                     self.debug("Parsing update file '%s'" % f)
                     data = self.read_file(f)
-                except Exception, e:
+                except Exception as e:
                     self.error("error reading update file '%s'", f)
                     raise RuntimeError(e)
 

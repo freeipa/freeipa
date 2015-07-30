@@ -494,7 +494,7 @@ class test_sudorule(XMLRPC_test):
                 self.rule_name,
                 addattr='externalhost=%s' % self.test_invalid_host
             )
-        except errors.ValidationError, e:
+        except errors.ValidationError as e:
             assert unicode(e) == ("invalid 'externalhost': only letters, " +
                 "numbers, '_', '-' are allowed. " +
                 "DNS label may not start or end with '-'")

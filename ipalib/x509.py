@@ -285,7 +285,7 @@ def normalize_certificate(rawcert):
     if util.isvalid_base64(rawcert):
         try:
             dercert = base64.b64decode(rawcert)
-        except Exception, e:
+        except Exception as e:
             raise errors.Base64DecodeError(reason=str(e))
     else:
         dercert = rawcert
@@ -326,7 +326,7 @@ def write_certificate(rawcert, filename):
         fp = open(filename, 'w')
         fp.write(make_pem(base64.b64encode(dercert)))
         fp.close()
-    except (IOError, OSError), e:
+    except (IOError, OSError) as e:
         raise errors.FileError(reason=str(e))
 
 def write_certificate_list(rawcerts, filename):
@@ -344,7 +344,7 @@ def write_certificate_list(rawcerts, filename):
                 cert = base64.b64encode(cert)
                 cert = make_pem(cert)
                 f.write(cert + '\n')
-    except (IOError, OSError), e:
+    except (IOError, OSError) as e:
         raise errors.FileError(reason=str(e))
 
 def verify_cert_subject(ldap, hostname, dercert):

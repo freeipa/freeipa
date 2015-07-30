@@ -936,7 +936,7 @@ class LogManager(object):
         if value is not None:
             try:
                 level = parse_log_level(value)
-            except Exception, e:
+            except Exception as e:
                 raise ValueError("could not set %s (%s)" % (attr, e))
             setattr(self, attr, level)
 
@@ -1239,7 +1239,7 @@ class LogManager(object):
             if level is not None:
                 try:
                     level = parse_log_level(level)
-                except Exception, e:
+                except Exception as e:
                     print >>sys.stderr, 'could not set handler log level "%s" (%s)' % (level, e)
                     level = None
             if level is None:

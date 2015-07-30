@@ -274,7 +274,7 @@ class test_xml_introspection(object):
     def test_list_methods_many_params(self):
         try:
             result = api.Backend.xmlclient.conn.system.listMethods('foo')
-        except Fault, f:
+        except Fault as f:
             print f
             assert f.faultCode == 3003
             assert f.faultString == (
@@ -294,7 +294,7 @@ class test_xml_introspection(object):
     def test_signature_no_params(self):
         try:
             result = api.Backend.xmlclient.conn.system.methodSignature()
-        except Fault, f:
+        except Fault as f:
             print f
             assert f.faultCode == 3007
             assert f.faultString == "'method name' is required"
@@ -304,7 +304,7 @@ class test_xml_introspection(object):
     def test_signature_many_params(self):
         try:
             result = api.Backend.xmlclient.conn.system.methodSignature('a', 'b')
-        except Fault, f:
+        except Fault as f:
             print f
             assert f.faultCode == 3004
             assert f.faultString == (
@@ -315,7 +315,7 @@ class test_xml_introspection(object):
     def test_help_no_params(self):
         try:
             result = api.Backend.xmlclient.conn.system.methodHelp()
-        except Fault, f:
+        except Fault as f:
             print f
             assert f.faultCode == 3007
             assert f.faultString == "'method name' is required"
@@ -325,7 +325,7 @@ class test_xml_introspection(object):
     def test_help_many_params(self):
         try:
             result = api.Backend.xmlclient.conn.system.methodHelp('a', 'b')
-        except Fault, f:
+        except Fault as f:
             print f
             assert f.faultCode == 3004
             assert f.faultString == (

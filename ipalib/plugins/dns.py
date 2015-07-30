@@ -395,7 +395,7 @@ def _validate_bind_aci(ugettext, bind_acis):
         try:
             ip = CheckedIPAddress(bind_aci, parse_netmask=True,
                                   allow_network=True, allow_loopback=True)
-        except (netaddr.AddrFormatError, ValueError), e:
+        except (netaddr.AddrFormatError, ValueError) as e:
             return unicode(e)
         except UnboundLocalError:
             return _(u"invalid address format")
@@ -481,7 +481,7 @@ def _validate_nsec3param_record(ugettext, value):
 
     try:
         binascii.a2b_hex(salt)
-    except TypeError, e:
+    except TypeError as e:
         return _('salt value: %(err)s') % {'err': e}
     return None
 
@@ -575,7 +575,7 @@ def add_records_for_host_validation(option_name, host, domain, ip_addresses, che
     for ip_address in ip_addresses:
         try:
             ip = CheckedIPAddress(ip_address, match_local=False)
-        except Exception, e:
+        except Exception as e:
             raise errors.ValidationError(name=option_name, error=unicode(e))
 
         if check_forward:
@@ -977,7 +977,7 @@ class ForwardRecord(DNSRecord):
                 try:
                     add_records_for_host(keys[-1], keys[-2], record,
                         add_forward=False, add_reverse=True)
-                except Exception, e:
+                except Exception as e:
                     raise errors.NonFatalError(
                         reason=_('Cannot create reverse record for "%(value)s": %(exc)s') \
                                 % dict(value=record, exc=unicode(e)))
@@ -2073,7 +2073,7 @@ class DNSZoneBase(LDAPObject):
         permission_name = self.permission_name(zone)
         try:
             api.Command['permission_del'](permission_name, force=True)
-        except errors.NotFound, e:
+        except errors.NotFound as e:
             if zone == DNSName.root:  # special case root zone
                 raise
             # compatibility, older IPA versions which allows to create zone
@@ -3544,12 +3544,12 @@ class dnsrecord_add(LDAPCreate):
 
         try:
             idnsname = DNSName(kw['idnsname'])
-        except Exception, e:
+        except Exception as e:
             raise errors.ValidationError(name='idnsname', error=unicode(e))
 
         try:
             zonename = DNSName(kw['dnszoneidnsname'])
-        except Exception, e:
+        except Exception as e:
             raise errors.ValidationError(name='dnszoneidnsname', error=unicode(e))
 
         # check zone type
@@ -4181,7 +4181,7 @@ class dns_is_enabled(Command):
             ent = ldap.find_entries(filter=self.filter, base_dn=self.base_dn)
             if len(ent):
                 dns_enabled = True
-        except Exception, e:
+        except Exception as e:
             pass
 
         return dict(result=dns_enabled, value=pkey_to_value(None, options))

@@ -76,7 +76,7 @@ def validate_radiusserver(ugettext, server):
 
     try:
         validate_hostname(server, check_fqdn=True, allow_underscore=True)
-    except ValueError, e:
+    except ValueError as e:
         raise errors.ValidationError(name="ipatokenradiusserver",
                                      error=e.message)
 

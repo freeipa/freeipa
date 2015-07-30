@@ -144,7 +144,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
     try:
         # make sure that the host name meets the requirements in ipalib
         validate_hostname(host_name)
-    except ValueError, e:
+    except ValueError as e:
         raise BadHostError("Invalid hostname '%s', %s" % (host_name, unicode(e)))
 
     if local_hostname:
@@ -157,7 +157,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
                         "Please check /etc/hosts or DNS name resolution" % (host_name, ex_name[0]))
         except socket.gaierror:
             pass
-        except socket.error, e:
+        except socket.error as e:
             root_logger.debug('socket.gethostbyaddr() error: %d: %s' % (e.errno, e.strerror))
 
     if no_host_dns:
@@ -167,7 +167,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
     try:
         root_logger.debug('Search DNS for %s', host_name)
         hostaddr = socket.getaddrinfo(host_name, None)
-    except Exception, e:
+    except Exception as e:
         root_logger.debug('Search failed: %s', e)
         raise HostForwardLookupError("Unable to resolve host name, check /etc/hosts or DNS name resolution")
 
@@ -193,7 +193,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
         try:
             root_logger.debug('Check reverse address of %s', address)
             revname = socket.gethostbyaddr(address)[0]
-        except Exception, e:
+        except Exception as e:
             root_logger.debug('Check failed: %s', e)
             raise HostReverseLookupError(
                 "Unable to resolve the IP address %s to a host name, "
@@ -256,7 +256,7 @@ def read_ip_address(host_name, fstore):
         ip = ipautil.user_input("Please provide the IP address to be used for this host name", allow_empty = False)
         try:
             ip_parsed = ipautil.CheckedIPAddress(ip, match_local=True)
-        except Exception, e:
+        except Exception as e:
             print "Error: Invalid IP Address %s: %s" % (ip, e)
             continue
         else:
@@ -273,7 +273,7 @@ def read_ip_addresses(host_name, fstore):
             break
         try:
             ip_parsed = ipautil.CheckedIPAddress(ip, match_local=True)
-        except Exception, e:
+        except Exception as e:
             print "Error: Invalid IP Address %s: %s" % (ip, e)
             continue
         ips.append(ip_parsed)
@@ -291,7 +291,7 @@ def read_dns_forwarders():
                 break
             try:
                 ip_parsed = ipautil.CheckedIPAddress(ip, parse_netmask=False)
-            except Exception, e:
+            except Exception as e:
                 print "Error: Invalid IP Address %s: %s" % (ip, e)
                 print "DNS forwarder %s not added." % ip
                 continue
@@ -333,7 +333,7 @@ def read_password(user, confirm=True, validate=True, retry=True, validator=_read
             if validate:
                 try:
                     validator(pwd)
-                except ValueError, e:
+                except ValueError as e:
                     print str(e)
                     pwd = None
                     continue
@@ -490,7 +490,7 @@ def get_server_ip_address(host_name, fstore, unattended, setup_dns, ip_addresses
         for ha in hostaddr:
             try:
                 ips.append(ipautil.CheckedIPAddress(ha, match_local=True))
-            except ValueError, e:
+            except ValueError as e:
                 root_logger.warning("Invalid IP address %s for %s: %s", ha, host_name, unicode(e))
 
     if not ips and not ip_addresses:
@@ -583,7 +583,7 @@ def read_replica_info_dogtag_port(config_dir):
         with open(portfile) as fd:
             try:
                 dogtag_master_ds_port = int(fd.read())
-            except (ValueError, IOError), e:
+            except (ValueError, IOError) as e:
                 root_logger.debug('Cannot parse dogtag DS port: %s', e)
                 root_logger.debug('Default to %d', default_port)
                 dogtag_master_ds_port = default_port
@@ -595,7 +595,7 @@ def create_replica_config(dirman_password, filename, options):
     top_dir = None
     try:
         top_dir, dir = expand_replica_info(filename, dirman_password)
-    except Exception, e:
+    except Exception as e:
         root_logger.error("Failed to decrypt or open the replica file.")
         print "ERROR: Failed to decrypt or open the replica file."
         print "Verify you entered the correct Directory Manager password."
@@ -613,7 +613,7 @@ def create_replica_config(dirman_password, filename, options):
     config.dirman_password = dirman_password
     try:
         host = get_host_name(options.no_host_dns)
-    except BadHostError, e:
+    except BadHostError as e:
         root_logger.error(str(e))
         sys.exit(1)
     if config.host_name != host:
@@ -659,7 +659,7 @@ def remove_file(filename):
     try:
         if os.path.lexists(filename):
             os.unlink(filename)
-    except Exception, e:
+    except Exception as e:
         root_logger.error('Error removing %s: %s' % (filename, str(e)))
 
 
@@ -670,7 +670,7 @@ def rmtree(path):
     try:
         if os.path.exists(path):
             shutil.rmtree(path)
-    except Exception, e:
+    except Exception as e:
         root_logger.error('Error removing %s: %s' % (path, str(e)))
 
 
@@ -720,7 +720,7 @@ def run_script(main_function, operation_name, log_file_name=None,
     try:
         try:
             return_value = main_function()
-        except BaseException, e:
+        except BaseException as e:
             if isinstance(e, SystemExit) and (e.code is None or e.code == 0):
                 # Not an error after all
                 root_logger.info('The %s command was successful',
@@ -745,7 +745,7 @@ def run_script(main_function, operation_name, log_file_name=None,
                     operation_name)
             sys.exit(return_value)
 
-    except BaseException, error:
+    except BaseException as error:
         message, exitcode = handle_error(error, log_file_name)
         if message:
             print >> sys.stderr, message
@@ -881,7 +881,7 @@ def load_pkcs12(cert_files, key_password, key_nickname, ca_cert_files,
         for nickname in trust_chain[1:]:
             try:
                 nssdb.verify_ca_cert_validity(nickname)
-            except ValueError, e:
+            except ValueError as e:
                 raise ScriptError(
                     "CA certificate %s in %s is not valid: %s" %
                     (subject, ", ".join(cert_files), e))
@@ -1020,7 +1020,7 @@ def load_external_cert(files, subject_base):
         for nickname in trust_chain:
             try:
                 nssdb.verify_ca_cert_validity(nickname)
-            except ValueError, e:
+            except ValueError as e:
                 raise ScriptError(
                     "CA certificate %s in %s is not valid: %s" %
                     (subject, ", ".join(files), e))

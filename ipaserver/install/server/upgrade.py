@@ -321,7 +321,7 @@ def ca_enable_ldap_profile_subsystem(ca):
             if value == 'com.netscape.cmscore.profile.ProfileSubsystem':
                 needs_update = True
                 break
-    except OSError, e:
+    except OSError as e:
         root_logger.error('Cannot read CA configuration file "%s": %s',
                 caconfig.CS_CFG_PATH, e)
         return False
@@ -447,7 +447,7 @@ def named_set_minimum_connections():
                 bindinstance.named_conf_set_directive('connections',
                                                        minimum_connections)
                 root_logger.debug('Connections set to %d', minimum_connections)
-            except IOError, e:
+            except IOError as e:
                 root_logger.error('Cannot update connections in %s: %s',
                         bindinstance.NAMED_CONF, e)
             else:
@@ -492,7 +492,7 @@ def named_enable_serial_autoincrement():
             try:
                 bindinstance.named_conf_set_directive('serial_autoincrement',
                                                       'yes')
-            except IOError, e:
+            except IOError as e:
                 root_logger.error('Cannot enable serial_autoincrement in %s: %s',
                         bindinstance.NAMED_CONF, e)
                 return changed
@@ -530,7 +530,7 @@ def named_update_gssapi_configuration():
     try:
         gssapi_keytab = bindinstance.named_conf_get_directive('tkey-gssapi-keytab',
                 bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError, e:
+    except IOError as e:
         root_logger.error('Cannot retrieve tkey-gssapi-keytab option from %s: %s',
                 bindinstance.NAMED_CONF, e)
         return False
@@ -545,7 +545,7 @@ def named_update_gssapi_configuration():
                 bindinstance.NAMED_SECTION_OPTIONS)
         tkey_domain = bindinstance.named_conf_get_directive('tkey-domain',
                 bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError, e:
+    except IOError as e:
         root_logger.error('Cannot retrieve tkey-gssapi-credential option from %s: %s',
                 bindinstance.NAMED_CONF, e)
         return False
@@ -565,7 +565,7 @@ def named_update_gssapi_configuration():
         bindinstance.named_conf_set_directive(
             'tkey-gssapi-keytab', paths.NAMED_KEYTAB,
             bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError, e:
+    except IOError as e:
         root_logger.error('Cannot update GSSAPI configuration in %s: %s',
                 bindinstance.NAMED_CONF, e)
         return False
@@ -594,7 +594,7 @@ def named_update_pid_file():
     try:
         pid_file = bindinstance.named_conf_get_directive('pid-file',
                 bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError, e:
+    except IOError as e:
         root_logger.error('Cannot retrieve pid-file option from %s: %s',
                 bindinstance.NAMED_CONF, e)
         return False
@@ -607,7 +607,7 @@ def named_update_pid_file():
     try:
         bindinstance.named_conf_set_directive('pid-file', paths.NAMED_PID,
                                               bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError, e:
+    except IOError as e:
         root_logger.error('Cannot update pid-file configuration in %s: %s',
                 bindinstance.NAMED_CONF, e)
         return False
@@ -632,7 +632,7 @@ def named_enable_dnssec():
             bindinstance.named_conf_set_directive('dnssec-enable', 'yes',
                                                   bindinstance.NAMED_SECTION_OPTIONS,
                                                   str_val=False)
-        except IOError, e:
+        except IOError as e:
             root_logger.error('Cannot update dnssec-enable configuration in %s: %s',
                     bindinstance.NAMED_CONF, e)
             return False
@@ -664,7 +664,7 @@ def named_validate_dnssec():
             bindinstance.named_conf_set_directive('dnssec-validation', 'no',
                                                   bindinstance.NAMED_SECTION_OPTIONS,
                                                   str_val=False)
-        except IOError, e:
+        except IOError as e:
             root_logger.error('Cannot update dnssec-validate configuration in %s: %s',
                     bindinstance.NAMED_CONF, e)
             return False
@@ -690,7 +690,7 @@ def named_bindkey_file_option():
     try:
         bindkey_file = bindinstance.named_conf_get_directive('bindkey-file',
                 bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError, e:
+    except IOError as e:
         root_logger.error('Cannot retrieve bindkey-file option from %s: %s',
                 bindinstance.NAMED_CONF, e)
         return False
@@ -705,7 +705,7 @@ def named_bindkey_file_option():
         bindinstance.named_conf_set_directive('bindkeys-file',
                                               paths.NAMED_BINDKEYS_FILE,
                                               bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError, e:
+    except IOError as e:
         root_logger.error('Cannot update bindkeys-file configuration in %s: %s',
                 bindinstance.NAMED_CONF, e)
         return False
@@ -730,7 +730,7 @@ def named_managed_keys_dir_option():
     try:
         managed_keys = bindinstance.named_conf_get_directive('managed-keys-directory',
                 bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError, e:
+    except IOError as e:
         root_logger.error('Cannot retrieve managed-keys-directory option from %s: %s',
                 bindinstance.NAMED_CONF, e)
         return False
@@ -745,7 +745,7 @@ def named_managed_keys_dir_option():
         bindinstance.named_conf_set_directive('managed-keys-directory',
                                               paths.NAMED_MANAGED_KEYS_DIR,
                                               bindinstance.NAMED_SECTION_OPTIONS)
-    except IOError, e:
+    except IOError as e:
         root_logger.error('Cannot update managed-keys-directory configuration in %s: %s',
                 bindinstance.NAMED_CONF, e)
         return False
@@ -769,7 +769,7 @@ def named_root_key_include():
 
     try:
         root_key = bindinstance.named_conf_include_exists(paths.NAMED_ROOT_KEY)
-    except IOError, e:
+    except IOError as e:
         root_logger.error('Cannot check root key include in %s: %s',
                 bindinstance.NAMED_CONF, e)
         return False
@@ -782,7 +782,7 @@ def named_root_key_include():
     root_logger.info('[Including named root key in named.conf]')
     try:
         bindinstance.named_conf_add_include(paths.NAMED_ROOT_KEY)
-    except IOError, e:
+    except IOError as e:
         root_logger.error('Cannot update named root key include in %s: %s',
                 bindinstance.NAMED_CONF, e)
         return False
@@ -959,7 +959,7 @@ def migrate_crl_publish_dir(ca):
         old_publish_dir = installutils.get_directive(caconfig.CS_CFG_PATH,
             'ca.publish.publisher.instance.FileBaseCRLPublisher.directory',
             separator='=')
-    except OSError, e:
+    except OSError as e:
         root_logger.error('Cannot read CA configuration file "%s": %s',
                 caconfig.CS_CFG_PATH, e)
         return False
@@ -978,7 +978,7 @@ def migrate_crl_publish_dir(ca):
     root_logger.info('Copy all CRLs to new publish directory')
     try:
         crl_files_unsorted = cainstance.get_crl_files(old_publish_dir)
-    except OSError, e:
+    except OSError as e:
         root_logger.error('Cannot move CRL files to new directory: %s', e)
     else:
         # Move CRL files at the end of the list to make sure that the actual
@@ -1031,7 +1031,7 @@ def add_ca_dns_records():
     if not api.Backend.ldap2.isconnected():
         try:
             api.Backend.ldap2.connect(autobind=True)
-        except ipalib.errors.PublicError, e:
+        except ipalib.errors.PublicError as e:
             root_logger.error(
                 "Cannot connect to LDAP to add DNS records: %s", e)
             return
@@ -1227,7 +1227,7 @@ def fix_trust_flags():
     if not api.Backend.ldap2.isconnected():
         try:
             api.Backend.ldap2.connect(autobind=True)
-        except ipalib.errors.PublicError, e:
+        except ipalib.errors.PublicError as e:
             root_logger.error("Cannot connect to LDAP: %s", e)
             return
 

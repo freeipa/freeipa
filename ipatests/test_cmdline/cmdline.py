@@ -42,7 +42,7 @@ try:
     server_available = True
 except errors.DatabaseError:
     server_available = False
-except Exception, e:
+except Exception as e:
     server_available = False
 
 class cmdline_test(XMLRPC_test):

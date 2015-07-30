@@ -287,7 +287,7 @@ class TaskRunner(object):
 
         try:
             return args.func(args)
-        except Exception, e:
+        except Exception as e:
             if args.with_beakerlib:
                 beakerlib_process.log_exception()
                 beakerlib_process.run_beakerlib_command(

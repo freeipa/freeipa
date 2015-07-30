@@ -172,7 +172,7 @@ class NTPInstance(service.Service):
 
         try:
             self.fstore.restore_file(paths.NTP_CONF)
-        except ValueError, error:
+        except ValueError as error:
             root_logger.debug(error)
             pass
 

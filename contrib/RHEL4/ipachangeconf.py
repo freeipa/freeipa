@@ -435,7 +435,7 @@ class IPAChangeConf:
         try:
             try:
                 shutil.copy2(file, file+".ipabkp")
-            except IOError, err:
+            except IOError as err:
                 if err.errno == 2:
                     # The orign file did not exist
                     pass

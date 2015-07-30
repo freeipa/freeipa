@@ -185,7 +185,7 @@ class Cookie(object):
 
         try:
             dt = datetime.datetime(*email.utils.parsedate(s)[0:6])
-        except Exception, e:
+        except Exception as e:
             raise ValueError("unable to parse expires datetime '%s': %s" % (s, e))
 
         return dt
@@ -594,7 +594,7 @@ class Cookie(object):
             from ipalib.util import validate_domain_name
             try:
                 validate_domain_name(url_domain)
-            except Exception, e:
+            except Exception as e:
                 return False
 
             if cookie_domain is None:

@@ -415,7 +415,7 @@ def validate_file(file_path, validation_mode, reference_pot=None):
 
     try:
         po = polib.pofile(file_path)
-    except Exception, e:
+    except Exception as e:
         error_lines.append(entry_seperator)
         error_lines.append('Unable to parse file "%s": %s' % (file_path, e))
         n_errors += 1
@@ -528,7 +528,7 @@ def create_po(pot_file, po_file, mo_file):
         return 1
     try:
         po = polib.pofile(pot_file)
-    except Exception, e:
+    except Exception as e:
         print >>sys.stderr, 'Unable to parse file "%s": %s' % (pot_file, e)
         return 1
 
@@ -619,7 +619,7 @@ def po_file_iterate(po_file, get_msgstr, get_msgstr_plural):
             return 1
         try:
             po = polib.pofile(po_file)
-        except Exception, e:
+        except Exception as e:
             print >>sys.stderr, 'Unable to parse file "%s": %s' % (po_file, e)
             return 1
 
@@ -638,7 +638,7 @@ def po_file_iterate(po_file, get_msgstr, get_msgstr_plural):
                     n_translations += 1
                     validate_unicode_edit(msgid, msgstr)
                     n_valid += 1
-                except Exception, e:
+                except Exception as e:
                     n_fail += 1
                     if print_traceback:
                         traceback.print_exc()
@@ -648,7 +648,7 @@ def po_file_iterate(po_file, get_msgstr, get_msgstr_plural):
                     n_translations += 1
                     validate_unicode_edit(msgid_plural, msgstr_plural)
                     n_valid += 1
-                except Exception, e:
+                except Exception as e:
                     n_fail += 1
                     if print_traceback:
                         traceback.print_exc()
@@ -663,7 +663,7 @@ def po_file_iterate(po_file, get_msgstr, get_msgstr_plural):
                     n_translations += 1
                     validate_unicode_edit(msgid, msgstr)
                     n_valid += 1
-                except Exception, e:
+                except Exception as e:
                     n_fail += 1
                     if print_traceback:
                         traceback.print_exc()
@@ -671,7 +671,7 @@ def po_file_iterate(po_file, get_msgstr, get_msgstr_plural):
 
             n_entries += 1
 
-    except Exception, e:
+    except Exception as e:
         if print_traceback:
             traceback.print_exc()
         print >> sys.stderr, "ERROR: %s" % e

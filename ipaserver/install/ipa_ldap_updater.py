@@ -76,7 +76,7 @@ class LDAPUpdater(admintool.AdminTool):
 
         try:
             installutils.check_server_configuration()
-        except RuntimeError, e:
+        except RuntimeError as e:
             print unicode(e)
             sys.exit(1)
 

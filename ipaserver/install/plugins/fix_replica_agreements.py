@@ -89,7 +89,7 @@ class update_replica_attribute_lists(Updater):
             try:
                 repl.conn.update_entry(replica)
                 self.log.debug("Updated")
-            except Exception, e:
+            except Exception as e:
                 self.log.error("Error caught updating replica: %s", str(e))
 
         else:
@@ -107,7 +107,7 @@ class update_replica_attribute_lists(Updater):
                 try:
                     repl.conn.update_entry(replica)
                     self.log.debug("Updated %s", attribute)
-                except Exception, e:
+                except Exception as e:
                     self.log.error("Error caught updating %s: %s",
                         attribute, str(e))
             else:

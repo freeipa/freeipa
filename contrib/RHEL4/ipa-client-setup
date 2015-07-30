@@ -112,7 +112,7 @@ class ipaserver:
                 self.domain = lrealms[0].lower()
                 return True
 
-        except LDAPError, err:
+        except LDAPError as err:
             #no good
             root_logger.error("Ldap Error: "+str(err))
             return False
@@ -289,7 +289,7 @@ def main():
             {'name':'empty', 'type':'empty'}]
     try:
         ldapconf.newConf("/etc/ldap.conf", opts)
-    except Exception, e:
+    except Exception as e:
         print "Configuration failed: " + str(e)
         return 1
 

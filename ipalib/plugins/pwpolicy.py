@@ -491,7 +491,7 @@ class pwpolicy_mod(LDAPUpdate):
                 self.api.Command.cosentry_mod(
                     keys[-1], cospriority=options['cospriority']
                     )
-            except errors.EmptyModlist, e:
+            except errors.EmptyModlist as e:
                 if len(entry_attrs) == 1:   # cospriority only was passed
                     raise e
             else:

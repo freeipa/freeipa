@@ -319,11 +319,11 @@ class WinsyncMigrate(admintool.AdminTool):
             ccache = ctx.default_ccache()
             api.Backend.ldap2.connect(ccache)
             cls.ldap = api.Backend.ldap2
-        except krbV.Krb5Error, e:
+        except krbV.Krb5Error as e:
             sys.exit("Must have Kerberos credentials to migrate Winsync users.")
-        except errors.ACIError, e:
+        except errors.ACIError as e:
             sys.exit("Outdated Kerberos credentials. Use kdestroy and kinit to update your ticket.")
-        except errors.DatabaseError, e:
+        except errors.DatabaseError as e:
             sys.exit("Cannot connect to the LDAP database. Please check if IPA is running.")
 
         super(WinsyncMigrate, cls).main(argv)

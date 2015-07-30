@@ -64,7 +64,7 @@ def check_ip_option(option, opt, value):
 def check_dn_option(option, opt, value):
     try:
         return DN(value)
-    except Exception, e:
+    except Exception as e:
         raise OptionValueError("option %s: invalid DN: %s" % (opt, e))
 
 class IPAOption(Option):

@@ -177,7 +177,7 @@ class ServerCertInstall(admintool.AdminTool):
             if ca_enabled:
                 cdb.track_server_cert(server_cert, principal, cdb.passwd_fname,
                                       command)
-        except RuntimeError, e:
+        except RuntimeError as e:
             raise admintool.ScriptError(str(e))
 
         return server_cert

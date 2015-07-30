@@ -40,7 +40,7 @@ def _main():
 
     try:
         services.knownservices.dirsrv.restart(instance)
-    except Exception, e:
+    except Exception as e:
         syslog.syslog(syslog.LOG_ERR, "Cannot restart dirsrv (instance: '%s'): %s" % (instance, str(e)))
 
 

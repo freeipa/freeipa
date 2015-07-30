@@ -211,7 +211,7 @@ class ReplicaPrepare(admintool.AdminTool):
         except errors.LDAPError:
             raise admintool.ScriptError(
                 "Unable to connect to LDAP server %s" % api.env.host)
-        except errors.DatabaseError, e:
+        except errors.DatabaseError as e:
             raise admintool.ScriptError(e.desc)
 
         if not ca_enabled and not options.http_cert_files:
@@ -226,7 +226,7 @@ class ReplicaPrepare(admintool.AdminTool):
         # Validate more options using the password
         try:
             installutils.verify_fqdn(self.replica_fqdn, local_hostname=False)
-        except installutils.BadHostError, e:
+        except installutils.BadHostError as e:
             msg = str(e)
             if isinstance(e, installutils.HostLookupError):
                 if not options.ip_addresses:
@@ -498,7 +498,7 @@ class ReplicaPrepare(admintool.AdminTool):
             ip_address = str(ip)
             try:
                 add_fwd_rr(domain, name, ip_address)
-            except errors.PublicError, e:
+            except errors.PublicError as e:
                 raise admintool.ScriptError(
                     "Could not add A/AAAA DNS record for the replica: %s" % e)
 
@@ -506,7 +506,7 @@ class ReplicaPrepare(admintool.AdminTool):
                 reverse_zone = bindinstance.find_reverse_zone(ip)
                 try:
                     add_ptr_rr(reverse_zone, ip_address, self.replica_fqdn)
-                except errors.PublicError, e:
+                except errors.PublicError as e:
                     raise admintool.ScriptError(
                         "Could not add PTR DNS record for the replica: %s"
                         % e)
@@ -565,7 +565,7 @@ class ReplicaPrepare(admintool.AdminTool):
         self.log.debug('Copying %s to %s', source, dest_path)
         try:
             shutil.copy(source, dest_path)
-        except IOError, e:
+        except IOError as e:
             raise admintool.ScriptError("File copy failed: %s" % e)
 
     def remove_info_file(self, filename):
@@ -609,7 +609,7 @@ class ReplicaPrepare(admintool.AdminTool):
                         nickname, os.path.join(self.dir, "kdc.pem"))
                 else:
                     db.export_pkcs12(pkcs12_fname, passwd_fname, nickname)
-            except ipautil.CalledProcessError, e:
+            except ipautil.CalledProcessError as e:
                 self.log.info("error exporting Server certificate: %s", e)
                 installutils.remove_file(pkcs12_fname)
                 installutils.remove_file(passwd_fname)
@@ -625,7 +625,7 @@ class ReplicaPrepare(admintool.AdminTool):
             orig_filename = passwd_fname + ".orig"
             if ipautil.file_exists(orig_filename):
                 installutils.remove_file(orig_filename)
-        except errors.CertificateOperationError, e:
+        except errors.CertificateOperationError as e:
             raise admintool.ScriptError(str(e))
 
     def export_ra_pkcs12(self):

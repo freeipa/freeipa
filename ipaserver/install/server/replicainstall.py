@@ -106,7 +106,7 @@ def install_ca_cert(ldap, base_dn, realm, cafile):
             x509.write_certificate_list(certs, constants.CACERT)
 
         os.chmod(constants.CACERT, 0o444)
-    except Exception, e:
+    except Exception as e:
         print "error copying files: " + str(e)
         sys.exit(1)
 
@@ -137,7 +137,7 @@ def install_http(config, auto_redirect):
         if ipautil.file_exists(config.dir + "/configure.jar"):
             shutil.copy(config.dir + "/configure.jar",
                         paths.CONFIGURE_JAR)
-    except Exception, e:
+    except Exception as e:
         print "error copying files: " + str(e)
         sys.exit(1)
 
@@ -167,12 +167,12 @@ def install_dns_records(config, options, remote_api):
                                         reverse_zone,
                                         not options.no_ntp,
                                         options.setup_ca)
-    except errors.NotFound, e:
+    except errors.NotFound as e:
         root_logger.debug('Replica DNS records could not be added '
                           'on master: %s', str(e))
 
     # we should not fail here no matter what
-    except Exception, e:
+    except Exception as e:
         root_logger.info('Replica DNS records could not be added '
                          'on master: %s', str(e))
 
@@ -247,7 +247,7 @@ def check_dns_resolution(host_name, dns_servers):
                               address, host_name)
             revname = dnsreversename.from_address(address)
             rrset = resolver.query(revname, 'PTR').rrset
-        except Exception, e:
+        except Exception as e:
             root_logger.debug('Check failed: %s %s', type(e).__name__, e)
             root_logger.error(
                 'Reverse DNS resolution of address %s (%s) failed. '
@@ -333,7 +333,7 @@ def install_check(installer):
     if not options.no_ntp:
         try:
             ipaclient.ntpconf.check_timedate_services()
-        except ipaclient.ntpconf.NTPConflictingService, e:
+        except ipaclient.ntpconf.NTPConflictingService as e:
             print("WARNING: conflicting time&date synchronization service '%s'"
                   " will" % e.conflicting_service)
             print "be disabled in favor of ntpd"
@@ -627,7 +627,7 @@ def install(installer):
         if options.mkhomedir:
             args.append("--mkhomedir")
         ipautil.run(args)
-    except Exception, e:
+    except Exception as e:
         print "Configuration of client side components failed!"
         print "ipa-client-install returned: " + str(e)
         raise RuntimeError("Failed to configure the client")

@@ -50,7 +50,7 @@ class update_idrange_type(Updater):
                                   "type set found")
                 return False, []
 
-            except errors.ExecutionError, e:
+            except errors.ExecutionError as e:
                 root_logger.error("update_idrange_type: cannot retrieve list "
                                   "of ranges with no type set: %s", e)
                 return False, []
@@ -89,7 +89,7 @@ class update_idrange_type(Updater):
                     ldap.update_entry(entry)
                 except (errors.EmptyModlist, errors.NotFound):
                     pass
-                except errors.ExecutionError, e:
+                except errors.ExecutionError as e:
                     root_logger.debug("update_idrange_type: cannot "
                                       "update idrange type: %s", e)
                     error = True
@@ -137,7 +137,7 @@ class update_idrange_baserid(Updater):
                               "range with posix attributes found")
             return False, []
 
-        except errors.ExecutionError, e:
+        except errors.ExecutionError as e:
             root_logger.error("update_idrange_baserid: cannot retrieve "
                               "list of affected ranges: %s", e)
             return False, []
@@ -157,7 +157,7 @@ class update_idrange_baserid(Updater):
                 root_logger.info("Done")
             except (errors.EmptyModlist, errors.NotFound):
                 pass
-            except errors.ExecutionError, e:
+            except errors.ExecutionError as e:
                 root_logger.debug("update_idrange_type: cannot "
                                   "update idrange: %s", e)
                 error = True

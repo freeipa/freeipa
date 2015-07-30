@@ -442,7 +442,7 @@ class DsInstance(service.Service):
         try:
             ipautil.run(args)
             root_logger.debug("completed creating ds instance")
-        except ipautil.CalledProcessError, e:
+        except ipautil.CalledProcessError as e:
             root_logger.critical("failed to create ds instance %s" % e)
 
         # check for open port 389 from now on
@@ -452,7 +452,7 @@ class DsInstance(service.Service):
         try:
             self.__restart_instance()
             root_logger.debug("done restarting ds instance")
-        except ipautil.CalledProcessError, e:
+        except ipautil.CalledProcessError as e:
             print "failed to restart ds instance", e
             root_logger.debug("failed to restart ds instance %s" % e)
         inf_fd.close()
@@ -484,9 +484,9 @@ class DsInstance(service.Service):
             if not is_ds_running(instance):
                 root_logger.critical("Failed to restart the directory server. See the installation log for details.")
                 sys.exit(1)
-        except SystemExit, e:
+        except SystemExit as e:
             raise e
-        except Exception, e:
+        except Exception as e:
             # TODO: roll back here?
             root_logger.critical("Failed to restart the directory server (%s). See the installation log for details." % e)
 
@@ -771,7 +771,7 @@ class DsInstance(service.Service):
                         'LDAPTLS_CACERT':CACERT }
                 ipautil.run(args, env=env)
                 root_logger.debug("ldappasswd done")
-            except ipautil.CalledProcessError, e:
+            except ipautil.CalledProcessError as e:
                 print "Unable to set admin password", e
                 root_logger.debug("Unable to set admin password %s" % e)
 
@@ -793,7 +793,7 @@ class DsInstance(service.Service):
         try:
             self.fstore.restore_file(paths.LIMITS_CONF)
             self.fstore.restore_file(paths.SYSCONFIG_DIRSRV)
-        except ValueError, error:
+        except ValueError as error:
             root_logger.debug(error)
             pass
 
@@ -829,7 +829,7 @@ class DsInstance(service.Service):
         for ds_instance in get_ds_instances():
             try:
                 services.knownservices.dirsrv.restart(ds_instance, wait=False)
-            except Exception, e:
+            except Exception as e:
                 root_logger.error('Unable to restart ds instance %s: %s', ds_instance, e)
 
     def stop_tracking_certificates(self, serverid=None):
@@ -859,7 +859,7 @@ class DsInstance(service.Service):
                 root_logger.critical("The given CA cert file named [%s] could not be read" %
                                              cacert_fname)
                 return False
-        except OSError, e:
+        except OSError as e:
             root_logger.critical("The given CA cert file named [%s] could not be read: %s" %
                                          (cacert_fname, str(e)))
             return False
@@ -876,7 +876,7 @@ class DsInstance(service.Service):
         status = True
         try:
             certdb.load_cacert(cacert_fname, 'C,,')
-        except ipautil.CalledProcessError, e:
+        except ipautil.CalledProcessError as e:
             root_logger.critical("Error importing CA cert file named [%s]: %s" %
                                          (cacert_fname, str(e)))
             status = False
@@ -1025,7 +1025,7 @@ class DsInstance(service.Service):
                     ret['result']['ipacertificatesubjectbase'][0])
                 root_logger.debug(
                     'Found certificate subject base in DS: %s', subject_base)
-            except errors.PublicError, e:
+            except errors.PublicError as e:
                 root_logger.error('Cannot connect to DS to find certificate '
                                   'subject base: %s', e)
             finally:

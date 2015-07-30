@@ -463,7 +463,7 @@ class Command(HasParam):
             try:
                 value = values.get(p.name)
                 values[p.name] = p(value, **values)
-            except InvocationError, e:
+            except InvocationError as e:
                 errors[p.name] = str(e)
         return dict(
             values=values,
@@ -591,7 +591,7 @@ class Command(HasParam):
 
             try:
                 return param(raw, **kw)
-            except (ValidationError, ConversionError), e:
+            except (ValidationError, ConversionError) as e:
                 # Display error and prompt again
                 self.Backend.textui.print_prompt_attribute_error(unicode(label),
                                                              unicode(e.error))

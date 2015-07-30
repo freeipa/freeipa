@@ -90,7 +90,7 @@ class OTPTokenKey(Bytes):
         if isinstance(value, unicode):
             try:
                 value = base64.b32decode(value, True)
-            except TypeError, e:
+            except TypeError as e:
                 raise ConversionError(name=self.name, index=index, error=str(e))
 
         return super(OTPTokenKey, self)._convert_scalar(value, index)

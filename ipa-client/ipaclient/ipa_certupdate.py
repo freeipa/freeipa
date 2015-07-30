@@ -101,7 +101,7 @@ class CertUpdate(admintool.AdminTool):
             while sys_db.has_nickname(nickname):
                 try:
                     sys_db.delete_cert(nickname)
-                except ipautil.CalledProcessError, e:
+                except ipautil.CalledProcessError as e:
                     self.log.error("Failed to remove %s from %s: %s",
                                    nickname, sys_db.secdir, e)
                     break
@@ -111,7 +111,7 @@ class CertUpdate(admintool.AdminTool):
             while ipa_db.has_nickname(nickname):
                 try:
                     ipa_db.delete_cert(nickname)
-                except ipautil.CalledProcessError, e:
+                except ipautil.CalledProcessError as e:
                     self.log.error("Failed to remove %s from %s: %s",
                                    nickname, ipa_db.secdir, e)
                     break
@@ -168,7 +168,7 @@ class CertUpdate(admintool.AdminTool):
         certs = (c[0] for c in certs if c[2] is not False)
         try:
             x509.write_certificate_list(certs, filename)
-        except Exception, e:
+        except Exception as e:
             self.log.error("failed to update %s: %s", filename, e)
 
     def update_db(self, path, certs):
@@ -178,6 +178,6 @@ class CertUpdate(admintool.AdminTool):
                 trusted, True, eku)
             try:
                 db.add_cert(cert, nickname, trust_flags)
-            except ipautil.CalledProcessError, e:
+            except ipautil.CalledProcessError as e:
                 self.log.error(
                     "failed to update %s in %s: %s", nickname, path, e)

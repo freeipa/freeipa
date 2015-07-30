@@ -145,7 +145,7 @@ class Service(object):
                 conn = ipaldap.IPAdmin(self.fqdn, port=389)
 
             conn.do_bind(self.dm_password, autobind=self.autobind)
-        except Exception, e:
+        except Exception as e:
             root_logger.debug("Could not connect to the Directory Server on %s: %s" % (self.fqdn, str(e)))
             raise
 
@@ -198,7 +198,7 @@ class Service(object):
         try:
             try:
                 ipautil.run(args, nolog=nologlist)
-            except ipautil.CalledProcessError, e:
+            except ipautil.CalledProcessError as e:
                 root_logger.critical("Failed to load %s: %s" % (ldif, str(e)))
         finally:
             if pw_name:
@@ -282,7 +282,7 @@ class Service(object):
         entry.setdefault('userCertificate', []).append(self.dercert)
         try:
             self.admin_conn.update_entry(entry)
-        except Exception, e:
+        except Exception as e:
             root_logger.critical("Could not add certificate to service %s entry: %s" % (self.principal, str(e)))
 
     def import_ca_certs(self, db, ca_is_configured, conn=None):
@@ -476,7 +476,7 @@ class Service(object):
 
         try:
             self.admin_conn.add_entry(entry)
-        except (errors.DuplicateEntry), e:
+        except (errors.DuplicateEntry) as e:
             root_logger.debug("failed to add service %s startup entry", name)
             raise e
 

@@ -706,7 +706,7 @@ class SessionAuthManager(object):
         for auth_mgr in self.auth_managers.values():
             try:
                 auth_mgr.logout(session_data)
-            except Exception, e:
+            except Exception as e:
                 self.error('%s auth_mgr logout failed: %s', auth_mgr.name, e)
 
 #-------------------------------------------------------------------------------
@@ -963,7 +963,7 @@ class MemcacheSessionManager(SessionManager):
 
         try:
             session_cookie = Cookie.get_named_cookie_from_string(cookie_header, self.session_cookie_name)
-        except Exception, e:
+        except Exception as e:
             session_cookie = None
         if session_cookie:
             session_id = session_cookie.value
@@ -1272,7 +1272,7 @@ def release_ipa_ccache(ccache_name):
         if os.path.exists(name):
             try:
                 os.unlink(name)
-            except Exception, e:
+            except Exception as e:
                 root_logger.error('unable to delete session ccache file "%s", %s', name, e)
     else:
         raise ValueError('ccache scheme "%s" unsupported (%s)', scheme, ccache_name)

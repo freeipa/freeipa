@@ -157,7 +157,7 @@ def wait_for_entry(connection, entry, timeout=7200, attr='', quiet=True):
                 dn, ldap.SCOPE_BASE, filter, attrlist)
         except errors.NotFound:
             pass  # no entry yet
-        except Exception, e:  # badness
+        except Exception as e:  # badness
             print "\nError reading entry", dn, e
             break
         if not entry:
@@ -500,7 +500,7 @@ class ReplicationManager(object):
                 done = True
             except errors.DuplicateEntry:
                 benum += 1
-            except errors.ExecutionError, e:
+            except errors.ExecutionError as e:
                 print "Could not add backend entry " + dn, e
                 raise
 
@@ -676,7 +676,7 @@ class ReplicationManager(object):
             mod = [(ldap.MOD_ADD, 'nsDS5ReplicatedAttributeListTotal',
                    '(objectclass=*) $ EXCLUDE %s' % " ".join(TOTAL_EXCLUDES))]
             a_conn.modify_s(dn, mod)
-        except ldap.LDAPError, e:
+        except ldap.LDAPError as e:
             # Apparently there are problems set the total list
             # Probably the master is an old 389-ds server, tell the caller
             # that we will have to set the memberof fixup task
@@ -842,7 +842,7 @@ class ReplicationManager(object):
 
         try:
             self.conn.modify_s(dn, mod)
-        except Exception, e:
+        except Exception as e:
             root_logger.debug("Failed to remove referral value: %s" % str(e))
 
     def check_repl_init(self, conn, agmtdn, start):
@@ -1039,7 +1039,7 @@ class ReplicationManager(object):
                 raise RuntimeError("Failed to lookup AD's Ldap suffix")
             ad_conn.unbind_s()
             del ad_conn
-        except Exception, e:
+        except Exception as e:
             root_logger.info("Failed to connect to AD server %s" % ad_dc_name)
             root_logger.info("The error was: %s" % e)
             raise RuntimeError("Failed to setup winsync replication")
@@ -1072,7 +1072,7 @@ class ReplicationManager(object):
 
         try:
             self.conn.add_entry(entry)
-        except Exception, e:
+        except Exception as e:
             root_logger.info("Failed to create public entry for winsync replica")
 
         #Finally start replication
@@ -1203,7 +1203,7 @@ class ReplicationManager(object):
                     self.conn.delete_entry(entry)
         except errors.NotFound:
             pass
-        except Exception, e:
+        except Exception as e:
             if not force:
                 raise e
             else:
@@ -1228,7 +1228,7 @@ class ReplicationManager(object):
             except (ldap.NO_SUCH_OBJECT, ldap.NO_SUCH_ATTRIBUTE):
                 root_logger.debug("Replica (%s) memberPrincipal (%s) not found in %s" % \
                         (replica, member_principal, dn))
-            except Exception, e:
+            except Exception as e:
                 if not force:
                     raise e
                 elif not err:
@@ -1245,7 +1245,7 @@ class ReplicationManager(object):
                     self.conn.delete_entry(entry)
         except errors.NotFound:
             pass
-        except Exception, e:
+        except Exception as e:
             if not force:
                 raise e
             elif not err:
@@ -1288,7 +1288,7 @@ class ReplicationManager(object):
                 pass
         except errors.NotFound:
             pass
-        except Exception, e:
+        except Exception as e:
             if not force:
                 raise e
             elif not err:
@@ -1326,7 +1326,7 @@ class ReplicationManager(object):
                 pass
         except errors.NotFound:
             pass
-        except Exception, e:
+        except Exception as e:
             if not force:
                 raise e
             elif not err:
@@ -1356,7 +1356,7 @@ class ReplicationManager(object):
                 pass
         except errors.NotFound:
             pass
-        except Exception, e:
+        except Exception as e:
             if not force:
                 raise e
             elif not err:
@@ -1372,7 +1372,7 @@ class ReplicationManager(object):
                     self.conn.delete_entry(entry)
         except errors.NotFound:
             pass
-        except Exception, e:
+        except Exception as e:
             if not force:
                 raise e
             elif not err:
@@ -1394,7 +1394,7 @@ class ReplicationManager(object):
             pass
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
-        except Exception, e:
+        except Exception as e:
             if force and err:
                 raise err   #pylint: disable=E0702
             else:
@@ -1416,7 +1416,7 @@ class ReplicationManager(object):
         mod = [(ldap.MOD_REPLACE, 'nsslapd-readonly', 'on' if readonly else 'off')]
         try:
             self.conn.modify_s(dn, mod)
-        except ldap.INSUFFICIENT_ACCESS, e:
+        except ldap.INSUFFICIENT_ACCESS as e:
             # We can't modify the read-only status on the remote server.
             # This usually isn't a show-stopper.
             if critical:
@@ -1666,7 +1666,7 @@ class CSReplicationManager(ReplicationManager):
             entry['nsslapd-referral'].remove('ldap://%s/%s' %
                 (ipautil.format_netloc(hostname, port), self.suffix))
             self.conn.update_entry(entry)
-        except Exception, e:
+        except Exception as e:
             root_logger.debug("Failed to remove referral value: %s" % e)
 
     def has_ipaca(self):

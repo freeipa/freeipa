@@ -36,7 +36,7 @@ def _parse_cert(dercert):
         issuer = x509.get_issuer(dercert, x509.DER)
         serial_number = x509.get_serial_number(dercert, x509.DER)
         public_key_info = x509.get_der_public_key_info(dercert, x509.DER)
-    except (NSPRError, PyAsn1Error), e:
+    except (NSPRError, PyAsn1Error) as e:
         raise ValueError("failed to decode certificate: %s" % e)
 
     subject = str(subject).replace('\\;', '\\3b')
@@ -55,7 +55,7 @@ def init_ca_entry(entry, dercert, nickname, trusted, ext_key_usage):
     if ext_key_usage is not None:
         try:
             cert_eku = x509.get_ext_key_usage(dercert, x509.DER)
-        except NSPRError, e:
+        except NSPRError as e:
             raise ValueError("failed to decode certificate: %s" % e)
         if cert_eku is not None:
             cert_eku -= {x509.EKU_SERVER_AUTH, x509.EKU_CLIENT_AUTH,

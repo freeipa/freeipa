@@ -95,7 +95,7 @@ def update_persistent_client_session_data(principal, data):
 
     try:
         keyname = client_session_keyring_keyname(principal)
-    except Exception, e:
+    except Exception as e:
         raise ValueError(str(e))
 
     # kernel_keyring only raises ValueError (why??)
@@ -111,7 +111,7 @@ def read_persistent_client_session_data(principal):
 
     try:
         keyname = client_session_keyring_keyname(principal)
-    except Exception, e:
+    except Exception as e:
         raise ValueError(str(e))
 
     # kernel_keyring only raises ValueError (why??)
@@ -127,7 +127,7 @@ def delete_persistent_client_session_data(principal):
 
     try:
         keyname = client_session_keyring_keyname(principal)
-    except Exception, e:
+    except Exception as e:
         raise ValueError(str(e))
 
     # kernel_keyring only raises ValueError (why??)
@@ -384,7 +384,7 @@ def xml_loads(data, encoding='UTF-8'):
     try:
         (params, method) = loads(data)
         return (xml_unwrap(params), method)
-    except Fault, e:
+    except Fault as e:
         raise decode_fault(e)
 
 
@@ -668,7 +668,7 @@ class KerbTransport(SSLTransport):
         try:
             session_cookie = Cookie.get_named_cookie_from_string(cookie_header,
                                                                  COOKIE_NAME, request_url)
-        except Exception, e:
+        except Exception as e:
             root_logger.error("unable to parse cookie header '%s': %s", cookie_header, e)
             return
 
@@ -679,7 +679,7 @@ class KerbTransport(SSLTransport):
         root_logger.debug("storing cookie '%s' for principal %s", cookie_string, principal)
         try:
             update_persistent_client_session_data(principal, cookie_string)
-        except Exception, e:
+        except Exception as e:
             # Not fatal, we just can't use the session cookie we were sent.
             pass
 
@@ -723,7 +723,7 @@ class RPCClient(Connectible):
 
         try:
             answers = resolver.query(name, rdatatype.SRV)
-        except DNSException, e:
+        except DNSException as e:
             answers = []
 
         for answer in answers:
@@ -756,13 +756,13 @@ class RPCClient(Connectible):
         # (possibly with more than one cookie).
         try:
             cookie_string = read_persistent_client_session_data(principal)
-        except Exception, e:
+        except Exception as e:
             return None
 
         # Search for the session cookie within the cookie string
         try:
             session_cookie = Cookie.get_named_cookie_from_string(cookie_string, COOKIE_NAME)
-        except Exception, e:
+        except Exception as e:
             return None
 
         return session_cookie
@@ -805,17 +805,17 @@ class RPCClient(Connectible):
         # Decide if we should send the cookie to the server
         try:
             session_cookie.http_return_ok(original_url)
-        except Cookie.Expired, e:
+        except Cookie.Expired as e:
             self.debug("deleting session data for principal '%s': %s", principal, e)
             try:
                 delete_persistent_client_session_data(principal)
-            except Exception, e:
+            except Exception as e:
                 pass
             return original_url
-        except Cookie.URLMismatch, e:
+        except Cookie.URLMismatch as e:
             self.debug("not sending session cookie, URL mismatch: %s", e)
             return original_url
-        except Exception, e:
+        except Exception as e:
             self.error("not sending session cookie, unknown error: %s", e)
             return original_url
 
@@ -872,7 +872,7 @@ class RPCClient(Connectible):
                 command = getattr(serverproxy, 'ping')
                 try:
                     response = command([], {})
-                except Fault, e:
+                except Fault as e:
                     e = decode_fault(e)
                     if e.faultCode in errors_by_code:
                         error = errors_by_code[e.faultCode]
@@ -885,23 +885,23 @@ class RPCClient(Connectible):
                         )
                 # We don't care about the response, just that we got one
                 break
-            except KerberosError, krberr:
+            except KerberosError as krberr:
                 # kerberos error on one server is likely on all
                 raise errors.KerberosError(major=str(krberr), minor='')
-            except ProtocolError, e:
+            except ProtocolError as e:
                 if hasattr(context, 'session_cookie') and e.errcode == 401:
                     # Unauthorized. Remove the session and try again.
                     delattr(context, 'session_cookie')
                     try:
                         delete_persistent_client_session_data(principal)
-                    except Exception, e:
+                    except Exception as e:
                         # This shouldn't happen if we have a session but it isn't fatal.
                         pass
                     return self.create_connection(ccache, verbose, fallback, delegate)
                 if not fallback:
                     raise
                 serverproxy = None
-            except Exception, e:
+            except Exception as e:
                 if not fallback:
                     raise
                 else:
@@ -948,7 +948,7 @@ class RPCClient(Connectible):
         params = [args, kw]
         try:
             return self._call_command(command, params)
-        except Fault, e:
+        except Fault as e:
             e = decode_fault(e)
             self.debug('Caught fault %d from server %s: %s', e.faultCode,
                 server, e.faultString)
@@ -960,9 +960,9 @@ class RPCClient(Connectible):
                 error=e.faultString,
                 server=server,
             )
-        except NSPRError, e:
+        except NSPRError as e:
             raise NetworkError(uri=server, error=str(e))
-        except ProtocolError, e:
+        except ProtocolError as e:
             # By catching a 401 here we can detect the case where we have
             # a single IPA server and the session is invalid. Otherwise
             # we always have to do a ping().
@@ -973,7 +973,7 @@ class RPCClient(Connectible):
                 try:
                     principal = getattr(context, 'principal', None)
                     delete_persistent_client_session_data(principal)
-                except Exception, e:
+                except Exception as e:
                     # This shouldn't happen if we have a session but it isn't fatal.
                     pass
 
@@ -995,9 +995,9 @@ class RPCClient(Connectible):
                     current_conn.conn._ServerProxy__transport.dbdir = dbdir
                 return self.forward(name, *args, **kw)
             raise NetworkError(uri=server, error=e.errmsg)
-        except socket.error, e:
+        except socket.error as e:
             raise NetworkError(uri=server, error=str(e))
-        except (OverflowError, TypeError), e:
+        except (OverflowError, TypeError) as e:
             raise XMLRPCMarshallError(error=str(e))
 
 
@@ -1049,7 +1049,7 @@ class JSONServerProxy(object):
 
         try:
             response = json_decode_binary(json.loads(response))
-        except ValueError, e:
+        except ValueError as e:
             raise JSONError(str(e))
 
         if self.__verbose >= 2:

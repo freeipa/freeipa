@@ -212,7 +212,7 @@ def get_request_value(request_id, directive):
     """
     try:
         request = _get_request(dict(nickname=request_id))
-    except RuntimeError, e:
+    except RuntimeError as e:
         root_logger.error('Failed to get request: %s' % e)
         raise
     if request:
@@ -240,7 +240,7 @@ def get_request_id(criteria):
     """
     try:
         request = _get_request(criteria)
-    except RuntimeError, e:
+    except RuntimeError as e:
         root_logger.error('Failed to get request: %s' % e)
         raise
     if request:
@@ -270,7 +270,7 @@ def add_request_value(request_id, directive, value):
     """
     try:
         request = _get_request({'nickname': request_id})
-    except RuntimeError, e:
+    except RuntimeError as e:
         root_logger.error('Failed to get request: %s' % e)
         raise
     if request:
@@ -356,7 +356,7 @@ def start_tracking(nickname, secdir, password_file=None, command=None):
         if result[0]:
             request = _cm_dbus_object(cm.bus, cm, result[1], DBUS_CM_REQUEST_IF,
                                       DBUS_CM_IF, True)
-    except TypeError, e:
+    except TypeError as e:
         root_logger.error('Failed to add new request.')
         raise
     return request.prop_if.Get(DBUS_CM_REQUEST_IF, 'nickname')
@@ -378,7 +378,7 @@ def stop_tracking(secdir, request_id=None, nickname=None):
         criteria['cert-nickname'] = nickname
     try:
         request = _get_request(criteria)
-    except RuntimeError, e:
+    except RuntimeError as e:
         root_logger.error('Failed to get request: %s' % e)
         raise
     if request:

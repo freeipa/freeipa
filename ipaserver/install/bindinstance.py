@@ -392,7 +392,7 @@ def zonemgr_callback(option, opt_str, value, parser):
                 encoding = 'utf-8'
             value = value.decode(encoding)
             validate_zonemgr_str(value)
-        except ValueError, e:
+        except ValueError as e:
             # FIXME we can do this in better way
             # https://fedorahosted.org/freeipa/ticket/4804
             # decode to proper stderr encoding
@@ -935,7 +935,7 @@ class BindInstance(service.Service):
             self.admin_conn.modify_s(dns_group, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
             pass
-        except Exception, e:
+        except Exception as e:
             root_logger.critical("Could not modify principal's %s entry: %s" \
                     % (dns_principal, str(e)))
             raise
@@ -948,7 +948,7 @@ class BindInstance(service.Service):
                (ldap.MOD_REPLACE, 'nsLookThroughLimit', '-1')]
         try:
             self.admin_conn.modify_s(dns_principal, mod)
-        except Exception, e:
+        except Exception as e:
             root_logger.critical("Could not set principal's %s LDAP limits: %s" \
                     % (dns_principal, str(e)))
             raise
@@ -1180,7 +1180,7 @@ class BindInstance(service.Service):
         for f in [NAMED_CONF, RESOLV_CONF]:
             try:
                 self.fstore.restore_file(f)
-            except ValueError, error:
+            except ValueError as error:
                 root_logger.debug(error)
                 pass
 

@@ -179,7 +179,7 @@ class DomainValidator(object):
             self.sid = entry_attrs[self.ATTR_SID][0]
             self.dn = entry_attrs.dn
             self.domain = self.api.env.domain
-        except errors.NotFound, e:
+        except errors.NotFound as e:
             return False
         return True
 
@@ -211,7 +211,7 @@ class DomainValidator(object):
                     trust_partner = entry[self.ATTR_TRUST_PARTNER][0]
                     flatname_normalized = entry[self.ATTR_FLATNAME][0].lower()
                     trusted_sid = entry[self.ATTR_TRUSTED_SID][0]
-                except KeyError, e:
+                except KeyError as e:
                     # Some piece of trusted domain info in LDAP is missing
                     # Skip the domain, but leave log entry for investigation
                     api.log.warn("Trusted domain '%s' entry misses an "
@@ -221,7 +221,7 @@ class DomainValidator(object):
                 result[trust_partner] = (flatname_normalized,
                                          security.dom_sid(trusted_sid))
             return result
-        except errors.NotFound, e:
+        except errors.NotFound as e:
             return []
 
     def set_trusted_domains(self):
@@ -381,7 +381,7 @@ class DomainValidator(object):
         try:
             test_sid = security.dom_sid(sid)
             return unicode(test_sid)
-        except TypeError, e:
+        except TypeError as e:
             raise errors.ValidationError(name=_('trusted domain object'),
                error= _('Trusted domain did not return a valid SID for the object'))
 
@@ -707,7 +707,7 @@ class DomainValidator(object):
                         basedn = ipautil.realm_to_suffix(info['dns_domain'])
 
                     entries = conn.get_entries(basedn, scope, filter, attrs)
-                except Exception, e:
+                except Exception as e:
                     msg = "Search on AD DC {host}:{port} failed with: {err}"\
                           .format(host=host, port=str(port), err=str(e))
                     if quiet:
@@ -742,11 +742,11 @@ class DomainValidator(object):
         result = None
         try:
             result = netrc.finddc(domain=domain, flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_GC | nbt.NBT_SERVER_CLOSEST)
-        except RuntimeError, e:
+        except RuntimeError as e:
             try:
                 # If search of closest GC failed, attempt to find any one
                 result = netrc.finddc(domain=domain, flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_GC)
-            except RuntimeError, e:
+            except RuntimeError as e:
                 finddc_error = e
 
         if not self._domains:
@@ -767,7 +767,7 @@ class DomainValidator(object):
 
             try:
                 answers = resolver.query(gc_name, rdatatype.SRV)
-            except DNSException, e:
+            except DNSException as e:
                 answers = []
 
             for answer in answers:
@@ -838,9 +838,9 @@ class TrustDomainInstance(object):
                 self._pipe = self.__gen_lsa_connection(binding)
                 if self._pipe and self._pipe.session_key:
                     break
-            except errors.ACIError, e:
+            except errors.ACIError as e:
                 attempts = attempts + 1
-            except RuntimeError, e:
+            except RuntimeError as e:
                 # When session key is not available, we just skip this binding
                 session_attempts = session_attempts + 1
 
@@ -880,7 +880,7 @@ class TrustDomainInstance(object):
                 result = netrc.finddc(domain=remote_host, flags=flags)
             else:
                 result = netrc.finddc(address=remote_host, flags=flags)
-        except RuntimeError, e:
+        except RuntimeError as e:
             raise assess_dcerpc_exception(message=str(e))
 
         if not result:
@@ -902,11 +902,11 @@ class TrustDomainInstance(object):
             (objtype, res) = conn.search_s('', _ldap.SCOPE_BASE)[0]
             search_result = res['defaultNamingContext'][0]
             self.info['dns_hostname'] = res['dnsHostName'][0]
-        except _ldap.LDAPError, e:
+        except _ldap.LDAPError as e:
             root_logger.error(
                 "LDAP error when connecting to %(host)s: %(error)s" %
                     dict(host=unicode(result.pdc_name), error=str(e)))
-        except KeyError, e:
+        except KeyError as e:
             root_logger.error("KeyError: {err}, LDAP entry from {host} "
                               "returned malformed. Your DNS might be "
                               "misconfigured."
@@ -1035,7 +1035,7 @@ class TrustDomainInstance(object):
                                                                           ftinfo, 0)
                 if collision_info:
                     root_logger.error("When setting forest trust information, got collision info back:\n%s" % (ndr_print(collision_info)))
-        except RuntimeError, e:
+        except RuntimeError as e:
             # We can ignore the error here -- setting up name suffix routes may fail
             pass
 
@@ -1091,7 +1091,7 @@ class TrustDomainInstance(object):
             infoclass.enc_types |= security.KERB_ENCTYPE_AES128_CTS_HMAC_SHA1_96
             infoclass.enc_types |= security.KERB_ENCTYPE_AES256_CTS_HMAC_SHA1_96
             self._pipe.SetInformationTrustedDomain(trustdom_handle, lsa.LSA_TRUSTED_DOMAIN_SUPPORTED_ENCRYPTION_TYPES, infoclass)
-        except RuntimeError, e:
+        except RuntimeError as e:
             # We can ignore the error here -- changing enctypes is for
             # improved security but the trust will work with default values as
             # well. In particular, the call may fail against Windows 2003
@@ -1102,7 +1102,7 @@ class TrustDomainInstance(object):
             info = self._pipe.QueryTrustedDomainInfo(trustdom_handle, lsa.LSA_TRUSTED_DOMAIN_INFO_INFO_EX)
             info.trust_attributes |= lsa.LSA_TRUST_ATTRIBUTE_FOREST_TRANSITIVE
             self._pipe.SetInformationTrustedDomain(trustdom_handle, lsa.LSA_TRUSTED_DOMAIN_INFO_INFO_EX, info)
-        except RuntimeError, e:
+        except RuntimeError as e:
             root_logger.error('unable to set trust to transitive: %s' % (str(e)))
             pass
         if self.info['is_pdc']:
@@ -1213,7 +1213,7 @@ def fetch_domains(api, mydomain, trustdomain, creds=None, server=None):
         else:
             result = netrc.finddc(domain=trustdomain,
                                   flags=nbt.NBT_SERVER_LDAP | nbt.NBT_SERVER_DS)
-    except RuntimeError, e:
+    except RuntimeError as e:
         raise assess_dcerpc_exception(message=str(e))
 
     td.info['dc'] = unicode(result.pdc_dns_name)

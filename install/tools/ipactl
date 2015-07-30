@@ -163,7 +163,7 @@ def get_config(dirsrv):
         attrs = ['cn']
         try:
             entries = con.get_entries(dn, con.SCOPE_ONELEVEL, attrs_list=attrs)
-        except Exception, e:
+        except Exception as e:
             masters_list.append("No master found because of error: %s" % str(e))
         else:
             for master_entry in entries:
@@ -174,7 +174,7 @@ def get_config(dirsrv):
         raise IpactlError("Failed to get list of services to probe status!\n"
                           "Configured hostname '%s' does not match any master server in LDAP:\n%s"
                           % (api.env.host, masters))
-    except Exception, e:
+    except Exception as e:
         raise IpactlError("Unknown error when retrieving list of services from LDAP: " + str(e))
 
     svc_list = []
@@ -203,7 +203,7 @@ def get_config_from_file():
     try:
         f = open(tasks.get_svc_list_file(), 'r')
         svc_list = json.load(f)
-    except Exception, e:
+    except Exception as e:
         raise IpactlError("Unknown error when retrieving list of services from file: " + str(e))
 
     # the framework can start/stop a number of related services we are not
@@ -260,13 +260,13 @@ def ipa_start(options):
     try:
         print "Starting Directory Service"
         dirsrv.start(capture_output=get_capture_output('dirsrv', options.debug))
-    except Exception, e:
+    except Exception as e:
         raise IpactlError("Failed to start Directory Service: " + str(e))
 
     ldap_list = []
     try:
         svc_list = get_config(dirsrv)
-    except Exception, e:
+    except Exception as e:
         emit_err("Failed to read data from service file: " + str(e))
         emit_err("Shutting down")
 
@@ -306,13 +306,13 @@ def ipa_stop(options):
     dirsrv = services.knownservices.dirsrv
     try:
         svc_list = get_config_from_file()
-    except Exception, e:
+    except Exception as e:
         # Issue reading the file ? Let's try to get data from LDAP as a
         # fallback
         try:
             dirsrv.start(capture_output=False)
             svc_list = get_config(dirsrv)
-        except Exception, e:
+        except Exception as e:
             emit_err("Failed to read data from Directory Service: " + str(e))
             emit_err("Shutting down")
             try:
@@ -356,12 +356,12 @@ def ipa_restart(options):
             print "Starting Directory Service"
             dirsrv.start(capture_output=get_capture_output('dirsrv', options.debug))
             dirsrv_restart = False
-        except Exception, e:
+        except Exception as e:
             raise IpactlError("Failed to start Directory Service: " + str(e))
 
     try:
         new_svc_list = get_config(dirsrv)
-    except Exception, e:
+    except Exception as e:
         emit_err("Failed to read data from Directory Service: " + str(e))
         emit_err("Shutting down")
         try:
@@ -377,7 +377,7 @@ def ipa_restart(options):
     old_svc_list = []
     try:
         old_svc_list = get_config_from_file()
-    except Exception, e:
+    except Exception as e:
         emit_err("Failed to get service list from file: " + str(e))
         # fallback to what's in LDAP
         old_svc_list = new_svc_list
@@ -410,7 +410,7 @@ def ipa_restart(options):
         if dirsrv_restart:
             print "Restarting Directory Service"
             dirsrv.restart(capture_output=get_capture_output('dirsrv', options.debug))
-    except Exception, e:
+    except Exception as e:
         emit_err("Failed to restart Directory Service: " + str(e))
         emit_err("Shutting down")
 
@@ -471,12 +471,12 @@ def ipa_status(options):
             svc_list = get_config(dirsrv)
         else:
             svc_list = get_config_from_file()
-    except IpactlError, e:
+    except IpactlError as e:
         if os.path.exists(tasks.get_svc_list_file()):
             raise e
         else:
             svc_list = []
-    except Exception, e:
+    except Exception as e:
         raise IpactlError("Failed to get list of services to probe status: " + str(e))
 
     dirsrv = services.knownservices.dirsrv
@@ -520,7 +520,7 @@ def main():
     # check if IPA is configured at all
     try:
         check_IPA_configuration()
-    except IpactlError, e:
+    except IpactlError as e:
         if args[0].lower() == "status":
             # Different LSB return code for status command:
             # 4 - program or service status is unknown

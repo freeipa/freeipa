@@ -974,7 +974,7 @@ class user_status(LDAPQuery):
                 other_ldap = ldap2(self.api, ldap_uri='ldap://%s' % host)
                 try:
                     other_ldap.connect(ccache=os.environ['KRB5CCNAME'])
-                except Exception, e:
+                except Exception as e:
                     self.error("user_status: Connecting to %s failed with %s" % (host, str(e)))
                     newresult = {'dn': dn}
                     newresult['server'] = _("%(host)s failed: %(error)s") % dict(host=host, error=str(e))
@@ -994,7 +994,7 @@ class user_status(LDAPQuery):
                                 continue
                             newtime = time.strptime(newresult[attr][0], '%Y%m%d%H%M%SZ')
                             newresult[attr][0] = unicode(time.strftime('%Y-%m-%dT%H:%M:%SZ', newtime))
-                        except Exception, e:
+                        except Exception as e:
                             self.debug("time conversion failed with %s" % str(e))
                             pass
                 newresult['server'] = host
@@ -1011,7 +1011,7 @@ class user_status(LDAPQuery):
                 count += 1
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
-            except Exception, e:
+            except Exception as e:
                 self.error("user_status: Retrieving status for %s failed with %s" % (dn, str(e)))
                 newresult = {'dn': dn}
                 newresult['server'] = _("%(host)s failed") % dict(host=host)

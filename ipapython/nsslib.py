@@ -59,7 +59,7 @@ def auth_certificate_callback(sock, check_sig, is_server, certdb):
         # will be set to the error code matching the reason why the validation failed
         # and the strerror attribute will contain a string describing the reason.
         approved_usage = cert.verify_now(certdb, check_sig, intended_usage, *pin_args)
-    except Exception, e:
+    except Exception as e:
         root_logger.error('cert validation failed for "%s" (%s)', cert.subject, e.strerror)
         cert_is_valid = False
         return cert_is_valid
@@ -88,7 +88,7 @@ def auth_certificate_callback(sock, check_sig, is_server, certdb):
     try:
         # If the cert fails validation it will raise an exception
         cert_is_valid = cert.verify_hostname(hostname)
-    except Exception, e:
+    except Exception as e:
         root_logger.error('failed verifying socket hostname "%s" matches cert subject "%s" (%s)',
                                   hostname, cert.subject, e.strerror)
         cert_is_valid = False
@@ -159,7 +159,7 @@ class NSSAddressFamilyFallback(object):
                 self._create_socket()
                 self.sock.connect(net_addr)
                 return
-            except Exception, e:
+            except Exception as e:
                 root_logger.debug("Could not connect socket to %s, error: %s",
                         net_addr, str(e))
                 root_logger.debug("Try to continue with next family...")
@@ -199,7 +199,7 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
                 ssl.clear_session_cache()
                 try:
                     nss.nss_shutdown()
-                except NSPRError, e:
+                except NSPRError as e:
                     if e.errno != error.SEC_ERROR_NOT_INITIALIZED:
                         raise e
 
@@ -236,7 +236,7 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
         self.sock.set_ssl_option(ssl.SSL_HANDSHAKE_AS_CLIENT, True)
         try:
             self.sock.set_ssl_version_range(self.tls_version_min, self.tls_version_max)
-        except NSPRError, e:
+        except NSPRError as e:
             root_logger.error('Failed to set TLS range to %s, %s' % (self.tls_version_min, self.tls_version_max))
             raise
         self.sock.set_ssl_option(ssl_require_safe_negotiation, False)
@@ -289,7 +289,7 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
                 httplib.HTTPConnection.endheaders(self)
             else:
                 httplib.HTTPConnection.endheaders(self, message)
-        except NSPRError, e:
+        except NSPRError as e:
             self.close()
             raise e
 

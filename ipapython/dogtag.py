@@ -163,7 +163,7 @@ def error_from_xml(doc, message_template):
         item_node = doc.getElementsByTagName("Error")
         reason = item_node[0].childNodes[0].data
         return errors.RemoteRetrieveError(reason=reason)
-    except Exception, e:
+    except Exception as e:
         return errors.RemoteRetrieveError(reason=message_template % e)
 
 
@@ -332,7 +332,7 @@ def _httplib_request(
         http_headers = res.msg.dict
         http_body = res.read()
         conn.close()
-    except Exception, e:
+    except Exception as e:
         raise NetworkError(uri=uri, error=str(e))
 
     root_logger.debug('request status %d',        http_status)

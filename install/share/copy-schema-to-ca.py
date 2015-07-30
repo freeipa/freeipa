@@ -82,7 +82,7 @@ def add_ca_schema():
                 continue
         try:
             shutil.copyfile(source_fname, target_fname)
-        except IOError, e:
+        except IOError as e:
             root_logger.warning('Could not install %s: %s', target_fname, e)
         else:
             root_logger.info('Installed %s', target_fname)

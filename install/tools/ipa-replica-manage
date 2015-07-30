@@ -158,7 +158,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
             conn.do_simple_bind(bindpw=dirman_passwd)
         else:
             conn.do_sasl_gssapi_bind()
-    except Exception, e:
+    except Exception as e:
         print "Failed to connect to host '%s': %s" % (host, str(e))
         return
 
@@ -212,7 +212,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
                                                   dirman_passwd)
             entries = repl.find_replication_agreements()
             ent_type = 'replica'
-    except Exception, e:
+    except Exception as e:
         print "Failed to get data from '%s': %s" % (replica, e)
         return
 
@@ -258,7 +258,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         else:
             print "'%s' has no replication agreement for '%s'" % (replica1, replica2)
         return False
-    except Exception, e:
+    except Exception as e:
         print "Failed to determine agreement type for '%s': %s" % (replica2, e)
 
     if type1 == replication.IPA_REPLICA and managed_topology:
@@ -284,7 +284,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
             print "'%s' has no replication agreement for '%s'" % (replica2, replica1)
             if not force:
                 return False
-        except Exception, e:
+        except Exception as e:
             print "Failed to get list of agreements from '%s': %s" % (replica2, e)
             if not force:
                 return False
@@ -308,7 +308,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
             repl2.delete_agreement(replica1)
             repl2.delete_referral(replica1)
             repl2.set_readonly(readonly=False)
-        except Exception, e:
+        except Exception as e:
             print "Unable to remove agreement on %s: %s" % (replica2, e)
             failed = True
 
@@ -335,7 +335,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
                 entries.sort(key=lambda x: len(x.dn), reverse=True)
                 for entry in entries:
                     repl1.conn.delete_entry(entry)
-        except Exception, e:
+        except Exception as e:
             print "Error deleting winsync replica shared info: %s" % e
 
     print "Deleted replication agreement from '%s' to '%s'" % (replica1, replica2)
@@ -352,7 +352,7 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False):
 
     try:
         thisrepl = replication.ReplicationManager(realm, host, dirman_passwd)
-    except Exception, e:
+    except Exception as e:
         print "Failed to connect to server %s: %s" % (host, e)
         sys.exit(1)
 
@@ -687,7 +687,7 @@ def cleanup_server_dns_entries(realm, hostname, suffix, options):
 
             keysyncd = dnskeysyncinstance.DNSKeySyncInstance()
             keysyncd.remove_replica_public_keys(hostname)
-    except Exception, e:
+    except Exception as e:
         print "Failed to cleanup %s DNS entries: %s" % (hostname, e)
         print "You may need to manually remove them from the tree"
 
@@ -740,7 +740,7 @@ def del_master_managed(realm, hostname, options):
     # 6. Cleanup
     try:
         thisrepl.replica_cleanup(hostname, realm, force=True)
-    except Exception, e:
+    except Exception as e:
         print "Failed to cleanup %s entries: %s" % (hostname, e)
         print "You may need to manually remove them from the tree"
 
@@ -815,7 +815,7 @@ def del_master_direct(realm, hostname, options):
     try:
         thisrepl = replication.ReplicationManager(realm, options.host,
                                                   options.dirman_passwd)
-    except Exception, e:
+    except Exception as e:
         print "Failed to connect to server %s: %s" % (options.host, e)
         sys.exit(1)
 
@@ -844,7 +844,7 @@ def del_master_direct(realm, hostname, options):
         winsync = False
         try:
             delrepl = replication.ReplicationManager(realm, hostname, options.dirman_passwd)
-        except Exception, e:
+        except Exception as e:
             print "Connection to '%s' failed: %s" % (hostname, e)
             if not options.force:
                 print "Unable to delete replica '%s'" % hostname
@@ -888,7 +888,7 @@ def del_master_direct(realm, hostname, options):
     if delrepl and not winsync:
         try:
             masters = api.Command.server_find('', sizelimit=0)['result']
-        except Exception, e:
+        except Exception as e:
             masters = []
             print "Failed to read masters data from '%s': %s" % (
                 delrepl.hostname, e)
@@ -923,7 +923,7 @@ def del_master_direct(realm, hostname, options):
         try:
             if not del_link(realm, r, hostname, options.dirman_passwd, force=True):
                 print "Unable to remove replication agreement for %s from %s." % (hostname, r)
-        except Exception, e:
+        except Exception as e:
             print ("There were issues removing a connection for %s "
                 "from %s: %s" % (hostname, r, e))
 
@@ -937,7 +937,7 @@ def del_master_direct(realm, hostname, options):
     # 6. Finally clean up the removed replica common entries.
     try:
         thisrepl.replica_cleanup(hostname, realm, force=True)
-    except Exception, e:
+    except Exception as e:
         print "Failed to cleanup %s entries: %s" % (hostname, e)
         print "You may need to manually remove them from the tree"
 
@@ -965,7 +965,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
     except errors.NotFound:
         print "Cannot find replica '%s'" % replica1
         return
-    except Exception, e:
+    except Exception as e:
         print "Failed to connect to '%s': %s" % (replica1, e)
         return
 
@@ -997,7 +997,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
     except errors.NotFound:
         print "Cannot find replica '%s'" % replica1
         return
-    except Exception, e:
+    except Exception as e:
         print "Failed to connect to '%s': %s" % (replica1, e)
         return
 
@@ -1117,7 +1117,7 @@ def show_DNA_ranges(hostname, master, realm, dirman_passwd, nextrange=False,
 
     try:
         repl = replication.ReplicationManager(realm, hostname, dirman_passwd)
-    except Exception, e:
+    except Exception as e:
         sys.exit("Connection failed: %s" % e)
     dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), repl.suffix)
     try:
@@ -1131,7 +1131,7 @@ def show_DNA_ranges(hostname, master, realm, dirman_passwd, nextrange=False,
             continue
         try:
             repl2 = replication.ReplicationManager(realm, remote, dirman_passwd)
-        except Exception, e:
+        except Exception as e:
             print "%s: Connection failed: %s" % (remote, e)
             continue
         if not nextrange:
@@ -1187,14 +1187,14 @@ def store_DNA_range(repl, range_start, range_max, deleted_master, realm,
             continue
         try:
             repl2 = replication.ReplicationManager(realm, candidate, dirman_passwd)
-        except Exception, e:
+        except Exception as e:
             print "Connection failed: %s" % e
             continue
         (next_start, next_max) = repl2.get_DNA_next_range(candidate)
         if next_start is None:
             try:
                 return repl2.save_DNA_next_range(range_start, range_max)
-            except Exception, e:
+            except Exception as e:
                 print '%s: %s' % (candidate, e)
 
     return False
@@ -1226,7 +1226,7 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
         """
         try:
             (dna_next, dna_max) = range.split('-', 1)
-        except ValueError, e:
+        except ValueError as e:
             return "Invalid range, must be the form x-y"
 
         try:
@@ -1263,14 +1263,14 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
 
     try:
         repl = replication.ReplicationManager(realm, hostname, dirman_passwd)
-    except Exception, e:
+    except Exception as e:
         sys.exit("Connection failed: %s" % e)
     if dna_next > 0:
         # Verify that the new range doesn't overlap with an existing range
         dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), repl.suffix)
         try:
             entries = repl.conn.get_entries(dn, repl.conn.SCOPE_ONELEVEL)
-        except Exception, e:
+        except Exception as e:
             sys.exit("Failed to read master data from '%s': %s" % (repl.conn.host, str(e)))
         else:
             for ent in entries:
@@ -1279,7 +1279,7 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
                     continue
                 try:
                     repl2 = replication.ReplicationManager(realm, master, dirman_passwd)
-                except Exception, e:
+                except Exception as e:
                     print "Connection to %s failed: %s" % (master, e)
                     print "Overlap not checked."
                     continue
@@ -1304,7 +1304,7 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
         try:
             entries = repl.conn.get_entries(dn, repl.conn.SCOPE_ONELEVEL,
                                         "(objectclass=ipaDomainIDRange)")
-        except errors.NotFound, e:
+        except errors.NotFound as e:
             sys.exit('Unable to load IPA ranges: %s' % e.message)
 
         for ent in entries:
@@ -1336,7 +1336,7 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
             sys.exit("No changes to make")
         except errors.NotFound:
                 sys.exit("No permission to update ranges")
-        except Exception, e:
+        except Exception as e:
             sys.exit("Updating next range failed: %s" % e)
     else:
         try:
@@ -1346,7 +1346,7 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
             sys.exit("No changes to make")
         except errors.NotFound:
                 sys.exit("No permission to update ranges")
-        except Exception, e:
+        except Exception as e:
             sys.exit("Updating range failed: %s" % e)
 
 def has_managed_topology():
@@ -1477,13 +1477,13 @@ try:
     main()
 except KeyboardInterrupt:
     sys.exit(1)
-except SystemExit, e:
+except SystemExit as e:
     sys.exit(e)
-except RuntimeError, e:
+except RuntimeError as e:
     sys.exit(e)
 except socket.timeout:
     print "Connection timed out."
     sys.exit(1)
-except Exception, e:
+except Exception as e:
     print "unexpected error: %s" % str(e)
     sys.exit(1)

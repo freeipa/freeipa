@@ -60,7 +60,7 @@ def httpd_443_configured():
     """
     try:
         (stdout, stderr, rc) = ipautil.run([paths.HTTPD, '-t', '-D', 'DUMP_VHOSTS'])
-    except ipautil.CalledProcessError, e:
+    except ipautil.CalledProcessError as e:
         service.print_msg("WARNING: cannot check if port 443 is already configured")
         service.print_msg("httpd returned error when checking: %s" % e)
         return False
@@ -470,7 +470,7 @@ class HTTPInstance(service.Service):
         for f in [paths.HTTPD_IPA_CONF, paths.HTTPD_SSL_CONF, paths.HTTPD_NSS_CONF]:
             try:
                 self.fstore.restore_file(f)
-            except ValueError, error:
+            except ValueError as error:
                 root_logger.debug(error)
                 pass
 

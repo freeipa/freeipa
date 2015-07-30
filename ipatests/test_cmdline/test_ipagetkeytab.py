@@ -48,7 +48,7 @@ def use_keytab(principal, keytab):
         conn = ldap2(api)
         conn.connect(ccache=ccache)
         conn.disconnect()
-    except krbV.Krb5Error, e:
+    except krbV.Krb5Error as e:
         raise StandardError('Unable to bind to LDAP. Error initializing principal %s in %s: %s' % (principal.name, keytab, str(e)))
     finally:
         del os.environ['KRB5CCNAME']
@@ -111,7 +111,7 @@ class test_ipagetkeytab(cmdline_test):
             expected = 'Keytab successfully retrieved and stored in: %s\n' % (
                 self.keytabname)
             assert expected in err, 'Success message not in output:\n%s' % err
-        except ipautil.CalledProcessError, e:
+        except ipautil.CalledProcessError as e:
             assert (False)
 
     def test_3_use(self):
@@ -141,7 +141,7 @@ class test_ipagetkeytab(cmdline_test):
         """
         try:
             use_keytab(self.service_princ, self.keytabname)
-        except StandardError, errmsg:
+        except StandardError as errmsg:
             assert('Unable to bind to LDAP. Error initializing principal' in str(errmsg))
 
     def test_9_cleanup(self):

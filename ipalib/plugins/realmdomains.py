@@ -56,7 +56,7 @@ def _domain_name_normalizer(d):
 def _domain_name_validator(ugettext, value):
     try:
         validate_domain_name(value, allow_slash=False)
-    except ValueError, e:
+    except ValueError as e:
         return unicode(e)
 
 

@@ -144,9 +144,9 @@ class UI_driver(object):
             try:
                 with open(path, 'r') as conf:
                     self.config = yaml.load(conf)
-            except yaml.YAMLError, e:
+            except yaml.YAMLError as e:
                 raise nose.SkipTest("Invalid Web UI config.\n%s" % e)
-            except IOError, e:
+            except IOError as e:
                 raise nose.SkipTest("Can't load Web UI test config: %s" % e)
         else:
             self.config = {}
@@ -198,9 +198,9 @@ class UI_driver(object):
                 driver = webdriver.Remote(
                     command_executor='http://%s:%d/wd/hub' % (host, port),
                     desired_capabilities=capabilities)
-            except URLError, e:
+            except URLError as e:
                 raise nose.SkipTest('Error connecting to selenium server: %s' % e)
-            except RuntimeError, e:
+            except RuntimeError as e:
                 raise nose.SkipTest('Error while establishing webdriver: %s' % e)
         else:
             try:
@@ -213,9 +213,9 @@ class UI_driver(object):
                     if "ff_profile" in self.config:
                         fp = webdriver.FirefoxProfile(self.config["ff_profile"])
                     driver = webdriver.Firefox(fp)
-            except URLError, e:
+            except URLError as e:
                 raise nose.SkipTest('Error connecting to selenium server: %s' % e)
-            except RuntimeError, e:
+            except RuntimeError as e:
                 raise nose.SkipTest('Error while establishing webdriver: %s' % e)
 
         return driver

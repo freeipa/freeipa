@@ -111,9 +111,9 @@ def main():
             conn.connect(
                 bind_dn=DN(('cn', 'directory manager')), bind_pw=dirman_password
             )
-        except errors.ExecutionError, lde:
+        except errors.ExecutionError as lde:
             sys.exit("An error occurred while connecting to the server.\n%s\n" % str(lde))
-        except errors.ACIError, e:
+        except errors.ACIError as e:
             sys.exit("Authentication failed: %s" % e.info)
 
         if args[0] == "status":
@@ -124,7 +124,7 @@ def main():
                     print "Plugin Enabled"
                 else:
                     print "Plugin Disabled"
-            except errors.LDAPError, lde:
+            except errors.LDAPError as lde:
                 print "An error occurred while talking to the server."
                 print lde
 
@@ -146,7 +146,7 @@ def main():
                     else:
                         entry['nsslapd-pluginenabled'] = ['on']
                         conn.update_entry(entry)
-            except errors.ExecutionError, lde:
+            except errors.ExecutionError as lde:
                 print "An error occurred while talking to the server."
                 print lde
                 retval = 1
@@ -160,7 +160,7 @@ def main():
                     print >>sys.stderr, "The NIS plugin is configured, cannot disable compatibility."
                     print >>sys.stderr, "Run 'ipa-nis-manage disable' first."
                     retval = 2
-            except errors.ExecutionError, lde:
+            except errors.ExecutionError as lde:
                 print "An error occurred while talking to the server."
                 print lde
                 retval = 1
@@ -177,11 +177,11 @@ def main():
 
                         entry['nsslapd-pluginenabled'] = ['off']
                         conn.update_entry(entry)
-                except errors.DatabaseError, dbe:
+                except errors.DatabaseError as dbe:
                     print "An error occurred while talking to the server."
                     print dbe
                     retval = 1
-                except errors.ExecutionError, lde:
+                except errors.ExecutionError as lde:
                     print "An error occurred while talking to the server."
                     print lde
                     retval = 1

@@ -37,7 +37,7 @@ class test_changepw(XMLRPC_test, Unauthorized_HTTP_test):
         try:
             api.Command['user_add'](uid=testuser, givenname=u'Test', sn=u'User')
             api.Command['passwd'](testuser, password=u'old_password')
-        except errors.ExecutionError, e:
+        except errors.ExecutionError as e:
             raise nose.SkipTest(
                 'Cannot set up test user: %s' % e
             )

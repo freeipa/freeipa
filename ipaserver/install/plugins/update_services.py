@@ -50,7 +50,7 @@ class update_service_principalalias(Updater):
                 root_logger.debug("update_service_principalalias: no service "
                                   "to update found")
                 return False, []
-            except errors.ExecutionError, e:
+            except errors.ExecutionError as e:
                 root_logger.error("update_service_principalalias: cannot "
                                   "retrieve list of affected services: %s", e)
                 return False, []
@@ -72,7 +72,7 @@ class update_service_principalalias(Updater):
                     ldap.update_entry(entry)
                 except (errors.EmptyModlist, errors.NotFound):
                     pass
-                except errors.ExecutionError, e:
+                except errors.ExecutionError as e:
                     root_logger.debug("update_service_principalalias: cannot "
                                       "update service: %s", e)
                     error = True

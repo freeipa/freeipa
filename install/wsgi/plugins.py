@@ -43,7 +43,7 @@ def application(environ, start_response):
     try:
         index = get_plugin_index()
         status = '200 OK'
-    except Exception, e:
+    except Exception as e:
         root_logger.error('plugin index generation failed: %s' % e)
         status = '200 OK'
         index = get_failed()

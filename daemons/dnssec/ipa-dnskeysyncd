@@ -90,10 +90,10 @@ while watcher_running:
     try:
         log.info('LDAP bind...')
         ldap_connection.sasl_interactive_bind_s("", ipaldap.SASL_GSSAPI)
-    except ldap.INVALID_CREDENTIALS, e:
+    except ldap.INVALID_CREDENTIALS as e:
         log.exception('Login to LDAP server failed: %s', e)
         sys.exit(1)
-    except ldap.SERVER_DOWN, e:
+    except ldap.SERVER_DOWN as e:
         log.exception('LDAP server is down, going to retry: %s', e)
         time.sleep(5)
         continue

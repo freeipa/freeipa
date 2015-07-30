@@ -77,7 +77,7 @@ def wait_for_sssd():
         try:
             ipautil.run(["getent", "passwd", "admin@%s" % api.env.realm])
             found = True
-        except Exception, e:
+        except Exception as e:
             time.sleep(1)
             n = n + 1
 
@@ -102,7 +102,7 @@ def configure_xml(fstore):
         saslconf = etree.fromstring(lines)
         element = saslconf.xpath('//autofs_ldap_sasl_conf')
         root = saslconf.getroottree()
-    except IOError, e:
+    except IOError as e:
         root_logger.debug('Unable to open file %s' % e)
         root_logger.debug('Creating new from template')
         element = [etree.Element('autofs_ldap_sasl_conf')]
@@ -121,7 +121,7 @@ def configure_xml(fstore):
     try:
         root.write(newconf, pretty_print=True, xml_declaration=True, encoding='UTF-8')
         newconf.close()
-    except IOError, e:
+    except IOError as e:
         print "Unable to write %s: %s" % (paths.AUTOFS_LDAP_AUTH_CONF, e)
     print "Configured %s" % paths.AUTOFS_LDAP_AUTH_CONF
 
@@ -149,7 +149,7 @@ def configure_autofs_sssd(fstore, statestore, autodiscover, options):
         sssdconfig = SSSDConfig.SSSDConfig()
         sssdconfig.import_config()
         domains = sssdconfig.list_active_domains()
-    except Exception, e:
+    except Exception as e:
         sys.exit(e)
 
     try:
@@ -230,11 +230,11 @@ def configure_autofs_common(fstore, statestore, options):
     try:
         autofs.restart()
         print "Started %s" % autofs.service_name
-    except Exception, e:
+    except Exception as e:
         root_logger.error("%s failed to restart: %s", autofs.service_name, e)
     try:
         autofs.enable()
-    except Exception, e:
+    except Exception as e:
         print "Failed to configure automatic startup of the %s daemon" % (autofs.service_name)
         root_logger.error("Failed to enable automatic startup of the %s daemon: %s" % (autofs.service_name, str(e)))
 
@@ -280,7 +280,7 @@ def uninstall(fstore, statestore):
                 sssd = services.service('sssd')
                 sssd.restart()
                 wait_for_sssd()
-            except Exception, e:
+            except Exception as e:
                 print 'Unable to restore SSSD configuration: %s' % str(e)
                 root_logger.debug('Unable to restore SSSD configuration: %s' % str(e))
     if statestore.has_state('rpcidmapd'):
@@ -330,11 +330,11 @@ def configure_nfs(fstore, statestore):
     try:
         rpcidmapd.restart()
         print "Started %s" % rpcidmapd.service_name
-    except Exception, e:
+    except Exception as e:
         root_logger.error("%s failed to restart: %s", rpcidmapd.service_name, e)
     try:
         rpcidmapd.enable()
-    except Exception, e:
+    except Exception as e:
         print "Failed to configure automatic startup of the %s daemon" % (rpcidmapd.service_name)
         root_logger.error("Failed to enable automatic startup of the %s daemon: %s" % (rpcidmapd.service_name, str(e)))
 
@@ -344,11 +344,11 @@ def configure_nfs(fstore, statestore):
     try:
         rpcgssd.restart()
         print "Started %s" % rpcgssd.service_name
-    except Exception, e:
+    except Exception as e:
         root_logger.error("%s failed to restart: %s", rpcgssd.service_name, e)
     try:
         rpcgssd.enable()
-    except Exception, e:
+    except Exception as e:
         print "Failed to configure automatic startup of the %s daemon" % (rpcgssd.service_name)
         root_logger.error("Failed to enable automatic startup of the %s daemon: %s" % (rpcgssd.service_name, str(e)))
 
@@ -440,7 +440,7 @@ def main():
         # Now we have a TGT, connect to IPA
         try:
             api.Backend.rpcclient.connect()
-        except errors.KerberosError, e:
+        except errors.KerberosError as e:
             sys.exit('Cannot connect to the server due to ' + str(e))
         try:
             # Use the RPC directly so older servers are supported
@@ -449,11 +449,11 @@ def main():
                 unicode(options.location),
                 version=u'2.0',
             )
-        except errors.VersionError, e:
+        except errors.VersionError as e:
             sys.exit('This client is incompatible: ' + str(e))
         except errors.NotFound:
             sys.exit("Automount location '%s' does not exist" % options.location)
-        except errors.PublicError, e:
+        except errors.PublicError as e:
             sys.exit("Cannot connect to the server due to generic error: %s" % str(e))
     finally:
         os.remove(ccache_name)
@@ -471,7 +471,7 @@ def main():
             configure_xml(fstore)
             configure_autofs(fstore, statestore, autodiscover, server, options)
         configure_autofs_common(fstore, statestore, options)
-    except Exception, e:
+    except Exception as e:
         root_logger.debug('Raised exception %s' % e)
         print "Installation failed. Rolling back changes."
         uninstall(fstore, statestore)
@@ -484,9 +484,9 @@ try:
         sys.exit("\nMust be run as root\n")
 
     sys.exit(main())
-except SystemExit, e:
+except SystemExit as e:
     sys.exit(e)
-except RuntimeError, e:
+except RuntimeError as e:
     sys.exit(e)
 except (KeyboardInterrupt, EOFError):
     sys.exit(1)

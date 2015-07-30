@@ -213,7 +213,7 @@ def store_cert():
                 conn.add_entry(entry)
             except errors.EmptyModlist:
                 pass
-    except Exception, e:
+    except Exception as e:
         attempts += 1
         if attempts < 10:
             syslog.syslog(
@@ -365,7 +365,7 @@ def export_csr():
     try:
         with open(csr_file, 'wb') as f:
             f.write(csr)
-    except Exception, e:
+    except Exception as e:
         return (UNREACHABLE, "Failed to write %s: %s" % (csr_file, e))
 
     return (ISSUED, cert)
@@ -464,7 +464,7 @@ def main():
 
 try:
     sys.exit(main())
-except Exception, e:
+except Exception as e:
     syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
     print "Internal error"
     sys.exit(UNREACHABLE)

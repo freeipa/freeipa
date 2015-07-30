@@ -164,7 +164,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
     def reload_systemwide_ca_store(self):
         try:
             ipautil.run([paths.UPDATE_CA_TRUST])
-        except CalledProcessError, e:
+        except CalledProcessError as e:
             root_logger.error(
                 "Could not update systemwide CA trust database: %s", e)
             return False
@@ -178,7 +178,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         if os.path.exists(new_cacert_path):
             try:
                 os.remove(new_cacert_path)
-            except OSError, e:
+            except OSError as e:
                 root_logger.error(
                     "Could not remove %s: %s", new_cacert_path, e)
                 return False
@@ -187,7 +187,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         try:
             f = open(new_cacert_path, 'w')
-        except IOError, e:
+        except IOError as e:
             root_logger.info("Failed to open %s: %s" % (new_cacert_path, e))
             return False
 
@@ -201,7 +201,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 issuer = x509.get_der_issuer(cert, x509.DER)
                 serial_number = x509.get_der_serial_number(cert, x509.DER)
                 public_key_info = x509.get_der_public_key_info(cert, x509.DER)
-            except (NSPRError, PyAsn1Error), e:
+            except (NSPRError, PyAsn1Error) as e:
                 root_logger.warning(
                     "Failed to decode certificate \"%s\": %s", nickname, e)
                 continue
@@ -241,7 +241,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                     ext_key_usage = {x509.EKU_PLACEHOLDER}
                 try:
                     ext_key_usage = x509.encode_ext_key_usage(ext_key_usage)
-                except PyAsn1Error, e:
+                except PyAsn1Error as e:
                     root_logger.warning(
                         "Failed to encode extended key usage for \"%s\": %s",
                         nickname, e)
@@ -278,7 +278,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 continue
             try:
                 os.remove(new_cacert_path)
-            except OSError, e:
+            except OSError as e:
                 root_logger.error(
                     "Could not remove %s: %s", new_cacert_path, e)
                 result = False
@@ -295,7 +295,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         old_hostname = socket.gethostname()
         try:
             ipautil.run([paths.BIN_HOSTNAME, hostname])
-        except ipautil.CalledProcessError, e:
+        except ipautil.CalledProcessError as e:
             print >>sys.stderr, ("Failed to set this machine hostname to "
                                  "%s (%s)." % (hostname, str(e)))
 
@@ -373,7 +373,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
                 if original_state != state:
                     updated_vars[setting] = state
-            except ipautil.CalledProcessError, e:
+            except ipautil.CalledProcessError as e:
                 log.error("Cannot get SELinux boolean '%s': %s", setting, e)
                 failed_vars[setting] = state
 

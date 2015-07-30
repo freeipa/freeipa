@@ -256,7 +256,7 @@ def validate_ipaddr(ugettext, ipaddr):
     """
     try:
         CheckedIPAddress(ipaddr, match_local=False)
-    except Exception, e:
+    except Exception as e:
         return unicode(e)
     return None
 
@@ -272,7 +272,7 @@ def normalize_hostname(hostname):
 def _hostname_validator(ugettext, value):
     try:
         validate_hostname(value)
-    except ValueError, e:
+    except ValueError as e:
         return _('invalid domain-name: %s') % unicode(e)
 
     return None
@@ -674,7 +674,7 @@ class host_add(LDAPCreate):
                     del options['ip_address']
 
                 update_sshfp_record(domain, unicode(parts[0]), entry_attrs)
-            except Exception, e:
+            except Exception as e:
                 exc = e
         if options.get('random', False):
             try:

@@ -311,7 +311,7 @@ def wait_for_value(ldap, dn, attr, value):
 def validate_externalhost(ugettext, hostname):
     try:
         validate_hostname(hostname, check_fqdn=False, allow_underscore=True)
-    except ValueError, e:
+    except ValueError as e:
         return unicode(e)
 
 
@@ -1099,9 +1099,9 @@ last, after all sets and adds."""),
                 # validate, convert and encode params
                 try:
                    value = param(value)
-                except errors.ValidationError, err:
+                except errors.ValidationError as err:
                     raise errors.ValidationError(name=attr, error=err.error)
-                except errors.ConversionError, err:
+                except errors.ConversionError as err:
                     raise errors.ConversionError(name=attr, error=err.error)
                 if isinstance(value, tuple):
                     value = list(value)
@@ -1143,7 +1143,7 @@ last, after all sets and adds."""),
             while True:
                 try:
                     return func(*call_args, **call_kwargs)
-                except errors.ExecutionError, e:
+                except errors.ExecutionError as e:
                     if not callbacks:
                         raise
                     # call exc_callback in the next loop
@@ -1507,7 +1507,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             update.update(entry_attrs)
 
             self._exc_wrapper(keys, options, ldap.update_entry)(update)
-        except errors.EmptyModlist, e:
+        except errors.EmptyModlist as e:
             if not rdnupdate:
                 raise e
         except errors.NotFound:
@@ -1684,7 +1684,7 @@ class LDAPModMember(LDAPQuery):
                     ldap_obj = self.api.Object[ldap_obj_name]
                     try:
                         dns[attr][ldap_obj_name].append(ldap_obj.get_dn(name))
-                    except errors.PublicError, e:
+                    except errors.PublicError as e:
                         failed[attr][ldap_obj_name].append((name, unicode(e)))
         return (dns, failed)
 
@@ -1732,7 +1732,7 @@ class LDAPAddMember(LDAPModMember):
                         continue
                     try:
                         ldap.add_entry_to_group(m_dn, dn, attr, allow_same=self.allow_same)
-                    except errors.PublicError, e:
+                    except errors.PublicError as e:
                         ldap_obj = self.api.Object[ldap_obj_name]
                         failed[attr][ldap_obj_name].append((
                             ldap_obj.get_primary_key_from_dn(m_dn),
@@ -1833,7 +1833,7 @@ class LDAPRemoveMember(LDAPModMember):
                         continue
                     try:
                         ldap.remove_entry_from_group(m_dn, dn, attr)
-                    except errors.PublicError, e:
+                    except errors.PublicError as e:
                         ldap_obj = self.api.Object[ldap_obj_name]
                         failed[attr][ldap_obj_name].append((
                             ldap_obj.get_primary_key_from_dn(m_dn),
@@ -2193,12 +2193,12 @@ class LDAPAddReverseMember(LDAPModReverseMember):
                         completed = completed + 1
                     else:
                         failed['member'][self.reverse_attr].append((attr, result['failed']['member'][self.member_attr][0][1]))
-                except errors.NotFound, e:
+                except errors.NotFound as e:
                     msg = str(e)
                     (attr, msg) = msg.split(':', 1)
                     failed['member'][self.reverse_attr].append((attr, unicode(msg.strip())))
 
-            except errors.PublicError, e:
+            except errors.PublicError as e:
                 failed['member'][self.reverse_attr].append((attr, unicode(msg)))
 
         # Update the member data.
@@ -2294,12 +2294,12 @@ class LDAPRemoveReverseMember(LDAPModReverseMember):
                         completed = completed + 1
                     else:
                         failed['member'][self.reverse_attr].append((attr, result['failed']['member'][self.member_attr][0][1]))
-                except errors.NotFound, e:
+                except errors.NotFound as e:
                     msg = str(e)
                     (attr, msg) = msg.split(':', 1)
                     failed['member'][self.reverse_attr].append((attr, unicode(msg.strip())))
 
-            except errors.PublicError, e:
+            except errors.PublicError as e:
                 failed['member'][self.reverse_attr].append((attr, unicode(msg)))
 
         # Update the member data.

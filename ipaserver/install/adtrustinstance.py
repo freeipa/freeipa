@@ -71,7 +71,7 @@ def check_inst():
 def ipa_smb_conf_exists():
     try:
         conf_fd = open(paths.SMB_CONF, 'r')
-    except IOError, err:
+    except IOError as err:
         if err.errno == errno.ENOENT:
             return False
 
@@ -247,7 +247,7 @@ class ADTRUSTInstance(service.Service):
         except errors.NotFound:
             try:
                 self._ldap_mod('default-trust-view.ldif', self.sub_dict)
-            except Exception, e:
+            except Exception as e:
                 self.print_msg("Failed to add default trust view.")
                 raise e
         else:
@@ -291,7 +291,7 @@ class ADTRUSTInstance(service.Service):
         except errors.NotFound:
             try:
                 self._ldap_mod('default-smb-group.ldif', self.sub_dict)
-            except Exception, e:
+            except Exception as e:
                 self.print_msg("Failed to add fallback group.")
                 raise e
 
@@ -358,7 +358,7 @@ class ADTRUSTInstance(service.Service):
                                                  str(self.rid_base)),
                                          (ldap.MOD_ADD, "ipaSecondaryBaseRID",
                                                  str(self.secondary_rid_base))])
-            except ldap.CONSTRAINT_VIOLATION, e:
+            except ldap.CONSTRAINT_VIOLATION as e:
                 self.print_msg("Failed to add RID bases to the local range "
                                "object:\n  %s" % e[0]['info'])
                 raise RuntimeError("Constraint violation.\n")
@@ -401,7 +401,7 @@ class ADTRUSTInstance(service.Service):
             except errors.NotFound:
                 try:
                     name = new_dn[1].attr
-                except Exception, e:
+                except Exception as e:
                     self.print_msg('Cannot extract RDN attribute value from "%s": %s' % \
                           (new_dn, e))
                     return
@@ -518,7 +518,7 @@ class ADTRUSTInstance(service.Service):
             # adtrustinstance is managed
             # That's fine, we we'll re-extract the key again.
             pass
-        except Exception, e:
+        except Exception as e:
             self.print_msg("Cannot add CIFS service: %s" % e)
 
         self.clean_samba_keytab()
@@ -536,7 +536,7 @@ class ADTRUSTInstance(service.Service):
             try:
                 ipautil.run(["ipa-rmkeytab", "--principal", self.cifs_principal,
                                          "-k", self.samba_keytab])
-            except ipautil.CalledProcessError, e:
+            except ipautil.CalledProcessError as e:
                 if e.returncode != 5:
                     root_logger.critical("Failed to remove old key for %s"
                                          % self.cifs_principal)
@@ -653,7 +653,7 @@ class ADTRUSTInstance(service.Service):
 
         try:
             krb5conf = open(paths.KRB5_CONF, 'r')
-        except IOError, e:
+        except IOError as e:
             self.print_msg("Cannot open /etc/krb5.conf (%s)\n" % str(e))
             return
 
@@ -689,7 +689,7 @@ class ADTRUSTInstance(service.Service):
                             # SRV records for _msdcs
                             self.cifs_hosts.append(fqdn.split(".")[0])
 
-        except Exception, e:
+        except Exception as e:
             root_logger.critical("Checking replicas for cifs principals failed with error '%s'" % e)
 
     def __enable_compat_tree(self):
@@ -703,7 +703,7 @@ class ADTRUSTInstance(service.Service):
                 if not(config[1] in lookup_nsswitch):
                     current[lookup_nsswitch_name] = [config[1]]
                     self.admin_conn.update_entry(current)
-        except Exception, e:
+        except Exception as e:
             root_logger.critical("Enabling nsswitch support in slapi-nis failed with error '%s'" % e)
 
     def  __enable_and_start_oddjobd(self):
@@ -740,13 +740,13 @@ class ADTRUSTInstance(service.Service):
         try:
             self.ldap_enable('ADTRUST', self.fqdn, self.dm_password, \
                              self.suffix)
-        except (ldap.ALREADY_EXISTS, errors.DuplicateEntry), e:
+        except (ldap.ALREADY_EXISTS, errors.DuplicateEntry) as e:
             root_logger.info("ADTRUST Service startup entry already exists.")
 
         try:
             self.ldap_enable('EXTID', self.fqdn, self.dm_password, \
                              self.suffix)
-        except (ldap.ALREADY_EXISTS, errors.DuplicateEntry), e:
+        except (ldap.ALREADY_EXISTS, errors.DuplicateEntry) as e:
             root_logger.info("EXTID Service startup entry already exists.")
 
     def __setup_sub_dict(self):

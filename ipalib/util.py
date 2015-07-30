@@ -83,7 +83,7 @@ def validate_host_dns(log, fqdn):
             'IPA: found %d A records for %s: %s' % (len(answers), fqdn,
                 ' '.join(str(answer) for answer in answers))
         )
-    except DNSException, e:
+    except DNSException as e:
         log.debug(
             'IPA: DNS A record lookup failed for %s' % fqdn
         )
@@ -94,7 +94,7 @@ def validate_host_dns(log, fqdn):
                 'IPA: found %d AAAA records for %s: %s' % (len(answers), fqdn,
                     ' '.join(str(answer) for answer in answers))
             )
-        except DNSException, e:
+        except DNSException as e:
             log.debug(
                 'IPA: DNS AAAA record lookup failed for %s' % fqdn
             )
@@ -186,7 +186,7 @@ def check_writable_file(filename):
         else:
             fp = open(filename, 'w')
             fp.close()
-    except (IOError, OSError), e:
+    except (IOError, OSError) as e:
         raise errors.FileError(reason=str(e))
 
 def normalize_zonemgr(zonemgr):
@@ -287,13 +287,13 @@ def normalize_sshpubkey(value):
 def validate_sshpubkey(ugettext, value):
     try:
         SSHPublicKey(value)
-    except ValueError, UnicodeDecodeError:
+    except ValueError as UnicodeDecodeError:
         return _('invalid SSH public key')
 
 def validate_sshpubkey_no_options(ugettext, value):
     try:
         pubkey = SSHPublicKey(value)
-    except ValueError, UnicodeDecodeError:
+    except ValueError as UnicodeDecodeError:
         return _('invalid SSH public key')
 
     if pubkey.has_options():
@@ -313,7 +313,7 @@ def convert_sshpubkey_post(ldap, dn, entry_attrs):
     for pubkey in pubkeys:
         try:
             pubkey = SSHPublicKey(pubkey)
-        except ValueError, UnicodeDecodeError:
+        except ValueError as UnicodeDecodeError:
             continue
 
         fp = pubkey.fingerprint_hex_md5()
@@ -525,7 +525,7 @@ def get_reverse_zone_default(ip_address):
 def validate_rdn_param(ugettext, value):
     try:
         rdn = RDN(value)
-    except Exception, e:
+    except Exception as e:
         return str(e)
     return None
 
