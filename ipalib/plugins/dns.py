@@ -3682,7 +3682,7 @@ class dnsrecord_add(LDAPCreate):
         return dn
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
-        if call_func.func_name == 'add_entry':
+        if call_func.__name__ == 'add_entry':
             if isinstance(exc, errors.DuplicateEntry):
                 # A new record is being added to existing LDAP DNS object
                 # Update can be safely run as old record values has been

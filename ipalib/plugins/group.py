@@ -397,7 +397,7 @@ class group_mod(LDAPUpdate):
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         # Check again for GID requirement in case someone tried to clear it
         # using --setattr.
-        if call_func.func_name == 'update_entry':
+        if call_func.__name__ == 'update_entry':
             if isinstance(exc, errors.ObjectclassViolation):
                 if 'gidNumber' in exc.message and 'posixGroup' in exc.message:
                     raise errors.RequirementError(name='gid')

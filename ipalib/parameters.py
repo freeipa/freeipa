@@ -203,7 +203,7 @@ class DefaultFrom(ReadOnly):
             )
         self.callback = callback
         if len(keys) == 0:
-            fc = callback.func_code
+            fc = callback.__code__
             if fc.co_flags & 0x0c:
                 raise ValueError("callback: variable-length argument list not allowed")
             self.keys = fc.co_varnames[:fc.co_argcount]

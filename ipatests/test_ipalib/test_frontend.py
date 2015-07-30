@@ -642,7 +642,7 @@ class test_Command(ClassChecker):
         (api, home) = create_test_api(in_server=True)
         api.finalize()
         o = my_cmd(api)
-        assert o.run.im_func is self.cls.run.im_func
+        assert o.run.__func__ is self.cls.run.__func__
         out = o.run(*args, **kw)
         assert ('execute', args, kw) == out
 
@@ -650,7 +650,7 @@ class test_Command(ClassChecker):
         (api, home) = create_test_api(in_server=False)
         api.finalize()
         o = my_cmd(api)
-        assert o.run.im_func is self.cls.run.im_func
+        assert o.run.__func__ is self.cls.run.__func__
         assert ('forward', args, kw) == o.run(*args, **kw)
 
     def test_messages(self):
@@ -682,14 +682,14 @@ class test_Command(ClassChecker):
         (api, home) = create_test_api(in_server=True)
         api.finalize()
         o = my_cmd(api)
-        assert o.run.im_func is self.cls.run.im_func
+        assert o.run.__func__ is self.cls.run.__func__
         assert {'name': 'execute', 'messages': expected} == o.run(*args, **kw)
 
         # Test in non-server context
         (api, home) = create_test_api(in_server=False)
         api.finalize()
         o = my_cmd(api)
-        assert o.run.im_func is self.cls.run.im_func
+        assert o.run.__func__ is self.cls.run.__func__
         assert {'name': 'forward', 'messages': expected} == o.run(*args, **kw)
 
     def test_validate_output_basic(self):

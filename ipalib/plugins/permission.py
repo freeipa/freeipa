@@ -1194,7 +1194,7 @@ class permission_mod(baseldap.LDAPUpdate):
         return dn
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
-        if call_func.func_name == 'update_entry':
+        if call_func.__name__ == 'update_entry':
             self._revert_aci()
         raise exc
 
