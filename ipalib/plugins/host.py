@@ -47,6 +47,7 @@ from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
 from ipapython.dnsutil import DNSName
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN
+from functools import reduce
 
 __doc__ = _("""
 Hosts/Machines
