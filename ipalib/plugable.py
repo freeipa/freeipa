@@ -401,7 +401,7 @@ class API(ReadOnly):
                 else:
                     level = 'warning'
 
-        if log_mgr.handlers.has_key('console'):
+        if 'console' in log_mgr.handlers:
             log_mgr.remove_handler('console')
         log_mgr.create_log_handlers([dict(name='console',
                                           stream=sys.stderr,

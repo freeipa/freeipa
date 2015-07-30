@@ -26,7 +26,9 @@
 # The DM password needs to be set in ~/.ipa/.dmpw
 
 import os
+import sys
 
+import pytest
 import nose
 from nose.tools import assert_raises  # pylint: disable=E0611
 import nss.nss as nss
@@ -238,11 +240,18 @@ class test_LDAPEntry(object):
         assert not e
         assert 'cn' not in e
 
+    @pytest.mark.skipif(sys.version_info >= (3, 0), reason="Python 2 only")
     def test_has_key(self):
         e = self.entry
         assert not e.has_key('xyz')
         assert e.has_key('cn')
         assert e.has_key('COMMONNAME')
+
+    def test_in(self):
+        e = self.entry
+        assert 'xyz' not in e
+        assert 'cn' in e
+        assert 'COMMONNAME' in e
 
     def test_get(self):
         e = self.entry

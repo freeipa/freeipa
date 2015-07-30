@@ -1442,14 +1442,14 @@ class ra(rabase.rabase):
 
         # Return command result
         cmd_result = {}
-        if parse_result.has_key('serial_numbers') and len(parse_result['serial_numbers']) > 0:
+        if 'serial_numbers' in parse_result and len(parse_result['serial_numbers']) > 0:
             # see module documentation concerning serial numbers and XMLRPC
             cmd_result['serial_number'] = unicode(parse_result['serial_numbers'][0])
 
-        if parse_result.has_key('request_id'):
+        if 'request_id' in parse_result:
             cmd_result['request_id'] = parse_result['request_id']
 
-        if parse_result.has_key('cert_request_status'):
+        if 'cert_request_status' in parse_result:
             cmd_result['cert_request_status'] = parse_result['cert_request_status']
 
         return cmd_result
@@ -1529,15 +1529,15 @@ class ra(rabase.rabase):
         # Return command result
         cmd_result = {}
 
-        if parse_result.has_key('certificate'):
+        if 'certificate' in parse_result:
             cmd_result['certificate'] = parse_result['certificate']
 
-        if parse_result.has_key('serial_number'):
+        if 'serial_number' in parse_result:
             # see module documentation concerning serial numbers and XMLRPC
             cmd_result['serial_number'] = unicode(parse_result['serial_number'])
             cmd_result['serial_number_hex'] = u'0x%X' % int(cmd_result['serial_number'])
 
-        if parse_result.has_key('revocation_reason'):
+        if 'revocation_reason' in parse_result:
             cmd_result['revocation_reason'] = parse_result['revocation_reason']
 
         return cmd_result
@@ -1604,18 +1604,18 @@ class ra(rabase.rabase):
             return cmd_result
         request = parse_result['requests'][0]
 
-        if request.has_key('serial_number'):
+        if 'serial_number' in request:
             # see module documentation concerning serial numbers and XMLRPC
             cmd_result['serial_number'] = unicode(request['serial_number'])
             cmd_result['serial_number_hex'] = u'0x%X' % request['serial_number']
 
-        if request.has_key('certificate'):
+        if 'certificate' in request:
             cmd_result['certificate'] = request['certificate']
 
-        if request.has_key('request_id'):
+        if 'request_id' in request:
             cmd_result['request_id'] = request['request_id']
 
-        if request.has_key('subject'):
+        if 'subject' in request:
             cmd_result['subject'] = request['subject']
 
         return cmd_result
@@ -1739,7 +1739,7 @@ class ra(rabase.rabase):
         # Return command result
         cmd_result = {}
 
-        if parse_result.has_key('error_string'):
+        if 'error_string' in parse_result:
             cmd_result['error_string'] = parse_result['error_string']
 
         if parse_result.get('unrevoked') == 'yes':

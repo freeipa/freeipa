@@ -69,7 +69,7 @@ def application(environ, start_response):
         return wsgi_redirect(start_response, 'index.html')
 
     form_data = cgi.FieldStorage(fp=environ['wsgi.input'], environ=environ)
-    if not form_data.has_key('username') or not form_data.has_key('password'):
+    if 'username' not in form_data or 'password' not in form_data:
         return wsgi_redirect(start_response, 'invalid.html')
 
     # API object only for configuration, finalize() not needed

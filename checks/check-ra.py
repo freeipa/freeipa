@@ -78,10 +78,10 @@ def assert_equal(trial, reference):
         reference_val = reference[key]
         trial_val = trial[key]
 
-        if reference_decode.has_key(key):
+        if key in reference_decode:
             reference_val = reference_decode[key](reference_val)
 
-        if trial_decode.has_key(key):
+        if key in trial_decode:
             trial_val = trial_decode[key](trial_val)
 
         assert reference_val == trial_val, \

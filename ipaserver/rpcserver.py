@@ -517,7 +517,7 @@ class AuthManagerKerb(AuthManager):
         of the login mechanisms.
         '''
 
-        if session_data.has_key('ccache_data'):
+        if 'ccache_data' in session_data:
             self.debug('AuthManager.logout.%s: deleting ccache_data', self.name)
             del session_data['ccache_data']
         else:
@@ -823,7 +823,7 @@ class jsonserver_session(jsonserver, KerberosSession):
             # logout command removes the ccache data from the session
             # data to invalidate the session credentials.
 
-            if session_data.has_key('ccache_data'):
+            if 'ccache_data' in session_data:
                 session_data['ccache_data'] = load_ccache_data(ipa_ccache_name)
 
             # The request is finished with the ccache, destroy it.
@@ -1259,7 +1259,7 @@ class xmlserver_session(xmlserver, KerberosSession):
             # logout command removes the ccache data from the session
             # data to invalidate the session credentials.
 
-            if session_data.has_key('ccache_data'):
+            if 'ccache_data' in session_data:
                 session_data['ccache_data'] = load_ccache_data(ipa_ccache_name)
 
             # The request is finished with the ccache, destroy it.

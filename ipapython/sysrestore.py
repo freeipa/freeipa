@@ -370,10 +370,10 @@ class StateFile:
 
         self._load()
 
-        if not self.modules.has_key(module):
+        if module not in self.modules:
             self.modules[module] = {}
 
-        if not self.modules.has_key(key):
+        if key not in self.modules:
             self.modules[module][key] = value
 
         self.save()
@@ -387,7 +387,7 @@ class StateFile:
         """
         self._load()
 
-        if not self.modules.has_key(module):
+        if module not in self.modules:
             return None
 
         return self.modules[module].get(key, None)
@@ -429,7 +429,7 @@ class StateFile:
         Can be used to determine if a service is configured.
         """
 
-        if self.modules.has_key(module):
+        if module in self.modules:
             return True
         else:
             return False

@@ -20,7 +20,10 @@
 Test the `ipapython/ipautil.py` module.
 """
 
+import sys
+
 import nose
+import pytest
 
 from ipapython import ipautil
 
@@ -116,13 +119,13 @@ class TestCIDict(object):
         nose.tools.assert_equal("newval4", self.cidict["key4"])
 
     def test_del(self):
-        assert self.cidict.has_key("Key1")
+        assert "Key1" in self.cidict
         del(self.cidict["Key1"])
-        assert not self.cidict.has_key("Key1")
+        assert "Key1" not in self.cidict
 
-        assert self.cidict.has_key("key2")
+        assert "key2" in self.cidict
         del(self.cidict["KEY2"])
-        assert not self.cidict.has_key("key2")
+        assert "key2" not in self.cidict
 
     def test_clear(self):
         nose.tools.assert_equal(3, len(self.cidict))
@@ -138,10 +141,11 @@ class TestCIDict(object):
         copy = self.cidict.copy()
         assert copy == self.cidict
         nose.tools.assert_equal(3, len(copy))
-        assert copy.has_key("Key1")
-        assert copy.has_key("key1")
+        assert "Key1" in copy
+        assert "key1" in copy
         nose.tools.assert_equal("val1", copy["Key1"])
 
+    @pytest.mark.skipif(sys.version_info >= (3, 0), reason="Python 2 only")
     def test_haskey(self):
         assert self.cidict.has_key("KEY1")
         assert self.cidict.has_key("key2")
@@ -269,22 +273,22 @@ class TestCIDict(object):
     def test_setdefault(self):
         nose.tools.assert_equal("val1", self.cidict.setdefault("KEY1", "default"))
 
-        assert not self.cidict.has_key("KEY4")
+        assert "KEY4" not in self.cidict
         nose.tools.assert_equal("default", self.cidict.setdefault("KEY4", "default"))
-        assert self.cidict.has_key("KEY4")
+        assert "KEY4" in self.cidict
         nose.tools.assert_equal("default", self.cidict["key4"])
 
-        assert not self.cidict.has_key("KEY5")
+        assert "KEY5" not in self.cidict
         nose.tools.assert_equal(None, self.cidict.setdefault("KEY5"))
-        assert self.cidict.has_key("KEY5")
+        assert "KEY5" in self.cidict
         nose.tools.assert_equal(None, self.cidict["key5"])
 
     def test_pop(self):
         nose.tools.assert_equal("val1", self.cidict.pop("KEY1", "default"))
-        assert not self.cidict.has_key("key1")
+        assert "key1" not in self.cidict
 
         nose.tools.assert_equal("val2", self.cidict.pop("KEY2"))
-        assert not self.cidict.has_key("key2")
+        assert "key2" not in self.cidict
 
         nose.tools.assert_equal("default", self.cidict.pop("key4", "default"))
         with nose.tools.assert_raises(KeyError):

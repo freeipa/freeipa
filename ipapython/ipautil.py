@@ -544,8 +544,9 @@ class CIDict(dict):
     def __contains__(self, key):
         return super(CIDict, self).__contains__(key.lower())
 
-    def has_key(self, key):
-        return super(CIDict, self).has_key(key.lower())
+    if sys.version_info < (3, 0):
+        def has_key(self, key):
+            return super(CIDict, self).has_key(key.lower())
 
     def get(self, key, failobj=None):
         try:

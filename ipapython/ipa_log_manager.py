@@ -185,7 +185,7 @@ def standard_logging_setup(filename=None, verbose=False, debug=False,
                             format=LOGGING_FORMAT_STANDARD_FILE)
         handlers.append(file_handler)
 
-    if log_mgr.handlers.has_key('console'):
+    if 'console' in log_mgr.handlers:
         log_mgr.remove_handler('console')
     level = 'error'
     if verbose:

@@ -1148,7 +1148,7 @@ class LogManager(object):
             stream = cfg.get("stream")
             log_handler = cfg.get("log_handler")
             if filename:
-                if cfg.has_key("stream"):
+                if "stream" in cfg:
                     raise ValueError("both filename and stream are specified, must be one or the other, config: %s" % cfg)
                 path = os.path.abspath(filename)
                 filemode = cfg.get('filemode', 'a')

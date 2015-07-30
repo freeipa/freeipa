@@ -692,7 +692,7 @@ class SessionAuthManager(object):
     def unregister(self, name):
         self.debug('SessionAuthManager.unregister: name=%s', name)
 
-        if not self.auth_managers.has_key(name):
+        if name not in self.auth_managers:
             raise KeyError('cannot unregister auth manager named "%s", does not exist',
                            name)
         del self.auth_managers[name]
@@ -1259,7 +1259,7 @@ def release_ipa_ccache(ccache_name):
     do we'll remove them.
     '''
 
-    if os.environ.has_key('KRB5CCNAME'):
+    if 'KRB5CCNAME' in os.environ:
         if ccache_name != os.environ['KRB5CCNAME']:
             root_logger.error('release_ipa_ccache: ccache_name (%s) != KRB5CCNAME environment variable (%s)',
                               ccache_name, os.environ['KRB5CCNAME'])

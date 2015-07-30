@@ -1,6 +1,7 @@
 #!/usr/bin/python2
 
 import unittest
+
 from ipapython.dn import *
 
 def expected_class(klass, component):
@@ -247,13 +248,6 @@ class TestAVA(unittest.TestCase):
         self.assertTrue(ava2_b in d)
         self.assertFalse(ava3_a in d)
         self.assertFalse(ava3_b in d)
-
-        self.assertTrue(d.has_key(ava1_a))
-        self.assertTrue(d.has_key(ava1_b))
-        self.assertTrue(d.has_key(ava2_a))
-        self.assertTrue(d.has_key(ava2_b))
-        self.assertFalse(d.has_key(ava3_a))
-        self.assertFalse(d.has_key(ava3_b))
 
         self.assertTrue(ava1_a in s)
         self.assertTrue(ava1_b in s)
@@ -1134,13 +1128,6 @@ class TestDN(unittest.TestCase):
         self.assertTrue(dn2_b in d)
         self.assertFalse(dn3_a in d)
         self.assertFalse(dn3_b in d)
-
-        self.assertTrue(d.has_key(dn1_a))
-        self.assertTrue(d.has_key(dn1_b))
-        self.assertTrue(d.has_key(dn2_a))
-        self.assertTrue(d.has_key(dn2_b))
-        self.assertFalse(d.has_key(dn3_a))
-        self.assertFalse(d.has_key(dn3_b))
 
         self.assertTrue(dn1_a in s)
         self.assertTrue(dn1_b in s)
