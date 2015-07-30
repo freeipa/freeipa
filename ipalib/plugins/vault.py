@@ -19,6 +19,7 @@
 
 import base64
 import getpass
+import io
 import json
 import os
 import sys
@@ -209,6 +210,33 @@ EXAMPLES:
  Delete a vault member:
    ipa vault-remove-member <name> --users <usernames>
 """)
+
+
+def validated_read(argname, filename, mode='r', encoding=None):
+    """Read file and catch errors
+
+    IOError and UnicodeError (for text files) are turned into a
+    ValidationError
+    """
+    try:
+        with io.open(filename, mode=mode, encoding=encoding) as f:
+            data = f.read()
+    except IOError as exc:
+        raise errors.ValidationError(
+            name=argname,
+            error=_("Cannot read file '%(filename)s': %(exc)s") % {
+                'filename': filename, 'exc': exc[1]
+                }
+        )
+    except UnicodeError as exc:
+        raise errors.ValidationError(
+            name=argname,
+            error=_("Cannot decode file '%(filename)s': %(exc)s") % {
+                'filename': filename, 'exc': exc
+                }
+        )
+    return data
+
 
 register = Registry()
 
@@ -591,8 +619,10 @@ class vault_add(PKQuery, Local):
                 pass
 
             elif password_file:
-                with open(password_file, 'rb') as f:
-                    password = f.read().rstrip('\n').decode('utf-8')
+                password = validated_read('password-file',
+                                          password_file,
+                                          encoding='utf-8')
+                password = password.rstrip('\n')
 
             else:
                 password = self.obj.get_new_password()
@@ -611,8 +641,9 @@ class vault_add(PKQuery, Local):
                 pass
 
             elif public_key_file:
-                with open(public_key_file, 'rb') as f:
-                    public_key = f.read()
+                public_key = validated_read('public-key-file',
+                                            public_key_file,
+                                            mode='rb')
 
                 # store vault public key
                 options['ipavaultpublickey'] = public_key
@@ -904,8 +935,7 @@ class vault_archive(PKQuery, Local):
                 reason=_('Input data specified multiple times'))
 
         elif input_file:
-            with open(input_file, 'rb') as f:
-                data = f.read()
+            data = validated_read('in', input_file, mode='rb')
 
         elif not data:
             data = ''
@@ -937,8 +967,10 @@ class vault_archive(PKQuery, Local):
                 pass
 
             elif password_file:
-                with open(password_file) as f:
-                    password = f.read().rstrip('\n').decode('utf-8')
+                password = validated_read('password-file',
+                                          password_file,
+                                          encoding='utf-8')
+                password = password.rstrip('\n')
 
             else:
                 password = self.obj.get_existing_password()
@@ -1254,8 +1286,10 @@ class vault_retrieve(PKQuery, Local):
                 pass
 
             elif password_file:
-                with open(password_file) as f:
-                    password = f.read().rstrip('\n').decode('utf-8')
+                password = validated_read('password-file',
+                                          password_file,
+                                          encoding='utf-8')
+                password = password.rstrip('\n')
 
             else:
                 password = self.obj.get_existing_password()
@@ -1277,8 +1311,9 @@ class vault_retrieve(PKQuery, Local):
                 pass
 
             elif private_key_file:
-                with open(private_key_file, 'rb') as f:
-                    private_key = f.read()
+                private_key = validated_read('private-key-file',
+                                             private_key_file,
+                                             mode='rb')
 
             else:
                 raise errors.ValidationError(
