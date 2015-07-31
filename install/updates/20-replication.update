@@ -27,11 +27,36 @@ default: objectclass: top
 default: objectclass: iparepltopoconf
 default: ipaReplTopoConfRoot: $SUFFIX
 default: cn: realm
+add: nsDS5ReplicatedAttributeList: $EXCLUDES
+add: nsDS5ReplicatedAttributeListTotal: $TOTAL_EXCLUDES
+add: nsds5ReplicaStripAttrs: $STRIP_ATTRS
 
 # add IPA realm managed suffix to master entry
 dn: cn=$FQDN,cn=masters,cn=ipa,cn=etc,$SUFFIX
 add: objectclass: ipaReplTopoManagedServer
 add: ipaReplTopoManagedSuffix: $SUFFIX
+
+# Enable Topology Plugin
+dn: cn=IPA Topology Configuration,cn=plugins,cn=config
+default: changetype: add
+default: objectClass: top
+default: objectClass: nsSlapdPlugin
+default: objectClass: extensibleObject
+default: cn: IPA Topology Configuration
+default: nsslapd-pluginPath: libtopology
+default: nsslapd-pluginInitfunc: ipa_topo_init
+default: nsslapd-pluginType: object
+default: nsslapd-pluginEnabled: on
+default: nsslapd-topo-plugin-shared-config-base: cn=ipa,cn=etc,$SUFFIX
+default: nsslapd-topo-plugin-shared-replica-root: $SUFFIX
+default: nsslapd-topo-plugin-shared-binddngroup: cn=replication managers,cn=sysaccounts,cn=etc,$SUFFIX
+default: nsslapd-topo-plugin-startup-delay: 20
+default: nsslapd-pluginId: none
+default: nsslapd-plugin-depends-on-named: ldbm database
+default: nsslapd-plugin-depends-on-named: Multimaster Replication Plugin
+default: nsslapd-pluginVersion: 1.0
+default: nsslapd-pluginVendor: none
+default: nsslapd-pluginDescription: none
 
 # Set replication changelog limit (#5086)
 dn: cn=changelog5,cn=config

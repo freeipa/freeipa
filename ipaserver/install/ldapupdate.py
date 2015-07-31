@@ -303,6 +303,15 @@ class LDAPUpdate:
             self.sub_dict["MIN_DOMAIN_LEVEL"] = str(constants.MIN_DOMAIN_LEVEL)
         if not self.sub_dict.get("MAX_DOMAIN_LEVEL"):
             self.sub_dict["MAX_DOMAIN_LEVEL"] = str(constants.MAX_DOMAIN_LEVEL)
+        if not self.sub_dict.get("STRIP_ATTRS"):
+            self.sub_dict["STRIP_ATTRS"] = "%s" % (
+                " ".join(constants.REPL_AGMT_STRIP_ATTRS),)
+        if not self.sub_dict.get("EXCLUDES"):
+            self.sub_dict["EXCLUDES"] = "(objectclass=*) $ EXCLUDE %s" % (
+                " ".join(constants.REPL_AGMT_EXCLUDES),)
+        if not self.sub_dict.get("TOTAL_EXCLUDES"):
+            self.sub_dict["TOTAL_EXCLUDES"] = "(objectclass=*) $ EXCLUDE " + \
+                " ".join(constants.REPL_AGMT_TOTAL_EXCLUDES)
         self.api = create_api(mode=None)
         self.api.bootstrap(in_server=True, context='updates')
         self.api.finalize()
