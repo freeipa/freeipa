@@ -24,8 +24,9 @@ import nose
 from ipalib import api, errors
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import (Declarative, fuzzy_guid, fuzzy_domain_sid, fuzzy_string,
-        fuzzy_uuid, fuzzy_digits)
+from ipatests.test_xmlrpc.xmlrpc_test import (
+    Declarative, fuzzy_guid, fuzzy_domain_sid, fuzzy_string, fuzzy_uuid,
+    fuzzy_digits)
 
 
 trustconfig_ad_config = DN(('cn', api.env.domain),

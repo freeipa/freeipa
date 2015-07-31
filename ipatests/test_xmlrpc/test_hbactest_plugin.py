@@ -21,7 +21,7 @@
 Test the `ipalib/plugins/hbactest.py` module.
 """
 
-from xmlrpc_test import XMLRPC_test, assert_attr_equal
+from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
 from types import NoneType

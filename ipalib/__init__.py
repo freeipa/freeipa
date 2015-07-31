@@ -880,16 +880,16 @@ freeIPA.org:
 '''
 
 import os
-import plugable
-from backend import Backend
-from frontend import Command, LocalOrRemote, Updater
-from frontend import Object, Method
-from crud import Create, Retrieve, Update, Delete, Search
-from parameters import DefaultFrom, Bool, Flag, Int, Decimal, Bytes, Str, IA5Str, Password, DNParam, DeprecatedParam
-from parameters import (BytesEnum, StrEnum, IntEnum, AccessTime, File,
+from ipalib import plugable
+from ipalib.backend import Backend
+from ipalib.frontend import Command, LocalOrRemote, Updater
+from ipalib.frontend import Object, Method
+from ipalib.crud import Create, Retrieve, Update, Delete, Search
+from ipalib.parameters import DefaultFrom, Bool, Flag, Int, Decimal, Bytes, Str, IA5Str, Password, DNParam, DeprecatedParam
+from ipalib.parameters import (BytesEnum, StrEnum, IntEnum, AccessTime, File,
                         DateTime, DNSNameParam)
-from errors import SkipPluginModule
-from text import _, ngettext, GettextFactory, NGettextFactory
+from ipalib.errors import SkipPluginModule
+from ipalib.text import _, ngettext, GettextFactory, NGettextFactory
 
 version_info = (2, 0, 0, 'alpha', 0)
 if version_info[3] == 'final':
@@ -935,7 +935,7 @@ def create_api(mode='dummy'):
 api = create_api(mode=None)
 
 if os.environ.get('IPA_UNIT_TEST_MODE', None) == 'cli_test':
-    from cli import cli_plugins
+    from ipalib.cli import cli_plugins
     api.bootstrap(context='cli', in_server=False, in_tree=True)
     for klass in cli_plugins:
         api.add_plugin(klass)

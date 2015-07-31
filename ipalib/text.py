@@ -115,7 +115,8 @@ forms, see `NGettextFactory` and `NGettext`.
 import threading
 import locale
 import gettext
-from request import context
+
+from ipalib.request import context
 
 
 def create_translation(key):

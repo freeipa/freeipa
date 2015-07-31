@@ -14,7 +14,9 @@ import time
 from ipaplatform.paths import paths
 
 import _ipap11helper
-from abshsm import attrs_name2id, attrs_id2name, AbstractHSM, keytype_id2name, keytype_name2id, ldap2p11helper_api_params
+from ipapython.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
+                                     keytype_id2name, keytype_name2id,
+                                     ldap2p11helper_api_params)
 
 private_key_api_params = set(["label", "id", "data", "unwrapping_key",
     "wrapping_mech", "key_type", "cka_always_authenticate", "cka_copyable",

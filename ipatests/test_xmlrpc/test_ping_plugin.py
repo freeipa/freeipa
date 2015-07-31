@@ -23,7 +23,7 @@ Test the `ipalib/plugins/ping.py` module, and XML-RPC in general.
 
 from ipalib import api, errors, messages, _
 from ipatests.util import Fuzzy
-from xmlrpc_test import Declarative
+from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 from ipapython.version import API_VERSION
 
 

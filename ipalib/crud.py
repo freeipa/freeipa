@@ -119,10 +119,10 @@ For example, compare ``user.params`` with ``user_add.output_params`` and
 Note that the above are all equal.
 """
 
-from frontend import Method, Object
-import backend
-import parameters
-import output
+from ipalib.frontend import Method, Object
+from ipalib import backend
+from ipalib import parameters
+from ipalib import output
 from ipalib.text import _
 
 

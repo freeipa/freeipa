@@ -27,7 +27,8 @@ http://www.freeipa.org/page/V3/Permissions_V2
 
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
+                                              fuzzy_uuid)
 from ipapython.dn import DN
 
 permission1 = u'testperm'

@@ -29,7 +29,7 @@ import sys
 import re
 import copy
 
-from log_manager import LogManager, parse_log_level
+from ipapython.log_manager import LogManager, parse_log_level
 
 #-------------------------------------------------------------------------------
 

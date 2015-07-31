@@ -17,7 +17,7 @@ from ipapython.dn import DN
 from ipapython import ipa_log_manager, ipautil
 from ipaplatform.paths import paths
 
-from temp import TemporaryDirectory
+from ipapython.dnssec.temp import TemporaryDirectory
 
 time_bindfmt = '%Y%m%d%H%M%S'
 

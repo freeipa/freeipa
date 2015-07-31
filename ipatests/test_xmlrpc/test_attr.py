@@ -22,7 +22,7 @@ Test --setattr and --addattr and other attribute-specific issues
 """
 
 from ipalib import errors
-from xmlrpc_test import Declarative
+from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 
 user1=u'tuser1'

@@ -21,7 +21,7 @@ Test kerberos ticket policy
 """
 
 from ipalib import api, errors
-from xmlrpc_test import Declarative
+from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 

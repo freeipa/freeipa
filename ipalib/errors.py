@@ -103,8 +103,7 @@ current block assignments:
 """
 
 from ipalib.text import ngettext as ungettext
-
-import messages
+from ipalib import messages
 from ipaplatform.paths import paths
 
 

@@ -3,19 +3,16 @@
 #
 
 import random
-
-import service
 import os
 import pwd
 import grp
 import stat
 import shutil
-
 from subprocess import CalledProcessError
 
 import _ipap11helper
-
-import installutils
+from ipaserver.install import service
+from ipaserver.install import installutils
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipapython import sysrestore, ipautil, ipaldap, p11helper

@@ -23,8 +23,9 @@ Per-request thread-local data.
 """
 
 import threading
-from base import ReadOnly, lock
-from constants import OVERRIDE_ERROR, CALLABLE_ERROR
+
+from ipalib.base import ReadOnly, lock
+from ipalib.constants import OVERRIDE_ERROR, CALLABLE_ERROR
 
 
 # Thread-local storage of most per-request information

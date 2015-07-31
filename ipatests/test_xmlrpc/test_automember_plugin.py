@@ -24,8 +24,9 @@ Test the `ipalib/plugins/automember.py` module.
 from ipalib import api, errors
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid, \
-    fuzzy_automember_dn, fuzzy_automember_message
+from ipatests.test_xmlrpc.xmlrpc_test import (
+    Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_automember_dn,
+    fuzzy_automember_message)
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 
 

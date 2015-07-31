@@ -41,15 +41,15 @@ except ImportError:
     # even in cases that IPA isn't installed on the dev machine.
     pass
 
-import frontend
-import backend
-import plugable
-from errors import (PublicError, CommandError, HelpError, InternalError,
-                    NoSuchNamespaceError, ValidationError, NotFound,
-                    NotConfiguredError, PromptFailed)
-from constants import CLI_TAB, LDAP_GENERALIZED_TIME_FORMAT
-from parameters import File, Str, Enum, Any, Flag
-from text import _
+from ipalib import frontend
+from ipalib import backend
+from ipalib import plugable
+from ipalib.errors import (PublicError, CommandError, HelpError, InternalError,
+                           NoSuchNamespaceError, ValidationError, NotFound,
+                           NotConfiguredError, PromptFailed)
+from ipalib.constants import CLI_TAB, LDAP_GENERALIZED_TIME_FORMAT
+from ipalib.parameters import File, Str, Enum, Any, Flag
+from ipalib.text import _
 from ipalib import api
 from ipapython.version import API_VERSION
 from ipapython.dnsutil import DNSName

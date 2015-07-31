@@ -27,8 +27,8 @@ import krbV
 from ipalib import api
 from ipalib import errors
 from ipaserver.plugins.ldap2 import ldap2
-from xmlrpc_test import (Declarative, fuzzy_digits, fuzzy_uuid,
-                         fuzzy_netgroupdn)
+from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
+                                              fuzzy_uuid, fuzzy_netgroupdn)
 from ipatests.test_xmlrpc import objectclasses
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result

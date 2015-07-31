@@ -30,9 +30,9 @@ import re
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import assert_equal, assert_not_equal, raises
-from xmlrpc_test import (XMLRPC_test, Declarative, fuzzy_digits, fuzzy_uuid,
-                         fuzzy_password, fuzzy_string, fuzzy_dergeneralizedtime,
-                         add_sid, add_oc)
+from ipatests.test_xmlrpc.xmlrpc_test import (
+    XMLRPC_test, Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_password,
+    fuzzy_string, fuzzy_dergeneralizedtime, add_sid, add_oc)
 from ipapython.dn import DN
 
 user1 = u'tuser1'

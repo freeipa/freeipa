@@ -18,13 +18,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import nose
+import ldap
 
-from httptest import Unauthorized_HTTP_test
+from ipatests.test_ipaserver.httptest import Unauthorized_HTTP_test
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 from ipatests.util import assert_equal, assert_not_equal
 from ipalib import api, errors
 from ipapython.dn import DN
-import ldap
 
 testuser = u'tuser'
 old_password = u'old_password'

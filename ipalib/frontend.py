@@ -23,21 +23,21 @@ Base classes for all front-end plugins.
 
 import re
 from distutils import version
+from textwrap import wrap
 
 from ipapython.version import API_VERSION
 from ipapython.ipa_log_manager import root_logger
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
-from base import NameSpace
-from plugable import Plugin
-from parameters import create_param, Param, Str, Flag, Password
-from output import Output, Entry, ListOfEntries
-from text import _
-from errors import (ZeroArgumentError, MaxArgumentError, OverlapError,
+from ipalib.base import NameSpace
+from ipalib.plugable import Plugin
+from ipalib.parameters import create_param, Param, Str, Flag, Password
+from ipalib.output import Output, Entry, ListOfEntries
+from ipalib.text import _
+from ipalib.errors import (ZeroArgumentError, MaxArgumentError, OverlapError,
     VersionError, OptionError, InvocationError,
     ValidationError, ConversionError)
 from ipalib import messages
 from ipalib.util import json_serialize
-from textwrap import wrap
 
 
 RULE_FLAG = 'validation_rule'

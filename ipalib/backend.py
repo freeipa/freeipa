@@ -22,10 +22,11 @@ Base classes for all backed-end plugins.
 """
 
 import threading
-import plugable
 import os
-from errors import PublicError, InternalError, CommandError
-from request import context, Connection, destroy_context
+
+from ipalib import plugable
+from ipalib.errors import PublicError, InternalError, CommandError
+from ipalib.request import context, Connection, destroy_context
 
 
 class Backend(plugable.Plugin):

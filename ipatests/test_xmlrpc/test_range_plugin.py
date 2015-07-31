@@ -22,7 +22,7 @@ Test the `ipalib/plugins/idrange.py` module, and XML-RPC in general.
 """
 
 from ipalib import api, errors
-from xmlrpc_test import Declarative, fuzzy_uuid
+from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import MockLDAP
 from ipapython.dn import DN

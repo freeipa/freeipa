@@ -22,7 +22,8 @@ Test the `ipalib/plugins/config.py` module.
 """
 
 from ipalib import errors
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
+                                              fuzzy_uuid)
 
 class test_config(Declarative):
 

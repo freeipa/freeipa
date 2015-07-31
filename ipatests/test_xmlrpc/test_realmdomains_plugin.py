@@ -23,7 +23,7 @@ Test the `ipalib/plugins/realmdomains.py` module.
 from ipalib import api, errors
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative
+from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 
 
 cn = u'Realm Domains'

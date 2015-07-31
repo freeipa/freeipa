@@ -7,7 +7,7 @@ Test the `ipalib/plugins/serviceconstraint.py` module.
 
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative
+from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 from ipapython.dn import DN
 
 rule1 = u'test1'

@@ -27,9 +27,9 @@ import dbus
 import shlex
 import pipes
 
-import service
-import certs
-import installutils
+from ipaserver.install import service
+from ipaserver.install import certs
+from ipaserver.install import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import dogtag

@@ -27,8 +27,8 @@ import time
 
 import ldap
 
-import installutils
-import service
+from ipaserver.install import installutils
+from ipaserver.install import service
 from ipaserver.install.cainstance import IPA_CA_RECORD
 from ipapython import sysrestore, ipautil, ipaldap
 from ipapython.ipa_log_manager import *

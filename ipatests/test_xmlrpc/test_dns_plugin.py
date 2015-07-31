@@ -26,7 +26,8 @@ from ipalib.util import normalize_zone
 from ipapython.dnsutil import DNSName
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
+                                              fuzzy_uuid)
 
 try:
     from ipaserver.plugins.ldap2 import ldap2

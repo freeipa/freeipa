@@ -28,7 +28,7 @@ import nose
 
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative
+from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 from ipapython.dn import DN
 import inspect
 

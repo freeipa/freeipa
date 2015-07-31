@@ -9,9 +9,9 @@ import os
 from ipaplatform.paths import paths
 from ipapython import ipautil
 
-from syncrepl import SyncReplConsumer
-from odsmgr import ODSMgr
-from bindmgr import BINDMgr
+from ipapython.dnssec.syncrepl import SyncReplConsumer
+from ipapython.dnssec.odsmgr import ODSMgr
+from ipapython.dnssec.bindmgr import BINDMgr
 
 SIGNING_ATTR = 'idnsSecInlineSigning'
 OBJCLASS_ATTR = 'objectClass'

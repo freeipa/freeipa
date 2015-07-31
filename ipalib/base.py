@@ -22,8 +22,9 @@ Foundational classes and functions.
 """
 
 import re
-from constants import NAME_REGEX, NAME_ERROR
-from constants import TYPE_ERROR, SET_ERROR, DEL_ERROR, OVERRIDE_ERROR
+
+from ipalib.constants import NAME_REGEX, NAME_ERROR
+from ipalib.constants import TYPE_ERROR, SET_ERROR, DEL_ERROR, OVERRIDE_ERROR
 
 
 class ReadOnly(object):

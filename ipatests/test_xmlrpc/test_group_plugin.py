@@ -23,8 +23,8 @@ Test the `ipalib/plugins/group.py` module.
 
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import (Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_set_ci,
-                         add_sid, add_oc)
+from ipatests.test_xmlrpc.xmlrpc_test import (
+    Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_set_ci, add_sid, add_oc)
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 

@@ -2,14 +2,14 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
-import service
-import installutils
 import os
 import pwd
 import grp
 
 import ldap
 
+from ipaserver.install import service
+from ipaserver.install import installutils
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipapython import sysrestore, ipautil, ipaldap

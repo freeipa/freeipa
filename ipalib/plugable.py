@@ -32,16 +32,16 @@ import threading
 import os
 from os import path
 import optparse
-import errors
 import textwrap
 import collections
 import importlib
 
-from config import Env
-import text
-from text import _
-from base import ReadOnly, NameSpace, lock, islocked, check_name
-from constants import DEFAULT_CONFIG
+from ipalib import errors
+from ipalib.config import Env
+from ipalib import text
+from ipalib.text import _
+from ipalib.base import ReadOnly, NameSpace, lock, islocked, check_name
+from ipalib.constants import DEFAULT_CONFIG
 from ipapython.ipa_log_manager import *
 from ipapython.version import VERSION, API_VERSION
 

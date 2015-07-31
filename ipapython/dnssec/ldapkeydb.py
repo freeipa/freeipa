@@ -13,7 +13,8 @@ from ipapython import ipaldap
 from ipapython import ipautil
 from ipaplatform.paths import paths
 
-from abshsm import attrs_name2id, attrs_id2name, bool_attr_names, populate_pkcs11_metadata, AbstractHSM
+from ipapython.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
+                                     bool_attr_names, populate_pkcs11_metadata)
 import _ipap11helper
 import uuid
 

@@ -27,12 +27,13 @@ import time
 import tempfile
 import stat
 
+import ldap
+
 from ipapython.ipa_log_manager import *
 from ipapython import ipautil, sysrestore, ipaldap
-import service
-import installutils
-import certs
-import ldap
+from ipaserver.install import service
+from ipaserver.install import installutils
+from ipaserver.install import certs
 from ipaserver.install import ldapupdate
 from ipaserver.install import replication
 from ipaserver.install import sysupgrade

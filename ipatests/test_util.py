@@ -22,8 +22,9 @@ Test the `tests.util` module.
 """
 
 import re
-import util
-from util import raises, TYPE, VALUE, LEN, KEYS
+
+from ipatests import util
+from ipatests.util import raises, TYPE, VALUE, LEN, KEYS
 
 
 class Prop(object):

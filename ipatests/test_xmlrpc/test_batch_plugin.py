@@ -24,7 +24,8 @@ Test the `ipalib/plugins/batch.py` module.
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import assert_equal, Fuzzy, assert_deepequal
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
+                                              fuzzy_uuid)
 from ipapython.dn import DN
 
 group1 = u'testgroup1'

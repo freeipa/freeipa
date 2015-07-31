@@ -22,7 +22,8 @@ Test group nesting and indirect members
 
 from ipalib import api
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_digits, fuzzy_uuid
+from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
+                                              fuzzy_uuid)
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 

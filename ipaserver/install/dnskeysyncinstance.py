@@ -2,10 +2,6 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
-from ipapython.dnsutil import DNSName
-
-import service
-import installutils
 import os
 import pwd
 import grp
@@ -14,8 +10,11 @@ import shutil
 import stat
 
 import ldap
-import _ipap11helper
 
+import _ipap11helper
+from ipapython.dnsutil import DNSName
+from ipaserver.install import service
+from ipaserver.install import installutils
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipapython import ipaldap

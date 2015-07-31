@@ -23,9 +23,10 @@ Simple description of return values.
 
 from inspect import getdoc
 from types import NoneType
-from plugable import ReadOnly, lock
-from capabilities import client_has_capability
-from text import _
+
+from ipalib.plugable import ReadOnly, lock
+from ipalib.capabilities import client_has_capability
+from ipalib.text import _
 
 
 class Output(ReadOnly):

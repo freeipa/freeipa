@@ -25,7 +25,8 @@ import nose
 from ipalib import api
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_uuid, fuzzy_user_or_group_sid
+from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_uuid,
+                                              fuzzy_user_or_group_sid)
 
 group_name = u'external_group'
 group_desc = u'Test external group'

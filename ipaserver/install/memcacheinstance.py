@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import service
+from ipaserver.install import service
 
 class MemcacheInstance(service.SimpleServiceInstance):
     def __init__(self):

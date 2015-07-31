@@ -104,19 +104,20 @@ import decimal
 import base64
 import datetime
 from xmlrpclib import MAXINT, MININT
-
 from types import NoneType
-from text import _ as ugettext
-from plugable import ReadOnly, lock, check_name
-from errors import ConversionError, RequirementError, ValidationError
-from errors import PasswordMismatch, Base64DecodeError
-from constants import TYPE_ERROR, CALLABLE_ERROR, LDAP_GENERALIZED_TIME_FORMAT
-from text import Gettext, FixMe
-from util import json_serialize, validate_idna_domain
+import encodings.idna
+
+import dns.name
+
+from ipalib.text import _ as ugettext
+from ipalib.plugable import ReadOnly, lock, check_name
+from ipalib.errors import ConversionError, RequirementError, ValidationError
+from ipalib.errors import PasswordMismatch, Base64DecodeError
+from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, LDAP_GENERALIZED_TIME_FORMAT
+from ipalib.text import Gettext, FixMe
+from ipalib.util import json_serialize, validate_idna_domain
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
-import dns.name
-import encodings.idna
 
 def _is_null(value):
     return not value and value != 0 # NOTE: False == 0

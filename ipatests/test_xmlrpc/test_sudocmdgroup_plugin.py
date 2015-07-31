@@ -22,7 +22,8 @@ Test the `ipalib/plugins/sudocmdgroup.py` module.
 
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
-from xmlrpc_test import Declarative, fuzzy_uuid, fuzzy_sudocmddn
+from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_uuid,
+                                              fuzzy_sudocmddn)
 from ipapython.dn import DN
 
 sudocmdgroup1 = u'testsudocmdgroup1'

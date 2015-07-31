@@ -37,9 +37,9 @@ from os import path
 import sys
 from ipapython.dn import DN
 
-from base import check_name
-from constants import CONFIG_SECTION
-from constants import OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
+from ipalib.base import check_name
+from ipalib.constants import CONFIG_SECTION
+from ipalib.constants import OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
 
 
 class Env(object):

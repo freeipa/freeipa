@@ -18,12 +18,13 @@
 
 import memcache
 import random
-import errors
 import os
 import re
 import time
 from urllib2 import urlparse
-from text import _
+
+from ipalib import errors
+from ipalib.text import _
 from ipapython.ipa_log_manager import *
 from ipalib import api, errors
 from ipaplatform.paths import paths
