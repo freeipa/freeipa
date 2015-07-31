@@ -37,6 +37,7 @@ asymmetric_vault_name = u'asymmetric_test_vault'
 secret = ''.join(map(chr, xrange(0, 256)))
 
 password = u'password'
+other_password = u'other_password'
 
 public_key = """
 -----BEGIN PUBLIC KEY-----
@@ -77,6 +78,48 @@ hj0cArlDdeSZrYLQ4TNCFCiUePqU6QQM8weP6TMqlejxTKF+t8qi1bF5rCWuzP1P
 D0UU7DcCgYAUvmEGckugS+FTatop8S/rmkcQ4Bf5M/YCZfsySavucDiHcBt0QtXt
 Swh0XdDsYS3W1yj2XqqsQ7R58KNaffCHjjulWFzb5IiuSvvdxzWtiXHisOpO36MJ
 kUlCMj24a8XsShzYTWBIyW2ngvGe3pQ9PfjkUdm0LGZjYITCBvgOKw==
+-----END RSA PRIVATE KEY-----
+"""
+
+other_public_key = """
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv7E/QLVyKjrgDctZ50U7
+rmtL7Ks1QLoccp9WvZJ6WI1rYd0fX5FySS4dI6QTNZc6qww8NeNuZtkoxT9m1wkk
+Rl/3wK7fWNLenH/+VHOaTQc20exg7ztfsO7JIsmKmigtticdR5C4jLfjcOp+WjLH
+w3zrmrO5SIZ8njxMoDcQJa2vu/t281U/I7ti8ue09FSitIECU05vgmPS+MnXR8HK
+PxXqrNkjl29mXNbPiByWwlse3Prwved9I7fwgpiHJqUBFudD/0tZ4DWyLG7t9wM1
+O8gRaRg1r+ENVpmMSvXo4+8+bR3rEYddD5zU7nKXafeuthXlXplae/8uZmCiSI63
+TwIDAQAB
+-----END PUBLIC KEY-----
+"""
+
+other_private_key = """
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpgIBAAKCAQEAv7E/QLVyKjrgDctZ50U7rmtL7Ks1QLoccp9WvZJ6WI1rYd0f
+X5FySS4dI6QTNZc6qww8NeNuZtkoxT9m1wkkRl/3wK7fWNLenH/+VHOaTQc20exg
+7ztfsO7JIsmKmigtticdR5C4jLfjcOp+WjLHw3zrmrO5SIZ8njxMoDcQJa2vu/t2
+81U/I7ti8ue09FSitIECU05vgmPS+MnXR8HKPxXqrNkjl29mXNbPiByWwlse3Prw
+ved9I7fwgpiHJqUBFudD/0tZ4DWyLG7t9wM1O8gRaRg1r+ENVpmMSvXo4+8+bR3r
+EYddD5zU7nKXafeuthXlXplae/8uZmCiSI63TwIDAQABAoIBAQCA+0GFR9F+isjx
+Xy+qBpKmxLl8kKKvX8r+cSpLOkEqTlW/rqqKgnI0vVuL/L2UJKKsLvpghBxoBZyC
+RCvtatBGrhIlS0UrHg/9m73Ek1hylfUUAQokTn4PrkwWJSgmm/xOATmZSs5ymNTn
+yFCmXl69sdNR77YvD5bQXeBtOT+bKXy7yQ1TmYPwwSjL+WSlMV6ZfE3HNVmxPTpk
+CTFS638cJblWk9MUIy8HIlhu6If2P4RnHr7ZGGivhREayvs0zXcAfqhIyFHruxSE
+yYnmqH9paWjv5mP3YyLoKr+NUvvxnBr/9wCTt0TKgG8G6rpkHuPDLQni9wUGnew8
+QdMgFEohAoGBAPH4vaVB5gDVfvIqwJBsBLHpPq72GvxjrM/exD0jIIpXZxz9gCql
+CmC5b1RS1uy8PMoc/RO4CE7UTLaTesciP6LjTD1RhH3rLLJO8/iVC1RXgMrCLHLm
+ZQnDhIQGGNQxpvBjQy5ZOWat2dFxYhHN630IFPOtrWsOmJ5HsL1JrjzxAoGBAMrO
+R1zNwQ42VbJS6AFshZVjmUV2h3REGh4zG/9IqL0Hz493hyCTGoDPLLXIbtkqNqzQ
+XibSZ9RMVPKKTiNQTx91DTgh4Anz8xUr84tA2iAf3ayNWKi3Y3GhmP2EWp1qYeom
+kV8Uq0lt4dHZuEo3LuqvbtbzlF9qUXqKS5qy6Tg/AoGBAKCp02o2HjzxhS/QeTmr
+r1ZeE7PiTzrECAuh01TwzPtuW1XhcEdgfEqK9cPcmT5pIkflBZkhOcr1pdYYiI5O
+TEigeY/BX6KoE251hALLG9GtpCN82DyWhAH+oy9ySOwj5793eTT+I2HtD1LE4SQH
+QVQsmJTP/fS2pVl7KnwUvy9RAoGBAKzo2qchNewsHzx+uxgbsnkABfnXaP2T4sDE
+yqYJCPTB6BFl02vOf9Y6zN/gF8JH333P2bY3xhaXTgXMLXqmSg+D+NVW7HEP8Lyo
+UGj1zgN9p74qdODEGqETKiFb6vYzcW/1mhP6x18/tDz658k+611kXZge7O288+MK
+bhNjXrx5AoGBAMox25PcxVgOjCd9+LdUcIOG6LQ971eCH1NKL9YAekICnwMrStbK
+veCYju6ok4ZWnMiH8MR1jgC39RWtjJZwynCuPXUP2/vZkoVf1tCZyz7dSm8TdS/2
+5NdOHVy7+NQcEPSm7/FmXdpcR9ZSGAuxMBfnEUibdyz5LdJGnFUN/+HS
 -----END RSA PRIVATE KEY-----
 """
 
@@ -591,6 +634,48 @@ class test_vault_plugin(Declarative):
         },
 
         {
+            'desc': 'Change standard vault to symmetric vault',
+            'command': (
+                'vault_mod',
+                [standard_vault_name],
+                {
+                    'ipavaulttype': u'symmetric',
+                    'new_password': password,
+                },
+            ),
+            'expected': {
+                'value': standard_vault_name,
+                'summary': u'Modified vault "%s"' % standard_vault_name,
+                'result': {
+                    'cn': [standard_vault_name],
+                    'ipavaulttype': [u'symmetric'],
+                    'ipavaultsalt': [fuzzy_string],
+                    'owner_user': [u'admin'],
+                },
+            },
+        },
+
+        {
+            'desc': 'Retrieve secret from standard vault converted to '
+                    'symmetric vault',
+            'command': (
+                'vault_retrieve',
+                [standard_vault_name],
+                {
+                    'password': password,
+                },
+            ),
+            'expected': {
+                'value': standard_vault_name,
+                'summary': 'Retrieved data from vault "%s"'
+                           % standard_vault_name,
+                'result': {
+                    'data': secret,
+                },
+            },
+        },
+
+        {
             'desc': 'Create symmetric vault',
             'command': (
                 'vault_add',
@@ -653,6 +738,90 @@ class test_vault_plugin(Declarative):
         },
 
         {
+            'desc': 'Change symmetric vault password',
+            'command': (
+                'vault_mod',
+                [symmetric_vault_name],
+                {
+                    'old_password': password,
+                    'new_password': other_password,
+                },
+            ),
+            'expected': {
+                'value': symmetric_vault_name,
+                'summary': u'Modified vault "%s"' % symmetric_vault_name,
+                'result': {
+                    'cn': [symmetric_vault_name],
+                    'ipavaulttype': [u'symmetric'],
+                    'ipavaultsalt': [fuzzy_string],
+                    'owner_user': [u'admin'],
+                },
+            },
+        },
+
+        {
+            'desc': 'Retrieve secret from symmetric vault with new password',
+            'command': (
+                'vault_retrieve',
+                [symmetric_vault_name],
+                {
+                    'password': other_password,
+                },
+            ),
+            'expected': {
+                'value': symmetric_vault_name,
+                'summary': 'Retrieved data from vault "%s"'
+                           % symmetric_vault_name,
+                'result': {
+                    'data': secret,
+                },
+            },
+        },
+
+        {
+            'desc': 'Change symmetric vault to asymmetric vault',
+            'command': (
+                'vault_mod',
+                [symmetric_vault_name],
+                {
+                    'ipavaulttype': u'asymmetric',
+                    'old_password': other_password,
+                    'ipavaultpublickey': public_key,
+                },
+            ),
+            'expected': {
+                'value': symmetric_vault_name,
+                'summary': u'Modified vault "%s"' % symmetric_vault_name,
+                'result': {
+                    'cn': [symmetric_vault_name],
+                    'ipavaulttype': [u'asymmetric'],
+                    'ipavaultpublickey': [public_key],
+                    'owner_user': [u'admin'],
+                },
+            },
+        },
+
+        {
+            'desc': 'Retrieve secret from symmetric vault converted to '
+                    'asymmetric vault',
+            'command': (
+                'vault_retrieve',
+                [symmetric_vault_name],
+                {
+                    'private_key': private_key,
+                },
+            ),
+            'expected': {
+                'value': symmetric_vault_name,
+                'summary': 'Retrieved data from vault "%s"'
+                           % symmetric_vault_name,
+                'result': {
+                    'data': secret,
+                },
+            },
+        },
+
+        {
             'desc': 'Create asymmetric vault',
             'command': (
                 'vault_add',
@@ -702,6 +871,86 @@ class test_vault_plugin(Declarative):
                 {
                     'private_key': private_key,
                 },
+            ),
+            'expected': {
+                'value': asymmetric_vault_name,
+                'summary': 'Retrieved data from vault "%s"'
+                           % asymmetric_vault_name,
+                'result': {
+                    'data': secret,
+                },
+            },
+        },
+
+        {
+            'desc': 'Change asymmetric vault keys',
+            'command': (
+                'vault_mod',
+                [asymmetric_vault_name],
+                {
+                    'private_key': private_key,
+                    'ipavaultpublickey': other_public_key,
+                },
+            ),
+            'expected': {
+                'value': asymmetric_vault_name,
+                'summary': u'Modified vault "%s"' % asymmetric_vault_name,
+                'result': {
+                    'cn': [asymmetric_vault_name],
+                    'ipavaulttype': [u'asymmetric'],
+                    'ipavaultpublickey': [other_public_key],
+                    'owner_user': [u'admin'],
+                },
+            },
+        },
+
+        {
+            'desc': 'Retrieve secret from asymmetric vault with new keys',
+            'command': (
+                'vault_retrieve',
+                [asymmetric_vault_name],
+                {
+                    'private_key': other_private_key,
+                },
+            ),
+            'expected': {
+                'value': asymmetric_vault_name,
+                'summary': 'Retrieved data from vault "%s"'
+                           % asymmetric_vault_name,
+                'result': {
+                    'data': secret,
+                },
+            },
+        },
+
+        {
+            'desc': 'Change asymmetric vault to standard vault',
+            'command': (
+                'vault_mod',
+                [asymmetric_vault_name],
+                {
+                    'ipavaulttype': u'standard',
+                    'private_key': other_private_key,
+                },
+            ),
+            'expected': {
+                'value': asymmetric_vault_name,
+                'summary': u'Modified vault "%s"' % asymmetric_vault_name,
+                'result': {
+                    'cn': [asymmetric_vault_name],
+                    'ipavaulttype': [u'standard'],
+                    'owner_user': [u'admin'],
+                },
+            },
+        },
+
+        {
+            'desc': 'Retrieve secret from asymmetric vault converted to '
+                    'standard vault',
+            'command': (
+                'vault_retrieve',
+                [asymmetric_vault_name],
+                {},
             ),
             'expected': {
                 'value': asymmetric_vault_name,
