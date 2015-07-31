@@ -116,10 +116,36 @@ EXAMPLES:
    ipa vault-show <name>
        [--user <user>|--service <service>|--shared]
 """) + _("""
- Modify a vault:
+ Modify vault description:
    ipa vault-mod <name>
        [--user <user>|--service <service>|--shared]
        --desc <description>
+""") + _("""
+ Modify vault type:
+   ipa vault-mod <name>
+       [--user <user>|--service <service>|--shared]
+       --type <type>
+       [old password/private key]
+       [new password/public key]
+""") + _("""
+ Modify symmetric vault password:
+   ipa vault-mod <name>
+       [--user <user>|--service <service>|--shared]
+       --change-password
+   ipa vault-mod <name>
+       [--user <user>|--service <service>|--shared]
+       --old-password <old password>
+       --new-password <new password>
+   ipa vault-mod <name>
+       [--user <user>|--service <service>|--shared]
+       --old-password-file <old password file>
+       --new-password-file <new password file>
+""") + _("""
+ Modify asymmetric vault keys:
+   ipa vault-mod <name>
+       [--user <user>|--service <service>|--shared]
+       --private-key-file <old private key file>
+       --public-key-file <new public key file>
 """) + _("""
  Delete a vault:
    ipa vault-del <name>
@@ -457,7 +483,7 @@ class vault(LDAPObject):
 
             print '  ** Passwords do not match! **'
 
-    def get_existing_password(self, new=False):
+    def get_existing_password(self):
         """
         Gets existing password from user.
         """
@@ -871,8 +897,181 @@ class vault_find(LDAPSearch):
 
 
 @register()
-class vault_mod(LDAPUpdate):
+class vault_mod(PKQuery, Local):
     __doc__ = _('Modify a vault.')
+
+    takes_options = vault_options + (
+        Str(
+            'description?',
+            cli_name='desc',
+            doc=_('Vault description'),
+        ),
+        Str(
+            'ipavaulttype?',
+            cli_name='type',
+            doc=_('Vault type'),
+        ),
+        Bytes(
+            'ipavaultsalt?',
+            cli_name='salt',
+            doc=_('Vault salt'),
+        ),
+        Flag(
+            'change_password?',
+            doc=_('Change password'),
+        ),
+        Str(
+            'old_password?',
+            cli_name='old_password',
+            doc=_('Old vault password'),
+        ),
+        Str(  # TODO: use File parameter
+            'old_password_file?',
+            cli_name='old_password_file',
+            doc=_('File containing the old vault password'),
+        ),
+        Str(
+            'new_password?',
+            cli_name='new_password',
+            doc=_('New vault password'),
+        ),
+        Str(  # TODO: use File parameter
+            'new_password_file?',
+            cli_name='new_password_file',
+            doc=_('File containing the new vault password'),
+        ),
+        Bytes(
+            'private_key?',
+            cli_name='private_key',
+            doc=_('Old vault private key'),
+        ),
+        Str(  # TODO: use File parameter
+            'private_key_file?',
+            cli_name='private_key_file',
+            doc=_('File containing the old vault private key'),
+        ),
+        Bytes(
+            'ipavaultpublickey?',
+            cli_name='public_key',
+            doc=_('New vault public key'),
+        ),
+        Str(  # TODO: use File parameter
+            'public_key_file?',
+            cli_name='public_key_file',
+            doc=_('File containing the new vault public key'),
+        ),
+    )
+
+    has_output = output.standard_entry
+
+    def forward(self, *args, **options):
+
+        vault_type = options.pop('ipavaulttype', False)
+        salt = options.pop('ipavaultsalt', False)
+        change_password = options.pop('change_password', False)
+
+        old_password = options.pop('old_password', None)
+        old_password_file = options.pop('old_password_file', None)
+        new_password = options.pop('new_password', None)
+        new_password_file = options.pop('new_password_file', None)
+
+        old_private_key = options.pop('private_key', None)
+        old_private_key_file = options.pop('private_key_file', None)
+        new_public_key = options.pop('ipavaultpublickey', None)
+        new_public_key_file = options.pop('public_key_file', None)
+
+        if self.api.env.in_server:
+            backend = self.api.Backend.ldap2
+        else:
+            backend = self.api.Backend.rpcclient
+        if not backend.isconnected():
+            backend.connect(ccache=krbV.default_context().default_ccache())
+
+        # determine the vault type based on parameters specified
+        if vault_type:
+            pass
+
+        elif change_password or new_password or new_password_file or salt:
+            vault_type = u'symmetric'
+
+        elif new_public_key or new_public_key_file:
+            vault_type = u'asymmetric'
+
+        # if vault type is specified, retrieve existing secret
+        if vault_type:
+            opts = options.copy()
+            opts.pop('description', None)
+
+            opts['password'] = old_password
+            opts['password_file'] = old_password_file
+            opts['private_key'] = old_private_key
+            opts['private_key_file'] = old_private_key_file
+
+            response = self.api.Command.vault_retrieve(*args, **opts)
+            data = response['result']['data']
+
+        opts = options.copy()
+
+        # if vault type is specified, update crypto attributes
+        if vault_type:
+            opts['ipavaulttype'] = vault_type
+
+            if vault_type == u'standard':
+                opts['ipavaultsalt'] = None
+                opts['ipavaultpublickey'] = None
+
+            elif vault_type == u'symmetric':
+                if salt:
+                    opts['ipavaultsalt'] = salt
+                else:
+                    opts['ipavaultsalt'] = os.urandom(16)
+
+                opts['ipavaultpublickey'] = None
+
+            elif vault_type == u'asymmetric':
+
+                # get new vault public key
+                if new_public_key and new_public_key_file:
+                    raise errors.MutuallyExclusiveError(
+                        reason=_('New public key specified multiple times'))
+
+                elif new_public_key:
+                    pass
+
+                elif new_public_key_file:
+                    new_public_key = validated_read('public_key_file',
+                                                    new_public_key_file,
+                                                    mode='rb')
+
+                else:
+                    raise errors.ValidationError(
+                        name='ipavaultpublickey',
+                        error=_('Missing new vault public key'))
+
+                opts['ipavaultsalt'] = None
+                opts['ipavaultpublickey'] = new_public_key
+
+        response = self.api.Command.vault_mod_internal(*args, **opts)
+
+        # if vault type is specified, rearchive existing secret
+        if vault_type:
+            opts = options.copy()
+            opts.pop('description', None)
+
+            opts['data'] = data
+            opts['password'] = new_password
+            opts['password_file'] = new_password_file
+            opts['override_password'] = True
+
+            self.api.Command.vault_archive(*args, **opts)
+
+        return response
+
+
+@register()
+class vault_mod_internal(LDAPUpdate):
+
+    NO_CLI = True
 
     takes_options = LDAPUpdate.takes_options + vault_options
 
@@ -994,6 +1193,10 @@ class vault_archive(PKQuery, Local):
             cli_name='password_file',
             doc=_('File containing the vault password'),
         ),
+        Flag(
+            'override_password?',
+            doc=_('Override existing password'),
+        ),
     )
 
     has_output = output.standard_entry
@@ -1007,6 +1210,8 @@ class vault_archive(PKQuery, Local):
 
         password = options.get('password')
         password_file = options.get('password_file')
+
+        override_password = options.pop('override_password', False)
 
         # don't send these parameters to server
         if 'data' in options:
@@ -1062,15 +1267,19 @@ class vault_archive(PKQuery, Local):
                 password = password.rstrip('\n')
 
             else:
-                password = self.obj.get_existing_password()
+                if override_password:
+                    password = self.obj.get_new_password()
+                else:
+                    password = self.obj.get_existing_password()
 
-            # verify password by retrieving existing data
-            opts = options.copy()
-            opts['password'] = password
-            try:
-                self.api.Command.vault_retrieve(*args, **opts)
-            except errors.NotFound:
-                pass
+            if not override_password:
+                # verify password by retrieving existing data
+                opts = options.copy()
+                opts['password'] = password
+                try:
+                    self.api.Command.vault_retrieve(*args, **opts)
+                except errors.NotFound:
+                    pass
 
             salt = vault['ipavaultsalt'][0]
 
