@@ -256,6 +256,15 @@ class KRAInstance(DogtagInstance):
             os.remove(cfg_file)
 
         shutil.move(paths.KRA_BACKUP_KEYS_P12, paths.KRACERT_P12)
+
+        # export ipaCert with private key for client authentication
+        args = ["/usr/bin/pki",
+            "-d", paths.HTTPD_ALIAS_DIR,
+            "-C", paths.ALIAS_PWDFILE_TXT,
+            "client-cert-show", "ipaCert",
+            "--client-cert", paths.KRA_AGENT_PEM]
+        ipautil.run(args)
+
         self.log.debug("completed creating KRA instance")
 
     def __add_ra_user_to_agent_group(self):
@@ -329,14 +338,6 @@ class KRAInstance(DogtagInstance):
 
         finally:
             os.remove(filename)
-
-        # export ipaCert with private key for client authentication
-        args = ["/usr/bin/pki",
-            "-d", paths.HTTPD_ALIAS_DIR,
-            "-C", paths.ALIAS_PWDFILE_TXT,
-            "client-cert-show", "ipaCert",
-            "--client-cert", paths.KRA_AGENT_PEM]
-        ipautil.run(args)
 
     def __add_vault_container(self):
         sub_dict = {
