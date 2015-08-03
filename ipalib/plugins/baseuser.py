@@ -187,7 +187,7 @@ class baseuser(LDAPObject):
         'telephonenumber', 'title', 'memberof', 'nsaccountlock',
         'memberofindirect', 'ipauserauthtype', 'userclass',
         'ipatokenradiusconfiglink', 'ipatokenradiususername',
-        'krbprincipalexpiration', 'usercertificate',
+        'krbprincipalexpiration', 'usercertificate;binary',
     ]
     search_display_attributes = [
         'uid', 'givenname', 'sn', 'homedirectory', 'loginshell',
@@ -465,10 +465,27 @@ class baseuser(LDAPObject):
         assert isinstance(user, DN)
         return self._user_status(user, DN(self.delete_container_dn, api.env.basedn))
 
+    def convert_usercertificate_pre(self, entry_attrs):
+        if 'usercertificate' in entry_attrs:
+            entry_attrs['usercertificate;binary'] = entry_attrs.pop(
+                'usercertificate')
+
+    def convert_usercertificate_post(self, entry_attrs, **options):
+        if 'usercertificate;binary' in entry_attrs:
+            entry_attrs['usercertificate'] = entry_attrs.pop(
+                'usercertificate;binary')
+
 class baseuser_add(LDAPCreate):
     """
     Prototype command plugin to be implemented by real plugin
     """
+    def pre_common_callback(self, ldap, dn, entry_attrs, **options):
+        assert isinstance(dn, DN)
+        self.obj.convert_usercertificate_pre(entry_attrs)
+
+    def post_common_callback(self, ldap, dn, entry_attrs, **options):
+        assert isinstance(dn, DN)
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
 
 class baseuser_del(LDAPDelete):
     """
@@ -542,6 +559,7 @@ class baseuser_mod(LDAPUpdate):
         self.check_userpassword(entry_attrs, **options)
 
         self.check_objectclass(ldap, dn, entry_attrs)
+        self.obj.convert_usercertificate_pre(entry_attrs)
 
     def post_common_callback(self, ldap, dn, entry_attrs, **options):
         assert isinstance(dn, DN)
@@ -554,6 +572,7 @@ class baseuser_mod(LDAPUpdate):
         convert_nsaccountlock(entry_attrs)
         self.obj.convert_manager(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
         convert_sshpubkey_post(ldap, dn, entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
 
@@ -584,6 +603,7 @@ class baseuser_find(LDAPSearch):
         for attrs in entries:
             self.obj.convert_manager(attrs, **options)
             self.obj.get_password_attributes(ldap, attrs.dn, attrs)
+            self.obj.convert_usercertificate_post(attrs, **options)
             if (lockout):
                 attrs['nsaccountlock'] = True
             else:
@@ -598,5 +618,6 @@ class baseuser_show(LDAPRetrieve):
         assert isinstance(dn, DN)
         self.obj.convert_manager(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
         convert_sshpubkey_post(ldap, dn, entry_attrs)
         radius_dn2pk(self.api, entry_attrs)

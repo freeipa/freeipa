@@ -510,6 +510,8 @@ class user_add(baseuser_add):
             answer = self.api.Object['radiusproxy'].get_dn_if_exists(rcl)
             entry_attrs['ipatokenradiusconfiglink'] = answer
 
+        self.pre_common_callback(ldap, dn, entry_attrs, **options)
+
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -557,6 +559,9 @@ class user_add(baseuser_add):
         convert_sshpubkey_post(ldap, dn, entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
         self.obj.get_preserved_attribute(entry_attrs, options)
+
+        self.post_common_callback(ldap, dn, entry_attrs, **options)
+
         return dn
 
 
@@ -1034,18 +1039,14 @@ class user_add_cert(LDAPAddAttribute):
                      **options):
         assert isinstance(dn, DN)
 
-        new_attr_name = '%s;binary' % self.attribute
-        if self.attribute in entry_attrs:
-            entry_attrs[new_attr_name] = entry_attrs.pop(self.attribute)
+        self.obj.convert_usercertificate_pre(entry_attrs)
 
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
 
-        old_attr_name = '%s;binary' % self.attribute
-        if old_attr_name in entry_attrs:
-            entry_attrs[self.attribute] = entry_attrs.pop(old_attr_name)
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
 
         return dn
 
@@ -1060,17 +1061,13 @@ class user_remove_cert(LDAPRemoveAttribute):
                      **options):
         assert isinstance(dn, DN)
 
-        new_attr_name = '%s;binary' % self.attribute
-        if self.attribute in entry_attrs:
-            entry_attrs[new_attr_name] = entry_attrs.pop(self.attribute)
+        self.obj.convert_usercertificate_pre(entry_attrs)
 
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
 
-        old_attr_name = '%s;binary' % self.attribute
-        if old_attr_name in entry_attrs:
-            entry_attrs[self.attribute] = entry_attrs.pop(old_attr_name)
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
 
         return dn
