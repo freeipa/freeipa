@@ -478,7 +478,14 @@ class DsInstance(service.Service):
             # Does not apply with newer DS releases
             pass
 
+    def stop(self, *args, **kwargs):
+        if self.admin_conn:
+            self.ldap_disconnect()
+        super(DsInstance, self).stop(*args, **kwargs)
+
     def restart(self, instance=''):
+        if self.admin_conn:
+            self.ldap_disconnect()
         try:
             super(DsInstance, self).restart(instance)
             if not is_ds_running(instance):
