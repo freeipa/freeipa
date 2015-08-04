@@ -144,6 +144,21 @@ default:member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
 dn: $SUFFIX
 add:aci:(targetattr = "objectclass")(target = "ldap:///cn=request certificate with subjectaltname,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0; acl "permission:Request Certificate with SubjectAltName"; allow (write) groupdn = "ldap:///cn=Request Certificate with SubjectAltName,cn=permissions,cn=pbac,$SUFFIX";)
 
+dn: cn=request certificate ignore caacl,cn=virtual operations,cn=etc,$SUFFIX
+default:objectClass: top
+default:objectClass: nsContainer
+default:cn: request certificate ignore caacl
+
+dn: cn=Request Certificate ignoring CA ACLs,cn=permissions,cn=pbac,$SUFFIX
+default:objectClass: top
+default:objectClass: groupofnames
+default:objectClass: ipapermission
+default:cn: Request Certificate ignoring CA ACLs
+default:member: cn=Certificate Administrators,cn=privileges,cn=pbac,$SUFFIX
+
+dn: $SUFFIX
+add:aci:(targetattr = "objectclass")(target = "ldap:///cn=request certificate ignore caacl,cn=virtual operations,cn=etc,$SUFFIX" )(version 3.0; acl "permission:Request Certificate ignoring CA ACLs"; allow (write) groupdn = "ldap:///cn=Request Certificate ignoring CA ACLs,cn=permissions,cn=pbac,$SUFFIX";)
+
 
 # Read privileges
 dn: cn=RBAC Readers,cn=privileges,cn=pbac,$SUFFIX
