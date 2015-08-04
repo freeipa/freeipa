@@ -345,8 +345,6 @@ class cert_request(VirtualCommand):
         else:
             principal_type = SERVICE
 
-        caacl_check(principal_type, principal_string, ca, profile_id)
-
         bind_principal = split_any_principal(getattr(context, 'principal'))
         bind_service, bind_name, bind_realm = bind_principal
 
@@ -360,6 +358,15 @@ class cert_request(VirtualCommand):
         if bind_principal != principal and bind_principal_type != HOST:
             # Can the bound principal request certs for another principal?
             self.check_access()
+
+        try:
+            self.check_access("request certificate ignore caacl")
+            bypass_caacl = True
+        except errors.ACIError:
+            bypass_caacl = False
+
+        if not bypass_caacl:
+            caacl_check(principal_type, principal_string, ca, profile_id)
 
         try:
             subject = pkcs10.get_subject(csr)
@@ -469,7 +476,7 @@ class cert_request(VirtualCommand):
                         raise errors.ACIError(info=_(
                             "Insufficient privilege to create a certificate "
                             "with subject alt name '%s'.") % name)
-                if alt_principal_string is not None:
+                if alt_principal_string is not None and not bypass_caacl:
                     caacl_check(
                         principal_type, alt_principal_string, ca, profile_id)
             elif name_type in (pkcs10.SAN_OTHERNAME_KRB5PRINCIPALNAME,
