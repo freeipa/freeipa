@@ -467,7 +467,7 @@ class otptoken_add_managedby(LDAPAddMember):
 
 @register()
 class otptoken_remove_managedby(LDAPRemoveMember):
-    __doc__ = _('Remove hosts that can manage this host.')
+    __doc__ = _('Remove users that can manage this token.')
 
     member_attributes = ['managedby']
 
