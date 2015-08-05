@@ -864,8 +864,8 @@ class TrustDomainInstance(object):
         We try NCACN_NP before NCACN_IP_TCP and use SMB2 before SMB1 or defaults.
         """
         transports = (u'ncacn_np', u'ncacn_ip_tcp')
-        options = ( u'smb2', u'smb1', u'')
-        binding_template=lambda x,y,z: u'%s:%s[%s,print]' % (x, y, z)
+        options = ( u'smb2,print', u'print')
+        binding_template=lambda x,y,z: u'%s:%s[%s]' % (x, y, z)
         return [binding_template(t, remote_host, o) for t in transports for o in options]
 
     def retrieve_anonymously(self, remote_host, discover_srv=False, search_pdc=False):
