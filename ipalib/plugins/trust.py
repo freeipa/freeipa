@@ -1487,7 +1487,7 @@ class trust_fetch_domains(LDAPRetrieve):
         result['truncated'] = False
 
         # For one-way trust fetch over DBus. we don't get the list in this case.
-        if trust['ipanttrustdirection'] & TRUST_BIDIRECTIONAL != TRUST_BIDIRECTIONAL:
+        if int(trust['ipanttrustdirection'][0]) != TRUST_BIDIRECTIONAL:
             fetch_trusted_domains_over_dbus(self.api, self.log, keys[0])
             result['summary'] = unicode(_('List of trust domains successfully refreshed. Use trustdomain-find command to list them.'))
             return result
