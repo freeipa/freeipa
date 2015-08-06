@@ -670,6 +670,14 @@ sides.
                 error=_('only "ad" is supported')
             )
 
+        # Detect IPA-AD domain clash
+        if self.api.env.domain.lower() == trusted_realm_domain.lower():
+            raise errors.ValidationError(
+                name=_('domain'),
+                error=_('Cannot establish a trust to AD deployed in the same '
+                        'domain as IPA. Such setup is not supported.')
+                )
+
         # If domain name and realm does not match, IPA server is not be able
         # to establish trust with Active Directory.
 
