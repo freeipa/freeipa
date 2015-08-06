@@ -199,6 +199,73 @@ def make_trust_dn(env, trust_type, dn):
         return DN(dn, container_dn)
     return dn
 
+def find_adtrust_masters(ldap, api):
+    """
+    Returns a list of names of IPA servers with ADTRUST component configured.
+    """
+
+    try:
+        entries, truncated = ldap.find_entries(
+                "cn=ADTRUST",
+                base_dn=api.env.container_masters + api.env.basedn
+        )
+    except errors.NotFound:
+        entries = []
+
+    return [entry.dn[1].value for entry in entries]
+
+def verify_samba_component_presence(ldap, api):
+    """
+    Verifies that Samba is installed and configured on this particular master.
+    If Samba is not available, provide a heplful hint with the list of masters
+    capable of running the commands.
+    """
+
+    adtrust_present = api.Command['adtrust_is_enabled']()['result']
+
+    hint = _(
+        ' Alternatively, following servers are capable of running this '
+        'command: %(masters)s'
+        )
+
+    def raise_missing_component_error(message):
+        masters_with_adtrust = find_adtrust_masters(ldap, api)
+
+        # If there are any masters capable of running Samba requiring commands
+        # let's advertise them directly
+        if masters_with_adtrust:
+            message += hint % dict(masters=', '.join(masters_with_adtrust))
+
+        raise errors.NotFound(
+            name=_('AD Trust setup'),
+            reason=message,
+        )
+
+    # We're ok in this case, bail out
+    if adtrust_present and _bindings_installed:
+        return
+
+    # First check for packages missing
+    elif not _bindings_installed:
+        error_message=_(
+            'Cannot perform the selected command without Samba 4 support '
+            'installed. Make sure you have installed server-trust-ad '
+            'sub-package of IPA.'
+        )
+
+        raise_missing_component_error(error_message)
+
+    # Packages present, but ADTRUST instance is not configured
+    elif not adtrust_present:
+        error_message=_(
+            'Cannot perform the selected command without Samba 4 instance '
+            'configured on this machine. Make sure you have run '
+            'ipa-adtrust-install on this server.'
+        )
+
+        raise_missing_component_error(error_message)
+
+
 def generate_creds(trustinstance, style, **options):
     """
     Generate string representing credentials using trust instance
@@ -554,6 +621,10 @@ sides.
     has_output_params = LDAPCreate.has_output_params + trust_output_params
 
     def execute(self, *keys, **options):
+        ldap = self.obj.backend
+
+        verify_samba_component_presence(ldap, self.api)
+
         full_join = self.validate_options(*keys, **options)
         old_range, range_name, dom_sid = self.validate_range(*keys, **options)
         result = self.execute_ad(full_join, *keys, **options)
@@ -569,7 +640,6 @@ sides.
             created_range_type = old_range['result']['iparangetype'][0]
 
         trust_filter = "cn=%s" % result['value']
-        ldap = self.obj.backend
         (trusts, truncated) = ldap.find_entries(
                          base_dn=DN(self.api.env.container_trusts, self.api.env.basedn),
                          filter=trust_filter)
@@ -641,16 +711,6 @@ sides.
 
     def validate_options(self, *keys, **options):
         trusted_realm_domain = keys[-1]
-
-        if not _bindings_installed:
-            raise errors.NotFound(
-                name=_('AD Trust setup'),
-                reason=_(
-                    'Cannot perform join operation without Samba 4 support '
-                    'installed. Make sure you have installed server-trust-ad '
-                    'sub-package of IPA'
-                )
-            )
 
         if not _murmur_installed and 'base_id' not in options:
             raise errors.ValidationError(
@@ -1406,6 +1466,9 @@ class trustdomain_del(LDAPDelete):
     msg_summary = _('Removed information about the trusted domain "%(value)s"')
 
     def execute(self, *keys, **options):
+        ldap = self.api.Backend.ldap2
+        verify_samba_component_presence(ldap, self.api)
+
         # Note that pre-/post- callback handling for LDAPDelete is causing pre_callback
         # to always receive empty keys. We need to catch the case when root domain is being deleted
 
@@ -1478,15 +1541,9 @@ class trust_fetch_domains(LDAPRetrieve):
     )
 
     def execute(self, *keys, **options):
-        if not _bindings_installed:
-            raise errors.NotFound(
-                name=_('AD Trust setup'),
-                reason=_(
-                    'Cannot perform join operation without Samba 4 support '
-                    'installed. Make sure you have installed server-trust-ad '
-                    'sub-package of IPA'
-                )
-            )
+        ldap = self.api.Backend.ldap2
+        verify_samba_component_presence(ldap, self.api)
+
         trust = self.api.Command.trust_show(keys[0], raw=True)['result']
 
         result = dict()
@@ -1532,6 +1589,7 @@ class trustdomain_enable(LDAPQuery):
 
     def execute(self, *keys, **options):
         ldap = self.api.Backend.ldap2
+        verify_samba_component_presence(ldap, self.api)
 
         if keys[0].lower() == keys[1].lower():
             raise errors.ValidationError(name='domain',
@@ -1572,6 +1630,7 @@ class trustdomain_disable(LDAPQuery):
 
     def execute(self, *keys, **options):
         ldap = self.api.Backend.ldap2
+        verify_samba_component_presence(ldap, self.api)
 
         if keys[0].lower() == keys[1].lower():
             raise errors.ValidationError(name='domain',
