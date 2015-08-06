@@ -6,9 +6,11 @@
 The framework core.
 """
 
-import sys
 import abc
+import collections
+import functools
 import itertools
+import sys
 
 import six
 
@@ -33,7 +35,8 @@ _missing = object()
 _counter = itertools.count()
 
 
-def _class_cmp(a, b):
+@functools.cmp_to_key
+def _class_key(a, b):
     if a is b:
         return 0
     elif issubclass(a, b):
@@ -54,26 +57,44 @@ class KnobValueError(ValueError):
         self.name = name
 
 
-class InnerClass(six.with_metaclass(util.InnerClassMeta, object)):
+class PropertyBase(six.with_metaclass(util.InnerClassMeta, object)):
+    # shut up pylint
     __outer_class__ = None
     __outer_name__ = None
 
+    _order = None
 
-class PropertyBase(InnerClass):
     @property
     def default(self):
         raise AttributeError('default')
 
     def __init__(self, outer):
-        self.outer = outer
+        pass
 
     def __get__(self, obj, obj_type):
+        while obj is not None:
+            try:
+                return obj.__dict__[self.__outer_name__]
+            except KeyError:
+                pass
+            obj = obj._get_fallback()
+
         try:
-            return obj._get_property(self.__outer_name__)
-        except AttributeError:
-            if not hasattr(self, 'default'):
-                raise
             return self.default
+        except AttributeError:
+            raise AttributeError(self.__outer_name__)
+
+    def __set__(self, obj, value):
+        try:
+            obj.__dict__[self.__outer_name__] = value
+        except KeyError:
+            raise AttributeError(self.__outer_name__)
+
+    def __delete__(self, obj):
+        try:
+            del obj.__dict__[self.__outer_name__]
+        except KeyError:
+            raise AttributeError(self.__outer_name__)
 
 
 def Property(default=_missing):
@@ -86,7 +107,6 @@ def Property(default=_missing):
 
 class KnobBase(PropertyBase):
     type = None
-    initializable = True
     sensitive = False
     deprecated = False
     description = None
@@ -95,23 +115,8 @@ class KnobBase(PropertyBase):
     cli_aliases = None
     cli_metavar = None
 
-    _order = None
-
-    def __set__(self, obj, value):
-        try:
-            self.validate(value)
-        except KnobValueError:
-            raise
-        except ValueError as e:
-            raise KnobValueError(self.__outer_name__, str(e))
-
-        obj.__dict__[self.__outer_name__] = value
-
-    def __delete__(self, obj):
-        try:
-            del obj.__dict__[self.__outer_name__]
-        except KeyError:
-            raise AttributeError(self.__outer_name__)
+    def __init__(self, outer):
+        self.outer = outer
 
     def validate(self, value):
         pass
@@ -135,12 +140,17 @@ class KnobBase(PropertyBase):
         return cls
 
 
-def Knob(type, default=_missing, initializable=_missing, sensitive=_missing,
+def Knob(type_or_base, default=_missing, sensitive=_missing,
          deprecated=_missing, description=_missing, cli_name=_missing,
          cli_short_name=_missing, cli_aliases=_missing, cli_metavar=_missing):
     class_dict = {}
     class_dict['_order'] = next(_counter)
-    class_dict['type'] = type
+
+    if (not isinstance(type_or_base, type) or
+            not issubclass(type_or_base, KnobBase)):
+        class_dict['type'] = type_or_base
+        type_or_base = KnobBase
+
     if default is not _missing:
         class_dict['default'] = default
     if sensitive is not _missing:
@@ -158,7 +168,7 @@ def Knob(type, default=_missing, initializable=_missing, sensitive=_missing,
     if cli_metavar is not _missing:
         class_dict['cli_metavar'] = cli_metavar
 
-    return util.InnerClassMeta('Knob', (KnobBase,), class_dict)
+    return util.InnerClassMeta('Knob', (type_or_base,), class_dict)
 
 
 class Configurable(six.with_metaclass(abc.ABCMeta, object)):
@@ -169,21 +179,41 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
     """
 
     @classmethod
+    def properties(cls):
+        """
+        Iterate over properties defined for the configurable.
+        """
+
+        assert not hasattr(super(Configurable, cls), 'properties')
+
+        seen = set()
+
+        for owner_cls in cls.__mro__:
+            result = []
+
+            for name, prop_cls in owner_cls.__dict__.iteritems():
+                if name in seen:
+                    continue
+                seen.add(name)
+
+                if not isinstance(prop_cls, type):
+                    continue
+                if not issubclass(prop_cls, PropertyBase):
+                    continue
+
+                result.append((prop_cls._order, owner_cls, name))
+
+            result = sorted(result, key=lambda r: r[0])
+
+            for order, owner_cls, name in result:
+                yield owner_cls, name
+
+    @classmethod
     def knobs(cls):
-        """
-        Iterate over knobs defined for the configurable.
-        """
-
-        assert not hasattr(super(Configurable, cls), 'knobs')
-
-        result = []
-        for name in dir(cls):
-            knob_cls = getattr(cls, name)
-            if isinstance(knob_cls, type) and issubclass(knob_cls, KnobBase):
-                result.append(knob_cls)
-        result = sorted(result, key=lambda knob_cls: knob_cls._order)
-        for knob_cls in result:
-            yield knob_cls.__outer_class__, knob_cls.__outer_name__
+        for owner_cls, name in cls.properties():
+            prop_cls = getattr(owner_cls, name)
+            if issubclass(prop_cls, KnobBase):
+                yield owner_cls, name
 
     @classmethod
     def group(cls):
@@ -198,26 +228,14 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
 
         self.log = root_logger
 
-        for name in dir(self.__class__):
+        cls = self.__class__
+        for owner_cls, name in cls.properties():
             if name.startswith('_'):
                 continue
-            property_cls = getattr(self.__class__, name)
-            if not isinstance(property_cls, type):
+            prop_cls = getattr(owner_cls, name)
+            if not isinstance(prop_cls, type):
                 continue
-            if not issubclass(property_cls, PropertyBase):
-                continue
-            if issubclass(property_cls, KnobBase):
-                continue
-            try:
-                value = kwargs.pop(name)
-            except KeyError:
-                pass
-            else:
-                setattr(self, name, value)
-
-        for owner_cls, name in self.knobs():
-            knob_cls = getattr(owner_cls, name)
-            if not knob_cls.initializable:
+            if not issubclass(prop_cls, PropertyBase):
                 continue
 
             try:
@@ -248,13 +266,8 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
 
         raise TypeError("{0} is not composite".format(self))
 
-    def _get_property(self, name):
-        assert not hasattr(super(Configurable, self), '_get_property')
-
-        try:
-            return self.__dict__[name]
-        except KeyError:
-            raise AttributeError(name)
+    def _get_fallback(self):
+        return None
 
     @abc.abstractmethod
     def _configure(self):
@@ -379,8 +392,11 @@ class ComponentMeta(util.InnerClassMeta, abc.ABCMeta):
     pass
 
 
-class ComponentBase(
-        six.with_metaclass(ComponentMeta, InnerClass, Configurable)):
+class ComponentBase(six.with_metaclass(ComponentMeta, Configurable)):
+    # shut up pylint
+    __outer_class__ = None
+    __outer_name__ = None
+
     _order = None
 
     @classmethod
@@ -404,11 +420,8 @@ class ComponentBase(
         obj.__dict__[self.__outer_name__] = self
         return self
 
-    def _get_property(self, name):
-        try:
-            return super(ComponentBase, self)._get_property(name)
-        except AttributeError:
-            return self.__parent._get_property(name)
+    def _get_fallback(self):
+        return self.__parent
 
     def _handle_exception(self, exc_info):
         try:
@@ -433,29 +446,36 @@ class Composite(Configurable):
     """
 
     @classmethod
-    def knobs(cls):
+    def properties(cls):
         name_dict = {}
-        owner_dict = {}
+        owner_dict = collections.OrderedDict()
 
-        for owner_cls, name in super(Composite, cls).knobs():
-            knob_cls = getattr(owner_cls, name)
+        for owner_cls, name in super(Composite, cls).properties():
             name_dict[name] = owner_cls
-            owner_dict.setdefault(owner_cls, []).append(knob_cls)
+            owner_dict.setdefault(owner_cls, []).append(name)
 
         for owner_cls, name in cls.components():
             comp_cls = getattr(cls, name)
+
             for owner_cls, name in comp_cls.knobs():
                 if hasattr(cls, name):
                     continue
 
-                knob_cls = getattr(owner_cls, name)
                 try:
                     last_owner_cls = name_dict[name]
                 except KeyError:
                     name_dict[name] = owner_cls
-                    owner_dict.setdefault(owner_cls, []).append(knob_cls)
+                    owner_dict.setdefault(owner_cls, []).append(name)
                 else:
-                    if last_owner_cls is not owner_cls:
+                    knob_cls = getattr(owner_cls, name)
+                    last_knob_cls = getattr(last_owner_cls, name)
+                    if issubclass(knob_cls, last_knob_cls):
+                        name_dict[name] = owner_cls
+                        owner_dict[last_owner_cls].remove(name)
+                        owner_dict.setdefault(owner_cls, [])
+                        if name not in owner_dict[owner_cls]:
+                            owner_dict[owner_cls].append(name)
+                    elif not issubclass(last_knob_cls, knob_cls):
                         raise TypeError("{0}.knobs(): conflicting definitions "
                                         "of '{1}' in {2} and {3}".format(
                                             cls.__name__,
@@ -463,23 +483,35 @@ class Composite(Configurable):
                                             last_owner_cls.__name__,
                                             owner_cls.__name__))
 
-        for owner_cls in sorted(owner_dict, _class_cmp):
-            for knob_cls in owner_dict[owner_cls]:
-                yield knob_cls.__outer_class__, knob_cls.__outer_name__
+        for owner_cls in sorted(owner_dict, key=_class_key):
+            for name in owner_dict[owner_cls]:
+                yield owner_cls, name
 
     @classmethod
     def components(cls):
         assert not hasattr(super(Composite, cls), 'components')
 
-        result = []
-        for name in dir(cls):
-            comp_cls = getattr(cls, name)
-            if (isinstance(comp_cls, type) and
-                    issubclass(comp_cls, ComponentBase)):
-                result.append(comp_cls)
-        result = sorted(result, key=lambda comp_cls: comp_cls._order)
-        for comp_cls in result:
-            yield comp_cls.__outer_class__, comp_cls.__outer_name__
+        seen = set()
+
+        for owner_cls in cls.__mro__:
+            result = []
+
+            for name, comp_cls in owner_cls.__dict__.iteritems():
+                if name in seen:
+                    continue
+                seen.add(name)
+
+                if not isinstance(comp_cls, type):
+                    continue
+                if not issubclass(comp_cls, ComponentBase):
+                    continue
+
+                result.append((comp_cls._order, owner_cls, name))
+
+            result = sorted(result, key=lambda r: r[0])
+
+            for order, owner_cls, name in result:
+                yield owner_cls, name
 
     def _reset(self):
         self.__components = list(self._get_components())

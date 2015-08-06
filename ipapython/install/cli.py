@@ -86,8 +86,6 @@ class ConfigureTool(admintool.AdminTool):
         transformed_cls = cls._transform(cls.configurable_class)
         for owner_cls, name in transformed_cls.knobs():
             knob_cls = getattr(owner_cls, name)
-            if not knob_cls.initializable:
-                continue
             if cls.positional_arguments and name in cls.positional_arguments:
                 continue
 
