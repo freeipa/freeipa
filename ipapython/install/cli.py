@@ -78,12 +78,22 @@ class ConfigureTool(admintool.AdminTool):
 
     @classmethod
     def add_options(cls, parser):
+        transformed_cls = cls._transform(cls.configurable_class)
+
+        if issubclass(transformed_cls, common.Interactive):
+            parser.add_option(
+                '-U', '--unattended',
+                dest='unattended',
+                default=False,
+                action='store_true',
+                help="unattended (un)installation never prompts the user",
+            )
+
         basic_group = optparse.OptionGroup(parser, "basic options")
 
         groups = collections.OrderedDict()
         groups[None] = basic_group
 
-        transformed_cls = cls._transform(cls.configurable_class)
         for owner_cls, name in transformed_cls.knobs():
             knob_cls = getattr(owner_cls, name)
             if cls.positional_arguments and name in cls.positional_arguments:
@@ -133,15 +143,6 @@ class ConfigureTool(admintool.AdminTool):
                     help=optparse.SUPPRESS_HELP,
                     **kwargs
                 )
-
-        if issubclass(transformed_cls, common.Interactive):
-            basic_group.add_option(
-                '-U', '--unattended',
-                dest='unattended',
-                default=False,
-                action='store_true',
-                help="unattended (un)installation never prompts the user",
-            )
 
         for group, opt_group in groups.items():
             parser.add_option_group(opt_group)
