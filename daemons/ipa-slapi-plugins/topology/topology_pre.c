@@ -76,6 +76,34 @@ ipa_topo_is_agmt_attr_restricted(Slapi_PBlock *pb)
     return rc;
 }
 int
+ipa_topo_is_invalid_managed_suffix(Slapi_PBlock *pb)
+{
+    LDAPMod **mods;
+    int i;
+    int rc = 0;
+
+    slapi_pblock_get(pb, SLAPI_MODIFY_MODS, &mods);
+    for (i = 0; (mods != NULL) && (mods[i] != NULL); i++) {
+        if (0 == strcasecmp(mods[i]->mod_type, "ipaReplTopoManagedSuffix")) {
+            switch (mods[i]->mod_op & ~LDAP_MOD_BVALUES) {
+            case LDAP_MOD_DELETE:
+                /* only deletion of specific valuses supported */
+                if (NULL == mods[i]->mod_bvalues || NULL == mods[i]->mod_bvalues[0]) {
+                    rc = 1;
+                }
+                break;
+            case LDAP_MOD_ADD:
+                break;
+            case LDAP_MOD_REPLACE:
+                rc = 1;
+                break;
+            }
+        }
+    }
+    return rc;
+}
+
+int
 ipa_topo_is_segm_attr_restricted(Slapi_PBlock *pb)
 {
     LDAPMod **mods;
@@ -374,6 +402,28 @@ ipa_topo_check_segment_updates(Slapi_PBlock *pb)
 }
 
 int
+ipa_topo_check_host_updates(Slapi_PBlock *pb)
+{
+    int rc = 0;
+    Slapi_Entry *mod_entry;
+    char *pi;
+
+    /* we have to check if the operation is triggered by the
+     * topology plugin itself - allow it
+     */
+    slapi_pblock_get(pb, SLAPI_PLUGIN_IDENTITY,&pi);
+    if (pi && 0 == strcasecmp(pi, ipa_topo_get_plugin_id())) {
+        return 0;
+    }
+    slapi_pblock_get(pb,SLAPI_MODIFY_EXISTING_ENTRY,&mod_entry);
+    if (TOPO_HOST_ENTRY == ipa_topo_check_entry_type(mod_entry) &&
+        (ipa_topo_is_invalid_managed_suffix(pb))) {
+        rc = 1;
+    }
+    return rc;
+}
+
+int
 ipa_topo_check_topology_disconnect(Slapi_PBlock *pb)
 {
     int rc = 1;
@@ -502,6 +552,10 @@ ipa_topo_pre_mod(Slapi_PBlock *pb)
         /* some updates to segments are not supported */
         errtxt = slapi_ch_smprintf("Modification of connectivity and segment nodes "
                                    " is not supported.\n");
+    } else if (ipa_topo_check_host_updates(pb)) {
+        /* some updates to segments are not supported */
+        errtxt = slapi_ch_smprintf("Modification of managed suffixes must explicitely "
+                                   " list suffix.\n");
     }
     if (errtxt) {
         int rc = LDAP_UNWILLING_TO_PERFORM;

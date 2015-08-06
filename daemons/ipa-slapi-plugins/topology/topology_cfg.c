@@ -809,6 +809,9 @@ ipa_topo_cfg_replica_new(void)
         topoRepl->next = NULL;
         topoRepl->repl_segments = NULL;
         topoRepl->repl_root = NULL;
+        topoRepl->strip_attrs = NULL;
+        topoRepl->total_attrs = NULL;
+        topoRepl->repl_attrs = NULL;
         topoRepl->shared_config_base = NULL;
         topoRepl->hosts = NULL;
         topoRepl->repl_lock = slapi_new_mutex();
@@ -851,7 +854,6 @@ ipa_topo_cfg_replica_free(TopoReplica *tconf)
         slapi_destroy_mutex(tconf->repl_lock);
         slapi_ch_free_string(&tconf->shared_config_base);
         slapi_ch_free_string(&tconf->repl_root);
-        slapi_sdn_free(&tconf->shared_config_sdn);
         seg = tconf->repl_segments;
         while (seg) {
             seg_next = seg->next;

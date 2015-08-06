@@ -13,7 +13,6 @@ static int ipa_topo_close(Slapi_PBlock * pb);
 static int ipa_topo_preop_init(Slapi_PBlock *pb);
 static int ipa_topo_postop_init(Slapi_PBlock *pb);
 static int ipa_topo_internal_postop_init(Slapi_PBlock *pb);
-static int ipa_topo_apply_shared_replica_config(char *replica_root);
 static int ipa_topo_rootdse_init(Slapi_PBlock *pb);
 static int ipa_topo_rootdse_search(Slapi_PBlock *pb, Slapi_Entry* e,
                               Slapi_Entry* entryAfter, int *returncode,
@@ -147,6 +146,7 @@ ipa_topo_apply_shared_config(void)
     int i = 0;
     int rc = 0;
     char **shared_replica_root = NULL;
+    TopoReplica *replica_config = NULL;
 
     while (0 == ipa_topo_acquire_startup_inprogress()) {
         DS_Sleep(1);
@@ -154,7 +154,14 @@ ipa_topo_apply_shared_config(void)
 
     shared_replica_root = ipa_topo_get_plugin_replica_root();
     while (rc == 0 && shared_replica_root[i]) {
-        rc = ipa_topo_apply_shared_replica_config(shared_replica_root[i]);
+        /* get replica onfig entry from shared tree */
+        replica_config = ipa_topo_util_get_replica_conf(shared_replica_root[i]);
+        if (NULL == replica_config) {
+            slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                        "cannot find replica entry for: %s\n", shared_replica_root[i]);
+        } else {
+            rc = ipa_topo_apply_shared_replica_config(replica_config);
+        }
         i++;
     }
     /* initialize the list of managed servers */
@@ -176,21 +183,16 @@ ipa_topo_apply_shared_config(void)
     return (rc);
 }
 
-static int
-ipa_topo_apply_shared_replica_config(char *replica_root)
+int
+ipa_topo_apply_shared_replica_config(TopoReplica *replica_config)
 {
-    TopoReplica *replica_config = NULL;
     TopoReplicaSegmentList *replica_segments = NULL;
     int rc = 0;
 
-    /* step 1. get replica onfig entry from shared tree
-     *    search replica entry for replcia root below shared config base
-     */
-    replica_config = ipa_topo_util_get_replica_conf(replica_root);
     if (replica_config) {
-        /* step 2. get all segments for the replica from the shared config */
+        /* get all segments for the replica from the shared config */
         replica_segments = ipa_topo_util_get_replica_segments(replica_config);
-        /* step 3. get all replication agreements for replica root */
+        /* get all replication agreements for replica root */
         rc = ipa_topo_util_update_agmt_list(replica_config, replica_segments);
     }
     return (rc);

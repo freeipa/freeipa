@@ -64,6 +64,7 @@ ipa_topo_post_add(Slapi_PBlock *pb)
     switch (entry_type) {
     case TOPO_CONFIG_ENTRY:
         /* initialize the shared topology data for a replica */
+        ipa_topo_util_suffix_init(add_entry);
         break;
     case TOPO_SEGMENT_ENTRY: {
         TopoReplicaSegment *tsegm = NULL;
@@ -103,7 +104,7 @@ ipa_topo_post_add(Slapi_PBlock *pb)
          * a segment which so far was inactive since
          * the host was not managed
          */
-        ipa_topo_util_update_segments_for_host(add_entry);
+        ipa_topo_util_add_host(add_entry);
         break;
     }
     case TOPO_DOMLEVEL_ENTRY: {
@@ -135,6 +136,7 @@ ipa_topo_post_mod(Slapi_PBlock *pb)
     int entry_type;
     Slapi_Entry *mod_entry = NULL;
     Slapi_Entry *pre_entry = NULL;
+    LDAPMod **mods;
 
     slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                     "--> ipa_topo_post_mod\n");
@@ -142,6 +144,7 @@ ipa_topo_post_mod(Slapi_PBlock *pb)
     /* 1. get entry  */
     slapi_pblock_get(pb,SLAPI_ENTRY_POST_OP,&mod_entry);
     slapi_pblock_get(pb,SLAPI_ENTRY_PRE_OP,&pre_entry);
+    slapi_pblock_get(pb, SLAPI_MODIFY_MODS, &mods);
 
     if (mod_entry == NULL || pre_entry == NULL) {
         slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM, "no entry\n");
@@ -158,9 +161,9 @@ ipa_topo_post_mod(Slapi_PBlock *pb)
 
     switch (entry_type) {
     case TOPO_CONFIG_ENTRY:
+        ipa_topo_util_suffix_update(mod_entry, pre_entry, mods);
         break;
     case TOPO_SEGMENT_ENTRY: {
-        LDAPMod **mods;
         TopoReplica *tconf = ipa_topo_util_get_conf_for_segment(mod_entry);
         TopoReplicaSegment *tsegm = NULL;
         if (tconf) tsegm = ipa_topo_util_find_segment(tconf, pre_entry);
@@ -169,7 +172,6 @@ ipa_topo_post_mod(Slapi_PBlock *pb)
                             "ipa_topo_post_mod - segment to be modified does not exist\n");
             break;
         }
-        slapi_pblock_get(pb, SLAPI_MODIFY_MODS, &mods);
         ipa_topo_util_segment_update(tconf, tsegm, mods,ipa_topo_get_plugin_hostname());
         ipa_topo_util_existing_agmts_update(tconf, tsegm, mods,
                                             ipa_topo_get_plugin_hostname());
@@ -191,7 +193,10 @@ ipa_topo_post_mod(Slapi_PBlock *pb)
         slapi_ch_free_string(&domlevel);
         break;
     }
-    case TOPO_HOST_ENTRY:
+    case TOPO_HOST_ENTRY: {
+        ipa_topo_util_update_host(mod_entry, mods);
+        break;
+    }
     case TOPO_IGNORE_ENTRY:
         break;
     }

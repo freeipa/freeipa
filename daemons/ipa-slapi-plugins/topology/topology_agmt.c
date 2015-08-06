@@ -228,20 +228,20 @@ ipa_topo_agmt_setup(char *hostname, TopoReplica *conf,
     }
     if (agmt->repl_attrs) {
         slapi_entry_add_string(e, "nsDS5ReplicatedAttributeList",agmt->repl_attrs);
-    } else {
-       slapi_entry_add_string(e, "nsDS5ReplicatedAttributeList", REPL_ATTR_LIST);
+    } else if (conf->repl_attrs) {
+        slapi_entry_add_string(e, "nsDS5ReplicatedAttributeList",conf->repl_attrs);
     }
     if (agmt->strip_attrs) {
         slapi_entry_add_string(e, "nsds5ReplicaStripAttrs", agmt->strip_attrs);
-    } else {
-        slapi_entry_add_string(e, "nsds5ReplicaStripAttrs", REPL_ATTR_STRIP);
+    } else if (conf->strip_attrs) {
+        slapi_entry_add_string(e, "nsds5ReplicaStripAttrs", conf->strip_attrs);
     }
     if (agmt->total_attrs) {
         slapi_entry_add_string(e, "nsDS5ReplicatedAttributeListTotal",
                                agmt->total_attrs);
-    } else {
+    } else if (conf->total_attrs) {
         slapi_entry_add_string(e, "nsDS5ReplicatedAttributeListTotal",
-                                  REPL_ATTR_LIST_TOTAL);
+                               conf->total_attrs);
     }
 
     pb = slapi_pblock_new();

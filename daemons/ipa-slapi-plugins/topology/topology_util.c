@@ -182,10 +182,7 @@ ipa_topo_util_get_replica_conf(char *repl_root)
                             "ipa_topo_util_get_replica_conf: "
                             "server configuration missing\n");
         } else {
-            topoRepl = ipa_topo_cfg_replica_new();
-            topoRepl->shared_config_base =
-                slapi_ch_strdup(slapi_entry_get_dn_const(entries[0]));
-            topoRepl->repl_root = slapi_ch_strdup(repl_root);
+            topoRepl = ipa_topo_util_replica_init(entries[0]);
         }
     }
     slapi_ch_free_string(&filter);
@@ -424,6 +421,7 @@ ipa_topo_util_segm_from_agmt(Slapi_Entry *repl_agmt)
 
     agmt->origin = slapi_ch_strdup(segment->from);
     agmt->target = slapi_ch_strdup(segment->to);
+    agmt->rdn = slapi_entry_attr_get_charptr(repl_agmt, "cn");
     agmt->repl_timeout = slapi_entry_attr_get_charptr(repl_agmt, "nsds5replicatimeout");
     agmt->repl_root = slapi_entry_attr_get_charptr(repl_agmt, "nsds5replicaroot");
 
@@ -454,6 +452,21 @@ ipa_topo_util_get_conf_for_segment(Slapi_Entry *segment_entry)
     }
 
     return tconf;
+}
+
+TopoReplica *
+ipa_topo_util_replica_init(Slapi_Entry *conf)
+{
+    TopoReplica *topoRepl = NULL;
+    topoRepl = ipa_topo_cfg_replica_new();
+    if (topoRepl) {
+        topoRepl->shared_config_base = slapi_ch_strdup(slapi_entry_get_dn_const(conf));
+        topoRepl->repl_root = slapi_entry_attr_get_charptr(conf,"ipaReplTopoConfRoot");
+        topoRepl->repl_attrs = slapi_entry_attr_get_charptr(conf, "nsDS5ReplicatedAttributeList");
+        topoRepl->strip_attrs = slapi_entry_attr_get_charptr(conf, "nsds5ReplicaStripAttrs");
+        topoRepl->total_attrs = slapi_entry_attr_get_charptr(conf, "nsDS5ReplicatedAttributeListTotal");
+    }
+    return topoRepl;
 }
 
 TopoReplica *
@@ -1288,11 +1301,10 @@ ipa_topo_util_agmt_is_marked(Slapi_Entry *repl_agmt)
 }
 
 void
-ipa_topo_util_update_segments_for_host(Slapi_Entry *hostentry)
+ipa_topo_util_update_segments_for_host(TopoReplica *conf, char *hostname)
 {
     int rc = 0;
     int nentries;
-    char* newhost = NULL;
     Slapi_Entry **entries;
     Slapi_Entry *repl_agmt;
     Slapi_PBlock *pb = NULL;
@@ -1302,11 +1314,10 @@ ipa_topo_util_update_segments_for_host(Slapi_Entry *hostentry)
      * Since the host was not yet managed new segments ghave to be
      * created
      */
-    newhost = slapi_entry_attr_get_charptr(hostentry,"cn");
 
     pb = slapi_pblock_new();
-    filter = slapi_ch_smprintf("(&(objectclass=nsds5replicationagreement)(nsds5replicahost=%s))",
-                               newhost);
+    filter = slapi_ch_smprintf("(&(objectclass=nsds5replicationagreement)(nsds5replicahost=%s)(nsds5replicaroot=%s))",
+                               hostname, conf->repl_root);
     slapi_search_internal_set_pb(pb, "cn=config", LDAP_SCOPE_SUB,
                                  filter, NULL, 0, NULL, NULL,
                                  ipa_topo_get_plugin_id(), 0);
@@ -1317,15 +1328,15 @@ ipa_topo_util_update_segments_for_host(Slapi_Entry *hostentry)
         slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                         "ipa_topo_util_update_segments_for_host: "
                         "no replication agreeements for host %s: error %d\n",
-                        newhost, rc);
-        goto error_return;
+                        hostname, rc);
+        return;
     } else {
         slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES, &entries);
         if (NULL == entries || NULL == entries[0]) {
             slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                             "ipa_topo_util_update_segments_for_host: "
                             "no agrements found\n");
-            goto error_return;
+            return;
         }
     }
 
@@ -1333,9 +1344,8 @@ ipa_topo_util_update_segments_for_host(Slapi_Entry *hostentry)
     nentries = 0;
     repl_agmt = entries[0];
     while (repl_agmt) {
-        TopoReplica *conf = NULL;
-        TopoReplicaSegment *topo_segm;
-        char *repl_root = NULL;
+        TopoReplicaSegment *topo_segm = NULL;
+        TopoReplicaAgmt *topo_agmt = NULL;
 
         slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                         "ipa_topo_util_update_segments_for_host: "
@@ -1343,36 +1353,35 @@ ipa_topo_util_update_segments_for_host(Slapi_Entry *hostentry)
                         slapi_entry_get_dn_const(repl_agmt));
 
         /* generate segment from agreement */
-        repl_root = slapi_entry_attr_get_charptr(repl_agmt,"nsds5replicaroot");
-        conf = ipa_topo_cfg_replica_find(repl_root,1);
-        if (conf == NULL) goto next_agmt;
         topo_segm = ipa_topo_util_segm_from_agmt(repl_agmt);
         rc = ipa_topo_util_segment_write(conf, topo_segm);
         if (rc != 0) {
             slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                             "ipa_topo_util_update_segments_for_host: "
                             "failed to write segment for host %s: error %d\n",
-                            newhost, rc);
+                            hostname, rc);
         }
         rc = ipa_topo_util_agmt_mark(conf, repl_agmt, topo_segm);
         if (rc != 0) {
             slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                             "ipa_topo_util_update_segments_for_host: "
                             "failed to mark agreement for host %s: error %d\n",
-                             newhost, rc);
+                             hostname, rc);
         }
-        ipa_topo_cfg_segment_add(conf, topo_segm);
-next_agmt:
-        slapi_ch_free_string(&repl_root);
+        /* segment has been recreated and added during postp of segment_write
+         * but the correct agreement rdn was lost, set it now */
+        topo_agmt = ipa_topo_util_find_segment_agmt(conf->repl_segments,
+                                                    ipa_topo_get_plugin_hostname(),
+                                                    hostname);
+        if (topo_agmt) {
+            ipa_topo_util_set_agmt_rdn(topo_agmt, repl_agmt);
+        }
         repl_agmt = entries[++nentries];
 
     }
 
     slapi_free_search_results_internal(pb);
     slapi_pblock_destroy(pb);
-
-error_return:
-    slapi_ch_free_string(&newhost);
 
 }
 
@@ -1430,6 +1439,61 @@ ipa_topo_util_delete_segments_for_host(char *repl_root, char *delhost)
 
     slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                     "ipa_topo_util_delete_segments_for_host <-- done\n");
+}
+
+
+void
+ipa_topo_util_add_managed_host(char *suffix, char *addhost)
+{
+    TopoReplica *conf = ipa_topo_cfg_replica_find(suffix,1);
+    if (conf) {
+        ipa_topo_util_update_segments_for_host(conf, addhost);
+    }
+}
+
+void
+ipa_topo_util_add_host(Slapi_Entry *hostentry)
+{
+    char* addhost = NULL;
+    char **suffixes = NULL;
+    int i=0;
+    addhost = slapi_entry_attr_get_charptr(hostentry,"cn");
+    suffixes = slapi_entry_attr_get_charray(hostentry,"ipaReplTopoManagedSuffix");
+    while (suffixes && suffixes[i]) {
+        ipa_topo_util_add_managed_host(suffixes[i], addhost);
+        i++;
+    }
+    slapi_ch_free_string(&addhost);
+    slapi_ch_array_free(suffixes);
+}
+
+
+void
+ipa_topo_util_update_host(Slapi_Entry *hostentry, LDAPMod **mods)
+{
+    char* modhost = NULL;
+    int i, j;
+
+    modhost = slapi_entry_attr_get_charptr(hostentry,"cn");
+    for (i = 0; (mods != NULL) && (mods[i] != NULL); i++) {
+        if (0 == strcasecmp(mods[i]->mod_type, "ipaReplTopoManagedSuffix")) {
+            switch (mods[i]->mod_op & ~LDAP_MOD_BVALUES) {
+            case LDAP_MOD_DELETE:
+                /*  preop check ensures we have valuses */
+                if (NULL == mods[i]->mod_bvalues || NULL == mods[i]->mod_bvalues[0]) {
+                }
+                break;
+            case LDAP_MOD_ADD:
+                for (j = 0; mods[i]->mod_bvalues[j] != NULL; j++) {
+                    ipa_topo_util_add_managed_host(mods[i]->mod_bvalues[j]->bv_val, modhost);
+                }
+                break;
+            case LDAP_MOD_REPLACE:
+                break;
+            }
+        }
+    }
+    slapi_ch_free_string(&modhost);
 }
 
 void
@@ -1672,4 +1736,30 @@ ipa_topo_util_reset_init(char *repl_root)
         ipa_topo_util_segm_modify (replica_config, segment, smods);
         slapi_mods_free(&smods);
     }
+}
+
+void
+ipa_topo_util_suffix_init(Slapi_Entry *config_entry)
+{
+    int rc = 0;
+    TopoReplica *topoRepl = NULL;
+    char *repl_suffix = slapi_entry_attr_get_charptr(config_entry,"ipaReplTopoConfRoot");
+    if (repl_suffix) {
+        topoRepl = ipa_topo_util_replica_init(config_entry);
+        if (topoRepl) {
+            rc = ipa_topo_cfg_replica_add(topoRepl);
+            rc = ipa_topo_apply_shared_replica_config(topoRepl);
+            if (rc)
+                slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                        "ipa_topo_util_suffix_init: failed to init suffix %s\n", repl_suffix);
+        }
+    }
+    slapi_ch_free_string(&repl_suffix);
+}
+
+
+void
+ipa_topo_util_suffix_update(Slapi_Entry *config_post, Slapi_Entry *config_pre,
+                       LDAPMod **mods)
+{
 }

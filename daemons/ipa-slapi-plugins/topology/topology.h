@@ -90,8 +90,10 @@ typedef struct topo_replica {
     struct topo_replica *next;
     Slapi_Mutex *repl_lock;
     char *shared_config_base;
-    Slapi_DN *shared_config_sdn;
     char *repl_root;
+    char *strip_attrs;
+    char *total_attrs;
+    char *repl_attrs;
     TopoReplicaSegmentList *repl_segments;
     TopoReplicaHost *hosts;
 } TopoReplica;
@@ -227,6 +229,10 @@ int ipa_topo_setup_gssapi_agmt(char *hostname, TopoReplica *repl_conf,
                                TopoReplicaAgmt *agmt);
 void ipa_topo_queue_apply_shared_config(time_t event_time, void *arg);
 int ipa_topo_apply_shared_config(void);
+int ipa_topo_apply_shared_replica_config(TopoReplica *replica_config);
+void ipa_topo_util_suffix_init(Slapi_Entry *config);
+void ipa_topo_util_suffix_update(Slapi_Entry *config_post, Slapi_Entry *config_pre,
+                            LDAPMod **mods);
 int ipa_topo_setup_managed_servers(void);
 int ipa_topo_util_start(int delay);
 int ipa_topo_util_update_agmt_list(TopoReplica *repl_conf,
@@ -274,10 +280,12 @@ int ipa_topo_util_agmt_is_marked(Slapi_Entry * repl_agmt);
 char *ipa_topo_agmt_attr_is_managed(char *type, char *direction);
 int ipa_topo_cfg_attr_is_restricted(char *type);
 int ipa_topo_util_setup_servers(void);
-void ipa_topo_util_update_segments_for_host(Slapi_Entry *hostentry);
+void ipa_topo_util_update_segments_for_host(TopoReplica *conf, char *hostname);
 char *ipa_topo_util_get_ldap_principal(char *repl_root, char *hostname);
 void ipa_topo_util_disable_repl_for_principal(char *repl_root, char *principal);
+void ipa_topo_util_add_host(Slapi_Entry *hostentry);
 void ipa_topo_util_delete_host(Slapi_Entry *hostentry);
+void ipa_topo_util_update_host(Slapi_Entry *hostentry, LDAPMod **mods);
 void ipa_topo_util_disable_repl_from_host(char *repl_root, char *delhost);
 void ipa_topo_util_delete_segments_for_host(char *repl_root, char *delhost);
 
@@ -293,6 +301,7 @@ TopoReplicaSegment *ipa_topo_util_segment_from_entry(TopoReplica *conf,
 TopoReplicaSegment *ipa_topo_util_find_segment(TopoReplica *conf,
                                                Slapi_Entry *entry);
 TopoReplica *ipa_topo_util_conf_from_entry(Slapi_Entry *entry);
+TopoReplica *ipa_topo_util_replica_init(Slapi_Entry *entry);
 TopoReplica *ipa_topo_util_get_conf_for_segment(Slapi_Entry *segment_entry);
 Slapi_Entry *ipa_topo_util_get_entry(char *dn);
 int ipa_topo_util_modify(Slapi_DN *entrySDN, Slapi_Mods *smods);

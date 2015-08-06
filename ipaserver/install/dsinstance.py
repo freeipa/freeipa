@@ -484,6 +484,11 @@ class DsInstance(service.Service):
                              DOMAIN_LEVEL=self.domainlevel,
                              MAX_DOMAIN_LEVEL=constants.MAX_DOMAIN_LEVEL,
                              MIN_DOMAIN_LEVEL=constants.MIN_DOMAIN_LEVEL,
+                             STRIP_ATTRS=" ".join(replication.STRIP_ATTRS),
+                             EXCLUDES='(objectclass=*) $ EXCLUDE ' +
+                             ' '.join(replication.EXCLUDES),
+                             TOTAL_EXCLUDES='(objectclass=*) $ EXCLUDE ' +
+                             ' '.join(replication.TOTAL_EXCLUDES),
                          )
 
     def __create_instance(self):
