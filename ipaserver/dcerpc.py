@@ -855,8 +855,7 @@ class TrustDomainInstance(object):
         """
         transports = (u'ncacn_np', u'ncacn_ip_tcp')
         options = ( u'smb2,print', u'print')
-        binding_template=lambda x,y,z: u'%s:%s[%s]' % (x, y, z)
-        return [binding_template(t, remote_host, o) for t in transports for o in options]
+        return [u'%s:%s[%s]' % (t, remote_host, o) for t in transports for o in options]
 
     def retrieve_anonymously(self, remote_host, discover_srv=False, search_pdc=False):
         """
