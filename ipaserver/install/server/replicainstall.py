@@ -771,9 +771,9 @@ def install(installer):
 def promote_check(installer):
     options = installer
 
+    installer._top_dir = tempfile.mkdtemp("ipa")
+
     # FIXME: to implement yet
-    if options.setup_ca:
-        raise NotImplementedError
     if options.setup_kra:
         raise NotImplementedError
 
@@ -814,8 +814,10 @@ def promote_check(installer):
     config.host_name = api.env.host
     config.domain_name = api.env.domain
     config.master_host_name = api.env.server
+    config.ca_host_name = api.env.ca_host
     config.setup_ca = options.setup_ca
     config.setup_kra = options.setup_kra
+    config.dir = installer._top_dir
 
     installutils.verify_fqdn(config.host_name, options.no_host_dns)
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
@@ -1117,14 +1119,6 @@ def promote(installer):
                                                  config.realm_name)
     custodia.create_replica(config.master_host_name)
 
-    if config.setup_ca:
-        options.realm_name = config.realm_name
-        options.domain_name = config.domain_name
-        options.host_name = config.host_name
-        options.dm_password = config.dirman_password
-
-        ca.install(False, config, options)
-
     krb = install_krb(config,
                       setup_pkinit=not options.no_pkinit,
                       promote=True)
@@ -1133,37 +1127,33 @@ def promote(installer):
                         auto_redirect=not options.no_ui_redirect,
                         promote=True)
 
-    otpd = otpdinstance.OtpdInstance()
-    otpd.create_instance('OTPD', config.host_name, config.dirman_password,
-                         ipautil.realm_to_suffix(config.realm_name))
-
-    CA = cainstance.CAInstance(
-        config.realm_name, certs.NSS_DIR,
-        dogtag_constants=dogtag_constants)
-    CA.dm_password = config.dirman_password
-    CA.configure_certmonger_renewal()
-    CA.fix_ra_perms()
-
     # Apply any LDAP updates. Needs to be done after the replica is synced-up
     service.print_msg("Applying LDAP updates")
     ds.apply_updates()
 
-    if options.setup_kra:
-        kra.install(api, config, options)
-    else:
-        service.print_msg("Restarting the directory server")
-        ds.restart()
-
-    service.print_msg("Restarting the KDC")
-    krb.restart()
+    otpd = otpdinstance.OtpdInstance()
+    otpd.create_instance('OTPD', config.host_name, config.dirman_password,
+                         ipautil.realm_to_suffix(config.realm_name))
 
     if config.setup_ca:
-        dogtag_service = services.knownservices[dogtag_constants.SERVICE_NAME]
-        dogtag_service.restart(dogtag_constants.PKI_INSTANCE_NAME)
+        options.realm_name = config.realm_name
+        options.domain_name = config.domain_name
+        options.host_name = config.host_name
+        options.dm_password = config.dirman_password
+        ca_data = (os.path.join(config.dir, 'cacert.p12'),
+                   config.dirman_password)
+        custodia.get_ca_keys(config.ca_host_name, ca_data[0], ca_data[1])
 
-    # Restart httpd to pick up the new IPA configuration
-    service.print_msg("Restarting the web server")
-    http.restart()
+        ca = cainstance.CAInstance(config.realm_name, certs.NSS_DIR,
+                                   dogtag_constants=dogtag.install_constants,
+                                   host_name=config.host_name,
+                                   dm_password=config.dirman_password)
+        ca.configure_replica(config.ca_host_name,
+                             subject_base=config.subject_base,
+                             ca_cert_bundle=ca_data)
+
+    if options.setup_kra:
+        kra.install(api, config, options)
 
     ds.replica_populate()
 

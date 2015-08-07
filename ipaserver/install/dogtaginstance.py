@@ -138,7 +138,6 @@ class DogtagInstance(service.Service):
 
         self.dogtag_constants = dogtag_constants
         self.realm = realm
-        self.dm_password = None
         self.admin_password = None
         self.fqdn = host_name
         self.pkcs12_info = None

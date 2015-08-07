@@ -32,16 +32,21 @@ def install_check(standalone, replica_config, options):
         if standalone and api.env.ra_plugin == 'selfsign':
             sys.exit('A selfsign CA can not be added')
 
-        if not ipautil.file_exists(replica_config.dir + "/cacert.p12"):
+        if ((not options.promote
+             and not ipautil.file_exists(replica_config.dir + "/cacert.p12"))):
             print('CA cannot be installed in CA-less setup.')
             sys.exit(1)
 
         if standalone and not options.skip_conncheck:
+            principal = options.principal
+            if principal is None:
+                principal = "admin"
             replica_conn_check(
                 replica_config.master_host_name, host_name, realm_name, True,
-                replica_config.ca_ds_port, options.admin_password)
+                replica_config.ca_ds_port, options.admin_password,
+                principal=principal)
 
-        if options.skip_schema_check:
+        if options.skip_schema_check or options.promote:
             root_logger.info("Skipping CA DS schema check")
         else:
             cainstance.replica_ca_install_check(replica_config)

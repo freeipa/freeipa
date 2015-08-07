@@ -64,6 +64,7 @@ from ipaserver.install import certs
 from ipaserver.install import dsinstance
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
+from ipaserver.install import replication
 from ipaserver.install import service
 from ipaserver.install.dogtaginstance import (
     DEFAULT_DSPORT, PKI_USER, export_kra_agent_pem, DogtagInstance)
@@ -97,6 +98,13 @@ RootDN=   cn=Directory Manager
 RootDNPwd= $PASSWORD
 ConfigFile = /usr/share/pki/ca/conf/database.ldif
 """
+
+
+ADMIN_GROUPS = [
+    'Enterprise CA Administrators',
+    'Enterprise KRA Administrators',
+    'Security Domain Administrators'
+]
 
 
 def check_port():
@@ -419,6 +427,7 @@ class CAInstance(DogtagInstance):
         self.ra_cert = None
         self.requestId = None
         self.log = log_mgr.get_logger(self)
+        self.no_db_setup = False
 
     def configure_instance(self, host_name, dm_password,
                            admin_password, ds_port=DEFAULT_DSPORT,
@@ -440,6 +449,7 @@ class CAInstance(DogtagInstance):
         """
         self.fqdn = host_name
         self.dm_password = dm_password
+        self.admin_user = "admin"
         self.admin_password = admin_password
         self.ds_port = ds_port
         self.pkcs12_info = pkcs12_info
@@ -546,8 +556,8 @@ class CAInstance(DogtagInstance):
         config.set("CA", "pki_client_pkcs12_password", self.admin_password)
 
         # Administrator
-        config.set("CA", "pki_admin_name", "admin")
-        config.set("CA", "pki_admin_uid", "admin")
+        config.set("CA", "pki_admin_name", self.admin_user)
+        config.set("CA", "pki_admin_uid", self.admin_user)
         config.set("CA", "pki_admin_email", "root@localhost")
         config.set("CA", "pki_admin_password", self.admin_password)
         config.set("CA", "pki_admin_nickname", "ipa-ca-agent")
@@ -584,6 +594,12 @@ class CAInstance(DogtagInstance):
         config.set("CA", "pki_ca_signing_key_algorithm", self.ca_signing_algorithm)
 
         if self.clone:
+
+            if self.no_db_setup:
+                config.set("CA", "pki_ds_create_new_db", "False")
+                config.set("CA", "pki_clone_setup_replication", "False")
+                config.set("CA", "pki_clone_reindex_data", "True")
+
             cafile = self.pkcs12_info[0]
             shutil.copy(cafile, paths.TMP_CA_P12)
             pent = pwd.getpwnam(PKI_USER)
@@ -592,7 +608,7 @@ class CAInstance(DogtagInstance):
             # Security domain registration
             config.set("CA", "pki_security_domain_hostname", self.master_host)
             config.set("CA", "pki_security_domain_https_port", "443")
-            config.set("CA", "pki_security_domain_user", "admin")
+            config.set("CA", "pki_security_domain_user", self.admin_user)
             config.set("CA", "pki_security_domain_password", self.admin_password)
 
             # Clone
@@ -701,7 +717,7 @@ class CAInstance(DogtagInstance):
                     "-client_certdb_pwd", self.admin_password,
                     "-preop_pin" , preop_pin,
                     "-domain_name", self.security_domain_name,
-                    "-admin_user", "admin",
+                    "-admin_user", self.admin_user,
                     "-admin_email",  "root@localhost",
                     "-admin_password", self.admin_password,
                     "-agent_name", "ipa-ca-agent",
@@ -769,7 +785,7 @@ class CAInstance(DogtagInstance):
                 args.append("-sd_admin_port")
                 args.append("443")
                 args.append("-sd_admin_name")
-                args.append("admin")
+                args.append(self.admin_user)
                 args.append("-sd_admin_password")
                 args.append(self.admin_password)
                 args.append("-clone_master_port")
@@ -1481,6 +1497,211 @@ class CAInstance(DogtagInstance):
             nickname, cert, directives,
             dogtag.configured_constants().CS_CFG_PATH,
             dogtag_constants)
+
+    def __create_ds_db(self):
+        '''
+        Create PKI database. Is needed when pkispawn option
+        pki_ds_create_new_db is set to False
+        '''
+
+        if not self.admin_conn:
+            self.ldap_connect()
+
+        backend = 'ipaca'
+        suffix = DN(('o', 'ipaca'))
+
+        # replication
+        dn = DN(('cn', str(suffix)), ('cn', 'mapping tree'), ('cn', 'config'))
+        entry = self.admin_conn.make_entry(
+            dn,
+            objectclass=["top", "extensibleObject", "nsMappingTree"],
+            cn=[suffix],
+        )
+        entry['nsslapd-state'] = ['Backend']
+        entry['nsslapd-backend'] = [backend]
+        self.admin_conn.add_entry(entry)
+
+        # database
+        dn = DN(('cn', 'ipaca'), ('cn', 'ldbm database'), ('cn', 'plugins'),
+                ('cn', 'config'))
+        entry = self.admin_conn.make_entry(
+            dn,
+            objectclass=["top", "extensibleObject", "nsBackendInstance"],
+            cn=[backend],
+        )
+        entry['nsslapd-suffix'] = [suffix]
+        self.admin_conn.add_entry(entry)
+
+    def __setup_replication(self):
+
+        repl = replication.CAReplicationManager(self.realm, self.fqdn)
+        repl.setup_cs_replication(self.master_host)
+
+        # Activate Topology for o=ipaca segments
+        self.__update_topology()
+
+    def __add_admin_to_group(self, group):
+        dn = DN(('cn', group), ('ou', 'groups'), ('o', 'ipaca'))
+        entry = self.admin_conn.get_entry(dn)
+        members = entry.get('uniqueMember', [])
+        members.append(self.admin_dn)
+        mod = [(ldap.MOD_REPLACE, 'uniqueMember', members)]
+        try:
+            self.admin_conn.modify_s(dn, mod)
+        except ldap.TYPE_OR_VALUE_EXISTS:
+            # already there
+            pass
+
+    def __setup_admin(self):
+        self.admin_user = "admin-%s" % self.fqdn
+        self.admin_password = binascii.hexlify(os.urandom(16))
+
+        if not self.admin_conn:
+            self.ldap_connect()
+
+        self.admin_dn = DN(('uid', self.admin_user),
+                           ('ou', 'people'), ('o', 'ipaca'))
+
+        # remove user if left-over exists
+        try:
+            entry = self.admin_conn.delete_entry(self.admin_dn)
+        except errors.NotFound:
+            pass
+
+        # add user
+        entry = self.admin_conn.make_entry(
+            self.admin_dn,
+            objectclass=["top", "person", "organizationalPerson",
+                         "inetOrgPerson", "cmsuser"],
+            uid=[self.admin_user],
+            cn=[self.admin_user],
+            sn=[self.admin_user],
+            usertype=['adminType'],
+            mail=['root@localhost'],
+            userPassword=[self.admin_password],
+            userstate=['1']
+        )
+        self.admin_conn.add_entry(entry)
+
+        for group in ADMIN_GROUPS:
+            self.__add_admin_to_group(group)
+
+        # Now wait until the other server gets replicated this data
+        master_conn = ipaldap.IPAdmin(self.master_host,
+                                      port=replication.DEFAULT_PORT,
+                                      protocol='ldap')
+        master_conn.do_sasl_gssapi_bind()
+        replication.wait_for_entry(master_conn, entry)
+        del master_conn
+
+    def __remove_admin_from_group(self, group):
+        dn = DN(('cn', group), ('ou', 'groups'), ('o', 'ipaca'))
+        entry = self.admin_conn.get_entry(dn)
+        mod = [(ldap.MOD_DELETE, 'uniqueMember', self.admin_dn)]
+        try:
+            self.admin_conn.modify_s(dn, mod)
+        except ldap.NO_SUCH_ATTRIBUTE:
+            # already removed
+            pass
+
+    def __teardown_admin(self):
+
+        if not self.admin_conn:
+            self.ldap_connect()
+
+        for group in ADMIN_GROUPS:
+            self.__remove_admin_from_group(group)
+        self.admin_conn.delete_entry(self.admin_dn)
+
+    def __restart_ds_instance(self):
+        self.ldap_disconnect()
+        services.knownservices.dirsrv.restart()
+
+    def __client_auth_to_db(self):
+        self.enable_client_auth_to_db(self.dogtag_constants.CS_CFG_PATH)
+
+    def __restart_http_instance(self):
+        # We need to restart apache as we drop a new config file in there
+        services.knownservices.httpd.restart(capture_output=True)
+
+    def __enable_instance(self):
+        basedn = ipautil.realm_to_suffix(self.realm)
+        self.ldap_enable('CA', self.fqdn, None, basedn, ['caRenewalMaster'])
+
+    def configure_replica(self, master_host, subject_base=None,
+                          ca_cert_bundle=None, ca_signing_algorithm=None,
+                          ca_type=None):
+        """Creates a replica CA, creating a local DS backend and using
+        the topology plugin to manage replication.
+        Requires domain_level >=1 and custodia on the master.
+        """
+        self.ds_port = DEFAULT_DSPORT
+        self.master_host = master_host
+        self.master_replication_port = DEFAULT_DSPORT
+        if subject_base is None:
+            self.subject_base = DN(('O', self.realm))
+        else:
+            self.subject_base = subject_base
+        if ca_signing_algorithm is None:
+            self.ca_signing_algorithm = 'SHA256withRSA'
+        else:
+            self.ca_signing_algorithm = ca_signing_algorithm
+        if ca_type is not None:
+            self.ca_type = ca_type
+        else:
+            self.ca_type = 'generic'
+
+        self.pkcs12_info = ca_cert_bundle
+        self.no_db_setup = True
+        self.clone = True
+
+        # TODO: deal with "Externally signed CA setups"
+
+        # Set up steps
+        self.step("creating certificate server user", create_ca_user)
+
+        # Setup Database
+        self.step("creating certificate server db", self.__create_ds_db)
+        self.step("setting up initial replication", self.__setup_replication)
+
+        self.step("creating installation admin user", self.__setup_admin)
+
+        # Setup instance
+        self.step("setting up certificate server", self.__spawn_instance)
+        self.step("stopping instance to update CS.cfg", self.stop_instance)
+        self.step("backing up CS.cfg", self.backup_config)
+        self.step("disabling nonces", self.__disable_nonce)
+        self.step("set up CRL publishing", self.__enable_crl_publish)
+        self.step("enable PKIX certificate path discovery and validation",
+                  self.enable_pkix)
+        self.step("set up client auth to db", self.__client_auth_to_db)
+        self.step("destroying installation admin user", self.__teardown_admin)
+        self.step("starting instance", self.start_instance)
+
+        self.step("importing CA chain to RA certificate database",
+                  self.__import_ca_chain)
+        self.step("fixing RA database permissions", self.fix_ra_perms)
+        self.step("setting up signing cert profile", self.__setup_sign_profile)
+        self.step("setting audit signing renewal to 2 years",
+                  self.set_audit_renewal)
+
+        self.step("configure certmonger for renewals",
+                  self.configure_certmonger_renewal)
+        self.step("configure certificate renewals",
+                  self.configure_renewal)
+        self.step("configure RA certificate renewal",
+                  self.configure_agent_renewal)
+        self.step("configure Server-Cert certificate renewal",
+                  self.track_servercert)
+        self.step("Configure HTTP to proxy connections",
+                  self.http_proxy)
+        self.step("Restart HTTP server to pick up changes",
+                  self.__restart_http_instance)
+
+        self.step("enabling CA instance", self.__enable_instance)
+
+        self.start_creation(runtime=210)
+
 
 def replica_ca_install_check(config):
     if not config.setup_ca:

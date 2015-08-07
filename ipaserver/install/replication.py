@@ -40,6 +40,7 @@ WIN_USER_CONTAINER = DN(('cn', 'Users'))
 # the default container used by IPA for user entries
 IPA_USER_CONTAINER = DN(('cn', 'users'), ('cn', 'accounts'))
 PORT = 636
+DEFAULT_PORT = 389
 TIMEOUT = 120
 REPL_MAN_DN = DN(('cn', 'replication manager'), ('cn', 'config'))
 DNA_DN = DN(('cn', 'Posix IDs'), ('cn', 'Distributed Numeric Assignment Plugin'), ('cn', 'plugins'), ('cn', 'config'))
@@ -190,6 +191,8 @@ class ReplicationManager(object):
         self.starttls = starttls
         self.suffix = ipautil.realm_to_suffix(realm)
         self.need_memberof_fixup = False
+        self.db_suffix = self.suffix
+        self.agreement_name_format = "meTo%s"
 
         # The caller is allowed to pass in an existing IPAdmin connection.
         # Open a new one if not provided
@@ -303,7 +306,7 @@ class ReplicationManager(object):
         agreement_types_filters = []
         if IPA_REPLICA in agreement_types:
             agreement_types_filters.append('(&(objectclass=nsds5ReplicationAgreement)(nsDS5ReplicaRoot=%s))'
-                % self.suffix)
+                                           % self.db_suffix)
         if WINSYNC in agreement_types:
             agreement_types_filters.append('(objectclass=nsDSWindowsReplicationAgreement)')
         if len(agreement_types_filters) > 1:
@@ -415,7 +418,8 @@ class ReplicationManager(object):
             return "2"
 
     def replica_dn(self):
-        return DN(('cn','replica'),('cn',self.suffix),('cn','mapping tree'),('cn','config'))
+        return DN(('cn', 'replica'), ('cn', self.db_suffix),
+                  ('cn', 'mapping tree'), ('cn', 'config'))
 
     def replica_config(self, conn, replica_id, replica_binddn):
         assert isinstance(replica_binddn, DN)
@@ -446,7 +450,7 @@ class ReplicationManager(object):
             dn,
             objectclass=["top", "nsds5replica", "extensibleobject"],
             cn=["replica"],
-            nsds5replicaroot=[str(self.suffix)],
+            nsds5replicaroot=[str(self.db_suffix)],
             nsds5replicaid=[str(replica_id)],
             nsds5replicatype=[replica_type],
             nsds5flags=["1"],
@@ -496,7 +500,7 @@ class ReplicationManager(object):
                         'objectclass': [
                             'top', 'extensibleObject', 'nsBackendInstance'],
                         'cn': [cn],
-                        'nsslapd-suffix': [str(self.suffix)],
+                        'nsslapd-suffix': [str(self.db_suffix)],
                         'nsfarmserverurl': urls,
                         'nsmultiplexorbinddn': [self.repl_man_dn],
                         'nsmultiplexorcredentials': [self.repl_man_passwd],
@@ -517,22 +521,23 @@ class ReplicationManager(object):
 
     def setup_chaining_farm(self, conn):
         try:
-            conn.modify_s(self.suffix, [(ldap.MOD_ADD, 'aci',
+            conn.modify_s(self.db_suffix, [(ldap.MOD_ADD, 'aci',
                                     [ "(targetattr = \"*\")(version 3.0; acl \"Proxied authorization for database links\"; allow (proxy) userdn = \"ldap:///%s\";)" % self.repl_man_dn ])])
         except ldap.TYPE_OR_VALUE_EXISTS:
-            root_logger.debug("proxy aci already exists in suffix %s on %s" % (self.suffix, conn.host))
+            root_logger.debug("proxy aci already exists in suffix %s on %s"
+                              % (self.db_suffix, conn.host))
 
     def get_mapping_tree_entry(self):
         try:
             entries = self.conn.get_entries(
                 DN(('cn', 'mapping tree'), ('cn', 'config')),
                 ldap.SCOPE_ONELEVEL,
-                "(cn=\"%s\")" % (self.suffix))
+                "(cn=\"%s\")" % (self.db_suffix))
             # TODO: Check we got only one entry
             return entries[0]
         except errors.NotFound:
             root_logger.debug(
-                "failed to find mapping tree entry for %s", self.suffix)
+                "failed to find mapping tree entry for %s", self.db_suffix)
             raise
 
 
@@ -554,7 +559,8 @@ class ReplicationManager(object):
         try:
             self.conn.modify_s(dn, mod)
         except ldap.TYPE_OR_VALUE_EXISTS:
-            root_logger.debug("chainOnUpdate already enabled for %s" % self.suffix)
+            root_logger.debug("chainOnUpdate already enabled for %s"
+                              % self.db_suffix)
 
     def setup_chain_on_update(self, other_conn):
         chainbe = self.setup_chaining_backend(other_conn)
@@ -623,7 +629,7 @@ class ReplicationManager(object):
         master is not used for IPA agreements but for dogtag it will
         tell which side we want.
         """
-        cn = "meTo%s" % (hostname)
+        cn = self.agreement_name_format % (hostname)
         dn = DN(('cn', cn), self.replica_dn())
 
         return (cn, dn)
@@ -656,7 +662,7 @@ class ReplicationManager(object):
             nsds5replicahost=[b_hostname],
             nsds5replicaport=[str(port)],
             nsds5replicatimeout=[str(TIMEOUT)],
-            nsds5replicaroot=[str(self.suffix)],
+            nsds5replicaroot=[str(self.db_suffix)],
             description=["me to %s" % b_hostname],
         )
         if master is None:
@@ -841,10 +847,12 @@ class ReplicationManager(object):
         return self.conn.delete_entry(dn)
 
     def delete_referral(self, hostname):
-        dn = DN(('cn', self.suffix), ('cn', 'mapping tree'), ('cn', 'config'))
+        dn = DN(('cn', self.db_suffix),
+                ('cn', 'mapping tree'), ('cn', 'config'))
         # TODO: should we detect proto/port somehow ?
         mod = [(ldap.MOD_DELETE, 'nsslapd-referral',
-                'ldap://%s/%s' % (ipautil.format_netloc(hostname, 389), self.suffix))]
+                'ldap://%s/%s' % (ipautil.format_netloc(hostname, 389),
+                                  self.db_suffix))]
 
         try:
             self.conn.modify_s(dn, mod)
@@ -1709,8 +1717,8 @@ class CSReplicationManager(ReplicationManager):
 
     def __init__(self, realm, hostname, dirman_passwd, port):
         super(CSReplicationManager, self).__init__(
-            realm, hostname, dirman_passwd, port, starttls=True)
-        self.suffix = DN(('o', 'ipaca'))
+            realm, hostname, dirman_passwd, port)
+        self.db_suffix = DN(('o', 'ipaca'))
         self.hostnames = [] # set before calling or agreement_dn() will fail
 
     def agreement_dn(self, hostname, master=None):
@@ -1755,23 +1763,26 @@ class CSReplicationManager(ReplicationManager):
         raise errors.NotFound(reason='No agreement found for %s' % hostname)
 
     def delete_referral(self, hostname, port):
-        dn = DN(('cn', self.suffix), ('cn', 'mapping tree'), ('cn', 'config'))
+        dn = DN(('cn', self.db_suffix),
+                ('cn', 'mapping tree'), ('cn', 'config'))
         entry = self.conn.get_entry(dn)
         try:
             # TODO: should we detect proto somehow ?
-            entry['nsslapd-referral'].remove('ldap://%s/%s' %
-                (ipautil.format_netloc(hostname, port), self.suffix))
+            entry['nsslapd-referral'].remove(
+                'ldap://%s/%s' %
+                (ipautil.format_netloc(hostname, port), self.db_suffix))
             self.conn.update_entry(entry)
         except Exception as e:
             root_logger.debug("Failed to remove referral value: %s" % e)
 
     def has_ipaca(self):
         try:
-            entry = self.conn.get_entry(self.suffix)
+            entry = self.conn.get_entry(self.db_suffix)
         except errors.NotFound:
             return False
         else:
             return True
+
 
 def get_cs_replication_manager(realm, host, dirman_passwd):
     """Get a CSReplicationManager for a remote host
@@ -1801,3 +1812,42 @@ def get_cs_replication_manager(realm, host, dirman_passwd):
             root_logger.debug('PKI tree not found on %s:%s' % (host, port))
 
     raise errors.NotFound(reason='Cannot reach PKI DS at %s on ports %s' % (host, ports))
+
+
+class CAReplicationManager(ReplicationManager):
+    """ReplicationManager specific to CA agreements for domain level 1 and
+    above servers.
+    """
+
+    def __init__(self, realm, hostname):
+        # Always connect to self over ldapi
+        conn = ipaldap.IPAdmin(hostname, ldapi=True, realm=realm)
+        conn.do_external_bind('root')
+        super(CAReplicationManager, self).__init__(
+            realm, hostname, None, port=DEFAULT_PORT, conn=conn)
+        self.db_suffix = DN(('o', 'ipaca'))
+        self.agreement_name_format = "caTo%s"
+
+    def setup_cs_replication(self, r_hostname):
+        """
+        Assumes a promote replica with working GSSAPI for replication
+        and unified DS instance.
+        """
+        r_conn = ipaldap.IPAdmin(r_hostname, port=389, protocol='ldap')
+        r_conn.do_sasl_gssapi_bind()
+
+        # Setup the first half
+        l_id = self._get_replica_id(self.conn, r_conn)
+        self.basic_replication_setup(self.conn, l_id, self.repl_man_dn, None)
+
+        # Now setup the other half
+        r_id = self._get_replica_id(r_conn, r_conn)
+        self.basic_replication_setup(r_conn, r_id, self.repl_man_dn, None)
+
+        self.setup_agreement(r_conn, self.conn.host, isgssapi=True)
+        self.setup_agreement(self.conn, r_hostname, isgssapi=True)
+
+        # Finally start replication
+        ret = self.start_replication(r_conn, master=False)
+        if ret != 0:
+            raise RuntimeError("Failed to start replication")
