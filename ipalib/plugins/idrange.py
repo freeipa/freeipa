@@ -31,6 +31,20 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
     except ImportError:
         _dcerpc_bindings_installed = False
 
+ID_RANGE_VS_DNA_WARNING = """=======
+WARNING:
+
+DNA plugin in 389-ds will allocate IDs based on the ranges configured for the
+local domain. Currently the DNA plugin *cannot* be reconfigured itself based
+on the local ranges set via this family of commands.
+
+Manual configuration change has to be done in the DNA plugin configuration for
+the new local range. Specifically, The dnaNextRange attribute of 'cn=Posix
+IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config' has to be
+modified to match the new range.
+=======
+"""
+
 __doc__ = _("""
 ID ranges
 
@@ -139,17 +153,8 @@ this domain has the SID S-1-5-21-123-456-789-1010 then 1010 id the RID of the
 user. RIDs are unique in a domain, 32bit values and are used for users and
 groups.
 
-WARNING:
-
-DNA plugin in 389-ds will allocate IDs based on the ranges configured for the
-local domain. Currently the DNA plugin *cannot* be reconfigured itself based
-on the local ranges set via this family of commands.
-
-Manual configuration change has to be done in the DNA plugin configuration for
-the new local range. Specifically, The dnaNextRange attribute of 'cn=Posix
-IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config' has to be
-modified to match the new range.
-""")
+{0}
+""".format(ID_RANGE_VS_DNA_WARNING))
 
 register = Registry()
 
@@ -386,17 +391,8 @@ class idrange_add(LDAPCreate):
 
     must be given to add a new range for a trusted AD domain.
 
-    WARNING:
-
-    DNA plugin in 389-ds will allocate IDs based on the ranges configured for the
-    local domain. Currently the DNA plugin *cannot* be reconfigured itself based
-    on the local ranges set via this family of commands.
-
-    Manual configuration change has to be done in the DNA plugin configuration for
-    the new local range. Specifically, The dnaNextRange attribute of 'cn=Posix
-    IDs,cn=Distributed Numeric Assignment Plugin,cn=plugins,cn=config' has to be
-    modified to match the new range.
-    """)
+{0}
+""".format(ID_RANGE_VS_DNA_WARNING))
 
     msg_summary = _('Added ID range "%(value)s"')
 
@@ -670,7 +666,10 @@ class idrange_show(LDAPRetrieve):
 
 @register()
 class idrange_mod(LDAPUpdate):
-    __doc__ = _('Modify ID range.')
+    __doc__ = _("""Modify ID range.
+
+{0}
+""".format(ID_RANGE_VS_DNA_WARNING))
 
     msg_summary = _('Modified ID range "%(value)s"')
 
@@ -687,6 +686,13 @@ class idrange_mod(LDAPUpdate):
             old_attrs = ldap.get_entry(dn, ['*'])
         except errors.NotFound:
             self.obj.handle_not_found(*keys)
+
+        if old_attrs['iparangetype'][0] == 'ipa-local':
+            raise errors.ExecutionError(
+                message=_('This command can not be used to change ID '
+                          'allocation for local IPA domain. Run '
+                          '`ipa help idrange` for more information')
+            )
 
         is_set = lambda x: (x in entry_attrs) and (entry_attrs[x] is not None)
         in_updated_attrs = lambda x:\
