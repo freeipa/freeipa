@@ -1306,7 +1306,7 @@ def add_default_caacl(ca):
 
         if not api.Command.caacl_find()['result']:
             api.Command.caacl_add(u'hosts_services_caIPAserviceCert',
-                hostcategory=u'all', usercategory=u'all')
+                hostcategory=u'all', servicecategory=u'all')
             api.Command.caacl_add_profile(u'hosts_services_caIPAserviceCert',
                 certprofile=(u'caIPAserviceCert',))
 
