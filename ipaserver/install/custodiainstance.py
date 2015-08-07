@@ -6,7 +6,11 @@ from ipaplatform.paths import paths
 from service import SimpleServiceInstance
 from ipapython import ipautil
 from ipaserver.install import installutils
+from base64 import b64encode, b64decode
+from jwcrypto.common import json_decode
+import shutil
 import os
+import tempfile
 
 
 class CustodiaInstance(SimpleServiceInstance):
@@ -73,6 +77,57 @@ class CustodiaInstance(SimpleServiceInstance):
     def import_dm_password(self, master_host_name):
         cli = CustodiaClient(self.fqdn, master_host_name, self.realm)
         cli.fetch_key('dm/DMHash')
+
+    def get_ca_keys(self, ca_host, cacerts_file, cacerts_pwd):
+        # Fecth all needed certs one by one, then combine them in a single
+        # p12 file
+        certlist = ['caSigningCert cert-pki-ca',
+                    'ocspSigningCert cert-pki-ca',
+                    'auditSigningCert cert-pki-ca',
+                    'subsystemCert cert-pki-ca']
+
+        cli = CustodiaClient(self.fqdn, ca_host, self.realm)
+
+        # Temporary nssdb
+        tmpnssdir = tempfile.mkdtemp(dir=paths.TMP)
+        try:
+            # Temporary nssdb password
+            nsspwfile = os.path.join(tmpnssdir, 'nsspwfile')
+            with open(nsspwfile, 'w+') as f:
+                f.write(b64encode(os.urandom(16)))
+                f.flush()
+
+            # Cert file password
+            crtpwfile = os.path.join(tmpnssdir, 'crtpwfile')
+            with open(crtpwfile, 'w+') as f:
+                f.write(cacerts_pwd)
+                f.flush()
+
+            for nickname in certlist:
+                value = cli.fetch_key(os.path.join('ca', nickname), False)
+                v = json_decode(value)
+                pk12pwfile = os.path.join(tmpnssdir, 'pk12pwfile')
+                with open(pk12pwfile, 'w+') as f:
+                    f.write(v['export password'])
+                pk12file = os.path.join(tmpnssdir, 'pk12file')
+                with open(pk12file, 'w+') as f:
+                    f.write(b64decode(v['pkcs12 data']))
+                ipautil.run([paths.PK12UTIL,
+                             '-d', tmpnssdir,
+                             '-k', nsspwfile,
+                             '-n', nickname,
+                             '-i', pk12file,
+                             '-w', pk12pwfile])
+
+            # Now that we gathered all certs, re-export
+            ipautil.run([paths.PKCS12EXPORT,
+                         '-d', tmpnssdir,
+                         '-p', nsspwfile,
+                         '-w', crtpwfile,
+                         '-o', cacerts_file])
+
+        finally:
+            shutil.rmtree(tmpnssdir)
 
     def __start(self):
         super(CustodiaInstance, self).__start()

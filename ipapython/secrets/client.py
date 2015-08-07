@@ -74,7 +74,7 @@ class CustodiaClient(object):
         authtok = ctx.step()
         return {'Authorization': 'Negotiate %s' % b64encode(authtok)}
 
-    def fetch_key(self, keyname):
+    def fetch_key(self, keyname, store=True):
 
         # Prepare URL
         url = 'https://%s/ipa/keys/%s' % (self.server, keyname)
@@ -96,4 +96,8 @@ class CustodiaClient(object):
             raise RuntimeError('Invlid JSON response type')
 
         value = self.kemcli.parse_reply(keyname, reply['value'])
-        self.keystore.set('keys/%s' % keyname, value)
+
+        if store:
+            self.keystore.set('keys/%s' % keyname, value)
+        else:
+            return value
