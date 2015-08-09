@@ -62,7 +62,7 @@ class VirtualCommand(Command):
         try:
             if not ldap.can_write(operationdn, "objectclass"):
                 raise errors.ACIError(
-                    info=_('not allowed to perform this command'))
+                    info=_('not allowed to perform operation: %s') % operation)
         except errors.NotFound:
             raise errors.ACIError(info=_('No such virtual command'))
 
