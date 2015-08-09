@@ -369,7 +369,7 @@ class cert_request(VirtualCommand):
                 error=_("Failure decoding Certificate Signing Request: %s") % e)
 
         # host principals may bypass allowed ext check
-        if bind_principal_type != HOST:
+        if bind_principal != principal and bind_principal_type != HOST:
             for ext in extensions:
                 operation = self._allowed_extensions.get(ext)
                 if operation:
