@@ -474,7 +474,7 @@ class cert_request(VirtualCommand):
                         principal_type, alt_principal_string, ca, profile_id)
             elif name_type in (pkcs10.SAN_OTHERNAME_KRB5PRINCIPALNAME,
                                pkcs10.SAN_OTHERNAME_UPN):
-                if name != principal_string:
+                if split_any_principal(name) != principal:
                     raise errors.ACIError(
                         info=_("Principal '%s' in subject alt name does not "
                                "match requested principal") % name)
