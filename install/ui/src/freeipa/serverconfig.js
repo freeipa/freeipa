@@ -83,7 +83,10 @@ return {
                                 { label: '@i18n:authtype.type_radius', value: 'radius' },
                                 { label: '@i18n:authtype.type_otp', value: 'otp' }
                             ],
-                            tooltip: '@i18n:authtype.config_tooltip'
+                            tooltip: {
+                                title: '@i18n:authtype.config_tooltip',
+                                html: true
+                            }
                         },
                         {
                             $type: 'checkbox',
