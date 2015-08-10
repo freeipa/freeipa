@@ -304,7 +304,8 @@ class DogtagInstance(service.Service):
         if not path:
             iface.add_known_ca(
                 'dogtag-ipa-ca-renew-agent',
-                paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT, [])
+                paths.DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT,
+                dbus.Array([], dbus.Signature('s')))
 
     def __get_pin(self):
         try:
