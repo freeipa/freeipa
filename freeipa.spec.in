@@ -170,7 +170,7 @@ Obsoletes: %{alt_name}-server < %{version}
 Obsoletes: freeipa-server-selinux < 3.3.0
 
 # upgrade path from monolithic -server to -server + -server-dns
-Obsoletes: %{name}-server <= 4.2.0
+Obsoletes: %{name}-server <= 4.2.0.0
 
 # Versions of nss-pam-ldapd < 0.8.4 require a mapping from uniqueMember to
 # member.
@@ -207,7 +207,7 @@ Conflicts: %{alt_name}-server-dns
 Obsoletes: %{alt_name}-server-dns < %{version}
 
 # upgrade path from monolithic -server to -server + -server-dns
-Obsoletes: %{name}-server <= 4.2.0
+Obsoletes: %{name}-server <= 4.2.0.0
 
 %description server-dns
 IPA integrated DNS server with support for automatic DNSSEC signing.
