@@ -924,19 +924,41 @@ class DsInstance(service.Service):
     def __add_range_check_plugin(self):
         self._ldap_mod("range-check-conf.ldif", self.sub_dict)
 
-    # These two methods are not local, they are also called from the upgrade code
     def _add_sidgen_plugin(self):
         """
         Add sidgen directory server plugin configuration if it does not already exist.
         """
         self._ldap_mod('ipa-sidgen-conf.ldif', self.sub_dict)
 
+    def add_sidgen_plugin(self):
+        """
+        Add sidgen plugin configuration only if it does not already exist.
+        """
+        dn = DN('cn=IPA SIDGEN,cn=plugins,cn=config')
+        try:
+            self.admin_conn.get_entry(dn)
+        except errors.NotFound:
+            self._add_sidgen_plugin()
+        else:
+            root_logger.debug("sidgen plugin is already configured")
+
     def _add_extdom_plugin(self):
         """
-        Add directory server configuration for the extdom extended operation
-        if it does not already exist.
+        Add directory server configuration for the extdom extended operation.
         """
         self._ldap_mod('ipa-extdom-extop-conf.ldif', self.sub_dict)
+
+    def add_extdom_plugin(self):
+        """
+        Add extdom configuration if it does not already exist.
+        """
+        dn = DN('cn=ipa_extdom_extop,cn=plugins,cn=config')
+        try:
+            self.admin_conn.get_entry(dn)
+        except errors.NotFound:
+            self._add_extdom_plugin()
+        else:
+            root_logger.debug("extdom plugin is already configured")
 
     def replica_populate(self):
         self.ldap_connect()
