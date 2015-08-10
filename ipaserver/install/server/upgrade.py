@@ -1261,11 +1261,11 @@ def ds_enable_sidgen_extdom_plugins(ds):
     root_logger.info('[Enable sidgen and extdom plugins by default]')
 
     if sysupgrade.get_upgrade_state('ds', 'enable_ds_sidgen_extdom_plugins'):
-        root_logger.info('sidgen and extdom plugins are enabled already')
+        root_logger.debug('sidgen and extdom plugins are enabled already')
         return
 
-    ds._add_sidgen_plugin()
-    ds._add_extdom_plugin()
+    ds.add_sidgen_plugin()
+    ds.add_extdom_plugin()
     sysupgrade.set_upgrade_state('ds', 'enable_ds_sidgen_extdom_plugins', True)
 
 def ca_upgrade_schema(ca):
@@ -1415,7 +1415,10 @@ def upgrade_configuration():
     ds.fqdn = fqdn
     ds.realm = api.env.realm
     ds.suffix = ipautil.realm_to_suffix(api.env.realm)
+
+    ds.ldap_connect()
     ds_enable_sidgen_extdom_plugins(ds)
+    ds.ldap_disconnect()
 
     # Now 389-ds is available, run the remaining http tasks
     if not http.is_kdcproxy_configured():
