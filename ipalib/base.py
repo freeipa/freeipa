@@ -23,6 +23,8 @@ Foundational classes and functions.
 
 import re
 
+import six
+
 from ipalib.constants import NAME_REGEX, NAME_ERROR
 from ipalib.constants import TYPE_ERROR, SET_ERROR, DEL_ERROR, OVERRIDE_ERROR
 
@@ -466,7 +468,7 @@ class NameSpace(ReadOnly):
         :param key: The name or index of a member, or a slice object.
         """
         key = getattr(key, '__name__',  key)
-        if isinstance(key, basestring):
+        if isinstance(key, six.string_types):
             return self.__map[key]
         if type(key) in (int, slice):
             return self.__members[key]

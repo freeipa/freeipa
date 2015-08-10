@@ -29,13 +29,15 @@ import re
 import decimal
 import dns
 import encodings
-import netaddr
 from types import NoneType
 from weakref import WeakKeyDictionary
+
+import netaddr
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 from dns.resolver import NXDOMAIN
 from netaddr.core import AddrFormatError
+import six
 
 from ipalib import errors, messages
 from ipalib.text import _
@@ -178,7 +180,7 @@ def check_writable_file(filename):
         raise errors.FileError(reason=str(e))
 
 def normalize_zonemgr(zonemgr):
-    if not zonemgr or not isinstance(zonemgr, basestring):
+    if not zonemgr or not isinstance(zonemgr, six.string_types):
         return zonemgr
     if '@' in zonemgr:
         # local-part needs to be normalized
@@ -572,8 +574,8 @@ def _resolve_record(owner, rtype, nameserver_ip=None, edns0=False,
     :param flag_cd: requires dnssec=True, adds flag CD
     :raise DNSException: if error occurs
     """
-    assert isinstance(nameserver_ip, basestring)
-    assert isinstance(rtype, basestring)
+    assert isinstance(nameserver_ip, six.string_types)
+    assert isinstance(rtype, six.string_types)
 
     res = dns.resolver.Resolver()
     if nameserver_ip:

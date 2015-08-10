@@ -41,13 +41,14 @@ import urllib
 import json
 import socket
 from urllib2 import urlparse
-
 from xmlrpclib import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
         Transport, ProtocolError, MININT, MAXINT)
+
 import gssapi
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 from nss.error import NSPRError
+import six
 
 from ipalib.backend import Connectible
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
@@ -339,7 +340,7 @@ def json_decode_binary(val):
     elif isinstance(val, list):
         return tuple(json_decode_binary(v) for v in val)
     else:
-        if isinstance(val, basestring):
+        if isinstance(val, six.string_types):
             try:
                 return val.decode('utf-8')
             except UnicodeDecodeError:

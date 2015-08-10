@@ -36,6 +36,7 @@ import ldap.filter
 from ldap.ldapobject import SimpleLDAPObject
 from ldap.controls import SimplePagedResultsControl
 import ldapurl
+import six
 
 from ipalib import errors, _
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
@@ -330,7 +331,7 @@ class LDAPEntry(collections.MutableMapping):
             self._not_list.discard(name)
 
     def _attr_name(self, name):
-        if not isinstance(name, basestring):
+        if not isinstance(name, six.string_types):
             raise TypeError(
                 "attribute name must be unicode or str, got %s object %r" % (
                     name.__class__.__name__, name))

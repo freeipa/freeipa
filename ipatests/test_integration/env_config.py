@@ -28,6 +28,8 @@ import os
 import json
 import collections
 
+import six
+
 from ipapython import ipautil
 from ipatests.test_integration.config import Config, Domain
 
@@ -128,7 +130,7 @@ def config_from_env(env):
     kwargs['domains'] = []
 
     # $IPv6SETUP needs to be 'TRUE' to enable ipv6
-    if isinstance(kwargs['ipv6'], basestring):
+    if isinstance(kwargs['ipv6'], six.string_types):
         kwargs['ipv6'] = (kwargs['ipv6'].upper() == 'TRUE')
 
     config = Config(**kwargs)

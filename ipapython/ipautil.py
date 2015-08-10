@@ -37,9 +37,11 @@ import time
 import gssapi
 import pwd
 import grp
+from contextlib import contextmanager
+
 from dns import resolver, rdatatype
 from dns.exception import DNSException
-from contextlib import contextmanager
+import six
 
 from ipapython.ipa_log_manager import *
 from ipapython import ipavalidate
@@ -117,7 +119,7 @@ class CheckedIPAddress(netaddr.IPAddress):
                     # netaddr.IPAddress doesn't handle zone indices in textual
                     # IPv6 addresses. Try removing zone index and parse the
                     # address again.
-                    if not isinstance(addr, basestring):
+                    if not isinstance(addr, six.string_types):
                         raise
                     addr, sep, foo = addr.partition('%')
                     if sep != '%':
@@ -295,7 +297,7 @@ def run(args, stdin=None, raiseonerr=True,
     p_out = None
     p_err = None
 
-    if isinstance(nolog, basestring):
+    if isinstance(nolog, six.string_types):
         # We expect a tuple (or list, or other iterable) of nolog strings.
         # Passing just a single string is bad: strings are also, so this
         # would result in every individual character of that string being
@@ -383,7 +385,7 @@ def run(args, stdin=None, raiseonerr=True,
 def nolog_replace(string, nolog):
     """Replace occurences of strings given in `nolog` with XXXXXXXX"""
     for value in nolog:
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             continue
 
         quoted = urllib2.quote(value)
@@ -761,7 +763,7 @@ def user_input(prompt, default = None, allow_empty = True):
                     return ''
                 raise RuntimeError("Failed to get user input")
 
-    if isinstance(default, basestring):
+    if isinstance(default, six.string_types):
         while True:
             try:
                 ret = raw_input("%s [%s]: " % (prompt, default))

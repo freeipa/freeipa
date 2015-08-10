@@ -35,8 +35,10 @@ from types import NoneType
 import os
 from os import path
 import sys
-from ipapython.dn import DN
 
+import six
+
+from ipapython.dn import DN
 from ipalib.base import check_name
 from ipalib.constants import CONFIG_SECTION
 from ipalib.constants import OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
@@ -239,7 +241,7 @@ class Env(object):
                 (self.__class__.__name__, key, self.__d[key], value)
             )
         assert not hasattr(self, key)
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             value = value.strip()
             if isinstance(value, str):
                 value = value.decode('utf-8')

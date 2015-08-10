@@ -26,6 +26,7 @@ import sys
 import time
 
 import ldap
+import six
 
 from ipaserver.install import installutils
 from ipaserver.install import service
@@ -178,7 +179,7 @@ def named_conf_set_directive(name, value, section=NAMED_SECTION_IPA,
                     if name == match.group('name'):
                         matched = True
                         if value is not None:
-                            if not isinstance(value, basestring):
+                            if not isinstance(value, six.string_types):
                                 value = str(value)
                             new_conf = named_conf_arg_template \
                                     % dict(indent=last_indent,

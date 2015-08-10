@@ -418,9 +418,11 @@ to the constructor. The result may share underlying structure.
 
 '''
 
+import sys
+
 from ldap.dn import str2dn, dn2str
 from ldap import DECODING_ERROR
-import sys
+import six
 
 __all__ = 'AVA', 'RDN', 'DN'
 
@@ -443,7 +445,7 @@ def _adjust_indices(start, end, length):
 
 
 def _normalize_ava_input(val):
-    if not isinstance(val, basestring):
+    if not isinstance(val, six.string_types):
         val = unicode(val).encode('utf-8')
     elif isinstance(val, unicode):
         val = val.encode('utf-8')
@@ -490,7 +492,7 @@ def get_ava(*args):
             if len(arg) != 2:
                 raise ValueError("tuple or list must be 2-valued, not \"%s\"" % (arg))
             ava = [_normalize_ava_input(arg[0]), _normalize_ava_input(arg[1]), 0]
-        elif isinstance(arg, basestring):
+        elif isinstance(arg, six.string_types):
             rdn = str2rdn(arg)
             if len(rdn) > 1:
                 raise TypeError("multiple AVA's specified by \"%s\"" % (arg))
@@ -651,7 +653,7 @@ class AVA(object):
         caseIgnoreMatch.
         '''
         # Try coercing string to AVA, if successful compare to coerced object
-        if isinstance(other, basestring):
+        if isinstance(other, six.string_types):
             try:
                 other_ava = AVA(other)
                 return self.__eq__(other_ava)
@@ -795,7 +797,7 @@ class RDN(object):
 
         if raw:  # fast raw mode
             avas = args
-        elif ava_count == 1 and isinstance(args[0], basestring):
+        elif ava_count == 1 and isinstance(args[0], six.string_types):
             avas = str2rdn(args[0])
             sort = 1
         elif ava_count == 1 and isinstance(args[0], RDN):
@@ -835,7 +837,7 @@ class RDN(object):
             return self._get_ava(self._avas[key])
         if isinstance(key, slice):
             return [self._get_ava(ava) for ava in self._avas[key]]
-        elif isinstance(key, basestring):
+        elif isinstance(key, six.string_types):
             for ava in self._avas:
                 if key == ava[0].decode('utf-8'):
                     return ava[1].decode('utf-8')
@@ -880,7 +882,7 @@ class RDN(object):
 
     def __eq__(self, other):
         # Try coercing string to RDN, if successful compare to coerced object
-        if isinstance(other, basestring):
+        if isinstance(other, six.string_types):
             try:
                 other_rdn = RDN(other)
                 return self.__eq__(other_rdn)
@@ -910,7 +912,7 @@ class RDN(object):
                 result._avas.append((ava[0], ava[1], ava[2]))
         elif isinstance(other, AVA):
             result._avas.append(other.to_openldap())
-        elif isinstance(other, basestring):
+        elif isinstance(other, six.string_types):
             rdn = self.__class__(other)
             for ava in rdn._avas:
                 result._avas.append((ava[0], ava[1], ava[2]))
@@ -1080,7 +1082,7 @@ class DN(object):
         return [[list(a) for a in rdn] for rdn in rdns]
 
     def _rdns_from_value(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             try:
                 if isinstance(value, unicode):
                     value = value.encode('utf-8')
@@ -1144,7 +1146,7 @@ class DN(object):
             new_dn = cls.__new__(cls)
             new_dn.rdns = self.rdns[key]
             return new_dn
-        elif isinstance(key, basestring):
+        elif isinstance(key, six.string_types):
             for rdn in self.rdns:
                 for ava in rdn:
                     if key == ava[0].decode('utf-8'):
@@ -1170,7 +1172,7 @@ class DN(object):
 
     def __eq__(self, other):
         # Try coercing to DN, if successful compare to coerced object
-        if isinstance(other, (basestring, RDN, AVA)):
+        if isinstance(other, (six.string_types, RDN, AVA)):
             try:
                 other_dn = DN(other)
                 return self.__eq__(other_dn)

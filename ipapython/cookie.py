@@ -23,6 +23,9 @@ import datetime
 import email.utils
 from urllib2 import urlparse
 from calendar import timegm
+
+import six
+
 from ipapython.ipa_log_manager import log_mgr
 
 '''
@@ -390,7 +393,7 @@ class Cookie(object):
             self._timestamp = value
         elif isinstance(value, (int, long, float)):
             self._timestamp = datetime.datetime.utcfromtimestamp(value)
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             self._timestamp = Cookie.parse_datetime(value)
         else:
             raise TypeError('value must be datetime, int, long, float, basestring or None, not %s' % \
@@ -416,7 +419,7 @@ class Cookie(object):
             self._expires = value
         elif isinstance(value, (int, long, float)):
             self._expires = datetime.datetime.utcfromtimestamp(value)
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             self._expires = Cookie.parse_datetime(value)
         else:
             raise TypeError('value must be datetime, int, long, float, basestring or None, not %s' % \

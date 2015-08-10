@@ -20,6 +20,8 @@
 import re
 import traceback
 
+import six
+
 from ipalib.plugins import baseldap
 from ipalib.plugins.privilege import validate_permission_to_privilege
 from ipalib import errors
@@ -134,7 +136,7 @@ class DNOrURL(DNParam):
     """
 
     def _convert_scalar(self, value, index=None):
-        if isinstance(value, basestring) and value.startswith('ldap:///'):
+        if isinstance(value, six.string_types) and value.startswith('ldap:///'):
             value = strip_ldap_prefix(value)
         return super(DNOrURL, self)._convert_scalar(value, index=index)
 

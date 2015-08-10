@@ -108,6 +108,7 @@ from types import NoneType
 import encodings.idna
 
 import dns.name
+import six
 
 from ipalib.text import _ as ugettext
 from ipalib.plugable import ReadOnly, lock, check_name
@@ -394,8 +395,8 @@ class Param(ReadOnly):
         ('cli_name', str, None),
         ('cli_short_name', str, None),
         ('deprecated_cli_aliases', frozenset, frozenset()),
-        ('label', (basestring, Gettext), None),
-        ('doc', (basestring, Gettext), None),
+        ('label', (six.string_types, Gettext), None),
+        ('doc', (six.string_types, Gettext), None),
         ('required', bool, True),
         ('multivalue', bool, False),
         ('primary_key', bool, False),
@@ -964,7 +965,7 @@ class Bool(Param):
         """
         if type(value) in self.allowed_types:
             return value
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             value = value.lower()
         if value in self.truths:
             return True
@@ -1143,7 +1144,7 @@ class Decimal(Number):
             value = kw.get(kwparam)
             if value is None:
                 continue
-            if isinstance(value, (basestring, float)):
+            if isinstance(value, (six.string_types, float)):
                 try:
                     value = decimal.Decimal(value)
                 except Exception as e:
@@ -1233,7 +1234,7 @@ class Decimal(Number):
         return value
 
     def _convert_scalar(self, value, index=None):
-        if isinstance(value, (basestring, float)):
+        if isinstance(value, (six.string_types, float)):
             try:
                 value = decimal.Decimal(value)
             except decimal.DecimalException as e:
@@ -1264,8 +1265,8 @@ class Data(Param):
         ('minlength', int, None),
         ('maxlength', int, None),
         ('length', int, None),
-        ('pattern', (basestring,), None),
-        ('pattern_errmsg', (basestring,), None),
+        ('pattern', (six.string_types,), None),
+        ('pattern_errmsg', (six.string_types,), None),
     )
 
     re = None
@@ -1474,7 +1475,7 @@ class IA5Str(Str):
         super(IA5Str, self).__init__(name, *rules, **kw)
 
     def _convert_scalar(self, value, index=None):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             for i in xrange(len(value)):
                 if ord(value[i]) > 127:
                     raise ConversionError(name=self.get_param_name(),
@@ -1646,7 +1647,7 @@ class DateTime(Param):
     type_error = _('must be datetime value')
 
     def _convert_scalar(self, value, index=None):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             for date_format in self.accepted_formats:
                 try:
                     time = datetime.datetime.strptime(value, date_format)

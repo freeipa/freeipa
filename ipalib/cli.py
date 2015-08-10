@@ -31,6 +31,9 @@ import termios
 import struct
 import base64
 import traceback
+
+import six
+
 try:
     #pylint: disable=F0401
     import default_encoding_utf8
@@ -280,7 +283,7 @@ class textui(backend.Backend):
           objectClass: top
           objectClass: someClass
         """
-        assert isinstance(attr, basestring)
+        assert isinstance(attr, six.string_types)
         if not isinstance(value, (list, tuple)):
             # single-value attribute
             self.print_indented(format % (attr, self.encode_binary(value)), indent)
@@ -420,7 +423,7 @@ class textui(backend.Backend):
         ------------------
         Only dashed above.
         """
-        assert isinstance(dash, basestring)
+        assert isinstance(dash, six.string_types)
         assert len(dash) == 1
         dashes = dash * len(string)
         if above:

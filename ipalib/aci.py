@@ -20,6 +20,8 @@
 import shlex
 import re
 
+import six
+
 # The Python re module doesn't do nested parenthesis
 
 # Break the ACI into 3 pieces: target, name, permissions/bind_rules
@@ -159,7 +161,7 @@ class ACI:
                 raise SyntaxError, "invalid permission: '%s'" % p
         if not self.name:
             raise SyntaxError, "name must be set"
-        if not isinstance(self.name, basestring):
+        if not isinstance(self.name, six.string_types):
             raise SyntaxError, "name must be a string"
         if not isinstance(self.target, dict) or len(self.target) == 0:
             raise SyntaxError, "target must be a non-empty dictionary"

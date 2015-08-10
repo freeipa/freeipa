@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import six
+
 from ipalib import api
 from ipalib import Int, Str
 from ipalib.plugable import Registry
@@ -25,6 +27,7 @@ from ipalib.plugins.baseldap import *
 from ipalib.plugins.idviews import remove_ipaobject_overrides
 from ipalib.plugins import baseldap
 from ipalib import _, ngettext
+
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         import ipaserver.dcerpc
@@ -460,7 +463,7 @@ class group_find(LDAPSearch):
             search_kw = {}
             config = ldap.get_ipa_config()
             attrs = config.get(self.obj.search_attributes_config, [])
-            if len(attrs) == 1 and isinstance(attrs[0], basestring):
+            if len(attrs) == 1 and isinstance(attrs[0], six.string_types):
                 search_attrs = attrs[0].split(',')
                 for a in search_attrs:
                     search_kw[a] = args[-1]

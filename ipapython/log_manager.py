@@ -509,6 +509,8 @@ import logging
 import re
 import time
 
+import six
+
 #-------------------------------------------------------------------------------
 # Default format
 LOGGING_DEFAULT_FORMAT = '%(levelname)s %(message)s'
@@ -600,7 +602,7 @@ def parse_log_level(level):
     '''
     # Is it a string representation of an integer?
     # If so convert to an int.
-    if isinstance(level, basestring):
+    if isinstance(level, six.string_types):
         try:
             level = int(level)
         except:
@@ -608,7 +610,7 @@ def parse_log_level(level):
 
     # If it's a string lookup it's name and map to logging level
     # otherwise validate the integer value is in range.
-    if isinstance(level, basestring):
+    if isinstance(level, six.string_types):
         result = log_level_name_map.get(level.lower()) #pylint: disable=E1103
         if result is None:
             raise ValueError('unknown log level (%s)' % level)
@@ -959,7 +961,7 @@ class LogManager(object):
 
                 if not isinstance(config, dict):
                     raise TypeError('expected dict for handler config, got "%s"', type(config))
-                if isinstance(logger, basestring):
+                if isinstance(logger, six.string_types):
                     logger = self.get_logger(logger)
                 else:
                     if not isinstance(logger, logging.Logger):
@@ -1167,7 +1169,7 @@ class LogManager(object):
                 user = cfg.get('user')
                 group = cfg.get('group')
                 if user is not None:
-                    if isinstance(user, basestring):
+                    if isinstance(user, six.string_types):
                         pw = pwd.getpwnam(user)
                         uid = pw.pw_uid
                     elif isinstance(user, int):
@@ -1175,7 +1177,7 @@ class LogManager(object):
                     else:
                         raise TypeError("user (%s) is not int or basestring" % user)
                 if group is not None:
-                    if isinstance(group, basestring):
+                    if isinstance(group, six.string_types):
                         pw = pwd.getpwnam(group)
                         gid = pw.pw_gid
                     elif isinstance(group, int):
@@ -1216,7 +1218,7 @@ class LogManager(object):
             datefmt = cfg.get("datefmt", None)
             formatter = logging.Formatter(format, datefmt)
             time_zone_converter = cfg.get('time_zone_converter', time.localtime)
-            if isinstance(time_zone_converter, basestring):
+            if isinstance(time_zone_converter, six.string_types):
                 converter = {'local'     : time.localtime,
                              'localtime' : time.localtime,
                              'gmt'       : time.gmtime,
@@ -1310,7 +1312,7 @@ class LogManager(object):
           List of loggers with the handler is bound to.
         '''
 
-        if isinstance(handler, basestring):
+        if isinstance(handler, six.string_types):
             handler = self.get_handler(handler)
         elif isinstance(handler, logging.Handler):
             if not handler in self.handlers.values():
@@ -1344,7 +1346,7 @@ class LogManager(object):
             use configure_state to track the state of the log manager.
         '''
 
-        if isinstance(handler, basestring):
+        if isinstance(handler, six.string_types):
             handler = self.get_handler(handler)
         elif not isinstance(handler, logging.Handler):
             raise TypeError('handler must be basestring or Handler object, got %s' % type(handler))
@@ -1522,7 +1524,7 @@ class LogManager(object):
         '''
 
         is_object = False
-        if isinstance(who, basestring):
+        if isinstance(who, six.string_types):
             obj_name = who
         else:
             is_object = True

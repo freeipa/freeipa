@@ -25,6 +25,7 @@ import datetime
 
 import nose
 import contextlib
+import six
 
 from ipatests.util import assert_deepequal, Fuzzy
 from ipalib import api, request, errors
@@ -35,7 +36,7 @@ from ipapython.version import API_VERSION
 # Matches a gidnumber like '1391016742'
 # FIXME: Does it make more sense to return gidnumber, uidnumber, etc. as `int`
 # or `long`?  If not, we still need to return them as `unicode` instead of `str`.
-fuzzy_digits = Fuzzy('^\d+$', type=basestring)
+fuzzy_digits = Fuzzy('^\d+$', type=six.string_types)
 
 uuid_re = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 
@@ -76,14 +77,14 @@ fuzzy_sudocmddn = Fuzzy(
 )
 
 # Matches a hash signature, not enforcing length
-fuzzy_hash = Fuzzy('^([a-f0-9][a-f0-9]:)+[a-f0-9][a-f0-9]$', type=basestring)
+fuzzy_hash = Fuzzy('^([a-f0-9][a-f0-9]:)+[a-f0-9][a-f0-9]$', type=six.string_types)
 
 # Matches a date, like Tue Apr 26 17:45:35 2016 UTC
 fuzzy_date = Fuzzy('^[a-zA-Z]{3} [a-zA-Z]{3} \d{2} \d{2}:\d{2}:\d{2} \d{4} UTC$')
 
-fuzzy_issuer = Fuzzy(type=basestring, test=lambda issuer: valid_issuer(issuer))
+fuzzy_issuer = Fuzzy(type=six.string_types, test=lambda issuer: valid_issuer(issuer))
 
-fuzzy_hex = Fuzzy('^0x[0-9a-fA-F]+$', type=basestring)
+fuzzy_hex = Fuzzy('^0x[0-9a-fA-F]+$', type=six.string_types)
 
 # Matches password - password consists of all printable characters without whitespaces
 # The only exception is space, but space cannot be at the beggingin or end of the pwd
@@ -93,7 +94,7 @@ fuzzy_password = Fuzzy('^\S([\S ]*\S)*$')
 fuzzy_dergeneralizedtime = Fuzzy(type=datetime.datetime)
 
 # match any string
-fuzzy_string = Fuzzy(type=basestring)
+fuzzy_string = Fuzzy(type=six.string_types)
 
 # case insensitive match of sets
 def fuzzy_set_ci(s):

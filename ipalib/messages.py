@@ -32,6 +32,8 @@ Messages also have the 'type' argument, set to one of 'debug', 'info',
 
 from inspect import isclass
 
+import six
+
 from ipalib.constants import TYPE_ERROR
 from ipalib.text import _ as ugettext
 from ipalib.text import Gettext, NGettext
@@ -60,7 +62,7 @@ def process_message_arguments(obj, format=None, message=None, **kw):
             obj.format = format
         obj.forwarded = False
         obj.msg = obj.format % kw
-        if isinstance(obj.format, basestring):
+        if isinstance(obj.format, six.string_types):
             obj.strerror = ugettext(obj.format) % kw
         else:
             obj.strerror = obj.format % kw

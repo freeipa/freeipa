@@ -24,11 +24,13 @@ import netaddr
 import time
 import re
 import binascii
+import encodings.idna
+
 import dns.name
 import dns.exception
 import dns.rdatatype
 import dns.resolver
-import encodings.idna
+import six
 
 from ipalib.request import context
 from ipalib import api, errors, output
@@ -1671,7 +1673,7 @@ def _create_idn_filter(cmd, ldap, *args, **options):
         config = ldap.get_ipa_config()
         config_attrs = config.get(cmd.obj.search_attributes_config, [])
         if len(config_attrs) == 1 and (isinstance(config_attrs[0],
-                                                  basestring)):
+                                                  six.string_types)):
             search_attrs = config_attrs[0].split(',')
 
     search_kw['objectclass'] = cmd.obj.object_class

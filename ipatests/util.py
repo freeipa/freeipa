@@ -24,12 +24,15 @@ Common utility functions and classes for unit tests.
 import inspect
 import os
 from os import path
-import ldap
-import ldap.sasl
-import ldap.modlist
 import tempfile
 import shutil
 import re
+
+import six
+import ldap
+import ldap.sasl
+import ldap.modlist
+
 import ipalib
 from ipalib.plugable import Plugin
 from ipalib.request import context
@@ -213,7 +216,7 @@ class Fuzzy(object):
         :param test: A callable used to perform equality test, e.g.
             ``lambda other: other >= 18``
         """
-        assert regex is None or isinstance(regex, basestring)
+        assert regex is None or isinstance(regex, six.string_types)
         assert test is None or callable(test)
         if regex is None:
             self.re = None
@@ -221,7 +224,7 @@ class Fuzzy(object):
             self.re = re.compile(regex)
             if type is None:
                 type = unicode
-            assert type in (unicode, str, basestring)
+            assert type in (unicode, str, six.string_types)
         self.regex = regex
         self.type = type
         self.test = test
@@ -309,7 +312,7 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
     if isinstance(got, tuple):
         got = list(got)
     if isinstance(expected, DN):
-        if isinstance(got, basestring):
+        if isinstance(got, six.string_types):
             got = DN(got)
     if not (isinstance(expected, Fuzzy) or callable(expected) or type(expected) is type(got)):
         raise AssertionError(

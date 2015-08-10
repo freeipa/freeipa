@@ -22,6 +22,8 @@ import string
 import posixpath
 import os
 
+import six
+
 from ipalib import api, errors
 from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime, Bytes
 from ipalib.plugable import Registry
@@ -89,7 +91,7 @@ def validate_nsaccountlock(entry_attrs):
     if 'nsaccountlock' in entry_attrs:
         nsaccountlock = entry_attrs['nsaccountlock']
         if not isinstance(nsaccountlock, (bool, Bool)):
-            if not isinstance(nsaccountlock, basestring):
+            if not isinstance(nsaccountlock, six.string_types):
                 raise errors.OnlyOneValueAllowed(attr='nsaccountlock')
             if nsaccountlock.lower() not in ('true', 'false'):
                 raise errors.ValidationError(name='nsaccountlock',
@@ -400,7 +402,7 @@ class baseuser(LDAPObject):
             if not isinstance(email, (list, tuple)):
                 email = [email]
             for m in email:
-                if isinstance(m, basestring):
+                if isinstance(m, six.string_types):
                     if '@' not in m and defaultdomain:
                         m = m + u'@' + defaultdomain
                     if not Email(m):
