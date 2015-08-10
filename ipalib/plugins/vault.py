@@ -704,12 +704,33 @@ class vault_add_internal(LDAPCreate):
         else:
             owner_dn = self.api.Object.user.get_dn(name)
 
+        parent_dn = DN(*dn[1:])
+
+        container_dn = DN(self.api.Object.vault.container_dn,
+                          self.api.env.basedn)
+
+        services_dn = DN(('cn', 'services'), container_dn)
+        users_dn = DN(('cn', 'users'), container_dn)
+
+        if dn.endswith(services_dn):
+            # service container should be owned by the service
+            service = parent_dn[0]['cn']
+            parent_owner_dn = self.api.Object.service.get_dn(service)
+
+        elif dn.endswith(users_dn):
+            # user container should be owned by the user
+            user = parent_dn[0]['cn']
+            parent_owner_dn = self.api.Object.user.get_dn(user)
+
+        else:
+            parent_owner_dn = owner_dn
+
         try:
-            parent_dn = DN(*dn[1:])
-            self.obj.create_container(parent_dn, owner_dn)
+            self.obj.create_container(parent_dn, parent_owner_dn)
         except errors.DuplicateEntry as e:
             pass
 
+        # vault should be owned by the creator
         entry_attrs['owner'] = owner_dn
 
         return dn
