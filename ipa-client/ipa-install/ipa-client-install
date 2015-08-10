@@ -57,13 +57,13 @@ try:
     from ipapython.ssh import SSHPublicKey
     from ipalib.rpc import delete_persistent_client_session_data
 
-except ImportError:
+except ImportError as e:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
 error was:
 
     %s
-""" % sys.exc_value
+""" % e
     sys.exit(1)
 
 SUCCESS = 0

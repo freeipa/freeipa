@@ -30,13 +30,13 @@ try:
     from ipalib import api, errors
     from ipapython.ipa_log_manager import *
     from ipapython.dn import DN
-except ImportError:
+except ImportError as e:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
 error was:
 
     %s
-""" % sys.exc_value
+""" % e
     sys.exit(1)
 
 compat_dn = DN(('cn', 'Schema Compatibility'), ('cn', 'plugins'), ('cn', 'config'))

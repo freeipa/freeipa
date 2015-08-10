@@ -32,13 +32,13 @@ try:
     from ipapython.ipa_log_manager import *
     from ipapython.dn import DN
     from ipaplatform import services
-except ImportError:
+except ImportError as e:
     print >> sys.stderr, """\
 There was a problem importing one of the required Python modules. The
 error was:
 
     %s
-""" % sys.exc_value
+""" % e
     sys.exit(1)
 
 nis_config_dn = DN(('cn', 'NIS Server'), ('cn', 'plugins'), ('cn', 'config'))
