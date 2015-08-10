@@ -100,6 +100,7 @@ BuildRequires:  pki-base >= 10.2.6
 BuildRequires:  python-pytest-multihost >= 0.5
 BuildRequires:  python-pytest-sourceorder
 BuildRequires:  python-kdcproxy >= 0.3
+BuildRequires:  python-six
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (machine,
@@ -319,6 +320,7 @@ Requires: python-sss-murmur
 Requires: wget
 Requires: dbus-python
 Requires: python-setuptools
+Requires: python-six
 
 Conflicts: %{alt_name}-python
 Obsoletes: %{alt_name}-python < %{version}
