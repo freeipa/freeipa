@@ -191,12 +191,12 @@ class i18n_messages(Command):
             "show_results": _("Show Results"),
         },
         "authtype": {
-            "config_tooltip": _("Implicit method (password) will be used if no method is chosen."),
+            "config_tooltip": _("<p>Implicit method (password) will be used if no method is chosen.</p><p><strong>Password + Two-factor:</strong> LDAP and Kerberos allow authentication with either one of the authentication types but Kerberos uses pre-authentication method which requires to use armor ccache.</p><p><strong>RADIUS with another type:</strong> Kerberos always use RADIUS, but LDAP never does. LDAP only recognize the password and two-factor authentication options.</p>"),
             "type_otp": _("Two factor authentication (password + OTP)"),
             "type_password": _("Password"),
             "type_radius": _("Radius"),
             "type_disabled": _("Disable per-user override"),
-            "user_tooltip": _("Per-user setting, overwrites the global setting if any option is checked."),
+            "user_tooltip": _("<p>Per-user setting, overwrites the global setting if any option is checked.</p><p><strong>Password + Two-factor:</strong> LDAP and Kerberos allow authentication with either one of the authentication types but Kerberos uses pre-authentication method which requires to use armor ccache.</p><p><strong>RADIUS with another type:</strong> Kerberos always use RADIUS, but LDAP never does. LDAP only recognize the password and two-factor authentication options.</p>"),
         },
         "buttons": {
             "about": _("About"),
