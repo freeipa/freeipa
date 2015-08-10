@@ -213,7 +213,7 @@ def make_api():
         for o in sorted(cmd.output(), key=operator.attrgetter('name')):
             fd.write('output: %s\n' % param_repr(o))
     for name, version in sorted(
-            capabilities.items(), key=lambda (k, v): (v, k)):
+            capabilities.items(), key=operator.itemgetter(1, 0)):
         fd.write('capability: %s %s\n' % (name, version))
     fd.close()
 
