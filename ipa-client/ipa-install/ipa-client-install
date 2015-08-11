@@ -2305,6 +2305,25 @@ def install(options, env, fstore, statestore):
     root_logger.info("BaseDN: %s", cli_basedn)
     root_logger.debug("BaseDN source: %s", cli_basedn_source)
 
+    # ipa-join would fail with IP address instead of a FQDN
+    for srv in cli_server:
+        try:
+            socket.inet_pton(socket.AF_INET, srv)
+            is_ipaddr = True
+        except:
+            try:
+                socket.inet_pton(socket.AF_INET6, srv)
+                is_ipaddr = True
+            except:
+                is_ipaddr = False
+
+        if is_ipaddr:
+            print
+            root_logger.warning("It seems that you are using an IP address "
+                                "instead of FQDN as an argument to --server. The "
+                                "installation may fail.")
+            break
+
     print
     if not options.unattended and not user_input("Continue to configure the system with these values?", False):
         return CLIENT_INSTALL_ERROR
