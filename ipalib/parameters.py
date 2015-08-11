@@ -792,9 +792,8 @@ class Param(ReadOnly):
             if type(value) not in (tuple, list):
                 value = (value,)
             values = tuple(
-                self._convert_scalar(v, i) for (i, v) in filter(
-                    lambda iv: not _is_null(iv[1]), enumerate(value)
-                )
+                self._convert_scalar(v, i)
+                for (i, v) in enumerate(value) if not _is_null(v)
             )
             if len(values) == 0:
                 return

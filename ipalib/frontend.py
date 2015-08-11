@@ -1128,7 +1128,7 @@ class Object(HasParam):
             self.__get_attrs('Method'), sort=False, name_attr='attr_name'
         )
         self._create_param_namespace('params')
-        pkeys = filter(lambda p: p.primary_key, self.params())
+        pkeys = [p for p in self.params() if p.primary_key]
         if len(pkeys) > 1:
             raise ValueError(
                 '%s (Object) has multiple primary keys: %s' % (
@@ -1139,7 +1139,7 @@ class Object(HasParam):
         if len(pkeys) == 1:
             self.primary_key = pkeys[0]
             self.params_minus_pk = NameSpace(
-                filter(lambda p: not p.primary_key, self.params()), sort=False
+                [p for p in self.params() if not p.primary_key], sort=False
             )
         else:
             self.primary_key = None

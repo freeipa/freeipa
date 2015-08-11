@@ -63,7 +63,7 @@ def setup_package():
             description = DOCLINES[0],
             long_description = "\n".join(DOCLINES[2:]),
             download_url = "http://www.freeipa.org/page/Downloads",
-            classifiers=filter(None, CLASSIFIERS.split('\n')),
+            classifiers=[line for line in CLASSIFIERS.split('\n') if line],
             package_dir = {'ipaplatform': ''},
             packages = ["ipaplatform",
                         "ipaplatform.base",

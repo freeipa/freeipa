@@ -69,7 +69,7 @@ class Config(pytest_multihost.config.Config):
 
     @property
     def ad_domains(self):
-        return filter(lambda d: d.type == 'AD', self.domains)
+        return [d for d in self.domains if d.type == 'AD']
 
     def get_all_hosts(self):
         for domain in self.domains:

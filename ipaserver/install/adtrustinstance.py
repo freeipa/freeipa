@@ -327,7 +327,7 @@ class ADTRUSTInstance(service.Service):
                                   r.single_value.get('ipaBaseRID'),
                                   r.single_value.get('ipaSecondaryBaseRID')))
 
-            ranges_with_no_rid_base = filter(no_rid_base_set, ranges)
+            ranges_with_no_rid_base = [r for r in ranges if no_rid_base_set(r)]
 
             # Return if no range is without RID base
             if len(ranges_with_no_rid_base) == 0:

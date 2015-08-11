@@ -403,7 +403,7 @@ class PSKCKeyPackage(object):
 
     def __dates(self, out, data, key, reducer):
         dates = (data.get(key + '.sw', None), data.get(key + '.hw', None))
-        dates = filter(lambda x: x is not None, dates)
+        dates = [x for x in dates if x is not None]
         if dates:
             out['ipatoken' + key] = unicode(reducer(dates).strftime("%Y%m%d%H%M%SZ"))
 
