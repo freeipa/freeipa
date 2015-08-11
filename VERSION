@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=148
-# Last change: ftweedal - add --out option to user-show
+IPA_API_VERSION_MINOR=149
+# Last change: edewata - Added CLI param and ACL for vault service operations

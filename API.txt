@@ -5434,13 +5434,14 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: vault_add_member
-args: 1,9,3
+args: 1,10,3
 arg: Str('cn', attribute=True, cli_name='name', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.-]+$', primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('group*', alwaysask=True, cli_name='groups', csv=True)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('service?')
+option: Str('services', alwaysask=True, cli_name='services', csv=True, multivalue=True, required=False)
 option: Flag('shared?', autofill=True, default=False)
 option: Str('user*', alwaysask=True, cli_name='users', csv=True)
 option: Str('username?', cli_name='user')
@@ -5449,13 +5450,14 @@ output: Output('completed', <type 'int'>, None)
 output: Output('failed', <type 'dict'>, None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 command: vault_add_owner
-args: 1,9,3
+args: 1,10,3
 arg: Str('cn', attribute=True, cli_name='name', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.-]+$', primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('group*', alwaysask=True, cli_name='groups', csv=True)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('service?')
+option: Str('services', alwaysask=True, cli_name='services', csv=True, multivalue=True, required=False)
 option: Flag('shared?', autofill=True, default=False)
 option: Str('user*', alwaysask=True, cli_name='users', csv=True)
 option: Str('username?', cli_name='user')
@@ -5547,13 +5549,14 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: vault_remove_member
-args: 1,9,3
+args: 1,10,3
 arg: Str('cn', attribute=True, cli_name='name', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.-]+$', primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('group*', alwaysask=True, cli_name='groups', csv=True)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('service?')
+option: Str('services', alwaysask=True, cli_name='services', csv=True, multivalue=True, required=False)
 option: Flag('shared?', autofill=True, default=False)
 option: Str('user*', alwaysask=True, cli_name='users', csv=True)
 option: Str('username?', cli_name='user')
@@ -5562,13 +5565,14 @@ output: Output('completed', <type 'int'>, None)
 output: Output('failed', <type 'dict'>, None)
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 command: vault_remove_owner
-args: 1,9,3
+args: 1,10,3
 arg: Str('cn', attribute=True, cli_name='name', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.-]+$', primary_key=True, query=True, required=True)
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
 option: Str('group*', alwaysask=True, cli_name='groups', csv=True)
 option: Flag('no_members', autofill=True, default=False, exclude='webui')
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('service?')
+option: Str('services', alwaysask=True, cli_name='services', csv=True, multivalue=True, required=False)
 option: Flag('shared?', autofill=True, default=False)
 option: Str('user*', alwaysask=True, cli_name='users', csv=True)
 option: Str('username?', cli_name='user')
