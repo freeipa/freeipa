@@ -44,7 +44,7 @@ from ipalib.crud import PKQuery, Retrieve, Update
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import LDAPObject, LDAPCreate, LDAPDelete,\
     LDAPSearch, LDAPUpdate, LDAPRetrieve, LDAPAddMember, LDAPRemoveMember,\
-    pkey_to_value
+    LDAPModMember, pkey_to_value
 from ipalib.request import context
 from ipalib.plugins.user import split_principal
 from ipalib import _, ngettext
@@ -93,122 +93,91 @@ The secret can only be retrieved using the private key.
 """) + _("""
 EXAMPLES:
 """) + _("""
- List private vaults:
+ List vaults:
    ipa vault-find
+       [--user <user>|--service <service>|--shared]
 """) + _("""
- List service vaults:
-   ipa vault-find --service <service name>
-""") + _("""
- List shared vaults:
-   ipa vault-find --shared
-""") + _("""
- List user vaults:
-   ipa vault-find --user <username>
-""") + _("""
- Add a private vault:
+ Add a standard vault:
    ipa vault-add <name>
-""") + _("""
- Add a service vault:
-   ipa vault-add <name> --service <service name>
-""") + _("""
- Add a shared vault:
-   ipa vault-add <name> --shared
-""") + _("""
- Add a user vault:
-   ipa vault-add <name> --user <username>
+       [--user <user>|--service <service>|--shared]
 """) + _("""
  Add a symmetric vault:
-   ipa vault-add <name> --type symmetric --password-file password.txt
+   ipa vault-add <name>
+       [--user <user>|--service <service>|--shared]
+       --type symmetric --password-file password.txt
 """) + _("""
  Add an asymmetric vault:
-   ipa vault-add <name> --type asymmetric --public-key-file public.pem
+   ipa vault-add <name>
+       [--user <user>|--service <service>|--shared]
+       --type asymmetric --public-key-file public.pem
 """) + _("""
- Show a private vault:
+ Show a vault:
    ipa vault-show <name>
+       [--user <user>|--service <service>|--shared]
 """) + _("""
- Show a service vault:
-   ipa vault-show <name> --service <service name>
+ Modify a vault:
+   ipa vault-mod <name>
+       [--user <user>|--service <service>|--shared]
+       --desc <description>
 """) + _("""
- Show a shared vault:
-   ipa vault-show <name> --shared
-""") + _("""
- Show a user vault:
-   ipa vault-show <name> --user <username>
-""") + _("""
- Modify a private vault:
-   ipa vault-mod <name> --desc <description>
-""") + _("""
- Modify a service vault:
-   ipa vault-mod <name> --service <service name> --desc <description>
-""") + _("""
- Modify a shared vault:
-   ipa vault-mod <name> --shared --desc <description>
-""") + _("""
- Modify a user vault:
-   ipa vault-mod <name> --user <username> --desc <description>
-""") + _("""
- Delete a private vault:
+ Delete a vault:
    ipa vault-del <name>
-""") + _("""
- Delete a service vault:
-   ipa vault-del <name> --service <service name>
-""") + _("""
- Delete a shared vault:
-   ipa vault-del <name> --shared
-""") + _("""
- Delete a user vault:
-   ipa vault-del <name> --user <username>
+       [--user <user>|--service <service>|--shared]
 """) + _("""
  Display vault configuration:
    ipa vaultconfig-show
 """) + _("""
- Archive data into private vault:
-   ipa vault-archive <name> --in <input file>
-""") + _("""
- Archive data into service vault:
-   ipa vault-archive <name> --service <service name> --in <input file>
-""") + _("""
- Archive data into shared vault:
-   ipa vault-archive <name> --shared --in <input file>
-""") + _("""
- Archive data into user vault:
-   ipa vault-archive <name> --user <username> --in <input file>
+ Archive data into standard vault:
+   ipa vault-archive <name>
+       [--user <user>|--service <service>|--shared]
+       --in <input file>
 """) + _("""
  Archive data into symmetric vault:
-   ipa vault-archive <name> --in <input file>
+   ipa vault-archive <name>
+       [--user <user>|--service <service>|--shared]
+       --in <input file>
+       --password-file password.txt
 """) + _("""
  Archive data into asymmetric vault:
-   ipa vault-archive <name> --in <input file>
+   ipa vault-archive <name>
+       [--user <user>|--service <service>|--shared]
+       --in <input file>
 """) + _("""
- Retrieve data from private vault:
-   ipa vault-retrieve <name> --out <output file>
-""") + _("""
- Retrieve data from service vault:
-   ipa vault-retrieve <name> --service <service name> --out <output file>
-""") + _("""
- Retrieve data from shared vault:
-   ipa vault-retrieve <name> --shared --out <output file>
-""") + _("""
- Retrieve data from user vault:
-   ipa vault-retrieve <name> --user <username> --out <output file>
+ Retrieve data from standard vault:
+   ipa vault-retrieve <name>
+       [--user <user>|--service <service>|--shared]
+       --out <output file>
 """) + _("""
  Retrieve data from symmetric vault:
-   ipa vault-retrieve <name> --out data.bin
+   ipa vault-retrieve <name>
+       [--user <user>|--service <service>|--shared]
+       --out <output file>
+       --password-file password.txt
 """) + _("""
  Retrieve data from asymmetric vault:
-   ipa vault-retrieve <name> --out data.bin --private-key-file private.pem
+   ipa vault-retrieve <name>
+       [--user <user>|--service <service>|--shared]
+       --out <output file> --private-key-file private.pem
 """) + _("""
- Add a vault owner:
-   ipa vault-add-owner <name> --users <usernames>
+ Add vault owners:
+   ipa vault-add-owner <name>
+       [--user <user>|--service <service>|--shared]
+       [--users <users>]  [--groups <groups>] [--services <services>]
 """) + _("""
- Delete a vault owner:
-   ipa vault-remove-owner <name> --users <usernames>
+ Delete vault owners:
+   ipa vault-remove-owner <name>
+       [--user <user>|--service <service>|--shared]
+       [--users <users>] [--groups <groups>] [--services <services>]
 """) + _("""
- Add a vault member:
-   ipa vault-add-member <name> --users <usernames>
+ Add vault members:
+   ipa vault-add-member <name>
+       [--user <user>|--service <service>|--shared]
+       [--users <users>] [--groups <groups>] [--services <services>]
 """) + _("""
- Delete a vault member:
-   ipa vault-remove-member <name> --users <usernames>
+ Delete vault members:
+   ipa vault-remove-member <name>
+       [--user <user>|--service <service>|--shared]
+       [--users <users>] [--groups <groups>] [--services <services>]
 """)
 
 
@@ -285,8 +254,8 @@ class vault(LDAPObject):
         'ipavaulttype',
     ]
     attribute_members = {
-        'owner': ['user', 'group'],
-        'member': ['user', 'group'],
+        'owner': ['user', 'group', 'service'],
+        'member': ['user', 'group', 'service'],
     }
 
     label = _('Vaults')
@@ -338,6 +307,11 @@ class vault(LDAPObject):
         Str(
             'owner_group?',
             label=_('Owner groups'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str(
+            'owner_service?',
+            label=_('Owner services'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
     )
@@ -1432,8 +1406,23 @@ class vault_retrieve_internal(PKQuery):
         return response
 
 
+class VaultModMember(LDAPModMember):
+    def get_options(self):
+        for param in super(VaultModMember, self).get_options():
+            if param.name == 'service' and param not in vault_options:
+                param = param.clone_rename('services')
+            yield param
+
+    def get_member_dns(self, **options):
+        if 'services' in options:
+            options['service'] = options.pop('services')
+        else:
+            options.pop('service', None)
+        return super(VaultModMember, self).get_member_dns(**options)
+
+
 @register()
-class vault_add_owner(LDAPAddMember):
+class vault_add_owner(VaultModMember, LDAPAddMember):
     __doc__ = _('Add owners to a vault.')
 
     takes_options = LDAPAddMember.takes_options + vault_options
@@ -1457,7 +1446,7 @@ class vault_add_owner(LDAPAddMember):
 
 
 @register()
-class vault_remove_owner(LDAPRemoveMember):
+class vault_remove_owner(VaultModMember, LDAPRemoveMember):
     __doc__ = _('Remove owners from a vault.')
 
     takes_options = LDAPRemoveMember.takes_options + vault_options
@@ -1481,14 +1470,14 @@ class vault_remove_owner(LDAPRemoveMember):
 
 
 @register()
-class vault_add_member(LDAPAddMember):
+class vault_add_member(VaultModMember, LDAPAddMember):
     __doc__ = _('Add members to a vault.')
 
     takes_options = LDAPAddMember.takes_options + vault_options
 
 
 @register()
-class vault_remove_member(LDAPRemoveMember):
+class vault_remove_member(VaultModMember, LDAPRemoveMember):
     __doc__ = _('Remove members from a vault.')
 
     takes_options = LDAPRemoveMember.takes_options + vault_options
