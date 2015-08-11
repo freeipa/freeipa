@@ -42,6 +42,7 @@ from contextlib import contextmanager
 from dns import resolver, rdatatype
 from dns.exception import DNSException
 import six
+from six.moves import input
 
 from ipapython.ipa_log_manager import *
 from ipapython import ipavalidate
@@ -764,7 +765,7 @@ def user_input(prompt, default = None, allow_empty = True):
     if default == None:
         while True:
             try:
-                ret = raw_input("%s: " % prompt)
+                ret = input("%s: " % prompt)
                 if allow_empty or ret.strip():
                     return ret
             except EOFError:
@@ -775,7 +776,7 @@ def user_input(prompt, default = None, allow_empty = True):
     if isinstance(default, six.string_types):
         while True:
             try:
-                ret = raw_input("%s [%s]: " % (prompt, default))
+                ret = input("%s [%s]: " % (prompt, default))
                 if not ret and (allow_empty or default):
                     return default
                 elif ret.strip():
@@ -787,7 +788,7 @@ def user_input(prompt, default = None, allow_empty = True):
         choice = "yes" if default else "no"
         while True:
             try:
-                ret = raw_input("%s [%s]: " % (prompt, choice))
+                ret = input("%s [%s]: " % (prompt, choice))
                 if not ret:
                     return default
                 elif ret.lower()[0] == "y":
@@ -800,7 +801,7 @@ def user_input(prompt, default = None, allow_empty = True):
     if isinstance(default, int):
         while True:
             try:
-                ret = raw_input("%s [%s]: " % (prompt, default))
+                ret = input("%s [%s]: " % (prompt, default))
                 if not ret:
                     return default
                 ret = int(ret)

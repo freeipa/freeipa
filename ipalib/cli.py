@@ -33,6 +33,7 @@ import base64
 import traceback
 
 import six
+from six.moves import input
 
 try:
     #pylint: disable=F0401
@@ -527,7 +528,7 @@ class textui(backend.Backend):
     def print_error(self, text):
         print '  ** %s **' % unicode(text)
 
-    def prompt_helper(self, prompt, label, prompt_func=raw_input):
+    def prompt_helper(self, prompt, label, prompt_func=input):
         """Prompt user for input
 
         Handles encoding the prompt and decoding the input.
