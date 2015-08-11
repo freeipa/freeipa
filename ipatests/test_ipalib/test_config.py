@@ -345,7 +345,7 @@ class test_Env(ClassChecker):
         expected.update(dict(group1))
         assert list(o) == sorted(expected)
         assert expected['key2'] == 'value 2'  # And not 'Value 2'
-        for (key, value) in expected.iteritems():
+        for (key, value) in expected.items():
             assert getattr(o, key) is value
             assert o[key] is value
         assert o._merge(**expected) == (0, 6)

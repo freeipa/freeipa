@@ -229,7 +229,7 @@ class Configurable(object):
                 setattr(self, name, value)
 
         if kwargs:
-            extra = sorted(kwargs.keys())
+            extra = sorted(kwargs)
             raise TypeError(
                 "{0}() got {1} unexpected keyword arguments: {2}".format(
                     type(self).__name__,

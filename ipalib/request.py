@@ -51,8 +51,8 @@ def destroy_context():
     """
     Delete all attributes on thread-local `request.context`.
     """
-    # need to use .values(), 'cos value.disconnect modifies the dict
-    for value in context.__dict__.values():
+    # need to use a list of values, 'cos value.disconnect modifies the dict
+    for value in list(context.__dict__.values()):
         if isinstance(value, Connection):
             value.disconnect()
     context.__dict__.clear()

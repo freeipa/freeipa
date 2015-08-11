@@ -85,7 +85,7 @@ def process_message_arguments(obj, format=None, message=None, **kw):
         obj.forwarded = True
         obj.msg = message
         obj.strerror = message
-    for (key, value) in kw.iteritems():
+    for (key, value) in kw.items():
         assert not hasattr(obj, key), 'conflicting kwarg %s.%s = %r' % (
             name, key, value,
         )

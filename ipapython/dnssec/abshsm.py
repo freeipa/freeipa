@@ -41,7 +41,7 @@ attrs_id2name = {
     _ipap11helper.CKA_WRAP_WITH_TRUSTED: 'ipk11wrapwithtrusted',
 }
 
-attrs_name2id = dict(zip(attrs_id2name.values(), attrs_id2name.keys()))
+attrs_name2id = {v: k for k, v in attrs_id2name.items()}
 
 # attribute:
 # http://www.freeipa.org/page/V4/PKCS11_in_LDAP/Schema#ipk11KeyType
@@ -53,7 +53,7 @@ keytype_name2id = {
         "aes": _ipap11helper.KEY_TYPE_AES,
         }
 
-keytype_id2name = dict(zip(keytype_name2id.values(), keytype_name2id.keys()))
+keytype_id2name = {v: k for k, v in keytype_name2id.items()}
 
 wrappingmech_name2id = {
         "rsaPkcs": _ipap11helper.MECH_RSA_PKCS,
@@ -62,8 +62,7 @@ wrappingmech_name2id = {
         "aesKeyWrapPad": _ipap11helper.MECH_AES_KEY_WRAP_PAD
         }
 
-wrappingmech_id2name = dict(zip(wrappingmech_name2id.values(),
-    wrappingmech_name2id.keys()))
+wrappingmech_id2name = {v: k for k, v in wrappingmech_name2id.items()}
 
 
 bool_attr_names = set([
@@ -105,8 +104,7 @@ modifiable_attrs_id2name = {
     _ipap11helper.CKA_WRAP: 'ipk11wrap',
 }
 
-modifiable_attrs_name2id = dict(zip(modifiable_attrs_id2name.values(),
-    modifiable_attrs_id2name.keys()))
+modifiable_attrs_name2id = {v: k for k, v in modifiable_attrs_id2name.items()}
 
 def sync_pkcs11_metadata(log, source, target):
     """sync ipk11 metadata from source object to target object"""
@@ -148,7 +146,7 @@ def ldap2p11helper_api_params(ldap_key):
             "ipk11wrapwithtrusted": "cka_wrap_with_trusted"
             }
 
-    for ldap_name, p11h_name in direct_param_map.iteritems():
+    for ldap_name, p11h_name in direct_param_map.items():
         if ldap_name in ldap_key:
             unwrap_params[p11h_name] = ldap_key[ldap_name]
 
@@ -159,7 +157,7 @@ def ldap2p11helper_api_params(ldap_key):
             "ipawrappingmech": ("wrapping_mech", wrappingmech_name2id),
             }
 
-    for ldap_name, rules in indirect_param_map.iteritems():
+    for ldap_name, rules in indirect_param_map.items():
         p11h_name, mapping = rules
         if ldap_name in ldap_key:
             unwrap_params[p11h_name] = mapping[ldap_key[ldap_name]]
@@ -170,7 +168,7 @@ def ldap2p11helper_api_params(ldap_key):
 class AbstractHSM(object):
     def _filter_replica_keys(self, all_keys):
         replica_keys = {}
-        for key_id, key in all_keys.iteritems():
+        for key_id, key in all_keys.items():
             if not key['ipk11label'].startswith('dnssec-replica:'):
                 continue
             replica_keys[key_id] = key
@@ -178,7 +176,7 @@ class AbstractHSM(object):
 
     def _filter_zone_keys(self, all_keys):
         zone_keys = {}
-        for key_id, key in all_keys.iteritems():
+        for key_id, key in all_keys.items():
             if key['ipk11label'] == u'dnssec-master' \
                 or key['ipk11label'].startswith('dnssec-replica:'):
                 continue

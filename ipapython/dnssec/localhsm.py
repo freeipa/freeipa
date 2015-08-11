@@ -69,7 +69,7 @@ class Key(collections.MutableMapping):
 
     def __iter__(self):
         """generates list of ipa names of all attributes present in the object"""
-        for pkcs11_id, ipa_name in attrs_id2name.iteritems():
+        for pkcs11_id, ipa_name in attrs_id2name.items():
             try:
                 self.p11.get_attribute(self.handle, pkcs11_id)
             except _ipap11helper.NotFound:
@@ -84,11 +84,7 @@ class Key(collections.MutableMapping):
         return cnt
 
     def __str__(self):
-        d = {}
-        for ipa_name, value in self.iteritems():
-            d[ipa_name] = value
-
-        return str(d)
+        return str(dict(self))
 
     def __repr__(self):
         return self.__str__()
@@ -139,7 +135,7 @@ class LocalHSM(AbstractHSM):
         """Get all usable DNSSEC master keys"""
         keys = self.find_keys(objclass=_ipap11helper.KEY_CLASS_SECRET_KEY, label=u'dnssec-master', cka_unwrap=True)
 
-        for key in keys.itervalues():
+        for key in keys.values():
             prefix = 'dnssec-master'
             assert key['ipk11label'] == prefix, \
                 'secret key ipk11id=0x%s ipk11label="%s" with ipk11UnWrap = TRUE does not have '\
@@ -198,34 +194,34 @@ if __name__ == '__main__':
 
     print 'replica public keys: CKA_WRAP = TRUE'
     print '===================================='
-    for pubkey_id, pubkey in localhsm.replica_pubkeys_wrap.iteritems():
+    for pubkey_id, pubkey in localhsm.replica_pubkeys_wrap.items():
         print hexlify(pubkey_id)
         pprint(pubkey)
 
     print ''
     print 'replica public keys: all'
     print '========================'
-    for pubkey_id, pubkey in localhsm.replica_pubkeys.iteritems():
+    for pubkey_id, pubkey in localhsm.replica_pubkeys.items():
         print hexlify(pubkey_id)
         pprint(pubkey)
 
     print ''
     print 'master keys'
     print '==========='
-    for mkey_id, mkey in localhsm.master_keys.iteritems():
+    for mkey_id, mkey in localhsm.master_keys.items():
         print hexlify(mkey_id)
         pprint(mkey)
 
     print ''
     print 'zone public keys'
     print '================'
-    for key_id, key in localhsm.zone_pubkeys.iteritems():
+    for key_id, key in localhsm.zone_pubkeys.items():
         print hexlify(key_id)
         pprint(key)
 
     print ''
     print 'zone private keys'
     print '================='
-    for key_id, key in localhsm.zone_privkeys.iteritems():
+    for key_id, key in localhsm.zone_privkeys.items():
         print hexlify(key_id)
         pprint(key)

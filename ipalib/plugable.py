@@ -659,7 +659,7 @@ class API(ReadOnly):
             sub_d = self.__plugins.get(base, {})
 
             members = []
-            for klass in sub_d.itervalues():
+            for klass in sub_d.values():
                 try:
                     instance = plugins[klass]
                 except KeyError:
@@ -673,7 +673,7 @@ class API(ReadOnly):
                 assert not hasattr(self, name)
             setattr(self, name, NameSpace(members))
 
-        for klass, instance in plugins.iteritems():
+        for klass, instance in plugins.items():
             if not production_mode:
                 assert instance.api is self
             if klass.finalize_early or not self.env.plugins_on_demand:
@@ -682,7 +682,7 @@ class API(ReadOnly):
                     assert islocked(instance)
 
         self.__finalized = True
-        self.plugins = tuple((k, tuple(v)) for k, v in plugin_info.iteritems())
+        self.plugins = tuple((k, tuple(v)) for k, v in plugin_info.items())
 
         if not production_mode:
             lock(self)

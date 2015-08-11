@@ -34,6 +34,7 @@ from ipaserver.install.installutils import (
     IPA_MODULES, BadHostError, get_fqdn, get_server_ip_address,
     is_ipa_configured, load_pkcs12, read_password, verify_fqdn)
 from ipaserver.plugins.ldap2 import ldap2
+
 try:
     from ipaserver.install import adtrustinstance
     _server_trust_ad_installed = True
@@ -342,7 +343,7 @@ def install_check(installer):
             sys.exit("Directory Manager password required")
         try:
             cache_vars = read_cache(dm_password)
-            for name, value in cache_vars.iteritems():
+            for name, value in cache_vars.items():
                 if name not in options.__dict__:
                     options.__dict__[name] = value
             if cache_vars.get('external_ca', False):

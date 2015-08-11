@@ -320,7 +320,7 @@ def _httplib_request(
     headers = headers or {}
     if (
         method == 'POST'
-        and 'content-type' not in (str(k).lower() for k in headers.viewkeys())
+        and 'content-type' not in (str(k).lower() for k in headers)
     ):
         headers['content-type'] = 'application/x-www-form-urlencoded'
 

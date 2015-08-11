@@ -256,8 +256,8 @@ class config_mod(LDAPUpdate):
         if 'ipagroupsearchfields' in entry_attrs:
             kw['ipagroupsearchfields']  = 'ipagroupobjectclasses'
         if kw:
-            config = ldap.get_ipa_config(kw.values())
-            for (k, v) in kw.iteritems():
+            config = ldap.get_ipa_config(list(kw.values()))
+            for (k, v) in kw.items():
                 allowed_attrs = ldap.get_allowed_attributes(config[v])
                 fields = entry_attrs[k].split(',')
                 for a in fields:

@@ -430,7 +430,7 @@ class test_Command(ClassChecker):
         )
         o = self.subcls(api)
         o.finalize()
-        for (key, value) in o.convert(**kw).iteritems():
+        for (key, value) in o.convert(**kw).items():
             assert_equal(unicode(kw[key]), value)
 
     def test_normalize(self):

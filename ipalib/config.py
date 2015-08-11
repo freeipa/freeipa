@@ -330,7 +330,7 @@ class Env(object):
         :param kw: Variables provides as keyword arguments.
         """
         i = 0
-        for (key, value) in kw.iteritems():
+        for (key, value) in kw.items():
             if key not in self:
                 self[key] = value
                 i += 1

@@ -128,7 +128,7 @@ class Key(collections.MutableMapping):
 
     def __iter__(self):
         """generates list of ipa names of all PKCS#11 attributes present in the object"""
-        for ipa_name in self.entry.keys():
+        for ipa_name in list(self.entry.keys()):
             lowercase = ipa_name.lower()
             if lowercase in attrs_name2id:
                 yield lowercase
@@ -247,7 +247,7 @@ class LdapKeyDB(AbstractHSM):
         for cache in [self.cache_masterkeys, self.cache_replica_pubkeys_wrap,
                 self.cache_zone_keypairs]:
             if cache:
-                for key in cache.itervalues():
+                for key in cache.values():
                     self._update_key(key)
 
     def flush(self):
@@ -326,7 +326,7 @@ class LdapKeyDB(AbstractHSM):
 
         keys = self._get_key_dict(MasterKey,
                 '(&(objectClass=ipk11SecretKey)(|(ipk11UnWrap=TRUE)(!(ipk11UnWrap=*)))(ipk11Label=dnssec-master))')
-        for key in keys.itervalues():
+        for key in keys.values():
             prefix = 'dnssec-master'
             assert key['ipk11label'] == prefix, \
                 'secret key dn="%s" ipk11id=0x%s ipk11label="%s" with ipk11UnWrap = TRUE does not have '\

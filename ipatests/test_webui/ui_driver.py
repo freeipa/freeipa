@@ -154,7 +154,7 @@ class UI_driver(object):
         c = self.config
 
         # override with environmental variables
-        for k, v in ENV_MAP.iteritems():
+        for k, v in ENV_MAP.items():
             val = os.environ.get(k)
             if val is not None:
                 c[v] = val

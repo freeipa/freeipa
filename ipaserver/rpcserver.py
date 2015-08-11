@@ -201,7 +201,7 @@ def params_2_args_options(params):
 def nicify_query(query, encoding='utf-8'):
     if not query:
         return
-    for (key, value) in query.iteritems():
+    for (key, value) in query.items():
         if len(value) == 0:
             yield (key, None)
         elif len(value) == 1:
@@ -493,7 +493,7 @@ class jsonserver(WSGIExecutioner, HTTP_Status):
         options = params[1]
         if not isinstance(options, dict):
             raise JSONError(error=_('params[1] (aka options) must be a dict'))
-        options = dict((str(k), v) for (k, v) in options.iteritems())
+        options = dict((str(k), v) for (k, v) in options.items())
         return (method, args, options, _id)
 
 class AuthManagerKerb(AuthManager):

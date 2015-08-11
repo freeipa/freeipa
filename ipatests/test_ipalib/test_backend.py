@@ -223,12 +223,12 @@ class test_Executioner(ClassChecker):
         # Test that CommandError is raised:
         conn = Connection('The connection.', Disconnect('someconn'))
         context.someconn = conn
-        print str(context.__dict__.keys())
+        print str(list(context.__dict__))
         e = raises(errors.CommandError, o.execute, 'nope')
         assert e.name == 'nope'
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
-        print str(context.__dict__.keys())
-        assert context.__dict__.keys() == []
+        print str(list(context.__dict__))
+        assert list(context.__dict__) == []
 
         # Test with echo command:
         arg1 = unicode_str
@@ -247,7 +247,7 @@ class test_Executioner(ClassChecker):
             result=(arg1, arg2, options)
         )
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
-        assert context.__dict__.keys() == []
+        assert list(context.__dict__) == []
 
         conn = Connection('The connection.', Disconnect('someconn'))
         context.someconn = conn
@@ -255,7 +255,7 @@ class test_Executioner(ClassChecker):
             result=(arg1, arg2, options)
         )
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
-        assert context.__dict__.keys() == []
+        assert list(context.__dict__) == []
 
         # Test with good command:
         conn = Connection('The connection.', Disconnect('someconn'))
@@ -264,14 +264,14 @@ class test_Executioner(ClassChecker):
         assert e.name == 'nurse'
         assert e.error == u'Not naughty!'
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
-        assert context.__dict__.keys() == []
+        assert list(context.__dict__) == []
 
         # Test with bad command:
         conn = Connection('The connection.', Disconnect('someconn'))
         context.someconn = conn
         e = raises(errors.InternalError, o.execute, 'bad')
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
-        assert context.__dict__.keys() == []
+        assert list(context.__dict__) == []
 
         # Test with option 'name':
         conn = Connection('The connection.', Disconnect('someconn'))

@@ -545,13 +545,13 @@ class CIDict(dict):
                 for key in keys():
                     self.__setitem__(key, new[key], seen)
         seen = set()
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             self.__setitem__(key, value, seen)
 
     def __contains__(self, key):
         return super(CIDict, self).__contains__(key.lower())
 
-    if sys.version_info < (3, 0):
+    if six.PY2:
         def has_key(self, key):
             return super(CIDict, self).has_key(key.lower())
 
@@ -562,29 +562,38 @@ class CIDict(dict):
             return failobj
 
     def __iter__(self):
-        return self._keys.itervalues()
+        return six.itervalues(self._keys)
 
     def keys(self):
-        return list(self.iterkeys())
+        if six.PY2:
+            return list(self.iterkeys())
+        else:
+            return self.iterkeys()
 
     def items(self):
-        return list(self.iteritems())
+        if six.PY2:
+            return list(self.iteritems())
+        else:
+            return self.iteritems()
 
     def values(self):
-        return list(self.itervalues())
+        if six.PY2:
+            return list(self.itervalues())
+        else:
+            return self.itervalues()
 
     def copy(self):
         """Returns a shallow copy of this CIDict"""
-        return CIDict(self.items())
+        return CIDict(list(self.items()))
 
     def iteritems(self):
-        return ((k, self[k]) for k in self._keys.itervalues())
+        return ((k, self[k]) for k in six.itervalues(self._keys))
 
     def iterkeys(self):
-        return self._keys.itervalues()
+        return six.itervalues(self._keys)
 
     def itervalues(self):
-        return (v for k, v in self.iteritems())
+        return (v for k, v in six.iteritems(self))
 
     def setdefault(self, key, value=None):
         try:

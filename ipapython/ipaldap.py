@@ -279,7 +279,7 @@ class LDAPEntry(collections.MutableMapping):
 
     def __repr__(self):
         data = dict(self._raw)
-        data.update((k, v) for k, v in self._nice.iteritems() if v is not None)
+        data.update((k, v) for k, v in self._nice.items() if v is not None)
         return '%s(%r, %r)' % (type(self).__name__, self._dn, data)
 
     def copy(self):
@@ -495,7 +495,7 @@ class LDAPEntry(collections.MutableMapping):
     def generate_modlist(self):
         modlist = []
 
-        names = set(self.iterkeys())
+        names = set(self)
         names.update(self._orig)
         for name in names:
             new = self.raw.get(name, [])
@@ -548,7 +548,7 @@ class LDAPEntryView(collections.MutableMapping):
         self._entry.clear()
 
     def __iter__(self):
-        return self._entry.iterkeys()
+        return iter(self._entry)
 
     def __len__(self):
         return len(self._entry)
@@ -842,7 +842,7 @@ class LDAPClient(object):
         elif isinstance(val, tuple):
             return tuple(self.encode(m) for m in val)
         elif isinstance(val, dict):
-            dct = dict((self.encode(k), self.encode(v)) for k, v in val.iteritems())
+            dct = dict((self.encode(k), self.encode(v)) for k, v in val.items())
             return dct
         elif isinstance(val, datetime.datetime):
             return val.strftime(LDAP_GENERALIZED_TIME_FORMAT)
@@ -875,7 +875,7 @@ class LDAPClient(object):
         elif isinstance(val, tuple):
             return tuple(self.decode(m, attr) for m in val)
         elif isinstance(val, dict):
-            dct = dict((unicode_from_utf8(k), self.decode(v, k)) for k, v in val.iteritems())
+            dct = dict((unicode_from_utf8(k), self.decode(v, k)) for k, v in val.items())
             return dct
         elif val is None:
             return None
@@ -1234,7 +1234,7 @@ class LDAPClient(object):
             make_filter_rules = rules
         flts = []
         if attrs_list is None:
-            for (k, v) in entry_attrs.iteritems():
+            for (k, v) in entry_attrs.items():
                 flts.append(
                     self.make_filter_from_attr(
                         k, v, make_filter_rules, exact,
@@ -1436,11 +1436,11 @@ class LDAPClient(object):
         This should be called as add_entry(entry).
         """
         # remove all [] values (python-ldap hates 'em)
-        attrs = dict((k, v) for k, v in entry.raw.iteritems() if v)
+        attrs = dict((k, v) for k, v in entry.raw.items() if v)
 
         with self.error_handler():
             attrs = self.encode(attrs)
-            self.conn.add_s(str(entry.dn), attrs.items())
+            self.conn.add_s(str(entry.dn), list(attrs.items()))
 
         entry.reset_modlist()
 

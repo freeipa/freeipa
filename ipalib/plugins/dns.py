@@ -1641,7 +1641,7 @@ def _create_idn_filter(cmd, ldap, *args, **options):
     search_kw = {}
     attr_extra_filters = []
 
-    for attr, value in cmd.args_options_2_entry(**options).iteritems():
+    for attr, value in cmd.args_options_2_entry(**options).items():
         if not isinstance(value, list):
             value = [value]
         for i, v in enumerate(value):
@@ -3245,11 +3245,11 @@ class dnsrecord(LDAPObject):
         """
         rrattrs = {}
         if old_entry is not None:
-            old_rrattrs = dict((key, value) for key, value in old_entry.iteritems()
+            old_rrattrs = dict((key, value) for key, value in old_entry.items()
                             if key in self.params and
                             isinstance(self.params[key], DNSRecord))
             rrattrs.update(old_rrattrs)
-        new_rrattrs = dict((key, value) for key, value in entry_attrs.iteritems()
+        new_rrattrs = dict((key, value) for key, value in entry_attrs.items()
                         if key in self.params and
                         isinstance(self.params[key], DNSRecord))
         rrattrs.update(new_rrattrs)
@@ -3267,7 +3267,7 @@ class dnsrecord(LDAPObject):
                             '(RFC 2136, section 1.1.5)'))
             if any(rrvalue is not None
                    and rrattr != 'cnamerecord'
-                   for rrattr, rrvalue in rrattrs.iteritems()):
+                   for rrattr, rrvalue in rrattrs.items()):
                 raise errors.ValidationError(name='cnamerecord',
                         error=_('CNAME record is not allowed to coexist '
                               'with any other record (RFC 1034, section 3.6.2)'))
@@ -3327,7 +3327,7 @@ class dnsrecord(LDAPObject):
             # all records were deleted => name should not exist in DNS
             return None
 
-        for attr, value in entry_attrs.iteritems():
+        for attr, value in entry_attrs.items():
             if not attr.endswith(record_attr_suf):
                 continue
 
@@ -3444,7 +3444,7 @@ class dnsrecord(LDAPObject):
             # name should not exist => ask for A record and check result
             ldap_rrsets = {dns.rdatatype.from_text('A'): None}
 
-        for rdtype, ldap_rrset in ldap_rrsets.iteritems():
+        for rdtype, ldap_rrset in ldap_rrsets.items():
             try:
                 self.wait_for_modified_attr(ldap_rrset, rdtype, dns_name)
 
@@ -3479,7 +3479,7 @@ class dnsrecord(LDAPObject):
         :param entries:
             Dict {(dns_domain, dns_name): entry_for_wait_for_modified_attrs}
         '''
-        for entry_name, entry in entries.iteritems():
+        for entry_name, entry in entries.items():
             dns_domain = entry_name[0]
             dns_name = entry_name[1].derelativize(dns_domain)
             self.wait_for_modified_attrs(entry, dns_name, dns_domain)
@@ -3691,7 +3691,7 @@ class dnsrecord_add(LDAPCreate):
                 # already merged in pre_callback
                 ldap = self.obj.backend
                 entry_attrs = self.obj.get_record_entry_attrs(call_args[0])
-                update = ldap.get_entry(entry_attrs.dn, entry_attrs.keys())
+                update = ldap.get_entry(entry_attrs.dn, list(entry_attrs))
                 update.update(entry_attrs)
                 ldap.update_entry(update, **call_kwargs)
                 return

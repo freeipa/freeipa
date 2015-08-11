@@ -96,7 +96,7 @@ def sql2datetimes(row):
                    'retire': 'idnsSecKeyInactive',
                    'dead': 'idnsSecKeyDelete'}
     times = {}
-    for column, key in row2key_map.iteritems():
+    for column, key in row2key_map.items():
         if row[column] is not None:
             times[key] = sql2datetime(row[column])
     return times
@@ -257,7 +257,7 @@ def master2ldap_master_keys_sync(log, ldapkeydb, localhsm):
     log.debug('master keys in LDAP after flush: %s', hex_set(ldapkeydb.master_keys))
 
     # synchronize master key metadata to LDAP
-    for mkey_id, mkey_local in localhsm.master_keys.iteritems():
+    for mkey_id, mkey_local in localhsm.master_keys.items():
         log.debug('synchronizing master key metadata: 0x%s', hexlify(mkey_id))
         sync_pkcs11_metadata(log, mkey_local, ldapkeydb.master_keys[mkey_id])
 
@@ -265,7 +265,7 @@ def master2ldap_master_keys_sync(log, ldapkeydb, localhsm):
     enabled_replica_key_ids = set(localhsm.replica_pubkeys_wrap.keys())
     log.debug('enabled replica key ids: %s', hex_set(enabled_replica_key_ids))
 
-    for mkey_id, mkey_ldap in ldapkeydb.master_keys.iteritems():
+    for mkey_id, mkey_ldap in ldapkeydb.master_keys.items():
         log.debug('processing master key data: 0x%s', hexlify(mkey_id))
 
         # check that all active replicas have own copy of master key
@@ -273,7 +273,7 @@ def master2ldap_master_keys_sync(log, ldapkeydb, localhsm):
         for wrapped_entry in mkey_ldap.wrapped_entries:
             matching_keys = localhsm.find_keys(
                     uri=wrapped_entry.single_value['ipaWrappingKey'])
-            for matching_key in matching_keys.itervalues():
+            for matching_key in matching_keys.values():
                 assert matching_key['ipk11label'].startswith(u'dnssec-replica:'), \
                         'Wrapped key "%s" refers to PKCS#11 URI "%s" which is ' \
                         'not a know DNSSEC replica key: label "%s" does not start ' \

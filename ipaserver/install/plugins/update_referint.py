@@ -63,7 +63,7 @@ class update_referint(Updater):
             entry['nsslapd-pluginArg2'] = None
 
         # nsslapd-pluginArg3..N -> referint-membership-attr [3..N]
-        for key in entry.keys():
+        for key in list(entry):
             if key.lower().startswith('nsslapd-pluginarg'):
                 arg_val = entry.single_value[key]
                 if arg_val:

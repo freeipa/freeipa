@@ -239,7 +239,7 @@ class TestAVA(unittest.TestCase):
 
         self.assertEqual(len(d), 2)
         self.assertEqual(len(s), 2)
-        self.assertEqual(sorted(d.keys()), sorted([ava1_a, ava2_a]))
+        self.assertEqual(sorted(d), sorted([ava1_a, ava2_a]))
         self.assertEqual(sorted(s), sorted([ava1_a, ava2_a]))
 
         self.assertTrue(ava1_a in d)
@@ -1119,7 +1119,7 @@ class TestDN(unittest.TestCase):
 
         self.assertEqual(len(d), 2)
         self.assertEqual(len(s), 2)
-        self.assertEqual(sorted(d.keys()), sorted([dn1_a, dn2_a]))
+        self.assertEqual(sorted(d), sorted([dn1_a, dn2_a]))
         self.assertEqual(sorted(s), sorted([dn1_a, dn2_a]))
 
         self.assertTrue(dn1_a in d)

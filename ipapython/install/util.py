@@ -8,6 +8,8 @@ Utilities.
 
 import sys
 
+import six
+
 
 def raise_exc_info(exc_info):
     """
@@ -155,7 +157,7 @@ class InnerClassMeta(type):
         except KeyError:
             cls, name, value = None, None, None
             for cls in obj_type.__mro__:
-                for name, value in cls.__dict__.iteritems():
+                for name, value in six.iteritems(cls.__dict__):
                     if value is self:
                         break
                 if value is self:

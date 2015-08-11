@@ -72,8 +72,7 @@ api.finalize()
 ra = api.Backend.ra
 
 def assert_equal(trial, reference):
-    keys = reference.keys()
-    keys.sort()
+    keys = sorted(reference)
     for key in keys:
         reference_val = reference[key]
         trial_val = trial[key]

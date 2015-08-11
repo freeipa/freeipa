@@ -468,7 +468,7 @@ def get_api(**kw):
     home = TempHome()
     api = ipalib.create_api(mode='unit_test')
     api.env.in_tree = True
-    for (key, value) in kw.iteritems():
+    for (key, value) in kw.items():
         api.env[key] = value
     return (api, home)
 
@@ -483,7 +483,7 @@ def create_test_api(**kw):
     home = TempHome()
     api = ipalib.create_api(mode='unit_test')
     api.env.in_tree = True
-    for (key, value) in kw.iteritems():
+    for (key, value) in kw.items():
         api.env[key] = value
     return (api, home)
 

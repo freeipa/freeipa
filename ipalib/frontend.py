@@ -614,7 +614,7 @@ class Command(HasParam):
         {'last': u'DOE', 'first': u'john'}
         """
         return dict(
-            (k, self.params[k].normalize(v)) for (k, v) in kw.iteritems()
+            (k, self.params[k].normalize(v)) for (k, v) in kw.items()
         )
 
     def convert(self, **kw):
@@ -634,7 +634,7 @@ class Command(HasParam):
         {'two': u'2', 'one': 1}
         """
         return dict(
-            (k, self.params[k].convert(v)) for (k, v) in kw.iteritems()
+            (k, self.params[k].convert(v)) for (k, v) in kw.items()
         )
 
     def __convert_iter(self, kw):

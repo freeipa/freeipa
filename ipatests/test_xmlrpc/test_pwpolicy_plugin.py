@@ -30,7 +30,6 @@ from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (XMLRPC_test, assert_attr_equal,
                                               Declarative)
 
-
 class test_pwpolicy(XMLRPC_test):
     """
     Test the `pwpolicy` plugin.
@@ -195,7 +194,7 @@ class test_pwpolicy(XMLRPC_test):
         # Test that returned values match the arguments
         # Only test the second and third results; the first one was modified
         for entry, expected in (result[1], self.kw2), (result[2], self.kw3):
-            for name, value in expected.iteritems():
+            for name, value in expected.items():
                 assert_attr_equal(entry, name, str(value))
 
     def test_c_pwpolicy_find_pkey_only(self):

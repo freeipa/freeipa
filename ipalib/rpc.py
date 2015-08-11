@@ -159,7 +159,7 @@ def xml_wrap(value, version):
         return tuple(xml_wrap(v, version) for v in value)
     if isinstance(value, dict):
         return dict(
-            (k, xml_wrap(v, version)) for (k, v) in value.iteritems()
+            (k, xml_wrap(v, version)) for (k, v) in value.items()
         )
     if type(value) is str:
         return Binary(value)
@@ -213,7 +213,7 @@ def xml_unwrap(value, encoding='UTF-8'):
             return DNSName(value['__dns_name__'])
         else:
             return dict(
-                (k, xml_unwrap(v, encoding)) for (k, v) in value.iteritems()
+                (k, xml_unwrap(v, encoding)) for (k, v) in value.items()
             )
     if type(value) is str:
         return value.decode(encoding)

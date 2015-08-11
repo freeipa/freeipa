@@ -123,7 +123,7 @@ class ModifyLDIF(ldif.LDIFParser):
 
     def handle(self, dn, entry):
         if dn in self.remove_dict:
-            for name, value in self.remove_dict[dn].iteritems():
+            for name, value in self.remove_dict[dn].items():
                 if value is None:
                     attribute = []
                 else:
@@ -135,7 +135,7 @@ class ModifyLDIF(ldif.LDIFParser):
                     del entry[name]
 
         if dn in self.add_dict:
-            for name, value in self.add_dict[dn].iteritems():
+            for name, value in self.add_dict[dn].items():
                 attribute = entry.setdefault(name, [])
                 attribute.extend([v for v in value if v not in attribute])
 

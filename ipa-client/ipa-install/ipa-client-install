@@ -1427,7 +1427,7 @@ def configure_sshd_config(fstore, options):
 
         for candidate in candidates:
             args = ['sshd', '-t', '-f', paths.DEV_NULL]
-            for item in candidate.iteritems():
+            for item in candidate.items():
                 args.append('-o')
                 args.append('%s=%s' % item)
 

@@ -23,7 +23,6 @@ import sys
 import os
 
 from ipapython.ipa_log_manager import *
-
 from ipaserver.install import (replication, installutils, bindinstance,
     cainstance, certs)
 from ipalib import api, errors
@@ -112,7 +111,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
         conn.unbind()
 
     if not replica:
-        for k, p in peers.iteritems():
+        for k, p in peers.items():
             print '%s: %s' % (k, p[0])
         return
 

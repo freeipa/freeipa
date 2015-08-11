@@ -145,7 +145,7 @@ class ConfigureTool(admintool.AdminTool):
                 help="unattended (un)installation never prompts the user",
             )
 
-        for group, opt_group in groups.iteritems():
+        for group, opt_group in groups.items():
             parser.add_option_group(opt_group)
 
         super(ConfigureTool, cls).add_options(parser,

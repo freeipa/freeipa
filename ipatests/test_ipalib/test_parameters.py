@@ -699,7 +699,7 @@ class test_Data(ClassChecker):
         ]
         for kw in permutations:
             o = self.cls('my_data', **kw)
-            for (key, value) in kw.iteritems():
+            for (key, value) in kw.items():
                 assert getattr(o, key) == value
             e = raises(ValueError, self.cls, 'my_data', length=5, **kw)
             assert str(e) == \
@@ -760,7 +760,7 @@ class test_Bytes(ClassChecker):
             assert len(o.class_rules) == len(kw)
             assert len(o.rules) == 0
             assert len(o.all_rules) == len(kw)
-            for (key, value) in kw.iteritems():
+            for (key, value) in kw.items():
                 assert getattr(o, key) == value
             e = raises(ValueError, self.cls, 'my_bytes', length=5, **kw)
             assert str(e) == \

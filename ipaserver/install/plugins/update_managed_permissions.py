@@ -399,10 +399,10 @@ class update_managed_permissions(Updater):
         """
         for obj in sorted(self.api.Object(), key=lambda o: o.name):
             managed_permissions = getattr(obj, 'managed_permissions', {})
-            for name, template in sorted(managed_permissions.iteritems()):
+            for name, template in sorted(managed_permissions.items()):
                 yield name, template, obj
 
-        for name, template in sorted(NONOBJECT_PERMISSIONS.iteritems()):
+        for name, template in sorted(NONOBJECT_PERMISSIONS.items()):
             yield name, template, None
 
 

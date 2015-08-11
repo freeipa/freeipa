@@ -183,12 +183,12 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
             peers[ent.single_value['cn']] = config_string.split(':')
 
     if not replica:
-        for k, p in peers.iteritems():
+        for k, p in peers.items():
             print '%s: %s' % (k, p[0])
         return
 
     # ok we are being ask for info about a specific replica
-    for k, p in peers.iteritems():
+    for k, p in peers.items():
         if replica == k:
             is_replica = True
             if p[0] == 'winsync':

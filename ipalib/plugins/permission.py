@@ -1148,7 +1148,7 @@ class permission_mod(baseldap.LDAPUpdate):
         # Since `entry` only contains the attributes we are currently changing,
         # it cannot be used directly to generate an ACI.
         # First we need to copy the original data into it.
-        for key, value in old_entry.iteritems():
+        for key, value in old_entry.items():
             if (key not in options and
                     key != 'cn' and
                     key not in self.obj.attribute_members):
@@ -1355,7 +1355,7 @@ class permission_find(baseldap.LDAPSearch):
 
         for entry in entries:
             if options.get('pkey_only'):
-                for opt_name in entry.keys():
+                for opt_name in list(entry):
                     if opt_name != self.obj.primary_key.name:
                         del entry[opt_name]
             else:

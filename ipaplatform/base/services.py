@@ -28,6 +28,8 @@ import json
 import time
 import collections
 
+import six
+
 import ipalib
 from ipapython import ipautil
 from ipaplatform.paths import paths
@@ -78,7 +80,7 @@ class KnownServices(collections.Mapping):
         return len(self.__d)
 
     def __call__(self):
-        return self.__d.itervalues()
+        return six.itervalues(self.__d)
 
     def __getattr__(self, name):
         try:

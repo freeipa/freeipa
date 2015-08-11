@@ -47,14 +47,14 @@ class PrivateExceptionTester(object):
     klass = property(__get_klass)
 
     def new(self, **kw):
-        for (key, value) in kw.iteritems():
+        for (key, value) in kw.items():
             assert not hasattr(self.klass, key), key
         inst = self.klass(**kw)
         assert isinstance(inst, StandardError)
         assert isinstance(inst, errors.PrivateError)
         assert isinstance(inst, self.klass)
         assert not isinstance(inst, errors.PublicError)
-        for (key, value) in kw.iteritems():
+        for (key, value) in kw.items():
             assert getattr(inst, key) is value
         assert str(inst) == self.klass.format % kw
         assert inst.message == str(inst)
@@ -212,14 +212,14 @@ class PublicExceptionTester(object):
         assert str(e) == TYPE_ERROR % ('message', unicode, 'The message', str)
 
         # Test the instance:
-        for (key, value) in kw.iteritems():
+        for (key, value) in kw.items():
             assert not hasattr(self.klass, key), key
         inst = self.klass(format=format, message=message, **kw)
         for required_class in self.required_classes:
             assert isinstance(inst, required_class)
         assert isinstance(inst, self.klass)
         assert not isinstance(inst, errors.PrivateError)
-        for (key, value) in kw.iteritems():
+        for (key, value) in kw.items():
             assert getattr(inst, key) is value
         return inst
 

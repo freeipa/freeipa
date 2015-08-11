@@ -24,6 +24,7 @@ import sys
 
 import nose
 import pytest
+import six
 
 from ipapython import ipautil
 
@@ -132,9 +133,13 @@ class TestCIDict(object):
         self.cidict.clear()
         nose.tools.assert_equal(0, len(self.cidict))
         assert self.cidict == {}
-        assert self.cidict.keys() == []
-        assert self.cidict.values() == []
-        assert self.cidict.items() == []
+        assert list(self.cidict) == []
+        assert list(self.cidict.values()) == []
+        assert list(self.cidict.items()) == []
+        if six.PY2:
+            assert self.cidict.keys() == []
+            assert self.cidict.values() == []
+            assert self.cidict.items() == []
         assert self.cidict._keys == {}
 
     def test_copy(self):
@@ -145,7 +150,7 @@ class TestCIDict(object):
         assert "key1" in copy
         nose.tools.assert_equal("val1", copy["Key1"])
 
-    @pytest.mark.skipif(sys.version_info >= (3, 0), reason="Python 2 only")
+    @pytest.mark.skipif(not six.PY2, reason="Python 2 only")
     def test_haskey(self):
         assert self.cidict.has_key("KEY1")
         assert self.cidict.has_key("key2")
@@ -161,15 +166,15 @@ class TestCIDict(object):
         assert "Key4" not in self.cidict
 
     def test_items(self):
-        items = self.cidict.items()
+        items = list(self.cidict.items())
         nose.tools.assert_equal(3, len(items))
         items_set = set(items)
         assert ("Key1", "val1") in items_set
         assert ("key2", "val2") in items_set
         assert ("KEY3", "VAL3") in items_set
 
-        assert self.cidict.items() == list(self.cidict.iteritems()) == zip(
-            self.cidict.iterkeys(), self.cidict.itervalues())
+        assert list(self.cidict.items()) == list(self.cidict.iteritems()) == zip(
+            self.cidict.keys(), self.cidict.values())
 
     def test_iter(self):
         items = []
@@ -207,24 +212,24 @@ class TestCIDict(object):
         assert "VAL3" in values_set
 
     def test_keys(self):
-        keys = self.cidict.keys()
+        keys = list(self.cidict.keys())
         nose.tools.assert_equal(3, len(keys))
         keys_set = set(keys)
         assert "Key1" in keys_set
         assert "key2" in keys_set
         assert "KEY3" in keys_set
 
-        assert self.cidict.keys() == list(self.cidict.iterkeys())
+        assert list(self.cidict.keys()) == list(self.cidict.iterkeys())
 
     def test_values(self):
-        values = self.cidict.values()
+        values = list(self.cidict.values())
         nose.tools.assert_equal(3, len(values))
         values_set = set(values)
         assert "val1" in values_set
         assert "val2" in values_set
         assert "VAL3" in values_set
 
-        assert self.cidict.values() == list(self.cidict.itervalues())
+        assert list(self.cidict.values()) == list(self.cidict.itervalues())
 
     def test_update(self):
         newdict = { "KEY2": "newval2",
@@ -232,7 +237,7 @@ class TestCIDict(object):
         self.cidict.update(newdict)
         nose.tools.assert_equal(4, len(self.cidict))
 
-        items = self.cidict.items()
+        items = list(self.cidict.items())
         nose.tools.assert_equal(4, len(items))
         items_set = set(items)
         assert ("Key1", "val1") in items_set

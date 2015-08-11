@@ -764,9 +764,8 @@ class help(frontend.Local):
                 self._builtins.append(c)
 
         # compute maximum topic length
-        self._mtl = max(
-            len(s) for s in (self._topics.keys() + [c.name for c in self._builtins])
-        )
+        topics = list(self._topics) + [c.name for c in self._builtins]
+        self._mtl = max(len(s) for s in topics)
 
         super(help, self)._on_finalize()
 
@@ -1126,7 +1125,7 @@ class cli(backend.Executioner):
         """
         Decode param values if appropriate.
         """
-        for (key, value) in kw.iteritems():
+        for (key, value) in kw.items():
             yield (key, self.Backend.textui.decode(value))
 
     def build_parser(self, cmd):

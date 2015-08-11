@@ -122,7 +122,7 @@ class Tracker(object):
 
         args_repr = ', '.join(
             [repr(a) for a in args] +
-            ['%s=%r' % item for item in options.items()])
+            ['%s=%r' % item for item in list(options.items())])
         try:
             result = cmd(*args, **options)
         except Exception as e:

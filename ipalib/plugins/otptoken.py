@@ -161,7 +161,7 @@ class otptoken(LDAPObject):
             doc=_('Type of the token'),
             default=u'totp',
             autofill=True,
-            values=tuple(TOKEN_TYPES.keys() + [x.upper() for x in TOKEN_TYPES]),
+            values=tuple(list(TOKEN_TYPES) + [x.upper() for x in TOKEN_TYPES]),
             flags=('virtual_attribute', 'no_update'),
         ),
         Str('description?',

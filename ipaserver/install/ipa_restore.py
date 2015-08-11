@@ -104,7 +104,7 @@ class RemoveRUVParser(ldif.LDIFParser):
         objectclass = None
         nsuniqueid = None
 
-        for name, value in entry.iteritems():
+        for name, value in entry.items():
             name = name.lower()
             if name == 'objectclass':
                 objectclass = [x.lower() for x in value]

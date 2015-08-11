@@ -361,7 +361,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
     def set_selinux_booleans(self, required_settings, backup_func=None):
         def get_setsebool_args(changes):
             args = [paths.SETSEBOOL, "-P"]
-            args.extend(["%s=%s" % update for update in changes.iteritems()])
+            args.extend(["%s=%s" % update for update in changes.items()])
 
             return args
 
@@ -370,7 +370,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         updated_vars = {}
         failed_vars = {}
-        for setting, state in required_settings.iteritems():
+        for setting, state in required_settings.items():
             if state is None:
                 continue
             try:

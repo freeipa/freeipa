@@ -211,7 +211,7 @@ class test_LDAPEntry(object):
     def test_popitem(self):
         e = self.entry
         assert e.popitem() == ('cn', self.cn1)
-        e.keys() == []
+        list(e) == []
 
     def test_setdefault(self):
         e = self.entry

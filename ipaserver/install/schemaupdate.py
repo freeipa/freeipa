@@ -56,7 +56,7 @@ def _get_oid_dependency_order(schema, cls):
     # remove top_node from tree, it breaks ordering
     # we don't need this, tree from file is not consistent
     del tree[top_node]
-    unordered_oids = tree.keys()
+    unordered_oids = set(tree)
 
     # split into two groups, parents and child nodes, and iterate until
     # child nodes are not empty

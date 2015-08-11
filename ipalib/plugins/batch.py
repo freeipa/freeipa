@@ -97,7 +97,7 @@ class batch(Command):
                 if name not in self.Command:
                     raise errors.CommandError(name=name)
                 a, kw = arg['params']
-                newkw = dict((str(k), v) for k, v in kw.iteritems())
+                newkw = dict((str(k), v) for k, v in kw.items())
                 params = api.Command[name].args_options_2_params(*a, **newkw)
                 newkw.setdefault('version', options['version'])
 

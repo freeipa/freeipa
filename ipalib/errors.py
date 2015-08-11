@@ -117,7 +117,7 @@ class PrivateError(StandardError):
     def __init__(self, **kw):
         self.msg = self.format % kw
         self.kw = kw
-        for (key, value) in kw.iteritems():
+        for (key, value) in kw.items():
             assert not hasattr(self, key), 'conflicting kwarg %s.%s = %r' % (
                 self.__class__.__name__, key, value,
             )

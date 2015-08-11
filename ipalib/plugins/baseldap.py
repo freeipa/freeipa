@@ -232,7 +232,7 @@ def entry_from_entry(entry, newentry):
     """
 
     # Wipe out the current data
-    for e in entry.keys():
+    for e in list(entry):
         del entry[e]
 
     # Re-populate it with new wentry
@@ -242,7 +242,7 @@ def entry_from_entry(entry, newentry):
 def entry_to_dict(entry, **options):
     if options.get('raw', False):
         result = {}
-        for attr in entry.iterkeys():
+        for attr in entry:
             if attr.lower() == 'attributelevelrights':
                 value = entry[attr]
             elif entry.conn.get_attribute_type(attr) is str:
@@ -256,7 +256,7 @@ def entry_to_dict(entry, **options):
                         pass
             result[attr] = value
     else:
-        result = dict((k.lower(), v) for (k, v) in entry.iteritems())
+        result = dict((k.lower(), v) for (k, v) in entry.items())
     if options.get('all', False):
         result['dn'] = entry.dn
     return result
@@ -793,10 +793,10 @@ class LDAPObject(Object):
         attrs = self.api.Backend.ldap2.schema.attribute_types(objectclasses)
         attrlist = []
         # Go through the MUST first
-        for (oid, attr) in attrs[0].iteritems():
+        for (oid, attr) in attrs[0].items():
             attrlist.append(attr.names[0].lower())
         # And now the MAY
-        for (oid, attr) in attrs[1].iteritems():
+        for (oid, attr) in attrs[1].items():
             attrlist.append(attr.names[0].lower())
         json_dict['aciattrs'] = attrlist
         attrlist.sort()
@@ -809,7 +809,7 @@ class LDAPObject(Object):
 # addattr can cause parameters to have more than one value even if not defined
 # as multivalue, make sure this isn't the case
 def _check_single_value_attrs(params, entry_attrs):
-    for (a, v) in entry_attrs.iteritems():
+    for (a, v) in entry_attrs.items():
         if isinstance(v, (list, tuple)) and len(v) > 1:
             if a in params and not params[a].multivalue:
                 raise errors.OnlyOneValueAllowed(attr=a)
@@ -817,7 +817,7 @@ def _check_single_value_attrs(params, entry_attrs):
 # setattr or --option='' can cause parameters to be empty that are otherwise
 # required, make sure we enforce that.
 def _check_empty_attrs(params, entry_attrs):
-    for (a, v) in entry_attrs.iteritems():
+    for (a, v) in entry_attrs.items():
         if v is None or (isinstance(v, six.string_types) and len(v) == 0):
             if a in params and params[a].required:
                 raise errors.RequirementError(name=a)
@@ -839,7 +839,7 @@ def _check_limit_object_class(attributes, attrs, allow_only):
         return
     limitattrs = deepcopy(attrs)
     # Go through the MUST first
-    for (oid, attr) in attributes[0].iteritems():
+    for (oid, attr) in attributes[0].items():
         if attr.names[0].lower() in limitattrs:
             if not allow_only:
                 raise errors.ObjectclassViolation(
@@ -847,7 +847,7 @@ def _check_limit_object_class(attributes, attrs, allow_only):
                         attribute=attr.names[0].lower()))
             limitattrs.remove(attr.names[0].lower())
     # And now the MAY
-    for (oid, attr) in attributes[1].iteritems():
+    for (oid, attr) in attributes[1].items():
         if attr.names[0].lower() in limitattrs:
             if not allow_only:
                 raise errors.ObjectclassViolation(
@@ -1015,9 +1015,9 @@ last, after all sets and adds."""),
         setdict = self._convert_2_dict(ldap, options.get('setattr', []))
         deldict = self._convert_2_dict(ldap, options.get('delattr', []))
 
-        setattrs = set(setdict.keys())
-        addattrs = set(adddict.keys())
-        delattrs = set(deldict.keys())
+        setattrs = set(setdict)
+        addattrs = set(adddict)
+        delattrs = set(deldict)
 
         if dn is None:
             direct_add = addattrs
@@ -1029,7 +1029,7 @@ last, after all sets and adds."""),
             direct_del = setattrs & delattrs
             needldapattrs = list((addattrs | delattrs) - setattrs)
 
-        for attr, val in setdict.iteritems():
+        for attr, val in setdict.items():
             entry_attrs[attr] = val
 
         for attr in direct_add:
@@ -1063,7 +1063,7 @@ last, after all sets and adds."""),
             # Provide a nice error message when user tries to delete an
             # attribute that does not exist on the entry (and user is not
             # adding it)
-            names = set(n.lower() for n in old_entry.keys())
+            names = set(n.lower() for n in old_entry)
             del_nonexisting = delattrs - (names | setattrs | addattrs)
             if del_nonexisting:
                 raise errors.ValidationError(name=del_nonexisting.pop(),
@@ -1229,8 +1229,8 @@ class LDAPCreate(BaseLDAPCommand, crud.Create):
                 *keys, **options)
 
         _check_single_value_attrs(self.params, entry_attrs)
-        _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.limit_object_classes), entry_attrs.keys(), allow_only=True)
-        _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.disallow_object_classes), entry_attrs.keys(), allow_only=False)
+        _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.limit_object_classes), list(entry_attrs), allow_only=True)
+        _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.disallow_object_classes), list(entry_attrs), allow_only=False)
 
         try:
             self._exc_wrapper(keys, options, ldap.add_entry)(entry_attrs)
@@ -1469,8 +1469,8 @@ class LDAPUpdate(LDAPQuery, crud.Update):
                 self, ldap, entry_attrs.dn, entry_attrs, attrs_list,
                 *keys, **options)
 
-        _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.limit_object_classes), entry_attrs.keys(), allow_only=True)
-        _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.disallow_object_classes), entry_attrs.keys(), allow_only=False)
+        _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.limit_object_classes), list(entry_attrs), allow_only=True)
+        _check_limit_object_class(self.api.Backend.ldap2.schema.attribute_types(self.obj.disallow_object_classes), list(entry_attrs), allow_only=False)
 
         rdnupdate = False
         try:
@@ -1505,7 +1505,7 @@ class LDAPUpdate(LDAPQuery, crud.Update):
             # mean an error occurred, just that there were no other updates to
             # perform.
             update = self._exc_wrapper(keys, options, ldap.get_entry)(
-                entry_attrs.dn, entry_attrs.keys())
+                entry_attrs.dn, list(entry_attrs))
             update.update(entry_attrs)
 
             self._exc_wrapper(keys, options, ldap.update_entry)(update)
@@ -1727,7 +1727,7 @@ class LDAPAddMember(LDAPModMember):
             assert isinstance(dn, DN)
 
         completed = 0
-        for (attr, objs) in member_dns.iteritems():
+        for (attr, objs) in member_dns.items():
             for ldap_obj_name in objs:
                 for m_dn in member_dns[attr][ldap_obj_name]:
                     assert isinstance(m_dn, DN)
@@ -1828,8 +1828,8 @@ class LDAPRemoveMember(LDAPModMember):
             assert isinstance(dn, DN)
 
         completed = 0
-        for (attr, objs) in member_dns.iteritems():
-            for ldap_obj_name, m_dns in objs.iteritems():
+        for (attr, objs) in member_dns.items():
+            for ldap_obj_name, m_dns in objs.items():
                 for m_dn in m_dns:
                     assert isinstance(m_dn, DN)
                     if not m_dn:
@@ -2376,7 +2376,7 @@ class LDAPModAttribute(LDAPQuery):
 
         try:
             update = self._exc_wrapper(keys, options, ldap.get_entry)(
-                entry_attrs.dn, entry_attrs.keys())
+                entry_attrs.dn, list(entry_attrs))
             self._update_attrs(update, entry_attrs)
 
             self._exc_wrapper(keys, options, ldap.update_entry)(update)
@@ -2425,7 +2425,7 @@ class LDAPAddAttribute(LDAPModAttribute):
     msg_summary = _('added attribute value to entry %(value)')
 
     def _update_attrs(self, update, entry_attrs):
-        for name, value in entry_attrs.iteritems():
+        for name, value in entry_attrs.items():
             old_value = set(update.get(name, []))
             value_to_add = set(value)
 
@@ -2442,7 +2442,7 @@ class LDAPRemoveAttribute(LDAPModAttribute):
     msg_summary = _('removed attribute values from entry %(value)')
 
     def _update_attrs(self, update, entry_attrs):
-        for name, value in entry_attrs.iteritems():
+        for name, value in entry_attrs.items():
             old_value = set(update.get(name, []))
             value_to_remove = set(value)
 

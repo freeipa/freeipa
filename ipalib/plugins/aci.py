@@ -223,7 +223,7 @@ def _make_aci(ldap, current, aciname, kw):
     if 'aciprefix' not in kw:
         raise errors.ValidationError(name='aciprefix', error=_('ACI prefix is required'))
 
-    if sum(valid.itervalues()) == 0:
+    if sum(valid.values()) == 0:
         raise errors.ValidationError(name='target', error=_('at least one of: type, filter, subtree, targetgroup, attrs or memberof are required'))
 
     if valid['filter'] + valid['memberof'] > 1:

@@ -22,6 +22,7 @@
 import base64
 import os
 
+
 from ipalib import api, errors, util
 from ipalib import Str, Flag, Bytes, StrEnum, Bool
 from ipalib.plugable import Registry
@@ -315,7 +316,7 @@ def check_required_principal(ldap, hostname, service):
 def update_krbticketflags(ldap, entry_attrs, attrs_list, options, existing):
     add = remove = 0
 
-    for (name, value) in _ticket_flags_map.iteritems():
+    for (name, value) in _ticket_flags_map.items():
         if name not in options:
             continue
         if options[name]:
@@ -356,7 +357,7 @@ def set_kerberos_attrs(entry_attrs, options):
 
     all_opt = options.get('all', False)
 
-    for (name, value) in _ticket_flags_map.iteritems():
+    for (name, value) in _ticket_flags_map.items():
         if name in options or all_opt:
             entry_attrs[name] = bool(ticket_flags & value)
 

@@ -639,7 +639,7 @@ class stageuser_activate(LDAPQuery):
             )
         except errors.NotFound:
             self.obj.handle_not_found(*args)
-        entry_attrs = dict((k.lower(), v) for (k, v) in entry_attrs.iteritems())
+        entry_attrs = dict((k.lower(), v) for (k, v) in entry_attrs.items())
 
         # Check it does not exist an active entry with the same RDN
         active_dn = DN(staging_dn[0], api.env.container_user, api.env.basedn)
@@ -660,7 +660,7 @@ class stageuser_activate(LDAPQuery):
         # Time to build the new entry
         result_entry = {'dn' : active_dn}
         new_entry_attrs = self.__dict_new_entry()
-        for (attr, values) in entry_attrs.iteritems():
+        for (attr, values) in entry_attrs.items():
             self.__merge_values(args, options, entry_attrs, new_entry_attrs, attr)
             result_entry[attr] = values
 
@@ -670,7 +670,7 @@ class stageuser_activate(LDAPQuery):
             if result_entry['description'] == NO_UPG_MAGIC:
                 del result_entry['description']
 
-        for (k,v) in new_entry_attrs.iteritems():
+        for (k, v) in new_entry_attrs.items():
             self.log.debug("new entry: k=%r and v=%r)"  % (k, v))
 
         self._build_new_entry(ldap, staging_dn, entry_attrs, new_entry_attrs)
