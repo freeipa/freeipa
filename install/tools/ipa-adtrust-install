@@ -396,7 +396,7 @@ def main():
             # Search only masters which have support for domain levels
             # because only these masters will have SSSD recent enough to support AD trust agents
             (entries_m, truncated) = smb.admin_conn.find_entries(
-                filter="(&(objectclass=ipaSupportedDomainLevelConfig)(!(ipaMaxDomainLevel=0)))",
+                filter="(&(objectclass=ipaSupportedDomainLevelConfig)(ipaMaxDomainLevel=*)(ipaMinDomainLevel=*))",
                 base_dn=masters_dn, attrs_list=['cn'], scope=ldap.SCOPE_ONELEVEL)
         except errors.NotFound:
             pass
