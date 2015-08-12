@@ -107,17 +107,17 @@ class ACI:
         for token in lexer:
             # We should have the form (a = b)(a = b)...
             if token == "(":
-                var = lexer.next().strip()
-                operator = lexer.next()
+                var = next(lexer).strip()
+                operator = next(lexer)
                 if operator != "=" and operator != "!=":
                     # Peek at the next char before giving up
-                    operator = operator + lexer.next()
+                    operator = operator + next(lexer)
                     if operator != "=" and operator != "!=":
                         raise SyntaxError("No operator in target, got '%s'" % operator)
                 op = operator
-                val = lexer.next().strip()
+                val = next(lexer).strip()
                 val = self._remove_quotes(val)
-                end = lexer.next()
+                end = next(lexer)
                 if end != ")":
                     raise SyntaxError('No end parenthesis in target, got %s' % end)
 

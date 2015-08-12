@@ -319,14 +319,14 @@ class Configurable(object):
     def run_until_executing(self, gen):
         while self.__state != _EXECUTE_RUNNING:
             try:
-                yield gen.next()
+                yield next(gen)
             except StopIteration:
                 break
 
     def __runner(self, pending_state, running_state):
         self.__transition(pending_state, running_state)
 
-        step = self.__gen.next
+        step = lambda: next(self.__gen)
         while True:
             try:
                 step()
@@ -356,7 +356,7 @@ class Configurable(object):
                 exc_info = sys.exc_info()
                 step = lambda: self.__gen.throw(*exc_info)
             else:
-                step = self.__gen.next
+                step = lambda: next(self.__gen)
 
     def _handle_exception(self, exc_info):
         assert not hasattr(super(Configurable, self), '_handle_exception')
@@ -498,7 +498,7 @@ class Composite(Configurable):
             new_validate = []
             for child, validator in validate:
                 try:
-                    validator.next()
+                    next(validator)
                 except StopIteration:
                     if child.done():
                         self.__components.remove(child)
@@ -520,7 +520,7 @@ class Composite(Configurable):
             new_execute = []
             for child, executor in execute:
                 try:
-                    executor.next()
+                    next(executor)
                 except StopIteration:
                     pass
                 else:
