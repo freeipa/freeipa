@@ -217,7 +217,7 @@ class IPAChangeConf:
                     break
 
             if 'delim' not in o:
-                raise SyntaxError, 'Syntax Error: Unknown line format'
+                raise SyntaxError('Syntax Error: Unknown line format')
 
         o.update({'name':parts[0].strip(), 'type':'option', 'value':parts[1].rstrip()})
         return o

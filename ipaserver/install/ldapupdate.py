@@ -369,19 +369,19 @@ class LDAPUpdate:
             items = logical_line.split(':', 2)
 
             if len(items) == 0:
-                raise BadSyntax, "Bad formatting on line %s:%d: %s" % (data_source_name, lcount, logical_line)
+                raise BadSyntax("Bad formatting on line %s:%d: %s" % (data_source_name, lcount, logical_line))
 
             action = items[0].strip().lower()
 
             if action not in self.action_keywords:
-                raise BadSyntax, "Unknown update action '%s', data source=%s" % (action, data_source_name)
+                raise BadSyntax("Unknown update action '%s', data source=%s" % (action, data_source_name))
 
             if action == 'deleteentry':
                 new_value = None
                 disposition = "deleteentry"
             else:
                 if len(items) != 3:
-                    raise BadSyntax, "Bad formatting on line %s:%d: %s" % (data_source_name, lcount, logical_line)
+                    raise BadSyntax("Bad formatting on line %s:%d: %s" % (data_source_name, lcount, logical_line))
 
                 attr = items[1].strip()
                 # do not strip here, we need detect '::' due to base64 encoded
@@ -497,7 +497,7 @@ class LDAPUpdate:
             else:
                 # Process items belonging to dn
                 if dn is None:
-                    raise BadSyntax, "dn is not defined in the update, data source=%s" % (data_source_name)
+                    raise BadSyntax("dn is not defined in the update, data source=%s" % (data_source_name))
 
                 # If continuation line, append to existing logical line & continue,
                 # otherwise flush the previous item.
@@ -736,7 +736,7 @@ class LDAPUpdate:
             e = self._get_entry(new_entry.dn)
             if len(e) > 1:
                 # we should only ever get back one entry
-                raise BadSyntax, "More than 1 entry returned on a dn search!? %s" % new_entry.dn
+                raise BadSyntax("More than 1 entry returned on a dn search!? %s" % new_entry.dn)
             entry = e[0]
             found = True
             self.debug("Updating existing entry: %s", entry.dn)

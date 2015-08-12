@@ -135,15 +135,15 @@ class ACI:
     def _parse_acistr(self, acistr):
         vstart = acistr.find('version 3.0')
         if vstart < 0:
-            raise SyntaxError, "malformed ACI, unable to find version %s" % acistr
+            raise SyntaxError("malformed ACI, unable to find version %s" % acistr)
         acimatch = ACIPat.match(acistr[vstart-1:])
         if not acimatch or len(acimatch.groups()) < 2:
-            raise SyntaxError, "malformed ACI, match for version and bind rule failed %s" % acistr
+            raise SyntaxError("malformed ACI, match for version and bind rule failed %s" % acistr)
         self._parse_target(acistr[:vstart-1])
         self.name = acimatch.group(1)
         bindperms = PermPat.match(acimatch.group(2))
         if not bindperms or len(bindperms.groups()) < 3:
-            raise SyntaxError, "malformed ACI, permissions match failed %s" % acistr
+            raise SyntaxError("malformed ACI, permissions match failed %s" % acistr)
         self.action = bindperms.group(1)
         self.permissions = bindperms.group(2).replace(' ','').split(',')
         self.set_bindrule(bindperms.group(3))
@@ -155,20 +155,20 @@ class ACI:
            returns True if valid
         """
         if not type(self.permissions) in (tuple, list):
-            raise SyntaxError, "permissions must be a list"
+            raise SyntaxError("permissions must be a list")
         for p in self.permissions:
             if not p.lower() in PERMISSIONS:
-                raise SyntaxError, "invalid permission: '%s'" % p
+                raise SyntaxError("invalid permission: '%s'" % p)
         if not self.name:
-            raise SyntaxError, "name must be set"
+            raise SyntaxError("name must be set")
         if not isinstance(self.name, six.string_types):
-            raise SyntaxError, "name must be a string"
+            raise SyntaxError("name must be a string")
         if not isinstance(self.target, dict) or len(self.target) == 0:
-            raise SyntaxError, "target must be a non-empty dictionary"
+            raise SyntaxError("target must be a non-empty dictionary")
         if not isinstance(self.bindrule, dict):
-            raise SyntaxError, "bindrule must be a dictionary"
+            raise SyntaxError("bindrule must be a dictionary")
         if not self.bindrule.get('operator') or not self.bindrule.get('keyword') or not self.bindrule.get('expression'):
-            raise SyntaxError, "bindrule is missing a component"
+            raise SyntaxError("bindrule is missing a component")
         return True
 
     def set_target_filter(self, filter, operator="="):
@@ -201,7 +201,7 @@ class ACI:
 
         match = BindPat.match(bindrule)
         if not match or len(match.groups()) < 3:
-            raise SyntaxError, "malformed bind rule"
+            raise SyntaxError("malformed bind rule")
         self.set_bindrule_keyword(match.group(1))
         self.set_bindrule_operator(match.group(2))
         self.set_bindrule_expression(match.group(3).replace('"',''))
