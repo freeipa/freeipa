@@ -10,6 +10,8 @@ import sys
 import abc
 import itertools
 
+import six
+
 from ipapython.ipa_log_manager import root_logger
 
 from . import util
@@ -361,7 +363,7 @@ class Configurable(object):
     def _handle_exception(self, exc_info):
         assert not hasattr(super(Configurable, self), '_handle_exception')
 
-        util.raise_exc_info(exc_info)
+        six.reraise(*exc_info)
 
     def __transition(self, from_state, to_state):
         if self.__state != from_state:

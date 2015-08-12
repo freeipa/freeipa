@@ -11,14 +11,6 @@ import sys
 import six
 
 
-def raise_exc_info(exc_info):
-    """
-    Raise exception from exception info tuple as returned by `sys.exc_info()`.
-    """
-
-    raise exc_info[0], exc_info[1], exc_info[2]
-
-
 class from_(object):
     """
     Wrapper for delegating to a subgenerator.
@@ -86,7 +78,7 @@ def run_generator_with_yield_from(gen):
             exc_info = sys.exc_info()
 
     if exc_info is not None:
-        raise_exc_info(exc_info)
+        six.reraise(*exc_info)
 
 
 class InnerClassMeta(type):
