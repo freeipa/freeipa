@@ -41,7 +41,7 @@ class test_PublicMessage(test_errors.test_PublicError):
 
 class test_PublicMessages(test_errors.BaseMessagesTest):
     message_list = messages.public_messages
-    errno_range = xrange(10000, 19999)
+    errno_range = list(range(10000, 19999))
     required_classes = (UserWarning, messages.PublicMessage)
     texts = messages._texts
 

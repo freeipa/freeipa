@@ -1475,12 +1475,12 @@ class IA5Str(Str):
 
     def _convert_scalar(self, value, index=None):
         if isinstance(value, six.string_types):
-            for i in xrange(len(value)):
-                if ord(value[i]) > 127:
+            for char in value:
+                if ord(char) > 127:
                     raise ConversionError(name=self.get_param_name(),
                         index=index,
                         error=_('The character %(char)r is not allowed.') %
-                            dict(char=value[i],)
+                            dict(char=char,)
                     )
         return super(IA5Str, self)._convert_scalar(value, index)
 

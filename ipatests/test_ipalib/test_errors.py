@@ -369,7 +369,7 @@ class BaseMessagesTest(object):
 
 class test_PublicErrors(object):
     message_list = errors.public_errors
-    errno_range = xrange(900, 5999)
+    errno_range = list(range(900, 5999))
     required_classes = (StandardError, errors.PublicError)
     texts = errors._texts
 

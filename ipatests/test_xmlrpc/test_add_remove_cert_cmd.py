@@ -88,13 +88,13 @@ class CertManipCmdTestBase(XMLRPC_test):
         # list of certificates to add to entry
         cls.certs = [
             get_testcert(DN(('CN', cls.entity_subject)), cls.entity_principal)
-            for i in xrange(3)
+            for i in range(3)
         ]
 
         # list of certificates for testing of removal of non-existent certs
         cls.nonexistent_certs = [
             get_testcert(DN(('CN', cls.entity_subject)), cls.entity_principal)
-            for j in xrange(2)
+            for j in range(2)
             ]
 
         # cert subset to remove from entry

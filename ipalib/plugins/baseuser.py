@@ -427,16 +427,16 @@ class baseuser(LDAPObject):
             manager = [manager]
         try:
             container_dn = DN(container, api.env.basedn)
-            for m in xrange(len(manager)):
-                if isinstance(manager[m], DN) and manager[m].endswith(container_dn):
+            for i, mgr in enumerate(manager):
+                if isinstance(mgr, DN) and mgr.endswith(container_dn):
                     continue
                 entry_attrs = self.backend.find_entry_by_attr(
-                        self.primary_key.name, manager[m], self.object_class, [''],
+                        self.primary_key.name, mgr, self.object_class, [''],
                         container_dn
                     )
-                manager[m] = entry_attrs.dn
+                manager[i] = entry_attrs.dn
         except errors.NotFound:
-            raise errors.NotFound(reason=_('manager %(manager)s not found') % dict(manager=manager[m]))
+            raise errors.NotFound(reason=_('manager %(manager)s not found') % dict(manager=mgr))
 
         return manager
 
@@ -448,8 +448,8 @@ class baseuser(LDAPObject):
              return
 
         if 'manager' in entry_attrs:
-            for m in xrange(len(entry_attrs['manager'])):
-                entry_attrs['manager'][m] = self.get_primary_key_from_dn(entry_attrs['manager'][m])
+            for i, mgr in enumerate(entry_attrs['manager']):
+                entry_attrs['manager'][i] = self.get_primary_key_from_dn(mgr)
 
     def _user_status(self, user, container):
         assert isinstance(user, DN)

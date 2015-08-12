@@ -209,7 +209,7 @@ class test_NameSpace(ClassChecker):
     _cls = base.NameSpace
 
     def new(self, count, sort=True):
-        members = tuple(DummyMember(i) for i in xrange(count, 0, -1))
+        members = tuple(DummyMember(i) for i in range(count, 0, -1))
         assert len(members) == count
         o = self.cls(members, sort=sort)
         return (o, members)
@@ -305,12 +305,12 @@ class test_NameSpace(ClassChecker):
             e = raises(KeyError, o.__getitem__, 'nope')
 
             # Test int indexes:
-            for i in xrange(cnt):
+            for i in range(cnt):
                 assert o[i] is members[i]
             e = raises(IndexError, o.__getitem__, cnt)
 
             # Test negative int indexes:
-            for i in xrange(1, cnt + 1):
+            for i in range(1, cnt + 1):
                 assert o[-i] is members[-i]
             e = raises(IndexError, o.__getitem__, -(cnt + 1))
 

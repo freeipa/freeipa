@@ -31,6 +31,7 @@ import dateutil.parser
 import dateutil.tz
 import nss.nss as nss
 import gssapi
+from six.moves import xrange
 
 from ipapython import admintool
 from ipalib import api, errors
@@ -190,7 +191,7 @@ class PBKDF2KeyDerivation(XMLKeyDerivation):
 
         # Loop through each block adding it to the derived key.
         dk = []
-        for i in xrange(1, blocks + 1):
+        for i in range(1, blocks + 1):
             # Set initial values.
             last = self.salt + struct.pack('>I', i)
             hash = [0] * mac.digest_size
@@ -202,7 +203,7 @@ class PBKDF2KeyDerivation(XMLKeyDerivation):
                 last = tmp.digest()
 
                 # XOR the previous hash with the new hash.
-                for k in xrange(mac.digest_size):
+                for k in range(mac.digest_size):
                     hash[k] ^= ord(last[k])
 
             # Add block to derived key.

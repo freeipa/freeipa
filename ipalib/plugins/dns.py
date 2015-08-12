@@ -1751,7 +1751,7 @@ def _get_auth_zone_ldap(name):
     # Create all possible parent zone names
     search_name = name.make_absolute()
     zone_names = []
-    for i in xrange(len(search_name)):
+    for i, name in enumerate(search_name):
         zone_name_abs = DNSName(search_name[i:]).ToASCII()
         zone_names.append(zone_name_abs)
         # compatibility with IPA < 4.0, zone name can be relative
@@ -1826,7 +1826,7 @@ def _get_longest_match_ns_delegation_ldap(zone, name):
 
     # create list of possible record names
     possible_record_names = [DNSName(relative_record_name[i:]).ToASCII()
-                             for i in xrange(len(relative_record_name))]
+                             for i in range(len(relative_record_name))]
 
     # search filters
     name_filter = ldap.make_filter({'idnsname': [possible_record_names]})

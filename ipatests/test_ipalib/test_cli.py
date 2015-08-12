@@ -91,7 +91,7 @@ class DummyAPI(object):
     Command = property(__get_cmd)
 
     def __cmd_iter(self, cnt):
-        for i in xrange(cnt):
+        for i in range(cnt):
             yield DummyCommand(get_cmd_name(i))
 
     def finalize(self):

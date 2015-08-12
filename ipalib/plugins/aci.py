@@ -322,10 +322,8 @@ def _aci_to_kw(ldap, a, test=False, pkey_only=False):
         return kw
     kw['permissions'] = tuple(a.permissions)
     if 'targetattr' in a.target:
-        kw['attrs'] = list(a.target['targetattr']['expression'])
-        for i in xrange(len(kw['attrs'])):
-            kw['attrs'][i] = unicode(kw['attrs'][i])
-        kw['attrs'] = tuple(kw['attrs'])
+        kw['attrs'] = tuple(unicode(e)
+                            for e in a.target['targetattr']['expression'])
     if 'targetfilter' in a.target:
         target = a.target['targetfilter']['expression']
         if target.startswith('(memberOf=') or target.startswith('memberOf='):

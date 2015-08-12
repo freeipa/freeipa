@@ -239,14 +239,14 @@ class test_API(ClassChecker):
         def get_plugin_name(b, p):
             return 'base%d_plugin%d' % (b, p)
 
-        for b in xrange(2):
+        for b in range(2):
             base_name = get_base_name(b)
             base = locals()[base_name]
             ns = getattr(api, base_name)
             assert isinstance(ns, plugable.NameSpace)
             assert read_only(api, base_name) is ns
             assert len(ns) == 3
-            for p in xrange(3):
+            for p in range(3):
                 plugin_name = get_plugin_name(b, p)
                 plugin = locals()[plugin_name]
                 inst = ns[plugin_name]

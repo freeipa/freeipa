@@ -310,7 +310,7 @@ class DNSKeySyncInstance(service.Service):
                 # check if key with this ID exist in softHSM
                 # id is 16 Bytes long
                 key_id = "".join(chr(random.randint(0, 255))
-                                 for _ in xrange(0, 16))
+                                 for _ in range(0, 16))
                 replica_pubkey_dn = DN(('ipk11UniqueId', 'autogenerate'), dn_base)
 
 

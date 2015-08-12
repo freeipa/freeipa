@@ -940,7 +940,7 @@ class test_Object(ClassChecker):
 
         def get_attributes(cnt, format):
             for name in ['other', 'user', 'another']:
-                for i in xrange(cnt):
+                for i in range(cnt):
                     yield DummyAttribute(name, format % i)
 
         cnt = 10
@@ -970,7 +970,7 @@ class test_Object(ClassChecker):
         assert isinstance(namespace, plugable.NameSpace)
         assert len(namespace) == cnt
         f = methods_format
-        for i in xrange(cnt):
+        for i in range(cnt):
             attr_name = f % i
             attr = namespace[attr_name]
             assert isinstance(attr, DummyAttribute)

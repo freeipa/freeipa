@@ -774,10 +774,10 @@ class host_del(LDAPDelete):
                                         for t in _record_types]
                     for attr in _attribute_types:
                         if attr not in ['arecord', 'aaaarecord'] and attr in record:
-                            for i in xrange(len(record[attr])):
-                                if (record[attr][i].endswith(parts[0]) or
-                                    record[attr][i].endswith(fqdn+'.')):
-                                    delkw = { unicode(attr) : record[attr][i] }
+                            for val in record[attr]:
+                                if (val.endswith(parts[0]) or
+                                        val.endswith(fqdn + '.')):
+                                    delkw = {unicode(attr): val}
                                     api.Command['dnsrecord_del'](domain,
                                             record['idnsname'][0],
                                             **delkw)

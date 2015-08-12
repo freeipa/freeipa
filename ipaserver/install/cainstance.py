@@ -806,8 +806,8 @@ class CAInstance(DogtagInstance):
         chain = chain.split("\n")
 
         root_nickname=[]
-        for i in xrange(len(chain)):
-            m = re.match('\ *"(.*)" \[.*', chain[i])
+        for part in chain:
+            m = re.match('\ *"(.*)" \[.*', part)
             if m:
                 nick = m.groups(0)[0]
                 if nick != "ipa-ca-agent" and nick[:7] != "Builtin":

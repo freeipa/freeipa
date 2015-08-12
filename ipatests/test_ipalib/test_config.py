@@ -298,7 +298,7 @@ class test_Env(ClassChecker):
         """
         o = self.cls()
         assert len(o) == 0
-        for i in xrange(1, 11):
+        for i in range(1, 11):
             key = 'key%d' % i
             value = u'value %d' % i
             o[key] = value
@@ -390,7 +390,7 @@ class test_Env(ClassChecker):
         for (k, v) in orig.items():
             assert o[k] is v
         assert list(o) == sorted(keys + ('key0', 'key1', 'key2', 'key3', 'config_loaded'))
-        for i in xrange(4):
+        for i in range(4):
             assert o['key%d' % i] == ('var%d' % i)
         keys = tuple(o)
 

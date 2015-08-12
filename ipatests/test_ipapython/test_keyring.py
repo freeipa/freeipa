@@ -89,7 +89,7 @@ class test_keyring(object):
         assert(result == UPDATE_VALUE)
 
         # Now update it 10 times
-        for i in xrange(10):
+        for i in range(10):
             kernel_keyring.update_key(TEST_KEY, 'test %d' %  i)
             result = kernel_keyring.read_key(TEST_KEY)
             assert(result == 'test %d' % i)

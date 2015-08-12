@@ -25,7 +25,7 @@ import struct
 
 
 # A string that should have bytes 'x\00' through '\xff':
-binary_bytes = ''.join(struct.pack('B', d) for d in xrange(256))
+binary_bytes = ''.join(struct.pack('B', d) for d in range(256))
 assert '\x00' in binary_bytes and '\xff' in binary_bytes
 assert type(binary_bytes) is str and len(binary_bytes) == 256
 

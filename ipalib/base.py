@@ -294,7 +294,7 @@ class NameSpace(ReadOnly):
     ...     def __repr__(self):
     ...         return 'Member(%d)' % self.i
     ...
-    >>> ns = NameSpace(Member(i) for i in xrange(3))
+    >>> ns = NameSpace(Member(i) for i in range(3))
     >>> ns
     NameSpace(<3 members>, sort=True)
 
