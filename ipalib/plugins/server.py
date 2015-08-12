@@ -38,6 +38,7 @@ class server(LDAPObject):
     object_name = _('server')
     object_name_plural = _('servers')
     object_class = ['top']
+    search_attributes = ['cn']
     default_attributes = [
         'cn', 'iparepltopomanagedsuffix', 'ipamindomainlevel',
         'ipamaxdomainlevel'
