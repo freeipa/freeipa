@@ -597,6 +597,18 @@ class vault_add(PKQuery, Local):
         if 'public_key_file' in options:
             del options['public_key_file']
 
+        if vault_type != u'symmetric' and (password or password_file):
+            raise errors.MutuallyExclusiveError(
+                reason=_('Password can be specified only for '
+                         'symmetric vault')
+            )
+
+        if vault_type != u'asymmetric' and (public_key or public_key_file):
+            raise errors.MutuallyExclusiveError(
+                reason=_('Public key can be specified only for '
+                         'asymmetric vault')
+            )
+
         if self.api.env.in_server:
             backend = self.api.Backend.ldap2
         else:
