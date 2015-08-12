@@ -19,6 +19,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import sys
 import os
 import argparse
@@ -154,4 +156,4 @@ def get_object(conf, args):
 
 
 if __name__ == '__main__':
-    print main(sys.argv[1:]),
+    print(main(sys.argv[1:]), end=' ')

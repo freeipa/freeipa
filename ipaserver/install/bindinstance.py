@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import tempfile
 import os
 import pwd
@@ -289,7 +291,7 @@ def read_reverse_zone(default, ip_address):
         if verify_reverse_zone(zone, ip_address):
             break
         else:
-            print "Invalid reverse zone %s for IP address %s" % (zone, ip_address)
+            print("Invalid reverse zone %s for IP address %s" % (zone, ip_address))
 
     return normalize_zone(zone)
 
@@ -447,7 +449,7 @@ def check_reverse_zones(ip_addresses, reverse_zones, options, unattended, search
     return ret_reverse_zones
 
 def check_forwarders(dns_forwarders, logger):
-    print "Checking DNS forwarders, please wait ..."
+    print("Checking DNS forwarders, please wait ...")
     forwarders_dnssec_valid = True
     for forwarder in dns_forwarders:
         logger.debug("Checking DNS server: %s", forwarder)
@@ -459,17 +461,17 @@ def check_forwarders(dns_forwarders, logger):
                            forwarder, e)
             logger.warning("Please fix forwarder configuration to enable DNSSEC support.\n"
                 "(For BIND 9 add directive \"dnssec-enable yes;\" to \"options {}\")")
-            print "DNS server %s: %s" % (forwarder, e)
-            print "Please fix forwarder configuration to enable DNSSEC support."
-            print "(For BIND 9 add directive \"dnssec-enable yes;\" to \"options {}\")"
+            print("DNS server %s: %s" % (forwarder, e))
+            print("Please fix forwarder configuration to enable DNSSEC support.")
+            print("(For BIND 9 add directive \"dnssec-enable yes;\" to \"options {}\")")
         except EDNS0UnsupportedError as e:
             forwarders_dnssec_valid = False
             logger.warning("DNS server %s does not support ENDS0 "
                            "(RFC 6891): %s", forwarder, e)
             logger.warning("Please fix forwarder configuration. "
                            "DNSSEC support cannot be enabled without EDNS0")
-            print ("WARNING: DNS server %s does not support EDNS0 "
-                   "(RFC 6891): %s" % (forwarder, e))
+            print(("WARNING: DNS server %s does not support EDNS0 "
+                   "(RFC 6891): %s" % (forwarder, e)))
         except UnresolvableRecordError as e:
             logger.error("DNS server %s: %s", forwarder, e)
             raise RuntimeError("DNS server %s: %s" % (forwarder, e))
@@ -602,7 +604,7 @@ class BindInstance(service.Service):
         [bind_fd, bind_name] = tempfile.mkstemp(".db","sample.zone.")
         os.write(bind_fd, bind_txt)
         os.close(bind_fd)
-        print "Sample zone file for bind has been created in "+bind_name
+        print("Sample zone file for bind has been created in "+bind_name)
 
     def create_instance(self):
 
@@ -658,7 +660,7 @@ class BindInstance(service.Service):
             self.restart()
         except Exception as e:
             root_logger.error("Named service failed to start (%s)", e)
-            print "named service failed to start"
+            print("named service failed to start")
 
     def __enable(self):
         if self.get_state("enabled") is None:
@@ -1155,14 +1157,14 @@ class BindInstance(service.Service):
                               param in api.Object['dnsconfig'].params)
 
         if not global_conf_set:
-            print "Global DNS configuration in LDAP server is empty"
-            print "You can use 'dnsconfig-mod' command to set global DNS options that"
-            print "would override settings in local named.conf files"
+            print("Global DNS configuration in LDAP server is empty")
+            print("You can use 'dnsconfig-mod' command to set global DNS options that")
+            print("would override settings in local named.conf files")
             return
 
-        print "Global DNS configuration in LDAP server is not empty"
-        print "The following configuration options override local settings in named.conf:"
-        print ""
+        print("Global DNS configuration in LDAP server is not empty")
+        print("The following configuration options override local settings in named.conf:")
+        print("")
         textui = ipalib.cli.textui(api)
         api.Command.dnsconfig_show.output_for_cli(textui, result, None, reverse=False)
 

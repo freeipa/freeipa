@@ -21,7 +21,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import gssapi
+
 from ipaserver.install import adtrustinstance
 from ipaserver.install.installutils import *
 from ipaserver.install import service
@@ -74,22 +77,22 @@ def parse_options():
     return safe_options, options
 
 def netbios_name_error(name):
-    print "\nIllegal NetBIOS name [%s].\n" % name
-    print "Up to 15 characters and only uppercase ASCII letter and digits are allowed."
+    print("\nIllegal NetBIOS name [%s].\n" % name)
+    print("Up to 15 characters and only uppercase ASCII letter and digits are allowed.")
 
 def read_netbios_name(netbios_default):
     netbios_name = ""
 
-    print "Enter the NetBIOS name for the IPA domain."
-    print "Only up to 15 uppercase ASCII letters and digits are allowed."
-    print "Example: EXAMPLE."
-    print ""
-    print ""
+    print("Enter the NetBIOS name for the IPA domain.")
+    print("Only up to 15 uppercase ASCII letters and digits are allowed.")
+    print("Example: EXAMPLE.")
+    print("")
+    print("")
     if not netbios_default:
         netbios_default = "EXAMPLE"
     while True:
         netbios_name = ipautil.user_input("NetBIOS domain name", netbios_default, allow_empty = False)
-        print ""
+        print("")
         if adtrustinstance.check_netbios_name(netbios_name):
             break
 
@@ -98,9 +101,9 @@ def read_netbios_name(netbios_default):
     return netbios_name
 
 def read_admin_password(admin_name):
-    print "Configuring cross-realm trusts for IPA server requires password for user '%s'." % (admin_name)
-    print "This user is a regular system account used for IPA server administration."
-    print ""
+    print("Configuring cross-realm trusts for IPA server requires password for user '%s'." % (admin_name))
+    print("This user is a regular system account used for IPA server administration.")
+    print("")
     admin_password = read_password(admin_name, confirm=False, validate=None)
     return admin_password
 
@@ -139,17 +142,17 @@ def set_and_check_netbios_name(netbios_name, unattended):
         reset_netbios_name = False
     elif cur_netbios_name and cur_netbios_name != netbios_name:
         # change the NetBIOS name
-        print "Current NetBIOS domain name is %s, new name is %s.\n" % \
-              (cur_netbios_name, netbios_name)
-        print "Please note that changing the NetBIOS name might " \
-              "break existing trust relationships."
+        print("Current NetBIOS domain name is %s, new name is %s.\n" % \
+              (cur_netbios_name, netbios_name))
+        print("Please note that changing the NetBIOS name might " \
+              "break existing trust relationships.")
         if unattended:
             reset_netbios_name = True
-            print "NetBIOS domain name will be changed to %s.\n" % \
-                  netbios_name
+            print("NetBIOS domain name will be changed to %s.\n" % \
+                  netbios_name)
         else:
-            print "Say 'yes' if the NetBIOS shall be changed and " \
-                  "'no' if the old one shall be kept."
+            print("Say 'yes' if the NetBIOS shall be changed and " \
+                  "'no' if the old one shall be kept.")
             reset_netbios_name = ipautil.user_input(
                             'Do you want to reset the NetBIOS domain name?',
                             default = False, allow_empty = False)
@@ -164,8 +167,8 @@ def set_and_check_netbios_name(netbios_name, unattended):
 
         if entry is not None:
             # Fix existing trust configuration
-            print "Trust is configured but no NetBIOS domain name found, " \
-                  "setting it now."
+            print("Trust is configured but no NetBIOS domain name found, " \
+                  "setting it now.")
             reset_netbios_name = True
         else:
             # initial trust configuration
@@ -195,16 +198,16 @@ def ensure_admin_kinit(admin_name, admin_password):
     try:
         ipautil.run(['kinit', admin_name], stdin=admin_password+'\n')
     except ipautil.CalledProcessError as e:
-        print "There was error to automatically re-kinit your admin user ticket."
+        print("There was error to automatically re-kinit your admin user ticket.")
         return False
     return True
 
 def enable_compat_tree():
-    print "Do you want to enable support for trusted domains in Schema Compatibility plugin?"
-    print "This will allow clients older than SSSD 1.9 and non-Linux clients to work with trusted users."
-    print ""
+    print("Do you want to enable support for trusted domains in Schema Compatibility plugin?")
+    print("This will allow clients older than SSSD 1.9 and non-Linux clients to work with trusted users.")
+    print("")
     enable_compat = ipautil.user_input("Enable trusted domains support in slapi-nis?", default = False, allow_empty = False)
-    print ""
+    print("")
     return enable_compat
 
 
@@ -215,7 +218,7 @@ def main():
         sys.exit("Must be root to setup AD trusts on server")
 
     standard_logging_setup(log_file_name, debug=options.debug, filemode='a')
-    print "\nThe log file for this installation can be found in %s" % log_file_name
+    print("\nThe log file for this installation can be found in %s" % log_file_name)
 
     root_logger.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
     root_logger.debug("missing options might be asked for interactively later\n")
@@ -226,18 +229,18 @@ def main():
     global fstore
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
-    print "=============================================================================="
-    print "This program will setup components needed to establish trust to AD domains for"
-    print "the FreeIPA Server."
-    print ""
-    print "This includes:"
-    print "  * Configure Samba"
-    print "  * Add trust related objects to FreeIPA LDAP server"
+    print("==============================================================================")
+    print("This program will setup components needed to establish trust to AD domains for")
+    print("the FreeIPA Server.")
+    print("")
+    print("This includes:")
+    print("  * Configure Samba")
+    print("  * Add trust related objects to FreeIPA LDAP server")
     #TODO:
     #print "  * Add a SID to all users and Posix groups"
-    print ""
-    print "To accept the default shown in brackets, press the Enter key."
-    print ""
+    print("")
+    print("To accept the default shown in brackets, press the Enter key.")
+    print("")
 
     # Check if samba packages are installed
     if not adtrustinstance.check_inst():
@@ -272,7 +275,7 @@ def main():
 
     if adtrustinstance.ipa_smb_conf_exists():
         if not options.unattended:
-                print "IPA generated smb.conf detected."
+                print("IPA generated smb.conf detected.")
                 if not ipautil.user_input("Overwrite smb.conf?",
                                           default = False,
                                           allow_empty = False):
@@ -299,7 +302,7 @@ def main():
     if admin_password:
         admin_kinited = ensure_admin_kinit(options.admin_name, admin_password)
         if not admin_kinited:
-            print "Proceeding with credentials that existed before"
+            print("Proceeding with credentials that existed before")
 
     try:
         principal = krb_utils.get_principal()
@@ -343,32 +346,32 @@ def main():
             # All objects have SIDs assigned
             pass
         except (errors.DatabaseError, errors.NetworkError) as e:
-            print "Could not retrieve a list of objects that need a SID identifier assigned:"
-            print unicode(e)
+            print("Could not retrieve a list of objects that need a SID identifier assigned:")
+            print(unicode(e))
         else:
             object_count = len(entries)
             if object_count > 0:
-                print ""
-                print "WARNING: %d existing users or groups do not have a SID identifier assigned." \
-                    % len(entries)
-                print "Installer can run a task to have ipa-sidgen Directory Server plugin generate"
-                print "the SID identifier for all these users. Please note, the in case of a high"
-                print "number of users and groups, the operation might lead to high replication"
-                print "traffic and performance degradation. Refer to ipa-adtrust-install(1) man page"
-                print "for details."
-                print ""
+                print("")
+                print("WARNING: %d existing users or groups do not have a SID identifier assigned." \
+                    % len(entries))
+                print("Installer can run a task to have ipa-sidgen Directory Server plugin generate")
+                print("the SID identifier for all these users. Please note, the in case of a high")
+                print("number of users and groups, the operation might lead to high replication")
+                print("traffic and performance degradation. Refer to ipa-adtrust-install(1) man page")
+                print("for details.")
+                print("")
                 if options.unattended:
-                    print "Unattended mode was selected, installer will NOT run ipa-sidgen task!"
+                    print("Unattended mode was selected, installer will NOT run ipa-sidgen task!")
                 else:
                     if ipautil.user_input("Do you want to run the ipa-sidgen task?", default=False,
                         allow_empty=False):
                         options.add_sids = True
 
     if not options.unattended:
-        print ""
-        print "The following operations may take some minutes to complete."
-        print "Please wait until the prompt is returned."
-        print ""
+        print("")
+        print("The following operations may take some minutes to complete.")
+        print("Please wait until the prompt is returned.")
+        print("")
 
     smb = adtrustinstance.ADTRUSTInstance(fstore)
     smb.realm = api.env.realm
@@ -399,8 +402,8 @@ def main():
         except errors.NotFound:
             pass
         except (errors.DatabaseError, errors.NetworkError) as e:
-           print "Could not retrieve a list of existing IPA masters:"
-           print unicode(e)
+           print("Could not retrieve a list of existing IPA masters:")
+           print(unicode(e))
 
         try:
            (entries_a, truncated) = smb.admin_conn.find_entries(filter="",
@@ -408,8 +411,8 @@ def main():
         except errors.NotFound:
             pass
         except (errors.DatabaseError, errors.NetworkError) as e:
-            print "Could not retrieve a list of adtrust agents:"
-            print unicode(e)
+            print("Could not retrieve a list of adtrust agents:")
+            print(unicode(e))
 
         if len(entries_m) > 0:
             existing_masters = [x['cn'][0] for x in entries_m]
@@ -427,18 +430,18 @@ def main():
 
             object_count = len(potential_agents)
             if object_count > 0:
-                print ""
-                print "WARNING: %d IPA masters are not yet able to serve information about users from trusted forests." \
-                      % (object_count)
-                print "Installer can add them to the list of IPA masters allowed to access infromation about trusts."
-                print "If you choose to do so, you also need to restart LDAP service on those masters."
-                print "Refer to ipa-adtrust-install(1) man page for details."
-                print ""
+                print("")
+                print("WARNING: %d IPA masters are not yet able to serve information about users from trusted forests." \
+                      % (object_count))
+                print("Installer can add them to the list of IPA masters allowed to access infromation about trusts.")
+                print("If you choose to do so, you also need to restart LDAP service on those masters.")
+                print("Refer to ipa-adtrust-install(1) man page for details.")
+                print("")
                 if options.unattended:
-                    print "Unattended mode was selected, installer will NOT add other IPA masters to the list of allowed to"
-                    print "access information about trusted forests!"
+                    print("Unattended mode was selected, installer will NOT add other IPA masters to the list of allowed to")
+                    print("access information about trusted forests!")
                 else:
-                    print "Do you want to allow following IPA masters to serve information about users from trusted forests?"
+                    print("Do you want to allow following IPA masters to serve information about users from trusted forests?")
                     for (name, dn) in potential_agents:
                         if name == api.env.host:
                             # Don't add this host here
@@ -453,13 +456,13 @@ def main():
                 # the principal's proper dn as defined in self.cifs_agent
                 service.add_principals_to_group(smb.admin_conn, agents_dn, "member",
                                                 [x[1] for x in new_agents])
-                print """
+                print("""
 WARNING: you MUST restart (e.g. ipactl restart) the following IPA masters in order
-to activate them to serve information about users from trusted forests:"""
+to activate them to serve information about users from trusted forests:""")
                 for x in new_agents:
-                    print x[0]
+                    print(x[0])
 
-    print """
+    print("""
 =============================================================================
 Setup complete
 
@@ -475,15 +478,15 @@ You must make sure these network ports are open:
 \t  * 445: microsoft-ds
 
 =============================================================================
-"""
+""")
     if admin_password:
         admin_kinited = ensure_admin_kinit(options.admin_name, admin_password)
 
     if not admin_kinited:
-        print """
+        print("""
 WARNING: you MUST re-kinit admin user before using 'ipa trust-*' commands
 family in order to re-generate Kerberos tickets to include AD-specific
-information"""
+information""")
 
     return 0
 

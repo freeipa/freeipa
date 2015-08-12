@@ -19,6 +19,7 @@
 #
 
 from __future__ import absolute_import
+from __future__ import print_function
 
 import os
 import shutil
@@ -545,7 +546,7 @@ class ReplicaPrepare(admintool.AdminTool):
 
         self.log.info('Waiting for %s A or AAAA record to be resolvable',
                       replica_fqdn)
-        print 'This can be safely interrupted (Ctrl+C)'
+        print('This can be safely interrupted (Ctrl+C)')
 
         try:
             while not self.check_dns(replica_fqdn):

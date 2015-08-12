@@ -19,6 +19,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 # WARNING: Do not import ipa modules, this is also used as a
 # stand-alone script (invoked from install/po Makefile).
 import optparse
@@ -387,12 +389,12 @@ def validate_file(file_path, validation_mode, reference_pot=None):
         if n_warnings:
             warning_lines.insert(0, section_seperator)
             warning_lines.insert(1, "%d validation warnings in %s" % (n_warnings, file_path))
-            print '\n'.join(warning_lines)
+            print('\n'.join(warning_lines))
 
         if n_errors:
             error_lines.insert(0, section_seperator)
             error_lines.insert(1, "%d validation errors in %s" % (n_errors, file_path))
-            print '\n'.join(error_lines)
+            print('\n'.join(error_lines))
 
     Result = namedtuple('ValidateFileResult', ['n_entries', 'n_msgids', 'n_msgstrs', 'n_warnings', 'n_errors'])
 
@@ -524,12 +526,12 @@ def validate_file(file_path, validation_mode, reference_pot=None):
 def create_po(pot_file, po_file, mo_file):
 
     if not os.path.isfile(pot_file):
-        print >>sys.stderr, 'file does not exist "%s"' % (pot_file)
+        print('file does not exist "%s"' % (pot_file), file=sys.stderr)
         return 1
     try:
         po = polib.pofile(pot_file)
     except Exception as e:
-        print >>sys.stderr, 'Unable to parse file "%s": %s' % (pot_file, e)
+        print('Unable to parse file "%s": %s' % (pot_file, e), file=sys.stderr)
         return 1
 
     # Update the metadata in the po file header
@@ -559,10 +561,10 @@ def create_po(pot_file, po_file, mo_file):
 
     # Write out the po and mo files
     po.save(po_file)
-    print "Wrote: %s" % (po_file)
+    print("Wrote: %s" % (po_file))
 
     po.save_as_mofile(mo_file)
-    print "Wrote: %s" % (mo_file)
+    print("Wrote: %s" % (mo_file))
 
     return 0
 
@@ -587,7 +589,7 @@ def validate_unicode_edit(msgid, msgstr):
 
     if verbose:
         msg = 'Success: message string "%s" maps to translated string "%s"' % (msgid, msgstr)
-        print msg.encode('utf-8')
+        print(msg.encode('utf-8'))
 
 
 def test_translations(po_file, lang, domain, locale_dir):
@@ -615,12 +617,12 @@ def po_file_iterate(po_file, get_msgstr, get_msgstr_plural):
     try:
         # Iterate over the msgid's
         if not os.path.isfile(po_file):
-            print >>sys.stderr, 'file does not exist "%s"' % (po_file)
+            print('file does not exist "%s"' % (po_file), file=sys.stderr)
             return 1
         try:
             po = polib.pofile(po_file)
         except Exception as e:
-            print >>sys.stderr, 'Unable to parse file "%s": %s' % (po_file, e)
+            print('Unable to parse file "%s": %s' % (po_file, e), file=sys.stderr)
             return 1
 
         n_entries = 0
@@ -642,7 +644,7 @@ def po_file_iterate(po_file, get_msgstr, get_msgstr_plural):
                     n_fail += 1
                     if print_traceback:
                         traceback.print_exc()
-                    print >> sys.stderr, "ERROR: %s" % e
+                    print("ERROR: %s" % e, file=sys.stderr)
 
                 try:
                     n_translations += 1
@@ -652,7 +654,7 @@ def po_file_iterate(po_file, get_msgstr, get_msgstr_plural):
                     n_fail += 1
                     if print_traceback:
                         traceback.print_exc()
-                    print >> sys.stderr, "ERROR: %s" % e
+                    print("ERROR: %s" % e, file=sys.stderr)
 
 
             else:
@@ -667,25 +669,25 @@ def po_file_iterate(po_file, get_msgstr, get_msgstr_plural):
                     n_fail += 1
                     if print_traceback:
                         traceback.print_exc()
-                    print >> sys.stderr, "ERROR: %s" % e
+                    print("ERROR: %s" % e, file=sys.stderr)
 
             n_entries += 1
 
     except Exception as e:
         if print_traceback:
             traceback.print_exc()
-        print >> sys.stderr, "ERROR: %s" % e
+        print("ERROR: %s" % e, file=sys.stderr)
         return 1
 
     if not n_entries:
-        print >> sys.stderr, "ERROR: no translations found in %s" % (po_file)
+        print("ERROR: no translations found in %s" % (po_file), file=sys.stderr)
         return 1
 
     if n_fail:
-        print >> sys.stderr, "ERROR: %d failures out of %d translations" % (n_fail, n_entries)
+        print("ERROR: %d failures out of %d translations" % (n_fail, n_entries), file=sys.stderr)
         return 1
 
-    print "%d translations in %d messages successfully tested" % (n_translations, n_entries)
+    print("%d translations in %d messages successfully tested" % (n_translations, n_entries))
     return 0
 
 #----------------------------------------------------------------------
@@ -751,7 +753,7 @@ def main():
     show_strings = options.show_strings
 
     if not options.mode:
-        print >> sys.stderr, 'ERROR: no mode specified'
+        print('ERROR: no mode specified', file=sys.stderr)
         return 1
 
     if options.mode == 'validate_pot' or options.mode == 'validate_po':
@@ -764,12 +766,12 @@ def main():
         elif options.mode == 'validate_po':
             files = args
             if not files:
-                print >> sys.stderr, 'ERROR: no po files specified'
+                print('ERROR: no po files specified', file=sys.stderr)
                 return 1
             validation_mode = 'po'
             reference_pot = polib.pofile(options.pot_file)
         else:
-            print >> sys.stderr, 'ERROR: unknown validation mode "%s"' % (options.mode)
+            print('ERROR: unknown validation mode "%s"' % (options.mode), file=sys.stderr)
             return 1
 
         total_entries = 0
@@ -785,11 +787,11 @@ def main():
             total_msgstrs += result.n_msgstrs
             total_warnings += result.n_warnings
             total_errors += result.n_errors
-            print "%s: %d entries, %d msgid, %d msgstr, %d warnings %d errors" % \
-                (f, result.n_entries, result.n_msgids, result.n_msgstrs, result.n_warnings, result.n_errors)
+            print("%s: %d entries, %d msgid, %d msgstr, %d warnings %d errors" % \
+                (f, result.n_entries, result.n_msgids, result.n_msgstrs, result.n_warnings, result.n_errors))
         if total_errors:
-            print section_seperator
-            print "%d errors in %d files" % (total_errors, len(files))
+            print(section_seperator)
+            print("%d errors in %d files" % (total_errors, len(files)))
             return 1
         else:
             return 0
@@ -831,7 +833,7 @@ def main():
         return test_translations(po_file, lang, domain, locale_dir)
 
     else:
-        print >> sys.stderr, 'ERROR: unknown mode "%s"' % (options.mode)
+        print('ERROR: unknown mode "%s"' % (options.mode), file=sys.stderr)
         return 1
 
 if __name__ == "__main__":

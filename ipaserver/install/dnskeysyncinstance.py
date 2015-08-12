@@ -2,6 +2,8 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
+from __future__ import print_function
+
 import os
 import pwd
 import grp
@@ -111,7 +113,7 @@ class DNSKeySyncInstance(service.Service):
             ldap.delete_entry(entry)
 
     def start_dnskeysyncd(self):
-        print "Restarting ipa-dnskeysyncd"
+        print("Restarting ipa-dnskeysyncd")
         self.__start()
 
     def create_instance(self, fqdn, realm_name):
@@ -464,7 +466,7 @@ class DNSKeySyncInstance(service.Service):
         try:
             self.restart()
         except Exception as e:
-            print "Failed to start ipa-dnskeysyncd"
+            print("Failed to start ipa-dnskeysyncd")
             self.logger.debug("Failed to start ipa-dnskeysyncd: %s", e)
 
 

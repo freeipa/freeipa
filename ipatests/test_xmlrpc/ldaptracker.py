@@ -5,6 +5,7 @@
 """
 Implements a base class to track changes to an LDAP object.
 """
+from __future__ import print_function
 
 import functools
 
@@ -126,11 +127,11 @@ class Tracker(object):
         try:
             result = cmd(*args, **options)
         except Exception as e:
-            print 'Ran command: %s(%s): %s: %s' % (cmd, args_repr,
-                                                   type(e).__name__, e)
+            print('Ran command: %s(%s): %s: %s' % (cmd, args_repr,
+                                                   type(e).__name__, e))
             raise
         else:
-            print 'Ran command: %s(%s): OK' % (cmd, args_repr)
+            print('Ran command: %s(%s): OK' % (cmd, args_repr))
         return result
 
     def make_command(self, name, *args, **options):

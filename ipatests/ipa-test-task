@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 
 import sys
 import os
@@ -388,7 +389,7 @@ class TaskRunner(object):
 
     def list_topos(self, args):
         for name, topo in tasks.topologies.items():
-            print '%s: %s' % (name, topo.__doc__)
+            print('%s: %s' % (name, topo.__doc__))
 
     def install_topo(self, args):
         master = self.get_host(args.master, default=args.domain.master)

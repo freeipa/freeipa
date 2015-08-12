@@ -19,6 +19,8 @@
 
 """Pytest plugin for IPA Integration tests"""
 
+from __future__ import print_function
+
 import os
 import tempfile
 import shutil
@@ -192,7 +194,7 @@ def mh(request, class_integration_logs):
                  (host.external_hostname, filename))
         class_integration_logs.setdefault(host, []).append(filename)
 
-    print mh.config
+    print(mh.config)
     for host in mh.config.get_all_hosts():
         host.add_log_collector(collect_log)
         cls.log.info('Preparing host %s', host.hostname)

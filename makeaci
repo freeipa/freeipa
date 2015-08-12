@@ -24,6 +24,8 @@
 # to ensure that changes aren't made lightly.
 # Can either regenerate ACI.txt, or validate against it.
 
+from __future__ import print_function
+
 import sys
 import difflib
 from argparse import ArgumentParser
@@ -112,10 +114,10 @@ def main(options):
                 tofile='new result',
             ))
             for line in diff:
-                print line,
-            print>>sys.stderr
-            print>>sys.stderr, 'Managed permission ACI validation failed.'
-            print>>sys.stderr, 'Re-check permission changes and run `makeaci`.'
+                print(line, end=' ')
+            print(file=sys.stderr)
+            print('Managed permission ACI validation failed.', file=sys.stderr)
+            print('Re-check permission changes and run `makeaci`.', file=sys.stderr)
             exit('%s validation failed' % options.filename)
     else:
         with open(options.filename, 'w') as file:

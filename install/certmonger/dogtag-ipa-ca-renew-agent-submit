@@ -19,6 +19,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import os
 # Prevent garbage from readline on standard output
 # (see https://fedorahosted.org/freeipa/ticket/4064)
@@ -456,7 +458,7 @@ def main():
 
         res = call_handler(handler)
         for item in res[1:]:
-            print item
+            print(item)
         return res[0]
     finally:
         certs.renewal_lock.release()
@@ -466,5 +468,5 @@ try:
     sys.exit(main())
 except Exception as e:
     syslog.syslog(syslog.LOG_ERR, traceback.format_exc())
-    print "Internal error"
+    print("Internal error")
     sys.exit(UNREACHABLE)

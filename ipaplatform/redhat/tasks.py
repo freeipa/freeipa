@@ -23,6 +23,7 @@
 This module contains default Red Hat OS family-specific implementations of
 system tasks.
 '''
+from __future__ import print_function
 
 import os
 import stat
@@ -304,8 +305,8 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         try:
             ipautil.run([paths.BIN_HOSTNAME, hostname])
         except ipautil.CalledProcessError as e:
-            print >>sys.stderr, ("Failed to set this machine hostname to "
-                                 "%s (%s)." % (hostname, str(e)))
+            print(("Failed to set this machine hostname to "
+                                 "%s (%s)." % (hostname, str(e))), file=sys.stderr)
 
         filepath = paths.ETC_HOSTNAME
         if os.path.exists(filepath):
@@ -341,8 +342,8 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             # in /etc/sysconfig/network
             old_filepath_restore = paths.SYSCONFIG_NETWORK_IPABKP
             fstore.restore_file(old_filepath, old_filepath_restore)
-            print "Deprecated configuration file '%s' was restored to '%s'" \
-                    % (old_filepath, old_filepath_restore)
+            print("Deprecated configuration file '%s' was restored to '%s'" \
+                    % (old_filepath, old_filepath_restore))
             hostname_was_configured = True
 
         filepath = paths.ETC_HOSTNAME

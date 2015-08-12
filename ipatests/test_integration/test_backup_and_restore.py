@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import os
 import re
 import contextlib
@@ -50,7 +52,7 @@ def check_admin_in_ldap(host):
     basedn = host.domain.basedn
     user_dn = DN(('uid', 'admin'), ('cn', 'users'), ('cn', 'accounts'), basedn)
     entry = ldap.get_entry(user_dn)
-    print entry
+    print(entry)
     assert entry.dn == user_dn
     assert entry['uid'] == ['admin']
 

@@ -2,6 +2,8 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+from __future__ import print_function
+
 import re
 import os
 import shutil
@@ -1540,7 +1542,7 @@ def upgrade_check(options):
     try:
         installutils.check_server_configuration()
     except RuntimeError as e:
-        print unicode(e)
+        print(unicode(e))
         sys.exit(1)
 
     if not services.knownservices.certmonger.is_running():
@@ -1587,7 +1589,7 @@ def upgrade():
     # store new data version after upgrade
     installutils.store_version()
 
-    print 'Upgrading IPA services'
+    print('Upgrading IPA services')
     root_logger.info('Upgrading the configuration of the IPA services')
     upgrade_configuration()
     root_logger.info('The IPA services were upgraded')

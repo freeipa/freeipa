@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import string
 import tempfile
 import subprocess
@@ -1326,7 +1328,7 @@ def restore_hostname(statestore):
         try:
             run([paths.BIN_HOSTNAME, old_hostname])
         except CalledProcessError as e:
-            print >>sys.stderr, "Failed to set this machine hostname back to %s: %s" % (old_hostname, str(e))
+            print("Failed to set this machine hostname back to %s: %s" % (old_hostname, str(e)), file=sys.stderr)
 
 
 @contextmanager

@@ -20,6 +20,7 @@
 """
 Test the `ipalib.backend` module.
 """
+from __future__ import print_function
 
 # FIXME: Pylint errors
 # pylint: disable=no-member
@@ -223,11 +224,11 @@ class test_Executioner(ClassChecker):
         # Test that CommandError is raised:
         conn = Connection('The connection.', Disconnect('someconn'))
         context.someconn = conn
-        print str(list(context.__dict__))
+        print(str(list(context.__dict__)))
         e = raises(errors.CommandError, o.execute, 'nope')
         assert e.name == 'nope'
         assert conn.disconnect.called is True  # Make sure destroy_context() was called
-        print str(list(context.__dict__))
+        print(str(list(context.__dict__)))
         assert list(context.__dict__) == []
 
         # Test with echo command:
@@ -239,10 +240,10 @@ class test_Executioner(ClassChecker):
 
         conn = Connection('The connection.', Disconnect('someconn'))
         context.someconn = conn
-        print o.execute('echo', arg1, arg2, **options)
-        print dict(
+        print(o.execute('echo', arg1, arg2, **options))
+        print(dict(
             result=(arg1, arg2, options)
-        )
+        ))
         assert o.execute('echo', arg1, arg2, **options) == dict(
             result=(arg1, arg2, options)
         )

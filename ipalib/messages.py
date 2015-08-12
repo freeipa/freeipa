@@ -29,6 +29,7 @@ range, so that it does not clash with PublicError numbers.
 Messages also have the 'type' argument, set to one of 'debug', 'info',
 'warning', 'error'. This determines the severity of themessage.
 """
+from __future__ import print_function
 
 from inspect import isclass
 
@@ -258,8 +259,8 @@ public_messages = tuple(sorted(
 
 def print_report(label, classes):
     for cls in classes:
-        print '%d\t%s' % (cls.errno, cls.__name__)
-    print '(%d %s)' % (len(classes), label)
+        print('%d\t%s' % (cls.errno, cls.__name__))
+    print('(%d %s)' % (len(classes), label))
 
 if __name__ == '__main__':
     print_report('public messages', public_messages)

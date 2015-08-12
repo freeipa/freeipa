@@ -19,6 +19,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import sys
 import os
 from ipaplatform.paths import paths
@@ -33,12 +35,12 @@ try:
     from ipapython.dn import DN
     from ipaplatform import services
 except ImportError as e:
-    print >> sys.stderr, """\
+    print("""\
 There was a problem importing one of the required Python modules. The
 error was:
 
     %s
-""" % e
+""" % e, file=sys.stderr)
     sys.exit(1)
 
 nis_config_dn = DN(('cn', 'NIS Server'), ('cn', 'plugins'), ('cn', 'config'))
@@ -137,8 +139,8 @@ def main():
             try:
                 entry = get_entry(nis_config_dn, conn)
             except errors.ExecutionError as lde:
-                print "An error occurred while talking to the server."
-                print lde
+                print("An error occurred while talking to the server.")
+                print(lde)
                 retval = 1
 
             # Enable either the portmap or rpcbind service
@@ -153,23 +155,23 @@ def main():
                         rpcbind.enable()
                         servicemsg = rpcbind.service_name
                     except ipautil.CalledProcessError as cpe:
-                        print "Unable to enable either %s or %s" % (portmap.service_name, rpcbind.service_name)
+                        print("Unable to enable either %s or %s" % (portmap.service_name, rpcbind.service_name))
                         retval = 3
 
             # The cn=config entry for the plugin may already exist but it
             # could be turned off, handle both cases.
             if entry is None:
-                print "Enabling plugin"
+                print("Enabling plugin")
                 ld = LDAPUpdate(dm_password=dirman_password, sub_dict={}, ldapi=True)
                 if ld.update(files) != True:
                     retval = 1
             elif entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'off':
-                print "Enabling plugin"
+                print("Enabling plugin")
                 # Already configured, just enable the plugin
                 entry['nsslapd-pluginenabled'] = ['on']
                 conn.update_entry(entry)
             else:
-                print "Plugin already Enabled"
+                print("Plugin already Enabled")
                 retval = 2
 
         elif args[0] == "disable":
@@ -178,21 +180,21 @@ def main():
                 entry['nsslapd-pluginenabled'] = ['off']
                 conn.update_entry(entry)
             except (errors.NotFound, errors.EmptyModlist):
-                print "Plugin is already disabled"
+                print("Plugin is already disabled")
                 retval = 2
             except errors.LDAPError as lde:
-                print "An error occurred while talking to the server."
-                print lde
+                print("An error occurred while talking to the server.")
+                print(lde)
                 retval = 1
 
         else:
             retval = 1
 
         if retval == 0:
-            print "This setting will not take effect until you restart Directory Server."
+            print("This setting will not take effect until you restart Directory Server.")
 
             if args[0] == "enable":
-                print "The %s service may need to be started." % servicemsg
+                print("The %s service may need to be started." % servicemsg)
 
     finally:
         if conn and conn.isconnected():

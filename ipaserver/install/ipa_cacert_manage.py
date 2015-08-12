@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import os
 import time
 from optparse import OptionGroup
@@ -178,7 +180,7 @@ class CACertManage(admintool.AdminTool):
             return self.renew_external_step_1(ca)
 
     def renew_self_signed(self, ca):
-        print "Renewing CA certificate, please wait"
+        print("Renewing CA certificate, please wait")
 
         try:
             ca.set_renewal_master()
@@ -187,21 +189,21 @@ class CACertManage(admintool.AdminTool):
 
         self.resubmit_request(ca, 'caCACert')
 
-        print "CA certificate successfully renewed"
+        print("CA certificate successfully renewed")
 
     def renew_external_step_1(self, ca):
-        print "Exporting CA certificate signing request, please wait"
+        print("Exporting CA certificate signing request, please wait")
 
         self.resubmit_request(ca, 'ipaCSRExport')
 
-        print("The next step is to get %s signed by your CA and re-run "
-              "ipa-cacert-manage as:" % paths.IPA_CA_CSR)
+        print(("The next step is to get %s signed by your CA and re-run "
+              "ipa-cacert-manage as:" % paths.IPA_CA_CSR))
         print("ipa-cacert-manage renew "
               "--external-cert-file=/path/to/signed_certificate "
               "--external-cert-file=/path/to/external_ca_certificate")
 
     def renew_external_step_2(self, ca, old_cert):
-        print "Importing the renewed CA certificate, please wait"
+        print("Importing the renewed CA certificate, please wait")
 
         options = self.options
         cert_file, ca_file = installutils.load_external_cert(
@@ -297,7 +299,7 @@ class CACertManage(admintool.AdminTool):
 
         self.resubmit_request(ca, 'ipaRetrieval')
 
-        print "CA certificate successfully renewed"
+        print("CA certificate successfully renewed")
 
     def resubmit_request(self, ca, profile):
         timeout = api.env.startup_timeout + 60
@@ -320,7 +322,7 @@ class CACertManage(admintool.AdminTool):
         certmonger.modify(self.request_id, profile='ipaCACertRenewal')
 
     def install(self):
-        print "Installing CA certificate, please wait"
+        print("Installing CA certificate, please wait")
 
         options = self.options
         cert_filename = self.args[1]
@@ -366,4 +368,4 @@ class CACertManage(admintool.AdminTool):
             raise admintool.ScriptError(
                 "Failed to install the certificate: %s" % e)
 
-        print "CA certificate successfully installed"
+        print("CA certificate successfully installed")

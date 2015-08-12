@@ -19,6 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
+from __future__ import print_function
+
 import sys
 import os
 
@@ -112,7 +115,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
 
     if not replica:
         for k, p in peers.items():
-            print '%s: %s' % (k, p[0])
+            print('%s: %s' % (k, p[0]))
         return
 
     try:
@@ -123,19 +126,19 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose):
     entries = repl.find_replication_agreements()
 
     for entry in entries:
-        print '%s' % entry.single_value.get('nsds5replicahost')
+        print('%s' % entry.single_value.get('nsds5replicahost'))
 
         if verbose:
-            print "  last init status: %s" % entry.single_value.get(
-                'nsds5replicalastinitstatus')
-            print "  last init ended: %s" % str(
+            print("  last init status: %s" % entry.single_value.get(
+                'nsds5replicalastinitstatus'))
+            print("  last init ended: %s" % str(
                 ipautil.parse_generalized_time(
-                    entry.single_value['nsds5replicalastinitend']))
-            print "  last update status: %s" % entry.single_value.get(
-                'nsds5replicalastupdatestatus')
-            print "  last update ended: %s" % str(
+                    entry.single_value['nsds5replicalastinitend'])))
+            print("  last update status: %s" % entry.single_value.get(
+                'nsds5replicalastupdatestatus'))
+            print("  last update ended: %s" % str(
                 ipautil.parse_generalized_time(
-                    entry.single_value['nsds5replicalastupdateend']))
+                    entry.single_value['nsds5replicalastupdateend'])))
 
 def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
@@ -175,13 +178,13 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         # Now that we've confirmed that both hostnames are vaild, make sure
         # that we aren't removing the last link from either side.
         if not force and len(repl_list) <= 1:
-            print "Cannot remove the last replication link of '%s'" % replica2
-            print "Please use the 'del' command to remove it from the domain"
+            print("Cannot remove the last replication link of '%s'" % replica2)
+            print("Please use the 'del' command to remove it from the domain")
             sys.exit(1)
 
         if not force and len(repl_list1) <= 1:
-            print "Cannot remove the last replication link of '%s'" % replica1
-            print "Please use the 'del' command to remove it from the domain"
+            print("Cannot remove the last replication link of '%s'" % replica1)
+            print("Please use the 'del' command to remove it from the domain")
             sys.exit(1)
 
         # Find the DN of the replication agreement to remove
@@ -196,11 +199,11 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
             sys.exit("'%s' has no replication agreement for '%s'" % (replica1, replica2))
 
     except errors.NotFound:
-        print "'%s' has no replication agreement for '%s'" % (replica2, replica1)
+        print("'%s' has no replication agreement for '%s'" % (replica2, replica1))
         if not force:
             return
     except Exception as e:
-        print "Failed to get data from '%s': %s" % (replica2, e)
+        print("Failed to get data from '%s': %s" % (replica2, e))
         if not force:
             sys.exit(1)
 
@@ -210,22 +213,22 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
             repl2.delete_agreement(replica1, replica2_dn)
             repl2.delete_referral(replica1, repl1.port)
         except Exception as e:
-            print "Unable to remove agreement on %s: %s" % (replica2, e)
+            print("Unable to remove agreement on %s: %s" % (replica2, e))
             failed = True
 
         if failed:
             if force:
-                print "Forcing removal on '%s'" % replica1
+                print("Forcing removal on '%s'" % replica1)
             else:
                 sys.exit(1)
 
     if not repl2 and force:
-        print "Forcing removal on '%s'" % replica1
+        print("Forcing removal on '%s'" % replica1)
 
     repl1.delete_agreement(replica2, replica1_dn)
     repl1.delete_referral(replica2, repl2.port)
 
-    print "Deleted replication agreement from '%s' to '%s'" % (replica1, replica2)
+    print("Deleted replication agreement from '%s' to '%s'" % (replica1, replica2))
 
 def del_master(realm, hostname, options):
 
@@ -250,10 +253,10 @@ def del_master(realm, hostname, options):
                                                          options.dirman_passwd)
     except Exception as e:
         if not options.force:
-            print "Unable to delete replica %s: %s" % (hostname, e)
+            print("Unable to delete replica %s: %s" % (hostname, e))
             sys.exit(1)
         else:
-            print "Unable to connect to replica %s, forcing removal" % hostname
+            print("Unable to connect to replica %s, forcing removal" % hostname)
             force_del = True
 
     # 4. Get list of agreements.
@@ -286,8 +289,8 @@ def del_master(realm, hostname, options):
             bind = bindinstance.BindInstance()
             bind.remove_ipa_ca_dns_records(hostname, realm.lower())
     except Exception as e:
-        print "Failed to cleanup %s DNS entries: %s" % (hostname, e)
-        print "You may need to manually remove them from the tree"
+        print("Failed to cleanup %s DNS entries: %s" % (hostname, e))
+        print("You may need to manually remove them from the tree")
 
 def add_link(realm, replica1, replica2, dirman_passwd, options):
     try:
@@ -331,7 +334,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
     repl1.setup_replication(
         replica2, repl2.port, 0, DN(('cn', 'Directory Manager')),
         dirman_passwd, is_cs_replica=True, local_port=repl1.port)
-    print "Connected '%s' to '%s'" % (replica1, replica2)
+    print("Connected '%s' to '%s'" % (replica1, replica2))
 
 def re_initialize(realm, options):
 
@@ -387,7 +390,7 @@ def set_renewal_master(realm, replica):
     except Exception as e:
         sys.exit("Failed to set renewal master to %s: %s" % (replica, e))
 
-    print "%s is now the renewal master" % replica
+    print("%s is now the renewal master" % replica)
 
 def main():
     options, args = parse_options()

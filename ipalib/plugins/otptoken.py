@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 from ipalib.plugins.baseldap import DN, LDAPObject, LDAPAddMember, LDAPRemoveMember
 from ipalib.plugins.baseldap import LDAPCreate, LDAPDelete, LDAPUpdate, LDAPSearch, LDAPRetrieve
 from ipalib import api, Int, Str, Bool, DateTime, Flag, Bytes, IntEnum, StrEnum, Password, _, ngettext
@@ -352,12 +354,12 @@ class otptoken_add(LDAPCreate):
 
         # Print QR code to terminal if specified
         if uri and not options.get('no_qrcode', False):
-            print "\n"
+            print("\n")
             qr = qrcode.QRCode()
             qr.add_data(uri)
             qr.make()
             qr.print_ascii(tty=True)
-            print "\n"
+            print("\n")
 
         return rv
 

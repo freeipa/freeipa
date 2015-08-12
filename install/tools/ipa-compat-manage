@@ -19,6 +19,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import sys
 from ipaplatform.paths import paths
 try:
@@ -31,12 +33,12 @@ try:
     from ipapython.ipa_log_manager import *
     from ipapython.dn import DN
 except ImportError as e:
-    print >> sys.stderr, """\
+    print("""\
 There was a problem importing one of the required Python modules. The
 error was:
 
     %s
-""" % e
+""" % e, file=sys.stderr)
     sys.exit(1)
 
 compat_dn = DN(('cn', 'Schema Compatibility'), ('cn', 'plugins'), ('cn', 'config'))
@@ -121,34 +123,34 @@ def main():
             try:
                 entry = get_entry(compat_dn, conn)
                 if entry is not None and entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
-                    print "Plugin Enabled"
+                    print("Plugin Enabled")
                 else:
-                    print "Plugin Disabled"
+                    print("Plugin Disabled")
             except errors.LDAPError as lde:
-                print "An error occurred while talking to the server."
-                print lde
+                print("An error occurred while talking to the server.")
+                print(lde)
 
         if args[0] == "enable":
             entry = None
             try:
                 entry = get_entry(compat_dn, conn)
                 if entry is not None and entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
-                    print "Plugin already Enabled"
+                    print("Plugin already Enabled")
                     retval = 2
                 else:
-                    print "Enabling plugin"
+                    print("Enabling plugin")
 
                     if entry is None:
                         ld = LDAPUpdate(dm_password=dirman_password, sub_dict={})
                         if not ld.update(files):
-                            print "Updating Directory Server failed."
+                            print("Updating Directory Server failed.")
                             retval = 1
                     else:
                         entry['nsslapd-pluginenabled'] = ['on']
                         conn.update_entry(entry)
             except errors.ExecutionError as lde:
-                print "An error occurred while talking to the server."
-                print lde
+                print("An error occurred while talking to the server.")
+                print(lde)
                 retval = 1
 
         elif args[0] == "disable":
@@ -157,12 +159,12 @@ def main():
                 entry = get_entry(nis_config_dn, conn)
                 # We can't disable schema compat if the NIS plugin is enabled
                 if entry is not None and entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'on':
-                    print >>sys.stderr, "The NIS plugin is configured, cannot disable compatibility."
-                    print >>sys.stderr, "Run 'ipa-nis-manage disable' first."
+                    print("The NIS plugin is configured, cannot disable compatibility.", file=sys.stderr)
+                    print("Run 'ipa-nis-manage disable' first.", file=sys.stderr)
                     retval = 2
             except errors.ExecutionError as lde:
-                print "An error occurred while talking to the server."
-                print lde
+                print("An error occurred while talking to the server.")
+                print(lde)
                 retval = 1
 
             if retval == 0:
@@ -170,27 +172,27 @@ def main():
                 try:
                     entry = get_entry(compat_dn, conn)
                     if entry is None or entry.get('nsslapd-pluginenabled', [''])[0].lower() == 'off':
-                        print "Plugin is already disabled"
+                        print("Plugin is already disabled")
                         retval = 2
                     else:
-                        print "Disabling plugin"
+                        print("Disabling plugin")
 
                         entry['nsslapd-pluginenabled'] = ['off']
                         conn.update_entry(entry)
                 except errors.DatabaseError as dbe:
-                    print "An error occurred while talking to the server."
-                    print dbe
+                    print("An error occurred while talking to the server.")
+                    print(dbe)
                     retval = 1
                 except errors.ExecutionError as lde:
-                    print "An error occurred while talking to the server."
-                    print lde
+                    print("An error occurred while talking to the server.")
+                    print(lde)
                     retval = 1
 
         else:
             retval = 1
 
         if retval == 0:
-            print "This setting will not take effect until you restart Directory Server."
+            print("This setting will not take effect until you restart Directory Server.")
 
     finally:
         if conn and conn.isconnected():

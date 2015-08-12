@@ -19,6 +19,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import array
 import base64
 import binascii
@@ -616,8 +618,8 @@ class CAInstance(DogtagInstance):
             os.remove(cfg_file)
 
         if self.external == 1:
-            print "The next step is to get %s signed by your CA and re-run %s as:" % (self.csr_file, sys.argv[0])
-            print "%s --external-cert-file=/path/to/signed_certificate --external-cert-file=/path/to/external_ca_certificate" % sys.argv[0]
+            print("The next step is to get %s signed by your CA and re-run %s as:" % (self.csr_file, sys.argv[0]))
+            print("%s --external-cert-file=/path/to/signed_certificate --external-cert-file=/path/to/external_ca_certificate" % sys.argv[0])
             sys.exit(0)
         else:
             shutil.move(paths.CA_BACKUP_KEYS_P12,
@@ -756,8 +758,8 @@ class CAInstance(DogtagInstance):
             self.handle_setup_error(e)
 
         if self.external == 1:
-            print "The next step is to get %s signed by your CA and re-run %s as:" % (self.csr_file, sys.argv[0])
-            print "%s --external-cert-file=/path/to/signed_certificate --external-cert-file=/path/to/external_ca_certificate" % sys.argv[0]
+            print("The next step is to get %s signed by your CA and re-run %s as:" % (self.csr_file, sys.argv[0]))
+            print("%s --external-cert-file=/path/to/signed_certificate --external-cert-file=/path/to/external_ca_certificate" % sys.argv[0])
             sys.exit(0)
 
         # pkisilent makes a copy of the CA PKCS#12 file for us but gives

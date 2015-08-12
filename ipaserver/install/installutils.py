@@ -18,6 +18,7 @@
 #
 
 from __future__ import absolute_import
+from __future__ import print_function
 
 import socket
 import getpass
@@ -161,7 +162,7 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
             root_logger.debug('socket.gethostbyaddr() error: %d: %s' % (e.errno, e.strerror))
 
     if no_host_dns:
-        print "Warning: skipping DNS resolution of host", host_name
+        print("Warning: skipping DNS resolution of host", host_name)
         return
 
     try:
@@ -239,7 +240,7 @@ def record_in_hosts(ip, host_name=None, conf_file=paths.HOSTS):
                     return None
             return (hosts_ip, names)
         except IndexError:
-            print "Warning: Erroneous line '%s' in %s" % (line, conf_file)
+            print("Warning: Erroneous line '%s' in %s" % (line, conf_file))
             continue
 
     return None
@@ -257,7 +258,7 @@ def read_ip_address(host_name, fstore):
         try:
             ip_parsed = ipautil.CheckedIPAddress(ip, match_local=True)
         except Exception as e:
-            print "Error: Invalid IP Address %s: %s" % (ip, e)
+            print("Error: Invalid IP Address %s: %s" % (ip, e))
             continue
         else:
             break
@@ -266,7 +267,7 @@ def read_ip_address(host_name, fstore):
 
 def read_ip_addresses(host_name, fstore):
     ips = []
-    print "Enter the IP address to use, or press Enter to finish."
+    print("Enter the IP address to use, or press Enter to finish.")
     while True:
         ip = ipautil.user_input("Please provide the IP address to be used for this host name", allow_empty = True)
         if not ip:
@@ -274,7 +275,7 @@ def read_ip_addresses(host_name, fstore):
         try:
             ip_parsed = ipautil.CheckedIPAddress(ip, match_local=True)
         except Exception as e:
-            print "Error: Invalid IP Address %s: %s" % (ip, e)
+            print("Error: Invalid IP Address %s: %s" % (ip, e))
             continue
         ips.append(ip_parsed)
 
@@ -292,15 +293,15 @@ def read_dns_forwarders():
             try:
                 ip_parsed = ipautil.CheckedIPAddress(ip, parse_netmask=False)
             except Exception as e:
-                print "Error: Invalid IP Address %s: %s" % (ip, e)
-                print "DNS forwarder %s not added." % ip
+                print("Error: Invalid IP Address %s: %s" % (ip, e))
+                print("DNS forwarder %s not added." % ip)
                 continue
 
-            print "DNS forwarder %s added. You may add another." % ip
+            print("DNS forwarder %s added. You may add another." % ip)
             addrs.append(str(ip_parsed))
 
     if not addrs:
-        print "No DNS forwarders configured"
+        print("No DNS forwarders configured")
 
     return addrs
 
@@ -334,7 +335,7 @@ def read_password(user, confirm=True, validate=True, retry=True, validator=_read
                 try:
                     validator(pwd)
                 except ValueError as e:
-                    print str(e)
+                    print(str(e))
                     pwd = None
                     continue
             if not confirm:
@@ -342,15 +343,15 @@ def read_password(user, confirm=True, validate=True, retry=True, validator=_read
                 continue
             pwd_confirm = get_password("Password (confirm): ")
             if pwd != pwd_confirm:
-                print "Password mismatch!"
-                print ""
+                print("Password mismatch!")
+                print("")
                 pwd = None
             else:
                 correct = True
     except EOFError:
         return None
     finally:
-        print ""
+        print("")
     return pwd
 
 def update_file(filename, orig, subst):
@@ -367,7 +368,7 @@ def update_file(filename, orig, subst):
         os.chown(filename, st.st_uid, st.st_gid) # reset perms
         return 0
     else:
-        print "File %s doesn't exist." % filename
+        print("File %s doesn't exist." % filename)
         return 1
 
 def set_directive(filename, directive, value, quotes=True, separator=' '):
@@ -475,12 +476,12 @@ def get_server_ip_address(host_name, fstore, unattended, setup_dns, ip_addresses
     try:
         hostaddr = resolve_host(host_name)
     except HostnameLocalhost:
-        print >> sys.stderr, "The hostname resolves to the localhost address (127.0.0.1/::1)"
-        print >> sys.stderr, "Please change your /etc/hosts file so that the hostname"
-        print >> sys.stderr, "resolves to the ip address of your network interface."
-        print >> sys.stderr, "The KDC service does not listen on localhost"
-        print >> sys.stderr, ""
-        print >> sys.stderr, "Please fix your /etc/hosts file and restart the setup program"
+        print("The hostname resolves to the localhost address (127.0.0.1/::1)", file=sys.stderr)
+        print("Please change your /etc/hosts file so that the hostname", file=sys.stderr)
+        print("resolves to the ip address of your network interface.", file=sys.stderr)
+        print("The KDC service does not listen on localhost", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("Please fix your /etc/hosts file and restart the setup program", file=sys.stderr)
         sys.exit(1)
 
     ip_add_to_hosts = False
@@ -505,16 +506,16 @@ def get_server_ip_address(host_name, fstore, unattended, setup_dns, ip_addresses
             if set(ip_addresses) <= set(ips):
                 ips = ip_addresses
             else:
-                print >>sys.stderr, "Error: the hostname resolves to IP address(es) that are different"
-                print >>sys.stderr, "from those provided on the command line.  Please fix your DNS"
-                print >>sys.stderr, "or /etc/hosts file and restart the installation."
-                print >>sys.stderr, "Provided but not resolved address(es): %s" % \
-                                    ", ".join(str(ip) for ip in (set(ip_addresses) - set(ips)))
+                print("Error: the hostname resolves to IP address(es) that are different", file=sys.stderr)
+                print("from those provided on the command line.  Please fix your DNS", file=sys.stderr)
+                print("or /etc/hosts file and restart the installation.", file=sys.stderr)
+                print("Provided but not resolved address(es): %s" % \
+                                    ", ".join(str(ip) for ip in (set(ip_addresses) - set(ips))), file=sys.stderr)
                 sys.exit(1)
         ip_add_to_hosts = True
 
     if not ips:
-        print >> sys.stderr, "No usable IP address provided nor resolved."
+        print("No usable IP address provided nor resolved.", file=sys.stderr)
         sys.exit(1)
 
     for ip_address in ips:
@@ -523,18 +524,18 @@ def get_server_ip_address(host_name, fstore, unattended, setup_dns, ip_addresses
 
         if hosts_record is None:
             if ip_add_to_hosts or setup_dns:
-                print "Adding ["+str(ip_address)+" "+host_name+"] to your /etc/hosts file"
+                print("Adding ["+str(ip_address)+" "+host_name+"] to your /etc/hosts file")
                 fstore.backup_file(paths.HOSTS)
                 add_record_to_hosts(str(ip_address), host_name)
         else:
             primary_host = hosts_record[1][0]
             if primary_host != host_name:
-                print >>sys.stderr, "Error: there is already a record in /etc/hosts for IP address %s:" \
-                        % ip_address
-                print >>sys.stderr, hosts_record[0], " ".join(hosts_record[1])
-                print >>sys.stderr, "Chosen hostname %s does not match configured canonical hostname %s" \
-                        % (host_name, primary_host)
-                print >>sys.stderr, "Please fix your /etc/hosts file and restart the installation."
+                print("Error: there is already a record in /etc/hosts for IP address %s:" \
+                        % ip_address, file=sys.stderr)
+                print(hosts_record[0], " ".join(hosts_record[1]), file=sys.stderr)
+                print("Chosen hostname %s does not match configured canonical hostname %s" \
+                        % (host_name, primary_host), file=sys.stderr)
+                print("Please fix your /etc/hosts file and restart the installation.", file=sys.stderr)
                 sys.exit(1)
 
     return ips
@@ -597,8 +598,8 @@ def create_replica_config(dirman_password, filename, options):
         top_dir, dir = expand_replica_info(filename, dirman_password)
     except Exception as e:
         root_logger.error("Failed to decrypt or open the replica file.")
-        print "ERROR: Failed to decrypt or open the replica file."
-        print "Verify you entered the correct Directory Manager password."
+        print("ERROR: Failed to decrypt or open the replica file.")
+        print("Verify you entered the correct Directory Manager password.")
         sys.exit(1)
     config = ReplicaConfig(top_dir)
     read_replica_info(dir, config)
@@ -618,7 +619,7 @@ def create_replica_config(dirman_password, filename, options):
         sys.exit(1)
     if config.host_name != host:
         try:
-            print "This replica was created for '%s' but this machine is named '%s'" % (config.host_name, host)
+            print("This replica was created for '%s' but this machine is named '%s'" % (config.host_name, host))
             if not ipautil.user_input("This may cause problems. Continue?", False):
                 root_logger.debug(
                     "Replica was created for %s but machine is named %s  "
@@ -626,7 +627,7 @@ def create_replica_config(dirman_password, filename, options):
                     config.host_name, host)
                 sys.exit(0)
             config.host_name = host
-            print ""
+            print("")
         except KeyboardInterrupt:
             root_logger.debug("Keyboard Interrupt")
             sys.exit(0)
@@ -734,7 +735,7 @@ def run_script(main_function, operation_name, log_file_name=None,
                 root_logger.debug('The %s command failed, exception: %s: %s',
                                   operation_name, type(e).__name__, e)
                 if fail_message and not isinstance(e, SystemExit):
-                    print fail_message
+                    print(fail_message)
                 raise
         else:
             if return_value:
@@ -748,7 +749,7 @@ def run_script(main_function, operation_name, log_file_name=None,
     except BaseException as error:
         message, exitcode = handle_error(error, log_file_name)
         if message:
-            print >> sys.stderr, message
+            print(message, file=sys.stderr)
         sys.exit(exitcode)
 
 

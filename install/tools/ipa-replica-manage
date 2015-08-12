@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
+from __future__ import print_function
+
 import sys
 import os
 
@@ -159,14 +162,14 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
         else:
             conn.do_sasl_gssapi_bind()
     except Exception as e:
-        print "Failed to connect to host '%s': %s" % (host, str(e))
+        print("Failed to connect to host '%s': %s" % (host, str(e)))
         return
 
     dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
     try:
         entries = conn.get_entries(dn, conn.SCOPE_ONELEVEL)
     except Exception:
-        print "Failed to read master data from '%s': %s" % (host, str(e))
+        print("Failed to read master data from '%s': %s" % (host, str(e)))
         return
     else:
         for ent in entries:
@@ -184,7 +187,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
 
     if not replica:
         for k, p in peers.items():
-            print '%s: %s' % (k, p[0])
+            print('%s: %s' % (k, p[0]))
         return
 
     # ok we are being ask for info about a specific replica
@@ -195,7 +198,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
                 winsync_peer = p[1]
 
     if not is_replica:
-        print "Cannot find %s in public server list" % replica
+        print("Cannot find %s in public server list" % replica)
         return
 
     try:
@@ -213,22 +216,22 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
             entries = repl.find_replication_agreements()
             ent_type = 'replica'
     except Exception as e:
-        print "Failed to get data from '%s': %s" % (replica, e)
+        print("Failed to get data from '%s': %s" % (replica, e))
         return
 
     for entry in entries:
-        print '%s: %s' % (entry.single_value.get('nsds5replicahost'), ent_type)
+        print('%s: %s' % (entry.single_value.get('nsds5replicahost'), ent_type))
 
         if verbose:
-            print "  last init status: %s" % entry.single_value.get(
-                'nsds5replicalastinitstatus')
-            print "  last init ended: %s" % str(ipautil.parse_generalized_time(
-                entry.single_value['nsds5replicalastinitend']))
-            print "  last update status: %s" % entry.single_value.get(
-                'nsds5replicalastupdatestatus')
-            print "  last update ended: %s" % str(
+            print("  last init status: %s" % entry.single_value.get(
+                'nsds5replicalastinitstatus'))
+            print("  last init ended: %s" % str(ipautil.parse_generalized_time(
+                entry.single_value['nsds5replicalastinitend'])))
+            print("  last update status: %s" % entry.single_value.get(
+                'nsds5replicalastupdatestatus'))
+            print("  last update ended: %s" % str(
                 ipautil.parse_generalized_time(
-                    entry.single_value['nsds5replicalastupdateend']))
+                    entry.single_value['nsds5replicalastupdateend'])))
 
 def del_link(realm, replica1, replica2, dirman_passwd, force=False):
     """
@@ -253,21 +256,21 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
         # the new topology plugin naming convention: <A>-to-<B> instead of
         # meTo<B>.
         if managed_topology:
-            print "'%s' has no winsync replication agreement for '%s'" % (replica1, replica2)
+            print("'%s' has no winsync replication agreement for '%s'" % (replica1, replica2))
             exit_on_managed_topology(what)
         else:
-            print "'%s' has no replication agreement for '%s'" % (replica1, replica2)
+            print("'%s' has no replication agreement for '%s'" % (replica1, replica2))
         return False
     except Exception as e:
-        print "Failed to determine agreement type for '%s': %s" % (replica2, e)
+        print("Failed to determine agreement type for '%s': %s" % (replica2, e))
 
     if type1 == replication.IPA_REPLICA and managed_topology:
         exit_on_managed_topology(what)
 
     repl_list = repl1.find_ipa_replication_agreements()
     if not force and len(repl_list) <= 1 and type1 == replication.IPA_REPLICA:
-        print "Cannot remove the last replication link of '%s'" % replica1
-        print "Please use the 'del' command to remove it from the domain"
+        print("Cannot remove the last replication link of '%s'" % replica1)
+        print("Please use the 'del' command to remove it from the domain")
         return False
 
     if type1 == replication.IPA_REPLICA:
@@ -276,16 +279,16 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
             repl_list = repl2.find_ipa_replication_agreements()
             if not force and len(repl_list) <= 1:
-                print "Cannot remove the last replication link of '%s'" % replica2
-                print "Please use the 'del' command to remove it from the domain"
+                print("Cannot remove the last replication link of '%s'" % replica2)
+                print("Please use the 'del' command to remove it from the domain")
                 return False
 
         except errors.NotFound:
-            print "'%s' has no replication agreement for '%s'" % (replica2, replica1)
+            print("'%s' has no replication agreement for '%s'" % (replica2, replica1))
             if not force:
                 return False
         except Exception as e:
-            print "Failed to get list of agreements from '%s': %s" % (replica2, e)
+            print("Failed to get list of agreements from '%s': %s" % (replica2, e))
             if not force:
                 return False
 
@@ -300,28 +303,28 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
             (next_start, next_max) = repl2.get_DNA_next_range(repl2.conn.host)
             if range_start is not None:
                 if not store_DNA_range(repl1, range_start, range_max, repl2.conn.host, realm, dirman_passwd):
-                    print "Unable to save DNA range %d-%d" % (range_start, range_max)
+                    print("Unable to save DNA range %d-%d" % (range_start, range_max))
             if next_start is not None:
                 if not store_DNA_range(repl1, next_start, next_max, repl2.conn.host, realm, dirman_passwd):
-                    print "Unable to save DNA range %d-%d" % (next_start, next_max)
+                    print("Unable to save DNA range %d-%d" % (next_start, next_max))
             repl2.set_readonly(readonly=False)
             repl2.delete_agreement(replica1)
             repl2.delete_referral(replica1)
             repl2.set_readonly(readonly=False)
         except Exception as e:
-            print "Unable to remove agreement on %s: %s" % (replica2, e)
+            print("Unable to remove agreement on %s: %s" % (replica2, e))
             failed = True
 
         if failed:
             if force:
-                print "Forcing removal on '%s'" % replica1
-                print "Any DNA range on '%s' will be lost" % replica2
+                print("Forcing removal on '%s'" % replica1)
+                print("Any DNA range on '%s' will be lost" % replica2)
             else:
                 return False
 
     if not repl2 and force:
-        print "Forcing removal on '%s'" % replica1
-        print "Any DNA range on '%s' will be lost" % replica2
+        print("Forcing removal on '%s'" % replica1)
+        print("Any DNA range on '%s' will be lost" % replica2)
 
     repl1.delete_agreement(replica2)
     repl1.delete_referral(replica2)
@@ -336,9 +339,9 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
                 for entry in entries:
                     repl1.conn.delete_entry(entry)
         except Exception as e:
-            print "Error deleting winsync replica shared info: %s" % e
+            print("Error deleting winsync replica shared info: %s" % e)
 
-    print "Deleted replication agreement from '%s' to '%s'" % (replica1, replica2)
+    print("Deleted replication agreement from '%s' to '%s'" % (replica1, replica2))
 
     return True
 
@@ -353,7 +356,7 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False):
     try:
         thisrepl = replication.ReplicationManager(realm, host, dirman_passwd)
     except Exception as e:
-        print "Failed to connect to server %s: %s" % (host, e)
+        print("Failed to connect to server %s: %s" % (host, e))
         sys.exit(1)
 
     search_filter = '(&(nsuniqueid=ffffffff-ffffffff-ffffffff-ffffffff)(objectclass=nstombstone))'
@@ -362,7 +365,7 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False):
             api.env.basedn, thisrepl.conn.SCOPE_SUBTREE, search_filter,
             ['nsds50ruv'])
     except errors.NotFound:
-        print "No RUV records found."
+        print("No RUV records found.")
         sys.exit(0)
 
     servers = []
@@ -376,7 +379,7 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False):
                 (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(data.group(2))
                 servers.append((netloc, rid))
             else:
-                print "unable to decode: %s" % ruv
+                print("unable to decode: %s" % ruv)
 
     return servers
 
@@ -388,7 +391,7 @@ def list_ruv(realm, host, dirman_passwd, verbose, nolookup=False):
 
     servers = get_ruv(realm, host, dirman_passwd, nolookup)
     for (netloc, rid) in servers:
-        print "%s: %s" % (netloc, rid)
+        print("%s: %s" % (netloc, rid))
 
 def get_rid_by_host(realm, sourcehost, host, dirman_passwd, nolookup=False):
     """
@@ -420,18 +423,18 @@ def clean_ruv(realm, ruv, options):
     if not found:
         sys.exit("Replica ID %s not found" % ruv)
 
-    print "Clean the Replication Update Vector for %s" % hostname
-    print
-    print "Cleaning the wrong replica ID will cause that server to no"
-    print "longer replicate so it may miss updates while the process"
-    print "is running. It would need to be re-initialized to maintain"
-    print "consistency. Be very careful."
+    print("Clean the Replication Update Vector for %s" % hostname)
+    print()
+    print("Cleaning the wrong replica ID will cause that server to no")
+    print("longer replicate so it may miss updates while the process")
+    print("is running. It would need to be re-initialized to maintain")
+    print("consistency. Be very careful.")
     if not options.force and not ipautil.user_input("Continue to clean?", False):
         sys.exit("Aborted")
     thisrepl = replication.ReplicationManager(realm, options.host,
                                               options.dirman_passwd)
     thisrepl.cleanallruv(ruv)
-    print "Cleanup task created"
+    print("Cleanup task created")
 
 def abort_clean_ruv(realm, ruv, options):
     """
@@ -466,13 +469,13 @@ def abort_clean_ruv(realm, ruv, options):
     if not found:
         sys.exit("Replica ID %s not found" % ruv)
 
-    print "Aborting the clean Replication Update Vector task for %s" % hostname
-    print
+    print("Aborting the clean Replication Update Vector task for %s" % hostname)
+    print()
     thisrepl = replication.ReplicationManager(realm, options.host,
                                               options.dirman_passwd)
     thisrepl.abortcleanallruv(ruv, options.force)
 
-    print "Cleanup task stopped"
+    print("Cleanup task stopped")
 
 def list_clean_ruv(realm, host, dirman_passwd, verbose, nolookup=False):
     """
@@ -487,33 +490,33 @@ def list_clean_ruv(realm, host, dirman_passwd, verbose, nolookup=False):
     try:
         entries = repl.conn.get_entries(dn, repl.conn.SCOPE_ONELEVEL)
     except errors.NotFound:
-        print "No CLEANALLRUV tasks running"
+        print("No CLEANALLRUV tasks running")
     else:
-        print "CLEANALLRUV tasks"
+        print("CLEANALLRUV tasks")
         for entry in entries:
             name = entry.single_value['cn'].replace('clean ', '')
             status = entry.single_value.get('nsTaskStatus')
-            print "RID %s: %s" % (name, status)
+            print("RID %s: %s" % (name, status))
             if verbose:
-                print str(dn)
-                print entry.single_value.get('nstasklog')
+                print(str(dn))
+                print(entry.single_value.get('nstasklog'))
 
-    print
+    print()
 
     dn = DN(('cn', 'abort cleanallruv'),('cn', 'tasks'), ('cn', 'config'))
     try:
         entries = repl.conn.get_entries(dn, repl.conn.SCOPE_ONELEVEL)
     except errors.NotFound:
-        print "No abort CLEANALLRUV tasks running"
+        print("No abort CLEANALLRUV tasks running")
     else:
-        print "Abort CLEANALLRUV tasks"
+        print("Abort CLEANALLRUV tasks")
         for entry in entries:
             name = entry.single_value['cn'].replace('abort ', '')
             status = entry.single_value.get('nsTaskStatus')
-            print "RID %s: %s" % (name, status)
+            print("RID %s: %s" % (name, status))
             if verbose:
-                print str(dn)
-                print entry.single_value.get('nstasklog')
+                print(str(dn))
+                print(entry.single_value.get('nstasklog'))
 
 def check_last_link(delrepl, realm, dirman_passwd, force):
     """
@@ -547,7 +550,7 @@ def check_last_link(delrepl, realm, dirman_passwd, force):
         try:
             repl = replication.ReplicationManager(realm, replica, dirman_passwd)
         except errors.NetworkError:
-            print "Unable to validate that '%s' will not be orphaned." % replica
+            print("Unable to validate that '%s' will not be orphaned." % replica)
 
             if not force and not ipautil.user_input("Continue to delete?", False):
                 sys.exit("Aborted")
@@ -579,9 +582,9 @@ def check_last_link_managed(api, masters, hostname, force):
     # check topology before removal
     orig_errors = get_topology_connection_errors(graph)
     if orig_errors:
-        print "Current topology is disconnected:"
-        print "Changes are not replicated to all servers and data are probably inconsistent."
-        print "You need to add segments to reconnect the topology."
+        print("Current topology is disconnected:")
+        print("Changes are not replicated to all servers and data are probably inconsistent.")
+        print("You need to add segments to reconnect the topology.")
         print_connect_errors(orig_errors)
 
     # after removal
@@ -592,25 +595,25 @@ def check_last_link_managed(api, masters, hostname, force):
 
     new_errors = get_topology_connection_errors(graph)
     if new_errors:
-        print "WARNING: Topology after removal of %s will be disconnected." % hostname
-        print "Changes will not be replicated to all servers and data will become inconsistent."
-        print "You need to add segments to prevent disconnection of the topology."
-        print "Errors in topology after removal:"
+        print("WARNING: Topology after removal of %s will be disconnected." % hostname)
+        print("Changes will not be replicated to all servers and data will become inconsistent.")
+        print("You need to add segments to prevent disconnection of the topology.")
+        print("Errors in topology after removal:")
         print_connect_errors(new_errors)
 
     if orig_errors or new_errors:
         if not force:
             sys.exit("Aborted")
         else:
-            print "Forcing removal of %s" % hostname
+            print("Forcing removal of %s" % hostname)
 
     return (orig_errors, new_errors)
 
 def print_connect_errors(errors):
     for error in errors:
-        print "Topology does not allow server %s to replicate with servers:" % error[0]
+        print("Topology does not allow server %s to replicate with servers:" % error[0])
         for srv in error[2]:
-            print "    %s" % srv
+            print("    %s" % srv)
 
 def enforce_host_existence(host, message=None):
     if host is not None and not ipautil.host_exists(host):
@@ -647,13 +650,13 @@ def ensure_last_services(conn, hostname, masters, options):
                 ca_hostname = master_cn
 
     if 'CA' in this_services and not any(['CA' in o for o in other_services]):
-        print "Deleting this server is not allowed as it would leave your installation without a CA."
+        print("Deleting this server is not allowed as it would leave your installation without a CA.")
         sys.exit(1)
 
     other_dns = True
     if 'DNS' in this_services and not any(['DNS' in o for o in other_services]):
         other_dns = False
-        print "Deleting this server will leave your installation without a DNS."
+        print("Deleting this server will leave your installation without a DNS.")
         if not options.force and not ipautil.user_input("Continue to delete?", False):
             sys.exit("Deletion aborted")
 
@@ -662,8 +665,8 @@ def ensure_last_services(conn, hostname, masters, options):
     if 'DNS' in this_services and other_dns and not options.force:
         dnssec_masters = opendnssecinstance.get_dnssec_key_masters(conn)
         if hostname in dnssec_masters:
-            print "Replica is active DNSSEC key master. Uninstall could break your DNS system."
-            print "Please disable or replace DNSSEC key master first."
+            print("Replica is active DNSSEC key master. Uninstall could break your DNS system.")
+            print("Please disable or replace DNSSEC key master first.")
             sys.exit("Deletion aborted")
 
     ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
@@ -688,8 +691,8 @@ def cleanup_server_dns_entries(realm, hostname, suffix, options):
             keysyncd = dnskeysyncinstance.DNSKeySyncInstance()
             keysyncd.remove_replica_public_keys(hostname)
     except Exception as e:
-        print "Failed to cleanup %s DNS entries: %s" % (hostname, e)
-        print "You may need to manually remove them from the tree"
+        print("Failed to cleanup %s DNS entries: %s" % (hostname, e))
+        print("You may need to manually remove them from the tree")
 
 
 def del_master(realm, hostname, options):
@@ -706,7 +709,7 @@ def del_master_managed(realm, hostname, options):
 
     hostname_u = unicode(hostname)
     if hostname == options.host:
-        print "Can't remove itself: %s" % (options.host)
+        print("Can't remove itself: %s" % (options.host))
         sys.exit(1)
 
     # 1. Connect to the local server
@@ -714,7 +717,7 @@ def del_master_managed(realm, hostname, options):
         thisrepl = replication.ReplicationManager(realm, options.host,
                                                   options.dirman_passwd)
     except Exception as e:
-        print "Failed to connect to server %s: %s" % (options.host, e)
+        print("Failed to connect to server %s: %s" % (options.host, e))
         sys.exit(1)
 
     # 2. Get all masters
@@ -735,14 +738,14 @@ def del_master_managed(realm, hostname, options):
     try:
         api.Command.server_del(hostname_u)
     except errors.NotFound:
-        print "Server entry already deleted: %s" % (hostname)
+        print("Server entry already deleted: %s" % (hostname))
 
     # 6. Cleanup
     try:
         thisrepl.replica_cleanup(hostname, realm, force=True)
     except Exception as e:
-        print "Failed to cleanup %s entries: %s" % (hostname, e)
-        print "You may need to manually remove them from the tree"
+        print("Failed to cleanup %s entries: %s" % (hostname, e))
+        print("You may need to manually remove them from the tree")
 
     # 7. Clean RUV for the deleted master
     # Wait for topology plugin to delete segments
@@ -757,7 +760,7 @@ def del_master_managed(realm, hostname, options):
         # If the server was already deleted, we can expect that all removals
         # had been done in previous run and dangling segments were not deleted.
         if hostname not in m_cns:
-            print "Skipping replication agreement deletion check"
+            print("Skipping replication agreement deletion check")
             break
 
         # Relax check if topology was or is disconnected. Disconnected topology
@@ -778,18 +781,18 @@ def del_master_managed(realm, hostname, options):
             right = [s for s in right if s['iparepltoposegmentleftnode'][0] in can_contact_me]
 
         if not left and not right:
-            print "Agreements deleted"
+            print("Agreements deleted")
             break
         time.sleep(2)
         if i == 2: # taking too long, something is wrong, report
-            print "Waiting for removal of replication agreements"
+            print("Waiting for removal of replication agreements")
         if i > 90:
-            print "Taking too long, skipping"
-            print "Following segments were not deleted:"
+            print("Taking too long, skipping")
+            print("Following segments were not deleted:")
             for s in left:
-                print "  %s" % s['cn'][0]
+                print("  %s" % s['cn'][0])
             for s in right:
-                print "  %s" % s['cn'][0]
+                print("  %s" % s['cn'][0])
             break
         i += 1
 
@@ -798,7 +801,7 @@ def del_master_managed(realm, hostname, options):
         try:
             thisrepl.cleanallruv(rid)
         except KeyboardInterrupt:
-            print "Wait for task interrupted. It will continue to run in the background"
+            print("Wait for task interrupted. It will continue to run in the background")
 
     # 8. And clean up the removed replica DNS entries if any.
     cleanup_server_dns_entries(realm, hostname, thisrepl.suffix, options)
@@ -816,7 +819,7 @@ def del_master_direct(realm, hostname, options):
         thisrepl = replication.ReplicationManager(realm, options.host,
                                                   options.dirman_passwd)
     except Exception as e:
-        print "Failed to connect to server %s: %s" % (options.host, e)
+        print("Failed to connect to server %s: %s" % (options.host, e))
         sys.exit(1)
 
     # 2. Ensure we have an agreement with the master
@@ -829,8 +832,8 @@ def del_master_direct(realm, hostname, options):
             removes that master from the list of masters. If the master
             were to try to come back online it wouldn't work at all.
             """
-            print "Cleaning a master is irreversible."
-            print "This should not normally be require, so use cautiously."
+            print("Cleaning a master is irreversible.")
+            print("This should not normally be require, so use cautiously.")
             if not ipautil.user_input("Continue to clean master?", False):
                 sys.exit("Cleanup aborted")
             thisrepl.replica_cleanup(hostname, realm, force=True)
@@ -845,12 +848,12 @@ def del_master_direct(realm, hostname, options):
         try:
             delrepl = replication.ReplicationManager(realm, hostname, options.dirman_passwd)
         except Exception as e:
-            print "Connection to '%s' failed: %s" % (hostname, e)
+            print("Connection to '%s' failed: %s" % (hostname, e))
             if not options.force:
-                print "Unable to delete replica '%s'" % hostname
+                print("Unable to delete replica '%s'" % hostname)
                 sys.exit(1)
             else:
-                print "Forcing removal of %s" % hostname
+                print("Forcing removal of %s" % hostname)
                 force_del = True
 
         if force_del:
@@ -877,10 +880,10 @@ def del_master_direct(realm, hostname, options):
         replica_names = [options.host]
 
     if not winsync and not options.force:
-        print "Deleting a master is irreversible."
-        print "To reconnect to the remote master you will need to prepare " \
-              "a new replica file"
-        print "and re-install."
+        print("Deleting a master is irreversible.")
+        print("To reconnect to the remote master you will need to prepare " \
+              "a new replica file")
+        print("and re-install.")
         if not ipautil.user_input("Continue to delete?", False):
             sys.exit("Deletion aborted")
 
@@ -890,9 +893,9 @@ def del_master_direct(realm, hostname, options):
             masters = api.Command.server_find('', sizelimit=0)['result']
         except Exception as e:
             masters = []
-            print "Failed to read masters data from '%s': %s" % (
-                delrepl.hostname, e)
-            print "Skipping calculation to determine if one or more masters would be orphaned."
+            print("Failed to read masters data from '%s': %s" % (
+                delrepl.hostname, e))
+            print("Skipping calculation to determine if one or more masters would be orphaned.")
             if not options.force:
                 sys.exit(1)
 
@@ -901,15 +904,15 @@ def del_master_direct(realm, hostname, options):
         if len(masters) > 2:
             orphaned_server = check_last_link(delrepl, realm, options.dirman_passwd, options.force)
             if orphaned_server is not None:
-                print "Deleting this server will orphan '%s'. " % orphaned_server
-                print "You will need to reconfigure your replication topology to delete this server."
+                print("Deleting this server will orphan '%s'. " % orphaned_server)
+                print("You will need to reconfigure your replication topology to delete this server.")
                 sys.exit(1)
 
         # 4. Check that we are not leaving the installation without CA and/or DNS
         #    And pick new CA master.
         ensure_last_services(thisrepl.conn, hostname, masters, options)
     else:
-        print "Skipping calculation to determine if one or more masters would be orphaned."
+        print("Skipping calculation to determine if one or more masters would be orphaned.")
 
     # Save the RID value before we start deleting
     if repltype == replication.IPA_REPLICA:
@@ -918,28 +921,28 @@ def del_master_direct(realm, hostname, options):
 
     # 4. Remove each agreement
 
-    print "Deleting replication agreements between %s and %s" % (hostname, ', '.join(replica_names))
+    print("Deleting replication agreements between %s and %s" % (hostname, ', '.join(replica_names)))
     for r in replica_names:
         try:
             if not del_link(realm, r, hostname, options.dirman_passwd, force=True):
-                print "Unable to remove replication agreement for %s from %s." % (hostname, r)
+                print("Unable to remove replication agreement for %s from %s." % (hostname, r))
         except Exception as e:
-            print ("There were issues removing a connection for %s "
-                "from %s: %s" % (hostname, r, e))
+            print(("There were issues removing a connection for %s "
+                "from %s: %s" % (hostname, r, e)))
 
     # 5. Clean RUV for the deleted master
     if repltype == replication.IPA_REPLICA and rid is not None:
         try:
             thisrepl.cleanallruv(rid)
         except KeyboardInterrupt:
-            print "Wait for task interrupted. It will continue to run in the background"
+            print("Wait for task interrupted. It will continue to run in the background")
 
     # 6. Finally clean up the removed replica common entries.
     try:
         thisrepl.replica_cleanup(hostname, realm, force=True)
     except Exception as e:
-        print "Failed to cleanup %s entries: %s" % (hostname, e)
-        print "You may need to manually remove them from the tree"
+        print("Failed to cleanup %s entries: %s" % (hostname, e))
+        print("You may need to manually remove them from the tree")
 
     # 7. And clean up the removed replica DNS entries if any.
     cleanup_server_dns_entries(realm, hostname, thisrepl.suffix, options)
@@ -963,10 +966,10 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
     try:
         repl = replication.ReplicationManager(realm, replica1, dirman_passwd)
     except errors.NotFound:
-        print "Cannot find replica '%s'" % replica1
+        print("Cannot find replica '%s'" % replica1)
         return
     except Exception as e:
-        print "Failed to connect to '%s': %s" % (replica1, e)
+        print("Failed to connect to '%s': %s" % (replica1, e))
         return
 
     # See if we already have an agreement with this host
@@ -985,20 +988,20 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
         ds = dsinstance.DsInstance(realm_name = realm,
                                    dm_password = dirman_passwd)
         if not ds.add_ca_cert(options.cacert):
-            print "Could not load the required CA certificate file [%s]" % options.cacert
+            print("Could not load the required CA certificate file [%s]" % options.cacert)
             return
         else:
-            print "Added CA certificate %s to certificate database for %s" % (options.cacert, replica1)
+            print("Added CA certificate %s to certificate database for %s" % (options.cacert, replica1))
 
     # need to wait until cacert is installed as that command may restart
     # the directory server and kill the connection
     try:
         repl1 = replication.ReplicationManager(realm, replica1, dirman_passwd)
     except errors.NotFound:
-        print "Cannot find replica '%s'" % replica1
+        print("Cannot find replica '%s'" % replica1)
         return
     except Exception as e:
-        print "Failed to connect to '%s': %s" % (replica1, e)
+        print("Failed to connect to '%s': %s" % (replica1, e))
         return
 
     if options.winsync:
@@ -1040,7 +1043,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
                 sys.exit("Connection to %s unsuccessful." % replica2)
 
         repl1.setup_gssapi_replication(replica2, DN(('cn', 'Directory Manager')), dirman_passwd)
-    print "Connected '%s' to '%s'" % (replica1, replica2)
+    print("Connected '%s' to '%s'" % (replica1, replica2))
 
 def re_initialize(realm, thishost, fromhost, dirman_passwd, nolookup=False):
 
@@ -1132,28 +1135,28 @@ def show_DNA_ranges(hostname, master, realm, dirman_passwd, nextrange=False,
         try:
             repl2 = replication.ReplicationManager(realm, remote, dirman_passwd)
         except Exception as e:
-            print "%s: Connection failed: %s" % (remote, e)
+            print("%s: Connection failed: %s" % (remote, e))
             continue
         if not nextrange:
             try:
                 (start, max) = repl2.get_DNA_range(remote)
             except errors.NotFound:
-                print "%s: No permission to read DNA configuration" % remote
+                print("%s: No permission to read DNA configuration" % remote)
                 continue
             if start is None:
-                print "%s: No range set" % remote
+                print("%s: No range set" % remote)
             else:
-                print "%s: %s-%s" % (remote, start, max)
+                print("%s: %s-%s" % (remote, start, max))
         else:
             try:
                 (next_start, next_max) = repl2.get_DNA_next_range(remote)
             except errors.NotFound:
-                print "%s: No permission to read DNA configuration" % remote
+                print("%s: No permission to read DNA configuration" % remote)
                 continue
             if next_start is None:
-                print "%s: No on-deck range set" % remote
+                print("%s: No on-deck range set" % remote)
             else:
-                print "%s: %s-%s" % (remote, next_start, next_max)
+                print("%s: %s-%s" % (remote, next_start, next_max))
 
     return False
 
@@ -1188,14 +1191,14 @@ def store_DNA_range(repl, range_start, range_max, deleted_master, realm,
         try:
             repl2 = replication.ReplicationManager(realm, candidate, dirman_passwd)
         except Exception as e:
-            print "Connection failed: %s" % e
+            print("Connection failed: %s" % e)
             continue
         (next_start, next_max) = repl2.get_DNA_next_range(candidate)
         if next_start is None:
             try:
                 return repl2.save_DNA_next_range(range_start, range_max)
             except Exception as e:
-                print '%s: %s' % (candidate, e)
+                print('%s: %s' % (candidate, e))
 
     return False
 
@@ -1280,13 +1283,13 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
                 try:
                     repl2 = replication.ReplicationManager(realm, master, dirman_passwd)
                 except Exception as e:
-                    print "Connection to %s failed: %s" % (master, e)
-                    print "Overlap not checked."
+                    print("Connection to %s failed: %s" % (master, e))
+                    print("Overlap not checked.")
                     continue
                 try:
                     (entry_start, entry_max) = repl2.get_DNA_range(master)
                 except errors.NotFound:
-                    print "%s: No permission to read DNA configuration" % master
+                    print("%s: No permission to read DNA configuration" % master)
                     continue
                 if (entry_start is not None and
                     range_intersection(entry_start, entry_max,
@@ -1418,13 +1421,13 @@ def main():
         del_master(realm, args[1], options)
     elif args[0] == "re-initialize":
         if not options.fromhost:
-            print "re-initialize requires the option --from <host name>"
+            print("re-initialize requires the option --from <host name>")
             sys.exit(1)
         re_initialize(realm, host, options.fromhost, dirman_passwd,
                       options.nolookup)
     elif args[0] == "force-sync":
         if not options.fromhost:
-            print "force-sync requires the option --from <host name>"
+            print("force-sync requires the option --from <host name>")
             sys.exit(1)
         force_sync(realm, host, options.fromhost, options.dirman_passwd,
                    options.nolookup)
@@ -1481,8 +1484,8 @@ except SystemExit as e:
 except RuntimeError as e:
     sys.exit(e)
 except socket.timeout:
-    print "Connection timed out."
+    print("Connection timed out.")
     sys.exit(1)
 except Exception as e:
-    print "unexpected error: %s" % str(e)
+    print("unexpected error: %s" % str(e))
     sys.exit(1)

@@ -23,6 +23,8 @@
 # Test the API against a known-good API to ensure that changes aren't made
 # lightly.
 
+from __future__ import print_function
+
 import sys
 import os
 import re
@@ -153,21 +155,21 @@ def validate_doc():
                 if not is_i18n(topic[1]):
                     src_file = inspect.getsourcefile(cmd_class)
                     n_missing_mod_i18n += 1
-                    print "%s: topic in module \"%s\" is not internationalized" % \
-                          (src_file, cmd.module)
+                    print("%s: topic in module \"%s\" is not internationalized" % \
+                          (src_file, cmd.module))
 
             # Does the module have documentation?
             if mod.__doc__ is None:
                 src_file = inspect.getsourcefile(mod)
                 n_missing_mod_doc += 1
-                print "%s: module \"%s\" has no doc" % \
-                      (src_file, cmd.module)
+                print("%s: module \"%s\" has no doc" % \
+                      (src_file, cmd.module))
             # Yes the module has doc, but is it internationalized?
             elif not is_i18n(mod.__doc__):
                 src_file = inspect.getsourcefile(cmd_class)
                 n_missing_mod_i18n += 1
-                print "%s: module \"%s\" doc is not internationalized" % \
-                      (src_file, cmd.module)
+                print("%s: module \"%s\" doc is not internationalized" % \
+                      (src_file, cmd.module))
 
         # Increment the count of how many commands in this module
         modules[cmd.module] = modules[cmd.module] + 1
@@ -177,24 +179,24 @@ def validate_doc():
             src_file = inspect.getsourcefile(cmd_class)
             line_num = inspect.getsourcelines(cmd_class)[1]
             n_missing_cmd_doc += 1
-            print "%s:%d command \"%s\" has no doc" % (src_file, line_num, cmd.name)
+            print("%s:%d command \"%s\" has no doc" % (src_file, line_num, cmd.name))
         # Yes the command has doc, but is it internationalized?
         elif not is_i18n(cmd.__doc__):
             src_file = inspect.getsourcefile(cmd_class)
             line_num = inspect.getsourcelines(cmd_class)[1]
             n_missing_cmd_i18n += 1
-            print "%s:%d command \"%s\" doc is not internationalized" % (src_file, line_num, cmd.name)
+            print("%s:%d command \"%s\" doc is not internationalized" % (src_file, line_num, cmd.name))
 
     # If any errors, emit summary information and adjust return value
     if n_missing_cmd_doc > 0 or n_missing_cmd_i18n > 0:
         rval = API_DOC_ERROR
-        print "%d commands without doc, %d commands whose doc is not i18n" % \
-              (n_missing_cmd_doc, n_missing_cmd_i18n)
+        print("%d commands without doc, %d commands whose doc is not i18n" % \
+              (n_missing_cmd_doc, n_missing_cmd_i18n))
 
     if n_missing_mod_doc > 0 or n_missing_mod_i18n > 0:
         rval = API_DOC_ERROR
-        print "%d modules without doc, %d modules whose doc is not i18n" % \
-              (n_missing_mod_doc, n_missing_mod_i18n)
+        print("%d modules without doc, %d modules whose doc is not i18n" % \
+              (n_missing_mod_doc, n_missing_mod_i18n))
 
     return rval
 
@@ -229,7 +231,7 @@ def find_name(line):
     if m:
         name = m.group(1)
     else:
-        print "Couldn't find name in: %s" % line
+        print("Couldn't find name in: %s" % line)
         name = ''
     return name
 
@@ -239,33 +241,33 @@ def _finalize_command_validation(cmd, found_args, expected_args,
     passed = True
     # Check the args of the previous command.
     if len(found_args) != expected_args:
-        print 'Argument count in %s of %d doesn\'t match expected: %d' % (
-            cmd.name, len(found_args), expected_args)
+        print('Argument count in %s of %d doesn\'t match expected: %d' % (
+            cmd.name, len(found_args), expected_args))
         passed = False
     if len(found_options) != expected_options:
-        print 'Options count in %s of %d doesn\'t match expected: %d' % (
-            cmd.name, len(found_options), expected_options)
+        print('Options count in %s of %d doesn\'t match expected: %d' % (
+            cmd.name, len(found_options), expected_options))
         passed = False
     if len(found_output) != expected_output:
-        print 'Output count in %s of %d doesn\'t match expected: %d' % (
-            cmd.name, len(found_output), expected_output)
+        print('Output count in %s of %d doesn\'t match expected: %d' % (
+            cmd.name, len(found_output), expected_output))
         passed = False
 
     # Check if there is not a new arg/opt/output in previous command
     for a in cmd.args():
         if a.param_spec not in found_args:
-            print 'Argument %s of command %s in ipalib, not in API file:\n%s' % (
-                a.param_spec, cmd.name, param_repr(a))
+            print('Argument %s of command %s in ipalib, not in API file:\n%s' % (
+                a.param_spec, cmd.name, param_repr(a)))
             passed = False
     for o in cmd.options():
         if o.param_spec not in found_options:
-            print 'Option %s of command %s in ipalib, not in API file:\n%s' % (
-                o.param_spec, cmd.name, param_repr(o))
+            print('Option %s of command %s in ipalib, not in API file:\n%s' % (
+                o.param_spec, cmd.name, param_repr(o)))
             passed = False
     for o in cmd.output():
         if o.name not in found_output:
-            print 'Output %s of command %s in ipalib, not in API file:\n%s' % (
-                o.name, cmd.name, param_repr(o))
+            print('Output %s of command %s in ipalib, not in API file:\n%s' % (
+                o.name, cmd.name, param_repr(o)))
             passed = False
 
     return passed
@@ -305,7 +307,7 @@ def validate_api():
 
             (arg, name) = line.split(': ', 1)
             if name not in api.Command:
-                print "Command %s in API file, not in ipalib" % name
+                print("Command %s in API file, not in ipalib" % name)
                 rval |= API_FILE_DIFFERENCE
                 cmd = None
             else:
@@ -330,14 +332,14 @@ def validate_api():
                 else:
                     if a.name == arg:
                         found = True
-                        print 'Arg in %s doesn\'t match.\nGot      %s\nExpected %s' % (
-                            name, param_repr(a), line)
+                        print('Arg in %s doesn\'t match.\nGot      %s\nExpected %s' % (
+                            name, param_repr(a), line))
                         rval |= API_FILE_DIFFERENCE
             if found:
                 found_args.append(arg)
             else:
                 arg = find_name(line)
-                print "Argument '%s' in command '%s' in API file not found" % (arg, name)
+                print("Argument '%s' in command '%s' in API file not found" % (arg, name))
                 rval |= API_FILE_DIFFERENCE
         if line.startswith('option:') and cmd:
             line = line.replace('option: ', '')
@@ -349,13 +351,13 @@ def validate_api():
                 else:
                     if o.name == option:
                         found = True
-                        print 'Option in %s doesn\'t match. Got %s Expected %s' % (name, o, line)
+                        print('Option in %s doesn\'t match. Got %s Expected %s' % (name, o, line))
                         rval |= API_FILE_DIFFERENCE
             if found:
                 found_options.append(option)
             else:
                 option = find_name(line)
-                print "Option '%s' in command '%s' in API file not found" % (option, name)
+                print("Option '%s' in command '%s' in API file not found" % (option, name))
                 rval |= API_FILE_DIFFERENCE
         if line.startswith('output:') and cmd:
             line = line.replace('output: ', '')
@@ -367,13 +369,13 @@ def validate_api():
                 else:
                     if o.name == output:
                         found = True
-                        print 'Output in %s doesn\'t match. Got %s Expected %s' % (name, o, line)
+                        print('Output in %s doesn\'t match. Got %s Expected %s' % (name, o, line))
                         rval |= API_FILE_DIFFERENCE
             if found:
                 found_output.append(output)
             else:
                 output = find_name(line)
-                print "Option '%s' in command '%s' in API file not found" % (output, name)
+                print("Option '%s' in command '%s' in API file not found" % (output, name))
                 rval |= API_FILE_DIFFERENCE
         if line.startswith('capability:'):
             cap, version = line.replace('capability: ', '').split(' ', 1)
@@ -381,13 +383,13 @@ def validate_api():
             try:
                 expected_version = str(capabilities[cap])
             except KeyError:
-                print "Capability '%s' in API file not found" % cap
+                print("Capability '%s' in API file not found" % cap)
                 rval |= API_FILE_DIFFERENCE
             else:
                 if version != expected_version:
-                    print (
+                    print((
                         "Capability '%s' in API file doesn't match. Got %s, "
-                        "expected %s.") % (cap, version, expected_version)
+                        "expected %s.") % (cap, version, expected_version))
                     rval |= API_FILE_DIFFERENCE
 
     if cmd:
@@ -399,12 +401,12 @@ def validate_api():
     # Now look for new commands not in the current API
     for cmd in api.Command():
         if cmd.name not in existing_cmds:
-            print "Command %s in ipalib, not in API" % cmd.name
+            print("Command %s in ipalib, not in API" % cmd.name)
             rval |= API_NEW_COMMAND
 
     for cap in capabilities:
         if cap not in existing_capabilities:
-            print "Capability %s in ipalib, not in API" % cap
+            print("Capability %s in ipalib, not in API" % cap)
             rval |= API_FILE_DIFFERENCE
 
     return rval
@@ -432,25 +434,25 @@ def main():
 
     if options.validate:
         if not os.path.exists(API_FILE):
-            print 'No %s to validate' % API_FILE
+            print('No %s to validate' % API_FILE)
             rval |= API_NO_FILE
         else:
             rval |= validate_api()
     else:
-        print "Writing API to API.txt"
+        print("Writing API to API.txt")
         rval |= make_api()
 
     if rval & API_FILE_DIFFERENCE:
-        print ''
-        print 'There are one or more changes to the API.\nEither undo the API changes or update API.txt and increment the major version in VERSION.'
+        print('')
+        print('There are one or more changes to the API.\nEither undo the API changes or update API.txt and increment the major version in VERSION.')
 
     if rval & API_NEW_COMMAND:
-        print ''
-        print 'There are one or more new commands defined.\nUpdate API.txt and increment the minor version in VERSION.'
+        print('')
+        print('There are one or more new commands defined.\nUpdate API.txt and increment the minor version in VERSION.')
 
     if rval & API_DOC_ERROR:
-        print ''
-        print 'There are one or more documentation problems.\nYou must fix these before preceeding'
+        print('')
+        print('There are one or more documentation problems.\nYou must fix these before preceeding')
 
     return rval
 

@@ -417,6 +417,7 @@ It is possible to "copy" an object by passing an object of the same type
 to the constructor. The result may share underlying structure.
 
 '''
+from __future__ import print_function
 
 import sys
 
@@ -1121,8 +1122,8 @@ class DN(object):
         try:
             return dn2str(self.rdns)
         except Exception, e:
-            print len(self.rdns)
-            print self.rdns
+            print(len(self.rdns))
+            print(self.rdns)
             raise
 
     def __repr__(self):

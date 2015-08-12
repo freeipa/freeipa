@@ -20,6 +20,7 @@
 """
 Test the `ipalib.text` module.
 """
+from __future__ import print_function
 
 import os
 import shutil
@@ -93,7 +94,7 @@ class test_TestLang(object):
             shutil.rmtree(self.tmp_dir)
 
     def test_test_lang(self):
-        print "test_test_lang"
+        print("test_test_lang")
         # The test installs the test message catalog under the xh_ZA
         # (e.g. Zambia Xhosa) language by default. It would be nice to
         # use a dummy language not associated with any real language,

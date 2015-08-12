@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import base64
 import getpass
 import io
@@ -482,7 +484,7 @@ class vault(LDAPObject):
             if password == password2:
                 return password
 
-            print '  ** Passwords do not match! **'
+            print('  ** Passwords do not match! **')
 
     def get_existing_password(self):
         """

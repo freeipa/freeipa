@@ -19,6 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+from __future__ import print_function
 
 import netaddr
 import time
@@ -4471,7 +4472,7 @@ class dnsforwardzone_add(DNSZoneBase_add):
         result = super(dnsforwardzone_add, self).execute(*keys, **options)
         self.obj._warning_fw_zone_is_not_effective(result, *keys, **options)
         if options.get('idnsforwarders'):
-            print result, keys, options
+            print(result, keys, options)
             self.obj._warning_if_forwarders_do_not_work(
                 result, True, *keys, **options)
         return result

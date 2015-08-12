@@ -2,6 +2,8 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+from __future__ import print_function
+
 import dns.exception as dnsexception
 import dns.name as dnsname
 import dns.resolver as dnsresolver
@@ -107,7 +109,7 @@ def install_ca_cert(ldap, base_dn, realm, cafile):
 
         os.chmod(constants.CACERT, 0o444)
     except Exception as e:
-        print "error copying files: " + str(e)
+        print("error copying files: " + str(e))
         sys.exit(1)
 
 
@@ -138,7 +140,7 @@ def install_http(config, auto_redirect):
             shutil.copy(config.dir + "/configure.jar",
                         paths.CONFIGURE_JAR)
     except Exception as e:
-        print "error copying files: " + str(e)
+        print("error copying files: " + str(e))
         sys.exit(1)
 
     http.setup_firefox_extension(config.realm_name, config.domain_name)
@@ -180,12 +182,12 @@ def install_dns_records(config, options, remote_api):
 def check_dirsrv():
     (ds_unsecure, ds_secure) = dsinstance.check_ports()
     if not ds_unsecure or not ds_secure:
-        print "IPA requires ports 389 and 636 for the Directory Server."
-        print "These are currently in use:"
+        print("IPA requires ports 389 and 636 for the Directory Server.")
+        print("These are currently in use:")
         if not ds_unsecure:
-            print "\t389"
+            print("\t389")
         if not ds_secure:
-            print "\t636"
+            print("\t636")
         sys.exit(1)
 
 
@@ -334,10 +336,10 @@ def install_check(installer):
         try:
             ipaclient.ntpconf.check_timedate_services()
         except ipaclient.ntpconf.NTPConflictingService as e:
-            print("WARNING: conflicting time&date synchronization service '%s'"
-                  " will" % e.conflicting_service)
-            print "be disabled in favor of ntpd"
-            print ""
+            print(("WARNING: conflicting time&date synchronization service '%s'"
+                  " will" % e.conflicting_service))
+            print("be disabled in favor of ntpd")
+            print("")
         except ipaclient.ntpconf.NTPConfigurationError:
             pass
 
@@ -416,9 +418,9 @@ def install_check(installer):
                              'host already exists.')
             print('A replication agreement for this host already exists. '
                   'It needs to be removed.')
-            print "Run this on the master that generated the info file:"
-            print("    %% ipa-replica-manage del %s --force" %
-                  config.host_name)
+            print("Run this on the master that generated the info file:")
+            print(("    %% ipa-replica-manage del %s --force" %
+                  config.host_name))
             sys.exit(3)
 
         # Detect the current domain level
@@ -455,10 +457,10 @@ def install_check(installer):
         else:
             root_logger.info('Error: Host %s already exists on the master '
                              'server.' % config.host_name)
-            print('The host %s already exists on the master server.' %
-                  config.host_name)
-            print "You should remove it before proceeding:"
-            print "    %% ipa host-del %s" % config.host_name
+            print(('The host %s already exists on the master server.' %
+                  config.host_name))
+            print("You should remove it before proceeding:")
+            print("    %% ipa host-del %s" % config.host_name)
             sys.exit(3)
 
         dns_masters = remote_api.Object['dnsrecord'].get_dns_masters()
@@ -486,7 +488,7 @@ def install_check(installer):
             try:
                 kra.install_check(remote_api, config, options)
             except RuntimeError as e:
-                print str(e)
+                print(str(e))
                 sys.exit(1)
     except errors.ACIError:
         sys.exit("\nThe password provided is incorrect for LDAP server "
@@ -629,8 +631,8 @@ def install(installer):
             args.append("--mkhomedir")
         ipautil.run(args)
     except Exception as e:
-        print "Configuration of client side components failed!"
-        print "ipa-client-install returned: " + str(e)
+        print("Configuration of client side components failed!")
+        print("ipa-client-install returned: " + str(e))
         raise RuntimeError("Failed to configure the client")
 
     ds.replica_populate()

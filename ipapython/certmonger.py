@@ -22,6 +22,8 @@
 # This is used so we can add tracking to the Apache and 389-ds
 # server certificates created during the IPA server installation.
 
+from __future__ import print_function
+
 import os
 import sys
 import time
@@ -548,5 +550,5 @@ if __name__ == '__main__':
                               "cn=tiger.example.com,O=IPA",
                               "HTTP/tiger.example.com@EXAMPLE.COM")
     csr = get_request_value(request_id, 'csr')
-    print csr
+    print(csr)
     stop_tracking(request_id)

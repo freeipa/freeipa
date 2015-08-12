@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import os
 import os.path
 import tempfile
@@ -213,7 +215,7 @@ class HTTPInstance(service.Service):
     def __set_mod_nss_port(self):
         self.fstore.backup_file(paths.HTTPD_NSS_CONF)
         if installutils.update_file(paths.HTTPD_NSS_CONF, '8443', '443') != 0:
-            print "Updating port in %s failed." % paths.HTTPD_NSS_CONF
+            print("Updating port in %s failed." % paths.HTTPD_NSS_CONF)
 
     def __set_mod_nss_nickname(self, nickname):
         installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSNickname', nickname)
@@ -231,7 +233,7 @@ class HTTPInstance(service.Service):
     def __add_include(self):
         """This should run after __set_mod_nss_port so is already backed up"""
         if installutils.update_file(paths.HTTPD_NSS_CONF, '</VirtualHost>', 'Include conf.d/ipa-rewrite.conf\n</VirtualHost>') != 0:
-            print "Adding Include conf.d/ipa-rewrite to %s failed." % paths.HTTPD_NSS_CONF
+            print("Adding Include conf.d/ipa-rewrite to %s failed." % paths.HTTPD_NSS_CONF)
 
     def configure_certmonger_renewal_guard(self):
         certmonger = services.knownservices.certmonger

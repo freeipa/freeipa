@@ -19,6 +19,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 try:
     import sys
 
@@ -58,12 +60,12 @@ try:
     from ipalib.rpc import delete_persistent_client_session_data
 
 except ImportError as e:
-    print >> sys.stderr, """\
+    print("""\
 There was a problem importing one of the required Python modules. The
 error was:
 
     %s
-""" % e
+""" % e, file=sys.stderr)
     sys.exit(1)
 
 SUCCESS = 0
@@ -2226,12 +2228,12 @@ def install(options, env, fstore, statestore):
         try:
             ipaclient.ntpconf.check_timedate_services()
         except ipaclient.ntpconf.NTPConflictingService as e:
-            print "WARNING: ntpd time&date synchronization service will not" \
-                  " be configured as"
-            print "conflicting service (%s) is enabled" % e.conflicting_service
-            print "Use --force-ntpd option to disable it and force configuration" \
-                  " of ntpd"
-            print ""
+            print("WARNING: ntpd time&date synchronization service will not" \
+                  " be configured as")
+            print("conflicting service (%s) is enabled" % e.conflicting_service)
+            print("Use --force-ntpd option to disable it and force configuration" \
+                  " of ntpd")
+            print("")
 
             # configuration of ntpd is disabled in this case
             options.conf_ntp = False
@@ -2475,13 +2477,13 @@ def install(options, env, fstore, statestore):
                 is_ipaddr = False
 
         if is_ipaddr:
-            print
+            print()
             root_logger.warning("It seems that you are using an IP address "
                                 "instead of FQDN as an argument to --server. The "
                                 "installation may fail.")
             break
 
-    print
+    print()
     if not options.unattended and not user_input("Continue to configure the system with these values?", False):
         return CLIENT_INSTALL_ERROR
 

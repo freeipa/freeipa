@@ -20,6 +20,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import os
 import sys
 from optparse import OptionParser
@@ -33,7 +35,7 @@ try:
     from astroid import Class, Instance, Module, InferenceError, Function
     from pylint.reporters.text import TextReporter
 except ImportError:
-    print >> sys.stderr, "To use {0}, please install pylint.".format(sys.argv[0])
+    print("To use {0}, please install pylint.".format(sys.argv[0]), file=sys.stderr)
     sys.exit(32)
 
 # File names to ignore when searching for python source files
@@ -249,25 +251,25 @@ def main():
     linter.check(files)
 
     if linter.msg_status != 0:
-        print >> sys.stderr, """
+        print("""
 ===============================================================================
 Errors were found during the static code check.
-"""
+""", file=sys.stderr)
 
         if len(linter.missing) > 0:
-            print >> sys.stderr, "There are some missing imports:"
+            print("There are some missing imports:", file=sys.stderr)
             for mod in sorted(linter.missing):
-                print >> sys.stderr, "    " + mod
-            print >> sys.stderr, """
+                print("    " + mod, file=sys.stderr)
+            print("""
 Please make sure all of the required and optional (python-gssapi, python-rhsm)
 python packages are installed.
-"""
+""", file=sys.stderr)
 
-        print >> sys.stderr, """\
+        print("""\
 If you are certain that any of the reported errors are false positives, please
 mark them in the source code according to the pylint documentation.
 ===============================================================================
-"""
+""", file=sys.stderr)
 
     if options.fail:
         return linter.msg_status

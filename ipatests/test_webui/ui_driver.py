@@ -22,6 +22,7 @@ Base class for UI integration tests.
 
 Contains browser driver and common tasks.
 """
+from __future__ import print_function
 
 import nose
 from datetime import datetime
@@ -934,7 +935,7 @@ class UI_driver(object):
         checkbox = self.find(input_s, By.CSS_SELECTOR, parent, strict=True)
         checkbox_id = checkbox.get_attribute('id')
         label_s = s + " tbody td label[for='%s']" % checkbox_id
-        print label_s
+        print(label_s)
         label = self.find(label_s, By.CSS_SELECTOR, parent, strict=True)
         try:
             ActionChains(self.driver).move_to_element(label).click().perform()

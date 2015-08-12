@@ -3,6 +3,8 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
+from __future__ import print_function
+
 from binascii import hexlify
 import collections
 import logging
@@ -192,36 +194,36 @@ if __name__ == '__main__':
     localhsm = LocalHSM(paths.LIBSOFTHSM2_SO, 0,
             open(paths.DNSSEC_SOFTHSM_PIN).read())
 
-    print 'replica public keys: CKA_WRAP = TRUE'
-    print '===================================='
+    print('replica public keys: CKA_WRAP = TRUE')
+    print('====================================')
     for pubkey_id, pubkey in localhsm.replica_pubkeys_wrap.items():
-        print hexlify(pubkey_id)
+        print(hexlify(pubkey_id))
         pprint(pubkey)
 
-    print ''
-    print 'replica public keys: all'
-    print '========================'
+    print('')
+    print('replica public keys: all')
+    print('========================')
     for pubkey_id, pubkey in localhsm.replica_pubkeys.items():
-        print hexlify(pubkey_id)
+        print(hexlify(pubkey_id))
         pprint(pubkey)
 
-    print ''
-    print 'master keys'
-    print '==========='
+    print('')
+    print('master keys')
+    print('===========')
     for mkey_id, mkey in localhsm.master_keys.items():
-        print hexlify(mkey_id)
+        print(hexlify(mkey_id))
         pprint(mkey)
 
-    print ''
-    print 'zone public keys'
-    print '================'
+    print('')
+    print('zone public keys')
+    print('================')
     for key_id, key in localhsm.zone_pubkeys.items():
-        print hexlify(key_id)
+        print(hexlify(key_id))
         pprint(key)
 
-    print ''
-    print 'zone private keys'
-    print '================='
+    print('')
+    print('zone private keys')
+    print('=================')
     for key_id, key in localhsm.zone_privkeys.items():
-        print hexlify(key_id)
+        print(hexlify(key_id))
         pprint(key)

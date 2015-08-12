@@ -20,6 +20,7 @@
 """
 Base class for all XML-RPC tests
 """
+from __future__ import print_function
 
 import datetime
 
@@ -274,7 +275,7 @@ class Declarative(XMLRPC_test):
     @classmethod
     def cleanup(cls, command):
         (cmd, args, options) = command
-        print 'Cleanup:', cmd, args, options
+        print('Cleanup:', cmd, args, options)
         if cmd not in api.Command:
             raise nose.SkipTest(
                 'cleanup command %r not in api.Command' % cmd
@@ -282,7 +283,7 @@ class Declarative(XMLRPC_test):
         try:
             api.Command[cmd](*args, **options)
         except (errors.NotFound, errors.EmptyModlist) as e:
-            print e
+            print(e)
             pass
 
     def test_command(self, index, declarative_test_definition):

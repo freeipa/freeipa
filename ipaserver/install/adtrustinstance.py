@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import os
 import errno
 import ldap
@@ -59,9 +61,9 @@ SELINUX_BOOLEAN_SETTINGS = {'samba_portmapper': 'on'}
 def check_inst():
     for smbfile in [paths.SMBD, paths.NET]:
         if not os.path.exists(smbfile):
-            print "%s was not found on this system" % smbfile
-            print "Please install the 'samba' packages and " \
-                  "start the installation again"
+            print("%s was not found on this system" % smbfile)
+            print("Please install the 'samba' packages and " \
+                  "start the installation again")
             return False
 
     #TODO: Add check for needed samba4 libraries

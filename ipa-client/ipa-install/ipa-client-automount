@@ -21,6 +21,8 @@
 #
 # Configure the automount client for ldap.
 
+from __future__ import print_function
+
 import sys
 import os
 import urlparse
@@ -86,8 +88,8 @@ def wait_for_sssd():
         err_msg = ("Unable to find 'admin' user with "
                    "'getent passwd admin@%s'!" % api.env.realm)
         root_logger.debug(err_msg)
-        print err_msg
-        print "This may mean that sssd didn't re-start properly after the configuration changes."
+        print(err_msg)
+        print("This may mean that sssd didn't re-start properly after the configuration changes.")
 
 def configure_xml(fstore):
     from lxml import etree
@@ -122,8 +124,8 @@ def configure_xml(fstore):
         root.write(newconf, pretty_print=True, xml_declaration=True, encoding='UTF-8')
         newconf.close()
     except IOError as e:
-        print "Unable to write %s: %s" % (paths.AUTOFS_LDAP_AUTH_CONF, e)
-    print "Configured %s" % paths.AUTOFS_LDAP_AUTH_CONF
+        print("Unable to write %s: %s" % (paths.AUTOFS_LDAP_AUTH_CONF, e))
+    print("Configured %s" % paths.AUTOFS_LDAP_AUTH_CONF)
 
 def configure_nsswitch(fstore, options):
     """
@@ -142,7 +144,7 @@ def configure_nsswitch(fstore, options):
 
     conf.changeConf(paths.NSSWITCH_CONF, opts)
 
-    print "Configured %s" % paths.NSSWITCH_CONF
+    print("Configured %s" % paths.NSSWITCH_CONF)
 
 def configure_autofs_sssd(fstore, statestore, autodiscover, options):
     try:
@@ -191,7 +193,7 @@ def configure_autofs_sssd(fstore, statestore, autodiscover, options):
 
     sssd = services.service('sssd')
     sssd.restart()
-    print "Restarting sssd, waiting for it to become available."
+    print("Restarting sssd, waiting for it to become available.")
     wait_for_sssd()
 
 def configure_autofs(fstore, statestore, autodiscover, server, options):
@@ -221,7 +223,7 @@ def configure_autofs(fstore, statestore, autodiscover, server, options):
     tasks.restore_context(paths.SYSCONFIG_AUTOFS)
     statestore.backup_state('autofs', 'sssd', False)
 
-    print "Configured %s" % paths.SYSCONFIG_AUTOFS
+    print("Configured %s" % paths.SYSCONFIG_AUTOFS)
 
 def configure_autofs_common(fstore, statestore, options):
     autofs = services.knownservices.autofs
@@ -229,17 +231,17 @@ def configure_autofs_common(fstore, statestore, options):
     statestore.backup_state('autofs', 'running', autofs.is_running())
     try:
         autofs.restart()
-        print "Started %s" % autofs.service_name
+        print("Started %s" % autofs.service_name)
     except Exception as e:
         root_logger.error("%s failed to restart: %s", autofs.service_name, e)
     try:
         autofs.enable()
     except Exception as e:
-        print "Failed to configure automatic startup of the %s daemon" % (autofs.service_name)
+        print("Failed to configure automatic startup of the %s daemon" % (autofs.service_name))
         root_logger.error("Failed to enable automatic startup of the %s daemon: %s" % (autofs.service_name, str(e)))
 
 def uninstall(fstore, statestore):
-    print "Restoring configuration"
+    print("Restoring configuration")
     if fstore.has_file(paths.SYSCONFIG_AUTOFS):
         fstore.restore_file(paths.SYSCONFIG_AUTOFS)
     if fstore.has_file(paths.NSSWITCH_CONF):
@@ -281,7 +283,7 @@ def uninstall(fstore, statestore):
                 sssd.restart()
                 wait_for_sssd()
             except Exception as e:
-                print 'Unable to restore SSSD configuration: %s' % str(e)
+                print('Unable to restore SSSD configuration: %s' % str(e))
                 root_logger.debug('Unable to restore SSSD configuration: %s' % str(e))
     if statestore.has_state('rpcidmapd'):
         enabled = statestore.restore_state('rpcidmapd', 'enabled')
@@ -313,7 +315,7 @@ def configure_nfs(fstore, statestore):
         paths.SYSCONFIG_NFS, replacevars=replacevars)
     tasks.restore_context(paths.SYSCONFIG_NFS)
 
-    print "Configured %s" % paths.SYSCONFIG_NFS
+    print("Configured %s" % paths.SYSCONFIG_NFS)
 
     replacevars = {
         'Domain': api.env.domain,
@@ -322,20 +324,20 @@ def configure_nfs(fstore, statestore):
         paths.IDMAPD_CONF, replacevars=replacevars)
     tasks.restore_context(paths.IDMAPD_CONF)
 
-    print "Configured %s" % paths.IDMAPD_CONF
+    print("Configured %s" % paths.IDMAPD_CONF)
 
     rpcidmapd = services.knownservices.rpcidmapd
     statestore.backup_state('rpcidmapd', 'enabled', rpcidmapd.is_enabled())
     statestore.backup_state('rpcidmapd', 'running', rpcidmapd.is_running())
     try:
         rpcidmapd.restart()
-        print "Started %s" % rpcidmapd.service_name
+        print("Started %s" % rpcidmapd.service_name)
     except Exception as e:
         root_logger.error("%s failed to restart: %s", rpcidmapd.service_name, e)
     try:
         rpcidmapd.enable()
     except Exception as e:
-        print "Failed to configure automatic startup of the %s daemon" % (rpcidmapd.service_name)
+        print("Failed to configure automatic startup of the %s daemon" % (rpcidmapd.service_name))
         root_logger.error("Failed to enable automatic startup of the %s daemon: %s" % (rpcidmapd.service_name, str(e)))
 
     rpcgssd = services.knownservices.rpcgssd
@@ -343,13 +345,13 @@ def configure_nfs(fstore, statestore):
     statestore.backup_state('rpcgssd', 'running', rpcgssd.is_running())
     try:
         rpcgssd.restart()
-        print "Started %s" % rpcgssd.service_name
+        print("Started %s" % rpcgssd.service_name)
     except Exception as e:
         root_logger.error("%s failed to restart: %s", rpcgssd.service_name, e)
     try:
         rpcgssd.enable()
     except Exception as e:
-        print "Failed to configure automatic startup of the %s daemon" % (rpcgssd.service_name)
+        print("Failed to configure automatic startup of the %s daemon" % (rpcgssd.service_name))
         root_logger.error("Failed to enable automatic startup of the %s daemon: %s" % (rpcgssd.service_name, str(e)))
 
 def main():
@@ -389,7 +391,7 @@ def main():
     servers = []
     ds = ipadiscovery.IPADiscovery()
     if not options.server:
-        print "Searching for IPA server..."
+        print("Searching for IPA server...")
         ret = ds.search(ca_cert_path=ca_cert_path)
         root_logger.debug('Executing DNS discovery')
         if ret == ipadiscovery.NO_LDAP_SERVER:
@@ -408,23 +410,23 @@ def main():
         root_logger.debug("Verifying that %s is an IPA server" % server)
         ldapret = ds.ipacheckldap(server, api.env.realm, ca_cert_path)
         if ldapret[0] == ipadiscovery.NO_ACCESS_TO_LDAP:
-            print "Anonymous access to the LDAP server is disabled."
-            print "Proceeding without strict verification."
-            print "Note: This is not an error if anonymous access has been explicitly restricted."
+            print("Anonymous access to the LDAP server is disabled.")
+            print("Proceeding without strict verification.")
+            print("Note: This is not an error if anonymous access has been explicitly restricted.")
         elif ldapret[0] == ipadiscovery.NO_TLS_LDAP:
             root_logger.warning("Unencrypted access to LDAP is not supported.")
         elif ldapret[0] != 0:
             sys.exit('Unable to confirm that %s is an IPA server' % server)
 
     if not autodiscover:
-        print "IPA server: %s" % server
+        print("IPA server: %s" % server)
         root_logger.debug('Using fixed server %s' % server)
     else:
-        print "IPA server: DNS discovery"
+        print("IPA server: DNS discovery")
         root_logger.debug('Configuring to use DNS discovery')
 
     search_base = str(DN(('cn', options.location), api.env.container_automount, api.env.basedn))
-    print "Location: %s" % options.location
+    print("Location: %s" % options.location)
     root_logger.debug('Using automount location %s' % options.location)
 
     ccache_dir = tempfile.mkdtemp()
@@ -473,7 +475,7 @@ def main():
         configure_autofs_common(fstore, statestore, options)
     except Exception as e:
         root_logger.debug('Raised exception %s' % e)
-        print "Installation failed. Rolling back changes."
+        print("Installation failed. Rolling back changes.")
         uninstall(fstore, statestore)
         return 1
 

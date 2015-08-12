@@ -18,6 +18,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import sys
 import httplib
 import getpass
@@ -340,9 +342,9 @@ if __name__ == "__main__":
         conn.connect()
         conn.request("GET", "/")
         response = conn.getresponse()
-        print response.status
+        print(response.status)
         #print response.msg
-        print response.getheaders()
+        print(response.getheaders())
         data = response.read()
         #print data
         conn.close()
@@ -353,8 +355,8 @@ if __name__ == "__main__":
         h.putrequest('GET', '/')
         h.endheaders()
         http_status, http_reason, headers = h.getreply()
-        print "status = %s %s" % (http_status, http_reason)
-        print "headers:\n%s" % headers
+        print("status = %s %s" % (http_status, http_reason))
+        print("headers:\n%s" % headers)
         f = h.getfile()
         data = f.read() # Get the raw HTML
         f.close()

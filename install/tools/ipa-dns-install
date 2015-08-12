@@ -19,6 +19,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 from optparse import OptionGroup, SUPPRESS_HELP
 
 from ipaserver.install import bindinstance, httpinstance
@@ -102,7 +104,7 @@ def main():
         sys.exit("Must be root to setup server")
 
     standard_logging_setup(log_file_name, debug=options.debug, filemode='a')
-    print "\nThe log file for this installation can be found in %s" % log_file_name
+    print("\nThe log file for this installation can be found in %s" % log_file_name)
 
     root_logger.debug('%s was invoked with options: %s' % (sys.argv[0], safe_options))
     root_logger.debug("missing options might be asked for interactively later\n")

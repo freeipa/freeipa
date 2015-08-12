@@ -18,6 +18,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 from textwrap import dedent
 from ipalib import api
 from ipaplatform import services
@@ -156,7 +158,7 @@ class KRAInstaller(KRAInstall):
 
     def _run(self):
         super(KRAInstaller, self).run()
-        print dedent(self.INSTALLER_START_MESSAGE)
+        print(dedent(self.INSTALLER_START_MESSAGE))
 
         if not self.installing_replica:
             replica_config = None

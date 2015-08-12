@@ -2,6 +2,8 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+from __future__ import print_function
+
 import sys
 import os.path
 
@@ -30,7 +32,7 @@ def install_check(standalone, replica_config, options):
             sys.exit('A selfsign CA can not be added')
 
         if not ipautil.file_exists(replica_config.dir + "/cacert.p12"):
-            print 'CA cannot be installed in CA-less setup.'
+            print('CA cannot be installed in CA-less setup.')
             sys.exit(1)
 
         if standalone and not options.skip_conncheck:
@@ -73,9 +75,9 @@ def install_check(standalone, replica_config, options):
                   "--external-cert-file.")
             sys.exit(1)
         if ipautil.file_exists(paths.ROOT_IPA_CSR):
-            print("CA CSR file %s already exists.\nIn order to continue "
+            print(("CA CSR file %s already exists.\nIn order to continue "
                   "remove the file and run the installer again." %
-                  paths.ROOT_IPA_CSR)
+                  paths.ROOT_IPA_CSR))
             sys.exit(1)
 
     if not options.external_cert_files:
@@ -94,8 +96,8 @@ def install_check(standalone, replica_config, options):
                 if nickname in (certdb.get_ca_nickname(realm_name),
                                 'ipaCert',
                                 'Signing-Cert'):
-                    print ("Certificate with nickname %s is present in %s, "
-                           "cannot continue." % (nickname, db.secdir))
+                    print(("Certificate with nickname %s is present in %s, "
+                           "cannot continue." % (nickname, db.secdir)))
                     sys.exit(1)
 
                 cert = db.get_cert_from_db(nickname)
@@ -105,8 +107,8 @@ def install_check(standalone, replica_config, options):
                 if subject in (DN('CN=Certificate Authority', subject_base),
                                DN('CN=IPA RA', subject_base),
                                DN('CN=Object Signing Cert', subject_base)):
-                    print ("Certificate with subject %s is present in %s, "
-                           "cannot continue." % (subject, db.secdir))
+                    print(("Certificate with subject %s is present in %s, "
+                           "cannot continue." % (subject, db.secdir)))
                     sys.exit(1)
 
 
@@ -249,7 +251,7 @@ def install_step_1(standalone, replica_config, options):
             with open(paths.IPA_DEFAULT_CONF, 'w') as f:
                 parser.write(f)
         except IOError as e:
-            print "Failed to update /etc/ipa/default.conf"
+            print("Failed to update /etc/ipa/default.conf")
             root_logger.error(str(e))
             sys.exit(1)
 

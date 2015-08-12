@@ -22,6 +22,7 @@
 """
 Test the `ipalib.plugins.host` module.
 """
+from __future__ import print_function
 
 import os
 import tempfile
@@ -689,7 +690,7 @@ class TestHostFalsePwdChange(XMLRPC_test):
         except ipautil.CalledProcessError as e:
             # join operation may fail on 'adding key into keytab', but
             # the keytab is not necessary for further tests
-            print e
+            print(e)
 
         host.attrs['has_keytab'] = True
         host.attrs['has_password'] = False

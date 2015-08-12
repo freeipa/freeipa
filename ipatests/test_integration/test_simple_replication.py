@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
@@ -47,7 +49,7 @@ class TestSimpleReplication(IntegrationTest):
         user_dn = DN(('uid', login), ('cn', 'users'), ('cn', 'accounts'),
                      basedn)
         entry = ldap.get_entry(user_dn)
-        print entry
+        print(entry)
         assert entry.dn == user_dn
         assert entry['uid'] == [login]
 

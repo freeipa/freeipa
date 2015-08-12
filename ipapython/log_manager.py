@@ -500,6 +500,7 @@ bewildering difficult to get it do what I wanted.
 John Dennis <jdennis@redhat.com>
 
 '''
+from __future__ import print_function
 
 #-------------------------------------------------------------------------------
 import sys
@@ -1242,7 +1243,7 @@ class LogManager(object):
                 try:
                     level = parse_log_level(level)
                 except Exception as e:
-                    print >>sys.stderr, 'could not set handler log level "%s" (%s)' % (level, e)
+                    print('could not set handler log level "%s" (%s)' % (level, e), file=sys.stderr)
                     level = None
             if level is None:
                 level = self.default_level

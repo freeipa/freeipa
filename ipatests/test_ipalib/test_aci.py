@@ -21,13 +21,14 @@
 """
 Test the `ipalib.aci` module.
 """
+from __future__ import print_function
 
 from ipalib.aci import ACI
 
 def check_aci_parsing(source, expected):
     a = ACI(source)
-    print 'ACI was: ', a
-    print 'Expected:', expected
+    print('ACI was: ', a)
+    print('Expected:', expected)
     assert str(ACI(source)) == expected
 
 def test_aci_parsing_1():
@@ -76,7 +77,7 @@ def make_test_aci():
 
 def test_aci_equality():
     a = make_test_aci()
-    print a
+    print(a)
 
     b = ACI()
     b.name ="foo"
@@ -85,7 +86,7 @@ def test_aci_equality():
     b.set_bindrule_operator("=")
     b.set_bindrule_expression("\"ldap:///cn=foo,cn=groups,cn=accounts,dc=example,dc=com\"")
     b.permissions = ['add','read','write']
-    print b
+    print(b)
 
     assert a.isequal(b)
     assert a == b
@@ -94,8 +95,8 @@ def test_aci_equality():
 
 def check_aci_inequality(b):
     a = make_test_aci()
-    print a
-    print b
+    print(a)
+    print(b)
 
     assert not a.isequal(b)
     assert not a == b

@@ -30,6 +30,7 @@ server.  I don't exactly remember the steps, so ping him for help.
 
     --jderose 2009-02-13
 """
+from __future__ import print_function
 
 from os import path
 import sys
@@ -90,14 +91,14 @@ def assert_equal(trial, reference):
 
 api.log.info('******** Testing ra.request_certificate() ********')
 request_result = ra.request_certificate(csr, ra.DEFAULT_PROFILE)
-if verbose: print "request_result=\n%s" % request_result
+if verbose: print("request_result=\n%s" % request_result)
 assert_equal(request_result,
              {'subject' : subject,
               })
 
 api.log.info('******** Testing ra.check_request_status() ********')
 status_result = ra.check_request_status(request_result['request_id'])
-if verbose: print "status_result=\n%s" % status_result
+if verbose: print("status_result=\n%s" % status_result)
 assert_equal(status_result,
              {'serial_number'       : request_result['serial_number'],
               'request_id'          : request_result['request_id'],
@@ -106,7 +107,7 @@ assert_equal(status_result,
 
 api.log.info('******** Testing ra.get_certificate() ********')
 get_result = ra.get_certificate(request_result['serial_number'])
-if verbose: print "get_result=\n%s" % get_result
+if verbose: print("get_result=\n%s" % get_result)
 assert_equal(get_result,
              {'serial_number' : request_result['serial_number'],
               'certificate'   : request_result['certificate'],
@@ -115,7 +116,7 @@ assert_equal(get_result,
 api.log.info('******** Testing ra.revoke_certificate() ********')
 revoke_result = ra.revoke_certificate(request_result['serial_number'],
                                       revocation_reason=6)  # Put on hold
-if verbose: print "revoke_result=\n%s" % revoke_result
+if verbose: print("revoke_result=\n%s" % revoke_result)
 assert_equal(revoke_result,
              {'revoked' : True
               })
@@ -123,7 +124,7 @@ assert_equal(revoke_result,
 
 api.log.info('******** Testing ra.take_certificate_off_hold() ********')
 unrevoke_result = ra.take_certificate_off_hold(request_result['serial_number'])
-if verbose: print "unrevoke_result=\n%s" % unrevoke_result
+if verbose: print("unrevoke_result=\n%s" % unrevoke_result)
 assert_equal(unrevoke_result,
              {'unrevoked' : True
               })

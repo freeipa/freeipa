@@ -18,6 +18,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import shutil
 import pwd
 import sys
@@ -506,7 +508,7 @@ class DsInstance(service.Service):
             self.__restart_instance()
             root_logger.debug("done restarting ds instance")
         except ipautil.CalledProcessError as e:
-            print "failed to restart ds instance", e
+            print("failed to restart ds instance", e)
             root_logger.debug("failed to restart ds instance %s" % e)
         inf_fd.close()
         os.remove(paths.DIRSRV_BOOT_LDIF)
@@ -832,7 +834,7 @@ class DsInstance(service.Service):
                 ipautil.run(args, env=env)
                 root_logger.debug("ldappasswd done")
             except ipautil.CalledProcessError as e:
-                print "Unable to set admin password", e
+                print("Unable to set admin password", e)
                 root_logger.debug("Unable to set admin password %s" % e)
 
         finally:

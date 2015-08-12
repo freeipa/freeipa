@@ -17,12 +17,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import os
+from textwrap import wrap
+
 from ipalib import api
 from ipalib.plugable import Plugin, API
 from ipalib.errors import ValidationError
 from ipapython import admintool
-from textwrap import wrap
 from ipapython.ipa_log_manager import log_mgr
 
 
@@ -174,11 +177,11 @@ class IpaAdvise(admintool.AdminTool):
             wrapped_description = wrap(description, 80 - len(prefix))
 
             # Print the first line with the prefix (keyword)
-            print prefix + wrapped_description[0]
+            print(prefix + wrapped_description[0])
 
             # Print the rest wrapped behind the colon
             for line in wrapped_description[1:]:
-                print "{off}{line}".format(off=' ' * len(prefix), line=line)
+                print("{off}{line}".format(off=' ' * len(prefix), line=line))
 
     def print_header(self, header, print_shell=False):
         header_size = len(header)
@@ -186,14 +189,14 @@ class IpaAdvise(admintool.AdminTool):
         prefix = ''
         if print_shell:
             prefix = '# '
-            print '#!/bin/sh'
+            print('#!/bin/sh')
 
         # Do not print out empty header
         if header_size > 0:
-            print(prefix + '-' * 70)
+            print((prefix + '-' * 70))
             for line in wrap(header, 70):
-                print(prefix + line)
-            print(prefix + '-' * 70)
+                print((prefix + line))
+            print((prefix + '-' * 70))
 
     def print_advice(self, keyword):
         advice = getattr(advise_api.Advice, keyword, None)
@@ -224,7 +227,7 @@ class IpaAdvise(admintool.AdminTool):
         advice.get_info()
         api.Backend.rpcclient.disconnect()
         for line in advice.log.content:
-            print line
+            print(line)
 
     def run(self):
         super(IpaAdvise, self).run()

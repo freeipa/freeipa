@@ -18,6 +18,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import re
 import sys
 from optparse import OptionParser
@@ -117,9 +119,9 @@ def main():
             sys.exit("Unable to find managed entries at %s" % managed_entry_definitions_dn)
         managed_entries = [entry.single_value['cn'] for entry in entries]
         if managed_entries:
-            print "Available Managed Entry Definitions:"
+            print("Available Managed Entry Definitions:")
             for managed_entry in managed_entries:
-                print managed_entry
+                print(managed_entry)
         retval = 0
         sys.exit()
 
@@ -141,20 +143,20 @@ def main():
         except errors.NotFound:
             sys.exit("%s is not a valid Managed Entry" % def_dn)
         except errors.ExecutionError as lde:
-            print "An error occurred while talking to the server."
-            print lde
+            print("An error occurred while talking to the server.")
+            print(lde)
 
         if args[0] == "status":
             if not disabled:
-                print "Plugin Enabled"
+                print("Plugin Enabled")
             else:
-                print "Plugin Disabled"
+                print("Plugin Disabled")
             return 0
 
         if args[0] == "enable":
             try:
                 if not disabled:
-                    print "Plugin already Enabled"
+                    print("Plugin already Enabled")
                     retval = 2
                 else:
                     # Remove disable_attr from filter
@@ -162,13 +164,13 @@ def main():
                     #enable_attr = {'originfilter': enable_attr}
                     entry['originfilter'] = [enable_attr]
                     conn.update_entry(entry)
-                    print "Enabling Plugin"
+                    print("Enabling Plugin")
                     retval = 0
             except errors.NotFound:
-                print "Enabling Plugin"
+                print("Enabling Plugin")
             except errors.ExecutionError as lde:
-                print "An error occurred while talking to the server."
-                print lde
+                print("An error occurred while talking to the server.")
+                print(lde)
                 retval = 1
 
         elif args[0] == "disable":
@@ -177,7 +179,7 @@ def main():
             # disabling.
             try:
                 if disabled:
-                    print "Plugin already disabled"
+                    print("Plugin already disabled")
                     retval = 2
                 else:
                     if org_filter[:2] == '(&' and org_filter[-1] == ')':
@@ -186,17 +188,17 @@ def main():
                         disable_attr = '(&%s(%s))' % (disable_attr, org_filter)
                     entry['originfilter'] = [disable_attr]
                     conn.update_entry(entry)
-                    print "Disabling Plugin"
+                    print("Disabling Plugin")
             except errors.NotFound:
-                print "Plugin is already disabled"
+                print("Plugin is already disabled")
                 retval = 2
             except errors.DatabaseError as dbe:
-                print "An error occurred while talking to the server."
-                print dbe
+                print("An error occurred while talking to the server.")
+                print(dbe)
                 retval = 1
             except errors.ExecutionError as lde:
-                print "An error occurred while talking to the server."
-                print lde
+                print("An error occurred while talking to the server.")
+                print(lde)
                 retval = 1
 
         else:

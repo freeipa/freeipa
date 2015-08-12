@@ -21,6 +21,7 @@
 """
 Test the `ipalib/plugins/permission.py` module.
 """
+from __future__ import print_function
 
 import os
 
@@ -2847,7 +2848,7 @@ def check_legacy_results(results):
     """Check that the expected number of legacy permissions are in $SUFFIX"""
     legacy_permissions = [p for p in results
                           if not p.get('ipapermissiontype')]
-    print legacy_permissions
+    print(legacy_permissions)
     assert len(legacy_permissions) == 8, len(legacy_permissions)
     return True
 

@@ -18,6 +18,7 @@
 #
 
 from __future__ import absolute_import
+from __future__ import print_function
 
 import shutil
 import fileinput
@@ -276,7 +277,7 @@ class KrbInstance(service.Service):
         try:
             ipautil.run(args, nolog=(self.master_password,), stdin=''.join(dialogue))
         except ipautil.CalledProcessError as e:
-            print "Failed to initialize the realm container"
+            print("Failed to initialize the realm container")
 
     def __configure_instance(self):
         self.__template_file(paths.KRB5KDC_KDC_CONF, chmod=None)

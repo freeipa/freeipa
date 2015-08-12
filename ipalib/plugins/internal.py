@@ -22,6 +22,7 @@
 """
 Plugins not accessible directly through the CLI, commands used internally
 """
+from __future__ import print_function
 
 import json
 
@@ -138,7 +139,7 @@ class json_metadata(Command):
         return retval
 
     def output_for_cli(self, textui, result, *args, **options):
-        print json.dumps(result, default=json_serialize)
+        print(json.dumps(result, default=json_serialize))
 
 
 @register()
@@ -856,6 +857,6 @@ class i18n_messages(Command):
         return dict(texts=json_serialize(self.messages))
 
     def output_for_cli(self, textui, result, *args, **options):
-        print json.dumps(result, default=json_serialize)
+        print(json.dumps(result, default=json_serialize))
 
 

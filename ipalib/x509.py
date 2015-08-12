@@ -31,6 +31,8 @@
 # nsscert: the certificate is an NSS Certificate object
 # rawcert: the cert is in an unknown format
 
+from __future__ import print_function
+
 import os
 import sys
 import base64
@@ -407,4 +409,4 @@ if __name__ == '__main__':
 
     nsscert = load_certificate(cert)
 
-    print nsscert
+    print(nsscert)

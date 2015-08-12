@@ -18,6 +18,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 from ipapython.config import IPAOptionParser
 from ipapython import version
 from ipapython import ipautil
@@ -54,7 +56,7 @@ class SshExec(object):
     def __call__(self, command, verbose=False):
         # Bail if ssh is not installed
         if self.cmd is None:
-            print "WARNING: ssh not installed, skipping ssh test"
+            print("WARNING: ssh not installed, skipping ssh test")
             return ('', '', 0)
 
         tmpf = tempfile.NamedTemporaryFile()
@@ -91,7 +93,7 @@ BASE_PORTS = [
 
 def print_info(msg):
     if not QUIET:
-        print msg
+        print(msg)
 
 def parse_options():
     parser = IPAOptionParser(version=version.VERSION)
@@ -285,10 +287,10 @@ def port_check(host, port_list):
         print_info("   %s (%d): %s" % (port.description, port.port, result))
 
     if ports_udp_warning:
-        print "The following UDP ports could not be verified as open: %s" \
-                % ", ".join(str(port.port) for port in ports_udp_warning)
-        print "This can happen if they are already bound to an application"
-        print "and ipa-replica-conncheck cannot attach own UDP responder."
+        print("The following UDP ports could not be verified as open: %s" \
+                % ", ".join(str(port.port) for port in ports_udp_warning))
+        print("This can happen if they are already bound to an application")
+        print("and ipa-replica-conncheck cannot attach own UDP responder.")
 
     if ports_failed:
         msg_ports = []
@@ -394,9 +396,9 @@ def main():
             print_info("Check SSH connection to remote master")
             stdout, stderr, returncode = ssh('echo OK', verbose=True)
             if returncode != 0:
-                print 'Could not SSH into remote host. Error output:'
+                print('Could not SSH into remote host. Error output:')
                 for line in stderr.splitlines():
-                    print '    %s' % line
+                    print('    %s' % line)
                 raise RuntimeError('Could not SSH to remote host.')
 
             print_info("Execute check on remote master")

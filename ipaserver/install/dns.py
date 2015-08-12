@@ -2,6 +2,8 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+from __future__ import print_function
+
 import sys
 
 from subprocess import CalledProcessError
@@ -102,37 +104,37 @@ def install_check(standalone, replica, options, hostname):
                            constants.IPA_DNS_PACKAGE_NAME)
 
     if standalone:
-        print "=============================================================================="
-        print "This program will setup DNS for the FreeIPA Server."
-        print ""
-        print "This includes:"
-        print "  * Configure DNS (bind)"
-        print "  * Configure SoftHSM (required by DNSSEC)"
-        print "  * Configure ipa-dnskeysyncd (required by DNSSEC)"
+        print("==============================================================================")
+        print("This program will setup DNS for the FreeIPA Server.")
+        print("")
+        print("This includes:")
+        print("  * Configure DNS (bind)")
+        print("  * Configure SoftHSM (required by DNSSEC)")
+        print("  * Configure ipa-dnskeysyncd (required by DNSSEC)")
         if options.dnssec_master:
-            print "  * Configure ipa-ods-exporter (required by DNSSEC key master)"
-            print "  * Configure OpenDNSSEC (required by DNSSEC key master)"
-            print "  * Generate DNSSEC master key (required by DNSSEC key master)"
+            print("  * Configure ipa-ods-exporter (required by DNSSEC key master)")
+            print("  * Configure OpenDNSSEC (required by DNSSEC key master)")
+            print("  * Generate DNSSEC master key (required by DNSSEC key master)")
         elif options.disable_dnssec_master:
-            print "  * Unconfigure ipa-ods-exporter"
-            print "  * Unconfigure OpenDNSSEC"
-            print ""
-            print "No new zones will be signed without DNSSEC key master IPA server."
-            print ""
-            print ("Please copy file from %s after uninstallation. This file is needed "
-                   "on new DNSSEC key " % paths.IPA_KASP_DB_BACKUP)
-            print "master server"
-        print ""
-        print "NOTE: DNSSEC zone signing is not enabled by default"
-        print ""
+            print("  * Unconfigure ipa-ods-exporter")
+            print("  * Unconfigure OpenDNSSEC")
+            print("")
+            print("No new zones will be signed without DNSSEC key master IPA server.")
+            print("")
+            print(("Please copy file from %s after uninstallation. This file is needed "
+                   "on new DNSSEC key " % paths.IPA_KASP_DB_BACKUP))
+            print("master server")
+        print("")
+        print("NOTE: DNSSEC zone signing is not enabled by default")
+        print("")
         if options.dnssec_master:
-            print "DNSSEC support is experimental!"
-            print ""
-            print "Plan carefully, replacing DNSSEC key master is not recommended"
-            print ""
-        print ""
-        print "To accept the default shown in brackets, press the Enter key."
-        print ""
+            print("DNSSEC support is experimental!")
+            print("")
+            print("Plan carefully, replacing DNSSEC key master is not recommended")
+            print("")
+        print("")
+        print("To accept the default shown in brackets, press the Enter key.")
+        print("")
 
     if (options.dnssec_master and not options.unattended and not
         ipautil.user_input(
@@ -177,7 +179,7 @@ def install_check(standalone, replica, options, hostname):
         dnssec_masters = ods.get_masters()
         # we can reinstall current server if it is dnssec master
         if dnssec_masters and api.env.host not in dnssec_masters:
-            print "DNSSEC key master(s):", u','.join(dnssec_masters)
+            print("DNSSEC key master(s):", u','.join(dnssec_masters))
             sys.exit("Only one DNSSEC key master is supported in current "
                      "version.")
 
@@ -242,7 +244,7 @@ def install_check(standalone, replica, options, hostname):
         if (not bindinstance.check_forwarders(dns_forwarders, root_logger) and
                 not options.no_dnssec_validation):
             options.no_dnssec_validation = True
-            print "WARNING: DNSSEC validation will be disabled"
+            print("WARNING: DNSSEC validation will be disabled")
 
     root_logger.debug("will use dns_forwarders: %s\n", dns_forwarders)
 
@@ -262,7 +264,7 @@ def install_check(standalone, replica, options, hostname):
     )
 
     if reverse_zones:
-        print "Using reverse zone(s) %s" % ', '.join(reverse_zones)
+        print("Using reverse zone(s) %s" % ', '.join(reverse_zones))
 
 
 def install(standalone, replica, options):
@@ -287,10 +289,10 @@ def install(standalone, replica, options):
                ca_configured=options.setup_ca)
 
     if standalone and not options.unattended:
-        print ""
-        print "The following operations may take some minutes to complete."
-        print "Please wait until the prompt is returned."
-        print ""
+        print("")
+        print("The following operations may take some minutes to complete.")
+        print("Please wait until the prompt is returned.")
+        print("")
 
     bind.create_instance()
 
@@ -312,33 +314,33 @@ def install(standalone, replica, options):
     bind.start_named()
 
     if standalone:
-        print "=============================================================================="
-        print "Setup complete"
-        print ""
+        print("==============================================================================")
+        print("Setup complete")
+        print("")
         bind.check_global_configuration()
-        print ""
-        print ""
-        print "\tYou must make sure these network ports are open:"
-        print "\t\tTCP Ports:"
-        print "\t\t  * 53: bind"
-        print "\t\tUDP Ports:"
-        print "\t\t  * 53: bind"
+        print("")
+        print("")
+        print("\tYou must make sure these network ports are open:")
+        print("\t\tTCP Ports:")
+        print("\t\t  * 53: bind")
+        print("\t\tUDP Ports:")
+        print("\t\t  * 53: bind")
     elif not standalone and replica:
-        print ""
+        print("")
         bind.check_global_configuration()
-        print ""
+        print("")
 
 
 def uninstall_check(options):
     # test if server is DNSSEC key master
     masters = opendnssecinstance.get_dnssec_key_masters(api.Backend.ldap2)
     if api.env.host in masters:
-        print "This server is active DNSSEC key master. Uninstall could break your DNS system."
+        print("This server is active DNSSEC key master. Uninstall could break your DNS system.")
         if not (options.unattended or user_input(
                 "Are you sure you want to continue with the uninstall "
                 "procedure?", False)):
-            print ""
-            print "Aborting uninstall operation."
+            print("")
+            print("Aborting uninstall operation.")
             sys.exit(1)
 
 

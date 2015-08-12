@@ -20,6 +20,7 @@
 """
 Test the `ipalib.rpc` module.
 """
+from __future__ import print_function
 
 from xmlrpclib import Binary, Fault, dumps, loads
 
@@ -275,7 +276,7 @@ class test_xml_introspection(object):
         try:
             result = api.Backend.xmlclient.conn.system.listMethods('foo')
         except Fault as f:
-            print f
+            print(f)
             assert f.faultCode == 3003
             assert f.faultString == (
                 "command 'system.listMethods' takes no arguments")
@@ -295,7 +296,7 @@ class test_xml_introspection(object):
         try:
             result = api.Backend.xmlclient.conn.system.methodSignature()
         except Fault as f:
-            print f
+            print(f)
             assert f.faultCode == 3007
             assert f.faultString == "'method name' is required"
         else:
@@ -305,7 +306,7 @@ class test_xml_introspection(object):
         try:
             result = api.Backend.xmlclient.conn.system.methodSignature('a', 'b')
         except Fault as f:
-            print f
+            print(f)
             assert f.faultCode == 3004
             assert f.faultString == (
                 "command 'system.methodSignature' takes at most 1 argument")
@@ -316,7 +317,7 @@ class test_xml_introspection(object):
         try:
             result = api.Backend.xmlclient.conn.system.methodHelp()
         except Fault as f:
-            print f
+            print(f)
             assert f.faultCode == 3007
             assert f.faultString == "'method name' is required"
         else:
@@ -326,7 +327,7 @@ class test_xml_introspection(object):
         try:
             result = api.Backend.xmlclient.conn.system.methodHelp('a', 'b')
         except Fault as f:
-            print f
+            print(f)
             assert f.faultCode == 3004
             assert f.faultString == (
                 "command 'system.methodHelp' takes at most 1 argument")

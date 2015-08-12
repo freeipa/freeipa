@@ -23,6 +23,8 @@
 # TODO
 # save undo files?
 
+from __future__ import print_function
+
 import os
 import sys
 
@@ -75,7 +77,7 @@ class LDAPUpdater(admintool.AdminTool):
         try:
             installutils.check_server_configuration()
         except RuntimeError as e:
-            print unicode(e)
+            print(unicode(e))
             sys.exit(1)
 
     def setup_logging(self):

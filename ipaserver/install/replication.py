@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import print_function
+
 import time
 import datetime
 import sys
@@ -69,7 +71,7 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
 
     Does not return a value, will sys.exit() on failure.
     """
-    print "Run connection check to master"
+    print("Run connection check to master")
     args = [paths.IPA_REPLICA_CONNCHECK, "--master", master_host,
             "--auto-master-check", "--realm", realm,
             "--principal", "admin",
@@ -90,7 +92,7 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
                  "\nPlease fix your network settings according to error messages above." +
                  "\nIf the check results are not valid it can be skipped with --skip-conncheck parameter.")
     else:
-        print "Connection check OK"
+        print("Connection check OK")
 
 def enable_replication_version_checking(hostname, realm, dirman_passwd):
     """
@@ -158,7 +160,7 @@ def wait_for_entry(connection, entry, timeout=7200, attr='', quiet=True):
         except errors.NotFound:
             pass  # no entry yet
         except Exception as e:  # badness
-            print "\nError reading entry", dn, e
+            print("\nError reading entry", dn, e)
             break
         if not entry:
             if not quiet:
@@ -167,11 +169,11 @@ def wait_for_entry(connection, entry, timeout=7200, attr='', quiet=True):
             time.sleep(1)
 
     if not entry and int(time.time()) > timeout:
-        print "\nwait_for_entry timeout for %s for %s" % (connection, dn)
+        print("\nwait_for_entry timeout for %s for %s" % (connection, dn))
     elif entry and not quiet:
-        print "\nThe waited for entry is:", entry
+        print("\nThe waited for entry is:", entry)
     elif not entry:
-        print "\nError: could not read entry %s from %s" % (dn, connection)
+        print("\nError: could not read entry %s from %s" % (dn, connection))
 
 
 class ReplicationManager(object):
@@ -501,7 +503,7 @@ class ReplicationManager(object):
             except errors.DuplicateEntry:
                 benum += 1
             except errors.ExecutionError as e:
-                print "Could not add backend entry " + dn, e
+                print("Could not add backend entry " + dn, e)
                 raise
 
         return cn
@@ -556,13 +558,13 @@ class ReplicationManager(object):
 
     def add_passsync_user(self, conn, password):
         pass_dn = DN(('uid', 'passsync'), ('cn', 'sysaccounts'), ('cn', 'etc'), self.suffix)
-        print "The user for the Windows PassSync service is %s" % pass_dn
+        print("The user for the Windows PassSync service is %s" % pass_dn)
         try:
             conn.get_entry(pass_dn)
-            print "Windows PassSync system account exists, not resetting password"
+            print("Windows PassSync system account exists, not resetting password")
         except errors.NotFound:
             # The user doesn't exist, add it
-            print "Adding Windows PassSync system account"
+            print("Adding Windows PassSync system account")
             entry = conn.make_entry(
                 pass_dn,
                 objectclass=["account", "simplesecurityobject"],
@@ -855,7 +857,7 @@ class ReplicationManager(object):
                     'nsds5ReplicaLastInitEnd']
         entry = conn.get_entry(agmtdn, attrlist)
         if not entry:
-            print "Error reading status from agreement", agmtdn
+            print("Error reading status from agreement", agmtdn)
             hasError = 1
         else:
             refresh = entry.single_value.get('nsds5BeginReplicaRefresh')
@@ -863,18 +865,18 @@ class ReplicationManager(object):
             status = entry.single_value.get('nsds5ReplicaLastInitStatus')
             if not refresh: # done - check status
                 if not status:
-                    print "No status yet"
+                    print("No status yet")
                 elif status.find("replica busy") > -1:
-                    print "[%s] reports: Replica Busy! Status: [%s]" % (conn.host, status)
+                    print("[%s] reports: Replica Busy! Status: [%s]" % (conn.host, status))
                     done = True
                     hasError = 2
                 elif status.find("Total update succeeded") > -1:
-                    print "\nUpdate succeeded"
+                    print("\nUpdate succeeded")
                     done = True
                 elif inprogress.lower() == 'true':
-                    print "\nUpdate in progress yet not in progress"
+                    print("\nUpdate in progress yet not in progress")
                 else:
-                    print "\n[%s] reports: Update failed! Status: [%s]" % (conn.host, status)
+                    print("\n[%s] reports: Update failed! Status: [%s]" % (conn.host, status))
                     hasError = 1
                     done = True
             else:
@@ -895,7 +897,7 @@ class ReplicationManager(object):
                     'nsds5ReplicaLastUpdateEnd']
         entry = conn.get_entry(agmtdn, attrlist)
         if not entry:
-            print "Error reading status from agreement", agmtdn
+            print("Error reading status from agreement", agmtdn)
             hasError = 1
         else:
             inprogress = entry.single_value.get('nsds5replicaUpdateInProgress')
@@ -930,7 +932,7 @@ class ReplicationManager(object):
         while not done and not haserror:
             time.sleep(1)  # give it a few seconds to get going
             done, haserror = self.check_repl_init(conn, agmtdn, start)
-        print ""
+        print("")
         return haserror
 
     def wait_for_repl_update(self, conn, agmtdn, maxtries=600):
@@ -942,12 +944,12 @@ class ReplicationManager(object):
             done, haserror, error_message = self.check_repl_update(conn, agmtdn)
             maxtries -= 1
         if maxtries == 0: # too many tries
-            print "Error: timeout: could not determine agreement status: please check your directory server logs for possible errors"
+            print("Error: timeout: could not determine agreement status: please check your directory server logs for possible errors")
             haserror = 1
         return haserror, error_message
 
     def start_replication(self, conn, hostname=None, master=None):
-        print "Starting replication, please wait until this has completed."
+        print("Starting replication, please wait until this has completed.")
         if hostname == None:
             hostname = self.conn.host
         cn, dn = self.agreement_dn(hostname, master)
@@ -1443,11 +1445,11 @@ class ReplicationManager(object):
         try:
             self.conn.add_entry(e)
         except errors.DuplicateEntry:
-            print "CLEANALLRUV task for replica id %d already exists." % replicaId
+            print("CLEANALLRUV task for replica id %d already exists." % replicaId)
         else:
-            print "Background task created to clean replication data. This may take a while."
+            print("Background task created to clean replication data. This may take a while.")
 
-        print "This may be safely interrupted with Ctrl+C"
+        print("This may be safely interrupted with Ctrl+C")
 
         wait_for_task(self.conn, dn)
 
@@ -1471,11 +1473,11 @@ class ReplicationManager(object):
         try:
             self.conn.add_entry(e)
         except errors.DuplicateEntry:
-            print "An abort CLEANALLRUV task for replica id %d already exists." % replicaId
+            print("An abort CLEANALLRUV task for replica id %d already exists." % replicaId)
         else:
-            print "Background task created. This may take a while."
+            print("Background task created. This may take a while.")
 
-        print "This may be safely interrupted with Ctrl+C"
+        print("This may be safely interrupted with Ctrl+C")
 
         wait_for_task(self.conn, dn)
 

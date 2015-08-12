@@ -20,6 +20,7 @@
 """
 Functionality for Command Line Interface.
 """
+from __future__ import print_function
 
 import textwrap
 import sys
@@ -175,7 +176,7 @@ class textui(backend.Backend):
         """
         Print exactly like ``print`` statement would.
         """
-        print unicode(string)
+        print(unicode(string))
 
     def print_line(self, text, width=None):
         """
@@ -197,7 +198,7 @@ class textui(backend.Backend):
             width = self.get_tty_width()
         if width is not None and width < len(text):
             text = text[:width - 3] + '...'
-        print unicode(text)
+        print(unicode(text))
 
     def print_paragraph(self, text, width=None):
         """
@@ -226,7 +227,7 @@ class textui(backend.Backend):
         if width is None:
             width = self.get_tty_width()
         for line in textwrap.wrap(text.strip(), width):
-            print line
+            print(line)
 
     def print_indented(self, text, indent=1):
         """
@@ -242,7 +243,7 @@ class textui(backend.Backend):
         >>> ui.print_indented('No indentation.', indent=0)
         No indentation.
         """
-        print (CLI_TAB * indent + text)
+        print((CLI_TAB * indent + text))
 
     def print_keyval(self, rows, indent=1):
         """
@@ -354,7 +355,7 @@ class textui(backend.Backend):
         first = True
         for entry in entries:
             if not first:
-                print ''
+                print('')
             first = False
             self.print_entry(entry, order, labels, flags, print_all, format, indent)
 
@@ -526,7 +527,7 @@ class textui(backend.Backend):
         )
 
     def print_error(self, text):
-        print '  ** %s **' % unicode(text)
+        print('  ** %s **' % unicode(text))
 
     def prompt_helper(self, prompt, label, prompt_func=input):
         """Prompt user for input
@@ -537,7 +538,7 @@ class textui(backend.Backend):
         try:
             return self.decode(prompt_func(self.encode(prompt)))
         except (KeyboardInterrupt, EOFError):
-            print
+            print()
             raise PromptFailed(name=label)
 
     def print_prompt_attribute_error(self, attribute, error):
@@ -804,7 +805,7 @@ class help(frontend.Local):
     def _writer(self, outfile):
         def writer(string=''):
             try:
-                print >> outfile, unicode(string)
+                print(unicode(string), file=outfile)
             except IOError:
                 pass
         return writer
@@ -882,7 +883,7 @@ class show_mappings(frontend.Command):
             out.append((param.cli_name, param.param_spec))
             mcl = max(mcl,len(param.cli_name))
         for item in out:
-            print to_cli(item[0]).ljust(mcl)+' : '+item[1]
+            print(to_cli(item[0]).ljust(mcl)+' : '+item[1])
 
 
 class console(frontend.Command):
@@ -934,14 +935,14 @@ class show_api(frontend.Command):
         first = True
         for line in lines:
             if line[0] == 0 and not first:
-                print ''
+                print('')
             if first:
                 first = False
-            print '%s%s %r' % (
+            print('%s%s %r' % (
                 ' ' * line[0],
                 line[1].ljust(ml),
                 line[2],
-            )
+            ))
         if len(lines) == 1:
             s = '1 attribute shown.'
         else:
@@ -1060,8 +1061,8 @@ class cli(backend.Executioner):
         """
         if len(argv) == 0:
             self.Command.help(outfile=sys.stderr)
-            print >>sys.stderr
-            print >>sys.stderr, 'Error: Command not specified'
+            print(file=sys.stderr)
+            print('Error: Command not specified', file=sys.stderr)
             exit(2)
         (key, argv) = (argv[0], argv[1:])
         name = from_cli(key)
@@ -1342,7 +1343,7 @@ def run(api):
             raise NotConfiguredError()
         sys.exit(api.Backend.cli.run(argv))
     except KeyboardInterrupt:
-        print ''
+        print('')
         api.log.info('operation aborted')
     except PublicError as e:
         error = e
