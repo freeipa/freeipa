@@ -173,8 +173,8 @@ class TestCIDict(object):
         assert ("key2", "val2") in items_set
         assert ("KEY3", "VAL3") in items_set
 
-        assert list(self.cidict.items()) == list(self.cidict.iteritems()) == zip(
-            self.cidict.keys(), self.cidict.values())
+        assert list(self.cidict.items()) == list(self.cidict.iteritems()) == list(zip(
+            self.cidict.keys(), self.cidict.values()))
 
     def test_iter(self):
         items = []
