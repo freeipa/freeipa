@@ -234,7 +234,8 @@ def validate_domain_name(domain_name, allow_underscore=False, allow_slash=False)
     domain_name = domain_name.split(".")
 
     # apply DNS name validator to every name part
-    map(lambda label:validate_dns_label(label, allow_underscore, allow_slash), domain_name)
+    for label in domain_name:
+        validate_dns_label(label, allow_underscore, allow_slash)
 
 
 def validate_zonemgr(zonemgr):
@@ -734,7 +735,8 @@ def validate_idna_domain(value):
         #user should use normalized names to avoid mistakes
         labels = re.split(u'[.\uff0e\u3002\uff61]', value, flags=re.UNICODE)
         try:
-            map(lambda label: label.encode("ascii"), labels)
+            for label in labels:
+                label.encode("ascii")
         except UnicodeError:
             # IDNA
             is_nonnorm = any(encodings.idna.nameprep(x) != x for x in labels)

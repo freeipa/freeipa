@@ -656,8 +656,8 @@ class sudorule_add_host(LDAPAddMember):
         if 'hostmask' in options:
             norm = lambda x: unicode(netaddr.IPNetwork(x).cidr)
 
-            old_masks = set(map(norm, _entry_attrs.get('hostmask', [])))
-            new_masks = set(map(norm, options['hostmask']))
+            old_masks = set(norm(m) for m in _entry_attrs.get('hostmask', []))
+            new_masks = set(norm(m) for m in options['hostmask'])
 
             num_added = len(new_masks - old_masks)
 
@@ -699,10 +699,11 @@ class sudorule_remove_host(LDAPRemoveMember):
             self.obj.handle_not_found(*keys)
 
         if 'hostmask' in options:
-            norm = lambda x: unicode(netaddr.IPNetwork(x).cidr)
+            def norm(x):
+                return unicode(netaddr.IPNetwork(x).cidr)
 
-            old_masks = set(map(norm, _entry_attrs.get('hostmask', [])))
-            removed_masks = set(map(norm, options['hostmask']))
+            old_masks = set(norm(m) for m in _entry_attrs.get('hostmask', []))
+            removed_masks = set(norm(m) for m in options['hostmask'])
 
             num_added = len(removed_masks & old_masks)
 

@@ -69,7 +69,7 @@ def process_message_arguments(obj, format=None, message=None, **kw):
         if 'instructions' in kw:
             def convert_instructions(value):
                 if isinstance(value, list):
-                    result = u'\n'.join(map(lambda line: unicode(line), value))
+                    result = u'\n'.join(unicode(line) for line in value)
                     return result
                 return value
             instructions = u'\n'.join((unicode(_('Additional instructions:')),

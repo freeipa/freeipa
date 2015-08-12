@@ -292,7 +292,7 @@ class certprofile_del(LDAPDelete):
     def pre_callback(self, ldap, dn, *keys, **options):
         ca_enabled_check()
 
-        if keys[0] in map(attrgetter('profile_id'), INCLUDED_PROFILES):
+        if keys[0] in [p.profile_id for p in INCLUDED_PROFILES]:
             raise errors.ValidationError(name='profile_id',
                 error=_("Predefined profile '%(profile_id)s' cannot be deleted")
                     % {'profile_id': keys[0]}

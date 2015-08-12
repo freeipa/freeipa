@@ -329,8 +329,7 @@ class test_PublicError(PublicExceptionTester):
         # this expression checks if each word of instructions
         # exists in a string as a separate line, with right order
         regexp = re.compile('(?ims).*' +
-                            ''.join(map(lambda x: '(%s).*' % (x),
-                                        instructions)) +
+                            ''.join('(%s).*' % (x) for x in instructions) +
                             '$')
         inst = subclass(instructions=instructions, **kw)
         assert inst.format is subclass.format

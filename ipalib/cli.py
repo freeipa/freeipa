@@ -294,7 +294,7 @@ class textui(backend.Backend):
                 for v in value:
                     self.print_indented(format % (attr, self.encode_binary(v)), indent)
             else:
-                value = map(lambda v: self.encode_binary(v), value)
+                value = [self.encode_binary(v) for v in value]
                 if len(value) > 0 and type(value[0]) in (list, tuple):
                     # This is where we print failed add/remove members
                     for l in value:

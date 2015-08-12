@@ -534,7 +534,7 @@ class trust(LDAPObject):
                             error=_("invalid SID: %(value)s") % dict(value=value))
 
     def get_dn(self, *keys, **kwargs):
-        sdn = map(lambda x: ('cn', x), keys)
+        sdn = [('cn', x) for x in keys]
         sdn.reverse()
         trust_type = kwargs.get('trust_type')
         if trust_type is None:
@@ -1233,7 +1233,7 @@ class trust_resolve(Command):
         if not _nss_idmap_installed:
             return dict(result=result)
         try:
-            sids = map(lambda x: str(x), options['sids'])
+            sids = [str(x) for x in options['sids']]
             xlate = pysss_nss_idmap.getnamebysid(sids)
             for sid in xlate:
                 entry = dict()
@@ -1402,7 +1402,7 @@ class trustdomain(LDAPObject):
     # to the parent object's get_dn() no matter what you pass to it. Make own get_dn()
     # as we really need all elements to construct proper dn.
     def get_dn(self, *keys, **kwargs):
-        sdn = map(lambda x: ('cn', x), keys)
+        sdn = [('cn', x) for x in keys]
         sdn.reverse()
         trust_type = kwargs.get('trust_type')
         if not trust_type:

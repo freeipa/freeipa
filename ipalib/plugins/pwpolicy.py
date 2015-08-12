@@ -167,7 +167,7 @@ class cosentry_add(LDAPCreate):
         except errors.NotFound:
             self.api.Object.group.handle_not_found(keys[-1]) 
 
-        oc = map(lambda x:x.lower(),result['objectclass'])
+        oc = [x.lower() for x in result['objectclass']]
         if 'mepmanagedentry' in oc:
             raise errors.ManagedPolicyError()
         self.obj.check_priority_uniqueness(*keys, **options)

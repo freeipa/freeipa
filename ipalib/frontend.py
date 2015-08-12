@@ -870,7 +870,7 @@ class Command(HasParam):
             if optional and arg.required:
                 raise ValueError(
                     '%s: required argument after optional in %s arguments %s' % (arg.name,
-                    self.name, map(lambda x: x.param_spec, args()))
+                    self.name, [x.param_spec for x in args()])
                 )
             if multivalue:
                 raise ValueError(

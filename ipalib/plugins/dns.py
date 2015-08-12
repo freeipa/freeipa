@@ -3341,7 +3341,7 @@ class dnsrecord(LDAPObject):
                 # during comparison
                 ldap_rrset = dns.rrset.from_text(
                     dns_name, 86400, dns.rdataclass.IN, rdtype,
-                    *map(str, value))
+                    *[str(v) for v in value])
 
                 # make sure that all names are absolute so RRset
                 # comparison will work

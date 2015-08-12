@@ -300,7 +300,7 @@ def wait_for_value(ldap, dn, attr, value):
         entry_attrs = ldap.get_entry(dn, ['*'])
         if attr in entry_attrs:
             if isinstance(entry_attrs[attr], (list, tuple)):
-                values = map(lambda y:y.lower(), entry_attrs[attr])
+                values = [y.lower() for y in entry_attrs[attr]]
                 if value.lower() in values:
                     break
             else:
@@ -627,7 +627,7 @@ class LDAPObject(Object):
                 )
 
     def has_objectclass(self, classes, objectclass):
-        oc = map(lambda x:x.lower(),classes)
+        oc = [x.lower() for x in classes]
         return objectclass.lower() in oc
 
     def convert_attribute_members(self, entry_attrs, *keys, **options):

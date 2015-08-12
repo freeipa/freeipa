@@ -54,7 +54,7 @@ class IntegrationTest(object):
     @classmethod
     def get_all_hosts(cls):
         return ([cls.master] + cls.replicas + cls.clients +
-                map(cls.host_by_role, cls.required_extra_roles))
+                [cls.host_by_role(r) for r in cls.required_extra_roles])
 
     @classmethod
     def get_domains(cls):

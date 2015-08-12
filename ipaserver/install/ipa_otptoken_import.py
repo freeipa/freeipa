@@ -42,12 +42,12 @@ class ValidationError(Exception):
 
 
 def fetchAll(element, xpath, conv=lambda x: x):
-    return map(conv, element.xpath(xpath, namespaces={
+    return [conv(e) for e in element.xpath(xpath, namespaces={
         "pskc": "urn:ietf:params:xml:ns:keyprov:pskc",
         "xenc11": "http://www.w3.org/2009/xmlenc11#",
         "xenc": "http://www.w3.org/2001/04/xmlenc#",
         "ds": "http://www.w3.org/2000/09/xmldsig#",
-    }))
+    })]
 
 
 def fetch(element, xpath, conv=lambda x: x, default=None):

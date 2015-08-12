@@ -97,8 +97,8 @@ class OTPTokenKey(Bytes):
 
 def _convert_owner(userobj, entry_attrs, options):
     if 'ipatokenowner' in entry_attrs and not options.get('raw', False):
-        entry_attrs['ipatokenowner'] = map(userobj.get_primary_key_from_dn,
-                                           entry_attrs['ipatokenowner'])
+        entry_attrs['ipatokenowner'] = [userobj.get_primary_key_from_dn(o)
+                                        for o in entry_attrs['ipatokenowner']]
 
 def _normalize_owner(userobj, entry_attrs):
     owner = entry_attrs.get('ipatokenowner', None)

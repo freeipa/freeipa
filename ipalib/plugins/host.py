@@ -643,7 +643,7 @@ class host_add(LDAPCreate):
             # save the password so it can be displayed in post_callback
             setattr(context, 'randompassword', entry_attrs['userpassword'])
         certs = options.get('usercertificate', [])
-        certs_der = map(x509.normalize_certificate, certs)
+        certs_der = [x509.normalize_certificate(c) for c in certs]
         for cert in certs_der:
             x509.verify_cert_subject(ldap, keys[-1], cert)
         entry_attrs['usercertificate'] = certs_der
@@ -846,7 +846,7 @@ class host_mod(LDAPUpdate):
 
         # verify certificates
         certs = entry_attrs.get('usercertificate') or []
-        certs_der = map(x509.normalize_certificate, certs)
+        certs_der = [x509.normalize_certificate(c) for c in certs]
         for cert in certs_der:
             x509.verify_cert_subject(ldap, keys[-1], cert)
 
@@ -857,7 +857,7 @@ class host_mod(LDAPUpdate):
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
             old_certs = entry_attrs_old.get('usercertificate', [])
-            old_certs_der = map(x509.normalize_certificate, old_certs)
+            old_certs_der = [x509.normalize_certificate(c) for c in old_certs]
             removed_certs_der = set(old_certs_der) - set(certs_der)
             revoke_certs(removed_certs_der, self.log)
 

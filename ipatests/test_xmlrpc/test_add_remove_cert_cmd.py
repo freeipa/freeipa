@@ -191,7 +191,7 @@ class CertManipCmdTestBase(XMLRPC_test):
         """
         assert_deepequal(
             dict(
-                usercertificate=map(base64.b64decode, self.certs),
+                usercertificate=[base64.b64decode(c) for c in self.certs],
                 summary=self.cert_add_summary % self.entity_pkey,
                 value=self.entity_pkey,
             ),
@@ -237,8 +237,8 @@ class CertManipCmdTestBase(XMLRPC_test):
         """
         assert_deepequal(
             dict(
-                usercertificate=map(base64.b64decode,
-                                    self.certs_remainder),
+                usercertificate=[base64.b64decode(c)
+                                 for c in self.certs_remainder],
                 summary=self.cert_del_summary % self.entity_pkey,
                 value=self.entity_pkey,
             ),
