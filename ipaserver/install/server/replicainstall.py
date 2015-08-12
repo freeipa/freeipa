@@ -679,6 +679,7 @@ class ReplicaDNS(common.Installable, core.Group, core.Composite):
         description=("The reverse DNS zone to use. This option can be used "
                      "multiple times"),
         cli_name='reverse-zone',
+        cli_metavar='REVERSE_ZONE',
     )
 
     no_reverse = Knob(
@@ -689,31 +690,6 @@ class ReplicaDNS(common.Installable, core.Group, core.Composite):
     no_dnssec_validation = Knob(
         bool, False,
         description="Disable DNSSEC validation",
-    )
-
-    dnssec_master = Knob(
-        bool, False,
-        initializable=False,
-        description="Setup server to be DNSSEC key master",
-    )
-
-    disable_dnssec_master = Knob(
-        bool, False,
-        initializable=False,
-        description="Disable the DNSSEC master on this server",
-    )
-
-    force = Knob(
-        bool, False,
-        initializable=False,
-        description="Force install",
-    )
-
-    kasp_db_file = Knob(
-        str, None,
-        initializable=False,
-        description="Copy OpenDNSSEC metadata from the specified file (will "
-                    "not create a new kasp.db file)",
     )
 
     no_host_dns = Knob(
@@ -750,6 +726,7 @@ class Replica(common.Installable, common.Interactive, core.Composite):
         description=("Replica server IP Address. This option can be used "
                      "multiple times"),
         cli_name='ip-address',
+        cli_metavar='IP_ADDRESS',
     )
 
     password = Knob(
@@ -774,6 +751,7 @@ class Replica(common.Installable, common.Interactive, core.Composite):
     no_ntp = Knob(
         bool, False,
         description="do not configure ntp",
+        cli_short_name='N',
     )
 
     no_ui_redirect = Knob(
@@ -864,10 +842,10 @@ class Replica(common.Installable, common.Interactive, core.Composite):
         self.reverse_zones = self.dns.reverse_zones
         self.no_reverse = self.dns.no_reverse
         self.no_dnssec_validation = self.dns.no_dnssec_validation
-        self.dnssec_master = self.dns.dnssec_master
-        self.disable_dnssec_master = self.dns.disable_dnssec_master
-        self.kasp_db_file = self.dns.kasp_db_file
-        self.force = self.dns.force
+        self.dnssec_master = False
+        self.disable_dnssec_master = False
+        self.kasp_db_file = None
+        self.force = False
         self.zonemgr = None
         self.no_host_dns = self.dns.no_host_dns
         self.no_dns_sshfp = self.dns.no_dns_sshfp
