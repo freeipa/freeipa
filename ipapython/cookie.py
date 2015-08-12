@@ -391,7 +391,7 @@ class Cookie(object):
             self._timestamp = None
         elif isinstance(value, datetime.datetime):
             self._timestamp = value
-        elif isinstance(value, (int, long, float)):
+        elif isinstance(value, (six.integer_types, float)):
             self._timestamp = datetime.datetime.utcfromtimestamp(value)
         elif isinstance(value, six.string_types):
             self._timestamp = Cookie.parse_datetime(value)
@@ -417,7 +417,7 @@ class Cookie(object):
             self._expires = None
         elif isinstance(value, datetime.datetime):
             self._expires = value
-        elif isinstance(value, (int, long, float)):
+        elif isinstance(value, (six.integer_types, float)):
             self._expires = datetime.datetime.utcfromtimestamp(value)
         elif isinstance(value, six.string_types):
             self._expires = Cookie.parse_datetime(value)

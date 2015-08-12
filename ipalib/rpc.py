@@ -166,7 +166,7 @@ def xml_wrap(value, version):
     if type(value) is Decimal:
         # transfer Decimal as a string
         return unicode(value)
-    if isinstance(value, (int, long)) and (value < MININT or value > MAXINT):
+    if isinstance(value, six.integer_types) and (value < MININT or value > MAXINT):
         return unicode(value)
     if isinstance(value, DN):
         return str(value)
@@ -184,7 +184,7 @@ def xml_wrap(value, version):
         else:
             return unicode(value)
 
-    assert type(value) in (unicode, int, long, float, bool, NoneType)
+    assert type(value) in (unicode, float, bool, NoneType) + six.integer_types
     return value
 
 

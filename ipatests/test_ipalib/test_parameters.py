@@ -31,6 +31,10 @@ import sys
 from types import NoneType
 from decimal import Decimal
 from inspect import isclass
+from xmlrpclib import MAXINT, MININT
+
+import six
+
 from ipatests.util import raises, ClassChecker, read_only
 from ipatests.util import dummy_ugettext, assert_equal
 from ipatests.data import binary_bytes, utf8_bytes, unicode_str
@@ -38,7 +42,6 @@ from ipalib import parameters, text, errors, config
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR
 from ipalib.errors import ValidationError, ConversionError
 from ipalib import _
-from xmlrpclib import MAXINT, MININT
 
 NULLS = (None, '', u'', tuple(), [])
 
@@ -1246,7 +1249,7 @@ class test_Int(ClassChecker):
         # Test with no kwargs:
         o = self.cls('my_number')
         assert o.type == int
-        assert o.allowed_types == (int, long)
+        assert o.allowed_types == six.integer_types
         assert isinstance(o, parameters.Int)
         assert o.minvalue == int(MININT)
         assert o.maxvalue == int(MAXINT)

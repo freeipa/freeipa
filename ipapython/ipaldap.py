@@ -831,7 +831,7 @@ class LDAPClient(object):
                 return 'TRUE'
             else:
                 return 'FALSE'
-        elif isinstance(val, (unicode, float, int, long, Decimal, DN)):
+        elif isinstance(val, (unicode, six.integer_types, long, Decimal, DN)):
             return value_to_utf8(val)
         elif isinstance(val, DNSName):
             return str(val)

@@ -1031,7 +1031,7 @@ class Number(Param):
         """
         if type(value) in self.allowed_types:
             return value
-        if type(value) in (unicode, int, long, float):
+        if type(value) in (unicode, float) + six.integer_types:
             try:
                 return self.type(value)
             except ValueError:
@@ -1050,12 +1050,12 @@ class Int(Number):
     """
 
     type = int
-    allowed_types = int, long
+    allowed_types = six.integer_types
     type_error = _('must be an integer')
 
     kwargs = Param.kwargs + (
-        ('minvalue', (int, long), int(MININT)),
-        ('maxvalue', (int, long), int(MAXINT)),
+        ('minvalue', six.integer_types, int(MININT)),
+        ('maxvalue', six.integer_types, int(MAXINT)),
     )
 
     @staticmethod
@@ -1097,7 +1097,7 @@ class Int(Number):
         """
         Check min constraint.
         """
-        assert type(value) in (int, long)
+        assert type(value) in six.integer_types
         if value < self.minvalue:
             return _('must be at least %(minvalue)d') % dict(
                 minvalue=self.minvalue,
@@ -1107,7 +1107,7 @@ class Int(Number):
         """
         Check max constraint.
         """
-        assert type(value) in (int, long)
+        assert type(value) in six.integer_types
         if value > self.maxvalue:
             return _('can be at most %(maxvalue)d') % dict(
                 maxvalue=self.maxvalue,
@@ -1413,7 +1413,7 @@ class Str(Data):
         """
         if type(value) in self.allowed_types:
             return value
-        if type(value) in (int, long, float, decimal.Decimal):
+        if type(value) in (float, decimal.Decimal) + six.integer_types:
             return self.type(value)
         if type(value) in (tuple, list):
             raise ConversionError(name=self.name, index=index,
@@ -1567,7 +1567,7 @@ class IntEnum(Enum):
     """
 
     type = int
-    allowed_types = int, long
+    allowed_types = six.integer_types
     type_error = Int.type_error
 
     def _convert_scalar(self, value, index=None):
