@@ -292,7 +292,7 @@ class host(LDAPObject):
     # object_class_config = 'ipahostobjectclasses'
     search_attributes = [
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',
-        'nshardwareplatform', 'nsosversion', 'managedby', 'ipaallowedtoperform'
+        'nshardwareplatform', 'nsosversion', 'managedby',
     ]
     default_attributes = [
         'fqdn', 'description', 'l', 'nshostlocation', 'krbprincipalname',

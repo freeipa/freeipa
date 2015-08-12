@@ -86,6 +86,10 @@ class netgroup(LDAPObject):
     object_name_plural = _('netgroups')
     object_class = ['ipaobject', 'ipaassociation', 'ipanisnetgroup']
     permission_filter_objectclasses = ['ipanisnetgroup']
+    search_attributes = [
+        'cn', 'description', 'memberof', 'externalhost', 'nisdomainname',
+        'memberuser', 'memberhost', 'member', 'usercategory', 'hostcategory',
+    ]
     default_attributes = [
         'cn', 'description', 'memberof', 'externalhost', 'nisdomainname',
         'memberuser', 'memberhost', 'member', 'memberindirect',

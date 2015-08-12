@@ -391,8 +391,7 @@ class service(LDAPObject):
     ]
     possible_objectclasses = ['ipakrbprincipal', 'ipaallowedoperations']
     permission_filter_objectclasses = ['ipaservice']
-    search_attributes = ['krbprincipalname', 'managedby', 'ipakrbauthzdata',
-        'ipaallowedtoperform']
+    search_attributes = ['krbprincipalname', 'managedby', 'ipakrbauthzdata']
     default_attributes = ['krbprincipalname', 'usercertificate', 'managedby',
         'ipakrbauthzdata', 'memberof', 'ipaallowedtoperform']
     uuid_attribute = 'ipauniqueid'
