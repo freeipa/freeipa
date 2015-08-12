@@ -342,7 +342,7 @@ class user(baseuser):
         ),
     )
 
-    def get_dn(self, *keys, **options):
+    def get_either_dn(self, *keys, **options):
         '''
         Returns the DN of a user
         The user can be active (active container) or delete (delete container)
@@ -351,7 +351,7 @@ class user(baseuser):
         ldap = self.backend
         # Check that this value is a Active user
         try:
-            active_dn = super(user, self).get_dn(*keys, **options)
+            active_dn = self.get_dn(*keys, **options)
             ldap.get_entry(active_dn, ['dn'])
 
             # The Active user exists
@@ -402,7 +402,7 @@ class user_add(baseuser_add):
     )
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        assert isinstance(dn, DN)
+        dn = self.obj.get_either_dn(*keys, **options)
         if not options.get('noprivate', False):
             try:
                 # The Managed Entries plugin will allow a user to be created
@@ -599,7 +599,7 @@ class user_del(baseuser_del):
         return super(user_del, self).forward(*keys, **options)
 
     def pre_callback(self, ldap, dn, *keys, **options):
-        assert isinstance(dn, DN)
+        dn = self.obj.get_either_dn(*keys, **options)
 
         # For User life Cycle: user-del is a common plugin
         # command to delete active user (active container) and
@@ -625,7 +625,7 @@ class user_del(baseuser_del):
 
     def execute(self, *keys, **options):
 
-        dn = self.obj.get_dn(*keys, **options)
+        dn = self.obj.get_either_dn(*keys, **options)
 
         # We are going to permanent delete or the user is already in the delete container.
         delete_container = DN(self.obj.delete_container_dn, self.api.env.basedn)
@@ -644,7 +644,7 @@ class user_del(baseuser_del):
             ldap = self.obj.backend
 
             # need to handle multiple keys (e.g. keys[-1]=(u'tb8', u'tb9')..
-            active_dn = self.obj.get_dn(*keys, **options)
+            active_dn = self.obj.get_either_dn(*keys, **options)
             superior_dn = DN(self.obj.delete_container_dn, api.env.basedn)
             delete_dn = DN(active_dn[0], self.obj.delete_container_dn, api.env.basedn)
             self.log.debug("preserve move %s -> %s" % (active_dn, delete_dn))
@@ -701,6 +701,7 @@ class user_mod(baseuser_mod):
     has_output_params = baseuser_mod.has_output_params + user_output_params
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
+        dn = self.obj.get_either_dn(*keys, **options)
         self.pre_common_callback(ldap, dn, entry_attrs, **options)
         validate_nsaccountlock(entry_attrs)
         return dn
@@ -777,6 +778,10 @@ class user_show(baseuser_show):
         ),
     )
 
+    def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
+        dn = self.obj.get_either_dn(*keys, **options)
+        return dn
+
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         convert_nsaccountlock(entry_attrs)
         self.post_common_callback(ldap, dn, entry_attrs, **options)
@@ -813,7 +818,7 @@ class user_undel(LDAPQuery):
         ldap = self.obj.backend
 
         # First check that the user exists and is a delete one
-        delete_dn = self.obj.get_dn(*keys, **options)
+        delete_dn = self.obj.get_either_dn(*keys, **options)
         if delete_dn.endswith(DN(self.obj.active_container_dn, api.env.basedn)):
             raise errors.ValidationError(
                         name=self.obj.primary_key.cli_name,
@@ -860,7 +865,7 @@ class user_disable(LDAPQuery):
 
         check_protected_member(keys[-1])
 
-        dn = self.obj.get_dn(*keys, **options)
+        dn = self.obj.get_either_dn(*keys, **options)
         ldap.deactivate_entry(dn)
 
         return dict(
@@ -880,7 +885,7 @@ class user_enable(LDAPQuery):
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
-        dn = self.obj.get_dn(*keys, **options)
+        dn = self.obj.get_either_dn(*keys, **options)
 
         ldap.activate_entry(dn)
 
@@ -904,7 +909,7 @@ class user_unlock(LDAPQuery):
     msg_summary = _('Unlocked account "%(value)s"')
 
     def execute(self, *keys, **options):
-        dn = self.obj.get_dn(*keys, **options)
+        dn = self.obj.get_either_dn(*keys, **options)
         entry = self.obj.backend.get_entry(
             dn, ['krbLastAdminUnlock', 'krbLoginFailedCount'])
 
@@ -948,7 +953,7 @@ class user_status(LDAPQuery):
 
     def execute(self, *keys, **options):
         ldap = self.obj.backend
-        dn = self.obj.get_dn(*keys, **options)
+        dn = self.obj.get_either_dn(*keys, **options)
         attr_list = ['krbloginfailedcount', 'krblastsuccessfulauth', 'krblastfailedauth', 'nsaccountlock']
 
         disabled = False
@@ -1037,7 +1042,7 @@ class user_add_cert(LDAPAddAttribute):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
                      **options):
-        assert isinstance(dn, DN)
+        dn = self.obj.get_either_dn(*keys, **options)
 
         self.obj.convert_usercertificate_pre(entry_attrs)
 
@@ -1059,7 +1064,7 @@ class user_remove_cert(LDAPRemoveAttribute):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
                      **options):
-        assert isinstance(dn, DN)
+        dn = self.obj.get_either_dn(*keys, **options)
 
         self.obj.convert_usercertificate_pre(entry_attrs)
 
