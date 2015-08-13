@@ -306,15 +306,6 @@ class cert_request(VirtualCommand):
         ),
     )
 
-    _allowed_extensions = {
-        '2.5.29.14': None,      # Subject Key Identifier
-        '2.5.29.15': None,      # Key Usage
-        '2.5.29.17': 'request certificate with subjectaltname',
-        '2.5.29.19': None,      # Basic Constraints
-        '2.5.29.37': None,      # Extended Key Usage
-        '1.2.840.10070.8.1': None, # IECUserRoles (DNP3 / IEC 62351-8)
-    }
-
     def execute(self, csr, **kw):
         ca_enabled_check()
 
@@ -376,12 +367,10 @@ class cert_request(VirtualCommand):
             raise errors.CertificateOperationError(
                 error=_("Failure decoding Certificate Signing Request: %s") % e)
 
-        # host principals may bypass allowed ext check
+        # self-service and host principals may bypass SAN permission check
         if bind_principal != principal and bind_principal_type != HOST:
-            for ext in extensions:
-                operation = self._allowed_extensions.get(ext)
-                if operation:
-                    self.check_access(operation)
+            if '2.5.29.17' in extensions:
+                self.check_access('request certificate with subjectaltname')
 
         dn = None
         principal_obj = None
@@ -432,11 +421,6 @@ class cert_request(VirtualCommand):
                         "DN emailAddress does not match "
                         "any of user's email addresses")
                 )
-
-        for ext in extensions:
-            if ext not in self._allowed_extensions:
-                raise errors.ValidationError(
-                    name='csr', error=_("extension %s is forbidden") % ext)
 
         # We got this far so the principal entry exists, can we write it?
         if not ldap.can_write(dn, "usercertificate"):
