@@ -827,16 +827,14 @@ class user_undel(LDAPQuery):
 
         # First check that the user exists and is a delete one
         delete_dn = self.obj.get_either_dn(*keys, **options)
-        if delete_dn.endswith(DN(self.obj.active_container_dn, api.env.basedn)):
-            raise errors.ValidationError(
-                        name=self.obj.primary_key.cli_name,
-                        error=_('User %r is already active') % keys[-1][0])
         try:
             entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(delete_dn)
         except errors.NotFound:
-            raise errors.ValidationError(
-                        name=self.obj.primary_key.cli_name,
-                        error=_('User %r not found') % keys[-1][0])
+            self.obj.handle_not_found(*keys)
+        if delete_dn.endswith(DN(self.obj.active_container_dn,
+                                 api.env.basedn)):
+            raise errors.InvocationError(
+                message=_('user "%s" is already active') % keys[-1])
 
         active_dn = DN(delete_dn[0], self.obj.active_container_dn, api.env.basedn)
 
