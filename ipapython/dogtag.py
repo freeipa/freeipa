@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import collections
 import os
 import httplib
 import xml.dom.minidom
@@ -42,10 +43,11 @@ from ipapython.ipa_log_manager import *
 # the configured version.
 
 
+Profile = collections.namedtuple('Profile', ['profile_id', 'description', 'store_issued'])
+
 INCLUDED_PROFILES = {
-    # ( profile_id    ,         description      ,      store_issued)
-    (u'caIPAserviceCert', u'Standard profile for network services', True),
-    (u'IECUserRoles', u'User profile that includes IECUserRoles extension from request', True),
+    Profile(u'caIPAserviceCert', u'Standard profile for network services', True),
+    Profile(u'IECUserRoles', u'User profile that includes IECUserRoles extension from request', True),
     }
 
 DEFAULT_PROFILE = u'caIPAserviceCert'
