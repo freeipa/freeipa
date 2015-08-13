@@ -132,7 +132,7 @@ class Backup(admintool.AdminTool):
         paths.SYSCONFIG_KRB5KDC_DIR,
         paths.SYSCONFIG_PKI_CA_PKI_CA_DIR,
         paths.SYSCONFIG_IPA_DNSKEYSYNCD,
-        paths.SYSOCNFIG_IPA_ODS_EXPORTER,
+        paths.SYSCONFIG_IPA_ODS_EXPORTER,
         paths.SYSCONFIG_NAMED,
         paths.SYSCONFIG_ODS,
         paths.ETC_SYSCONFIG_AUTHCONFIG,
