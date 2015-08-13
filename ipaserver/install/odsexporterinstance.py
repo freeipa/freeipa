@@ -86,7 +86,7 @@ class ODSExporterInstance(service.Service):
             root_logger.error("DNSKeyExporter service already exists")
 
     def __setup_key_exporter(self):
-        installutils.set_directive(paths.SYSOCNFIG_IPA_ODS_EXPORTER,
+        installutils.set_directive(paths.SYSCONFIG_IPA_ODS_EXPORTER,
                                    'SOFTHSM2_CONF',
                                    paths.DNSSEC_SOFTHSM2_CONF,
                                    quotes=False, separator='=')

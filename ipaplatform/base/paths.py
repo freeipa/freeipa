@@ -119,7 +119,7 @@ class BasePathNamespace(object):
     SYSCONFIG_DIRSRV_PKI_IPA_DIR = "/etc/sysconfig/dirsrv-PKI-IPA"
     SYSCONFIG_DIRSRV_SYSTEMD = "/etc/sysconfig/dirsrv.systemd"
     SYSCONFIG_IPA_DNSKEYSYNCD = "/etc/sysconfig/ipa-dnskeysyncd"
-    SYSOCNFIG_IPA_ODS_EXPORTER = "/etc/sysconfig/ipa-ods-exporter"
+    SYSCONFIG_IPA_ODS_EXPORTER = "/etc/sysconfig/ipa-ods-exporter"
     SYSCONFIG_HTTPD = "/etc/sysconfig/httpd"
     SYSCONFIG_KRB5KDC_DIR = "/etc/sysconfig/krb5kdc"
     SYSCONFIG_NAMED = "/etc/sysconfig/named"
