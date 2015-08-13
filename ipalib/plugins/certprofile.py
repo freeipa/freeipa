@@ -3,6 +3,7 @@
 #
 
 import re
+from operator import attrgetter
 
 from ipalib import api, Bool, File, Str
 from ipalib import output, util
@@ -14,6 +15,7 @@ from ipalib.plugins.baseldap import (
 from ipalib.request import context
 from ipalib import ngettext
 from ipalib.text import _
+from ipapython.dogtag import INCLUDED_PROFILES
 from ipapython.version import API_VERSION
 
 from ipalib import errors
@@ -287,9 +289,16 @@ class certprofile_del(LDAPDelete):
     __doc__ = _("Delete a Certificate Profile.")
     msg_summary = _('Deleted profile "%(value)s"')
 
-    def execute(self, *args, **kwargs):
+    def pre_callback(self, ldap, dn, *keys, **options):
         ca_enabled_check()
-        return super(certprofile_del, self).execute(*args, **kwargs)
+
+        if keys[0] in map(attrgetter('profile_id'), INCLUDED_PROFILES):
+            raise errors.ValidationError(name='profile_id',
+                error=_("Predefined profile '%(profile_id)s' cannot be deleted")
+                    % {'profile_id': keys[0]}
+            )
+
+        return dn
 
     def post_callback(self, ldap, dn, *keys, **options):
         with self.api.Backend.ra_certprofile as profile_api:
