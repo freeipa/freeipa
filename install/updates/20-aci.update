@@ -87,3 +87,7 @@ add:aci:(targetattr = "usercertificate")(version 3.0;acl "selfservice:Users can 
 # Hosts can add their own services
 dn: cn=services,cn=accounts,$SUFFIX
 add:aci: (target = "ldap:///krbprincipalname=*/($$dn)@$REALM,cn=services,cn=accounts,$SUFFIX")(targetfilter = "(objectClass=ipaKrbPrincipal)")(version 3.0;acl "Hosts can add own services"; allow(add) userdn="ldap:///fqdn=($$dn),cn=computers,cn=accounts,$SUFFIX";)
+
+# CIFS service on the master can manage ID ranges
+dn: cn=ranges,cn=etc,$SUFFIX
+add:aci: (target = "ldap:///cn=*,cn=ranges,cn=etc,$SUFFIX")(targetfilter = "(objectClass=ipaIDrange)")(version 3.0;acl "CIFS service can manage ID ranges for trust"; allow(all) userdn="ldap:///krbprincipalname=cifs/*@$REALM,cn=services,cn=accounts,$SUFFIX" and groupdn="ldap:///cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX";)

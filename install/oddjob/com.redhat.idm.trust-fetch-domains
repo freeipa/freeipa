@@ -41,6 +41,9 @@ def retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal):
                       "-p", oneway_principal,
                       "-k", oneway_keytab_name,
                       "-r"]
+    if os.path.isfile(oneway_keytab_name):
+        os.unlink(oneway_keytab_name)
+
     (stdout, stderr, retcode) = ipautil.run(getkeytab_args,
                                             env={'KRB5CCNAME': ccache_name, 'LANG': 'C'},
                                             raiseonerr=False)
@@ -111,7 +114,6 @@ from ipalib.plugins import trust
 # retrieve the keys to oneway_keytab_name.
 
 keytab_name = '/etc/samba/samba.keytab'
-oneway_keytab_name = '/var/lib/sss/keytabs/' + trusted_domain + '.keytab'
 
 principal = str('cifs/' + api.env.host)
 
@@ -137,10 +139,20 @@ else:
 old_ccache = os.environ.get('KRB5CCNAME')
 api.Backend.ldap2.connect(ccache)
 
+# Retrieve own NetBIOS name and trusted forest's name.
+# We use script's input to retrieve the trusted forest's name to sanitize input
+# for file-level access as we might need to wipe out keytab in /var/lib/sss/keytabs
 own_trust_dn = DN(('cn', api.env.domain),('cn','ad'), ('cn', 'etc'), api.env.basedn)
 own_trust_entry = api.Backend.ldap2.get_entry(own_trust_dn, ['ipantflatname'])
-own_trust_flatname = own_trust_entry['ipantflatname'][0].upper()
+own_trust_flatname = own_trust_entry.single_value.get('ipantflatname').upper()
+trusted_domain_dn = DN(('cn', trusted_domain.lower()), api.env.container_adtrusts, api.env.basedn)
+trusted_domain_entry = api.Backend.ldap2.get_entry(trusted_domain_dn, ['cn'])
+trusted_domain = trusted_domain_entry.single_value.get('cn').lower()
 
+# At this point if we didn't find trusted forest name, an exception will be raised
+# and script will quit. This is actually intended.
+
+oneway_keytab_name = '/var/lib/sss/keytabs/' + trusted_domain + '.keytab'
 oneway_principal = str('%s$@%s' % (own_trust_flatname, trusted_domain.upper()))
 
 # If keytab does not exist, retrieve it
@@ -152,11 +164,18 @@ try:
     # The keytab may have stale key material (from older trust-add run)
     if not os.path.isfile(oneway_ccache_name):
         oneway_ccache = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
+    else:
+        oneway_ccache_check = KRB5_CCache(oneway_ccache_name)
+        if not oneway_ccache_check.credential_is_valid(oneway_principal):
+            # If credentials were invalid, obtain them again
+            oneway_ccache = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
+        else:
+            oneway_ccache = oneway_ccache_check.ccache
 except krbV.Krb5Error as e:
     # If there was failure on using keytab, assume it is stale and retrieve again
     retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal)
 
-if oneway_ccache:
+try:
     # There wasn existing ccache, validate its content
     oneway_ccache_check = KRB5_CCache(oneway_ccache_name)
     if not oneway_ccache_check.credential_is_valid(oneway_principal):
@@ -164,7 +183,7 @@ if oneway_ccache:
         oneway_ccache = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
     else:
         oneway_ccache = oneway_ccache_check.ccache
-else:
+except krbV.Krb5Error as e:
     oneway_ccache = kinit_keytab(oneway_principal, oneway_keytab_name, oneway_ccache_name)
 
 # We are done: we have ccache with TDO credentials and can fetch domains
@@ -193,7 +212,7 @@ if domains:
                 dom['range_type'] = u'ipa-ad-trust'
                 # Do not pass ipaserver.dcerpc.TrustInstance to trust.add_range
                 # to force it using existing credentials cache
-                trust.add_range(None, range_name, dom['ipanttrusteddomainsid'],
+                trust.add_range(api, None, range_name, dom['ipanttrusteddomainsid'],
                                 trusted_domain, name, **dom)
         except errors.DuplicateEntry:
             # Ignore updating duplicate entries
