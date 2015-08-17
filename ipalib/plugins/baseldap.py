@@ -1652,6 +1652,7 @@ class LDAPModMember(LDAPQuery):
     """
     member_attributes = ['member']
     member_param_doc = _('%s')
+    member_param_label = _('member %s')
     member_count_out = ('%i member processed.', '%i members processed.')
 
     def get_options(self):
@@ -1662,9 +1663,9 @@ class LDAPModMember(LDAPQuery):
                 ldap_obj = self.api.Object[ldap_obj_name]
                 name = to_cli(ldap_obj_name)
                 doc = self.member_param_doc % ldap_obj.object_name_plural
+                label = self.member_param_label % ldap_obj.object_name
                 yield Str('%s*' % name, cli_name='%ss' % name, doc=doc,
-                          label=_('member %s') % ldap_obj.object_name,
-                          csv=True, alwaysask=True)
+                          label=label, csv=True, alwaysask=True)
 
     def get_member_dns(self, **options):
         dns = {}
