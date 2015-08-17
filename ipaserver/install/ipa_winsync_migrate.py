@@ -302,6 +302,12 @@ class WinsyncMigrate(admintool.AdminTool):
             object_container_dn=DN(api.env.container_selinux, api.env.basedn),
         )
 
+    def warn_passsync(self):
+        self.log.warning("Migration completed. Please note that if PassSync "
+            "was configured on the given Active Directory server, "
+            "it needs to be manually removed, otherwise it may try "
+            "to reset password for accounts that are no longer existent.")
+
     @classmethod
     def main(cls, argv):
         """
@@ -343,3 +349,5 @@ class WinsyncMigrate(admintool.AdminTool):
             self.migrate_hbac_memberships(entry)
             self.migrate_selinux_memberships(entry)
             self.ldap.delete_entry(entry)
+
+        self.warn_passsync()
