@@ -16,7 +16,7 @@
 .\"
 .\" Author: Tomas Babej <tbabej@redhat.com>
 .\"
-.TH "ipa-advise" "1" "Mar 10 2015" "FreeIPA" "FreeIPA Manual Pages"
+.TH "ipa-winsync-migrate" "1" "Mar 10 2015" "FreeIPA" "FreeIPA Manual Pages"
 .SH "NAME"
 ipa\-winsync\-migrate \- Seamless migration of AD users created by winsync to native AD users.
 .SH "SYNOPSIS"
@@ -25,3 +25,28 @@ ipa\-winsync\-migrate
 Migrates AD users created by winsync agreement to ID overrides in
 the Default Trust View, thus preserving the actual POSIX attributes
 already established.
+
+Prior to the actual migration, the winsync replication agreement
+will be removed to protect the removal of the user accounts
+on the Active Directory side.
+
+During the migration, group, assigned roles, HBAC rules and SELinux
+memberships of the synced users will be preserved. Any local copies
+(created by winsync) of the migrated users will be removed.
+
+.SH "WARNINGS"
+After the migration, any PassSync agreements need to be removed
+from Active Directory Domain Controllers, otherwise they might
+attempt to update passwords for accounts that no longer exist
+on the IPA server.
+
+.SH "OPTIONS"
+.TP
+\fB\-\-realm\fR
+The Active Directory realm the winsynced users belong to.
+.TP
+\fB\-\-server\fR
+The hostname of Active Directory Domain Controller the winsync replication agreement is established with.
+.TP
+\fB\-\-unattended\fR
+Never prompts for user input.
