@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=151
-# Last change: cheimes - Add flag to list all service and user vaults
+IPA_API_VERSION_MINOR=152
+# Last change: mbasti - add 'user-stage' command
