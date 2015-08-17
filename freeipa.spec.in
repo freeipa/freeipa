@@ -694,7 +694,8 @@ fi
 %if ! %{ONLY_CLIENT}
 %files server -f server-python.list
 %defattr(-,root,root,-)
-%doc COPYING README Contributors.txt
+%doc README Contributors.txt
+%license COPYING
 %{_sbindir}/ipa-backup
 %{_sbindir}/ipa-restore
 %{_sbindir}/ipa-ca-install
@@ -906,7 +907,8 @@ fi
 
 %files client
 %defattr(-,root,root,-)
-%doc COPYING README Contributors.txt
+%doc README Contributors.txt
+%license COPYING
 %{_sbindir}/ipa-client-install
 %{_sbindir}/ipa-client-automount
 %{_sbindir}/ipa-certupdate
@@ -928,14 +930,16 @@ fi
 
 %files admintools
 %defattr(-,root,root,-)
-%doc COPYING README Contributors.txt
+%doc README Contributors.txt
+%license COPYING
 %{_bindir}/ipa
 %config %{_sysconfdir}/bash_completion.d
 %{_mandir}/man1/ipa.1.gz
 
 %files python -f %{gettext_domain}.lang
 %defattr(-,root,root,-)
-%doc COPYING README Contributors.txt
+%doc README Contributors.txt
+%license COPYING
 %dir %{python_sitelib}/ipapython
 %{python_sitelib}/ipapython/*.py*
 %dir %{python_sitelib}/ipapython/dnssec
@@ -967,7 +971,8 @@ fi
 %if ! %{ONLY_CLIENT}
 %files tests -f tests-python.list
 %defattr(-,root,root,-)
-%doc COPYING README Contributors.txt
+%doc README Contributors.txt
+%license COPYING
 %dir %{python_sitelib}/ipatests
 %dir %{python_sitelib}/ipatests/test_cmdline
 %dir %{python_sitelib}/ipatests/test_install
