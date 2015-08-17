@@ -314,6 +314,11 @@ class vault(LDAPObject):
             label=_('Owner services'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
+        Str(
+            'owner?',
+            label=_('Failed owners'),
+            flags=['no_create', 'no_update', 'no_search'],
+        ),
     )
 
     def get_dn(self, *keys, **options):
@@ -1420,6 +1425,11 @@ class VaultModMember(LDAPModMember):
             options.pop('service', None)
         return super(VaultModMember, self).get_member_dns(**options)
 
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        for fail in failed.itervalues():
+            fail['services'] = fail.pop('service', [])
+        return completed, dn
+
 
 @register()
 class vault_add_owner(VaultModMember, LDAPAddMember):
@@ -1428,6 +1438,7 @@ class vault_add_owner(VaultModMember, LDAPAddMember):
     takes_options = LDAPAddMember.takes_options + vault_options
 
     member_attributes = ['owner']
+    member_param_label = _('owner %s')
     member_count_out = ('%i owner added.', '%i owners added.')
 
     has_output = (
@@ -1452,6 +1463,7 @@ class vault_remove_owner(VaultModMember, LDAPRemoveMember):
     takes_options = LDAPRemoveMember.takes_options + vault_options
 
     member_attributes = ['owner']
+    member_param_label = _('owner %s')
     member_count_out = ('%i owner removed.', '%i owners removed.')
 
     has_output = (
