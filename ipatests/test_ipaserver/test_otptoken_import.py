@@ -20,6 +20,7 @@
 import os
 import sys
 import nose
+import pytest
 from nss import nss
 from ipalib.x509 import initialize_nss_database
 
@@ -27,6 +28,7 @@ from ipaserver.install.ipa_otptoken_import import PSKCDocument, ValidationError
 
 basename = os.path.join(os.path.dirname(__file__), "data")
 
+@pytest.mark.skipif(True, reason="Causes NSS errors. Ticket 5192")
 class test_otptoken_import(object):
 
     def teardown(self):
