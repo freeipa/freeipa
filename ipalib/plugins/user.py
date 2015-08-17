@@ -859,6 +859,57 @@ class user_undel(LDAPQuery):
             value=pkey_to_value(keys[0], options),
         )
 
+
+@register()
+class user_stage(LDAPMultiQuery):
+    __doc__ = _('Move deleted user into staged area')
+
+    has_output = output.standard_multi_delete
+    msg_summary = _('Staged user account "%(value)s"')
+
+    def execute(self, *keys, **options):
+        staged = []
+        failed = []
+
+        for key in keys[-1]:
+            single_keys = keys[:-1] + (key,)
+            multi_keys = keys[:-1] + ((key,),)
+
+            user = self.api.Command.user_show(*single_keys, all=True)['result']
+            new_options = {}
+            for param in self.api.Command.stageuser_add.options():
+                try:
+                    value = user[param.name]
+                except KeyError:
+                    continue
+                if param.multivalue and not isinstance(value, (list, tuple)):
+                    value = [value]
+                elif not param.multivalue and isinstance(value, (list, tuple)):
+                    value = value[0]
+                new_options[param.name] = value
+
+            try:
+                self.api.Command.stageuser_add(*single_keys, **new_options)
+                try:
+                    self.api.Command.user_del(*multi_keys, preserve=False)
+                except errors.ExecutionError:
+                    self.api.Command.stageuser_del(*multi_keys)
+                    raise
+            except errors.ExecutionError:
+                if not options['continue']:
+                    raise
+                failed.append(key)
+            else:
+                staged.append(key)
+
+        return dict(
+            result=dict(
+                failed=pkey_to_value(failed, options),
+            ),
+            value=pkey_to_value(staged, options),
+        )
+
+
 @register()
 class user_disable(LDAPQuery):
     __doc__ = _('Disable a user account.')

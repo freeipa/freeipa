@@ -4211,7 +4211,7 @@ option: Str('displayname', attribute=True, autofill=True, cli_name='displayname'
 option: Str('employeenumber', attribute=True, cli_name='employeenumber', multivalue=False, required=False)
 option: Str('employeetype', attribute=True, cli_name='employeetype', multivalue=False, required=False)
 option: Str('facsimiletelephonenumber', attribute=True, cli_name='fax', multivalue=True, required=False)
-option: Flag('from_delete?', autofill=True, cli_name='from_delete', default=False)
+option: DeprecatedParam('from_delete?', cli_name='from_delete', default=False)
 option: Str('gecos', attribute=True, autofill=True, cli_name='gecos', multivalue=False, required=False)
 option: Int('gidnumber', attribute=True, cli_name='gidnumber', minvalue=1, multivalue=False, required=False)
 option: Str('givenname', attribute=True, cli_name='first', multivalue=False, required=True)
@@ -5371,6 +5371,14 @@ option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
+command: user_stage
+args: 1,2,3
+arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=True, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)
+option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?', exclude='webui')
+output: Output('result', <type 'dict'>, None)
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: ListOfPrimaryKeys('value', None, None)
 command: user_status
 args: 1,4,4
 arg: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', primary_key=True, query=True, required=True)

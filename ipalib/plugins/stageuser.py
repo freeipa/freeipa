@@ -23,7 +23,8 @@ import posixpath
 import os
 from copy import deepcopy
 from ipalib import api, errors
-from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime
+from ipalib import (Flag, Int, Password, Str, Bool, StrEnum, DateTime,
+                    DeprecatedParam)
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import LDAPCreate, LDAPQuery, LDAPSearch, DN, entry_to_dict, pkey_to_value
 from ipalib.plugins import baseldap
@@ -260,7 +261,7 @@ class stageuser_add(baseuser_add):
     has_output_params = baseuser_add.has_output_params + stageuser_output_params
 
     takes_options = LDAPCreate.takes_options + (
-        Flag('from_delete?',
+        DeprecatedParam('from_delete?',
             doc=_('Create Stage user in from a delete user'),
             cli_name='from_delete',
             default=False,
@@ -270,13 +271,12 @@ class stageuser_add(baseuser_add):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
-        if not options.get('from_delete'):
-            # then givenname and sn are required attributes
-            if 'givenname' not in entry_attrs:
-                raise errors.RequirementError(name='givenname', error=_('givenname is required'))
+        # then givenname and sn are required attributes
+        if 'givenname' not in entry_attrs:
+            raise errors.RequirementError(name='givenname', error=_('givenname is required'))
 
-            if 'sn' not in entry_attrs:
-                raise errors.RequirementError(name='sn', error=_('sn is required'))
+        if 'sn' not in entry_attrs:
+            raise errors.RequirementError(name='sn', error=_('sn is required'))
 
         # we don't want an user private group to be created for this user
         # add NO_UPG_MAGIC description attribute to let the DS plugin know
@@ -366,34 +366,6 @@ class stageuser_add(baseuser_add):
                 entry_attrs['ipatokenradiusconfiglink'] = answer
 
         return dn
-
-    def execute(self, *keys, **options):
-        '''
-        A stage entry may be taken from the Delete container.
-        In that case we rather do 'MODRDN' than 'ADD'.
-        '''
-        if options.get('from_delete'):
-            ldap = self.obj.backend
-
-            staging_dn = self.obj.get_dn(*keys, **options)
-            delete_dn = DN(staging_dn[0], self.obj.delete_container_dn, api.env.basedn)
-            new_dn = DN(staging_dn[0], self.obj.stage_container_dn, api.env.basedn)
-            # Check that this value is a Active user
-            try:
-                entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(delete_dn, ['dn'])
-            except errors.NotFound:
-                self.obj.handle_not_found(*keys)
-
-            self._exc_wrapper(keys, options, ldap.move_entry)(
-                delete_dn, new_dn)
-            entry_attrs = entry_to_dict(entry_attrs, **options)
-            entry_attrs['dn'] = new_dn
-
-            if self.obj.primary_key and keys[-1] is not None:
-                return dict(result=entry_attrs, value=keys[-1])
-            return dict(result=entry_attrs, value=u'')
-        else:
-            return super(stageuser_add, self).execute(*keys, **options)
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
