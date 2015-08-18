@@ -20,6 +20,7 @@ from datetime import datetime
 import dateutil.tz
 import dns.dnssec
 import fcntl
+from krbV import Krb5Error
 import logging
 import os
 import subprocess
@@ -482,7 +483,14 @@ ipalib.api.finalize()
 PRINCIPAL = str('%s/%s' % (DAEMONNAME, ipalib.api.env.host))
 log.debug('Kerberos principal: %s', PRINCIPAL)
 ccache_name = os.path.join(WORKDIR, 'ipa-ods-exporter.ccache')
-ipautil.kinit_keytab(PRINCIPAL, paths.IPA_ODS_EXPORTER_KEYTAB, ccache_name)
+
+try:
+    ipautil.kinit_keytab(PRINCIPAL, paths.IPA_ODS_EXPORTER_KEYTAB, ccache_name,
+                         attempts=5)
+except Krb5Error as e:
+    log.critical('Kerberos authentication failed: %s', e)
+    sys.exit(1)
+
 os.environ['KRB5CCNAME'] = ccache_name
 log.debug('Got TGT')
 
