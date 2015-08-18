@@ -410,6 +410,13 @@ class Restore(admintool.AdminTool):
         '''
         Create an ldapi connection and bind to it using autobind as root.
         '''
+        instance_name = installutils.realm_to_serverid(api.env.realm)
+
+        if not services.knownservices.dirsrv.is_running(instance_name):
+            raise admintool.ScriptError(
+                "directory server instance is not running/configured"
+            )
+
         if self._conn is not None:
             return self._conn
 
