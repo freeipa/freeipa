@@ -802,7 +802,7 @@ class vault_find(LDAPSearch):
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
-        base_dn = self.obj.get_dn(*args, **options)
+        base_dn = self.obj.get_dn(None, **options)
 
         return (filter, base_dn, scope)
 
