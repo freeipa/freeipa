@@ -322,6 +322,21 @@ class vault(LDAPObject):
             label=_('Failed owners'),
             flags=['no_create', 'no_update', 'no_search'],
         ),
+        Str(
+            'service?',
+            label=_('Vault service'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
+        Flag(
+            'shared?',
+            label=_('Shared vault'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
+        Str(
+            'username?',
+            label=_('Vault user'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
+        ),
     )
 
     def get_dn(self, *keys, **options):
@@ -522,6 +537,17 @@ class vault(LDAPObject):
             except AssertionError:
                 raise errors.AuthenticationError(
                     message=_('Invalid credentials'))
+
+    def get_container_attribute(self, entry, options):
+        if options.get('raw', False):
+            return
+        container_dn = DN(self.container_dn, self.api.env.basedn)
+        if entry.dn.endswith(DN(('cn', 'services'), container_dn)):
+            entry['service'] = entry.dn[1]['cn']
+        elif entry.dn.endswith(DN(('cn', 'shared'), container_dn)):
+            entry['shared'] = True
+        elif entry.dn.endswith(DN(('cn', 'users'), container_dn)):
+            entry['username'] = entry.dn[1]['cn']
 
 
 @register()
@@ -738,6 +764,10 @@ class vault_add_internal(LDAPCreate):
 
         return dn
 
+    def post_callback(self, ldap, dn, entry, *keys, **options):
+        self.obj.get_container_attribute(entry, options)
+        return dn
+
 
 @register()
 class vault_del(LDAPDelete):
@@ -806,6 +836,11 @@ class vault_find(LDAPSearch):
 
         return (filter, base_dn, scope)
 
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        for entry in entries:
+            self.obj.get_container_attribute(entry, options)
+        return truncated
+
     def exc_callback(self, args, options, exc, call_func, *call_args,
                      **call_kwargs):
         if call_func.__name__ == 'find_entries':
@@ -836,6 +871,10 @@ class vault_mod(LDAPUpdate):
 
         return dn
 
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.get_container_attribute(entry_attrs, options)
+        return dn
+
 
 @register()
 class vault_show(LDAPRetrieve):
@@ -852,6 +891,10 @@ class vault_show(LDAPRetrieve):
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.get_container_attribute(entry_attrs, options)
         return dn
 
 
@@ -1452,6 +1495,7 @@ class VaultModMember(LDAPModMember):
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         for fail in failed.itervalues():
             fail['services'] = fail.pop('service', [])
+        self.obj.get_container_attribute(entry_attrs, options)
         return completed, dn
 
 
