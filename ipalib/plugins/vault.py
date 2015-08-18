@@ -47,6 +47,7 @@ from ipalib.plugins.baseldap import LDAPObject, LDAPCreate, LDAPDelete,\
     LDAPModMember, pkey_to_value
 from ipalib.request import context
 from ipalib.plugins.user import split_principal
+from ipalib.plugins.service import normalize_principal
 from ipalib import _, ngettext
 from ipaplatform.paths import paths
 from ipapython.dn import DN
@@ -214,6 +215,7 @@ vault_options = (
     Str(
         'service?',
         doc=_('Service name of the service vault'),
+        normalizer=normalize_principal,
     ),
     Flag(
         'shared?',
