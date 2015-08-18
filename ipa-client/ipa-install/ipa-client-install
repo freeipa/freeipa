@@ -32,6 +32,7 @@ try:
     from optparse import SUPPRESS_HELP, OptionGroup, OptionValueError
     import shutil
     from krbV import Krb5Error
+    import dns
 
     import nss.nss as nss
     import SSSDConfig
@@ -180,9 +181,15 @@ def parse_options():
     basic_group.add_option("--configure-firefox", dest="configure_firefox",
                             action="store_true", default=False,
                             help="configure Firefox")
-    parser.add_option_group(basic_group)
     basic_group.add_option("--firefox-dir", dest="firefox_dir", default=None,
                             help="specify directory where Firefox is installed (for example: '/usr/lib/firefox')")
+    basic_group.add_option("--ip-address", dest="ip_addresses", default=[],
+        action="append", help="Specify IP address that should be added to DNS."
+        " This option can be used multiple times")
+    basic_group.add_option("--all-ip-addresses", dest="all_ip_addresses",
+        default=False, action="store_true", help="All routable IP"
+        " addresses configured on any inteface will be added to DNS")
+    parser.add_option_group(basic_group)
 
     sssd_group = OptionGroup(parser, "SSSD options")
     sssd_group.add_option("--permit", dest="permit",
@@ -222,6 +229,15 @@ def parse_options():
 
     if options.no_nisdomain and options.nisdomain:
         parser.error("--no-nisdomain cannot be used together with --nisdomain")
+
+    if options.ip_addresses:
+        if options.dns_updates:
+            parser.error("--ip-address cannot be used together with"
+                         " --enable-dns-updates")
+
+        if options.all_ip_addresses:
+            parser.error("--ip-address cannot be used together with"
+                         " --all-ip-addresses")
 
     return safe_opts, options
 
@@ -1285,6 +1301,11 @@ def configure_sssd_conf(fstore, cli_realm, cli_domain, cli_server, options, clie
 
     if options.dns_updates:
         domain.set_option('dyndns_update', True)
+        if options.all_ip_addresses:
+            domain.set_option('dyndns_iface', '*')
+        else:
+            iface = get_server_connection_interface(cli_server[0])
+            domain.set_option('dyndns_iface', iface)
     if options.krb5_offline_passwords:
         domain.set_option('krb5_store_password_if_offline', True)
 
@@ -1501,39 +1522,41 @@ def unconfigure_nisdomain():
         services.knownservices.domainname.disable()
 
 
-def resolve_ipaddress(server):
-    """ Connect to the server's LDAP port in order to determine what ip
-        address this machine uses as "public" ip (relative to the server).
-
-        Returns a tuple with the IP address and address family when
-        connection was successful. Socket error is raised otherwise.
-    """
-    last_socket_error = None
-
-    for res in socket.getaddrinfo(server, 389, socket.AF_UNSPEC,
-            socket.SOCK_STREAM):
-        af, socktype, proto, canonname, sa = res
-        try:
-            s = socket.socket(af, socktype, proto)
-        except socket.error as e:
-            last_socket_error = e
-            s = None
+def get_iface_from_ip(ip_addr):
+    ipresult = ipautil.run([paths.IP, '-oneline', 'address', 'show'])
+    for line in ipresult[0].split('\n'):
+        fields = line.split()
+        if len(fields) < 6:
             continue
+        if fields[2] not in ['inet', 'inet6']:
+            continue
+        (ip, mask) = fields[3].rsplit('/', 1)
+        if ip == ip_addr:
+            return fields[1]
+    else:
+        raise RuntimeError("IP %s not assigned to any interface." % ip_addr)
 
+
+def get_local_ipaddresses(iface=None):
+    args = [paths.IP, '-oneline', 'address', 'show']
+    if iface:
+        args += ['dev', iface]
+    ipresult = ipautil.run(args)
+    lines = ipresult[0].split('\n')
+    ips = []
+    for line in lines:
+        fields = line.split()
+        if len(fields) < 6:
+            continue
+        if fields[2] not in ['inet', 'inet6']:
+            continue
+        (ip, mask) = fields[3].rsplit('/', 1)
         try:
-            s.connect(sa)
-            sockname = s.getsockname()
+            ips.append(ipautil.CheckedIPAddress(ip))
+        except ValueError:
+            continue
+    return ips
 
-            # For both IPv4 and IPv6 own IP address is always the first item
-            return (sockname[0], af)
-        except socket.error as e:
-            last_socket_error = e
-        finally:
-            if s:
-                s.close()
-
-    if last_socket_error is not None:
-        raise last_socket_error  # pylint: disable=E0702
 
 def do_nsupdate(update_txt):
     root_logger.debug("Writing nsupdate commands to %s:", UPDATE_FILE)
@@ -1558,21 +1581,24 @@ def do_nsupdate(update_txt):
 
     return result
 
-UPDATE_TEMPLATE_A = """
-debug
+DELETE_TEMPLATE_A = """
 update delete $HOSTNAME. IN A
 show
 send
+"""
+
+DELETE_TEMPLATE_AAAA = """
+update delete $HOSTNAME. IN AAAA
+show
+send
+"""
+ADD_TEMPLATE_A = """
 update add $HOSTNAME. $TTL IN A $IPADDRESS
 show
 send
 """
 
-UPDATE_TEMPLATE_AAAA = """
-debug
-update delete $HOSTNAME. IN AAAA
-show
-send
+ADD_TEMPLATE_AAAA = """
 update add $HOSTNAME. $TTL IN AAAA $IPADDRESS
 show
 send
@@ -1581,46 +1607,174 @@ send
 UPDATE_FILE = paths.IPA_DNS_UPDATE_TXT
 CCACHE_FILE = paths.IPA_DNS_CCACHE
 
-def update_dns(server, hostname):
+def update_dns(server, hostname, options):
 
     try:
-        (ip, af) = resolve_ipaddress(server)
-    except socket.gaierror as e:
-        root_logger.debug("update_dns: could not connect to server: %s", e)
-        root_logger.error("Cannot update DNS records! "
-                          "Failed to connect to server '%s'.", server)
+        ips = get_local_ipaddresses()
+    except CalledProcessError as e:
+        root_logger.error("Cannot update DNS records. %s" % e)
+        root_logger.debug("Unable to get local IP addresses.")
+
+    if options.all_ip_addresses:
+        update_ips = ips
+    elif options.ip_addresses:
+        update_ips = []
+        for ip in options.ip_addresses:
+            update_ips.append(ipautil.CheckedIPAddress(ip))
+    else:
+        try:
+            iface = get_server_connection_interface(server)
+        except RuntimeError as e:
+            root_logger.error("Cannot update DNS records. %s" % e)
+            return
+        try:
+            update_ips = get_local_ipaddresses(iface)
+        except CalledProcessError as e:
+            root_logger.error("Cannot update DNS records. %s" % e)
+            return
+
+    if not update_ips:
+        root_logger.info("Failed to determine this machine's ip address(es).")
         return
 
-    sub_dict = dict(HOSTNAME=hostname,
-                    IPADDRESS=ip,
-                    TTL=1200
-                )
+    update_txt = "debug\n"
+    update_txt += ipautil.template_str(DELETE_TEMPLATE_A,
+                                       dict(HOSTNAME=hostname))
+    update_txt += ipautil.template_str(DELETE_TEMPLATE_AAAA,
+                                       dict(HOSTNAME=hostname))
 
-    if af == socket.AF_INET:
-        template = UPDATE_TEMPLATE_A
-    elif af == socket.AF_INET6:
-        template = UPDATE_TEMPLATE_AAAA
-    else:
-        root_logger.info("Failed to determine this machine's ip address.")
-        root_logger.warning("Failed to update DNS A record.")
-        return
+    for ip in update_ips:
+        sub_dict = dict(HOSTNAME=hostname, IPADDRESS=ip, TTL=1200)
+        if ip.version == 4:
+            template = ADD_TEMPLATE_A
+        elif ip.version == 6:
+            template = ADD_TEMPLATE_AAAA
+        update_txt += ipautil.template_str(template, sub_dict)
 
-    update_txt = ipautil.template_str(template, sub_dict)
-
-    if do_nsupdate(update_txt):
-        root_logger.info("DNS server record set to: %s -> %s", hostname, ip)
-    else:
+    if not do_nsupdate(update_txt):
         root_logger.error("Failed to update DNS records.")
+    verify_dns_update(hostname, update_ips)
 
-def client_dns(server, hostname, dns_updates=False):
+
+def verify_dns_update(fqdn, ips):
+    """
+    Verify that the fqdn resolves to all IP addresses and
+    that there's matching PTR record for every IP address.
+    """
+    # verify A/AAAA records
+    missing_ips = [str(ip) for ip in ips]
+    extra_ips = []
+    for record_type in [dns.rdatatype.A, dns.rdatatype.AAAA]:
+        root_logger.debug('DNS resolver: Query: %s IN %s' %
+                          (fqdn, dns.rdatatype.to_text(record_type)))
+        try:
+            answers = dns.resolver.query(fqdn, record_type)
+        except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+            root_logger.debug('DNS resolver: No record.')
+        except dns.resolver.NoNameservers:
+            root_logger.debug('DNS resolver: No nameservers answered the'
+                              'query.')
+        except dns.exception.DNSException:
+            root_logger.debug('DNS resolver error.')
+        else:
+            for rdata in answers:
+                try:
+                    missing_ips.remove(rdata.address)
+                except ValueError:
+                    extra_ips.append(rdata.address)
+
+    # verify PTR records
+    fqdn_name = dns.name.from_text(fqdn)
+    wrong_reverse = {}
+    missing_reverse = [str(ip) for ip in ips]
+    for ip in ips:
+        ip_str = str(ip)
+        addr = dns.reversename.from_address(ip_str)
+        root_logger.debug('DNS resolver: Query: %s IN PTR' % addr)
+        try:
+            answers = dns.resolver.query(addr, dns.rdatatype.PTR)
+        except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+            root_logger.debug('DNS resolver: No record.')
+        except dns.resolver.NoNameservers:
+            root_logger.debug('DNS resolver: No nameservers answered the'
+                              'query.')
+        except dns.exception.DNSException:
+            root_logger.debug('DNS resolver error.')
+        else:
+            missing_reverse.remove(ip_str)
+            for rdata in answers:
+                if not rdata.target == fqdn_name:
+                    wrong_reverse.setdefault(ip_str, []).append(rdata.target)
+
+    if missing_ips:
+        root_logger.warning('Missing A/AAAA record(s) for host %s: %s.' %
+                            (fqdn, ', '.join(missing_ips)))
+    if extra_ips:
+        root_logger.warning('Extra A/AAAA record(s) for host %s: %s.' %
+                            (fqdn, ', '.join(extra_ips)))
+    if missing_reverse:
+        root_logger.warning('Missing reverse record(s) for address(es): %s.' %
+                            ', '.join(missing_reverse))
+    if wrong_reverse:
+        root_logger.warning('Incorrect reverse record(s):')
+        for ip in wrong_reverse:
+            for target in wrong_reverse[ip]:
+                root_logger.warning('%s is pointing to %s instead of %s' %
+                                    (ip, target, fqdn_name))
+
+def get_server_connection_interface(server):
+    # connect to IPA server, get all ip addresses of inteface used to connect
+    for res in socket.getaddrinfo(server, 389, socket.AF_UNSPEC, socket.SOCK_STREAM):
+        (af, socktype, proto, canonname, sa) = res
+        try:
+            s = socket.socket(af, socktype, proto)
+        except socket.error as e:
+            last_error = e
+            s = None
+            continue
+        try:
+            s.connect(sa)
+            sockname = s.getsockname()
+            ip = sockname[0]
+        except socket.error as e:
+            last_error = e
+            continue
+        finally:
+            if s:
+                s.close()
+        try:
+            return get_iface_from_ip(ip)
+        except (CalledProcessError, RuntimeError) as e:
+            last_error = e
+    else:
+        msg = "Cannot get server connection interface"
+        if last_error:
+            msg += ": %s" % (last_error)
+        raise RuntimeError(msg)
+
+
+def client_dns(server, hostname, options):
 
     dns_ok = ipautil.is_host_resolvable(hostname)
 
     if not dns_ok:
-        root_logger.warning("Hostname (%s) not found in DNS", hostname)
+        root_logger.warning("Hostname (%s) does not have A/AAAA record.",
+                            hostname)
 
-    if dns_updates or not dns_ok:
-        update_dns(server, hostname)
+    if (options.dns_updates or options.all_ip_addresses or options.ip_addresses
+            or not dns_ok):
+        update_dns(server, hostname, options)
+
+
+def check_ip_addresses(options):
+    if options.ip_addresses:
+        for ip in options.ip_addresses:
+            try:
+                ipautil.CheckedIPAddress(ip, match_local=True)
+            except ValueError as e:
+                root_logger.error(e)
+                return False
+    return True
 
 def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
     if not os.path.isdir(ssh_dir):
@@ -2126,6 +2280,9 @@ def install(options, env, fstore, statestore):
     # Check if old certificate exist and show warning
     if not options.ca_cert_file and get_cert_path(options.ca_cert_file) == CACERT:
         root_logger.warning("Using existing certificate '%s'.", CACERT)
+
+    if not check_ip_addresses(options):
+        return CLIENT_INSTALL_ERROR
 
     # Create the discovery instance
     ds = ipadiscovery.IPADiscovery()
@@ -2736,7 +2893,7 @@ def install(options, env, fstore, statestore):
     root_logger.info("Added CA certificates to the default NSS database.")
 
     if not options.on_master:
-        client_dns(cli_server[0], hostname, options.dns_updates)
+        client_dns(cli_server[0], hostname, options)
         configure_certmonger(fstore, subject_base, cli_realm, hostname,
                              options, ca_enabled)
 
