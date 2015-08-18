@@ -38,7 +38,7 @@ import krbV
 
 from ipalib.frontend import Command, Object, Local
 from ipalib import api, errors
-from ipalib import Bytes, Str, Flag
+from ipalib import Bytes, Flag, Str, StrEnum
 from ipalib import output
 from ipalib.crud import PKQuery, Retrieve, Update
 from ipalib.plugable import Registry
@@ -279,11 +279,12 @@ class vault(LDAPObject):
             label=_('Description'),
             doc=_('Vault description'),
         ),
-        Str(
+        StrEnum(
             'ipavaulttype?',
             cli_name='type',
             label=_('Type'),
             doc=_('Vault type'),
+            values=(u'standard', u'symmetric', u'asymmetric', ),
             default=u'standard',
             autofill=True,
         ),
