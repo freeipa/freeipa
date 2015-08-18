@@ -573,14 +573,15 @@ def install(installer):
     otpd.create_instance('OTPD', config.host_name, config.dirman_password,
                          ipautil.realm_to_suffix(config.realm_name))
 
-    CA = cainstance.CAInstance(
-        config.realm_name, certs.NSS_DIR,
-        dogtag_constants=dogtag_constants)
-    CA.dm_password = config.dirman_password
+    if ipautil.file_exists(config.dir + "/cacert.p12"):
+        CA = cainstance.CAInstance(
+            config.realm_name, certs.NSS_DIR,
+            dogtag_constants=dogtag_constants)
+        CA.dm_password = config.dirman_password
 
-    CA.configure_certmonger_renewal()
-    CA.import_ra_cert(config.dir + "/ra.p12")
-    CA.fix_ra_perms()
+        CA.configure_certmonger_renewal()
+        CA.import_ra_cert(config.dir + "/ra.p12")
+        CA.fix_ra_perms()
 
     # The DS instance is created before the keytab, add the SSL cert we
     # generated
