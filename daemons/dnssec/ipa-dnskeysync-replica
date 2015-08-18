@@ -12,6 +12,7 @@ from binascii import hexlify
 from datetime import datetime
 import dns.dnssec
 import fcntl
+from krbV import Krb5Error
 import logging
 import os
 from pprint import pprint
@@ -141,7 +142,14 @@ log.setLevel(level=logging.DEBUG)
 PRINCIPAL = str('%s/%s' % (DAEMONNAME, ipalib.api.env.host))
 log.debug('Kerberos principal: %s', PRINCIPAL)
 ccache_filename = os.path.join(WORKDIR, 'ipa-dnskeysync-replica.ccache')
-ipautil.kinit_keytab(PRINCIPAL, paths.IPA_DNSKEYSYNCD_KEYTAB, ccache_filename)
+
+try:
+    ipautil.kinit_keytab(PRINCIPAL, paths.IPA_DNSKEYSYNCD_KEYTAB,
+                         ccache_filename, attempts=5)
+except Krb5Error as e:
+    log.critical('Kerberos authentication failed: %s', e)
+    sys.exit(1)
+
 os.environ['KRB5CCNAME'] = ccache_filename
 log.debug('Got TGT')
 
