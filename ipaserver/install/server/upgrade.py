@@ -1328,6 +1328,13 @@ def upgrade_configuration():
         raise RuntimeError("ipa-rewrite.conf doesn't exists (is this server?)")
 
     # Ok, we are an IPA server, do the additional tests
+    ds_serverid = installutils.realm_to_serverid(api.env.realm)
+    ds = dsinstance.DsInstance()
+
+    # start DS, CA will not start without running DS, and cause error
+    ds_running = ds.is_running()
+    if not ds_running:
+        ds.start(ds_serverid)
 
     check_certs()
 
@@ -1359,7 +1366,6 @@ def upgrade_configuration():
                     'ca.crl.MasterCRL.enableCRLUpdates', '=')
             sub_dict['CLONE']='#' if crl.lower() == 'true' else ''
 
-        ds_serverid = installutils.realm_to_serverid(api.env.realm)
         ds_dirname = dsinstance.config_dirname(ds_serverid)
 
         upgrade_file(sub_dict, paths.HTTPD_IPA_CONF,
@@ -1396,7 +1402,6 @@ def upgrade_configuration():
     http.change_mod_nss_port_from_http()
     http.configure_certmonger_renewal_guard()
 
-    ds = dsinstance.DsInstance()
     ds.configure_dirsrv_ccache()
 
     # ldap2 connection is not valid after DS restart, close connection otherwise
@@ -1525,6 +1530,11 @@ def upgrade_configuration():
     add_default_caacl(ca)
 
     set_sssd_domain_option('ipa_server_mode', 'True')
+
+    if ds_running and not ds.is_running():
+        ds.start(ds_serverid)
+    elif not ds_running and ds.is_running():
+        ds.stop(ds_serverid)
 
 
 def upgrade_check(options):
