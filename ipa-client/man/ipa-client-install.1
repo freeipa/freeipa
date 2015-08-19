@@ -180,6 +180,12 @@ Request certificate for the machine. The certificate will be stored in /etc/ipa/
 \fB\-\-automount\-location\fR=\fILOCATION\fR
 Configure automount by running ipa\-client\-automount(1) with \fILOCATION\fR as
 automount location.
+.TP
+\fB\-\-ip\-address\fR=\fIIP_ADDRESS\fR
+Use \fIIP_ADDRESS\fR in DNS A/AAAA record for this host. May be specified multiple times to add multiple DNS records.
+.TP
+\fB\-\-all\-ip\-addresses\fR
+Create DNS A/AAAA record for each IP address on this host.
 
 .SS "SSSD OPTIONS"
 .TP
