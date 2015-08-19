@@ -343,21 +343,11 @@ class vault(LDAPObject):
         """
         Generates vault DN from parameters.
         """
-
         service = options.get('service')
         shared = options.get('shared')
         user = options.get('username')
 
-        count = 0
-        if service:
-            count += 1
-
-        if shared:
-            count += 1
-
-        if user:
-            count += 1
-
+        count = (bool(service) + bool(shared) + bool(user))
         if count > 1:
             raise errors.MutuallyExclusiveError(
                 reason=_('Service, shared, and user options ' +
@@ -387,8 +377,10 @@ class vault(LDAPObject):
             parent_dn = DN(('cn', service), ('cn', 'services'), container_dn)
         elif shared:
             parent_dn = DN(('cn', 'shared'), container_dn)
-        else:
+        elif user:
             parent_dn = DN(('cn', user), ('cn', 'users'), container_dn)
+        else:
+            raise RuntimeError
 
         return DN(rdns, parent_dn)
 
@@ -814,7 +806,16 @@ class vault_del(LDAPDelete):
 class vault_find(LDAPSearch):
     __doc__ = _('Search for vaults.')
 
-    takes_options = LDAPSearch.takes_options + vault_options
+    takes_options = LDAPSearch.takes_options + vault_options + (
+        Flag(
+            'services?',
+            doc=_('List all service vaults'),
+        ),
+        Flag(
+            'users?',
+            doc=_('List all user vaults'),
+        ),
+    )
 
     has_output_params = LDAPSearch.has_output_params
 
@@ -832,9 +833,26 @@ class vault_find(LDAPSearch):
             raise errors.InvocationError(
                 format=_('KRA service is not enabled'))
 
-        base_dn = self.obj.get_dn(None, **options)
+        if options.get('users') or options.get('services'):
+            mutex = ['service', 'services', 'shared', 'username', 'users']
+            count = sum(bool(options.get(option)) for option in mutex)
+            if count > 1:
+                raise errors.MutuallyExclusiveError(
+                    reason=_('Service(s), shared, and user(s) options ' +
+                             'cannot be specified simultaneously'))
 
-        return (filter, base_dn, scope)
+            scope = ldap.SCOPE_SUBTREE
+            container_dn = DN(self.obj.container_dn,
+                              self.api.env.basedn)
+
+            if options.get('services'):
+                base_dn = DN(('cn', 'services'), container_dn)
+            else:
+                base_dn = DN(('cn', 'users'), container_dn)
+        else:
+            base_dn = self.obj.get_dn(None, **options)
+
+        return filter, base_dn, scope
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         for entry in entries:
