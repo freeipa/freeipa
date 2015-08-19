@@ -79,7 +79,7 @@ BuildRequires:  pylint >= 1.0
 BuildRequires:  python-polib
 BuildRequires:  python-libipa_hbac
 BuildRequires:  python-memcached
-BuildRequires:  sssd >= 1.13.0
+BuildRequires:  sssd >= 1.13.1
 BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1 >= 0.0.9a
 BuildRequires:  python-qrcode-core >= 5.0.0
@@ -259,7 +259,7 @@ Requires: pam_krb5
 Requires: wget
 Requires: libcurl >= 7.21.7-2
 Requires: xmlrpc-c >= 1.27.4
-Requires: sssd >= 1.13.0
+Requires: sssd >= 1.13.1
 Requires: python-sssdconfig
 Requires: certmonger >= 0.78
 Requires: nss-tools
