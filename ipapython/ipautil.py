@@ -747,30 +747,40 @@ def ipa_generate_password(characters=None,pwd_len=None):
 def user_input(prompt, default = None, allow_empty = True):
     if default == None:
         while True:
-            ret = raw_input("%s: " % prompt)
-            if allow_empty or ret.strip():
-                return ret
+            try:
+                ret = raw_input("%s: " % prompt)
+                if allow_empty or ret.strip():
+                    return ret
+            except EOFError:
+                if allow_empty:
+                    return ''
+                raise RuntimeError("Failed to get user input")
 
     if isinstance(default, basestring):
         while True:
-            ret = raw_input("%s [%s]: " % (prompt, default))
-            if not ret and (allow_empty or default):
+            try:
+                ret = raw_input("%s [%s]: " % (prompt, default))
+                if not ret and (allow_empty or default):
+                    return default
+                elif ret.strip():
+                    return ret
+            except EOFError:
                 return default
-            elif ret.strip():
-                return ret
+
     if isinstance(default, bool):
-        if default:
-            choice = "yes"
-        else:
-            choice = "no"
+        choice = "yes" if default else "no"
         while True:
-            ret = raw_input("%s [%s]: " % (prompt, choice))
-            if not ret:
+            try:
+                ret = raw_input("%s [%s]: " % (prompt, choice))
+                if not ret:
+                    return default
+                elif ret.lower()[0] == "y":
+                    return True
+                elif ret.lower()[0] == "n":
+                    return False
+            except EOFError:
                 return default
-            elif ret.lower()[0] == "y":
-                return True
-            elif ret.lower()[0] == "n":
-                return False
+
     if isinstance(default, int):
         while True:
             try:
@@ -780,6 +790,8 @@ def user_input(prompt, default = None, allow_empty = True):
                 ret = int(ret)
             except ValueError:
                 pass
+            except EOFError:
+                return default
             else:
                 return ret
 
