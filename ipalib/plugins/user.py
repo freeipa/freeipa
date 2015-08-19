@@ -593,6 +593,60 @@ class user_del(baseuser_del):
         ),
     )
 
+    def _preserve_user(self, pkey, delete_container, **options):
+        assert isinstance(delete_container, DN)
+
+        dn = self.obj.get_either_dn(pkey, **options)
+        delete_dn = DN(dn[0], delete_container)
+        ldap = self.obj.backend
+        self.log.debug("preserve move %s -> %s" % (dn, delete_dn))
+
+        if dn.endswith(delete_container):
+            raise errors.ExecutionError(
+                _('%s: user is already preserved' % pkey)
+            )
+        # Check that this value is a Active user
+        try:
+            original_entry_attrs = self._exc_wrapper(
+                pkey, options, ldap.get_entry)(dn, ['dn'])
+        except errors.NotFound:
+            self.obj.handle_not_found(pkey)
+
+        # start to move the entry to Delete container
+        self._exc_wrapper(pkey, options, ldap.move_entry)(dn, delete_dn,
+                                                          del_old=True)
+
+        # Then clear the credential attributes
+        attrs_to_clear = ['krbPrincipalKey', 'krbLastPwdChange',
+                          'krbPasswordExpiration', 'userPassword']
+
+        entry_attrs = self._exc_wrapper(pkey, options, ldap.get_entry)(
+            delete_dn, attrs_to_clear)
+
+        clearedCredential = False
+        for attr in attrs_to_clear:
+            if attr.lower() in entry_attrs:
+                del entry_attrs[attr]
+                clearedCredential = True
+        if clearedCredential:
+            self._exc_wrapper(pkey, options, ldap.update_entry)(entry_attrs)
+
+        # Then restore some original entry attributes
+        attrs_to_restore = ['secretary', 'managedby', 'manager', 'ipauniqueid',
+                            'uidnumber', 'gidnumber', 'passwordHistory']
+
+        entry_attrs = self._exc_wrapper(
+            pkey, options, ldap.get_entry)(delete_dn, attrs_to_restore)
+
+        restoreAttr = False
+        for attr in attrs_to_restore:
+            if ((attr.lower() in original_entry_attrs) and
+                    not (attr.lower() in entry_attrs)):
+                restoreAttr = True
+                entry_attrs[attr.lower()] = original_entry_attrs[attr.lower()]
+        if restoreAttr:
+            self._exc_wrapper(pkey, options, ldap.update_entry)(entry_attrs)
+
     def forward(self, *keys, **options):
         if self.api.env.context == 'cli':
             if options['no_preserve'] and options['preserve']:
@@ -633,68 +687,23 @@ class user_del(baseuser_del):
 
     def execute(self, *keys, **options):
 
-        dn = self.obj.get_either_dn(*keys, **options)
-
         # We are going to permanent delete or the user is already in the delete container.
         delete_container = DN(self.obj.delete_container_dn, self.api.env.basedn)
-        user_from_delete_container = dn.endswith(delete_container)
-
-        if not options.get('preserve', True) or user_from_delete_container:
-            # Remove any ID overrides tied with this user
-            remove_ipaobject_overrides(self.obj.backend, self.obj.api, dn)
-
-            # Issue a true DEL on that entry
-            return super(user_del, self).execute(*keys, **options)
 
         # The user to delete is active and there is no 'no_preserve' option
         if options.get('preserve', False):
+            failed = []
+            preserved = []
+            for pkey in keys[-1]:
+                try:
+                    self._preserve_user(pkey, delete_container, **options)
+                    preserved.append(pkey_to_value(pkey, options))
+                except:
+                    if not options.get('continue', False):
+                        raise
+                    failed.append(pkey_to_value(pkey, options))
 
-            ldap = self.obj.backend
-
-            # need to handle multiple keys (e.g. keys[-1]=(u'tb8', u'tb9')..
-            active_dn = self.obj.get_either_dn(*keys, **options)
-            superior_dn = DN(self.obj.delete_container_dn, api.env.basedn)
-            delete_dn = DN(active_dn[0], self.obj.delete_container_dn, api.env.basedn)
-            self.log.debug("preserve move %s -> %s" % (active_dn, delete_dn))
-
-            # Check that this value is a Active user
-            try:
-                original_entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(active_dn, ['dn'])
-            except errors.NotFound:
-                raise
-
-            # start to move the entry to Delete container
-            self._exc_wrapper(keys, options, ldap.move_entry)(active_dn, delete_dn, del_old=True)
-
-            # Then clear the credential attributes
-            attrs_to_clear = ['krbPrincipalKey', 'krbLastPwdChange', 'krbPasswordExpiration', 'userPassword']
-            try:
-                entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(delete_dn, attrs_to_clear)
-            except errors.NotFound:
-                raise
-            clearedCredential = False
-            for attr in attrs_to_clear:
-                if attr.lower() in entry_attrs:
-                    del entry_attrs[attr]
-                    clearedCredential = True
-            if clearedCredential:
-                self._exc_wrapper(keys, options, ldap.update_entry)(entry_attrs)
-
-            # Then restore some original entry attributes
-            attrs_to_restore = [ 'secretary', 'managedby', 'manager', 'ipauniqueid', 'uidnumber', 'gidnumber', 'passwordHistory']
-            try:
-                entry_attrs = self._exc_wrapper(keys, options, ldap.get_entry)(delete_dn, attrs_to_restore)
-            except errors.NotFound:
-                raise
-            restoreAttr = False
-            for attr in attrs_to_restore:
-                if (attr.lower() in original_entry_attrs) and not (attr.lower() in entry_attrs):
-                    restoreAttr = True
-                    entry_attrs[attr.lower()] = original_entry_attrs[attr.lower()]
-            if restoreAttr:
-                self._exc_wrapper(keys, options, ldap.update_entry)(entry_attrs)
-
-            val = dict(result=dict(failed=[]), value=[keys[-1][0]])
+            val = dict(result=dict(failed=failed), value=preserved)
             return val
         else:
             return super(user_del, self).execute(*keys, **options)
