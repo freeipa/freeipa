@@ -41,6 +41,7 @@ from ipapython import ipaldap
 from ipalib.session import ISO8601_DATETIME_FMT
 from ipalib.constants import CACERT
 from ConfigParser import SafeConfigParser
+from ipaplatform.tasks import tasks
 
 """
 A test gpg can be generated like this:
@@ -302,6 +303,9 @@ class Backup(admintool.AdminTool):
                     self.db2ldif(instance, 'userRoot', online=options.online)
                     self.db2bak(instance, online=options.online)
             if not options.data_only:
+                # create backup of auth configuration
+                auth_backup_path = os.path.join(paths.VAR_LIB_IPA, 'auth_backup')
+                tasks.backup_auth_configuration(auth_backup_path)
                 self.file_backup(options)
             self.finalize_backup(options.data_only, options.gpg, options.gpg_keyring)
 

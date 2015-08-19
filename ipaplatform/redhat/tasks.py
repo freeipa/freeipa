@@ -161,6 +161,14 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         auth_config.add_option("nostart")
         auth_config.execute()
 
+    def backup_auth_configuration(self, path):
+        auth_config = RedHatAuthConfig()
+        auth_config.backup(path)
+
+    def restore_auth_configuration(self, path):
+        auth_config = RedHatAuthConfig()
+        auth_config.restore(path)
+
     def reload_systemwide_ca_store(self):
         try:
             ipautil.run([paths.UPDATE_CA_TRUST])

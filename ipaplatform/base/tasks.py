@@ -150,6 +150,21 @@ class BaseTaskNamespace(object):
 
         return
 
+    def backup_auth_configuration(self, path):
+        """
+        Create backup of access control configuration.
+        :param path: store the backup here. This will be passed to
+        restore_auth_configuration as well.
+        """
+        return
+
+    def restore_auth_configuration(self, path):
+        """
+        Restore backup of access control configuration.
+        :param path: restore the backup from here.
+        """
+        return
+
     def set_selinux_booleans(self, required_settings, backup_func=None):
         """Set the specified SELinux booleans
 
