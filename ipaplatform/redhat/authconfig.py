@@ -84,3 +84,9 @@ class RedHatAuthConfig(object):
 
         args = self.build_args()
         ipautil.run(["/usr/sbin/authconfig"] + args)
+
+    def backup(self, path):
+        ipautil.run(["/usr/sbin/authconfig", "--savebackup", path])
+
+    def restore(self, path):
+        ipautil.run(["/usr/sbin/authconfig", "--restorebackup", path])
