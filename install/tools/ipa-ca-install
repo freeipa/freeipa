@@ -21,12 +21,16 @@
 import sys
 import os
 import shutil
+import tempfile
 from ipapython import ipautil
 
 from ipaserver.install import installutils
 from ipaserver.install import certs
 from ipaserver.install.installutils import create_replica_config
+from ipaserver.install.installutils import check_creds, ReplicaConfig
 from ipaserver.install import dsinstance, ca
+from ipaserver.install import cainstance, custodiainstance
+from ipapython import dogtag
 from ipapython import version
 from ipalib import api
 from ipapython.dn import DN
@@ -67,6 +71,8 @@ def parse_options():
                       type="choice",
                       choices=('SHA1withRSA', 'SHA256withRSA', 'SHA512withRSA'),
                       help="Signing algorithm of the IPA CA certificate")
+    parser.add_option("-P", "--principal", dest="principal", sensitive=True,
+                      default=None, help="User allowed to manage replicas")
 
     options, args = parser.parse_args()
     safe_options = parser.get_safe_opts(options)
@@ -101,20 +107,18 @@ def get_dirman_password():
 
 
 def install_replica(safe_options, options, filename):
-    standard_logging_setup(log_file_name, debug=options.debug)
+    domain_level = dsinstance.get_domain_level(api)
+    if domain_level > 0:
+        options.promote = True
+    else:
+        options.promote = False
+        if filename is None:
+            sys.exit("A replica file is required")
+        if not ipautil.file_exists(filename):
+            sys.exit("Replica file %s does not exist" % filename)
 
-    root_logger.debug('%s was invoked with argument "%s" and options: %s',
-        sys.argv[0], filename, safe_options)
-    root_logger.debug('IPA version %s', version.VENDOR_VERSION)
-
-    if not ipautil.file_exists(filename):
-        sys.exit("Replica file %s does not exist" % filename)
-
-    if not dsinstance.DsInstance().is_configured():
-        sys.exit("IPA server is not configured on this system.\n")
-
-    api.bootstrap(in_server=True)
-    api.finalize()
+    # Check if we have admin creds already, otherwise acquire them
+    check_creds(options, api.env.realm)
 
     # get the directory manager password
     dirman_password = options.password
@@ -132,13 +136,36 @@ def install_replica(safe_options, options, filename):
             options.unattended:
         sys.exit('admin password required')
 
-    config = create_replica_config(dirman_password, filename, options)
+    if options.promote:
+        config = ReplicaConfig()
+        config.master_host_name = None
+        config.realm_name = api.env.realm
+        config.host_name = api.env.host
+        config.domain_name = api.env.domain
+        config.dirman_password = dirman_password
+        config.ca_ds_port = dogtag.install_constants.DS_PORT
+        config.top_dir = tempfile.mkdtemp("ipa")
+        config.dir = config.top_dir
+    else:
+        config = create_replica_config(dirman_password, filename, options)
+
     global REPLICA_INFO_TOP_DIR
     REPLICA_INFO_TOP_DIR = config.top_dir
     config.setup_ca = True
 
-    api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
-                              bind_pw=dirman_password)
+    conn = api.Backend.ldap2
+    conn.connect(bind_dn=DN(('cn', 'Directory Manager')),
+                            bind_pw=dirman_password)
+
+    if config.subject_base is None:
+        attrs = conn.get_ipa_config()
+        config.subject_base = attrs.get('ipacertificatesubjectbase')[0]
+
+    if config.master_host_name is None:
+        config.ca_host_name = cainstance.find_ca_server(api.env.ca_host, conn)
+        config.master_host_name = config.ca_host_name
+    else:
+        config.ca_host_name = config.master_host_name
 
     options.realm_name = config.realm_name
     options.domain_name = config.domain_name
@@ -147,24 +174,25 @@ def install_replica(safe_options, options, filename):
     options.subject = config.subject_base
 
     ca.install_check(True, config, options)
-    ca.install(True, config, options)
+    if options.promote:
+        ca_data = (os.path.join(config.dir, 'cacert.p12'),
+                   config.dirman_password)
+        custodia = custodiainstance.CustodiaInstance(config.host_name,
+                                                     config.realm_name)
+        custodia.get_ca_keys(config.ca_host_name, ca_data[0], ca_data[1])
+
+        CA = cainstance.CAInstance(config.realm_name, certs.NSS_DIR,
+                                   dogtag_constants=dogtag.install_constants,
+                                   host_name=config.host_name,
+                                   dm_password=config.dirman_password)
+        CA.configure_replica(config.ca_host_name,
+                             subject_base=config.subject_base,
+                             ca_cert_bundle=ca_data)
+    else:
+        ca.install(True, config, options)
 
 
 def install_master(safe_options, options):
-    standard_logging_setup(paths.IPASERVER_CA_INSTALL_LOG, debug=options.debug)
-
-    root_logger.debug(
-        "%s was invoked with options: %s", sys.argv[0], safe_options)
-    root_logger.debug("IPA version %s", version.VENDOR_VERSION)
-
-    if not dsinstance.DsInstance().is_configured():
-        sys.exit("IPA server is not configured on this system.\n")
-
-    # override ra_plugin setting read from default.conf so that we have
-    # functional dogtag backend plugins during CA install
-    api.bootstrap(in_server=True, ra_plugin='dogtag')
-    api.finalize()
-
     dm_password = options.password
     if not dm_password:
         if options.unattended:
@@ -198,10 +226,37 @@ def main():
     if os.geteuid() != 0:
         sys.exit("\nYou must be root to run this script.\n")
 
-    if filename is not None:
-        install_replica(safe_options, options, filename)
-    else:
-        install_master(safe_options, options)
+    if not dsinstance.DsInstance().is_configured():
+        sys.exit("IPA server is not configured on this system.\n")
+
+    standard_logging_setup(paths.IPASERVER_CA_INSTALL_LOG, debug=options.debug)
+    root_logger.debug("%s was invoked with options: %s,%s",
+                      sys.argv[0], safe_options, filename)
+    root_logger.debug("IPA version %s", version.VENDOR_VERSION)
+
+    # override ra_plugin setting read from default.conf so that we have
+    # functional dogtag backend plugins during CA install
+    api.bootstrap(in_server=True, ra_plugin='dogtag')
+    api.finalize()
+
+    try:
+        conn = api.Backend.ldap2
+        conn.connect(autobind=True)
+        ca_host = service.find_providing_server('CA', conn)
+        conn.disconnect()
+        if ca_host is None:
+            install_master(safe_options, options)
+        else:
+            install_replica(safe_options, options, filename)
+
+    finally:
+        # Clean up if we created custom credentials
+        created_ccache_file = getattr(options, 'created_ccache_file', None)
+        if created_ccache_file is not None:
+            try:
+                os.unlink(created_ccache_file)
+            except OSError:
+                pass
 
 fail_message = '''
 Your system may be partly configured.
@@ -210,10 +265,9 @@ Run /usr/sbin/ipa-server-install --uninstall to clean up.
 
 if __name__ == '__main__':
     try:
-        with ipautil.private_ccache():
-            installutils.run_script(main, log_file_name=log_file_name,
-                                    operation_name='ipa-ca-install',
-                                    fail_message=fail_message)
+        installutils.run_script(main, log_file_name=log_file_name,
+                                operation_name='ipa-ca-install',
+                                fail_message=fail_message)
     finally:
         # always try to remove decrypted replica file
         try:

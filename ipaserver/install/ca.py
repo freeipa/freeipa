@@ -39,8 +39,6 @@ def install_check(standalone, replica_config, options):
 
         if standalone and not options.skip_conncheck:
             principal = options.principal
-            if principal is None:
-                principal = "admin"
             replica_conn_check(
                 replica_config.master_host_name, host_name, realm_name, True,
                 replica_config.ca_ds_port, options.admin_password,
