@@ -1023,8 +1023,10 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
     struct ipadb_context *ipactx;
     krb5_error_code kerr;
     char *principal = NULL;
+    char *trusted_realm = NULL;
     LDAPMessage *res = NULL;
     LDAPMessage *lentry;
+    krb5_db_entry *kentry = NULL;
     uint32_t pol;
 
     ipactx = ipadb_get_context(kcontext);
@@ -1044,6 +1046,55 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
 
     kerr = ipadb_find_principal(kcontext, flags, res, &principal, &lentry);
     if (kerr != 0) {
+        if ((kerr == KRB5_KDB_NOENTRY) &&
+            ((flags & (KRB5_KDB_FLAG_CANONICALIZE |
+                       KRB5_KDB_FLAG_CLIENT_REFERRALS_ONLY)) != 0)) {
+
+            /* First check if we got enterprise principal which looks like
+             * username\@enterprise_realm@REALM */
+            char *realm;
+            krb5_data *upn;
+
+            upn = krb5_princ_component(kcontext, search_for,
+                                       krb5_princ_size(kcontext, search_for) - 1);
+
+            if (upn == NULL) {
+                kerr = KRB5_KDB_NOENTRY;
+                goto done;
+            }
+
+            realm = memrchr(upn->data, '@', upn->length);
+            if (realm == NULL) {
+                kerr = KRB5_KDB_NOENTRY;
+                goto done;
+            }
+
+            /* skip '@' and use part after '@' as an enterprise realm for comparison */
+            realm++;
+
+            kerr = ipadb_is_princ_from_trusted_realm(kcontext,
+                                                     realm,
+                                                     upn->length - (realm - upn->data),
+                                                     &trusted_realm);
+            if (kerr == 0) {
+                kentry = calloc(1, sizeof(krb5_db_entry));
+                if (!kentry) {
+                    kerr = ENOMEM;
+                    goto done;
+                }
+                kerr = krb5_parse_name(kcontext, principal,
+                                       &kentry->princ);
+                if (kerr != 0) {
+                    goto done;
+                }
+
+                kerr = krb5_set_principal_realm(kcontext, kentry->princ, trusted_realm);
+                if (kerr != 0) {
+                    goto done;
+                }
+                *entry = kentry;
+            }
+        }
         goto done;
     }
 
@@ -1060,6 +1111,10 @@ krb5_error_code ipadb_get_principal(krb5_context kcontext,
     }
 
 done:
+    free(trusted_realm);
+    if ((kerr != 0) && (kentry != NULL)) {
+        ipadb_free_principal(kcontext, kentry);
+    }
     ldap_msgfree(res);
     krb5_free_unparsed_name(kcontext, principal);
     return kerr;

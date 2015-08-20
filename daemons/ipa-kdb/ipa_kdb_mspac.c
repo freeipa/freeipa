@@ -2790,3 +2790,63 @@ krb5_error_code ipadb_check_transited_realms(krb5_context kcontext,
 	}
 	return ret;
 }
+
+/* Checks whether a principal's realm is one of trusted domains' realm or NetBIOS name
+ * and returns the realm of the matched trusted domain in 'trusted_domain'
+ * Returns 0 in case of success and KRB5_KDB_NOENTRY otherwise
+ * If DAL driver is not initialized, returns KRB5_KDB_DBNOTINITED */
+krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
+						  const char *test_realm, size_t size,
+						  char **trusted_realm)
+{
+	struct ipadb_context *ipactx;
+	int i, j, length;
+	const char *name;
+
+	if (test_realm == NULL || test_realm[0] == '\0') {
+		return KRB5_KDB_NOENTRY;
+	}
+
+	ipactx = ipadb_get_context(kcontext);
+	if (!ipactx || !ipactx->mspac) {
+		return KRB5_KDB_DBNOTINITED;
+	}
+
+	/* First, compare realm with ours, it would not be from a trusted realm then */
+	if (strncasecmp(test_realm, ipactx->realm, size) == 0) {
+		return KRB5_KDB_NOENTRY;
+	}
+
+	if (!ipactx->mspac || !ipactx->mspac->trusts) {
+		return KRB5_KDB_NOENTRY;
+	}
+
+	/* Iterate through list of trusts and check if input realm belongs to any of the trust */
+	for(i = 0 ; i < ipactx->mspac->num_trusts ; i++) {
+		if ((strncasecmp(test_realm,
+				 ipactx->mspac->trusts[i].domain_name,
+				 size) == 0) ||
+		    (strncasecmp(test_realm,
+				 ipactx->mspac->trusts[i].flat_name,
+				 size) == 0)) {
+			/* return the realm if caller supplied a place for it */
+			if (trusted_realm != NULL) {
+				name = (ipactx->mspac->trusts[i].parent_name != NULL) ?
+					ipactx->mspac->trusts[i].parent_name :
+					ipactx->mspac->trusts[i].domain_name;
+				length = strlen(name) + 1;
+				*trusted_realm = calloc(1, length);
+				if (*trusted_realm != NULL) {
+					for (j = 0; j < length; j++) {
+						(*trusted_realm)[j] = toupper(name[j]);
+					}
+				} else {
+					return KRB5_KDB_NOENTRY;
+				}
+			}
+			return 0;
+		}
+	}
+
+	return KRB5_KDB_NOENTRY;
+}
