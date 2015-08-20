@@ -165,6 +165,20 @@ def create_ds_user():
     )
 
 
+def get_domain_level(self, api=api):
+    conn = ipaldap.IPAdmin(ldapi=True, realm=api.env.realm)
+    conn.do_external_bind('root')
+
+    dn = DN(('cn', 'Domain Level'),
+            ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+
+    try:
+        entry = conn.get_entry(dn, ['ipaDomainLevel'])
+    except errors.NotFound:
+        return 0
+    return {'result': int(entry.single_value['ipaDomainLevel'])}
+
+
 INF_TEMPLATE = """
 [General]
 FullMachineName=   $FQDN
