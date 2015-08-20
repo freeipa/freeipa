@@ -8,8 +8,6 @@ import dns.exception as dnsexception
 import dns.name as dnsname
 import dns.resolver as dnsresolver
 import dns.reversename as dnsreversename
-import getpass
-import gssapi
 import os
 import shutil
 import socket
@@ -821,73 +819,7 @@ def promote_check(installer):
 
     installutils.verify_fqdn(config.host_name, options.no_host_dns)
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
-
-    # Check if ccache is available
-    default_cred = None
-    try:
-        root_logger.debug('KRB5CCNAME set to %s' %
-                          os.environ.get('KRB5CCNAME', None))
-        # get default creds, will raise if none found
-        default_cred = gssapi.creds.Credentials()
-        principal = str(default_cred.name)
-    except gssapi.raw.misc.GSSError as e:
-        root_logger.debug('Failed to find default ccache: %s' % e)
-        principal = None
-
-    # Check if the principal matches the requested one (if any)
-    if principal is not None and options.principal is not None:
-        op = options.principal
-        if op.find('@') == -1:
-            op = '%s@%s' % (op, config.realm_name)
-        if principal != op:
-            root_logger.debug('Specified principal %s does not match '
-                              'available credentials (%s)' %
-                              (options.principal, principal))
-            principal = None
-
-    if principal is None:
-        (ccache_fd, ccache_name) = tempfile.mkstemp()
-        os.close(ccache_fd)
-
-        if options.principal is not None:
-            principal = options.principal
-        else:
-            principal = 'admin'
-        stdin = None
-        if principal.find('@') == -1:
-            principal = '%s@%s' % (principal, config.realm_name)
-        if options.admin_password is not None:
-            stdin = options.admin_password
-        else:
-            if not options.unattended:
-                try:
-                    stdin = getpass.getpass("Password for %s: " % principal)
-                except EOFError:
-                    stdin = None
-                if not stdin:
-                    raise RuntimeError("Password must be provided for %s."
-                                       % principal)
-            else:
-                if sys.stdin.isatty():
-                    root_logger.info("Password must be provided in " +
-                                     "non-interactive mode. " +
-                                     "This can be done via " +
-                                     "echo password | ipa-client-install " +
-                                     "... or with the -w option.")
-                    raise RuntimeError("Password must be provided in " +
-                                       "non-interactive mode.")
-                else:
-                    stdin = sys.stdin.readline()
-
-            # set options.admin_password for future use
-            options.admin_password = stdin
-
-        try:
-            ipautil.kinit_password(principal, stdin, ccache_name)
-        except RuntimeError as e:
-            raise RuntimeError("Kerberos authentication failed: %s" % e)
-
-        os.environ['KRB5CCNAME'] = ccache_name
+    installutils.check_creds(options, config.realm_name)
 
     cafile = paths.IPA_CA_CRT
     if not ipautil.file_exists(cafile):
@@ -1036,13 +968,10 @@ def promote_check(installer):
 
     # check connection
     if not options.skip_conncheck:
-        p = None
-        if default_cred is None:
-            p = principal
         replica_conn_check(
             config.master_host_name, config.host_name, config.realm_name,
             options.setup_ca, dogtag.Dogtag10Constants.DS_PORT,
-            options.admin_password, principal=p)
+            options.admin_password, principal=options.principal)
 
     if not ipautil.file_exists(cafile):
         raise RuntimeError("CA cert file is not available.")

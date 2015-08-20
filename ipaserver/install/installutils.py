@@ -22,6 +22,7 @@ from __future__ import print_function
 
 import socket
 import getpass
+import gssapi
 import os
 import re
 import fileinput
@@ -1142,3 +1143,75 @@ def install_service_keytab(principal, server, path):
 
     args = [paths.IPA_GETKEYTAB, '-k', path, '-p', principal, '-s', server]
     ipautil.run(args)
+
+
+def check_creds(options, realm_name):
+
+    # Check if ccache is available
+    default_cred = None
+    try:
+        root_logger.debug('KRB5CCNAME set to %s' %
+                          os.environ.get('KRB5CCNAME', None))
+        # get default creds, will raise if none found
+        default_cred = gssapi.creds.Credentials()
+        principal = str(default_cred.name)
+    except gssapi.raw.misc.GSSError as e:
+        root_logger.debug('Failed to find default ccache: %s' % e)
+        principal = None
+
+    # Check if the principal matches the requested one (if any)
+    if principal is not None and options.principal is not None:
+        op = options.principal
+        if op.find('@') == -1:
+            op = '%s@%s' % (op, realm_name)
+        if principal != op:
+            root_logger.debug('Specified principal %s does not match '
+                              'available credentials (%s)' %
+                              (options.principal, principal))
+            principal = None
+
+    if principal is None:
+        (ccache_fd, ccache_name) = tempfile.mkstemp()
+        os.close(ccache_fd)
+        options.created_ccache_file = ccache_name
+
+        if options.principal is not None:
+            principal = options.principal
+        else:
+            principal = 'admin'
+        stdin = None
+        if principal.find('@') == -1:
+            principal = '%s@%s' % (principal, realm_name)
+        if options.admin_password is not None:
+            stdin = options.admin_password
+        else:
+            if not options.unattended:
+                try:
+                    stdin = getpass.getpass("Password for %s: " % principal)
+                except EOFError:
+                    stdin = None
+                if not stdin:
+                    root_logger.error(
+                        "Password must be provided for %s.", principal)
+                    raise ScriptError("Missing password for %s" % principal)
+            else:
+                if sys.stdin.isatty():
+                    root_logger.error("Password must be provided in " +
+                                      "non-interactive mode.")
+                    root_logger.info("This can be done via " +
+                                     "echo password | ipa-client-install " +
+                                     "... or with the -w option.")
+                    raise ScriptError("Missing password for %s" % principal)
+                else:
+                    stdin = sys.stdin.readline()
+
+            # set options.admin_password for future use
+            options.admin_password = stdin
+
+        try:
+            ipautil.kinit_password(principal, stdin, ccache_name)
+        except RuntimeError as e:
+            root_logger.error("Kerberos authentication failed: %s" % e)
+            raise ScriptError("Invalid credentials: %s" % e)
+
+        os.environ['KRB5CCNAME'] = ccache_name
