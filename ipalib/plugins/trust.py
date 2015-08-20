@@ -1487,7 +1487,12 @@ class trustdomain_del(LDAPDelete):
 
 def fetch_domains_from_trust(myapi, trustinstance, trust_entry, **options):
     trust_name = trust_entry['cn'][0]
-    creds = generate_creds(trustinstance, style=CRED_STYLE_SAMBA, **options)
+    # We want to use Kerberos if we have admin credentials even with SMB calls
+    # as eventually use of NTLMSSP will be deprecated for trusted domain operations
+    # If admin credentials are missing, 'creds' will be None and fetch_domains
+    # will use HTTP/ipa.master@IPA.REALM principal, e.g. Kerberos authentication
+    # as well.
+    creds = generate_creds(trustinstance, style=CRED_STYLE_KERBEROS, **options)
     server = options.get('realm_server', None)
     domains = ipaserver.dcerpc.fetch_domains(myapi,
                                              trustinstance.local_flatname,
