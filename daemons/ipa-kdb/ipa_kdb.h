@@ -274,6 +274,14 @@ krb5_error_code ipadb_check_transited_realms(krb5_context kcontext,
 					     const krb5_data *tr_contents,
 					     const krb5_data *client_realm,
 					     const krb5_data *server_realm);
+/* Checks whether a principal's realm is one of trusted domains' realm or NetBIOS name
+ * and returns the realm of the matched trusted domain in 'trusted_domain'
+ * Returns 0 in case of success and KRB5_KDB_NOENTRY otherwise
+ * If DAL driver is not initialized, returns KRB5_KDB_DBNOTINITED */
+krb5_error_code ipadb_is_princ_from_trusted_realm(krb5_context kcontext,
+                                                  const char *test_realm, size_t size,
+                                                  char **trusted_realm);
+
 /* DELEGATION CHECKS */
 
 krb5_error_code ipadb_check_allowed_to_delegate(krb5_context kcontext,
