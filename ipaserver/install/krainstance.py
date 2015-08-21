@@ -275,16 +275,16 @@ class KRAInstance(DogtagInstance):
         # import CA certificate into temporary security database
         args = ["/usr/bin/pki",
             "-d", self.agent_db,
-            "-c", self.admin_password,
+            "-C", paths.KRA_NSSDB_PASSWORD_FILE,
             "client-cert-import",
             "--pkcs12", paths.KRACERT_P12,
-            "--pkcs12-password", self.admin_password]
+            "--pkcs12-password-file", paths.KRA_PKCS12_PASSWORD_FILE]
         ipautil.run(args)
 
         # trust CA certificate
         args = ["/usr/bin/pki",
             "-d", self.agent_db,
-            "-c", self.admin_password,
+            "-C", paths.KRA_NSSDB_PASSWORD_FILE,
             "client-cert-mod", "Certificate Authority - %s" % api.env.realm,
             "--trust", "CT,c,"]
         ipautil.run(args)
@@ -292,16 +292,16 @@ class KRAInstance(DogtagInstance):
         # import Dogtag admin certificate into temporary security database
         args = ["/usr/bin/pki",
             "-d", self.agent_db,
-            "-c", self.admin_password,
+            "-C", paths.KRA_NSSDB_PASSWORD_FILE,
             "client-cert-import",
             "--pkcs12", paths.DOGTAG_ADMIN_P12,
-            "--pkcs12-password", self.admin_password]
+            "--pkcs12-password-file", paths.KRA_PKCS12_PASSWORD_FILE]
         ipautil.run(args)
 
         # as Dogtag admin, create ipakra user in KRA
         args = ["/usr/bin/pki",
             "-d", self.agent_db,
-            "-c", self.admin_password,
+            "-C", paths.KRA_NSSDB_PASSWORD_FILE,
             "-n", "ipa-ca-agent",
             "kra-user-add", "ipakra",
             "--fullName", "IPA KRA User"]
@@ -310,7 +310,7 @@ class KRAInstance(DogtagInstance):
         # as Dogtag admin, add ipakra into KRA agents group
         args = ["/usr/bin/pki",
             "-d", self.agent_db,
-            "-c", self.admin_password,
+            "-C", paths.KRA_NSSDB_PASSWORD_FILE,
             "-n", "ipa-ca-agent",
             "kra-user-membership-add", "ipakra", "Data Recovery Manager Agents"]
         ipautil.run(args)
@@ -330,7 +330,7 @@ class KRAInstance(DogtagInstance):
             # as Dogtag admin, upload and assign ipaCert to ipakra
             args = ["/usr/bin/pki",
                 "-d", self.agent_db,
-                "-c", self.admin_password,
+                "-C", paths.KRA_NSSDB_PASSWORD_FILE,
                 "-n", "ipa-ca-agent",
                 "kra-user-cert-add", "ipakra",
                 "--input", filename]
