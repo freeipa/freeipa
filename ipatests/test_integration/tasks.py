@@ -223,14 +223,14 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False):
 
     master.run_command(['ipa-replica-prepare',
                         '-p', replica.config.dirman_password,
-                        '--ip-address', replica.ip,
+                        '--ip-address', replica.ip, '--no-reverse',
                         replica.hostname])
     replica_bundle = master.get_file_contents(
         paths.REPLICA_INFO_GPG_TEMPLATE % replica.hostname)
     replica_filename = os.path.join(replica.config.test_dir,
                                     'replica-info.gpg')
     replica.put_file_contents(replica_filename, replica_bundle)
-    args = ['ipa-replica-install', '-U',
+    args = ['ipa-replica-install', '-U', '--no-host-dns',
             '-p', replica.config.dirman_password,
             '-w', replica.config.admin_password,
             '--ip-address', replica.ip,
