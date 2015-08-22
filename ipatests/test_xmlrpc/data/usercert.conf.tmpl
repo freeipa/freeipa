@@ -1,0 +1,13 @@
+[ req ]
+prompt = no
+encrypt_key = no
+
+distinguished_name = dn
+req_extensions = exts
+
+[ dn ]
+commonName = "{username}"
+{ipacertbase}
+
+[ exts ]
+subjectAltName=email:{username}@{ipadomain}
