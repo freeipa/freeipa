@@ -647,3 +647,13 @@ class MockLDAP(object):
     def unbind(self):
         if self.connection is not None:
             self.connection.unbind_s()
+
+
+def prepare_config(template, values):
+    with open(template) as f:
+        template = f.read()
+
+    with tempfile.NamedTemporaryFile(mode='w', delete=False) as config:
+        config.write(template.format(**values))
+
+    return config.name
