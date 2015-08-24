@@ -90,9 +90,9 @@ class test_Connectible(ClassChecker):
         assert conn.conn == 'The connection.'
         assert conn.disconnect == o.disconnect
 
-        # Test that StandardError is raised if already connected:
+        # Test that Exception is raised if already connected:
         m = "connect: 'context.%s' already exists in thread %r"
-        e = raises(StandardError, o.connect, *args, **kw)
+        e = raises(Exception, o.connect, *args, **kw)
         assert str(e) == m % ('example', threading.currentThread().getName())
 
         # Double check that it works after deleting context.example:
@@ -121,7 +121,7 @@ class test_Connectible(ClassChecker):
         o = example(api, shared_instance=True)
 
         m = "disconnect: 'context.%s' does not exist in thread %r"
-        e = raises(StandardError, o.disconnect)
+        e = raises(Exception, o.disconnect)
         assert str(e) == m % ('example', threading.currentThread().getName())
 
         context.example = 'The connection.'

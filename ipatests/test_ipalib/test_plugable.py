@@ -80,7 +80,7 @@ class test_Plugin(ClassChecker):
         # whose names conflict with the logger methods set in Plugin.__init__():
         class check(self.cls):
             info = 'whatever'
-        e = raises(StandardError, check, api)
+        e = raises(Exception, check, api)
         assert str(e) == \
             "info is already bound to ipatests.test_ipalib.test_plugable.check()"
 
@@ -257,7 +257,7 @@ class test_API(ClassChecker):
                 assert inst.method(7) == 7 + b
 
         # Test that calling finilize again raises AssertionError:
-        e = raises(StandardError, api.finalize)
+        e = raises(Exception, api.finalize)
         assert str(e) == 'API.finalize() already called', str(e)
 
     def test_bootstrap(self):
@@ -273,7 +273,7 @@ class test_API(ClassChecker):
         assert o.env._isdone('_bootstrap') is True
         assert o.env._isdone('_finalize_core') is True
         assert o.env.my_test_override == 'Hello, world!'
-        e = raises(StandardError, o.bootstrap)
+        e = raises(Exception, o.bootstrap)
         assert str(e) == 'API.bootstrap() already called'
 
     def test_load_plugins(self):
@@ -286,5 +286,5 @@ class test_API(ClassChecker):
         o.load_plugins()
         assert o.isdone('bootstrap') is True
         assert o.isdone('load_plugins') is True
-        e = raises(StandardError, o.load_plugins)
+        e = raises(Exception, o.load_plugins)
         assert str(e) == 'API.load_plugins() already called'

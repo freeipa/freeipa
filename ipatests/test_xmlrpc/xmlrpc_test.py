@@ -313,7 +313,7 @@ class Declarative(XMLRPC_test):
         name = klass.__name__
         try:
             output = api.Command[cmd](*args, **options)
-        except StandardError as e:
+        except Exception as e:
             pass
         else:
             raise AssertionError(
@@ -336,7 +336,7 @@ class Declarative(XMLRPC_test):
         e = None
         try:
             output = api.Command[cmd](*args, **options)
-        except StandardError as e:
+        except Exception as e:
             pass
         if not expected(e, output):
             raise AssertionError(

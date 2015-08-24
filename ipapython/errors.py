@@ -18,7 +18,7 @@
 #
 
 
-class SetseboolError(StandardError):
+class SetseboolError(Exception):
     """Raised when setting a SELinux boolean fails
 
     :param failed: Dictionary mapping boolean names to intended values

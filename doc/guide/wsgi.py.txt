@@ -13,7 +13,7 @@ env._finalize_core(**dict(DEFAULT_CONFIG))
 api.bootstrap(context='server', debug=env.debug, log=None) (ref:wsgi-app-bootstrap)
 try:
     api.finalize() (ref:wsgi-app-finalize)
-except StandardError, e:
+except Exception, e:
     api.log.error('Failed to start IPA: %s' % e)
 else:
     api.log.info('*** PROCESS START ***')

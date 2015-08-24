@@ -49,7 +49,7 @@ TYPE_ERROR = '%s: need a %r; got %r (a %r)'
 # Stardard format for TypeError message when a callable is expected:
 CALLABLE_ERROR = '%s: need a callable; got %r (which is a %r)'
 
-# Standard format for StandardError message when overriding an attribute:
+# Standard format for Exception message when overriding an attribute:
 OVERRIDE_ERROR = 'cannot override %s.%s value %r with %r'
 
 # Standard format for AttributeError message when a read-only attribute is

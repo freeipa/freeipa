@@ -56,7 +56,7 @@ class Connectible(Backend):
         Create thread-local connection.
         """
         if hasattr(context, self.id):
-            raise StandardError(
+            raise Exception(
                 "connect: 'context.%s' already exists in thread %r" % (
                     self.id, threading.currentThread().getName()
                 )
@@ -71,7 +71,7 @@ class Connectible(Backend):
 
     def disconnect(self):
         if not hasattr(context, self.id):
-            raise StandardError(
+            raise Exception(
                 "disconnect: 'context.%s' does not exist in thread %r" % (
                     self.id, threading.currentThread().getName()
                 )
@@ -130,7 +130,7 @@ class Executioner(Backend):
             result = self.Command[_name](*args, **options)
         except PublicError as e:
             error = e
-        except StandardError as e:
+        except Exception as e:
             self.exception(
                 'non-public: %s: %s', e.__class__.__name__, str(e)
             )

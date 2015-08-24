@@ -166,7 +166,7 @@ class test_Env(ClassChecker):
         assert o.__islocked__() is False
         o.__lock__()
         assert o.__islocked__() is True
-        e = raises(StandardError, o.__lock__)
+        e = raises(Exception, o.__lock__)
         assert str(e) == 'Env.__lock__() already called'
 
         # Also test with base.lock() function:
@@ -429,7 +429,7 @@ class test_Env(ClassChecker):
         assert o._isdone('_bootstrap') is False
         o._bootstrap(**overrides)
         assert o._isdone('_bootstrap') is True
-        e = raises(StandardError, o._bootstrap)
+        e = raises(Exception, o._bootstrap)
         assert str(e) == 'Env._bootstrap() already called'
         return (o, home)
 
@@ -512,7 +512,7 @@ class test_Env(ClassChecker):
             assert key in o
 
         # Check that it can't be called twice:
-        e = raises(StandardError, o._finalize_core)
+        e = raises(Exception, o._finalize_core)
         assert str(e) == 'Env._finalize_core() already called'
 
         return (o, home)
@@ -586,7 +586,7 @@ class test_Env(ClassChecker):
         assert o._isdone('_finalize') is True
 
         # Check that it can't be called twice:
-        e = raises(StandardError, o._finalize)
+        e = raises(Exception, o._finalize)
         assert str(e) == 'Env._finalize() already called'
 
         # Check that _finalize() calls __lock__()
@@ -594,7 +594,7 @@ class test_Env(ClassChecker):
         assert o.__islocked__() is False
         o._finalize()
         assert o.__islocked__() is True
-        e = raises(StandardError, o.__lock__)
+        e = raises(Exception, o.__lock__)
         assert str(e) == 'Env.__lock__() already called'
 
         # Check that **lastchance works

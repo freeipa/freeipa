@@ -1818,7 +1818,7 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
         )
     except errors.EmptyModlist:
         pass
-    except StandardError as e:
+    except Exception as e:
         root_logger.info("host_mod: %s", str(e))
         root_logger.warning("Failed to upload host SSH public keys.")
         return

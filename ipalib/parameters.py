@@ -242,7 +242,7 @@ class DefaultFrom(ReadOnly):
             return
         try:
             return self.callback(*vals)
-        except StandardError:
+        except Exception:
             pass
 
     def __json__(self):
@@ -740,7 +740,7 @@ class Param(ReadOnly):
             return value
         try:
             return self.normalizer(value)
-        except StandardError:
+        except Exception:
             return value
 
     def convert(self, value):
@@ -917,7 +917,7 @@ class Param(ReadOnly):
             if default is not None:
                 try:
                     return self.convert(self.normalize(default))
-                except StandardError:
+                except Exception:
                     pass
         return self.default
 

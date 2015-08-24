@@ -360,7 +360,7 @@ class API(ReadOnly):
 
     def __doing(self, name):
         if name in self.__done:
-            raise StandardError(
+            raise Exception(
                 '%s.%s() already called' % (self.__class__.__name__, name)
             )
         self.__done.add(name)
@@ -572,7 +572,7 @@ class API(ReadOnly):
                 module = importlib.import_module(name)
             except errors.SkipPluginModule as e:
                 self.log.debug("skipping plugin module %s: %s", name, e.reason)
-            except StandardError as e:
+            except Exception as e:
                 if self.env.startup_traceback:
                     import traceback
                     self.log.error("could not load plugin module %s\n%s", name,

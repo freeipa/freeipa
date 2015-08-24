@@ -107,7 +107,7 @@ from ipalib import messages
 from ipaplatform.paths import paths
 
 
-class PrivateError(StandardError):
+class PrivateError(Exception):
     """
     Base class for exceptions that are *never* forwarded in an RPC response.
     """
@@ -122,7 +122,7 @@ class PrivateError(StandardError):
                 self.__class__.__name__, key, value,
             )
             setattr(self, key, value)
-        StandardError.__init__(self, self.msg)
+        Exception.__init__(self, self.msg)
 
 
 class SubprocessError(PrivateError):
@@ -239,7 +239,7 @@ def _(message):
     return message
 
 
-class PublicError(StandardError):
+class PublicError(Exception):
     """
     **900** Base class for exceptions that can be forwarded in an RPC response.
     """

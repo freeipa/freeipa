@@ -45,7 +45,7 @@ class PrivateExceptionTester(object):
     def __get_klass(self):
         if self.__klass is None:
             self.__klass = self._klass
-        assert issubclass(self.__klass, StandardError)
+        assert issubclass(self.__klass, Exception)
         assert issubclass(self.__klass, errors.PrivateError)
         assert not issubclass(self.__klass, errors.PublicError)
         return self.__klass
@@ -55,7 +55,7 @@ class PrivateExceptionTester(object):
         for (key, value) in kw.items():
             assert not hasattr(self.klass, key), key
         inst = self.klass(**kw)
-        assert isinstance(inst, StandardError)
+        assert isinstance(inst, Exception)
         assert isinstance(inst, errors.PrivateError)
         assert isinstance(inst, self.klass)
         assert not isinstance(inst, errors.PublicError)
@@ -203,7 +203,7 @@ class PublicExceptionTester(object):
     def __get_klass(self):
         if self.__klass is None:
             self.__klass = self._klass
-        assert issubclass(self.__klass, StandardError)
+        assert issubclass(self.__klass, Exception)
         assert issubclass(self.__klass, errors.PublicError)
         assert not issubclass(self.__klass, errors.PrivateError)
         assert type(self.__klass.errno) is int
@@ -234,7 +234,7 @@ class test_PublicError(PublicExceptionTester):
     Test the `ipalib.errors.PublicError` exception.
     """
     _klass = errors.PublicError
-    required_classes = StandardError, errors.PublicError
+    required_classes = Exception, errors.PublicError
 
     def test_init(self):
         message = u'The translated, interpolated message'
@@ -375,7 +375,7 @@ class BaseMessagesTest(object):
 class test_PublicErrors(object):
     message_list = errors.public_errors
     errno_range = list(range(900, 5999))
-    required_classes = (StandardError, errors.PublicError)
+    required_classes = (Exception, errors.PublicError)
     texts = errors._texts
 
     def extratest(self, cls):

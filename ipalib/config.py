@@ -210,7 +210,7 @@ class Env(object):
         Prevent further changes to environment.
         """
         if self.__locked is True:
-            raise StandardError(
+            raise Exception(
                 '%s.__lock__() already called' % self.__class__.__name__
             )
         object.__setattr__(self, '_Env__locked', True)
@@ -407,7 +407,7 @@ class Env(object):
 
     def __doing(self, name):
         if name in self.__done:
-            raise StandardError(
+            raise Exception(
                 '%s.%s() already called' % (self.__class__.__name__, name)
             )
         self.__done.add(name)

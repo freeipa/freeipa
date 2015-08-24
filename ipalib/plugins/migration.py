@@ -31,7 +31,7 @@ from ipalib.plugins.user import NO_UPG_MAGIC
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         from ipaserver.plugins.ldap2 import ldap2
-    except StandardError as e:
+    except Exception as e:
         raise e
 from ipalib import _
 from ipapython.dn import DN
@@ -922,7 +922,7 @@ can use their Kerberos accounts.''')
                     ds_base_dn = DN(entries[0]['namingcontexts'][0])
                     assert isinstance(ds_base_dn, DN)
                 except (IndexError, KeyError) as e:
-                    raise StandardError(str(e))
+                    raise Exception(str(e))
 
         # migrate!
         (migrated, failed) = self.migrate(

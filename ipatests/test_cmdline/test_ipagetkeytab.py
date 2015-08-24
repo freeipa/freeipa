@@ -46,7 +46,7 @@ def use_keytab(principal, keytab):
         conn.connect(autobind=ipaldap.AUTOBIND_DISABLED)
         conn.disconnect()
     except gssapi.exceptions.GSSError as e:
-        raise StandardError('Unable to bind to LDAP. Error initializing principal %s in %s: %s' % (principal, keytab, str(e)))
+        raise Exception('Unable to bind to LDAP. Error initializing principal %s in %s: %s' % (principal, keytab, str(e)))
     finally:
         os.environ.pop('KRB5CCNAME', None)
         if tmpdir:
@@ -138,7 +138,7 @@ class test_ipagetkeytab(cmdline_test):
         """
         try:
             use_keytab(self.service_princ, self.keytabname)
-        except StandardError as errmsg:
+        except Exception as errmsg:
             assert('Unable to bind to LDAP. Error initializing principal' in str(errmsg))
 
     def test_9_cleanup(self):

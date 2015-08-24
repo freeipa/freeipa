@@ -1350,7 +1350,7 @@ def run(api):
         api.log.info('operation aborted')
     except PublicError as e:
         error = e
-    except StandardError as e:
+    except Exception as e:
         api.log.exception('%s: %s', e.__class__.__name__, str(e))
         error = InternalError()
     if error is not None:

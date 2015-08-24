@@ -282,11 +282,11 @@ class wsgi_dispatch(Executioner, HTTP_Status):
         Mount the WSGI application *app* at *key*.
         """
 #        if self.__islocked__():
-#            raise StandardError('%s.mount(): locked, cannot mount %r at %r' % (
+#            raise Exception('%s.mount(): locked, cannot mount %r at %r' % (
 #                self.name, app, key)
 #            )
         if key in self.__apps:
-            raise StandardError('%s.mount(): cannot replace %r with %r at %r' % (
+            raise Exception('%s.mount(): cannot replace %r with %r at %r' % (
                 self.name, self.__apps[key], app, key)
             )
         self.debug('Mounting %r at %r', app, key)
@@ -354,7 +354,7 @@ class WSGIExecutioner(Executioner):
             if self.api.env.debug:
                 self.debug('WSGI wsgi_execute PublicError: %s', traceback.format_exc())
             error = e
-        except StandardError as e:
+        except Exception as e:
             self.exception(
                 'non-public: %s: %s', e.__class__.__name__, str(e)
             )
@@ -407,7 +407,7 @@ class WSGIExecutioner(Executioner):
             status = HTTP_STATUS_SUCCESS
             response = self.wsgi_execute(environ)
             headers = [('Content-Type', self.content_type + '; charset=utf-8')]
-        except StandardError as e:
+        except Exception as e:
             self.exception('WSGI %s.__call__():', self.name)
             status = HTTP_STATUS_SERVER_ERROR
             response = status

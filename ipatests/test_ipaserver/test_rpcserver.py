@@ -173,8 +173,8 @@ class test_session(object):
         assert inst['foo'] is app1
         assert list(inst) == ['foo']
 
-        # Test that StandardError is raise if trying override a mount:
-        e = raises(StandardError, inst.mount, app2, 'foo')
+        # Test that Exception is raise if trying override a mount:
+        e = raises(Exception, inst.mount, app2, 'foo')
         assert str(e) == '%s.mount(): cannot replace %r with %r at %r' % (
             'wsgi_dispatch', app1, app2, 'foo'
         )
