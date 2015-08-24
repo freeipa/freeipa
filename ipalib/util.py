@@ -691,20 +691,21 @@ def validate_dnssec_zone_forwarder_step2(ipa_ip_addr, fwzone, log=None,
         ans_cd = _resolve_record(fwzone, rtype, nameserver_ip=ipa_ip_addr,
                                  edns0=True, dnssec=True, flag_cd=True,
                                  timeout=timeout)
-    except DNSException as e:
-        _log_response(log, e)
-
-    try:
-        ans_do = _resolve_record(fwzone, rtype, nameserver_ip=ipa_ip_addr,
-                                 edns0=True, dnssec=True, timeout=timeout)
     except NXDOMAIN as e:
         # sometimes CD flag is ignored and NXDomain is returned
         _log_response(log, e)
         raise DNSSECValidationError(owner=fwzone, rtype=rtype, ip=ipa_ip_addr)
     except DNSException as e:
         _log_response(log, e)
-        raise UnresolvableRecordError(owner=fwzone, rtype=rtype, ip=ipa_ip_addr,
-                                      error=e)
+        raise UnresolvableRecordError(owner=fwzone, rtype=rtype,
+                                      ip=ipa_ip_addr, error=e)
+
+    try:
+        ans_do = _resolve_record(fwzone, rtype, nameserver_ip=ipa_ip_addr,
+                                 edns0=True, dnssec=True, timeout=timeout)
+    except DNSException as e:
+        _log_response(log, e)
+        raise DNSSECValidationError(owner=fwzone, rtype=rtype, ip=ipa_ip_addr)
     else:
         if (ans_do.canonical_name == ans_cd.canonical_name
             and ans_do.rrset == ans_cd.rrset):
