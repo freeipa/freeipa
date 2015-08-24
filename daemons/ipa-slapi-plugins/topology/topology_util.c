@@ -1042,7 +1042,8 @@ ipa_topo_util_target_is_managed(Slapi_Entry *e)
     repl_root = slapi_entry_attr_get_charptr(e,"nsDS5ReplicaRoot");
     replica = ipa_topo_cfg_replica_find(repl_root,1);
     if (targethost && replica &&
-        ipa_topo_cfg_host_find(replica, targethost, 1)) {
+        ipa_topo_cfg_host_find(replica, targethost, 1) &&
+        ipa_topo_cfg_host_find(replica, ipa_topo_get_plugin_hostname(), 1)) {
         ret = 1;
     }
     slapi_ch_free_string(&targethost);
