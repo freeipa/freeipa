@@ -172,6 +172,12 @@ return {
                 widget: 'realm.realm_server'
             },
             {
+                $type: 'checkbox',
+                name: 'bidirectional',
+                metadata: '@mc-opt:trust_add:bidirectional',
+                widget: 'realm.bidirectional'
+            },
+            {
                 name: 'realm_admin',
                 label: '@i18n:objects.trust.account',
                 widget: 'method.realm_admin'
@@ -224,7 +230,12 @@ return {
                 $type: 'details_section',
                 name: 'realm',
                 widgets: [
-                    'realm_server'
+                    'realm_server',
+                    {
+                        $type: 'checkbox',
+                        name: 'bidirectional',
+                        tooltip: '@mc-opt:trust_add:bidirectional:doc'
+                    }
                 ]
             },
             {
