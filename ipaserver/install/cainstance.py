@@ -269,32 +269,6 @@ def is_step_one_done():
     return False
 
 
-def find_ca_server(host_name, conn, api=api):
-    """
-    :param host_name: the preferred server
-    :param conn: a connection to the LDAP server
-    :return: the selected host name
-
-    Find a server that is a CA.
-    """
-    dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
-    query_filter = conn.make_filter({'objectClass': 'ipaConfigObject',
-                                     'ipaConfigString': 'enabledService',
-                                     'cn': 'CA'}, rules='&')
-    try:
-        entries, trunc = conn.find_entries(filter=query_filter, base_dn=dn)
-    except errors.NotFound:
-        return None
-    if len(entries):
-        if host_name is not None:
-            for entry in entries:
-                if entry.dn[1].value == host_name:
-                    return host_name
-        # if the preferred is not found, return the first in the list
-        return entries[0].dn[1].value
-    return None
-
-
 def is_ca_installed_locally():
     """Check if CA is installed locally by checking for existence of CS.cfg
     :return:True/False
@@ -1540,83 +1514,6 @@ class CAInstance(DogtagInstance):
         # Activate Topology for o=ipaca segments
         self.__update_topology()
 
-    def __add_admin_to_group(self, group):
-        dn = DN(('cn', group), ('ou', 'groups'), ('o', 'ipaca'))
-        entry = self.admin_conn.get_entry(dn)
-        members = entry.get('uniqueMember', [])
-        members.append(self.admin_dn)
-        mod = [(ldap.MOD_REPLACE, 'uniqueMember', members)]
-        try:
-            self.admin_conn.modify_s(dn, mod)
-        except ldap.TYPE_OR_VALUE_EXISTS:
-            # already there
-            pass
-
-    def __setup_admin(self):
-        self.admin_user = "admin-%s" % self.fqdn
-        self.admin_password = binascii.hexlify(os.urandom(16))
-
-        if not self.admin_conn:
-            self.ldap_connect()
-
-        self.admin_dn = DN(('uid', self.admin_user),
-                           ('ou', 'people'), ('o', 'ipaca'))
-
-        # remove user if left-over exists
-        try:
-            entry = self.admin_conn.delete_entry(self.admin_dn)
-        except errors.NotFound:
-            pass
-
-        # add user
-        entry = self.admin_conn.make_entry(
-            self.admin_dn,
-            objectclass=["top", "person", "organizationalPerson",
-                         "inetOrgPerson", "cmsuser"],
-            uid=[self.admin_user],
-            cn=[self.admin_user],
-            sn=[self.admin_user],
-            usertype=['adminType'],
-            mail=['root@localhost'],
-            userPassword=[self.admin_password],
-            userstate=['1']
-        )
-        self.admin_conn.add_entry(entry)
-
-        for group in ADMIN_GROUPS:
-            self.__add_admin_to_group(group)
-
-        # Now wait until the other server gets replicated this data
-        master_conn = ipaldap.IPAdmin(self.master_host,
-                                      port=replication.DEFAULT_PORT,
-                                      protocol='ldap')
-        master_conn.do_sasl_gssapi_bind()
-        replication.wait_for_entry(master_conn, entry)
-        del master_conn
-
-    def __remove_admin_from_group(self, group):
-        dn = DN(('cn', group), ('ou', 'groups'), ('o', 'ipaca'))
-        entry = self.admin_conn.get_entry(dn)
-        mod = [(ldap.MOD_DELETE, 'uniqueMember', self.admin_dn)]
-        try:
-            self.admin_conn.modify_s(dn, mod)
-        except ldap.NO_SUCH_ATTRIBUTE:
-            # already removed
-            pass
-
-    def __teardown_admin(self):
-
-        if not self.admin_conn:
-            self.ldap_connect()
-
-        for group in ADMIN_GROUPS:
-            self.__remove_admin_from_group(group)
-        self.admin_conn.delete_entry(self.admin_dn)
-
-    def __restart_ds_instance(self):
-        self.ldap_disconnect()
-        services.knownservices.dirsrv.restart()
-
     def __client_auth_to_db(self):
         self.enable_client_auth_to_db(self.dogtag_constants.CS_CFG_PATH)
 
@@ -1651,6 +1548,7 @@ class CAInstance(DogtagInstance):
         else:
             self.ca_type = 'generic'
 
+        self.admin_groups = ADMIN_GROUPS
         self.pkcs12_info = ca_cert_bundle
         self.no_db_setup = True
         self.clone = True
@@ -1664,7 +1562,7 @@ class CAInstance(DogtagInstance):
         self.step("creating certificate server db", self.__create_ds_db)
         self.step("setting up initial replication", self.__setup_replication)
 
-        self.step("creating installation admin user", self.__setup_admin)
+        self.step("creating installation admin user", self.setup_admin)
 
         # Setup instance
         self.step("setting up certificate server", self.__spawn_instance)
@@ -1675,7 +1573,7 @@ class CAInstance(DogtagInstance):
         self.step("enable PKIX certificate path discovery and validation",
                   self.enable_pkix)
         self.step("set up client auth to db", self.__client_auth_to_db)
-        self.step("destroying installation admin user", self.__teardown_admin)
+        self.step("destroying installation admin user", self.teardown_admin)
         self.step("starting instance", self.start_instance)
 
         self.step("importing CA chain to RA certificate database",

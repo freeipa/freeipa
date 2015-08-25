@@ -47,6 +47,11 @@ from ipapython.ipa_log_manager import log_mgr
 # replicas with KRA configured
 IPA_KRA_RECORD = "ipa-kra"
 
+ADMIN_GROUPS = [
+    'Enterprise CA Administrators',
+    'Enterprise KRA Administrators',
+    'Security Domain Administrators'
+]
 
 class KRAInstance(DogtagInstance):
     """
@@ -147,7 +152,7 @@ class KRAInstance(DogtagInstance):
         # Security Domain Authentication
         config.set("KRA", "pki_security_domain_https_port", "443")
         config.set("KRA", "pki_security_domain_password", self.admin_password)
-        config.set("KRA", "pki_security_domain_user", "admin")
+        config.set("KRA", "pki_security_domain_user", self.admin_user)
 
         # issuing ca
         config.set("KRA", "pki_issuing_ca_uri", "https://%s" %
@@ -166,8 +171,8 @@ class KRAInstance(DogtagInstance):
         config.set("KRA", "pki_client_pkcs12_password", self.admin_password)
 
         # Administrator
-        config.set("KRA", "pki_admin_name", "admin")
-        config.set("KRA", "pki_admin_uid", "admin")
+        config.set("KRA", "pki_admin_name", self.admin_user)
+        config.set("KRA", "pki_admin_uid", self.admin_user)
         config.set("KRA", "pki_admin_email", "root@localhost")
         config.set("KRA", "pki_admin_password", self.admin_password)
         config.set("KRA", "pki_admin_nickname", "ipa-ca-agent")
@@ -227,15 +232,16 @@ class KRAInstance(DogtagInstance):
             pent = pwd.getpwnam(PKI_USER)
             os.chown(p12_tmpfile_name, pent.pw_uid, pent.pw_gid)
 
-            # create admin cert file if it does not exist
-            cert = DogtagInstance.get_admin_cert(self)
-            with open(paths.ADMIN_CERT_PATH, "w") as admin_path:
-                admin_path.write(cert)
+            # FIXME
+            # # create admin cert file if it does not exist
+            # cert = DogtagInstance.get_admin_cert(self)
+            # with open(paths.ADMIN_CERT_PATH, "w") as admin_path:
+            #     admin_path.write(cert)
 
             # Security domain registration
             config.set("KRA", "pki_security_domain_hostname", self.master_host)
             config.set("KRA", "pki_security_domain_https_port", "443")
-            config.set("KRA", "pki_security_domain_user", "admin")
+            config.set("KRA", "pki_security_domain_user", self.admin_user)
             config.set("KRA", "pki_security_domain_password",
                        self.admin_password)
 
@@ -341,6 +347,54 @@ class KRAInstance(DogtagInstance):
             nickname, cert, directives,
             dogtag.configured_constants().KRA_CS_CFG_PATH,
             dogtag_constants)
+
+    def __enable_instance(self):
+        self.ldap_enable('KRA', self.fqdn, None, self.suffix)
+
+    def configure_replica(self, host_name, master_host, dm_password,
+                          kra_cert_bundle=None, subject_base=None):
+        """Create a KRA instance.
+
+           To create a clone, pass in pkcs12_info.
+        """
+        self.fqdn = host_name
+        self.dm_password = dm_password
+        self.ds_port = DEFAULT_DSPORT
+        self.master_host = master_host
+        if subject_base is None:
+            self.subject_base = DN(('O', self.realm))
+        else:
+            self.subject_base = subject_base
+        self.suffix = ipautil.realm_to_suffix(self.realm)
+
+        self.pkcs12_info = kra_cert_bundle
+        self.clone = True
+        self.admin_groups = ADMIN_GROUPS
+
+        # Confirm that a KRA does not already exist
+        if self.is_installed():
+            raise RuntimeError(
+                "KRA already installed.")
+        # Confirm that a Dogtag 10 CA instance already exists
+        ca = cainstance.CAInstance(self.realm, certs.NSS_DIR,
+                                   dogtag_constants=dogtag.Dogtag10Constants)
+        if not ca.is_installed():
+            raise RuntimeError(
+                "KRA configuration failed.  "
+                "A Dogtag CA must be installed first")
+
+        self.step("creating installation admin user", self.setup_admin)
+        self.step("configuring KRA instance", self.__spawn_instance)
+        self.step("destroying installation admin user", self.teardown_admin)
+        self.step("restarting KRA", self.restart_instance)
+        self.step("configure certmonger for renewals",
+                  self.configure_certmonger_renewal)
+        self.step("configure certificate renewals", self.configure_renewal)
+        self.step("add vault container", self.__add_vault_container)
+
+        self.step("enabling KRA instance", self.__enable_instance)
+
+        self.start_creation(runtime=126)
 
 
 def install_replica_kra(config, postinstall=False):

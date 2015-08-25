@@ -2,11 +2,15 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+import os
+
 from ipalib import api, errors
+from ipaplatform import services
 from ipapython import certdb
 from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.dn import DN
+from ipaserver.install import custodiainstance
 from ipaserver.install import cainstance
 from ipaserver.install import krainstance
 from ipaserver.install import dsinstance
@@ -36,6 +40,9 @@ def install_check(api, replica_config, options):
         if not api.Command.kra_is_enabled()['result']:
             raise RuntimeError("KRA is not installed on the master system")
 
+        if options.promote:
+            return
+
         with certdb.NSSDatabase() as tmpdb:
             pw = ipautil.write_tmp_file(ipautil.ipa_generate_password())
             tmpdb.create_db(pw.name)
@@ -62,7 +69,26 @@ def install(api, replica_config, options):
             api.env.realm, api.env.host, options.dm_password,
             options.dm_password, subject_base=subject)
     else:
-        kra = krainstance.install_replica_kra(replica_config)
+        if options.promote:
+            ca_data = (os.path.join(replica_config.dir, 'kracert.p12'),
+                       replica_config.dirman_password)
+
+            custodia = custodiainstance.CustodiaInstance(
+                replica_config.host_name, replica_config.realm_name)
+            custodia.get_kra_keys(replica_config.kra_host_name,
+                                  ca_data[0], ca_data[1])
+
+            kra = krainstance.KRAInstance(
+                replica_config.realm_name,
+                dogtag_constants=dogtag.install_constants)
+            kra.configure_replica(replica_config.host_name,
+                                  replica_config.kra_host_name,
+                                  replica_config.dirman_password,
+                                  kra_cert_bundle=ca_data)
+            return
+
+        else:
+            kra = krainstance.install_replica_kra(replica_config)
 
     service.print_msg("Restarting the directory server")
     ds = dsinstance.DsInstance()
@@ -71,6 +97,9 @@ def install(api, replica_config, options):
     kra.ldap_enable('KRA', api.env.host, options.dm_password, api.env.basedn)
 
     kra.enable_client_auth_to_db(kra.dogtag_constants.KRA_CS_CFG_PATH)
+
+    # Restart apache for new proxy config file
+    services.knownservices.httpd.restart(capture_output=True)
 
 
 def uninstall(standalone):

@@ -27,7 +27,7 @@ import traceback
 from ipapython import sysrestore, ipautil, dogtag, ipaldap
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
-from ipalib import errors, certstore
+from ipalib import api, errors, certstore
 from ipaplatform import services
 from ipaplatform.paths import paths
 
@@ -99,6 +99,34 @@ def add_principals_to_group(admin_conn, group, member_attr, principals):
     except errors.EmptyModlist:
         # If there are no changes just pass
         pass
+
+
+def find_providing_server(svcname, conn, host_name=None, api=api):
+    """
+    :param svcname: The service to find
+    :param conn: a connection to the LDAP server
+    :param host_name: the preferred server
+    :return: the selected host name
+
+    Find a server that is a CA.
+    """
+    dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+    query_filter = conn.make_filter({'objectClass': 'ipaConfigObject',
+                                     'ipaConfigString': 'enabledService',
+                                     'cn': svcname}, rules='&')
+    try:
+        entries, trunc = conn.find_entries(filter=query_filter, base_dn=dn)
+    except errors.NotFound:
+        return None
+    if len(entries):
+        if host_name is not None:
+            for entry in entries:
+                if entry.dn[1].value == host_name:
+                    return host_name
+        # if the preferred is not found, return the first in the list
+        return entries[0].dn[1].value
+    return None
+
 
 class Service(object):
     def __init__(self, service_name, service_desc=None, sstore=None,

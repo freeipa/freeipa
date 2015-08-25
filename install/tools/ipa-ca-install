@@ -29,7 +29,7 @@ from ipaserver.install import certs
 from ipaserver.install.installutils import create_replica_config
 from ipaserver.install.installutils import check_creds, ReplicaConfig
 from ipaserver.install import dsinstance, ca
-from ipaserver.install import cainstance, custodiainstance
+from ipaserver.install import cainstance, custodiainstance, service
 from ipapython import dogtag
 from ipapython import version
 from ipalib import api
@@ -162,7 +162,8 @@ def install_replica(safe_options, options, filename):
         config.subject_base = attrs.get('ipacertificatesubjectbase')[0]
 
     if config.master_host_name is None:
-        config.ca_host_name = cainstance.find_ca_server(api.env.ca_host, conn)
+        config.ca_host_name = \
+            service.find_providing_server('CA', conn, api.env.ca_host)
         config.master_host_name = config.ca_host_name
     else:
         config.ca_host_name = config.master_host_name

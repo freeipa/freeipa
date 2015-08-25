@@ -78,13 +78,12 @@ class CustodiaInstance(SimpleServiceInstance):
         cli = CustodiaClient(self.fqdn, master_host_name, self.realm)
         cli.fetch_key('dm/DMHash')
 
-    def get_ca_keys(self, ca_host, cacerts_file, cacerts_pwd):
+    def __get_keys(self, ca_host, cacerts_file, cacerts_pwd, data):
         # Fecth all needed certs one by one, then combine them in a single
         # p12 file
-        certlist = ['caSigningCert cert-pki-ca',
-                    'ocspSigningCert cert-pki-ca',
-                    'auditSigningCert cert-pki-ca',
-                    'subsystemCert cert-pki-ca']
+
+        prefix = data['prefix']
+        certlist = data['list']
 
         cli = CustodiaClient(self.fqdn, ca_host, self.realm)
 
@@ -104,7 +103,7 @@ class CustodiaInstance(SimpleServiceInstance):
                 f.flush()
 
             for nickname in certlist:
-                value = cli.fetch_key(os.path.join('ca', nickname), False)
+                value = cli.fetch_key(os.path.join(prefix, nickname), False)
                 v = json_decode(value)
                 pk12pwfile = os.path.join(tmpnssdir, 'pk12pwfile')
                 with open(pk12pwfile, 'w+') as f:
@@ -128,6 +127,24 @@ class CustodiaInstance(SimpleServiceInstance):
 
         finally:
             shutil.rmtree(tmpnssdir)
+
+    def get_ca_keys(self, ca_host, cacerts_file, cacerts_pwd):
+        certlist = ['caSigningCert cert-pki-ca',
+                    'ocspSigningCert cert-pki-ca',
+                    'auditSigningCert cert-pki-ca',
+                    'subsystemCert cert-pki-ca']
+        data = {'prefix': 'ca',
+                'list': certlist}
+        self.__get_keys(ca_host, cacerts_file, cacerts_pwd, data)
+
+    def get_kra_keys(self, ca_host, cacerts_file, cacerts_pwd):
+        certlist = ['auditSigningCert cert-pki-kra',
+                    'storageCert cert-pki-kra',
+                    'subsystemCert cert-pki-ca',
+                    'transportCert cert-pki-kra']
+        data = {'prefix': 'ca',
+                'list': certlist}
+        self.__get_keys(ca_host, cacerts_file, cacerts_pwd, data)
 
     def __start(self):
         super(CustodiaInstance, self).__start()

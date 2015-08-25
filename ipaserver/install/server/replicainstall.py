@@ -28,8 +28,8 @@ import ipaclient.ipachangeconf
 import ipaclient.ntpconf
 from ipaserver.install import (
     bindinstance, ca, cainstance, certs, dns, dsinstance, httpinstance,
-    installutils, kra, krbinstance, memcacheinstance, ntpinstance,
-    otpdinstance, custodiainstance, service)
+    installutils, kra, krainstance, krbinstance, memcacheinstance,
+    ntpinstance, otpdinstance, custodiainstance, service)
 from ipaserver.install.installutils import create_replica_config
 from ipaserver.install.installutils import ReplicaConfig
 from ipaserver.install.replication import (
@@ -772,10 +772,6 @@ def promote_check(installer):
 
     installer._top_dir = tempfile.mkdtemp("ipa")
 
-    # FIXME: to implement yet
-    if options.setup_kra:
-        raise NotImplementedError
-
     tasks.check_selinux_status()
 
     client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
@@ -922,7 +918,7 @@ def promote_check(installer):
             config.subject_base = DN(subject_base)
 
         # Find if any server has a CA
-        ca_host = cainstance.find_ca_server(api.env.server, conn)
+        ca_host = service.find_providing_server('CA', conn, api.env.server)
         if ca_host is not None:
             config.ca_host_name = ca_host
             ca_enabled = True
@@ -930,6 +926,13 @@ def promote_check(installer):
             # FIXME: add way to pass in certificates
             root_logger.error("The remote master does not have a CA "
                               "installed, can't proceed without certs")
+            sys.exit(3)
+
+        config.kra_host_name = service.find_providing_server('KRA', conn,
+                                                             api.env.server)
+        if options.setup_kra and config.kra_host_name is None:
+            root_logger.error("There is no KRA server in the domain, can't "
+                              "setup a KRA clone")
             sys.exit(3)
 
         if options.setup_ca:
@@ -1083,7 +1086,17 @@ def promote(installer):
                              ca_cert_bundle=ca_data)
 
     if options.setup_kra:
-        kra.install(api, config, options)
+        ca_data = (os.path.join(config.dir, 'kracert.p12'),
+                   config.dirman_password)
+        custodia.get_kra_keys(config.kra_host_name, ca_data[0], ca_data[1])
+
+        constants = dogtag.install_constants
+        kra = krainstance.KRAInstance(config.realm_name,
+                                      dogtag_constants=constants)
+        kra.configure_replica(config.host_name, config.kra_host_name,
+                              config.dirman_password,
+                              kra_cert_bundle=ca_data)
+
 
     ds.replica_populate()
 

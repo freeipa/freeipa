@@ -20,6 +20,8 @@
 
 from __future__ import print_function
 
+import tempfile
+
 from textwrap import dedent
 from ipalib import api
 from ipaplatform import services
@@ -28,11 +30,14 @@ from ipapython import admintool
 from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.dn import DN
+from ipaserver.install import service
 from ipaserver.install import krainstance
+from ipaserver.install import dsinstance
 from ipaserver.install import installutils
 from ipaserver.install.installutils import create_replica_config
 from ipaserver.install import dogtaginstance
 from ipaserver.install import kra
+from ipaserver.install.installutils import ReplicaConfig
 
 
 class KRAInstall(admintool.AdminTool):
@@ -129,8 +134,14 @@ class KRAInstaller(KRAInstall):
             )
 
         self.installing_replica = dogtaginstance.is_installing_replica("KRA")
+        self.options.promote = False
 
         if self.installing_replica:
+            domain_level = dsinstance.get_domain_level(api)
+            if domain_level > 0:
+                self.options.promote = True
+                return
+
             if not self.args:
                 self.option_parser.error("A replica file is required.")
             if len(self.args) > 1:
@@ -160,29 +171,48 @@ class KRAInstaller(KRAInstall):
         super(KRAInstaller, self).run()
         print(dedent(self.INSTALLER_START_MESSAGE))
 
-        if not self.installing_replica:
-            replica_config = None
-        else:
-            replica_config = create_replica_config(
-                self.options.password,
-                self.replica_file,
-                self.options)
-
         self.options.dm_password = self.options.password
         self.options.setup_ca = False
 
-        api.Backend.ldap2.connect(bind_dn=DN('cn=Directory Manager'),
-                                  bind_pw=self.options.dm_password)
+        conn = api.Backend.ldap2
+        conn.connect(bind_dn=DN(('cn', 'Directory Manager')),
+                     bind_pw=self.options.password)
+
+        config = None
+        if self.installing_replica:
+            if self.options.promote:
+                config = ReplicaConfig()
+                config.master_host_name = None
+                config.realm_name = api.env.realm
+                config.host_name = api.env.host
+                config.domain_name = api.env.domain
+                config.dirman_password = self.options.password
+                config.ca_ds_port = dogtag.install_constants.DS_PORT
+                config.top_dir = tempfile.mkdtemp("ipa")
+                config.dir = config.top_dir
+            else:
+                config = create_replica_config(
+                    self.options.password,
+                    self.replica_file,
+                    self.options)
+
+            if config.subject_base is None:
+                attrs = conn.get_ipa_config()
+                config.subject_base = attrs.get('ipacertificatesubjectbase')[0]
+
+            if config.master_host_name is None:
+                config.kra_host_name = \
+                    service.find_providing_server('KRA', conn, api.env.ca_host)
+                config.master_host_name = config.kra_host_name
+            else:
+                config.kra_host_name = config.master_host_name
 
         try:
-            kra.install_check(api, replica_config, self.options)
+            kra.install_check(api, config, self.options)
         except RuntimeError as e:
             raise admintool.ScriptError(str(e))
 
-        kra.install(api, replica_config, self.options)
-
-        # Restart apache for new proxy config file
-        services.knownservices.httpd.restart(capture_output=True)
+        kra.install(api, config, self.options)
 
     def run(self):
         try:
