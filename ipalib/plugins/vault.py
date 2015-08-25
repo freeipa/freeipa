@@ -257,6 +257,228 @@ vault_options = (
 )
 
 
+class VaultModMember(LDAPModMember):
+    def get_options(self):
+        for param in super(VaultModMember, self).get_options():
+            if param.name == 'service' and param not in vault_options:
+                param = param.clone_rename('services')
+            yield param
+
+    def get_member_dns(self, **options):
+        if 'services' in options:
+            options['service'] = options.pop('services')
+        else:
+            options.pop('service', None)
+        return super(VaultModMember, self).get_member_dns(**options)
+
+    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
+        for fail in failed.itervalues():
+            fail['services'] = fail.pop('service', [])
+        self.obj.get_container_attribute(entry_attrs, options)
+        return completed, dn
+
+
+@register()
+class vaultcontainer(LDAPObject):
+    __doc__ = _("""
+    Vault Container object.
+    """)
+
+    container_dn = api.env.container_vault
+
+    object_name = _('vaultcontainer')
+    object_name_plural = _('vaultcontainers')
+    object_class = ['ipaVaultContainer']
+
+    attribute_members = {
+        'owner': ['user', 'group', 'service'],
+    }
+
+    label = _('Vault Containers')
+    label_singular = _('Vault Container')
+
+    takes_params = (
+        Str(
+            'owner_user?',
+            label=_('Owner users'),
+        ),
+        Str(
+            'owner_group?',
+            label=_('Owner groups'),
+        ),
+        Str(
+            'owner_service?',
+            label=_('Owner services'),
+        ),
+        Str(
+            'owner?',
+            label=_('Failed owners'),
+        ),
+        Str(
+            'service?',
+            label=_('Vault service'),
+            flags={'virtual_attribute'},
+        ),
+        Flag(
+            'shared?',
+            label=_('Shared vault'),
+            flags={'virtual_attribute'},
+        ),
+        Str(
+            'username?',
+            label=_('Vault user'),
+            flags={'virtual_attribute'},
+        ),
+    )
+
+    def get_dn(self, *keys, **options):
+        """
+        Generates vault DN from parameters.
+        """
+        service = options.get('service')
+        shared = options.get('shared')
+        user = options.get('username')
+
+        count = (bool(service) + bool(shared) + bool(user))
+        if count > 1:
+            raise errors.MutuallyExclusiveError(
+                reason=_('Service, shared and user options ' +
+                         'cannot be specified simultaneously'))
+
+        parent_dn = super(vaultcontainer, self).get_dn(*keys, **options)
+
+        if not count:
+            principal = getattr(context, 'principal')
+
+            if principal.startswith('host/'):
+                raise errors.NotImplementedError(
+                    reason=_('Host is not supported'))
+
+            (name, realm) = split_principal(principal)
+            if '/' in name:
+                service = name
+            else:
+                user = name
+
+        if service:
+            dn = DN(('cn', service), ('cn', 'services'), parent_dn)
+        elif shared:
+            dn = DN(('cn', 'shared'), parent_dn)
+        elif user:
+            dn = DN(('cn', user), ('cn', 'users'), parent_dn)
+        else:
+            raise RuntimeError
+
+        return dn
+
+    def get_container_attribute(self, entry, options):
+        if options.get('raw', False):
+            return
+        container_dn = DN(self.container_dn, self.api.env.basedn)
+        if entry.dn.endswith(DN(('cn', 'services'), container_dn)):
+            entry['service'] = entry.dn[0]['cn']
+        elif entry.dn.endswith(DN(('cn', 'shared'), container_dn)):
+            entry['shared'] = True
+        elif entry.dn.endswith(DN(('cn', 'users'), container_dn)):
+            entry['username'] = entry.dn[0]['cn']
+
+
+@register()
+class vaultcontainer_show(LDAPRetrieve):
+    __doc__ = _('Display information about a vault container.')
+
+    takes_options = LDAPRetrieve.takes_options + vault_options
+
+    has_output_params = LDAPRetrieve.has_output_params
+
+    def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
+
+        if not self.api.Command.kra_is_enabled()['result']:
+            raise errors.InvocationError(
+                format=_('KRA service is not enabled'))
+
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        self.obj.get_container_attribute(entry_attrs, options)
+        return dn
+
+
+@register()
+class vaultcontainer_del(LDAPDelete):
+    __doc__ = _('Delete a vault container.')
+
+    takes_options = LDAPDelete.takes_options + vault_options
+
+    msg_summary = _('Deleted vault container')
+
+    subtree_delete = False
+
+    def pre_callback(self, ldap, dn, *keys, **options):
+        assert isinstance(dn, DN)
+
+        if not self.api.Command.kra_is_enabled()['result']:
+            raise errors.InvocationError(
+                format=_('KRA service is not enabled'))
+
+        return dn
+
+    def execute(self, *keys, **options):
+        keys = keys + (u'',)
+        return super(vaultcontainer_del, self).execute(*keys, **options)
+
+
+@register()
+class vaultcontainer_add_owner(VaultModMember, LDAPAddMember):
+    __doc__ = _('Add owners to a vault container.')
+
+    takes_options = LDAPAddMember.takes_options + vault_options
+
+    member_attributes = ['owner']
+    member_param_label = _('owner %s')
+    member_count_out = ('%i owner added.', '%i owners added.')
+
+    has_output = (
+        output.Entry('result'),
+        output.Output(
+            'failed',
+            type=dict,
+            doc=_('Owners that could not be added'),
+        ),
+        output.Output(
+            'completed',
+            type=int,
+            doc=_('Number of owners added'),
+        ),
+    )
+
+
+@register()
+class vaultcontainer_remove_owner(VaultModMember, LDAPRemoveMember):
+    __doc__ = _('Remove owners from a vault container.')
+
+    takes_options = LDAPRemoveMember.takes_options + vault_options
+
+    member_attributes = ['owner']
+    member_param_label = _('owner %s')
+    member_count_out = ('%i owner removed.', '%i owners removed.')
+
+    has_output = (
+        output.Entry('result'),
+        output.Output(
+            'failed',
+            type=dict,
+            doc=_('Owners that could not be removed'),
+        ),
+        output.Output(
+            'completed',
+            type=int,
+            doc=_('Number of owners removed'),
+        ),
+    )
+
+
 @register()
 class vault(LDAPObject):
     __doc__ = _("""
@@ -1727,27 +1949,6 @@ class vault_retrieve_internal(PKQuery):
         response['summary'] = self.msg_summary % response
 
         return response
-
-
-class VaultModMember(LDAPModMember):
-    def get_options(self):
-        for param in super(VaultModMember, self).get_options():
-            if param.name == 'service' and param not in vault_options:
-                param = param.clone_rename('services')
-            yield param
-
-    def get_member_dns(self, **options):
-        if 'services' in options:
-            options['service'] = options.pop('services')
-        else:
-            options.pop('service', None)
-        return super(VaultModMember, self).get_member_dns(**options)
-
-    def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
-        for fail in failed.itervalues():
-            fail['services'] = fail.pop('service', [])
-        self.obj.get_container_attribute(entry_attrs, options)
-        return completed, dn
 
 
 @register()
