@@ -277,7 +277,7 @@ class CADSInstance(service.Service):
     The CA DS was used with Dogtag 9. Only upgraded installations still use it.
     Thus this class only does uninstallation.
     """
-    def __init__(self, host_name=None, realm_name=None, domain_name=None, dm_password=None, dogtag_constants=None):
+    def __init__(self, host_name=None, realm_name=None, dm_password=None, dogtag_constants=None):
         service.Service.__init__(
             self, "pkids",
             service_desc="directory server for the CA",
@@ -288,7 +288,6 @@ class CADSInstance(service.Service):
         self.serverid = "PKI-IPA"
         self.realm = realm_name
         self.sub_dict = None
-        self.domain = domain_name
         self.fqdn = host_name
         self.dercert = None
         self.pkcs12_info = None
@@ -387,7 +386,7 @@ class CAInstance(DogtagInstance):
         self.requestId = None
         self.log = log_mgr.get_logger(self)
 
-    def configure_instance(self, host_name, domain, dm_password,
+    def configure_instance(self, host_name, dm_password,
                            admin_password, ds_port=DEFAULT_DSPORT,
                            pkcs12_info=None, master_host=None, csr_file=None,
                            cert_file=None, cert_chain_file=None,
@@ -406,7 +405,6 @@ class CAInstance(DogtagInstance):
            csr_file. For step 2 set cert_file and cert_chain_file.
         """
         self.fqdn = host_name
-        self.domain = domain
         self.dm_password = dm_password
         self.admin_password = admin_password
         self.ds_port = ds_port
@@ -1529,7 +1527,7 @@ def install_replica_ca(config, postinstall=False):
         # If installing this afterward the Apache NSS database already
         # exists, don't remove it.
         ca.create_ra_agent_db = False
-    ca.configure_instance(config.host_name, config.domain_name,
+    ca.configure_instance(config.host_name,
                           config.dirman_password, config.dirman_password,
                           pkcs12_info=(cafile,),
                           master_host=config.master_host_name,
@@ -1827,4 +1825,4 @@ if __name__ == "__main__":
     ds = dsinstance.DsInstance()
 
     ca = CAInstance("EXAMPLE.COM", paths.HTTPD_ALIAS_DIR)
-    ca.configure_instance("catest.example.com", "example.com", "password", "password")
+    ca.configure_instance("catest.example.com", "password", "password")

@@ -74,7 +74,7 @@ class KRAInstance(DogtagInstance):
         self.basedn = DN(('o', 'kra'), ('o', 'ipaca'))
         self.log = log_mgr.get_logger(self)
 
-    def configure_instance(self, realm_name, host_name, domain, dm_password,
+    def configure_instance(self, realm_name, host_name, dm_password,
                            admin_password, ds_port=DEFAULT_DSPORT,
                            pkcs12_info=None, master_host=None,
                            master_replication_port=None,
@@ -84,7 +84,6 @@ class KRAInstance(DogtagInstance):
            To create a clone, pass in pkcs12_info.
         """
         self.fqdn = host_name
-        self.domain = domain
         self.dm_password = dm_password
         self.admin_password = admin_password
         self.ds_port = ds_port
@@ -382,8 +381,7 @@ def install_replica_kra(config, postinstall=False):
     if _kra.is_installed():
         sys.exit("A KRA is already configured on this system.")
 
-    _kra.configure_instance(config.realm_name,
-                            config.host_name, config.domain_name,
+    _kra.configure_instance(config.realm_name, config.host_name,
                             config.dirman_password, config.dirman_password,
                             pkcs12_info=(krafile,),
                             master_host=config.master_host_name,

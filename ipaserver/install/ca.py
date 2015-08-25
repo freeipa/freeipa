@@ -156,18 +156,17 @@ def install_step_0(standalone, replica_config, options):
     if standalone:
         ca.create_ra_agent_db = False
     if external == 0:
-        ca.configure_instance(host_name, domain_name, dm_password,
+        ca.configure_instance(host_name, dm_password,
                               dm_password, subject_base=subject_base,
                               ca_signing_algorithm=options.ca_signing_algorithm)
     elif external == 1:
-        ca.configure_instance(host_name, domain_name, dm_password,
+        ca.configure_instance(host_name, dm_password,
                               dm_password, csr_file=paths.ROOT_IPA_CSR,
                               subject_base=subject_base,
                               ca_signing_algorithm=options.ca_signing_algorithm,
                               ca_type=options.external_ca_type)
     else:
-        ca.configure_instance(host_name, domain_name, dm_password,
-                              dm_password,
+        ca.configure_instance(host_name, dm_password, dm_password,
                               cert_file=external_cert_file.name,
                               cert_chain_file=external_ca_file.name,
                               subject_base=subject_base,

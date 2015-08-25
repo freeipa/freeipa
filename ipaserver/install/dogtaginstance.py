@@ -119,7 +119,6 @@ class DogtagInstance(service.Service):
         self.dm_password = None
         self.admin_password = None
         self.fqdn = host_name
-        self.domain = None
         self.pkcs12_info = None
         self.clone = False
 
