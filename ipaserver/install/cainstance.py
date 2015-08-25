@@ -1505,24 +1505,19 @@ def install_replica_ca(config, postinstall=False):
         # Replica of old "self-signed" master - skip installing CA
         return None
 
+    ca = CAInstance(config.realm_name, certs.NSS_DIR,
+                    dogtag_constants=dogtag.install_constants)
+    ca.dm_password = config.dirman_password
+    ca.subject_base = config.subject_base
+
     if not config.setup_ca:
         # We aren't configuring the CA in this step but we still need
         # a minimum amount of information on the CA for this IPA install.
-        ca = CAInstance(config.realm_name, certs.NSS_DIR,
-            dogtag_constants=dogtag.install_constants)
-        ca.dm_password = config.dirman_password
-        ca.subject_base = config.subject_base
         return ca
 
-    ca = CAInstance(config.realm_name, certs.NSS_DIR,
-        dogtag_constants=dogtag.install_constants)
-    ca.dm_password = config.dirman_password
-    ca.subject_base = config.subject_base
     if ca.is_installed():
         sys.exit("A CA is already configured on this system.")
 
-    ca = CAInstance(config.realm_name, certs.NSS_DIR,
-            dogtag_constants=dogtag.install_constants)
     if postinstall:
         # If installing this afterward the Apache NSS database already
         # exists, don't remove it.
