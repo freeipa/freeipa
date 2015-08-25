@@ -101,6 +101,7 @@ EXAMPLES:
  Add a standard vault:
    ipa vault-add <name>
        [--user <user>|--service <service>|--shared]
+       --type standard
 """) + _("""
  Add a symmetric vault:
    ipa vault-add <name>
@@ -311,7 +312,7 @@ class vault(LDAPObject):
             label=_('Type'),
             doc=_('Vault type'),
             values=(u'standard', u'symmetric', u'asymmetric', ),
-            default=u'standard',
+            default=u'symmetric',
             autofill=True,
         ),
         Bytes(
@@ -578,10 +579,14 @@ class vault_add(PKQuery, Local):
             cli_name='desc',
             doc=_('Vault description'),
         ),
-        Str(
+        StrEnum(
             'ipavaulttype?',
             cli_name='type',
+            label=_('Type'),
             doc=_('Vault type'),
+            values=(u'standard', u'symmetric', u'asymmetric', ),
+            default=u'symmetric',
+            autofill=True,
         ),
         Str(
             'password?',
@@ -609,7 +614,7 @@ class vault_add(PKQuery, Local):
 
     def forward(self, *args, **options):
 
-        vault_type = options.get('ipavaulttype', u'standard')
+        vault_type = options.get('ipavaulttype')
         password = options.get('password')
         password_file = options.get('password_file')
         public_key = options.get('ipavaultpublickey')
