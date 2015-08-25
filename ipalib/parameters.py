@@ -923,12 +923,23 @@ class Param(ReadOnly):
 
     def __json__(self):
         json_dict = {}
-        for key in self.__kw:
-            json_dict[key] = json_serialize(self.__kw[key])
+        for (a, k, d) in self.kwargs:
+            if k in (callable, DefaultFrom):
+                continue
+            elif isinstance(getattr(self, a), frozenset):
+                json_dict[a] = [k for k in getattr(self, a, [])]
+            else:
+                val = getattr(self, a, '')
+                if val is None:
+                    # ignore 'not set' because lack of their presence is
+                    # the information itself
+                    continue
+                json_dict[a] = json_serialize(val)
+
         json_dict['class'] = self.__class__.__name__
         json_dict['name'] = self.name
         json_dict['type'] = self.type.__name__
-        json_dict['flags'] = json_serialize([f for f in self.flags])
+
         return json_dict
 
 
