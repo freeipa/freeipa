@@ -156,7 +156,9 @@ class test_vault_plugin(Declarative):
             'command': (
                 'vault_add',
                 [vault_name],
-                {},
+                {
+                    'ipavaulttype': u'standard',
+                },
             ),
             'expected': {
                 'value': vault_name,
@@ -257,6 +259,7 @@ class test_vault_plugin(Declarative):
                 'vault_add',
                 [vault_name],
                 {
+                    'ipavaulttype': u'standard',
                     'service': service_name,
                 },
             ),
@@ -366,6 +369,7 @@ class test_vault_plugin(Declarative):
                 'vault_add',
                 [vault_name],
                 {
+                    'ipavaulttype': u'standard',
                     'shared': True
                 },
             ),
@@ -475,6 +479,7 @@ class test_vault_plugin(Declarative):
                 'vault_add',
                 [vault_name],
                 {
+                    'ipavaulttype': u'standard',
                     'username': user_name,
                 },
             ),
@@ -583,7 +588,9 @@ class test_vault_plugin(Declarative):
             'command': (
                 'vault_add',
                 [standard_vault_name],
-                {},
+                {
+                    'ipavaulttype': u'standard',
+                },
             ),
             'expected': {
                 'value': standard_vault_name,
