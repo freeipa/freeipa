@@ -236,6 +236,7 @@ def validated_read(argname, filename, mode='r', encoding=None):
 
 register = Registry()
 
+MAX_VAULT_DATA_SIZE = 2**20  # = 1 MB
 
 vault_options = (
     Str(
@@ -1232,10 +1233,28 @@ class vault_archive(PKQuery, Local):
             raise errors.MutuallyExclusiveError(
                 reason=_('Input data specified multiple times'))
 
+        elif data:
+            if len(data) > MAX_VAULT_DATA_SIZE:
+                raise errors.ValidationError(name="data", error=_(
+                    "Size of data exceeds the limit. Current vault data size "
+                    "limit is %(limit)d B")
+                    % {'limit': MAX_VAULT_DATA_SIZE})
+
         elif input_file:
+            try:
+                stat = os.stat(input_file)
+            except OSError as exc:
+                raise errors.ValidationError(name="in", error=_(
+                    "Cannot read file '%(filename)s': %(exc)s")
+                    % {'filename': input_file, 'exc': exc[1]})
+            if stat.st_size > MAX_VAULT_DATA_SIZE:
+                raise errors.ValidationError(name="in", error=_(
+                    "Size of data exceeds the limit. Current vault data size "
+                    "limit is %(limit)d B")
+                    % {'limit': MAX_VAULT_DATA_SIZE})
             data = validated_read('in', input_file, mode='rb')
 
-        elif not data:
+        else:
             data = ''
 
         if self.api.env.in_server:
