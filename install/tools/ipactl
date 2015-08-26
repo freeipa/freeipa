@@ -45,6 +45,16 @@ def check_IPA_configuration():
         raise IpactlError("IPA is not configured " +
                           "(see man pages of ipa-server-install for help)", 6)
 
+def deduplicate(lst):
+    new_lst = []
+    s = set(lst)
+    for i in lst:
+        if i in s:
+            s.remove(i)
+            new_lst.append(i)
+
+    return new_lst
+
 def is_dirsrv_debugging_enabled():
     """
     Check the 389-ds instance to see if debugging is enabled.
@@ -283,6 +293,7 @@ def ipa_start(options):
         # no service to start
         return
 
+    svc_list = deduplicate(svc_list)
     for svc in svc_list:
         svchandle = services.service(svc)
         try:
@@ -321,6 +332,7 @@ def ipa_stop(options):
             finally:
                 raise IpactlError()
 
+    svc_list = deduplicate(svc_list)
     for svc in reversed(svc_list):
         svchandle = services.service(svc)
         try:
@@ -398,6 +410,7 @@ def ipa_restart(options):
 
     if len(old_svc_list) != 0:
         # we need to definitely stop some services
+        old_svc_list = deduplicate(old_svc_list)
         for svc in reversed(old_svc_list):
             svchandle = services.service(svc)
             try:
@@ -422,7 +435,7 @@ def ipa_restart(options):
 
     if len(svc_list) != 0:
         # there are services to restart
-
+        svc_list = deduplicate(svc_list)
         for svc in svc_list:
             svchandle = services.service(svc)
             try:
@@ -444,6 +457,7 @@ def ipa_restart(options):
 
     if len(new_svc_list) != 0:
         # we still need to start some services
+        new_svc_list = deduplicate(new_svc_list)
         for svc in new_svc_list:
             svchandle = services.service(svc)
             try:
@@ -494,6 +508,7 @@ def ipa_status(options):
     if len(svc_list) == 0:
         return
 
+    svc_list = deduplicate(svc_list)
     for svc in svc_list:
         svchandle = services.service(svc)
         try:
