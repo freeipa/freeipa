@@ -989,7 +989,7 @@ class vault_mod(PKQuery, Local):
         else:
             backend = self.api.Backend.rpcclient
         if not backend.isconnected():
-            backend.connect(ccache=krbV.default_context().default_ccache())
+            backend.connect()
 
         # determine the vault type based on parameters specified
         if vault_type:
