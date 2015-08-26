@@ -54,8 +54,7 @@ class KnobValueError(ValueError):
         self.name = name
 
 
-class InnerClass(object):
-    __metaclass__ = util.InnerClassMeta
+class InnerClass(six.with_metaclass(util.InnerClassMeta, object)):
     __outer_class__ = None
     __outer_name__ = None
 
@@ -162,14 +161,12 @@ def Knob(type, default=_missing, initializable=_missing, sensitive=_missing,
     return util.InnerClassMeta('Knob', (KnobBase,), class_dict)
 
 
-class Configurable(object):
+class Configurable(six.with_metaclass(abc.ABCMeta, object)):
     """
     Base class of all configurables.
 
     FIXME: details of validate/execute, properties and knobs
     """
-
-    __metaclass__ = abc.ABCMeta
 
     @classmethod
     def knobs(cls):
@@ -382,9 +379,8 @@ class ComponentMeta(util.InnerClassMeta, abc.ABCMeta):
     pass
 
 
-class ComponentBase(InnerClass, Configurable):
-    __metaclass__ = ComponentMeta
-
+class ComponentBase(
+        six.with_metaclass(ComponentMeta, InnerClass, Configurable)):
     _order = None
 
     @classmethod

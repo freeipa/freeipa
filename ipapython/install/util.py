@@ -159,5 +159,6 @@ class InnerClassMeta(type):
             self.__outer_class__ = cls
             self.__outer_name__ = name
             self.__name__ = '.'.join((cls.__name__, name))
+            self.__qualname__ = self.__name__
 
         return cls, name

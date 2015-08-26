@@ -31,6 +31,7 @@ import dateutil.parser
 import dateutil.tz
 import nss.nss as nss
 import gssapi
+import six
 from six.moves import xrange
 
 from ipapython import admintool
@@ -147,10 +148,8 @@ def convertEncrypted(value, decryptor=None, pconv=base64.b64decode, econv=lambda
     return None
 
 
-class XMLKeyDerivation(object):
+class XMLKeyDerivation(six.with_metaclass(abc.ABCMeta, object)):
     "Interface for XML Encryption 1.1 key derivation."
-    __metaclass__ = abc.ABCMeta
-
     @abc.abstractmethod
     def __init__(self, enckey):
         "Sets up key derivation parameters from the parent XML entity."
