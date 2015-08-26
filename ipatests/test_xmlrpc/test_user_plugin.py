@@ -1969,7 +1969,7 @@ class UserTracker(Tracker):
 
         def finish():
             with raises_exact(errors.NotFound(
-                    reason=u'no such entry')):
+                    reason=u'%s: user not found' % self.uid)):
                 del_command()
 
         request.addfinalizer(finish)
