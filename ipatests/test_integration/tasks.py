@@ -40,6 +40,24 @@ from ipatests.test_integration.host import Host
 log = log_mgr.get_logger(__name__)
 
 
+def check_arguments_are(slice, instanceof):
+    """
+    :param: slice - tuple of integers denoting the beginning and the end
+    of argument list to be checked
+    :param: instanceof - name of the class the checked arguments should be
+    instances of
+    Example: @check_arguments_are((1, 3), int) will check that the second
+    and third arguments are integers
+    """
+    def wrapper(func):
+        def wrapped(*args):
+            for i in args[slice[0]:slice[1]]:
+                assert isinstance(i, instanceof), "Wrong type: %s: %s" % (i, type(i))
+            return func(*args)
+        return wrapped
+    return wrapper
+
+
 def prepare_host(host):
     if isinstance(host, Host):
         env_filename = os.path.join(host.config.test_dir, 'env.sh')
@@ -118,7 +136,8 @@ def fix_apache_semaphores(master):
     if systemd_available:
         master.run_command(['systemctl', 'stop', 'httpd'], raiseonerr=False)
     else:
-        master.run_command([paths.SBIN_SERVICE, 'httpd', 'stop'], raiseonerr=False)
+        master.run_command([paths.SBIN_SERVICE, 'httpd', 'stop'],
+                           raiseonerr=False)
 
     master.run_command('for line in `ipcs -s | grep apache | cut -d " " -f 2`; '
                        'do ipcrm -s $line; done', raiseonerr=False)
@@ -261,7 +280,7 @@ def install_client(master, client, extra_args=()):
                         '-p', client.config.admin_name,
                         '-w', client.config.admin_password,
                         '--server', master.hostname]
-                        + list(extra_args))
+                       + list(extra_args))
 
     setup_sssd_debugging(client)
     kinit_admin(client)
@@ -298,10 +317,9 @@ def install_adtrust(host):
     else:
         host.run_command(['systemctl', 'restart', 'named'])
 
-
     # Check that named is running and has loaded the information from LDAP
     dig_command = ['dig', 'SRV', '+short', '@localhost',
-               '_ldap._tcp.%s' % host.domain.name]
+                   '_ldap._tcp.%s' % host.domain.name]
     dig_output = '0 100 389 %s.' % host.hostname
     dig_test = lambda x: re.search(re.escape(dig_output), x)
 
@@ -373,9 +391,9 @@ def establish_trust_with_ad(master, ad, extra_args=()):
     master.run_command(['smbcontrol', 'all', 'debug', '100'])
     util.run_repeatedly(master,
                         ['ipa', 'trust-add',
-                        '--type', 'ad', ad.domain.name,
-                        '--admin', 'Administrator',
-                        '--password'] + list(extra_args),
+                         '--type', 'ad', ad.domain.name,
+                         '--admin', 'Administrator',
+                         '--password'] + list(extra_args),
                         stdin_text=master.config.ad_admin_password)
     master.run_command(['smbcontrol', 'all', 'debug', '1'])
     clear_sssd_cache(master)
@@ -428,15 +446,14 @@ def setup_sssd_debugging(host):
     # First, remove any previous occurences
     host.run_command(['sed', '-i',
                       '/debug_level = 7/d',
-                      paths.SSSD_CONF
-                     ], raiseonerr=False)
+                      paths.SSSD_CONF],
+                     raiseonerr=False)
 
     # Add the debug directive to each section
     host.run_command(['sed', '-i',
                       '/\[*\]/ a\debug_level = 7',
-                      paths.SSSD_CONF
-                     ], raiseonerr=False)
-
+                      paths.SSSD_CONF],
+                     raiseonerr=False)
 
     host.collect_log('/var/log/sssd/*')
 
@@ -492,7 +509,7 @@ def disconnect_replica(master, replica):
 
 def kinit_admin(host):
     host.run_command(['kinit', 'admin'],
-                      stdin_text=host.config.admin_password)
+                     stdin_text=host.config.admin_password)
 
 
 def uninstall_master(host):
@@ -507,8 +524,9 @@ def uninstall_master(host):
                       paths.SYSCONFIG_PKI_TOMCAT,
                       paths.SYSCONFIG_PKI_TOMCAT_PKI_TOMCAT_DIR,
                       paths.VAR_LIB_PKI_TOMCAT_DIR,
-                      paths.PKI_TOMCAT],
-                      raiseonerr=False)
+                      paths.PKI_TOMCAT,
+                      paths.REPLICA_INFO_GPG_TEMPLATE % host.hostname],
+                     raiseonerr=False)
     unapply_fixes(host)
 
 
@@ -518,6 +536,56 @@ def uninstall_client(host):
     host.run_command(['ipa-client-install', '--uninstall', '-U'],
                      raiseonerr=False)
     unapply_fixes(host)
+
+
+@check_arguments_are((0, 2), Host)
+def clean_replication_agreement(master, replica):
+    """
+    Performs `ipa-replica-manage del replica_hostname --force`.
+    """
+    master.run_command(['ipa-replica-manage',
+                        'del',
+                        replica.hostname,
+                        '--force'])
+
+
+@check_arguments_are((0, 3), Host)
+def create_segment(master, leftnode, rightnode):
+    """
+    creates a topology segment. The first argument is a node to run the command
+    :returns: a hash object containing segment's name, leftnode, rightnode
+    information and an error string.
+    """
+    kinit_admin(master)
+    lefthost = leftnode.hostname
+    righthost = rightnode.hostname
+    segment_name = "%s-to-%s" % (lefthost, righthost)
+    result = master.run_command(["ipa", "topologysegment-add", "realm",
+                                 segment_name,
+                                 "--leftnode=%s" % lefthost,
+                                 "--rightnode=%s" % righthost], raiseonerr=False)
+    if result.returncode == 0:
+        return {'leftnode': lefthost,
+                'rightnode': righthost,
+                'name': segment_name}, ""
+    else:
+        return {}, result.stderr_text
+
+
+def destroy_segment(master, segment_name):
+    """
+    Destroys topology segment.
+    :param master: reference to master object of class Host
+    :param segment_name: name of the segment to be created
+    """
+    assert isinstance(master, Host), "master should be an instance of Host"
+    kinit_admin(master)
+    command = ["ipa",
+               "topologysegment-del",
+               "realm",
+               segment_name]
+    result = master.run_command(command, raiseonerr=False)
+    return result.returncode, result.stderr_text
 
 
 def get_topo(name_or_func):

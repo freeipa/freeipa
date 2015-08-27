@@ -2,18 +2,23 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+import io
 import os
 from ipaserver.plugins.ldap2 import ldap2
 from ipalib import api
 from ipapython import ipautil
 from ipapython.dn import DN
-import nose
+import pytest
 
 
 class TestTopologyPlugin(object):
     """
     Test Topology plugin from the DS point of view
+    Testcase: http://www.freeipa.org/page/V4/Manage_replication_topology/
+    Test_plan#Test_case:
+    _Replication_Topology_is_listed_among_directory_server_plugins
     """
+    pwfile = os.path.join(api.env.dot_ipa, ".dmpw")
 
     def setup(self):
         """
@@ -25,6 +30,8 @@ class TestTopologyPlugin(object):
         if self.conn and self.conn.isconnected():
             self.conn.disconnect()
 
+    @pytest.mark.skipif(ipautil.file_exists(pwfile) is False,
+                        reason="You did not provide a .dmpw file with the DM password")
     def test_topologyplugin(self):
         pluginattrs = {
             u'nsslapd-pluginPath': [u'libtopology'],
@@ -56,11 +63,8 @@ class TestTopologyPlugin(object):
                           ('cn', 'plugins'),
                           ('cn', 'config'))
         pwfile = os.path.join(api.env.dot_ipa, ".dmpw")
-        if ipautil.file_exists(pwfile):
-            with open(pwfile, "r") as f:
-                dm_password = f.read().rstrip()
-        else:
-            raise nose.SkipTest("No directory manager password in %s" % pwfile)
+        with io.open(pwfile, "r") as f:
+            dm_password = f.read().rstrip()
         self.conn = ldap2(api)
         self.conn.connect(bind_dn=DN(('cn', 'directory manager')),
                           bind_pw=dm_password)
