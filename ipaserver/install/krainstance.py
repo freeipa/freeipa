@@ -78,7 +78,6 @@ class KRAInstance(DogtagInstance):
     def configure_instance(self, realm_name, host_name, dm_password,
                            admin_password, ds_port=DEFAULT_DSPORT,
                            pkcs12_info=None, master_host=None,
-                           master_replication_port=None,
                            subject_base=None):
         """Create a KRA instance.
 
@@ -92,7 +91,6 @@ class KRAInstance(DogtagInstance):
         if self.pkcs12_info is not None:
             self.clone = True
         self.master_host = master_host
-        self.master_replication_port = master_replication_port
         if subject_base is None:
             self.subject_base = DN(('O', self.realm))
         else:
@@ -378,7 +376,6 @@ def install_replica_kra(config, postinstall=False):
                             config.dirman_password, config.dirman_password,
                             pkcs12_info=(krafile,),
                             master_host=config.master_host_name,
-                            master_replication_port=config.ca_ds_port,
                             subject_base=config.subject_base)
 
     # Restart httpd since we changed it's config and added ipa-pki-proxy.conf
