@@ -300,6 +300,7 @@ class DsInstance(service.Service):
 
         self.__common_setup()
 
+        self.step("adding sasl mappings to the directory", self.__configure_sasl_mappings)
         self.step("adding default layout", self.__add_default_layout)
         self.step("adding delegation layout", self.__add_delegation_layout)
         self.step("creating container for managed entries", self.__managed_entries)
