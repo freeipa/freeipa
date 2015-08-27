@@ -48,6 +48,9 @@ def check_IPA_configuration():
                           "(see man pages of ipa-server-install for help)", 6)
 
 def deduplicate(lst):
+    """Remove duplicates and preserve order.
+    Returns copy of list with preserved order and removed duplicates.
+    """
     new_lst = []
     s = set(lst)
     for i in lst:
