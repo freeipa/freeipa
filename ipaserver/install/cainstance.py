@@ -1575,7 +1575,7 @@ def update_people_entry(dercert):
 
     Returns True or False
     """
-    base_dn = DN(('ou','People'), ('o','ipaca'))
+    base_dn = DN(('o', 'ipaca'))
     serial_number = x509.get_serial_number(dercert, datatype=x509.DER)
     subject = x509.get_subject(dercert, datatype=x509.DER)
     issuer = x509.get_issuer(dercert, datatype=x509.DER)
@@ -1591,9 +1591,14 @@ def update_people_entry(dercert):
             conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
             conn.connect(autobind=True)
 
-            db_filter = conn.make_filter(
-                {'description': ';%s;%s' % (issuer, subject)},
-                exact=False, trailing_wildcard=False)
+            db_filter = conn.combine_filters(
+                [
+                    conn.make_filter({'objectClass': 'inetOrgPerson'}),
+                    conn.make_filter(
+                        {'description': ';%s;%s' % (issuer, subject)},
+                        exact=False, trailing_wildcard=False),
+                ],
+                conn.MATCH_ALL)
             try:
                 entries = conn.get_entries(base_dn, conn.SCOPE_SUBTREE, db_filter)
             except errors.NotFound:
