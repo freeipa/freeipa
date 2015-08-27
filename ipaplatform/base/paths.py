@@ -344,8 +344,6 @@ class BasePathNamespace(object):
     SLAPD_INSTANCE_SOCKET_TEMPLATE = "/var/run/slapd-%s.socket"
     ALL_SLAPD_INSTANCE_SOCKETS = "/var/run/slapd-*.socket"
     ADMIN_CERT_PATH = '/root/.dogtag/pki-tomcat/ca_admin.cert'
-    KRA_NSSDB_PASSWORD_FILE = "/root/.dogtag/pki-tomcat/kra/password.conf"
-    KRA_PKCS12_PASSWORD_FILE = "/root/.dogtag/pki-tomcat/kra/pkcs12_password.conf"
     ENTROPY_AVAIL = '/proc/sys/kernel/random/entropy_avail'
     LDIF2DB = '/usr/sbin/ldif2db'
     DB2LDIF = '/usr/sbin/db2ldif'
