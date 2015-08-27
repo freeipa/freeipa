@@ -466,7 +466,7 @@ class CAInstance(DogtagInstance):
                 self.step("restarting certificate server", self.restart_instance)
                 self.step("requesting RA certificate from CA", self.__request_ra_certificate)
                 self.step("issuing RA agent certificate", self.__issue_ra_cert)
-                self.step("adding RA agent as a trusted user", self.__configure_ra)
+                self.step("adding RA agent as a trusted user", self.__create_ca_agent)
                 self.step("authorizing RA to modify profiles", self.__configure_profiles_acl)
             self.step("configure certmonger for renewals", self.configure_certmonger_renewal)
             self.step("configure certificate renewals", self.configure_renewal)
@@ -905,18 +905,26 @@ class CAInstance(DogtagInstance):
 
         self.configure_agent_renewal()
 
-    def __configure_ra(self):
-        # Create an RA user in the CA LDAP server and add that user to
-        # the appropriate groups so it can issue certificates without
-        # manual intervention.
-        conn = ipaldap.IPAdmin(self.fqdn, self.ds_port)
-        conn.do_simple_bind(DN(('cn', 'Directory Manager')), self.dm_password)
+    def __create_ca_agent(self):
+        """
+        Create CA agent, assign a certificate, and add the user to
+        the appropriate groups for accessing CA services.
+        """
 
-        decoded = base64.b64decode(self.ra_cert)
+        # get ipaCert certificate
+        cert_data = base64.b64decode(self.ra_cert)
+        cert = x509.load_certificate(cert_data, x509.DER)
 
-        entry_dn = DN(('uid', "ipara"), ('ou', 'People'), self.basedn)
+        # connect to CA database
+        server_id = installutils.realm_to_serverid(api.env.realm)
+        dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
+        conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
+        conn.connect(autobind=True)
+
+        # create ipara user with ipaCert certificate
+        user_dn = DN(('uid', "ipara"), ('ou', 'People'), self.basedn)
         entry = conn.make_entry(
-            entry_dn,
+            user_dn,
             objectClass=['top', 'person', 'organizationalPerson',
                          'inetOrgPerson', 'cmsuser'],
             uid=["ipara"],
@@ -924,23 +932,24 @@ class CAInstance(DogtagInstance):
             cn=["ipara"],
             usertype=["agentType"],
             userstate=["1"],
-            userCertificate=[decoded],
+            userCertificate=[cert_data],
             description=['2;%s;%s;%s' % (
-                str(self.requestId),
+                cert.serial_number,
                 DN(('CN', 'Certificate Authority'), self.subject_base),
                 DN(('CN', 'IPA RA'), self.subject_base))])
-
         conn.add_entry(entry)
 
-        dn = DN(('cn', 'Certificate Manager Agents'), ('ou', 'groups'), self.basedn)
-        modlist = [(0, 'uniqueMember', '%s' % entry_dn)]
-        conn.modify_s(dn, modlist)
+        # add ipara user to Certificate Manager Agents group
+        group_dn = DN(('cn', 'Certificate Manager Agents'), ('ou', 'groups'),
+            self.basedn)
+        conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
 
-        dn = DN(('cn', 'Registration Manager Agents'), ('ou', 'groups'), self.basedn)
-        modlist = [(0, 'uniqueMember', '%s' % entry_dn)]
-        conn.modify_s(dn, modlist)
+        # add ipara user to Registration Manager Agents group
+        group_dn = DN(('cn', 'Registration Manager Agents'), ('ou', 'groups'),
+            self.basedn)
+        conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
 
-        conn.unbind()
+        conn.disconnect()
 
     def __configure_profiles_acl(self):
         """Allow the Certificate Manager Agents group to modify profiles."""
