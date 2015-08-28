@@ -24,13 +24,14 @@
 
 define([
     'dojo/_base/lang',
+    'dojo/Deferred',
     './auth',
     './ipa',
     './text',
     './util',
     'exports'
    ],
-   function(lang, auth, IPA, text, util, rpc /*exports*/) {
+   function(lang, Deferred, auth, IPA, text, util, rpc /*exports*/) {
 
 /**
  * Call an IPA command over JSON-RPC.
@@ -204,6 +205,8 @@ rpc.command = function(spec) {
      */
     that.execute = function() {
 
+        var deferred = new Deferred();
+
         function dialog_open(xhr, text_status, error_thrown) {
 
             var ajax = this;
@@ -320,6 +323,14 @@ rpc.command = function(spec) {
                 //custom error handling, maintaining AJAX call's context
                 that.on_error.call(this, xhr, text_status, error_thrown);
             }
+
+            deferred.reject({
+                command: that,
+                context: this,
+                xhr: xhr,
+                text_status: text_status,
+                error_thrown: error_thrown
+            });
         }
 
         function success_handler(data, text_status, xhr) {
@@ -378,6 +389,13 @@ rpc.command = function(spec) {
                     if (that.on_success) that.on_success.call(this, data, text_status, xhr);
                 }
                 that.process_warnings(data.result);
+                deferred.resolve({
+                    command: that,
+                    context: this,
+                    data: data,
+                    text_status: text_status,
+                    xhr: xhr
+                });
             }
         }
 
@@ -397,6 +415,7 @@ rpc.command = function(spec) {
 
         IPA.display_activity_icon();
         $.ajax(that.request);
+        return deferred.promise;
     };
 
     /**
