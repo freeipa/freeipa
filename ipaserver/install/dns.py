@@ -126,8 +126,6 @@ def install_check(standalone, replica, options, hostname):
         print "NOTE: DNSSEC zone signing is not enabled by default"
         print ""
         if options.dnssec_master:
-            print "DNSSEC support is experimental!"
-            print ""
             print "Plan carefully, replacing DNSSEC key master is not recommended"
             print ""
         print ""
