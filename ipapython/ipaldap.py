@@ -833,7 +833,7 @@ class LDAPClient(object):
         elif isinstance(val, (unicode, six.integer_types, long, Decimal, DN)):
             return value_to_utf8(val)
         elif isinstance(val, DNSName):
-            return str(val)
+            return val.to_text()
         elif isinstance(val, str):
             return val
         elif isinstance(val, list):
@@ -863,6 +863,8 @@ class LDAPClient(object):
                     return val.decode('utf-8')
                 elif target_type is datetime.datetime:
                     return datetime.datetime.strptime(val, LDAP_GENERALIZED_TIME_FORMAT)
+                elif target_type is DNSName:
+                    return DNSName.from_text(val)
                 else:
                     return target_type(val)
             except Exception as e:

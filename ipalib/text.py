@@ -116,6 +116,8 @@ import threading
 import locale
 import gettext
 
+import six
+
 from ipalib.request import context
 
 
@@ -187,6 +189,7 @@ class LazyText(object):
         return other + ConcatenatedLazyText(self)
 
 
+@six.python_2_unicode_compatible
 class Gettext(LazyText):
     """
     Deferred translation using ``gettext.ugettext()``.
@@ -241,7 +244,7 @@ class Gettext(LazyText):
         return '%s(%r, domain=%r, localedir=%r)' % (self.__class__.__name__,
             self.msg, self.domain, self.localedir)
 
-    def __unicode__(self):
+    def __str__(self):
         """
         Translate this message and return as a ``unicode`` instance.
         """
@@ -252,12 +255,13 @@ class Gettext(LazyText):
         return g(self.msg)
 
     def __json__(self):
-        return self.__unicode__()
+        return self.__unicode__()   #pylint: disable=no-member
 
     def __mod__(self, kw):
-        return self.__unicode__() % kw
+        return self.__unicode__() % kw  #pylint: disable=no-member
 
 
+@six.python_2_unicode_compatible
 class FixMe(Gettext):
     """
     Non-translated place-holder for UI labels.
@@ -303,7 +307,7 @@ class FixMe(Gettext):
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self.msg)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'<%s>' % self.msg
 
 
@@ -400,6 +404,7 @@ class NGettext(LazyText):
         return ng(self.singular, self.plural, count)
 
 
+@six.python_2_unicode_compatible
 class ConcatenatedLazyText(object):
     """Concatenation of multiple strings, or any objects convertible to unicode
 
@@ -415,7 +420,7 @@ class ConcatenatedLazyText(object):
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self.components)
 
-    def __unicode__(self):
+    def __str__(self):
         return u''.join(unicode(c) for c in self.components)
 
     def __json__(self):

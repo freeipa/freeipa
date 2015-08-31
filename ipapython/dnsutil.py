@@ -21,18 +21,22 @@ import dns.name
 import dns.exception
 import copy
 
+import six
 
+
+@six.python_2_unicode_compatible
 class DNSName(dns.name.Name):
     labels = None  # make pylint happy
 
+    @classmethod
+    def from_text(cls, labels, origin=None):
+        return cls(dns.name.from_text(labels, origin))
+
     def __init__(self, labels, origin=None):
         try:
-            if isinstance(labels, str):
+            if isinstance(labels, six.string_types):
                 #pylint: disable=E1101
-                labels = dns.name.from_text(labels, origin).labels
-            elif isinstance(labels, unicode):
-                #pylint: disable=E1101
-                labels = dns.name.from_unicode(labels, origin).labels
+                labels = dns.name.from_unicode(unicode(labels), origin).labels
             elif isinstance(labels, dns.name.Name):
                 labels = labels.labels
 
@@ -54,14 +58,11 @@ class DNSName(dns.name.Name):
         return DNSName(copy.deepcopy(self.labels, memo))
 
     def __str__(self):
-        return self.to_text()
-
-    def __unicode__(self):
         return self.to_unicode()
 
     def ToASCII(self):
         #method named by RFC 3490 and python standard library
-        return str(self).decode('ascii')  # must be unicode string
+        return self.to_text().decode('ascii')  # must be unicode string
 
     def canonicalize(self):
         return DNSName(super(DNSName, self).canonicalize())
