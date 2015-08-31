@@ -19,16 +19,13 @@
 
 import os
 import pytest
-from nss import nss
 
 from ipaserver.install.ipa_otptoken_import import PSKCDocument, ValidationError
 
 basename = os.path.join(os.path.dirname(__file__), "data")
 
-@pytest.mark.skipif(True, reason="Causes NSS errors. Ticket 5192")
 @pytest.mark.tier1
 class test_otptoken_import(object):
-
     def test_figure3(self):
         doc = PSKCDocument(os.path.join(basename, "pskc-figure3.xml"))
         assert doc.keyname is None
@@ -63,62 +60,47 @@ class test_otptoken_import(object):
             assert False
 
     def test_figure6(self):
-        nss.nss_init_nodb()
-        try:
-            doc = PSKCDocument(os.path.join(basename, "pskc-figure6.xml"))
-            assert doc.keyname == 'Pre-shared-key'
-            doc.setKey('12345678901234567890123456789012'.decode('hex'))
-            assert [(t.id, t.options) for t in doc.getKeyPackages()] == \
-                [(u'12345678', {
-                    'ipatokenotpkey': u'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ',
-                    'ipatokenvendor': u'Manufacturer',
-                    'ipatokenserial': u'987654321',
-                    'ipatokenhotpcounter': 0,
-                    'ipatokenotpdigits': 8,
-                    'type': u'hotp'})]
-        finally:
-            nss.nss_shutdown()
+        doc = PSKCDocument(os.path.join(basename, "pskc-figure6.xml"))
+        assert doc.keyname == 'Pre-shared-key'
+        doc.setKey('12345678901234567890123456789012'.decode('hex'))
+        assert [(t.id, t.options) for t in doc.getKeyPackages()] == \
+            [(u'12345678', {
+                'ipatokenotpkey': u'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ',
+                'ipatokenvendor': u'Manufacturer',
+                'ipatokenserial': u'987654321',
+                'ipatokenhotpcounter': 0,
+                'ipatokenotpdigits': 8,
+                'type': u'hotp'})]
 
     def test_figure7(self):
-        nss.nss_init_nodb()
-        try:
-            doc = PSKCDocument(os.path.join(basename, "pskc-figure7.xml"))
-            assert doc.keyname == 'My Password 1'
-            doc.setKey('qwerty')
-            assert [(t.id, t.options) for t in doc.getKeyPackages()] == \
-                [(u'123456', {
-                    'ipatokenotpkey': u'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ',
-                    'ipatokenvendor': u'TokenVendorAcme',
-                    'ipatokenserial': u'987654321',
-                    'ipatokenotpdigits': 8,
-                    'type': u'hotp'})]
-        finally:
-            nss.nss_shutdown()
+        doc = PSKCDocument(os.path.join(basename, "pskc-figure7.xml"))
+        assert doc.keyname == 'My Password 1'
+        doc.setKey('qwerty')
+        assert [(t.id, t.options) for t in doc.getKeyPackages()] == \
+            [(u'123456', {
+                'ipatokenotpkey': u'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ',
+                'ipatokenvendor': u'TokenVendorAcme',
+                'ipatokenserial': u'987654321',
+                'ipatokenotpdigits': 8,
+                'type': u'hotp'})]
 
     def test_figure8(self):
-        nss.nss_init_nodb()
         try:
             PSKCDocument(os.path.join(basename, "pskc-figure8.xml"))
         except NotImplementedError: # X.509 is not supported.
             pass
         else:
             assert False
-        finally:
-            nss.nss_shutdown()
 
     def test_invalid(self):
-        nss.nss_init_nodb()
         try:
             PSKCDocument(os.path.join(basename, "pskc-invalid.xml"))
         except ValueError: # File is invalid.
             pass
         else:
             assert False
-        finally:
-            nss.nss_shutdown()
 
     def test_mini(self):
-        nss.nss_init_nodb()
         try:
             doc = PSKCDocument(os.path.join(basename, "pskc-mini.xml"))
             for t in doc.getKeyPackages():
@@ -127,28 +109,22 @@ class test_otptoken_import(object):
             pass
         else:
             assert False
-        finally:
-            nss.nss_shutdown()
 
     def test_full(self):
-        nss.nss_init_nodb()
-        try:
-            doc = PSKCDocument(os.path.join(basename, "full.xml"))
-            assert [(t.id, t.options) for t in doc.getKeyPackages()] == \
-                [(u'KID1', {
-                    'ipatokenotpkey': u'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ',
-                    'ipatokennotafter': u'20060531000000Z',
-                    'ipatokennotbefore': u'20060501000000Z',
-                    'ipatokenserial': u'SerialNo-IssueNo',
-                    'ipatokentotpclockoffset': 60000,
-                    'ipatokenotpalgorithm': u'sha1',
-                    'ipatokenvendor': u'iana.dummy',
-                    'description': u'FriendlyName',
-                    'ipatokentotptimestep': 200,
-                    'ipatokenhotpcounter': 0,
-                    'ipatokenmodel': u'Model',
-                    'ipatokenotpdigits': 8,
-                    'type': u'hotp',
-                })]
-        finally:
-            nss.nss_shutdown()
+        doc = PSKCDocument(os.path.join(basename, "full.xml"))
+        assert [(t.id, t.options) for t in doc.getKeyPackages()] == \
+            [(u'KID1', {
+                'ipatokenotpkey': u'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ',
+                'ipatokennotafter': u'20060531000000Z',
+                'ipatokennotbefore': u'20060501000000Z',
+                'ipatokenserial': u'SerialNo-IssueNo',
+                'ipatokentotpclockoffset': 60000,
+                'ipatokenotpalgorithm': u'sha1',
+                'ipatokenvendor': u'iana.dummy',
+                'description': u'FriendlyName',
+                'ipatokentotptimestep': 200,
+                'ipatokenhotpcounter': 0,
+                'ipatokenmodel': u'Model',
+                'ipatokenotpdigits': 8,
+                'type': u'hotp',
+            })]
