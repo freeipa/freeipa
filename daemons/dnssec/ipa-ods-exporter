@@ -369,12 +369,12 @@ def parse_command(cmd):
     """
     if cmd == 'ipa-hsm-update':
         return (0,
-                'HSM synchronization finished, exiting.',
+                'HSM synchronization finished, skipping zone synchronization.',
                 None)
 
     elif cmd == 'ipa-full-update':
         return (None,
-                'Synchronization of all zones requested.',
+                'Synchronization of all zones was finished.',
                 None)
 
     elif not cmd.startswith('update '):
@@ -387,7 +387,7 @@ def parse_command(cmd):
     else:
         zone_name = cmd2ods_zone_name(cmd)
         return (None,
-                'Update request for zone "%s" queued.\n' % zone_name,
+                'Zone was "%s" updated.\n' % zone_name,
                 zone_name)
 
 def send_systemd_reply(conn, reply):
@@ -542,18 +542,29 @@ except KeyError as e:
 
 exitcode, msg, zone_name = parse_command(cmd)
 
-if conn:
-    send_systemd_reply(conn, msg)
 if exitcode is not None:
+    if conn:
+        send_systemd_reply(conn, msg)
     log.info(msg)
     sys.exit(exitcode)
 else:
     log.debug(msg)
 
 # Open DB directly and read key timestamps etc.
-with ods_db_lock():
-    db = sqlite3.connect(paths.OPENDNSSEC_KASP_DB,
-            isolation_level="EXCLUSIVE")
+db = None
+try:
+    # LOCK WARNING:
+    # ods-enforcerd is holding kasp.db.our_lock when processing all zones and
+    # the lock is unlocked only after all calls to ods-signer are finished,
+    # i.e. when ods-enforcerd receives reply from each ods-signer call.
+    #
+    # Consequently, ipa-ods-exporter (ods-signerd implementation) must not
+    # request kasp.db.our_lock to prevent deadlocks.
+    # SQLite transaction isolation should suffice.
+    # Beware: Reply can be sent back only after DB is unlocked and closed
+    #         otherwise ods-enforcerd will fail.
+
+    db = sqlite3.connect(paths.OPENDNSSEC_KASP_DB)
     db.row_factory = sqlite3.Row
     db.execute('BEGIN')
 
@@ -564,5 +575,17 @@ with ods_db_lock():
         # process all zones
         for zone_row in db.execute("SELECT name FROM zones"):
             sync_zone(log, ldap, dns_dn, zone_row['name'])
+
+except Exception as ex:
+    msg = "ipa-ods-exporter exception: %s" % ex
+    raise ex
+
+finally:
+    try:
+        if db:
+            db.close()
+    finally:
+        if conn:
+            send_systemd_reply(conn, msg)
 
 log.debug('Done')
