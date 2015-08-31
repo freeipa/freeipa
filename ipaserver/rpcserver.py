@@ -968,7 +968,7 @@ class login_password(Backend, KerberosSession, HTTP_Status):
         try:
             ipautil.kinit_keytab(armor_principal, paths.IPA_KEYTAB, armor_path)
         except gssapi.exceptions.GSSError as e:
-            raise CCacheError(str(e))
+            raise CCacheError(message=unicode(e))
 
         # Format the user as a kerberos principal
         principal = krb5_format_principal_name(user, realm)

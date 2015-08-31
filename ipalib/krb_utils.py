@@ -173,9 +173,15 @@ def get_principal(ccache_name=None):
         default
     :returns:
       Default principal name as string
+    :raises:
+      errors.CCacheError if the principal cannot be retrieved from given
+      ccache
     '''
-    creds = get_credentials(ccache_name=ccache_name)
-    return unicode(creds.name)
+    try:
+        creds = get_credentials(ccache_name=ccache_name)
+        return unicode(creds.name)
+    except gssapi.exceptions.GSSError as e:
+        raise errors.CCacheError(message=unicode(e))
 
 def get_credentials_if_valid(name=None, ccache_name=None):
     '''

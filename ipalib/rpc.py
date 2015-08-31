@@ -67,7 +67,7 @@ import ipapython.nsslib
 from ipapython.nsslib import NSSHTTPS, NSSConnection
 from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
                              KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, \
-                             KRB5_REALM_CANT_RESOLVE, get_principal
+                             KRB5_REALM_CANT_RESOLVE, KRB5_CC_NOTFOUND, get_principal
 from ipapython.dn import DN
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib import api
@@ -535,8 +535,10 @@ class KerbTransport(SSLTransport):
             raise errors.BadCCacheFormat()
         elif minor == KRB5_REALM_CANT_RESOLVE:
             raise errors.CannotResolveKDC()
+        elif minor == KRB5_CC_NOTFOUND:
+            raise errors.CCacheError()
         else:
-            raise errors.KerberosError(major=e.maj_code, minor=minor)
+            raise errors.KerberosError(message=unicode(e))
 
     def get_host_info(self, host):
         """
@@ -842,7 +844,7 @@ class RPCClient(Connectible):
             # is still valid
             if not delegate:
                 rpc_uri = self.apply_session_cookie(rpc_uri)
-        except ValueError:
+        except (errors.CCacheError, ValueError):
             # No session key, do full Kerberos auth
             pass
         # This might be dangerous. Use at your own risk!
@@ -888,7 +890,7 @@ class RPCClient(Connectible):
                 break
             except KerberosError as krberr:
                 # kerberos error on one server is likely on all
-                raise errors.KerberosError(major=str(krberr), minor='')
+                raise errors.KerberosError(message=unicode(krberr))
             except ProtocolError as e:
                 if hasattr(context, 'session_cookie') and e.errcode == 401:
                     # Unauthorized. Remove the session and try again.

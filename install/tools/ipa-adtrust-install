@@ -310,7 +310,7 @@ def main():
 
     try:
         principal = krb_utils.get_principal()
-    except gssapi.exceptions.GSSError as e:
+    except errors.CCacheError as e:
         sys.exit("Must have Kerberos credentials to setup AD trusts on server: %s" % e.message)
 
     try:
