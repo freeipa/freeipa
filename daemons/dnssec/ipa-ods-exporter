@@ -175,7 +175,7 @@ def get_ods_keys(zone_name):
 
     # get all keys for given zone ID
     cur = db.execute("SELECT kp.HSMkey_id, kp.generate, kp.algorithm, dnsk.publish, dnsk.active, dnsk.retire, dnsk.dead, dnsk.keytype "
-             "FROM keypairs AS kp JOIN dnsseckeys AS dnsk ON kp.id = dnsk.id "
+             "FROM keypairs AS kp JOIN dnsseckeys AS dnsk ON kp.id = dnsk.keypair_id "
              "WHERE dnsk.zone_id = ?", (zone_id,))
     keys = {}
     for row in cur:
