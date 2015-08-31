@@ -28,6 +28,7 @@ define([
     './metadata',
     './ipa',
     './jquery',
+    './metadata',
     './navigation',
     './phases',
     './reg',
@@ -37,8 +38,8 @@ define([
     './facet',
     './search',
     './dialog'],
-        function(lang, Deferred, metadata_provider, IPA, $, navigation,
-                 phases, reg, rpc, su, text) {
+        function(lang, Deferred, metadata_provider, IPA, $, metadata,
+                 navigation, phases, reg, rpc, su, text) {
 
 /**
  * Association module
@@ -285,7 +286,7 @@ IPA.association_adder_dialog = function(spec) {
             }
         }
 
-        var options = { all: true };
+        var options = {};
         if (that.search_options) {
             lang.mixin(options, that.search_options);
         }
@@ -315,13 +316,19 @@ IPA.association_adder_dialog = function(spec) {
             }
         }
 
-        rpc.command({
+        var cmd = rpc.command({
             entity: that.other_entity.name,
             method: 'find',
             args: [that.get_filter()],
             options: options,
             on_success: on_success
-        }).execute();
+        });
+
+        var no_members = metadata.get('@mc-opt:' + cmd.get_command() + ':no_members');
+        if (no_members) {
+            cmd.set_option('no_members', true);
+        }
+        cmd.execute();
     };
 
     that.normalize_values = function(values) {
