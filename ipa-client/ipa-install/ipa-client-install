@@ -1811,7 +1811,7 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
         # Use the RPC directly so older servers are supported
         api.Backend.rpcclient.forward(
             'host_mod',
-            unicode(hostname),
+            ipautil.fsdecode(hostname),
             ipasshpubkey=[pk.openssh() for pk in pubkeys],
             updatedns=False,
             version=u'2.26',  # this version adds support for SSH public keys

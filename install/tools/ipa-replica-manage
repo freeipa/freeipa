@@ -707,7 +707,7 @@ def del_master_managed(realm, hostname, options):
     Removing of master in managed_topology
     """
 
-    hostname_u = unicode(hostname)
+    hostname_u = ipautil.fsdecode(hostname)
     if hostname == options.host:
         print("Can't remove itself: %s" % (options.host))
         sys.exit(1)

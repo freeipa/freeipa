@@ -63,7 +63,7 @@ if len(args) != 1:
     # LSB status code 2: invalid or excess argument(s)
     raise ScriptError("You must specify trusted domain name", 2)
 
-trusted_domain = unicode(args[0].lower())
+trusted_domain = ipautil.fsdecode(args[0]).lower()
 
 env = Env()
 env._bootstrap(context='server', debug=options.debug, log=None)

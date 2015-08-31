@@ -1352,3 +1352,22 @@ def private_ccache(path=None):
 
         if os.path.exists(path):
             os.remove(path)
+
+
+if six.PY2:
+    def fsdecode(value):
+        """
+        Decode argument using the file system encoding, as returned by
+        `sys.getfilesystemencoding()`.
+        """
+        if isinstance(value, six.binary_type):
+            return value.decode(sys.getfilesystemencoding())
+        elif isinstance(value, six.text_type):
+            return value
+        else:
+            raise TypeError("expect {0} or {1}, not {2}".format(
+                six.binary_type.__name__,
+                six.text_type.__name__,
+                type(value).__name__))
+else:
+    fsdecode = os.fsdecode  #pylint: disable=no-member

@@ -447,7 +447,7 @@ def main():
             # Use the RPC directly so older servers are supported
             result = api.Backend.rpcclient.forward(
                 'automountlocation_show',
-                unicode(options.location),
+                ipautil.fsdecode(options.location),
                 version=u'2.0',
             )
         except errors.VersionError as e:
