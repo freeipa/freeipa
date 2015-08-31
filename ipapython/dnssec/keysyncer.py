@@ -177,4 +177,4 @@ class KeySyncer(SyncReplConsumer):
             return
         if not self.init_done:
             return
-        ipautil.run([paths.ODS_SIGNER])
+        ipautil.run([paths.ODS_SIGNER, 'ipa-hsm-update'])
