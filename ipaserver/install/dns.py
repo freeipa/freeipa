@@ -19,6 +19,7 @@ from ipapython.ipaldap import AUTOBIND_ENABLED
 from ipapython.ipautil import user_input
 from ipaserver.install.installutils import get_server_ip_address
 from ipaserver.install.installutils import read_dns_forwarders
+from ipaserver.install.installutils import update_hosts_file
 from ipaserver.install import bindinstance
 from ipaserver.install import dnskeysyncinstance
 from ipaserver.install import ntpinstance
@@ -225,8 +226,8 @@ def install_check(standalone, replica, options, hostname):
                 "the original kasp.db file." %
                 ", ".join([str(zone) for zone in dnssec_zones]))
 
-    ip_addresses = get_server_ip_address(
-        hostname, fstore, options.unattended, True, options.ip_addresses)
+    ip_addresses = get_server_ip_address(hostname, options.unattended,
+                                         True, options.ip_addresses)
 
     if options.no_forwarders:
         dns_forwarders = ()
@@ -276,6 +277,10 @@ def install(standalone, replica, options):
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     conf_ntp = ntpinstance.NTPInstance(fstore).is_enabled()
+
+    if standalone:
+        # otherwise this is done by server/replica installer
+        update_hosts_file(ip_addresses, api.env.host, fstore)
 
     bind = bindinstance.BindInstance(fstore, ldapi=True,
                                      autobind=AUTOBIND_ENABLED)

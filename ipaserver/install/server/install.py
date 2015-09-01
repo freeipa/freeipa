@@ -32,7 +32,8 @@ from ipaserver.install import (
     otpdinstance, replication, service, sysupgrade)
 from ipaserver.install.installutils import (
     IPA_MODULES, BadHostError, get_fqdn, get_server_ip_address,
-    is_ipa_configured, load_pkcs12, read_password, verify_fqdn)
+    is_ipa_configured, load_pkcs12, read_password, verify_fqdn,
+    update_hosts_file)
 from ipaserver.plugins.ldap2 import ldap2
 try:
     from ipaserver.install import adtrustinstance
@@ -607,9 +608,14 @@ def install_check(installer):
         dns.install_check(False, False, options, host_name)
         ip_addresses = dns.ip_addresses
     else:
-        ip_addresses = get_server_ip_address(host_name, fstore,
+        ip_addresses = get_server_ip_address(host_name,
                                              not installer.interactive, False,
                                              options.ip_addresses)
+
+    # installer needs to update hosts file when DNS subsystem will be
+    # installed or custom addresses are used
+    if options.ip_addresses or options.setup_dns:
+        installer._update_hosts_file = True
 
     print
     print "The IPA Master Server will be configured with:"
@@ -708,6 +714,9 @@ def install(installer):
     if host_name != system_hostname:
         # configure /etc/sysconfig/network to contain the custom hostname
         tasks.backup_and_replace_hostname(fstore, sstore, host_name)
+
+    if installer._update_hosts_file:
+        update_hosts_file(ip_addresses, host_name, fstore)
 
     # Create DS user/group if it doesn't exist yet
     dsinstance.create_ds_user()
@@ -1494,6 +1503,7 @@ class Server(common.Installable, common.Interactive, core.Composite):
         self._external_cert_file = None
         self._external_ca_file = None
         self._ca_cert = None
+        self._update_hosts_file = False
 
         #pylint: disable=no-member
 
