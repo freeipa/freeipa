@@ -504,10 +504,16 @@ def install_check(installer):
 
     if options.setup_dns:
         dns.install_check(False, True, options, config.host_name)
+        config.ips = dns.ip_addresses
     else:
         config.ips = installutils.get_server_ip_address(
-            config.host_name, fstore, not installer.interactive, False,
+            config.host_name, not installer.interactive, False,
             options.ip_addresses)
+
+    # installer needs to update hosts file when DNS subsystem will be
+    # installed or custom addresses are used
+    if options.setup_dns or options.ip_addresses:
+        installer._update_hosts_file = True
 
     # check connection
     if not options.skip_conncheck:
@@ -529,6 +535,9 @@ def install(installer):
     config = installer._config
 
     dogtag_constants = dogtag.install_constants
+
+    if installer._update_hosts_file:
+        installutils.update_hosts_file(config.ips, config.host_name, fstore)
 
     # Create DS user/group if it doesn't exist yet
     dsinstance.create_ds_user()
@@ -787,6 +796,7 @@ class Replica(common.Installable, common.Interactive, core.Composite):
 
         self._top_dir = None
         self._config = None
+        self._update_hosts_file = False
 
         #pylint: disable=no-member
 

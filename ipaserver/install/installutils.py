@@ -265,7 +265,8 @@ def read_ip_address(host_name, fstore):
 
     return ip_parsed
 
-def read_ip_addresses(host_name, fstore):
+
+def read_ip_addresses():
     ips = []
     print("Enter the IP address to use, or press Enter to finish.")
     while True:
@@ -471,7 +472,7 @@ def get_host_name(no_host_dns):
     verify_fqdn(hostname, no_host_dns)
     return hostname
 
-def get_server_ip_address(host_name, fstore, unattended, setup_dns, ip_addresses):
+def get_server_ip_address(host_name, unattended, setup_dns, ip_addresses):
     # Check we have a public IP that is associated with the hostname
     try:
         hostaddr = resolve_host(host_name)
@@ -484,8 +485,6 @@ def get_server_ip_address(host_name, fstore, unattended, setup_dns, ip_addresses
         print("Please fix your /etc/hosts file and restart the setup program", file=sys.stderr)
         sys.exit(1)
 
-    ip_add_to_hosts = False
-
     ips = []
     if len(hostaddr):
         for ha in hostaddr:
@@ -496,7 +495,7 @@ def get_server_ip_address(host_name, fstore, unattended, setup_dns, ip_addresses
 
     if not ips and not ip_addresses:
         if not unattended:
-            ip_addresses = read_ip_addresses(host_name, fstore)
+            ip_addresses = read_ip_addresses()
 
     if ip_addresses:
         if setup_dns:
@@ -512,22 +511,16 @@ def get_server_ip_address(host_name, fstore, unattended, setup_dns, ip_addresses
                 print("Provided but not resolved address(es): %s" % \
                                     ", ".join(str(ip) for ip in (set(ip_addresses) - set(ips))), file=sys.stderr)
                 sys.exit(1)
-        ip_add_to_hosts = True
 
     if not ips:
         print("No usable IP address provided nor resolved.", file=sys.stderr)
         sys.exit(1)
 
     for ip_address in ips:
-        # check /etc/hosts sanity, add a record when needed
+        # check /etc/hosts sanity
         hosts_record = record_in_hosts(str(ip_address))
 
-        if hosts_record is None:
-            if ip_add_to_hosts or setup_dns:
-                print("Adding ["+str(ip_address)+" "+host_name+"] to your /etc/hosts file")
-                fstore.backup_file(paths.HOSTS)
-                add_record_to_hosts(str(ip_address), host_name)
-        else:
+        if hosts_record is not None:
             primary_host = hosts_record[1][0]
             if primary_host != host_name:
                 print("Error: there is already a record in /etc/hosts for IP address %s:" \
@@ -539,6 +532,23 @@ def get_server_ip_address(host_name, fstore, unattended, setup_dns, ip_addresses
                 sys.exit(1)
 
     return ips
+
+
+def update_hosts_file(ip_addresses, host_name, fstore):
+    """
+    Update hosts with specified addresses
+    :param ip_addresses: list of IP addresses
+    :return:
+    """
+    if not fstore.has_file(paths.HOSTS):
+        fstore.backup_file(paths.HOSTS)
+    for ip_address in ip_addresses:
+        if record_in_hosts(str(ip_address)):
+            continue
+        print("Adding [{address!s} {name}] to your /etc/hosts file".format(
+            address=ip_address, name=host_name))
+        add_record_to_hosts(str(ip_address), host_name)
+
 
 def expand_replica_info(filename, password):
     """
