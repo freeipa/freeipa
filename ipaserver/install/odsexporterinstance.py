@@ -93,6 +93,13 @@ class ODSExporterInstance(service.Service):
 
     def __setup_principal(self):
         assert self.ods_uid is not None
+
+        for f in [paths.IPA_ODS_EXPORTER_CCACHE, paths.IPA_ODS_EXPORTER_KEYTAB]:
+            try:
+                os.remove(f)
+            except OSError:
+                pass
+
         dns_exporter_principal = "ipa-ods-exporter/" + self.fqdn + "@" + self.realm
         installutils.kadmin_addprinc(dns_exporter_principal)
 

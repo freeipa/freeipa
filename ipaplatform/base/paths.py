@@ -333,6 +333,7 @@ class BasePathNamespace(object):
     NAMED_RUN = "/var/named/data/named.run"
     VAR_OPENDNSSEC_DIR = "/var/opendnssec"
     OPENDNSSEC_KASP_DB = "/var/opendnssec/kasp.db"
+    IPA_ODS_EXPORTER_CCACHE = "/var/opendnssec/tmp/ipa-ods-exporter.ccache"
     VAR_RUN_DIRSRV_DIR = "/var/run/dirsrv"
     KRB5CC_HTTPD = "/var/run/httpd/ipa/krbcache/krb5ccache"
     IPA_RENEWAL_LOCK = "/var/run/ipa/renewal.lock"
