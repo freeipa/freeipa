@@ -171,6 +171,9 @@ class OpenDNSSECInstance(service.Service):
         if not self.fstore.has_file(paths.OPENDNSSEC_KASP_FILE):
             self.fstore.backup_file(paths.OPENDNSSEC_KASP_FILE)
 
+        if not self.fstore.has_file(paths.OPENDNSSEC_ZONELIST_FILE):
+            self.fstore.backup_file(paths.OPENDNSSEC_ZONELIST_FILE)
+
         pin_fd = open(paths.DNSSEC_SOFTHSM_PIN, "r")
         pin = pin_fd.read()
         pin_fd.close()
@@ -357,7 +360,8 @@ class OpenDNSSECInstance(service.Service):
                                  paths.IPA_KASP_DB_BACKUP)
 
         for f in [paths.OPENDNSSEC_CONF_FILE, paths.OPENDNSSEC_KASP_FILE,
-                  paths.OPENDNSSEC_KASP_DB, paths.SYSCONFIG_ODS]:
+                  paths.OPENDNSSEC_KASP_DB, paths.SYSCONFIG_ODS,
+                  paths.OPENDNSSEC_ZONELIST_FILE]:
             try:
                 self.fstore.restore_file(f)
             except ValueError, error:
