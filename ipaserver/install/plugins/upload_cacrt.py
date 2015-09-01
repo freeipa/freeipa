@@ -87,7 +87,7 @@ class update_upload_cacrt(Updater):
                 entry.single_value['cACertificate;binary'] = ca_cert
                 ldap.add_entry(entry)
             else:
-                if '' in entry['cACertificate;binary']:
+                if b'' in entry['cACertificate;binary']:
                     entry.single_value['cACertificate;binary'] = ca_cert
                     ldap.update_entry(entry)
 

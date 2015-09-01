@@ -1260,7 +1260,7 @@ class ReplicationManager(object):
             sub = {'suffix': self.suffix, 'fqdn': replica}
             try:
                 entry.raw['aci'].remove(
-                    '(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,'
+                    b'(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,'
                     '%(suffix)s")(version 3.0; acl "Add CA Certificates for '
                     'renewals"; allow(add) userdn = "ldap:///fqdn=%(fqdn)s,'
                     'cn=computers,cn=accounts,%(suffix)s";)' % sub)
@@ -1268,7 +1268,7 @@ class ReplicationManager(object):
                 pass
             try:
                 entry.raw['aci'].remove(
-                    '(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,'
+                    b'(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,'
                     '%(suffix)s")(targetattr = "userCertificate")'
                     '(version 3.0; acl "Modify CA Certificates for renewals"; '
                     'allow(write) userdn = "ldap:///fqdn=%(fqdn)s,'
@@ -1277,7 +1277,7 @@ class ReplicationManager(object):
                 pass
             try:
                 entry.raw['aci'].remove(
-                    '(target = "ldap:///cn=CAcert,cn=ipa,cn=etc,%(suffix)s")'
+                    b'(target = "ldap:///cn=CAcert,cn=ipa,cn=etc,%(suffix)s")'
                     '(targetattr = cACertificate)(version 3.0; acl "Modify CA '
                     'Certificate"; allow (write) userdn = "ldap:///fqdn='
                     '%(fqdn)s,cn=computers,cn=accounts,%(suffix)s";)' % sub)
@@ -1305,7 +1305,7 @@ class ReplicationManager(object):
             sub = {'suffix': self.suffix, 'fqdn': replica}
             try:
                 entry.raw['aci'].remove(
-                    '(targetfilter = "(objectClass=nsContainer)")'
+                    b'(targetfilter = "(objectClass=nsContainer)")'
                     '(targetattr = "cn || objectClass || ipaConfigString")'
                     '(version 3.0; acl "Read IPA Masters"; allow (read, '
                     'search, compare) userdn = "ldap:///fqdn=%(fqdn)s,'
@@ -1314,7 +1314,7 @@ class ReplicationManager(object):
                 pass
             try:
                 entry.raw['aci'].remove(
-                    '(targetfilter = "(objectClass=nsContainer)")'
+                    b'(targetfilter = "(objectClass=nsContainer)")'
                     '(targetattr = "ipaConfigString")(version 3.0; acl '
                     '"Modify IPA Masters"; allow (write) userdn = '
                     '"ldap:///fqdn=%(fqdn)s,cn=computers,cn=accounts,'
@@ -1343,7 +1343,7 @@ class ReplicationManager(object):
             sub = {'suffix': self.suffix, 'fqdn': replica}
             try:
                 entry.raw['aci'].remove(
-                    '(targetfilter = "(&(objectClass=ipaCertificate)'
+                    b'(targetfilter = "(&(objectClass=ipaCertificate)'
                     '(ipaConfigString=ipaCA))")(targetattr = '
                     '"ipaCertIssuerSerial || cACertificate")(version 3.0; acl '
                     '"Modify CA Certificate Store Entry"; allow (write) '

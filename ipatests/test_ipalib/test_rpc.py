@@ -67,10 +67,10 @@ def test_round_trip():
     assert_equal(dump_n_load(unicode_str), unicode_str)
     assert_equal(dump_n_load(Binary(binary_bytes)).data, binary_bytes)
     assert isinstance(dump_n_load(Binary(binary_bytes)), Binary)
-    assert type(dump_n_load('hello')) is bytes
+    assert type(dump_n_load(b'hello')) is bytes
     assert type(dump_n_load(u'hello')) is bytes
-    assert_equal(dump_n_load(''), '')
-    assert_equal(dump_n_load(u''), '')
+    assert_equal(dump_n_load(b''), b'')
+    assert_equal(dump_n_load(u''), b'')
     assert dump_n_load(None) is None
 
     # Now we test our wrap and unwrap methods in combination with dumps, loads:
@@ -81,9 +81,9 @@ def test_round_trip():
     assert_equal(round_trip(utf8_bytes), utf8_bytes)
     assert_equal(round_trip(unicode_str), unicode_str)
     assert_equal(round_trip(binary_bytes), binary_bytes)
-    assert type(round_trip('hello')) is bytes
+    assert type(round_trip(b'hello')) is bytes
     assert type(round_trip(u'hello')) is unicode
-    assert_equal(round_trip(''), '')
+    assert_equal(round_trip(b''), b'')
     assert_equal(round_trip(u''), u'')
     assert round_trip(None) is None
     compound = [utf8_bytes, None, binary_bytes, (None, unicode_str),
@@ -99,13 +99,13 @@ def test_xml_wrap():
     f = rpc.xml_wrap
     assert f([], API_VERSION) == tuple()
     assert f({}, API_VERSION) == dict()
-    b = f('hello', API_VERSION)
+    b = f(b'hello', API_VERSION)
     assert isinstance(b, Binary)
-    assert b.data == 'hello'
+    assert b.data == b'hello'
     u = f(u'hello', API_VERSION)
     assert type(u) is unicode
     assert u == u'hello'
-    value = f([dict(one=False, two=u'hello'), None, 'hello'], API_VERSION)
+    value = f([dict(one=False, two=u'hello'), None, b'hello'], API_VERSION)
 
 
 def test_xml_unwrap():
@@ -120,8 +120,8 @@ def test_xml_unwrap():
     assert value == utf8_bytes
     assert f(utf8_bytes) == unicode_str
     assert f(unicode_str) == unicode_str
-    value = f([True, Binary('hello'), dict(one=1, two=utf8_bytes, three=None)])
-    assert value == (True, 'hello', dict(one=1, two=unicode_str, three=None))
+    value = f([True, Binary(b'hello'), dict(one=1, two=utf8_bytes, three=None)])
+    assert value == (True, b'hello', dict(one=1, two=unicode_str, three=None))
     assert type(value[1]) is bytes
     assert type(value[2]['two']) is unicode
 
@@ -134,7 +134,7 @@ def test_xml_dumps():
     params = (binary_bytes, utf8_bytes, unicode_str, None)
 
     # Test serializing an RPC request:
-    data = f(params, API_VERSION, 'the_method')
+    data = f(params, API_VERSION, b'the_method')
     (p, m) = loads(data)
     assert_equal(m, u'the_method')
     assert type(p) is tuple
@@ -165,7 +165,7 @@ def test_xml_loads():
     wrapped = rpc.xml_wrap(params, API_VERSION)
 
     # Test un-serializing an RPC request:
-    data = dumps(wrapped, 'the_method', allow_none=True)
+    data = dumps(wrapped, b'the_method', allow_none=True)
     (p, m) = f(data)
     assert_equal(m, u'the_method')
     assert_equal(p, params)

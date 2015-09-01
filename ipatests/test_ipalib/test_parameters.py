@@ -46,7 +46,7 @@ from ipalib import _
 if six.PY3:
     unicode = str
 
-NULLS = (None, '', u'', tuple(), [])
+NULLS = (None, b'', u'', tuple(), [])
 
 class test_DefaultFrom(ClassChecker):
     """

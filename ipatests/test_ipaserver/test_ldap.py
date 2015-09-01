@@ -306,7 +306,7 @@ class test_LDAPEntry(object):
         assert nice == [2, 3, u'5']
         assert raw == ['3', '5', '2']
 
-        raw = ['a', 'b']
+        raw = [b'a', b'b']
         e.raw['test'] = raw
         assert e['test'] is not nice
         assert e['test'] == [u'a', u'b']
@@ -314,7 +314,7 @@ class test_LDAPEntry(object):
         nice = 'not list'
         e['test'] = nice
         assert e['test'] is nice
-        assert e.raw['test'] == ['not list']
+        assert e.raw['test'] == [b'not list']
 
         e.raw['test'].append('second')
         assert e['test'] == ['not list', u'second']

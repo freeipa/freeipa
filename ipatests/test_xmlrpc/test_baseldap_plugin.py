@@ -201,13 +201,13 @@ def test_entry_to_dict():
         DN('cn=test'),
         textattr=[u'text'],
         dnattr=[DN('cn=test')],
-        binaryattr=['\xffabcd'],
+        binaryattr=[b'\xffabcd'],
         attributelevelrights=rights)
     the_dict = {
         u'dn': u'cn=test',
         u'textattr': [u'text'],
         u'dnattr': [u'cn=test'],
-        u'binaryattr': ['\xffabcd'],
+        u'binaryattr': [b'\xffabcd'],
         u'attributelevelrights': rights}
     assert_deepequal(
         baseldap.entry_to_dict(entry, all=True, raw=True),

@@ -25,12 +25,12 @@ import struct
 
 
 # A string that should have bytes 'x\00' through '\xff':
-binary_bytes = ''.join(struct.pack('B', d) for d in range(256))
-assert '\x00' in binary_bytes and '\xff' in binary_bytes
+binary_bytes = b''.join(struct.pack('B', d) for d in range(256))
+assert b'\x00' in binary_bytes and b'\xff' in binary_bytes
 assert type(binary_bytes) is str and len(binary_bytes) == 256
 
 # A UTF-8 encoded str:
-utf8_bytes = '\xd0\x9f\xd0\xb0\xd0\xb2\xd0\xb5\xd0\xbb'
+utf8_bytes = b'\xd0\x9f\xd0\xb0\xd0\xb2\xd0\xb5\xd0\xbb'
 
 # The same UTF-8 data decoded (a unicode instance):
 unicode_str = u'\u041f\u0430\u0432\u0435\u043b'
