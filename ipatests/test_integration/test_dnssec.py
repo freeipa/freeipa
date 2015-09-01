@@ -30,13 +30,17 @@ def resolve_with_dnssec(nameserver, query, log, rtype="SOA"):
     ans = res.query(query, rtype)
     return ans
 
+def get_RRSIG_record(nameserver, query, log, rtype="SOA"):
+    ans = resolve_with_dnssec(nameserver, query, log, rtype=rtype)
+    return ans.response.find_rrset(
+        ans.response.answer, dns.name.from_text(query),
+        dns.rdataclass.IN, dns.rdatatype.RRSIG,
+        dns.rdatatype.from_text(rtype))
+
 
 def is_record_signed(nameserver, query, log, rtype="SOA"):
     try:
-        ans = resolve_with_dnssec(nameserver, query, log, rtype=rtype)
-        ans.response.find_rrset(ans.response.answer, dns.name.from_text(query),
-                                dns.rdataclass.IN, dns.rdatatype.RRSIG,
-                                dns.rdatatype.from_text(rtype))
+        get_RRSIG_record(nameserver, query, log, rtype=rtype)
     except KeyError:
         return False
     except dns.exception.DNSException:
@@ -130,6 +134,103 @@ class TestInstallDNSSECLast(IntegrationTest):
             self.master.ip, test_zone_repl, self.log, timeout=5
         ), "DNS zone %s is not signed (master)" % test_zone
 
+    def test_disable_reenable_signing_master(self):
+
+        dnskey_old = resolve_with_dnssec(self.master.ip, test_zone,
+                                         self.log, rtype="DNSKEY").rrset
+
+        # disable DNSSEC signing of zone on master
+        args = [
+            "ipa",
+            "dnszone-mod", test_zone,
+            "--dnssec", "false",
+        ]
+        self.master.run_command(args)
+
+        time.sleep(20)  # sleep a bit until LDAP changes are applied to DNS
+
+        # test master
+        assert not is_record_signed(
+            self.master.ip, test_zone, self.log
+        ), "Zone %s is still signed (master)" % test_zone
+
+        # test replica
+        assert not is_record_signed(
+            self.replicas[0].ip, test_zone, self.log
+        ), "DNS zone %s is still signed (replica)" % test_zone
+
+        # reenable DNSSEC signing
+        args = [
+            "ipa",
+            "dnszone-mod", test_zone,
+            "--dnssec", "true",
+        ]
+        self.master.run_command(args)
+
+        time.sleep(20)  # sleep a bit until LDAP changes are applied to DNS
+
+        # test master
+        assert wait_until_record_is_signed(
+            self.master.ip, test_zone, self.log, timeout=100
+        ), "Zone %s is not signed (master)" % test_zone
+
+        # test replica
+        assert wait_until_record_is_signed(
+            self.replicas[0].ip, test_zone, self.log, timeout=200
+        ), "DNS zone %s is not signed (replica)" % test_zone
+
+        dnskey_new = resolve_with_dnssec(self.master.ip, test_zone,
+                                         self.log, rtype="DNSKEY").rrset
+        assert dnskey_old != dnskey_new, "DNSKEY should be different"
+
+    def test_disable_reenable_signing_replica(self):
+
+        dnskey_old = resolve_with_dnssec(self.replicas[0].ip, test_zone_repl,
+                                         self.log, rtype="DNSKEY").rrset
+
+        # disable DNSSEC signing of zone on replica
+        args = [
+            "ipa",
+            "dnszone-mod", test_zone_repl,
+            "--dnssec", "false",
+        ]
+        self.master.run_command(args)
+
+        time.sleep(20)  # sleep a bit until LDAP changes are applied to DNS
+
+        # test master
+        assert not is_record_signed(
+            self.master.ip, test_zone_repl, self.log
+        ), "Zone %s is still signed (master)" % test_zone_repl
+
+        # test replica
+        assert not is_record_signed(
+            self.replicas[0].ip, test_zone_repl, self.log
+        ), "DNS zone %s is still signed (replica)" % test_zone_repl
+
+        # reenable DNSSEC signing
+        args = [
+            "ipa",
+            "dnszone-mod", test_zone_repl,
+            "--dnssec", "true",
+        ]
+        self.master.run_command(args)
+
+        time.sleep(20)  # sleep a bit until LDAP changes are applied to DNS
+
+        # test master
+        assert wait_until_record_is_signed(
+            self.master.ip, test_zone_repl, self.log, timeout=100
+        ), "Zone %s is not signed (master)" % test_zone_repl
+
+        # test replica
+        assert wait_until_record_is_signed(
+            self.replicas[0].ip, test_zone_repl, self.log, timeout=200
+        ), "DNS zone %s is not signed (replica)" % test_zone_repl
+
+        dnskey_new = resolve_with_dnssec(self.replicas[0].ip, test_zone_repl,
+                                         self.log, rtype="DNSKEY").rrset
+        assert dnskey_old != dnskey_new, "DNSKEY should be different"
 
 class TestInstallDNSSECFirst(IntegrationTest):
     """Simple DNSSEC test
@@ -205,6 +306,10 @@ class TestInstallDNSSECFirst(IntegrationTest):
         assert wait_until_record_is_signed(
             self.master.ip, example_test_zone, self.log, timeout=100
         ), "Zone %s is not signed (master)" % example_test_zone
+        # wait until zone is signed
+        assert wait_until_record_is_signed(
+            self.replicas[0].ip, example_test_zone, self.log, timeout=200
+        ), "Zone %s is not signed (replica)" % example_test_zone
 
         # GET DNSKEY records from zone
         ans = resolve_with_dnssec(self.master.ip, example_test_zone, self.log,
