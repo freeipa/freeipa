@@ -178,6 +178,7 @@ class Backup(admintool.AdminTool):
         paths.DNSSEC_SOFTHSM_PIN_SO,
         paths.IPA_ODS_EXPORTER_KEYTAB,
         paths.IPA_DNSKEYSYNCD_KEYTAB,
+        paths.HOSTS,
     ) + tuple(
         os.path.join(base, file)
         for base in (paths.NSS_DB_DIR, paths.IPA_NSSDB_DIR)
