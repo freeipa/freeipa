@@ -54,8 +54,7 @@ KEYTAB_FB = paths.IPA_ODS_EXPORTER_KEYTAB
 ODS_SE_MAXLINE = 1024  # from ODS common/config.h
 ODS_DB_LOCK_PATH = "%s%s" % (paths.OPENDNSSEC_KASP_DB, '.our_lock')
 
-# TODO: MECH_RSA_OAEP
-SECRETKEY_WRAPPING_MECH = 'rsaPkcs'
+SECRETKEY_WRAPPING_MECH = 'rsaPkcsOaep'
 PRIVKEY_WRAPPING_MECH = 'aesKeyWrapPad'
 
 # DNSKEY flag constants
@@ -295,7 +294,8 @@ def master2ldap_master_keys_sync(log, ldapkeydb, localhsm):
                 hexlify(mkey_id), hexlify(replica_key_id)))
             replica_key = localhsm.replica_pubkeys_wrap[replica_key_id]
             keydata = localhsm.p11.export_wrapped_key(mkey_local.handle,
-                    replica_key.handle, _ipap11helper.MECH_RSA_PKCS)
+                    replica_key.handle,
+                    wrappingmech_name2id[SECRETKEY_WRAPPING_MECH])
             mkey_ldap.add_wrapped_data(keydata, SECRETKEY_WRAPPING_MECH,
                     replica_key_id)
 
