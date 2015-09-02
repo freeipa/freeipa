@@ -15,6 +15,8 @@ test_zone = "dnssec.test."
 test_zone_repl = "dnssec-replica.test."
 root_zone = "."
 example_test_zone = "example.test."
+example2_test_zone = "example2.test."
+example3_test_zone = "example3.test."
 
 
 def resolve_with_dnssec(nameserver, query, log, rtype="SOA"):
@@ -389,3 +391,150 @@ class TestInstallDNSSECFirst(IntegrationTest):
         # test if signature chains are valid
         self.master.run_command(args)
         self.replicas[0].run_command(args)
+
+
+class TestMigrateDNSSECMaster(IntegrationTest):
+    """test DNSSEC master migration
+
+    Install a server and a replica with DNS, then reinstall server
+    as DNSSEC master
+    Test:
+     * migrate dnssec master to replica
+     * create new zone
+     * verify if zone is signed on all replicas
+     * add new replica
+     * add new zone
+     * test if new zone is signed on all replicas
+    """
+    num_replicas = 2
+    topology = 'star'
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+        args = [
+            "ipa-dns-install",
+            "--dnssec-master",
+            "--forwarder", cls.master.config.dns_forwarder,
+            "-p", cls.master.config.dirman_password,
+            "-U",
+        ]
+        cls.master.run_command(args)
+        tasks.install_replica(cls.master, cls.replicas[0], setup_dns=True)
+
+    def test_migrate_dnssec_master(self):
+        """Both master and replica have DNS installed"""
+        backup_filename = "/var/lib/ipa/ipa-kasp.db.backup"
+        replica_backup_filename = "/tmp/ipa-kasp.db.backup"
+
+        # add test zone
+        args = [
+            "ipa", "dnszone-add", example_test_zone, "--dnssec", "true"
+        ]
+
+        self.master.run_command(args)
+
+        # wait until zone is signed
+        assert wait_until_record_is_signed(
+            self.master.ip, example_test_zone, self.log, timeout=100
+        ), "Zone %s is not signed (master)" % example_test_zone
+        # wait until zone is signed
+        assert wait_until_record_is_signed(
+            self.replicas[0].ip, example_test_zone, self.log, timeout=200
+        ), "Zone %s is not signed (replica)" % example_test_zone
+
+        dnskey_old = resolve_with_dnssec(self.master.ip, example_test_zone,
+                                         self.log, rtype="DNSKEY").rrset
+
+        # migrate dnssec master to replica
+        args = [
+            "ipa-dns-install",
+            "--disable-dnssec-master",
+            "--forwarder", self.master.config.dns_forwarder,
+            "-p", self.master.config.dirman_password,
+            "--force",
+            "-U",
+        ]
+        self.master.run_command(args)
+
+        # move content of "ipa-kasp.db.backup" to replica
+        kasp_db_backup = self.master.get_file_contents(backup_filename)
+        self.replicas[0].put_file_contents(replica_backup_filename,
+                                           kasp_db_backup)
+
+        args = [
+            "ipa-dns-install",
+            "--dnssec-master",
+            "--kasp-db", replica_backup_filename,
+            "--forwarder", self.master.config.dns_forwarder,
+            "-p", self.master.config.dirman_password,
+            "-U",
+        ]
+        self.replicas[0].run_command(args)
+
+        # wait until zone is signed
+        assert wait_until_record_is_signed(
+            self.master.ip, example_test_zone, self.log, timeout=100
+        ), "Zone %s is not signed after migration (master)" % example_test_zone
+        # wait until zone is signed
+        assert wait_until_record_is_signed(
+            self.replicas[0].ip, example_test_zone, self.log, timeout=200
+        ), "Zone %s is not signed after migration (replica)" % example_test_zone
+
+        # test if dnskey are the same
+        dnskey_new = resolve_with_dnssec(self.master.ip, example_test_zone,
+                                         self.log, rtype="DNSKEY").rrset
+        assert dnskey_old == dnskey_new, "DNSKEY should be the same"
+
+        # add test zone
+        args = [
+            "ipa", "dnszone-add", example2_test_zone, "--dnssec", "true"
+        ]
+        self.replicas[0].run_command(args)
+
+        # wait until zone is signed
+        assert wait_until_record_is_signed(
+            self.replicas[0].ip, example2_test_zone, self.log, timeout=100
+        ), ("Zone %s is not signed after migration (replica - dnssec master)"
+            % example2_test_zone)
+        # wait until zone is signed
+        assert wait_until_record_is_signed(
+            self.master.ip, example2_test_zone, self.log, timeout=200
+        ), ("Zone %s is not signed after migration (master)"
+            % example2_test_zone)
+
+        # add new replica
+        tasks.install_replica(self.master, self.replicas[1], setup_dns=True)
+
+        # test if originial zones are signed on new replica
+        # wait until zone is signed
+        assert wait_until_record_is_signed(
+            self.replicas[1].ip, example_test_zone, self.log, timeout=200
+        ), ("Zone %s is not signed (new replica)"
+            % example_test_zone)
+        # wait until zone is signed
+        assert wait_until_record_is_signed(
+            self.replicas[1].ip, example2_test_zone, self.log, timeout=200
+        ), ("Zone %s is not signed (new replica)"
+            % example2_test_zone)
+
+        # add new zone to new replica
+        args = [
+            "ipa", "dnszone-add", example3_test_zone, "--dnssec", "true"
+        ]
+        self.replicas[1].run_command(args)
+
+        # wait until zone is signed
+        assert wait_until_record_is_signed(
+            self.replicas[1].ip, example3_test_zone, self.log, timeout=200
+        ), ("Zone %s is not signed (new replica)"
+            % example3_test_zone)
+        assert wait_until_record_is_signed(
+            self.replicas[0].ip, example3_test_zone, self.log, timeout=200
+        ), ("Zone %s is not signed (replica)"
+            % example3_test_zone)
+        # wait until zone is signed
+        assert wait_until_record_is_signed(
+            self.master.ip, example3_test_zone, self.log, timeout=200
+        ), ("Zone %s is not signed (master)"
+            % example3_test_zone)
