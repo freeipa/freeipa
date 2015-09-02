@@ -731,7 +731,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: certprofile_mod
-args: 1,11,3
+args: 1,10,3
 arg: Str('cn', attribute=True, cli_name='id', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -740,7 +740,6 @@ option: Str('description', attribute=True, autofill=False, cli_name='desc', mult
 option: File('file?', cli_name='file')
 option: Bool('ipacertprofilestoreissued', attribute=True, autofill=False, cli_name='store', default=True, multivalue=False, required=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
-option: Str('rename', cli_name='rename', multivalue=False, primary_key=True, required=False)
 option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('version?', exclude='webui')

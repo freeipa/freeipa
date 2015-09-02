@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=154
-# Last change: pvoborni - change default vault type to 'symmetric'
+IPA_API_VERSION_MINOR=155
+# Last change: ftweedal - remove certprofile 'rename' option
