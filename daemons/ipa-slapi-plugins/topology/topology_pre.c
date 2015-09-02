@@ -582,7 +582,8 @@ ipa_topo_pre_del(Slapi_PBlock *pb)
         return 0;
     }
 
-    if (ipa_topo_pre_ignore_op(pb)) return result;
+    if (ipa_topo_pre_ignore_op(pb) ||
+        ipa_topo_util_is_tombstone_op(pb)) return result;
 
     if (ipa_topo_is_entry_managed(pb)) {
         int rc = LDAP_UNWILLING_TO_PERFORM;

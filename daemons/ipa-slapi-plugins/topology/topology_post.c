@@ -214,6 +214,9 @@ ipa_topo_post_del(Slapi_PBlock *pb)
     slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                     "--> ipa_topo_post_del\n");
 
+    /* 0. prevent operation on tombstones */
+    if (ipa_topo_util_is_tombstone_op(pb)) return 0;
+
     /* 1. get entry  */
     slapi_pblock_get(pb,SLAPI_ENTRY_PRE_OP,&del_entry);
 

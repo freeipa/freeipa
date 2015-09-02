@@ -289,6 +289,7 @@ void ipa_topo_util_update_host(Slapi_Entry *hostentry, LDAPMod **mods);
 void ipa_topo_util_disable_repl_from_host(char *repl_root, char *delhost);
 void ipa_topo_util_delete_segments_for_host(char *repl_root, char *delhost);
 
+int ipa_topo_util_is_tombstone_op(Slapi_PBlock *pb);
 int ipa_topo_util_entry_is_candidate(Slapi_Entry *e);
 int ipa_topo_util_target_is_managed(Slapi_Entry *e);
 int ipa_topo_util_segment_is_managed(TopoReplica *tconf, TopoReplicaSegment *tsegm);

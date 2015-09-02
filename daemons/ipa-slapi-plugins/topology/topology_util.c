@@ -474,7 +474,10 @@ ipa_topo_util_conf_from_entry(Slapi_Entry *entry)
 {
     TopoReplica *conf = NULL;
     char *repl_root = NULL;
+
     repl_root = slapi_entry_attr_get_charptr(entry,"ipaReplTopoConfRoot");
+    if (NULL == repl_root) return NULL;
+
     conf = ipa_topo_cfg_replica_find(repl_root, 1);
     if (conf) {
         slapi_ch_free((void **)&repl_root);
@@ -1762,4 +1765,17 @@ void
 ipa_topo_util_suffix_update(Slapi_Entry *config_post, Slapi_Entry *config_pre,
                        LDAPMod **mods)
 {
+}
+
+#ifndef SLAPI_OP_FLAG_TOMBSTONE_ENTRY
+#define SLAPI_OP_FLAG_TOMBSTONE_ENTRY 0x001000
+#endif
+
+int
+ipa_topo_util_is_tombstone_op(Slapi_PBlock *pb)
+{
+    Slapi_Operation *op;
+
+    slapi_pblock_get(pb, SLAPI_OPERATION, &op);
+    return slapi_operation_is_flag_set(op, SLAPI_OP_FLAG_TOMBSTONE_ENTRY);
 }
