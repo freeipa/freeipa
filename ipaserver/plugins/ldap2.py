@@ -77,10 +77,7 @@ class ldap2(CrudBackend, LDAPClient):
         # do not set it
         pass
 
-    def _disconnect(self):
-        pass
-
-    def __del__(self):
+    def close(self):
         if self.isconnected():
             self.disconnect()
 
@@ -120,10 +117,11 @@ class ldap2(CrudBackend, LDAPClient):
         if debug_level:
             _ldap.set_option(_ldap.OPT_DEBUG_LEVEL, debug_level)
 
-        LDAPClient._connect(self)
-        conn = self._conn
+        client = LDAPClient(self.ldap_uri,
+                            force_schema_updates=self._force_schema_updates)
+        conn = client._conn
 
-        with self.error_handler():
+        with client.error_handler():
             minssf = conn.get_option(_ldap.OPT_X_SASL_SSF_MIN)
             maxssf = conn.get_option(_ldap.OPT_X_SASL_SSF_MAX)
             # Always connect with at least an SSF of 56, confidentiality
@@ -137,15 +135,15 @@ class ldap2(CrudBackend, LDAPClient):
         ldapi = self.ldap_uri.startswith('ldapi://')
 
         if bind_pw:
-            self.simple_bind(bind_dn, bind_pw,
-                             server_controls=serverctrls,
-                             client_controls=clientctrls)
+            client.simple_bind(bind_dn, bind_pw,
+                               server_controls=serverctrls,
+                               client_controls=clientctrls)
         elif autobind != AUTOBIND_DISABLED and os.getegid() == 0 and ldapi:
             try:
                 pw_name = pwd.getpwuid(os.geteuid()).pw_name
-                self.external_bind(pw_name,
-                                   server_controls=serverctrls,
-                                   client_controls=clientctrls)
+                client.external_bind(pw_name,
+                                     server_controls=serverctrls,
+                                     client_controls=clientctrls)
             except errors.NotFound:
                 if autobind == AUTOBIND_ENABLED:
                     # autobind was required and failed, raise
@@ -153,7 +151,7 @@ class ldap2(CrudBackend, LDAPClient):
                     raise
         else:
             if ldapi:
-                with self.error_handler():
+                with client.error_handler():
                     conn.set_option(_ldap.OPT_HOST_NAME, self.api.env.host)
             if ccache is None:
                 os.environ.pop('KRB5CCNAME', None)
@@ -162,8 +160,8 @@ class ldap2(CrudBackend, LDAPClient):
 
             principal = krb_utils.get_principal(ccache_name=ccache)
 
-            self.gssapi_bind(server_controls=serverctrls,
-                             client_controls=clientctrls)
+            client.gssapi_bind(server_controls=serverctrls,
+                               client_controls=clientctrls)
             setattr(context, 'principal', principal)
 
         return conn
@@ -171,9 +169,8 @@ class ldap2(CrudBackend, LDAPClient):
     def destroy_connection(self):
         """Disconnect from LDAP server."""
         try:
-            if self._conn is not None:
+            if self.conn is not None:
                 self.unbind()
-                LDAPClient._disconnect(self)
         except errors.PublicError:
             # ignore when trying to unbind multiple times
             pass

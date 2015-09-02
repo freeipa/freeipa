@@ -711,11 +711,10 @@ class LDAPClient(object):
         self._decode_attrs = decode_attrs
 
         self.log = log_mgr.get_logger(self)
-        self._conn = None
         self._has_schema = False
         self._schema = None
 
-        self._connect()
+        self._conn = self._connect()
 
     @property
     def conn(self):
@@ -1024,29 +1023,16 @@ class LDAPClient(object):
         """
         Close the connection.
         """
-        if self._conn is not None:
-            self._disconnect()
+        self._conn = None
 
     def _connect(self):
-        if self._conn is not None:
-            raise errors.DatabaseError(
-                desc="Can't connect to server", info="Already connected")
-
         with self.error_handler():
-            # bypass ldap2's locking
-            object.__setattr__(self, '_conn',
-                               ldap.initialize(self.ldap_uri))
+            conn = ldap.initialize(self.ldap_uri)
 
             if self._start_tls:
-                self._conn.start_tls_s()
+                conn.start_tls_s()
 
-    def _disconnect(self):
-        if self._conn is None:
-            raise errors.DatabaseError(
-                desc="Can't disconnect from server", info="Not connected")
-
-        # bypass ldap2's locking
-        object.__setattr__(self, '_conn', None)
+        return conn
 
     def simple_bind(self, bind_dn, bind_password, server_controls=None,
                     client_controls=None):
@@ -1060,7 +1046,7 @@ class LDAPClient(object):
             assert isinstance(bind_dn, DN)
             bind_dn = str(bind_dn)
             bind_password = self.encode(bind_password)
-            self._conn.simple_bind_s(
+            self.conn.simple_bind_s(
                 bind_dn, bind_password, server_controls, client_controls)
 
     def external_bind(self, user_name, server_controls=None,
@@ -1071,7 +1057,7 @@ class LDAPClient(object):
         with self.error_handler():
             auth_tokens = ldap.sasl.external(user_name)
             self._flush_schema()
-            self._conn.sasl_interactive_bind_s(
+            self.conn.sasl_interactive_bind_s(
                 '', auth_tokens, server_controls, client_controls)
 
     def gssapi_bind(self, server_controls=None, client_controls=None):
@@ -1081,7 +1067,7 @@ class LDAPClient(object):
         with self.error_handler():
             auth_tokens = ldap.sasl.sasl({}, 'GSSAPI')
             self._flush_schema()
-            self._conn.sasl_interactive_bind_s(
+            self.conn.sasl_interactive_bind_s(
                 '', auth_tokens, server_controls, client_controls)
 
     def unbind(self):
@@ -1090,7 +1076,7 @@ class LDAPClient(object):
         """
         with self.error_handler():
             self._flush_schema()
-            self._conn.unbind_s()
+            self.conn.unbind_s()
 
     def make_dn_from_attr(self, attr, value, parent_dn=None):
         """
