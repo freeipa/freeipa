@@ -878,6 +878,7 @@ def install(installer):
     ds.change_admin_password(admin_password)
 
     # Call client install script
+    service.print_msg("Configuring client side components")
     try:
         args = [paths.IPA_CLIENT_INSTALL, "--on-master", "--unattended",
                 "--domain", domain_name, "--server", host_name,
