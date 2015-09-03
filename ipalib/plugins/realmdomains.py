@@ -289,7 +289,9 @@ class realmdomains_mod(LDAPUpdate):
                     u'_kerberos',
                     txtrecord=api.env.realm
                 )
-            except (errors.EmptyModlist, errors.NotFound) as error:
+            except (errors.EmptyModlist, errors.NotFound,
+                    errors.ValidationError) as error:
+
                 # If creation of the _kerberos TXT record failed, prompt
                 # for manual intervention
                 messages.add_message(
@@ -316,7 +318,8 @@ class realmdomains_mod(LDAPUpdate):
                     u'_kerberos',
                     txtrecord=api.env.realm
                 )
-            except (errors.AttrValueNotFound, errors.NotFound) as error:
+            except (errors.AttrValueNotFound, errors.NotFound,
+                    errors.ValidationError) as error:
                 # If deletion of the _kerberos TXT record failed, prompt
                 # for manual intervention
                 messages.add_message(
