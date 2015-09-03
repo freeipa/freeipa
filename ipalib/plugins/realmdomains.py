@@ -19,7 +19,7 @@
 
 import six
 
-from ipalib import api, errors
+from ipalib import api, errors, messages
 from ipalib import Str, Flag
 from ipalib import _
 from ipalib.plugable import Registry
@@ -289,8 +289,18 @@ class realmdomains_mod(LDAPUpdate):
                     u'_kerberos',
                     txtrecord=api.env.realm
                 )
-            except (errors.EmptyModlist, errors.NotFound):
-                pass
+            except (errors.EmptyModlist, errors.NotFound) as error:
+                # If creation of the _kerberos TXT record failed, prompt
+                # for manual intervention
+                messages.add_message(
+                    options['version'],
+                    result,
+                    messages.KerberosTXTRecordCreationFailure(
+                        domain=domain,
+                        error=unicode(error),
+                        realm=self.api.env.realm
+                    )
+                )
 
         # Delete _kerberos TXT record from zones that correspond with
         # domains which were deleted
@@ -306,8 +316,16 @@ class realmdomains_mod(LDAPUpdate):
                     u'_kerberos',
                     txtrecord=api.env.realm
                 )
-            except (errors.AttrValueNotFound, errors.NotFound):
-                pass
+            except (errors.AttrValueNotFound, errors.NotFound) as error:
+                # If deletion of the _kerberos TXT record failed, prompt
+                # for manual intervention
+                messages.add_message(
+                    options['version'],
+                    result,
+                    messages.KerberosTXTRecordDeletionFailure(
+                        domain=domain, error=unicode(error)
+                    )
+                )
 
         return result
 
