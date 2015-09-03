@@ -260,3 +260,11 @@ default:objectClass: groupofnames
 default:objectClass: top
 default:cn: CA Administrator
 default:description: CA Administrator
+
+# Vault Administrators
+dn: cn=Vault Administrators,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: nestedgroup
+default:objectClass: groupofnames
+default:objectClass: top
+default:cn: Vault Administrators
+default:description: Vault Administrators

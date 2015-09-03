@@ -338,6 +338,28 @@ dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Remove Users";allow (delete) groupdn = "ldap:///cn=System: Remove Users,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=users,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "krblastadminunlock || krbloginfailedcount || nsaccountlock")(targetfilter = "(objectclass=posixaccount)")(version 3.0;acl "permission:System: Unlock User";allow (write) groupdn = "ldap:///cn=System: Unlock User,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (target = "ldap:///cn=vaults,cn=kra,dc=ipa,dc=example")(targetfilter = "(objectclass=ipaVault)")(version 3.0;acl "permission:System: Add Vaults";allow (add) groupdn = "ldap:///cn=System: Add Vaults,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (target = "ldap:///cn=vaults,cn=kra,dc=ipa,dc=example")(targetfilter = "(objectclass=ipaVault)")(version 3.0;acl "permission:System: Delete Vaults";allow (delete) groupdn = "ldap:///cn=System: Delete Vaults,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "member")(target = "ldap:///cn=vaults,cn=kra,dc=ipa,dc=example")(targetfilter = "(objectclass=ipaVault)")(version 3.0;acl "permission:System: Manage Vault Membership";allow (write) groupdn = "ldap:///cn=System: Manage Vault Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "owner")(target = "ldap:///cn=vaults,cn=kra,dc=ipa,dc=example")(targetfilter = "(objectclass=ipaVault)")(version 3.0;acl "permission:System: Manage Vault Ownership";allow (write) groupdn = "ldap:///cn=System: Manage Vault Ownership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "cn || description || ipavaultpublickey || ipavaultsalt || ipavaulttype || objectclass")(target = "ldap:///cn=vaults,cn=kra,dc=ipa,dc=example")(targetfilter = "(objectclass=ipaVault)")(version 3.0;acl "permission:System: Modify Vaults";allow (write) groupdn = "ldap:///cn=System: Modify Vaults,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "cn || createtimestamp || description || entryusn || ipavaultpublickey || ipavaultsalt || ipavaulttype || member || memberhost || memberuser || modifytimestamp || objectclass || owner")(target = "ldap:///cn=vaults,cn=kra,dc=ipa,dc=example")(targetfilter = "(objectclass=ipaVault)")(version 3.0;acl "permission:System: Read Vaults";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Vaults,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (target = "ldap:///cn=vaults,cn=kra,dc=ipa,dc=example")(targetfilter = "(objectclass=ipaVaultContainer)")(version 3.0;acl "permission:System: Add Vault Containers";allow (add) groupdn = "ldap:///cn=System: Add Vault Containers,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (target = "ldap:///cn=vaults,cn=kra,dc=ipa,dc=example")(targetfilter = "(objectclass=ipaVaultContainer)")(version 3.0;acl "permission:System: Delete Vault Containers";allow (delete) groupdn = "ldap:///cn=System: Delete Vault Containers,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "owner")(target = "ldap:///cn=vaults,cn=kra,dc=ipa,dc=example")(targetfilter = "(objectclass=ipaVaultContainer)")(version 3.0;acl "permission:System: Manage Vault Container Ownership";allow (write) groupdn = "ldap:///cn=System: Manage Vault Container Ownership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "cn || description || objectclass")(target = "ldap:///cn=vaults,cn=kra,dc=ipa,dc=example")(targetfilter = "(objectclass=ipaVaultContainer)")(version 3.0;acl "permission:System: Modify Vault Containers";allow (write) groupdn = "ldap:///cn=System: Modify Vault Containers,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: dc=ipa,dc=example
+aci: (targetattr = "cn || createtimestamp || description || entryusn || modifytimestamp || objectclass || owner")(target = "ldap:///cn=vaults,cn=kra,dc=ipa,dc=example")(targetfilter = "(objectclass=ipaVaultContainer)")(version 3.0;acl "permission:System: Read Vault Containers";allow (compare,read,search) groupdn = "ldap:///cn=System: Read Vault Containers,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=ca_renewal,cn=ipa,cn=etc,dc=ipa,dc=example
 aci: (target = "ldap:///cn=caSigningCert cert-pki-ca,cn=ca_renewal,cn=ipa,cn=etc,dc=ipa,dc=example")(targetfilter = "(objectclass=pkiuser)")(version 3.0;acl "permission:System: Add CA Certificate For Renewal";allow (add) groupdn = "ldap:///cn=System: Add CA Certificate For Renewal,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=certificates,cn=ipa,cn=etc,dc=ipa,dc=example

@@ -290,6 +290,7 @@ class vaultcontainer(LDAPObject):
     object_name = _('vaultcontainer')
     object_name_plural = _('vaultcontainers')
     object_class = ['ipaVaultContainer']
+    permission_filter_objectclasses = ['ipaVaultContainer']
 
     attribute_members = {
         'owner': ['user', 'group', 'service'],
@@ -297,6 +298,48 @@ class vaultcontainer(LDAPObject):
 
     label = _('Vault Containers')
     label_singular = _('Vault Container')
+
+    managed_permissions = {
+        'System: Read Vault Containers': {
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN(api.env.container_vault, api.env.basedn),
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass', 'cn', 'description', 'owner',
+            },
+            'default_privileges': {'Vault Administrators'},
+        },
+        'System: Add Vault Containers': {
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN(api.env.container_vault, api.env.basedn),
+            'ipapermright': {'add'},
+            'default_privileges': {'Vault Administrators'},
+        },
+        'System: Delete Vault Containers': {
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN(api.env.container_vault, api.env.basedn),
+            'ipapermright': {'delete'},
+            'default_privileges': {'Vault Administrators'},
+        },
+        'System: Modify Vault Containers': {
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN(api.env.container_vault, api.env.basedn),
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'objectclass', 'cn', 'description',
+            },
+            'default_privileges': {'Vault Administrators'},
+        },
+        'System: Manage Vault Container Ownership': {
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN(api.env.container_vault, api.env.basedn),
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'owner',
+            },
+            'default_privileges': {'Vault Administrators'},
+        },
+    }
 
     takes_params = (
         Str(
@@ -492,6 +535,7 @@ class vault(LDAPObject):
     object_name_plural = _('vaults')
 
     object_class = ['ipaVault']
+    permission_filter_objectclasses = ['ipaVault']
     default_attributes = [
         'cn',
         'description',
@@ -513,6 +557,60 @@ class vault(LDAPObject):
 
     label = _('Vaults')
     label_singular = _('Vault')
+
+    managed_permissions = {
+        'System: Read Vaults': {
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN(api.env.container_vault, api.env.basedn),
+            'ipapermright': {'read', 'search', 'compare'},
+            'ipapermdefaultattr': {
+                'objectclass', 'cn', 'description', 'ipavaulttype',
+                'ipavaultsalt', 'ipavaultpublickey', 'owner', 'member',
+                'memberuser', 'memberhost',
+            },
+            'default_privileges': {'Vault Administrators'},
+        },
+        'System: Add Vaults': {
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN(api.env.container_vault, api.env.basedn),
+            'ipapermright': {'add'},
+            'default_privileges': {'Vault Administrators'},
+        },
+        'System: Delete Vaults': {
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN(api.env.container_vault, api.env.basedn),
+            'ipapermright': {'delete'},
+            'default_privileges': {'Vault Administrators'},
+        },
+        'System: Modify Vaults': {
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN(api.env.container_vault, api.env.basedn),
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'objectclass', 'cn', 'description', 'ipavaulttype',
+                'ipavaultsalt', 'ipavaultpublickey',
+            },
+            'default_privileges': {'Vault Administrators'},
+        },
+        'System: Manage Vault Ownership': {
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN(api.env.container_vault, api.env.basedn),
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'owner',
+            },
+            'default_privileges': {'Vault Administrators'},
+        },
+        'System: Manage Vault Membership': {
+            'ipapermlocation': api.env.basedn,
+            'ipapermtarget': DN(api.env.container_vault, api.env.basedn),
+            'ipapermright': {'write'},
+            'ipapermdefaultattr': {
+                'member',
+            },
+            'default_privileges': {'Vault Administrators'},
+        },
+    }
 
     takes_params = (
         Str(
