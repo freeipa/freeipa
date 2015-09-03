@@ -25,6 +25,7 @@ from ipalib import _
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import LDAPObject, LDAPUpdate, LDAPRetrieve
 from ipalib.util import has_soa_or_ns_record, validate_domain_name
+from ipalib.util import detect_dns_zone_realm_type
 from ipapython.dn import DN
 from ipapython.ipautil import get_domain_name
 
@@ -130,6 +131,77 @@ class realmdomains_mod(LDAPUpdate):
         ),
     )
 
+    def validate_domains(self, domains, force):
+        """
+        Validates the list of domains as candidates for additions to the
+        realmdomains list.
+
+        Requirements:
+        - Each domain has SOA or NS record
+        - Each domain belongs to the current realm
+        """
+
+        # Unless forced, check that each domain has SOA or NS records
+        if not force:
+            invalid_domains = [
+                d for d in domains
+                if not has_soa_or_ns_record(d)
+            ]
+
+            if invalid_domains:
+                raise errors.ValidationError(
+                    name='domain',
+                    error= _(
+                        "DNS zone for each realmdomain must contain "
+                        "SOA or NS records. No records found for: %s"
+                    ) % ','.join(invalid_domains)
+                )
+
+        # Check realm alliegence for each domain
+        domains_with_realm = [
+            (domain, detect_dns_zone_realm_type(self.api, domain))
+            for domain in domains
+        ]
+
+        foreign_domains = [
+            domain for domain, realm in domains_with_realm
+            if realm == 'foreign'
+        ]
+
+        unknown_domains = [
+            domain for domain, realm in domains_with_realm
+            if realm == 'unknown'
+        ]
+
+        # If there are any foreing realm domains, bail out
+        if foreign_domains:
+            raise errors.ValidationError(
+                name='domain',
+                error=_(
+                    'The following domains do not belong '
+                    'to this realm: %(domains)s'
+                ) % dict(domains=','.join(foreign_domains))
+            )
+
+        # If there are any unknown domains, error out,
+        # asking for _kerberos TXT records
+
+        # Note: This can be forced, since realmdomains-mod
+        #       is called from dnszone-add where we know that
+        #       the domain being added belongs to our realm
+        if not force and unknown_domains:
+            raise errors.ValidationError(
+                name='domain',
+                error=_(
+                    'The realm of the folllowing domains could '
+                    'not be detected: %(domains)s. If these are '
+                    'domains that belong to the this realm, please '
+                    'create a _kerberos TXT record containing "%(realm)s" '
+                    'in each of them.'
+                ) % dict(domains=','.join(unknown_domains),
+                         realm=self.api.env.realm)
+            )
+
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
         associateddomain = entry_attrs.get('associateddomain')
@@ -138,11 +210,6 @@ class realmdomains_mod(LDAPUpdate):
         force = options.get('force')
 
         current_domain = get_domain_name()
-
-        missing_soa_ns_record_error = _(
-            "DNS zone for each realmdomain must contain "
-            "SOA or NS records. No records found for: %s"
-        )
 
         # User specified the list of domains explicitly
         if associateddomain:
@@ -163,19 +230,9 @@ class realmdomains_mod(LDAPUpdate):
                     error=_("IPA server domain cannot be omitted")
                 )
 
-            # Unless forced, check that each domain has SOA or NS records
-            if not force:
-                bad_domains = [
-                    d for d in associateddomain
-                    if not has_soa_or_ns_record(d)
-                ]
-
-                if bad_domains:
-                    bad_domains = ', '.join(bad_domains)
-                    raise errors.ValidationError(
-                        name='domain',
-                        error=missing_soa_ns_record_error % bad_domains
-                    )
+            # Validate that each domain satisfies the requirements
+            # for realmdomain
+            self.validate_domains(domains=associateddomain, force=force)
 
             return dn
 
@@ -184,12 +241,7 @@ class realmdomains_mod(LDAPUpdate):
         domains = ldap.get_entry(dn)['associateddomain']
 
         if add_domain:
-            if not force and not has_soa_or_ns_record(add_domain):
-                raise errors.ValidationError(
-                    name='add_domain',
-                    error=missing_soa_ns_record_error % add_domain
-                )
-
+            self.validate_domains(domains=[add_domain], force=force)
             del entry_attrs['add_domain']
             domains.append(add_domain)
 
