@@ -137,16 +137,46 @@ class realmdomains_mod(LDAPUpdate):
         del_domain = entry_attrs.get('del_domain')
         force = options.get('force')
 
+        current_domain = get_domain_name()
+
+        missing_soa_ns_record_error = _(
+            "DNS zone for each realmdomain must contain "
+            "SOA or NS records. No records found for: %s"
+        )
+
+        # User specified the list of domains explicitly
         if associateddomain:
             if add_domain or del_domain:
-                raise errors.MutuallyExclusiveError(reason=_("you cannot specify the --domain option together with --add-domain or --del-domain"))
-            if get_domain_name() not in associateddomain:
-                raise errors.ValidationError(name='domain', error=_("cannot delete domain of IPA server"))
+                raise errors.MutuallyExclusiveError(
+                    reason=_(
+                        "The --domain option cannot be used together "
+                        "with --add-domain or --del-domain. Use --domain "
+                        "to specify the whole realm domain list explicitly, "
+                        "to add/remove individual domains, use "
+                        "--add-domain/del-domain.")
+                )
+
+            # Make sure our domain is included in the list
+            if current_domain not in associateddomain:
+                raise errors.ValidationError(
+                    name='realmdomain list',
+                    error=_("IPA server domain cannot be omitted")
+                )
+
+            # Unless forced, check that each domain has SOA or NS records
             if not force:
-                bad_domains = [d for d in associateddomain if not has_soa_or_ns_record(d)]
+                bad_domains = [
+                    d for d in associateddomain
+                    if not has_soa_or_ns_record(d)
+                ]
+
                 if bad_domains:
                     bad_domains = ', '.join(bad_domains)
-                    raise errors.ValidationError(name='domain', error=_("no SOA or NS records found for domains: %s" % bad_domains))
+                    raise errors.ValidationError(
+                        name='domain',
+                        error=missing_soa_ns_record_error % bad_domains
+                    )
+
             return dn
 
         # If --add-domain or --del-domain options were provided, read
@@ -155,18 +185,29 @@ class realmdomains_mod(LDAPUpdate):
 
         if add_domain:
             if not force and not has_soa_or_ns_record(add_domain):
-                raise errors.ValidationError(name='add_domain', error=_("no SOA or NS records found for domain %s" % add_domain))
+                raise errors.ValidationError(
+                    name='add_domain',
+                    error=missing_soa_ns_record_error % add_domain
+                )
+
             del entry_attrs['add_domain']
             domains.append(add_domain)
 
         if del_domain:
-            if del_domain == get_domain_name():
-                raise errors.ValidationError(name='del_domain', error=_("cannot delete domain of IPA server"))
+            if del_domain == current_domain:
+                raise errors.ValidationError(
+                    name='del_domain',
+                    error=_("IPA server domain cannot be deleted")
+                )
             del entry_attrs['del_domain']
+
             try:
                 domains.remove(del_domain)
             except ValueError:
-                raise errors.AttrValueNotFound(attr='associateddomain', value=del_domain)
+                raise errors.AttrValueNotFound(
+                    attr='associateddomain',
+                    value=del_domain
+                )
 
         entry_attrs['associateddomain'] = domains
         return dn
@@ -184,13 +225,15 @@ class realmdomains_mod(LDAPUpdate):
 
         # Add a _kerberos TXT record for zones that correspond with
         # domains which were added
-        for d in domains_added:
+        for domain in domains_added:
+
             # Skip our own domain
-            if d == api.env.domain:
+            if domain == api.env.domain:
                 continue
+
             try:
                 api.Command['dnsrecord_add'](
-                    unicode(d),
+                    unicode(domain),
                     u'_kerberos',
                     txtrecord=api.env.realm
                 )
@@ -199,13 +242,15 @@ class realmdomains_mod(LDAPUpdate):
 
         # Delete _kerberos TXT record from zones that correspond with
         # domains which were deleted
-        for d in domains_deleted:
+        for domain in domains_deleted:
+
             # Skip our own domain
-            if d == api.env.domain:
+            if domain == api.env.domain:
                 continue
+
             try:
                 api.Command['dnsrecord_del'](
-                    unicode(d),
+                    unicode(domain),
                     u'_kerberos',
                     txtrecord=api.env.realm
                 )
