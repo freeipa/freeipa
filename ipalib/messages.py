@@ -241,6 +241,37 @@ class DNSSECValidationFailingWarning(PublicMessage):
                u"validation on all IPA servers.")
 
 
+class KerberosTXTRecordCreationFailure(PublicMessage):
+    """
+    **13011** Used when a _kerberos TXT record could not be added to
+    a DNS zone.
+    """
+
+    errno = 13011
+    type = "warning"
+    format = _(
+        "The _kerberos TXT record from domain %(domain)s could not be created "
+        "(%(error)s).\nThis can happen if the zone is not managed by IPA. "
+        "Please create the record manually, containing the following "
+        "value: '%(realm)s'"
+    )
+
+
+class KerberosTXTRecordDeletionFailure(PublicMessage):
+    """
+    **13012** Used when a _kerberos TXT record could not be removed from
+    a DNS zone.
+    """
+
+    errno = 13012
+    type = "warning"
+    format = _(
+        "The _kerberos TXT record from domain %(domain)s could not be removed "
+        "(%(error)s).\nThis can happen if the zone is not managed by IPA. "
+        "Please remove the record manually."
+    )
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
