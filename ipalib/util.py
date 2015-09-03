@@ -801,3 +801,58 @@ def get_topology_connection_errors(graph):
         if not_visited:
             connect_errors.append((m, list(visited), list(not_visited)))
     return connect_errors
+
+def detect_dns_zone_realm_type(api, domain):
+    """
+    Detects the type of the realm that the given DNS zone belongs to.
+    Note: This method is heuristic. Possible values:
+      - 'current': For IPA domains belonging in the current realm.
+      - 'foreign': For domains belonging in a foreing kerberos realm.
+      - 'unknown': For domains whose allegiance could not be detected.
+    """
+
+    # First, try to detect _kerberos TXT record in the domain
+    # This would indicate that the domain belongs to IPA realm
+
+    kerberos_prefix = DNSName('_kerberos')
+    domain_suffix = DNSName(domain)
+    kerberos_record_name = kerberos_prefix + domain_suffix
+
+    response = None
+
+    try:
+        result = resolver.query(kerberos_record_name, rdatatype.TXT)
+        answer = result.response.answer
+
+        # IPA domain will have only one _kerberos TXT record
+        if (len(answer) == 1 and
+            len(answer[0]) == 1 and
+            answer[0].rdtype == rdatatype.TXT):
+
+            record = answer[0][0]
+
+            # If the record contains our current realm, it is 'ipa-current'
+            if record.to_text() == '"{0}"'.format(api.env.realm):
+                return 'current'
+            else:
+                return 'foreign'
+
+    except DNSException as e:
+        pass
+
+    # Try to detect AD specific record in the zone.
+    # This would indicate that the domain belongs to foreign (AD) realm
+
+    gc_prefix = DNSName('_ldap._tcp.gc._msdcs')
+    ad_specific_record_name = gc_prefix + domain_suffix
+
+    try:
+        # The presence of this record is enough, return foreign in such case
+        result = resolver.query(ad_specific_record_name, rdatatype.SRV)
+        return 'foreign'
+
+    except DNSException as e:
+        pass
+
+    # If we could not detect type with certainity, return unknown
+    return 'unknown'
