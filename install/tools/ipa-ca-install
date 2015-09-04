@@ -160,7 +160,9 @@ def install_master(safe_options, options):
     if not dsinstance.DsInstance().is_configured():
         sys.exit("IPA server is not configured on this system.\n")
 
-    api.bootstrap(in_server=True)
+    # override ra_plugin setting read from default.conf so that we have
+    # functional dogtag backend plugins during CA install
+    api.bootstrap(in_server=True, ra_plugin='dogtag')
     api.finalize()
 
     dm_password = options.password
