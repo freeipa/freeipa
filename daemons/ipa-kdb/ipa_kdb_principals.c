@@ -31,7 +31,7 @@
                                     "(objectclass=krbprincipal)" \
                                     "(objectclass=ipakrbprincipal))" \
                                     "(|(ipakrbprincipalalias=%s)" \
-                                      "(krbprincipalname=%s)))"
+                                      "(krbprincipalname:caseIgnoreIA5Match:=%s)))"
 
 #define PRINC_SEARCH_FILTER "(&(|(objectclass=krbprincipalaux)" \
                                 "(objectclass=krbprincipal))" \
@@ -959,6 +959,17 @@ static krb5_error_code ipadb_find_principal(krb5_context kcontext,
                                 NULL, NULL, &result) != 0)
                     return KRB5_KDB_INTERNAL_ERROR;
                 found = (result == 0);
+                if (found) {
+                    /* replace the incoming principal with the value having
+                     * the correct case. This ensures that valid name/alias
+                     * is returned even if krbCanonicalName is not present
+                     */
+                    free(*principal);
+                    *principal = strdup(vals[i]->bv_val);
+                    if (!(*principal)) {
+                        return KRB5_KDB_INTERNAL_ERROR;
+                    }
+                }
             } else {
                 found = (strcmp(vals[i]->bv_val, (*principal)) == 0);
             }
