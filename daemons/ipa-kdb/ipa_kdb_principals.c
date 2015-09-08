@@ -40,7 +40,6 @@
 static char *std_principal_attrs[] = {
     "krbPrincipalName",
     "krbCanonicalName",
-    "ipaKrbPrincipalAlias",
     "krbUPEnabled",
     "krbPrincipalKey",
     "krbTicketPolicyReference",
@@ -89,7 +88,6 @@ static char *std_principal_obj_classes[] = {
     "krbprincipal",
     "krbprincipalaux",
     "krbTicketPolicyAux",
-    "ipakrbprincipal",
 
     NULL
 };
@@ -1755,7 +1753,7 @@ static krb5_error_code ipadb_principal_to_mods(krb5_context kcontext,
     if (kerr) {
         goto done;
     }
-    kerr = ipadb_get_ldap_mod_str(imods, "ipaKrbPrincipalAlias",
+    kerr = ipadb_get_ldap_mod_str(imods, "krbCanonicalName",
                                   principal, mod_op);
     if (kerr) {
         goto done;
