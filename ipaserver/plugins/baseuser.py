@@ -39,6 +39,7 @@ from ipalib.util import (
     remove_sshpubkey_from_output_post,
     remove_sshpubkey_from_output_list_post,
     add_sshpubkey_to_attrs_pre,
+    set_krbcanonicalname
 )
 
 if six.PY3:
@@ -497,6 +498,7 @@ class baseuser_add(LDAPCreate):
     def pre_common_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
                             **options):
         assert isinstance(dn, DN)
+        set_krbcanonicalname(entry_attrs)
         self.obj.convert_usercertificate_pre(entry_attrs)
 
     def post_common_callback(self, ldap, dn, entry_attrs, *keys, **options):

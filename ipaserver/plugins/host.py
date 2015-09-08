@@ -50,6 +50,7 @@ from ipalib.util import (normalize_sshpubkey, validate_sshpubkey_no_options,
     remove_sshpubkey_from_output_list_post,
     normalize_hostname,
     hostname_validator,
+    set_krbcanonicalname
 )
 from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
 from ipapython.dnsutil import DNSName
@@ -632,6 +633,7 @@ class host_add(LDAPCreate):
                 entry_attrs['objectclass'].append('krbprincipalaux')
             if 'krbprincipal' not in entry_attrs['objectclass']:
                 entry_attrs['objectclass'].append('krbprincipal')
+            set_krbcanonicalname(entry_attrs)
         else:
             if 'krbprincipalaux' in entry_attrs['objectclass']:
                 entry_attrs['objectclass'].remove('krbprincipalaux')

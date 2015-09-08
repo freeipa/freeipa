@@ -44,6 +44,7 @@ from .baseuser import (
     baseuser_add_manager,
     baseuser_remove_manager)
 from ipalib.request import context
+from ipalib.util import set_krbcanonicalname
 from ipalib import _, ngettext
 from ipalib import output
 from ipaplatform.paths import paths
@@ -531,6 +532,8 @@ class stageuser_activate(LDAPQuery):
 
         if 'krbprincipalname' not in entry_from:
             entry_to['krbprincipalname'] = '%s@%s' % (entry_from['uid'][0], api.env.realm)
+
+        set_krbcanonicalname(entry_to)
 
     def __dict_new_entry(self, *args, **options):
         ldap = self.obj.backend

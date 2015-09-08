@@ -901,3 +901,14 @@ def validate_bind_forwarder(ugettext, forwarder):
             return _('%(port)s is not a valid port' % dict(port=port))
 
     return None
+
+
+def set_krbcanonicalname(entry_attrs):
+    objectclasses = set(i.lower() for i in entry_attrs['objectclass'])
+
+    if 'krbprincipalaux' not in objectclasses:
+        return
+
+    if ('krbprincipalname' in entry_attrs
+            and 'krbcanonicalname' not in entry_attrs):
+        entry_attrs['krbcanonicalname'] = entry_attrs['krbprincipalname']
