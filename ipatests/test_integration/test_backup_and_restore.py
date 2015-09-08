@@ -27,6 +27,7 @@ from ipapython.ipa_log_manager import log_mgr
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
+from ipatests.test_integration.test_dnssec import wait_until_record_is_signed
 from ipatests.util import assert_deepequal
 
 log = log_mgr.get_logger(__name__)
@@ -206,3 +207,134 @@ class TestBackupAndRestore(IntegrationTest):
         ])
         assert 'httpd_can_network_connect --> on' in result.stdout_text
         assert 'httpd_manage_ipa --> on' in result.stdout_text
+
+
+class BaseBackupAndRestoreWithDNS(IntegrationTest):
+    """
+    Abstract class for DNS restore tests
+    """
+    topology = 'star'
+
+    example_test_zone = "example.test."
+    example2_test_zone = "example2.test."
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+
+    def _full_backup_restore_with_DNS_zone(self, reinstall=False):
+        """backup, uninstall, restore"""
+        with restore_checker(self.master):
+
+            self.master.run_command([
+                'ipa', 'dnszone-add',
+                self.example_test_zone,
+            ])
+
+            tasks.resolve_record(self.master.ip, self.example_test_zone)
+
+            backup_path = backup(self.master)
+
+            self.master.run_command(['ipa-server-install',
+                                     '--uninstall',
+                                     '-U'])
+
+            if reinstall:
+                tasks.install_master(self.master, setup_dns=True)
+
+            dirman_password = self.master.config.dirman_password
+            self.master.run_command(['ipa-restore', backup_path],
+                                    stdin_text=dirman_password + '\nyes')
+
+            tasks.resolve_record(self.master.ip, self.example_test_zone)
+
+            self.master.run_command([
+                'ipa', 'dnszone-add',
+                self.example2_test_zone,
+            ])
+
+            tasks.resolve_record(self.master.ip, self.example2_test_zone)
+
+
+class TestBackupAndRestoreWithDNS(BaseBackupAndRestoreWithDNS):
+    def test_full_backup_and_restore_with_DNS_zone(self):
+        """backup, uninstall, restore"""
+        self._full_backup_restore_with_DNS_zone(reinstall=False)
+
+
+class TestBackupReinstallRestoreWithDNS(BaseBackupAndRestoreWithDNS):
+    def test_full_backup_reinstall_restore_with_DNS_zone(self):
+        """backup, uninstall, reinstall, restore"""
+        self._full_backup_restore_with_DNS_zone(reinstall=True)
+
+
+class BaseBackupAndRestoreWithDNSSEC(IntegrationTest):
+    """
+    Abstract class for DNSSEC restore tests
+    """
+    topology = 'star'
+
+    example_test_zone = "example.test."
+    example2_test_zone = "example2.test."
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+        args = [
+            "ipa-dns-install",
+            "--dnssec-master",
+            "--forwarder", cls.master.config.dns_forwarder,
+            "-p", cls.master.config.dirman_password,
+            "-U",
+        ]
+        cls.master.run_command(args)
+
+    def _full_backup_and_restore_with_DNSSEC_zone(self, reinstall=False):
+        with restore_checker(self.master):
+
+            self.master.run_command([
+                'ipa', 'dnszone-add',
+                self.example_test_zone,
+                '--dnssec', 'true',
+            ])
+
+            assert wait_until_record_is_signed(self.master.ip,
+                self.example_test_zone, self.log), "Zone is not signed"
+
+            backup_path = backup(self.master)
+
+            self.master.run_command(['ipa-server-install',
+                                     '--uninstall',
+                                     '-U'])
+
+            if reinstall:
+                tasks.install_master(self.master, setup_dns=True)
+
+            dirman_password = self.master.config.dirman_password
+            self.master.run_command(['ipa-restore', backup_path],
+                                    stdin_text=dirman_password + '\nyes')
+
+            assert wait_until_record_is_signed(self.master.ip,
+                self.example_test_zone, self.log), ("Zone is not signed after "
+                                                    "restore")
+
+            self.master.run_command([
+                'ipa', 'dnszone-add',
+                self.example2_test_zone,
+                '--dnssec', 'true',
+            ])
+
+            assert wait_until_record_is_signed(self.master.ip,
+                self.example2_test_zone, self.log), "A new zone is not signed"
+
+
+class TestBackupAndRestoreWithDNSSEC(BaseBackupAndRestoreWithDNSSEC):
+    def test_full_backup_and_restore_with_DNSSEC_zone(self):
+        """backup, uninstall, restore"""
+        self._full_backup_and_restore_with_DNSSEC_zone(reinstall=False)
+
+
+class TestBackupReinstallRestoreWithDNSSEC(BaseBackupAndRestoreWithDNSSEC):
+    def test_full_backup_reinstall_restore_with_DNSSEC_zone(self):
+        """backup, uninstall, install, restore"""
+        self._full_backup_and_restore_with_DNSSEC_zone(reinstall=True)

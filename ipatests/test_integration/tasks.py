@@ -26,6 +26,7 @@ import collections
 import itertools
 import time
 import StringIO
+import dns
 
 from ldif import LDIFWriter
 
@@ -801,3 +802,25 @@ def add_a_record(master, host):
                             master.domain.name,
                             host.hostname,
                             '--a-rec', host.ip])
+
+
+def resolve_record(nameserver, query, rtype="SOA", retry=True, timeout=100):
+    """Resolve DNS record
+    :retry: if resolution failed try again until timeout is reached
+    :timeout: max period of time while method will try to resolve query
+     (requires retry=True)
+    """
+    res = dns.resolver.Resolver()
+    res.nameservers = [nameserver]
+    res.lifetime = 10  # wait max 10 seconds for reply
+
+    wait_until = time.time() + timeout
+
+    while time.time() < wait_until:
+        try:
+            ans = res.query(query, rtype)
+            return ans
+        except dns.exception.DNSException:
+            if not retry:
+                raise
+        time.sleep(1)
