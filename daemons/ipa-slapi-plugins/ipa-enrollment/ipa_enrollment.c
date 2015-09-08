@@ -142,6 +142,7 @@ ipa_join(Slapi_PBlock *pb)
 
     int scope = LDAP_SCOPE_SUBTREE;
     char *principal = NULL;
+    char *princ_canonical = NULL;
     struct berval retbval;
 
     if (NULL == realm) {
@@ -271,6 +272,16 @@ ipa_join(Slapi_PBlock *pb)
     slapi_mods_add_string(smods, LDAP_MOD_ADD, "krbPrincipalName", principal);
     slapi_mods_add_string(smods, LDAP_MOD_ADD, "objectClass", "krbPrincipalAux");
 
+    /* check for krbCanonicalName attribute. If not present, set it to same
+     * value as krbPrincipalName*/
+    princ_canonical = slapi_entry_attr_get_charptr(targetEntry,
+                                                   "krbCanonicalName");
+
+    if (NULL == princ_canonical) {
+        slapi_mods_add_string(smods, LDAP_MOD_ADD, "krbCanonicalName",
+                              principal);
+    }
+
     pbtm = slapi_pblock_new();
     slapi_modify_internal_set_pb (pbtm, slapi_entry_get_dn_const(targetEntry),
         slapi_mods_get_ldapmods_byref(smods),
@@ -324,6 +335,10 @@ free_and_return:
     slapi_send_ldap_result(pb, rc, NULL, errMesg, 0, NULL);
 
     free(principal);
+
+    if (princ_canonical) {
+        free(princ_canonical);
+    }
 
     return SLAPI_PLUGIN_EXTENDED_SENT_RESULT;
 }
