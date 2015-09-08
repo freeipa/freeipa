@@ -6,6 +6,8 @@ cn:krbPrincipalName
 nsSystemIndex:false
 nsIndexType:eq
 nsIndexType:sub
+nsMatchingRule:caseIgnoreIA5Match
+nsMatchingRule:caseExactIA5Match
 
 dn: cn=ou,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 changetype: add
