@@ -97,6 +97,7 @@ class KrbInstance(service.Service):
             krbextradata=service_entry['krbextradata'],
             krblastpwdchange=service_entry['krblastpwdchange'],
             krbprincipalname=service_entry['krbprincipalname'],
+            krbcanonicalname=service_entry['krbcanonicalname'],
             krbprincipalkey=service_entry['krbprincipalkey'],
             serverhostname=[self.fqdn.split('.',1)[0]],
             cn=[self.fqdn],
