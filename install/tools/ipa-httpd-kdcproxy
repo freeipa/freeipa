@@ -24,6 +24,7 @@ This script creates or removes the symlink from /etc/ipa/ipa-kdc-proxy.conf
 to /etc/httpd/conf.d/. It's called from ExecStartPre hook in httpd.service.
 """
 import os
+import socket
 import sys
 
 from ipalib import api, errors
@@ -81,7 +82,7 @@ class KDCProxyConfig(object):
             # EXTERNAL bind as root user
             self.con.ldapi = True
             self.con.do_bind(timeout=self.time_limit)
-        except errors.NetworkError as e:
+        except (errors.NetworkError, socket.timeout) as e:
             msg = 'Unable to connect to dirsrv: %s' % e
             raise CheckError(msg)
         except errors.AuthorizationError as e:
