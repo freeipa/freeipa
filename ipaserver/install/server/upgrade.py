@@ -1355,10 +1355,13 @@ def upgrade_configuration():
         sub_dict['SUBJECT_BASE'] = subject_base
 
     ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
-    ca.backup_config()
 
     with installutils.stopped_service(configured_constants.SERVICE_NAME,
             configured_constants.PKI_INSTANCE_NAME):
+
+        # Dogtag must be stopped to be able to backup CS.cfg config
+        ca.backup_config()
+
         # migrate CRL publish dir before the location in ipa.conf is updated
         ca_restart = migrate_crl_publish_dir(ca)
 
