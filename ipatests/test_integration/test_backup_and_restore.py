@@ -336,3 +336,80 @@ class TestBackupReinstallRestoreWithDNSSEC(BaseBackupAndRestoreWithDNSSEC):
     def test_full_backup_reinstall_restore_with_DNSSEC_zone(self):
         """backup, uninstall, install, restore"""
         self._full_backup_and_restore_with_DNSSEC_zone(reinstall=True)
+
+
+class BaseBackupAndRestoreWithKRA(IntegrationTest):
+    """
+    Abstract class for KRA restore tests
+    """
+    topology = 'star'
+
+    vault_name = "ci_test_vault"
+    vault_password = "password"
+    vault_data = "SSBsb3ZlIENJIHRlc3RzCg=="
+
+    @classmethod
+    def install(cls, mh):
+        tasks.install_master(cls.master, setup_dns=True)
+        args = [
+            "ipa-kra-install",
+            "-p", cls.master.config.dirman_password,
+            "-U",
+        ]
+        cls.master.run_command(args)
+
+    def _full_backup_restore_with_vault(self, reinstall=False):
+        with restore_checker(self.master):
+            # create vault
+            self.master.run_command([
+                "ipa", "vault-add",
+                self.vault_name,
+                "--password", self.vault_password,
+                "--type", "symmetric",
+            ])
+
+            # archive secret
+            self.master.run_command([
+                "ipa", "vault-archive",
+                self.vault_name,
+                "--password", self.vault_password,
+                "--data", self.vault_data,
+            ])
+
+            # retrieve secret
+            self.master.run_command([
+                "ipa", "vault-retrieve",
+                self.vault_name,
+                "--password", self.vault_password,
+            ])
+
+            backup_path = backup(self.master)
+
+            self.master.run_command(['ipa-server-install',
+                                     '--uninstall',
+                                     '-U'])
+
+            if reinstall:
+                tasks.install_master(self.master, setup_dns=True)
+
+            dirman_password = self.master.config.dirman_password
+            self.master.run_command(['ipa-restore', backup_path],
+                                    stdin_text=dirman_password + '\nyes')
+
+            # retrieve secret after restore
+            self.master.run_command([
+                "ipa", "vault-retrieve",
+                self.vault_name,
+                "--password", self.vault_password,
+            ])
+
+
+class TestBackupAndRestoreWithKRA(BaseBackupAndRestoreWithKRA):
+    def test_full_backup_restore_with_vault(self):
+        """backup, uninstall, restore"""
+        self._full_backup_restore_with_vault(reinstall=False)
+
+class TestBackupReinstallRestoreWithKRA(BaseBackupAndRestoreWithKRA):
+    def test_full_backup_reinstall_restore_with_vault(self):
+        """backup, uninstall, reinstall, restore"""
+        self._full_backup_restore_with_vault(reinstall=True)
