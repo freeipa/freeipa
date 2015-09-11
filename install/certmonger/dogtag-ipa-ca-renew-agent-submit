@@ -35,6 +35,8 @@ import base64
 import contextlib
 import json
 
+import six
+
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipalib import api, errors, pkcs10, x509
@@ -55,6 +57,10 @@ UNREACHABLE = 3
 UNCONFIGURED = 4
 WAIT_WITH_DELAY = 5
 OPERATION_NOT_SUPPORTED_BY_HELPER = 6
+
+if six.PY3:
+    unicode = str
+
 
 @contextlib.contextmanager
 def ldap_connect():

@@ -21,12 +21,17 @@ Test the `ipalib/plugins/trust.py` module.
 """
 
 import nose
+import six
+
 from ipalib import api, errors
 from ipapython.dn import DN
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (
     Declarative, fuzzy_guid, fuzzy_domain_sid, fuzzy_string, fuzzy_uuid,
     fuzzy_digits)
+
+if six.PY3:
+    unicode = str
 
 
 trustconfig_ad_config = DN(('cn', api.env.domain),

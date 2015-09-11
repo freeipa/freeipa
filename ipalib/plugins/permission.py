@@ -33,6 +33,9 @@ from ipalib.aci import ACI
 from ipapython.dn import DN
 from ipalib.request import context
 
+if six.PY3:
+    unicode = str
+
 __doc__ = _("""
 Permissions
 """) + _("""

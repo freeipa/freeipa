@@ -18,6 +18,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import six
+
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.dns import dns_container_exists
@@ -28,6 +30,9 @@ from ipalib import Command
 from ipalib import errors
 from ldap import SCOPE_SUBTREE
 from time import sleep
+
+if six.PY3:
+    unicode = str
 
 try:
     import pysss_murmur #pylint: disable=F0401

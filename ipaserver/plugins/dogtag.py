@@ -250,6 +250,7 @@ import pki
 from pki.client import PKIConnection
 import pki.crypto as cryptoutil
 from pki.kra import KRAClient
+import six
 
 from ipalib import Backend
 from ipapython.dn import DN
@@ -257,6 +258,9 @@ import ipapython.cookie
 import ipapython.dogtag
 from ipapython import ipautil
 from ipaserver.install.certs import CertDB
+
+if six.PY3:
+    unicode = str
 
 # These are general status return values used when
 # CMSServlet.outputError() is invoked.

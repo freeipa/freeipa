@@ -38,6 +38,9 @@ from ipalib.capabilities import client_has_capability
 from ipapython.dn import DN, RDN
 from ipapython.version import API_VERSION
 
+if six.PY3:
+    unicode = str
+
 DNA_MAGIC = -1
 
 global_output_params = (

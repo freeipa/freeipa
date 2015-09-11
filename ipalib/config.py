@@ -43,6 +43,8 @@ from ipalib.base import check_name
 from ipalib.constants import CONFIG_SECTION
 from ipalib.constants import OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
 
+if six.PY3:
+    unicode = str
 
 class Env(object):
     """

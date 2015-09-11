@@ -23,6 +23,8 @@ Test the `ipalib.plugins.idviews` module.
 
 import re
 
+import six
+
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, uuid_re, add_oc,
@@ -31,6 +33,9 @@ from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 from ipatests.test_xmlrpc.test_group_plugin import get_group_dn
 from ipatests.util import Fuzzy
 from ipapython.dn import DN
+
+if six.PY3:
+    unicode = str
 
 
 idview1 = u'idview1'

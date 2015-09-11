@@ -2,12 +2,17 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+import six
+
 from ipalib import api
 from ipalib import Str
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.service import normalize_principal
 from ipalib import _, ngettext
+
+if six.PY3:
+    unicode = str
 
 __doc__ = _("""
 Service Constrained Delegation

@@ -37,6 +37,7 @@ from dns import resolver, rdatatype
 from dns.exception import DNSException
 import ldap
 from nss.error import NSPRError
+import six
 
 import ipaplatform
 
@@ -51,6 +52,9 @@ from ipaserver.install import certs, service, sysupgrade
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
+
+if six.PY3:
+    unicode = str
 
 # Used to determine install status
 IPA_MODULES = [

@@ -38,6 +38,9 @@ from ipalib.plugable import Plugin
 from ipalib.request import context
 from ipapython.dn import DN
 
+if six.PY3:
+    unicode = str
+
 
 class TempDir(object):
     def __init__(self):

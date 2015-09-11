@@ -72,6 +72,9 @@ from ipapython.dn import DN
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib import api
 
+if six.PY3:
+    unicode = str
+
 COOKIE_NAME = 'ipa_session'
 KEYRING_COOKIE_NAME = '%s_cookie:%%s' % COOKIE_NAME
 

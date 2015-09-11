@@ -10,7 +10,12 @@ from ipalib.constants import DEFAULT_CONFIG
 from ipapython.ipautil import kinit_keytab
 import sys
 import os, pwd
+
+import six
 import gssapi
+
+if six.PY3:
+    unicode = str
 
 def retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal):
     getkeytab_args = ["/usr/sbin/ipa-getkeytab",

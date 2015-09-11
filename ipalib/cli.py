@@ -36,6 +36,9 @@ import traceback
 import six
 from six.moves import input
 
+if six.PY3:
+    unicode = str
+
 try:
     #pylint: disable=F0401
     import default_encoding_utf8

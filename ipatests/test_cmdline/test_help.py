@@ -22,9 +22,13 @@ import contextlib
 import StringIO
 
 from nose.tools import assert_raises  # pylint: disable=E0611
+import six
 
 from ipalib import api, errors
 from ipalib.plugins.user import user_add
+
+if six.PY3:
+    unicode = str
 
 
 class CLITestContext(object):

@@ -24,10 +24,14 @@ Simple description of return values.
 from inspect import getdoc
 from types import NoneType
 
+import six
+
 from ipalib.plugable import ReadOnly, lock
 from ipalib.capabilities import client_has_capability
 from ipalib.text import _
 
+if six.PY3:
+    unicode = str
 
 class Output(ReadOnly):
     """

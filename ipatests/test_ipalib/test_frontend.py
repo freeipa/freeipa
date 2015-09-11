@@ -24,6 +24,8 @@ Test the `ipalib.frontend` module.
 # FIXME: Pylint errors
 # pylint: disable=no-member
 
+import six
+
 from ipatests.util import raises, read_only
 from ipatests.util import ClassChecker, create_test_api
 from ipatests.util import assert_equal
@@ -33,6 +35,10 @@ from ipalib import frontend, backend, plugable, errors, parameters, config
 from ipalib import output, messages
 from ipalib.parameters import Str
 from ipapython.version import API_VERSION
+
+if six.PY3:
+    unicode = str
+
 
 def test_RULE_FLAG():
     assert frontend.RULE_FLAG == 'validation_rule'

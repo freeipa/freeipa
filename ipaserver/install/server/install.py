@@ -13,6 +13,8 @@ import sys
 import tempfile
 import textwrap
 
+import six
+
 from ipapython import certmonger, dogtag, ipaldap, ipautil, sysrestore
 from ipapython.dn import DN
 from ipapython.install import common, core
@@ -37,6 +39,9 @@ from ipaserver.install.installutils import (
     is_ipa_configured, load_pkcs12, read_password, verify_fqdn,
     update_hosts_file)
 from ipaserver.plugins.ldap2 import ldap2
+
+if six.PY3:
+    unicode = str
 
 try:
     from ipaserver.install import adtrustinstance

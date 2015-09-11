@@ -55,10 +55,14 @@ from dns import resolver, rdatatype
 from dns.exception import DNSException
 import pysss_nss_idmap
 import pysss
+import six
 from ipaplatform.paths import paths
 
 from ldap.filter import escape_filter_chars
 from time import sleep
+
+if six.PY3:
+    unicode = str
 
 __doc__ = _("""
 Classes to manage trust joins using DCE-RPC calls

@@ -45,6 +45,8 @@ And then a nested response for each IPA command method sent in the request
 
 """
 
+import six
+
 from ipalib import api, errors
 from ipalib import Command
 from ipalib.parameters import Str, Any
@@ -54,6 +56,9 @@ from ipalib.text import _
 from ipalib.request import context
 from ipalib.plugable import Registry
 from ipapython.version import API_VERSION
+
+if six.PY3:
+    unicode = str
 
 register = Registry()
 

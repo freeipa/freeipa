@@ -38,6 +38,9 @@ from ipapython import admintool
 from ipalib import api, errors
 from ipaserver.plugins.ldap2 import ldap2
 
+if six.PY3:
+    unicode = str
+
 
 class ValidationError(Exception):
     pass

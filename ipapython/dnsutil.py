@@ -23,6 +23,9 @@ import copy
 
 import six
 
+if six.PY3:
+    unicode = str
+
 
 @six.python_2_unicode_compatible
 class DNSName(dns.name.Name):

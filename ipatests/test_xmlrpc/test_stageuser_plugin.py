@@ -13,6 +13,8 @@ import re
 import functools
 import pytest
 
+import six
+
 from ipalib import api, errors
 
 from ipatests.test_xmlrpc.ldaptracker import Tracker
@@ -26,6 +28,9 @@ from ipatests.util import (
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.test_user_plugin import UserTracker, get_user_dn
 from ipatests.test_xmlrpc.test_group_plugin import GroupTracker
+
+if six.PY3:
+    unicode = str
 
 validuser1 = u'tuser1'
 validuser2 = u'tuser2'

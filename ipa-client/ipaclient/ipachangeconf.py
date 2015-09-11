@@ -24,6 +24,10 @@ import string
 import time
 import shutil
 
+import six
+
+if six.PY3:
+    unicode = str
 
 def openLocked(filename, perms):
     fd = -1

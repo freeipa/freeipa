@@ -25,6 +25,8 @@ import re
 from distutils import version
 from textwrap import wrap
 
+import six
+
 from ipapython.version import API_VERSION
 from ipapython.ipa_log_manager import root_logger
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
@@ -39,6 +41,8 @@ from ipalib.errors import (ZeroArgumentError, MaxArgumentError, OverlapError,
 from ipalib import messages
 from ipalib.util import json_serialize
 
+if six.PY3:
+    unicode = str
 
 RULE_FLAG = 'validation_rule'
 

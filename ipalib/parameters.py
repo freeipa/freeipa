@@ -123,6 +123,9 @@ from ipapython.dnsutil import DNSName
 def _is_null(value):
     return not value and value != 0 # NOTE: False == 0
 
+if six.PY3:
+    unicode = str
+
 class DefaultFrom(ReadOnly):
     """
     Derive a default value from other supplied values.

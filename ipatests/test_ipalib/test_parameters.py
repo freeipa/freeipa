@@ -43,6 +43,9 @@ from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR
 from ipalib.errors import ValidationError, ConversionError
 from ipalib import _
 
+if six.PY3:
+    unicode = str
+
 NULLS = (None, '', u'', tuple(), [])
 
 class test_DefaultFrom(ClassChecker):

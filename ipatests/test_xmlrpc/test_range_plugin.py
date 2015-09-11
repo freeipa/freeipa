@@ -21,12 +21,17 @@
 Test the `ipalib/plugins/idrange.py` module, and XML-RPC in general.
 """
 
+import six
+
 from ipalib import api, errors
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.util import MockLDAP
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
+
+if six.PY3:
+    unicode = str
 
 # Determine the test shift used
 

@@ -32,6 +32,7 @@ import pytest
 import nose
 from nose.tools import assert_raises  # pylint: disable=E0611
 import nss.nss as nss
+import six
 
 from ipaserver.plugins.ldap2 import ldap2
 from ipalib.plugins.service import service, service_show
@@ -40,6 +41,9 @@ from ipalib import api, x509, create_api, errors
 from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.dn import DN
+
+if six.PY3:
+    unicode = str
 
 class test_ldap(object):
     """

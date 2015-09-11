@@ -40,6 +40,8 @@ from ipalib.text import _ as ugettext
 from ipalib.text import Gettext, NGettext
 from ipalib.capabilities import client_has_capability
 
+if six.PY3:
+    unicode = str
 
 def add_message(version, result, message):
     if client_has_capability(version, 'messages'):

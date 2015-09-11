@@ -21,6 +21,8 @@ import re
 from ldap import MOD_ADD
 from ldap import SCOPE_BASE, SCOPE_ONELEVEL, SCOPE_SUBTREE
 
+import six
+
 from ipalib import api, errors, output
 from ipalib import Command, Password, Str, Flag, StrEnum, DNParam, File, Bool
 from ipalib.cli import to_cli
@@ -36,6 +38,9 @@ from ipapython.dn import DN
 from ipapython.ipautil import write_tmp_file
 import datetime
 from ipaplatform.paths import paths
+
+if six.PY3:
+    unicode = str
 
 __doc__ = _("""
 Migration to IPA

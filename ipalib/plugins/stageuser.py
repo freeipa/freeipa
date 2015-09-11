@@ -22,6 +22,9 @@ import string
 import posixpath
 import os
 from copy import deepcopy
+
+import six
+
 from ipalib import api, errors
 from ipalib import (Flag, Int, Password, Str, Bool, StrEnum, DateTime,
                     DeprecatedParam)
@@ -43,6 +46,9 @@ from ipapython.ipavalidate import Email
 from ipalib.capabilities import client_has_capability
 from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
     convert_sshpubkey_post)
+
+if six.PY3:
+    unicode = str
 
 __doc__ = _("""
 Stageusers

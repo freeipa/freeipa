@@ -12,6 +12,8 @@ import fileinput
 import ConfigParser
 import sys
 
+import six
+
 from ipalib import api
 import SSSDConfig
 import ipalib.util
@@ -38,6 +40,9 @@ from ipaserver.install import sysupgrade
 from ipaserver.install import dnskeysyncinstance
 from ipaserver.install.upgradeinstance import IPAUpgrade
 from ipaserver.install.ldapupdate import BadSyntax
+
+if six.PY3:
+    unicode = str
 
 
 class KpasswdInstance(service.SimpleServiceInstance):

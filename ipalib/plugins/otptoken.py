@@ -38,6 +38,11 @@ import urlparse
 import qrcode
 import os
 
+import six
+
+if six.PY3:
+    unicode = str
+
 __doc__ = _("""
 OTP Tokens
 """) + _("""

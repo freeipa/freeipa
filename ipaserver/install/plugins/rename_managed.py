@@ -17,10 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import six
+
 from ipalib import api, errors
 from ipalib import Updater
 from ipapython import ipautil
 from ipapython.dn import DN
+
+if six.PY3:
+    unicode = str
+
 
 def entry_to_update(entry):
     """

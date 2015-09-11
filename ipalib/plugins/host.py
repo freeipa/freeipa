@@ -21,6 +21,8 @@
 from nss.error import NSPRError
 import string
 
+import six
+
 from ipalib import api, errors, util
 from ipalib import Str, Flag, Bytes
 from ipalib.plugable import Registry
@@ -48,6 +50,9 @@ from ipapython.dnsutil import DNSName
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN
 from functools import reduce
+
+if six.PY3:
+    unicode = str
 
 __doc__ = _("""
 Hosts/Machines

@@ -48,6 +48,9 @@ from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
         EDNS0UnsupportedError, UnresolvableRecordError)
 from ipalib.constants import CACERT
 
+if six.PY3:
+    unicode = str
+
 NAMED_CONF = paths.NAMED_CONF
 RESOLV_CONF = paths.RESOLV_CONF
 

@@ -56,6 +56,9 @@ from ipalib.util import (normalize_zonemgr,
 from ipapython.ipautil import CheckedIPAddress, is_host_resolvable
 from ipapython.dnsutil import DNSName
 
+if six.PY3:
+    unicode = str
+
 __doc__ = _("""
 Domain Name System (DNS)
 """) + _("""

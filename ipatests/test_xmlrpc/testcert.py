@@ -28,11 +28,16 @@ once per test run.
 import os
 import tempfile
 import shutil
+import six
+
 from ipalib import api, x509
 from ipaserver.plugins import rabase
 from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.dn import DN
+
+if six.PY3:
+    unicode = str
 
 
 def get_testcert(subject, principal):

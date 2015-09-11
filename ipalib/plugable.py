@@ -36,6 +36,8 @@ import textwrap
 import collections
 import importlib
 
+import six
+
 from ipalib import errors
 from ipalib.config import Env
 from ipalib import text
@@ -44,6 +46,9 @@ from ipalib.base import ReadOnly, NameSpace, lock, islocked, check_name
 from ipalib.constants import DEFAULT_CONFIG
 from ipapython.ipa_log_manager import *
 from ipapython.version import VERSION, API_VERSION
+
+if six.PY3:
+    unicode = str
 
 # FIXME: Updated constants.TYPE_ERROR to use this clearer format from wehjit:
 TYPE_ERROR = '%s: need a %r; got a %r: %r'

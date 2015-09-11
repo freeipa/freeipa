@@ -119,6 +119,8 @@ targetattr REPLACES the current attributes, it does not add to them.
 """
 from copy import deepcopy
 
+import six
+
 from ipalib import api, crud, errors
 from ipalib import Object
 from ipalib import Flag, Str, StrEnum, DNParam
@@ -129,6 +131,9 @@ from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import gen_pkey_only_option, pkey_to_value
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
+
+if six.PY3:
+    unicode = str
 
 register = Registry()
 

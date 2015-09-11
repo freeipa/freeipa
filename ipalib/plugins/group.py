@@ -28,6 +28,9 @@ from ipalib.plugins.idviews import remove_ipaobject_overrides
 from ipalib.plugins import baseldap
 from ipalib import _, ngettext
 
+if six.PY3:
+    unicode = str
+
 if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         import ipaserver.dcerpc

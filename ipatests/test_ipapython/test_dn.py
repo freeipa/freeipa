@@ -2,7 +2,12 @@
 
 import unittest
 
+import six
+
 from ipapython.dn import *
+
+if six.PY3:
+    unicode = str
 
 def expected_class(klass, component):
     if klass is AVA:

@@ -27,6 +27,10 @@ import os
 
 import usb.core
 import yubico
+import six
+
+if six.PY3:
+    unicode = str
 
 __doc__ = _("""
 YubiKey Tokens

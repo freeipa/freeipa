@@ -21,9 +21,14 @@ Test `adtrustinstance`
 """
 
 import os
+
+import six
 import nose
 
 from ipaserver.install import adtrustinstance
+
+if six.PY3:
+    unicode = str
 
 class test_adtrustinstance:
     """

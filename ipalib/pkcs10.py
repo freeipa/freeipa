@@ -25,8 +25,13 @@ import base64
 import nss.nss as nss
 from pyasn1.type import univ, char, namedtype, tag
 from pyasn1.codec.der import decoder
+import six
+
 from ipapython import ipautil
 from ipalib import api
+
+if six.PY3:
+    unicode = str
 
 PEM = 0
 DER = 1

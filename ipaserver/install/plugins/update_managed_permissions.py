@@ -83,6 +83,8 @@ No other keys are allowed in the template
 The plugin also deletes permissions specified in OBSOLETE_PERMISSIONS.
 """
 
+import six
+
 from ipalib import api, errors
 from ipapython.dn import DN
 from ipalib.plugable import Registry
@@ -91,6 +93,9 @@ from ipalib.plugins.permission import permission, permission_del
 from ipalib.aci import ACI
 from ipalib import Updater
 from ipapython import ipautil
+
+if six.PY3:
+    unicode = str
 
 register = Registry()
 

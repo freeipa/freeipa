@@ -36,6 +36,7 @@ import time
 import ldap.controls
 from pyasn1.type import univ, namedtype
 from pyasn1.codec.ber import encoder
+import six
 
 from ipalib import plugable, errors
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
@@ -61,6 +62,9 @@ from ipapython import ipautil
 from ipaplatform.paths import paths
 from ipapython.version import VERSION
 from ipalib.text import _
+
+if six.PY3:
+    unicode = str
 
 HTTP_STATUS_SUCCESS = '200 Success'
 HTTP_STATUS_SERVER_ERROR = '500 Internal Server Error'

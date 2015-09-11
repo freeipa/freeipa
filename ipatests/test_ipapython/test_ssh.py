@@ -21,9 +21,15 @@ Test the `ipapython/ssh.py` module.
 """
 
 import base64
+
+import six
 import nose
 
 from ipapython import ssh
+
+if six.PY3:
+    unicode = str
+
 
 def make_public_key_checker(pk, out):
     def check_public_key():

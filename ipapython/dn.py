@@ -425,6 +425,9 @@ from ldap.dn import str2dn, dn2str
 from ldap import DECODING_ERROR
 import six
 
+if six.PY3:
+    unicode = str
+
 __all__ = 'AVA', 'RDN', 'DN'
 
 def _adjust_indices(start, end, length):

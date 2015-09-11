@@ -21,11 +21,16 @@
 Joining an IPA domain
 """
 
+import six
+
 from ipalib import api
 from ipalib import Command, Str
 from ipalib import errors
 from ipalib import _
 from ipaserver.install import installutils
+
+if six.PY3:
+    unicode = str
 
 
 def validate_host(ugettext, cn):

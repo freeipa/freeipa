@@ -4,10 +4,14 @@ import contextlib
 import StringIO
 
 import nose
+import six
 
 from ipatests import util
 from ipalib import api, errors
 from ipapython.version import API_VERSION
+
+if six.PY3:
+    unicode = str
 
 
 class TestCLIParsing(object):

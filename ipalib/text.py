@@ -120,6 +120,9 @@ import six
 
 from ipalib.request import context
 
+if six.PY3:
+    unicode = str
+
 
 def create_translation(key):
     assert key not in context.__dict__

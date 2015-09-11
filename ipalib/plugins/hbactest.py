@@ -32,6 +32,10 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
         _dcerpc_bindings_installed = False
 
 import pyhbac
+import six
+
+if six.PY3:
+    unicode = str
 
 __doc__ = _("""
 Simulate use of Host-based access controls

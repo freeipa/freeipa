@@ -28,6 +28,11 @@ import struct
 from hashlib import md5, sha1
 from hashlib import sha256  #pylint: disable=E0611
 
+import six
+
+if six.PY3:
+    unicode = str
+
 __all__ = ['SSHPublicKey']
 
 OPENSSH_BASE_REGEX = re.compile(r'^[\t ]*(?P<keytype>[^\x00\n\r]+?) [\t ]*(?P<key>[^\x00\n\r]+?)(?:[\t ]+(?P<comment>[^\x00\n\r]*?)[\t ]*)?$')

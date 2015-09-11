@@ -23,6 +23,7 @@
 
 from __future__ import print_function
 
+import six
 import gssapi
 
 from ipaserver.install import adtrustinstance
@@ -35,6 +36,9 @@ from ipapython.config import IPAOptionParser
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
+
+if six.PY3:
+    unicode = str
 
 log_file_name = paths.IPASERVER_INSTALL_LOG
 

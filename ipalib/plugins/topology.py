@@ -2,6 +2,8 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+import six
+
 from ipalib import api, errors
 from ipalib import Int, Str, Bool, StrEnum, Flag
 from ipalib.plugable import Registry
@@ -13,6 +15,8 @@ from ipalib import output
 from ipalib.util import create_topology_graph, get_topology_connection_errors
 from ipapython.dn import DN
 
+if six.PY3:
+    unicode = str
 
 __doc__ = _("""
 Topology

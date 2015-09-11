@@ -28,12 +28,17 @@ from __future__ import print_function
 import os
 import sys
 
+import six
+
 from ipalib import api
 from ipapython import ipautil, admintool
 from ipaplatform.paths import paths
 from ipaserver.install import installutils, dsinstance, schemaupdate
 from ipaserver.install.ldapupdate import LDAPUpdate, UPDATES_DIR, BadSyntax
 from ipaserver.install.upgradeinstance import IPAUpgrade
+
+if six.PY3:
+    unicode = str
 
 
 class LDAPUpdater(admintool.AdminTool):

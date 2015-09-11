@@ -46,6 +46,9 @@ from ipapython.dn import DN, RDN
 from ipapython.dnsutil import DNSName
 from ipapython.graph import Graph
 
+if six.PY3:
+    unicode = str
+
 
 def json_serialize(obj):
     if isinstance(obj, (list, tuple)):

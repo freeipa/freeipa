@@ -22,6 +22,7 @@
 import base64
 import os
 
+import six
 
 from ipalib import api, errors, util
 from ipalib import Str, Flag, Bytes, StrEnum, Bool
@@ -33,6 +34,9 @@ from ipalib import util
 import nss.nss as nss
 from nss.error import NSPRError
 from ipapython.ipautil import file_exists
+
+if six.PY3:
+    unicode = str
 
 __doc__ = _("""
 Services

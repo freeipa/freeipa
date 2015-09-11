@@ -31,9 +31,14 @@ import ConfigParser
 import random
 import string
 
+import six
+
 from ipapython import ipautil
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
+
+if six.PY3:
+    unicode = str
 
 SYSRESTORE_PATH = paths.TMP
 SYSRESTORE_INDEXFILE = "sysrestore.index"

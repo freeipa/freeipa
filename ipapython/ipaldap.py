@@ -47,6 +47,9 @@ from ipapython.ipa_log_manager import log_mgr
 from ipapython.dn import DN, RDN
 from ipapython.dnsutil import DNSName
 
+if six.PY3:
+    unicode = str
+
 # Global variable to define SASL auth
 SASL_GSSAPI = ldap.sasl.sasl({}, 'GSSAPI')
 

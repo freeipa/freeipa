@@ -40,9 +40,14 @@ from ipalib.text import _
 from ipalib.request import context
 from ipalib import output
 from ipalib.plugins.service import validate_principal
+
+import six
 import nss.nss as nss
 from nss.error import NSPRError
 from pyasn1.error import PyAsn1Error
+
+if six.PY3:
+    unicode = str
 
 __doc__ = _("""
 IPA certificate operations

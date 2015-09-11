@@ -28,6 +28,8 @@ import string
 import struct
 import re
 
+import six
+
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install.bindinstance import get_rr, add_rr, del_rr, \
@@ -45,6 +47,8 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
+if six.PY3:
+    unicode = str
 
 ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits
 

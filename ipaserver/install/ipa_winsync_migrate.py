@@ -20,6 +20,8 @@
 import gssapi
 import sys
 
+import six
+
 from ipalib import api
 from ipalib import errors
 from ipapython import admintool
@@ -28,6 +30,9 @@ from ipapython.ipautil import realm_to_suffix
 from ipapython.ipa_log_manager import log_mgr
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import replication
+
+if six.PY3:
+    unicode = str
 
 DEFAULT_TRUST_VIEW_NAME = u'Default Trust View'
 

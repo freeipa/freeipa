@@ -22,10 +22,15 @@ Test the `ipalib/plugins/sudorule.py` module.
 """
 
 from nose.tools import raises, assert_raises  # pylint: disable=E0611
+import six
 
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
+
+if six.PY3:
+    unicode = str
+
 
 class test_sudorule(XMLRPC_test):
     """

@@ -18,9 +18,14 @@
 
 import time
 import re
+
+import six
 import gssapi
 
 from ipalib import errors
+
+if six.PY3:
+    unicode = str
 
 #-------------------------------------------------------------------------------
 

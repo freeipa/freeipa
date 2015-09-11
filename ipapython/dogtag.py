@@ -25,6 +25,7 @@ import ConfigParser
 from urllib import urlencode
 
 import nss.nss as nss
+import six
 
 from ipalib import api, errors
 from ipalib.errors import NetworkError
@@ -32,6 +33,9 @@ from ipalib.text import _
 from ipapython import nsslib, ipautil
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import *
+
+if six.PY3:
+    unicode = str
 
 # IPA can use either Dogtag version 9 or 10.
 #

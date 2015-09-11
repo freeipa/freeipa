@@ -29,11 +29,15 @@ import shutil
 from ipalib import api
 from ipalib import errors
 from ipapython.dn import DN
+import six
 
 from nose.tools import raises, assert_raises  # pylint: disable=E0611
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipaplatform.paths import paths
 from ipatests.util import assert_deepequal
+
+if six.PY3:
+    unicode = str
 
 
 class MockTextui(list):

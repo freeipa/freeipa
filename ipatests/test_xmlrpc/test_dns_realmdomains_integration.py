@@ -22,12 +22,17 @@ Test integration of DNS and realmdomains.
 2. realmdomains_mod should add a _kerberos TXT record in the DNS zone.
 """
 
+import six
+
 from ipalib import api, errors
 from ipalib.util import normalize_zone
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_digits
+
+if six.PY3:
+    unicode = str
 
 
 cn = u'Realm Domains'

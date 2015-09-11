@@ -23,6 +23,8 @@ import string
 import posixpath
 import os
 
+import six
+
 from ipalib import api, errors, util
 from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime
 from ipalib.plugins.baseuser import baseuser, baseuser_add, baseuser_del, \
@@ -47,6 +49,9 @@ from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
     convert_sshpubkey_post)
 if api.env.in_server:
     from ipaserver.plugins.ldap2 import ldap2
+
+if six.PY3:
+    unicode = str
 
 __doc__ = _("""
 Users

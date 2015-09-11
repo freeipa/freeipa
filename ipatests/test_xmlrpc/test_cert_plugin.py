@@ -31,10 +31,14 @@ from ipalib import errors
 from ipalib import x509
 import tempfile
 from ipapython import ipautil
+import six
 import nose
 import base64
 from ipaplatform.paths import paths
 from ipapython.dn import DN
+
+if six.PY3:
+    unicode = str
 
 # So we can save the cert from issuance and compare it later
 cert = None

@@ -28,6 +28,11 @@ from ipapython.ipautil import run
 from ipapython.dn import DN
 from distutils import version
 
+import six
+
+if six.PY3:
+    unicode = str
+
 __doc__ = _("""
 Password policy
 

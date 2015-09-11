@@ -20,12 +20,17 @@
 
 import os
 
+import six
+
 from ipalib import api, errors
 from ipalib import Object, Command
 from ipalib import Flag, Str, IA5Str
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext
+
+if six.PY3:
+    unicode = str
 
 __doc__ = _("""
 Automount

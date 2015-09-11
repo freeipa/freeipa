@@ -23,8 +23,13 @@ Test the `tests.util` module.
 
 import re
 
+import six
+
 from ipatests import util
 from ipatests.util import raises, TYPE, VALUE, LEN, KEYS
+
+if six.PY3:
+    unicode = str
 
 
 class Prop(object):

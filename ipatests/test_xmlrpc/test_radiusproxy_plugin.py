@@ -18,11 +18,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import six
+
 from ipalib import errors, api, _
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
 from ipatests.test_xmlrpc import objectclasses
+
+if six.PY3:
+    unicode = str
 
 radius1 = u'testradius'
 radius1_fqdn = u'testradius.test'
