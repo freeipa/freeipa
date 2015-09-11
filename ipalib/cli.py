@@ -141,7 +141,7 @@ class textui(backend.Backend):
         """
         Decode text from stdin.
         """
-        if type(value) is str:
+        if type(value) is bytes:
             encoding = self.__get_encoding(sys.stdin)
             return value.decode(encoding)
         elif type(value) in (list, tuple):
@@ -166,7 +166,7 @@ class textui(backend.Backend):
         Convert a binary value to base64. We know a value is binary
         if it is a python str type, otherwise it is a plain string.
         """
-        if type(value) is str:
+        if type(value) is bytes:
             return base64.b64encode(value)
         elif type(value) is datetime.datetime:
             return value.strftime(LDAP_GENERALIZED_TIME_FORMAT)

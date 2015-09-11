@@ -248,7 +248,7 @@ def entry_to_dict(entry, **options):
         for attr in entry:
             if attr.lower() == 'attributelevelrights':
                 value = entry[attr]
-            elif entry.conn.get_attribute_type(attr) is str:
+            elif entry.conn.get_attribute_type(attr) is bytes:
                 value = entry.raw[attr]
             else:
                 value = list(entry.raw[attr])
@@ -1082,7 +1082,7 @@ last, after all sets and adds."""),
                     try:
                         entry_attrs[attr].remove(delval)
                     except ValueError:
-                        if isinstance(delval, str):
+                        if isinstance(delval, bytes):
                             # This is a Binary value, base64 encode it
                             delval = unicode(base64.b64encode(delval))
                         raise errors.AttrValueNotFound(attr=attr, value=delval)

@@ -164,7 +164,7 @@ def xml_wrap(value, version):
         return dict(
             (k, xml_wrap(v, version)) for (k, v) in value.items()
         )
-    if type(value) is str:
+    if type(value) is bytes:
         return Binary(value)
     if type(value) is Decimal:
         # transfer Decimal as a string
@@ -221,7 +221,7 @@ def xml_unwrap(value, encoding='UTF-8'):
     if type(value) is str:
         return value.decode(encoding)
     if isinstance(value, Binary):
-        assert type(value.data) is str
+        assert type(value.data) is bytes
         return value.data
     if isinstance(value, DateTime):
         # xmlprc DateTime is converted to string of %Y%m%dT%H:%M:%S format
@@ -290,7 +290,7 @@ def json_encode_binary(val, version):
     elif isinstance(val, (list, tuple)):
         new_list = [json_encode_binary(v, version) for v in val]
         return new_list
-    elif isinstance(val, str):
+    elif isinstance(val, bytes):
         return {'__base64__': base64.b64encode(val)}
     elif isinstance(val, Decimal):
         return {'__base64__': base64.b64encode(str(val))}

@@ -339,7 +339,7 @@ class LDAPEntry(collections.MutableMapping):
                 "attribute name must be unicode or str, got %s object %r" % (
                     name.__class__.__name__, name))
 
-        if isinstance(name, str):
+        if isinstance(name, bytes):
             name = name.decode('utf-8')
 
         return name
@@ -393,7 +393,7 @@ class LDAPEntry(collections.MutableMapping):
             raise TypeError("%s value must be list, got %s object %r" % (
                 name, value.__class__.__name__, value))
         for (i, item) in enumerate(value):
-            if not isinstance(item, str):
+            if not isinstance(item, bytes):
                 raise TypeError("%s[%d] value must be str, got %s object %r" % (
                     name, i, item.__class__.__name__, item))
 
@@ -619,19 +619,19 @@ class LDAPClient(object):
     SCOPE_SUBTREE = ldap.SCOPE_SUBTREE
 
     _SYNTAX_MAPPING = {
-        '1.3.6.1.4.1.1466.115.121.1.1'   : str, # ACI item
-        '1.3.6.1.4.1.1466.115.121.1.4'   : str, # Audio
-        '1.3.6.1.4.1.1466.115.121.1.5'   : str, # Binary
-        '1.3.6.1.4.1.1466.115.121.1.8'   : str, # Certificate
-        '1.3.6.1.4.1.1466.115.121.1.9'   : str, # Certificate List
-        '1.3.6.1.4.1.1466.115.121.1.10'  : str, # Certificate Pair
+        '1.3.6.1.4.1.1466.115.121.1.1'   : bytes, # ACI item
+        '1.3.6.1.4.1.1466.115.121.1.4'   : bytes, # Audio
+        '1.3.6.1.4.1.1466.115.121.1.5'   : bytes, # Binary
+        '1.3.6.1.4.1.1466.115.121.1.8'   : bytes, # Certificate
+        '1.3.6.1.4.1.1466.115.121.1.9'   : bytes, # Certificate List
+        '1.3.6.1.4.1.1466.115.121.1.10'  : bytes, # Certificate Pair
         '1.3.6.1.4.1.1466.115.121.1.12'  : DN,  # Distinguished Name
-        '1.3.6.1.4.1.1466.115.121.1.23'  : str, # Fax
+        '1.3.6.1.4.1.1466.115.121.1.23'  : bytes, # Fax
         '1.3.6.1.4.1.1466.115.121.1.24'  : datetime.datetime,
-        '1.3.6.1.4.1.1466.115.121.1.28'  : str, # JPEG
-        '1.3.6.1.4.1.1466.115.121.1.40'  : str, # OctetString (same as Binary)
-        '1.3.6.1.4.1.1466.115.121.1.49'  : str, # Supported Algorithm
-        '1.3.6.1.4.1.1466.115.121.1.51'  : str, # Teletext Terminal Identifier
+        '1.3.6.1.4.1.1466.115.121.1.28'  : bytes, # JPEG
+        '1.3.6.1.4.1.1466.115.121.1.40'  : bytes, # OctetString (same as Binary)
+        '1.3.6.1.4.1.1466.115.121.1.49'  : bytes, # Supported Algorithm
+        '1.3.6.1.4.1.1466.115.121.1.51'  : bytes, # Teletext Terminal Identifier
 
         '2.16.840.1.113730.3.8.3.3'      : DN,  # enrolledBy
         '2.16.840.1.113730.3.8.3.18'     : DN,  # managedBy
@@ -772,7 +772,7 @@ class LDAPClient(object):
 
     def get_attribute_type(self, name_or_oid):
         if not self._decode_attrs:
-            return str
+            return bytes
 
         if isinstance(name_or_oid, unicode):
             name_or_oid = name_or_oid.encode('utf-8')
@@ -837,7 +837,7 @@ class LDAPClient(object):
             return value_to_utf8(val)
         elif isinstance(val, DNSName):
             return val.to_text()
-        elif isinstance(val, str):
+        elif isinstance(val, bytes):
             return val
         elif isinstance(val, list):
             return [self.encode(m) for m in val]
@@ -857,10 +857,10 @@ class LDAPClient(object):
         """
         Decode attribute value from LDAP representation (str).
         """
-        if isinstance(val, str):
+        if isinstance(val, bytes):
             target_type = self.get_attribute_type(attr)
             try:
-                if target_type is str:
+                if target_type is bytes:
                     return val
                 elif target_type is unicode:
                     return val.decode('utf-8')

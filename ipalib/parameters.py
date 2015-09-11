@@ -1333,7 +1333,7 @@ class Bytes(Data):
     Also see the `Str` parameter.
     """
 
-    type = str
+    type = bytes
     type_error = _('must be binary data')
 
     def __init__(self, name, *rules, **kw):
@@ -1348,7 +1348,7 @@ class Bytes(Data):
         """
         Check minlength constraint.
         """
-        assert type(value) is str
+        assert type(value) is bytes
         if len(value) < self.minlength:
             return _('must be at least %(minlength)d bytes') % dict(
                 minlength=self.minlength,
@@ -1358,7 +1358,7 @@ class Bytes(Data):
         """
         Check maxlength constraint.
         """
-        assert type(value) is str
+        assert type(value) is bytes
         if len(value) > self.maxlength:
             return _('can be at most %(maxlength)d bytes') % dict(
                 maxlength=self.maxlength,
@@ -1368,7 +1368,7 @@ class Bytes(Data):
         """
         Check length constraint.
         """
-        assert type(value) is str
+        assert type(value) is bytes
         if len(value) != self.length:
             return _('must be exactly %(length)d bytes') % dict(
                 length=self.length,

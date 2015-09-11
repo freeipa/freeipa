@@ -67,8 +67,8 @@ def test_round_trip():
     assert_equal(dump_n_load(unicode_str), unicode_str)
     assert_equal(dump_n_load(Binary(binary_bytes)).data, binary_bytes)
     assert isinstance(dump_n_load(Binary(binary_bytes)), Binary)
-    assert type(dump_n_load('hello')) is str
-    assert type(dump_n_load(u'hello')) is str
+    assert type(dump_n_load('hello')) is bytes
+    assert type(dump_n_load(u'hello')) is bytes
     assert_equal(dump_n_load(''), '')
     assert_equal(dump_n_load(u''), '')
     assert dump_n_load(None) is None
@@ -81,7 +81,7 @@ def test_round_trip():
     assert_equal(round_trip(utf8_bytes), utf8_bytes)
     assert_equal(round_trip(unicode_str), unicode_str)
     assert_equal(round_trip(binary_bytes), binary_bytes)
-    assert type(round_trip('hello')) is str
+    assert type(round_trip('hello')) is bytes
     assert type(round_trip(u'hello')) is unicode
     assert_equal(round_trip(''), '')
     assert_equal(round_trip(u''), u'')
@@ -116,13 +116,13 @@ def test_xml_unwrap():
     assert f([]) == tuple()
     assert f({}) == dict()
     value = f(Binary(utf8_bytes))
-    assert type(value) is str
+    assert type(value) is bytes
     assert value == utf8_bytes
     assert f(utf8_bytes) == unicode_str
     assert f(unicode_str) == unicode_str
     value = f([True, Binary('hello'), dict(one=1, two=utf8_bytes, three=None)])
     assert value == (True, 'hello', dict(one=1, two=unicode_str, three=None))
-    assert type(value[1]) is str
+    assert type(value[1]) is bytes
     assert type(value[2]['two']) is unicode
 
 
