@@ -7,6 +7,8 @@ from __future__ import print_function
 import sys
 import os.path
 
+from six.moves.configparser import RawConfigParser
+
 from ipaserver.install import cainstance, dsinstance, bindinstance
 from ipapython import dogtag, ipautil, certdb
 from ipaplatform import services
@@ -14,7 +16,6 @@ from ipaplatform.paths import paths
 from ipaserver.install import installutils, certs
 from ipaserver.install.replication import replica_conn_check
 from ipalib import api, certstore, x509
-from ConfigParser import RawConfigParser
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 

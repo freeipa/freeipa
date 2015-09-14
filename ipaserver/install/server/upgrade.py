@@ -9,10 +9,10 @@ import os
 import shutil
 import pwd
 import fileinput
-import ConfigParser
 import sys
 
 import six
+from six.moves.configparser import SafeConfigParser
 
 from ipalib import api
 import SSSDConfig
@@ -1088,7 +1088,7 @@ def uninstall_selfsign(ds, http):
 
     root_logger.warning(
         'Removing self-signed CA. Certificates will need to managed manually.')
-    p = ConfigParser.SafeConfigParser()
+    p = SafeConfigParser()
     p.read(paths.IPA_DEFAULT_CONF)
     p.set('global', 'enable_ra', 'False')
     p.set('global', 'ra_plugin', 'none')

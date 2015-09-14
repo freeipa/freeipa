@@ -17,12 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import ConfigParser
 import os
 import pwd
 import shutil
 import sys
 import tempfile
+
+from six.moves.configparser import ConfigParser
 
 from ipalib import api
 from ipalib import x509
@@ -141,7 +142,7 @@ class KRAInstance(DogtagInstance):
         os.chown(cfg_file, pent.pw_uid, pent.pw_gid)
 
         # Create KRA configuration
-        config = ConfigParser.ConfigParser()
+        config = ConfigParser()
         config.optionxform = str
         config.add_section("KRA")
 

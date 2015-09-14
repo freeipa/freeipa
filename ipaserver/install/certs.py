@@ -29,7 +29,8 @@ from hashlib import sha1
 import fcntl
 import time
 import datetime
-import ConfigParser as configparser
+
+from six.moves import configparser
 
 from ipapython.ipa_log_manager import root_logger
 from ipapython import dogtag

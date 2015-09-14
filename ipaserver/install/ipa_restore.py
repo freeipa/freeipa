@@ -23,9 +23,10 @@ import shutil
 import tempfile
 import time
 import pwd
-from ConfigParser import SafeConfigParser
 import ldif
 import itertools
+
+from six.moves.configparser import SafeConfigParser
 
 from ipalib import api, errors, constants
 from ipapython import version, ipautil, certdb

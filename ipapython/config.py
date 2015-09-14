@@ -17,11 +17,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import ConfigParser
 from optparse import Option, Values, OptionParser, IndentedHelpFormatter, OptionValueError
 from copy import copy
+
 from dns import resolver, rdatatype
 from dns.exception import DNSException
+from six.moves.configparser import SafeConfigParser
+
 from ipapython.dn import DN
 from ipaplatform.paths import paths
 import dns.name
@@ -152,7 +154,7 @@ class IPAConfig:
 config = IPAConfig()
 
 def __parse_config(discover_server = True):
-    p = ConfigParser.SafeConfigParser()
+    p = SafeConfigParser()
     p.read(paths.IPA_DEFAULT_CONF)
 
     try:
