@@ -1186,9 +1186,9 @@ def check_int_scalar_conversions(o):
         assert e.name == 'my_number'
         assert e.index is None
     # Assure large magnitude values are handled correctly
-    assert type(o._convert_scalar(sys.maxint * 2)) == long
-    assert o._convert_scalar(sys.maxint * 2) == sys.maxint * 2
-    assert o._convert_scalar(unicode(sys.maxint * 2)) == sys.maxint * 2
+    assert type(o._convert_scalar(sys.maxsize * 2)) == long
+    assert o._convert_scalar(sys.maxsize * 2) == sys.maxsize * 2
+    assert o._convert_scalar(unicode(sys.maxsize * 2)) == sys.maxsize * 2
     assert o._convert_scalar(long(16)) == 16
     # Assure normal conversions produce expected result
     assert o._convert_scalar(u'16.99') == 16
