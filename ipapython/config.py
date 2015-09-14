@@ -25,10 +25,10 @@ from dns.exception import DNSException
 from ipapython.dn import DN
 from ipaplatform.paths import paths
 import dns.name
+from six.moves.urllib.parse import urlsplit
 
 import socket
 import re
-import urlparse
 
 class IPAConfigError(Exception):
     def __init__(self, msg=''):
@@ -163,7 +163,7 @@ def __parse_config(discover_server = True):
     if discover_server:
         try:
             s = p.get("global", "xmlrpc_uri")
-            server = urlparse.urlsplit(s)
+            server = urlsplit(s)
             config.default_server.append(server.netloc)
         except:
             pass

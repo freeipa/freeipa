@@ -38,10 +38,11 @@ import sys
 import syslog
 import time
 import tempfile
-import urllib
 import xml.dom.minidom
 import shlex
 import pipes
+
+from six.moves import urllib
 
 from ipalib import api
 from ipalib import pkcs10, x509
@@ -846,7 +847,7 @@ class CAInstance(DogtagInstance):
         params['op'] = 'approve'
         params['submit'] = 'submit'
         params['requestNotes'] = ''
-        params = urllib.urlencode(params)
+        params = urllib.parse.urlencode(params)
 
         # Now issue the RA certificate.
         args = [
@@ -1074,7 +1075,7 @@ class CAInstance(DogtagInstance):
         # Send the request to the CA
         conn = httplib.HTTPConnection(
             self.fqdn, self.dogtag_constants.UNSECURE_PORT)
-        params = urllib.urlencode({'profileId': 'caServerCert',
+        params = urllib.parse.urlencode({'profileId': 'caServerCert',
                 'cert_request_type': 'pkcs10',
                 'requestor_name': 'IPA Installer',
                 'cert_request': csr,

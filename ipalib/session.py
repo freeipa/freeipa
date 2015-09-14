@@ -21,7 +21,8 @@ import random
 import os
 import re
 import time
-from urllib2 import urlparse
+
+from six.moves.urllib.parse import urlparse
 
 from ipalib import errors
 from ipalib.text import _
@@ -1085,7 +1086,7 @@ class MemcacheSessionManager(SessionManager):
             expiration = None;
 
         cookie = Cookie(self.session_cookie_name, session_id,
-                        domain=urlparse.urlparse(api.env.xmlrpc_uri).netloc,
+                        domain=urlparse(api.env.xmlrpc_uri).netloc,
                         path=url_path, httponly=True, secure=True,
                         expires=expiration)
         if add_header:

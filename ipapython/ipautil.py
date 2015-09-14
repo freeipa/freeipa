@@ -27,7 +27,6 @@ import os, sys, traceback
 import copy
 import stat
 import shutil
-import urllib2
 import socket
 import struct
 from types import *
@@ -45,6 +44,7 @@ from dns import resolver, rdatatype
 from dns.exception import DNSException
 import six
 from six.moves import input
+from six.moves import urllib
 
 from ipapython.ipa_log_manager import *
 from ipapython import ipavalidate
@@ -391,7 +391,7 @@ def nolog_replace(string, nolog):
         if not isinstance(value, six.string_types):
             continue
 
-        quoted = urllib2.quote(value)
+        quoted = urllib.parse.quote(value)
         shquoted = shell_quote(value)
         for nolog_value in (shquoted, value, quoted):
             string = string.replace(nolog_value, 'XXXXXXXX')

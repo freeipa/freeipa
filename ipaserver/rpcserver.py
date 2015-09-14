@@ -27,7 +27,6 @@ from xml.sax.saxutils import escape
 from xmlrpclib import Fault
 import os
 import datetime
-import urlparse
 import json
 import traceback
 import gssapi
@@ -37,6 +36,7 @@ import ldap.controls
 from pyasn1.type import univ, namedtype
 from pyasn1.codec.ber import encoder
 import six
+from six.moves.urllib.parse import parse_qs
 
 from ipalib import plugable, errors
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
@@ -225,9 +225,7 @@ def extract_query(environ):
     elif environ['REQUEST_METHOD'] == 'GET':
         qstr = environ['QUERY_STRING']
     if qstr:
-        query = dict(nicify_query(
-            urlparse.parse_qs(qstr)#, keep_blank_values=True)
-        ))
+        query = dict(nicify_query(parse_qs(qstr)))  # keep_blank_values=True)
     else:
         query = {}
     environ['wsgi.query'] = query
@@ -892,7 +890,7 @@ class login_password(Backend, KerberosSession, HTTP_Status):
             return self.bad_request(environ, start_response, "HTTP request method must be POST")
 
         try:
-            query_dict = urlparse.parse_qs(query_string)
+            query_dict = parse_qs(query_string)
         except Exception as e:
             return self.bad_request(environ, start_response, "cannot parse query data")
 
@@ -1013,7 +1011,7 @@ class change_password(Backend, HTTP_Status):
             return self.bad_request(environ, start_response, "HTTP request method must be POST")
 
         try:
-            query_dict = urlparse.parse_qs(query_string)
+            query_dict = parse_qs(query_string)
         except Exception as e:
             return self.bad_request(environ, start_response, "cannot parse query data")
 
@@ -1115,7 +1113,7 @@ class sync_token(Backend, HTTP_Status):
 
         # Parse the query string to a dictionary.
         try:
-            query_dict = urlparse.parse_qs(query_string)
+            query_dict = parse_qs(query_string)
         except Exception as e:
             return self.bad_request(environ, start_response, "cannot parse query data")
         data = {}
