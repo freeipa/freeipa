@@ -25,10 +25,10 @@ import re
 import collections
 import itertools
 import time
-import StringIO
-import dns
 
+import dns
 from ldif import LDIFWriter
+from six import StringIO
 
 from ipapython import ipautil
 from ipaplatform.paths import paths
@@ -780,7 +780,7 @@ def install_clients(servers, clients):
 def _entries_to_ldif(entries):
     """Format LDAP entries as LDIF"""
     lines = []
-    io = StringIO.StringIO()
+    io = StringIO()
     writer = LDIFWriter(io)
     for entry in entries:
         writer.unparse(str(entry.dn), dict(entry))
