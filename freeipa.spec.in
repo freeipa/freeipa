@@ -762,7 +762,6 @@ fi
 %{_usr}/share/ipa/copy-schema-to-ca.py*
 %{_usr}/share/ipa/*.ldif
 %{_usr}/share/ipa/*.uldif
-%{_usr}/share/ipa/*.update
 %{_usr}/share/ipa/*.template
 %dir %{_usr}/share/ipa/advise
 %dir %{_usr}/share/ipa/advise/legacy

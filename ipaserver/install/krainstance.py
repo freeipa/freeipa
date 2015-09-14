@@ -124,6 +124,7 @@ class KRAInstance(DogtagInstance):
         self.step("configure HTTP to proxy connections",
                   self.http_proxy)
         self.step("add vault container", self.__add_vault_container)
+        self.step("apply LDAP updates", self.__apply_updates)
 
         self.start_creation(runtime=126)
 
@@ -313,13 +314,17 @@ class KRAInstance(DogtagInstance):
         conn.disconnect()
 
     def __add_vault_container(self):
+        self._ldap_mod('vault.ldif', {'SUFFIX': self.suffix})
+        self.ldap_disconnect()
+
+    def __apply_updates(self):
         sub_dict = {
             'SUFFIX': self.suffix,
         }
 
         ld = ldapupdate.LDAPUpdate(dm_password=self.dm_password,
                                    sub_dict=sub_dict)
-        ld.update([paths.VAULT_UPDATE])
+        ld.update([os.path.join(paths.UPDATES_DIR, '40-vault.update')])
 
     @staticmethod
     def update_cert_config(nickname, cert, dogtag_constants=None):
