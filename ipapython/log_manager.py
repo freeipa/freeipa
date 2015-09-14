@@ -172,7 +172,7 @@ FAQ (Frequently Asked Questions)
 
    See above. Logger's will never have a level less than the level of
    the handlers visible to the logger. If there are no handlers then
-   loggers can't output anything so their level is set to maxint.
+   loggers can't output anything so their level is set to maxsize.
 
 #. **I set the default_level but all the loggers are configured
    at INFO or DEBUG, what happened?**
@@ -547,7 +547,7 @@ def get_unique_levels(iterable):
     levels = set()
 
     for obj in iterable:
-        level = getattr(obj, 'level', sys.maxint)
+        level = getattr(obj, 'level', sys.maxsize)
         if level != logging.NOTSET:
             levels.add(level)
     levels = list(levels)
@@ -557,7 +557,7 @@ def get_unique_levels(iterable):
 def get_minimum_level(iterable):
     '''
     Given a iterable of objects containing a logging level return the
-    minimum level. If no levels are defined return maxint.
+    minimum level. If no levels are defined return maxsize.
     set of unique levels.
 
     :parameters:
@@ -566,10 +566,10 @@ def get_minimum_level(iterable):
     :returns:
       Ordered list (min to max) of unique levels.
     '''
-    min_level = sys.maxint
+    min_level = sys.maxsize
 
     for obj in iterable:
-        level = getattr(obj, 'level', sys.maxint)
+        level = getattr(obj, 'level', sys.maxsize)
         if level != logging.NOTSET:
             if level < min_level:
                 min_level = level
@@ -1442,7 +1442,7 @@ class LogManager(object):
 
         :return:
           The minimum of all the handler's levels. If no
-          handlers are defined sys.maxint will be returned.
+          handlers are defined sys.maxsize will be returned.
         '''
 
         handlers = self.get_logger_handlers(logger)
