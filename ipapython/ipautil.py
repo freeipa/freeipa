@@ -31,7 +31,6 @@ import socket
 import struct
 from types import *
 import re
-import xmlrpclib
 import datetime
 import netaddr
 import time

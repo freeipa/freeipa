@@ -31,7 +31,7 @@ import sys
 from types import NoneType
 from decimal import Decimal
 from inspect import isclass
-from xmlrpclib import MAXINT, MININT
+from six.moves.xmlrpc_client import MAXINT, MININT
 
 import six
 

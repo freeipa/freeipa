@@ -49,7 +49,7 @@ the relevant RFC's as well as actual practice in the field. However
 cookielib.py is tighly integrated with urllib2 and it's not possible
 to use most of the features of cookielib without simultaneously using
 urllib2. Unfortunataely we only use httplib because of our dependency
-on xmlrpclib. Without urllib2 cookielib is a non-starter.
+on xmlrpc.client. Without urllib2 cookielib is a non-starter.
 
 This module is a minimal implementation of Netscape cookies which
 works equally well on either the client or server side. It's API is

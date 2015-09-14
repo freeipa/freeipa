@@ -21,11 +21,11 @@
 """
 RPC client and shared RPC client/server functionality.
 
-This module adds some additional functionality on top of the ``xmlrpclib``
-module in the Python standard library.  For documentation on the
-``xmlrpclib`` module, see:
+This module adds some additional functionality on top of the ``xmlrpc.client``
+module in the Python standard library (``xmlrpclib`` in Python 2).
+For documentation on the ``xmlrpclib`` module, see:
 
-    http://docs.python.org/library/xmlrpclib.html
+    http://docs.python.org/2/library/xmlrpclib.html
 
 Also see the `ipaserver.rpcserver` module.
 """
@@ -39,8 +39,6 @@ import locale
 import base64
 import json
 import socket
-from xmlrpclib import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
-        Transport, ProtocolError, MININT, MAXINT)
 
 import gssapi
 from dns import resolver, rdatatype
@@ -70,6 +68,16 @@ from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT
 from ipapython.dn import DN
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib import api
+
+# The XMLRPC client is in  "six.moves.xmlrpc_client", but pylint
+# cannot handle that
+try:
+    from xmlrpclib import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
+            Transport, ProtocolError, MININT, MAXINT)
+except ImportError:
+    from xmlrpc.client import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
+            Transport, ProtocolError, MININT, MAXINT)
+
 
 if six.PY3:
     unicode = str
@@ -138,16 +146,16 @@ def delete_persistent_client_session_data(principal):
 
 def xml_wrap(value, version):
     """
-    Wrap all ``str`` in ``xmlrpclib.Binary``.
+    Wrap all ``str`` in ``xmlrpc.client.Binary``.
 
-    Because ``xmlrpclib.dumps()`` will itself convert all ``unicode`` instances
+    Because ``xmlrpc.client.dumps()`` will itself convert all ``unicode`` instances
     into UTF-8 encoded ``str`` instances, we don't do it here.
 
     So in total, when encoding data for an XML-RPC packet, the following
     transformations occur:
 
         * All ``str`` instances are treated as binary data and are wrapped in
-          an ``xmlrpclib.Binary()`` instance.
+          an ``xmlrpc.client.Binary()`` instance.
 
         * Only ``unicode`` instances are treated as character data. They get
           converted to UTF-8 encoded ``str`` instances (although as mentioned,
@@ -173,7 +181,7 @@ def xml_wrap(value, version):
     if isinstance(value, DN):
         return str(value)
 
-    # Encode datetime.datetime objects as xmlrpclib.DateTime objects
+    # Encode datetime.datetime objects as xmlrpc.client.DateTime objects
     if isinstance(value, datetime.datetime):
         if capabilities.client_has_capability(version, 'datetime_values'):
             return DateTime(value)
@@ -197,7 +205,7 @@ def xml_unwrap(value, encoding='UTF-8'):
     When decoding data from an XML-RPC packet, the following transformations
     occur:
 
-        * The binary payloads of all ``xmlrpclib.Binary`` instances are
+        * The binary payloads of all ``xmlrpc.client.Binary`` instances are
           returned as ``str`` instances.
 
         * All ``str`` instances are treated as UTF-8 encoded Unicode strings.
@@ -235,16 +243,16 @@ def xml_dumps(params, version, methodname=None, methodresponse=False,
     Encode an XML-RPC data packet, transparently wraping ``params``.
 
     This function will wrap ``params`` using `xml_wrap()` and will
-    then encode the XML-RPC data packet using ``xmlrpclib.dumps()`` (from the
+    then encode the XML-RPC data packet using ``xmlrpc.client.dumps()`` (from the
     Python standard library).
 
-    For documentation on the ``xmlrpclib.dumps()`` function, see:
+    For documentation on the ``xmlrpc.client.dumps()`` function, see:
 
-        http://docs.python.org/library/xmlrpclib.html#convenience-functions
+        http://docs.python.org/library/xmlrpc.client.html#convenience-functions
 
     Also see `xml_loads()`.
 
-    :param params: A ``tuple`` or an ``xmlrpclib.Fault`` instance.
+    :param params: A ``tuple`` or an ``xmlrpc.client.Fault`` instance.
     :param methodname: The name of the method to call if this is a request.
     :param methodresponse: Set this to ``True`` if this is a response.
     :param encoding: The Unicode encoding to use (defaults to ``'UTF-8'``).
@@ -366,9 +374,9 @@ def xml_loads(data, encoding='UTF-8'):
     Decode the XML-RPC packet in ``data``, transparently unwrapping its params.
 
     This function will decode the XML-RPC packet in ``data`` using
-    ``xmlrpclib.loads()`` (from the Python standard library).  If ``data``
-    contains a fault, ``xmlrpclib.loads()`` will itself raise an
-    ``xmlrpclib.Fault`` exception.
+    ``xmlrpc.client.loads()`` (from the Python standard library).  If ``data``
+    contains a fault, ``xmlrpc.client.loads()`` will itself raise an
+    ``xmlrpc.client.Fault`` exception.
 
     Assuming an exception is not raised, this function will then unwrap the
     params in ``data`` using `xml_unwrap()`.  Finally, a
@@ -376,9 +384,9 @@ def xml_loads(data, encoding='UTF-8'):
     and the name of the method being called.  If the packet contains no method
     name, ``methodname`` will be ``None``.
 
-    For documentation on the ``xmlrpclib.loads()`` function, see:
+    For documentation on the ``xmlrpc.client.loads()`` function, see:
 
-        http://docs.python.org/library/xmlrpclib.html#convenience-functions
+        http://docs.python.org/2/library/xmlrpclib.html#convenience-functions
 
     Also see `xml_dumps()`.
 
@@ -603,7 +611,7 @@ class KerbTransport(SSLTransport):
         return True
 
     def single_request(self, host, handler, request_body, verbose=0):
-        # Based on xmlrpclib.Transport.single_request
+        # Based on xmlrpc.lient.Transport.single_request
         try:
             h = SSLTransport.make_connection(self, host)
             if verbose:
@@ -1032,7 +1040,7 @@ class JSONServerProxy(object):
         self.__verbose = verbose
 
         # FIXME: Some of our code requires ServerProxy internals.
-        # But, xmlrpclib.ServerProxy's _ServerProxy__transport can be accessed
+        # But, xmlrpc.client.ServerProxy's _ServerProxy__transport can be accessed
         # by calling serverproxy('transport')
         self._ServerProxy__transport = transport
 
