@@ -29,7 +29,6 @@ of the process.
 For the per-request thread-local information, see `ipalib.request`.
 """
 
-from ConfigParser import RawConfigParser, ParsingError
 from types import NoneType
 import os
 from os import path
@@ -37,6 +36,7 @@ import sys
 
 import six
 from six.moves.urllib.parse import urlparse, urlunparse
+from six.moves.configparser import RawConfigParser, ParsingError
 
 from ipapython.dn import DN
 from ipalib.base import check_name

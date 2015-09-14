@@ -24,9 +24,10 @@ import tempfile
 import time
 import pwd
 from optparse import OptionGroup
-from ConfigParser import SafeConfigParser
 from ipaplatform.paths import paths
 from ipaplatform import services
+
+from six.moves.configparser import SafeConfigParser
 
 from ipalib import api, errors
 from ipapython import version
@@ -40,7 +41,7 @@ from ipaserver.install import installutils
 from ipapython import ipaldap
 from ipalib.session import ISO8601_DATETIME_FMT
 from ipalib.constants import CACERT
-from ConfigParser import SafeConfigParser
+from six.moves.configparser import SafeConfigParser
 from ipaplatform.tasks import tasks
 
 """

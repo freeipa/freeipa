@@ -21,10 +21,10 @@ import collections
 import os
 import httplib
 import xml.dom.minidom
-import ConfigParser
 
 import nss.nss as nss
 import six
+from six.moves import configparser
 from six.moves.urllib.parse import urlencode
 
 from ipalib import api, errors
@@ -143,11 +143,11 @@ def _get_configured_version(api):
     if api:
         return int(api.env.dogtag_version)
     else:
-        p = ConfigParser.SafeConfigParser()
+        p = configparser.SafeConfigParser()
         p.read(paths.IPA_DEFAULT_CONF)
         try:
             version = p.get('global', 'dogtag_version')
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        except (configparser.NoOptionError, configparser.NoSectionError):
             return 9
         else:
             return int(version)

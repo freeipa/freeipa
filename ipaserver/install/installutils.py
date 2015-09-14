@@ -28,7 +28,6 @@ import fileinput
 import sys
 import tempfile
 import shutil
-from ConfigParser import SafeConfigParser, NoOptionError
 import traceback
 import textwrap
 from contextlib import contextmanager
@@ -38,6 +37,7 @@ from dns.exception import DNSException
 import ldap
 from nss.error import NSPRError
 import six
+from six.moves.configparser import SafeConfigParser, NoOptionError
 
 import ipaplatform
 

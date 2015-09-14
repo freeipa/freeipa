@@ -29,7 +29,7 @@ try:
     import socket
     import tempfile
     import getpass
-    from ConfigParser import RawConfigParser
+    from six.moves.configparser import RawConfigParser
     from optparse import SUPPRESS_HELP, OptionGroup, OptionValueError
     import shutil
     import dns

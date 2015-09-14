@@ -24,7 +24,6 @@ from __future__ import print_function
 import array
 import base64
 import binascii
-import ConfigParser
 import dbus
 import httplib
 import ldap
@@ -43,6 +42,7 @@ import shlex
 import pipes
 
 from six.moves import urllib
+from six.moves.configparser import ConfigParser
 
 from ipalib import api
 from ipalib import pkcs10, x509
@@ -494,7 +494,7 @@ class CAInstance(DogtagInstance):
         os.chown(cfg_file, pent.pw_uid, pent.pw_gid)
 
         # Create CA configuration
-        config = ConfigParser.ConfigParser()
+        config = ConfigParser()
         config.optionxform = str
         config.add_section("CA")
 

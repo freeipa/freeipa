@@ -27,11 +27,11 @@ import os
 import os.path
 import shutil
 from ipapython.ipa_log_manager import *
-import ConfigParser
 import random
 import string
 
 import six
+from six.moves.configparser import SafeConfigParser
 
 from ipapython import ipautil
 from ipaplatform.tasks import tasks
@@ -71,7 +71,7 @@ class FileStore:
 
         self.files = {}
 
-        p = ConfigParser.SafeConfigParser()
+        p = SafeConfigParser()
         p.read(self._index)
 
         for section in p.sections():
@@ -92,7 +92,7 @@ class FileStore:
                 os.remove(self._index)
             return
 
-        p = ConfigParser.SafeConfigParser()
+        p = SafeConfigParser()
 
         p.add_section('files')
         for (key, value) in self.files.items():
@@ -327,7 +327,7 @@ class StateFile:
 
         self.modules = {}
 
-        p = ConfigParser.SafeConfigParser()
+        p = SafeConfigParser()
         p.read(self._path)
 
         for module in p.sections():
@@ -355,7 +355,7 @@ class StateFile:
                 os.remove(self._path)
             return
 
-        p = ConfigParser.SafeConfigParser()
+        p = SafeConfigParser()
 
         for module in self.modules.keys():
             p.add_section(module)
