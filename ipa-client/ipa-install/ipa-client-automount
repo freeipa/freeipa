@@ -25,12 +25,12 @@ from __future__ import print_function
 
 import sys
 import os
-import urlparse
 import time
 import tempfile
 import gssapi
 
 import SSSDConfig
+from six.moves.urllib.parse import urlsplit
 
 from optparse import OptionParser
 from ipalib import api, errors
@@ -396,7 +396,7 @@ def main():
         root_logger.debug('Executing DNS discovery')
         if ret == ipadiscovery.NO_LDAP_SERVER:
             root_logger.debug('Autodiscovery did not find LDAP server')
-            s = urlparse.urlsplit(api.env.xmlrpc_uri)
+            s = urlsplit(api.env.xmlrpc_uri)
             server = [s.netloc]
             root_logger.debug('Setting server to %s' % s.netloc)
         else:

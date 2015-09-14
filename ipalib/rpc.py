@@ -37,10 +37,8 @@ import datetime
 import os
 import locale
 import base64
-import urllib
 import json
 import socket
-from urllib2 import urlparse
 from xmlrpclib import (Binary, Fault, DateTime, dumps, loads, ServerProxy,
         Transport, ProtocolError, MININT, MAXINT)
 
@@ -49,6 +47,7 @@ from dns import resolver, rdatatype
 from dns.exception import DNSException
 from nss.error import NSPRError
 import six
+from six.moves import urllib
 
 from ipalib.backend import Connectible
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
@@ -720,7 +719,7 @@ class RPCClient(Connectible):
         """
         # the configured URL defines what we use for the discovered servers
         (scheme, netloc, path, params, query, fragment
-            ) = urlparse.urlparse(rpc_uri)
+            ) = urllib.parse.urlparse(rpc_uri)
         servers = []
         name = '_ldap._tcp.%s.' % self.env.domain
 
@@ -828,9 +827,11 @@ class RPCClient(Connectible):
         setattr(context, 'session_cookie', session_cookie.http_cookie())
 
         # Form the session URL by substituting the session path into the original URL
-        scheme, netloc, path, params, query, fragment = urlparse.urlparse(original_url)
+        scheme, netloc, path, params, query, fragment = urllib.parse.urlparse(original_url)
         path = self.session_path
-        session_url = urlparse.urlunparse((scheme, netloc, path, params, query, fragment))
+        # urlencode *can* take one argument
+        # pylint: disable=too-many-function-args
+        session_url = urllib.parse.urlunparse((scheme, netloc, path, params, query, fragment))
 
         return session_url
 
@@ -1019,7 +1020,7 @@ class xmlclient(RPCClient):
 
 class JSONServerProxy(object):
     def __init__(self, uri, transport, encoding, verbose, allow_none):
-        split_uri = urllib.urlsplit(uri)
+        split_uri = urllib.parse.urlsplit(uri)
         if split_uri.scheme not in ("http", "https"):
             raise IOError("unsupported XML-RPC protocol")
         self.__host = split_uri.netloc

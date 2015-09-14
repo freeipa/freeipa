@@ -244,13 +244,13 @@ from lxml import etree
 import os
 import tempfile
 import time
-import urllib2
 
 import pki
 from pki.client import PKIConnection
 import pki.crypto as cryptoutil
 from pki.kra import KRAClient
 import six
+from six.moves import urllib
 
 from ipalib import Backend
 from ipapython.dn import DN
@@ -1843,21 +1843,21 @@ class ra(rabase.rabase):
 
         url = 'http://%s/ca/rest/certs/search?size=%d' % (ipautil.format_netloc(self.ca_host, ipapython.dogtag.configured_constants().UNSECURE_PORT), options.get('sizelimit', 100))
 
-        opener = urllib2.build_opener()
+        opener = urllib.request.build_opener()
         opener.addheaders = [('Accept-Encoding', 'gzip, deflate'),
                              ('User-Agent', 'IPA')]
 
-        req = urllib2.Request(url=url, data=payload, headers={'Content-Type': 'application/xml'})
+        req = urllib.request.Request(url=url, data=payload, headers={'Content-Type': 'application/xml'})
         try:
             response = opener.open(req)
-        except urllib2.HTTPError, e:
+        except urllib.error.HTTPError as e:
             self.debug('HTTP Response code: %d' % e.getcode())
             if e.getcode() == 501:
                 self.raise_certificate_operation_error('find',
                     detail=_('find not supported on CAs upgraded from 9 to 10'))
             self.raise_certificate_operation_error('find',
                                                    detail=e.msg)
-        except urllib2.URLError, e:
+        except urllib.error.URLError as e:
             self.raise_certificate_operation_error('find',
                                                    detail=e.reason)
 
@@ -1866,7 +1866,7 @@ class ra(rabase.rabase):
         parser = etree.XMLParser()
         try:
             doc = etree.fromstring(data[0], parser)
-        except etree.XMLSyntaxError, e:
+        except etree.XMLSyntaxError as e:
             self.raise_certificate_operation_error('find',
                                                    detail=e.msg)
 

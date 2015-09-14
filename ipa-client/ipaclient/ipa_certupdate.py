@@ -20,7 +20,8 @@
 import os
 import tempfile
 import shutil
-import urlparse
+
+from six.moves.urllib.parse import urlsplit
 
 from ipapython import (admintool, ipautil, ipaldap, sysrestore, dogtag,
                        certmonger, certdb)
@@ -51,7 +52,7 @@ class CertUpdate(admintool.AdminTool):
         api.bootstrap(context='cli_installer')
         api.finalize()
 
-        server = urlparse.urlsplit(api.env.jsonrpc_uri).hostname
+        server = urlsplit(api.env.jsonrpc_uri).hostname
         ldap = ipaldap.IPAdmin(server)
 
         tmpdir = tempfile.mkdtemp(prefix="tmp-")

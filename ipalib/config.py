@@ -29,7 +29,6 @@ of the process.
 For the per-request thread-local information, see `ipalib.request`.
 """
 
-import urlparse
 from ConfigParser import RawConfigParser, ParsingError
 from types import NoneType
 import os
@@ -37,6 +36,7 @@ from os import path
 import sys
 
 import six
+from six.moves.urllib.parse import urlparse, urlunparse
 
 from ipapython.dn import DN
 from ipalib.base import check_name
@@ -559,9 +559,9 @@ class Env(object):
                 xmlrpc_uri = defaults.get('xmlrpc_uri')
             if xmlrpc_uri:
                 (scheme, netloc, uripath, params, query, fragment
-                        ) = urlparse.urlparse(xmlrpc_uri)
+                        ) = urlparse(xmlrpc_uri)
                 uripath = uripath.replace('/xml', '/json', 1)
-                self.jsonrpc_uri = urlparse.urlunparse((
+                self.jsonrpc_uri = urlunparse((
                         scheme, netloc, uripath, params, query, fragment))
 
         self._merge(**defaults)

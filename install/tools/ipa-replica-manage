@@ -25,10 +25,11 @@ import os
 
 import re
 import traceback
-from urllib2 import urlparse
 import ldap
 import socket
 import time
+
+from six.moves.urllib.parse import urlparse
 
 from ipapython import ipautil
 from ipaserver.install import replication, dsinstance, installutils
@@ -376,7 +377,7 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False):
             data = re.match('\{replica (\d+) (ldap://.*:\d+)\}(\s+\w+\s+\w*){0,1}', ruv)
             if data:
                 rid = data.group(1)
-                (scheme, netloc, path, params, query, fragment) = urlparse.urlparse(data.group(2))
+                (scheme, netloc, path, params, query, fragment) = urlparse(data.group(2))
                 servers.append((netloc, rid))
             else:
                 print("unable to decode: %s" % ruv)

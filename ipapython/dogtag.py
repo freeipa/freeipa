@@ -22,10 +22,10 @@ import os
 import httplib
 import xml.dom.minidom
 import ConfigParser
-from urllib import urlencode
 
 import nss.nss as nss
 import six
+from six.moves.urllib.parse import urlencode
 
 from ipalib import api, errors
 from ipalib.errors import NetworkError

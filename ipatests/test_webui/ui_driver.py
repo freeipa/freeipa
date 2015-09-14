@@ -53,7 +53,7 @@ try:
     NO_YAML = False
 except ImportError:
     NO_YAML = True
-from urllib2 import URLError
+from six.moves.urllib.error import URLError
 from ipaplatform.paths import paths
 
 ENV_MAP = {

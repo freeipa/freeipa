@@ -27,7 +27,6 @@ try:
     import os
     import time
     import socket
-    import urlparse
     import tempfile
     import getpass
     from ConfigParser import RawConfigParser
@@ -38,6 +37,7 @@ try:
 
     import nss.nss as nss
     import SSSDConfig
+    from six.moves.urllib.parse import urlparse, urlunparse
 
     from ipapython.ipa_log_manager import standard_logging_setup, root_logger
     from ipaclient import ipadiscovery
@@ -1877,7 +1877,7 @@ def get_ca_certs_from_file(url):
     '''
 
     try:
-        parsed = urlparse.urlparse(url, 'file')
+        parsed = urlparse(url, 'file')
     except Exception:
         raise errors.FileError(reason="unable to parse file url '%s'" % url)
 
@@ -2014,16 +2014,16 @@ def get_ca_certs(fstore, options, server, basedn, realm):
     ca_file = CACERT + ".new"
 
     def ldap_url():
-        return urlparse.urlunparse(('ldap', ipautil.format_netloc(server),
-                                   '', '', '', ''))
+        return urlunparse(('ldap', ipautil.format_netloc(server),
+                           '', '', '', ''))
 
     def file_url():
-        return urlparse.urlunparse(('file', '', options.ca_cert_file,
-                                   '', '', ''))
+        return urlunparse(('file', '', options.ca_cert_file,
+                           '', '', ''))
 
     def http_url():
-        return urlparse.urlunparse(('http', ipautil.format_netloc(server),
-                                   '/ipa/config/ca.crt', '', '', ''))
+        return urlunparse(('http', ipautil.format_netloc(server),
+                           '/ipa/config/ca.crt', '', '', ''))
 
 
     interactive = not options.unattended

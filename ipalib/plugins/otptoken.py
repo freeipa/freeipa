@@ -31,14 +31,11 @@ from ipapython.nsslib import NSSConnection
 
 import base64
 import uuid
-import urllib
-import urllib2
-import httplib
-import urlparse
 import qrcode
 import os
 
 import six
+from six.moves import urllib
 
 if six.PY3:
     unicode = str
@@ -339,8 +336,8 @@ class otptoken_add(LDAPCreate):
             args['counter'] = entry_attrs['ipatokenhotpcounter']
 
         # Build the URI
-        label = urllib.quote(entry_attrs['ipatokenuniqueid'])
-        parameters = urllib.urlencode(args)
+        label = urllib.parse.quote(entry_attrs['ipatokenuniqueid'])
+        parameters = urllib.parse.urlencode(args)
         uri = u'otpauth://%s/%s:%s?%s' % (options['type'], issuer, label, parameters)
         setattr(context, 'uri', uri)
 
@@ -479,14 +476,14 @@ class otptoken_remove_managedby(LDAPRemoveMember):
     member_attributes = ['managedby']
 
 
-class HTTPSHandler(urllib2.HTTPSHandler):
+class HTTPSHandler(urllib.request.HTTPSHandler):
     "Opens SSL HTTPS connections that perform hostname validation."
 
     def __init__(self, **kwargs):
         self.__kwargs = kwargs
 
         # Can't use super() because the parent is an old-style class.
-        urllib2.HTTPSHandler.__init__(self)
+        urllib.request.HTTPSHandler.__init__(self)
 
     def __inner(self, host, **kwargs):
         tmp = self.__kwargs.copy()
@@ -496,6 +493,7 @@ class HTTPSHandler(urllib2.HTTPSHandler):
         return NSSConnection(host, **tmp)
 
     def https_open(self, req):
+        # pylint: disable=no-member
         return self.do_open(self.__inner, req)
 
 @register()
@@ -519,10 +517,12 @@ class otptoken_sync(Local):
         status = {'result': {self.header: 'unknown'}}
 
         # Get the sync URI.
-        segments = list(urlparse.urlparse(self.api.env.xmlrpc_uri))
+        segments = list(urllib.parse.urlparse(self.api.env.xmlrpc_uri))
         assert segments[0] == 'https' # Ensure encryption.
         segments[2] = segments[2].replace('/xml', '/session/sync_token')
-        sync_uri = urlparse.urlunparse(segments)
+        # urlunparse *can* take one argument
+        # pylint: disable=too-many-function-args
+        sync_uri = urllib.parse.urlunparse(segments)
 
         # Prepare the query.
         query = {k: v for k, v in kwargs.items()
@@ -531,14 +531,14 @@ class otptoken_sync(Local):
             obj = self.api.Object.otptoken
             query['token'] = DN((obj.primary_key.name, args[0]),
                                 obj.container_dn, self.api.env.basedn)
-        query = urllib.urlencode(query)
+        query = urllib.parse.urlencode(query)
 
         # Sync the token.
         # pylint: disable=E1101
         handler = HTTPSHandler(dbdir=paths.IPA_NSSDB_DIR,
                                tls_version_min=api.env.tls_version_min,
                                tls_version_max=api.env.tls_version_max)
-        rsp = urllib2.build_opener(handler).open(sync_uri, query)
+        rsp = urllib.request.build_opener(handler).open(sync_uri, query)
         if rsp.getcode() == 200:
             status['result'][self.header] = rsp.info().get(self.header, 'unknown')
         rsp.close()

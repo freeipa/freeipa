@@ -29,12 +29,12 @@ import os
 import stat
 import socket
 import sys
-import urllib
 import base64
 
 from subprocess import CalledProcessError
 from nss.error import NSPRError
 from pyasn1.error import PyAsn1Error
+from six.moves import urllib
 
 from ipapython.ipa_log_manager import root_logger, log_mgr
 from ipapython import ipautil
@@ -215,11 +215,11 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                     "Failed to decode certificate \"%s\": %s", nickname, e)
                 continue
 
-            label = urllib.quote(nickname)
-            subject = urllib.quote(subject)
-            issuer = urllib.quote(issuer)
-            serial_number = urllib.quote(serial_number)
-            public_key_info = urllib.quote(public_key_info)
+            label = urllib.parse.quote(nickname)
+            subject = urllib.parse.quote(subject)
+            issuer = urllib.parse.quote(issuer)
+            serial_number = urllib.parse.quote(serial_number)
+            public_key_info = urllib.parse.quote(public_key_info)
 
             cert = base64.b64encode(cert)
             cert = x509.make_pem(cert)
@@ -255,7 +255,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                         "Failed to encode extended key usage for \"%s\": %s",
                         nickname, e)
                     continue
-                value = urllib.quote(ext_key_usage)
+                value = urllib.parse.quote(ext_key_usage)
                 obj = ("[p11-kit-object-v1]\n"
                        "class: x-certificate-extension\n"
                        "label: \"ExtendedKeyUsage for %(label)s\"\n"
