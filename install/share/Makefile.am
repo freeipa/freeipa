@@ -83,7 +83,7 @@ app_DATA =				\
 	copy-schema-to-ca.py		\
 	sasl-mapping-fallback.ldif	\
 	schema-update.ldif		\
-	vault.update			\
+	vault.ldif			\
 	kdcproxy.conf			\
 	kdcproxy-enable.uldif		\
 	kdcproxy-disable.uldif		\
