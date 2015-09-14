@@ -296,14 +296,14 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
             raise e
 
 class NSSHTTPS(httplib.HTTP):
-    # We would like to use HTTP 1.1 not the older HTTP 1.0 but xmlrpclib
+    # We would like to use HTTP 1.1 not the older HTTP 1.0 but xmlrpc.client
     # and httplib do not play well together. httplib when the protocol
-    # is 1.1 will add a host header in the request. But xmlrpclib
+    # is 1.1 will add a host header in the request. But xmlrpc.client
     # always adds a host header irregardless of the HTTP protocol
     # version. That means the request ends up with 2 host headers,
     # but Apache freaks out if it sees 2 host headers, a known Apache
     # issue. httplib has a mechanism to skip adding the host header
-    # (i.e. skip_host in HTTPConnection.putrequest()) but xmlrpclib
+    # (i.e. skip_host in HTTPConnection.putrequest()) but xmlrpc.client
     # doesn't use it. Oh well, back to 1.0  :-(
     #
     #_http_vsn = 11

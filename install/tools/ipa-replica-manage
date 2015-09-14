@@ -43,7 +43,7 @@ from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
 from ipaclient import ipadiscovery
-from xmlrpclib import MAXINT
+from six.moves.xmlrpc_client import MAXINT
 from ipaplatform.paths import paths
 
 # dict of command name and tuples of min/max num of args needed

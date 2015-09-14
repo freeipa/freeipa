@@ -24,7 +24,7 @@ Also see the `ipalib.rpc` module.
 """
 
 from xml.sax.saxutils import escape
-from xmlrpclib import Fault
+from six.moves.xmlrpc_client import Fault
 import os
 import datetime
 import json

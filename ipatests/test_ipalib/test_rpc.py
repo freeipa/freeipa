@@ -22,7 +22,7 @@ Test the `ipalib.rpc` module.
 """
 from __future__ import print_function
 
-from xmlrpclib import Binary, Fault, dumps, loads
+from six.moves.xmlrpc_client import Binary, Fault, dumps, loads
 
 import nose
 import six
@@ -58,10 +58,10 @@ def test_round_trip():
     """
     Test `ipalib.rpc.xml_wrap` and `ipalib.rpc.xml_unwrap`.
 
-    This tests the two functions together with ``xmlrpclib.dumps()`` and
-    ``xmlrpclib.loads()`` in a full wrap/dumps/loads/unwrap round trip.
+    This tests the two functions together with ``xmlrpc.client.dumps()`` and
+    ``xmlrpc.client.loads()`` in a full wrap/dumps/loads/unwrap round trip.
     """
-    # We first test that our assumptions about xmlrpclib module in the Python
+    # We first test that our assumptions about xmlrpc.client module in the Python
     # standard library are correct:
     assert_equal(dump_n_load(utf8_bytes), unicode_str)
     assert_equal(dump_n_load(unicode_str), unicode_str)
@@ -75,9 +75,9 @@ def test_round_trip():
 
     # Now we test our wrap and unwrap methods in combination with dumps, loads:
     # All str should come back str (because they get wrapped in
-    # xmlrpclib.Binary().  All unicode should come back unicode because str
+    # xmlrpc.client.Binary().  All unicode should come back unicode because str
     # explicity get decoded by rpc.xml_unwrap() if they weren't already
-    # decoded by xmlrpclib.loads().
+    # decoded by xmlrpc.client.loads().
     assert_equal(round_trip(utf8_bytes), utf8_bytes)
     assert_equal(round_trip(unicode_str), unicode_str)
     assert_equal(round_trip(binary_bytes), binary_bytes)
