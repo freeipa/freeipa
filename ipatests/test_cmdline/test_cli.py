@@ -1,10 +1,10 @@
 import shlex
 import sys
 import contextlib
-import StringIO
 
 import nose
 import six
+from six import StringIO
 
 from ipatests import util
 from ipalib import api, errors
@@ -41,7 +41,7 @@ class TestCLIParsing(object):
     def fake_stdin(self, string_in):
         """Context manager that temporarily replaces stdin to read a string"""
         old_stdin = sys.stdin
-        sys.stdin = StringIO.StringIO(string_in)
+        sys.stdin = StringIO(string_in)
         yield
         sys.stdin = old_stdin
 

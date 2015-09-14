@@ -19,10 +19,10 @@
 
 import sys
 import contextlib
-import StringIO
 
 from nose.tools import assert_raises  # pylint: disable=E0611
 import six
+from six import StringIO
 
 from ipalib import api, errors
 from ipalib.plugins.user import user_add
@@ -45,8 +45,8 @@ class CLITestContext(object):
 
     def __enter__(self):
         self.old_streams = sys.stdout, sys.stderr
-        self.stdout_fileobj = sys.stdout = StringIO.StringIO()
-        self.stderr_fileobj = sys.stderr = StringIO.StringIO()
+        self.stdout_fileobj = sys.stdout = StringIO()
+        self.stderr_fileobj = sys.stderr = StringIO()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):

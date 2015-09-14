@@ -20,10 +20,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import StringIO
 import struct
 import subprocess
 import sys
+
+from six import StringIO
 
 try:
     from pyrad import packet
@@ -40,7 +41,7 @@ ATTRIBUTE	User-Password	2	string
 ATTRIBUTE	NAS-Identifier	32	string
 """
 
-dct = Dictionary(StringIO.StringIO(DICTIONARY))
+dct = Dictionary(StringIO(DICTIONARY))
 
 proc = subprocess.Popen(["./ipa-otpd", sys.argv[1]],
                         stdin=subprocess.PIPE, stdout=subprocess.PIPE)
