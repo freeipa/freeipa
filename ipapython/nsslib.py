@@ -21,7 +21,6 @@
 from __future__ import print_function
 
 import sys
-import httplib
 import getpass
 import socket
 from ipapython.ipa_log_manager import *
@@ -31,6 +30,14 @@ import nss.io as io
 import nss.nss as nss
 import nss.ssl as ssl
 import nss.error as error
+
+# Python 3 rename. The package is available in "six.moves.http_client", but
+# pylint cannot handle classes from that alias
+try:
+    import httplib
+except ImportError:
+    import http.client as httplib
+
 from ipaplatform.paths import paths
 
 # NSS database currently open
@@ -294,6 +301,7 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
         except NSPRError as e:
             self.close()
             raise e
+
 
 class NSSHTTPS(httplib.HTTP):
     # We would like to use HTTP 1.1 not the older HTTP 1.0 but xmlrpc.client

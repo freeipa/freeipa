@@ -20,11 +20,16 @@
 Base class for HTTP request tests
 """
 
-import httplib
-
 from six.moves import urllib
 
 from ipalib import api
+
+# Python 3 rename. The package is available in "six.moves.http_client", but
+# pylint cannot handle classes from that alias
+try:
+    import httplib
+except ImportError:
+    import http.client as httplib
 
 class Unauthorized_HTTP_test(object):
     """

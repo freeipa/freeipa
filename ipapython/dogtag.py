@@ -19,7 +19,6 @@
 
 import collections
 import os
-import httplib
 import xml.dom.minidom
 
 import nss.nss as nss
@@ -33,6 +32,13 @@ from ipalib.text import _
 from ipapython import nsslib, ipautil
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import *
+
+# Python 3 rename. The package is available in "six.moves.http_client", but
+# pylint cannot handle classes from that alias
+try:
+    import httplib
+except ImportError:
+    import http.client as httplib
 
 if six.PY3:
     unicode = str
