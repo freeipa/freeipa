@@ -25,7 +25,6 @@ import array
 import base64
 import binascii
 import dbus
-import httplib
 import ldap
 import os
 import pwd
@@ -68,6 +67,13 @@ from ipaserver.install import service
 from ipaserver.install.dogtaginstance import DogtagInstance
 from ipaserver.install.dogtaginstance import PKI_USER, DEFAULT_DSPORT
 from ipaserver.plugins import ldap2
+
+# Python 3 rename. The package is available in "six.moves.http_client", but
+# pylint cannot handle classes from that alias
+try:
+    import httplib
+except ImportError:
+    import http.client as httplib
 
 
 # When IPA is installed with DNS support, this CNAME should hold all IPA
