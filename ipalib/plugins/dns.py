@@ -702,7 +702,6 @@ class DNSRecord(Str):
         kw.setdefault('label', self.label_format % self.rrtype)
         kw.setdefault('doc', self.doc_format % self.rrtype)
         kw.setdefault('option_group', self.option_group_format % self.rrtype)
-        kw['csv'] = True
 
         if not self.supported:
             kw['flags'] = ('no_option',)
@@ -2036,7 +2035,6 @@ class DNSZoneBase(LDAPObject):
             label=_('Zone forwarders'),
             doc=_('Per-zone forwarders. A custom port can be specified '
                   'for each forwarder using a standard format "IP_ADDRESS port PORT"'),
-            csv=True,
         ),
         StrEnum('idnsforwardpolicy?',
             cli_name='forward_policy',
@@ -4294,7 +4292,6 @@ class dnsconfig(LDAPObject):
             label=_('Global forwarders'),
             doc=_('Global forwarders. A custom port can be specified for each '
                   'forwarder using a standard format "IP_ADDRESS port PORT"'),
-            csv=True,
         ),
         StrEnum('idnsforwardpolicy?',
             cli_name='forward_policy',

@@ -527,12 +527,10 @@ class trust(LDAPObject):
             label=_('Domain Security Identifier'),
             flags=['no_create', 'no_update']),
         Str('ipantsidblacklistincoming*',
-            csv=True,
             cli_name='sid_blacklist_incoming',
             label=_('SID blacklist incoming'),
             flags=['no_create']),
         Str('ipantsidblacklistoutgoing*',
-            csv=True,
             cli_name='sid_blacklist_outgoing',
             label=_('SID blacklist outgoing'),
             flags=['no_create']),
@@ -1294,7 +1292,6 @@ class trust_resolve(Command):
     takes_options = (
         Str('sids+',
             label = _('Security Identifiers (SIDs)'),
-            csv = True,
         ),
     )
 

@@ -524,7 +524,6 @@ class host(LDAPObject):
             pattern='^([a-fA-F0-9]{2}[:|\-]?){5}[a-fA-F0-9]{2}$',
             pattern_errmsg=('Must be of the form HH:HH:HH:HH:HH:HH, where '
                             'each H is a hexadecimal character.'),
-            csv=True,
             label=_('MAC address'),
             doc=_('Hardware MAC address(es) on this host'),
         ),
@@ -532,7 +531,6 @@ class host(LDAPObject):
             cli_name='sshpubkey',
             label=_('SSH public key'),
             normalizer=normalize_sshpubkey,
-            csv=True,
             flags=['no_search'],
         ),
         Str('userclass*',

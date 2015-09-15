@@ -149,7 +149,6 @@ ipa_class_members = {
         'hint',
         'alwaysask',
         'sortorder',
-        'csv',
         'option_group',
      ],
     'ipalib.parameters.Bool': [

@@ -1678,7 +1678,7 @@ class LDAPModMember(LDAPQuery):
                 doc = self.member_param_doc % ldap_obj.object_name_plural
                 label = self.member_param_label % ldap_obj.object_name
                 yield Str('%s*' % name, cli_name='%ss' % name, doc=doc,
-                          label=label, csv=True, alwaysask=True)
+                          label=label, alwaysask=True)
 
     def get_member_dns(self, **options):
         dns = {}
@@ -1965,7 +1965,7 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
             name = '%s%s' % (relationship[1], to_cli(ldap_obj_name))
             yield Str(
                 '%s*' % name, cli_name='%ss' % name, doc=doc,
-                label=ldap_obj.object_name, csv=True
+                label=ldap_obj.object_name
             )
             doc = self.member_param_excl_doc % dict(
                 searched_object=self.obj.object_name_plural,
@@ -1975,7 +1975,7 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
             name = '%s%s' % (relationship[2], to_cli(ldap_obj_name))
             yield Str(
                 '%s*' % name, cli_name='%ss' % name, doc=doc,
-                label=ldap_obj.object_name, csv=True
+                label=ldap_obj.object_name
             )
 
     def get_options(self):
@@ -2156,8 +2156,7 @@ class LDAPModReverseMember(LDAPQuery):
                 name = to_cli(ldap_obj_name)
                 doc = self.reverse_param_doc % ldap_obj.object_name_plural
                 yield Str('%s*' % name, cli_name='%ss' % name, doc=doc,
-                          label=ldap_obj.object_name, csv=True,
-                          alwaysask=True)
+                          label=ldap_obj.object_name, alwaysask=True)
 
 
 class LDAPAddReverseMember(LDAPModReverseMember):

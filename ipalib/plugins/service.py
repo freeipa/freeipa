@@ -504,7 +504,6 @@ class service(LDAPObject):
                   " Use 'NONE' to disable PAC support for this service,"
                   " e.g. this might be necessary for NFS services."),
             values=(u'MS-PAC', u'PAD', u'NONE'),
-            csv=True,
         ),
     ) + ticket_flags_params
 

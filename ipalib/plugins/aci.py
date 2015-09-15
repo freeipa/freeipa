@@ -459,7 +459,6 @@ class aci(Object):
             label=_('Permissions'),
             doc=_('Permissions to grant' \
                 '(read, write, add, delete, all)'),
-            csv=True,
             normalizer=_normalize_permissions,
             flags=('virtual_attribute',),
         ),
@@ -467,7 +466,6 @@ class aci(Object):
             cli_name='attrs',
             label=_('Attributes to which the permission applies'),
             doc=_('Attributes'),
-            csv=True,
             flags=('virtual_attribute',),
         ),
         StrEnum('type?',

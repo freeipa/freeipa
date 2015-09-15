@@ -533,7 +533,6 @@ class migrate_ds(Command):
             cli_name='user_objectclass',
             label=_('User object class'),
             doc=_('Objectclasses used to search for user entries in DS'),
-            csv=True,
             default=(u'person',),
             autofill=True,
         ),
@@ -541,7 +540,6 @@ class migrate_ds(Command):
             cli_name='group_objectclass',
             label=_('Group object class'),
             doc=_('Objectclasses used to search for group entries in DS'),
-            csv=True,
             default=(u'groupOfUniqueNames', u'groupOfNames'),
             autofill=True,
         ),
@@ -549,7 +547,6 @@ class migrate_ds(Command):
             cli_name='user_ignore_objectclass',
             label=_('Ignore user object class'),
             doc=_('Objectclasses to be ignored for user entries in DS'),
-            csv=True,
             default=tuple(),
             autofill=True,
         ),
@@ -557,7 +554,6 @@ class migrate_ds(Command):
             cli_name='user_ignore_attribute',
             label=_('Ignore user attribute'),
             doc=_('Attributes to be ignored for user entries in DS'),
-            csv=True,
             default=tuple(),
             autofill=True,
         ),
@@ -565,7 +561,6 @@ class migrate_ds(Command):
             cli_name='group_ignore_objectclass',
             label=_('Ignore group object class'),
             doc=_('Objectclasses to be ignored for group entries in DS'),
-            csv=True,
             default=tuple(),
             autofill=True,
         ),
@@ -573,7 +568,6 @@ class migrate_ds(Command):
             cli_name='group_ignore_attribute',
             label=_('Ignore group attribute'),
             doc=_('Attributes to be ignored for group entries in DS'),
-            csv=True,
             default=tuple(),
             autofill=True,
         ),
@@ -680,8 +674,8 @@ can use their Kerberos accounts.''')
             name = 'exclude_%ss' % to_cli(ldap_obj_name)
             doc = self.exclude_doc % ldap_obj.object_name_plural
             yield Str(
-                '%s*' % name, cli_name=name, doc=doc, csv=True,
-                default=tuple(), autofill=True
+                '%s*' % name, cli_name=name, doc=doc, default=tuple(),
+                autofill=True
             )
 
     def normalize_options(self, options):
@@ -691,14 +685,17 @@ can use their Kerberos accounts.''')
         Also, empty List parameters are converted to None, but the migration
         plugin doesn't like that - convert back to empty lists.
         """
-        for p in self.params():
-            if p.csv:
-                if options[p.name]:
-                    options[p.name] = tuple(
-                        v.lower() for v in options[p.name]
-                    )
-                else:
-                    options[p.name] = tuple()
+        names = ['userobjectclass', 'groupobjectclass',
+                 'userignoreobjectclass', 'userignoreattribute',
+                 'groupignoreobjectclass', 'groupignoreattribute']
+        names.extend('exclude_%ss' % to_cli(n) for n in self.migrate_objects)
+        for name in names:
+            if options[name]:
+                options[name] = tuple(
+                    v.lower() for v in options[name]
+                )
+            else:
+                options[name] = tuple()
 
     def _get_search_bases(self, options, ds_base_dn, migrate_order):
         search_bases = dict()

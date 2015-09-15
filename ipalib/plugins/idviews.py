@@ -874,7 +874,6 @@ class idoverrideuser(baseidoverride):
             cli_name='sshpubkey',
             label=_('SSH public key'),
             normalizer=normalize_sshpubkey,
-            csv=True,
             flags=['no_search'],
         ),
         Bytes('usercertificate*', validate_certificate,

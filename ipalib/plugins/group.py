@@ -278,7 +278,6 @@ ipaexternalmember_param = Str('ipaexternalmember*',
             cli_name='external',
             label=_('External member'),
             doc=_('Members of a trusted domain in DOM\\name or name@domain form'),
-            csv=True,
             flags=['no_create', 'no_update', 'no_search'],
         )
 

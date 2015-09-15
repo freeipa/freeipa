@@ -273,7 +273,6 @@ class hbactest(Command):
         Str('rules*',
              cli_name='rules',
              label=_('Rules to test. If not specified, --enabled is assumed'),
-             csv=True,
         ),
         Flag('nodetail?',
              cli_name='nodetail',

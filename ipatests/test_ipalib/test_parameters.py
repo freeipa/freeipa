@@ -222,7 +222,6 @@ class test_Param(ClassChecker):
         assert o.exclude is None
         assert o.flags == frozenset()
         assert o.sortorder == 2
-        assert o.csv is False
 
         # Test that doc defaults from label:
         o = self.cls('my_param', doc=_('Hello world'))
@@ -287,10 +286,6 @@ class test_Param(ClassChecker):
             'include', frozenset(['server', 'foo']),
             'exclude', frozenset(['client', 'bar']),
         )
-
-        # Test that ValueError is raised if csv is set and multivalue is not set:
-        e = raises(ValueError, self.cls, 'my_param', csv=True)
-        assert str(e) == '%s: cannot have csv without multivalue' % "Param('my_param')"
 
         # Test that default_from gets set:
         call = lambda first, last: first[0] + last

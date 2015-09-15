@@ -46,7 +46,6 @@ API_DOC_ERROR = 8
 # attributes removed from Param.__kw dictionary
 PARAM_IGNORED_KW_ATTRIBUTES = (
     'attribute',
-    'csv',
     'default_from',
     'doc',
     'exclude',

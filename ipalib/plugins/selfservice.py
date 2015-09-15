@@ -89,13 +89,11 @@ class selfservice(Object):
             cli_name='permissions',
             label=_('Permissions'),
             doc=_('Permissions to grant (read, write). Default is write.'),
-            csv=True,
         ),
         Str('attrs+',
             cli_name='attrs',
             label=_('Attributes'),
             doc=_('Attributes to which the permission applies.'),
-            csv=True,
             normalizer=lambda value: value.lower(),
         ),
     )

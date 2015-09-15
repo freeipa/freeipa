@@ -375,7 +375,6 @@ class Param(ReadOnly):
         parameter is not `required`
       - sortorder: used to sort a list of parameters for Command. See
         `Command.finalize()` for further information
-      - csv: this multivalue attribute used to be given in CSV format in CLI
     """
 
     # This is a dummy type so that most of the functionality of Param can be
@@ -413,7 +412,6 @@ class Param(ReadOnly):
         ('hint', (str, Gettext), None),
         ('alwaysask', bool, False),
         ('sortorder', int, 2), # see finalize()
-        ('csv', bool, False),
         ('option_group', unicode, None),
 
         # The 'default' kwarg gets appended in Param.__init__():
@@ -534,10 +532,6 @@ class Param(ReadOnly):
                     'exclude', self.exclude,
                 )
             )
-
-        # Check that if csv is set, multivalue is set too
-        if self.csv and not self.multivalue:
-            raise ValueError('%s: cannot have csv without multivalue' % self.nice)
 
         # Check that all the rules are callable
         self.class_rules = tuple(class_rules)
