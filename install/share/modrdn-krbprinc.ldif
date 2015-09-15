@@ -9,3 +9,14 @@ ipaModRDNtargetAttr: krbPrincipalName
 ipaModRDNsuffix: @$REALM
 ipaModRDNfilter: (&(objectclass=posixaccount)(objectclass=krbPrincipalAux))
 ipaModRDNscope: $SUFFIX
+
+dn: cn=Kerberos Canonical Name,cn=IPA MODRDN,cn=plugins,cn=config
+changetype: add
+objectclass: top
+objectclass: extensibleObject
+cn: Kerberos Canonical Name
+ipaModRDNsourceAttr: uid
+ipaModRDNtargetAttr: krbCanonicalName
+ipaModRDNsuffix: @$REALM
+ipaModRDNfilter: (&(objectclass=posixaccount)(objectclass=krbPrincipalAux))
+ipaModRDNscope: $SUFFIX
