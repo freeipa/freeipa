@@ -565,7 +565,7 @@ class ReplicationManager(object):
             print "Adding Windows PassSync system account"
             entry = conn.make_entry(
                 pass_dn,
-                objectclass=["account", "simplesecurityobject"],
+                objectclass=["account", "simplesecurityobject", "inetUser"],
                 uid=["passsync"],
                 userPassword=[password],
             )

@@ -1,0 +1,3 @@
+# Add a inetUser objectclass to the passsync user
+dn: uid=passsync,cn=sysaccounts,cn=etc,$SUFFIX
+addifexist: objectClass: inetUser

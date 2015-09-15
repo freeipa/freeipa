@@ -51,6 +51,7 @@ app_DATA =				\
 	62-ranges.update		\
 	71-idviews.update		\
 	72-domainlevels.update		\
+	73-winsync.update		\
 	90-post_upgrade_plugins.update	\
 	$(NULL)
 
