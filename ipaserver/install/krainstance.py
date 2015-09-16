@@ -262,8 +262,6 @@ class KRAInstance(DogtagInstance):
 
         shutil.move(paths.KRA_BACKUP_KEYS_P12, paths.KRACERT_P12)
 
-        export_kra_agent_pem()
-
         self.log.debug("completed creating KRA instance")
 
     def __create_kra_agent(self):

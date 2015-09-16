@@ -1258,9 +1258,8 @@ def export_kra_agent_pem():
         root_logger.info("KRA agent PEM file already exported")
         return
 
-    kra = krainstance.KRAInstance(api.env.realm)
-    if not kra.is_installed():
-        root_logger.info("KRA is not installed")
+    if not api.Command.kra_is_enabled()['result']:
+        root_logger.info("KRA is not enabled")
         return
 
     krainstance.export_kra_agent_pem()
