@@ -62,8 +62,8 @@ from ipaserver.install import certs
 from ipaserver.install import dsinstance
 from ipaserver.install import installutils
 from ipaserver.install import service
-from ipaserver.install.dogtaginstance import DogtagInstance
-from ipaserver.install.dogtaginstance import PKI_USER, DEFAULT_DSPORT
+from ipaserver.install.dogtaginstance import (
+    DEFAULT_DSPORT, PKI_USER, export_kra_agent_pem, DogtagInstance)
 from ipaserver.plugins import ldap2
 
 
@@ -885,6 +885,8 @@ class CAInstance(DogtagInstance):
         finally:
             os.remove(agent_name)
 
+        export_kra_agent_pem()
+
     def import_ra_cert(self, rafile):
         """
         Cloned RAs will use the same RA agent cert as the master so we
@@ -902,6 +904,8 @@ class CAInstance(DogtagInstance):
             os.remove(agent_name)
 
         self.configure_agent_renewal()
+
+        export_kra_agent_pem()
 
     def __create_ca_agent(self):
         """

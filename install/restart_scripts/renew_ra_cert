@@ -61,8 +61,7 @@ def _main():
             # Load it into dogtag
             cainstance.update_people_entry(dercert)
 
-        kra = krainstance.KRAInstance(api.env.realm)
-        if kra.is_installed():
+        if api.Command.kra_is_enabled()['result']:
             krainstance.export_kra_agent_pem()
     finally:
         shutil.rmtree(tmpdir)
