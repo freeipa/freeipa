@@ -262,6 +262,7 @@ class config_mod(LDAPUpdate):
                 fields = entry_attrs[k].split(',')
                 for a in fields:
                     a = a.strip()
+                    a, tomato, olive = a.partition(';')
                     if a not in allowed_attrs:
                         raise errors.ValidationError(
                             name=k, error=_('attribute "%s" not allowed') % a
@@ -281,6 +282,7 @@ class config_mod(LDAPUpdate):
                 if self.api.Object[obj].uuid_attribute:
                     checked_attrs = checked_attrs + [self.api.Object[obj].uuid_attribute]
                 for obj_attr in checked_attrs:
+                    obj_attr, tomato, olive = obj_attr.partition(';')
                     if obj_attr in OPERATIONAL_ATTRIBUTES:
                         continue
                     if obj_attr in self.api.Object[obj].params and \
