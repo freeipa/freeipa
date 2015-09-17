@@ -38,6 +38,7 @@ import locale
 import base64
 import json
 import socket
+import gzip
 
 import gssapi
 from dns import resolver, rdatatype
@@ -602,19 +603,24 @@ class KerbTransport(SSLTransport):
         return True
 
     def single_request(self, host, handler, request_body, verbose=0):
-        # Based on xmlrpc.lient.Transport.single_request
+        # Based on Python 2.7's xmllib.Transport.single_request
         try:
             h = SSLTransport.make_connection(self, host)
+
             if verbose:
                 h.set_debuglevel(1)
 
             while True:
-                self.send_request(h, handler, request_body)
-                self.send_host(h, host)
-                self.send_user_agent(h)
-                self.send_content(h, request_body)
+                if six.PY2:
+                    self.send_request(h, handler, request_body)
+                    self.send_host(h, host)
+                    self.send_user_agent(h)
+                    self.send_content(h, request_body)
+                    response = h.getresponse(buffering=True)
+                else:
+                    self.__send_request(h, host, handler, request_body, verbose)
+                    response = h.getresponse()
 
-                response = h.getresponse(buffering=True)
                 if response.status != 200:
                     if (response.getheader("content-length", 0)):
                         response.read()
@@ -636,6 +642,23 @@ class KerbTransport(SSLTransport):
             self._handle_exception(e)
         finally:
             self.close()
+
+    if six.PY3:
+        def __send_request(self, connection, host, handler, request_body, debug):
+            # Based on xmlrpc.client.Transport.send_request
+            headers = self._extra_headers[:]
+            if debug:
+                connection.set_debuglevel(1)
+            if self.accept_gzip_encoding and gzip:
+                connection.putrequest("POST", handler, skip_accept_encoding=True)
+                connection.putheader("Accept-Encoding", "gzip")
+                headers.append(("Accept-Encoding", "gzip"))
+            else:
+                connection.putrequest("POST", handler)
+            headers.append(("User-Agent", self.user_agent))
+            self.send_headers(connection, headers)
+            self.send_content(connection, request_body)
+            return connection
 
     def store_session_cookie(self, cookie_header):
         '''
