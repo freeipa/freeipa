@@ -38,6 +38,7 @@ import locale
 import base64
 import json
 import socket
+import gzip
 
 import gssapi
 from dns import resolver, rdatatype
@@ -60,7 +61,9 @@ from ipapython.cookie import Cookie
 from ipapython.dnsutil import DNSName
 from ipalib.text import _
 import ipapython.nsslib
-from ipapython.nsslib import NSSHTTPS, NSSConnection
+from ipapython.nsslib import NSSConnection
+if six.PY2:
+    from ipapython.nsslib import NSSHTTPS
 from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
                              KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, \
                              KRB5_REALM_CANT_RESOLVE, KRB5_CC_NOTFOUND, get_principal
@@ -610,19 +613,24 @@ class KerbTransport(SSLTransport):
         return True
 
     def single_request(self, host, handler, request_body, verbose=0):
-        # Based on xmlrpc.lient.Transport.single_request
+        # Based on Python 2.7's xmllib.Transport.single_request
         try:
             h = SSLTransport.make_connection(self, host)
+
             if verbose:
                 h.set_debuglevel(1)
 
             while True:
-                self.send_request(h, handler, request_body)
-                self.send_host(h, host)
-                self.send_user_agent(h)
-                self.send_content(h, request_body)
+                if six.PY2:
+                    self.send_request(h, handler, request_body)
+                    self.send_host(h, host)
+                    self.send_user_agent(h)
+                    self.send_content(h, request_body)
+                    response = h.getresponse(buffering=True)
+                else:
+                    self.__send_request(h, host, handler, request_body, verbose)
+                    response = h.getresponse()
 
-                response = h.getresponse(buffering=True)
                 if response.status != 200:
                     if (response.getheader("content-length", 0)):
                         response.read()
@@ -644,6 +652,24 @@ class KerbTransport(SSLTransport):
             self._handle_exception(e)
         finally:
             self.close()
+
+    if six.PY3:
+        def __send_request(self, connection, host, handler, request_body, debug):
+            # Based on xmlrpc.client.Transport.send_request
+            headers = self._extra_headers[:]
+            if debug:
+                connection.set_debuglevel(1)
+            if self.accept_gzip_encoding and gzip:
+                connection.putrequest("POST", handler, skip_accept_encoding=True)
+                connection.putheader("Accept-Encoding", "gzip")
+                headers.append(("Accept-Encoding", "gzip"))
+            else:
+                connection.putrequest("POST", handler)
+            headers.append(("Content-Type", "text/xml"))
+            headers.append(("User-Agent", self.user_agent))
+            self.send_headers(connection, headers)
+            self.send_content(connection, request_body)
+            return connection
 
     def store_session_cookie(self, cookie_header):
         '''

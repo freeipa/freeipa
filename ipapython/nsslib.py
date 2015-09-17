@@ -31,6 +31,8 @@ import nss.nss as nss
 import nss.ssl as ssl
 import nss.error as error
 
+import six
+
 # Python 3 rename. The package is available in "six.moves.http_client", but
 # pylint cannot handle classes from that alias
 try:
@@ -303,7 +305,8 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
             raise e
 
 
-class NSSHTTPS(httplib.HTTP):
+if six.PY2:
+  class NSSHTTPS(httplib.HTTP):
     # We would like to use HTTP 1.1 not the older HTTP 1.0 but xmlrpc.client
     # and httplib do not play well together. httplib when the protocol
     # is 1.1 will add a host header in the request. But xmlrpc.client
