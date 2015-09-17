@@ -1570,6 +1570,8 @@ class LDAPDelete(LDAPMultiQuery):
 
     has_output_params = global_output_params
 
+    subtree_delete = True
+
     def execute(self, *keys, **options):
         ldap = self.obj.backend
 
@@ -1605,6 +1607,8 @@ class LDAPDelete(LDAPMultiQuery):
             except errors.NotFound:
                 self.obj.handle_not_found(*nkeys)
             except errors.NotAllowedOnNonLeaf:
+                if not self.subtree_delete:
+                    raise
                 # this entry is not a leaf entry, delete all child nodes
                 delete_subtree(dn)
 
