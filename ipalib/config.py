@@ -29,7 +29,6 @@ of the process.
 For the per-request thread-local information, see `ipalib.request`.
 """
 
-from types import NoneType
 import os
 from os import path
 import sys
@@ -259,7 +258,7 @@ class Env(object):
                 value = int(value)
             elif key == 'basedn':
                 value = DN(value)
-        assert type(value) in (unicode, int, float, bool, NoneType, DN)
+        assert type(value) in (unicode, int, float, bool, type(None), DN)
         object.__setattr__(self, key, value)
         self.__d[key] = value
 

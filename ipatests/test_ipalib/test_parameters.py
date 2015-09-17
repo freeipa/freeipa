@@ -28,7 +28,6 @@ Test the `ipalib.parameters` module.
 import datetime
 import re
 import sys
-from types import NoneType
 from decimal import Decimal
 from inspect import isclass
 from six.moves.xmlrpc_client import MAXINT, MININT
@@ -480,10 +479,10 @@ class test_Param(ClassChecker):
 
         # Test with wrong (scalar) type:
         e = raises(TypeError, o.validate, (None, None, 42, None), 'cli')
-        assert str(e) == TYPE_ERROR % ('my_param', NoneType, 42, int)
+        assert str(e) == TYPE_ERROR % ('my_param', type(None), 42, int)
         o = self.cls('my_param')
         e = raises(TypeError, o.validate, 'Hello', 'cli')
-        assert str(e) == TYPE_ERROR % ('my_param', NoneType, 'Hello', str)
+        assert str(e) == TYPE_ERROR % ('my_param', type(None), 'Hello', str)
 
         class Example(self.cls):
             type = int
@@ -650,7 +649,7 @@ class test_Flag(ClassChecker):
 
         # Test that TypeError is raise if default is not a bool:
         e = raises(TypeError, self.cls, 'my_flag', default=None)
-        assert str(e) == TYPE_ERROR % ('default', bool, None, NoneType)
+        assert str(e) == TYPE_ERROR % ('default', bool, None, type(None))
 
         # Test with autofill=False, default=True
         o = self.cls('my_flag', autofill=False, default=True)
@@ -685,7 +684,7 @@ class test_Data(ClassChecker):
         Test the `ipalib.parameters.Data.__init__` method.
         """
         o = self.cls('my_data')
-        assert o.type is NoneType
+        assert o.type is type(None)
         assert o.password is False
         assert o.rules == tuple()
         assert o.class_rules == tuple()
@@ -1231,7 +1230,7 @@ class test_Number(ClassChecker):
         Test the `ipalib.parameters.Number.__init__` method.
         """
         o = self.cls('my_number')
-        assert o.type is NoneType
+        assert o.type is type(None)
         assert o.password is False
         assert o.rules == tuple()
         assert o.class_rules == tuple()

@@ -104,7 +104,6 @@ import decimal
 import base64
 import datetime
 from six.moves.xmlrpc_client import MAXINT, MININT
-from types import NoneType
 import encodings.idna
 
 import dns.name
@@ -125,6 +124,7 @@ def _is_null(value):
 
 if six.PY3:
     unicode = str
+
 
 class DefaultFrom(ReadOnly):
     """
@@ -384,7 +384,7 @@ class Param(ReadOnly):
     # (direct) subclass must *always* override this class attribute.
     # If multiple types are permitted, set `type` to the canonical type and
     # `allowed_types` to a tuple of all allowed types.
-    type = NoneType  # Ouch, this wont be very useful in the real world!
+    type = type(None) # Ouch, this wont be very useful in the real world!
 
     # Subclasses should override this with something more specific:
     type_error = _('incorrect type')

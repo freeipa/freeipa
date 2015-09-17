@@ -30,7 +30,6 @@ For documentation on the ``xmlrpclib`` module, see:
 Also see the `ipaserver.rpcserver` module.
 """
 
-from types import NoneType
 from decimal import Decimal
 import sys
 import datetime
@@ -194,7 +193,7 @@ def xml_wrap(value, version):
         else:
             return unicode(value)
 
-    assert type(value) in (unicode, float, bool, NoneType) + six.integer_types
+    assert type(value) in (unicode, float, bool, type(None)) + six.integer_types
     return value
 
 
@@ -233,7 +232,7 @@ def xml_unwrap(value, encoding='UTF-8'):
     if isinstance(value, DateTime):
         # xmlprc DateTime is converted to string of %Y%m%dT%H:%M:%S format
         return datetime.datetime.strptime(str(value), "%Y%m%dT%H:%M:%S")
-    assert type(value) in (unicode, int, float, bool, NoneType)
+    assert type(value) in (unicode, int, float, bool, type(None))
     return value
 
 
