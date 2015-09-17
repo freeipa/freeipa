@@ -155,9 +155,9 @@ def test_assert_deepequal():
         'foo', u'hello', u'world', tuple()
     )
 
-    e = raises(AssertionError, f, 'hello', u'hello', 'foo')
+    e = raises(AssertionError, f, b'hello', u'hello', 'foo')
     assert str(e) == TYPE % (
-        'foo', str, unicode, 'hello', u'hello', tuple()
+        'foo', bytes, unicode, b'hello', u'hello', tuple()
     )
 
     e = raises(AssertionError, f, 18, 18.0, 'foo')
@@ -180,23 +180,23 @@ def test_assert_deepequal():
 
     # Test with bad compound values:
     b = [
-        'hello',
+        b'hello',
         dict(naughty=u'nurse'),
         18,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        'foo', unicode, str, u'hello', 'hello', (2,)
+        'foo', unicode, bytes, u'hello', b'hello', (2,)
     )
 
     b = [
         u'hello',
-        dict(naughty='nurse'),
+        dict(naughty=b'nurse'),
         18,
     ]
-    e = raises(AssertionError, f, a, b, 'foo')
+    e = raises(AssertionError, f, a, b, b'foo')
     assert str(e) == TYPE % (
-        'foo', unicode, str, u'nurse', 'nurse', (1, 'naughty')
+        b'foo', unicode, bytes, u'nurse', b'nurse', (1, 'naughty')
     )
 
     b = [
@@ -204,9 +204,9 @@ def test_assert_deepequal():
         dict(naughty=u'nurse'),
         18.0,
     ]
-    e = raises(AssertionError, f, a, b, 'foo')
+    e = raises(AssertionError, f, a, b, b'foo')
     assert str(e) == TYPE % (
-        'foo', int, float, 18, 18.0, (0,)
+        b'foo', int, float, 18, 18.0, (0,)
     )
 
     # List length mismatch
@@ -216,18 +216,18 @@ def test_assert_deepequal():
         18,
         19
     ]
-    e = raises(AssertionError, f, a, b, 'foo')
+    e = raises(AssertionError, f, a, b, b'foo')
     assert str(e) == LEN % (
-        'foo', 3, 4, a, b, tuple()
+        b'foo', 3, 4, a, b, tuple()
     )
 
     b = [
         dict(naughty=u'nurse'),
         18,
     ]
-    e = raises(AssertionError, f, a, b, 'foo')
+    e = raises(AssertionError, f, a, b, b'foo')
     assert str(e) == LEN % (
-        'foo', 3, 2, a, b, tuple()
+        b'foo', 3, 2, a, b, tuple()
     )
 
     # Dict keys mismatch:
@@ -238,8 +238,8 @@ def test_assert_deepequal():
         dict(),
         18,
     ]
-    e = raises(AssertionError, f, a, b, 'foo')
-    assert str(e) == KEYS % ('foo',
+    e = raises(AssertionError, f, a, b, b'foo')
+    assert str(e) == KEYS % (b'foo',
         ['naughty'], [],
         dict(naughty=u'nurse'), dict(),
         (1,)
@@ -251,8 +251,8 @@ def test_assert_deepequal():
         dict(naughty=u'nurse', barely=u'legal'),
         18,
     ]
-    e = raises(AssertionError, f, a, b, 'foo')
-    assert str(e) == KEYS % ('foo',
+    e = raises(AssertionError, f, a, b, b'foo')
+    assert str(e) == KEYS % (b'foo',
         [], ['barely'],
         dict(naughty=u'nurse'), dict(naughty=u'nurse', barely=u'legal'),
         (1,)
@@ -264,8 +264,8 @@ def test_assert_deepequal():
         dict(barely=u'legal'),
         18,
     ]
-    e = raises(AssertionError, f, a, b, 'foo')
-    assert str(e) == KEYS % ('foo',
+    e = raises(AssertionError, f, a, b, b'foo')
+    assert str(e) == KEYS % (b'foo',
         ['naughty'], ['barely'],
         dict(naughty=u'nurse'), dict(barely=u'legal'),
         (1,)

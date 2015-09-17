@@ -224,7 +224,7 @@ def xml_unwrap(value, encoding='UTF-8'):
             return dict(
                 (k, xml_unwrap(v, encoding)) for (k, v) in value.items()
             )
-    if type(value) is str:
+    if isinstance(value, bytes):
         return value.decode(encoding)
     if isinstance(value, Binary):
         assert type(value.data) is bytes
@@ -363,7 +363,7 @@ def json_decode_binary(val):
 
 def decode_fault(e, encoding='UTF-8'):
     assert isinstance(e, Fault)
-    if type(e.faultString) is str:
+    if isinstance(e.faultString, bytes):
         return Fault(e.faultCode, e.faultString.decode(encoding))
     return e
 

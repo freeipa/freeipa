@@ -244,7 +244,7 @@ class Env(object):
         assert not hasattr(self, key)
         if isinstance(value, six.string_types):
             value = value.strip()
-            if isinstance(value, str):
+            if isinstance(value, bytes):
                 value = value.decode('utf-8')
             m = {
                 'True': True,
