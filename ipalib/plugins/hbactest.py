@@ -19,7 +19,6 @@
 
 from ipalib import api, errors, output, util
 from ipalib import Command, Str, Flag, Int, DeprecatedParam
-from types import NoneType
 from ipalib.cli import to_cli
 from ipalib import _, ngettext
 from ipapython.dn import DN
@@ -250,10 +249,10 @@ class hbactest(Command):
 
     has_output = (
         output.summary,
-        output.Output('warning', (list, tuple, NoneType),   _('Warning')),
-        output.Output('matched', (list, tuple, NoneType),   _('Matched rules')),
-        output.Output('notmatched', (list, tuple, NoneType), _('Not matched rules')),
-        output.Output('error', (list, tuple, NoneType), _('Non-existent or invalid rules')),
+        output.Output('warning', (list, tuple, type(None)),   _('Warning')),
+        output.Output('matched', (list, tuple, type(None)),   _('Matched rules')),
+        output.Output('notmatched', (list, tuple, type(None)), _('Not matched rules')),
+        output.Output('error', (list, tuple, type(None)), _('Non-existent or invalid rules')),
         output.Output('value',  bool, _('Result of simulation'), ['no_display']),
     )
 

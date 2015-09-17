@@ -27,7 +27,6 @@ from distutils.core import setup
 from distutils.command.install_data import install_data as _install_data
 from distutils.util import change_root, convert_path
 from distutils import log
-from types import StringType
 import ipalib
 import os
 
@@ -43,7 +42,7 @@ class install_data(_install_data):
 
         # Now gzip them
         for f in self.data_files:
-            if type(f) is StringType:
+            if isinstance(f, str):
                 # it's a simple file
                 f = convert_path(f)
                 cmd = '/bin/gzip %s/%s' % (self.install_dir, f)

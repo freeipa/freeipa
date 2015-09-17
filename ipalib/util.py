@@ -29,7 +29,6 @@ import re
 import decimal
 import dns
 import encodings
-from types import NoneType
 from weakref import WeakKeyDictionary
 
 import netaddr
@@ -55,7 +54,7 @@ def json_serialize(obj):
         return [json_serialize(o) for o in obj]
     if isinstance(obj, dict):
         return {k: json_serialize(v) for (k, v) in obj.items()}
-    if isinstance(obj, (bool, float, unicode, NoneType, six.integer_types)):
+    if isinstance(obj, (bool, float, unicode, type(None), six.integer_types)):
         return obj
     if isinstance(obj, str):
         return obj.decode('utf-8')

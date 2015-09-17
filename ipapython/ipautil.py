@@ -29,7 +29,6 @@ import stat
 import shutil
 import socket
 import struct
-from types import *
 import re
 import datetime
 import netaddr
@@ -426,18 +425,18 @@ def backup_file(fname):
     if file_exists(fname):
         os.rename(fname, fname + ".orig")
 
+def _ensure_nonempty_string(string, message):
+    if not isinstance(string, str) or not string:
+        raise ValueError(message)
+
 # uses gpg to compress and encrypt a file
 def encrypt_file(source, dest, password, workdir = None):
-    if type(source) is not StringType or not len(source):
-        raise ValueError('Missing Source File')
+    _ensure_nonempty_string(source, 'Missing Source File')
     #stat it so that we get back an exception if it does no t exist
     os.stat(source)
 
-    if type(dest) is not StringType or not len(dest):
-        raise ValueError('Missing Destination File')
-
-    if type(password) is not StringType or not len(password):
-        raise ValueError('Missing Password')
+    _ensure_nonempty_string(dest, 'Missing Destination File')
+    _ensure_nonempty_string(password, 'Missing Password')
 
     #create a tempdir so that we can clean up with easily
     tempdir = tempfile.mkdtemp('', 'ipa-', workdir)
@@ -458,16 +457,12 @@ def encrypt_file(source, dest, password, workdir = None):
 
 
 def decrypt_file(source, dest, password, workdir = None):
-    if type(source) is not StringType or not len(source):
-        raise ValueError('Missing Source File')
+    _ensure_nonempty_string(source, 'Missing Source File')
     #stat it so that we get back an exception if it does no t exist
     os.stat(source)
 
-    if type(dest) is not StringType or not len(dest):
-        raise ValueError('Missing Destination File')
-
-    if type(password) is not StringType or not len(password):
-        raise ValueError('Missing Password')
+    _ensure_nonempty_string(dest, 'Missing Destination File')
+    _ensure_nonempty_string(password, 'Missing Password')
 
     #create a tempdir so that we can clean up with easily
     tempdir = tempfile.mkdtemp('', 'ipa-', workdir)

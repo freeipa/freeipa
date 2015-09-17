@@ -24,7 +24,6 @@ Test the `ipalib/plugins/hbactest.py` module.
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
 from ipalib import api
 from ipalib import errors
-from types import NoneType
 from nose.tools import raises
 
 # Test strategy:
@@ -114,7 +113,7 @@ class test_hbactest(XMLRPC_test):
             rules=self.rule_names
         )
         assert ret['value'] == True
-        assert type(ret['error']) == NoneType
+        assert ret['error'] is None
         for i in [0,1,2,3]:
             assert self.rule_names[i] in ret['matched']
 

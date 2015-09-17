@@ -22,7 +22,6 @@ Simple description of return values.
 """
 
 from inspect import getdoc
-from types import NoneType
 
 import six
 
@@ -120,7 +119,7 @@ class PrimaryKey(Output):
                 types = cmd.obj.primary_key.allowed_types
             else:
                 types = (unicode,)
-            types = types + (NoneType,)
+            types = types + (type(None),)
         else:
             types = (unicode,)
         if not isinstance(value, types):
@@ -157,7 +156,7 @@ class ListOfPrimaryKeys(Output):
 
 result = Output('result', doc=_('All commands should at least have a result'))
 
-summary = Output('summary', (unicode, NoneType),
+summary = Output('summary', (unicode, type(None)),
     _('User-friendly description of action performed')
 )
 
