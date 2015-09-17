@@ -247,21 +247,27 @@ class Gettext(LazyText):
         return '%s(%r, domain=%r, localedir=%r)' % (self.__class__.__name__,
             self.msg, self.domain, self.localedir)
 
-    def __str__(self):
+    def as_unicode(self):
         """
         Translate this message and return as a ``unicode`` instance.
         """
         if self.key in context.__dict__:
-            g = context.__dict__[self.key].ugettext
+            t = context.__dict__[self.key]
         else:
-            g = create_translation(self.key).ugettext
-        return g(self.msg)
+            t = create_translation(self.key)
+        if six.PY2:
+            return t.ugettext(self.msg)
+        else:
+            return t.gettext(self.msg)
+
+    def __str__(self):
+        return unicode(self.as_unicode())
 
     def __json__(self):
-        return self.__unicode__()   #pylint: disable=no-member
+        return unicode(self)   #pylint: disable=no-member
 
     def __mod__(self, kw):
-        return self.__unicode__() % kw  #pylint: disable=no-member
+        return unicode(self) % kw  #pylint: disable=no-member
 
 
 @six.python_2_unicode_compatible
@@ -401,10 +407,13 @@ class NGettext(LazyText):
 
     def __call__(self, count):
         if self.key in context.__dict__:
-            ng = context.__dict__[self.key].ungettext
+            t = context.__dict__[self.key]
         else:
-            ng = create_translation(self.key).ungettext
-        return ng(self.singular, self.plural, count)
+            t = create_translation(self.key)
+        if six.PY2:
+            return t.ungettext(self.singular, self.plural, count)
+        else:
+            return t.ngettext(self.singular, self.plural, count)
 
 
 @six.python_2_unicode_compatible
