@@ -202,6 +202,16 @@ class Backup(admintool.AdminTool):
       paths.NAMED_RUN,
     )
 
+    required_dirs=(
+      paths.TOMCAT_TOPLEVEL_DIR,
+      paths.TOMCAT_CA_DIR,
+      paths.TOMCAT_SIGNEDAUDIT_DIR,
+      paths.TOMCAT_CA_ARCHIVE_DIR,
+      paths.TOMCAT_KRA_DIR,
+      paths.TOMCAT_KRA_SIGNEDAUDIT_DIR,
+      paths.TOMCAT_KRA_ARCHIVE_DIR,
+    )
+
     def __init__(self, options, args):
         super(Backup, self).__init__(options, args)
         self._conn = None
@@ -486,13 +496,15 @@ class Backup(admintool.AdminTool):
         def verify_directories(dirs):
             return [s for s in dirs if os.path.exists(s)]
 
+        tarfile = os.path.join(self.dir, 'files.tar')
+
         self.log.info("Backing up files")
         args = ['tar',
                 '--exclude=/var/lib/ipa/backup',
                 '--xattrs',
                 '--selinux',
-                '-czf',
-                os.path.join(self.dir, 'files.tar')
+                '-cf',
+                tarfile
                ]
 
         args.extend(verify_directories(self.dirs))
@@ -503,7 +515,39 @@ class Backup(admintool.AdminTool):
 
         (stdout, stderr, rc) = run(args, raiseonerr=False)
         if rc != 0:
-            raise admintool.ScriptError('tar returned non-zero %d: %s' % (rc, stdout))
+            raise admintool.ScriptError('tar returned non-zero code '
+                '%d: %s' % (rc, stderr))
+
+        # Backup the necessary directory structure. This is a separate
+        # call since we are using the '--no-recursion' flag to store
+        # the directory structure only, no files.
+        missing_directories = verify_directories(self.required_dirs)
+
+        if missing_directories:
+            args = ['tar',
+                    '--exclude=/var/lib/ipa/backup',
+                    '--xattrs',
+                    '--selinux',
+                    '--no-recursion',
+                    '-rf',  # -r appends to an existing archive
+                    tarfile,
+                   ]
+            args.extend(missing_directories)
+
+            (stdout, stderr, rc) = run(args, raiseonerr=False)
+            if rc != 0:
+                raise admintool.ScriptError('tar returned non-zero %d when adding '
+                    'directory structure: %s' % (rc, stderr))
+
+        # Compress the archive. This is done separately, since 'tar' cannot
+        # append to a compressed archive.
+        (stdout, stderr, rc) = run(['gzip', tarfile], raiseonerr=False)
+        if rc != 0:
+            raise admintool.ScriptError('gzip returned non-zero %d when '
+                'compressing the backup: %s' % (rc, stderr))
+
+        # Rename the archive back to files.tar to preserve compatibility
+        os.rename(os.path.join(self.dir, 'files.tar.gz'), tarfile)
 
 
     def create_header(self, data_only):
