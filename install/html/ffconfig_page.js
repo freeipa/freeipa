@@ -87,7 +87,7 @@
 
         if (!browser.mozilla) {
             $('#wrongbrowser').show();
-            set_enabled(['#step1', '#step2', '#step3'], false);
+            set_enabled(['#step2b'], false);
         } else {
             // Disable for all version of FF older than 15. Theoretically
             // the extension is compatible with version 3.6, 10 and later
@@ -95,8 +95,26 @@
             // resource from chrome.manifest
             if (compare_version(browser.version, '15') === -1) {
                 $('#step2a').show();
-                set_enabled(['#step2', '#step3'], false);
-            }// else if (compare_version(version, '15') === -1) {
+                $('#step2').show();
+                $('#step3').show();
+                $('#step4header').show();
+                $('#step3bheader').hide();
+                set_enabled(['#step2', '#step3', '#step2b'], false);
+            }  else if (compare_version(browser.version, '40') === -1) {
+                // FF is > 15 < 40
+                // show krb extension method
+                $('#step2').show();
+                $('#step3').show();
+                $('#step4header').show();
+                $('#step3bheader').hide();
+                $('#step2b').hide();
+            }
+            // else
+            // Firefox since version 40 has new extension signing policy
+            // this policy prevents to use self-signed FF extension and
+            // thus a manual config is needed - which is the default (step2b)
+
+            // else if (compare_version(version, '15') === -1) {
 //                 $('#step2a').show();
 //                 $('#older-compatible').show();
 //                 $('#older-required').hide();

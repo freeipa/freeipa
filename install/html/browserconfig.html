@@ -69,7 +69,7 @@
                 <p>
             </div>
 
-            <div id="step2" class="step">
+            <div id="step2" style="display:none" class="step">
                 <h2>Step 2</h2>
                 <div id="ext-installed">
                     <p>
@@ -85,7 +85,7 @@
                 </div>
             </div>
 
-            <div id="step3" class="step">
+            <div id="step3" style="display:none" class="step">
                 <h2>Step 3</h2>
                 <p><a href="#configure-browser" id="configure-link" class="btn btn-default">Configure browser</a></p>
                 <p id="config-success" style="display:none">Browser successfully configured</p>
@@ -94,8 +94,27 @@
                 <p id="config-error" style="display:none">Configuration was not successful, unknown error uccured.</p>
             </div>
 
+            <div id="step2b" class="step">
+                <h2>Step 2</h2>
+                <ol>
+                    <li>
+                        In the address bar of Firefox, type <code>about:config</code> to display the list of current configuration options.
+                    </li>
+                    <li>
+                        In the Filter field, type <code>negotiate</code> to restrict the list of options.
+                    </li>
+                    <li>
+                        Double-click the <code>network.negotiate-auth.trusted-uris</code> entry to display the Enter string value dialog box.
+                    </li>
+                    <li>
+                        Enter the name of the domain against which you want to authenticate, for example, <code class="example-domain">.example.com.</code>
+                    </li>
+                </ol>
+            </div>
+
             <div id="step4" class="step">
-                <h2>Step 4</h2>
+                <h2 id="step4header" style="display:none">Step 4</h2>
+                <h2 id="step3bheader">Step 3</h2>
                 <p><a href="../ui/index.html" id="return-link" class="btn btn-default">Return to Web UI</a></p>
             </div>
        </div>
