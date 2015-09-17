@@ -39,7 +39,7 @@ class DNSName(dns.name.Name):
         try:
             if isinstance(labels, six.string_types):
                 #pylint: disable=E1101
-                labels = dns.name.from_unicode(unicode(labels), origin).labels
+                labels = dns.name.from_text(unicode(labels), origin).labels
             elif isinstance(labels, dns.name.Name):
                 labels = labels.labels
 

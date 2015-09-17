@@ -1273,26 +1273,26 @@ class ReplicationManager(object):
             try:
                 entry.raw['aci'].remove(
                     b'(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,'
-                    '%(suffix)s")(version 3.0; acl "Add CA Certificates for '
-                    'renewals"; allow(add) userdn = "ldap:///fqdn=%(fqdn)s,'
-                    'cn=computers,cn=accounts,%(suffix)s";)' % sub)
+                    b'%(suffix)s")(version 3.0; acl "Add CA Certificates for '
+                    b'renewals"; allow(add) userdn = "ldap:///fqdn=%(fqdn)s,'
+                    b'cn=computers,cn=accounts,%(suffix)s";)' % sub)
             except ValueError:
                 pass
             try:
                 entry.raw['aci'].remove(
                     b'(target = "ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,'
-                    '%(suffix)s")(targetattr = "userCertificate")'
-                    '(version 3.0; acl "Modify CA Certificates for renewals"; '
-                    'allow(write) userdn = "ldap:///fqdn=%(fqdn)s,'
-                    'cn=computers,cn=accounts,%(suffix)s";)' % sub)
+                    b'%(suffix)s")(targetattr = "userCertificate")'
+                    b'(version 3.0; acl "Modify CA Certificates for renewals"; '
+                    b'allow(write) userdn = "ldap:///fqdn=%(fqdn)s,'
+                    b'cn=computers,cn=accounts,%(suffix)s";)' % sub)
             except ValueError:
                 pass
             try:
                 entry.raw['aci'].remove(
                     b'(target = "ldap:///cn=CAcert,cn=ipa,cn=etc,%(suffix)s")'
-                    '(targetattr = cACertificate)(version 3.0; acl "Modify CA '
-                    'Certificate"; allow (write) userdn = "ldap:///fqdn='
-                    '%(fqdn)s,cn=computers,cn=accounts,%(suffix)s";)' % sub)
+                    b'(targetattr = cACertificate)(version 3.0; acl "Modify CA '
+                    b'Certificate"; allow (write) userdn = "ldap:///fqdn='
+                    b'%(fqdn)s,cn=computers,cn=accounts,%(suffix)s";)' % sub)
             except ValueError:
                 pass
 
@@ -1318,19 +1318,19 @@ class ReplicationManager(object):
             try:
                 entry.raw['aci'].remove(
                     b'(targetfilter = "(objectClass=nsContainer)")'
-                    '(targetattr = "cn || objectClass || ipaConfigString")'
-                    '(version 3.0; acl "Read IPA Masters"; allow (read, '
-                    'search, compare) userdn = "ldap:///fqdn=%(fqdn)s,'
-                    'cn=computers,cn=accounts,%(suffix)s";)' % sub)
+                    b'(targetattr = "cn || objectClass || ipaConfigString")'
+                    b'(version 3.0; acl "Read IPA Masters"; allow (read, '
+                    b'search, compare) userdn = "ldap:///fqdn=%(fqdn)s,'
+                    b'cn=computers,cn=accounts,%(suffix)s";)' % sub)
             except ValueError:
                 pass
             try:
                 entry.raw['aci'].remove(
                     b'(targetfilter = "(objectClass=nsContainer)")'
-                    '(targetattr = "ipaConfigString")(version 3.0; acl '
-                    '"Modify IPA Masters"; allow (write) userdn = '
-                    '"ldap:///fqdn=%(fqdn)s,cn=computers,cn=accounts,'
-                    '%(suffix)s";)' % sub)
+                    b'(targetattr = "ipaConfigString")(version 3.0; acl '
+                    b'"Modify IPA Masters"; allow (write) userdn = '
+                    b'"ldap:///fqdn=%(fqdn)s,cn=computers,cn=accounts,'
+                    b'%(suffix)s";)' % sub)
             except ValueError:
                 pass
 
@@ -1356,11 +1356,11 @@ class ReplicationManager(object):
             try:
                 entry.raw['aci'].remove(
                     b'(targetfilter = "(&(objectClass=ipaCertificate)'
-                    '(ipaConfigString=ipaCA))")(targetattr = '
-                    '"ipaCertIssuerSerial || cACertificate")(version 3.0; acl '
-                    '"Modify CA Certificate Store Entry"; allow (write) '
-                    'userdn = "ldap:///fqdn=%(fqdn)s,cn=computers,cn=accounts,'
-                    '%(suffix)s";)' % sub)
+                    b'(ipaConfigString=ipaCA))")(targetattr = '
+                    b'"ipaCertIssuerSerial || cACertificate")(version 3.0; acl '
+                    b'"Modify CA Certificate Store Entry"; allow (write) '
+                    b'userdn = "ldap:///fqdn=%(fqdn)s,cn=computers,cn=accounts,'
+                    b'%(suffix)s";)' % sub)
             except ValueError:
                 pass
 

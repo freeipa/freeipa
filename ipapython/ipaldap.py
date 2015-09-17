@@ -1314,8 +1314,9 @@ class LDAPClient(object):
 
         # pass arguments to python-ldap
         with self.error_handler():
-            filter = self.encode(filter)
-            attrs_list = self.encode(attrs_list)
+            if six.PY2:
+                filter = self.encode(filter)
+                attrs_list = self.encode(attrs_list)
 
             while True:
                 if paged_search:

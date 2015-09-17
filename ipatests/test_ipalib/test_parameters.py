@@ -155,8 +155,12 @@ def test_parse_param_spec():
     assert f('name^') == ('name^', dict(required=True, multivalue=False))
 
     # Test that TypeError is raised if spec isn't an str:
-    e = raises(TypeError, f, u'name?')
-    assert str(e) == TYPE_ERROR % ('spec', str, u'name?', unicode)
+    if six.PY2:
+        bad_value = u'name?'
+    else:
+        bad_value = b'name?'
+    e = raises(TypeError, f, bad_value)
+    assert str(e) == TYPE_ERROR % ('spec', str, bad_value, type(bad_value))
 
 
 class DummyRule(object):
@@ -737,7 +741,7 @@ class test_Bytes(ClassChecker):
         Test the `ipalib.parameters.Bytes.__init__` method.
         """
         o = self.cls('my_bytes')
-        assert o.type is str
+        assert o.type is bytes
         assert o.password is False
         assert o.rules == tuple()
         assert o.class_rules == tuple()
@@ -798,12 +802,12 @@ class test_Bytes(ClassChecker):
         assert dummy.translation is translation
 
         # Test with passing values:
-        for value in ('abc', 'four', '12345'):
+        for value in (b'abc', b'four', b'12345'):
             assert rule(dummy, value) is None
             assert dummy.called() is False
 
         # Test with failing values:
-        for value in ('', 'a', '12'):
+        for value in (b'', b'a', b'12'):
             assert_equal(
                 rule(dummy, value),
                 translation % dict(minlength=3)
@@ -824,12 +828,12 @@ class test_Bytes(ClassChecker):
         assert dummy.translation is translation
 
         # Test with passing values:
-        for value in ('ab', '123', 'four'):
+        for value in (b'ab', b'123', b'four'):
             assert rule(dummy, value) is None
             assert dummy.called() is False
 
         # Test with failing values:
-        for value in ('12345', 'sixsix'):
+        for value in (b'12345', b'sixsix'):
             assert_equal(
                 rule(dummy, value),
                 translation % dict(maxlength=4)
@@ -850,12 +854,12 @@ class test_Bytes(ClassChecker):
         assert dummy.translation is translation
 
         # Test with passing values:
-        for value in ('1234', 'four'):
+        for value in (b'1234', b'four'):
             assert rule(dummy, value) is None
             assert dummy.called() is False
 
         # Test with failing values:
-        for value in ('ab', '123', '12345', 'sixsix'):
+        for value in (b'ab', b'123', b'12345', b'sixsix'):
             assert_equal(
                 rule(dummy, value),
                 translation % dict(length=4),
@@ -869,9 +873,9 @@ class test_Bytes(ClassChecker):
         Test the `ipalib.parameters.Bytes._rule_pattern` method.
         """
         # Test our assumptions about Python re module and Unicode:
-        pat = '\w+$'
+        pat = b'\w+$'
         r = re.compile(pat)
-        assert r.match('Hello_World') is not None
+        assert r.match(b'Hello_World') is not None
         assert r.match(utf8_bytes) is None
         assert r.match(binary_bytes) is None
 
@@ -883,12 +887,12 @@ class test_Bytes(ClassChecker):
         dummy = dummy_ugettext(translation)
 
         # Test with passing values:
-        for value in ('HELLO', 'hello', 'Hello_World'):
+        for value in (b'HELLO', b'hello', b'Hello_World'):
             assert rule(dummy, value) is None
             assert dummy.called() is False
 
         # Test with failing values:
-        for value in ('Hello!', 'Hello World', utf8_bytes, binary_bytes):
+        for value in (b'Hello!', b'Hello World', utf8_bytes, binary_bytes):
             assert_equal(
                 rule(dummy, value),
                 translation % dict(pattern=pat),
@@ -924,7 +928,7 @@ class test_Str(ClassChecker):
         mthd = o._convert_scalar
         for value in (u'Hello', 42, 1.2, unicode_str):
             assert mthd(value) == unicode(value)
-        bad = [True, 'Hello', dict(one=1), utf8_bytes]
+        bad = [True, b'Hello', dict(one=1), utf8_bytes]
         for value in bad:
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
@@ -1028,7 +1032,10 @@ class test_Str(ClassChecker):
         pat = '\w{5}$'
         r1 = re.compile(pat)
         r2 = re.compile(pat, re.UNICODE)
-        assert r1.match(unicode_str) is None
+        if six.PY2:
+            assert r1.match(unicode_str) is None
+        else:
+            assert r1.match(unicode_str) is not None
         assert r2.match(unicode_str) is not None
 
         # Create instance:
@@ -1164,8 +1171,8 @@ class test_StrEnum(EnumChecker):
     _name = 'my_strenum'
     _datatype = unicode
     _test_values = u'Hello', u'naughty', u'nurse!'
-    _bad_type_values = u'Hello', 'naughty', u'nurse!'
-    _bad_type = str
+    _bad_type_values = u'Hello', b'naughty', u'nurse!'
+    _bad_type = bytes
     _translation = u"values='Hello', 'naughty', 'nurse!'"
     _bad_values = u'Howdy', u'quiet', u'library!'
     _single_value_translation = u"value='Hello'"
@@ -1551,7 +1558,11 @@ def test_create_param():
         assert p.multivalue is kw['multivalue']
 
     # Test that TypeError is raised when spec is neither a Param nor a str:
-    for spec in (u'one', 42, parameters.Param, parameters.Str):
+    if six.PY2:
+        bad_value = u'one'
+    else:
+        bad_value = b'one'
+    for spec in (bad_value, 42, parameters.Param, parameters.Str):
         e = raises(TypeError, f, spec)
         assert str(e) == \
             TYPE_ERROR % ('spec', (str, parameters.Param), spec, type(spec))
@@ -1590,7 +1601,10 @@ class test_IA5Str(ClassChecker):
             e = raises(errors.ConversionError, mthd, value)
             assert e.name == 'my_str'
             assert e.index is None
-            assert_equal(e.error, "The character '\\xc3' is not allowed.")
+            if six.PY2:
+                assert_equal(e.error, "The character '\\xc3' is not allowed.")
+            else:
+                assert_equal(e.error, "The character 'á' is not allowed.")
 
 
 class test_DateTime(ClassChecker):

@@ -213,8 +213,8 @@ class PublicExceptionTester(object):
 
     def new(self, format=None, message=None, **kw):
         # Test that TypeError is raised if message isn't unicode:
-        e = raises(TypeError, self.klass, message='The message')
-        assert str(e) == TYPE_ERROR % ('message', unicode, 'The message', str)
+        e = raises(TypeError, self.klass, message=b'The message')
+        assert str(e) == TYPE_ERROR % ('message', unicode, b'The message', bytes)
 
         # Test the instance:
         for (key, value) in kw.items():
@@ -261,9 +261,9 @@ class test_PublicError(PublicExceptionTester):
         assert inst.key1 is val1
         assert inst.key2 is val2
 
-        # Test with format=None, message=str
-        e = raises(TypeError, self.klass, message='the message', **kw)
-        assert str(e) == TYPE_ERROR % ('message', unicode, 'the message', str)
+        # Test with format=None, message=bytes
+        e = raises(TypeError, self.klass, message=b'the message', **kw)
+        assert str(e) == TYPE_ERROR % ('message', unicode, b'the message', bytes)
 
         # Test with format=None, message=None
         e = raises(ValueError, self.klass, **kw)

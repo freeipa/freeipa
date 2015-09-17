@@ -63,19 +63,25 @@ def test_round_trip():
     """
     # We first test that our assumptions about xmlrpc.client module in the Python
     # standard library are correct:
-    assert_equal(dump_n_load(utf8_bytes), unicode_str)
+    if six.PY2:
+        output_binary_type = bytes
+    else:
+        output_binary_type = Binary
+
+    if six.PY2:
+        assert_equal(dump_n_load(utf8_bytes), unicode_str)
     assert_equal(dump_n_load(unicode_str), unicode_str)
     # "Binary" is not "str". pylint: disable=no-member
     assert_equal(dump_n_load(Binary(binary_bytes)).data, binary_bytes)
     assert isinstance(dump_n_load(Binary(binary_bytes)), Binary)
-    assert type(dump_n_load(b'hello')) is bytes
-    assert type(dump_n_load(u'hello')) is bytes
-    assert_equal(dump_n_load(b''), b'')
-    assert_equal(dump_n_load(u''), b'')
+    assert type(dump_n_load(b'hello')) is output_binary_type
+    assert type(dump_n_load(u'hello')) is str
+    assert_equal(dump_n_load(b''), output_binary_type(b''))
+    assert_equal(dump_n_load(u''), str())
     assert dump_n_load(None) is None
 
     # Now we test our wrap and unwrap methods in combination with dumps, loads:
-    # All str should come back str (because they get wrapped in
+    # All bytes should come back bytes (because they get wrapped in
     # xmlrpc.client.Binary().  All unicode should come back unicode because str
     # explicity get decoded by rpc.xml_unwrap() if they weren't already
     # decoded by xmlrpc.client.loads().
@@ -136,7 +142,7 @@ def test_xml_dumps():
     params = (binary_bytes, utf8_bytes, unicode_str, None)
 
     # Test serializing an RPC request:
-    data = f(params, API_VERSION, b'the_method')
+    data = f(params, API_VERSION, 'the_method')
     (p, m) = loads(data)
     assert_equal(m, u'the_method')
     assert type(p) is tuple
@@ -167,7 +173,7 @@ def test_xml_loads():
     wrapped = rpc.xml_wrap(params, API_VERSION)
 
     # Test un-serializing an RPC request:
-    data = dumps(wrapped, b'the_method', allow_none=True)
+    data = dumps(wrapped, 'the_method', allow_none=True)
     (p, m) = f(data)
     assert_equal(m, u'the_method')
     assert_equal(p, params)
