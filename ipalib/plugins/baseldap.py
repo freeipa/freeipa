@@ -1148,7 +1148,8 @@ last, after all sets and adds."""),
             while True:
                 try:
                     return func(*call_args, **call_kwargs)
-                except errors.ExecutionError as e:
+                except errors.ExecutionError as exc:
+                    e = exc
                     if not callbacks:
                         raise
                     # call exc_callback in the next loop

@@ -370,14 +370,11 @@ def raises(exception, callback, *args, **kw):
     Tests that the expected exception is raised; raises ExceptionNotRaised
     if test fails.
     """
-    raised = False
     try:
         callback(*args, **kw)
     except exception as e:
-        raised = True
-    if not raised:
-        raise ExceptionNotRaised(exception)
-    return e
+        return e
+    raise ExceptionNotRaised(exception)
 
 
 def getitem(obj, key):
