@@ -25,6 +25,7 @@ SSH utilities.
 import base64
 import re
 import struct
+import binascii
 from hashlib import md5, sha1
 from hashlib import sha256  #pylint: disable=E0611
 
@@ -53,15 +54,16 @@ class SSHPublicKey(object):
             self._options = key._options
             return
 
-        if not isinstance(key, (str, unicode)):
-            raise TypeError("argument must be str or unicode, got %s" % type(key).__name__)
+        if not isinstance(key, (bytes, unicode)):
+            raise TypeError("argument must be bytes or unicode, got %s" % type(key).__name__)
 
         # All valid public key blobs start with 3 null bytes (see RFC 4253
         # section 6.6, RFC 4251 section 5 and RFC 4250 section 4.6)
-        if isinstance(key, str) and key[:3] != '\0\0\0':
+        if isinstance(key, bytes) and key[:3] != b'\0\0\0':
             key = key.decode(encoding)
 
         valid = self._parse_raw(key) or self._parse_base64(key) or self._parse_openssh(key)
+
         if not valid:
             raise ValueError("not a valid SSH public key")
 
@@ -71,7 +73,7 @@ class SSHPublicKey(object):
             self._options = options
 
     def _parse_raw(self, key):
-        if not isinstance(key, str):
+        if not isinstance(key, bytes):
             return False
 
         try:
@@ -100,7 +102,7 @@ class SSHPublicKey(object):
 
         try:
             key = base64.b64decode(key)
-        except TypeError:
+        except (TypeError, binascii.Error):
             return False
 
         return self._parse_raw(key)
@@ -168,7 +170,8 @@ class SSHPublicKey(object):
         return bool(self._options)
 
     def openssh(self):
-        out = u'%s %s' % (self._keytype, base64.b64encode(self._key))
+        key = base64.b64encode(self._key).decode('ascii')
+        out = u'%s %s' % (self._keytype, key)
 
         if self._options:
             options = []
