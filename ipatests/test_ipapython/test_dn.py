@@ -1,5 +1,4 @@
-#!/usr/bin/python2
-
+import contextlib
 import unittest
 
 import six
@@ -1182,11 +1181,25 @@ class TestEscapes(unittest.TestCase):
 class TestInternationalization(unittest.TestCase):
     def setUp(self):
         # Hello in Arabic
-        self.arabic_hello_utf8 = '\xd9\x85\xd9\x83\xd9\x8a\xd9\x84' + \
-                                 '\xd8\xb9\x20\xd9\x85\xd8\xa7\xd9' + \
-                                 '\x84\xd9\x91\xd8\xb3\xd9\x84\xd8\xa7'
+        self.arabic_hello_utf8 = (b'\xd9\x85\xd9\x83\xd9\x8a\xd9\x84' +
+                                  b'\xd8\xb9\x20\xd9\x85\xd8\xa7\xd9' +
+                                  b'\x84\xd9\x91\xd8\xb3\xd9\x84\xd8\xa7')
 
         self.arabic_hello_unicode = self.arabic_hello_utf8.decode('utf-8')
+
+    def assert_equal_utf8(self, obj, b):
+        if six.PY2:
+            self.assertEqual(str(obj), b)
+        else:
+            self.assertEqual(str(obj), b.decode('utf-8'))
+
+    @contextlib.contextmanager
+    def fail_py3(self, exception_type):
+        try:
+            yield
+        except exception_type:
+            if six.PY2:
+                raise
 
     def test_i18n(self):
         self.assertEqual(self.arabic_hello_utf8,
@@ -1198,26 +1211,30 @@ class TestInternationalization(unittest.TestCase):
         self.assertIsInstance(ava1.attr,  unicode)
         self.assertIsInstance(ava1.value, unicode)
         self.assertEqual(ava1.attr, self.arabic_hello_unicode)
-        self.assertEqual(str(ava1), self.arabic_hello_utf8+'=foo')
+        self.assert_equal_utf8(ava1, self.arabic_hello_utf8 + b'=foo')
 
-        ava1 = AVA(self.arabic_hello_utf8, 'foo')
-        self.assertIsInstance(ava1.attr,  unicode)
-        self.assertIsInstance(ava1.value, unicode)
-        self.assertEqual(ava1.attr, self.arabic_hello_unicode)
-        self.assertEqual(str(ava1), self.arabic_hello_utf8+'=foo')
+        with self.fail_py3(TypeError):
+            ava1 = AVA(self.arabic_hello_utf8, 'foo')
+        if six.PY2:
+            self.assertIsInstance(ava1.attr,  unicode)
+            self.assertIsInstance(ava1.value, unicode)
+            self.assertEqual(ava1.attr, self.arabic_hello_unicode)
+            self.assert_equal_utf8(ava1, self.arabic_hello_utf8 + b'=foo')
 
         # test value i18n
         ava1 = AVA('cn', self.arabic_hello_unicode)
         self.assertIsInstance(ava1.attr,  unicode)
         self.assertIsInstance(ava1.value, unicode)
         self.assertEqual(ava1.value, self.arabic_hello_unicode)
-        self.assertEqual(str(ava1), 'cn='+self.arabic_hello_utf8)
+        self.assert_equal_utf8(ava1, b'cn=' + self.arabic_hello_utf8)
 
-        ava1 = AVA('cn', self.arabic_hello_utf8)
-        self.assertIsInstance(ava1.attr,  unicode)
-        self.assertIsInstance(ava1.value, unicode)
-        self.assertEqual(ava1.value, self.arabic_hello_unicode)
-        self.assertEqual(str(ava1), 'cn='+self.arabic_hello_utf8)
+        with self.fail_py3(TypeError):
+            ava1 = AVA('cn', self.arabic_hello_utf8)
+        if six.PY2:
+            self.assertIsInstance(ava1.attr,  unicode)
+            self.assertIsInstance(ava1.value, unicode)
+            self.assertEqual(ava1.value, self.arabic_hello_unicode)
+            self.assert_equal_utf8(ava1, b'cn=' + self.arabic_hello_utf8)
 
         # RDN's
         # test attr i18n
@@ -1225,26 +1242,30 @@ class TestInternationalization(unittest.TestCase):
         self.assertIsInstance(rdn1.attr,  unicode)
         self.assertIsInstance(rdn1.value, unicode)
         self.assertEqual(rdn1.attr, self.arabic_hello_unicode)
-        self.assertEqual(str(rdn1), self.arabic_hello_utf8+'=foo')
+        self.assert_equal_utf8(rdn1, self.arabic_hello_utf8 + b'=foo')
 
-        rdn1 = RDN((self.arabic_hello_utf8, 'foo'))
-        self.assertIsInstance(rdn1.attr,  unicode)
-        self.assertIsInstance(rdn1.value, unicode)
-        self.assertEqual(rdn1.attr, self.arabic_hello_unicode)
-        self.assertEqual(str(rdn1), self.arabic_hello_utf8+'=foo')
+        with self.fail_py3(TypeError):
+            rdn1 = RDN((self.arabic_hello_utf8, 'foo'))
+        if six.PY2:
+            self.assertIsInstance(rdn1.attr,  unicode)
+            self.assertIsInstance(rdn1.value, unicode)
+            self.assertEqual(rdn1.attr, self.arabic_hello_unicode)
+            self.assertEqual(str(rdn1), self.arabic_hello_utf8 + b'=foo')
 
         # test value i18n
         rdn1 = RDN(('cn', self.arabic_hello_unicode))
         self.assertIsInstance(rdn1.attr,  unicode)
         self.assertIsInstance(rdn1.value, unicode)
         self.assertEqual(rdn1.value, self.arabic_hello_unicode)
-        self.assertEqual(str(rdn1), 'cn='+self.arabic_hello_utf8)
+        self.assert_equal_utf8(rdn1, b'cn=' + self.arabic_hello_utf8)
 
-        rdn1 = RDN(('cn', self.arabic_hello_utf8))
-        self.assertIsInstance(rdn1.attr,  unicode)
-        self.assertIsInstance(rdn1.value, unicode)
-        self.assertEqual(rdn1.value, self.arabic_hello_unicode)
-        self.assertEqual(str(rdn1), 'cn='+self.arabic_hello_utf8)
+        with self.fail_py3(TypeError):
+            rdn1 = RDN(('cn', self.arabic_hello_utf8))
+        if six.PY2:
+            self.assertIsInstance(rdn1.attr,  unicode)
+            self.assertIsInstance(rdn1.value, unicode)
+            self.assertEqual(rdn1.value, self.arabic_hello_unicode)
+            self.assertEqual(str(rdn1), b'cn=' + self.arabic_hello_utf8)
 
         # DN's
         # test attr i18n
@@ -1252,26 +1273,30 @@ class TestInternationalization(unittest.TestCase):
         self.assertIsInstance(dn1[0].attr,  unicode)
         self.assertIsInstance(dn1[0].value, unicode)
         self.assertEqual(dn1[0].attr, self.arabic_hello_unicode)
-        self.assertEqual(str(dn1), self.arabic_hello_utf8+'=foo')
+        self.assert_equal_utf8(dn1, self.arabic_hello_utf8 + b'=foo')
 
-        dn1 = DN((self.arabic_hello_utf8, 'foo'))
-        self.assertIsInstance(dn1[0].attr,  unicode)
-        self.assertIsInstance(dn1[0].value, unicode)
-        self.assertEqual(dn1[0].attr, self.arabic_hello_unicode)
-        self.assertEqual(str(dn1), self.arabic_hello_utf8+'=foo')
+        with self.fail_py3(TypeError):
+            dn1 = DN((self.arabic_hello_utf8, 'foo'))
+        if six.PY2:
+            self.assertIsInstance(dn1[0].attr,  unicode)
+            self.assertIsInstance(dn1[0].value, unicode)
+            self.assertEqual(dn1[0].attr, self.arabic_hello_unicode)
+            self.assertEqual(str(dn1), self.arabic_hello_utf8 + b'=foo')
 
         # test value i18n
         dn1 = DN(('cn', self.arabic_hello_unicode))
         self.assertIsInstance(dn1[0].attr,  unicode)
         self.assertIsInstance(dn1[0].value, unicode)
         self.assertEqual(dn1[0].value, self.arabic_hello_unicode)
-        self.assertEqual(str(dn1), 'cn='+self.arabic_hello_utf8)
+        self.assert_equal_utf8(dn1, b'cn=' + self.arabic_hello_utf8)
 
-        dn1 = DN(('cn', self.arabic_hello_utf8))
-        self.assertIsInstance(dn1[0].attr,  unicode)
-        self.assertIsInstance(dn1[0].value, unicode)
-        self.assertEqual(dn1[0].value, self.arabic_hello_unicode)
-        self.assertEqual(str(dn1), 'cn='+self.arabic_hello_utf8)
+        with self.fail_py3(TypeError):
+            dn1 = DN(('cn', self.arabic_hello_utf8))
+        if six.PY2:
+            self.assertIsInstance(dn1[0].attr,  unicode)
+            self.assertIsInstance(dn1[0].value, unicode)
+            self.assertEqual(dn1[0].value, self.arabic_hello_unicode)
+            self.assertEqual(str(dn1), b'cn=' + self.arabic_hello_utf8)
 
 
 if __name__ == '__main__':
