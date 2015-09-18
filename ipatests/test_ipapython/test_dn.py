@@ -4,10 +4,32 @@ import unittest
 
 import six
 
-from ipapython.dn import *
+from ipapython.dn import DN, RDN, AVA
 
 if six.PY3:
     unicode = str
+
+    def cmp(a, b):
+        if a == b:
+            assert not a < b
+            assert not a > b
+            assert not a != b
+            assert a <= b
+            assert a >= b
+            return 0
+        elif a < b:
+            assert not a > b
+            assert a != b
+            assert a <= b
+            assert not a >= b
+            return -1
+        else:
+            assert a > b
+            assert a != b
+            assert not a <= b
+            assert a >= b
+            return 1
+
 
 def expected_class(klass, component):
     if klass is AVA:
