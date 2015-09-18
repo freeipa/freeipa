@@ -102,6 +102,8 @@ current block assignments:
             - **5100 - 5999**  *Reserved for future use*
 """
 
+import six
+
 from ipalib.text import ngettext as ungettext
 from ipalib import messages
 from ipaplatform.paths import paths
@@ -123,6 +125,11 @@ class PrivateError(Exception):
             )
             setattr(self, key, value)
         Exception.__init__(self, self.msg)
+
+    if six.PY3:
+        @property
+        def message(self):
+            return str(self)
 
 
 class SubprocessError(PrivateError):
@@ -250,6 +257,11 @@ class PublicError(Exception):
     errno = 900
     rval = 1
     format = None
+
+    if six.PY3:
+        @property
+        def message(self):
+            return str(self)
 
 
 class VersionError(PublicError):
