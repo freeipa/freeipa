@@ -60,7 +60,7 @@ class test_keyring(object):
         try:
             result = kernel_keyring.read_key(TEST_KEY)
         except ValueError as e:
-            assert e.message == 'key %s not found' % TEST_KEY
+            assert str(e) == 'key %s not found' % TEST_KEY
 
     def test_02(self):
         """
