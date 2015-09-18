@@ -294,9 +294,14 @@ class test_Command(ClassChecker):
         assert ns.source.multivalue is False
 
         # Test TypeError:
-        e = raises(TypeError, self.get_instance, args=(u'whatever',))
-        assert str(e) == TYPE_ERROR % (
-            'spec', (str, parameters.Param), u'whatever', unicode)
+        if six.PY2:
+            e = raises(TypeError, self.get_instance, args=(u'whatever',))
+            assert str(e) == TYPE_ERROR % (
+                'spec', (str, parameters.Param), u'whatever', unicode)
+        else:
+            e = raises(TypeError, self.get_instance, args=(b'whatever',))
+            assert str(e) == TYPE_ERROR % (
+                'spec', (str, parameters.Param), b'whatever', bytes)
 
         # Test ValueError, required after optional:
         e = raises(ValueError, self.get_instance, args=('arg1?', 'arg2'))
