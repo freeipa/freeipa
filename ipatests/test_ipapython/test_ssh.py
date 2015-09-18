@@ -47,23 +47,32 @@ def test_public_key_parsing():
     openssh = 'ssh-rsa %s' % b64
 
     pks = [
-        ('\xff',                    UnicodeDecodeError),
+        (b'\xff',                   UnicodeDecodeError),
+        (u'\xff',                   ValueError),
 
         (raw,                       openssh),
-        ('\0\0\0\x04none',          u'none AAAABG5vbmU='),
-        ('\0\0\0',                  ValueError),
-        ('\0\0\0\0',                ValueError),
-        ('\0\0\0\x01',              ValueError),
-        ('\0\0\0\x01\xff',          ValueError),
+        (b'\0\0\0\x04none',         u'none AAAABG5vbmU='),
+        (b'\0\0\0',                 ValueError),
+        (b'\0\0\0\0',               ValueError),
+        (b'\0\0\0\x01',             ValueError),
+        (b'\0\0\0\x01\xff',         ValueError),
+
+        (u'\0\0\0\x04none',         ValueError),
+        (u'\0\0\0',                 ValueError),
+        (u'\0\0\0\0',               ValueError),
+        (u'\0\0\0\x01',             ValueError),
+        (u'\0\0\0\x01\xff',         ValueError),
 
         (b64,                       openssh),
         (unicode(b64),              openssh),
+        (b64.encode('ascii'),       openssh),
         (u'\n%s\n\n' % b64,         openssh),
         (u'AAAABG5vbmU=',           u'none AAAABG5vbmU='),
         (u'AAAAB',                  ValueError),
 
         (openssh,                   openssh),
         (unicode(openssh),          openssh),
+        (openssh.encode('ascii'),   openssh),
         (u'none AAAABG5vbmU=',      u'none AAAABG5vbmU='),
         (u'\t \t ssh-rsa \t \t%s\t \tthis is a comment\t \t ' % b64,
                                     u'%s this is a comment' % openssh),
