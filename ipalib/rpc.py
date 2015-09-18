@@ -1019,10 +1019,11 @@ class xmlclient(RPCClient):
 
 class JSONServerProxy(object):
     def __init__(self, uri, transport, encoding, verbose, allow_none):
-        type, uri = urllib.splittype(uri)
-        if type not in ("http", "https"):
+        split_uri = urllib.urlsplit(uri)
+        if split_uri.scheme not in ("http", "https"):
             raise IOError("unsupported XML-RPC protocol")
-        self.__host, self.__handler = urllib.splithost(uri)
+        self.__host = split_uri.netloc
+        self.__handler = split_uri.path
         self.__transport = transport
 
         assert encoding == 'UTF-8'
