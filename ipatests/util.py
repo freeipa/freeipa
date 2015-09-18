@@ -331,8 +331,14 @@ def assert_deepequal(expected, got, doc='', stack=tuple()):
             s_got = got
             s_expected = expected
         else:
-            s_got = sorted(got)
-            s_expected = sorted(expected)
+            try:
+                s_got = sorted(got)
+            except TypeError:
+                s_got = got
+            try:
+                s_expected = sorted(expected)
+            except TypeError:
+                s_expected = expected
         for (i, e_sub) in enumerate(s_expected):
             g_sub = s_got[i]
             assert_deepequal(e_sub, g_sub, doc, stack + (i,))

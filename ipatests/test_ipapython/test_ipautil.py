@@ -321,7 +321,7 @@ class TestCIDict(object):
     def test_fromkeys(self):
         dct = ipautil.CIDict.fromkeys(('A', 'b', 'C'))
         assert sorted(dct.keys()) == sorted(['A', 'b', 'C'])
-        assert sorted(dct.values()) == [None] * 3
+        assert list(dct.values()) == [None] * 3
 
 
 class TestTimeParser(object):

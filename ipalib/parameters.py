@@ -1157,9 +1157,9 @@ class Decimal(Number):
 
         super(Decimal, self).__init__(name, *rules, **kw)
 
-        if (self.minvalue > self.maxvalue) \
-            and (self.minvalue is not None and \
-                 self.maxvalue is not None):
+        if (self.minvalue is not None and
+                self.maxvalue is not None and
+                self.minvalue > self.maxvalue):
             raise ValueError(
                 '%s: minvalue > maxvalue (minvalue=%s, maxvalue=%s)' % (
                     self.nice, self.minvalue, self.maxvalue)
