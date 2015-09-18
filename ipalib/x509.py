@@ -37,10 +37,13 @@ import os
 import sys
 import base64
 import re
+
 import nss.nss as nss
 from nss.error import NSPRError
 from pyasn1.type import univ, namedtype, tag
 from pyasn1.codec.der import decoder, encoder
+import six
+
 from ipapython import ipautil
 from ipalib import api
 from ipalib import _
@@ -127,7 +130,11 @@ def load_certificate(data, datatype=PEM, dbdir=None):
 
     initialize_nss_database(dbdir=dbdir)
 
-    return nss.Certificate(buffer(data))
+    if six.PY2:
+        return nss.Certificate(buffer(data))
+    else:
+        # In python 3 , `bytes` has the buffer interface
+        return nss.Certificate(data)
 
 def load_certificate_from_file(filename, dbdir=None):
     """
