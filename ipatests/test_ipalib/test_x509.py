@@ -21,17 +21,12 @@
 Test the `ipalib.x509` module.
 """
 
-import os
-from os import path
-import sys
-from ipatests.util import raises, setitem, delitem, ClassChecker
-from ipatests.util import getitem, setitem, delitem
-from ipatests.util import TempDir, TempHome
-from ipalib.constants import TYPE_ERROR, OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
-from ipalib.constants import NAME_REGEX, NAME_ERROR
 import base64
-from ipalib import x509
+
+import pytest
 from nss.error import NSPRError
+
+from ipalib import x509
 from ipapython.dn import DN
 
 # certutil -
@@ -66,16 +61,12 @@ class test_x509(object):
 
         # Load a good cert with bad headers
         newcert = '-----BEGIN CERTIFICATE-----' + goodcert
-        try:
+        with pytest.raises((TypeError, ValueError)):
             cert = x509.load_certificate(newcert)
-        except TypeError:
-            pass
 
         # Load a bad cert
-        try:
+        with pytest.raises(NSPRError):
             cert = x509.load_certificate(badcert)
-        except NSPRError:
-            pass
 
     def test_1_load_der_cert(self):
         """
