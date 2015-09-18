@@ -327,6 +327,9 @@ def run(args, stdin=None, raiseonerr=True,
     root_logger.debug('Starting external process')
     root_logger.debug('args=%s' % arg_string)
 
+    if six.PY3 and isinstance(stdin, str):
+        stdin = stdin.encode('utf-8')
+
     preexec_fn = None
     if runas is not None:
         pent = pwd.getpwnam(runas)
@@ -352,7 +355,10 @@ def run(args, stdin=None, raiseonerr=True,
                              close_fds=True, env=env, cwd=cwd,
                              preexec_fn=preexec_fn)
         stdout,stderr = p.communicate(stdin)
-        stdout,stderr = str(stdout), str(stderr)    # Make pylint happy
+        if six.PY2:
+            stdout, stderr = str(stdout), str(stderr)    # Make pylint happy
+        else:
+            stdout, stderr = stdout.decode('utf-8'), stderr.decode('utf-8')
     except KeyboardInterrupt:
         root_logger.debug('Process interrupted')
         p.wait()
