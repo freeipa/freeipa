@@ -370,6 +370,7 @@ class Restore(admintool.AdminTool):
 
                 self.restore_selinux_booleans()
 
+            http = httpinstance.HTTPInstance()
 
             # We do either a full file restore or we restore data.
             if restore_type == 'FULL':
@@ -381,6 +382,8 @@ class Restore(admintool.AdminTool):
                 self.cert_restore()
                 if 'CA' in self.backup_services:
                     self.__create_dogtag_log_dirs()
+                if http.is_kdcproxy_configured():
+                    httpinstance.create_kdcproxy_user()
 
             # Always restore the data from ldif
             # If we are restoring PKI-IPA then we need to restore the
@@ -409,7 +412,6 @@ class Restore(admintool.AdminTool):
                 self.log.info('Restarting SSSD')
                 sssd = services.service('sssd')
                 sssd.restart()
-                http = httpinstance.HTTPInstance()
                 http.remove_httpd_ccache()
         finally:
             try:
