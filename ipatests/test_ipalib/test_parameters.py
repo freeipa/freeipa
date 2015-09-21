@@ -692,7 +692,6 @@ class test_Data(ClassChecker):
         assert o.minlength is None
         assert o.maxlength is None
         assert o.length is None
-        assert o.pattern is None
 
         # Test mixing length with minlength or maxlength:
         o = self.cls('my_data', length=5)

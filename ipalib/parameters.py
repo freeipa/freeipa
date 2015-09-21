@@ -1270,7 +1270,6 @@ class Data(Param):
         ('minlength', int, None),
         ('maxlength', int, None),
         ('length', int, None),
-        ('pattern', (six.string_types,), None),
         ('pattern_errmsg', (six.string_types,), None),
     )
 
@@ -1338,6 +1337,9 @@ class Bytes(Data):
 
     type = bytes
     type_error = _('must be binary data')
+    kwargs = Data.kwargs + (
+        ('pattern', (bytes,), None),
+    )
 
     def __init__(self, name, *rules, **kw):
         if kw.get('pattern', None) is None:
@@ -1399,6 +1401,7 @@ class Str(Data):
     """
 
     kwargs = Data.kwargs + (
+        ('pattern', (six.string_types,), None),
         ('noextrawhitespace', bool, True),
     )
 
