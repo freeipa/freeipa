@@ -1195,6 +1195,7 @@ def check_int_scalar_conversions(o):
     assert o._convert_scalar(u'16') == 16
     assert o._convert_scalar(u'0x10') == 16
     assert o._convert_scalar(u'020') == 16
+    assert o._convert_scalar(u'0o20') == 16
 
 
 class test_IntEnum(EnumChecker):
