@@ -38,6 +38,7 @@ from ipaserver.install import otpdinstance
 from ipaserver.install import schemaupdate
 from ipaserver.install import sysupgrade
 from ipaserver.install import dnskeysyncinstance
+from ipaserver.install import krainstance
 from ipaserver.install.upgradeinstance import IPAUpgrade
 from ipaserver.install.ldapupdate import BadSyntax
 
@@ -1250,6 +1251,23 @@ def fix_trust_flags():
     sysupgrade.set_upgrade_state('http', 'fix_trust_flags', True)
 
 
+def export_kra_agent_pem():
+    root_logger.info('[Exporting KRA agent PEM file]')
+
+    if sysupgrade.get_upgrade_state('http', 'export_kra_agent_pem'):
+        root_logger.info("KRA agent PEM file already exported")
+        return
+
+    kra = krainstance.KRAInstance(api.env.realm)
+    if not kra.is_installed():
+        root_logger.info("KRA is not installed")
+        return
+
+    krainstance.export_kra_agent_pem()
+
+    sysupgrade.set_upgrade_state('http', 'export_kra_agent_pem', True)
+
+
 def update_mod_nss_protocol(http):
     root_logger.info('[Updating mod_nss protocol versions]')
 
@@ -1452,6 +1470,7 @@ def upgrade_configuration():
     http.stop()
     update_mod_nss_protocol(http)
     fix_trust_flags()
+    export_kra_agent_pem()
     http.start()
 
     uninstall_selfsign(ds, http)
