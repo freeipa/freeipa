@@ -75,16 +75,16 @@ class ACI:
         """Output a Directory Server-compatible ACI string"""
         self.validate()
         aci = ""
-        for t in self.target:
-            op = self.target[t]['operator']
-            if type(self.target[t]['expression']) in (tuple, list):
+        for t, v in sorted(self.target.items()):
+            op = v['operator']
+            if type(v['expression']) in (tuple, list):
                 target = ""
-                for l in self.target[t]['expression']:
+                for l in v['expression']:
                     target = target + l + " || "
                 target = target[:-4]
                 aci = aci + "(%s %s \"%s\")" % (t, op, target)
             else:
-                aci = aci + "(%s %s \"%s\")" % (t, op, self.target[t]['expression'])
+                aci = aci + "(%s %s \"%s\")" % (t, op, v['expression'])
         aci = aci + "(version 3.0;acl \"%s\";%s (%s) %s %s \"%s\"" % (self.name, self.action, ",".join(self.permissions), self.bindrule['keyword'], self.bindrule['operator'], self.bindrule['expression']) + ";)"
         return aci
 
@@ -97,7 +97,9 @@ class ACI:
         return s
 
     def _parse_target(self, aci):
-        lexer = shlex.shlex(aci.encode('utf-8'))
+        if six.PY2:
+            aci = aci.encode('utf-8')
+        lexer = shlex.shlex(aci)
         lexer.wordchars = lexer.wordchars + "."
 
         l = []

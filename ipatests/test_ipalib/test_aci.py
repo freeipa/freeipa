@@ -41,7 +41,7 @@ def test_aci_parsing_1_with_aci_keyword():
 
 def test_aci_parsing_2():
     check_aci_parsing('(target="ldap:///uid=bjensen,dc=example,dc=com")(targetattr=*) (version 3.0;acl "aci1";allow (write) userdn="ldap:///self";)',
-        '(targetattr = "*")(target = "ldap:///uid=bjensen,dc=example,dc=com")(version 3.0;acl "aci1";allow (write) userdn = "ldap:///self";)')
+        '(target = "ldap:///uid=bjensen,dc=example,dc=com")(targetattr = "*")(version 3.0;acl "aci1";allow (write) userdn = "ldap:///self";)')
 
 def test_aci_parsing_3():
     check_aci_parsing(' (targetattr = "givenName || sn || cn || displayName || title || initials || loginShell || gecos || homePhone || mobile || pager || facsimileTelephoneNumber || telephoneNumber || street || roomNumber || l || st || postalCode || manager || secretary || description || carLicense || labeledURI || inetUserHTTPURL || seeAlso || employeeType  || businessCategory || ou")(version 3.0;acl "Self service";allow (write) userdn = "ldap:///self";)',
@@ -53,11 +53,11 @@ def test_aci_parsing_4():
 
 def test_aci_parsing_5():
     check_aci_parsing('(targetattr=member)(target="ldap:///cn=ipausers,cn=groups,cn=accounts,dc=example,dc=com")(version 3.0;acl "add_user_to_default_group";allow (write) groupdn="ldap:///cn=add_user_to_default_group,cn=taskgroups,dc=example,dc=com";)',
-        '(targetattr = "member")(target = "ldap:///cn=ipausers,cn=groups,cn=accounts,dc=example,dc=com")(version 3.0;acl "add_user_to_default_group";allow (write) groupdn = "ldap:///cn=add_user_to_default_group,cn=taskgroups,dc=example,dc=com";)')
+        '(target = "ldap:///cn=ipausers,cn=groups,cn=accounts,dc=example,dc=com")(targetattr = "member")(version 3.0;acl "add_user_to_default_group";allow (write) groupdn = "ldap:///cn=add_user_to_default_group,cn=taskgroups,dc=example,dc=com";)')
 
 def test_aci_parsing_6():
     check_aci_parsing('(targetattr!=member)(targe="ldap:///cn=ipausers,cn=groups,cn=accounts,dc=example,dc=com")(version 3.0;acl "add_user_to_default_group";allow (write) groupdn="ldap:///cn=add_user_to_default_group,cn=taskgroups,dc=example,dc=com";)',
-        '(targetattr != "member")(targe = "ldap:///cn=ipausers,cn=groups,cn=accounts,dc=example,dc=com")(version 3.0;acl "add_user_to_default_group";allow (write) groupdn = "ldap:///cn=add_user_to_default_group,cn=taskgroups,dc=example,dc=com";)')
+        '(targe = "ldap:///cn=ipausers,cn=groups,cn=accounts,dc=example,dc=com")(targetattr != "member")(version 3.0;acl "add_user_to_default_group";allow (write) groupdn = "ldap:///cn=add_user_to_default_group,cn=taskgroups,dc=example,dc=com";)')
 
 def test_aci_parsing_7():
     check_aci_parsing('(targetattr = "userPassword || krbPrincipalKey || sambaLMPassword || sambaNTPassword || passwordHistory")(version 3.0; acl "change_password"; allow (write) groupdn = "ldap:///cn=change_password,cn=taskgroups,dc=example,dc=com";)',
