@@ -24,10 +24,6 @@
 
 %define _hardened_build 1
 
-%define kdcproxy_user kdcproxy
-%define kdcproxy_group kdcproxy
-%define kdcproxy_home %{_sharedstatedir}/kdcproxy
-
 Name:           freeipa
 Version:        __VERSION__
 Release:        __RELEASE__%{?dist}
@@ -583,13 +579,6 @@ if [ -e /usr/sbin/ipa_kpasswd ]; then
 # END
 fi
 
-# create kdcproxy user
-getent group %{kdcproxy_group} >/dev/null || groupadd -r %{kdcproxy_group}
-getent passwd %{kdcproxy_user} >/dev/null || \
-    /usr/sbin/useradd -r -c "IPA KDC Proxy User" -s /sbin/nologin \
-    -g %{kdcproxy_group} -d %{kdcproxy_home} %{kdcproxy_user}
-exit 0
-
 %postun server-trust-ad
 if [ "$1" -ge "1" ]; then
     if [ "`readlink %{_sysconfdir}/alternatives/winbind_krb5_locator.so`" == "/dev/null" ]; then
@@ -726,7 +715,6 @@ fi
 %{_libexecdir}/ipa/ipa-ods-exporter
 %{_libexecdir}/ipa/ipa-httpd-kdcproxy
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/kdcproxy
-%dir %attr(0700,%{kdcproxy_user},%{kdcproxy_group}) %{kdcproxy_home}
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-dnskeysyncd
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-ods-exporter

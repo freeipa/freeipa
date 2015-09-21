@@ -1445,6 +1445,7 @@ def upgrade_configuration():
             http.realm = api.env.realm
             http.suffix = ipautil.realm_to_suffix(api.env.realm)
             http.ldap_connect()
+        httpinstance.create_kdcproxy_user()
         http.create_kdcproxy_conf()
         http.enable_kdcproxy()
 
