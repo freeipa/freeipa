@@ -1453,8 +1453,8 @@ class test_permission(Declarative):
 
         verify_permission_aci(
             permission1, api.env.basedn,
-            '(targetattr = "sn")' +
             '(target = "ldap:///%s")' % DN('cn=editors', groups_dn) +
+            '(targetattr = "sn")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -1623,8 +1623,8 @@ class test_permission_rollback(Declarative):
 
         verify_permission_aci(
             permission1, users_dn,
-            '(targetattr = "sn")' +
             '(target = "ldap:///%s")' % DN(('uid', 'admin'), users_dn) +
+            '(targetattr = "sn")' +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
         ),
@@ -1964,8 +1964,8 @@ class test_permission_sync_attributes(Declarative):
 
         verify_permission_aci(
             permission1, groups_dn,
-            '(targetattr = "sn")' +
             '(target = "ldap:///%s")' % DN(('cn', 'editors'), groups_dn) +
+            '(targetattr = "sn")' +
             '(targetfilter = "%s")' % group_filter +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
@@ -2000,8 +2000,8 @@ class test_permission_sync_attributes(Declarative):
 
         verify_permission_aci(
             permission1, groups_dn,
-            '(targetattr = "sn")' +
             '(target = "ldap:///%s")' % DN(('cn', 'editors'), groups_dn) +
+            '(targetattr = "sn")' +
             '(targetfilter = "(&(cn=blabla)%s)")' % group_filter +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
@@ -2235,8 +2235,8 @@ class test_permission_sync_nice(Declarative):
 
         verify_permission_aci(
             permission1, groups_dn,
-            '(targetattr = "sn")' +
             '(target = "ldap:///%s")' % DN(('cn', 'editors'), groups_dn) +
+            '(targetattr = "sn")' +
             '(targetfilter = "%s")' % group_filter +
             '(version 3.0;acl "permission:%s";' % permission1 +
             'allow (write) groupdn = "ldap:///%s";)' % permission1_dn,
