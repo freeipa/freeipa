@@ -1072,6 +1072,9 @@ class Int(Number):
         if type(value) is unicode:
             if u'.' in value:
                 return int(float(value))
+            if six.PY3 and re.match('0[0-9]+', value):
+                # 0-prefixed octal format
+                return int(value, 8)
             return int(value, 0)
 
         raise ValueError(value)
