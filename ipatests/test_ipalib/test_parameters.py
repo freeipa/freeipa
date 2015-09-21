@@ -1441,8 +1441,7 @@ class test_Decimal(ClassChecker):
         param = self.cls('my_number', precision=1)
         e = raises(ConversionError, param, '123456789012345678901234567890')
 
-        assert str(e) == \
-        "invalid 'my_number': quantize result has too many digits for current context"
+        assert str(e).startswith("invalid 'my_number': ")
 
     def test_exponential(self):
         """
