@@ -78,11 +78,6 @@ EXAMPLES:
 
 register = Registry()
 
-def validate_searchtimelimit(ugettext, limit):
-    if limit == 0:
-        raise ValidationError(name='ipasearchtimelimit', error=_('searchtimelimit must be -1 or > 1.'))
-    return None
-
 @register()
 class config(LDAPObject):
     """
@@ -150,16 +145,16 @@ class config(LDAPObject):
             label=_('Default e-mail domain'),
             doc=_('Default e-mail domain'),
         ),
-        Int('ipasearchtimelimit', validate_searchtimelimit,
+        Int('ipasearchtimelimit',
             cli_name='searchtimelimit',
             label=_('Search time limit'),
-            doc=_('Maximum amount of time (seconds) for a search (> 0, or -1 for unlimited)'),
+            doc=_('Maximum amount of time (seconds) for a search (-1 or 0 is unlimited)'),
             minvalue=-1,
         ),
         Int('ipasearchrecordslimit',
             cli_name='searchrecordslimit',
             label=_('Search size limit'),
-            doc=_('Maximum number of records to search (-1 is unlimited)'),
+            doc=_('Maximum number of records to search (-1 or 0 is unlimited)'),
             minvalue=-1,
         ),
         IA5Str('ipausersearchfields',
@@ -267,6 +262,16 @@ class config_mod(LDAPUpdate):
                         raise errors.ValidationError(
                             name=k, error=_('attribute "%s" not allowed') % a
                         )
+
+        # Set ipasearchrecordslimit to -1 if 0 is used
+        if 'ipasearchrecordslimit' in entry_attrs:
+            if entry_attrs['ipasearchrecordslimit'] is 0:
+                 entry_attrs['ipasearchrecordslimit'] = -1
+
+        # Set ipasearchtimelimit to -1 if 0 is used
+        if 'ipasearchtimelimit' in entry_attrs:
+            if entry_attrs['ipasearchtimelimit'] is 0:
+                 entry_attrs['ipasearchtimelimit'] = -1
 
         for (attr, obj) in (('ipauserobjectclasses', 'user'),
                             ('ipagroupobjectclasses', 'group')):

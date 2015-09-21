@@ -498,7 +498,7 @@
                     {
                         "class": "Int",
                         "deprecated_cli_aliases": [],
-                        "doc": "Maximum amount of time (seconds) for a search (> 0, or -1 for unlimited)",
+                        "doc": "Maximum amount of time (seconds) for a search (-1 or 0 is unlimited)",
                         "flags": [],
                         "label": "Search time limit",
                         "maxvalue": 2147483647,
@@ -510,7 +510,7 @@
                     {
                         "class": "Int",
                         "deprecated_cli_aliases": [],
-                        "doc": "Maximum number of records to search (-1 is unlimited)",
+                        "doc": "Maximum number of records to search (-1 or 0 is unlimited)",
                         "flags": [],
                         "label": "Search size limit",
                         "maxvalue": 2147483647,
