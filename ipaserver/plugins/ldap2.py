@@ -179,8 +179,8 @@ class ldap2(CrudBackend, LDAPClient):
             """Get configured global limits, caching them for more calls"""
             if not _lims:
                 config = self.get_ipa_config()
-                _lims['time'] = config.get('ipasearchtimelimit', [None])[0]
-                _lims['size'] = config.get('ipasearchrecordslimit', [None])[0]
+                _lims['time'] = int(config.get('ipasearchtimelimit', [None])[0])
+                _lims['size'] = int(config.get('ipasearchrecordslimit', [None])[0])
             return _lims
         _lims = {}
 
