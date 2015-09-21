@@ -23,6 +23,7 @@ import shutil
 import tempfile
 import traceback
 import dbus
+import pwd
 
 from pki.client import PKIConnection
 import pki.system
@@ -86,6 +87,27 @@ def is_installing_replica(sys_type):
         return len(sys_list.hosts) > 0
     except KeyError:
         return False
+
+
+def export_kra_agent_pem():
+    """
+    Export ipaCert with private key for client authentication.
+    """
+    fd, filename = tempfile.mkstemp(dir=paths.HTTPD_ALIAS_DIR)
+    os.close(fd)
+
+    args = ["/usr/bin/pki",
+            "-d", paths.HTTPD_ALIAS_DIR,
+            "-C", paths.ALIAS_PWDFILE_TXT,
+            "client-cert-show", "ipaCert",
+            "--client-cert", filename]
+    ipautil.run(args)
+
+    pent = pwd.getpwnam("apache")
+    os.chown(filename, 0, pent.pw_gid)
+    os.chmod(filename, 0o440)
+
+    os.rename(filename, paths.KRA_AGENT_PEM)
 
 
 class DogtagInstance(service.Service):

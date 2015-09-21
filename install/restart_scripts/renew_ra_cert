@@ -63,13 +63,7 @@ def _main():
 
         kra = krainstance.KRAInstance(api.env.realm)
         if kra.is_installed():
-            # export ipaCert with private key for client authentication
-            args = ["/usr/bin/pki",
-                    "-d", paths.HTTPD_ALIAS_DIR,
-                    "-C", paths.ALIAS_PWDFILE_TXT,
-                    "client-cert-show", "ipaCert",
-                    "--client-cert", paths.KRA_AGENT_PEM]
-            ipautil.run(args)
+            krainstance.export_kra_agent_pem()
     finally:
         shutil.rmtree(tmpdir)
 

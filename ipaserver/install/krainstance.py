@@ -37,8 +37,8 @@ from ipaserver.install import cainstance
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
 from ipaserver.install import service
-from ipaserver.install.dogtaginstance import DogtagInstance
-from ipaserver.install.dogtaginstance import DEFAULT_DSPORT, PKI_USER
+from ipaserver.install.dogtaginstance import (
+    DEFAULT_DSPORT, PKI_USER, export_kra_agent_pem, DogtagInstance)
 from ipaserver.plugins import ldap2
 from ipapython.ipa_log_manager import log_mgr
 
@@ -262,13 +262,7 @@ class KRAInstance(DogtagInstance):
 
         shutil.move(paths.KRA_BACKUP_KEYS_P12, paths.KRACERT_P12)
 
-        # export ipaCert with private key for client authentication
-        args = ["/usr/bin/pki",
-            "-d", paths.HTTPD_ALIAS_DIR,
-            "-C", paths.ALIAS_PWDFILE_TXT,
-            "client-cert-show", "ipaCert",
-            "--client-cert", paths.KRA_AGENT_PEM]
-        ipautil.run(args)
+        export_kra_agent_pem()
 
         self.log.debug("completed creating KRA instance")
 
