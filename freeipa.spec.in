@@ -100,10 +100,11 @@ BuildRequires:  python-pytest-sourceorder
 BuildRequires:  python-kdcproxy >= 0.3
 
 %description
-IPA is an integrated solution to provide centrally managed Identity (machine,
-user, virtual machines, groups, authentication credentials), Policy
-(configuration settings, access control information) and Audit (events,
-logs, analysis thereof).
+IPA is an integrated solution to provide centrally managed Identity (users,
+hosts, services), Authentication (SSO, 2FA), and Authorization
+(host access control, SELinux user roles, services). The solution provides
+features for further integration with Linux based clients (SUDO, automount)
+and integration with Active Directory based infrastructures (Trusts).
 
 %if ! %{ONLY_CLIENT}
 %package server
@@ -174,12 +175,12 @@ Obsoletes: %{name}-server <= 4.2.0.0
 Conflicts: nss-pam-ldapd < 0.8.4
 
 %description server
-IPA is an integrated solution to provide centrally managed Identity (machine,
-user, virtual machines, groups, authentication credentials), Policy
-(configuration settings, access control information) and Audit (events,
-logs, analysis thereof). If you are installing an IPA server you need
-to install this package (in other words, most people should NOT install
-this package).
+IPA is an integrated solution to provide centrally managed Identity (users,
+hosts, services), Authentication (SSO, 2FA), and Authorization
+(host access control, SELinux user roles, services). The solution provides
+features for further integration with Linux based clients (SUDO, automount)
+and integration with Active Directory based infrastructures (Trusts).
+If you are installing an IPA server, you need to install this package.
 
 
 %package server-dns
@@ -274,11 +275,13 @@ Conflicts: %{alt_name}-client
 Obsoletes: %{alt_name}-client < %{version}
 
 %description client
-IPA is an integrated solution to provide centrally managed Identity (machine,
-user, virtual machines, groups, authentication credentials), Policy
-(configuration settings, access control information) and Audit (events,
-logs, analysis thereof). If your network uses IPA for authentication,
-this package should be installed on every client machine.
+IPA is an integrated solution to provide centrally managed Identity (users,
+hosts, services), Authentication (SSO, 2FA), and Authorization
+(host access control, SELinux user roles, services). The solution provides
+features for further integration with Linux based clients (SUDO, automount)
+and integration with Active Directory based infrastructures (Trusts).
+If your network uses IPA for authentication, this package should be
+installed on every client machine.
 
 
 %package admintools
@@ -293,11 +296,12 @@ Conflicts: %{alt_name}-admintools
 Obsoletes: %{alt_name}-admintools < %{version}
 
 %description admintools
-IPA is an integrated solution to provide centrally managed Identity (machine,
-user, virtual machines, groups, authentication credentials), Policy
-(configuration settings, access control information) and Audit (events,
-logs, analysis thereof). This package provides command-line tools for
-IPA administrators.
+IPA is an integrated solution to provide centrally managed Identity (users,
+hosts, services), Authentication (SSO, 2FA), and Authorization
+(host access control, SELinux user roles, services). The solution provides
+features for further integration with Linux based clients (SUDO, automount)
+and integration with Active Directory based infrastructures (Trusts).
+This package provides command-line tools for IPA administrators.
 
 %package python
 Summary: Python libraries used by IPA
@@ -325,11 +329,12 @@ Conflicts: %{alt_name}-python
 Obsoletes: %{alt_name}-python < %{version}
 
 %description python
-IPA is an integrated solution to provide centrally managed Identity (machine,
-user, virtual machines, groups, authentication credentials), Policy
-(configuration settings, access control information) and Audit (events,
-logs, analysis thereof). If you are using IPA you need to install this
-package.
+IPA is an integrated solution to provide centrally managed Identity (users,
+hosts, services), Authentication (SSO, 2FA), and Authorization
+(host access control, SELinux user roles, services). The solution provides
+features for further integration with Linux based clients (SUDO, automount)
+and integration with Active Directory based infrastructures (Trusts).
+If you are using IPA, you need to install this package.
 
 %if ! %{ONLY_CLIENT}
 %package tests
@@ -350,10 +355,11 @@ Conflicts: %{alt_name}-tests
 Obsoletes: %{alt_name}-tests < %{version}
 
 %description tests
-IPA is an integrated solution to provide centrally managed Identity (machine,
-user, virtual machines, groups, authentication credentials), Policy
-(configuration settings, access control information) and Audit (events,
-logs, analysis thereof).
+IPA is an integrated solution to provide centrally managed Identity (users,
+hosts, services), Authentication (SSO, 2FA), and Authorization
+(host access control, SELinux user roles, services). The solution provides
+features for further integration with Linux based clients (SUDO, automount)
+and integration with Active Directory based infrastructures (Trusts).
 This package contains tests that verify IPA functionality.
 
 %endif # ONLY_CLIENT
