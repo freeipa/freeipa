@@ -30,10 +30,15 @@ import ldap.modlist
 import tempfile
 import shutil
 import re
+import uuid
+from contextlib import contextmanager
 import ipalib
+from ipalib import api
 from ipalib.plugable import Plugin
 from ipalib.request import context
 from ipapython.dn import DN
+from ipapython.ipautil import private_ccache, kinit_password, run
+from ipaplatform.paths import paths
 
 
 class TempDir(object):
@@ -657,3 +662,38 @@ def prepare_config(template, values):
         config.write(template.format(**values))
 
     return config.name
+
+
+def unlock_principal_password(user, oldpw, newpw):
+    userdn = "uid={},{},{}".format(
+        user, api.env.container_user, api.env.basedn)
+
+    args = [paths.LDAPPASSWD, '-D', userdn, '-w', oldpw, '-a', oldpw,
+            '-s', newpw, '-x']
+    return run(args)
+
+
+@contextmanager
+def change_principal(user, password, client=None, path=None):
+
+    if path:
+        ccache_name = path
+    else:
+        ccache_name = os.path.join('/tmp', str(uuid.uuid4()))
+
+    if client is None:
+        client = api
+
+
+    client.Backend.rpcclient.disconnect()
+
+    with private_ccache(ccache_name):
+        kinit_password(user, password, ccache_name)
+        client.Backend.rpcclient.connect()
+
+        try:
+            yield
+        finally:
+            client.Backend.rpcclient.disconnect()
+
+    client.Backend.rpcclient.connect()
