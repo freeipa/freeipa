@@ -341,7 +341,7 @@ def json_decode_binary(val):
 
     if isinstance(val, dict):
         if '__base64__' in val:
-            return base64.b64decode(val['__base64__'])
+            return base64.b64decode(val['__base64__']).decode('utf-8')
         elif '__datetime__' in val:
             return datetime.datetime.strptime(val['__datetime__'],
                                               LDAP_GENERALIZED_TIME_FORMAT)
@@ -352,7 +352,7 @@ def json_decode_binary(val):
     elif isinstance(val, list):
         return tuple(json_decode_binary(v) for v in val)
     else:
-        if isinstance(val, six.string_types):
+        if isinstance(val, bytes):
             try:
                 return val.decode('utf-8')
             except UnicodeDecodeError:
@@ -403,7 +403,7 @@ def xml_loads(data, encoding='UTF-8'):
 
 class DummyParser(object):
     def __init__(self):
-        self.data = ''
+        self.data = b''
 
     def feed(self, data):
         self.data += data
@@ -586,7 +586,7 @@ class KerbTransport(SSLTransport):
 
         if token:
             extra_headers.append(
-                ('Authorization', 'negotiate %s' % base64.b64encode(token))
+                ('Authorization', 'negotiate %s' % base64.b64encode(token).decode('ascii'))
             )
 
     def _auth_complete(self, response):
@@ -597,7 +597,7 @@ class KerbTransport(SSLTransport):
                 k, _, v = field.strip().partition(' ')
                 if k.lower() == 'negotiate':
                     try:
-                        token = base64.b64decode(v)
+                        token = base64.b64decode(v.encode('ascii'))
                         break
                     # b64decode raises TypeError on invalid input
                     except TypeError:
@@ -1081,12 +1081,12 @@ class JSONServerProxy(object):
         response = self.__transport.request(
             self.__host,
             self.__handler,
-            json.dumps(payload),
+            json.dumps(payload).encode('utf-8'),
             verbose=self.__verbose >= 3,
         )
 
         try:
-            response = json_decode_binary(json.loads(response))
+            response = json_decode_binary(json.loads(response.decode()))
         except ValueError as e:
             raise JSONError(str(e))
 
