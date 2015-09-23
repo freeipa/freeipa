@@ -44,6 +44,18 @@ The reverse DNS zone to use. This option can be used multiple times to specify m
 \fB\-\-no\-reverse\fR
 Do not create new reverse DNS zone. If used on a replica and a reverse DNS zone already exists for the subnet, it will be used.
 .TP
+\fB\-\-no\-dnssec\-validation\fR
+Disable DNSSEC validation on this server.
+.TP
+\fB\-\-dnssec\-master\fR
+Setup server to be DNSSEC key master.
+.TP
+\fB\-\-disable\-dnssec\-master\fR
+Disable the DNSSEC master on this server.
+.TP
+\fB\-\-kasp\-db\fR=\fIKASP_DB\fR
+Copy OpenDNSSEC metadata from the specified kasp.db file. This will not create a new kasp.db file.
+.TP
 \fB\-\-zonemgr\fR
 The e\-mail address of the DNS zone manager. Defaults to hostmaster@DOMAIN
 .TP
