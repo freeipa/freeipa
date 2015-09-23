@@ -65,6 +65,7 @@ def test_round_trip():
     # standard library are correct:
     assert_equal(dump_n_load(utf8_bytes), unicode_str)
     assert_equal(dump_n_load(unicode_str), unicode_str)
+    # "Binary" is not "str". pylint: disable=no-member
     assert_equal(dump_n_load(Binary(binary_bytes)).data, binary_bytes)
     assert isinstance(dump_n_load(Binary(binary_bytes)), Binary)
     assert type(dump_n_load(b'hello')) is bytes
@@ -101,6 +102,7 @@ def test_xml_wrap():
     assert f({}, API_VERSION) == dict()
     b = f(b'hello', API_VERSION)
     assert isinstance(b, Binary)
+    # "Binary" is not "dict" or "tuple". pylint: disable=no-member
     assert b.data == b'hello'
     u = f(u'hello', API_VERSION)
     assert type(u) is unicode
