@@ -24,7 +24,7 @@ from ipalib import api
 from ipalib import errors
 from ipapython import admintool
 from ipapython.dn import DN
-from ipapython.ipautil import realm_to_suffix
+from ipapython.ipautil import realm_to_suffix, posixify
 from ipapython.ipa_log_manager import log_mgr
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import replication
@@ -214,12 +214,21 @@ class WinsyncMigrate(admintool.AdminTool):
 
         def winsync_group_name(object_entry):
             """
-            Returns the generated name of group containing migrated external users
+            Returns the generated name of group containing migrated external
+            users.
+
+            The group name is of the form:
+                 "<prefix>_<object name>_winsync_external"
+
+            Object name is converted to posix-friendly string by omitting
+            and/or replacing characters. This may lead to collisions, i.e.
+            if both 'trust_admins' and 'trust admin' groups have winsync
+            users being migrated.
             """
 
             return u"{0}_{1}_winsync_external".format(
                 winsync_group_prefix,
-                object_entry['cn'][0]
+                posixify(object_entry['cn'][0])
             )
 
         def create_winsync_group(object_entry):
