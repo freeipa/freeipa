@@ -184,7 +184,7 @@ class BaseTaskNamespace(object):
 
         return
 
-    def create_system_user(self, name, group, homedir, shell, uid = None, gid = None, comment = None):
+    def create_system_user(self, name, group, homedir, shell, uid=None, gid=None, comment=None, create_homedir=False):
         """Create a system user with a corresponding group"""
         try:
             grp.getgrnam(group)
@@ -211,12 +211,16 @@ class BaseTaskNamespace(object):
                 '-g', group,
                 '-d', homedir,
                 '-s', shell,
-                '-M', '-r', name,
+                '-r', name,
             ]
             if uid:
                 args += ['-u', str(uid)]
             if comment:
                 args += ['-c', comment]
+            if create_homedir:
+                args += ['-m']
+            else:
+                args += ['-M']
             try:
                 ipautil.run(args)
                 log.debug('Done adding user')

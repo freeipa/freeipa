@@ -400,7 +400,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         return True
 
-    def create_system_user(self, name, group, homedir, shell, uid = None, gid = None, comment = None):
+    def create_system_user(self, name, group, homedir, shell, uid=None, gid=None, comment=None, create_homedir=False):
         """
         Create a system user with a corresponding group
 
@@ -421,7 +421,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 comment = 'DS System User'
 
         super(RedHatTaskNamespace, self).create_system_user(name, group,
-            homedir, shell, uid, gid, comment)
+            homedir, shell, uid, gid, comment, create_homedir)
 
 
 tasks = RedHatTaskNamespace()
