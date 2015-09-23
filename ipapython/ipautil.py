@@ -1330,6 +1330,29 @@ def restore_hostname(statestore):
         except CalledProcessError as e:
             print("Failed to set this machine hostname back to %s: %s" % (old_hostname, str(e)), file=sys.stderr)
 
+def posixify(string):
+    """
+    Convert a string to a more strict alpha-numeric representation.
+
+    - Alpha-numeric, underscore, dot and dash characters are accepted
+    - Space is converted to underscore
+    - Other characters are omitted
+    - Leading dash is stripped
+
+    Note: This mapping is not one-to-one and may map different input to the
+    same result. When using posixify, make sure the you do not map two different
+    entities to one unintentionally.
+    """
+
+    def valid_char(char):
+        return char.isalnum() or char in ('_', '.', '-')
+
+    # First replace space characters
+    replaced = string.replace(' ','_')
+    omitted = ''.join(filter(valid_char, replaced))
+
+    # Leading dash is not allowed
+    return omitted.lstrip('-')
 
 @contextmanager
 def private_ccache(path=None):
