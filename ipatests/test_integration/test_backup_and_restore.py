@@ -248,6 +248,7 @@ class BaseBackupAndRestoreWithDNS(IntegrationTest):
 
             tasks.resolve_record(self.master.ip, self.example_test_zone)
 
+            tasks.kinit_admin(self.master)
             self.master.run_command([
                 'ipa', 'dnszone-add',
                 self.example2_test_zone,
@@ -318,6 +319,7 @@ class BaseBackupAndRestoreWithDNSSEC(IntegrationTest):
                 self.example_test_zone, self.log), ("Zone is not signed after "
                                                     "restore")
 
+            tasks.kinit_admin(self.master)
             self.master.run_command([
                 'ipa', 'dnszone-add',
                 self.example2_test_zone,
@@ -398,6 +400,7 @@ class BaseBackupAndRestoreWithKRA(IntegrationTest):
             self.master.run_command(['ipa-restore', backup_path],
                                     stdin_text=dirman_password + '\nyes')
 
+            tasks.kinit_admin(self.master)
             # retrieve secret after restore
             self.master.run_command([
                 "ipa", "vault-retrieve",
