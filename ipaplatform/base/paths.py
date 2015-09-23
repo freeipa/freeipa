@@ -286,6 +286,7 @@ class BasePathNamespace(object):
     REPLICA_INFO_GPG_TEMPLATE = "/var/lib/ipa/replica-info-%s.gpg"
     SYSRESTORE = "/var/lib/ipa/sysrestore"
     STATEFILE_DIR = "/var/lib/ipa/sysupgrade"
+    VAR_LIB_KDCPROXY = "/var/lib/kdcproxy"
     VAR_LIB_PKI_DIR = "/var/lib/pki"
     VAR_LIB_PKI_CA_DIR = "/var/lib/pki-ca"
     PKI_ALIAS_CA_P12 = "/var/lib/pki-ca/alias/ca.p12"

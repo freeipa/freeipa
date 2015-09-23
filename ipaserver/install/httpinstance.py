@@ -85,8 +85,10 @@ def create_kdcproxy_user():
     tasks.create_system_user(
         name=KDCPROXY_USER,
         group=KDCPROXY_USER,
-        homedir=paths.VAR_LIB,
+        homedir=paths.VAR_LIB_KDCPROXY,
         shell=paths.NOLOGIN,
+        comment="IPA KDC Proxy User",
+        create_homedir=True,
     )
 
 
