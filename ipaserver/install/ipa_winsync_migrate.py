@@ -231,15 +231,26 @@ class WinsyncMigrate(admintool.AdminTool):
                 posixify(object_entry['cn'][0])
             )
 
-        def create_winsync_group(object_entry):
+        def create_winsync_group(object_entry, suffix=0):
             """
             Creates the group containing migrated external users that were
             previously available via winsync.
             """
 
             name = winsync_group_name(object_entry)
-            api.Command['group_add'](name, external=True)
-            api.Command[object_membership_command](object_entry['cn'][0], group=[name])
+
+            # Only non-trivial suffix is appended at the end
+            if suffix != 0:
+                name += str(suffix)
+
+            try:
+                api.Command['group_add'](name, external=True)
+            except errors.DuplicateEntry:
+                # If there is a collision, let's try again with a higher suffix
+                create_winsync_group(object_entry, suffix=suffix+1)
+            else:
+                # In case of no collision, add the membership
+                api.Command[object_membership_command](object_entry['cn'][0], group=[name])
 
         # Search for all objects containing the given user as a direct member
         member_filter = self.ldap.make_filter_from_attr(user_dn_attribute,
