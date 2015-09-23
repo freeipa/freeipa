@@ -484,7 +484,6 @@ install daemons/dnssec/ipa-ods-exporter %{buildroot}%{_libexecdir}/ipa/ipa-ods-e
 mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
 
 # KDC proxy config (Apache config sets KDCPROXY_CONFIG to load this file)
-mkdir -p %{buildroot}%{kdcproxy_home}
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/kdcproxy/
 install -m 644 install/share/kdcproxy.conf %{buildroot}%{_sysconfdir}/ipa/kdcproxy/kdcproxy.conf
 
@@ -716,6 +715,7 @@ fi
 %{_libexecdir}/ipa/ipa-dnskeysync-replica
 %{_libexecdir}/ipa/ipa-ods-exporter
 %{_libexecdir}/ipa/ipa-httpd-kdcproxy
+%ghost %verify(not owner group) %dir %{_sharedstatedir}/kdcproxy
 %dir %attr(0755,root,root) %{_sysconfdir}/ipa/kdcproxy
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa_memcached
 %config(noreplace) %{_sysconfdir}/sysconfig/ipa-dnskeysyncd
