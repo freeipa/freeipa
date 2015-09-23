@@ -348,13 +348,6 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
 
         #pylint: disable=no-member
 
-        if not self.uninstalling and not self.interactive:
-            if (not self.realm_name or not self.dm_password or
-                    not self.admin_password):
-                raise RuntimeError(
-                    "In unattended mode you need to provide at least -r, -p "
-                    "and -a options")
-
         # If any of the key file options are selected, all are required.
         cert_file_req = (self.ca.dirsrv_cert_files, self.ca.http_cert_files)
         cert_file_opt = (self.ca.pkinit_cert_files,)

@@ -1263,6 +1263,12 @@ class Server(BaseServer):
                     self.master_password):
                 raise RuntimeError(
                     "In uninstall mode, -a, -r and -P options are not allowed")
+        elif not self.interactive:
+            if (not self.realm_name or not self.dm_password or
+                    not self.admin_password):
+                raise RuntimeError(
+                    "In unattended mode you need to provide at least -r, -p "
+                    "and -a options")
 
         if self.idmax < self.idstart:
             raise RuntimeError(
