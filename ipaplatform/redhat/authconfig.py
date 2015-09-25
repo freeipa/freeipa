@@ -19,7 +19,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipapython import ipautil
+import os
 
+FILES_TO_NOT_BACKUP = ['passwd', 'group', 'shadow', 'gshadow']
 
 class RedHatAuthConfig(object):
     """
@@ -87,6 +89,16 @@ class RedHatAuthConfig(object):
 
     def backup(self, path):
         ipautil.run(["/usr/sbin/authconfig", "--savebackup", path])
+
+        # do not backup these files since we don't want to mess with
+        # users/groups during restore. Authconfig doesn't seem to mind about
+        # having them deleted from backup dir
+        files_to_remove = [os.path.join(path, f) for f in FILES_TO_NOT_BACKUP]
+        for filename in files_to_remove:
+            try:
+                os.remove(filename)
+            except OSError:
+                pass
 
     def restore(self, path):
         ipautil.run(["/usr/sbin/authconfig", "--restorebackup", path])
