@@ -40,6 +40,8 @@ from ipatests.test_integration.host import Host
 
 log = log_mgr.get_logger(__name__)
 
+IPATEST_NM_CONFIG = '20-ipatest-unmanaged-resolv.conf'
+
 
 def prepare_reverse_zone(host, ip):
     zone = get_reverse_zone_default(ip)
@@ -61,6 +63,7 @@ def prepare_host(host):
 def apply_common_fixes(host):
     fix_etc_hosts(host)
     fix_hostname(host)
+    modify_nm_resolv_conf_settings(host)
     fix_resolv_conf(host)
 
 
@@ -106,6 +109,38 @@ def fix_hostname(host):
     host.run_command('hostname > %s' % ipautil.shell_quote(backupname))
 
 
+def host_service_active(host, service):
+    res = host.run_command(['systemctl', 'is-active', '--quiet', service],
+                           raiseonerr=False)
+
+    if res.returncode == 0:
+        return True
+    else:
+        return False
+
+
+def modify_nm_resolv_conf_settings(host):
+    if not host_service_active(host, 'NetworkManager'):
+        return
+
+    config = "[main]\ndns=none\n"
+    path = os.path.join(paths.NETWORK_MANAGER_CONFIG_DIR, IPATEST_NM_CONFIG)
+
+    host.put_file_contents(path, config)
+    host.run_command(['systemctl', 'restart', 'NetworkManager'],
+                     raiseonerr=False)
+
+
+def undo_nm_resolv_conf_settings(host):
+    if not host_service_active(host, 'NetworkManager'):
+        return
+
+    path = os.path.join(paths.NETWORK_MANAGER_CONFIG_DIR, IPATEST_NM_CONFIG)
+    host.run_command(['rm', '-f', path], raiseonerr=False)
+    host.run_command(['systemctl', 'restart', 'NetworkManager'],
+                     raiseonerr=False)
+
+
 def fix_resolv_conf(host):
     backup_file(host, paths.RESOLV_CONF)
     lines = host.get_file_contents(paths.RESOLV_CONF).splitlines()
@@ -133,6 +168,7 @@ def fix_apache_semaphores(master):
 def unapply_fixes(host):
     restore_files(host)
     restore_hostname(host)
+    undo_nm_resolv_conf_settings(host)
 
     # Clean up the test directory
     host.run_command(['rm', '-rvf', host.config.test_dir])

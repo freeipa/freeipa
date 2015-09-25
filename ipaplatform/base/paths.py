@@ -354,6 +354,6 @@ class BasePathNamespace(object):
     DB2BAK = '/usr/sbin/db2bak'
     KDCPROXY_CONFIG = '/etc/ipa/kdcproxy/kdcproxy.conf'
     CERTMONGER = '/usr/sbin/certmonger'
-
+    NETWORK_MANAGER_CONFIG_DIR = '/etc/NetworkManager/conf.d'
 
 path_namespace = BasePathNamespace
