@@ -199,10 +199,10 @@ static bool validate(struct otp_token *token, time_t now, ssize_t step,
     case TYPE_TOTP:
         /* Perform optional synchronization steps. */
         if (second != NULL) {
-            tmp = (step - now / token->totp.step) * token->totp.step;
-            if (!writeattr(token, T("clockOffset"), tmp))
+            long long off = (step - now / token->totp.step) * token->totp.step;
+            if (!writeattr(token, T("clockOffset"), off))
                 return false;
-            token->totp.offset = tmp;
+            token->totp.offset = off;
         }
         token->totp.watermark = step;
         break;
