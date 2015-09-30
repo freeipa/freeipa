@@ -59,7 +59,7 @@ def install(api, replica_config, options):
             dogtag_constants=dogtag.install_constants)
 
         kra.configure_instance(
-            api.env.realm, api.env.host, api.env.domain, options.dm_password,
+            api.env.realm, api.env.host, options.dm_password,
             options.dm_password, subject_base=subject)
     else:
         kra = krainstance.install_replica_kra(replica_config)
