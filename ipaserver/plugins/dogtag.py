@@ -1906,6 +1906,26 @@ class kra(Backend):
 
         super(kra, self).__init__(api)
 
+    @property
+    def kra_host(self):
+        """
+        :return:   host
+                   as str
+
+        Select our KRA host.
+        """
+        ldap2 = self.api.Backend.ldap2
+        if host_has_service(api.env.ca_host, ldap2, "KRA"):
+            return api.env.ca_host
+        if api.env.host != api.env.ca_host:
+            if host_has_service(api.env.host, ldap2, "KRA"):
+                return api.env.host
+        host = select_any_master(ldap2, "KRA")
+        if host:
+            return host
+        else:
+            return api.env.ca_host
+
     def get_client(self):
         """
         Returns an authenticated KRA client to access KRA services.
@@ -1925,7 +1945,7 @@ class kra(Backend):
         # https://fedorahosted.org/freeipa/ticket/4557
         connection = PKIConnection(
             'https',
-            api.env.kra_host,
+            self.kra_host,
             str(self.kra_port),
             'kra')
 
