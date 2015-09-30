@@ -167,9 +167,6 @@ DEFAULT_CONFIG = (
     ('ca_agent_install_port', None),
     ('ca_ee_install_port', None),
 
-    # KRA plugin
-    ('kra_host', FQDN),  # Set in Env._finalize_core()
-
     # Topology plugin
     ('recommended_max_agmts', 4),  # Recommended maximum number of replication
                                    # agreements
