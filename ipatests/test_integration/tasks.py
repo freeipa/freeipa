@@ -37,6 +37,7 @@ from ipapython.ipa_log_manager import log_mgr
 from ipatests.test_integration import util
 from ipatests.test_integration.env_config import env_to_script
 from ipatests.test_integration.host import Host
+from ipalib.util import get_reverse_zone_default
 
 log = log_mgr.get_logger(__name__)
 
@@ -58,6 +59,11 @@ def check_arguments_are(slice, instanceof):
         return wrapped
     return wrapper
 
+def prepare_reverse_zone(host, ip):
+    zone = get_reverse_zone_default(ip)
+    host.run_command(["ipa",
+                      "dnszone-add",
+                      zone], raiseonerr=False)
 
 def prepare_host(host):
     if isinstance(host, Host):
@@ -240,17 +246,17 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False):
 
     apply_common_fixes(replica)
     fix_apache_semaphores(replica)
-
+    prepare_reverse_zone(master, replica.ip)
     master.run_command(['ipa-replica-prepare',
                         '-p', replica.config.dirman_password,
-                        '--ip-address', replica.ip, '--no-reverse',
+                        '--ip-address', replica.ip,
                         replica.hostname])
     replica_bundle = master.get_file_contents(
         paths.REPLICA_INFO_GPG_TEMPLATE % replica.hostname)
     replica_filename = os.path.join(replica.config.test_dir,
                                     'replica-info.gpg')
     replica.put_file_contents(replica_filename, replica_bundle)
-    args = ['ipa-replica-install', '-U', '--no-host-dns',
+    args = ['ipa-replica-install', '-U',
             '-p', replica.config.dirman_password,
             '-w', replica.config.admin_password,
             '--ip-address', replica.ip,
