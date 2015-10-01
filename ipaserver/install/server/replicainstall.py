@@ -741,6 +741,13 @@ class Replica(BaseServer):
             raise RuntimeError(
                 "Replica file %s does not exist" % self.replica_file)
 
+        if self.setup_dns:
+            #pylint: disable=no-member
+            if not self.dns.forwarders and not self.dns.no_forwarders:
+                raise RuntimeError(
+                    "You must specify at least one --forwarder option or "
+                    "--no-forwarders option")
+
         self.password = self.dm_password
 
     @step()
