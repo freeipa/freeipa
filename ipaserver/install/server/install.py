@@ -1260,6 +1260,12 @@ class Server(BaseServer):
                 raise RuntimeError(
                     "In unattended mode you need to provide at least -r, -p "
                     "and -a options")
+            if self.setup_dns:
+                #pylint: disable=no-member
+                if not self.dns.forwarders and not self.dns.no_forwarders:
+                    raise RuntimeError(
+                        "You must specify at least one --forwarder option or "
+                        "--no-forwarders option")
 
         if self.idmax < self.idstart:
             raise RuntimeError(

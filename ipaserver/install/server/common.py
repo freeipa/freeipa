@@ -401,10 +401,6 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
             raise RuntimeError(
                 "You cannot specify a --forwarder option together with "
                 "--no-forwarders")
-        elif not self.dns.forwarders and not self.dns.no_forwarders:
-            raise RuntimeError(
-                "You must specify at least one --forwarder option or "
-                "--no-forwarders option")
         elif self.dns.reverse_zones and self.dns.no_reverse:
             raise RuntimeError(
                 "You cannot specify a --reverse-zone option together with "
