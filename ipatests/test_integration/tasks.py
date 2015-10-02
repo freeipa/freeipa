@@ -37,6 +37,7 @@ from ipapython.ipa_log_manager import log_mgr
 from ipatests.test_integration import util
 from ipatests.test_integration.env_config import env_to_script
 from ipatests.test_integration.host import Host
+from ipalib.util import get_reverse_zone_default
 
 log = log_mgr.get_logger(__name__)
 
