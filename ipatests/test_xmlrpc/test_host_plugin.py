@@ -357,6 +357,7 @@ class TestHostWithService(XMLRPC_test):
                 result=dict(
                     dn=service1dn,
                     krbprincipalname=[service1],
+                    krbcanonicalname=[service1],
                     objectclass=objectclasses.service,
                     managedby_host=[host.fqdn],
                     ipauniqueid=[fuzzy_uuid],

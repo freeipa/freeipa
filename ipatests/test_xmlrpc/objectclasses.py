@@ -100,7 +100,6 @@ service = [
     u'ipaobject',
     u'ipaservice',
     u'pkiuser',
-    u'ipakrbprincipal',
     u'top',
 ]
 

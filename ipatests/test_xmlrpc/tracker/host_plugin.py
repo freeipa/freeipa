@@ -37,7 +37,8 @@ class HostTracker(Tracker):
         'ipaallowedtoperform_write_keys_hostgroup'}
     retrieve_all_keys = retrieve_keys | {
         u'cn', u'ipakrbokasdelegate', u'ipakrbrequirespreauth', u'ipauniqueid',
-        u'managing_host', u'objectclass', u'serverhostname'}
+        u'krbcanonicalname', u'managing_host', u'objectclass',
+        u'serverhostname'}
     create_keys = retrieve_keys | {'objectclass', 'ipauniqueid',
                                    'randompassword'}
     update_keys = retrieve_keys - {'dn'}
@@ -98,6 +99,7 @@ class HostTracker(Tracker):
             description=[self.description],
             l=[self.location],
             krbprincipalname=[u'host/%s@%s' % (self.fqdn, self.api.env.realm)],
+            krbcanonicalname=[u'host/%s@%s' % (self.fqdn, self.api.env.realm)],
             objectclass=objectclasses.host,
             ipauniqueid=[fuzzy_uuid],
             managedby_host=[self.fqdn],

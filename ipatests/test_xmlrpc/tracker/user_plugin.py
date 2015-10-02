@@ -36,8 +36,8 @@ class UserTracker(Tracker):
         u'l', u'mobile', u'krbextradata', u'krblastpwdchange',
         u'krbpasswordexpiration', u'pager', u'st', u'manager', u'cn',
         u'ipauniqueid', u'objectclass', u'mepmanagedentry',
-        u'displayname', u'gecos', u'initials', u'krbprincipalname',
-        u'preserved'}
+        u'displayname', u'gecos', u'initials', u'krbcanonicalname',
+        'krbprincipalname', u'preserved'}
 
     retrieve_preserved_keys = (retrieve_keys - {u'memberof_group'}) | {
         u'preserved'}
@@ -146,6 +146,7 @@ class UserTracker(Tracker):
             uidnumber=[fuzzy_digits],
             gidnumber=[fuzzy_digits],
             krbprincipalname=[u'%s@%s' % (self.uid, self.api.env.realm)],
+            krbcanonicalname=[u'%s@%s' % (self.uid, self.api.env.realm)],
             mail=[u'%s@%s' % (self.uid, self.api.env.domain)],
             gecos=[u'%s %s' % (self.givenname, self.sn)],
             loginshell=[u'/bin/sh'],

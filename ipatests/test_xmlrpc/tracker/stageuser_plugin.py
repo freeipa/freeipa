@@ -47,7 +47,8 @@ class StageUserTracker(Tracker):
         u'st', u'mobile', u'pager', }
     retrieve_all_keys = retrieve_keys | {
         u'cn', u'ipauniqueid', u'objectclass', u'description',
-        u'displayname', u'gecos', u'initials', u'krbprincipalname', u'manager'}
+        u'displayname', u'gecos', u'initials', u'krbcanonicalname',
+        u'krbprincipalname', u'manager'}
 
     create_keys = retrieve_all_keys | {
         u'objectclass', u'ipauniqueid', u'randompassword',
@@ -117,6 +118,7 @@ class StageUserTracker(Tracker):
             uidnumber=[u'-1'],
             gidnumber=[u'-1'],
             krbprincipalname=[u'%s@%s' % (self.uid, self.api.env.realm)],
+            krbcanonicalname=[u'%s@%s' % (self.uid, self.api.env.realm)],
             mail=[u'%s@%s' % (self.uid, self.api.env.domain)],
             gecos=[u'%s %s' % (self.givenname, self.sn)],
             loginshell=[u'/bin/sh'],
@@ -130,6 +132,7 @@ class StageUserTracker(Tracker):
                 self.attrs[key] = [u'%s@%s' % (
                     (self.kwargs[key].split('@'))[0].lower(),
                     (self.kwargs[key].split('@'))[1])]
+                self.attrs[u'krbcanonicalname'] = self.attrs[key]
             elif key == u'manager':
                 self.attrs[key] = [self.kwargs[key]]
             elif key == u'ipasshpubkey':
