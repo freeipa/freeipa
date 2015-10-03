@@ -1002,7 +1002,7 @@ class BindInstance(service.Service):
 
     def __generate_rndc_key(self):
         installutils.check_entropy()
-        ipautil.run(['/usr/libexec/generate-rndc-key.sh'])
+        ipautil.run([paths.GENERATE_RNDC_KEY])
 
     def add_master_dns_records(self, fqdn, ip_addresses, realm_name, domain_name,
                                reverse_zones, ntp=False, ca_configured=None):
