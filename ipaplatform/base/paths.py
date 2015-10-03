@@ -210,6 +210,7 @@ class BasePathNamespace(object):
     DOGTAG_IPA_CA_RENEW_AGENT_SUBMIT = "/usr/libexec/certmonger/dogtag-ipa-ca-renew-agent-submit"
     DOGTAG_IPA_RENEW_AGENT_SUBMIT = "/usr/libexec/certmonger/dogtag-ipa-renew-agent-submit"
     IPA_SERVER_GUARD = "/usr/libexec/certmonger/ipa-server-guard"
+    GENERATE_RNDC_KEY = "/usr/libexec/generate-rndc-key.sh"
     IPA_DNSKEYSYNCD_REPLICA = "/usr/libexec/ipa/ipa-dnskeysync-replica"
     IPA_DNSKEYSYNCD = "/usr/libexec/ipa/ipa-dnskeysyncd"
     IPA_ODS_EXPORTER = "/usr/libexec/ipa/ipa-ods-exporter"
