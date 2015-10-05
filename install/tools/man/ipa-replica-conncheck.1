@@ -70,13 +70,13 @@ Output only errors
 
 .SH "EXAMPLES"
 .TP
-\fBipa-replica-conncheck -m master.example.com\fR
+\fBipa\-replica\-conncheck \-m master.example.com\fR
 Run a replica machine connection check against a remote master \fImaster.example.com\fR. If the connection to the remote master machine is successful the program will switch to listening mode and prompt for running the master machine part. The second part check the connection from master to replica.
 .TP
-\fBipa-replica-conncheck -R replica.example.com\fR
+\fBipa\-replica\-conncheck \-R replica.example.com\fR
 Run a master machine connection check part. This is either run automatically by replica part of the connection check program (when \fI-a\fR option is set) or manually by the user. A running ipa-replica-conncheck(1) in a listening mode must be already running on a replica machine.
 .TP
-\fBipa-replica-conncheck -m master.example.com -a -r EXAMPLE.COM -w password\fR
+\fBipa\-replica\-conncheck \-m master.example.com \-a \-r EXAMPLE.COM \-w password\fR
 Run a replica\-master connection check. In case of a success switch to listening mode, automatically log to \fImaster.example.com\fR in a realm \fIEXAMPLE.COM\fR with a password \fIpassword\fR and run the second part of the connection check.
 
 .SH "EXIT STATUS"
