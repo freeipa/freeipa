@@ -21,6 +21,7 @@ from __future__ import absolute_import
 
 import socket
 import getpass
+import ldif
 import os
 import re
 import fileinput
@@ -1102,3 +1103,100 @@ def enable_and_start_oddjobd(sstore):
         oddjobd.start()
     except Exception as e:
         root_logger.critical("Unable to start oddjobd: {0}".format(str(e)))
+
+
+class ModifyLDIF(ldif.LDIFParser):
+    """
+    Allows to modify LDIF file.
+
+    Operations keep the order in which were specified per DN.
+    Warning: only modifications of existing DNs are supported
+    """
+    def __init__(self, input_file, output_file):
+        """
+        :param input_file: an LDIF
+        :param output_file: an LDIF file
+        """
+        ldif.LDIFParser.__init__(self, input_file)
+        self.writer = ldif.LDIFWriter(output_file)
+        self.dn_updated = set()
+
+        self.modifications = {}  # keep modify operations in original order
+
+    def add_value(self, dn, attr, values):
+        """
+        Add value to LDIF.
+        :param dn: DN of entry (must exists)
+        :param attr: attribute name
+        :param value: value to be added
+        """
+        assert isinstance(values, list)
+        self.modifications.setdefault(dn, []).append(
+            dict(
+                op="add",
+                attr=attr,
+                values=values,
+            )
+        )
+
+    def remove_value(self, dn, attr, values=None):
+        """
+        Remove value from LDIF.
+        :param dn: DN of entry
+        :param attr: attribute name
+        :param value: value to be removed, if value is None, attribute will
+        be removed
+        """
+        assert values is None or isinstance(values, list)
+        self.modifications.setdefault(dn, []).append(
+            dict(
+                op="del",
+                attr=attr,
+                values=values,
+            )
+        )
+
+    def replace_value(self, dn, attr, values):
+        """
+        Replace values in LDIF with new value.
+        :param dn: DN of entry
+        :param attr: attribute name
+        :param value: new value for atribute
+        """
+        assert isinstance(values, list)
+        self.remove_value(dn, attr)
+        self.add_value(dn, attr, values)
+
+    def handle(self, dn, entry):
+        if dn in self.modifications:
+            self.dn_updated.add(dn)
+        for mod in self.modifications.get(dn, []):
+            attr_name = mod["attr"]
+            values = mod["values"]
+
+            if mod["op"] == "del":
+                # delete
+                attribute = entry.setdefault(attr_name, [])
+                if values is None:
+                    attribute = []
+                else:
+                    attribute = [v for v in attribute if v not in values]
+                if not attribute:  # empty
+                    del entry[attr_name]
+            elif mod["op"] == "add":
+                # add
+                attribute = entry.setdefault(attr_name, [])
+                attribute.extend([v for v in values if v not in attribute])
+            else:
+                assert False, "Unknown operation: %r" % mod["op"]
+
+        self.writer.unparse(dn, entry)
+
+    def parse(self):
+        ldif.LDIFParser.parse(self)
+
+        # check if there are any remaining modifications
+        remaining_changes = set(self.modifications.keys()) - self.dn_updated
+        for dn in remaining_changes:
+            root_logger.error(
+                "DN: %s does not exists or haven't been updated", dn)
