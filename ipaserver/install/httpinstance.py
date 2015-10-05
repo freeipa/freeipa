@@ -242,7 +242,7 @@ class HTTPInstance(service.Service):
         installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSRequireSafeNegotiation', 'on', False)
 
     def __set_mod_nss_passwordfile(self):
-        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSPassPhraseDialog', 'file:/etc/httpd/conf/password.conf')
+        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSPassPhraseDialog', 'file:' + paths.HTTPD_PASSWORD_CONF)
 
     def __add_include(self):
         """This should run after __set_mod_nss_port so is already backed up"""
