@@ -47,14 +47,14 @@ Valid lines consist of an option name, an equals sign and a value. Spaces surrou
 
 Values should not be quoted, the quotes will not be stripped.
 
-.np
+.DS L
     # Wrong \- don't include quotes
     verbose = "True"
 
     # Right \- Properly formatted options
     verbose = True
     verbose=True
-.fi
+.DE
 
 Options must appear in the section named [global]. There are no other sections defined or used currently.
 

@@ -222,36 +222,49 @@ Unattended uninstallation. The user will not be prompted.
 .TP
 Files that will be replaced if SSSD is configured (default):
 
-/etc/sssd/sssd.conf\p
+/etc/sssd/sssd.conf
 .TP
 Files that will be replaced if they exist and SSSD is not configured (\-\-no\-sssd):
 
-/etc/ldap.conf\p
-/etc/nss_ldap.conf\p
-/etc/libnss\-ldap.conf\p
-/etc/pam_ldap.conf\p
-/etc/nslcd.conf\p
+/etc/ldap.conf
+.br
+/etc/nss_ldap.conf
+.br
+/etc/libnss\-ldap.conf
+.br
+/etc/pam_ldap.conf
+.br
+/etc/nslcd.conf
 .TP
 Files replaced if NTP is enabled:
 
-/etc/ntp.conf\p
-/etc/sysconfig/ntpd\p
-/etc/ntp/step\-tickers\p
+/etc/ntp.conf
+.br
+/etc/sysconfig/ntpd
+.br
+/etc/ntp/step\-tickers
 .TP
 Files always created (replacing existing content):
 
-/etc/krb5.conf\p
-/etc/ipa/ca.crt\p
-/etc/ipa/default.conf\p
-/etc/ipa/nssdb\p
-/etc/openldap/ldap.conf\p
+/etc/krb5.conf
+.br
+/etc/ipa/ca.crt
+.br
+/etc/ipa/default.conf
+.br
+/etc/ipa/nssdb
+.br
+/etc/openldap/ldap.conf
 .TP
 Files updated, existing content is maintained:
 
-/etc/nsswitch.conf\p
-/etc/pki/nssdb\p
-/etc/krb5.keytab\p
-/etc/sysconfig/network\p
+/etc/nsswitch.conf
+.br
+/etc/pki/nssdb
+.br
+/etc/krb5.keytab
+.br
+/etc/sysconfig/network
 .SH "EXIT STATUS"
 0 if the installation was successful
 
