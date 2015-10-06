@@ -354,13 +354,7 @@ class BaseBackupAndRestoreWithKRA(IntegrationTest):
 
     @classmethod
     def install(cls, mh):
-        tasks.install_master(cls.master, setup_dns=True)
-        args = [
-            "ipa-kra-install",
-            "-p", cls.master.config.dirman_password,
-            "-U",
-        ]
-        cls.master.run_command(args)
+        tasks.install_master(cls.master, setup_dns=True, setup_kra=True)
 
     def _full_backup_restore_with_vault(self, reinstall=False):
         with restore_checker(self.master):

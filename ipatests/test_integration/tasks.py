@@ -246,7 +246,7 @@ def enable_replication_debugging(host):
                      stdin_text=logging_ldif)
 
 
-def install_master(host, setup_dns=True):
+def install_master(host, setup_dns=True, setup_kra=False):
     host.collect_log(paths.IPASERVER_INSTALL_LOG)
     host.collect_log(paths.IPACLIENT_INSTALL_LOG)
     inst = host.domain.realm.replace('.', '-')
@@ -273,10 +273,23 @@ def install_master(host, setup_dns=True):
     enable_replication_debugging(host)
     setup_sssd_debugging(host)
 
+    if setup_kra:
+        args = [
+            "ipa-kra-install",
+            "-p", host.config.dirman_password,
+            "-U",
+        ]
+        host.run_command(args)
+
     kinit_admin(host)
 
 
-def install_replica(master, replica, setup_ca=True, setup_dns=False):
+def get_replica_filename(replica):
+    return os.path.join(replica.config.test_dir, 'replica-info.gpg')
+
+
+def install_replica(master, replica, setup_ca=True, setup_dns=False,
+                    setup_kra=False):
     replica.collect_log(paths.IPAREPLICA_INSTALL_LOG)
     replica.collect_log(paths.IPAREPLICA_CONNCHECK_LOG)
 
@@ -289,8 +302,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False):
                         replica.hostname])
     replica_bundle = master.get_file_contents(
         paths.REPLICA_INFO_GPG_TEMPLATE % replica.hostname)
-    replica_filename = os.path.join(replica.config.test_dir,
-                                    'replica-info.gpg')
+    replica_filename = get_replica_filename(replica)
     replica.put_file_contents(replica_filename, replica_bundle)
     args = ['ipa-replica-install', '-U',
             '-p', replica.config.dirman_password,
@@ -308,6 +320,16 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False):
 
     enable_replication_debugging(replica)
     setup_sssd_debugging(replica)
+
+    if setup_kra:
+        assert setup_ca, "CA must be installed on replica with KRA"
+        args = [
+            "ipa-kra-install",
+            replica_filename,
+            "-p", replica.config.dirman_password,
+            "-U",
+        ]
+        replica.run_command(args)
 
     kinit_admin(replica)
 
