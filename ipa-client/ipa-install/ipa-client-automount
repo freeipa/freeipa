@@ -40,6 +40,7 @@ from ipaclient import ipadiscovery
 from ipaclient import ipachangeconf
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
+from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -309,7 +310,7 @@ def configure_nfs(fstore, statestore):
     Configure secure NFS
     """
     replacevars = {
-        'SECURE_NFS': 'yes',
+        constants.SECURE_NFS_VAR: 'yes',
     }
     ipautil.backup_config_and_replace_variables(fstore,
         paths.SYSCONFIG_NFS, replacevars=replacevars)
