@@ -21,8 +21,12 @@
 from ipaserver.install import service
 from ipapython import sysrestore
 from ipapython import ipautil
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython.ipa_log_manager import *
+
+NTPD_OPTS_VAR = constants.NTPD_OPTS_VAR
+NTPD_OPTS_QUOTE = constants.NTPD_OPTS_QUOTE
 
 class NTPInstance(service.Service):
     def __init__(self, fstore=None):
@@ -106,9 +110,9 @@ class NTPInstance(service.Service):
         fd.close()
         for line in lines:
             sline = line.strip()
-            if not sline.startswith('OPTIONS'):
+            if not sline.startswith(NTPD_OPTS_VAR):
                 continue
-            sline = sline.replace('"', '')
+            sline = sline.replace(NTPD_OPTS_QUOTE, '')
             for opt in needopts:
                 if sline.find(opt['val']) != -1:
                     opt['need'] = False
@@ -124,12 +128,12 @@ class NTPInstance(service.Service):
             for line in lines:
                 if not done:
                     sline = line.strip()
-                    if not sline.startswith('OPTIONS'):
+                    if not sline.startswith(NTPD_OPTS_VAR):
                         fd.write(line)
                         continue
-                    sline = sline.replace('"', '')
+                    sline = sline.replace(NTPD_OPTS_QUOTE, '')
                     (variable, opts) = sline.split('=', 1)
-                    fd.write('OPTIONS="%s %s"\n' % (opts, ' '.join(newopts)))
+                    fd.write(NTPD_OPTS_VAR + '="%s %s"\n' % (opts, ' '.join(newopts)))
                     done = True
                 else:
                     fd.write(line)
