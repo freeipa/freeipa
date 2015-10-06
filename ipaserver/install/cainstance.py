@@ -48,6 +48,7 @@ from ipalib import pkcs10, x509
 from ipalib import errors
 
 from ipaplatform import services
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 
@@ -1140,7 +1141,7 @@ class CAInstance(DogtagInstance):
         os.chmod(self.ra_agent_db + "/key3.db", 0o640)
         os.chmod(self.ra_agent_db + "/secmod.db", 0o640)
 
-        pent = pwd.getpwnam("apache")
+        pent = pwd.getpwnam(constants.HTTPD_USER)
         os.chown(self.ra_agent_db + "/cert8.db", 0, pent.pw_gid )
         os.chown(self.ra_agent_db + "/key3.db", 0, pent.pw_gid )
         os.chown(self.ra_agent_db + "/secmod.db", 0, pent.pw_gid )

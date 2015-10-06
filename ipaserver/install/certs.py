@@ -43,6 +43,7 @@ from ipalib import pkcs10, x509, api
 from ipalib.errors import CertificateOperationError
 from ipalib.text import _
 from ipaplatform import services
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 
 # Apache needs access to this database so we need to create it
@@ -519,8 +520,7 @@ class CertDB(object):
         f.write(pwdfile.read())
         f.close()
         pwdfile.close()
-        # TODO: replace explicit uid by a platform-specific one
-        self.set_perms(self.pwd_conf, uid="apache")
+        self.set_perms(self.pwd_conf, uid=constants.HTTPD_USER)
 
     def find_root_cert(self, nickname):
         """

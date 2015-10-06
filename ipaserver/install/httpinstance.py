@@ -41,6 +41,7 @@ import ipapython.errors
 from ipaserver.install import sysupgrade
 from ipalib import api
 from ipalib import errors
+from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 from ipaplatform import services
@@ -52,7 +53,7 @@ SELINUX_BOOLEAN_SETTINGS = dict(
 )
 
 KDCPROXY_USER = 'kdcproxy'
-
+HTTPD_USER = constants.HTTPD_USER
 
 def httpd_443_configured():
     """
@@ -190,14 +191,14 @@ class HTTPInstance(service.Service):
             installutils.create_keytab(paths.IPA_KEYTAB, self.principal)
             self.move_service(self.principal)
 
-        pent = pwd.getpwnam("apache")
+        pent = pwd.getpwnam(HTTPD_USER)
         os.chown(paths.IPA_KEYTAB, pent.pw_uid, pent.pw_gid)
 
     def remove_httpd_ccache(self):
         # Clean up existing ccache
         # Make sure that empty env is passed to avoid passing KRB5CCNAME from
         # current env
-        ipautil.run(['kdestroy', '-A'], runas='apache', raiseonerr=False, env={})
+        ipautil.run(['kdestroy', '-A'], runas=HTTPD_USER, raiseonerr=False, env={})
 
     def __configure_http(self):
         target_fname = paths.HTTPD_IPA_CONF
@@ -328,7 +329,7 @@ class HTTPInstance(service.Service):
         os.chmod(certs.NSS_DIR + "/secmod.db", 0o660)
         os.chmod(certs.NSS_DIR + "/pwdfile.txt", 0o660)
 
-        pent = pwd.getpwnam("apache")
+        pent = pwd.getpwnam(HTTPD_USER)
         os.chown(certs.NSS_DIR + "/cert8.db", 0, pent.pw_gid )
         os.chown(certs.NSS_DIR + "/key3.db", 0, pent.pw_gid )
         os.chown(certs.NSS_DIR + "/secmod.db", 0, pent.pw_gid )
@@ -497,7 +498,7 @@ class HTTPInstance(service.Service):
                 pass
 
         # Remove the ccache file for the HTTPD service
-        ipautil.run([paths.KDESTROY, '-c', paths.KRB5CC_HTTPD], runas='apache',
+        ipautil.run([paths.KDESTROY, '-c', paths.KRB5CC_HTTPD], runas=HTTPD_USER,
                     raiseonerr=False)
 
         # Remove the configuration files we create

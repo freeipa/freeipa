@@ -24,6 +24,7 @@ import os.path
 import pwd
 import optparse
 
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import admintool
 from ipapython.dn import DN
@@ -151,7 +152,7 @@ class ServerCertInstall(admintool.AdminTool):
         os.chmod(os.path.join(dirname, 'key3.db'), 0o640)
         os.chmod(os.path.join(dirname, 'secmod.db'), 0o640)
 
-        pent = pwd.getpwnam("apache")
+        pent = pwd.getpwnam(constants.HTTPD_USER)
         os.chown(os.path.join(dirname, 'cert8.db'), 0, pent.pw_gid)
         os.chown(os.path.join(dirname, 'key3.db'), 0, pent.pw_gid)
         os.chown(os.path.join(dirname, 'secmod.db'), 0, pent.pw_gid)
