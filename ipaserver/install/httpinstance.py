@@ -251,7 +251,7 @@ class HTTPInstance(service.Service):
 
     def __add_include(self):
         """This should run after __set_mod_nss_port so is already backed up"""
-        if installutils.update_file(paths.HTTPD_NSS_CONF, '</VirtualHost>', 'Include conf.d/ipa-rewrite.conf\n</VirtualHost>') != 0:
+        if installutils.update_file(paths.HTTPD_NSS_CONF, '</VirtualHost>', 'Include {path}\n</VirtualHost>'.format(path=paths.HTTPD_IPA_REWRITE_CONF)) != 0:
             print("Adding Include conf.d/ipa-rewrite to %s failed." % paths.HTTPD_NSS_CONF)
 
     def configure_certmonger_renewal_guard(self):
