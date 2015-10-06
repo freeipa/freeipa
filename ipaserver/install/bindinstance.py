@@ -39,6 +39,7 @@ from ipapython.dn import DN
 import ipalib
 from ipalib import api, errors
 from ipaplatform import services
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
@@ -556,7 +557,7 @@ class BindInstance(service.Service):
     suffix = ipautil.dn_attribute_property('_suffix')
 
     def setup(self, fqdn, ip_addresses, realm_name, domain_name, forwarders, ntp,
-              reverse_zones, named_user="named", zonemgr=None,
+              reverse_zones, named_user=constants.NAMED_USER, zonemgr=None,
               ca_configured=None, no_dnssec_validation=False):
         self.named_user = named_user
         self.fqdn = fqdn
