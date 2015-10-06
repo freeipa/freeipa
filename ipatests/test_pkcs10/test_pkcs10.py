@@ -23,10 +23,9 @@ Test the `pkcs10.py` module.
 # FIXME: Pylint errors
 # pylint: disable=no-member
 
-import os
-import sys
+import binascii
+
 import nose
-from ipatests.util import raises, PluginTester
 from ipalib import pkcs10
 from ipapython import ipautil
 import nss.nss as nss
@@ -122,5 +121,5 @@ class test_update(object):
         csr = self.read_file("test4.csr")
         try:
             request = pkcs10.load_certificate_request(csr)
-        except TypeError as typeerr:
+        except (TypeError, binascii.Error) as typeerr:
             assert(str(typeerr) == 'Incorrect padding')
