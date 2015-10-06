@@ -113,7 +113,7 @@ class test_Fuzzy(object):
     def test_eq(self):
         assert (self.klass('bar') == u'foobar') is True
         assert (self.klass('^bar') == u'foobar') is False
-        assert (self.klass('bar', type=str) == u'foobar') is False
+        assert (self.klass('bar', type=bytes) == u'foobar') is False
 
         assert ('18' == self.klass()) is True
         assert ('18' == self.klass(type=int)) is False
@@ -127,7 +127,7 @@ class test_Fuzzy(object):
 
         t = lambda other: other.endswith('bar')
         assert (self.klass(test=t) == 'foobar') is True
-        assert (self.klass(test=t, type=unicode) == 'foobar') is False
+        assert (self.klass(test=t, type=unicode) == b'foobar') is False
         assert (self.klass(test=t) == 'barfoo') is False
 
         assert (False == self.klass()) is True
@@ -186,7 +186,7 @@ def test_assert_deepequal():
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        'foo', unicode, str, u'hello', 'hello', (2,)
+        'foo', unicode, bytes, u'hello', b'hello', (2 if six.PY2 else 0,)
     )
 
     b = [
@@ -206,7 +206,7 @@ def test_assert_deepequal():
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        'foo', int, float, 18, 18.0, (0,)
+        b'foo', int, float, 18, 18.0, (0 if six.PY2 else 2,)
     )
 
     # List length mismatch
