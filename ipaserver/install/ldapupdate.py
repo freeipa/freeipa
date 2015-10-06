@@ -423,7 +423,7 @@ class LDAPUpdate:
                     for i, v in enumerate(value):
                         try:
                             value[i] = base64.b64decode(v)
-                        except TypeError as e:
+                        except (TypeError, ValueError) as e:
                             raise BadSyntax(
                                 "Base64 encoded value %s on line %s:%d: %s is "
                                 "incorrect (%s)" % (v, data_source_name,

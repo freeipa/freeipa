@@ -21,6 +21,8 @@
 
 import os
 import time
+import binascii
+
 from ipalib import Command, Str, Int, Bytes, Flag, File
 from ipalib import api
 from ipalib import errors
@@ -156,7 +158,7 @@ def validate_csr(ugettext, csr):
             return
     try:
         request = pkcs10.load_certificate_request(csr)
-    except TypeError as e:
+    except (TypeError, binascii.Error) as e:
         raise errors.Base64DecodeError(reason=str(e))
     except Exception as e:
         raise errors.CertificateOperationError(error=_('Failure decoding Certificate Signing Request: %s') % e)
@@ -368,7 +370,7 @@ class cert_request(VirtualCommand):
             subject = pkcs10.get_subject(csr)
             extensions = pkcs10.get_extensions(csr)
             subjectaltname = pkcs10.get_subjectaltname(csr) or ()
-        except (NSPRError, PyAsn1Error) as e:
+        except (NSPRError, PyAsn1Error, ValueError) as e:
             raise errors.CertificateOperationError(
                 error=_("Failure decoding Certificate Signing Request: %s") % e)
 

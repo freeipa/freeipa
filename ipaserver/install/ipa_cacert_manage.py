@@ -334,7 +334,7 @@ class CACertManage(admintool.AdminTool):
             except IOError as e:
                 raise admintool.ScriptError(
                     "Can't open \"%s\": %s" % (cert_filename, e))
-            except (TypeError, NSPRError) as e:
+            except (TypeError, NSPRError, ValueError) as e:
                 raise admintool.ScriptError("Not a valid certificate: %s" % e)
             subject = nss_cert.subject
             cert = nss_cert.der_data

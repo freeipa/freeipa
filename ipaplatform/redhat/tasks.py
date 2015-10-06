@@ -210,7 +210,7 @@ class RedHatTaskNamespace(BaseTaskNamespace):
                 issuer = x509.get_der_issuer(cert, x509.DER)
                 serial_number = x509.get_der_serial_number(cert, x509.DER)
                 public_key_info = x509.get_der_public_key_info(cert, x509.DER)
-            except (NSPRError, PyAsn1Error) as e:
+            except (NSPRError, PyAsn1Error, ValueError) as e:
                 root_logger.warning(
                     "Failed to decode certificate \"%s\": %s", nickname, e)
                 continue

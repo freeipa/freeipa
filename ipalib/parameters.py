@@ -1383,7 +1383,7 @@ class Bytes(Data):
         if isinstance(value, unicode):
             try:
                 value = base64.b64decode(value)
-            except TypeError as e:
+            except (TypeError, ValueError) as e:
                 raise Base64DecodeError(reason=str(e))
         return super(Bytes, self)._convert_scalar(value, index)
 

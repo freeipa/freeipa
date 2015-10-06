@@ -102,7 +102,7 @@ class SSHPublicKey(object):
 
         try:
             key = base64.b64decode(key)
-        except (TypeError, binascii.Error):
+        except (TypeError, ValueError):
             return False
 
         return self._parse_raw(key)
