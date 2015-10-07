@@ -1280,6 +1280,46 @@ class ModifyLDIF(ldif.LDIFParser):
         self.remove_value(dn, attr)
         self.add_value(dn, attr, values)
 
+    def modifications_from_ldif(self, ldif_file):
+        """
+        Parse ldif file. Default operation is add, only changetypes "add"
+        and "modify" are supported.
+        :param ldif_file: an opened file for read
+        :raises: ValueError
+        """
+        parser = ldif.LDIFRecordList(ldif_file)
+        parser.parse()
+
+        last_dn = None
+        for dn, entry in parser.all_records:
+            if dn is None:
+                # ldif parser return None, if records belong to previous DN
+                dn = last_dn
+            else:
+                last_dn = dn
+
+            if "replace" in entry:
+                for attr in entry["replace"]:
+                    try:
+                        self.replace_value(dn, attr, entry[attr])
+                    except KeyError:
+                        raise ValueError("replace: {dn}, {attr}: values are "
+                                         "missing".format(dn=dn, attr=attr))
+            elif "delete" in entry:
+                for attr in entry["delete"]:
+                    self.remove_value(dn, attr, entry.get(attr, None))
+            elif "add" in entry:
+                for attr in entry["add"]:
+                    try:
+                        self.replace_value(dn, attr, entry[attr])
+                    except KeyError:
+                        raise ValueError("add: {dn}, {attr}: values are "
+                                         "missing".format(dn=dn, attr=attr))
+            else:
+                root_logger.error("Ignoring entry: %s : only modifications "
+                                  "are allowed (missing \"changetype: "
+                                  "modify\")", dn)
+
     def handle(self, dn, entry):
         if dn in self.modifications:
             self.dn_updated.add(dn)
