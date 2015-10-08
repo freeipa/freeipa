@@ -734,7 +734,8 @@ def install(installer):
 
         if options.dirsrv_cert_files:
             ds = dsinstance.DsInstance(fstore=fstore,
-                                       domainlevel=options.domainlevel)
+                                       domainlevel=options.domainlevel,
+                                       config_ldif=options.dirsrv_config_mods)
             installer._ds = ds
             ds.create_instance(realm_name, host_name, domain_name,
                                dm_password, dirsrv_pkcs12_info,
@@ -743,7 +744,8 @@ def install(installer):
                                hbac_allow=not options.no_hbac_allow)
         else:
             ds = dsinstance.DsInstance(fstore=fstore,
-                                       domainlevel=options.domainlevel)
+                                       domainlevel=options.domainlevel,
+                                       config_ldif=options.dirsrv_config_mods)
             installer._ds = ds
             ds.create_instance(realm_name, host_name, domain_name,
                                dm_password,
