@@ -44,6 +44,7 @@ from ipalib import _
 
 if six.PY3:
     unicode = str
+    long = int
 
 NULLS = (None, b'', u'', tuple(), [])
 
