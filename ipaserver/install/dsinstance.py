@@ -189,7 +189,7 @@ info: IPA V2.0
 
 class DsInstance(service.Service):
     def __init__(self, realm_name=None, domain_name=None, dm_password=None,
-                 fstore=None, domainlevel=None):
+                 fstore=None, domainlevel=None, config_ldif=None):
         service.Service.__init__(self, "dirsrv",
             service_desc="directory server",
             dm_password=dm_password,
@@ -212,6 +212,7 @@ class DsInstance(service.Service):
         self.subject_base = None
         self.open_ports = []
         self.run_init_memberof = True
+        self.config_ldif = config_ldif  # updates for dse.ldif
         self.domainlevel = domainlevel
         if realm_name:
             self.suffix = ipautil.realm_to_suffix(self.realm)
@@ -231,6 +232,9 @@ class DsInstance(service.Service):
 
         self.step("creating directory server user", create_ds_user)
         self.step("creating directory server instance", self.__create_instance)
+        if self.config_ldif:
+            self.step("updating configuration in dse.ldif", self.__update_dse_ldif)
+        self.step("restarting directory server", self.__restart_instance)
         self.step("adding default schema", self.__add_default_schemas)
         self.step("enabling memberof plugin", self.__add_memberof_module)
         self.step("enabling winsync plugin", self.__add_winsync_module)
@@ -449,15 +453,38 @@ class DsInstance(service.Service):
         # check for open port 389 from now on
         self.open_ports.append(389)
 
-        root_logger.debug("restarting ds instance")
-        try:
-            self.__restart_instance()
-            root_logger.debug("done restarting ds instance")
-        except ipautil.CalledProcessError, e:
-            print "failed to restart ds instance", e
-            root_logger.debug("failed to restart ds instance %s" % e)
         inf_fd.close()
         os.remove(paths.DIRSRV_BOOT_LDIF)
+
+    def __update_dse_ldif(self):
+        """
+        This method updates dse.ldif right after instance creation. This is
+        supposed to allow admin modify configuration of the DS which has to be
+        done before IPA is fully installed (for example: settings for
+        replication on replicas)
+        DS must be turned off.
+        """
+        self.stop()
+
+        dse_filename = os.path.join(
+            paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % self.serverid,
+            'dse.ldif'
+        )
+
+        with tempfile.NamedTemporaryFile(delete=False) as new_dse_ldif:
+            temp_filename = new_dse_ldif.name
+            with open(dse_filename, "r") as input_file:
+                parser = installutils.ModifyLDIF(input_file, new_dse_ldif)
+                # parse modification from config ldif
+                with open(self.config_ldif, "r") as config_ldif:
+                    parser.modifications_from_ldif(config_ldif)
+                parser.parse()
+            new_dse_ldif.flush()
+        shutil.copy2(temp_filename, dse_filename)
+        try:
+            os.remove(temp_filename)
+        except OSError as e:
+            root_logger.debug("Failed to clean temporary file: %s" % e)
 
     def __add_default_schemas(self):
         pent = pwd.getpwnam(DS_USER)
