@@ -382,6 +382,7 @@ class TestInstallDNSSECFirst(IntegrationTest):
                                            root_keys_rrset.to_text() + '\n')
 
         # verify signatures
+        time.sleep(1)
         args = [
             "drill", "@localhost", "-k",
             paths.DNSSEC_TRUSTED_KEY, "-S",
