@@ -10,12 +10,17 @@ import collections
 import optparse
 import signal
 
+import six
+
 from ipapython import admintool, ipa_log_manager
 from ipapython.ipautil import CheckedIPAddress, private_ccache
 
 from . import core, common
 
 __all__ = ['install_tool', 'uninstall_tool']
+
+if six.PY3:
+    long = int
 
 
 def install_tool(configurable_class, command_name, log_file_name,

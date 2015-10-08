@@ -63,6 +63,7 @@ from time import sleep
 
 if six.PY3:
     unicode = str
+    long = int
 
 __doc__ = _("""
 Classes to manage trust joins using DCE-RPC calls

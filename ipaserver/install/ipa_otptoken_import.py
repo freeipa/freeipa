@@ -40,6 +40,7 @@ from ipaserver.plugins.ldap2 import ldap2
 
 if six.PY3:
     unicode = str
+    long = int
 
 
 class ValidationError(Exception):
