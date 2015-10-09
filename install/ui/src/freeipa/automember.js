@@ -516,7 +516,8 @@ IPA.automember.condition_widget = function(spec) {
         var i = results.length - 1;
         while (i >= 0) {
             if (results[i].completed === 1){
-                that.reload_facet({ result: results[i] });
+                that.reload_facet({ error: results[i].error, id: null,
+                                    result: results[i] });
                 return;
             }
             i--;
