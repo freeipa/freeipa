@@ -144,10 +144,6 @@ def install_check(standalone, replica, options, hostname):
             False)):
         sys.exit("Aborted")
 
-    # Check bind packages are installed
-    if not bindinstance.check_inst(options.unattended):
-        sys.exit("Aborting installation.")
-
     if options.disable_dnssec_master:
         _is_master()
 

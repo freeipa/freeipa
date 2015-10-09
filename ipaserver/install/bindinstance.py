@@ -63,13 +63,6 @@ named_conf_include_re = re.compile(r'\s*include\s+"(?P<path>)"\s*;')
 named_conf_include_template = "include \"%(path)s\";\n"
 
 
-def check_inst(unattended):
-    if not unattended and os.path.exists(NAMED_CONF):
-        msg = "Existing BIND configuration detected, overwrite?"
-        return ipautil.user_input(msg, False)
-
-    return True
-
 def create_reverse():
     return ipautil.user_input("Do you want to configure the reverse zone?", True)
 
