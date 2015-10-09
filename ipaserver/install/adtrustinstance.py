@@ -540,6 +540,7 @@ class ADTRUSTInstance(service.Service):
             self.print_msg("Cannot add CIFS service: %s" % e)
 
         self.clean_samba_keytab()
+        installutils.remove_ccache(paths.KRB5CC_SAMBA)
 
         try:
             ipautil.run(["ipa-getkeytab", "--server", self.fqdn,
@@ -937,8 +938,7 @@ class ADTRUSTInstance(service.Service):
             self.print_msg('WARNING: ' + str(e))
 
         # Remove samba's credentials cache
-        krb5cc_samba = paths.KRB5CC_SAMBA
-        installutils.remove_file(krb5cc_samba)
+        installutils.remove_ccache(ccache_path=paths.KRB5CC_SAMBA)
 
         # Remove samba's configuration file
         installutils.remove_file(self.smb_conf)

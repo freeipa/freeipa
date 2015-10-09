@@ -1203,3 +1203,6 @@ class BindInstance(service.Service):
 
         if named_regular_running:
             self.named_regular.start()
+
+        installutils.remove_keytab(paths.NAMED_KEYTAB)
+        installutils.remove_ccache(run_as='named')

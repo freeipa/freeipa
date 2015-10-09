@@ -417,6 +417,7 @@ class DNSKeySyncInstance(service.Service):
 
     def __setup_principal(self):
         assert self.ods_gid is not None
+        installutils.remove_keytab(paths.IPA_DNSKEYSYNCD_KEYTAB)
         dnssynckey_principal = "ipa-dnskeysyncd/" + self.fqdn + "@" + self.realm
         installutils.kadmin_addprinc(dnssynckey_principal)
 
@@ -497,3 +498,5 @@ class DNSKeySyncInstance(service.Service):
             os.remove(paths.DNSSEC_SOFTHSM_PIN)
         except Exception:
             pass
+
+        installutils.remove_keytab(paths.IPA_DNSKEYSYNCD_KEYTAB)

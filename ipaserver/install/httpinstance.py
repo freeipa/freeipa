@@ -187,6 +187,7 @@ class HTTPInstance(service.Service):
 
     def __create_http_keytab(self):
         if not self.promote:
+            installutils.remove_keytab(paths.IPA_KEYTAB)
             installutils.kadmin_addprinc(self.principal)
             installutils.create_keytab(paths.IPA_KEYTAB, self.principal)
             self.move_service(self.principal)
@@ -198,7 +199,8 @@ class HTTPInstance(service.Service):
         # Clean up existing ccache
         # Make sure that empty env is passed to avoid passing KRB5CCNAME from
         # current env
-        ipautil.run(['kdestroy', '-A'], runas=HTTPD_USER, raiseonerr=False, env={})
+        ipautil.run(
+            [paths.KDESTROY, '-A'], runas=HTTPD_USER, raiseonerr=False, env={})
 
     def __configure_http(self):
         target_fname = paths.HTTPD_IPA_CONF
@@ -497,9 +499,9 @@ class HTTPInstance(service.Service):
                 root_logger.debug(error)
                 pass
 
-        # Remove the ccache file for the HTTPD service
-        ipautil.run([paths.KDESTROY, '-c', paths.KRB5CC_HTTPD], runas=HTTPD_USER,
-                    raiseonerr=False)
+        installutils.remove_keytab(paths.IPA_KEYTAB)
+        installutils.remove_ccache(ccache_path=paths.KRB5CC_HTTPD,
+                                   run_as=HTTPD_USER)
 
         # Remove the configuration files we create
         installutils.remove_file(paths.HTTPD_IPA_REWRITE_CONF)

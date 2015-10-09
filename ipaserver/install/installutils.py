@@ -20,6 +20,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+import errno
 import socket
 import getpass
 import gssapi
@@ -1339,3 +1340,39 @@ class ModifyLDIF(ldif.LDIFParser):
         for dn in remaining_changes:
             root_logger.error(
                 "DN: %s does not exists or haven't been updated", dn)
+
+
+def remove_keytab(keytab_path):
+    """
+    Remove Kerberos keytab and issue a warning if the procedure fails
+
+    :param keytab_path: path to the keytab file
+    """
+    try:
+        root_logger.debug("Removing service keytab: {}".format(keytab_path))
+        os.remove(keytab_path)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            root_logger.warning("Failed to remove Kerberos keytab '{}': "
+                                "{}".format(keytab_path, e))
+            root_logger.warning("You may have to remove it manually")
+
+
+def remove_ccache(ccache_path=None, run_as=None):
+    """
+    remove Kerberos credential cache, essentially a wrapper around kdestroy.
+
+    :param ccache_path: path to the ccache file
+    :param run_as: run kdestroy as this user
+    """
+    root_logger.debug("Removing service credentials cache")
+    kdestroy_cmd = [paths.KDESTROY]
+    if ccache_path is not None:
+        root_logger.debug("Ccache path: '{}'".format(ccache_path))
+        kdestroy_cmd.extend(['-c', ccache_path])
+
+    try:
+        ipautil.run(kdestroy_cmd, runas=run_as, env={})
+    except ipautil.CalledProcessError as e:
+        root_logger.warning(
+            "Failed to clear Kerberos credentials cache: {}".format(e))

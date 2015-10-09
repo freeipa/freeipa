@@ -937,8 +937,8 @@ class DsInstance(service.Service):
             root_logger.debug("Removing DS instance %s" % serverid)
             try:
                 remove_ds_instance(serverid)
-                root_logger.debug("Removing DS keytab")
-                installutils.remove_file(paths.DS_KEYTAB)
+                installutils.remove_keytab(paths.DS_KEYTAB)
+                installutils.remove_ccache(run_as=DS_USER)
             except ipautil.CalledProcessError:
                 root_logger.error("Failed to remove DS instance. You may "
                                   "need to remove instance data manually")
