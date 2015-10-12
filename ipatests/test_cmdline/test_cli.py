@@ -305,8 +305,8 @@ class TestCLIParsing(object):
 
             # Create a mock service object to test against
             adtrust_add = dict(
-                ipaconfigstring='enabledService',
-                objectclass=['top', 'nsContainer', 'ipaConfigObject']
+                ipaconfigstring=b'enabledService',
+                objectclass=[b'top', b'nsContainer', b'ipaConfigObject']
             )
 
             mockldap = util.MockLDAP()
