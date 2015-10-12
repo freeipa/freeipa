@@ -52,6 +52,9 @@ hostgroup2 = u'hostgroup2'
 idoverrideuser1 = u'testuser'
 idoverridegroup1 = u'testgroup'
 
+idoverrideuser_removed = u'testuser-removed'
+idoverridegroup_removed = u'testgroup-removed'
+
 nonexistentuser = u'nonexistentuser'
 nonexistentgroup = u'nonexistentgroup'
 
@@ -126,8 +129,8 @@ class test_idviews(Declarative):
         ('host_del', [host1, host2, host3, host4], {'continue': True}),
         ('hostgroup_del', [hostgroup1, hostgroup2], {'continue': True}),
         ('idview_del', [idview1], {'continue': True}),
-        ('user_del', [idoverrideuser1], {'continue': True}),
-        ('group_del', [idoverridegroup1], {'continue': True}),
+        ('user_del', [idoverrideuser1, idoverrideuser_removed], {'continue': True}),
+        ('group_del', [idoverridegroup1, idoverridegroup_removed], {'continue': True}),
     ]
 
     tests = [
@@ -776,6 +779,7 @@ class test_idviews(Declarative):
                 )
             ),
         ),
+
 
         # Test ID View applying
 
@@ -1479,4 +1483,171 @@ class test_idviews(Declarative):
                 ),
             ),
         ),
+
+        # Test integrity of idoverride objects agains their references
+
+        dict(
+            desc='Create ID View "%s"' % idview1,
+            command=(
+                'idview_add',
+                [idview1],
+                {}
+            ),
+            expected=dict(
+                value=idview1,
+                summary=u'Added ID View "%s"' % idview1,
+                result=dict(
+                    dn=get_idview_dn(idview1),
+                    objectclass=objectclasses.idview,
+                    cn=[idview1]
+                )
+            ),
+        ),
+
+        dict(
+            desc='Create "%s"' % idoverrideuser_removed,
+            command=(
+                'user_add',
+                [idoverrideuser_removed],
+                dict(
+                    givenname=u'Removed',
+                    sn=u'User',
+                )
+            ),
+            expected=dict(
+                value=idoverrideuser_removed,
+                summary=u'Added user "%s"' % idoverrideuser_removed,
+                result=get_user_result(
+                    idoverrideuser_removed,
+                    u'Removed',
+                    u'User',
+                    'add',
+                    objectclass=add_oc(
+                        objectclasses.user,
+                        u'ipantuserattrs'
+                    )
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Create group %r' % idoverridegroup_removed,
+            command=(
+                'group_add',
+                [idoverridegroup_removed],
+                dict(description=u'Removed group')
+            ),
+            expected=dict(
+                value=idoverridegroup_removed,
+                summary=u'Added group "%s"' % idoverridegroup_removed,
+                result=dict(
+                    cn=[idoverridegroup_removed],
+                    description=[u'Removed group'],
+                    objectclass=objectclasses.posixgroup,
+                    ipauniqueid=[fuzzy_uuid],
+                    gidnumber=[fuzzy_digits],
+                    dn=get_group_dn(idoverridegroup_removed),
+                ),
+            ),
+        ),
+
+        dict(
+            desc='Create User ID override "%s"' % idoverrideuser_removed,
+            command=(
+                'idoverrideuser_add',
+                [idview1, idoverrideuser_removed],
+                dict(description=u'description',
+                     homedirectory=u'/home/newhome',
+                     uid=u'newlogin',
+                     uidnumber=12345,
+                     ipasshpubkey=sshpubkey,
+                )
+            ),
+            expected=dict(
+                value=idoverrideuser_removed,
+                summary=u'Added User ID override "%s"' % idoverrideuser_removed,
+                result=dict(
+                    dn=get_override_dn(idview1, idoverrideuser_removed),
+                    objectclass=objectclasses.idoverrideuser,
+                    ipaanchoruuid=[idoverrideuser_removed],
+                    ipaoriginaluid=[idoverrideuser_removed],
+                    description=[u'description'],
+                    homedirectory=[u'/home/newhome'],
+                    uidnumber=[u'12345'],
+                    uid=[u'newlogin'],
+                    ipasshpubkey=[sshpubkey],
+                    sshpubkeyfp=[sshpubkeyfp],
+                )
+            ),
+        ),
+
+        dict(
+            desc='Create Group ID override "%s"' % idoverridegroup_removed,
+            command=(
+                'idoverridegroup_add',
+                [idview1, idoverridegroup_removed],
+                dict(description=u'description')
+            ),
+            expected=dict(
+                value=idoverridegroup_removed,
+                summary=u'Added Group ID override "%s"' % idoverridegroup_removed,
+                result=dict(
+                    dn=get_override_dn(idview1, idoverridegroup_removed),
+                    objectclass=objectclasses.idoverridegroup,
+                    ipaanchoruuid=[idoverridegroup_removed],
+                    description=[u'description'],
+                )
+            ),
+        ),
+
+        dict(
+            desc='Delete "%s"' % idoverrideuser_removed,
+            command=('user_del', [idoverrideuser_removed], {}),
+            expected=dict(
+                result=dict(failed=[]),
+                summary=u'Deleted user "%s"' % idoverrideuser_removed,
+                value=[idoverrideuser_removed],
+            ),
+        ),
+
+        dict(
+            desc='Delete "%s"' % idoverridegroup_removed,
+            command=('group_del', [idoverridegroup_removed], {}),
+            expected=dict(
+                result=dict(failed=[]),
+                summary=u'Deleted group "%s"' % idoverridegroup_removed,
+                value=[idoverridegroup_removed],
+            ),
+        ),
+
+        dict(
+            desc='Make sure idoverrideuser objects have been cleaned',
+            command=(
+                'idoverrideuser_find',
+                [idview1],
+                dict(),
+            ),
+            expected=dict(
+                result=[],
+                summary=u'0 User ID overrides matched',
+                count=0,
+                truncated=False,
+            ),
+        ),
+
+        dict(
+            desc='Make sure idoverridegroup objects have been cleaned',
+            command=(
+                'idoverridegroup_find',
+                [idview1],
+                dict(),
+            ),
+            expected=dict(
+                result=[],
+                summary=u'0 Group ID overrides matched',
+                count=0,
+                truncated=False,
+            ),
+        ),
+
     ]
