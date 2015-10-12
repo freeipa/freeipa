@@ -665,7 +665,6 @@ class KerbTransport(SSLTransport):
                 headers.append(("Accept-Encoding", "gzip"))
             else:
                 connection.putrequest("POST", handler)
-            headers.append(("Content-Type", "text/xml"))
             headers.append(("User-Agent", self.user_agent))
             self.send_headers(connection, headers)
             self.send_content(connection, request_body)
