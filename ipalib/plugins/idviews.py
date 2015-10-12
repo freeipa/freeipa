@@ -192,16 +192,23 @@ class idview_show(LDAPRetrieve):
                     scope=ldap.SCOPE_ONELEVEL,
                     paged_search=True)
 
-                entry_attrs[attr_name] = [
-                    resolve_anchor_to_object_name(
-                        ldap,
-                        obj_type,
-                        override.single_value['ipaanchoruuid']
-                    )
-                    for override in overrides
-                ]
+                resolved_overrides = []
+                for override in overrides:
+                    anchor = override.single_value['ipaanchoruuid']
+
+                    try:
+                        name = resolve_anchor_to_object_name(ldap, obj_type,
+                                anchor)
+                        resolved_overrides.append(name)
+
+                    except (errors.NotFound, errors.ValidationError):
+                        # Anchor could not be resolved, use raw
+                        resolved_overrides.append(anchor)
+
+                entry_attrs[attr_name] = resolved_overrides
 
             except errors.NotFound:
+                # No overrides found, nothing to do
                 pass
 
     def enumerate_hosts(self, dn, entry_attrs):
@@ -684,6 +691,11 @@ class baseidoverride(LDAPObject):
                     # If we were unable to resolve the anchor,
                     # keep it in the raw form
                     pass
+                except errors.ValidationError:
+                    # Same as above, ValidationError may be raised when SIDs
+                    # are attempted to be converted, but the domain is no
+                    # longer trusted
+                    pass
 
     def prohibit_ipa_users_in_default_view(self, dn, entry_attrs):
         # Check if parent object is Default Trust View, if so, prohibit
@@ -768,12 +780,7 @@ class baseidoverride_find(LDAPSearch):
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
         for entry in entries:
-            try:
-                self.obj.convert_anchor_to_human_readable_form(entry, **options)
-            except errors.NotFound:
-                # If the conversion to readle form went wrong, do not
-                # abort the whole find command. Use non-converted entry.
-                pass
+            self.obj.convert_anchor_to_human_readable_form(entry, **options)
         return truncated
 
 
@@ -783,12 +790,7 @@ class baseidoverride_show(LDAPRetrieve):
     takes_options = LDAPRetrieve.takes_options + (fallback_to_ldap_option,)
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        try:
-            self.obj.convert_anchor_to_human_readable_form(entry_attrs, **options)
-        except errors.NotFound:
-            # If the conversion to readle form went wrong, do not
-            # abort the whole show command. Use non-converted entry.
-            pass
+        self.obj.convert_anchor_to_human_readable_form(entry_attrs, **options)
         return dn
 
 
@@ -869,10 +871,17 @@ class idoverrideuser(baseidoverride):
 
     def update_original_uid_reference(self, entry_attrs):
         anchor = entry_attrs.single_value['ipaanchoruuid']
-        original_uid = resolve_anchor_to_object_name(self.backend,
-                                                     self.override_object,
-                                                     anchor)
-        entry_attrs['ipaOriginalUid'] = original_uid
+        try:
+            original_uid = resolve_anchor_to_object_name(self.backend,
+                                                         self.override_object,
+                                                         anchor)
+            entry_attrs['ipaOriginalUid'] = original_uid
+
+        except (errors.NotFound, errors.ValidationError):
+            # Anchor could not be resolved, this means we had to specify the
+            # object to manipulate using a raw anchor value already, hence
+            # we have no way to update the original_uid
+            pass
 
 
 @register()
