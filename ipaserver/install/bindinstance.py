@@ -270,8 +270,6 @@ def find_reverse_zone(ip_address, api=api):
 
     return None
 
-def get_reverse_zone(ip_address):
-    return find_reverse_zone(ip_address) or get_reverse_zone_default(ip_address)
 
 def read_reverse_zone(default, ip_address):
     while True:
