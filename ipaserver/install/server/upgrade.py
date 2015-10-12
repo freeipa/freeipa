@@ -1258,6 +1258,13 @@ def export_kra_agent_pem():
         root_logger.info("KRA agent PEM file already exported")
         return
 
+    if not api.Backend.ldap2.isconnected():
+        try:
+            api.Backend.ldap2.connect(autobind=True)
+        except ipalib.errors.PublicError as e:
+            root_logger.error("Cannot connect to LDAP: %s", e)
+            return
+
     if not api.Command.kra_is_enabled()['result']:
         root_logger.info("KRA is not enabled")
         return
