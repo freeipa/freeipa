@@ -530,35 +530,26 @@ def add_forward_record(zone, name, str_address):
     except errors.EmptyModlist:
         pass # the entry already exists and matches
 
-def get_reverse_zone(ipaddr, prefixlen=None):
+def get_reverse_zone(ipaddr):
+    """
+    resolve the reverse zone for IP address and see if it is managed by IPA
+    server
+    :param ipaddr: host IP address
+    :return: tuple containing name of the reverse zone and the name of the
+    record
+    """
     ip = netaddr.IPAddress(str(ipaddr))
     revdns = DNSName(unicode(ip.reverse_dns))
+    revzone = DNSName(dns.resolver.zone_for_name(revdns))
 
-    if prefixlen is None:
-        revzone = None
-
-        result = api.Command['dnszone_find']()['result']
-        for zone in result:
-            zonename = zone['idnsname'][0]
-            if (revdns.is_subdomain(zonename.make_absolute()) and
-               (revzone is None or zonename.is_subdomain(revzone))):
-                revzone = zonename
-    else:
-        if ip.version == 4:
-            pos = 4 - prefixlen / 8
-        elif ip.version == 6:
-            pos = 32 - prefixlen / 4
-        items = ip.reverse_dns.split('.')
-        revzone = DNSName(items[pos:])
-
-        try:
-            api.Command['dnszone_show'](revzone)
-        except errors.NotFound:
-            revzone = None
-
-    if revzone is None:
+    try:
+        api.Command['dnszone_show'](revzone)
+    except errors.NotFound:
         raise errors.NotFound(
-            reason=_('DNS reverse zone for IP address %(addr)s not found') % dict(addr=ipaddr)
+            reason=_(
+                'DNS reverse zone %(revzone)s for IP address '
+                '%(addr)s is not managed by this server') % dict(
+                addr=ipaddr, revzone=revzone)
         )
 
     revname = revdns.relativize(revzone)
@@ -592,11 +583,8 @@ def add_records_for_host_validation(option_name, host, domain, ip_addresses, che
 
         if check_reverse:
             try:
-                prefixlen = None
-                if not ip.defaultnet:
-                    prefixlen = ip.prefixlen
                 # we prefer lookup of the IP through the reverse zone
-                revzone, revname = get_reverse_zone(ip, prefixlen)
+                revzone, revname = get_reverse_zone(ip)
                 reverse = api.Command['dnsrecord_find'](revzone, idnsname=revname)
                 if reverse['count'] > 0:
                     raise errors.DuplicateEntry(
@@ -621,10 +609,7 @@ def add_records_for_host(host, domain, ip_addresses, add_forward=True, add_rever
 
         if add_reverse:
             try:
-                prefixlen = None
-                if not ip.defaultnet:
-                    prefixlen = ip.prefixlen
-                revzone, revname = get_reverse_zone(ip, prefixlen)
+                revzone, revname = get_reverse_zone(ip)
                 addkw = {'ptrrecord': host.derelativize(domain).ToASCII()}
                 api.Command['dnsrecord_add'](revzone, revname, **addkw)
             except errors.EmptyModlist:
