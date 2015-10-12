@@ -105,6 +105,7 @@ class topologysegment(LDAPObject):
             label=_('Connectivity'),
             values=(u'both', u'left-right', u'right-left'),
             default=u'both',
+            autofill=True,
             doc=_('Direction of replication between left and right replication '
                   'node'),
             flags={'no_option', 'no_update'},

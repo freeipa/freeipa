@@ -4804,7 +4804,7 @@ arg: Str('topologysuffixcn', cli_name='topologysuffix', multivalue=False, primar
 arg: Str('cn', attribute=True, cli_name='name', maxlength=255, multivalue=False, primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
-option: StrEnum('iparepltoposegmentdirection', attribute=True, cli_name='direction', default=u'both', multivalue=False, required=True, values=(u'both', u'left-right', u'right-left'))
+option: StrEnum('iparepltoposegmentdirection', attribute=True, autofill=True, cli_name='direction', default=u'both', multivalue=False, required=True, values=(u'both', u'left-right', u'right-left'))
 option: Str('iparepltoposegmentleftnode', attribute=True, cli_name='leftnode', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9.][a-zA-Z0-9.-]{0,252}[a-zA-Z0-9.$-]?$', required=True)
 option: Str('iparepltoposegmentrightnode', attribute=True, cli_name='rightnode', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9.][a-zA-Z0-9.-]{0,252}[a-zA-Z0-9.$-]?$', required=True)
 option: StrEnum('nsds5replicaenabled', attribute=True, cli_name='enabled', multivalue=False, required=False, values=(u'on', u'off'))

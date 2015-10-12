@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=156
-# Last change: pvoborni - add vault container commands
+IPA_API_VERSION_MINOR=157
+# Last change: mbabinsk - hide segment direction from topology commands
