@@ -2194,7 +2194,7 @@ def configure_firefox(options, statestore, domain):
             root_logger.debug("Firefox preferences directory found '%s'." % preferences_dir)
             preferences_fname = os.path.join(preferences_dir, FIREFOX_PREFERENCES_FILENAME)
             update_txt = ipautil.template_str(FIREFOX_CONFIG_TEMPLATE, dict(DOMAIN=domain))
-            root_logger.debug("Firefox trusted and delegation uris will be set as '.%s' domain." % domain)
+            root_logger.debug("Firefox trusted uris will be set as '.%s' domain." % domain)
             root_logger.debug("Firefox configuration will be stored in '%s' file." % preferences_fname)
 
             try:
