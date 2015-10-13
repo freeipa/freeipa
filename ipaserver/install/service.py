@@ -518,6 +518,19 @@ class Service(object):
 
         root_logger.debug("service %s startup entry disabled", name)
 
+    def ldap_remove_service_container(self, name, fqdn, ldap_suffix):
+        if not self.admin_conn:
+            self.ldap_connect()
+
+        entry_dn = DN(('cn', name), ('cn', fqdn), ('cn', 'masters'),
+                        ('cn', 'ipa'), ('cn', 'etc'), ldap_suffix)
+        try:
+            self.admin_conn.delete_entry(entry_dn)
+        except errors.NotFound:
+            root_logger.debug("service %s container already removed", name)
+        else:
+            root_logger.debug("service %s container sucessfully removed", name)
+
 
 class SimpleServiceInstance(Service):
     def create_instance(self, gensvc_name=None, fqdn=None, dm_password=None, ldap_suffix=None, realm=None):
