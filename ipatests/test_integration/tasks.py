@@ -288,11 +288,7 @@ def get_replica_filename(replica):
     return os.path.join(replica.config.test_dir, 'replica-info.gpg')
 
 
-def install_replica(master, replica, setup_ca=True, setup_dns=False,
-                    setup_kra=False):
-    replica.collect_log(paths.IPAREPLICA_INSTALL_LOG)
-    replica.collect_log(paths.IPAREPLICA_CONNCHECK_LOG)
-
+def replica_prepare(master, replica):
     apply_common_fixes(replica)
     fix_apache_semaphores(replica)
     prepare_reverse_zone(master, replica.ip)
@@ -304,6 +300,16 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
         paths.REPLICA_INFO_GPG_TEMPLATE % replica.hostname)
     replica_filename = get_replica_filename(replica)
     replica.put_file_contents(replica_filename, replica_bundle)
+
+
+def install_replica(master, replica, setup_ca=True, setup_dns=False,
+                    setup_kra=False):
+    replica.collect_log(paths.IPAREPLICA_INSTALL_LOG)
+    replica.collect_log(paths.IPAREPLICA_CONNCHECK_LOG)
+
+    replica_prepare(master, replica)
+
+    replica_filename = get_replica_filename(replica)
     args = ['ipa-replica-install', '-U',
             '-p', replica.config.dirman_password,
             '-w', replica.config.admin_password,
