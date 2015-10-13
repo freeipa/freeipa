@@ -30,9 +30,14 @@ softhsm_slot = 0
 
 def get_dnssec_key_masters(conn):
     """
+    This method can be used only for admin connections, common users do not
+    have permission to access content of service containers.
     :return: list of active dnssec key masters
     """
     assert conn is not None
+
+    # please check ipalib/dns.py:dnssec_installed() method too, if you do
+    # any modifications here
 
     dn = DN(api.env.container_masters, api.env.basedn)
 
