@@ -438,11 +438,11 @@ class DsInstance(service.Service):
             for r in res:
                 try:
                     self.admin_conn.delete_entry(r)
-                except Exception, e:
+                except Exception as e:
                     root_logger.critical(
                         "Error during SASL mapping removal: %s", e)
                     raise
-        except Exception, e:
+        except Exception as e:
             root_logger.critical("Error while enumerating SASL mappings %s", e)
             raise
 
