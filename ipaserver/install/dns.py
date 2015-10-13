@@ -72,10 +72,13 @@ def _disable_dnssec():
 
     ods.ldap_connect()
     ods.ldap_disable('DNSSEC', api.env.host, api.env.basedn)
+    ods.ldap_remove_service_container('DNSSEC', api.env.host, api.env.basedn)
 
     ods_exporter.ldap_connect()
     ods_exporter.ldap_disable('DNSKeyExporter', api.env.host, api.env.basedn)
     ods_exporter.remove_service()
+    ods_exporter.ldap_remove_service_container('DNSKeyExporter', api.env.host,
+                                               api.env.basedn)
 
     ods.ldap_disconnect()
     ods_exporter.ldap_disconnect()
