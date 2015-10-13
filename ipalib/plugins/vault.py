@@ -400,7 +400,7 @@ class vaultcontainer(LDAPObject):
 
             (name, realm) = split_principal(principal)
             if '/' in name:
-                service = name
+                service = principal
             else:
                 user = name
 
@@ -718,7 +718,7 @@ class vault(LDAPObject):
 
             (name, realm) = split_principal(principal)
             if '/' in name:
-                service = name
+                service = principal
             else:
                 user = name
 
