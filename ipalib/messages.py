@@ -276,6 +276,18 @@ class KerberosTXTRecordDeletionFailure(PublicMessage):
         "Please remove the record manually."
     )
 
+class DNSSECMasterNotInstalled(PublicMessage):
+    """
+    **13013** Used when a DNSSEC is not installed on system (no DNSSEC
+    master server is installed).
+    """
+
+    errno = 13013
+    type = "warning"
+    format = _(
+        "No DNSSEC key master is installed. DNSSEC zone signing will not work "
+        "until the DNSSEC key master is installed."
+    )
 
 def iter_messages(variables, base):
     """Return a tuple with all subclasses

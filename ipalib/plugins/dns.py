@@ -1593,6 +1593,33 @@ def dns_container_exists(ldap):
         return False
     return True
 
+
+def dnssec_installed(ldap):
+    """
+    * Method opendnssecinstance.get_dnssec_key_masters() CANNOT be used in the
+    dns plugin, or any plugin accessible for common users! *
+    Why?: The content of service container is not readable for common users.
+
+    This method only try to find if a DNSSEC service container exists on any
+    replica. What means that DNSSEC key master is installed.
+    :param ldap: ldap connection
+    :return: True if DNSSEC was installed, otherwise False
+    """
+    dn = DN(api.env.container_masters, api.env.basedn)
+
+    filter_attrs = {
+        u'cn': u'DNSSEC',
+        u'objectclass': u'ipaConfigObject',
+    }
+    only_masters_f = ldap.make_filter(filter_attrs, rules=ldap.MATCH_ALL)
+
+    try:
+        ldap.find_entries(filter=only_masters_f, base_dn=dn)
+    except errors.NotFound:
+        return False
+    return True
+
+
 def default_zone_update_policy(zone):
     if zone.is_reverse():
         return get_dns_reverse_zone_update_policy(api.env.realm, zone.ToASCII())
@@ -2657,6 +2684,15 @@ class dnszone(DNSZoneBase):
             _add_warning_fw_zone_is_not_effective(result, fwzone,
                                                   options['version'])
 
+    def _warning_dnssec_master_is_not_installed(self, result, **options):
+        dnssec_enabled = result['result'].get("idnssecinlinesigning", False)
+        if dnssec_enabled and not dnssec_installed(self.api.Backend.ldap2):
+            messages.add_message(
+                options['version'],
+                result,
+                messages.DNSSECMasterNotInstalled()
+            )
+
 
 @register()
 class dnszone_add(DNSZoneBase_add):
@@ -2727,6 +2763,7 @@ class dnszone_add(DNSZoneBase_add):
         self.obj._warning_forwarding(result, **options)
         self.obj._warning_name_server_option(result, context, **options)
         self.obj._warning_fw_zone_is_not_effective(result, *keys, **options)
+        self.obj._warning_dnssec_master_is_not_installed(result, **options)
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -2816,6 +2853,7 @@ class dnszone_mod(DNSZoneBase_mod):
         result = super(dnszone_mod, self).execute(*keys, **options)
         self.obj._warning_forwarding(result, **options)
         self.obj._warning_name_server_option(result, context, **options)
+        self.obj._warning_dnssec_master_is_not_installed(result, **options)
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -2873,6 +2911,7 @@ class dnszone_show(DNSZoneBase_show):
     def execute(self, *keys, **options):
         result = super(dnszone_show, self).execute(*keys, **options)
         self.obj._warning_forwarding(result, **options)
+        self.obj._warning_dnssec_master_is_not_installed(result, **options)
         return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
