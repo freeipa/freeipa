@@ -683,6 +683,12 @@ class user_del(baseuser_del):
                 else:
                     self.api.Command.otptoken_del(token)
 
+        # Remove any ID overrides tied with this user
+        try:
+            remove_ipaobject_overrides(self.obj.backend, self.obj.api, dn)
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
         return dn
 
     def execute(self, *keys, **options):
