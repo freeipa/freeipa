@@ -32,6 +32,7 @@ import pwd
 import fnmatch
 
 import ldap
+import six
 
 from ipaserver.install import installutils
 from ipapython import ipautil, ipaldap
@@ -43,6 +44,9 @@ from ipaplatform import services
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
 from ipapython.ipautil import wait_for_open_socket
+
+if six.PY3:
+    unicode = str
 
 UPDATES_DIR=paths.UPDATES_DIR
 UPDATE_SEARCH_TIME_LIMIT = 30  # seconds
@@ -429,6 +433,10 @@ class LDAPUpdate:
                                 "incorrect (%s)" % (v, data_source_name,
                                                     lcount, logical_line, e)
                             )
+                else:
+                    for i, v in enumerate(value):
+                        if isinstance(v, unicode):
+                            value[i] = v.encode('utf-8')
 
                 if action != 'replace':
                     value = value[0]
