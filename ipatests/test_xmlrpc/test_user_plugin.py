@@ -1619,6 +1619,11 @@ class test_denied_bind_with_expired_principal(XMLRPC_test):
         cls.connection = ldap.initialize('ldap://{host}'
                                          .format(host=api.env.host))
 
+    @classmethod
+    def teardown_class(cls):
+        cls.failsafe_del(api.Object.user, user1)
+        super(test_denied_bind_with_expired_principal, cls).teardown_class()
+
     def test_1_bind_as_test_user(self):
         self.failsafe_add(
             api.Object.user,

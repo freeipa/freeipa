@@ -195,11 +195,20 @@ class XMLRPC_test(object):
         :param pk: The primary key of the entry to be created
         :param options: Kwargs to be passed to obj.add()
         """
+        self.failsafe_del(obj, pk)
+        return obj.methods['add'](pk, **options)
+
+    @classmethod
+    def failsafe_del(cls, obj, pk):
+        """
+        Delete an entry if it exists
+        :param obj: An Object like api.Object.user
+        :param pk: The primary key of the entry to be deleted
+        """
         try:
             obj.methods['del'](pk)
         except errors.NotFound:
             pass
-        return obj.methods['add'](pk, **options)
 
 
 IGNORE = """Command %r is missing attribute %r in output entry.
