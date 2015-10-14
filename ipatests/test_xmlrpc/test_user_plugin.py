@@ -1740,8 +1740,8 @@ class UserTracker(Tracker):
         return self.make_command('user_enable', self.uid)
 
     def make_stage_command(self):
-	""" Make function that restores preserved user by moving it to
-            staged container """
+        """ Make function that restores preserved user by moving it to
+        staged container """
         return self.make_command('user_stage', self.uid)
 
     def track_create(self):
