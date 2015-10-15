@@ -291,6 +291,10 @@ class AdminTool(object):
             self.command_name, type(exception).__name__, exception)
         if error_message:
             self.log.error(error_message)
+        message = "The %s command failed." % self.command_name
+        if self.log_file_name:
+            message += " See %s for more information" % self.log_file_name
+        self.log.error(message)
 
     def log_success(self):
         self.log.info('The %s command was successful', self.command_name)
