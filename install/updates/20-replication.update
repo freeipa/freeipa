@@ -28,6 +28,11 @@ default: objectclass: iparepltopoconf
 default: ipaReplTopoConfRoot: $SUFFIX
 default: cn: realm
 
+# add IPA realm managed suffix to master entry
+dn: cn=$FQDN,cn=masters,cn=ipa,cn=etc,$SUFFIX
+add: objectclass: ipaReplTopoManagedServer
+add: ipaReplTopoManagedSuffix: $SUFFIX
+
 # Set replication changelog limit (#5086)
 dn: cn=changelog5,cn=config
 addifnew: nsslapd-changelogmaxage: 7d
