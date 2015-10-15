@@ -66,6 +66,85 @@ class GetEntryFromLDIF(ldif.LDIFParser):
         self.results[dn] = entry
 
 
+class ModifyLDIF(ldif.LDIFParser):
+    """
+    Allows to modify LDIF file.
+
+    Remove operations are executed before add operations
+    """
+    def __init__(self, input_file, writer):
+        """
+        :param input_file: an LDIF
+        :param writer: ldif.LDIFWriter instance where modified LDIF will
+        be written
+        """
+        ldif.LDIFParser.__init__(self, input_file)
+        self.writer = writer
+
+        self.add_dict = {}
+        self.remove_dict = {}
+
+    def add_value(self, dn, attr, value):
+        """
+        Add value to LDIF.
+        :param dn: DN of entry (must exists)
+        :param attr: attribute name
+        :param value: value to be added
+        """
+        attr = attr.lower()
+        entry = self.add_dict.setdefault(dn, {})
+        attribute = entry.setdefault(attr, [])
+        if value not in attribute:
+            attribute.append(value)
+
+    def remove_value(self, dn, attr, value=None):
+        """
+        Remove value from LDIF.
+        :param dn: DN of entry
+        :param attr: attribute name
+        :param value: value to be removed, if value is None, attribute will
+        be removed
+        """
+        attr = attr.lower()
+        entry = self.remove_dict.setdefault(dn, {})
+
+        if entry is None:
+            return
+        attribute = entry.setdefault(attr, [])
+        if value is None:
+            # remove all values
+            entry[attr] = None
+            return
+        elif attribute is None:
+            # already marked to remove all values
+            return
+        if value not in attribute:
+            attribute.append(value)
+
+    def handle(self, dn, entry):
+        if dn in self.remove_dict:
+            for name, value in self.remove_dict[dn].iteritems():
+                if value is None:
+                    attribute = []
+                else:
+                    attribute = entry.setdefault(name, [])
+                    attribute = [v for v in attribute if v not in value]
+                entry[name] = attribute
+
+                if not attribute:  # empty
+                    del entry[name]
+
+        if dn in self.add_dict:
+            for name, value in self.add_dict[dn].iteritems():
+                attribute = entry.setdefault(name, [])
+                attribute.extend([v for v in value if v not in attribute])
+
+        if not entry:  # empty
+            return
+
+        self.writer.unparse(dn, entry)
+
+
 class IPAUpgrade(service.Service):
     """
     Update the LDAP data in an instance by turning off all network
@@ -156,11 +235,13 @@ class IPAUpgrade(service.Service):
     def __enable_ds_global_write_lock(self):
         ldif_outfile = "%s.modified.out" % self.filename
         with open(ldif_outfile, "wb") as out_file:
+            ldif_writer = ldif.LDIFWriter(out_file)
             with open(self.filename, "rb") as in_file:
-                parser = installutils.ModifyLDIF(in_file, out_file)
+                parser = ModifyLDIF(in_file, ldif_writer)
 
-                parser.replace_value(
-                    "cn=config", "nsslapd-global-backend-lock", ["on"])
+                parser.remove_value("cn=config", "nsslapd-global-backend-lock")
+                parser.add_value("cn=config", "nsslapd-global-backend-lock",
+                                 "on")
                 parser.parse()
 
         shutil.copy2(ldif_outfile, self.filename)
@@ -172,20 +253,22 @@ class IPAUpgrade(service.Service):
 
         ldif_outfile = "%s.modified.out" % self.filename
         with open(ldif_outfile, "wb") as out_file:
+            ldif_writer = ldif.LDIFWriter(out_file)
             with open(self.filename, "rb") as in_file:
-                parser = installutils.ModifyLDIF(in_file, out_file)
+                parser = ModifyLDIF(in_file, ldif_writer)
 
                 if port is not None:
-                    parser.replace_value("cn=config", "nsslapd-port", [port])
+                    parser.remove_value("cn=config", "nsslapd-port")
+                    parser.add_value("cn=config", "nsslapd-port", port)
                 if security is not None:
-                    parser.replace_value("cn=config", "nsslapd-security",
-                                         [security])
+                    parser.remove_value("cn=config", "nsslapd-security")
+                    parser.add_value("cn=config", "nsslapd-security", security)
 
                 # disable global lock by default
                 parser.remove_value("cn=config", "nsslapd-global-backend-lock")
                 if global_lock is not None:
                     parser.add_value("cn=config", "nsslapd-global-backend-lock",
-                                     [global_lock])
+                                     global_lock)
 
                 parser.parse()
 
@@ -194,11 +277,18 @@ class IPAUpgrade(service.Service):
     def __disable_listeners(self):
         ldif_outfile = "%s.modified.out" % self.filename
         with open(ldif_outfile, "wb") as out_file:
+            ldif_writer = ldif.LDIFWriter(out_file)
             with open(self.filename, "rb") as in_file:
-                parser = installutils.ModifyLDIF(in_file, out_file)
-                parser.replace_value("cn=config", "nsslapd-port", ["0"])
-                parser.replace_value("cn=config", "nsslapd-security", ["off"])
+                parser = ModifyLDIF(in_file, ldif_writer)
+
+                parser.remove_value("cn=config", "nsslapd-port")
+                parser.add_value("cn=config", "nsslapd-port", "0")
+
+                parser.remove_value("cn=config", "nsslapd-security")
+                parser.add_value("cn=config", "nsslapd-security", "off")
+
                 parser.remove_value("cn=config", "nsslapd-ldapientrysearchbase")
+
                 parser.parse()
 
         shutil.copy2(ldif_outfile, self.filename)

@@ -58,7 +58,7 @@ def make_pkcs12_info(directory, cert_name, password_name):
         return None
 
 
-def install_replica_ds(config, options):
+def install_replica_ds(config):
     dsinstance.check_ports()
 
     # if we have a pkcs12 file, create the cert db from
@@ -66,8 +66,7 @@ def install_replica_ds(config, options):
     # cert
     pkcs12_info = make_pkcs12_info(config.dir, "dscert.p12", "dirsrv_pin.txt")
 
-    ds = dsinstance.DsInstance(
-        config_ldif=options.dirsrv_config_mods)
+    ds = dsinstance.DsInstance()
     ds.create_replica(
         realm_name=config.realm_name,
         master_fqdn=config.master_host_name,
@@ -561,7 +560,7 @@ def install(installer):
             ntp.create_instance()
 
         # Configure dirsrv
-        ds = install_replica_ds(config, options)
+        ds = install_replica_ds(config)
 
         # Always try to install DNS records
         install_dns_records(config, options, remote_api)

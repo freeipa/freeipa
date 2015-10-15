@@ -343,20 +343,6 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
         description="Do not automatically create DNS SSHFP records",
     )
 
-    dirsrv_config_mods = Knob(
-        str, None,
-        description="The path to LDIF file that will be used to modify "
-                    "configuration of dse.ldif during installation of the "
-                    "directory server instance",
-        cli_metavar='FILE',
-    )
-
-    @dirsrv_config_mods.validator
-    def dirsrv_config_mods(self, value):
-        if not os.path.exists(value):
-            raise ValueError("File %s does not exist." % value)
-
-
     def __init__(self, **kwargs):
         super(BaseServer, self).__init__(**kwargs)
 
