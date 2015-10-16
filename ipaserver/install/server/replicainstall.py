@@ -96,7 +96,7 @@ def install_replica_ds(config, options, promote=False):
     pkcs12_info = make_pkcs12_info(config.dir, "dscert.p12", "dirsrv_pin.txt")
 
     ds = dsinstance.DsInstance(
-        config_ldif=options.dirsrv_config_mods)
+        config_ldif=options.dirsrv_config_file)
     ds.create_replica(
         realm_name=config.realm_name,
         master_fqdn=config.master_host_name,

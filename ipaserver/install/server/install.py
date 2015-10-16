@@ -735,7 +735,7 @@ def install(installer):
         if options.dirsrv_cert_files:
             ds = dsinstance.DsInstance(fstore=fstore,
                                        domainlevel=options.domainlevel,
-                                       config_ldif=options.dirsrv_config_mods)
+                                       config_ldif=options.dirsrv_config_file)
             installer._ds = ds
             ds.create_instance(realm_name, host_name, domain_name,
                                dm_password, dirsrv_pkcs12_info,
@@ -745,7 +745,7 @@ def install(installer):
         else:
             ds = dsinstance.DsInstance(fstore=fstore,
                                        domainlevel=options.domainlevel,
-                                       config_ldif=options.dirsrv_config_mods)
+                                       config_ldif=options.dirsrv_config_file)
             installer._ds = ds
             ds.create_instance(realm_name, host_name, domain_name,
                                dm_password,

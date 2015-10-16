@@ -64,7 +64,7 @@ class TestCustomInstallMaster(IntegrationTest):
             '-r', self.master.domain.name,
             '-p', self.master.config.dirman_password,
             '-a', self.master.config.admin_password,
-            '--dirsrv-config-mods', CONFIG_LDIF_PATH,
+            '--dirsrv-config-file', CONFIG_LDIF_PATH,
         ]
         self.master.run_command(args)
 
@@ -89,6 +89,6 @@ class TestCustomInstallReplica(IntegrationTest):
                 '-p', self.replicas[0].config.dirman_password,
                 '-w', self.replicas[0].config.admin_password,
                 '--ip-address', self.replicas[0].ip,
-                '--dirsrv-config-mods', CONFIG_LDIF_PATH,
+                '--dirsrv-config-file', CONFIG_LDIF_PATH,
                 replica_filename]
         self.replicas[0].run_command(args)
