@@ -1717,7 +1717,7 @@ class CSReplicationManager(ReplicationManager):
 
     def __init__(self, realm, hostname, dirman_passwd, port):
         super(CSReplicationManager, self).__init__(
-            realm, hostname, dirman_passwd, port)
+            realm, hostname, dirman_passwd, port, starttls=True)
         self.db_suffix = DN(('o', 'ipaca'))
         self.hostnames = [] # set before calling or agreement_dn() will fail
 
