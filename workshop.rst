@@ -11,7 +11,7 @@ For the FreeIPA workshop you will need to:
 
 - Clone the repository containing the ``Vagrantfile``
 
-- **TODO** Fetch the Vagrant *box* for the workshop
+- Fetch the Vagrant *box* for the workshop
 
 - Add entries for the guest VMs to your hosts file (so you can
   access them by their hostname)
@@ -289,7 +289,7 @@ manually enter the domain and server hostname instead).
 The autodetected server settings will be displayed; confirm to
 proceed::
 
-  [vagrant@client ~]$ sudo ipa-client-install
+  [client]$ sudo ipa-client-install
   Discovery was successful!
   Hostname: client.ipademo.local
   Realm: IPADEMO.LOCAL
@@ -360,14 +360,14 @@ Most FreeIPA adminstrative actions can be carried out using the
 Whoa!  There's almost 300 of them!  We'll only be using a handful of
 these today.
 
-You'll notice that commands are grouped *plugin*.  You can get a
+You'll notice that commands are grouped by *plugin*.  You can get a
 general overview of a plugin by running ``ipa help <plugin>``, and
 specific information on a particular command by running ``ipa help
 <command>``.
 
 Let's add the user *bob* from the CLI.  See if you can work out how
-to do this using the CLI help commands.  (Hint: the plugin name is
-``user``).
+to do this using the CLI help commands.  (**hint**: the plugin name
+is ``user``).
 
 
 User authentication
@@ -396,8 +396,8 @@ Use the ``ipa passwd`` command to (re)set a user's password::
   Changed password for "bob@IPADEMO.LOCAL"
   ----------------------------------------
 
-Whenever has user has their password reset (including the first
-time), the next ``kinit`` will prompt them to enter a new password::
+Whenever a user has their password reset (including the first time),
+the next ``kinit`` will prompt them to enter a new password::
 
   [server]$ kinit bob
   Password for bob@IPADEMO.LOCAL: 
@@ -406,13 +406,14 @@ time), the next ``kinit`` will prompt them to enter a new password::
   Enter it again: 
 
 
-At last ``bob`` has a TGT (run ``klist`` to confirm).  Well, let's
-do something with it, like logging into ``client.ipademo.local``::
+Now ``bob`` has a TGT (run ``klist`` to confirm) which can use to
+log into other hosts and services.  Try logging into
+``client.ipademo.local``::
 
   [server]$ ssh bob@client.ipademo.local
   -sh-4.3$
 
-You are now logged into the client, as ``bob``.  Hit ``^D`` or
+You are now logged into the client, as ``bob``.  Hit ``^D`` or type
 ``exit`` to log out and return to the ``server`` shell.  If you run
 ``klist`` again you will see not only the TGT but a *service ticket*
 which was automatically acquired to log into
@@ -456,7 +457,7 @@ Explore the Web UI to work out how to do this, or use the CLI (you
 will need to ``kinit admin``; see if you can work out what plugin
 provides the host group functionality).
 
-**HINT:** if you use the CLI will need to run two commands - one to
+**Hint:** if you use the CLI will need to run two commands - one to
 create the host group, and one to add ``client.ipademo.local`` as a
 member.
 
@@ -551,7 +552,7 @@ command::
 Poor ``bob``.  He won't be allowed in because he is not a member of
 the ``sysadmin`` group.  What about ``alice``?
 
-Do a ``kinit`` as ``bob`` and try to log into the client::
+``kinit`` as ``bob`` and try to log into the client::
 
   [server]$ kinit bob
   Password for bob@IPADEMO.LOCAL: 
@@ -565,3 +566,46 @@ Then try ``alice``::
   [server]$ ssh alice@client.ipademo.local
   Last login: Fri Oct 16 01:09:10 2015 from 192.168.33.10
   -sh-4.3$ 
+
+
+Module 5: Web App External Authentication
+=========================================
+
+You can configure many kinds of applications to rely on FreeIPA's
+centralised authentication, including web applications.  In this
+module you will configure Apache to use Kerberos authentication to
+authenticate user, PAM to enforce HBAC rules and
+``mod_lookup_identity`` to populate the request environment with
+user attributes.
+
+All activities in this module take place on ``client`` unless
+otherwise specified.
+
+**TODO**: ship the WSGI application and apache config OOTB
+
+
+Create a service
+----------------
+
+Create a *service* representing the web application on
+``client.ipademo.local``.  A service principal name has the service
+type as its first part, separated from the host name by a slash,
+e.g.  ``HTTP/www.example.com``.  The host part must correspond to an
+existing host in the directory.
+
+You must be getting the hang of FreeIPA by now, so I'll leave the
+rest of this step up to you.  (It's OK to ask for help!)
+
+**Note:** use the ``--force`` flag to force the service to be added
+if FreeIPA complains that the *Host does not have corresponding DNS
+A/AAAA record*.
+
+
+Retrieve Kerberos keytab
+------------------------
+
+The service needs access to its Kerberos key in order to
+authenticate users.  We retrieve the key from the FreeIPA server and
+store it in *keytab* file::
+
+
