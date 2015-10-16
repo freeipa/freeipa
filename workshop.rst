@@ -611,4 +611,71 @@ The service needs access to its Kerberos key in order to
 authenticate users.  We retrieve the key from the FreeIPA server and
 store it in *keytab* file::
 
+  [client]$ ipa-getkeytab -s server.ipademo.local -p HTTP/client.ipademo.local -k app.keytab
+  Keytab successfully retrieved and stored in: app.keytab
 
+  [client]$ sudo mv app.keytab /etc/httpd
+  [client]$ sudo chown apache:apache /etc/httpd/app.keytab
+
+
+Enable Kerberos authentication
+------------------------------
+
+Create the file ``/etc/httpd/conf.d/extauth.conf`` with the
+following contents::
+
+  <VirtualHost *:80>
+    ServerName client.ipademo.local
+    WSGIScriptAlias / /usr/share/httpd/app.py
+
+    <Location />
+      AuthType GSSAPI
+      AuthName "Kerberos Login"
+      GssapiCredStore keytab:/etc/httpd/app.keytab
+    </Location>
+
+    <Directory /usr/share/httpd>
+      <Files "app.py">
+        Require all granted
+      </Files>
+    </Directory>
+  </VirtualHost>
+
+**TODO**: put the app in the box image.
+**TODO**: remove the default config from the box image.
+
+
+Once the configuration is in place, restart Apache::
+
+  [client]$ sudo systemctl restart httpd
+
+
+To test that Kerberos Negotiate authentication is working, ``kinit``
+and make a request using ``curl``::
+
+  [client]$ kinit bob
+  Password for bob@IPADEMO.LOCAL: 
+
+  [client]$ curl -u : --negotiate http://client.ipademo.local/
+  LOGGED IN AS: bob@IPADEMO.LOCAL
+
+  REMOTE_* REQUEST VARIABLES:
+
+    REMOTE_ADDR: 192.168.33.20
+    REMOTE_USER: bob@IPADEMO.LOCAL
+    REMOTE_PORT: 42499
+
+The ``REMOTE_USER`` variable in the request environment indicates
+that there is a logged in user, and who that user is.
+
+
+HBAC for web services
+---------------------
+
+**TODO**
+
+
+Populating request environment with user attributes
+----------------------------------------------------
+
+**TODO**
