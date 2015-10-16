@@ -350,6 +350,12 @@ class TestInstallDNSSECFirst(IntegrationTest):
 
         self.master.run_command(args)
 
+        # wait until DS records it replicated
+        assert wait_until_record_is_signed(
+            self.replicas[0].ip, example_test_zone, self.log, timeout=100,
+            rtype="DS"
+        ), "No DS record of '%s' returned from replica" % example_test_zone
+
         # extract DSKEY from root zone
         ans = resolve_with_dnssec(self.master.ip, root_zone, self.log,
                                   rtype="DNSKEY")
