@@ -28,7 +28,7 @@ Install Vagrant
 
 On Fedora 22 (you will need the `RPM Fusion`_ repository)::
 
-  $ dnf install -y http://download1.rpmfusion.org/free/fedora/releases/22/Everything/x86_64/os/rpmfusion-free-release-22-1.noarch.rpm
+  $ sudo dnf install -y http://download1.rpmfusion.org/free/fedora/releases/22/Everything/x86_64/os/rpmfusion-free-release-22-1.noarch.rpm
   $ sudo dnf install -y vagrant VirtualBox
   $ sudo akmods
   $ sudo modprobe vboxdrv vboxnetadp
