@@ -612,6 +612,10 @@ class user_del(baseuser_del):
         except errors.NotFound:
             self.obj.handle_not_found(pkey)
 
+        for callback in self.get_callbacks('pre'):
+            dn = callback(self, ldap, dn, pkey, **options)
+            assert isinstance(dn, DN)
+
         # start to move the entry to Delete container
         self._exc_wrapper(pkey, options, ldap.move_entry)(dn, delete_dn,
                                                           del_old=True)
@@ -666,28 +670,31 @@ class user_del(baseuser_del):
         # For User life Cycle: user-del is a common plugin
         # command to delete active user (active container) and
         # delete user (delete container).
-        # If the target entry is a Delete entry, skip the updates
-        # protected member and otptoken owner
-        if not dn.endswith(DN(self.obj.delete_container_dn, api.env.basedn)):
-            check_protected_member(keys[-1])
+        # If the target entry is a Delete entry, skip the orphaning/removal
+        # of OTP tokens.
+        check_protected_member(keys[-1])
 
-            # Delete all tokens owned and managed by this user.
-            # Orphan all tokens owned but not managed by this user.
-            owner = self.api.Object.user.get_primary_key_from_dn(dn)
-            results = self.api.Command.otptoken_find(ipatokenowner=owner)['result']
-            for token in results:
-                orphan = not [x for x in token.get('managedby_user', []) if x == owner]
-                token = self.api.Object.otptoken.get_primary_key_from_dn(token['dn'])
-                if orphan:
-                    self.api.Command.otptoken_mod(token, ipatokenowner=None)
-                else:
-                    self.api.Command.otptoken_del(token)
+        if not options.get('preserve', False):
+            # Remove any ID overrides tied with this user
+            try:
+                remove_ipaobject_overrides(self.obj.backend, self.obj.api, dn)
+            except errors.NotFound:
+                self.obj.handle_not_found(*keys)
 
-        # Remove any ID overrides tied with this user
-        try:
-            remove_ipaobject_overrides(self.obj.backend, self.obj.api, dn)
-        except errors.NotFound:
-            self.obj.handle_not_found(*keys)
+        if dn.endswith(DN(self.obj.delete_container_dn, api.env.basedn)):
+            return dn
+
+        # Delete all tokens owned and managed by this user.
+        # Orphan all tokens owned but not managed by this user.
+        owner = self.api.Object.user.get_primary_key_from_dn(dn)
+        results = self.api.Command.otptoken_find(ipatokenowner=owner)['result']
+        for token in results:
+            orphan = not [x for x in token.get('managedby_user', []) if x == owner]
+            token = self.api.Object.otptoken.get_primary_key_from_dn(token['dn'])
+            if orphan:
+                self.api.Command.otptoken_mod(token, ipatokenowner=None)
+            else:
+                self.api.Command.otptoken_del(token)
 
         return dn
 
