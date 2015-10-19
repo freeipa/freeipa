@@ -63,7 +63,7 @@ Fetch Vagrant box
 -----------------
 
 Please fetch the Vagrant box prior to the workshop.  It is > 500MB
-so it may not be feasible download it during the workshop.
+so it may not be feasible to download it during the workshop.
 
 ::
 
@@ -580,13 +580,26 @@ Module 5: Web App External Authentication
 
 You can configure many kinds of applications to rely on FreeIPA's
 centralised authentication, including web applications.  In this
-module you will configure Apache to use Kerberos authentication to
-authenticate user, PAM to enforce HBAC rules and
+module you will configure the Apache web server to use Kerberos
+authentication to authenticate user, PAM to enforce HBAC rules and
 ``mod_lookup_identity`` to populate the request environment with
 user attributes.
 
 All activities in this module take place on ``client`` unless
 otherwise specified.
+
+The demo web application is trivial.  It just reads its request
+environment and responds in plain text with a list of variables
+starting with the string ``"REMOTE_"``.  It should be up and running
+already::
+
+  [client]$ curl http://client.ipademo.local
+  NOT LOGGED IN
+
+  REMOTE_* REQUEST VARIABLES:
+
+    REMOTE_ADDR: 192.168.33.20
+    REMOTE_PORT: 34356
 
 
 Create a service
@@ -601,23 +614,28 @@ existing host in the directory.
 You must be getting the hang of FreeIPA by now, so I'll leave the
 rest of this step up to you.  (It's OK to ask for help!)
 
-**Note:** use the ``--force`` flag to force the service to be added
-if FreeIPA complains that the *Host does not have corresponding DNS
-A/AAAA record*.
+**Note:** if FreeIPA complains that the *Host does not have
+corresponding DNS A/AAAA record* use the ``--force`` flag to force
+the service to be added.
 
 
 Retrieve Kerberos keytab
 ------------------------
 
 The service needs access to its Kerberos key in order to
-authenticate users.  We retrieve the key from the FreeIPA server and
-store it in *keytab* file::
+authenticate users.  Retrieve the key from the FreeIPA server and
+store it in a *keytab* file::
 
   [client]$ ipa-getkeytab -s server.ipademo.local -p HTTP/client.ipademo.local -k app.keytab
   Keytab successfully retrieved and stored in: app.keytab
 
+We also have to move the file, change its ownership and apply the
+proper SELinux labels to the keytab file so that the Apache process
+which runs under the confined ``apache`` user may read it::
+
   [client]$ sudo mv app.keytab /etc/httpd
   [client]$ sudo chown apache:apache /etc/httpd/app.keytab
+  [client]$ sudo restorecon /etc/httpd/app.keytab
 
 
 Enable Kerberos authentication
@@ -628,8 +646,9 @@ Negotiate / SPNEGO authentication for a web application.
 
 .. _mod_auth_gssapi: https://github.com/modauthgssapi/mod_auth_gssapi
 
-Create the file ``/etc/httpd/conf.d/app.conf`` with the
-following contents::
+The Apache configuration for the demo application lives in the file
+``/etc/httpd/conf.d/app.conf``.  Update the configuration (use
+``sudo vi`` or ``sudo nano``) to enable Kerberos authentication::
 
   <VirtualHost *:80>
     ServerName client.ipademo.local
@@ -639,6 +658,7 @@ following contents::
       AuthType GSSAPI
       AuthName "Kerberos Login"
       GssapiCredStore keytab:/etc/httpd/app.keytab
+      Require valid-user
     </Location>
 
     <Directory /usr/share/httpd>
@@ -686,7 +706,7 @@ information about the authenticated user.
 .. _mod_lookup_identity: http://www.adelton.com/apache/mod_lookup_identity/
 
 
-mod_lookup_identity retrieves user attributes from SSSD (via D-BUS).
+mod_lookup_identity retrieves user attributes from SSSD (via D-Bus).
 Edit ``/etc/sssd/sssd.conf``; enable the SSSD ``ifp`` *InfoPipe*
 responder, permit the ``apache`` user to query it, and configure the
 attributes to expose.  Add the following configuration to
@@ -694,7 +714,7 @@ attributes to expose.  Add the following configuration to
 
   [domain/ipademo.local]
   ...
-  ldap_user_extra_attrs = mail, telephoneNumber, givenname, sn
+  ldap_user_extra_attrs = mail, givenname, sn
 
   [sssd]
   services = nss, sudo, pam, ssh, ifp
@@ -702,7 +722,7 @@ attributes to expose.  Add the following configuration to
 
   [ifp]
   allowed_uids = apache, root
-  user_attributes = +mail, +telephoneNumber, +givenname, +sn
+  user_attributes = +mail, +givenname, +sn
 
 
 Restart SSSD::
@@ -738,6 +758,11 @@ attributes can be expanded into multiple variables, as in the
 
     ...
   </VirtualHost>
+
+Default SELinux policy prevents Apache from communicating with SSSD
+over D-Bus.  Flip ``httpd_dbus_sssd`` to ``1``::
+
+  [client]$ sudo setsebool -P httpd_dbus_sssd 1
 
 Restart Apache::
 
@@ -825,6 +850,11 @@ Replace with::
 Also add the ``LoadModule`` directive to the top of the file::
 
   LoadModule authnz_pam_module modules/mod_authnz_pam.so
+
+Once again, a special SELinux boolean needs to set to allow
+mod_authnz_pam to work::
+
+  [client]$ sudo setsebool -P allow_httpd_mod_auth_pam 1
 
 Restart Apache and try and perform the same ``curl`` request again
 as ``alice``.  Everything should work as before because ``alice`` is
