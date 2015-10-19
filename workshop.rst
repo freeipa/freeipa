@@ -73,6 +73,10 @@ so it may not be feasible download it during the workshop.
 Add hosts file entries
 ----------------------
 
+*This step is necessary if you want to access the FreeIPA Web UI in
+the VM from a browser on your host, but otherwise optional; all
+workshop modules can be completed using the CLI.*
+
 Add the following entries to your hosts file::
 
   192.168.33.10   server.ipademo.local
@@ -584,8 +588,6 @@ user attributes.
 All activities in this module take place on ``client`` unless
 otherwise specified.
 
-**TODO**: ship the WSGI application and apache config OOTB
-
 
 Create a service
 ----------------
@@ -621,7 +623,12 @@ store it in *keytab* file::
 Enable Kerberos authentication
 ------------------------------
 
-Create the file ``/etc/httpd/conf.d/extauth.conf`` with the
+In this section we will use mod_auth_gssapi_ to enable Kerberos
+Negotiate / SPNEGO authentication for a web application.
+
+.. _mod_auth_gssapi: https://github.com/modauthgssapi/mod_auth_gssapi
+
+Create the file ``/etc/httpd/conf.d/app.conf`` with the
 following contents::
 
   <VirtualHost *:80>
@@ -640,9 +647,6 @@ following contents::
       </Files>
     </Directory>
   </VirtualHost>
-
-**TODO**: put the app in the box image.
-**TODO**: remove the default config from the box image.
 
 
 Once the configuration is in place, restart Apache::
@@ -669,13 +673,160 @@ The ``REMOTE_USER`` variable in the request environment indicates
 that there is a logged in user, and who that user is.
 
 
-HBAC for web services
----------------------
-
-**TODO**
-
-
 Populating request environment with user attributes
 ----------------------------------------------------
 
-**TODO**
+Applications need to know more than just the username of a logged in
+user.  They want to know the user's name, send mail to their email
+address and perhaps know their group memberships or other
+attributes.  In this section we will use mod_lookup_identity_ to
+populate the HTTP request environment with variables providing
+information about the authenticated user.
+
+.. _mod_lookup_identity: http://www.adelton.com/apache/mod_lookup_identity/
+
+
+mod_lookup_identity retrieves user attributes from SSSD (via D-BUS).
+Edit ``/etc/sssd/sssd.conf``; enable the SSSD ``ifp`` *InfoPipe*
+responder, permit the ``apache`` user to query it, and configure the
+attributes to expose.  Add the following configuration to
+``sssd.conf``::
+
+  [domain/ipademo.local]
+  ...
+  ldap_user_extra_attrs = mail, telephoneNumber, givenname, sn
+
+  [sssd]
+  services = nss, sudo, pam, ssh, ifp
+  ...
+
+  [ifp]
+  allowed_uids = apache, root
+  user_attributes = +mail, +telephoneNumber, +givenname, +sn
+
+
+Restart SSSD::
+
+  [client]$ sudo systemctl restart sssd
+
+
+Now update the Apache configuration to populate the request
+environment.  The ``LookupUserXXX`` directives define the mapping of
+user attributes to request environment variables.  Multi-valued
+attributes can be expanded into multiple variables, as in the
+``LookupUserGroupsIter`` directive.
+
+::
+
+  LoadModule lookup_identity_module modules/mod_lookup_identity.so
+
+  <VirtualHost *:80>
+    ServerName client.ipademo.local
+    WSGIScriptAlias / /usr/share/httpd/app.py
+
+    <Location />
+      AuthType GSSAPI
+      AuthName "Kerberos Login"
+      GssapiCredStore keytab:/etc/httpd/app.keytab
+      Require valid-user
+
+      LookupUserAttr mail REMOTE_USER_MAIL
+      LookupUserAttr givenname REMOTE_USER_FIRSTNAME
+      LookupUserAttr sn REMOTE_USER_LASTNAME
+      LookupUserGroupsIter REMOTE_USER_GROUP
+    </Location>
+
+    ...
+  </VirtualHost>
+
+Restart Apache::
+
+  [client]$ sudo systemctl restart httpd
+
+Now make another request to the application and observe that user
+information that was inject into the request environment by
+mod_lookup_identity is reflected in the response::
+
+  [client]$ curl -u : --negotiate http://client.ipademo.local/
+  LOGGED IN AS: alice@IPADEMO.LOCAL
+
+  REMOTE_* REQUEST VARIABLES:
+
+    REMOTE_USER_GECOS: Alice Able
+    REMOTE_USER_GROUP_N: 2
+    REMOTE_ADDR: 192.168.33.20
+    REMOTE_USER_FIRSTNAME: Alice
+    REMOTE_USER_LASTNAME: Able
+    REMOTE_USER: alice@IPADEMO.LOCAL
+    REMOTE_USER_GROUP_2: ipausers
+    REMOTE_USER_GROUP_1: sysadmin
+    REMOTE_PORT: 42586
+    REMOTE_USER_EMAIL: alice@ipademo.local
+
+
+HBAC for web services
+---------------------
+
+The final task for this module is to configure to use FreeIPA's HBAC
+rules for access control.  We will use mod_authnz_pam_ in
+conjunction with SSSD's PAM responder to achieve this.
+
+.. _mod_authnz_pam: http://www.adelton.com/apache/mod_authnz_pam/
+
+First add an *HBAC service* named ``app`` for the web application.
+You can do this as ``admin`` via the Web UI or CLI.  **Hint:** the
+``hbacsvc`` plugin provides this functionality.
+
+Next, add an HBAC rule allowing members of the ``sysadmin`` user
+group access to ``app`` (on any host)::
+
+  [client]$ ipa hbacrule-add --hostcat=all sysadmin_app
+  ------------------------------
+  Added HBAC rule "sysadmin_app"
+  ------------------------------
+    Rule name: sysadmin_app
+    Host category: all
+    Enabled: TRUE
+
+  [client]$ ipa hbacrule-add-user sysadmin_app --group sysadmin
+    Rule name: sysadmin_app
+    Host category: all
+    Enabled: TRUE
+    User Groups: sysadmin
+  -------------------------
+  Number of members added 1
+  -------------------------
+
+  [client]$ ipa hbacrule-add-service sysadmin_app --hbacsvcs app
+    Rule name: sysadmin_app
+    Host category: all
+    Enabled: TRUE
+    User Groups: sysadmin
+    Services: app
+  -------------------------
+  Number of members added 1
+  -------------------------
+
+Next, define the PAM service on ``client``.  The name must match the
+``hbacsvc`` name (in our case: ``app``), and the name is indicated
+by the *name of the file* that configures the PAM stack.  Create
+``/etc/pam.d/app`` with the following contents::
+
+  account required   pam_sss.so
+
+Finally, update the Apache configuration.  Find the line::
+
+  Require valid-user
+
+Replace with::
+
+  Require pam-account app
+
+Also add the ``LoadModule`` directive to the top of the file::
+
+  LoadModule authnz_pam_module modules/mod_authnz_pam.so
+
+Restart Apache and try and perform the same ``curl`` request again
+as ``alice``.  Everything should work as before because ``alice`` is
+a member of the ``sysadmin`` group.  What happens when you are
+authenticated as ``bob`` instead?
