@@ -6,8 +6,7 @@ Requirements
 
 For the FreeIPA workshop you will need to:
 
-- Install Vagrant_ (using VirtualBox provider) and the
-  *vagrant-hostmanager* plugin
+- Install Vagrant_ (using VirtualBox provider)
 
 - Clone the repository containing the ``Vagrantfile``
 
@@ -49,14 +48,6 @@ On Ubuntu::
 On Windows::
 
   TODO
-
-
-Install vagrant-hostmanager
----------------------------
-
-::
-
-  $ vagrant plugin install vagrant-hostmanager
 
 
 Fetch Vagrant box
@@ -109,26 +100,28 @@ consisting of several hosts:
   ``client.ipademo.local``.
 
 
-Explanatory notes
------------------
+Editing files on VMs
+--------------------
 
-This guide contains many command examples.  Commands will be
-executed on a variety of servers, including the virtual machines as
-well as the virutalisation host.
+Parts of the workshop involves editing files on the virtual
+machines.  The ``vi`` and GNU ``nano`` editors are available on the
+VMs.  If you are not familiar with ``vi`` or unsure what to use, you
+should choose ``nano``.
 
-For clarity, commands are annotated with the host on which they are
-meant to be executed::
+
+Example commands
+----------------
+
+This guide contains many command examples.  Some fo the commands are
+to be exected on your host, others on either the ``server`` or the
+``client`` guest VM.  For clarity, commands are annotated with the
+host on which they are meant to be executed::
 
   $ echo "Run it on virtualisation host (no annotation)"
 
   [server]$ echo "Run it on FreeIPA server"
 
   [client]$ echo "Run it on IPA-enrolled client"
-
-The *vagrant-hostmanager* plugin is used to manage the
-``/etc/hosts`` file on the virtual machines, so that they can find
-each other.  In an industrial test or production deployment of
-FreeIPA DNS should provide this information (including PTR records).
 
 
 Module 1: FreeIPA server installation
