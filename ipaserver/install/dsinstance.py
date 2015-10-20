@@ -165,7 +165,7 @@ def create_ds_user():
     )
 
 
-def get_domain_level(self, api=api):
+def get_domain_level(api=api):
     conn = ipaldap.IPAdmin(ldapi=True, realm=api.env.realm)
     conn.do_external_bind('root')
 
@@ -176,7 +176,7 @@ def get_domain_level(self, api=api):
         entry = conn.get_entry(dn, ['ipaDomainLevel'])
     except errors.NotFound:
         return 0
-    return {'result': int(entry.single_value['ipaDomainLevel'])}
+    return int(entry.single_value['ipaDomainLevel'])
 
 
 INF_TEMPLATE = """
