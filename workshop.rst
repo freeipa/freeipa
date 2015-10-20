@@ -82,7 +82,11 @@ instructions follow.
 Install Vagrant
 ---------------
 
-On Fedora 22 (you will need the `RPM Fusion`_ repository)::
+Fedora 22
+^^^^^^^^^
+
+The workshop box requires the Vagrant VirtualBox provider.
+VirtualBox is available from the `RPM Fusion`_ repository::
 
   $ sudo dnf install -y http://download1.rpmfusion.org/free/fedora/releases/22/Everything/x86_64/os/rpmfusion-free-release-22-1.noarch.rpm
   $ sudo dnf install -y vagrant VirtualBox
@@ -92,19 +96,30 @@ On Fedora 22 (you will need the `RPM Fusion`_ repository)::
 .. _RPM Fusion: http://rpmfusion.org/Configuration
 
 
-On Mac OS X::
+Mac OS X
+^^^^^^^^
 
- TODO
-
-
-On Ubuntu::
-
- TODO
+**TODO**
 
 
-On Windows::
+Ubuntu
+^^^^^^
 
-  TODO
+**TODO**
+
+
+Windows
+^^^^^^^
+
+Install Vagrant via the ``.msi`` available from
+https://www.vagrantup.com/downloads.html.
+
+Install VirtualBox *platform package* for Windows hosts from
+https://www.virtualbox.org/wiki/Downloads.
+
+You will also need to install an SSH client, and Git.  Git for
+Windows also comes with an SSH client so just install Git from
+https://git-scm.com/download/win.
 
 
 Clone Vagrantfile repository
