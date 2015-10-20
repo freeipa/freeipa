@@ -31,7 +31,7 @@ class TestiSecStore(unittest.TestCase):
         cls.cert2db = os.path.join(testdir, 'cert2db')
         os.mkdir(cls.cert2db)
         seedfile = os.path.join(testdir, 'seedfile')
-        with open(seedfile, 'w') as f:
+        with open(seedfile, 'wb') as f:
             seed = os.urandom(1024)
             f.write(seed)
         subprocess.call(['certutil', '-d', cls.certdb, '-N', '-f', pwfile])
