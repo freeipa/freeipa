@@ -60,7 +60,7 @@ from ipapython.cookie import Cookie
 from ipapython.dnsutil import DNSName
 from ipalib.text import _
 import ipapython.nsslib
-from ipapython.nsslib import NSSHTTPS, NSSConnection
+from ipapython.nsslib import NSSConnection
 from ipalib.krb_utils import KRB5KDC_ERR_S_PRINCIPAL_UNKNOWN, KRB5KRB_AP_ERR_TKT_EXPIRED, \
                              KRB5_FCC_PERM, KRB5_FCC_NOFILE, KRB5_CC_FORMAT, \
                              KRB5_REALM_CANT_RESOLVE, KRB5_CC_NOTFOUND, get_principal
