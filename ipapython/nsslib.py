@@ -291,13 +291,7 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
         """
         try:
             # FIXME: httplib uses old-style classes so super doesn't work
-            # Python 2.7 changed the API for endheaders. This is an attempt
-            # to work across versions
-            (major, minor, micro, releaselevel, serial) = sys.version_info
-            if major == 2 and minor < 7:
-                httplib.HTTPConnection.endheaders(self)
-            else:
-                httplib.HTTPConnection.endheaders(self, message)
+            httplib.HTTPConnection.endheaders(self, message)
         except NSPRError as e:
             self.close()
             raise e

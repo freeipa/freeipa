@@ -480,12 +480,9 @@ class SSLTransport(LanguageAwareTransport):
 
     def make_connection(self, host):
         host, self._extra_headers, x509 = self.get_host_info(host)
-        # Python 2.7 changed the internal class used in xmlrpclib from
-        # HTTP to HTTPConnection. We need to use the proper subclass
 
-        if sys.version_info >= (2, 7):
-            if self._connection and host == self._connection[0]:
-                return self._connection[1]
+        if self._connection and host == self._connection[0]:
+            return self._connection[1]
 
         dbdir = getattr(context, 'nss_dir', paths.IPA_NSSDB_DIR)
         connection_dbdir = self.get_connection_dbdir()
@@ -500,20 +497,15 @@ class SSLTransport(LanguageAwareTransport):
             # need to re-initialize.
             no_init = dbdir == ipapython.nsslib.current_dbdir
 
-        if sys.version_info < (2, 7):
-            conn = NSSHTTPS(host, 443, dbdir=dbdir, no_init=no_init)
-        else:
-            conn = NSSConnection(host, 443, dbdir=dbdir, no_init=no_init,
-                                 tls_version_min=api.env.tls_version_min,
-                                 tls_version_max=api.env.tls_version_max)
+        conn = NSSConnection(host, 443, dbdir=dbdir, no_init=no_init,
+                             tls_version_min=api.env.tls_version_min,
+                             tls_version_max=api.env.tls_version_max)
         self.dbdir=dbdir
 
         conn.connect()
-        if sys.version_info < (2, 7):
-            return conn
-        else:
-            self._connection = host, conn
-            return self._connection[1]
+
+        self._connection = host, conn
+        return self._connection[1]
 
 
 class KerbTransport(SSLTransport):
@@ -925,11 +917,10 @@ class RPCClient(Connectible):
         return serverproxy
 
     def destroy_connection(self):
-        if sys.version_info >= (2, 7):
-            conn = getattr(context, self.id, None)
-            if conn is not None:
-                conn = conn.conn._ServerProxy__transport
-                conn.close()
+        conn = getattr(context, self.id, None)
+        if conn is not None:
+            conn = conn.conn._ServerProxy__transport
+            conn.close()
 
     def _call_command(self, command, params):
         """Call the command with given params"""
