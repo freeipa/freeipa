@@ -1,5 +1,65 @@
+Introduction
+============
+
+FreeIPA_ is a centralised identity management system.  In this
+workshop you will learn how to deploy FreeIPA servers and enrol
+client machines, define and manage user and service identities, set
+up access policies, configure network services to take advantage of
+FreeIPA's authentication and authorisation capabilities.
+
+.. _FreeIPA: http://www.freeipa.org/page/Main_Page
+
+
+Curriculum overview
+-------------------
+
+- Module 1: Install the FreeIPA server
+- Module 2: Enrol a client machine in the FreeIPA domain
+- Module 3: User creation and administration, Kerberos authentication
+- Module 4: Host-Based Access Control (HBAC)
+- Module 5: Authorisation and authentication for web applications
+
+
+Editing files on VMs
+--------------------
+
+Parts of the workshop involves editing files on the virtual
+machines.  The ``vi`` and GNU ``nano`` editors are available on the
+VMs.  If you are not familiar with ``vi`` or unsure what to use, you
+should choose ``nano``.
+
+
+Example commands
+----------------
+
+This guide contains many command examples.  Some fo the commands are
+to be exected on your host, others on either the ``server`` or the
+``client`` guest VM.  For clarity, commands are annotated with the
+host on which they are meant to be executed::
+
+  $ echo "Run it on virtualisation host (no annotation)"
+
+  [server]$ echo "Run it on FreeIPA server"
+
+  [client]$ echo "Run it on IPA-enrolled client"
+
+
 Preparation
 ===========
+
+The workshop is designed to be carried out in Vagrant_ environment
+consisting of several hosts:
+
+.. _Vagrant: https://www.vagrantup.com/
+
+``server``
+  The host on which you will install the FreeIPA server.  Its
+  hostname is ``server.ipademo.local``.
+
+``client``
+  A host to be enrolled in the FreeIPA domain, from which a user can
+  obtain a Kerberos ticket and access services.  Its hostname is
+  ``client.ipademo.local``.
 
 Requirements
 ------------
@@ -8,15 +68,12 @@ For the FreeIPA workshop you will need to:
 
 - Install Vagrant_ (using VirtualBox provider)
 
-- Clone the repository containing the ``Vagrantfile``
+- Use Git to clone the repository containing the ``Vagrantfile``
 
 - Fetch the Vagrant *box* for the workshop
 
 - Add entries for the guest VMs to your hosts file (so you can
   access them by their hostname)
-
-
-.. _Vagrant: https://www.vagrantup.com/
 
 Please set up these items **prior to the workshop**.  More detailed
 instructions follow.
@@ -50,6 +107,14 @@ On Windows::
   TODO
 
 
+Clone Vagrantfile repository
+----------------------------
+
+Clone the repository containing the Vagrantfile for the workshop::
+
+  $ git clone https://github.com/frasertweedale/freeipa-workshop-vagrantfile.git
+
+
 Fetch Vagrant box
 -----------------
 
@@ -78,50 +143,6 @@ On Unix systems including Mac OS X, the hosts file is ``/etc/hosts``
 
 On Windows, edit ``C:\system32\system\drivers\etc\hosts`` as
 *Administrator*.
-
-
-Introduction
-============
-
-The FreeIPA workshop will take you through installing a FreeIPA
-server, enrolling client machines, and managing users, services and
-access policies.
-
-The workshop is designed to be carried out in Vagrant_ environment
-consisting of several hosts:
-
-``server``
-  The host on which you will install the FreeIPA server.  Its
-  hostname is ``server.ipademo.local``.
-
-``client``
-  A host to be enrolled in the FreeIPA domain, from which a user can
-  obtain a Kerberos ticket and access services.  Its hostname is
-  ``client.ipademo.local``.
-
-
-Editing files on VMs
---------------------
-
-Parts of the workshop involves editing files on the virtual
-machines.  The ``vi`` and GNU ``nano`` editors are available on the
-VMs.  If you are not familiar with ``vi`` or unsure what to use, you
-should choose ``nano``.
-
-
-Example commands
-----------------
-
-This guide contains many command examples.  Some fo the commands are
-to be exected on your host, others on either the ``server`` or the
-``client`` guest VM.  For clarity, commands are annotated with the
-host on which they are meant to be executed::
-
-  $ echo "Run it on virtualisation host (no annotation)"
-
-  [server]$ echo "Run it on FreeIPA server"
-
-  [client]$ echo "Run it on IPA-enrolled client"
 
 
 Module 1: FreeIPA server installation
