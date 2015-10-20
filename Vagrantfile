@@ -3,7 +3,7 @@
 
 Vagrant.configure(2) do |config|
 
-  config.vm.box = "ftweedal/freeipa-workshop-vagrantfile"
+  config.vm.box = "ftweedal/freeipa-workshop"
 
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
