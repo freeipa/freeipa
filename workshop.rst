@@ -85,15 +85,21 @@ Install Vagrant
 Fedora 22
 ^^^^^^^^^
 
-The workshop box requires the Vagrant VirtualBox provider.
-VirtualBox is available from the `RPM Fusion`_ repository::
+The workshop box uses the Vagrant VirtualBox provider.  VirtualBox
+needs to build kernel modules so first install kernel headers and
+the Dynamic Kernel Module Support::
 
-  $ sudo dnf install -y http://download1.rpmfusion.org/free/fedora/releases/22/Everything/x86_64/os/rpmfusion-free-release-22-1.noarch.rpm
-  $ sudo dnf install -y vagrant VirtualBox
-  $ sudo akmods
+  $ sudo dnf install -y kernel-devel dkms
+
+Next install VirtualBox from their official package repository::
+
+  $ sudo curl -o /etc/yum.repos.d/virtualbox.repo \
+    http://download.virtualbox.org/virtualbox/rpm/fedora/virtualbox.repo
+  $ sudo dnf install -y VirtualBox-4.3
+
+Finally load the kernel modules::
+
   $ sudo modprobe vboxdrv vboxnetadp
-
-.. _RPM Fusion: http://rpmfusion.org/Configuration
 
 
 Mac OS X
