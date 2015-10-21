@@ -954,6 +954,11 @@ def uninstall_check(installer):
 
     installer._installation_cleanup = False
 
+    if not is_ipa_configured():
+        print("WARNING:\nIPA server is not configured on this system. "
+              "If you want to install the\nIPA server, please install "
+              "it using 'ipa-server-install'.")
+
     fstore = sysrestore.FileStore(SYSRESTORE_DIR_PATH)
     sstore = sysrestore.StateFile(SYSRESTORE_DIR_PATH)
 
