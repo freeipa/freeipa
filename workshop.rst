@@ -91,10 +91,22 @@ the Dynamic Kernel Module Support::
 
   $ sudo dnf install -y kernel-devel dkms
 
-Next install VirtualBox from their official package repository::
+Next install VirtualBox from their official package repository.
+Before using the repo, check that its contents match what appears
+in the transcript below (to make sure it wasn't tampered with)::
 
   $ sudo curl -o /etc/yum.repos.d/virtualbox.repo \
     http://download.virtualbox.org/virtualbox/rpm/fedora/virtualbox.repo
+
+  $ cat /etc/yum.repos.d/virtualbox.repo
+  [virtualbox]
+  name=Fedora $releasever - $basearch - VirtualBox
+  baseurl=http://download.virtualbox.org/virtualbox/rpm/fedora/$releasever/$basearch
+  enabled=1
+  gpgcheck=1
+  repo_gpgcheck=1
+  gpgkey=https://www.virtualbox.org/download/oracle_vbox.asc
+
   $ sudo dnf install -y VirtualBox-4.3
 
 Finally load the kernel modules::
@@ -120,8 +132,8 @@ Windows
 Install Vagrant via the ``.msi`` available from
 https://www.vagrantup.com/downloads.html.
 
-Install VirtualBox *platform package* for Windows hosts from
-https://www.virtualbox.org/wiki/Downloads.
+Install VirtualBox 4.3 for **Windows hosts** from
+https://www.virtualbox.org/wiki/Download_Old_Builds_4_3.
 
 You will also need to install an SSH client, and Git.  Git for
 Windows also comes with an SSH client so just install Git from
@@ -172,8 +184,11 @@ Module 1: FreeIPA server installation
 In this module you will install the FreeIPA server which you will
 use for the rest of the workshop.
 
-First bring up the Vagrant environment (all hosts will come up)::
+First ``cd`` into the directory where the ``Vagrantfile`` was
+checked out, then bring up the Vagrant environment (all hosts will
+come up)::
 
+  $ cd freeipa-workshop-vagrantfile
   $ vagrant up --provider virtualbox
 
 
@@ -321,7 +336,12 @@ From the directory containing the ``Vagrantfile`` SSH into the
 
 On ``client``, start the FreeIPA client enrolment program::
 
-  [client]$ sudo ipa-client-install
+  [client]$ sudo ipa-client-install --mkhomedir
+
+The ``--mkhomedir`` flag configure PAM to create missing home
+directories when users log into the host for the first time.
+FreeIPA supports automount so consider using that for production
+deployments.
 
 The FreeIPA server should be detected through DNS autodiscovery.
 (If DNS discovery fails, e.g. due to client machine having incorrect
@@ -659,7 +679,7 @@ Retrieve Kerberos keytab
 
 The service needs access to its Kerberos key in order to
 authenticate users.  Retrieve the key from the FreeIPA server and
-store it in a *keytab* file::
+store it in a *keytab* file (remember to ``kinit admin``)::
 
   [client]$ ipa-getkeytab -s server.ipademo.local -p HTTP/client.ipademo.local -k app.keytab
   Keytab successfully retrieved and stored in: app.keytab
