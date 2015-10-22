@@ -88,8 +88,10 @@ class OpenDNSSECInstance(service.Service):
 
     def create_instance(self, fqdn, realm_name, generate_master_key=True,
                         kasp_db_file=None):
-        self.backup_state("enabled", self.is_enabled())
-        self.backup_state("running", self.is_running())
+        if self.get_state("enabled") is None:
+            self.backup_state("enabled", self.is_enabled())
+        if self.get_state("running") is None:
+            self.backup_state("running", self.is_running())
         self.fqdn = fqdn
         self.realm = realm_name
         self.suffix = ipautil.realm_to_suffix(self.realm)

@@ -146,9 +146,10 @@ class ODSExporterInstance(service.Service):
 
     def __disable_signerd(self):
         signerd_service = services.knownservices.ods_signerd
-
-        self.backup_state("singerd_running", signerd_service.is_running())
-        self.backup_state("singerd_enabled", signerd_service.is_enabled())
+        if self.get_state("singerd_running") is None:
+            self.backup_state("singerd_running", signerd_service.is_running())
+        if self.get_state("singerd_enabled") is None:
+            self.backup_state("singerd_enabled", signerd_service.is_enabled())
 
         # disable default opendnssec signer daemon
         signerd_service.stop()
