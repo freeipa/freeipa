@@ -83,17 +83,17 @@ Please set up these items **prior to the workshop**.  More detailed
 instructions follow.
 
 
-Install Vagrant
----------------
+Install Vagrant and VirtualBox
+------------------------------
 
-Fedora 22
-^^^^^^^^^
+Fedora
+^^^^^^
 
 The workshop box uses the Vagrant VirtualBox provider.  VirtualBox
 needs to build kernel modules so first install kernel headers and
-the Dynamic Kernel Module Support::
+the Dynamic Kernel Module Support (and while we're at it, Vagrant)::
 
-  $ sudo dnf install -y kernel-devel dkms
+  $ sudo dnf install -y kernel-devel dkms vagrant
 
 Next install VirtualBox from their official package repository.
 Before using the repo, check that its contents match what appears
