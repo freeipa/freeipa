@@ -47,8 +47,11 @@ host on which they are meant to be executed::
 Preparation
 ===========
 
-The workshop is designed to be carried out in Vagrant_ environment
-consisting of several hosts:
+Some preparation is needed prior to the workshop.  The workshop is
+designed to be carried out in Vagrant_ environment consisting of
+several VMs.  **The goal of the preparation** is to be able to
+successfully ``vagrant up`` the VMs as the first step of the
+workshop.
 
 .. _Vagrant: https://www.vagrantup.com/
 
@@ -66,7 +69,8 @@ Requirements
 
 For the FreeIPA workshop you will need to:
 
-- Install Vagrant_ (using VirtualBox provider)
+- Install **Vagrant** and **VirtualBox 4.3** (VirtualBox 5 is not
+  supported by Vagrant).
 
 - Use Git to clone the repository containing the ``Vagrantfile``
 
