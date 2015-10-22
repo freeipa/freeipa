@@ -31,6 +31,8 @@ Vagrant.configure(2) do |config|
 
     config.vm.provision "shell",
       inline: 'echo "nameserver 192.168.33.10" > /etc/resolv.conf'
+    config.vm.provision "shell",
+      inline: 'systemctl -q enable httpd && systemctl start httpd'
   end
 
 end
