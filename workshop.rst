@@ -305,8 +305,7 @@ Run ``klist`` to view your current Kerberos tickets::
   Default principal: admin@IPADEMO.LOCAL
 
   Valid starting     Expires            Service principal
-  10/15/15 01:48:59  10/16/15 01:48:57
-  krbtgt/IPADEMO.LOCAL@IPADEMO.LOCAL
+  10/15/15 01:48:59  10/16/15 01:48:57  krbtgt/IPADEMO.LOCAL@IPADEMO.LOCAL
 
 The FreeIPA server is now set up and you are ready to begin
 enrolling client machines, creating users, managing services and
