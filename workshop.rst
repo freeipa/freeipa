@@ -55,14 +55,6 @@ workshop.
 
 .. _Vagrant: https://www.vagrantup.com/
 
-``server``
-  The host on which you will install the FreeIPA server.  Its
-  hostname is ``server.ipademo.local``.
-
-``client``
-  A host to be enrolled in the FreeIPA domain, from which a user can
-  obtain a Kerberos ticket and access services.  Its hostname is
-  ``client.ipademo.local``.
 
 Requirements
 ------------
@@ -189,15 +181,14 @@ In this module you will install the FreeIPA server which you will
 use for the rest of the workshop.
 
 First ``cd`` into the directory where the ``Vagrantfile`` was
-checked out, then bring up the Vagrant environment (all hosts will
-come up)::
+checked out, then bring up the Vagrant environment::
 
   $ cd freeipa-workshop-vagrantfile
   $ vagrant up --provider virtualbox
 
-
-From the directory containing the ``Vagrantfile`` SSH into the
-``server`` machine::
+The Vagrant environment contains two hosts: ``server.ipademo.local``
+and ``client.ipademo.local``.  From the directory containing the
+``Vagrantfile`` SSH into the ``server`` machine::
 
   $ vagrant ssh server
 
