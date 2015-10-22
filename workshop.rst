@@ -44,6 +44,13 @@ host on which they are meant to be executed::
   [client]$ echo "Run it on IPA-enrolled client"
 
 
+Workshop feedback
+-----------------
+
+After the workshop please consider leaving feedback at
+https://goo.gl/forms/P11DtfJiNq.
+
+
 Preparation
 ===========
 
@@ -258,15 +265,11 @@ forget during the workshop!
   Password (confirm): 
 
 
-Configure DNS forwarders and the reverse zone::
+Do not configure a DNS forwarder (it is likely you will want to do
+so for a real world deployment but it is not needed today) and
+accept defaults for configuring the reverse zone::
 
-  Do you want to configure DNS forwarders? [yes]: 
-  Enter the IP address of DNS forwarder to use, or press Enter to
-  finish.
-  Enter IP address for a DNS forwarder: <something from your resolv.conf>
-  DNS forwarder <as above> added
-  Enter IP address for a DNS forwarder: <press ENTER to end list>
-  Checking forwarders, please wait ...
+  Do you want to configure DNS forwarders? [yes]: no
   Do you want to configure the reverse zone? [yes]: 
   Please specify the reverse zone name [33.168.192.in-addr.arpa.]: 
   Using reverse zone(s) 33.168.192.in-addr.arpa.
@@ -467,7 +470,7 @@ log into other hosts and services.  Try logging into
 ``client.ipademo.local``::
 
   [server]$ ssh bob@client.ipademo.local
-  -sh-4.3$
+  [bob@client]$ 
 
 You are now logged into the client, as ``bob``.  Hit ``^D`` or type
 ``exit`` to log out and return to the ``server`` shell.  If you run
@@ -777,6 +780,23 @@ attributes to expose.  Add the following configuration to
 Restart SSSD::
 
   [client]$ sudo systemctl restart sssd
+
+
+You can test the SSSD InfoPipe directly via the ``dbus-send``
+utility::
+
+  [client]$ sudo dbus-send --print-reply --system \
+      --dest=org.freedesktop.sssd.infopipe /org/freedesktop/sssd/infopipe \
+      org.freedesktop.sssd.infopipe.GetUserAttr string:alice array:string:mail
+  method return sender=:1.117 -> dest=:1.119 reply_serial=2
+     array [
+        dict entry(
+           string "mail"
+           variant             array [
+                 string "alice@ipademo.local"
+              ]
+        )
+     ]
 
 
 Now update the Apache configuration to populate the request
