@@ -38,3 +38,11 @@ Vagrant
 If ``vagrant up`` fails to SSH into VM, delete
 ``~/.vagrant.d/insecure_private_key``.  See
 https://stackoverflow.com/questions/28284112/.
+
+
+mod_lookup_identity
+===================
+
+To flush cache::
+
+  $ sudo sss_cache -E
