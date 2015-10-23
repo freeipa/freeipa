@@ -797,12 +797,7 @@ def del_master_managed(realm, hostname, options):
             break
         i += 1
 
-    # Clean RUV
-    if rid is not None:
-        try:
-            thisrepl.cleanallruv(rid)
-        except KeyboardInterrupt:
-            print("Wait for task interrupted. It will continue to run in the background")
+    # Clean RUV is handled by the topolgy plugin
 
     # 8. And clean up the removed replica DNS entries if any.
     cleanup_server_dns_entries(realm, hostname, thisrepl.suffix, options)

@@ -286,6 +286,7 @@ void ipa_topo_util_disable_repl_for_principal(char *repl_root, char *principal);
 void ipa_topo_util_add_host(Slapi_Entry *hostentry);
 void ipa_topo_util_delete_host(Slapi_Entry *hostentry);
 void ipa_topo_util_update_host(Slapi_Entry *hostentry, LDAPMod **mods);
+void ipa_topo_util_cleanruv(Slapi_Entry *hostentry);
 void ipa_topo_util_disable_repl_from_host(char *repl_root, char *delhost);
 void ipa_topo_util_delete_segments_for_host(char *repl_root, char *delhost);
 

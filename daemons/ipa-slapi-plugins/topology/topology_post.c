@@ -276,6 +276,7 @@ ipa_topo_post_del(Slapi_PBlock *pb)
          */
         ipa_topo_util_delete_host(del_entry);
         ipa_topo_cfg_host_del(del_entry);
+        ipa_topo_util_cleanruv(del_entry);
         break;
     case TOPO_IGNORE_ENTRY:
         break;

@@ -1779,3 +1779,107 @@ ipa_topo_util_is_tombstone_op(Slapi_PBlock *pb)
     slapi_pblock_get(pb, SLAPI_OPERATION, &op);
     return slapi_operation_is_flag_set(op, SLAPI_OP_FLAG_TOMBSTONE_ENTRY);
 }
+int
+ipa_topo_util_cleanruv_task(char *repl_root, int replicaID)
+{
+    Slapi_Entry *e = NULL;
+    Slapi_PBlock *pb;
+    char *dn = NULL;
+    char *repl_rid;
+    Slapi_DN *sdn = NULL;
+    int ret = 0;
+    dn = slapi_ch_smprintf("cn=clean %d,cn=cleanallruv,cn=tasks,cn=config", replicaID);
+    if (dn  == NULL) return -1;
+    sdn = slapi_sdn_new_normdn_byref(dn);
+
+    e = slapi_entry_alloc();
+    /* the entry now owns the dup'd dn */
+    slapi_entry_init_ext(e, sdn, NULL); /* sdn is copied into e */
+    slapi_sdn_free(&sdn);
+
+    slapi_entry_add_string(e, SLAPI_ATTR_OBJECTCLASS, "extensibleobject");
+    slapi_entry_add_string(e, "replica-base-dn",repl_root);
+    repl_rid = slapi_ch_smprintf("%d",replicaID);
+    slapi_entry_add_string(e, "replica-id",repl_rid);
+    slapi_entry_add_string(e, "replica-force-cleaning", "yes");
+
+    pb = slapi_pblock_new();
+    slapi_pblock_init(pb);
+
+    /* e will be consumed by slapi_add_internal() */
+    slapi_add_entry_internal_set_pb(pb, e, NULL, ipa_topo_get_plugin_id(), 0);
+    slapi_add_internal_pb(pb);
+    slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &ret);
+    slapi_pblock_destroy(pb);
+    slapi_ch_free_string(&repl_rid);
+
+    return ret;
+
+}
+
+void
+ipa_topo_util_cleanruv_element(char *repl_root, char *hostname)
+{
+    Slapi_PBlock *pb = NULL;
+    char *filter = "(&(objectclass=nstombstone)(nsuniqueid=ffffffff-ffffffff-ffffffff-ffffffff))";
+    int ret;
+    Slapi_Entry **entries = NULL;
+
+    /* find ruv object */
+    pb = slapi_pblock_new();
+    slapi_search_internal_set_pb(pb, repl_root, LDAP_SCOPE_SUB,
+                                 filter, NULL, 0, NULL, NULL,
+                                 ipa_topo_get_plugin_id(), 0);
+    slapi_search_internal_pb(pb);
+    slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_RESULT, &ret);
+    if (ret != 0) {
+        slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                            "ipa_topo_util_cleanruv: no RUV entry found\n");
+    } else {
+        slapi_pblock_get(pb, SLAPI_PLUGIN_INTOP_SEARCH_ENTRIES, &entries);
+        if (NULL == entries || NULL == entries[0]) {
+            slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                            "ipa_topo_util_cleanruv: no RUV entry found\n");
+        } else {
+            int i = 0;
+            int rid = 0;
+            int rc = 0;
+            char **ruv_ele = slapi_entry_attr_get_charray(entries[0], "nsds50ruv");
+            /* a ruv element has the form:
+             * {replica <rid> ldap://<host>:<port>} <mincsn_str> <maxcsn_str>
+             */
+            char *urlstr = slapi_ch_smprintf("ldap://%s:",hostname);
+            while (ruv_ele && ruv_ele[i]) {
+                if (strstr(ruv_ele[i], urlstr)) {
+                    rid = atoi(ruv_ele[i]+strlen("{replica "));
+                    rc = ipa_topo_util_cleanruv_task(repl_root,rid);
+                    if (rc) {
+                         slapi_log_error(SLAPI_LOG_FATAL, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                            "ipa_topo_util_cleanruv: failed to create cleanalltuv task\n");
+                    }
+                    break;
+                }
+                i++;
+            }
+            slapi_ch_array_free(ruv_ele);
+            slapi_ch_free_string(&urlstr);
+        }
+    }
+    slapi_free_search_results_internal(pb);
+    slapi_pblock_destroy(pb);
+}
+
+void
+ipa_topo_util_cleanruv(Slapi_Entry *del_entry)
+{
+    char* delhost = NULL;
+    char **shared_root = ipa_topo_get_plugin_replica_root();
+    int i = 0;
+
+    delhost = slapi_entry_attr_get_charptr(del_entry,"cn");
+
+    while (shared_root[i]) {
+        ipa_topo_util_cleanruv_element(shared_root[i], delhost);
+        i++;
+    }
+}
