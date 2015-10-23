@@ -130,10 +130,17 @@ Mac OS X
 **TODO**
 
 
-Ubuntu
-^^^^^^
+Debian / Ubuntu
+^^^^^^^^^^^^^^^
 
-**TODO**
+Install Vagrant::
+
+  $ sudo apt-get install -y vagrant
+
+If **VirtualBox 4.3** is available in the official packages for your
+distribution and release, install it from there.  Otherwise follow
+the instructions at https://www.virtualbox.org/wiki/Linux_Downloads
+to install it.
 
 
 Windows
