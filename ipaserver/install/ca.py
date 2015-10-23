@@ -52,9 +52,7 @@ def install_check(standalone, replica_config, options):
         return
 
     if standalone:
-        if cainstance.is_ca_installed_locally():
-            sys.exit("CA is already installed on this host.")
-        elif api.Command.ca_is_enabled()['result']:
+        if api.Command.ca_is_enabled()['result']:
             sys.exit(
                 "One or more CA masters are already present in IPA realm "
                 "'%s'.\nIf you wish to replicate CA to this host, please "
