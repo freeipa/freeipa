@@ -69,7 +69,8 @@ Requirements
 For the FreeIPA workshop you will need to:
 
 - Install **Vagrant** and **VirtualBox 4.3** (VirtualBox 5 is not
-  supported by Vagrant).
+  supported by Vagrant).  (On Fedora, you can use **libvirt**
+  instead of VirtualBox).
 
 - Use Git to clone the repository containing the ``Vagrantfile``
 
@@ -88,11 +89,17 @@ Install Vagrant and VirtualBox
 Fedora
 ^^^^^^
 
-The workshop box uses the Vagrant VirtualBox provider.  VirtualBox
-needs to build kernel modules so first install kernel headers and
-the Dynamic Kernel Module Support (and while we're at it, Vagrant)::
+If you intend to use the ``libvirt`` provider (recommended) install
+``vagrant-libvirt``::
 
-  $ sudo dnf install -y kernel-devel dkms vagrant
+  $ sudo dnf install -y vagrant-libvirt
+
+
+Otherwise, you will use VirtualBox and the ``virtualbox`` provider.
+VirtualBox needs to build kernel modules so first install kernel
+headers and the Dynamic Kernel Module Support::
+
+  $ sudo dnf install -y vagrant kernel-devel dkms
 
 Next install VirtualBox from their official package repository.
 Before using the repo, check that its contents match what appears
