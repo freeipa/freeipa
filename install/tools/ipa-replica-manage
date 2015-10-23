@@ -169,7 +169,7 @@ def list_replicas(realm, host, replica, dirman_passwd, verbose, nolookup=False):
     dn = DN(('cn', 'masters'), ('cn', 'ipa'), ('cn', 'etc'), ipautil.realm_to_suffix(realm))
     try:
         entries = conn.get_entries(dn, conn.SCOPE_ONELEVEL)
-    except Exception:
+    except Exception as e:
         print("Failed to read master data from '%s': %s" % (host, str(e)))
         return
     else:
