@@ -534,22 +534,38 @@ class trust(LDAPObject):
                             error=_("invalid SID: %(value)s") % dict(value=value))
 
     def get_dn(self, *keys, **kwargs):
-        sdn = map(lambda x: ('cn', x), keys)
-        sdn.reverse()
         trust_type = kwargs.get('trust_type')
+
+        sdn = [('cn', x) for x in keys]
+        sdn.reverse()
+
         if trust_type is None:
             ldap = self.backend
-            filter = ldap.make_filter({'objectclass': ['ipaNTTrustedDomain'], 'cn': [keys[-1]] },
-                                      rules=ldap.MATCH_ALL)
-            filter = ldap.combine_filters((filter, "ipaNTSecurityIdentifier=*"), rules=ldap.MATCH_ALL)
-            result = ldap.get_entries(DN(self.container_dn, self.env.basedn),
-                                      ldap.SCOPE_SUBTREE, filter, [''])
+            trustfilter = ldap.make_filter({
+                'objectclass': ['ipaNTTrustedDomain'],
+                'cn': [keys[-1]]},
+                rules=ldap.MATCH_ALL
+            )
+
+            trustfilter = ldap.combine_filters(
+                (trustfilter, "ipaNTSecurityIdentifier=*"),
+                rules=ldap.MATCH_ALL
+            )
+
+            try:
+                result = ldap.get_entries(
+                    DN(self.container_dn, self.env.basedn),
+                    ldap.SCOPE_SUBTREE, trustfilter, ['']
+                )
+            except errors.NotFound:
+                self.handle_not_found(keys[-1])
+
             if len(result) > 1:
                 raise errors.OnlyOneValueAllowed(attr='trust domain')
+
             return result[0].dn
 
-        dn=make_trust_dn(self.env, trust_type, DN(*sdn))
-        return dn
+        return make_trust_dn(self.env, trust_type, DN(*sdn))
 
 @register()
 class trust_add(LDAPCreate):
