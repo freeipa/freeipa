@@ -26,6 +26,7 @@ from ipapython import admintool
 from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.dn import DN
+from ipaserver.install import cainstance
 from ipaserver.install import krainstance
 from ipaserver.install import installutils
 from ipaserver.install.installutils import create_replica_config
@@ -126,22 +127,13 @@ class KRAInstaller(KRAInstall):
                 " in unattended mode"
             )
 
-        self.installing_replica = dogtaginstance.is_installing_replica("KRA")
-
-        if self.installing_replica:
-            if not self.args:
-                self.option_parser.error("A replica file is required.")
-            if len(self.args) > 1:
-                self.option_parser.error("Too many arguments provided")
-
+        if len(self.args) > 1:
+            self.option_parser.error("Too many arguments provided")
+        elif len(self.args) == 1:
             self.replica_file = self.args[0]
             if not ipautil.file_exists(self.replica_file):
                 self.option_parser.error(
                     "Replica file %s does not exist" % self.replica_file)
-        else:
-            if self.args:
-                self.option_parser.error("Too many parameters provided.  "
-                                         "No replica file is required.")
 
     def ask_for_options(self):
         super(KRAInstaller, self).ask_for_options()
@@ -156,6 +148,22 @@ class KRAInstaller(KRAInstall):
 
     def _run(self):
         super(KRAInstaller, self).run()
+
+        if not cainstance.is_ca_installed_locally():
+            raise RuntimeError("Dogtag CA is not installed. "
+                               "Please install the CA first")
+
+        # this check can be done only when CA is installed
+        self.installing_replica = dogtaginstance.is_installing_replica("KRA")
+
+        if self.installing_replica:
+            if not self.args:
+                raise RuntimeError("A replica file is required.")
+        else:
+            if self.args:
+                raise RuntimeError("Too many parameters provided. "
+                                   "No replica file is required.")
+
         print dedent(self.INSTALLER_START_MESSAGE)
 
         if not self.installing_replica:
