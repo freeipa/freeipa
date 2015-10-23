@@ -32,6 +32,12 @@ network device, e.g.::
   sudo ifconfig virbr2 down
 
 
+*vagrant-libvirt* might have problems if the ``default`` network is
+up::
+
+  sudo virsh net-destroy default
+
+
 Vagrant
 =======
 
