@@ -417,7 +417,7 @@ class NSSDatabase(object):
 
     def export_pem_cert(self, nickname, location):
         """Export the given cert to PEM file in the given location"""
-        cert = self.get_cert(nickname)
+        cert = self.get_cert(nickname, pem=True)
         with open(location, "w+") as fd:
             fd.write(cert)
         os.chmod(location, 0o444)
