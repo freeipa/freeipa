@@ -4,11 +4,16 @@
 
 import re
 import time
+import pytest
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
+from env_config import get_global_config
 
+config = get_global_config()
+reasoning = "Topology plugin disabled due to domain level 0"
 
+@pytest.mark.skipif(config.domain_level == 0, reason=reasoning)
 class TestTopologyOptions(IntegrationTest):
     num_replicas = 2
     topology = 'star'
