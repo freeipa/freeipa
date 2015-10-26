@@ -127,20 +127,38 @@ Finally load the kernel modules::
 Mac OS X
 ^^^^^^^^
 
-**TODO**
+Install Vagrant for Mac OS X from
+https://www.vagrantup.com/downloads.html.
+
+Install VirtualBox 4.3 for **OS X hosts** from
+https://www.virtualbox.org/wiki/Download_Old_Builds_4_3.
+
+Install Git from https://git-scm.com/download/mac or via your
+preferred package manager.
 
 
 Debian / Ubuntu
 ^^^^^^^^^^^^^^^
 
-Install Vagrant::
+Install Vagrant and Git::
 
-  $ sudo apt-get install -y vagrant
+  $ sudo apt-get install -y vagrant git
 
-If **VirtualBox 4.3** is available in the official packages for your
-distribution and release, install it from there.  Otherwise follow
-the instructions at https://www.virtualbox.org/wiki/Linux_Downloads
-to install it.
+**Virtualbox 4.3** may be available from the system package manager,
+depending your your release.  Find out which version of VirtualBox is
+available::
+
+  $ apt list virtualbox
+  Listing... done
+  virtualbox/trusty-updates,trusty-security 4.3.10-dfsg-1ubuntu5 amd64
+
+If version 4.3 is available, install it via ``apt-get``::
+
+  $ sudo apt-get install -y virtualbox
+
+If VirtualBox 4.3 was not available in the official packages for
+your release, follow the instructions at
+https://www.virtualbox.org/wiki/Linux_Downloads to install it.
 
 
 Windows
@@ -174,6 +192,14 @@ so it may not be feasible to download it during the workshop.
 ::
 
   $ vagrant box add ftweedal/freeipa-workshop
+
+
+If you are running an older version of Vagrant that does not know
+about the *Atlas* service where the box is hosted, you can add it
+by URL instead::
+
+  $ vagrant box add ftweedal/freeipa-workshop \
+      https://atlas.hashicorp.com/ftweedal/boxes/freeipa-workshop/versions/0.0.4/providers/virtualbox.box
 
 
 Add hosts file entries
