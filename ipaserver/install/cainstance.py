@@ -1530,7 +1530,7 @@ class CAInstance(DogtagInstance):
                           ca_type=None):
         """Creates a replica CA, creating a local DS backend and using
         the topology plugin to manage replication.
-        Requires domain_level >=1 and custodia on the master.
+        Requires domain_level >= DOMAIN_LEVEL_1 and custodia on the master.
         """
         self.ds_port = DEFAULT_DSPORT
         self.master_host = master_host

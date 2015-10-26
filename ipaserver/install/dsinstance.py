@@ -175,7 +175,7 @@ def get_domain_level(api=api):
     try:
         entry = conn.get_entry(dn, ['ipaDomainLevel'])
     except errors.NotFound:
-        return 0
+        return constants.DOMAIN_LEVEL_0
     return int(entry.single_value['ipaDomainLevel'])
 
 

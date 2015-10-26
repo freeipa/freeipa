@@ -41,12 +41,12 @@ from ipapython import version
 from ipalib import api
 from ipalib import errors
 from ipaplatform.paths import paths
-from ipalib.constants import CACERT, MIN_DOMAIN_LEVEL
+from ipalib.constants import CACERT, DOMAIN_LEVEL_0
 
 
 UNSUPPORTED_DOMAIN_LEVEL_TEMPLATE = """
 Replica creation using '{command_name}' to generate replica file
-is supported only in {min_domain_level}-level IPA domain.
+is supported only in {domain_level}-level IPA domain.
 
 The current IPA domain level is {curr_domain_level} and thus the replica must
 be created by promoting an existing IPA client.
@@ -692,10 +692,10 @@ class ReplicaPrepare(admintool.AdminTool):
 
     def check_domainlevel(self, api):
         domain_level = dsinstance.get_domain_level(api)
-        if domain_level > MIN_DOMAIN_LEVEL:
+        if domain_level > DOMAIN_LEVEL_0:
             raise RuntimeError(
                 UNSUPPORTED_DOMAIN_LEVEL_TEMPLATE.format(
                     command_name=self.command_name,
-                    min_domain_level=MIN_DOMAIN_LEVEL,
+                    domain_level=DOMAIN_LEVEL_0,
                     curr_domain_level=domain_level)
             )

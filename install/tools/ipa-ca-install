@@ -33,6 +33,7 @@ from ipaserver.install import cainstance, custodiainstance, service
 from ipapython import dogtag
 from ipapython import version
 from ipalib import api
+from ipalib.constants import DOMAIN_LEVEL_0
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import *
@@ -108,7 +109,7 @@ def get_dirman_password():
 
 def install_replica(safe_options, options, filename):
     domain_level = dsinstance.get_domain_level(api)
-    if domain_level > 0:
+    if domain_level > DOMAIN_LEVEL_0:
         options.promote = True
     else:
         options.promote = False

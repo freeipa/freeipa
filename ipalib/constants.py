@@ -234,8 +234,12 @@ LDAP_GENERALIZED_TIME_FORMAT = "%Y%m%d%H%M%SZ"
 IPA_ANCHOR_PREFIX = ':IPA:'
 SID_ANCHOR_PREFIX = ':SID:'
 
-MIN_DOMAIN_LEVEL = 0
-MAX_DOMAIN_LEVEL = 1
+# domains levels
+DOMAIN_LEVEL_0 = 0  # compat
+DOMAIN_LEVEL_1 = 1  # replica promotion, topology plugin
+
+MIN_DOMAIN_LEVEL = DOMAIN_LEVEL_0
+MAX_DOMAIN_LEVEL = DOMAIN_LEVEL_1
 
 # Constants used in generation of replication agreements and as topology
 # defaults

@@ -37,7 +37,7 @@ from ipaserver.install import bindinstance, cainstance, certs
 from ipaserver.install import opendnssecinstance, dnskeysyncinstance
 from ipapython import version, ipaldap
 from ipalib import api, errors, util
-from ipalib.constants import CACERT
+from ipalib.constants import CACERT, DOMAIN_LEVEL_0
 from ipalib.util import create_topology_graph, get_topology_connection_errors
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
@@ -804,7 +804,8 @@ def del_master_managed(realm, hostname, options):
 
 def del_master_direct(realm, hostname, options):
     """
-    Removing of master for realm without managed topology (domain level < 1)
+    Removing of master for realm without managed topology
+    (domain level < DOMAIN_LEVEL_1)
     """
 
     force_del = False
@@ -1349,8 +1350,8 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
             sys.exit("Updating range failed: %s" % e)
 
 def has_managed_topology():
-    domainlevel = api.Command['domainlevel_get']().get('result', 0)
-    return domainlevel > 0
+    domainlevel = api.Command['domainlevel_get']().get('result', DOMAIN_LEVEL_0)
+    return domainlevel > DOMAIN_LEVEL_0
 
 def exit_on_managed_topology(what):
     sys.exit("{0} is deprecated with managed IPA replication topology. "
