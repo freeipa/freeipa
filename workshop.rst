@@ -5,7 +5,8 @@ FreeIPA_ is a centralised identity management system.  In this
 workshop you will learn how to deploy FreeIPA servers and enrol
 client machines, define and manage user and service identities, set
 up access policies, configure network services to take advantage of
-FreeIPA's authentication and authorisation capabilities.
+FreeIPA's authentication and authorisation facilities and issue
+X.509 certificates for services.
 
 .. _FreeIPA: http://www.freeipa.org/page/Main_Page
 
@@ -18,6 +19,7 @@ Curriculum overview
 - Module 3: User creation and administration, Kerberos authentication
 - Module 4: Host-Based Access Control (HBAC)
 - Module 5: Authorisation and authentication for web applications
+- Module 6: Certificate management
 
 
 Editing files on VMs
@@ -706,10 +708,6 @@ existing host in the directory.
 You must be getting the hang of FreeIPA by now, so I'll leave the
 rest of this step up to you.  (It's OK to ask for help!)
 
-**Note:** if FreeIPA complains that the *Host does not have
-corresponding DNS A/AAAA record* use the ``--force`` flag to force
-the service to be added.
-
 
 Retrieve Kerberos keytab
 ------------------------
@@ -969,3 +967,140 @@ Restart Apache and try and perform the same ``curl`` request again
 as ``alice``.  Everything should work as before because ``alice`` is
 a member of the ``sysadmin`` group.  What happens when you are
 authenticated as ``bob`` instead?
+
+
+Module 6: Certificate management
+================================
+
+You probably noticed that the web service was not hosted over HTTPS,
+so there is no TLS-based authentication or confidentiality.  In this
+module, we will issue an X.509 certificate for the web service via
+the *certmonger* program.
+
+Certmonger supports multiple CAs including FreeIPA's CA, and can
+generate keys, issue certifiate requests, track certificates and
+renew tracked certificates when the expiration time approaches.
+Certmonger works with NSS so we will also use ``mod_nss`` with
+Apache, rather than ``mod_ssl``.
+
+Let's start by observing that the HTTP service does not yet have a
+certificate::
+
+  [client]$ ipa service-show HTTP/client.ipademo.local
+    Principal: HTTP/client.ipademo.local@IPADEMO.LOCAL
+    Keytab: True
+    Managed by: client.ipademo.local
+
+Enable and start certmonger::
+
+  [client]$ sudo systemctl enable certmonger
+  Created symlink from /etc/systemd/system/multi-user.target.wants/certmonger.service to /usr/lib/systemd/system/certmonger.service.
+  [client]$ sudo systemctl start certmonger
+
+Now let's request a certificate.  ``mod_nss`` is already configured
+to use the certificate database at ``/etc/httpd/alias`` so we tell
+certmonger to generate the key and add the certificate in that
+database::
+
+  [client]$ sudo ipa-getcert request -d /etc/httpd/alias -n app \
+      -K HTTP/client.ipademo.local -U id-kp-serverAuth
+  New signing request "20151026222558" added.
+
+Let's break down some of those command arguments.
+
+``-d <path>``
+  Path to NSS database
+``-n <nickname>``
+  *Nickname* to use for key and certificate
+``-K <principal>``
+  Kerberos service principal; because different kinds of services may
+  be accessed at one hostname, this argument is needed to tell
+  certmonger which service principal is the subject
+``-U id-kp-serverAuth``
+  Add an *extended key usage* certificate extension request
+  asserting that the certificate is for TLS WWW authentication.
+
+Another important argument is ``-N <subject-name>`` but this
+defaults to the system hostname which in our case
+(``client.ipademo.local``) was appropriate.
+
+Let's check the status of our certificate request using the tracking
+identifier given in the ``ipa-getcert request`` output::
+
+  [client]$ sudo getcert list -i 20151026222558
+  Number of certificates and requests being tracked: 1.
+  Request ID '20151026222558':
+          status: MONITORING
+          stuck: no
+          key pair storage: type=NSSDB,location='/etc/httpd/alias',nickname='app',token='NSS Certificate DB'
+          certificate: type=NSSDB,location='/etc/httpd/alias',nickname='app',token='NSS Certificate DB'
+          CA: IPA
+          issuer: CN=Certificate Authority,O=IPADEMO.LOCAL
+          subject: CN=client.ipademo.local,O=IPADEMO.LOCAL
+          expires: 2017-10-26 22:26:00 UTC
+          principal name: HTTP/client.ipademo.local@IPADEMO.LOCAL
+          key usage: digitalSignature,nonRepudiation,keyEncipherment,dataEncipherment
+          eku: id-kp-serverAuth,id-kp-clientAuth
+          pre-save command: 
+          post-save command: 
+          track: yes
+          auto-renew: yes
+
+Observe that the certificate was issued and that certmonger is now
+``MONITORING`` the certificate and will ``auto-renew`` it when it is
+close to expiration.  Now if you run ``ipa service-show`` you will
+see a number of attributes related to the certificate, including the
+certificate itself.  Can you work out how to save the PEM-encoded
+certificate to a file?
+
+You can also see that the certificate is present in the NSS
+database, identified by the specified nickname::
+
+  [client]# sudo certutil -d /etc/httpd/alias -L -n app
+  Certificate:
+      Data:
+          Version: 3 (0x2)
+          Serial Number: 11 (0xb)
+          Signature Algorithm: PKCS #1 SHA-256 With RSA Encryption
+          Issuer: "CN=Certificate Authority,O=IPADEMO.LOCAL"
+          Validity:
+              Not Before: Mon Oct 26 22:26:00 2015
+              Not After : Thu Oct 26 22:26:00 2017
+          Subject: "CN=client.ipademo.local,O=IPADEMO.LOCAL"
+    ...
+
+
+Now we can reconfigure Apache to serve our app over TLS.  Update
+``app.conf`` to listen on port 443 and add the NSS directives::
+
+  ...
+
+  Listen 443
+
+  <VirtualHost *:443>
+      NSSEngine on
+      NSSCertificateDatabase /etc/httpd/alias
+      NSSNickname app
+      NSSCipherSuite +rsa_rc4_128_md5,+rsa_rc4_128_sha,+rsa_3des_sha,-rsa_des_sha,-rsa_rc4_40_md5,-rsa_rc2_40_md5,-rsa_null_md5,-rsa_null_sha,+fips_3des_sha,-fips_des_sha,-fortezza,-fortezza_rc4_128_sha,-fortezza_null,-rsa_des_56_sha,-rsa_rc4_56_sha,+rsa_aes_128_sha,+rsa_aes_256_sha
+
+      ServerName client.ipademo.local
+      ...
+
+
+Restart Apache and make a request to the app over HTTPS::
+
+  [client]$ sudo systemctl restart httpd
+  [client]$ curl -u : --negotiate https://client.ipademo.local
+  LOGGED IN AS: alice@IPADEMO.LOCAL
+
+  REMOTE_* REQUEST VARIABLES:
+
+    REMOTE_USER_MAIL: alice@ipademo.local
+    REMOTE_USER_GECOS: Alice Able
+    REMOTE_USER: alice@IPADEMO.LOCAL
+    REMOTE_USER_GROUP_N: 1
+    REMOTE_ADDR: 192.168.33.20
+    REMOTE_USER_FIRSTNAME: Alice
+    REMOTE_USER_LASTNAME: Able
+    REMOTE_USER_GROUP_1: ipausers
+    REMOTE_PORT: 47894
