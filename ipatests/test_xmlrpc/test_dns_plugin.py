@@ -4319,7 +4319,9 @@ class test_forward_zones(Declarative):
         dict(
             desc='Try to disable non-existent forward zone',
             command=('dnsforwardzone_disable', [nonexistent_fwzone], {}),
-            expected=errors.NotFound(reason="no such entry")
+            expected=errors.NotFound(
+                reason=u'%s: DNS forward zone not found' % nonexistent_fwzone
+                )
         ),
 
 
@@ -4364,7 +4366,9 @@ class test_forward_zones(Declarative):
         dict(
             desc='Try to enable non-existent forward zone',
             command=('dnsforwardzone_enable', [nonexistent_fwzone], {}),
-            expected=errors.NotFound(reason="no such entry")
+            expected=errors.NotFound(
+                reason=u'%s: DNS forward zone not found' % nonexistent_fwzone
+                )
         ),
 
     ]

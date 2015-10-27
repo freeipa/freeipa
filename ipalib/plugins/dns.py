@@ -2231,7 +2231,11 @@ class DNSZoneBase_disable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(*keys, **options)
-        entry = ldap.get_entry(dn, ['idnszoneactive', 'objectclass'])
+        try:
+            entry = ldap.get_entry(dn, ['idnszoneactive', 'objectclass'])
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
         if not _check_entry_objectclass(entry, self.obj.object_class):
             self.obj.handle_not_found(*keys)
 
@@ -2252,7 +2256,11 @@ class DNSZoneBase_enable(LDAPQuery):
         ldap = self.obj.backend
 
         dn = self.obj.get_dn(*keys, **options)
-        entry = ldap.get_entry(dn, ['idnszoneactive', 'objectclass'])
+        try:
+            entry = ldap.get_entry(dn, ['idnszoneactive', 'objectclass'])
+        except errors.NotFound:
+            self.obj.handle_not_found(*keys)
+
         if not _check_entry_objectclass(entry, self.obj.object_class):
             self.obj.handle_not_found(*keys)
 
