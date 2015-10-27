@@ -215,13 +215,13 @@ class ADTRUSTInstance(service.Service):
 
         try:
             admin_entry = self.admin_conn.get_entry(admin_dn)
-        except:
+        except errors.NotFound:
             self.print_msg("IPA admin object not found")
             return
 
         try:
             admin_group_entry = self.admin_conn.get_entry(admin_group_dn)
-        except:
+        except errors.NotFound:
             self.print_msg("IPA admin group object not found")
             return
 
@@ -232,7 +232,7 @@ class ADTRUSTInstance(service.Service):
                 self.admin_conn.modify_s(admin_dn, \
                             [(ldap.MOD_ADD, "objectclass", self.OBJC_USER), \
                              (ldap.MOD_ADD, self.ATTR_SID, dom_sid + "-500")])
-            except:
+            except Exception:
                 self.print_msg("Failed to modify IPA admin object")
 
         if admin_group_entry.single_value.get(self.ATTR_SID):
@@ -242,7 +242,7 @@ class ADTRUSTInstance(service.Service):
                 self.admin_conn.modify_s(admin_group_dn, \
                             [(ldap.MOD_ADD, "objectclass", self.OBJC_GROUP), \
                              (ldap.MOD_ADD, self.ATTR_SID, dom_sid + "-512")])
-            except:
+            except Exception:
                 self.print_msg("Failed to modify IPA admin group object")
 
     def __add_default_trust_view(self):
@@ -313,7 +313,7 @@ class ADTRUSTInstance(service.Service):
         try:
             mod = [(ldap.MOD_ADD, self.ATTR_FALLBACK_GROUP, fb_group_dn)]
             self.admin_conn.modify_s(self.smb_dom_dn, mod)
-        except:
+        except Exception:
             self.print_msg("Failed to add fallback group to domain object")
 
     def __add_rid_bases(self):
@@ -732,7 +732,7 @@ class ADTRUSTInstance(service.Service):
         try:
             self.start()
             services.service('winbind').start()
-        except:
+        except Exception:
             root_logger.critical("CIFS services failed to start")
 
     def __stop(self):
@@ -740,13 +740,13 @@ class ADTRUSTInstance(service.Service):
         try:
             services.service('winbind').stop()
             self.stop()
-        except:
+        except Exception:
             pass
 
     def __restart_dirsrv(self):
         try:
             services.knownservices.dirsrv.restart()
-        except:
+        except Exception:
             pass
 
     def __restart_smb(self):
