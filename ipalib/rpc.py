@@ -656,7 +656,7 @@ class KerbTransport(SSLTransport):
             else:
                 connection.putrequest("POST", handler)
             headers.append(("User-Agent", self.user_agent))
-            self.send_headers(connection, headers)
+            self.send_headers(connection, headers)  # pylint: disable=E1101
             self.send_content(connection, request_body)
             return connection
 
