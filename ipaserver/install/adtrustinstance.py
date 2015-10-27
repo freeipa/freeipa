@@ -749,6 +749,12 @@ class ADTRUSTInstance(service.Service):
         except:
             pass
 
+    def __restart_smb(self):
+        try:
+            services.knownservices.smb.restart()
+        except Exception:
+            pass
+
     def __enable(self):
         self.backup_state("enabled", self.is_enabled())
         # We do not let the system start IPA components on its own,
@@ -880,6 +886,7 @@ class ADTRUSTInstance(service.Service):
         if self.add_sids:
             self.step("adding SIDs to existing users and groups",
                       self.__add_sids)
+        self.step("restarting smbd", self.__restart_smb)
 
         self.start_creation(show_service_name=False)
 
