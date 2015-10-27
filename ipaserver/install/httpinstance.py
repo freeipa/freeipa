@@ -346,32 +346,6 @@ class HTTPInstance(service.Service):
         self.import_ca_certs(db, self.ca_is_configured)
 
     def __setup_autoconfig(self):
-        target_fname = paths.PREFERENCES_HTML
-        ipautil.copy_template_file(
-            ipautil.SHARE_DIR + "preferences.html.template",
-            target_fname, self.sub_dict)
-        os.chmod(target_fname, 0o644)
-
-        # The signing cert is generated in __setup_ssl
-        db = certs.CertDB(self.realm, subject_base=self.subject_base)
-        with open(db.passwd_fname) as pwdfile:
-            pwd = pwdfile.read()
-
-        # Setup configure.jar
-        if db.has_nickname('Signing-Cert'):
-            tmpdir = tempfile.mkdtemp(prefix="tmp-")
-            target_fname = paths.CONFIGURE_JAR
-            shutil.copy(paths.PREFERENCES_HTML, tmpdir)
-            db.run_signtool(["-k", "Signing-Cert",
-                            "-Z", target_fname,
-                            "-e", ".html", "-p", pwd,
-                            tmpdir])
-            shutil.rmtree(tmpdir)
-            os.chmod(target_fname, 0o644)
-        else:
-            root_logger.warning('Object-signing certificate was not found; '
-                'therefore, configure.jar was not created.')
-
         self.setup_firefox_extension(self.realm, self.domain)
 
     def setup_firefox_extension(self, realm, domain):

@@ -473,13 +473,11 @@ mkdir -p %{buildroot}%{_sysconfdir}/httpd/conf.d/
 /bin/touch %{buildroot}%{_sysconfdir}/httpd/conf.d/ipa-rewrite.conf
 mkdir -p %{buildroot}%{_usr}/share/ipa/html/
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/ca.crt
-/bin/touch %{buildroot}%{_usr}/share/ipa/html/configure.jar
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/kerberosauth.xpi
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krb.con
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krb.js
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krb5.ini
 /bin/touch %{buildroot}%{_usr}/share/ipa/html/krbrealm.con
-/bin/touch %{buildroot}%{_usr}/share/ipa/html/preferences.html
 mkdir -p %{buildroot}%{_initrddir}
 mkdir %{buildroot}%{_sysconfdir}/sysconfig/
 install -m 644 init/ipa_memcached.conf %{buildroot}%{_sysconfdir}/sysconfig/ipa_memcached
@@ -840,13 +838,11 @@ fi
 %{_usr}/share/ipa/ipa-pki-proxy.conf
 %{_usr}/share/ipa/kdcproxy.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_usr}/share/ipa/html/ca.crt
-%ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/configure.jar
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/kerberosauth.xpi
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb.con
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb.js
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krb5.ini
 %ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/krbrealm.con
-%ghost %attr(0644,root,apache) %{_usr}/share/ipa/html/preferences.html
 %dir %{_usr}/share/ipa/updates/
 %{_usr}/share/ipa/updates/*
 %attr(755,root,root) %{plugin_dir}/libipa_pwd_extop.so

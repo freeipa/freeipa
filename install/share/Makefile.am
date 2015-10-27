@@ -54,7 +54,6 @@ app_DATA =				\
 	krb.con.template		\
 	krb.js.template			\
 	krbrealm.con.template		\
-	preferences.html.template	\
 	smb.conf.template		\
 	smb.conf.empty			\
 	referint-conf.ldif		\

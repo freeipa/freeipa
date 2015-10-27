@@ -456,12 +456,6 @@ class ReplicaPrepare(admintool.AdminTool):
         self.log.info("Copying additional files")
 
         self.copy_info_file(CACERT, "ca.crt")
-        preferences_filename = paths.PREFERENCES_HTML
-        if ipautil.file_exists(preferences_filename):
-            self.copy_info_file(preferences_filename, "preferences.html")
-        jar_filename = paths.CONFIGURE_JAR
-        if ipautil.file_exists(jar_filename):
-            self.copy_info_file(jar_filename, "configure.jar")
         cacert_filename = paths.CACERT_PEM
         if ipautil.file_exists(cacert_filename):
             self.copy_info_file(cacert_filename, "cacert.pem")

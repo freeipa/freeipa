@@ -163,18 +163,6 @@ def install_http(config, auto_redirect, promote=False):
         ca_is_configured=ipautil.file_exists(config.dir + "/cacert.p12"),
         promote=promote)
 
-    # Now copy the autoconfiguration files
-    try:
-        if ipautil.file_exists(config.dir + "/preferences.html"):
-            shutil.copy(config.dir + "/preferences.html",
-                        paths.PREFERENCES_HTML)
-        if ipautil.file_exists(config.dir + "/configure.jar"):
-            shutil.copy(config.dir + "/configure.jar",
-                        paths.CONFIGURE_JAR)
-    except Exception as e:
-        print("error copying files: " + str(e))
-        sys.exit(1)
-
     http.setup_firefox_extension(config.realm_name, config.domain_name)
 
     return http

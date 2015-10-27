@@ -10,18 +10,6 @@
                 $(document).ready(function() {
                     var domain = '.' + (IPA_DOMAIN || 'example.com');
                     $('.example-domain').text(domain);
-
-                    var browser = IPA.browser_config.get_browser();
-                    if (browser.mozilla) {
-                        var ff_config = $("#configurefirefox");
-                        var obj = $('<object/>', {
-                            type: 'text/html',
-                            'class': 'browser-config'
-                        });
-                        obj.prop('data', 'jar:/ipa/errors/configure.jar!/preferences.html');
-                        obj.appendTo(ff_config);
-                        ff_config.show();
-                    }
                 });
             }
 
@@ -63,6 +51,9 @@
 
         <ol>
             <li>
+                Import <a href="ca.crt">CA certificate</a>. Make sure you checked all three checkboxes.
+            </li>
+            <li>
                 In the address bar of Firefox, type <code>about:config</code> to display the list of current configuration options.
             </li>
             <li>
@@ -75,16 +66,6 @@
                 Enter the name of the domain against which you want to authenticate, for example, <code class="example-domain">.example.com.</code>
             </li>
             <li><strong> You are all set. </strong></li>
-        </ol>
-
-        <h3>Automatic Configuration of older versions</h3>
-        <p>You can configure older versions of Firefox (up to version 14) using signed code. Use <a href="browserconfig.html">Firefox configuration page</a> for newer versions.</p>
-        <ol>
-            <li>Import <a href="ca.crt">CA certificate</a>. Make sure you checked all three checkboxes.</li>
-            <li>
-                Click on "Configure Browser" button below.
-                <div id="configurefirefox" style="display:none"></div>
-            </li>
         </ol>
 
         <h2>Chrome</h2>
