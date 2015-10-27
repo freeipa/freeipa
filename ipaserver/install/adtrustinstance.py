@@ -34,6 +34,7 @@ from ipaserver.install import service
 from ipaserver.install import installutils
 from ipaserver.install.bindinstance import get_rr, add_rr, del_rr, \
                                            dns_zone_exists
+from ipaserver.install.replication import wait_for_task
 from ipalib import errors, api
 from ipalib.util import normalize_zone
 from ipapython.dn import DN
@@ -469,13 +470,24 @@ class ADTRUSTInstance(service.Service):
 
     def __add_sids(self):
         """
-        Add SIDs for existing users and groups
+        Add SIDs for existing users and groups. Make sure the task is finished
+        before continuing.
         """
 
         try:
+            # Start the sidgen task
             self._ldap_mod("ipa-sidgen-task-run.ldif", self.sub_dict)
-        except:
-            pass
+
+            # Notify the user about the possible delay
+            self.print_msg("This step may take considerable amount of time, please wait..")
+
+            # Wait for the task to complete
+            task_dn = DN('cn=sidgen,cn=ipa-sidgen-task,cn=tasks,cn=config')
+            wait_for_task(self.admin_conn, task_dn)
+
+        except Exception as e:
+            root_logger.warning("Exception occured during SID generation: {0}"
+                                .format(str(e)))
 
     def __add_s4u2proxy_target(self):
         """
