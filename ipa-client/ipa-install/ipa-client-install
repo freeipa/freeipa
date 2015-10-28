@@ -182,7 +182,7 @@ def parse_options():
                            help="Automount location")
     basic_group.add_option("--configure-firefox", dest="configure_firefox",
                             action="store_true", default=False,
-                            help="configure Firefox")
+                            help="configure Firefox to use IPA domain credentials")
     basic_group.add_option("--firefox-dir", dest="firefox_dir", default=None,
                             help="specify directory where Firefox is installed (for example: '/usr/lib/firefox')")
     basic_group.add_option("--ip-address", dest="ip_addresses", default=[],
