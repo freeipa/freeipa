@@ -763,7 +763,7 @@ def user_input(prompt, default = None, allow_empty = True):
             try:
                 ret = input("%s: " % prompt)
                 if allow_empty or ret.strip():
-                    return ret
+                    return ret.strip()
             except EOFError:
                 if allow_empty:
                     return ''
@@ -776,7 +776,7 @@ def user_input(prompt, default = None, allow_empty = True):
                 if not ret and (allow_empty or default):
                     return default
                 elif ret.strip():
-                    return ret
+                    return ret.strip()
             except EOFError:
                 return default
 
@@ -785,6 +785,7 @@ def user_input(prompt, default = None, allow_empty = True):
         while True:
             try:
                 ret = input("%s [%s]: " % (prompt, choice))
+                ret = ret.strip()
                 if not ret:
                     return default
                 elif ret.lower()[0] == "y":
@@ -798,6 +799,7 @@ def user_input(prompt, default = None, allow_empty = True):
         while True:
             try:
                 ret = input("%s [%s]: " % (prompt, default))
+                ret = ret.strip()
                 if not ret:
                     return default
                 ret = int(ret)
