@@ -1128,7 +1128,7 @@ exp.facet = IPA.facet = function(spec, no_init) {
 };
 
 /**
- * Facet header
+ * Facet header which is intended to be used in non-entity facets
  *
  * Widget-like object which purpose is to render facet's header.
  *
@@ -1139,14 +1139,16 @@ exp.facet = IPA.facet = function(spec, no_init) {
  * - action list
  * - facet tabs
  *
- * @class facet.facet_header
- * @alternateClassName IPA.facet_header
+ * @class facet.simple_facet_header
  */
-exp.facet_header = IPA.facet_header = function(spec) {
+exp.simple_facet_header = function(spec) {
 
     spec = spec || {};
 
     var that = IPA.object();
+
+    that.init_group_names = spec.init_group_names != undefined ?
+        spec.init_group_names : false;
 
     /**
      * Facet this header belongs to
@@ -1181,11 +1183,13 @@ exp.facet_header = IPA.facet_header = function(spec) {
 
         if (!that.facet.tabs_in_sidebar) {
             that.tabs_widget = new exp.FacetGroupsWidget({
-                facet: this.facet
+                facet: this.facet,
+                init_group_names: that.init_group_names
             });
         } else {
             that.tabs_widget = new exp.FacetGroupsWidget({
                 facet: this.facet,
+                init_group_names: that.init_group_names,
                 css_class: '',
                 group_el_type: '<div/>',
                 group_class: '',
@@ -1249,6 +1253,125 @@ exp.facet_header = IPA.facet_header = function(spec) {
         };
         that.title_widget.update(title_info);
     };
+
+    that.update_breadcrumb = function(pkey) {
+        // doesn't support breadcrumb
+        return;
+    };
+
+
+    that.create_facet_groups = function(container) {
+        var facet_groups = that.get_facet_groups();
+        this.tabs_widget.groups = facet_groups;
+        var tabs = this.tabs_widget.render();
+        container.append(tabs);
+    };
+
+    /**
+     * Get facet groups for current facet.
+     *
+     * @return {Array} Array of facet groups
+     */
+    that.get_facet_groups = function() {
+        if (that.facet.facet_groups) {
+            return that.facet.facet_groups;
+        }
+        return [];
+    };
+
+    /**
+     * Create header's HTML
+     * @param {jQuery} container
+     */
+    that.create = function(container) {
+
+        that.container = container;
+
+        if (!that.facet.disable_breadcrumb) {
+            that.breadcrumb = $('<ol/>', {
+                'class': 'breadcrumb'
+            }).appendTo(container);
+            that.update_breadcrumb('');
+        }
+
+        that.title_widget.create(container);
+        that.title_widget.update({ text: that.facet.label });
+
+        if (!that.facet.disable_facet_tabs) {
+
+            var tab_cont = container;
+            if (that.facet.tabs_in_sidebar) {
+                tab_cont = that.facet.sidebar_el;
+            }
+            that.create_facet_groups(tab_cont);
+            $(window).trigger('resize');
+        }
+    };
+
+    /**
+     * Reflect facet's action state summary into title widget class and icon
+     * title.
+     */
+    that.update_summary = function() {
+        var summary = that.facet.action_state.summary();
+
+        if (summary.state.length > 0) {
+            var css_class = summary.state.join(' ');
+            that.title_widget.set_class(css_class);
+            that.title_widget.set_icon_title(summary.description);
+        }
+    };
+
+    /**
+     * Compute maximum pkey length to be displayed in header
+     * @return {number} length
+     */
+    that.get_max_pkey_length = function() {
+
+        var label_w, max_pkey_w, max_pkey_l, al, al_w, icon_w, char_w, container_w;
+
+        container_w = that.container.width();
+        icon_w = that.title_widget.icon.width();
+        label_w = that.title_widget.title.width();
+        char_w = label_w / that.title_widget.title.text().length;
+        max_pkey_w = container_w - icon_w - label_w;
+        max_pkey_w -= 10; //some space correction to be safe
+        max_pkey_l = Math.ceil(max_pkey_w / char_w);
+
+        return max_pkey_l;
+    };
+
+    /**
+     * Clear displayed information
+     */
+    that.clear = function() {
+    };
+
+    that.facet_header_set_pkey = that.set_pkey;
+
+    return that;
+};
+
+/**
+ * Facet header
+ *
+ * Widget-like object which purpose is to render facet's header.
+ *
+ * By default, facet header consists of:
+ *
+ * - breadcrumb navigation
+ * - title
+ * - action list
+ * - facet tabs
+ *
+ * @class facet.facet_header
+ * @alternateClassName IPA.facet_header
+ */
+exp.facet_header = IPA.facet_header = function(spec) {
+
+    spec = spec || {};
+
+    var that = exp.simple_facet_header(spec);
 
     that.update_breadcrumb = function(pkey) {
 
@@ -1340,13 +1463,6 @@ exp.facet_header = IPA.facet_header = function(spec) {
         return bc_item;
     };
 
-    that.create_facet_groups = function(container) {
-        var facet_groups = that.get_facet_groups();
-        this.tabs_widget.groups = facet_groups;
-        var tabs = this.tabs_widget.render();
-        container.append(tabs);
-    };
-
     /**
      * Get facet groups for current facet.
      *
@@ -1362,35 +1478,6 @@ exp.facet_header = IPA.facet_header = function(spec) {
         return that.facet.entity.facet_groups.values;
     };
 
-    /**
-     * Create header's HTML
-     * @param {jQuery} container
-     */
-    that.create = function(container) {
-
-        that.container = container;
-
-        if (!that.facet.disable_breadcrumb) {
-            that.breadcrumb = $('<ol/>', {
-                'class': 'breadcrumb'
-            }).appendTo(container);
-            that.update_breadcrumb('');
-        }
-
-        that.title_widget.create(container);
-        that.title_widget.update({ text: that.facet.label });
-
-        if (!that.facet.disable_facet_tabs) {
-
-            var tab_cont = container;
-            if (that.facet.tabs_in_sidebar) {
-                tab_cont = that.facet.sidebar_el;
-            }
-            that.create_facet_groups(tab_cont);
-            $(window).trigger('resize');
-        }
-
-    };
 
     /**
      * Update displayed information with new data
@@ -1439,46 +1526,11 @@ exp.facet_header = IPA.facet_header = function(spec) {
     };
 
     /**
-     * Reflect facet's action state summary into title widget class and icon
-     * title.
-     */
-    that.update_summary = function() {
-        var summary = that.facet.action_state.summary();
-
-        if (summary.state.length > 0) {
-            var css_class = summary.state.join(' ');
-            that.title_widget.set_class(css_class);
-            that.title_widget.set_icon_title(summary.description);
-        }
-    };
-
-    /**
-     * Compute maximum pkey length to be displayed in header
-     * @return {number} length
-     */
-    that.get_max_pkey_length = function() {
-
-        var label_w, max_pkey_w, max_pkey_l, al, al_w, icon_w, char_w, container_w;
-
-        container_w = that.container.width();
-        icon_w = that.title_widget.icon.width();
-        label_w = that.title_widget.title.width();
-        char_w = label_w / that.title_widget.title.text().length;
-        max_pkey_w = container_w - icon_w - label_w;
-        max_pkey_w -= 10; //some space correction to be safe
-        max_pkey_l = Math.ceil(max_pkey_w / char_w);
-
-        return max_pkey_l;
-    };
-
-    /**
      * Clear displayed information
      */
     that.clear = function() {
         that.load();
     };
-
-    that.facet_header_set_pkey = that.set_pkey;
 
     return that;
 };
@@ -1490,6 +1542,7 @@ exp.FacetGroupsWidget = declare([], {
     group_els: null,
     el: null,
     visible: true,
+    init_group_names: false,
     css_class: 'facet-tabs',
     group_el_type: '<div/>',
     group_class: 'facet-group',
@@ -1540,6 +1593,9 @@ exp.FacetGroupsWidget = declare([], {
             text: ''
         }).appendTo(gr.label_el);
 
+        if (this.init_group_names) {
+            gr.label_title_el.text(group.label || '');
+        }
 
         var tab_cont = $(this.tab_cont_el_type, { 'class': this.tab_cont_class });
         var tab_list = $(this.tab_list_el_type, { 'class': this.tab_list_class });
@@ -1580,8 +1636,12 @@ exp.FacetGroupsWidget = declare([], {
     },
 
     on_click: function(facet) {
-        var pkeys = this.facet.get_pkeys();
-        navigation.show(facet, pkeys);
+        if (this.facet.get_pkeys) {
+            var pkeys = this.facet.get_pkeys();
+            navigation.show(facet, pkeys);
+        } else {
+            navigation.show(facet);
+        }
     },
 
     update_group: function(group_name, text, title) {
@@ -2612,7 +2672,11 @@ exp.action_holder = IPA.action_holder = function(spec) {
         }
 
         that.facet.action_state.changed.attach(that.state_changed);
-        that.facet.post_load.attach(that.on_load);
+        if (that.facet.post_load) {
+            that.facet.post_load.attach(that.on_load);
+        } else {
+            on(that.facet, 'load', that.on_load);
+        }
     };
 
     /**

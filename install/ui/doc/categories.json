@@ -114,6 +114,7 @@
             {
                 "name": "Facet internals",
                 "classes": [
+                    "facet.simple_facet_header",
                     "facet.facet_header",
                     "facet.facet_title",
                     "facet.facet_group",
