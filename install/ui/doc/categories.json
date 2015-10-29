@@ -38,6 +38,8 @@
                 "name": "Facets",
                 "classes": [
                     "facet.facet",
+                    "facets.ActionMixin",
+                    "facets.HeaderMixin",
                     "facets.Facet",
                     "*_facet",
                     "*Facet"

@@ -71,6 +71,12 @@ define(['dojo/_base/declare',
         title: null,
 
         /**
+         * Facet tab label
+         * @property {string}
+         */
+        tab_label: null,
+
+        /**
          * Facet element's CSS class
          * @property {string}
          */
@@ -124,6 +130,10 @@ define(['dojo/_base/declare',
          * @protected
          */
         state: null,
+
+        get_full_name: function() {
+            return this.name;
+        },
 
         /**
          * Checks if two objects has the same properties with equal values.
@@ -329,6 +339,7 @@ define(['dojo/_base/declare',
             this.preferred_container = spec.preferred_container;
             this.name = spec.name;
             this.label = text.get(spec.label);
+            this.tab_label = text.get(spec.tab_label || spec.label);
             this.title = text.get(spec.title || spec.label);
             this['class'] = spec['class'];
             this.container_node = spec.container_node;
