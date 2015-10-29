@@ -54,7 +54,7 @@ class server(LDAPObject):
             doc=_('IPA server hostname'),
         ),
         Str(
-            'iparepltopomanagedsuffix',
+            'iparepltopomanagedsuffix*',
             cli_name='suffix',
             label=_('Managed suffix'),
         ),

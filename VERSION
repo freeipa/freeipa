@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=158
-# Last change: mbasti - allow multiple managers: (stage)user-{add|remove}-manager commands
+IPA_API_VERSION_MINOR=159
+# Last change: pvoborni - treat server's suffix as multivalued attribute in API
