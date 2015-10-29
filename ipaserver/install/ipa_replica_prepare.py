@@ -175,7 +175,7 @@ class ReplicaPrepare(admintool.AdminTool):
         api.bootstrap(in_server=True)
         api.finalize()
 
-        self.check_domainlevel(api)
+        self.check_for_supported_domain_level()
 
         if api.env.host == self.replica_fqdn:
             raise admintool.ScriptError("You can't create a replica on itself")
@@ -690,12 +690,25 @@ class ReplicaPrepare(admintool.AdminTool):
             '-o', ca_file
         ])
 
-    def check_domainlevel(self, api):
+    def check_for_supported_domain_level(self):
+        """
+        check if we are in 0-level topology. If not, raise an error pointing
+        the user to the replica promotion pathway
+        """
+
         domain_level = dsinstance.get_domain_level(api)
         if domain_level > DOMAIN_LEVEL_0:
-            raise RuntimeError(
+            self.log.error(
                 UNSUPPORTED_DOMAIN_LEVEL_TEMPLATE.format(
                     command_name=self.command_name,
                     domain_level=DOMAIN_LEVEL_0,
-                    curr_domain_level=domain_level)
+                    curr_domain_level=domain_level
+                )
+            )
+            raise errors.InvalidDomainLevelError(
+                reason="'{command}' is allowed only in domain level "
+                "{prep_domain_level}".format(
+                    command=self.command_name,
+                    prep_domain_level=DOMAIN_LEVEL_0
+                )
             )
