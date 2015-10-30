@@ -39,6 +39,7 @@ from netaddr.core import AddrFormatError
 import six
 
 from ipalib import errors, messages
+from ipalib.constants import DOMAIN_LEVEL_0
 from ipalib.text import _
 from ipapython.ssh import SSHPublicKey
 from ipapython.dn import DN, RDN
@@ -856,3 +857,7 @@ def detect_dns_zone_realm_type(api, domain):
 
     # If we could not detect type with certainity, return unknown
     return 'unknown'
+
+def has_managed_topology(api):
+    domainlevel = api.Command['domainlevel_get']().get('result', DOMAIN_LEVEL_0)
+    return domainlevel > DOMAIN_LEVEL_0

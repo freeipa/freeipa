@@ -30,6 +30,7 @@ from ipaserver.install import (replication, installutils, bindinstance,
     cainstance, certs)
 from ipalib import api, errors
 from ipalib.constants import CACERT
+from ipalib.util import has_managed_topology
 from ipapython import ipautil, ipaldap, version, dogtag
 from ipapython.dn import DN
 
@@ -392,6 +393,19 @@ def set_renewal_master(realm, replica):
 
     print("%s is now the renewal master" % replica)
 
+
+def exit_on_managed_topology(what, hint="topologysegment"):
+    if hint == "topologysegment":
+        hinttext = ("Please use `ipa topologysegment-*` commands to manage "
+                   "the topology.")
+    elif hint == "ipa-replica-manage-del":
+        hinttext = ("Please use the `ipa-replica-manage del` command.")
+    else:
+        assert False, "Unexpected value"
+    sys.exit("{0} is deprecated with managed IPA replication topology. {1}"
+             .format(what, hinttext))
+
+
 def main():
     options, args = parse_options()
 
@@ -427,12 +441,19 @@ def main():
 
     options.dirman_passwd = dirman_passwd
 
+    api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
+                              bind_pw=options.dirman_passwd)
+
     if args[0] == "list":
         replica = None
         if len(args) == 2:
             replica = args[1]
         list_replicas(realm, host, replica, dirman_passwd, options.verbose)
     elif args[0] == "del":
+        if has_managed_topology(api):
+            exit_on_managed_topology(
+                "Removal of IPA CS replication agreement and replication data",
+                hint="ipa-replica-manage-del")
         del_master(realm, args[1], options)
     elif args[0] == "re-initialize":
         re_initialize(realm, options)
@@ -441,6 +462,8 @@ def main():
             sys.exit("force-sync requires the option --from <host name>")
         force_sync(realm, host, options.fromhost, options.dirman_passwd)
     elif args[0] == "connect":
+        if has_managed_topology(api):
+            exit_on_managed_topology("Creation of IPA CS replication agreement")
         if len(args) == 3:
             replica1 = args[1]
             replica2 = args[2]
@@ -449,6 +472,8 @@ def main():
             replica2 = args[1]
         add_link(realm, replica1, replica2, dirman_passwd, options)
     elif args[0] == "disconnect":
+        if has_managed_topology(api):
+            exit_on_managed_topology("Removal of IPA CS replication agreement")
         if len(args) == 3:
             replica1 = args[1]
             replica2 = args[2]

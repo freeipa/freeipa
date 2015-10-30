@@ -37,8 +37,9 @@ from ipaserver.install import bindinstance, cainstance, certs
 from ipaserver.install import opendnssecinstance, dnskeysyncinstance
 from ipapython import version, ipaldap
 from ipalib import api, errors, util
-from ipalib.constants import CACERT, DOMAIN_LEVEL_0
-from ipalib.util import create_topology_graph, get_topology_connection_errors
+from ipalib.constants import CACERT
+from ipalib.util import (create_topology_graph,
+    get_topology_connection_errors, has_managed_topology)
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
@@ -247,7 +248,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
     repl2 = None
     what = "Removal of IPA replication agreement"
-    managed_topology = has_managed_topology()
+    managed_topology = has_managed_topology(api)
 
     try:
         repl1 = replication.ReplicationManager(realm, replica1, dirman_passwd)
@@ -698,7 +699,7 @@ def cleanup_server_dns_entries(realm, hostname, suffix, options):
 
 def del_master(realm, hostname, options):
 
-    if has_managed_topology():
+    if has_managed_topology(api):
         del_master_managed(realm, hostname, options)
     else:
         del_master_direct(realm, hostname, options)
@@ -957,7 +958,7 @@ def add_link(realm, replica1, replica2, dirman_passwd, options):
         if os.getegid() != 0:
             root_logger.error("winsync agreements need to be created as root")
             sys.exit(1)
-    elif has_managed_topology():
+    elif has_managed_topology(api):
         exit_on_managed_topology("Creation of IPA replication agreement")
 
     try:
@@ -1349,9 +1350,6 @@ def set_DNA_range(hostname, range, realm, dirman_passwd, next_range=False,
         except Exception as e:
             sys.exit("Updating range failed: %s" % e)
 
-def has_managed_topology():
-    domainlevel = api.Command['domainlevel_get']().get('result', DOMAIN_LEVEL_0)
-    return domainlevel > DOMAIN_LEVEL_0
 
 def exit_on_managed_topology(what):
     sys.exit("{0} is deprecated with managed IPA replication topology. "
