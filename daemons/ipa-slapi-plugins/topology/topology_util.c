@@ -278,7 +278,7 @@ ipa_topo_util_setup_servers(void)
         } else {
             int i = 0;
             for (i=0;entries[i];i++) {
-                ipa_topo_cfg_host_add(entries[i]);
+                ipa_topo_util_init_hosts(entries[i]);
             }
         }
     }
@@ -1445,12 +1445,38 @@ ipa_topo_util_delete_segments_for_host(char *repl_root, char *delhost)
                     "ipa_topo_util_delete_segments_for_host <-- done\n");
 }
 
+void
+ipa_topo_util_init_hosts(Slapi_Entry *hostentry)
+{
+    char *newhost;
+    char **repl_root = NULL;
+    TopoReplica *replica = NULL;
+    int i;
+
+    newhost = slapi_entry_attr_get_charptr(hostentry,"cn");
+    if (newhost == NULL) return;
+
+    repl_root = slapi_entry_attr_get_charray(hostentry,"ipaReplTopoManagedSuffix");
+    if (repl_root == NULL || *repl_root == NULL) return;
+
+    for (i=0; repl_root[i];i++) {
+        replica = ipa_topo_cfg_replica_find(repl_root[i], 1);
+        if (replica == NULL) continue;
+
+        ipa_topo_cfg_host_add(replica, newhost);
+    }
+
+    slapi_ch_array_free(repl_root);
+    slapi_ch_free_string(&newhost);
+    return;
+}
 
 void
 ipa_topo_util_add_managed_host(char *suffix, char *addhost)
 {
     TopoReplica *conf = ipa_topo_cfg_replica_find(suffix,1);
     if (conf) {
+        ipa_topo_cfg_host_add(conf, addhost);
         ipa_topo_util_update_segments_for_host(conf, addhost);
     }
 }

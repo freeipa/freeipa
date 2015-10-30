@@ -98,12 +98,11 @@ ipa_topo_post_add(Slapi_PBlock *pb)
         break;
     }
     case TOPO_HOST_ENTRY: {
-        /* add to list of managed hosts */
-        ipa_topo_cfg_host_add(add_entry);
         /* we are adding a new master, there could be
          * a segment which so far was inactive since
          * the host was not managed
          */
+        /* It will also add to list of managed hosts */
         ipa_topo_util_add_host(add_entry);
         break;
     }
@@ -194,6 +193,8 @@ ipa_topo_post_mod(Slapi_PBlock *pb)
         break;
     }
     case TOPO_HOST_ENTRY: {
+        /* check i host needs to be added to the managed hosts
+         * and if segments need to be created */
         ipa_topo_util_update_host(mod_entry, mods);
         break;
     }

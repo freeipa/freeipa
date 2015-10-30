@@ -471,38 +471,22 @@ ipa_topo_cfg_host_new(char *newhost)
 }
 
 void
-ipa_topo_cfg_host_add(Slapi_Entry *hostentry)
+ipa_topo_cfg_host_add(TopoReplica *replica, char *newhost)
 {
-    char *newhost;
-    char **repl_root = NULL;
     TopoReplicaHost *hostnode = NULL;
-    TopoReplica *replica = NULL;
-    int i;
+    if (replica == NULL || newhost == NULL) return;
 
-    newhost = slapi_entry_attr_get_charptr(hostentry,"cn");
-    if (newhost == NULL) return;
-
-    repl_root = slapi_entry_attr_get_charray(hostentry,"ipaReplTopoManagedSuffix");
-    if (repl_root == NULL || *repl_root == NULL) return;
-
-    for (i=0; repl_root[i];i++) {
-        replica = ipa_topo_cfg_replica_find(repl_root[i], 1);
-        if (replica == NULL) continue;
-
-        slapi_lock_mutex(replica->repl_lock);
-        if (ipa_topo_cfg_host_find(replica, newhost, 0)) {
-            /* log error */
-            slapi_unlock_mutex(replica->repl_lock);
-            continue;
-        }
-        hostnode = ipa_topo_cfg_host_new(slapi_ch_strdup(newhost));
-        hostnode->next = replica->hosts;
-        replica->hosts = hostnode;
+    slapi_lock_mutex(replica->repl_lock);
+    if (ipa_topo_cfg_host_find(replica, newhost, 0)) {
+        /* host already added */
         slapi_unlock_mutex(replica->repl_lock);
+        return;
     }
+    hostnode = ipa_topo_cfg_host_new(slapi_ch_strdup(newhost));
+    hostnode->next = replica->hosts;
+    replica->hosts = hostnode;
+    slapi_unlock_mutex(replica->repl_lock);
 
-    slapi_ch_array_free(repl_root);
-    slapi_ch_free_string(&newhost);
     return;
 }
 
