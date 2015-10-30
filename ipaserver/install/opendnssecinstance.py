@@ -352,9 +352,10 @@ class OpenDNSSECInstance(service.Service):
             ods_enforcerd = services.knownservices.ods_enforcerd
             cmd = [paths.IPA_ODS_EXPORTER, 'ipa-full-update']
             try:
+                self.print_msg("Exporting DNSSEC data before uninstallation")
                 ipautil.run(cmd, runas=ods_enforcerd.get_user_name())
             except CalledProcessError:
-                root_logger.debug("OpenDNSSEC database has not been updated")
+                root_logger.error("DNSSEC data export failed")
 
             try:
                 shutil.copy(paths.OPENDNSSEC_KASP_DB,
