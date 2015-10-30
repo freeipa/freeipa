@@ -472,14 +472,18 @@ Setup complete
 
 You must make sure these network ports are open:
 \tTCP Ports:
+\t  * 135: epmap
 \t  * 138: netbios-dgm
 \t  * 139: netbios-ssn
 \t  * 445: microsoft-ds
+\t  * 1024..1300: epmap listener range
 \tUDP Ports:
 \t  * 138: netbios-dgm
 \t  * 139: netbios-ssn
 \t  * 389: (C)LDAP
 \t  * 445: microsoft-ds
+
+See the ipa-adtrust-install(1) man page for more details
 
 =============================================================================
 """)
