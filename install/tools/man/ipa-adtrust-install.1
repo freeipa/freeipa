@@ -36,6 +36,31 @@ configuration of the local range cannot be changed by running
 ipa\-adtrust\-install a second time because with changes here other objects
 might be affected as well.
 
+.SS "Firewall Requirements"
+In addition to the IPA server firewall requirements, ipa\-adtrust\-install requires
+the following ports to be open to allow IPA and Active Directory to communicate together:
+
+\fBTCP Ports\fR
+.IP
+\(bu 135/tcp EPMAP
+.IP
+\(bu 138/tcp NetBIOS-DGM
+.IP
+\(bu 139/tcp NetBIOS-SSN
+.IP
+\(bu 445/tcp Microsoft-DS
+.IP
+\(bu 1024/tcp through 1300/tcp to allow EPMAP on port 135/tcp to create a TCP listener based
+on an incoming request.
+.TP
+\fBUDP Ports\fR
+.IP
+\(bu 138/udp NetBIOS-DGM
+.IP
+\(bu 139/udp NetBIOS-SSN
+.IP
+\(bu 389/udp LDAP
+
 .SH "OPTIONS"
 .TP
 \fB\-d\fR, \fB\-\-debug\fR
