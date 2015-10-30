@@ -343,6 +343,9 @@ class OpenDNSSECInstance(service.Service):
                                    'ISMASTER', None,
                                    quotes=False, separator='=')
 
+        restore_list = [paths.OPENDNSSEC_CONF_FILE, paths.OPENDNSSEC_KASP_FILE,
+                        paths.SYSCONFIG_ODS, paths.OPENDNSSEC_ZONELIST_FILE]
+
         if ipautil.file_exists(paths.OPENDNSSEC_KASP_DB):
 
             # force to export data
@@ -358,14 +361,16 @@ class OpenDNSSECInstance(service.Service):
                             paths.IPA_KASP_DB_BACKUP)
             except IOError as e:
                 root_logger.error(
-                    "Unable to backup OpenDNSSEC database: %s", e)
+                    "Unable to backup OpenDNSSEC database %s, "
+                    "restore will be skipped: %s", paths.OPENDNSSEC_KASP_DB, e)
             else:
                 root_logger.info("OpenDNSSEC database backed up in %s",
                                  paths.IPA_KASP_DB_BACKUP)
+                # restore OpenDNSSEC's KASP DB only if backup succeeded
+                # removing the file without backup could totally break DNSSEC
+                restore_list.append(paths.OPENDNSSEC_KASP_DB)
 
-        for f in [paths.OPENDNSSEC_CONF_FILE, paths.OPENDNSSEC_KASP_FILE,
-                  paths.OPENDNSSEC_KASP_DB, paths.SYSCONFIG_ODS,
-                  paths.OPENDNSSEC_ZONELIST_FILE]:
+        for f in restore_list:
             try:
                 self.fstore.restore_file(f)
             except ValueError as error:
