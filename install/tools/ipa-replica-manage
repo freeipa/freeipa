@@ -570,46 +570,97 @@ def check_last_link(delrepl, realm, dirman_passwd, force):
     else:
         return None
 
-def check_last_link_managed(api, masters, hostname, force):
+
+def map_masters_to_suffices(masters, suffices):
+    masters_to_suffix = {}
+    suffix_name_to_root = {
+        s['iparepltopoconfroot'][0]: s['cn'][0] for s in suffices
+    }
+
+    for master in masters:
+        managed_suffices = master['iparepltopomanagedsuffix']
+        for suffix in managed_suffices:
+            suffix_name = suffix_name_to_root[suffix]
+            try:
+                masters_to_suffix[suffix_name].append(master)
+            except KeyError:
+                masters_to_suffix[suffix_name] = [master]
+
+    return masters_to_suffix
+
+
+def check_hostname_in_masters(hostname, masters):
+    master_cns = {m['cn'][0] for m in masters}
+    return hostname in master_cns
+
+
+def check_last_link_managed(api, hostname, masters, force):
     """
     Check if 'hostname' is safe to delete.
 
-    :returns: tuple with lists of current and future errors in topology
-              (current_errors, new_errors)
+    :returns: a dictionary of topology errors across all suffices in the form
+              {<suffix name>: (<original errors>,
+              <errors after removing the node>)}
     """
+    suffices = api.Command.topologysuffix_find(u'')['result']
+    suffix_to_masters = map_masters_to_suffices(masters, suffices)
+    topo_errors_by_suffix = {}
 
-    segments = api.Command.topologysegment_find(u'realm', sizelimit=0).get('result')
-    graph = create_topology_graph(masters, segments)
+    for suffix in suffices:
+        suffix_name = suffix['cn'][0]
+        suffix_members = suffix_to_masters[suffix_name]
+        print("Checking connectivity in topology suffix '{0}'".format(
+            suffix_name))
+        if not check_hostname_in_masters(hostname, suffix_members):
+            print(
+                "'{0}' is not a part of topology suffix '{1}'".format(
+                    hostname, suffix_name
+                )
+            )
+            print("Not checking connectivity")
+            continue
 
-    # check topology before removal
-    orig_errors = get_topology_connection_errors(graph)
-    if orig_errors:
-        print("Current topology is disconnected:")
-        print("Changes are not replicated to all servers and data are probably inconsistent.")
-        print("You need to add segments to reconnect the topology.")
-        print_connect_errors(orig_errors)
+        segments = api.Command.topologysegment_find(
+            suffix_name, sizelimit=0).get('result')
+        graph = create_topology_graph(suffix_to_masters[suffix_name], segments)
 
-    # after removal
-    try:
-        graph.remove_vertex(hostname)
-    except ValueError:
-        pass  # ignore already deleted master, continue to clean
+        # check topology before removal
+        orig_errors = get_topology_connection_errors(graph)
+        if orig_errors:
+            print("Current topology in suffix '{0}' is disconnected:".format(
+                suffix_name))
+            print("Changes are not replicated to all servers and data are "
+                  "probably inconsistent.")
+            print("You need to add segments to reconnect the topology.")
+            print_connect_errors(orig_errors)
 
-    new_errors = get_topology_connection_errors(graph)
-    if new_errors:
-        print("WARNING: Topology after removal of %s will be disconnected." % hostname)
-        print("Changes will not be replicated to all servers and data will become inconsistent.")
-        print("You need to add segments to prevent disconnection of the topology.")
-        print("Errors in topology after removal:")
-        print_connect_errors(new_errors)
+        # after removal
+        try:
+            graph.remove_vertex(hostname)
+        except ValueError:
+            pass  # ignore already deleted master, continue to clean
 
-    if orig_errors or new_errors:
-        if not force:
-            sys.exit("Aborted")
-        else:
-            print("Forcing removal of %s" % hostname)
+        new_errors = get_topology_connection_errors(graph)
+        if new_errors:
+            print("WARNING: Removal of '{0}' will lead to disconnected "
+                  "topology in suffix '{1}'".format(hostname, suffix_name))
+            print("Changes will not be replicated to all servers and data will"
+                  " become inconsistent.")
+            print("You need to add segments to prevent disconnection of the "
+                  "topology.")
+            print("Errors in topology after removal:")
+            print_connect_errors(new_errors)
 
-    return (orig_errors, new_errors)
+        if orig_errors or new_errors:
+            if not force:
+                sys.exit("Aborted")
+            else:
+                print("Forcing removal of %s" % hostname)
+
+        topo_errors_by_suffix[suffix_name] = (orig_errors, new_errors)
+
+    return topo_errors_by_suffix
+
 
 def print_connect_errors(errors):
     for error in errors:
@@ -725,8 +776,9 @@ def del_master_managed(realm, hostname, options):
     # 2. Get all masters
     masters = api.Command.server_find('', sizelimit=0)['result']
 
-    # 3. Check topology
-    topo_errors = check_last_link_managed(api, masters, hostname, options.force)
+    # 3. Check topology connectivity in all suffices
+    topo_errors = check_last_link_managed(
+        api, hostname, masters, options.force)
 
     # 4. Check that we are not leaving the installation without CA and/or DNS
     #    And pick new CA master.
@@ -757,57 +809,90 @@ def del_master_managed(realm, hostname, options):
 
     # 7. Clean RUV for the deleted master
     # Wait for topology plugin to delete segments
-    i = 0
-    m_cns = [m['cn'][0] for m in masters]  # masters before removal
-    while True:
-        left = api.Command.topologysegment_find(
-            u'realm', iparepltoposegmentleftnode=hostname_u, sizelimit=0)['result']
-        right = api.Command.topologysegment_find(
-            u'realm', iparepltoposegmentrightnode=hostname_u, sizelimit=0)['result']
-
-        # If the server was already deleted, we can expect that all removals
-        # had been done in previous run and dangling segments were not deleted.
-        if hostname not in m_cns:
-            print("Skipping replication agreement deletion check")
-            break
-
-        # Relax check if topology was or is disconnected. Disconnected topology
-        # can contain segments with already deleted servers. Check only if
-        # segments of servers, which can contact this server, and the deleted
-        # server were removed.
-        # This code should handle a case where there was a topology with
-        # a central node(B):  A <-> B <-> C, where A is current server.
-        # After removal of B, topology will be disconnected and removal of
-        # segment B <-> C won't be replicated back to server A, therefore
-        # presence of the segment has to be ignored.
-        if topo_errors[0] or topo_errors[1]:
-            # use errors after deletion because we don't care if some server
-            # can't contact the deleted one
-            cant_contact_me = [e[0] for e in topo_errors[1] if options.host in e[2]]
-            can_contact_me = set(m_cns) - set(cant_contact_me)
-            left = [s for s in left if s['iparepltoposegmentrightnode'][0] in can_contact_me]
-            right = [s for s in right if s['iparepltoposegmentleftnode'][0] in can_contact_me]
-
-        if not left and not right:
-            print("Agreements deleted")
-            break
-        time.sleep(2)
-        if i == 2: # taking too long, something is wrong, report
-            print("Waiting for removal of replication agreements")
-        if i > 90:
-            print("Taking too long, skipping")
-            print("Following segments were not deleted:")
-            for s in left:
-                print("  %s" % s['cn'][0])
-            for s in right:
-                print("  %s" % s['cn'][0])
-            break
-        i += 1
+    check_deleted_segments(hostname_u, masters, topo_errors, options.host)
 
     # Clean RUV is handled by the topolgy plugin
 
     # 8. And clean up the removed replica DNS entries if any.
     cleanup_server_dns_entries(realm, hostname, thisrepl.suffix, options)
+
+
+def check_deleted_segments(hostname, masters, topo_errors, starting_host):
+
+    def wait_for_segment_removal(hostname, master_cns, suffix_name,
+                                 topo_errors):
+        i = 0
+        while True:
+            left = api.Command.topologysegment_find(
+                suffix_name, iparepltoposegmentleftnode=hostname, sizelimit=0
+            )['result']
+            right = api.Command.topologysegment_find(
+                suffix_name, iparepltoposegmentrightnode=hostname, sizelimit=0
+            )['result']
+
+            # Relax check if topology was or is disconnected. Disconnected
+            # topology can contain segments with already deleted servers.
+            # Check only if segments of servers, which can contact this server,
+            # and the deleted server were removed.
+            # This code should handle a case where there was a topology with
+            # a central node(B):  A <-> B <-> C, where A is current server.
+            # After removal of B, topology will be disconnected and removal of
+            # segment B <-> C won't be replicated back to server A, therefore
+            # presence of the segment has to be ignored.
+            if topo_errors[0] or topo_errors[1]:
+                # use errors after deletion because we don't care if some
+                # server can't contact the deleted one
+                cant_contact_me = [e[0] for e in topo_errors[1]
+                                   if starting_host in e[2]]
+                can_contact_me = set(master_cns) - set(cant_contact_me)
+                left = [s for s in left if s['iparepltoposegmentrightnode'][0]
+                        in can_contact_me]
+                right = [s for s in right if s['iparepltoposegmentleftnode'][0]
+                         in can_contact_me]
+
+            if not left and not right:
+                print("Agreements deleted")
+                return
+            time.sleep(2)
+            if i == 2: # taking too long, something is wrong, report
+                print("Waiting for removal of replication agreements")
+            if i > 90:
+                print("Taking too long, skipping")
+                print("Following segments were not deleted:")
+                for s in left:
+                    print("  %s" % s['cn'][0])
+                for s in right:
+                    print("  %s" % s['cn'][0])
+                return
+            i += 1
+
+    if not check_hostname_in_masters(hostname, masters):
+        print("{0} not in masters, skipping agreement deletion check".format(
+            hostname))
+        return
+
+    suffices = api.Command.topologysuffix_find('', sizelimit=0)['result']
+    suffix_to_masters = map_masters_to_suffices(masters, suffices)
+
+    for suffix in suffices:
+        suffix_name = suffix['cn'][0]
+        suffix_member_cns = [
+            m['cn'][0] for m in suffix_to_masters[suffix_name]
+        ]
+
+        if hostname not in suffix_member_cns:
+            # If the server was already deleted, we can expect that all
+            # removals had been done in previous run and dangling segments
+            # were not deleted.
+            print("Skipping replication agreement deletion check for "
+                  "suffix '{0}'".format(suffix_name))
+            continue
+
+        print("Checking for deleted segments in suffix '{0}'".format(
+            suffix_name))
+        wait_for_segment_removal(hostname, suffix_member_cns, suffix_name,
+                                 topo_errors[suffix_name])
+
 
 def del_master_direct(realm, hostname, options):
     """
