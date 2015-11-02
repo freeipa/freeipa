@@ -294,6 +294,23 @@ class DNSSECMasterNotInstalled(PublicMessage):
         "until the DNSSEC key master is installed."
     )
 
+
+class DNSSuspiciousRelativeName(PublicMessage):
+    """
+    **13014** Relative name "record.zone" is being added into zone "zone.",
+    which is probably a mistake. User probably wanted to either specify
+    relative name "record" or use FQDN "record.zone.".
+    """
+
+    errno = 13014
+    type = "warning"
+    format = _(
+        "Relative record name '%(record)s' contains the zone name '%(zone)s' "
+        "as a suffix, which results in FQDN '%(fqdn)s'. This is usually a "
+        "mistake caused by a missing dot at the end of the name specification."
+    )
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """

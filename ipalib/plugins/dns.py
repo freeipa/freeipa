@@ -3522,6 +3522,24 @@ class dnsrecord(LDAPObject):
             _add_warning_fw_zone_is_not_effective(result, fwzone,
                                                   options['version'])
 
+    def warning_suspicious_relative_name(self, result, *keys, **options):
+        """Detect if zone name is suffix of relative record name and warn.
+
+        Zone name: test.zone.
+        Relative name: record.test.zone
+        """
+        record_name = keys[-1]
+        zone = keys[-2]
+        if not record_name.is_absolute() and record_name.is_subdomain(
+            zone.relativize(DNSName.root)):
+            messages.add_message(
+                options['version'],
+                result,
+                messages.DNSSuspiciousRelativeName(record=record_name,
+                                                   zone=zone,
+                                                   fqdn=record_name + zone)
+            )
+
 
 @register()
 class dnsrecord_add(LDAPCreate):
@@ -3700,6 +3718,11 @@ class dnsrecord_add(LDAPCreate):
         context.dnsrecord_entry_mods[(keys[0], keys[1])] = entry_attrs.copy()
 
         return dn
+
+    def execute(self, *keys, **options):
+        result = super(dnsrecord_add, self).execute(*keys, **options)
+        self.obj.warning_suspicious_relative_name(result, *keys, **options)
+        return result
 
     def exc_callback(self, keys, options, exc, call_func, *call_args, **call_kwargs):
         if call_func.__name__ == 'add_entry':
