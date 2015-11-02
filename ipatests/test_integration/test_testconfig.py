@@ -23,6 +23,7 @@ import copy
 from ipatests.test_integration import config
 from ipapython.ipautil import write_tmp_file
 from ipatests.util import assert_deepequal
+from ipalib.constants import MAX_DOMAIN_LEVEL
 
 DEFAULT_OUTPUT_DICT = {
     "nis_domain": "ipatest",
@@ -39,7 +40,8 @@ DEFAULT_OUTPUT_DICT = {
     "dirman_dn": "cn=Directory Manager",
     "dirman_password": "Secret123",
     "ntp_server": "ntp.clock.test",
-    "admin_password": "Secret123"
+    "admin_password": "Secret123",
+    "domain_level": MAX_DOMAIN_LEVEL
 }
 
 DEFAULT_OUTPUT_ENV = {
@@ -57,6 +59,7 @@ DEFAULT_OUTPUT_ENV = {
     "ADADMINPW": "Secret123",
     "IPv6SETUP": "",
     "IPADEBUG": "",
+    "DOMAINLVL": MAX_DOMAIN_LEVEL
 }
 
 DEFAULT_INPUT_ENV = {

@@ -79,6 +79,12 @@ def prepare_host(host):
         host.put_file_contents(env_filename, env_to_script(host.to_env()))
 
 
+def allow_sync_ptr(host):
+    kinit_admin(host)
+    host.run_command(["ipa", "dnsconfig-mod", "--allow-sync-ptr=true"],
+                     raiseonerr=False)
+
+
 def apply_common_fixes(host):
     fix_etc_hosts(host)
     fix_hostname(host)
@@ -260,7 +266,8 @@ def install_master(host, setup_dns=True, setup_kra=False):
         'ipa-server-install', '-U',
         '-r', host.domain.name,
         '-p', host.config.dirman_password,
-        '-a', host.config.admin_password
+        '-a', host.config.admin_password,
+        "--domain-level=%i" % host.config.domain_level
     ]
 
     if setup_dns:
@@ -288,6 +295,18 @@ def get_replica_filename(replica):
     return os.path.join(replica.config.test_dir, 'replica-info.gpg')
 
 
+def domainlevel(host):
+    # Dynamically determines the domainlevel on master. Needed for scenarios
+    # when domainlevel is changed during the test execution.
+    result = host.run_command(['ipa', 'domainlevel-get'], raiseonerr=False)
+    level = 0
+    domlevel_re = re.compile('.*(\d)')
+    if result.returncode == 0:
+        # "domainlevel-get" command doesn't exist on ipa versions prior to 4.3
+        level = int(domlevel_re.findall(result.stdout_text)[0])
+    return level
+
+
 def replica_prepare(master, replica):
     apply_common_fixes(replica)
     fix_apache_semaphores(replica)
@@ -306,15 +325,13 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
                     setup_kra=False):
     replica.collect_log(paths.IPAREPLICA_INSTALL_LOG)
     replica.collect_log(paths.IPAREPLICA_CONNCHECK_LOG)
-
-    replica_prepare(master, replica)
-
-    replica_filename = get_replica_filename(replica)
+    allow_sync_ptr(master)
+    # Otherwise ipa-client-install would not create a PTR
+    # and replica installation would fail
     args = ['ipa-replica-install', '-U',
             '-p', replica.config.dirman_password,
             '-w', replica.config.admin_password,
-            '--ip-address', replica.ip,
-            replica_filename]
+            '--ip-address', replica.ip]
     if setup_ca:
         args.append('--setup-ca')
     if setup_dns:
@@ -322,8 +339,18 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
             '--setup-dns',
             '--forwarder', replica.config.dns_forwarder
         ])
-    replica.run_command(args)
+    if domainlevel(master) == 0:
+        apply_common_fixes(replica)
+        # prepare the replica file on master and put it to replica, AKA "old way"
+        replica_prepare(master, replica)
+        replica_filename = get_replica_filename(replica)
+        args.append(replica_filename)
+    else:
+        # install client on a replica machine and then promote it to replica
+        install_client(master, replica)
+        fix_apache_semaphores(replica)
 
+    replica.run_command(args)
     enable_replication_debugging(replica)
     setup_sssd_debugging(replica)
 

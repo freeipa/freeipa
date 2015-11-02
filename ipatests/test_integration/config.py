@@ -26,6 +26,7 @@ import pytest_multihost.config
 
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import log_mgr
+from ipalib.constants import MAX_DOMAIN_LEVEL
 
 
 class Config(pytest_multihost.config.Config):
@@ -39,6 +40,7 @@ class Config(pytest_multihost.config.Config):
         'ad_admin_name',
         'ad_admin_password',
         'dns_forwarder',
+        'domain_level',
     }
 
     def __init__(self, **kwargs):
@@ -56,10 +58,12 @@ class Config(pytest_multihost.config.Config):
             '%s.pool.ntp.org' % random.randint(0, 3)))
         self.ad_admin_name = kwargs.get('ad_admin_name') or 'Administrator'
         self.ad_admin_password = kwargs.get('ad_admin_password') or 'Secret123'
-
+        self.domain_level = kwargs.get('domain_level', MAX_DOMAIN_LEVEL)
         # 8.8.8.8 is probably the best-known public DNS
         self.dns_forwarder = kwargs.get('dns_forwarder') or '8.8.8.8'
         self.debug = False
+        if self.domain_level is None:
+            self.domain_level = MAX_DOMAIN_LEVEL
 
     def get_domain_class(self):
         return Domain
