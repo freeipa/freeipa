@@ -22,13 +22,13 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2015-07-05 06:21-0400\n"
+"PO-Revision-Date: 2015-10-11 03:04-0400\n"
 "Last-Translator: Jérôme Fenal <jfenal@gmail.com>\n"
 "Language-Team: French (http://www.transifex.com/projects/p/freeipa/language/"
 "fr/)\n"
 "Language: fr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Zanata 3.6.2\n"
+"X-Generator: Zanata 3.7.3\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -420,7 +420,7 @@ msgstr ""
 "Version client. Utilisée pour déterminer si le serveur accepte la requête."
 
 msgid "Forward to server instead of running locally"
-msgstr "Transférer au serveur au lieu d'exécuter localement"
+msgstr "Rediriger vers le serveur au lieu d'exécuter localement"
 
 msgid "Additional instructions:"
 msgstr "Instructions complémentaires :"
@@ -439,8 +439,8 @@ msgid ""
 "You may want to use forward zones (dnsforwardzone-*) instead.\n"
 "For more details read the docs."
 msgstr ""
-"La sémantique de transfert DNS a été modifié depuis IPA 4.0.\n"
-"Utilisez à la place les zones de transfert (dnsforwardzone-*).\n"
+"La sémantique de redirection DNS a été modifié depuis IPA 4.0.\n"
+"Utilisez à la place les redirections de zones (dnsforwardzone-*).\n"
 "Pour plus de détails, lisez la documentation."
 
 #, python-format
@@ -482,9 +482,10 @@ msgid ""
 "delegation in authoritative zone \"%(authzone)s\". Please add NS record "
 "\"%(ns_rec)s\" to parent zone \"%(authzone)s\"."
 msgstr ""
-"La zone forward « %(fwzone)s » n'est pas en fonction car il lui manque une "
-"délégation NS correcte dans la zone faisant autorité « %(authzone)s ». Merci "
-"d'ajouter les enregistrement NS « %(ns_rec)s » à la zone « %(authzone)s »."
+"La zone redirigiée « %(fwzone)s » n'est pas en fonction car il lui manque "
+"une délégation NS correcte dans la zone faisant autorité « %(authzone)s ». "
+"Merci d'ajouter les enregistrement NS « %(ns_rec)s » à la zone "
+"« %(authzone)s »."
 
 #, python-format
 msgid ""
@@ -2958,6 +2959,84 @@ msgid_plural "%(count)d certificates matched"
 msgstr[0] "%(count)d certificat correspondant"
 msgstr[1] "%(count)d certificats correspondants"
 
+msgid ""
+"\n"
+"Manage Certificate Profiles\n"
+"\n"
+"Certificate Profiles are used by Certificate Authority (CA) in the signing "
+"of\n"
+"certificates to determine if a Certificate Signing Request (CSR) is "
+"acceptable,\n"
+"and if so what features and extensions will be present on the certificate.\n"
+"\n"
+"The Certificate Profile format is the property-list format understood by "
+"the\n"
+"Dogtag or Red Hat Certificate System CA.\n"
+"\n"
+"PROFILE ID SYNTAX:\n"
+"\n"
+"A Profile ID is a string without spaces or punctuation starting with a "
+"letter\n"
+"and followed by a sequence of letters, digits or underscore (\"_\").\n"
+"\n"
+"EXAMPLES:\n"
+"\n"
+"  Import a profile that will not store issued certificates:\n"
+"    ipa certprofile-import ShortLivedUserCert \\\n"
+"      --file UserCert.profile --summary \"User Certificates\" \\\n"
+"      --store=false\n"
+"\n"
+"  Delete a certificate profile:\n"
+"    ipa certprofile-del ShortLivedUserCert\n"
+"\n"
+"  Show information about a profile:\n"
+"    ipa certprofile-show ShortLivedUserCert\n"
+"\n"
+"  Search for profiles that do not store certificates:\n"
+"    ipa certprofile-find --store=false\n"
+"\n"
+msgstr ""
+"\n"
+"Gestion des profils de certificats\n"
+"\n"
+"Les profils de certificats sont utilisés par l'autorité de certification "
+"(AC) dans\n"
+"la signature de certificats afin de déterminer si une demande de signature "
+"de\n"
+"certificat (Certificate Signing Request, CSR) est acceptable, et si oui, "
+"quelles\n"
+"fonctionnalités et extensions doivent figurer dans le certificat.\n"
+"\n"
+"Le format du profil de certificat est un format de liste de propriétés qui "
+"sera\n"
+"compris par un autorité de certification Dogtag ou Red Hat Certificate "
+"System.\n"
+"\n"
+"SYNTAXE DE L'IDENTIFIANT DE PROFIL :\n"
+"\n"
+"Un identifiant de profil est une chaîne de caractères sans espaces ni "
+"caractère de\n"
+"ponctuation débutant par une lettre suivie d'une séquence de lettres, de "
+"chiffres et\n"
+"de caractère souligné (\"_\").\n"
+"\n"
+"EXEMPLES :\n"
+"\n"
+"  Importer un profil qui ne stockera pas les certificats émis :\n"
+"    ipa certprofile-import ShortLivedUserCert \\\n"
+"      --file UserCert.profile --summary \"User Certificates\" \\\n"
+"      --store=false\n"
+"\n"
+"  Supprimer un profil de certificat :\n"
+"    ipa certprofile-del ShortLivedUserCert\n"
+"\n"
+"  Afficher les informations sur un profil :\n"
+"    ipa certprofile-show ShortLivedUserCert\n"
+"\n"
+"  Rechercher des profils ne stockant pas les certificats :\n"
+"    ipa certprofile-find --store=false\n"
+"\n"
+
 msgid "invalid Profile ID"
 msgstr "Identifiant de profil invalide"
 
@@ -2976,6 +3055,9 @@ msgstr "Description de profil"
 msgid "Brief description of this profile"
 msgstr "Brève description de ce profil"
 
+msgid "Store issued certificates"
+msgstr "Stocker les certificats émis"
+
 msgid "Whether to store certs issued using this profile"
 msgstr "Stocker ou non les certificats émis à partir de ce profil"
 
@@ -2991,8 +3073,38 @@ msgstr[1] "%(count)d profils correspondants"
 msgid "Display the properties of a Certificate Profile."
 msgstr "Afficher les propriétés d'un profil de certificat."
 
+msgid "Import a Certificate Profile."
+msgstr "Importer un profil de certificat."
+
+#, python-format
+msgid "Imported profile \"%(value)s\""
+msgstr "Profil « %(value)s » importé"
+
 msgid "Filename"
 msgstr "Nom de fichier"
+
+msgid "Profile ID is not present in profile data"
+msgstr "Identifiant de profil absent des données du profil"
+
+#, python-format
+msgid "Profile ID '%(cli_value)s' does not match profile data '%(file_value)s'"
+msgstr ""
+"L'identifiant de profil « %(cli_value)s » ne correspond pas aux données du "
+"profil « %(file_value)s »"
+
+msgid "Delete a Certificate Profile."
+msgstr "Supprimer un profil de certificat."
+
+#, python-format
+msgid "Deleted profile \"%(value)s\""
+msgstr "Profil « %(value)s » supprimé"
+
+msgid "Modify Certificate Profile configuration."
+msgstr "Modifier la configuration d'un profil de certificat."
+
+#, python-format
+msgid "Modified Certificate Profile \"%(value)s\""
+msgstr "Profil de certificat « %(value)s » modifié"
 
 msgid ""
 "\n"
@@ -3386,9 +3498,10 @@ msgstr ""
 "\n"
 "TYPES DE ZONE PRIS EN CHARGE\n"
 "\n"
-" * Zone Master (dnszone-*), contient les données faisant autorité.\n"
-" * Zone Forward (dnsforwardzone-*), transfère les requêtes au transitaire\n"
-"   configuré (un ensemble de serveurs DNS).\n"
+" * Zone maître (dnszone-*), contient les données faisant autorité.\n"
+" * Zone redirigée (dnsforwardzone-*), qui transfère les requêtes aux "
+"redirecteurs\n"
+"   configurés (un ensemble de serveurs DNS).\n"
 
 msgid ""
 "\n"
@@ -3471,6 +3584,15 @@ msgstr ""
 
 msgid ""
 "\n"
+" Add new zone:\n"
+"   ipa dnszone-add example.com --admin-email=admin@example.com\n"
+msgstr ""
+"\n"
+" Ajouter une nouvelle zone :\n"
+"   ipa dnszone-add example.com --admin-email=admin@example.com\n"
+
+msgid ""
+"\n"
 " Add system permission that can be used for per-zone privilege delegation:\n"
 "   ipa dnszone-add-permission example.com\n"
 msgstr ""
@@ -3511,6 +3633,15 @@ msgstr ""
 " Modifier la zone pour permettre des transferts de zone pour le réseau local "
 "uniquement :\n"
 "   ipa dnszone-mod example.com --allow-transfer=192.0.2.0/24\n"
+
+msgid ""
+"\n"
+" Add new reverse zone specified by network IP address:\n"
+"   ipa dnszone-add --name-from-ip=192.0.2.0/24\n"
+msgstr ""
+"\n"
+" Ajouter une nouvelle zone inverse spécifiée par adresse IP de réseau :\n"
+"   ipa dnszone-add --name-from-ip=192.0.2.0/24\n"
 
 msgid ""
 "\n"
@@ -3800,8 +3931,37 @@ msgstr ""
 "\n"
 " Si une redirection globale est configurée, toute requête pour laquelle ce\n"
 " serveur ne fait pas autorité (ex. sub.example.com) sera routée vers le \n"
-" transitaire global.\n"
+" redirecteur global.\n"
 " La configuration d'une redirection globale peut être surchargée par zone.\n"
+
+msgid ""
+"\n"
+" Semantics of forwarding in IPA matches BIND semantics and depends on the "
+"type\n"
+" of zone:\n"
+"   * Master zone: local BIND replies authoritatively to queries for data in\n"
+"   the given zone (including authoritative NXDOMAIN answers) and forwarding\n"
+"   affects only queries for names below zone cuts (NS records) of locally\n"
+"   served zones.\n"
+"\n"
+"   * Forward zone: forward zone contains no authoritative data. BIND "
+"forwards\n"
+"   queries, which cannot be answered from its local cache, to configured\n"
+"   forwarders.\n"
+msgstr ""
+"\n"
+" La sémantique de la redirection de zone dans IPA est la même que \n"
+" celle de BIND,  et dépend du type de zone :\n"
+"    * Zone maître : le serveur BIND local répond avec autorité aux "
+"requêtes \n"
+"    de données dans la zone donnée (y compris les réponses ayant autorité\n"
+"    NXDOMAIN) et transfère uniquement les requêtes sur les noms dans les \n"
+"    sous-zones (enregistrements NS) des zones locales servies.\n"
+" \n"
+"    * Zone redirigée : les zones transférées ne contiennent aucune donnée \n"
+"    faisant autorité. BIND transmet les requêtes qui ne peuvent être \n"
+"    servies par son cache local aux serveurs de redirection configurés.\n"
+" "
 
 msgid ""
 "\n"
@@ -3814,10 +3974,11 @@ msgid ""
 msgstr ""
 "\n"
 " Sémantique de l'option --forwarder-policy :\n"
-"   * none - désactive le transfert pour la zone donnée.\n"
-"   * first - transfère toutes les requêtes aux transitaires  configurés.\n"
+"   * none - désactive la redirection pour la zone donnée.\n"
+"   * first - redirige toutes les requêtes vers les  redirecteurs "
+"configurés.\n"
 "     En cas d'échec, fait la résolution avec les serveurs racine DNS.\n"
-"   * only - transfère toutes les requêtes aux transitaires  configurés,\n"
+"   * only - redirige toutes les requêtes vers les  redirecteurs configurés,\n"
 "     et en cas d'échec, informe de cet échec.\n"
 
 msgid ""
@@ -3837,8 +3998,8 @@ msgid ""
 "etc.).\n"
 msgstr ""
 "\n"
-" Cette configuration transfère toutes les requêtes pour les noms en dehors\n"
-" du sous-arbre « example.com » vers les transitaires globaux. Le processus\n"
+" Cette configuration redirige toutes les requêtes pour les noms en dehors\n"
+" du sous-arbre « example.com » vers les  redirecteurs globaux. Le processus\n"
 " normal de résolution récursive est utilisé pour les noms dans le sous-"
 "arbre\n"
 " « example.com » (ex. les enregistrements NS sont suivis, etc.).\n"
@@ -3854,9 +4015,9 @@ msgid ""
 "                               --forwarder=203.0.113.1\n"
 msgstr ""
 "\n"
-" Transfert de toute requête pour la zone « external.example.com » vers un\n"
-" autre transitaire avec la politique « first » (il adresse les requêtes au\n"
-" transitaire sélectionné et s'il n'y a pas de réponse, les serveurs racine\n"
+" Redirige toutes les requêtes pour la zone « external.example.com » vers un\n"
+" autre redirecteur avec la politique « first » (il adresse les requêtes au\n"
+" redirecteur sélectionné et s'il n'y a pas de réponse, les serveurs racines\n"
 " globaux sont sollicités) :\n"
 "   ipa dnsforwardzone-add external.example.com --forward-policy=first \\\n"
 "                               --forwarder=203.0.113.1\n"
@@ -3867,7 +4028,7 @@ msgid ""
 "   ipa dnsforwardzone-mod external.example.com --forward-policy=only\n"
 msgstr ""
 "\n"
-" Modifier la politique de transfert pour « external.example.com » :\n"
+" Modifier la politique de redirection pour « external.example.com » :\n"
 "   ipa dnsforwardzone-mod external.example.com --forward-policy=only\n"
 
 msgid ""
@@ -3876,7 +4037,8 @@ msgid ""
 "   ipa dnsforwardzone-show external.example.com\n"
 msgstr ""
 "\n"
-" Afficher la zone de transfert « external.example.com » :\n"
+" Afficher la politique de redirection pour la zone « external.example."
+"com » :\n"
 "   ipa dnsforwardzone-show external.example.com\n"
 
 msgid ""
@@ -3885,7 +4047,7 @@ msgid ""
 "   ipa dnsforwardzone-find\n"
 msgstr ""
 "\n"
-" Lister toutes les zones de transfert :\n"
+" Lister toutes les redirections de zones :\n"
 "   ipa dnsforwardzone-find\n"
 
 msgid ""
@@ -3894,7 +4056,7 @@ msgid ""
 "   ipa dnsforwardzone-del external.example.com\n"
 msgstr ""
 "\n"
-" Supprimer la zone de transfert « external.example.com » :\n"
+" Supprimer la rediretion de zone « external.example.com » :\n"
 "   ipa dnsforwardzone-del external.example.com\n"
 
 msgid ""
@@ -3949,7 +4111,7 @@ msgid ""
 "   ipa dnsconfig-mod --forwarder=203.0.113.113\n"
 msgstr ""
 "\n"
-" Modifier la configuration DNS globale et définir une liste de transitaires\n"
+" Modifier la configuration DNS globale et définir une liste de redirecteurs\n"
 " globaux :\n"
 "   ipa dnsconfig-mod --forwarder=203.0.113.113\n"
 
@@ -4000,6 +4162,9 @@ msgstr "valeur « salt » : %(err)s"
 
 msgid "invalid domain-name: not fully qualified"
 msgstr "nom de domaine invalide : doit être pleinement qualifié"
+
+msgid "should not be a wildcard domain name (RFC 4592 section 4)"
+msgstr "ne doit pas être un nom de domaine avec joker (RFC 4592 section 4)"
 
 #, python-format
 msgid "DNS reverse zone for IP address %(addr)s not found"
@@ -4276,26 +4441,26 @@ msgid "Is zone active?"
 msgstr "La zone est-elle active ?"
 
 msgid "Zone forwarders"
-msgstr "Transitaires de zone"
+msgstr "Redirection de zone"
 
 msgid ""
 "Per-zone forwarders. A custom port can be specified for each forwarder using "
 "a standard format \"IP_ADDRESS port PORT\""
 msgstr ""
-"Transitaire par zone. Un port personnalisé peut être indiqué pour chaque "
-"transitaire avec le format standard « adresse_IP port PORT »"
+"Redirecteurs par zone. Un port personnalisé peut être indiqué pour chaque "
+"redirecteur avec le format standard « adresse_IP port PORT »"
 
 msgid "Forward policy"
-msgstr "Politique de transmission"
+msgstr "Politique de redirection"
 
 msgid ""
 "Per-zone conditional forwarding policy. Set to \"none\" to disable "
 "forwarding to global forwarder for this zone. In that case, conditional zone "
 "forwarders are disregarded."
 msgstr ""
-"Politique de transmission conditionnelle par zone. Mettre à « none » pour "
-"désactiver le transfert vers un transitaire global pour cette zone. Dans ce "
-"cas, les transitaires de zone conditionnels sont ignorés."
+"Politique de redirection conditionnelle par zone. Mettre à « none » pour "
+"désactiver la redirection vers un redireteur global pour cette zone. Dans ce "
+"cas, les redirecteurs de zone conditionnels sont ignorés."
 
 msgid "DNS is not configured"
 msgstr "Le DNS n'est pas configuré"
@@ -4430,12 +4595,25 @@ msgstr ""
 "Enregistrement NSEC3PARAM pour une zone au format : algorithme_hachage "
 "marqueurs itérations salt."
 
+msgid "Visit 'http://www.freeipa.org/page/Releases/4.1.0#DNSSEC_Support'."
+msgstr "Consulter 'http://www.freeipa.org/page/Releases/4.1.0#DNSSEC_Support'."
+
 msgid ""
 "If you encounter any problems please report them and restart 'named' service "
 "on affected IPA server."
 msgstr ""
 "Si vous rencontrez un quelconque problème, veuillez le rapporter et "
 "redémarrer le service « named » sur le serveur IPA concerné."
+
+msgid "setting Authoritative nameserver"
+msgstr "configuration du serveur de nom ayant autorité"
+
+msgid "It is used only for setting the SOA MNAME attribute."
+msgstr "Ceci est uniquement utilisée pour définir l'attribut SOA MNAME."
+
+msgid "NS record(s) can be edited in zone apex - '@'. "
+msgstr ""
+"Les enregistrements NS peuvent être modifiés dans la somme sommet  - '@'. "
 
 msgid "Create new DNS zone (SOA record)."
 msgstr "Créer une nouvelle zone DNS (enregistrement SOA)."
@@ -4466,11 +4644,14 @@ msgstr ""
 "Forcer un changement de serveur de nom même si le serveur de nom n'est pas "
 "dans le DNS"
 
+msgid "is required"
+msgstr "est requis"
+
 msgid "Forward zones only"
-msgstr "Zones de transfert uniquement"
+msgstr "Zones redirigées uniquement"
 
 msgid "Search for forward zones only"
-msgstr "Rechercher des zones de transfert uniquement"
+msgstr "Rechercher des zones redirigées uniquement"
 
 msgid "Display information about a DNS zone (SOA record)."
 msgstr ""
@@ -4518,12 +4699,25 @@ msgid "Parse all raw DNS records and return them in a structured way"
 msgstr ""
 "Analyser tous les enregistrements DNS et les renvoyer sous forme structurée"
 
+msgid "DS record must not be in zone apex (RFC 4035 section 2.4)"
+msgstr ""
+"L'enregistrement DS ne doit pas être dans la zone sommet (RFC 4035 section "
+"2.4)"
+
 msgid ""
 "out-of-zone data: record name must be a subdomain of the zone or a relative "
 "name"
 msgstr ""
 "donnée hors zone : le nom de l'enregistrement doit être un sous-domaine de "
 "la zone ou un nom relatif"
+
+#, python-format
+msgid ""
+"owner of %(types)s records should not be a wildcard domain name (RFC 4592 "
+"section 4)"
+msgstr ""
+"le propriétaire des enregistrements %(types)s ne doit pas être un nom de "
+"domaine comportant des jokers (RFC 4592 section 4)"
 
 #, python-format
 msgid ""
@@ -4559,6 +4753,22 @@ msgstr ""
 msgid "only one DNAME record is allowed per name (RFC 6672, section 2.4)"
 msgstr ""
 "un seul enregistrement DNAME est autorisé par nom (RFC 6672, section 2.4)"
+
+#, python-format
+msgid ""
+"NS record is not allowed to coexist with an %(type)s record except when "
+"located in a zone root record (RFC 2181, section 6.1)"
+msgstr ""
+"l'enregistrement NS n'est pas autorisé à coexister avec un enregistrement "
+"%(type)s sauf quand ils sont situés dans enregistrement de zone racine (RFC "
+"2181, section 6.1)"
+
+msgid ""
+"DS record requires to coexist with an NS record (RFC 4592 section 4.6, RFC "
+"4035 section 2.4)"
+msgstr ""
+"l'enregistrement DS doit coexister avec un enregistrement NS (RFC 4592 "
+"section 4.6, RFC 4035 section 2.4)"
 
 msgid "Add new DNS resource record."
 msgstr "Ajouter un nouvel enregistrement de ressources DNS."
@@ -4679,21 +4889,21 @@ msgid "DNS Global Configuration"
 msgstr "Configuration DNS globale"
 
 msgid "Global forwarders"
-msgstr "Transitaires globaux"
+msgstr "Redirecteurs globaux"
 
 msgid ""
 "Global forwarders. A custom port can be specified for each forwarder using a "
 "standard format \"IP_ADDRESS port PORT\""
 msgstr ""
-"Transitaires globaux. Un port personnalisé peut être indiqué pour chaque "
-"transitaire en utilisant le format standard « adresse_IP port PORT »"
+"Redirecteurs globaux. Un port personnalisé peut être indiqué pour chaque "
+"redirecteur en utilisant le format standard « adresse_IP port PORT »"
 
 msgid ""
 "Global forwarding policy. Set to \"none\" to disable any configured global "
 "forwarders."
 msgstr ""
-"Politique globale de transfert. Mettre à « none » pour désactiver tout "
-"transitaire global configuré."
+"Politique globale de redirection. Mettre à « none » pour désactiver tout "
+"redirecteur global configuré."
 
 msgid "Allow synchronization of forward (A, AAAA) and reverse (PTR) records"
 msgstr ""
@@ -4709,64 +4919,98 @@ msgstr "La configuration globale DNS est vide"
 msgid "Modify global DNS configuration."
 msgstr "Modifier la configuration DNS globale."
 
+msgid "Server will check DNS forwarder(s)."
+msgstr "Le serveur vérifiera le ou les serveurs de redirection DNS."
+
+msgid "This may take some time, please wait ..."
+msgstr "Cela peut prendre un peu de temps, veuillez patienter..."
+
 msgid "Show the current global DNS configuration."
 msgstr "Afficher la configuration DNS globale."
 
 msgid "DNS forward zone"
-msgstr "Zone de transfert DNS"
+msgstr "Zone de redirection DNS"
 
 msgid "DNS forward zones"
-msgstr "Zones de transfert DNS"
+msgstr "Zones de redirection DNS"
 
 msgid "DNS Forward Zones"
-msgstr "Zones de transfert DNS"
+msgstr "Zones de redirection DNS"
 
 msgid "DNS Forward Zone"
-msgstr "Zone de transfert DNS"
+msgstr "Zone de redirection DNS"
 
 msgid "Create new DNS forward zone."
-msgstr "Créer une nouvelle zone de transfert DNS"
+msgstr "Créer une nouvelle zone de redirection DNS"
 
 msgid "Please specify forwarders."
-msgstr "Veuillez indiquer les transitaires (re-directeurs)."
+msgstr "Veuillez indiquer les redirecteurs."
 
 msgid "Delete DNS forward zone."
-msgstr "Supprimer une zone de transfert DNS."
+msgstr "Supprimer une zone de redirection DNS."
 
 #, python-format
 msgid "Deleted DNS forward zone \"%(value)s\""
-msgstr "Zone de transfert DNS « %(value)s » supprimée"
+msgstr "Zone de redirection DNS « %(value)s » supprimée"
 
 msgid "Modify DNS forward zone."
-msgstr "Modifier une zone de transfert DNS."
+msgstr "Modifier une zone de redirection DNS."
 
 msgid "Search for DNS forward zones."
-msgstr "Rechercher des zones de transfert DNS."
+msgstr "Rechercher des zones de redirection DNS."
 
 msgid "Display information about a DNS forward zone."
-msgstr "Afficher des informations à propos des zones de transfert DNS."
+msgstr "Afficher des informations à propos des zones de redirection DNS."
 
 msgid "Disable DNS Forward Zone."
-msgstr "Désactiver une zone de transfert DNS."
+msgstr "Désactiver une zone de redirection DNS."
 
 #, python-format
 msgid "Disabled DNS forward zone \"%(value)s\""
-msgstr "Zone de transfert DNS « %(value)s » désactivée"
+msgstr "Zone de redirection DNS « %(value)s » désactivée"
 
 msgid "Enable DNS Forward Zone."
-msgstr "Activer une zone de transfert DNS."
+msgstr "Activer une zone de redirection DNS."
 
 #, python-format
 msgid "Enabled DNS forward zone \"%(value)s\""
-msgstr "Zone de transfert DNS « %(value)s » activée"
+msgstr "Zone de redirection DNS « %(value)s » activée"
 
 msgid "Add a permission for per-forward zone access delegation."
 msgstr ""
-"Ajouter une permission pour une délégation d'accès de zone de transfert."
+"Ajouter une permission pour une délégation d'accès de zone de redirection."
 
 msgid "Remove a permission for per-forward zone access delegation."
 msgstr ""
-"Supprimer la permission pour une délégation d'accès de zone de transfert."
+"Supprimer la permission pour une délégation d'accès de zone de redirection."
+
+msgid ""
+"\n"
+"Raise the IPA Domain Level.\n"
+msgstr ""
+"\n"
+"Relever le niveau du domaine IPA.\n"
+
+msgid "Current domain level:"
+msgstr "Niveau actuel du domaine :"
+
+msgid "Query current Domain Level."
+msgstr "Interroger le niveau actuel du domaine."
+
+msgid "Change current Domain Level."
+msgstr "Modifier le niveau actuel du domaine."
+
+msgid "Domain Level"
+msgstr "Niveau du domaine"
+
+msgid "Domain Level cannot be lowered."
+msgstr "Le niveau du domaine ne peut être redescendu."
+
+#, python-brace-format
+msgid "Domain Level cannot be raised to {0}, server {1} does not support it."
+msgstr ""
+"Le niveau actuel du domaine ne peut être relevé à {0}, le serveur {1} ne le "
+"prend pas en charge."
 
 msgid ""
 "\n"
@@ -4912,24 +5156,22 @@ msgstr ""
 "\n"
 "L'adhésion à un groupe externe est conçue pour permettre aux utilisateurs "
 "de\n"
-"domaines de confiance d'être assimilés aux groupes POSIX locaux pour "
-"pouvoir\n"
+"domaines approuvés d'être assimilés aux groupes POSIX locaux pour pouvoir\n"
 "utiliser réellement les ressources IPA. Des membres externes peuvent être\n"
 "ajoutés aux groupes spécifiquement crées comme externes et non-POSIX. Un "
 "tel\n"
 "groupe peut plus tard être incorporé dans un des groupes POSIX\n"
 "\n"
 "Un membre de groupe externe est actuellement identifié par un « Security\n"
-"Identifier (SID) » tel que défini pour le domaine de confiance. Pour "
-"ajouter\n"
+"Identifier (SID) » tel que défini pour le domaine approuvé. Pour ajouter\n"
 "un membre de groupe externe, il est possible de le définir, soit au format\n"
 "SID, soit DOM\\name, soit name@domain. IPA essayera de résoudre le nom "
 "passé\n"
-"en SID en se servant du « Global Catalog » des domaines de confiance.\n"
+"en SID en se servant du « Global Catalog » des domaines approuvés.\n"
 "\n"
 "Exemple:\n"
 "\n"
-"1. Créer un groupe par assimilation au domaine de confiance « admins »\n"
+"1. Créer un groupe par assimilation au domaine approuvé « admins »\n"
 "   et à leur groupe POSIX local :\n"
 "\n"
 "   ipa group-add --desc='<ad.domain> admins external map' ad_admins_external "
@@ -4974,8 +5216,7 @@ msgid "External member"
 msgstr "Membre externe"
 
 msgid "Members of a trusted domain in DOM\\name or name@domain form"
-msgstr ""
-"Membres d'un domaine de confiance sous la forme DOM\\nom ou nom@domaine"
+msgstr "Membres d'un domaine approuvé sous la forme DOM\\nom ou nom@domaine"
 
 msgid "Create a new group."
 msgstr "Créer un nouveau groupe."
@@ -4990,6 +5231,9 @@ msgstr "Créer en tant que groupe non-POSIX"
 msgid "Allow adding external non-IPA members from trusted domains"
 msgstr ""
 "Autoriser l'ajout de membres externes non-IPA depuis des domaines approuvés"
+
+msgid "gid cannot be set for external group"
+msgstr "l'identifiant de groupe ne peut être défini pour un groupe externe"
 
 msgid "Delete group."
 msgstr "Supprimer un groupe."
@@ -5014,7 +5258,7 @@ msgstr "Transformer en groupe POSIX"
 msgid "change to support external non-IPA members from trusted domains"
 msgstr ""
 "modifier afin de permettre une prise en charge des membres externes non-IPA "
-"depuis des domaines de confiance"
+"depuis des domaines approuvés"
 
 msgid "Search for groups."
 msgstr "Rechercher des groupes."
@@ -5036,7 +5280,7 @@ msgid ""
 "domains"
 msgstr ""
 "rechercher des groupes autorisant la prise en charge des membres externes "
-"non-IPA depuis les domaines de confiance"
+"non-IPA depuis les domaines approuvés"
 
 msgid "search for non-POSIX groups"
 msgstr "rechercher des groupes non-POSIX"
@@ -5798,20 +6042,20 @@ msgstr ""
 "      matched: allow_all\n"
 "\n"
 "\n"
-"TEST HBAC ET DOMAINES DE CONFIANCE\n"
+"TEST HBAC ET domaines approuvés\n"
 "\n"
-"Si un domaine de confiance externe est configuré dans IPA, les règles HBAC\n"
+"Si un domaine approuvé externe est configuré dans IPA, les règles HBAC\n"
 "sont aussi appliquées aux utilisateurs accédant aux ressources IPA à partir\n"
-"du domaine de confiance. Les utilisateurs des domaines de confiance et les\n"
+"du domaine approuvé. Les utilisateurs des domaines approuvés et les\n"
 "groupes (et leur SID) peuvent être assignés à des groupes externes pouvant\n"
 "être membres de groupes POSIX d'IPA éligibles aux règles HBAC, ce qui\n"
 "autorise un accès aux ressources protégées par le système HBAC.\n"
 "\n"
 "Le greffon « hbactest » peut tester des accès, à la fois d'utilisateurs\n"
-"IPA locaux et d'utilisateurs de domaines de confiance à partir, soit du\n"
+"IPA locaux et d'utilisateurs de domaines approuvés à partir, soit du\n"
 "nom d'utilisateur pleinement qualifié, soit du SID utilisateur. De tels "
 "noms\n"
-"d'utilisateur doivent avoir un domaine de confiance précisé comme nom court\n"
+"d'utilisateur doivent avoir un domaine approuvé précisé comme nom court\n"
 "(DOMAINE\\Administrateur) ou avec un nom de principal d'utilisateur (UPN),\n"
 "Administrator@ad.test.\n"
 "\n"
@@ -5821,7 +6065,7 @@ msgstr ""
 "\n"
 "EXEMPLES :\n"
 "\n"
-"    1. Tester si un utilisateur d'un domaine de confiance défini par son\n"
+"    1. Tester si un utilisateur d'un domaine approuvé défini par son\n"
 "       nom court satisfait à toute règle :\n"
 "\n"
 "    $ ipa hbactest --user 'DOMAIN\\Administrator' --host `hostname` --"
@@ -5832,7 +6076,7 @@ msgstr ""
 "      Matched rules: allow_all\n"
 "      Matched rules: can_login\n"
 "\n"
-"    2. Tester si un utilisateur d'un domaine de confiance défini par son\n"
+"    2. Tester si un utilisateur d'un domaine approuvé défini par son\n"
 "       nom de domaine satisfait à toute règle :\n"
 "\n"
 "    $ ipa hbactest --user 'Administrator@domain.com' --host `hostname` --"
@@ -5843,7 +6087,7 @@ msgstr ""
 "      Matched rules: allow_all\n"
 "      Matched rules: can_login\n"
 "\n"
-"    3. Tester si un utilisateur d'un domaine de confiance défini par son\n"
+"    3. Tester si un utilisateur d'un domaine approuvé défini par son\n"
 "       SID satisfait à toute règle :\n"
 "\n"
 "    $ ipa hbactest --user S-1-5-21-3035198329-144811719-1378114514-500 \\\n"
@@ -5854,7 +6098,7 @@ msgstr ""
 "      Matched rules: allow_all\n"
 "      Matched rules: can_login\n"
 "\n"
-"    4. Tester si un autre utilisateur d'un domaine de confiance défini\n"
+"    4. Tester si un autre utilisateur d'un domaine approuvé défini\n"
 "       par son SID satisfait à toute règle :\n"
 "\n"
 "    $ ipa hbactest --user S-1-5-21-3035198329-144811719-1378114514-1203 \\\n"
@@ -5865,7 +6109,7 @@ msgstr ""
 "      Matched rules: allow_all\n"
 "      Not matched rules: can_login\n"
 "\n"
-"    5. Tester si un autre utilisateur d'un domaine de confiance défini par\n"
+"    5. Tester si un autre utilisateur d'un domaine approuvé défini par\n"
 "       son nom court satisfait à toute règle :\n"
 "\n"
 "    $ ipa hbactest --user 'DOMAIN\\Otheruser' --host `hostname` --service "
@@ -5922,9 +6166,9 @@ msgid ""
 "Cannot search in trusted domains without own domain configured. Make sure "
 "you have run ipa-adtrust-install on the IPA server first"
 msgstr ""
-"Impossible d'effectuer une recherche sur les domaines de confiance sans "
-"avoir au préalable configuré son propre domaine. Assurez-vous d'avoir au "
-"préalable lancé « ipa-adtrust-install » sur le serveur"
+"Impossible d'effectuer une recherche sur les domaines approuvés sans avoir "
+"au préalable configuré son propre domaine. Assurez-vous d'avoir au préalable "
+"lancé « ipa-adtrust-install » sur le serveur"
 
 #, python-format
 msgid "Access granted: %s"
@@ -6123,6 +6367,12 @@ msgstr "Hôtes autorisés à créer un tableau de clés"
 msgid "Host Groups allowed to create keytab"
 msgstr "Groupes d'hôtes autorisés à créer un tableau de clés"
 
+msgid "Failed allowed to retrieve keytab"
+msgstr "Échec de l'autorisation de récupération des tableaux de clés"
+
+msgid "Failed allowed to create keytab"
+msgstr "Échec de l'autorisation de création de tableaux de clés"
+
 #, python-format
 msgid "invalid domain-name: %s"
 msgstr "nom de domaine invalide : %s"
@@ -6187,6 +6437,9 @@ msgid ""
 msgstr ""
 "Catégorie d'hôte (les sémantiques associées à cet attribut vous sont propres)"
 
+msgid "Assigned ID View"
+msgstr "Vue d'identifiants attribuée"
+
 msgid "Add a new host."
 msgstr "Ajouter un nouvel hôte."
 
@@ -6250,6 +6503,10 @@ msgstr "Afficher les informations sur un hôte."
 
 msgid "file to store certificate in"
 msgstr "fichier où stocker le certificat"
+
+#, python-format
+msgid "Certificate(s) stored in file '%(file)s'"
+msgstr "Certificat(s) enregistré(s) dans le fichier '%(file)s'"
 
 msgid "Disable the Kerberos key, SSL certificate and all services of a host."
 msgstr ""
@@ -6569,7 +6826,7 @@ msgstr ""
 "Il y a deux types de plages d'ID gérées par cet utilitaire :\n"
 "\n"
 " - les plages d'ID du domaine local\n"
-" - les plages d'ID des domaines de confiance distants\n"
+" - les plages d'ID des domaines approuvés distants\n"
 "\n"
 "Les deux types ont les attributs suivants en commun :\n"
 "\n"
@@ -6583,15 +6840,15 @@ msgstr ""
 " - « rid-base » : le premier RID(*) de la plage de RID correspondante\n"
 " - « secondary-rid-base » : le premier RID de la plage RID secondaire\n"
 "\n"
-"et une plage d'ID d'un domaine de confiance peut déterminer\n"
+"et une plage d'ID d'un domaine approuvé peut déterminer\n"
 " - « rid-base » : le premier RID de la plage de RID correspondante\n"
-" - « sid » : le domaine SID du domaine de confiance\n"
+" - « sid » : le domaine SID du domaine approuvé\n"
 "\n"
 "\n"
 "\n"
-"EXEMPLE : Ajouter une nouvelle plage d'ID pour un domaine de confiance\n"
+"EXEMPLE : Ajouter une nouvelle plage d'ID pour un domaine approuvé\n"
 "\n"
-"Étant donné qu'il peut y avoir plus d'un domaine de confiance, le SID du\n"
+"Étant donné qu'il peut y avoir plus d'un domaine approuvé, le SID du\n"
 "domaine doit être indiqué lors de la création de la plage.\n"
 "\n"
 "  ipa idrange-add --base-id=1200000 --range-size=200000 --rid-base=0 \\\n"
@@ -6599,9 +6856,9 @@ msgstr ""
 "\n"
 "Cette plage d'ID sera utilisée par le serveur IPA et le fournisseur SSSD "
 "IPA\n"
-"pour assigner des UID Posix aux utilisateurs du domaine de confiance.\n"
+"pour assigner des UID Posix aux utilisateurs du domaine approuvé.\n"
 "\n"
-"Si par ex. une plage pour un domaine de confiance est configurée ainsi :\n"
+"Si par ex. une plage pour un domaine approuvé est configurée ainsi :\n"
 " base-id = 1200000\n"
 " range-size = 200000\n"
 " rid-base = 0\n"
@@ -6643,15 +6900,14 @@ msgstr ""
 "Normalement la création de plages d'ID s'effectue en arrière-plan et ce CLI\n"
 "n'a jamais besoin d'être utilisé. Les plages d'ID du domaine local seront\n"
 "créées à l'installation ou au cours de la mise à jour d'une version\n"
-"précédente. La plage d'ID pour un domaine de confiance sera créé en même\n"
+"précédente. La plage d'ID pour un domaine approuvé sera créé en même\n"
 "temps que la confiance avec « ipa trust-add ... ».\n"
 "\n"
 "CAS PRATIQUES :\n"
 "\n"
-"  Ajouter une plage d'ID à partir d'un domaine de confiance par "
-"transmission\n"
+"  Ajouter une plage d'ID à partir d'un domaine approuvé par transmission\n"
 "\n"
-"    Si le domaine de confiance (A) fait lui-même confiance à un domaine (B)\n"
+"    Si le domaine approuvé (A) fait lui-même confiance à un domaine (B)\n"
 "et que cette confiance est transmissible « ipa trust-add domain-A » ne crée\n"
 "de plage que pour le domaine A. La plage d'ID pour le  domaine B doit être\n"
 "ajoutée manuellement.\n"
@@ -6730,10 +6986,10 @@ msgid "First RID of the secondary RID range"
 msgstr "Premier RID dans la plage de RID secondaire"
 
 msgid "Domain SID of the trusted domain"
-msgstr "SID du domaine de confiance"
+msgstr "SID du domaine approuvé"
 
 msgid "Name of the trusted domain"
-msgstr "Nom du domaine de confiance"
+msgstr "Nom du domaine approuvé"
 
 msgid "Range type"
 msgstr "Type de plage"
@@ -6766,7 +7022,7 @@ msgstr ""
 
 msgid "SID is not recognized as a valid SID for a trusted domain"
 msgstr ""
-"Le SID n'est pas reconnu en tant que SID valide pour un domaine de confiance"
+"Le SID n'est pas reconnu en tant que SID valide pour un domaine approuvé"
 
 msgid ""
 "\n"
@@ -6854,13 +7110,26 @@ msgid ""
 "SID for the specified trusted domain name could not be found. Please specify "
 "the SID directly using dom-sid option."
 msgstr ""
-"Impossible de trouver le SID du domaine de confiance désigné. Veuillez "
-"indiquer directement le SID avec l'option « dom-sid »."
+"Impossible de trouver le SID du domaine approuvé désigné. Veuillez indiquer "
+"directement le SID avec l'option « dom-sid »."
 
 msgid "Options dom-sid/dom-name and rid-base must be used together"
 msgstr ""
 "Les options « dom-sid/dom-name » et « rid-base » doivent être utilisées "
 "simultanément"
+
+msgid ""
+"Option rid-base must not be used when IPA range type is ipa-ad-trust-posix"
+msgstr ""
+"L'option rid-base ne doit pas être utilisée lorsque le type de plage IPA est "
+"ipa-ad-trust-posix"
+
+msgid ""
+"IPA Range type must be one of ipa-ad-trust or ipa-ad-trust-posix when SID of "
+"the trusted domain is specified"
+msgstr ""
+"Le type de plage IPA doit être « ipa-ad-trust » ou « ipa-ad-trust-posix » "
+"lorsque le SID du domaine approuvé est indiqué."
 
 msgid "Options dom-sid/dom-name and secondary-rid-base cannot be used together"
 msgstr ""
@@ -6872,7 +7141,7 @@ msgid ""
 "SID of the trusted domain is not specified."
 msgstr ""
 "Le type de plage IPA ne doit être ni « ipa-ad-trust », ni « ipa-ad-trust-"
-"posix » lorsque le SID du domaine de confiance n'est pas indiqué."
+"posix » lorsque le SID du domaine approuvé n'est pas indiqué."
 
 msgid "Options secondary-rid-base and rid-base must be used together"
 msgstr ""
@@ -6923,6 +7192,317 @@ msgstr ""
 msgid "Options dom-sid and rid-base must be used together"
 msgstr ""
 "Les options « dom-sid » et « rid-base » doivent être utilisées simultanément"
+
+msgid ""
+"\n"
+"ID Views\n"
+"Manage ID Views\n"
+"IPA allows to override certain properties of users and groups per each "
+"host.\n"
+"This functionality is primarily used to allow migration from older systems "
+"or\n"
+"other Identity Management solutions.\n"
+msgstr ""
+"\n"
+"Vues d'identifiants\n"
+"Gestion des vues d'identifiants\n"
+"IPA permet de surcharger certaines propriétés des utilisateurs et groupes "
+"par hôte.\n"
+"Cette fonctionnalité est principalement utilisée dans les situations de "
+"migrations de systèmes anciens ou d'autres solutions de gestion d'identité.\n"
+"\n"
+
+msgid "ID View"
+msgstr "Vue d'identifiants"
+
+msgid "system ID View"
+msgstr "Vue d'identifiants du système"
+
+msgid "ID Views"
+msgstr "Vues d'identifiants"
+
+msgid "ID View Name"
+msgstr "Nom de la vue d'identifiants"
+
+msgid "Add a new ID View."
+msgstr "Ajouter une nouvelle vue d'identifiants"
+
+#, python-format
+msgid "Added ID View \"%(value)s\""
+msgstr "Vue d'identifiants « %(value)s » ajoutée"
+
+msgid "Delete an ID View."
+msgstr "Supprimer une vue d'identifiants."
+
+#, python-format
+msgid "Deleted ID View \"%(value)s\""
+msgstr "Vue d'identifiants « %(value)s » supprimée"
+
+msgid "Modify an ID View."
+msgstr "Modifier une vue d'identifiants."
+
+#, python-format
+msgid "Modified an ID View \"%(value)s\""
+msgstr "Vue d'identifiant « %(value)s » modifiée"
+
+msgid "Search for an ID View."
+msgstr "Rechercher une vue d'identifiants."
+
+#, python-format
+msgid "%(count)d ID View matched"
+msgid_plural "%(count)d ID Views matched"
+msgstr[0] "%(count)d vue d'identifiants correspondante"
+msgstr[1] "%(count)d vues d'identifiants correspondantes"
+
+msgid "Display information about an ID View."
+msgstr "Afficher les informations d'une vue d'identifiants."
+
+msgid "Enumerate all the hosts the view applies to."
+msgstr "Énumérer tous les hôtes auxquels la vue s'applique."
+
+msgid "User object overrides"
+msgstr "Surcharges des objets utilisateurs"
+
+msgid "Group object overrides"
+msgstr "Surcharges des objets groupes"
+
+msgid "Hosts the view applies to"
+msgstr "Hôtes auxquels la vue s'applique"
+
+msgid "Default Trust View cannot be applied on hosts"
+msgstr ""
+"La vue de la relation d'approbation par défaut ne peut être appliquée sur un "
+"hôte"
+
+msgid "not found"
+msgstr "introuvable"
+
+msgid "ID View already applied"
+msgstr "Vue d'identifiants déjà appliquée"
+
+msgid "value"
+msgstr "valeur"
+
+msgid ""
+"Applies ID View to specified hosts or current members of specified "
+"hostgroups. If any other ID View is applied to the host, it is overriden."
+msgstr ""
+"Applique une vue d'identifiants aux hôtes ou aux membres des groupes d'hôtes "
+"indiqués. Si une autre vue d'identifiants était appliquée à l'hôte, elle est "
+"remplacée."
+
+#, python-format
+msgid "ID View applied to %i host."
+msgstr "Vue d'identifiants appliquée à %i hôte."
+
+#, python-format
+msgid "ID View applied to %i hosts."
+msgstr "Vue d'identifiants appliquée à %i hôtes."
+
+msgid "Hosts to apply the ID View to"
+msgstr "Hôtes auxquels appliquer la vue"
+
+msgid ""
+"Hostgroups to whose hosts apply the ID View to. Please note that view is not "
+"applied automatically to any hosts added to the hostgroup after running the "
+"idview-apply command."
+msgstr ""
+"Groupes d'hôtes auxquels s'applique la vue d'identifiants. Veuillez noter "
+"que cette vue ne s'applique pas automatiquement aux hôtes ajoutés au groupe "
+"après l'exécution de la commande idview-apply."
+
+msgid "hostgroups"
+msgstr "groupe d'hôtes"
+
+msgid "Hosts that this ID View was applied to."
+msgstr "Hôtes auxquels s'applique cette vue d'identifiants."
+
+msgid "Hosts or hostgroups that this ID View could not be applied to."
+msgstr ""
+"Hôtes ou groupes d'hôtes auxquels cette vue d'identifiants ne pourra pas "
+"être appliquée."
+
+msgid "Number of hosts the ID View was applied to:"
+msgstr "Nombre d'hôtes auxquels la vue d'identifiants a été appliquée :"
+
+msgid ""
+"Clears ID View from specified hosts or current members of specified "
+"hostgroups."
+msgstr ""
+"Retire l'application de la vue d'identifiants des hôtes ou membres des "
+"groupes d'hôtes indiqués."
+
+#, python-format
+msgid "ID View cleared from %i host."
+msgstr "Vue d'identifiants retirée de %i hôte."
+
+#, python-format
+msgid "ID View cleared from %i hosts."
+msgstr "Vue d'identifiants retirée de %i hôtes."
+
+msgid "Hosts to clear (any) ID View from."
+msgstr "Hôtes dont on va retirer toute vue d'identifiants."
+
+msgid ""
+"Hostgroups whose hosts should have ID Views cleared. Note that view is not "
+"cleared automatically from any host added to the hostgroup after running "
+"idview-unapply command."
+msgstr ""
+"Groupes d'hôtes dont les hôtes doivent se voir la vue d'identifiants "
+"retirée. Veuillez noter que la vue n'est pas automatiquement retirée de tout "
+"hôte ajouté au groupe d'hôte après l'exécution de la commande idview-unapply."
+
+msgid "Hosts that ID View was cleared from."
+msgstr "Hôtes dont la vue d'identifiants a été retirée."
+
+msgid "Hosts or hostgroups that ID View could not be cleared from."
+msgstr ""
+"Hôtes ou groupes d'hôtes dont la vue d'identifiants n'a pu être retirée."
+
+msgid "Number of hosts that had a ID View was unset:"
+msgstr "Nombre d'hôtes dont une vue d'identifiants a été retirée :"
+
+msgid "IPA object"
+msgstr "objet IPA"
+
+msgid ""
+"system IPA objects (e.g system groups, user private groups) cannot be "
+"overriden"
+msgstr ""
+"les objets système IPA (c'est à dire les groupes et groupes privés "
+"d'utilisateurs) ne peuvent être surchargés"
+
+#, python-format
+msgid "Anchor '%(anchor)s' could not be resolved."
+msgstr "La balise « %(anchor)s » ne peut être résolue."
+
+msgid "Anchor to override"
+msgstr "Balise à surcharger"
+
+msgid "Default Trust View cannot contain IPA users"
+msgstr ""
+"La vue de la relation d'approbation par défaut ne peut contenir des "
+"utilisateurs IPA"
+
+msgid "Add a new ID override."
+msgstr "Ajouter une nouvelle surcharge d'identifiant."
+
+#, python-format
+msgid "Added ID override \"%(value)s\""
+msgstr "Surcharge d'identifiants « %(value) » ajoutée"
+
+msgid "Delete an ID override."
+msgstr "Supprimer une surcharge d'identifiants."
+
+#, python-format
+msgid "Deleted ID override \"%(value)s\""
+msgstr "Surcharge d'identifiants « %(value) » supprimée"
+
+msgid "Modify an ID override."
+msgstr "Modifier une surcharge d'identifiants."
+
+#, python-format
+msgid "Modified an ID override \"%(value)s\""
+msgstr "Surcharge d'identifiants « %(value) » modifiée"
+
+msgid "ID override"
+msgstr "Surcharge d'identifiants"
+
+msgid "ID overrides cannot be renamed"
+msgstr "Les surchages d'identifiants ne peuvent être renommées"
+
+msgid "Search for an ID override."
+msgstr "Rechercher une surcharge d'identifiants."
+
+#, python-format
+msgid "%(count)d ID override matched"
+msgid_plural "%(count)d ID overrides matched"
+msgstr[0] "%(count)d surcharge d'identifiants correspondante"
+msgstr[1] "%(count)d surcharges d'identifiants correspondantes"
+
+msgid "Display information about an ID override."
+msgstr "Afficher les informations d'une surcharge d'identifiants."
+
+msgid "User ID override"
+msgstr "Surcharge d'identifiant utilisateur"
+
+msgid "User ID overrides"
+msgstr "Surcharges d'identifiants utilisateurs"
+
+msgid "User ID Number"
+msgstr "Numéro d'identifiant utilisateur"
+
+msgid "Group ID override"
+msgstr "Surcharge d'identifiant de groupe"
+
+msgid "Group ID overrides"
+msgstr "Surcharges d'identifiants de groupes"
+
+msgid "Add a new User ID override."
+msgstr "Ajouter une nouvelle surcharge d'identifiants utilisateurs."
+
+#, python-format
+msgid "Added User ID override \"%(value)s\""
+msgstr "Surcharge d'identifiants utilisateurs « %(value)s » ajoutée"
+
+msgid "Delete an User ID override."
+msgstr "Supprimer une surcharge d'identifiants utilisateurs."
+
+#, python-format
+msgid "Deleted User ID override \"%(value)s\""
+msgstr "Surcharge d'identifiants utilisateurs « %(value)s » supprimée"
+
+msgid "Modify an User ID override."
+msgstr "Modifier une surcharge d'identifiants utilisateurs."
+
+#, python-format
+msgid "Modified an User ID override \"%(value)s\""
+msgstr "Surcharge d'identifiants utilisateurs « %(value)s » modifiée"
+
+msgid "Search for an User ID override."
+msgstr "Rechercher une surcharge d'identifiants utilisateurs"
+
+#, python-format
+msgid "%(count)d User ID override matched"
+msgid_plural "%(count)d User ID overrides matched"
+msgstr[0] "%(count)d surcharge d'identifiants utilisateurs correspondante"
+msgstr[1] "%(count)d surcharges d'identifiants utilisateurs correspondantes"
+
+msgid "Display information about an User ID override."
+msgstr "Afficher les informations d'une surcharge d'identifiants utilisateurs."
+
+msgid "Add a new Group ID override."
+msgstr "Ajouter une nouvelle surcharge d'identifiants de groupes."
+
+#, python-format
+msgid "Added Group ID override \"%(value)s\""
+msgstr "Surcharge d'identifiants de groupes « %(value)s » ajoutée"
+
+msgid "Delete an Group ID override."
+msgstr "Supprimer une surcharge d'identifiants de groupes."
+
+#, python-format
+msgid "Deleted Group ID override \"%(value)s\""
+msgstr "Surcharge d'identifiants de groupes « %(value)s » supprimée"
+
+msgid "Modify an Group ID override."
+msgstr "Modifier une surcharge d'identifiants de groupes."
+
+#, python-format
+msgid "Modified an Group ID override \"%(value)s\""
+msgstr "Surcharge d'identifiants de groupes « %(value)s » modifiée"
+
+msgid "Search for an Group ID override."
+msgstr "Rechercher une surcharge d'identifiants de groupes"
+
+#, python-format
+msgid "%(count)d Group ID override matched"
+msgid_plural "%(count)d Group ID overrides matched"
+msgstr[0] "%(count)d surcharge d'identifiants de groupes correspondante"
+msgstr[1] "%(count)d surcharges d'identifiants de groupes correspondantes"
+
+msgid "Display information about an Group ID override."
+msgstr "Afficher les informations d'une surcharge d'identifiants de groupes."
 
 msgid "Name of object to export"
 msgstr "Nom de l'objet à exporter"
@@ -7056,8 +7636,31 @@ msgstr "${count} élément(s) supprimé(s)"
 msgid "Show Results"
 msgstr "Afficher les résultats"
 
+msgid "Implicit method (password) will be used if no method is chosen."
+msgstr ""
+"La méthode implicite (par mot de passe) sera utilisée si aucune méthode "
+"n'est choisie."
+
+msgid "Two factor authentication (password + OTP)"
+msgstr "Authentification à deux-facteurs"
+
+msgid "Radius"
+msgstr "Radius"
+
+msgid "Disable per-user override"
+msgstr "Désactiver la surcharge par utilisateur"
+
+msgid ""
+"Per-user setting, overwrites the global setting if any option is checked."
+msgstr ""
+"Paramètres par utilisateurs, outrepassant les paramètres globaux si une des "
+"options est cochée."
+
 msgid "About"
 msgstr "À propos de"
+
+msgid "Activate"
+msgstr "Activer"
 
 msgid "Add"
 msgstr "Ajouter"
@@ -7122,8 +7725,14 @@ msgstr "Restaurer"
 msgid "Retry"
 msgstr "Réessayer"
 
+msgid "Revert"
+msgstr "Rétablir"
+
 msgid "Revoke"
 msgstr "Révoquer"
+
+msgid "Save"
+msgstr "Enregistrer"
 
 msgid "Set"
 msgstr "Définir"
@@ -7211,6 +7820,9 @@ msgstr "Supprimer ${entity}"
 
 msgid "Show details"
 msgstr "Afficher les détails"
+
+msgid "Success"
+msgstr "Succès"
 
 msgid "Validation error"
 msgstr "Erreur de validation"
@@ -7316,8 +7928,29 @@ msgstr "Surcharger la configuration héritée"
 msgid "PAD"
 msgstr "PAD"
 
+msgid ""
+"<i class=\"fa fa-info-circle\"></i> To login with <strong>username and "
+"password</strong>, enter them in the corresponding fields, then click Login."
+msgstr ""
+"<i class=\"fa fa-info-circle\"></i> Pour vous connecter avec <strong>votre "
+"identifiant utilisateur et son mot de passe</strong>, merci de les saisir "
+"dans les champs correspondants puis de cliquer sur Connexion."
+
 msgid "Logged In As"
 msgstr "Connecté en tant que"
+
+#, python-brace-format
+msgid ""
+"<i class=\"fa fa-info-circle\"></i> To login with <strong>Kerberos</strong>, "
+"please make sure you have valid tickets (obtainable via kinit) and <a "
+"href='http://${host}/ipa/config/unauthorized.html'>configured</a> the "
+"browser correctly, then click Login."
+msgstr ""
+"<i class=\"fa fa-info-circle\"></i> Pour vous connecter avec "
+"<strong>Kerberos</strong>, merci de vous assurer que vous disposez bien de "
+"tickets valides (obtenu avec kinit) et que le navigateur est bien "
+"correctement <a href='http://${host}/ipa/config/unauthorized."
+"html'>configuré</a>, puis cliquer sur Connexion."
 
 msgid "Login"
 msgstr "Connexion"
@@ -7586,13 +8219,13 @@ msgid "User Options"
 msgstr "Options utilisateurs"
 
 msgid "Forward first"
-msgstr "Transfert prioritaire"
+msgstr "Redirection prioritaire"
 
 msgid "Forwarding disabled"
-msgstr "Transfert désactivé"
+msgstr "Redirection désactivée"
 
 msgid "Forward only"
-msgstr "Transfert unique"
+msgstr "Redirection uniquement"
 
 msgid "Options"
 msgstr "Options"
@@ -7670,6 +8303,23 @@ msgstr "Supprimer une permission"
 msgid "Are you sure you want to remove permission for DNS Zone ${object}?"
 msgstr ""
 "Êtes-vous sûr de vouloir supprimer la permission pour la zone DNS ${object} ?"
+
+msgid "Skip DNS check"
+msgstr "Passer la vérification DNS"
+
+msgid "Do you want to check if new authoritative nameserver address is in DNS"
+msgstr ""
+"Voulez-vous vérifier si l'adresse du nouveau serveur faisant autorité est "
+"dans le DNS"
+
+msgid "Authoritative nameserver change"
+msgstr "Changement de serveur de nom faisant autorité"
+
+msgid "Level"
+msgstr "Niveau"
+
+msgid "Set Domain Level"
+msgstr "Définir le niveau du domaine"
 
 msgid "Group Settings"
 msgstr "Paramètres de groupe"
@@ -7829,11 +8479,134 @@ msgstr "Permissions de l'hôte supprimées"
 msgid "Host Group Settings"
 msgstr "Paramètres des groupe d'hôtes"
 
+msgid "User to override"
+msgstr "Utilisateurs à surcharger"
+
+msgid ""
+"Enter trusted or IPA user login. Note: search doesn't list users from "
+"trusted domains."
+msgstr ""
+"Saisir le nom de l'utilisateur approuvé ou de l'utilisateur IPA. N.B. : la "
+"recherche n'indique pas les utilisateurs des domaines approuvés."
+
+msgid "Enter trusted user login."
+msgstr "Saisir le nom de l'utilisateur approuvé."
+
+msgid "Group to override"
+msgstr "Groupes à surcharger"
+
+msgid ""
+"Enter trusted or IPA group name. Note: search doesn't list groups from "
+"trusted domains."
+msgstr ""
+"Saisir le nom du groupe approuvé ou du groupe IPA. N.B. : la recherche "
+"n'indique pas les groupes des domaines approuvés."
+
+msgid "Enter trusted group name."
+msgstr "Saisir le nom du groupe approuvé."
+
+#, python-brace-format
+msgid "${primary_key} applies to:"
+msgstr "${primary_key} s'applique à :"
+
+msgid "Applied to hosts"
+msgstr "Appliquée aux hôtes"
+
+msgid "Apply to host groups"
+msgstr "Appliquée aux groupes d'hôtes"
+
+#, python-brace-format
+msgid "Apply ID View ${primary_key} on hosts of ${entity}"
+msgstr ""
+"Applique la vue d'identifiants ${primary_key} sur les hôtes de ${entity}"
+
+msgid "Apply to hosts"
+msgstr "Appliquer aux hôtes"
+
+#, python-brace-format
+msgid "Apply ID view ${primary_key} on ${entity}"
+msgstr "Applique la vue ${primary_key} à ${entity}"
+
+#, python-brace-format
+msgid "${primary_key} overrides:"
+msgstr "Surcharges de ${primary_key} :"
+
+msgid "Un-apply from host groups"
+msgstr "Ne plus appliquer aux groupes d'hôtes"
+
+msgid "Un-apply ID Views from hosts of hostgroups"
+msgstr ""
+"Retire l'application de la vue d'identifiants des hôtes de groupes d'hôtes"
+
+#, python-brace-format
+msgid "Un-apply ID View ${primary_key} from hosts of ${entity}"
+msgstr "Retirer l'application de la vue ${primary_key} des hôtes de ${entity}"
+
+msgid "Un-apply"
+msgstr "Ne  plus appliquer"
+
+msgid "Un-apply from hosts"
+msgstr "Ne  plus appliquer aux hôtes "
+
+msgid "Un-apply ID Views from hosts"
+msgstr "Retirer l'application de la vue d'identifiants d'hôtes"
+
+msgid "Are you sure you want to un-apply ID view from selected entries?"
+msgstr ""
+"Êtes-vous sûr(e) de retirer l'application de la vue d'identifiants des "
+"entrées sélectionnées ?"
+
+#, python-brace-format
+msgid "Un-apply ID View ${primary_key} from hosts"
+msgstr "Retirer l'application de la vue d'identifiants ${primary_key} d'hôtes"
+
 msgid "Kerberos Ticket Policy"
 msgstr "Politique de tickets Kerberos"
 
 msgid "Netgroup Settings"
 msgstr "Paramètres du groupement réseau"
+
+msgid "Add OTP Token"
+msgstr "Ajouter un jeton OTP"
+
+#, python-brace-format
+msgid ""
+"You can use <a href=\"${link}\" target=\"_blank\">FreeOTP<a/> as a software "
+"OTP token application."
+msgstr ""
+"Vous pouvez utiliser <a href=\"${link}\" target=\"_blank\">FreeOTP<a/> comme "
+"application de jeton logiciel OTP."
+
+msgid "Configure your token"
+msgstr "Configurer votre jeton"
+
+msgid ""
+"Configure your token by scanning the QR code below. Click on the QR code if "
+"you see this on the device you want to configure."
+msgstr ""
+"Configurez le code QR en reconnaissant le code QR ci-dessous. Cliquez sur le "
+"code QR si vous voyez ceci sur le périphérique que vous souhaitez configurer."
+
+msgid "OTP Token Settings"
+msgstr "Paramètres de jetons OTP"
+
+msgid "Disable token"
+msgstr "Désactiver un jeton"
+
+msgid "Show QR code"
+msgstr "Montrer le code QR"
+
+msgid "Show configuration uri"
+msgstr "Afficher l'uri de configuration"
+
+msgid "Counter-based (HOTP)"
+msgstr "Basé sur un compteur (HOTP)"
+
+msgid "Time-based (TOTP)"
+msgstr "Jetons temporels (TOTP)"
+
+msgid "Add custom attribute"
+msgstr "Ajouter un attribut personnalisé"
 
 msgid "Permission settings"
 msgstr "Réglages des permissions"
@@ -7943,6 +8716,23 @@ msgstr "Ajout : clé non définie"
 msgid "New: key set"
 msgstr "Ajout : clé définie"
 
+msgid "Are you sure you want to activate selected users?"
+msgstr "Êtes-vous sûr de vouloir désactiver l'utilisateur sélectionné ?"
+
+#, python-brace-format
+msgid "${count} user(s) activated"
+msgstr "${count} utilisateur(s) activé(s)"
+
+msgid "Are you sure you want to restore selected users?"
+msgstr "Êtes-vous sûr de vouloir restaurer les utilisateurs sélectionnés ?"
+
+#, python-brace-format
+msgid "${count} user(s) restored"
+msgstr "${count} utilisateur(s) restauré(s)"
+
+msgid "User categories"
+msgstr "Catégories d'utilisateurs"
+
 msgid "Groups"
 msgstr "Groupes"
 
@@ -7982,6 +8772,12 @@ msgstr "Commandes et groupes définis"
 
 msgid "Specified Groups"
 msgstr "Groupes définis"
+
+msgid "Segment details"
+msgstr "Information sur le segment"
+
+msgid "Replication configuration"
+msgstr "Configuration de la réplication"
 
 msgid "Account"
 msgstr "Compte"
@@ -8028,8 +8824,14 @@ msgstr "Paramètres de compte"
 msgid "Account Status"
 msgstr "État du compte"
 
+msgid "Active users"
+msgstr "Utilisateurs actifs"
+
 msgid "Contact Settings"
 msgstr "Paramètres de contact"
+
+msgid "Delete mode"
+msgstr "Mode suppression"
 
 msgid "Employee Information"
 msgstr "Informations employé"
@@ -8045,6 +8847,15 @@ msgstr "Adresse postale"
 
 msgid "Misc. Information"
 msgstr "Informations diverses"
+
+msgid "delete"
+msgstr "supprimer"
+
+msgid "preserve"
+msgstr "préserver"
+
+msgid "No private group"
+msgstr "Pas de groupe privé"
 
 #, python-brace-format
 msgid ""
@@ -8089,6 +8900,14 @@ msgstr "Un nouveau mot de passe est requis"
 
 msgid "OTP"
 msgstr "OTP"
+
+msgid ""
+"<i class=\"fa fa-info-circle\"></i> <strong>One-Time-Password(OTP):</strong> "
+"Generate new OTP code for each OTP field."
+msgstr ""
+"<i class=\"fa fa-info-circle\"></i> <strong>Mot de passe à usage unique (One-"
+"Time-Password, OTP) :</strong> Création d'un nouveau code OTP pour chaque "
+"champ OTP."
 
 msgid "Token synchronization failed"
 msgstr "Échec de synchronisation du jeton"
@@ -8207,6 +9026,9 @@ msgstr "Contrôle d'accès fondé sur le rôle"
 msgid "Sudo"
 msgstr "Sudo"
 
+msgid "Topology"
+msgstr "Topologie"
+
 msgid "Trusts"
 msgstr "Confiances"
 
@@ -8227,6 +9049,12 @@ msgstr "Page"
 
 msgid "Prev"
 msgstr "Précédent(e)"
+
+msgid "Undo"
+msgstr "Annuler"
+
+msgid "Undo All"
+msgstr "Tout annuler"
 
 msgid "Text does not match field pattern"
 msgstr "Le texte ne correspond pas au motif du champ"
@@ -8749,6 +9577,24 @@ msgstr "Certificat d'AC"
 msgid "Load CA certificate of LDAP server from FILE"
 msgstr "Charger le certificat de l'AC du serveur LDAP depuis FILE"
 
+msgid "Add to default group"
+msgstr "Ajouter au groupe par défaut"
+
+msgid "Add migrated users without a group to a default group (default: true)"
+msgstr ""
+"Ajouter les utilisateurs migrés n'ayant pas de groupe à un groupe par défaut "
+"(par défaut : vrai)"
+
+msgid "Search scope"
+msgstr "Étendue de la recherche"
+
+msgid ""
+"LDAP search scope for users and groups: base, onelevel, or subtree. Defaults "
+"to onelevel"
+msgstr ""
+"Portée de recherche LDAP pour les utilisateurs et les groupes : base, "
+"onelevel, ou subtree. Valeur par défaut : onelevel"
+
 msgid "Lists of objects migrated; categorized by type."
 msgstr "Liste des objets migrés, catégorisés par type."
 
@@ -8968,6 +9814,90 @@ msgstr "Supprimer des membres d'un groupement réseau."
 
 msgid ""
 "\n"
+"OTP configuration\n"
+"\n"
+"Manage the default values that IPA uses for OTP tokens.\n"
+"\n"
+"EXAMPLES:\n"
+"\n"
+" Show basic OTP configuration:\n"
+"   ipa otpconfig-show\n"
+"\n"
+" Show all OTP configuration options:\n"
+"   ipa otpconfig-show --all\n"
+"\n"
+" Change maximum TOTP authentication window to 10 minutes:\n"
+"   ipa otpconfig-mod --totp-auth-window=600\n"
+"\n"
+" Change maximum TOTP synchronization window to 12 hours:\n"
+"   ipa otpconfig-mod --totp-sync-window=43200\n"
+"\n"
+" Change maximum HOTP authentication window to 5:\n"
+"   ipa hotpconfig-mod --hotp-auth-window=5\n"
+"\n"
+" Change maximum HOTP synchronization window to 50:\n"
+"   ipa hotpconfig-mod --hotp-sync-window=50\n"
+msgstr ""
+"\n"
+"Configuration OTP\n"
+"\n"
+"Gestion des valeurs par défaut utilisées par IPA pour les jetons OTP.\n"
+"\n"
+"EXEMPLES :\n"
+"\n"
+" Afficher la configuration de base OTP :\n"
+"   ipa otpconfig-show\n"
+"\n"
+" Afficher toutes les options de configuration OTP :\n"
+"   ipa otpconfig-show --all\n"
+"\n"
+" Modifier la fenêtre maximale d'authentification TOTP à 10 minutes :\n"
+"   ipa otpconfig-mod --totp-auth-window=600\n"
+"\n"
+" Modifier la fenêtre maximale d'authentification TOTP à 12 heures :\n"
+"   ipa otpconfig-mod --totp-sync-window=43200\n"
+"\n"
+" Modifier la fenêtre maximale d'authentification HOTP à 5 :\n"
+"   ipa hotpconfig-mod --hotp-auth-window=5\n"
+"\n"
+" Modifier la fenêtre maximale d'authentification HOTP à 50 :\n"
+"   ipa hotpconfig-mod --hotp-sync-window=50\n"
+
+msgid "One time password commands"
+msgstr "Commandes mots de passe à usage unique (OTP)"
+
+msgid "OTP configuration options"
+msgstr "Options de configuration pour les mots de passe à usage unique"
+
+msgid "OTP Configuration"
+msgstr "Configuration pour les mots de passe à usage unique"
+
+msgid "TOTP authentication Window"
+msgstr "Fenêtre d'authentification TOTP"
+
+msgid "TOTP authentication time variance (seconds)"
+msgstr "Durée de la fenêtre d'authentification TOTP (secondes)"
+
+msgid "TOTP Synchronization Window"
+msgstr "Fenêtre de synchronisation TOTP"
+
+msgid "TOTP synchronization time variance (seconds)"
+msgstr "Variance temporelle de synchronisation TOTP (secondes)"
+
+msgid "HOTP Authentication Window"
+msgstr "Fenêtre d'authentification HOTP"
+
+msgid "HOTP Synchronization Window"
+msgstr "Fenêtre de synchronisation HOTP"
+
+msgid "Modify OTP configuration options."
+msgstr "Modifier les options de configuration OTP."
+
+msgid "Show the current OTP configuration."
+msgstr "Afficher la configuration OTP actuelle."
+
+msgid ""
+"\n"
 "OTP Tokens\n"
 msgstr ""
 "\n"
@@ -9042,35 +9972,83 @@ msgstr "Jeton OTP"
 msgid "Unique ID"
 msgstr "ID unique"
 
+msgid "Type of the token"
+msgstr "Type du jeton"
+
+msgid "Token description (informational only)"
+msgstr "Description du jeton (à titre d'information)"
+
 msgid "Owner"
 msgstr "Propriétaire"
+
+msgid "Assigned user of the token (default: self)"
+msgstr "Utilisateur assigné au jeton (par défaut : soi-même)"
+
+msgid "Assigned manager of the token (default: self)"
+msgstr "Administrateur assigné au jeton (par défaut : soi-même)"
+
+msgid "Mark the token as disabled (default: false)"
+msgstr "Marquer le jeton comme désactivé (par défaut : faux, false)"
 
 msgid "Validity start"
 msgstr "Départ de validation"
 
+msgid "First date/time the token can be used"
+msgstr "Date et heure à partir desquels le jeton peut être utilisé"
+
 msgid "Validity end"
 msgstr "Fin de validation"
+
+msgid "Last date/time the token can be used"
+msgstr "Date et heure au delà desquels le jeton ne peut plus être utilisé"
 
 msgid "Vendor"
 msgstr "Fournisseur"
 
+msgid "Token vendor name (informational only)"
+msgstr "Nom du fabricant du jeton (à titre d'information)"
+
 msgid "Model"
 msgstr "Modèle"
+
+msgid "Token model (informational only)"
+msgstr "Modèle du jeton (à titre d'information)"
 
 msgid "Serial"
 msgstr "Numéro de série"
 
+msgid "Token serial (informational only)"
+msgstr "Numéro de série du jeton (à titre d'information)"
+
+msgid "Token secret (Base32; default: random)"
+msgstr "Secret du jeton (Base32 ; par défaut : aléatoire)"
+
+msgid "Token hash algorithm"
+msgstr "Algorithme de hachage du jeton"
+
 msgid "Digits"
 msgstr "Chiffres"
+
+msgid "Number of digits each token code will have"
+msgstr "Nombre de chiffres des codes du jeton"
 
 msgid "Clock offset"
 msgstr "Décalage d'horloge"
 
+msgid "TOTP token / FreeIPA server time difference"
+msgstr "Différence entre le jeton TOTP et le serveur FreeIPA"
+
 msgid "Clock interval"
 msgstr "Intervalle d'horloge"
 
+msgid "Length of TOTP token code validity"
+msgstr "Durée de validité du code du jeton TOTP"
+
 msgid "Counter"
 msgstr "Compteur"
+
+msgid "Initial counter for the HOTP token"
+msgstr " "
 
 msgid "Add a new OTP token."
 msgstr "Ajouter un nouveau jeton OTP"
@@ -9078,6 +10056,12 @@ msgstr "Ajouter un nouveau jeton OTP"
 #, python-format
 msgid "Added OTP token \"%(value)s\""
 msgstr "Jeton OTP « %(value)s » ajouté"
+
+msgid "(deprecated)"
+msgstr "(obsolète)"
+
+msgid "Do not display QR code"
+msgstr "Ne pas afficher le code QR"
 
 msgid "URI"
 msgstr "URI"
@@ -9462,6 +10446,22 @@ msgid "All target filters, including those implied by type and memberof"
 msgstr ""
 "Tous les filtres cible, y compris ceux définis avec « type » et « memberof »"
 
+msgid "Target DN"
+msgstr "DN cible"
+
+msgid ""
+"Optional DN to apply the permission to (must be in the subtree, but may not "
+"yet exist)"
+msgstr ""
+"DN optionnel auquel appliquer les permissions (doit être dans le sous-arbre, "
+"mais peut ne pas encore exister)"
+
+msgid "Target DN subtree"
+msgstr "Sous-arbre des DN cibles"
+
+msgid "Origin DN subtree"
+msgstr "Sous-arbre des DN origines"
+
 msgid "Member of group"
 msgstr "Membre du groupe"
 
@@ -9551,6 +10551,10 @@ msgstr "Ajouter une nouvelle permission."
 
 msgid "attrs and included attributes are mutually exclusive"
 msgstr "« attrs » et attributs inclus s'excluent mutuellement"
+
+#, python-format
+msgid "Cannot store permission ACI to %s"
+msgstr "Impossible d'enregistrer les ACI de permissions dans %s"
 
 msgid "Delete a permission."
 msgstr "Supprimer une permission."
@@ -10737,6 +11741,87 @@ msgstr ""
 
 msgid ""
 "\n"
+"IPA servers\n"
+msgstr ""
+"\n"
+"Serveurs IPA\n"
+
+msgid ""
+"\n"
+"Get information about installed IPA servers.\n"
+msgstr ""
+"\n"
+"Afficher les informations au sujet des serveurs IPA installés.\n"
+
+msgid ""
+"\n"
+"  Find all servers:\n"
+"    ipa server-find\n"
+msgstr ""
+"\n"
+"  Trouver tous les serveurs :\n"
+"    ipa server-find\n"
+
+msgid ""
+"\n"
+"  Show specific server:\n"
+"    ipa server-show ipa.example.com\n"
+msgstr ""
+"\n"
+"  Afficher les informations d'un serveur en particulier :\n"
+"    ipa server-show ipa.example.com\n"
+
+msgid "server"
+msgstr "serveur"
+
+msgid "servers"
+msgstr "serveurs"
+
+msgid "IPA Servers"
+msgstr "Serveurs IPA"
+
+msgid "Server name"
+msgstr "Nom du serveur"
+
+msgid "IPA server hostname"
+msgstr "Nom d'hôte du serveur IPA"
+
+msgid "Managed suffix"
+msgstr "Suffixe administré"
+
+msgid "Min domain level"
+msgstr "Niveau de domaine mini"
+
+msgid "Minimum domain level"
+msgstr "Niveau de domaine minimal"
+
+msgid "Max domain level"
+msgstr "Niveau de domaine maxi"
+
+msgid "Maximum domain level"
+msgstr "Niveau de domaine maximal"
+
+msgid "Search for IPA servers."
+msgstr "Rechercher des serveurs IPA."
+
+#, python-format
+msgid "%(count)d IPA server matched"
+msgid_plural "%(count)d IPA servers matched"
+msgstr[0] "%(count)d serveur IPA correspondant"
+msgstr[1] "%(count)d serveurs IPA correspondants"
+
+msgid "Show IPA server."
+msgstr "Afficher les informations sur le serveur IPA."
+
+msgid "Delete IPA server."
+msgstr "Supprimer un serveur IPA."
+
+#, python-format
+msgid "Deleted IPA server \"%(value)s\""
+msgstr "Serveur IPA « %(value)s » supprimé"
+
+msgid ""
+"\n"
 "Services\n"
 "\n"
 "A IPA service represents a service that runs on a host. The IPA service\n"
@@ -10886,6 +11971,9 @@ msgid "Client credentials may be delegated to the service"
 msgstr ""
 "Les informations d'identification du client peuvent être déléguées au service"
 
+msgid "unable to determine service"
+msgstr "impossible de déterminer le service"
+
 msgid "blank service"
 msgstr "service vierge"
 
@@ -11001,6 +12089,119 @@ msgstr "Désactiver la clé Kerberos et le certificat SSL d'un service."
 msgid "Disabled service \"%(value)s\""
 msgstr "Service « %(value)s » désactivé"
 
+msgid "Allowed Target"
+msgstr "Cibles autorisées"
+
+msgid "Allowed to Impersonate"
+msgstr "Autorisé à prendre l'identité"
+
+msgid "Member principals"
+msgstr "Principaux membres de"
+
+msgid "Failed targets"
+msgstr "Échec de la cible"
+
+msgid "Remove member from a named service delegation."
+msgstr "Retirer des membres d'une délégation de service nommé"
+
+msgid "service delegation rule"
+msgstr "règle de délégation de service"
+
+msgid "service delegation rules"
+msgstr "règles de délégation de service"
+
+msgid "Service delegation rules"
+msgstr "Règles de délégation de service"
+
+msgid "Service delegation rule"
+msgstr "Règle de délégation de service"
+
+msgid "Create a new service delegation rule."
+msgstr "Créer une nouvelle règle de délégation de service"
+
+#, python-format
+msgid "Added service delegation rule \"%(value)s\""
+msgstr "Règle de délégation de service « %(value)s » ajoutée"
+
+msgid "Delete service delegation."
+msgstr "Supprimer une règle de délégation de service."
+
+#, python-format
+msgid "Deleted service delegation \"%(value)s\""
+msgstr "Règle de délégation de service « %(value)s » supprimée"
+
+msgid "privileged service delegation rule"
+msgstr "règle de délégation de service privilégié"
+
+msgid "Search for service delegations rule."
+msgstr "Rechercher des règle de délégation de service."
+
+#, python-format
+msgid "%(count)d service delegation rule matched"
+msgid_plural "%(count)d service delegation rules matched"
+msgstr[0] "%(count)d règle de délégation de service correspondante"
+msgstr[1] "%(count)d règles de délégation de service correspondantes"
+
+msgid "Display information about a named service delegation rule."
+msgstr ""
+"Afficher les informations au sujet d'une règle de délégation de service."
+
+msgid "Add member to a named service delegation rule."
+msgstr "Ajouter un membre à une règle nommée de délégation de service."
+
+msgid "Remove member from a named service delegation rule."
+msgstr "Supprimer un membre d'une règle nommée de délégation de service."
+
+msgid "Add target to a named service delegation rule."
+msgstr "Ajouter une cible à une règle nommée de délégation de service."
+
+msgid "Remove target from a named service delegation rule."
+msgstr "Supprimer une cible d'une règle nommée de délégation de service."
+
+msgid "service delegation target"
+msgstr "cible de délégation de service"
+
+msgid "service delegation targets"
+msgstr "cibles de délégation de service"
+
+msgid "Service delegation targets"
+msgstr "Cibles de délégation de service"
+
+msgid "Service delegation target"
+msgstr "Cible de délégation de service"
+
+msgid "Create a new service delegation target."
+msgstr "Créer une nouvelle cible de délégation de service"
+
+#, python-format
+msgid "Added service delegation target \"%(value)s\""
+msgstr "Cible de délégation de service « %(value)s » ajoutée"
+
+msgid "Delete service delegation target."
+msgstr "Supprimer une cible de délégation de service."
+
+#, python-format
+msgid "Deleted service delegation target \"%(value)s\""
+msgstr "Cible de délégation de service « %(value)s » supprimée"
+
+msgid "privileged service delegation target"
+msgstr "cible de délégation de service privilégiée"
+
+#, python-format
+msgid "%(count)d service delegation target matched"
+msgid_plural "%(count)d service delegation targets matched"
+msgstr[0] "%(count)d cible de délégation de service correspondante"
+msgstr[1] "%(count)d cibles de délégation de service correspondantes"
+
+msgid "Display information about a named service delegation target."
+msgstr "Afficher les informations sur une cible de délégation de service."
+
+msgid "Add member to a named service delegation target."
+msgstr "Ajouter un membre à une cible de délégation de service."
+
+msgid "Remove member from a named service delegation target."
+msgstr "Supprimer un membre d'une cible de délégation de service."
+
 msgid ""
 "\n"
 "Stageusers\n"
@@ -11104,11 +12305,58 @@ msgstr ""
 "   ipa stageuser-add  --first=Tim --last=User --from-delete tuser1\n"
 "\n"
 
+msgid "stage user"
+msgstr "utilis"
+
+msgid "Add a new stage user."
+msgstr "Ajouter un nouvel utilisateur en attente."
+
+#, python-format
+msgid "Added stage user \"%(value)s\""
+msgstr "Utilisateur en attente « %(value)s » ajouté"
+
+msgid "Delete a stage user."
+msgstr "Supprimer un utilisateur en attente."
+
+msgid "Modify a stage user."
+msgstr "Modifier un utilisateur en attente."
+
+#, python-format
+msgid "Modified stage user \"%(value)s\""
+msgstr "Utilisateur en attente « %(value)s » modifié"
+
+msgid "Search for stage users."
+msgstr "Rechercher des utilisateurs en attente."
+
 #, python-format
 msgid "%(count)d user matched"
 msgid_plural "%(count)d users matched"
 msgstr[0] "%(count)d utilisateur correspondant"
 msgstr[1] "%(count)d utilisateurs correspondant"
+
+msgid "Display information about a stage user."
+msgstr "Afficher les informations sur un utilisateur en attente."
+
+msgid "Activate a stage user."
+msgstr "Activer un utilisateur en attente."
+
+#, python-format
+msgid "Activate a stage user \"%(value)s\""
+msgstr "Activer un utilisateur en attente « %(value)s »"
+
+msgid "Entry RDN is not 'uid'"
+msgstr "Le RDN de l'entrée n'est pas l'attribut « uid »"
+
+msgid "Entry has no 'cn'"
+msgstr "L'entrée n'a pas d'attribut « cn »"
+
+#, python-format
+msgid "Active user %(user)s already exists"
+msgstr "L'utilisateur actif %(user)s existe déjà"
+
+#, python-format
+msgid "Stage user %s activated"
+msgstr "Utilisateur en attente %s activé"
 
 msgid ""
 "\n"
@@ -11690,6 +12938,134 @@ msgstr "Option « %(option)s » supprimée de la règle sudo « %(rule)s »"
 
 msgid ""
 "\n"
+"Topology\n"
+"\n"
+"Management of a replication topology.\n"
+"\n"
+"Requires minimum domain level 1.\n"
+msgstr ""
+"\n"
+"Topologie\n"
+"\n"
+"Gestion de la topologie de réplication.\n"
+"\n"
+"Nécessite a minima le niveau 1 de domaine.\n"
+
+#, python-brace-format
+msgid "Topology management requires minimum domain level {0} "
+msgstr "La gestion de la topologie nécessite le niveau de domaine minimal {0}"
+
+msgid "segment"
+msgstr "segment"
+
+msgid "segments"
+msgstr "segments"
+
+msgid "Topology Segments"
+msgstr "Segments de topologie"
+
+msgid "Topology Segment"
+msgstr "Segment de topologie"
+
+msgid "Segment name"
+msgstr "Nom de segment"
+
+msgid "Arbitrary string identifying the segment"
+msgstr "Chaîne arbitraire identifiant le segment"
+
+msgid "Left node"
+msgstr "Nœud de gauche"
+
+msgid "Left replication node - an IPA server"
+msgstr "Nœud de réplication à gauche - un serveur IPA"
+
+msgid "Right node"
+msgstr "Nœud de droite"
+
+msgid "Right replication node - an IPA server"
+msgstr "Nœud de réplication à droite - un serveur IPA"
+
+msgid "Connectivity"
+msgstr "Connectivité"
+
+msgid "Direction of replication between left and right replication node"
+msgstr ""
+"Direction de la réplication entre les nœuds gauche et droit de réplication"
+
+msgid "Attributes to strip"
+msgstr "Attributs à supprimer"
+
+msgid ""
+"A space separated list of attributes which are removed from replication "
+"updates."
+msgstr ""
+"Une liste séparée par des espaces d'attributs qui seront supprimés lors des "
+"mises à jour de la réplication."
+
+msgid ""
+"Attributes that are not replicated to a consumer server during a fractional "
+"update. E.g., `(objectclass=*) $ EXCLUDE accountlockout memberof"
+msgstr ""
+"Attributs qui ne seront pas répliqués vers un serveur consommateur lors "
+"d'une réplication partielle. Par exemple,  `(objectclass=*) $ EXCLUDE "
+"accountlockout memberof"
+
+msgid "Display a segment."
+msgstr "Afficher un segment."
+
+msgid "suffix"
+msgstr "suffixe"
+
+msgid "suffices"
+msgstr "suffixes"
+
+msgid "Topology suffices"
+msgstr "Suffixes de topologie"
+
+msgid "Topology suffix"
+msgstr "Suffixe de topologie"
+
+msgid "Suffix name"
+msgstr "Nom du suffixe"
+
+msgid "LDAP suffix to be managed"
+msgstr "Suffixe LDAP qui sera géré"
+
+msgid "Search for topology suffices."
+msgstr "Rechercher des suffixes de topologie."
+
+#, python-format
+msgid "%(count)d topology suffix matched"
+msgid_plural "%(count)d topology suffices matched"
+msgstr[0] "%(count)d suffixe de topologie correspondant"
+msgstr[1] "%(count)d suffixes de topologie correspondants"
+
+msgid "Delete a topology suffix."
+msgstr "Supprimer un suffixe de topologie."
+
+#, python-format
+msgid "Deleted topology suffix \"%(value)s\""
+msgstr "Suffixe de topologie « %(value)s » supprimé"
+
+msgid "Add a new topology suffix to be managed."
+msgstr "Ajouter un nouveau suffixe de topologie à gérer."
+
+#, python-format
+msgid "Added topology suffix \"%(value)s\""
+msgstr "Suffixe de topologie « %(value)s » ajouté"
+
+msgid "Modify a topology suffix."
+msgstr "Modifier un suffixe de topologie."
+
+#, python-format
+msgid "Modified topology suffix \"%(value)s\""
+msgstr "Suffixe de topologie « %(value)s » modifié"
+
+msgid "Show managed suffix."
+msgstr "Afficher le suffixe géré."
+
+msgid ""
+"\n"
 "Cross-realm trusts\n"
 "\n"
 "Manage trust relationship between IPA and Active Directory domains.\n"
@@ -11788,16 +13164,17 @@ msgid ""
 "\"\n"
 msgstr ""
 "\n"
-"Confiance croisée entre royaumes\n"
+"Relations d'approbation entre domaines\n"
 "\n"
-"Gérer des relations de confiance croisées entre les domaines IPA et Active "
+"Gestion des relations d'approbation entre les domaines IPA et Active "
 "Directory.\n"
 "\n"
 "Pour permettre aux utilisateurs d'un domaine distant l'accès aux ressources\n"
-"d'un domaine IPA, des relations de confiance doivent être établies.\n"
-"Actuellement IPA ne prend en charge que la confiance entre des domaines IPA\n"
-"et Active Directory sous le contrôle de Windows Server 2008 ou ultérieur,\n"
-"avec le niveau fonctionnel 2008 ou ultérieur.\n"
+"d'un domaine IPA, des relations d'approbation doivent être établies.\n"
+"Actuellement IPA ne prend en charge que les relations d'approbation entre "
+"des\n"
+"domaines IPA et Active Directory sous le contrôle de Windows Server 2008 ou\n"
+"ultérieur, avec le niveau fonctionnel 2008 ou ultérieur.\n"
 "\n"
 "Veuillez noter que DNS doit être correctement configuré à la fois côté\n"
 "domaine IPA et côté Active Directory pour une découverte mutuelle. La\n"
@@ -11806,13 +13183,13 @@ msgstr ""
 "\n"
 "Exemples :\n"
 "\n"
-"1. Établir des relations de confiance croisées entre royaumes avec Active\n"
+"1. Établir des relations d'approbation croisées entre royaumes avec Active\n"
 "Directory avec les autorisations d'accès d'un administrateur AD :\n"
 "\n"
 "   ipa trust-add --type=ad <ad.domain> --admin <AD domain administrator> --"
 "password\n"
 "\n"
-"2. Lister toutes les relations de confiance existantes :\n"
+"2. Lister toutes les relations d'approbation existantes :\n"
 "\n"
 "   ipa trust-find\n"
 "\n"
@@ -11834,7 +13211,7 @@ msgstr ""
 "\n"
 "Exemples :\n"
 "\n"
-"1. Créer un groupe pour la mise en relation avec le domaine de confiance\n"
+"1. Créer un groupe pour la mise en relation avec le domaine approuvé\n"
 "   « admins » et leur groupe POSIX local :\n"
 "\n"
 "   ipa group-add --desc='<ad.domain> admins external map' ad_admins_external "
@@ -11863,7 +13240,7 @@ msgstr ""
 "install »\n"
 "exécuté, une configuration de domaine local (SID, GUID, nom NetBIOS) est\n"
 "créée. Ces identifiants sont alors utilisés lors de communications avec un\n"
-"domaine de confiance de type particulier.\n"
+"domaine approuvé de type particulier.\n"
 "\n"
 "1. Afficher la configuration de confiance globale pour les types de\n"
 "   confiance Active Directory :\n"
@@ -11955,9 +13332,9 @@ msgstr ""
 "\n"
 "Cette commande établit une relation de confiance avec un autre domaine\n"
 "qui ainsi devient « de confiance ». En conséquence, des utilisateurs du\n"
-"domaine de confiance peuvent avoir accès aux ressources de ce domaine.\n"
+"domaine approuvé peuvent avoir accès aux ressources de ce domaine.\n"
 "\n"
-"Actuellement, seules les relations de confiance avec les domaines\n"
+"Actuellement, seules les relations d'approbation avec les domaines\n"
 "Active Directory sont prises en charge.\n"
 "\n"
 "Cette commande peut être lancée plusieurs fois en toute sécurité à\n"
@@ -11968,6 +13345,9 @@ msgstr ""
 msgid "Active Directory domain administrator"
 msgstr "Administrateur du domaine Active Directory"
 
+msgid "Active Directory domain administrator's password"
+msgstr "Mot de passe de l'administrateur de domaine Active Directory"
+
 msgid "Domain controller for the Active Directory domain (optional)"
 msgstr "Contrôleur de domaine pour le domaine Active Directory (optionnel)"
 
@@ -11975,15 +13355,15 @@ msgid "Shared secret for the trust"
 msgstr "Secret partagé pour la confiance"
 
 msgid "First Posix ID of the range reserved for the trusted domain"
-msgstr "Premier ID POSIX de la plage réservée au domaine de confiance"
+msgstr "Premier ID POSIX de la plage réservée au domaine approuvé"
 
 msgid "Size of the ID range reserved for the trusted domain"
-msgstr "Taille de la plage d'ID réservée au domaine de confiance"
+msgstr "Taille de la plage d'ID réservée au domaine approuvé"
 
 #, python-brace-format
 msgid "Type of trusted domain ID range, one of {vals}"
 msgstr ""
-"Type de plage d'ID de domaine de confiance, une valeur à prendre parmi {vals}"
+"Type de plage d'ID de domaine approuvé, une valeur à prendre parmi {vals}"
 
 #, python-format
 msgid "Added Active Directory trust for realm \"%(value)s\""
@@ -12028,7 +13408,7 @@ msgstr ""
 
 msgid "Trusted domain and administrator account use different realms"
 msgstr ""
-"Le domaine de confiance et le compte administrateur utilisent des domaines "
+"Le domaine approuvé et le compte administrateur utilisent des domaines "
 "différents"
 
 msgid "Realm administrator password should be specified"
@@ -12064,8 +13444,8 @@ msgid ""
 "range for the new trusted domain must be created manually."
 msgstr ""
 "Une plage d'ID avec le même nom, mais pour un SID de domaine différent "
-"existe déjà. La plage d'ID pour le nouveau domaine de confiance doit être "
-"créée manuellement."
+"existe déjà. La plage d'ID pour le nouveau domaine approuvé doit être créée "
+"manuellement."
 
 msgid "range type change"
 msgstr "modifier le type de plage"
@@ -12075,7 +13455,7 @@ msgid ""
 "Please remove the old range manually, or do not enforce type via --range-"
 "type option."
 msgstr ""
-"La plage ID existe déjà pour ce domaine de confiance, mais est d'un type "
+"La plage ID existe déjà pour ce domaine approuvé, mais est d'un type "
 "différent. Vous devez soit supprimer l'ancienne plage manuellement, soit ne "
 "pas forcer le type via l'option « --range-type »."
 
@@ -12087,8 +13467,8 @@ msgid ""
 "Forward policy is defined for it in IPA DNS, perhaps forwarder points to "
 "incorrect host?"
 msgstr ""
-"La politique de transfert est définie pour lui dans le DNS d'IPA, peut-être "
-"le transitaire pointe-t'il vers un hôte incorrect ?"
+"La politique de redirection est définie pour lui dans le DNS d'IPA, peut-"
+"être le redirecteur pointe-t'il vers un hôte incorrect ?"
 
 #, python-format
 msgid ""
@@ -12159,10 +13539,10 @@ msgid "Display information about a trust."
 msgstr "Afficher des informations sur une relation de confiance."
 
 msgid "trust configuration"
-msgstr "configuration des relations de confiance"
+msgstr "configuration des relations d'approbation"
 
 msgid "Global Trust Configuration"
-msgstr "Configuration globale des relations de confiance"
+msgstr "Configuration globale des relations d'approbation"
 
 msgid "Security Identifier"
 msgstr "Identifiant de sécurité"
@@ -12180,19 +13560,19 @@ msgid "unsupported trust type"
 msgstr "type de relation de confiance non pris en charge"
 
 msgid "Modify global trust configuration."
-msgstr "Modifier la configuration globale des relations de confiance."
+msgstr "Modifier la configuration globale des relations d'approbation."
 
 #, python-format
 msgid "Modified \"%(value)s\" trust configuration"
 msgstr "Configuration de la relation de confiance « %(value)s » modifiée."
 
 msgid "Show global trust configuration."
-msgstr "Afficher la configuration globale des relations de confiance."
+msgstr "Afficher la configuration globale des relations d'approbation."
 
 msgid "Resolve security identifiers of users and groups in trusted domains"
 msgstr ""
 "Résoudre les identifiants de sécurité des groupes et utilisateurs dans des "
-"domaines de confiance"
+"domaines approuvés"
 
 msgid "Security Identifiers (SIDs)"
 msgstr "Identifiants de sécurité (SID)"
@@ -12231,41 +13611,41 @@ msgstr ""
 "groupe n'a pas été trouvé."
 
 msgid "trust domain"
-msgstr "domaine de confiance"
+msgstr "domaine approuvé"
 
 msgid "trust domains"
-msgstr "domaines de confiance"
+msgstr "domaines approuvés"
 
 msgid "Trusted domains"
-msgstr "Domaines de confiance"
+msgstr "domaines approuvés"
 
 msgid "Trusted domain"
-msgstr "Domaine de confiance"
+msgstr "domaine approuvé"
 
 msgid "Domain name"
 msgstr "Nom de domaine"
 
 msgid "Trusted domain partner"
-msgstr "Partenaire de domaine de confiance"
+msgstr "Partenaire de domaine approuvé"
 
 msgid "Search domains of the trust"
-msgstr "Recherches dans les domaines de confiance"
+msgstr "Recherches dans les domaines approuvés"
 
 msgid "Domain enabled"
 msgstr "Domaine activé"
 
 msgid "Modify trustdomain of the trust"
-msgstr "Modifier le domaine de confiance de la confiance"
+msgstr "Modifier le domaine approuvé de la confiance"
 
 msgid "Allow access from the trusted domain"
-msgstr "Autoriser l'accès depuis le domaine de confiance"
+msgstr "Autoriser l'accès depuis le domaine approuvé"
 
 msgid "Remove infromation about the domain associated with the trust."
 msgstr "Supprimer les informations du domaine associées à la confiance."
 
 #, python-format
 msgid "Removed information about the trusted domain \"%(value)s\""
-msgstr "Informations sur le domaine de confiance « %(value)s » supprimées"
+msgstr "Informations sur le domaine approuvé « %(value)s » supprimées"
 
 msgid ""
 "cannot delete root domain of the trust, use trust-del to delete the trust "
@@ -12278,17 +13658,17 @@ msgid "Refresh list of the domains associated with the trust"
 msgstr "Rafraîchir la liste des domaines associés à la relation de confiance"
 
 msgid "List of trust domains successfully refreshed"
-msgstr "Liste des domaines de confiance rafraîchie avec succès"
+msgstr "Liste des domaines approuvés rafraîchie avec succès"
 
 msgid "No new trust domains were found"
-msgstr "Aucun nouveau domaine de confiance trouvé"
+msgstr "Aucun nouveau domaine approuvé trouvé"
 
 msgid "Allow use of IPA resources by the domain of the trust"
-msgstr "Autoriser l'utilisation des ressources IPA par le domaine de confiance"
+msgstr "Autoriser l'utilisation des ressources IPA par le domaine approuvé"
 
 #, python-format
 msgid "Enabled trust domain \"%(value)s\""
-msgstr "Activation du domaine de confiance « %(value)s »"
+msgstr "Activation du domaine approuvé « %(value)s »"
 
 msgid "Root domain of the trust is always enabled for the existing trust"
 msgstr ""
@@ -12296,11 +13676,11 @@ msgstr ""
 "confiance existante"
 
 msgid "Disable use of IPA resources by the domain of the trust"
-msgstr "Interdire l'utilisation de ressources IPA par le domaine de confiance"
+msgstr "Interdire l'utilisation de ressources IPA par le domaine approuvé"
 
 #, python-format
 msgid "Disabled trust domain \"%(value)s\""
-msgstr "Domaine de confiance « %(value)s » désactivé"
+msgstr "domaine approuvé « %(value)s » désactivé"
 
 msgid ""
 "cannot disable root domain of the trust, use trust-del to delete the trust "
@@ -12403,6 +13783,9 @@ msgstr ""
 msgid "Account disabled"
 msgstr "Compte désactivé"
 
+msgid "Preserved user"
+msgstr "Utilisateurs préservés"
+
 msgid "Add a new user."
 msgstr "Ajouter un nouvel utilisateur."
 
@@ -12423,6 +13806,17 @@ msgstr "Supprimer un utilisateur."
 msgid "Deleted user \"%(value)s\""
 msgstr "Utilisateur « %(value)s » supprimé"
 
+msgid "Delete a user, keeping the entry available for future use"
+msgstr ""
+"Supprimer un utilisateur en préservant l'entrée correspondantes pour un "
+"usage futur"
+
+msgid "Delete a user"
+msgstr "Supprimer un utilisateur"
+
+msgid "preserve and no-preserve cannot be both set"
+msgstr "preserve et no-preserve ne peuvent être indiqués simultanément"
+
 msgid "Modify a user."
 msgstr "Modifier un utilisateur."
 
@@ -12442,6 +13836,21 @@ msgstr ""
 
 msgid "Display information about a user."
 msgstr "Afficher l'information sur un utilisateur."
+
+msgid "Undelete a delete user account."
+msgstr "Restaurer un compte utilisateur supprimé."
+
+#, python-format
+msgid "Undeleted user account \"%(value)s\""
+msgstr "Compte utilisateur « %(value)s » restauré"
+
+#, python-format
+msgid "User %r is already active"
+msgstr "L'utilisateur %r est déjà actif"
+
+#, python-format
+msgid "User %r not found"
+msgstr "Utilisateur %r introuvable"
 
 msgid "Disable a user account."
 msgstr "Désactiver un compte utilisateur."
@@ -13065,28 +14474,28 @@ msgid "SID is not valid"
 msgstr "Le SID n'est pas valide"
 
 msgid "SID does not match exactlywith any trusted domain's SID"
-msgstr "Le SID ne correspond exactement à aucun SID du domaine de confiance"
+msgstr "Le SID ne correspond exactement à aucun SID du domaine approuvé"
 
 msgid "SID does not match any trusted domain"
-msgstr "Le SID ne correspond à aucun domaine de confiance"
+msgstr "Le SID ne correspond à aucun domaine approuvé"
 
 msgid "Trust setup"
-msgstr "Configuration des relations de confiance"
+msgstr "Configuration des relations d'approbation"
 
 msgid "Our domain is not configured"
 msgstr "Notre domaine n'est pas configuré"
 
 msgid "No trusted domain is not configured"
-msgstr "Aucun domaine de confiance n'est pas configuré"
+msgstr "Aucun domaine approuvé n'est pas configuré"
 
 msgid "trusted domain object"
-msgstr "objet domaine de confiance"
+msgstr "objet domaine approuvé"
 
 msgid "domain is not trusted"
 msgstr "le domaine n'est pas de confiance"
 
 msgid "no trusted domain matched the specified flat name"
-msgstr "aucun domaine de confiance ne correspond au nom simple indiqué"
+msgstr "aucun domaine approuvé ne correspond au nom simple indiqué"
 
 msgid "trusted domain object not found"
 msgstr "objet relation de confiance introuvable"
@@ -13095,16 +14504,16 @@ msgid "Ambiguous search, user domain was not specified"
 msgstr "Recherche ambiguë, le domaine utilisateur n'a pas été indiqué"
 
 msgid "Trusted domain did not return a unique object"
-msgstr "Le domaine de confiance n'a pas renvoyé un objet unique"
+msgstr "Le domaine approuvé n'a pas renvoyé un objet unique"
 
 msgid "Trusted domain did not return a valid SID for the object"
-msgstr "Le domaine de confiance n'a pas renvoyé un SID valide pour l'objet"
+msgstr "Le domaine approuvé n'a pas renvoyé un SID valide pour l'objet"
 
 msgid "trusted domain user not found"
-msgstr "utilisateur de domaine de confiance introuvable"
+msgstr "utilisateur de domaine approuvé introuvable"
 
 msgid "Cannot retrieve trusted domain GC list"
-msgstr "Impossible de récupérer la liste GC du domaine de confiance"
+msgstr "Impossible de récupérer la liste GC du domaine approuvé"
 
 msgid "CIFS credentials object"
 msgstr "Objet justificatif d'identité de CIFS"
@@ -13137,6 +14546,9 @@ msgid "find not supported on CAs upgraded from 9 to 10"
 msgstr ""
 "recherche non prise en charge sur les CA mis à jour de la version 9 à la "
 "version 10"
+
+msgid "REST API is not logged in."
+msgstr "L'API REST n'est pas connectée."
 
 msgid "The hostname to register as"
 msgstr "Le nom d'hôte sous lequel enregistrer"
@@ -13249,6 +14661,22 @@ msgid "Simple bind failed\n"
 msgstr "Échec de la connexion simple\n"
 
 #, c-format
+msgid "Operation failed: %s\n"
+msgstr "Opération échouée : %s\n"
+
+#, c-format
+msgid "Failed to get result: %s\n"
+msgstr "Impossible d'obtenir le résultat : %s\n"
+
+#, c-format
+msgid "Failed to parse extended result: %s\n"
+msgstr "Impossible d'analyser le résultat étendu : %s\n"
+
+#, c-format
+msgid "Failed to parse result: %s\n"
+msgstr "Impossible d'analyser le résultat : %s\n"
+
+#, c-format
 msgid "Missing reply control list!\n"
 msgstr "Absence de liste de contrôle des réponses !\n"
 
@@ -13291,6 +14719,9 @@ msgstr "Échec lors de la récupération du type de chiffrement %1$s (#%2$d)\n"
 #, c-format
 msgid "Failed to retrieve any keys"
 msgstr "Échec lors de la récupération de toute clé"
+
+msgid "Failed to decode control reply!\n"
+msgstr "Impossible de décoder la réponse de contrôle !\n"
 
 msgid "New Principal Password"
 msgstr "Nouveau mot de passe du principal"

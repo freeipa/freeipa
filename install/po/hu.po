@@ -19,7 +19,7 @@ msgstr ""
 "language/hu/)\n"
 "Language: hu\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Zanata 3.6.2\n"
+"X-Generator: Zanata 3.7.3\n"
 
 msgid "Passwords do not match"
 msgstr "A jelszavak nem egyeznek meg"

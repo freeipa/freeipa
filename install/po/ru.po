@@ -7,6 +7,7 @@
 # Andrew Martynov <andrewm@inventa.ru>, 2010
 # Azamat Hackimov <azamat.hackimov@gmail.com>, 2012
 # jdennis <jdennis@redhat.com>, 2011
+# Alex <alexgluck@bk.ru>, 2015. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: ipa\n"
@@ -16,14 +17,14 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2014-09-23 08:41-0400\n"
-"Last-Translator: Petr Viktorin <encukou@gmail.com>\n"
+"PO-Revision-Date: 2015-08-19 10:07-0400\n"
+"Last-Translator: Alex <alexgluck@bk.ru>\n"
 "Language-Team: Russian (http://www.transifex.com/projects/p/freeipa/language/"
 "ru/)\n"
 "Language: ru\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Zanata 3.6.2\n"
+"X-Generator: Zanata 3.7.3\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
@@ -33,8 +34,38 @@ msgstr "Повторно введите %(label)s для проверки: "
 msgid "Passwords do not match!"
 msgstr "Пароли не совпадают!"
 
+msgid "No matching entries found"
+msgstr "Совпадений не найдено"
+
+msgid "To get command help, use:"
+msgstr "Для получения помощи, используйте:"
+
+msgid "  ipa <command> --help"
+msgstr "  ipa <command> --help"
+
 msgid "Command name"
 msgstr "Имя команды"
+
+msgid "Positional arguments"
+msgstr "Аргументы позиции"
+
+#, python-format
+msgid "Same as --%s"
+msgstr "Такие как --%s"
+
+msgid "Deprecated options"
+msgstr "Не поддерживаемые опции"
+
+msgid "No file to read"
+msgstr "Нет файла"
+
+msgid "A string searched in all relevant object attributes"
+msgstr "Поиск по всем атрибутам объекта"
+
+#, python-format
+msgid "%(cver)s client incompatible with %(sver)s server at '%(server)s'"
+msgstr ""
+"%(cver)s версия клиента несовместима с %(sver)s версией сервера '%(server)s'"
 
 #, python-format
 msgid "unknown error %(code)d from %(server)s: %(error)s"
@@ -44,8 +75,28 @@ msgid "an internal error has occurred"
 msgstr "произошла внутренняя ошибка"
 
 #, python-format
+msgid "an internal error has occurred on server at '%(server)s'"
+msgstr "Произошла внутренняя ошибка на сервере '%(server)s'"
+
+#, python-format
+msgid "unknown command '%(name)s'"
+msgstr "Неизвестная команда '%(name)s'"
+
+#, python-format
+msgid "error on server '%(server)s': %(error)s"
+msgstr "ошибка на сервере '%(server)s': %(error)s"
+
+#, python-format
+msgid "cannot connect to '%(uri)s': %(error)s"
+msgstr "не могу соединиться с '%(uri)s': %(error)s "
+
+#, python-format
 msgid "Invalid JSON-RPC request: %(error)s"
 msgstr "Неверный JSON-RPC запрос: %(error)s"
+
+#, python-format
+msgid "Missing or invalid HTTP Referer, %(referer)s"
+msgstr "Отсутствует или сломан HTTP Referer, %(referer)s"
 
 #, python-format
 msgid "Kerberos error: %(major)s/%(minor)s"
@@ -76,6 +127,18 @@ msgstr "Сеансовая ошибка"
 msgid "Insufficient access: %(info)s"
 msgstr "Недостаточно прав для доступа: %(info)s"
 
+#, python-format
+msgid "command '%(name)s' takes no arguments"
+msgstr "Команда '%(name)s' не имеет аргументов"
+
+#, python-format
+msgid "'%(name)s' is required"
+msgstr "'%(name)s' требуется"
+
+#, python-format
+msgid "invalid '%(name)s': %(error)s"
+msgstr "неправильное '%(name)s': %(error)s"
+
 msgid "Passwords do not match"
 msgstr "Пароли не совпадают"
 
@@ -84,6 +147,14 @@ msgstr "Команда пока не реализована"
 
 msgid "Client is not configured. Run ipa-client-install."
 msgstr "Клиент не настроен. Запустите ipa-client-install."
+
+#, python-format
+msgid "Command '%(name)s' has been deprecated"
+msgstr "Команда '%(name)s' больше не поддерживается"
+
+#, python-format
+msgid "Domain '%(domain)s' is not a root domain for forest '%(forest)s'"
+msgstr "Домен '%(domain)s' не является корневым для леса '%(forest)s'"
 
 #, python-format
 msgid "%(reason)s"
@@ -136,6 +207,10 @@ msgstr ""
 msgid "Unable to create private group. A group '%(group)s' already exists."
 msgstr "Не удалось создать личную группу. Группа «%(group)s» уже существует."
 
+#, python-format
+msgid "%(attr)s does not contain '%(value)s'"
+msgstr "%(attr)s не содержит '%(value)s'"
+
 msgid "change collided with another change"
 msgstr "изменение противоречит другому сделанному изменению"
 
@@ -153,6 +228,24 @@ msgstr "для этого запроса превышены ограничени
 msgid "%(info)s"
 msgstr "%(info)s"
 
+msgid "modifying primary key is not allowed"
+msgstr "Изменение главного ключа не разрешено"
+
+#, python-format
+msgid "%(attr)s: Only one value allowed."
+msgstr "%(attr)s: Разрешено только одно значение."
+
+#, python-format
+msgid "%(attr)s: Invalid syntax."
+msgstr "%(attr)s: Неправильный синтаксис."
+
+msgid "LDAP timeout"
+msgstr "LDAP время истекло"
+
+#, python-format
+msgid "%(task)s LDAP task timeout, Task DN: '%(task_dn)s'"
+msgstr "%(task)s LDAP истекло время запроса, Запрос DN: '%(task_dn)s'"
+
 #, python-format
 msgid "Certificate operation cannot be completed: %(error)s"
 msgstr "Операция с сертификатом не может быть завершена: %(error)s"
@@ -161,11 +254,85 @@ msgstr "Операция с сертификатом не может быть з
 msgid "Certificate format error: %(error)s"
 msgstr "Ошибка формата сертификата: %(error)s"
 
+msgid "Already registered"
+msgstr "Уже зарегистрирован"
+
+msgid "Not registered yet"
+msgstr "Ещё не зарегистрирован"
+
+#, python-format
+msgid "%(key)s cannot be deleted because %(label)s %(dependent)s requires it"
+msgstr ""
+"%(key)s не может быть удалён, потому что %(label)s %(dependent)s он требуется"
+
+#, python-format
+msgid "%(label)s %(key)s cannot be deleted/modified: %(reason)s"
+msgstr "%(label)s %(key)s не может быть удалено/изменено: %(reason)s"
+
+#, python-format
+msgid "%(name)s certificate is not valid"
+msgstr "%(name)s ошибка сертификата"
+
 msgid "Results are truncated, try a more specific search"
 msgstr "Результаты усечены. Попробуйте задать более точные условия поиска"
 
+#, python-format
+msgid "Unknown option: %(option)s"
+msgstr "Неизвестная опция: %(option)s"
+
+msgid "Additional instructions:"
+msgstr "Дополнительные инструкции:"
+
+#, python-format
+msgid ""
+"DNSSEC support is experimental.\n"
+"%(additional_info)s"
+msgstr ""
+"Экспериментальная поддержка DNSSEC.\n"
+"%(additional_info)s"
+
+#, python-format
+msgid "'%(option)s' option is deprecated. %(additional_info)s"
+msgstr "'%(option)s' опция не поддерживается. %(additional_info)s"
+
+#, python-format
+msgid "DNS server %(server)s: %(error)s."
+msgstr "DNS сервер %(server)s: %(error)s."
+
+#, python-format
+msgid ""
+"DNS server %(server)s does not support DNSSEC: %(error)s.\n"
+"If DNSSEC validation is enabled on IPA server(s), please disable it."
+msgstr ""
+"DNS сервер %(server)s не поддерживает DNSSEC: %(error)s.\n"
+"Если проверка DNSSEC включена в IPA, пожалуйста выключите."
+
+#, python-format
+msgid ""
+"DNS server %(server)s does not support EDNS0 (RFC 6891): %(error)s.\n"
+"If DNSSEC validation is enabled on IPA server(s), please disable it."
+msgstr ""
+"DNS сервер %(server)s не поддерживает EDNS0 (RFC 6891): %(error)s.\n"
+"Если проверка DNSSEC включена в IPA, пожалуйста выключите."
+
+#, python-format
+msgid ""
+"DNSSEC validation failed: %(error)s.\n"
+"Please verify your DNSSEC configuration or disable DNSSEC validation on all "
+"IPA servers."
+msgstr ""
+"Проверка DNSSEC провалена: %(error)s.\n"
+"Пожалуйста проверьте ваше конфигурацию DNSSEC или отключите проверку DNSSEC "
+"на всех IPA серверах."
+
 msgid "A list of LDAP entries"
 msgstr "Список записей LDAP"
+
+msgid "Number of entries returned"
+msgstr "Количество вернутых значений"
+
+msgid "True if not all results were returned"
+msgstr "Верно если не все результаты были возвращены"
 
 msgid "incorrect type"
 msgstr "неверный тип"
@@ -189,6 +356,14 @@ msgstr "может быть не более %(maxvalue)d"
 
 msgid "must be a decimal number"
 msgstr "должно быть десятичным числом"
+
+#, python-format
+msgid "must be at least %(minvalue)s"
+msgstr "должно быть больше %(minvalue)s"
+
+#, python-format
+msgid "can be at most %(maxvalue)s"
+msgstr "должно быть меньше %(maxvalue)s"
 
 #, python-format
 msgid "must match pattern \"%(pattern)s\""
@@ -224,11 +399,38 @@ msgstr "может быть не длиннее %(maxlength)d символов"
 msgid "must be exactly %(length)d characters"
 msgstr "должно быть точно %(length)d символов длинной"
 
+#, python-format
+msgid "The character %(char)r is not allowed."
+msgstr "Символ %(char)r не разрешен"
+
+#, python-format
+msgid "must be '%(value)s'"
+msgstr "должно быть '%(value)s'"
+
+#, python-format
+msgid "must be one of %(values)s"
+msgstr "должен быть один из %(values)s"
+
+msgid "must be datetime value"
+msgstr "должна быть дата(datetime)"
+
+msgid "this option is deprecated"
+msgstr "это опция устарела"
+
+msgid "must be DNS name"
+msgstr "должно быть DNS имя"
+
+msgid "must be absolute"
+msgstr "должно быть единственным"
+
 msgid "A list of ACI values"
 msgstr "Список значений ACI"
 
 msgid "type, filter, subtree and targetgroup are mutually exclusive"
 msgstr "type, filter, subtree и targetgroup являются взаимоисключающими"
+
+msgid "ACI prefix is required"
+msgstr "Требуется ACL префикс"
 
 msgid ""
 "at least one of: type, filter, subtree, targetgroup, attrs or memberof are "
@@ -237,13 +439,23 @@ msgstr ""
 "требуется как минимум одно из: type, filter, subtree, targetgroup, attrs или "
 "memberof"
 
+msgid "One of group, permission or self is required"
+msgstr "Требуется одно из групп, разрешений или владелец"
+
 #, python-format
 msgid "Group '%s' does not exist"
 msgstr "Группа «%s» не существует"
 
+msgid "empty filter"
+msgstr "пустой фильтр"
+
 #, python-format
 msgid "Syntax Error: %(error)s"
 msgstr "Ошибка синтаксиса: %(error)s"
+
+#, python-format
+msgid "invalid DN (%s)"
+msgstr "Неправильный DN (%s)"
 
 #, python-format
 msgid "ACI with name \"%s\" not found"
@@ -258,17 +470,34 @@ msgstr "ACI"
 msgid "ACI name"
 msgstr "Имя ACI"
 
+msgid "Permission"
+msgstr "Разрешения"
+
+msgid "Permission ACI grants access to"
+msgstr "Добавить разрешения ACL на"
+
 msgid "User group"
 msgstr "Группа пользователей"
 
+msgid "User group ACI grants access to"
+msgstr "Добавить пользовательскую группу ACL на"
+
 msgid "Permissions"
 msgstr "Разрешения"
+
+msgid "Permissions to grant(read, write, add, delete, all)"
+msgstr "Установить разрешения (для чтения, записи, добавления, удаления, все)"
 
 msgid "Attributes"
 msgstr "Атрибуты"
 
 msgid "Type"
 msgstr "Тип"
+
+msgid "type of IPA object (user, group, host, hostgroup, service, netgroup)"
+msgstr ""
+"Тип объекта IPA (пользователь, группа, хост, группа хостов, сервис, сетевая "
+"группа)"
 
 msgid "Member of"
 msgstr "Член"
@@ -285,9 +514,15 @@ msgstr "Поддерево"
 msgid "Target group"
 msgstr "Целевая группа"
 
+msgid "Group to apply ACI to"
+msgstr "Группа для добавления ACL на"
+
 #, python-format
 msgid "Created ACI \"%(value)s\""
 msgstr "Создана ACI «%(value)s»"
+
+msgid "Test the ACI syntax but don't write anything"
+msgstr "Проверить синтаксис ACL, но никуда не записывать"
 
 #, python-format
 msgid "Deleted ACI \"%(value)s\""
@@ -307,8 +542,85 @@ msgstr[0] "Найдено %(count)d ACI"
 msgstr[1] "Найдено %(count)d ACI"
 msgstr[2] "Найдено %(count)d ACI"
 
+msgid "Location of the ACI"
+msgstr "Расположение ACL"
+
+msgid "New ACI name"
+msgstr "Новое имя ACL"
+
+#, python-format
+msgid "Renamed ACI to \"%(value)s\""
+msgstr "Переименовать ACL в \"%(value)s\""
+
+msgid ""
+"\n"
+"EXAMPLES:\n"
+msgstr ""
+"\n"
+"ПРИМЕРЫ:\n"
+
+msgid ""
+"\n"
+" Add a host:\n"
+"    ipa host-add web1.example.com\n"
+msgstr ""
+"\n"
+"Добавить хост:\n"
+"    ipa host-add web1.example.com\n"
+
+msgid ""
+"\n"
+" Add a user:\n"
+"    ipa user-add --first=Tim --last=User --password tuser1 --manager=mscott\n"
+msgstr ""
+"\n"
+" Добавить пользователя:\n"
+"    ipa user-add --first=Tim --last=User --password tuser1 --manager=mscott\n"
+
+msgid "Inclusive Regex"
+msgstr "Включая регулярные выражения"
+
+msgid "Exclusive Regex"
+msgstr "Исключая регулярные выражения"
+
+msgid "Attribute Key"
+msgstr "Значение атрибута"
+
+msgid ""
+"Attribute to filter via regex. For example fqdn for a host, or manager for a "
+"user"
+msgstr ""
+"Атрибут для поиска по регулярным выражениям. Для примера полное имя для "
+"хоста, или руководитель для пользователя"
+
+msgid "Grouping Type"
+msgstr "Тип группировки"
+
 msgid "Description"
 msgstr "Описание"
+
+#, python-format
+msgid "%(otype)s \"%(oname)s\" not found"
+msgstr "%(otype)s \"%(oname)s\" не найден(а)"
+
+#, python-format
+msgid "%s is not a valid attribute."
+msgstr "%s неправильный атрибут"
+
+msgid "Failed to add"
+msgstr "Ошибка при добавлении"
+
+msgid ""
+"\n"
+"    Remove default (fallback) group for all unmatched entries.\n"
+"    "
+msgstr ""
+"\n"
+"    Удаление групп по умолчанию для всех не выбранных.\n"
+"    "
+
+msgid "No default (fallback) group set"
+msgstr "Группа по умолчанию не установлена"
 
 msgid "Users"
 msgstr "Пользователи"
@@ -316,14 +628,108 @@ msgstr "Пользователи"
 msgid "Hosts"
 msgstr "Узлы"
 
+msgid "No wait"
+msgstr "Не ждать"
+
+msgid "Task DN"
+msgstr "Задача DN"
+
+msgid "DN of the started task"
+msgstr "DN для запущеной задачи"
+
+msgid "at least one of options: type, users, hosts must be specified"
+msgstr "больше одной опции: тип, пользователи, хосты должны быть указаны "
+
+msgid "users and hosts cannot both be set"
+msgstr "пользователи и хосты не могут быть установлены вместе"
+
+msgid "hosts cannot be set when type is 'group'"
+msgstr "хосты не могут быть установлены когда тип 'группа'"
+
+msgid "users cannot be set when type is 'hostgroup'"
+msgstr "пользователи не могут быть установлены для 'группа хостов'"
+
+#, python-format
+msgid "Task DN = '%s'"
+msgstr "Задача DN = '%s'"
+
+msgid "automount location"
+msgstr "расположение автомонтирования"
+
+msgid "automount locations"
+msgstr "расположения автомонтирования"
+
+msgid "Automount Locations"
+msgstr "Расположения Автомонтирования"
+
+msgid "Automount Location"
+msgstr "Расположение Автомонтирования"
+
 msgid "Location"
 msgstr "Расположение"
+
+msgid "Automount location name."
+msgstr "Имя расположения автомонтирования."
+
+msgid "Create a new automount location."
+msgstr "Создать новое расположение автомонтирования."
+
+#, python-format
+msgid "Added automount location \"%(value)s\""
+msgstr "Добавление расположения автомонтирования \"%(value)s\""
+
+msgid "Delete an automount location."
+msgstr "Удаление расположения автомонтирования."
+
+#, python-format
+msgid "Deleted automount location \"%(value)s\""
+msgstr "Удаление расположения автомонтирования. \"%(value)s\""
+
+msgid "Display an automount location."
+msgstr "Отобразить расположения автомонтирования."
+
+msgid "Search for an automount location."
+msgstr "Поиск для расположения автомонтирования."
+
+#, python-format
+msgid "%(count)d automount location matched"
+msgid_plural "%(count)d automount locations matched"
+msgstr[0] "%(count)d расположений автомонтирований найдено"
+msgstr[1] "%(count)d расположений автомонтирований найдено"
+msgstr[2] ""
+
+msgid "Generate automount files for a specific location."
+msgstr "Сгенерировать  файлы автомонтирования для особого расположения."
+
+msgid "Master file"
+msgstr "Главный файл"
+
+msgid "Automount master file."
+msgstr "Главный файл автомонтирования."
+
+#, python-format
+msgid "File %(file)s not found"
+msgstr "Файл %(file)s не найден"
+
+#, python-format
+msgid "key %(key)s already exists"
+msgstr "ключ %(key)s уже существует"
+
+msgid "Map"
+msgstr "Карта"
 
 msgid "Key"
 msgstr "Ключ"
 
 msgid "description"
 msgstr "описание"
+
+#, python-format
+msgid "key named %(key)s already exists"
+msgstr "ключ с именем  %(key)s уже существует"
+
+msgid "Create a new automount key."
+msgstr "Создать новый ключ автомонтирования."
 
 msgid "Mount point"
 msgstr "Точка монтирования"
@@ -334,8 +740,26 @@ msgstr "Пароль"
 msgid "Roles"
 msgstr "Роли"
 
+msgid "Sudo Command Groups"
+msgstr "Группы команды SUDO"
+
+msgid "Failed to remove"
+msgstr "Ошибка при удалении"
+
+msgid "Failed RunAs"
+msgstr "Ошибка \"запустить как\""
+
+msgid "Failed RunAsGroup"
+msgstr "Ошибка \"запустить как группа\""
+
+msgid "Invalid format. Should be name=value"
+msgstr "Неправильный формат. Должно быть имя=значение"
+
 msgid "External host"
 msgstr "Внешний узел"
+
+msgid "An IPA master host cannot be deleted or disabled"
+msgstr "Главный хост IPA не может быть удалён или выключен"
 
 msgid "entry"
 msgstr "запись"
@@ -346,8 +770,75 @@ msgstr "записи"
 msgid "Entry"
 msgstr "Запись"
 
+#, python-format
+msgid "%(parent)s: %(oname)s not found"
+msgstr "%(parent)s: %(oname)s не найден"
+
+#, python-format
+msgid "%(pkey)s: %(oname)s not found"
+msgstr "%(pkey)s: %(oname)s не найден"
+
+#, python-format
+msgid "attribute \"%(attribute)s\" not allowed"
+msgstr "атрибут \"%(attribute)s\" запрещён"
+
+msgid ""
+"Add an attribute/value pair. Format is attr=value. The attribute\n"
+"must be part of the schema."
+msgstr ""
+"Добавить пару атрибут/значение. Формат атрибут=значение. Атрибут\n"
+"должен быть частью схемы."
+
 msgid "Rights"
 msgstr "Права"
+
+msgid "Rename"
+msgstr "Переименовать"
+
+#, python-format
+msgid "%s"
+msgstr "%s"
+
+#, python-format
+msgid "member %s"
+msgstr "член %s"
+
+#, python-format
+msgid "%s to add"
+msgstr "%s к добавлению"
+
+msgid "Number of members added"
+msgstr "Количество добавленных членов"
+
+#, python-format
+msgid "%s to remove"
+msgstr "%s к удалению"
+
+msgid "Members that could not be removed"
+msgstr "Члены не могут быть удалены"
+
+msgid "Number of members removed"
+msgstr "Количество удалённых членов"
+
+msgid "Primary key only"
+msgstr "Только главный ключ"
+
+#, python-format
+msgid "Results should contain primary key attribute only (\"%s\")"
+msgstr "Результаты должны содержать только атрибуты главного ключа (\"%s\")"
+
+#, python-format
+msgid ""
+"Search for %(searched_object)s with these %(relationship)s %(ldap_object)s."
+msgstr ""
+"Поиск для %(searched_object)s с такими %(relationship)s %(ldap_object)s."
+
+#, python-format
+msgid ""
+"Search for %(searched_object)s without these %(relationship)s "
+"%(ldap_object)s."
+msgstr ""
+"Поиск для %(searched_object)s без таких %(relationship)s %(ldap_object)s."
 
 msgid "Time Limit"
 msgstr "Ограничение по времени"
@@ -358,8 +849,38 @@ msgstr "Ограничение времени поиска в секундах"
 msgid "Size Limit"
 msgstr "Ограничение по размеру"
 
+msgid "Maximum number of entries returned"
+msgstr "Максимальное количество совпадений возвращено"
+
+msgid "Kerberos keys available"
+msgstr "Kerberos ключей доступно"
+
+msgid "SSH public key fingerprint"
+msgstr "SSH публичный отпечатков ключей"
+
+msgid "Server"
+msgstr "Сервер"
+
+msgid "Failed logins"
+msgstr "Ошибка входа"
+
+msgid "Last successful authentication"
+msgstr "Последний успешный вход"
+
+msgid "Last failed authentication"
+msgstr "Последняя ошибка входа"
+
+msgid "Time now"
+msgstr "Время сейчас"
+
+msgid "must be TRUE or FALSE"
+msgstr "должно быть TRUE или FALSE"
+
 msgid "User"
 msgstr "Пользователь"
+
+msgid "User login"
+msgstr "Логин пользователя"
 
 msgid "First name"
 msgstr "Имя"
@@ -378,6 +899,15 @@ msgstr "Инициалы"
 
 msgid "Home directory"
 msgstr "Домашний каталог"
+
+msgid "GECOS"
+msgstr "GECOS"
+
+msgid "Login shell"
+msgstr "Оболочка входа"
+
+msgid "Kerberos principal"
+msgstr "Kerberos владелец"
 
 msgid "Email address"
 msgstr "Электронный адрес"
@@ -439,24 +969,70 @@ msgstr "Руководитель"
 msgid "Car License"
 msgstr "Номер автомобиля"
 
+msgid "SSH public key"
+msgstr "SSH публичный ключ"
+
+msgid "User authentication types"
+msgstr "Типы авторизации пользователей"
+
+msgid "Types of supported user authentication"
+msgstr "Типы авторизаций поддерживаемые пользователем"
+
 msgid "Class"
 msgstr "Класс"
 
+msgid "RADIUS proxy configuration"
+msgstr "RADIUS конфигурация прокси"
+
+msgid "RADIUS proxy username"
+msgstr "RADIUS имя пользователя прокси"
+
+msgid "Department Number"
+msgstr "Номер отдела"
+
+msgid "Preferred Language"
+msgstr "Предпочитаемый язык"
+
 msgid "Certificate"
 msgstr "Сертификат"
+
+msgid "Base-64 encoded server certificate"
+msgstr "Base-64 шифрованый сертификат сервера"
+
+#, python-format
+msgid "invalid e-mail format: %(email)s"
+msgstr "неправильный формат почты: %(email)s"
 
 #, python-format
 msgid "manager %(manager)s not found"
 msgstr "руководитель %(manager)s не найден"
 
+msgid "CA ACL"
+msgstr "CA ACL"
+
+msgid "CA ACLs"
+msgstr "CA ACLs"
+
+msgid "ACL name"
+msgstr "ACL имя"
+
 msgid "Enabled"
 msgstr "Включено"
+
+msgid "Profile category"
+msgstr "Категория профиля"
 
 msgid "User category"
 msgstr "Категория пользователя"
 
+msgid "Host category"
+msgstr "Категория хоста"
+
 msgid "Service category"
 msgstr "Категория службы"
+
+msgid "Profiles"
+msgstr "Профили"
 
 msgid "User Groups"
 msgstr "Группы пользователей"
@@ -467,12 +1043,169 @@ msgstr "Группы узлов"
 msgid "Services"
 msgstr "Службы"
 
+msgid "Create a new CA ACL."
+msgstr "Создать новый CA ACL."
+
+#, python-format
+msgid "Added CA ACL \"%(value)s\""
+msgstr "Добавлен CA ACL \"%(value)s\""
+
+msgid "Delete a CA ACL."
+msgstr "Удалить CA ACL."
+
+#, python-format
+msgid "Deleted CA ACL \"%(value)s\""
+msgstr "Удален CA ACL \"%(value)s\""
+
+msgid "Modify a CA ACL."
+msgstr "Изменить CA ACL."
+
+#, python-format
+msgid "Modified CA ACL \"%(value)s\""
+msgstr "Изменён CA ACL \"%(value)s\""
+
+msgid "Search for CA ACLs."
+msgstr "Поиск по CA ACLs."
+
+#, python-format
+msgid "%(count)d CA ACL matched"
+msgid_plural "%(count)d CA ACLs matched"
+msgstr[0] "%(count)d CA ACL найдено"
+msgstr[1] "%(count)d CA ACLs совпадений"
+msgstr[2] ""
+
+msgid "Display the properties of a CA ACL."
+msgstr "Показать свойства of a CA ACL."
+
+msgid "Enable a CA ACL."
+msgstr "Включить CA ACL."
+
+#, python-format
+msgid "Enabled CA ACL \"%(value)s\""
+msgstr "Включен CA ACL \"%(value)s\""
+
+msgid "Disable a CA ACL."
+msgstr "Выключить CA ACL."
+
+#, python-format
+msgid "Disabled CA ACL \"%(value)s\""
+msgstr "Выключен CA ACL \"%(value)s\""
+
+msgid "Add users and groups to a CA ACL."
+msgstr "Добавить пользователей и группы в CA ACL."
+
+#, python-format
+msgid "%i user or group added."
+msgstr "%i пользователь или группа добавлены."
+
+#, python-format
+msgid "%i users or groups added."
+msgstr "%i пользователи или группы добавлены."
+
+msgid "Remove users and groups from a CA ACL."
+msgstr "Удалить пользователей из CA ACL."
+
+#, python-format
+msgid "%i user or group removed."
+msgstr "%i пользователь или группа удалена."
+
+#, python-format
+msgid "%i users or groups removed."
+msgstr "%i пользователи или группы удалены."
+
+msgid "Add target hosts and hostgroups to a CA ACL."
+msgstr "Добавить целевые хосты или группы хостов к CA ACL."
+
+#, python-format
+msgid "%i host or hostgroup added."
+msgstr "%i хост или группа добавлены."
+
+#, python-format
+msgid "%i hosts or hostgroups added."
+msgstr "%i хосты или группы добавлены."
+
+msgid "Remove target hosts and hostgroups from a CA ACL."
+msgstr "Удалить целевые хосты или группы хостов из CA ACL."
+
+#, python-format
+msgid "%i host or hostgroup removed."
+msgstr "%i хост или группа хостов удалены."
+
+#, python-format
+msgid "%i hosts or hostgroups removed."
+msgstr "%i хосты или группы хостов удалены."
+
+msgid "Add services to a CA ACL."
+msgstr "Добавить службы к CA ACL."
+
+#, python-format
+msgid "%i service added."
+msgstr "%i службу добавлен."
+
+#, python-format
+msgid "%i services added."
+msgstr "%i службы добавлены."
+
+msgid "Remove services from a CA ACL."
+msgstr "Удалить службу из CA ACL."
+
+#, python-format
+msgid "%i service removed."
+msgstr "%i служба удалена."
+
+#, python-format
+msgid "%i services removed."
+msgstr "%i службы удалены."
+
+msgid "Failed profiles"
+msgstr "Ошибка профилей"
+
+msgid "Add profiles to a CA ACL."
+msgstr "Добавить профили к CA ACL."
+
+#, python-format
+msgid "%i profile added."
+msgstr "%i профиль добавлен."
+
+#, python-format
+msgid "%i profiles added."
+msgstr "%i профили добавлены."
+
+msgid "Remove profiles from a CA ACL."
+msgstr "Удалить профили из CA ACL."
+
+#, python-format
+msgid "%i profile removed."
+msgstr "%i профиль удалён."
+
+#, python-format
+msgid "%i profiles removed."
+msgstr "%i профили удалены."
+
 #, python-format
 msgid "Failure decoding Certificate Signing Request: %s"
 msgstr "Сбой при декодировании запроса на создание сертификата: %s"
 
+msgid "CA is not configured"
+msgstr "CA не настроен"
+
+msgid "Submit a certificate signing request."
+msgstr "Отправить запрос подписи сертификата."
+
 msgid "CSR"
 msgstr "CSR"
+
+msgid "Principal"
+msgstr "Основной"
+
+msgid "Profile ID"
+msgstr "Идентификатор профиля"
+
+msgid "Certificate Profile to use"
+msgstr "Использовать сертификат профиля"
+
+msgid "Subject"
+msgstr "Объект"
 
 msgid "Issuer"
 msgstr "Издатель"
@@ -492,17 +1225,39 @@ msgstr "Отпечаток (SHA1)"
 msgid "Serial number"
 msgstr "Серийный номер"
 
+msgid "Serial number (hex)"
+msgstr "Серийный номер (hex)"
+
+#, python-format
+msgid "extension %s is forbidden"
+msgstr "расширение %s запрещено"
+
+msgid "RFC822Name does not match any of user's email addresses"
+msgstr "RFC822 Имя не совпадает ни с одним пользователем электронной почты"
+
+msgid "Check the status of a certificate signing request."
+msgstr "Проверьте статус запроса подписи сертификата."
+
 msgid "Request id"
 msgstr "ID запроса"
 
 msgid "Request status"
 msgstr "Статус запроса"
 
+msgid "Serial number in decimal or if prefixed with 0x in hexadecimal"
+msgstr "Серийный номер в десятичной или если есть префикс 0x в HEX формате"
+
 msgid "Retrieve an existing certificate."
 msgstr "Получить существующий сертификат."
 
 msgid "Revocation reason"
 msgstr "Причина отзыва"
+
+msgid "Output filename"
+msgstr "Исходящие имя файла"
+
+msgid "File to store the certificate in."
+msgstr "Файл для сохранения сертификата."
 
 msgid "Revoke a certificate."
 msgstr "Отозвать сертификат"
@@ -516,8 +1271,26 @@ msgstr "Причина"
 msgid "Reason for revoking the certificate (0-10)"
 msgstr "Причина для отзыва сертификата (0-10)"
 
+msgid "7 is not a valid revocation reason"
+msgstr "7 неверная причина отзыва сертификата"
+
+msgid "Unrevoked"
+msgstr "Неотозванный"
+
 msgid "Error"
 msgstr "Ошибка"
+
+msgid "Search for existing certificates."
+msgstr "Поиск по существующим сертификатам."
+
+msgid "minimum serial number"
+msgstr "минимальный серийный номер"
+
+msgid "maximum serial number"
+msgstr "Максимальный серийный номер"
+
+msgid "Revoked on from this date (YYYY-mm-dd)"
+msgstr "Отозван с даты (YYYY-mm-dd)"
 
 msgid "Configuration"
 msgstr "Настройка"

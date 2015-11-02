@@ -19,7 +19,7 @@ msgstr ""
 "eu/)\n"
 "Language: eu\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Zanata 3.6.2\n"
+"X-Generator: Zanata 3.7.3\n"
 
 #, c-format
 msgid "Passwords do not match!"
