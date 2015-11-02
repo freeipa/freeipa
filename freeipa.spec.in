@@ -74,7 +74,6 @@ BuildRequires:  pylint >= 1.0
 BuildRequires:  python-polib
 BuildRequires:  python-libipa_hbac
 BuildRequires:  python-memcached
-BuildRequires:  sssd >= 1.13.1
 BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1 >= 0.0.9a
 BuildRequires:  python-qrcode-core >= 5.0.0
