@@ -274,7 +274,8 @@ class ConfigureTool(admintool.AdminTool):
         kwargs = {}
 
         transformed_cls = self._transform(self.configurable_class)
-        for owner_cls, name in transformed_cls.knobs():
+        knob_classes = {n: getattr(c, n) for c, n in transformed_cls.knobs()}
+        for name in knob_classes:
             value = getattr(self.options, name, None)
             if value is not None:
                 kwargs[name] = value
@@ -286,8 +287,10 @@ class ConfigureTool(admintool.AdminTool):
         try:
             cfgr = transformed_cls(**kwargs)
         except core.KnobValueError as e:
-            knob_cls = getattr(transformed_cls, e.name)
+            knob_cls = knob_classes[e.name]
             try:
+                if self.positional_arguments is None:
+                    raise IndexError
                 index = self.positional_arguments.index(e.name)
             except IndexError:
                 cli_name = knob_cls.cli_name or e.name.replace('_', '-')
