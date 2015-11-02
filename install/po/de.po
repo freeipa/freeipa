@@ -1895,7 +1895,7 @@ msgid "Enabled HBAC rule \"%(value)s\""
 msgstr "HBAC-Regel \"%(value)s\" aktiviert"
 
 msgid "Disable an HBAC rule."
-msgstr "HBAC-Regel \"%(value)s\" deaktivieren."
+msgstr "HBAC-Regel deaktivieren."
 
 #, python-format
 msgid "Disabled HBAC rule \"%(value)s\""

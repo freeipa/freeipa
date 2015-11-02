@@ -488,7 +488,7 @@ msgid ""
 "DNS server %(server)s does not support EDNS0 (RFC 6891): %(error)s.\n"
 "If DNSSEC validation is enabled on IPA server(s), please disable it."
 msgstr ""
-"На сервері DNS (server)s не передбачено підтримки EDNS0 (RFC 6891): "
+"На сервері DNS %(server)s не передбачено підтримки EDNS0 (RFC 6891): "
 "%(error)s.\n"
 "Якщо на серверах IPA увімкнено перевірку DNSSEC, будь ласка, вимкніть її."
 
