@@ -886,10 +886,9 @@ def add_a_records_for_hosts_in_master_domain(master):
 def add_a_record(master, host):
     # Find out if the record is already there
     cmd = master.run_command(['ipa',
-                              'dnsrecord-find',
+                              'dnsrecord-show',
                               master.domain.name,
-                              host.hostname,
-                              '--a-rec', host.ip],
+                              host.hostname + "."],
                              raiseonerr=False)
 
     # If not, add it
@@ -897,7 +896,7 @@ def add_a_record(master, host):
         master.run_command(['ipa',
                             'dnsrecord-add',
                             master.domain.name,
-                            host.hostname,
+                            host.hostname + ".",
                             '--a-rec', host.ip])
 
 
