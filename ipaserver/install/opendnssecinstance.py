@@ -378,6 +378,8 @@ class OpenDNSSECInstance(service.Service):
                 root_logger.debug(error)
                 pass
 
+        self.restore_state("KASP_DB_configured")  # just eat state
+
         # disabled by default, by ldap_enable()
         if enabled:
             self.enable()
