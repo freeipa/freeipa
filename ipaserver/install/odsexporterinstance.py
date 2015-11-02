@@ -182,7 +182,7 @@ class ODSExporterInstance(service.Service):
 
         # restore state of dnssec default signer daemon
         signerd_enabled = self.restore_state("singerd_enabled")
-        signerd_running = self.restore_state("singerd_runnning")
+        signerd_running = self.restore_state("singerd_running")
         signerd_service = services.knownservices.ods_signerd
 
         signerd_service.unmask()
