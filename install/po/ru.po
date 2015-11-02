@@ -694,8 +694,8 @@ msgstr "Поиск для расположения автомонтирован�
 #, python-format
 msgid "%(count)d automount location matched"
 msgid_plural "%(count)d automount locations matched"
-msgstr[0] "%(count)d расположений автомонтирований найдено"
-msgstr[1] "%(count)d расположений автомонтирований найдено"
+msgstr[0] ""
+msgstr[1] ""
 msgstr[2] ""
 
 msgid "Generate automount files for a specific location."
@@ -1070,8 +1070,8 @@ msgstr "Поиск по CA ACLs."
 #, python-format
 msgid "%(count)d CA ACL matched"
 msgid_plural "%(count)d CA ACLs matched"
-msgstr[0] "%(count)d CA ACL найдено"
-msgstr[1] "%(count)d CA ACLs совпадений"
+msgstr[0] ""
+msgstr[1] ""
 msgstr[2] ""
 
 msgid "Display the properties of a CA ACL."

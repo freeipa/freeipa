@@ -3961,7 +3961,6 @@ msgstr ""
 "    * Zone redirigée : les zones transférées ne contiennent aucune donnée \n"
 "    faisant autorité. BIND transmet les requêtes qui ne peuvent être \n"
 "    servies par son cache local aux serveurs de redirection configurés.\n"
-" "
 
 msgid ""
 "\n"
@@ -7389,21 +7388,21 @@ msgstr "Ajouter une nouvelle surcharge d'identifiant."
 
 #, python-format
 msgid "Added ID override \"%(value)s\""
-msgstr "Surcharge d'identifiants « %(value) » ajoutée"
+msgstr "Surcharge d'identifiants « %(value)s » ajoutée"
 
 msgid "Delete an ID override."
 msgstr "Supprimer une surcharge d'identifiants."
 
 #, python-format
 msgid "Deleted ID override \"%(value)s\""
-msgstr "Surcharge d'identifiants « %(value) » supprimée"
+msgstr "Surcharge d'identifiants « %(value)s » supprimée"
 
 msgid "Modify an ID override."
 msgstr "Modifier une surcharge d'identifiants."
 
 #, python-format
 msgid "Modified an ID override \"%(value)s\""
-msgstr "Surcharge d'identifiants « %(value) » modifiée"
+msgstr "Surcharge d'identifiants « %(value)s » modifiée"
 
 msgid "ID override"
 msgstr "Surcharge d'identifiants"
