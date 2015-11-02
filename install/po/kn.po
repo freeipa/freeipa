@@ -20,7 +20,7 @@ msgstr ""
 "kn/)\n"
 "Language: kn\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Zanata 3.6.2\n"
+"X-Generator: Zanata 3.7.3\n"
 
 #, python-format
 msgid "Enter %(label)s again to verify: "
