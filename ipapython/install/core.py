@@ -118,6 +118,16 @@ class KnobBase(PropertyBase):
     def __init__(self, outer):
         self.outer = outer
 
+    def __set__(self, obj, value):
+        try:
+            self.validate(value)
+        except KnobValueError:
+            raise
+        except ValueError as e:
+            raise KnobValueError(self.__outer_name__, str(e))
+
+        super(KnobBase, self).__set__(obj, value)
+
     def validate(self, value):
         pass
 
@@ -243,7 +253,8 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
             except KeyError:
                 pass
             else:
-                setattr(self, name, value)
+                prop = prop_cls(self)
+                prop.__set__(self, value)
 
         if kwargs:
             extra = sorted(kwargs)
