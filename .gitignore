@@ -67,6 +67,9 @@ freeipa2-dev-doc
 
 /ipatests/setup.py
 
+/ipalib/setup.py
+!/ipalib/Makefile
+
 /ipapython/setup.py
 /ipapython/version.py
 !/ipapython/Makefile

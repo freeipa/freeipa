@@ -2,6 +2,12 @@
 # subpackages
 %{!?ONLY_CLIENT:%global ONLY_CLIENT 0}
 
+%if 0%{?rhel}
+%global with_python3 0
+%else
+%global with_python3 1
+%endif
+
 %global alt_name ipa
 %if 0%{?rhel}
 %global samba_version 4.0.5-1
@@ -103,6 +109,10 @@ BuildRequires:  dbus-python
 # Build dependencies for unit tests
 BuildRequires:  libcmocka-devel
 BuildRequires:  nss_wrapper
+
+%if 0%{?with_python3}
+BuildRequires:  python3-devel
+%endif  # with_python3
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -472,6 +482,50 @@ and integration with Active Directory based infrastructures (Trusts).
 If you are using IPA, you need to install this package.
 
 
+%if 0%{?with_python3}
+
+%package -n python3-ipalib
+Summary: Python3 libraries used by IPA
+Group: System Environment/Libraries
+%{?python_provide:%python_provide python3-ipalib}
+%{?python_provide:%{?_isa:%python_provide python3-ipalib%{_isa}}}
+Provides: python3-ipapython = %{version}-%{release}
+%{?python_provide:%python_provide python3-ipapython}
+Provides: python3-ipaplatform = %{version}-%{release}
+%{?python_provide:%python_provide python3-ipaplatform}
+Requires: %{name}-common = %{version}-%{release}
+Requires: python3-gssapi >= 1.1.2
+Requires: gnupg
+Requires: iproute
+Requires: keyutils
+Requires: python3-pyOpenSSL
+Requires: python3-nss >= 0.16
+Requires: python3-cryptography
+Requires: python3-lxml
+Requires: python3-netaddr
+Requires: python3-libipa_hbac
+Requires: python3-qrcode-core >= 5.0.0
+Requires: python3-pyasn1
+Requires: python3-dateutil
+Requires: python3-yubico >= 1.2.3
+Requires: python3-sss-murmur
+Requires: curl
+Requires: python3-dbus
+Requires: python3-setuptools
+Requires: python3-six
+Requires: python3-jwcrypto
+
+%description -n python3-ipalib
+IPA is an integrated solution to provide centrally managed Identity (users,
+hosts, services), Authentication (SSO, 2FA), and Authorization
+(host access control, SELinux user roles, services). The solution provides
+features for further integration with Linux based clients (SUDO, automount)
+and integration with Active Directory based infrastructures (Trusts).
+If you are using IPA with Python 3, you need to install this package.
+
+%endif # with_python3
+
+
 %package common
 Summary: Common files used by IPA
 Group: System Environment/Libraries
@@ -525,6 +579,34 @@ features for further integration with Linux based clients (SUDO, automount)
 and integration with Active Directory based infrastructures (Trusts).
 This package contains tests that verify IPA functionality.
 
+
+%if 0%{?with_python3}
+
+%package -n python3-ipatests
+Summary: IPA tests and test tools
+BuildArch: noarch
+%{?python_provide:%python_provide python3-ipatests}
+Requires: %{name}-client-common = %{version}-%{release}
+Requires: python3-ipalib%{?_isa} = %{version}-%{release}
+Requires: tar
+Requires: xz
+Requires: python3-nose
+Requires: python3-pytest >= 2.6
+Requires: python3-coverage
+Requires: python3-polib
+Requires: python3-pytest-multihost >= 0.5
+Requires: python3-pytest-sourceorder
+
+%description -n python3-ipatests
+IPA is an integrated solution to provide centrally managed Identity (users,
+hosts, services), Authentication (SSO, 2FA), and Authorization
+(host access control, SELinux user roles, services). The solution provides
+features for further integration with Linux based clients (SUDO, automount)
+and integration with Active Directory based infrastructures (Trusts).
+This package contains tests that verify IPA functionality under Python 3.
+
+%endif # with_python3
+
 %endif # ONLY_CLIENT
 
 
@@ -554,6 +636,10 @@ cd daemons; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localst
 cd install; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 %endif # ONLY_CLIENT
 
+%if 0%{?with_python3}
+(cd ipapython/ipap11helper && make PYTHON=%{__python3} IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} all)
+%endif
+
 %if ! %{ONLY_CLIENT}
 make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} all
 %else
@@ -578,9 +664,38 @@ rm -f ipaplatform/constants.py
 make version-update
 %if ! %{ONLY_CLIENT}
 make install DESTDIR=%{buildroot}
+
+mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python2_version}
+mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python2_version}
+mv %{buildroot}%{_bindir}/ipa-test-task %{buildroot}%{_bindir}/ipa-test-task-%{python2_version}
+
+%if 0%{?with_python3}
+(cd ipatests && %{__python3} setup.py install --root %{buildroot})
+mv %{buildroot}%{_bindir}/ipa-run-tests %{buildroot}%{_bindir}/ipa-run-tests-%{python3_version}
+mv %{buildroot}%{_bindir}/ipa-test-config %{buildroot}%{_bindir}/ipa-test-config-%{python3_version}
+mv %{buildroot}%{_bindir}/ipa-test-task %{buildroot}%{_bindir}/ipa-test-task-%{python3_version}
+ln -s %{_bindir}/ipa-run-tests-%{python3_version} %{buildroot}%{_bindir}/ipa-run-tests-3
+ln -s %{_bindir}/ipa-test-config-%{python3_version} %{buildroot}%{_bindir}/ipa-test-config-3
+ln -s %{_bindir}/ipa-test-task-%{python3_version} %{buildroot}%{_bindir}/ipa-test-task-3
+%endif # with_python3
+
+ln -s %{_bindir}/ipa-run-tests-%{python2_version} %{buildroot}%{_bindir}/ipa-run-tests-2
+ln -s %{_bindir}/ipa-test-config-%{python2_version} %{buildroot}%{_bindir}/ipa-test-config-2
+ln -s %{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-test-task-2
+ln -s %{_bindir}/ipa-run-tests-%{python2_version} %{buildroot}%{_bindir}/ipa-run-tests
+ln -s %{_bindir}/ipa-test-config-%{python2_version} %{buildroot}%{_bindir}/ipa-test-config
+ln -s %{_bindir}/ipa-test-task-%{python2_version} %{buildroot}%{_bindir}/ipa-test-task
+
 %else
 make client-install DESTDIR=%{buildroot}
 %endif # ONLY_CLIENT
+
+%if 0%{?with_python3}
+(cd ipalib && make PYTHON=%{__python3} IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} DESTDIR=%{buildroot} install)
+(cd ipapython && make PYTHON=%{__python3} IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} DESTDIR=%{buildroot} install)
+(cd ipaplatform && %{__python3} setup.py install --root %{buildroot})
+%endif # with_python3
+
 %find_lang %{gettext_domain}
 
 mkdir -p %{buildroot}%{_usr}/share/ipa
@@ -1196,6 +1311,7 @@ fi
 %attr(0644,root,root) %{python_sitearch}/default_encoding_utf8.so
 %attr(0644,root,root) %{python_sitearch}/_ipap11helper.so
 %{python_sitelib}/ipapython-*.egg-info
+%{python_sitelib}/ipalib-*.egg-info
 %{python_sitelib}/freeipa-*.egg-info
 %{python_sitelib}/ipaplatform-*.egg-info
 %{python_sitearch}/python_default_encoding-*.egg-info
@@ -1206,6 +1322,25 @@ fi
 %defattr(-,root,root,-)
 %doc README Contributors.txt
 %license COPYING
+
+
+%if 0%{?with_python3}
+
+%files -n python3-ipalib
+%defattr(-,root,root,-)
+%doc README Contributors.txt
+%license COPYING
+
+%{python3_sitelib}/ipapython/
+%{python3_sitelib}/ipalib/
+%{python3_sitelib}/ipaplatform/
+%{python3_sitelib}/ipapython-*.egg-info
+%{python3_sitelib}/ipalib-*.egg-info
+%{python3_sitelib}/ipaplatform-*.egg-info
+%attr(0644,root,root) %{python3_sitearch}/_ipap11helper.cpython-*.so
+%{python3_sitearch}/_ipap11helper-*.egg-info
+
+%endif # with_python3
 
 
 %if ! %{ONLY_CLIENT}
@@ -1228,10 +1363,34 @@ fi
 %{_bindir}/ipa-run-tests
 %{_bindir}/ipa-test-config
 %{_bindir}/ipa-test-task
+%{_bindir}/ipa-run-tests-2
+%{_bindir}/ipa-test-config-2
+%{_bindir}/ipa-test-task-2
+%{_bindir}/ipa-run-tests-%{python2_version}
+%{_bindir}/ipa-test-config-%{python2_version}
+%{_bindir}/ipa-test-task-%{python2_version}
 %{python_sitelib}/ipatests-*.egg-info
 %{_mandir}/man1/ipa-run-tests.1.gz
 %{_mandir}/man1/ipa-test-config.1.gz
 %{_mandir}/man1/ipa-test-task.1.gz
+
+%if 0%{?with_python3}
+
+%files -n python3-ipatests
+%defattr(-,root,root,-)
+%doc README Contributors.txt
+%license COPYING
+
+%{python3_sitelib}/ipatests/
+%{_bindir}/ipa-run-tests-3
+%{_bindir}/ipa-test-config-3
+%{_bindir}/ipa-test-task-3
+%{_bindir}/ipa-run-tests-%{python3_version}
+%{_bindir}/ipa-test-config-%{python3_version}
+%{_bindir}/ipa-test-task-%{python3_version}
+%{python3_sitelib}/ipatests-*.egg-info
+
+%endif # with_python3
 
 %endif # ONLY_CLIENT
 
