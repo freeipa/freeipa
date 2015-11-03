@@ -5,7 +5,9 @@ from ipapython.secrets.client import CustodiaClient
 from ipaplatform.paths import paths
 from service import SimpleServiceInstance
 from ipapython import ipautil
+from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import installutils
+from ipaserver.install import sysupgrade
 from base64 import b64encode, b64decode
 from jwcrypto.common import json_decode
 import shutil
@@ -45,6 +47,7 @@ class CustodiaInstance(SimpleServiceInstance):
                                                       dm_password=dm_password,
                                                       ldap_suffix=suffix,
                                                       realm=self.realm)
+        sysupgrade.set_upgrade_state('custodia', 'installed', True)
 
     def __gen_keys(self):
         KeyStore = IPAKEMKeys({'server_keys': self.server_keys,
@@ -52,10 +55,9 @@ class CustodiaInstance(SimpleServiceInstance):
         KeyStore.generate_server_keys()
 
     def upgrade_instance(self):
-        if not os.path.exists(self.config_file):
-            self.__config_file()
-        if not os.path.exists(self.server_keys):
-            self.__gen_keys()
+        if not sysupgrade.get_upgrade_state("custodia", "installed"):
+            root_logger.info("Custodia service is being configured")
+            self.create_instance()
 
     def create_replica(self, master_host_name):
         suffix = ipautil.realm_to_suffix(self.realm)
