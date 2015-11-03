@@ -12,6 +12,7 @@ from ipalib.plugins.baseldap import (
     LDAPRetrieve)
 from ipalib import _, ngettext
 from ipalib import output
+from ipalib.constants import DOMAIN_LEVEL_1
 from ipalib.util import create_topology_graph, get_topology_connection_errors
 from ipapython.dn import DN
 
@@ -28,15 +29,13 @@ Requires minimum domain level 1.
 
 register = Registry()
 
-MINIMUM_DOMAIN_LEVEL = 1
-
 
 def validate_domain_level(api):
     current = int(api.Command.domainlevel_get()['result'])
-    if current < MINIMUM_DOMAIN_LEVEL:
+    if current < DOMAIN_LEVEL_1:
         raise errors.InvalidDomainLevelError(
             reason=_('Topology management requires minimum domain level {0} '
-                   .format(MINIMUM_DOMAIN_LEVEL))
+                   .format(DOMAIN_LEVEL_1))
         )
 
 
