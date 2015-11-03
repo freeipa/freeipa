@@ -1,7 +1,5 @@
-PYTHONLIBDIR ?= $(shell  python2 -c "from distutils.sysconfig import *; print get_python_lib()")
-PACKAGEDIR ?= $(DESTDIR)/$(PYTHONLIBDIR)/ipa
-CONFIGDIR ?= $(DESTDIR)/etc/ipa
-TESTS = $(wildcard test/*.py)
+PYTHON ?= /usr/bin/python2
+PYTHONLIBDIR ?= $(shell $(PYTHON) -c "from distutils.sysconfig import *; print(get_python_lib())")
 
 SUBDIRS = py_default_encoding ipap11helper
 
@@ -15,16 +13,16 @@ check:
 .PHONY: install
 install:
 	if [ "$(DESTDIR)" = "" ]; then \
-		python2 setup.py install; \
+		$(PYTHON) setup.py install; \
 	else \
-		python2 setup.py install --root $(DESTDIR); \
+		$(PYTHON) setup.py install --root $(DESTDIR); \
 	fi
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
 clean:
-	rm -f *~ *.pyc
+	rm -f *~ *.pyc __pycache__/
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
@@ -40,9 +38,3 @@ maintainer-clean: distclean
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
-
-.PHONY: test
-test: $(subst .py,.tst,$(TESTS))
-
-%.tst: %.py
-	python2 $<

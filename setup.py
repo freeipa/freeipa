@@ -75,8 +75,6 @@ setup(
     license='GPLv3+',
     url='http://freeipa.org/',
     packages=[
-        'ipalib',
-        'ipalib.plugins',
         'ipaserver',
         'ipaserver.advise',
         'ipaserver.advise.plugins',

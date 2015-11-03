@@ -3,7 +3,7 @@
 
 include VERSION
 
-SUBDIRS=asn1 daemons install ipapython ipa-client
+SUBDIRS=asn1 daemons install ipapython ipalib ipa-client
 CLIENTDIRS=ipapython ipa-client asn1
 
 PRJ_PREFIX=freeipa
@@ -143,6 +143,8 @@ version-update: release-update
 		> ipapython/setup.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipaplatform/setup.py.in \
 		> ipaplatform/setup.py
+	sed -e s/__VERSION__/$(IPA_VERSION)/ ipalib/setup.py.in \
+		> ipalib/setup.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipapython/version.py.in \
 		> ipapython/version.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipatests/setup.py.in \
@@ -240,7 +242,7 @@ rpms: rpmroot rpmdistdir version-update lint tarballs
 	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" -ba freeipa.spec
 	cp $(RPMBUILD)/RPMS/*/$(PRJ_PREFIX)-*-$(IPA_VERSION)-*.rpm dist/rpms/
-	cp $(RPMBUILD)/RPMS/*/python2-ipa*-$(IPA_VERSION)-*.rpm dist/rpms/
+	cp $(RPMBUILD)/RPMS/*/python?-ipa*-$(IPA_VERSION)-*.rpm dist/rpms/
 	cp $(RPMBUILD)/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
 	rm -rf $(RPMBUILD)
 
@@ -248,7 +250,7 @@ client-rpms: rpmroot rpmdistdir version-update lint tarballs
 	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" --define "ONLY_CLIENT 1" -ba freeipa.spec
 	cp $(RPMBUILD)/RPMS/*/$(PRJ_PREFIX)-*-$(IPA_VERSION)-*.rpm dist/rpms/
-	cp $(RPMBUILD)/RPMS/*/python2-ipa*-$(IPA_VERSION)-*.rpm dist/rpms/
+	cp $(RPMBUILD)/RPMS/*/python?-ipa*-$(IPA_VERSION)-*.rpm dist/rpms/
 	cp $(RPMBUILD)/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
 	rm -rf $(RPMBUILD)
 

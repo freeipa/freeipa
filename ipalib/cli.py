@@ -47,6 +47,7 @@ except ImportError:
     # this is already installed and since it is installed with IPA therein
     # lies the problem. Skip it for now so ipalib can be imported in-tree
     # even in cases that IPA isn't installed on the dev machine.
+    # Also, under Python 3, default_encoding_utf8 is not built at all.
     pass
 
 from ipalib import frontend
