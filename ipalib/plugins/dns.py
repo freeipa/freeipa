@@ -4189,16 +4189,12 @@ class dns_resolve(Command):
 
     takes_args = (
         Str('hostname',
-            label=_('Hostname'),
+            label=_('Hostname (FQDN)'),
         ),
     )
 
     def execute(self, *args, **options):
         query=args[0]
-        if query.find(api.env.domain) == -1 and query.find('.') == -1:
-            query = '%s.%s.' % (query, api.env.domain)
-        if query[-1] != '.':
-            query = query + '.'
 
         if not is_host_resolvable(query):
             raise errors.NotFound(

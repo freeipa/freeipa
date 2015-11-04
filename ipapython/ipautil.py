@@ -49,6 +49,7 @@ from ipapython import ipavalidate
 from ipapython import config
 from ipaplatform.paths import paths
 from ipapython.dn import DN
+from ipapython.dnsutil import DNSName
 
 SHARE_DIR = paths.USR_SHARE_IPA_DIR
 PLUGINS_SHARE_DIR = paths.IPA_PLUGINS
@@ -911,9 +912,11 @@ def bind_port_responder(port, socket_type=socket.SOCK_STREAM, socket_timeout=Non
         raise last_socket_error # pylint: disable=E0702
 
 def is_host_resolvable(fqdn):
+    if not isinstance(fqdn, DNSName):
+        fqdn = DNSName(fqdn)
     for rdtype in (rdatatype.A, rdatatype.AAAA):
         try:
-            resolver.query(fqdn, rdtype)
+            resolver.query(fqdn.make_absolute(), rdtype)
         except DNSException:
             continue
         else:
