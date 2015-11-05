@@ -27,12 +27,13 @@ import six
 
 from ipalib import api, errors, util
 from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime
-from ipalib.plugins.baseuser import baseuser, baseuser_add, baseuser_del, \
-    baseuser_mod, baseuser_find, baseuser_show, \
-    NO_UPG_MAGIC, UPG_DEFINITION_DN, baseuser_output_params, \
-    status_baseuser_output_params, baseuser_pwdchars, \
-    validate_nsaccountlock, radius_dn2pk, convert_nsaccountlock, split_principal, validate_principal, \
-    normalize_principal, fix_addressbook_permission_bindrule
+from ipalib.plugins.baseuser import (
+    baseuser, baseuser_add, baseuser_del, baseuser_mod, baseuser_find,
+    baseuser_show, NO_UPG_MAGIC, UPG_DEFINITION_DN, baseuser_output_params,
+    status_baseuser_output_params, baseuser_pwdchars, validate_nsaccountlock,
+    radius_dn2pk, convert_nsaccountlock, split_principal, validate_principal,
+    normalize_principal, fix_addressbook_permission_bindrule,
+    baseuser_add_manager, baseuser_remove_manager)
 from ipalib.plugins.idviews import remove_ipaobject_overrides
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
@@ -542,7 +543,6 @@ class user_add(baseuser_add):
         except errors.AlreadyGroupMember:
             pass
 
-        self.obj.convert_manager(entry_attrs, **options)
         # delete description attribute NO_UPG_MAGIC if present
         if options.get('noprivate', False):
             if not options.get('all', False):
@@ -1157,3 +1157,13 @@ class user_remove_cert(LDAPRemoveAttribute):
         self.obj.convert_usercertificate_post(entry_attrs, **options)
 
         return dn
+
+
+@register()
+class user_add_manager(baseuser_add_manager):
+    __doc__ = _("Add a manager to the user entry")
+
+
+@register()
+class user_remove_manager(baseuser_remove_manager):
+    __doc__ = _("Remove a manager to the user entry")

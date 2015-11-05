@@ -27,8 +27,9 @@ import six
 from ipalib import api, errors
 from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime, Bytes
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import DN, LDAPObject, \
-    LDAPCreate, LDAPUpdate, LDAPSearch, LDAPDelete, LDAPRetrieve
+from ipalib.plugins.baseldap import (
+    DN, LDAPObject, LDAPCreate, LDAPUpdate, LDAPSearch, LDAPDelete,
+    LDAPRetrieve, LDAPAddMember, LDAPRemoveMember)
 from ipalib.plugins.service import validate_certificate
 from ipalib.plugins import baseldap
 from ipalib.request import context
@@ -201,6 +202,7 @@ class baseuser(LDAPObject):
     ]
     uuid_attribute = 'ipauniqueid'
     attribute_members = {
+        'manager': ['user'],
         'memberof': ['group', 'netgroup', 'role', 'hbacrule', 'sudorule'],
         'memberofindirect': ['group', 'netgroup', 'role', 'hbacrule', 'sudorule'],
     }
@@ -338,6 +340,7 @@ class baseuser(LDAPObject):
         Str('title?',
             label=_('Job Title'),
         ),
+        # keep backward compatibility using single value manager option
         Str('manager?',
             label=_('Manager'),
         ),
@@ -428,6 +431,7 @@ class baseuser(LDAPObject):
 
         if not isinstance(manager, list):
             manager = [manager]
+
         try:
             container_dn = DN(container, api.env.basedn)
             for i, mgr in enumerate(manager):
@@ -442,17 +446,6 @@ class baseuser(LDAPObject):
             raise errors.NotFound(reason=_('manager %(manager)s not found') % dict(manager=mgr))
 
         return manager
-
-    def convert_manager(self, entry_attrs, **options):
-        """
-        Convert a manager dn into a userid
-        """
-        if options.get('raw', False):
-             return
-
-        if 'manager' in entry_attrs:
-            for i, mgr in enumerate(entry_attrs['manager']):
-                entry_attrs['manager'][i] = self.get_primary_key_from_dn(mgr)
 
     def _user_status(self, user, container):
         assert isinstance(user, DN)
@@ -479,6 +472,26 @@ class baseuser(LDAPObject):
         if 'usercertificate;binary' in entry_attrs:
             entry_attrs['usercertificate'] = entry_attrs.pop(
                 'usercertificate;binary')
+
+    def convert_attribute_members(self, entry_attrs, *keys, **options):
+        super(baseuser, self).convert_attribute_members(
+            entry_attrs, *keys, **options)
+
+        if options.get("raw", False):
+            return
+
+        # due the backward compatibility, managers have to be returned in
+        # 'manager' attribute instead of 'manager_user'
+        try:
+            entry_attrs['failed_manager'] = entry_attrs.pop('manager')
+        except KeyError:
+            pass
+
+        try:
+            entry_attrs['manager'] = entry_attrs.pop('manager_user')
+        except KeyError:
+            pass
+
 
 class baseuser_add(LDAPCreate):
     """
@@ -578,7 +591,6 @@ class baseuser_mod(LDAPUpdate):
                 # if both randompassword and userpassword options were used
                 pass
         convert_nsaccountlock(entry_attrs)
-        self.obj.convert_manager(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         self.obj.convert_usercertificate_post(entry_attrs, **options)
         convert_sshpubkey_post(ldap, dn, entry_attrs)
@@ -609,7 +621,6 @@ class baseuser_find(LDAPSearch):
 
     def post_common_callback(self, ldap, entries, lockout=False, **options):
         for attrs in entries:
-            self.obj.convert_manager(attrs, **options)
             self.obj.get_password_attributes(ldap, attrs.dn, attrs)
             self.obj.convert_usercertificate_post(attrs, **options)
             if (lockout):
@@ -624,8 +635,15 @@ class baseuser_show(LDAPRetrieve):
     """
     def post_common_callback(self, ldap, dn, entry_attrs, **options):
         assert isinstance(dn, DN)
-        self.obj.convert_manager(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         self.obj.convert_usercertificate_post(entry_attrs, **options)
         convert_sshpubkey_post(ldap, dn, entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
+
+
+class baseuser_add_manager(LDAPAddMember):
+    member_attributes = ['manager']
+
+
+class baseuser_remove_manager(LDAPRemoveMember):
+    member_attributes = ['manager']

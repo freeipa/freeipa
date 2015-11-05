@@ -31,12 +31,12 @@ from ipalib import (Flag, Int, Password, Str, Bool, StrEnum, DateTime,
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import LDAPCreate, LDAPQuery, LDAPSearch, DN, entry_to_dict, pkey_to_value
 from ipalib.plugins import baseldap
-from ipalib.plugins.baseuser import baseuser, baseuser_add, baseuser_del, \
-    baseuser_mod, baseuser_find, baseuser_show, \
-    NO_UPG_MAGIC, radius_dn2pk, \
-    baseuser_pwdchars, fix_addressbook_permission_bindrule, normalize_principal, validate_principal, \
-    baseuser_output_params, status_baseuser_output_params
-
+from ipalib.plugins.baseuser import (
+    baseuser, baseuser_add, baseuser_del, baseuser_mod, baseuser_find,
+    baseuser_show, NO_UPG_MAGIC, radius_dn2pk, baseuser_pwdchars,
+    fix_addressbook_permission_bindrule, normalize_principal,
+    validate_principal, baseuser_output_params, status_baseuser_output_params,
+    baseuser_add_manager, baseuser_remove_manager)
 from ipalib.request import context
 from ipalib import _, ngettext
 from ipalib import output
@@ -716,3 +716,13 @@ class stageuser_activate(LDAPQuery):
         return dict(result=result_entry,
                     summary=unicode(_('Stage user %s activated' % staging_dn[0].value)),
                     value=pkey_to_value(args[-1], options))
+
+
+@register()
+class stageuser_add_manager(baseuser_add_manager):
+    __doc__ = _("Add a manager to the stage user entry")
+
+
+@register()
+class stageuser_remove_manager(baseuser_remove_manager):
+    __doc__ = _("Remove a manager to the stage user entry")
