@@ -389,9 +389,7 @@ class stageuser_add(baseuser_add):
                 # if both randompassword and userpassword options were used
                 pass
 
-        self.obj.get_password_attributes(ldap, dn, entry_attrs)
-        convert_sshpubkey_post(ldap, dn, entry_attrs)
-        radius_dn2pk(self.api, entry_attrs)
+        self.post_common_callback(ldap, dn, entry_attrs, **options)
         return dn
 
 @register()

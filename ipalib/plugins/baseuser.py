@@ -491,6 +491,9 @@ class baseuser_add(LDAPCreate):
     def post_common_callback(self, ldap, dn, entry_attrs, **options):
         assert isinstance(dn, DN)
         self.obj.convert_usercertificate_post(entry_attrs, **options)
+        self.obj.get_password_attributes(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(ldap, dn, entry_attrs)
+        radius_dn2pk(self.api, entry_attrs)
 
 class baseuser_del(LDAPDelete):
     """
