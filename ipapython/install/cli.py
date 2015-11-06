@@ -210,7 +210,8 @@ class ConfigureTool(admintool.AdminTool):
                     if value not in value_type:
                         raise ValueError(
                             "invalid choice {0} (choose from {1})".format(
-                                repr(value), ', '.join(repr(value_type))))
+                                repr(value), ', '.join(
+                                    sorted(repr(v) for v in value_type))))
                     return value
             else:
                 parse = value_type
