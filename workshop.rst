@@ -14,8 +14,8 @@ X.509 certificates for services.
 Curriculum overview
 -------------------
 
-- Module 1: Install the FreeIPA server
-- Module 2: Enrol a client machine in the FreeIPA domain
+- Module 1: Installing the FreeIPA server
+- Module 2: Enrolling a client machine in the FreeIPA domain
 - Module 3: User creation and administration, Kerberos authentication
 - Module 4: Host-Based Access Control (HBAC)
 - Module 5: Authorisation and authentication for web applications
