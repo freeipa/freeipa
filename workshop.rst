@@ -25,19 +25,19 @@ Curriculum overview
 Editing files on VMs
 --------------------
 
-Parts of the workshop involves editing files on the virtual
+Parts of the workshop involve editing files on virtual
 machines.  The ``vi`` and GNU ``nano`` editors are available on the
-VMs.  If you are not familiar with ``vi`` or unsure what to use, you
+VMs.  If you are not familiar with ``vi`` or you are unsure of what to use, you
 should choose ``nano``.
 
 
 Example commands
 ----------------
 
-This guide contains many command examples.  Some fo the commands are
-to be exected on your host, others on either the ``server`` or the
+This guide contains many examples of commands.  Some of the commands
+should be executed on your host, others on either the ``server`` or the
 ``client`` guest VM.  For clarity, commands are annotated with the
-host on which they are meant to be executed::
+host on which they are meant to be executed, as in these examples::
 
   $ echo "Run it on virtualisation host (no annotation)"
 
@@ -49,7 +49,7 @@ host on which they are meant to be executed::
 Workshop feedback
 -----------------
 
-After the workshop please consider leaving feedback at
+After you have completed the workshop, consider leaving feedback at
 https://goo.gl/forms/P11DtfJiNq.
 
 
