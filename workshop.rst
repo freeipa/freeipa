@@ -57,7 +57,7 @@ Preparation
 ===========
 
 Some preparation is needed prior to the workshop.  The workshop is
-designed to be carried out in Vagrant_ environment consisting of
+designed to be carried out in a Vagrant_ environment that consists of
 several VMs.  **The goal of the preparation** is to be able to
 successfully ``vagrant up`` the VMs as the first step of the
 workshop.
@@ -91,19 +91,19 @@ Install Vagrant and VirtualBox
 Fedora
 ^^^^^^
 
-If you intend to use the ``libvirt`` provider (recommended) install
+If you intend to use the ``libvirt`` provider (recommended), install
 ``vagrant-libvirt``::
 
   $ sudo dnf install -y vagrant-libvirt
 
 
 Otherwise, you will use VirtualBox and the ``virtualbox`` provider.
-VirtualBox needs to build kernel modules so first install kernel
-headers and the Dynamic Kernel Module Support::
+VirtualBox needs to build kernel modules, and that means that you must 
+first install kernel headers and Dynamic Kernel Module Support::
 
   $ sudo dnf install -y vagrant kernel-devel dkms
 
-Next install VirtualBox from their official package repository.
+Next, install VirtualBox from the official VirtualBox package repository.
 Before using the repo, check that its contents match what appears
 in the transcript below (to make sure it wasn't tampered with)::
 
@@ -121,7 +121,7 @@ in the transcript below (to make sure it wasn't tampered with)::
 
   $ sudo dnf install -y VirtualBox-4.3
 
-Finally load the kernel modules::
+Finally, load the kernel modules::
 
   $ sudo modprobe vboxdrv vboxnetadp
 
@@ -208,7 +208,7 @@ Add hosts file entries
 ----------------------
 
 *This step is necessary if you want to access the FreeIPA Web UI in
-the VM from a browser on your host, but otherwise optional; all
+the VM from a browser on your host, but otherwise this step is optional. All
 workshop modules can be completed using the CLI.*
 
 Add the following entries to your hosts file::
@@ -216,7 +216,7 @@ Add the following entries to your hosts file::
   192.168.33.10   server.ipademo.local
   192.168.33.20   client.ipademo.local
 
-On Unix systems including Mac OS X, the hosts file is ``/etc/hosts``
+On Unix systems (including Mac OS X), the hosts file is ``/etc/hosts``
 (you need elevated permissions to edit it.)
 
 On Windows, edit ``C:\system32\system\drivers\etc\hosts`` as
@@ -226,7 +226,7 @@ On Windows, edit ``C:\system32\system\drivers\etc\hosts`` as
 Module 1: FreeIPA server installation
 =====================================
 
-In this module you will install the FreeIPA server which you will
+In this module you will install the FreeIPA server, which you will
 use for the rest of the workshop.
 
 First ``cd`` into the directory where the ``Vagrantfile`` was
@@ -237,7 +237,7 @@ checked out, then bring up the Vagrant environment::
 
 The Vagrant environment contains two hosts: ``server.ipademo.local``
 and ``client.ipademo.local``.  From the directory containing the
-``Vagrantfile`` SSH into the ``server`` machine::
+``Vagrantfile``, SSH into the ``server`` machine::
 
   $ vagrant ssh server
 
@@ -247,11 +247,11 @@ On ``server``, start the FreeIPA server installation program::
   [server]$ sudo ipa-server-install --no-host-dns
 
 The ``--no-host-dns`` argument is needed because there is no DNS PTR
-resolution for the Vagrant environment.  For production deployment
+resolution for the Vagrant environment.  For production deployment,
 this important sanity check should not be skipped.
 
 You will be asked a series of questions.
-Accept defaults for most questions, except as outlined
+Accept the defaults for most of the questions, except as outlined
 below.
 
 Configure FreeIPA's DNS server::
@@ -260,7 +260,7 @@ Configure FreeIPA's DNS server::
 
   Existing BIND configuration detected, overwrite? [no]: yes
 
-Accept default values for server hostname, domain name and realm::
+Accept default values for the server hostname, domain name and realm::
 
   Enter the fully qualified domain name of the computer
   on which you're setting up server software. Using the form
@@ -307,9 +307,9 @@ forget during the workshop!
   Password (confirm): 
 
 
-Do not configure a DNS forwarder (it is likely you will want to do
-so for a real world deployment but it is not needed today) and
-accept defaults for configuring the reverse zone::
+Do not configure a DNS forwarder (it is likely that you will want to configure
+a DNS forwarder for a real-world deployment but it is not needed today) and
+accept the defaults for configuring the reverse zone::
 
   Do you want to configure DNS forwarders? [yes]: no
   Do you want to configure the reverse zone? [yes]: 
@@ -318,7 +318,7 @@ accept defaults for configuring the reverse zone::
 
 
 Next, you will be presented with a summary of the server
-configuration and asked for final confirmation.  Affirm to begin the
+configuration and asked for final confirmation.  Give confirmation to begin the
 server installation::
 
   The IPA Master Server will be configured with:
@@ -353,7 +353,7 @@ Run ``klist`` to view your current Kerberos tickets::
   10/15/15 01:48:59  10/16/15 01:48:57  krbtgt/IPADEMO.LOCAL@IPADEMO.LOCAL
 
 The FreeIPA server is now set up and you are ready to begin
-enrolling client machines, creating users, managing services and
+enrolling client machines, creating users, managing services, and
 more!
 
 
