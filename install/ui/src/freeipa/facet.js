@@ -3004,8 +3004,14 @@ exp.state_evaluator = IPA.state_evaluator = function(spec) {
      */
     that.init = function(facet) {
 
-        if (that.event_name && facet[that.event_name]) {
+        if (!that.event_name) return;
+
+        if (facet[that.event_name] && facet[that.event_name].attach) {
+            // facets based on facet.facet
             facet[that.event_name].attach(that.on_event);
+        } else if (facet.emit) {
+            // facets based on facet/Facet
+            on(facet, that.event_name, that.on_event);
         }
     };
 

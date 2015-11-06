@@ -27,13 +27,14 @@ define([
         './facets/HeaderMixin',
         './facets/Facet',
         './topology_graph',
+        './navigation',
         // plain imports
         './search',
         './entity'],
             function(lang, declare, Evented, Stateful, Deferred, on, all, when,
                 builder, IPA, $, menu, metadata_provider, phases, reg, rpc,
                 text, mod_details, mod_facet, mod_field, ActionMixin,
-                HeaderMixin, Facet, topology_graph) {
+                HeaderMixin, Facet, topology_graph, navigation) {
 /**
  * Topology module
  * @class
@@ -344,6 +345,35 @@ topology.domainlevel_set_action = function(spec) {
     return that;
 };
 
+/**
+ * Sets 'managed-topology' state if topology is managed
+ * @class
+ * @extends facet.state_evaluator
+ */
+topology.managed_topology_evaluator = function(spec) {
+
+    spec = spec || {};
+
+    spec.event = spec.event || 'show';
+
+    var that = IPA.state_evaluator(spec);
+    that.name = spec.name || 'state_evaluator';
+
+    that.on_event = function() {
+
+        var old_state = that.state;
+        that.state = [];
+
+        if (IPA.domain_level >= topology.required_domain_level) {
+            that.state.push('managed-topology');
+        }
+
+        that.notify_on_change(old_state);
+    };
+
+    return that;
+};
+
 
 topology.topology_graph_facet_spec = {
     name: 'topology-graph',
@@ -352,12 +382,17 @@ topology.topology_graph_facet_spec = {
     tab_label: 'Topology Graph',
     facet_groups: [topology.search_facet_group],
     facet_group: 'search',
-    actions: ['refresh'],
+    actions: ['refresh', 'segment_add'],
     control_buttons: [
         {
             name: 'refresh',
             label: '@i18n:buttons.refresh',
             icon: 'fa-refresh'
+        },
+        {
+            name: 'segment_add',
+            label: '@i18n:buttons.add',
+            icon: 'fa-plus'
         }
     ],
     widgets: [
@@ -371,7 +406,12 @@ topology.topology_graph_facet_spec = {
             $type: 'topology-graph',
             name: 'topology-graph'
         }
-    ]
+    ],
+    state: {
+        evaluators: [
+            topology.managed_topology_evaluator
+        ]
+    }
 };
 
 /**
@@ -396,6 +436,106 @@ topology.TopologyGraphFacet = declare([Facet, ActionMixin, HeaderMixin], {
     }
 });
 
+/**
+ * Shows topology segment adder dialog with suffix select
+ *
+ * @class topology.add_segment_action
+ * @extends IPA.action
+ */
+topology.add_segment_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'segment_add';
+    spec.method = spec.method || 'add';
+    spec.enable_cond = spec.enable_cond || ['managed-topology'];
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet, on_success, on_error) {
+
+        that.facet = facet;
+
+        var entity = reg.entity.get('topologysegment');
+        var title = text.get('@i18n:dialogs.add_title');
+        var label = entity.metadata.label_singular;
+        title = title.replace('${entity}', label);
+
+        var dialog = IPA.entity_adder_dialog({
+            entity: 'topologysegment',
+            title: title,
+            fields: [
+                {
+                    name: 'cn',
+                    required: false
+                },
+                {
+                    $type: 'entity_select',
+                    name: 'suffix',
+                    label: '@mo:topologysuffix.label_singular',
+                    other_entity: 'topologysuffix',
+                    other_field: 'cn',
+                    z_index: 3,
+                    required: true
+                },
+                {
+                    $type: 'entity_select',
+                    name: 'iparepltoposegmentleftnode',
+                    other_entity: 'server',
+                    other_field: 'cn',
+                    z_index: 2
+                },
+                {
+                    $type: 'entity_select',
+                    name: 'iparepltoposegmentrightnode',
+                    other_entity: 'server',
+                    other_field: 'cn',
+                    z_index: 1
+                }
+            ]
+        });
+        dialog.added.attach(that.on_success);
+
+        dialog.show_edit_page = function(entity, result) {
+            var suffix = this.fields.get_field('suffix').save()[0];
+            var cn = result.cn[0];
+            navigation.show_entity(entity.name, 'default', [suffix, cn]);
+        };
+
+        dialog.create_add_command = function(record) {
+
+            var args = [this.fields.get_field('suffix').save()[0]];
+            var cn = this.fields.get_field('cn').save()[0];
+            if (cn) args.push(cn);
+
+            var options = {
+                'iparepltoposegmentleftnode':
+                    this.fields.get_field('iparepltoposegmentleftnode').save()[0],
+                'iparepltoposegmentrightnode':
+                    this.fields.get_field('iparepltoposegmentrightnode').save()[0]
+            };
+
+            var command = rpc.command({
+                entity: this.entity.name,
+                method: this.method,
+                retry: this.retry,
+                args: args,
+                options: options
+            });
+
+            return command;
+        };
+
+        dialog.open();
+    };
+
+    that.on_success = function(data) {
+
+        IPA.notify_success(data.result.summary);
+        that.facet.refresh();
+    };
+
+    return that;
+};
 
 /**
  * Graph widget encapsulates and supply data to graph component
@@ -704,6 +844,7 @@ topology.register = function() {
     e.register({type: 'domainlevel', spec: topology.domainlevel_spec});
 
     a.register('domainlevel_set', topology.domainlevel_set_action);
+    a.register('segment_add', topology.add_segment_action);
 
     w.register('topology-graph', topology.TopologyGraphWidget);
     fa.register({
