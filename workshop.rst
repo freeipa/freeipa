@@ -360,20 +360,20 @@ more!
 Module 2: Client enrolment
 ==========================
 
-In this module, you will enrol a *host* as a client of your FreeIPA
+In this module, you will enroll a *host* as a client of your FreeIPA
 domain.  This means that *users* in your FreeIPA realm (or Active
 Directory realms for which there is a trust with FreeIPA) can log
-into the client machine (subject to access policies) and *services*
+into the client machine (subject to access policies) and that *services*
 on the client can leverage FreeIPA's authentication and
 authorisation services.
 
-From the directory containing the ``Vagrantfile`` SSH into the
+From the directory that contains the ``Vagrantfile``, SSH into the
 ``client`` machine::
 
   $ vagrant ssh client
 
 
-On ``client``, start the FreeIPA client enrolment program::
+On ``client``, start the FreeIPA client enrollment program::
 
   [client]$ sudo ipa-client-install --mkhomedir
 
@@ -414,7 +414,7 @@ The enrolment now proceeds; no further input is required.  You will
 see output detailing the operations being completed.  Unlike
 ``ipa-server-install``, client enrolment only takes a few seconds.
 
-Users in your FreeIPA domain can now log onto FreeIPA-enrolled
+Users in your FreeIPA domain can now log into FreeIPA-enrolled
 hosts, subject to *Host-based access control* (HBAC) rules.  Users
 logged onto the host can also acquire Kerberos tickets for accessing
 *services* in your domain.
@@ -431,8 +431,8 @@ Web UI
 ------
 
 Visit ``https://server.ipademo.local/``.  You'll get a TLS
-*untrusted issuer* warning which you can dismiss (add a temporary
-exception).  Login as ``admin``.
+*untrusted issuer* warning which you can dismiss (by adding a temporary
+exception).  Log in as ``admin``.
 
 Welcome to the FreeIPA web UI.  Most management activities can be
 performed here, or via the ``ipa`` CLI program.  See if you can work
@@ -458,7 +458,7 @@ Most FreeIPA adminstrative actions can be carried out using the
   automember-default-group-show     Display information about the default (fallback) automember groups.
   ...
 
-Whoa!  There's almost 300 of them!  We'll only be using a handful of
+Whoa!  There's almost 300 of them!  We'll be using only a handful of
 these today.
 
 You'll notice that commands are grouped by *plugin*.  You can get a
@@ -508,16 +508,16 @@ the next ``kinit`` will prompt them to enter a new password::
 
 
 Now ``bob`` has a TGT (run ``klist`` to confirm) which can use to
-log into other hosts and services.  Try logging into
+log in to other hosts and services.  Try logging into
 ``client.ipademo.local``::
 
   [server]$ ssh bob@client.ipademo.local
   [bob@client]$ 
 
-You are now logged into the client, as ``bob``.  Hit ``^D`` or type
+You are now logged into the client as ``bob``.  Type ``^D`` or 
 ``exit`` to log out and return to the ``server`` shell.  If you run
-``klist`` again you will see not only the TGT but a *service ticket*
-which was automatically acquired to log into
+``klist`` again, you will see not only the TGT but a *service ticket*
+that was automatically acquired to log in to
 ``client.ipademo.local`` without prompting for a password.  Kerberos
 is a true *single sign-on* protocol!
 
@@ -538,11 +538,11 @@ Module 4: Host-based access control
 
 FreeIPA's *host-based access control* (HBAC) feature allows you to
 define policies that restrict access to hosts or services based on
-the user attempting to log in and that user's groups, the host which
+the user attempting to log in and that user's groups, the host that
 they are trying to access (or its *host groups*), and (optionally)
 the service being accessed.
 
-In this module we will define an HBAC policy that will restrict
+In this module, we will define an HBAC policy that restricts
 access to ``client.ipademo.local`` to members of the
 ``sysadmin`` user group.
 
@@ -560,7 +560,7 @@ provides the host group functionality).
 
 **Hint:** if you use the CLI will need to run two commands - one to
 create the host group, and one to add ``client.ipademo.local`` as a
-member.
+member of the host group.
 
 
 Disabling the ``allow_all`` HBAC rule
@@ -588,7 +588,7 @@ List the existing HBAC rules::
   ----------------------------
 
 The FreeIPA server is installed with a single default ``allow_all``
-rule.  It needs to be disabled for other HBAC rules to have any
+rule.  This rule must be disabled for other HBAC rules to take 
 effect.  Look for a command that can do this, and run it.
 
 
@@ -633,7 +633,7 @@ the rule.  The following transcript details the process::
     User Groups: sysadmin
     Host Groups: webservers
 
-The ``--servicecat=all`` option applies this rule all services on
+The ``--servicecat=all`` option applies this rule for all services on
 matching hosts.  It could have been set during the ``hbacrule-add``
 command instead.
 
@@ -653,7 +653,7 @@ command::
 Poor ``bob``.  He won't be allowed in because he is not a member of
 the ``sysadmin`` group.  What about ``alice``?
 
-``kinit`` as ``bob`` and try to log into the client::
+``kinit`` as ``bob`` and try to log in to the client::
 
   [server]$ kinit bob
   Password for bob@IPADEMO.LOCAL: 
