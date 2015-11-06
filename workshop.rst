@@ -675,7 +675,7 @@ Module 5: Web App External Authentication
 You can configure many kinds of applications to rely on FreeIPA's
 centralised authentication, including web applications.  In this
 module you will configure the Apache web server to use Kerberos
-authentication to authenticate user, PAM to enforce HBAC rules and
+authentication to authenticate users, PAM to enforce HBAC rules, and
 ``mod_lookup_identity`` to populate the request environment with
 user attributes.
 
@@ -759,7 +759,7 @@ The Apache configuration for the demo application lives in the file
   </VirtualHost>
 
 
-Once the configuration is in place, restart Apache::
+When the configuration is in place, restart Apache::
 
   [client]$ sudo systemctl restart httpd
 
@@ -780,26 +780,26 @@ and make a request using ``curl``::
     REMOTE_PORT: 42499
 
 The ``REMOTE_USER`` variable in the request environment indicates
-that there is a logged in user, and who that user is.
+that there is a logged-in user and identifies that user.
 
 
 Populating request environment with user attributes
 ----------------------------------------------------
 
-Applications need to know more than just the username of a logged in
-user.  They want to know the user's name, send mail to their email
-address and perhaps know their group memberships or other
-attributes.  In this section we will use mod_lookup_identity_ to
-populate the HTTP request environment with variables providing
+Applications need to know more than just the username of a logged-in
+user.  They want to know the user's name, to send mail to their email
+address and perhaps to know their group memberships or other
+attributes.  In this section, we will use mod_lookup_identity_ to
+populate the HTTP request environment with variables 
 information about the authenticated user.
 
 .. _mod_lookup_identity: http://www.adelton.com/apache/mod_lookup_identity/
 
 
-mod_lookup_identity retrieves user attributes from SSSD (via D-Bus).
+``mod_lookup_identity`` retrieves user attributes from SSSD (via D-Bus).
 Edit ``/etc/sssd/sssd.conf``; enable the SSSD ``ifp`` *InfoPipe*
 responder, permit the ``apache`` user to query it, and configure the
-attributes to expose.  Add the following configuration to
+attributes that you want to expose.  Add the following configuration to
 ``sssd.conf``::
 
   [domain/ipademo.local]
@@ -876,8 +876,8 @@ Restart Apache::
   [client]$ sudo systemctl restart httpd
 
 Now make another request to the application and observe that user
-information that was inject into the request environment by
-mod_lookup_identity is reflected in the response::
+information that was injected into the request environment by
+``mod_lookup_identity`` is reflected in the response::
 
   [client]$ curl -u : --negotiate http://client.ipademo.local/
   LOGGED IN AS: alice@IPADEMO.LOCAL
@@ -899,8 +899,8 @@ mod_lookup_identity is reflected in the response::
 HBAC for web services
 ---------------------
 
-The final task for this module is to configure to use FreeIPA's HBAC
-rules for access control.  We will use mod_authnz_pam_ in
+The final task for this module is to configure FreeIPA's HBAC
+rules for access control.  We will use ``mod_authnz_pam_`` in
 conjunction with SSSD's PAM responder to achieve this.
 
 .. _mod_authnz_pam: http://www.adelton.com/apache/mod_authnz_pam/
@@ -958,8 +958,8 @@ Also add the ``LoadModule`` directive to the top of the file::
 
   LoadModule authnz_pam_module modules/mod_authnz_pam.so
 
-Once again, a special SELinux boolean needs to set to allow
-mod_authnz_pam to work::
+Once again, we must set a special SELinux boolean to allow
+``mod_authnz_pam`` to work::
 
   [client]$ sudo setsebool -P allow_httpd_mod_auth_pam 1
 
@@ -978,12 +978,12 @@ module, we will issue an X.509 certificate for the web service via
 the *certmonger* program.
 
 Certmonger supports multiple CAs including FreeIPA's CA, and can
-generate keys, issue certifiate requests, track certificates and
+generate keys, issue certifiate requests, track certificates, and
 renew tracked certificates when the expiration time approaches.
-Certmonger works with NSS so we will also use ``mod_nss`` with
+Certmonger works with NSS, so we will also use ``mod_nss`` with
 Apache, rather than ``mod_ssl``.
 
-Let's start by observing that the HTTP service does not yet have a
+Let's start by confirming that the HTTP service does not yet have a
 certificate::
 
   [client]$ ipa service-show HTTP/client.ipademo.local
@@ -998,7 +998,7 @@ Enable and start certmonger::
   [client]$ sudo systemctl start certmonger
 
 Now let's request a certificate.  ``mod_nss`` is already configured
-to use the certificate database at ``/etc/httpd/alias`` so we tell
+to use the certificate database at ``/etc/httpd/alias``, so we tell
 certmonger to generate the key and add the certificate in that
 database::
 
@@ -1021,7 +1021,7 @@ Let's break down some of those command arguments.
   asserting that the certificate is for TLS WWW authentication.
 
 Another important argument is ``-N <subject-name>`` but this
-defaults to the system hostname which in our case
+defaults to the system hostname, which in our case
 (``client.ipademo.local``) was appropriate.
 
 Let's check the status of our certificate request using the tracking
@@ -1046,9 +1046,9 @@ identifier given in the ``ipa-getcert request`` output::
           track: yes
           auto-renew: yes
 
-Observe that the certificate was issued and that certmonger is now
+Confirm that the certificate was issued and that certmonger is now
 ``MONITORING`` the certificate and will ``auto-renew`` it when it is
-close to expiration.  Now if you run ``ipa service-show`` you will
+close to expiration.  Now if you run ``ipa service-show``, you will
 see a number of attributes related to the certificate, including the
 certificate itself.  Can you work out how to save the PEM-encoded
 certificate to a file?
