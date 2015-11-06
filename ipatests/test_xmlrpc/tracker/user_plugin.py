@@ -29,28 +29,31 @@ class UserTracker(Tracker):
         u'krbprincipalexpiration', u'usercertificate', u'dn', u'has_keytab',
         u'has_password', u'street', u'postalcode', u'facsimiletelephonenumber',
         u'carlicense', u'ipasshpubkey', u'sshpubkeyfp', u'nsaccountlock',
-        u'preserved', u'memberof_group', u'l', u'mobile', u'krbextradata',
-        u'krblastpwdchange', u'krbpasswordexpiration', u'pager', u'st'
-        }
+        u'memberof_group', u'l', u'mobile', u'krbextradata',
+        u'krblastpwdchange', u'krbpasswordexpiration', u'pager', u'st',
+        u'manager', u'preserved'}
 
     retrieve_all_keys = retrieve_keys | {
         u'cn', u'ipauniqueid', u'objectclass', u'mepmanagedentry',
-        u'displayname', u'gecos', u'initials', u'krbprincipalname', u'manager'}
+        u'displayname', u'gecos', u'initials', u'krbprincipalname',
+        u'preserved'}
 
     retrieve_preserved_keys = retrieve_keys - {u'memberof_group'}
     retrieve_preserved_all_keys = retrieve_all_keys - {u'memberof_group'}
 
     create_keys = retrieve_all_keys | {
-        u'randompassword', u'mepmanagedentry',
         u'krbextradata', u'krbpasswordexpiration', u'krblastpwdchange',
-        u'krbprincipalkey', u'randompassword', u'userpassword'
-        }
+        u'krbprincipalkey', u'userpassword', u'randompassword'}
+    create_keys = create_keys - {u'nsaccountlock'}
+
     update_keys = retrieve_keys - {u'dn'}
     activate_keys = retrieve_all_keys - {u'has_keytab', u'has_password',
                                          u'nsaccountlock', u'sshpubkeyfp'}
 
     find_keys = retrieve_keys - {u'mepmanagedentry', u'memberof_group'}
-    find_all_keys = retrieve_all_keys - {u'mepmanagedentry', u'memberof_group'}
+    find_all_keys = retrieve_all_keys
+
+    primary_keys = {u'uid', u'dn'}
 
     def __init__(self, name, givenname, sn, **kwargs):
         super(UserTracker, self).__init__(default_version=None)
@@ -108,10 +111,17 @@ class UserTracker(Tracker):
         """ Make function that enables user using user-enable """
         return self.make_command('user_enable', self.uid)
 
+    def make_disable_command(self):
+        """ Make function that disables user using user-disable """
+        return self.make_command('user_disable', self.uid)
+
     def make_stage_command(self):
         """ Make function that restores preserved user by moving it to
         staged container """
         return self.make_command('user_stage', self.uid)
+
+    def make_group_add_member_command(self, *args, **kwargs):
+        return self.make_command('group_add_member', *args, **kwargs)
 
     def track_create(self):
         """ Update expected state for user creation """
@@ -137,25 +147,71 @@ class UserTracker(Tracker):
             has_password=False,
             mepmanagedentry=[get_group_dn(self.uid)],
             memberof_group=[u'ipausers'],
+            nsaccountlock=[u'false'],
             )
 
         for key in self.kwargs:
             if key == u'krbprincipalname':
-                self.attrs[key] = [u'%s@%s' % (
-                    (self.kwargs[key].split('@'))[0].lower(),
-                    (self.kwargs[key].split('@'))[1]
+                try:
+                    self.attrs[key] = [u'%s@%s' % (
+                        (self.kwargs[key].split('@'))[0].lower(),
+                        (self.kwargs[key].split('@'))[1]
+                    )]
+                except IndexError as ex:
+                    # we can provide just principal part
+                    self.attrs[key] = [u'%s@%s' % (
+                        (self.kwargs[key].lower(),
+                         self.api.env.realm)
                     )]
             else:
-                self.attrs[key] = [self.kwargs[key]]
+                if not type(self.kwargs[key]) is list:
+                    self.attrs[key] = [self.kwargs[key]]
+                else:
+                    self.attrs[key] = self.kwargs[key]
 
         self.exists = True
 
-    def check_create(self, result):
+    def update(self, updates, expected_updates=None):
+        """Helper function to update this user and check the result
+
+        Overriding Tracker method for setting self.attrs correctly;
+         * most attributes stores its value in list
+         * the rest can be overridden by expected_updates
+         * allow deleting parametrs if update value is None
+        """
+        if expected_updates is None:
+            expected_updates = {}
+
+        self.ensure_exists()
+        command = self.make_update_command(updates)
+        result = command()
+
+        for key, value in updates.items():
+            if value is None or value is '' or value is u'':
+                del self.attrs[key]
+            else:
+                if type(value) is list:
+                    self.attrs[key] = value
+                else:
+                    self.attrs[key] = [value]
+        for key, value in expected_updates.items():
+            if value is None or value is '' or value is u'':
+                del self.attrs[key]
+            else:
+                self.attrs[key] = value
+
+        self.check_update(
+            result,
+            extra_keys=set(updates.keys()) | set(expected_updates.keys())
+        )
+
+    def check_create(self, result, extra_keys=()):
         """ Check 'user-add' command result """
+        expected = self.filter_attrs(self.create_keys | set(extra_keys))
         assert_deepequal(dict(
             value=self.uid,
             summary=u'Added user "%s"' % self.uid,
-            result=self.filter_attrs(self.create_keys),
+            result=self.filter_attrs(expected),
             ), result)
 
     def check_delete(self, result):
@@ -166,9 +222,8 @@ class UserTracker(Tracker):
             result=dict(failed=[]),
             ), result)
 
-    def check_retrieve(self, result, all=False):
+    def check_retrieve(self, result, all=False, raw=False):
         """ Check 'user-show' command result """
-
         if u'preserved' in self.attrs and self.attrs[u'preserved']:
             self.retrieve_all_keys = self.retrieve_preserved_all_keys
             self.retrieve_keys = self.retrieve_preserved_keys
@@ -195,15 +250,25 @@ class UserTracker(Tracker):
             result=expected,
         ), result)
 
-    def check_find(self, result, all=False, raw=False):
+    def check_find(self, result, all=False, pkey_only=False, raw=False):
         """ Check 'user-find' command result """
-        self.attrs[u'nsaccountlock'] = True
-        self.attrs[u'preserved'] = True
-
         if all:
+            if u'preserved' not in self.attrs:
+                self.attrs.update(preserved=False)
             expected = self.filter_attrs(self.find_all_keys)
+        elif pkey_only:
+            expected = self.filter_attrs(self.primary_keys)
         else:
             expected = self.filter_attrs(self.find_keys)
+
+        if all and self.attrs[u'preserved']:
+            del expected[u'mepmanagedentry']
+
+        if u'nsaccountlock' in expected:
+            if expected[u'nsaccountlock'] == [u'true']:
+                expected[u'nsaccountlock'] = True
+            elif expected[u'nsaccountlock'] == [u'false']:
+                expected[u'nsaccountlock'] = False
 
         assert_deepequal(dict(
             count=1,
@@ -223,10 +288,32 @@ class UserTracker(Tracker):
 
     def check_update(self, result, extra_keys=()):
         """ Check 'user-mod' command result """
+        expected = self.filter_attrs(self.update_keys | set(extra_keys))
+        if expected[u'nsaccountlock'] == [u'true']:
+            expected[u'nsaccountlock'] = True
+        elif expected[u'nsaccountlock'] == [u'false']:
+            expected[u'nsaccountlock'] = False
+
         assert_deepequal(dict(
             value=self.uid,
             summary=u'Modified user "%s"' % self.uid,
-            result=self.filter_attrs(self.update_keys | set(extra_keys))
+            result=expected
+        ), result)
+
+    def check_enable(self, result):
+        """ Check result of enable user operation """
+        assert_deepequal(dict(
+            value=self.name,
+            summary=u'Enabled user account "%s"' % self.name,
+            result=True
+        ), result)
+
+    def check_disable(self, result):
+        """ Check result of disable user operation """
+        assert_deepequal(dict(
+            value=self.name,
+            summary=u'Disabled user account "%s"' % self.name,
+            result=True
         ), result)
 
     def create_from_staged(self, stageduser):
@@ -286,6 +373,22 @@ class UserTracker(Tracker):
             summary=u'Undeleted user account "%s"' % self.uid,
             result=True
             ), result)
+
+    def enable(self):
+        """ Enable user account if it was disabled """
+        if (self.attrs['nsaccountlock'] is True or
+                self.attrs['nsaccountlock'] == [u'true']):
+            self.attrs.update(nsaccountlock=False)
+            result = self.make_enable_command()()
+            self.check_enable(result)
+
+    def disable(self):
+        """ Disable user account if it was enabled """
+        if (self.attrs['nsaccountlock'] is False or
+                self.attrs['nsaccountlock'] == [u'false']):
+            self.attrs.update(nsaccountlock=True)
+            result = self.make_disable_command()()
+            self.check_disable(result)
 
     def track_delete(self, preserve=False):
         """Update expected state for host deletion"""
@@ -348,3 +451,27 @@ class UserTracker(Tracker):
         request.addfinalizer(finish)
 
         return self
+
+    def make_admin(self, admin_group=u'admins'):
+        """ Add user to the administrator's group """
+        result = self.run_command('group_show', admin_group)
+        admin_group_content = result[u'result'][u'member_user']
+        admin_group_expected = list(admin_group_content) + [self.name]
+
+        command = self.make_group_add_member_command(
+            admin_group, **dict(user=self.name)
+        )
+        result = command()
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                member=dict(group=tuple(), user=tuple())
+            ),
+            result={
+                'dn': get_group_dn(admin_group),
+                'member_user': admin_group_expected,
+                'gidnumber': [fuzzy_digits],
+                'cn': [admin_group],
+                'description': [u'Account administrators group'],
+            },
+        ), result)
