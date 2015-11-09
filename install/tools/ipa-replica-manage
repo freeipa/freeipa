@@ -740,7 +740,13 @@ def del_master_managed(realm, hostname, options):
     try:
         api.Command.server_del(hostname_u)
     except errors.NotFound:
-        print("Server entry already deleted: %s" % (hostname))
+        if not options.cleanup:
+            print("{hostname} does not exist.".format(hostname=hostname))
+            print("Please specify an actual server or add the --cleanup "
+                  "option to force clean up.")
+            sys.exit(1)
+        else:
+            print("Server entry already deleted: %s" % (hostname))
 
     # 6. Cleanup
     try:
