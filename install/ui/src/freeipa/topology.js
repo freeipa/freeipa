@@ -382,7 +382,7 @@ topology.topology_graph_facet_spec = {
     tab_label: 'Topology Graph',
     facet_groups: [topology.search_facet_group],
     facet_group: 'search',
-    actions: ['refresh', 'segment_add'],
+    actions: ['refresh', 'segment_add', 'segment_del'],
     control_buttons: [
         {
             name: 'refresh',
@@ -393,6 +393,11 @@ topology.topology_graph_facet_spec = {
             name: 'segment_add',
             label: '@i18n:buttons.add',
             icon: 'fa-plus'
+        },
+        {
+            name: 'segment_del',
+            label: '@i18n:buttons.remove',
+            icon: 'fa-trash-o'
         }
     ],
     widgets: [
@@ -428,6 +433,15 @@ topology.TopologyGraphFacet = declare([Facet, ActionMixin, HeaderMixin], {
         on(this, 'show', lang.hitch(this, function(args) {
             graph.update();
         }));
+
+        on(graph, 'link-selected', lang.hitch(this, function(data) {
+            this.set_selected_link(data.link);
+        }));
+    },
+
+    set_selected_link: function(link) {
+        this.selected_link = link;
+        this.action_state.put('selected_link', link ? ['link_selected'] : []);
     },
 
     refresh: function() {
@@ -529,9 +543,63 @@ topology.add_segment_action = function(spec) {
     };
 
     that.on_success = function(data) {
+        that.facet.refresh();
+    };
+
+    return that;
+};
+
+/**
+ * Deletes selected segment
+ *
+ * Facet must have 'selected_link' option.
+ *
+ * Facet should reflect the selection in action state: "link_selected"
+ *
+ * @class topology.del_segment_action
+ * @extends IPA.delete_action
+ */
+topology.del_segment_action = function(spec) {
+
+    spec = spec || {};
+    spec.name = spec.name || 'segment_del';
+    spec.enable_cond = spec.enable_cond || ['link_selected'];
+
+    var that = IPA.delete_action(spec);
+
+    that.execute_action = function(facet, on_success, on_error) {
+
+        that.facet = facet;
+
+        var args = [
+            facet.selected_link.suffix.cn[0],
+            facet.selected_link.segment.cn[0]
+        ];
+
+        rpc.command({
+            entity: 'topologysegment',
+            method: that.method,
+            args: args,
+            options: that.options,
+            on_success: that.get_on_success(facet, on_success),
+            on_error: that.get_on_error(facet, on_error)
+        }).execute();
+    };
+
+    that.get_confirm_message = function(facet) {
+        var pkey = facet.selected_link.segment.cn[0];
+        var msg = that.confirm_msg.replace('${object}', pkey);
+        return msg;
+    };
+
+    that.on_success = function(facet, data, text_status, xhr) {
 
         IPA.notify_success(data.result.summary);
         that.facet.refresh();
+        that.facet.set_selected_link(null);
+    };
+
+    that.on_error = function(facet, xhr, text_status, error_thrown) {
     };
 
     return that;
@@ -688,7 +756,8 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
                     target: node_map[target_cn],
                     left: true,
                     right: true,
-                    suffix: suffix
+                    suffix: suffix,
+                    segment: segment
                 };
                 if (direction === 'left') {
                     link.right = false;
@@ -752,6 +821,15 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
     },
 
     _bind_graph_events: function(graph) {
+
+        var self = this;
+        function forward(event) {
+            on(graph, event, function(data) {
+                self.emit(event, data);
+            });
+        }
+
+        forward('link-selected');
     },
 
     render: function() {
@@ -845,6 +923,7 @@ topology.register = function() {
 
     a.register('domainlevel_set', topology.domainlevel_set_action);
     a.register('segment_add', topology.add_segment_action);
+    a.register('segment_del', topology.del_segment_action);
 
     w.register('topology-graph', topology.TopologyGraphWidget);
     fa.register({
