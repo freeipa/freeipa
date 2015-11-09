@@ -806,7 +806,7 @@ def certificate_renewal_update(ca):
     dogtag_constants = dogtag.configured_constants()
 
     # bump version when requests is changed
-    version = 3
+    version = 4
     requests = (
         (
             dogtag_constants.ALIAS_DIR,
@@ -844,7 +844,7 @@ def certificate_renewal_update(ca):
             paths.HTTPD_ALIAS_DIR,
             'ipaCert',
             'dogtag-ipa-ca-renew-agent',
-            None,
+            'renew_ra_cert_pre',
             'renew_ra_cert',
             None,
         ),
