@@ -634,9 +634,7 @@ class TestGroups(XMLRPC_test):
     def test_remove_preserved_from_group(self, user, group):
         user.ensure_exists()
         group.ensure_exists()
-        command = group.make_add_member_command(options={u'user': user.uid})
-        result = command()
-        group.check_add_member(result)
+        command = group.add_member(options={u'user': user.uid})
 
         command = group.make_retrieve_command()
         result = command()
