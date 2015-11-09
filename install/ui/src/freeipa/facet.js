@@ -2808,9 +2808,16 @@ exp.state = IPA.state = function(spec) {
     that.on_eval_changed = function() {
 
         var evaluator = this;
+        that.put(evaluator.name, evaluator.state);
+    };
 
-        that.state.put(evaluator.name, evaluator.state);
-
+    /**
+     * Set state and notify
+     * @param  {string} name
+     * @param  {string} state
+     */
+    that.put = function(name, state) {
+        that.state.put(name, state);
         that.notify();
     };
 
