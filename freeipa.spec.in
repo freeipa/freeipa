@@ -162,6 +162,7 @@ Requires: gzip
 Requires: python-gssapi >= 1.1.0
 Requires: custodia
 
+Provides: %{alt_name}-server = %{version}
 Conflicts: %{alt_name}-server
 Obsoletes: %{alt_name}-server < %{version}
 
@@ -203,6 +204,7 @@ Requires: bind-pkcs11-utils >= 9.9.4-21
 %endif
 Requires: opendnssec >= 1.4.6-4
 
+Provides: %{alt_name}-server-dns = %{version}
 Conflicts: %{alt_name}-server-dns
 Obsoletes: %{alt_name}-server-dns < %{version}
 
@@ -234,6 +236,7 @@ Requires(post): python
 Requires(postun): %{_sbindir}/update-alternatives
 Requires(preun): %{_sbindir}/update-alternatives
 
+Provides: %{alt_name}-server-trust-ad = %{version}
 Conflicts: %{alt_name}-server-trust-ad
 Obsoletes: %{alt_name}-server-trust-ad < %{version}
 
@@ -272,6 +275,7 @@ Requires: libnfsidmap
 Requires: nfs-utils
 Requires(post): policycoreutils
 
+Provides: %{alt_name}-client = %{version}
 Conflicts: %{alt_name}-client
 Obsoletes: %{alt_name}-client < %{version}
 
@@ -292,6 +296,7 @@ Requires: %{name}-python = %{version}-%{release}
 Requires: %{name}-client = %{version}-%{release}
 Requires: python-ldap
 
+Provides: %{alt_name}-admintools = %{version}
 Conflicts: %{alt_name}-admintools
 Obsoletes: %{alt_name}-admintools < %{version}
 
@@ -327,6 +332,7 @@ Requires: python-setuptools
 Requires: python-six
 Requires: python-jwcrypto
 
+Provides: %{alt_name}-python = %{version}
 Conflicts: %{alt_name}-python
 Obsoletes: %{alt_name}-python < %{version}
 
@@ -353,6 +359,7 @@ Requires: python-polib
 Requires: python-pytest-multihost >= 0.5
 Requires: python-pytest-sourceorder
 
+Provides: %{alt_name}-tests = %{version}
 Conflicts: %{alt_name}-tests
 Obsoletes: %{alt_name}-tests < %{version}
 
