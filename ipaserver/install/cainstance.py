@@ -1305,7 +1305,7 @@ class CAInstance(DogtagInstance):
                 pin=None,
                 pinfile=paths.ALIAS_PWDFILE_TXT,
                 secdir=paths.HTTPD_ALIAS_DIR,
-                pre_command=None,
+                pre_command='renew_ra_cert_pre',
                 post_command='renew_ra_cert')
         except RuntimeError, e:
             self.log.error(

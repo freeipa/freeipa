@@ -77,8 +77,11 @@ def _main():
 
 
 def main():
-    with certs.renewal_lock:
+    try:
         _main()
+    finally:
+        # lock acquired in renew_ra_cert_pre
+        certs.renewal_lock.release('renew_ra_cert')
 
 
 try:
