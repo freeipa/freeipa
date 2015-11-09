@@ -399,10 +399,7 @@ class CertDB(object):
         password = f.readline()
         f.close()
         result = dogtag.https_request(
-            self.host_name,
-            api.env.ca_ee_install_port or
-                dogtag.configured_constants().EE_SECURE_PORT,
-            "/ca/ee/ca/profileSubmitSSLClient",
+            self.host_name, 8443, "/ca/ee/ca/profileSubmitSSLClient",
             self.secdir, password, "ipaCert", **params)
         http_status, http_reason_phrase, http_headers, http_body = result
 
@@ -456,10 +453,7 @@ class CertDB(object):
         password = f.readline()
         f.close()
         result = dogtag.https_request(
-            self.host_name,
-            api.env.ca_ee_install_port or
-                dogtag.configured_constants().EE_SECURE_PORT,
-            "/ca/ee/ca/profileSubmitSSLClient",
+            self.host_name, 8443, "/ca/ee/ca/profileSubmitSSLClient",
             self.secdir, password, "ipaCert", **params)
         http_status, http_reason_phrase, http_headers, http_body = result
         if http_status != 200:

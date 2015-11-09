@@ -24,7 +24,7 @@ from ipapython import ipautil, sysrestore, version, certdb
 from ipapython import ipaldap
 from ipapython.ipa_log_manager import *
 from ipapython import certmonger
-from ipapython import dogtag
+from ipapython.dn import DN
 from ipaplatform.paths import paths
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
@@ -40,6 +40,7 @@ from ipaserver.install import custodiainstance
 from ipaserver.install import sysupgrade
 from ipaserver.install import dnskeysyncinstance
 from ipaserver.install import krainstance
+from ipaserver.install import dogtaginstance
 from ipaserver.install.upgradeinstance import IPAUpgrade
 from ipaserver.install.ldapupdate import BadSyntax
 
@@ -201,7 +202,6 @@ def upgrade_pki(ca, fstore):
 
     This requires enabling SSL renegotiation.
     """
-    configured_constants = dogtag.configured_constants()
     root_logger.info('[Verifying that CA proxy configuration is correct]')
     if not ca.is_configured():
         root_logger.info('CA is not configured')
@@ -209,16 +209,8 @@ def upgrade_pki(ca, fstore):
 
     http = httpinstance.HTTPInstance(fstore)
     http.enable_mod_nss_renegotiate()
-    if not installutils.get_directive(configured_constants.CS_CFG_PATH,
-                                      'proxy.securePort', '=') and \
-            os.path.exists(paths.PKI_SETUP_PROXY):
-        # update proxy configuration with stopped dogtag to prevent corruption
-        # of CS.cfg
-        ipautil.run([paths.PKI_SETUP_PROXY, '-pki_instance_root=/var/lib',
-                     '-pki_instance_name=pki-ca','-subsystem_type=ca'])
-        root_logger.debug('Proxy configuration updated')
-    else:
-        root_logger.debug('Proxy configuration up-to-date')
+
+    root_logger.debug('Proxy configuration up-to-date')
 
 def update_dbmodules(realm, filename=paths.KRB5_CONF):
     newfile = []
@@ -315,15 +307,13 @@ def ca_enable_ldap_profile_subsystem(ca):
         root_logger.info('CA is not configured')
         return False
 
-    caconfig = dogtag.configured_constants()
-
     needs_update = False
     directive = None
     try:
         for i in range(15):
             directive = "subsystem.{}.class".format(i)
             value = installutils.get_directive(
-                caconfig.CS_CFG_PATH,
+                paths.CA_CS_CFG_PATH,
                 directive,
                 separator='=')
             if value == 'com.netscape.cmscore.profile.ProfileSubsystem':
@@ -331,18 +321,18 @@ def ca_enable_ldap_profile_subsystem(ca):
                 break
     except OSError as e:
         root_logger.error('Cannot read CA configuration file "%s": %s',
-                caconfig.CS_CFG_PATH, e)
+                          paths.CA_CS_CFG_PATH, e)
         return False
 
     if needs_update:
         installutils.set_directive(
-            caconfig.CS_CFG_PATH,
+            paths.CA_CS_CFG_PATH,
             directive,
             'com.netscape.cmscore.profile.LDAPProfileSubsystem',
             quotes=False,
             separator='=')
 
-        ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
+        ca.restart('pki-tomcat')
         cainstance.migrate_profiles_to_ldap()
 
     return needs_update
@@ -803,13 +793,12 @@ def certificate_renewal_update(ca):
     """
     Update certmonger certificate renewal configuration.
     """
-    dogtag_constants = dogtag.configured_constants()
 
     # bump version when requests is changed
     version = 4
     requests = (
         (
-            dogtag_constants.ALIAS_DIR,
+            paths.PKI_TOMCAT_ALIAS_DIR,
             'auditSigningCert cert-pki-ca',
             'dogtag-ipa-ca-renew-agent',
             'stop_pkicad',
@@ -817,7 +806,7 @@ def certificate_renewal_update(ca):
             None,
         ),
         (
-            dogtag_constants.ALIAS_DIR,
+            paths.PKI_TOMCAT_ALIAS_DIR,
             'ocspSigningCert cert-pki-ca',
             'dogtag-ipa-ca-renew-agent',
             'stop_pkicad',
@@ -825,7 +814,7 @@ def certificate_renewal_update(ca):
             None,
         ),
         (
-            dogtag_constants.ALIAS_DIR,
+            paths.PKI_TOMCAT_ALIAS_DIR,
             'subsystemCert cert-pki-ca',
             'dogtag-ipa-ca-renew-agent',
             'stop_pkicad',
@@ -833,7 +822,7 @@ def certificate_renewal_update(ca):
             None,
         ),
         (
-            dogtag_constants.ALIAS_DIR,
+            paths.PKI_TOMCAT_ALIAS_DIR,
             'caSigningCert cert-pki-ca',
             'dogtag-ipa-ca-renew-agent',
             'stop_pkicad',
@@ -849,7 +838,7 @@ def certificate_renewal_update(ca):
             None,
         ),
         (
-            dogtag_constants.ALIAS_DIR,
+            paths.PKI_TOMCAT_ALIAS_DIR,
             'Server-Cert cert-pki-ca',
             'dogtag-ipa-renew-agent',
             'stop_pkicad',
@@ -928,15 +917,13 @@ def copy_crl_file(old_path, new_path=None):
     """
     if new_path is None:
         filename = os.path.basename(old_path)
-        new_path = os.path.join(dogtag.configured_constants().CRL_PUBLISH_PATH,
-                                filename)
+        new_path = os.path.join(paths.PKI_CA_PUBLISH_DIR, filename)
     root_logger.debug('copy_crl_file: %s -> %s', old_path, new_path)
 
     if os.path.islink(old_path):
         # update symlink to the most most recent CRL file
         filename = os.path.basename(os.readlink(old_path))
-        realpath = os.path.join(dogtag.configured_constants().CRL_PUBLISH_PATH,
-                                filename)
+        realpath = os.path.join(paths.PKI_CA_PUBLISH_DIR, filename)
         root_logger.debug('copy_crl_file: Create symlink %s -> %s',
             new_path, realpath)
         os.symlink(realpath, new_path)
@@ -961,22 +948,21 @@ def migrate_crl_publish_dir(ca):
         root_logger.info('CA is not configured')
         return False
 
-    caconfig = dogtag.configured_constants()
-
     try:
-        old_publish_dir = installutils.get_directive(caconfig.CS_CFG_PATH,
+        old_publish_dir = installutils.get_directive(
+            paths.CA_CS_CFG_PATH,
             'ca.publish.publisher.instance.FileBaseCRLPublisher.directory',
             separator='=')
     except OSError as e:
         root_logger.error('Cannot read CA configuration file "%s": %s',
-                caconfig.CS_CFG_PATH, e)
+                          paths.CA_CS_CFG_PATH, e)
         return False
 
     # Prepare target publish dir (creation, permissions, SELinux context)
     # Run this every update to ensure proper values
     publishdir = ca.prepare_crl_publish_dir()
 
-    if old_publish_dir == caconfig.CRL_PUBLISH_PATH:
+    if old_publish_dir == paths.PKI_CA_PUBLISH_DIR:
         # publish dir is already updated
         root_logger.info('Publish directory already set to new location')
         sysupgrade.set_upgrade_state('dogtag', 'moved_crl_publish_dir', True)
@@ -1000,16 +986,17 @@ def migrate_crl_publish_dir(ca):
                 root_logger.error('Cannot move CRL file to new directory: %s', e)
 
     try:
-        installutils.set_directive(caconfig.CS_CFG_PATH,
+        installutils.set_directive(
+            paths.CA_CS_CFG_PATH,
             'ca.publish.publisher.instance.FileBaseCRLPublisher.directory',
             publishdir, quotes=False, separator='=')
     except OSError as e:
         root_logger.error('Cannot update CA configuration file "%s": %s',
-                caconfig.CS_CFG_PATH, e)
+                          paths.CA_CS_CFG_PATH, e)
         return False
     sysupgrade.set_upgrade_state('dogtag', 'moved_crl_publish_dir', True)
     root_logger.info('CRL publish directory has been migrated, '
-                     'request pki-ca restart')
+                     'request pki-tomcat restart')
     return True
 
 
@@ -1099,6 +1086,76 @@ def uninstall_selfsign(ds, http):
 
     ds.stop_tracking_certificates()
     http.stop_tracking_certificates()
+
+
+def uninstall_dogtag_9(ds, http):
+    root_logger.info('[Removing Dogtag 9 CA]')
+
+    if api.env.ra_plugin != 'dogtag':
+        root_logger.debug('Dogtag CA is not installed')
+        return
+    if api.env.dogtag_version >= 10:
+        root_logger.debug('Dogtag is version 10 or above')
+        return
+
+    if not api.Backend.ldap2.isconnected():
+        try:
+            api.Backend.ldap2.connect(autobind=True)
+        except ipalib.errors.PublicError as e:
+            root_logger.error("Cannot connect to LDAP: %s", e)
+
+    dn = DN(('cn', 'CA'), ('cn', api.env.host), ('cn', 'masters'),
+            ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
+    try:
+        api.Backend.ldap2.delete_entry(dn)
+    except ipalib.errors.PublicError as e:
+        root_logger.error("Cannot delete %s: %s", dn, e)
+
+    p = SafeConfigParser()
+    p.read(paths.IPA_DEFAULT_CONF)
+    p.set('global', 'dogtag_version', '10')
+    with open(paths.IPA_DEFAULT_CONF, 'w') as f:
+        p.write(f)
+
+    sstore = sysrestore.StateFile(paths.SYSRESTORE)
+    sstore.restore_state('pkids', 'enabled')
+    sstore.restore_state('pkids', 'running')
+    sstore.restore_state('pkids', 'user_exists')
+    serverid = sstore.restore_state('pkids', 'serverid')
+    sstore.save()
+
+    ca = dogtaginstance.DogtagInstance(
+        api.env.realm, "CA", "certificate server",
+        nss_db=paths.VAR_LIB_PKI_CA_ALIAS_DIR)
+    ca.stop_tracking_certificates(False)
+
+    if serverid is not None:
+        # drop the trailing / off the config_dirname so the directory
+        # will match what is in certmonger
+        dirname = dsinstance.config_dirname(serverid)[:-1]
+        dsdb = certs.CertDB(api.env.realm, nssdir=dirname)
+        dsdb.untrack_server_cert("Server-Cert")
+
+    try:
+        services.service('pki-cad').disable('pki-ca')
+    except Exception as e:
+        root_logger.warning("Failed to disable pki-cad: %s", e)
+    try:
+        services.service('pki-cad').stop('pki-ca')
+    except Exception as e:
+        root_logger.warning("Failed to stop pki-cad: %s", e)
+
+    if serverid is not None:
+        try:
+            services.service('dirsrv').disable(serverid)
+        except Exception as e:
+            root_logger.warning("Failed to disable dirsrv: %s", e)
+        try:
+            services.service('dirsrv').stop(serverid)
+        except Exception as e:
+            root_logger.warning("Failed to stop dirsrv: %s", e)
+
+    http.restart()
 
 
 def mask_named_regular():
@@ -1359,13 +1416,12 @@ def upgrade_configuration():
     check_certs()
 
     auto_redirect = find_autoredirect(fqdn)
-    configured_constants = dogtag.configured_constants()
     sub_dict = dict(
         REALM=api.env.realm,
         FQDN=fqdn,
         AUTOREDIR='' if auto_redirect else '#',
-        CRL_PUBLISH_PATH=configured_constants.CRL_PUBLISH_PATH,
-        DOGTAG_PORT=configured_constants.AJP_PORT,
+        CRL_PUBLISH_PATH=paths.PKI_CA_PUBLISH_DIR,
+        DOGTAG_PORT=8009,
         CLONE='#'
     )
 
@@ -1375,9 +1431,7 @@ def upgrade_configuration():
 
     ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
 
-    with installutils.stopped_service(configured_constants.SERVICE_NAME,
-            configured_constants.PKI_INSTANCE_NAME):
-
+    with installutils.stopped_service('pki-tomcatd', 'pki-tomcat'):
         # Dogtag must be stopped to be able to backup CS.cfg config
         ca.backup_config()
 
@@ -1385,8 +1439,8 @@ def upgrade_configuration():
         ca_restart = migrate_crl_publish_dir(ca)
 
         if ca.is_configured():
-            crl = installutils.get_directive(configured_constants.CS_CFG_PATH,
-                    'ca.crl.MasterCRL.enableCRLUpdates', '=')
+            crl = installutils.get_directive(
+                paths.CA_CS_CFG_PATH, 'ca.crl.MasterCRL.enableCRLUpdates', '=')
             sub_dict['CLONE']='#' if crl.lower() == 'true' else ''
 
         ds_dirname = dsinstance.config_dirname(ds_serverid)
@@ -1470,6 +1524,7 @@ def upgrade_configuration():
     http.start()
 
     uninstall_selfsign(ds, http)
+    uninstall_dogtag_9(ds, http)
 
     simple_service_list = (
         (memcacheinstance.MemcacheInstance(), 'MEMCACHE'),
@@ -1542,9 +1597,10 @@ def upgrade_configuration():
     ])
 
     if ca_restart:
-        root_logger.info('pki-ca configuration changed, restart pki-ca')
+        root_logger.info(
+            'pki-tomcat configuration changed, restart pki-tomcat')
         try:
-            ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
+            ca.restart('pki-tomcat')
         except ipautil.CalledProcessError as e:
             root_logger.error("Failed to restart %s: %s", ca.service_name, e)
 

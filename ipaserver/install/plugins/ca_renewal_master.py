@@ -21,7 +21,7 @@ from ipaserver.install import installutils, certs, cainstance
 from ipalib import errors
 from ipalib import Updater
 from ipalib.plugable import Registry
-from ipapython import certmonger, dogtag
+from ipapython import certmonger
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 
@@ -83,8 +83,7 @@ class update_ca_renewal_master(Updater):
             self.debug("certmonger request for ipaCert not found")
 
             config = installutils.get_directive(
-                dogtag.configured_constants().CS_CFG_PATH,
-                'subsystem.select', '=')
+                paths.CA_CS_CFG_PATH, 'subsystem.select', '=')
 
             if config == 'New':
                 pass

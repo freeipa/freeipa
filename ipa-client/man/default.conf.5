@@ -66,16 +66,16 @@ The following options are relevant for the server:
 Specifies the base DN to use when performing LDAP operations. The base must be in DN format (dc=example,dc=com).
 .TP
 .B ca_agent_port <port>
-Specifies the secure CA agent port. The default is 9443 for Dogtag 9, and 8443 for Dogtag 10.
+Specifies the secure CA agent port. The default is 8443.
 .TP
 .B ca_ee_port <port>
-Specifies the secure CA end user port. The default is 9444 for Dogtag 9, and 8443 for Dogtag 10.
+Specifies the secure CA end user port. The default is 8443.
 .TP
 .B ca_host <hostname>
 Specifies the hostname of the dogtag CA server. The default is the hostname of the IPA server.
 .TP
 .B ca_port <port>
-Specifies the insecure CA end user port. The default is 9180 for Dogtag 9, and 8080 for Dogtag 10.
+Specifies the insecure CA end user port. The default is 8080.
 .TP
 .B context <context>
 Specifies the context that IPA is being executed in. IPA may operate differently depending on the context. The current defined contexts are cli and server. Additionally this value is used to load /etc/ipa/\fBcontext\fR.conf to provide context\-specific configuration. For example, if you want to always perform client requests in verbose mode but do not want to have verbose enabled on the server, add the verbose option to \fI/etc/ipa/cli.conf\fR.

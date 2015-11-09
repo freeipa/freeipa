@@ -23,7 +23,6 @@ from __future__ import print_function
 from ipapython.config import IPAOptionParser
 from ipapython import version
 from ipapython import ipautil
-from ipapython import dogtag
 from ipapython.ipautil import CalledProcessError
 from ipaserver.install import installutils
 import ipaclient.ipachangeconf
@@ -325,8 +324,8 @@ def main():
     if options.check_ca:
         # Check old Dogtag CA replication port
         # New installs with unified databases use main DS port (checked above)
-        required_ports.append(CheckedPort(dogtag.Dogtag9Constants.DS_PORT,
-            SOCK_STREAM, "PKI-CA: Directory Service port"))
+        required_ports.append(CheckedPort(7389, SOCK_STREAM,
+                                          "PKI-CA: Directory Service port"))
 
     if options.replica:
         print_info("Check connection from master to remote replica '%s':" % options.replica)

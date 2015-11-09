@@ -30,7 +30,6 @@ from ipalib import x509
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipapython import certdb
-from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipaserver.install import certs
@@ -39,7 +38,7 @@ from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
 from ipaserver.install import service
 from ipaserver.install.dogtaginstance import (
-    DEFAULT_DSPORT, PKI_USER, export_kra_agent_pem, DogtagInstance)
+    PKI_USER, export_kra_agent_pem, DogtagInstance)
 from ipaserver.plugins import ldap2
 from ipapython.ipa_log_manager import log_mgr
 
@@ -68,23 +67,18 @@ class KRAInstance(DogtagInstance):
                      ('transportCert cert-pki-kra', None),
                      ('storageCert cert-pki-kra', None))
 
-    def __init__(self, realm, dogtag_constants=None):
-        if dogtag_constants is None:
-            dogtag_constants = dogtag.configured_constants()
-
+    def __init__(self, realm):
         super(KRAInstance, self).__init__(
             realm=realm,
             subsystem="KRA",
             service_desc="KRA server",
-            dogtag_constants=dogtag_constants
         )
 
         self.basedn = DN(('o', 'kra'), ('o', 'ipaca'))
         self.log = log_mgr.get_logger(self)
 
     def configure_instance(self, realm_name, host_name, dm_password,
-                           admin_password, ds_port=DEFAULT_DSPORT,
-                           pkcs12_info=None, master_host=None,
+                           admin_password, pkcs12_info=None, master_host=None,
                            subject_base=None):
         """Create a KRA instance.
 
@@ -93,7 +87,6 @@ class KRAInstance(DogtagInstance):
         self.fqdn = host_name
         self.dm_password = dm_password
         self.admin_password = admin_password
-        self.ds_port = ds_port
         self.pkcs12_info = pkcs12_info
         if self.pkcs12_info is not None:
             self.clone = True
@@ -110,9 +103,7 @@ class KRAInstance(DogtagInstance):
             raise RuntimeError(
                 "KRA already installed.")
         # Confirm that a Dogtag 10 CA instance already exists
-        ca = cainstance.CAInstance(
-            api.env.realm, certs.NSS_DIR,
-            dogtag_constants=dogtag.Dogtag10Constants)
+        ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
         if not ca.is_installed():
             raise RuntimeError(
                 "KRA configuration failed.  "
@@ -185,7 +176,7 @@ class KRAInstance(DogtagInstance):
         config.set("KRA", "pki_client_admin_cert_p12", paths.DOGTAG_ADMIN_P12)
 
         # Directory server
-        config.set("KRA", "pki_ds_ldap_port", str(self.ds_port))
+        config.set("KRA", "pki_ds_ldap_port", "389")
         config.set("KRA", "pki_ds_password", self.dm_password)
         config.set("KRA", "pki_ds_base_dn", self.basedn)
         config.set("KRA", "pki_ds_database", "ipaca")
@@ -337,7 +328,7 @@ class KRAInstance(DogtagInstance):
         ld.update([os.path.join(paths.UPDATES_DIR, '40-vault.update')])
 
     @staticmethod
-    def update_cert_config(nickname, cert, dogtag_constants=None):
+    def update_cert_config(nickname, cert):
         """
         When renewing a KRA subsystem certificate the configuration file
         needs to get the new certificate as well.
@@ -345,9 +336,6 @@ class KRAInstance(DogtagInstance):
         nickname is one of the known nicknames.
         cert is a DER-encoded certificate.
         """
-
-        if dogtag_constants is None:
-            dogtag_constants = dogtag.configured_constants()
 
         # The cert directive to update per nickname
         directives = {
@@ -358,9 +346,7 @@ class KRAInstance(DogtagInstance):
             'Server-Cert cert-pki-ca': 'kra.sslserver.cert'}
 
         DogtagInstance.update_cert_cs_cfg(
-            nickname, cert, directives,
-            dogtag.configured_constants().KRA_CS_CFG_PATH,
-            dogtag_constants)
+            nickname, cert, directives, paths.KRA_CS_CFG_PATH)
 
     def __enable_instance(self):
         self.ldap_enable('KRA', self.fqdn, None, self.suffix)
@@ -373,7 +359,6 @@ class KRAInstance(DogtagInstance):
         """
         self.fqdn = host_name
         self.dm_password = dm_password
-        self.ds_port = DEFAULT_DSPORT
         self.master_host = master_host
         if subject_base is None:
             self.subject_base = DN(('O', self.realm))
@@ -390,8 +375,7 @@ class KRAInstance(DogtagInstance):
             raise RuntimeError(
                 "KRA already installed.")
         # Confirm that a Dogtag 10 CA instance already exists
-        ca = cainstance.CAInstance(self.realm, certs.NSS_DIR,
-                                   dogtag_constants=dogtag.Dogtag10Constants)
+        ca = cainstance.CAInstance(self.realm, certs.NSS_DIR)
         if not ca.is_installed():
             raise RuntimeError(
                 "KRA configuration failed.  "
@@ -433,8 +417,7 @@ def install_replica_kra(config, postinstall=False):
             "Unable to clone KRA."
             "  cacert.p12 file not found in replica file")
 
-    _kra = KRAInstance(config.realm_name,
-                       dogtag_constants=dogtag.install_constants)
+    _kra = KRAInstance(config.realm_name)
     _kra.dm_password = config.dirman_password
     _kra.subject_base = config.subject_base
     if _kra.is_installed():
@@ -455,8 +438,8 @@ def install_replica_kra(config, postinstall=False):
     # dogtag
 
     service.print_msg("Restarting the directory and KRA servers")
-    _kra.stop(dogtag.install_constants.PKI_INSTANCE_NAME)
+    _kra.stop('pki-tomcat')
     services.knownservices.dirsrv.restart()
-    _kra.start(dogtag.install_constants.PKI_INSTANCE_NAME)
+    _kra.start('pki-tomcat')
 
     return _kra

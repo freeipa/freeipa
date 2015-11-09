@@ -387,10 +387,7 @@ class Restore(admintool.AdminTool):
                     httpinstance.create_kdcproxy_user()
 
             # Always restore the data from ldif
-            # If we are restoring PKI-IPA then we need to restore the
-            # userRoot backend in it and the main IPA instance. If we
-            # have a unified instance we need to restore both userRoot and
-            # ipaca.
+            # We need to restore both userRoot and ipaca.
             for instance, backend in databases:
                 self.ldif2db(instance, backend, online=options.online)
 
@@ -591,7 +588,7 @@ class Restore(admintool.AdminTool):
 
         instance here is a loaded term. It can mean either a separate
         389-ds install instance or a separate 389-ds backend. We only need
-        to treat PKI-IPA and ipaca specially.
+        to treat ipaca specially.
         '''
         if backend is not None:
             self.log.info('Restoring %s in %s' % (backend, instance))
@@ -766,21 +763,6 @@ class Restore(admintool.AdminTool):
             # We can remove the decoded tarball
             os.unlink(filename)
 
-
-    def __find_scripts_dir(self, instance):
-        """
-        IPA stores its 389-ds scripts in a different directory than dogtag
-        does so we need to probe for it.
-        """
-        if instance != 'PKI-IPA':
-            return os.path.join(paths.VAR_LIB_DIRSRV, 'scripts-%s' % instance)
-        else:
-            if sys.maxsize > 2**32:
-                libpath = 'lib64'
-            else:
-                libpath = 'lib'
-            return os.path.join(paths.USR_DIR, libpath, 'dirsrv', 'slapd-PKI-IPA')
-
     def __create_dogtag_log_dirs(self):
         """
         If we are doing a full restore and the dogtag log directories do
@@ -790,11 +772,6 @@ class Restore(admintool.AdminTool):
         or a d10-based installation.
         """
         dirs = []
-        # dogtag 9
-        if (os.path.exists(paths.VAR_LIB_PKI_CA_DIR) and
-                not os.path.exists(paths.PKI_CA_LOG_DIR)):
-            dirs += [paths.PKI_CA_LOG_DIR,
-                     os.path.join(paths.PKI_CA_LOG_DIR, 'signedAudit')]
         # dogtag 10
         if (os.path.exists(paths.VAR_LIB_PKI_TOMCAT_DIR) and
                 not os.path.exists(paths.TOMCAT_TOPLEVEL_DIR)):
@@ -879,7 +856,5 @@ class Restore(admintool.AdminTool):
         api.bootstrap(in_server=False, context='restore', **overrides)
         api.finalize()
 
-        self.instances = [
-            installutils.realm_to_serverid(api.env.realm), 'PKI-IPA'
-        ]
+        self.instances = [installutils.realm_to_serverid(api.env.realm)]
         self.backends = ['userRoot', 'ipaca']

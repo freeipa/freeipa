@@ -27,7 +27,7 @@ import tempfile
 import shutil
 import traceback
 
-from ipapython import dogtag, ipautil
+from ipapython import ipautil
 from ipapython.dn import DN
 from ipalib import api, errors, x509, certstore
 from ipaserver.install import certs, cainstance, installutils
@@ -42,20 +42,17 @@ def _main():
     api.bootstrap(context='restart')
     api.finalize()
 
-    configured_constants = dogtag.configured_constants(api)
-    alias_dir = configured_constants.ALIAS_DIR
-    dogtag_service = services.knownservices[configured_constants.SERVICE_NAME]
-    dogtag_instance = configured_constants.PKI_INSTANCE_NAME
+    dogtag_service = services.knownservices['pki_tomcatd']
 
     # dogtag opens its NSS database in read/write mode so we need it
     # shut down so certmonger can open it read/write mode. This avoids
     # database corruption. It should already be stopped by the pre-command
     # but lets be sure.
-    if dogtag_service.is_running(dogtag_instance):
+    if dogtag_service.is_running('pki-tomcat'):
         syslog.syslog(
             syslog.LOG_NOTICE, "Stopping %s" % dogtag_service.service_name)
         try:
-            dogtag_service.stop(dogtag_instance)
+            dogtag_service.stop('pki-tomcat')
         except Exception as e:
             syslog.syslog(
                 syslog.LOG_ERR,
@@ -65,7 +62,7 @@ def _main():
                 syslog.LOG_NOTICE, "Stopped %s" % dogtag_service.service_name)
 
     # Fetch the new certificate
-    db = certs.CertDB(api.env.realm, nssdir=alias_dir)
+    db = certs.CertDB(api.env.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
     cert = db.get_cert_from_db(nickname, pem=False)
     if not cert:
         syslog.syslog(syslog.LOG_ERR, 'No certificate %s found.' % nickname)
@@ -79,7 +76,7 @@ def _main():
         os.environ['KRB5CCNAME'] = ccache_filename
 
         ca = cainstance.CAInstance(host_name=api.env.host, ldapi=False)
-        ca.update_cert_config(nickname, cert, configured_constants)
+        ca.update_cert_config(nickname, cert)
         if ca.is_renewal_master():
             cainstance.update_people_entry(cert)
 
@@ -100,7 +97,7 @@ def _main():
                     (nickname, db.secdir))
         elif nickname == 'caSigningCert cert-pki-ca':
             # Update CS.cfg
-            cfg_path = configured_constants.CS_CFG_PATH
+            cfg_path = paths.CA_CS_CFG_PATH
             config = installutils.get_directive(
                 cfg_path, 'subsystem.select', '=')
             if config == 'New':
@@ -203,7 +200,7 @@ def _main():
         syslog.LOG_NOTICE,
         'Starting %s' % dogtag_service.service_name)
     try:
-        dogtag_service.start(dogtag_instance)
+        dogtag_service.start('pki-tomcat')
     except Exception as e:
         syslog.syslog(
             syslog.LOG_ERR,

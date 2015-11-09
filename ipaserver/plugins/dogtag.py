@@ -1841,7 +1841,9 @@ class ra(rabase.rabase):
         payload = etree.tostring(doc, pretty_print=False, xml_declaration=True, encoding='UTF-8')
         self.debug('%s.find(): request: %s', self.fullname, payload)
 
-        url = 'http://%s/ca/rest/certs/search?size=%d' % (ipautil.format_netloc(self.ca_host, ipapython.dogtag.configured_constants().UNSECURE_PORT), options.get('sizelimit', 100))
+        url = 'http://%s/ca/rest/certs/search?size=%d' % (
+            ipautil.format_netloc(self.ca_host, 8080),
+            options.get('sizelimit', 100))
 
         opener = urllib.request.build_opener()
         opener.addheaders = [('Accept-Encoding', 'gzip, deflate'),

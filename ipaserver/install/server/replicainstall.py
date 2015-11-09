@@ -14,7 +14,7 @@ import socket
 import sys
 import tempfile
 
-from ipapython import certmonger, dogtag, ipaldap, ipautil, sysrestore
+from ipapython import certmonger, ipaldap, ipautil, sysrestore
 from ipapython.dn import DN
 from ipapython.install import common, core
 from ipapython.install.common import step
@@ -465,8 +465,7 @@ def install_check(installer):
         if ipautil.file_exists(config.dir + "/cacert.p12"):
             fd.write("enable_ra=True\n")
             fd.write("ra_plugin=dogtag\n")
-            fd.write("dogtag_version=%s\n" %
-                     dogtag.install_constants.DOGTAG_VERSION)
+            fd.write("dogtag_version=10\n")
         else:
             fd.write("enable_ra=False\n")
             fd.write("ra_plugin=none\n")
@@ -631,8 +630,6 @@ def install(installer):
     sstore = installer._sstore
     config = installer._config
 
-    dogtag_constants = dogtag.install_constants
-
     if installer._update_hosts_file:
         installutils.update_hosts_file(config.ips, config.host_name, fstore)
 
@@ -685,9 +682,7 @@ def install(installer):
                          ipautil.realm_to_suffix(config.realm_name))
 
     if ipautil.file_exists(config.dir + "/cacert.p12"):
-        CA = cainstance.CAInstance(
-            config.realm_name, certs.NSS_DIR,
-            dogtag_constants=dogtag_constants)
+        CA = cainstance.CAInstance(config.realm_name, certs.NSS_DIR)
         CA.dm_password = config.dirman_password
 
         CA.configure_certmonger_renewal()
@@ -716,8 +711,7 @@ def install(installer):
     krb.restart()
 
     if config.setup_ca:
-        dogtag_service = services.knownservices[dogtag_constants.SERVICE_NAME]
-        dogtag_service.restart(dogtag_constants.PKI_INSTANCE_NAME)
+        services.knownservices['pki_tomcatd'].restart('pki-tomcat')
 
     if options.setup_dns:
         api.Backend.ldap2.connect(autobind=True)
@@ -965,7 +959,7 @@ def promote_check(installer):
     if not options.skip_conncheck:
         replica_conn_check(
             config.master_host_name, config.host_name, config.realm_name,
-            options.setup_ca, dogtag.Dogtag10Constants.DS_PORT,
+            options.setup_ca, 389,
             options.admin_password, principal=options.principal)
 
     if not ipautil.file_exists(cafile):
@@ -993,8 +987,6 @@ def promote(installer):
 
     config.promote = installer.promote
     config.dirman_password = hexlify(ipautil.ipa_generate_password())
-
-    dogtag_constants = dogtag.install_constants
 
     # FIXME: allow to use passed in certs instead
     if installer._ca_enabled:
@@ -1032,8 +1024,7 @@ def promote(installer):
         ipaconf.setOption('mode', 'production'),
         ipaconf.setOption('enable_ra', 'True'),
         ipaconf.setOption('ra_plugin', 'dogtag'),
-        ipaconf.setOption('dogtag_version',
-                          dogtag.install_constants.DOGTAG_VERSION)]
+        ipaconf.setOption('dogtag_version', '10')]
     opts = [ipaconf.setSection('global', gopts)]
 
     ipaconf.changeConf(target_fname, opts)
@@ -1069,7 +1060,6 @@ def promote(installer):
         custodia.get_ca_keys(config.ca_host_name, ca_data[0], ca_data[1])
 
         ca = cainstance.CAInstance(config.realm_name, certs.NSS_DIR,
-                                   dogtag_constants=dogtag.install_constants,
                                    host_name=config.host_name,
                                    dm_password=config.dirman_password)
         ca.configure_replica(config.ca_host_name,
@@ -1081,9 +1071,7 @@ def promote(installer):
                    config.dirman_password)
         custodia.get_kra_keys(config.kra_host_name, ca_data[0], ca_data[1])
 
-        constants = dogtag.install_constants
-        kra = krainstance.KRAInstance(config.realm_name,
-                                      dogtag_constants=constants)
+        kra = krainstance.KRAInstance(config.realm_name)
         kra.configure_replica(config.host_name, config.kra_host_name,
                               config.dirman_password,
                               kra_cert_bundle=ca_data)

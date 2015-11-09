@@ -30,7 +30,6 @@ from ipaserver.install.installutils import create_replica_config
 from ipaserver.install.installutils import check_creds, ReplicaConfig
 from ipaserver.install import dsinstance, ca
 from ipaserver.install import cainstance, custodiainstance, service
-from ipapython import dogtag
 from ipapython import version
 from ipalib import api
 from ipalib.constants import DOMAIN_LEVEL_0
@@ -144,7 +143,7 @@ def install_replica(safe_options, options, filename):
         config.host_name = api.env.host
         config.domain_name = api.env.domain
         config.dirman_password = dirman_password
-        config.ca_ds_port = dogtag.install_constants.DS_PORT
+        config.ca_ds_port = 389
         config.top_dir = tempfile.mkdtemp("ipa")
         config.dir = config.top_dir
     else:
@@ -184,7 +183,6 @@ def install_replica(safe_options, options, filename):
         custodia.get_ca_keys(config.ca_host_name, ca_data[0], ca_data[1])
 
         CA = cainstance.CAInstance(config.realm_name, certs.NSS_DIR,
-                                   dogtag_constants=dogtag.install_constants,
                                    host_name=config.host_name,
                                    dm_password=config.dirman_password)
         CA.configure_replica(config.ca_host_name,

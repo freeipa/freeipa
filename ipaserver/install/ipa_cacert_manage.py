@@ -144,9 +144,8 @@ class CACertManage(admintool.AdminTool):
         if not ca.is_configured():
             raise admintool.ScriptError("CA is not configured on this system")
 
-        nss_dir = ca.dogtag_constants.ALIAS_DIR
         criteria = {
-            'cert-database': nss_dir,
+            'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
             'cert-nickname': self.cert_nickname,
             'ca-name': 'dogtag-ipa-ca-renew-agent',
         }
@@ -157,7 +156,7 @@ class CACertManage(admintool.AdminTool):
         self.log.debug(
             "Found certmonger request id %r", self.request_id)
 
-        db = certs.CertDB(api.env.realm, nssdir=nss_dir)
+        db = certs.CertDB(api.env.realm, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
         cert = db.get_cert_from_db(self.cert_nickname, pem=False)
 
         options = self.options
@@ -206,7 +205,7 @@ class CACertManage(admintool.AdminTool):
             options.external_cert_files, x509.subject_base())
 
         nss_cert = None
-        nss.nss_init(ca.dogtag_constants.ALIAS_DIR)
+        nss.nss_init(paths.PKI_TOMCAT_ALIAS_DIR)
         try:
             nss_cert = x509.load_certificate(old_cert, x509.DER)
             subject = nss_cert.subject

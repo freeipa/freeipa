@@ -35,7 +35,7 @@ from ipaserver.install.replication import enable_replication_version_checking
 from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install.bindinstance import (
     add_zone, add_fwd_rr, add_ptr_rr, dns_container_exists)
-from ipapython import ipautil, admintool, dogtag
+from ipapython import ipautil, admintool
 from ipapython.dn import DN
 from ipapython import version
 from ipalib import api
@@ -342,8 +342,7 @@ class ReplicaPrepare(admintool.AdminTool):
                 "Apache Server SSL certificate and Directory Server SSL "
                  "certificate are not signed by the same CA certificate")
 
-        if (not ipautil.file_exists(
-                    dogtag.configured_constants().CS_CFG_PATH) and
+        if (not ipautil.file_exists(paths.CA_CS_CFG_PATH) and
                 options.dirsrv_pin is None):
             self.log.info("If you installed IPA with your own certificates "
                 "using PKCS#12 files you must provide PKCS#12 files for any "
@@ -419,7 +418,7 @@ class ReplicaPrepare(admintool.AdminTool):
             port_fname = os.path.join(
                 self.dir, "dogtag_directory_port.txt")
             with open(port_fname, "w") as fd:
-                fd.write("%s\n" % str(dogtag.configured_constants().DS_PORT))
+                fd.write("389\n")
 
     def copy_httpd_certificate(self):
         options = self.options

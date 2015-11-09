@@ -45,7 +45,7 @@ from six.moves.configparser import SafeConfigParser, NoOptionError
 
 import ipaplatform
 
-from ipapython import ipautil, sysrestore, admintool, dogtag, version
+from ipapython import ipautil, sysrestore, admintool, version
 from ipapython.admintool import ScriptError
 from ipapython.ipa_log_manager import root_logger, log_mgr
 from ipalib.util import validate_hostname
@@ -64,8 +64,8 @@ if six.PY3:
 
 # Used to determine install status
 IPA_MODULES = [
-    'httpd', 'kadmin', 'dirsrv', 'pki-cad', 'pki-tomcatd', 'install',
-    'krb5kdc', 'ntpd', 'named', 'ipa_memcached']
+    'httpd', 'kadmin', 'dirsrv', 'pki-tomcatd', 'install', 'krb5kdc', 'ntpd',
+    'named', 'ipa_memcached']
 
 
 class BadHostError(Exception):
@@ -583,7 +583,7 @@ def read_replica_info(dir_path, rconfig):
 
 def read_replica_info_dogtag_port(config_dir):
     portfile = config_dir + "/dogtag_directory_port.txt"
-    default_port = dogtag.Dogtag9Constants.DS_PORT
+    default_port = 7389
     if not ipautil.file_exists(portfile):
         dogtag_master_ds_port = default_port
     else:

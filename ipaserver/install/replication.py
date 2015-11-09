@@ -30,7 +30,7 @@ import ldap
 from ipalib import api, errors
 from ipalib.constants import CACERT
 from ipapython.ipa_log_manager import *
-from ipapython import ipautil, dogtag, ipaldap
+from ipapython import ipautil, ipaldap
 from ipapython.dn import DN
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -86,7 +86,7 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
         args.extend(["--password", admin_password])
         nolog=(admin_password,)
 
-    if check_ca and dogtag_master_ds_port == dogtag.Dogtag9Constants.DS_PORT:
+    if check_ca and dogtag_master_ds_port == 7389:
         args.append('--check-ca')
     (stdin, stderr, returncode) = ipautil.run(
         args, raiseonerr=False, capture_output=False, nolog=nolog)
@@ -1737,7 +1737,7 @@ class CSReplicationManager(ReplicationManager):
         if self.conn.port == 7389:
             instance_name = 'pki-ca'
         else:
-            instance_name = dogtag.configured_constants(api).PKI_INSTANCE_NAME
+            instance_name = 'pki-tomcat'
 
         # if master is not None we know what dn to return:
         if master is not None:
@@ -1797,10 +1797,7 @@ def get_cs_replication_manager(realm, host, dirman_passwd):
     # Fall back to the old PKI-only DS port. Check that it has the ipaca tree
     # (IPA with merged DB theoretically leaves port 7389 free for anyone).
     # If it doesn't, raise exception.
-    ports = [
-        dogtag.Dogtag10Constants.DS_PORT,
-        dogtag.Dogtag9Constants.DS_PORT,
-    ]
+    ports = [389, 7389]
     for port in ports:
         root_logger.debug('Looking for PKI DS on %s:%s' % (host, port))
         replication_manager = CSReplicationManager(

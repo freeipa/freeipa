@@ -34,7 +34,6 @@ from ipaserver.install import certs
 from ipaserver.install import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
-from ipapython import dogtag
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 import ipapython.errors
@@ -128,7 +127,7 @@ class HTTPInstance(service.Service):
             FQDN=fqdn,
             DOMAIN=self.domain,
             AUTOREDIR='' if auto_redirect else '#',
-            CRL_PUBLISH_PATH=dogtag.install_constants.CRL_PUBLISH_PATH,
+            CRL_PUBLISH_PATH=paths.PKI_CA_PUBLISH_DIR,
         )
         self.ca_file = ca_file
         if ca_is_configured is not None:

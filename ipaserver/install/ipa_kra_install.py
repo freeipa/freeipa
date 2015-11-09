@@ -28,7 +28,6 @@ from ipalib.constants import DOMAIN_LEVEL_0
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipapython import admintool
-from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipaserver.install import service
@@ -100,8 +99,7 @@ class KRAUninstaller(KRAInstall):
         if self.args:
             self.option_parser.error("Too many parameters provided.")
 
-        dogtag_constants = dogtag.configured_constants(api)
-        _kra = krainstance.KRAInstance(api, dogtag_constants=dogtag_constants)
+        _kra = krainstance.KRAInstance(api)
         if not _kra.is_installed():
             self.option_parser.error(
                 "Cannot uninstall.  There is no KRA installed on this system."
@@ -194,7 +192,7 @@ class KRAInstaller(KRAInstall):
                 config.host_name = api.env.host
                 config.domain_name = api.env.domain
                 config.dirman_password = self.options.password
-                config.ca_ds_port = dogtag.install_constants.DS_PORT
+                config.ca_ds_port = 389
                 config.top_dir = tempfile.mkdtemp("ipa")
                 config.dir = config.top_dir
             else:

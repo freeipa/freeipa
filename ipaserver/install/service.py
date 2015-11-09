@@ -24,7 +24,7 @@ import time
 import datetime
 import traceback
 
-from ipapython import sysrestore, ipautil, dogtag, ipaldap
+from ipapython import sysrestore, ipautil, ipaldap
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
 from ipalib import api, errors, certstore
@@ -41,8 +41,8 @@ SERVICE_LIST = {
     'MEMCACHE': ('ipa_memcached', 39),
     'HTTP': ('httpd', 40),
     'KEYS': ('ipa-custodia', 41),
-    'CA': ('%sd' % dogtag.configured_constants().PKI_INSTANCE_NAME, 50),
-    'KRA': ('%sd' % dogtag.configured_constants().PKI_INSTANCE_NAME, 51),
+    'CA': ('pki-tomcatd', 50),
+    'KRA': ('pki-tomcatd', 51),
     'ADTRUST': ('smb', 60),
     'EXTID': ('winbind', 70),
     'OTPD': ('ipa-otpd', 80),

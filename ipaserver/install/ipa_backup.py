@@ -106,12 +106,10 @@ class Backup(admintool.AdminTool):
 
     dirs = (paths.IPA_HTML_DIR,
         paths.ROOT_PKI,
-        paths.ETC_PKI_CA_DIR,
         paths.PKI_TOMCAT,
         paths.SYSCONFIG_PKI,
         paths.HTTPD_ALIAS_DIR,
         paths.VAR_LIB_PKI_DIR,
-        paths.VAR_LIB_PKI_CA_DIR,
         paths.SYSRESTORE,
         paths.IPA_CLIENT_SYSRESTORE,
         paths.IPA_DNSSEC_DIR,
@@ -127,12 +125,10 @@ class Backup(admintool.AdminTool):
         paths.NAMED_CONF,
         paths.NAMED_KEYTAB,
         paths.RESOLV_CONF,
-        paths.SYSCONFIG_PKI_CA_DIR,
         paths.SYSCONFIG_PKI_TOMCAT,
         paths.SYSCONFIG_DIRSRV,
         paths.SYSCONFIG_NTPD,
         paths.SYSCONFIG_KRB5KDC_DIR,
-        paths.SYSCONFIG_PKI_CA_PKI_CA_DIR,
         paths.SYSCONFIG_IPA_DNSKEYSYNCD,
         paths.SYSCONFIG_IPA_ODS_EXPORTER,
         paths.SYSCONFIG_NAMED,
@@ -187,18 +183,14 @@ class Backup(admintool.AdminTool):
     )
 
     logs=(
-      paths.PKI_CA_LOG_DIR,
       paths.VAR_LOG_PKI_DIR,
-      paths.VAR_LOG_SLAPD_PKI_IPA_DIR,
       paths.VAR_LOG_HTTPD_DIR,
       paths.IPASERVER_INSTALL_LOG,
       paths.KADMIND_LOG,
-      paths.PKI_CA_INSTALL_LOG,
       paths.MESSAGES,
       paths.IPACLIENT_INSTALL_LOG,
       paths.LOG_SECURE,
       paths.IPASERVER_UNINSTALL_LOG,
-      paths.PKI_CA_UNINSTALL_LOG,
       paths.IPACLIENT_UNINSTALL_LOG,
       paths.NAMED_RUN,
     )
@@ -306,14 +298,14 @@ class Backup(admintool.AdminTool):
                 self.log.info('Stopping IPA services')
                 run(['ipactl', 'stop'])
 
-            for instance in [
-                installutils.realm_to_serverid(api.env.realm), 'PKI-IPA'
-            ]:
-                if os.path.exists(paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % instance):
-                    if os.path.exists(paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE % (instance, 'ipaca')):
-                        self.db2ldif(instance, 'ipaca', online=options.online)
-                    self.db2ldif(instance, 'userRoot', online=options.online)
-                    self.db2bak(instance, online=options.online)
+            instance = installutils.realm_to_serverid(api.env.realm)
+            if os.path.exists(paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE %
+                              instance):
+                if os.path.exists(paths.SLAPD_INSTANCE_DB_DIR_TEMPLATE %
+                                  (instance, 'ipaca')):
+                    self.db2ldif(instance, 'ipaca', online=options.online)
+                self.db2ldif(instance, 'userRoot', online=options.online)
+                self.db2bak(instance, online=options.online)
             if not options.data_only:
                 # create backup of auth configuration
                 auth_backup_path = os.path.join(paths.VAR_LIB_IPA, 'auth_backup')
@@ -341,34 +333,21 @@ class Backup(admintool.AdminTool):
         '''
         Add instance-specific files and directories.
 
-        NOTE: this adds some things that may not get backed up, like the PKI-IPA
-              instance.
+        NOTE: this adds some things that may not get backed up.
         '''
         serverid = installutils.realm_to_serverid(api.env.realm)
 
-        for dir in [
-                paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid,
-                paths.VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE % serverid,
-                paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % serverid,
-                paths.VAR_LIB_SLAPD_PKI_IPA_DIR_TEMPLATE,
-                paths.USR_LIB_SLAPD_PKI_IPA_DIR,
-                paths.ETC_SLAPD_PKI_IPA_DIR,
-                paths.VAR_LIB_SLAPD_PKI_IPA_DIR_TEMPLATE,
-                self.__find_scripts_dir('PKI-IPA'),
-            ]:
+        for dir in [paths.ETC_DIRSRV_SLAPD_INSTANCE_TEMPLATE % serverid,
+                    paths.VAR_LIB_DIRSRV_INSTANCE_SCRIPTS_TEMPLATE % serverid,
+                    paths.VAR_LIB_SLAPD_INSTANCE_DIR_TEMPLATE % serverid]:
             if os.path.exists(dir):
                 self.dirs.append(dir)
 
-        for file in [
-                paths.SYSCONFIG_DIRSRV_INSTANCE % serverid,
-                paths.SYSCONFIG_DIRSRV_PKI_IPA_DIR]:
-            if os.path.exists(file):
-                self.files.append(file)
+        file = paths.SYSCONFIG_DIRSRV_INSTANCE % serverid
+        if os.path.exists(file):
+            self.files.append(file)
 
-        for log in [
-            paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % serverid,
-        ]:
-            self.logs.append(log)
+        self.logs.append(paths.VAR_LOG_DIRSRV_INSTANCE_TEMPLATE % serverid)
 
 
     def get_connection(self):
@@ -628,17 +607,3 @@ class Backup(admintool.AdminTool):
         shutil.move(self.header, backup_dir)
 
         self.log.info('Backed up to %s', backup_dir)
-
-    def __find_scripts_dir(self, instance):
-        """
-        IPA stores its 389-ds scripts in a different directory than dogtag
-        does so we need to probe for it.
-        """
-        if instance != 'PKI-IPA':
-            return os.path.join(paths.VAR_LIB_DIRSRV, 'scripts-%s' % instance)
-        else:
-            if sys.maxsize > 2**32:
-                libpath = 'lib64'
-            else:
-                libpath = 'lib'
-            return os.path.join(paths.USR_DIR, libpath, 'dirsrv', 'slapd-PKI-IPA')

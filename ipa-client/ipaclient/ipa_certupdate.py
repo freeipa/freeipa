@@ -23,8 +23,8 @@ import shutil
 
 from six.moves.urllib.parse import urlsplit
 
-from ipapython import (admintool, ipautil, ipaldap, sysrestore, dogtag,
-                       certmonger, certdb)
+from ipapython import (admintool, ipautil, ipaldap, sysrestore, certmonger,
+                       certdb)
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
@@ -134,10 +134,9 @@ class CertUpdate(admintool.AdminTool):
         if services.knownservices.httpd.is_running():
             services.knownservices.httpd.restart()
 
-        dogtag_constants = dogtag.configured_constants()
         nickname = 'caSigningCert cert-pki-ca'
         criteria = {
-            'cert-database': dogtag_constants.ALIAS_DIR,
+            'cert-database': paths.PKI_TOMCAT_ALIAS_DIR,
             'cert-nickname': nickname,
             'ca-name': 'dogtag-ipa-ca-renew-agent',
         }

@@ -32,7 +32,6 @@ import shlex
 import subprocess
 import tempfile
 from ipapython import ipautil
-from ipapython import dogtag
 from ipapython.ipa_log_manager import *
 from ipaplatform.paths import paths
 from ipaplatform import services
@@ -444,15 +443,13 @@ def remove_principal_from_cas():
             ca.prop_if.Set(DBUS_CM_CA_IF, 'external-helper', ext_helper)
 
 
-def get_pin(token, dogtag_constants=None):
+def get_pin(token):
     """
     Dogtag stores its NSS pin in a file formatted as token:PIN.
 
     The caller is expected to handle any exceptions raised.
     """
-    if dogtag_constants is None:
-        dogtag_constants = dogtag.configured_constants()
-    with open(dogtag_constants.PASSWORD_CONF_PATH, 'r') as f:
+    with open(paths.PKI_TOMCAT_PASSWORD_CONF, 'r') as f:
         for line in f:
             (tok, pin) = line.split('=', 1)
             if token == tok:

@@ -58,11 +58,6 @@ redhat_system_units['rpcidmapd'] = 'nfs-idmap.service'
 # code).
 
 redhat_system_units['dirsrv'] = 'dirsrv@.service'
-# Our directory server instance for PKI is dirsrv@PKI-IPA.service
-redhat_system_units['pkids'] = 'dirsrv@PKI-IPA.service'
-# Old style PKI instance
-redhat_system_units['pki-cad'] = 'pki-cad@pki-ca.service'
-redhat_system_units['pki_cad'] = redhat_system_units['pki-cad']
 # Our PKI instance is pki-tomcatd@pki-tomcat.service
 redhat_system_units['pki-tomcatd'] = 'pki-tomcatd@pki-tomcat.service'
 redhat_system_units['pki_tomcatd'] = redhat_system_units['pki-tomcatd']
@@ -284,7 +279,7 @@ def redhat_service_class_factory(name):
         return RedHatIPAService(name)
     if name == 'sshd':
         return RedHatSSHService(name)
-    if name in ('pki-cad', 'pki_cad', 'pki-tomcatd', 'pki_tomcatd'):
+    if name in ('pki-tomcatd', 'pki_tomcatd'):
         return RedHatCAService(name)
     if name == 'named':
         return RedHatNamedService(name)

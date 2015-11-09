@@ -15,7 +15,7 @@ import textwrap
 
 import six
 
-from ipapython import certmonger, dogtag, ipaldap, ipautil, sysrestore
+from ipapython import certmonger, ipaldap, ipautil, sysrestore
 from ipapython.dn import DN
 from ipapython.install import common, core
 from ipapython.install.common import step
@@ -303,8 +303,6 @@ def install_check(installer):
     external_ca_file = installer._external_ca_file
     http_ca_cert = installer._ca_cert
 
-    dogtag_constants = dogtag.install_constants
-
     tasks.check_selinux_status()
 
     if options.master_password:
@@ -575,7 +573,7 @@ def install_check(installer):
     if setup_ca:
         fd.write("enable_ra=True\n")
         fd.write("ra_plugin=dogtag\n")
-        fd.write("dogtag_version=%s\n" % dogtag_constants.DOGTAG_VERSION)
+        fd.write("dogtag_version=10\n")
     else:
         fd.write("enable_ra=False\n")
         fd.write("ra_plugin=none\n")
@@ -700,8 +698,6 @@ def install(installer):
     setup_ca = options.setup_ca
     setup_kra = options.setup_kra
 
-    dogtag_constants = dogtag.install_constants
-
     # Installation has started. No IPA sysrestore items are restored in case of
     # failure to enable root cause investigation
     installer._installation_cleanup = False
@@ -777,8 +773,7 @@ def install(installer):
         ca.install_step_0(False, None, options)
 
         # Now put the CA cert where other instances exepct it
-        ca_instance = cainstance.CAInstance(realm_name, certs.NSS_DIR,
-                                            dogtag_constants=dogtag_constants)
+        ca_instance = cainstance.CAInstance(realm_name, certs.NSS_DIR)
         ca_instance.publish_ca_cert(CACERT)
     else:
         # Put the CA cert where other instances expect it
@@ -856,8 +851,7 @@ def install(installer):
     krb.restart()
 
     if setup_ca:
-        dogtag_service = services.knownservices[dogtag_constants.SERVICE_NAME]
-        dogtag_service.restart(dogtag_constants.PKI_INSTANCE_NAME)
+        services.knownservices['pki_tomcatd'].restart('pki-tomcat')
 
     if options.setup_dns:
         api.Backend.ldap2.connect(autobind=True)
@@ -1052,9 +1046,6 @@ def uninstall(installer):
     except Exception as e:
         pass
 
-    # Need to get dogtag info before /etc/ipa/default.conf is removed
-    dogtag_constants = dogtag.configured_constants()
-
     print("Removing IPA client configuration")
     try:
         (stdout, stderr, rc) = run([paths.IPA_CLIENT_INSTALL, "--on-master",
@@ -1072,7 +1063,7 @@ def uninstall(installer):
 
     kra.uninstall(False)
 
-    ca.uninstall(dogtag_constants)
+    ca.uninstall()
 
     dns.uninstall()
 
@@ -1134,7 +1125,7 @@ def uninstall(installer):
     # Note that this name will be wrong after the first uninstall.
     dirname = dsinstance.config_dirname(
         installutils.realm_to_serverid(api.env.realm))
-    dirs = [dirname, dogtag_constants.ALIAS_DIR, certs.NSS_DIR]
+    dirs = [dirname, paths.PKI_TOMCAT_ALIAS_DIR, certs.NSS_DIR]
     ids = certmonger.check_state(dirs)
     if ids:
         root_logger.error('Some certificates may still be tracked by '

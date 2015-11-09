@@ -10,7 +10,7 @@ import os.path
 from six.moves.configparser import RawConfigParser
 
 from ipaserver.install import cainstance, dsinstance, bindinstance
-from ipapython import dogtag, ipautil, certdb
+from ipapython import ipautil, certdb
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaserver.install import installutils, certs
@@ -126,8 +126,6 @@ def install_step_0(standalone, replica_config, options):
     host_name = options.host_name
     subject_base = options.subject
 
-    dogtag_constants = dogtag.install_constants
-
     if replica_config is not None:
         # Configure the CA if necessary
         if standalone:
@@ -154,8 +152,7 @@ def install_step_0(standalone, replica_config, options):
     else:
         external = 0
 
-    ca = cainstance.CAInstance(realm_name, certs.NSS_DIR,
-        dogtag_constants=dogtag_constants)
+    ca = cainstance.CAInstance(realm_name, certs.NSS_DIR)
     if standalone:
         ca.create_ra_agent_db = False
     if external == 0:
@@ -185,19 +182,16 @@ def install_step_1(standalone, replica_config, options):
 
     basedn = ipautil.realm_to_suffix(realm_name)
 
-    dogtag_constants = dogtag.install_constants
-
-    ca = cainstance.CAInstance(realm_name, certs.NSS_DIR,
-        dogtag_constants=dogtag_constants)
+    ca = cainstance.CAInstance(realm_name, certs.NSS_DIR)
 
     if standalone:
-        ca.stop(ca.dogtag_constants.PKI_INSTANCE_NAME)
+        ca.stop('pki-tomcat')
 
     # We need to ldap_enable the CA now that DS is up and running
     ca.ldap_enable('CA', host_name, dm_password, basedn, ['caRenewalMaster'])
 
     # This is done within stopped_service context, which restarts CA
-    ca.enable_client_auth_to_db(dogtag_constants.CS_CFG_PATH)
+    ca.enable_client_auth_to_db(paths.CA_CS_CFG_PATH)
 
     if standalone and replica_config is None:
         serverid = installutils.realm_to_serverid(realm_name)
@@ -231,7 +225,7 @@ def install_step_1(standalone, replica_config, options):
                                   bind_pw=dm_password)
 
         # Store DS CA cert in Dogtag NSS database
-        dogtagdb = certs.CertDB(realm_name, nssdir=dogtag_constants.ALIAS_DIR)
+        dogtagdb = certs.CertDB(realm_name, nssdir=paths.PKI_TOMCAT_ALIAS_DIR)
         trust_flags = dict(reversed(dsdb.list_certs()))
         server_certs = dsdb.find_server_certs()
         trust_chain = dsdb.find_root_cert(server_certs[0][0])[:-1]
@@ -240,7 +234,7 @@ def install_step_1(standalone, replica_config, options):
         dogtagdb.add_cert(cert, nickname, trust_flags[nickname])
 
     if standalone:
-        ca.start(ca.dogtag_constants.PKI_INSTANCE_NAME)
+        ca.start('pki-tomcat')
 
         # Update config file
         try:
@@ -248,8 +242,7 @@ def install_step_1(standalone, replica_config, options):
             parser.read(paths.IPA_DEFAULT_CONF)
             parser.set('global', 'enable_ra', 'True')
             parser.set('global', 'ra_plugin', 'dogtag')
-            parser.set('global', 'dogtag_version',
-                       str(dogtag_constants.DOGTAG_VERSION))
+            parser.set('global', 'dogtag_version', '10')
             with open(paths.IPA_DEFAULT_CONF, 'w') as f:
                 parser.write(f)
         except IOError as e:
@@ -266,15 +259,9 @@ def install_step_1(standalone, replica_config, options):
             bind.add_ipa_ca_dns_records(host_name, domain_name)
 
 
-def uninstall(dogtag_constants):
-    if not dogtag_constants.SHARED_DB:
-        cads_instance = cainstance.CADSInstance(
-            dogtag_constants=dogtag_constants)
-        if cads_instance.is_configured():
-            cads_instance.uninstall()
-
+def uninstall():
     ca_instance = cainstance.CAInstance(
-        api.env.realm, certs.NSS_DIR, dogtag_constants=dogtag_constants)
+        api.env.realm, certs.NSS_DIR)
     ca_instance.stop_tracking_certificates()
     if ca_instance.is_configured():
         ca_instance.uninstall()

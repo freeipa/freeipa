@@ -6,8 +6,8 @@ import os
 
 from ipalib import api, errors
 from ipaplatform import services
+from ipaplatform.paths import paths
 from ipapython import certdb
-from ipapython import dogtag
 from ipapython import ipautil
 from ipapython.dn import DN
 from ipaserver.install import custodiainstance
@@ -18,9 +18,7 @@ from ipaserver.install import service
 
 
 def install_check(api, replica_config, options):
-    dogtag_constants = dogtag.configured_constants(api=api)
-    kra = krainstance.KRAInstance(api.env.realm,
-                                  dogtag_constants=dogtag_constants)
+    kra = krainstance.KRAInstance(api.env.realm)
     if kra.is_installed():
         raise RuntimeError("KRA is already installed.")
 
@@ -61,10 +59,7 @@ def install_check(api, replica_config, options):
 def install(api, replica_config, options):
     subject = dsinstance.DsInstance().find_subject_base()
     if replica_config is None:
-        kra = krainstance.KRAInstance(
-            api.env.realm,
-            dogtag_constants=dogtag.install_constants)
-
+        kra = krainstance.KRAInstance(api.env.realm)
         kra.configure_instance(
             api.env.realm, api.env.host, options.dm_password,
             options.dm_password, subject_base=subject)
@@ -78,9 +73,7 @@ def install(api, replica_config, options):
             custodia.get_kra_keys(replica_config.kra_host_name,
                                   ca_data[0], ca_data[1])
 
-            kra = krainstance.KRAInstance(
-                replica_config.realm_name,
-                dogtag_constants=dogtag.install_constants)
+            kra = krainstance.KRAInstance(replica_config.realm_name)
             kra.configure_replica(replica_config.host_name,
                                   replica_config.kra_host_name,
                                   replica_config.dirman_password,
@@ -96,16 +89,14 @@ def install(api, replica_config, options):
 
     kra.ldap_enable('KRA', api.env.host, options.dm_password, api.env.basedn)
 
-    kra.enable_client_auth_to_db(kra.dogtag_constants.KRA_CS_CFG_PATH)
+    kra.enable_client_auth_to_db(paths.KRA_CS_CFG_PATH)
 
     # Restart apache for new proxy config file
     services.knownservices.httpd.restart(capture_output=True)
 
 
 def uninstall(standalone):
-    dogtag_constants = dogtag.configured_constants(api)
-    kra = krainstance.KRAInstance(api.env.realm,
-                                  dogtag_constants=dogtag_constants)
+    kra = krainstance.KRAInstance(api.env.realm)
 
     if standalone:
         kra.ldap_connect()

@@ -41,16 +41,13 @@ from ipaplatform.paths import paths
 wellknownservices = ['certmonger', 'dirsrv', 'httpd', 'ipa', 'krb5kdc',
                      'messagebus', 'nslcd', 'nscd', 'ntpd', 'portmap',
                      'rpcbind', 'kadmin', 'sshd', 'autofs', 'rpcgssd',
-                     'rpcidmapd', 'pki_tomcatd', 'pki_cad', 'chronyd',
-                     'domainname', 'named', 'ods_enforcerd', 'ods_signerd']
+                     'rpcidmapd', 'pki_tomcatd', 'chronyd', 'domainname',
+                     'named', 'ods_enforcerd', 'ods_signerd']
 
 # The common ports for these services. This is used to wait for the
 # service to become available.
 wellknownports = {
-    'dirsrv@PKI-IPA.service': [7389],
-    'PKI-IPA': [7389],
     'dirsrv': [389],  # only used if the incoming instance name is blank
-    'pki-cad': [9180, 9443, 9444],
     'pki-tomcatd@pki-tomcat.service': [8080, 8443],
     'pki-tomcat': [8080, 8443],
     'pki-tomcatd': [8080, 8443],  # used if the incoming instance name is blank
