@@ -509,7 +509,6 @@ class IPAChangeConf:
     # file is a path
     # options is a set of dictionaries in the form:
     #     [{'name': 'foo', 'value': 'bar', 'action': 'set/comment'}]
-    # section is a section name like 'global'
     def newConf(self, file, options):
         autosection = False
         savedsection = None
