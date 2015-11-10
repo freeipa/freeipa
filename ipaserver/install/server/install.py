@@ -628,8 +628,8 @@ def install_check(installer):
     if options.setup_dns:
         print("BIND DNS server will be configured to serve IPA domain with:")
         print("Forwarders:    %s" % (
-            "No forwarders" if not dns.dns_forwarders
-            else ", ".join([str(ip) for ip in dns.dns_forwarders])
+            "No forwarders" if not options.forwarders
+            else ", ".join([str(ip) for ip in options.forwarders])
         ))
         print("Reverse zone(s):  %s" % (
             "No reverse zone" if options.no_reverse or not dns.reverse_zones
@@ -765,7 +765,6 @@ def install(installer):
             options.dm_password = dm_password
             options.admin_password = admin_password
             options.host_name = host_name
-            options.forwarders = dns.dns_forwarders
             options.reverse_zones = dns.reverse_zones
             cache_vars = {n: getattr(options, n) for o, n in installer.knobs()}
             write_cache(cache_vars)

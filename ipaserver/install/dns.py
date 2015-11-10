@@ -32,7 +32,6 @@ from ipaserver.install import odsexporterinstance
 from ipaserver.install import opendnssecinstance
 
 ip_addresses = []
-dns_forwarders = []
 reverse_zones = []
 
 
@@ -100,7 +99,6 @@ def _disable_dnssec():
 
 def install_check(standalone, replica, options, hostname):
     global ip_addresses
-    global dns_forwarders
     global reverse_zones
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
@@ -232,25 +230,24 @@ def install_check(standalone, replica, options, hostname):
                                          True, options.ip_addresses)
 
     if options.no_forwarders:
-        dns_forwarders = ()
+        options.forwarders = []
     elif options.forwarders or options.auto_forwarders:
-        if options.forwarders:
-            dns_forwarders = options.forwarders
-        else:
-            dns_forwarders = []
+        if not options.forwarders:
+            options.forwarders = []
         if options.auto_forwarders:
-            dns_forwarders += resolver.get_default_resolver().nameservers
+            options.forwarders += resolver.get_default_resolver().nameservers
     elif standalone or not replica:
-        dns_forwarders = read_dns_forwarders()
+        options.forwarders = read_dns_forwarders()
 
     # test DNSSEC forwarders
-    if dns_forwarders:
-        if (not bindinstance.check_forwarders(dns_forwarders, root_logger) and
-                not options.no_dnssec_validation):
+    if options.forwarders:
+        if (not bindinstance.check_forwarders(options.forwarders,
+                                              root_logger)
+                and not options.no_dnssec_validation):
             options.no_dnssec_validation = True
             print("WARNING: DNSSEC validation will be disabled")
 
-    root_logger.debug("will use dns_forwarders: %s\n", dns_forwarders)
+    root_logger.debug("will use DNS forwarders: %s\n", options.forwarders)
 
     if not standalone:
         search_reverse_zones = False
@@ -273,7 +270,6 @@ def install_check(standalone, replica, options, hostname):
 
 def install(standalone, replica, options, api=api):
     global ip_addresses
-    global dns_forwarders
     global reverse_zones
 
     local_dnskeysyncd_dn = DN(('cn', 'DNSKeySync'), ('cn', api.env.host),
@@ -292,7 +288,8 @@ def install(standalone, replica, options, api=api):
     bind = bindinstance.BindInstance(fstore, ldapi=True, api=api,
                                      autobind=AUTOBIND_ENABLED)
     bind.setup(api.env.host, ip_addresses, api.env.realm, api.env.domain,
-               dns_forwarders, conf_ntp, reverse_zones, zonemgr=options.zonemgr,
+               options.forwarders, conf_ntp, reverse_zones,
+               zonemgr=options.zonemgr,
                no_dnssec_validation=options.no_dnssec_validation,
                ca_configured=options.setup_ca)
 
