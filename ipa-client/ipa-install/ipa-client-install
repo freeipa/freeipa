@@ -2062,7 +2062,7 @@ def get_ca_certs(fstore, options, server, basedn, realm):
                 url = http_url()
                 override = not interactive
                 if interactive and not user_input(
-                    "Do you want download the CA cert from " + url + " ?\n"
+                    "Do you want to download the CA cert from " + url + " ?\n"
                     "(this is INSECURE)", False):
                     raise errors.NoCertificateError(message=u"HTTP certificate"
                             " download declined by user")
