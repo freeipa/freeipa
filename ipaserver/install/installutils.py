@@ -260,20 +260,6 @@ def add_record_to_hosts(ip, host_name, conf_file=paths.HOSTS):
     hosts_fd.write(ip+'\t'+host_name+' '+host_name.split('.')[0]+'\n')
     hosts_fd.close()
 
-# TODO: Remove when removing usage from ipa-adtrust-install
-def read_ip_address(host_name, fstore):
-    while True:
-        ip = ipautil.user_input("Please provide the IP address to be used for this host name", allow_empty = False)
-        try:
-            ip_parsed = ipautil.CheckedIPAddress(ip, match_local=True)
-        except Exception as e:
-            print("Error: Invalid IP Address %s: %s" % (ip, e))
-            continue
-        else:
-            break
-
-    return ip_parsed
-
 
 def read_ip_addresses():
     ips = []
