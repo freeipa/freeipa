@@ -1267,10 +1267,11 @@ class Server(BaseServer):
                     "and -a options")
             if self.setup_dns:
                 #pylint: disable=no-member
-                if not self.dns.forwarders and not self.dns.no_forwarders:
+                if (not self.dns.forwarders and not self.dns.no_forwarders
+                    and not self.dns.auto_forwarders):
                     raise RuntimeError(
-                        "You must specify at least one --forwarder option or "
-                        "--no-forwarders option")
+                        "You must specify at least one of --forwarder, "
+                        "--auto-forwarders, or --no-forwarders options")
 
         if self.idmax < self.idstart:
             raise RuntimeError(

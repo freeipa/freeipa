@@ -167,6 +167,11 @@ class BaseServerDNS(common.Installable, core.Group, core.Composite):
         cli_name='forwarder',
     )
 
+    auto_forwarders = Knob(
+        bool, False,
+        description="Use DNS forwarders configured in /etc/resolv.conf",
+    )
+
     no_forwarders = Knob(
         bool, False,
         description="Do not add any DNS forwarders, use root servers instead",
@@ -395,6 +400,10 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
                 raise RuntimeError(
                     "You cannot specify a --forwarder option without the "
                     "--setup-dns option")
+            if self.dns.auto_forwarders:
+                raise RuntimeError(
+                    "You cannot specify a --auto-forwarders option without "
+                    "the --setup-dns option")
             if self.dns.no_forwarders:
                 raise RuntimeError(
                     "You cannot specify a --no-forwarders option without the "
@@ -414,6 +423,10 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
         elif self.dns.forwarders and self.dns.no_forwarders:
             raise RuntimeError(
                 "You cannot specify a --forwarder option together with "
+                "--no-forwarders")
+        elif self.dns.auto_forwarders and self.dns.no_forwarders:
+            raise RuntimeError(
+                "You cannot specify a --auto-forwarders option together with "
                 "--no-forwarders")
         elif self.dns.reverse_zones and self.dns.no_reverse:
             raise RuntimeError(
@@ -441,6 +454,7 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
         self.skip_schema_check = self.ca.skip_schema_check
 
         self.forwarders = self.dns.forwarders
+        self.auto_forwarders = self.dns.auto_forwarders
         self.no_forwarders = self.dns.no_forwarders
         self.reverse_zones = self.dns.reverse_zones
         self.no_reverse = self.dns.no_reverse

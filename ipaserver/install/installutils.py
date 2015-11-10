@@ -282,6 +282,13 @@ def read_ip_addresses():
 def read_dns_forwarders():
     addrs = []
     if ipautil.user_input("Do you want to configure DNS forwarders?", True):
+        print("Following DNS servers are configured in /etc/resolv.conf: %s" %
+                ", ".join(resolver.get_default_resolver().nameservers))
+        if ipautil.user_input("Do you want to configure these servers as DNS "
+                "forwarders?", True):
+            addrs = resolver.default_resolver.nameservers[:]
+            print("All DNS servers from /etc/resolv.conf were added. You can "
+                  "enter additional addresses now:")
         while True:
             ip = ipautil.user_input("Enter an IP address for a DNS forwarder, "
                                     "or press Enter to skip", allow_empty=True)

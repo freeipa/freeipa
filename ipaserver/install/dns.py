@@ -2,8 +2,11 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
+from __future__ import absolute_import
 from __future__ import print_function
 
+# absolute import is necessary because IPA module dns clashes with python-dns
+from dns import resolver
 import sys
 
 from subprocess import CalledProcessError
@@ -230,8 +233,13 @@ def install_check(standalone, replica, options, hostname):
 
     if options.no_forwarders:
         dns_forwarders = ()
-    elif options.forwarders:
-        dns_forwarders = options.forwarders
+    elif options.forwarders or options.auto_forwarders:
+        if options.forwarders:
+            dns_forwarders = options.forwarders
+        else:
+            dns_forwarders = []
+        if options.auto_forwarders:
+            dns_forwarders += resolver.get_default_resolver().nameservers
     elif standalone or not replica:
         dns_forwarders = read_dns_forwarders()
 
