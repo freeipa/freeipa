@@ -32,8 +32,6 @@ ip_addresses = []
 dns_forwarders = []
 reverse_zones = []
 
-NEW_MASTER_MARK = 'NEW_DNSSEC_MASTER'
-
 
 def _find_dnssec_enabled_zones(conn):
     search_kw = {'idnssecinlinesigning': True}
