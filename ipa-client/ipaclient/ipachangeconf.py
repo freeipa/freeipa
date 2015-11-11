@@ -63,6 +63,7 @@ class IPAChangeConf:
         self.deol = self.eol[0]
         self.sectnamdel = ("[", "]")
         self.subsectdel = ("{", "}")
+        self.case_insensitive_sections = True
 
     def setProgName(self, name):
         self.progname = name
@@ -114,7 +115,9 @@ class IPAChangeConf:
         return False
 
     def matchSection(self, line):
-        cl = "".join(line.strip().split()).lower()
+        cl = "".join(line.strip().split())
+        cl = cl.lower() if self.case_insensitive_sections else cl
+
         if len(self.sectnamdel) != 2:
             return False
         if not cl.startswith(self.sectnamdel[0]):
