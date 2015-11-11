@@ -318,11 +318,21 @@ def configure_nfs(fstore, statestore):
 
     print("Configured %s" % paths.SYSCONFIG_NFS)
 
-    replacevars = {
-        'Domain': api.env.domain,
-    }
-    ipautil.backup_config_and_replace_variables(fstore,
-        paths.IDMAPD_CONF, replacevars=replacevars)
+    # Prepare the changes
+    # We need to use IPAChangeConf as simple regexp substitution
+    # does not cut it here
+    conf = ipachangeconf.IPAChangeConf("IPA automount installer")
+    conf.case_insensitive_sections = False
+    conf.setOptionAssignment(" = ")
+    conf.setSectionNameDelimiters(("[", "]"))
+
+    changes = [conf.setOption('Domain', api.env.domain)]
+    section_with_changes = [conf.setSection('General', changes)]
+
+    # Backup the file and apply the changes
+    fstore.backup_file(paths.IDMAPD_CONF)
+    conf.changeConf(paths.IDMAPD_CONF, section_with_changes)
+
     tasks.restore_context(paths.IDMAPD_CONF)
 
     print("Configured %s" % paths.IDMAPD_CONF)
