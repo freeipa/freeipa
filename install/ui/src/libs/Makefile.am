@@ -5,6 +5,7 @@ app_DATA =				\
 	bootstrap.js 			\
 	bootstrap-datepicker.js	\
 	browser.js 			\
+	d3.js 			\
 	jquery.js 			\
 	jquery.ordered-map.js 		\
 	json2.js 			\
