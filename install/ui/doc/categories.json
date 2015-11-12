@@ -193,7 +193,8 @@
                     "widget.alert_helper",
                     "IPA.option_widget_base",
                     "IPA.column",
-                    "IPA.html_util"
+                    "IPA.html_util",
+                    "topology_graph.TopoGraph"
                 ]
             },
             {
@@ -257,6 +258,7 @@
                     "radiusproxy",
                     "stageuser",
                     "topology",
+                    "topology_graph",
                     "user",
                     "plugins.api_browser",
                     "plugins.caacl",
