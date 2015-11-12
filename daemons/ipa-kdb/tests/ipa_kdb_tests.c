@@ -82,6 +82,10 @@ static int setup(void **state)
 
     kerr = krb5_init_context(&krb5_ctx);
     assert_int_equal(kerr, 0);
+
+    kerr = krb5_set_default_realm(krb5_ctx, "EXAMPLE.COM");
+    assert_int_equal(kerr, 0);
+
     kerr = krb5_db_setup_lib_handle(krb5_ctx);
     assert_int_equal(kerr, 0);
 
