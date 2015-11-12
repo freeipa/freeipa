@@ -273,8 +273,9 @@ arec3 = u'172.16.250.123'
 fwd_ip = u'172.16.31.80'
 allowtransfer_tofwd = u'%s;' % fwd_ip
 
-allowquery_restricted_in = u'!192.0.2/24;any;'
-allowquery_restricted_out = u'!192.0.2.0/24;any;'
+# 198.18.0.0/15 testing range reserved by RFC2544
+allowquery_restricted_in = u'!198.18.2.0/24;any;'
+allowquery_restricted_out = u'!198.18.2.0/24;any;'
 
 idnzone1 = u'\u010d.test.'
 idnzone1_punycoded = u'xn--bea.test.'
@@ -2958,7 +2959,7 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'172.16.31.80;'],
-                    'idnsallowquery': [u'!192.0.2.0/24;any;'],
+                    'idnsallowquery': [allowquery_restricted_out],
                     'mxrecord': [u'0 ns1.dnszone.test.'],
                     'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
                 },
@@ -2996,7 +2997,7 @@ class test_dns(Declarative):
                     'idnssoaexpire': [fuzzy_digits],
                     'idnssoaminimum': [fuzzy_digits],
                     'idnsallowtransfer': [u'172.16.31.80;'],
-                    'idnsallowquery': [u'!192.0.2.0/24;any;'],
+                    'idnsallowquery': [allowquery_restricted_out],
                     'mxrecord': [u'0 ns1.dnszone.test.'],
                     'locrecord': [u"49 11 42.400 N 16 36 29.600 E 227.64 10.00 10.00 0.10"],
                 },
