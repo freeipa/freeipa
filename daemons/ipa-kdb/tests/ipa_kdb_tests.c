@@ -122,9 +122,6 @@ void setup(void **state)
                         &ipa_ctx->mspac->trusts[0].sid_blacklist_incoming[0]);
     assert_int_equal(ret, 0);
 
-    struct dom_sid *sid_blacklist_incoming;
-    int len_sid_blacklist_incoming;
-
     ipa_ctx->kcontext = krb5_ctx;
     kerr = krb5_db_set_context(krb5_ctx, ipa_ctx);
     assert_int_equal(kerr, 0);
@@ -313,7 +310,6 @@ void test_get_authz_data_types(void **state)
     char *ad_none_and_pad[] = {"NONE", "PAD", NULL};
     char *ad_global_pac_nfs_none[] = {"MS-PAC", "nfs:NONE", NULL};
     char *ad_global_pac_nfs_pad[] = {"MS-PAC", "nfs:PAD", NULL};
-    krb5_context krb5_ctx;
     krb5_error_code kerr;
     struct ipadb_context *ipa_ctx;
     krb5_principal nfs_princ;
