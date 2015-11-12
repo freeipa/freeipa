@@ -248,8 +248,8 @@ void test_filter_logon_info(void **state)
          1, {DOM_SID_TRUST"-1002"}},
         /* all SIDs filtered*/
         {3, {BLACKLIST_SID"-1000", BLACKLIST_SID"-1001", BLACKLIST_SID"-1002"},
-         0, NULL},
-        {0, NULL, 0 , NULL}
+         0, {}},
+        {0, {}, 0 , {}}
     };
 
     for (c = 0; test_data[c].sidcount != 0; c++) {
