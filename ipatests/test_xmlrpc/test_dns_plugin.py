@@ -1148,9 +1148,11 @@ class test_dns(Declarative):
                                                                  'srv_part_target' : u'foo.bar.',
                                                                  'srvrecord': [u"1 100 1234 %s" \
                                                                      % zone1_ns]}),
-            expected=errors.ValidationError(name='srv_target',
-                error=u'Raw value of a DNS record was already set by ' +
-                    u'"srv_rec" option'),
+            expected=lambda x, output: (
+                type(x) == errors.ValidationError and
+                x.message.endswith(u'Raw value of a DNS record was already '
+                                   u'set by "srv_rec" option'),
+            ),
         ),
 
         dict(
