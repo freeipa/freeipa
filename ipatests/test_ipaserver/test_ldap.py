@@ -28,6 +28,7 @@
 import os
 
 import nose
+import pytest
 from nose.tools import assert_raises  # pylint: disable=E0611
 import nss.nss as nss
 
