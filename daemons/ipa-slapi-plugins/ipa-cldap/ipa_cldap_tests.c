@@ -59,10 +59,10 @@ void test_make_netbios_name(void **state)
 int main(int argc, const char *argv[])
 {
 
-    const UnitTest tests[] = {
-        unit_test(test_make_netbios_name),
+    const struct CMUnitTest tests[] = {
+        cmocka_unit_test(test_make_netbios_name),
     };
 
-    return run_tests(tests);
+    return cmocka_run_group_tests(tests, NULL, NULL);
 }
 

@@ -258,7 +258,7 @@ struct test_data {
     struct ipa_extdom_ctx *ctx;
 };
 
-void extdom_req_setup(void **state)
+static int  extdom_req_setup(void **state)
 {
     struct test_data *test_data;
 
@@ -272,9 +272,11 @@ void extdom_req_setup(void **state)
     assert_non_null(test_data->req);
 
     *state = test_data;
+
+    return 0;
 }
 
-void extdom_req_teardown(void **state)
+static int  extdom_req_teardown(void **state)
 {
     struct test_data *test_data;
 
@@ -283,6 +285,8 @@ void extdom_req_teardown(void **state)
     free_req_data(test_data->req);
     free(test_data->ctx);
     free(test_data);
+
+    return 0;
 }
 
 void test_set_err_msg(void **state)
@@ -433,18 +437,18 @@ void test_decode(void **state)
 
 int main(int argc, const char *argv[])
 {
-    const UnitTest tests[] = {
-        unit_test(test_getpwnam_r_wrapper),
-        unit_test(test_getpwuid_r_wrapper),
-        unit_test(test_getgrnam_r_wrapper),
-        unit_test(test_getgrgid_r_wrapper),
-        unit_test(test_get_user_grouplist),
-        unit_test_setup_teardown(test_set_err_msg,
-                                 extdom_req_setup, extdom_req_teardown),
-        unit_test_setup_teardown(test_encode,
-                                 extdom_req_setup, extdom_req_teardown),
-        unit_test(test_decode),
+    const struct CMUnitTest tests[] = {
+        cmocka_unit_test(test_getpwnam_r_wrapper),
+        cmocka_unit_test(test_getpwuid_r_wrapper),
+        cmocka_unit_test(test_getgrnam_r_wrapper),
+        cmocka_unit_test(test_getgrgid_r_wrapper),
+        cmocka_unit_test(test_get_user_grouplist),
+        cmocka_unit_test_setup_teardown(test_set_err_msg,
+                                        extdom_req_setup, extdom_req_teardown),
+        cmocka_unit_test_setup_teardown(test_encode,
+                                        extdom_req_setup, extdom_req_teardown),
+        cmocka_unit_test(test_decode),
     };
 
-    return run_tests(tests);
+    return cmocka_run_group_tests(tests, NULL, NULL);
 }

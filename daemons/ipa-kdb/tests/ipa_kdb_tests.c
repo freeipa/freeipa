@@ -72,7 +72,7 @@ struct test_ctx {
 #define DOM_SID_TRUST "S-1-5-21-4-5-6"
 #define BLACKLIST_SID "S-1-5-1"
 
-void setup(void **state)
+static int setup(void **state)
 {
     int ret;
     krb5_context krb5_ctx;
@@ -132,9 +132,11 @@ void setup(void **state)
     test_ctx->krb5_ctx = krb5_ctx;
 
     *state = test_ctx;
+
+    return 0;
 }
 
-void teardown(void **state)
+static int teardown(void **state)
 {
     struct test_ctx *test_ctx;
     struct ipadb_context *ipa_ctx;
@@ -149,6 +151,8 @@ void teardown(void **state)
     krb5_free_context(test_ctx->krb5_ctx);
 
     talloc_free(test_ctx);
+
+    return 0;
 }
 
 extern krb5_error_code filter_logon_info(krb5_context context,
@@ -464,12 +468,15 @@ void test_dom_sid_string(void **state)
 
 int main(int argc, const char *argv[])
 {
-    const UnitTest tests[] = {
-        unit_test_setup_teardown(test_get_authz_data_types, setup, teardown),
-        unit_test_setup_teardown(test_filter_logon_info, setup, teardown),
-        unit_test(test_string_to_sid),
-        unit_test_setup_teardown(test_dom_sid_string, setup, teardown),
+    const struct CMUnitTest tests[] = {
+        cmocka_unit_test_setup_teardown(test_get_authz_data_types,
+                                        setup, teardown),
+        cmocka_unit_test_setup_teardown(test_filter_logon_info,
+                                        setup, teardown),
+        cmocka_unit_test(test_string_to_sid),
+        cmocka_unit_test_setup_teardown(test_dom_sid_string,
+                                        setup, teardown),
     };
 
-    return run_tests(tests);
+    return cmocka_run_group_tests(tests, NULL, NULL);
 }
