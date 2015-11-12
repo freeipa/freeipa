@@ -572,6 +572,7 @@
                         "topology": {
                             "segment_details": "Segment details",
                             "replication_config": "Replication configuration",
+                            "insufficient_domain_level" : "Managed topology requires minimal domain level ${domainlevel}"
                         },
                         "trust": {
                             "account": "Account",
@@ -966,6 +967,10 @@
                 },
                 "summary": null,
                 "value": "ad"
+            },
+            {
+                "error": null,
+                "result": 1
             }
         ]
     }

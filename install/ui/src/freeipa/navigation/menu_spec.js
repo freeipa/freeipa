@@ -224,6 +224,10 @@ var nav = {};
                             entity: 'domainlevel',
                             facet: 'details',
                             hidden: true
+                        },
+                        {
+                            facet: 'topology-graph',
+                            hidden: true
                         }
                     ]
                 },

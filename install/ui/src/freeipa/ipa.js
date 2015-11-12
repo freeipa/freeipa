@@ -220,6 +220,18 @@ var IPA = function () {
             }
         }));
 
+        batch.add_command(rpc.command({
+            entity: 'domainlevel',
+            method: 'get',
+            retry: false,
+            on_success: function(data, text_status, xhr) {
+                that.domain_level = data.result;
+            },
+            on_error: function(xhr, text_status, error_thrown) {
+                that.domain_level = 0;
+            }
+        }));
+
         batch.execute();
     };
 

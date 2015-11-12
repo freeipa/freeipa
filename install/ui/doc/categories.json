@@ -173,6 +173,7 @@
                 "classes": [
                     "IPA.widget",
                     "*_widget",
+                    "*Widget",
                     "widgets.*",
                     "IPA.action_panel"
                 ]

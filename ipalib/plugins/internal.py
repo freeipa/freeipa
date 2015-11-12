@@ -719,6 +719,7 @@ class i18n_messages(Command):
             "topology": {
                 "segment_details": _("Segment details"),
                 "replication_config": _("Replication configuration"),
+                "insufficient_domain_level" : _("Managed topology requires minimal domain level ${domainlevel}"),
             },
             "trust": {
                 "account": _("Account"),
