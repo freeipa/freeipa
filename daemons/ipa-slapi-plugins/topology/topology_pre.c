@@ -506,7 +506,6 @@ int ipa_topo_pre_add(Slapi_PBlock *pb)
 
     if (ipa_topo_is_entry_managed(pb)) {
         int rc = LDAP_UNWILLING_TO_PERFORM;
-        char *errtxt;
         errtxt = slapi_ch_smprintf("Entry is managed by topology plugin."
                                    " Adding of entry not allowed.\n");
         slapi_pblock_set(pb, SLAPI_PB_RESULT_TEXT, errtxt);
