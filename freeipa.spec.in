@@ -78,7 +78,6 @@ BuildRequires:  python-lxml
 BuildRequires:  python-pyasn1 >= 0.0.9a
 BuildRequires:  python-qrcode-core >= 5.0.0
 BuildRequires:  python-dns >= 1.11.1
-BuildRequires:  check
 BuildRequires:  libsss_idmap-devel
 BuildRequires:  libsss_nss_idmap-devel >= 1.12.2
 BuildRequires:  java-headless
@@ -98,6 +97,10 @@ BuildRequires:  python-kdcproxy >= 0.3
 BuildRequires:  python-six
 BuildRequires:  python-jwcrypto
 BuildRequires:  custodia
+
+# Build dependencies for unit tests
+BuildRequires:  libcmocka-devel
+BuildRequires:  nss_wrapper
 
 %description
 IPA is an integrated solution to provide centrally managed Identity (users,
@@ -404,6 +407,9 @@ make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} all
 %else
 make IPA_VERSION_IS_GIT_SNAPSHOT=no %{?_smp_mflags} client
 %endif # ONLY_CLIENT
+
+%check
+make %{?_smp_mflags} check VERBOSE=yes
 
 %install
 rm -rf %{buildroot}
