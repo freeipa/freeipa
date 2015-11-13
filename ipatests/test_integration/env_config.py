@@ -32,6 +32,7 @@ import six
 
 from ipapython import ipautil
 from ipatests.test_integration.config import Config, Domain
+from ipalib.constants import MAX_DOMAIN_LEVEL
 
 TESTHOST_PREFIX = 'TESTHOST_'
 
@@ -61,6 +62,7 @@ _setting_infos = (
 
     _SettingInfo('ipv6', 'IPv6SETUP', False),
     _SettingInfo('debug', 'IPADEBUG', False),
+    _SettingInfo('domain_level', 'DOMAINLVL', MAX_DOMAIN_LEVEL),
 )
 
 
