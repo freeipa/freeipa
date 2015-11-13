@@ -200,7 +200,7 @@ static int ipa_extdom_init_ctx(Slapi_PBlock *pb, struct ipa_extdom_ctx **_ctx)
     if (ctx->max_nss_buf_size == 0) {
         ctx->max_nss_buf_size = DEFAULT_MAX_NSS_BUFFER;
     }
-    LOG("Maximal nss buffer size set to [%d]!\n", ctx->max_nss_buf_size);
+    LOG("Maximal nss buffer size set to [%zu]!\n", ctx->max_nss_buf_size);
 
     ret = 0;
 
