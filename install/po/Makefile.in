@@ -78,6 +78,8 @@ C_POTFILES = $(C_FILES) $(H_FILES)
 
 all:
 
+check:
+
 SUFFIXES = .po .mo
 
 .po.mo:

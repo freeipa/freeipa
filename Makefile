@@ -74,6 +74,11 @@ client: client-autogen
 	done
 	cd ipaplatform && $(PYTHON) setup.py build
 
+check: bootstrap-autogen server tests
+	@for subdir in $(SUBDIRS); do \
+		(cd $$subdir && $(MAKE) check) || exit 1; \
+	done
+
 bootstrap-autogen: version-update client-autogen
 	@echo "Building IPA $(IPA_VERSION)"
 	cd asn1; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi

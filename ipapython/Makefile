@@ -10,6 +10,8 @@ all:
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
 
+check:
+
 .PHONY: install
 install:
 	if [ "$(DESTDIR)" = "" ]; then \
