@@ -32,6 +32,14 @@ remove:aci:(targetfilter="(objectclass=nsContainer)")(version 3.0; acl "Deny rea
 dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
 add:aci:(targetfilter="(objectclass=nsContainer)")(targetattr="objectclass || cn")(version 3.0; acl "Read access to masters"; allow(read, search, compare) userdn = "ldap:///all";)
 
+# Allow hosts to read masters service configuration
+dn: cn=masters,cn=ipa,cn=etc,$SUFFIX
+add:aci:(targetfilter = "(objectclass=nsContainer)")(targetattr = "ipaConfigString")(version 3.0; acl "Allow hosts to read masters service configuration"; allow(read, search, compare) userdn = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX";)
+
+# Allow hosts to read replication managers
+dn: cn=sysaccounts,cn=etc,$SUFFIX
+add:aci: (target = "ldap:///cn=replication managers,cn=sysaccounts,cn=etc,$SUFFIX")(targetattr = "objectClass || cn")(version 3.0; acl "Allow hosts to read replication managers"; allow(read, search, compare) userdn = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX";)
+
 # Read access to Kerberos container (cn=kerberos) and realm containers (cn=$REALM,cn=kerberos)
 dn: cn=kerberos,$SUFFIX
 add:aci:(targetattr = "cn || objectclass")(targetfilter = "(|(objectclass=krbrealmcontainer)(objectclass=krbcontainer))")(version 3.0;acl "Anonymous read access to Kerberos containers";allow (read,compare,search) userdn = "ldap:///anyone";)
@@ -53,6 +61,10 @@ add:aci:(targetattr="ipaUniqueId || memberOf || enrolledBy || krbExtraData || kr
 
 dn: cn=tasks,cn=config
 add:aci:(targetattr="*")(version 3.0; acl "Admin can read all tasks"; allow (read, compare, search) groupdn = "ldap:///cn=admins,cn=groups,cn=accounts,$SUFFIX";)
+
+# Allow hosts to read their replication agreements
+dn: cn=mapping tree,cn=config
+add:aci: (target = "ldap:///cn=meTo($$dn),cn=*,cn=mapping tree,cn=config")(targetattr = "objectclass || cn")(version 3.0; acl "Allow hosts to read their replication agreements"; allow(read, search, compare) userdn = "ldap:///fqdn=($$dn),cn=computers,cn=accounts,$SUFFIX";)
 
 # Removal of obsolete ACIs
 dn: cn=config
@@ -91,3 +103,16 @@ add:aci: (target = "ldap:///krbprincipalname=*/($$dn)@$REALM,cn=services,cn=acco
 # CIFS service on the master can manage ID ranges
 dn: cn=ranges,cn=etc,$SUFFIX
 add:aci: (target = "ldap:///cn=*,cn=ranges,cn=etc,$SUFFIX")(targetfilter = "(objectClass=ipaIDrange)")(version 3.0;acl "CIFS service can manage ID ranges for trust"; allow(all) userdn="ldap:///krbprincipalname=cifs/*@$REALM,cn=services,cn=accounts,$SUFFIX" and groupdn="ldap:///cn=adtrust agents,cn=sysaccounts,cn=etc,$SUFFIX";)
+
+# IPA server hosts can modify replication managers members
+dn: cn=sysaccounts,cn=etc,$SUFFIX
+add:aci: (target = "ldap:///cn=replication managers,cn=sysaccounts,cn=etc,$SUFFIX")(targetattr = "member")(version 3.0; acl "IPA server hosts can modify replication managers members"; allow(read, search, compare, write) groupdn = "ldap:///cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX";)
+
+# IPA server hosts can change replica ID
+dn: cn=etc,$SUFFIX
+add:aci: (target = "ldap:///cn=replication,cn=etc,$SUFFIX")(targetattr = "nsDS5ReplicaId")(version 3.0; acl "IPA server hosts can change replica ID"; allow(write) groupdn = "ldap:///cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX";)
+
+# IPA server hosts can create and manage own Custodia secrets
+dn: cn=custodia,cn=ipa,cn=etc,$SUFFIX
+add:aci: (target = "ldap:///cn=*/($$dn),cn=custodia,cn=ipa,cn=etc,$SUFFIX")(version 3.0; acl "IPA server hosts can create own Custodia secrets"; allow(add) groupdn = "ldap:///cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX" and userdn = "ldap:///fqdn=($$dn),cn=computers,cn=accounts,$SUFFIX";)
+add:aci: (target = "ldap:///cn=*/($$dn),cn=custodia,cn=ipa,cn=etc,$SUFFIX")(targetattr = "ipaPublicKey")(version 3.0; acl "IPA server hosts can manage own Custodia secrets"; allow(write) groupdn = "ldap:///cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX" and userdn = "ldap:///fqdn=($$dn),cn=computers,cn=accounts,$SUFFIX";)

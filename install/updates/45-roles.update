@@ -82,6 +82,7 @@ dn: cn=Delegation Administrator,cn=privileges,cn=pbac,$SUFFIX
 add:member: cn=Security Architect,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
+add:member: cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX
 add:member: cn=Security Architect,cn=roles,cn=accounts,$SUFFIX
 
 dn: cn=Write IPA Configuration,cn=privileges,cn=pbac,$SUFFIX
