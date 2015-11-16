@@ -358,10 +358,11 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
         assert setup_ca, "CA must be installed on replica with KRA"
         args = [
             "ipa-kra-install",
-            replica_filename,
             "-p", replica.config.dirman_password,
             "-U",
         ]
+        if domainlevel(master) == 0:
+            args.append(replica_filename)
         replica.run_command(args)
 
     kinit_admin(replica)
