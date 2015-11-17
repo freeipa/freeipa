@@ -551,20 +551,23 @@ class baseuser_mod(LDAPUpdate):
                 _entry_attrs = ldap.get_entry(dn, ['objectclass'])
                 obj_classes = entry_attrs['objectclass'] = _entry_attrs['objectclass']
 
+            # IMPORTANT: compare objectclasses as case insensitive
+            obj_classes = [o.lower() for o in obj_classes]
+
             if 'ipasshpubkey' in entry_attrs and 'ipasshuser' not in obj_classes:
-                obj_classes.append('ipasshuser')
+                entry_attrs['objectclass'].append('ipasshuser')
 
             if 'ipauserauthtype' in entry_attrs and 'ipauserauthtypeclass' not in obj_classes:
-                obj_classes.append('ipauserauthtypeclass')
+                entry_attrs['objectclass'].append('ipauserauthtypeclass')
 
             if 'userclass' in entry_attrs and 'ipauser' not in obj_classes:
-                obj_classes.append('ipauser')
+                entry_attrs['objectclass'].append('ipauser')
 
             if 'ipatokenradiusconfiglink' in entry_attrs:
                 cl = entry_attrs['ipatokenradiusconfiglink']
                 if cl:
                     if 'ipatokenradiusproxyuser' not in obj_classes:
-                        obj_classes.append('ipatokenradiusproxyuser')
+                        entry_attrs['objectclass'].append('ipatokenradiusproxyuser')
 
                     answer = self.api.Object['radiusproxy'].get_dn_if_exists(cl)
                     entry_attrs['ipatokenradiusconfiglink'] = answer
