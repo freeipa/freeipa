@@ -2968,9 +2968,11 @@ static int ipasam_get_sid_by_gid(struct ldapsam_privates *ldap_state,
 		return ENOMEM;
 	}
 
-	filter = talloc_asprintf(tmp_ctx, "(&(%s=%s)(%s=%lu))",
+	filter = talloc_asprintf(tmp_ctx, "(&(%s=%s)(%s=%s)(%s=%lu))",
 					  LDAP_ATTRIBUTE_OBJECTCLASS,
 					  LDAP_OBJ_POSIXGROUP,
+					  LDAP_ATTRIBUTE_OBJECTCLASS,
+					  LDAP_OBJ_GROUPMAP,
 					  LDAP_ATTRIBUTE_GIDNUMBER,
 					  (unsigned long) gid);
 	if (filter == NULL) {
