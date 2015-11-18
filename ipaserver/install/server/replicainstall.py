@@ -928,7 +928,23 @@ def promote_check(installer):
 
     installutils.verify_fqdn(config.host_name, options.no_host_dns)
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
-    installutils.check_creds(options, config.realm_name)
+
+    ccache = os.environ['KRB5CCNAME']
+    ipautil.kinit_keytab('host/{env.host}@{env.realm}'.format(env=api.env),
+                         paths.KRB5_KEYTAB,
+                         ccache)
+
+    if not options.skip_conncheck:
+        if installer._ccache is None:
+            del os.environ['KRB5CCNAME']
+        else:
+            os.environ['KRB5CCNAME'] = installer._ccache
+
+        try:
+            installutils.check_creds(options, config.realm_name)
+            installer._ccache = os.environ.get('KRB5CCNAME')
+        finally:
+            os.environ['KRB5CCNAME'] = ccache
 
     cafile = paths.IPA_CA_CRT
     if not ipautil.file_exists(cafile):
@@ -944,9 +960,18 @@ def promote_check(installer):
     replman = None
     try:
         # Try out authentication
-        conn.connect(ccache=os.environ.get('KRB5CCNAME'))
+        conn.connect(ccache=ccache)
         replman = ReplicationManager(config.realm_name,
                                      config.master_host_name, None)
+
+        # Check authorization
+        result = remote_api.Command['hostgroup_find'](
+            cn=u'ipaservers',
+            host=[unicode(api.env.host)]
+        )['result']
+
+        if not result:
+            raise errors.ACIError(info="Not authorized")
 
         # Check that we don't already have a replication agreement
         try:
@@ -1072,7 +1097,7 @@ def promote_check(installer):
                 print(str(e))
                 sys.exit(1)
     except errors.ACIError:
-        sys.exit("\nInsufficiently privileges to promote the server.")
+        sys.exit("\nInsufficient privileges to promote the server.")
     except errors.LDAPError:
         sys.exit("\nUnable to connect to LDAP server %s" %
                  config.master_host_name)
@@ -1091,10 +1116,18 @@ def promote_check(installer):
 
     # check connection
     if not options.skip_conncheck:
-        replica_conn_check(
-            config.master_host_name, config.host_name, config.realm_name,
-            options.setup_ca, 389,
-            options.admin_password, principal=options.principal)
+        if installer._ccache is None:
+            del os.environ['KRB5CCNAME']
+        else:
+            os.environ['KRB5CCNAME'] = installer._ccache
+
+        try:
+            replica_conn_check(
+                config.master_host_name, config.host_name, config.realm_name,
+                options.setup_ca, 389,
+                options.admin_password, principal=options.principal)
+        finally:
+            os.environ['KRB5CCNAME'] = ccache
 
     if not ipautil.file_exists(cafile):
         raise RuntimeError("CA cert file is not available.")
@@ -1338,6 +1371,8 @@ class Replica(BaseServer):
     def __init__(self, **kwargs):
         super(Replica, self).__init__(**kwargs)
 
+        self._ccache = os.environ.get('KRB5CCNAME')
+
         self._top_dir = None
         self._config = None
         self._update_hosts_file = False
@@ -1409,7 +1444,6 @@ class Replica(BaseServer):
             yield
             promote(self)
         else:
-            with ipautil.private_ccache():
-                install_check(self)
-                yield
-                install(self)
+            install_check(self)
+            yield
+            install(self)

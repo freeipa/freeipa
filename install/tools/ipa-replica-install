@@ -30,7 +30,6 @@ ReplicaInstall = cli.install_tool(
     usage='%prog [options] REPLICA_FILE',
     log_file_name=paths.IPAREPLICA_INSTALL_LOG,
     debug_option=True,
-    use_private_ccache=False,
 )
 
 
