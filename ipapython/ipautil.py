@@ -1345,8 +1345,10 @@ def posixify(string):
 def private_ccache(path=None):
 
     if path is None:
-        (desc, path) = tempfile.mkstemp(prefix='krbcc')
-        os.close(desc)
+        dir_path = tempfile.mkdtemp(prefix='krbcc')
+        path = os.path.join(dir_path, 'ccache')
+    else:
+        dir_path = None
 
     original_value = os.environ.get('KRB5CCNAME', None)
 
@@ -1362,6 +1364,11 @@ def private_ccache(path=None):
 
         if os.path.exists(path):
             os.remove(path)
+        if dir_path is not None:
+            try:
+                os.rmdir(dir_path)
+            except OSError:
+                pass
 
 
 if six.PY2:
