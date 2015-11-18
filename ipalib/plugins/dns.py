@@ -4182,7 +4182,9 @@ class dnsrecord_find(LDAPSearch):
 
 @register()
 class dns_resolve(Command):
-    __doc__ = _('Resolve a host name in DNS.')
+    __doc__ = _('Resolve a host name in DNS. (Deprecated)')
+
+    NO_CLI = True
 
     has_output = output.standard_value
     msg_summary = _('Found \'%(value)s\'')
@@ -4204,8 +4206,17 @@ class dns_resolve(Command):
             raise errors.NotFound(
                 reason=_('Host \'%(host)s\' not found') % {'host': query}
             )
-
-        return dict(result=True, value=query)
+        result = dict(result=True, value=query)
+        messages.add_message(
+            options['version'], result,
+            messages.CommandDeprecatedWarning(
+                command='dns-resolve',
+                additional_info='The command may return an unexpected result, '
+                                'the resolution of the DNS domain is done on '
+                                'a randomly chosen IPA server.'
+            )
+        )
+        return result
 
 
 @register()

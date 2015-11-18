@@ -311,6 +311,16 @@ class DNSSuspiciousRelativeName(PublicMessage):
     )
 
 
+class CommandDeprecatedWarning(PublicMessage):
+    """
+    **13015** Used when user uses a deprecated option
+    """
+
+    errno = 13015
+    type = "warning"
+    format = _(u"'%(command)s' is deprecated. %(additional_info)s")
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
