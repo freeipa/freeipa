@@ -2103,11 +2103,12 @@ static bool get_uint32_t_from_ldap_msg(struct ldapsam_privates *ldap_state,
 	}
 
 	l = strtoul(dummy, &endptr, 10);
-	TALLOC_FREE(dummy);
 
 	if (l < 0 || l > UINT32_MAX || *endptr != '\0') {
+		TALLOC_FREE(dummy);
 		return false;
 	}
+	TALLOC_FREE(dummy);
 
 	*val = l;
 
