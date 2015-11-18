@@ -668,6 +668,16 @@ def del_master_managed(realm, hostname, options):
         print("Can't remove itself: %s" % (options.host))
         sys.exit(1)
 
+    try:
+        api.Command.server_show(hostname_u)
+    except errors.NotFound:
+        if not options.cleanup:
+            print("{hostname} is not listed among IPA masters.".format(
+                hostname=hostname))
+            print("Please specify an actual server or add the --cleanup "
+                  "option to force clean up.")
+            sys.exit(1)
+
     # 1. Connect to the local server
     try:
         thisrepl = replication.ReplicationManager(realm, options.host,
@@ -702,13 +712,7 @@ def del_master_managed(realm, hostname, options):
     try:
         api.Command.server_del(hostname_u)
     except errors.NotFound:
-        if not options.cleanup:
-            print("{hostname} does not exist.".format(hostname=hostname))
-            print("Please specify an actual server or add the --cleanup "
-                  "option to force clean up.")
-            sys.exit(1)
-        else:
-            print("Server entry already deleted: %s" % (hostname))
+        print("Server entry already deleted: %s" % (hostname))
 
     # 6. Cleanup
     try:
