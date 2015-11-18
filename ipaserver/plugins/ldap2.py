@@ -72,6 +72,39 @@ class ldap2(CrudBackend, LDAPClient):
         LDAPClient.__init__(self, ldap_uri,
                             force_schema_updates=force_schema_updates)
 
+        self.__time_limit = None
+        self.__size_limit = None
+
+    @property
+    def time_limit(self):
+        if self.__time_limit is None:
+            return float(self.get_ipa_config().single_value.get(
+                'ipasearchtimelimit', 2))
+        return self.__time_limit
+
+    @time_limit.setter
+    def time_limit(self, val):
+        self.__time_limit = float(val)
+
+    @time_limit.deleter
+    def time_limit(self):
+        self.__time_limit = None
+
+    @property
+    def size_limit(self):
+        if self.__size_limit is None:
+            return int(self.get_ipa_config().single_value.get(
+                'ipasearchrecordslimit', 0))
+        return self.__size_limit
+
+    @size_limit.setter
+    def size_limit(self, val):
+        self.__size_limit = int(val)
+
+    @size_limit.deleter
+    def size_limit(self):
+        self.__size_limit = None
+
     def _connect(self):
         # Connectible.conn is a proxy to thread-local storage;
         # do not set it
@@ -87,7 +120,7 @@ class ldap2(CrudBackend, LDAPClient):
     def create_connection(self, ccache=None, bind_dn=None, bind_pw='',
             tls_cacertfile=None, tls_certfile=None, tls_keyfile=None,
             debug_level=0, autobind=AUTOBIND_AUTO, serverctrls=None,
-            clientctrls=None):
+            clientctrls=None, time_limit=None, size_limit=None):
         """
         Connect to LDAP server.
 
@@ -113,6 +146,11 @@ class ldap2(CrudBackend, LDAPClient):
             _ldap.set_option(_ldap.OPT_X_TLS_CERTFILE, tls_certfile)
         if tls_keyfile is not None:
             _ldap.set_option(_ldap.OPT_X_TLS_KEYFILE, tls_keyfile)
+
+        if time_limit is not None:
+            self.time_limit = time_limit
+        if size_limit is not None:
+            self.size_limit = size_limit
 
         if debug_level:
             _ldap.set_option(_ldap.OPT_DEBUG_LEVEL, debug_level)
@@ -175,31 +213,9 @@ class ldap2(CrudBackend, LDAPClient):
             # ignore when trying to unbind multiple times
             pass
 
-    def find_entries(self, filter=None, attrs_list=None, base_dn=None,
-                     scope=_ldap.SCOPE_SUBTREE, time_limit=None,
-                     size_limit=None, search_refs=False, paged_search=False):
+        del self.time_limit
+        del self.size_limit
 
-        def _get_limits():
-            """Get configured global limits, caching them for more calls"""
-            if not _lims:
-                config = self.get_ipa_config()
-                _lims['time'] = int(config.get('ipasearchtimelimit', [None])[0])
-                _lims['size'] = int(config.get('ipasearchrecordslimit', [None])[0])
-            return _lims
-        _lims = {}
-
-        if time_limit is None:
-            time_limit = _get_limits()['time']
-        if size_limit is None:
-            size_limit = _get_limits()['size']
-
-        res, truncated = super(ldap2, self).find_entries(
-            filter=filter, attrs_list=attrs_list, base_dn=base_dn, scope=scope,
-            time_limit=time_limit, size_limit=size_limit,
-            search_refs=search_refs, paged_search=paged_search)
-        return (res, truncated)
-
-    config_defaults = {'ipasearchtimelimit': [2], 'ipasearchrecordslimit': [0]}
     def get_ipa_config(self, attrs_list=None):
         """Returns the IPA configuration entry (dn, entry_attrs)."""
 
@@ -223,9 +239,7 @@ class ldap2(CrudBackend, LDAPClient):
             config_entry = entries[0]
         except errors.NotFound:
             config_entry = self.make_entry(dn)
-        for a in self.config_defaults:
-            if a not in config_entry:
-                config_entry[a] = self.config_defaults[a]
+
         context.config_entry = config_entry
         return config_entry
 

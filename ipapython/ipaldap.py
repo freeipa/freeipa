@@ -689,6 +689,9 @@ class LDAPClient(object):
         'nsslapd-minssf-exclude-rootdse': True,
     })
 
+    time_limit = -1.0   # unlimited
+    size_limit = 0      # unlimited
+
     def __init__(self, ldap_uri, start_tls=False, force_schema_updates=False,
                  no_schema=False, decode_attrs=True):
         """Create LDAPClient object.
@@ -1294,10 +1297,14 @@ class LDAPClient(object):
         res = []
         truncated = False
 
-        if time_limit is None or time_limit == 0:
+        if time_limit is None:
+            time_limit = self.time_limit
+        if time_limit == 0:
             time_limit = -1.0
+
         if size_limit is None:
-            size_limit = 0
+            size_limit = self.size_limit
+
         if not isinstance(size_limit, int):
             size_limit = int(size_limit)
         if not isinstance(time_limit, float):

@@ -1292,8 +1292,7 @@ class permission_find(baseldap.LDAPSearch):
             if 'sizelimit' in options:
                 max_entries = options['sizelimit']
             else:
-                config = ldap.get_ipa_config()
-                max_entries = int(config.single_value['ipasearchrecordslimit'])
+                max_entries = self.api.Backend.ldap2.size_limit
 
             filters = ['(objectclass=ipaPermission)',
                        '(!(ipaPermissionType=V2))']

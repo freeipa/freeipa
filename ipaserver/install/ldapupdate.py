@@ -46,6 +46,7 @@ from ipapython.ipa_log_manager import *
 from ipapython.ipautil import wait_for_open_socket
 
 UPDATES_DIR=paths.UPDATES_DIR
+UPDATE_SEARCH_TIME_LIMIT = 30  # seconds
 
 
 def connect(ldapi=False, realm=None, fqdn=None, dm_password=None, pw_name=None):
@@ -867,7 +868,9 @@ class LDAPUpdate:
             self.api.Backend.ldap2.connect(
                 bind_dn=DN(('cn', 'Directory Manager')),
                 bind_pw=self.dm_password,
-                autobind=self.ldapi)
+                autobind=self.ldapi,
+                time_limit=UPDATE_SEARCH_TIME_LIMIT,
+                size_limit=0)
             self.conn = self.api.Backend.ldap2
         else:
             raise RuntimeError("Offline updates are not supported.")
