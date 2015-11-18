@@ -969,9 +969,35 @@ def promote_check(installer):
             cn=u'ipaservers',
             host=[unicode(api.env.host)]
         )['result']
+        add_to_ipaservers = not result
 
-        if not result:
-            raise errors.ACIError(info="Not authorized")
+        if add_to_ipaservers:
+            if installer._ccache is None:
+                del os.environ['KRB5CCNAME']
+            else:
+                os.environ['KRB5CCNAME'] = installer._ccache
+
+            try:
+                installutils.check_creds(options, config.realm_name)
+                installer._ccache = os.environ.get('KRB5CCNAME')
+            finally:
+                os.environ['KRB5CCNAME'] = ccache
+
+            conn.disconnect()
+            conn.connect(ccache=installer._ccache)
+
+            try:
+                result = remote_api.Command['hostgroup_show'](
+                    u'ipaservers',
+                    all=True,
+                    rights=True
+                )['result']
+
+                if 'w' not in result['attributelevelrights']['member']:
+                    raise errors.ACIError(info="Not authorized")
+            finally:
+                conn.disconnect()
+                conn.connect(ccache=ccache)
 
         # Check that we don't already have a replication agreement
         try:
@@ -1136,6 +1162,8 @@ def promote_check(installer):
     installer._fstore = fstore
     installer._sstore = sstore
     installer._config = config
+    installer._remote_api = remote_api
+    installer._add_to_ipaservers = add_to_ipaservers
     installer._dirsrv_pkcs12_file = dirsrv_pkcs12_file
     installer._dirsrv_pkcs12_info = dirsrv_pkcs12_info
     installer._http_pkcs12_file = http_pkcs12_file
@@ -1156,6 +1184,22 @@ def promote(installer):
     http_pkcs12_info = installer._http_pkcs12_info
     pkinit_pkcs12_file = installer._pkinit_pkcs12_file
     pkinit_pkcs12_info = installer._pkinit_pkcs12_info
+
+    if installer._add_to_ipaservers:
+        ccache = os.environ['KRB5CCNAME']
+        remote_api = installer._remote_api
+        conn = remote_api.Backend.ldap2
+        try:
+            conn.connect(ccache=installer._ccache)
+
+            remote_api.Command['hostgroup_add_member'](
+                u'ipaservers',
+                host=[unicode(api.env.host)],
+            )
+        finally:
+            if conn.isconnected():
+                conn.disconnect()
+            os.environ['KRB5CCNAME'] = ccache
 
     # Save client file and merge in server directives
     target_fname = paths.IPA_DEFAULT_CONF
