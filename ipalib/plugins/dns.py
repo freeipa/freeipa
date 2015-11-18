@@ -1563,9 +1563,7 @@ def check_ns_rec_resolvable(zone, name):
     elif not name.is_absolute():
         # this is a DNS name relative to the zone
         name = name.derelativize(zone.make_absolute())
-    try:
-        return api.Command['dns_resolve'](unicode(name))
-    except errors.NotFound:
+    if not is_host_resolvable(name):
         raise errors.NotFound(
             reason=_('Nameserver \'%(host)s\' does not have a corresponding '
                      'A/AAAA record') % {'host': name}
