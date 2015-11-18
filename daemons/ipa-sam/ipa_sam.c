@@ -3027,7 +3027,7 @@ static int ipasam_get_sid_by_gid(struct ldapsam_privates *ldap_state,
 	enum idmap_error_code err;
 	struct unixid id;
 
-	tmp_ctx = talloc_new("ipasam_get_sid_by_gid");
+	tmp_ctx = talloc_init("ipasam_get_sid_by_gid");
 	if (tmp_ctx == NULL) {
 		return ENOMEM;
 	}
