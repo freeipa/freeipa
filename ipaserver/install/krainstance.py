@@ -47,6 +47,8 @@ from ipapython.ipa_log_manager import log_mgr
 IPA_KRA_RECORD = "ipa-kra"
 
 
+LDAPMOD_ERR_ALREADY_EXISTS = 68
+
 class KRAInstance(DogtagInstance):
     """
     We assume that the CA has already been installed, and we use the
@@ -308,8 +310,18 @@ class KRAInstance(DogtagInstance):
         conn.disconnect()
 
     def __add_vault_container(self):
-        self._ldap_mod('vault.ldif', {'SUFFIX': self.suffix})
-        self.ldap_disconnect()
+        try:
+            self._ldap_mod('vault.ldif', {'SUFFIX': self.suffix},
+                           raise_on_err=True)
+        except ipautil.CalledProcessError as e:
+            if e.returncode == LDAPMOD_ERR_ALREADY_EXISTS:
+                self.log.debug("Vault container already exists")
+            else:
+                self.log.error("Failed to add vault container: {0}".format(e))
+        finally:
+            # we need to disconnect from LDAP, because _ldap_mod() makes the
+            # connection without actually using it
+            self.ldap_disconnect()
 
     def __apply_updates(self):
         sub_dict = {
