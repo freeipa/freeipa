@@ -29,6 +29,7 @@ import ldap
 
 from ipalib import api, errors
 from ipalib.constants import CACERT
+from ipalib.util import create_topology_graph, get_topology_connection_errors
 from ipapython.ipa_log_manager import *
 from ipapython import ipautil, ipaldap
 from ipapython.dn import DN
@@ -1848,3 +1849,92 @@ class CAReplicationManager(ReplicationManager):
         ret = self.start_replication(r_conn, master=False)
         if ret != 0:
             raise RuntimeError("Failed to start replication")
+
+
+def map_masters_to_suffixes(masters, suffixes):
+    masters_to_suffix = {}
+
+    for master in masters:
+        managed_suffixes = master['iparepltopomanagedsuffix_topologysuffix']
+        for suffix_name in managed_suffixes:
+            try:
+                masters_to_suffix[suffix_name].append(master)
+            except KeyError:
+                masters_to_suffix[suffix_name] = [master]
+
+    return masters_to_suffix
+
+
+def check_hostname_in_masters(hostname, masters):
+    master_cns = {m['cn'][0] for m in masters}
+    return hostname in master_cns
+
+
+def check_last_link_managed(api, hostname, masters):
+    """
+    Check if 'hostname' is safe to delete.
+
+    :returns: a dictionary of topology errors across all suffixes in the form
+              {<suffix name>: (<original errors>,
+              <errors after removing the node>)}
+    """
+    suffixes = api.Command.topologysuffix_find(sizelimit=0)['result']
+    suffix_to_masters = map_masters_to_suffixes(masters, suffixes)
+    topo_errors_by_suffix = {}
+
+    for suffix in suffixes:
+        suffix_name = suffix['cn'][0]
+        suffix_members = suffix_to_masters[suffix_name]
+        print("Checking connectivity in topology suffix '{0}'".format(
+            suffix_name))
+        if not check_hostname_in_masters(hostname, suffix_members):
+            print(
+                "'{0}' is not a part of topology suffix '{1}'".format(
+                    hostname, suffix_name
+                )
+            )
+            print("Not checking connectivity")
+            continue
+
+        segments = api.Command.topologysegment_find(
+            suffix_name, sizelimit=0).get('result')
+        graph = create_topology_graph(suffix_to_masters[suffix_name], segments)
+
+        # check topology before removal
+        orig_errors = get_topology_connection_errors(graph)
+        if orig_errors:
+            print("Current topology in suffix '{0}' is disconnected:".format(
+                suffix_name))
+            print("Changes are not replicated to all servers and data are "
+                  "probably inconsistent.")
+            print("You need to add segments to reconnect the topology.")
+            print_connect_errors(orig_errors)
+
+        # after removal
+        try:
+            graph.remove_vertex(hostname)
+        except ValueError:
+            pass  # ignore already deleted master, continue to clean
+
+        new_errors = get_topology_connection_errors(graph)
+        if new_errors:
+            print("WARNING: Removal of '{0}' will lead to disconnected "
+                  "topology in suffix '{1}'".format(hostname, suffix_name))
+            print("Changes will not be replicated to all servers and data will"
+                  " become inconsistent.")
+            print("You need to add segments to prevent disconnection of the "
+                  "topology.")
+            print("Errors in topology after removal:")
+            print_connect_errors(new_errors)
+
+        topo_errors_by_suffix[suffix_name] = (orig_errors, new_errors)
+
+    return topo_errors_by_suffix
+
+
+def print_connect_errors(errors):
+    for error in errors:
+        print("Topology does not allow server %s to replicate with servers:"
+              % error[0])
+        for srv in error[2]:
+            print("    %s" % srv)
