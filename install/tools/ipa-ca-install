@@ -110,6 +110,9 @@ def install_replica(safe_options, options, filename):
     domain_level = dsinstance.get_domain_level(api)
     if domain_level > DOMAIN_LEVEL_0:
         options.promote = True
+        if filename is not None:
+            sys.exit("Too many parameters provided. "
+                     "No replica file is required")
     else:
         options.promote = False
         if filename is None:
