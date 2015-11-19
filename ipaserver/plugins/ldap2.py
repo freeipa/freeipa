@@ -208,7 +208,7 @@ class ldap2(CrudBackend, LDAPClient):
 
         try:
             config_entry = getattr(context, 'config_entry')
-            if config_entry.conn is self.conn:
+            if config_entry.conn.conn is self.conn:
                 return config_entry
         except AttributeError:
             # Not in our context yet
