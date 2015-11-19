@@ -706,3 +706,9 @@ def change_principal(user, password, client=None, path=None):
             client.Backend.rpcclient.disconnect()
 
     client.Backend.rpcclient.connect()
+
+def get_group_dn(cn):
+    return DN(('cn', cn), api.env.container_group, api.env.basedn)
+
+def get_user_dn(uid):
+    return DN(('uid', uid), api.env.container_user, api.env.basedn)

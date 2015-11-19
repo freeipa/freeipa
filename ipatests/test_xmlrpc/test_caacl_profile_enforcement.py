@@ -11,8 +11,8 @@ from ipalib import api, errors
 from ipatests.util import (
     prepare_config, unlock_principal_password, change_principal)
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
-from ipatests.test_xmlrpc.test_certprofile_plugin import CertprofileTracker
-from ipatests.test_xmlrpc.test_caacl_plugin import CAACLTracker
+from ipatests.test_xmlrpc.tracker.certprofile_plugin import CertprofileTracker
+from ipatests.test_xmlrpc.tracker.caacl_plugin import CAACLTracker
 
 from ipapython.ipautil import run
 

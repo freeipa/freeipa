@@ -76,7 +76,8 @@ def setup_package():
                         "ipatests.test_ipaserver.test_install",
                         "ipatests.test_pkcs10",
                         "ipatests.test_webui",
-                        "ipatests.test_xmlrpc"],
+                        "ipatests.test_xmlrpc",
+                        "ipatests.test_xmlrpc.tracker"],
             scripts=['ipa-run-tests', 'ipa-test-config', 'ipa-test-task'],
             package_data = {
                 'ipatests': ['pytest.ini'],
