@@ -26,7 +26,7 @@ from ipapython.ipautil import (
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
-from ipalib import api, constants, errors, x509
+from ipalib import api, create_api, constants, errors, x509
 from ipalib.constants import CACERT
 from ipalib.util import validate_domain_name
 import ipaclient.ntpconf
@@ -288,6 +288,107 @@ def common_cleanup(func):
                     pass
 
     return decorated
+
+
+def check_master_deleted(api, masters, interactive):
+    try:
+        host_princ = api.Command.host_show(
+            api.env.host)['result']['krbprincipalname'][0]
+    except Exception as e:
+        root_logger.warning(
+            "Failed to get host principal name: {0}".format(e)
+        )
+        return False
+
+    ccache_path = os.path.join('/', 'tmp', 'krb5cc_host')
+    with ipautil.private_ccache(ccache_path):
+        try:
+            ipautil.kinit_keytab(host_princ, paths.KRB5_KEYTAB, ccache_path)
+        except Exception as e:
+            root_logger.error(
+                "Kerberos authentication as '{0}' failed: {1}".format(
+                    host_princ, e
+                )
+            )
+            return False
+
+        last_server = True
+        for master in masters:
+            master_cn = master['cn'][0]
+            if api.env.host == master_cn:
+                continue
+
+            last_server = False
+            master_ldap_uri = u'ldap://{0}'.format(master_cn)
+
+            # initialize remote api
+            remote_api = create_api(mode=None)
+            remote_api.bootstrap(ldap_uri=master_ldap_uri, in_server=True)
+            remote_api.finalize()
+
+            root_logger.debug("Connecting to '{0}'...".format(master_ldap_uri))
+            try:
+                remote_api.Backend.ldap2.connect(ccache=ccache_path)
+                remote_api.Command.server_show(api.env.host)
+                root_logger.debug(
+                    "Server entry '{0}' present on '{1}'".format(
+                        api.env.host, master_cn
+                    )
+                )
+                return False
+            except (errors.NotFound, errors.ACIError):
+                # this may occur because the node was already deleted from the
+                # topology and the host principal doesn't exist
+                root_logger.debug(
+                    "'{0}' was removed from topology".format(
+                        api.env.host
+                    )
+                )
+                return True
+            except errors.NetworkError:
+                # try the next master
+                root_logger.debug(
+                    "Connection to remote master '{0}' failed".format(
+                        master_cn
+                    )
+                )
+            except Exception as e:
+                root_logger.debug(
+                    "Unexpected error when connecting to remote master '{0}': "
+                    "{1}".format(
+                        master_cn, e
+                    )
+                )
+            finally:
+                root_logger.debug("Disconnecting from {0}".format(master_cn))
+
+                if remote_api.Backend.ldap2.isconnected():
+                    remote_api.Backend.ldap2.disconnect()
+
+    # prompt the user if we are not able to determine whether the IPA master
+    # was removed from topology
+    if not last_server:
+        print("WARNING: Failed to determine whether the IPA master was "
+              "already removed from topology.")
+        if (interactive and not user_input("Proceed with uninstallation?", False)):
+            print("Aborted")
+            sys.exit(1)
+
+        return False
+
+    return True
+
+
+def check_topology_connectivity(api, masters):
+    topo_errors = replication.check_last_link_managed(
+                    api, api.env.host, masters)
+    errors_after_uninstall = [topo_errors[i][1] for i in topo_errors]
+
+    if any(errors_after_uninstall):
+        print("Uninstallation leads to disconnected topology")
+        print("Use '--ignore-topology-disconnect' to skip this check")
+        print("Aborting uninstallation")
+        sys.exit(1)
 
 
 @common_cleanup
@@ -999,34 +1100,61 @@ def uninstall_check(installer):
     else:
         api.Backend.ldap2.connect(autobind=True)
         dns.uninstall_check(options)
+        domain_level = dsinstance.get_domain_level(api)
 
-        rm = replication.ReplicationManager(
-            realm=api.env.realm,
-            hostname=api.env.host,
-            dirman_passwd=None,
-            conn=conn
-        )
-        agreements = rm.find_ipa_replication_agreements()
-
-        if agreements:
-            other_masters = [a.get('cn')[0][4:] for a in agreements]
-            msg = (
-                "\nReplication agreements with the following IPA masters "
-                "found: %s. Removing any replication agreements before "
-                "uninstalling the server is strongly recommended. You can "
-                "remove replication agreements by running the following "
-                "command on any other IPA master:\n" % ", ".join(
-                    other_masters)
-            )
-            cmd = "$ ipa-replica-manage del %s\n" % api.env.host
-            print(textwrap.fill(msg, width=80, replace_whitespace=False))
-            print(cmd)
-            if (installer.interactive and
-                not user_input("Are you sure you want to continue with the "
-                               "uninstall procedure?", False)):
-                print("")
-                print("Aborting uninstall operation.")
+        if domain_level == constants.DOMAIN_LEVEL_0:
+            if options.ignore_topology_disconnect:
+                print("'--ignore-topology-disconnect' option can not be used "
+                      "in domain level {0}".format(constants.DOMAIN_LEVEL_0))
                 sys.exit(1)
+
+            rm = replication.ReplicationManager(
+                realm=api.env.realm,
+                hostname=api.env.host,
+                dirman_passwd=None,
+                conn=conn
+            )
+            agreements = rm.find_ipa_replication_agreements()
+
+            if agreements:
+                other_masters = [a.get('cn')[0][4:] for a in agreements]
+                msg = (
+                    "\nReplication agreements with the following IPA masters "
+                    "found: %s. Removing any replication agreements before "
+                    "uninstalling the server is strongly recommended. You can "
+                    "remove replication agreements by running the following "
+                    "command on any other IPA master:\n" % ", ".join(
+                        other_masters)
+                )
+                cmd = "$ ipa-replica-manage del %s\n" % api.env.host
+                print(textwrap.fill(msg, width=80, replace_whitespace=False))
+                print(cmd)
+                if (installer.interactive and
+                        not user_input("Are you sure you want to continue with"
+                                       " the uninstall procedure?", False)):
+                    print("")
+                    print("Aborting uninstall operation.")
+                    sys.exit(1)
+        else:
+            masters = api.Command.server_find(sizelimit=0)['result']
+
+            if not check_master_deleted(api, masters,
+                                        not options.unattended):
+                print("WARNING: This IPA master is still a part of the "
+                      "replication topology.")
+                print("To properly remove the master entry and clean "
+                      "up related segments, run:")
+                print("  $ ipa-replica-manage del {0}".format(api.env.host))
+                if (not options.unattended and not user_input(
+                        "Do you want to continue uninstallation?", False)):
+                    print("Aborted")
+                    sys.exit(1)
+
+                if not options.ignore_topology_disconnect:
+                    check_topology_connectivity(api, masters)
+                else:
+                    print("Ignoring topology errors and forcing uninstall")
+
 
     installer._fstore = fstore
     installer._sstore = sstore
@@ -1227,6 +1355,12 @@ class Server(BaseServer):
         cli_name='no_hbac_allow',
     )
 
+    ignore_topology_disconnect = Knob(
+        bool, False,
+        description="do not check whether server uninstall disconnects the "
+                    "topology (domain level 1+)",
+    )
+
     # ca
     skip_schema_check = None
 
@@ -1271,6 +1405,11 @@ class Server(BaseServer):
                     raise RuntimeError(
                         "You must specify at least one of --forwarder, "
                         "--auto-forwarders, or --no-forwarders options")
+
+        if self.ignore_topology_disconnect and not self.uninstalling:
+            raise RuntimeError(
+                "'--ignore-topology-disconnect' can be used only during "
+                "uninstallation")
 
         if self.idmax < self.idstart:
             raise RuntimeError(
