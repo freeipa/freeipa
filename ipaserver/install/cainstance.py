@@ -1970,8 +1970,7 @@ def _create_dogtag_profile(profile_id, profile_data):
                     root_logger.debug(
                         "Failed to disable profile '%s' "
                         "(it is probably already disabled)")
-                profile_api.delete_profile(profile_id)
-                profile_api.create_profile(profile_data)
+                profile_api.update_profile(profile_id, profile_data)
 
         # enable the profile
         try:
