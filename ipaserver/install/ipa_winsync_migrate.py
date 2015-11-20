@@ -27,7 +27,7 @@ from ipapython.dn import DN
 from ipapython.ipautil import realm_to_suffix, posixify
 from ipapython.ipa_log_manager import log_mgr
 from ipaserver.plugins.ldap2 import ldap2
-from ipaserver.install import replication
+from ipaserver.install import replication, installutils
 
 DEFAULT_TRUST_VIEW_NAME = u'Default Trust View'
 
@@ -334,6 +334,12 @@ class WinsyncMigrate(admintool.AdminTool):
         Sets up API and LDAP connection for the tool, then runs the rest of
         the plumbing.
         """
+
+        # Check if the IPA server is configured before attempting to migrate
+        try:
+            installutils.check_server_configuration()
+        except RuntimeError as e:
+            sys.exit(e)
 
         # Finalize API
         api.bootstrap(in_server=True, context='server')
