@@ -39,9 +39,6 @@ def auth_certificate_callback(sock, check_sig, is_server, certdb):
 
     cert = sock.get_peer_certificate()
 
-    root_logger.debug("auth_certificate_callback: check_sig=%s is_server=%s\n%s",
-                              check_sig, is_server, str(cert))
-
     pin_args = sock.get_pkcs11_pin_arg()
     if pin_args is None:
         pin_args = ()
