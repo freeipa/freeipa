@@ -1001,34 +1001,39 @@ def promote(installer):
         ntp = ntpinstance.NTPInstance()
         ntp.create_instance()
 
-    # Configure dirsrv
-    ds = install_replica_ds(config, options, promote=True)
+    try:
+        # Configure dirsrv
+        ds = install_replica_ds(config, options, promote=True)
 
-    # Always try to install DNS records
-    install_dns_records(config, options, api)
+        # Always try to install DNS records
+        install_dns_records(config, options, api)
 
-    # Must install http certs before changing ipa configuration file
-    # or certmonger will fail to contact the peer master
-    install_http_certs(config, fstore)
+        # Must install http certs before changing ipa configuration file
+        # or certmonger will fail to contact the peer master
+        install_http_certs(config, fstore)
 
-    ldapi_uri = installutils.realm_to_ldapi_uri(config.realm_name)
+    finally:
+        # Create the management framework config file
+        # do this regardless of the state of DS installation. Even if it fails,
+        # we need to have master-like configuration in order to perform a
+        # successful uninstallation
+        ldapi_uri = installutils.realm_to_ldapi_uri(config.realm_name)
 
-    # Create the management framework config file
-    gopts = [
-        ipaconf.setOption('host', config.host_name),
-        ipaconf.rmOption('server'),
-        ipaconf.setOption('xmlrpc_uri',
-                          'https://%s/ipa/xml' %
-                          ipautil.format_netloc(config.host_name)),
-        ipaconf.setOption('ldap_uri', ldapi_uri),
-        ipaconf.setOption('mode', 'production'),
-        ipaconf.setOption('enable_ra', 'True'),
-        ipaconf.setOption('ra_plugin', 'dogtag'),
-        ipaconf.setOption('dogtag_version', '10')]
-    opts = [ipaconf.setSection('global', gopts)]
+        gopts = [
+            ipaconf.setOption('host', config.host_name),
+            ipaconf.rmOption('server'),
+            ipaconf.setOption('xmlrpc_uri',
+                              'https://%s/ipa/xml' %
+                              ipautil.format_netloc(config.host_name)),
+            ipaconf.setOption('ldap_uri', ldapi_uri),
+            ipaconf.setOption('mode', 'production'),
+            ipaconf.setOption('enable_ra', 'True'),
+            ipaconf.setOption('ra_plugin', 'dogtag'),
+            ipaconf.setOption('dogtag_version', '10')]
+        opts = [ipaconf.setSection('global', gopts)]
 
-    ipaconf.changeConf(target_fname, opts)
-    os.chmod(target_fname, 0o644)   # must be readable for httpd
+        ipaconf.changeConf(target_fname, opts)
+        os.chmod(target_fname, 0o644)   # must be readable for httpd
 
     custodia = custodiainstance.CustodiaInstance(config.host_name,
                                                  config.realm_name)
