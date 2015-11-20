@@ -383,6 +383,11 @@ user1_uid = id_shift + 900000
 group1 = u'group1'
 group1_gid = id_shift + 900100
 
+IPA_LOCAL_RANGE_MOD_ERR = (
+    u"This command can not be used to change ID allocation for local IPA "
+    "domain. Run `ipa help idrange` for more information"
+)
+
 
 @pytest.mark.tier1
 class test_range(Declarative):
@@ -539,46 +544,28 @@ class test_range(Declarative):
             command=(
                 'idrange_mod', [testrange1], dict(ipabaseid=user1_uid + 1)
             ),
-            expected=errors.ValidationError(name='ipabaseid,ipaidrangesize',
-                error=u'range modification leaving objects with ID out of the'
-                      u' defined range is not allowed'),
+            expected=errors.ExecutionError(message=IPA_LOCAL_RANGE_MOD_ERR),
         ),
 
 
         dict(
             desc='Try to modify ID range %r to get out bounds object #2' % (testrange1),
             command=('idrange_mod', [testrange1], dict(ipaidrangesize=100)),
-            expected=errors.ValidationError(name='ipabaseid,ipaidrangesize',
-                error=u'range modification leaving objects with ID out of the'
-                      u' defined range is not allowed'),
+            expected=errors.ExecutionError(message=IPA_LOCAL_RANGE_MOD_ERR),
         ),
 
 
         dict(
             desc='Try to modify ID range %r to get out bounds object #3' % (testrange1),
             command=('idrange_mod', [testrange1], dict(ipabaseid=100, ipaidrangesize=100)),
-            expected=errors.ValidationError(name='ipabaseid,ipaidrangesize',
-                error=u'range modification leaving objects with ID out of the'
-                      u' defined range is not allowed'),
+            expected=errors.ExecutionError(message=IPA_LOCAL_RANGE_MOD_ERR),
         ),
 
 
         dict(
             desc='Modify ID range %r' % (testrange1),
             command=('idrange_mod', [testrange1], dict(ipaidrangesize=90000)),
-            expected=dict(
-                result=dict(
-                    cn=[testrange1],
-                    ipabaseid=[unicode(testrange1_base_id)],
-                    ipabaserid=[unicode(testrange1_base_rid)],
-                    ipasecondarybaserid=[unicode(testrange1_secondary_base_rid)],
-                    ipaidrangesize=[u'90000'],
-                    iparangetyperaw=[u'ipa-local'],
-                    iparangetype=[u'local domain range'],
-                ),
-                value=testrange1,
-                summary=u'Modified ID range "%s"' % (testrange1),
-            ),
+            expected=errors.ExecutionError(message=IPA_LOCAL_RANGE_MOD_ERR)
         ),
 
 
@@ -654,8 +641,7 @@ class test_range(Declarative):
             desc='Try to modify ID range %r so that its rid ranges are overlapping themselves' % (testrange2),
             command=('idrange_mod', [testrange2],
                       dict(ipabaserid=(testrange2_secondary_base_rid))),
-            expected=errors.ValidationError(
-                name='ID Range setup', error='Primary RID range and secondary RID range cannot overlap'),
+            expected=errors.ExecutionError(message=IPA_LOCAL_RANGE_MOD_ERR),
         ),
 
         dict(
