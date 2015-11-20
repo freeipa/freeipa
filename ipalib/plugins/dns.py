@@ -1747,7 +1747,7 @@ def _normalize_zone(zone):
     return zone
 
 
-def _get_auth_zone_ldap(name):
+def _get_auth_zone_ldap(api, name):
     """
     Find authoritative zone in LDAP for name. Only active zones are considered.
     :param name:
@@ -1793,7 +1793,7 @@ def _get_auth_zone_ldap(name):
     return max(matched_auth_zones, key=len), truncated
 
 
-def _get_longest_match_ns_delegation_ldap(zone, name):
+def _get_longest_match_ns_delegation_ldap(api, zone, name):
     """
     Searches for deepest delegation for name in LDAP zone.
 
@@ -1869,7 +1869,7 @@ def _get_longest_match_ns_delegation_ldap(zone, name):
     return max(matched_records, key=len), truncated
 
 
-def _find_subtree_forward_zones_ldap(name, child_zones_only=False):
+def _find_subtree_forward_zones_ldap(api, name, child_zones_only=False):
     """
     Search for forwardzone <name> and all child forwardzones
     Filter: (|(*.<name>.)(<name>.))
@@ -1923,7 +1923,7 @@ def _find_subtree_forward_zones_ldap(name, child_zones_only=False):
     return result, truncated
 
 
-def _get_zone_which_makes_fw_zone_ineffective(fwzonename):
+def _get_zone_which_makes_fw_zone_ineffective(api, fwzonename):
     """
     Check if forward zone is effective.
 
@@ -1948,12 +1948,12 @@ def _get_zone_which_makes_fw_zone_ineffective(fwzonename):
     """
     assert isinstance(fwzonename, DNSName)
 
-    auth_zone, truncated_zone = _get_auth_zone_ldap(fwzonename)
+    auth_zone, truncated_zone = _get_auth_zone_ldap(api, fwzonename)
     if not auth_zone:
         return None, truncated_zone
 
     delegation_record_name, truncated_ns =\
-        _get_longest_match_ns_delegation_ldap(auth_zone, fwzonename)
+        _get_longest_match_ns_delegation_ldap(api, auth_zone, fwzonename)
 
     truncated = truncated_ns or truncated_zone
 
@@ -1963,12 +1963,12 @@ def _get_zone_which_makes_fw_zone_ineffective(fwzonename):
     return auth_zone, truncated
 
 
-def _add_warning_fw_zone_is_not_effective(result, fwzone, version):
+def _add_warning_fw_zone_is_not_effective(api, result, fwzone, version):
     """
     Adds warning message to result, if required
     """
     authoritative_zone, truncated = \
-        _get_zone_which_makes_fw_zone_ineffective(fwzone)
+        _get_zone_which_makes_fw_zone_ineffective(api, fwzone)
     if authoritative_zone:
         # forward zone is not effective and forwarding will not work
         messages.add_message(
@@ -2084,7 +2084,7 @@ class DNSZoneBase(LDAPObject):
     def _remove_permission(self, zone):
         permission_name = self.permission_name(zone)
         try:
-            api.Command['permission_del'](permission_name, force=True)
+            self.api.Command['permission_del'](permission_name, force=True)
         except errors.NotFound, e:
             if zone == DNSName.root:  # special case root zone
                 raise
@@ -2094,7 +2094,8 @@ class DNSZoneBase(LDAPObject):
                 zone.relativize(DNSName.root)
             )
             try:
-                api.Command['permission_del'](permission_name_rel, force=True)
+                self.api.Command['permission_del'](permission_name_rel,
+                                                   force=True)
             except errors.NotFound:
                 raise e  # re-raise original exception
 
@@ -2284,7 +2285,8 @@ class DNSZoneBase_add_permission(LDAPQuery):
                 keys[-1].relativize(DNSName.root)
             )
             try:
-                api.Object['permission'].get_dn_if_exists(permission_name_rel)
+                self.api.Object['permission'].get_dn_if_exists(
+                    permission_name_rel)
             except errors.NotFound:
                 pass
             else:
@@ -2295,7 +2297,7 @@ class DNSZoneBase_add_permission(LDAPQuery):
                     }
                 )
 
-        permission = api.Command['permission_add_noaci'](permission_name,
+        permission = self.api.Command['permission_add_noaci'](permission_name,
                          ipapermissiontype=u'SYSTEM'
                      )['result']
 
@@ -2655,12 +2657,12 @@ class dnszone(DNSZoneBase):
         """
         zone = keys[-1]
         affected_fw_zones, truncated = _find_subtree_forward_zones_ldap(
-            zone, child_zones_only=True)
+            self.api, zone, child_zones_only=True)
         if not affected_fw_zones:
             return
 
         for fwzone in affected_fw_zones:
-            _add_warning_fw_zone_is_not_effective(result, fwzone,
+            _add_warning_fw_zone_is_not_effective(self.api, result, fwzone,
                                                   options['version'])
 
     def _warning_dnssec_master_is_not_installed(self, result, **options):
@@ -2707,7 +2709,8 @@ class dnszone_add(DNSZoneBase_add):
         dn = super(dnszone_add, self).pre_callback(
             ldap, dn, entry_attrs, attrs_list, *keys, **options)
 
-        nameservers = [normalize_zone(x) for x in api.Object.dnsrecord.get_dns_masters()]
+        nameservers = [normalize_zone(x) for x in
+                       self.api.Object.dnsrecord.get_dns_masters()]
         server = normalize_zone(api.env.host)
         zone = keys[-1]
 
@@ -2757,7 +2760,7 @@ class dnszone_add(DNSZoneBase_add):
                 not zone.is_reverse() and
                 zone != DNSName.root):
             try:
-                api.Command['realmdomains_mod'](add_domain=unicode(zone),
+                self.api.Command['realmdomains_mod'](add_domain=unicode(zone),
                                                 force=True)
             except (errors.EmptyModlist, errors.ValidationError):
                 pass
@@ -2791,8 +2794,8 @@ class dnszone_del(DNSZoneBase_del):
                 not zone.is_reverse() and zone != DNSName.root
         ):
             try:
-                api.Command['realmdomains_mod'](del_domain=unicode(zone),
-                                                force=True)
+                self.api.Command['realmdomains_mod'](
+                    del_domain=unicode(zone), force=True)
             except (errors.AttrValueNotFound, errors.ValidationError):
                 pass
 
@@ -3500,12 +3503,12 @@ class dnsrecord(LDAPObject):
             record_name_absolute = record_name_absolute.derelativize(zone)
 
         affected_fw_zones, truncated = _find_subtree_forward_zones_ldap(
-            record_name_absolute)
+            self.api, record_name_absolute)
         if not affected_fw_zones:
             return
 
         for fwzone in affected_fw_zones:
-            _add_warning_fw_zone_is_not_effective(result, fwzone,
+            _add_warning_fw_zone_is_not_effective(self.api, result, fwzone,
                                                   options['version'])
 
 
@@ -3855,7 +3858,7 @@ class dnsrecord_mod(LDAPUpdate):
 
         # get DNS record first so that the NotFound exception is raised
         # before the helper would start
-        dns_record = api.Command['dnsrecord_show'](kw['dnszoneidnsname'], kw['idnsname'])['result']
+        dns_record = self.api.Command['dnsrecord_show'](kw['dnszoneidnsname'], kw['idnsname'])['result']
         rec_types = [rec_type for rec_type in dns_record if rec_type in _record_attributes]
 
         self.Backend.textui.print_plain(_("No option to modify specific record provided."))
@@ -4043,7 +4046,7 @@ class dnsrecord_del(LDAPUpdate):
 
         # get DNS record first so that the NotFound exception is raised
         # before the helper would start
-        dns_record = api.Command['dnsrecord_show'](kw['dnszoneidnsname'], kw['idnsname'])['result']
+        dns_record = self.api.Command['dnsrecord_show'](kw['dnszoneidnsname'], kw['idnsname'])['result']
         rec_types = [rec_type for rec_type in dns_record if rec_type in _record_attributes]
 
         self.Backend.textui.print_plain(_("No option to delete specific record provided."))
@@ -4358,7 +4361,7 @@ class dnsforwardzone(DNSZoneBase):
 
     def _warning_fw_zone_is_not_effective(self, result, *keys, **options):
         fwzone = keys[-1]
-        _add_warning_fw_zone_is_not_effective(result, fwzone,
+        _add_warning_fw_zone_is_not_effective(self.api, result, fwzone,
                                               options['version'])
 
     def _warning_if_forwarders_do_not_work(self, result, new_zone,
@@ -4398,7 +4401,7 @@ class dnsforwardzone(DNSZoneBase):
         # validation is configured just in named.conf per replica
 
         ipa_dns_masters = [normalize_zone(x) for x in
-                           api.Object.dnsrecord.get_dns_masters()]
+                           self.api.Object.dnsrecord.get_dns_masters()]
 
         if not ipa_dns_masters:
             # something very bad happened, DNS is installed, but no IPA DNS
