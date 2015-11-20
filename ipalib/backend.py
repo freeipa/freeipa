@@ -57,8 +57,10 @@ class Connectible(Backend):
         """
         if hasattr(context, self.id):
             raise Exception(
-                "connect: 'context.%s' already exists in thread %r" % (
-                    self.id, threading.currentThread().getName()
+                "{0} is already connected ({1} in {2})".format(
+                    self.name,
+                    self.id,
+                    threading.currentThread().getName()
                 )
             )
         conn = self.create_connection(*args, **kw)
@@ -72,8 +74,10 @@ class Connectible(Backend):
     def disconnect(self):
         if not hasattr(context, self.id):
             raise Exception(
-                "disconnect: 'context.%s' does not exist in thread %r" % (
-                    self.id, threading.currentThread().getName()
+                "{0} is not connected ({1} in {2})".format(
+                    self.name,
+                    self.id,
+                    threading.currentThread().getName()
                 )
             )
         self.destroy_connection()
@@ -94,8 +98,12 @@ class Connectible(Backend):
         Return thread-local connection.
         """
         if not hasattr(context, self.id):
-            raise AttributeError('no context.%s in thread %r' % (
-                self.id, threading.currentThread().getName())
+            raise AttributeError(
+                "{0} is not connected ({1} in {2})".format(
+                    self.name,
+                    self.id,
+                    threading.currentThread().getName()
+                )
             )
         return getattr(context, self.id).conn
     conn = property(__get_conn)
