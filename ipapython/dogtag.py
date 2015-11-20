@@ -324,7 +324,7 @@ def _httplib_request(
     if isinstance(host, unicode):
         host = host.encode('utf-8')
     uri = '%s://%s%s' % (protocol, ipautil.format_netloc(host, port), path)
-    root_logger.debug('request %r', uri)
+    root_logger.debug('request %s %s', method, uri)
     root_logger.debug('request body %r', request_body)
 
     headers = headers or {}
@@ -347,9 +347,8 @@ def _httplib_request(
     except Exception as e:
         raise NetworkError(uri=uri, error=str(e))
 
-    root_logger.debug('request status %d',        http_status)
-    root_logger.debug('request reason_phrase %r', http_reason_phrase)
-    root_logger.debug('request headers %s',       http_headers)
-    root_logger.debug('request body %r',          http_body)
+    root_logger.debug('response status %d %s', http_status, http_reason_phrase)
+    root_logger.debug('response headers %s',   http_headers)
+    root_logger.debug('response body %r',      http_body)
 
     return http_status, http_reason_phrase, http_headers, http_body
