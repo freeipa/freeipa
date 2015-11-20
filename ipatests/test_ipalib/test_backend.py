@@ -93,9 +93,10 @@ class test_Connectible(ClassChecker):
         assert conn.disconnect == o.disconnect
 
         # Test that Exception is raised if already connected:
-        m = "connect: 'context.%s' already exists in thread %r"
+        m = "{0} is already connected ({1} in {2})"
         e = raises(Exception, o.connect, *args, **kw)
-        assert str(e) == m % ('example', threading.currentThread().getName())
+        assert str(e) == m.format(
+            'example', o.id, threading.currentThread().getName())
 
         # Double check that it works after deleting context.example:
         del context.example
@@ -122,9 +123,10 @@ class test_Connectible(ClassChecker):
             destroy_connection = Disconnect()
         o = example(api, shared_instance=True)
 
-        m = "disconnect: 'context.%s' does not exist in thread %r"
+        m = "{0} is not connected ({1} in {2})"
         e = raises(Exception, o.disconnect)
-        assert str(e) == m % ('example', threading.currentThread().getName())
+        assert str(e) == m.format(
+            'example', o.id, threading.currentThread().getName())
 
         context.example = 'The connection.'
         assert o.disconnect() is None
@@ -162,14 +164,14 @@ class test_Connectible(ClassChecker):
         Test the `ipalib.backend.Connectible.conn` property.
         """
         api = 'the api instance'
-        msg = 'no context.%s in thread %r'
+        msg = '{0} is not connected ({1} in {2})'
         class example(self.cls):
             pass
         for klass in (self.cls, example):
             o = klass(api, shared_instance=True)
             e = raises(AttributeError, getattr, o, 'conn')
-            assert str(e) == msg % (
-                klass.__name__, threading.currentThread().getName()
+            assert str(e) == msg.format(
+                klass.__name__, o.id, threading.currentThread().getName()
             )
             conn = Connection('The connection.', Disconnect())
             setattr(context, klass.__name__, conn)
