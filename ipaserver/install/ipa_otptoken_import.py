@@ -36,7 +36,7 @@ from six.moves import xrange
 
 from ipapython import admintool
 from ipalib import api, errors
-from ipaserver.plugins.ldap2 import ldap2
+from ipaserver.plugins.ldap2 import ldap2, AUTOBIND_DISABLED
 
 if six.PY3:
     unicode = str
@@ -511,9 +511,9 @@ class OTPTokenImport(admintool.AdminTool):
         api.bootstrap(in_server=True)
         api.finalize()
 
-        conn = ldap2(api)
         try:
-            conn.connect()
+            api.Backend.ldap2.connect(ccache=os.environ.get('KRB5CCNAME'),
+                                      autobind=AUTOBIND_DISABLED)
         except (gssapi.exceptions.GSSError, errors.ACIError):
             raise admintool.ScriptError("Unable to connect to LDAP! Did you kinit?")
 
@@ -528,7 +528,7 @@ class OTPTokenImport(admintool.AdminTool):
                     self.log.info("Added token: %s", keypkg.id)
                     keypkg.remove()
         finally:
-            conn.disconnect()
+            api.Backend.ldap2.disconnect()
 
         # Write out the XML file without the tokens that succeeded.
         self.doc.save(self.output)
