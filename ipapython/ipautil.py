@@ -1367,7 +1367,7 @@ def private_ccache(path=None):
         if original_value is not None:
             os.environ['KRB5CCNAME'] = original_value
         else:
-            os.environ.pop('KRB5CCNAME')
+            os.environ.pop('KRB5CCNAME', None)
 
         if os.path.exists(path):
             os.remove(path)
