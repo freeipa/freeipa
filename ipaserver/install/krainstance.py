@@ -219,17 +219,12 @@ class KRAInstance(DogtagInstance):
             str(DN(('uid', 'pkidbuser'), ('ou', 'people'), ('o', 'ipaca'))))
 
         _p12_tmpfile_handle, p12_tmpfile_name = tempfile.mkstemp(dir=paths.TMP)
+
         if self.clone:
             krafile = self.pkcs12_info[0]
             shutil.copy(krafile, p12_tmpfile_name)
             pent = pwd.getpwnam(PKI_USER)
             os.chown(p12_tmpfile_name, pent.pw_uid, pent.pw_gid)
-
-            # FIXME
-            # # create admin cert file if it does not exist
-            # cert = DogtagInstance.get_admin_cert(self)
-            # with open(paths.ADMIN_CERT_PATH, "w") as admin_path:
-            #     admin_path.write(cert)
 
             # Security domain registration
             config.set("KRA", "pki_security_domain_hostname", self.master_host)
@@ -246,6 +241,11 @@ class KRAInstance(DogtagInstance):
             config.set(
                 "KRA", "pki_clone_uri",
                 "https://%s" % ipautil.format_netloc(self.master_host, 443))
+        else:
+            # the admin cert file is needed for the first instance of KRA
+            cert = DogtagInstance.get_admin_cert(self)
+            with open(paths.ADMIN_CERT_PATH, "w") as admin_path:
+                admin_path.write(cert)
 
         # Generate configuration file
         with open(cfg_file, "wb") as f:
