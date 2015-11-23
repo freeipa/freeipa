@@ -152,7 +152,7 @@ class KRAInstaller(KRAInstall):
                 raise admintool.ScriptError(
                     "Directory Manager password required")
 
-    def _run(self):
+    def run(self):
         super(KRAInstaller, self).run()
 
         if not cainstance.is_ca_installed_locally():
@@ -173,8 +173,6 @@ class KRAInstaller(KRAInstall):
             if self.args:
                 raise RuntimeError("Too many parameters provided. "
                                    "No replica file is required.")
-
-        print(dedent(self.INSTALLER_START_MESSAGE))
 
         self.options.dm_password = self.options.password
         self.options.setup_ca = False
@@ -217,11 +215,10 @@ class KRAInstaller(KRAInstall):
         except RuntimeError as e:
             raise admintool.ScriptError(str(e))
 
-        kra.install(api, config, self.options)
+        print(dedent(self.INSTALLER_START_MESSAGE))
 
-    def run(self):
         try:
-            self._run()
+            kra.install(api, config, self.options)
         except:
             self.log.error(dedent(self.FAIL_MESSAGE))
             raise
