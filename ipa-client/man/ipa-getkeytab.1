@@ -21,7 +21,7 @@
 .SH "NAME"
 ipa\-getkeytab \- Get a keytab for a Kerberos principal
 .SH "SYNOPSIS"
-ipa\-getkeytab \fB\-s\fR \fIipaserver\fR \fB\-p\fR \fIprincipal\-name\fR \fB\-k\fR \fIkeytab\-file\fR [ \fB\-e\fR encryption\-types ] [ \fB\-q\fR ] [ \fB\-D\fR|\fB\-\-binddn\fR \fIBINDDN\fR ] [ \fB\-w|\-\-bindpw\fR ] [ \fB\-P\fR|\fB\-\-password\fR \fIPASSWORD\fR ] [ \fB\-r\fR ]
+ipa\-getkeytab \fB\-p\fR \fIprincipal\-name\fR \fB\-k\fR \fIkeytab\-file\fR [ \fB\-e\fR \fIencryption\-types\fR ] [ \fB\-s\fR \fIipaserver\fR ] [ \fB\-q\fR ] [ \fB\-D\fR|\fB\-\-binddn\fR \fIBINDDN\fR ] [ \fB\-w|\-\-bindpw\fR ] [ \fB\-P\fR|\fB\-\-password\fR \fIPASSWORD\fR ] [ \fB\-r\fR ]
 
 .SH "DESCRIPTION"
 Retrieves a Kerberos \fIkeytab\fR.
@@ -50,9 +50,6 @@ This renders all other keytabs for that principal invalid.
 This is used during IPA client enrollment to retrieve a host service principal and store it in /etc/krb5.keytab. It is possible to retrieve the keytab without Kerberos credentials if the host was pre\-created with a one\-time password. The keytab can be retrieved by binding as the host and authenticating with this one\-time password. The \fB\-D|\-\-binddn\fR and \fB\-w|\-\-bindpw\fR options are used for this authentication.
 .SH "OPTIONS"
 .TP
-\fB\-s ipaserver\fR
-The IPA server to retrieve the keytab from (FQDN).
-.TP
 \fB\-p principal\-name\fR
 The non\-realm part of the full principal name.
 .TP
@@ -72,6 +69,11 @@ arcfour\-hmac
 des\-hmac\-sha1
 des\-cbc\-md5
 des\-cbc\-crc
+.TP
+\fB\-s ipaserver\fR
+The IPA server to retrieve the keytab from (FQDN). If this option is not
+provided the server name is read from the IPA configuration file
+(/etc/ipa/default.conf)
 .TP
 \fB\-q\fR
 Quiet mode. Only errors are displayed.
@@ -105,7 +107,7 @@ keytab must have access to the keys for this operation to succeed.
 Add and retrieve a keytab for the NFS service principal on
 the host foo.example.com and save it in the file /tmp/nfs.keytab and retrieve just the des\-cbc\-crc key.
 
-   # ipa\-getkeytab \-s ipaserver.example.com \-p nfs/foo.example.com \-k /tmp/nfs.keytab \-e des\-cbc\-crc
+   # ipa\-getkeytab \-p nfs/foo.example.com \-k /tmp/nfs.keytab \-e des\-cbc\-crc
 
 Add and retrieve a keytab for the ldap service principal on
 the host foo.example.com and save it in the file /tmp/ldap.keytab.

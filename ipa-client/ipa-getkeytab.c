@@ -36,6 +36,7 @@
 #include <ldap.h>
 #include <sasl/sasl.h>
 #include <popt.h>
+#include <ini_configobj.h>
 
 #include "config.h"
 
@@ -596,6 +597,81 @@ static char *ask_password(krb5_context krbctx)
     return password;
 }
 
+struct ipa_config {
+    const char *server_name;
+};
+
+static int config_from_file(struct ini_cfgobj *cfgctx)
+{
+    struct ini_cfgfile *fctx = NULL;
+    char **errors = NULL;
+    int ret;
+
+    ret = ini_config_file_open(IPACONFFILE, 0, &fctx);
+    if (ret) {
+        fprintf(stderr, _("Failed to open config file %s\n"), IPACONFFILE);
+        return ret;
+    }
+
+    ret = ini_config_parse(fctx,
+                           INI_STOP_ON_ANY,
+                           INI_MS_MERGE | INI_MV1S_ALLOW | INI_MV2S_ALLOW,
+                           INI_PARSE_NOWRAP,
+                           cfgctx);
+    if (ret) {
+        fprintf(stderr, _("Failed to parse config file %s\n"), IPACONFFILE);
+        if (ini_config_error_count(cfgctx)) {
+            ini_config_get_errors(cfgctx, &errors);
+            if (errors) {
+                ini_config_print_errors(stderr, errors);
+                ini_config_free_errors(errors);
+            }
+        }
+        ini_config_file_destroy(fctx);
+        return ret;
+    }
+
+    ini_config_file_destroy(fctx);
+    return 0;
+}
+
+int read_ipa_config(struct ipa_config **ipacfg)
+{
+    struct ini_cfgobj *cfgctx = NULL;
+    struct value_obj *obj = NULL;
+    int ret;
+
+    *ipacfg = calloc(1, sizeof(struct ipa_config));
+    if (!*ipacfg) {
+        return ENOMEM;
+    }
+
+    ret = ini_config_create(&cfgctx);
+    if (ret) {
+        return ENOENT;
+    }
+
+    ret = config_from_file(cfgctx);
+    if (ret) {
+        ini_config_destroy(cfgctx);
+        return EINVAL;
+    }
+
+    ret = ini_get_config_valueobj("global", "server", cfgctx,
+                                  INI_GET_LAST_VALUE, &obj);
+    if (ret != 0 || obj == NULL) {
+        /* if called on an IPA server we need to look for 'host' instead */
+        ret = ini_get_config_valueobj("global", "host", cfgctx,
+                                      INI_GET_LAST_VALUE, &obj);
+    }
+
+    if (ret == 0 && obj != NULL) {
+        (*ipacfg)->server_name = ini_get_string_config_value(obj, &ret);
+    }
+
+    return 0;
+}
+
 int main(int argc, const char *argv[])
 {
 	static const char *server = NULL;
@@ -688,7 +764,7 @@ int main(int argc, const char *argv[])
 		exit (0);
 	}
 
-	if (ret != -1 || !server || !principal || !keytab || permitted_enctypes) {
+	if (ret != -1 || !principal || !keytab || permitted_enctypes) {
 		if (!quiet) {
 			poptPrintUsage(pc, stderr, 0);
 		}
@@ -702,6 +778,21 @@ int main(int argc, const char *argv[])
 			poptPrintUsage(pc, stderr, 0);
 		exit(10);
 	}
+
+    if (!server) {
+        struct ipa_config *ipacfg = NULL;
+
+        ret = read_ipa_config(&ipacfg);
+        if (ret == 0) {
+            server = ipacfg->server_name;
+            ipacfg->server_name = NULL;
+        }
+        free(ipacfg);
+        if (!server) {
+            fprintf(stderr, _("Server name not provided and unavailable\n"));
+            exit(2);
+        }
+    }
 
     if (askpass && retrieve) {
         fprintf(stderr, _("Incompatible options provided (-r and -P)\n"));

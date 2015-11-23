@@ -97,6 +97,7 @@ BuildRequires:  python-kdcproxy >= 0.3
 BuildRequires:  python-six
 BuildRequires:  python-jwcrypto
 BuildRequires:  custodia
+BuildRequires:  libini_config-devel >= 1.2.0
 
 # Build dependencies for unit tests
 BuildRequires:  libcmocka-devel

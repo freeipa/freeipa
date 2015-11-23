@@ -15,6 +15,7 @@ export AM_CFLAGS
 KRB5_UTIL_DIR=../util
 KRB5_UTIL_SRCS=$(KRB5_UTIL_DIR)/ipa_krb5.c
 ASN1_UTIL_DIR=../asn1
+IPA_CONF_FILE=$(sysconfdir)/ipa/default.conf
 
 AM_CPPFLAGS =							\
 	-I.							\
@@ -27,11 +28,13 @@ AM_CPPFLAGS =							\
 	-DLIBEXECDIR=\""$(libexecdir)"\"			\
 	-DDATADIR=\""$(datadir)"\"				\
 	-DLOCALEDIR=\""$(localedir)"\"				\
+	-DIPACONFFILE=\""$(IPA_CONF_FILE)"\"			\
 	$(KRB5_CFLAGS)						\
 	$(OPENLDAP_CFLAGS)					\
 	$(SASL_CFLAGS)						\
 	$(POPT_CFLAGS)						\
 	$(WARN_CFLAGS)						\
+	$(INI_CFLAGS)						\
 	$(NULL)
 
 sbin_PROGRAMS =			\
@@ -53,6 +56,7 @@ ipa_getkeytab_LDADD = 		\
 	$(SASL_LIBS)		\
 	$(POPT_LIBS)		\
 	$(LIBINTL_LIBS)         \
+	$(INI_LIBS)		\
 	$(NULL)
 
 ipa_rmkeytab_SOURCES =		\
