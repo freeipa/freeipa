@@ -1328,18 +1328,7 @@ def add_default_caacl(ca):
         return
 
     if ca.is_configured():
-        if not api.Backend.ldap2.isconnected():
-            try:
-                api.Backend.ldap2.connect(autobind=True)
-            except ipalib.errors.PublicError as e:
-                root_logger.error("Cannot connect to LDAP to add CA ACLs: %s", e)
-                return
-
-        if not api.Command.caacl_find()['result']:
-            api.Command.caacl_add(u'hosts_services_caIPAserviceCert',
-                hostcategory=u'all', servicecategory=u'all')
-            api.Command.caacl_add_profile(u'hosts_services_caIPAserviceCert',
-                certprofile=(u'caIPAserviceCert',))
+        cainstance.ensure_default_caacl()
 
     sysupgrade.set_upgrade_state('caacl', 'add_default_caacl', True)
 

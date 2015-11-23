@@ -672,6 +672,9 @@ def install(installer):
         options.domain_name = config.domain_name
         options.host_name = config.host_name
 
+        if ipautil.file_exists(config.dir + "/cacert.p12"):
+            options.ra_p12 = config.dir + "/ra.p12"
+
         ca.install(False, config, options)
 
     krb = install_krb(config, setup_pkinit=not options.no_pkinit)

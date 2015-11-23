@@ -332,7 +332,6 @@ class DsInstance(service.Service):
         self.step("adding range check plugin", self.__add_range_check_plugin)
         if hbac_allow:
             self.step("creating default HBAC rule allow_all", self.add_hbac)
-        self.step("creating default CA ACL rule", self.add_caacl)
         self.step("adding sasl mappings to the directory",
                   self.__configure_sasl_mappings)
         self.step("adding entries for topology management", self.__add_topology_entries)
@@ -873,9 +872,6 @@ class DsInstance(service.Service):
 
     def add_hbac(self):
         self._ldap_mod("default-hbac.ldif", self.sub_dict)
-
-    def add_caacl(self):
-        self._ldap_mod("default-caacl.ldif", self.sub_dict)
 
     def change_admin_password(self, password):
         root_logger.debug("Changing admin password")

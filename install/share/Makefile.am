@@ -31,7 +31,6 @@ app_DATA =				\
 	caJarSigningCert.cfg.template	\
 	custodia.conf.template		\
 	default-aci.ldif		\
-	default-caacl.ldif		\
 	default-hbac.ldif		\
 	default-smb-group.ldif		\
 	default-trust-view.ldif		\
