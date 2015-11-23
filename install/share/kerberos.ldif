@@ -30,8 +30,6 @@ krbMaxTicketLife: 86400
 krbMaxRenewableAge: 604800
 krbDefaultEncSaltTypes: aes256-cts:special
 krbDefaultEncSaltTypes: aes128-cts:special
-krbDefaultEncSaltTypes: des3-hmac-sha1:special
-krbDefaultEncSaltTypes: arcfour-hmac:special
 
 # Default password Policy
 dn: cn=global_policy,cn=$REALM,cn=kerberos,$SUFFIX

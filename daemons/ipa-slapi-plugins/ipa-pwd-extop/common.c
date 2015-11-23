@@ -55,18 +55,10 @@ extern const char *ipa_realm_dn;
 extern const char *ipa_etc_config_dn;
 extern const char *ipa_pwd_config_dn;
 
-/* These are the default enc:salt types if nothing is defined.
- * TODO: retrieve the configure set of ecntypes either from the
- * kfc.conf file or by synchronizing the file content into
- * the directory */
+/* These are the default enc:salt types if nothing is defined in LDAP */
 static const char *ipapwd_def_encsalts[] = {
-    "des3-hmac-sha1:normal",
-/*    "arcfour-hmac:normal",
-    "des-hmac-sha1:normal",
-    "des-cbc-md5:normal", */
-    "des-cbc-crc:normal",
-/*    "des-cbc-crc:v4",
-    "des-cbc-crc:afs3", */
+    "aes256-cts:special",
+    "aes128-cts:special",
     NULL
 };
 
