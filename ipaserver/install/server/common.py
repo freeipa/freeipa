@@ -280,7 +280,7 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
 
     host_name = Knob(
         str, None,
-        description="fully qualified name of server",
+        description="fully qualified name of this host",
         cli_name='hostname',
     )
 
