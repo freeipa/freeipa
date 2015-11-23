@@ -5,9 +5,10 @@
 from ipalib import api, errors
 from ipapython.dn import DN
 
-from ipatests.util import assert_deepequal, get_group_dn
+from ipatests.util import assert_deepequal, get_group_dn, get_user_dn
 from ipatests.test_xmlrpc import objectclasses
-from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_digits, fuzzy_uuid, raises_exact
+from ipatests.test_xmlrpc.xmlrpc_test import (
+    fuzzy_digits, fuzzy_uuid, raises_exact)
 from ipatests.test_xmlrpc.tracker.base import Tracker
 
 
@@ -257,6 +258,10 @@ class UserTracker(Tracker):
             value=self.uid,
             summary=u'Stage user %s activated' % self.uid,
             result=self.filter_attrs(self.activate_keys))
+
+        if 'manager' in expected['result']:
+            expected['result']['manager'] = [
+                unicode(get_user_dn(expected['result']['manager'][0]))]
 
         # work around to eliminate inconsistency in returned objectclass
         # (case sensitive assertion)

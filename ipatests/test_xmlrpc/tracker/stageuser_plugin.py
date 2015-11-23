@@ -128,7 +128,7 @@ class StageUserTracker(Tracker):
                     (self.kwargs[key].split('@'))[0].lower(),
                     (self.kwargs[key].split('@'))[1])]
             elif key == u'manager':
-                self.attrs[key] = [unicode(get_user_dn(self.kwargs[key]))]
+                self.attrs[key] = [self.kwargs[key]]
             elif key == u'ipasshpubkey':
                 self.attrs[u'sshpubkeyfp'] = [sshpubkeyfp]
                 self.attrs[key] = [self.kwargs[key]]
