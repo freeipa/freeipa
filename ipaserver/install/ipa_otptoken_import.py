@@ -507,10 +507,9 @@ class OTPTokenImport(admintool.AdminTool):
         api.bootstrap(in_server=True)
         api.finalize()
 
-        conn = ldap2(api)
         try:
             ccache = krbV.default_context().default_ccache()
-            conn.connect(ccache=ccache)
+            api.Backend.ldap2.connect(ccache=ccache)
         except (krbV.Krb5Error, errors.ACIError):
             raise admintool.ScriptError("Unable to connect to LDAP! Did you kinit?")
 
@@ -525,7 +524,7 @@ class OTPTokenImport(admintool.AdminTool):
                     self.log.info("Added token: %s", keypkg.id)
                     keypkg.remove()
         finally:
-            conn.disconnect()
+            api.Backend.ldap2.disconnect()
 
         # Write out the XML file without the tokens that succeeded.
         self.doc.save(self.output)
