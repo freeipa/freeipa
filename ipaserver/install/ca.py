@@ -134,9 +134,10 @@ def install_step_0(standalone, replica_config, options):
         if standalone:
             api.Backend.ldap2.disconnect()
 
-        cainstance.install_replica_ca(replica_config, postinstall)
+        cainstance.install_replica_ca(replica_config, postinstall,
+                ra_p12=getattr(options, 'ra_p12', None))
 
-        if standalone:
+        if standalone and not api.Backend.ldap2.isconnected():
             api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')),
                                       bind_pw=dm_password)
 

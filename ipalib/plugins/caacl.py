@@ -307,6 +307,14 @@ class caacl_del(LDAPDelete):
 
     msg_summary = _('Deleted CA ACL "%(value)s"')
 
+    def pre_callback(self, ldap, dn, *keys, **options):
+        if keys[0] == 'hosts_services_caIPAserviceCert':
+            raise errors.ProtectedEntryError(
+                label=_("CA ACL"),
+                key=keys[0],
+                reason=_("default CA ACL can be only disabled"))
+        return dn
+
 
 @register()
 class caacl_mod(LDAPUpdate):

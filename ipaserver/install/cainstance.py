@@ -391,7 +391,7 @@ class CAInstance(DogtagInstance):
                            cert_file=None, cert_chain_file=None,
                            master_replication_port=None,
                            subject_base=None, ca_signing_algorithm=None,
-                           ca_type=None):
+                           ca_type=None, ra_p12=None):
         """Create a CA instance.
 
            For Dogtag 9, this may involve creating the pki-ca instance.
@@ -465,7 +465,10 @@ class CAInstance(DogtagInstance):
                 self.step("requesting RA certificate from CA", self.__request_ra_certificate)
                 self.step("issuing RA agent certificate", self.__issue_ra_cert)
                 self.step("adding RA agent as a trusted user", self.__create_ca_agent)
-                self.step("authorizing RA to modify profiles", self.__configure_profiles_acl)
+            elif ra_p12 is not None:
+                self.step("importing RA certificate from PKCS #12 file",
+                          lambda: self.import_ra_cert(ra_p12, configure_renewal=False))
+            self.step("authorizing RA to modify profiles", configure_profiles_acl)
             self.step("configure certmonger for renewals", self.configure_certmonger_renewal)
             self.step("configure certificate renewals", self.configure_renewal)
             if not self.clone:
@@ -473,9 +476,12 @@ class CAInstance(DogtagInstance):
             self.step("configure Server-Cert certificate renewal", self.track_servercert)
             self.step("Configure HTTP to proxy connections",
                       self.http_proxy)
-            if not self.clone:
-                self.step("restarting certificate server", self.restart_instance)
-                self.step("Importing IPA certificate profiles", import_included_profiles)
+            self.step("restarting certificate server", self.restart_instance)
+            self.step("migrating certificate profiles to LDAP",
+                      migrate_profiles_to_ldap)
+            self.step("importing IPA certificate profiles",
+                      import_included_profiles)
+            self.step("adding default CA ACL", ensure_default_caacl)
 
         self.start_creation(runtime=210)
 
@@ -887,7 +893,7 @@ class CAInstance(DogtagInstance):
 
         export_kra_agent_pem()
 
-    def import_ra_cert(self, rafile):
+    def import_ra_cert(self, rafile, configure_renewal=True):
         """
         Cloned RAs will use the same RA agent cert as the master so we
         need to import from a PKCS#12 file.
@@ -903,7 +909,8 @@ class CAInstance(DogtagInstance):
         finally:
             os.remove(agent_name)
 
-        self.configure_agent_renewal()
+        if configure_renewal:
+            self.configure_agent_renewal()
 
         export_kra_agent_pem()
 
@@ -952,10 +959,6 @@ class CAInstance(DogtagInstance):
         conn.add_entry_to_group(user_dn, group_dn, 'uniqueMember')
 
         conn.disconnect()
-
-    def __configure_profiles_acl(self):
-        """Allow the Certificate Manager Agents group to modify profiles."""
-        configure_profiles_acl()
 
     def __run_certutil(self, args, database=None, pwd_file=None, stdin=None):
         if not database:
@@ -1491,7 +1494,7 @@ def replica_ca_install_check(config):
         exit('IPA schema missing on master CA directory server')
 
 
-def install_replica_ca(config, postinstall=False):
+def install_replica_ca(config, postinstall=False, ra_p12=None):
     """
     Install a CA on a replica.
 
@@ -1533,7 +1536,7 @@ def install_replica_ca(config, postinstall=False):
         ca.create_ra_agent_db = False
     ca.configure_instance(config.host_name, config.domain_name,
                           config.dirman_password, config.dirman_password,
-                          pkcs12_info=(cafile,),
+                          pkcs12_info=(cafile,), ra_p12=ra_p12,
                           master_host=config.master_host_name,
                           master_replication_port=config.ca_ds_port,
                           subject_base=config.subject_base)
@@ -1658,6 +1661,14 @@ def update_people_entry(dercert):
     return True
 
 def ensure_ldap_profiles_container():
+    ensure_entry(
+        DN(('ou', 'certificateProfiles'), ('ou', 'ca'), ('o', 'ipaca')),
+        objectclass=['top', 'organizationalUnit'],
+        ou=['certificateProfiles'],
+    )
+
+
+def ensure_entry(dn, **attrs):
     server_id = installutils.realm_to_serverid(api.env.realm)
     dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
 
@@ -1665,40 +1676,39 @@ def ensure_ldap_profiles_container():
     if not conn.isconnected():
         conn.connect(autobind=True)
 
-    dn = DN(('ou', 'certificateProfiles'), ('ou', 'ca'), ('o', 'ipaca'))
     try:
         conn.get_entry(dn)
     except errors.NotFound:
         # entry doesn't exist; add it
-        entry = conn.make_entry(
-            dn,
-            objectclass=['top', 'organizationalUnit'],
-            ou=['certificateProfiles'],
-        )
+        entry = conn.make_entry(dn, **attrs)
         conn.add_entry(entry)
 
     conn.disconnect()
 
 
 def configure_profiles_acl():
+    """Allow the Certificate Manager Agents group to modify profiles."""
     server_id = installutils.realm_to_serverid(api.env.realm)
     dogtag_uri = 'ldapi://%%2fvar%%2frun%%2fslapd-%s.socket' % server_id
     updated = False
 
     dn = DN(('cn', 'aclResources'), ('o', 'ipaca'))
-    rule = (
+    new_rules = [
         'certServer.profile.configuration:read,modify:allow (read,modify) '
         'group="Certificate Manager Agents":'
-        'Certificate Manager agents may modify (create/update/delete) and read profiles'
-    )
-    modlist = [(ldap.MOD_ADD, 'resourceACLS', [rule])]
+        'Certificate Manager agents may modify (create/update/delete) and read profiles',
+
+        'certServer.ca.account:login,logout:allow (login,logout) '
+        'user="anybody":Anybody can login and logout',
+    ]
 
     conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
     if not conn.isconnected():
         conn.connect(autobind=True)
-    rules = conn.get_entry(dn).get('resourceACLS', [])
-    if rule not in rules:
-        conn.conn.modify_s(str(dn), modlist)
+    cur_rules = conn.get_entry(dn).get('resourceACLS', [])
+    add_rules = [rule for rule in new_rules if rule not in cur_rules]
+    if add_rules:
+        conn.conn.modify_s(str(dn), [(ldap.MOD_ADD, 'resourceACLS', add_rules)])
         updated = True
 
     conn.disconnect()
@@ -1717,6 +1727,17 @@ def import_included_profiles():
     conn = ldap2.ldap2(api, ldap_uri=dogtag_uri)
     if not conn.isconnected():
         conn.connect(autobind=True)
+
+    ensure_entry(
+        DN(('cn', 'ca'), api.env.basedn),
+        objectclass=['top', 'nsContainer'],
+        cn=['ca'],
+    )
+    ensure_entry(
+        DN(api.env.container_certprofile, api.env.basedn),
+        objectclass=['top', 'nsContainer'],
+        cn=['certprofiles'],
+    )
 
     api.Backend.ra_certprofile._read_password()
     api.Backend.ra_certprofile.override_port = 8443
@@ -1821,6 +1842,33 @@ def _create_dogtag_profile(profile_id, profile_data):
             root_logger.debug(
                 "Failed to enable profile '%s' "
                 "(it is probably already enabled)")
+
+
+def ensure_default_caacl():
+    """Add the default CA ACL if missing."""
+    if not api.Backend.ldap2.isconnected():
+        try:
+            api.Backend.ldap2.connect(autobind=True)
+        except errors.PublicError as e:
+            root_logger.error("Cannot connect to LDAP to add CA ACLs: %s", e)
+            return
+
+    ensure_entry(
+        DN(('cn', 'ca'), api.env.basedn),
+        objectclass=['top', 'nsContainer'],
+        cn=['ca'],
+    )
+    ensure_entry(
+        DN(api.env.container_caacl, api.env.basedn),
+        objectclass=['top', 'nsContainer'],
+        cn=['certprofiles'],
+    )
+
+    if not api.Command.caacl_find()['result']:
+        api.Command.caacl_add(u'hosts_services_caIPAserviceCert',
+            hostcategory=u'all', servicecategory=u'all')
+        api.Command.caacl_add_profile(u'hosts_services_caIPAserviceCert',
+            certprofile=(u'caIPAserviceCert',))
 
 
 if __name__ == "__main__":
