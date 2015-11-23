@@ -105,9 +105,7 @@ class CACertManage(admintool.AdminTool):
 
         if ((command == 'renew' and options.external_cert_files) or
             command == 'install'):
-            self.conn = self.ldap_connect()
-        else:
-            self.conn = None
+            self.ldap_connect()
 
         try:
             if command == 'renew':
@@ -115,23 +113,21 @@ class CACertManage(admintool.AdminTool):
             elif command == 'install':
                 rc = self.install()
         finally:
-            if self.conn is not None:
-                self.conn.disconnect()
+            if api.Backend.ldap2.isconnected():
+                api.Backend.ldap2.disconnect()
 
         return rc
 
     def ldap_connect(self):
-        conn = ldap2(api)
-
         password = self.options.password
         if not password:
             try:
                 ccache = krbV.default_context().default_ccache()
-                conn.connect(ccache=ccache)
+                api.Backend.ldap2.connect(ccache=ccache)
             except (krbV.Krb5Error, errors.ACIError):
                 pass
             else:
-                return conn
+                return
 
             password = installutils.read_password(
                 "Directory Manager", confirm=False, validate=False)
@@ -139,9 +135,8 @@ class CACertManage(admintool.AdminTool):
                 raise admintool.ScriptError(
                     "Directory Manager password required")
 
-        conn.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=password)
+        api.Backend.ldap2.connect(bind_dn=DN(('cn', 'Directory Manager')), bind_pw=password)
 
-        return conn
 
     def renew(self):
         ca = cainstance.CAInstance(api.env.realm, certs.NSS_DIR)
@@ -202,9 +197,10 @@ class CACertManage(admintool.AdminTool):
               "--external-cert-file=/path/to/external_ca_certificate")
 
     def renew_external_step_2(self, ca, old_cert):
-        print "Importing the renewed CA certificate, please wait"
+        print("Importing the renewed CA certificate, please wait")
 
         options = self.options
+        conn = api.Backend.ldap2
         cert_file, ca_file = installutils.load_external_cert(
             options.external_cert_files, x509.subject_base())
 
@@ -273,21 +269,21 @@ class CACertManage(admintool.AdminTool):
                 except RuntimeError:
                     break
                 certstore.put_ca_cert_nss(
-                    self.conn, api.env.basedn, ca_cert, nickname, ',,')
+                    conn, api.env.basedn, ca_cert, nickname, ',,')
 
         dn = DN(('cn', self.cert_nickname), ('cn', 'ca_renewal'),
                 ('cn', 'ipa'), ('cn', 'etc'), api.env.basedn)
         try:
-            entry = self.conn.get_entry(dn, ['usercertificate'])
+            entry = conn.get_entry(dn, ['usercertificate'])
             entry['usercertificate'] = [cert]
-            self.conn.update_entry(entry)
+            conn.update_entry(entry)
         except errors.NotFound:
-            entry = self.conn.make_entry(
+            entry = conn.make_entry(
                 dn,
                 objectclass=['top', 'pkiuser', 'nscontainer'],
                 cn=[self.cert_nickname],
                 usercertificate=[cert])
-            self.conn.add_entry(entry)
+            conn.add_entry(entry)
         except errors.EmptyModlist:
             pass
 
@@ -362,7 +358,7 @@ class CACertManage(admintool.AdminTool):
 
         try:
             certstore.put_ca_cert_nss(
-                self.conn, api.env.basedn, cert, nickname, trust_flags)
+                api.Backend.ldap2, api.env.basedn, cert, nickname, trust_flags)
         except ValueError, e:
             raise admintool.ScriptError(
                 "Failed to install the certificate: %s" % e)
