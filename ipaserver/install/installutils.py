@@ -1108,7 +1108,7 @@ def enable_and_start_oddjobd(sstore):
         root_logger.critical("Unable to start oddjobd: {0}".format(str(e)))
 
 
-def install_service_keytab(principal, server, path):
+def install_service_keytab(principal, server, path, force_service_add=False):
 
     try:
         api.Backend.rpcclient.connect()
@@ -1121,6 +1121,7 @@ def install_service_keytab(principal, server, path):
         api.Backend.rpcclient.forward(
             'service_add',
             krbprincipalname=principal,
+            force=force_service_add,
             version=u'2.112'    # All the way back to 3.0 servers
         )
     except errors.DuplicateEntry:

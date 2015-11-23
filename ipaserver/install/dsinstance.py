@@ -1203,7 +1203,8 @@ class DsInstance(service.Service):
 
         installutils.install_service_keytab(self.principal,
                                             self.master_fqdn,
-                                            paths.DS_KEYTAB)
+                                            paths.DS_KEYTAB,
+                                            force_service_add=True)
 
         # Configure DS to use the keytab
         vardict = {"KRB5_KTNAME": paths.DS_KEYTAB}
