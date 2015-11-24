@@ -653,7 +653,7 @@ int main(int argc, const char *argv[])
 
     ret = init_gettext();
     if (ret) {
-        exit(1);
+        fprintf(stderr, "Failed to load translations\n");
     }
 
 	krberr = krb5_init_context(&krbctx);
