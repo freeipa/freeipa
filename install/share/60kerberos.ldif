@@ -126,6 +126,14 @@ attributetypes: ( 1.3.6.1.4.1.5322.21.2.1 NAME 'krbPwdMaxFailure' EQUALITY integ
 attributetypes: ( 1.3.6.1.4.1.5322.21.2.2 NAME 'krbPwdFailureCountInterval' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE)
 ##### Period in which lockout is enforced
 attributetypes: ( 1.3.6.1.4.1.5322.21.2.3 NAME 'krbPwdLockoutDuration' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE)
+##### Policy attribute flags
+attributetypes: ( 1.2.840.113554.1.4.1.6.2 NAME 'krbPwdAttributes' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE)
+##### Policy maximum ticket lifetime
+attributetypes: ( 1.2.840.113554.1.4.1.6.3 NAME 'krbPwdMaxLife' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE)
+##### Policy maximum ticket renewable lifetime
+attributetypes: ( 1.2.840.113554.1.4.1.6.4 NAME 'krbPwdMaxRenewableLife' EQUALITY integerMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 SINGLE-VALUE)
+##### Allowed enctype:salttype combinations for key changes
+attributetypes: ( 1.2.840.113554.1.4.1.6.5 NAME 'krbPwdAllowedKeysalts' EQUALITY caseIgnoreIA5Match SYNTAX 1.3.6.1.4.1.1466.115.121.1.26 SINGLE-VALUE)
 ##### FDN pointing to a Kerberos Password Policy object
 attributetypes: ( 2.16.840.1.113719.1.301.4.36.1 NAME 'krbPwdPolicyReference' EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12 SINGLE-VALUE)
 ##### The time at which the principal's password expires
@@ -256,6 +264,8 @@ attributetypes: ( 2.16.840.1.113719.1.301.4.52.1 NAME 'krbObjectReferences' EQUA
 attributetypes: ( 2.16.840.1.113719.1.301.4.53.1 NAME 'krbPrincContainerRef' EQUALITY distinguishedNameMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.12)
 ##### The time at which administrator unlocked the account
 attributetypes: ( 1.3.6.1.4.1.5322.21.2.5 NAME 'krbLastAdminUnlock' EQUALITY generalizedTimeMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 SINGLE-VALUE)
+##### A list of services to which a service principal can delegate.
+attributetypes: ( 1.3.6.1.4.1.5322.21.2.4 NAME 'krbAllowedToDelegateTo' EQUALITY caseExactIA5Match SUBSTR caseExactSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26)
 ########################################################################
 ########################################################################
 # 		        Object Class Definitions                       #
@@ -284,7 +294,7 @@ objectClasses: ( 2.16.840.1.113719.1.301.6.4.1 NAME 'krbKdcService' SUP ( krbSer
 objectClasses: ( 2.16.840.1.113719.1.301.6.5.1 NAME 'krbPwdService' SUP ( krbService ) )
 ###### The principal data auxiliary class. Holds principal information
 ###### and is used to store principal information for Person, Service objects.
-objectClasses: ( 2.16.840.1.113719.1.301.6.8.1 NAME 'krbPrincipalAux' AUXILIARY MAY ( krbPrincipalName $ krbCanonicalName $ krbUPEnabled $ krbPrincipalKey $ krbTicketPolicyReference $ krbPrincipalExpiration $ krbPasswordExpiration $ krbPwdPolicyReference $ krbPrincipalType $ krbPwdHistory $ krbLastPwdChange $ krbPrincipalAliases $ krbLastSuccessfulAuth $ krbLastFailedAuth $ krbLoginFailedCount $ krbExtraData $ krbLastAdminUnlock ) )
+objectClasses: ( 2.16.840.1.113719.1.301.6.8.1 NAME 'krbPrincipalAux' AUXILIARY MAY ( krbPrincipalName $ krbCanonicalName $ krbUPEnabled $ krbPrincipalKey $ krbTicketPolicyReference $ krbPrincipalExpiration $ krbPasswordExpiration $ krbPwdPolicyReference $ krbPrincipalType $ krbPwdHistory $ krbLastPwdChange $ krbPrincipalAliases $ krbLastSuccessfulAuth $ krbLastFailedAuth $ krbLoginFailedCount $ krbExtraData $ krbLastAdminUnlock $ krbAllowedToDelegateTo ) )
 ###### This class is used to create additional principals and stand alone principals.
 objectClasses: ( 2.16.840.1.113719.1.301.6.9.1 NAME 'krbPrincipal' SUP ( top ) MUST ( krbPrincipalName ) MAY ( krbObjectReferences ) )
 ###### The principal references auxiliary class. Holds all principals referred
@@ -297,7 +307,7 @@ objectClasses: ( 2.16.840.1.113719.1.301.6.13.1 NAME 'krbAdmService' SUP ( krbSe
 ##### can be applied to principals when they are created. 
 ##### These policy attributes will be in effect, when the Kerberos
 ##### passwords are different from users' passwords (UP).
-objectClasses: ( 2.16.840.1.113719.1.301.6.14.1 NAME 'krbPwdPolicy' SUP top MUST ( cn ) MAY ( krbMaxPwdLife $ krbMinPwdLife $ krbPwdMinDiffChars $ krbPwdMinLength $ krbPwdHistoryLength $ krbPwdMaxFailure $ krbPwdFailureCountInterval $ krbPwdLockoutDuration ) )
+objectClasses: ( 2.16.840.1.113719.1.301.6.14.1 NAME 'krbPwdPolicy' SUP top MUST ( cn ) MAY ( krbMaxPwdLife $ krbMinPwdLife $ krbPwdMinDiffChars $ krbPwdMinLength $ krbPwdHistoryLength $ krbPwdMaxFailure $ krbPwdFailureCountInterval $ krbPwdLockoutDuration $ krbPwdAttributes $ krbPwdMaxLife $ krbPwdMaxRenewableLife $ krbPwdAllowedKeysalts ) )
 ##### The krbTicketPolicyAux holds Kerberos ticket policy attributes.
 ##### This class can be attached to a principal object or realm object.
 objectClasses: ( 2.16.840.1.113719.1.301.6.16.1 NAME 'krbTicketPolicyAux' AUXILIARY MAY ( krbTicketFlags $ krbMaxTicketLife $ krbMaxRenewableAge ) )
