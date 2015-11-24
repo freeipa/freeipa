@@ -95,6 +95,8 @@ static char *std_principal_obj_classes[] = {
 
 #define STD_PRINCIPAL_OBJ_CLASSES_SIZE (sizeof(std_principal_obj_classes) / sizeof(char *) - 1)
 
+#define DEFAULT_TL_DATA_CONTENT "\x00\x00\x00\x00principal@UNINITIALIZED"
+
 static int ipadb_ldap_attr_to_tl_data(LDAP *lcontext, LDAPMessage *le,
                                       char *attrname,
                                       krb5_tl_data **result, int *num)
@@ -163,7 +165,7 @@ done:
 static krb5_error_code ipadb_set_tl_data(krb5_db_entry *entry,
                                          krb5_int16 type,
                                          krb5_ui_2 length,
-                                         krb5_octet *data)
+                                         const krb5_octet *data)
 {
     krb5_error_code kerr;
     krb5_tl_data *new_td = NULL;
@@ -595,6 +597,13 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         entry->tl_data = res_tl_data;
         entry->n_tl_data = result;
     case ENOENT:
+        /* The kadmin utility expects always at least KRB5_TL_MOD_PRINC tl_data
+         * to be available. So if krbExtraData is missing (may happen when a
+         * user is created but no password has been set yet) then add a default
+         * one. */
+        kerr = ipadb_set_tl_data(entry, KRB5_TL_MOD_PRINC,
+                                 sizeof(DEFAULT_TL_DATA_CONTENT),
+                                 (const krb5_octet *)DEFAULT_TL_DATA_CONTENT);
         break;
     default:
         kerr = KRB5_KDB_INTERNAL_ERROR;
