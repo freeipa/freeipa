@@ -93,6 +93,7 @@ struct ipadb_global_config {
 	bool disable_lockout;
 	char **authz_data;
 	enum ipadb_user_auth user_auth;
+    bool disable_preauth_for_spns;
 };
 
 struct ipadb_context {

@@ -921,6 +921,25 @@ static krb5_error_code ipadb_find_principal(krb5_context kcontext,
     return 0;
 }
 
+static krb5_flags maybe_require_preauth(struct ipadb_context *ipactx,
+                                        krb5_db_entry *entry)
+{
+    const struct ipadb_global_config *config;
+    struct ipadb_e_data *ied;
+
+    config = ipadb_get_global_config(ipactx);
+    if (config->disable_preauth_for_spns) {
+        ied = (struct ipadb_e_data *)entry->e_data;
+        if (ied && ied->ipa_user != true) {
+            /* not a user, assume SPN */
+            return 0;
+        }
+    }
+
+    /* By default require preauth for all principals */
+    return KRB5_KDB_REQUIRES_PRE_AUTH;
+}
+
 static krb5_error_code ipadb_fetch_tktpolicy(krb5_context kcontext,
                                              LDAPMessage *lentry,
                                              krb5_db_entry *entry,
@@ -991,7 +1010,7 @@ static krb5_error_code ipadb_fetch_tktpolicy(krb5_context kcontext,
                 if (ret == 0) {
                     entry->attributes |= result;
                 } else {
-                    entry->attributes |= KRB5_KDB_REQUIRES_PRE_AUTH;
+                    entry->attributes |= maybe_require_preauth(ipactx, entry);
                 }
             }
         }
@@ -1007,7 +1026,7 @@ static krb5_error_code ipadb_fetch_tktpolicy(krb5_context kcontext,
             entry->max_renewable_life = 604800;
         }
         if (polmask & TKTFLAGS_BIT) {
-            entry->attributes |= KRB5_KDB_REQUIRES_PRE_AUTH;
+            entry->attributes |= maybe_require_preauth(ipactx, entry);
         }
 
         kerr = 0;
