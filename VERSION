@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=163
-# Last change: jcholast - replica install: add remote connection check over API
+IPA_API_VERSION_MINOR=164
+# Last change: simo - add optional string to disable preauth for SPNs

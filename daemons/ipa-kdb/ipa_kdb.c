@@ -261,12 +261,13 @@ static int ipadb_load_global_config(struct ipadb_context *ipactx)
                             vals[i]->bv_val, vals[i]->bv_len) == 0) {
                 ipactx->config.disable_last_success = true;
                 continue;
-            }
-
-            if (strncasecmp("KDC:Disable Lockout",
-                            vals[i]->bv_val, vals[i]->bv_len) == 0) {
+            } else if (strncasecmp("KDC:Disable Lockout",
+                                   vals[i]->bv_val, vals[i]->bv_len) == 0) {
                 ipactx->config.disable_lockout = true;
                 continue;
+            } else if (strncasecmp("KDC:Disable Default Preauth for SPNs",
+                                   vals[i]->bv_val, vals[i]->bv_len) == 0) {
+                ipactx->config.disable_preauth_for_spns = true;
             }
         }
     }
