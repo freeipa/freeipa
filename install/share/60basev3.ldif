@@ -76,7 +76,7 @@ objectClasses: (2.16.840.1.113730.3.8.12.15 NAME 'ipaIDrange' ABSTRACT MUST ( cn
 objectClasses: (2.16.840.1.113730.3.8.12.16 NAME 'ipaDomainIDRange' SUP ipaIDrange STRUCTURAL MAY ( ipaBaseRID $ ipaSecondaryBaseRID ) X-ORIGIN 'IPA v3' )
 objectClasses: (2.16.840.1.113730.3.8.12.17 NAME 'ipaTrustedADDomainRange' SUP ipaIDrange STRUCTURAL MUST ( ipaBaseRID $ ipaNTTrustedDomainSID ) X-ORIGIN 'IPA v3' )
 objectClasses: (2.16.840.1.113730.3.8.12.19 NAME 'ipaUserAuthTypeClass' SUP top AUXILIARY DESC 'Class for authentication methods definition' MAY ipaUserAuthType X-ORIGIN 'IPA v3')
-objectClasses: (2.16.840.1.113730.3.8.12.20 NAME 'ipaUser' AUXILIARY MUST ( uid ) MAY ( userClass ) X-ORIGIN 'IPA v3' )
+objectClasses: (2.16.840.1.113730.3.8.12.20 NAME 'ipaUser' AUXILIARY MUST ( uid) MAY ( userClass $ ipaKrbAuthzData ) X-ORIGIN 'IPA v3' )
 objectClasses: (2.16.840.1.113730.3.8.12.21 NAME 'ipaPermissionV2' DESC 'IPA Permission objectclass, version 2' SUP ipaPermission AUXILIARY MUST ( ipaPermBindRuleType $ ipaPermLocation ) MAY ( ipaPermDefaultAttr $ ipaPermIncludedAttr $ ipaPermExcludedAttr $ ipaPermRight $ ipaPermTargetFilter $ ipaPermTarget $ ipaPermTargetTo $ ipaPermTargetFrom ) X-ORIGIN 'IPA v4.0' )
 objectClasses: (2.16.840.1.113730.3.8.12.22 NAME 'ipaAllowedOperations' SUP top AUXILIARY DESC 'Class to apply access controls to arbitrary operations' MAY ( ipaAllowedToPerform $ ipaProtectedOperation ) X-ORIGIN 'IPA v4.0')
 objectClasses: (2.16.840.1.113730.3.8.12.24 NAME 'ipaPublicKeyObject' DESC 'Wrapped public keys' SUP top AUXILIARY MUST ( ipaPublicKey ) X-ORIGIN 'IPA v4.1' )
