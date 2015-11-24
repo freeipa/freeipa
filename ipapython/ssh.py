@@ -203,6 +203,8 @@ class SSHPublicKey(object):
             keytype = 2
         elif self._keytype.startswith('ecdsa-sha2-') and '@' not in self._keytype:
             keytype = 3
+        elif self._keytype == 'ssh-ed25519':
+            keytype = 4
         else:
             return
         fp = fpfunc(self._key).hexdigest().upper()
