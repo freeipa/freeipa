@@ -1,5 +1,6 @@
 # Authors:
 #   Rob Crittenden <rcritten@redhat.com>
+#   Filip Skola <fskola@redhat.com>
 #
 # Copyright (C) 2011  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -25,134 +26,55 @@ Note that member management in other tests also exercises the
 gen_modlist code.
 """
 
-from ipatests.test_xmlrpc.xmlrpc_test import Declarative
-from ipatests.test_xmlrpc.test_user_plugin import get_user_result
+
+from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
+from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
 import pytest
 
-user1=u'tuser1'
+
+@pytest.fixture(scope='class')
+def user(request):
+    tracker = UserTracker(
+        name=u'user1', givenname=u'Test', sn=u'User1',
+        mail=[u'test1@example.com', u'test2@example.com']
+    )
+    return tracker.make_fixture(request)
 
 
 @pytest.mark.tier1
-class test_replace(Declarative):
+class TestReplace(XMLRPC_test):
+    def test_create(self, user):
+        """ Create a user account with two mail addresses """
+        user.create()
 
-    cleanup_commands = [
-        ('user_del', [user1], {}),
-    ]
+    def test_drop_one_add_another_mail(self, user):
+        """ Drop one mail address and add another to the user """
+        updates = {'mail': [u'test1@example.com', u'test3@example.com']}
+        user.update(updates, updates)
 
-    tests = [
+    def test_set_new_single_mail(self, user):
+        """ Reset mail attribute to one single value """
+        updates = {'mail': u'test4@example.com'}
+        user.update(updates)
 
-        dict(
-            desc='Create %r with 2 e-mail accounts' % user1,
-            command=(
-                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
-                    mail=[u'test1@example.com', u'test2@example.com'])
-            ),
-            expected=dict(
-                value=user1,
-                summary=u'Added user "tuser1"',
-                result=get_user_result(
-                    user1, u'Test', u'User1', 'add',
-                    mail=[u'test1@example.com', u'test2@example.com'],
-                ),
-            ),
-        ),
+    def test_set_three_new_mails(self, user):
+        """ Assign three new mail addresses to the user """
+        updates = {'mail': [
+            u'test5@example.com', u'test6@example.com', u'test7@example.com'
+        ]}
+        user.update(updates, updates)
 
+    def test_remove_all_mails(self, user):
+        """ Remove all email addresses from the user """
+        updates = {'mail': u''}
+        user.update(updates)
 
-        dict(
-            desc='Drop one e-mail account, add another to %r' % user1,
-            command=(
-                'user_mod', [user1], dict(mail=[u'test1@example.com', u'test3@example.com'])
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Test', u'User1', 'mod',
-                    mail=[u'test1@example.com', u'test3@example.com'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
+    def test_replace_initials(self, user):
+        """ Test single value attribute by replacing initials """
+        updates = {'initials': u'ABC'}
+        user.update(updates)
 
-
-        dict(
-            desc='Set mail to a new single value %r' % user1,
-            command=(
-                'user_mod', [user1], dict(mail=u'test4@example.com')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Test', u'User1', 'mod',
-                    mail=[u'test4@example.com'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
-
-
-        dict(
-            desc='Set mail to three new values %r' % user1,
-            command=(
-                'user_mod', [user1], dict(mail=[u'test5@example.com', u'test6@example.com', u'test7@example.com'])
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Test', u'User1', 'mod',
-                    mail=[u'test5@example.com', u'test6@example.com',
-                          u'test7@example.com'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
-
-
-        dict(
-            desc='Remove all mail values %r' % user1,
-            command=(
-                'user_mod', [user1], dict(mail=u'')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Test', u'User1', 'mod',
-                    omit=['mail'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
-
-
-        dict(
-            desc='Ensure single-value mods work too, replace initials %r' % user1,
-            command=(
-                'user_mod', [user1], dict(initials=u'ABC')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Test', u'User1', 'mod',
-                    initials=[u'ABC'],
-                    omit=['mail'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
-
-
-        dict(
-            desc='Drop a single-value attribute %r' % user1,
-            command=(
-                'user_mod', [user1], dict(initials=u'')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Test', u'User1', 'mod',
-                    omit=['mail'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
-
-    ]
+    def test_drop_initials(self, user):
+        """ Test drop of single value attribute by dropping initials """
+        updates = {'initials': u''}
+        user.update(updates)
