@@ -337,7 +337,8 @@ topology.domainlevel_set_action = function(spec) {
     that.execute_action = function(facet) {
 
         var dialog = builder.build('dialog', that.dialog);
-        dialog.succeeded.attach(function() {
+        dialog.succeeded.attach(function(data) {
+            IPA.domain_level = data.result.result;
             if (that.refresh) facet.refresh();
         });
         dialog.open();
@@ -622,6 +623,7 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
 
     disabled_view_el: null,
     topology_view_el: null,
+    current_view_el: null,
     visualization_cnt_el: null,
 
     _get_servers: function() {
@@ -800,6 +802,8 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
     },
 
     update: function() {
+        this._update_view();
+
         if (IPA.domain_level < topology.required_domain_level) return;
 
         when(this._get_data()).then(lang.hitch(this, function(data) {
@@ -832,13 +836,33 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
         forward('link-selected');
     },
 
+    _update_view: function() {
+
+        var view;
+
+        if (IPA.domain_level < topology.required_domain_level) {
+            if (!this.disabled_view_el) {
+                view = this._render_disabled_view();
+            } else {
+                view = this.disabled_view_el;
+            }
+        } else {
+            if (!this.topology_view_el) {
+                view = this._render_topology_view();
+            } else {
+                view = this.topology_view_el;
+            }
+        }
+        if (view !== this.current_view_el) {
+            this.el.empty();
+            view.appendTo(this.el);
+        }
+        this.current_view_el = view;
+    },
+
     render: function() {
         this.el = $('<div/>', { 'class': this.css_class });
-        if (IPA.domain_level < topology.required_domain_level) {
-            this._render_disabled_view().appendTo(this.el);
-        } else {
-            this._render_topology_view().appendTo(this.el);
-        }
+        this._update_view();
         if (this.container_node) {
             this.el.appendTo(this.container_node);
         }

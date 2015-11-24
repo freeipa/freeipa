@@ -1720,10 +1720,10 @@ IPA.command_dialog = dialogs.command_dialog = function(spec) {
             args: that.args,
             options: options,
             on_success: function(data) {
-                that.on_success();
+                that.on_success(data);
             },
-            on_error: function() {
-                that.on_error();
+            on_error: function(data) {
+                that.on_error(data);
             }
         });
         return command;
