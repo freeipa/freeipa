@@ -309,7 +309,7 @@ def ldap2master_replica_keys_sync(log, ldapkeydb, localhsm):
     log.info("new replica keys in LDAP: %s", hex_set(new_replica_keys))
     for key_id in new_replica_keys:
         new_key_ldap = ldapkeydb.replica_pubkeys_wrap[key_id]
-        log.error('label=%s,  id=%s, data=%s',
+        log.debug('label=%s, id=%s, data=%s',
                 new_key_ldap['ipk11label'],
                 hexlify(new_key_ldap['ipk11id']),
                 hexlify(new_key_ldap['ipapublickey']))
