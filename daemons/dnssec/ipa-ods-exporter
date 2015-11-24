@@ -57,6 +57,14 @@ ODS_DB_LOCK_PATH = "%s%s" % (paths.OPENDNSSEC_KASP_DB, '.our_lock')
 SECRETKEY_WRAPPING_MECH = 'rsaPkcsOaep'
 PRIVKEY_WRAPPING_MECH = 'aesKeyWrapPad'
 
+# Constants from OpenDNSSEC's enforcer/ksm/include/ksm/ksm.h
+KSM_STATE_PUBLISH    = 2
+KSM_STATE_READY      = 3
+KSM_STATE_ACTIVE     = 4
+KSM_STATE_RETIRE     = 5
+KSM_STATE_DEAD       = 6
+KSM_STATE_KEYPUBLISH = 10
+
 # DNSKEY flag constants
 dnskey_flag_by_value = {
     0x0001: 'SEP',
@@ -122,6 +130,77 @@ def sql2ldap_keyid(sql_keyid):
     #uri += '%'.join(sql_keyid[i:i+2] for i in range(0, len(sql_keyid), 2))
     return {"idnsSecKeyRef": uri}
 
+def ods2bind_timestamps(key_state, key_type, ods_times):
+    """Transform (timestamps and key states) from ODS to set of BIND timestamps
+    with equivalent meaning. At the same time, remove timestamps
+    for future/planned state transitions to prevent ODS & BIND
+    from desynchronizing.
+
+    OpenDNSSEC database may contain timestamps for state transitions planned
+    in the future, but timestamp itself is not sufficient information because
+    there could be some additional condition which is guaded by OpenDNSSEC
+    itself.
+
+    BIND works directly with timestamps without any additional conditions.
+    This difference causes problem when state transition planned in OpenDNSSEC
+    does not happen as originally planned for some reason.
+
+    At the same time, this difference causes problem when OpenDNSSEC on DNSSEC
+    key master and BIND instances on replicas are not synchronized. This
+    happens when DNSSEC key master is down, or a replication is down. Even
+    a temporary desynchronization could cause DNSSEC validation failures
+    which could have huge impact.
+
+    To prevent this problem, this function removes all timestamps corresponding
+    to future state transitions. As a result, BIND will not do state transition
+    until it happens in OpenDNSSEC first and until the change is replicated.
+
+    Also, timestamp mapping depends on key type and is not 1:1.
+    For detailed description of the mapping please see
+    https://fedorahosted.org/bind-dyndb-ldap/wiki/BIND9/Design/DNSSEC/OpenDNSSEC2BINDKeyStates
+    """
+    bind_times = {}
+    # idnsSecKeyCreated is equivalent to SQL column 'created'
+    bind_times['idnsSecKeyCreated'] = ods_times['idnsSecKeyCreated']
+
+    # set of key states where publishing in DNS zone is desired is taken from
+    # opendnssec/enforcer/ksm/ksm_request.c:KsmRequestIssueKeys()
+    # TODO: support for RFC 5011, requires OpenDNSSEC v1.4.8+
+    if ('idnsSecKeyPublish' in ods_times and
+        key_state in {KSM_STATE_PUBLISH, KSM_STATE_READY, KSM_STATE_ACTIVE,
+                      KSM_STATE_RETIRE, KSM_STATE_KEYPUBLISH}):
+        bind_times['idnsSecKeyPublish'] = ods_times['idnsSecKeyPublish']
+
+    # ZSK and KSK handling differs in enforcerd, see
+    # opendnssec/enforcer/enforcerd/enforcer.c:commKeyConfig()
+    if key_type == 'ZSK':
+        # idnsSecKeyActivate cannot be set before the key reaches ACTIVE state
+        if ('idnsSecKeyActivate' in ods_times and
+            key_state in {KSM_STATE_ACTIVE, KSM_STATE_RETIRE, KSM_STATE_DEAD}):
+                bind_times['idnsSecKeyActivate'] = ods_times['idnsSecKeyActivate']
+
+        # idnsSecKeyInactive cannot be set before the key reaches RETIRE state
+        if ('idnsSecKeyInactive' in ods_times and
+            key_state in {KSM_STATE_RETIRE, KSM_STATE_DEAD}):
+                bind_times['idnsSecKeyInactive'] = ods_times['idnsSecKeyInactive']
+
+    elif key_type == 'KSK':
+        # KSK is special: it is used for signing as long as it is in zone
+        if ('idnsSecKeyPublish' in ods_times and
+            key_state in {KSM_STATE_PUBLISH, KSM_STATE_READY, KSM_STATE_ACTIVE,
+                          KSM_STATE_RETIRE, KSM_STATE_KEYPUBLISH}):
+            bind_times['idnsSecKeyActivate'] = ods_times['idnsSecKeyPublish']
+        # idnsSecKeyInactive is ignored for KSK on purpose
+
+    else:
+        assert False, "unsupported key type %s" % key_type
+
+    # idnsSecKeyDelete is relevant only in DEAD state
+    if 'idnsSecKeyDelete' in ods_times and key_state == KSM_STATE_DEAD:
+        bind_times['idnsSecKeyDelete'] = ods_times['idnsSecKeyDelete']
+
+    return bind_times
+
 class ods_db_lock(object):
     def __enter__(self):
         self.f = open(ODS_DB_LOCK_PATH, 'w')
@@ -172,24 +251,30 @@ def get_ods_keys(zone_name):
     assert len(rows) == 1, "exactly one DNS zone should exist in ODS DB"
     zone_id = rows[0][0]
 
-    # get all keys for given zone ID
-    cur = db.execute("SELECT kp.HSMkey_id, kp.generate, kp.algorithm, dnsk.publish, dnsk.active, dnsk.retire, dnsk.dead, dnsk.keytype "
-             "FROM keypairs AS kp JOIN dnsseckeys AS dnsk ON kp.id = dnsk.keypair_id "
-             "WHERE dnsk.zone_id = ?", (zone_id,))
+    # get relevant keys for given zone ID:
+    # ignore keys which were generated but not used yet
+    # key state check is using constants from
+    # OpenDNSSEC's enforcer/ksm/include/ksm/ksm.h
+    # WARNING! OpenDNSSEC version 1 and 2 are using different constants!
+    cur = db.execute("SELECT kp.HSMkey_id, kp.generate, kp.algorithm, "
+                     "dnsk.publish, dnsk.active, dnsk.retire, dnsk.dead, "
+                     "dnsk.keytype, dnsk.state "
+                     "FROM keypairs AS kp "
+                     "JOIN dnsseckeys AS dnsk ON kp.id = dnsk.keypair_id "
+                     "WHERE dnsk.zone_id = ?", (zone_id,))
     keys = {}
     for row in cur:
-        key_data = sql2datetimes(row)
-        if 'idnsSecKeyDelete' in key_data \
-            and key_data['idnsSecKeyDelete'] > datetime.now():
-                continue  # ignore deleted keys
-
-        key_data.update(sql2ldap_flags(row['keytype']))
+        key_data = sql2ldap_flags(row['keytype'])
         assert key_data.get('idnsSecKeyZONE', None) == 'TRUE', \
                 'unexpected key type 0x%x' % row['keytype']
         if key_data.get('idnsSecKeySEP', 'FALSE') == 'TRUE':
             key_type = 'KSK'
         else:
             key_type = 'ZSK'
+
+        # transform key state to timestamps for BIND with equivalent semantics
+        ods_times = sql2datetimes(row)
+        key_data.update(ods2bind_timestamps(row['state'], key_type, ods_times))
 
         key_data.update(sql2ldap_algorithm(row['algorithm']))
         key_id = "%s-%s-%s" % (key_type,
