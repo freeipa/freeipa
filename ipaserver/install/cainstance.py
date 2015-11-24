@@ -1846,7 +1846,8 @@ def _create_dogtag_profile(profile_id, profile_data):
 
 def ensure_default_caacl():
     """Add the default CA ACL if missing."""
-    if not api.Backend.ldap2.isconnected():
+    is_already_connected = api.Backend.ldap2.isconnected()
+    if not is_already_connected:
         try:
             api.Backend.ldap2.connect(autobind=True)
         except errors.PublicError as e:
@@ -1870,7 +1871,7 @@ def ensure_default_caacl():
         api.Command.caacl_add_profile(u'hosts_services_caIPAserviceCert',
             certprofile=(u'caIPAserviceCert',))
 
-    if api.Backend.ldap2.isconnected():
+    if not is_already_connected:
         api.Backend.ldap2.disconnect()
 
 
