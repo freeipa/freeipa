@@ -2143,11 +2143,13 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         ks_client_princ = client->princ;
     }
 
-    /* We only need to check the server entry here, because even if the client
-     * is a service with a valid authorization data it will result to NONE
-     * because ipadb_get_pac() can only generate a pac for 'real' IPA users.
-     * (I assume this will be the same for PAD.) */
-    get_authz_data_types(context, server, &with_pac, &with_pad);
+    if (client_entry == NULL) client_entry = client;
+
+    if (is_as_req) {
+        get_authz_data_types(context, client_entry, &with_pac, &with_pad);
+    } else {
+        get_authz_data_types(context, server, &with_pac, &with_pad);
+    }
 
     if (with_pad) {
         krb5_klog_syslog(LOG_ERR, "PAD authorization data is requested but " \
@@ -2189,7 +2191,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
         /* check or generate pac data */
         if ((pac_auth_data == NULL) || (pac_auth_data[0] == NULL)) {
             if (flags & KRB5_KDB_FLAG_CONSTRAINED_DELEGATION) {
-                kerr = ipadb_get_pac(context, client_entry ? client_entry : client, &pac);
+                kerr = ipadb_get_pac(context, client_entry, &pac);
                 if (kerr != 0 && kerr != ENOENT) {
                     goto done;
                 }
@@ -2242,7 +2244,7 @@ krb5_error_code ipadb_sign_authdata(krb5_context context,
     kerr = 0;
 
 done:
-    if (client_entry != NULL) {
+    if (client_entry != NULL && client_entry != client) {
         ipadb_free_principal(context, client_entry);
     }
     krb5_pac_free(context, pac);
