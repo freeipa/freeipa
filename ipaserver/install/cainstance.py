@@ -2028,6 +2028,9 @@ def ensure_default_caacl():
         api.Command.caacl_add_profile(u'hosts_services_caIPAserviceCert',
             certprofile=(u'caIPAserviceCert',))
 
+    if api.Backend.ldap2.isconnected():
+        api.Backend.ldap2.disconnect()
+
 
 if __name__ == "__main__":
     standard_logging_setup("install.log")
