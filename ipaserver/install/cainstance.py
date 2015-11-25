@@ -595,9 +595,7 @@ class CAInstance(DogtagInstance):
             'SUFFIX': api.env.basedn,
             'FQDN': self.fqdn,
         })
-        rv = ld.update([paths.CA_TOPOLOGY_ULDIF])
-        if not rv:
-            raise RuntimeError("Failed to update CA topology configuration")
+        ld.update([paths.CA_TOPOLOGY_ULDIF])
 
     def __disable_nonce(self):
         # Turn off Nonces

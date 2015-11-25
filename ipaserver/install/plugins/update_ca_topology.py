@@ -25,9 +25,8 @@ class update_ca_topology(Updater):
             'SUFFIX': self.api.env.basedn,
             'FQDN': self.api.env.host,
         })
-        rv = ld.update([paths.CA_TOPOLOGY_ULDIF])
-        if not rv:
-            self.log.error("Failed to update CA topology configuration")
+
+        ld.update([paths.CA_TOPOLOGY_ULDIF])
 
         return False, []
 
