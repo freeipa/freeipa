@@ -87,6 +87,6 @@ def uninstall(standalone):
         except errors.NotFound:
             pass
 
-    kra.stop_tracking_certificates()
+    kra.stop_tracking_certificates(stop_certmonger=not standalone)
     if kra.is_installed():
         kra.uninstall()
