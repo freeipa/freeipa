@@ -549,10 +549,12 @@ class CAInstance(DogtagInstance):
             x509.write_certificate(cert.der_data, cert_file.name)
             cert_file.flush()
 
-            cert_chain, stderr, rc = ipautil.run(
+            result = ipautil.run(
                 [paths.OPENSSL, 'crl2pkcs7',
                  '-certfile', self.cert_chain_file,
-                 '-nocrl'])
+                 '-nocrl'],
+                capture_output=True)
+            cert_chain = result.output
             # Dogtag chokes on the header and footer, remove them
             # https://bugzilla.redhat.com/show_bug.cgi?id=1127838
             cert_chain = re.search(
@@ -621,11 +623,12 @@ class CAInstance(DogtagInstance):
 
         # Look through the cert chain to get all the certs we need to add
         # trust for
-        p = subprocess.Popen([paths.CERTUTIL, "-d", self.agent_db,
-                              "-O", "-n", "ipa-ca-agent"], stdout=subprocess.PIPE)
-
-        chain = p.stdout.read()
-        chain = chain.split("\n")
+        args = [paths.CERTUTIL,
+                "-d", self.agent_db,
+                "-O",
+                "-n", "ipa-ca-agent"]
+        result = ipautil.run(args, capture_output=True)
+        chain = result.output.split("\n")
 
         root_nickname=[]
         for part in chain:
@@ -660,10 +663,11 @@ class CAInstance(DogtagInstance):
             '-r', '/ca/agent/ca/profileReview?requestId=%s' % self.requestId,
             '%s' % ipautil.format_netloc(self.fqdn, 8443),
         ]
-        (stdout, _stderr, _returncode) = ipautil.run(
-            args, nolog=(self.admin_password,))
+        result = ipautil.run(
+            args, nolog=(self.admin_password,),
+            capture_output=True)
 
-        data = stdout.split('\n')
+        data = result.output.split('\n')
         params = get_defList(data)
         params['requestId'] = find_substring(data, "requestId")
         params['op'] = 'approve'
@@ -682,10 +686,11 @@ class CAInstance(DogtagInstance):
             '-r', '/ca/agent/ca/profileProcess',
             '%s' % ipautil.format_netloc(self.fqdn, 8443),
         ]
-        (stdout, _stderr, _returncode) = ipautil.run(
-            args, nolog=(self.admin_password,))
+        result = ipautil.run(
+            args, nolog=(self.admin_password,),
+            capture_output=True)
 
-        data = stdout.split('\n')
+        data = result.output.split('\n')
         outputList = get_outputList(data)
 
         self.ra_cert = outputList['b64_cert']
@@ -776,14 +781,15 @@ class CAInstance(DogtagInstance):
 
         conn.disconnect()
 
-    def __run_certutil(self, args, database=None, pwd_file=None, stdin=None):
+    def __run_certutil(self, args, database=None, pwd_file=None, stdin=None,
+                       **kwargs):
         if not database:
             database = self.ra_agent_db
         if not pwd_file:
             pwd_file = self.ra_agent_pwd
         new_args = [paths.CERTUTIL, "-d", database, "-f", pwd_file]
         new_args = new_args + args
-        return ipautil.run(new_args, stdin, nolog=(pwd_file,))
+        return ipautil.run(new_args, stdin, nolog=(pwd_file,), **kwargs)
 
     def __create_ra_agent_db(self):
         if ipautil.file_exists(self.ra_agent_db + "/cert8.db"):
@@ -822,13 +828,14 @@ class CAInstance(DogtagInstance):
         # makes openssl throw up.
         data = base64.b64decode(chain)
 
-        (certlist, _stderr, _returncode) = ipautil.run(
+        result = ipautil.run(
             [paths.OPENSSL,
              "pkcs7",
              "-inform",
              "DER",
              "-print_certs",
-             ], stdin=data)
+             ], stdin=data, capture_output=True)
+        certlist = result.output
 
         # Ok, now we have all the certificates in certs, walk through it
         # and pull out each certificate and add it to our database
@@ -869,14 +876,15 @@ class CAInstance(DogtagInstance):
 
         # Generate our CSR. The result gets put into stdout
         try:
-            (stdout, _stderr, _returncode) = self.__run_certutil(
+            result = self.__run_certutil(
                 ["-R", "-k", "rsa", "-g", "2048", "-s",
                  str(DN(('CN', 'IPA RA'), self.subject_base)),
-                 "-z", noise_name, "-a"])
+                 "-z", noise_name, "-a"],
+                capture_output=True)
         finally:
             os.remove(noise_name)
 
-        csr = pkcs10.strip_header(stdout)
+        csr = pkcs10.strip_header(result.output)
 
         # Send the request to the CA
         conn = httplib.HTTPConnection(self.fqdn, 8080)
@@ -1051,7 +1059,9 @@ class CAInstance(DogtagInstance):
 
     def publish_ca_cert(self, location):
         args = ["-L", "-n", self.canickname, "-a"]
-        (cert, _err, _returncode) = self.__run_certutil(args)
+        result = self.__run_certutil(
+            args, capture_output=True)
+        cert = result.output
         fd = open(location, "w+")
         fd.write(cert)
         fd.close()

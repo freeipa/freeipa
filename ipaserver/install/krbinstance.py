@@ -300,9 +300,10 @@ class KrbInstance(service.Service):
         MIN_KRB5KDC_WITH_WORKERS = "1.9"
         cpus = os.sysconf('SC_NPROCESSORS_ONLN')
         workers = False
-        (stdout, stderr, rc) = ipautil.run(['klist', '-V'], raiseonerr=False)
-        if rc == 0:
-            verstr = stdout.split()[-1]
+        result = ipautil.run(['klist', '-V'],
+                             raiseonerr=False, capture_output=True)
+        if result.returncode == 0:
+            verstr = result.output.split()[-1]
             ver = version.LooseVersion(verstr)
             min = version.LooseVersion(MIN_KRB5KDC_WITH_WORKERS)
             if ver >= min:

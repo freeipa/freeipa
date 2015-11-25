@@ -66,7 +66,6 @@ EOF
 """
 
 
-
 def encrypt_file(filename, keyring, remove_original=True):
     source = filename
     dest = filename + '.gpg'
@@ -86,9 +85,9 @@ def encrypt_file(filename, keyring, remove_original=True):
     args.append('-e')
     args.append(source)
 
-    (stdout, stderr, rc) = run(args, raiseonerr=False)
-    if rc != 0:
-        raise admintool.ScriptError('gpg failed: %s' % stderr)
+    result = run(args, raiseonerr=False)
+    if result.returncode != 0:
+        raise admintool.ScriptError('gpg failed: %s' % result.error_log)
 
     if remove_original:
         os.unlink(source)
@@ -420,9 +419,9 @@ class Backup(admintool.AdminTool):
                     '-r',
                     '-n', backend,
                     '-a', ldiffile]
-            (stdout, stderr, rc) = run(args, raiseonerr=False)
-            if rc != 0:
-                self.log.critical("db2ldif failed: %s", stderr)
+            result = run(args, raiseonerr=False)
+            if result.returncode != 0:
+                self.log.critical('db2ldif failed: %s', result.error_log)
 
         # Move the LDIF backup to our location
         shutil.move(ldiffile, os.path.join(self.dir, ldifname))
@@ -464,9 +463,9 @@ class Backup(admintool.AdminTool):
             wait_for_task(conn, dn)
         else:
             args = [paths.DB2BAK, bakdir, '-Z', instance]
-            (stdout, stderr, rc) = run(args, raiseonerr=False)
-            if rc != 0:
-                self.log.critical("db2bak failed: %s" % stderr)
+            result = run(args, raiseonerr=False)
+            if result.returncode != 0:
+                self.log.critical('db2bak failed: %s', result.error_log)
 
         shutil.move(bakdir, self.dir)
 
@@ -493,10 +492,10 @@ class Backup(admintool.AdminTool):
         if options.logs:
             args.extend(verify_directories(self.logs))
 
-        (stdout, stderr, rc) = run(args, raiseonerr=False)
-        if rc != 0:
-            raise admintool.ScriptError('tar returned non-zero code '
-                '%d: %s' % (rc, stderr))
+        result = run(args, raiseonerr=False)
+        if result.returncode != 0:
+            raise admintool.ScriptError('tar returned non-zero code %d: %s' %
+                                        (result.returncode, result.error_log))
 
         # Backup the necessary directory structure. This is a separate
         # call since we are using the '--no-recursion' flag to store
@@ -514,17 +513,21 @@ class Backup(admintool.AdminTool):
                    ]
             args.extend(missing_directories)
 
-            (stdout, stderr, rc) = run(args, raiseonerr=False)
-            if rc != 0:
-                raise admintool.ScriptError('tar returned non-zero %d when adding '
-                    'directory structure: %s' % (rc, stderr))
+            result = run(args, raiseonerr=False)
+            if result.returncode != 0:
+                raise admintool.ScriptError(
+                    'tar returned non-zero code %d '
+                    'when adding directory structure: %s' %
+                    (result.returncode, result.error_log))
 
         # Compress the archive. This is done separately, since 'tar' cannot
         # append to a compressed archive.
-        (stdout, stderr, rc) = run(['gzip', tarfile], raiseonerr=False)
-        if rc != 0:
-            raise admintool.ScriptError('gzip returned non-zero %d when '
-                'compressing the backup: %s' % (rc, stderr))
+        result = run(['gzip', tarfile], raiseonerr=False)
+        if result.returncode != 0:
+            raise admintool.ScriptError(
+                'gzip returned non-zero code %d '
+                'when compressing the backup: %s' %
+                (result.returncode, result.error_log))
 
         # Rename the archive back to files.tar to preserve compatibility
         os.rename(os.path.join(self.dir, 'files.tar.gz'), tarfile)
@@ -596,9 +599,11 @@ class Backup(admintool.AdminTool):
                 filename,
                 '.'
                ]
-        (stdout, stderr, rc) = run(args, raiseonerr=False)
-        if rc != 0:
-            raise admintool.ScriptError('tar returned non-zero %d: %s' % (rc, stdout))
+        result = run(args, raiseonerr=False)
+        if result.returncode != 0:
+            raise admintool.ScriptError(
+                'tar returned non-zero code %s: %s' %
+                (result.returncode, result.error_log))
 
         if encrypt:
             self.log.info('Encrypting %s' % filename)

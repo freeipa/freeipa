@@ -279,9 +279,9 @@ class pwpolicy(LDAPObject):
     has_lockout = False
     lockout_params = ()
 
-    (stdout, stderr, rc) = run(['klist', '-V'], raiseonerr=False)
-    if rc == 0:
-        verstr = stdout.split()[-1]
+    result = run(['klist', '-V'], raiseonerr=False, capture_output=True)
+    if result.returncode == 0:
+        verstr = result.output.split()[-1]
         ver = version.LooseVersion(verstr)
         min = version.LooseVersion(MIN_KRB5KDC_WITH_LOCKOUT)
         if ver >= min:

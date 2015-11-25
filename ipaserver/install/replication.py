@@ -93,10 +93,10 @@ def replica_conn_check(master_host, host_name, realm, check_ca,
     if ca_cert_file:
         args.extend(["--ca-cert-file", ca_cert_file])
 
-    (stdin, stderr, returncode) = ipautil.run(
+    result = ipautil.run(
         args, raiseonerr=False, capture_output=False, nolog=nolog)
 
-    if returncode != 0:
+    if result.returncode != 0:
         sys.exit("Connection check failed!" +
                  "\nPlease fix your network settings according to error messages above." +
                  "\nIf the check results are not valid it can be skipped with --skip-conncheck parameter.")

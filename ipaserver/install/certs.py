@@ -164,8 +164,8 @@ class CertDB(object):
     def gen_password(self):
         return sha1(ipautil.ipa_generate_password()).hexdigest()
 
-    def run_certutil(self, args, stdin=None):
-        return self.nssdb.run_certutil(args, stdin)
+    def run_certutil(self, args, stdin=None, **kwargs):
+        return self.nssdb.run_certutil(args, stdin, **kwargs)
 
     def run_signtool(self, args, stdin=None):
         with open(self.passwd_fname, "r") as f:
@@ -231,8 +231,9 @@ class CertDB(object):
         root_nicknames = self.find_root_cert(nickname)[:-1]
         fd = open(self.cacert_fname, "w")
         for root in root_nicknames:
-            (cert, stderr, returncode) = self.run_certutil(["-L", "-n", root, "-a"])
-            fd.write(cert)
+            result = self.run_certutil(["-L", "-n", root, "-a"],
+                                       capture_output=True)
+            fd.write(result.output)
         fd.close()
         os.chmod(self.cacert_fname, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
         if create_pkcs12:
@@ -276,7 +277,8 @@ class CertDB(object):
         """
         try:
             args = ["-L", "-n", nickname, "-a"]
-            (cert, err, returncode) = self.run_certutil(args)
+            result = self.run_certutil(args, capture_output=True)
+            cert = result.output
             if pem:
                 return cert
             else:
@@ -370,9 +372,10 @@ class CertDB(object):
                 "-z", self.noise_fname,
                 "-f", self.passwd_fname,
                 "-a"]
-        (stdout, stderr, returncode) = self.run_certutil(args)
+        result = self.run_certutil(args,
+                                   capture_output=True, capture_error=True)
         os.remove(self.noise_fname)
-        return (stdout, stderr)
+        return (result.output, result.error_output)
 
     def issue_server_cert(self, certreq_fname, cert_fname):
         self.setup_cert_request()

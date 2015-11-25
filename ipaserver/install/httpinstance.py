@@ -28,6 +28,9 @@ import re
 import dbus
 import shlex
 import pipes
+import locale
+
+import six
 
 from ipaserver.install import service
 from ipaserver.install import certs
@@ -63,13 +66,17 @@ def httpd_443_configured():
     False otherwise.
     """
     try:
-        (stdout, stderr, rc) = ipautil.run([paths.HTTPD, '-t', '-D', 'DUMP_VHOSTS'])
+        result = ipautil.run([paths.HTTPD, '-t', '-D', 'DUMP_VHOSTS'],
+                             capture_output=True)
     except ipautil.CalledProcessError as e:
         service.print_msg("WARNING: cannot check if port 443 is already configured")
         service.print_msg("httpd returned error when checking: %s" % e)
         return False
 
     port_line_re = re.compile(r'(?P<address>\S+):(?P<port>\d+)')
+    stdout = result.raw_output
+    if six.PY3:
+        stdout = stdout.decode(locale.getpreferredencoding(), errors='replace')
     for line in stdout.splitlines():
         m = port_line_re.match(line)
         if m and int(m.group('port')) == 443:

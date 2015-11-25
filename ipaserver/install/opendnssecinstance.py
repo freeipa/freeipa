@@ -288,10 +288,11 @@ class OpenDNSSECInstance(service.Service):
             # regenerate zonelist.xml
             ods_enforcerd = services.knownservices.ods_enforcerd
             cmd = [paths.ODS_KSMUTIL, 'zonelist', 'export']
-            stdout, stderr, retcode = ipautil.run(cmd,
-                                          runas=ods_enforcerd.get_user_name())
+            result = ipautil.run(cmd,
+                                 runas=ods_enforcerd.get_user_name(),
+                                 capture_output=True)
             with open(paths.OPENDNSSEC_ZONELIST_FILE, 'w') as zonelistf:
-                zonelistf.write(stdout)
+                zonelistf.write(result.output)
                 os.chown(paths.OPENDNSSEC_ZONELIST_FILE,
                          self.ods_uid, self.ods_gid)
                 os.chmod(paths.OPENDNSSEC_ZONELIST_FILE, 0o660)

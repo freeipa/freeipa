@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 # Authors:
 #   Jan Cholasta <jcholast@redhat.com>
 #
@@ -417,3 +419,62 @@ class TestTimeParser(object):
         nose.tools.assert_equal(-30, time.tzinfo.minoffset)
         offset = time.tzinfo.utcoffset(time.tzinfo.dst())
         nose.tools.assert_equal(((24 - 9) * 60 * 60) - (30 * 60), offset.seconds)
+
+
+def test_run():
+    result = ipautil.run(['echo', 'foo\x02bar'],
+                         capture_output=True,
+                         capture_error=True)
+    assert result.returncode == 0
+    assert result.output == 'foo\x02bar\n'
+    assert result.raw_output == b'foo\x02bar\n'
+    assert result.error_output == ''
+    assert result.raw_error_output == b''
+
+
+def test_run_no_capture_output():
+    result = ipautil.run(['echo', 'foo\x02bar'])
+    assert result.returncode == 0
+    assert result.output is None
+    assert result.raw_output == b'foo\x02bar\n'
+    assert result.error_output is None
+    assert result.raw_error_output == b''
+
+
+def test_run_bytes():
+    result = ipautil.run(['echo', b'\x01\x02'], capture_output=True)
+    assert result.returncode == 0
+    assert result.output == b'\x01\x02\n'
+
+
+def test_run_decode():
+    result = ipautil.run(['echo', u'á'.encode('utf-8')],
+                         encoding='utf-8', capture_output=True)
+    assert result.returncode == 0
+    if six.PY3:
+        assert result.output == 'á\n'
+    else:
+        assert result.output == 'á\n'.encode('utf-8')
+
+
+def test_run_decode_bad():
+    if six.PY3:
+        with pytest.raises(UnicodeDecodeError):
+            ipautil.run(['echo', b'\xa0\xa1'],
+                        capture_output=True,
+                        encoding='utf-8')
+    else:
+        result = ipautil.run(['echo', '\xa0\xa1'],
+                             capture_output=True,
+                             encoding='utf-8')
+        assert result.returncode == 0
+        assert result.output == '\xa0\xa1\n'
+
+
+def test_backcompat():
+    result = out, err, rc = ipautil.run(['echo', 'foo\x02bar'],
+                                        capture_output=True,
+                                        capture_error=True)
+    assert rc is result.returncode
+    assert out is result.output
+    assert err is result.error_output

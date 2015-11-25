@@ -28,8 +28,8 @@ import pytest
 pytestmark = pytest.mark.tier0
 
 TEST_KEY = 'ipa_test'
-TEST_VALUE = 'abc123'
-UPDATE_VALUE = '123abc'
+TEST_VALUE = b'abc123'
+UPDATE_VALUE = b'123abc'
 
 SIZE_256 = 'abcdefgh' * 32
 SIZE_512 = 'abcdefgh' * 64
@@ -94,9 +94,10 @@ class test_keyring(object):
 
         # Now update it 10 times
         for i in range(10):
-            kernel_keyring.update_key(TEST_KEY, 'test %d' %  i)
+            value = ('test %d' % i).encode('ascii')
+            kernel_keyring.update_key(TEST_KEY, value)
             result = kernel_keyring.read_key(TEST_KEY)
-            assert(result == 'test %d' % i)
+            assert(result == value)
 
         kernel_keyring.del_key(TEST_KEY)
 
@@ -134,9 +135,9 @@ class test_keyring(object):
         """
         Test 512-bytes of data
         """
-        kernel_keyring.add_key(TEST_KEY, SIZE_512)
+        kernel_keyring.add_key(TEST_KEY, SIZE_512.encode('ascii'))
         result = kernel_keyring.read_key(TEST_KEY)
-        assert(result == SIZE_512)
+        assert(result == SIZE_512.encode('ascii'))
 
         kernel_keyring.del_key(TEST_KEY)
 
@@ -144,8 +145,8 @@ class test_keyring(object):
         """
         Test 1k bytes of data
         """
-        kernel_keyring.add_key(TEST_KEY, SIZE_1024)
+        kernel_keyring.add_key(TEST_KEY, SIZE_1024.encode('ascii'))
         result = kernel_keyring.read_key(TEST_KEY)
-        assert(result == SIZE_1024)
+        assert(result == SIZE_1024.encode('ascii'))
 
         kernel_keyring.del_key(TEST_KEY)

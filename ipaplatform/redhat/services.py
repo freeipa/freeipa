@@ -220,9 +220,9 @@ class RedHatCAService(RedHatService):
                     url
                 ]
 
-                stdout, stderr, returncode = ipautil.run(args)
+                result = ipautil.run(args, capture_output=True)
 
-                status = dogtag._parse_ca_status(stdout)
+                status = dogtag._parse_ca_status(result.output)
                 # end of workaround
             except Exception as e:
                 status = 'check interrupted due to error: %s' % e

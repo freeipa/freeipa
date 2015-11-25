@@ -588,7 +588,7 @@ class DomainValidator(object):
         # Destroy the contents of the ccache
         root_logger.debug('Destroying the contents of the separate ccache')
 
-        (stdout, stderr, returncode) = ipautil.run(
+        ipautil.run(
             [paths.KDESTROY, '-A', '-c', ccache_path],
             env={'KRB5CCNAME': ccache_path},
             raiseonerr=False)
@@ -597,16 +597,14 @@ class DomainValidator(object):
         root_logger.debug('Running kinit from ipa.keytab to obtain HTTP '
                           'service principal with MS-PAC attached.')
 
-        (stdout, stderr, returncode) = ipautil.run(
+        result = ipautil.run(
             [paths.KINIT, '-kt', keytab, principal],
             env={'KRB5CCNAME': ccache_path},
             raiseonerr=False)
 
-        if returncode == 0:
+        if result.returncode == 0:
             return (ccache_path, principal)
         else:
-            root_logger.debug('Kinit failed, stout: %s, stderr: %s'
-                              % (stdout, stderr))
             return (None, None)
 
     def kinit_as_administrator(self, domain):
@@ -634,7 +632,7 @@ class DomainValidator(object):
         # Destroy the contents of the ccache
         root_logger.debug('Destroying the contents of the separate ccache')
 
-        (stdout, stderr, returncode) = ipautil.run(
+        ipautil.run(
             [paths.KDESTROY, '-A', '-c', ccache_path],
             env={'KRB5CCNAME': ccache_path},
             raiseonerr=False)
@@ -642,17 +640,15 @@ class DomainValidator(object):
         # Destroy the contents of the ccache
         root_logger.debug('Running kinit with credentials of AD administrator')
 
-        (stdout, stderr, returncode) = ipautil.run(
+        result = ipautil.run(
             [paths.KINIT, principal],
             env={'KRB5CCNAME': ccache_path},
             stdin=password,
             raiseonerr=False)
 
-        if returncode == 0:
+        if result.returncode == 0:
             return (ccache_path, principal)
         else:
-            root_logger.debug('Kinit failed, stout: %s, stderr: %s'
-                              % (stdout, stderr))
             return (None, None)
 
     def search_in_dc(self, domain, filter, attrs, scope, basedn=None,

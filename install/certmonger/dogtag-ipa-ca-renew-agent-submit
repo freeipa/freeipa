@@ -156,15 +156,23 @@ def request_cert():
     args = [path] + sys.argv[1:]
     if os.environ.get('CERTMONGER_CA_PROFILE') == 'caCACert':
         args += ['-N', '-O', 'bypassCAnotafter=true']
-    stdout, stderr, rc = ipautil.run(args, raiseonerr=False, env=os.environ)
-    sys.stderr.write(stderr)
+    result = ipautil.run(args, raiseonerr=False, env=os.environ,
+                        capture_output=True)
+    if six.PY2:
+        sys.stderr.write(result.raw_error_output)
+    else:
+        # Write bytes directly
+        sys.stderr.buffer.write(result.raw_error_output)  #pylint: disable=no-member
     sys.stderr.flush()
 
-    syslog.syslog(syslog.LOG_NOTICE, "dogtag-ipa-renew-agent returned %d" % rc)
+    syslog.syslog(syslog.LOG_NOTICE,
+                  "dogtag-ipa-renew-agent returned %d" % result.returncode)
 
+    stdout = result.output
     if stdout.endswith('\n'):
         stdout = stdout[:-1]
 
+    rc = result.returncode
     if rc == WAIT_WITH_DELAY:
         delay, sep, cookie = stdout.partition('\n')
         return (rc, delay, cookie)

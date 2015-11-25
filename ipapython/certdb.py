@@ -107,10 +107,10 @@ class NSSDatabase(object):
     def __exit__(self, type, value, tb):
         self.close()
 
-    def run_certutil(self, args, stdin=None):
+    def run_certutil(self, args, stdin=None, **kwargs):
         new_args = [paths.CERTUTIL, "-d", self.secdir]
         new_args = new_args + args
-        return ipautil.run(new_args, stdin)
+        return ipautil.run(new_args, stdin, **kwargs)
 
     def create_db(self, password_filename):
         """Create cert DB
@@ -124,8 +124,8 @@ class NSSDatabase(object):
 
         :return: List of (name, trust_flags) tuples
         """
-        certs, stderr, returncode = self.run_certutil(["-L"])
-        certs = certs.splitlines()
+        result = self.run_certutil(["-L"], capture_output=True)
+        certs = result.output.splitlines()
 
         # FIXME, this relies on NSS never changing the formatting of certutil
         certlist = []
@@ -157,9 +157,8 @@ class NSSDatabase(object):
         :return: List of certificate names
         """
         root_nicknames = []
-        chain, stderr, returncode = self.run_certutil([
-            "-O", "-n", nickname])
-        chain = chain.splitlines()
+        result = self.run_certutil(["-O", "-n", nickname], capture_output=True)
+        chain = result.output.splitlines()
 
         for c in chain:
             m = re.match('\s*"(.*)" \[.*', c)
@@ -247,7 +246,8 @@ class NSSDatabase(object):
                             '-print_certs',
                         ]
                         try:
-                            stdout, stderr, rc = ipautil.run(args, stdin=body)
+                            result = ipautil.run(
+                                args, stdin=body, capture_output=True)
                         except ipautil.CalledProcessError as e:
                             if label == 'CERTIFICATE':
                                 root_logger.warning(
@@ -259,7 +259,7 @@ class NSSDatabase(object):
                                     filename, line, e)
                             continue
                         else:
-                            extracted_certs += stdout + '\n'
+                            extracted_certs += result.output + '\n'
                             loaded = True
                             continue
 
@@ -286,14 +286,15 @@ class NSSDatabase(object):
                                 '-passin', 'file:' + key_pwdfile.name,
                             ]
                         try:
-                            stdout, stderr, rc = ipautil.run(args, stdin=body)
+                            result = ipautil.run(
+                                args, stdin=body, capture_output=True)
                         except ipautil.CalledProcessError as e:
                             root_logger.warning(
                                 "Skipping private key in %s at line %s: %s",
                                 filename, line, e)
                             continue
                         else:
-                            extracted_key = stdout
+                            extracted_key = result.output
                             key_file = filename
                             loaded = True
                             continue
@@ -401,10 +402,13 @@ class NSSDatabase(object):
         else:
             args.append('-r')
         try:
-            cert, err, returncode = self.run_certutil(args)
+            result = self.run_certutil(args, capture_output=pem)
         except ipautil.CalledProcessError:
             raise RuntimeError("Failed to get %s" % nickname)
-        return cert
+        if pem:
+            return result.output
+        else:
+            return result.raw_output
 
     def has_nickname(self, nickname):
         try:

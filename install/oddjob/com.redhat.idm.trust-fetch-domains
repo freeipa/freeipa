@@ -26,9 +26,8 @@ def retrieve_keytab(api, ccache_name, oneway_keytab_name, oneway_principal):
     if os.path.isfile(oneway_keytab_name):
         os.unlink(oneway_keytab_name)
 
-    (stdout, stderr, retcode) = ipautil.run(getkeytab_args,
-                                            env={'KRB5CCNAME': ccache_name, 'LANG': 'C'},
-                                            raiseonerr=False)
+    ipautil.run(getkeytab_args, env={'KRB5CCNAME': ccache_name, 'LANG': 'C'},
+                raiseonerr=False)
     # Make sure SSSD is able to read the keytab
     try:
         sssd = pwd.getpwnam('sssd')

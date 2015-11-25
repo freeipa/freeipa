@@ -82,7 +82,8 @@ class SshExec(object):
         elif 'KRB5CCNAME' in os.environ:
             env['KRB5CCNAME'] = os.environ['KRB5CCNAME']
 
-        return ipautil.run(cmd, env=env, raiseonerr=False)
+        return ipautil.run(cmd, env=env, raiseonerr=False,
+                           capture_output=True, capture_error=True)
 
 
 class CheckedPort(object):
@@ -432,21 +433,21 @@ def main():
                         sys.exit("Principal password required")
 
 
-                stderr=''
-                (stdout, stderr, returncode) = ipautil.run([paths.KINIT, principal],
+                result = ipautil.run([paths.KINIT, principal],
                      env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME':CCACHE_FILE},
-                    stdin=password, raiseonerr=False)
-                if returncode != 0:
-                    raise RuntimeError("Cannot acquire Kerberos ticket: %s" % stderr)
+                    stdin=password, raiseonerr=False, capture_error=True)
+                if result.returncode != 0:
+                    raise RuntimeError("Cannot acquire Kerberos ticket: %s" %
+                                        result.error_output)
 
                 # Verify kinit was actually successful
-                stderr=''
-                (stdout, stderr, returncode) = ipautil.run([paths.BIN_KVNO,
+                result = ipautil.run([paths.BIN_KVNO,
                      'host/%s' % options.master],
                     env={'KRB5_CONFIG':KRB5_CONFIG, 'KRB5CCNAME':CCACHE_FILE},
-                    raiseonerr=False)
-                if returncode != 0:
-                    raise RuntimeError("Could not get ticket for master server: %s" % stderr)
+                    raiseonerr=False, capture_error=True)
+                if result.returncode != 0:
+                    raise RuntimeError("Could not get ticket for master server: %s" %
+                                        result.error_output)
 
             try:
                 print_info("Check RPC connection to remote master")
@@ -519,18 +520,20 @@ def main():
                 ssh = SshExec(user, options.master)
 
                 print_info("Check SSH connection to remote master")
-                stdout, stderr, returncode = ssh('echo OK', verbose=True)
-                if returncode != 0:
+                result = ssh('echo OK', verbose=True)
+                if result.returncode != 0:
                     print('Could not SSH into remote host. Error output:')
-                    for line in stderr.splitlines():
+                    for line in result.error_output.splitlines():
                         print('    %s' % line)
                     raise RuntimeError('Could not SSH to remote host.')
 
                 print_info("Execute check on remote master")
-                stdout, stderr, returncode = ssh(
+                result = ssh(
                     "/usr/sbin/ipa-replica-conncheck " +
                         " ".join(remote_check_opts))
-                print_info(stdout)
+                returncode = result.returncode
+                stderr = result.error_output
+                print_info(result.output)
             if returncode != 0:
                 raise RuntimeError("Remote master check failed with following error message(s):\n%s" % stderr)
         else:

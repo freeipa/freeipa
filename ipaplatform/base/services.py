@@ -281,7 +281,7 @@ class SystemdService(PlatformService):
         if instance == "ipa-otpd.socket":
             args.append("--ignore-dependencies")
 
-        ipautil.run(args, capture_output=capture_output)
+        ipautil.run(args, skip_output=not capture_output)
 
         if getattr(self.api.env, 'context', None) in ['ipactl', 'installer']:
             update_service_list = True
@@ -294,7 +294,7 @@ class SystemdService(PlatformService):
     def start(self, instance_name="", capture_output=True, wait=True):
         ipautil.run([paths.SYSTEMCTL, "start",
                      self.service_instance(instance_name)],
-                     capture_output=capture_output)
+                    skip_output=not capture_output)
 
         if getattr(self.api.env, 'context', None) in ['ipactl', 'installer']:
             update_service_list = True
@@ -310,7 +310,7 @@ class SystemdService(PlatformService):
     def restart(self, instance_name="", capture_output=True, wait=True):
         ipautil.run([paths.SYSTEMCTL, "restart",
                      self.service_instance(instance_name)],
-                    capture_output=capture_output)
+                    skip_output=not capture_output)
 
         if wait and self.is_running(instance_name):
             self.wait_for_open_ports(self.service_instance(instance_name))
@@ -320,7 +320,7 @@ class SystemdService(PlatformService):
 
         while True:
             try:
-                (sout, serr, rcode) = ipautil.run(
+                result = ipautil.run(
                     [paths.SYSTEMCTL, "is-active", instance],
                     capture_output=True
                 )
@@ -331,24 +331,24 @@ class SystemdService(PlatformService):
                 return False
             else:
                 # activating
-                if rcode == 3 and 'activating' in str(sout):
+                if result.returncode == 3 and 'activating' in result.output:
                     time.sleep(SERVICE_POLL_INTERVAL)
                     continue
                 # active
-                if rcode == 0:
+                if result.returncode == 0:
                     return True
                 # not active
                 return False
 
     def is_installed(self):
         try:
-            (sout, serr, rcode) = ipautil.run([paths.SYSTEMCTL,
-                                               "list-unit-files",
-                                               "--full"])
-            if rcode != 0:
+            result = ipautil.run(
+                [paths.SYSTEMCTL, "list-unit-files", "--full"],
+                capture_output=True)
+            if result.returncode != 0:
                 return False
             else:
-                svar = self.parse_variables(sout)
+                svar = self.parse_variables(result.output)
                 if not self.service_instance("") in svar:
                     # systemd doesn't show the service
                     return False
@@ -360,12 +360,11 @@ class SystemdService(PlatformService):
     def is_enabled(self, instance_name=""):
         enabled = True
         try:
-            (sout, serr, rcode) = ipautil.run(
-                                      [paths.SYSTEMCTL,
-                                       "is-enabled",
-                                        self.service_instance(instance_name)])
+            result = ipautil.run(
+                [paths.SYSTEMCTL, "is-enabled",
+                 self.service_instance(instance_name)])
 
-            if rcode != 0:
+            if result.returncode != 0:
                 enabled = False
 
         except ipautil.CalledProcessError:
@@ -375,12 +374,12 @@ class SystemdService(PlatformService):
     def is_masked(self, instance_name=""):
         masked = False
         try:
-            (sout, serr, rcode) = ipautil.run(
-                                      [paths.SYSTEMCTL,
-                                       "is-enabled",
-                                        self.service_instance(instance_name)])
+            result = ipautil.run(
+                [paths.SYSTEMCTL, "is-enabled",
+                 self.service_instance(instance_name)],
+                capture_output=True)
 
-            if rcode == 1 and sout == 'masked':
+            if result.returncode == 1 and result.output == 'masked':
                 masked = True
 
         except ipautil.CalledProcessError:

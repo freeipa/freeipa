@@ -1164,7 +1164,7 @@ def uninstall(installer):
 
     print("Shutting down all IPA services")
     try:
-        (stdout, stderr, rc) = run([paths.IPACTL, "stop"], raiseonerr=False)
+        run([paths.IPACTL, "stop"], raiseonerr=False)
     except Exception as e:
         pass
 
@@ -1249,12 +1249,11 @@ def uninstall(installer):
 
     print("Removing IPA client configuration")
     try:
-        (stdout, stderr, rc) = run([paths.IPA_CLIENT_INSTALL, "--on-master",
-                                    "--unattended", "--uninstall"],
-                                   raiseonerr=False)
-        if rc not in [0, 2]:
-            root_logger.debug("ipa-client-install returned %d" % rc)
-            raise RuntimeError(stdout)
+        result = run([paths.IPA_CLIENT_INSTALL, "--on-master",
+                      "--unattended", "--uninstall"],
+                     raiseonerr=False, capture_output=True)
+        if result.returncode not in [0, 2]:
+            raise RuntimeError(result.output)
     except Exception as e:
         rv = 1
         print("Uninstall of client side components failed!")

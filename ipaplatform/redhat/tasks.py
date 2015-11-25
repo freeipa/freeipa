@@ -375,8 +375,11 @@ class RedHatTaskNamespace(BaseTaskNamespace):
             if state is None:
                 continue
             try:
-                (stdout, stderr, rc) = ipautil.run([paths.GETSEBOOL, setting])
-                original_state = stdout.split()[2]
+                result = ipautil.run(
+                    [paths.GETSEBOOL, setting],
+                    capture_output=True
+                )
+                original_state = result.output.split()[2]
                 if backup_func is not None:
                     backup_func(setting, original_state)
 

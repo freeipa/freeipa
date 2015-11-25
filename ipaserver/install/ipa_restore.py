@@ -25,8 +25,10 @@ import time
 import pwd
 import ldif
 import itertools
+import locale
 
 from six.moves.configparser import SafeConfigParser
+import six
 
 from ipalib import api, errors, constants
 from ipapython import version, ipautil, certdb
@@ -88,9 +90,9 @@ def decrypt_file(tmpdir, filename, keyring):
     args.append('-d')
     args.append(source)
 
-    (stdout, stderr, rc) = run(args, raiseonerr=False)
-    if rc != 0:
-        raise admintool.ScriptError('gpg failed: %s' % stderr)
+    result = run(args, raiseonerr=False)
+    if result.returncode != 0:
+        raise admintool.ScriptError('gpg failed: %s' % result.error_log)
 
     return dest
 
@@ -365,9 +367,9 @@ class Restore(admintool.AdminTool):
                     dirsrv.start(capture_output=False)
             else:
                 self.log.info('Stopping IPA services')
-                (stdout, stderr, rc) = run(['ipactl', 'stop'], raiseonerr=False)
-                if rc not in [0, 6]:
-                    self.log.warn('Stopping IPA failed: %s' % stderr)
+                result = run(['ipactl', 'stop'], raiseonerr=False)
+                if result.returncode not in [0, 6]:
+                    self.log.warn('Stopping IPA failed: %s' % result.error_log)
 
                 self.restore_selinux_booleans()
 
@@ -573,9 +575,9 @@ class Restore(admintool.AdminTool):
                     '-Z', instance,
                     '-i', ldiffile,
                     '-n', backend]
-            (stdout, stderr, rc) = run(args, raiseonerr=False)
-            if rc != 0:
-                self.log.critical("ldif2db failed: %s" % stderr)
+            result = run(args, raiseonerr=False)
+            if result.returncode != 0:
+                self.log.critical("ldif2db failed: %s" % result.error_log)
 
 
     def bak2db(self, instance, backend, online=True):
@@ -628,9 +630,9 @@ class Restore(admintool.AdminTool):
             if backend is not None:
                 args.append('-n')
                 args.append(backend)
-            (stdout, stderr, rc) = run(args, raiseonerr=False)
-            if rc != 0:
-                self.log.critical("bak2db failed: %s" % stderr)
+            result = run(args, raiseonerr=False)
+            if result.returncode != 0:
+                self.log.critical("bak2db failed: %s" % result.error_log)
 
 
     def restore_default_conf(self):
@@ -650,10 +652,10 @@ class Restore(admintool.AdminTool):
                 paths.IPA_DEFAULT_CONF[1:],
                ]
 
-        (stdout, stderr, rc) = run(args, raiseonerr=False)
-        if rc != 0:
+        result = run(args, raiseonerr=False)
+        if result.returncode != 0:
             self.log.critical('Restoring %s failed: %s' %
-                              (paths.IPA_DEFAULT_CONF, stderr))
+                              (paths.IPA_DEFAULT_CONF, result.error_log))
         os.chdir(cwd)
 
     def remove_old_files(self):
@@ -696,9 +698,9 @@ class Restore(admintool.AdminTool):
             args.append('--exclude')
             args.append('var/log')
 
-        (stdout, stderr, rc) = run(args, raiseonerr=False)
-        if rc != 0:
-            self.log.critical('Restoring files failed: %s', stderr)
+        result = run(args, raiseonerr=False)
+        if result.returncode != 0:
+            self.log.critical('Restoring files failed: %s', result.error_log)
 
         os.chdir(cwd)
 

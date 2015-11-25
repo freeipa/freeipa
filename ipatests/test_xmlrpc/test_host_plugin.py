@@ -552,7 +552,7 @@ class TestHostFalsePwdChange(XMLRPC_test):
         ]
 
         try:
-            out, err, rc = ipautil.run(new_args)
+            ipautil.run(new_args)
         except ipautil.CalledProcessError as e:
             # join operation may fail on 'adding key into keytab', but
             # the keytab is not necessary for further tests

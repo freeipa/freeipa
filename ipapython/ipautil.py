@@ -37,6 +37,8 @@ import gssapi
 import pwd
 import grp
 from contextlib import contextmanager
+import locale
+import collections
 
 from dns import resolver, rdatatype
 from dns.exception import DNSException
@@ -155,8 +157,10 @@ class CheckedIPAddress(netaddr.IPAddress):
             elif addr.version == 6:
                 family = 'inet6'
 
-            ipresult = run([paths.IP, '-family', family, '-oneline', 'address', 'show'])
-            lines = ipresult[0].split('\n')
+            result = run(
+                [paths.IP, '-family', family, '-oneline', 'address', 'show'],
+                capture_output=True)
+            lines = result.output.split('\n')
             for line in lines:
                 fields = line.split()
                 if len(fields) < 4:
@@ -256,13 +260,35 @@ def write_tmp_file(txt):
     return fd
 
 def shell_quote(string):
-    return "'" + string.replace("'", "'\\''") + "'"
+    if isinstance(string, str):
+        return "'" + string.replace("'", "'\\''") + "'"
+    else:
+        return b"'" + string.replace(b"'", b"'\\''") + b"'"
 
-def run(args, stdin=None, raiseonerr=True,
-        nolog=(), env=None, capture_output=True, skip_output=False, cwd=None,
-        runas=None, timeout=None, suplementary_groups=[]):
+
+if six.PY3:
+    def _log_arg(s):
+        """Convert string or bytes to a string suitable for logging"""
+        if isinstance(s, bytes):
+            return s.decode(locale.getpreferredencoding(),
+                            errors='replace')
+        else:
+            return s
+else:
+    _log_arg = str
+
+
+class _RunResult(collections.namedtuple('_RunResult',
+                                        'output error_output returncode')):
+    """Result of ipautil.run"""
+
+
+def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
+        capture_output=False, skip_output=False, cwd=None,
+        runas=None, timeout=None, suplementary_groups=[],
+        capture_error=False, encoding=None):
     """
-    Execute a command and return stdin, stdout and the process return code.
+    Execute an external command.
 
     :param args: List of arguments for the command
     :param stdin: Optional input to the command
@@ -283,8 +309,8 @@ def run(args, stdin=None, raiseonerr=True,
         If a value isn't found in the list it is silently ignored.
     :param env: Dictionary of environment variables passed to the command.
         When None, current environment is copied
-    :param capture_output: Capture stderr and stdout
-    :param skip_output: Redirect the output to /dev/null and do not capture it
+    :param capture_output: Capture stdout
+    :param skip_output: Redirect the output to /dev/null and do not log it
     :param cwd: Current working directory
     :param runas: Name of a user that the command should be run as. The spawned
         process will have both real and effective UID and GID set.
@@ -293,6 +319,31 @@ def run(args, stdin=None, raiseonerr=True,
     :param suplementary_groups: List of group names that will be used as
         suplementary groups for subporcess.
         The option runas must be specified together with this option.
+    :param capture_error: Capture stderr
+    :param encoding: For Python 3, the encoding to use for output,
+        error_output, and (if it's not bytes) stdin.
+        If None, the current encoding according to locale is used.
+
+    :return: An object with these attributes:
+
+        `returncode`: The process' exit status
+
+        `output` and `error_output`: captured output, as strings. Under
+        Python 3, these are encoded with the given `encoding`.
+        None unless `capture_output` or `capture_error`, respectively, are
+        given
+
+        `raw_output`, `raw_error_output`: captured output, as bytes.
+
+        `output_log` and `error_log`: The captured output, as strings, with any
+        unencodable characters discarded. These should only be used
+        for logging or error messages.
+
+    If skip_output is given, all output-related attributes on the result
+    (that is, all except `returncode`) are None.
+
+    For backwards compatibility, the return value can also be used as a
+    (output, error_output, returncode) triple.
     """
     assert isinstance(suplementary_groups, list)
     p_in = None
@@ -301,11 +352,15 @@ def run(args, stdin=None, raiseonerr=True,
 
     if isinstance(nolog, six.string_types):
         # We expect a tuple (or list, or other iterable) of nolog strings.
-        # Passing just a single string is bad: strings are also, so this
+        # Passing just a single string is bad: strings are iterable, so this
         # would result in every individual character of that string being
         # replaced by XXXXXXXX.
         # This is a sanity check to prevent that.
         raise ValueError('nolog must be a tuple of strings.')
+
+    if skip_output and (capture_output or capture_error):
+        raise ValueError('skip_output is incompatible with '
+                         'capture_output or capture_error')
 
     if env is None:
         # copy default env
@@ -315,16 +370,22 @@ def run(args, stdin=None, raiseonerr=True,
         p_in = subprocess.PIPE
     if skip_output:
         p_out = p_err = open(paths.DEV_NULL, 'w')
-    elif capture_output:
+    else:
         p_out = subprocess.PIPE
         p_err = subprocess.PIPE
+
+    if encoding is None:
+        encoding = locale.getpreferredencoding()
+
+    if six.PY3 and isinstance(stdin, str):
+        stdin = stdin.encode(encoding)
 
     if timeout:
         # If a timeout was provided, use the timeout command
         # to execute the requested command.
         args[0:0] = [paths.BIN_TIMEOUT, str(timeout)]
 
-    arg_string = nolog_replace(' '.join(shell_quote(a) for a in args), nolog)
+    arg_string = nolog_replace(' '.join(_log_arg(a) for a in args), nolog)
     root_logger.debug('Starting external process')
     root_logger.debug('args=%s' % arg_string)
 
@@ -352,8 +413,7 @@ def run(args, stdin=None, raiseonerr=True,
         p = subprocess.Popen(args, stdin=p_in, stdout=p_out, stderr=p_err,
                              close_fds=True, env=env, cwd=cwd,
                              preexec_fn=preexec_fn)
-        stdout,stderr = p.communicate(stdin)
-        stdout,stderr = str(stdout), str(stderr)    # Make pylint happy
+        stdout, stderr = p.communicate(stdin)
     except KeyboardInterrupt:
         root_logger.debug('Process interrupted')
         p.wait()
@@ -372,16 +432,50 @@ def run(args, stdin=None, raiseonerr=True,
 
     # The command and its output may include passwords that we don't want
     # to log. Replace those.
-    if capture_output and not skip_output:
-        stdout = nolog_replace(stdout, nolog)
-        stderr = nolog_replace(stderr, nolog)
-        root_logger.debug('stdout=%s' % stdout)
-        root_logger.debug('stderr=%s' % stderr)
+    if skip_output:
+        output_log = None
+        error_log = None
+    else:
+        if six.PY3:
+            output_log = stdout.decode(locale.getpreferredencoding(),
+                                       errors='replace')
+        else:
+            output_log = stdout
+        if six.PY3:
+            error_log = stderr.decode(locale.getpreferredencoding(),
+                                      errors='replace')
+        else:
+            error_log = stderr
+        output_log = nolog_replace(output_log, nolog)
+        root_logger.debug('stdout=%s' % output_log)
+        error_log = nolog_replace(error_log, nolog)
+        root_logger.debug('stderr=%s' % error_log)
+
+    if capture_output:
+        if six.PY2:
+            output = stdout
+        else:
+            output = stdout.encode(encoding)
+    else:
+        output = None
+
+    if capture_error:
+        if six.PY2:
+            error_output = stderr
+        else:
+            error_output = stderr.encode(encoding)
+    else:
+        error_output = None
 
     if p.returncode != 0 and raiseonerr:
-        raise CalledProcessError(p.returncode, arg_string, stdout)
+        raise CalledProcessError(p.returncode, arg_string, str(output))
 
-    return (stdout, stderr, p.returncode)
+    result = _RunResult(output, error_output, p.returncode)
+    result.raw_output = stdout
+    result.raw_error_output = stderr
+    result.output_log = output_log
+    result.error_log = error_log
+    return result
 
 
 def nolog_replace(string, nolog):
@@ -1269,10 +1363,10 @@ def kinit_password(principal, password, ccache_name, config=None,
 
     # this workaround enables us to capture stderr and put it
     # into the raised exception in case of unsuccessful authentication
-    (stdout, stderr, retcode) = run(args, stdin=password, env=env,
-                                    raiseonerr=False)
-    if retcode:
-        raise RuntimeError(stderr)
+    result = run(args, stdin=password, env=env, raiseonerr=False,
+                 capture_error=True)
+    if result.returncode:
+        raise RuntimeError(result.error_output)
 
 
 def dn_attribute_property(private_name):

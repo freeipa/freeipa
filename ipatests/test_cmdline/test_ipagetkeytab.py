@@ -85,8 +85,11 @@ class test_ipagetkeytab(cmdline_test):
                     "-p", "test/notfound.example.com",
                     "-k", self.keytabname,
                    ]
-        (out, err, rc) = ipautil.run(new_args, stdin=None, raiseonerr=False)
+        result = ipautil.run(new_args, stdin=None, raiseonerr=False,
+                             capture_error=True)
+        err = result.error_output
         assert 'Failed to parse result: PrincipalName not found.\n' in err, err
+        rc = result.returncode
         assert rc > 0, rc
 
     def test_2_run(self):
@@ -107,10 +110,11 @@ class test_ipagetkeytab(cmdline_test):
                     "-k", self.keytabname,
                    ]
         try:
-            (out, err, rc) = ipautil.run(new_args, None)
+            result = ipautil.run(new_args, None, capture_error=True)
             expected = 'Keytab successfully retrieved and stored in: %s\n' % (
                 self.keytabname)
-            assert expected in err, 'Success message not in output:\n%s' % err
+            assert (expected in result.error_output,
+                    'Success message not in output:\n%s' % result.error_output)
         except ipautil.CalledProcessError as e:
             assert (False)
 

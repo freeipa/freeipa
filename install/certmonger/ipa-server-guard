@@ -30,6 +30,8 @@ import sys
 import syslog
 import traceback
 
+import six
+
 from ipapython import ipautil
 from ipaserver.install import certs
 
@@ -39,14 +41,18 @@ def main():
         raise RuntimeError("Not enough arguments")
 
     with certs.renewal_lock:
-        stdout, stderr, rc = ipautil.run(sys.argv[1:], raiseonerr=False,
-                                         env=os.environ)
-        sys.stdout.write(stdout)
+        result = ipautil.run(sys.argv[1:], raiseonerr=False, env=os.environ)
+        if six.PY2:
+            sys.stdout.write(result.raw_output)
+            sys.stderr.write(result.raw_error_output)
+        else:
+            # Write bytes directly
+            sys.stdout.buffer.write(result.raw_output)  #pylint: disable=no-member
+            sys.stderr.buffer.write(result.raw_error_output)  #pylint: disable=no-member
         sys.stdout.flush()
-        sys.stderr.write(stderr)
         sys.stderr.flush()
 
-    return rc
+    return result.returncode
 
 
 try:

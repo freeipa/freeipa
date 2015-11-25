@@ -603,9 +603,9 @@ def uninstall(options, env):
         if options.debug:
             join_args.append("-d")
             env['XMLRPC_TRACE_CURL'] = 'yes'
-        (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env)
-        if returncode != 0:
-            root_logger.error("Unenrolling host failed: %s", stderr)
+        result = run(join_args, raiseonerr=False, env=env)
+        if result.returncode != 0:
+            root_logger.error("Unenrolling host failed: %s", result.error_log)
 
     if os.path.exists(paths.IPA_DEFAULT_CONF):
         root_logger.info(
@@ -1438,8 +1438,8 @@ def configure_sshd_config(fstore, options):
                 args.append('-o')
                 args.append('%s=%s' % item)
 
-            (stdout, stderr, retcode) = ipautil.run(args, raiseonerr=False)
-            if retcode == 0:
+            result = ipautil.run(args, raiseonerr=False)
+            if result.returncode == 0:
                 authorized_keys_changes = candidate
                 break
 
@@ -1475,11 +1475,11 @@ def configure_automount(options):
         args.append('--no-sssd')
 
     try:
-        stdout, _, _ = run(args)
+        result = run(args)
     except Exception as e:
         root_logger.error('Automount configuration failed: %s', str(e))
     else:
-        root_logger.info(stdout)
+        root_logger.info(result.output_log)
 
 
 def configure_nisdomain(options, domain):
@@ -1491,9 +1491,12 @@ def configure_nisdomain(options, domain):
     # First backup the old NIS domain name
     if os.path.exists(paths.BIN_NISDOMAINNAME):
         try:
-            nis_domain_name, _, _ = ipautil.run([paths.BIN_NISDOMAINNAME])
+            result = ipautil.run([paths.BIN_NISDOMAINNAME],
+                                 capture_output=True)
         except CalledProcessError as e:
             pass
+        else:
+            nis_domain_name = result.output
 
     statestore.backup_state('network', 'nisdomain', nis_domain_name)
 
@@ -1530,8 +1533,9 @@ def unconfigure_nisdomain():
 
 
 def get_iface_from_ip(ip_addr):
-    ipresult = ipautil.run([paths.IP, '-oneline', 'address', 'show'])
-    for line in ipresult[0].split('\n'):
+    result = ipautil.run([paths.IP, '-oneline', 'address', 'show'],
+                         capture_output=True)
+    for line in result.output.split('\n'):
         fields = line.split()
         if len(fields) < 6:
             continue
@@ -1548,8 +1552,8 @@ def get_local_ipaddresses(iface=None):
     args = [paths.IP, '-oneline', 'address', 'show']
     if iface:
         args += ['dev', iface]
-    ipresult = ipautil.run(args)
-    lines = ipresult[0].split('\n')
+    result = ipautil.run(args, capture_output=True)
+    lines = result.output.split('\n')
     ips = []
     for line in lines:
         fields = line.split()
@@ -1922,9 +1926,10 @@ def get_ca_certs_from_http(url, warn=True):
     root_logger.debug("trying to retrieve CA cert via HTTP from %s", url)
     try:
 
-        stdout, stderr, rc = run([paths.BIN_CURL, "-o", "-", url])
+        result = run([paths.BIN_CURL, "-o", "-", url], capture_output=True)
     except CalledProcessError as e:
         raise errors.NoCertificateError(entry=url)
+    stdout = result.output
 
     try:
         certs = x509.load_certificate_list(stdout)
@@ -2671,12 +2676,15 @@ def install(options, env, fstore, statestore):
                 return CLIENT_INSTALL_ERROR
 
             # Now join the domain
-            (stdout, stderr, returncode) = run(join_args, raiseonerr=False, env=env, nolog=nolog)
+            result = run(
+                join_args, raiseonerr=False, env=env, nolog=nolog,
+                capture_error=True)
+            stderr = result.error_output
 
-            if returncode != 0:
+            if result.returncode != 0:
                 root_logger.error("Joining realm failed: %s", stderr)
                 if not options.force:
-                    if returncode == 13:
+                    if result.returncode == 13:
                         root_logger.info("Use --force-join option to override "
                                          "the host entry on the server "
                                          "and force client enrollment.")
@@ -2694,8 +2702,7 @@ def install(options, env, fstore, statestore):
                 subject_base = DN(subject_base)
 
             if options.principal is not None:
-                stderr, stdout, returncode = run(
-                        ["kdestroy"], raiseonerr=False, env=env)
+                run(["kdestroy"], raiseonerr=False, env=env)
 
             # Obtain the TGT. We do it with the temporary krb5.conf, so that
             # only the KDC we're installing under is contacted.
