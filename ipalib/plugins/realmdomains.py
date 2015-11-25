@@ -284,7 +284,7 @@ class realmdomains_mod(LDAPUpdate):
                 continue
 
             try:
-                api.Command['dnsrecord_add'](
+                self.api.Command['dnsrecord_add'](
                     unicode(domain),
                     u'_kerberos',
                     txtrecord=api.env.realm
@@ -313,7 +313,7 @@ class realmdomains_mod(LDAPUpdate):
                 continue
 
             try:
-                api.Command['dnsrecord_del'](
+                self.api.Command['dnsrecord_del'](
                     unicode(domain),
                     u'_kerberos',
                     txtrecord=api.env.realm
