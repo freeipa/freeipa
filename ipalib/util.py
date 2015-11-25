@@ -66,32 +66,31 @@ def json_serialize(obj):
         return ''
     return json_serialize(obj.__json__())
 
-def validate_host_dns(log, fqdn):
+def verify_host_resolvable(fqdn, log):
     """
     See if the hostname has a DNS A/AAAA record.
     """
-    try:
-        answers = resolver.query(fqdn, rdatatype.A)
-        log.debug(
-            'IPA: found %d A records for %s: %s' % (len(answers), fqdn,
-                ' '.join(str(answer) for answer in answers))
-        )
-    except DNSException as e:
-        log.debug(
-            'IPA: DNS A record lookup failed for %s' % fqdn
-        )
-        # A record not found, try to find AAAA record
+    if not isinstance(fqdn, DNSName):
+        fqdn = DNSName(fqdn)
+
+    fqdn = fqdn.make_absolute()
+    for rdtype in ('A', 'AAAA'):
         try:
-            answers = resolver.query(fqdn, rdatatype.AAAA)
+            answers = resolver.query(fqdn, rdtype)
             log.debug(
-                'IPA: found %d AAAA records for %s: %s' % (len(answers), fqdn,
-                    ' '.join(str(answer) for answer in answers))
+                'IPA: found %d %s records for %s: %s' % (len(answers),
+                rdtype, fqdn, ' '.join(str(answer) for answer in answers))
             )
-        except DNSException as e:
+        except DNSException:
             log.debug(
-                'IPA: DNS AAAA record lookup failed for %s' % fqdn
+                'IPA: DNS %s record lookup failed for %s' %
+                (rdtype, fqdn)
             )
-            raise errors.DNSNotARecordError()
+            continue
+        else:
+            return
+    # dns lookup failed in both tries
+    raise errors.DNSNotARecordError()
 
 
 def has_soa_or_ns_record(domain):

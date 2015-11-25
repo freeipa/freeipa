@@ -625,7 +625,7 @@ class host_add(LDAPCreate):
                     check_forward=True,
                     check_reverse=check_reverse)
         if not options.get('force', False) and not 'ip_address' in options:
-            util.validate_host_dns(self.log, keys[-1])
+            util.verify_host_resolvable(keys[-1], self.log)
         if 'locality' in entry_attrs:
             entry_attrs['l'] = entry_attrs['locality']
         entry_attrs['cn'] = keys[-1]

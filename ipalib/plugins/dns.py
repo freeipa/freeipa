@@ -51,9 +51,10 @@ from ipalib.util import (normalize_zonemgr,
                          DNSSECSignatureMissingError, UnresolvableRecordError,
                          EDNS0UnsupportedError, DNSSECValidationError,
                          validate_dnssec_zone_forwarder_step1,
-                         validate_dnssec_zone_forwarder_step2)
+                         validate_dnssec_zone_forwarder_step2,
+                         verify_host_resolvable)
 
-from ipapython.ipautil import CheckedIPAddress, is_host_resolvable
+from ipapython.ipautil import CheckedIPAddress
 from ipapython.dnsutil import DNSName
 
 if six.PY3:
@@ -1554,7 +1555,7 @@ _dns_record_options = tuple(__dns_record_options_iter())
 _dns_supported_record_types = tuple(record.rrtype for record in _dns_records \
                                     if record.supported)
 
-def check_ns_rec_resolvable(zone, name):
+def check_ns_rec_resolvable(zone, name, log):
     assert isinstance(zone, DNSName)
     assert isinstance(name, DNSName)
 
@@ -1563,7 +1564,9 @@ def check_ns_rec_resolvable(zone, name):
     elif not name.is_absolute():
         # this is a DNS name relative to the zone
         name = name.derelativize(zone.make_absolute())
-    if not is_host_resolvable(name):
+    try:
+        verify_host_resolvable(name, log)
+    except errors.DNSNotARecordError:
         raise errors.NotFound(
             reason=_('Nameserver \'%(host)s\' does not have a corresponding '
                      'A/AAAA record') % {'host': name}
@@ -2734,7 +2737,8 @@ class dnszone_add(DNSZoneBase_add):
 
             # verify if user specified server is resolvable
             if not options['force']:
-                check_ns_rec_resolvable(keys[0], entry_attrs['idnssoamname'])
+                check_ns_rec_resolvable(keys[0], entry_attrs['idnssoamname'],
+                                        self.log)
             # show warning about --name-server option
             context.show_warning_nameserver_option = True
         else:
@@ -2833,7 +2837,7 @@ class dnszone_mod(DNSZoneBase_mod):
             nameserver = entry_attrs['idnssoamname']
             if nameserver:
                 if not nameserver.is_empty() and not options['force']:
-                    check_ns_rec_resolvable(keys[0], nameserver)
+                    check_ns_rec_resolvable(keys[0], nameserver, self.log)
                 context.show_warning_nameserver_option = True
             else:
                 # empty value, this option is required by ldap
@@ -3004,7 +3008,7 @@ class dnsrecord(LDAPObject):
         if options.get('force', False) or nsrecords is None:
             return
         for nsrecord in nsrecords:
-            check_ns_rec_resolvable(keys[0], DNSName(nsrecord))
+            check_ns_rec_resolvable(keys[0], DNSName(nsrecord), self.log)
 
     def _idnsname_pre_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
@@ -4196,7 +4200,9 @@ class dns_resolve(Command):
     def execute(self, *args, **options):
         query=args[0]
 
-        if not is_host_resolvable(query):
+        try:
+            verify_host_resolvable(query, self.log)
+        except errors.DNSNotARecordError:
             raise errors.NotFound(
                 reason=_('Host \'%(host)s\' not found') % {'host': query}
             )

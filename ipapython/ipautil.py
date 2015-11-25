@@ -911,18 +911,6 @@ def bind_port_responder(port, socket_type=socket.SOCK_STREAM, socket_timeout=Non
     if s is None and last_socket_error is not None:
         raise last_socket_error # pylint: disable=E0702
 
-def is_host_resolvable(fqdn):
-    if not isinstance(fqdn, DNSName):
-        fqdn = DNSName(fqdn)
-    for rdtype in (rdatatype.A, rdatatype.AAAA):
-        try:
-            resolver.query(fqdn.make_absolute(), rdtype)
-        except DNSException:
-            continue
-        else:
-            return True
-
-    return False
 
 def host_exists(host):
     """

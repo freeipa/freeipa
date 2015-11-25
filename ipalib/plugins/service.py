@@ -554,7 +554,7 @@ class service_add(LDAPCreate):
              # We know the host exists if we've gotten this far but we
              # really want to discourage creating services for hosts that
              # don't exist in DNS.
-             util.validate_host_dns(self.log, hostname)
+             util.verify_host_resolvable(hostname, self.log)
         if not 'managedby' in entry_attrs:
             entry_attrs['managedby'] = hostresult['dn']
 

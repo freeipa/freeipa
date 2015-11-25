@@ -54,6 +54,7 @@ try:
     from ipapython.config import IPAOptionParser
     from ipalib import api, errors
     from ipalib import x509, certstore
+    from ipalib.util import verify_host_resolvable
     from ipalib.constants import CACERT
     from ipapython.dn import DN
     from ipapython.ssh import SSHPublicKey
@@ -1761,11 +1762,13 @@ def get_server_connection_interface(server):
 
 def client_dns(server, hostname, options):
 
-    dns_ok = ipautil.is_host_resolvable(hostname)
-
-    if not dns_ok:
+    try:
+        verify_host_resolvable(hostname, root_logger)
+        dns_ok = True
+    except errors.DNSNotARecordError:
         root_logger.warning("Hostname (%s) does not have A/AAAA record.",
                             hostname)
+        dns_ok = False
 
     if (options.dns_updates or options.all_ip_addresses or options.ip_addresses
             or not dns_ok):
