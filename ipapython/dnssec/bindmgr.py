@@ -55,6 +55,8 @@ class BINDMgr(object):
         return dt.strftime(time_bindfmt)
 
     def dates2params(self, ldap_attrs):
+        """Convert LDAP timestamps to list of parameters suitable
+        for dnssec-keyfromlabel utility"""
         attr2param = {'idnsseckeypublish': '-P',
                 'idnsseckeyactivate': '-A',
                 'idnsseckeyinactive': '-I',
@@ -62,10 +64,12 @@ class BINDMgr(object):
 
         params = []
         for attr, param in attr2param.items():
+            params.append(param)
             if attr in ldap_attrs:
-                params.append(param)
                 assert len(ldap_attrs[attr]) == 1, 'Timestamp %s is expected to be single-valued' % attr
                 params.append(self.time_ldap2bindfmt(ldap_attrs[attr][0]))
+            else:
+                params.append('none')
 
         return params
 
