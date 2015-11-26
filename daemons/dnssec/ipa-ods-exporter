@@ -32,6 +32,7 @@ import systemd.daemon
 import systemd.journal
 import sqlite3
 import time
+import traceback
 
 import ipalib
 from ipapython.dn import DN
@@ -575,7 +576,8 @@ try:
             sync_zone(log, ldap, dns_dn, zone_row['name'])
 
 except Exception as ex:
-    msg = "ipa-ods-exporter exception: %s" % ex
+    msg = "ipa-ods-exporter exception: %s" % traceback.format_exc(ex)
+    log.exception(ex)
     raise ex
 
 finally:
