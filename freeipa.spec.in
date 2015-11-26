@@ -503,6 +503,9 @@ install daemons/dnssec/ipa-ods-exporter %{buildroot}%{_libexecdir}/ipa/ipa-ods-e
 # Web UI plugin dir
 mkdir -p %{buildroot}%{_usr}/share/ipa/ui/js/plugins
 
+# DNSSEC config
+mkdir -p %{buildroot}%{_sysconfdir}/ipa/dnssec
+
 # KDC proxy config (Apache config sets KDCPROXY_CONFIG to load this file)
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/kdcproxy/
 install -m 644 install/share/kdcproxy.conf %{buildroot}%{_sysconfdir}/ipa/kdcproxy/kdcproxy.conf
@@ -536,7 +539,6 @@ mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa/backup
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/default.conf
 /bin/touch %{buildroot}%{_sysconfdir}/ipa/ca.crt
-mkdir -p %{buildroot}%{_sysconfdir}/ipa/dnssec
 mkdir -p %{buildroot}%{_sysconfdir}/ipa/nssdb
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa-client/sysrestore
 mkdir -p %{buildroot}%{_sysconfdir}/bash_completion.d
@@ -840,6 +842,7 @@ fi
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-kdc-proxy.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/httpd/conf.d/ipa-pki-proxy.conf
 %ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/kdcproxy/ipa-kdc-proxy.conf
+%dir %attr(0755,root,root) %{_sysconfdir}/ipa/dnssec
 %{_usr}/share/ipa/ipa.conf
 %{_usr}/share/ipa/ipa-rewrite.conf
 %{_usr}/share/ipa/ipa-pki-proxy.conf
@@ -928,6 +931,15 @@ fi
 %{_sbindir}/ipa-getkeytab
 %{_sbindir}/ipa-rmkeytab
 %{_sbindir}/ipa-join
+%dir %attr(0755,root,root) %{_sysconfdir}/ipa/
+%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
+%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
+%dir %attr(0755,root,root) %{_sysconfdir}/ipa/nssdb
+%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/cert8.db
+%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/key3.db
+%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/secmod.db
+%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/pwdfile.txt
+%ghost %config(noreplace) %{_sysconfdir}/pki/ca-trust/source/ipa.p11-kit
 %dir %{_usr}/share/ipa
 %dir %{_localstatedir}/lib/ipa-client
 %dir %{_localstatedir}/lib/ipa-client/sysrestore
@@ -972,16 +984,6 @@ fi
 %{python_sitelib}/ipaplatform-*.egg-info
 %{python_sitearch}/python_default_encoding-*.egg-info
 %{python_sitearch}/_ipap11helper-*.egg-info
-%dir %attr(0755,root,root) %{_sysconfdir}/ipa/
-%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/default.conf
-%ghost %attr(0644,root,apache) %config(noreplace) %{_sysconfdir}/ipa/ca.crt
-%dir %attr(0755,root,root) %{_sysconfdir}/ipa/nssdb
-%dir %attr(0755,root,root) %{_sysconfdir}/ipa/dnssec
-%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/cert8.db
-%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/key3.db
-%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/secmod.db
-%ghost %config(noreplace) %{_sysconfdir}/ipa/nssdb/pwdfile.txt
-%ghost %config(noreplace) %{_sysconfdir}/pki/ca-trust/source/ipa.p11-kit
 
 %if ! %{ONLY_CLIENT}
 %files tests -f tests-python.list
