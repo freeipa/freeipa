@@ -381,7 +381,8 @@ class DsInstance(service.Service):
 
         if self.promote:
             self.step("creating DS keytab", self.__get_ds_keytab)
-            self.step("retrieving DS Certificate", self.__get_ds_cert)
+            if self.ca_is_configured:
+                self.step("retrieving DS Certificate", self.__get_ds_cert)
             self.step("restarting directory server", self.__restart_instance)
 
         self.step("setting up initial replication", self.__setup_replica)

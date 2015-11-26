@@ -49,7 +49,7 @@ try:
 except ImportError:
     _server_trust_ad_installed = False
 
-from .common import BaseServer
+from .common import BaseServer, BaseServerCA
 
 SYSRESTORE_DIR_PATH = paths.SYSRESTORE
 
@@ -1268,6 +1268,54 @@ def uninstall(installer):
     sys.exit(rv)
 
 
+class ServerCA(BaseServerCA):
+
+    # FIXME: Following Knobs are inherited because framework is not able to
+    # help groups correctly.
+
+    external_ca = Knob(BaseServerCA.external_ca)
+    external_ca_type = Knob(BaseServerCA.external_ca_type)
+    external_cert_files = Knob(BaseServerCA.external_cert_files)
+
+    dirsrv_cert_files = Knob(
+        BaseServerCA.dirsrv_cert_files,
+        cli_aliases=['dirsrv_pkcs12'],
+    )
+
+    http_cert_files = Knob(
+        BaseServerCA.http_cert_files,
+        cli_aliases=['http_pkcs12'],
+    )
+
+    pkinit_cert_files = Knob(
+        BaseServerCA.pkinit_cert_files,
+        cli_aliases=['pkinit_pkcs12'],
+    )
+
+    dirsrv_pin = Knob(
+        BaseServerCA.dirsrv_pin,
+        cli_aliases=['dirsrv_pin'],
+    )
+
+    http_pin = Knob(
+        BaseServerCA.http_pin,
+        cli_aliases=['http_pin'],
+    )
+
+    pkinit_pin = Knob(
+        BaseServerCA.pkinit_pin,
+        cli_aliases=['pkinit_pin'],
+    )
+
+    dirsrv_cert_name = Knob(BaseServerCA.dirsrv_cert_name)
+    http_cert_name = Knob(BaseServerCA.http_cert_name)
+    pkinit_cert_name = Knob(BaseServerCA.pkinit_cert_name)
+    ca_cert_files = Knob(BaseServerCA.ca_cert_files)
+    subject = Knob(BaseServerCA.subject)
+    ca_signing_algorithm = Knob(BaseServerCA.ca_signing_algorithm)
+    skip_schema_check = None
+
+
 class Server(BaseServer):
     realm_name = Knob(BaseServer.realm_name)
     domain_name = Knob(BaseServer.domain_name)
@@ -1361,9 +1409,6 @@ class Server(BaseServer):
                     "topology (domain level 1+)",
     )
 
-    # ca
-    skip_schema_check = None
-
     # dns
     dnssec_master = None
     disable_dnssec_master = None
@@ -1387,6 +1432,8 @@ class Server(BaseServer):
         self._ca_cert = None
         self._update_hosts_file = False
 
+        # pylint: disable=no-member
+
         if self.uninstalling:
             if (self.realm_name or self.admin_password or
                     self.master_password):
@@ -1399,7 +1446,6 @@ class Server(BaseServer):
                     "In unattended mode you need to provide at least -r, -p "
                     "and -a options")
             if self.setup_dns:
-                #pylint: disable=no-member
                 if (not self.dns.forwarders and not self.dns.no_forwarders
                     and not self.dns.auto_forwarders):
                     raise RuntimeError(
@@ -1415,6 +1461,8 @@ class Server(BaseServer):
             raise RuntimeError(
                 "idmax (%s) cannot be smaller than idstart (%s)" %
                 (self.idmax, self.idstart))
+
+    ca = core.Component(ServerCA)
 
     @step()
     def main(self):

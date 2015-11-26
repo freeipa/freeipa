@@ -17,7 +17,7 @@ import tempfile
 
 
 class CustodiaInstance(SimpleServiceInstance):
-    def __init__(self, host_name=None, realm=None):
+    def __init__(self, host_name=None, realm=None, ca_is_configured=True):
         super(CustodiaInstance, self).__init__("ipa-custodia")
         self.config_file = paths.IPA_CUSTODIA_CONF
         self.server_keys = os.path.join(paths.IPA_CUSTODIA_CONF_DIR,
@@ -25,6 +25,7 @@ class CustodiaInstance(SimpleServiceInstance):
         self.ldap_uri = None
         self.fqdn = host_name
         self.realm = realm
+        self.ca_is_configured = ca_is_configured
 
     def __config_file(self):
         template_file = os.path.basename(self.config_file) + '.template'
@@ -68,7 +69,8 @@ class CustodiaInstance(SimpleServiceInstance):
 
         self.step("Generating ipa-custodia config file", self.__config_file)
         self.step("Generating ipa-custodia keys", self.__gen_keys)
-        self.step("Importing RA Key", self.__import_ra_key)
+        if self.ca_is_configured:
+            self.step("Importing RA Key", self.__import_ra_key)
         super(CustodiaInstance, self).create_instance(gensvc_name='KEYS',
                                                       fqdn=self.fqdn,
                                                       ldap_suffix=suffix,

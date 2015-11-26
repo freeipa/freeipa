@@ -53,7 +53,6 @@ class BaseServerCA(common.Installable, core.Group, core.Composite):
         description=("File containing the Directory Server SSL certificate "
                      "and private key"),
         cli_name='dirsrv-cert-file',
-        cli_aliases=['dirsrv_pkcs12'],
         cli_metavar='FILE',
     )
 
@@ -62,7 +61,6 @@ class BaseServerCA(common.Installable, core.Group, core.Composite):
         description=("File containing the Apache Server SSL certificate and "
                      "private key"),
         cli_name='http-cert-file',
-        cli_aliases=['http_pkcs12'],
         cli_metavar='FILE',
     )
 
@@ -71,7 +69,6 @@ class BaseServerCA(common.Installable, core.Group, core.Composite):
         description=("File containing the Kerberos KDC SSL certificate and "
                      "private key"),
         cli_name='pkinit-cert-file',
-        cli_aliases=['pkinit_pkcs12'],
         cli_metavar='FILE',
     )
 
@@ -79,7 +76,6 @@ class BaseServerCA(common.Installable, core.Group, core.Composite):
         str, None,
         sensitive=True,
         description="The password to unlock the Directory Server private key",
-        cli_aliases=['dirsrv_pin'],
         cli_metavar='PIN',
     )
 
@@ -87,7 +83,6 @@ class BaseServerCA(common.Installable, core.Group, core.Composite):
         str, None,
         sensitive=True,
         description="The password to unlock the Apache Server private key",
-        cli_aliases=['http_pin'],
         cli_metavar='PIN',
     )
 
@@ -95,7 +90,6 @@ class BaseServerCA(common.Installable, core.Group, core.Composite):
         str, None,
         sensitive=True,
         description="The password to unlock the Kerberos KDC private key",
-        cli_aliases=['pkinit_pin'],
         cli_metavar='PIN',
     )
 

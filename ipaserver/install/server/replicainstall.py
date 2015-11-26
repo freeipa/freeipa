@@ -33,6 +33,7 @@ from ipaserver.install import (
     ntpinstance, otpdinstance, custodiainstance, service)
 from ipaserver.install.installutils import create_replica_config
 from ipaserver.install.installutils import ReplicaConfig
+from ipaserver.install.installutils import load_pkcs12
 from ipaserver.install.replication import (
     ReplicationManager, replica_conn_check)
 import SSSDConfig
@@ -88,13 +89,21 @@ def install_http_certs(config, fstore):
     # FIXME: need Signing-Cert too ?
 
 
-def install_replica_ds(config, options, promote=False):
+def install_replica_ds(config, options, ca_is_configured, promote=False,
+                       pkcs12_info=None):
     dsinstance.check_ports()
 
     # if we have a pkcs12 file, create the cert db from
     # that. Otherwise the ds setup will create the CA
     # cert
-    pkcs12_info = make_pkcs12_info(config.dir, "dscert.p12", "dirsrv_pin.txt")
+    if pkcs12_info is None:
+        pkcs12_info = make_pkcs12_info(config.dir, "dscert.p12",
+                                       "dirsrv_pin.txt")
+
+    if promote:
+        ca_file = paths.IPA_CA_CRT
+    else:
+        ca_file = os.path.join(config.dir, "ca.crt")
 
     ds = dsinstance.DsInstance(
         config_ldif=options.dirsrv_config_file)
@@ -106,8 +115,8 @@ def install_replica_ds(config, options, promote=False):
         dm_password=config.dirman_password,
         subject_base=config.subject_base,
         pkcs12_info=pkcs12_info,
-        ca_is_configured=ipautil.file_exists(config.dir + "/cacert.p12"),
-        ca_file=config.dir + "/ca.crt",
+        ca_is_configured=ca_is_configured,
+        ca_file=ca_file,
         promote=promote,
     )
 
@@ -145,11 +154,19 @@ def install_ca_cert(ldap, base_dn, realm, cafile):
         sys.exit(1)
 
 
-def install_http(config, auto_redirect, promote=False):
+def install_http(config, auto_redirect, ca_is_configured, promote=False,
+                 pkcs12_info=None):
     # if we have a pkcs12 file, create the cert db from
     # that. Otherwise the ds setup will create the CA
     # cert
-    pkcs12_info = make_pkcs12_info(config.dir, "httpcert.p12", "http_pin.txt")
+    if pkcs12_info is None:
+        pkcs12_info = make_pkcs12_info(config.dir, "httpcert.p12",
+                                       "http_pin.txt")
+
+    if promote:
+        ca_file = paths.IPA_CA_CRT
+    else:
+        ca_file = os.path.join(config.dir, "ca.crt")
 
     memcache = memcacheinstance.MemcacheInstance()
     memcache.create_instance('MEMCACHE', config.host_name,
@@ -160,9 +177,8 @@ def install_http(config, auto_redirect, promote=False):
     http.create_instance(
         config.realm_name, config.host_name, config.domain_name,
         config.dirman_password, False, pkcs12_info,
-        auto_redirect=auto_redirect, ca_file=config.dir + "/ca.crt",
-        ca_is_configured=ipautil.file_exists(config.dir + "/cacert.p12"),
-        promote=promote)
+        auto_redirect=auto_redirect, ca_file=ca_file,
+        ca_is_configured=ca_is_configured, promote=promote)
 
     http.setup_firefox_extension(config.realm_name, config.domain_name)
 
@@ -655,7 +671,7 @@ def install(installer):
             ntp.create_instance()
 
         # Configure dirsrv
-        ds = install_replica_ds(config, options)
+        ds = install_replica_ds(config, options, installer._ca_enabled)
 
         # Always try to install DNS records
         install_dns_records(config, options, remote_api)
@@ -676,7 +692,8 @@ def install(installer):
         ca.install(False, config, options)
 
     krb = install_krb(config, setup_pkinit=not options.no_pkinit)
-    http = install_http(config, auto_redirect=not options.no_ui_redirect)
+    http = install_http(config, auto_redirect=not options.no_ui_redirect,
+                        ca_is_configured=installer._ca_enabled)
 
     otpd = otpdinstance.OtpdInstance()
     otpd.create_instance('OTPD', config.host_name, config.dirman_password,
@@ -845,6 +862,67 @@ def promote_check(installer):
     config.setup_kra = options.setup_kra
     config.dir = installer._top_dir
 
+    http_pkcs12_file = None
+    http_pkcs12_info = None
+    dirsrv_pkcs12_file = None
+    dirsrv_pkcs12_info = None
+    pkinit_pkcs12_file = None
+    pkinit_pkcs12_info = None
+
+    if options.http_cert_files:
+        if options.http_pin is None:
+            options.http_pin = installutils.read_password(
+                "Enter Apache Server private key unlock",
+                confirm=False, validate=False)
+            if options.http_pin is None:
+                sys.exit(
+                    "Apache Server private key unlock password required")
+        http_pkcs12_file, http_pin, http_ca_cert = load_pkcs12(
+            cert_files=options.http_cert_files,
+            key_password=options.http_pin,
+            key_nickname=options.http_cert_name,
+            ca_cert_files=options.ca_cert_files,
+            host_name=config.host_name)
+        http_pkcs12_info = (http_pkcs12_file.name, http_pin)
+
+    if options.dirsrv_cert_files:
+        if options.dirsrv_pin is None:
+            options.dirsrv_pin = installutils.read_password(
+                "Enter Directory Server private key unlock",
+                confirm=False, validate=False)
+            if options.dirsrv_pin is None:
+                sys.exit(
+                    "Directory Server private key unlock password required")
+        dirsrv_pkcs12_file, dirsrv_pin, dirsrv_ca_cert = load_pkcs12(
+            cert_files=options.dirsrv_cert_files,
+            key_password=options.dirsrv_pin,
+            key_nickname=options.dirsrv_cert_name,
+            ca_cert_files=options.ca_cert_files,
+            host_name=config.host_name)
+        dirsrv_pkcs12_info = (dirsrv_pkcs12_file.name, dirsrv_pin)
+
+    if options.pkinit_cert_files:
+        if options.pkinit_pin is None:
+            options.pkinit_pin = installutils.read_password(
+                "Enter Kerberos KDC private key unlock",
+                confirm=False, validate=False)
+            if options.pkinit_pin is None:
+                sys.exit(
+                    "Kerberos KDC private key unlock password required")
+        pkinit_pkcs12_file, pkinit_pin, pkinit_ca_cert = load_pkcs12(
+            cert_files=options.pkinit_cert_files,
+            key_password=options.pkinit_pin,
+            key_nickname=options.pkinit_cert_name,
+            ca_cert_files=options.ca_cert_files,
+            host_name=config.host_name)
+        pkinit_pkcs12_info = (pkinit_pkcs12_file.name, pkinit_pin)
+
+    if (options.http_cert_files and options.dirsrv_cert_files and
+            http_ca_cert != dirsrv_ca_cert):
+        raise RuntimeError("Apache Server SSL certificate and Directory "
+                           "Server SSL certificate are not signed by the same"
+                           " CA certificate")
+
     installutils.verify_fqdn(config.host_name, options.no_host_dns)
     installutils.verify_fqdn(config.master_host_name, options.no_host_dns)
     installutils.check_creds(options, config.realm_name)
@@ -953,11 +1031,18 @@ def promote_check(installer):
         if ca_host is not None:
             config.ca_host_name = ca_host
             ca_enabled = True
+            if options.dirsrv_cert_files:
+                root_logger.error("Certificates could not be provided when "
+                                  "CA is present on some master.")
+                sys.exit(3)
         else:
-            # FIXME: add way to pass in certificates
-            root_logger.error("The remote master does not have a CA "
-                              "installed, can't proceed without certs")
-            sys.exit(3)
+            ca_enabled = False
+            if not options.dirsrv_cert_files:
+                root_logger.error("Cannot issue certificates: a CA is not "
+                                  "installed. Use the --http-cert-file, "
+                                  "--dirsrv-cert-file options to provide "
+                                  "custom certificates.")
+                sys.exit(3)
 
         config.kra_host_name = service.find_providing_server('KRA', conn,
                                                              api.env.server)
@@ -1015,6 +1100,12 @@ def promote_check(installer):
     installer._fstore = fstore
     installer._sstore = sstore
     installer._config = config
+    installer._dirsrv_pkcs12_file = dirsrv_pkcs12_file
+    installer._dirsrv_pkcs12_info = dirsrv_pkcs12_info
+    installer._http_pkcs12_file = http_pkcs12_file
+    installer._http_pkcs12_info = http_pkcs12_info
+    installer._pkinit_pkcs12_file = pkinit_pkcs12_file
+    installer._pkinit_pkcs12_info = pkinit_pkcs12_info
 
 
 @common_cleanup
@@ -1023,6 +1114,12 @@ def promote(installer):
     fstore = installer._fstore
     sstore = installer._sstore
     config = installer._config
+    dirsrv_pkcs12_file = installer._dirsrv_pkcs12_file
+    dirsrv_pkcs12_info = installer._dirsrv_pkcs12_info
+    http_pkcs12_file = installer._http_pkcs12_file
+    http_pkcs12_info = installer._http_pkcs12_info
+    pkinit_pkcs12_file = installer._pkinit_pkcs12_file
+    pkinit_pkcs12_info = installer._pkinit_pkcs12_info
 
     # Save client file and merge in server directives
     target_fname = paths.IPA_DEFAULT_CONF
@@ -1049,7 +1146,8 @@ def promote(installer):
 
     try:
         # Configure dirsrv
-        ds = install_replica_ds(config, options, promote=True)
+        ds = install_replica_ds(config, options, installer._ca_enabled,
+                                promote=True, pkcs12_info=dirsrv_pkcs12_info)
 
         # Always try to install DNS records
         install_dns_records(config, options, api)
@@ -1082,7 +1180,8 @@ def promote(installer):
         os.chmod(target_fname, 0o644)   # must be readable for httpd
 
     custodia = custodiainstance.CustodiaInstance(config.host_name,
-                                                 config.realm_name)
+                                                 config.realm_name,
+                                                 installer._ca_enabled)
     custodia.create_replica(config.master_host_name)
 
     krb = install_krb(config,
@@ -1091,7 +1190,8 @@ def promote(installer):
 
     http = install_http(config,
                         auto_redirect=not options.no_ui_redirect,
-                        promote=True)
+                        promote=True, pkcs12_info=http_pkcs12_info,
+                        ca_is_configured=installer._ca_enabled)
 
     # Apply any LDAP updates. Needs to be done after the replica is synced-up
     service.print_msg("Applying LDAP updates")
@@ -1217,15 +1317,6 @@ class Replica(BaseServer):
     external_ca = None
     external_ca_type = None
     external_cert_files = None
-    dirsrv_cert_files = None
-    http_cert_files = None
-    pkinit_cert_files = None
-    dirsrv_pin = None
-    http_pin = None
-    pkinit_pin = None
-    dirsrv_cert_name = None
-    http_cert_name = None
-    pkinit_cert_name = None
     ca_cert_files = None
     subject = None
     ca_signing_algorithm = None
@@ -1243,13 +1334,35 @@ class Replica(BaseServer):
         self._top_dir = None
         self._config = None
         self._update_hosts_file = False
+        self._dirsrv_pkcs12_file = None
+        self._http_pkcs12_file = None
+        self._pkinit_pkcs12_file = None
+        self._dirsrv_pkcs12_info = None
+        self._http_pkcs12_info = None
+        self._pkinit_pkcs12_info = None
+
+        # pylint: disable=no-member
+
+        cert_file_req = (self.ca.dirsrv_cert_files, self.ca.http_cert_files)
+        cert_file_opt = (self.ca.pkinit_cert_files,)
 
         if self.replica_file is None:
             self.promote = True
+            # If any of the PKCS#12 options are selected, all are required.
+            if any(cert_file_req + cert_file_opt) and not all(cert_file_req):
+                raise RuntimeError("--dirsrv-cert-file and --http-cert-file "
+                                   "are required if any PKCS#12 options are "
+                                   "used")
         else:
             if not ipautil.file_exists(self.replica_file):
                 raise RuntimeError("Replica file %s does not exist"
                                    % self.replica_file)
+
+            if any(cert_file_req + cert_file_opt):
+                raise RuntimeError("You cannot specify any of "
+                                   "--dirsrv-cert-file, --http-cert-file, or "
+                                   "--pkinit-cert-file together with replica "
+                                   "file")
 
             CLIKnob = collections.namedtuple('CLIKnob', ('value', 'name'))
 
@@ -1274,7 +1387,6 @@ class Replica(BaseServer):
                     )
 
         if self.setup_dns:
-            #pylint: disable=no-member
             if (not self.dns.forwarders and not self.dns.no_forwarders
                 and not self.dns.auto_forwarders):
                 raise RuntimeError(
