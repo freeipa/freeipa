@@ -4,11 +4,11 @@ add: objectclass: ipaReplTopoManagedServer
 add: ipaReplTopoManagedSuffix: o=ipaca
 
 # add IPA CA topology configuration area
-dn: cn=ipaca,cn=topology,cn=ipa,cn=etc,$SUFFIX
+dn: cn=ca,cn=topology,cn=ipa,cn=etc,$SUFFIX
 default: objectclass: top
 default: objectclass: iparepltopoconf
 default: ipaReplTopoConfRoot: o=ipaca
-default: cn: ipaca
+default: cn: ca
 
 # Update CA replication settings
 dn: cn=o\3Dipaca,cn=mapping tree,cn=config

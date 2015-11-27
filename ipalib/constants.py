@@ -258,3 +258,6 @@ REPL_AGMT_STRIP_ATTRS = ('modifiersName',
                          'modifyTimestamp',
                          'internalModifiersName',
                          'internalModifyTimestamp')
+
+DOMAIN_SUFFIX_NAME = 'domain'
+CA_SUFFIX_NAME = 'ca'

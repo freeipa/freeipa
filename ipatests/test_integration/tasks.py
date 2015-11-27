@@ -38,6 +38,7 @@ from ipatests.test_integration import util
 from ipatests.test_integration.env_config import env_to_script
 from ipatests.test_integration.host import Host
 from ipalib.util import get_reverse_zone_default
+from ipalib.constants import DOMAIN_SUFFIX_NAME
 
 log = log_mgr.get_logger(__name__)
 
@@ -659,7 +660,7 @@ def create_segment(master, leftnode, rightnode):
     lefthost = leftnode.hostname
     righthost = rightnode.hostname
     segment_name = "%s-to-%s" % (lefthost, righthost)
-    result = master.run_command(["ipa", "topologysegment-add", "realm",
+    result = master.run_command(["ipa", "topologysegment-add", DOMAIN_SUFFIX_NAME,
                                  segment_name,
                                  "--leftnode=%s" % lefthost,
                                  "--rightnode=%s" % righthost], raiseonerr=False)
@@ -681,7 +682,7 @@ def destroy_segment(master, segment_name):
     kinit_admin(master)
     command = ["ipa",
                "topologysegment-del",
-               "realm",
+               DOMAIN_SUFFIX_NAME,
                segment_name]
     result = master.run_command(command, raiseonerr=False)
     return result.returncode, result.stderr_text

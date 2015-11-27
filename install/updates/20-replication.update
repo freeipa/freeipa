@@ -22,11 +22,11 @@ default: objectclass: nsContainer
 default: cn: topology
 
 # Default topology configuration area
-dn: cn=realm,cn=topology,cn=ipa,cn=etc,$SUFFIX
+dn: cn=domain,cn=topology,cn=ipa,cn=etc,$SUFFIX
 default: objectclass: top
 default: objectclass: iparepltopoconf
 default: ipaReplTopoConfRoot: $SUFFIX
-default: cn: realm
+default: cn: domain
 add: nsDS5ReplicatedAttributeList: $EXCLUDES
 add: nsDS5ReplicatedAttributeListTotal: $TOTAL_EXCLUDES
 add: nsds5ReplicaStripAttrs: $STRIP_ATTRS

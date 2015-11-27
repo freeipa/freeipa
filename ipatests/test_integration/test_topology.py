@@ -9,6 +9,7 @@ import pytest
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
 from env_config import get_global_config
+from ipalib.constants import DOMAIN_SUFFIX_NAME
 
 config = get_global_config()
 reasoning = "Topology plugin disabled due to domain level 0"
@@ -59,7 +60,7 @@ class TestTopologyOptions(IntegrationTest):
         """
         tasks.kinit_admin(self.master)
         result1 = self.master.run_command(['ipa', 'topologysegment-find',
-                                           'realm'])
+                                           DOMAIN_SUFFIX_NAME])
         first_segment_name = "%s-to-%s" % (self.master.hostname,
                                            self.replicas[0].hostname)
         output1 = result1.stdout_text
@@ -73,11 +74,11 @@ class TestTopologyOptions(IntegrationTest):
         # We need to make sure topology information is consistent across all
         # replicas
         result2 = self.master.run_command(['ipa', 'topologysegment-find',
-                                           'realm'])
+                                           DOMAIN_SUFFIX_NAME])
         result3 = self.replicas[0].run_command(['ipa', 'topologysegment-find',
-                                                'realm'])
+                                                DOMAIN_SUFFIX_NAME])
         result4 = self.replicas[1].run_command(['ipa', 'topologysegment-find',
-                                                'realm'])
+                                                DOMAIN_SUFFIX_NAME])
         segments = self.tokenize_topologies(result2.stdout_text)
         assert(len(segments) == 2)
         assert(result2.stdout_text == result3.stdout_text)
@@ -87,7 +88,7 @@ class TestTopologyOptions(IntegrationTest):
         tasks.uninstall_master(self.replicas[1])
         tasks.clean_replication_agreement(self.master, self.replicas[1])
         result5 = self.master.run_command(['ipa', 'topologysegment-find',
-                                           'realm'])
+                                           DOMAIN_SUFFIX_NAME])
         assert(self.noentries_re.search(result5.stdout_text).group(1) == "1")
 
     def test_add_remove_segment(self):
@@ -108,7 +109,7 @@ class TestTopologyOptions(IntegrationTest):
         assert err == "", err
         # Make sure the new segment is shown by `ipa topologysegment-find`
         result1 = self.master.run_command(['ipa', 'topologysegment-find',
-                                           'realm'])
+                                           DOMAIN_SUFFIX_NAME])
         assert(result1.stdout_text.find(segment['name']) > 0)
         # Remove master <-> replica2 segment and make sure that the changes get
         # there through replica1
@@ -118,7 +119,7 @@ class TestTopologyOptions(IntegrationTest):
         assert returncode == 0, error
         # make sure replica1 does not have segment that was deleted on master
         result3 = self.replicas[0].run_command(['ipa', 'topologysegment-find',
-                                               'realm'])
+                                               DOMAIN_SUFFIX_NAME])
         assert(result3.stdout_text.find(deleteme) < 0)
         # Create test data on master and make sure it gets all the way down to
         # replica2 through replica1
