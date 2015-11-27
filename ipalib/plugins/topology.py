@@ -328,11 +328,11 @@ class topologysuffix(LDAPObject):
     """
     container_dn = api.env.container_topology
     object_name = _('suffix')
-    object_name_plural = _('suffices')
+    object_name_plural = _('suffixes')
     object_class = ['iparepltopoconf']
     default_attributes = ['cn', 'ipaReplTopoConfRoot']
     search_display_attributes = ['cn', 'ipaReplTopoConfRoot']
-    label = _('Topology suffices')
+    label = _('Topology suffixes')
     label_singular = _('Topology suffix')
 
     takes_params = (
@@ -354,11 +354,11 @@ class topologysuffix(LDAPObject):
 
 @register()
 class topologysuffix_find(LDAPSearch):
-    __doc__ = _('Search for topology suffices.')
+    __doc__ = _('Search for topology suffixes.')
 
     msg_summary = ngettext(
         '%(count)d topology suffix matched',
-        '%(count)d topology suffices matched', 0
+        '%(count)d topology suffixes matched', 0
     )
 
 
