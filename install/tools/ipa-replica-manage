@@ -571,15 +571,15 @@ def check_last_link(delrepl, realm, dirman_passwd, force):
         return None
 
 
-def map_masters_to_suffices(masters, suffices):
+def map_masters_to_suffixes(masters, suffixes):
     masters_to_suffix = {}
     suffix_name_to_root = {
-        s['iparepltopoconfroot'][0]: s['cn'][0] for s in suffices
+        s['iparepltopoconfroot'][0]: s['cn'][0] for s in suffixes
     }
 
     for master in masters:
-        managed_suffices = master['iparepltopomanagedsuffix']
-        for suffix in managed_suffices:
+        managed_suffixes = master['iparepltopomanagedsuffix']
+        for suffix in managed_suffixes:
             suffix_name = suffix_name_to_root[suffix]
             try:
                 masters_to_suffix[suffix_name].append(master)
@@ -598,15 +598,15 @@ def check_last_link_managed(api, hostname, masters, force):
     """
     Check if 'hostname' is safe to delete.
 
-    :returns: a dictionary of topology errors across all suffices in the form
+    :returns: a dictionary of topology errors across all suffixes in the form
               {<suffix name>: (<original errors>,
               <errors after removing the node>)}
     """
-    suffices = api.Command.topologysuffix_find(u'')['result']
-    suffix_to_masters = map_masters_to_suffices(masters, suffices)
+    suffixes = api.Command.topologysuffix_find(u'')['result']
+    suffix_to_masters = map_masters_to_suffixes(masters, suffixes)
     topo_errors_by_suffix = {}
 
-    for suffix in suffices:
+    for suffix in suffixes:
         suffix_name = suffix['cn'][0]
         suffix_members = suffix_to_masters[suffix_name]
         print("Checking connectivity in topology suffix '{0}'".format(
@@ -776,7 +776,7 @@ def del_master_managed(realm, hostname, options):
     # 2. Get all masters
     masters = api.Command.server_find('', sizelimit=0)['result']
 
-    # 3. Check topology connectivity in all suffices
+    # 3. Check topology connectivity in all suffixes
     topo_errors = check_last_link_managed(
         api, hostname, masters, options.force)
 
@@ -871,10 +871,10 @@ def check_deleted_segments(hostname, masters, topo_errors, starting_host):
             hostname))
         return
 
-    suffices = api.Command.topologysuffix_find('', sizelimit=0)['result']
-    suffix_to_masters = map_masters_to_suffices(masters, suffices)
+    suffixes = api.Command.topologysuffix_find('', sizelimit=0)['result']
+    suffix_to_masters = map_masters_to_suffixes(masters, suffixes)
 
-    for suffix in suffices:
+    for suffix in suffixes:
         suffix_name = suffix['cn'][0]
         suffix_member_cns = [
             m['cn'][0] for m in suffix_to_masters[suffix_name]

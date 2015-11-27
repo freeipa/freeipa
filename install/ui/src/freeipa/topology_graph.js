@@ -52,10 +52,10 @@ topology_graph.TopoGraph = declare([Evented], {
     links: [],
 
     /**
-     * List of suffices
+     * List of suffixes
      * @property {Array}
      */
-    suffices: [],
+    suffixes: [],
 
     /**
      * Initializes the graph
@@ -63,7 +63,7 @@ topology_graph.TopoGraph = declare([Evented], {
      */
     initialize: function(container) {
         this._create_svg(container);
-        this.update(this.nodes, this.links, this.suffices);
+        this.update(this.nodes, this.links, this.suffixes);
         return;
     },
 
@@ -71,9 +71,9 @@ topology_graph.TopoGraph = declare([Evented], {
      * Update the graph
      * @param  {Array} nodes    array of node objects
      * @param  {Array} links    array of link objects
-     * @param  {Array} suffices array of suffices
+     * @param  {Array} suffixes array of suffixes
      */
-    update: function(nodes, links, suffices) {
+    update: function(nodes, links, suffixes) {
         // delete all from svg
         this._svg.selectAll("*").remove();
         this._svg.attr('width', this.width)
@@ -81,7 +81,7 @@ topology_graph.TopoGraph = declare([Evented], {
 
         this.links = links;
         this.nodes = nodes;
-        this.suffices = suffices;
+        this.suffixes = suffixes;
 
         // load saved coordinates
         for (var i=0,l=nodes.length; i<l; i++) {
@@ -239,7 +239,7 @@ topology_graph.TopoGraph = declare([Evented], {
     },
 
     /**
-     * Defines link arrows and colors of suffices(links) and nodes
+     * Defines link arrows and colors of suffixes(links) and nodes
      */
     _define_shapes: function() {
 
@@ -251,9 +251,9 @@ topology_graph.TopoGraph = declare([Evented], {
         var x = 10;
         var y = 20;
 
-        for (var i=0,l=this.suffices.length; i<l; i++) {
+        for (var i=0,l=this.suffixes.length; i<l; i++) {
 
-            var suffix = this.suffices[i];
+            var suffix = this.suffixes[i];
             color = d3.rgb(this._colors(suffix.cn[0]));
 
             name = this._get_marker_name(suffix, false);

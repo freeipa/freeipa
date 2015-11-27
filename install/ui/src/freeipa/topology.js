@@ -636,7 +636,7 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
             }
         }).execute();
         when(s_promise, lang.hitch(this, function(results) {
-            // suffices load success
+            // suffixes load success
             var servers = results.data.result.result;
             deferred.resolve(servers);
         }), function(results) {
@@ -648,10 +648,10 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
         return deferred.promise;
     },
 
-    _get_suffices: function() {
+    _get_suffixes: function() {
         var deferred = new Deferred();
 
-        function get_suffices() {
+        function get_suffixes() {
             return rpc.command({
                 entity: 'topologysuffix',
                 method: 'find',
@@ -672,23 +672,23 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
             }).execute();
         }
 
-        var suff_promise = get_suffices();
+        var suff_promise = get_suffixes();
 
         when(suff_promise, lang.hitch(this, function(results) {
-            // suffices load success
-            var suffices = results.data.result.result;
+            // suffixes load success
+            var suffixes = results.data.result.result;
             var segment_promises = [];
-            for (var i=0,l=suffices.length; i<l; i++) {
-                var suffix = suffices[i];
+            for (var i=0,l=suffixes.length; i<l; i++) {
+                var suffix = suffixes[i];
                 var promise = get_segments(suffix['cn'][0]);
                 segment_promises.push(promise);
             }
             all(segment_promises).then(lang.hitch(this, function(results) {
                 // segments load success
                 for (var j=0,l=results.length; j<l; j++) {
-                    suffices[j].segments = results[j].data.result.result;
+                    suffixes[j].segments = results[j].data.result.result;
                 }
-                deferred.resolve(suffices);
+                deferred.resolve(suffixes);
             }), lang.hitch(this, function(results) {
                 // segments load failed
                 deferred.reject({
@@ -699,7 +699,7 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
         }), lang.hitch(this, function(results) {
             // suffix load failed
             deferred.reject({
-                message: 'unable to load suffices',
+                message: 'unable to load suffixes',
                 results: results
             });
         }));
@@ -707,7 +707,7 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
         return deferred.promise;
     },
 
-    _transform_data: function(servers, suffices) {
+    _transform_data: function(servers, suffixes) {
 
         var i,l;
         var nodes = [];
@@ -736,8 +736,8 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
             nodes.push(node);
         }
 
-        for (i=0,l=suffices.length; i<l; i++) {
-            var suffix = suffices[i];
+        for (i=0,l=suffixes.length; i<l; i++) {
+            var suffix = suffixes[i];
 
             for (var j=0,l2=suffix.segments.length; j<l2; j++) {
                 var segment = suffix.segments[j];
@@ -778,7 +778,7 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
         var data = {
             nodes: nodes,
             links: links,
-            suffices: suffices
+            suffixes: suffixes
         };
 
         return data;
@@ -788,7 +788,7 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
 
         var deferred = new Deferred();
 
-        var segments = this._get_suffices();
+        var segments = this._get_suffixes();
         var masters = this._get_servers();
 
         all([masters, segments]).then(lang.hitch(this, function(raw) {
@@ -811,13 +811,13 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
                 this.graph = new topology_graph.TopoGraph({
                     nodes: data.nodes,
                     links: data.links,
-                    suffices: data.suffices
+                    suffixes: data.suffixes
                 });
                 this._bind_graph_events(this.graph);
                 this.graph.initialize(this.visualization_cnt_el);
 
             } else {
-                this.graph.update(data.nodes, data.links, data.suffices);
+                this.graph.update(data.nodes, data.links, data.suffixes);
             }
         }), function(error) {
             IPA.notify(error.message, 'error');
