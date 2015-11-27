@@ -169,10 +169,10 @@ class KRAInstaller(KRAInstall):
                 self.options.promote = True
             elif not self.args:
                 raise RuntimeError("A replica file is required.")
-        else:
-            if self.args:
-                raise RuntimeError("Too many parameters provided. "
-                                   "No replica file is required.")
+
+        if self.args and (not self.installing_replica or self.options.promote):
+            raise RuntimeError("Too many parameters provided. "
+                               "No replica file is required.")
 
         self.options.dm_password = self.options.password
         self.options.setup_ca = False
