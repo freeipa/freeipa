@@ -1046,19 +1046,6 @@ def uninstall(installer):
     except Exception as e:
         pass
 
-    print("Removing IPA client configuration")
-    try:
-        (stdout, stderr, rc) = run([paths.IPA_CLIENT_INSTALL, "--on-master",
-                                    "--unattended", "--uninstall"],
-                                   raiseonerr=False)
-        if rc not in [0, 2]:
-            root_logger.debug("ipa-client-install returned %d" % rc)
-            raise RuntimeError(stdout)
-    except Exception as e:
-        rv = 1
-        print("Uninstall of client side components failed!")
-        print("ipa-client-install returned: " + str(e))
-
     ntpinstance.NTPInstance(fstore).uninstall()
 
     kra.uninstall(False)
@@ -1137,6 +1124,19 @@ def uninstall(installer):
                           'These may be untracked by executing\n'
                           ' # getcert stop-tracking -i <request_id>\n'
                           'for each id in: %s' % ', '.join(ids))
+
+    print("Removing IPA client configuration")
+    try:
+        (stdout, stderr, rc) = run([paths.IPA_CLIENT_INSTALL, "--on-master",
+                                    "--unattended", "--uninstall"],
+                                   raiseonerr=False)
+        if rc not in [0, 2]:
+            root_logger.debug("ipa-client-install returned %d" % rc)
+            raise RuntimeError(stdout)
+    except Exception as e:
+        rv = 1
+        print("Uninstall of client side components failed!")
+        print("ipa-client-install returned: " + str(e))
 
     sys.exit(rv)
 
