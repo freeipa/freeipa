@@ -7,6 +7,7 @@ from service import SimpleServiceInstance
 from ipapython import ipautil
 from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import installutils
+from ipaserver.install import ldapupdate
 from ipaserver.install import sysupgrade
 from base64 import b64encode, b64decode
 from jwcrypto.common import json_decode
@@ -41,6 +42,7 @@ class CustodiaInstance(SimpleServiceInstance):
     def create_instance(self, dm_password=None):
         suffix = ipautil.realm_to_suffix(self.realm)
         self.step("Generating ipa-custodia config file", self.__config_file)
+        self.step("Making sure custodia container exists", self.__create_container)
         self.step("Generating ipa-custodia keys", self.__gen_keys)
         super(CustodiaInstance, self).create_instance(gensvc_name='KEYS',
                                                       fqdn=self.fqdn,
@@ -71,6 +73,19 @@ class CustodiaInstance(SimpleServiceInstance):
                                                       fqdn=self.fqdn,
                                                       ldap_suffix=suffix,
                                                       realm=self.realm)
+
+    def __create_container(self):
+        """
+        Runs the custodia update file to ensure custodia container is present.
+        """
+
+        sub_dict = {
+            'SUFFIX': self.suffix,
+        }
+
+        updater = ldapupdate.LDAPUpdate(dm_password=self.dm_password,
+                                        sub_dict=sub_dict)
+        updater.update([os.path.join(paths.UPDATES_DIR, '73-custodia.update')])
 
     def __import_ra_key(self):
         cli = CustodiaClient(self.fqdn, self.master_host_name, self.realm)
