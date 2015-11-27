@@ -1,5 +1,6 @@
 # Authors:
 #   Rob Crittenden <rcritten@redhat.com>
+#   Filip Skola <fskola@redhat.com>
 #
 # Copyright (C) 2010  Red Hat
 # see file 'COPYING' for use and warranty information
@@ -22,397 +23,289 @@ Test --setattr and --addattr and other attribute-specific issues
 """
 
 from ipalib import errors
-from ipatests.test_xmlrpc.xmlrpc_test import Declarative
-from ipatests.test_xmlrpc.test_user_plugin import get_user_result
+from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
+from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
 import pytest
 
-user1=u'tuser1'
+
+@pytest.fixture(scope='class')
+def user(request):
+    tracker = UserTracker(name=u'user1', givenname=u'Test', sn=u'User1')
+    return tracker.make_fixture(request)
 
 
 @pytest.mark.tier1
-class test_attr(Declarative):
+class TestAttrOnUser(XMLRPC_test):
+    def test_add_user_with_singlevalue_addattr(self):
+        """ Try to add a user with single-value attribute
+            set via option and --addattr """
+        user = UserTracker(name=u'user', givenname=u'Test', sn=u'User1',
+                           addattr=u'sn=User2')
+        command = user.make_create_command()
+        with raises_exact(errors.OnlyOneValueAllowed(attr='sn')):
+            command()
 
-    cleanup_commands = [
-        ('user_del', [user1], {}),
-    ]
+    def test_create_user(self, user):
+        """ Create a test user """
+        user.ensure_exists()
 
-    tests = [
+    def test_change_givenname_add_mail_user(self, user):
+        """ Change givenname, add mail to user """
+        user.ensure_exists()
+        user.update(
+            dict(setattr=(u'givenname=Finkle', u'mail=test@example.com')),
+            dict(givenname=[u'Finkle'], mail=[u'test@example.com'], setattr='')
+        )
 
-        dict(
-            desc='Try to add user %r with single-value attribute set via '
-                 'option and --addattr' % user1,
-            command=(
-                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
-                    addattr=u'sn=User2')
-            ),
-            expected=errors.OnlyOneValueAllowed(attr='sn'),
-        ),
+    def test_add_another_mail_user(self, user):
+        """ Add another mail to user """
+        user.ensure_exists()
+        update = u'test2@example.com'
+        user.attrs['mail'].append(update)
+        user.update(dict(addattr='mail='+update),
+                    dict(addattr=''))
 
-        dict(
-            desc='Create %r' % user1,
-            command=(
-                'user_add', [user1], dict(givenname=u'Test', sn=u'User1',
-                    setattr=None)
-            ),
-            expected=dict(
-                value=user1,
-                summary=u'Added user "tuser1"',
-                result=get_user_result(user1, u'Test', u'User1', 'add'),
-            ),
-        ),
+    def test_add_two_phone_numbers_at_once_user(self, user):
+        """ Add two phone numbers at once to user """
+        user.ensure_exists()
+        update1 = u'410-555-1212'
+        update2 = u'301-555-1212'
+        user.update(
+            dict(setattr=u'telephoneNumber='+update1,
+                 addattr=u'telephoneNumber='+update2),
+            dict(addattr='', setattr='',
+                 telephonenumber=[update1, update2]))
 
+    def test_go_from_two_phone_numbers_to_one(self, user):
+        """ Go from two phone numbers to one for user """
+        update = u'301-555-1212'
+        user.ensure_exists()
+        user.update(dict(setattr=u'telephoneNumber='+update),
+                    dict(setattr='', telephonenumber=[update]))
 
-        dict(
-            desc='Change givenname, add mail %r' % user1,
-            command=(
-                'user_mod', [user1], dict(setattr=(u'givenname=Finkle', u'mail=test@example.com'))
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Finkle', u'User1', 'mod',
-                    mail=[u'test@example.com'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
+    def test_add_two_more_phone_numbers(self, user):
+        """ Add two more phone numbers to user """
+        user.ensure_exists()
+        update1 = u'703-555-1212'
+        update2 = u'202-888-9833'
+        user.attrs['telephonenumber'].extend([update1, update2])
+        user.update(dict(addattr=(u'telephoneNumber='+update1,
+                                  u'telephoneNumber='+update2)),
+                    dict(addattr=''))
 
+    def test_delete_one_phone_number(self, user):
+        """ Delete one phone number for user """
+        user.ensure_exists()
+        update = u'301-555-1212'
+        user.attrs['telephonenumber'].remove(update)
+        user.update(dict(delattr=u'telephoneNumber='+update), dict(delattr=''))
 
-        dict(
-            desc='Add another mail %r' % user1,
-            command=(
-                'user_mod', [user1], dict(addattr=u'mail=test2@example.com')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Finkle', u'User1', 'mod',
-                    mail=[u'test@example.com', u'test2@example.com'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
+    def test_delete_the_number_again(self, user):
+        """ Try deleting the number again for user """
+        user.ensure_exists()
+        update = u'301-555-1212'
+        command = user.make_update_command(
+            dict(delattr=u'telephoneNumber='+update))
+        with raises_exact(errors.AttrValueNotFound(
+                attr=u'telephonenumber', value=update)):
+            command()
 
+    def test_add_and_delete_one_phone_number(self, user):
+        """ Add and delete one phone number for user """
+        user.ensure_exists()
+        update1 = u'202-888-9833'
+        update2 = u'301-555-1212'
+        user.attrs['telephonenumber'].remove(update1)
+        user.attrs['telephonenumber'].append(update2)
+        user.update(dict(addattr=u'telephoneNumber='+update2,
+                         delattr=u'telephoneNumber='+update1),
+                    dict(addattr='', delattr=''))
 
-        dict(
-            desc='Add two phone numbers at once %r' % user1,
-            command=(
-                'user_mod', [user1], dict(setattr=u'telephoneNumber=410-555-1212', addattr=u'telephoneNumber=301-555-1212')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Finkle', u'User1', 'mod',
-                    mail=[u'test@example.com', u'test2@example.com'],
-                    telephonenumber=[u'410-555-1212', u'301-555-1212'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
+    def test_add_and_delete_the_same_phone_number(self, user):
+        """ Add and delete the same phone number for user """
+        user.ensure_exists()
+        update1 = u'301-555-1212'
+        update2 = u'202-888-9833'
+        user.attrs['telephonenumber'].append(update2)
+        user.update(dict(addattr=(u'telephoneNumber='+update1,
+                                  u'telephoneNumber='+update2),
+                         delattr=u'telephoneNumber='+update1),
+                    dict(addattr='', delattr=''))
 
+    def test_set_and_delete_a_phone_number(self, user):
+        """ Set and delete a phone number for user """
+        user.ensure_exists()
+        update1 = u'301-555-1212'
+        update2 = u'202-888-9833'
+        user.attrs.update(telephonenumber=[update2])
+        user.update(dict(setattr=(u'telephoneNumber='+update1,
+                                  u'telephoneNumber='+update2),
+                         delattr=u'telephoneNumber='+update1),
+                    dict(setattr='', delattr=''))
 
-        dict(
-            desc='Go from two phone numbers to one %r' % user1,
-            command=(
-                'user_mod', [user1], dict(setattr=u'telephoneNumber=301-555-1212')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Finkle', u'User1', 'mod',
-                    mail=[u'test@example.com', u'test2@example.com'],
-                    telephonenumber=[u'301-555-1212'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
+    def test_set_givenname_to_none_with_setattr(self, user):
+        """ Try setting givenname to None with setattr in user """
+        user.ensure_exists()
+        command = user.make_update_command(dict(setattr=(u'givenname=')))
+        with raises_exact(errors.RequirementError(name='givenname')):
+            command()
 
+    def test_set_givenname_to_none_with_option(self, user):
+        """ Try setting givenname to None with option in user """
+        user.ensure_exists()
+        command = user.make_update_command(dict(givenname=None))
+        with raises_exact(errors.RequirementError(name='first')):
+            command()
 
-        dict(
-            desc='Add two more phone numbers %r' % user1,
-            command=(
-                'user_mod', [user1], dict(addattr=(u'telephoneNumber=703-555-1212', u'telephoneNumber=202-888-9833'))
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Finkle', u'User1', 'mod',
-                    mail=[u'test@example.com', u'test2@example.com'],
-                    telephonenumber=[u'301-555-1212', u'703-555-1212',
-                                     u'202-888-9833'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
+    def test_set_givenname_with_option_in_user(self, user):
+        """ Make sure setting givenname works with option in user """
+        user.ensure_exists()
+        user.update(dict(givenname=u'Fred'))
 
+    def test_set_givenname_with_setattr_in_user(self, user):
+        """ Make sure setting givenname works with setattr in user """
+        user.ensure_exists()
+        user.update(dict(setattr=u'givenname=Finkle'),
+                    dict(givenname=[u'Finkle'], setattr=''))
 
-        dict(
-            desc='Delete one phone number for %r' % user1,
-            command=(
-                'user_mod', [user1], dict(delattr=u'telephoneNumber=301-555-1212')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Finkle', u'User1', 'mod',
-                    mail=[u'test@example.com', u'test2@example.com'],
-                    telephonenumber=[u'703-555-1212', u'202-888-9833'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
+    def test_remove_empty_location_from_user(self, user):
+        """ Try to "remove" empty location from user """
+        user.ensure_exists()
+        command = user.make_update_command(dict(l=None))
+        with raises_exact(errors.EmptyModlist()):
+            command()
 
+    def test_lock_user_using_setattr(self, user):
+        """ Lock user using setattr """
+        user.ensure_exists()
+        user.update(dict(setattr=u'nsaccountlock=TrUe'),
+                    dict(nsaccountlock=True, setattr=''))
 
-        dict(
-            desc='Try deleting the number again for %r' % user1,
-            command=(
-                'user_mod', [user1], dict(delattr=u'telephoneNumber=301-555-1212')
-            ),
-            expected=errors.AttrValueNotFound(attr=u'telephonenumber',
-                value=u'301-555-1212')
-        ),
-
-
-        dict(
-            desc='Add and delete one phone number for %r' % user1,
-            command=(
-                'user_mod', [user1], dict(addattr=u'telephoneNumber=301-555-1212',
-                                          delattr=u'telephoneNumber=202-888-9833')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Finkle', u'User1', 'mod',
-                    mail=[u'test@example.com', u'test2@example.com'],
-                    telephonenumber=[u'703-555-1212', u'301-555-1212'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
+    def test_unlock_user_using_addattr_delattr(self, user):
+        """ Unlock user using addattr&delattr """
+        user.ensure_exists()
+        user.update(dict(addattr=u'nsaccountlock=FaLsE',
+                         delattr=u'nsaccountlock=TRUE'),
+                    dict(addattr='', delattr='', nsaccountlock=False))
 
 
-        dict(
-            desc='Add and delete the same phone number for %r' % user1,
-            command=(
-                'user_mod', [user1], dict(addattr=(u'telephoneNumber=301-555-1212',
-                                                   u'telephoneNumber=202-888-9833'),
-                                          delattr=u'telephoneNumber=301-555-1212')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Finkle', u'User1', 'mod',
-                    mail=[u'test@example.com', u'test2@example.com'],
-                    telephonenumber=[u'703-555-1212', u'301-555-1212',
-                                     u'202-888-9833'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
+@pytest.mark.tier1
+class TestAttrOnConfigs(XMLRPC_test):
+    def test_add_new_group_search_fields_config_entry(self, user):
+        """ Try adding a new group search fields config entry """
+        command = user.make_command(
+            'config_mod', **dict(addattr=u'ipagroupsearchfields=newattr')
+        )
+        with raises_exact(errors.OnlyOneValueAllowed(
+                attr='ipagroupsearchfields')):
+            command()
 
+    def test_add_a_new_cert_subject_base_config_entry(self, user):
+        """ Try adding a new cert subject base config entry """
+        command = user.make_command(
+            'config_mod',
+            **dict(
+                addattr=u'ipacertificatesubjectbase=0=DOMAIN.COM')
+        )
+        with raises_exact(errors.ValidationError(
+                name='ipacertificatesubjectbase',
+                error='attribute is not configurable')):
+            command()
 
-        dict(
-            desc='Set and delete a phone number for %r' % user1,
-            command=(
-                'user_mod', [user1], dict(setattr=(u'telephoneNumber=301-555-1212',
-                                                   u'telephoneNumber=202-888-9833'),
-                                          delattr=u'telephoneNumber=301-555-1212')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Finkle', u'User1', 'mod',
-                    mail=[u'test@example.com', u'test2@example.com'],
-                    telephonenumber=[u'202-888-9833'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
+    def test_delete_required_config_entry(self, user):
+        """ Try deleting a required config entry """
+        command = user.make_command(
+            'config_mod',
+            **dict(delattr=u'ipasearchrecordslimit=100')
+        )
+        with raises_exact(errors.RequirementError(
+                name='ipasearchrecordslimit')):
+            command()
 
+    def test_set_nonexistent_attribute(self, user):
+        """ Try setting a nonexistent attribute """
+        command = user.make_command(
+            'config_mod', **dict(setattr=u'invalid_attr=false')
+        )
+        with raises_exact(errors.ObjectclassViolation(
+                info='attribute "invalid_attr" not allowed')):
+            command()
 
-        dict(
-            desc='Try setting givenname to None with setattr in %r' % user1,
-            command=(
-                'user_mod', [user1], dict(setattr=(u'givenname='))
-            ),
-            expected=errors.RequirementError(name='givenname'),
-        ),
+    def test_set_outofrange_krbpwdmaxfailure(self, user):
+        """ Try setting out-of-range krbpwdmaxfailure """
+        command = user.make_command(
+            'pwpolicy_mod', **dict(setattr=u'krbpwdmaxfailure=-1')
+        )
+        with raises_exact(errors.ValidationError(
+                name='krbpwdmaxfailure', error='must be at least 0')):
+            command()
 
+    def test_set_outofrange_maxfail(self, user):
+        """ Try setting out-of-range maxfail """
+        command = user.make_command(
+            'pwpolicy_mod', **dict(krbpwdmaxfailure=u'-1')
+        )
+        with raises_exact(errors.ValidationError(
+                name='maxfail', error='must be at least 0')):
+            command()
 
-        dict(
-            desc='Try setting givenname to None with option in %r' % user1,
-            command=(
-                'user_mod', [user1], dict(givenname=None)
-            ),
-            expected=errors.RequirementError(name='first'),
-        ),
+    def test_set_nonnumeric_krbpwdmaxfailure(self, user):
+        """ Try setting non-numeric krbpwdmaxfailure """
+        command = user.make_command(
+            'pwpolicy_mod', **dict(setattr=u'krbpwdmaxfailure=abc')
+        )
+        with raises_exact(errors.ConversionError(
+                name='krbpwdmaxfailure', error='must be an integer')):
+            command()
 
+    def test_set_nonnumeric_maxfail(self, user):
+        """ Try setting non-numeric maxfail """
+        command = user.make_command(
+            'pwpolicy_mod', **dict(krbpwdmaxfailure=u'abc')
+        )
+        with raises_exact(errors.ConversionError(
+                name='maxfail', error='must be an integer')):
+            command()
 
-        dict(
-            desc='Make sure setting givenname works with option in %r' % user1,
-            command=(
-                'user_mod', [user1], dict(givenname=u'Fred')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Fred', u'User1', 'mod',
-                    mail=[u'test@example.com', u'test2@example.com'],
-                    telephonenumber=[u'202-888-9833'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
+    def test_delete_bogus_attribute(self, user):
+        """ Try deleting bogus attribute """
+        command = user.make_command(
+            'config_mod', **dict(delattr=u'bogusattribute=xyz')
+        )
+        with raises_exact(errors.ValidationError(
+                name='bogusattribute',
+                error='No such attribute on this entry')):
+            command()
 
+    def test_delete_empty_attribute(self, user):
+        """ Try deleting empty attribute """
+        command = user.make_command(
+            'config_mod',
+            **dict(delattr=u'ipaCustomFields=See Also,seealso,false')
+        )
+        with raises_exact(errors.ValidationError(
+                name='ipacustomfields',
+                error='No such attribute on this entry')):
+            command()
 
-        dict(
-            desc='Make sure setting givenname works with setattr in %r' % user1,
-            command=(
-                'user_mod', [user1], dict(setattr=u'givenname=Finkle')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Finkle', u'User1', 'mod',
-                    mail=[u'test@example.com', u'test2@example.com'],
-                    telephonenumber=[u'202-888-9833'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
-
-        dict(
-            desc='Try to "remove" empty location from %r' % user1,
-            command=('user_mod', [user1], dict(l=None)),
-            expected=errors.EmptyModlist(),
-        ),
-
-        dict(
-            desc='Lock %r using setattr' % user1,
-            command=(
-                'user_mod', [user1], dict(setattr=u'nsaccountlock=TrUe')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Finkle', u'User1', 'mod',
-                    mail=[u'test@example.com', u'test2@example.com'],
-                    telephonenumber=[u'202-888-9833'],
-                    nsaccountlock=True,
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
-
-        dict(
-            desc='Unlock %r using addattr&delattr' % user1,
-            command=(
-                'user_mod', [user1], dict(
-                    addattr=u'nsaccountlock=FaLsE',
-                    delattr=u'nsaccountlock=TRUE')
-            ),
-            expected=dict(
-                result=get_user_result(
-                    user1, u'Finkle', u'User1', 'mod',
-                    mail=[u'test@example.com', u'test2@example.com'],
-                    telephonenumber=[u'202-888-9833'],
-                ),
-                summary=u'Modified user "tuser1"',
-                value=user1,
-            ),
-        ),
-
-        dict(
-            desc='Try adding a new group search fields config entry',
-            command=(
-                'config_mod', [], dict(addattr=u'ipagroupsearchfields=newattr')
-            ),
-            expected=errors.OnlyOneValueAllowed(attr='ipagroupsearchfields'),
-        ),
-
-        dict(
-            desc='Try adding a new cert subject base config entry',
-            command=(
-                'config_mod', [], dict(addattr=u'ipacertificatesubjectbase=0=DOMAIN.COM')
-            ),
-            expected=errors.ValidationError(name='ipacertificatesubjectbase',
-                error='attribute is not configurable'),
-        ),
-
-        dict(
-            desc='Try deleting a required config entry',
-            command=(
-                'config_mod', [], dict(delattr=u'ipasearchrecordslimit=100')
-            ),
-            expected=errors.RequirementError(name='ipasearchrecordslimit'),
-        ),
-
-        dict(
-            desc='Try setting nonexistent attribute',
-            command=('config_mod', [], dict(setattr=u'invalid_attr=false')),
-            expected=errors.ObjectclassViolation(
-                info='attribute "invalid_attr" not allowed'),
-        ),
-
-        dict(
-            desc='Try setting out-of-range krbpwdmaxfailure',
-            command=('pwpolicy_mod', [], dict(setattr=u'krbpwdmaxfailure=-1')),
-            expected=errors.ValidationError(name='krbpwdmaxfailure',
-                error='must be at least 0'),
-        ),
-
-        dict(
-            desc='Try setting out-of-range maxfail',
-            command=('pwpolicy_mod', [], dict(krbpwdmaxfailure=u'-1')),
-            expected=errors.ValidationError(name='maxfail',
-                error='must be at least 0'),
-        ),
-
-        dict(
-            desc='Try setting non-numeric krbpwdmaxfailure',
-            command=('pwpolicy_mod', [], dict(setattr=u'krbpwdmaxfailure=abc')),
-            expected=errors.ConversionError(name='krbpwdmaxfailure',
-                error='must be an integer'),
-        ),
-
-        dict(
-            desc='Try setting non-numeric maxfail',
-            command=('pwpolicy_mod', [], dict(krbpwdmaxfailure=u'abc')),
-            expected=errors.ConversionError(name='maxfail',
-                error='must be an integer'),
-        ),
-
-        dict(
-            desc='Try deleting bogus attribute',
-            command=('config_mod', [], dict(delattr=u'bogusattribute=xyz')),
-            expected=errors.ValidationError(name='bogusattribute',
-                error='No such attribute on this entry'),
-        ),
-
-        dict(
-            desc='Try deleting empty attribute',
-            command=('config_mod', [],
-                dict(delattr=u'ipaCustomFields=See Also,seealso,false')),
-            expected=errors.ValidationError(name='ipacustomfields',
-                error='No such attribute on this entry'),
-        ),
-
-        dict(
-            desc='Set and delete one value, plus try deleting a missing one',
-            command=('config_mod', [], dict(
+    def test_set_and_del_value_and_del_missing_one(self, user):
+        """ Set and delete one value, plus try deleting a missing one """
+        command = user.make_command(
+            'config_mod', **dict(
                 delattr=[u'ipaCustomFields=See Also,seealso,false',
-                    u'ipaCustomFields=Country,c,false'],
-                addattr=u'ipaCustomFields=See Also,seealso,false')),
-            expected=errors.AttrValueNotFound(attr='ipacustomfields',
-                value='Country,c,false'),
-        ),
+                         u'ipaCustomFields=Country,c,false'],
+                addattr=u'ipaCustomFields=See Also,seealso,false')
+        )
+        with raises_exact(errors.AttrValueNotFound(
+                attr='ipacustomfields', value='Country,c,false')):
+            command()
 
-        dict(
-            desc='Try to delete an operational attribute with --delattr',
-            command=('config_mod', [], dict(
-                delattr=u'creatorsName=cn=directory manager')),
-            expected=errors.DatabaseError(
-                desc='Server is unwilling to perform', info=''),
-        ),
-
-    ]
+    def test_delete_an_operational_attribute_with_delattr(self, user):
+        """ Try to delete an operational attribute with --delattr """
+        command = user.make_command(
+            'config_mod', **dict(
+                delattr=u'creatorsName=cn=directory manager')
+        )
+        with raises_exact(errors.DatabaseError(
+                desc='Server is unwilling to perform', info='')):
+            command()
