@@ -596,6 +596,7 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     case 0:
         entry->tl_data = res_tl_data;
         entry->n_tl_data = result;
+        break;
     case ENOENT:
         /* The kadmin utility expects always at least KRB5_TL_MOD_PRINC tl_data
          * to be available. So if krbExtraData is missing (may happen when a
