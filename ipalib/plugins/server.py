@@ -45,6 +45,12 @@ class server(LDAPObject):
     ]
     label = _('IPA Servers')
     label_singular = _('IPA Server')
+    attribute_members = {
+        'iparepltopomanagedsuffix': ['topologysuffix'],
+    }
+    relationships = {
+        'iparepltopomanagedsuffix': ('Managed', '', 'no_'),
+    }
     takes_params = (
         Str(
             'cn',
@@ -55,8 +61,12 @@ class server(LDAPObject):
         ),
         Str(
             'iparepltopomanagedsuffix*',
-            cli_name='suffix',
-            label=_('Managed suffix'),
+            flags={'no_create', 'no_update', 'no_search'},
+        ),
+        Str(
+            'iparepltopomanagedsuffix_topologysuffix*',
+            label=_('Managed suffixes'),
+            flags={'virtual_attribute', 'no_create', 'no_update', 'no_search'},
         ),
         Int(
             'ipamindomainlevel',
@@ -74,6 +84,22 @@ class server(LDAPObject):
         ),
     )
 
+    def _get_suffixes(self):
+        suffixes = self.api.Command.topologysuffix_find(
+            all=True, raw=True,
+        )['result']
+        suffixes = [(s['iparepltopoconfroot'][0], s['dn']) for s in suffixes]
+        return suffixes
+
+    def _apply_suffixes(self, entry, suffixes):
+        # change suffix DNs to topologysuffix entry DNs
+        # this fixes LDAPObject.convert_attribute_members() for suffixes
+        suffixes = dict(suffixes)
+        if 'iparepltopomanagedsuffix' in entry:
+            entry['iparepltopomanagedsuffix'] = [
+                suffixes.get(m, m) for m in entry['iparepltopomanagedsuffix']
+            ]
+
 
 @register()
 class server_find(LDAPSearch):
@@ -83,11 +109,78 @@ class server_find(LDAPSearch):
         '%(count)d IPA server matched',
         '%(count)d IPA servers matched', 0
     )
+    member_attributes = ['iparepltopomanagedsuffix']
+
+    def get_options(self):
+        for option in super(server_find, self).get_options():
+            if option.name == 'topologysuffix':
+                option = option.clone(cli_name='topologysuffixes')
+            elif option.name == 'no_topologysuffix':
+                option = option.clone(cli_name='no_topologysuffixes')
+            yield option
+
+    def get_member_filter(self, ldap, **options):
+        options.pop('topologysuffix', None)
+        options.pop('no_topologysuffix', None)
+
+        return super(server_find, self).get_member_filter(ldap, **options)
+
+    def pre_callback(self, ldap, filters, attrs_list, base_dn, scope,
+                     *args, **options):
+        included = options.get('topologysuffix')
+        excluded = options.get('no_topologysuffix')
+
+        if included or excluded:
+            topologysuffix = self.api.Object.topologysuffix
+            suffixes = self.obj._get_suffixes()
+            suffixes = {s[1]: s[0] for s in suffixes}
+
+            if included:
+                included = [topologysuffix.get_dn(pk) for pk in included]
+                try:
+                    included = [suffixes[dn] for dn in included]
+                except KeyError:
+                    # force empty result
+                    filter = '(!(objectclass=*))'
+                else:
+                    filter = ldap.make_filter_from_attr(
+                        'iparepltopomanagedsuffix', included, ldap.MATCH_ALL
+                    )
+                filters = ldap.combine_filters(
+                    (filters, filter), ldap.MATCH_ALL
+                )
+
+            if excluded:
+                excluded = [topologysuffix.get_dn(pk) for pk in excluded]
+                excluded = [suffixes[dn] for dn in excluded if dn in suffixes]
+                filter = ldap.make_filter_from_attr(
+                    'iparepltopomanagedsuffix', excluded, ldap.MATCH_NONE
+                )
+                filters = ldap.combine_filters(
+                    (filters, filter), ldap.MATCH_ALL
+                )
+
+        return (filters, base_dn, scope)
+
+    def post_callback(self, ldap, entries, truncated, *args, **options):
+        if not options.get('raw', False):
+            suffixes = self.obj._get_suffixes()
+            for entry in entries:
+                self.obj._apply_suffixes(entry, suffixes)
+
+        return truncated
 
 
 @register()
 class server_show(LDAPRetrieve):
     __doc__ = _('Show IPA server.')
+
+    def post_callback(self, ldap, dn, entry, *keys, **options):
+        if not options.get('raw', False):
+            suffixes = self.obj._get_suffixes()
+            self.obj._apply_suffixes(entry, suffixes)
+
+        return dn
 
 
 @register()
