@@ -2883,6 +2883,15 @@ class test_dns(Declarative):
                     'result': True,
                     'summary': "Found '%s'" % wildcard_rec1_test1,
                     'value': wildcard_rec1_test1,
+                    'messages': ({
+                        'message': u"'dns-resolve' is deprecated. The "
+                                   u"command may return an unexpected result, "
+                                   u"the resolution of the DNS domain is done "
+                                   u"on a randomly chosen IPA server.",
+                        'code': 13015,
+                        'type': u'warning',
+                        'name': u'CommandDeprecatedWarning'
+                    },)
             },
         ),
 
@@ -2894,6 +2903,15 @@ class test_dns(Declarative):
                     'result': True,
                     'summary': "Found '%s'" % wildcard_rec1_test2,
                     'value': wildcard_rec1_test2,
+                    'messages': ({
+                        'message': u"'dns-resolve' is deprecated. The "
+                                   u"command may return an unexpected result, "
+                                   u"the resolution of the DNS domain is done "
+                                   u"on a randomly chosen IPA server.",
+                        'code': 13015,
+                        'type': u'warning',
+                        'name': u'CommandDeprecatedWarning'
+                    },)
             },
         ),
 
