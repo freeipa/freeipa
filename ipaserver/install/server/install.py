@@ -454,16 +454,12 @@ def install_check(installer):
     # We only set up the CA if the PKCS#12 options are not given.
     if options.dirsrv_cert_files:
         setup_ca = False
-        setup_kra = False
     else:
         setup_ca = True
-        # setup_kra is set to False until Dogtag 10.2 is available for IPA to
-        # consume. Until then users that want to install the KRA need to use
-        # ipa-install-kra
-        # TODO set setup_kra = True when Dogtag 10.2 is available
-        setup_kra = False
     options.setup_ca = setup_ca
-    options.setup_kra = setup_kra
+
+    # first instance of KRA must be installed by ipa-kra-install
+    options.setup_kra = False
 
     print("======================================="
           "=======================================")
@@ -473,8 +469,6 @@ def install_check(installer):
     if setup_ca:
         print("  * Configure a stand-alone CA (dogtag) for certificate "
               "management")
-    if setup_kra:
-        print("  * Configure a stand-alone KRA (dogtag) for key storage")
     if not options.no_ntp:
         print("  * Configure the Network Time Daemon (ntpd)")
     print("  * Create and configure an instance of Directory Server")
@@ -695,13 +689,6 @@ def install_check(installer):
 
     if setup_ca:
         ca.install_check(False, None, options)
-
-    if setup_kra:
-        try:
-            kra.install_check(api, None, options)
-        except RuntimeError as e:
-            print(str(e))
-            sys.exit(1)
 
     if options.setup_dns:
         dns.install_check(False, False, options, host_name)
@@ -968,9 +955,6 @@ def install(installer):
     service.print_msg("Restarting the web server")
     http.restart()
 
-    if setup_kra:
-        kra.install(api, None, options)
-
     # Set the admin user kerberos password
     ds.change_admin_password(admin_password)
 
@@ -1032,8 +1016,6 @@ def install(installer):
     if setup_ca:
         print(("Be sure to back up the CA certificates stored in " +
               paths.CACERT_P12))
-        if setup_kra:
-            print("and the KRA certificates stored in " + paths.KRACERT_P12)
         print("These files are required to create replicas. The password for "
               "these")
         print("files is the Directory Manager password")
