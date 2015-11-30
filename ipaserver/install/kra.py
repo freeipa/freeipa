@@ -36,7 +36,9 @@ def install_check(api, replica_config, options):
 
     if replica_config is not None:
         if not api.Command.kra_is_enabled()['result']:
-            raise RuntimeError("KRA is not installed on the master system")
+            raise RuntimeError(
+                "KRA is not installed on the master system. Please use "
+                "'ipa-kra-install' command to install the first instance.")
 
         if options.promote:
             return
