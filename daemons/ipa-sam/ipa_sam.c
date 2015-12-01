@@ -31,7 +31,7 @@
 #include <sasl/sasl.h>
 #include <krb5/krb5.h>
 #include <sss_idmap.h>
-#include "ipa_krb5.h"
+#include "ipa_asn1.h"
 #include "ipa_pwd.h"
 #include "ipa_mspac.h"
 
@@ -146,6 +146,7 @@ void idmap_cache_set_sid2unixid(const struct dom_sid *sid, struct unixid *unix_i
 #define LDAP_OBJ_KRB_PRINCIPAL "krbPrincipal"
 #define LDAP_OBJ_KRB_PRINCIPAL_AUX "krbPrincipalAux"
 #define LDAP_OBJ_KRB_TICKET_POLICY_AUX "krbTicketPolicyAux"
+#define LDAP_ATTRIBUTE_KRB_CANONICAL "krbCanonicalName"
 #define LDAP_ATTRIBUTE_KRB_PRINCIPAL "krbPrincipalName"
 #define LDAP_ATTRIBUTE_KRB_TICKET_FLAGS "krbTicketFlags"
 #define LDAP_ATTRIBUTE_IPAOPALLOW "ipaAllowedToPerform;read_keys"
@@ -1686,66 +1687,41 @@ static bool search_krb_princ(struct ldapsam_privates *ldap_state,
 	return true;
 }
 
-#define KRB_PRINC_DEFAULT_ENCTYPES "aes256-cts-hmac-sha1-96,aes128-cts-hmac-sha1-96,arcfour-hmac"
+#define DEF_ENCTYPE_NUM 3
+long default_enctypes[DEF_ENCTYPE_NUM] = {
+    ENCTYPE_AES256_CTS_HMAC_SHA1_96,
+    ENCTYPE_AES128_CTS_HMAC_SHA1_96,
+    ENCTYPE_ARCFOUR_HMAC
+};
 
 static int set_cross_realm_pw(struct ldapsam_privates *ldap_state,
-			      TALLOC_CTX *mem_ctx,
 			      const char *princ,
-			      const char *saltprinc,
-			      const char *pwd,
-			      const char *base_dn)
+			      const char *pwd)
 {
-
 	int ret;
-	krb5_error_code krberr;
-	krb5_context krbctx;
-	krb5_principal service_princ;
-	struct keys_container keys = {0, NULL};
-	char *err_msg;
-	struct berval *reqdata = NULL;
+        size_t buflen;
+        void *buffer = NULL;
+	struct berval reqdata = { 0 };
 	struct berval *retdata = NULL;
         char *retoid;
 
-	krberr = krb5_init_context(&krbctx);
-	if (krberr != 0) {
-		DEBUG(1, ("krb5_init_context failed.\n"));
-		ret = krberr;
-		goto done;
-	}
+        ret = ipaasn1_enc_getkt(true, princ, pwd,
+                                default_enctypes, DEF_ENCTYPE_NUM,
+                                &buffer, &buflen);
+        if (!ret) goto done;
 
-	krberr = krb5_parse_name(krbctx, (saltprinc != NULL) ? saltprinc : princ, &service_princ);
-	if (krberr != 0) {
-		DEBUG(1, ("Invalid Service Principal Name [%s]\n", princ));
-		ret = krberr;
-		goto done;
-	}
-
-	ret = create_keys(krbctx, service_princ, discard_const(pwd), KRB_PRINC_DEFAULT_ENCTYPES,
-                          &keys, &err_msg);
-	krb5_free_principal(krbctx, service_princ);
-	if (!ret) {
-		if (err_msg != NULL) {
-			DEBUG(1, ("create_keys returned [%s]\n", err_msg));
-		}
-		goto done;
-	}
-
-	reqdata = create_key_control(&keys, princ);
-	if (reqdata == NULL) {
-		DEBUG(1, ("Failed to create reqdata!\n"));
-		ret= ENOMEM;
-		goto done;
-	}
+        reqdata.bv_len = buflen;
+        reqdata.bv_val = buffer;
 
 	ret = smbldap_extended_operation(ldap_state->smbldap_state,
-					 KEYTAB_SET_OID, reqdata, NULL, NULL,
+					 KEYTAB_GET_OID, &reqdata, NULL, NULL,
 					 &retoid, &retdata);
 	if (ret != LDAP_SUCCESS) {
 		DEBUG(1, ("smbldap_extended_operation failed!\n"));
 		goto done;
 	}
 
-	/* So far we do not care abot the result */
+	/* So far we do not care about the result */
 	ldap_memfree(retoid);
 	if (retdata != NULL) {
 		ber_bvfree(retdata);
@@ -1753,12 +1729,7 @@ static int set_cross_realm_pw(struct ldapsam_privates *ldap_state,
 
 	ret = 0;
 done:
-	if (reqdata != NULL) {
-	    ber_bvfree(reqdata);
-	}
-	free_keys_contents(krbctx, &keys);
-	krb5_free_context(krbctx);
-
+        free(buffer);
 	return ret;
 }
 
@@ -1822,8 +1793,14 @@ static bool set_krb_princ(struct ldapsam_privates *ldap_state,
 				LDAP_OBJ_KRB_TICKET_POLICY_AUX);
 	}
 
-	smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
+	smbldap_set_mod(&mods, LDAP_MOD_ADD,
+			 LDAP_ATTRIBUTE_KRB_CANONICAL, princ);
+	smbldap_set_mod(&mods, LDAP_MOD_ADD,
 			 LDAP_ATTRIBUTE_KRB_PRINCIPAL, princ);
+        if (saltprinc) {
+	    smbldap_set_mod(&mods, LDAP_MOD_ADD,
+			    LDAP_ATTRIBUTE_KRB_PRINCIPAL, saltprinc);
+        }
 
 	if ((create_flags & KRB_PRINC_CREATE_DISABLED)) {
 		smbldap_make_mod(priv2ld(ldap_state), entry, &mods,
@@ -1862,7 +1839,7 @@ static bool set_krb_princ(struct ldapsam_privates *ldap_state,
 		return false;
 	}
 
-	ret = set_cross_realm_pw(ldap_state, mem_ctx, princ, saltprinc, pwd, base_dn);
+	ret = set_cross_realm_pw(ldap_state, saltprinc ? saltprinc : princ, pwd);
 	if (ret != 0) {
 		DEBUG(1, ("set_cross_realm_pw failed.\n"));
 		return false;
