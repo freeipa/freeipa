@@ -5,7 +5,7 @@
 import six
 
 from ipalib import api, errors
-from ipalib import Int, Str, Bool, StrEnum, Flag
+from ipalib import Int, Str, Bool, StrEnum, Flag, DNParam
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate, LDAPDelete, LDAPUpdate, LDAPQuery,
@@ -342,12 +342,10 @@ class topologysuffix(LDAPObject):
             primary_key=True,
             label=_('Suffix name'),
         ),
-        Str(
+        DNParam(
             'iparepltopoconfroot',
-            maxlength=255,
-            cli_name='suffix',
-            label=_('LDAP suffix to be managed'),
-            normalizer=lambda value: value.lower(),
+            cli_name='suffix_dn',
+            label=_('Managed LDAP suffix DN'),
         ),
     )
 
