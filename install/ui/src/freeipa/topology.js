@@ -206,7 +206,7 @@ return {
                 'cn',
                 'ipamindomainlevel',
                 'ipamaxdomainlevel',
-                'iparepltopomanagedsuffix'
+                'iparepltopomanagedsuffix_topologysuffix'
             ]
         },
         {
@@ -220,7 +220,7 @@ return {
                         { name: 'cn', read_only: true },
                         { name: 'ipamindomainlevel', read_only: true },
                         { name: 'ipamaxdomainlevel', read_only: true },
-                        { $type: 'multivalued', name: 'iparepltopomanagedsuffix', read_only: true }
+                        { $type: 'multivalued', name: 'iparepltopomanagedsuffix_topologysuffix', read_only: true }
                     ]
                 }
             ]

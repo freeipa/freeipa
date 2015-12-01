@@ -573,14 +573,10 @@ def check_last_link(delrepl, realm, dirman_passwd, force):
 
 def map_masters_to_suffixes(masters, suffixes):
     masters_to_suffix = {}
-    suffix_name_to_root = {
-        s['iparepltopoconfroot'][0]: s['cn'][0] for s in suffixes
-    }
 
     for master in masters:
-        managed_suffixes = master['iparepltopomanagedsuffix']
-        for suffix in managed_suffixes:
-            suffix_name = suffix_name_to_root[suffix]
+        managed_suffixes = master['iparepltopomanagedsuffix_topologysuffix']
+        for suffix_name in managed_suffixes:
             try:
                 masters_to_suffix[suffix_name].append(master)
             except KeyError:
