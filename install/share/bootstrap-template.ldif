@@ -261,6 +261,17 @@ description: Limited admins who can edit other users
 cn: editors
 ipaUniqueID: autogenerate
 
+dn: cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupOfNames
+objectClass: nestedGroup
+objectClass: ipaobject
+objectClass: ipahostgroup
+description: IPA server hosts
+cn: ipaservers
+ipaUniqueID: autogenerate
+
 dn: cn=sshd,cn=hbacservices,cn=hbac,$SUFFIX
 changetype: add
 objectclass: ipahbacservice

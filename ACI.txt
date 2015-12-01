@@ -119,7 +119,7 @@ aci: (targetattr = "usercertificate")(targetfilter = "(objectclass=ipahost)")(ve
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "userpassword")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host Enrollment Password";allow (write) groupdn = "ldap:///cn=System: Manage Host Enrollment Password,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "krblastpwdchange || krbprincipalkey")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host Keytab";allow (write) groupdn = "ldap:///cn=System: Manage Host Keytab,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+aci: (targetattr = "krblastpwdchange || krbprincipalkey")(targetfilter = "(&(!(memberOf=cn=ipaservers,cn=hostgroups,cn=accounts,dc=ipa,dc=example))(objectclass=ipahost))")(version 3.0;acl "permission:System: Manage Host Keytab";allow (write) groupdn = "ldap:///cn=System: Manage Host Keytab,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "createtimestamp || entryusn || ipaallowedtoperform;read_keys || ipaallowedtoperform;write_keys || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System: Manage Host Keytab Permissions";allow (compare,read,search,write) groupdn = "ldap:///cn=System: Manage Host Keytab Permissions,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=computers,cn=accounts,dc=ipa,dc=example
@@ -137,7 +137,7 @@ aci: (targetfilter = "(objectclass=ipahost)")(version 3.0;acl "permission:System
 dn: cn=hostgroups,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipahostgroup)")(version 3.0;acl "permission:System: Add Hostgroups";allow (add) groupdn = "ldap:///cn=System: Add Hostgroups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=hostgroups,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "member")(targetfilter = "(objectclass=ipahostgroup)")(version 3.0;acl "permission:System: Modify Hostgroup Membership";allow (write) groupdn = "ldap:///cn=System: Modify Hostgroup Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+aci: (targetattr = "member")(targetfilter = "(&(!(cn=ipaservers))(objectclass=ipahostgroup))")(version 3.0;acl "permission:System: Modify Hostgroup Membership";allow (write) groupdn = "ldap:///cn=System: Modify Hostgroup Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=hostgroups,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "cn || description")(targetfilter = "(objectclass=ipahostgroup)")(version 3.0;acl "permission:System: Modify Hostgroups";allow (write) groupdn = "ldap:///cn=System: Modify Hostgroups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=hostgroups,cn=accounts,dc=ipa,dc=example

@@ -395,6 +395,12 @@ class host(LDAPObject):
         },
         'System: Manage Host Keytab': {
             'ipapermright': {'write'},
+            'ipapermtargetfilter': [
+                '(objectclass=ipahost)',
+                '(!(memberOf=%s))' % DN('cn=ipaservers',
+                                        api.env.container_hostgroup,
+                                        api.env.basedn),
+            ],
             'ipapermdefaultattr': {'krblastpwdchange', 'krbprincipalkey'},
             'replaces': [
                 '(targetattr = "krbprincipalkey || krblastpwdchange")(target = "ldap:///fqdn=*,cn=computers,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Manage host keytab";allow (write) groupdn = "ldap:///cn=Manage host keytab,cn=permissions,cn=pbac,$SUFFIX";)',

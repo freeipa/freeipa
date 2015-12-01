@@ -14,6 +14,7 @@ app_DATA =				\
 	20-dna.update			\
 	20-host_nis_groups.update	\
 	20-indices.update		\
+	20-ipaservers_hostgroup.update	\
 	20-nss_ldap.update		\
 	20-replication.update		\
 	20-sslciphers.update		\

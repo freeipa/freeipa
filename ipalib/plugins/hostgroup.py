@@ -72,6 +72,8 @@ def get_complete_hostgroup_member_list(hostgroup):
 
 register = Registry()
 
+PROTECTED_HOSTGROUPS = (u'ipaservers',)
+
 
 @register()
 class hostgroup(LDAPObject):
@@ -121,6 +123,10 @@ class hostgroup(LDAPObject):
         },
         'System: Modify Hostgroup Membership': {
             'ipapermright': {'write'},
+            'ipapermtargetfilter': [
+                '(objectclass=ipahostgroup)',
+                '(!(cn=ipaservers))',
+            ],
             'ipapermdefaultattr': {'member'},
             'replaces': [
                 '(targetattr = "member")(target = "ldap:///cn=*,cn=hostgroups,cn=accounts,$SUFFIX")(version 3.0;acl "permission:Modify Hostgroup membership";allow (write) groupdn = "ldap:///cn=Modify Hostgroup membership,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -229,6 +235,14 @@ class hostgroup_del(LDAPDelete):
 
     msg_summary = _('Deleted hostgroup "%(value)s"')
 
+    def pre_callback(self, ldap, dn, *keys, **options):
+        if keys[0] in PROTECTED_HOSTGROUPS:
+            raise errors.ProtectedEntryError(label=_(u'hostgroup'),
+                                             key=keys[0],
+                                             reason=_(u'privileged hostgroup'))
+
+        return dn
+
 
 @register()
 class hostgroup_mod(LDAPUpdate):
@@ -282,6 +296,18 @@ class hostgroup_add_member(LDAPAddMember):
 @register()
 class hostgroup_remove_member(LDAPRemoveMember):
     __doc__ = _('Remove members from a hostgroup.')
+
+    def pre_callback(self, ldap, dn, found, not_found, *keys, **options):
+        if keys[0] in PROTECTED_HOSTGROUPS and 'host' in options:
+            result = api.Command.hostgroup_show(keys[0])
+            hosts_left = set(result['result'].get('member_host', []))
+            hosts_deleted = set(options['host'])
+            if hosts_left.issubset(hosts_deleted):
+                raise errors.LastMemberError(key=sorted(hosts_deleted)[0],
+                                             label=_(u'hostgroup'),
+                                             container=keys[0])
+
+        return dn
 
     def post_callback(self, ldap, completed, failed, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)

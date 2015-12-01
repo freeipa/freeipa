@@ -117,6 +117,13 @@ class KrbInstance(service.Service):
             host_entry['krbticketflags'] = service_entry['krbticketflags']
         self.admin_conn.add_entry(host_entry)
 
+        # Add the host to the ipaserver host group
+        hostgroup_dn = DN(('cn', 'ipaservers'), ('cn', 'hostgroups'),
+                          ('cn', 'accounts'), self.suffix)
+        hostgroup_entry = self.admin_conn.get_entry(hostgroup_dn, ['member'])
+        hostgroup_entry.setdefault('member', []).append(host_dn)
+        self.admin_conn.update_entry(hostgroup_entry)
+
     def __common_setup(self, realm_name, host_name, domain_name, admin_password):
         self.fqdn = host_name
         self.realm = realm_name.upper()
