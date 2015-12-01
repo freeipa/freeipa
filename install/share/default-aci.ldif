@@ -77,17 +77,6 @@ changetype: modify
 add: aci
 aci: (targetattr="userPassword || krbPrincipalKey")(version 3.0; acl "Search existence of password and kerberos keys"; allow(search) userdn = "ldap:///all";)
 
-# Let host add and update CA renewal certificates
-dn: cn=ipa,cn=etc,$SUFFIX
-changetype: modify
-add: aci
-aci: (target="ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,$SUFFIX")(version 3.0; acl "Add CA Certificates for renewals"; allow(add) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)
-
-dn: cn=ipa,cn=etc,$SUFFIX
-changetype: modify
-add: aci
-aci: (target="ldap:///cn=*,cn=ca_renewal,cn=ipa,cn=etc,$SUFFIX")(targetattr="userCertificate")(version 3.0; acl "Modify CA Certificates for renewals"; allow(write) userdn = "ldap:///fqdn=$FQDN,cn=computers,cn=accounts,$SUFFIX";)
-
 # Let users manage their own tokens
 dn: $SUFFIX
 changetype: modify
