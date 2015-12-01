@@ -122,8 +122,7 @@ class KEMLdap(iSecLdap):
             conn.add_s(dn, mods)
         except Exception:  # pylint: disable=broad-except
             # This may fail if the entry already exists
-            mods = [(ldap.MOD_REPLACE, 'memberPrincipal', principal),
-                    (ldap.MOD_REPLACE, 'ipaPublicKey', public_key)]
+            mods = [(ldap.MOD_REPLACE, 'ipaPublicKey', public_key)]
             conn.modify_s(dn, mods)
 
 
