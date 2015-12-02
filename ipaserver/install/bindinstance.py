@@ -43,10 +43,12 @@ from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
-        get_dns_forward_zone_update_policy, get_dns_reverse_zone_update_policy,
-        normalize_zone, get_reverse_zone_default, zone_is_reverse,
-        validate_dnssec_global_forwarder, DNSSECSignatureMissingError,
-        EDNS0UnsupportedError, UnresolvableRecordError)
+                         get_dns_forward_zone_update_policy,
+                         get_dns_reverse_zone_update_policy,
+                         normalize_zone, get_reverse_zone_default,
+                         zone_is_reverse, validate_dnssec_global_forwarder,
+                         DNSSECSignatureMissingError, EDNS0UnsupportedError,
+                         UnresolvableRecordError, verify_host_resolvable)
 from ipalib.constants import CACERT
 
 if six.PY3:
@@ -278,20 +280,48 @@ def find_reverse_zone(ip_address, api=api):
     return None
 
 
-def read_reverse_zone(default, ip_address):
+def read_reverse_zone(default, ip_address, allow_zone_overlap=False):
     while True:
         zone = ipautil.user_input("Please specify the reverse zone name", default=default)
         if not zone:
             return None
-        if verify_reverse_zone(zone, ip_address):
-            break
-        else:
-            print("Invalid reverse zone %s for IP address %s" % (zone, ip_address))
+        if not verify_reverse_zone(zone, ip_address):
+            root_logger.error("Invalid reverse zone %s for IP address %s"
+                              % (zone, ip_address))
+            continue
+        if not allow_zone_overlap:
+            try:
+                ipautil.check_zone_overlap(zone, raise_on_timeout=False)
+            except ValueError as e:
+                root_logger.error("Reverse zone %s will not be used: %s"
+                                  % (zone, e))
+                continue
+        break
 
     return normalize_zone(zone)
 
+
+def get_auto_reverse_zones(ip_addresses):
+    auto_zones = []
+    for ip in ip_addresses:
+        if ipautil.reverse_record_exists(ip):
+            # PTR exist there is no reason to create reverse zone
+            root_logger.info("Reverse record for IP address %s already "
+                             "exists" % ip)
+            continue
+        default_reverse = get_reverse_zone_default(ip)
+        try:
+            ipautil.check_zone_overlap(default_reverse)
+        except ValueError:
+            root_logger.info("Reverse zone %s for IP address %s already exists"
+                             % (default_reverse, ip))
+            continue
+        auto_zones.append((ip, default_reverse))
+    return auto_zones
+
 def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None,
-       update_policy=None, force=False, api=api):
+             update_policy=None, force=False, skip_overlap_check=False,
+             api=api):
 
     # always normalize zones
     name = normalize_zone(name)
@@ -317,6 +347,7 @@ def add_zone(name, zonemgr=None, dns_backup=None, ns_hostname=None,
                                 idnsupdatepolicy=unicode(update_policy),
                                 idnsallowquery=u'any',
                                 idnsallowtransfer=u'none',
+                                skip_overlap_check=skip_overlap_check,
                                 force=force)
     except (errors.DuplicateEntry, errors.EmptyModlist):
         pass
@@ -406,46 +437,62 @@ def zonemgr_callback(option, opt_str, value, parser):
 
     parser.values.zonemgr = value
 
-def check_reverse_zones(ip_addresses, reverse_zones, options, unattended, search_reverse_zones=False):
-    reverse_asked = False
 
-    ret_reverse_zones = []
-    # check that there is IP address in every reverse zone
-    if reverse_zones:
-        for rz in reverse_zones:
-            for ip in ip_addresses:
-                if verify_reverse_zone(rz, ip):
-                    ret_reverse_zones.append(normalize_zone(rz))
-                    break
-            else:
-                # no ip matching reverse zone found
-                sys.exit("There is no IP address matching reverse zone %s." % rz)
-    if not options.no_reverse:
-        # check that there is reverse zone for every IP
-        for ip in ip_addresses:
-            if search_reverse_zones and find_reverse_zone(str(ip)):
-                # reverse zone is already in LDAP
+def check_reverse_zones(ip_addresses, reverse_zones, options, unattended,
+                        search_reverse_zones=False):
+    checked_reverse_zones = []
+
+    if not options.no_reverse and not reverse_zones:
+        if unattended:
+            options.no_reverse = True
+        else:
+            options.no_reverse = not create_reverse()
+
+    # shortcut
+    if options.no_reverse:
+        return []
+
+    # verify zones passed in options
+    for rz in reverse_zones:
+        # isn't the zone managed by someone else
+        if not options.allow_zone_overlap:
+            try:
+                ipautil.check_zone_overlap(rz)
+            except ValueError as e:
+                msg = "Reverse zone %s will not be used: %s" % (rz, e)
+                if options.unattended:
+                    sys.exit(msg)
+                else:
+                    root_logger.warning(msg)
                 continue
-            for rz in ret_reverse_zones:
-                if verify_reverse_zone(rz, ip):
-                    # reverse zone was entered by user
-                    break
-            else:
-                # no reverse zone for ip found
-                if not reverse_asked:
-                    if not unattended and not reverse_zones:
-                        # user did not specify reverse_zone nor no_reverse
-                        options.no_reverse = not create_reverse()
-                        if options.no_reverse:
-                            # user decided not to create reverse zone
-                            return []
-                    reverse_asked = True
-                rz = get_reverse_zone_default(str(ip))
-                if not unattended:
-                    rz = read_reverse_zone(rz, str(ip))
-                ret_reverse_zones.append(rz)
+        checked_reverse_zones.append(normalize_zone(rz))
 
-    return ret_reverse_zones
+    # check that there is reverse zone for every IP
+    ips_missing_reverse = []
+    for ip in ip_addresses:
+        if search_reverse_zones and find_reverse_zone(str(ip)):
+            # reverse zone is already in LDAP
+            continue
+        for rz in checked_reverse_zones:
+            if verify_reverse_zone(rz, ip):
+                # reverse zone was entered by user
+                break
+        else:
+            ips_missing_reverse.append(ip)
+
+    # create reverse zone for IP addresses that does not have one
+    for (ip, rz) in get_auto_reverse_zones(ips_missing_reverse):
+        if unattended:
+            root_logger.warning("Missing reverse record for IP address %s"
+                                % ip)
+        else:
+            if ipautil.user_input("Do you want to create reverse zone for IP "
+                                  "%s" % ip, True):
+                rz = read_reverse_zone(rz, str(ip), options.allow_zone_overlap)
+                checked_reverse_zones.append(rz)
+
+    return checked_reverse_zones
+
 
 def check_forwarders(dns_forwarders, logger):
     print("Checking DNS forwarders, please wait ...")
@@ -770,7 +817,8 @@ class BindInstance(service.Service):
     def __setup_zone(self):
         # Always use force=True as named is not set up yet
         add_zone(self.domain, self.zonemgr, dns_backup=self.dns_backup,
-                 ns_hostname=self.api.env.host, force=True, api=self.api)
+                 ns_hostname=self.api.env.host, force=True,
+                 skip_overlap_check=True, api=self.api)
 
         add_rr(self.domain, "_kerberos", "TXT", self.realm, api=self.api)
 
@@ -788,7 +836,8 @@ class BindInstance(service.Service):
         # Always use force=True as named is not set up yet
         for reverse_zone in self.reverse_zones:
             add_zone(reverse_zone, self.zonemgr, ns_hostname=self.api.env.host,
-                     dns_backup=self.dns_backup, force=True, api=self.api)
+                     dns_backup=self.dns_backup, force=True,
+                     skip_overlap_check=True, api=self.api)
 
     def __add_master_records(self, fqdn, addrs):
         host, zone = fqdn.split(".", 1)
@@ -817,18 +866,19 @@ class BindInstance(service.Service):
                    api=self.api)
 
         if not dns_zone_exists(zone, self.api):
-            # add DNS domain for host first
-            root_logger.debug(
-                "Host domain (%s) is different from DNS domain (%s)!" % (
-                    zone, self.domain))
-            root_logger.debug("Add DNS zone for host first.")
-
-            add_zone(zone, self.zonemgr, dns_backup=self.dns_backup,
-                     ns_hostname=self.fqdn, force=True, api=self.api)
+            # check if master hostname is resolvable
+            try:
+                verify_host_resolvable(fqdn, root_logger)
+            except errors.DNSNotARecordError:
+                root_logger.warning("Master FQDN (%s) is not resolvable.",
+                                    fqdn)
 
         # Add forward and reverse records to self
         for addr in addrs:
-            add_fwd_rr(zone, host, addr, api=self.api)
+            try:
+                add_fwd_rr(zone, host, addr, self.api)
+            except errors.NotFound as e:
+                pass
 
             reverse_zone = find_reverse_zone(addr, self.api)
             if reverse_zone:

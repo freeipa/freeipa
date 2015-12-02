@@ -10,6 +10,8 @@ from ipapython.install import common, core
 from ipapython.install.core import Knob
 from ipalib.util import validate_domain_name
 from ipaserver.install import bindinstance
+from ipapython.ipautil import check_zone_overlap
+from ipapython.dnsutil import DNSName
 
 VALID_SUBJECT_ATTRS = ['st', 'o', 'ou', 'dnqualifier', 'c',
                        'serialnumber', 'l', 'title', 'sn', 'givenname',
@@ -171,6 +173,11 @@ class BaseServerDNS(common.Installable, core.Group, core.Composite):
         description="Do not add any DNS forwarders, use root servers instead",
     )
 
+    allow_zone_overlap = Knob(
+        bool, False,
+        description="Create DNS zone even if it already exists",
+    )
+
     reverse_zones = Knob(
         (list, str), [],
         description=("The reverse DNS zone to use. This option can be used "
@@ -178,6 +185,12 @@ class BaseServerDNS(common.Installable, core.Group, core.Composite):
         cli_name='reverse-zone',
         cli_metavar='REVERSE_ZONE',
     )
+
+    @reverse_zones.validator
+    def reverse_zones(self, values):
+        if not self.allow_zone_overlap:
+            for zone in values:
+                check_zone_overlap(zone)
 
     no_reverse = Knob(
         bool, False,
@@ -255,6 +268,11 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
     @domain_name.validator
     def domain_name(self, value):
         validate_domain_name(value)
+        if (self.setup_dns and
+                not self.dns.allow_zone_overlap):  # pylint: disable=no-member
+            print("Checking DNS domain %s, please wait ..." % value)
+            check_zone_overlap(value, False)
+
 
     dm_password = Knob(
         str, None,
@@ -452,6 +470,7 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
         self.no_forwarders = self.dns.no_forwarders
         self.reverse_zones = self.dns.reverse_zones
         self.no_reverse = self.dns.no_reverse
+        self.allow_zone_overlap = self.dns.allow_zone_overlap
         self.no_dnssec_validation = self.dns.no_dnssec_validation
         self.dnssec_master = self.dns.dnssec_master
         self.disable_dnssec_master = self.dns.disable_dnssec_master

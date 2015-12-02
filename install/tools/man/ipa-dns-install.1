@@ -62,6 +62,9 @@ Copy OpenDNSSEC metadata from the specified kasp.db file. This will not create a
 \fB\-\-zonemgr\fR
 The e\-mail address of the DNS zone manager. Defaults to hostmaster@DOMAIN
 .TP
+\fB\-\-allow\-zone\-overlap\fR
+Allow creatin of (reverse) zone even if the zone is already resolvable. Using this option is discouraged as it result in later problems with domain name resolution.
+.TP
 \fB\-U\fR, \fB\-\-unattended\fR
 An unattended installation that will never prompt for user input
 .SH "DEPRECATED OPTIONS"

@@ -57,6 +57,9 @@ def parse_options():
                       help="The reverse DNS zone to use. This option can be used multiple times")
     parser.add_option("--no-reverse", dest="no_reverse", action="store_true",
                       default=False, help="Do not create new reverse DNS zone")
+    parser.add_option("--allow-zone-overlap", dest="allow_zone_overlap",
+                      action="store_true", default=False, help="Create DNS "
+                      "zone even if it already exists")
     parser.add_option("--no-dnssec-validation", dest="no_dnssec_validation", action="store_true",
                       default=False, help="Disable DNSSEC validation")
     parser.add_option("--dnssec-master", dest="dnssec_master", action="store_true",

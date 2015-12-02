@@ -40,7 +40,7 @@ from contextlib import contextmanager
 import locale
 import collections
 
-from dns import resolver, rdatatype
+from dns import resolver, rdatatype, reversename
 from dns.exception import DNSException, Timeout
 import six
 from six.moves import input
@@ -1029,6 +1029,22 @@ def host_exists(host):
         return False
     else:
         return True
+
+
+def reverse_record_exists(ip_address):
+    """
+    Checks if IP address have some reverse record somewhere.
+    Does not care where it points.
+
+    Returns True/False
+    """
+    reverse = reversename.from_address(str(ip_address))
+    try:
+        resolver.query(reverse, "PTR")
+    except DNSException:
+        # really don't care what exception, PTR is simply unresolvable
+        return False
+    return True
 
 
 def check_zone_overlap(zone, raise_on_timeout=True):
