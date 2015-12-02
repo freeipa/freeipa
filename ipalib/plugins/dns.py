@@ -53,8 +53,7 @@ from ipalib.util import (normalize_zonemgr,
                          validate_dnssec_zone_forwarder_step1,
                          validate_dnssec_zone_forwarder_step2,
                          verify_host_resolvable)
-
-from ipapython.ipautil import CheckedIPAddress
+from ipapython.ipautil import CheckedIPAddress, check_zone_overlap
 from ipapython.dnsutil import DNSName
 
 if six.PY3:
@@ -2121,6 +2120,13 @@ class DNSZoneBase(LDAPObject):
 
 class DNSZoneBase_add(LDAPCreate):
 
+    takes_options = LDAPCreate.takes_options + (
+        Flag('skip_overlap_check',
+             doc=_('Force DNS zone creation even if it will overlap with '
+                   'an existing zone.')
+        ),
+    )
+
     has_output_params = LDAPCreate.has_output_params + dnszone_output_params
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
@@ -2139,6 +2145,12 @@ class DNSZoneBase_add(LDAPCreate):
                 )
 
         entry_attrs['idnszoneactive'] = 'TRUE'
+
+        if not options['skip_overlap_check']:
+            try:
+                check_zone_overlap(keys[-1])
+            except ValueError as e:
+                raise errors.InvocationError(e.message)
 
         return dn
 
@@ -2696,8 +2708,13 @@ class dnszone_add(DNSZoneBase_add):
 
     takes_options = DNSZoneBase_add.takes_options + (
         Flag('force',
-             label=_('Force'),
-             doc=_('Force DNS zone creation even if nameserver is not resolvable.'),
+             doc=_('Force DNS zone creation even if nameserver is not '
+                   'resolvable. (Deprecated)'),
+        ),
+
+        Flag('skip_nameserver_check',
+             doc=_('Force DNS zone creation even if nameserver is not '
+                   'resolvable.'),
         ),
 
         # Deprecated
@@ -2721,6 +2738,9 @@ class dnszone_add(DNSZoneBase_add):
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         assert isinstance(dn, DN)
 
+        if options.get('force'):
+            options['skip_nameserver_check'] = True
+
         dn = super(dnszone_add, self).pre_callback(
             ldap, dn, entry_attrs, attrs_list, *keys, **options)
 
@@ -2736,7 +2756,7 @@ class dnszone_add(DNSZoneBase_add):
                     error=_("Nameserver for reverse zone cannot be a relative DNS name"))
 
             # verify if user specified server is resolvable
-            if not options['force']:
+            if not options['skip_nameserver_check']:
                 check_ns_rec_resolvable(keys[0], entry_attrs['idnssoamname'],
                                         self.log)
             # show warning about --name-server option

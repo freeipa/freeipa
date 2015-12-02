@@ -959,7 +959,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: dnsforwardzone_add
-args: 1,8,3
+args: 1,9,3
 arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=False, only_absolute=True, primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -968,6 +968,7 @@ option: StrEnum('idnsforwardpolicy', attribute=True, cli_name='forward_policy', 
 option: Str('name_from_ip', attribute=False, cli_name='name_from_ip', multivalue=False, required=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Flag('skip_overlap_check', autofill=True, default=False)
 option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
@@ -1366,7 +1367,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: dnszone_add
-args: 1,26,3
+args: 1,28,3
 arg: DNSNameParam('idnsname', attribute=True, cli_name='name', multivalue=False, only_absolute=True, primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
 option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
@@ -1393,6 +1394,8 @@ option: Str('name_from_ip', attribute=False, cli_name='name_from_ip', multivalue
 option: Str('nsec3paramrecord', attribute=True, cli_name='nsec3param_rec', multivalue=False, pattern='^\\d+ \\d+ \\d+ (([0-9a-fA-F]{2})+|-)$', required=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
 option: Str('setattr*', cli_name='setattr', exclude='webui')
+option: Flag('skip_nameserver_check', autofill=True, default=False)
+option: Flag('skip_overlap_check', autofill=True, default=False)
 option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
