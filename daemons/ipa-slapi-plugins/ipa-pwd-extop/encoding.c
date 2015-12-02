@@ -104,6 +104,7 @@ void ipapwd_keyset_free(struct ipapwd_keyset **pkset)
 
 Slapi_Value **ipapwd_encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
                                         struct ipapwd_data *data,
+                                        char *preferred_principal,
                                         int num_encsalts,
                                         krb5_key_salt_tuple *encsalts,
                                         char **errMesg)
@@ -128,12 +129,20 @@ Slapi_Value **ipapwd_encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
 
     kvno = ipapwd_get_cur_kvno(data->target);
 
-    krbPrincipalName = slapi_entry_attr_get_charptr(data->target,
-                                                    "krbPrincipalName");
-    if (!krbPrincipalName) {
-        *errMesg = "no krbPrincipalName present in this entry\n";
-        LOG_FATAL("%s", *errMesg);
-        goto enc_error;
+    if (preferred_principal) {
+        krbPrincipalName = slapi_ch_strdup(preferred_principal);
+    } else {
+        krbPrincipalName = slapi_entry_attr_get_charptr(data->target,
+                                                        "krbCanonicalName");
+        if (!krbPrincipalName) {
+            krbPrincipalName = slapi_entry_attr_get_charptr(data->target,
+                                                        "krbPrincipalName");
+        }
+        if (!krbPrincipalName) {
+            *errMesg = "no krbPrincipalName present in this entry\n";
+            LOG_FATAL("%s", *errMesg);
+            goto enc_error;
+        }
     }
 
     krberr = krb5_parse_name(krbctx, krbPrincipalName, &princ);
@@ -215,7 +224,7 @@ int ipapwd_gen_hashes(struct ipapwd_krbcfg *krbcfg,
 
     if (is_krb) {
 
-        *svals = ipapwd_encrypt_encode_key(krbcfg, data,
+        *svals = ipapwd_encrypt_encode_key(krbcfg, data, NULL,
                                            krbcfg->num_pref_encsalts,
                                            krbcfg->pref_encsalts,
                                            errMesg);

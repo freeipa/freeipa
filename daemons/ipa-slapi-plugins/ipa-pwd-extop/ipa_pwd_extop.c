@@ -661,6 +661,7 @@ static Slapi_Entry *get_entry_by_principal(const char *principal)
     Slapi_PBlock *pb = NULL;
     char *attrlist[] = { "krbPrincipalKey", "krbLastPwdChange",
                          "userPassword", "krbPrincipalName",
+                         "krbCanonicalName",
                          "enrolledBy", NULL };
     Slapi_Entry **es = NULL;
     int res, ret, i;
@@ -1648,7 +1649,7 @@ static int ipapwd_getkeytab(Slapi_PBlock *pb, struct ipapwd_krbcfg *krbcfg)
         data.target = target_entry;
         data.password = password;
 
-        svals = ipapwd_encrypt_encode_key(krbcfg, &data,
+        svals = ipapwd_encrypt_encode_key(krbcfg, &data, service_name,
                                           kenctypes ? num_kenctypes :
                                                 krbcfg->num_pref_encsalts,
                                           kenctypes ? kenctypes :
