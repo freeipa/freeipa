@@ -17,8 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import pytest
+
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration.tasks import clear_sssd_cache
+from ipatests.test_integration import util
 
 
 class TestSudo(IntegrationTest):
@@ -269,13 +272,25 @@ class TestSudo(IntegrationTest):
                                  '--hostgroups', 'testhostgroup'])
 
     def test_sudo_rule_restricted_to_one_hostmask_setup(self):
-        # Add the client's /24 hostmask to the rule
-        ip = self.client.ip
+        # We need to detect the hostmask first
+        full_ip = util.get_host_ip_with_hostmask(self.client)
+
+        # Make a note for the next test, which needs to be skipped
+        # if hostmask detection failed
+        self.__class__.skip_hostmask_based = False
+
+        if not full_ip:
+            self.__class__.skip_hostmask_based = True
+            raise pytest.skip("Hostmask could not be detected")
+
         self.master.run_command(['ipa', '-n', 'sudorule-add-host',
                                  'testrule',
-                                 '--hostmask', '%s/24' % ip])
+                                 '--hostmask', full_ip])
 
     def test_sudo_rule_restricted_to_one_hostmask(self):
+        if self.__class__.skip_hostmask_based:
+            raise pytest.skip("Hostmask could not be detected")
+
         result1 = self.list_sudo_commands("testuser1")
         assert "(ALL : ALL) NOPASSWD: ALL" in result1.stdout_text
 
@@ -284,11 +299,16 @@ class TestSudo(IntegrationTest):
         assert result.returncode != 0
 
     def test_sudo_rule_restricted_to_one_hostmask_teardown(self):
-        # Remove the client's /24 hostmask from the rule
-        ip = self.client.ip
+        if self.__class__.skip_hostmask_based:
+            raise pytest.skip("Hostmask could not be detected")
+
+        # Detect the hostmask first to delete the hostmask based rule
+        full_ip = util.get_host_ip_with_hostmask(self.client)
+
+        # Remove the client's hostmask from the rule
         self.master.run_command(['ipa', '-n', 'sudorule-remove-host',
                                  'testrule',
-                                 '--hostmask', '%s/24' % ip])
+                                 '--hostmask', full_ip])
 
     def test_sudo_rule_restricted_to_one_hostmask_negative_setup(self):
         # Add the master's hostmask to the rule

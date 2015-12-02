@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
+import re
 
 
 def run_repeatedly(host, command, assert_zero_rc=True, test=None,
@@ -58,3 +59,19 @@ def run_repeatedly(host, command, assert_zero_rc=True, test=None,
                          .format(cmd=' '.join(command),
                                  times=timeout / time_step,
                                  timeout=timeout))
+
+
+def get_host_ip_with_hostmask(host):
+    """
+    Detects the IP of the host including the hostmask.
+
+    Returns None if the IP could not be detected.
+    """
+
+    ip = host.ip
+    result = host.run_command(['ip', 'addr'])
+    full_ip_regex = r'(?P<full_ip>%s/\d{1,2}) ' % re.escape(ip)
+    match = re.search(full_ip_regex, result.stdout_text)
+
+    if match:
+        return match.group('full_ip')
