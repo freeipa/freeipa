@@ -1386,7 +1386,7 @@ static int ipapwd_pre_bind(Slapi_PBlock *pb)
     static const char *attrs_list[] = {
         SLAPI_USERPWD_ATTR, "ipaUserAuthType", "krbprincipalkey", "uid",
         "krbprincipalname", "objectclass", "passwordexpirationtime",
-        "passwordhistory", "krbprincipalexpiration",
+        "passwordhistory", "krbprincipalexpiration", "krbcanonicalname",
         NULL
     };
     struct berval *credentials = NULL;

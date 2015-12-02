@@ -143,6 +143,7 @@ void ipapwd_keyset_free(struct ipapwd_keyset **pkset);
 
 Slapi_Value **ipapwd_encrypt_encode_key(struct ipapwd_krbcfg *krbcfg,
                                         struct ipapwd_data *data,
+                                        char *preferred_principal,
                                         int num_encsalts,
                                         krb5_key_salt_tuple *encsalts,
                                         char **errMesg);
