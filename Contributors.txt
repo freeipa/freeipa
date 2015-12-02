@@ -8,12 +8,14 @@ Developers:
 	Gabe Alford
 	Jr Aquino
 	Tomáš Babej
+	Martin Babinsky
 	Kyle Baker
 	Martin Bašti
 	Sylvain Baubeau
 	Alexander Bokovoy
 	Thierry Bordaz
 	Sumit Bose
+	François Cami
 	Xiao-Long Chen
 	Jan Cholasta
 	Yuri Chornoivan
@@ -26,20 +28,32 @@ Developers:
 	Jason Gerard DeRose
 	Günther Deschner
 	Endi Sukma Dewata
+	Lenka Doudova
+	Benjamin Drung
+	Drew Erny
+	Oleg Fayans
 	Stephen Gallagher
 	Ondřej Hamada
 	Nick Hatch
+	Christian Heimes
 	Jakub Hrozek
+	Abhijeet Kasurde
 	Nathan Kinder
 	Krzysztof Klimonda
 	Nikolai Kondrashov
 	Martin Košek
 	Ludwig Krispenz
 	Ana Krivokapić
+	Milan Kubík
 	Ian Kumlien
 	David Kupka
+	Robert Kuska
+	Stanislav Laznicka
 	Ade Lee
 	Karl MacMillan
+	Niranjan Mallapadi
+	Ales 'alich' Marecek
+	Francesco Marella
 	Nathaniel McCallum
 	William Jon McCann
 	Kevin McCarthy
@@ -47,6 +61,7 @@ Developers:
 	Rich Megginson
 	Jim Meyering
 	Adam Misnyovszki
+	Niranjan MR
 	Marko Myllynen
 	Martin Nagy
 	David O'Brien
@@ -57,13 +72,16 @@ Developers:
 	Lubomír Rintel
 	Lynn Root
 	Pete Rowley
+	Lenka Ryznarova
 	Thorsten Scherf
+	Michael Simacek
 	Lars Sjostrom
 	Lukáš Slebodník
 	Simo Sorce
 	Petr Špaček
 	David Spångberg
 	Diane Trout
+	Fraser Tweedale
 	Petr Viktorin
 	Petr Voborník
 	Andrew Wnuk
