@@ -777,7 +777,9 @@ def ensure_enrolled(installer):
     config = installer._config
 
     # Perform only if we have the necessary options
-    if not any([installer.admin_password, installer.keytab]):
+    if not any([installer.password,
+                installer.admin_password,
+                installer.keytab]):
         sys.exit("IPA client is not configured on this system.\n"
                  "You must join the system by running 'ipa-client-install' "
                  "first. Alternatively, you may specify enrollment related "
@@ -787,6 +789,8 @@ def ensure_enrolled(installer):
     service.print_msg("Configuring client side components")
     try:
         args = [paths.IPA_CLIENT_INSTALL, "--unattended"]
+        stdin = None
+
         if installer.domain_name:
             args.extend(["--domain", installer.domain_name])
         if installer.server:
@@ -796,12 +800,16 @@ def ensure_enrolled(installer):
         if installer.host_name:
             args.extend(["--hostname", installer.host_name])
 
-        if installer.admin_password:
-            # Always set principal if password was set explicitly,
-            # the password itself gets passed directly via stdin
-            args.extend(["--principal", installer.principal or "admin"])
-        if installer.keytab:
-            args.extend(["--keytab", installer.keytab])
+        if installer.password:
+            args.extend(["--password", installer.password])
+        else:
+            if installer.admin_password:
+                # Always set principal if password was set explicitly,
+                # the password itself gets passed directly via stdin
+                args.extend(["--principal", installer.principal or "admin"])
+                stdin = installer.admin_password
+            if installer.keytab:
+                args.extend(["--keytab", installer.keytab])
 
         if installer.no_dns_sshfp:
             args.append("--no-dns-sshfp")
@@ -814,7 +822,7 @@ def ensure_enrolled(installer):
         if installer.mkhomedir:
             args.append("--mkhomedir")
 
-        ipautil.run(args, stdin=installer.admin_password or None)
+        ipautil.run(args, stdin=stdin)
 
     except Exception as e:
         sys.exit("Configuration of client side components failed!\n"
@@ -973,6 +981,9 @@ def promote_check(installer):
         add_to_ipaservers = not result
 
         if add_to_ipaservers:
+            if options.password and not options.admin_password:
+                raise errors.ACIError(info="Not authorized")
+
             if installer._ccache is None:
                 del os.environ['KRB5CCNAME']
             else:
@@ -1349,11 +1360,14 @@ class Replica(BaseServer):
                      "multiple times"),
     )
 
-    dm_password = Knob(
+    dm_password = None
+
+    password = Knob(
         BaseServer.dm_password,
-        description="Directory Manager (existing master) password",
-        cli_name='password',
-        cli_metavar='PASSWORD',
+        description=("Password to join the IPA realm. Assumes bulk password "
+                     "unless principal is also set. (domain level 1+)\n"
+                     "Directory Manager (existing master) password. "
+                     "(domain level 0)"),
     )
 
     admin_password = Knob(
@@ -1435,6 +1449,11 @@ class Replica(BaseServer):
 
         if self.replica_file is None:
             self.promote = True
+
+            if self.principal and not self.admin_password:
+                self.admin_password = self.password
+                self.password = None
+
             # If any of the PKCS#12 options are selected, all are required.
             if any(cert_file_req + cert_file_opt) and not all(cert_file_req):
                 raise RuntimeError("--dirsrv-cert-file and --http-cert-file "
@@ -1478,8 +1497,6 @@ class Replica(BaseServer):
                 raise RuntimeError(
                     "You must specify at least one of --forwarder, "
                     "--auto-forwarders, or --no-forwarders options")
-
-        self.password = self.dm_password
 
     @step()
     def main(self):
