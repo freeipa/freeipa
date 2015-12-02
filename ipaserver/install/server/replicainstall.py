@@ -483,6 +483,9 @@ def install_check(installer):
             fd.write("enable_ra=True\n")
             fd.write("ra_plugin=dogtag\n")
             fd.write("dogtag_version=10\n")
+
+            if not config.setup_ca:
+                fd.write("ca_host={0}\n".format(config.master_host_name))
         else:
             fd.write("enable_ra=False\n")
             fd.write("ra_plugin=none\n")
@@ -1174,6 +1177,10 @@ def promote(installer):
             ipaconf.setOption('enable_ra', 'True'),
             ipaconf.setOption('ra_plugin', 'dogtag'),
             ipaconf.setOption('dogtag_version', '10')]
+
+        if not options.setup_ca:
+            gopts.append(ipaconf.setOption('ca_host', config.ca_host_name))
+
         opts = [ipaconf.setSection('global', gopts)]
 
         ipaconf.changeConf(target_fname, opts)

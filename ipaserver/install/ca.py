@@ -7,8 +7,6 @@ from __future__ import print_function
 import sys
 import os.path
 
-from six.moves.configparser import RawConfigParser
-
 from ipaserver.install import cainstance, dsinstance, bindinstance
 from ipapython import ipautil, certdb
 from ipaplatform import services
@@ -235,20 +233,6 @@ def install_step_1(standalone, replica_config, options):
 
     if standalone:
         ca.start('pki-tomcat')
-
-        # Update config file
-        try:
-            parser = RawConfigParser()
-            parser.read(paths.IPA_DEFAULT_CONF)
-            parser.set('global', 'enable_ra', 'True')
-            parser.set('global', 'ra_plugin', 'dogtag')
-            parser.set('global', 'dogtag_version', '10')
-            with open(paths.IPA_DEFAULT_CONF, 'w') as f:
-                parser.write(f)
-        except IOError as e:
-            print("Failed to update /etc/ipa/default.conf")
-            root_logger.error(str(e))
-            sys.exit(1)
 
         # We need to restart apache as we drop a new config file in there
         services.knownservices.httpd.restart(capture_output=True)

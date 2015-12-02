@@ -41,7 +41,7 @@ import shlex
 import pipes
 
 from six.moves import urllib
-from six.moves.configparser import ConfigParser
+from six.moves.configparser import ConfigParser, RawConfigParser
 
 from ipalib import api
 from ipalib import pkcs10, x509
@@ -429,6 +429,7 @@ class CAInstance(DogtagInstance):
             self.step("importing IPA certificate profiles",
                       import_included_profiles)
             self.step("adding default CA ACL", ensure_default_caacl)
+            self.step("updating IPA configuration", update_ipa_conf)
 
         self.start_creation(runtime=210)
 
@@ -1343,6 +1344,7 @@ class CAInstance(DogtagInstance):
                   self.track_servercert)
         self.step("Configure HTTP to proxy connections",
                   self.http_proxy)
+        self.step("updating IPA configuration", update_ipa_conf)
         self.step("Restart HTTP server to pick up changes",
                   self.__restart_http_instance)
 
@@ -1766,6 +1768,21 @@ def ensure_default_caacl():
 
     if not is_already_connected:
         api.Backend.ldap2.disconnect()
+
+
+def update_ipa_conf():
+    """
+    Update IPA configuration file to ensure that RA plugins are enabled and
+    that CA host points to localhost
+    """
+    parser = RawConfigParser()
+    parser.read(paths.IPA_DEFAULT_CONF)
+    parser.set('global', 'enable_ra', 'True')
+    parser.set('global', 'ra_plugin', 'dogtag')
+    parser.set('global', 'dogtag_version', '10')
+    parser.remove_option('global', 'ca_host')
+    with open(paths.IPA_DEFAULT_CONF, 'w') as f:
+        parser.write(f)
 
 
 if __name__ == "__main__":
