@@ -182,7 +182,6 @@ class MasterKey(Key):
         # TODO: replace this with 'autogenerate' to prevent collisions
         uuid_rdn = DN('ipk11UniqueId=%s' % uuid.uuid1())
         entry_dn = DN(uuid_rdn, self.ldapkeydb.base_dn)
-        # TODO: add ipaWrappingMech attribute
         entry = self.ldap.make_entry(entry_dn,
                    objectClass=['ipaSecretKeyObject', 'ipk11Object'],
                    ipaSecretKey=data,
