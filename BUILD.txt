@@ -7,7 +7,7 @@ For more information, see http://www.freeipa.org/page/Build
 
 The quickest way to get the dependencies needed for building is:
 
-# dnf builddep -b freeipa.spec.in
+# dnf builddep -b --spec freeipa.spec.in
 
 or
 
