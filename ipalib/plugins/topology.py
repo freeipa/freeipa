@@ -22,9 +22,58 @@ if six.PY3:
 __doc__ = _("""
 Topology
 
-Management of a replication topology.
+Management of a replication topology at domain level 1.
+""") + _("""
+IPA server's data is stored in LDAP server in two suffixes:
+* domain suffix, e.g., 'dc=example,dc=com', contains all domain related data
+* ca suffix, 'o=ipaca', is present only on server with CA installed. It
+  contains data for Certificate Server component
+""") + _("""
+Data stored on IPA servers is replicated to other IPA servers. The way it is
+replicated is defined by replication agreements. Replication agreements needs
+to be set for both suffixes separately. On domain level 0 they are managed
+using ipa-replica-manage and ipa-csreplica-manage tools. With domain level 1
+they are managed centrally using `ipa topology*` commands.
+""") + _("""
+Agreements are represented by topology segments. By default topology segment
+represents 2 replication agreements - one for each direction, e.g., A to B and
+B to A. Creation of unidirectional segments is not allowed.
+""") + _("""
+To verify that no server is disconnected in the topology of the given suffix,
+use:
+  ipa topologysuffix-verify $suffix
+""") + _("""
 
-Requires minimum domain level 1.
+Examples:
+  Find all IPA servers:
+    ipa server-find
+""") + _("""
+  Find all suffixes:
+    ipa topologysuffix-find
+""") + _("""
+  Add topology segment to 'domain' suffix:
+    ipa topologysegment-add domain --left IPA_SERVER_A --right IPA_SERVER_B
+""") + _("""
+  Add topology segment to 'ca' suffix:
+    ipa topologysegment-add ca --left IPA_SERVER_A --right IPA_SERVER_B
+""") + _("""
+  List all topology segments in 'domain' suffix:
+    ipa topologysegment-find domain
+""") + _("""
+  List all topology segments in 'ca' suffix:
+    ipa topologysegment-find ca
+""") + _("""
+  Delete topology segment in 'domain' suffix:
+    ipa topologysegment-del domain segment_name
+""") + _("""
+  Delete topology segment in 'ca' suffix:
+    ipa topologysegment-del ca segment_name
+""") + _("""
+  Verify topology of 'domain' suffix:
+    ipa topologysuffix-verify domain
+""") + _("""
+  Verify topology of 'ca' suffix:
+    ipa topologysuffix-verify ca
 """)
 
 register = Registry()
