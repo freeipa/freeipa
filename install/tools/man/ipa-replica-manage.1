@@ -22,16 +22,21 @@ ipa\-replica\-manage \- Manage an IPA replica
 .SH "SYNOPSIS"
 ipa\-replica\-manage [\fIOPTION\fR]... [COMMAND]
 .SH "DESCRIPTION"
-Manages the replication agreements of an IPA server. The available commands are:
+Manages the replication agreements of an IPA server.
+
+To manage IPA replication agreements in a domain at domain level 1, use IPA CLI
+or Web UI, see `ipa help topology` for additional information.
+
+The available commands are:
 .TP
 \fBconnect\fR [SERVER_A] <SERVER_B>
-\- Adds a new replication agreement between SERVER_A/localhost and SERVER_B
+\- Adds a new replication agreement between SERVER_A/localhost and SERVER_B. At domain level 1 applicable only for winsync agreements.
 .TP
 \fBdisconnect\fR [SERVER_A] <SERVER_B>
-\- Removes a replication agreement between SERVER_A/localhost and SERVER_B
+\- Removes a replication agreement between SERVER_A/localhost and SERVER_B. At domain level 1 applicable only for winsync agreements.
 .TP
 \fBdel\fR <SERVER>
-\- Removes all replication agreements and data about SERVER
+\- Removes all replication agreements and data about SERVER. At domain level 1 it removes data and agreements for both suffixes - domain and ca.
 .TP
 \fBlist\fR [SERVER]
 \- Lists all the servers or the list of agreements of SERVER

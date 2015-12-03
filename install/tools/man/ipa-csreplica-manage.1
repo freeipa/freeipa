@@ -22,16 +22,20 @@ ipa\-csreplica\-manage \- Manage an IPA CS replica
 .SH "SYNOPSIS"
 ipa\-csreplica\-manage [\fIOPTION\fR]...  [connect|disconnect|del|list|re\-initialize|force\-sync]
 .SH "DESCRIPTION"
-Manages the CA replication agreements of an IPA server.
+Manages the CA replication agreements of an IPA server for domain at domain level 0.
+
+To manage CA replication agreements in a domain at domain level 1, use IPA CLI or Web UI, see `ipa help topology` for additional information.
+
 .TP
 \fBconnect\fR [SERVER_A] <SERVER_B>
-\- Adds a new replication agreement between SERVER_A/localhost and SERVER_B
+\- Adds a new replication agreement between SERVER_A/localhost and SERVER_B. Applicable only at domain level 0.
 .TP
 \fBdisconnect\fR [SERVER_A] <SERVER_B>
-\- Removes a replication agreement between SERVER_A/localhost and SERVER_B
+\- Removes a replication agreement between SERVER_A/localhost and SERVER_B. Applicable only at domain level 0.
 .TP
 \fBdel\fR <SERVER>
-\- Removes all replication agreements and data about SERVER
+\- Removes all replication agreements and data about SERVER. Applicable only at domain level 0.
+
 .TP
 \fBlist\fR [SERVER]
 \- Lists all the servers or the list of agreements of SERVER
@@ -86,8 +90,11 @@ Add a new replication agreement:
 Remove an existing replication agreement:
  # ipa\-csreplica\-manage disconnect srv1.example.com srv3.example.com
 .TP
-Completely remove a replica:
+Completely remove a replica at domain level 0:
  # ipa\-csreplica\-manage del srv4.example.com
+.TP
+Completely remove a replica at domain level 1:
+ # ipa\-replica\-manage del srv4.example.com
 .TP
 Using connect/disconnect you can manage the replication topology.
 .SH "EXIT STATUS"
