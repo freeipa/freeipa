@@ -38,6 +38,9 @@ A forwarder is a DNS server where queries for a specific non\-resolvable address
 \fB\-\-no\-forwarders\fR
 Do not add any DNS forwarders, send non\-resolvable addresses to the DNS root servers.
 .TP
+\fB\-\-auto\-forwarders\fR
+Add DNS forwarders configured in /etc/resolv.conf to the list of forwarders used by IPA DNS.
+.TP
 \fB\-\-reverse\-zone\fR=\fIREVERSE_ZONE\fR
 The reverse DNS zone to use. This option can be used multiple times to specify multiple reverse zones.
 .TP
