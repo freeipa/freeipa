@@ -310,7 +310,7 @@ Requires: ntp
 Requires: krb5-workstation
 Requires: authconfig
 Requires: pam_krb5
-Requires: wget
+Requires: curl
 Requires: libcurl >= 7.21.7-2
 Requires: xmlrpc-c >= 1.27.4
 Requires: sssd >= 1.13.1
@@ -454,7 +454,7 @@ Requires: python-pyasn1
 Requires: python-dateutil
 Requires: python-yubico >= 1.2.3
 Requires: python-sss-murmur
-Requires: wget
+Requires: curl
 Requires: dbus-python
 Requires: python-setuptools
 Requires: python-six

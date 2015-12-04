@@ -213,10 +213,10 @@ class RedHatCAService(RedHatService):
                 }
 
                 args = [
-                    paths.BIN_WGET,
-                    '-S', '-O', '-',
-                    '--timeout=30',
-                    '--no-check-certificate',
+                    paths.BIN_CURL,
+                    '-o', '-',
+                    '--connect-timeout', '30',
+                    '-k',
                     url
                 ]
 

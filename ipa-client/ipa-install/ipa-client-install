@@ -1922,7 +1922,7 @@ def get_ca_certs_from_http(url, warn=True):
     root_logger.debug("trying to retrieve CA cert via HTTP from %s", url)
     try:
 
-        stdout, stderr, rc = run([paths.BIN_WGET, "-O", "-", url])
+        stdout, stderr, rc = run([paths.BIN_CURL, "-o", "-", url])
     except CalledProcessError as e:
         raise errors.NoCertificateError(entry=url)
 

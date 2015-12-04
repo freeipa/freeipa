@@ -51,13 +51,13 @@ class config_base_legacy_client(Advice):
                             'cacertdir_rehash?format=txt')
         self.log.comment('Download the CA certificate of the IPA server')
         self.log.command('mkdir -p -m 755 /etc/openldap/cacerts')
-        self.log.command('wget http://%s/ipa/config/ca.crt -O '
+        self.log.command('curl http://%s/ipa/config/ca.crt -o '
                          '/etc/openldap/cacerts/ipa.crt\n' % api.env.host)
 
         self.log.comment('Generate hashes for the openldap library')
         self.log.command('command -v cacertdir_rehash')
         self.log.command('if [ $? -ne 0 ] ; then')
-        self.log.command(' wget "%s" -O cacertdir_rehash ;' % cacertdir_rehash)
+        self.log.command(' curl "%s" -o cacertdir_rehash ;' % cacertdir_rehash)
         self.log.command(' chmod 755 ./cacertdir_rehash ;')
         self.log.command(' ./cacertdir_rehash /etc/openldap/cacerts/ ;')
         self.log.command('else')
@@ -98,7 +98,7 @@ class config_redhat_sssd_before_1_9(config_base_legacy_client):
         self.check_compat_plugin()
 
         self.log.comment('Install required packages via yum')
-        self.log.command('yum install -y sssd authconfig wget openssl\n')
+        self.log.command('yum install -y sssd authconfig curl openssl\n')
 
         self.configure_ca_cert()
 
@@ -140,7 +140,7 @@ class config_generic_linux_sssd_before_1_9(config_base_legacy_client):
 
         self.log.comment('Install required packages using your system\'s '
                          'package manager. E.g:')
-        self.log.command('apt-get -y install sssd wget openssl\n')
+        self.log.command('apt-get -y install sssd curl openssl\n')
 
         self.configure_ca_cert()
 
@@ -188,7 +188,7 @@ class config_redhat_nss_pam_ldapd(config_base_legacy_client):
         self.check_compat_plugin()
 
         self.log.comment('Install required packages via yum')
-        self.log.command('yum install -y wget openssl nss-pam-ldapd pam_ldap '
+        self.log.command('yum install -y curl openssl nss-pam-ldapd pam_ldap '
                          'authconfig\n')
 
         self.configure_ca_cert()
@@ -232,7 +232,7 @@ class config_generic_linux_nss_pam_ldapd(config_base_legacy_client):
 
         self.log.comment('Install required packages using your system\'s '
                          'package manager. E.g:')
-        self.log.command('apt-get -y install wget openssl libnss-ldapd '
+        self.log.command('apt-get -y install curl openssl libnss-ldapd '
                          'libpam-ldapd nslcd\n')
 
         self.configure_ca_cert()
@@ -356,7 +356,7 @@ class config_redhat_nss_ldap(config_base_legacy_client):
         self.check_compat_plugin()
 
         self.log.comment('Install required packages via yum')
-        self.log.command('yum install -y wget openssl nss_ldap '
+        self.log.command('yum install -y curl openssl nss_ldap '
                          'authconfig\n')
 
         self.configure_ca_cert()

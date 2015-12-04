@@ -80,7 +80,7 @@ class TestAdvice(IntegrationTest):
     def test_advice_GenericNSSPAM(self):
         advice_id = 'config-generic-linux-nss-pam-ldapd'
         advice_regex = "\#\!\/bin\/sh.*" \
-                       "apt\-get[\s]+\-y[\s]+install[\s]+wget[\s]+openssl[\s]+" \
+                       "apt\-get[\s]+\-y[\s]+install[\s]+curl[\s]+openssl[\s]+" \
                        "libnss\-ldapd[\s]+libpam\-ldapd[\s]+nslcd.*" \
                        "service[\s]+nscd[\s]+stop[\s]+\&\&[\s]+service[\s]+" \
                        "nslcd[\s]+restart"
@@ -92,7 +92,7 @@ class TestAdvice(IntegrationTest):
     def test_advice_GenericSSSDBefore19(self):
         advice_id = 'config-generic-linux-sssd-before-1-9'
         advice_regex = "\#\!\/bin\/sh.*" \
-                       "apt\-get[\s]+\-y[\s]+install sssd wget openssl.*" \
+                       "apt\-get[\s]+\-y[\s]+install sssd curl openssl.*" \
                        "service[\s]+sssd[\s]+start"
         raiseerr = True
 
@@ -102,7 +102,7 @@ class TestAdvice(IntegrationTest):
     def test_advice_RedHatNSS(self):
         advice_id = 'config-redhat-nss-ldap'
         advice_regex = "\#\!\/bin\/sh.*" \
-                       "yum[\s]+install[\s]+\-y[\s]+wget[\s]+openssl[\s]+nss_ldap" \
+                       "yum[\s]+install[\s]+\-y[\s]+curl[\s]+openssl[\s]+nss_ldap" \
                        "[\s]+authconfig.*authconfig[\s]+\-\-updateall" \
                        "[\s]+\-\-enableldap[\s]+\-\-enableldapauth[\s]+" \
                        "\-\-ldapserver=.*[\s]+\-\-ldapbasedn=.*"
@@ -114,7 +114,7 @@ class TestAdvice(IntegrationTest):
     def test_advice_RedHatNSSPAM(self):
         advice_id = 'config-redhat-nss-pam-ldapd'
         advice_regex = "\#\!\/bin\/sh.*" \
-                       "yum[\s]+install[\s]+\-y[\s]+wget[\s]+openssl[\s]+" \
+                       "yum[\s]+install[\s]+\-y[\s]+curl[\s]+openssl[\s]+" \
                        "nss\-pam\-ldapd[\s]+pam_ldap[\s]+authconfig.*" \
                        "authconfig[\s]+\-\-updateall[\s]+" \
                        "\-\-enableldap[\s]+\-\-enableldapauth[\s]+" \
@@ -128,7 +128,7 @@ class TestAdvice(IntegrationTest):
         advice_id = 'config-redhat-sssd-before-1-9'
         advice_regex = "\#\!\/bin\/sh.*" \
                        "yum[\s]+install[\s]+\-y[\s]+sssd[\s]+authconfig[\s]+" \
-                       "wget[\s]+openssl.*service[\s]+sssd[\s]+start"
+                       "curl[\s]+openssl.*service[\s]+sssd[\s]+start"
         raiseerr = True
 
         run_advice(self.master, advice_id, advice_regex, raiseerr)

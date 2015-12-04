@@ -179,7 +179,7 @@ class BasePathNamespace(object):
     SSS_SSH_KNOWNHOSTSPROXY = "/usr/bin/sss_ssh_knownhostsproxy"
     BIN_TIMEOUT = "/usr/bin/timeout"
     UPDATE_CA_TRUST = "/usr/bin/update-ca-trust"
-    BIN_WGET = "/usr/bin/wget"
+    BIN_CURL = "/usr/bin/curl"
     ZIP = "/usr/bin/zip"
     BIND_LDAP_SO = "/usr/lib/bind/ldap.so"
     BIND_LDAP_DNS_IPA_WORKDIR = "/var/named/dyndb-ldap/ipa/"
