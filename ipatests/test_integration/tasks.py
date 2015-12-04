@@ -39,6 +39,7 @@ from ipatests.test_integration.env_config import env_to_script
 from ipatests.test_integration.host import Host
 from ipalib.util import get_reverse_zone_default
 from ipalib.constants import DOMAIN_SUFFIX_NAME
+from ipalib.constants import DOMAIN_LEVEL_0
 
 log = log_mgr.get_logger(__name__)
 
@@ -922,3 +923,34 @@ def resolve_record(nameserver, query, rtype="SOA", retry=True, timeout=100):
             if not retry:
                 raise
         time.sleep(1)
+
+
+def install_kra(host, domain_level=None, first_instance=False, raiseonerr=True):
+    if not domain_level:
+       domain_level = domainlevel(host)
+    command = ["ipa-kra-install", "-U", "-p", host.config.dirman_password]
+    if domain_level == DOMAIN_LEVEL_0 and not first_instance:
+        replica_file = get_replica_filename(host)
+        command.append(replica_file)
+    return host.run_command(command, raiseonerr=raiseonerr)
+
+
+def install_ca(host, domain_level=None, first_instance=False, raiseonerr=True):
+    if not domain_level:
+       domain_level = domainlevel(host)
+    command = ["ipa-ca-install", "-U", "-p", host.config.dirman_password,
+               "-P", 'admin', "-w", host.config.admin_password]
+    if domain_level == DOMAIN_LEVEL_0 and not first_instance:
+        replica_file = get_replica_filename(host)
+        command.append(replica_file)
+    return host.run_command(command, raiseonerr=raiseonerr)
+
+
+def install_dns(host, raiseonerr=True):
+    args = [
+        "ipa-dns-install",
+        "--forwarder", host.config.dns_forwarder,
+        "-p", host.config.dirman_password,
+        "-U",
+    ]
+    return host.run_command(args, raiseonerr=raiseonerr)
