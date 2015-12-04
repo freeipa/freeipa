@@ -1461,6 +1461,12 @@ class Replica(BaseServer):
                 raise RuntimeError("--dirsrv-cert-file and --http-cert-file "
                                    "are required if any PKCS#12 options are "
                                    "used")
+
+            if self.server and not self.domain_name:
+                raise RuntimeError("The --server option cannot be used "
+                                   "without providing domain via the --domain "
+                                   "option")
+
         else:
             if not ipautil.file_exists(self.replica_file):
                 raise RuntimeError("Replica file %s does not exist"
