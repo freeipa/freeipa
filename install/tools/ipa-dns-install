@@ -49,6 +49,9 @@ def parse_options():
                       type="ip", help="Add a DNS forwarder. This option can be used multiple times")
     parser.add_option("--no-forwarders", dest="no_forwarders", action="store_true",
                       default=False, help="Do not add any DNS forwarders, use root servers instead")
+    parser.add_option("--auto-forwarders", dest="auto_forwarders",
+                      action="store_true", default=False,
+                      help="Use DNS forwarders configured in /etc/resolv.conf")
     parser.add_option("--reverse-zone", dest="reverse_zones",
                       default=[], action="append", metavar="REVERSE_ZONE",
                       help="The reverse DNS zone to use. This option can be used multiple times")
