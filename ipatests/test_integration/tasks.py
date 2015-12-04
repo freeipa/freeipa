@@ -343,7 +343,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
             '--setup-dns',
             '--forwarder', replica.config.dns_forwarder
         ])
-    if domainlevel(master) == 0:
+    if domainlevel(master) == DOMAIN_LEVEL_0:
         apply_common_fixes(replica)
         # prepare the replica file on master and put it to replica, AKA "old way"
         replica_prepare(master, replica)
@@ -365,7 +365,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
             "-p", replica.config.dirman_password,
             "-U",
         ]
-        if domainlevel(master) == 0:
+        if domainlevel(master) == DOMAIN_LEVEL_0:
             args.append(replica_filename)
         replica.run_command(args)
 
@@ -615,11 +615,16 @@ def kinit_admin(host):
                      stdin_text=host.config.admin_password)
 
 
-def uninstall_master(host):
+def uninstall_master(host, ignore_topology_disconnect=True):
     host.collect_log(paths.IPASERVER_UNINSTALL_LOG)
+    uninstall_cmd = ['ipa-server-install', '--uninstall', '-U']
 
-    host.run_command(['ipa-server-install', '--uninstall', '-U'],
-                     raiseonerr=False)
+    host_domain_level = domainlevel(host)
+
+    if ignore_topology_disconnect and host_domain_level != DOMAIN_LEVEL_0:
+        uninstall_cmd.append('--ignore-topology-disconnect')
+
+    host.run_command(uninstall_cmd, raiseonerr=False)
     host.run_command(['pkidestroy', '-s', 'CA', '-i', 'pki-tomcat'],
                      raiseonerr=False)
     host.run_command(['rm', '-rf',
