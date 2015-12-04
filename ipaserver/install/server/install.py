@@ -1091,6 +1091,8 @@ def uninstall_check(installer):
             realm=api.env.realm
         )
         conn.do_external_bind(pwd.getpwuid(os.geteuid()).pw_name)
+        api.Backend.ldap2.connect(autobind=True)
+        domain_level = dsinstance.get_domain_level(api)
     except Exception:
         msg = ("\nWARNING: Failed to connect to Directory Server to find "
                "information about replication agreements. Uninstallation "
@@ -1098,9 +1100,7 @@ def uninstall_check(installer):
                "agreements.\n\n")
         print(textwrap.fill(msg, width=80, replace_whitespace=False))
     else:
-        api.Backend.ldap2.connect(autobind=True)
         dns.uninstall_check(options)
-        domain_level = dsinstance.get_domain_level(api)
 
         if domain_level == constants.DOMAIN_LEVEL_0:
             rm = replication.ReplicationManager(
