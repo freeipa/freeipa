@@ -118,7 +118,7 @@ class CALessBase(IntegrationTest):
                                     '-n', 'External CA cert'],
                                    raiseonerr=False)
 
-        super(CALessBase, cls).uninstall()
+        super(CALessBase, cls).uninstall(mh)
 
     @classmethod
     def install_server(cls, host=None,
