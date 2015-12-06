@@ -79,7 +79,8 @@ def install_http_certs(config, fstore):
     principal = 'HTTP/%s@%s' % (config.host_name, config.realm_name)
     installutils.install_service_keytab(principal,
                                         config.master_host_name,
-                                        paths.IPA_KEYTAB)
+                                        paths.IPA_KEYTAB,
+                                        force_service_add=True)
 
     # Obtain certificate for the HTTP service
     nssdir = certs.NSS_DIR
