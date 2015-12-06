@@ -115,11 +115,13 @@ def fix_etc_hosts(host):
     backup_file(host, paths.HOSTS)
     contents = host.get_file_contents(paths.HOSTS)
     # Remove existing mentions of the host's FQDN, short name, and IP
+    # Removing of IP must be done as first, otherwise hosts file may be
+    # corrupted
+    contents = re.sub('^%s.*' % re.escape(host.ip), '', contents,
+                      flags=re.MULTILINE)
     contents = re.sub('\s%s(\s|$)' % re.escape(host.hostname), ' ', contents,
                       flags=re.MULTILINE)
     contents = re.sub('\s%s(\s|$)' % re.escape(host.shortname), ' ', contents,
-                      flags=re.MULTILINE)
-    contents = re.sub('^%s.*' % re.escape(host.ip), '', contents,
                       flags=re.MULTILINE)
     # Add the host's info again
     contents += '\n%s %s %s\n' % (host.ip, host.hostname, host.shortname)
