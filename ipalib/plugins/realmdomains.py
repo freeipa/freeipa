@@ -193,7 +193,7 @@ class realmdomains_mod(LDAPUpdate):
             raise errors.ValidationError(
                 name='domain',
                 error=_(
-                    'The realm of the folllowing domains could '
+                    'The realm of the following domains could '
                     'not be detected: %(domains)s. If these are '
                     'domains that belong to the this realm, please '
                     'create a _kerberos TXT record containing "%(realm)s" '

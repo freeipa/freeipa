@@ -468,7 +468,7 @@ def verify_trusted_domain_object_type(validator, desired_type, name_or_sid):
         raise errors.ConversionError(
             name='identifier',
             error=_('You are trying to reference a magic private group '
-                    'which is not allowed to be overriden. '
+                    'which is not allowed to be overridden. '
                     'Try overriding the GID attribute of the '
                     'corresponding user instead.')
             )
