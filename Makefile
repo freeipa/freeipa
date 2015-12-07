@@ -237,6 +237,7 @@ rpms: rpmroot rpmdistdir version-update lint tarballs
 	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" -ba freeipa.spec
 	cp $(RPMBUILD)/RPMS/*/$(PRJ_PREFIX)-*-$(IPA_VERSION)-*.rpm dist/rpms/
+	cp $(RPMBUILD)/RPMS/*/python2-ipa*-$(IPA_VERSION)-*.rpm dist/rpms/
 	cp $(RPMBUILD)/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
 	rm -rf $(RPMBUILD)
 
@@ -244,6 +245,7 @@ client-rpms: rpmroot rpmdistdir version-update lint tarballs
 	cp dist/sources/$(TARBALL) $(RPMBUILD)/SOURCES/.
 	rpmbuild --define "_topdir $(RPMBUILD)" --define "ONLY_CLIENT 1" -ba freeipa.spec
 	cp $(RPMBUILD)/RPMS/*/$(PRJ_PREFIX)-*-$(IPA_VERSION)-*.rpm dist/rpms/
+	cp $(RPMBUILD)/RPMS/*/python2-ipa*-$(IPA_VERSION)-*.rpm dist/rpms/
 	cp $(RPMBUILD)/SRPMS/$(PRJ_PREFIX)-$(IPA_VERSION)-*.src.rpm dist/srpms/
 	rm -rf $(RPMBUILD)
 
