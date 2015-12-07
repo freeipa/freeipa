@@ -1170,7 +1170,7 @@ def configure_certmonger(fstore, subject_base, cli_realm, hostname, options,
     try:
         certmonger.request_cert(nssdb=paths.IPA_NSSDB_DIR,
                                 nickname='Local IPA host',
-                                subject=subject,
+                                subject=subject, dns=[hostname],
                                 principal=principal,
                                 passwd_fname=passwd_fname)
     except Exception as ex:

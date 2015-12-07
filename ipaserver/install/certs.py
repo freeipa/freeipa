@@ -332,7 +332,7 @@ class CertDB(object):
             cdb = self
         if subject is None:
             subject=DN(('CN', hostname), self.subject_base)
-        self.request_cert(subject)
+        self.request_cert(subject, san_dnsnames=[hostname])
         cdb.issue_server_cert(self.certreq_fname, self.certder_fname)
         self.import_cert(self.certder_fname, nickname)
         fd = open(self.certder_fname, "r")
@@ -356,7 +356,9 @@ class CertDB(object):
         os.unlink(self.certreq_fname)
         os.unlink(self.certder_fname)
 
-    def request_cert(self, subject, certtype="rsa", keysize="2048"):
+    def request_cert(
+            self, subject, certtype="rsa", keysize="2048",
+            san_dnsnames=None):
         assert isinstance(subject, DN)
         self.create_noise_file()
         self.setup_cert_request()
@@ -367,6 +369,8 @@ class CertDB(object):
                 "-z", self.noise_fname,
                 "-f", self.passwd_fname,
                 "-a"]
+        if san_dnsnames is not None and len(san_dnsnames) > 0:
+            args += ['-8', ','.join(san_dnsnames)]
         result = self.run_certutil(args,
                                    capture_output=True, capture_error=True)
         os.remove(self.noise_fname)

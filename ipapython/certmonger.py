@@ -297,9 +297,14 @@ def add_subject(request_id, subject):
     add_request_value(request_id, 'template-subject', subject)
 
 
-def request_cert(nssdb, nickname, subject, principal, passwd_fname=None):
+def request_cert(
+        nssdb, nickname, subject, principal, passwd_fname=None,
+        dns=None):
     """
     Execute certmonger to request a server certificate.
+
+    ``dns``
+        A sequence of DNS names to appear in SAN request extension.
     """
     cm = _certmonger()
     ca_path = cm.obj_if.find_ca_by_nickname('IPA')
@@ -310,6 +315,8 @@ def request_cert(nssdb, nickname, subject, principal, passwd_fname=None):
                               KEY_LOCATION=nssdb, KEY_NICKNAME=nickname,
                               SUBJECT=subject, PRINCIPAL=[principal],
                               CA=ca_path)
+    if dns is not None and len(dns) > 0:
+        request_parameters['DNS'] = dns
     if passwd_fname:
         request_parameters['KEY_PIN_FILE'] = passwd_fname
     result = cm.obj_if.add_request(request_parameters)
