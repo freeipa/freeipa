@@ -1457,7 +1457,6 @@ class Replica(BaseServer):
                 CLIKnob(self.domain_name, '--domain'),
                 CLIKnob(self.host_name, '--hostname'),
                 CLIKnob(self.server, '--server'),
-                CLIKnob(self.admin_password, '--admin-password'),
                 CLIKnob(self.principal, '--principal'),
             )
 
