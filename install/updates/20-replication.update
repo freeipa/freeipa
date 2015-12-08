@@ -32,6 +32,7 @@ add: nsDS5ReplicatedAttributeListTotal: $TOTAL_EXCLUDES
 add: nsds5ReplicaStripAttrs: $STRIP_ATTRS
 
 # Remove old topology configuration area (unused)
+dn: cn=realm,cn=topology,cn=ipa,cn=etc,$SUFFIX
 deleteentry: cn=realm,cn=topology,cn=ipa,cn=etc,$SUFFIX
 
 # add IPA realm managed suffix to master entry
