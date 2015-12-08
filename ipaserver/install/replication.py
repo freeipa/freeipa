@@ -1744,11 +1744,16 @@ class CAReplicationManager(ReplicationManager):
             raise RuntimeError("Failed to start replication")
 
 
-def map_masters_to_suffixes(masters, suffixes):
+def map_masters_to_suffixes(masters):
     masters_to_suffix = {}
 
     for master in masters:
-        managed_suffixes = master['iparepltopomanagedsuffix_topologysuffix']
+        try:
+            managed_suffixes = master['iparepltopomanagedsuffix_topologysuffix']
+        except KeyError:
+            print("IPA master {0} does not manage any suffix")
+            continue
+
         for suffix_name in managed_suffixes:
             try:
                 masters_to_suffix[suffix_name].append(master)
@@ -1763,6 +1768,19 @@ def check_hostname_in_masters(hostname, masters):
     return hostname in master_cns
 
 
+def get_orphaned_suffixes(masters):
+    """
+    :param masters: result of server_find command
+    :return a set consisting of suffix names which are not managed by any
+    master
+    """
+    all_suffixes = api.Command.topologysuffix_find(sizelimit=0)['result']
+    all_suffix_names = set(s['cn'][0] for s in all_suffixes)
+    managed_suffixes = set(map_masters_to_suffixes(masters))
+
+    return all_suffix_names ^ managed_suffixes
+
+
 def check_last_link_managed(api, hostname, masters):
     """
     Check if 'hostname' is safe to delete.
@@ -1771,16 +1789,23 @@ def check_last_link_managed(api, hostname, masters):
               {<suffix name>: (<original errors>,
               <errors after removing the node>)}
     """
-    suffixes = api.Command.topologysuffix_find(sizelimit=0)['result']
-    suffix_to_masters = map_masters_to_suffixes(masters, suffixes)
+    suffix_to_masters = map_masters_to_suffixes(masters)
     topo_errors_by_suffix = {}
 
-    for suffix in suffixes:
-        suffix_name = suffix['cn'][0]
-        suffix_members = suffix_to_masters[suffix_name]
+    # sanity check for orphaned suffixes
+    orphaned_suffixes = get_orphaned_suffixes(masters)
+    if orphaned_suffixes:
+        print("The following suffixes are not managed by any IPA master:")
+        print("  {0}".format(
+                ', '.join(sorted(orphaned_suffixes))
+            )
+        )
+
+    for suffix_name in suffix_to_masters:
         print("Checking connectivity in topology suffix '{0}'".format(
             suffix_name))
-        if not check_hostname_in_masters(hostname, suffix_members):
+        if not check_hostname_in_masters(hostname,
+                                         suffix_to_masters[suffix_name]):
             print(
                 "'{0}' is not a part of topology suffix '{1}'".format(
                     hostname, suffix_name

@@ -785,11 +785,9 @@ def check_deleted_segments(hostname, masters, topo_errors, starting_host):
             hostname))
         return
 
-    suffixes = api.Command.topologysuffix_find('', sizelimit=0)['result']
-    suffix_to_masters = replication.map_masters_to_suffixes(masters, suffixes)
+    suffix_to_masters = replication.map_masters_to_suffixes(masters)
 
-    for suffix in suffixes:
-        suffix_name = suffix['cn'][0]
+    for suffix_name in suffix_to_masters:
         suffix_member_cns = [
             m['cn'][0] for m in suffix_to_masters[suffix_name]
         ]
