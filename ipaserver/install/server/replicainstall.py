@@ -654,6 +654,8 @@ def install(installer):
     if installer._update_hosts_file:
         installutils.update_hosts_file(config.ips, config.host_name, fstore)
 
+    ca_enabled = ipautil.file_exists(config.dir + "/cacert.p12")
+
     # Create DS user/group if it doesn't exist yet
     dsinstance.create_ds_user()
 
@@ -675,7 +677,7 @@ def install(installer):
             ntp.create_instance()
 
         # Configure dirsrv
-        ds = install_replica_ds(config, options, installer._ca_enabled)
+        ds = install_replica_ds(config, options, ca_enabled)
 
         # Always try to install DNS records
         install_dns_records(config, options, remote_api)
@@ -690,20 +692,20 @@ def install(installer):
         options.domain_name = config.domain_name
         options.host_name = config.host_name
 
-        if ipautil.file_exists(config.dir + "/cacert.p12"):
+        if ca_enabled:
             options.ra_p12 = config.dir + "/ra.p12"
 
         ca.install(False, config, options)
 
     krb = install_krb(config, setup_pkinit=not options.no_pkinit)
     http = install_http(config, auto_redirect=not options.no_ui_redirect,
-                        ca_is_configured=installer._ca_enabled)
+                        ca_is_configured=ca_enabled)
 
     otpd = otpdinstance.OtpdInstance()
     otpd.create_instance('OTPD', config.host_name, config.dirman_password,
                          ipautil.realm_to_suffix(config.realm_name))
 
-    if ipautil.file_exists(config.dir + "/cacert.p12"):
+    if ca_enabled:
         CA = cainstance.CAInstance(config.realm_name, certs.NSS_DIR)
         CA.dm_password = config.dirman_password
 
