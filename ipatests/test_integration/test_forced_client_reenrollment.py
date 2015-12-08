@@ -198,7 +198,7 @@ class TestForcedClientReenrollment(IntegrationTest):
         assert 'IPA Server: %s' % server.hostname in result.stderr_text
 
         if expect_fail:
-            err_msg = 'Kerberos authentication failed using keytab'
+            err_msg = "Kerberos authentication failed: "
             assert result.returncode == 1
             assert err_msg in result.stderr_text
         elif force_join and keytab:
