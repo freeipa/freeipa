@@ -113,6 +113,6 @@ dn: cn=etc,$SUFFIX
 add:aci: (target = "ldap:///cn=replication,cn=etc,$SUFFIX")(targetattr = "nsDS5ReplicaId")(version 3.0; acl "IPA server hosts can change replica ID"; allow(write) groupdn = "ldap:///cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX";)
 
 # IPA server hosts can create and manage own Custodia secrets
-dn: cn=custodia,cn=ipa,cn=etc,$SUFFIX
+dn: cn=ipa,cn=etc,$SUFFIX
 add:aci: (target = "ldap:///cn=*/($$dn),cn=custodia,cn=ipa,cn=etc,$SUFFIX")(version 3.0; acl "IPA server hosts can create own Custodia secrets"; allow(add) groupdn = "ldap:///cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX" and userdn = "ldap:///fqdn=($$dn),cn=computers,cn=accounts,$SUFFIX";)
 add:aci: (target = "ldap:///cn=*/($$dn),cn=custodia,cn=ipa,cn=etc,$SUFFIX")(targetattr = "ipaPublicKey")(version 3.0; acl "IPA server hosts can manage own Custodia secrets"; allow(write) groupdn = "ldap:///cn=ipaservers,cn=hostgroups,cn=accounts,$SUFFIX" and userdn = "ldap:///fqdn=($$dn),cn=computers,cn=accounts,$SUFFIX";)
