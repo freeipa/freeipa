@@ -271,8 +271,8 @@ class Backup(admintool.AdminTool):
         os.chown(self.top_dir, pent.pw_uid, pent.pw_gid)
         os.chmod(self.top_dir, 0o750)
         self.dir = os.path.join(self.top_dir, "ipa")
-        os.mkdir(self.dir, 0o750)
-
+        os.mkdir(self.dir)
+        os.chmod(self.dir, 0o750)
         os.chown(self.dir, pent.pw_uid, pent.pw_gid)
 
         self.header = os.path.join(self.top_dir, 'header')
@@ -588,7 +588,8 @@ class Backup(admintool.AdminTool):
             backup_dir = os.path.join(paths.IPA_BACKUP_DIR, time.strftime('ipa-full-%Y-%m-%d-%H-%M-%S'))
             filename = os.path.join(backup_dir, "ipa-full.tar")
 
-        os.mkdir(backup_dir, 0o700)
+        os.mkdir(backup_dir)
+        os.chmod(backup_dir, 0o700)
 
         cwd = os.getcwd()
         os.chdir(self.dir)
