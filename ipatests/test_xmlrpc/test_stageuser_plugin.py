@@ -13,6 +13,8 @@ import re
 import functools
 import pytest
 
+from collections import OrderedDict
+
 from ipalib import api, errors
 
 from ipatests.test_xmlrpc.ldaptracker import Tracker
@@ -48,35 +50,40 @@ sshpubkey = (u'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDGAX3xAeLeaJggwTqMjxNwa6X'
 sshpubkeyfp = (u'13:67:6B:BF:4E:A2:05:8E:AE:25:8B:A1:31:DE:6F:1B '
                'public key test (ssh-rsa)')
 
-options_ok = [
-    {u'cn': u'name'},
-    {u'initials': u'in'},
-    {u'displayname': u'display'},
-    {u'homedirectory': u'/home/homedir'},
-    {u'gecos': u'gecos'},
-    {u'loginshell': u'/bin/shell'},
-    {u'mail': u'email@email.email'},
-    {u'title': u'newbie'},
-    {u'krbprincipalname': u'kerberos@%s' % api.env.realm},
-    {u'krbprincipalname': u'KERBEROS@%s' % api.env.realm},
-    {u'street': u'first street'},
-    {u'l': u'prague'},
-    {u'st': u'czech'},
-    {u'postalcode': u'12345'},
-    {u'telephonenumber': u'123456789'},
-    {u'facsimiletelephonenumber': u'123456789'},
-    {u'mobile': u'123456789'},
-    {u'pager': u'123456789'},
-    {u'ou': u'engineering'},
-    {u'carlicense': u'abc1234'},
-    {u'ipasshpubkey': sshpubkey},
-    {u'manager': u'auser1'},
-    {u'uidnumber': uid},
-    {u'gidnumber': gid},
-    {u'uidnumber': uid, u'gidnumber': gid},
-    {u'userpassword': u'Secret123'},
-    {u'random': True},
-    ]
+options_def = OrderedDict([
+    ('full name', {u'cn': u'name'}),
+    ('initials', {u'initials': u'in'}),
+    ('display name', {u'displayname': u'display'}),
+    ('home directory', {u'homedirectory': u'/home/homedir'}),
+    ('GECOS', {u'gecos': u'gecos'}),
+    ('shell', {u'loginshell': u'/bin/shell'}),
+    ('email address', {u'mail': u'email@email.email'}),
+    ('job title', {u'title': u'newbie'}),
+    ('kerberos principal', {
+        u'krbprincipalname': u'kerberos@%s' % api.env.realm}),
+    ('uppercase kerberos principal', {
+        u'krbprincipalname': u'KERBEROS@%s' % api.env.realm}),
+    ('street address', {u'street': u'first street'}),
+    ('city', {u'l': u'prague'}),
+    ('state', {u'st': u'czech'}),
+    ('zip code', {u'postalcode': u'12345'}),
+    ('telephone number', {u'telephonenumber': u'123456789'}),
+    ('fax number', {u'facsimiletelephonenumber': u'123456789'}),
+    ('mobile tel. number', {u'mobile': u'123456789'}),
+    ('pager number', {u'pager': u'123456789'}),
+    ('organizational unit', {u'ou': u'engineering'}),
+    ('car license', {u'carlicense': u'abc1234'}),
+    ('SSH key', {u'ipasshpubkey': sshpubkey}),
+    ('manager', {u'manager': u'auser1'}),
+    ('user ID number', {u'uidnumber': uid}),
+    ('group ID number', {u'gidnumber': gid}),
+    ('UID and GID numbers', {u'uidnumber': uid, u'gidnumber': gid}),
+    ('password', {u'userpassword': u'Secret123'}),
+    ('random password', {u'random': True}),
+    ])
+
+options_ok = options_def.values()
+options_ids = options_def.keys()
 
 
 class StageUserTracker(Tracker):
@@ -179,7 +186,7 @@ class StageUserTracker(Tracker):
                     (self.kwargs[key].split('@'))[0].lower(),
                     (self.kwargs[key].split('@'))[1])]
             elif key == u'manager':
-                self.attrs[key] = [unicode(get_user_dn(self.kwargs[key]))]
+                self.attrs[key] = [self.kwargs[key]]
             elif key == u'ipasshpubkey':
                 self.attrs[u'sshpubkeyfp'] = [sshpubkeyfp]
                 self.attrs[key] = [self.kwargs[key]]
@@ -324,10 +331,16 @@ def stageduser(request):
     return tracker.make_fixture(request)
 
 
-@pytest.fixture(scope='class', params=options_ok)
+@pytest.fixture(scope='class', params=options_ok, ids=options_ids)
 def stageduser2(request):
     tracker = StageUserTracker(u'suser2', u'staged', u'user', **request.param)
     return tracker.make_fixture_activate(request)
+
+
+@pytest.fixture(scope='class')
+def user_activated(request):
+    tracker = UserTracker(u'suser2', u'staged', u'user')
+    return tracker.make_fixture(request)
 
 
 @pytest.fixture(scope='class')
@@ -454,7 +467,7 @@ class TestStagedUser(XMLRPC_test):
     def test_showall_stageduser(self, stageduser):
         stageduser.retrieve(all=True)
 
-    def test_create_attr(self, stageduser2, user, user6):
+    def test_create_with_attr(self, stageduser2, user, user_activated):
         """ Tests creating a user with various valid attributes listed
         in 'options_ok' list"""
         # create staged user with specified parameters
@@ -467,14 +480,14 @@ class TestStagedUser(XMLRPC_test):
 
         # activate user, verify that specified values were preserved
         # after activation
-        user6.ensure_missing()
-        user6 = UserTracker(
+        user_activated.ensure_missing()
+        user_activated = UserTracker(
             stageduser2.uid, stageduser2.givenname,
             stageduser2.sn, **stageduser2.kwargs)
-        user6.create_from_staged(stageduser2)
+        user_activated.create_from_staged(stageduser2)
         command = stageduser2.make_activate_command()
         result = command()
-        user6.check_activate(result)
+        user_activated.check_activate(result)
 
         # verify the staged user does not exist after activation
         command = stageduser2.make_retrieve_command()
@@ -482,7 +495,7 @@ class TestStagedUser(XMLRPC_test):
                 reason=u'%s: stage user not found' % stageduser2.uid)):
             command()
 
-        user6.delete()
+        user_activated.delete()
 
     def test_delete_stageduser(self, stageduser):
         stageduser.delete()
