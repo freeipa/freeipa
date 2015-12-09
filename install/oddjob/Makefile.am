@@ -1,6 +1,6 @@
 NULL =
 
-oddjobdir = $(libexecdir)/ipa
+oddjobdir = $(libexecdir)/ipa/oddjob
 oddjobconfdir = $(sysconfdir)/oddjobd.conf.d
 dbusconfdir = $(sysconfdir)/dbus-1/system.d
 

@@ -585,6 +585,9 @@ make client-install DESTDIR=%{buildroot}
 mkdir -p %{buildroot}%{_usr}/share/ipa
 
 %if ! %{ONLY_CLIENT}
+# FIXME: https://bugzilla.redhat.com/show_bug.cgi?id=1289930
+mv %{buildroot}%{_libexecdir}/ipa/oddjob/com.redhat.idm.trust-fetch-domains %{buildroot}%{_libexecdir}/ipa/com.redhat.idm.trust-fetch-domains
+
 # Remove .la files from libtool - we don't want to package
 # these files
 rm %{buildroot}/%{plugin_dir}/libipa_pwd_extop.la
@@ -905,6 +908,7 @@ fi
 %{_libexecdir}/ipa/ipa-dnskeysync-replica
 %{_libexecdir}/ipa/ipa-ods-exporter
 %{_libexecdir}/ipa/ipa-httpd-kdcproxy
+%dir %{_libexecdir}/ipa/oddjob
 %dir %{_libdir}/ipa/certmonger
 %attr(755,root,root) %{_libdir}/ipa/certmonger/*
 # NOTE: systemd specific section
