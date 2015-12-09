@@ -668,7 +668,8 @@ def install_check(installer):
     if not options.skip_conncheck:
         replica_conn_check(
             config.master_host_name, config.host_name, config.realm_name,
-            options.setup_ca, config.ca_ds_port, options.admin_password)
+            options.setup_ca, config.ca_ds_port, options.admin_password,
+            ca_cert_file=cafile)
 
     installer._remote_api = remote_api
     installer._fstore = fstore
@@ -1206,7 +1207,8 @@ def promote_check(installer):
             replica_conn_check(
                 config.master_host_name, config.host_name, config.realm_name,
                 options.setup_ca, 389,
-                options.admin_password, principal=options.principal)
+                options.admin_password, principal=options.principal,
+                ca_cert_file=cafile)
         finally:
             os.environ['KRB5CCNAME'] = ccache
 

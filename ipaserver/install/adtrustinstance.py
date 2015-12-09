@@ -726,9 +726,6 @@ class ADTRUSTInstance(service.Service):
         except Exception as e:
             root_logger.critical("Enabling nsswitch support in slapi-nis failed with error '%s'" % e)
 
-    def  __enable_and_start_oddjobd(self):
-        installutils.enable_and_start_oddjobd(self.sstore)
-
     def __start(self):
         try:
             self.start()
@@ -881,7 +878,6 @@ class ADTRUSTInstance(service.Service):
         self.step("adding Default Trust View", self.__add_default_trust_view)
         self.step("setting SELinux booleans", \
                   self.__configure_selinux_for_smbd)
-        self.step("enabling oddjobd", self.__enable_and_start_oddjobd)
         self.step("starting CIFS services", self.__start)
 
         if self.add_sids:
@@ -910,21 +906,6 @@ class ADTRUSTInstance(service.Service):
             winbind.disable()
         except Exception:
             pass
-
-        # Restore oddjobd to its original state
-        oddjobd = services.service('oddjobd')
-
-        if not self.sstore.restore_state('oddjobd', 'running'):
-            try:
-                oddjobd.stop()
-            except Exception:
-                pass
-
-        if not self.sstore.restore_state('oddjobd', 'enabled'):
-            try:
-                oddjobd.disable()
-            except Exception:
-                pass
 
         # Since we do not guarantee restoring back to working samba state,
         # we should not restore smb.conf

@@ -5,11 +5,15 @@
 import string
 import os
 
-from ipalib import api
+import dbus
+import dbus.mainloop.glib
+
+from ipalib import api, crud, errors, messages
 from ipalib import Int, Str
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins import baseldap
+from ipalib.request import context
 from ipalib import _, ngettext
 
 __doc__ = _("""
@@ -188,3 +192,67 @@ class server_del(LDAPDelete):
     __doc__ = _('Delete IPA server.')
     NO_CLI = True
     msg_summary = _('Deleted IPA server "%(value)s"')
+
+
+@register()
+class server_conncheck(crud.PKQuery):
+    __doc__ = _("Check connection to remote IPA server.")
+
+    NO_CLI = True
+
+    takes_args = (
+        Str(
+            'remote_cn',
+            cli_name='remote_name',
+            label=_('Remote server name'),
+            doc=_('Remote IPA server hostname'),
+        ),
+    )
+
+    has_output = output.standard_value
+
+    def execute(self, *keys, **options):
+        # the server must be the local host
+        if keys[-2] != api.env.host:
+            raise errors.ValidationError(
+                name='cn', error=_("must be \"%s\"") % api.env.host)
+
+        # the server entry must exist
+        try:
+            self.obj.get_dn_if_exists(*keys[:-1])
+        except errors.NotFound:
+            self.obj.handle_not_found(keys[-2])
+
+        # the user must have the Replication Administrators privilege
+        privilege = u'Replication Administrators'
+        privilege_dn = self.api.Object.privilege.get_dn(privilege)
+        ldap = self.obj.backend
+        filter = ldap.make_filter(
+            {'krbprincipalname': context.principal, 'memberof': privilege_dn},
+            rules=ldap.MATCH_ALL)
+        try:
+            ldap.find_entries(base_dn=self.api.env.basedn, filter=filter)
+        except errors.NotFound:
+            raise errors.ACIError(
+                info=_("not allowed to perform server connection check"))
+
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
+        bus = dbus.SystemBus()
+        obj = bus.get_object('org.freeipa.server', '/',
+                             follow_name_owner_changes=True)
+        server = dbus.Interface(obj, 'org.freeipa.server')
+
+        ret, stdout, stderr = server.conncheck(keys[-1])
+
+        result = dict(
+            result=(ret == 0),
+            value=keys[-2],
+        )
+
+        for line in stdout.splitlines():
+            messages.add_message(options['version'],
+                                 result,
+                                 messages.ExternalCommandOutput(line=line))
+
+        return result

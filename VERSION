@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=161
-# Last change: pvoborni - topologysuffix: change iparepltopomanagedsuffix type
+IPA_API_VERSION_MINOR=162
+# Last change: jcholast - replica install: add remote connection check over API

@@ -162,6 +162,7 @@ Requires: p11-kit
 Requires: systemd-python
 Requires: %{etc_systemd_dir}
 Requires: gzip
+Requires: oddjob
 
 Provides: %{alt_name}-server = %{version}
 Conflicts: %{alt_name}-server
@@ -275,7 +276,6 @@ Requires: samba >= %{samba_version}
 Requires: samba-winbind
 Requires: libsss_idmap
 Requires: python-libsss_nss_idmap
-Requires: oddjob
 Requires: python-sss
 # We use alternatives to divert winbind_krb5_locator.so plugin to libkrb5
 # on the installes where server-trust-ad subpackage is installed because
@@ -727,6 +727,8 @@ rm -rf %{buildroot}
 if [ $1 -gt 1 ] ; then
     /bin/systemctl condrestart certmonger.service 2>&1 || :
 fi
+/bin/systemctl reload-or-try-restart dbus
+/bin/systemctl reload-or-try-restart oddjobd
 
 
 %posttrans server
@@ -752,6 +754,8 @@ if [ $1 = 0 ]; then
 # NOTE: systemd specific section
     /bin/systemctl --quiet stop ipa.service || :
     /bin/systemctl --quiet disable ipa.service || :
+    /bin/systemctl reload-or-try-restart dbus
+    /bin/systemctl reload-or-try-restart oddjobd
 # END
 fi
 
@@ -909,6 +913,9 @@ fi
 %{_libexecdir}/ipa/ipa-ods-exporter
 %{_libexecdir}/ipa/ipa-httpd-kdcproxy
 %dir %{_libexecdir}/ipa/oddjob
+%attr(0755,root,root) %{_libexecdir}/ipa/oddjob/org.freeipa.server.conncheck
+%config(noreplace) %{_sysconfdir}/dbus-1/system.d/org.freeipa.server.conf
+%config(noreplace) %{_sysconfdir}/oddjobd.conf.d/ipa-server.conf
 %dir %{_libdir}/ipa/certmonger
 %attr(755,root,root) %{_libdir}/ipa/certmonger/*
 # NOTE: systemd specific section

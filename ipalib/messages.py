@@ -321,6 +321,16 @@ class CommandDeprecatedWarning(PublicMessage):
     format = _(u"'%(command)s' is deprecated. %(additional_info)s")
 
 
+class ExternalCommandOutput(PublicMessage):
+    """
+    **13016** Line of output from an external command.
+    """
+
+    errno = 13016
+    type = "info"
+    format = _("%(line)s")
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """

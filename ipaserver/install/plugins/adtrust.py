@@ -164,26 +164,5 @@ class update_default_trust_view(Updater):
 
         return False, [update]
 
-
-class update_oddjobd_for_adtrust(Updater):
-    """
-    Enables and starts oddjobd daemon if ipa-adtrust-install has been run
-    on this system.
-    """
-
-    def execute(self, **options):
-        adtrust_is_enabled = self.api.Command['adtrust_is_enabled']()['result']
-
-        if adtrust_is_enabled:
-            self.log.debug('Try to enable and start oddjobd')
-            sstore = sysrestore.StateFile(paths.SYSRESTORE)
-            installutils.enable_and_start_oddjobd(sstore)
-        else:
-            self.log.debug('ADTrust not configured on this server, do not '
-                           'start and enable oddjobd')
-
-        return False, []
-
 api.register(update_default_range)
 api.register(update_default_trust_view)
-api.register(update_oddjobd_for_adtrust)

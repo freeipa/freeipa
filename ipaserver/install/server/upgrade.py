@@ -1478,6 +1478,7 @@ def upgrade_configuration():
     http.configure_selinux_for_httpd()
     http.change_mod_nss_port_from_http()
     http.configure_certmonger_renewal_guard()
+    http.enable_and_start_oddjobd()
 
     ds.configure_dirsrv_ccache()
 

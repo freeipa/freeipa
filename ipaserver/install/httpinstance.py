@@ -163,6 +163,7 @@ class HTTPInstance(service.Service):
             self.step("enable KDC proxy", self.enable_kdcproxy)
         self.step("restarting httpd", self.__start)
         self.step("configuring httpd to start on boot", self.__enable)
+        self.step("enabling oddjobd", self.enable_and_start_oddjobd)
 
         self.start_creation(runtime=60)
 
@@ -441,6 +442,17 @@ class HTTPInstance(service.Service):
             f.write(http_txt)
         os.chmod(target_fname, 0o644)
 
+    def enable_and_start_oddjobd(self):
+        oddjobd = services.service('oddjobd')
+        self.sstore.backup_state('oddjobd', 'running', oddjobd.is_running())
+        self.sstore.backup_state('oddjobd', 'enabled', oddjobd.is_enabled())
+
+        try:
+            oddjobd.enable()
+            oddjobd.start()
+        except Exception as e:
+            root_logger.critical("Unable to start oddjobd: {0}".format(str(e)))
+
     def uninstall(self):
         if self.is_configured():
             self.print_msg("Unconfiguring web server")
@@ -448,6 +460,20 @@ class HTTPInstance(service.Service):
         running = self.restore_state("running")
         enabled = self.restore_state("enabled")
 
+        # Restore oddjobd to its original state
+        oddjobd = services.service('oddjobd')
+
+        if not self.sstore.restore_state('oddjobd', 'running'):
+            try:
+                oddjobd.stop()
+            except Exception:
+                pass
+
+        if not self.sstore.restore_state('oddjobd', 'enabled'):
+            try:
+                oddjobd.disable()
+            except Exception:
+                pass
 
         self.stop_tracking_certificates()
 

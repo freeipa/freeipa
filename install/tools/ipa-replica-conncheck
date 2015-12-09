@@ -22,11 +22,12 @@ from __future__ import print_function
 
 from ipapython.config import IPAOptionParser
 from ipapython import version
-from ipapython import ipautil
+from ipapython import ipautil, certdb
 from ipapython.ipautil import CalledProcessError
+from ipalib import api, errors, x509
 from ipaserver.install import installutils
 import ipaclient.ipachangeconf
-from optparse import OptionGroup
+from optparse import OptionGroup, OptionValueError
 from ipapython.ipa_log_manager import *
 import sys
 import os
@@ -40,6 +41,7 @@ from socket import SOCK_STREAM, SOCK_DGRAM
 import distutils.spawn
 from ipaplatform.paths import paths
 import gssapi
+from nss import nss
 
 CONNECT_TIMEOUT = 5
 RESPONDERS = [ ]
@@ -106,6 +108,30 @@ def print_info(msg):
         print(msg)
 
 def parse_options():
+    def ca_cert_file_callback(option, opt, value, parser):
+        if not os.path.exists(value):
+            raise OptionValueError(
+                "%s option '%s' does not exist" % (opt, value))
+        if not os.path.isfile(value):
+            raise OptionValueError(
+                "%s option '%s' is not a file" % (opt, value))
+        if not os.path.isabs(value):
+            raise OptionValueError(
+                "%s option '%s' is not an absolute file path" % (opt, value))
+
+        initialized = nss.nss_is_initialized()
+        try:
+            x509.load_certificate_list_from_file(value)
+        except Exception:
+            raise OptionValueError(
+                "%s option '%s' is not a valid certificate file" %
+                (opt, value))
+        finally:
+            if not initialized:
+                nss.nss_shutdown()
+
+        parser.values.ca_cert_file = value
+
     parser = IPAOptionParser(version=version.VERSION)
 
     replica_group = OptionGroup(parser, "on-replica options")
@@ -123,6 +149,10 @@ def parse_options():
                       default=None, help="Principal to use to log in to remote master")
     replica_group.add_option("-w", "--password", dest="password", sensitive=True,
                       help="Password for the principal"),
+    replica_group.add_option("--ca-cert-file", dest="ca_cert_file",
+                             type="string", action="callback",
+                             callback=ca_cert_file_callback,
+                             help="load the CA certificate from this file")
     parser.add_option_group(replica_group)
 
 
@@ -418,22 +448,89 @@ def main():
                 if returncode != 0:
                     raise RuntimeError("Could not get ticket for master server: %s" % stderr)
 
-            user = principal.partition('@')[0]
-            ssh = SshExec(user, options.master)
+            try:
+                print_info("Check RPC connection to remote master")
 
-            print_info("Check SSH connection to remote master")
-            stdout, stderr, returncode = ssh('echo OK', verbose=True)
-            if returncode != 0:
-                print('Could not SSH into remote host. Error output:')
-                for line in stderr.splitlines():
-                    print('    %s' % line)
-                raise RuntimeError('Could not SSH to remote host.')
+                xmlrpc_uri = ('https://%s/ipa/xml' %
+                              ipautil.format_netloc(options.master))
+                api.bootstrap(context='client', xmlrpc_uri=xmlrpc_uri)
+                api.finalize()
 
-            print_info("Execute check on remote master")
-            stdout, stderr, returncode = ssh(
-                "/usr/sbin/ipa-replica-conncheck " +
-                    " ".join(remote_check_opts))
-            print_info(stdout)
+                if options.ca_cert_file:
+                    nss_dir = None
+                else:
+                    nss_dir = paths.IPA_NSSDB_DIR
+
+                with certdb.NSSDatabase(nss_dir) as nss_db:
+                    if options.ca_cert_file:
+                        nss_dir = nss_db.secdir
+
+                        password = ipautil.ipa_generate_password()
+                        password_file = ipautil.write_tmp_file(password)
+                        nss_db.create_db(password_file.name)
+
+                        ca_certs = x509.load_certificate_list_from_file(
+                            options.ca_cert_file, dbdir=nss_db.secdir)
+                        for ca_cert in ca_certs:
+                            nss_db.add_cert(
+                                ca_cert.der_data, str(ca_cert.subject), 'C,,')
+                            del ca_cert
+                        del ca_certs
+                    else:
+                        nss_dir = None
+
+                    try:
+                        api.Backend.rpcclient.connect(nss_dir=nss_dir)
+                        api.Command.ping()
+                    except Exception as e:
+                        print_info(
+                            "Could not connect to the remote host: %s" % e)
+                        raise
+
+                    print_info("Execute check on remote master")
+                    try:
+                        result = api.Backend.rpcclient.forward(
+                            'server_conncheck',
+                            ipautil.fsdecode(options.master),
+                            ipautil.fsdecode(options.hostname),
+                            version=u'2.162',
+                        )
+                    except (errors.CommandError, errors.NetworkError) as e:
+                        print_info(
+                            "Remote master does not support check over RPC: "
+                            "%s" % e)
+                        raise
+                    except errors.PublicError as e:
+                        returncode = 1
+                        stderr = e
+                    else:
+                        for message in result['messages']:
+                            print_info(message['message'])
+                        returncode = int(not result['result'])
+                        stderr = ("ipa-replica-conncheck returned non-zero "
+                                  "exit code")
+                    finally:
+                        if api.Backend.rpcclient.isconnected():
+                            api.Backend.rpcclient.disconnect()
+            except Exception:
+                print_info("Retrying using SSH...")
+
+                user = principal.partition('@')[0]
+                ssh = SshExec(user, options.master)
+
+                print_info("Check SSH connection to remote master")
+                stdout, stderr, returncode = ssh('echo OK', verbose=True)
+                if returncode != 0:
+                    print('Could not SSH into remote host. Error output:')
+                    for line in stderr.splitlines():
+                        print('    %s' % line)
+                    raise RuntimeError('Could not SSH to remote host.')
+
+                print_info("Execute check on remote master")
+                stdout, stderr, returncode = ssh(
+                    "/usr/sbin/ipa-replica-conncheck " +
+                        " ".join(remote_check_opts))
+                print_info(stdout)
             if returncode != 0:
                 raise RuntimeError("Remote master check failed with following error message(s):\n%s" % stderr)
         else:

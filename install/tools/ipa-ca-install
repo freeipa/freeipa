@@ -149,8 +149,10 @@ def install_replica(safe_options, options, filename):
         config.ca_ds_port = 389
         config.top_dir = tempfile.mkdtemp("ipa")
         config.dir = config.top_dir
+        cafile = paths.IPA_CA_CRT
     else:
         config = create_replica_config(dirman_password, filename, options)
+        cafile = config.dir + '/ca.crt'
 
     global REPLICA_INFO_TOP_DIR
     REPLICA_INFO_TOP_DIR = config.top_dir
@@ -176,6 +178,10 @@ def install_replica(safe_options, options, filename):
     options.dm_password = config.dirman_password
     options.host_name = config.host_name
     options.subject = config.subject_base
+    if os.path.exists(cafile):
+        options.ca_cert_file = cafile
+    else:
+        options.ca_cert_file = None
 
     ca.install_check(True, config, options)
     if options.promote:
