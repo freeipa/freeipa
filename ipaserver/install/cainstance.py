@@ -978,6 +978,7 @@ class CAInstance(DogtagInstance):
 
         if not ipautil.dir_exists(self.ra_agent_db):
             os.mkdir(self.ra_agent_db)
+            os.chmod(self.ra_agent_db, 0755)
 
         # Create the password file for this db
         hex_str = binascii.hexlify(os.urandom(10))

@@ -345,7 +345,8 @@ class ReplicaPrepare(admintool.AdminTool):
 
         self.top_dir = tempfile.mkdtemp("ipa")
         self.dir = os.path.join(self.top_dir, "realm_info")
-        os.mkdir(self.dir, 0700)
+        os.mkdir(self.dir)
+        os.chmod(self.dir, 0700)
         try:
             self.copy_ds_certificate()
 

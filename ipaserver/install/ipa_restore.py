@@ -300,8 +300,8 @@ class Restore(admintool.AdminTool):
         os.chown(self.top_dir, pent.pw_uid, pent.pw_gid)
         os.chmod(self.top_dir, 0750)
         self.dir = os.path.join(self.top_dir, "ipa")
-        os.mkdir(self.dir, 0750)
-
+        os.mkdir(self.dir)
+        os.chmod(self.dir, 0750)
         os.chown(self.dir, pent.pw_uid, pent.pw_gid)
 
         cwd = os.getcwd()
@@ -534,7 +534,8 @@ class Restore(admintool.AdminTool):
 
         if not os.path.exists(ldifdir):
             pent = pwd.getpwnam(DS_USER)
-            os.mkdir(ldifdir, 0770)
+            os.mkdir(ldifdir)
+            os.chmod(ldifdir, 0770)
             os.chown(ldifdir, pent.pw_uid, pent.pw_gid)
 
         ipautil.backup_file(ldiffile)
@@ -811,7 +812,8 @@ class Restore(admintool.AdminTool):
         for dir in dirs:
             try:
                 self.log.debug('Creating %s' % dir)
-                os.mkdir(dir, 0770)
+                os.mkdir(dir)
+                os.chmod(dir, 0770)
                 os.chown(dir, pent.pw_uid, pent.pw_gid)
                 tasks.restore_context(dir)
             except Exception, e:
