@@ -41,6 +41,7 @@ from ipapython.dn import DN
 
 from ipaserver.install import replication
 from ipaserver.install import dsinstance
+from ipaserver.install import ldapupdate
 
 import pyasn1.codec.ber.decoder
 import struct
@@ -118,11 +119,9 @@ class KrbInstance(service.Service):
         self.admin_conn.add_entry(host_entry)
 
         # Add the host to the ipaserver host group
-        hostgroup_dn = DN(('cn', 'ipaservers'), ('cn', 'hostgroups'),
-                          ('cn', 'accounts'), self.suffix)
-        hostgroup_entry = self.admin_conn.get_entry(hostgroup_dn, ['member'])
-        hostgroup_entry.setdefault('member', []).append(host_dn)
-        self.admin_conn.update_entry(hostgroup_entry)
+        ld = ldapupdate.LDAPUpdate(ldapi=True)
+        ld.update([os.path.join(paths.UPDATES_DIR,
+                                '20-ipaservers_hostgroup.update')])
 
     def __common_setup(self, realm_name, host_name, domain_name, admin_password):
         self.fqdn = host_name
