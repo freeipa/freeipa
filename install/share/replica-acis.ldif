@@ -1,16 +1,16 @@
 # Replica administration
 
-dn: cn="$SUFFIX",cn=mapping tree,cn=config
+dn: cn=mapping tree,cn=config
 changetype: modify
 add: aci
 aci: (targetattr=*)(version 3.0;acl "permission:Add Replication Agreements";allow (add) groupdn = "ldap:///cn=Add Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
 
-dn: cn="$SUFFIX",cn=mapping tree,cn=config
+dn: cn=mapping tree,cn=config
 changetype: modify
 add: aci
 aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5Replica)(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement)(objectClass=nsMappingTree))")(version 3.0; acl "permission:Modify Replication Agreements"; allow (read, write, search) groupdn = "ldap:///cn=Modify Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
 
-dn: cn="$SUFFIX",cn=mapping tree,cn=config
+dn: cn=mapping tree,cn=config
 changetype: modify
 add: aci
 aci: (targetattr=*)(targetfilter="(|(objectclass=nsds5replicationagreement)(objectclass=nsDSWindowsReplicationAgreement))")(version 3.0;acl "permission:Remove Replication Agreements";allow (delete) groupdn = "ldap:///cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX";)
