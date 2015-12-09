@@ -92,12 +92,7 @@ class TestInstallKRA(IntegrationTest):
     def test_create_and_retrieve_vault_replica_with_kra(self):
 
         # install KRA on replica
-        self.replicas[0].run_command([
-            "ipa-kra-install",
-            tasks.get_replica_filename(self.replicas[0]),
-            "-p", self.replicas[0].config.dirman_password,
-            "-U",
-        ])
+        tasks.install_kra(self.replicas[0], first_instance=False)
 
         # create vault
         self.replicas[0].run_command([
