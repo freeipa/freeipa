@@ -31,9 +31,8 @@ from ipaserver.install import (
     bindinstance, ca, cainstance, certs, dns, dsinstance, httpinstance,
     installutils, kra, krainstance, krbinstance, memcacheinstance,
     ntpinstance, otpdinstance, custodiainstance, service)
-from ipaserver.install.installutils import create_replica_config
-from ipaserver.install.installutils import ReplicaConfig
-from ipaserver.install.installutils import load_pkcs12
+from ipaserver.install.installutils import (
+    create_replica_config, ReplicaConfig, load_pkcs12, is_ipa_configured)
 from ipaserver.install.replication import (
     ReplicationManager, replica_conn_check)
 import SSSDConfig
@@ -450,6 +449,11 @@ def install_check(installer):
     filename = installer.replica_file
 
     tasks.check_selinux_status()
+
+    if is_ipa_configured():
+        sys.exit("IPA server is already configured on this system.\n"
+                 "If you want to reinstall the IPA server, please uninstall "
+                 "it first using 'ipa-server-install --uninstall'.")
 
     client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     if client_fstore.has_files():
@@ -869,6 +873,11 @@ def promote_check(installer):
     installer._top_dir = tempfile.mkdtemp("ipa")
 
     tasks.check_selinux_status()
+
+    if is_ipa_configured():
+        sys.exit("IPA server is already configured on this system.\n"
+                 "If you want to reinstall the IPA server, please uninstall "
+                 "it first using 'ipa-server-install --uninstall'.")
 
     client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     if not client_fstore.has_files():
