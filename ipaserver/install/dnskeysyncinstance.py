@@ -201,7 +201,8 @@ class DNSKeySyncInstance(service.Service):
         # create dnssec directory
         if not os.path.exists(paths.IPA_DNSSEC_DIR):
             self.logger.debug("Creating %s directory", paths.IPA_DNSSEC_DIR)
-            os.mkdir(paths.IPA_DNSSEC_DIR, 0o770)
+            os.mkdir(paths.IPA_DNSSEC_DIR)
+            os.chmod(paths.IPA_DNSSEC_DIR, 0o770)
             # chown ods:named
             os.chown(paths.IPA_DNSSEC_DIR, self.ods_uid, self.named_gid)
 
@@ -218,6 +219,7 @@ class DNSKeySyncInstance(service.Service):
         named_fd.truncate(0)
         named_fd.write(softhsm_conf_txt)
         named_fd.close()
+        os.chmod(paths.DNSSEC_SOFTHSM2_CONF, 0o644)
 
         # setting up named to use softhsm2
         if not self.fstore.has_file(paths.SYSCONFIG_NAMED):
