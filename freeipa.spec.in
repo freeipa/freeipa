@@ -159,6 +159,7 @@ Requires: p11-kit
 Requires: systemd-python
 Requires: %{etc_systemd_dir}
 Requires: gzip
+Requires: rpm-python
 
 Conflicts: %{alt_name}-server
 Obsoletes: %{alt_name}-server < %{version}

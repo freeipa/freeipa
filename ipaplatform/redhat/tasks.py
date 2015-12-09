@@ -30,6 +30,8 @@ import socket
 import sys
 import urllib
 import base64
+import rpm
+from functools import total_ordering
 
 from subprocess import CalledProcessError
 from nss.error import NSPRError
@@ -44,6 +46,35 @@ from ipalib import x509 # FIXME: do not import from ipalib
 from ipaplatform.paths import paths
 from ipaplatform.redhat.authconfig import RedHatAuthConfig
 from ipaplatform.base.tasks import BaseTaskNamespace
+
+
+# copied from rpmUtils/miscutils.py
+def stringToVersion(verstring):
+    if verstring in [None, '']:
+        return (None, None, None)
+    i = verstring.find(':')
+    if i != -1:
+        try:
+            epoch = str(long(verstring[:i]))
+        except ValueError:
+            # look, garbage in the epoch field, how fun, kill it
+            epoch = '0' # this is our fallback, deal
+    else:
+        epoch = '0'
+    j = verstring.find('-')
+    if j != -1:
+        if verstring[i + 1:j] == '':
+            version = None
+        else:
+            version = verstring[i + 1:j]
+        release = verstring[j + 1:]
+    else:
+        if verstring[i + 1:] == '':
+            version = None
+        else:
+            version = verstring[i + 1:]
+        release = None
+    return (epoch, version, release)
 
 
 log = log_mgr.get_logger(__name__)
@@ -63,6 +94,21 @@ def selinux_enabled():
     else:
         # No selinuxenabled, no SELinux
         return False
+
+
+@total_ordering
+class IPAVersion(object):
+
+    def __init__(self, version):
+        self.version_tuple = stringToVersion(version)
+
+    def __eq__(self, other):
+        assert isinstance(other, IPAVersion)
+        return rpm.labelCompare(self.version_tuple, other.version_tuple) == 0
+
+    def __lt__(self, other):
+        assert isinstance(other, IPAVersion)
+        return rpm.labelCompare(self.version_tuple, other.version_tuple) == -1
 
 
 class RedHatTaskNamespace(BaseTaskNamespace):
@@ -421,6 +467,13 @@ class RedHatTaskNamespace(BaseTaskNamespace):
 
         super(RedHatTaskNamespace, self).create_system_user(name, group,
             homedir, shell, uid, gid, comment, create_homedir)
+
+    def parse_ipa_version(self, version):
+        """
+        :param version: textual version
+        :return: object implementing proper __cmp__ method for version compare
+        """
+        return IPAVersion(version)
 
 
 tasks = RedHatTaskNamespace()
