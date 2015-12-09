@@ -1103,11 +1103,6 @@ def uninstall_check(installer):
         domain_level = dsinstance.get_domain_level(api)
 
         if domain_level == constants.DOMAIN_LEVEL_0:
-            if options.ignore_topology_disconnect:
-                print("'--ignore-topology-disconnect' option can not be used "
-                      "in domain level {0}".format(constants.DOMAIN_LEVEL_0))
-                sys.exit(1)
-
             rm = replication.ReplicationManager(
                 realm=api.env.realm,
                 hostname=api.env.host,
