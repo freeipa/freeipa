@@ -987,18 +987,6 @@ def promote_check(installer):
                          paths.KRB5_KEYTAB,
                          ccache)
 
-    if not options.skip_conncheck:
-        if installer._ccache is None:
-            del os.environ['KRB5CCNAME']
-        else:
-            os.environ['KRB5CCNAME'] = installer._ccache
-
-        try:
-            installutils.check_creds(options, config.realm_name)
-            installer._ccache = os.environ.get('KRB5CCNAME')
-        finally:
-            os.environ['KRB5CCNAME'] = ccache
-
     cafile = paths.IPA_CA_CRT
     if not ipautil.file_exists(cafile):
         raise RuntimeError("CA cert file is not available! Please reinstall"
@@ -1198,10 +1186,12 @@ def promote_check(installer):
 
     # check connection
     if not options.skip_conncheck:
-        if installer._ccache is None:
-            del os.environ['KRB5CCNAME']
-        else:
-            os.environ['KRB5CCNAME'] = installer._ccache
+        if add_to_ipaservers:
+            # use user's credentials when the server host is not ipaservers
+            if installer._ccache is None:
+                del os.environ['KRB5CCNAME']
+            else:
+                os.environ['KRB5CCNAME'] = installer._ccache
 
         try:
             replica_conn_check(
@@ -1210,7 +1200,8 @@ def promote_check(installer):
                 options.admin_password, principal=options.principal,
                 ca_cert_file=cafile)
         finally:
-            os.environ['KRB5CCNAME'] = ccache
+            if add_to_ipaservers:
+                os.environ['KRB5CCNAME'] = ccache
 
     if not ipautil.file_exists(cafile):
         raise RuntimeError("CA cert file is not available.")
