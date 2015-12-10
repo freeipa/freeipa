@@ -482,7 +482,10 @@ def check_reverse_zones(ip_addresses, reverse_zones, options, unattended,
 
     # create reverse zone for IP addresses that does not have one
     for (ip, rz) in get_auto_reverse_zones(ips_missing_reverse):
-        if unattended:
+        if options.auto_reverse:
+            root_logger.info("Reverse zone %s will be created" % rz)
+            checked_reverse_zones.append(rz)
+        elif unattended:
             root_logger.warning("Missing reverse record for IP address %s"
                                 % ip)
         else:

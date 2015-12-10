@@ -197,6 +197,11 @@ class BaseServerDNS(common.Installable, core.Group, core.Composite):
         description="Do not create new reverse DNS zone",
     )
 
+    auto_reverse = Knob(
+        bool, False,
+        description="Create necessary reverse zones",
+    )
+
     no_dnssec_validation = Knob(
         bool, False,
         description="Disable DNSSEC validation",
@@ -424,6 +429,10 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
                 raise RuntimeError(
                     "You cannot specify a --reverse-zone option without the "
                     "--setup-dns option")
+            if self.dns.auto_reverse:
+                raise RuntimeError(
+                    "You cannot specify a --auto-reverse option without the "
+                    "--setup-dns option")
             if self.dns.no_reverse:
                 raise RuntimeError(
                     "You cannot specify a --no-reverse option without the "
@@ -443,6 +452,10 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
         elif self.dns.reverse_zones and self.dns.no_reverse:
             raise RuntimeError(
                 "You cannot specify a --reverse-zone option together with "
+                "--no-reverse")
+        elif self.dns.auto_reverse and self.dns.no_reverse:
+            raise RuntimeError(
+                "You cannot specify a --auto-reverse option together with "
                 "--no-reverse")
 
         # Automatically disable pkinit w/ dogtag until that is supported
@@ -470,6 +483,7 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
         self.no_forwarders = self.dns.no_forwarders
         self.reverse_zones = self.dns.reverse_zones
         self.no_reverse = self.dns.no_reverse
+        self.auto_reverse = self.dns.auto_reverse
         self.allow_zone_overlap = self.dns.allow_zone_overlap
         self.no_dnssec_validation = self.dns.no_dnssec_validation
         self.dnssec_master = self.dns.dnssec_master

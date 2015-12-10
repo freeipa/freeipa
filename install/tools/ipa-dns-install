@@ -57,6 +57,8 @@ def parse_options():
                       help="The reverse DNS zone to use. This option can be used multiple times")
     parser.add_option("--no-reverse", dest="no_reverse", action="store_true",
                       default=False, help="Do not create new reverse DNS zone")
+    parser.add_option("--auto-reverse", dest="auto_reverse", action="store_true",
+                      default=False, help="Create necessary DNS zones")
     parser.add_option("--allow-zone-overlap", dest="allow_zone_overlap",
                       action="store_true", default=False, help="Create DNS "
                       "zone even if it already exists")
@@ -90,6 +92,8 @@ def parse_options():
         parser.error("You cannot specify a --forwarder option together with --no-forwarders")
     elif options.reverse_zones and options.no_reverse:
         parser.error("You cannot specify a --reverse-zone option together with --no-reverse")
+    elif options.auto_reverse and options.no_reverse:
+        parser.error("You cannot specify a --auto-reverse option together with --no-reverse")
 
     if options.unattended:
         if not options.forwarders and not options.no_forwarders:
