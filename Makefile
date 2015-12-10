@@ -1,3 +1,6 @@
+# IPA build system cannot cope with parallel build; disable parallel build
+.NOTPARALLEL:
+
 include VERSION
 
 SUBDIRS=asn1 daemons install ipapython ipa-client
