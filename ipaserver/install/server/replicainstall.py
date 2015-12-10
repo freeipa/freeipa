@@ -385,6 +385,34 @@ def common_cleanup(func):
     return decorated
 
 
+def preserve_enrollment_state(func):
+    """
+    Makes sure the machine is unenrollled if the decorated function
+    failed.
+    """
+    def decorated(installer):
+        try:
+            func(installer)
+        except BaseException:
+            if installer._enrollment_performed:
+                uninstall_client()
+            raise
+
+    return decorated
+
+
+def uninstall_client():
+    """
+    Attempts to unenroll the IPA client using the ipa-client-install utility.
+
+    An unsuccessful attempt to uninstall is ignored (no exception raised).
+    """
+
+    print("Removing client side components")
+    ipautil.run([paths.IPA_CLIENT_INSTALL, "--unattended", "--uninstall"],
+                raiseonerr=False)
+
+
 def promote_sssd(host_name):
     sssdconfig = SSSDConfig.SSSDConfig()
     sssdconfig.import_config()
@@ -790,6 +818,8 @@ def ensure_enrolled(installer):
     # Call client install script
     service.print_msg("Configuring client side components")
     try:
+        installer._enrollment_performed = True
+
         args = [paths.IPA_CLIENT_INSTALL, "--unattended"]
         stdin = None
 
@@ -831,9 +861,11 @@ def ensure_enrolled(installer):
                  "ipa-client-install returned: " + str(e))
 
 @common_cleanup
+@preserve_enrollment_state
 def promote_check(installer):
     options = installer
 
+    installer._enrollment_performed = False
     installer._top_dir = tempfile.mkdtemp("ipa")
 
     tasks.check_selinux_status()
