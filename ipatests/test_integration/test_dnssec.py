@@ -91,7 +91,6 @@ class TestInstallDNSSECLast(IntegrationTest):
             "ipa-dns-install",
             "--dnssec-master",
             "--forwarder", self.master.config.dns_forwarder,
-            "-p", self.master.config.dirman_password,
             "-U",
         ]
         self.master.run_command(args)
@@ -249,7 +248,6 @@ class TestInstallDNSSECFirst(IntegrationTest):
             "ipa-dns-install",
             "--dnssec-master",
             "--forwarder", cls.master.config.dns_forwarder,
-            "-p", cls.master.config.dirman_password,
             "-U",
         ]
         cls.master.run_command(args)
@@ -423,7 +421,6 @@ class TestMigrateDNSSECMaster(IntegrationTest):
             "ipa-dns-install",
             "--dnssec-master",
             "--forwarder", cls.master.config.dns_forwarder,
-            "-p", cls.master.config.dirman_password,
             "-U",
         ]
         cls.master.run_command(args)
@@ -458,7 +455,6 @@ class TestMigrateDNSSECMaster(IntegrationTest):
             "ipa-dns-install",
             "--disable-dnssec-master",
             "--forwarder", self.master.config.dns_forwarder,
-            "-p", self.master.config.dirman_password,
             "--force",
             "-U",
         ]
@@ -474,7 +470,6 @@ class TestMigrateDNSSECMaster(IntegrationTest):
             "--dnssec-master",
             "--kasp-db", replica_backup_filename,
             "--forwarder", self.master.config.dns_forwarder,
-            "-p", self.master.config.dirman_password,
             "-U",
         ]
         self.replicas[0].run_command(args)

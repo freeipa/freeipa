@@ -285,7 +285,6 @@ class BaseBackupAndRestoreWithDNSSEC(IntegrationTest):
             "ipa-dns-install",
             "--dnssec-master",
             "--forwarder", cls.master.config.dns_forwarder,
-            "-p", cls.master.config.dirman_password,
             "-U",
         ]
         cls.master.run_command(args)

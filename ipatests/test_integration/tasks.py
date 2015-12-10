@@ -935,7 +935,7 @@ def resolve_record(nameserver, query, rtype="SOA", retry=True, timeout=100):
 def install_kra(host, domain_level=None, first_instance=False, raiseonerr=True):
     if not domain_level:
        domain_level = domainlevel(host)
-    command = ["ipa-kra-install", "-U", "-p", host.config.dirman_password]
+    command = ["ipa-kra-install", "-U"]
     if domain_level == DOMAIN_LEVEL_0 and not first_instance:
         replica_file = get_replica_filename(host)
         command.append(replica_file)
@@ -957,7 +957,6 @@ def install_dns(host, raiseonerr=True):
     args = [
         "ipa-dns-install",
         "--forwarder", host.config.dns_forwarder,
-        "-p", host.config.dirman_password,
         "-U",
     ]
     return host.run_command(args, raiseonerr=raiseonerr)
