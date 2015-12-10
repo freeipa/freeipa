@@ -1344,12 +1344,8 @@ class CAInstance(DogtagInstance):
         self.step("setting audit signing renewal to 2 years",
                   self.set_audit_renewal)
 
-        self.step("configure certmonger for renewals",
-                  self.configure_certmonger_renewal)
         self.step("configure certificate renewals",
                   self.configure_renewal)
-        self.step("configure RA certificate renewal",
-                  self.configure_agent_renewal)
         self.step("configure Server-Cert certificate renewal",
                   self.track_servercert)
         self.step("Configure HTTP to proxy connections",

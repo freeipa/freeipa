@@ -1316,6 +1316,14 @@ def promote(installer):
                                                  installer._ca_enabled)
     custodia.create_replica(config.master_host_name)
 
+    if installer._ca_enabled:
+        CA = cainstance.CAInstance(config.realm_name, certs.NSS_DIR)
+
+        CA.configure_certmonger_renewal()
+        CA.configure_agent_renewal()
+        cainstance.export_kra_agent_pem()
+        CA.fix_ra_perms()
+
     krb = install_krb(config,
                       setup_pkinit=not options.no_pkinit,
                       promote=True)
