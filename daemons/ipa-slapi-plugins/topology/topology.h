@@ -211,6 +211,7 @@ int ipa_topo_post_del(Slapi_PBlock *pb);
 /* preop plugin functions */
 int ipa_topo_pre_add(Slapi_PBlock *pb);
 int ipa_topo_pre_mod(Slapi_PBlock *pb);
+int ipa_topo_pre_modrdn(Slapi_PBlock *pb);
 int ipa_topo_pre_del(Slapi_PBlock *pb);
 
 /* functions to modify agreements */
