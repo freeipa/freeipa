@@ -402,6 +402,29 @@ ipa_topo_check_segment_updates(Slapi_PBlock *pb)
 }
 
 int
+ipa_topo_check_entry_move(Slapi_PBlock *pb)
+{
+    int rc = 0;
+    int entry_type = TOPO_IGNORE_ENTRY;
+    Slapi_Entry *modrdn_entry;
+    slapi_pblock_get(pb,SLAPI_MODRDN_TARGET_ENTRY,&modrdn_entry);
+    entry_type = ipa_topo_check_entry_type(modrdn_entry);
+    switch (entry_type) {
+    case TOPO_SEGMENT_ENTRY:
+    case TOPO_CONFIG_ENTRY: {
+        Slapi_DN *newsuperior = NULL;
+        slapi_pblock_get(pb, SLAPI_MODRDN_NEWSUPERIOR_SDN, &newsuperior);
+        if (newsuperior && slapi_sdn_get_dn(newsuperior)) rc = 1;
+        break;
+        }
+    default:
+        rc = 0;
+        break;
+    }
+    return rc;
+}
+
+int
 ipa_topo_check_host_updates(Slapi_PBlock *pb)
 {
     int rc = 0;
@@ -604,4 +627,34 @@ ipa_topo_pre_del(Slapi_PBlock *pb)
     slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
                     "<-- ipa_topo_pre_del\n");
     return result;
+}
+int
+ipa_topo_pre_modrdn(Slapi_PBlock *pb)
+{
+
+    int result = SLAPI_PLUGIN_SUCCESS;
+
+    slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                    "--> ipa_topo_pre_modrdn\n");
+
+    if (0 == ipa_topo_get_plugin_active()) {
+        slapi_log_error(SLAPI_LOG_PLUGIN, IPA_TOPO_PLUGIN_SUBSYSTEM,
+                    "<-- ipa_topo_pre_modrdn - plugin not active\n");
+        return 0;
+    }
+
+    if (ipa_topo_pre_ignore_op(pb)) return result;
+
+    if (ipa_topo_check_entry_move(pb)){
+        int rc = LDAP_UNWILLING_TO_PERFORM;
+        char *errtxt;
+        errtxt = slapi_ch_smprintf("Moving of a segment or config entry "
+                                   "to another subtree is not allowed.\n");
+        slapi_pblock_set(pb, SLAPI_PB_RESULT_TEXT, errtxt);
+        slapi_pblock_set(pb, SLAPI_RESULT_CODE, &rc);
+        result = SLAPI_PLUGIN_FAILURE;
+    }
+
+    return result;
+
 }

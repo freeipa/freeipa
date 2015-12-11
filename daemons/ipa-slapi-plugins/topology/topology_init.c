@@ -90,6 +90,8 @@ ipa_topo_preop_init(Slapi_PBlock *pb)
 
     rc = slapi_pblock_set(pb, SLAPI_PLUGIN_BE_PRE_MODIFY_FN,
                           (void *)ipa_topo_pre_mod);
+    rc |= slapi_pblock_set(pb, SLAPI_PLUGIN_BE_PRE_MODRDN_FN,
+                          (void *)ipa_topo_pre_modrdn);
     rc |= slapi_pblock_set(pb, SLAPI_PLUGIN_BE_PRE_ADD_FN,
                           (void *)ipa_topo_pre_add);
     rc |= slapi_pblock_set(pb, SLAPI_PLUGIN_BE_PRE_DELETE_FN,
