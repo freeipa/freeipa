@@ -175,12 +175,13 @@ static krb5_error_code setup_ldap(const char *uri, krb5_boolean bind,
 
     /* Always find the base since this forces open the socket. */
     basetmp = find_base(ldp);
-    if (basetmp == NULL)
-        return ENOTCONN;
-    if (base != NULL)
+    if (base != NULL) {
+        if (basetmp == NULL)
+            return ENOTCONN;
         *base = basetmp;
-    else
+    } else {
         free(basetmp);
+    }
 
     /* Set default timeout to just return immediately for async requests. */
     memset(&timeout, 0, sizeof(timeout));
