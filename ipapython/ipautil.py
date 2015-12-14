@@ -286,7 +286,7 @@ class _RunResult(collections.namedtuple('_RunResult',
 def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         capture_output=False, skip_output=False, cwd=None,
         runas=None, timeout=None, suplementary_groups=[],
-        capture_error=False, encoding=None):
+        capture_error=False, encoding=None, redirect_output=False):
     """
     Execute an external command.
 
@@ -323,6 +323,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
     :param encoding: For Python 3, the encoding to use for output,
         error_output, and (if it's not bytes) stdin.
         If None, the current encoding according to locale is used.
+    :param redirect_output: Redirect (error) output to standard (error) output.
 
     :return: An object with these attributes:
 
@@ -362,6 +363,13 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         raise ValueError('skip_output is incompatible with '
                          'capture_output or capture_error')
 
+    if redirect_output and (capture_output or capture_error):
+        raise ValueError('redirect_output is incompatible with '
+                         'capture_output or capture_error')
+
+    if skip_output and redirect_output:
+        raise ValueError('skip_output is incompatible with redirect_output')
+
     if env is None:
         # copy default env
         env = copy.deepcopy(os.environ)
@@ -370,6 +378,9 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         p_in = subprocess.PIPE
     if skip_output:
         p_out = p_err = open(paths.DEV_NULL, 'w')
+    elif redirect_output:
+        p_out = sys.stdout
+        p_err = sys.stderr
     else:
         p_out = subprocess.PIPE
         p_err = subprocess.PIPE
@@ -432,7 +443,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
 
     # The command and its output may include passwords that we don't want
     # to log. Replace those.
-    if skip_output:
+    if skip_output or redirect_output:
         output_log = None
         error_log = None
     else:
