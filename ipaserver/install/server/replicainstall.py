@@ -883,6 +883,12 @@ def promote_check(installer):
     client_fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
     if not client_fstore.has_files():
         ensure_enrolled(installer)
+    else:
+        if (options.domain_name or options.server or options.realm_name or
+                options.host_name or options.password or options.keytab):
+            print("IPA client is already configured on this system, ignoring "
+                  "the --domain, --server, --realm, --hostname, --password "
+                  "and --keytab options.")
 
     sstore = sysrestore.StateFile(paths.SYSRESTORE)
 
