@@ -113,8 +113,8 @@ class test_ipagetkeytab(cmdline_test):
             result = ipautil.run(new_args, None, capture_error=True)
             expected = 'Keytab successfully retrieved and stored in: %s\n' % (
                 self.keytabname)
-            assert (expected in result.error_output,
-                    'Success message not in output:\n%s' % result.error_output)
+            assert expected in result.error_output, (
+                'Success message not in output:\n%s' % result.error_output)
         except ipautil.CalledProcessError as e:
             assert (False)
 
