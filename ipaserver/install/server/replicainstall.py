@@ -812,15 +812,6 @@ def install(installer):
 def ensure_enrolled(installer):
     config = installer._config
 
-    # Perform only if we have the necessary options
-    if not any([installer.password,
-                installer.admin_password,
-                installer.keytab]):
-        sys.exit("IPA client is not configured on this system.\n"
-                 "You must join the system by running 'ipa-client-install' "
-                 "first. Alternatively, you may specify enrollment related "
-                 "options directly, see man ipa-replica-install.")
-
     # Call client install script
     service.print_msg("Configuring client side components")
     try:
