@@ -47,23 +47,6 @@ from ipapython.ipa_log_manager import log_mgr
 PKI_USER = "pkiuser"
 
 
-def check_inst(subsystem):
-    """
-    Validate that the appropriate dogtag/RHCS packages have been installed.
-    """
-
-    # Check for a couple of binaries we need
-    if not os.path.exists(paths.PKISPAWN):
-        return False
-    if not os.path.exists(paths.PKIDESTROY):
-        return False
-
-    if not os.path.exists(paths.PKI_CONF_SERVER_XML_TEMPLATE % subsystem):
-        return False
-
-    return True
-
-
 def get_security_domain():
     """
     Get the security domain from the REST interface on the local Dogtag CA
