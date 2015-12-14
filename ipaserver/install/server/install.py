@@ -991,10 +991,10 @@ def install(installer):
             args.append("--no-sshd")
         if options.mkhomedir:
             args.append("--mkhomedir")
-        run(args)
+        run(args, redirect_output=True)
+        print()
     except Exception as e:
-        sys.exit("Configuration of client side components failed!\n"
-                 "ipa-client-install returned: " + str(e))
+        sys.exit("Configuration of client side components failed!")
 
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()
@@ -1251,13 +1251,12 @@ def uninstall(installer):
     try:
         result = run([paths.IPA_CLIENT_INSTALL, "--on-master",
                       "--unattended", "--uninstall"],
-                     raiseonerr=False, capture_output=True)
+                     raiseonerr=False, redirect_output=True)
         if result.returncode not in [0, 2]:
-            raise RuntimeError(result.output)
-    except Exception as e:
+            raise RuntimeError("Failed to configure the client")
+    except Exception:
         rv = 1
         print("Uninstall of client side components failed!")
-        print("ipa-client-install returned: " + str(e))
 
     sys.exit(rv)
 

@@ -409,7 +409,8 @@ def uninstall_client():
 
     print("Removing client side components")
     ipautil.run([paths.IPA_CLIENT_INSTALL, "--unattended", "--uninstall"],
-                raiseonerr=False)
+                raiseonerr=False, redirect_output=True)
+    print()
 
 
 def promote_sssd(host_name):
@@ -794,10 +795,10 @@ def install(installer):
             args.append("--no-sshd")
         if options.mkhomedir:
             args.append("--mkhomedir")
-        ipautil.run(args)
-    except Exception as e:
+        ipautil.run(args, redirect_output=True)
+        print()
+    except Exception:
         print("Configuration of client side components failed!")
-        print("ipa-client-install returned: " + str(e))
         raise RuntimeError("Failed to configure the client")
 
     ds.replica_populate()
@@ -859,11 +860,10 @@ def ensure_enrolled(installer):
         if installer.mkhomedir:
             args.append("--mkhomedir")
 
-        ipautil.run(args, stdin=stdin)
-
-    except Exception as e:
-        sys.exit("Configuration of client side components failed!\n"
-                 "ipa-client-install returned: " + str(e))
+        ipautil.run(args, stdin=stdin, redirect_output=True)
+        print()
+    except Exception:
+        sys.exit("Configuration of client side components failed!")
 
 @common_cleanup
 @preserve_enrollment_state
