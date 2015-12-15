@@ -104,40 +104,56 @@ def get_default_attrs(object_classes):
         result.update(defaults[cls])
     return result
 
+
 class Key(collections.MutableMapping):
     """abstraction to hide LDAP entry weirdnesses:
         - non-normalized attribute names
         - boolean attributes returned as strings
+        - planned entry deletion prevents subsequent use of the instance
     """
     def __init__(self, entry, ldap, ldapkeydb):
         self.entry = entry
+        self._delentry = None  # indicates that object was deleted
         self.ldap = ldap
         self.ldapkeydb = ldapkeydb
         self.log = ldap.log.getChild(__name__)
 
+    def __assert_not_deleted(self):
+        assert self.entry and not self._delentry, (
+            "attempt to use to-be-deleted entry %s detected"
+            % self._delentry.dn)
+
     def __getitem__(self, key):
+        self.__assert_not_deleted()
         val = self.entry.single_value[key]
         if key.lower() in bool_attr_names:
             val = ldap_bool(val)
         return val
 
     def __setitem__(self, key, value):
+        self.__assert_not_deleted()
         self.entry[key] = value
 
     def __delitem__(self, key):
+        self.__assert_not_deleted()
         del self.entry[key]
 
     def __iter__(self):
         """generates list of ipa names of all PKCS#11 attributes present in the object"""
+        self.__assert_not_deleted()
         for ipa_name in list(self.entry.keys()):
             lowercase = ipa_name.lower()
             if lowercase in attrs_name2id:
                 yield lowercase
 
     def __len__(self):
+        self.__assert_not_deleted()
         return len(self.entry)
 
     def __repr__(self):
+        if self._delentry:
+            return 'deleted entry: %s' % repr(self._delentry)
+
         sanitized = dict(self.entry)
         for attr in ['ipaPrivateKey', 'ipaPublicKey', 'ipk11publickeyinfo']:
             if attr in sanitized:
@@ -151,6 +167,49 @@ class Key(collections.MutableMapping):
         for attr in default_attrs:
             if self.get(attr, empty) == default_attrs[attr]:
                 del self[attr]
+
+    def _update_key(self):
+        """remove default values from LDAP entry and write back changes"""
+        if self._delentry:
+            self._delete_key()
+            return
+
+        self._cleanup_key()
+
+        try:
+            self.ldap.update_entry(self.entry)
+        except ipalib.errors.EmptyModlist:
+            pass
+
+    def _delete_key(self):
+        """remove key metadata entry from LDAP
+
+        After calling this, the python object is no longer valid and all
+        subsequent method calls on it will fail.
+        """
+        assert not self.entry, (
+            "Key._delete_key() called before Key.schedule_deletion()")
+        assert self._delentry, "Key._delete_key() called more than once"
+        self.log.debug('deleting key id 0x%s DN %s from LDAP',
+                       hexlify(self._delentry.single_value['ipk11id']),
+                       self._delentry.dn)
+        self.ldap.delete_entry(self._delentry)
+        self._delentry = None
+        self.ldap = None
+        self.ldapkeydb = None
+
+    def schedule_deletion(self):
+        """schedule key deletion from LDAP
+
+        Calling schedule_deletion() will make this object incompatible with
+        normal Key. After that the object must not be read or modified.
+        Key metadata will be actually deleted when LdapKeyDB.flush() is called.
+        """
+        assert not self._delentry, (
+            "Key.schedule_deletion() called more than once")
+        self._delentry = self.entry
+        self.entry = None
+
 
 class ReplicaKey(Key):
     # TODO: object class assert
@@ -238,21 +297,12 @@ class LdapKeyDB(AbstractHSM):
         self._update_keys()
         return keys
 
-    def _update_key(self, key):
-        """remove default values from LDAP entry and write back changes"""
-        key._cleanup_key()
-
-        try:
-            self.ldap.update_entry(key.entry)
-        except ipalib.errors.EmptyModlist:
-            pass
-
     def _update_keys(self):
         for cache in [self.cache_masterkeys, self.cache_replica_pubkeys_wrap,
-                self.cache_zone_keypairs]:
+                      self.cache_zone_keypairs]:
             if cache:
                 for key in cache.values():
-                    self._update_key(key)
+                    key._update_key()
 
     def flush(self):
         """write back content of caches to LDAP"""
