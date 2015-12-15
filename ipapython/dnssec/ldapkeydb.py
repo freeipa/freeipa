@@ -4,6 +4,8 @@
 
 from binascii import hexlify
 import collections
+import logging
+from pprint import pprint
 import sys
 import time
 
@@ -11,6 +13,7 @@ import ipalib
 from ipapython.dn import DN
 from ipapython import ipaldap
 from ipapython import ipautil
+from ipapython import ipa_log_manager
 from ipaplatform.paths import paths
 
 from abshsm import attrs_name2id, attrs_id2name, bool_attr_names, populate_pkcs11_metadata, AbstractHSM
@@ -135,8 +138,12 @@ class Key(collections.MutableMapping):
     def __len__(self):
         return len(self.entry)
 
-    def __str__(self):
-        return str(self.entry)
+    def __repr__(self):
+        sanitized = dict(self.entry)
+        for attr in ['ipaPrivateKey', 'ipaPublicKey', 'ipk11publickeyinfo']:
+            if attr in sanitized:
+                del sanitized[attr]
+        return repr(sanitized)
 
     def _cleanup_key(self):
         """remove default values from LDAP entry"""
@@ -347,3 +354,46 @@ class LdapKeyDB(AbstractHSM):
                 '(&(objectClass=ipk11PrivateKey)(objectClass=ipaPrivateKeyObject)(objectClass=ipk11PublicKey)(objectClass=ipaPublicKeyObject))'))
 
         return self.cache_zone_keypairs
+
+if __name__ == '__main__':
+    # this is debugging mode
+    # print information we think are useful to stdout
+    # other garbage goes via logger to stderr
+    ipa_log_manager.standard_logging_setup(debug=True)
+    log = ipa_log_manager.root_logger
+
+    # IPA framework initialization
+    ipalib.api.bootstrap(in_server=True, log=None)  # no logging to file
+    ipalib.api.finalize()
+
+    # LDAP initialization
+    dns_dn = DN(ipalib.api.env.container_dns, ipalib.api.env.basedn)
+    ldap = ipaldap.LDAPClient(ipalib.api.env.ldap_uri)
+    log.debug('Connecting to LDAP')
+    # GSSAPI will be used, used has to be kinited already
+    ldap.gssapi_bind()
+    log.debug('Connected')
+
+    ldapkeydb = LdapKeyDB(log, ldap, DN(('cn', 'keys'), ('cn', 'sec'),
+                          ipalib.api.env.container_dns,
+                          ipalib.api.env.basedn))
+
+    print('replica public keys: CKA_WRAP = TRUE')
+    print('====================================')
+    for pubkey_id, pubkey in ldapkeydb.replica_pubkeys_wrap.items():
+        print(hexlify(pubkey_id))
+        pprint(pubkey)
+
+    print('')
+    print('master keys')
+    print('===========')
+    for mkey_id, mkey in ldapkeydb.master_keys.items():
+        print(hexlify(mkey_id))
+        pprint(mkey)
+
+    print('')
+    print('zone key pairs')
+    print('==============')
+    for key_id, key in ldapkeydb.zone_keypairs.items():
+        print(hexlify(key_id))
+        pprint(key)
