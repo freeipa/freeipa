@@ -52,7 +52,6 @@ from ipapython import config
 from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
-from ipalib.util import normalize_zone
 
 SHARE_DIR = paths.USR_SHARE_IPA_DIR
 PLUGINS_SHARE_DIR = paths.IPA_PLUGINS
