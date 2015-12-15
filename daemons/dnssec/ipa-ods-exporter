@@ -386,7 +386,10 @@ def master2ldap_master_keys_sync(log, ldapkeydb, localhsm):
     ldapkeydb.flush()
 
 def master2ldap_zone_keys_sync(log, ldapkeydb, localhsm):
-    # synchroniza zone keys
+    """add and update zone key material from local HSM to LDAP
+
+    No key material will be removed, only new keys will be added or updated.
+    Key removal is hanled by master2ldap_zone_keys_purge()."""
     log = log.getChild('master2ldap_zone_keys')
     keypairs_ldap = ldapkeydb.zone_keypairs
     log.debug("zone keys in LDAP: %s", hex_set(keypairs_ldap))
@@ -395,10 +398,10 @@ def master2ldap_zone_keys_sync(log, ldapkeydb, localhsm):
     privkeys_local = localhsm.zone_privkeys
     log.debug("zone keys in local HSM: %s", hex_set(privkeys_local))
 
-    assert set(pubkeys_local) == set(privkeys_local), \
-            "IDs of private and public keys for DNS zones in local HSM does " \
-            "not match to key pairs: %s vs. %s" % \
-            (hex_set(pubkeys_local), hex_set(privkeys_local))
+    assert set(pubkeys_local) == set(privkeys_local), (
+            "IDs of private and public keys for DNS zones in local HSM does "
+            "not match to key pairs: %s vs. %s" %
+            (hex_set(pubkeys_local), hex_set(privkeys_local)))
 
     new_keys = set(pubkeys_local) - set(keypairs_ldap)
     log.debug("new zone keys in local HSM: %s", hex_set(new_keys))
@@ -419,6 +422,29 @@ def master2ldap_zone_keys_sync(log, ldapkeydb, localhsm):
     sync_set_metadata_2ldap(log, privkeys_local, keypairs_ldap)
     ldapkeydb.flush()
 
+def master2ldap_zone_keys_purge(log, ldapkeydb, localhsm):
+    """purge removed key material from LDAP (but not metadata)
+
+    Keys which are present in LDAP but not in local HSM will be removed.
+    Key metadata must be removed first so references to removed key material
+    are removed before actually removing the keys."""
+    keypairs_ldap = ldapkeydb.zone_keypairs
+    log.debug("zone keys in LDAP: %s", hex_set(keypairs_ldap))
+
+    pubkeys_local = localhsm.zone_pubkeys
+    privkeys_local = localhsm.zone_privkeys
+    log.debug("zone keys in local HSM: %s", hex_set(privkeys_local))
+    assert set(pubkeys_local) == set(privkeys_local), \
+            "IDs of private and public keys for DNS zones in local HSM does " \
+            "not match to key pairs: %s vs. %s" % \
+            (hex_set(pubkeys_local), hex_set(privkeys_local))
+
+    deleted_key_ids = set(keypairs_ldap) - set(pubkeys_local)
+    log.debug("zone keys deleted from local HSM but present in LDAP: %s",
+            hex_set(deleted_key_ids))
+    for zkey_id in deleted_key_ids:
+        keypairs_ldap[zkey_id].schedule_deletion()
+    ldapkeydb.flush()
 
 def hex_set(s):
     out = set()
@@ -598,7 +624,7 @@ ldap.gssapi_bind()
 log.debug('Connected')
 
 
-### DNSSEC master: key synchronization
+### DNSSEC master: key material upload & synchronization (but not deletion)
 ldapkeydb = LdapKeyDB(log, ldap, DN(('cn', 'keys'), ('cn', 'sec'),
                                     ipalib.api.env.container_dns,
                                     ipalib.api.env.basedn))
@@ -610,7 +636,7 @@ master2ldap_master_keys_sync(log, ldapkeydb, localhsm)
 master2ldap_zone_keys_sync(log, ldapkeydb, localhsm)
 
 
-### DNSSEC master: DNSSEC key metadata upload
+### DNSSEC master: DNSSEC key metadata upload & synchronization & deletion
 # command receive is delayed so the command will stay in socket queue until
 # the problem with LDAP server or HSM is fixed
 try:
@@ -663,6 +689,11 @@ try:
         # process all zones
         for zone_row in db.execute("SELECT name FROM zones"):
             sync_zone(log, ldap, dns_dn, zone_row['name'])
+
+    ### DNSSEC master: DNSSEC key material purging
+    # references to old key material were removed above in sync_zone()
+    # so now we can purge old key material from LDAP
+    master2ldap_zone_keys_purge(log, ldapkeydb, localhsm)
 
 except Exception as ex:
     msg = "ipa-ods-exporter exception: %s" % traceback.format_exc(ex)
