@@ -264,7 +264,6 @@ def main():
         linter.set_option('disable', 'global-statement')
         linter.set_option('disable', 'global-variable-not-assigned')
         linter.set_option('disable', 'global-variable-undefined')
-        linter.set_option('disable', 'lost-exception')
         linter.set_option('disable', 'no-init')
         linter.set_option('disable', 'pointless-except')
         linter.set_option('disable', 'pointless-statement')

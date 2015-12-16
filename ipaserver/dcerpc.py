@@ -714,8 +714,8 @@ class DomainValidator(object):
                         root_logger.debug(msg)
                     else:
                         root_logger.warning(msg)
-                finally:
-                    return entries
+
+                return entries
 
     def __retrieve_trusted_domain_gc_list(self, domain):
         """
