@@ -304,6 +304,6 @@ class RedHatServices(base_services.KnownServices):
 
 # Objects below are expected to be exported by platform module
 
-from ipaplatform.base.services import timedate_services
+timedate_services = base_services.timedate_services
 service = redhat_service_class_factory
 knownservices = RedHatServices()

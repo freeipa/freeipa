@@ -56,6 +56,6 @@ class RHELServices(redhat_services.RedHatServices):
 
 # Objects below are expected to be exported by platform module
 
-from ipaplatform.redhat.services import timedate_services
+timedate_services = redhat_services.timedate_services
 service = rhel_service_class_factory
 knownservices = RHELServices()
