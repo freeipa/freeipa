@@ -1082,68 +1082,72 @@ static int map_groups(TALLOC_CTX *memctx, krb5_context kcontext,
             continue;
         }
 
-        ldap_derefresponse_free(deref_results);
-        ret = ipadb_ldap_deref_results(ipactx->lcontext, lentry, &deref_results);
-        switch (ret) {
-            case ENOENT:
-                /* No entry found, try next SID */
-                break;
-            case 0:
-                if (deref_results == NULL) {
-                    krb5_klog_syslog(LOG_ERR, "No results.");
+        do {
+            ldap_derefresponse_free(deref_results);
+            ret = ipadb_ldap_deref_results(ipactx->lcontext, lentry, &deref_results);
+            switch (ret) {
+                case ENOENT:
+                    /* No entry found, try next SID */
                     break;
-                }
+                case 0:
+                    if (deref_results == NULL) {
+                        krb5_klog_syslog(LOG_ERR, "No results.");
+                        break;
+                    }
 
-                for (dres = deref_results; dres; dres = dres->next) {
-                    count++;
-                }
+                    for (dres = deref_results; dres; dres = dres->next) {
+                        count++;
+                    }
 
-                sids = talloc_realloc(memctx, sids, struct dom_sid, count);
-                if (sids == NULL) {
-                    krb5_klog_syslog(LOG_ERR, "talloc_realloc failed.");
-                    kerr = ENOMEM;
+                    sids = talloc_realloc(memctx, sids, struct dom_sid, count);
+                    if (sids == NULL) {
+                        krb5_klog_syslog(LOG_ERR, "talloc_realloc failed.");
+                        kerr = ENOMEM;
+                        goto done;
+                    }
+
+                    for (dres = deref_results; dres; dres = dres->next) {
+                        gid = 0;
+                        memset(&sid, '\0', sizeof(struct dom_sid));
+                        for (dval = dres->attrVals; dval; dval = dval->next) {
+                            if (strcasecmp(dval->type, "gidNumber") == 0) {
+                                errno = 0;
+                                gid = strtoul((char *)dval->vals[0].bv_val,
+                                              &endptr,10);
+                                if (gid == 0 || gid >= UINT32_MAX || errno != 0 ||
+                                    *endptr != '\0') {
+                                    continue;
+                                }
+                            }
+                            if (strcasecmp(dval->type,
+                                           "ipaNTSecurityIdentifier") == 0) {
+                                kerr = string_to_sid((char *)dval->vals[0].bv_val, &sid);
+                                if (kerr != 0) {
+                                    continue;
+                                }
+                            }
+                        }
+                        if (gid != 0 && sid.sid_rev_num != 0) {
+                        /* TODO: check if gid maps to sid */
+                            if (sid_index >= count) {
+                                krb5_klog_syslog(LOG_ERR, "Index larger than "
+                                                          "array, this shoould "
+                                                          "never happen.");
+                                kerr = EFAULT;
+                                goto done;
+                            }
+                            memcpy(&sids[sid_index], &sid, sizeof(struct dom_sid));
+                            sid_index++;
+                        }
+                    }
+
+                    break;
+                default:
                     goto done;
-                }
+            }
 
-                for (dres = deref_results; dres; dres = dres->next) {
-                    gid = 0;
-                    memset(&sid, '\0', sizeof(struct dom_sid));
-                    for (dval = dres->attrVals; dval; dval = dval->next) {
-                        if (strcasecmp(dval->type, "gidNumber") == 0) {
-                            errno = 0;
-                            gid = strtoul((char *)dval->vals[0].bv_val,
-                                          &endptr,10);
-                            if (gid == 0 || gid >= UINT32_MAX || errno != 0 ||
-                                *endptr != '\0') {
-                                continue;
-                            }
-                        }
-                        if (strcasecmp(dval->type,
-                                       "ipaNTSecurityIdentifier") == 0) {
-                            kerr = string_to_sid((char *)dval->vals[0].bv_val, &sid);
-                            if (kerr != 0) {
-                                continue;
-                            }
-                        }
-                    }
-                    if (gid != 0 && sid.sid_rev_num != 0) {
-                    /* TODO: check if gid maps to sid */
-                        if (sid_index >= count) {
-                            krb5_klog_syslog(LOG_ERR, "Index larger than "
-                                                      "array, this shoould "
-                                                      "never happen.");
-                            kerr = EFAULT;
-                            goto done;
-                        }
-                        memcpy(&sids[sid_index], &sid, sizeof(struct dom_sid));
-                        sid_index++;
-                    }
-                }
-
-                break;
-            default:
-                goto done;
-        }
+            lentry = ldap_next_entry(ipactx->lcontext, lentry);
+        } while (lentry != NULL);
     }
 
     *_ipa_group_sids_count = sid_index;
