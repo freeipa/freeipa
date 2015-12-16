@@ -14,6 +14,8 @@ import pytest
 if six.PY3:
     unicode = str
 
+TEST_ZONE = u'zoneadd.%(domain)s' % api.env
+
 
 @pytest.mark.tier0
 class TestCLIParsing(object):
@@ -123,9 +125,9 @@ class TestCLIParsing(object):
                 all=False)
 
     def test_dnsrecord_add(self):
-        self.check_command('dnsrecord-add test-example.com ns --a-rec=1.2.3.4',
+        self.check_command('dnsrecord-add %s ns --a-rec=1.2.3.4' % TEST_ZONE,
             'dnsrecord_add',
-            dnszoneidnsname=u'test-example.com',
+            dnszoneidnsname=TEST_ZONE,
             idnsname=u'ns',
             arecord=u'1.2.3.4',
             structured=False,
@@ -135,33 +137,33 @@ class TestCLIParsing(object):
 
     def test_dnsrecord_del_all(self):
         try:
-            self.run_command('dnszone_add', idnsname=u'test-example.com')
+            self.run_command('dnszone_add', idnsname=TEST_ZONE)
         except errors.NotFound:
             raise nose.SkipTest('DNS is not configured')
         try:
             self.run_command('dnsrecord_add',
-                dnszoneidnsname=u'test-example.com',
+                dnszoneidnsname=TEST_ZONE,
                 idnsname=u'ns', arecord=u'1.2.3.4', force=True)
             with self.fake_stdin('yes\n'):
-                self.check_command('dnsrecord_del test-example.com ns',
+                self.check_command('dnsrecord_del %s ns' % TEST_ZONE,
                     'dnsrecord_del',
-                    dnszoneidnsname=u'test-example.com',
+                    dnszoneidnsname=TEST_ZONE,
                     idnsname=u'ns',
                     del_all=True,
                     structured=False)
             with self.fake_stdin('YeS\n'):
-                self.check_command('dnsrecord_del test-example.com ns',
+                self.check_command('dnsrecord_del %s ns' % TEST_ZONE,
                     'dnsrecord_del',
-                    dnszoneidnsname=u'test-example.com',
+                    dnszoneidnsname=TEST_ZONE,
                     idnsname=u'ns',
                     del_all=True,
                     structured=False)
         finally:
-            self.run_command('dnszone_del', idnsname=u'test-example.com')
+            self.run_command('dnszone_del', idnsname=TEST_ZONE)
 
     def test_dnsrecord_del_one_by_one(self):
         try:
-            self.run_command('dnszone_add', idnsname=u'test-example.com')
+            self.run_command('dnszone_add', idnsname=TEST_ZONE)
         except errors.NotFound:
             raise nose.SkipTest('DNS is not configured')
         try:
@@ -169,26 +171,26 @@ class TestCLIParsing(object):
                        u'2 1 FD2693C1EFFC11A8D2BE57229212A04B45663791')
             for record in records:
                 self.run_command('dnsrecord_add',
-                    dnszoneidnsname=u'test-example.com', idnsname=u'ns',
+                    dnszoneidnsname=TEST_ZONE, idnsname=u'ns',
                     sshfprecord=record)
             with self.fake_stdin('no\nyes\nyes\n'):
-                self.check_command('dnsrecord_del test-example.com ns',
+                self.check_command('dnsrecord_del %s ns' % TEST_ZONE,
                     'dnsrecord_del',
-                    dnszoneidnsname=u'test-example.com',
+                    dnszoneidnsname=TEST_ZONE,
                     idnsname=u'ns',
                     del_all=False,
                     sshfprecord=records,
                     structured=False)
         finally:
-            self.run_command('dnszone_del', idnsname=u'test-example.com')
+            self.run_command('dnszone_del', idnsname=TEST_ZONE)
 
     def test_dnsrecord_add_ask_for_missing_fields(self):
         sshfp_parts = (1, 1, u'E3B72BA346B90570EED94BE9334E34AA795CED23')
 
         with self.fake_stdin('SSHFP\n%d\n%d\n%s' % sshfp_parts):
-            self.check_command('dnsrecord-add test-example.com sshfp',
+            self.check_command('dnsrecord-add %s sshfp' % TEST_ZONE,
                 'dnsrecord_add',
-                dnszoneidnsname=u'test-example.com',
+                dnszoneidnsname=TEST_ZONE,
                 idnsname=u'sshfp',
                 sshfp_part_fp_type=sshfp_parts[0],
                 sshfp_part_algorithm=sshfp_parts[1],
@@ -201,10 +203,10 @@ class TestCLIParsing(object):
         # NOTE: when a DNS record part is passed via command line, it is not
         # converted to its base type when transfered via wire
         with self.fake_stdin('%d\n%s' % (sshfp_parts[1], sshfp_parts[2])):
-            self.check_command('dnsrecord-add test-example.com sshfp ' \
-                    '--sshfp-algorithm=%d' % sshfp_parts[0],
+            self.check_command('dnsrecord-add %s sshfp '
+                    '--sshfp-algorithm=%d' % (TEST_ZONE, sshfp_parts[0]),
                 'dnsrecord_add',
-                dnszoneidnsname=u'test-example.com',
+                dnszoneidnsname=TEST_ZONE,
                 idnsname=u'sshfp',
                 sshfp_part_fp_type=sshfp_parts[0],
                 sshfp_part_algorithm=unicode(sshfp_parts[1]),   # passed via cmdline
@@ -215,10 +217,11 @@ class TestCLIParsing(object):
                 force=False)
 
         with self.fake_stdin(sshfp_parts[2]):
-            self.check_command('dnsrecord-add test-example.com sshfp ' \
-                    '--sshfp-algorithm=%d --sshfp-fp-type=%d' % (sshfp_parts[0], sshfp_parts[1]),
+            self.check_command('dnsrecord-add %s sshfp '
+                    '--sshfp-algorithm=%d --sshfp-fp-type=%d' % (
+                        TEST_ZONE, sshfp_parts[0], sshfp_parts[1]),
                 'dnsrecord_add',
-                dnszoneidnsname=u'test-example.com',
+                dnszoneidnsname=TEST_ZONE,
                 idnsname=u'sshfp',
                 sshfp_part_fp_type=unicode(sshfp_parts[0]),     # passed via cmdline
                 sshfp_part_algorithm=unicode(sshfp_parts[1]),   # passed via cmdline
@@ -231,26 +234,26 @@ class TestCLIParsing(object):
     def test_dnsrecord_del_comma(self):
         try:
             self.run_command(
-                'dnszone_add', idnsname=u'test-example.com')
+                'dnszone_add', idnsname=TEST_ZONE)
         except errors.NotFound:
             raise nose.SkipTest('DNS is not configured')
         try:
             self.run_command(
                 'dnsrecord_add',
-                dnszoneidnsname=u'test-example.com',
+                dnszoneidnsname=TEST_ZONE,
                 idnsname=u'test',
                 txtrecord=u'"A pretty little problem," said Holmes.')
             with self.fake_stdin('no\nyes\n'):
                 self.check_command(
-                    'dnsrecord_del test-example.com test',
+                    'dnsrecord_del %s test' % TEST_ZONE,
                     'dnsrecord_del',
-                    dnszoneidnsname=u'test-example.com',
+                    dnszoneidnsname=TEST_ZONE,
                     idnsname=u'test',
                     del_all=False,
                     txtrecord=[u'"A pretty little problem," said Holmes.'],
                     structured=False)
         finally:
-            self.run_command('dnszone_del', idnsname=u'test-example.com')
+            self.run_command('dnszone_del', idnsname=TEST_ZONE)
 
     def test_idrange_add(self):
         """
