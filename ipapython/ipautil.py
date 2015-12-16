@@ -41,7 +41,7 @@ import locale
 import collections
 
 from dns import resolver, rdatatype, reversename
-from dns.exception import DNSException, Timeout
+from dns.exception import DNSException
 import six
 from six.moves import input
 from six.moves import urllib
@@ -1046,7 +1046,7 @@ def reverse_record_exists(ip_address):
     return True
 
 
-def check_zone_overlap(zone, raise_on_timeout=True):
+def check_zone_overlap(zone, raise_on_error=True):
     root_logger.info("Checking DNS domain %s, please wait ..." % zone)
     if not isinstance(zone, DNSName):
         zone = DNSName(zone).make_absolute()
@@ -1058,10 +1058,9 @@ def check_zone_overlap(zone, raise_on_timeout=True):
 
     try:
         containing_zone = resolver.zone_for_name(zone)
-    except Timeout as e:
-        msg = ("DNS check for domain %s failed: %s. Please make sure that the "
-               "domain is properly delegated to this IPA server." % (zone, e))
-        if raise_on_timeout:
+    except DNSException as e:
+        msg = ("DNS check for domain %s failed: %s." % (zone, e))
+        if raise_on_error:
             raise ValueError(msg)
         else:
             root_logger.warning(msg)

@@ -126,10 +126,12 @@ def install_check(standalone, replica, options, hostname):
         domain = dnsutil.DNSName(util.normalize_zone(api.env.domain))
         print("Checking DNS domain %s, please wait ..." % domain)
         try:
-            ipautil.check_zone_overlap(domain, raise_on_timeout=False)
+            ipautil.check_zone_overlap(domain, raise_on_error=False)
         except ValueError as e:
             if options.force or options.allow_zone_overlap:
-                root_logger.warning(e.message)
+                root_logger.warning("%s Please make sure that the domain is "
+                                    "properly delegated to this IPA server.",
+                                    e.message)
             else:
                 raise e
 
