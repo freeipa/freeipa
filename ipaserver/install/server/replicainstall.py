@@ -335,7 +335,7 @@ def configure_certmonger():
     messagebus = services.knownservices.messagebus
     try:
         messagebus.start()
-    except Exception, e:
+    except Exception as e:
         print("Messagebus service unavailable: %s" % str(e))
         sys.exit(3)
 
@@ -344,13 +344,13 @@ def configure_certmonger():
     cmonger = services.knownservices.certmonger
     try:
         cmonger.restart()
-    except Exception, e:
+    except Exception as e:
         print("Certmonger service unavailable: %s" % str(e))
         sys.exit(3)
 
     try:
         cmonger.enable()
-    except Exception, e:
+    except Exception as e:
         print("Failed to enable Certmonger: %s" % str(e))
         sys.exit(3)
 
@@ -895,7 +895,7 @@ def promote_check(installer):
     if not options.no_ntp:
         try:
             ipaclient.ntpconf.check_timedate_services()
-        except ipaclient.ntpconf.NTPConflictingService, e:
+        except ipaclient.ntpconf.NTPConflictingService as e:
             print("WARNING: conflicting time&date synchronization service '%s'"
                   " will" % e.conflicting_service)
             print("be disabled in favor of ntpd")
