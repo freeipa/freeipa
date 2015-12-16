@@ -1903,10 +1903,6 @@ class UserTracker(Tracker):
             summary=u'Stage user %s activated' % self.uid,
             result=self.filter_attrs(self.activate_keys))
 
-        if 'manager' in expected['result']:
-            expected['result']['manager'] = [
-                unicode(get_user_dn(expected['result']['manager'][0]))]
-
         # work around to eliminate inconsistency in returned objectclass
         # (case sensitive assertion)
         expected['result']['objectclass'] = [item.lower() for item in
