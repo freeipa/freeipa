@@ -434,7 +434,7 @@ class test_automount_indirect(AutomountTest):
         """
         Test adding a duplicate indirect map.
         """
-        api.Command['automountmap_add_indirect'](self.locname, self.mapname, **self.map_kw)['result']
+        api.Command['automountmap_add_indirect'](self.locname, self.mapname, **self.map_kw)
 
     def test_2_automountmap_show(self):
         """

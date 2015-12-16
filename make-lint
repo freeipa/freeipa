@@ -258,7 +258,6 @@ def main():
         linter.set_option('disable', 'dangerous-default-value')
         linter.set_option('disable', 'eval-used')
         linter.set_option('disable', 'exec-used')
-        linter.set_option('disable', 'expression-not-assigned')
         linter.set_option('disable', 'fixme')
         linter.set_option('disable', 'global-statement')
         linter.set_option('disable', 'global-variable-not-assigned')

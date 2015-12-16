@@ -125,7 +125,8 @@ class test_otptoken_import(object):
         nss.nss_init_nodb()
         try:
             doc = PSKCDocument(os.path.join(basename, "pskc-mini.xml"))
-            [(t.id, t.options) for t in doc.getKeyPackages()]
+            for t in doc.getKeyPackages():
+                t._PSKCKeyPackage__process()
         except ValidationError: # Unsupported token type.
             pass
         else:

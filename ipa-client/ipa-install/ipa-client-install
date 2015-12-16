@@ -112,14 +112,15 @@ def parse_options():
     basic_group.add_option("--fixed-primary", dest="primary", action="store_true",
                       default=False, help="Configure sssd to use fixed server as primary IPA server")
     basic_group.add_option("-p", "--principal", dest="principal",
-                      help="principal to use to join the IPA realm"),
+                      help="principal to use to join the IPA realm")
     basic_group.add_option("-w", "--password", dest="password", sensitive=True,
-                      help="password to join the IPA realm (assumes bulk password unless principal is also set)"),
+                      help="password to join the IPA realm (assumes bulk "
+                           "password unless principal is also set)")
     basic_group.add_option("-k", "--keytab", dest="keytab",
-                      help="path to backed up keytab from previous enrollment"),
+                      help="path to backed up keytab from previous enrollment")
     basic_group.add_option("-W", dest="prompt_password", action="store_true",
                       default=False,
-                      help="Prompt for a password to join the IPA realm"),
+                      help="Prompt for a password to join the IPA realm")
     basic_group.add_option("--mkhomedir", dest="mkhomedir",
                       action="store_true", default=False,
                       help="create home directories for users on their first login")
