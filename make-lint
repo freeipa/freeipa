@@ -296,7 +296,6 @@ def main():
         linter.set_option('disable', 'invalid-name')
         linter.set_option('disable', 'line-too-long')
         linter.set_option('disable', 'missing-docstring')
-        linter.set_option('disable', 'missing-final-newline')
         linter.set_option('disable', 'multiple-imports')
         linter.set_option('disable', 'multiple-statements')
         linter.set_option('disable', 'old-style-class')
