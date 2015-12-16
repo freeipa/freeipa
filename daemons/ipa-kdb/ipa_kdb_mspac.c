@@ -2005,7 +2005,7 @@ void get_authz_data_types(krb5_context context, krb5_db_entry *entry,
         service_specific = false;
         authz_data_type = authz_data_list[c];
         sep = strchr(authz_data_list[c], ':');
-        if (sep != NULL) {
+        if (sep != NULL && entry != NULL) {
             if (entry->princ == NULL) {
                 krb5_klog_syslog(LOG_ERR, "Missing principal in database "
                                           "entry, no authorization data will " \

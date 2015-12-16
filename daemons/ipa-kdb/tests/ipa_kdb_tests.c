@@ -404,6 +404,14 @@ void test_get_authz_data_types(void **state)
         get_authz_data_types(test_ctx->krb5_ctx, entry, &with_pac, &with_pad);
         assert_true(with_pad == test_set[c].exp_with_pad);
         assert_true(with_pac == test_set[c].exp_with_pac);
+
+        /* test if global default are returned if there is no server entry */
+        if (test_set[c].authz_data == NULL && test_set[c].princ == NULL) {
+            get_authz_data_types(test_ctx->krb5_ctx, NULL, &with_pac,
+                                                           &with_pad);
+            assert_true(with_pad == test_set[c].exp_with_pad);
+            assert_true(with_pac == test_set[c].exp_with_pac);
+        }
     }
 
     free(ied);
