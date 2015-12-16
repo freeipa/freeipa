@@ -21,14 +21,19 @@
 
 from __future__ import print_function
 
+import os
+import sys
+
 from optparse import SUPPRESS_HELP
 
 from ipaserver.install import bindinstance, httpinstance
-from ipaserver.install.installutils import *
 from ipaserver.install import installutils
+from ipaserver.install import service
 from ipapython import version
 from ipalib import api
 from ipaplatform.paths import paths
+from ipapython import ipautil
+from ipapython import sysrestore
 from ipapython.config import IPAOptionParser
 from ipapython.ipa_log_manager import standard_logging_setup, root_logger
 

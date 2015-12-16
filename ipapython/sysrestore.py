@@ -26,7 +26,7 @@
 import os
 import os.path
 import shutil
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 import random
 import string
 

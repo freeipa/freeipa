@@ -20,8 +20,15 @@
 from ipalib import api, errors
 from ipalib import Str
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import *
+from ipalib.plugins.baseldap import (
+    LDAPObject,
+    LDAPCreate,
+    LDAPDelete,
+    LDAPUpdate,
+    LDAPSearch,
+    LDAPRetrieve)
 from ipalib import _, ngettext
+from ipapython.dn import DN
 
 __doc__ = _("""
 Sudo Commands

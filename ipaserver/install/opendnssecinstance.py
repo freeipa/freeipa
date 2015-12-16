@@ -12,7 +12,7 @@ from subprocess import CalledProcessError
 import _ipap11helper
 from ipaserver.install import service
 from ipaserver.install import installutils
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 from ipapython import sysrestore, ipautil, ipaldap, p11helper
 from ipaplatform import services

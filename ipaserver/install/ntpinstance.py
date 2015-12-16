@@ -23,7 +23,7 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 
 NTPD_OPTS_VAR = constants.NTPD_OPTS_VAR
 NTPD_OPTS_QUOTE = constants.NTPD_OPTS_QUOTE

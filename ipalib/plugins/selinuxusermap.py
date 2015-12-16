@@ -17,12 +17,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
+
 from ipalib import api, errors
 from ipalib import Str, StrEnum, Bool
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import *
+from ipalib.plugins.baseldap import (
+    pkey_to_value,
+    LDAPObject,
+    LDAPCreate,
+    LDAPDelete,
+    LDAPUpdate,
+    LDAPSearch,
+    LDAPRetrieve,
+    LDAPQuery,
+    LDAPAddMember,
+    LDAPRemoveMember)
 from ipalib import _, ngettext
+from ipalib import output
 from ipalib.plugins.hbacrule import is_all
+from ipapython.dn import DN
 
 __doc__ = _("""
 SELinux User Mapping

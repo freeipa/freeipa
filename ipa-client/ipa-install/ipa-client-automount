@@ -38,7 +38,7 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipaclient import ipadiscovery
 from ipaclient import ipachangeconf
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython.dn import DN
 from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks

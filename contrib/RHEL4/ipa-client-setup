@@ -25,7 +25,7 @@ import sys
 import os
 import string
 import shutil
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from optparse import OptionParser
 import ipachangeconf
 import ldap

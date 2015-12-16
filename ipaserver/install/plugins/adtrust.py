@@ -20,7 +20,7 @@
 from ipalib import api, errors
 from ipalib import Updater
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 
 DEFAULT_ID_RANGE_SIZE = 200000
 

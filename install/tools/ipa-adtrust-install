@@ -23,17 +23,24 @@
 
 from __future__ import print_function
 
+import os
+import sys
+import ldap
+
 import six
 
 from ipaserver.install import adtrustinstance
-from ipaserver.install.installutils import *
+from ipaserver.install.installutils import (
+    read_password,
+    check_server_configuration,
+    run_script)
 from ipaserver.install import service
 from ipapython import version
 from ipapython import ipautil, sysrestore, ipaldap
 from ipalib import api, errors, krb_utils
 from ipapython.config import IPAOptionParser
 from ipaplatform.paths import paths
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython.dn import DN
 
 if six.PY3:

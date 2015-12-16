@@ -30,7 +30,7 @@ try:
     from ipaserver.install.ldapupdate import LDAPUpdate
     from ipaserver.plugins.ldap2 import ldap2
     from ipalib import api, errors
-    from ipapython.ipa_log_manager import *
+    from ipapython.ipa_log_manager import standard_logging_setup
     from ipapython.dn import DN
 except ImportError as e:
     print("""\

@@ -17,7 +17,7 @@ import _ipap11helper
 from ipapython.dnsutil import DNSName
 from ipaserver.install import service
 from ipaserver.install import installutils
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 from ipapython import ipaldap
 from ipapython import sysrestore, ipautil

@@ -31,7 +31,7 @@ import stat
 
 import ldap
 
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil, sysrestore, ipaldap
 from ipaserver.install import service
 from ipaserver.install import installutils

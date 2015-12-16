@@ -20,7 +20,7 @@
 from ipalib import api, errors
 from ipalib import Updater
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 
 
 class update_uniqueness_plugins_to_new_syntax(Updater):

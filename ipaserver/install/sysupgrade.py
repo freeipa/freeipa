@@ -22,7 +22,7 @@ import os.path
 
 from ipapython import sysrestore
 from ipaplatform.paths import paths
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 
 STATEFILE_FILE = 'sysupgrade.state'
 

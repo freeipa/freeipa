@@ -46,7 +46,7 @@ import six
 from six.moves import input
 from six.moves import urllib
 
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 from ipapython import config
 from ipaplatform.paths import paths
 from ipapython.dn import DN

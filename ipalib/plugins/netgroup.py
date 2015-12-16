@@ -21,11 +21,24 @@
 import six
 
 from ipalib import api, errors
-from ipalib import Str, StrEnum
+from ipalib import Str, StrEnum, Flag
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import *
+from ipalib.plugins.baseldap import (
+    external_host_param,
+    add_external_pre_callback,
+    add_external_post_callback,
+    remove_external_post_callback,
+    LDAPObject,
+    LDAPCreate,
+    LDAPDelete,
+    LDAPUpdate,
+    LDAPSearch,
+    LDAPRetrieve,
+    LDAPAddMember,
+    LDAPRemoveMember)
 from ipalib import _, ngettext
 from ipalib.plugins.hbacrule import is_all
+from ipapython.dn import DN
 
 if six.PY3:
     unicode = str

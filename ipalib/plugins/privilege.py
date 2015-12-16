@@ -17,9 +17,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib.plugins.baseldap import *
+from ipalib.plugins.baseldap import (
+    LDAPObject,
+    LDAPCreate,
+    LDAPDelete,
+    LDAPUpdate,
+    LDAPSearch,
+    LDAPRetrieve,
+    LDAPAddMember,
+    LDAPRemoveMember,
+    LDAPAddReverseMember,
+    LDAPRemoveReverseMember)
 from ipalib import api, _, ngettext, errors
 from ipalib.plugable import Registry
+from ipalib import Str
+from ipalib import output
+from ipapython.dn import DN
 
 __doc__ = _("""
 Privileges

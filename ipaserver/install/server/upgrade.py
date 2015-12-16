@@ -22,7 +22,7 @@ from ipaplatform import services
 from ipaplatform.tasks import tasks
 from ipapython import ipautil, sysrestore, version, certdb
 from ipapython import ipaldap
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 from ipapython import certmonger
 from ipapython.dn import DN
 from ipaplatform.paths import paths

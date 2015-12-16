@@ -43,7 +43,10 @@ from ipalib import text
 from ipalib.text import _
 from ipalib.base import ReadOnly, NameSpace, lock, islocked
 from ipalib.constants import DEFAULT_CONFIG
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import (
+    log_mgr,
+    LOGGING_FORMAT_FILE,
+    LOGGING_FORMAT_STDERR)
 from ipapython.version import VERSION, API_VERSION
 
 if six.PY3:

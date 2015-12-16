@@ -41,7 +41,7 @@ from ipalib import constants
 from ipaplatform.paths import paths
 from ipaplatform import services
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import log_mgr
 from ipapython.ipautil import wait_for_open_socket
 
 UPDATES_DIR=paths.UPDATES_DIR

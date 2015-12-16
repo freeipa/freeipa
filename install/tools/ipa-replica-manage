@@ -38,7 +38,7 @@ from ipapython import version, ipaldap
 from ipalib import api, errors
 from ipalib.constants import CACERT
 from ipalib.util import has_managed_topology
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
 from ipaclient import ipadiscovery

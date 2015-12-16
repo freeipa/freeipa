@@ -22,7 +22,7 @@ from __future__ import print_function
 
 import getpass
 import socket
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 
 from nss.error import NSPRError
 import nss.io as io

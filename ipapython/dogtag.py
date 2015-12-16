@@ -28,7 +28,7 @@ from ipalib import api, errors
 from ipalib.errors import NetworkError
 from ipalib.text import _
 from ipapython import nsslib, ipautil
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 
 # Python 3 rename. The package is available in "six.moves.http_client", but
 # pylint cannot handle classes from that alias

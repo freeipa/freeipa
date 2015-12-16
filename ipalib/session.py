@@ -26,10 +26,12 @@ from six.moves.urllib.parse import urlparse
 
 from ipalib import errors
 from ipalib.text import _
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger, log_mgr
 from ipalib import api, errors
 from ipaplatform.paths import paths
-from ipalib.krb_utils import *
+from ipalib.krb_utils import (
+    krb5_parse_ccache,
+    krb5_unparse_ccache)
 from ipapython.cookie import Cookie
 
 __doc__ = '''

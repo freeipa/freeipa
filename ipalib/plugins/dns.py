@@ -36,11 +36,21 @@ import six
 from ipalib.request import context
 from ipalib import api, errors, output
 from ipalib import Command
-from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
+from ipalib.capabilities import (
+    VERSION_WITHOUT_CAPABILITIES,
+    client_has_capability)
 from ipalib.parameters import (Flag, Bool, Int, Decimal, Str, StrEnum, Any,
                                DeprecatedParam, DNSNameParam)
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import *
+from ipalib.plugins.baseldap import (
+    pkey_to_value,
+    LDAPObject,
+    LDAPCreate,
+    LDAPUpdate,
+    LDAPSearch,
+    LDAPQuery,
+    LDAPDelete,
+    LDAPRetrieve)
 from ipalib import _, ngettext
 from ipalib import messages
 from ipalib.util import (normalize_zonemgr,
@@ -53,6 +63,7 @@ from ipalib.util import (normalize_zonemgr,
                          validate_dnssec_zone_forwarder_step1,
                          validate_dnssec_zone_forwarder_step2,
                          verify_host_resolvable)
+from ipapython.dn import DN
 from ipapython.ipautil import CheckedIPAddress, check_zone_overlap
 from ipapython.dnsutil import DNSName
 

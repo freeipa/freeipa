@@ -20,7 +20,14 @@
 
 from ipalib import api
 from ipalib import Int, Str, DNParam
-from ipalib.plugins.baseldap import *
+from ipalib import errors
+from ipalib.plugins.baseldap import (
+    LDAPObject,
+    LDAPCreate,
+    LDAPDelete,
+    LDAPUpdate,
+    LDAPRetrieve,
+    LDAPSearch)
 from ipalib import _
 from ipalib.plugable import Registry
 from ipalib.request import context

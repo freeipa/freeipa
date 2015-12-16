@@ -20,7 +20,15 @@
 from ipalib import api
 from ipalib import Str
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import *
+from ipalib.plugins.baseldap import (
+    LDAPObject,
+    LDAPCreate,
+    LDAPDelete,
+    LDAPUpdate,
+    LDAPSearch,
+    LDAPRetrieve,
+    LDAPAddMember,
+    LDAPRemoveMember)
 from ipalib import _, ngettext
 
 __doc__ = _("""

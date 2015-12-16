@@ -27,7 +27,7 @@ from ipalib import api, errors, util
 from ipalib import Updater
 from ipapython.dn import DN
 from ipalib.plugins.dns import dns_container_exists
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 
 
 class update_dnszones(Updater):

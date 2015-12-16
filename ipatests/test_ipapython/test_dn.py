@@ -1,7 +1,6 @@
 import contextlib
 import unittest
 import pytest
-from ipapython.dn import *  # FIXME
 
 import six
 

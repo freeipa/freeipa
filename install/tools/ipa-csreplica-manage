@@ -25,7 +25,7 @@ from __future__ import print_function
 import sys
 import os
 
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import (replication, installutils, bindinstance,
     cainstance, certs)
 from ipalib import api, errors

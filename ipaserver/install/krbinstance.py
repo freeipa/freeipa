@@ -32,7 +32,7 @@ from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import kernel_keyring
 from ipalib.constants import CACERT
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 
 from ipaserver.install import replication

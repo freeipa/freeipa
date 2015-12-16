@@ -129,7 +129,7 @@ from ipalib import output
 from ipalib import _, ngettext
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import gen_pkey_only_option, pkey_to_value
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 
 if six.PY3:

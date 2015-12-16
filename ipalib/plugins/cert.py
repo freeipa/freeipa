@@ -31,7 +31,7 @@ from ipalib import x509
 from ipalib import util
 from ipalib import ngettext
 from ipalib.plugable import Registry
-from ipalib.plugins.virtual import *
+from ipalib.plugins.virtual import VirtualCommand
 from ipalib.plugins.baseldap import pkey_to_value
 from ipalib.plugins.service import split_any_principal
 from ipalib.plugins.certprofile import validate_profile_id
@@ -40,6 +40,7 @@ from ipalib.text import _
 from ipalib.request import context
 from ipalib import output
 from ipalib.plugins.service import validate_principal
+from ipapython.dn import DN
 
 import six
 import nss.nss as nss

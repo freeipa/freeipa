@@ -27,7 +27,7 @@ from ipalib import api, errors, x509
 from ipaserver.install import installutils
 import ipaclient.ipachangeconf
 from optparse import OptionGroup, OptionValueError
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 import sys
 import os
 import signal

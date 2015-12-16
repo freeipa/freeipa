@@ -17,9 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api
+from ipalib import api, Str
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import *
+from ipalib.plugins.baseldap import (
+    LDAPObject,
+    LDAPCreate,
+    LDAPUpdate,
+    LDAPRetrieve,
+    LDAPSearch,
+    LDAPDelete,
+    LDAPAddMember,
+    LDAPRemoveMember)
 from ipalib import _, ngettext
 
 __doc__ = _("""

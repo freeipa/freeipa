@@ -25,7 +25,7 @@ import traceback
 
 from ipapython import sysrestore, ipautil, ipaldap
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 from ipalib import api, errors, certstore
 from ipaplatform import services
 from ipaplatform.paths import paths

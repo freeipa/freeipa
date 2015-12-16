@@ -23,7 +23,7 @@ import random
 import traceback
 from ipaplatform.paths import paths
 from ipaplatform import services
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 
 from ipaserver.install import installutils
 from ipaserver.install import schemaupdate

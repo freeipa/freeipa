@@ -35,7 +35,7 @@ from ipalib import api
 from ipalib.constants import DOMAIN_LEVEL_0
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipaplatform.paths import paths
 
 log_file_name = paths.IPAREPLICA_CA_INSTALL_LOG

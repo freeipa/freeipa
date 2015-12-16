@@ -30,7 +30,7 @@ import ldap
 from ipalib import api, errors
 from ipalib.constants import CACERT
 from ipalib.util import create_topology_graph, get_topology_connection_errors
-from ipapython.ipa_log_manager import *
+from ipapython.ipa_log_manager import root_logger
 from ipapython import ipautil, ipaldap
 from ipapython.dn import DN
 from ipaplatform import services
