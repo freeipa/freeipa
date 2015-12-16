@@ -461,37 +461,6 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
         # Automatically disable pkinit w/ dogtag until that is supported
         self.no_pkinit = True
 
-        self.external_ca = self.ca.external_ca
-        self.external_ca_type = self.ca.external_ca_type
-        self.external_cert_files = self.ca.external_cert_files
-        self.dirsrv_cert_files = self.ca.dirsrv_cert_files
-        self.http_cert_files = self.ca.http_cert_files
-        self.pkinit_cert_files = self.ca.pkinit_cert_files
-        self.dirsrv_pin = self.ca.dirsrv_pin
-        self.http_pin = self.ca.http_pin
-        self.pkinit_pin = self.ca.pkinit_pin
-        self.dirsrv_cert_name = self.ca.dirsrv_cert_name
-        self.http_cert_name = self.ca.http_cert_name
-        self.pkinit_cert_name = self.ca.pkinit_cert_name
-        self.ca_cert_files = self.ca.ca_cert_files
-        self.subject = self.ca.subject
-        self.ca_signing_algorithm = self.ca.ca_signing_algorithm
-        self.skip_schema_check = self.ca.skip_schema_check
-
-        self.forwarders = self.dns.forwarders
-        self.auto_forwarders = self.dns.auto_forwarders
-        self.no_forwarders = self.dns.no_forwarders
-        self.reverse_zones = self.dns.reverse_zones
-        self.no_reverse = self.dns.no_reverse
-        self.auto_reverse = self.dns.auto_reverse
-        self.allow_zone_overlap = self.dns.allow_zone_overlap
-        self.no_dnssec_validation = self.dns.no_dnssec_validation
-        self.dnssec_master = self.dns.dnssec_master
-        self.disable_dnssec_master = self.dns.disable_dnssec_master
-        self.kasp_db_file = self.dns.kasp_db_file
-        self.force = self.dns.force
-        self.zonemgr = self.dns.zonemgr
-
         self.unattended = not self.interactive
 
     ca = core.Component(BaseServerCA)
