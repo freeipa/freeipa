@@ -805,7 +805,7 @@ class LogManager(object):
         default_level attribute but that does not update the configure_state,
         this method is provided as a convenience to simultaneously set the
         configure_state if so desired.
-        
+
         :parameters:
           level
             The new default level for the log manager.  See

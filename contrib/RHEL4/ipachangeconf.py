@@ -25,7 +25,7 @@ def openLocked(filename, perms):
     fd = -1
     try:
         fd = os.open(filename, os.O_RDWR | os.O_CREAT, perms)
-        
+
         fcntl.lockf(fd, fcntl.LOCK_EX)
     except OSError as e:
         if fd != -1:
@@ -113,7 +113,7 @@ class IPAChangeConf:
             return False
         if not cl.endswith(self.sectnamdel[1]):
             return False
-        return cl[len(self.sectnamdel[0]):-len(self.sectnamdel[1])]            
+        return cl[len(self.sectnamdel[0]):-len(self.sectnamdel[1])]
 
     def matchSubSection(self, line):
         if self.matchComment(line):

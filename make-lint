@@ -302,7 +302,6 @@ def main():
         linter.set_option('disable', 'old-style-class')
         linter.set_option('disable', 'superfluous-parens')
         linter.set_option('disable', 'too-many-lines')
-        linter.set_option('disable', 'trailing-whitespace')
         linter.set_option('disable', 'unidiomatic-typecheck')
 
         linter.set_option('disable', 'R')
