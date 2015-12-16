@@ -17,10 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from time import gmtime, strftime
 import string
-import posixpath
-import os
 
 import six
 
@@ -31,14 +28,10 @@ from ipalib.plugins.baseldap import (
     DN, LDAPObject, LDAPCreate, LDAPUpdate, LDAPSearch, LDAPDelete,
     LDAPRetrieve, LDAPAddMember, LDAPRemoveMember)
 from ipalib.plugins.service import validate_certificate
-from ipalib.plugins import baseldap
 from ipalib.request import context
-from ipalib import _, ngettext
-from ipalib import output
-from ipaplatform.paths import paths
+from ipalib import _
 from ipapython.ipautil import ipa_generate_password
 from ipapython.ipavalidate import Email
-from ipalib.capabilities import client_has_capability
 from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
     convert_sshpubkey_post)
 

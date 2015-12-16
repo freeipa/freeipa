@@ -19,7 +19,6 @@
 #
 
 from ipaserver.install.ipa_otptoken_import import OTPTokenImport
-import nss.nss as nss
 
 OTPTokenImport.run_cli()
 

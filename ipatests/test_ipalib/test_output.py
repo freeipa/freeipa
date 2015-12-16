@@ -24,7 +24,6 @@ Test the `ipalib.output` module.
 from ipatests.util import raises, ClassChecker
 from ipalib import output
 from ipalib.frontend import Command
-from ipalib import _
 from ipapython.version import API_VERSION
 
 import pytest

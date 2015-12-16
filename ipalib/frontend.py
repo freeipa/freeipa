@@ -23,7 +23,6 @@ Base classes for all front-end plugins.
 
 import re
 from distutils import version
-from textwrap import wrap
 
 import six
 
@@ -32,7 +31,8 @@ from ipapython.ipa_log_manager import root_logger
 from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib.base import NameSpace
 from ipalib.plugable import Plugin
-from ipalib.parameters import create_param, Param, Str, Flag, Password
+from ipalib.parameters import create_param, Param, Str, Flag
+from ipalib.parameters import Password  # pylint: disable=unused-import
 from ipalib.output import Output, Entry, ListOfEntries
 from ipalib.text import _
 from ipalib.errors import (ZeroArgumentError, MaxArgumentError, OverlapError,

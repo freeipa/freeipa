@@ -36,7 +36,7 @@ from six.moves import xrange
 
 from ipapython import admintool
 from ipalib import api, errors
-from ipaserver.plugins.ldap2 import ldap2, AUTOBIND_DISABLED
+from ipaserver.plugins.ldap2 import AUTOBIND_DISABLED
 
 if six.PY3:
     unicode = str

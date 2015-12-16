@@ -241,8 +241,6 @@ digits and nothing else follows.
 import datetime
 import json
 from lxml import etree
-import os
-import tempfile
 import time
 
 import pki
@@ -257,7 +255,6 @@ from ipapython.dn import DN
 import ipapython.cookie
 import ipapython.dogtag
 from ipapython import ipautil
-from ipaserver.install.certs import CertDB
 
 if six.PY3:
     unicode = str

@@ -106,7 +106,7 @@ import six
 
 from ipalib.text import ngettext as ungettext
 from ipalib import messages
-from ipaplatform.paths import paths
+from ipaplatform.paths import paths  # pylint: disable=unused-import
 
 
 class PrivateError(Exception):

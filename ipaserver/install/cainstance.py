@@ -31,7 +31,6 @@ import pwd
 import re
 import shutil
 import stat
-import subprocess
 import sys
 import syslog
 import time

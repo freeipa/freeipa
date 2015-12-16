@@ -27,8 +27,6 @@ from ipalib import errors
 from ipapython import admintool
 from ipapython.dn import DN
 from ipapython.ipautil import realm_to_suffix, posixify
-from ipapython.ipa_log_manager import log_mgr
-from ipaserver.plugins.ldap2 import ldap2
 from ipaserver.install import replication, installutils
 
 if six.PY3:

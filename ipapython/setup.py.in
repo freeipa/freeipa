@@ -25,7 +25,6 @@ DOCLINES = __doc__.split("\n")
 
 import os
 import sys
-import distutils.sysconfig
 
 CLASSIFIERS = """\
 Development Status :: 4 - Beta

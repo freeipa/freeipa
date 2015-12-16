@@ -4,17 +4,15 @@
 
 from binascii import hexlify
 import collections
-import sys
-import time
 
 import ipalib
 from ipapython.dn import DN
-from ipapython import ipaldap
-from ipapython import ipautil
-from ipaplatform.paths import paths
 
-from ipapython.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
-                                     bool_attr_names, populate_pkcs11_metadata)
+from ipapython.dnssec.abshsm import (
+    attrs_name2id,
+    AbstractHSM,
+    bool_attr_names,
+    populate_pkcs11_metadata)
 import _ipap11helper
 import uuid
 

@@ -24,7 +24,7 @@ import re
 import sys
 from optparse import OptionParser
 
-from ipapython import ipautil, config, ipaldap
+from ipapython import config, ipaldap
 from ipaserver.install import installutils
 from ipalib import api, errors
 from ipalib.constants import CACERT

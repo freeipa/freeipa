@@ -19,21 +19,30 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from time import gmtime, strftime
-import string
 import posixpath
 import os
 
 import six
 
-from ipalib import api, errors, util
-from ipalib import Flag, Int, Password, Str, Bool, StrEnum, DateTime
+from ipalib import util
+from ipalib import Bool
 from ipalib.plugins.baseuser import (
-    baseuser, baseuser_add, baseuser_del, baseuser_mod, baseuser_find,
-    baseuser_show, NO_UPG_MAGIC, UPG_DEFINITION_DN, baseuser_output_params,
-    status_baseuser_output_params, baseuser_pwdchars, validate_nsaccountlock,
-    radius_dn2pk, convert_nsaccountlock, split_principal, validate_principal,
-    normalize_principal, fix_addressbook_permission_bindrule,
-    baseuser_add_manager, baseuser_remove_manager)
+    baseuser,
+    baseuser_add,
+    baseuser_del,
+    baseuser_mod,
+    baseuser_find,
+    baseuser_show,
+    NO_UPG_MAGIC,
+    UPG_DEFINITION_DN,
+    baseuser_output_params,
+    status_baseuser_output_params,
+    baseuser_pwdchars,
+    validate_nsaccountlock,
+    convert_nsaccountlock,
+    fix_addressbook_permission_bindrule,
+    baseuser_add_manager,
+    baseuser_remove_manager)
 from ipalib.plugins.idviews import remove_ipaobject_overrides
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
@@ -44,10 +53,8 @@ from ipalib import output
 from ipalib import x509
 from ipaplatform.paths import paths
 from ipapython.ipautil import ipa_generate_password
-from ipapython.ipavalidate import Email
 from ipalib.capabilities import client_has_capability
-from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
-    convert_sshpubkey_post)
+
 if api.env.in_server:
     from ipaserver.plugins.ldap2 import ldap2
 

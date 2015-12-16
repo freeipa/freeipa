@@ -31,7 +31,7 @@ from ipaserver.install import (replication, installutils, bindinstance,
 from ipalib import api, errors
 from ipalib.constants import CACERT
 from ipalib.util import has_managed_topology
-from ipapython import ipautil, ipaldap, version, dogtag
+from ipapython import ipautil, ipaldap, version
 from ipapython.dn import DN
 
 # dict of command name and tuples of min/max num of args needed

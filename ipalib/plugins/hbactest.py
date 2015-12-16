@@ -19,8 +19,7 @@
 
 from ipalib import api, errors, output, util
 from ipalib import Command, Str, Flag, Int, DeprecatedParam
-from ipalib.cli import to_cli
-from ipalib import _, ngettext
+from ipalib import _
 from ipapython.dn import DN
 from ipalib.plugable import Registry
 if api.env.in_server and api.env.context in ['lite', 'server']:

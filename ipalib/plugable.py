@@ -25,7 +25,6 @@ you are unfamiliar with this Python feature, see
 http://docs.python.org/ref/sequence-types.html
 """
 
-import re
 import sys
 import inspect
 import threading
@@ -42,7 +41,7 @@ from ipalib import errors
 from ipalib.config import Env
 from ipalib import text
 from ipalib.text import _
-from ipalib.base import ReadOnly, NameSpace, lock, islocked, check_name
+from ipalib.base import ReadOnly, NameSpace, lock, islocked
 from ipalib.constants import DEFAULT_CONFIG
 from ipapython.ipa_log_manager import *
 from ipapython.version import VERSION, API_VERSION

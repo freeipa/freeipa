@@ -26,9 +26,8 @@ import pytest
 
 import six
 
-from ipatests.util import create_test_api, assert_equal, raises, PluginTester
-from ipatests.data import unicode_str
-from ipalib import errors, Command
+from ipatests.util import assert_equal, raises, PluginTester
+from ipalib import errors
 from ipaserver import rpcserver
 
 if six.PY3:

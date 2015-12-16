@@ -18,17 +18,14 @@
 #
 
 import os
-import sys
 import shutil
 import tempfile
 import time
 import pwd
 import ldif
 import itertools
-import locale
 
 from six.moves.configparser import SafeConfigParser
-import six
 
 from ipalib import api, errors, constants
 from ipapython import version, ipautil, certdb

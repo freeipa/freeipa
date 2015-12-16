@@ -21,8 +21,8 @@
 Test the `ipalib.crud` module.
 """
 
-from ipatests.util import read_only, raises, get_api, ClassChecker
-from ipalib import crud, frontend, plugable, config
+from ipatests.util import raises, get_api, ClassChecker
+from ipalib import crud, frontend
 from ipalib.parameters import Str
 
 import pytest

@@ -27,9 +27,8 @@ Example plugins
 
 # First, let's import some stuff.
 
-# api is an object containing references to all plugins and useful classes.
 # errors is a module containing all IPA specific exceptions.
-from ipalib import api, errors
+from ipalib import errors
 # Command is the base class for command plugin.
 from ipalib import Command
 # Str is a subclass of Param, it is used to define string parameters for

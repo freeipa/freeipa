@@ -27,8 +27,7 @@ from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_digits, fuzzy_date, fuzzy_iss
 from ipatests.test_xmlrpc.xmlrpc_test import fuzzy_hex
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.testcert import get_testcert
-from ipatests.test_xmlrpc.test_user_plugin import (
-    get_user_result, get_user_dn, get_group_dn)
+from ipatests.test_xmlrpc.test_user_plugin import get_user_result, get_group_dn
 import base64
 from ipapython.dn import DN
 import pytest

@@ -17,11 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import platform
-import os
-import sys
-
-from ipalib import api, errors, util
+from ipalib import api, errors
 from ipalib import Str
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *

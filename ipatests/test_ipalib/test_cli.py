@@ -21,8 +21,8 @@
 Test the `ipalib.cli` module.
 """
 
-from ipatests.util import raises, get_api, ClassChecker
-from ipalib import cli, plugable, frontend, backend
+from ipatests.util import raises, ClassChecker
+from ipalib import cli, plugable
 
 import pytest
 

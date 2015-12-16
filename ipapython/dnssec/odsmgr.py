@@ -3,10 +3,8 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
-import logging
 from lxml import etree
 import dns.name
-import subprocess
 
 from ipapython import ipa_log_manager, ipautil
 

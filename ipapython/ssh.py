@@ -25,7 +25,6 @@ SSH utilities.
 import base64
 import re
 import struct
-import binascii
 from hashlib import md5, sha1
 from hashlib import sha256  #pylint: disable=E0611
 

@@ -30,10 +30,8 @@ certificates via the following methods:
     * `ra.take_certificate_off_hold()` - take a certificate off hold.
 """
 
-from ipalib import api
 from ipalib import Backend
 from ipalib import errors
-from ipaserver.install import certs
 import os
 from ipaplatform.paths import paths
 

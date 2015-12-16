@@ -17,35 +17,40 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from time import gmtime, strftime
-import string
 import posixpath
-import os
 from copy import deepcopy
 
 import six
 
 from ipalib import api, errors
-from ipalib import (Flag, Int, Password, Str, Bool, StrEnum, DateTime,
-                    DeprecatedParam)
+from ipalib import DeprecatedParam
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import LDAPCreate, LDAPQuery, LDAPSearch, DN, entry_to_dict, pkey_to_value
+from ipalib.plugins.baseldap import (
+    LDAPCreate,
+    LDAPQuery,
+    DN,
+    entry_to_dict,
+    pkey_to_value)
 from ipalib.plugins import baseldap
 from ipalib.plugins.baseuser import (
-    baseuser, baseuser_add, baseuser_del, baseuser_mod, baseuser_find,
-    baseuser_show, NO_UPG_MAGIC, radius_dn2pk, baseuser_pwdchars,
-    fix_addressbook_permission_bindrule, normalize_principal,
-    validate_principal, baseuser_output_params, status_baseuser_output_params,
-    baseuser_add_manager, baseuser_remove_manager)
+    baseuser,
+    baseuser_add,
+    baseuser_del,
+    baseuser_mod,
+    baseuser_find,
+    baseuser_show,
+    NO_UPG_MAGIC,
+    baseuser_pwdchars,
+    baseuser_output_params,
+    status_baseuser_output_params,
+    baseuser_add_manager,
+    baseuser_remove_manager)
 from ipalib.request import context
 from ipalib import _, ngettext
 from ipalib import output
 from ipaplatform.paths import paths
 from ipapython.ipautil import ipa_generate_password
-from ipapython.ipavalidate import Email
 from ipalib.capabilities import client_has_capability
-from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
-    convert_sshpubkey_post)
 
 if six.PY3:
     unicode = str

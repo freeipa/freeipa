@@ -33,7 +33,6 @@ import string
 import six
 from six.moves.configparser import SafeConfigParser
 
-from ipapython import ipautil
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 

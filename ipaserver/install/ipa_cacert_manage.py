@@ -20,9 +20,7 @@
 from __future__ import print_function
 
 import os
-import time
 from optparse import OptionGroup
-import base64
 from nss import nss
 from nss.error import NSPRError
 import gssapi
@@ -32,7 +30,6 @@ from ipapython.dn import DN
 from ipaplatform.paths import paths
 from ipalib import api, errors, x509, certstore
 from ipaserver.install import certs, cainstance, installutils
-from ipaserver.plugins.ldap2 import ldap2
 
 
 class CACertManage(admintool.AdminTool):

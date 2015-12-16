@@ -20,7 +20,6 @@
 """
 Base classes for non-LDAP backend plugins.
 """
-from ipalib import api
 from ipalib import Command
 from ipalib import errors
 from ipapython.dn import DN

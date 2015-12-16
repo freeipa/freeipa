@@ -51,7 +51,6 @@ from ipalib import api, errors
 from ipalib import Command
 from ipalib.parameters import Str, Any
 from ipalib.output import Output
-from ipalib import output
 from ipalib.text import _
 from ipalib.request import context
 from ipalib.plugable import Registry

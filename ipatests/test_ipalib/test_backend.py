@@ -31,7 +31,7 @@ from ipatests.util import ClassChecker, raises, create_test_api
 from ipatests.data import unicode_str
 from ipalib.request import context, Connection
 from ipalib.frontend import Command
-from ipalib import  backend, plugable, errors, base
+from ipalib import  backend, plugable, errors
 from ipapython.version import API_VERSION
 
 import pytest

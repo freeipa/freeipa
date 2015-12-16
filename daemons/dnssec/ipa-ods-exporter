@@ -24,18 +24,15 @@ import fcntl
 from gssapi.exceptions import GSSError
 import logging
 import os
-import subprocess
 import socket
 import select
 import sys
 import systemd.daemon
 import systemd.journal
 import sqlite3
-import time
 
 import ipalib
 from ipapython.dn import DN
-from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython import ipaldap
 from ipapython import ipautil
 from ipaplatform.paths import paths
@@ -43,7 +40,6 @@ from ipaplatform.paths import paths
 from ipapython.dnssec.abshsm import sync_pkcs11_metadata, wrappingmech_name2id
 from ipapython.dnssec.ldapkeydb import LdapKeyDB
 from ipapython.dnssec.localhsm import LocalHSM
-import _ipap11helper
 
 DAEMONNAME = 'ipa-ods-exporter'
 PRINCIPAL = None  # not initialized yet

@@ -25,7 +25,6 @@ import sys
 import os
 import string
 import shutil
-import socket
 from ipapython.ipa_log_manager import *
 from optparse import OptionParser
 import ipachangeconf

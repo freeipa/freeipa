@@ -44,8 +44,6 @@ from pyasn1.type import univ, namedtype, tag
 from pyasn1.codec.der import decoder, encoder
 import six
 
-from ipapython import ipautil
-from ipalib import api
 from ipalib import _
 from ipalib import util
 from ipalib import errors

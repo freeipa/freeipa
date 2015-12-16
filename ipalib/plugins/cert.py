@@ -23,7 +23,7 @@ import os
 import time
 import binascii
 
-from ipalib import Command, Str, Int, Bytes, Flag, File
+from ipalib import Command, Str, Int, Flag, File
 from ipalib import api
 from ipalib import errors
 from ipalib import pkcs10
@@ -36,8 +36,6 @@ from ipalib.plugins.baseldap import pkey_to_value
 from ipalib.plugins.service import split_any_principal
 from ipalib.plugins.certprofile import validate_profile_id
 import ipalib.plugins.caacl
-import base64
-import traceback
 from ipalib.text import _
 from ipalib.request import context
 from ipalib import output

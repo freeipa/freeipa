@@ -6,10 +6,8 @@
 import sys
 import ldap
 import ldapurl
-import logging
 import os
 import signal
-import systemd.journal
 import time
 
 from ipalib import api

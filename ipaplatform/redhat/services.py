@@ -24,7 +24,6 @@ Contains Red Hat OS family-specific service class implementations.
 
 import os
 import time
-import xml.dom.minidom
 import contextlib
 
 from ipaplatform.tasks import tasks

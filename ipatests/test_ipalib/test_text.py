@@ -25,17 +25,13 @@ from __future__ import print_function
 import os
 import shutil
 import tempfile
-import re
 
 import nose
-import locale
 import six
 import pytest
 
-from ipatests.util import raises, assert_equal
 from ipatests.i18n import create_po, po_file_iterate
 from ipalib.request import context
-from ipalib import request
 from ipalib import text
 from ipapython.ipautil import file_exists
 

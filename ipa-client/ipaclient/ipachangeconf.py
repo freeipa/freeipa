@@ -20,8 +20,6 @@
 
 import fcntl
 import os
-import string
-import time
 import shutil
 
 import six

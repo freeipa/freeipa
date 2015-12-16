@@ -39,7 +39,6 @@ from dns import resolver, rdatatype
 from dns.exception import DNSException
 import ldap
 import ldapurl
-from nss.error import NSPRError
 import six
 from six.moves.configparser import SafeConfigParser, NoOptionError
 
@@ -47,7 +46,7 @@ import ipaplatform
 
 from ipapython import ipautil, sysrestore, admintool, version
 from ipapython.admintool import ScriptError
-from ipapython.ipa_log_manager import root_logger, log_mgr
+from ipapython.ipa_log_manager import root_logger
 from ipalib.util import validate_hostname
 from ipapython import config
 from ipalib import api, errors, x509
@@ -56,8 +55,6 @@ from ipaserver.install import certs, service, sysupgrade
 from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
-from ipapython import certmonger
-
 
 if six.PY3:
     unicode = str

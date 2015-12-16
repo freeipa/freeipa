@@ -31,7 +31,6 @@ import dbus
 import shlex
 import subprocess
 import tempfile
-from ipapython import ipautil
 from ipapython.ipa_log_manager import *
 from ipaplatform.paths import paths
 from ipaplatform import services

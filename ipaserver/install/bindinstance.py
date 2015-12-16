@@ -41,7 +41,6 @@ from ipalib import api, errors
 from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
-from ipaplatform.tasks import tasks
 from ipalib.util import (validate_zonemgr_str, normalize_zonemgr,
                          get_dns_forward_zone_update_policy,
                          get_dns_reverse_zone_update_policy,

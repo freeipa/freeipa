@@ -6,11 +6,6 @@
 Test the `ipalib/plugins/stageuser.py` module.
 """
 
-
-import datetime
-import ldap
-import re
-import functools
 import pytest
 
 import six
@@ -18,14 +13,8 @@ import six
 from collections import OrderedDict
 from ipalib import api, errors
 
-from ipatests.test_xmlrpc import objectclasses
-from ipatests.test_xmlrpc.xmlrpc_test import (
-    XMLRPC_test, fuzzy_digits, fuzzy_uuid, fuzzy_password, fuzzy_string,
-    fuzzy_dergeneralizedtime, add_sid, add_oc, raises_exact)
+from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
 
-from ipatests.util import (
-    assert_equal, assert_deepequal, assert_not_equal, raises, get_user_dn)
-from ipapython.dn import DN
 from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
 from ipatests.test_xmlrpc.tracker.group_plugin import GroupTracker
 from ipatests.test_xmlrpc.tracker.stageuser_plugin import StageUserTracker

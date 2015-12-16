@@ -3,12 +3,10 @@
 #
 
 import re
-from operator import attrgetter
 
 from ipalib import api, Bool, File, Str
-from ipalib import output, util
+from ipalib import util
 from ipalib.plugable import Registry
-from ipalib.plugins.virtual import VirtualCommand
 from ipalib.plugins.baseldap import (
     LDAPObject, LDAPSearch, LDAPCreate,
     LDAPDelete, LDAPUpdate, LDAPRetrieve)

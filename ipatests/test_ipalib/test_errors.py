@@ -31,7 +31,7 @@ import pytest
 import six
 
 from ipatests.util import assert_equal, raises
-from ipalib import errors, text
+from ipalib import errors
 from ipaplatform.paths import paths
 from ipalib.constants import TYPE_ERROR
 

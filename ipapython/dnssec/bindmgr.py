@@ -6,12 +6,9 @@ from datetime import datetime
 import dns.name
 import errno
 import os
-import logging
 import shutil
 import stat
-import subprocess
 
-from ipalib import api
 import ipalib.constants
 from ipapython.dn import DN
 from ipapython import ipa_log_manager, ipautil

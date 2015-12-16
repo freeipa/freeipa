@@ -23,7 +23,6 @@ from __future__ import print_function
 from ipapython.config import IPAOptionParser
 from ipapython import version
 from ipapython import ipautil, certdb
-from ipapython.ipautil import CalledProcessError
 from ipalib import api, errors, x509
 from ipaserver.install import installutils
 import ipaclient.ipachangeconf

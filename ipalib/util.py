@@ -22,8 +22,6 @@ Various utility functions.
 """
 
 import os
-import imp
-import time
 import socket
 import re
 import decimal

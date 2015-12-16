@@ -31,7 +31,6 @@ Also see the `ipaserver.rpcserver` module.
 """
 
 from decimal import Decimal
-import sys
 import datetime
 import os
 import locale

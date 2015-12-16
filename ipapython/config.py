@@ -30,7 +30,7 @@ import dns.name
 from six.moves.urllib.parse import urlsplit
 
 import socket
-import re
+
 
 class IPAConfigError(Exception):
     def __init__(self, msg=''):

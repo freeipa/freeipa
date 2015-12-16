@@ -20,9 +20,6 @@
 """
 Simple description of return values.
 """
-
-from inspect import getdoc
-
 import six
 
 from ipalib.plugable import ReadOnly, lock

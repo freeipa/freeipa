@@ -19,7 +19,7 @@
 
 from ipalib import Command
 from ipalib import output
-from ipalib import _, ngettext
+from ipalib import _
 from ipalib.plugable import Registry
 from ipapython.version import VERSION, API_VERSION
 

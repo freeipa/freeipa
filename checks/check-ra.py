@@ -38,7 +38,7 @@ parent = path.dirname(path.dirname(path.abspath(__file__)))
 sys.path.insert(0, parent)
 verbose = True
 
-from base64 import b64encode, b64decode
+from base64 import b64decode
 from ipalib import api
 
 subject = u'CN=vm-070.idm.lab.bos.redhat.com'

@@ -104,13 +104,12 @@ import decimal
 import base64
 import datetime
 from six.moves.xmlrpc_client import MAXINT, MININT
-import encodings.idna
 
-import dns.name
 import six
 
 from ipalib.text import _ as ugettext
-from ipalib.plugable import ReadOnly, lock, check_name
+from ipalib.base import check_name
+from ipalib.plugable import ReadOnly, lock
 from ipalib.errors import ConversionError, RequirementError, ValidationError
 from ipalib.errors import PasswordMismatch, Base64DecodeError
 from ipalib.constants import TYPE_ERROR, CALLABLE_ERROR, LDAP_GENERALIZED_TIME_FORMAT

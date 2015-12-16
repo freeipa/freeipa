@@ -239,8 +239,11 @@ def main():
     linter.register_checker(IPATypeChecker(linter))
 
     if options.errors_only:
-        linter.disable_noerror_messages()
-        linter.enable('F')
+        linter.set_option('disable', 'all')
+        linter.set_option('enable', 'F')
+        linter.set_option('enable', 'E')
+        linter.set_option('enable', 'unused-import')
+
     linter.set_reporter(TextReporter())
     linter.set_option('msg-template',
                         '{path}:{line}: [{msg_id}({symbol}), {obj}] {msg})')

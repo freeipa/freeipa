@@ -31,9 +31,9 @@ import sys
 import six
 
 from ipalib import api
-from ipapython import ipautil, admintool
+from ipapython import admintool
 from ipaplatform.paths import paths
-from ipaserver.install import installutils, dsinstance, schemaupdate
+from ipaserver.install import installutils, schemaupdate
 from ipaserver.install.ldapupdate import LDAPUpdate, UPDATES_DIR, BadSyntax
 from ipaserver.install.upgradeinstance import IPAUpgrade
 

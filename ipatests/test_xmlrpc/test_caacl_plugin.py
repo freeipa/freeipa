@@ -12,7 +12,6 @@ from ipalib import errors
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 
 # reuse the fixture
-from ipatests.test_xmlrpc.test_certprofile_plugin import default_profile
 from ipatests.test_xmlrpc.tracker.caacl_plugin import CAACLTracker
 from ipatests.test_xmlrpc.tracker.stageuser_plugin import StageUserTracker
 

@@ -23,7 +23,6 @@ Test the `ipapython/ssh.py` module.
 import base64
 
 import six
-import nose
 import pytest
 
 from ipapython import ssh

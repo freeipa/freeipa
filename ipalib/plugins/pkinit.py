@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api, errors
-from ipalib import Int, Str
+from ipalib import Str
 from ipalib import Object, Command
 from ipalib import _
 from ipalib.plugable import Registry

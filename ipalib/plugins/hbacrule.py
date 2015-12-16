@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api, errors
-from ipalib import AccessTime, Password, Str, StrEnum, Bool, DeprecatedParam
+from ipalib import AccessTime, Str, StrEnum, Bool, DeprecatedParam
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import _, ngettext

@@ -26,7 +26,6 @@ from __future__ import print_function
 import optparse
 import sys
 import gettext
-import locale
 import re
 import os
 import traceback

@@ -23,9 +23,7 @@
 # package is installed to avoid issues with unavailable modules
 
 from ipalib.plugins.baseldap import *
-from ipalib import api, Str, Password, DefaultFrom, _, ngettext, Object
-from ipalib.parameters import Enum
-from ipalib import Command
+from ipalib import api, _
 from ipalib import errors
 from ipapython import ipautil
 from ipapython.ipa_log_manager import *
@@ -33,8 +31,7 @@ from ipapython.dn import DN
 from ipaserver.install import installutils
 from ipalib.util import normalize_name
 
-import os, string, struct, copy
-import uuid
+import os, struct
 from samba import param
 from samba import credentials
 from samba.dcerpc import security, lsa, drsblobs, nbt, netlogon

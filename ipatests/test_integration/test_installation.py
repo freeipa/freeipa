@@ -7,8 +7,6 @@ Module provides tests which testing ability of various subsystems to be
 installed.
 """
 
-import time
-
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
 

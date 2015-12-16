@@ -41,7 +41,7 @@ if six.PY3:
 
 try:
     #pylint: disable=F0401
-    import default_encoding_utf8
+    import default_encoding_utf8  # pylint: disable=unused-import
 except ImportError:
     # This is a chicken-and-egg problem. The api can't be imported unless
     # this is already installed and since it is installed with IPA therein
@@ -59,8 +59,7 @@ from ipalib.errors import (PublicError, CommandError, HelpError, InternalError,
 from ipalib.constants import CLI_TAB, LDAP_GENERALIZED_TIME_FORMAT
 from ipalib.parameters import File, Str, Enum, Any, Flag
 from ipalib.text import _
-from ipalib import api
-from ipapython.version import API_VERSION
+from ipalib import api  # pylint: disable=unused-import
 from ipapython.dnsutil import DNSName
 
 import datetime

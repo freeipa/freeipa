@@ -2,7 +2,6 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
-import random
 import os
 import pwd
 import grp

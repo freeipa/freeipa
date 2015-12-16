@@ -2,8 +2,6 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-import os
-
 from ipalib import api
 from ipaplatform.paths import paths
 from ipapython import admintool

@@ -20,7 +20,6 @@
 
 from __future__ import print_function
 
-import sys
 import getpass
 import socket
 from ipapython.ipa_log_manager import *
@@ -37,8 +36,6 @@ try:
     import httplib
 except ImportError:
     import http.client as httplib
-
-from ipaplatform.paths import paths
 
 # NSS database currently open
 current_dbdir = None

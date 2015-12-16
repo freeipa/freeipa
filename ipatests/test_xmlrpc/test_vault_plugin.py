@@ -22,7 +22,7 @@ Test the `ipalib/plugins/vault.py` module.
 """
 
 import nose
-from ipalib import api, errors
+from ipalib import api
 from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_string
 import pytest
 

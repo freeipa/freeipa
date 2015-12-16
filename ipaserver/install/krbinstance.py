@@ -21,9 +21,6 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import shutil
-import fileinput
-import re
-import sys
 import os
 import pwd
 import socket
@@ -34,7 +31,6 @@ from ipaserver.install import installutils
 from ipapython import sysrestore
 from ipapython import ipautil
 from ipapython import kernel_keyring
-from ipalib import errors
 from ipalib.constants import CACERT
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
@@ -42,9 +38,6 @@ from ipapython.dn import DN
 from ipaserver.install import replication
 from ipaserver.install import dsinstance
 from ipaserver.install import ldapupdate
-
-import pyasn1.codec.ber.decoder
-import struct
 
 from ipaserver.install import certs
 from distutils import version

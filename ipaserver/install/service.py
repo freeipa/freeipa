@@ -20,7 +20,6 @@
 import sys
 import os, socket
 import tempfile
-import time
 import datetime
 import traceback
 

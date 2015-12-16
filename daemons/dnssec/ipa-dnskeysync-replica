@@ -9,19 +9,10 @@ This program should be run only on replicas, not on DNSSEC masters.
 """
 
 from binascii import hexlify
-from datetime import datetime
-import dns.dnssec
-import fcntl
 from gssapi.exceptions import GSSError
 import logging
 import os
-from pprint import pprint
-import subprocess
-import socket
 import sys
-import systemd.daemon
-import systemd.journal
-import time
 
 import ipalib
 from ipapython.dn import DN
@@ -33,7 +24,6 @@ from ipaplatform.paths import paths
 from ipapython.dnssec.abshsm import sync_pkcs11_metadata, ldap2p11helper_api_params, wrappingmech_name2id
 from ipapython.dnssec.ldapkeydb import LdapKeyDB
 from ipapython.dnssec.localhsm import LocalHSM
-import _ipap11helper
 
 DAEMONNAME = 'ipa-dnskeysyncd'
 PRINCIPAL = None  # not initialized yet

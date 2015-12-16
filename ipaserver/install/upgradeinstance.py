@@ -18,15 +18,12 @@
 #
 
 import ldif
-import os
-import sys
 import shutil
 import random
 import traceback
 from ipaplatform.paths import paths
 from ipaplatform import services
 from ipapython.ipa_log_manager import *
-from ipapython import ipaldap
 
 from ipaserver.install import installutils
 from ipaserver.install import schemaupdate

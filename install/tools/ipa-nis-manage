@@ -28,7 +28,7 @@ try:
     from optparse import OptionParser
     from ipapython import ipautil, config
     from ipaserver.install import installutils
-    from ipaserver.install.ldapupdate import LDAPUpdate, BadSyntax
+    from ipaserver.install.ldapupdate import LDAPUpdate
     from ipaserver.plugins.ldap2 import ldap2
     from ipalib import api, errors
     from ipapython.ipa_log_manager import *

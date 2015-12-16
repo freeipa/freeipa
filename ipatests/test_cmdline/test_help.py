@@ -18,9 +18,7 @@
 #
 
 import sys
-import contextlib
 
-from nose.tools import assert_raises  # pylint: disable=E0611
 import six
 from six import StringIO
 

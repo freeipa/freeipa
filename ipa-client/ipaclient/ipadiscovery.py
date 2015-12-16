@@ -18,8 +18,6 @@
 #
 
 import socket
-import os
-import tempfile
 
 from ipapython.ipa_log_manager import root_logger
 from dns import resolver, rdatatype

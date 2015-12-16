@@ -21,8 +21,6 @@
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import api, Str, _, ngettext
-from ipalib import Command
-from ipalib.plugins import privilege
 
 __doc__ = _("""
 Roles

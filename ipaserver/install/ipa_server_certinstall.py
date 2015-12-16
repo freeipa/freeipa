@@ -18,7 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import sys
 import os
 import os.path
 import pwd
@@ -28,10 +27,9 @@ from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import admintool
 from ipapython.dn import DN
-from ipapython.ipautil import user_input, write_tmp_file
 from ipalib import api, errors
 from ipalib.constants import CACERT
-from ipaserver.install import certs, dsinstance, httpinstance, installutils
+from ipaserver.install import certs, dsinstance, installutils
 
 
 class ServerCertInstall(admintool.AdminTool):

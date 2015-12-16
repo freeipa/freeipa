@@ -18,7 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import time
 import datetime
 import email.utils
 from calendar import timegm

@@ -9,17 +9,10 @@ to a local dict.
 
 # Import the python-ldap modules
 import ldap
-import ldapurl
 # Import specific classes from python-ldap
 from ldap.cidict import cidict
 from ldap.ldapobject import ReconnectLDAPObject
 from ldap.syncrepl import SyncreplConsumer
-
-# Import modules from Python standard lib
-import signal
-import time
-import sys
-import logging
 
 from ipapython import ipa_log_manager
 

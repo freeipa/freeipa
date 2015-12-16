@@ -35,7 +35,7 @@ from ipalib import output
 from ipalib.text import _
 from ipalib.util import json_serialize, validate_hostname
 from ipalib.capabilities import client_has_capability
-from ipapython.dn import DN, RDN
+from ipapython.dn import DN
 from ipapython.version import API_VERSION
 
 if six.PY3:

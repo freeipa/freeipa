@@ -27,7 +27,6 @@ import ipatests.test_webui.data_hostgroup as hostgroup
 from ipatests.test_webui.test_host import host_tasks, ENTITY as HOST_ENTITY
 import ipatests.test_webui.data_netgroup as netgroup
 import ipatests.test_webui.data_hbac as hbac
-import ipatests.test_webui.test_rbac as rbac
 import ipatests.test_webui.data_sudo as sudo
 import pytest
 

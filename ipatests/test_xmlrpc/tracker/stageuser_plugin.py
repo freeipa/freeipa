@@ -11,7 +11,7 @@ from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (
     fuzzy_string, fuzzy_dergeneralizedtime, raises_exact)
 
-from ipatests.util import assert_deepequal, get_user_dn
+from ipatests.util import assert_deepequal
 from ipapython.dn import DN
 
 if six.PY3:

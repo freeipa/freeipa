@@ -30,7 +30,6 @@ import time
 import os
 import pwd
 import fnmatch
-import re
 
 import ldap
 

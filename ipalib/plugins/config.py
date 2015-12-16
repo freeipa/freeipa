@@ -24,7 +24,6 @@ from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.selinuxusermap import validate_selinuxuser
 from ipalib import _
-from ipalib.errors import ValidationError
 
 # 389-ds attributes that should be skipped in attribute checks
 OPERATIONAL_ATTRIBUTES = ('nsaccountlock', 'member', 'memberof',

@@ -5,7 +5,6 @@
 from __future__ import print_function
 
 import sys
-import os.path
 
 from ipaserver.install import cainstance, dsinstance, bindinstance
 from ipapython import ipautil, certdb

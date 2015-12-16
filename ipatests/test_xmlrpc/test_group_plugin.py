@@ -21,18 +21,19 @@
 Test the `ipalib/plugins/group.py` module.
 """
 
-import functools
 import pytest
 
 from ipalib import api, errors
 from ipatests.test_xmlrpc import objectclasses
-from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits, fuzzy_uuid, fuzzy_set_ci,
-                         add_sid, add_oc, XMLRPC_test, raises_exact)
+from ipatests.test_xmlrpc.xmlrpc_test import (
+    Declarative,
+    fuzzy_digits,
+    fuzzy_uuid,
+    fuzzy_set_ci,
+    add_sid,
+    add_oc)
 from ipapython.dn import DN
 from ipatests.test_xmlrpc.test_user_plugin import get_user_result
-
-from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
-from ipatests.util import assert_deepequal
 
 
 group1 = u'testgroup1'

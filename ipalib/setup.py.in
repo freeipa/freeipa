@@ -25,7 +25,6 @@ DOCLINES = __doc__.split("\n")
 
 import os
 import sys
-import distutils.sysconfig
 
 CLASSIFIERS = """\
 Intended Audience :: System Environment/Base

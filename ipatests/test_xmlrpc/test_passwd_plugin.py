@@ -20,8 +20,6 @@
 Test the `ipalib/plugins/passwd.py` module.
 """
 
-import sys
-
 from nose.tools import assert_raises  # pylint: disable=E0611
 
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal

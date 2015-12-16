@@ -21,7 +21,7 @@
 
 from __future__ import print_function
 
-from optparse import OptionGroup, SUPPRESS_HELP
+from optparse import SUPPRESS_HELP
 
 from ipaserver.install import bindinstance, httpinstance
 from ipaserver.install.installutils import *

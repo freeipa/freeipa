@@ -23,12 +23,11 @@ import string
 import tempfile
 import subprocess
 import random
-import os, sys, traceback
+import os, sys
 import copy
 import stat
 import shutil
 import socket
-import struct
 import re
 import datetime
 import netaddr
@@ -40,14 +39,14 @@ from contextlib import contextmanager
 import locale
 import collections
 
-from dns import resolver, rdatatype, reversename
+from dns import resolver, reversename
 from dns.exception import DNSException
+
 import six
 from six.moves import input
 from six.moves import urllib
 
 from ipapython.ipa_log_manager import *
-from ipapython import ipavalidate
 from ipapython import config
 from ipaplatform.paths import paths
 from ipapython.dn import DN

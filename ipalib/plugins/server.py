@@ -2,9 +2,6 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-import string
-import os
-
 import dbus
 import dbus.mainloop.glib
 
@@ -12,7 +9,6 @@ from ipalib import api, crud, errors, messages
 from ipalib import Int, Str
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
-from ipalib.plugins import baseldap
 from ipalib.request import context
 from ipalib import _, ngettext
 

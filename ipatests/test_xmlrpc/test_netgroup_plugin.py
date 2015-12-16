@@ -21,11 +21,8 @@
 Test the `ipalib/plugins/netgroup.py` module.
 """
 
-import nose
-
 from ipalib import api
 from ipalib import errors
-from ipaserver.plugins.ldap2 import ldap2
 from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
                                               fuzzy_uuid, fuzzy_netgroupdn)
 from ipatests.test_xmlrpc import objectclasses

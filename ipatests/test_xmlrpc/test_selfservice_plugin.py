@@ -21,10 +21,8 @@
 Test the `ipalib/plugins/selfservice.py` module.
 """
 
-from ipalib import api, errors
-from ipatests.test_xmlrpc import objectclasses
-from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
-                                              fuzzy_uuid)
+from ipalib import errors
+from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 import pytest
 
 selfservice1 = u'testself'

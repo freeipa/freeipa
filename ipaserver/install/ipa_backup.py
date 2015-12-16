@@ -18,12 +18,10 @@
 #
 
 import os
-import sys
 import shutil
 import tempfile
 import time
 import pwd
-from optparse import OptionGroup
 from ipaplatform.paths import paths
 from ipaplatform import services
 
@@ -33,7 +31,6 @@ from ipalib import api, errors
 from ipapython import version
 from ipapython.ipautil import run, write_tmp_file
 from ipapython import admintool
-from ipapython.config import IPAOptionParser
 from ipapython.dn import DN
 from ipaserver.install.dsinstance import DS_USER
 from ipaserver.install.replication import wait_for_task

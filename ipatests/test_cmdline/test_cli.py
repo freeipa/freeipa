@@ -8,7 +8,6 @@ from six import StringIO
 
 from ipatests import util
 from ipalib import api, errors
-from ipapython.version import API_VERSION
 import pytest
 
 if six.PY3:

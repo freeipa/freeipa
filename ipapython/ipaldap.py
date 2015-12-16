@@ -19,7 +19,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import string
 import time
 import datetime
 import shutil
@@ -33,18 +32,16 @@ import pwd
 import ldap
 import ldap.sasl
 import ldap.filter
-from ldap.ldapobject import SimpleLDAPObject
 from ldap.controls import SimplePagedResultsControl
 import ldapurl
 import six
 
 from ipalib import errors, _
 from ipalib.constants import LDAP_GENERALIZED_TIME_FORMAT
-from ipapython import ipautil
 from ipapython.ipautil import (
     format_netloc, wait_for_open_socket, wait_for_open_ports, CIDict)
 from ipapython.ipa_log_manager import log_mgr
-from ipapython.dn import DN, RDN
+from ipapython.dn import DN
 from ipapython.dnsutil import DNSName
 
 if six.PY3:

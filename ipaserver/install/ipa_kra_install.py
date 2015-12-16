@@ -25,7 +25,6 @@ import tempfile
 from textwrap import dedent
 from ipalib import api
 from ipalib.constants import DOMAIN_LEVEL_0
-from ipaplatform import services
 from ipaplatform.paths import paths
 from ipapython import admintool
 from ipapython import ipautil

@@ -2,7 +2,6 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
-import logging
 import ldap.dn
 import os
 

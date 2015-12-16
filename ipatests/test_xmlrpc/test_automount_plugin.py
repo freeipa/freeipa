@@ -21,7 +21,6 @@
 Test the `ipalib/plugins/automount.py' module.
 """
 
-import sys
 import textwrap
 import tempfile
 import shutil
@@ -34,7 +33,6 @@ import six
 
 from nose.tools import raises, assert_raises  # pylint: disable=E0611
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, assert_attr_equal
-from ipaplatform.paths import paths
 from ipatests.util import assert_deepequal
 
 if six.PY3:

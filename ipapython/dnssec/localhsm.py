@@ -10,8 +10,6 @@ import collections
 import logging
 import os
 from pprint import pprint
-import sys
-import time
 
 from ipaplatform.paths import paths
 

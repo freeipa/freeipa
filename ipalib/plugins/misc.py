@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-from ipalib import api, LocalOrRemote, _, ngettext
+from ipalib import LocalOrRemote, _, ngettext
 from ipalib.output import Output, summary
 from ipalib import Flag
 from ipalib.plugable import Registry

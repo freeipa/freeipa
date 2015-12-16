@@ -42,7 +42,6 @@ from ipapython.dn import DN
 from ipalib import pkcs10, x509, api
 from ipalib.errors import CertificateOperationError
 from ipalib.text import _
-from ipaplatform import services
 from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 

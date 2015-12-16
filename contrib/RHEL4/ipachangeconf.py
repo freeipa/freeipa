@@ -19,8 +19,6 @@
 
 import fcntl
 import os
-import string
-import time
 import shutil
 
 def openLocked(filename, perms):

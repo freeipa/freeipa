@@ -22,14 +22,12 @@
 Test the `ipalib.config` module.
 """
 
-import os
 from os import path
 import sys
-import socket
-from ipatests.util import raises, setitem, delitem, ClassChecker
-from ipatests.util import getitem, setitem, delitem
+from ipatests.util import raises, delitem, ClassChecker
+from ipatests.util import getitem
 from ipatests.util import TempDir, TempHome
-from ipalib.constants import TYPE_ERROR, OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
+from ipalib.constants import OVERRIDE_ERROR, SET_ERROR, DEL_ERROR
 from ipalib.constants import NAME_REGEX, NAME_ERROR
 from ipalib import config, constants, base
 from ipaplatform.paths import paths

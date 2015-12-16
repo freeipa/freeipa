@@ -18,8 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import sys
-import nose
 import pytest
 from nss import nss
 from ipalib.x509 import initialize_nss_database

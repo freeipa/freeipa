@@ -22,9 +22,7 @@ Test the `ipalib/plugins/delegation.py` module.
 """
 
 from ipalib import api, errors
-from ipatests.test_xmlrpc import objectclasses
-from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
-                                              fuzzy_uuid)
+from ipatests.test_xmlrpc.xmlrpc_test import Declarative
 from ipapython.dn import DN
 import pytest
 

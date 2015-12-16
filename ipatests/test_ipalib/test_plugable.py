@@ -24,12 +24,9 @@ Test the `ipalib.plugable` module.
 # FIXME: Pylint errors
 # pylint: disable=no-member
 
-import inspect
-from ipatests.util import raises, no_set, no_del, read_only
-from ipatests.util import getitem, setitem, delitem
+from ipatests.util import raises, read_only
 from ipatests.util import ClassChecker, create_test_api
 from ipalib import plugable, errors, text
-from ipaplatform.paths import paths
 
 import pytest
 

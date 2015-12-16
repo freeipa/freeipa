@@ -112,8 +112,6 @@ For additional details, see `GettextFactory` and `Gettext`, and for plural
 forms, see `NGettextFactory` and `NGettext`.
 """
 
-import threading
-import locale
 import gettext
 
 import six

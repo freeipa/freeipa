@@ -10,7 +10,6 @@ from ipalib import errors
 from ipalib import output
 from ipalib.parameters import Int
 from ipalib.plugable import Registry
-from ipalib.plugins.baseldap import LDAPObject, LDAPUpdate, LDAPRetrieve
 
 from ipapython.dn import DN
 

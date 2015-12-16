@@ -23,7 +23,7 @@ import pytest
 
 from ipatests.test_ipaserver.httptest import Unauthorized_HTTP_test
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
-from ipatests.util import assert_equal, assert_not_equal
+from ipatests.util import assert_equal
 from ipalib import api, errors
 from ipapython.dn import DN
 

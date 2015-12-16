@@ -20,7 +20,7 @@
 Test the `kernel_keyring.py` module.
 """
 
-from nose.tools import raises, assert_raises  # pylint: disable=E0611
+from nose.tools import raises  # pylint: disable=E0611
 from ipapython import kernel_keyring
 
 import pytest

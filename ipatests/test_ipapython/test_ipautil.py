@@ -22,8 +22,6 @@
 Test the `ipapython/ipautil.py` module.
 """
 
-import sys
-
 import nose
 import pytest
 import six

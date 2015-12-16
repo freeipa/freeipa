@@ -23,7 +23,11 @@ from ipalib.plugins.baseldap import DN, LDAPObject, LDAPAddMember, LDAPRemoveMem
 from ipalib.plugins.baseldap import LDAPCreate, LDAPDelete, LDAPUpdate, LDAPSearch, LDAPRetrieve
 from ipalib import api, Int, Str, Bool, DateTime, Flag, Bytes, IntEnum, StrEnum, Password, _, ngettext
 from ipalib.plugable import Registry
-from ipalib.errors import PasswordMismatch, ConversionError, LastMemberError, NotFound, ValidationError
+from ipalib.errors import (
+    PasswordMismatch,
+    ConversionError,
+    NotFound,
+    ValidationError)
 from ipalib.request import context
 from ipalib.frontend import Local
 from ipaplatform.paths import paths

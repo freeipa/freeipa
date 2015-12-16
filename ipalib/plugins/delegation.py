@@ -18,12 +18,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api, _, ngettext
-from ipalib import Flag, Str
-from ipalib.request import context
-from ipalib import api, crud, errors
+from ipalib import _, ngettext
+from ipalib import Str
+from ipalib import api, crud
 from ipalib import output
-from ipalib import Object, Command
+from ipalib import Object
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import gen_pkey_only_option, pkey_to_value
 

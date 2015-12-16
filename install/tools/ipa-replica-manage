@@ -24,7 +24,6 @@ import sys
 import os
 
 import re
-import traceback
 import ldap
 import socket
 import time
@@ -36,10 +35,9 @@ from ipaserver.install import replication, dsinstance, installutils
 from ipaserver.install import bindinstance, cainstance, certs
 from ipaserver.install import opendnssecinstance, dnskeysyncinstance
 from ipapython import version, ipaldap
-from ipalib import api, errors, util
+from ipalib import api, errors
 from ipalib.constants import CACERT
-from ipalib.util import (create_topology_graph,
-    get_topology_connection_errors, has_managed_topology)
+from ipalib.util import has_managed_topology
 from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser

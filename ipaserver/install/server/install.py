@@ -17,7 +17,7 @@ import six
 
 from ipapython import certmonger, ipaldap, ipautil, sysrestore
 from ipapython.dn import DN
-from ipapython.install import common, core
+from ipapython.install import core
 from ipapython.install.common import step
 from ipapython.install.core import Knob
 from ipapython.ipa_log_manager import root_logger

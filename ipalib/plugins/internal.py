@@ -26,7 +26,6 @@ from __future__ import print_function
 
 import json
 
-from ipalib import api
 from ipalib import Command
 from ipalib import Str
 from ipalib.output import Output

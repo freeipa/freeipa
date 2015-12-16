@@ -19,21 +19,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import base64
-import os
-
 import six
 
-from ipalib import api, errors, util
-from ipalib import Str, Flag, Bytes, StrEnum, Bool
+from ipalib import api, errors
+from ipalib import Bytes, StrEnum, Bool
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib import x509
 from ipalib import _, ngettext
 from ipalib import util
 import nss.nss as nss
-from nss.error import NSPRError
-from ipapython.ipautil import file_exists
+
 
 if six.PY3:
     unicode = str

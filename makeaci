@@ -32,7 +32,7 @@ from argparse import ArgumentParser
 
 from ipalib import api
 from ipapython.dn import DN
-from ipapython.ipaldap import LDAPEntry, LDAPClient
+from ipapython.ipaldap import LDAPClient
 
 
 def parse_options():

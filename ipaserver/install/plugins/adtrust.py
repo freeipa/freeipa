@@ -19,11 +19,8 @@
 
 from ipalib import api, errors
 from ipalib import Updater
-from ipaplatform.paths import paths
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
-from ipapython import sysrestore
-from ipaserver.install import installutils
 
 DEFAULT_ID_RANGE_SIZE = 200000
 
