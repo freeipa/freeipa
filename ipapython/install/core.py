@@ -528,6 +528,21 @@ class Composite(Configurable):
             for order, owner_cls, name in result:
                 yield owner_cls, name
 
+    def __getattr__(self, name):
+        for owner_cls, knob_name in self.knobs():
+            if knob_name == name:
+                break
+        else:
+            raise AttributeError(name)
+
+        for component in self.__components:
+            if isinstance(component, owner_cls):
+                break
+        else:
+            raise AttributeError(name)
+
+        return getattr(component, name)
+
     def _reset(self):
         self.__components = list(self._get_components())
 
@@ -545,8 +560,7 @@ class Composite(Configurable):
                 try:
                     validator.next()
                 except StopIteration:
-                    if child.done():
-                        self.__components.remove(child)
+                    pass
                 else:
                     new_validate.append((child, validator))
             if not new_validate:
@@ -560,7 +574,8 @@ class Composite(Configurable):
 
         yield from_(super(Composite, self)._configure())
 
-        execute = [(c, c._executor()) for c in self.__components]
+        execute = [(c, c._executor()) for c in self.__components
+            if not c.done()]
         while True:
             new_execute = []
             for child, executor in execute:
