@@ -256,7 +256,6 @@ def main():
         linter.set_option('disable', 'bare-except')
         linter.set_option('disable', 'broad-except')
         linter.set_option('disable', 'dangerous-default-value')
-        linter.set_option('disable', 'duplicate-key')
         linter.set_option('disable', 'eval-used')
         linter.set_option('disable', 'exec-used')
         linter.set_option('disable', 'expression-not-assigned')

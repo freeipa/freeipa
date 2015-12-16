@@ -85,7 +85,6 @@ permission3_attributelevelrights = {
                                     'ipapermtargetto': u'rscwo',
                                     'ipapermtargetfrom': u'rscwo',
                                     'ipapermbindruletype': u'rscwo',
-                                    'ipapermlocation': u'rscwo',
                                     'ipapermtarget': u'rscwo',
                                     'type': u'rscwo',
                                     'targetgroup': u'rscwo',
