@@ -444,9 +444,7 @@ def install_check(installer):
             sys.exit("Directory Manager password required")
         try:
             cache_vars = read_cache(dm_password)
-            for name, value in cache_vars.items():
-                if name not in options.__dict__:
-                    options.__dict__[name] = value
+            options.__dict__.update(cache_vars)
             if cache_vars.get('external_ca', False):
                 options.external_ca = False
                 options.interactive = False
@@ -867,7 +865,8 @@ def install(installer):
             options.admin_password = admin_password
             options.host_name = host_name
             options.reverse_zones = dns.reverse_zones
-            cache_vars = {n: getattr(options, n) for o, n in installer.knobs()}
+            cache_vars = {n: options.__dict__[n] for o, n in installer.knobs()
+                          if n in options.__dict__}
             write_cache(cache_vars)
 
         ca.install_step_0(False, None, options)
