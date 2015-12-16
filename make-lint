@@ -279,7 +279,6 @@ def main():
         linter.set_option('disable', 'unnecessary-pass')
         linter.set_option('disable', 'unnecessary-semicolon')
         linter.set_option('disable', 'unused-argument')
-        linter.set_option('disable', 'unused-format-string-key')
         linter.set_option('disable', 'unused-variable')
         linter.set_option('disable', 'useless-else-on-loop')
         linter.set_option('disable', 'unbalanced-tuple-unpacking')

@@ -533,8 +533,7 @@ class test_permission(Declarative):
                             '(targetfilter = "(objectclass=posixaccount)")' +
                             '(version 3.0;acl "permission:%(name)s";'
                             'allow (write) groupdn = "ldap:///%(pdn)s";)' %
-                            {'tdn': DN(('uid', '*'), users_dn),
-                             'name': permission1,
+                            {'name': permission1,
                              'pdn': permission1_dn}],
                 },
             ),
@@ -651,8 +650,7 @@ class test_permission(Declarative):
                                 '(targetfilter = "(objectclass=posixaccount)")' +
                                 '(version 3.0;acl "permission:%(name)s";'
                                 'allow (write) groupdn = "ldap:///%(pdn)s";)' %
-                                {'tdn': DN(('uid', '*'), users_dn),
-                                 'name': permission1,
+                                {'name': permission1,
                                  'pdn': permission1_dn}],
                     },
                 ],
