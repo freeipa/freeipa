@@ -291,7 +291,7 @@ def read_reverse_zone(default, ip_address, allow_zone_overlap=False):
             continue
         if not allow_zone_overlap:
             try:
-                ipautil.check_zone_overlap(zone, raise_on_timeout=False)
+                ipautil.check_zone_overlap(zone, raise_on_error=False)
             except ValueError as e:
                 root_logger.error("Reverse zone %s will not be used: %s"
                                   % (zone, e))
