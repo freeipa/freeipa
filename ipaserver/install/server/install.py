@@ -691,7 +691,7 @@ def install_check(installer):
         ca.install_check(False, None, options)
 
     if options.setup_dns:
-        dns.install_check(False, False, options, host_name)
+        dns.install_check(False, api, False, options, host_name)
         ip_addresses = dns.ip_addresses
     else:
         ip_addresses = get_server_ip_address(host_name,
