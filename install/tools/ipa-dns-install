@@ -134,7 +134,7 @@ def main():
 
     options.setup_ca = None  # must be None to enable autodetection
 
-    dns_installer.install_check(True, False, options, hostname=api.env.host)
+    dns_installer.install_check(True, api, False, options, hostname=api.env.host)
     dns_installer.install(True, False, options)
 
     # Restart http instance to make sure that python-dns has the right resolver

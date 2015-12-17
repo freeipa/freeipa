@@ -99,20 +99,7 @@ def _disable_dnssec():
             conn.update_entry(entry)
 
 
-def check_dns_enabled(api):
-    try:
-        api.Backend.rpcclient.connect()
-        result = api.Backend.rpcclient.forward(
-            'dns_is_enabled',
-            version=u'2.112',    # All the way back to 3.0 servers
-        )
-        return result['result']
-    finally:
-        if api.Backend.rpcclient.isconnected():
-            api.Backend.rpcclient.disconnect()
-
-
-def install_check(standalone, replica, options, hostname):
+def install_check(standalone, api, replica, options, hostname):
     global ip_addresses
     global reverse_zones
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
@@ -121,8 +108,13 @@ def install_check(standalone, replica, options, hostname):
         raise RuntimeError("Integrated DNS requires '%s' package" %
                            constants.IPA_DNS_PACKAGE_NAME)
 
-    # when installing first replica with DNS we need to check zone overlap
-    if not replica or not check_dns_enabled(api):
+    # when installing first DNS instance we need to check zone overlap
+    if replica or standalone:
+        already_enabled = api.Command.dns_is_enabled()['result']
+    else:
+        already_enabled = False
+
+    if not already_enabled:
         domain = dnsutil.DNSName(util.normalize_zone(api.env.domain))
         print("Checking DNS domain %s, please wait ..." % domain)
         try:
