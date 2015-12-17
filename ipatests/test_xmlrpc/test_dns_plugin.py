@@ -1768,6 +1768,15 @@ class test_dns(Declarative):
             },
         ),
 
+        dict(
+            desc='Update global DNS settings - rollback',
+            command=('dnsconfig_mod', [], {'idnsforwarders' : None,}),
+            expected={
+                'value': None,
+                'summary': u'Global DNS configuration is empty',
+                'result': {},
+            },
+        ),
 
         dict(
             desc='Try to add invalid allow-query to zone %r' % zone1,
