@@ -171,9 +171,9 @@ revzone1_ip = u'172.16.31.0'
 revzone1_ipprefix = u'172.16.31.'
 revzone1_dn = DN(('idnsname', revzone1), api.env.container_dns, api.env.basedn)
 
-revzone2 = u'30.15.172.in-addr.arpa.'
+revzone2 = u'18.198.in-addr.arpa.'
 revzone2_dnsname = DNSName(revzone2)
-revzone2_ip = u'172.15.30.0/24'
+revzone2_ip = u'198.18.0.30/16'
 revzone2_dn = DN(('idnsname',revzone2), api.env.container_dns, api.env.basedn)
 
 revzone3_classless1 = u'70.16.172.in-addr.arpa.'
@@ -3158,6 +3158,7 @@ class test_root_zone(Declarative):
             command=(
                 'dnszone_add', [zone_root], {
                     'idnssoarname': zone_root_rname,
+                    'skip_overlap_check': True
                 }
             ),
             expected={
