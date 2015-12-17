@@ -178,7 +178,6 @@ class NTPInstance(service.Service):
             self.fstore.restore_file(paths.NTP_CONF)
         except ValueError as error:
             root_logger.debug(error)
-            pass
 
         if enabled:
             self.enable()

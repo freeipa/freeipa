@@ -376,7 +376,6 @@ class OpenDNSSECInstance(service.Service):
                 self.fstore.restore_file(f)
             except ValueError as error:
                 root_logger.debug(error)
-                pass
 
         self.restore_state("KASP_DB_configured")  # just eat state
 

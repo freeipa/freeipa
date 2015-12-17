@@ -1066,7 +1066,6 @@ class user_status(LDAPQuery):
         except errors.NotFound:
             # If this happens we have some pretty serious problems
             self.error('No IPA masters found!')
-            pass
 
         entries = []
         count = 0
@@ -1100,7 +1099,6 @@ class user_status(LDAPQuery):
                             newresult[attr][0] = unicode(time.strftime('%Y-%m-%dT%H:%M:%SZ', newtime))
                         except Exception as e:
                             self.debug("time conversion failed with %s" % str(e))
-                            pass
                 newresult['server'] = host
                 if options.get('raw', False):
                     time_format = '%Y%m%d%H%M%SZ'

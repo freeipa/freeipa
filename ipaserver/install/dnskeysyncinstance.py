@@ -491,7 +491,6 @@ class DNSKeySyncInstance(service.Service):
                 self.fstore.restore_file(f)
             except ValueError as error:
                 self.logger.debug(error)
-                pass
 
         # remove softhsm pin, to make sure new installation will generate
         # new token database

@@ -394,7 +394,6 @@ class KrbInstance(service.Service):
                 self.fstore.restore_file(f)
             except ValueError as error:
                 root_logger.debug(error)
-                pass
 
         # disabled by default, by ldap_enable()
         if enabled:

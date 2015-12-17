@@ -472,7 +472,6 @@ class automountlocation_import(LDAPQuery):
                     pass
                 elif options.get('continue', False):
                     result['duplicatekeys'].append(am[0])
-                    pass
                 else:
                     raise errors.DuplicateEntry(
                         message=_('key %(key)s already exists') % dict(
@@ -488,7 +487,6 @@ class automountlocation_import(LDAPQuery):
                         pass
                     elif options.get('continue', False):
                         result['duplicatemaps'].append(am[0])
-                        pass
                     else:
                         raise errors.DuplicateEntry(
                             message=_('map %(map)s already exists') % dict(
@@ -531,7 +529,6 @@ class automountlocation_import(LDAPQuery):
                 except errors.DuplicateEntry as e:
                     if options.get('continue', False):
                         result['duplicatekeys'].append(am[0])
-                        pass
                     else:
                         raise e
 

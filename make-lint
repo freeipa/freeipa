@@ -275,7 +275,6 @@ def main():
         linter.set_option('disable', 'super-init-not-called')
         linter.set_option('disable', 'undefined-loop-variable')
         linter.set_option('disable', 'unnecessary-lambda')
-        linter.set_option('disable', 'unnecessary-pass')
         linter.set_option('disable', 'unnecessary-semicolon')
         linter.set_option('disable', 'unused-argument')
         linter.set_option('disable', 'unused-variable')

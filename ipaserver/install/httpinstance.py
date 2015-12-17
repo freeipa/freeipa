@@ -503,7 +503,6 @@ class HTTPInstance(service.Service):
                 self.fstore.restore_file(f)
             except ValueError as error:
                 root_logger.debug(error)
-                pass
 
         installutils.remove_keytab(paths.IPA_KEYTAB)
         installutils.remove_ccache(ccache_path=paths.KRB5CC_HTTPD,

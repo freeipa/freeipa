@@ -569,7 +569,6 @@ class stageuser_activate(LDAPQuery):
                         self.log.debug("merge: %s:%r wiped" % (attr, v))
                     except:
                         self.log.debug("merge %s: [no_print %s]" % (attr, v.__class__.__name__))
-                        pass
                     if isinstance(entry_to[attr], (list, tuple)):
                         # multi value attribute
                         if v not in entry_to[attr]:
@@ -586,7 +585,7 @@ class stageuser_activate(LDAPQuery):
                         self.log.debug("Add: %s:%r" % (attr, v))
                     except:
                         self.log.debug("Add %s: [no_print %s]" % (attr, v.__class__.__name__))
-                        pass
+
                     if isinstance(entry_to[attr], (list, tuple)):
                         # multi value attribute
                         if attr.lower() == 'objectclass':
@@ -697,7 +696,6 @@ class stageuser_activate(LDAPQuery):
                 self._exc_wrapper(args, options, ldap.delete_entry)(active_dn)
             except:
                 self.log.error("Fail to cleanup activation. The user remains active %s" % (active_dn))
-                pass
             raise
 
         # add the user we just created into the default primary group

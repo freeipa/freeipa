@@ -1104,7 +1104,7 @@ class TrustDomainInstance(object):
             self._pipe.SetInformationTrustedDomain(trustdom_handle, lsa.LSA_TRUSTED_DOMAIN_INFO_INFO_EX, info)
         except RuntimeError as e:
             root_logger.error('unable to set trust to transitive: %s' % (str(e)))
-            pass
+
         if self.info['is_pdc']:
             self.update_ftinfo(another_domain)
 

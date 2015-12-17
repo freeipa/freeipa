@@ -922,7 +922,6 @@ class DsInstance(service.Service):
             self.fstore.restore_file(paths.SYSCONFIG_DIRSRV)
         except ValueError as error:
             root_logger.debug(error)
-            pass
 
         # disabled during IPA installation
         if enabled:

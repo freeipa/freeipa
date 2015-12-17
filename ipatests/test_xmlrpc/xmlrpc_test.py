@@ -301,7 +301,6 @@ class Declarative(XMLRPC_test):
             api.Command[cmd](*args, **options)
         except (errors.NotFound, errors.EmptyModlist) as e:
             print(e)
-            pass
 
     def test_command(self, index, declarative_test_definition):
         """Run an individual test

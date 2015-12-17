@@ -407,7 +407,6 @@ class ReplicationManager(object):
             conn.add_entry(ent)
         except errors.DuplicateEntry:
             conn.modify_s(dn, [(ldap.MOD_REPLACE, "userpassword", pw)])
-            pass
 
     def delete_replication_manager(self, conn, dn=REPL_MAN_DN):
         assert isinstance(dn, DN)
