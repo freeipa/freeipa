@@ -813,7 +813,7 @@ class TrustDomainInstance(object):
            result = lsa.lsarpc(binding, self.parm, self.creds)
            return result
        except RuntimeError as e:
-           num, message = e.args
+           num, message = e.args  # pylint: disable=unpacking-non-sequence
            raise assess_dcerpc_exception(num=num, message=message)
 
     def init_lsa_pipe(self, remote_host):
@@ -930,7 +930,7 @@ class TrustDomainInstance(object):
             self._policy_handle = self._pipe.OpenPolicy2(u"", objectAttribute, security.SEC_FLAG_MAXIMUM_ALLOWED)
             result = self._pipe.QueryInfoPolicy2(self._policy_handle, lsa.LSA_POLICY_INFO_DNS)
         except RuntimeError as e:
-            num, message = e.args
+            num, message = e.args  # pylint: disable=unpacking-non-sequence
             raise assess_dcerpc_exception(num=num, message=message)
 
         self.info['name'] = unicode(result.name.string)
@@ -943,7 +943,7 @@ class TrustDomainInstance(object):
         try:
             result = self._pipe.QueryInfoPolicy2(self._policy_handle, lsa.LSA_POLICY_INFO_ROLE)
         except RuntimeError as e:
-            num, message = e.args
+            num, message = e.args  # pylint: disable=unpacking-non-sequence
             raise assess_dcerpc_exception(num=num, message=message)
 
         self.info['is_pdc'] = (result.role == lsa.LSA_ROLE_PRIMARY)
@@ -1069,7 +1069,7 @@ class TrustDomainInstance(object):
             res = self._pipe.QueryTrustedDomainInfoByName(self._policy_handle, dname, lsa.LSA_TRUSTED_DOMAIN_INFO_FULL_INFO)
             self._pipe.DeleteTrustedDomain(self._policy_handle, res.info_ex.sid)
         except RuntimeError as e:
-            num, message = e.args
+            num, message = e.args  # pylint: disable=unpacking-non-sequence
             # Ignore anything but access denied (NT_STATUS_ACCESS_DENIED)
             if num == -1073741790:
                 raise access_denied_error
@@ -1077,7 +1077,7 @@ class TrustDomainInstance(object):
         try:
             trustdom_handle = self._pipe.CreateTrustedDomainEx2(self._policy_handle, info, self.auth_info, security.SEC_STD_DELETE)
         except RuntimeError as e:
-            num, message = e.args
+            num, message = e.args  # pylint: disable=unpacking-non-sequence
             raise assess_dcerpc_exception(num=num, message=message)
 
         # We should use proper trustdom handle in order to modify the
@@ -1119,7 +1119,7 @@ class TrustDomainInstance(object):
                                            )
                 return result
             except RuntimeError as e:
-                num, message = e.args
+                num, message = e.args  # pylint: disable=unpacking-non-sequence
                 raise assess_dcerpc_exception(num=num, message=message)
 
         result = retrieve_netlogon_info_2(None, self,
