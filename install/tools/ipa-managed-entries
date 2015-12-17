@@ -132,8 +132,7 @@ def main():
 
         disabled = True
         try:
-            [entry] = conn.get_entries(def_dn, conn.SCOPE_BASE,
-                                       filter, ['originfilter'])
+            entry = conn.get_entry(def_dn)
             disable_attr = '(objectclass=disable)'
             try:
                 org_filter = entry.single_value.get('originfilter')
