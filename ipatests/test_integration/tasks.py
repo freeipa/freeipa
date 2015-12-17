@@ -268,7 +268,8 @@ def install_master(host, setup_dns=True, setup_kra=False):
 
     args = [
         'ipa-server-install', '-U',
-        '-r', host.domain.name,
+        '-n', host.domain.name,
+        '-r', host.domain.realm,
         '-p', host.config.dirman_password,
         '-a', host.config.admin_password,
         "--domain-level=%i" % host.config.domain_level
