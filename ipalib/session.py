@@ -669,12 +669,8 @@ class AuthManager(object):
         self.debug('AuthManager.logout.%s:', self.name)
 
 class SessionAuthManager(object):
-    '''
-    '''
 
     def __init__(self):
-        '''
-        '''
         log_mgr.get_logger(self, True)
         self.auth_managers = {}
 
@@ -703,8 +699,6 @@ class SessionAuthManager(object):
 
 
     def logout(self, session_data):
-        '''
-        '''
         self.debug('SessionAuthManager.logout:')
 
         for auth_mgr in self.auth_managers.values():

@@ -363,8 +363,6 @@ class textui(backend.Backend):
             self.print_entry(entry, order, labels, flags, print_all, format, indent)
 
     def print_entry(self, entry, order=None, labels=None, flags=None, print_all=True, format='%s: %s', indent=1):
-        """
-        """
         if isinstance(entry, (list, tuple)):
             entry = dict(entry)
         assert isinstance(entry, dict)
