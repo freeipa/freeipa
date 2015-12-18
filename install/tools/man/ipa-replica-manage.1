@@ -53,6 +53,9 @@ The available commands are:
 \fBclean\-ruv\fR [REPLICATION_ID]
 \- Run the CLEANALLRUV task to remove a replication ID.
 .TP
+\fBclean\-dangling\-ruv\fR
+\- Cleans all RUVs and CS\-RUVs that are left in the system from uninstalled replicas.
+.TP
 \fBabort\-clean\-ruv\fR [REPLICATION_ID]
 \- Abort a running CLEANALLRUV task. With \-\-force option the task does not wait for all the replica servers to have been sent the abort task, or be online, before completing.
 .TP
