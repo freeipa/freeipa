@@ -60,6 +60,7 @@ commands = {
     "clean-ruv":(1, 1, "Replica ID of to clean", "must provide replica ID to clean"),
     "abort-clean-ruv":(1, 1, "Replica ID to abort cleaning", "must provide replica ID to abort cleaning"),
     "list-clean-ruv":(0, 0, "", ""),
+    "clean-dangling-ruv":(0, 0, "", ""),
     "dnarange-show":(0, 1, "[master fqdn]", ""),
     "dnanextrange-show":(0, 1, "", ""),
     "dnarange-set":(2, 2, "<master fqdn> <range>", "must provide a master and ID range"),
@@ -531,6 +532,163 @@ def list_clean_ruv(realm, host, dirman_passwd, verbose, nolookup=False):
             if verbose:
                 print(str(dn))
                 print(entry.single_value.get('nstasklog'))
+
+
+def clean_dangling_ruvs(realm, host, options):
+    """
+    Cleans all RUVs and CS-RUVs that are left in the system from
+    uninstalled replicas
+    """
+    # get the Directory Manager password
+    if not options.dirman_passwd:
+        options.dirman_passwd = installutils.read_password('Directory Manager',
+                                                           confirm=False,
+                                                           validate=False,
+                                                           retry=False)
+        if options.dirman_passwd is None:
+            sys.exit('Directory Manager password is required')
+
+    conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
+    try:
+        conn.do_simple_bind(bindpw=options.dirman_passwd)
+
+        # get all masters
+        masters_dn = DN(api.env.container_masters, api.env.basedn)
+        masters = conn.get_entries(masters_dn, conn.SCOPE_ONELEVEL)
+        info = {}
+
+        # check whether CAs are configured on those masters
+        for master in masters:
+            info[master.single_value['cn']] = {
+                'online': False,       # is the host online?
+                'ca': False,           # does the host have ca configured?
+                'ruvs': set(),         # ruvs on the host
+                'csruvs': set(),       # csruvs on the host
+                'clean_ruv': set(),    # ruvs to be cleaned from the host
+                'clean_csruv': set()   # csruvs to be cleaned from the host
+                }
+            try:
+                ca_dn = DN(('cn', 'ca'), master.dn)
+                conn.get_entry(ca_dn)
+                info[master.single_value['cn']]['ca'] = True
+            except errors.NotFound:
+                continue
+
+    except Exception as e:
+        sys.exit(
+            "Failed to get data from '{host}' while trying to "
+            "list replicas: {error}"
+            .format(host=host, error=e)
+            )
+    finally:
+        conn.unbind()
+
+    replica_dn = DN(('cn', 'replica'), ('cn', api.env.basedn),
+                    ('cn', 'mapping tree'), ('cn', 'config'))
+
+    csreplica_dn = DN(('cn', 'replica'), ('cn', 'o=ipaca'),
+                      ('cn', 'mapping tree'), ('cn', 'config'))
+
+    ruvs = set()
+    csruvs = set()
+    offlines = set()
+    for master_cn, master_info in info.items():
+        try:
+            conn = ipaldap.IPAdmin(master_cn, 636, cacert=CACERT)
+            conn.do_simple_bind(bindpw=options.dirman_passwd)
+            master_info['online'] = True
+        except:
+            print("The server '{host}' appears to be offline."
+                  .format(host=master_cn))
+            offlines.add(master_cn)
+            continue
+
+        try:
+            entry = conn.get_entry(replica_dn)
+            ruv = (master_cn, entry.single_value.get('nsDS5ReplicaID'))
+            # the check whether ruv is already in ruvs is performed by set type
+            ruvs.add(ruv)
+
+            if(master_info['ca']):
+                entry = conn.get_entry(csreplica_dn)
+                csruv = (master_cn, entry.single_value.get('nsDS5ReplicaID'))
+                csruvs.add(csruv)
+
+            # get_ruv returns server names with :port which needs to be split off
+            ruv_list = get_ruv(realm, master_cn, options.dirman_passwd,
+                               options.nolookup)
+            master_info['ruvs'] = set([
+                (re.sub(':\d+', '', x), y)
+                for (x, y) in ruv_list
+                ])
+
+            if master_info['ca']:
+                ruv_list = get_ruv(realm, master_cn, options.dirman_passwd,
+                                   options.nolookup, ca=True)
+                master_info['csruvs'] = set([
+                    (re.sub(':\d+', '', x), y)
+                    for (x, y) in ruv_list
+                    ])
+        except Exception as e:
+            sys.exit("Failed to obtain information from '{host}': {error}"
+                     .format(host=master_cn, error=str(e)))
+        finally:
+            conn.unbind()
+
+    dangles = False
+    # get the dangling RUVs
+    for master_info in info.values():
+        if master_info['online']:
+            for ruv in master_info['ruvs']:
+                if (ruv not in ruvs) and (ruv[0] not in offlines):
+                    master_info['clean_ruv'].add(ruv)
+                    dangles = True
+
+            # if ca is not configured, there will be no csruvs in master_info
+            for csruv in master_info['csruvs']:
+                if (csruv not in csruvs) and (csruv[0] not in offlines):
+                    master_info['clean_csruv'].add(csruv)
+                    dangles = True
+
+    if not dangles:
+        print('No dangling RUVs found')
+        sys.exit(0)
+
+    print('These RUVs are dangling and will be removed:')
+    for master_cn, master_info in info.items():
+        if master_info['online'] and (master_info['clean_ruv'] or
+                                      master_info['clean_csruv']):
+            print('Host: {m}'.format(m=master_cn))
+            print('\tRUVs:')
+            for ruv in master_info['clean_ruv']:
+                print('\t\tid: {id}, hostname: {host}'
+                      .format(id=ruv[1], host=ruv[0]))
+
+            print('\tCS-RUVs:')
+            for csruv in master_info['clean_csruv']:
+                print('\t\tid: {id}, hostname: {host}'
+                      .format(id=csruv[1], host=csruv[0]))
+
+    # TODO: this can be removed when #5396 is fixed
+    if offlines:
+        sys.exit("ERROR: All replicas need to be online to proceed.")
+
+    if not options.force and not ipautil.user_input("Proceed with cleaning?", False):
+        sys.exit("Aborted")
+
+    options.force = True
+    cleaned = set()
+    for master_cn, master_info in info.items():
+        options.host = master_cn
+        for ruv in master_info['clean_ruv']:
+            if ruv[1] not in cleaned:
+                cleaned.add(ruv[1])
+                clean_ruv(realm, ruv[1], options)
+        for csruv in master_info['clean_csruv']:
+            if csruv[1] not in cleaned:
+                cleaned.add(csruv[1])
+                clean_ruv(realm, csruv[1], options, ca=True)
+
 
 def check_last_link(delrepl, realm, dirman_passwd, force):
     """
@@ -1464,6 +1622,8 @@ def main():
     elif args[0] == "list-clean-ruv":
         list_clean_ruv(realm, host, dirman_passwd, options.verbose,
                        options.nolookup)
+    elif args[0] == "clean-dangling-ruv":
+        clean_dangling_ruvs(realm, host, options)
     elif args[0] == "dnarange-show":
         if len(args) == 2:
             master = args[1]
