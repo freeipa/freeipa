@@ -22,294 +22,117 @@
 Test the `ipalib.plugins.hostgroup` module.
 """
 
-from ipalib import api, errors
-from ipatests.test_xmlrpc.xmlrpc_test import Declarative, fuzzy_uuid
-from ipatests.test_xmlrpc import objectclasses
-from ipapython.dn import DN
+
+from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
+from ipatests.test_xmlrpc.tracker.hostgroup_plugin import HostGroupTracker
+from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
+from ipalib import errors
 import pytest
 
-hostgroup1 = u'testhostgroup1'
-dn1 = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
-         api.env.basedn)
 
-hostgroup_single = u'a'
-dn_single = DN(('cn',hostgroup_single),('cn','hostgroups'),('cn','accounts'),
-         api.env.basedn)
-
-fqdn1 = u'testhost1.%s' % api.env.domain
-host_dn1 = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),
-              api.env.basedn)
-
-invalidhostgroup1 = u'@invalid'
+@pytest.fixture(scope='class')
+def hostgroup(request):
+    tracker = HostGroupTracker(name=u'hostgroup')
+    return tracker.make_fixture(request)
 
 
-@pytest.mark.tier1
-class test_hostgroup(Declarative):
-
-    cleanup_commands = [
-        ('hostgroup_del', [hostgroup1], {}),
-        ('host_del', [fqdn1], {}),
-    ]
-
-    tests=[
-
-        dict(
-            desc='Try to retrieve non-existent %r' % hostgroup1,
-            command=('hostgroup_show', [hostgroup1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: host group not found' % hostgroup1),
-        ),
+@pytest.fixture(scope='class')
+def hostgroup_invalid(request):
+    tracker = HostGroupTracker(name=u'@invalid')
+    return tracker.make_fixture(request)
 
 
-        dict(
-            desc='Try to update non-existent %r' % hostgroup1,
-            command=('hostgroup_mod', [hostgroup1],
-                dict(description=u'Updated hostgroup 1')
-            ),
-            expected=errors.NotFound(
-                reason=u'%s: host group not found' % hostgroup1),
-        ),
+@pytest.fixture(scope='class')
+def hostgroup_single(request):
+    tracker = HostGroupTracker(name=u'a')
+    return tracker.make_fixture(request)
 
 
-        dict(
-            desc='Try to delete non-existent %r' % hostgroup1,
-            command=('hostgroup_del', [hostgroup1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: host group not found' % hostgroup1),
-        ),
+@pytest.fixture(scope='class')
+def host(request):
+    tracker = HostTracker(name=u'host')
+    return tracker.make_fixture(request)
 
 
-        dict(
-            desc='Test an invalid hostgroup name %r' % invalidhostgroup1,
-            command=('hostgroup_add', [invalidhostgroup1], dict(description=u'Test')),
-            expected=errors.ValidationError(name='hostgroup_name',
-                error=u'may only include letters, numbers, _, -, and .'),
-        ),
+class TestNonexistentHostGroup(XMLRPC_test):
+    def test_retrieve_nonexistent(self, hostgroup):
+        """ Try to retrieve non-existent hostgroup """
+        hostgroup.ensure_missing()
+        command = hostgroup.make_retrieve_command()
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host group not found' % hostgroup.cn)):
+            command()
 
-
-        dict(
-            desc='Create %r' % hostgroup1,
-            command=('hostgroup_add', [hostgroup1],
-                dict(description=u'Test hostgroup 1')
-            ),
-            expected=dict(
-                value=hostgroup1,
-                summary=u'Added hostgroup "testhostgroup1"',
-                result=dict(
-                    dn=dn1,
-                    cn=[hostgroup1],
-                    objectclass=objectclasses.hostgroup,
-                    description=[u'Test hostgroup 1'],
-                    ipauniqueid=[fuzzy_uuid],
-                    mepmanagedentry=[DN(('cn',hostgroup1),('cn','ng'),('cn','alt'),
-                                        api.env.basedn)],
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Try to create duplicate %r' % hostgroup1,
-            command=('hostgroup_add', [hostgroup1],
-                dict(description=u'Test hostgroup 1')
-            ),
-            expected=errors.DuplicateEntry(message=
-                u'host group with name "%s" already exists' % hostgroup1),
-        ),
-
-
-        dict(
-            desc='Create host %r' % fqdn1,
-            command=('host_add', [fqdn1],
-                dict(
-                    description=u'Test host 1',
-                    l=u'Undisclosed location 1',
-                    force=True,
-                ),
-            ),
-            expected=dict(
-                value=fqdn1,
-                summary=u'Added host "%s"' % fqdn1,
-                result=dict(
-                    dn=host_dn1,
-                    fqdn=[fqdn1],
-                    description=[u'Test host 1'],
-                    l=[u'Undisclosed location 1'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    objectclass=objectclasses.host,
-                    ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[fqdn1],
-                    has_keytab=False,
-                    has_password=False,
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc=u'Add host %r to %r' % (fqdn1, hostgroup1),
-            command=(
-                'hostgroup_add_member', [hostgroup1], dict(host=fqdn1)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        host=tuple(),
-                        hostgroup=tuple(),
-                    ),
-                ),
-                result={
-                    'dn': dn1,
-                    'cn': [hostgroup1],
-                    'description': [u'Test hostgroup 1'],
-                    'member_host': [fqdn1],
-                },
-            ),
-        ),
-
-
-        dict(
-            desc='Retrieve %r' % hostgroup1,
-            command=('hostgroup_show', [hostgroup1], {}),
-            expected=dict(
-                value=hostgroup1,
-                summary=None,
-                result={
-                    'dn': dn1,
-                    'member_host': [u'testhost1.%s' % api.env.domain],
-                    'cn': [hostgroup1],
-                    'description': [u'Test hostgroup 1'],
-                },
-            ),
-        ),
-
-
-        dict(
-            desc='Search for %r' % hostgroup1,
-            command=('hostgroup_find', [], dict(cn=hostgroup1)),
-            expected=dict(
-                count=1,
-                truncated=False,
-                summary=u'1 hostgroup matched',
-                result=[
-                    {
-                        'dn': dn1,
-                        'member_host': [u'testhost1.%s' % api.env.domain],
-                        'cn': [hostgroup1],
-                        'description': [u'Test hostgroup 1'],
-                    },
-                ],
-            ),
-        ),
-
-
-        dict(
-            desc='Update %r' % hostgroup1,
-            command=('hostgroup_mod', [hostgroup1],
-                dict(description=u'Updated hostgroup 1')
-            ),
-            expected=dict(
-                value=hostgroup1,
-                summary=u'Modified hostgroup "testhostgroup1"',
-                result=dict(
-                    cn=[hostgroup1],
-                    description=[u'Updated hostgroup 1'],
-                    member_host=[u'testhost1.%s' % api.env.domain],
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Retrieve %r to verify update' % hostgroup1,
-            command=('hostgroup_show', [hostgroup1], {}),
-            expected=dict(
-                value=hostgroup1,
-                summary=None,
-                result={
-                    'dn': dn1,
-                    'member_host': [u'testhost1.%s' % api.env.domain],
-                    'cn': [hostgroup1],
-                    'description': [u'Updated hostgroup 1'],
-                },
-            ),
-        ),
-
-
-        dict(
-            desc='Remove host %r from %r' % (fqdn1, hostgroup1),
-            command=('hostgroup_remove_member', [hostgroup1],
-                dict(host=fqdn1)
-            ),
-            expected=dict(
-                failed=dict(
-                    member=dict(
-                        host=tuple(),
-                        hostgroup=tuple(),
-                    ),
-                ),
-                completed=1,
-                result={
-                    'dn': dn1,
-                    'cn': [hostgroup1],
-                    'description': [u'Updated hostgroup 1'],
-                },
-            ),
-        ),
-
-
-        dict(
-            desc='Delete %r' % hostgroup1,
-            command=('hostgroup_del', [hostgroup1], {}),
-            expected=dict(
-                value=[hostgroup1],
-                summary=u'Deleted hostgroup "testhostgroup1"',
-                result=dict(failed=[]),
-            ),
-        ),
-
-
-        dict(
-            desc='Create  hostgroup with name containing only one letter: %r' % hostgroup_single,
-            command=('hostgroup_add', [hostgroup_single],
-                dict(description=u'Test hostgroup with single letter in name')
-            ),
-            expected=dict(
-                value=hostgroup_single,
-                summary=u'Added hostgroup "a"',
-                result=dict(
-                    dn=dn_single,
-                    cn=[hostgroup_single],
-                    objectclass=objectclasses.hostgroup,
-                    description=[u'Test hostgroup with single letter in name'],
-                    ipauniqueid=[fuzzy_uuid],
-                    mepmanagedentry=[DN(('cn',hostgroup_single),('cn','ng'),('cn','alt'),
-                                        api.env.basedn)],
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Delete %r' % hostgroup_single,
-            command=('hostgroup_del', [hostgroup_single], {}),
-            expected=dict(
-                value=[hostgroup_single],
-                summary=u'Deleted hostgroup "a"',
-                result=dict(failed=[]),
-            ),
-        ),
-
-
-        dict(
-            desc='Delete host %r' % fqdn1,
-            command=('host_del', [fqdn1], {}),
-            expected=dict(
-                value=[fqdn1],
-                summary=u'Deleted host "%s"' % fqdn1,
-                result=dict(failed=[]),
-            ),
+    def test_update_nonexistent(self, hostgroup):
+        """ Try to update non-existent hostgroup """
+        hostgroup.ensure_missing()
+        command = hostgroup.make_update_command(
+            dict(description=u'Updated hostgroup 1')
         )
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host group not found' % hostgroup.cn)):
+            command()
 
-    ]
+    def test_delete_nonexistent(self, hostgroup):
+        """ Try to delete non-existent hostgroup """
+        hostgroup.ensure_missing()
+        command = hostgroup.make_delete_command()
+        with raises_exact(errors.NotFound(
+                reason=u'%s: host group not found' % hostgroup.cn)):
+            command()
+
+
+class TestHostGroup(XMLRPC_test):
+    def test_invalid_name(self, hostgroup_invalid):
+        """ Test an invalid hostgroup name """
+        hostgroup_invalid.ensure_missing()
+        command = hostgroup_invalid.make_create_command()
+        with raises_exact(errors.ValidationError(
+                name='hostgroup_name',
+                error=u'may only include letters, numbers, _, -, and .')):
+            command()
+
+    def test_create_hostgroup(self, hostgroup):
+        """ Create hostgroup """
+        hostgroup.create()
+
+    def test_create_duplicate_hostgroup(self, hostgroup):
+        """ Try to create duplicate hostgroup """
+        hostgroup.ensure_exists()
+        command = hostgroup.make_create_command()
+        with raises_exact(errors.DuplicateEntry(
+                message=u'host group with name "%s" already exists' %
+                hostgroup.cn)):
+            command()
+
+    def test_create_host_add_to_hostgroup(self, hostgroup, host):
+        """ Check that host can be added to hostgroup """
+        host.create()
+        hostgroup.add_member(dict(host=host.fqdn))
+        hostgroup.retrieve()
+
+    def test_search_for_hostgroup(self, hostgroup):
+        """ Search for hostgroup """
+        hostgroup.ensure_exists()
+        hostgroup.find()
+
+    def test_update_hostgroup(self, hostgroup):
+        """ Update description of hostgroup and verify """
+        hostgroup.ensure_exists()
+        hostgroup.update(dict(description=u'Updated hostgroup 1'))
+        hostgroup.retrieve()
+
+    def test_remove_host_from_hostgroup(self, hostgroup, host):
+        """ Remove host from hostgroup """
+        hostgroup.ensure_exists()
+        hostgroup.remove_member(dict(host=host.fqdn))
+
+    def test_delete_hostgroup(self, hostgroup):
+        """ Delete hostgroup """
+        hostgroup.ensure_exists()
+        hostgroup.delete()
+
+    def test_one_letter_hostgroup(self, hostgroup_single):
+        """ Create hostgroup with name containing only one letter """
+        hostgroup_single.create()
+        hostgroup_single.delete()
