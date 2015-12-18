@@ -347,7 +347,7 @@ def del_link(realm, replica1, replica2, dirman_passwd, force=False):
 
     return True
 
-def get_ruv(realm, host, dirman_passwd, nolookup=False):
+def get_ruv(realm, host, dirman_passwd, nolookup=False, ca=False):
     """
     Return the RUV entries as a list of tuples: (hostname, rid)
     """
@@ -356,7 +356,10 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False):
         enforce_host_existence(host)
 
     try:
-        thisrepl = replication.ReplicationManager(realm, host, dirman_passwd)
+        if ca:
+            thisrepl = replication.get_cs_replication_manager(realm, host, dirman_passwd)
+        else:
+            thisrepl = replication.ReplicationManager(realm, host, dirman_passwd)
     except Exception as e:
         print("Failed to connect to server %s: %s" % (host, e))
         sys.exit(1)
@@ -364,7 +367,7 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False):
     search_filter = '(&(nsuniqueid=ffffffff-ffffffff-ffffffff-ffffffff)(objectclass=nstombstone))'
     try:
         entries = thisrepl.conn.get_entries(
-            api.env.basedn, thisrepl.conn.SCOPE_SUBTREE, search_filter,
+            thisrepl.db_suffix, thisrepl.conn.SCOPE_SUBTREE, search_filter,
             ['nsds50ruv'])
     except errors.NotFound:
         print("No RUV records found.")
@@ -404,7 +407,7 @@ def get_rid_by_host(realm, sourcehost, host, dirman_passwd, nolookup=False):
         if '%s:389' % host == netloc:
             return int(rid)
 
-def clean_ruv(realm, ruv, options):
+def clean_ruv(realm, ruv, options, ca=False):
     """
     Given an RID create a CLEANALLRUV task to clean it up.
     """
@@ -414,7 +417,7 @@ def clean_ruv(realm, ruv, options):
         sys.exit("Replica ID must be an integer: %s" % ruv)
 
     servers = get_ruv(realm, options.host, options.dirman_passwd,
-                      options.nolookup)
+                      options.nolookup, ca=ca)
     found = False
     for (netloc, rid) in servers:
         if ruv == int(rid):
@@ -425,16 +428,27 @@ def clean_ruv(realm, ruv, options):
     if not found:
         sys.exit("Replica ID %s not found" % ruv)
 
-    print("Clean the Replication Update Vector for %s" % hostname)
-    print()
-    print("Cleaning the wrong replica ID will cause that server to no")
-    print("longer replicate so it may miss updates while the process")
-    print("is running. It would need to be re-initialized to maintain")
-    print("consistency. Be very careful.")
-    if not options.force and not ipautil.user_input("Continue to clean?", False):
-        sys.exit("Aborted")
-    thisrepl = replication.ReplicationManager(realm, options.host,
-                                              options.dirman_passwd)
+    if ca:
+        print("Clean the Certificate Server Replication Update Vector for %s"
+              % hostname)
+    else:
+        print("Clean the Replication Update Vector for %s" % hostname)
+
+    if not options.force:
+        print()
+        print("Cleaning the wrong replica ID will cause that server to no")
+        print("longer replicate so it may miss updates while the process")
+        print("is running. It would need to be re-initialized to maintain")
+        print("consistency. Be very careful.")
+        if not ipautil.user_input("Continue to clean?", False):
+            sys.exit("Aborted")
+
+    if ca:
+        thisrepl = replication.get_cs_replication_manager(realm, options.host,
+                                                          options.dirman_passwd)
+    else:
+        thisrepl = replication.ReplicationManager(realm, options.host,
+                                                  options.dirman_passwd)
     thisrepl.cleanallruv(ruv)
     print("Cleanup task created")
 

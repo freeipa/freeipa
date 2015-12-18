@@ -1352,7 +1352,7 @@ class ReplicationManager(object):
             {
                 'objectclass': ['top', 'extensibleObject'],
                 'cn': ['clean %d' % replicaId],
-                'replica-base-dn': [api.env.basedn],
+                'replica-base-dn': [self.db_suffix],
                 'replica-id': [replicaId],
             }
         )
