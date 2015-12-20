@@ -192,10 +192,20 @@ class BINDMgr(object):
 
         self.notify_zone(zone)
 
-    def sync(self):
-        """Synchronize list of zones in LDAP with BIND."""
+    def sync(self, dnssec_zones):
+        """Synchronize list of zones in LDAP with BIND.
+
+        dnssec_zones lists zones which should be processed. All other zones
+        will be ignored even though they were modified using ldap_event().
+
+        This filter is useful in cases where LDAP contains DNS zones which
+        have old metadata objects and DNSSEC disabled. Such zones must be
+        ignored to prevent errors while calling dnssec-keyfromlabel or rndc.
+        """
         self.log.debug('Key metadata in LDAP: %s' % self.ldap_keys)
-        for zone in self.modified_zones:
+        self.log.debug('Zones modified but skipped during bindmgr.sync: %s',
+                       self.modified_zones - dnssec_zones)
+        for zone in self.modified_zones.intersection(dnssec_zones):
             self.sync_zone(zone)
 
         self.modified_zones = set()
