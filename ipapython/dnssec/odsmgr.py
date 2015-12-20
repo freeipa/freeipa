@@ -152,10 +152,16 @@ class ODSMgr(object):
         output = self.ksmutil(cmd)
         self.log.info(output)
         self.notify_enforcer()
+        self.cleanup_signer(name)
 
     def notify_enforcer(self):
         cmd = ['notify']
         output = self.ksmutil(cmd)
+        self.log.info(output)
+
+    def cleanup_signer(self, zone_name):
+        cmd = ['ods-signer', 'ldap-cleanup', str(zone_name)]
+        output = ipautil.run(cmd, capture_output=True)
         self.log.info(output)
 
     def ldap_event(self, op, uuid, attrs):
