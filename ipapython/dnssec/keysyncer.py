@@ -6,6 +6,8 @@ import logging
 import ldap.dn
 import os
 
+import dns.name
+
 from ipaplatform.paths import paths
 from ipapython import ipautil
 
@@ -33,6 +35,7 @@ class KeySyncer(SyncReplConsumer):
 
         self.bindmgr = BINDMgr(self.api)
         self.init_done = False
+        self.dnssec_zones = set()
         SyncReplConsumer.__init__(self, *args, **kwargs)
 
     def _get_objclass(self, attrs):
@@ -112,7 +115,7 @@ class KeySyncer(SyncReplConsumer):
         self.ods_sync()
         self.hsm_replica_sync()
         self.hsm_master_sync()
-        self.bindmgr.sync()
+        self.bindmgr.sync(self.dnssec_zones)
 
     # idnsSecKey wrapper
     # Assumption: metadata points to the same key blob all the time,
@@ -121,23 +124,29 @@ class KeySyncer(SyncReplConsumer):
     def key_meta_add(self, uuid, dn, newattrs):
         self.hsm_replica_sync()
         self.bindmgr.ldap_event('add', uuid, newattrs)
-        self.bindmgr_sync()
+        self.bindmgr_sync(self.dnssec_zones)
 
     def key_meta_del(self, uuid, dn, oldattrs):
         self.bindmgr.ldap_event('del', uuid, oldattrs)
-        self.bindmgr_sync()
+        self.bindmgr_sync(self.dnssec_zones)
         self.hsm_replica_sync()
 
     def key_metadata_sync(self, uuid, dn, oldattrs, newattrs):
         self.bindmgr.ldap_event('mod', uuid, newattrs)
-        self.bindmgr_sync()
+        self.bindmgr_sync(self.dnssec_zones)
 
-    def bindmgr_sync(self):
+    def bindmgr_sync(self, dnssec_zones):
         if self.init_done:
-            self.bindmgr.sync()
+            self.bindmgr.sync(dnssec_zones)
 
     # idnsZone wrapper
     def zone_add(self, uuid, dn, newattrs):
+        zone = dns.name.from_text(newattrs['idnsname'][0])
+        if self.__is_dnssec_enabled(newattrs):
+            self.dnssec_zones.add(zone)
+        else:
+            self.dnssec_zones.discard(zone)
+
         if not self.ismaster:
             return
 
@@ -146,6 +155,9 @@ class KeySyncer(SyncReplConsumer):
         self.ods_sync()
 
     def zone_del(self, uuid, dn, oldattrs):
+        zone = dns.name.from_text(oldattrs['idnsname'][0])
+        self.dnssec_zones.discard(zone)
+
         if not self.ismaster:
             return
 
