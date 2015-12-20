@@ -226,7 +226,9 @@ def get_ldap_zone(ldap, dns_base, name):
         except ipalib.errors.NotFound:
             continue
 
-    assert ldap_zone is not None, 'DNS zone "%s" should exist in LDAP' % name
+    if ldap_zone is None:
+        raise ipalib.errors.NotFound(
+            reason='DNS zone "%s" not found in LDAP' % name)
 
     return ldap_zone
 
@@ -480,25 +482,37 @@ def parse_command(cmd):
     if cmd == 'ipa-hsm-update':
         return (0,
                 'HSM synchronization finished, skipping zone synchronization.',
-                None)
+                None,
+                cmd)
 
     elif cmd == 'ipa-full-update':
         return (None,
                 'Synchronization of all zones was finished.',
-                None)
+                None,
+                cmd)
 
-    elif not cmd.startswith('update '):
+    elif cmd.startswith('ldap-cleanup '):
+        zone_name = cmd2ods_zone_name(cmd)
+        return (None,
+                'Zone "%s" metadata will be removed from LDAP.\n' % zone_name,
+                zone_name,
+                'ldap-cleanup')
+
+    elif cmd.startswith('update '):
+        zone_name = cmd2ods_zone_name(cmd)
+        return (None,
+                'Zone "%s" metadata will be updated in LDAP.\n' % zone_name,
+                zone_name,
+                'update')
+
+    else:
         return (0,
                 'Command "%s" is not supported by IPA; '
                 'HSM synchronization was finished and the command '
                 'will be ignored.' % cmd,
+                None,
                 None)
 
-    else:
-        zone_name = cmd2ods_zone_name(cmd)
-        return (None,
-                'Zone was "%s" updated.\n' % zone_name,
-                zone_name)
 
 def send_systemd_reply(conn, reply):
         # Reply & close connection early.
@@ -509,7 +523,7 @@ def send_systemd_reply(conn, reply):
 
 def cmd2ods_zone_name(cmd):
     # ODS stores zone name without trailing period
-    zone_name = cmd[7:].strip()
+    zone_name = cmd.split(' ', 1)[1].strip()
     if len(zone_name) > 1 and zone_name[-1] == '.':
         zone_name = zone_name[:-1]
 
@@ -583,6 +597,25 @@ def sync_zone(log, ldap, dns_dn, zone_name):
         except ipalib.errors.EmptyModlist:
             continue
 
+def cleanup_ldap_zone(log, ldap, dns_dn, zone_name):
+    """delete all key metadata about zone keys for single DNS zone
+
+    Key material has to be synchronized elsewhere.
+    Keep in mind that keys could be shared among multiple zones!"""
+    log = log.getChild("%s.%s" % (__name__, zone_name))
+    log.debug('cleaning up key metadata from zone "%s"', zone_name)
+
+    try:
+        ldap_zone = get_ldap_zone(ldap, dns_dn, zone_name)
+        ldap_keys = get_ldap_keys(ldap, ldap_zone.dn)
+    except ipalib.errors.NotFound as ex:
+        # zone or cn=keys container does not exist, we are done
+        log.debug(str(ex))
+        return
+
+    for ldap_key in ldap_keys:
+        log.debug('deleting key metadata "%s"', ldap_key.dn)
+        ldap.delete_entry(ldap_key)
 
 log = logging.getLogger('root')
 # this service is usually socket-activated
@@ -654,7 +687,7 @@ except KeyError as e:
     conn = None
     cmd = sys.argv[1]
 
-exitcode, msg, zone_name = parse_command(cmd)
+exitcode, msg, zone_name, cmd = parse_command(cmd)
 
 if exitcode is not None:
     if conn:
@@ -684,7 +717,10 @@ try:
 
     if zone_name is not None:
         # only one zone should be processed
-        sync_zone(log, ldap, dns_dn, zone_name)
+        if cmd == 'update':
+            sync_zone(log, ldap, dns_dn, zone_name)
+        elif cmd == 'ldap-cleanup':
+            cleanup_ldap_zone(log, ldap, dns_dn, zone_name)
     else:
         # process all zones
         for zone_row in db.execute("SELECT name FROM zones"):
