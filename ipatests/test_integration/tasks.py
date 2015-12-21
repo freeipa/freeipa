@@ -277,7 +277,8 @@ def install_master(host, setup_dns=True, setup_kra=False):
     if setup_dns:
         args.extend([
             '--setup-dns',
-            '--forwarder', host.config.dns_forwarder
+            '--forwarder', host.config.dns_forwarder,
+            '--auto-reverse'
         ])
 
     host.run_command(args)
