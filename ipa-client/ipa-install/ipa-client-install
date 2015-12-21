@@ -1106,6 +1106,10 @@ def configure_krb5_conf(cli_realm, cli_domain, cli_server, cli_kdc, dnsok,
             kropts.append({'name':'kdc', 'type':'option', 'value':ipautil.format_netloc(server, 88)})
             kropts.append({'name':'master_kdc', 'type':'option', 'value':ipautil.format_netloc(server, 88)})
             kropts.append({'name':'admin_server', 'type':'option', 'value':ipautil.format_netloc(server, 749)})
+            kropts.append({'name': 'kpasswd_server',
+                           'type': 'option',
+                           'value': ipautil.format_netloc(server, 464)
+                          })
         kropts.append({'name':'default_domain', 'type':'option', 'value':cli_domain})
     kropts.append({'name':'pkinit_anchors', 'type':'option', 'value':'FILE:%s' % CACERT})
     ropts = [{'name':cli_realm, 'type':'subsection', 'value':kropts}]
