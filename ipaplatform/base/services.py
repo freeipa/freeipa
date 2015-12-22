@@ -421,7 +421,8 @@ class SystemdService(PlatformService):
 
             try:
                 if not ipautil.dir_exists(srv_tgt):
-                    os.mkdir(srv_tgt, 0755)
+                    os.mkdir(srv_tgt)
+                    os.chmod(srv_tgt, 0755)
                 if os.path.exists(srv_lnk):
                     # Remove old link
                     os.unlink(srv_lnk)
