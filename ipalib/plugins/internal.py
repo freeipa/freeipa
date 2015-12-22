@@ -842,7 +842,7 @@ class i18n_messages(Command):
                 "ip_v6_address": _('Not a valid IPv6 address'),
                 "max_value": _("Maximum value is ${value}"),
                 "min_value": _("Minimum value is ${value}"),
-                "net_address": _("Not a valid network address"),
+                "net_address": _("Not a valid network address (examples: 2001:db8::/64, 192.0.2.0/24)"),
                 "parse": _("Parse error"),
                 "port": _("'${port}' is not a valid port"),
                 "required": _("Required field"),

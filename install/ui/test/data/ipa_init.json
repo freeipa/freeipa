@@ -696,7 +696,7 @@
                             "ip_v6_address": "Not a valid IPv6 address",
                             "max_value": "Maximum value is ${value}",
                             "min_value": "Minimum value is ${value}",
-                            "net_address": "Not a valid network address",
+                            "net_address": "Not a valid network address (examples: 2001:db8::/64, 192.0.2.0/24)",
                             "parse": "Parse error",
                             "port": "'${port}' is not a valid port",
                             "required": "Required field",
