@@ -84,7 +84,10 @@ return {
                 other_field: 'cn',
                 required: true
             },
-            'cospriority'
+            {
+                name: 'cospriority',
+                required: true
+            }
         ],
         height: 300
     }
