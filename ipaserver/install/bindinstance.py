@@ -73,7 +73,10 @@ named_conf_include_template = "include \"%(path)s\";\n"
 
 
 def create_reverse():
-    return ipautil.user_input("Do you want to configure the reverse zone?", True)
+    return ipautil.user_input(
+        "Do you want to search for missing reverse zones?",
+        True
+    )
 
 def named_conf_exists():
     try:
