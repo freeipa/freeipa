@@ -80,6 +80,11 @@ class ReplicaPrepare(admintool.AdminTool):
         parser.add_option("--no-reverse", dest="no_reverse",
             action="store_true", default=False,
             help="do not create reverse DNS zone")
+        parser.add_option("--auto-reverse", dest="auto_reverse", default=False,
+            action="store_true", help="create necessary DNS zones")
+        parser.add_option("--allow-zone-overlap", dest="allow_zone_overlap",
+            action="store_true", default=False, help="create DNS "
+            "zone even if it already exists")
         parser.add_option("--no-pkinit", dest="setup_pkinit",
             action="store_false", default=True,
             help="disables pkinit setup steps")
