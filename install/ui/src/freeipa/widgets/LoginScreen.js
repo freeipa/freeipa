@@ -272,12 +272,12 @@ define(['dojo/_base/declare',
                 }
                 this.set('view', 'login');
             } else {
+                otp_f.set_value('');
+                new_f.set_value('');
+                ver_f.set_value('');
                 val_summary.add_error('login', result.message);
             }
 
-            otp_f.set_value('');
-            new_f.set_value('');
-            ver_f.set_value('');
         },
 
         refresh: function() {
