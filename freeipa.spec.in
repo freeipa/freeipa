@@ -359,7 +359,7 @@ BuildArch: noarch
 %{?python_provide:%python_provide python2-ipaclient}
 Requires: %{name}-client-common = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
-Requires: python2-ipalib%{?_isa} = %{version}-%{release}
+Requires: python2-ipalib = %{version}-%{release}
 Requires: python-dns >= 1.11.1
 
 %description -n python2-ipaclient
@@ -396,7 +396,7 @@ Summary: IPA administrative tools
 Group: System Environment/Base
 BuildArch: noarch
 Requires: %{name}-client-common = %{version}-%{release}
-Requires: python2-ipalib%{?_isa} = %{version}-%{release}
+Requires: python2-ipalib = %{version}-%{release}
 Requires: python-ldap
 
 Provides: %{alt_name}-admintools = %{version}
@@ -419,7 +419,7 @@ BuildArch: noarch
 Obsoletes: %{name}-python < 4.2.91
 Provides: %{name}-python = %{version}-%{release}
 Requires: %{name}-common = %{version}-%{release}
-Requires: python2-ipalib%{?_isa} = %{version}-%{release}
+Requires: python2-ipalib = %{version}-%{release}
 
 Provides: %{alt_name}-python-compat = %{version}
 Conflicts: %{alt_name}-python-compat
@@ -554,10 +554,10 @@ If you are using IPA, you need to install this package.
 Summary: IPA tests and test tools
 BuildArch: noarch
 Obsoletes: %{name}-tests < 4.2.91
-Provides: %{name}-tests%{?_isa} = %{version}-%{release}
+Provides: %{name}-tests = %{version}-%{release}
 %{?python_provide:%python_provide python2-ipatests}
 Requires: %{name}-client-common = %{version}-%{release}
-Requires: python2-ipalib%{?_isa} = %{version}-%{release}
+Requires: python2-ipalib = %{version}-%{release}
 Requires: tar
 Requires: xz
 Requires: python-nose
@@ -569,7 +569,7 @@ Requires: python-pytest-multihost >= 0.5
 Requires: python-pytest-sourceorder
 Requires: ldns-utils
 
-Provides: %{alt_name}-tests%{?_isa} = %{version}
+Provides: %{alt_name}-tests = %{version}
 Conflicts: %{alt_name}-tests
 Obsoletes: %{alt_name}-tests < %{version}
 
@@ -589,7 +589,7 @@ Summary: IPA tests and test tools
 BuildArch: noarch
 %{?python_provide:%python_provide python3-ipatests}
 Requires: %{name}-client-common = %{version}-%{release}
-Requires: python3-ipalib%{?_isa} = %{version}-%{release}
+Requires: python3-ipalib = %{version}-%{release}
 Requires: tar
 Requires: xz
 Requires: python3-nose
