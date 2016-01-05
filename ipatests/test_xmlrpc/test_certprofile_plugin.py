@@ -10,12 +10,15 @@ Test the `ipalib.plugins.certprofile` module.
 import os
 
 import pytest
+import six
 
 from ipalib import api, errors
 from ipatests.util import prepare_config
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
 from ipatests.test_xmlrpc.tracker.certprofile_plugin import CertprofileTracker
 
+if six.PY3:
+    unicode = str
 
 IPA_CERT_SUBJ_BASE = (
     api.Command.config_show()

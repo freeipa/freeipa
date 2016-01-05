@@ -15,7 +15,9 @@ import socket
 import sys
 import tempfile
 
-from ipapython import certmonger, ipaldap, ipautil, sysrestore
+import six
+
+from ipapython import ipaldap, ipautil, sysrestore
 from ipapython.dn import DN
 from ipapython.install import common, core
 from ipapython.install.common import step
@@ -40,6 +42,9 @@ from subprocess import CalledProcessError
 from binascii import hexlify
 
 from .common import BaseServer
+
+if six.PY3:
+    unicode = str
 
 DIRMAN_DN = DN(('cn', 'directory manager'))
 
