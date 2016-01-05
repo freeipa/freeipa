@@ -5,11 +5,16 @@
 from ipalib import api, errors
 from ipapython.dn import DN
 
+import six
+
 from ipatests.util import assert_deepequal, get_group_dn, get_user_dn
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (
     fuzzy_digits, fuzzy_uuid, raises_exact)
 from ipatests.test_xmlrpc.tracker.base import Tracker
+
+if six.PY3:
+    unicode = str
 
 
 class UserTracker(Tracker):

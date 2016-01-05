@@ -7,12 +7,17 @@ from __future__ import print_function
 import os
 import sys
 
+import six
+
 from ipapython.dn import DN
 from ipapython.install import common, core
 from ipapython.install.core import Knob
 from ipalib.util import validate_domain_name
 from ipaserver.install import bindinstance
 from ipapython.ipautil import check_zone_overlap
+
+if six.PY3:
+    unicode = str
 
 VALID_SUBJECT_ATTRS = ['st', 'o', 'ou', 'dnqualifier', 'c',
                        'serialnumber', 'l', 'title', 'sn', 'givenname',

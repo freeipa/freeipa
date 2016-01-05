@@ -7,6 +7,8 @@ import os
 import pytest
 import tempfile
 
+import six
+
 from ipalib import api, errors
 from ipatests.util import (
     prepare_config, unlock_principal_password, change_principal)
@@ -15,6 +17,9 @@ from ipatests.test_xmlrpc.tracker.certprofile_plugin import CertprofileTracker
 from ipatests.test_xmlrpc.tracker.caacl_plugin import CAACLTracker
 
 from ipapython.ipautil import run
+
+if six.PY3:
+    unicode = str
 
 BASE_DIR = os.path.dirname(__file__)
 
