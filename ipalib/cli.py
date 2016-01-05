@@ -1287,14 +1287,14 @@ class cli(backend.Executioner):
                     except IOError as e:
                         raise ValidationError(
                             name=to_cli(p.cli_name),
-                            error='%s: %s:' % (fname, e[1])
+                            error='%s: %s:' % (fname, e.args[1])
                         )
                 elif p.stdin_if_missing:
                     try:
                         raw = sys.stdin.read()
                     except IOError as e:
                         raise ValidationError(
-                            name=to_cli(p.cli_name), error=e[1]
+                            name=to_cli(p.cli_name), error=e.args[1]
                         )
 
                 if raw:
