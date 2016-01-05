@@ -292,6 +292,24 @@ def setup_firefox_extension(fstore):
     http.setup_firefox_extension(realm, domain)
 
 
+def is_ca_enabled():
+    """
+    check whether there is an active CA master
+    :return: True if there is an active CA in topology, False otherwise
+    """
+    ldap2 = api.Backend.ldap2
+    was_connected = ldap2.isconnected()
+
+    if not was_connected:
+        ldap2.connect()
+
+    try:
+        return api.Command.ca_is_enabled()['result']
+    finally:
+        if not was_connected:
+            ldap2.disconnect()
+
+
 def ca_configure_profiles_acl(ca):
     root_logger.info('[Authorizing RA Agent to modify profiles]')
 
@@ -1416,7 +1434,9 @@ def upgrade_configuration():
     http = httpinstance.HTTPInstance(fstore)
     http.configure_selinux_for_httpd()
     http.change_mod_nss_port_from_http()
-    http.configure_certmonger_renewal_guard()
+
+    if is_ca_enabled():
+        http.configure_certmonger_renewal_guard()
 
     ds.configure_dirsrv_ccache()
 
@@ -1562,7 +1582,12 @@ def upgrade_check(options):
         print unicode(e)
         sys.exit(1)
 
-    if not services.knownservices.certmonger.is_running():
+    try:
+        ca_is_enabled = is_ca_enabled()
+    except Exception as e:
+        raise RuntimeError("Cannot connect to LDAP server: {0}".format(e))
+
+    if not services.knownservices.certmonger.is_running() and ca_is_enabled:
         raise RuntimeError('Certmonger is not running. Start certmonger and run upgrade again.')
 
     if not options.skip_version_check:
