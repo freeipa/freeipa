@@ -26,6 +26,7 @@ import os
 import sys
 from optparse import OptionParser
 from fnmatch import fnmatch, fnmatchcase
+import subprocess
 
 try:
     from pylint import checkers
@@ -220,6 +221,10 @@ def main():
         dest='fail', default=True, action='store_false')
     optparser.add_option('--enable-noerror', help='enable warnings and other non-error messages',
         dest='errors_only', default=True, action='store_false')
+    optparser.add_option('--no-py3k', help='Do not check for Python 3 porting issues',
+        dest='py3k', default=True, action='store_false')
+    optparser.add_option('--no-lint', help='Skip the main lint check',
+        dest='do_lint', default=True, action='store_false')
 
     options, args = optparser.parse_args()
     cwd = os.getcwd()
@@ -306,33 +311,41 @@ def main():
     linter.set_option('persistent', False)
     linter.set_option('disable', 'python3')
 
-    linter.check(files)
+    if options.do_lint:
+        linter.check(files)
 
-    if linter.msg_status != 0:
-        print("""
+        if linter.msg_status != 0:
+            print("""
 ===============================================================================
 Errors were found during the static code check.
 """, file=sys.stderr)
 
-        if len(linter.missing) > 0:
-            print("There are some missing imports:", file=sys.stderr)
-            for mod in sorted(linter.missing):
-                print("    " + mod, file=sys.stderr)
-            print("""
+            if len(linter.missing) > 0:
+                print("There are some missing imports:", file=sys.stderr)
+                for mod in sorted(linter.missing):
+                    print("    " + mod, file=sys.stderr)
+                print("""
 Please make sure all of the required and optional (python-gssapi, python-rhsm)
 python packages are installed.
 """, file=sys.stderr)
 
-        print("""\
+                print("""\
 If you are certain that any of the reported errors are false positives, please
 mark them in the source code according to the pylint documentation.
 ===============================================================================
 """, file=sys.stderr)
 
-    if options.fail:
-        return linter.msg_status
-    else:
-        return 0
+        if options.fail and linter.msg_status != 0:
+            return linter.msg_status
+
+    if options.py3k:
+        args = ['pylint', '--py3k', '-d', 'no-absolute-import', '--reports=n']
+        args.extend(files)
+        returncode = subprocess.call(args)
+        if options.fail and returncode != 0:
+            return returncode
+
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())
