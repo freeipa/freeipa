@@ -130,7 +130,7 @@ def load_certificate(data, datatype=PEM, dbdir=None):
     initialize_nss_database(dbdir=dbdir)
 
     if six.PY2:
-        return nss.Certificate(buffer(data))
+        return nss.Certificate(buffer(data))  # pylint: disable=buffer-builtin
     else:
         # In python 3 , `bytes` has the buffer interface
         return nss.Certificate(data)

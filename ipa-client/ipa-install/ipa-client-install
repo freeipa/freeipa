@@ -1573,7 +1573,7 @@ def do_nsupdate(update_txt):
     root_logger.debug("Writing nsupdate commands to %s:", UPDATE_FILE)
     root_logger.debug("%s", update_txt)
 
-    update_fd = file(UPDATE_FILE, "w")
+    update_fd = open(UPDATE_FILE, "w")
     update_fd.write(update_txt)
     update_fd.flush()
     update_fd.close()
