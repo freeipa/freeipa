@@ -221,7 +221,7 @@ def validated_read(argname, filename, mode='r', encoding=None):
         raise errors.ValidationError(
             name=argname,
             error=_("Cannot read file '%(filename)s': %(exc)s") % {
-                'filename': filename, 'exc': exc[1]
+                'filename': filename, 'exc': exc.args[1]
                 }
         )
     except UnicodeError as exc:
@@ -1547,7 +1547,7 @@ class vault_archive(PKQuery, Local):
             except OSError as exc:
                 raise errors.ValidationError(name="in", error=_(
                     "Cannot read file '%(filename)s': %(exc)s")
-                    % {'filename': input_file, 'exc': exc[1]})
+                    % {'filename': input_file, 'exc': exc.args[1]})
             if stat.st_size > MAX_VAULT_DATA_SIZE:
                 raise errors.ValidationError(name="in", error=_(
                     "Size of data exceeds the limit. Current vault data size "
