@@ -49,10 +49,12 @@ class DNSName(dns.name.Name):
             # instead of a dns.exception
             raise dns.exception.SyntaxError(e)
 
-    def __nonzero__(self):
+    def __bool__(self):
         #dns.name.from_text('@') is represented like empty tuple
         #we need to acting '@' as nonzero value
         return True
+
+    __nonzero__ = __bool__  # for Python 2
 
     def __copy__(self):
         return DNSName(self.labels)
