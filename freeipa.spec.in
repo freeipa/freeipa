@@ -1311,13 +1311,11 @@ fi
 %{python_sitelib}/ipalib/*
 %dir %{python_sitelib}/ipaplatform
 %{python_sitelib}/ipaplatform/*
-%attr(0644,root,root) %{python_sitearch}/default_encoding_utf8.so
 %attr(0644,root,root) %{python_sitearch}/_ipap11helper.so
 %{python_sitelib}/ipapython-*.egg-info
 %{python_sitelib}/ipalib-*.egg-info
 %{python_sitelib}/freeipa-*.egg-info
 %{python_sitelib}/ipaplatform-*.egg-info
-%{python_sitearch}/python_default_encoding-*.egg-info
 %{python_sitearch}/_ipap11helper-*.egg-info
 
 

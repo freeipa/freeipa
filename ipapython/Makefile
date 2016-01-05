@@ -1,7 +1,7 @@
 PYTHON ?= /usr/bin/python2
 PYTHONLIBDIR ?= $(shell $(PYTHON) -c "from distutils.sysconfig import *; print(get_python_lib())")
 
-SUBDIRS = py_default_encoding ipap11helper
+SUBDIRS = ipap11helper
 
 all:
 	@for subdir in $(SUBDIRS); do \

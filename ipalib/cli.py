@@ -39,16 +39,9 @@ from six.moves import input
 if six.PY3:
     unicode = str
 
-try:
-    #pylint: disable=F0401
-    import default_encoding_utf8  # pylint: disable=unused-import
-except ImportError:
-    # This is a chicken-and-egg problem. The api can't be imported unless
-    # this is already installed and since it is installed with IPA therein
-    # lies the problem. Skip it for now so ipalib can be imported in-tree
-    # even in cases that IPA isn't installed on the dev machine.
-    # Also, under Python 3, default_encoding_utf8 is not built at all.
-    pass
+if six.PY2:
+    reload(sys)
+    sys.setdefaultencoding('utf-8')     # pylint: disable=no-member
 
 from ipalib import frontend
 from ipalib import backend
