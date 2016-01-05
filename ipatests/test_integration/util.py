@@ -57,7 +57,7 @@ def run_repeatedly(host, command, assert_zero_rc=True, test=None,
     raise AssertionError("Command: {cmd} repeatedly failed {times} times, "
                          "exceeding the timeout of {timeout} seconds."
                          .format(cmd=' '.join(command),
-                                 times=timeout / time_step,
+                                 times=timeout // time_step,
                                  timeout=timeout))
 
 
