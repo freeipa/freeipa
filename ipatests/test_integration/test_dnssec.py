@@ -100,6 +100,7 @@ class TestInstallDNSSECLast(IntegrationTest):
         args = [
             "ipa",
             "dnszone-add", test_zone,
+            "--skip-overlap-check",
             "--dnssec", "true",
         ]
         self.master.run_command(args)
@@ -119,6 +120,7 @@ class TestInstallDNSSECLast(IntegrationTest):
         args = [
             "ipa",
             "dnszone-add", test_zone_repl,
+            "--skip-overlap-check",
             "--dnssec", "true",
         ]
         self.replicas[0].run_command(args)
@@ -268,7 +270,8 @@ class TestInstallDNSSECFirst(IntegrationTest):
 
     def test_sign_root_zone(self):
         args = [
-            "ipa", "dnszone-add", root_zone, "--dnssec", "true"
+            "ipa", "dnszone-add", root_zone, "--dnssec", "true",
+            "--skip-overlap-check",
         ]
         self.master.run_command(args)
 
@@ -297,7 +300,8 @@ class TestInstallDNSSECFirst(IntegrationTest):
 
         # add test zone
         args = [
-            "ipa", "dnszone-add", example_test_zone, "--dnssec", "true"
+            "ipa", "dnszone-add", example_test_zone, "--dnssec", "true",
+            "--skip-overlap-check",
         ]
 
         self.master.run_command(args)
@@ -433,7 +437,8 @@ class TestMigrateDNSSECMaster(IntegrationTest):
 
         # add test zone
         args = [
-            "ipa", "dnszone-add", example_test_zone, "--dnssec", "true"
+            "ipa", "dnszone-add", example_test_zone, "--dnssec", "true",
+            "--skip-overlap-check",
         ]
 
         self.master.run_command(args)
@@ -490,7 +495,8 @@ class TestMigrateDNSSECMaster(IntegrationTest):
 
         # add test zone
         args = [
-            "ipa", "dnszone-add", example2_test_zone, "--dnssec", "true"
+            "ipa", "dnszone-add", example2_test_zone, "--dnssec", "true",
+            "--skip-overlap-check",
         ]
         self.replicas[0].run_command(args)
 
@@ -522,7 +528,8 @@ class TestMigrateDNSSECMaster(IntegrationTest):
 
         # add new zone to new replica
         args = [
-            "ipa", "dnszone-add", example3_test_zone, "--dnssec", "true"
+            "ipa", "dnszone-add", example3_test_zone, "--dnssec", "true",
+            "--skip-overlap-check",
         ]
         self.replicas[1].run_command(args)
 
