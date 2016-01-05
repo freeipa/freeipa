@@ -385,7 +385,7 @@ def add_range(myapi, trustinstance, range_name, dom_sid, *keys, **options):
                 max_id = int(max(max_uid, max_gid)[0])
 
                 base_id = int(info.get('msSFU30OrderNumber')[0])
-                range_size = (1 + (max_id - base_id) / DEFAULT_RANGE_SIZE)\
+                range_size = (1 + (max_id - base_id) // DEFAULT_RANGE_SIZE)\
                              * DEFAULT_RANGE_SIZE
 
     # Second, options given via the CLI options take precedence to discovery

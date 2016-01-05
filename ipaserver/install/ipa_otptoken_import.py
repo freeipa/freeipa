@@ -246,9 +246,9 @@ class XMLDecryptor(object):
         # Decrypt the data.
         slot = nss.get_best_slot(mech)
         key = nss.import_sym_key(slot, mech, nss.PK11_OriginUnwrap, nss.CKA_ENCRYPT, self.__key)
-        iv = nss.param_from_iv(mech, nss.SecItem(data[0:ivlen/8]))
+        iv = nss.param_from_iv(mech, nss.SecItem(data[0:ivlen//8]))
         ctx = nss.create_context_by_sym_key(mech, nss.CKA_DECRYPT, key, iv)
-        out = ctx.cipher_op(data[ivlen / 8:])
+        out = ctx.cipher_op(data[ivlen // 8:])
         out += ctx.digest_final()
         return out
 

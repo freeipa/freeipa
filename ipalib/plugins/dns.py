@@ -350,9 +350,9 @@ def _reverse_zone_name(netstr):
     net = netaddr.IPNetwork(netstr)
     items = net.ip.reverse_dns.split('.')
     if net.version == 4:
-        return u'.'.join(items[4 - net.prefixlen / 8:])
+        return u'.'.join(items[4 - net.prefixlen // 8:])
     elif net.version == 6:
-        return u'.'.join(items[32 - net.prefixlen / 4:])
+        return u'.'.join(items[32 - net.prefixlen // 4:])
     else:
         return None
 
@@ -3417,7 +3417,7 @@ class dnsrecord(LDAPObject):
         resolver = dns.resolver.Resolver()
         resolver.set_flags(0)  # disable recursion (for NS RR checks)
         max_attempts = int(self.api.env['wait_for_dns'])
-        warn_attempts = max_attempts / 2
+        warn_attempts = max_attempts // 2
         period = 1  # second
         attempt = 0
         log_fn = self.log.debug

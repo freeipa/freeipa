@@ -373,11 +373,11 @@ class pwpolicy(LDAPObject):
         if not options.get('raw', False):
             if 'krbmaxpwdlife' in entry_attrs:
                 entry_attrs['krbmaxpwdlife'][0] = unicode(
-                    int(entry_attrs['krbmaxpwdlife'][0]) / 86400
+                    int(entry_attrs['krbmaxpwdlife'][0]) // 86400
                 )
             if 'krbminpwdlife' in entry_attrs:
                 entry_attrs['krbminpwdlife'][0] = unicode(
-                    int(entry_attrs['krbminpwdlife'][0]) / 3600
+                    int(entry_attrs['krbminpwdlife'][0]) // 3600
                 )
 
     def convert_time_on_input(self, entry_attrs):
