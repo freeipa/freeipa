@@ -270,11 +270,11 @@ class OpenDNSSECInstance(service.Service):
 
     def __setup_dnssec(self):
         # run once only
-        if self.get_state("KASP_DB_configured") and not self.kasp_db_file:
+        if self.get_state("kasp_db_configured") and not self.kasp_db_file:
             root_logger.debug("Already configured, skipping step")
             return
 
-        self.backup_state("KASP_DB_configured", True)
+        self.backup_state("kasp_db_configured", True)
 
         if not self.fstore.has_file(paths.OPENDNSSEC_KASP_DB):
             self.fstore.backup_file(paths.OPENDNSSEC_KASP_DB)
@@ -372,6 +372,8 @@ class OpenDNSSECInstance(service.Service):
             except ValueError, error:
                 root_logger.debug(error)
                 pass
+
+        self.restore_state("kasp_db_configured")  # just eat state
 
         # disabled by default, by ldap_enable()
         if enabled:
