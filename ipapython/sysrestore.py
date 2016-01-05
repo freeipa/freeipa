@@ -72,6 +72,7 @@ class FileStore:
         self.files = {}
 
         p = SafeConfigParser()
+        p.optionxform = str
         p.read(self._index)
 
         for section in p.sections():
@@ -93,6 +94,7 @@ class FileStore:
             return
 
         p = SafeConfigParser()
+        p.optionxform = str
 
         p.add_section('files')
         for (key, value) in self.files.items():
@@ -328,6 +330,7 @@ class StateFile:
         self.modules = {}
 
         p = SafeConfigParser()
+        p.optionxform = str
         p.read(self._path)
 
         for module in p.sections():
@@ -356,6 +359,7 @@ class StateFile:
             return
 
         p = SafeConfigParser()
+        p.optionxform = str
 
         for module in self.modules.keys():
             p.add_section(module)
