@@ -40,7 +40,7 @@ if six.PY3:
     unicode = str
 
 if six.PY2:
-    reload(sys)
+    reload(sys)                         # pylint: disable=reload-builtin
     sys.setdefaultencoding('utf-8')     # pylint: disable=no-member
 
 from ipalib import frontend
