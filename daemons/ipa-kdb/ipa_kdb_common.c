@@ -158,12 +158,24 @@ static bool ipadb_need_retry(struct ipadb_context *ipactx, int error)
     return false;
 }
 
+static int ipadb_check_connection(struct ipadb_context *ipactx)
+{
+    if (ipactx->lcontext == NULL) {
+        return ipadb_get_connection(ipactx);
+    }
+    return 0;
+}
+
 krb5_error_code ipadb_simple_search(struct ipadb_context *ipactx,
                                     char *basedn, int scope,
                                     char *filter, char **attrs,
                                     LDAPMessage **res)
 {
     int ret;
+
+    ret = ipadb_check_connection(ipactx);
+    if (ret != 0)
+        return ipadb_simple_ldap_to_kerr(ret);
 
     ret = ldap_search_ext_s(ipactx->lcontext, basedn, scope,
                             filter, attrs, 0, NULL, NULL,
@@ -187,6 +199,10 @@ krb5_error_code ipadb_simple_delete(struct ipadb_context *ipactx, char *dn)
 {
     int ret;
 
+    ret = ipadb_check_connection(ipactx);
+    if (ret != 0)
+        return ipadb_simple_ldap_to_kerr(ret);
+
     ret = ldap_delete_ext_s(ipactx->lcontext, dn, NULL, NULL);
 
     /* first test if we need to retry to connect */
@@ -204,6 +220,10 @@ krb5_error_code ipadb_simple_add(struct ipadb_context *ipactx,
 {
     int ret;
 
+    ret = ipadb_check_connection(ipactx);
+    if (ret != 0)
+        return ipadb_simple_ldap_to_kerr(ret);
+
     ret = ldap_add_ext_s(ipactx->lcontext, dn, mods, NULL, NULL);
 
     /* first test if we need to retry to connect */
@@ -220,6 +240,10 @@ krb5_error_code ipadb_simple_modify(struct ipadb_context *ipactx,
                                     char *dn, LDAPMod **mods)
 {
     int ret;
+
+    ret = ipadb_check_connection(ipactx);
+    if (ret != 0)
+        return ipadb_simple_ldap_to_kerr(ret);
 
     ret = ldap_modify_ext_s(ipactx->lcontext, dn, mods, NULL, NULL);
 
@@ -320,6 +344,11 @@ krb5_error_code ipadb_deref_search(struct ipadb_context *ipactx,
     retry = true;
     while (retry) {
         times--;
+
+        ret = ipadb_check_connection(ipactx);
+        if (ret != 0)
+            break;
+
         ret = ldap_search_ext_s(ipactx->lcontext, base_dn,
                                 scope, filter,
                                 entry_attrs, 0,
