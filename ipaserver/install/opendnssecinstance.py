@@ -9,7 +9,7 @@ import stat
 import shutil
 from subprocess import CalledProcessError
 
-import _ipap11helper
+from ipapython import p11helper as _ipap11helper
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipapython.ipa_log_manager import root_logger

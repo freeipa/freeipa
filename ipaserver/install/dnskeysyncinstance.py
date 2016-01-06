@@ -13,7 +13,7 @@ import stat
 
 import ldap
 
-import _ipap11helper
+from ipapython import p11helper as _ipap11helper
 from ipapython.dnsutil import DNSName
 from ipaserver.install import service
 from ipaserver.install import installutils
