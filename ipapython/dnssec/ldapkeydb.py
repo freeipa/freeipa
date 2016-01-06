@@ -18,9 +18,12 @@ from ipapython import ipautil
 from ipapython import ipa_log_manager
 from ipaplatform.paths import paths
 
-from ipapython.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
-                                     bool_attr_names, populate_pkcs11_metadata)
-import _ipap11helper
+from ipapython.dnssec.abshsm import (
+    attrs_name2id,
+    AbstractHSM,
+    bool_attr_names,
+    populate_pkcs11_metadata)
+from ipapython import p11helper as _ipap11helper
 import uuid
 
 def uri_escape(val):

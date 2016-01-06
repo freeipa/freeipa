@@ -73,7 +73,6 @@ freeipa2-dev-doc
 /ipapython/setup.py
 /ipapython/version.py
 !/ipapython/Makefile
-!/ipapython/ipap11helper/Makefile
 
 /ipaplatform/__init__.py
 /ipaplatform/setup.py

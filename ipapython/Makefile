@@ -1,8 +1,6 @@
 PYTHON ?= /usr/bin/python2
 PYTHONLIBDIR ?= $(shell $(PYTHON) -c "from distutils.sysconfig import *; print(get_python_lib())")
 
-SUBDIRS = ipap11helper
-
 all:
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \

@@ -15,7 +15,7 @@ import time
 
 from ipaplatform.paths import paths
 
-import _ipap11helper
+from ipapython import p11helper as _ipap11helper
 from ipapython.dnssec.abshsm import (attrs_name2id, attrs_id2name, AbstractHSM,
                                      keytype_id2name, keytype_name2id,
                                      ldap2p11helper_api_params)
@@ -67,7 +67,7 @@ class Key(collections.MutableMapping):
         return self.p11.set_attribute(self.handle, attrs_name2id[key], value)
 
     def __delitem__(self, key):
-        raise _ipap11helper.Exception('__delitem__ is not supported')
+        raise _ipap11helper.P11HelperException('__delitem__ is not supported')
 
     def __iter__(self):
         """generates list of ipa names of all attributes present in the object"""
