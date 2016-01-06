@@ -214,8 +214,8 @@ class update_uniqueness_plugins_to_new_syntax(Updater):
                 root_logger.error("Unable to migrate configuration of "
                                   "plugin %s (%s)",
                                   entry.dn, e)
-
-            update_list.append(update)
+            else:
+                update_list.append(update)
 
         return False, update_list
 
