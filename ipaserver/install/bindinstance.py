@@ -441,7 +441,8 @@ def check_reverse_zones(ip_addresses, reverse_zones, options, unattended,
                         search_reverse_zones=False):
     checked_reverse_zones = []
 
-    if not options.no_reverse and not reverse_zones:
+    if (not options.no_reverse and not reverse_zones
+            and not options.auto_reverse):
         if unattended:
             options.no_reverse = True
         else:
