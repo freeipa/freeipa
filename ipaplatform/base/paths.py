@@ -232,6 +232,7 @@ class BasePathNamespace(object):
     HTML_KRB5_INI = "/usr/share/ipa/html/krb5.ini"
     HTML_KRBREALM_CON = "/usr/share/ipa/html/krbrealm.con"
     NIS_ULDIF = "/usr/share/ipa/nis.uldif"
+    NIS_UPDATE_ULDIF = "/usr/share/ipa/nis-update.uldif"
     IPA_PLUGINS = "/usr/share/ipa/plugins"
     SCHEMA_COMPAT_ULDIF = "/usr/share/ipa/schema_compat.uldif"
     IPA_JS_PLUGINS_DIR = "/usr/share/ipa/ui/js/plugins"
