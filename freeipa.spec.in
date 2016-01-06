@@ -567,6 +567,7 @@ Requires: python-coverage
 Requires: python-polib
 Requires: python-pytest-multihost >= 0.5
 Requires: python-pytest-sourceorder
+Requires: ldns-utils
 
 Provides: %{alt_name}-tests%{?_isa} = %{version}
 Conflicts: %{alt_name}-tests
@@ -597,6 +598,7 @@ Requires: python3-coverage
 Requires: python3-polib
 Requires: python3-pytest-multihost >= 0.5
 Requires: python3-pytest-sourceorder
+Requires: ldns-utils
 
 %description -n python3-ipatests
 IPA is an integrated solution to provide centrally managed Identity (users,
