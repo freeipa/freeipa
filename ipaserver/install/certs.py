@@ -404,12 +404,11 @@ class CertDB(object):
         result = dogtag.https_request(
             self.host_name, 8443, "/ca/ee/ca/profileSubmitSSLClient",
             self.secdir, password, "ipaCert", **params)
-        http_status, http_reason_phrase, http_headers, http_body = result
+        http_status, http_headers, http_body = result
 
         if http_status != 200:
             raise CertificateOperationError(
-                error=_('Unable to communicate with CMS (%s)') %
-                    http_reason_phrase)
+                error=_('Unable to communicate with CMS (status %d)') % http_status)
 
         # The result is an XML blob. Pull the certificate out of that
         doc = xml.dom.minidom.parseString(http_body)
@@ -458,7 +457,7 @@ class CertDB(object):
         result = dogtag.https_request(
             self.host_name, 8443, "/ca/ee/ca/profileSubmitSSLClient",
             self.secdir, password, "ipaCert", **params)
-        http_status, http_reason_phrase, http_headers, http_body = result
+        http_status, http_headers, http_body = result
         if http_status != 200:
             raise RuntimeError("Unable to submit cert request")
 

@@ -1354,8 +1354,8 @@ class ra(rabase.rabase):
         """
         :param url: The URL to post to.
         :param kw: Keyword arguments to encode into POST body.
-        :return:   (http_status, http_reason_phrase, http_headers, http_body)
-                   as (integer, unicode, dict, str)
+        :return:   (http_status, http_headers, http_body)
+                   as (integer, dict, str)
 
         Perform an HTTP request.
         """
@@ -1365,8 +1365,8 @@ class ra(rabase.rabase):
         """
         :param url: The URL to post to.
         :param kw:  Keyword arguments to encode into POST body.
-        :return:   (http_status, http_reason_phrase, http_headers, http_body)
-                   as (integer, unicode, dict, str)
+        :return:   (http_status, http_headers, http_body)
+                   as (integer, dict, str)
 
         Perform an HTTPS request
         """
@@ -1426,7 +1426,7 @@ class ra(rabase.rabase):
         self.debug('%s.check_request_status()', self.fullname)
 
         # Call CMS
-        http_status, http_reason_phrase, http_headers, http_body = \
+        http_status, http_headers, http_body = \
             self._request('/ca/ee/ca/checkRequest',
                           self.env.ca_port,
                           requestId=request_id,
@@ -1435,7 +1435,7 @@ class ra(rabase.rabase):
         # Parse and handle errors
         if http_status != 200:
             self.raise_certificate_operation_error('check_request_status',
-                                                   detail=http_reason_phrase)
+                                                   detail=http_status)
 
         parse_result = self.get_parse_result_xml(http_body, parse_check_request_result_xml)
         request_status = parse_result['request_status']
@@ -1511,7 +1511,7 @@ class ra(rabase.rabase):
         serial_number = int(serial_number, 0)
 
         # Call CMS
-        http_status, http_reason_phrase, http_headers, http_body = \
+        http_status, http_headers, http_body = \
             self._sslget('/ca/agent/ca/displayBySerial',
                          self.env.ca_agent_port,
                          serialNumber=str(serial_number),
@@ -1521,7 +1521,7 @@ class ra(rabase.rabase):
         # Parse and handle errors
         if http_status != 200:
             self.raise_certificate_operation_error('get_certificate',
-                                                   detail=http_reason_phrase)
+                                                   detail=http_status)
 
         parse_result = self.get_parse_result_xml(http_body, parse_display_cert_xml)
         request_status = parse_result['request_status']
@@ -1579,7 +1579,7 @@ class ra(rabase.rabase):
         self.debug('%s.request_certificate()', self.fullname)
 
         # Call CMS
-        http_status, http_reason_phrase, http_headers, http_body = \
+        http_status, http_headers, http_body = \
             self._sslget('/ca/eeca/ca/profileSubmitSSLClient',
                          self.env.ca_ee_port,
                          profileId=profile_id,
@@ -1589,7 +1589,7 @@ class ra(rabase.rabase):
         # Parse and handle errors
         if http_status != 200:
             self.raise_certificate_operation_error('request_certificate',
-                                                   detail=http_reason_phrase)
+                                                   detail=http_status)
 
         parse_result = self.get_parse_result_xml(http_body, parse_profile_submit_result_xml)
         # Note different status return, it's not request_status, it's error_code
@@ -1658,7 +1658,7 @@ class ra(rabase.rabase):
         serial_number = int(serial_number, 0)
 
         # Call CMS
-        http_status, http_reason_phrase, http_headers, http_body = \
+        http_status, http_headers, http_body = \
             self._sslget('/ca/agent/ca/doRevoke',
                          self.env.ca_agent_port,
                          op='revoke',
@@ -1670,7 +1670,7 @@ class ra(rabase.rabase):
         # Parse and handle errors
         if http_status != 200:
             self.raise_certificate_operation_error('revoke_certificate',
-                                                   detail=http_reason_phrase)
+                                                   detail=http_status)
 
         parse_result = self.get_parse_result_xml(http_body, parse_revoke_cert_xml)
         request_status = parse_result['request_status']
@@ -1721,7 +1721,7 @@ class ra(rabase.rabase):
         serial_number = int(serial_number, 0)
 
         # Call CMS
-        http_status, http_reason_phrase, http_headers, http_body = \
+        http_status, http_headers, http_body = \
             self._sslget('/ca/agent/ca/doUnrevoke',
                          self.env.ca_agent_port,
                          serialNumber=str(serial_number),
@@ -1730,7 +1730,7 @@ class ra(rabase.rabase):
         # Parse and handle errors
         if http_status != 200:
             self.raise_certificate_operation_error('take_certificate_off_hold',
-                                                   detail=http_reason_phrase)
+                                                   detail=http_status)
 
 
         parse_result = self.get_parse_result_xml(http_body, parse_unrevoke_cert_xml)
@@ -2033,7 +2033,7 @@ class RestClient(Backend):
         """Log into the REST API"""
         if self.cookie is not None:
             return
-        status, status_text, resp_headers, resp_body = dogtag.https_request(
+        status, resp_headers, resp_body = dogtag.https_request(
             self.ca_host, self.override_port or self.env.ca_agent_port,
             '/ca/rest/account/login',
             self.sec_dir, self.password, self.ipa_certificate_nickname,
@@ -2059,8 +2059,8 @@ class RestClient(Backend):
         """
         :param url: The URL to post to.
         :param kw:  Keyword arguments to encode into POST body.
-        :return:   (http_status, http_reason_phrase, http_headers, http_body)
-                   as (integer, unicode, dict, str)
+        :return:   (http_status, http_headers, http_body)
+                   as (integer, dict, str)
 
         Perform an HTTPS request
         """
@@ -2074,7 +2074,7 @@ class RestClient(Backend):
         resource = os.path.join('/ca/rest', self.path, path)
 
         # perform main request
-        status, status_text, resp_headers, resp_body = dogtag.https_request(
+        status, resp_headers, resp_body = dogtag.https_request(
             self.ca_host, self.override_port or self.env.ca_agent_port,
             resource,
             self.sec_dir, self.password, self.ipa_certificate_nickname,
@@ -2083,10 +2083,10 @@ class RestClient(Backend):
         if status < 200 or status >= 300:
             explanation = self._parse_dogtag_error(resp_body) or ''
             raise errors.RemoteRetrieveError(
-                reason=_('Non-2xx response from CA REST API: %(status)d %(status_text)s. %(explanation)s')
-                % {'status': status, 'status_text': status_text, 'explanation': explanation}
+                reason=_('Non-2xx response from CA REST API: %(status)d. %(explanation)s')
+                % {'status': status, 'explanation': explanation}
             )
-        return (status, status_text, resp_headers, resp_body)
+        return (status, resp_headers, resp_body)
 
 
 class ra_certprofile(RestClient):
@@ -2111,7 +2111,7 @@ class ra_certprofile(RestClient):
         """
         Read the profile configuration from Dogtag
         """
-        status, status_text, resp_headers, resp_body = self._ssldo(
+        status, resp_headers, resp_body = self._ssldo(
             'GET', profile_id + '/raw')
         return resp_body
 
