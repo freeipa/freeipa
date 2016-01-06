@@ -230,14 +230,14 @@ def ca_status(ca_host=None, use_proxy=True):
         ca_port = 443
     else:
         ca_port = 8443
-    status, reason, headers, body = unauthenticated_https_request(
+    status, headers, body = unauthenticated_https_request(
         ca_host, ca_port, '/ca/admin/ca/getStatus')
     if status == 503:
         # Service temporarily unavailable
-        return reason
+        return status
     elif status != 200:
         raise errors.RemoteRetrieveError(
-            reason=_("Retrieving CA status failed: %s") % reason)
+            reason=_("Retrieving CA status failed with status %d") % status)
     return _parse_ca_status(body)
 
 
@@ -248,8 +248,8 @@ def https_request(host, port, url, secdir, password, nickname,
     :param url: The path (not complete URL!) to post to.
     :param body: The request body (encodes kw if None)
     :param kw:  Keyword arguments to encode into POST body.
-    :return:   (http_status, http_reason_phrase, http_headers, http_body)
-               as (integer, unicode, dict, str)
+    :return:   (http_status, http_headers, http_body)
+               as (integer, dict, str)
 
     Perform a client authenticated HTTPS request
     """
@@ -277,8 +277,8 @@ def http_request(host, port, url, **kw):
     """
     :param url: The path (not complete URL!) to post to.
     :param kw: Keyword arguments to encode into POST body.
-    :return:   (http_status, http_reason_phrase, http_headers, http_body)
-                as (integer, unicode, dict, str)
+    :return:   (http_status, http_headers, http_body)
+                as (integer, dict, str)
 
     Perform an HTTP request.
     """
@@ -291,8 +291,8 @@ def unauthenticated_https_request(host, port, url, **kw):
     """
     :param url: The path (not complete URL!) to post to.
     :param kw: Keyword arguments to encode into POST body.
-    :return:   (http_status, http_reason_phrase, http_headers, http_body)
-                as (integer, unicode, dict, str)
+    :return:   (http_status, http_headers, http_body)
+                as (integer, dict, str)
 
     Perform an unauthenticated HTTPS request.
     """
@@ -331,15 +331,14 @@ def _httplib_request(
         res = conn.getresponse()
 
         http_status = res.status
-        http_reason_phrase = unicode(res.reason, 'utf-8')
         http_headers = res.msg.dict
         http_body = res.read()
         conn.close()
     except Exception, e:
         raise NetworkError(uri=uri, error=str(e))
 
-    root_logger.debug('response status %d %s', http_status, http_reason_phrase)
+    root_logger.debug('response status %d',    http_status)
     root_logger.debug('response headers %s',   http_headers)
     root_logger.debug('response body %r',      http_body)
 
-    return http_status, http_reason_phrase, http_headers, http_body
+    return http_status, http_headers, http_body
