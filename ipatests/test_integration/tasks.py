@@ -37,7 +37,8 @@ from ipapython.ipa_log_manager import log_mgr
 from ipatests.test_integration import util
 from ipatests.test_integration.env_config import env_to_script
 from ipatests.test_integration.host import Host
-from ipalib.util import get_reverse_zone_default
+from ipalib import errors
+from ipalib.util import get_reverse_zone_default, verify_host_resolvable
 from ipalib.constants import DOMAIN_SUFFIX_NAME
 from ipalib.constants import DOMAIN_LEVEL_0
 
@@ -892,7 +893,13 @@ def add_a_records_for_hosts_in_master_domain(master):
     for host in master.domain.hosts:
         # We don't need to take care of the zone creation since it is master
         # domain
-        add_a_record(master, host)
+        try:
+            verify_host_resolvable(host.hostname, log)
+            log.debug("The host (%s) is resolvable." % host.domain.name)
+        except errors.DNSNotARecordError:
+            log.debug("Hostname (%s) does not have A/AAAA record. Adding new one.",
+                     master.hostname)
+            add_a_record(master, host)
 
 
 def add_a_record(master, host):
