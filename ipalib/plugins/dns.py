@@ -4266,14 +4266,12 @@ class dns_is_enabled(Command):
         dns_enabled = False
 
         try:
-            ent = ldap.find_entries(filter=self.filter, base_dn=self.base_dn)
-            if len(ent):
-                dns_enabled = True
-        except Exception as e:
-            pass
+            ldap.find_entries(filter=self.filter, base_dn=self.base_dn)
+            dns_enabled = True
+        except errors.EmptyResult:
+            dns_enabled = False
 
         return dict(result=dns_enabled, value=pkey_to_value(None, options))
-
 
 
 @register()
