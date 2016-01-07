@@ -934,9 +934,22 @@ def resolve_record(nameserver, query, rtype="SOA", retry=True, timeout=100):
         time.sleep(1)
 
 
+def ipa_backup(master):
+    result = master.run_command(["ipa-backup"])
+    path_re = re.compile("^Backed up to (?P<backup>.*)$", re.MULTILINE)
+    matched = path_re.search(result.stdout_text + result.stderr_text)
+    return matched.group("backup")
+
+
+def ipa_restore(master, backup_path):
+    master.run_command(["ipa-restore", "-U",
+                        "-p", master.config.dirman_password,
+                        backup_path])
+
+
 def install_kra(host, domain_level=None, first_instance=False, raiseonerr=True):
-    if not domain_level:
-       domain_level = domainlevel(host)
+    if domain_level is None:
+        domain_level = domainlevel(host)
     command = ["ipa-kra-install", "-U"]
     if domain_level == DOMAIN_LEVEL_0 and not first_instance:
         replica_file = get_replica_filename(host)
@@ -945,8 +958,8 @@ def install_kra(host, domain_level=None, first_instance=False, raiseonerr=True):
 
 
 def install_ca(host, domain_level=None, first_instance=False, raiseonerr=True):
-    if not domain_level:
-       domain_level = domainlevel(host)
+    if domain_level is None:
+        domain_level = domainlevel(host)
     command = ["ipa-ca-install", "-U", "-p", host.config.dirman_password,
                "-P", 'admin', "-w", host.config.admin_password]
     if domain_level == DOMAIN_LEVEL_0 and not first_instance:
@@ -962,3 +975,10 @@ def install_dns(host, raiseonerr=True):
         "-U",
     ]
     return host.run_command(args, raiseonerr=raiseonerr)
+
+
+def uninstall_replica(master, replica):
+    master.run_command(["ipa-replica-manage", "del", "--force",
+                        "-p", master.config.dirman_password,
+                        replica.hostname], raiseonerr=False)
+    uninstall_master(replica)
