@@ -4,6 +4,7 @@
 
 from __future__ import print_function
 
+import gssapi
 import os
 import pickle
 import pwd
@@ -27,6 +28,7 @@ from ipaplatform import services
 from ipaplatform.paths import paths
 from ipaplatform.tasks import tasks
 from ipalib import api, create_api, constants, errors, x509
+from ipalib.krb_utils import KRB5KDC_ERR_C_PRINCIPAL_UNKNOWN
 from ipalib.constants import CACERT
 from ipalib.util import validate_domain_name
 import ipaclient.ntpconf
@@ -291,20 +293,50 @@ def common_cleanup(func):
 
 
 def check_master_deleted(api, masters, interactive):
+    """
+    Determine whether the IPA master was removed from the domain level 1
+    topology. The function first tries to locally lookup the master host entry
+    and fetches host prinicipal from DS. Then we attempt to acquire host TGT,
+    contact the other masters one at a time and query for the existence of the
+    host entry for our IPA master.
+
+    :param api: instance of API object
+    :param masters: list of masters to contact
+    :param interactive: whether run in interactive mode. The user will be
+        prompted for action if the removal status cannot be determined
+    :return: True if the master is not part of the topology anymore as
+        determined by the following conditions:
+            * the host entry does not exist in local DS
+            * request for host TGT fails due to missing/invalid/revoked creds
+            * GSSAPI connection to remote DS fails on invalid authentication
+            * if we are the only master
+        False otherwise
+    """
     try:
         host_princ = api.Command.host_show(
             api.env.host)['result']['krbprincipalname'][0]
-    except Exception as e:
-        root_logger.warning(
-            "Failed to get host principal name: {0}".format(e)
+    except errors.NotFound:
+        root_logger.debug(
+            "Host entry for {} already deleted".format(api.env.host)
         )
+        return True
+    except Exception as e:
+        root_logger.warning("Failed to get host principal name: {0}".format(e))
         return False
 
     ccache_path = os.path.join('/', 'tmp', 'krb5cc_host')
     with ipautil.private_ccache(ccache_path):
+        # attempt to get host TGT. This can fail if the master contacts remote
+        # KDCs on other masters that have already cleared our master's
+        # principal. In that case return True
         try:
             ipautil.kinit_keytab(host_princ, paths.KRB5_KEYTAB, ccache_path)
-        except Exception as e:
+        except gssapi.exceptions.GSSError as e:
+            if e.min_code == KRB5KDC_ERR_C_PRINCIPAL_UNKNOWN:
+                root_logger.debug("Host principal not found, assuming that "
+                                  "master is removed from topology")
+                return True
+
             root_logger.error(
                 "Kerberos authentication as '{0}' failed: {1}".format(
                     host_princ, e
