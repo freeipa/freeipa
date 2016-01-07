@@ -639,6 +639,16 @@ def install_check(installer):
             except RuntimeError as e:
                 print(str(e))
                 sys.exit(1)
+
+        if options.setup_dns:
+            dns.install_check(False, remote_api, True, options,
+                              config.host_name)
+            config.ips = dns.ip_addresses
+        else:
+            config.ips = installutils.get_server_ip_address(
+                config.host_name, not installer.interactive, False,
+                options.ip_addresses)
+
     except errors.ACIError:
         sys.exit("\nThe password provided is incorrect for LDAP server "
                  "%s" % config.master_host_name)
@@ -650,14 +660,6 @@ def install_check(installer):
             replman.conn.unbind()
         if conn.isconnected():
             conn.disconnect()
-
-    if options.setup_dns:
-        dns.install_check(False, remote_api, True, options, config.host_name)
-        config.ips = dns.ip_addresses
-    else:
-        config.ips = installutils.get_server_ip_address(
-            config.host_name, not installer.interactive, False,
-            options.ip_addresses)
 
     # installer needs to update hosts file when DNS subsystem will be
     # installed or custom addresses are used
@@ -1162,6 +1164,15 @@ def promote_check(installer):
             except RuntimeError as e:
                 print(str(e))
                 sys.exit(1)
+
+        if options.setup_dns:
+            dns.install_check(False, remote_api, True, options,
+                              config.host_name)
+        else:
+            config.ips = installutils.get_server_ip_address(
+                config.host_name, not installer.interactive,
+                False, options.ip_addresses)
+
     except errors.ACIError:
         sys.exit("\nInsufficient privileges to promote the server.")
     except errors.LDAPError:
@@ -1172,13 +1183,6 @@ def promote_check(installer):
             replman.conn.unbind()
         if conn.isconnected():
             conn.disconnect()
-
-    if options.setup_dns:
-        dns.install_check(False, remote_api, True, options, config.host_name)
-    else:
-        config.ips = installutils.get_server_ip_address(
-            config.host_name, not installer.interactive,
-            False, options.ip_addresses)
 
     # check connection
     if not options.skip_conncheck:
