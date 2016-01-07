@@ -407,6 +407,7 @@ IPA.dialog = function(spec) {
 
         that.title_close_button = $('<button/>', {
             'class': 'close',
+            'type': 'button',
             'aria-hidden': 'true',
             click: function() {
                 that.close();
