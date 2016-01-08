@@ -463,7 +463,7 @@ def check_reverse_zones(ip_addresses, reverse_zones, options, unattended,
                 ipautil.check_zone_overlap(rz)
             except ValueError as e:
                 msg = "Reverse zone %s will not be used: %s" % (rz, e)
-                if options.unattended:
+                if unattended:
                     sys.exit(msg)
                 else:
                     root_logger.warning(msg)
