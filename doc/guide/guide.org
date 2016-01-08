@@ -752,9 +752,9 @@ def run(api):
     except KeyboardInterrupt:
         print ''
         api.log.info('operation aborted')
-    except PublicError, e:
+    except PublicError as e:
         error = e
-    except Exception, e:
+    except Exception as e:
         api.log.exception('%s: %s', e.__class__.__name__, str(e))
         error = InternalError()
     if error is not None:

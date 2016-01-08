@@ -139,7 +139,7 @@ class BaseServerCA(common.Installable, core.Group, core.Composite):
             for rdn in dn:
                 if rdn.attr.lower() not in VALID_SUBJECT_ATTRS:
                     raise ValueError("invalid attribute: \"%s\"" % rdn.attr)
-        except ValueError, e:
+        except ValueError as e:
             raise ValueError("invalid subject base format: %s" % e)
 
     ca_signing_algorithm = Knob(
@@ -244,7 +244,7 @@ class BaseServerDNS(common.Installable, core.Group, core.Composite):
                 encoding = 'utf-8'
             value = value.decode(encoding)
             bindinstance.validate_zonemgr_str(value)
-        except ValueError, e:
+        except ValueError as e:
             # FIXME we can do this in better way
             # https://fedorahosted.org/freeipa/ticket/4804
             # decode to proper stderr encoding
