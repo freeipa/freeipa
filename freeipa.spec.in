@@ -214,7 +214,7 @@ Requires: python-pyasn1
 Requires: dbus-python
 Requires: python-dns >= 1.11.1
 Requires: python-kdcproxy >= 0.3
-Requires: rpm-python
+Requires: rpm-libs
 
 %description -n python2-ipaserver
 IPA is an integrated solution to provide centrally managed Identity (users,
