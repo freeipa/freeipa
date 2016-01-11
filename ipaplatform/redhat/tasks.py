@@ -30,13 +30,14 @@ import stat
 import socket
 import sys
 import base64
+from cffi import FFI
+from ctypes.util import find_library
 from functools import total_ordering
 
 from subprocess import CalledProcessError
 from nss.error import NSPRError
 from pyasn1.error import PyAsn1Error
 from six.moves import urllib
-import rpm
 
 from ipapython.ipa_log_manager import root_logger, log_mgr
 from ipapython import ipautil
@@ -48,35 +49,14 @@ from ipaplatform.paths import paths
 from ipaplatform.redhat.authconfig import RedHatAuthConfig
 from ipaplatform.base.tasks import BaseTaskNamespace
 
+_ffi = FFI()
+_ffi.cdef("""
+int rpmvercmp (const char *a, const char *b);
+""")
 
-# copied from rpmUtils/miscutils.py
-def stringToVersion(verstring):
-    if verstring in [None, '']:
-        return (None, None, None)
-    i = verstring.find(':')
-    if i != -1:
-        try:
-            epoch = str(long(verstring[:i]))
-        except ValueError:
-            # look, garbage in the epoch field, how fun, kill it
-            epoch = '0' # this is our fallback, deal
-    else:
-        epoch = '0'
-    j = verstring.find('-')
-    if j != -1:
-        if verstring[i + 1:j] == '':
-            version = None
-        else:
-            version = verstring[i + 1:j]
-        release = verstring[j + 1:]
-    else:
-        if verstring[i + 1:] == '':
-            version = None
-        else:
-            version = verstring[i + 1:]
-        release = None
-    return (epoch, version, release)
-
+# use ctypes loader to get correct librpm.so library version according to
+# https://cffi.readthedocs.org/en/latest/overview.html#id8
+_librpm = _ffi.dlopen(find_library("rpm"))
 
 log = log_mgr.get_logger(__name__)
 
@@ -101,15 +81,15 @@ def selinux_enabled():
 class IPAVersion(object):
 
     def __init__(self, version):
-        self.version_tuple = stringToVersion(version)
+        self.version = version
 
     def __eq__(self, other):
         assert isinstance(other, IPAVersion)
-        return rpm.labelCompare(self.version_tuple, other.version_tuple) == 0
+        return _librpm.rpmvercmp(self.version, other.version) == 0
 
     def __lt__(self, other):
         assert isinstance(other, IPAVersion)
-        return rpm.labelCompare(self.version_tuple, other.version_tuple) == -1
+        return _librpm.rpmvercmp(self.version, other.version) < 0
 
 
 class RedHatTaskNamespace(BaseTaskNamespace):
