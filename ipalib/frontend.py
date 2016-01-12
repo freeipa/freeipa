@@ -26,7 +26,6 @@ from distutils import version
 
 from ipapython.version import API_VERSION
 from ipapython.ipa_log_manager import root_logger
-from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from base import NameSpace
 from plugable import Plugin
 from parameters import create_param, Param, Str, Flag, Password
@@ -425,7 +424,7 @@ class Command(HasParam):
         if version_provided:
             self.verify_client_version(unicode(options['version']))
         elif self.api.env.skip_version_check and not self.api.env.in_server:
-            options['version'] = VERSION_WITHOUT_CAPABILITIES
+            options['version'] = u'2.0'
         else:
             options['version'] = API_VERSION
         params = self.args_options_2_params(*args, **options)
