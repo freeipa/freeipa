@@ -6,6 +6,9 @@ import random
 import ctypes.util
 
 import six
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import dsa, ec, rsa
 from cffi import FFI
 
 if six.PY3:
@@ -15,71 +18,6 @@ if six.PY3:
 _ffi = FFI()
 
 _ffi.cdef('''
-/* stdlib.h */
-
-void free(void *ptr);
-
-
-/* openssl/ossl_typ.h */
-
-typedef ... BIGNUM;
-
-typedef ... EVP_PKEY;
-
-typedef struct rsa_st RSA;
-typedef ... RSA_METHOD;
-
-typedef ... ENGINE;
-
-typedef ... CRYPTO_EX_DATA;
-
-
-/* openssl/x509.h */
-
-int i2d_PUBKEY(EVP_PKEY *a, unsigned char **pp);
-EVP_PKEY *d2i_PUBKEY(EVP_PKEY **a, const unsigned char **pp, long length);
-
-
-/* openssl/evp.h */
-
-int EVP_PKEY_set1_RSA(EVP_PKEY *pkey, struct rsa_st *key);
-struct rsa_st *EVP_PKEY_get1_RSA(EVP_PKEY *pkey);
-
-EVP_PKEY *EVP_PKEY_new(void);
-void EVP_PKEY_free(EVP_PKEY *pkey);
-
-
-/* openssl/bn.h */
-
-int BN_num_bits(const BIGNUM *a);
-BIGNUM *BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret);
-int BN_bn2bin(const BIGNUM *a, unsigned char *to);
-
-void BN_free(BIGNUM *a);
-
-
-/* openssl/rsa.h */
-
-struct rsa_st {
-    /*
-     * The first parameter is used to pickup errors where this is passed
-     * instead of aEVP_PKEY, it is set to 0
-     */
-    int pad;
-    long version;
-    const RSA_METHOD *meth;
-    /* functional reference if 'meth' is ENGINE-provided */
-    ENGINE *engine;
-    BIGNUM *n;
-    BIGNUM *e;
-    /* ...; */
-};
-
-RSA *RSA_new(void);
-
-void RSA_free(RSA *r);
-
-
 /* p11-kit/pkcs11.h */
 
 typedef unsigned long CK_FLAGS;
@@ -366,8 +304,6 @@ struct ck_rsa_pkcs_oaep_params {
 typedef struct ck_rsa_pkcs_oaep_params CK_RSA_PKCS_OAEP_PARAMS;
 ''')
 
-_libc = _ffi.dlopen(None)
-_libcrypto = _ffi.dlopen(ctypes.util.find_library('crypto'))
 _libp11_kit = _ffi.dlopen(ctypes.util.find_library('p11-kit'))
 
 
@@ -376,8 +312,6 @@ _libp11_kit = _ffi.dlopen(ctypes.util.find_library('p11-kit'))
 NULL = _ffi.NULL
 
 unsigned_char = _ffi.typeof('unsigned char')
-unsigned_char_ptr = _ffi.typeof('unsigned char *')
-unsigned_int = _ffi.typeof('unsigned int')
 unsigned_long = _ffi.typeof('unsigned long')
 
 sizeof = _ffi.sizeof
@@ -389,47 +323,6 @@ def new_ptr(ctype, *args):
 
 def new_array(ctype, *args):
     return _ffi.new(_ffi.getctype(ctype, '[]'), *args)
-
-
-# stdlib.h
-
-free = _libc.free
-
-
-# openssl/x509.h
-
-i2d_PUBKEY = _libcrypto.i2d_PUBKEY
-d2i_PUBKEY = _libcrypto.i2d_PUBKEY
-
-
-# openssl/evp.h
-
-EVP_PKEY_RSA = 6
-EVP_PKEY_DSA = 116
-EVP_PKEY_EC = 408
-
-EVP_PKEY_set1_RSA = _libcrypto.EVP_PKEY_set1_RSA
-EVP_PKEY_get1_RSA = _libcrypto.EVP_PKEY_get1_RSA
-EVP_PKEY_new = _libcrypto.EVP_PKEY_new
-EVP_PKEY_free = _libcrypto.EVP_PKEY_free
-
-
-# openssl/bn.h
-
-def BN_num_bytes(a):
-    return (_libcrypto.BN_num_bits(a) + 7) // 8
-
-BN_bin2bn = _libcrypto.BN_bin2bn
-BN_bn2bin = _libcrypto.BN_bn2bin
-
-BN_free = _libcrypto.BN_free
-
-
-# openssl/rsa.h
-
-RSA_new = _libcrypto.RSA_new
-
-RSA_free = _libcrypto.RSA_free
 
 
 # p11-kit/pkcs11.h
@@ -654,6 +547,17 @@ def char_array_to_unicode(array, l):
     Convert utf-8 encoded char array to unicode object
     """
     return _ffi.buffer(array, l)[:].decode('utf-8')
+
+
+def int_to_bytes(value):
+    try:
+        return '{0:x}'.format(value).decode('hex')
+    except TypeError:
+        return '0{0:x}'.format(value).decode('hex')
+
+
+def bytes_to_int(value):
+    return int(value.encode('hex'), 16)
 
 
 def check_return_value(rv, message):
@@ -1279,11 +1183,6 @@ class P11_Helper(object):
         """
         export RSA public key
         """
-        pp_ptr = new_ptr(unsigned_char_ptr, NULL)
-        pkey = NULL
-        e = NULL
-        n = NULL
-        rsa = NULL
         class_ptr = new_ptr(CK_OBJECT_CLASS, CKO_PUBLIC_KEY)
         key_type_ptr = new_ptr(CK_KEY_TYPE, CKK_RSA)
 
@@ -1320,46 +1219,37 @@ class P11_Helper(object):
             raise Error("export_RSA_public_key: required RSA key type")
 
         try:
-            rsa = RSA_new()
-            pkey = EVP_PKEY_new()
-            n = BN_bin2bn(modulus,
-                          obj_template[0].ulValueLen * sizeof(CK_BYTE), NULL)
-            if n == NULL:
-                raise Error("export_RSA_public_key: internal error: unable to "
-                            "convert modulus")
+            n = bytes_to_int(string_to_pybytes_or_none(
+                modulus, obj_template[0].ulValueLen))
+        except Exception:
+            raise Error("export_RSA_public_key: internal error: unable to "
+                        "convert modulus")
 
-            e = BN_bin2bn(exponent,
-                          obj_template[1].ulValueLen * sizeof(CK_BYTE), NULL)
-            if e == NULL:
-                raise Error("export_RSA_public_key: internal error: unable to "
-                            "convert exponent")
+        try:
+            e = bytes_to_int(string_to_pybytes_or_none(
+                exponent, obj_template[1].ulValueLen))
+        except Exception:
+            raise Error("export_RSA_public_key: internal error: unable to "
+                        "convert exponent")
 
-            # set modulus and exponent
-            rsa.n = n
-            rsa.e = e
+        # set modulus and exponent
+        rsa_ = rsa.RSAPublicNumbers(e, n)
 
-            if EVP_PKEY_set1_RSA(pkey, rsa) == 0:
-                raise Error("export_RSA_public_key: internal error: "
-                            "EVP_PKEY_set1_RSA failed")
+        try:
+            pkey = rsa_.public_key(default_backend())
+        except Exception:
+            raise Error("export_RSA_public_key: internal error: "
+                        "EVP_PKEY_set1_RSA failed")
 
-            pp_len = i2d_PUBKEY(pkey, pp_ptr)
-            ret = string_to_pybytes_or_none(pp_ptr[0], pp_len)
+        try:
+            ret = pkey.public_bytes(
+                format=serialization.PublicFormat.SubjectPublicKeyInfo,
+                encoding=serialization.Encoding.DER,
+            )
+        except Exception:
+            ret = None
 
-            return ret
-        finally:
-            if rsa != NULL:
-                # this frees also 'n' and 'e'
-                RSA_free(rsa)
-            else:
-                if n != NULL:
-                    BN_free(n)
-                if e != NULL:
-                    BN_free(e)
-
-            if pkey != NULL:
-                EVP_PKEY_free(pkey)
-            if pp_ptr[0] != NULL:
-                free(pp_ptr[0])
+        return ret
 
     def export_public_key(self, key_handle):
         """
@@ -1400,57 +1290,50 @@ class P11_Helper(object):
         class_ptr = new_ptr(CK_OBJECT_CLASS, CKO_PUBLIC_KEY)
         keyType_ptr = new_ptr(CK_KEY_TYPE, CKK_RSA)
         cka_token = true_ptr
-        rsa = NULL
 
-        if pkey.type != EVP_PKEY_RSA:
+        if not isinstance(pkey, rsa.RSAPublicKey):
             raise Error("Required RSA public key")
 
-        try:
-            rsa = EVP_PKEY_get1_RSA(pkey)
-            if rsa == NULL:
-                raise Error("import_RSA_public_key: EVP_PKEY_get1_RSA error")
+        rsa_ = pkey.public_numbers()
 
-            # convert BIGNUM to binary array
-            modulus = new_array(CK_BYTE, BN_num_bytes(rsa.n))
-            modulus_len = BN_bn2bin(rsa.n, modulus)
-            if modulus_len == 0:
-                raise Error("import_RSA_public_key: BN_bn2bin modulus error")
+        # convert BIGNUM to binary array
+        modulus = new_array(CK_BYTE, int_to_bytes(rsa_.n))
+        modulus_len = sizeof(modulus) - 1
+        if modulus_len == 0:
+            raise Error("import_RSA_public_key: BN_bn2bin modulus error")
 
-            exponent = new_array(CK_BYTE, BN_num_bytes(rsa.e))
-            exponent_len = BN_bn2bin(rsa.e, exponent)
-            if exponent_len == 0:
-                raise Error("import_RSA_public_key: BN_bn2bin exponent error")
+        exponent = new_array(CK_BYTE, int_to_bytes(rsa_.e))
+        exponent_len = sizeof(exponent) - 1
+        if exponent_len == 0:
+            raise Error("import_RSA_public_key: BN_bn2bin exponent error")
 
-            template = new_array(CK_ATTRIBUTE, (
-                (CKA_ID, id, id_length),
-                (CKA_CLASS, class_ptr, sizeof(CK_OBJECT_CLASS)),
-                (CKA_KEY_TYPE, keyType_ptr, sizeof(CK_KEY_TYPE)),
-                (CKA_TOKEN, cka_token, sizeof(CK_BBOOL)),
-                (CKA_LABEL, label, label_length),
-                (CKA_MODULUS, modulus, modulus_len),
-                (CKA_PUBLIC_EXPONENT, exponent, exponent_len),
-                # TODO Softhsm doesn't support it
-                # (CKA_COPYABLE, cka_copyable, sizeof(CK_BBOOL)),
-                (CKA_DERIVE, cka_derive, sizeof(CK_BBOOL)),
-                (CKA_ENCRYPT, cka_encrypt, sizeof(CK_BBOOL)),
-                (CKA_MODIFIABLE, cka_modifiable, sizeof(CK_BBOOL)),
-                (CKA_PRIVATE, cka_private, sizeof(CK_BBOOL)),
-                (CKA_TRUSTED, cka_trusted, sizeof(CK_BBOOL)),
-                (CKA_VERIFY, cka_verify, sizeof(CK_BBOOL)),
-                (CKA_VERIFY_RECOVER, cka_verify_recover, sizeof(CK_BBOOL)),
-                (CKA_WRAP, cka_wrap, sizeof(CK_BBOOL)),
-            ))
-            object_ptr = new_ptr(CK_OBJECT_HANDLE)
+        template = new_array(CK_ATTRIBUTE, (
+            (CKA_ID, id, id_length),
+            (CKA_CLASS, class_ptr, sizeof(CK_OBJECT_CLASS)),
+            (CKA_KEY_TYPE, keyType_ptr, sizeof(CK_KEY_TYPE)),
+            (CKA_TOKEN, cka_token, sizeof(CK_BBOOL)),
+            (CKA_LABEL, label, label_length),
+            (CKA_MODULUS, modulus, modulus_len),
+            (CKA_PUBLIC_EXPONENT, exponent, exponent_len),
+            # TODO Softhsm doesn't support it
+            # (CKA_COPYABLE, cka_copyable, sizeof(CK_BBOOL)),
+            (CKA_DERIVE, cka_derive, sizeof(CK_BBOOL)),
+            (CKA_ENCRYPT, cka_encrypt, sizeof(CK_BBOOL)),
+            (CKA_MODIFIABLE, cka_modifiable, sizeof(CK_BBOOL)),
+            (CKA_PRIVATE, cka_private, sizeof(CK_BBOOL)),
+            (CKA_TRUSTED, cka_trusted, sizeof(CK_BBOOL)),
+            (CKA_VERIFY, cka_verify, sizeof(CK_BBOOL)),
+            (CKA_VERIFY_RECOVER, cka_verify_recover, sizeof(CK_BBOOL)),
+            (CKA_WRAP, cka_wrap, sizeof(CK_BBOOL)),
+        ))
+        object_ptr = new_ptr(CK_OBJECT_HANDLE)
 
-            rv = self.p11.C_CreateObject(self.session, template,
-                                         (sizeof(template) //
-                                          sizeof(CK_ATTRIBUTE)), object_ptr)
-            check_return_value(rv, "create public key object")
+        rv = self.p11.C_CreateObject(self.session, template,
+                                     (sizeof(template) //
+                                      sizeof(CK_ATTRIBUTE)), object_ptr)
+        check_return_value(rv, "create public key object")
 
-            return object_ptr[0]
-        finally:
-            if rsa != NULL:
-                RSA_free(rsa)
+        return object_ptr[0]
 
     def import_public_key(self, label, id, data, cka_copyable=True,
                           cka_derive=False, cka_encrypt=False,
@@ -1467,11 +1350,7 @@ class P11_Helper(object):
 
         label_unicode = label
         id_ = new_array(CK_BYTE, id)
-        data_ = new_array(CK_BYTE, data)
-        data_ptr = new_ptr(CK_BYTE_PTR, data_)
         id_length = len(id)
-        data_length = len(data)
-        pkey = NULL
 
         attrs_pub = (
             cka_copyable,
@@ -1495,34 +1374,31 @@ class P11_Helper(object):
          cka_private_ptr, cka_trusted_ptr, cka_verify_ptr,
          cka_verify_recover_ptr, cka_wrap_ptr,) = convert_py2bool(attrs_pub)
 
+        # decode from ASN1 DER
         try:
-            # decode from ASN1 DER
-            pkey = d2i_PUBKEY(NULL, data_ptr, data_length)
-            if pkey == NULL:
-                raise Error("import_public_key: d2i_PUBKEY error")
-            if pkey.type == EVP_PKEY_RSA:
-                ret = self._import_RSA_public_key(label, label_length, id_,
-                                                  id_length, pkey,
-                                                  cka_copyable_ptr,
-                                                  cka_derive_ptr,
-                                                  cka_encrypt_ptr,
-                                                  cka_modifiable_ptr,
-                                                  cka_private_ptr,
-                                                  cka_trusted_ptr,
-                                                  cka_verify_ptr,
-                                                  cka_verify_recover_ptr,
-                                                  cka_wrap_ptr)
-            elif pkey.type == EVP_PKEY_DSA:
-                raise Error("DSA is not supported")
-            elif pkey.type == EVP_PKEY_EC:
-                raise Error("EC is not supported")
-            else:
-                raise Error("Unsupported key type")
+            pkey = serialization.load_der_public_key(data, default_backend())
+        except Exception:
+            raise Error("import_public_key: d2i_PUBKEY error")
+        if isinstance(pkey, rsa.RSAPublicKey):
+            ret = self._import_RSA_public_key(label, label_length, id_,
+                                              id_length, pkey,
+                                              cka_copyable_ptr,
+                                              cka_derive_ptr,
+                                              cka_encrypt_ptr,
+                                              cka_modifiable_ptr,
+                                              cka_private_ptr,
+                                              cka_trusted_ptr,
+                                              cka_verify_ptr,
+                                              cka_verify_recover_ptr,
+                                              cka_wrap_ptr)
+        elif isinstance(pkey, dsa.DSAPublicKey):
+            raise Error("DSA is not supported")
+        elif isinstance(pkey, ec.EllipticCurvePublicKey):
+            raise Error("EC is not supported")
+        else:
+            raise Error("Unsupported key type")
 
-            return ret
-        finally:
-            if pkey != NULL:
-                EVP_PKEY_free(pkey)
+        return ret
 
     def export_wrapped_key(self, key, wrapping_key, wrapping_mech):
         """
