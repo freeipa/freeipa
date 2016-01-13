@@ -1078,8 +1078,18 @@ def uninstall_check(installer):
         msg = ("\nWARNING: Failed to connect to Directory Server to find "
                "information about replication agreements. Uninstallation "
                "will continue despite the possible existing replication "
-               "agreements.\n\n")
+               "agreements.\n\n"
+               "If this server is the last instance of CA, KRA, or DNSSEC "
+               "master, uninstallation may result in data loss.\n\n"
+        )
         print(textwrap.fill(msg, width=80, replace_whitespace=False))
+
+        if (installer.interactive and not user_input(
+                "Are you sure you want to continue with the uninstall "
+                "procedure?", False)):
+            print("")
+            print("Aborting uninstall operation.")
+            sys.exit(1)
     else:
         dns.uninstall_check(options)
 
