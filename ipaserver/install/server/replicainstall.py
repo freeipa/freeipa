@@ -448,6 +448,49 @@ def promote_sssd(host_name):
             root_logger.warning("SSSD service restart was unsuccessful.")
 
 
+def promote_openldap_conf(hostname, master):
+    """
+    Reset the URI directive in openldap-client configuration file to point to
+    newly promoted replica. If this directive was set by third party, then
+    replace the added comment with the one pointing to replica
+
+    :param hostname: replica FQDN
+    :param master: FQDN of remote master
+    """
+
+    ldap_conf = paths.OPENLDAP_LDAP_CONF
+
+    ldap_change_conf = ipaclient.ipachangeconf.IPAChangeConf(
+        "IPA replica installer")
+    ldap_change_conf.setOptionAssignment((" ", "\t"))
+
+    new_opts = []
+
+    with open(ldap_conf, 'r') as f:
+        old_opts = ldap_change_conf.parse(f)
+
+        for opt in old_opts:
+            if opt['type'] == 'comment' and master in opt['value']:
+                continue
+            elif (opt['type'] == 'option' and opt['name'] == 'URI' and
+                    master in opt['value']):
+                continue
+            new_opts.append(opt)
+
+    change_opts = [
+        {'action': 'addifnotset',
+         'name': 'URI',
+         'type': 'option',
+         'value': 'ldaps://' + hostname}
+    ]
+
+    try:
+        ldap_change_conf.newConf(ldap_conf, new_opts)
+        ldap_change_conf.changeConf(ldap_conf, change_opts)
+    except Exception as e:
+        root_logger.info("Failed to update {}: {}".format(ldap_conf, e))
+
+
 @common_cleanup
 def install_check(installer):
     options = installer
@@ -1417,6 +1460,7 @@ def promote(installer):
     custodia.import_dm_password(config.master_host_name)
 
     promote_sssd(config.host_name)
+    promote_openldap_conf(config.host_name, config.master_host_name)
 
     # Switch API so that it uses the new servr configuration
     server_api = create_api(mode=None)
