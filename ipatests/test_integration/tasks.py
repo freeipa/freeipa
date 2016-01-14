@@ -88,11 +88,12 @@ def allow_sync_ptr(host):
                      raiseonerr=False)
 
 
-def apply_common_fixes(host):
+def apply_common_fixes(host, fix_resolv=True):
     fix_etc_hosts(host)
     fix_hostname(host)
     modify_nm_resolv_conf_settings(host)
-    fix_resolv_conf(host)
+    if fix_resolv:
+        fix_resolv_conf(host)
 
 
 def backup_file(host, filename):
@@ -264,7 +265,7 @@ def install_master(host, setup_dns=True, setup_kra=False):
     host.collect_log(paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
     host.collect_log(paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
 
-    apply_common_fixes(host)
+    apply_common_fixes(host, fix_resolv=False)
     fix_apache_semaphores(host)
 
     args = [
