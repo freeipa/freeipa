@@ -295,6 +295,9 @@ def main():
     else:
         install(safe_options, options, filename)
 
+    # execute ipactl to refresh services status
+    ipautil.run(['ipactl', 'start', '--ignore-service-failures'],
+                raiseonerr=False)
 
 fail_message = '''
 Your system may be partly configured.
