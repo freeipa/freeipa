@@ -957,7 +957,7 @@ def ipa_restore(master, backup_path):
 def install_kra(host, domain_level=None, first_instance=False, raiseonerr=True):
     if domain_level is None:
         domain_level = domainlevel(host)
-    command = ["ipa-kra-install", "-U"]
+    command = ["ipa-kra-install", "-U", "-p", host.config.dirman_password]
     if domain_level == DOMAIN_LEVEL_0 and not first_instance:
         replica_file = get_replica_filename(host)
         command.append(replica_file)
