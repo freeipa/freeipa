@@ -149,6 +149,10 @@ def main():
     service.print_msg("Restarting the web server")
     http.restart()
 
+    # execute ipactl to refresh services status
+    ipautil.run(['ipactl', 'start', '--ignore-service-failures'],
+                raiseonerr=False)
+
     return 0
 
 if __name__ == '__main__':
