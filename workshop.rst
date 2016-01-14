@@ -98,7 +98,7 @@ If you intend to use the ``libvirt`` provider (recommended), install
 
 
 Otherwise, you will use VirtualBox and the ``virtualbox`` provider.
-VirtualBox needs to build kernel modules, and that means that you must 
+VirtualBox needs to build kernel modules, and that means that you must
 first install kernel headers and Dynamic Kernel Module Support::
 
   $ sudo dnf install -y vagrant kernel-devel dkms
@@ -360,7 +360,7 @@ more!
 Module 2: Client enrolment
 ==========================
 
-In this module, you will enroll a *host* as a client of your FreeIPA
+In this module, you will enrol a *host* as a client of your FreeIPA
 domain.  This means that *users* in your FreeIPA realm (or Active
 Directory realms for which there is a trust with FreeIPA) can log
 into the client machine (subject to access policies) and that *services*
@@ -373,7 +373,7 @@ From the directory that contains the ``Vagrantfile``, SSH into the
   $ vagrant ssh client
 
 
-On ``client``, start the FreeIPA client enrollment program::
+On ``client``, start the FreeIPA client enrolment program::
 
   [client]$ sudo ipa-client-install --mkhomedir
 
@@ -514,7 +514,7 @@ log in to other hosts and services.  Try logging into
   [server]$ ssh bob@client.ipademo.local
   [bob@client]$ 
 
-You are now logged into the client as ``bob``.  Type ``^D`` or 
+You are now logged into the client as ``bob``.  Type ``^D`` or
 ``exit`` to log out and return to the ``server`` shell.  If you run
 ``klist`` again, you will see not only the TGT but a *service ticket*
 that was automatically acquired to log in to
@@ -588,7 +588,7 @@ List the existing HBAC rules::
   ----------------------------
 
 The FreeIPA server is installed with a single default ``allow_all``
-rule.  This rule must be disabled for other HBAC rules to take 
+rule.  This rule must be disabled for other HBAC rules to take
 effect.  Look for a command that can do this, and run it.
 
 
@@ -790,7 +790,7 @@ Applications need to know more than just the username of a logged-in
 user.  They want to know the user's name, to send mail to their email
 address and perhaps to know their group memberships or other
 attributes.  In this section, we will use mod_lookup_identity_ to
-populate the HTTP request environment with variables 
+populate the HTTP request environment with variables providing
 information about the authenticated user.
 
 .. _mod_lookup_identity: http://www.adelton.com/apache/mod_lookup_identity/
@@ -899,7 +899,7 @@ information that was injected into the request environment by
 HBAC for web services
 ---------------------
 
-The final task for this module is to configure FreeIPA's HBAC
+The final task for this module is to configure Apache to use FreeIPA's HBAC
 rules for access control.  We will use ``mod_authnz_pam_`` in
 conjunction with SSSD's PAM responder to achieve this.
 
