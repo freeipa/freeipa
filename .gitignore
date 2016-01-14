@@ -60,12 +60,13 @@ freeipa2-dev-doc
 /install/ui/src/plugins
 !/install/ui/doc/Makefile
 
-/ipa-client/ipa-client.spec
-/ipa-client/ipa-getkeytab
-/ipa-client/ipa-join
-/ipa-client/ipa-rmkeytab
+/client/ipa-getkeytab
+/client/ipa-join
+/client/ipa-rmkeytab
 
 /ipatests/setup.py
+
+/ipaclient/setup.py
 
 /ipalib/setup.py
 !/ipalib/Makefile

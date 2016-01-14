@@ -631,7 +631,7 @@ rm -f ipaplatform/tasks.py
 rm -f ipaplatform/paths.py
 rm -f ipaplatform/constants.py
 make version-update
-cd ipa-client; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
+cd client; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
 %if ! %{ONLY_CLIENT}
 cd daemons; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir} --with-openldap; cd ..
 cd install; ../autogen.sh --prefix=%{_usr} --sysconfdir=%{_sysconfdir} --localstatedir=%{_localstatedir} --libdir=%{_libdir} --mandir=%{_mandir}; cd ..
@@ -1253,6 +1253,7 @@ fi
 %license COPYING
 %dir %{python_sitelib}/ipaclient
 %{python_sitelib}/ipaclient/*.py*
+%{python_sitelib}/ipaclient-*.egg-info
 
 
 %files client-common
