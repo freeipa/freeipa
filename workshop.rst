@@ -227,7 +227,7 @@ Add the following entries to your hosts file::
 On Unix systems (including Mac OS X), the hosts file is ``/etc/hosts``
 (you need elevated permissions to edit it.)
 
-On Windows, edit ``C:\system32\system\drivers\etc\hosts`` as
+On Windows, edit ``C:\Windows\System32\system\drivers\etc\hosts`` as
 *Administrator*.
 
 
