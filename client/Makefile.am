@@ -43,6 +43,12 @@ sbin_PROGRAMS =			\
 	ipa-join		\
 	$(NULL)
 
+sbin_SCRIPTS =			\
+	ipa-client-install	\
+	ipa-client-automount	\
+	ipa-certupdate		\
+	$(NULL)
+
 ipa_getkeytab_SOURCES =		\
 	ipa-getkeytab.c		\
 	ipa-client-common.c	\
@@ -88,19 +94,11 @@ ipa_join_LDADD = 		\
 
 SUBDIRS =			\
 	../asn1			\
-	ipaclient		\
-	ipa-install		\
 	man			\
 	$(NULL)
 
 EXTRA_DIST =			\
-	ipa-client.spec		\
-	COPYING			\
-	AUTHORS			\
-	INSTALL			\
-	README			\
-	HACKING			\
-	NEWS			\
+	$(sbin_SCRIPTS)		\
 	$(NULL)
 
 DISTCLEANFILES =		\
@@ -124,7 +122,5 @@ MAINTAINERCLEANFILES =		\
 	config.h.*		\
 	aclocal.m4		\
 	version.m4		\
-	ipa-client.spec		\
-	py-compile		\
 	$(NULL)
 

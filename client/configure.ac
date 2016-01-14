@@ -6,7 +6,6 @@ AC_INIT([ipa-client],
 LT_INIT()
 AC_PROG_LIBTOOL
 
-AC_CONFIG_SRCDIR([ipaclient/__init__.py])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SUBDIRS([../asn1])
 
@@ -141,18 +140,6 @@ AC_CHECK_LIB(sasl2, sasl_client_init, [SASL_LIBS="-lsasl2"])
 AC_SUBST(SASL_LIBS)
 
 dnl ---------------------------------------------------------------------------
-dnl - Check for Python
-dnl ---------------------------------------------------------------------------
-
-AC_MSG_NOTICE([Checking for Python])
-have_python=no
-AM_PATH_PYTHON(2.3)
-
-if test "x$PYTHON" = "x" ; then
-  AC_MSG_ERROR([Python not found])
-fi
-
-dnl ---------------------------------------------------------------------------
 dnl - Check for CURL
 dnl ---------------------------------------------------------------------------
 
@@ -235,8 +222,6 @@ dnl ---------------------------------------------------------------------------
 AC_CONFIG_FILES([
     Makefile
     ../asn1/Makefile
-    ipaclient/Makefile
-    ipa-install/Makefile
     man/Makefile
 ])
 

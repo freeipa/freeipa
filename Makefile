@@ -3,8 +3,9 @@
 
 include VERSION
 
-SUBDIRS=asn1 daemons install ipapython ipalib ipa-client
-CLIENTDIRS=ipapython ipa-client asn1
+SUBDIRS=asn1 daemons install ipapython ipalib
+CLIENTDIRS=ipapython client asn1
+CLIENTPYDIRS=ipaclient ipaplatform
 
 PRJ_PREFIX=freeipa
 
@@ -75,7 +76,9 @@ client: client-autogen
 	@for subdir in $(CLIENTDIRS); do \
 		(cd $$subdir && $(MAKE) all) || exit 1; \
 	done
-	cd ipaplatform && $(PYTHON) setup.py build
+	@for subdir in $(CLIENTPYDIRS); do \
+		(cd $$subdir && $(PYTHON) setup.py build); \
+	done
 
 check: bootstrap-autogen server tests
 	@for subdir in $(SUBDIRS); do \
@@ -90,13 +93,13 @@ bootstrap-autogen: version-update client-autogen
 
 client-autogen: version-update
 	cd asn1; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
-	cd ipa-client; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
+	cd client; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 	cd install; if [ ! -e Makefile ]; then ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
 tests-man-autogen: version-update
 	cd ipatests/man; if [ ! -e Makefile ]; then ../../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); fi
 
-install: all server-install tests-install
+install: all server-install tests-install client-install
 	@for subdir in $(SUBDIRS); do \
 		(cd $$subdir && $(MAKE) $@) || exit 1; \
 	done
@@ -106,13 +109,13 @@ client-install: client client-dirs
 		(cd $$subdir && $(MAKE) install) || exit 1; \
 	done
 	cd install/po && $(MAKE) install || exit 1;
-	if [ "$(DESTDIR)" = "" ]; then \
-		$(PYTHON) setup-client.py install; \
-		(cd ipaplatform && $(PYTHON) setup.py install); \
-	else \
-		$(PYTHON) setup-client.py install --root $(DESTDIR); \
-		(cd ipaplatform && $(PYTHON) setup.py install --root $(DESTDIR)); \
-	fi
+	@for subdir in $(CLIENTPYDIRS); do \
+		if [ "$(DESTDIR)" = "" ]; then \
+			(cd $$subdir && $(PYTHON) setup.py install); \
+		else \
+			(cd $$subdir && $(PYTHON) setup.py install --root $(DESTDIR)); \
+		fi \
+	done
 
 client-dirs:
 	@if [ "$(DESTDIR)" != "" ] ; then \
@@ -149,6 +152,8 @@ version-update: release-update
 		> ipapython/version.py
 	sed -e s/__VERSION__/$(IPA_VERSION)/ ipatests/setup.py.in \
 		> ipatests/setup.py
+	sed -e s/__VERSION__/$(IPA_VERSION)/ ipaclient/setup.py.in \
+		> ipaclient/setup.py
 	sed -e s/__NUM_VERSION__/$(IPA_NUM_VERSION)/ install/ui/src/libs/loader.js.in \
 		> install/ui/src/libs/loader.js
 	perl -pi -e "s:__API_VERSION__:$(IPA_API_VERSION_MAJOR).$(IPA_API_VERSION_MINOR):" install/ui/src/libs/loader.js
@@ -161,10 +166,8 @@ version-update: release-update
 	perl -pi -e "s:__NUM_VERSION__:$(IPA_NUM_VERSION):" daemons/ipa-version.h
 	perl -pi -e "s:__DATA_VERSION__:$(IPA_DATA_VERSION):" daemons/ipa-version.h
 
-	sed -e s/__VERSION__/$(IPA_VERSION)/ -e s/__RELEASE__/$(IPA_RPM_RELEASE)/ \
-		ipa-client/ipa-client.spec.in > ipa-client/ipa-client.spec
-	sed -e s/__VERSION__/$(IPA_VERSION)/ ipa-client/version.m4.in \
-		> ipa-client/version.m4
+	sed -e s/__VERSION__/$(IPA_VERSION)/ client/version.m4.in \
+		> client/version.m4
 
 	if [ "$(SUPPORTED_PLATFORM)" != "" ]; then \
 		sed -e s/__PLATFORM__/$(SUPPORTED_PLATFORM)/ \
@@ -220,7 +223,7 @@ archive-cleanup:
 tarballs: local-archive
 	-mkdir -p dist/sources
 	# tar up clean sources
-	cd dist/$(TARBALL_PREFIX)/ipa-client; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
+	cd dist/$(TARBALL_PREFIX)/client; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist/$(TARBALL_PREFIX)/daemons; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist/$(TARBALL_PREFIX)/install; ../autogen.sh --prefix=/usr --sysconfdir=/etc --localstatedir=/var --libdir=$(LIBDIR); make distclean
 	cd dist; tar cfz sources/$(TARBALL) $(TARBALL_PREFIX)
@@ -289,7 +292,7 @@ maintainer-clean: clean
 	rm -fr $(RPMBUILD) dist build
 	cd daemons && $(MAKE) maintainer-clean
 	cd install && $(MAKE) maintainer-clean
-	cd ipa-client && $(MAKE) maintainer-clean
+	cd client && $(MAKE) maintainer-clean
 	cd ipapython && $(MAKE) maintainer-clean
 	rm -f version.m4
 	rm -f freeipa.spec
