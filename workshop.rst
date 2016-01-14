@@ -900,7 +900,7 @@ HBAC for web services
 ---------------------
 
 The final task for this module is to configure Apache to use FreeIPA's HBAC
-rules for access control.  We will use ``mod_authnz_pam_`` in
+rules for access control.  We will use mod_authnz_pam_ in
 conjunction with SSSD's PAM responder to achieve this.
 
 .. _mod_authnz_pam: http://www.adelton.com/apache/mod_authnz_pam/
