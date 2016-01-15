@@ -1653,7 +1653,9 @@ class vault_archive(PKQuery, Local):
         session_key = slot.key_gen(mechanism, None, key_length)
 
         # wrap session key with transport certificate
+        # pylint: disable=no-member
         public_key = nss_transport_cert.subject_public_key_info.public_key
+        # pylint: enable=no-member
         wrapped_session_key = nss.pub_wrap_sym_key(mechanism,
                                                    public_key,
                                                    session_key)
@@ -1857,7 +1859,9 @@ class vault_retrieve(PKQuery, Local):
         session_key = slot.key_gen(mechanism, None, key_length)
 
         # wrap session key with transport certificate
+        # pylint: disable=no-member
         public_key = nss_transport_cert.subject_public_key_info.public_key
+        # pylint: enable=no-member
         wrapped_session_key = nss.pub_wrap_sym_key(mechanism,
                                                    public_key,
                                                    session_key)

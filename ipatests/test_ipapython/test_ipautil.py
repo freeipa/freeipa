@@ -386,6 +386,8 @@ class TestTimeParser(object):
         nose.tools.assert_equal(800000, time.microsecond)
 
     def test_time_zones(self):
+        # pylint: disable=no-member
+
         timestr = "20051213141205Z"
 
         time = ipautil.parse_generalized_time(timestr)
