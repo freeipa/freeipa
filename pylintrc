@@ -1,0 +1,85 @@
+[MASTER]
+# Pickle collected data for later comparisons.
+persistent=no
+
+# List of plugins (as comma separated values of python modules names) to load,
+# usually to register additional checkers.
+load-plugins=pylint_plugins
+
+# Use multiple processes to speed up Pylint.
+jobs=1
+
+[MESSAGES CONTROL]
+
+enable=
+    all,
+    python3
+
+disable=
+    R,
+    I,
+    invalid-name,
+    import-error,
+    abstract-method,
+    anomalous-backslash-in-string,
+    arguments-differ,
+    attribute-defined-outside-init,
+    bad-builtin,
+    bad-indentation,
+    bare-except,
+    broad-except,
+    dangerous-default-value,
+    eval-used,
+    exec-used,
+    fixme,
+    global-statement,
+    global-variable-not-assigned,
+    global-variable-undefined,
+    no-init,
+    pointless-except,
+    pointless-statement,
+    pointless-string-statement,
+    protected-access,
+    redefine-in-handler,
+    redefined-builtin,
+    redefined-outer-name,
+    reimported,
+    relative-import,
+    super-init-not-called,
+    undefined-loop-variable,
+    unnecessary-lambda,
+    unnecessary-semicolon,
+    unused-argument,
+    unused-variable,
+    useless-else-on-loop,
+    bad-classmethod-argument,
+    bad-continuation,
+    bad-mcs-classmethod-argument,
+    bad-mcs-method-argument,
+    bad-whitespace,
+    blacklisted-name,
+    invalid-name,
+    line-too-long,
+    missing-docstring,
+    multiple-imports,
+    multiple-statements,
+    old-style-class,
+    superfluous-parens,
+    too-many-lines,
+    unidiomatic-typecheck,
+    no-absolute-import
+
+
+[REPORTS]
+
+# Set the output format. Available formats are text, parseable, colorized, msvs
+# (visual studio) and html. You can also give a reporter class, eg
+# mypackage.mymodule.MyReporterClass.
+output-format=colorized
+
+# Tells whether to display a full report or only the messages
+reports=no
+
+# Template used to display messages. This is a python new-style format string
+# used to format the message information. See doc for all details
+msg-template='{path}:{line}: [{msg_id}({symbol}), {obj}] {msg})'
