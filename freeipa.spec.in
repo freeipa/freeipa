@@ -14,7 +14,7 @@
 %global selinux_policy_version 3.12.1-153
 %else
 %global samba_version 2:4.0.5-1
-%global selinux_policy_version 3.13.1-128.6
+%global selinux_policy_version 3.13.1-158.4
 %endif
 
 %define krb5_base_version %(LC_ALL=C rpm -q --qf '%%{VERSION}' krb5-devel | grep -Eo '^[^.]+\.[^.]+')
@@ -700,9 +700,6 @@ make client-install DESTDIR=%{buildroot}
 mkdir -p %{buildroot}%{_usr}/share/ipa
 
 %if ! %{ONLY_CLIENT}
-# FIXME: https://bugzilla.redhat.com/show_bug.cgi?id=1289930
-mv %{buildroot}%{_libexecdir}/ipa/oddjob/com.redhat.idm.trust-fetch-domains %{buildroot}%{_libexecdir}/ipa/com.redhat.idm.trust-fetch-domains
-
 # Remove .la files from libtool - we don't want to package
 # these files
 rm %{buildroot}/%{plugin_dir}/libipa_pwd_extop.la
@@ -1226,7 +1223,7 @@ fi
 %ghost %{_libdir}/krb5/plugins/libkrb5/winbind_krb5_locator.so
 %{_sysconfdir}/dbus-1/system.d/oddjob-ipa-trust.conf
 %{_sysconfdir}/oddjobd.conf.d/oddjobd-ipa-trust.conf
-%%attr(755,root,root) %{_libexecdir}/ipa/com.redhat.idm.trust-fetch-domains
+%%attr(755,root,root) %{_libexecdir}/ipa/oddjob/com.redhat.idm.trust-fetch-domains
 
 %endif # ONLY_CLIENT
 
