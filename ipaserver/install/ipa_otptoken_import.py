@@ -523,7 +523,7 @@ class OTPTokenImport(admintool.AdminTool):
                 try:
                     api.Command.otptoken_add(keypkg.id, no_qrcode=True, **keypkg.options)
                 except Exception as e:
-                    self.log.warn("Error adding token: %s", e)
+                    self.log.warning("Error adding token: %s", e)
                 else:
                     self.log.info("Added token: %s", keypkg.id)
                     keypkg.remove()

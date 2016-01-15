@@ -168,7 +168,7 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
         # See if the gidNumber at least points to a valid group on the remote
         # server.
         if entry_attrs['gidnumber'][0] in invalid_gids:
-            api.log.warn('GID number %s of migrated user %s does not point to a known group.' \
+            api.log.warning('GID number %s of migrated user %s does not point to a known group.' \
                          % (entry_attrs['gidnumber'][0], pkey))
         elif entry_attrs['gidnumber'][0] not in valid_gids:
             try:
@@ -178,15 +178,15 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                 )
                 valid_gids.add(entry_attrs['gidnumber'][0])
             except errors.NotFound:
-                api.log.warn('GID number %s of migrated user %s does not point to a known group.' \
+                api.log.warning('GID number %s of migrated user %s does not point to a known group.' \
                              % (entry_attrs['gidnumber'][0], pkey))
                 invalid_gids.add(entry_attrs['gidnumber'][0])
             except errors.SingleMatchExpected as e:
                 # GID number matched more groups, this should not happen
-                api.log.warn('GID number %s of migrated user %s should match 1 group, but it matched %d groups' \
+                api.log.warning('GID number %s of migrated user %s should match 1 group, but it matched %d groups' \
                              % (entry_attrs['gidnumber'][0], pkey, e.found))
             except errors.LimitsExceeded as e:
-                api.log.warn('Search limit exceeded searching for GID %s' % entry_attrs['gidnumber'][0])
+                api.log.warning('Search limit exceeded searching for GID %s' % entry_attrs['gidnumber'][0])
 
     # We don't want to create a UPG so set the magic value in description
     # to let the DS plugin know.
@@ -246,14 +246,14 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                     try:
                         value = DN(value)
                     except ValueError as e:
-                        api.log.warn('%s: skipping normalization of value %s of type %s '
+                        api.log.warning('%s: skipping normalization of value %s of type %s '
                             'in attribute %s which could not be converted to DN: %s',
                                 pkey, value, type(value), attr, e)
                         continue
                 try:
                     remote_entry = ds_ldap.get_entry(value, [api.Object.user.primary_key.name, api.Object.group.primary_key.name])
                 except errors.NotFound:
-                    api.log.warn('%s: attribute %s refers to non-existent entry %s' % (pkey, attr, value))
+                    api.log.warning('%s: attribute %s refers to non-existent entry %s' % (pkey, attr, value))
                     continue
                 if value.endswith(search_bases['user']):
                     primary_key = api.Object.user.primary_key.name
@@ -262,11 +262,11 @@ def _pre_migrate_user(ldap, pkey, dn, entry_attrs, failed, config, ctx, **kwargs
                     primary_key = api.Object.group.primary_key.name
                     container = api.env.container_group
                 else:
-                    api.log.warn('%s: value %s in attribute %s does not belong into any known container' % (pkey, value, attr))
+                    api.log.warning('%s: value %s in attribute %s does not belong into any known container' % (pkey, value, attr))
                     continue
 
                 if not remote_entry.get(primary_key):
-                    api.log.warn('%s: there is no primary key %s to migrate for %s' % (pkey, primary_key, attr))
+                    api.log.warning('%s: there is no primary key %s to migrate for %s' % (pkey, primary_key, attr))
                     continue
 
                 api.log.debug('converting DN value %s for %s in %s' % (value, attr, dn))

@@ -366,7 +366,7 @@ class Restore(admintool.AdminTool):
                 self.log.info('Stopping IPA services')
                 result = run(['ipactl', 'stop'], raiseonerr=False)
                 if result.returncode not in [0, 6]:
-                    self.log.warn('Stopping IPA failed: %s' % result.error_log)
+                    self.log.warning('Stopping IPA failed: %s' % result.error_log)
 
                 self.restore_selinux_booleans()
 

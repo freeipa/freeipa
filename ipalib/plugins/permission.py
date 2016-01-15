@@ -1209,7 +1209,7 @@ class permission_mod(baseldap.LDAPUpdate):
             # Try to roll back the old ACI
             entry, old_aci_string = old_aci_info
             if old_aci_string:
-                self.log.warn('Reverting ACI on %s to %s' % (entry.dn,
+                self.log.warning('Reverting ACI on %s to %s' % (entry.dn,
                                                             old_aci_string))
                 entry['aci'].append(old_aci_string)
                 self.Backend.ldap2.update_entry(entry)
@@ -1227,7 +1227,7 @@ class permission_mod(baseldap.LDAPUpdate):
             entry.pop('attributelevelrights', None)
 
             self.log.error('Error updating ACI: %s' % traceback.format_exc())
-            self.log.warn('Reverting entry')
+            self.log.warning('Reverting entry')
             old_entry.reset_modlist(entry)
             ldap.update_entry(old_entry)
             self._revert_aci()

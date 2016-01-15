@@ -3514,7 +3514,7 @@ class dnsrecord(LDAPObject):
             except dns.resolver.NoNameservers as e:
                 # Do not raise exception if we have got SERVFAILs.
                 # Maybe the user has created an invalid zone intentionally.
-                self.log.warn('waiting for DNS answer {%s}: got {%s}; '
+                self.log.warning('waiting for DNS answer {%s}: got {%s}; '
                               'ignoring', ldap_rrset, type(e))
                 continue
 

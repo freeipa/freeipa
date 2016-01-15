@@ -218,7 +218,7 @@ class DomainValidator(object):
                 except KeyError as e:
                     # Some piece of trusted domain info in LDAP is missing
                     # Skip the domain, but leave log entry for investigation
-                    api.log.warn("Trusted domain '%s' entry misses an "
+                    api.log.warning("Trusted domain '%s' entry misses an "
                                  "attribute: %s", entry.dn, e)
                     continue
 

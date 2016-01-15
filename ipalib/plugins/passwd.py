@@ -123,7 +123,7 @@ class passwd(Command):
         if principal == getattr(context, 'principal') and \
             current_password == MAGIC_VALUE:
             # No cheating
-            self.log.warn('User attempted to change password using magic value')
+            self.log.warning('User attempted to change password using magic value')
             raise errors.ACIError(info=_('Invalid credentials'))
 
         if current_password == MAGIC_VALUE:

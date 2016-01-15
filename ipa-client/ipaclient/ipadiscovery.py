@@ -266,14 +266,14 @@ class IPADiscovery(object):
                     # via DNS
                     break
             elif ldapret[0] == NOT_IPA_SERVER:
-                root_logger.warn(
+                root_logger.warning(
                    'Skip %s: not an IPA server', server)
             elif ldapret[0] == NO_LDAP_SERVER:
-                root_logger.warn(
+                root_logger.warning(
                    'Skip %s: LDAP server is not responding, unable to verify if '
                    'this is an IPA server', server)
             else:
-                root_logger.warn(
+                root_logger.warning(
                    'Skip %s: cannot verify if this is an IPA server', server)
 
         # If one of LDAP servers checked rejects access (maybe anonymous

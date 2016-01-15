@@ -541,7 +541,7 @@ class ReplicaPrepare(admintool.AdminTool):
             except exceptions:
                 return False
         except Exception as e:
-            self.log.warn('Exception while waiting for DNS record: %s: %s',
+            self.log.warning('Exception while waiting for DNS record: %s: %s',
                           type(e).__name__, e)
 
         return True

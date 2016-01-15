@@ -94,7 +94,7 @@ def collect_logs(name, logs_dict, logfile_dir=None, beakerlib_plugin=None):
             cmd = host.run_command(['tar', 'cJv'] + logs, log_stdout=False,
                                    raiseonerr=False)
             if cmd.returncode:
-                log.warn('Could not collect all requested logs')
+                log.warning('Could not collect all requested logs')
 
             # Unpack on the local side
             dirname = os.path.join(topdirname, host.hostname)

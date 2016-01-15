@@ -141,7 +141,7 @@ class KDCProxyConfig(object):
         try:
             valid = self.validate_symlink()
         except ConfigFileError as e:
-            self.log.warn("Cannot enable KDC proxy: %s " % e)
+            self.log.warning("Cannot enable KDC proxy: %s " % e)
             return False
 
         if valid:
@@ -149,7 +149,7 @@ class KDCProxyConfig(object):
             return True
 
         if not os.path.isfile(self.conf):
-            self.log.warn("'%s' does not exist", self.conf)
+            self.log.warning("'%s' does not exist", self.conf)
             return False
 
         # create the symbolic link
@@ -163,7 +163,7 @@ class KDCProxyConfig(object):
         try:
             valid = self.validate_symlink()
         except CheckError as e:
-            self.log.warn("Cannot disable KDC proxy: %s " % e)
+            self.log.warning("Cannot disable KDC proxy: %s " % e)
             return False
 
         if valid:
@@ -203,8 +203,8 @@ def main(debug=DEBUG, time_limit=TIME_LIMIT):
                     api.log.info('KDC proxy disabled')
                     return 0
     except CheckError as e:
-        api.log.warn(str(e))
-        api.log.warn('Disabling KDC proxy')
+        api.log.warning(str(e))
+        api.log.warning('Disabling KDC proxy')
         cfg.remove_symlink()
         return 0
     except Exception as e:
