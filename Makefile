@@ -53,7 +53,9 @@ LIBDIR ?= /usr/lib
 
 DEVELOPER_MODE ?= 0
 ifneq ($(DEVELOPER_MODE),0)
-LINT_OPTIONS=--no-fail
+LINT_IGNORE_FAIL=true
+else
+LINT_IGNORE_FAIL=false
 endif
 
 PYTHON ?= $(shell rpm -E %__python || echo /usr/bin/python2)
@@ -119,8 +121,14 @@ client-dirs:
 	fi
 
 lint: bootstrap-autogen
-	./make-lint $(LINT_OPTIONS)
-	$(MAKE) -C install/po validate-src-strings
+	# find all python modules and executable python files outside modules for pylint check
+	FILES=`find . \
+		-type d -exec test -e '{}/__init__.py' \; -print -prune -o \
+		-name \*.py -print -o \
+		-type f \! -path '*/.*' \! -name '*~' -exec grep -qsm1 '^#!.*\bpython' '{}' \; -print`; \
+	echo "Pylint is running, please wait ..."; \
+	PYTHONPATH=. pylint --rcfile=pylintrc $(PYLINTFLAGS) $$FILES || $(LINT_IGNORE_FAIL)
+	$(MAKE) -C install/po validate-src-strings || $(LINT_IGNORE_FAIL)
 
 
 test:
