@@ -21,309 +21,173 @@
 Test the `ipalib/plugins/sudocmd.py` module.
 """
 
-from ipalib import errors
-from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_sudocmddn,
-    fuzzy_uuid)
-from ipatests.test_xmlrpc import objectclasses
+from ipalib import api, errors
+from ipatests.util import assert_deepequal
+from ipatests.test_xmlrpc.xmlrpc_test import (XMLRPC_test, raises_exact)
+from ipatests.test_xmlrpc.tracker.sudocmd_plugin import SudoCmdTracker
 import pytest
 
-sudocmd1 = u'/usr/bin/sudotestcmd1'
-sudocmd1_camelcase = u'/usr/bin/sudoTestCmd1'
 
-sudorule1 = u'test_sudorule1'
+@pytest.fixture(scope='class')
+def sudocmd1(request):
+    tracker = SudoCmdTracker(command=u'/usr/bin/sudotestcmd1',
+                             description=u'Test sudo command 1')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def sudocmd2(request):
+    tracker = SudoCmdTracker(command=u'/usr/bin/sudoTestCmd1',
+                             description=u'Test sudo command 2')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def sudorule1(request):
+    name = u'test_sudorule1'
+
+    def fin():
+        api.Command['sudorule_del'](name)
+    request.addfinalizer(fin)
+    return name
 
 
 @pytest.mark.tier1
-class test_sudocmd(Declarative):
+class TestNonexistentSudoCmd(XMLRPC_test):
+    def test_retrieve_nonexistent(self, sudocmd1):
+        """ Try to retrieve non-existent sudocmd """
+        command = sudocmd1.make_retrieve_command()
+        with raises_exact(errors.NotFound(
+                reason=u'%s: sudo command not found' % sudocmd1.cmd)):
+            command()
 
-    cleanup_commands = [
-        ('sudocmd_del', [sudocmd1], {}),
-        ('sudocmd_del', [sudocmd1_camelcase], {}),
-        ('sudorule_del', [sudorule1], {}),
-    ]
+    def test_update_nonexistent(self, sudocmd1):
+        """ Try to update non-existent sudocmd """
+        command = sudocmd1.make_update_command(dict(description=u'Nope'))
+        with raises_exact(errors.NotFound(
+                reason=u'%s: sudo command not found' % sudocmd1.cmd)):
+            command()
 
-    tests = [
-
-        dict(
-            desc='Try to retrieve non-existent %r' % sudocmd1,
-            command=('sudocmd_show', [sudocmd1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command not found' % sudocmd1),
-        ),
-
-
-        dict(
-            desc='Try to update non-existent %r' % sudocmd1,
-            command=('sudocmd_mod', [sudocmd1], dict(description=u'Nope')),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command not found' % sudocmd1),
-        ),
+    def test_delete_nonexistent(self, sudocmd1):
+        """ Try to delete non-existent sudocmd """
+        command = sudocmd1.make_delete_command()
+        with raises_exact(errors.NotFound(
+                reason=u'%s: sudo command not found' % sudocmd1.cmd)):
+            command()
 
 
-        dict(
-            desc='Try to delete non-existent %r' % sudocmd1,
-            command=('sudocmd_del', [sudocmd1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command not found' % sudocmd1),
-        ),
+@pytest.mark.tier1
+class TestSudoCmd(XMLRPC_test):
+    def test_create(self, sudocmd1, sudocmd2):
+        """ Create sudocmd and sudocmd with camelcase'd command """
+        sudocmd1.ensure_exists()
+        sudocmd2.ensure_exists()
+
+    def test_create_duplicates(self, sudocmd1, sudocmd2):
+        """ Try to create duplicate sudocmds """
+        sudocmd1.ensure_exists()
+        sudocmd2.ensure_exists()
+        command1 = sudocmd1.make_create_command()
+        command2 = sudocmd2.make_create_command()
+
+        with raises_exact(errors.DuplicateEntry(
+                message=u'sudo command with name "%s" already exists' %
+                sudocmd1.cmd)):
+            command1()
+        with raises_exact(errors.DuplicateEntry(
+                message=u'sudo command with name "%s" already exists' %
+                sudocmd2.cmd)):
+            command2()
+
+    def test_retrieve(self, sudocmd1):
+        """ Retrieve sudocmd """
+        sudocmd1.ensure_exists()
+        sudocmd1.retrieve()
+
+    def test_search(self, sudocmd1, sudocmd2):
+        """ Search for sudocmd """
+        sudocmd1.find()
+        sudocmd2.find()
+
+    def test_update_and_verify(self, sudocmd1):
+        """ Update sudocmd description and verify by retrieve """
+        sudocmd1_desc_new = u'Updated sudo command 1'
+        sudocmd1.update(dict(description=sudocmd1_desc_new),
+                        dict(description=[sudocmd1_desc_new]))
+        sudocmd1.retrieve()
 
 
-        dict(
-            desc='Create %r' % sudocmd1,
-            command=('sudocmd_add', [sudocmd1],
-                dict(
-                    description=u'Test sudo command 1',
-                ),
-            ),
-            expected=dict(
-                value=sudocmd1,
-                summary=u'Added Sudo Command "%s"' % sudocmd1,
-                result=dict(
-                    dn=fuzzy_sudocmddn,
-                    sudocmd=[sudocmd1],
-                    description=[u'Test sudo command 1'],
-                    objectclass=objectclasses.sudocmd,
-                    ipauniqueid=[fuzzy_uuid],
-                ),
-            ),
-        ),
+@pytest.mark.tier1
+class TestSudoCmdInSudoRuleLists(XMLRPC_test):
+    def test_add_sudocmd_to_sudorule_allow_list(self, sudocmd1, sudorule1):
+        """ Add sudocmd to sudorule allow list """
+        sudocmd1.ensure_exists()
+        api.Command['sudorule_add'](sudorule1)
+        result = api.Command['sudorule_add_allow_command'](
+            sudorule1, sudocmd=sudocmd1.cmd
+        )
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                memberallowcmd=dict(sudocmdgroup=(), sudocmd=())),
+            result=lambda result: True,
+        ), result)
 
-        dict(
-            desc='Create %r' % sudocmd1_camelcase,
-            command=('sudocmd_add', [sudocmd1_camelcase],
-                dict(
-                    description=u'Test sudo command 2',
-                ),
-            ),
-            expected=dict(
-                value=sudocmd1_camelcase,
-                summary=u'Added Sudo Command "%s"' % sudocmd1_camelcase,
-                result=dict(
-                    dn=fuzzy_sudocmddn,
-                    sudocmd=[sudocmd1_camelcase],
-                    description=[u'Test sudo command 2'],
-                    objectclass=objectclasses.sudocmd,
-                    ipauniqueid=[fuzzy_uuid],
-                ),
-            ),
-        ),
+    def test_del_dependent_sudocmd_sudorule_allow(self, sudocmd1, sudorule1):
+        """ Try to delete sudocmd that is in sudorule allow list """
+        sudocmd1.ensure_exists()
+        command = sudocmd1.make_delete_command()
+        with raises_exact(errors.DependentEntry(
+                key=sudocmd1.cmd,
+                label='sudorule',
+                dependent=sudorule1)):
+            command()
 
+    def test_remove_sudocmd_from_sudorule_allow(self, sudocmd1, sudorule1):
+        """ Remove sudocmd from sudorule allow list """
+        sudocmd1.ensure_exists()
+        result = api.Command['sudorule_remove_allow_command'](
+            sudorule1, sudocmd=sudocmd1.cmd
+        )
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                memberallowcmd=dict(sudocmdgroup=(), sudocmd=())),
+            result=lambda result: True),
+            result)
 
-        dict(
-            desc='Try to create duplicate %r' % sudocmd1,
-            command=('sudocmd_add', [sudocmd1],
-                dict(
-                    description=u'Test sudo command 1',
-                ),
-            ),
-            expected=errors.DuplicateEntry(message=u'sudo command with ' +
-                u'name "%s" already exists' % sudocmd1),
-        ),
+    def test_add_sudocmd_to_sudorule_deny_list(self, sudocmd1, sudorule1):
+        """ Add sudocmd to sudorule deny list """
+        sudocmd1.ensure_exists()
+        result = api.Command['sudorule_add_deny_command'](
+            sudorule1, sudocmd=sudocmd1.cmd
+        )
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                memberdenycmd=dict(sudocmdgroup=(), sudocmd=())),
+            result=lambda result: True),
+            result)
 
-        dict(
-            desc='Try to create duplicate %r' % sudocmd1_camelcase,
-            command=('sudocmd_add', [sudocmd1_camelcase],
-                dict(
-                    description=u'Test sudo command 2',
-                ),
-            ),
-            expected=errors.DuplicateEntry(message=u'sudo command with ' +
-                u'name "%s" already exists' % sudocmd1_camelcase),
-        ),
+    def test_del_dependent_sudocmd_sudorule_deny(self, sudocmd1, sudorule1):
+        """ Try to delete sudocmd that is in sudorule deny list """
+        sudocmd1.ensure_exists()
+        command = sudocmd1.make_delete_command()
+        with raises_exact(errors.DependentEntry(
+                key=sudocmd1.cmd,
+                label='sudorule',
+                dependent=sudorule1)):
+            command()
 
-
-        dict(
-            desc='Retrieve %r' % sudocmd1,
-            command=('sudocmd_show', [sudocmd1], {}),
-            expected=dict(
-                value=sudocmd1,
-                summary=None,
-                result=dict(
-                    dn=fuzzy_sudocmddn,
-                    sudocmd=[sudocmd1],
-                    description=[u'Test sudo command 1'],
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Search for %r' % sudocmd1,
-            command=('sudocmd_find', [sudocmd1], {}),
-            expected=dict(
-                count=1,
-                truncated=False,
-                summary=u'1 Sudo Command matched',
-                result=[
-                    dict(
-                        dn=fuzzy_sudocmddn,
-                        sudocmd=[sudocmd1],
-                        description=[u'Test sudo command 1'],
-                    ),
-                ],
-            ),
-        ),
-
-        dict(
-            desc='Search for %r' % sudocmd1_camelcase,
-            command=('sudocmd_find', [sudocmd1_camelcase], {}),
-            expected=dict(
-                count=1,
-                truncated=False,
-                summary=u'1 Sudo Command matched',
-                result=[
-                    dict(
-                        dn=fuzzy_sudocmddn,
-                        sudocmd=[sudocmd1_camelcase],
-                        description=[u'Test sudo command 2'],
-                    ),
-                ],
-            ),
-        ),
-
-
-        dict(
-            desc='Update %r' % sudocmd1,
-            command=('sudocmd_mod', [sudocmd1], dict(
-                description=u'Updated sudo command 1')),
-            expected=dict(
-                value=sudocmd1,
-                summary=u'Modified Sudo Command "%s"' % sudocmd1,
-                result=dict(
-                    sudocmd=[sudocmd1],
-                    description=[u'Updated sudo command 1'],
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Retrieve %r to verify update' % sudocmd1,
-            command=('sudocmd_show', [sudocmd1], {}),
-            expected=dict(
-                value=sudocmd1,
-                summary=None,
-                result=dict(
-                    dn=fuzzy_sudocmddn,
-                    sudocmd=[sudocmd1],
-                    description=[u'Updated sudo command 1'],
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Create %r' % sudorule1,
-            command=('sudorule_add', [sudorule1], {}),
-            expected=lambda e, result: True,
-        ),
-
-        dict(
-            desc='Add %r to %r allow list' % (sudocmd1, sudorule1),
-            command=('sudorule_add_allow_command', [sudorule1],
-                dict(sudocmd=sudocmd1)),
-            expected=dict(
-                    completed=1,
-                    failed=dict(
-                        memberallowcmd=dict(sudocmdgroup=(), sudocmd=())),
-                    result=lambda result: True,
-                ),
-        ),
-
-        dict(
-            desc="Test %r can't be deleted when in %r" % (sudocmd1, sudorule1),
-            command=('sudocmd_del', [sudocmd1], {}),
-            expected=errors.DependentEntry(key=sudocmd1, label='sudorule',
-                dependent=sudorule1),
-        ),
-
-        dict(
-            desc='Remove %r from %r' % (sudocmd1, sudorule1),
-            command=('sudorule_remove_allow_command', [sudorule1],
-                dict(sudocmd=sudocmd1)),
-            expected=dict(
-                    completed=1,
-                    failed=dict(
-                        memberallowcmd=dict(sudocmdgroup=(), sudocmd=())),
-                    result=lambda result: True,
-                ),
-        ),
-
-        dict(
-            desc='Add %r to %r deny list' % (sudocmd1, sudorule1),
-            command=('sudorule_add_deny_command', [sudorule1],
-                dict(sudocmd=sudocmd1)),
-            expected=dict(
-                    completed=1,
-                    failed=dict(
-                        memberdenycmd=dict(sudocmdgroup=(), sudocmd=())),
-                    result=lambda result: True,
-                ),
-        ),
-
-        dict(
-            desc="Test %r can't be deleted when in %r" % (sudocmd1, sudorule1),
-            command=('sudocmd_del', [sudocmd1], {}),
-            expected=errors.DependentEntry(key=sudocmd1, label='sudorule',
-                dependent=sudorule1),
-        ),
-
-        dict(
-            desc='Remove %r from %r' % (sudocmd1, sudorule1),
-            command=('sudorule_remove_deny_command', [sudorule1],
-                dict(sudocmd=sudocmd1)),
-            expected=dict(
-                    completed=1,
-                    failed=dict(
-                        memberdenycmd=dict(sudocmdgroup=(), sudocmd=())),
-                    result=lambda result: True,
-                ),
-        ),
-
-        dict(
-            desc='Delete %r' % sudocmd1,
-            command=('sudocmd_del', [sudocmd1], {}),
-            expected=dict(
-                value=[sudocmd1],
-                summary=u'Deleted Sudo Command "%s"' % sudocmd1,
-                result=dict(failed=[]),
-            ),
-        ),
-
-
-        dict(
-            desc='Try to retrieve non-existent %r' % sudocmd1,
-            command=('sudocmd_show', [sudocmd1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command not found' % sudocmd1),
-        ),
-
-
-        dict(
-            desc='Try to update non-existent %r' % sudocmd1,
-            command=('sudocmd_mod', [sudocmd1], dict(description=u'Nope')),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command not found' % sudocmd1),
-        ),
-
-
-        dict(
-            desc='Try to delete non-existent %r' % sudocmd1,
-            command=('sudocmd_del', [sudocmd1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command not found' % sudocmd1),
-        ),
-
-        dict(
-            desc='Retrieve %r' % sudocmd1_camelcase,
-            command=('sudocmd_show', [sudocmd1_camelcase], {}),
-            expected=dict(
-                value=sudocmd1_camelcase,
-                summary=None,
-                result=dict(
-                    dn=fuzzy_sudocmddn,
-                    sudocmd=[sudocmd1_camelcase],
-                    description=[u'Test sudo command 2'],
-                ),
-            ),
-        ),
-    ]
+    def test_remove_sudocmd_from_sudorule_deny(self, sudocmd1, sudorule1):
+        """ Remove sudocmd from sudorule deny list """
+        sudocmd1.ensure_exists()
+        result = api.Command['sudorule_remove_deny_command'](
+            sudorule1, sudocmd=sudocmd1.cmd
+        )
+        assert_deepequal(dict(
+            completed=1,
+            failed=dict(
+                memberdenycmd=dict(sudocmdgroup=(), sudocmd=())),
+            result=lambda result: True),
+            result)
