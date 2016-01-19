@@ -436,13 +436,21 @@ class ReplicationManager(object):
 
         try:
             entry = conn.get_entry(dn)
-            managers = entry.get('nsDS5ReplicaBindDN')
-            for m in managers:
-                if replica_binddn == DN(m):
-                    return
-            # Add the new replication manager
-            mod = [(ldap.MOD_ADD, 'nsDS5ReplicaBindDN', replica_binddn)]
-            conn.modify_s(dn, mod)
+            managers = {DN(m) for m in entry.get('nsDS5ReplicaBindDN', [])}
+            binddn_groups = {
+                DN(p) for p in entry.get('nsds5replicabinddngroup', [])}
+
+            mod = []
+            if replica_binddn not in managers:
+                # Add the new replication manager
+                mod.append((ldap.MOD_ADD, 'nsDS5ReplicaBindDN',
+                            replica_binddn))
+
+            if replica_groupdn not in binddn_groups:
+                mod.append((ldap.MOD_ADD, 'nsds5replicabinddngroup',
+                            replica_groupdn))
+            if mod:
+                conn.modify_s(dn, mod)
 
             # replication is already configured
             return
