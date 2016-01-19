@@ -36,11 +36,11 @@ from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 
 from ipaserver.install import replication
-from ipaserver.install import dsinstance
 from ipaserver.install import ldapupdate
 
 from ipaserver.install import certs
 from distutils import version
+from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform.paths import paths
 
@@ -327,7 +327,7 @@ class KrbInstance(service.Service):
         vardict = {"KRB5_KTNAME": paths.DS_KEYTAB}
         ipautil.config_replace_variables(paths.SYSCONFIG_DIRSRV,
                                          replacevars=vardict)
-        pent = pwd.getpwnam(dsinstance.DS_USER)
+        pent = pwd.getpwnam(constants.DS_USER)
         os.chown(paths.DS_KEYTAB, pent.pw_uid, pent.pw_gid)
 
     def __create_host_keytab(self):

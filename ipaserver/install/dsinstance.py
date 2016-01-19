@@ -44,14 +44,15 @@ from ipalib import api
 from ipalib import certstore
 from ipalib import errors
 from ipalib import constants
+from ipaplatform.constants import constants as platformconstants
 from ipaplatform.tasks import tasks
 from ipalib.constants import CACERT
 from ipapython.dn import DN
 from ipaplatform import services
 from ipaplatform.paths import paths
 
-DS_USER = 'dirsrv'
-DS_GROUP = 'dirsrv'
+DS_USER = platformconstants.DS_USER
+DS_GROUP = platformconstants.DS_GROUP
 
 IPA_SCHEMA_FILES = ("60kerberos.ldif",
                     "60samba.ldif",
@@ -708,7 +709,7 @@ class DsInstance(service.Service):
         self._ldap_mod("repoint-managed-entries.ldif", self.sub_dict)
 
     def configure_dirsrv_ccache(self):
-        pent = pwd.getpwnam("dirsrv")
+        pent = pwd.getpwnam(platformconstants.DS_USER)
         ccache = paths.TMP_KRB5CC % pent.pw_uid
         filepath = paths.SYSCONFIG_DIRSRV
         if not os.path.exists(filepath):

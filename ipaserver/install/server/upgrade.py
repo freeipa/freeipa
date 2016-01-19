@@ -25,6 +25,7 @@ from ipapython import ipaldap
 from ipapython.ipa_log_manager import root_logger
 from ipapython import certmonger
 from ipapython.dn import DN
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance
@@ -945,7 +946,7 @@ def copy_crl_file(old_path, new_path=None):
         os.symlink(realpath, new_path)
     else:
         shutil.copy2(old_path, new_path)
-        pent = pwd.getpwnam(cainstance.PKI_USER)
+        pent = pwd.getpwnam(constants.PKI_USER)
         os.chown(new_path, pent.pw_uid, pent.pw_gid)
 
     tasks.restore_context(new_path)

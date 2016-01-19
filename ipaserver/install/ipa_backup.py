@@ -32,12 +32,12 @@ from ipapython import version
 from ipapython.ipautil import run, write_tmp_file
 from ipapython import admintool
 from ipapython.dn import DN
-from ipaserver.install.dsinstance import DS_USER
 from ipaserver.install.replication import wait_for_task
 from ipaserver.install import installutils
 from ipapython import ipaldap
 from ipalib.session import ISO8601_DATETIME_FMT
 from ipalib.constants import CACERT
+from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 
 """
@@ -260,7 +260,7 @@ class Backup(admintool.AdminTool):
 
         self.log.info("Preparing backup on %s", api.env.host)
 
-        pent = pwd.getpwnam(DS_USER)
+        pent = pwd.getpwnam(constants.DS_USER)
 
         self.top_dir = tempfile.mkdtemp("ipa")
         os.chown(self.top_dir, pent.pw_uid, pent.pw_gid)

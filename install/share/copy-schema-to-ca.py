@@ -19,9 +19,9 @@ from hashlib import sha1
 
 from ipapython import ipautil
 from ipapython.ipa_log_manager import root_logger, standard_logging_setup
-from ipaserver.install.dsinstance import DS_USER, schema_dirname
-from ipaserver.install.cainstance import PKI_USER
+from ipaserver.install.dsinstance import schema_dirname
 from ipalib import api
+from ipaplatform.constants import constants
 
 try:
     from ipaplatform import services
@@ -52,8 +52,8 @@ def _sha1_file(filename):
 def add_ca_schema():
     """Copy IPA schema files into the CA DS instance
     """
-    pki_pent = pwd.getpwnam(PKI_USER)
-    ds_pent = pwd.getpwnam(DS_USER)
+    pki_pent = pwd.getpwnam(constants.PKI_USER)
+    ds_pent = pwd.getpwnam(constants.DS_USER)
     for schema_fname in SCHEMA_FILENAMES:
         source_fname = os.path.join(ipautil.SHARE_DIR, schema_fname)
         target_fname = os.path.join(schema_dirname(SERVERID), schema_fname)

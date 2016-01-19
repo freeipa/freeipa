@@ -32,14 +32,15 @@ from ipapython import version, ipautil, certdb
 from ipapython.ipautil import run, user_input
 from ipapython import admintool
 from ipapython.dn import DN
-from ipaserver.install.dsinstance import create_ds_user, DS_USER
-from ipaserver.install.cainstance import PKI_USER, create_ca_user
+from ipaserver.install.dsinstance import create_ds_user
+from ipaserver.install.cainstance import create_ca_user
 from ipaserver.install.replication import (wait_for_task, ReplicationManager,
                                            get_cs_replication_manager)
 from ipaserver.install import installutils
 from ipaserver.install import dsinstance, httpinstance, cainstance
 from ipapython import ipaldap
 import ipapython.errors
+from ipaplatform.constants import constants
 from ipaplatform.tasks import tasks
 from ipaplatform import services
 from ipaplatform.paths import paths
@@ -293,7 +294,7 @@ class Restore(admintool.AdminTool):
                 raise admintool.ScriptError("Aborted")
 
         create_ds_user()
-        pent = pwd.getpwnam(DS_USER)
+        pent = pwd.getpwnam(constants.DS_USER)
 
         # Temporary directory for decrypting files before restoring
         self.top_dir = tempfile.mkdtemp("ipa")
@@ -530,7 +531,7 @@ class Restore(admintool.AdminTool):
         srcldiffile = os.path.join(self.dir, ldifname)
 
         if not os.path.exists(ldifdir):
-            pent = pwd.getpwnam(DS_USER)
+            pent = pwd.getpwnam(constants.DS_USER)
             os.mkdir(ldifdir)
             os.chmod(ldifdir, 0o770)
             os.chown(ldifdir, pent.pw_uid, pent.pw_gid)
@@ -755,7 +756,7 @@ class Restore(admintool.AdminTool):
                ]
         run(args)
 
-        pent = pwd.getpwnam(DS_USER)
+        pent = pwd.getpwnam(constants.DS_USER)
         os.chown(self.top_dir, pent.pw_uid, pent.pw_gid)
         recursive_chown(self.dir, pent.pw_uid, pent.pw_gid)
 
@@ -781,9 +782,10 @@ class Restore(admintool.AdminTool):
                      paths.TOMCAT_SIGNEDAUDIT_DIR]
 
         try:
-            pent = pwd.getpwnam(PKI_USER)
+            pent = pwd.getpwnam(constants.PKI_USER)
         except KeyError:
-            self.log.debug("No %s user exists, skipping CA directory creation" % PKI_USER)
+            self.log.debug("No %s user exists, skipping CA directory creation",
+                           constants.PKI_USER)
             return
         self.log.debug('Creating log directories for dogtag')
         for dir in dirs:
