@@ -1829,6 +1829,16 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
     that.search_all_entries = spec.search_all_entries;
 
     /**
+     * Member resolution(no_member: true ) in rpc request is skipped by default
+     * to improve performance of getting data.
+     *
+     * Set always_request_members to true to skip this default behavior.
+     * @property {boolean}
+     */
+    that.always_request_members = spec.always_request_members !== undefined ?
+        spec.always_request_members : false;
+
+    /**
      * Sort records
      */
     that.sort_enabled = spec.sort_enabled === undefined ? true : spec.sort_enabled;
@@ -2196,7 +2206,7 @@ exp.table_facet = IPA.table_facet = function(spec, no_init) {
                 args: [pkey]
             });
 
-            if (that.table.entity.has_members()) {
+            if (!that.always_request_members && that.table.entity.has_members()) {
                 command.set_options({no_members: true});
             }
 

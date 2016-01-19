@@ -200,6 +200,7 @@ return {
             disable_facet_tabs: false,
             tabs_in_sidebar: true,
             tab_label: '@mo:server.label',
+            always_request_members: true,
             facet_groups: [topology.search_facet_group],
             facet_group: 'search',
             columns: [
