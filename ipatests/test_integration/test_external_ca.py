@@ -33,7 +33,9 @@ class TestExternalCA(IntegrationTest):
             '-a', self.master.config.admin_password,
             '-p', self.master.config.dirman_password,
             '--setup-dns', '--no-forwarders',
-            '-r', self.master.domain.name,
+            '-n', self.master.domain.name,
+            '-r', self.master.domain.realm,
+            '--domain-level=%i' % self.master.config.domain_level,
             '--external-ca'
         ])
 
