@@ -67,8 +67,8 @@ from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
 from ipaserver.install import replication
 from ipaserver.install import service
-from ipaserver.install.dogtaginstance import (
-    PKI_USER, export_kra_agent_pem, DogtagInstance)
+from ipaserver.install.dogtaginstance import (export_kra_agent_pem,
+                                              DogtagInstance)
 from ipaserver.plugins import ldap2
 
 # Python 3 rename. The package is available in "six.moves.http_client", but
@@ -280,8 +280,8 @@ def is_ca_installed_locally():
 def create_ca_user():
     """Create PKI user/group if it doesn't exist yet."""
     tasks.create_system_user(
-        name=PKI_USER,
-        group=PKI_USER,
+        name=constants.PKI_USER,
+        group=constants.PKI_GROUP,
         homedir=paths.VAR_LIB,
         shell=paths.NOLOGIN,
     )
@@ -443,7 +443,7 @@ class CAInstance(DogtagInstance):
         # Create an empty and secured file
         (cfg_fd, cfg_file) = tempfile.mkstemp()
         os.close(cfg_fd)
-        pent = pwd.getpwnam(PKI_USER)
+        pent = pwd.getpwnam(constants.PKI_USER)
         os.chown(cfg_file, pent.pw_uid, pent.pw_gid)
 
         # Create CA configuration
@@ -515,7 +515,7 @@ class CAInstance(DogtagInstance):
 
             cafile = self.pkcs12_info[0]
             shutil.copy(cafile, paths.TMP_CA_P12)
-            pent = pwd.getpwnam(PKI_USER)
+            pent = pwd.getpwnam(constants.PKI_USER)
             os.chown(paths.TMP_CA_P12, pent.pw_uid, pent.pw_gid)
 
             # Security domain registration
@@ -610,7 +610,7 @@ class CAInstance(DogtagInstance):
             'ca.enableNonces=false')
         if update_result != 0:
             raise RuntimeError("Disabling nonces failed")
-        pent = pwd.getpwnam(PKI_USER)
+        pent = pwd.getpwnam(constants.PKI_USER)
         os.chown(paths.CA_CS_CFG_PATH, pent.pw_uid, pent.pw_gid)
 
     def enable_pkix(self):
@@ -945,7 +945,7 @@ class CAInstance(DogtagInstance):
             os.mkdir(publishdir)
 
         os.chmod(publishdir, 0o775)
-        pent = pwd.getpwnam(PKI_USER)
+        pent = pwd.getpwnam(constants.PKI_USER)
         os.chown(publishdir, 0, pent.pw_gid)
 
         tasks.restore_context(publishdir)

@@ -28,6 +28,7 @@ from six.moves.configparser import ConfigParser
 from ipalib import api
 from ipalib import x509
 from ipaplatform import services
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipapython import certdb
 from ipapython import ipautil
@@ -37,8 +38,8 @@ from ipaserver.install import cainstance
 from ipaserver.install import installutils
 from ipaserver.install import ldapupdate
 from ipaserver.install import service
-from ipaserver.install.dogtaginstance import (
-    PKI_USER, export_kra_agent_pem, DogtagInstance)
+from ipaserver.install.dogtaginstance import (export_kra_agent_pem,
+                                              DogtagInstance)
 from ipaserver.plugins import ldap2
 from ipapython.ipa_log_manager import log_mgr
 
@@ -134,7 +135,7 @@ class KRAInstance(DogtagInstance):
         # Create an empty and secured file
         (cfg_fd, cfg_file) = tempfile.mkstemp()
         os.close(cfg_fd)
-        pent = pwd.getpwnam(PKI_USER)
+        pent = pwd.getpwnam(constants.PKI_USER)
         os.chown(cfg_file, pent.pw_uid, pent.pw_gid)
 
         # Create KRA configuration
@@ -225,7 +226,7 @@ class KRAInstance(DogtagInstance):
         if self.clone:
             krafile = self.pkcs12_info[0]
             shutil.copy(krafile, p12_tmpfile_name)
-            pent = pwd.getpwnam(PKI_USER)
+            pent = pwd.getpwnam(constants.PKI_USER)
             os.chown(p12_tmpfile_name, pent.pw_uid, pent.pw_gid)
 
             # Security domain registration

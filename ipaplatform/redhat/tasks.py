@@ -45,6 +45,7 @@ import ipapython.errors
 
 from ipalib import x509 # FIXME: do not import from ipalib
 
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform.redhat.authconfig import RedHatAuthConfig
 from ipaplatform.base.tasks import BaseTaskNamespace
@@ -438,14 +439,14 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         This values should be constant and may be hardcoded.
         Add other values for other users when needed.
         """
-        if name == 'pkiuser':
+        if name == constants.PKI_USER:
             if uid is None:
                 uid = 17
             if gid is None:
                 gid = 17
             if comment is None:
                 comment = 'CA System User'
-        if name == 'dirsrv':
+        if name == constants.DS_USER:
             if comment is None:
                 comment = 'DS System User'
 

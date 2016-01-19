@@ -33,8 +33,8 @@ import pki.system
 from ipalib import errors
 
 from ipaplatform import services
-from ipaplatform.paths import paths
 from ipaplatform.constants import constants
+from ipaplatform.paths import paths
 from ipapython import certmonger
 from ipapython import ipaldap
 from ipapython import ipautil
@@ -45,8 +45,9 @@ from ipaserver.install import replication
 from ipaserver.install.installutils import stopped_service
 from ipapython.ipa_log_manager import log_mgr
 
-PKI_USER = "pkiuser"
+PKI_USER = constants.PKI_USER
 HTTPD_USER = constants.HTTPD_USER
+
 
 def get_security_domain():
     """

@@ -23,6 +23,7 @@ import os
 import re
 import contextlib
 
+from ipaplatform.constants import constants
 from ipapython.ipa_log_manager import log_mgr
 from ipapython.dn import DN
 from ipatests.test_integration.base import IntegrationTest
@@ -164,8 +165,8 @@ class TestBackupAndRestore(IntegrationTest):
                                      '--uninstall',
                                      '-U'])
 
-            self.master.run_command(['userdel', 'dirsrv'])
-            self.master.run_command(['userdel', 'pkiuser'])
+            self.master.run_command(['userdel', constants.DS_USER])
+            self.master.run_command(['userdel', constants.PKI_USER])
 
             homedir = os.path.join(self.master.config.test_dir,
                                    'testuser_homedir')
