@@ -3438,7 +3438,7 @@ class dnsrecord(LDAPObject):
 
         while attempt < max_attempts:
             if attempt >= warn_attempts:
-                log_fn = self.log.warn
+                log_fn = self.log.warning
             attempt += 1
             try:
                 dns_answer = resolver.query(dns_name, rdtype,
