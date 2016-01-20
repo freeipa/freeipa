@@ -103,7 +103,7 @@ def _parse_ca_status(body):
         raise error_from_xml(doc, _("Retrieving CA status failed: %s"))
 
 
-def ca_status(ca_host=None, use_proxy=True):
+def ca_status(ca_host=None):
     """Return the status of the CA, and the httpd proxy in front of it
 
     The returned status can be:
@@ -113,13 +113,8 @@ def ca_status(ca_host=None, use_proxy=True):
     """
     if ca_host is None:
         ca_host = api.env.ca_host
-    if use_proxy:
-        # Use port 443 to test the proxy as well
-        ca_port = 443
-    else:
-        ca_port = 8443
-    status, headers, body = unauthenticated_https_request(
-        ca_host, ca_port, '/ca/admin/ca/getStatus')
+    status, headers, body = http_request(
+        ca_host, 8080, '/ca/admin/ca/getStatus')
     if status == 503:
         # Service temporarily unavailable
         return status
@@ -173,20 +168,6 @@ def http_request(host, port, url, **kw):
     body = urlencode(kw)
     return _httplib_request(
         'http', host, port, url, httplib.HTTPConnection, body)
-
-
-def unauthenticated_https_request(host, port, url, **kw):
-    """
-    :param url: The path (not complete URL!) to post to.
-    :param kw: Keyword arguments to encode into POST body.
-    :return:   (http_status, http_headers, http_body)
-                as (integer, dict, str)
-
-    Perform an unauthenticated HTTPS request.
-    """
-    body = urlencode(kw)
-    return _httplib_request(
-        'https', host, port, url, httplib.HTTPSConnection, body)
 
 
 def _httplib_request(

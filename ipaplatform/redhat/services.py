@@ -199,30 +199,7 @@ class RedHatCAService(RedHatService):
         op_timeout = time.time() + timeout
         while time.time() < op_timeout:
             try:
-                # FIXME https://fedorahosted.org/freeipa/ticket/4716
-                # workaround
-                #
-                # status = dogtag.ca_status(use_proxy=use_proxy)
-                #
-                port = 8443
-
-                url = "https://%(host_port)s%(path)s" % {
-                    "host_port": ipautil.format_netloc(api.env.ca_host, port),
-                    "path": "/ca/admin/ca/getStatus"
-                }
-
-                args = [
-                    paths.BIN_CURL,
-                    '-o', '-',
-                    '--connect-timeout', '30',
-                    '-k',
-                    url
-                ]
-
-                result = ipautil.run(args, capture_output=True)
-
-                status = dogtag._parse_ca_status(result.output)
-                # end of workaround
+                status = dogtag.ca_status()
             except Exception as e:
                 status = 'check interrupted due to error: %s' % e
             root_logger.debug('The CA status is: %s' % status)

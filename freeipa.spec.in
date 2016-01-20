@@ -464,7 +464,6 @@ Requires: python-pyasn1
 Requires: python-dateutil
 Requires: python-yubico >= 1.2.3
 Requires: python-sss-murmur
-Requires: curl
 Requires: dbus-python
 Requires: python-setuptools
 Requires: python-six
@@ -509,7 +508,6 @@ Requires: python3-pyasn1
 Requires: python3-dateutil
 Requires: python3-yubico >= 1.2.3
 Requires: python3-sss-murmur
-Requires: curl
 Requires: python3-dbus
 Requires: python3-setuptools
 Requires: python3-six
