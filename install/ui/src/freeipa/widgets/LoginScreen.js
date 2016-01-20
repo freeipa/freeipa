@@ -262,7 +262,6 @@ define(['dojo/_base/declare',
                 otp);
 
             if (result.status === 'ok') {
-                val_summary.add_success('login', this.password_change_complete);
                 psw_f.set_value('');
                 psw_f2.set_value('');
                 // do not login if otp is used because it will fail (reuse of OTP)
@@ -270,6 +269,7 @@ define(['dojo/_base/declare',
                     psw_f.set_value(new_f.get_value());
                     this.login();
                 }
+                val_summary.add_success('login', this.password_change_complete);
                 this.set('view', 'login');
             } else {
                 otp_f.set_value('');
