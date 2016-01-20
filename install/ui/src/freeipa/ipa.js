@@ -232,6 +232,14 @@ var IPA = function () {
             }
         }));
 
+        batch.add_command(rpc.command({
+            entity: 'ca',
+            method: 'is_enabled',
+            on_success: function(data, text_status, xhr) {
+                that.ca_enabled = data.result;
+            }
+        }));
+
         batch.execute();
     };
 

@@ -975,6 +975,12 @@
             {
                 "error": null,
                 "result": 1
+            },
+            {
+                "error": null,
+                "result": true,
+                "summary": null,
+                "value": null
             }
         ]
     }
