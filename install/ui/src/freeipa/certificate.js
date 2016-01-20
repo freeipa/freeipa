@@ -592,7 +592,7 @@ IPA.cert.load_policy = function(spec) {
 };
 
 IPA.cert.is_enabled = function() {
-    return !!IPA.env.enable_ra;
+    return !!IPA.ca_enabled;
 };
 
 IPA.cert.view_action = function(spec) {
