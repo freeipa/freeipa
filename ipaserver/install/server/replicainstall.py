@@ -1304,13 +1304,23 @@ def promote(installer):
                               'https://%s/ipa/xml' %
                               ipautil.format_netloc(config.host_name)),
             ipaconf.setOption('ldap_uri', ldapi_uri),
-            ipaconf.setOption('mode', 'production'),
-            ipaconf.setOption('enable_ra', 'True'),
-            ipaconf.setOption('ra_plugin', 'dogtag'),
-            ipaconf.setOption('dogtag_version', '10')]
+            ipaconf.setOption('mode', 'production')
+        ]
 
-        if not options.setup_ca:
-            gopts.append(ipaconf.setOption('ca_host', config.ca_host_name))
+        if installer._ca_enabled:
+            gopts.extend([
+                ipaconf.setOption('enable_ra', 'True'),
+                ipaconf.setOption('ra_plugin', 'dogtag'),
+                ipaconf.setOption('dogtag_version', '10')
+            ])
+
+            if not options.setup_ca:
+                gopts.append(ipaconf.setOption('ca_host', config.ca_host_name))
+        else:
+            gopts.extend([
+                ipaconf.setOption('enable_ra', 'False'),
+                ipaconf.setOption('ra_plugin', 'None')
+            ])
 
         opts = [ipaconf.setSection('global', gopts)]
 
