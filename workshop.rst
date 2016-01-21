@@ -185,12 +185,15 @@ Windows also comes with an SSH client so just install Git from
 https://git-scm.com/download/win.
 
 
-Clone Vagrantfile repository
-----------------------------
+Clone this repository
+---------------------
 
-Clone the repository containing the Vagrantfile for the workshop::
+This repository contains the ``Vagrantfile`` that is used for the
+workshop, which you will need locally.
 
-  $ git clone https://github.com/frasertweedale/freeipa-workshop-vagrantfile.git
+::
+
+  $ git clone https://github.com/frasertweedale/freeipa-workshop.git
 
 
 Fetch Vagrant box
@@ -237,10 +240,14 @@ Module 1: FreeIPA server installation
 In this module you will install the FreeIPA server, which you will
 use for the rest of the workshop.
 
-First ``cd`` into the directory where the ``Vagrantfile`` was
-checked out, then bring up the Vagrant environment::
+First, in the directory containing the ``Vagrantfile`` (the clone of
+this repository), execute ``vagrant up`` to bring up the Vagrant
+environment.  (If you are using the VirtualBox provider on a platform
+where that is not the default, e.g. Fedora, you will also need the
+``--provider virtualbox`` option).
 
-  $ cd freeipa-workshop-vagrantfile
+::
+
   $ vagrant up --provider virtualbox
 
 The Vagrant environment contains two hosts: ``server.ipademo.local``
