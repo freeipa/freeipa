@@ -441,9 +441,9 @@ python2-ipalib and %{name}-common. Packages still depending on
 %package -n python2-ipalib
 Summary: Python libraries used by IPA
 Group: System Environment/Libraries
+BuildArch: noarch
 Conflicts: %{name}-python < %{version}-%{release}
 %{?python_provide:%python_provide python2-ipalib}
-%{?python_provide:%{?_isa:%python_provide python2-ipalib%{_isa}}}
 Provides: python2-ipapython = %{version}-%{release}
 %{?python_provide:%python_provide python2-ipapython}
 Provides: python2-ipaplatform = %{version}-%{release}
@@ -487,8 +487,8 @@ If you are using IPA, you need to install this package.
 %package -n python3-ipalib
 Summary: Python3 libraries used by IPA
 Group: System Environment/Libraries
+BuildArch: noarch
 %{?python_provide:%python_provide python3-ipalib}
-%{?python_provide:%{?_isa:%python_provide python3-ipalib%{_isa}}}
 Provides: python3-ipapython = %{version}-%{release}
 %{?python_provide:%python_provide python3-ipapython}
 Provides: python3-ipaplatform = %{version}-%{release}
