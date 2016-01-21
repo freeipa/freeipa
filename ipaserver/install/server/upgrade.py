@@ -1343,6 +1343,23 @@ def update_mod_nss_protocol(http):
 
     sysupgrade.set_upgrade_state('nss.conf', 'protocol_updated_tls12', True)
 
+
+def update_mod_nss_cipher_suite(http):
+    root_logger.info('[Updating mod_nss cipher suite]')
+
+    revision = sysupgrade.get_upgrade_state('nss.conf', 'cipher_suite_updated')
+    if revision >= httpinstance.NSS_CIPHER_REVISION:
+        root_logger.debug("Cipher suite already updated")
+        return
+
+    http.set_mod_nss_cipher_suite()
+
+    sysupgrade.set_upgrade_state(
+        'nss.conf',
+        'cipher_suite_updated',
+        httpinstance.NSS_CIPHER_REVISION)
+
+
 def ds_enable_sidgen_extdom_plugins(ds):
     """For AD trust agents, make sure we enable sidgen and extdom plugins
     """
@@ -1526,6 +1543,7 @@ def upgrade_configuration():
 
     http.stop()
     update_mod_nss_protocol(http)
+    update_mod_nss_cipher_suite(http)
     fix_trust_flags()
     export_kra_agent_pem()
     http.start()

@@ -57,6 +57,19 @@ SELINUX_BOOLEAN_SETTINGS = dict(
 KDCPROXY_USER = 'kdcproxy'
 HTTPD_USER = constants.HTTPD_USER
 
+# See contrib/nsscipersuite/nssciphersuite.py
+NSS_CIPHER_SUITE = [
+    '+aes_128_sha_256', '+aes_256_sha_256',
+    '+ecdhe_ecdsa_aes_128_gcm_sha_256', '+ecdhe_ecdsa_aes_128_sha',
+    '+ecdhe_ecdsa_aes_256_gcm_sha_384', '+ecdhe_ecdsa_aes_256_sha',
+    '+ecdhe_rsa_aes_128_gcm_sha_256', '+ecdhe_rsa_aes_128_sha',
+    '+ecdhe_rsa_aes_256_gcm_sha_384', '+ecdhe_rsa_aes_256_sha',
+    '+rsa_aes_128_gcm_sha_256', '+rsa_aes_128_sha',
+    '+rsa_aes_256_gcm_sha_384', '+rsa_aes_256_sha'
+]
+NSS_CIPHER_REVISION = '20160129'
+
+
 def httpd_443_configured():
     """
     We now allow mod_ssl to be installed so don't automatically disable it.
@@ -146,6 +159,8 @@ class HTTPInstance(service.Service):
 
 
         self.step("setting mod_nss port to 443", self.__set_mod_nss_port)
+        self.step("setting mod_nss cipher suite",
+                  self.set_mod_nss_cipher_suite)
         self.step("setting mod_nss protocol list to TLSv1.0 - TLSv1.2",
                   self.set_mod_nss_protocol)
         self.step("setting mod_nss password file", self.__set_mod_nss_passwordfile)
@@ -254,6 +269,10 @@ class HTTPInstance(service.Service):
     def enable_mod_nss_renegotiate(self):
         installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSRenegotiation', 'on', False)
         installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSRequireSafeNegotiation', 'on', False)
+
+    def set_mod_nss_cipher_suite(self):
+        ciphers = ','.join(NSS_CIPHER_SUITE)
+        installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSCipherSuite', ciphers, False)
 
     def __set_mod_nss_passwordfile(self):
         installutils.set_directive(paths.HTTPD_NSS_CONF, 'NSSPassPhraseDialog', 'file:' + paths.HTTPD_PASSWORD_CONF)
