@@ -28,7 +28,6 @@ import shutil
 import traceback
 
 from ipapython import dogtag, ipautil
-from ipapython.dn import DN
 from ipalib import api, errors, x509, certstore
 from ipaserver.install import certs, cainstance, installutils
 from ipaserver.plugins.ldap2 import ldap2
@@ -158,11 +157,9 @@ def _main():
                             "Updating CA certificate failed: %s" % e)
 
                 # Add external CA certificates
-                ca_issuer = str(x509.get_issuer(cert, x509.DER))
                 try:
-                    ca_certs = certstore.get_ca_certs(
-                        conn, api.env.basedn, api.env.realm, False,
-                        filter_subject=ca_issuer)
+                    ca_certs = certstore.get_ca_certs_nss(
+                        conn, api.env.basedn, api.env.realm, False)
                 except Exception, e:
                     syslog.syslog(
                         syslog.LOG_ERR,
@@ -170,25 +167,18 @@ def _main():
                         "%s" % e)
                     ca_certs = []
 
-                for ca_cert, ca_nick, ca_trusted, ca_eku in ca_certs:
-                    ca_subject = DN(str(x509.get_subject(ca_cert, x509.DER)))
-                    nick_base = ' - '.join(rdn[-1].value for rdn in ca_subject)
-                    nick = nick_base
-                    i = 1
-                    while db.has_nickname(nick):
-                        nick = '%s [%s]' % (nick_base, i)
-                        i += 1
-                    if ca_trusted is False:
-                        flags = 'p,p,p'
-                    else:
-                        flags = 'CT,c,'
-
+                for ca_cert, ca_nick, ca_flags in ca_certs:
                     try:
-                        db.add_cert(ca_cert, nick, flags)
+                        db.add_cert(ca_cert, ca_nick, ca_flags)
                     except ipautil.CalledProcessError, e:
                         syslog.syslog(
                             syslog.LOG_ERR,
                             "Failed to add certificate %s" % ca_nick)
+
+                # Pass Dogtag's self-tests
+                for ca_nick in db.find_root_cert(nickname)[-2:-1]:
+                    ca_flags = dict(cc[1:] for cc in ca_certs)[ca_nick]
+                    db.trust_root_cert(ca_nick, 'C' + ca_flags)
             finally:
                 if conn is not None and conn.isconnected():
                     conn.disconnect()
