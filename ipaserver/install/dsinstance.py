@@ -543,7 +543,7 @@ class DsInstance(service.Service):
             ipautil.run(args)
             root_logger.debug("completed creating ds instance")
         except ipautil.CalledProcessError as e:
-            root_logger.critical("failed to create ds instance %s" % e)
+            raise RuntimeError("failed to create ds instance %s" % e)
 
         # check for open port 389 from now on
         self.open_ports.append(389)
