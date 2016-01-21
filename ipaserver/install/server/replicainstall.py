@@ -358,6 +358,8 @@ def install_check(installer):
     config.setup_ca = options.setup_ca
     config.setup_kra = options.setup_kra
 
+    ca_enabled = ipautil.file_exists(config.dir + "/cacert.p12")
+
     # Create the management framework config file
     # Note: We must do this before bootstraping and finalizing ipalib.api
     old_umask = os.umask(022)   # must be readable for httpd
@@ -373,7 +375,7 @@ def install_check(installer):
                  ipautil.format_netloc(config.host_name))
         fd.write("ldap_uri=ldapi://%%2fvar%%2frun%%2fslapd-%s.socket\n" %
                  installutils.realm_to_serverid(config.realm_name))
-        if ipautil.file_exists(config.dir + "/cacert.p12"):
+        if ca_enabled:
             fd.write("enable_ra=True\n")
             fd.write("ra_plugin=dogtag\n")
             fd.write("dogtag_version=%s\n" %
@@ -396,6 +398,33 @@ def install_check(installer):
     if not ipautil.file_exists(cafile):
         raise RuntimeError("CA cert file is not available. Please run "
                            "ipa-replica-prepare to create a new replica file.")
+
+    for pkcs12_name, pin_name in (('dscert.p12', 'dirsrv_pin.txt'),
+                                  ('httpcert.p12', 'http_pin.txt')):
+        pkcs12_info = make_pkcs12_info(config.dir, pkcs12_name, pin_name)
+        tmp_db_dir = tempfile.mkdtemp('ipa')
+        try:
+            tmp_db = certs.CertDB(config.realm_name,
+                                  nssdir=tmp_db_dir,
+                                  subject_base=config.subject_base)
+            if ca_enabled:
+                trust_flags = 'CT,C,C'
+            else:
+                trust_flags = None
+            tmp_db.create_from_pkcs12(pkcs12_info[0], pkcs12_info[1],
+                                      ca_file=cafile,
+                                      trust_flags=trust_flags)
+            if not tmp_db.find_server_certs():
+                raise RuntimeError(
+                    "Could not find a suitable server cert in import in %s" %
+                    pkcs12_info[0])
+        except Exception as e:
+            root_logger.error('%s', e)
+            raise RuntimeError(
+                "Server cert is not valid. Please run ipa-replica-prepare to "
+                "create a new replica file.")
+        finally:
+            shutil.rmtree(tmp_db_dir)
 
     ldapuri = 'ldaps://%s' % ipautil.format_netloc(config.master_host_name)
     remote_api = create_api(mode=None)
