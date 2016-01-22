@@ -275,7 +275,14 @@ class TestInstallDNSSECFirst(IntegrationTest):
         ]
         self.master.run_command(args)
 
-        # make BIND happy, and delegate zone which contains A record of master
+        # make BIND happy: add the glue record and delegate zone
+        args = [
+            "ipa", "dnsrecord-add", root_zone, self.master.domain.name,
+            "--a-rec=" + self.master.ip
+        ]
+        self.master.run_command(args)
+        time.sleep(10)  # sleep a bit until data are provided by bind-dyndb-ldap
+
         args = [
             "ipa", "dnsrecord-add", root_zone, self.master.domain.name,
             "--ns-rec=" + self.master.hostname
