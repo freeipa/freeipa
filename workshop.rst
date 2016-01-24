@@ -273,7 +273,6 @@ Configure FreeIPA's DNS server::
 
   Do you want to configure integrated DNS (BIND)? [no]: yes
 
-  Existing BIND configuration detected, overwrite? [no]: yes
 
 Accept default values for the server hostname, domain name and realm::
 
@@ -304,10 +303,8 @@ forget during the workshop!
 ::
 
   Certain directory server operations require an administrative user.
-  This user is referred to as the Directory Manager and has full
-  access
-  to the Directory for system management tasks and will be added to
-  the
+  This user is referred to as the Directory Manager and has full access
+  to the Directory for system management tasks and will be added to the
   instance of directory server created for IPA.
   The password must be at least 8 characters long.
 
@@ -315,8 +312,7 @@ forget during the workshop!
   Password (confirm): 
 
   The IPA server requires an administrative user, named 'admin'.
-  This user is a regular system account used for IPA server
-  administration.
+  This user is a regular system account used for IPA server administration.
 
   IPA admin password: 
   Password (confirm): 
@@ -343,7 +339,7 @@ server installation::
   Realm name:     IPADEMO.LOCAL
 
   BIND DNS server will be configured to serve IPA domain with:
-  Forwarders:    10.0.2.3
+  Forwarders:    No forwarders
   Reverse zone(s):  33.168.192.in-addr.arpa.
 
   Continue to configure the system with these values? [no]: yes
@@ -659,7 +655,7 @@ Testing HBAC rules
 You can test HBAC rule evaluation using the ``ipa hbactest``
 command::
 
-  [server]$ ipa hbactest --user bob --host client.ipademo.local --service sshd
+  [server]$ ipa hbactest --host client.ipademo.local --service sshd --user bob
   ---------------------
   Access granted: False
   ---------------------
@@ -729,9 +725,10 @@ Retrieve Kerberos keytab
 
 The service needs access to its Kerberos key in order to
 authenticate users.  Retrieve the key from the FreeIPA server and
-store it in a *keytab* file (remember to ``kinit admin``)::
+store it in a *keytab* file (you will need a TGT for ``admin``)::
 
-  [client]$ ipa-getkeytab -s server.ipademo.local -p HTTP/client.ipademo.local -k app.keytab
+  [client]$ ipa-getkeytab -s server.ipademo.local \
+            -p HTTP/client.ipademo.local -k app.keytab
   Keytab successfully retrieved and stored in: app.keytab
 
 We also have to move the file, change its ownership and apply the
@@ -856,7 +853,8 @@ Now update the Apache configuration to populate the request
 environment.  The ``LookupUserXXX`` directives define the mapping of
 user attributes to request environment variables.  Multi-valued
 attributes can be expanded into multiple variables, as in the
-``LookupUserGroupsIter`` directive.
+``LookupUserGroupsIter`` directive.  Do not forget the
+``LoadModule`` directive!
 
 ::
 
@@ -1017,8 +1015,8 @@ to use the certificate database at ``/etc/httpd/alias``, so we tell
 certmonger to generate the key and add the certificate in that
 database::
 
-  [client]$ sudo ipa-getcert request -d /etc/httpd/alias -n app \
-      -K HTTP/client.ipademo.local -U id-kp-serverAuth
+  [client]$ sudo ipa-getcert request -d /etc/httpd/alias \
+            -n app -K HTTP/client.ipademo.local
   New signing request "20151026222558" added.
 
 Let's break down some of those command arguments.
@@ -1026,18 +1024,15 @@ Let's break down some of those command arguments.
 ``-d <path>``
   Path to NSS database
 ``-n <nickname>``
-  *Nickname* to use for key and certificate
+  *Nickname* to use for storing the key and certificate
 ``-K <principal>``
   Kerberos service principal; because different kinds of services may
   be accessed at one hostname, this argument is needed to tell
   certmonger which service principal is the subject
-``-U id-kp-serverAuth``
-  Add an *extended key usage* certificate extension request
-  asserting that the certificate is for TLS WWW authentication.
 
 Another important argument is ``-N <subject-name>`` but this
 defaults to the system hostname, which in our case
-(``client.ipademo.local``) was appropriate.
+(``client.ipademo.local``) is appropriate.
 
 Let's check the status of our certificate request using the tracking
 identifier given in the ``ipa-getcert request`` output::
@@ -1096,7 +1091,7 @@ Now we can reconfigure Apache to serve our app over TLS.  Update
       NSSEngine on
       NSSCertificateDatabase /etc/httpd/alias
       NSSNickname app
-      NSSCipherSuite +rsa_rc4_128_md5,+rsa_rc4_128_sha,+rsa_3des_sha,-rsa_des_sha,-rsa_rc4_40_md5,-rsa_rc2_40_md5,-rsa_null_md5,-rsa_null_sha,+fips_3des_sha,-fips_des_sha,-fortezza,-fortezza_rc4_128_sha,-fortezza_null,-rsa_des_56_sha,-rsa_rc4_56_sha,+rsa_aes_128_sha,+rsa_aes_256_sha
+      NSSCipherSuite +aes_128_sha_256,+aes_256_sha_256,+ecdhe_ecdsa_aes_128_gcm_sha_256,+ecdhe_ecdsa_aes_128_sha,+ecdhe_ecdsa_aes_256_gcm_sha_384,+ecdhe_ecdsa_aes_256_sha,+ecdhe_rsa_aes_128_gcm_sha_256,+ecdhe_rsa_aes_128_sha,+ecdhe_rsa_aes_256_gcm_sha_384,+ecdhe_rsa_aes_256_sha,+rsa_aes_128_gcm_sha_256,+rsa_aes_128_sha,+rsa_aes_256_gcm_sha_384,+rsa_aes_256_sha
 
       ServerName client.ipademo.local
       ...

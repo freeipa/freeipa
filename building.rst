@@ -62,7 +62,7 @@ unpack, sparsify and repack the box::
 
   mkdir box && cd box && tar -xf ../fedora-23-x86_64-libvirt.box
   virt-sparsify --in-place box.img
-  tar -czf ../fedora-23-x86-64-libvirt.box * && cd .. && rm -rf box
+  tar -czf ../fedora-23-x86_64-libvirt.box * && cd .. && rm -rf box
 
 
 Uploading boxes to HashiCorp Atlas
