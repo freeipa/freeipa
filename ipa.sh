@@ -1,5 +1,5 @@
 #!/bin/bash
-sudo dnf install -y freeipa-server bind-dyndb-ldap sssd-dbus mod_lookup_identity mod_authnz_pam haveged nmap-ncat nano pamtester
+sudo dnf install -y freeipa-server freeipa-server-dns sssd-dbus mod_lookup_identity mod_authnz_pam haveged nmap-ncat nano pamtester
 sudo systemctl enable haveged
 sudo sh -c "echo 'PS1=\"[\u@\h]\\\\$ \"' >> /etc/profile"
 sudo sh -c "echo 'PS1=\"[\h]\\\\$ \"' >> /etc/bashrc"
@@ -36,3 +36,5 @@ sudo sh -c "cat >/etc/httpd/conf.d/app.conf" <<EOF
     </Directory>
 </VirtualHost>
 EOF
+
+sudo sed -i -n "/^<VirtualHost/q;p" /etc/httpd/conf.d/nss.conf
