@@ -486,6 +486,7 @@ IPA.input_widget = function(spec) {
             name: 'undo',
             style: 'display: none;',
             'class': 'undo',
+            title: text.get('@i18n:widget.undo_title'),
             label: text.get('@i18n:widget.undo')
         }).appendTo(container);
 
@@ -1234,6 +1235,7 @@ IPA.multivalued_widget = function(spec) {
             name: 'undo_all',
             style: 'display: none;',
             'class': 'undo',
+            title: text.get('@i18n:widget.undo_all_title'),
             label: text.get('@i18n:widget.undo_all'),
             click: function() {
                 that.undo_clicked.notify([], that);

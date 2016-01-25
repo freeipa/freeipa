@@ -482,6 +482,7 @@ exp.details_facet_pre_op = function(spec, context) {
         spec.control_buttons.unshift(
             {
                 name: 'revert',
+                title: '@i18n:buttons.revert_title',
                 label: '@i18n:buttons.revert',
                 icon: 'fa-undo'
             },
@@ -494,6 +495,7 @@ exp.details_facet_pre_op = function(spec, context) {
     spec.control_buttons.unshift(
         {
             name: 'refresh',
+            title: '@i18n:buttons.refresh_title',
             label: '@i18n:buttons.refresh',
             icon: 'fa-refresh'
         });

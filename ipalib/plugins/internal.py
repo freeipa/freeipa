@@ -220,12 +220,14 @@ class i18n_messages(Command):
             "issue": _("Issue"),
             "ok": _("OK"),
             "refresh": _("Refresh"),
+            "refresh_title": _("Reload current settings from the server."),
             "remove": _("Delete"),
             "reset": _("Reset"),
             "reset_password_and_login": _("Reset Password and Login"),
             "restore": _("Restore"),
             "retry": _("Retry"),
             "revert": _("Revert"),
+            "revert_title": ("Undo all unsaved changes."),
             "revoke": _("Revoke"),
             "save": _("Save"),
             "set": _("Set"),
@@ -830,7 +832,9 @@ class i18n_messages(Command):
             "page": _("Page"),
             "prev": _("Prev"),
             "undo": _("Undo"),
+            "undo_title": _("Undo this change."),
             "undo_all": _("Undo All"),
+            "undo_all_title": _("Undo all changes in this field."),
             "validation": {
                 "error": _("Text does not match field pattern"),
                 "datetime": _("Must be an UTC date/time value (e.g., \"2014-01-20 17:58:01Z\")"),
@@ -858,5 +862,3 @@ class i18n_messages(Command):
 
     def output_for_cli(self, textui, result, *args, **options):
         print(json.dumps(result, default=json_serialize))
-
-
