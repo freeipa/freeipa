@@ -28,6 +28,7 @@ Curriculum overview
 - Module 4: Host-Based Access Control (HBAC)
 - Module 5: Authorisation and authentication for web applications
 - Module 6: Certificate management
+- Module 7: Replica installation
 
 
 Editing files on VMs
@@ -43,15 +44,17 @@ Example commands
 ----------------
 
 This guide contains many examples of commands.  Some of the commands
-should be executed on your host, others on either the ``server`` or the
-``client`` guest VM.  For clarity, commands are annotated with the
-host on which they are meant to be executed, as in these examples::
+should be executed on your host, others on a particular guest VM.
+For clarity, commands are annotated with the host on which they are
+meant to be executed, as in these examples::
 
   $ echo "Run it on virtualisation host (no annotation)"
 
   [server]$ echo "Run it on FreeIPA server"
 
   [client]$ echo "Run it on IPA-enrolled client"
+
+  ...
 
 
 Workshop feedback
@@ -225,6 +228,7 @@ workshop modules can be completed using the CLI.*
 Add the following entries to your hosts file::
 
   192.168.33.10   server.ipademo.local
+  192.168.33.11   replica.ipademo.local
   192.168.33.20   client.ipademo.local
 
 On Unix systems (including Mac OS X), the hosts file is ``/etc/hosts``
@@ -250,9 +254,14 @@ where that is not the default, e.g. Fedora, you will also need the
 
   $ vagrant up --provider virtualbox
 
-The Vagrant environment contains two hosts: ``server.ipademo.local``
-and ``client.ipademo.local``.  From the directory containing the
-``Vagrantfile``, SSH into the ``server`` machine::
+The Vagrant environment contains three hosts:
+
+- ``server.ipademo.local``
+- ``replica.ipademo.local``
+- ``client.ipademo.local``
+
+From the directory containing the ``Vagrantfile``, SSH into the
+``server`` machine::
 
   $ vagrant ssh server
 
@@ -1114,3 +1123,107 @@ Restart Apache and make a request to the app over HTTPS::
     REMOTE_USER_LASTNAME: Able
     REMOTE_USER_GROUP_1: ipausers
     REMOTE_PORT: 47894
+
+
+Module 7: Replica installation
+==============================
+
+FreeIPA is designed to be run in a replicated multi-master
+environment.  In this module, we will deploy a single FreeIPA
+replica.  For production deployments, see
+http://www.freeipa.org/page/Deployment_Recommendations#Replicas.
+
+If you have disabled the ``allow_all`` HBAC rule, add a new rule
+that will **allow ``admin`` to access the ``sshd`` service on any
+host**.
+
+To prepare to add a replica, execute the ``ipa-replica-prepare(1)``
+command.  Because FreeIPA manages DNS for our domain, we need to use
+the ``--ip-address`` option.
+
+::
+
+  [server]$ sudo ipa-replica-prepare \
+            --ip-address 192.168.33.11 replica.ipademo.local
+  Directory Manager (existing master) password: 
+
+  Preparing replica for replica.ipademo.local from server.ipademo.local
+  Creating SSL certificate for the Directory Server
+  Creating SSL certificate for the dogtag Directory Server
+  Saving dogtag Directory Server port
+  Creating SSL certificate for the Web Server
+  Exporting RA certificate
+  Copying additional files
+  Finalizing configuration
+  Packaging replica information into /var/lib/ipa/replica-info-replica.ipademo.local.gpg
+  Adding DNS records for replica.ipademo.local
+  The ipa-replica-prepare command was successful
+
+The *replica file* is now available at
+``/var/lib/ipa/replica-info-replica.ipademo.local.gpg`` and must be
+copied to the ``replica`` VM::
+
+  % vagrant ssh server -- \
+    "sudo cat /var/lib/ipa/replica-info-replica.ipademo.local.gpg" \
+    | vagrant ssh replica -- "cat > replica.gpg"
+
+We will set up a replica *without* CA or DNS, but in a production
+deployment there should be at least one instance of these services
+in each datacentre.  See the ``ipa-replica-install(1)`` man page for
+details.
+
+SSH to the ``replica`` VM and install the replica::
+
+  % vagrant ssh replica
+  [replica]$ sudo ipa-replica-install replica.gpg 
+  Directory Manager (existing master) password: 
+
+  Run connection check to master
+  Check connection from replica to remote master 'server.ipademo.local':
+     Directory Service: Unsecure port (389): OK
+     Directory Service: Secure port (636): OK
+     Kerberos KDC: TCP (88): OK
+     Kerberos Kpasswd: TCP (464): OK
+     HTTP Server: Unsecure port (80): OK
+     HTTP Server: Secure port (443): OK
+
+  The following list of ports use UDP protocol and would need to be
+  checked manually:
+     Kerberos KDC: UDP (88): SKIPPED
+     Kerberos Kpasswd: UDP (464): SKIPPED
+
+  Connection from replica to master is OK.
+  Start listening on required ports for remote master check
+  Get credentials to log in to remote master
+  admin@IPADEMO.LOCAL password: 
+
+  Check SSH connection to remote master
+  Execute check on remote master
+  Check connection from master to remote replica 'replica.ipademo.local':
+     Directory Service: Unsecure port (389): OK
+     Directory Service: Secure port (636): OK
+     Kerberos KDC: TCP (88): OK
+     Kerberos KDC: UDP (88): OK
+     Kerberos Kpasswd: TCP (464): OK
+     Kerberos Kpasswd: UDP (464): OK
+     HTTP Server: Unsecure port (80): OK
+     HTTP Server: Secure port (443): OK
+
+  Connection from master to replica is OK.
+
+  Connection check OK
+  Configuring NTP daemon (ntpd)
+    [1/4]: stopping ntpd
+    [2/4]: writing configuration
+  ...
+
+The rest of the replica installation process is almost identical to
+server installation.  One important difference is the initial
+replication of data to the new Directory Server instance::
+
+  [24/38]: setting up initial replication
+  Starting replication, please wait until this has completed.
+  Update in progress, 6 seconds elapsed
+  Update succeeded
+
+After ``ipa-replica-install`` finishes, the replica is operational.

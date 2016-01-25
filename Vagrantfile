@@ -25,6 +25,14 @@ Vagrant.configure(2) do |config|
     server.vm.hostname = "server.ipademo.local"
   end
 
+  config.vm.define "replica" do |replica|
+    replica.vm.network "private_network", ip: "192.168.33.11"
+    replica.vm.hostname = "replica.ipademo.local"
+
+    config.vm.provision "shell",
+      inline: 'echo "nameserver 192.168.33.10" > /etc/resolv.conf'
+  end
+
   config.vm.define "client" do |client|
     client.vm.network "private_network", ip: "192.168.33.20"
     client.vm.hostname = "client.ipademo.local"
