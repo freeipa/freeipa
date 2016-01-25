@@ -162,7 +162,7 @@ def install_master(safe_options, options):
 
     # override ra_plugin setting read from default.conf so that we have
     # functional dogtag backend plugins during CA install
-    api.bootstrap(in_server=True, ra_plugin='dogtag')
+    api.bootstrap(in_server=True, ra_plugin='dogtag', dogtag_version=10)
     api.finalize()
 
     dm_password = options.password

@@ -478,7 +478,7 @@ class CAInstance(DogtagInstance):
                       self.http_proxy)
             self.step("restarting certificate server", self.restart_instance)
             self.step("migrating certificate profiles to LDAP",
-                      migrate_profiles_to_ldap)
+                      lambda: migrate_profiles_to_ldap(self.dogtag_constants))
             self.step("importing IPA certificate profiles",
                       import_included_profiles)
             self.step("adding default CA ACL", ensure_default_caacl)
@@ -1768,7 +1768,7 @@ def import_included_profiles():
     conn.disconnect()
 
 
-def migrate_profiles_to_ldap():
+def migrate_profiles_to_ldap(dogtag_constants):
     """Migrate profiles from filesystem to LDAP.
 
     This must be run *after* switching to the LDAPProfileSubsystem
@@ -1783,7 +1783,7 @@ def migrate_profiles_to_ldap():
     api.Backend.ra_certprofile._read_password()
     api.Backend.ra_certprofile.override_port = 8443
 
-    with open(dogtag.configured_constants().CS_CFG_PATH) as f:
+    with open(dogtag_constants.CS_CFG_PATH) as f:
         cs_cfg = f.read()
     match = re.search(r'^profile\.list=(\S*)', cs_cfg, re.MULTILINE)
     profile_ids = match.group(1).split(',')

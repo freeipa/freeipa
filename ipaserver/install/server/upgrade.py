@@ -354,7 +354,7 @@ def ca_enable_ldap_profile_subsystem(ca):
             separator='=')
 
         ca.restart(dogtag.configured_constants().PKI_INSTANCE_NAME)
-        cainstance.migrate_profiles_to_ldap()
+        cainstance.migrate_profiles_to_ldap(caconfig)
 
     return needs_update
 
