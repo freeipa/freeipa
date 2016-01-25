@@ -207,6 +207,10 @@ RP.redir_count_down = function() {
 
 
 RP.init = function() {
+    var opts = RP.parse_uri();
+    if (opts['user']) {
+        $("#user").val(opts['user']);
+    }
 
     $('#reset_password').submit(function() {
         RP.on_submit();
