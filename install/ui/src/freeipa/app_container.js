@@ -63,6 +63,14 @@ define([
 
             phases.on('init', lang.hitch(this, function() {
                 var deferred = new Deferred();
+                if (!window.sessionStorage) {
+                    deferred.reject({
+                        message: "Web UI requires sessionStorage enabled. " +
+                                 "This might be caused by too strict browser " +
+                                 "configuration."
+                    });
+                    return deferred.promise;
+                }
                 if (window.sessionStorage.getItem('logout')) {
                     window.sessionStorage.removeItem('logout');
                     var login_facet = reg.facet.get('login');

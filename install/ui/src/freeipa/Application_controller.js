@@ -257,15 +257,20 @@ define([
                 'class': 'error-details'
             }).appendTo(error_container);
 
-            details.append($('<p/>', { text: 'Web UI got in unrecoverable state during "' + error.phase + '" phase' }));
+            details.append($('<p/>', { text: 'Web UI got in unrecoverable state during "' + error.phase + '" phase.' }));
             if (error.name) window.console.error(error.name);
             if (error.results) {
-                var msg = error.results.message;
-                var stack = error.results.stack.toString();
-                window.console.error(stack);
                 details.append('<h3>Technical details:</h3>');
-                details.append($('<div/>', { text: error.results.message }));
-                details.append($('<div/>').append($('<code/>', { text: stack })));
+                var msg = error.results.message;
+                if (msg) {
+                    window.console.error(msg);
+                    details.append($('<div/>', { text: msg }));
+                }
+                if (error.results.stack) {
+                    var stack = error.results.stack.toString();
+                    window.console.error(stack);
+                    details.append($('<div/>').append($('<code/>', { text: stack })));
+                }
             }
         },
 
