@@ -50,7 +50,7 @@ def get_real_key(key):
                  raiseonerr=False, capture_output=True)
     if result.returncode:
         raise ValueError('key %s not found' % key)
-    return result.output.rstrip()
+    return result.raw_output.rstrip()
 
 def get_persistent_key(key):
     assert isinstance(key, str)
@@ -58,7 +58,7 @@ def get_persistent_key(key):
                  raiseonerr=False, capture_output=True)
     if result.returncode:
         raise ValueError('persistent key %s not found' % key)
-    return result.output.rstrip()
+    return result.raw_output.rstrip()
 
 def is_persistent_keyring_supported():
     uid = os.geteuid()
@@ -93,7 +93,7 @@ def read_key(key):
     if result.returncode:
         raise ValueError('keyctl pipe failed: %s' % result.error_log)
 
-    return result.output
+    return result.raw_output
 
 def update_key(key, value):
     """

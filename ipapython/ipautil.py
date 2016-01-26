@@ -465,7 +465,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         if six.PY2:
             output = stdout
         else:
-            output = stdout.encode(encoding)
+            output = stdout.decode(encoding)
     else:
         output = None
 
@@ -473,7 +473,7 @@ def run(args, stdin=None, raiseonerr=True, nolog=(), env=None,
         if six.PY2:
             error_output = stderr
         else:
-            error_output = stderr.encode(encoding)
+            error_output = stderr.decode(encoding)
     else:
         error_output = None
 
