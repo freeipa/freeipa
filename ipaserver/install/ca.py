@@ -46,7 +46,8 @@ def install_check(standalone, replica_config, options):
         return
 
     if standalone:
-        if cainstance.is_ca_installed_locally():
+        if (not options.external_cert_files and
+                cainstance.is_ca_installed_locally()):
             sys.exit("CA is already installed on this host.")
         elif api.Command.ca_is_enabled()['result']:
             sys.exit(
