@@ -4,11 +4,12 @@
 
 import re
 import time
+
 import pytest
 
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
-from env_config import get_global_config
+from ipatests.test_integration.env_config import get_global_config
 from ipalib.constants import DOMAIN_SUFFIX_NAME
 
 config = get_global_config()

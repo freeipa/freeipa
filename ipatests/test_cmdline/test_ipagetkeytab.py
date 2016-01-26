@@ -22,17 +22,17 @@ Test `ipa-getkeytab`
 
 import os
 import shutil
-from cmdline import cmdline_test
+import tempfile
+
+import gssapi
+import nose
+import pytest
+
 from ipalib import api
 from ipalib import errors
-import tempfile
 from ipapython import ipautil, ipaldap
-import nose
-import tempfile
-import gssapi
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython.dn import DN
-import pytest
 
 def use_keytab(principal, keytab):
     try:
