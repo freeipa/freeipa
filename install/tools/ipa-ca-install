@@ -276,7 +276,8 @@ def main():
     if not dsinstance.DsInstance().is_configured():
         sys.exit("IPA server is not configured on this system.\n")
 
-    if cainstance.is_ca_installed_locally():
+    if (not options.external_cert_files and
+            cainstance.is_ca_installed_locally()):
         sys.exit("CA is already installed on this host.")
 
     standard_logging_setup(paths.IPASERVER_CA_INSTALL_LOG, debug=options.debug)
