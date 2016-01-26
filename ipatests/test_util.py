@@ -158,9 +158,9 @@ def test_assert_deepequal():
         'foo', u'hello', u'world', tuple()
     )
 
-    e = raises(AssertionError, f, 'hello', u'hello', 'foo')
+    e = raises(AssertionError, f, b'hello', u'hello', 'foo')
     assert str(e) == TYPE % (
-        'foo', str, unicode, 'hello', u'hello', tuple()
+        'foo', bytes, unicode, b'hello', u'hello', tuple()
     )
 
     e = raises(AssertionError, f, 18, 18.0, 'foo')
@@ -183,7 +183,7 @@ def test_assert_deepequal():
 
     # Test with bad compound values:
     b = [
-        'hello',
+        b'hello',
         dict(naughty=u'nurse'),
         18,
     ]
@@ -194,12 +194,12 @@ def test_assert_deepequal():
 
     b = [
         u'hello',
-        dict(naughty='nurse'),
+        dict(naughty=b'nurse'),
         18,
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        'foo', unicode, str, u'nurse', 'nurse', (1, 'naughty')
+        'foo', unicode, bytes, u'nurse', b'nurse', (1, 'naughty')
     )
 
     b = [
@@ -209,7 +209,7 @@ def test_assert_deepequal():
     ]
     e = raises(AssertionError, f, a, b, 'foo')
     assert str(e) == TYPE % (
-        b'foo', int, float, 18, 18.0, (0 if six.PY2 else 2,)
+        'foo', int, float, 18, 18.0, (0 if six.PY2 else 2,)
     )
 
     # List length mismatch
