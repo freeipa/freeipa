@@ -35,6 +35,7 @@ from ipalib import output
 from ipalib.text import _
 from ipalib.util import json_serialize, validate_hostname
 from ipalib.capabilities import client_has_capability
+from ipalib.messages import add_message, SearchResultTruncated
 from ipapython.dn import DN
 from ipapython.version import API_VERSION
 
@@ -2101,11 +2102,16 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
             entries[i] = entry_to_dict(e, **options)
             entries[i]['dn'] = e.dn
 
-        return dict(
+        result = dict(
             result=entries,
             count=len(entries),
             truncated=truncated,
         )
+
+        if truncated:
+            add_message(options['version'], result, SearchResultTruncated())
+
+        return result
 
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
         assert isinstance(base_dn, DN)

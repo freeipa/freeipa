@@ -331,6 +331,16 @@ class ExternalCommandOutput(PublicMessage):
     format = _("%(line)s")
 
 
+class SearchResultTruncated(PublicMessage):
+    """
+    **13017** Results of LDAP search has been truncated
+    """
+
+    errno = 13017
+    type = "warning"
+    format = _("Search result has been truncated to configured search limit.")
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
