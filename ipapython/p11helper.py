@@ -4,6 +4,7 @@
 
 import random
 import ctypes.util
+import binascii
 
 import six
 from cryptography.hazmat.backends import default_backend
@@ -551,13 +552,13 @@ def char_array_to_unicode(array, l):
 
 def int_to_bytes(value):
     try:
-        return '{0:x}'.format(value).decode('hex')
-    except TypeError:
-        return '0{0:x}'.format(value).decode('hex')
+        return binascii.unhexlify('{0:x}'.format(value))
+    except (TypeError, binascii.Error):
+        return binascii.unhexlify('0{0:x}'.format(value))
 
 
 def bytes_to_int(value):
-    return int(value.encode('hex'), 16)
+    return int(binascii.hexlify(value), 16)
 
 
 def check_return_value(rv, message):
@@ -807,8 +808,6 @@ class P11_Helper(object):
         # Parse method args
         if isinstance(user_pin, unicode):
             user_pin = user_pin.encode()
-        if isinstance(library_path, unicode):
-            library_path = library_path.encode()
         self.slot = slot
 
         try:
