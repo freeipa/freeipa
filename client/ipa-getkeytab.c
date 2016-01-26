@@ -275,6 +275,10 @@ static int ipa_ldap_extended_op(LDAP *ld, const char *reqoid,
         fprintf(stderr, _("Failed to get result: %s\n"), ldap_err2string(ret));
         goto done;
     }
+    else if (res == NULL) {
+        fprintf(stderr, _("Timeout exceeded."));
+        goto done;
+    }
 
     ret = ldap_parse_extended_result(ld, res, &retoid, &retdata, 0);
     if (ret != LDAP_SUCCESS) {
