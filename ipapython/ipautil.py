@@ -252,7 +252,7 @@ def copy_template_file(infilename, outfilename, vars):
 
 
 def write_tmp_file(txt):
-    fd = tempfile.NamedTemporaryFile()
+    fd = tempfile.NamedTemporaryFile('w+')
     fd.write(txt)
     fd.flush()
 
