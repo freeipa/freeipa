@@ -108,7 +108,8 @@ var profile = (function(){
                     "dojo/query",
                     "dojo/string",
                     "dojo/NodeList-dom",
-                    "dojo/promise/all"
+                    "dojo/promise/all",
+                    "libs/d3"
                 ]
             }
         ],
