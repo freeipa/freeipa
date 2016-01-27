@@ -1650,7 +1650,7 @@ def upgrade_check(options):
     try:
         installutils.check_server_configuration()
     except RuntimeError as e:
-        print(unicode(e))
+        root_logger.error(e)
         sys.exit(1)
 
     if not options.skip_version_check:
