@@ -61,7 +61,7 @@ Workshop feedback
 -----------------
 
 After you have completed the workshop, consider leaving feedback at
-https://goo.gl/forms/P11DtfJiNq.
+https://goo.gl/forms/UOkcsVROqV.
 
 
 Preparation
