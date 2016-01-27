@@ -22,13 +22,13 @@ X.509 certificates for services.
 Curriculum overview
 -------------------
 
-- Module 1: Installing the FreeIPA server
-- Module 2: Enrolling a client machine in the FreeIPA domain
-- Module 3: User creation and administration, Kerberos authentication
-- Module 4: Host-Based Access Control (HBAC)
-- Module 5: Authorisation and authentication for web applications
-- Module 6: Certificate management
-- Module 7: Replica installation
+- `Module 1: Installing the FreeIPA server`_
+- `Module 2: Enrolling client machines`_
+- `Module 3: User management and Kerberos authentication`_
+- `Module 4: Host-based access control (HBAC)`_
+- `Module 5: Web application authentication and authorisation`_
+- `Module 6: Certificate management`_
+- `Module 7: Replica installation`_
 
 
 Editing files on VMs
@@ -238,8 +238,8 @@ On Windows, edit ``C:\Windows\System32\system\drivers\etc\hosts`` as
 *Administrator*.
 
 
-Module 1: FreeIPA server installation
-=====================================
+Module 1: Installing the FreeIPA server
+=======================================
 
 In this module you will install the FreeIPA server, which you will
 use for the rest of the workshop.
@@ -377,8 +377,8 @@ enrolling client machines, creating users, managing services, and
 more!
 
 
-Module 2: Client enrolment
-==========================
+Module 2: Enrolling client machines
+===================================
 
 In this module, you will enrol a *host* as a client of your FreeIPA
 domain.  This means that *users* in your FreeIPA realm (or Active
@@ -440,8 +440,8 @@ logged onto the host can also acquire Kerberos tickets for accessing
 *services* in your domain.
 
 
-Module 3: User management
-=========================
+Module 3: User management and Kerberos authentication
+=====================================================
 
 This module introduces the ``ipa`` CLI program and the web
 interface.  We will perform some simple administrative tasks: adding
@@ -553,8 +553,8 @@ is a true *single sign-on* protocol!
 
 
 
-Module 4: Host-based access control
-===================================
+Module 4: Host-based access control (HBAC)
+==========================================
 
 FreeIPA's *host-based access control* (HBAC) feature allows you to
 define policies that restrict access to hosts or services based on
@@ -689,8 +689,8 @@ Then try ``alice``::
   -sh-4.3$ 
 
 
-Module 5: Web App External Authentication
-=========================================
+Module 5: Web application authentication and authorisation
+==========================================================
 
 You can configure many kinds of applications to rely on FreeIPA's
 centralised authentication, including web applications.  In this
