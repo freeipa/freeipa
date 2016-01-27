@@ -196,7 +196,7 @@ workshop, which you will need locally.
 
 ::
 
-  $ git clone https://github.com/frasertweedale/freeipa-workshop.git
+  $ git clone https://github.com/freeipa/freeipa-workshop.git
 
 
 Fetch Vagrant box
