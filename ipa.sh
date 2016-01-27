@@ -36,5 +36,3 @@ sudo sh -c "cat >/etc/httpd/conf.d/app.conf" <<EOF
     </Directory>
 </VirtualHost>
 EOF
-
-sudo sed -i -n "/^<VirtualHost/q;p" /etc/httpd/conf.d/nss.conf
