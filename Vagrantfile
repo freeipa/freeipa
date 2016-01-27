@@ -7,6 +7,10 @@ Vagrant.configure(2) do |config|
 
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.memory = 1024
+  end
+
   # Vagrant's "change host name" sets the short host name.  Before
   # we repair /etc/hosts (see below) let's reset /etc/hostname to
   # the *full* host name
@@ -29,7 +33,7 @@ Vagrant.configure(2) do |config|
     replica.vm.network "private_network", ip: "192.168.33.11"
     replica.vm.hostname = "replica.ipademo.local"
 
-    config.vm.provision "shell",
+    replica.vm.provision "shell",
       inline: 'echo "nameserver 192.168.33.10" > /etc/resolv.conf'
   end
 
@@ -37,9 +41,11 @@ Vagrant.configure(2) do |config|
     client.vm.network "private_network", ip: "192.168.33.20"
     client.vm.hostname = "client.ipademo.local"
 
-    config.vm.provision "shell",
+    client.vm.provision "shell",
       inline: 'echo "nameserver 192.168.33.10" > /etc/resolv.conf'
-    config.vm.provision "shell",
+    client.vm.provision "shell",
+      inline: 'sudo sed -i -n "/^<VirtualHost/q;p" /etc/httpd/conf.d/nss.conf'
+    client.vm.provision "shell",
       inline: 'systemctl -q enable httpd && systemctl start httpd'
   end
 
