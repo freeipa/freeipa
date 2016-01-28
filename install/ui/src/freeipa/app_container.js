@@ -63,14 +63,28 @@ define([
 
             phases.on('init', lang.hitch(this, function() {
                 var deferred = new Deferred();
-                if (!window.sessionStorage) {
-                    deferred.reject({
-                        message: "Web UI requires sessionStorage enabled. " +
-                                 "This might be caused by too strict browser " +
-                                 "configuration."
-                    });
+
+                function reject(item) {
+                    var msg = "Web UI requires " + item + " enabled. " +
+                              "Possible cause: too strict browser " +
+                              "configuration.";
+                    deferred.reject({ message: msg });
                     return deferred.promise;
                 }
+
+                function testStorage(storage) {
+                    try {
+                        if (!window[storage]) return false;
+                    } catch(e) {
+                        return false;
+                    }
+                    return true;
+                }
+
+                if (!window.navigator.cookieEnabled) return reject('cookies');
+                if (!testStorage('sessionStorage')) return reject('sessionStorage');
+                if (!testStorage('localStorage')) return reject('localStorage');
+
                 if (window.sessionStorage.getItem('logout')) {
                     window.sessionStorage.removeItem('logout');
                     var login_facet = reg.facet.get('login');
