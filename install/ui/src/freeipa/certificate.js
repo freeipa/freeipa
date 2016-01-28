@@ -30,10 +30,11 @@ define([
     './reg',
     './rpc',
     './text',
+    './widget',
     './dialog'],
     function(
         lang, builder, metadata_provider, IPA, $, menu,
-        phases, reg, rpc, text) {
+        phases, reg, rpc, text, widget_mod) {
 
 var exp = IPA.cert = {};
 
@@ -399,11 +400,35 @@ IPA.cert.request_dialog = function(spec) {
     spec = spec || {};
 
     spec.sections = spec.sections || [];
-    var section = { fields: [] };
-    spec.sections.push(section);
+    var section0 = { fields: [] };
+    var section_csr = {
+        show_header: false,
+        fields: [
+            {
+                field: false,
+                $type: 'html',
+                name: 'message',
+                html: spec.message
+            },
+            {
+                $type: 'textarea',
+                name: 'csr',
+                required: true
+            }
+        ],
+        layout:
+        {
+            $factory: widget_mod.fluid_layout,
+            widget_cls: "col-sm-12 controls",
+            label_cls: "hide"
+        }
+    };
+
+    spec.sections.push(section0);
+    spec.sections.push(section_csr);
 
     if (spec.show_principal) {
-        section.fields.push(
+        section0.fields.push(
             {
                 $type: 'text',
                 name: 'principal',
@@ -418,7 +443,7 @@ IPA.cert.request_dialog = function(spec) {
             }
         );
     }
-    section.fields.push(
+    section0.fields.push(
         {
             $type: 'entity_select',
             name: 'profile_id',
@@ -443,7 +468,15 @@ IPA.cert.request_dialog = function(spec) {
         click: function() {
             var values = {};
             that.save(values);
-            var request = $.trim(that.textarea.val());
+
+            // check requested fields
+            if (!that.validate()) {
+                widget_mod.focus_invalid(that);
+                return;
+            }
+
+            // get csr from the textarea
+            var request = $.trim(that.get_field('csr').get_value());
             values.request = IPA.cert.pem_csr_format(request);
 
             if (that.request) {
@@ -460,19 +493,6 @@ IPA.cert.request_dialog = function(spec) {
             that.close();
         }
     });
-
-    that.create_content = function() {
-        that.dialog_create_content();
-        var node = $("<div/>", {
-            'class': 'col-sm-12'
-        });
-        node.append(that.message);
-        that.textarea = $('<textarea/>', {
-            'class': 'certificate'
-        }).appendTo(node);
-        that.body_node.append(node);
-        return that.body_node;
-    };
 
     return that;
 };

@@ -295,6 +295,11 @@ exp.section_builder = IPA.section_builder = function(spec) {
 
         var widget = that.widget_builder.build_widget(field_spec, section.widgets);
 
+        if (field_spec.field === false) {
+            // widget doesn't have field, skip
+            return;
+        }
+
         if (section.$field_adapter && !field_spec.adapter) {
             field_spec.adapter = section.$field_adapter;
         }
