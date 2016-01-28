@@ -27,6 +27,9 @@ template:
   This script installs the FreeIPA packages and creates other files
   required for the workshop.
 
+- Change ``disk_size`` from ``40000`` to ``4000`` (approx. 4GB) and
+  ``memory`` from ``512`` to ``1024``.
+
 
 Building the virtualbox image
 -----------------------------
