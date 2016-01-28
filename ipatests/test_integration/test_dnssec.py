@@ -277,7 +277,7 @@ class TestInstallDNSSECFirst(IntegrationTest):
 
         # make BIND happy: add the glue record and delegate zone
         args = [
-            "ipa", "dnsrecord-add", root_zone, self.master.domain.name,
+            "ipa", "dnsrecord-add", root_zone, self.master.hostname,
             "--a-rec=" + self.master.ip
         ]
         self.master.run_command(args)
@@ -311,6 +311,13 @@ class TestInstallDNSSECFirst(IntegrationTest):
             "--skip-overlap-check",
         ]
 
+        self.master.run_command(args)
+
+        # delegation
+        args = [
+            "ipa", "dnsrecord-add", root_zone, example_test_zone,
+            "--ns-rec=" + self.master.hostname
+        ]
         self.master.run_command(args)
 
         # wait until zone is signed
