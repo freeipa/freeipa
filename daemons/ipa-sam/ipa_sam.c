@@ -19,6 +19,12 @@
 #include <util/data_blob.h>
 #include <util/time.h>
 #include <util/debug.h>
+#include <util/talloc_stack.h>
+
+#ifndef _SAMBA_UTIL_H_
+bool trim_string(char *s, const char *front, const char *back);
+char *smb_xstrdup(const char *s);
+#endif
 
 #include <core/ntstatus.h>
 #include <gen_ndr/security.h>
