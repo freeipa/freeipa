@@ -57,13 +57,6 @@ meant to be executed, as in these examples::
   ...
 
 
-Workshop feedback
------------------
-
-After you have completed the workshop, consider leaving feedback at
-https://goo.gl/forms/UOkcsVROqV.
-
-
 Preparation
 ===========
 
