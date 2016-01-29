@@ -489,8 +489,6 @@ int pack_ber_sid(const char *sid, struct berval **berval)
     return LDAP_SUCCESS;
 }
 
-#define SSSD_SYSDB_SID_STR "objectSIDString"
-
 int pack_ber_user(struct ipa_extdom_ctx *ctx,
                   enum response_types response_type,
                   const char *domain_name, const char *user_name,
