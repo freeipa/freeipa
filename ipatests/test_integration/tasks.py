@@ -94,6 +94,7 @@ def apply_common_fixes(host, fix_resolv=True):
     modify_nm_resolv_conf_settings(host)
     if fix_resolv:
         fix_resolv_conf(host)
+    prepare_host(host)
 
 
 def backup_file(host, filename):
@@ -348,7 +349,6 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
             '--forwarder', replica.config.dns_forwarder
         ])
     if domainlevel(master) == DOMAIN_LEVEL_0:
-        apply_common_fixes(replica)
         # prepare the replica file on master and put it to replica, AKA "old way"
         replica_prepare(master, replica)
         replica_filename = get_replica_filename(replica)

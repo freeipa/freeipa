@@ -279,7 +279,6 @@ class TestForcedClientReenrollment(IntegrationTest):
 
 @pytest.fixture()
 def client(request):
-    tasks.prepare_host(request.cls.clients[0])
     tasks.install_client(request.cls.master, request.cls.clients[0])
 
     def teardown_client():
