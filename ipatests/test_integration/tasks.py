@@ -604,14 +604,31 @@ def sync_time(host, server):
     host.run_command(['ntpdate', server.hostname])
 
 
-def connect_replica(master, replica):
-    kinit_admin(replica)
-    replica.run_command(['ipa-replica-manage', 'connect', master.hostname])
+def connect_replica(master, replica, domain_level=None):
+    if domain_level is None:
+        domain_level = master.config.domain_level
+    if domain_level == DOMAIN_LEVEL_0:
+        replica.run_command(['ipa-replica-manage', 'connect', master.hostname])
+    else:
+        kinit_admin(master)
+        master.run_command(["ipa", "topologysegment-add", DOMAIN_SUFFIX_NAME,
+                            "%s-to-%s" % (master.hostname, replica.hostname),
+                            "--leftnode=%s" % master.hostname,
+                            "--rightnode=%s" % replica.hostname
+                            ])
 
 
-def disconnect_replica(master, replica):
-    kinit_admin(replica)
-    replica.run_command(['ipa-replica-manage', 'disconnect', master.hostname])
+def disconnect_replica(master, replica, domain_level=None):
+    if domain_level is None:
+        domain_level = master.config.domain_level
+    if domain_level == DOMAIN_LEVEL_0:
+        replica.run_command(['ipa-replica-manage', 'disconnect', master.hostname])
+    else:
+        kinit_admin(master)
+        master.run_command(["ipa", "topologysegment-del", DOMAIN_SUFFIX_NAME,
+                            "%s-to-%s" % (master.hostname, replica.hostname),
+                            "--continue"
+                            ])
 
 
 def kinit_admin(host):
