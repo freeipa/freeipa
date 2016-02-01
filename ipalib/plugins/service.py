@@ -530,7 +530,7 @@ class service(LDAPObject):
 
 @register()
 class service_add(LDAPCreate):
-    __doc__ = _('Add a new IPA new service.')
+    __doc__ = _('Add a new IPA service.')
 
     msg_summary = _('Added service "%(value)s"')
     member_attributes = ['managedby']
