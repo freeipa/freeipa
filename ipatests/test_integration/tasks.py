@@ -66,9 +66,12 @@ def check_arguments_are(slice, instanceof):
 
 def prepare_reverse_zone(host, ip):
     zone = get_reverse_zone_default(ip)
-    host.run_command(["ipa",
+    result = host.run_command(["ipa",
                       "dnszone-add",
                       zone], raiseonerr=False)
+    if result.returncode > 0:
+        log.warning(result.stderr_text)
+    return zone, result.returncode
 
 def prepare_host(host):
     if isinstance(host, Host):
@@ -315,15 +318,26 @@ def domainlevel(host):
         level = int(domlevel_re.findall(result.stdout_text)[0])
     return level
 
+def master_authoritative_for_client_domain(master, client):
+    zone = ".".join(client.hostname.split('.')[1:])
+    result = master.run_command(["ipa", "dnszone-show", zone],
+                                raiseonerr=False)
+    if result.returncode == 0:
+        return True
+    else:
+        return False
+
 
 def replica_prepare(master, replica):
     apply_common_fixes(replica)
     fix_apache_semaphores(replica)
     prepare_reverse_zone(master, replica.ip)
-    master.run_command(['ipa-replica-prepare',
-                        '-p', replica.config.dirman_password,
-                        '--ip-address', replica.ip,
-                        replica.hostname])
+    args = ['ipa-replica-prepare',
+            '-p', replica.config.dirman_password,
+            replica.hostname]
+    if master_authoritative_for_client_domain(master, replica):
+        args.extend(['--ip-address', replica.ip])
+    master.run_command(args)
     replica_bundle = master.get_file_contents(
         paths.REPLICA_INFO_GPG_TEMPLATE % replica.hostname)
     replica_filename = get_replica_filename(replica)
@@ -339,8 +353,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
     # and replica installation would fail
     args = ['ipa-replica-install', '-U',
             '-p', replica.config.dirman_password,
-            '-w', replica.config.admin_password,
-            '--ip-address', replica.ip]
+            '-w', replica.config.admin_password]
     if setup_ca:
         args.append('--setup-ca')
     if setup_dns:
@@ -348,6 +361,8 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
             '--setup-dns',
             '--forwarder', replica.config.dns_forwarder
         ])
+    if master_authoritative_for_client_domain(master, replica):
+        args.extend(['--ip-address', replica.ip])
     if domainlevel(master) == DOMAIN_LEVEL_0:
         # prepare the replica file on master and put it to replica, AKA "old way"
         replica_prepare(master, replica)
@@ -380,6 +395,14 @@ def install_client(master, client, extra_args=()):
     client.collect_log(paths.IPACLIENT_INSTALL_LOG)
 
     apply_common_fixes(client)
+    allow_sync_ptr(master)
+    # Now, for the situations where a client resides in a different subnet from
+    # master, we need to explicitly tell master to create a reverse zone for
+    # the client and enable dynamic updates for this zone.
+    zone, error = prepare_reverse_zone(master, client.ip)
+    if not error:
+        master.run_command(["ipa", "dnszone-mod", zone,
+                            "--dynamic-update=TRUE"])
 
     client.run_command(['ipa-client-install', '-U',
                         '--domain', client.domain.name,
