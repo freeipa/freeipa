@@ -273,8 +273,9 @@ class Cookie(object):
             if match:
                 key = match.group(1)
                 value = match.group(2)
+
                 # Double quoted value?
-                if value[0] == '"':
+                if value and value[0] == '"':
                     if value[-1] == '"':
                         value = value[1:-1]
                     else:
