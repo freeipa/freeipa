@@ -1,5 +1,5 @@
 #!/bin/bash
-sudo dnf install -y freeipa-server freeipa-server-dns sssd-dbus mod_lookup_identity mod_authnz_pam haveged nmap-ncat nano pamtester
+sudo dnf install -y freeipa-server freeipa-server-dns sssd-dbus mod_lookup_identity mod_authnz_pam haveged nmap-ncat nano pamtester bash-completion
 sudo systemctl enable haveged
 sudo sh -c "echo 'PS1=\"[\u@\h]\\\\$ \"' >> /etc/profile"
 sudo sh -c "echo 'PS1=\"[\h]\\\\$ \"' >> /etc/bashrc"
