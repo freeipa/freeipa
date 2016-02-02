@@ -11,9 +11,18 @@ import pytest
 from ipalib import errors
 from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
 
-# reuse the fixture
+from ipatests.test_xmlrpc.tracker.certprofile_plugin import CertprofileTracker
 from ipatests.test_xmlrpc.tracker.caacl_plugin import CAACLTracker
 from ipatests.test_xmlrpc.tracker.stageuser_plugin import StageUserTracker
+
+
+@pytest.fixture(scope='class')
+def default_profile(request):
+    name = 'caIPAserviceCert'
+    desc = u'Standard profile for network services'
+    tracker = CertprofileTracker(name, store=True, desc=desc)
+    tracker.track_create()
+    return tracker
 
 
 @pytest.fixture(scope='class')
