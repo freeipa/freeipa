@@ -50,6 +50,22 @@ class TestParse(unittest.TestCase):
         with self.assertRaises(ValueError):
             cookies = Cookie.parse(s)
 
+        # 1 cookie with empty value
+        s = 'color='
+        cookies = Cookie.parse(s)
+        self.assertEqual(len(cookies), 1)
+        cookie = cookies[0]
+        self.assertEqual(cookie.key, 'color')
+        self.assertEqual(cookie.value, '')
+        self.assertEqual(cookie.domain, None)
+        self.assertEqual(cookie.path, None)
+        self.assertEqual(cookie.max_age, None)
+        self.assertEqual(cookie.expires, None)
+        self.assertEqual(cookie.secure, None)
+        self.assertEqual(cookie.httponly, None)
+        self.assertEqual(str(cookie), "color=")
+        self.assertEqual(cookie.http_cookie(), "color=;")
+
         # 1 cookie with name/value
         s = 'color=blue'
         cookies = Cookie.parse(s)
