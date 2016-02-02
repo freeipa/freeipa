@@ -3,8 +3,7 @@ m4_include(version.m4)
 AC_INIT([ipa-client],
         IPA_VERSION,
         [https://hosted.fedoraproject.org/projects/freeipa/newticket])
-LT_INIT()
-AC_PROG_LIBTOOL
+LT_INIT
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SUBDIRS([../asn1])

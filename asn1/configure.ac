@@ -6,7 +6,7 @@ AC_INIT([ipa-server],
 
 AC_CONFIG_HEADERS([config.h])
 AC_PROG_CC_C99
-AC_PROG_LIBTOOL
+LT_INIT
 
 AM_INIT_AUTOMAKE([foreign])
 
