@@ -755,7 +755,7 @@ def main():
         print('ERROR: no mode specified', file=sys.stderr)
         return 1
 
-    if options.mode == 'validate_pot' or options.mode == 'validate_po':
+    if options.mode in ('validate_pot', 'validate_po'):
         if options.mode == 'validate_pot':
             files = args
             if not files:
@@ -795,7 +795,7 @@ def main():
         else:
             return 0
 
-    elif options.mode == 'create_test' or 'test_gettext':
+    elif options.mode in ('create_test', 'test_gettext'):
         po_file = '%s.po' % options.test_lang
         pot_file = options.pot_file
 

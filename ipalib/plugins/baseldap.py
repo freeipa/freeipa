@@ -451,12 +451,12 @@ def remove_external_post_callback(ldap, dn, entry_attrs, failed, completed,
 
     # Run through the failures and gracefully remove any member defined
     # as an external member.
+    completed_external = 0
     if memberattr in failed and membertype in failed[memberattr]:
         entry_attrs_ = ldap.get_entry(dn, [externalattr])
         dn = entry_attrs_.dn
         external_entries = entry_attrs_.get(externalattr, [])
         failed_entries = []
-        completed_external = 0
 
         for entry in failed[memberattr][membertype]:
             membername = entry[0].lower()

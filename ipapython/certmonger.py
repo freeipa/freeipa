@@ -318,8 +318,11 @@ def request_cert(nssdb, nickname, subject, principal, passwd_fname=None):
         if result[0]:
             request = _cm_dbus_object(cm.bus, cm, result[1], DBUS_CM_REQUEST_IF,
                                       DBUS_CM_IF, True)
-    except TypeError:
-        root_logger.error('Failed to get create new request.')
+        else:
+            raise RuntimeError('add_request() returned False')
+    except Exception as e:
+        root_logger.error('Failed to create a new request: {error}'
+                          .format(error=e))
         raise
     return request.obj_if.get_nickname()
 
@@ -356,8 +359,11 @@ def start_tracking(nickname, secdir, password_file=None, command=None):
         if result[0]:
             request = _cm_dbus_object(cm.bus, cm, result[1], DBUS_CM_REQUEST_IF,
                                       DBUS_CM_IF, True)
-    except TypeError as e:
-        root_logger.error('Failed to add new request.')
+        else:
+            raise RuntimeError('add_request() returned False')
+    except Exception as e:
+        root_logger.error('Failed to add new request: {error}'
+                          .format(error=e))
         raise
     return request.prop_if.Get(DBUS_CM_REQUEST_IF, 'nickname')
 
