@@ -402,7 +402,7 @@ class IPADiscovery(object):
                     return [0, thost, lrealms[0]]
 
             #we shouldn't get here
-            return [UNKNOWN_ERROR]
+            assert False, "Unknown error in ipadiscovery"
 
         except errors.DatabaseTimeout:
             root_logger.debug("LDAP Error: timeout")

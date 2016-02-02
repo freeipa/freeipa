@@ -800,9 +800,6 @@ class DNSRecord(Str):
         if value is None:
             return
 
-        if value is None:
-            return
-
         if not self.supported:
             return _('DNS RR type "%s" is not supported by bind-dyndb-ldap plugin') \
                      % self.rrtype
