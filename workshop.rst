@@ -275,15 +275,17 @@ From the directory containing the ``Vagrantfile``, SSH into the
 
 On ``server``, start the FreeIPA server installation program::
 
-  [server]$ sudo ipa-server-install --no-host-dns
+  [server]$ sudo ipa-server-install --no-host-dns --mkhomedir
 
 The ``--no-host-dns`` argument is needed because there is no DNS PTR
 resolution for the Vagrant environment.  For production deployment,
-this important sanity check should not be skipped.
+this important sanity check should not be skipped. The ``--mkhomedir`` 
+flag configure PAM to create missing home directories when users log 
+into the host for the first time. FreeIPA supports automount so 
+consider using that for production deployments.
 
-You will be asked a series of questions.
-Accept the defaults for most of the questions, except as outlined
-below.
+You will be asked a series of questions. Accept the defaults for most 
+of the questions, except as outlined below.
 
 Configure FreeIPA's DNS server::
 
@@ -403,11 +405,6 @@ From the directory that contains the ``Vagrantfile``, SSH into the
 On ``client``, start the FreeIPA client enrolment program::
 
   [client]$ sudo ipa-client-install --mkhomedir
-
-The ``--mkhomedir`` flag configure PAM to create missing home
-directories when users log into the host for the first time.
-FreeIPA supports automount so consider using that for production
-deployments.
 
 The FreeIPA server should be detected through DNS autodiscovery.
 (If DNS discovery fails, e.g. due to client machine having incorrect
@@ -1182,7 +1179,7 @@ details.
 SSH to the ``replica`` VM and install the replica::
 
   % vagrant ssh replica
-  [replica]$ sudo ipa-replica-install replica.gpg 
+  [replica]$ sudo ipa-replica-install --mkhomedir replica.gpg 
   Directory Manager (existing master) password: 
 
   Run connection check to master
