@@ -571,12 +571,7 @@ class ADTRUSTInstance(service.Service):
         """
 
         zone = self.domain_name
-        host, host_domain = self.fqdn.split(".", 1)
-
-        if normalize_zone(zone) == normalize_zone(host_domain):
-            host_in_rr = host
-        else:
-            host_in_rr = normalize_zone(self.fqdn)
+        host_in_rr = normalize_zone(self.fqdn)
 
         priority = 0
 
@@ -707,7 +702,7 @@ class ADTRUSTInstance(service.Service):
                             # this is CIFS service of a different host in our
                             # REALM, we need to remember it to announce via
                             # SRV records for _msdcs
-                            self.cifs_hosts.append(fqdn.split(".")[0])
+                            self.cifs_hosts.append(normalize_zone(fqdn))
 
         except Exception as e:
             root_logger.critical("Checking replicas for cifs principals failed with error '%s'" % e)
