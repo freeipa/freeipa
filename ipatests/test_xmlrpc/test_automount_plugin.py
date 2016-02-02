@@ -89,6 +89,8 @@ class AutomountTest(XMLRPC_test):
                 break
             else:
                 current_file.write(line + '\n')
+        assert current_file is not None, ('The input file does not contain any'
+                                          'records of files to be opened.')
         current_file.close()
 
         self.failsafe_add(api.Object.automountlocation, self.locname)

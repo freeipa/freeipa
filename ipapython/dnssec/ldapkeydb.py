@@ -293,7 +293,7 @@ class LdapKeyDB(AbstractHSM):
             for attr in default_attrs:
                 key.setdefault(attr, default_attrs[attr])
 
-            assert 'ipk11id' in o, 'key is missing ipk11Id in %s' % key.entry.dn
+            assert 'ipk11id' in key, 'key is missing ipk11Id in %s' % key.entry.dn
             key_id = key['ipk11id']
             assert key_id not in keys, 'duplicate ipk11Id=0x%s in "%s" and "%s"' % (hexlify(key_id), key.entry.dn, keys[key_id].entry.dn)
             assert 'ipk11label' in key, 'key "%s" is missing ipk11Label' % key.entry.dn

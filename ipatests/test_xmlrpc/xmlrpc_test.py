@@ -358,7 +358,7 @@ class Declarative(XMLRPC_test):
         if not expected(e, output):
             raise AssertionError(
                 UNEXPECTED % (cmd, name, args, options,
-                              e.__class__.__name__, e)
+                              type(e).__name__, e)
             )
 
     def check_output(self, nice, cmd, args, options, expected, extra_check):
