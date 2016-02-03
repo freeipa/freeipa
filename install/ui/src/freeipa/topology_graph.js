@@ -74,20 +74,44 @@ topology_graph.TopoGraph = declare([Evented], {
      * @param  {Array} suffixes array of suffixes
      */
     update: function(nodes, links, suffixes) {
+        var curr_trasform = this._get_stored_transformation();
+
+        var zoomed = function() {
+            var translate = d3.event.translate;
+            var scale = d3.event.scale;
+            var transform = "translate(" + translate + ")scale(" + scale + ")";
+
+            this._svg.selectAll('g.shapes')
+                .attr("transform", transform);
+            this._store_current_transformation();
+        }.bind(this);
+
+        // adds zoom behavior to the svg
+        var zoom = d3.behavior.zoom()
+            .translate(curr_trasform.translate)
+            .scale(curr_trasform.scale)
+            .scaleExtent([0.2, 1])
+            .on("zoom", zoomed);
+
         // delete all from svg
         this._svg.selectAll("*").remove();
         this._svg.attr('width', this.width)
-                 .attr('height', this.height);
+                 .attr('height', this.height)
+                 .call(zoom);
 
         this.links = links;
         this.nodes = nodes;
         this.suffixes = suffixes;
 
         // load saved coordinates
+        // node.fixed uses integer
+        // this is useful when you need to store the original value and set
+        // the node temporarily fixed
         for (var i=0,l=nodes.length; i<l; i++) {
             var node = nodes[i];
-            if (this._get_local_storage_attr(node.id, 'fixed') === 'true') {
-                node.fixed = true;
+            node.fixed = 0;
+            if (this._get_local_storage_attr(node.id, 'fixed')) {
+                node.fixed = 1;
                 node.x = Number(this._get_local_storage_attr(node.id, 'x'));
                 node.y = Number(this._get_local_storage_attr(node.id, 'y'));
             }
@@ -97,8 +121,13 @@ topology_graph.TopoGraph = declare([Evented], {
         this._define_shapes();
 
         // handles to link and node element groups
-        this._path = this._svg.append('svg:g').selectAll('path');
-        this._circle = this._svg.append('svg:g').selectAll('g');
+        this._path = this._svg.append('svg:g')
+                              .classed('shapes', true)
+                              .selectAll('path');
+
+        this._circle = this._svg.append('svg:g')
+                           .classed('shapes', true)
+                           .selectAll('g');
 
         this._selected_link = null;
         this._mouseup_node = null;
@@ -137,7 +166,7 @@ topology_graph.TopoGraph = declare([Evented], {
 
     _save_node_info: function(d) {
         if (d.fixed) {
-            this._set_local_storage_attr(d.id, 'fixed', 'true');
+            this._set_local_storage_attr(d.id, 'fixed', d.fixed + '');
             this._set_local_storage_attr(d.id, 'x', d.x);
             this._set_local_storage_attr(d.id, 'y', d.y);
         } else {
@@ -145,6 +174,39 @@ topology_graph.TopoGraph = declare([Evented], {
             this._remove_local_storage_attr(d.id, 'x');
             this._remove_local_storage_attr(d.id, 'y');
         }
+    },
+
+    _store_current_transformation: function(d) {
+        var prefix = "graph_";
+        var translate = d3.event.translate;
+        var scale = d3.event.scale;
+
+        this._set_local_storage_attr(prefix, "translate", translate);
+        this._set_local_storage_attr(prefix, "scale", scale);
+    },
+
+    _get_stored_transformation: function(d) {
+        var prefix = "graph_";
+        var current_translate = this._get_local_storage_attr(prefix, "translate");
+        var current_scale = this._get_local_storage_attr(prefix, "scale");
+
+        if (current_translate) {
+            var temp_translate = current_translate.split(",");
+            temp_translate[0] = parseInt(temp_translate[0], 10);
+            temp_translate[1] = parseInt(temp_translate[1], 10);
+            current_translate = temp_translate;
+        } else {
+            current_translate = [0, 0];
+        }
+
+        if (!current_scale) {
+            current_scale = 1;
+        }
+
+        return {
+            translate: current_translate,
+            scale: current_scale
+        };
     },
 
     /**
@@ -339,13 +401,43 @@ topology_graph.TopoGraph = declare([Evented], {
             }
         );
 
+        var drag = d3.behavior.drag()
+            .on("dragstart", dragstarted)
+            .on("drag", dragged)
+            .on("dragend", dragended);
+
+        function dragstarted(d) {
+            d3.event.sourceEvent.stopPropagation();
+            // Store the original value of fixed and set the node fixed.
+            d.fixed = d.fixed << 1;
+            d.fixed |= 1;
+        }
+
+        function dragged(d) {
+            d.px = d3.event.x;
+            d.py = d3.event.y;
+            var translate = "translate(" + d.x + "," + d.y + ")";
+            d3.select(this).attr('transform', translate);
+            self._layout.resume();
+        }
+
+        function dragended(d) {
+            // Restore old value of fixed.
+            d.fixed = d.fixed >> 1;
+            self._layout.resume();
+        }
+
         // add new nodes
         var g = this._circle.enter()
             .append('svg:g')
             .on("dblclick", function(d) {
-                d.fixed = !d.fixed;
+                // Stops propagation dblclick event to the zoom behavior.
+                d3.event.preventDefault();
+                d3.event.stopPropagation();
+                //xor operation switch value of fixed from 1 to 0 and vice versa
+                d.fixed = d.fixed ^ 1;
             })
-            .call(self._layout.drag);
+            .call(drag);
 
         g.append('svg:circle')
             .attr('class', 'node')
@@ -369,6 +461,15 @@ topology_graph.TopoGraph = declare([Evented], {
 
         // remove old nodes
         self._circle.exit().remove();
+
+        // get previously set position and scale of the graph and move current
+        // graph to the proper position
+        var curr_transform = this._get_stored_transformation();
+        var transform = "translate(" + curr_transform.translate +
+                        ")scale(" + curr_transform.scale + ")";
+
+        this._svg.selectAll('g.shapes')
+            .attr("transform", transform);
     },
 
     constructor: function(spec) {
