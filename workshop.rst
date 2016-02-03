@@ -222,7 +222,7 @@ about the *Atlas* service where the box is hosted, you can add it
 by URL instead::
 
   $ vagrant box add ftweedal/freeipa-workshop \
-      https://atlas.hashicorp.com/ftweedal/boxes/freeipa-workshop/versions/0.0.4/providers/virtualbox.box
+      https://atlas.hashicorp.com/ftweedal/boxes/freeipa-workshop/versions/0.0.6/providers/virtualbox.box
 
 
 Add hosts file entries
