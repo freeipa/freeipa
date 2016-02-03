@@ -844,6 +844,10 @@ Restart SSSD::
 
   [client]$ sudo systemctl restart sssd
 
+If you had not added an email address to your users when you created them, you will need to empty the SSSD cache::
+
+  [client]$ sudo sss_cache -E
+
 
 You can test the SSSD InfoPipe directly via the ``dbus-send``
 utility::
