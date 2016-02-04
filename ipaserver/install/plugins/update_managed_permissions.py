@@ -257,67 +257,6 @@ NONOBJECT_PERMISSIONS = {
             'ipantdomainguid', 'ipantfallbackprimarygroup',
         },
     },
-    'System: Read Replication Agreements': {
-        'ipapermlocation': DN('cn=config'),
-        'ipapermtargetfilter': {
-            '(|'
-                '(objectclass=nsds5Replica)'
-                '(objectclass=nsds5replicationagreement)'
-                '(objectclass=nsDSWindowsReplicationAgreement)'
-                '(objectClass=nsMappingTree)'
-            ')'
-        },
-        'ipapermbindruletype': 'permission',
-        'ipapermright': {'read', 'search', 'compare'},
-        'ipapermdefaultattr': {
-            'cn', 'objectclass',
-            # nsds5Replica
-            'nsds5replicaroot', 'nsds5replicaid', 'nsds5replicacleanruv',
-            'nsds5replicaabortcleanruv', 'nsds5replicatype',
-            'nsds5replicabinddn', 'nsstate', 'nsds5replicaname',
-            'nsds5flags', 'nsds5task', 'nsds5replicareferral',
-            'nsds5replicaautoreferral', 'nsds5replicapurgedelay',
-            'nsds5replicatombstonepurgeinterval', 'nsds5replicachangecount',
-            'nsds5replicalegacyconsumer', 'nsds5replicaprotocoltimeout',
-            'nsds5replicabackoffmin', 'nsds5replicabackoffmax',
-            # nsds5replicationagreement
-            'nsds5replicacleanruvnotified', 'nsds5replicahost',
-            'nsds5replicaport', 'nsds5replicatransportinfo',
-            'nsds5replicabinddn', 'nsds5replicacredentials',
-            'nsds5replicabindmethod', 'nsds5replicaroot',
-            'nsds5replicatedattributelist',
-            'nsds5replicatedattributelisttotal', 'nsds5replicaupdateschedule',
-            'nsds5beginreplicarefresh', 'description', 'nsds50ruv',
-            'nsruvreplicalastmodified', 'nsds5replicatimeout',
-            'nsds5replicachangessentsincestartup', 'nsds5replicalastupdateend',
-            'nsds5replicalastupdatestart', 'nsds5replicalastupdatestatus',
-            'nsds5replicaupdateinprogress', 'nsds5replicalastinitend',
-            'nsds5replicaenabled', 'nsds5replicalastinitstart',
-            'nsds5replicalastinitstatus', 'nsds5debugreplicatimeout',
-            'nsds5replicabusywaittime', 'nsds5replicastripattrs',
-            'nsds5replicasessionpausetime', 'nsds5replicaprotocoltimeout',
-            # nsDSWindowsReplicationAgreement
-            'nsds5replicahost', 'nsds5replicaport',
-            'nsds5replicatransportinfo', 'nsds5replicabinddn',
-            'nsds5replicacredentials', 'nsds5replicabindmethod',
-            'nsds5replicaroot', 'nsds5replicatedattributelist',
-            'nsds5replicaupdateschedule', 'nsds5beginreplicarefresh',
-            'description', 'nsds50ruv', 'nsruvreplicalastmodified',
-            'nsds5replicatimeout', 'nsds5replicachangessentsincestartup',
-            'nsds5replicalastupdateend', 'nsds5replicalastupdatestart',
-            'nsds5replicalastupdatestatus', 'nsds5replicaupdateinprogress',
-            'nsds5replicalastinitend', 'nsds5replicalastinitstart',
-            'nsds5replicalastinitstatus', 'nsds5debugreplicatimeout',
-            'nsds5replicabusywaittime', 'nsds5replicasessionpausetime',
-            'nsds7windowsreplicasubtree', 'nsds7directoryreplicasubtree',
-            'nsds7newwinusersyncenabled', 'nsds7newwingroupsyncenabled',
-            'nsds7windowsdomain', 'nsds7dirsynccookie', 'winsyncinterval',
-            'onewaysync', 'winsyncmoveaction', 'nsds5replicaenabled',
-            'winsyncdirectoryfilter', 'winsyncwindowsfilter',
-            'winsyncsubtreepair',
-        },
-        'default_privileges': {'Replication Administrators'},
-    },
     'System: Read DUA Profile': {
         'ipapermlocation': DN('ou=profile', api.env.basedn),
         'ipapermtargetfilter': {
@@ -724,3 +663,75 @@ class update_managed_permissions(Updater):
             raise ValueError(
                 'Unknown key(s) in managed permission template %s: %s' % (
                     name, ', '.join(template.keys())))
+
+
+@register()
+class update_read_replication_agreements_permission(Updater):
+    """'Read replication agreements' permission must not be managed permission
+
+    https://fedorahosted.org/freeipa/ticket/5631
+
+    Existing permission "cn=System: Read Replication Agreements" must be moved
+    to non-managed permission "cn=Read Replication Agreements" using modrdn
+    ldap operation to keep current membership of the permission set by user.
+
+    ACI is updated via update files
+    """
+
+    def execute(self, **options):
+        ldap = self.api.Backend.ldap2
+        old_perm_dn = DN(
+            ('cn', 'System: Read Replication Agreements'),
+            self.api.env.container_permission,
+            self.api.env.basedn
+        )
+
+        new_perm_dn = DN(
+            ('cn', 'Read Replication Agreements'),
+            self.api.env.container_permission,
+            self.api.env.basedn
+        )
+
+        try:
+            perm_entry = ldap.get_entry(old_perm_dn)
+        except errors.NotFound:
+            self.log.debug("Old permission not found")
+            return False, ()
+
+        try:
+            ldap.get_entry(new_perm_dn)
+        except errors.NotFound:
+            # we can happily upgrade
+            pass
+        else:
+            self.log.error("Permission '{}' cannot be upgraded. "
+                           "Permission with target name '{}' already "
+                           "exists".format(old_perm_dn, new_perm_dn))
+            return False, ()
+
+        # values are case insensitive
+        for t in list(perm_entry['ipapermissiontype']):
+            if t.lower() in ['managed', 'v2']:
+                perm_entry['ipapermissiontype'].remove(t)
+
+        for o in list(perm_entry['objectclass']):
+            if o.lower() == 'ipapermissionv2':
+                # remove permission V2 objectclass and related attributes
+                perm_entry['objectclass'].remove(o)
+                perm_entry['ipapermdefaultattr'] = []
+                perm_entry['ipapermright'] = []
+                perm_entry['ipapermbindruletype'] = []
+                perm_entry['ipapermlocation'] = []
+                perm_entry['ipapermtargetfilter'] = []
+
+        self.log.debug("Removing MANAGED attributes from permission %s",
+                       old_perm_dn)
+        try:
+            ldap.update_entry(perm_entry)
+        except errors.EmptyModlist:
+            pass
+
+        # do modrdn on permission
+        self.log.debug("modrdn: %s -> %s", old_perm_dn, new_perm_dn)
+        ldap.move_entry(old_perm_dn, new_perm_dn)
+        return False, ()

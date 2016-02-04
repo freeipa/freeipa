@@ -18,6 +18,7 @@ plugin: update_upload_cacrt
 plugin: update_master_to_dnsforwardzones
 plugin: update_managed_post
 plugin: update_managed_permissions
+plugin: update_read_replication_agreements_permission
 plugin: update_idrange_baserid
 plugin: update_passync_privilege_update
 plugin: update_oddjobd_for_adtrust

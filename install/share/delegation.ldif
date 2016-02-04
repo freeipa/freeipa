@@ -173,6 +173,15 @@ cn: Modify Replication Agreements
 ipapermissiontype: SYSTEM
 member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
 
+dn: cn=Read Replication Agreements,cn=permissions,cn=pbac,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: groupofnames
+objectClass: ipapermission
+cn: Read Replication Agreements
+ipapermissiontype: SYSTEM
+member: cn=Replication Administrators,cn=privileges,cn=pbac,$SUFFIX
+
 dn: cn=Remove Replication Agreements,cn=permissions,cn=pbac,$SUFFIX
 changetype: add
 objectClass: top
