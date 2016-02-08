@@ -882,6 +882,10 @@ def install(installer):
 
     ds.replica_populate()
 
+    # update DNA shared config entry is done as far as possible
+    # from restart to avoid waiting for its creation
+    ds.update_dna_shared_config()
+
     # Everything installed properly, activate ipa service.
     services.knownservices.ipa.enable()
 
@@ -1457,6 +1461,10 @@ def promote(installer):
 
 
     ds.replica_populate()
+
+    # update DNA shared config entry is done as far as possible
+    # from restart to avoid waiting for its creation
+    ds.update_dna_shared_config()
 
     custodia.import_dm_password(config.master_host_name)
 

@@ -1001,6 +1001,12 @@ def install(installer):
     service.print_msg("Restarting the web server")
     http.restart()
 
+    # update DNA shared config entry is done as far as possible
+    # from restart to avoid waiting for its creation
+    # as kra.install restarts DS, it is better to update now
+    # the DNA share config else we will have to wait 30s
+    ds.update_dna_shared_config()
+
     if setup_kra:
         kra.install(api, None, options)
 
