@@ -857,6 +857,63 @@ def tree2_topo(master, replicas):
         yield master, replica
         master = replica
 
+@_topo('2-connected')
+def two_connected_topo(master, replicas):
+    r"""No replica has more than 4 agreements and at least two
+        replicas must fail to disconnect the topology.
+
+         .     .     .     .
+         .     .     .     .
+         .     .     .     .
+     ... R --- R     R --- R ...
+          \   / \   / \   /
+           \ /   \ /   \ /
+        ... R     R     R ...
+             \   / \   /
+              \ /   \ /
+               M0 -- R2
+               |     |
+               |     |
+               R1 -- R3
+              . \   /  .
+             .   \ /    .
+            .     R      .
+                 .  .
+                .    .
+               .      .
+    """
+    grow = []
+    pool = [master] + replicas
+
+    try:
+        v0 = pool.pop(0)
+        v1 = pool.pop(0)
+        yield v0, v1
+
+        v2 = pool.pop(0)
+        yield v0, v2
+        grow.append((v0,v2))
+
+        v3 = pool.pop(0)
+        yield v2, v3
+        yield v1, v3
+        grow.append((v1,v3))
+
+        for (r,s) in grow:
+            t = pool.pop(0)
+
+            for (u,v) in [(r,t), (s,t)]:
+                yield u, v
+                w = pool.pop(0)
+                yield u, w
+                x = pool.pop(0)
+                yield v, x
+                yield w, x
+                grow.append((w,x))
+
+    except IndexError:
+        return
+
 
 def install_topo(topo, master, replicas, clients,
                  skip_master=False, setup_replica_cas=True):
