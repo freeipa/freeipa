@@ -85,3 +85,21 @@ class TestCompleteTopologyWithCA(LayoutsBaseTest):
         tasks.install_topo('complete', self.master, self.replicas, [],
                            setup_replica_cas=True)
         self.replication_is_working()
+
+
+class Test2ConnectedTopologyWithoutCA(LayoutsBaseTest):
+    num_replicas = 33
+
+    def test_2_connected_topology_without_ca(self):
+        tasks.install_topo('2-connected', self.master, self.replicas, [],
+                           setup_replica_cas=False)
+        self.replication_is_working()
+
+
+class Test2ConnectedTopologyWithCA(LayoutsBaseTest):
+    num_replicas = 33
+
+    def test_2_connected_topology_with_ca(self):
+        tasks.install_topo('2-connected', self.master, self.replicas, [],
+                           setup_replica_cas=True)
+        self.replication_is_working()
