@@ -96,3 +96,22 @@ def test_topology_complete():
         (2, 3),
     ]
     assert list(topo('M', [])) == []
+
+
+def test_topology_two_connected():
+    topo = tasks.get_topo('2-connected')
+    assert topo == tasks.two_connected_topo
+    assert list(topo('M', [1, 2, 3, 4, 5, 6, 7, 8])) == [
+        ('M', 1),
+        ('M', 2),
+        (2, 3),
+        (1, 3),
+        ('M', 4),
+        ('M', 5),
+        (4, 6),
+        (5, 6),
+        (2, 4),
+        (2, 7),
+        (4, 8),
+        (7, 8),
+    ]
