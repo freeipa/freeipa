@@ -916,6 +916,58 @@ def two_connected_topo(master, replicas):
         return
 
 
+@_topo('double-circle')
+def double_circle_topo(master, replicas, site_size=6):
+    """
+                      R--R
+                      |\/|
+                      |/\|
+                      R--R
+                     /    \
+                     M -- R
+                    /|    |\
+                   / |    | \
+          R - R - R--|----|--R - R - R
+          | X |   |  |    |  |   | X |
+          R - R - R -|----|--R - R - R
+                   \ |    | /
+                    \|    |/
+                     R -- R
+                     \    /
+                      R--R
+                      |\/|
+                      |/\|
+                      R--R
+    """
+    # to provide redundancy there must be at least two replicas per site
+    assert site_size >= 2
+    # do not handle master other than the rest of the servers
+    servers = [master] + replicas
+
+    # split servers into sites
+    it = [iter(servers)] * site_size
+    sites = map(lambda x: (x[0], x[1], x[2:]), zip(*it))
+    num_sites = len(sites)
+
+    for i in range(num_sites):
+        (a, b, _ignore) = sites[i]
+        # create agreement inside the site
+        yield a, b
+
+        # create agreement to one server in two next sites
+        for (c, d, _ignore) in [sites[(i+n) % num_sites] for n in [1, 2]]:
+            yield b, c
+
+    if site_size > 2:
+        # deploy servers inside the site
+        for site in sites:
+            site_servers = list(site[2])
+            yield site[0], site_servers[0]
+            for edge in complete_topo(site_servers[0], site_servers[1:]):
+                yield edge
+            yield site[1], site_servers[-1]
+
+
 def install_topo(topo, master, replicas, clients,
                  skip_master=False, setup_replica_cas=True):
     """Install IPA servers and clients in the given topology"""
