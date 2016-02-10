@@ -933,12 +933,8 @@ class UI_driver(object):
         s = self.get_table_selector(table_name)
         input_s = s + " tbody td input[value='%s']" % pkey
         checkbox = self.find(input_s, By.CSS_SELECTOR, parent, strict=True)
-        checkbox_id = checkbox.get_attribute('id')
-        label_s = s + " tbody td label[for='%s']" % checkbox_id
-        print(label_s)
-        label = self.find(label_s, By.CSS_SELECTOR, parent, strict=True)
         try:
-            ActionChains(self.driver).move_to_element(label).click().perform()
+            ActionChains(self.driver).move_to_element(checkbox).click().perform()
         except WebDriverException as e:
             assert False, 'Can\'t click on checkbox label: %s \n%s' % (s, e)
         self.wait()
