@@ -103,3 +103,21 @@ class Test2ConnectedTopologyWithCA(LayoutsBaseTest):
         tasks.install_topo('2-connected', self.master, self.replicas, [],
                            setup_replica_cas=True)
         self.replication_is_working()
+
+
+class TestDoubleCircleTopologyWithoutCA(LayoutsBaseTest):
+    num_replicas = 29
+
+    def test_2_connected_topology_with_ca(self):
+        tasks.install_topo('double-circle', self.master, self.replicas, [],
+                           setup_replica_cas=False)
+        self.replication_is_working()
+
+
+class TestDoubleCircleTopologyWithCA(LayoutsBaseTest):
+    num_replicas = 29
+
+    def test_2_connected_topology_with_ca(self):
+        tasks.install_topo('double-circle', self.master, self.replicas, [],
+                           setup_replica_cas=True)
+        self.replication_is_working()
