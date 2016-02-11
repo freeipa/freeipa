@@ -150,6 +150,21 @@ topology_graph.TopoGraph = declare([Evented], {
         l.linkDistance(150);
         l.charge(-1000);
         l.on('tick', lang.hitch(this, this._tick));
+
+        var that = this;
+
+        l.on('end', function () {
+            var nodes = l.nodes();
+
+            for (var i = 0; i < nodes.length; i++) {
+                var curr_node = nodes[i];
+
+                if (!curr_node.fixed) {
+                    curr_node.fixed = 1;
+                    that._save_node_info(curr_node);
+                }
+            }
+        });
     },
 
     _get_local_storage_attr: function(id, attr) {
@@ -436,6 +451,7 @@ topology_graph.TopoGraph = declare([Evented], {
                 d3.event.stopPropagation();
                 //xor operation switch value of fixed from 1 to 0 and vice versa
                 d.fixed = d.fixed ^ 1;
+                self._layout.resume();
             })
             .call(drag);
 
