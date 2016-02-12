@@ -143,11 +143,6 @@ class Executioner(Backend):
                 'non-public: %s: %s', e.__class__.__name__, str(e)
             )
             error = InternalError()
-        except Exception as e:
-            self.exception(
-                'unhandled exception: %s: %s', e.__class__.__name__, str(e)
-            )
-            error = InternalError()
         destroy_context()
         if error is None:
             return result

@@ -491,9 +491,6 @@ class automountlocation_import(LDAPQuery):
                         raise errors.DuplicateEntry(
                             message=_('map %(map)s already exists') % dict(
                                 map=am[1]))
-                except errors.DuplicateEntry:
-                    # This means the same map is used on several mount points.
-                    pass
 
         # Now iterate over the map files and add the keys. To handle
         # continuation lines I'll make a pass through it to skip comments
