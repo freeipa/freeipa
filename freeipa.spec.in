@@ -76,7 +76,8 @@ BuildRequires:  python-gssapi >= 1.1.2
 BuildRequires:  python-rhsm
 BuildRequires:  pyOpenSSL
 BuildRequires:  pylint >= 1.0
-BuildRequires:  python-polib
+# workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
+BuildRequires:  python2-polib
 BuildRequires:  python-libipa_hbac
 BuildRequires:  python-memcached
 BuildRequires:  python-lxml
@@ -596,7 +597,8 @@ Requires: python-nose
 Requires: pytest >= 2.6
 Requires: python-paste
 Requires: python-coverage
-Requires: python-polib
+# workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1096506
+Requires: python2-polib
 Requires: python-pytest-multihost >= 0.5
 Requires: python-pytest-sourceorder
 Requires: ldns-utils
