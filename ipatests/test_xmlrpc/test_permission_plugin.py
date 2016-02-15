@@ -819,6 +819,15 @@ class test_permission(Declarative):
                         'ipapermlocation': [users_dn],
                     },
                 ],
+                messages=(
+                    {
+                        'message': (u'Search result has been truncated to '
+                                    'configured search limit.'),
+                        'code': 13017,
+                        'type': u'warning',
+                        'name': u'SearchResultTruncated'
+                    },
+                ),
             ),
         ),
 
@@ -874,6 +883,15 @@ class test_permission(Declarative):
                     DN(res['dn']).endswith(DN(api.env.container_permission,
                                               api.env.basedn)) and
                     'ipapermission' in res['objectclass']],
+                messages=(
+                    {
+                        'message': (u'Search result has been truncated to '
+                                    'configured search limit.'),
+                        'code': 13017,
+                        'type': u'warning',
+                        'name': u'SearchResultTruncated'
+                    },
+                ),
             ),
         ),
 
