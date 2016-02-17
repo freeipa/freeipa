@@ -20,7 +20,7 @@
 import pytest
 
 from ipatests.test_integration.base import IntegrationTest
-from ipatests.test_integration.tasks import clear_sssd_cache
+from ipatests.test_integration.tasks import clear_sssd_cache, modify_sssd_conf
 from ipatests.test_integration import util
 
 
@@ -287,6 +287,19 @@ class TestSudo(IntegrationTest):
                                  'testrule',
                                  '--hostmask', full_ip])
 
+        # SSSD >= 1.13.3-3 uses native IPA schema instead of compat entries to
+        # pull in sudoers. Since native schema does not (yet) support
+        # hostmasks, we need to point ldap_sudo_search_base to the old schema
+        domain = self.client.domain
+        modify_sssd_conf(
+            self.client,
+            domain.name,
+            {
+                'ldap_sudo_search_base': 'ou=sudoers,{}'.format(domain.basedn)
+            },
+            provider_subtype='sudo'
+        )
+
     def test_sudo_rule_restricted_to_one_hostmask(self):
         if self.__class__.skip_hostmask_based:
             raise pytest.skip("Hostmask could not be detected")
@@ -327,6 +340,18 @@ class TestSudo(IntegrationTest):
         self.master.run_command(['ipa', '-n', 'sudorule-remove-host',
                                  'testrule',
                                  '--hostmask', '%s/32' % ip])
+
+        # reset ldap_sudo_search_base back to the default value, the old
+        # schema is not needed for the upcoming tests
+        domain = self.client.domain
+        modify_sssd_conf(
+            self.client,
+            domain.name,
+            {
+                'ldap_sudo_search_base': None
+            },
+            provider_subtype='sudo'
+        )
 
     def test_sudo_rule_restricted_to_one_command_setup(self):
         # Reset testrule configuration
