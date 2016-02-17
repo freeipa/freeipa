@@ -33,6 +33,7 @@ from ipalib import errors
 from ipapython import ipautil, ipaldap
 from ipaserver.plugins.ldap2 import ldap2
 from ipapython.dn import DN
+from ipatests.test_cmdline.cmdline import cmdline_test
 
 def use_keytab(principal, keytab):
     try:
