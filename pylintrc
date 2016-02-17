@@ -80,7 +80,21 @@ disable=
     empty-docstring,
     trailing-whitespace,
     duplicate-key,
-    unused-format-string-key
+    unused-format-string-key,
+    wrong-import-order,
+    ungrouped-imports,
+    wrong-import-position,
+    unsubscriptable-object,
+    unsupported-membership-test,
+    not-an-iterable,
+    duplicate-except,
+    singleton-comparison,
+    misplaced-comparison-constant,
+    consider-using-enumerate,
+    unneeded-not,
+    not-a-mapping,
+    singleton-comparison
+
 
 [REPORTS]
 
