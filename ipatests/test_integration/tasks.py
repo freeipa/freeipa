@@ -24,10 +24,12 @@ import textwrap
 import re
 import collections
 import itertools
+import tempfile
 import time
 
 import dns
 from ldif import LDIFWriter
+from SSSDConfig import SSSDConfig
 from six import StringIO
 
 from ipapython import ipautil
@@ -589,6 +591,47 @@ def setup_sssd_debugging(host):
 
     # Clear the cache and restart SSSD
     clear_sssd_cache(host)
+
+
+def modify_sssd_conf(host, domain, mod_dict, provider='ipa',
+                     provider_subtype=None):
+    """
+    modify options in a single domain section of host's sssd.conf
+    :param host: multihost.Host object
+    :param domain: domain section name to modify
+    :param mod_dict: dictionary of options which will be passed to
+        SSSDDomain.set_option(). To remove an option specify its value as
+        None
+    :param provider: provider backend to set. Defaults to ipa
+    :param provider_subtype: backend subtype (e.g. id or sudo), will be added
+        to the domain config if not present
+    """
+    try:
+        temp_config_file = tempfile.mkstemp()[1]
+        current_config = host.transport.get_file_contents(paths.SSSD_CONF)
+
+        with open(temp_config_file, 'wb') as f:
+            f.write(current_config)
+
+        sssd_config = SSSDConfig()
+        sssd_config.import_config(temp_config_file)
+        sssd_domain = sssd_config.get_domain(domain)
+
+        if provider_subtype is not None:
+            sssd_domain.add_provider(provider, provider_subtype)
+
+        for m in mod_dict:
+            sssd_domain.set_option(m, mod_dict[m])
+
+        sssd_config.save_domain(sssd_domain)
+
+        new_config = sssd_config.dump(sssd_config.opts).encode('utf-8')
+        host.transport.put_file_contents(paths.SSSD_CONF, new_config)
+    finally:
+        try:
+            os.remove(temp_config_file)
+        except OSError:
+            pass
 
 
 def clear_sssd_cache(host):
