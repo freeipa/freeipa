@@ -191,7 +191,7 @@ class Configurable(six.with_metaclass(abc.ABCMeta, object)):
         for owner_cls in cls.__mro__:
             result = []
 
-            for name, prop_cls in owner_cls.__dict__.iteritems():
+            for name, prop_cls in owner_cls.__dict__.items():
                 if name in seen:
                     continue
                 seen.add(name)
@@ -514,7 +514,7 @@ class Composite(Configurable):
         for owner_cls in cls.__mro__:
             result = []
 
-            for name, comp_cls in owner_cls.__dict__.iteritems():
+            for name, comp_cls in owner_cls.__dict__.items():
                 if name in seen:
                     continue
                 seen.add(name)
