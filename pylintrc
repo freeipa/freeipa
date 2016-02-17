@@ -67,7 +67,20 @@ disable=
     superfluous-parens,
     too-many-lines,
     unidiomatic-typecheck,
-    no-absolute-import
+    no-absolute-import,
+    wrong-import-order,
+    ungrouped-imports,
+    wrong-import-position,
+    unsubscriptable-object,
+    unsupported-membership-test,
+    not-an-iterable,
+    duplicate-except,
+    singleton-comparison,
+    misplaced-comparison-constant,
+    consider-using-enumerate,
+    unneeded-not,
+    not-a-mapping,
+    singleton-comparison
 
 
 [REPORTS]
