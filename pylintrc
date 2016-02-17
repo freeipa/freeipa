@@ -80,7 +80,22 @@ disable=
     trailing-whitespace,
     duplicate-key,
     unused-format-string-key,
-    deprecated-lambda
+    deprecated-lambda,
+    wrong-import-order,
+    ungrouped-imports,
+    wrong-import-position,
+    unsubscriptable-object,
+    unsupported-membership-test,
+    not-an-iterable,
+    duplicate-except,
+    singleton-comparison,
+    misplaced-comparison-constant,
+    consider-using-enumerate,
+    unneeded-not,
+    not-a-mapping,
+    singleton-comparison,
+    using-constant-test
+
 
 [REPORTS]
 
