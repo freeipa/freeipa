@@ -552,3 +552,8 @@ class HTTPInstance(service.Service):
     def stop_tracking_certificates(self):
         db = certs.CertDB(api.env.realm)
         db.untrack_server_cert(self.cert_nickname)
+
+    def start_tracking_certificates(self):
+        db = certs.CertDB(self.realm)
+        db.track_server_cert(self.cert_nickname, self.principal,
+                             db.passwd_fname, 'restart_httpd')

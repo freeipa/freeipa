@@ -792,7 +792,7 @@ def named_root_key_include():
     return True
 
 
-def certificate_renewal_update(ca, ds):
+def certificate_renewal_update(ca, ds, http):
     """
     Update certmonger certificate renewal configuration.
     """
@@ -857,6 +857,14 @@ def certificate_renewal_update(ca, ds):
             None,
         ),
         (
+            paths.HTTPD_ALIAS_DIR,
+            'Server-Cert',
+            'IPA',
+            None,
+            template % 'restart_httpd',
+            None,
+        ),
+        (
             dirsrv_dir,
             'Server-Cert',
             'IPA',
@@ -901,6 +909,7 @@ def certificate_renewal_update(ca, ds):
     # again with new configuration:
     ca.stop_tracking_certificates()
     ds.stop_tracking_certificates(serverid)
+    http.stop_tracking_certificates()
 
     if not sysupgrade.get_upgrade_state('dogtag',
                                         'certificate_renewal_update_1'):
@@ -915,6 +924,7 @@ def certificate_renewal_update(ca, ds):
     ca.configure_agent_renewal()
     ca.track_servercert()
     ds.start_tracking_certificates(serverid)
+    http.start_tracking_certificates()
 
     sysupgrade.set_upgrade_state('dogtag', state, True)
     root_logger.info("Certmonger certificate renewal configuration updated to "
@@ -1506,6 +1516,9 @@ def upgrade_configuration():
         fstore.restore_file(removed_sysconfig_file)
 
     http = httpinstance.HTTPInstance(fstore)
+    http.fqdn = fqdn
+    http.realm = api.env.realm
+    http.principal = "HTTP/%s@%s" % (http.fqdn, http.realm)
     http.configure_selinux_for_httpd()
     http.change_mod_nss_port_from_http()
 
@@ -1544,8 +1557,6 @@ def upgrade_configuration():
              # 389-ds needs to be running
             ds.start()
             http.ldapi = True
-            http.fqdn = fqdn
-            http.realm = api.env.realm
             http.suffix = ipautil.realm_to_suffix(api.env.realm)
             http.ldap_connect()
         httpinstance.create_kdcproxy_user()
@@ -1627,7 +1638,7 @@ def upgrade_configuration():
         ca_restart,
         ca_upgrade_schema(ca),
         upgrade_ca_audit_cert_validity(ca),
-        certificate_renewal_update(ca, ds),
+        certificate_renewal_update(ca, ds, http),
         ca_enable_pkix(ca),
         ca_configure_profiles_acl(ca),
     ])
