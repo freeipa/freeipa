@@ -791,7 +791,8 @@ def named_root_key_include():
     sysupgrade.set_upgrade_state('named.conf', 'root_key_updated', True)
     return True
 
-def certificate_renewal_update(ca):
+
+def certificate_renewal_update(ca, ds):
     """
     Update certmonger certificate renewal configuration.
     """
@@ -801,6 +802,8 @@ def certificate_renewal_update(ca):
     else:
         libpath = 'lib'
     template = paths.CERTMONGER_COMMAND_TEMPLATE % (libpath, '%s')
+    serverid = installutils.realm_to_serverid(api.env.realm)
+    dirsrv_dir = dsinstance.config_dirname(serverid)
 
     # bump version when requests is changed
     version = 4
@@ -853,6 +856,15 @@ def certificate_renewal_update(ca):
             '%s "Server-Cert cert-pki-ca"' % (template % 'renew_ca_cert'),
             None,
         ),
+        (
+            dirsrv_dir,
+            'Server-Cert',
+            'IPA',
+            None,
+            '%s %s' % (template % 'restart_dirsrv', serverid),
+            None,
+        ),
+
     )
 
     root_logger.info("[Update certmonger certificate renewal configuration to "
@@ -888,6 +900,7 @@ def certificate_renewal_update(ca):
     # Ok, now we need to stop tracking, then we can start tracking them
     # again with new configuration:
     ca.stop_tracking_certificates()
+    ds.stop_tracking_certificates(serverid)
 
     if not sysupgrade.get_upgrade_state('dogtag',
                                         'certificate_renewal_update_1'):
@@ -901,6 +914,7 @@ def certificate_renewal_update(ca):
     ca.configure_renewal()
     ca.configure_agent_renewal()
     ca.track_servercert()
+    ds.start_tracking_certificates(serverid)
 
     sysupgrade.set_upgrade_state('dogtag', state, True)
     root_logger.info("Certmonger certificate renewal configuration updated to "
@@ -1517,6 +1531,7 @@ def upgrade_configuration():
     ds.fqdn = fqdn
     ds.realm = api.env.realm
     ds.suffix = ipautil.realm_to_suffix(api.env.realm)
+    ds.principal = "ldap/%s@%s" % (ds.fqdn, ds.realm)
 
     ds.ldap_connect()
     ds_enable_sidgen_extdom_plugins(ds)
@@ -1612,7 +1627,7 @@ def upgrade_configuration():
         ca_restart,
         ca_upgrade_schema(ca),
         upgrade_ca_audit_cert_validity(ca),
-        certificate_renewal_update(ca),
+        certificate_renewal_update(ca, ds),
         ca_enable_pkix(ca),
         ca_configure_profiles_acl(ca),
     ])
