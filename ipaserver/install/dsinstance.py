@@ -969,6 +969,13 @@ class DsInstance(service.Service):
             dsdb = certs.CertDB(self.realm, nssdir=dirname)
             dsdb.untrack_server_cert(self.nickname)
 
+    def start_tracking_certificates(self, serverid):
+        dirname = config_dirname(serverid)[:-1]
+        dsdb = certs.CertDB(self.realm, nssdir=dirname)
+        dsdb.track_server_cert(self.nickname, self.principal,
+                               dsdb.passwd_fname,
+                               'restart_dirsrv %s' % serverid)
+
     # we could probably move this function into the service.Service
     # class - it's very generic - all we need is a way to get an
     # instance of a particular Service
