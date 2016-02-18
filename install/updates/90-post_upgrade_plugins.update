@@ -4,6 +4,8 @@
 # middle
 plugin: update_dnszones
 plugin: update_dns_limits
+plugin: update_sigden_extdom_broken_config
+plugin: update_sids
 plugin: update_default_range
 plugin: update_default_trust_view
 plugin: update_ca_renewal_master

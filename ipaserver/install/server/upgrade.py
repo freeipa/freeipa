@@ -1290,8 +1290,8 @@ def ds_enable_sidgen_extdom_plugins(ds):
         root_logger.debug('sidgen and extdom plugins are enabled already')
         return
 
-    ds.add_sidgen_plugin()
-    ds.add_extdom_plugin()
+    ds.add_sidgen_plugin(api.env.basedn)
+    ds.add_extdom_plugin(api.env.basedn)
     sysupgrade.set_upgrade_state('ds', 'enable_ds_sidgen_extdom_plugins', True)
 
 def ca_upgrade_schema(ca):
