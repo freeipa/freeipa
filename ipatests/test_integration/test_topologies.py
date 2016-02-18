@@ -115,3 +115,4 @@ def test_topology_two_connected():
         (4, 8),
         (7, 8),
     ]
+    assert list(topo('M', [])) == []
