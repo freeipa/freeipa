@@ -1054,9 +1054,9 @@ class DsInstance(service.Service):
         """
         Add sidgen directory server plugin configuration if it does not already exist.
         """
-        self._ldap_mod('ipa-sidgen-conf.ldif', self.sub_dict)
+        self.add_sidgen_plugin(self.sub_dict['SUFFIX'])
 
-    def add_sidgen_plugin(self):
+    def add_sidgen_plugin(self, suffix):
         """
         Add sidgen plugin configuration only if it does not already exist.
         """
@@ -1064,7 +1064,7 @@ class DsInstance(service.Service):
         try:
             self.admin_conn.get_entry(dn)
         except errors.NotFound:
-            self._add_sidgen_plugin()
+            self._ldap_mod('ipa-sidgen-conf.ldif', dict(SUFFIX=suffix))
         else:
             root_logger.debug("sidgen plugin is already configured")
 
@@ -1072,9 +1072,9 @@ class DsInstance(service.Service):
         """
         Add directory server configuration for the extdom extended operation.
         """
-        self._ldap_mod('ipa-extdom-extop-conf.ldif', self.sub_dict)
+        self.add_extdom_plugin(self.sub_dict['SUFFIX'])
 
-    def add_extdom_plugin(self):
+    def add_extdom_plugin(self, suffix):
         """
         Add extdom configuration if it does not already exist.
         """
@@ -1082,7 +1082,7 @@ class DsInstance(service.Service):
         try:
             self.admin_conn.get_entry(dn)
         except errors.NotFound:
-            self._add_extdom_plugin()
+            self._ldap_mod('ipa-extdom-extop-conf.ldif', dict(SUFFIX=suffix))
         else:
             root_logger.debug("extdom plugin is already configured")
 

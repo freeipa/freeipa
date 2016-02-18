@@ -21,6 +21,8 @@ from ipalib import api, errors
 from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
+from ipaserver.install import sysupgrade
+
 
 DEFAULT_ID_RANGE_SIZE = 200000
 
@@ -161,5 +163,156 @@ class update_default_trust_view(Updater):
 
         return False, [update]
 
+
+class update_sigden_extdom_broken_config(Updater):
+    """Fix configuration of sidgen and extdom plugins
+
+    Upgrade to IPA 4.2+ cause that sidgen and extdom plugins have improperly
+    configured basedn.
+
+    All trusts which have been added when config was broken must to be
+    re-added manually.
+
+    https://fedorahosted.org/freeipa/ticket/5665
+    """
+
+    sidgen_config_dn = DN("cn=IPA SIDGEN,cn=plugins,cn=config")
+    extdom_config_dn = DN("cn=ipa_extdom_extop,cn=plugins,cn=config")
+
+    def _fix_config(self):
+        """Due upgrade error configuration of sidgen and extdom plugins may
+        contain literally "$SUFFIX" value instead of real DN in nsslapd-basedn
+        attribute
+
+        :return: True if config was fixed, False if fix is not needed
+        """
+        ldap = self.api.Backend.ldap2
+        basedn_attr = 'nsslapd-basedn'
+        modified = False
+
+        for dn in (self.sidgen_config_dn, self.extdom_config_dn):
+            try:
+                entry = ldap.get_entry(dn, attrs_list=[basedn_attr])
+            except errors.NotFound:
+                self.log.debug("configuration for %s not found, skipping", dn)
+            else:
+                configured_suffix = entry.single_value.get(basedn_attr)
+                if configured_suffix is None:
+                    raise RuntimeError(
+                        "Missing attribute {attr} in {dn}".format(
+                            attr=basedn_attr, dn=dn
+                        )
+                    )
+                elif configured_suffix == "$SUFFIX":
+                    # configured value is wrong, fix it
+                    entry.single_value[basedn_attr] = str(self.api.env.basedn)
+                    self.log.debug("updating attribute %s of %s to correct "
+                                   "value %s", basedn_attr, dn,
+                                   self.api.env.basedn)
+                    ldap.update_entry(entry)
+                    modified = True
+                else:
+                    self.log.debug("configured basedn for %s is okay", dn)
+
+        return modified
+
+    def execute(self, **options):
+        if sysupgrade.get_upgrade_state('sidgen', 'config_basedn_updated'):
+            self.log.debug("Already done, skipping")
+            return False, ()
+
+        restart = False
+        if self._fix_config():
+            sysupgrade.set_upgrade_state('sidgen', 'update_sids', True)
+            restart = True  # DS has to be restarted to apply changes
+
+        sysupgrade.set_upgrade_state('sidgen', 'config_basedn_updated', True)
+        return restart, ()
+
+
+class update_sids(Updater):
+    """SIDs may be not created properly if bug with wrong configuration for
+    sidgen and extdom plugins is effective
+
+    This must be run after "update_sigden_extdom_broken_config"
+    https://fedorahosted.org/freeipa/ticket/5665
+    """
+    sidgen_config_dn = DN("cn=IPA SIDGEN,cn=plugins,cn=config")
+
+    def execute(self, **options):
+        ldap = self.api.Backend.ldap2
+
+        if sysupgrade.get_upgrade_state('sidgen', 'update_sids') is not True:
+            self.log.debug("SIDs do not need to be generated")
+            return False, ()
+
+        # check if IPA domain for AD trust has been created, and if we need to
+        # regenerate missing SIDs if attribute 'ipaNTSecurityIdentifier'
+        domain_IPA_AD_dn = DN(
+            ('cn', self.api.env.domain),
+            self.api.env.container_cifsdomains,
+            self.api.env.basedn)
+        attr_name = 'ipaNTSecurityIdentifier'
+
+        try:
+            entry = ldap.get_entry(domain_IPA_AD_dn, attrs_list=[attr_name])
+        except errors.NotFound:
+            self.log.debug("IPA domain object %s is not configured",
+                           domain_IPA_AD_dn)
+            sysupgrade.set_upgrade_state('sidgen', 'update_sids', False)
+            return False, ()
+        else:
+            if not entry.single_value.get(attr_name):
+                # we need to run sidgen task
+                sidgen_task_dn = DN(
+                    "cn=generate domain sid,cn=ipa-sidgen-task,cn=tasks,"
+                    "cn=config")
+                sidgen_tasks_attr = {
+                    "objectclass": ["top", "extensibleObject"],
+                    "cn": ["sidgen"],
+                    "delay": [0],
+                    "nsslapd-basedn": [self.api.env.basedn],
+                }
+
+                task_entry = ldap.make_entry(sidgen_task_dn,
+                                             **sidgen_tasks_attr)
+                try:
+                    ldap.add_entry(task_entry)
+                except errors.DuplicateEntry:
+                    self.log.debug("sidgen task already created")
+                else:
+                    self.log.debug("sidgen task has been created")
+
+        # we have to check all trusts domains which may been affected by the
+        # bug. Symptom is missing 'ipaNTSecurityIdentifier' attribute
+
+        base_dn = DN(self.api.env.container_adtrusts, self.api.env.basedn)
+        try:
+            trust_domain_entries, truncated = ldap.find_entries(
+                base_dn=base_dn,
+                scope=ldap.SCOPE_ONELEVEL,
+                attrs_list=["cn"],
+                # more types of trusts can be stored under cn=trusts, we need
+                # the type with ipaNTTrustPartner attribute
+                filter="(!(%s=*))" % attr_name
+            )
+        except errors.NotFound:
+            pass
+        else:
+            if truncated:
+                self.log.warning("update_sids: Search results were truncated")
+
+            for entry in trust_domain_entries:
+                domain = entry.single_value["cn"]
+                self.log.error(
+                    "Your trust to %s is broken. Please re-create it by "
+                    "running 'ipa trust-add' again.", domain)
+
+        sysupgrade.set_upgrade_state('sidgen', 'update_sids', False)
+        return False, ()
+
+
 api.register(update_default_range)
 api.register(update_default_trust_view)
+api.register(update_sids)
+api.register(update_sigden_extdom_broken_config)
