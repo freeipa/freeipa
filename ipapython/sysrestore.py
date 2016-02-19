@@ -28,7 +28,6 @@ import os.path
 import shutil
 from ipapython.ipa_log_manager import *
 import random
-import string
 
 import six
 from six.moves.configparser import SafeConfigParser
@@ -134,7 +133,8 @@ class FileStore:
 
         stat = os.stat(path)
 
-        self.files[filename] = string.join([str(stat.st_mode),str(stat.st_uid),str(stat.st_gid),path], ',')
+        template = '{stat.st_mode},{stat.st_uid},{stat.st_gid},{path}'
+        self.files[filename] = template.format(stat=stat, path=path)
         self.save()
 
     def has_file(self, path):
@@ -144,7 +144,7 @@ class FileStore:
         """
         result = False
         for (key, value) in self.files.items():
-            (mode,uid,gid,filepath) = string.split(value, ',', 3)
+            (mode,uid,gid,filepath) = value.split(',', 3)
             if (filepath == path):
                 result = True
                 break
@@ -177,7 +177,7 @@ class FileStore:
         filename = None
 
         for (key, value) in self.files.items():
-            (mode,uid,gid,filepath) = string.split(value, ',', 3)
+            (mode,uid,gid,filepath) = value.split(',', 3)
             if (filepath == path):
                 filename = key
                 break
@@ -219,7 +219,7 @@ class FileStore:
 
         for (filename, value) in self.files.items():
 
-            (mode,uid,gid,path) = string.split(value, ',', 3)
+            (mode,uid,gid,path) = value.split(',', 3)
 
             backup_path = os.path.join(self._path, filename)
             if not os.path.exists(backup_path):
@@ -268,7 +268,7 @@ class FileStore:
         filename = None
 
         for (key, value) in self.files.items():
-            (mode,uid,gid,filepath) = string.split(value, ',', 3)
+            (mode,uid,gid,filepath) = value.split(',', 3)
             if (filepath == path):
                 filename = key
                 break
