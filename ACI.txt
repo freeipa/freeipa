@@ -97,15 +97,15 @@ aci: (targetattr = "businesscategory || cn || createtimestamp || description || 
 dn: cn=groups,cn=accounts,dc=ipa,dc=example
 aci: (targetfilter = "(|(objectclass=ipausergroup)(objectclass=posixgroup))")(version 3.0;acl "permission:System: Remove Groups";allow (delete) groupdn = "ldap:///cn=System: Remove Groups,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=hbac,dc=ipa,dc=example
-aci: (targetfilter = "(objectclass=ipahbacrule)")(version 3.0;acl "permission:System: Add HBAC Rule";allow (add) groupdn = "ldap:///cn=System: Add HBAC Rule,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+aci: (targetfilter = "(|(objectclass=ipahbacrule)(objectclass=ipahbacrulev2))")(version 3.0;acl "permission:System: Add HBAC Rule";allow (add) groupdn = "ldap:///cn=System: Add HBAC Rule,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=hbac,dc=ipa,dc=example
-aci: (targetfilter = "(objectclass=ipahbacrule)")(version 3.0;acl "permission:System: Delete HBAC Rule";allow (delete) groupdn = "ldap:///cn=System: Delete HBAC Rule,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+aci: (targetfilter = "(|(objectclass=ipahbacrule)(objectclass=ipahbacrulev2))")(version 3.0;acl "permission:System: Delete HBAC Rule";allow (delete) groupdn = "ldap:///cn=System: Delete HBAC Rule,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=hbac,dc=ipa,dc=example
-aci: (targetattr = "externalhost || memberhost || memberservice || memberuser")(targetfilter = "(objectclass=ipahbacrule)")(version 3.0;acl "permission:System: Manage HBAC Rule Membership";allow (write) groupdn = "ldap:///cn=System: Manage HBAC Rule Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+aci: (targetattr = "externalhost || ipamembertimerule || memberhost || memberservice || memberuser")(targetfilter = "(|(objectclass=ipahbacrule)(objectclass=ipahbacrulev2))")(version 3.0;acl "permission:System: Manage HBAC Rule Membership";allow (write) groupdn = "ldap:///cn=System: Manage HBAC Rule Membership,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=hbac,dc=ipa,dc=example
-aci: (targetattr = "accessruletype || accesstime || cn || description || hostcategory || ipaenabledflag || servicecategory || sourcehost || sourcehostcategory || usercategory")(targetfilter = "(objectclass=ipahbacrule)")(version 3.0;acl "permission:System: Modify HBAC Rule";allow (write) groupdn = "ldap:///cn=System: Modify HBAC Rule,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+aci: (targetattr = "accessruletype || accesstime || cn || description || hostcategory || ipaenabledflag || ipamembertimerule || servicecategory || sourcehost || sourcehostcategory || usercategory")(targetfilter = "(|(objectclass=ipahbacrule)(objectclass=ipahbacrulev2))")(version 3.0;acl "permission:System: Modify HBAC Rule";allow (write) groupdn = "ldap:///cn=System: Modify HBAC Rule,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=hbac,dc=ipa,dc=example
-aci: (targetattr = "accessruletype || accesstime || cn || createtimestamp || description || entryusn || externalhost || hostcategory || ipaenabledflag || ipauniqueid || member || memberhost || memberservice || memberuser || modifytimestamp || objectclass || servicecategory || sourcehost || sourcehostcategory || usercategory")(targetfilter = "(objectclass=ipahbacrule)")(version 3.0;acl "permission:System: Read HBAC Rules";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "accessruletype || accesstime || cn || createtimestamp || description || entryusn || externalhost || hostcategory || ipaenabledflag || ipamembertimerule || ipauniqueid || member || memberhost || memberservice || memberuser || modifytimestamp || objectclass || servicecategory || sourcehost || sourcehostcategory || usercategory")(targetfilter = "(|(objectclass=ipahbacrule)(objectclass=ipahbacrulev2))")(version 3.0;acl "permission:System: Read HBAC Rules";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=hbacservices,cn=hbac,dc=ipa,dc=example
 aci: (targetfilter = "(objectclass=ipahbacservice)")(version 3.0;acl "permission:System: Add HBAC Services";allow (add) groupdn = "ldap:///cn=System: Add HBAC Services,cn=permissions,cn=pbac,dc=ipa,dc=example";)
 dn: cn=hbacservices,cn=hbac,dc=ipa,dc=example
@@ -326,6 +326,16 @@ dn: cn=sudorules,cn=sudo,dc=ipa,dc=example
 aci: (targetattr = "cmdcategory || cn || createtimestamp || description || entryusn || externalhost || externaluser || hostcategory || hostmask || ipaenabledflag || ipasudoopt || ipasudorunas || ipasudorunasextgroup || ipasudorunasextuser || ipasudorunasextusergroup || ipasudorunasgroup || ipasudorunasgroupcategory || ipasudorunasusercategory || ipauniqueid || member || memberallowcmd || memberdenycmd || memberhost || memberuser || modifytimestamp || objectclass || sudonotafter || sudonotbefore || sudoorder || usercategory")(targetfilter = "(objectclass=ipasudorule)")(version 3.0;acl "permission:System: Read Sudo Rules";allow (compare,read,search) userdn = "ldap:///all";)
 dn: dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || description || entryusn || modifytimestamp || objectclass || ou || sudocommand || sudohost || sudonotafter || sudonotbefore || sudooption || sudoorder || sudorunas || sudorunasgroup || sudorunasuser || sudouser")(target = "ldap:///ou=sudoers,dc=ipa,dc=example")(version 3.0;acl "permission:System: Read Sudoers compat tree";allow (compare,read,search) userdn = "ldap:///anyone";)
+dn: cn=timerules,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipatimerule)")(version 3.0;acl "permission:System: Add Time Rule";allow (add) groupdn = "ldap:///cn=System: Add Time Rule,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=timerules,dc=ipa,dc=example
+aci: (targetfilter = "(objectclass=ipatimerule)")(version 3.0;acl "permission:System: Delete Time Rule";allow (delete) groupdn = "ldap:///cn=System: Delete Time Rule,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=timerules,dc=ipa,dc=example
+aci: (targetattr = "accesstime || description")(targetfilter = "(objectclass=ipatimerule)")(version 3.0;acl "permission:System: Modify Time Rule";allow (write) groupdn = "ldap:///cn=System: Modify Time Rule,cn=permissions,cn=pbac,dc=ipa,dc=example";)
+dn: cn=timerules,dc=ipa,dc=example
+aci: (targetattr = "accesstime || cn || createtimestamp || description || entryusn || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipatimerule)")(version 3.0;acl "permission:System: Read Time Rule";allow (compare,read,search) userdn = "ldap:///all";)
+dn: cn=timerules,dc=ipa,dc=example
+aci: (targetattr = "memberof")(targetfilter = "(objectclass=ipatimerule)")(version 3.0;acl "permission:System: Read Time Rule Membership";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=trusts,dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || entryusn || ipantadditionalsuffixes || ipantflatname || ipantsecurityidentifier || ipantsidblacklistincoming || ipantsidblacklistoutgoing || ipanttrustdirection || ipanttrusteddomainsid || ipanttrustpartner || modifytimestamp || objectclass")(version 3.0;acl "permission:System: Read Trust Information";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=trusts,dc=ipa,dc=example

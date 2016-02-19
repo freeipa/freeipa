@@ -71,6 +71,9 @@ add:member: cn=IT Security Specialist,cn=roles,cn=accounts,$SUFFIX
 dn: cn=Sudo administrator,cn=privileges,cn=pbac,$SUFFIX
 add:member: cn=IT Security Specialist,cn=roles,cn=accounts,$SUFFIX
 
+dn: cn=Time Rules Administrator,cn=privileges,cn=pbac,$SUFFIX
+add:member: cn=IT Security Specialist,cn=roles,cn=accounts,$SUFFIX
+
 dn: cn=Security Architect,cn=roles,cn=accounts,$SUFFIX
 default:objectClass: groupofnames
 default:objectClass: nestedgroup

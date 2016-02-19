@@ -1,0 +1,5 @@
+# Add needed LDAP objects
+dn: cn=timerules,$SUFFIX
+default: objectClass: top
+default: objectClass: nsContainer
+default: cn: timerules

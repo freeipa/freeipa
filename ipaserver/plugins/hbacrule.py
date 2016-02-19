@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipalib import api, errors
-from ipalib import AccessTime, Str, StrEnum, Bool
+from ipalib import Str, StrEnum, Bool
 from ipalib.plugable import Registry
 from .baseldap import (
     pkey_to_value,
@@ -86,21 +86,6 @@ EXAMPLES:
 
 register = Registry()
 
-# AccessTime support is being removed for now.
-#
-# You can also control the times that the rule is active.
-#
-# The access time(s) of a host are cumulative and are not guaranteed to be
-# applied in the order displayed.
-#
-# Specify that the rule "test1" be active every day between 0800 and 1400:
-#   ipa hbacrule-add-accesstime --time='periodic daily 0800-1400' test1
-#
-# Specify that the rule "test1" be active once, from 10:32 until 10:33 on
-# December 16, 2010:
-#   ipa hbacrule-add-accesstime --time='absolute 201012161032 ~ 201012161033' test1
-
-
 topic = 'hbac'
 
 def validate_type(ugettext, type):
@@ -122,6 +107,13 @@ def is_all(options, attribute):
         return False
 
 
+def replace_attr_value(attr_vals, replace, replacement):
+    lower_replace = replace.lower()
+    ret = [val for val in attr_vals if val.lower() != lower_replace]
+    ret.append(replacement)
+    return ret
+
+
 @register()
 class hbacrule(LDAPObject):
     """
@@ -130,14 +122,15 @@ class hbacrule(LDAPObject):
     container_dn = api.env.container_hbac
     object_name = _('HBAC rule')
     object_name_plural = _('HBAC rules')
-    object_class = ['ipaassociation', 'ipahbacrule']
-    permission_filter_objectclasses = ['ipahbacrule']
+    object_class = ['ipaassociation']
+    possible_objectclasses = ['ipahbacrule', 'ipahbacrulev2']
+    permission_filter_objectclasses = ['ipahbacrule', 'ipahbacrulev2']
     default_attributes = [
         'cn', 'ipaenabledflag',
         'description', 'usercategory', 'hostcategory',
         'servicecategory', 'ipaenabledflag',
         'memberuser', 'sourcehost', 'memberhost', 'memberservice',
-        'externalhost',
+        'externalhost', 'ipamembertimerule'
     ]
     uuid_attribute = 'ipauniqueid'
     rdn_attribute = 'ipauniqueid'
@@ -146,6 +139,7 @@ class hbacrule(LDAPObject):
         'memberhost': ['host', 'hostgroup'],
         'sourcehost': ['host', 'hostgroup'],
         'memberservice': ['hbacsvc', 'hbacsvcgroup'],
+        'ipamembertimerule': ['timerule'],
     }
     managed_permissions = {
         'System: Read HBAC Rules': {
@@ -157,7 +151,7 @@ class hbacrule(LDAPObject):
                 'externalhost', 'hostcategory', 'ipaenabledflag',
                 'ipauniqueid', 'memberhost', 'memberservice', 'memberuser',
                 'servicecategory', 'sourcehost', 'sourcehostcategory',
-                'usercategory', 'objectclass', 'member',
+                'usercategory', 'objectclass', 'member', 'ipamembertimerule',
             },
         },
         'System: Add HBAC Rule': {
@@ -177,7 +171,8 @@ class hbacrule(LDAPObject):
         'System: Manage HBAC Rule Membership': {
             'ipapermright': {'write'},
             'ipapermdefaultattr': {
-                'externalhost', 'memberhost', 'memberservice', 'memberuser'
+                'externalhost', 'memberhost', 'memberservice', 'memberuser',
+                'ipamembertimerule'
             },
             'replaces': [
                 '(targetattr = "memberuser || externalhost || memberservice || memberhost")(target = "ldap:///ipauniqueid=*,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Manage HBAC rule membership";allow (write) groupdn = "ldap:///cn=Manage HBAC rule membership,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -189,7 +184,8 @@ class hbacrule(LDAPObject):
             'ipapermdefaultattr': {
                 'accessruletype', 'accesstime', 'cn', 'description',
                 'hostcategory', 'ipaenabledflag', 'servicecategory',
-                'sourcehost', 'sourcehostcategory', 'usercategory'
+                'sourcehost', 'sourcehostcategory', 'usercategory',
+                'ipamembertimerule'
             },
             'replaces': [
                 '(targetattr = "servicecategory || sourcehostcategory || cn || description || ipaenabledflag || accesstime || usercategory || hostcategory || accessruletype || sourcehost")(target = "ldap:///ipauniqueid=*,cn=hbac,$SUFFIX")(version 3.0;acl "permission:Modify HBAC rule";allow (write) groupdn = "ldap:///cn=Modify HBAC rule,cn=permissions,cn=pbac,$SUFFIX";)',
@@ -207,14 +203,14 @@ class hbacrule(LDAPObject):
             label=_('Rule name'),
             primary_key=True,
         ),
-        StrEnum('accessruletype', validate_type,
+        StrEnum('accessruletype?', validate_type,
             cli_name='type',
             doc=_('Rule type (allow)'),
             label=_('Rule type'),
             values=(u'allow', u'deny'),
             default=u'allow',
             autofill=True,
-            exclude='webui',
+            exclude=('webui', 'cli'),
             flags=['no_option', 'no_output'],
         ),
         # FIXME: {user,host,service}categories should expand in the future
@@ -244,10 +240,6 @@ class hbacrule(LDAPObject):
             doc=_('Service category the rule applies to'),
             values=(u'all', ),
         ),
-#        AccessTime('accesstime?',
-#            cli_name='time',
-#            label=_('Access time'),
-#        ),
         Str('description?',
             cli_name='desc',
             label=_('Description'),
@@ -271,6 +263,10 @@ class hbacrule(LDAPObject):
         Str('memberhost_hostgroup?',
             label=_('Host Groups'),
             flags=['no_create', 'no_update', 'no_search'],
+        ),
+        Str('ipamembertimerule_timerule?',
+            label=_('Time Rules'),
+            flags=['no_create', 'no_update', 'no_search']
         ),
         Str('sourcehost_host?',
             deprecated=True,
@@ -305,6 +301,8 @@ class hbacrule_add(LDAPCreate):
         assert isinstance(dn, DN)
         # HBAC rules are enabled by default
         entry_attrs['ipaenabledflag'] = 'TRUE'
+        # start as an old type HBAC
+        entry_attrs['objectclass'].append('ipahbacrule')
         return dn
 
 
@@ -349,7 +347,6 @@ class hbacrule_mod(LDAPUpdate):
         return dn
 
 
-
 @register()
 class hbacrule_find(LDAPSearch):
     __doc__ = _('Search for HBAC rules.')
@@ -358,6 +355,16 @@ class hbacrule_find(LDAPSearch):
         '%(count)d HBAC rule matched', '%(count)d HBAC rules matched', 0
     )
 
+    def pre_callback(self, ldap, filter, attrs_list, base_dn,
+                     scope, *args, **options):
+        assert isinstance(base_dn, DN)
+        filters = [
+            ldap.make_filter({'objectclass': ['ipahbacrule', 'ipahbacrulev2']},
+                             rules=ldap.MATCH_ANY)
+        ]
+        filters.append(filter)
+        filter = ldap.combine_filters(filters, rules=ldap.MATCH_ALL)
+        return (filter, base_dn, scope)
 
 
 @register()
@@ -425,67 +432,82 @@ class hbacrule_disable(LDAPQuery):
         )
 
 
-# @register()
-class hbacrule_add_accesstime(LDAPQuery):
-    """
-    Add an access time to an HBAC rule.
-    """
+@register()
+class hbacrule_add_timerule(LDAPAddMember):
+    __doc__ = _('Add time rules to an HBAC rule.')
 
-    takes_options = (
-        AccessTime('accesstime',
-            cli_name='time',
-            label=_('Access time'),
-        ),
-    )
+    member_attributes = ['ipamembertimerule']
+    member_count_out = ('%i object added.', '%i objects added.')
 
-    def execute(self, cn, **options):
+    def execute(self, *args, **options):
         ldap = self.obj.backend
+        dn = self.obj.get_dn(*args, **options)
+        assert(isinstance(dn, DN))
 
-        dn = self.obj.get_dn(cn)
-
-        entry_attrs = ldap.get_entry(dn, ['accesstime'])
-        entry_attrs.setdefault('accesstime', []).append(
-            options['accesstime']
-        )
         try:
-            ldap.update_entry(entry_attrs)
-        except errors.EmptyModlist:
-            pass
+            entry_attrs = ldap.get_entry(dn, ['objectclass', 'accessruletype'])
         except errors.NotFound:
-            self.obj.handle_not_found(cn)
+            self.obj.handle_not_found(*args)
+        objclass_updated = False
+        # ipaHBACRuleV2 objectclass marks new version HBAC rules with new
+        # capabilities such as time policies
+        if ('ipahbacrulev2' not in
+                (o.lower() for o in entry_attrs['objectclass'])):
+            entry_attrs['objectclass'] = replace_attr_value(
+                                            entry_attrs['objectclass'],
+                                            'ipahbacrule',
+                                            'ipahbacrulev2')
+            type_backup = entry_attrs['accessruletype']
+            entry_attrs['accessruletype'] = []
+            ldap.update_entry(entry_attrs)
+            objclass_updated = True
 
-        return dict(result=True)
+        try:
+            result = super(hbacrule_add_timerule, self).execute(*args,
+                                                                **options)
+        except Exception as e:
+            self.log.error("Failed to add a timerule: {err}".format(err=e))
+            if objclass_updated:
+                # there was an error adding time rule to an HBAC rule which was
+                # of old version before, switch it back to ipaHBACRule class
+                entry_attrs['objectclass'] = replace_attr_value(
+                                                entry_attrs['objectclass'],
+                                                'ipahbacrulev2',
+                                                'ipahbacrule')
+                entry_attrs['accessruletype'] = type_backup
+                ldap.update_entry(entry_attrs)
+            raise
+        return result
 
 
-# @register()
-class hbacrule_remove_accesstime(LDAPQuery):
-    """
-    Remove access time to HBAC rule.
-    """
-    takes_options = (
-        AccessTime('accesstime?',
-            cli_name='time',
-            label=_('Access time'),
-        ),
-    )
+@register()
+class hbacrule_remove_timerule(LDAPRemoveMember):
+    __doc__ = _('Remove users and groups from an HBAC rule.')
 
-    def execute(self, cn, **options):
+    member_attributes = ['ipamembertimerule']
+    member_count_out = ('%i object removed.', '%i objects removed.')
+
+    def execute(self, *args, **options):
+        result = super(hbacrule_remove_timerule, self).execute(*args,
+                                                               **options)
+        dn = result['result']['dn']
+        assert(isinstance(dn, DN))
+        timerules = result['result'].get('membertimerule_timerule', [])
+
         ldap = self.obj.backend
-
-        dn = self.obj.get_dn(cn)
-
-        entry_attrs = ldap.get_entry(dn, ['accesstime'])
-        try:
-            entry_attrs.setdefault('accesstime', []).remove(
-                options['accesstime']
-            )
+        entry_attrs = ldap.get_entry(dn, ['objectclass'])
+        if (not timerules and 'ipahbacrulev2' in
+           (o.lower() for o in entry_attrs['objectclass'])):
+            # there are no more time rules left in the HBAC rule, switch
+            # to old type rules
+            entry_attrs['objectclass'] = replace_attr_value(
+                                            entry_attrs['objectclass'],
+                                            'ipahbacrulev2',
+                                            'ipahbacrule')
+            # accessRuleType is MUST attribute in ipaHBACRule
+            entry_attrs['accessruletype'] = 'allow'
             ldap.update_entry(entry_attrs)
-        except (ValueError, errors.EmptyModlist):
-            pass
-        except errors.NotFound:
-            self.obj.handle_not_found(cn)
-
-        return dict(result=True)
+        return result
 
 
 @register()
@@ -602,4 +624,3 @@ class hbacrule_remove_service(LDAPRemoveMember):
 
     member_attributes = ['memberservice']
     member_count_out = ('%i object removed.', '%i objects removed.')
-

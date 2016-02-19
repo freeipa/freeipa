@@ -109,6 +109,7 @@ BuildRequires:  dbus-python
 BuildRequires:  python-netifaces >= 0.10.4
 BuildRequires:  python-libsss_nss_idmap
 BuildRequires:  python-sss
+BuildRequires:  python-icalendar >= 3.10
 
 # Build dependencies for unit tests
 BuildRequires:  libcmocka-devel
@@ -344,6 +345,7 @@ Requires: libsss_autofs
 Requires: autofs
 Requires: libnfsidmap
 Requires: nfs-utils
+Requires: python-icalendar >= 3.10
 Requires(post): policycoreutils
 
 Provides: %{alt_name}-client = %{version}

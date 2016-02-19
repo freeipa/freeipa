@@ -99,6 +99,15 @@ only:nsIndexType: eq
 only:nsIndexType: pres
 only:nsIndexType: sub
 
+dn: cn=ipaMemberTimeRule,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
+default:cn: ipaMemberTimeRule
+default:ObjectClass: top
+default:ObjectClass: nsIndex
+default:nsSystemIndex: false
+only:nsIndexType: eq
+only:nsIndexType: pres
+only:nsIndexType: sub
+
 dn: cn=managedby,cn=index,cn=userRoot,cn=ldbm database,cn=plugins,cn=config
 default:cn: managedby
 default:ObjectClass: top

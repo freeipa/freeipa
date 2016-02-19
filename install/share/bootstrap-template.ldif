@@ -284,6 +284,12 @@ description: IPA server hosts
 cn: ipaservers
 ipaUniqueID: autogenerate
 
+dn: cn=timerules,$SUFFIX
+changetype: add
+objectClass: top
+objectClass: nsContainer
+cn: timerules
+
 dn: cn=sshd,cn=hbacservices,cn=hbac,$SUFFIX
 changetype: add
 objectclass: ipahbacservice

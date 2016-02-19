@@ -8,4 +8,6 @@ memberofgroupattr: memberUser
 -
 add: memberofgroupattr
 memberofgroupattr: memberHost
-
+-
+add: memberofgroupattr
+memberofgroupattr: ipaMemberTimeRule

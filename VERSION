@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=212
-# Last change: ab: service: add flag to allow S4U2Self
+IPA_API_VERSION_MINOR=213
+# Last change: slaznick: added commands for handling time rules

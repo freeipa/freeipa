@@ -34,6 +34,14 @@ default:objectClass: top
 default:cn: Sudo Administrator
 default:description: Sudo Administrator
 
+# Time Rules
+dn: cn=Time Rules Administrator,cn=privileges,cn=pbac,$SUFFIX
+default:objectClass: nestedgroup
+default:objectClass: groupofnames
+default:objectClass: top
+default:cn: Time Rules Administrator
+default:description: Time Rules Administrator
+
 # Password Policy
 dn: cn=Password Policy Administrator,cn=privileges,cn=pbac,$SUFFIX
 default:objectClass: nestedgroup

@@ -1902,7 +1902,7 @@ output: PrimaryKey('value')
 command: hbacrule_add/1
 args: 1,14,3
 arg: Str('cn', cli_name='name')
-option: StrEnum('accessruletype', autofill=True, cli_name='type', default=u'allow', values=[u'allow', u'deny'])
+option: StrEnum('accessruletype?', autofill=True, cli_name='type', default=u'allow', values=[u'allow', u'deny'])
 option: Str('addattr*', cli_name='addattr')
 option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('description?', cli_name='desc')
@@ -1951,6 +1951,17 @@ option: Str('host*', alwaysask=True, cli_name='hosts')
 option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups')
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Output('completed', type=[<type 'int'>])
+output: Output('failed', type=[<type 'dict'>])
+output: Entry('result')
+command: hbacrule_add_timerule/1
+args: 1,5,3
+arg: Str('cn', cli_name='name')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('timerule*', alwaysask=True, cli_name='timerules')
 option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
@@ -2066,6 +2077,17 @@ option: Str('host*', alwaysask=True, cli_name='hosts')
 option: Str('hostgroup*', alwaysask=True, cli_name='hostgroups')
 option: Flag('no_members', autofill=True, default=False)
 option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('version?')
+output: Output('completed', type=[<type 'int'>])
+output: Output('failed', type=[<type 'dict'>])
+output: Entry('result')
+command: hbacrule_remove_timerule/1
+args: 1,5,3
+arg: Str('cn', cli_name='name')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('timerule*', alwaysask=True, cli_name='timerules')
 option: Str('version?')
 output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
@@ -5297,6 +5319,74 @@ option: Str('version?')
 output: Entry('result')
 output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
 output: PrimaryKey('value')
+command: timerule_add/1
+args: 1,8,3
+arg: Str('cn', cli_name='name')
+option: Str('accesstime?', cli_name='time')
+option: Str('addattr*', cli_name='addattr')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('description?')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('setattr*', cli_name='setattr')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: timerule_del/1
+args: 1,2,3
+arg: Str('cn+', cli_name='name')
+option: Flag('continue', autofill=True, cli_name='continue', default=False)
+option: Str('version?')
+output: Output('result', type=[<type 'dict'>])
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: ListOfPrimaryKeys('value')
+command: timerule_find/1
+args: 1,12,4
+arg: Str('criteria?')
+option: Str('accesstime?', autofill=False, cli_name='time')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('cn?', autofill=False, cli_name='name')
+option: Str('description?', autofill=False)
+option: Str('in_hbacrule*', cli_name='in_hbacrules')
+option: Flag('no_members', autofill=True, default=True)
+option: Str('not_in_hbacrule*', cli_name='not_in_hbacrules')
+option: Flag('pkey_only?', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Int('sizelimit?', autofill=False)
+option: Int('timelimit?', autofill=False)
+option: Str('version?')
+output: Output('count', type=[<type 'int'>])
+output: ListOfEntries('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: Output('truncated', type=[<type 'bool'>])
+command: timerule_mod/1
+args: 1,10,3
+arg: Str('cn', cli_name='name')
+option: Str('accesstime?', autofill=False, cli_name='time')
+option: Str('addattr*', cli_name='addattr')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Str('delattr*', cli_name='delattr')
+option: Str('description?', autofill=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Flag('rights', autofill=True, default=False)
+option: Str('setattr*', cli_name='setattr')
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
+command: timerule_show/1
+args: 1,5,3
+arg: Str('cn', cli_name='name')
+option: Flag('all', autofill=True, cli_name='all', default=False)
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Flag('rights', autofill=True, default=False)
+option: Str('version?')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: topic_find/1
 args: 1,4,4
 arg: Str('criteria?')
@@ -6366,6 +6456,7 @@ default: hbacrule_add/1
 default: hbacrule_add_host/1
 default: hbacrule_add_service/1
 default: hbacrule_add_sourcehost/1
+default: hbacrule_add_timerule/1
 default: hbacrule_add_user/1
 default: hbacrule_del/1
 default: hbacrule_disable/1
@@ -6375,6 +6466,7 @@ default: hbacrule_mod/1
 default: hbacrule_remove_host/1
 default: hbacrule_remove_service/1
 default: hbacrule_remove_sourcehost/1
+default: hbacrule_remove_timerule/1
 default: hbacrule_remove_user/1
 default: hbacrule_show/1
 default: hbacsvc/1
@@ -6644,6 +6736,12 @@ default: sudorule_remove_runasgroup/1
 default: sudorule_remove_runasuser/1
 default: sudorule_remove_user/1
 default: sudorule_show/1
+default: timerule/1
+default: timerule_add/1
+default: timerule_del/1
+default: timerule_find/1
+default: timerule_mod/1
+default: timerule_show/1
 default: topic/1
 default: topic_find/1
 default: topic_show/1
