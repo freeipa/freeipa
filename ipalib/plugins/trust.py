@@ -18,6 +18,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from ipalib.messages import (
+    add_message,
+    BrokenTrust)
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import *
 from ipalib.plugins.dns import dns_container_exists
@@ -570,6 +573,30 @@ class trust(LDAPObject):
 
         return make_trust_dn(self.env, trust_type, DN(*sdn))
 
+    def warning_if_ad_trust_dom_have_missing_SID(self, result, **options):
+        """Due bug https://fedorahosted.org/freeipa/ticket/5665 there might be
+        AD trust domain without generated SID, warn user about it.
+        """
+        ldap = self.api.Backend.ldap2
+
+        try:
+            entries, truncated = ldap.find_entries(
+                base_dn=DN(self.container_dn, self.api.env.basedn),
+                attrs_list=['cn'],
+                filter='(&(ipaNTTrustPartner=*)'
+                       '(!(ipaNTSecurityIdentifier=*)))',
+            )
+        except errors.NotFound:
+            pass
+        else:
+            for entry in entries:
+                 add_message(
+                    options['version'],
+                    result,
+                    BrokenTrust(domain=entry.single_value['cn'])
+                 )
+
+
 @register()
 class trust_add(LDAPCreate):
     __doc__ = _('''
@@ -1027,6 +1054,13 @@ class trust_find(LDAPSearch):
         filter = ldap.combine_filters((filters, trust_filter), rules=ldap.MATCH_ALL)
         return (filter, base_dn, ldap.SCOPE_SUBTREE)
 
+    def execute(self, *args, **options):
+        result = super(trust_find, self).execute(*args, **options)
+
+        self.obj.warning_if_ad_trust_dom_have_missing_SID(result, **options)
+
+        return result
+
     def post_callback(self, ldap, entries, truncated, *args, **options):
         if options.get('pkey_only', False):
             return truncated
@@ -1045,6 +1079,13 @@ class trust_show(LDAPRetrieve):
     __doc__ = _('Display information about a trust.')
     has_output_params = LDAPRetrieve.has_output_params + trust_output_params +\
                         (Str('ipanttrusttype'), Str('ipanttrustdirection'))
+
+    def execute(self, *keys, **options):
+        result = super(trust_show, self).execute(*keys, **options)
+
+        self.obj.warning_if_ad_trust_dom_have_missing_SID(result, **options)
+
+        return result
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
 
