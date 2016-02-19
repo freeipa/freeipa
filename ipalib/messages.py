@@ -331,6 +331,17 @@ class ExternalCommandOutput(PublicMessage):
     format = _("%(line)s")
 
 
+class BrokenTrust(PublicMessage):
+    """
+    **13018** Trust for a specified domain is broken
+    """
+
+    errno = 13018
+    type = "warning"
+    format = _("Your trust to %(domain)s is broken. Please re-create it by "
+               "running 'ipa trust-add' again.")
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
