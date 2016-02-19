@@ -983,7 +983,9 @@ class UI_driver(object):
         link.click()
         self.wait_for_request()
 
-    def delete_record(self, pkeys, fields=None, parent=None, table_name=None):
+    def delete_record(
+            self, pkeys, fields=None, parent=None, table_name=None,
+            facet_btn='remove'):
         """
         Delete records with given pkeys in currently opened search table.
         """
@@ -1003,9 +1005,9 @@ class UI_driver(object):
             if table_name and parent:
                 s = self.get_table_selector(table_name)
                 table = self.find(s, By.CSS_SELECTOR, parent, strict=True)
-                self.button_click('remove', table)
+                self.button_click(facet_btn, table)
             else:
-                self.facet_button_click('remove')
+                self.facet_button_click(facet_btn)
             if fields:
                 self.fill_fields(fields)
             self.dialog_button_click('ok')
@@ -1323,14 +1325,15 @@ class UI_driver(object):
         self.dialog_button_click('add')
         self.wait_for_request()
 
-    def add_associations(self, pkeys, facet=None, delete=False):
+    def prepare_associations(
+            self, pkeys, facet=None, facet_btn='add', member_pkeys=None):
         """
-        Add associations
+        Helper function for add_associations and delete_associations
         """
         if facet:
             self.switch_to_facet(facet)
 
-        self.facet_button_click('add')
+        self.facet_button_click(facet_btn)
         self.wait()
         self.wait_for_request()
 
@@ -1341,11 +1344,38 @@ class UI_driver(object):
         self.dialog_button_click('add')
         self.wait_for_request()
 
-        for key in pkeys:
+        if member_pkeys:
+            check_pkeys = member_pkeys
+        else:
+            check_pkeys = pkeys
+
+        return check_pkeys
+
+    def add_associations(
+            self, pkeys, facet=None, delete=False, facet_btn='add',
+            member_pkeys=None):
+        """
+        Add associations
+        """
+        check_pkeys = self.prepare_associations(
+            pkeys, facet, facet_btn, member_pkeys)
+
+        for key in check_pkeys:
             self.assert_record(key)
             if delete:
                 self.delete_record(key)
                 self.assert_record(key, negative=True)
+
+    def delete_associations(
+            self, pkeys, facet=None, facet_btn='remove', member_pkeys=None):
+        """
+        Remove associations
+        """
+        check_pkeys = self.prepare_associations(
+            pkeys, facet, facet_btn, member_pkeys)
+
+        for key in check_pkeys:
+            self.assert_record(key, negative=True)
 
     def add_table_associations(self, table_name, pkeys, parent=False, delete=False):
         """
