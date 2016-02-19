@@ -19,6 +19,8 @@
 
 import socket
 
+import six
+
 from ipapython.ipa_log_manager import root_logger
 from dns import resolver, rdatatype
 from dns.exception import DNSException
@@ -62,13 +64,11 @@ def get_ipa_basedn(conn):
     entry = conn.get_entry(
         DN(), attrs_list=['defaultnamingcontext', 'namingcontexts'])
 
-    # FIXME: import ipalib here to prevent import loops
-    from ipalib import errors
-
-    contexts = entry['namingcontexts']
+    contexts = [c.decode('utf-8') for c in entry.raw['namingcontexts']]
     if 'defaultnamingcontext' in entry:
         # If there is a defaultNamingContext examine that one first
-        default = entry.single_value['defaultnamingcontext']
+        [default] = entry.raw['defaultnamingcontext']
+        default = default.decode('utf-8')
         if default in contexts:
             contexts.remove(default)
         contexts.insert(0, default)
@@ -81,7 +81,8 @@ def get_ipa_basedn(conn):
             root_logger.debug("LDAP server did not return info attribute to "
                               "check for IPA version")
             continue
-        info = entry.single_value['info'].lower()
+        [info] = entry.raw['info']
+        info = info.decode('utf-8').lower()
         if info != IPA_BASEDN_INFO:
             root_logger.debug("Detected IPA server version (%s) did not match the client (%s)" \
                 % (info, IPA_BASEDN_INFO))
@@ -424,7 +425,10 @@ class IPADiscovery(object):
 
             for lres in lret:
                 root_logger.debug("Found: %s", lres.dn)
-                lrealms.append(lres.single_value['cn'])
+                [cn] = lres.raw['cn']
+                if six.PY3:
+                    cn = cn.decode('utf-8')
+                lrealms.append(cn)
 
             if trealm:
                 for r in lrealms:
