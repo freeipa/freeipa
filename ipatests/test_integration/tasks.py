@@ -46,8 +46,6 @@ from ipalib.constants import DOMAIN_LEVEL_0
 
 log = log_mgr.get_logger(__name__)
 
-IPATEST_NM_CONFIG = '20-ipatest-unmanaged-resolv.conf'
-
 
 def check_arguments_are(slice, instanceof):
     """
@@ -93,12 +91,9 @@ def allow_sync_ptr(host):
                      raiseonerr=False)
 
 
-def apply_common_fixes(host, fix_resolv=True):
+def apply_common_fixes(host):
     fix_etc_hosts(host)
     fix_hostname(host)
-    modify_nm_resolv_conf_settings(host)
-    if fix_resolv:
-        fix_resolv_conf(host)
     prepare_host(host)
 
 
@@ -156,40 +151,6 @@ def host_service_active(host, service):
         return False
 
 
-def modify_nm_resolv_conf_settings(host):
-    if not host_service_active(host, 'NetworkManager'):
-        return
-
-    config = "[main]\ndns=none\n"
-    path = os.path.join(paths.NETWORK_MANAGER_CONFIG_DIR, IPATEST_NM_CONFIG)
-
-    host.put_file_contents(path, config)
-    host.run_command(['systemctl', 'restart', 'NetworkManager'],
-                     raiseonerr=False)
-
-
-def undo_nm_resolv_conf_settings(host):
-    if not host_service_active(host, 'NetworkManager'):
-        return
-
-    path = os.path.join(paths.NETWORK_MANAGER_CONFIG_DIR, IPATEST_NM_CONFIG)
-    host.run_command(['rm', '-f', path], raiseonerr=False)
-    host.run_command(['systemctl', 'restart', 'NetworkManager'],
-                     raiseonerr=False)
-
-
-def fix_resolv_conf(host):
-    backup_file(host, paths.RESOLV_CONF)
-    lines = host.get_file_contents(paths.RESOLV_CONF).splitlines()
-    lines = ['#' + l if l.startswith('nameserver') else l for l in lines]
-    for other_host in host.domain.hosts:
-        if other_host.role in ('master', 'replica'):
-            lines.append('nameserver %s' % other_host.ip)
-    contents = '\n'.join(lines)
-    log.debug('Writing the following to /etc/resolv.conf:\n%s', contents)
-    host.put_file_contents(paths.RESOLV_CONF, contents)
-
-
 def fix_apache_semaphores(master):
     systemd_available = master.transport.file_exists(paths.SYSTEMCTL)
 
@@ -206,7 +167,6 @@ def fix_apache_semaphores(master):
 def unapply_fixes(host):
     restore_files(host)
     restore_hostname(host)
-    undo_nm_resolv_conf_settings(host)
 
     # Clean up the test directory
     host.run_command(['rm', '-rvf', host.config.test_dir])
@@ -271,7 +231,7 @@ def install_master(host, setup_dns=True, setup_kra=False):
     host.collect_log(paths.SLAPD_INSTANCE_ERROR_LOG_TEMPLATE % inst)
     host.collect_log(paths.SLAPD_INSTANCE_ACCESS_LOG_TEMPLATE % inst)
 
-    apply_common_fixes(host, fix_resolv=False)
+    apply_common_fixes(host)
     fix_apache_semaphores(host)
 
     args = [
