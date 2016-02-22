@@ -294,7 +294,7 @@ class update_sids(Updater):
                 attrs_list=["cn"],
                 # more types of trusts can be stored under cn=trusts, we need
                 # the type with ipaNTTrustPartner attribute
-                filter="(!(%s=*))" % attr_name
+                filter="(&(ipaNTTrustPartner=*)(!(%s=*)))" % attr_name
             )
         except errors.NotFound:
             pass
