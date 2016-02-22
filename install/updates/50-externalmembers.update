@@ -1,0 +1,3 @@
+dn: cn=groups,cn=Schema Compatibility,cn=plugins,cn=config
+addifexist: schema-compat-entry-attribute: ipaexternalmember=%deref_r("member","ipaexternalmember")
+addifexist: schema-compat-entry-attribute: objectclass=ipaexternalgroup

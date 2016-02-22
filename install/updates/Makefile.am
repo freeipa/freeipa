@@ -45,6 +45,7 @@ app_DATA =				\
 	50-krbenctypes.update		\
 	50-nis.update			\
 	50-ipaconfig.update		\
+	50-externalmembers.update	\
 	55-pbacmemberof.update		\
 	59-trusts-sysacount.update	\
 	60-trusts.update		\
