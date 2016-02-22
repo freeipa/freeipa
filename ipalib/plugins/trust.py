@@ -552,8 +552,11 @@ class trust(LDAPObject):
                 rules=ldap.MATCH_ALL
             )
 
+            # more type of objects can be located in subtree (for example
+            # cross-realm principals). we need this attr do detect trust
+            # entries
             trustfilter = ldap.combine_filters(
-                (trustfilter, "ipaNTSecurityIdentifier=*"),
+                (trustfilter, "ipaNTTrustPartner=*"),
                 rules=ldap.MATCH_ALL
             )
 
@@ -1025,7 +1028,7 @@ class trust_find(LDAPSearch):
     # search needs to be done on a sub-tree scope
     def pre_callback(self, ldap, filters, attrs_list, base_dn, scope, *args, **options):
         # list only trust, not trust domains
-        trust_filter = '(ipaNTSecurityIdentifier=*)'
+        trust_filter = '(ipaNTTrustPartner=*)'
         filter = ldap.combine_filters((filters, trust_filter), rules=ldap.MATCH_ALL)
         return (filter, base_dn, ldap.SCOPE_SUBTREE)
 
