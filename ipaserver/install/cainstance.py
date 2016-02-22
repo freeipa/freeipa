@@ -1807,7 +1807,6 @@ def migrate_profiles_to_ldap(dogtag_constants):
             continue
         class_id = match.group(1)
 
-        root_logger.info("Migrating profile '%s' to LDAP", profile_id)
         with open(filename) as f:
             profile_data = f.read()
             if profile_data[-1] != '\n':
@@ -1824,7 +1823,12 @@ def _create_dogtag_profile(profile_id, profile_data):
         # import the profile
         try:
             profile_api.create_profile(profile_data)
-        except errors.RemoteRetrieveError:
+            root_logger.info("Profile '%s' successfully migrated to LDAP",
+                             profile_id)
+        except errors.RemoteRetrieveError as e:
+            root_logger.debug("Error migrating '{}': {}".format(
+                profile_id, e))
+
             # conflicting profile; replace it if we are
             # installing IPA, but keep it for upgrades
             if api.env.context == 'installer':
