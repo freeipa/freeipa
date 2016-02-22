@@ -176,8 +176,7 @@ class Backup(admintool.AdminTool):
         paths.IPA_DNSKEYSYNCD_KEYTAB,
         paths.HOSTS,
     ) + tuple(
-        os.path.join(base, file)
-        for base in (paths.NSS_DB_DIR, paths.IPA_NSSDB_DIR)
+        os.path.join(paths.IPA_NSSDB_DIR, file)
         for file in ('cert8.db', 'key3.db', 'secmod.db')
     )
 

@@ -939,15 +939,8 @@ if [ $1 -gt 1 ] ; then
         fi
     fi
 
-    if [ ! -f '/etc/ipa/nssdb/cert8.db' -a $restore -ge 2 ]; then
-        python2 -c 'from ipapython.certdb import create_ipa_nssdb; create_ipa_nssdb()' >/dev/null 2>&1
-        tempfile=$(mktemp)
-        if certutil -L -d /etc/pki/nssdb -n 'IPA CA' -a >"$tempfile" 2>/var/log/ipaupgrade.log; then
-            certutil -A -d /etc/ipa/nssdb -n 'IPA CA' -t CT,C,C -a -i "$tempfile" >/var/log/ipaupgrade.log 2>&1
-        elif certutil -L -d /etc/pki/nssdb -n 'External CA cert' -a >"$tempfile" 2>/var/log/ipaupgrade.log; then
-            certutil -A -d /etc/ipa/nssdb -n 'External CA cert' -t C,, -a -i "$tempfile" >/var/log/ipaupgrade.log 2>&1
-        fi
-        rm -f "$tempfile"
+    if [ $restore -ge 2 ]; then
+        python2 -c 'from ipapython.certdb import update_ipa_nssdb; update_ipa_nssdb()' >/var/log/ipaupgrade.log 2>&1
     fi
 fi
 
