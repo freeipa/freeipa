@@ -831,23 +831,10 @@ class Restore(admintool.AdminTool):
         tasks.remove_ca_certs_from_systemwide_ca_store()
 
     def cert_restore(self):
-        if not os.path.exists(os.path.join(paths.IPA_NSSDB_DIR, 'cert8.db')):
-            certdb.create_ipa_nssdb()
-            ipa_db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
-            sys_db = certdb.NSSDatabase(paths.NSS_DB_DIR)
-            for nickname, trust_flags in (('IPA CA', 'CT,C,C'),
-                                          ('External CA cert', 'C,,')):
-                try:
-                    cert = sys_db.get_cert(nickname)
-                except RuntimeError:
-                    pass
-                else:
-                    try:
-                        ipa_db.add_cert(cert, nickname, trust_flags)
-                    except ipautil.CalledProcessError as e:
-                        self.log.error(
-                            "Failed to add %s to %s: %s" %
-                            (nickname, paths.IPA_NSSDB_DIR, e))
+        try:
+            certdb.update_ipa_nssdb()
+        except RuntimeError as e:
+            self.log.error("%s", e)
 
         tasks.reload_systemwide_ca_store()
 

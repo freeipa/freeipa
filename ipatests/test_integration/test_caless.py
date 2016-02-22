@@ -112,12 +112,6 @@ class CALessBase(IntegrationTest):
         # Remove the NSS database
         shutil.rmtree(cls.cert_dir)
 
-        # Remove CA cert in /etc/pki/nssdb, in case of failed (un)install
-        for host in cls.get_all_hosts():
-            cls.master.run_command(['certutil', '-d', paths.NSS_DB_DIR, '-D',
-                                    '-n', 'External CA cert'],
-                                   raiseonerr=False)
-
         super(CALessBase, cls).uninstall(mh)
 
     @classmethod
@@ -342,12 +336,6 @@ class TestServerInstall(CALessBase):
 
     def tearDown(self):
         self.uninstall_server()
-
-        # Remove CA cert in /etc/pki/nssdb, in case of failed (un)install
-        for host in self.get_all_hosts():
-            self.master.run_command(['certutil', '-d', paths.NSS_DB_DIR, '-D',
-                                     '-n', 'External CA cert'],
-                                    raiseonerr=False)
 
     def test_nonexistent_ca_pem_file(self):
         "IPA server install with non-existent CA PEM file "
@@ -769,12 +757,7 @@ class TestReplicaInstall(CALessBase):
         self.master.run_command(['ipa', 'host-del', replica.hostname],
                                 raiseonerr=False)
 
-        replica.run_command(['certutil', '-d', paths.NSS_DB_DIR, '-D',
-                             '-n', 'External CA cert'], raiseonerr=False)
-
         self.uninstall_server()
-        self.master.run_command(['certutil', '-d', paths.NSS_DB_DIR, '-D',
-                                 '-n', 'External CA cert'], raiseonerr=False)
 
     def test_no_certs(self):
         "IPA replica install without certificates"

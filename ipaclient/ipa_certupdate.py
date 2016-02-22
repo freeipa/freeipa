@@ -95,17 +95,6 @@ class CertUpdate(admintool.AdminTool):
         self.update_file(paths.IPA_CA_CRT, certs)
 
         ipa_db = certdb.NSSDatabase(paths.IPA_NSSDB_DIR)
-        sys_db = certdb.NSSDatabase(paths.NSS_DB_DIR)
-
-        # Remove IPA certs from /etc/pki/nssdb
-        for nickname, trust_flags in ipa_db.list_certs():
-            while sys_db.has_nickname(nickname):
-                try:
-                    sys_db.delete_cert(nickname)
-                except ipautil.CalledProcessError as e:
-                    self.log.error("Failed to remove %s from %s: %s",
-                                   nickname, sys_db.secdir, e)
-                    break
 
         # Remove old IPA certs from /etc/ipa/nssdb
         for nickname in ('IPA CA', 'External CA cert'):
@@ -118,7 +107,6 @@ class CertUpdate(admintool.AdminTool):
                     break
 
         self.update_db(ipa_db.secdir, certs)
-        self.update_db(sys_db.secdir, certs)
 
         tasks.remove_ca_certs_from_systemwide_ca_store()
         tasks.insert_ca_certs_into_systemwide_ca_store(certs)
