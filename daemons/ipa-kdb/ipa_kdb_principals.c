@@ -512,7 +512,8 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                               krb5_db_entry **kentry,
                                               uint32_t *polmask)
 {
-    krb5_octet otp_string[] = {'o', 't', 'p', 0, '[', ']', 0 };
+    const krb5_octet rad_string[] = "otp\0[{\"indicators\": [\"radius\"]}]";
+    const krb5_octet otp_string[] = "otp\0[{\"indicators\": [\"otp\"]}]";
     struct ipadb_context *ipactx;
     enum ipadb_user_auth ua;
     LDAP *lcontext;
@@ -842,9 +843,14 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
     }
 
     /* If enabled, set the otp user string, enabling otp. */
-    if (ua & (IPADB_USER_AUTH_RADIUS | IPADB_USER_AUTH_OTP)) {
+    if (ua & IPADB_USER_AUTH_OTP) {
         kerr = ipadb_set_tl_data(entry, KRB5_TL_STRING_ATTRS,
                                  sizeof(otp_string), otp_string);
+        if (kerr)
+            goto done;
+    } else if (ua & IPADB_USER_AUTH_RADIUS) {
+        kerr = ipadb_set_tl_data(entry, KRB5_TL_STRING_ATTRS,
+                                 sizeof(rad_string), rad_string);
         if (kerr)
             goto done;
     }
