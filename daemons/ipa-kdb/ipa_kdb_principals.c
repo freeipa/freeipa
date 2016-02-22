@@ -302,6 +302,8 @@ static void ipadb_validate_radius(struct ipadb_context *ipactx,
                                "ipatokenRadiusConfigLink");
     if (vals == NULL || vals[0] == NULL)
         *ua &= ~IPADB_USER_AUTH_RADIUS;
+    else
+        *ua = IPADB_USER_AUTH_RADIUS;
 
     if (vals != NULL)
         ldap_value_free_len(vals);
@@ -314,10 +316,6 @@ static void ipadb_validate_password(struct ipadb_context *ipactx,
     /* If no mechanisms are set, use password. */
     if (*ua == IPADB_USER_AUTH_NONE)
         *ua |= IPADB_USER_AUTH_PASSWORD;
-
-    /* If any other mechanism has passed validation, don't use password. */
-    else if (*ua & ~IPADB_USER_AUTH_PASSWORD)
-        *ua &= ~IPADB_USER_AUTH_PASSWORD;
 }
 
 static enum ipadb_user_auth ipadb_get_user_auth(struct ipadb_context *ipactx,
