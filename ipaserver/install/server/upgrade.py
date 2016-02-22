@@ -333,7 +333,9 @@ def ca_enable_ldap_profile_subsystem(ca):
             separator='=')
 
         ca.restart('pki-tomcat')
-        cainstance.migrate_profiles_to_ldap()
+
+    root_logger.info('[Migrating certificate profiles to LDAP]')
+    cainstance.migrate_profiles_to_ldap()
 
     return needs_update
 
