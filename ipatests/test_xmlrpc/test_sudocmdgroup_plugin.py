@@ -20,678 +20,196 @@
 Test the `ipalib/plugins/sudocmdgroup.py` module.
 """
 
-from ipalib import api, errors
-from ipatests.test_xmlrpc import objectclasses
-from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_uuid,
-                                              fuzzy_sudocmddn)
-from ipapython.dn import DN
+from ipalib import errors
+from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test, raises_exact
+from ipatests.test_xmlrpc.tracker.sudocmd_plugin import SudoCmdTracker
+from ipatests.test_xmlrpc.tracker.sudocmdgroup_plugin import (
+    SudoCmdGroupTracker
+    )
 import pytest
 
-sudocmdgroup1 = u'testsudocmdgroup1'
-sudocmdgroup2 = u'testsudocmdgroup2'
-sudocmd1 = u'/usr/bin/sudotestcmd1'
-sudocmd1_camelcase = u'/usr/bin/sudoTestCmd1'
-sudocmd_plus = u'/bin/ls -l /lost+found/*'
 
-def create_command(sudocmd):
-    return dict(
-        desc='Create %r' % sudocmd,
-        command=(
-            'sudocmd_add', [], dict(sudocmd=sudocmd,
-                description=u'Test sudo command')
-        ),
-        expected=dict(
-            value=sudocmd,
-            summary=u'Added Sudo Command "%s"' % sudocmd,
-            result=dict(
-                objectclass=objectclasses.sudocmd,
-                sudocmd=[sudocmd],
-                ipauniqueid=[fuzzy_uuid], description=[u'Test sudo command'],
-                dn=fuzzy_sudocmddn,
-            ),
-        ),
-    )
+@pytest.fixture(scope='class')
+def sudocmd1(request):
+    tracker = SudoCmdTracker(command=u'/usr/bin/sudotestcmd1',
+                             description=u'Test sudo command 1')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def sudocmd2(request):
+    tracker = SudoCmdTracker(command=u'/usr/bin/sudoTestCmd1',
+                             description=u'Test sudo command 2')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def sudocmd_plus(request):
+    tracker = SudoCmdTracker(command=u'/bin/ls -l /lost+found/*',
+                             description=u'Test sudo command 3')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def sudocmdgroup1(request):
+    tracker = SudoCmdGroupTracker(u'testsudocmdgroup1', u'Test desc1')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def sudocmdgroup2(request):
+    tracker = SudoCmdGroupTracker(u'testsudocmdgroup2', u'Test desc2')
+    return tracker.make_fixture(request)
 
 
 @pytest.mark.tier1
-class test_sudocmdgroup(Declarative):
-    cleanup_commands = [
-        ('sudocmdgroup_del', [sudocmdgroup1], {}),
-        ('sudocmdgroup_del', [sudocmdgroup2], {}),
-        ('sudocmd_del', [sudocmd1], {}),
-        ('sudocmd_del', [sudocmd1_camelcase], {}),
-        ('sudocmd_del', [sudocmd_plus], {}),
-    ]
-
-    tests = [
-
-        ################
-        # create sudo command
-        dict(
-            desc='Create %r' % sudocmd1,
-            command=(
-                'sudocmd_add', [], dict(sudocmd=sudocmd1, description=u'Test sudo command 1')
-            ),
-            expected=dict(
-                value=sudocmd1,
-                summary=u'Added Sudo Command "%s"' % sudocmd1,
-                result=dict(
-                    objectclass=objectclasses.sudocmd,
-                    sudocmd=[u'/usr/bin/sudotestcmd1'],
-                    ipauniqueid=[fuzzy_uuid],
-                    description=[u'Test sudo command 1'],
-                    dn=fuzzy_sudocmddn,
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Create %r' % sudocmd1_camelcase,
-            command=(
-                'sudocmd_add', [], dict(sudocmd=sudocmd1_camelcase, description=u'Test sudo command 2')
-            ),
-            expected=dict(
-                value=sudocmd1_camelcase,
-                summary=u'Added Sudo Command "%s"' % sudocmd1_camelcase,
-                result=dict(
-                    objectclass=objectclasses.sudocmd,
-                    sudocmd=[u'/usr/bin/sudoTestCmd1'],
-                    ipauniqueid=[fuzzy_uuid],
-                    description=[u'Test sudo command 2'],
-                    dn=fuzzy_sudocmddn,
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Verify the managed sudo command %r was created' % sudocmd1,
-            command=('sudocmd_show', [sudocmd1], {}),
-            expected=dict(
-                value=sudocmd1,
-                summary=None,
-                result=dict(
-                    sudocmd=[sudocmd1],
-                    description=[u'Test sudo command 1'],
-                    dn=fuzzy_sudocmddn,
-                ),
-            ),
-        ),
-
-
-        ################
-        # create sudo command group1:
-        dict(
-            desc='Try to retrieve non-existent %r' % sudocmdgroup1,
-            command=('sudocmdgroup_show', [sudocmdgroup1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command group not found' % sudocmdgroup1),
-        ),
-
-
-        dict(
-            desc='Try to update non-existent %r' % sudocmdgroup1,
-            command=('sudocmdgroup_mod', [sudocmdgroup1],
-                dict(description=u'Foo')),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command group not found' % sudocmdgroup1),
-        ),
-
-
-        dict(
-            desc='Try to delete non-existent %r' % sudocmdgroup1,
-            command=('sudocmdgroup_del', [sudocmdgroup1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command group not found' % sudocmdgroup1),
-        ),
-
-
-        dict(
-            desc='Create %r' % sudocmdgroup1,
-            command=(
-                'sudocmdgroup_add', [sudocmdgroup1],
-                dict(description=u'Test desc 1')
-            ),
-            expected=dict(
-                value=sudocmdgroup1,
-                summary=u'Added Sudo Command Group "testsudocmdgroup1"',
-                result=dict(
-                    cn=[sudocmdgroup1],
-                    description=[u'Test desc 1'],
-                    objectclass=objectclasses.sudocmdgroup,
-                    ipauniqueid=[fuzzy_uuid],
-                    dn=DN(('cn','testsudocmdgroup1'),('cn','sudocmdgroups'),
-                          ('cn','sudo'),api.env.basedn),
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Try to create duplicate %r' % sudocmdgroup1,
-            command=(
-                'sudocmdgroup_add', [sudocmdgroup1],
-                dict(description=u'Test desc 1')
-            ),
-            expected=errors.DuplicateEntry(message=u'sudo command group ' +
-                u'with name "%s" already exists' % sudocmdgroup1),
-        ),
-
-
-        dict(
-            desc='Retrieve %r' % sudocmdgroup1,
-            command=('sudocmdgroup_show', [sudocmdgroup1], {}),
-            expected=dict(
-                value=sudocmdgroup1,
-                summary=None,
-                result=dict(
-                    cn=[sudocmdgroup1],
-                    description=[u'Test desc 1'],
-                    dn=DN(('cn','testsudocmdgroup1'),('cn','sudocmdgroups'),
-                          ('cn','sudo'),api.env.basedn),
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Updated %r' % sudocmdgroup1,
-            command=(
-                'sudocmdgroup_mod', [sudocmdgroup1],
-                dict(description=u'New desc 1')
-            ),
-            expected=dict(
-                result=dict(
-                    cn=[sudocmdgroup1],
-                    description=[u'New desc 1'],
-                ),
-                summary=u'Modified Sudo Command Group "testsudocmdgroup1"',
-                value=sudocmdgroup1,
-            ),
-        ),
-
-
-        dict(
-            desc='Retrieve %r to verify update' % sudocmdgroup1,
-            command=('sudocmdgroup_show', [sudocmdgroup1], {}),
-            expected=dict(
-                value=sudocmdgroup1,
-                result=dict(
-                    cn=[sudocmdgroup1],
-                    description=[u'New desc 1'],
-                    dn=DN(('cn','testsudocmdgroup1'),('cn','sudocmdgroups'),
-                          ('cn','sudo'),api.env.basedn),
-                ),
-                summary=None,
-            ),
-        ),
-
-
-        dict(
-            desc='Search for %r' % sudocmdgroup1,
-            command=('sudocmdgroup_find', [], dict(cn=sudocmdgroup1)),
-            expected=dict(
-                count=1,
-                truncated=False,
-                result=[
-                    dict(
-                        dn=DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
-                              ('cn','sudo'),api.env.basedn),
-                        cn=[sudocmdgroup1],
-                        description=[u'New desc 1'],
-                    ),
-                ],
-                summary=u'1 Sudo Command Group matched',
-            ),
-        ),
-
-
-
-        ################
-        # create sudocmdgroup2:
-        dict(
-            desc='Try to retrieve non-existent %r' % sudocmdgroup2,
-            command=('sudocmdgroup_show', [sudocmdgroup2], {}),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command group not found' % sudocmdgroup2),
-        ),
-
-
-        dict(
-            desc='Try to update non-existent %r' % sudocmdgroup2,
-            command=('sudocmdgroup_mod', [sudocmdgroup2],
-                dict(description=u'Foo')),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command group not found' % sudocmdgroup2),
-        ),
-
-
-        dict(
-            desc='Try to delete non-existent %r' % sudocmdgroup2,
-            command=('sudocmdgroup_del', [sudocmdgroup2], {}),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command group not found' % sudocmdgroup2),
-        ),
-
-
-        dict(
-            desc='Create %r' % sudocmdgroup2,
-            command=(
-                'sudocmdgroup_add', [sudocmdgroup2],
-                dict(description=u'Test desc 2')
-            ),
-            expected=dict(
-                value=sudocmdgroup2,
-                summary=u'Added Sudo Command Group "testsudocmdgroup2"',
-                result=dict(
-                    cn=[sudocmdgroup2],
-                    description=[u'Test desc 2'],
-                    objectclass=objectclasses.sudocmdgroup,
-                    ipauniqueid=[fuzzy_uuid],
-                    dn=DN(('cn','testsudocmdgroup2'),('cn','sudocmdgroups'),
-                          ('cn','sudo'),api.env.basedn),
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Try to create duplicate %r' % sudocmdgroup2,
-            command=(
-                'sudocmdgroup_add', [sudocmdgroup2],
-                dict(description=u'Test desc 2')
-            ),
-            expected=errors.DuplicateEntry(
-                message=u'sudo command group with name "%s" already exists' %
-                    sudocmdgroup2),
-        ),
-
-
-        dict(
-            desc='Retrieve %r' % sudocmdgroup2,
-            command=('sudocmdgroup_show', [sudocmdgroup2], {}),
-            expected=dict(
-                value=sudocmdgroup2,
-                summary=None,
-                result=dict(
-                    cn=[sudocmdgroup2],
-                    description=[u'Test desc 2'],
-                    dn=DN(('cn','testsudocmdgroup2'),('cn','sudocmdgroups'),
-                          ('cn','sudo'),api.env.basedn),
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Updated %r' % sudocmdgroup2,
-            command=(
-                'sudocmdgroup_mod', [sudocmdgroup2],
-                dict(description=u'New desc 2')
-            ),
-            expected=dict(
-                result=dict(
-                    cn=[sudocmdgroup2],
-                    description=[u'New desc 2'],
-                ),
-                summary=u'Modified Sudo Command Group "testsudocmdgroup2"',
-                value=sudocmdgroup2,
-            ),
-        ),
-
-
-        dict(
-            desc='Retrieve %r to verify update' % sudocmdgroup2,
-            command=('sudocmdgroup_show', [sudocmdgroup2], {}),
-            expected=dict(
-                value=sudocmdgroup2,
-                result=dict(
-                    cn=[sudocmdgroup2],
-                    description=[u'New desc 2'],
-                    dn=DN(('cn','testsudocmdgroup2'),('cn','sudocmdgroups'),
-                          ('cn','sudo'),api.env.basedn),
-                ),
-                summary=None,
-            ),
-        ),
-
-
-        dict(
-            desc='Search for %r' % sudocmdgroup2,
-            command=('sudocmdgroup_find', [], dict(cn=sudocmdgroup2)),
-            expected=dict(
-                count=1,
-                truncated=False,
-                result=[
-                    dict(
-                        dn=DN(('cn',sudocmdgroup2),('cn','sudocmdgroups'),
-                              ('cn','sudo'),api.env.basedn),
-                        cn=[sudocmdgroup2],
-                        description=[u'New desc 2'],
-                    ),
-                ],
-                summary=u'1 Sudo Command Group matched',
-            ),
-        ),
-
-
-        dict(
-            desc='Search for all sudocmdgroups',
-            command=('sudocmdgroup_find', [], {}),
-            expected=dict(
-                summary=u'2 Sudo Command Groups matched',
-                count=2,
-                truncated=False,
-                result=[
-                    dict(
-                        dn=DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
-                              ('cn','sudo'),api.env.basedn),
-                        cn=[sudocmdgroup1],
-                        description=[u'New desc 1'],
-                    ),
-                    dict(
-                        dn=DN(('cn',sudocmdgroup2),('cn','sudocmdgroups'),
-                              ('cn','sudo'),api.env.basedn),
-                        cn=[sudocmdgroup2],
-                        description=[u'New desc 2'],
-                    ),
-                ],
-            ),
-        ),
-
-
-
-        ###############
-        # member stuff:
-        dict(
-            desc='Add member %r to %r' % (sudocmd1, sudocmdgroup1),
-            command=(
-                'sudocmdgroup_add_member', [sudocmdgroup1],
-                dict(sudocmd=sudocmd1)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        sudocmd=tuple(),
-                    ),
-                ),
-                result={
-                        'dn': DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
-                                 ('cn','sudo'),api.env.basedn),
-                        'member_sudocmd': (sudocmd1,),
-                        'cn': [sudocmdgroup1],
-                        'description': [u'New desc 1'],
-                },
-            ),
-        ),
-
-        dict(
-            desc='Retrieve %r to show membership' % sudocmd1,
-            command=('sudocmd_show', [sudocmd1], {}),
-            expected=dict(
-                value=sudocmd1,
-                summary=None,
-                result=dict(
-                    dn=fuzzy_sudocmddn,
-                    sudocmd=[sudocmd1],
-                    description=[u'Test sudo command 1'],
-                    memberof_sudocmdgroup=[u'testsudocmdgroup1'],
-                ),
-            ),
-        ),
-
-        dict(
-            desc='Try to add non-existent member to %r' % sudocmdgroup1,
-            command=(
-                'sudocmdgroup_add_member', [sudocmdgroup1],
-                dict(sudocmd=u'notfound')
-            ),
-            expected=dict(
-                completed=0,
-                failed=dict(
-                    member=dict(
-                        sudocmd=[(u'notfound', u'no such entry')],
-                    ),
-                ),
-                result={
-                        'dn': DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
-                                 ('cn','sudo'),api.env.basedn),
-                        'member_sudocmd': (u'/usr/bin/sudotestcmd1',),
-                        'cn': [sudocmdgroup1],
-                        'description': [u'New desc 1'],
-                },
-            ),
-        ),
-
-        dict(
-            desc='Add member %r to %r' % (sudocmd1_camelcase, sudocmdgroup1),
-            command=(
-                'sudocmdgroup_add_member', [sudocmdgroup1],
-                dict(sudocmd=sudocmd1_camelcase)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        sudocmd=tuple(),
-                    ),
-                ),
-                result={
-                        'dn': DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
-                               ('cn','sudo'),api.env.basedn),
-                        'member_sudocmd': (sudocmd1, sudocmd1_camelcase),
-                        'cn': [sudocmdgroup1],
-                        'description': [u'New desc 1'],
-                },
-            ),
-        ),
-
-        dict(
-            desc='Remove member %r from %r' % (sudocmd1, sudocmdgroup1),
-            command=('sudocmdgroup_remove_member',
-                [sudocmdgroup1], dict(sudocmd=sudocmd1)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        sudocmd=tuple(),
-                    ),
-                ),
-                result={
-                    'dn': DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
-                           ('cn','sudo'),api.env.basedn),
-                    'member_sudocmd': (sudocmd1_camelcase,),
-                    'cn': [sudocmdgroup1],
-                    'description': [u'New desc 1'],
-                },
-            ),
-        ),
-
-        dict(
-            desc='Remove member %r from %r' % (sudocmd1_camelcase, sudocmdgroup1),
-            command=('sudocmdgroup_remove_member',
-                [sudocmdgroup1], dict(sudocmd=sudocmd1_camelcase)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        sudocmd=tuple(),
-                    ),
-                ),
-                result={
-                    'dn': DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
-                           ('cn','sudo'),api.env.basedn),
-                    'cn': [sudocmdgroup1],
-                    'description': [u'New desc 1'],
-                },
-            ),
-        ),
-
-        dict(
-            # FIXME: Shouldn't this raise a NotFound instead?
-            desc='Try to remove non-existent member from %r' % sudocmdgroup1,
-            command=('sudocmdgroup_remove_member',
-                [sudocmdgroup1], dict(sudocmd=u'notfound')
-            ),
-            expected=dict(
-                completed=0,
-                failed=dict(
-                    member=dict(
-                        sudocmd=[(u'notfound', u'This entry is not a member')],
-                    ),
-                ),
-                result={
-                    'dn': DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
-                             ('cn','sudo'),api.env.basedn),
-                    'cn': [sudocmdgroup1],
-                    'description': [u'New desc 1'],
-                },
-            ),
-        ),
-
-        ################
-        # test a command that needs DN escaping:
-        create_command(sudocmd_plus),
-
-        dict(
-            desc='Add %r to %r' % (sudocmd_plus, sudocmdgroup1),
-            command=('sudocmdgroup_add_member', [sudocmdgroup1],
-                dict(sudocmd=sudocmd_plus)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        sudocmd=tuple(),
-                    ),
-                ),
-                result={
-                        'dn': DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
-                                 ('cn','sudo'),api.env.basedn),
-                        'member_sudocmd': (sudocmd_plus,),
-                        'cn': [sudocmdgroup1],
-                        'description': [u'New desc 1'],
-                },
-            ),
-        ),
-
-        dict(
-            desc='Remove %r from %r' %  (sudocmd_plus, sudocmdgroup1),
-            command=('sudocmdgroup_remove_member', [sudocmdgroup1],
-                dict(sudocmd=sudocmd_plus)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        sudocmd=tuple(),
-                    ),
-                ),
-                result={
-                        'dn': DN(('cn',sudocmdgroup1),('cn','sudocmdgroups'),
-                                 ('cn','sudo'),api.env.basedn),
-                        'cn': [sudocmdgroup1],
-                        'description': [u'New desc 1'],
-                },
-            ),
-        ),
-
-        ################
-        # delete sudocmdgroup1:
-        dict(
-            desc='Delete %r' % sudocmdgroup1,
-            command=('sudocmdgroup_del', [sudocmdgroup1], {}),
-            expected=dict(
-                result=dict(failed=[]),
-                value=[sudocmdgroup1],
-                summary=u'Deleted Sudo Command Group "testsudocmdgroup1"',
-            )
-        ),
-
-
-        dict(
-            desc='Try to delete non-existent %r' % sudocmdgroup1,
-            command=('sudocmdgroup_del', [sudocmdgroup1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command group not found' % sudocmdgroup1),
-        ),
-
-
-        dict(
-            desc='Try to retrieve non-existent %r' % sudocmdgroup1,
-            command=('sudocmdgroup_show', [sudocmdgroup1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command group not found' % sudocmdgroup1),
-        ),
-
-
-        dict(
-            desc='Try to update non-existent %r' % sudocmdgroup1,
-            command=('sudocmdgroup_mod', [sudocmdgroup1],
-            dict(description=u'Foo')),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command group not found' % sudocmdgroup1),
-        ),
-
-
-        ################
-        # delete sudocmdgroup2:
-        dict(
-            desc='Delete %r' % sudocmdgroup2,
-            command=('sudocmdgroup_del', [sudocmdgroup2], {}),
-            expected=dict(
-                result=dict(failed=[]),
-                value=[sudocmdgroup2],
-                summary=u'Deleted Sudo Command Group "testsudocmdgroup2"',
-            )
-        ),
-
-
-        dict(
-            desc='Try to delete non-existent %r' % sudocmdgroup2,
-            command=('sudocmdgroup_del', [sudocmdgroup2], {}),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command group not found' % sudocmdgroup2),
-        ),
-
-
-        dict(
-            desc='Try to retrieve non-existent %r' % sudocmdgroup2,
-            command=('sudocmdgroup_show', [sudocmdgroup2], {}),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command group not found' % sudocmdgroup2),
-        ),
-
-
-        dict(
-            desc='Try to update non-existent %r' % sudocmdgroup2,
-            command=('sudocmdgroup_mod', [sudocmdgroup2],
-            dict(description=u'Foo')),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command group not found' % sudocmdgroup2),
-        ),
-
-
-        ##### clean up test Command
-
-        dict(
-            desc='Now delete the sudo command %r' % sudocmd1,
-            command=('sudocmd_del', [sudocmd1], {}),
-            expected=dict(
-                result=dict(failed=[]),
-                value=[sudocmd1],
-                summary=u'Deleted Sudo Command "%s"' % sudocmd1,
-            )
-        ),
-
-
-        dict(
-            desc='Verify that %r is really gone' % sudocmd1,
-            command=('sudocmd_show', [sudocmd1], {}),
-            expected=errors.NotFound(
-                reason=u'%s: sudo command not found' % sudocmd1),
-        ),
-
-    ]
+class TestSudoCmdGroupNonexistent(XMLRPC_test):
+    def test_retrieve_nonexistent(self, sudocmdgroup1, sudocmdgroup2):
+        """ Try to retrieve non-existent sudocmdgroups """
+        sudocmdgroup1.ensure_missing()
+        command = sudocmdgroup1.make_retrieve_command()
+        with raises_exact(errors.NotFound(
+                reason=u'%s: sudo command group not found' %
+                sudocmdgroup1.cn)):
+            command()
+
+        sudocmdgroup2.ensure_missing()
+        command = sudocmdgroup2.make_retrieve_command()
+        with raises_exact(errors.NotFound(
+                reason=u'%s: sudo command group not found' %
+                sudocmdgroup2.cn)):
+            command()
+
+    def test_update_nonexistent(self, sudocmdgroup1, sudocmdgroup2):
+        """ Try to update non-existent sudocmdgroups """
+        sudocmdgroup1.ensure_missing()
+        command = sudocmdgroup1.make_update_command(dict(description=u'Foo'))
+        with raises_exact(errors.NotFound(
+                reason=u'%s: sudo command group not found' %
+                sudocmdgroup1.cn)):
+            command()
+
+        sudocmdgroup2.ensure_missing()
+        command = sudocmdgroup2.make_update_command(dict(description=u'Foo2'))
+        with raises_exact(errors.NotFound(
+                reason=u'%s: sudo command group not found' %
+                sudocmdgroup2.cn)):
+            command()
+
+    def test_delete_nonexistent(self, sudocmdgroup1, sudocmdgroup2):
+        """ Try to delete non-existent sudocmdgroups """
+        sudocmdgroup1.ensure_missing()
+        command = sudocmdgroup1.make_delete_command()
+        with raises_exact(errors.NotFound(
+                reason=u'%s: sudo command group not found' %
+                sudocmdgroup1.cn)):
+            command()
+
+        sudocmdgroup2.ensure_missing()
+        command = sudocmdgroup2.make_delete_command()
+        with raises_exact(errors.NotFound(
+                reason=u'%s: sudo command group not found' %
+                sudocmdgroup2.cn)):
+            command()
+
+
+@pytest.mark.tier1
+class TestSudoCmdGroupSCRUD(XMLRPC_test):
+    def test_create_sudocmds_and_verify(self, sudocmd1, sudocmd2):
+        """ Create sudocmd and sudocmd with camelcase'd command
+        and verify the managed sudo command sudocmds were created """
+        sudocmd1.ensure_exists()
+        sudocmd2.ensure_exists()
+        sudocmd1.retrieve()
+        sudocmd2.retrieve()
+
+    def test_create(self, sudocmdgroup1):
+        """ Create sudocmdgroup """
+        sudocmdgroup1.create()
+
+    def test_create_duplicate(self, sudocmdgroup1):
+        """ Try to create duplicate sudocmdgroup """
+        sudocmdgroup1.ensure_exists()
+        command = sudocmdgroup1.make_create_command()
+        with raises_exact(errors.DuplicateEntry(
+                message=u'sudo command group ' +
+                        u'with name "%s" already exists' % sudocmdgroup1.cn)):
+            command()
+
+    def test_retrieve(self, sudocmdgroup1):
+        """ Retrieve sudocmdgroup """
+        sudocmdgroup1.ensure_exists()
+        sudocmdgroup1.retrieve()
+
+    def test_update(self, sudocmdgroup1):
+        """ Update sudocmdgroup and retrieve to verify update """
+        sudocmdgroup1.ensure_exists()
+        sudocmdgroup1.update(dict(description=u'New desc 1'))
+        sudocmdgroup1.retrieve()
+
+    def test_search(self, sudocmdgroup1):
+        """ Search for sudocmdgroup """
+        sudocmdgroup1.ensure_exists()
+        sudocmdgroup1.find()
+
+    def test_create_another(self, sudocmdgroup2):
+        """ Create a second sudocmdgroup """
+        sudocmdgroup2.create()
+
+    def test_search_for_both(self, sudocmdgroup1, sudocmdgroup2):
+        """ Search for all sudocmdgroups, find two """
+        sudocmdgroup1.ensure_exists()
+        sudocmdgroup2.ensure_exists()
+        sudocmdgroup1.find(all=True)
+
+
+@pytest.mark.tier1
+class TestSudoCmdGroupMembers(XMLRPC_test):
+    def test_add_sudocmd_to_sudocmdgroup(self, sudocmd1, sudocmdgroup1):
+        """ Add member sudocmd to sudocmdgroup """
+        sudocmdgroup1.ensure_exists()
+        sudocmd1.ensure_exists()
+        sudocmdgroup1.add_member(dict(sudocmd=sudocmd1.cmd))
+
+    def test_retrieve_sudocmd_show_membership(self, sudocmd1, sudocmdgroup1):
+        """ Retrieve sudocmd to show membership """
+        sudocmd1.ensure_exists()
+        sudocmd1.attrs.update(memberof_sudocmdgroup=[sudocmdgroup1.cn])
+        sudocmd1.retrieve()
+
+    def test_add_nonexistent_member_to_sudocmdgroup(self, sudocmdgroup1):
+        """ Try to add non-existent member to sudocmdgroup """
+        options = dict(sudocmd=u'notfound')
+        sudocmdgroup1.ensure_exists()
+        command = sudocmdgroup1.make_add_member_command(options)
+        result = command()
+        sudocmdgroup1.check_add_member_negative(result, options)
+
+    def test_add_member_sudocmd_to_sudocmdgroup(self, sudocmdgroup1, sudocmd2):
+        """ Add member sudocmdgroup to sudocmdgroup """
+        sudocmdgroup1.ensure_exists()
+        sudocmd2.ensure_exists()
+        sudocmdgroup1.add_member(dict(sudocmd=sudocmd2.cmd))
+
+    def test_remove_member_sudocmd_from_sudocmdgroup(self, sudocmdgroup1,
+                                                     sudocmd1):
+        """ Remove member sudocmd from sudocmdgroup """
+        sudocmdgroup1.ensure_exists()
+        sudocmdgroup1.remove_member(dict(sudocmd=sudocmd1.cmd))
+
+    def test_remove_nonexistent_member_from_sudocmdgroup(self, sudocmdgroup1):
+        """ Try to remove non-existent member from sudocmdgroup """
+        options = dict(sudocmd=u'notfound')
+        sudocmdgroup1.ensure_exists()
+        command = sudocmdgroup1.make_remove_member_command(options)
+        result = command()
+        sudocmdgroup1.check_remove_member_negative(result, options)
+
+    def test_special_member_sudocmd_with_sudocmdgroup(self, sudocmdgroup1,
+                                                      sudocmd_plus):
+        """ Test add and remove sudocmd with special
+        characters as sudocmdgroup member """
+        sudocmdgroup1.ensure_exists()
+        sudocmd_plus.ensure_exists()
+        sudocmdgroup1.add_member(dict(sudocmd=sudocmd_plus.cmd))
+        sudocmdgroup1.remove_member(dict(sudocmd=sudocmd_plus.cmd))
