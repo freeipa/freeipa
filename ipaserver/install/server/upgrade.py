@@ -796,6 +796,12 @@ def certificate_renewal_update(ca):
     Update certmonger certificate renewal configuration.
     """
 
+    if sys.maxsize > 2**32:
+        libpath = 'lib64'
+    else:
+        libpath = 'lib'
+    template = paths.CERTMONGER_COMMAND_TEMPLATE % (libpath, '%s')
+
     # bump version when requests is changed
     version = 4
     requests = (
@@ -803,48 +809,48 @@ def certificate_renewal_update(ca):
             paths.PKI_TOMCAT_ALIAS_DIR,
             'auditSigningCert cert-pki-ca',
             'dogtag-ipa-ca-renew-agent',
-            'stop_pkicad',
-            'renew_ca_cert',
+            template % 'stop_pkicad',
+            '%s "auditSigningCert cert-pki-ca"' % (template % 'renew_ca_cert'),
             None,
         ),
         (
             paths.PKI_TOMCAT_ALIAS_DIR,
             'ocspSigningCert cert-pki-ca',
             'dogtag-ipa-ca-renew-agent',
-            'stop_pkicad',
-            'renew_ca_cert',
+            template % 'stop_pkicad',
+            '%s "ocspSigningCert cert-pki-ca"' % (template % 'renew_ca_cert'),
             None,
         ),
         (
             paths.PKI_TOMCAT_ALIAS_DIR,
             'subsystemCert cert-pki-ca',
             'dogtag-ipa-ca-renew-agent',
-            'stop_pkicad',
-            'renew_ca_cert',
+            template % 'stop_pkicad',
+            '%s "subsystemCert cert-pki-ca"' % (template % 'renew_ca_cert'),
             None,
         ),
         (
             paths.PKI_TOMCAT_ALIAS_DIR,
             'caSigningCert cert-pki-ca',
             'dogtag-ipa-ca-renew-agent',
-            'stop_pkicad',
-            'renew_ca_cert',
+            template % 'stop_pkicad',
+            '%s "caSigningCert cert-pki-ca"' % (template % 'renew_ca_cert'),
             'ipaCACertRenewal',
         ),
         (
             paths.HTTPD_ALIAS_DIR,
             'ipaCert',
             'dogtag-ipa-ca-renew-agent',
-            'renew_ra_cert_pre',
-            'renew_ra_cert',
+            template % 'renew_ra_cert_pre',
+            template % 'renew_ra_cert',
             None,
         ),
         (
             paths.PKI_TOMCAT_ALIAS_DIR,
             'Server-Cert cert-pki-ca',
             'dogtag-ipa-renew-agent',
-            'stop_pkicad',
-            'renew_ca_cert',
+            template % 'stop_pkicad',
+            '%s "Server-Cert cert-pki-ca"' % (template % 'renew_ca_cert'),
             None,
         ),
     )
@@ -867,23 +873,11 @@ def certificate_renewal_update(ca):
             'cert-nickname': nickname,
             'ca-name': ca_name,
             'template-profile': profile,
+            'cert-presave-command': pre_command,
+            'cert-postsave-command': post_command,
         }
         request_id = certmonger.get_request_id(criteria)
         if request_id is None:
-            break
-
-        val = certmonger.get_request_value(request_id, 'cert-presave-command')
-        if val is not None:
-            val = val.split(' ', 1)[0]
-            val = os.path.basename(val)
-        if pre_command != val:
-            break
-
-        val = certmonger.get_request_value(request_id, 'cert-postsave-command')
-        if val is not None:
-            val = val.split(' ', 1)[0]
-            val = os.path.basename(val)
-        if post_command != val:
             break
     else:
         sysupgrade.set_upgrade_state('dogtag', state, True)
