@@ -797,16 +797,12 @@ def certificate_renewal_update(ca, ds, http):
     Update certmonger certificate renewal configuration.
     """
 
-    if sys.maxsize > 2**32:
-        libpath = 'lib64'
-    else:
-        libpath = 'lib'
-    template = paths.CERTMONGER_COMMAND_TEMPLATE % (libpath, '%s')
+    template = paths.CERTMONGER_COMMAND_TEMPLATE
     serverid = installutils.realm_to_serverid(api.env.realm)
     dirsrv_dir = dsinstance.config_dirname(serverid)
 
     # bump version when requests is changed
-    version = 4
+    version = 5
     requests = (
         (
             paths.PKI_TOMCAT_ALIAS_DIR,
