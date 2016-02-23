@@ -296,11 +296,7 @@ class CertDB(object):
         /usr/lib[64]/ipa/certmonger.
         """
         if command is not None and not os.path.isabs(command):
-            if sys.maxsize > 2**32:
-                libpath = 'lib64'
-            else:
-                libpath = 'lib'
-            command = paths.CERTMONGER_COMMAND_TEMPLATE % (libpath, command)
+            command = paths.CERTMONGER_COMMAND_TEMPLATE % (command)
         try:
             request_id = certmonger.start_tracking(nickname, self.secdir, password_file, command)
         except RuntimeError as e:

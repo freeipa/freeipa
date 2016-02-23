@@ -1019,8 +1019,8 @@ fi
 %attr(0755,root,root) %{_libexecdir}/ipa/oddjob/org.freeipa.server.conncheck
 %config(noreplace) %{_sysconfdir}/dbus-1/system.d/org.freeipa.server.conf
 %config(noreplace) %{_sysconfdir}/oddjobd.conf.d/ipa-server.conf
-%dir %{_libdir}/ipa/certmonger
-%attr(755,root,root) %{_libdir}/ipa/certmonger/*
+%dir %{_libexecdir}/ipa/certmonger
+%attr(755,root,root) %{_libexecdir}/ipa/certmonger/*
 # NOTE: systemd specific section
 %attr(644,root,root) %{_unitdir}/ipa.service
 %attr(644,root,root) %{_unitdir}/ipa-otpd.socket

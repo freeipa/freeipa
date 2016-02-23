@@ -25,7 +25,6 @@
 from __future__ import print_function
 
 import os
-import sys
 import time
 import dbus
 import shlex
@@ -497,19 +496,11 @@ def dogtag_start_tracking(ca, nickname, pin, pinfile, secdir, pre_command,
         params['KEY_PIN_FILE'] = os.path.abspath(pinfile)
     if pre_command:
         if not os.path.isabs(pre_command):
-            if sys.maxsize > 2**32:
-                libpath = 'lib64'
-            else:
-                libpath = 'lib'
-            pre_command = certmonger_cmd_template % (libpath, pre_command)
+            pre_command = certmonger_cmd_template % (pre_command)
         params['cert-presave-command'] = pre_command
     if post_command:
         if not os.path.isabs(post_command):
-            if sys.maxsize > 2**32:
-                libpath = 'lib64'
-            else:
-                libpath = 'lib'
-            post_command = certmonger_cmd_template % (libpath, post_command)
+            post_command = certmonger_cmd_template % (post_command)
         params['cert-postsave-command'] = post_command
     if profile:
         params['ca-profile'] = profile

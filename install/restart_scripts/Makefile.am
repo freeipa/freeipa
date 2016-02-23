@@ -1,6 +1,6 @@
 NULL =
 
-appdir = $(libdir)/ipa/certmonger
+appdir = $(libexecdir)/ipa/certmonger
 app_DATA =                              \
 	restart_dirsrv			\
 	restart_httpd			\

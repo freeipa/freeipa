@@ -149,7 +149,7 @@ class BasePathNamespace(object):
     TMP_CA_P12 = "/tmp/ca.p12"
     TMP_KRB5CC = "/tmp/krb5cc_%d"
     USR_DIR = "/usr"
-    CERTMONGER_COMMAND_TEMPLATE = "/usr/%s/ipa/certmonger/%s"
+    CERTMONGER_COMMAND_TEMPLATE = "/usr/libexec/ipa/certmonger/%s"
     PKCS12EXPORT = "/usr/bin/PKCS12Export"
     CERTUTIL = "/usr/bin/certutil"
     CHROMIUM_BROWSER = "/usr/bin/chromium-browser"
