@@ -44,7 +44,6 @@ from ipaplatform.paths import paths
 from ipaplatform import services
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import *
-from ipapython.ipautil import wait_for_open_socket
 
 if six.PY3:
     unicode = str
@@ -946,5 +945,4 @@ class LDAPUpdate:
     def restart_ds(self):
         dirsrv = services.knownservices.dirsrv
         self.log.debug('Restarting directory server to apply updates')
-        dirsrv.restart()
-        wait_for_open_socket(self.socket_name)
+        dirsrv.restart(ldapi=self.ldapi)
