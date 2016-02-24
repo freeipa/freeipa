@@ -946,7 +946,7 @@ def double_circle_topo(master, replicas, site_size=6):
 
     # split servers into sites
     it = [iter(servers)] * site_size
-    sites = map(lambda x: (x[0], x[1], x[2:]), zip(*it))
+    sites = [(x[0], x[1], x[2:]) for x in zip(*it)]
     num_sites = len(sites)
 
     for i in range(num_sites):
