@@ -224,7 +224,7 @@ def enable_replication_debugging(host):
                      stdin_text=logging_ldif)
 
 
-def install_master(host, setup_dns=True, setup_kra=False):
+def install_master(host, setup_dns=True, setup_kra=False, extra_args=()):
     host.collect_log(paths.IPASERVER_INSTALL_LOG)
     host.collect_log(paths.IPACLIENT_INSTALL_LOG)
     inst = host.domain.realm.replace('.', '-')
@@ -249,6 +249,8 @@ def install_master(host, setup_dns=True, setup_kra=False):
             '--forwarder', host.config.dns_forwarder,
             '--auto-reverse'
         ])
+
+    args.extend(extra_args)
 
     host.run_command(args)
     enable_replication_debugging(host)
@@ -307,7 +309,7 @@ def replica_prepare(master, replica):
 
 
 def install_replica(master, replica, setup_ca=True, setup_dns=False,
-                    setup_kra=False):
+                    setup_kra=False, extra_args=()):
     replica.collect_log(paths.IPAREPLICA_INSTALL_LOG)
     replica.collect_log(paths.IPAREPLICA_CONNCHECK_LOG)
     allow_sync_ptr(master)
@@ -325,6 +327,9 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
         ])
     if master_authoritative_for_client_domain(master, replica):
         args.extend(['--ip-address', replica.ip])
+
+    args.extend(extra_args)
+
     if domainlevel(master) == DOMAIN_LEVEL_0:
         # prepare the replica file on master and put it to replica, AKA "old way"
         replica_prepare(master, replica)
