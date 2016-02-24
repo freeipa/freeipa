@@ -96,7 +96,40 @@ ipa_class_members = {
         'startup_traceback',
         'verbose'
     ] + LOGGING_ATTRS,
+    'ipalib.errors.ACIError': [
+        'info',
+    ],
+    'ipalib.errors.ConversionError': [
+        'error',
+    ],
+    'ipalib.errors.DatabaseError': [
+        'desc',
+    ],
+    'ipalib.errors.NetworkError': [
+        'error',
+    ],
+    'ipalib.errors.NotFound': [
+        'reason',
+    ],
+    'ipalib.errors.PublicError': [
+        'msg',
+        'strerror',
+    ],
+    'ipalib.errors.SingleMatchExpected': [
+        'found',
+    ],
+    'ipalib.errors.SkipPluginModule': [
+        'reason',
+    ],
+    'ipalib.errors.ValidationError': [
+        'error',
+    ],
     'ipalib.krb_utils.KRB5_CCache': LOGGING_ATTRS,
+    'ipalib.messages.PublicMessage': [
+        'msg',
+        'strerror',
+        'type',
+    ],
     'ipalib.parameters.Param': [
         'cli_name',
         'cli_short_name',
@@ -163,6 +196,9 @@ ipa_class_members = {
     'ipalib.session.AuthManager': LOGGING_ATTRS,
     'ipalib.session.SessionAuthManager': LOGGING_ATTRS,
     'ipalib.session.SessionManager': LOGGING_ATTRS,
+    'ipalib.util.ForwarderValidationError': [
+        'msg',
+    ],
     'ipaserver.install.ldapupdate.LDAPUpdate': LOGGING_ATTRS,
     'ipaserver.rpcserver.KerberosSession': [
         fake_api,
