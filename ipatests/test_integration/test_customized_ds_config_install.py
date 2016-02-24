@@ -59,14 +59,9 @@ class TestCustomInstallMaster(IntegrationTest):
         cls.master.put_file_contents(CONFIG_LDIF_PATH, DIRSRV_CONFIG_MODS)
 
     def test_customized_ds_install_master(self):
-        args = [
-            'ipa-server-install', '-U',
-            '-r', self.master.domain.name,
-            '-p', self.master.config.dirman_password,
-            '-a', self.master.config.admin_password,
-            '--dirsrv-config-file', CONFIG_LDIF_PATH,
-        ]
-        self.master.run_command(args)
+        tasks.install_master(self.master, setup_dns=False, extra_args=[
+            '--dirsrv-config-file', CONFIG_LDIF_PATH
+        ])
 
 
 class TestCustomInstallReplica(IntegrationTest):
@@ -83,12 +78,6 @@ class TestCustomInstallReplica(IntegrationTest):
         tasks.install_master(cls.master)
 
     def test_customized_ds_install_replica(self):
-        tasks.replica_prepare(self.master, self.replicas[0])
-        replica_filename = tasks.get_replica_filename(self.replicas[0])
-        args = ['ipa-replica-install', '-U',
-                '-p', self.replicas[0].config.dirman_password,
-                '-w', self.replicas[0].config.admin_password,
-                '--ip-address', self.replicas[0].ip,
-                '--dirsrv-config-file', CONFIG_LDIF_PATH,
-                replica_filename]
-        self.replicas[0].run_command(args)
+        tasks.install_replica(
+            self.master, self.replicas[0], setup_ca=False,
+            extra_args=['--dirsrv-config-file', CONFIG_LDIF_PATH])
