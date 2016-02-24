@@ -121,7 +121,7 @@ def test_topology_two_connected():
 def test_topology_double_circle_topo():
     topo = tasks.get_topo('double-circle')
     assert topo == tasks.double_circle_topo
-    assert list(topo('M', range(1, 30))) == [
+    assert list(topo('M', list(range(1, 30)))) == [
         ('M', 1),
         (1, 6),
         (1, 12),
