@@ -778,7 +778,7 @@ class UI_driver(object):
         assert label is not None, "Option not found: %s" % name
         label.click()
 
-    def select_combobox(self, name, value, parent=None):
+    def select_combobox(self, name, value, parent=None, combobox_input=None):
         """
         Select value in a combobox. Search if not found.
         """
@@ -795,15 +795,20 @@ class UI_driver(object):
         search_btn = self.find('a[name=search] i', By.CSS_SELECTOR, cb, strict=True)
         opt_s = "select[name=list] option[value='%s']" % value
         option = self.find(opt_s, By.CSS_SELECTOR, cb)
-        if not option:
-            # try to search
-            self.fill_textbox('filter', value, cb)
 
-            search_btn.click()
-            self.wait_for_request()
-            option = self.find(opt_s, By.CSS_SELECTOR, cb, strict=True)
+        if combobox_input:
+            if not option:
+                self.fill_textbox(combobox_input, value, cb)
+        else:
+            if not option:
+                # try to search
+                self.fill_textbox('filter', value, cb)
 
-        option.click()
+                search_btn.click()
+                self.wait_for_request()
+                option = self.find(opt_s, By.CSS_SELECTOR, cb, strict=True)
+
+            option.click()
 
         # Chrome does not close search area on click
         if list_cnt.is_displayed():
@@ -1025,7 +1030,8 @@ class UI_driver(object):
             fields = data.get('del')
             self.delete_record(pkey, fields)
 
-    def fill_fields(self, fields, parent=None, undo=False):
+    def fill_fields(
+            self, fields, parent=None, undo=False, combobox_input=None):
         """
         Fill dialog or facet inputs with give data.
 
@@ -1060,7 +1066,8 @@ class UI_driver(object):
             elif widget_type == 'selectbox':
                 self.select('select[name=%s]' % key, val, parent)
             elif widget_type == 'combobox':
-                self.select_combobox(key, val, parent)
+                self.select_combobox(
+                    key, val, parent, combobox_input=combobox_input)
             elif widget_type == 'add_table_record':
                 self.add_table_record(key, val, parent)
             elif widget_type == 'add_table_association':
@@ -1149,7 +1156,7 @@ class UI_driver(object):
 
     def add_record(self, entity, data, facet='search', facet_btn='add',
                    dialog_btn='add', delete=False, pre_delete=True,
-                   dialog_name='add', navigate=True):
+                   dialog_name='add', navigate=True, combobox_input=None):
         """
         Add records.
 
@@ -1184,7 +1191,7 @@ class UI_driver(object):
         self.assert_dialog(dialog_name)
 
         # fill dialog
-        self.fill_fields(data['add'])
+        self.fill_fields(data['add'], combobox_input=combobox_input)
 
         # confirm dialog
         self.dialog_button_click(dialog_btn)

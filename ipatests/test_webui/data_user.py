@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 ENTITY = 'user'
 
 PKEY = 'itest-user'
@@ -62,4 +61,27 @@ DATA2 = {
         ('textbox', 'givenname', 'OtherName2'),
         ('textbox', 'sn', 'OtherSurname2'),
     ],
+}
+
+PKEY3 = 'itest-user3'
+DATA3 = {
+    'pkey': PKEY3,
+    'add': [
+        ('textbox', 'uid', PKEY3),
+        ('textbox', 'givenname', 'Name3'),
+        ('textbox', 'sn', 'Surname3'),
+        ('checkbox', 'noprivate', None),
+    ]
+}
+
+PKEY4 = 'itest-user4'
+DATA4 = {
+    'pkey': PKEY4,
+    'add': [
+        ('textbox', 'uid', PKEY4),
+        ('textbox', 'givenname', 'Name4'),
+        ('textbox', 'sn', 'Surname4'),
+        ('checkbox', 'noprivate', None),
+        ('combobox', 'gidnumber', '77777'),
+    ]
 }
