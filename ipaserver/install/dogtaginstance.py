@@ -500,3 +500,9 @@ class DogtagInstance(service.Service):
         for group in self.admin_groups:
             self.__remove_admin_from_group(group)
         self.admin_conn.delete_entry(self.admin_dn)
+
+    def _use_ldaps_during_spawn(self, config, ds_cacert=paths.IPA_CA_CRT):
+        config.set(self.subsystem, "pki_ds_ldaps_port", "636")
+        config.set(self.subsystem, "pki_ds_secure_connection", "True")
+        config.set(self.subsystem, "pki_ds_secure_connection_ca_pem_file",
+                   ds_cacert)
