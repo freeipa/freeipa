@@ -480,6 +480,9 @@ class CAInstance(DogtagInstance):
         config.set("CA", "pki_ds_base_dn", self.basedn)
         config.set("CA", "pki_ds_database", "ipaca")
 
+        if not self.create_ra_agent_db and not self.clone:
+            self._use_ldaps_during_spawn(config)
+
         # Certificate subject DN's
         config.set("CA", "pki_subsystem_subject_dn",
             str(DN(('cn', 'CA Subsystem'), self.subject_base)))
