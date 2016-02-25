@@ -188,6 +188,8 @@ class KRAInstance(DogtagInstance):
         config.set("KRA", "pki_ds_database", "ipaca")
         config.set("KRA", "pki_ds_create_new_db", "False")
 
+        self._use_ldaps_during_spawn(config)
+
         # Certificate subject DNs
         config.set("KRA", "pki_subsystem_subject_dn",
                    str(DN(('cn', 'CA Subsystem'), self.subject_base)))

@@ -463,3 +463,9 @@ class DogtagInstance(service.Service):
             self.log.critical("  %s" % log)
 
         raise RuntimeError("%s configuration failed." % self.subsystem)
+
+    def _use_ldaps_during_spawn(self, config, ds_cacert=paths.IPA_CA_CRT):
+        config.set(self.subsystem, "pki_ds_ldaps_port", "636")
+        config.set(self.subsystem, "pki_ds_secure_connection", "True")
+        config.set(self.subsystem, "pki_ds_secure_connection_ca_pem_file",
+                   ds_cacert)
