@@ -494,6 +494,10 @@ Requires: python-setuptools
 Requires: python-six
 Requires: python-jwcrypto
 Requires: python-cffi
+Requires: python-ldap >= 2.4.15
+Requires: python-requests
+Requires: python-custodia
+Requires: python-dns >= 1.11.1
 
 Conflicts: %{alt_name}-python < %{version}
 
@@ -539,6 +543,10 @@ Requires: python3-setuptools
 Requires: python3-six
 Requires: python3-jwcrypto
 Requires: python3-cffi
+Requires: python3-pyldap >= 2.4.15
+Requires: python3-custodia
+Requires: python3-requests
+Requires: python3-dns >= 1.11.1
 
 %description -n python3-ipalib
 IPA is an integrated solution to provide centrally managed Identity (users,
