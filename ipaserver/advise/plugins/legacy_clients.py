@@ -195,7 +195,7 @@ class config_redhat_nss_pam_ldapd(config_base_legacy_client):
 
         self.log.comment('Use the authconfig to configure nsswitch.conf '
                          'and the PAM stack')
-        self.log.command('authconfig --updateall --enableldap '
+        self.log.command('authconfig --updateall --enableldap --enableldaptls '
                          '--enableldapauth --ldapserver=%s --ldapbasedn=%s\n'
                          % (uri, base))
 
@@ -363,7 +363,7 @@ class config_redhat_nss_ldap(config_base_legacy_client):
 
         self.log.comment('Use the authconfig to configure nsswitch.conf '
                          'and the PAM stack')
-        self.log.command('authconfig --updateall --enableldap '
+        self.log.command('authconfig --updateall --enableldap --enableldaptls '
                          '--enableldapauth --ldapserver=%s --ldapbasedn=%s\n'
                          % (uri, base))
 
