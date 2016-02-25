@@ -51,7 +51,7 @@ from ipaplatform.tasks import tasks
 if six.PY3:
     unicode = str
 
-ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits
+ALLOWED_NETBIOS_CHARS = string.ascii_uppercase + string.digits + '-'
 
 UPGRADE_ERROR = """
 Entry %(dn)s does not exist.
@@ -90,13 +90,19 @@ def ipa_smb_conf_exists():
     return False
 
 
-def check_netbios_name(s):
-    # NetBIOS names may not be longer than 15 allowed characters
-    if not s or len(s) > 15 or \
-       ''.join([c for c in s if c not in ALLOWED_NETBIOS_CHARS]):
+def check_netbios_name(name):
+    # Empty NetBIOS name is not allowed
+    if name is None:
         return False
 
-    return True
+    # NetBIOS names may not be longer than 15 allowed characters
+    invalid_netbios_name = any([
+        len(name) > 15,
+        ''.join([c for c in name if c not in ALLOWED_NETBIOS_CHARS])
+    ])
+
+    return not invalid_netbios_name
+
 
 def make_netbios_name(s):
     return ''.join([c for c in s.split('.')[0].upper() \
