@@ -431,14 +431,39 @@ topology.TopologyGraphFacet = declare([Facet, ActionMixin, HeaderMixin], {
     init: function(spec) {
         this.inherited(arguments);
         var graph = this.get_widget('topology-graph');
+        var listener = this.resize_listener.bind(this, graph);
 
         on(this, 'show', lang.hitch(this, function(args) {
-            graph.update();
+            var size = this.calculate_canvas_size();
+            graph.update(size);
+
+            $(window).on('resize', null, listener);
         }));
 
         on(graph, 'link-selected', lang.hitch(this, function(data) {
             this.set_selected_link(data.link);
         }));
+
+        on(this, 'hide', function () {
+            $(window).off('resize', null, listener);
+        });
+    },
+
+    resize_listener: function(graph) {
+        var size = this.calculate_canvas_size();
+
+        graph.resize(size.height, size.width);
+    },
+
+    calculate_canvas_size: function() {
+        var space = parseInt(this.content.css('paddingLeft'), 10);
+        var height = $(window).height() - this.content.offset().top - space;
+        var width = this.content.width();
+
+        return {
+            height: height,
+            width: width
+        };
     },
 
     set_selected_link: function(link) {
@@ -448,7 +473,8 @@ topology.TopologyGraphFacet = declare([Facet, ActionMixin, HeaderMixin], {
 
     refresh: function() {
         var graph = this.get_widget('topology-graph');
-        graph.update();
+        var size = this.calculate_canvas_size();
+        graph.update(size);
     }
 });
 
@@ -802,7 +828,10 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
         return deferred.promise;
     },
 
-    update: function() {
+    /**
+     * @param {Object} size - dict contains height and width value. (optional)
+     */
+    update: function(size) {
         this._update_view();
 
         if (IPA.domain_level < topology.required_domain_level) return;
@@ -815,9 +844,14 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
                     suffixes: data.suffixes
                 });
                 this._bind_graph_events(this.graph);
+                if (size) {
+                    this.resize(size.height, size.width);
+                }
                 this.graph.initialize(this.visualization_cnt_el);
-
             } else {
+                if (size) {
+                    this.resize(size.height, size.width);
+                }
                 this.graph.update(data.nodes, data.links, data.suffixes);
             }
         }), function(error) {
@@ -895,6 +929,12 @@ topology.TopologyGraphWidget = declare([Stateful, Evented], {
             appendTo(this.topology_view_el);
 
         return this.topology_view_el;
+    },
+
+    resize: function(height, width) {
+        if (this.graph) {
+            this.graph.resize(height, width);
+        }
     },
 
     _init_widgets: function() {

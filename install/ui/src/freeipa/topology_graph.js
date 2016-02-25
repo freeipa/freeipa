@@ -488,6 +488,19 @@ topology_graph.TopoGraph = declare([Evented], {
             .attr("transform", transform);
     },
 
+    resize: function(height, width) {
+        if (!(isNaN(height) || isNaN(width))) {
+            this.height = height < 0 ? 0 : height;
+            this.width = width < 0 ? 0 : width;
+
+            if (this._svg) {
+                this._svg
+                    .attr('width', this.width)
+                    .attr('height', this.height);
+            }
+        }
+    },
+
     constructor: function(spec) {
         lang.mixin(this, spec);
     }
