@@ -114,11 +114,16 @@ class batch(Command):
                 if isinstance(e, errors.RequirementError) or \
                     isinstance(e, errors.CommandError):
                     self.info(
-                        '%s: batch: %s', context.principal, e.__class__.__name__
+                        '%s: batch: %s',
+                        context.principal,  # pylint: disable=no-member
+                        e.__class__.__name__
                     )
                 else:
                     self.info(
-                        '%s: batch: %s(%s): %s', context.principal, name, ', '.join(api.Command[name]._repr_iter(**params)),  e.__class__.__name__
+                        '%s: batch: %s(%s): %s',
+                        context.principal, name,  # pylint: disable=no-member
+                        ', '.join(api.Command[name]._repr_iter(**params)),
+                        e.__class__.__name__
                     )
                 if isinstance(e, errors.PublicError):
                     reported_error = e

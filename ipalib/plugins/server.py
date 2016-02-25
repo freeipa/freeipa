@@ -228,8 +228,9 @@ class server_conncheck(crud.PKQuery):
         privilege = u'Replication Administrators'
         privilege_dn = self.api.Object.privilege.get_dn(privilege)
         ldap = self.obj.backend
-        filter = ldap.make_filter(
-            {'krbprincipalname': context.principal, 'memberof': privilege_dn},
+        filter = ldap.make_filter({
+            'krbprincipalname': context.principal,  # pylint: disable=no-member
+            'memberof': privilege_dn},
             rules=ldap.MATCH_ALL)
         try:
             ldap.find_entries(base_dn=self.api.env.basedn, filter=filter)

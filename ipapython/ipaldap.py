@@ -208,7 +208,7 @@ class LDAPEntry(collections.MutableMapping):
 
         Keyword arguments can be used to override values of specific attributes.
         """
-        super(LDAPEntry, self).__init__()
+        super(LDAPEntry, self).__init__()  # pylint: disable=no-member
 
         if isinstance(_conn, LDAPEntry):
             assert _dn is None

@@ -344,7 +344,9 @@ class Declarative(XMLRPC_test):
         # client side.  However, if we switch to using JSON-RPC for the default
         # transport, the exception is a free-form data structure (dict).
         # For now just compare the strings
+        # pylint: disable=no-member
         assert_deepequal(expected.strerror, e.strerror)
+        # pylint: enable=no-member
 
     def check_callable(self, nice, cmd, args, options, expected):
         name = expected.__class__.__name__
