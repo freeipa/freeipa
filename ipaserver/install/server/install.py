@@ -332,7 +332,8 @@ def check_master_deleted(api, masters, interactive):
         try:
             ipautil.kinit_keytab(host_princ, paths.KRB5_KEYTAB, ccache_path)
         except gssapi.exceptions.GSSError as e:
-            if e.min_code == KRB5KDC_ERR_C_PRINCIPAL_UNKNOWN:
+            min_code = e.min_code  # pylint: disable=no-member
+            if min_code == KRB5KDC_ERR_C_PRINCIPAL_UNKNOWN:
                 root_logger.debug("Host principal not found, assuming that "
                                   "master is removed from topology")
                 return True

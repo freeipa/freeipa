@@ -66,7 +66,9 @@ def auth_certificate_callback(sock, check_sig, is_server, certdb):
         # and the strerror attribute will contain a string describing the reason.
         approved_usage = cert.verify_now(certdb, check_sig, intended_usage, *pin_args)
     except Exception as e:
-        root_logger.error('cert validation failed for "%s" (%s)', cert.subject, e.strerror)
+        root_logger.error(
+            'cert validation failed for "%s" (%s)', cert.subject,
+            e.strerror)  # pylint: disable=no-member
         cert_is_valid = False
         return cert_is_valid
 
@@ -96,7 +98,8 @@ def auth_certificate_callback(sock, check_sig, is_server, certdb):
         cert_is_valid = cert.verify_hostname(hostname)
     except Exception as e:
         root_logger.error('failed verifying socket hostname "%s" matches cert subject "%s" (%s)',
-                                  hostname, cert.subject, e.strerror)
+                          hostname, cert.subject,
+                          e.strerror)  # pylint: disable=no-member
         cert_is_valid = False
         return cert_is_valid
 

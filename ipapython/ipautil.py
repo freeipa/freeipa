@@ -1442,7 +1442,7 @@ def kinit_keytab(principal, keytab, ccache_name, config=None, attempts=1):
                               % (attempt, attempts))
             return cred
         except gssapi.exceptions.GSSError as e:
-            if e.min_code not in errors_to_retry:
+            if e.min_code not in errors_to_retry:  # pylint: disable=no-member
                 raise
             root_logger.debug("Attempt %d/%d: failed: %s"
                               % (attempt, attempts, e))
