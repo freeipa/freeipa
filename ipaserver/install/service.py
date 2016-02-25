@@ -418,7 +418,8 @@ class Service(object):
                 run_step(full_msg, method)
                 step += 1
         except BaseException as e:
-            if not (isinstance(e, SystemExit) and e.code == 0):
+            if not (isinstance(e, SystemExit) and
+                    e.code == 0):  # pylint: disable=no-member
                 # show the traceback, so it's not lost if cleanup method fails
                 root_logger.debug("%s" % traceback.format_exc())
                 self.print_msg('  [error] %s: %s' % (type(e).__name__, e))

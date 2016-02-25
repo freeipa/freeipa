@@ -158,7 +158,9 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
         except socket.gaierror:
             pass
         except socket.error, e:
-            root_logger.debug('socket.gethostbyaddr() error: %d: %s' % (e.errno, e.strerror))
+            root_logger.debug(
+                'socket.gethostbyaddr() error: %d: %s',
+                e.errno, e.strerror)  # pylint: disable=no-member
 
     if no_host_dns:
         print "Warning: skipping DNS resolution of host", host_name
@@ -732,7 +734,10 @@ def run_script(main_function, operation_name, log_file_name=None,
         try:
             return_value = main_function()
         except BaseException, e:
-            if isinstance(e, SystemExit) and (e.code is None or e.code == 0):
+            if (
+                isinstance(e, SystemExit) and
+                (e.code is None or e.code == 0)  # pylint: disable=no-member
+            ):
                 # Not an error after all
                 root_logger.info('The %s command was successful',
                     operation_name)

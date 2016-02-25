@@ -496,11 +496,12 @@ class OTPTokenImport(admintool.AdminTool):
 
         # Verify a key is provided if one is needed.
         if self.doc.keyname is not None:
-            if self.safe_options.keyfile is None:
+            if self.safe_options.keyfile is None:  # pylint: disable=no-member
                 raise admintool.ScriptError("Encryption key required: %s!" % self.doc.keyname)
 
             # Load the keyfile.
-            with open(self.safe_options.keyfile) as f:
+            keyfile = self.safe_options.keyfile  # pylint: disable=no-member
+            with open(keyfile) as f:
                 self.doc.setKey(f.read())
 
     def run(self):
