@@ -88,13 +88,15 @@ def parse_options():
 
 def netbios_name_error(name):
     print("\nIllegal NetBIOS name [%s].\n" % name)
-    print("Up to 15 characters and only uppercase ASCII letter and digits are allowed.")
+    print("Up to 15 characters and only uppercase ASCII letters, digits "
+          "and dashes are allowed.")
 
 def read_netbios_name(netbios_default):
     netbios_name = ""
 
     print("Enter the NetBIOS name for the IPA domain.")
-    print("Only up to 15 uppercase ASCII letters and digits are allowed.")
+    print("Only up to 15 uppercase ASCII letters, digits "
+          "and dashes are allowed.")
     print("Example: EXAMPLE.")
     print("")
     print("")
