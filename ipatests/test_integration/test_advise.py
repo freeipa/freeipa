@@ -104,7 +104,8 @@ class TestAdvice(IntegrationTest):
         advice_regex = "\#\!\/bin\/sh.*" \
                        "yum[\s]+install[\s]+\-y[\s]+curl[\s]+openssl[\s]+nss_ldap" \
                        "[\s]+authconfig.*authconfig[\s]+\-\-updateall" \
-                       "[\s]+\-\-enableldap[\s]+\-\-enableldapauth[\s]+" \
+                       "[\s]+\-\-enableldap[\s]+\-\-enableldaptls"\
+                       "[\s]+\-\-enableldapauth[\s]+" \
                        "\-\-ldapserver=.*[\s]+\-\-ldapbasedn=.*"
         raiseerr = True
 
@@ -116,8 +117,8 @@ class TestAdvice(IntegrationTest):
         advice_regex = "\#\!\/bin\/sh.*" \
                        "yum[\s]+install[\s]+\-y[\s]+curl[\s]+openssl[\s]+" \
                        "nss\-pam\-ldapd[\s]+pam_ldap[\s]+authconfig.*" \
-                       "authconfig[\s]+\-\-updateall[\s]+" \
-                       "\-\-enableldap[\s]+\-\-enableldapauth[\s]+" \
+                       "authconfig[\s]+\-\-updateall[\s]+\-\-enableldap"\
+                       "[\s]+\-\-enableldaptls[\s]+\-\-enableldapauth[\s]+" \
                        "\-\-ldapserver=.*[\s]+\-\-ldapbasedn=.*"
         raiseerr = True
 
