@@ -68,3 +68,13 @@ DATA5 = {
         ('textarea', 'description', 'test-group5 desc'),
     ]
 }
+
+PKEY6 = 'itest-group6'
+DATA6 = {
+    'pkey': PKEY6,
+    'add': [
+        ('textbox', 'cn', PKEY6),
+        ('textarea', 'description', 'test-group6 desc'),
+        ('textbox', 'gidnumber', '77777'),
+    ]
+}

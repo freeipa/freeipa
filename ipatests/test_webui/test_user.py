@@ -261,3 +261,41 @@ class test_user(UI_driver):
         self.dialog_button_click('confirm')
         self.wait_for_request(n=3)
         self.assert_no_error_dialog()
+
+
+@pytest.mark.tier1
+class test_user_no_private_group(UI_driver):
+
+    @screenshot
+    def test_noprivate_nonposix(self):
+        """
+        User without private group and without specified GID
+        """
+        self.init_app()
+
+        with pytest.raises(AssertionError) as e:
+            self.add_record(user.ENTITY, user.DATA3)
+        assert e.value.message == u'Unexpected error: Default group for new users is not POSIX'
+
+    @screenshot
+    def test_noprivate_posix(self):
+        """
+        User without private group and specified existing posix GID
+        """
+        self.init_app()
+        self.add_record(group.ENTITY, group.DATA6)
+
+        self.add_record(user.ENTITY, user.DATA4)
+        self.delete(user.ENTITY, [user.DATA4])
+
+        self.delete(group.ENTITY, [group.DATA6])
+
+    @screenshot
+    def test_noprivate_gidnumber(self):
+        """
+        User without private group and specified unused GID
+        """
+        self.init_app()
+
+        self.add_record(user.ENTITY, user.DATA4, combobox_input='gidnumber')
+        self.delete(user.ENTITY, [user.DATA4])
