@@ -520,6 +520,11 @@ class ADTRUSTInstance(service.Service):
         os.write(tmp_fd, conf)
         os.close(tmp_fd)
 
+        # Workaround for: https://fedorahosted.org/freeipa/ticket/5687
+        # We make sure that paths.SMB_CONF file exists, hence touch it
+        with open(paths.SMB_CONF, 'a'):
+            os.utime(paths.SMB_CONF, None)
+
         args = [paths.NET, "conf", "import", tmp_name]
 
         try:
