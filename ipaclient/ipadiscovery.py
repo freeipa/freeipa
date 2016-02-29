@@ -27,7 +27,7 @@ from dns.exception import DNSException
 from ipalib import errors
 from ipapython import ipaldap
 from ipaplatform.paths import paths
-from ipapython.ipautil import valid_ip, get_ipa_basedn, realm_to_suffix
+from ipapython.ipautil import valid_ip, realm_to_suffix
 from ipapython.dn import DN
 
 NOT_FQDN = -1
@@ -38,6 +38,8 @@ NO_ACCESS_TO_LDAP = -5
 NO_TLS_LDAP = -6
 BAD_HOST_CONFIG = -10
 UNKNOWN_ERROR = -15
+
+IPA_BASEDN_INFO = 'ipa v2.0'
 
 error_names = {
     0: 'Success',
@@ -50,6 +52,47 @@ error_names = {
     BAD_HOST_CONFIG: 'BAD_HOST_CONFIG',
     UNKNOWN_ERROR: 'UNKNOWN_ERROR',
 }
+
+def get_ipa_basedn(conn):
+    """
+    Get base DN of IPA suffix in given LDAP server.
+
+    None is returned if the suffix is not found
+
+    :param conn: Bound LDAPClient that will be used for searching
+    """
+    entry = conn.get_entry(
+        DN(), attrs_list=['defaultnamingcontext', 'namingcontexts'])
+
+    # FIXME: import ipalib here to prevent import loops
+    from ipalib import errors
+
+    contexts = entry['namingcontexts']
+    if 'defaultnamingcontext' in entry:
+        # If there is a defaultNamingContext examine that one first
+        default = entry.single_value['defaultnamingcontext']
+        if default in contexts:
+            contexts.remove(default)
+        contexts.insert(0, default)
+    for context in contexts:
+        root_logger.debug("Check if naming context '%s' is for IPA" % context)
+        try:
+            [entry] = conn.get_entries(
+                DN(context), conn.SCOPE_BASE, "(info=IPA*)")
+        except errors.NotFound:
+            root_logger.debug("LDAP server did not return info attribute to "
+                              "check for IPA version")
+            continue
+        info = entry.single_value['info'].lower()
+        if info != IPA_BASEDN_INFO:
+            root_logger.debug("Detected IPA server version (%s) did not match the client (%s)" \
+                % (info, IPA_BASEDN_INFO))
+            continue
+        root_logger.debug("Naming context '%s' is a valid IPA context" % context)
+        return DN(context)
+
+    return None
+
 
 class IPADiscovery(object):
 

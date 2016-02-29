@@ -58,8 +58,6 @@ PLUGINS_SHARE_DIR = paths.IPA_PLUGINS
 
 GEN_PWD_LEN = 12
 
-IPA_BASEDN_INFO = 'ipa v2.0'
-
 # Having this in krb_utils would cause circular import
 KRB5_KDC_UNREACH = 2529639068 # Cannot contact any KDC for requested realm
 KRB5KDC_ERR_SVC_UNAVAILABLE = 2529638941 # A service is not available that is
@@ -1135,45 +1133,6 @@ def is_auto_empty_zone(zone):
     ]]
     return zone in automatic_empty_zones
 
-def get_ipa_basedn(conn):
-    """
-    Get base DN of IPA suffix in given LDAP server.
-
-    None is returned if the suffix is not found
-
-    :param conn: Bound LDAPClient that will be used for searching
-    """
-    entry = conn.get_entry(
-        DN(), attrs_list=['defaultnamingcontext', 'namingcontexts'])
-
-    # FIXME: import ipalib here to prevent import loops
-    from ipalib import errors
-
-    contexts = entry['namingcontexts']
-    if 'defaultnamingcontext' in entry:
-        # If there is a defaultNamingContext examine that one first
-        default = entry.single_value['defaultnamingcontext']
-        if default in contexts:
-            contexts.remove(default)
-        contexts.insert(0, default)
-    for context in contexts:
-        root_logger.debug("Check if naming context '%s' is for IPA" % context)
-        try:
-            [entry] = conn.get_entries(
-                DN(context), conn.SCOPE_BASE, "(info=IPA*)")
-        except errors.NotFound:
-            root_logger.debug("LDAP server did not return info attribute to "
-                              "check for IPA version")
-            continue
-        info = entry.single_value['info'].lower()
-        if info != IPA_BASEDN_INFO:
-            root_logger.debug("Detected IPA server version (%s) did not match the client (%s)" \
-                % (info, IPA_BASEDN_INFO))
-            continue
-        root_logger.debug("Naming context '%s' is a valid IPA context" % context)
-        return DN(context)
-
-    return None
 
 def config_replace_variables(filepath, replacevars=dict(), appendvars=dict()):
     """
