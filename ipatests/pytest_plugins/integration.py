@@ -30,7 +30,6 @@ from pytest_multihost import make_multihost_fixture
 
 from ipapython import ipautil
 from ipapython.ipa_log_manager import log_mgr
-from ipatests.test_integration import tasks
 from ipatests.test_integration.config import Config
 from ipatests.test_integration.env_config import get_global_config
 
@@ -197,8 +196,6 @@ def mh(request, class_integration_logs):
     print(mh.config)
     for host in mh.config.get_all_hosts():
         host.add_log_collector(collect_log)
-        cls.log.info('Preparing host %s', host.hostname)
-        tasks.prepare_host(host)
 
     setup_class(cls, mh)
     mh._pytestmh_request.addfinalizer(lambda: teardown_class(cls))
