@@ -195,15 +195,16 @@ def verify_fqdn(host_name, no_host_dns=False, local_hostname=True):
             revname = socket.gethostbyaddr(address)[0]
         except Exception, e:
             root_logger.debug('Check failed: %s', e)
-            raise HostReverseLookupError(
+            root_logger.error(
                 "Unable to resolve the IP address %s to a host name, "
-                "check /etc/hosts and DNS name resolution" % address)
-        root_logger.debug('Found reverse name: %s', revname)
-        if revname != host_name:
-            raise HostReverseLookupError(
-                "The host name %s does not match the value %s obtained "
-                "by reverse lookup on IP address %s"
-                % (host_name, revname, address))
+                "check /etc/hosts and DNS name resolution", address)
+        else:
+            root_logger.debug('Found reverse name: %s', revname)
+            if revname != host_name:
+                root_logger.error(
+                    "The host name %s does not match the value %s obtained "
+                    "by reverse lookup on IP address %s", host_name, revname,
+                    address)
         verified.add(address)
 
 
