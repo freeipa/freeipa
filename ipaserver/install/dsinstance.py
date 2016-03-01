@@ -1067,6 +1067,9 @@ class DsInstance(service.Service):
         """
         Add sidgen plugin configuration only if it does not already exist.
         """
+        if not self.admin_conn:
+            self.ldap_connect()
+
         dn = DN('cn=IPA SIDGEN,cn=plugins,cn=config')
         try:
             self.admin_conn.get_entry(dn)
@@ -1085,6 +1088,9 @@ class DsInstance(service.Service):
         """
         Add extdom configuration if it does not already exist.
         """
+        if not self.admin_conn:
+            self.ldap_connect()
+
         dn = DN('cn=ipa_extdom_extop,cn=plugins,cn=config')
         try:
             self.admin_conn.get_entry(dn)
