@@ -4297,6 +4297,7 @@ IPA.entity_select_widget = function(spec) {
 
     that.other_entity = IPA.get_entity(spec.other_entity);
     that.other_field = spec.other_field;
+    that.label_field = spec.label_field || spec.other_field;
 
     that.options = spec.options || [];
     that.filter_options = spec.filter_options || {};
@@ -4337,9 +4338,10 @@ IPA.entity_select_widget = function(spec) {
         for (var i=0; i<data.result.count; i++) {
             var entry = entries[i];
             var values = adapter.load(entry, that.other_field);
-            var value = values[0];
+            var label = adapter.load(entry, that.label_field);
+            var option = { label: label[0], value: values[0] };
 
-            options.push(value);
+            options.push(option);
         }
 
         that.set_options(options);

@@ -447,6 +447,16 @@ return {
                         name: 'noprivate',
                         label: '@i18n:objects.user.noprivate',
                         metadata: '@mc-opt:user_add:noprivate'
+                    },
+                    {
+                        $type: 'entity_select',
+                        name: 'gidnumber',
+                        editable: true,
+                        searchable: true,
+                        other_entity: 'group',
+                        other_field: 'gidnumber',
+                        label_field: 'cn',
+                        filter_options: {'posix': true}
                     }
                 ]
             },
