@@ -609,8 +609,9 @@ class BindInstance(service.Service):
 
     suffix = ipautil.dn_attribute_property('_suffix')
 
-    def setup(self, fqdn, ip_addresses, realm_name, domain_name, forwarders, ntp,
-              reverse_zones, named_user=constants.NAMED_USER, zonemgr=None,
+    def setup(self, fqdn, ip_addresses, realm_name, domain_name, forwarders,
+              forward_policy, ntp, reverse_zones,
+              named_user=constants.NAMED_USER, zonemgr=None,
               ca_configured=None, no_dnssec_validation=False):
         self.named_user = named_user
         self.fqdn = fqdn
@@ -618,6 +619,7 @@ class BindInstance(service.Service):
         self.realm = realm_name
         self.domain = domain_name
         self.forwarders = forwarders
+        self.forward_policy = forward_policy
         self.host = fqdn.split(".")[0]
         self.suffix = ipautil.realm_to_suffix(self.realm)
         self.ntp = ntp
@@ -775,6 +777,7 @@ class BindInstance(service.Service):
             REALM=self.realm,
             SERVER_ID=installutils.realm_to_serverid(self.realm),
             FORWARDERS=fwds,
+            FORWARD_POLICY=self.forward_policy,
             SUFFIX=self.suffix,
             OPTIONAL_NTP=optional_ntp,
             ZONEMGR=self.zonemgr,

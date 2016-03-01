@@ -318,8 +318,8 @@ def install(standalone, replica, options, api=api):
     bind = bindinstance.BindInstance(fstore, ldapi=True, api=api,
                                      autobind=AUTOBIND_ENABLED)
     bind.setup(api.env.host, ip_addresses, api.env.realm, api.env.domain,
-               options.forwarders, conf_ntp, reverse_zones,
-               zonemgr=options.zonemgr,
+               options.forwarders, options.forward_policy, conf_ntp,
+               reverse_zones, zonemgr=options.zonemgr,
                no_dnssec_validation=options.no_dnssec_validation,
                ca_configured=options.setup_ca)
 
