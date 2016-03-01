@@ -8,7 +8,7 @@ options {
 	statistics-file		"data/named_stats.txt";
 	memstatistics-file	"data/named_mem_stats.txt";
 
-	forward first;
+	forward $FORWARD_POLICY;
 	forwarders {$FORWARDERS};
 
 	// Any host is permitted to issue recursive queries

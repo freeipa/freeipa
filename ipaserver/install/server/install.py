@@ -759,10 +759,11 @@ def install_check(installer):
 
     if options.setup_dns:
         print("BIND DNS server will be configured to serve IPA domain with:")
-        print("Forwarders:    %s" % (
+        print("Forwarders:       %s" % (
             "No forwarders" if not options.forwarders
             else ", ".join([str(ip) for ip in options.forwarders])
         ))
+        print('Forward policy:   %s' % options.forward_policy)
         print("Reverse zone(s):  %s" % (
             "No reverse zone" if options.no_reverse or not dns.reverse_zones
             else ", ".join(str(rz) for rz in dns.reverse_zones)
@@ -992,7 +993,7 @@ def install(installer):
         # Create a BIND instance
         bind = bindinstance.BindInstance(fstore, dm_password)
         bind.setup(host_name, ip_addresses, realm_name,
-                   domain_name, (), not options.no_ntp, (),
+                   domain_name, (), 'first', not options.no_ntp, (),
                    zonemgr=options.zonemgr, ca_configured=setup_ca,
                    no_dnssec_validation=options.no_dnssec_validation)
         bind.create_sample_bind_zone()

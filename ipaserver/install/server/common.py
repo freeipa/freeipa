@@ -170,6 +170,11 @@ class BaseServerDNS(common.Installable, core.Group, core.Composite):
         cli_name='forwarder',
     )
 
+    forward_policy = Knob(
+        {'only', 'first'}, 'first',
+        description=("DNS forwarding policy for global forwarders"),
+    )
+
     auto_forwarders = Knob(
         bool, False,
         description="Use DNS forwarders configured in /etc/resolv.conf",
@@ -431,6 +436,10 @@ class BaseServer(common.Installable, common.Interactive, core.Composite):
             if self.dns.no_forwarders:
                 raise RuntimeError(
                     "You cannot specify a --no-forwarders option without the "
+                    "--setup-dns option")
+            if self.dns.forward_policy:
+                raise RuntimeError(
+                    "You cannot specify a --forward-policy option without the "
                     "--setup-dns option")
             if self.dns.reverse_zones:
                 raise RuntimeError(
