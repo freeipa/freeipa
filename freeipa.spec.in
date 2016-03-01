@@ -877,15 +877,18 @@ fi
 
 
 %posttrans server
-# This must be run in posttrans so that updates from previous
-# execution that may no longer be shipped are not applied.
-/usr/sbin/ipa-server-upgrade --quiet >/dev/null || :
-
-# Restart IPA processes. This must be also run in postrans so that plugins
-# and software is in consistent state
+# don't execute upgrade and restart of IPA when server is not installed
 python2 -c "import sys; from ipaserver.install import installutils; sys.exit(0 if installutils.is_ipa_configured() else 1);" > /dev/null 2>&1
-# NOTE: systemd specific section
+
 if [  $? -eq 0 ]; then
+    # This must be run in posttrans so that updates from previous
+    # execution that may no longer be shipped are not applied.
+    /usr/sbin/ipa-server-upgrade --quiet >/dev/null || :
+
+    # Restart IPA processes. This must be also run in postrans so that plugins
+    # and software is in consistent state
+    # NOTE: systemd specific section
+
     /bin/systemctl is-enabled ipa.service >/dev/null 2>&1
     if [  $? -eq 0 ]; then
         /bin/systemctl restart ipa.service >/dev/null 2>&1 || :
