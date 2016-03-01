@@ -23,7 +23,8 @@ MSGMERGE_UPDATE = $(MSGMERGE) --update
 
 COPYRIGHT_HOLDER = Red Hat
 PACKAGE_NAME = $(DOMAIN)
-PACKAGE_BUGREPORT = https://hosted.fedoraproject.org/projects/freeipa/newticket
+# An email address or URL where you can report bugs in the untranslated strings
+PACKAGE_BUGREPORT = https://fedorahosted.org/freeipa/newticket
 XGETTEXT_OPTIONS = \
 --add-comments="TRANSLATORS:" \
 --copyright-holder="$(COPYRIGHT_HOLDER)" \
