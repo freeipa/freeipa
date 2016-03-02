@@ -1776,7 +1776,8 @@ def check_ip_addresses(options):
                 return False
     return True
 
-def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
+
+def update_ssh_keys(hostname, ssh_dir, create_sshfp):
     if not os.path.isdir(ssh_dir):
         return
 
@@ -2887,7 +2888,8 @@ def install(options, env, fstore, statestore):
         configure_certmonger(fstore, subject_base, cli_realm, hostname,
                              options, ca_enabled)
 
-    update_ssh_keys(cli_server[0], hostname, services.knownservices.sshd.get_config_dir(), options.create_sshfp)
+    update_ssh_keys(hostname, services.knownservices.sshd.get_config_dir(),
+                    options.create_sshfp)
 
     try:
         os.remove(CCACHE_FILE)
