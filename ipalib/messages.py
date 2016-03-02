@@ -360,6 +360,17 @@ class ResultFormattingError(PublicMessage):
     type = "warning"
 
 
+class FailedToRemoveHostDNSRecords(PublicMessage):
+    """
+    **13020** Failed to remove host DNS records
+    """
+
+    errno = 13020
+    type = "warning"
+    format = _("DNS record(s) of host %(host)s could not be removed. "
+               "(%(reason)s)")
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """

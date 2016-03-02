@@ -23,6 +23,7 @@ import string
 import six
 
 from ipalib import api, errors, util
+from ipalib import messages
 from ipalib import Str, Flag, Bytes
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
@@ -122,6 +123,10 @@ host_pwd_chars = string.digits + string.ascii_letters + '_,.@+-='
 
 
 def remove_ptr_rec(ipaddr, host, domain):
+    """
+    Remove PTR record of IP address (ipaddr)
+    :return: True if PTR record was removed, False if record was not found
+    """
     api.log.debug('deleting PTR record of ipaddr %s', ipaddr)
     try:
         revzone, revname = get_reverse_zone(ipaddr)
@@ -134,6 +139,9 @@ def remove_ptr_rec(ipaddr, host, domain):
         api.Command['dnsrecord_del'](revzone, revname, **delkw)
     except errors.NotFound:
         api.log.debug('PTR record of ipaddr %s not found', ipaddr)
+        return False
+
+    return True
 
 
 def update_sshfp_record(zone, record, entry_attrs):
@@ -760,16 +768,20 @@ class host_del(LDAPDelete):
             parts = fqdn.split('.')
             domain = unicode('.'.join(parts[1:]))
             # Get all resources for this host
+            rec_removed = False
             try:
                 record = api.Command['dnsrecord_show'](
                     domain, parts[0])['result']
             except errors.NotFound:
-                self.obj.handle_not_found(*keys)
+                pass
             else:
                 # remove PTR records first
                 for attr in ('arecord', 'aaaarecord'):
                     for val in record.get(attr, []):
-                        remove_ptr_rec(val, parts[0], domain)
+                        rec_removed = (
+                            remove_ptr_rec(val, parts[0], domain) or
+                            rec_removed
+                        )
                 try:
                     # remove all A, AAAA, SSHFP records of the host
                     api.Command['dnsrecord_mod'](
@@ -781,6 +793,16 @@ class host_del(LDAPDelete):
                         )
                 except errors.EmptyModlist:
                     pass
+                else:
+                    rec_removed = True
+
+            if not rec_removed:
+                self.add_message(
+                    messages.FailedToRemoveHostDNSRecords(
+                        host=fqdn,
+                        reason=_("No A, AAAA, SSHFP or PTR records found.")
+                    )
+                )
 
         if self.api.Command.ca_is_enabled()['result']:
             try:
