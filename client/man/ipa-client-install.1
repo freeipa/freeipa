@@ -176,6 +176,17 @@ valid for the IPA domain.
 .TP
 \fB\-\-request\-cert\fR
 Request certificate for the machine. The certificate will be stored in /etc/ipa/nssdb under the nickname "Local IPA host".
+
+Using this option requires that D-Bus is properly configured or not configured
+at all. In environment where this condition is not met (e.g. anaconda kickstart
+chroot environment) set the system bus address to /dev/null to enable
+workaround in ipa-client-install.
+
+    # env DBUS_SYSTEM_BUS_ADDRESS=unix:path=/dev/null ipa-client-install --request-cert
+
+Note that requesting the certificate when certmonger is not running only
+creates tracking request and the certmonger service must be started to be able
+to track certificates.
 .TP
 \fB\-\-automount\-location\fR=\fILOCATION\fR
 Configure automount by running ipa\-client\-automount(1) with \fILOCATION\fR as
