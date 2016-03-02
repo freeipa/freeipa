@@ -769,18 +769,23 @@ class host_del(LDAPDelete):
                 domain = result['idnsname'][0]
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
-            # Get all forward resources for this host
-            records = api.Command['dnsrecord_find'](domain, idnsname=parts[0])['result']
-            for record in records:
-                for attr in _record_attributes:
-                    for val in record.get(attr, []):
-                        if attr in ('arecord', 'aaaarecord'):
-                            remove_fwd_ptr(val, parts[0], domain, attr)
-                        elif (val.endswith(parts[0]) or
-                                val.endswith(fqdn + '.')):
-                            delkw = {unicode(attr): val}
-                            api.Command['dnsrecord_del'](
-                                domain, record['idnsname'][0], **delkw)
+            else:
+                # Get all forward resources for this host
+                try:
+                    record = api.Command['dnsrecord_show'](
+                        domain, parts[0])['result']
+                except errors.NotFound:
+                    pass
+                else:
+                    for attr in _record_attributes:
+                        for val in record.get(attr, []):
+                            if attr in ('arecord', 'aaaarecord'):
+                                remove_fwd_ptr(val, parts[0], domain, attr)
+                            elif (val.endswith(parts[0]) or
+                                    val.endswith(fqdn + '.')):
+                                delkw = {unicode(attr): val}
+                                api.Command['dnsrecord_del'](
+                                    domain, record['idnsname'][0], **delkw)
 
         if self.api.Command.ca_is_enabled()['result']:
             try:
