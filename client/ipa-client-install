@@ -1798,7 +1798,7 @@ def update_ssh_keys(server, hostname, ssh_dir, create_sshfp):
                 continue
             try:
                 pubkey = SSHPublicKey(line)
-            except ValueError as UnicodeDecodeError:
+            except (ValueError, UnicodeDecodeError):
                 continue
             root_logger.info("Adding SSH public key from %s", filename)
             pubkeys.append(pubkey)

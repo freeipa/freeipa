@@ -278,13 +278,13 @@ def normalize_sshpubkey(value):
 def validate_sshpubkey(ugettext, value):
     try:
         SSHPublicKey(value)
-    except ValueError as UnicodeDecodeError:
+    except (ValueError, UnicodeDecodeError):
         return _('invalid SSH public key')
 
 def validate_sshpubkey_no_options(ugettext, value):
     try:
         pubkey = SSHPublicKey(value)
-    except ValueError as UnicodeDecodeError:
+    except (ValueError, UnicodeDecodeError):
         return _('invalid SSH public key')
 
     if pubkey.has_options():
@@ -304,7 +304,7 @@ def convert_sshpubkey_post(ldap, dn, entry_attrs):
     for pubkey in pubkeys:
         try:
             pubkey = SSHPublicKey(pubkey)
-        except ValueError as UnicodeDecodeError:
+        except (ValueError, UnicodeDecodeError):
             continue
 
         fp = pubkey.fingerprint_hex_md5()
