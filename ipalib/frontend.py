@@ -434,13 +434,17 @@ class Command(HasParam):
             return self.__do_call(*args, **options)
 
     def __do_call(self, *args, **options):
-        version_provided = 'version' in options
-        if version_provided:
+        self.context.__messages = []
+        if 'version' in options:
             self.verify_client_version(unicode(options['version']))
         elif self.api.env.skip_version_check and not self.api.env.in_server:
             options['version'] = u'2.0'
         else:
             options['version'] = API_VERSION
+            if self.api.env.in_server:
+                # add message only on server side
+                self.add_message(
+                    messages.VersionMissing(server_version=API_VERSION))
         params = self.args_options_2_params(*args, **options)
         self.debug(
             'raw: %s(%s)', self.name, ', '.join(self._repr_iter(**params))
@@ -454,12 +458,9 @@ class Command(HasParam):
         self.validate(**params)
         (args, options) = self.params_2_args_options(**params)
         ret = self.run(*args, **options)
-        if (not version_provided and isinstance(ret, dict) and
-                self.api.env.in_server):
-            # add message only on server side
-            messages.add_message(
-                API_VERSION, ret,
-                messages.VersionMissing(server_version=API_VERSION))
+        if isinstance(ret, dict):
+            for message in self.context.__messages:
+                messages.add_message(options['version'], ret, message)
         if (
             isinstance(ret, dict)
             and 'summary' in self.output
@@ -469,6 +470,9 @@ class Command(HasParam):
         if self.use_output_validation and (self.output or ret is not None):
             self.validate_output(ret, options['version'])
         return ret
+
+    def add_message(self, message):
+        self.context.__messages.append(message)
 
     def soft_validate(self, values):
         errors = dict()
