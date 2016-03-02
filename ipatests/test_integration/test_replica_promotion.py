@@ -19,6 +19,11 @@ class ReplicaPromotionBase(IntegrationTest):
             result = self.master.run_command(
                 ["ipa", "host-del", "--updatedns", host.hostname],
                 raiseonerr=False)
+            # Workaround for 5627
+            if "host not found" in result.stderr_text:
+                self.master.run_command(["ipa",
+                                         "host-del",
+                                         host.hostname], raiseonerr=False)
 
     def test_kra_install_master(self):
         result1 = tasks.install_kra(self.master,
