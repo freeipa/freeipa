@@ -37,15 +37,15 @@ class WinsyncMigrate(admintool.AdminTool):
     Tool to migrate winsync users.
     """
 
-    command_name = 'ipa-migrate-winsync'
-    usage = "ipa-migrate-winsync"
+    command_name = 'ipa-winsync-migrate'
+    usage = "ipa-winsync-migrate"
     description = (
         "This tool creates user ID overrides for all the users "
         "that were previously synced from AD domain using the "
         "winsync replication agreement. It requires that trust "
         "with the AD forest has already been established and "
         "the users in question are resolvable using SSSD. "
-        "For more information, see `man ipa-migrate-winsync`."
+        "For more information, see `man ipa-winsync-migrate`."
         )
 
     @classmethod
