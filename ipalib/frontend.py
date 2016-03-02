@@ -38,6 +38,7 @@ from ipalib.errors import (ZeroArgumentError, MaxArgumentError, OverlapError,
     VersionError, OptionError, InvocationError,
     ValidationError, ConversionError)
 from ipalib import messages
+from ipalib.request import context, context_frame
 from ipalib.util import json_serialize
 
 if six.PY3:
@@ -370,6 +371,10 @@ class HasParam(Plugin):
                 check(namespace)
         setattr(self, name, namespace)
 
+    @property
+    def context(self):
+        return context.current_frame
+
 
 class Command(HasParam):
     """
@@ -424,6 +429,11 @@ class Command(HasParam):
         XML-RPC and the executed an the nearest IPA server.
         """
         self.ensure_finalized()
+        with context_frame():
+            self.context.principal = getattr(context, 'principal', None)
+            return self.__do_call(*args, **options)
+
+    def __do_call(self, *args, **options):
         version_provided = 'version' in options
         if version_provided:
             self.verify_client_version(unicode(options['version']))

@@ -22,6 +22,7 @@
 Per-request thread-local data.
 """
 
+import contextlib
 import threading
 
 from ipalib.base import ReadOnly, lock
@@ -30,6 +31,26 @@ from ipalib.constants import CALLABLE_ERROR
 
 # Thread-local storage of most per-request information
 context = threading.local()
+
+
+class _FrameContext(object):
+    pass
+
+
+@contextlib.contextmanager
+def context_frame():
+    try:
+        frame_back = context.current_frame
+    except AttributeError:
+        pass
+    context.current_frame = _FrameContext()
+    try:
+        yield
+    finally:
+        try:
+            context.current_frame = frame_back
+        except UnboundLocalError:
+            del context.current_frame
 
 
 class Connection(ReadOnly):
