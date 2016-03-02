@@ -35,7 +35,7 @@ from ipalib.plugins.service import (split_principal, validate_certificate,
     set_certificate_attrs, ticket_flags_params, update_krbticketflags,
     set_kerberos_attrs, rename_ipaallowedtoperform_from_ldap,
     rename_ipaallowedtoperform_to_ldap, revoke_certs)
-from ipalib.plugins.dns import (dns_container_exists, _record_types,
+from ipalib.plugins.dns import (dns_container_exists, _record_attributes,
         add_records_for_host_validation, add_records_for_host,
         get_reverse_zone)
 from ipalib import _, ngettext
@@ -772,26 +772,15 @@ class host_del(LDAPDelete):
             # Get all forward resources for this host
             records = api.Command['dnsrecord_find'](domain, idnsname=parts[0])['result']
             for record in records:
-                if 'arecord' in record:
-                    remove_fwd_ptr(record['arecord'][0], parts[0],
-                                   domain, 'arecord')
-                if 'aaaarecord' in record:
-                    remove_fwd_ptr(record['aaaarecord'][0], parts[0],
-                                   domain, 'aaaarecord')
-                else:
-                    # Try to delete all other record types too
-                    _attribute_types = [str('%srecord' % t.lower())
-                                        for t in _record_types]
-                    for attr in _attribute_types:
-                        if attr not in ['arecord', 'aaaarecord'] and attr in record:
-                            for val in record[attr]:
-                                if (val.endswith(parts[0]) or
-                                        val.endswith(fqdn + '.')):
-                                    delkw = {unicode(attr): val}
-                                    api.Command['dnsrecord_del'](domain,
-                                            record['idnsname'][0],
-                                            **delkw)
-                            break
+                for attr in _record_attributes:
+                    for val in record.get(attr, []):
+                        if attr in ('arecord', 'aaaarecord'):
+                            remove_fwd_ptr(val, parts[0], domain, attr)
+                        elif (val.endswith(parts[0]) or
+                                val.endswith(fqdn + '.')):
+                            delkw = {unicode(attr): val}
+                            api.Command['dnsrecord_del'](
+                                domain, record['idnsname'][0], **delkw)
 
         if self.api.Command.ca_is_enabled()['result']:
             try:
