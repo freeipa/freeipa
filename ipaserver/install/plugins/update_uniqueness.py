@@ -17,12 +17,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api, errors
+from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 
+register = Registry()
 
+
+@register()
 class update_uniqueness_plugins_to_new_syntax(Updater):
     """
     Migrate uniqueness plugins to new style syntax
@@ -218,5 +221,3 @@ class update_uniqueness_plugins_to_new_syntax(Updater):
                 update_list.append(update)
 
         return False, update_list
-
-api.register(update_uniqueness_plugins_to_new_syntax)

@@ -897,6 +897,8 @@ if version_info[3] == 'final':
 else:
     __version__ = '%d.%d.%d.%s.%d' % version_info
 
+Registry = plugable.Registry
+
 
 class API(plugable.API):
     bases = (Command, Object, Method, Backend, Updater)

@@ -17,15 +17,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api, errors
+from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import sysupgrade
 
+register = Registry()
 
 DEFAULT_ID_RANGE_SIZE = 200000
 
+
+@register()
 class update_default_range(Updater):
     """
     Create default ID range for upgraded servers.
@@ -119,6 +122,7 @@ class update_default_range(Updater):
         return False, [update]
 
 
+@register()
 class update_default_trust_view(Updater):
     """
     Create Default Trust View for upgraded servers.
@@ -164,6 +168,7 @@ class update_default_trust_view(Updater):
         return False, [update]
 
 
+@register()
 class update_sigden_extdom_broken_config(Updater):
     """Fix configuration of sidgen and extdom plugins
 
@@ -230,6 +235,7 @@ class update_sigden_extdom_broken_config(Updater):
         return restart, ()
 
 
+@register()
 class update_sids(Updater):
     """SIDs may be not created properly if bug with wrong configuration for
     sidgen and extdom plugins is effective
@@ -310,9 +316,3 @@ class update_sids(Updater):
 
         sysupgrade.set_upgrade_state('sidgen', 'update_sids', False)
         return False, ()
-
-
-api.register(update_default_range)
-api.register(update_default_trust_view)
-api.register(update_sids)
-api.register(update_sigden_extdom_broken_config)

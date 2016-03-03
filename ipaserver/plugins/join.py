@@ -23,7 +23,7 @@ Joining an IPA domain
 
 import six
 
-from ipalib import api
+from ipalib import Registry, api
 from ipalib import Command, Str
 from ipalib import errors
 from ipalib import _
@@ -31,6 +31,8 @@ from ipaserver.install import installutils
 
 if six.PY3:
     unicode = str
+
+register = Registry()
 
 
 def validate_host(ugettext, cn):
@@ -43,6 +45,7 @@ def validate_host(ugettext, cn):
     return None
 
 
+@register()
 class join(Command):
     """Join an IPA domain"""
 
@@ -127,5 +130,3 @@ class join(Command):
             config['ipacertificatesubjectbase']
 
         return (dn, attrs_list)
-
-api.register(join)

@@ -17,12 +17,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api, errors
+from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 
+register = Registry()
 
+
+@register()
 class update_service_principalalias(Updater):
     """
     Update all services which do not have ipakrbprincipalalias attribute
@@ -88,5 +91,3 @@ class update_service_principalalias(Updater):
                                   " services updated")
                 return False, []
         return False, []
-
-api.register(update_service_principalalias)

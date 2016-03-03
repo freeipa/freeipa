@@ -17,12 +17,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api, errors
+from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 
+register = Registry()
 
+
+@register()
 class update_idrange_type(Updater):
     """
     Update all ID ranges that do not have ipaRangeType attribute filled.
@@ -109,6 +112,7 @@ class update_idrange_type(Updater):
         return False, []
 
 
+@register()
 class update_idrange_baserid(Updater):
     """
     Update ipa-ad-trust-posix ranges' base RID to 0. This applies to AD trust
@@ -171,6 +175,3 @@ class update_idrange_baserid(Updater):
                               "idranges updated")
 
         return False, []
-
-api.register(update_idrange_type)
-api.register(update_idrange_baserid)

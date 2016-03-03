@@ -52,11 +52,14 @@ except ImportError:
         def __init__(self, criticality, authzId=None):
             LDAPControl.__init__(self, '1.3.6.1.4.1.42.2.27.9.5.2', criticality, authzId)
 
-from ipalib import api, errors, _
+from ipalib import Registry, errors, _
 from ipalib.crud import CrudBackend
 from ipalib.request import context
 
+register = Registry()
 
+
+@register()
 class ldap2(CrudBackend, LDAPClient):
     """
     LDAP Backend Take 2.
@@ -578,5 +581,3 @@ class ldap2(CrudBackend, LDAPClient):
         if truncated:
             return (-1, output)
         return (len(output), output)
-
-api.register(ldap2)

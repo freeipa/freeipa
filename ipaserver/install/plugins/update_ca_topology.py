@@ -2,13 +2,16 @@
 # Copyright (C) 2015  FreeIPA Contributors see COPYING for license
 #
 
-from ipalib import api
+from ipalib import Registry
 from ipalib import Updater
 from ipaserver.install import certs, cainstance
 from ipaserver.install import ldapupdate
 from ipaplatform.paths import paths
 
+register = Registry()
 
+
+@register()
 class update_ca_topology(Updater):
     """
     Updates CA topology configuration entries
@@ -29,5 +32,3 @@ class update_ca_topology(Updater):
         ld.update([paths.CA_TOPOLOGY_ULDIF])
 
         return False, []
-
-api.register(update_ca_topology)

@@ -18,12 +18,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipaserver.install import replication
-from ipalib import api
+from ipalib import Registry
 from ipalib import Updater
+
+register = Registry()
 
 EXCLUDE_TEMPLATE = '(objectclass=*) $ EXCLUDE %s'
 
 
+@register()
 class update_replica_attribute_lists(Updater):
     """
     Run through all replication agreements and ensure that EXCLUDE list
@@ -109,5 +112,3 @@ class update_replica_attribute_lists(Updater):
                         attribute, str(e))
             else:
                 self.log.debug("%s: No update necessary" % attribute)
-
-api.register(update_replica_attribute_lists)

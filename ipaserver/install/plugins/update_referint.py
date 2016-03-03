@@ -2,11 +2,15 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
-from ipalib import api, errors
+from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 
+register = Registry()
+
+
+@register()
 class update_referint(Updater):
     """
     Update referential integrity configuration to new style
@@ -83,5 +87,3 @@ class update_referint(Updater):
             return False, []
 
         return False, []
-
-api.register(update_referint)

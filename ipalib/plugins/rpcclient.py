@@ -23,12 +23,15 @@
 RPC client plugins.
 """
 
-from ipalib import api
+from ipalib import Registry, api
+
+register = Registry()
+
 
 if 'in_server' in api.env and api.env.in_server is False:
     from ipalib.rpc import xmlclient, jsonclient
-    api.register(xmlclient)
-    api.register(jsonclient)
+    register()(xmlclient)
+    register()(jsonclient)
 
     # FIXME: api.register only looks at the class name, so we need to create
     # trivial subclasses with the desired name.
@@ -37,14 +40,14 @@ if 'in_server' in api.env and api.env.in_server is False:
         class rpcclient(xmlclient):
             """xmlclient renamed to 'rpcclient'"""
             pass
-        api.register(rpcclient)
+        register()(rpcclient)
 
     elif api.env.rpc_protocol == 'jsonrpc':
 
         class rpcclient(jsonclient):
             """jsonclient renamed to 'rpcclient'"""
             pass
-        api.register(rpcclient)
+        register()(rpcclient)
 
     else:
         raise ValueError('unknown rpc_protocol: %s' % api.env.rpc_protocol)

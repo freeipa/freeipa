@@ -18,11 +18,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from ipaserver.install import certs
-from ipalib import api, errors, certstore
+from ipalib import Registry, errors, certstore
 from ipalib import Updater
 from ipapython import certdb
 from ipapython.dn import DN
 
+register = Registry()
+
+
+@register()
 class update_upload_cacrt(Updater):
     """
     Upload public CA certificate to LDAP
@@ -92,5 +96,3 @@ class update_upload_cacrt(Updater):
                     ldap.update_entry(entry)
 
         return False, []
-
-api.register(update_upload_cacrt)

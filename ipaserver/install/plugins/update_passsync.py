@@ -2,12 +2,16 @@
 # Copyright (C) 2014  FreeIPA Contributors see COPYING for license
 #
 
-from ipalib import api, errors
+from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 from ipaserver.install import sysupgrade
 
+register = Registry()
+
+
+@register()
 class update_passync_privilege_check(Updater):
 
     def execute(self, **options):
@@ -34,8 +38,8 @@ class update_passync_privilege_check(Updater):
 
         return False, []
 
-api.register(update_passync_privilege_check)
 
+@register()
 class update_passync_privilege_update(Updater):
     """
         Add PassSync user as a member of PassSync privilege, if it exists
@@ -72,5 +76,3 @@ class update_passync_privilege_update(Updater):
 
         sysupgrade.set_upgrade_state('winsync', 'passsync_privilege_updated', True)
         return False, [update]
-
-api.register(update_passync_privilege_update)

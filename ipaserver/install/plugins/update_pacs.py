@@ -17,11 +17,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import api, errors
+from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython.dn import DN
 
+register = Registry()
 
+
+@register()
 class update_pacs(Updater):
     """
     Includes default nfs:None only if no nfs: PAC present in ipakrbauthzdata.
@@ -50,5 +53,3 @@ class update_pacs(Updater):
             self.log.debug('PAC for nfs is already set, not adding nfs:NONE.')
 
         return False, []
-
-api.register(update_pacs)

@@ -23,13 +23,16 @@ import time
 
 from ldif import LDIFWriter
 
-from ipalib import api, errors, util
+from ipalib import Registry, errors, util
 from ipalib import Updater
 from ipapython.dn import DN
 from ipalib.plugins.dns import dns_container_exists
 from ipapython.ipa_log_manager import root_logger
 
+register = Registry()
 
+
+@register()
 class update_dnszones(Updater):
     """
     Update all zones to meet requirements in the new FreeIPA versions
@@ -89,9 +92,8 @@ class update_dnszones(Updater):
 
         return False, []
 
-api.register(update_dnszones)
 
-
+@register()
 class update_dns_limits(Updater):
     """
     bind-dyndb-ldap persistent search queries LDAP for all DNS records.
@@ -137,9 +139,8 @@ class update_dns_limits(Updater):
 
         return False, [dnsupdate]
 
-api.register(update_dns_limits)
 
-
+@register()
 class update_master_to_dnsforwardzones(Updater):
     """
     Update all zones to meet requirements in the new FreeIPA versions
@@ -351,5 +352,3 @@ class update_master_to_dnsforwardzones(Updater):
                               zone['idnsname'][0])
 
         return False, []
-
-api.register(update_master_to_dnsforwardzones)

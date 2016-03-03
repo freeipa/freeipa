@@ -1269,7 +1269,7 @@ def select_any_master(ldap2, service='CA'):
 
 #-------------------------------------------------------------------------------
 
-from ipalib import api, errors, SkipPluginModule
+from ipalib import Registry, api, errors, SkipPluginModule
 if api.env.ra_plugin != 'dogtag':
     # In this case, abort loading this plugin module...
     raise SkipPluginModule(reason='dogtag not selected as RA plugin')
@@ -1281,7 +1281,10 @@ from ipalib.util import cachedproperty
 from ipalib import _
 from ipaplatform.paths import paths
 
+register = Registry()
 
+
+@register()
 class ra(rabase.rabase):
     """
     Request Authority backend plugin.
@@ -1895,10 +1898,8 @@ class ra(rabase.rabase):
         return results
 
 
-api.register(ra)
-
-
 # ----------------------------------------------------------------------------
+@register()
 class kra(Backend):
     """
     KRA backend plugin (for Vault)
@@ -1956,8 +1957,6 @@ class kra(Backend):
         connection.set_authentication_cert(paths.KRA_AGENT_PEM)
 
         return KRAClient(connection, crypto)
-
-api.register(kra)
 
 
 class RestClient(Backend):
@@ -2091,6 +2090,7 @@ class RestClient(Backend):
         return (status, resp_headers, resp_body)
 
 
+@register()
 class ra_certprofile(RestClient):
     """
     Profile management backend plugin.
@@ -2146,5 +2146,3 @@ class ra_certprofile(RestClient):
         Delete the profile from Dogtag
         """
         self._ssldo('DELETE', profile_id, headers={'Accept': 'application/json'})
-
-api.register(ra_certprofile)

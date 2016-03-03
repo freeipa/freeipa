@@ -19,10 +19,12 @@
 
 import six
 
-from ipalib import api, errors
+from ipalib import Registry, errors
 from ipalib import Updater
 from ipapython import ipautil
 from ipapython.dn import DN
+
+register = Registry()
 
 if six.PY3:
     unicode = str
@@ -151,6 +153,8 @@ class GenerateUpdateMixin(object):
 
         return (restart, update_list)
 
+
+@register()
 class update_managed_post_first(Updater, GenerateUpdateMixin):
     """
     Update managed entries
@@ -162,8 +166,8 @@ class update_managed_post_first(Updater, GenerateUpdateMixin):
 
         return False, update_list
 
-api.register(update_managed_post_first)
 
+@register()
 class update_managed_post(Updater, GenerateUpdateMixin):
     """
     Update managed entries
@@ -173,5 +177,3 @@ class update_managed_post(Updater, GenerateUpdateMixin):
         (restart, update_list) = self.generate_update(True)
 
         return restart, update_list
-
-api.register(update_managed_post)

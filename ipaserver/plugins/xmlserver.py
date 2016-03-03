@@ -22,16 +22,19 @@
 Loads WSGI server plugins.
 """
 
-from ipalib import api
+from ipalib import Registry, api
+
+register = Registry()
+
 
 if 'in_server' in api.env and api.env.in_server is True:
     from ipaserver.rpcserver import wsgi_dispatch, xmlserver, jsonserver_kerb, jsonserver_session, login_kerberos, login_password, change_password, sync_token, xmlserver_session
-    api.register(wsgi_dispatch)
-    api.register(xmlserver)
-    api.register(jsonserver_kerb)
-    api.register(jsonserver_session)
-    api.register(login_kerberos)
-    api.register(login_password)
-    api.register(change_password)
-    api.register(sync_token)
-    api.register(xmlserver_session)
+    register()(wsgi_dispatch)
+    register()(xmlserver)
+    register()(jsonserver_kerb)
+    register()(jsonserver_session)
+    register()(login_kerberos)
+    register()(login_password)
+    register()(change_password)
+    register()(sync_token)
+    register()(xmlserver_session)

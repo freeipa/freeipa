@@ -410,7 +410,7 @@ class hbacrule_disable(LDAPQuery):
         )
 
 
-
+# @register()
 class hbacrule_add_accesstime(LDAPQuery):
     """
     Add an access time to an HBAC rule.
@@ -449,9 +449,8 @@ class hbacrule_add_accesstime(LDAPQuery):
             )
         )
 
-#api.register(hbacrule_add_accesstime)
 
-
+# @register()
 class hbacrule_remove_accesstime(LDAPQuery):
     """
     Remove access time to HBAC rule.
@@ -488,8 +487,6 @@ class hbacrule_remove_accesstime(LDAPQuery):
                 options['accesstime'], cn
             )
         )
-
-#api.register(hbacrule_remove_accesstime)
 
 
 @register()
