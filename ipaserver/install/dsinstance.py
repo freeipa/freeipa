@@ -777,7 +777,7 @@ class DsInstance(service.Service):
         conn.do_simple_bind(DN(('cn', 'directory manager')), self.dm_password)
 
         mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
-               (ldap.MOD_REPLACE, "nsSSL3Ciphers", "+all"),
+               (ldap.MOD_REPLACE, "nsSSL3Ciphers", "default"),
                (ldap.MOD_REPLACE, "allowWeakCipher", "off")]
         conn.modify_s(DN(('cn', 'encryption'), ('cn', 'config')), mod)
 
@@ -1241,7 +1241,7 @@ class DsInstance(service.Service):
         conn.do_external_bind('root')
 
         mod = [(ldap.MOD_REPLACE, "nsSSLClientAuth", "allowed"),
-               (ldap.MOD_REPLACE, "nsSSL3Ciphers", "+all"),
+               (ldap.MOD_REPLACE, "nsSSL3Ciphers", "default"),
                (ldap.MOD_REPLACE, "allowWeakCipher", "off")]
         conn.modify_s(DN(('cn', 'encryption'), ('cn', 'config')), mod)
 
