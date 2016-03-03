@@ -2429,7 +2429,7 @@ output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDA
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: PrimaryKey('value', None, None)
 command: idoverrideuser_add
-args: 2,15,3
+args: 2,16,3
 arg: Str('idviewcn', cli_name='idview', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('ipaanchoruuid', attribute=True, cli_name='anchor', multivalue=False, primary_key=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
@@ -2446,6 +2446,19 @@ option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('uid', attribute=True, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', required=False)
 option: Int('uidnumber', attribute=True, cli_name='uid', minvalue=1, multivalue=False, required=False)
+option: Bytes('usercertificate', attribute=True, cli_name='certificate', multivalue=True, required=False)
+option: Str('version?', exclude='webui')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: PrimaryKey('value', None, None)
+command: idoverrideuser_add_cert
+args: 2,5,3
+arg: Str('idviewcn', cli_name='idview', multivalue=False, primary_key=True, query=True, required=True)
+arg: Str('ipaanchoruuid', attribute=True, cli_name='anchor', multivalue=False, primary_key=True, query=True, required=True)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('fallback_to_ldap?', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Bytes('usercertificate', alwaysask=True, attribute=True, cli_name='certificate', multivalue=True, required=False)
 option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
@@ -2485,7 +2498,7 @@ output: ListOfEntries('result', (<type 'list'>, <type 'tuple'>), Gettext('A list
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
 output: Output('truncated', <type 'bool'>, None)
 command: idoverrideuser_mod
-args: 2,18,3
+args: 2,19,3
 arg: Str('idviewcn', cli_name='idview', multivalue=False, primary_key=True, query=True, required=True)
 arg: Str('ipaanchoruuid', attribute=True, cli_name='anchor', multivalue=False, primary_key=True, query=True, required=True)
 option: Str('addattr*', cli_name='addattr', exclude='webui')
@@ -2505,6 +2518,19 @@ option: Flag('rights', autofill=True, default=False)
 option: Str('setattr*', cli_name='setattr', exclude='webui')
 option: Str('uid', attribute=True, autofill=False, cli_name='login', maxlength=255, multivalue=False, pattern='^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$', required=False)
 option: Int('uidnumber', attribute=True, autofill=False, cli_name='uid', minvalue=1, multivalue=False, required=False)
+option: Bytes('usercertificate', attribute=True, autofill=False, cli_name='certificate', multivalue=True, required=False)
+option: Str('version?', exclude='webui')
+output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
+output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)
+output: PrimaryKey('value', None, None)
+command: idoverrideuser_remove_cert
+args: 2,5,3
+arg: Str('idviewcn', cli_name='idview', multivalue=False, primary_key=True, query=True, required=True)
+arg: Str('ipaanchoruuid', attribute=True, cli_name='anchor', multivalue=False, primary_key=True, query=True, required=True)
+option: Flag('all', autofill=True, cli_name='all', default=False, exclude='webui')
+option: Flag('fallback_to_ldap?', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False, exclude='webui')
+option: Bytes('usercertificate', alwaysask=True, attribute=True, cli_name='certificate', multivalue=True, required=False)
 option: Str('version?', exclude='webui')
 output: Entry('result', <type 'dict'>, Gettext('A dictionary representing an LDAP entry', domain='ipa', localedir=None))
 output: Output('summary', (<type 'unicode'>, <type 'NoneType'>), None)

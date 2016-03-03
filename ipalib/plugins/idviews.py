@@ -23,9 +23,11 @@ import six
 
 from ipalib.plugins.baseldap import (LDAPQuery, LDAPObject, LDAPCreate,
                                      LDAPDelete, LDAPUpdate, LDAPSearch,
+                                     LDAPAddAttribute, LDAPRemoveAttribute,
                                      LDAPRetrieve, global_output_params)
 from ipalib.plugins.hostgroup import get_complete_hostgroup_member_list
-from ipalib import api, Str, Int, Flag, _, ngettext, errors, output
+from ipalib.plugins.service import validate_certificate
+from ipalib import api, Str, Int, Bytes, Flag, _, ngettext, errors, output
 from ipalib.constants import IPA_ANCHOR_PREFIX, SID_ANCHOR_PREFIX
 from ipalib.plugable import Registry
 from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
@@ -817,7 +819,7 @@ class idoverrideuser(baseidoverride):
             'ipapermdefaultattr': {
                 'objectClass', 'ipaAnchorUUID', 'uidNumber', 'description',
                 'homeDirectory', 'uid', 'ipaOriginalUid', 'loginShell', 'gecos',
-                'gidNumber', 'ipaSshPubkey',
+                'gidNumber', 'ipaSshPubkey', 'usercertificate'
             },
         },
     }
@@ -825,6 +827,11 @@ class idoverrideuser(baseidoverride):
     object_class = baseidoverride.object_class + ['ipaUserOverride']
     possible_objectclasses = ['ipasshuser', 'ipaSshGroupOfPubKeys']
     default_attributes = baseidoverride.default_attributes + [
+       'homeDirectory', 'uidNumber', 'uid', 'ipaOriginalUid', 'loginShell',
+       'ipaSshPubkey', 'gidNumber', 'gecos', 'usercertificate;binary',
+    ]
+
+    search_display_attributes = baseidoverride.default_attributes + [
        'homeDirectory', 'uidNumber', 'uid', 'ipaOriginalUid', 'loginShell',
        'ipaSshPubkey', 'gidNumber', 'gecos',
     ]
@@ -870,6 +877,12 @@ class idoverrideuser(baseidoverride):
             csv=True,
             flags=['no_search'],
         ),
+        Bytes('usercertificate*', validate_certificate,
+              cli_name='certificate',
+              label=_('Certificate'),
+              doc=_('Base-64 encoded user certificate'),
+              flags=['no_search',],
+        ),
     )
 
     override_object = 'user'
@@ -887,6 +900,17 @@ class idoverrideuser(baseidoverride):
             # object to manipulate using a raw anchor value already, hence
             # we have no way to update the original_uid
             pass
+
+    def convert_usercertificate_pre(self, entry_attrs):
+        if 'usercertificate' in entry_attrs:
+            entry_attrs['usercertificate;binary'] = entry_attrs.pop(
+                'usercertificate')
+
+    def convert_usercertificate_post(self, entry_attrs, **options):
+        if 'usercertificate;binary' in entry_attrs:
+            entry_attrs['usercertificate'] = entry_attrs.pop(
+                'usercertificate;binary')
+
 
 
 @register()
@@ -935,6 +959,50 @@ class idoverridegroup(baseidoverride):
 
     override_object = 'group'
 
+@register()
+class idoverrideuser_add_cert(LDAPAddAttribute):
+    __doc__ = _('Add one or more certificates to the idoverrideuser entry')
+    msg_summary = _('Added certificates to idoverrideuser "%(value)s"')
+    attribute = 'usercertificate'
+
+    takes_options = LDAPAddAttribute.takes_options + (fallback_to_ldap_option,)
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                     **options):
+        dn = self.obj.get_dn(*keys, **options)
+        self.obj.convert_usercertificate_pre(entry_attrs)
+
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
+        self.obj.convert_anchor_to_human_readable_form(entry_attrs, **options)
+        return dn
+
+
+@register()
+class idoverrideuser_remove_cert(LDAPRemoveAttribute):
+    __doc__ = _('Remove one or more certificates to the idoverrideuser entry')
+    msg_summary = _('Removed certificates from idoverrideuser "%(value)s"')
+    attribute = 'usercertificate'
+
+    takes_options = LDAPRemoveAttribute.takes_options + (fallback_to_ldap_option,)
+
+    def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                     **options):
+        dn = self.obj.get_dn(*keys, **options)
+        self.obj.convert_usercertificate_pre(entry_attrs)
+
+        return dn
+
+    def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
+        assert isinstance(dn, DN)
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
+        self.obj.convert_anchor_to_human_readable_form(entry_attrs, **options)
+
+        return dn
+
 
 @register()
 class idoverrideuser_add(baseidoverride_add):
@@ -946,6 +1014,7 @@ class idoverrideuser_add(baseidoverride_add):
                  entry_attrs, attrs_list, *keys, **options)
 
         entry_attrs['objectclass'].append('ipasshuser')
+        self.obj.convert_usercertificate_pre(entry_attrs)
 
         # Update the ipaOriginalUid
         self.obj.update_original_uid_reference(entry_attrs)
@@ -955,6 +1024,7 @@ class idoverrideuser_add(baseidoverride_add):
         dn = super(idoverrideuser_add, self).post_callback(ldap, dn,
                  entry_attrs, *keys, **options)
         convert_sshpubkey_post(entry_attrs)
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
         return dn
 
 
@@ -985,12 +1055,15 @@ class idoverrideuser_mod(baseidoverride_mod):
 
         if 'ipasshpubkey' in entry_attrs and 'ipasshuser' not in obj_classes:
             obj_classes.append('ipasshuser')
+
+        self.obj.convert_usercertificate_pre(entry_attrs)
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         dn = super(idoverrideuser_mod, self).post_callback(ldap, dn,
                  entry_attrs, *keys, **options)
         convert_sshpubkey_post(entry_attrs)
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
         return dn
 
 
@@ -1005,6 +1078,7 @@ class idoverrideuser_find(baseidoverride_find):
             ldap, entries, truncated, *args, **options)
         for entry in entries:
             convert_sshpubkey_post(entry)
+            self.obj.convert_usercertificate_post(entry, **options)
         return truncated
 
 
@@ -1016,6 +1090,7 @@ class idoverrideuser_show(baseidoverride_show):
         dn = super(idoverrideuser_show, self).post_callback(ldap, dn,
                  entry_attrs, *keys, **options)
         convert_sshpubkey_post(entry_attrs)
+        self.obj.convert_usercertificate_post(entry_attrs, **options)
         return dn
 
 

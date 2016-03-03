@@ -149,7 +149,7 @@ aci: (targetfilter = "(objectclass=ipahostgroup)")(version 3.0;acl "permission:S
 dn: cn=views,cn=accounts,dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || description || entryusn || gidnumber || ipaanchoruuid || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaGroupOverride)")(version 3.0;acl "permission:System: Read Group ID Overrides";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=views,cn=accounts,dc=ipa,dc=example
-aci: (targetattr = "createtimestamp || description || entryusn || gecos || gidnumber || homedirectory || ipaanchoruuid || ipaoriginaluid || ipasshpubkey || loginshell || modifytimestamp || objectclass || uid || uidnumber")(targetfilter = "(objectclass=ipaUserOverride)")(version 3.0;acl "permission:System: Read User ID Overrides";allow (compare,read,search) userdn = "ldap:///all";)
+aci: (targetattr = "createtimestamp || description || entryusn || gecos || gidnumber || homedirectory || ipaanchoruuid || ipaoriginaluid || ipasshpubkey || loginshell || modifytimestamp || objectclass || uid || uidnumber || usercertificate")(targetfilter = "(objectclass=ipaUserOverride)")(version 3.0;acl "permission:System: Read User ID Overrides";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=ranges,cn=etc,dc=ipa,dc=example
 aci: (targetattr = "cn || createtimestamp || entryusn || ipabaseid || ipabaserid || ipaidrangesize || ipanttrusteddomainsid || iparangetype || ipasecondarybaserid || modifytimestamp || objectclass")(targetfilter = "(objectclass=ipaidrange)")(version 3.0;acl "permission:System: Read ID Ranges";allow (compare,read,search) userdn = "ldap:///all";)
 dn: cn=views,cn=accounts,dc=ipa,dc=example
