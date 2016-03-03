@@ -121,8 +121,17 @@ register = Registry()
 host_pwd_chars = string.digits + string.ascii_letters + '_,.@+-='
 
 
-def remove_fwd_ptr(ipaddr, host, domain, recordtype):
-    api.log.debug('deleting ipaddr %s' % ipaddr)
+def remove_fwd_rec(ipaddr, host, domain, recordtype):
+    api.log.debug('deleting ipaddr %s', ipaddr)
+    try:
+        delkw = {recordtype: ipaddr}
+        api.Command['dnsrecord_del'](domain, host, **delkw)
+    except errors.NotFound:
+        api.log.debug('ipaddr %s not found', ipaddr)
+
+
+def remove_ptr_rec(ipaddr, host, domain):
+    api.log.debug('deleting PTR record of ipaddr %s', ipaddr)
     try:
         revzone, revname = get_reverse_zone(ipaddr)
 
@@ -133,13 +142,7 @@ def remove_fwd_ptr(ipaddr, host, domain, recordtype):
 
         api.Command['dnsrecord_del'](revzone, revname, **delkw)
     except errors.NotFound:
-        pass
-
-    try:
-        delkw = {recordtype: ipaddr}
-        api.Command['dnsrecord_del'](domain, host, **delkw)
-    except errors.NotFound:
-        pass
+        api.log.debug('PTR record of ipaddr %s not found', ipaddr)
 
 
 def update_sshfp_record(zone, record, entry_attrs):
@@ -774,7 +777,8 @@ class host_del(LDAPDelete):
                 for attr in _record_attributes:
                     for val in record.get(attr, []):
                         if attr in ('arecord', 'aaaarecord'):
-                            remove_fwd_ptr(val, parts[0], domain, attr)
+                            remove_fwd_rec(val, parts[0], domain, attr)
+                            remove_ptr_rec(val, parts[0], domain)
                         elif (val.endswith(parts[0]) or
                                 val.endswith(fqdn + '.')):
                             delkw = {unicode(attr): val}
