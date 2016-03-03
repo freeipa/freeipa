@@ -764,28 +764,22 @@ class host_del(LDAPDelete):
             # Remove DNS entries
             parts = fqdn.split('.')
             domain = unicode('.'.join(parts[1:]))
+            # Get all forward resources for this host
             try:
-                result = api.Command['dnszone_show'](domain)['result']
-                domain = result['idnsname'][0]
+                record = api.Command['dnsrecord_show'](
+                    domain, parts[0])['result']
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
             else:
-                # Get all forward resources for this host
-                try:
-                    record = api.Command['dnsrecord_show'](
-                        domain, parts[0])['result']
-                except errors.NotFound:
-                    pass
-                else:
-                    for attr in _record_attributes:
-                        for val in record.get(attr, []):
-                            if attr in ('arecord', 'aaaarecord'):
-                                remove_fwd_ptr(val, parts[0], domain, attr)
-                            elif (val.endswith(parts[0]) or
-                                    val.endswith(fqdn + '.')):
-                                delkw = {unicode(attr): val}
-                                api.Command['dnsrecord_del'](
-                                    domain, record['idnsname'][0], **delkw)
+                for attr in _record_attributes:
+                    for val in record.get(attr, []):
+                        if attr in ('arecord', 'aaaarecord'):
+                            remove_fwd_ptr(val, parts[0], domain, attr)
+                        elif (val.endswith(parts[0]) or
+                                val.endswith(fqdn + '.')):
+                            delkw = {unicode(attr): val}
+                            api.Command['dnsrecord_del'](
+                                domain, record['idnsname'][0], **delkw)
 
         if self.api.Command.ca_is_enabled()['result']:
             try:
