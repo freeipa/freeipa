@@ -494,7 +494,7 @@ class service(LDAPObject):
         Bytes('usercertificate*', validate_certificate,
             cli_name='certificate',
             label=_('Certificate'),
-            doc=_('Base-64 encoded server certificate'),
+            doc=_('Base-64 encoded service certificate'),
             flags=['no_search',],
         ),
         StrEnum('ipakrbauthzdata*',

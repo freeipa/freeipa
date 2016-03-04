@@ -386,7 +386,7 @@ class baseuser(LDAPObject):
         Bytes('usercertificate*', validate_certificate,
             cli_name='certificate',
             label=_('Certificate'),
-            doc=_('Base-64 encoded server certificate'),
+            doc=_('Base-64 encoded user certificate'),
         ),
     )
 
