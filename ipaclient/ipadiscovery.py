@@ -273,9 +273,13 @@ class IPADiscovery(object):
         if not servers and not realm:
             return REALM_NOT_FOUND
 
-        self.kdc = self.ipadnssearchkrbkdc()
-        self.kdc_source = (
-            'Discovered Kerberos DNS records from %s' % self.domain)
+        if autodiscovered:
+            self.kdc = self.ipadnssearchkrbkdc()
+            self.kdc_source = (
+                'Discovered Kerberos DNS records from %s' % self.domain)
+        else:
+            self.kdc = ', '.join(servers)
+            self.kdc_source = "Kerberos DNS record discovery bypassed"
 
         # We may have received multiple servers corresponding to the domain
         # Iterate through all of those to check if it is IPA LDAP server
