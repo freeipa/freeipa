@@ -259,6 +259,17 @@ def install_check(standalone, api, replica, options, hostname):
     ip_addresses = get_server_ip_address(hostname, options.unattended,
                                          True, options.ip_addresses)
 
+    if not options.forward_policy:
+        # user did not specify policy, derive it: default is 'first' but
+        # if any of local IP addresses belongs to private ranges use 'only'
+        options.forward_policy = 'first'
+        for ip in ip_addresses:
+            if dnsutil.inside_auto_empty_zone(dnsutil.DNSName(ip.reverse_dns)):
+                options.forward_policy = 'only'
+                root_logger.debug('IP address %s belongs to a private range, '
+                                  'using forward policy only', ip)
+                break
+
     if options.no_forwarders:
         options.forwarders = []
     elif options.forwarders or options.auto_forwarders:

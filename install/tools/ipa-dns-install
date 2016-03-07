@@ -58,7 +58,7 @@ def parse_options():
                       action="store_true", default=False,
                       help="Use DNS forwarders configured in /etc/resolv.conf")
     parser.add_option("--forward-policy", dest="forward_policy",
-                      choices=("first", "only"), default="first",
+                      choices=("first", "only"), default=None,
                       help="DNS forwarding policy for global forwarders")
     parser.add_option("--reverse-zone", dest="reverse_zones",
                       default=[], action="append", metavar="REVERSE_ZONE",
