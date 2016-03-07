@@ -159,7 +159,10 @@ Do not add any DNS forwarders. Root DNS servers will be used instead.
 Add DNS forwarders configured in /etc/resolv.conf to the list of forwarders used by IPA DNS.
 .TP
 \fB\-\-forward\-policy\fR=\fIfirst|only\fR
-DNS forwarding policy for global forwarders specified using other options. Defaults to first.
+DNS forwarding policy for global forwarders specified using other options.
+Defaults to first if no IP address belonging to a private or reserved ranges is
+detected on local interfaces (RFC 6303). Defaults to only if a private
+IP address is detected.
 .TP
 \fB\-\-reverse\-zone\fR=\fIREVERSE_ZONE\fR
 The reverse DNS zone to use. This option can be used multiple times to specify multiple reverse zones.

@@ -171,7 +171,7 @@ class BaseServerDNS(common.Installable, core.Group, core.Composite):
     )
 
     forward_policy = Knob(
-        {'only', 'first'}, 'first',
+        {'only', 'first'}, None,
         description=("DNS forwarding policy for global forwarders"),
     )
 
