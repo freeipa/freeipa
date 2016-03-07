@@ -52,7 +52,7 @@ from ipapython.ipa_log_manager import root_logger
 from ipapython import config
 from ipaplatform.paths import paths
 from ipapython.dn import DN
-from ipapython.dnsutil import DNSName, EMPTY_ZONES
+from ipapython.dnsutil import DNSName, is_auto_empty_zone
 
 SHARE_DIR = paths.USR_SHARE_IPA_DIR
 PLUGINS_SHARE_DIR = paths.IPA_PLUGINS
@@ -1063,12 +1063,6 @@ def check_zone_overlap(zone, raise_on_error=True):
         if ns:
             msg += u" and is handled by server(s): {0}".format(', '.join(ns))
         raise ValueError(msg)
-
-
-def is_auto_empty_zone(zone):
-    """True if specified zone name exactly matches an automatic empty zone."""
-    assert isinstance(zone, DNSName)
-    return zone in EMPTY_ZONES
 
 
 def config_replace_variables(filepath, replacevars=dict(), appendvars=dict()):
