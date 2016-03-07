@@ -166,3 +166,22 @@ EMPTY_ZONES = [DNSName(aez).make_absolute() for aez in [
         # RFC 7534
         "EMPTY.AS112.ARPA",
     ]]
+
+
+def assert_absolute_dnsname(name):
+    """Raise AssertionError if name is not DNSName or is not absolute.
+
+    >>> assert_absolute_dnsname(DNSName('absolute.name.example.'))
+    >>> assert_absolute_dnsname(DNSName('relative.name.example'))
+    Traceback (most recent call last):
+      ...
+    AssertionError: name must be absolute, ...
+    >>> assert_absolute_dnsname('absolute.string.example.')
+    Traceback (most recent call last):
+      ...
+    AssertionError: name must be DNSName instance, ...
+    """
+
+    assert isinstance(name, DNSName), ("name must be DNSName instance, "
+                                       "got '%s'" % type(name))
+    assert name.is_absolute(), "name must be absolute, got '%s'" % name
