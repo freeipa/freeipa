@@ -188,6 +188,18 @@ def assert_absolute_dnsname(name):
 
 
 def is_auto_empty_zone(zone):
-    """True if specified zone name exactly matches an automatic empty zone."""
-    assert isinstance(zone, DNSName)
+    """True if specified zone name exactly matches an automatic empty zone.
+
+    >>> is_auto_empty_zone(DNSName('in-addr.arpa.'))
+    False
+    >>> is_auto_empty_zone(DNSName('10.in-addr.arpa.'))
+    True
+    >>> is_auto_empty_zone(DNSName('1.10.in-addr.arpa.'))
+    False
+    >>> is_auto_empty_zone(DNSName('10.in-addr.arpa'))
+    Traceback (most recent call last):
+      ...
+    AssertionError: ...
+    """
+    assert_absolute_dnsname(zone)
     return zone in EMPTY_ZONES
