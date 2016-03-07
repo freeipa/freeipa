@@ -709,13 +709,16 @@ class stageuser_activate(LDAPQuery):
             pass
 
         # Now retrieve the activated entry
-        result_entry = self._exc_wrapper(args, options, ldap.get_entry)(active_dn)
-        result_entry = entry_to_dict(result_entry, **options)
-        result_entry['dn'] = active_dn
+        result = self.api.Command.user_show(
+            args[-1],
+            all=options.get('all', False),
+            raw=options.get('raw', False),
+            version=options.get('version'),
+        )
+        result['summary'] = unicode(
+            _('Stage user %s activated' % staging_dn[0].value))
 
-        return dict(result=result_entry,
-                    summary=unicode(_('Stage user %s activated' % staging_dn[0].value)),
-                    value=pkey_to_value(args[-1], options))
+        return result
 
 
 @register()
