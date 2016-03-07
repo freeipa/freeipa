@@ -1015,20 +1015,6 @@ def bind_port_responder(port, socket_type=socket.SOCK_STREAM, socket_timeout=Non
         raise last_socket_error # pylint: disable=E0702
 
 
-def host_exists(host):
-    """
-    Resolve the host to see if it exists.
-
-    Returns True/False
-    """
-    try:
-        socket.getaddrinfo(host, 80)
-    except socket.gaierror:
-        return False
-    else:
-        return True
-
-
 def reverse_record_exists(ip_address):
     """
     Checks if IP address have some reverse record somewhere.
