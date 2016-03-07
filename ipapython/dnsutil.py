@@ -185,3 +185,9 @@ def assert_absolute_dnsname(name):
     assert isinstance(name, DNSName), ("name must be DNSName instance, "
                                        "got '%s'" % type(name))
     assert name.is_absolute(), "name must be absolute, got '%s'" % name
+
+
+def is_auto_empty_zone(zone):
+    """True if specified zone name exactly matches an automatic empty zone."""
+    assert isinstance(zone, DNSName)
+    return zone in EMPTY_ZONES
