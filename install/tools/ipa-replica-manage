@@ -38,9 +38,8 @@ from ipaserver.install import opendnssecinstance, dnskeysyncinstance
 from ipapython import version, ipaldap
 from ipalib import api, errors, util
 from ipalib.constants import CACERT
-from ipalib.util import (create_topology_graph,
-    get_topology_connection_errors, has_managed_topology)
-from ipapython.ipa_log_manager import *
+from ipalib.util import has_managed_topology, verify_host_resolvable
+from ipapython.ipa_log_manager import root_logger, standard_logging_setup
 from ipapython.dn import DN
 from ipapython.config import IPAOptionParser
 from ipaclient import ipadiscovery
@@ -815,10 +814,14 @@ def check_last_link(delrepl, realm, dirman_passwd, force):
 
 
 def enforce_host_existence(host, message=None):
-    if host is not None and not ipautil.host_exists(host):
-        if message is None:
-            message = "Unknown host %s" % host
+    if host is None:
+        return
 
+    try:
+        verify_host_resolvable(host, root_logger)
+    except errors.DNSNotARecordError as ex:
+        if message is None:
+            message = "Unknown host %s: %s" % (host, ex)
         sys.exit(message)
 
 def ensure_last_services(conn, hostname, masters, options):
