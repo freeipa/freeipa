@@ -271,6 +271,9 @@ Obsoletes: %{alt_name}-server-dns < %{version}
 # upgrade path from monolithic -server to -server + -server-dns
 Obsoletes: %{name}-server <= 4.2.0
 
+# FreeIPA does not support running integrated BIND in chroot jail
+Conflicts: bind-chroot
+
 %description server-dns
 IPA integrated DNS server with support for automatic DNSSEC signing.
 Integrated DNS server is BIND 9. OpenDNSSEC provides key management.
