@@ -203,3 +203,28 @@ def is_auto_empty_zone(zone):
     """
     assert_absolute_dnsname(zone)
     return zone in EMPTY_ZONES
+
+
+def inside_auto_empty_zone(name):
+    """True if specified absolute name is a subdomain of an automatic empty
+    zone.
+
+    DNS domain is a subdomain of itself so this function
+    returns True for zone apexes, too.
+
+    >>> inside_auto_empty_zone(DNSName('in-addr.arpa.'))
+    False
+    >>> inside_auto_empty_zone(DNSName('10.in-addr.arpa.'))
+    True
+    >>> inside_auto_empty_zone(DNSName('1.10.in-addr.arpa.'))
+    True
+    >>> inside_auto_empty_zone(DNSName('1.10.in-addr.arpa'))
+    Traceback (most recent call last):
+      ...
+    AssertionError: ...
+    """
+    assert_absolute_dnsname(name)
+    for aez in EMPTY_ZONES:
+        if name.is_subdomain(aez):
+            return True
+    return False
