@@ -236,6 +236,14 @@ class PluginsPackageError(PrivateError):
     format = '%(name)s must be sub-package, not module: %(file)r'
 
 
+class PluginModuleError(PrivateError):
+    """
+    Raised when a module is not a valid plugin module.
+    """
+
+    format = '%(name)s is not a valid plugin module'
+
+
 ##############################################################################
 # Public errors:
 

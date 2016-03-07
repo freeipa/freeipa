@@ -98,9 +98,9 @@ class test_Plugin(ClassChecker):
         assert o.__islocked__()
 
 
-def test_Registrar():
+def test_Registry():
     """
-    Test the `ipalib.plugable.Registrar` class
+    Test the `ipalib.plugable.Registry` class
     """
     class Base1(object):
         pass
@@ -115,59 +115,49 @@ def test_Registrar():
     class plugin3(Base3):
         pass
 
-    # Test creation of Registrar:
-    r = plugable.Registrar()
+    # Test creation of Registry:
+    r = plugable.Registry()
 
     # Check that TypeError is raised trying to register something that isn't
     # a class:
     p = plugin1()
-    e = raises(TypeError, r, p)
+    e = raises(TypeError, r(), p)
     assert str(e) == 'plugin must be a class; got %r' % p
 
     # Check that registration works
-    r(plugin1)
-    assert len(r) == 1
-    assert plugin1 in r
-    assert r[plugin1] == dict(override=False)
+    r()(plugin1)
 
     # Check that DuplicateError is raised trying to register exact class
     # again:
-    e = raises(errors.PluginDuplicateError, r, plugin1)
+    e = raises(errors.PluginDuplicateError, r(), plugin1)
     assert e.plugin is plugin1
 
     # Check that overriding works
-    orig1 = plugin1
     class base1_extended(Base1):
         pass
     class plugin1(base1_extended):  # pylint: disable=function-redefined
         pass
-    r(plugin1, override=True)
-    assert len(r) == 2
-    assert plugin1 in r
-    assert r[plugin1] == dict(override=True)
+    r(override=True)(plugin1)
 
     # Test that another plugin can be registered:
-    r(plugin2)
-    assert len(r) == 3
-    assert plugin2 in r
-    assert r[plugin2] == dict(override=False)
+    r()(plugin2)
 
     # Setup to test more registration:
     class plugin1a(Base1):
         pass
-    r(plugin1a)
+    r()(plugin1a)
 
     class plugin1b(Base1):
         pass
-    r(plugin1b)
+    r()(plugin1b)
 
     class plugin2a(Base2):
         pass
-    r(plugin2a)
+    r()(plugin2a)
 
     class plugin2b(Base2):
         pass
-    r(plugin2b)
+    r()(plugin2b)
 
 
 class test_API(ClassChecker):

@@ -92,12 +92,32 @@ class Registry(object):
     For forward compatibility, make sure that the module-level instance of
     this object is named "register".
     """
-    def __call__(self):
-        def decorator(cls):
-            _register(cls)
-            return cls
+    def __init__(self):
+        self.__registry = collections.OrderedDict()
 
-        return decorator
+    def __call__(self, **kwargs):
+        def register(klass):
+            """
+            Register the plugin ``klass``.
+
+            :param klass: A subclass of `Plugin` to attempt to register.
+            """
+            if not inspect.isclass(klass):
+                raise TypeError('plugin must be a class; got %r' % klass)
+
+            # Raise DuplicateError if this exact class was already registered:
+            if klass in self.__registry:
+                raise errors.PluginDuplicateError(plugin=klass)
+
+            # The plugin is okay, add to __registry:
+            self.__registry[klass] = dict(kwargs, klass=klass)
+
+            return klass
+
+        return register
+
+    def __iter__(self):
+        return iter(self.__registry.values())
 
 
 class Plugin(ReadOnly):
@@ -246,48 +266,6 @@ class Plugin(ReadOnly):
             self.__class__.__module__,
             self.__class__.__name__
         )
-
-
-class Registrar(collections.Mapping):
-    """
-    Collects plugin classes as they are registered.
-
-    The Registrar does not instantiate plugins... it only implements the
-    override logic and stores the plugins in a namespace per allowed base
-    class.
-
-    The plugins are instantiated when `API.finalize()` is called.
-    """
-    def __init__(self):
-        self.__registry = collections.OrderedDict()
-
-    def __call__(self, klass, override=False):
-        """
-        Register the plugin ``klass``.
-
-        :param klass: A subclass of `Plugin` to attempt to register.
-        :param override: If true, override an already registered plugin.
-        """
-        if not inspect.isclass(klass):
-            raise TypeError('plugin must be a class; got %r' % klass)
-
-        # Raise DuplicateError if this exact class was already registered:
-        if klass in self.__registry:
-            raise errors.PluginDuplicateError(plugin=klass)
-
-        # The plugin is okay, add to __registry:
-        self.__registry[klass] = dict(override=override)
-
-    def __getitem__(self, key):
-        return self.__registry[key]
-
-    def __iter__(self):
-        return iter(self.__registry)
-
-    def __len__(self):
-        return len(self.__registry)
-
-_register = Registrar()
 
 
 class API(ReadOnly):
@@ -563,14 +541,18 @@ class API(ReadOnly):
                 module = importlib.import_module(name)
             except errors.SkipPluginModule as e:
                 self.log.debug("skipping plugin module %s: %s", name, e.reason)
+                continue
             except Exception as e:
                 if self.env.startup_traceback:
                     import traceback
                     self.log.error("could not load plugin module %s\n%s", name,
                                    traceback.format_exc())
                 raise
-            else:
+
+            try:
                 self.add_module(module)
+            except errors.PluginModuleError as e:
+                self.log.debug("%s", e)
 
     def add_module(self, module):
         """
@@ -578,14 +560,17 @@ class API(ReadOnly):
 
         :param module: A module from which to add plugins.
         """
-        for name in dir(module):
-            klass = getattr(module, name)
-            if not inspect.isclass(klass):
-                continue
-            if klass not in _register:
-                continue
-            kwargs = _register[klass]
-            self.add_plugin(klass, **kwargs)
+        try:
+            register = module.register
+        except AttributeError:
+            pass
+        else:
+            if isinstance(register, Registry):
+                for kwargs in register:
+                    self.add_plugin(**kwargs)
+                return
+
+        raise errors.PluginModuleError(name=module.__name__)
 
     def add_plugin(self, klass, override=False):
         """
@@ -605,9 +590,6 @@ class API(ReadOnly):
 
             sub_d = self.__plugins.setdefault(base, {})
             found = True
-
-            if sub_d.get(klass.__name__) is klass:
-                continue
 
             # Check override:
             if klass.__name__ in sub_d:
