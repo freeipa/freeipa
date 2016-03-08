@@ -342,6 +342,14 @@ class BrokenTrust(PublicMessage):
                "running 'ipa trust-add' again.")
 
 
+class ResultFormattingError(PublicMessage):
+    """
+    **13019** Unable to correctly format some part of the result
+    """
+    errno = 13019
+    type = "warning"
+
+
 def iter_messages(variables, base):
     """Return a tuple with all subclasses
     """
