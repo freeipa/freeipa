@@ -220,10 +220,6 @@ class DogtagInstance(service.Service):
                 'SslClientAuth', quotes=False, separator='=')
             installutils.set_directive(
                 config,
-                'authz.instance.DirAclAuthz.ldap.ldapauth.bindDN',
-                'uid=pkidbuser,ou=people,o=ipaca', quotes=False, separator='=')
-            installutils.set_directive(
-                config,
                 'authz.instance.DirAclAuthz.ldap.ldapauth.clientCertNickname',
                 'subsystemCert cert-pki-ca', quotes=False, separator='=')
             installutils.set_directive(
@@ -240,10 +236,6 @@ class DogtagInstance(service.Service):
                 'internaldb.ldapauth.authtype',
                 'SslClientAuth', quotes=False, separator='=')
 
-            installutils.set_directive(
-                config,
-                'internaldb.ldapauth.bindDN',
-                'uid=pkidbuser,ou=people,o=ipaca', quotes=False, separator='=')
             installutils.set_directive(
                 config,
                 'internaldb.ldapauth.clientCertNickname',
