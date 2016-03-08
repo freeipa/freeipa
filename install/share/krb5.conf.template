@@ -11,7 +11,7 @@ includedir /var/lib/sss/pubconf/krb5.include.d/
  dns_lookup_kdc = true
  rdns = false
  ticket_lifetime = 24h
- forwardable = yes
+ forwardable = true
  udp_preference_limit = 0
 $OTHER_LIBDEFAULTS
 [realms]
