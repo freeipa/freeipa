@@ -59,8 +59,10 @@ def setup_package():
             classifiers=[line for line in CLASSIFIERS.split('\n') if line],
             platforms = ["Linux", "Solaris", "Unix"],
             package_dir = {'ipaclient': ''},
-            packages = ["ipaclient",
-                       ],
+            packages = [
+                "ipaclient",
+                "ipaclient.plugins",
+            ],
             scripts=['../ipa'],
             data_files = [('share/man/man1', ["../ipa.1"])],
         )

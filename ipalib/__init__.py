@@ -913,6 +913,9 @@ class API(plugable.API):
         if self.env.in_server:
             import ipaserver.plugins
             result += (ipaserver.plugins,)
+        else:
+            import ipaclient.plugins
+            result += (ipaclient.plugins,)
 
         if self.env.context in ('installer', 'updates'):
             import ipaserver.install.plugins
