@@ -224,7 +224,7 @@ class test_cert_find(XMLRPC_test):
     """
     Test the `cert-find` command.
     """
-    short = api.env.host.replace('.' + api.env.domain, '')
+    short = api.env.host.split('.')[0]
 
     def test_0001_find_all(self):
         """
