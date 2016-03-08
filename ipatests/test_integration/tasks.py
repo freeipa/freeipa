@@ -296,7 +296,6 @@ def master_authoritative_for_client_domain(master, client):
 
 
 def replica_prepare(master, replica):
-    apply_common_fixes(replica)
     fix_apache_semaphores(replica)
     prepare_reverse_zone(master, replica.ip)
     args = ['ipa-replica-prepare',
@@ -315,6 +314,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
                     setup_kra=False, extra_args=(), domain_level=None):
     if domain_level is None:
         domain_level = domainlevel(master)
+    apply_common_fixes(replica)
     replica.collect_log(paths.IPAREPLICA_INSTALL_LOG)
     replica.collect_log(paths.IPAREPLICA_CONNCHECK_LOG)
     allow_sync_ptr(master)
@@ -344,7 +344,7 @@ def install_replica(master, replica, setup_ca=True, setup_dns=False,
         # install client on a replica machine and then promote it to replica
         install_client(master, replica)
         fix_apache_semaphores(replica)
-
+        args.extend(['-r', replica.domain.realm])
     replica.run_command(args)
     enable_replication_debugging(replica)
     setup_sssd_debugging(replica)
