@@ -37,6 +37,7 @@ class IntegrationTest(object):
     num_ad_domains = 0
     required_extra_roles = []
     topology = None
+    domain_level = None
 
     @classmethod
     def setup_class(cls):
@@ -62,11 +63,16 @@ class IntegrationTest(object):
 
     @classmethod
     def install(cls, mh):
+        if cls.domain_level is not None:
+            domain_level = cls.domain_level
+        else:
+            domain_level = cls.master.config.domain_level
         if cls.topology is None:
             return
         else:
             tasks.install_topo(cls.topology,
-                               cls.master, cls.replicas, cls.clients)
+                               cls.master, cls.replicas,
+                               cls.clients, domain_level)
     @classmethod
     def teardown_class(cls):
         pass
