@@ -318,6 +318,7 @@ class BasePathNamespace(object):
     TOMCAT_KRA_ARCHIVE_DIR = "/var/log/pki/pki-tomcat/kra/archive"
     TOMCAT_KRA_SIGNEDAUDIT_DIR = "/var/log/pki/pki-tomcat/kra/signedAudit"
     LOG_SECURE = "/var/log/secure"
+    VAR_LOG_SSSD_DIR = "/var/log/sssd"
     NAMED_RUN = "/var/named/data/named.run"
     VAR_OPENDNSSEC_DIR = "/var/opendnssec"
     OPENDNSSEC_KASP_DB = "/var/opendnssec/kasp.db"
