@@ -111,7 +111,6 @@ char *escape_ldap_string(TALLOC_CTX *mem_ctx, const char *s); /* available in li
 bool secrets_store(const char *key, const void *data, size_t size); /* available in libpdb.so */
 void idmap_cache_set_sid2unixid(const struct dom_sid *sid, struct unixid *unix_id); /* available in libsmbconf.so */
 
-#define LDAP_PAGE_SIZE 1024
 #define LDAP_OBJ_SAMBASAMACCOUNT "ipaNTUserAttrs"
 #define LDAP_OBJ_TRUSTED_DOMAIN "ipaNTTrustedDomain"
 #define LDAP_OBJ_ID_OBJECT "ipaIDobject"
