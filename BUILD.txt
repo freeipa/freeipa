@@ -16,7 +16,7 @@ or
 This is currently (2015-05-07):
 
 yum install rpm-build 389-ds-base-devel svrcore-devel policycoreutils \
-systemd-units samba-devel samba-python libwbclient-devel libtalloc-devel \
+systemd-units samba-devel samba-python libtalloc-devel \
 libtevent-devel nspr-devel nss-devel openssl-devel openldap-devel krb5-devel \
 krb5-workstation libuuid-devel libcurl-devel xmlrpc-c-devel popt-devel \
 autoconf automake m4 libtool gettext python-devel python-ldap \

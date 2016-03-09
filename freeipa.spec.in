@@ -48,7 +48,6 @@ BuildRequires:  policycoreutils >= 2.1.12-5
 BuildRequires:  systemd-units
 BuildRequires:  samba-devel >= %{samba_version}
 BuildRequires:  samba-python
-BuildRequires:  libwbclient-devel
 BuildRequires:  libtalloc-devel
 BuildRequires:  libtevent-devel
 %endif # ONLY_CLIENT
