@@ -1399,6 +1399,7 @@ def configure_sshd_config(fstore, options):
         'KerberosAuthentication': 'no',
         'GSSAPIAuthentication': 'yes',
         'UsePAM': 'yes',
+        'ChallengeResponseAuthentication': 'yes',
     }
 
     if options.sssd and file_exists(paths.SSS_SSH_AUTHORIZEDKEYS):
