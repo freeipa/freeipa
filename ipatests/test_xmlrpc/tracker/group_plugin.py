@@ -12,7 +12,10 @@ from ipatests.util import assert_deepequal, get_group_dn
 class GroupTracker(Tracker):
     """ Class for host plugin like tests """
     retrieve_keys = {u'dn', u'cn', u'gidnumber', u'member_user',
-                     u'member_group', u'description'}
+                     u'member_group', u'description',
+                     u'memberof_group', u'memberofindirect_group',
+                     u'memberindirect_group', u'memberindirect_user'}
+
     retrieve_all_keys = retrieve_keys | {u'ipauniqueid', u'objectclass'}
 
     create_keys = retrieve_all_keys

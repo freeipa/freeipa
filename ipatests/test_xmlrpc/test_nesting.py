@@ -20,193 +20,93 @@
 Test group nesting and indirect members
 """
 
-from ipalib import api
-from ipatests.test_xmlrpc import objectclasses
-from ipatests.test_xmlrpc.xmlrpc_test import (Declarative, fuzzy_digits,
-                                              fuzzy_uuid)
-from ipapython.dn import DN
-from ipatests.test_xmlrpc.test_user_plugin import get_user_result
+from ipatests.test_xmlrpc.xmlrpc_test import XMLRPC_test
+from ipatests.test_xmlrpc.tracker.user_plugin import UserTracker
+from ipatests.test_xmlrpc.tracker.group_plugin import GroupTracker
+from ipatests.test_xmlrpc.tracker.host_plugin import HostTracker
+from ipatests.test_xmlrpc.tracker.hostgroup_plugin import HostGroupTracker
 import pytest
 
-group1 = u'testgroup1'
-group2 = u'testgroup2'
-group3 = u'testgroup3'
-group4 = u'testgroup4'
-user1 = u'tuser1'
-user2 = u'tuser2'
-user3 = u'tuser3'
-user4 = u'tuser4'
 
-hostgroup1 = u'testhostgroup1'
-hgdn1 = DN(('cn',hostgroup1),('cn','hostgroups'),('cn','accounts'),
-           api.env.basedn)
-hostgroup2 = u'testhostgroup2'
-hgdn2 = DN(('cn',hostgroup2),('cn','hostgroups'),('cn','accounts'),
-           api.env.basedn)
+@pytest.fixture(scope='class')
+def user1(request):
+    tracker = UserTracker(name=u'tuser1', givenname=u'Test1', sn=u'User1')
+    return tracker.make_fixture(request)
 
-fqdn1 = u'testhost1.%s' % api.env.domain
-host_dn1 = DN(('fqdn',fqdn1),('cn','computers'),('cn','accounts'),
-              api.env.basedn)
+
+@pytest.fixture(scope='class')
+def user2(request):
+    tracker = UserTracker(name=u'tuser2', givenname=u'Test2', sn=u'User2')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def user3(request):
+    tracker = UserTracker(name=u'tuser3', givenname=u'Test3', sn=u'User3')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def user4(request):
+    tracker = UserTracker(name=u'tuser4', givenname=u'Test4', sn=u'User4')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def group1(request):
+    tracker = GroupTracker(name=u'testgroup1', description=u'Test desc1')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def group2(request):
+    tracker = GroupTracker(name=u'testgroup2', description=u'Test desc2')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def group3(request):
+    tracker = GroupTracker(name=u'testgroup3', description=u'Test desc3')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def group4(request):
+    tracker = GroupTracker(name=u'testgroup4', description=u'Test desc4')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def host1(request):
+    tracker = HostTracker(name=u'host1')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def hostgroup1(request):
+    tracker = HostGroupTracker(name=u'hostgroup1')
+    return tracker.make_fixture(request)
+
+
+@pytest.fixture(scope='class')
+def hostgroup2(request):
+    tracker = HostGroupTracker(name=u'hostgroup2')
+    return tracker.make_fixture(request)
 
 
 @pytest.mark.tier1
-class test_nesting(Declarative):
-    cleanup_commands = [
-        ('group_del', [group1], {}),
-        ('group_del', [group2], {}),
-        ('group_del', [group3], {}),
-        ('group_del', [group4], {}),
-        ('user_del', [user1], {}),
-        ('user_del', [user2], {}),
-        ('user_del', [user3], {}),
-        ('user_del', [user4], {}),
-        ('host_del', [fqdn1], {}),
-        ('hostgroup_del', [hostgroup1], {}),
-        ('hostgroup_del', [hostgroup2], {}),
-    ]
-
-    tests = [
-
-        ################
-        # create group1:
-
-        dict(
-            desc='Create %r' % group1,
-            command=(
-                'group_add', [group1], dict(description=u'Test desc 1')
-            ),
-            expected=dict(
-                value=group1,
-                summary=u'Added group "testgroup1"',
-                result=dict(
-                    cn=[group1],
-                    description=[u'Test desc 1'],
-                    objectclass=objectclasses.group + [u'posixgroup'],
-                    ipauniqueid=[fuzzy_uuid],
-                    gidnumber=[fuzzy_digits],
-                    dn=DN(('cn','testgroup1'),('cn','groups'),
-                          ('cn','accounts'),api.env.basedn),
-                ),
-            ),
-        ),
-
-
-        ################
-        # create group2:
-        dict(
-            desc='Create %r' % group2,
-            command=(
-                'group_add', [group2], dict(description=u'Test desc 2')
-            ),
-            expected=dict(
-                value=group2,
-                summary=u'Added group "testgroup2"',
-                result=dict(
-                    cn=[group2],
-                    description=[u'Test desc 2'],
-                    gidnumber=[fuzzy_digits],
-                    objectclass=objectclasses.group + [u'posixgroup'],
-                    ipauniqueid=[fuzzy_uuid],
-                    dn=DN(('cn','testgroup2'),('cn','groups'),
-                          ('cn','accounts'),api.env.basedn),
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Create %r' % group3,
-            command=(
-                'group_add', [group3], dict(description=u'Test desc 3')
-            ),
-            expected=dict(
-                value=group3,
-                summary=u'Added group "testgroup3"',
-                result=dict(
-                    cn=[group3],
-                    description=[u'Test desc 3'],
-                    gidnumber=[fuzzy_digits],
-                    objectclass=objectclasses.group + [u'posixgroup'],
-                    ipauniqueid=[fuzzy_uuid],
-                    dn=DN(('cn','testgroup3'),('cn','groups'),
-                          ('cn','accounts'),api.env.basedn),
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Create %r' % group4,
-            command=(
-                'group_add', [group4], dict(description=u'Test desc 4')
-            ),
-            expected=dict(
-                value=group4,
-                summary=u'Added group "testgroup4"',
-                result=dict(
-                    cn=[group4],
-                    description=[u'Test desc 4'],
-                    gidnumber=[fuzzy_digits],
-                    objectclass=objectclasses.group + [u'posixgroup'],
-                    ipauniqueid=[fuzzy_uuid],
-                    dn=DN(('cn','testgroup4'),('cn','groups'),
-                          ('cn','accounts'),api.env.basedn),
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Create %r' % user1,
-            command=(
-                'user_add', [user1], dict(givenname=u'Test', sn=u'User1')
-            ),
-            expected=dict(
-                value=user1,
-                summary=u'Added user "%s"' % user1,
-                result=get_user_result(user1, u'Test', u'User1', 'add'),
-            ),
-        ),
-
-
-        dict(
-            desc='Create %r' % user2,
-            command=(
-                'user_add', [user2], dict(givenname=u'Test', sn=u'User2')
-            ),
-            expected=dict(
-                value=user2,
-                summary=u'Added user "%s"' % user2,
-                result=get_user_result(user2, u'Test', u'User2', 'add'),
-            ),
-        ),
-
-
-        dict(
-            desc='Create %r' % user3,
-            command=(
-                'user_add', [user3], dict(givenname=u'Test', sn=u'User3')
-            ),
-            expected=dict(
-                value=user3,
-                summary=u'Added user "%s"' % user3,
-                result=get_user_result(user3, u'Test', u'User3', 'add'),
-            ),
-        ),
-
-
-        dict(
-            desc='Create %r' % user4,
-            command=(
-                'user_add', [user4], dict(givenname=u'Test', sn=u'User4')
-            ),
-            expected=dict(
-                value=user4,
-                summary=u'Added user "%s"' % user4,
-                result=get_user_result(user4, u'Test', u'User4', 'add'),
-            ),
-        ),
-
+class TestNestingUserGroups(XMLRPC_test):
+    def test_create_groups_and_users(self, group1, group2, group3, group4,
+                                     user1, user2, user3, user4):
+        """ Create groups and users """
+        group1.ensure_exists()
+        group2.ensure_exists()
+        group3.ensure_exists()
+        group4.ensure_exists()
+        user1.ensure_exists()
+        user2.ensure_exists()
+        user3.ensure_exists()
+        user4.ensure_exists()
 
         ###############
         # member stuff
@@ -253,449 +153,69 @@ class test_nesting(Declarative):
         # Note that tuser1 is an indirect member of g1 both through
         # g2 and g4. It should appear just once in the list.
 
-        dict(
-            desc='Add a group member %r to %r' % (group2, group1),
-            command=(
-                'group_add_member', [group1], dict(group=group2)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        group=tuple(),
-                        user=tuple(),
-                    ),
-                ),
-                result={
-                        'dn': DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                                 api.env.basedn),
-                        'member_group': (group2,),
-                        'gidnumber': [fuzzy_digits],
-                        'cn': [group1],
-                        'description': [u'Test desc 1'],
-                },
-            ),
-        ),
+    def test_add_group_members_to_groups(self, group1, group2, group3):
+        """ Add group1 two members: group2 and group3 """
+        group1.add_member(dict(group=group2.cn))
+        group2.attrs.update(memberof_group=[group1.cn])
+        group1.add_member(dict(group=group3.cn))
+        group3.attrs.update(memberof_group=[group1.cn])
+
+    def test_add_user_members_to_groups(self, user1, user2, user3, user4,
+                                        group1, group2, group3, group4):
+        """ Add user1 and user2 to group1, add user3 and group4 to group3,
+        add user1 and user4 to group4 """
+        group2.add_member(dict(user=user1.uid))
+        group2.add_member(dict(user=user2.uid))
+        group3.add_member(dict(user=user3.uid))
+        group3.add_member(dict(group=group4.cn))
+        group4.attrs.update(
+            memberof_group=[group3.cn],
+            memberofindirect_group=[group1.cn]
+        )
+        group4.add_member(dict(user=user1.uid))
+        group4.add_member(dict(user=user4.uid))
+        group1.attrs.update(
+            memberindirect_user=[user1.uid, user2.uid, user3.uid, user4.uid],
+            memberindirect_group=[group4.cn]
+        )
+        group3.attrs.update(
+            memberindirect_user=[u'tuser4', u'tuser1']
+        )
+
+    def test_retrieve_group_group(self, group1, group2, group3, group4):
+        """ Retrieve all test groups (1-4) """
+        group1.retrieve()
+        group2.retrieve()
+        group3.retrieve()
+        group4.retrieve()
 
 
-        dict(
-            desc='Add a group member %r to %r' % (group3, group1),
-            command=(
-                'group_add_member', [group1], dict(group=group3)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        group=tuple(),
-                        user=tuple(),
-                    ),
-                ),
-                result={
-                        'dn': DN(('cn',group1),('cn','groups'),('cn','accounts'),
-                                 api.env.basedn),
-                        'member_group': [group2, group3,],
-                        'gidnumber': [fuzzy_digits],
-                        'cn': [group1],
-                        'description': [u'Test desc 1'],
-                },
-            ),
-        ),
+@pytest.mark.tier1
+class TestNestingHostGroups(XMLRPC_test):
+    def test_create_hostgroups(self, host1, hostgroup1, hostgroup2):
+        """ Create a host and two hostgroups """
+        host1.ensure_exists()
+        hostgroup1.ensure_exists()
+        hostgroup2.ensure_exists()
 
+    def test_nest_hostgroups(self, host1, hostgroup1, hostgroup2):
+        """ Add host1 to hostgroup2, add hostgroup2 to hostgroup1 """
+        hostgroup2.add_member(dict(host=host1.fqdn))
+        command = hostgroup1.make_add_member_command(
+            dict(hostgroup=hostgroup2.cn)
+        )
+        hostgroup1.attrs.update(
+            memberindirect_host=hostgroup2.attrs[u'member_host'],
+            member_hostgroup=[hostgroup2.cn]
+        )
+        result = command()
+        hostgroup1.check_add_member(result)
+        host1.attrs.update(
+            memberof_hostgroup=[hostgroup2.cn],
+            memberofindirect_hostgroup=[hostgroup1.cn]
+        )
 
-        dict(
-            desc='Add a user member %r to %r' % (user1, group2),
-            command=(
-                'group_add_member', [group2], dict(user=user1)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        group=tuple(),
-                        user=tuple(),
-                    ),
-                ),
-                result={
-                        'dn': DN(('cn',group2),('cn','groups'),('cn','accounts'),
-                                 api.env.basedn),
-                        'member_user': (u'tuser1',),
-                        'memberof_group': (u'testgroup1',),
-                        'gidnumber': [fuzzy_digits],
-                        'cn': [group2],
-                        'description': [u'Test desc 2'],
-                },
-            ),
-        ),
-
-
-        dict(
-            desc='Add a user member %r to %r' % (user2, group2),
-            command=(
-                'group_add_member', [group2], dict(user=user2)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        group=tuple(),
-                        user=tuple(),
-                    ),
-                ),
-                result={
-                        'dn': DN(('cn',group2),('cn','groups'),('cn','accounts'),
-                                 api.env.basedn),
-                        'member_user': [user1, user2],
-                        'memberof_group': [group1],
-                        'gidnumber': [fuzzy_digits],
-                        'cn': [group2],
-                        'description': [u'Test desc 2'],
-                },
-            ),
-        ),
-
-
-        dict(
-            desc='Add a user member %r to %r' % (user3, group3),
-            command=(
-                'group_add_member', [group3], dict(user=user3)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        group=tuple(),
-                        user=tuple(),
-                    ),
-                ),
-                result={
-                        'dn': DN(('cn',group3),('cn','groups'),('cn','accounts'),
-                                 api.env.basedn),
-                        'member_user': [user3],
-                        'memberof_group': [group1],
-                        'gidnumber': [fuzzy_digits],
-                        'cn': [group3],
-                        'description': [u'Test desc 3'],
-                },
-            ),
-        ),
-
-
-        dict(
-            desc='Add a group member %r to %r' % (group4, group3),
-            command=(
-                'group_add_member', [group3], dict(group=group4)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        group=tuple(),
-                        user=tuple(),
-                    ),
-                ),
-                result={
-                        'dn': DN(('cn',group3),('cn','groups'),('cn','accounts'),
-                                 api.env.basedn),
-                        'member_user': [user3],
-                        'memberof_group': [group1],
-                        'member_group': [group4],
-                        'gidnumber': [fuzzy_digits],
-                        'cn': [group3],
-                        'description': [u'Test desc 3'],
-                },
-            ),
-        ),
-
-
-        dict(
-            desc='Add a user member %r to %r' % (user1, group4),
-            command=(
-                'group_add_member', [group4], dict(user=user1)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        group=tuple(),
-                        user=tuple(),
-                    ),
-                ),
-                result={
-                        'dn': DN(('cn',group4),('cn','groups'),('cn','accounts'),
-                                 api.env.basedn),
-                        'member_user': [user1],
-                        'memberof_group': [group3],
-                        'memberofindirect_group': [group1],
-                        'gidnumber': [fuzzy_digits],
-                        'cn': [group4],
-                        'description': [u'Test desc 4'],
-                },
-            ),
-        ),
-
-
-        dict(
-            desc='Add a user member %r to %r' % (user4, group4),
-            command=(
-                'group_add_member', [group4], dict(user=user4)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        group=tuple(),
-                        user=tuple(),
-                    ),
-                ),
-                result={
-                        'dn': DN(('cn',group4),('cn','groups'),('cn','accounts'),
-                                 api.env.basedn),
-                        'member_user': [user1, user4],
-                        'memberof_group': [group3],
-                        'memberofindirect_group': [group1],
-                        'gidnumber': [fuzzy_digits],
-                        'cn': [group4],
-                        'description': [u'Test desc 4'],
-                },
-            ),
-        ),
-
-
-        dict(
-            desc='Retrieve group %r' % group1,
-            command=('group_show', [group1], {}),
-            expected=dict(
-                value=group1,
-                summary=None,
-                result=dict(
-                    cn=[group1],
-                    description=[u'Test desc 1'],
-                    gidnumber= [fuzzy_digits],
-                    memberindirect_group = [group4],
-                    member_group = [group2, group3],
-                    memberindirect_user = [user1, user2, user3, user4],
-                    dn=DN(('cn','testgroup1'),('cn','groups'),
-                          ('cn','accounts'),api.env.basedn),
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Retrieve group %r' % group2,
-            command=('group_show', [group2], {}),
-            expected=dict(
-                value=group2,
-                summary=None,
-                result=dict(
-                    cn=[group2],
-                    description=[u'Test desc 2'],
-                    gidnumber= [fuzzy_digits],
-                    memberof_group = [group1],
-                    member_user = [user1, user2],
-                    dn=DN(('cn','testgroup2'),('cn','groups'),
-                          ('cn','accounts'),api.env.basedn),
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Retrieve group %r' % group3,
-            command=('group_show', [group3], {}),
-            expected=dict(
-                value=group3,
-                summary=None,
-                result=dict(
-                    cn=[group3],
-                    description=[u'Test desc 3'],
-                    gidnumber= [fuzzy_digits],
-                    memberof_group = [group1],
-                    member_user = [user3],
-                    member_group = [group4],
-                    memberindirect_user = [user1, user4],
-                    dn=DN(('cn','testgroup3'),('cn','groups'),
-                          ('cn','accounts'),api.env.basedn),
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Retrieve group %r' % group4,
-            command=('group_show', [group4], {}),
-            expected=dict(
-                value=group4,
-                summary=None,
-                result=dict(
-                    cn=[group4],
-                    description=[u'Test desc 4'],
-                    gidnumber= [fuzzy_digits],
-                    memberof_group = [group3],
-                    member_user = [user1, user4],
-                    memberofindirect_group = [group1],
-                    dn=DN(('cn','testgroup4'),('cn','groups'),
-                          ('cn','accounts'),api.env.basedn),
-                ),
-            ),
-        ),
-
-
-        # Now do something similar with hosts and hostgroups
-        dict(
-            desc='Create host %r' % fqdn1,
-            command=('host_add', [fqdn1],
-                dict(
-                    description=u'Test host 1',
-                    l=u'Undisclosed location 1',
-                    force=True,
-                ),
-            ),
-            expected=dict(
-                value=fqdn1,
-                summary=u'Added host "%s"' % fqdn1,
-                result=dict(
-                    dn=host_dn1,
-                    fqdn=[fqdn1],
-                    description=[u'Test host 1'],
-                    l=[u'Undisclosed location 1'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    objectclass=objectclasses.host,
-                    ipauniqueid=[fuzzy_uuid],
-                    managedby_host=[fqdn1],
-                    has_keytab=False,
-                    has_password=False,
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Create %r' % hostgroup1,
-            command=('hostgroup_add', [hostgroup1],
-                dict(description=u'Test hostgroup 1')
-            ),
-            expected=dict(
-                value=hostgroup1,
-                summary=u'Added hostgroup "testhostgroup1"',
-                result=dict(
-                    dn=hgdn1,
-                    cn=[hostgroup1],
-                    objectclass=objectclasses.hostgroup,
-                    description=[u'Test hostgroup 1'],
-                    ipauniqueid=[fuzzy_uuid],
-                    mepmanagedentry=[DN(('cn',hostgroup1),('cn','ng'),('cn','alt'),
-                                        api.env.basedn)],
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc='Create %r' % hostgroup2,
-            command=('hostgroup_add', [hostgroup2],
-                dict(description=u'Test hostgroup 2')
-            ),
-            expected=dict(
-                value=hostgroup2,
-                summary=u'Added hostgroup "testhostgroup2"',
-                result=dict(
-                    dn=hgdn2,
-                    cn=[hostgroup2],
-                    objectclass=objectclasses.hostgroup,
-                    description=[u'Test hostgroup 2'],
-                    ipauniqueid=[fuzzy_uuid],
-                    mepmanagedentry=[DN(('cn',hostgroup2),('cn','ng'),('cn','alt'),
-                                        api.env.basedn)],
-                ),
-            ),
-        ),
-
-
-        dict(
-            desc=u'Add host %r to %r' % (fqdn1, hostgroup2),
-            command=(
-                'hostgroup_add_member', [hostgroup2], dict(host=fqdn1)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        host=tuple(),
-                        hostgroup=tuple(),
-                    ),
-                ),
-                result={
-                    'dn': hgdn2,
-                    'cn': [hostgroup2],
-                    'description': [u'Test hostgroup 2'],
-                    'member_host': [fqdn1],
-                },
-            ),
-        ),
-
-
-        dict(
-            desc=u'Add hostgroup %r to %r' % (hostgroup2, hostgroup1),
-            command=(
-                'hostgroup_add_member', [hostgroup1], dict(hostgroup=hostgroup2)
-            ),
-            expected=dict(
-                completed=1,
-                failed=dict(
-                    member=dict(
-                        host=tuple(),
-                        hostgroup=tuple(),
-                    ),
-                ),
-                result={
-                    'dn': hgdn1,
-                    'cn': [hostgroup1],
-                    'description': [u'Test hostgroup 1'],
-                    'member_hostgroup': [hostgroup2],
-                    'memberindirect_host': [fqdn1],
-                },
-            ),
-        ),
-
-
-        dict(
-            desc='Retrieve %r' % hostgroup1,
-            command=('hostgroup_show', [hostgroup1], {}),
-            expected=dict(
-                value=hostgroup1,
-                summary=None,
-                result={
-                    'dn': hgdn1,
-                    'memberindirect_host': [u'testhost1.%s' % api.env.domain],
-                    'member_hostgroup': [hostgroup2],
-                    'cn': [hostgroup1],
-                    'description': [u'Test hostgroup 1'],
-                },
-            ),
-        ),
-
-
-        dict(
-            desc='Retrieve %r' % fqdn1,
-            command=('host_show', [fqdn1], {}),
-            expected=dict(
-                value=fqdn1,
-                summary=None,
-                result=dict(
-                    dn=host_dn1,
-                    fqdn=[fqdn1],
-                    description=[u'Test host 1'],
-                    l=[u'Undisclosed location 1'],
-                    krbprincipalname=[u'host/%s@%s' % (fqdn1, api.env.realm)],
-                    has_keytab=False,
-                    has_password=False,
-                    managedby_host=[fqdn1],
-                    memberof_hostgroup = [u'testhostgroup2'],
-                    memberofindirect_hostgroup = [u'testhostgroup1'],
-                ),
-            ),
-        ),
-
-    ]
+    def test_retrieve_host_hostgroup(self, host1, hostgroup1):
+        """ Retrieve host1 and hostgroup1 """
+        hostgroup1.retrieve()
+        host1.retrieve()

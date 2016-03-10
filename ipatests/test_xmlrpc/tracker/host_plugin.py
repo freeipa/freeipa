@@ -26,6 +26,7 @@ class HostTracker(Tracker):
         'serial_number', 'serial_number_hex', 'sha1_fingerprint',
         'subject', 'usercertificate', 'valid_not_after', 'valid_not_before',
         'macaddress', 'sshpubkeyfp', 'ipaallowedtoperform_read_keys_user',
+        'memberof_hostgroup', 'memberofindirect_hostgroup',
         'ipaallowedtoperform_read_keys_group',
         'ipaallowedtoperform_read_keys_host',
         'ipaallowedtoperform_read_keys_hostgroup',
