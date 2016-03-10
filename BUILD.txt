@@ -23,7 +23,7 @@ autoconf automake m4 libtool gettext python-devel python-ldap \
 python-setuptools python-nss python-netaddr python-gssapi \
 python-rhsm pyOpenSSL pylint python-polib libipa_hbac-python python-memcached \
 sssd python-lxml python-pyasn1 python-qrcode-core python-dns m2crypto \
-check libsss_idmap-devel libsss_nss_idmap-devel java-headless rhino \
+libsss_idmap-devel libsss_nss_idmap-devel java-headless rhino \
 libverto-devel systemd libunistring-devel python-lesscpy python-yubico \
 python-backports-ssl_match_hostname softhsm-devel openssl-devel \
 p11-kit-devel pki-base python-pytest-multihost python-pytest-sourceorder
