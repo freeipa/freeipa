@@ -395,15 +395,15 @@ class NSSDatabase(object):
                     "Setting trust on %s failed" % root_nickname)
 
     def get_cert(self, nickname, pem=False):
-        args = ['-L', '-n', nickname]
-        if pem:
-            args.append('-a')
-        else:
-            args.append('-r')
+        args = ['-L', '-n', nickname, '-a']
         try:
             cert, err, returncode = self.run_certutil(args)
         except ipautil.CalledProcessError:
             raise RuntimeError("Failed to get %s" % nickname)
+        if not pem:
+            (cert, start) = find_cert_from_txt(cert, start=0)
+            cert = x509.strip_header(cert)
+            cert = base64.b64decode(cert)
         return cert
 
     def has_nickname(self, nickname):
