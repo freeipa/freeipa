@@ -48,10 +48,10 @@ EXAMPLES:
    ipa sudocmdgroup-add-member --sudocmds=/usr/bin/less --sudocmds=/usr/bin/vim admincmds
 
  Manage Sudo Command Group membership, commands:
-   ipa group-remove-member --sudocmds=/usr/bin/less admincmds
+   ipa sudocmdgroup-remove-member --sudocmds=/usr/bin/less admincmds
 
  Show a Sudo Command Group:
-   ipa group-show localadmins
+   ipa sudocmdgroup-show admincmds
 """)
 
 register = Registry()
