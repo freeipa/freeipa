@@ -50,7 +50,7 @@ class ODSExporterInstance(service.Service):
 
         try:
             self.stop()
-        except:
+        except Exception:
             pass
 
         # get a connection to the DS

@@ -135,7 +135,7 @@ class KrbInstance(service.Service):
         self.backup_state("running", self.is_running())
         try:
             self.stop()
-        except:
+        except Exception:
             # It could have been not running
             pass
 
@@ -210,7 +210,7 @@ class KrbInstance(service.Service):
     def __start_instance(self):
         try:
             self.start()
-        except:
+        except Exception:
             root_logger.critical("krb5kdc service failed to start")
 
     def __setup_sub_dict(self):
@@ -386,7 +386,7 @@ class KrbInstance(service.Service):
 
         try:
             self.stop()
-        except:
+        except Exception:
             pass
 
         for f in [paths.KRB5KDC_KDC_CONF, paths.KRB5_CONF]:

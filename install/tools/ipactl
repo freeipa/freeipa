@@ -343,13 +343,13 @@ def ipa_stop(options):
         try:
             print("Stopping %s Service" % svc)
             svchandle.stop(capture_output=False)
-        except:
+        except Exception:
             emit_err("Failed to stop %s Service" % svc)
 
     try:
         print("Stopping Directory Service")
         dirsrv.stop(capture_output=False)
-    except:
+    except Exception:
         raise IpactlError("Failed to stop Directory Service")
 
     # remove file with list of started services
@@ -383,7 +383,7 @@ def ipa_restart(options):
         emit_err("Shutting down")
         try:
             dirsrv.stop(capture_output=False)
-        except:
+        except Exception:
             pass
         if isinstance(e, IpactlError):
             # do not display any other error message
@@ -421,7 +421,7 @@ def ipa_restart(options):
             try:
                 print("Stopping %s Service" % svc)
                 svchandle.stop(capture_output=False)
-            except:
+            except Exception:
                 emit_err("Failed to stop %s Service" % svc)
 
     try:
@@ -521,7 +521,7 @@ def ipa_status(options):
                 print("%s Service: RUNNING" % svc)
             else:
                 print("%s Service: STOPPED" % svc)
-        except:
+        except Exception:
             emit_err("Failed to get %s Service status" % svc)
 
 def main():

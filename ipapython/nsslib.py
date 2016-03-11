@@ -223,17 +223,12 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
         self.tls_version_max = str(tls_version_max)
 
     def _create_socket(self):
-        # TODO: remove the try block once python-nss is guaranteed to contain
-        # these values
-        try:
-            #pylint: disable=E1101
-            ssl_enable_renegotiation  = ssl.SSL_ENABLE_RENEGOTIATION
-            ssl_require_safe_negotiation = ssl.SSL_REQUIRE_SAFE_NEGOTIATION
-            ssl_renegotiate_requires_xtn = ssl.SSL_RENEGOTIATE_REQUIRES_XTN
-        except:
-            ssl_enable_renegotiation  = 20
-            ssl_require_safe_negotiation = 21
-            ssl_renegotiate_requires_xtn = 2
+        ssl_enable_renegotiation = getattr(
+            ssl, 'SSL_ENABLE_RENEGOTIATION', 20)
+        ssl_require_safe_negotiation = getattr(
+            ssl,'SSL_REQUIRE_SAFE_NEGOTIATION', 21)
+        ssl_renegotiate_requires_xtn = getattr(
+            ssl, 'SSL_RENEGOTIATE_REQUIRES_XTN', 2)
 
         # Create the socket here so we can do things like let the caller
         # override the NSS callbacks

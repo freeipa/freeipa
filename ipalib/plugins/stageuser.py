@@ -565,7 +565,7 @@ class stageuser_activate(LDAPQuery):
                     try:
                         v.decode('utf-8')
                         self.log.debug("merge: %s:%r wiped" % (attr, v))
-                    except:
+                    except ValueError:
                         self.log.debug("merge %s: [no_print %s]" % (attr, v.__class__.__name__))
                     if isinstance(entry_to[attr], (list, tuple)):
                         # multi value attribute
@@ -581,7 +581,7 @@ class stageuser_activate(LDAPQuery):
                     try:
                         v.decode('utf-8')
                         self.log.debug("Add: %s:%r" % (attr, v))
-                    except:
+                    except ValueError:
                         self.log.debug("Add %s: [no_print %s]" % (attr, v.__class__.__name__))
 
                     if isinstance(entry_to[attr], (list, tuple)):
@@ -692,7 +692,7 @@ class stageuser_activate(LDAPQuery):
             try:
                 self.log.error("Fail to delete the Staging user after activating it %s " % (staging_dn))
                 self._exc_wrapper(args, options, ldap.delete_entry)(active_dn)
-            except:
+            except Exception:
                 self.log.error("Fail to cleanup activation. The user remains active %s" % (active_dn))
             raise
 

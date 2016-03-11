@@ -2470,11 +2470,11 @@ def install(options, env, fstore, statestore):
         try:
             socket.inet_pton(socket.AF_INET, srv)
             is_ipaddr = True
-        except:
+        except socket.error:
             try:
                 socket.inet_pton(socket.AF_INET6, srv)
                 is_ipaddr = True
-            except:
+            except socket.error:
                 is_ipaddr = False
 
         if is_ipaddr:

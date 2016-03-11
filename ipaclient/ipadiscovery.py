@@ -129,7 +129,7 @@ class IPADiscovery(object):
                 elif line.lower().startswith('search'):
                     domains += [(d, 'search domain from /etc/resolv.conf') for
                         d in line.split()[1:]]
-        except:
+        except Exception:
             pass
         if domain:
             domains = [domain] + domains

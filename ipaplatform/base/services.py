@@ -434,7 +434,7 @@ class SystemdService(PlatformService):
                         os.unlink(srv_lnk)
                         os.symlink(self.lib_path, srv_lnk)
                 ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"])
-            except:
+            except Exception:
                 pass
         else:
             self.__enable(instance_name)
@@ -457,7 +457,7 @@ class SystemdService(PlatformService):
                     if os.path.islink(srv_lnk):
                         os.unlink(srv_lnk)
                 ipautil.run([paths.SYSTEMCTL, "--system", "daemon-reload"])
-            except:
+            except Exception:
                 pass
         else:
             try:

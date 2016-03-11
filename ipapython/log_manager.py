@@ -606,7 +606,7 @@ def parse_log_level(level):
     if isinstance(level, six.string_types):
         try:
             level = int(level)
-        except:
+        except ValueError:
             pass
 
     # If it's a string lookup it's name and map to logging level

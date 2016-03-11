@@ -160,19 +160,19 @@ def __parse_config(discover_server = True):
     try:
         if not config.default_realm:
             config.default_realm = p.get("global", "realm")
-    except:
+    except AttributeError:
         pass
     if discover_server:
         try:
             s = p.get("global", "xmlrpc_uri")
             server = urlsplit(s)
             config.default_server.append(server.netloc)
-        except:
+        except Exception:
             pass
     try:
         if not config.default_domain:
             config.default_domain = p.get("global", "domain")
-    except:
+    except AttributeError:
         pass
 
 def __discover_config(discover_server = True):
@@ -218,7 +218,7 @@ def __discover_config(discover_server = True):
                 hostname = str(server.target).rstrip(".")
                 config.default_server.append(hostname)
 
-    except:
+    except Exception:
         pass
 
 def add_standard_options(parser):

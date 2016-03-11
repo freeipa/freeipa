@@ -1978,7 +1978,7 @@ class RestClient(Backend):
     def _parse_dogtag_error(body):
         try:
             return pki.PKIException.from_json(json.loads(body))
-        except:
+        except Exception:
             return None
 
     def __init__(self, api):

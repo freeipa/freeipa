@@ -26,7 +26,6 @@ disable=
     attribute-defined-outside-init,
     bad-builtin,
     bad-indentation,
-    bare-except,
     broad-except,
     dangerous-default-value,
     eval-used,

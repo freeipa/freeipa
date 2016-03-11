@@ -286,7 +286,7 @@ def common_cleanup(func):
                 # what is the state of the environment
                 try:
                     installer._fstore.restore_file(paths.HOSTS)
-                except:
+                except Exception:
                     pass
 
     return decorated

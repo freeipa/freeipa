@@ -571,7 +571,7 @@ class DnsBackup(object):
                     try:
                         delkw = { '%srecord' % str(type.lower()) : unicode(rdata) }
                         api.Command.dnsrecord_del(unicode(zone), unicode(host), **delkw)
-                    except:
+                    except Exception:
                         pass
                 j += 1
 
@@ -662,7 +662,7 @@ class BindInstance(service.Service):
 
         try:
             self.stop()
-        except:
+        except Exception:
             pass
 
         # get a connection to the DS

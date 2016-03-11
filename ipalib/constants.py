@@ -28,10 +28,10 @@ from ipapython.version import VERSION, API_VERSION
 
 try:
     FQDN = socket.getfqdn()
-except:
+except Exception:
     try:
         FQDN = socket.gethostname()
-    except:
+    except Exception:
         FQDN = None
 
 # Path to CA certificate bundle

@@ -443,7 +443,7 @@ def _normalize_bind_aci(bind_acis):
                 netmask = ""
             normalized.append(u"%s%s%s" % (prefix, str(ip), netmask))
             continue
-        except:
+        except Exception:
             normalized.append(bind_aci)
             continue
 
@@ -4030,7 +4030,7 @@ class dnsrecord_del(LDAPUpdate):
                     try:
                         param = self.params[attr]
                         attr_name = unicode(param.label or param.name)
-                    except:
+                    except Exception:
                         attr_name = attr
                     raise errors.AttrValueNotFound(attr=attr_name, value=val)
             entry_attrs[attr] = list(set(old_entry[attr]))

@@ -597,7 +597,7 @@ def clean_dangling_ruvs(realm, host, options):
             conn = ipaldap.IPAdmin(master_cn, 636, cacert=CACERT)
             conn.do_simple_bind(bindpw=options.dirman_passwd)
             master_info['online'] = True
-        except:
+        except Exception:
             print("The server '{host}' appears to be offline."
                   .format(host=master_cn))
             offlines.add(master_cn)

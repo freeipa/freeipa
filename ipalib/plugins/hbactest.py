@@ -343,7 +343,7 @@ class hbactest(Command):
             for rule in testrules:
                 try:
                     hbacset.append(self.api.Command.hbacrule_show(rule)['result'])
-                except:
+                except Exception:
                     pass
 
         # We have some rules, import them
@@ -426,7 +426,7 @@ class hbactest(Command):
                     if 'memberofindirect_group' in search_result:
                         groups += search_result['memberofindirect_group']
                     request.user.groups = sorted(set(groups))
-                except:
+                except Exception:
                     pass
 
         if options['service'] != u'all':
@@ -435,7 +435,7 @@ class hbactest(Command):
                 service_result = self.api.Command.hbacsvc_show(request.service.name)['result']
                 if 'memberof_hbacsvcgroup' in service_result:
                     request.service.groups = service_result['memberof_hbacsvcgroup']
-            except:
+            except Exception:
                 pass
 
         if options['targethost'] != u'all':
@@ -446,7 +446,7 @@ class hbactest(Command):
                 if 'memberofindirect_hostgroup' in tgthost_result:
                     groups += tgthost_result['memberofindirect_hostgroup']
                 request.targethost.groups = sorted(set(groups))
-            except:
+            except Exception:
                 pass
 
         matched_rules = []

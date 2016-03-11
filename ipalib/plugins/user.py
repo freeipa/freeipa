@@ -731,7 +731,7 @@ class user_del(baseuser_del):
                 try:
                     self._preserve_user(pkey, delete_container, **options)
                     preserved.append(pkey_to_value(pkey, options))
-                except:
+                except Exception:
                     if not options.get('continue', False):
                         raise
                     failed.append(pkey_to_value(pkey, options))

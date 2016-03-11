@@ -122,7 +122,7 @@ class DNSKeySyncInstance(service.Service):
         self.suffix = ipautil.realm_to_suffix(self.realm)
         try:
             self.stop()
-        except:
+        except Exception:
             pass
 
         # get a connection to the DS

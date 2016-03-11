@@ -120,10 +120,10 @@ def get_fqdn():
     fqdn = ""
     try:
         fqdn = socket.getfqdn()
-    except:
+    except Exception:
         try:
             fqdn = socket.gethostname()
-        except:
+        except Exception:
             fqdn = ""
     return fqdn
 

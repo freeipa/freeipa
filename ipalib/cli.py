@@ -663,7 +663,7 @@ class textui(backend.Backend):
                 selection = int(resp) - 1
                 if (selection >= 0 and selection < counter):
                     break
-            except:
+            except Exception:
                 # fall through to the error msg
                 pass
 
@@ -907,7 +907,7 @@ class console(frontend.Command):
             try:
                 with script:
                     exec(script, globals(), local)
-            except:
+            except Exception:
                 traceback.print_exc()
                 exit(1)
         else:

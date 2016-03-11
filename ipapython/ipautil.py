@@ -505,7 +505,7 @@ def file_exists(filename):
             return True
         else:
             return False
-    except:
+    except Exception:
         return False
 
 def dir_exists(filename):
@@ -515,7 +515,7 @@ def dir_exists(filename):
             return True
         else:
             return False
-    except:
+    except Exception:
         return False
 
 def install_file(fname, dest):

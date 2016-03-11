@@ -127,7 +127,7 @@ class CertDB(object):
             shutil.rmtree(self.reqdir, ignore_errors=True)
         try:
             os.chdir(self.cwd)
-        except:
+        except OSError:
             pass
 
     def setup_cert_request(self):
