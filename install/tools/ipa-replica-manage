@@ -69,7 +69,7 @@ commands = {
     "dnanextrange-set":(2, 2, "<master fqdn> <range>", "must provide a master and ID range"),
 }
 
-# tuple of commands that need proper Directory Manager password
+# tuple of commands that work with ca tree and need Directory Manager password
 dirman_passwd_req_commands = ("list-ruv", "clean-ruv", "abort-clean-ruv")
 
 
@@ -397,18 +397,67 @@ def get_ruv(realm, host, dirman_passwd, nolookup=False, ca=False):
 
     return servers
 
+
+def get_ruv_both_suffixes(realm, host, dirman_passwd, verbose, nolookup=False):
+    """
+    Get RUVs for both domain and ipaca suffixes
+    """
+    ruvs = {}
+    fail_gracefully = True
+
+    try:
+        ruvs['ca'] = get_ruv(realm, host, dirman_passwd, nolookup, True)
+    except (NoRUVsFound, RuntimeError) as e:
+        err = "Failed to get CS-RUVs from {host}: {err}".format(host=host,
+                                                                err=e)
+        if isinstance(e, RuntimeError):
+            fail_gracefully = False
+            if verbose:
+                print(err)
+        root_logger.debug(err)
+    try:
+        ruvs['domain'] = get_ruv(realm, host, dirman_passwd, nolookup)
+    except (NoRUVsFound, RuntimeError) as e:
+        err = "Failed to get RUVs from {host}: {err}".format(host=host, err=e)
+        if isinstance(e, RuntimeError):
+            if not fail_gracefully:
+                raise
+            if verbose:
+                print(err)
+        root_logger.debug(err)
+
+    if not ruvs.keys():
+        raise NoRUVsFound("No RUV records found.")
+
+    return ruvs
+
+
 def list_ruv(realm, host, dirman_passwd, verbose, nolookup=False):
     """
     List the Replica Update Vectors on this host to get the available
     replica IDs.
     """
     try:
-        servers = get_ruv(realm, host, dirman_passwd, nolookup)
+        servers = get_ruv_both_suffixes(realm, host, dirman_passwd,
+                                        verbose, nolookup)
     except (NoRUVsFound, RuntimeError) as e:
         print(e)
         sys.exit(0 if isinstance(e, NoRUVsFound) else 1)
-    for (netloc, rid) in servers:
-        print("%s: %s" % (netloc, rid))
+
+    print('Replica Update Vectors:')
+    if servers.get('domain'):
+        for netloc, rid in servers['domain']:
+            print("\t{name}: {id}".format(name=netloc, id=rid))
+    else:
+        print('\tNo RUVs found.')
+
+    print('Certificate Server Replica Update Vectors:')
+    if servers.get('ca'):
+        for netloc, rid in servers['ca']:
+            print("\t{name}: {id}".format(name=netloc, id=rid))
+    else:
+        print('\tNo CS-RUVs found.')
+
 
 def get_rid_by_host(realm, sourcehost, host, dirman_passwd, nolookup=False):
     """
@@ -423,7 +472,8 @@ def get_rid_by_host(realm, sourcehost, host, dirman_passwd, nolookup=False):
         if '%s:389' % host == netloc:
             return int(rid)
 
-def clean_ruv(realm, ruv, options, ca=False):
+
+def clean_ruv(realm, ruv, options):
     """
     Given an RID create a CLEANALLRUV task to clean it up.
     """
@@ -433,23 +483,28 @@ def clean_ruv(realm, ruv, options, ca=False):
         sys.exit("Replica ID must be an integer: %s" % ruv)
 
     try:
-        servers = get_ruv(realm, options.host, options.dirman_passwd,
-                          options.nolookup, ca=ca)
+        servers = get_ruv_both_suffixes(realm, options.host,
+                                        options.dirman_passwd,
+                                        options.verbose,
+                                        options.nolookup)
     except (NoRUVsFound, RuntimeError) as e:
         print(e)
         sys.exit(0 if isinstance(e, NoRUVsFound) else 1)
 
-    found = False
-    for (netloc, rid) in servers:
-        if ruv == int(rid):
-            found = True
-            hostname = netloc
+    tree_found = None
+    for tree, ruvs in servers.items():
+        for netloc, rid in ruvs:
+            if ruv == int(rid):
+                tree_found = tree
+                hostname = netloc
+                break
+        if tree_found:
             break
 
-    if not found:
+    if not tree_found:
         sys.exit("Replica ID %s not found" % ruv)
 
-    if ca:
+    if tree_found == 'ca':
         print("Clean the Certificate Server Replication Update Vector for %s"
               % hostname)
     else:
@@ -464,7 +519,7 @@ def clean_ruv(realm, ruv, options, ca=False):
         if not ipautil.user_input("Continue to clean?", False):
             sys.exit("Aborted")
 
-    if ca:
+    if tree_found == 'ca':
         thisrepl = replication.get_cs_replication_manager(realm, options.host,
                                                           options.dirman_passwd)
     else:
@@ -472,6 +527,7 @@ def clean_ruv(realm, ruv, options, ca=False):
                                                   options.dirman_passwd)
     thisrepl.cleanallruv(ruv)
     print("Cleanup task created")
+
 
 def abort_clean_ruv(realm, ruv, options):
     """
@@ -483,29 +539,39 @@ def abort_clean_ruv(realm, ruv, options):
         sys.exit("Replica ID must be an integer: %s" % ruv)
 
     try:
-        servers = get_ruv(realm, options.host, options.dirman_passwd,
-                          options.nolookup)
+        servers = get_ruv_both_suffixes(realm, options.host,
+                                        options.dirman_passwd,
+                                        options.verbose,
+                                        options.nolookup)
     except (NoRUVsFound, RuntimeError) as e:
         print(e)
         sys.exit(0 if isinstance(e, NoRUVsFound) else 1)
 
-    found = False
-    for (netloc, rid) in servers:
-        if ruv == int(rid):
-            found = True
-            hostname = netloc
+    tree_found = None
+    for tree, ruvs in servers.items():
+        for netloc, rid in ruvs:
+            if ruv == int(rid):
+                tree_found = tree
+                hostname = netloc
+                break
+        if tree_found:
             break
 
-    if not found:
+    if not tree_found:
         sys.exit("Replica ID %s not found" % ruv)
 
     print("Aborting the clean Replication Update Vector task for %s" % hostname)
     print()
-    thisrepl = replication.ReplicationManager(realm, options.host,
-                                              options.dirman_passwd)
+    if tree_found == 'ca':
+        thisrepl = replication.get_cs_replication_manager(realm, options.host,
+                                                          options.dirman_passwd)
+    else:
+        thisrepl = replication.ReplicationManager(realm, options.host,
+                                                  options.dirman_passwd)
     thisrepl.abortcleanallruv(ruv, options.force)
 
     print("Cleanup task stopped")
+
 
 def list_clean_ruv(realm, host, dirman_passwd, verbose, nolookup=False):
     """
@@ -702,7 +768,7 @@ def clean_dangling_ruvs(realm, host, options):
         for csruv in master_info['clean_csruv']:
             if csruv[1] not in cleaned:
                 cleaned.add(csruv[1])
-                clean_ruv(realm, csruv[1], options, ca=True)
+                clean_ruv(realm, csruv[1], options)
 
 
 def check_last_link(delrepl, realm, dirman_passwd, force):
@@ -1579,7 +1645,8 @@ def main():
     if options.dirman_passwd:
         dirman_passwd = options.dirman_passwd
     else:
-        if not test_connection(realm, host, options.nolookup):
+        if (not test_connection(realm, host, options.nolookup) or
+           args[0] in dirman_passwd_req_commands):
             dirman_passwd = installutils.read_password("Directory Manager",
                 confirm=False, validate=False, retry=False)
             if dirman_passwd is None or (

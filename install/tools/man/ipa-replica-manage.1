@@ -135,6 +135,7 @@ Password for the IPA system user used by the Windows PassSync plugin to synchron
 .TP
 \fB\-\-from\fR=\fISERVER\fR
 The server to pull the data from, used by the re\-initialize and force\-sync commands.
+.TP
 .SH "RANGES"
 IPA uses the 389\-ds Distributed Numeric Assignment (DNA) Plugin to allocate POSIX ids for users and groups. A range is created when IPA is installed and half the range is assigned to the first IPA master for the purposes of allocation.
 .TP
@@ -190,8 +191,11 @@ Using connect/disconnect you can manage the replication topology.
 .TP
 List the replication IDs in use:
  # ipa\-replica\-manage list\-ruv
- srv1.example.com:389: 7
- srv2.example.com:389: 4
+ Replica Update Vectors:
+     srv1.example.com:389: 7
+     srv2.example.com:389: 4
+ Certificate Server Replica Update Vectors:
+     srv1.example.com:389: 9
 .TP
 Remove references to an orphaned and deleted master:
  # ipa\-replica\-manage del \-\-force \-\-cleanup master.example.com
