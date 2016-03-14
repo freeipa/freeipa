@@ -44,7 +44,10 @@ from ipalib import x509
 from ipalib import output
 from ipalib.request import context
 from ipalib.util import (normalize_sshpubkey, validate_sshpubkey_no_options,
-    convert_sshpubkey_post, validate_hostname)
+    convert_sshpubkey_post, validate_hostname,
+    add_sshpubkey_to_attrs_pre,
+    remove_sshpubkey_from_output_post,
+    remove_sshpubkey_from_output_list_post)
 from ipapython.ipautil import ipa_generate_password, CheckedIPAddress
 from ipapython.dnsutil import DNSName
 from ipapython.ssh import SSHPublicKey
@@ -712,7 +715,7 @@ class host_add(LDAPCreate):
             # fetched anywhere.
             entry_attrs['has_keytab'] = False
 
-        convert_sshpubkey_post(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(entry_attrs)
 
         return dn
 
@@ -927,6 +930,8 @@ class host_mod(LDAPUpdate):
             if 'krbticketpolicyaux' not in entry_attrs['objectclass']:
                 entry_attrs['objectclass'].append('krbticketpolicyaux')
 
+        add_sshpubkey_to_attrs_pre(self.context, attrs_list)
+
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
@@ -947,7 +952,8 @@ class host_mod(LDAPUpdate):
 
         self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
 
-        convert_sshpubkey_post(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(entry_attrs)
+        remove_sshpubkey_from_output_post(self.context, entry_attrs)
         convert_ipaassignedidview_post(entry_attrs, options)
 
         return dn
@@ -1015,6 +1021,8 @@ class host_find(LDAPSearch):
                         (filter, hosts_filter), ldap.MATCH_ALL
                     )
 
+        add_sshpubkey_to_attrs_pre(self.context, attrs_list)
+
         return (filter.replace('locality', 'l'), base_dn, scope)
 
     def post_callback(self, ldap, entries, truncated, *args, **options):
@@ -1029,8 +1037,11 @@ class host_find(LDAPSearch):
             if options.get('all', False):
                 entry_attrs['managing'] = self.obj.get_managed_hosts(entry_attrs.dn)
 
-            convert_sshpubkey_post(ldap, entry_attrs.dn, entry_attrs)
+            convert_sshpubkey_post(entry_attrs)
+            remove_sshpubkey_from_output_post(self.context, entry_attrs)
             convert_ipaassignedidview_post(entry_attrs, options)
+
+        remove_sshpubkey_from_output_list_post(self.context, entries)
 
         return truncated
 
@@ -1047,6 +1058,11 @@ class host_show(LDAPRetrieve):
     )
 
     member_attributes = ['managedby']
+
+    def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
+        add_sshpubkey_to_attrs_pre(self.context, attrs_list)
+        return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
@@ -1065,7 +1081,8 @@ class host_show(LDAPRetrieve):
 
         self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
 
-        convert_sshpubkey_post(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(entry_attrs)
+        remove_sshpubkey_from_output_post(self.context, entry_attrs)
         convert_ipaassignedidview_post(entry_attrs, options)
 
         return dn

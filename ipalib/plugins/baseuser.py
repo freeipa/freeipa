@@ -32,8 +32,14 @@ from ipalib.request import context
 from ipalib import _
 from ipapython.ipautil import ipa_generate_password
 from ipapython.ipavalidate import Email
-from ipalib.util import (normalize_sshpubkey, validate_sshpubkey,
-    convert_sshpubkey_post)
+from ipalib.util import (
+    normalize_sshpubkey,
+    validate_sshpubkey,
+    convert_sshpubkey_post,
+    remove_sshpubkey_from_output_post,
+    remove_sshpubkey_from_output_list_post,
+    add_sshpubkey_to_attrs_pre,
+)
 
 if six.PY3:
     unicode = str
@@ -490,15 +496,16 @@ class baseuser_add(LDAPCreate):
     """
     Prototype command plugin to be implemented by real plugin
     """
-    def pre_common_callback(self, ldap, dn, entry_attrs, **options):
+    def pre_common_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                            **options):
         assert isinstance(dn, DN)
         self.obj.convert_usercertificate_pre(entry_attrs)
 
-    def post_common_callback(self, ldap, dn, entry_attrs, **options):
+    def post_common_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         self.obj.convert_usercertificate_post(entry_attrs, **options)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
-        convert_sshpubkey_post(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
 
 class baseuser_del(LDAPDelete):
@@ -565,8 +572,11 @@ class baseuser_mod(LDAPUpdate):
                     answer = self.api.Object['radiusproxy'].get_dn_if_exists(cl)
                     entry_attrs['ipatokenradiusconfiglink'] = answer
 
-    def pre_common_callback(self, ldap, dn, entry_attrs, **options):
+    def pre_common_callback(self, ldap, dn, entry_attrs, attrs_list, *keys,
+                            **options):
         assert isinstance(dn, DN)
+        add_sshpubkey_to_attrs_pre(self.context, attrs_list)
+
         self.check_namelength(ldap, **options)
 
         self.check_mail(entry_attrs)
@@ -578,7 +588,7 @@ class baseuser_mod(LDAPUpdate):
         self.check_objectclass(ldap, dn, entry_attrs)
         self.obj.convert_usercertificate_pre(entry_attrs)
 
-    def post_common_callback(self, ldap, dn, entry_attrs, **options):
+    def post_common_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         if options.get('random', False):
             try:
@@ -589,7 +599,8 @@ class baseuser_mod(LDAPUpdate):
         convert_nsaccountlock(entry_attrs)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         self.obj.convert_usercertificate_post(entry_attrs, **options)
-        convert_sshpubkey_post(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(entry_attrs)
+        remove_sshpubkey_from_output_post(self.context, entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
 
 class baseuser_find(LDAPSearch):
@@ -615,6 +626,10 @@ class baseuser_find(LDAPSearch):
         if cl in options:
             newoptions[cl] = self.api.Object['radiusproxy'].get_dn(options[cl])
 
+    def pre_common_callback(self, ldap, filters, attrs_list, base_dn, scope,
+                            *args, **options):
+        add_sshpubkey_to_attrs_pre(self.context, attrs_list)
+
     def post_common_callback(self, ldap, entries, lockout=False, **options):
         for attrs in entries:
             self.obj.convert_usercertificate_post(attrs, **options)
@@ -622,17 +637,23 @@ class baseuser_find(LDAPSearch):
                 attrs['nsaccountlock'] = True
             else:
                 convert_nsaccountlock(attrs)
-            convert_sshpubkey_post(ldap, attrs.dn, attrs)
+            convert_sshpubkey_post(attrs)
+        remove_sshpubkey_from_output_list_post(self.context, entries)
 
 class baseuser_show(LDAPRetrieve):
     """
     Prototype command plugin to be implemented by real plugin
     """
-    def post_common_callback(self, ldap, dn, entry_attrs, **options):
+    def pre_common_callback(self, ldap, dn, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
+        add_sshpubkey_to_attrs_pre(self.context, attrs_list)
+
+    def post_common_callback(self, ldap, dn, entry_attrs, *keys, **options):
         assert isinstance(dn, DN)
         self.obj.get_password_attributes(ldap, dn, entry_attrs)
         self.obj.convert_usercertificate_post(entry_attrs, **options)
-        convert_sshpubkey_post(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(entry_attrs)
+        remove_sshpubkey_from_output_post(self.context, entry_attrs)
         radius_dn2pk(self.api, entry_attrs)
 
 

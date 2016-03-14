@@ -954,7 +954,7 @@ class idoverrideuser_add(baseidoverride_add):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         dn = super(idoverrideuser_add, self).post_callback(ldap, dn,
                  entry_attrs, *keys, **options)
-        convert_sshpubkey_post(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(entry_attrs)
         return dn
 
 
@@ -990,7 +990,7 @@ class idoverrideuser_mod(baseidoverride_mod):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         dn = super(idoverrideuser_mod, self).post_callback(ldap, dn,
                  entry_attrs, *keys, **options)
-        convert_sshpubkey_post(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(entry_attrs)
         return dn
 
 
@@ -1004,7 +1004,7 @@ class idoverrideuser_find(baseidoverride_find):
         truncated = super(idoverrideuser_find, self).post_callback(
             ldap, entries, truncated, *args, **options)
         for entry in entries:
-            convert_sshpubkey_post(ldap, entry.dn, entry)
+            convert_sshpubkey_post(entry)
         return truncated
 
 
@@ -1015,7 +1015,7 @@ class idoverrideuser_show(baseidoverride_show):
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         dn = super(idoverrideuser_show, self).post_callback(ldap, dn,
                  entry_attrs, *keys, **options)
-        convert_sshpubkey_post(ldap, dn, entry_attrs)
+        convert_sshpubkey_post(entry_attrs)
         return dn
 
 

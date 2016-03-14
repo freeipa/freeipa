@@ -290,12 +290,9 @@ def validate_sshpubkey_no_options(ugettext, value):
     if pubkey.has_options():
         return _('options are not allowed')
 
-def convert_sshpubkey_post(ldap, dn, entry_attrs):
-    if 'ipasshpubkey' in entry_attrs:
-        pubkeys = entry_attrs['ipasshpubkey']
-    else:
-        old_entry_attrs = ldap.get_entry(dn, ['ipasshpubkey'])
-        pubkeys = old_entry_attrs.get('ipasshpubkey')
+
+def convert_sshpubkey_post(entry_attrs):
+    pubkeys = entry_attrs.get('ipasshpubkey')
     if not pubkeys:
         return
 
@@ -320,6 +317,37 @@ def convert_sshpubkey_post(ldap, dn, entry_attrs):
         entry_attrs['ipasshpubkey'] = newpubkeys or None
     if fingerprints:
         entry_attrs['sshpubkeyfp'] = fingerprints
+
+
+def add_sshpubkey_to_attrs_pre(context, attrs_list):
+    """
+    Attribute ipasshpubkey should be added to attrs_list to be able compute
+    ssh fingerprint. This attribute must be removed later if was added here
+    (see remove_sshpubkey_from_output_post).
+    """
+    if not ('ipasshpubkey' in attrs_list or '*' in attrs_list):
+        setattr(context, 'ipasshpubkey_added', True)
+        attrs_list.append('ipasshpubkey')
+
+
+def remove_sshpubkey_from_output_post(context, entry_attrs):
+    """
+    Remove ipasshpubkey from output if it was added in pre_callbacks
+    """
+    if getattr(context, 'ipasshpubkey_added', False):
+        entry_attrs.pop('ipasshpubkey', None)
+        delattr(context, 'ipasshpubkey_added')
+
+
+def remove_sshpubkey_from_output_list_post(context, entries):
+    """
+    Remove ipasshpubkey from output if it was added in pre_callbacks
+    """
+    if getattr(context, 'ipasshpubkey_added', False):
+        for entry_attrs in entries:
+            entry_attrs.pop('ipasshpubkey', None)
+        delattr(context, 'ipasshpubkey_added')
+
 
 class cachedproperty(object):
     """

@@ -542,7 +542,8 @@ class user_add(baseuser_add):
             answer = self.api.Object['radiusproxy'].get_dn_if_exists(rcl)
             entry_attrs['ipatokenradiusconfiglink'] = answer
 
-        self.pre_common_callback(ldap, dn, entry_attrs, **options)
+        self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,
+                                 **options)
 
         return dn
 
@@ -588,7 +589,7 @@ class user_add(baseuser_add):
 
         self.obj.get_preserved_attribute(entry_attrs, options)
 
-        self.post_common_callback(ldap, dn, entry_attrs, **options)
+        self.post_common_callback(ldap, dn, entry_attrs, *keys, **options)
 
         return dn
 
@@ -752,12 +753,13 @@ class user_mod(baseuser_mod):
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
         dn = self.obj.get_either_dn(*keys, **options)
-        self.pre_common_callback(ldap, dn, entry_attrs, **options)
+        self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,
+                                 **options)
         validate_nsaccountlock(entry_attrs)
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
-        self.post_common_callback(ldap, dn, entry_attrs, **options)
+        self.post_common_callback(ldap, dn, entry_attrs, *keys, **options)
         self.obj.get_preserved_attribute(entry_attrs, options)
         return dn
 
@@ -782,6 +784,8 @@ class user_find(baseuser_find):
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *keys, **options):
         assert isinstance(base_dn, DN)
+        self.pre_common_callback(ldap, filter, attrs_list, base_dn, scope,
+                                 *keys, **options)
 
         if options.get('whoami'):
             return ("(&(objectclass=posixaccount)(krbprincipalname=%s))"%\
@@ -830,11 +834,12 @@ class user_show(baseuser_show):
 
     def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
         dn = self.obj.get_either_dn(*keys, **options)
+        self.pre_common_callback(ldap, dn, attrs_list, *keys, **options)
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         convert_nsaccountlock(entry_attrs)
-        self.post_common_callback(ldap, dn, entry_attrs, **options)
+        self.post_common_callback(ldap, dn, entry_attrs, *keys, **options)
         self.obj.get_preserved_attribute(entry_attrs, options)
         return dn
 

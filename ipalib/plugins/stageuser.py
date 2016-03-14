@@ -374,7 +374,8 @@ class stageuser_add(baseuser_add):
                 answer = self.api.Object['radiusproxy'].get_dn_if_exists(cl)
                 entry_attrs['ipatokenradiusconfiglink'] = answer
 
-        self.pre_common_callback(ldap, dn, entry_attrs, **options)
+        self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,
+                                 **options)
 
         return dn
 
@@ -394,7 +395,7 @@ class stageuser_add(baseuser_add):
                 # if both randompassword and userpassword options were used
                 pass
 
-        self.post_common_callback(ldap, dn, entry_attrs, **options)
+        self.post_common_callback(ldap, dn, entry_attrs, *keys, **options)
         return dn
 
 @register()
@@ -412,7 +413,8 @@ class stageuser_mod(baseuser_mod):
     has_output_params = baseuser_mod.has_output_params + stageuser_output_params
 
     def pre_callback(self, ldap, dn, entry_attrs, attrs_list, *keys, **options):
-        self.pre_common_callback(ldap, dn, entry_attrs, **options)
+        self.pre_common_callback(ldap, dn, entry_attrs, attrs_list, *keys,
+                                 **options)
         # Make sure it is not possible to authenticate with a Stage user account
         if 'nsaccountlock' in entry_attrs:
             del entry_attrs['nsaccountlock']
@@ -433,6 +435,8 @@ class stageuser_find(baseuser_find):
 
     def pre_callback(self, ldap, filter, attrs_list, base_dn, scope, *keys, **options):
         assert isinstance(base_dn, DN)
+        self.pre_common_callback(ldap, filter, attrs_list, base_dn, scope,
+                                 *keys, **options)
 
         container_filter = "(objectclass=posixaccount)"
         # provisioning system can create non posixaccount stage user
@@ -458,9 +462,14 @@ class stageuser_show(baseuser_show):
 
     has_output_params = baseuser_show.has_output_params + stageuser_output_params
 
+    def pre_callback(self, ldap, dn, attrs_list, *keys, **options):
+        assert isinstance(dn, DN)
+        self.pre_common_callback(ldap, dn, attrs_list, *keys, **options)
+        return dn
+
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
         entry_attrs['nsaccountlock'] = True
-        self.post_common_callback(ldap, dn, entry_attrs, **options)
+        self.post_common_callback(ldap, dn, entry_attrs, *keys, **options)
         return dn
 
 
