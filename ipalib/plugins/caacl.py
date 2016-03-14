@@ -61,14 +61,14 @@ def _acl_make_request(principal_type, principal, ca_ref, profile_id):
     req.targethost.name = ca_ref
     req.service.name = profile_id
     if principal_type == 'user':
-        req.user.name = principal
+        req.user.name = name
     elif principal_type == 'host':
         req.user.name = name
     elif principal_type == 'service':
         req.user.name = normalize_principal(principal)
     groups = []
     if principal_type == 'user':
-        user_obj = api.Command.user_show(principal)['result']
+        user_obj = api.Command.user_show(name)['result']
         groups = user_obj.get('memberof_group', [])
         groups += user_obj.get('memberofindirect_group', [])
     elif principal_type == 'host':
