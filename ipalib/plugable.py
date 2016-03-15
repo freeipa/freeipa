@@ -94,7 +94,7 @@ class Registry(object):
     """
     def __call__(self):
         def decorator(cls):
-            API.register(cls)
+            _register(cls)
             return cls
 
         return decorator
@@ -287,13 +287,13 @@ class Registrar(collections.Mapping):
     def __len__(self):
         return len(self.__registry)
 
+_register = Registrar()
+
 
 class API(ReadOnly):
     """
     Dynamic API object through which `Plugin` instances are accessed.
     """
-
-    register = Registrar()
 
     def __init__(self):
         super(API, self).__init__()
@@ -582,9 +582,9 @@ class API(ReadOnly):
             klass = getattr(module, name)
             if not inspect.isclass(klass):
                 continue
-            if klass not in self.register:
+            if klass not in _register:
                 continue
-            kwargs = self.register[klass]
+            kwargs = _register[klass]
             self.add_plugin(klass, **kwargs)
 
     def add_plugin(self, klass, override=False):
