@@ -306,7 +306,7 @@ class API(ReadOnly):
         raise NotImplementedError
 
     @property
-    def modules(self):
+    def packages(self):
         raise NotImplementedError
 
     def __len__(self):
@@ -532,41 +532,30 @@ class API(ReadOnly):
         self.__do_if_not_done('bootstrap')
         if self.env.mode in ('dummy', 'unit_test'):
             return
-        for module in self.modules:
-            self.import_plugins(module)
+        for package in self.packages:
+            self.add_package(package)
 
     # FIXME: This method has no unit test
-    def import_plugins(self, module):
+    def add_package(self, package):
         """
-        Import plugins from ``module``.
+        Add plugin modules from the ``package``.
 
-        :param module: Name of the module to import. This might be a wildcard
-                       in the form ```package.*``` in which case all modules
-                       from the given package are loaded.
+        :param package: A package from which to add modules.
         """
-        if module.endswith('.*'):
-            subpackage = module[:-2]
-            try:
-                plugins = importlib.import_module(subpackage)
-            except ImportError as e:
-                self.log.error("cannot import plugins sub-package %s: %s",
-                               subpackage, e)
-                raise
-            package, dot, part = subpackage.rpartition('.')
-            parent = sys.modules[package]
+        package_name = package.__name__
+        package_file = package.__file__
+        package_dir = path.dirname(path.abspath(package_file))
 
-            parent_dir = path.dirname(path.abspath(parent.__file__))
-            plugins_dir = path.dirname(path.abspath(plugins.__file__))
-            if parent_dir == plugins_dir:
-                raise errors.PluginsPackageError(
-                    name=subpackage, file=plugins.__file__
-                )
+        parent = sys.modules[package_name.rpartition('.')[0]]
+        parent_dir = path.dirname(path.abspath(parent.__file__))
+        if parent_dir == package_dir:
+            raise errors.PluginsPackageError(
+                name=package_name, file=package_file
+            )
 
-            self.log.debug("importing all plugin modules in %s...", subpackage)
-            modules = find_modules_in_dir(plugins_dir)
-            modules = ['.'.join((subpackage, name)) for name in modules]
-        else:
-            modules = [module]
+        self.log.debug("importing all plugin modules in %s...", package_name)
+        modules = find_modules_in_dir(package_dir)
+        modules = ['.'.join((package_name, name)) for name in modules]
 
         for name in modules:
             self.log.debug("importing plugin module %s", name)

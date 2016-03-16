@@ -902,12 +902,18 @@ class API(plugable.API):
     bases = (Command, Object, Method, Backend, Updater)
 
     @property
-    def modules(self):
-        result = ('ipalib.plugins.*',)
+    def packages(self):
+        import ipalib.plugins
+        result = (ipalib.plugins,)
+
         if self.env.in_server:
-            result += ('ipaserver.plugins.*',)
+            import ipaserver.plugins
+            result += (ipaserver.plugins,)
+
         if self.env.context in ('installer', 'updates'):
-            result += ('ipaserver.install.plugins.*',)
+            import ipaserver.install.plugins
+            result += (ipaserver.install.plugins,)
+
         return result
 
 

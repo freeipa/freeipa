@@ -127,7 +127,11 @@ class Advice(Plugin):
 
 class AdviseAPI(API):
     bases = (Advice,)
-    modules = ('ipaserver.advise.plugins.*',)
+
+    @property
+    def packages(self):
+        import ipaserver.advise.plugins
+        return (ipaserver.advise.plugins,)
 
 advise_api = AdviseAPI()
 
