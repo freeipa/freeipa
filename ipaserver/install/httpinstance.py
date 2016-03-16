@@ -225,6 +225,8 @@ class HTTPInstance(service.Service):
             [paths.KDESTROY, '-A'], runas=HTTPD_USER, raiseonerr=False, env={})
 
     def __configure_http(self):
+        self.update_httpd_service_ipa_conf()
+
         target_fname = paths.HTTPD_IPA_CONF
         http_txt = ipautil.template_file(ipautil.SHARE_DIR + "ipa.conf", self.sub_dict)
         self.fstore.backup_file(paths.HTTPD_IPA_CONF)
@@ -479,6 +481,9 @@ class HTTPInstance(service.Service):
         except Exception as e:
             root_logger.critical("Unable to start oddjobd: {0}".format(str(e)))
 
+    def update_httpd_service_ipa_conf(self):
+        tasks.configure_httpd_service_ipa_conf()
+
     def uninstall(self):
         if self.is_configured():
             self.print_msg("Unconfiguring web server")
@@ -533,6 +538,7 @@ class HTTPInstance(service.Service):
         installutils.remove_file(paths.HTTPD_IPA_PKI_PROXY_CONF)
         installutils.remove_file(paths.HTTPD_IPA_KDCPROXY_CONF_SYMLINK)
         installutils.remove_file(paths.HTTPD_IPA_KDCPROXY_CONF)
+        tasks.remove_httpd_service_ipa_conf()
 
         # Restore SELinux boolean states
         boolean_states = {name: self.restore_state(name)

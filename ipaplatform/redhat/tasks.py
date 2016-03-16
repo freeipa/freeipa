@@ -460,5 +460,34 @@ class RedHatTaskNamespace(BaseTaskNamespace):
         """
         return IPAVersion(version)
 
+    def configure_httpd_service_ipa_conf(self):
+        """Create systemd config for httpd service to work with IPA
+        """
+        if not os.path.exists(paths.SYSTEMD_SYSTEM_HTTPD_D_DIR):
+            os.mkdir(paths.SYSTEMD_SYSTEM_HTTPD_D_DIR, 0o755)
+
+        ipautil.copy_template_file(
+            os.path.join(ipautil.SHARE_DIR, 'ipa-httpd.conf.template'),
+            paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF,
+            dict(
+                KRB5CC_HTTPD=paths.KRB5CC_HTTPD,
+                KDCPROXY_CONFIG=paths.KDCPROXY_CONFIG,
+                IPA_HTTPD_KDCPROXY=paths.IPA_HTTPD_KDCPROXY,
+                POST='-{kdestroy} -A'.format(kdestroy=paths.KDESTROY)
+            )
+        )
+
+        os.chmod(paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF, 0o644)
+        self.restore_context(paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF)
+
+    def remove_httpd_service_ipa_conf(self):
+        """Remove systemd config for httpd service of IPA"""
+        try:
+            os.unlink(paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF)
+        except OSError as e:
+            root_logger.error(
+                'Error removing %s: %s',
+                paths.SYSTEMD_SYSTEM_HTTPD_IPA_CONF, e
+            )
 
 tasks = RedHatTaskNamespace()

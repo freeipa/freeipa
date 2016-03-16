@@ -236,3 +236,11 @@ class BaseTaskNamespace(object):
         :return: object implementing proper __cmp__ method for version compare
         """
         return parse_version(version)
+
+    def configure_httpd_service_ipa_conf(self):
+        """Configure httpd service to work with IPA"""
+        raise NotImplementedError()
+
+    def remove_httpd_service_ipa_conf(self):
+        """Remove configuration of httpd service of IPA"""
+        raise NotImplementedError()

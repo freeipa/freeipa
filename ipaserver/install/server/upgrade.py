@@ -1376,6 +1376,10 @@ def update_mod_nss_cipher_suite(http):
         'cipher_suite_updated',
         httpinstance.NSS_CIPHER_REVISION)
 
+def update_ipa_httpd_service_conf(http):
+    root_logger.info('[Updating HTTPD service IPA configuration]')
+    http.update_httpd_service_ipa_conf()
+
 
 def ds_enable_sidgen_extdom_plugins(ds):
     """For AD trust agents, make sure we enable sidgen and extdom plugins
@@ -1562,6 +1566,7 @@ def upgrade_configuration():
         http.enable_kdcproxy()
 
     http.stop()
+    update_ipa_httpd_service_conf(http)
     update_mod_nss_protocol(http)
     update_mod_nss_cipher_suite(http)
     fix_trust_flags()

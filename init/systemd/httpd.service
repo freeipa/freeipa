@@ -1,7 +1,0 @@
-.include /usr/lib/systemd/system/httpd.service
-
-[Service]
-Environment=KRB5CCNAME=/var/run/httpd/ipa/krbcache/krb5ccache
-Environment=KDCPROXY_CONFIG=/etc/ipa/kdcproxy/kdcproxy.conf
-ExecStartPre=/usr/libexec/ipa/ipa-httpd-kdcproxy
-ExecStopPost=-/usr/bin/kdestroy -A

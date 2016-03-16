@@ -832,7 +832,6 @@ mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{etc_systemd_dir}
 install -m 644 init/systemd/ipa.service %{buildroot}%{_unitdir}/ipa.service
 install -m 644 init/systemd/ipa_memcached.service %{buildroot}%{_unitdir}/ipa_memcached.service
-install -m 644 init/systemd/httpd.service %{buildroot}%{etc_systemd_dir}/httpd.service
 install -m 644 init/systemd/ipa-custodia.service %{buildroot}%{_unitdir}/ipa-custodia.service
 # END
 mkdir -p %{buildroot}/%{_localstatedir}/lib/ipa/backup
@@ -1143,7 +1142,7 @@ fi
 %{_tmpfilesdir}/%{name}.conf
 %attr(644,root,root) %{_unitdir}/ipa_memcached.service
 %attr(644,root,root) %{_unitdir}/ipa-custodia.service
-%attr(644,root,root) %{etc_systemd_dir}/httpd.service
+%ghost %attr(644,root,root) %{etc_systemd_dir}/httpd.d/ipa.conf
 # END
 %dir %{_usr}/share/ipa
 %{_usr}/share/ipa/wsgi.py*

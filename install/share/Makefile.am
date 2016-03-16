@@ -88,6 +88,7 @@ app_DATA =				\
 	kdcproxy.conf			\
 	kdcproxy-enable.uldif		\
 	kdcproxy-disable.uldif		\
+	ipa-httpd.conf.template		\
 	$(NULL)
 
 EXTRA_DIST =				\
