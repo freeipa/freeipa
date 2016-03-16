@@ -1211,7 +1211,12 @@ class LDAPClient(object):
             ]
             return self.combine_filters(flts, rules)
         elif value is not None:
-            value = ldap.filter.escape_filter_chars(value_to_utf8(value))
+            if isinstance(value, bytes):
+                if six.PY3:
+                    value = value.decode('raw_unicode_escape')
+            else:
+                value = value_to_utf8(value)
+            value = ldap.filter.escape_filter_chars(value)
             if not exact:
                 template = '%s'
                 if leading_wildcard:
