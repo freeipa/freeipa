@@ -581,7 +581,9 @@ class trust(LDAPObject):
 
         try:
             entries, truncated = ldap.find_entries(
-                base_dn=DN(self.container_dn, self.api.env.basedn),
+                base_dn=DN(self.api.env.container_adtrusts,
+                           self.api.env.basedn),
+                scope=ldap.SCOPE_ONELEVEL,
                 attrs_list=['cn'],
                 filter='(&(ipaNTTrustPartner=*)'
                        '(!(ipaNTSecurityIdentifier=*)))',
