@@ -69,7 +69,8 @@ commands = {
 }
 
 # tuple of commands that work with ca tree and need Directory Manager password
-dirman_passwd_req_commands = ("list-ruv", "clean-ruv", "abort-clean-ruv")
+dirman_passwd_req_commands = ("list-ruv", "clean-ruv", "abort-clean-ruv",
+                              "clean-dangling-ruv")
 
 
 class NoRUVsFound(Exception):
@@ -619,15 +620,6 @@ def clean_dangling_ruvs(realm, host, options):
     Cleans all RUVs and CS-RUVs that are left in the system from
     uninstalled replicas
     """
-    # get the Directory Manager password
-    if not options.dirman_passwd:
-        options.dirman_passwd = installutils.read_password('Directory Manager',
-                                                           confirm=False,
-                                                           validate=False,
-                                                           retry=False)
-        if options.dirman_passwd is None:
-            sys.exit('Directory Manager password is required')
-
     conn = ipaldap.IPAdmin(host, 636, cacert=CACERT)
     try:
         conn.do_simple_bind(bindpw=options.dirman_passwd)
