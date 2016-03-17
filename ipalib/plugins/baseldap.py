@@ -1117,7 +1117,7 @@ last, after all sets and adds."""),
                     yield Flag('no_members',
                         doc=_('Suppress processing of membership attributes.'),
                         exclude='webui',
-                        flags=['no_option', 'no_output'],
+                        flags=['no_output'],
                     )
                     break
 
