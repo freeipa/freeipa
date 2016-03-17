@@ -453,7 +453,8 @@ class TestPreserved(XMLRPC_test):
         command = user.make_find_command(
             uid=user.uid, preserved=True, all=False)
         result = command()
-        user.check_find(result, all=False)
+        user.check_find(result, all=False,
+                        expected_override=dict(preserved=True))
         user.delete()
 
     def test_search_preserved_valid_all(self, user):
@@ -462,7 +463,8 @@ class TestPreserved(XMLRPC_test):
         command = user.make_find_command(
             uid=user.uid, preserved=True, all=True)
         result = command()
-        user.check_find(result, all=True)
+        user.check_find(result, all=True,
+                        expected_override=dict(preserved=True))
         user.delete()
 
     def test_retrieve_preserved(self, user):
