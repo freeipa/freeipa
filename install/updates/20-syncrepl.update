@@ -11,7 +11,9 @@ add:nsslapd-exclude-suffix: o=ipaca
 # indices for cn=changelog.
 dn: cn=MemberOf Plugin,cn=plugins,cn=config
 add:memberofentryscope: $SUFFIX
+add:memberofentryscopeexcludesubtree: cn=compat,$SUFFIX
 add:memberofentryscopeexcludesubtree: cn=provisioning,$SUFFIX
+add:memberofentryscopeexcludesubtree: cn=topology,cn=ipa,cn=etc,$SUFFIX
 
 dn: cn=referential integrity postoperation,cn=plugins,cn=config
 add:nsslapd-plugincontainerscope: $SUFFIX
