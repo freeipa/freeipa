@@ -9,7 +9,6 @@ import stat
 import shutil
 from subprocess import CalledProcessError
 
-from ipapython import p11helper as _ipap11helper
 from ipaserver.install import service
 from ipaserver.install import installutils
 from ipapython.ipa_log_manager import root_logger
@@ -245,7 +244,7 @@ class OpenDNSSECInstance(service.Service):
             pin = f.read()
 
         os.environ["SOFTHSM2_CONF"] = paths.DNSSEC_SOFTHSM2_CONF
-        p11 = _ipap11helper.P11_Helper(softhsm_slot, pin, paths.LIBSOFTHSM2_SO)
+        p11 = p11helper.P11_Helper(softhsm_slot, pin, paths.LIBSOFTHSM2_SO)
         try:
             # generate master key
             root_logger.debug("Creating master key")

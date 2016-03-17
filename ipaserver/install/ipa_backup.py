@@ -38,7 +38,6 @@ from ipaserver.install import installutils
 from ipapython import ipaldap
 from ipalib.session import ISO8601_DATETIME_FMT
 from ipalib.constants import CACERT
-from six.moves.configparser import SafeConfigParser
 from ipaplatform.tasks import tasks
 
 """

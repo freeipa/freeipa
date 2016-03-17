@@ -40,7 +40,6 @@ disable=
     redefine-in-handler,
     redefined-builtin,
     redefined-outer-name,
-    reimported,
     relative-import,
     super-init-not-called,
     undefined-loop-variable,

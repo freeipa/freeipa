@@ -27,7 +27,7 @@ from six.moves.urllib.parse import urlparse
 from ipalib import errors
 from ipalib.text import _
 from ipapython.ipa_log_manager import root_logger, log_mgr
-from ipalib import api, errors
+from ipalib import api
 from ipaplatform.paths import paths
 from ipalib.krb_utils import (
     krb5_parse_ccache,

@@ -253,7 +253,7 @@ from six.moves import urllib
 from ipalib import Backend
 from ipapython.dn import DN
 import ipapython.cookie
-import ipapython.dogtag
+from ipapython import dogtag
 from ipapython import ipautil
 
 if six.PY3:
@@ -1276,7 +1276,6 @@ import os, random
 from ipaserver.plugins import rabase
 from ipalib.constants import TYPE_ERROR
 from ipalib.util import cachedproperty
-from ipapython import dogtag
 from ipalib import _
 from ipaplatform.paths import paths
 

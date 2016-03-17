@@ -29,8 +29,6 @@ from nss.error import NSPRError
 from ipalib import x509
 from ipapython.dn import DN
 
-import pytest
-
 pytestmark = pytest.mark.tier0
 
 # certutil -

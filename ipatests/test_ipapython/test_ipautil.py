@@ -28,8 +28,6 @@ import six
 
 from ipapython import ipautil
 
-import pytest
-
 pytestmark = pytest.mark.tier0
 
 

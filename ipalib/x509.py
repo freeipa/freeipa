@@ -404,7 +404,6 @@ if __name__ == '__main__':
     # this can be run with:
     # python ipalib/x509.py < /etc/ipa/ca.crt
 
-    from ipalib import api
     api.bootstrap()
     api.finalize()
 
