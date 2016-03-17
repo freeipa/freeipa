@@ -238,7 +238,6 @@ def main():
 
     check_server_configuration()
 
-    global fstore
     fstore = sysrestore.FileStore(paths.SYSRESTORE)
 
     print("==============================================================================")

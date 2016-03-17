@@ -74,6 +74,11 @@ CLIENT_NOT_CONFIGURED = 2
 CLIENT_ALREADY_CONFIGURED = 3
 CLIENT_UNINSTALL_ERROR = 4 # error after restoring files/state
 
+
+fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
+statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
+
+
 def parse_options():
     def validate_ca_cert_file_option(option, opt, value, parser):
         if not os.path.exists(value):
@@ -3067,12 +3072,6 @@ def main():
     root_logger.debug('IPA version %s' % version.VENDOR_VERSION)
 
     env={"PATH":"/bin:/sbin:/usr/kerberos/bin:/usr/kerberos/sbin:/usr/bin:/usr/sbin"}
-
-    global fstore
-    fstore = sysrestore.FileStore(paths.IPA_CLIENT_SYSRESTORE)
-
-    global statestore
-    statestore = sysrestore.StateFile(paths.IPA_CLIENT_SYSRESTORE)
 
     if options.uninstall:
         return uninstall(options, env)

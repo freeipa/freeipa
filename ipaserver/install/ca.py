@@ -16,6 +16,9 @@ from ipalib import api, certstore, x509
 from ipapython.dn import DN
 from ipapython.ipa_log_manager import root_logger
 
+external_cert_file = None
+external_ca_file = None
+
 
 def install_check(standalone, replica_config, options):
     global external_cert_file

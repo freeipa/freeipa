@@ -33,7 +33,6 @@ disable=
     fixme,
     global-statement,
     global-variable-not-assigned,
-    global-variable-undefined,
     no-init,
     pointless-except,
     pointless-statement,
