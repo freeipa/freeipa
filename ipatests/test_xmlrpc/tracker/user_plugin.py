@@ -7,7 +7,7 @@ from ipapython.dn import DN
 
 import six
 
-from ipatests.util import assert_deepequal, get_group_dn, get_user_dn
+from ipatests.util import assert_deepequal, get_group_dn
 from ipatests.test_xmlrpc import objectclasses
 from ipatests.test_xmlrpc.xmlrpc_test import (
     fuzzy_digits, fuzzy_uuid, raises_exact)
@@ -21,24 +21,26 @@ class UserTracker(Tracker):
     """ Class for host plugin like tests """
 
     retrieve_keys = {
-        u'uid', u'givenname', u'sn', u'homedirectory',
-        u'loginshell', u'uidnumber', u'gidnumber', u'mail', u'ou',
-        u'telephonenumber', u'title', u'memberof',
+        u'dn', u'uid', u'givenname', u'sn', u'homedirectory', u'loginshell',
+        u'uidnumber', u'gidnumber', u'mail', u'ou',
+        u'telephonenumber', u'title', u'memberof', u'nsaccountlock',
         u'memberofindirect', u'ipauserauthtype', u'userclass',
         u'ipatokenradiusconfiglink', u'ipatokenradiususername',
-        u'krbprincipalexpiration', u'usercertificate', u'dn', u'has_keytab',
-        u'has_password', u'street', u'postalcode', u'facsimiletelephonenumber',
-        u'carlicense', u'ipasshpubkey', u'sshpubkeyfp', u'nsaccountlock',
-        u'memberof_group', u'l', u'mobile', u'krbextradata',
-        u'krblastpwdchange', u'krbpasswordexpiration', u'pager', u'st',
-        u'manager', u'preserved'}
+        u'krbprincipalexpiration', u'usercertificate;binary',
+        u'has_keytab', u'has_password', u'memberof_group', u'sshpubkeyfp',
+    }
 
     retrieve_all_keys = retrieve_keys | {
-        u'cn', u'ipauniqueid', u'objectclass', u'mepmanagedentry',
+        u'usercertificate', u'street', u'postalcode',
+        u'facsimiletelephonenumber', u'carlicense', u'ipasshpubkey',
+        u'l', u'mobile', u'krbextradata', u'krblastpwdchange',
+        u'krbpasswordexpiration', u'pager', u'st', u'manager', u'cn',
+        u'ipauniqueid', u'objectclass', u'mepmanagedentry',
         u'displayname', u'gecos', u'initials', u'krbprincipalname',
         u'preserved'}
 
-    retrieve_preserved_keys = retrieve_keys - {u'memberof_group'}
+    retrieve_preserved_keys = (retrieve_keys - {u'memberof_group'}) | {
+        u'preserved'}
     retrieve_preserved_all_keys = retrieve_all_keys - {u'memberof_group'}
 
     create_keys = retrieve_all_keys | {
@@ -47,8 +49,7 @@ class UserTracker(Tracker):
     create_keys = create_keys - {u'nsaccountlock'}
 
     update_keys = retrieve_keys - {u'dn'}
-    activate_keys = retrieve_all_keys - {u'has_keytab', u'has_password',
-                                         u'nsaccountlock', u'sshpubkeyfp'}
+    activate_keys = retrieve_keys
 
     find_keys = retrieve_keys - {u'mepmanagedentry', u'memberof_group'}
     find_all_keys = retrieve_all_keys
@@ -250,7 +251,8 @@ class UserTracker(Tracker):
             result=expected,
         ), result)
 
-    def check_find(self, result, all=False, pkey_only=False, raw=False):
+    def check_find(self, result, all=False, pkey_only=False, raw=False,
+                   expected_override=None):
         """ Check 'user-find' command result """
         if all:
             if u'preserved' not in self.attrs:
@@ -269,6 +271,10 @@ class UserTracker(Tracker):
                 expected[u'nsaccountlock'] = True
             elif expected[u'nsaccountlock'] == [u'false']:
                 expected[u'nsaccountlock'] = False
+
+        if expected_override:
+            assert isinstance(expected_override, dict)
+            expected.update(expected_override)
 
         assert_deepequal(dict(
             count=1,
@@ -327,9 +333,7 @@ class UserTracker(Tracker):
         self.attrs[u'mepmanagedentry'] = None
         self.attrs[u'dn'] = self.dn
         self.attrs[u'ipauniqueid'] = [fuzzy_uuid]
-        self.attrs[u'memberof'] = [u'cn=ipausers,%s,%s' % (
-            api.env.container_group, api.env.basedn
-            )]
+        self.attrs[u'memberof_group'] = [u'ipausers']
         self.attrs[u'mepmanagedentry'] = [u'cn=%s,%s,%s' % (
             self.uid, api.env.container_group, api.env.basedn
             )]
@@ -343,6 +347,7 @@ class UserTracker(Tracker):
                 self.attrs[u'ipasshpubkey'] = [str(
                     self.kwargs[u'ipasshpubkey']
                     )]
+        self.attrs[u'nsaccountlock'] = [u'false']
 
     def check_activate(self, result):
         """ Check 'stageuser-activate' command result """
@@ -351,16 +356,13 @@ class UserTracker(Tracker):
             summary=u'Stage user %s activated' % self.uid,
             result=self.filter_attrs(self.activate_keys))
 
-        if 'manager' in expected['result']:
-            expected['result']['manager'] = [
-                unicode(get_user_dn(expected['result']['manager'][0]))]
-
-        # work around to eliminate inconsistency in returned objectclass
-        # (case sensitive assertion)
-        expected['result']['objectclass'] = [item.lower() for item in
-                                             expected['result']['objectclass']]
-        result['result']['objectclass'] = [item.lower() for item in
-                                           result['result']['objectclass']]
+        # small override because stageuser-find returns different
+        # type of nsaccountlock value than DS, but overall the value
+        # fits expected result
+        if expected['result'][u'nsaccountlock'] == [u'true']:
+            expected['result'][u'nsaccountlock'] = True
+        elif expected['result'][u'nsaccountlock'] == [u'false']:
+            expected['result'][u'nsaccountlock'] = False
 
         assert_deepequal(expected, result)
 
