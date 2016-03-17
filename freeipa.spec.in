@@ -70,7 +70,7 @@ BuildRequires:  python-devel
 BuildRequires:  python-ldap
 BuildRequires:  python-setuptools
 BuildRequires:  python-nss
-BuildRequires:  python-cryptography
+BuildRequires:  python-cryptography >= 0.9
 BuildRequires:  python-netaddr
 BuildRequires:  python-gssapi >= 1.1.2
 BuildRequires:  python-rhsm
@@ -481,7 +481,7 @@ Requires: iproute
 Requires: keyutils
 Requires: pyOpenSSL
 Requires: python-nss >= 0.16
-Requires: python-cryptography
+Requires: python-cryptography >= 0.9
 Requires: python-lxml
 Requires: python-netaddr
 Requires: python-libipa_hbac
