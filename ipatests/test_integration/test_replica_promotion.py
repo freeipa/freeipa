@@ -1,3 +1,7 @@
+#
+# Copyright (C) 2016  FreeIPA Contributors see COPYING for license
+#
+
 from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
 from ipatests.test_integration.test_caless import assert_error
