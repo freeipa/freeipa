@@ -28,8 +28,8 @@
 
 	<Enforcer>
 		<Privileges>
-			<User>ods</User>
-			<Group>ods</Group>
+			<User>$ODS_USER</User>
+			<Group>$ODS_GROUP</Group>
 		</Privileges>
 
 		<Datastore><SQLite>$KASP_DB</SQLite></Datastore>
