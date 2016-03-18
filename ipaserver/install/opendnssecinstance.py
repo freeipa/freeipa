@@ -74,6 +74,8 @@ class OpenDNSSECInstance(service.Service):
             'SOFTHSM_LIB': paths.LIBSOFTHSM2_SO,
             'TOKEN_LABEL': dnskeysyncinstance.softhsm_token_label,
             'KASP_DB': paths.OPENDNSSEC_KASP_DB,
+            'ODS_USER': constants.ODS_USER,
+            'ODS_GROUP': constants.ODS_GROUP,
         }
         self.kasp_file_dict = {}
         self.extra_config = [KEYMASTER]
