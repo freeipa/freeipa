@@ -160,14 +160,12 @@ def get_config(dirsrv):
             wait_for_open_ports(host, [int(port)], timeout=api.env.startup_timeout)
         con = IPAdmin(ldap_uri=api.env.ldap_uri)
         con.do_external_bind()
-        res, truncated = con.find_entries(
+        res = con.get_entries(
+            base,
             filter=srcfilter,
             attrs_list=attrs,
-            base_dn=base,
             scope=con.SCOPE_SUBTREE,
             time_limit=10)
-        if truncated:
-            raise errors.LimitsExceeded()
     except errors.NetworkError:
         # LSB status code 3: program is not running
         raise IpactlError("Failed to get list of services to probe status:\n" +

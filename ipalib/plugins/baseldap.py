@@ -684,14 +684,12 @@ class LDAPObject(Object):
         filter = self.backend.combine_filters(
             ('(member=*)', mo_filter), self.backend.MATCH_ALL)
         try:
-            result, truncated = self.backend.find_entries(
-                base_dn=self.api.env.basedn,
+            result = self.backend.get_entries(
+                self.api.env.basedn,
                 filter=filter,
                 attrs_list=['member'],
                 size_limit=-1, # paged search will get everything anyway
                 paged_search=True)
-            if truncated:
-                raise errors.LimitsExceeded()
         except errors.NotFound:
             result = []
 
@@ -709,12 +707,10 @@ class LDAPObject(Object):
         filter = self.backend.make_filter(
             {'member': dn, 'memberuser': dn, 'memberhost': dn})
         try:
-            result, truncated = self.backend.find_entries(
-                base_dn=self.api.env.basedn,
+            result = self.backend.get_entries(
+                self.api.env.basedn,
                 filter=filter,
                 attrs_list=[''])
-            if truncated:
-                raise errors.LimitsExceeded()
         except errors.NotFound:
             result = []
 
@@ -2105,7 +2101,7 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
         result = dict(
             result=entries,
             count=len(entries),
-            truncated=truncated,
+            truncated=bool(truncated),
         )
 
         if truncated:

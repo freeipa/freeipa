@@ -1612,6 +1612,34 @@ class TaskTimeout(DatabaseError):
     format = _("%(task)s LDAP task timeout, Task DN: '%(task_dn)s'")
 
 
+class TimeLimitExceeded(LimitsExceeded):
+    """
+    **4214** Raised when time limit for the operation is exceeded.
+    """
+
+    errno = 4214
+    format = _('Configured time limit exceeded')
+
+
+class SizeLimitExceeded(LimitsExceeded):
+    """
+    **4215** Raised when size limit for the operation is exceeded.
+    """
+
+    errno = 4215
+    format = _('Configured size limit exceeded')
+
+
+class AdminLimitExceeded(LimitsExceeded):
+    """
+    **4216** Raised when server limit imposed by administrative authority was
+    exceeded
+    """
+
+    errno = 4216
+    format = _('Configured administrative server limit exceeded')
+
+
 class CertificateError(ExecutionError):
     """
     **4300** Base class for Certificate execution errors (*4300 - 4399*).

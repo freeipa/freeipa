@@ -230,12 +230,13 @@ class ldap2(CrudBackend, LDAPClient):
             # Not in our context yet
             pass
         try:
+            # use find_entries here lest we hit an infinite recursion when
+            # ldap2.get_entries tries to determine default time/size limits
             (entries, truncated) = self.find_entries(
                 None, attrs_list, base_dn=dn, scope=self.SCOPE_BASE,
                 time_limit=2, size_limit=10
             )
-            if truncated:
-                raise errors.LimitsExceeded()
+            self.handle_truncated_result(truncated)
             config_entry = entries[0]
         except errors.NotFound:
             config_entry = self.make_entry(dn)

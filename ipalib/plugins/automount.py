@@ -803,12 +803,10 @@ class automountkey(LDAPObject):
                         ('cn', parent_keys[0]), self.container_dn,
                         api.env.basedn)
             attrs_list = ['*']
-            entries, truncated = ldap.find_entries(
-                sfilter, attrs_list, basedn, ldap.SCOPE_ONELEVEL)
+            entries = ldap.get_entries(
+                basedn, ldap.SCOPE_ONELEVEL, sfilter, attrs_list)
             if len(entries) > 1:
                 raise errors.NotFound(reason=_('More than one entry with key %(key)s found, use --info to select specific entry.') % dict(key=pkey))
-            if truncated:
-                raise errors.LimitsExceeded()
             dn = entries[0].dn
 
         return dn

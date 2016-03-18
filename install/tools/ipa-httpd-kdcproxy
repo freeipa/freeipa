@@ -97,10 +97,8 @@ class KDCProxyConfig(object):
     def _find_entry(self, dn, attrs, filter, scope=IPAdmin.SCOPE_BASE):
         """Find an LDAP entry, handles NotFound and Limit"""
         try:
-            entries, truncated = self.con.find_entries(
-                filter, attrs, dn, scope, time_limit=self.time_limit)
-            if truncated:
-                raise errors.LimitsExceeded()
+            entries = self.con.get_entries(
+                dn, scope, filter, attrs, time_limit=self.time_limit)
         except errors.NotFound:
             self.log.debug('Entry not found: %s', dn)
             return None
