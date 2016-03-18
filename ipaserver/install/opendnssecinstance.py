@@ -17,6 +17,7 @@ from ipapython.ipa_log_manager import *
 from ipapython.dn import DN
 from ipapython import sysrestore, ipautil, ipaldap, p11helper
 from ipaplatform import services
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipalib import errors, api
 from ipaserver.install import dnskeysyncinstance
@@ -127,22 +128,22 @@ class OpenDNSSECInstance(service.Service):
         ods_enforcerd = services.knownservices.ods_enforcerd
 
         try:
-            self.named_uid = pwd.getpwnam(named.get_user_name()).pw_uid
+            self.named_uid = pwd.getpwnam(constants.NAMED_USER).pw_uid
         except KeyError:
             raise RuntimeError("Named UID not found")
 
         try:
-            self.named_gid = grp.getgrnam(named.get_group_name()).gr_gid
+            self.named_gid = grp.getgrnam(constants.NAMED_GROUP).gr_gid
         except KeyError:
             raise RuntimeError("Named GID not found")
 
         try:
-            self.ods_uid = pwd.getpwnam(ods_enforcerd.get_user_name()).pw_uid
+            self.ods_uid = pwd.getpwnam(constants.ODS_USER).pw_uid
         except KeyError:
             raise RuntimeError("OpenDNSSEC UID not found")
 
         try:
-            self.ods_gid = grp.getgrnam(ods_enforcerd.get_group_name()).gr_gid
+            self.ods_gid = grp.getgrnam(constants.ODS_GROUP).gr_gid
         except KeyError:
             raise RuntimeError("OpenDNSSEC GID not found")
 
@@ -289,7 +290,7 @@ class OpenDNSSECInstance(service.Service):
             ods_enforcerd = services.knownservices.ods_enforcerd
             cmd = [paths.ODS_KSMUTIL, 'zonelist', 'export']
             result = ipautil.run(cmd,
-                                 runas=ods_enforcerd.get_user_name(),
+                                 runas=constants.ODS_USER,
                                  capture_output=True)
             with open(paths.OPENDNSSEC_ZONELIST_FILE, 'w') as zonelistf:
                 zonelistf.write(result.output)
@@ -305,7 +306,7 @@ class OpenDNSSECInstance(service.Service):
             ]
 
             ods_enforcerd = services.knownservices.ods_enforcerd
-            ipautil.run(command, stdin="y", runas=ods_enforcerd.get_user_name())
+            ipautil.run(command, stdin="y", runas=constants.ODS_USER)
 
     def __setup_dnskeysyncd(self):
         # set up dnskeysyncd this is DNSSEC master
@@ -354,7 +355,7 @@ class OpenDNSSECInstance(service.Service):
             cmd = [paths.IPA_ODS_EXPORTER, 'ipa-full-update']
             try:
                 self.print_msg("Exporting DNSSEC data before uninstallation")
-                ipautil.run(cmd, runas=ods_enforcerd.get_user_name())
+                ipautil.run(cmd, runas=constants.ODS_USER)
             except CalledProcessError:
                 root_logger.error("DNSSEC data export failed")
 

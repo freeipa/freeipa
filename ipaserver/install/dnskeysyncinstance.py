@@ -22,6 +22,7 @@ from ipapython.dn import DN
 from ipapython import ipaldap
 from ipapython import sysrestore, ipautil
 from ipaplatform import services
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipalib import errors, api
 from ipalib.constants import CACERT
@@ -142,14 +143,14 @@ class DNSKeySyncInstance(service.Service):
     def __get_named_uid(self):
         named = services.knownservices.named
         try:
-            return pwd.getpwnam(named.get_user_name()).pw_uid
+            return pwd.getpwnam(constants.NAMED_USER).pw_uid
         except KeyError:
             raise RuntimeError("Named UID not found")
 
     def __get_named_gid(self):
         named = services.knownservices.named
         try:
-            return grp.getgrnam(named.get_group_name()).gr_gid
+            return grp.getgrnam(constants.NAMED_GROUP).gr_gid
         except KeyError:
             raise RuntimeError("Named GID not found")
 
@@ -160,12 +161,12 @@ class DNSKeySyncInstance(service.Service):
         self.named_gid = self.__get_named_gid()
 
         try:
-            self.ods_uid = pwd.getpwnam(ods_enforcerd.get_user_name()).pw_uid
+            self.ods_uid = pwd.getpwnam(constants.ODS_USER).pw_uid
         except KeyError:
             raise RuntimeError("OpenDNSSEC UID not found")
 
         try:
-            self.ods_gid = grp.getgrnam(ods_enforcerd.get_group_name()).gr_gid
+            self.ods_gid = grp.getgrnam(constants.ODS_GROUP).gr_gid
         except KeyError:
             raise RuntimeError("OpenDNSSEC GID not found")
 

@@ -231,8 +231,8 @@ def install_check(standalone, api, replica, options, hostname):
             dnskeysyncd.stop()
             try:
                 ipautil.run(cmd, env=environment,
-                            runas=ods_enforcerd.get_user_name(),
-                            suplementary_groups=[named.get_group_name()])
+                            runas=constants.ODS_USER,
+                            suplementary_groups=[constants.NAMED_GROUP])
             except CalledProcessError as e:
                 root_logger.debug("%s", e)
                 raise RuntimeError("This IPA server cannot be promoted to "
