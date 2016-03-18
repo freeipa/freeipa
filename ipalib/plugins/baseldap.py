@@ -2104,8 +2104,11 @@ class LDAPSearch(BaseLDAPCommand, crud.Search):
             truncated=bool(truncated),
         )
 
-        if truncated:
-            add_message(options['version'], result, SearchResultTruncated())
+        try:
+            ldap.handle_truncated_result(truncated)
+        except errors.LimitsExceeded as e:
+            add_message(options['version'], result, SearchResultTruncated(
+                reason=e))
 
         return result
 

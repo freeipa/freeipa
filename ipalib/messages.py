@@ -338,7 +338,7 @@ class SearchResultTruncated(PublicMessage):
 
     errno = 13017
     type = "warning"
-    format = _("Search result has been truncated to configured search limit.")
+    format = _("Search result has been truncated: %(reason)s")
 
 
 class BrokenTrust(PublicMessage):

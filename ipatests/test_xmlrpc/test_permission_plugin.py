@@ -818,8 +818,8 @@ class test_permission(Declarative):
                 ],
                 messages=(
                     {
-                        'message': (u'Search result has been truncated to '
-                                    'configured search limit.'),
+                        'message': (u'Search result has been truncated: '
+                                    u'Configured size limit exceeded'),
                         'code': 13017,
                         'type': u'warning',
                         'name': u'SearchResultTruncated'
@@ -882,8 +882,8 @@ class test_permission(Declarative):
                     'ipapermission' in res['objectclass']],
                 messages=(
                     {
-                        'message': (u'Search result has been truncated to '
-                                    'configured search limit.'),
+                        'message': (u'Search result has been truncated: '
+                                    u'Configured size limit exceeded'),
                         'code': 13017,
                         'type': u'warning',
                         'name': u'SearchResultTruncated'
