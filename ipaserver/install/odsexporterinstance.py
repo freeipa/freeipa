@@ -13,6 +13,7 @@ from ipaserver.install import installutils
 from ipapython.ipa_log_manager import root_logger
 from ipapython.dn import DN
 from ipapython import sysrestore, ipautil, ipaldap
+from ipaplatform.constants import constants
 from ipaplatform.paths import paths
 from ipaplatform import services
 from ipalib import errors, api
@@ -68,12 +69,12 @@ class ODSExporterInstance(service.Service):
         ods_enforcerd = services.knownservices.ods_enforcerd
 
         try:
-            self.ods_uid = pwd.getpwnam(ods_enforcerd.get_user_name()).pw_uid
+            self.ods_uid = pwd.getpwnam(constants.ODS_USER).pw_uid
         except KeyError:
             raise RuntimeError("OpenDNSSEC UID not found")
 
         try:
-            self.ods_gid = grp.getgrnam(ods_enforcerd.get_group_name()).gr_gid
+            self.ods_gid = grp.getgrnam(constants.ODS_GROUP).gr_gid
         except KeyError:
             raise RuntimeError("OpenDNSSEC GID not found")
 

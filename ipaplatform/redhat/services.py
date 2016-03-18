@@ -223,28 +223,6 @@ class RedHatCAService(RedHatService):
             self.wait_until_running()
 
 
-class RedHatNamedService(RedHatService):
-    def get_user_name(self):
-        return u'named'
-
-    def get_group_name(self):
-        return u'named'
-
-    def get_binary_path(self):
-        return paths.NAMED_PKCS11
-
-    def get_package_name(self):
-        return u"bind-pkcs11"
-
-
-class RedHatODSEnforcerdService(RedHatService):
-    def get_user_name(self):
-        return u'ods'
-
-    def get_group_name(self):
-        return u'ods'
-
-
 # Function that constructs proper Red Hat OS family-specific server classes for
 # services of specified name
 
@@ -257,10 +235,6 @@ def redhat_service_class_factory(name):
         return RedHatSSHService(name)
     if name in ('pki-tomcatd', 'pki_tomcatd'):
         return RedHatCAService(name)
-    if name == 'named':
-        return RedHatNamedService(name)
-    if name in ('ods-enforcerd', 'ods_enforcerd'):
-        return RedHatODSEnforcerdService(name)
     return RedHatService(name)
 
 

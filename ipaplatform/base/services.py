@@ -181,18 +181,6 @@ class PlatformService(object):
     def get_config_dir(self, instance_name=""):
         return
 
-    def get_user_name(self, instance_name=""):
-        return
-
-    def get_group_name(self, instance_name=""):
-        return
-
-    def get_binary_path(self):
-        return
-
-    def get_package_name(self):
-        return
-
 
 class SystemdService(PlatformService):
     SYSTEMD_SRV_TARGET = "%s.target.wants"

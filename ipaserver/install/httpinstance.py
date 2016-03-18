@@ -54,8 +54,8 @@ SELINUX_BOOLEAN_SETTINGS = dict(
     httpd_run_ipa='on',
 )
 
-KDCPROXY_USER = 'kdcproxy'
 HTTPD_USER = constants.HTTPD_USER
+KDCPROXY_USER = constants.KDCPROXY_USER
 
 # See contrib/nsscipersuite/nssciphersuite.py
 NSS_CIPHER_SUITE = [
