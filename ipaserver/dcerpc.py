@@ -784,11 +784,8 @@ class DomainValidator(object):
         return info
 
 def string_to_array(what):
-    blob = [0] * len(what)
+    return [ord(v) for v in what]
 
-    for i in range(len(what)):
-        blob[i] = ord(what[i])
-    return blob
 
 class TrustDomainInstance(object):
 
