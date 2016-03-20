@@ -110,8 +110,8 @@ class test_automember(UI_driver):
         })
 
         # Add hosts
-        self.add_record('host', host_util.get_data("web1", domain));
-        self.add_record('host', host_util.get_data("web2", domain));
+        self.add_record('host', host_util.get_data("web1", domain))
+        self.add_record('host', host_util.get_data("web2", domain))
 
         # Add an automember rule
         self.add_record(

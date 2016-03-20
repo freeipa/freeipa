@@ -1079,7 +1079,7 @@ class MemcacheSessionManager(SessionManager):
         '''
 
         if not expiration:      # Catch zero unix timestamps
-            expiration = None;
+            expiration = None
 
         cookie = Cookie(self.session_cookie_name, session_id,
                         domain=urlparse(api.env.xmlrpc_uri).netloc,

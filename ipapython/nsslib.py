@@ -252,7 +252,7 @@ class NSSConnection(httplib.HTTPConnection, NSSAddressFamilyFallback):
 
     def password_callback(self, slot, retry, password):
         if not retry and password: return password
-        return getpass.getpass("Enter password for %s: " % slot.token_name);
+        return getpass.getpass("Enter password for %s: " % slot.token_name)
 
     def handshake_callback(self, sock):
         """

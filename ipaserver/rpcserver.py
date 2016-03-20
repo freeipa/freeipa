@@ -330,7 +330,7 @@ class WSGIExecutioner(Executioner):
                 lang_reg = lang_reg_w_q.split(';')[0]
                 lang_ = lang_reg.split('-')[0]
                 if '-' in lang_reg:
-                    reg = lang_reg.split('-')[1].upper();
+                    reg = lang_reg.split('-')[1].upper()
                 else:
                     reg = lang_.upper()
                 os.environ['LANG'] = '%s_%s' % (lang_, reg)

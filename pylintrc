@@ -44,7 +44,6 @@ disable=
     super-init-not-called,
     undefined-loop-variable,
     unnecessary-lambda,
-    unnecessary-semicolon,
     unused-argument,
     unused-variable,
     useless-else-on-loop,

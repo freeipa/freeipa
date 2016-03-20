@@ -260,7 +260,7 @@ cnamerev_hostname = u'129.128/25.70.16.172.in-addr.arpa.'
 ptr_revzone3 = u'129'
 ptr_revzone3_dnsname = DNSName(ptr_revzone3)
 ptr_revzone3_dn = DN(('idnsname',cnamerev), revzone3_classless2_dn)
-ptr_revzone3_hostname = zone3_ns2;
+ptr_revzone3_hostname = zone3_ns2
 
 relnxname = u'does-not-exist-test'
 absnxname = u'does.not.exist.test.'
