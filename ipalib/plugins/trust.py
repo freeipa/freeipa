@@ -64,7 +64,8 @@ if api.env.in_server and api.env.context in ['lite', 'server']:
     try:
         import ipaserver.dcerpc #pylint: disable=F0401
         from ipaserver.dcerpc import TRUST_ONEWAY, TRUST_BIDIRECTIONAL
-        import dbus, dbus.mainloop.glib
+        import dbus
+        import dbus.mainloop.glib
         _bindings_installed = True
     except ImportError:
         _bindings_installed = False

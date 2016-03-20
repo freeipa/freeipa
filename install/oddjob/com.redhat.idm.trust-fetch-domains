@@ -9,7 +9,8 @@ from ipalib.config import Env
 from ipalib.constants import DEFAULT_CONFIG
 from ipapython.ipautil import kinit_keytab
 import sys
-import os, pwd
+import os
+import pwd
 
 import six
 import gssapi

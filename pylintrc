@@ -57,7 +57,6 @@ disable=
     invalid-name,
     line-too-long,
     missing-docstring,
-    multiple-imports,
     multiple-statements,
     old-style-class,
     superfluous-parens,

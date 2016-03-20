@@ -33,7 +33,8 @@ from ipapython.dn import DN
 from ipaserver.install import installutils
 from ipalib.util import normalize_name
 
-import os, struct
+import os
+import struct
 from samba import param
 from samba import credentials
 from samba.dcerpc import security, lsa, drsblobs, nbt, netlogon

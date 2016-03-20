@@ -18,7 +18,8 @@
 #
 
 import sys
-import os, socket
+import os
+import socket
 import tempfile
 import datetime
 import traceback

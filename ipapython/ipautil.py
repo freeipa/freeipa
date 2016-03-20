@@ -23,7 +23,8 @@ import string
 import tempfile
 import subprocess
 import random
-import os, sys
+import os
+import sys
 import copy
 import stat
 import shutil
