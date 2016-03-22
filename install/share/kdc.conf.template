@@ -8,10 +8,10 @@
   master_key_type = aes256-cts
   max_life = 7d
   max_renewable_life = 14d
-  acl_file = /var/kerberos/krb5kdc/kadm5.acl
-  dict_file = /usr/share/dict/words
+  acl_file = $KRB5KDC_KADM5_ACL
+  dict_file = $DICT_WORDS
   default_principal_flags = +preauth
-;  admin_keytab = /var/kerberos/krb5kdc/kadm5.keytab
-  pkinit_identity = FILE:/var/kerberos/krb5kdc/kdc.pem
-  pkinit_anchors = FILE:/var/kerberos/krb5kdc/cacert.pem
+;  admin_keytab = $KRB5KDC_KADM5_KEYTAB
+  pkinit_identity = FILE:$KDC_PEM
+  pkinit_anchors = FILE:$CACERT_PEM
  }

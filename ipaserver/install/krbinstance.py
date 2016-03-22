@@ -221,7 +221,12 @@ class KrbInstance(service.Service):
                              DOMAIN=self.domain,
                              HOST=self.host,
                              SERVER_ID=installutils.realm_to_serverid(self.realm),
-                             REALM=self.realm)
+                             REALM=self.realm,
+                             KRB5KDC_KADM5_ACL=paths.KRB5KDC_KADM5_ACL,
+                             DICT_WORDS=paths.DICT_WORDS,
+                             KRB5KDC_KADM5_KEYTAB=paths.KRB5KDC_KADM5_KEYTAB,
+                             KDC_PEM=paths.KDC_PEM,
+                             CACERT_PEM=paths.CACERT_PEM)
 
         # IPA server/KDC is not a subdomain of default domain
         # Proper domain-realm mapping needs to be specified
