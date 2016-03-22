@@ -81,7 +81,11 @@ def prepare_host(host):
         host.run_command(['true'], set_env=False)
 
         host.collect_log(env_filename)
-        host.transport.mkdir_recursive(host.config.test_dir)
+        try:
+            host.transport.mkdir_recursive(host.config.test_dir)
+        except IOError:
+            # The folder already exists
+            pass
         host.put_file_contents(env_filename, env_to_script(host.to_env()))
 
 
