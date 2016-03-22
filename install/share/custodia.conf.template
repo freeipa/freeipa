@@ -5,8 +5,8 @@ auditlog = $IPA_CUSTODIA_AUDIT_LOG
 
 [auth:simple]
 handler = custodia.httpd.authenticators.SimpleCredsAuth
-uid = 48
-gid = 48
+uid = $UID
+gid = $GID
 
 [auth:header]
 handler = custodia.httpd.authenticators.SimpleHeaderAuth

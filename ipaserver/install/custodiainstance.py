@@ -3,6 +3,7 @@
 from ipapython.secrets.kem import IPAKEMKeys
 from ipapython.secrets.client import CustodiaClient
 from ipaplatform.paths import paths
+from ipaplatform.constants import constants
 from service import SimpleServiceInstance
 from ipapython import ipautil
 from ipapython.ipa_log_manager import root_logger
@@ -14,6 +15,7 @@ from jwcrypto.common import json_decode
 import shutil
 import os
 import tempfile
+import pwd
 
 
 class CustodiaInstance(SimpleServiceInstance):
@@ -30,10 +32,12 @@ class CustodiaInstance(SimpleServiceInstance):
     def __config_file(self):
         template_file = os.path.basename(self.config_file) + '.template'
         template = os.path.join(ipautil.SHARE_DIR, template_file)
+        httpd_info = pwd.getpwnam(constants.HTTPD_USER)
         sub_dict = dict(IPA_CUSTODIA_CONF_DIR=paths.IPA_CUSTODIA_CONF_DIR,
                         IPA_CUSTODIA_SOCKET=paths.IPA_CUSTODIA_SOCKET,
                         IPA_CUSTODIA_AUDIT_LOG=paths.IPA_CUSTODIA_AUDIT_LOG,
-                        LDAP_URI=installutils.realm_to_ldapi_uri(self.realm))
+                        LDAP_URI=installutils.realm_to_ldapi_uri(self.realm),
+                        UID=httpd_info.pw_uid, GID=httpd_info.pw_gid)
         conf = ipautil.template_file(template, sub_dict)
         fd = open(self.config_file, "w+")
         fd.write(conf)
