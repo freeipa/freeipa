@@ -160,7 +160,7 @@ def __parse_config(discover_server = True):
     try:
         if not config.default_realm:
             config.default_realm = p.get("global", "realm")
-    except AttributeError:
+    except Exception:
         pass
     if discover_server:
         try:
@@ -172,7 +172,7 @@ def __parse_config(discover_server = True):
     try:
         if not config.default_domain:
             config.default_domain = p.get("global", "domain")
-    except AttributeError:
+    except Exception:
         pass
 
 def __discover_config(discover_server = True):

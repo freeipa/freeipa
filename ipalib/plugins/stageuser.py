@@ -565,7 +565,7 @@ class stageuser_activate(LDAPQuery):
                     try:
                         v.decode('utf-8')
                         self.log.debug("merge: %s:%r wiped" % (attr, v))
-                    except ValueError:
+                    except Exception:
                         self.log.debug("merge %s: [no_print %s]" % (attr, v.__class__.__name__))
                     if isinstance(entry_to[attr], (list, tuple)):
                         # multi value attribute
@@ -581,7 +581,7 @@ class stageuser_activate(LDAPQuery):
                     try:
                         v.decode('utf-8')
                         self.log.debug("Add: %s:%r" % (attr, v))
-                    except ValueError:
+                    except Exception:
                         self.log.debug("Add %s: [no_print %s]" % (attr, v.__class__.__name__))
 
                     if isinstance(entry_to[attr], (list, tuple)):
