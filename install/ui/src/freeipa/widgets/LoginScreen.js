@@ -1,7 +1,7 @@
 /*  Authors:
  *    Petr Vobornik <pvoborni@redhat.com>
  *
- * Copyright (C) 2013 Red Hat
+ * Copyright (C) 2013-2016 Red Hat
  * see file 'COPYING' for use and warranty information
  *
  * This program is free software; you can redistribute it and/or modify
@@ -57,7 +57,7 @@ define(['dojo/_base/declare',
                     "<a href='http://${host}/ipa/config/unauthorized.html'>configured</a>" +
                     " the browser correctly, then click Login. ",
 
-        form_auth_failed: "The password or username you entered is incorrect. ",
+        form_auth_failed: "Login failed due to an unknown reason. ",
 
         krb_auth_failed: "Authentication with Kerberos failed",
 
@@ -67,6 +67,9 @@ define(['dojo/_base/declare',
 
         denied: "Sorry you are not allowed to access this service.",
 
+        krbprincipal_expired: "Kerberos Principal you entered is expired.",
+
+        invalid_password: "The password you entered is incorrect. ",
 
         //nodes:
         login_btn_node: null,
@@ -231,6 +234,12 @@ define(['dojo/_base/declare',
                 } else if (result === 'password-expired') {
                     this.set('view', 'reset');
                     val_summary.add_info('login', this.password_expired);
+                } else if (result === 'krbprincipal-expired') {
+                    password_f.set_value('');
+                    val_summary.add_error('login', this.krbprincipal_expired);
+                } else if (result === 'invalid-password') {
+                    password_f.set_value('');
+                    val_summary.add_error('login', this.invalid_password);
                 } else {
                     password_f.set_value('');
                     val_summary.add_error('login', this.form_auth_failed);

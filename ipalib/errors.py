@@ -1,7 +1,7 @@
 # Authors:
 #   Jason Gerard DeRose <jderose@redhat.com>
 #
-# Copyright (C) 2008  Red Hat
+# Copyright (C) 2008-2016  Red Hat
 # see file 'COPYING' for use and warranty inmsgion
 #
 # This program is free software; you can redistribute it and/or modify
@@ -600,6 +600,12 @@ class PasswordExpired(InvalidSessionPassword):
     **1202** Raised when we cannot obtain a TGT for a principal because the password is expired.
     """
     errno = 1202
+
+class KrbPrincipalExpired(SessionError):
+    """
+    **1203** Raised when Kerberos Principal is expired.
+    """
+    errno = 1203
 
 ##############################################################################
 # 2000 - 2999: Authorization errors

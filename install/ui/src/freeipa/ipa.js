@@ -5,7 +5,7 @@
  *    John Dennis <jdennis@redhat.com>
  *    Petr Vobornik <pvoborni@redhat.com>
  *
- * Copyright (C) 2010 Red Hat
+ * Copyright (C) 2010-2016 Red Hat
  * see file 'COPYING' for use and warranty information
  *
  * This program is free software; you can redistribute it and/or modify
@@ -495,7 +495,10 @@ IPA.login_password = function(username, password) {
 
             //change result from invalid only if we have a header which we
             //understand
-            if (reason === 'password-expired' || reason === 'denied') {
+            if (reason === 'password-expired' ||
+                reason === 'denied' ||
+                reason === 'krbprincipal-expired' ||
+                reason === 'invalid-password') {
                 result = reason;
             }
         }

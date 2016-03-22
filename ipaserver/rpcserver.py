@@ -1,7 +1,7 @@
 # Authors:
 #   Jason Gerard DeRose <jderose@redhat.com>
 #
-# Copyright (C) 2008  Red Hat
+# Copyright (C) 2008-2016  Red Hat
 # see file 'COPYING' for use and warranty information
 #
 # This program is free software; you can redistribute it and/or modify
@@ -43,7 +43,7 @@ from ipalib.capabilities import VERSION_WITHOUT_CAPABILITIES
 from ipalib.backend import Executioner
 from ipalib.errors import (PublicError, InternalError, CommandError, JSONError,
     CCacheError, RefererError, InvalidSessionPassword, NotFound, ACIError,
-    ExecutionError, PasswordExpired)
+    ExecutionError, PasswordExpired, KrbPrincipalExpired)
 from ipalib.request import context, destroy_context
 from ipalib.rpc import (xml_dumps, xml_loads,
     json_encode_binary, json_decode_binary)
@@ -949,6 +949,11 @@ class login_password(Backend, KerberosSession, HTTP_Status):
             return self.unauthorized(environ, start_response, str(e), 'password-expired')
         except InvalidSessionPassword as e:
             return self.unauthorized(environ, start_response, str(e), 'invalid-password')
+        except KrbPrincipalExpired as e:
+            return self.unauthorized(environ,
+                                     start_response,
+                                     str(e),
+                                     'krbprincipal-expired')
 
         return self.finalize_kerberos_acquisition('login_password', ipa_ccache_name, environ, start_response)
 
@@ -984,6 +989,10 @@ class login_password(Backend, KerberosSession, HTTP_Status):
             if ('kinit: Cannot read password while '
                     'getting initial credentials') in str(e):
                 raise PasswordExpired(principal=principal, message=unicode(e))
+            elif ('kinit: Client\'s entry in database'
+                  ' has expired while getting initial credentials') in str(e):
+                raise KrbPrincipalExpired(principal=principal,
+                                          message=unicode(e))
             raise InvalidSessionPassword(principal=principal,
                                          message=unicode(e))
 
