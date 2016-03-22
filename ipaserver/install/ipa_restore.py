@@ -30,7 +30,8 @@ import locale
 from six.moves.configparser import SafeConfigParser
 import six
 
-from ipalib import api, errors, constants
+from ipalib import api, errors
+from ipalib.constants import FQDN
 from ipapython import version, ipautil, certdb
 from ipapython.ipautil import run, user_input
 from ipapython import admintool
@@ -218,7 +219,7 @@ class Restore(admintool.AdminTool):
             self.backup_dir = os.path.join(paths.IPA_BACKUP_DIR, self.backup_dir)
 
         self.log.info("Preparing restore from %s on %s",
-                      self.backup_dir, constants.FQDN)
+                      self.backup_dir, FQDN)
 
         self.header = os.path.join(self.backup_dir, 'header')
 
@@ -281,10 +282,10 @@ class Restore(admintool.AdminTool):
         self.log.info("Performing %s restore from %s backup" %
                       (restore_type, self.backup_type))
 
-        if self.backup_host != constants.FQDN:
+        if self.backup_host != FQDN:
             raise admintool.ScriptError(
                 "Host name %s does not match backup name %s" %
-                (constants.FQDN, self.backup_host))
+                (FQDN, self.backup_host))
 
         if self.backup_ipa_version != str(version.VERSION):
             self.log.warning(
