@@ -14,6 +14,7 @@ import os
 import shutil
 import socket
 import tempfile
+import traceback
 
 import six
 
@@ -1316,8 +1317,10 @@ def promote_check(installer):
             broadcast_ip_address_warning(config.ips)
 
     except errors.ACIError:
+        root_logger.debug(traceback.format_exc())
         raise ScriptError("\nInsufficient privileges to promote the server.")
     except errors.LDAPError:
+        root_logger.debug(traceback.format_exc())
         raise ScriptError("\nUnable to connect to LDAP server %s" %
                           config.master_host_name)
     finally:
