@@ -54,6 +54,7 @@ static char *std_principal_attrs[] = {
     "krbLastSuccessfulAuth",
     "krbLastFailedAuth",
     "krbLoginFailedCount",
+    "krbPrincipalAuthInd",
     "krbExtraData",
     "krbLastAdminUnlock",
     "krbObjectReferences",
@@ -428,6 +429,85 @@ done:
     return kerr;
 }
 
+static void strv_free(char **strv)
+{
+    int i;
+
+    if (strv == NULL) {
+        return;
+    }
+
+    for (i = 0; strv[i] != NULL; i++) {
+        free(strv[i]);
+    }
+
+    free(strv);
+}
+
+static krb5_error_code ipadb_get_ldap_auth_ind(krb5_context kcontext,
+                                               LDAP *lcontext,
+                                               LDAPMessage *lentry,
+                                               krb5_db_entry *entry)
+{
+    krb5_error_code ret = 0;
+    char **authinds = NULL;
+    char *aistr = NULL;
+    char *ap = NULL;
+    size_t len = 0;
+    size_t l = 0;
+    int count = 0;
+    int i = 0;
+
+    ret = ipadb_ldap_attr_to_strlist(lcontext, lentry, "krbPrincipalAuthInd",
+                                     &authinds);
+    switch (ret) {
+    case 0:
+        break;
+    case ENOENT:
+        return 0;
+    default:
+        return ret;
+    }
+
+    for (count = 0; authinds != NULL && authinds[count] != NULL; count++) {
+        len += strlen(authinds[count]) + 1;
+    }
+
+    if (len == 0) {
+        strv_free(authinds);
+        return 0;
+    }
+
+    aistr = malloc(len);
+    if (aistr == NULL) {
+        ret = errno;
+        goto cleanup;
+    }
+
+    /* Create a space-separated string of authinds. */
+    ap = aistr;
+    l = len;
+    for (i = 0; i < count; i++) {
+        ret = snprintf(ap, l, "%s ", authinds[i]);
+        if (ret <= 0 || ret > l) {
+            ret = ENOMEM;
+            goto cleanup;
+        }
+        ap += ret;
+        l -= ret;
+    }
+    aistr[len - 1] = '\0';
+
+    ret = krb5_dbe_set_string(kcontext, entry, "require_auth",
+                              aistr);
+
+cleanup:
+    strv_free(authinds);
+    free(aistr);
+
+    return ret;
+}
+
 static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
                                               char *principal,
                                               LDAPMessage *lentry,
@@ -610,6 +690,10 @@ static krb5_error_code ipadb_parse_ldap_entry(krb5_context kcontext,
         kerr = KRB5_KDB_INTERNAL_ERROR;
         goto done;
     }
+
+    ret = ipadb_get_ldap_auth_ind(kcontext, lcontext, lentry, entry);
+    if (ret)
+        goto done;
 
     ret = ipadb_ldap_attr_to_key_data(lcontext, lentry,
                                       "krbPrincipalKey",
@@ -1668,6 +1752,62 @@ done:
     return kerr;
 }
 
+static krb5_error_code ipadb_get_ldap_mod_auth_ind(krb5_context kcontext,
+                                                   struct ipadb_mods *imods,
+                                                   krb5_db_entry *entry,
+                                                   int mod_op)
+{
+    krb5_error_code ret = 0;
+    char **strlist = NULL;
+    char *ais = NULL;
+    char *ai = NULL;
+    char *s = NULL;
+    size_t ai_size = 0;
+    int cnt = 0;
+    int i = 0;
+
+    ret = krb5_dbe_get_string(kcontext, entry, "require_auth", &ais);
+    if (ret) {
+        return ret;
+    }
+    if (ais == NULL) {
+        return 0;
+    }
+
+    ai_size = strlen(ais) + 1;
+
+    for (i = 0; i < ai_size; i++) {
+        if (ais[i] != ' ') {
+            continue;
+        }
+        if (i > 0 && ais[i - 1] != ' ') {
+            cnt++;
+        }
+    }
+
+    strlist = calloc(cnt + 2, sizeof(*strlist));
+    if (strlist == NULL) {
+        free(ais);
+        return errno;
+    }
+
+    cnt = 0;
+    ai = strtok_r(ais, " ", &s);
+    while (ai != NULL) {
+        if (ai[0] != '\0') {
+            strlist[cnt++] = ai;
+        }
+        ai = strtok_r(NULL, " ", &s);
+    }
+
+    ret = ipadb_get_ldap_mod_str_list(imods, "krbPrincipalAuthInd",
+                                      strlist, cnt, mod_op);
+
+    free(ais);
+    free(strlist);
+    return ret;
+}
+
 static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
                                            struct ipadb_mods *imods,
                                            krb5_db_entry *entry,
@@ -1676,6 +1816,7 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
     krb5_error_code kerr;
     krb5_int32 time32le;
     int mkvno;
+    char *req_auth_str = NULL;
 
     /* check each mask flag in order */
 
@@ -1854,6 +1995,10 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
         }
     }
 
+    kerr = ipadb_get_ldap_mod_auth_ind(kcontext, imods, entry, mod_op);
+    if (kerr)
+        goto done;
+
     /* KADM5_TL_DATA */
     if (entry->mask & KMASK_TL_DATA) {
         kerr = ipadb_get_tl_data(entry,
@@ -1873,11 +2018,35 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
             }
         }
 
+        kerr = krb5_dbe_get_string(kcontext, entry, "require_auth",
+                                   &req_auth_str);
+        if (kerr) {
+            goto done;
+        }
+
+        /* Do not store auth indicators from the string attribute in
+         * krbExtraData. Remove require_auth value from the entry temporarily. */
+        if (req_auth_str != NULL) {
+            kerr = krb5_dbe_set_string(kcontext, entry, "require_auth", NULL);
+            if (kerr) {
+                goto done;
+            }
+        }
+
         kerr = ipadb_get_ldap_mod_extra_data(imods,
                                              entry->tl_data,
                                              mod_op);
         if (kerr && kerr != ENOENT) {
             goto done;
+        }
+
+        /* Restore require_auth value */
+        if (req_auth_str != NULL) {
+            kerr = krb5_dbe_set_string(kcontext, entry, "require_auth",
+                                       req_auth_str);
+            if (kerr) {
+                goto done;
+            }
         }
     }
 
@@ -1956,6 +2125,7 @@ static krb5_error_code ipadb_entry_to_mods(krb5_context kcontext,
     kerr = 0;
 
 done:
+    free(req_auth_str);
     return kerr;
 }
 

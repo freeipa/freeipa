@@ -266,7 +266,9 @@ attributetypes: ( 2.16.840.1.113719.1.301.4.53.1 NAME 'krbPrincContainerRef' EQU
 attributetypes: ( 1.3.6.1.4.1.5322.21.2.5 NAME 'krbLastAdminUnlock' EQUALITY generalizedTimeMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.24 SINGLE-VALUE)
 ##### A list of services to which a service principal can delegate.
 attributetypes: ( 1.3.6.1.4.1.5322.21.2.4 NAME 'krbAllowedToDelegateTo' EQUALITY caseExactIA5Match SUBSTR caseExactSubstringsMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.26)
-########################################################################
+##### A list of authentication indicator strings, one of which must be satisfied
+##### to authenticate to the principal as a service.
+attributetypes: ( 2.16.840.1.113730.3.8.15.2.1 NAME 'krbPrincipalAuthInd' EQUALITY caseExactMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15)
 ########################################################################
 # 		        Object Class Definitions                       #
 ########################################################################
@@ -294,7 +296,7 @@ objectClasses: ( 2.16.840.1.113719.1.301.6.4.1 NAME 'krbKdcService' SUP ( krbSer
 objectClasses: ( 2.16.840.1.113719.1.301.6.5.1 NAME 'krbPwdService' SUP ( krbService ) )
 ###### The principal data auxiliary class. Holds principal information
 ###### and is used to store principal information for Person, Service objects.
-objectClasses: ( 2.16.840.1.113719.1.301.6.8.1 NAME 'krbPrincipalAux' AUXILIARY MAY ( krbPrincipalName $ krbCanonicalName $ krbUPEnabled $ krbPrincipalKey $ krbTicketPolicyReference $ krbPrincipalExpiration $ krbPasswordExpiration $ krbPwdPolicyReference $ krbPrincipalType $ krbPwdHistory $ krbLastPwdChange $ krbPrincipalAliases $ krbLastSuccessfulAuth $ krbLastFailedAuth $ krbLoginFailedCount $ krbExtraData $ krbLastAdminUnlock $ krbAllowedToDelegateTo ) )
+objectClasses: ( 2.16.840.1.113719.1.301.6.8.1 NAME 'krbPrincipalAux' AUXILIARY MAY ( krbPrincipalName $ krbCanonicalName $ krbUPEnabled $ krbPrincipalKey $ krbTicketPolicyReference $ krbPrincipalExpiration $ krbPasswordExpiration $ krbPwdPolicyReference $ krbPrincipalType $ krbPwdHistory $ krbLastPwdChange $ krbPrincipalAliases $ krbLastSuccessfulAuth $ krbLastFailedAuth $ krbLoginFailedCount $ krbExtraData $ krbLastAdminUnlock $ krbAllowedToDelegateTo $ krbPrincipalAuthInd ) )
 ###### This class is used to create additional principals and stand alone principals.
 objectClasses: ( 2.16.840.1.113719.1.301.6.9.1 NAME 'krbPrincipal' SUP ( top ) MUST ( krbPrincipalName ) MAY ( krbObjectReferences ) )
 ###### The principal references auxiliary class. Holds all principals referred
