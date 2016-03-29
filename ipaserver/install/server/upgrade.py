@@ -266,16 +266,6 @@ def cleanup_adtrust(fstore):
             root_logger.debug('Removing %s from backup', backed_up_file)
 
 
-def setup_firefox_extension(fstore):
-    """Set up the Firefox configuration extension, if it's not set up yet
-    """
-    root_logger.info('[Setting up Firefox extension]')
-    http = httpinstance.HTTPInstance(fstore)
-    realm = api.env.realm
-    domain = api.env.domain
-    http.setup_firefox_extension(realm, domain)
-
-
 def ca_configure_profiles_acl(ca):
     root_logger.info('[Authorizing RA Agent to modify profiles]')
 
@@ -1713,7 +1703,6 @@ def upgrade_configuration():
 
     cleanup_kdc(fstore)
     cleanup_adtrust(fstore)
-    setup_firefox_extension(fstore)
 
     bind = bindinstance.BindInstance(fstore)
     if bind.is_configured() and not bind.is_running():
