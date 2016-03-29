@@ -186,11 +186,9 @@ def install_http(config, auto_redirect, ca_is_configured, promote=False,
     http = httpinstance.HTTPInstance()
     http.create_instance(
         config.realm_name, config.host_name, config.domain_name,
-        config.dirman_password, False, pkcs12_info,
+        config.dirman_password, pkcs12_info,
         auto_redirect=auto_redirect, ca_file=ca_file,
         ca_is_configured=ca_is_configured, promote=promote)
-
-    http.setup_firefox_extension(config.realm_name, config.domain_name)
 
     return http
 

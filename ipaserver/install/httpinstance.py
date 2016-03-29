@@ -21,9 +21,7 @@ from __future__ import print_function
 
 import os
 import os.path
-import tempfile
 import pwd
-import shutil
 import re
 import dbus
 import shlex
@@ -130,7 +128,7 @@ class HTTPInstance(service.Service):
     subject_base = ipautil.dn_attribute_property('_subject_base')
 
     def create_instance(self, realm, fqdn, domain_name, dm_password=None,
-                        autoconfig=True, pkcs12_info=None,
+                        pkcs12_info=None,
                         subject_base=None, auto_redirect=True, ca_file=None,
                         ca_is_configured=None, promote=False):
         self.fqdn = fqdn
@@ -173,8 +171,6 @@ class HTTPInstance(service.Service):
         self.step("setting up httpd keytab", self.__create_http_keytab)
         self.step("setting up ssl", self.__setup_ssl)
         self.step("importing CA certificates from LDAP", self.__import_ca_certs)
-        if autoconfig:
-            self.step("setting up browser autoconfig", self.__setup_autoconfig)
         if not self.promote:
             self.step("publish CA cert", self.__publish_ca_cert)
         self.step("clean up any existing httpd ccache", self.remove_httpd_ccache)
@@ -373,42 +369,6 @@ class HTTPInstance(service.Service):
     def __import_ca_certs(self):
         db = certs.CertDB(self.realm, subject_base=self.subject_base)
         self.import_ca_certs(db, self.ca_is_configured)
-
-    def __setup_autoconfig(self):
-        self.setup_firefox_extension(self.realm, self.domain)
-
-    def setup_firefox_extension(self, realm, domain):
-        """Set up the signed browser configuration extension
-        """
-
-        target_fname = paths.KRB_JS
-        sub_dict = dict(REALM=realm, DOMAIN=domain)
-        db = certs.CertDB(realm)
-        with open(db.passwd_fname) as pwdfile:
-            pwd = pwdfile.read()
-
-        ipautil.copy_template_file(ipautil.SHARE_DIR + "krb.js.template",
-            target_fname, sub_dict)
-        os.chmod(target_fname, 0o644)
-
-        # Setup extension
-        tmpdir = tempfile.mkdtemp(prefix="tmp-")
-        extdir = tmpdir + "/ext"
-        target_fname = paths.KERBEROSAUTH_XPI
-        shutil.copytree(paths.FFEXTENSION, extdir)
-        if db.has_nickname('Signing-Cert'):
-            db.run_signtool(["-k", "Signing-Cert",
-                                "-p", pwd,
-                                "-X", "-Z", target_fname,
-                                extdir])
-        else:
-            root_logger.warning('Object-signing certificate was not found. '
-                'Creating unsigned Firefox configuration extension.')
-            filenames = os.listdir(extdir)
-            ipautil.run([paths.ZIP, '-r', target_fname] + filenames,
-                cwd=extdir)
-        shutil.rmtree(tmpdir)
-        os.chmod(target_fname, 0o644)
 
     def __publish_ca_cert(self):
         ca_db = certs.CertDB(self.realm)
