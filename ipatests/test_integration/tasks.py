@@ -171,6 +171,8 @@ def fix_apache_semaphores(master):
 def unapply_fixes(host):
     restore_files(host)
     restore_hostname(host)
+    # Clean ccache to prevent issues like 5741
+    host.run_command(['kdestroy', '-A'])
 
     # Clean up the test directory
     host.run_command(['rm', '-rvf', host.config.test_dir])
