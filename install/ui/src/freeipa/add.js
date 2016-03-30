@@ -84,7 +84,7 @@ IPA.entity_adder_dialog = function(spec) {
                 that.hide_message();
                 that.add(
                     function(data, text_status, xhr) {
-                        that.added.notify([data], that);
+                        that.added.notify([data, 'add_and_add_another'], that);
                         that.show_message(that.get_success_message(data), 'success');
                         that.reset();
                         that.focus_first_element();
@@ -100,7 +100,7 @@ IPA.entity_adder_dialog = function(spec) {
                 that.hide_message();
                 that.add(
                     function(data, text_status, xhr) {
-                        that.added.notify([data], that);
+                        that.added.notify([data, 'add_and_edit'], that);
                         that.close();
                         var result = data.result.result;
                         that.show_edit_page(that.entity, result);
@@ -129,7 +129,7 @@ IPA.entity_adder_dialog = function(spec) {
         that.hide_message();
         that.add(
             function(data, text_status, xhr) {
-                that.added.notify([data], that);
+                that.added.notify([data, 'add'], that);
                 that.close();
                 that.notify_success(data);
             },

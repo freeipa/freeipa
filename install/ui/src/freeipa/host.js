@@ -347,6 +347,12 @@ return {
                         $type: 'force_host_add_checkbox',
                         name: 'force',
                         metadata: '@mc-opt:host_add:force'
+                    },
+                    {
+                        $type: 'checkbox',
+                        name: 'random',
+                        label: '@i18n:objects.host.generate_otp',
+                        title: '@i18n:objects.host.generate_otp'
                     }
                 ]
             }
@@ -529,12 +535,66 @@ IPA.host_adder_dialog = function(spec) {
 
     var that = IPA.entity_adder_dialog(spec);
 
+    that.init = function() {
+        that.added.attach(that.handle_random_otp);
+    };
+
     that.create_content = function() {
         that.entity_adder_dialog_create_content();
         that.container.addClass('host-adder-dialog');
     };
 
+    that.create_result_dialog = function() {
+        spec = {
+            title: text.get('@i18n:dialogs.result'),
+            sections: [
+                {
+                    show_header: false,
+                    fields: [
+                        {
+                            $type: 'text',
+                            name: 'randompassword',
+                            label: '@i18n:objects.host.generated_otp',
+                            read_only: true
+                        }
+                    ]
+                }
+            ]
+        };
+
+        var dialog = IPA.dialog(spec);
+
+        dialog.create_button({
+            name: 'close',
+            label: text.get('@i18n:buttons.close'),
+            click: function() {
+                dialog.close();
+            }
+        });
+
+
+        return dialog;
+    };
+
+    that.handle_random_otp = function(data, method) {
+        var dialog = that.create_result_dialog();
+        var random_passwd = that.get_field('random').get_value()[0];
+
+        if ((method === 'add' || method === 'add_and_edit') && random_passwd) {
+            var field = dialog.get_field('randompassword');
+            dialog.open();
+            field.load(data);
+        }
+        else if (method === 'add_and_add_another' && random_passwd) {
+            var message = text.get('@i18n:objects.host.generated_otp') +
+                ": " + data.result.result.randompassword;
+            that.show_message(message);
+        }
+    };
+
     that.on_error = rpc.create_4304_error_handler(that);
+
+    that.init();
 
     return that;
 };
