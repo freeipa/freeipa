@@ -374,6 +374,8 @@ class stageuser_add(baseuser_add):
                 answer = self.api.Object['radiusproxy'].get_dn_if_exists(cl)
                 entry_attrs['ipatokenradiusconfiglink'] = answer
 
+        self.pre_common_callback(ldap, dn, entry_attrs, **options)
+
         return dn
 
     def post_callback(self, ldap, dn, entry_attrs, *keys, **options):
