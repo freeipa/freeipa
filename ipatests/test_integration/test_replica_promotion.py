@@ -174,6 +174,18 @@ class TestReplicaPromotionLevel1(ReplicaPromotionBase):
                              " to generate replica file\n"
                              "is supported only in 0-level IPA domain", 1)
 
+    @replicas_cleanup
+    def test_one_command_installation(self):
+        """
+        TestCase:
+        http://www.freeipa.org/page/V4/Replica_Promotion/Test_plan
+        #Test_case:_Replica_can_be_installed_using_one_command
+        """
+        self.replicas[0].run_command(['ipa-replica-install', '-w',
+                                     self.master.config.admin_password,
+                                     '-n', self.master.domain.name,
+                                     '-r', self.master.domain.realm])
+
 
 class TestReplicaManageCommands(IntegrationTest):
     topology = "star"
@@ -211,7 +223,7 @@ class TestReplicaManageCommands(IntegrationTest):
                               ' deprecated with managed IPA replication'
                               ' topology. Please use `ipa topologysegment-*`'
                               ' commands to manage the topology', 1)
-        tasks.create_segment(master, replica1, replica2)
+        segment = tasks.create_segment(master, replica1, replica2)
         result4 = master.run_command(["ipa-replica-manage",
                                       "disconnect",
                                       replica1.hostname,
@@ -221,3 +233,121 @@ class TestReplicaManageCommands(IntegrationTest):
                               ' deprecated with managed IPA replication'
                               ' topology. Please use `ipa topologysegment-*`'
                               ' commands to manage the topology', 1)
+
+        # http://www.freeipa.org/page/V4/Replica_Promotion/Test_plan
+        #Test_case:_ipa-csreplica-manage_connect_is_deprecated
+        #_in_domain_level_1
+
+        result5 = master.run_command(['ipa-csreplica-manage', 'del',
+                                      replica1.hostname,
+                                      '-p', master.config.dirman_password],
+                                     raiseonerr=False)
+        assert_error(result5, "Removal of IPA CS replication agreement"
+                              " and replication data is deprecated with"
+                              " managed IPA replication topology", 1)
+
+        tasks.destroy_segment(master, segment[0]['name'])
+        result6 = master.run_command(["ipa-csreplica-manage",
+                                      "connect",
+                                      replica1.hostname,
+                                      replica2.hostname,
+                                      '-p', master.config.dirman_password],
+                                     raiseonerr=False)
+        assert_error(result6, "Creation of IPA CS replication agreement is"
+                              " deprecated with managed IPA replication"
+                              " topology", 1)
+        tasks.create_segment(master, replica1, replica2)
+        result7 = master.run_command(["ipa-csreplica-manage",
+                                      "disconnect",
+                                      replica1.hostname,
+                                      replica2.hostname,
+                                      '-p', master.config.dirman_password],
+                                     raiseonerr=False)
+        assert_error(result7, "Removal of IPA CS replication agreement is"
+                              " deprecated with managed IPA"
+                              " replication topology", 1)
+
+
+class TestUnprivilegedUserPermissions(IntegrationTest):
+    """
+    TestCase:
+    http://www.freeipa.org/page/V4/Replica_Promotion/Test_plan
+    #Test_case:_Unprivileged_users_are_not_allowed_to_enroll
+    _and_promote_clients
+    """
+    num_replicas = 1
+    domain_level = DOMAIN_LEVEL_1
+
+    @classmethod
+    def install(cls, mh):
+        cls.username = 'testuser'
+        tasks.install_master(cls.master, domain_level=cls.domain_level)
+        password = cls.master.config.dirman_password
+        cls.new_password = '$ome0therPaaS'
+        adduser_stdin_text = "%s\n%s\n" % (cls.master.config.admin_password,
+                                           cls.master.config.admin_password)
+        user_kinit_stdin_text = "%s\n%s\n%s\n" % (password, cls.new_password,
+                                                  cls.new_password)
+        tasks.kinit_admin(cls.master)
+        cls.master.run_command(['ipa', 'user-add', cls.username, '--password',
+                                '--first', 'John', '--last', 'Donn'],
+                               stdin_text=adduser_stdin_text)
+        # Now we need to change the password for the user
+        cls.master.run_command(['kinit', cls.username],
+                               stdin_text=user_kinit_stdin_text)
+        # And again kinit admin
+        tasks.kinit_admin(cls.master)
+
+    def test_client_enrollment_by_unprivileged_user(self):
+        replica = self.replicas[0]
+        result1 = replica.run_command(['ipa-client-install',
+                                       '-p', self.username,
+                                       '-w', self.new_password,
+                                       '--domain', replica.domain.name,
+                                       '--realm', replica.domain.realm, '-U'],
+                                      raiseonerr=False)
+        assert_error(result1, "No permission to join this host", 1)
+
+    def test_replica_promotion_by_unprivileged_user(self):
+        replica = self.replicas[0]
+        tasks.install_client(self.master, replica)
+        result2 = replica.run_command(['ipa-replica-install',
+                                       '-P', self.username,
+                                       '-p', self.new_password,
+                                       '-n', self.master.domain.name,
+                                       '-r', self.master.domain.realm],
+                                      raiseonerr=False)
+        assert_error(result2,
+                     "Insufficient privileges to promote the server", 1)
+
+    def test_replica_promotion_after_adding_to_admin_group(self):
+        self.master.run_command(['ipa', 'group-add-member', 'admins',
+                                 '--users=%s' % self.username])
+
+        self.replicas[0].run_command(['ipa-replica-install',
+                                      '-P', self.username,
+                                      '-p', self.new_password,
+                                      '-n', self.master.domain.name,
+                                      '-r', self.master.domain.realm])
+
+
+class TestProhibitReplicaUninstallation(IntegrationTest):
+    topology = 'line'
+    num_replicas = 2
+    domain_level = DOMAIN_LEVEL_1
+
+    def test_replica_uninstallation_prohibited(self):
+        """
+        http://www.freeipa.org/page/V4/Replica_Promotion/Test_plan
+        #Test_case:_Prohibit_ipa_server_uninstallation_from_disconnecting
+        _topology_segment
+        """
+        result = self.replicas[0].run_command(['ipa-server-install',
+                                               '--uninstall', '-U'],
+                                              raiseonerr=False)
+        assert(result.returncode == 0), ("The replica was removed without "
+                                         "'--ignore-topology-disconnect' option")
+        assert("Uninstallation leads to disconnected topology"
+               in result.stdout_text), ("Expected error message was not found")
+        self.replicas[0].run_command(['ipa-server-install', '--uninstall',
+                                      '-U', '--ignore-topology-disconnect'])
