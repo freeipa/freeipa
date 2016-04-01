@@ -35,7 +35,7 @@ from ipalib.plugins.service import (split_principal, validate_certificate,
     set_certificate_attrs, ticket_flags_params, update_krbticketflags,
     set_kerberos_attrs, rename_ipaallowedtoperform_from_ldap,
     rename_ipaallowedtoperform_to_ldap, revoke_certs)
-from ipalib.plugins.dns import (dns_container_exists, _record_attributes,
+from ipalib.plugins.dns import (dns_container_exists,
         add_records_for_host_validation, add_records_for_host,
         get_reverse_zone)
 from ipalib import _, ngettext
@@ -119,15 +119,6 @@ register = Registry()
 # Characters to be used by random password generator
 # The set was chosen to avoid the need for escaping the characters by user
 host_pwd_chars = string.digits + string.ascii_letters + '_,.@+-='
-
-
-def remove_fwd_rec(ipaddr, host, domain, recordtype):
-    api.log.debug('deleting ipaddr %s', ipaddr)
-    try:
-        delkw = {recordtype: ipaddr}
-        api.Command['dnsrecord_del'](domain, host, **delkw)
-    except errors.NotFound:
-        api.log.debug('ipaddr %s not found', ipaddr)
 
 
 def remove_ptr_rec(ipaddr, host, domain):
@@ -764,26 +755,31 @@ class host_del(LDAPDelete):
                 updatedns = False
 
         if updatedns:
-            # Remove DNS entries
+            # Remove A, AAAA, SSHFP and PTR records of the host
             parts = fqdn.split('.')
             domain = unicode('.'.join(parts[1:]))
-            # Get all forward resources for this host
+            # Get all resources for this host
             try:
                 record = api.Command['dnsrecord_show'](
                     domain, parts[0])['result']
             except errors.NotFound:
                 self.obj.handle_not_found(*keys)
             else:
-                for attr in _record_attributes:
+                # remove PTR records first
+                for attr in ('arecord', 'aaaarecord'):
                     for val in record.get(attr, []):
-                        if attr in ('arecord', 'aaaarecord'):
-                            remove_fwd_rec(val, parts[0], domain, attr)
-                            remove_ptr_rec(val, parts[0], domain)
-                        elif (val.endswith(parts[0]) or
-                                val.endswith(fqdn + '.')):
-                            delkw = {unicode(attr): val}
-                            api.Command['dnsrecord_del'](
-                                domain, record['idnsname'][0], **delkw)
+                        remove_ptr_rec(val, parts[0], domain)
+                try:
+                    # remove all A, AAAA, SSHFP records of the host
+                    api.Command['dnsrecord_mod'](
+                        domain,
+                        record['idnsname'][0],
+                        arecord=[],
+                        aaaarecord=[],
+                        sshfprecord=[]
+                        )
+                except errors.EmptyModlist:
+                    pass
 
         if self.api.Command.ca_is_enabled()['result']:
             try:
