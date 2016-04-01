@@ -718,7 +718,8 @@ class host_del(LDAPDelete):
 
     takes_options = LDAPDelete.takes_options + (
         Flag('updatedns?',
-            doc=_('Remove entries from DNS'),
+            doc=_('Remove A, AAAA, SSHFP and PTR records of the host(s) '
+                  'managed by IPA DNS'),
             default=False,
         ),
     )
