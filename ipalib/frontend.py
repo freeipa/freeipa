@@ -35,7 +35,7 @@ from ipalib.parameters import Password  # pylint: disable=unused-import
 from ipalib.output import Output, Entry, ListOfEntries
 from ipalib.text import _
 from ipalib.errors import (ZeroArgumentError, MaxArgumentError, OverlapError,
-    VersionError, OptionError, InvocationError,
+    VersionError, OptionError,
     ValidationError, ConversionError)
 from ipalib import errors, messages
 from ipalib.request import context, context_frame
@@ -466,19 +466,6 @@ class Command(HasParam):
 
     def add_message(self, message):
         self.context.__messages.append(message)
-
-    def soft_validate(self, values):
-        errors = dict()
-        for p in self.params():
-            try:
-                value = values.get(p.name)
-                values[p.name] = p(value, **values)
-            except InvocationError as e:
-                errors[p.name] = str(e)
-        return dict(
-            values=values,
-            errors=errors,
-        )
 
     def _repr_iter(self, **params):
         """

@@ -402,35 +402,6 @@ class test_Command(ClassChecker):
         for o in items:
             assert type(o) is output.Output
 
-    def test_soft_validate(self):
-        """
-        Test the `ipalib.frontend.Command.soft_validate` method.
-        """
-        class api(object):
-            env = config.Env(context='cli')
-            @staticmethod
-            def is_production_mode():
-                return False
-        class user_add(frontend.Command):
-            takes_args = parameters.Str('uid',
-                normalizer=lambda value: value.lower(),
-                default_from=lambda givenname, sn: givenname[0] + sn,
-            )
-
-            takes_options = ('givenname', 'sn')
-
-        cmd = user_add(api)
-        cmd.finalize()
-        assert list(cmd.params) == ['givenname', 'sn', 'uid', 'version']
-        ret = cmd.soft_validate({})
-        assert sorted(ret['values']) == ['version']
-        assert sorted(ret['errors']) == ['givenname', 'sn', 'uid']
-        assert cmd.soft_validate(dict(givenname=u'First', sn=u'Last')) == dict(
-            values=dict(givenname=u'First', sn=u'Last', uid=u'flast',
-                        version=None),
-            errors=dict(),
-        )
-
     def test_convert(self):
         """
         Test the `ipalib.frontend.Command.convert` method.
