@@ -687,13 +687,14 @@ def change_principal(user, password, client=None, path=None):
 
     client.Backend.rpcclient.disconnect()
 
-    with private_ccache(ccache_name):
-        kinit_password(user, password, ccache_name)
+    try:
+        with private_ccache(ccache_name):
+            kinit_password(user, password, ccache_name)
+            client.Backend.rpcclient.connect()
+
+            try:
+                yield
+            finally:
+                client.Backend.rpcclient.disconnect()
+    finally:
         client.Backend.rpcclient.connect()
-
-        try:
-            yield
-        finally:
-            client.Backend.rpcclient.disconnect()
-
-    client.Backend.rpcclient.connect()
