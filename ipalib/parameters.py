@@ -572,7 +572,6 @@ class Param(ReadOnly):
             value = self.get_default(**kw)
         else:
             value = self.convert(self.normalize(value))
-        self.validate(value, supplied=self.name in kw)
         return value
 
     def get_param_name(self):

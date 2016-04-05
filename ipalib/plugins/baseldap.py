@@ -346,7 +346,12 @@ def add_external_pre_callback(membertype, ldap, dn, keys, options):
         if membertype == 'host':
             validator = validate_host
         else:
-            validator = api.Object[membertype].primary_key
+            param = api.Object[membertype].primary_key
+
+            def validator(value):
+                value = param(value)
+                param.validate(value)
+
         for value in options[membertype]:
             try:
                 validator(value)
@@ -1100,7 +1105,8 @@ last, after all sets and adds."""),
                         raise errors.OnlyOneValueAllowed(attr=attr)
                 # validate, convert and encode params
                 try:
-                   value = param(value)
+                    value = param(value)
+                    param.validate(value)
                 except errors.ValidationError as err:
                     raise errors.ValidationError(name=attr, error=err.error)
                 except errors.ConversionError as err:

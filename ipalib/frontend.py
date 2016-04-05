@@ -448,7 +448,8 @@ class Command(HasParam):
         self.debug(
             '%s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
-        self.validate(**params)
+        if self.api.env.in_server:
+            self.validate(**params)
         (args, options) = self.params_2_args_options(**params)
         ret = self.run(*args, **options)
         if isinstance(ret, dict):
@@ -686,13 +687,18 @@ class Command(HasParam):
             if param.name in dep:
                 if param.name in kw:
                     # Parameter is specified, convert and validate the value.
-                    kw[param.name] = param(kw[param.name], **kw)
+                    value = param(kw[param.name], **kw)
+                    if self.api.env.in_server:
+                        param.validate(value, supplied=True)
+                    kw[param.name] = value
                 else:
                     # Parameter is not specified, use default value. Convert
                     # and validate the value, it might not be returned so
                     # there's no guarantee it will be converted and validated
                     # later.
                     default = param(None, **kw)
+                    if self.api.env.in_server:
+                        param.validate(default)
                     if default is not None:
                         kw[param.name] = default
                     hasdefault = True
