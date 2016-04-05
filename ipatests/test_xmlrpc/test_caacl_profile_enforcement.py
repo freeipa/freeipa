@@ -130,6 +130,13 @@ class TestCertSignMIME(XMLRPC_test):
             api.Command.cert_request(csr, principal=smime_user,
                                      profile_id=smime_profile.name)
 
+    def test_sign_smime_csr_full_principal(self, smime_profile, smime_user):
+        csr = generate_user_csr(smime_user)
+        smime_user_principal = '@'.join((smime_user, api.env.realm))
+        with change_principal(smime_user, SMIME_USER_PW):
+            api.Command.cert_request(csr, principal=smime_user_principal,
+                                     profile_id=smime_profile.name)
+
 
 @pytest.mark.tier1
 class TestSignWithDisabledACL(XMLRPC_test):
