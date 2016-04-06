@@ -3,7 +3,6 @@
 #
 
 import re
-import time
 
 import pytest
 
@@ -122,7 +121,10 @@ class TestTopologyOptions(IntegrationTest):
                                  self.replicas[1].hostname)
         returncode, error = tasks.destroy_segment(self.master, deleteme)
         assert returncode == 0, error
-        # make sure replica1 does not have segment that was deleted on master
+        # Wait till replication ends and make sure replica1 does not have
+        # segment that was deleted on master
+        replica1_ldap = self.replicas[0].ldap_connect()
+        tasks.wait_for_replication(replica1_ldap)
         result3 = self.replicas[0].run_command(['ipa', 'topologysegment-find',
                                                DOMAIN_SUFFIX_NAME]).stdout_text
         assert(deleteme not in result3), "%s: segment still exists" % deleteme
@@ -131,7 +133,8 @@ class TestTopologyOptions(IntegrationTest):
         self.master.run_command(['ipa', 'user-add', 'someuser',
                                  '--first', 'test',
                                  '--last', 'user'])
-        time.sleep(60)  # replication requires some time
+        dest_ldap = self.replicas[1].ldap_connect()
+        tasks.wait_for_replication(dest_ldap)
         result4 = self.replicas[1].run_command(['ipa', 'user-find'])
         assert('someuser' in result4.stdout_text), 'User not found: someuser'
         # We end up having a line topology: master <-> replica1 <-> replica2
