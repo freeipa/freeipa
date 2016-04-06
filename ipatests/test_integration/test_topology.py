@@ -11,6 +11,7 @@ from ipatests.test_integration.base import IntegrationTest
 from ipatests.test_integration import tasks
 from ipatests.test_integration.env_config import get_global_config
 from ipalib.constants import DOMAIN_SUFFIX_NAME
+from ipatests.util import assert_deepequal
 
 config = get_global_config()
 reasoning = "Topology plugin disabled due to domain level 0"
@@ -61,15 +62,16 @@ class TestTopologyOptions(IntegrationTest):
         """
         tasks.kinit_admin(self.master)
         result1 = self.master.run_command(['ipa', 'topologysegment-find',
-                                           DOMAIN_SUFFIX_NAME])
+                                           DOMAIN_SUFFIX_NAME]).stdout_text
         first_segment_name = "%s-to-%s" % (self.master.hostname,
                                            self.replicas[0].hostname)
-        output1 = result1.stdout_text
-        firstsegment = self.tokenize_topologies(output1)[0]
-        assert(firstsegment['name'] == first_segment_name)
-        assert(self.noentries_re.search(output1).group(1) == "1")
-        assert(firstsegment['leftnode'] == self.master.hostname)
-        assert(firstsegment['rightnode'] == self.replicas[0].hostname)
+        expected_segment = {
+            'connectivity': 'both',
+            'leftnode': self.master.hostname,
+            'name': first_segment_name,
+            'rightnode': self.replicas[0].hostname}
+        firstsegment = self.tokenize_topologies(result1)[0]
+        assert_deepequal(expected_segment, firstsegment)
         tasks.install_replica(self.master, self.replicas[1], setup_ca=False,
                               setup_dns=False)
         # We need to make sure topology information is consistent across all
@@ -81,16 +83,17 @@ class TestTopologyOptions(IntegrationTest):
         result4 = self.replicas[1].run_command(['ipa', 'topologysegment-find',
                                                 DOMAIN_SUFFIX_NAME])
         segments = self.tokenize_topologies(result2.stdout_text)
-        assert(len(segments) == 2)
-        assert(result2.stdout_text == result3.stdout_text)
-        assert(result3.stdout_text == result4.stdout_text)
+        assert(len(segments) == 2), "Unexpected number of segments found"
+        assert_deepequal(result2.stdout_text, result3.stdout_text)
+        assert_deepequal(result3.stdout_text,  result4.stdout_text)
         # Now let's check that uninstalling the replica will update the topology
         # info on the rest of replicas.
         tasks.uninstall_master(self.replicas[1])
         tasks.clean_replication_agreement(self.master, self.replicas[1])
         result5 = self.master.run_command(['ipa', 'topologysegment-find',
                                            DOMAIN_SUFFIX_NAME])
-        assert(self.noentries_re.search(result5.stdout_text).group(1) == "1")
+        num_entries = self.noentries_re.search(result5.stdout_text).group(1)
+        assert(num_entries == "1"), "Incorrect number of entries displayed"
 
     def test_add_remove_segment(self):
         """
@@ -110,8 +113,9 @@ class TestTopologyOptions(IntegrationTest):
         assert err == "", err
         # Make sure the new segment is shown by `ipa topologysegment-find`
         result1 = self.master.run_command(['ipa', 'topologysegment-find',
-                                           DOMAIN_SUFFIX_NAME])
-        assert(result1.stdout_text.find(segment['name']) > 0)
+                                           DOMAIN_SUFFIX_NAME]).stdout_text
+        assert(segment['name'] in result1), (
+            "%s: segment not found" % segment['name'])
         # Remove master <-> replica2 segment and make sure that the changes get
         # there through replica1
         deleteme = "%s-to-%s" % (self.master.hostname,
@@ -120,17 +124,16 @@ class TestTopologyOptions(IntegrationTest):
         assert returncode == 0, error
         # make sure replica1 does not have segment that was deleted on master
         result3 = self.replicas[0].run_command(['ipa', 'topologysegment-find',
-                                               DOMAIN_SUFFIX_NAME])
-        assert(result3.stdout_text.find(deleteme) < 0)
+                                               DOMAIN_SUFFIX_NAME]).stdout_text
+        assert(deleteme not in result3), "%s: segment still exists" % deleteme
         # Create test data on master and make sure it gets all the way down to
         # replica2 through replica1
         self.master.run_command(['ipa', 'user-add', 'someuser',
                                  '--first', 'test',
                                  '--last', 'user'])
         time.sleep(60)  # replication requires some time
-        users_on_replica2 = self.replicas[1].run_command(['ipa',
-                                                         'user-find'])
-        assert(users_on_replica2.find('someuser') > 0)
+        result4 = self.replicas[1].run_command(['ipa', 'user-find'])
+        assert('someuser' in result4.stdout_text), 'User not found: someuser'
         # We end up having a line topology: master <-> replica1 <-> replica2
 
     def test_remove_the_only_connection(self):
