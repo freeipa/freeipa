@@ -442,7 +442,8 @@ class Command(HasParam):
         self.debug(
             'raw: %s(%s)', self.name, ', '.join(self._repr_iter(**params))
         )
-        params.update(self.get_default(**params))
+        if self.api.env.in_server:
+            params.update(self.get_default(**params))
         params = self.normalize(**params)
         params = self.convert(**params)
         self.debug(
@@ -598,7 +599,7 @@ class Command(HasParam):
             # Backend.textui.prompt does not fill in the default value,
             # we have to do it ourselves
             if not raw.strip():
-                raw = default
+                return None
 
             try:
                 return param(raw, **kw)

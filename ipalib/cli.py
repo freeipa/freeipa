@@ -1243,6 +1243,8 @@ class cli(backend.Executioner):
                 if param.autofill:
                     kw[param.name] = cmd.get_default_of(param.name, **kw)
                 if param.name in kw and kw[param.name] is not None:
+                    if param.autofill:
+                        del kw[param.name]
                     continue
                 if param.password:
                     kw[param.name] = self.Backend.textui.prompt_password(
