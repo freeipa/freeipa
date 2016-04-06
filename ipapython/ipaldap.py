@@ -21,7 +21,6 @@
 
 import time
 import datetime
-import shutil
 from decimal import Decimal
 from copy import deepcopy
 import contextlib
@@ -155,7 +154,6 @@ class SchemaCache(object):
         If a connection is provided then it the credentials bound to it are
         used. The connection is not closed when the request is done.
         """
-        tmpdir = None
         assert conn is not None
 
         self.log.debug(
@@ -184,9 +182,6 @@ class SchemaCache(object):
             # TODO: DS uses 'cn=schema', support for other server?
             #       raise a more appropriate exception
             raise
-        finally:
-            if tmpdir:
-                shutil.rmtree(tmpdir)
 
         return ldap.schema.SubSchema(schema_entry[1])
 
