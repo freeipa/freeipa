@@ -12,6 +12,7 @@ from ipaserver.install import ldapupdate
 from ipaserver.install import sysupgrade
 from base64 import b64encode, b64decode
 from jwcrypto.common import json_decode
+import functools
 import shutil
 import os
 import tempfile
@@ -28,6 +29,13 @@ class CustodiaInstance(SimpleServiceInstance):
         self.fqdn = host_name
         self.realm = realm
         self.ca_is_configured = ca_is_configured
+        self.__CustodiaClient = functools.partial(
+            CustodiaClient,
+            client_service='host@%s' % self.fqdn,
+            keyfile=self.server_keys,
+            keytab=paths.KRB5_KEYTAB,
+            realm=realm,
+        )
 
     def __config_file(self):
         template_file = os.path.basename(self.config_file) + '.template'
@@ -94,11 +102,11 @@ class CustodiaInstance(SimpleServiceInstance):
         updater.update([os.path.join(paths.UPDATES_DIR, '73-custodia.update')])
 
     def __import_ra_key(self):
-        cli = CustodiaClient(self.fqdn, self.master_host_name, self.realm)
+        cli = self.__CustodiaClient(server=self.master_host_name)
         cli.fetch_key('ra/ipaCert')
 
     def import_dm_password(self, master_host_name):
-        cli = CustodiaClient(self.fqdn, master_host_name, self.realm)
+        cli = self.__CustodiaClient(server=master_host_name)
         cli.fetch_key('dm/DMHash')
 
     def __get_keys(self, ca_host, cacerts_file, cacerts_pwd, data):
@@ -108,7 +116,7 @@ class CustodiaInstance(SimpleServiceInstance):
         prefix = data['prefix']
         certlist = data['list']
 
-        cli = CustodiaClient(self.fqdn, ca_host, self.realm)
+        cli = self.__CustodiaClient(server=ca_host)
 
         # Temporary nssdb
         tmpnssdir = tempfile.mkdtemp(dir=paths.TMP)

@@ -41,16 +41,22 @@ class CustodiaClient(object):
 
         return iSecStore(config)
 
-    def __init__(self, client, server, realm, ldap_uri=None, auth_type=None):
-        self.client = client
-        self.creds = None
+    def __init__(
+            self, client_service, keyfile, keytab, server, realm,
+            ldap_uri=None, auth_type=None):
+        self.client_service = client_service
+        self.keytab = keytab
+
+        # Init creds immediately to make sure they are valid.  Creds
+        # can also be re-inited by _auth_header to avoid expiry.
+        #
+        self.creds = self.init_creds()
 
         self.service_name = gssapi.Name('HTTP@%s' % (server,),
                                         gssapi.NameType.hostbased_service)
         self.server = server
 
-        keyfile = os.path.join(paths.IPA_CUSTODIA_CONF_DIR, 'server.keys')
-        self.ikk = IPAKEMKeys({'server_keys': keyfile})
+        self.ikk = IPAKEMKeys({'server_keys': keyfile, 'ldap_uri': ldap_uri})
 
         self.kemcli = KEMClient(self._server_keys(server, realm),
                                 self._client_keys())
@@ -61,9 +67,9 @@ class CustodiaClient(object):
         requests.packages.urllib3.disable_warnings()
 
     def init_creds(self):
-        name = gssapi.Name('host@%s' % (self.client,),
+        name = gssapi.Name(self.client_service,
                            gssapi.NameType.hostbased_service)
-        store = {'client_keytab': paths.KRB5_KEYTAB,
+        store = {'client_keytab': self.keytab,
                  'ccache': 'MEMORY:Custodia_%s' % b64encode(os.urandom(8))}
         return gssapi.Credentials(name=name, store=store, usage='initiate')
 
