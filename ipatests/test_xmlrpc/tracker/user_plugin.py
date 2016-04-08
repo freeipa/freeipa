@@ -51,8 +51,12 @@ class UserTracker(Tracker):
     update_keys = retrieve_keys - {u'dn'}
     activate_keys = retrieve_keys
 
-    find_keys = retrieve_keys - {u'mepmanagedentry', u'memberof_group'}
-    find_all_keys = retrieve_all_keys
+    find_keys = retrieve_keys - {
+        u'mepmanagedentry', u'memberof_group', u'has_keytab', u'has_password'
+    }
+    find_all_keys = retrieve_all_keys - {
+        u'has_keytab', u'has_password'
+    }
 
     primary_keys = {u'uid', u'dn'}
 

@@ -42,6 +42,8 @@ class HostTracker(Tracker):
     update_keys = retrieve_keys - {'dn'}
     managedby_keys = retrieve_keys - {'has_keytab', 'has_password'}
     allowedto_keys = retrieve_keys - {'has_keytab', 'has_password'}
+    find_keys = retrieve_keys - {'has_keytab', 'has_password'}
+    find_all_keys = retrieve_all_keys - {'has_keytab', 'has_password'}
 
     def __init__(self, name, fqdn=None, default_version=None):
         super(HostTracker, self).__init__(default_version=default_version)
@@ -136,9 +138,9 @@ class HostTracker(Tracker):
     def check_find(self, result, all=False, raw=False):
         """Check `host_find` command result"""
         if all:
-            expected = self.filter_attrs(self.retrieve_all_keys)
+            expected = self.filter_attrs(self.find_all_keys)
         else:
-            expected = self.filter_attrs(self.retrieve_keys)
+            expected = self.filter_attrs(self.find_keys)
         assert_deepequal(dict(
             count=1,
             truncated=False,

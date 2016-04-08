@@ -617,7 +617,6 @@ class baseuser_find(LDAPSearch):
 
     def post_common_callback(self, ldap, entries, lockout=False, **options):
         for attrs in entries:
-            self.obj.get_password_attributes(ldap, attrs.dn, attrs)
             self.obj.convert_usercertificate_post(attrs, **options)
             if (lockout):
                 attrs['nsaccountlock'] = True

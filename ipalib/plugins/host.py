@@ -1024,12 +1024,7 @@ class host_find(LDAPSearch):
             set_certificate_attrs(entry_attrs)
             set_kerberos_attrs(entry_attrs, options)
             rename_ipaallowedtoperform_from_ldap(entry_attrs, options)
-            self.obj.get_password_attributes(ldap, entry_attrs.dn, entry_attrs)
             self.obj.suppress_netgroup_memberof(ldap, entry_attrs)
-            if entry_attrs['has_password']:
-                # If an OTP is set there is no keytab, at least not one
-                # fetched anywhere.
-                entry_attrs['has_keytab'] = False
 
             if options.get('all', False):
                 entry_attrs['managing'] = self.obj.get_managed_hosts(entry_attrs.dn)

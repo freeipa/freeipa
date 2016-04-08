@@ -416,7 +416,7 @@ class TestManagedHosts(XMLRPC_test):
             count=1,
             truncated=False,
             summary=u'1 host matched',
-            result=[host.filter_attrs(host.retrieve_keys)],
+            result=[host.filter_attrs(host.find_keys)],
         ), result)
 
     def search_man_hosts(self, host1, host2):
