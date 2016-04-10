@@ -61,7 +61,13 @@ return {
     name: 'user',
     policies: [
         IPA.search_facet_update_policy,
-        IPA.details_facet_update_policy
+        IPA.details_facet_update_policy,
+        {
+            $factory: IPA.facet_update_policy,
+            source_facet: 'details',
+            dest_entity: 'user',
+            dest_facet: 'search_preserved'
+        }
     ],
     facets: [
         {
@@ -329,7 +335,14 @@ return {
                     $type: 'enable',
                     hide_cond: ['preserved-user']
                 },
-                'delete',
+                {
+                    $type: 'delete_active_user',
+                    hide_cond: ['preserved-user']
+                },
+                {
+                    $type: 'delete',
+                    show_cond: ['preserved-user']
+                },
                 {
                     $type: 'reset_password',
                     hide_cond: ['preserved-user']
@@ -355,8 +368,9 @@ return {
                 }
             ],
             header_actions: [
-                'reset_password', 'enable', 'disable', 'delete',
-                'unlock', 'add_otptoken', 'automember_rebuild', 'request_cert'
+                'reset_password', 'enable', 'disable','delete_active_user',
+                'delete', 'unlock', 'add_otptoken', 'automember_rebuild',
+                'request_cert'
             ],
             state: {
                 evaluators: [
@@ -711,6 +725,46 @@ IPA.user.reset_password_action = function(spec) {
 };
 
 
+IPA.user.delete_active_user_action = function(spec) {
+    spec = spec || {};
+    spec.name = spec.name || 'delete_active_user';
+    spec.label = spec.label || '@i18n:buttons.remove';
+
+    var that = IPA.action(spec);
+
+    that.execute_action = function(facet) {
+
+        var pkey = facet.get_pkey();
+        var msg = text.get('@i18n:actions.delete_confirm');
+        msg = msg.replace('${object}', pkey);
+
+        var spec = {
+            message: msg,
+            on_ok: function() {
+                rpc.command({
+                    entity: facet.entity.name,
+                    method: 'del',
+                    args: [pkey],
+                    options: {
+                        preserve: dialog.option_radio.get_value()[0]
+                    },
+                    on_success: function(data) {
+                        IPA.notify_success(data.result.summary);
+                        facet.on_update.notify();
+                        facet.redirect();
+                    }
+                }).execute();
+            }
+        };
+
+        var dialog = IPA.user.details_delete_dialog(spec);
+
+        dialog.open();
+    };
+
+    return that;
+};
+
 IPA.user.add_otptoken_action = function(spec) {
 
     spec = spec || {};
@@ -864,6 +918,50 @@ IPA.user.stageuser_sidebar_policy = function(spec) {
     return that;
 };
 
+IPA.user.create_active_user_del_dialog = function(dialog) {
+
+    dialog.deleter_dialog_create_content();
+
+    dialog.option_layout = IPA.fluid_layout({
+        label_cls: 'col-sm-3',
+        widget_cls: 'col-sm-9'
+    });
+
+    dialog.option_radio = IPA.radio_widget({
+        name: 'preserve',
+        label: '@i18n:objects.user.delete_mode',
+        options: [
+            { label: '@i18n:objects.user.mode_delete', value: 'false' },
+            { label: '@i18n:objects.user.mode_preserve', value: 'true' }
+        ],
+        default_value: 'false'
+    });
+
+    var html = dialog.option_layout.create([dialog.option_radio]);
+    dialog.container.append(html);
+    dialog.option_radio.set_value(['']);
+
+    return dialog;
+};
+
+IPA.user.details_delete_dialog = function(spec) {
+    spec = spec || {};
+
+    var that = IPA.deleter_dialog(spec);
+
+    /**
+     * Adds options to user-del command
+     * @type {IPA.radio_widget}
+     */
+    that.option_radio = null;
+
+    that.create_content = function() {
+        that = IPA.user.create_active_user_del_dialog(that);
+    };
+
+    return that;
+};
+
 IPA.user.deleter_dialog = function(spec) {
 
     spec = spec || {};
@@ -877,27 +975,7 @@ IPA.user.deleter_dialog = function(spec) {
     that.option_radio = null;
 
     that.create_content = function() {
-
-        that.deleter_dialog_create_content();
-
-        that.option_layout = IPA.fluid_layout({
-            label_cls: 'col-sm-3',
-            widget_cls: 'col-sm-9'
-        });
-
-        that.option_radio = IPA.radio_widget({
-            name: 'preserve',
-            label: '@i18n:objects.user.delete_mode',
-            options: [
-                { label: '@i18n:objects.user.mode_delete', value: 'false' },
-                { label: '@i18n:objects.user.mode_preserve', value: 'true' }
-            ],
-            default_value: 'false'
-        });
-
-        var html = that.option_layout.create([that.option_radio]);
-        that.container.append(html);
-        that.option_radio.set_value(['']);
+        that = IPA.user.create_active_user_del_dialog(that);
     };
 
     that.create_command = function() {
@@ -923,6 +1001,7 @@ exp.register = function() {
     e.register({type: 'user', spec: exp.entity_spec});
     a.register('reset_password', IPA.user.reset_password_action);
     a.register('add_otptoken', IPA.user.add_otptoken_action);
+    a.register('delete_active_user', IPA.user.delete_active_user_action);
     d.copy('password', 'user_password', {
         factory: IPA.user.password_dialog,
         pre_ops: [IPA.user.password_dialog_pre_op]
