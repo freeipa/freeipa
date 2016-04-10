@@ -537,6 +537,7 @@
                         },
                         "stageuser": {
                             "activate_confirm": "Are you sure you want to activate selected users?",
+                            "activate_one_confirm": "Are you sure you want to activate ${object}?",
                             "activate_success": "${count} user(s) activated",
                             "label": "Stage users",
                             "preserved_label": "Preserved users",

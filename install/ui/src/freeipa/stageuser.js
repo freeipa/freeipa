@@ -48,6 +48,12 @@ return {
             source_facet: 'search',
             dest_entity: 'user',
             dest_facet: 'search'
+        },
+        {
+            $factory: IPA.facet_update_policy,
+            source_facet: 'details',
+            dest_entity: 'user',
+            dest_facet: 'search'
         }
     ],
     facets: [
@@ -206,9 +212,10 @@ return {
                 }
             ],
             actions: [
+                'activate',
                 'delete'
             ],
-            header_actions: ['delete'],
+            header_actions: ['activate', 'delete'],
             state: {
                 evaluators: [
                     {
@@ -358,6 +365,26 @@ stageuser.batch_undel_action = function(spec) {
     return IPA.batch_items_action(spec);
 };
 
+stageuser.activate_action = function(spec) {
+    spec = spec || {};
+    spec.name = spec.name || 'activate';
+    spec.method = spec.method || 'activate';
+    spec.needs_confirm = spec.needs_confirm !== undefined ? spec.needs_confirm : true;
+    spec.confirm_msg = spec.confirm_msg || '@i18n:objects.stageuser.activate_one_confirm';
+    spec.label = spec.label || '@i18n:buttons.activate';
+
+    var that = IPA.object_action(spec);
+
+    that.on_success = function(facet, data, text_status, xhr) {
+
+        IPA.notify_success(data.result.summary);
+        facet.on_update.notify();
+        facet.redirect();
+    };
+
+    return that;
+};
+
 /**
  * Stage user entity specification object
  * @member stageuser
@@ -374,6 +401,7 @@ stageuser.register = function() {
     var f = reg.facet;
     a.register('batch_activate', stageuser.batch_activate_action);
     a.register('batch_undel', stageuser.batch_undel_action);
+    a.register('activate', stageuser.activate_action);
     e.register({type: 'stageuser', spec: stageuser.stageuser_spec});
     f.register_from_spec('user_search_preserved', stageuser.search_preserved_facet_spec);
 };

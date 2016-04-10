@@ -683,6 +683,7 @@ class i18n_messages(Command):
             },
             "stageuser": {
                 "activate_confirm": _("Are you sure you want to activate selected users?"),
+                "activate_one_confirm": _("Are you sure you want to activate ${object}?"),
                 "activate_success": _("${count} user(s) activated"),
                 "label": _("Stage users"),
                 "preserved_label": _("Preserved users"),
