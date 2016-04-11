@@ -3,6 +3,7 @@
 from __future__ import print_function
 from ipaplatform.paths import paths
 from six.moves.configparser import ConfigParser
+from ipapython.dn import DN
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, ec
@@ -105,11 +106,24 @@ class KEMLdap(iSecLdap):
             encoding=serialization.Encoding.DER,
             format=serialization.PublicFormat.SubjectPublicKeyInfo)
 
-    def set_key(self, usage, host, principal, key):
+    def set_key(self, usage, principal, key):
+        """
+        Write key for the host or service.
+
+        Service keys are nested one level beneath the 'cn=custodia'
+        container, in the 'cn=<servicename>' container; this allows
+        fine-grained control over key management permissions for
+        specific services.
+
+        The container is assumed to exist.
+
+        """
         public_key = self._format_public_key(key)
         conn = self.connect()
+        servicename, host = principal.split('@')[0].split('/')
         name = '%s/%s' % (KEY_USAGE_MAP[usage], host)
-        dn = 'cn=%s,%s' % (name, self.keysbase)
+        service_rdn = ('cn', servicename) if servicename != 'host' else DN()
+        dn = str(DN(('cn', name), service_rdn, self.keysbase))
         try:
             mods = [('objectClass', ['nsContainer',
                                      'ipaKeyPolicy',
@@ -170,15 +184,18 @@ class IPAKEMKeys(KEMKeysStore):
         return conn.get_key(usage, kid)
 
     def generate_server_keys(self):
-        principal = 'host/%s@%s' % (self.host, self.realm)
+        self.generate_keys('host')
+
+    def generate_keys(self, servicename):
+        principal = '%s/%s@%s' % (servicename, self.host, self.realm)
         # Neutralize the key with read if any
         self._server_keys = None
         # Generate private key and store it
         pubkeys = newServerKeys(self.config['server_keys'], principal)
         # Store public key in LDAP
         ldapconn = KEMLdap(self.ldap_uri)
-        ldapconn.set_key(KEY_USAGE_SIG, self.host, principal, pubkeys[0])
-        ldapconn.set_key(KEY_USAGE_ENC, self.host, principal, pubkeys[1])
+        ldapconn.set_key(KEY_USAGE_SIG, principal, pubkeys[0])
+        ldapconn.set_key(KEY_USAGE_ENC, principal, pubkeys[1])
 
     @property
     def server_keys(self):
