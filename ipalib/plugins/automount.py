@@ -24,6 +24,7 @@ import six
 
 from ipalib import api, errors
 from ipalib import Flag, Str, IA5Str
+from ipalib.frontend import Command
 from ipalib.plugable import Registry
 from ipalib.plugins.baseldap import (
     pkey_to_value,
@@ -398,7 +399,7 @@ class automountlocation_tofiles(LDAPQuery):
 
 
 @register()
-class automountlocation_import(LDAPQuery):
+class automountlocation_import(Command):
     __doc__ = _('Import automount files for a specific location.')
 
     takes_args = (
@@ -414,6 +415,12 @@ class automountlocation_import(LDAPQuery):
              doc=_('Continuous operation mode. Errors are reported but the process continues.'),
         ),
     )
+
+    def get_args(self):
+        for arg in self.api.Command.automountlocation_show.args():
+            yield arg
+        for arg in super(automountlocation_import, self).get_args():
+            yield arg
 
     def __read_mapfile(self, filename):
         try:
