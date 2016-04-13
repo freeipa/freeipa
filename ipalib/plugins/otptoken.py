@@ -20,7 +20,7 @@
 from __future__ import print_function
 import sys
 
-from ipalib.plugins.baseldap import DN, LDAPObject, LDAPAddMember, LDAPRemoveMember
+from ipalib.plugins.baseldap import LDAPObject, LDAPAddMember, LDAPRemoveMember
 from ipalib.plugins.baseldap import LDAPCreate, LDAPDelete, LDAPUpdate, LDAPSearch, LDAPRetrieve
 from ipalib import api, Int, Str, Bool, DateTime, Flag, Bytes, IntEnum, StrEnum, Password, _, ngettext
 from ipalib.messages import add_message, ResultFormattingError
@@ -33,6 +33,7 @@ from ipalib.errors import (
 from ipalib.request import context
 from ipalib.frontend import Local
 from ipaplatform.paths import paths
+from ipapython.dn import DN
 from ipapython.nsslib import NSSConnection
 from ipapython.version import API_VERSION
 
