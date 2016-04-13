@@ -90,5 +90,5 @@ IPA_DATA_VERSION=20100614120000
 #                                                      #
 ########################################################
 IPA_API_VERSION_MAJOR=2
-IPA_API_VERSION_MINOR=167
-# Last change: dns: do not rely on server data structures in code called on client
+IPA_API_VERSION_MINOR=168
+# Last change: otptoken_yubikey: fix otptoken_add_yubikey arguments

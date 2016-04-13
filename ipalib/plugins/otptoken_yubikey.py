@@ -17,17 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ipalib import _, Str, IntEnum
-from ipalib.errors import NotFound
-from ipalib.plugable import Registry
-from ipalib.frontend import Command
-from ipalib.plugins.otptoken import otptoken
-
 import os
 
+import six
 import usb.core
 import yubico
-import six
+
+from ipalib import _, IntEnum
+from ipalib.errors import NotFound
+from ipalib.frontend import Command
+from ipalib.plugable import Registry
 
 if six.PY3:
     unicode = str
@@ -55,35 +54,40 @@ topic = ('otp', _('One time password commands'))
 class otptoken_add_yubikey(Command):
     __doc__ = _('Add a new YubiKey OTP token.')
 
-    takes_args = (
-        Str('ipatokenuniqueid?',
-            cli_name='id',
-            label=_('Unique ID'),
-            primary_key=True,
-        ),
-    )
-
-    takes_options = Command.takes_options + (
+    takes_options = (
         IntEnum('slot?',
             cli_name='slot',
             label=_('YubiKey slot'),
             values=(1, 2),
         ),
-    ) + tuple(x for x in otptoken.takes_params if x.name in (
-        'description',
-        'ipatokenowner',
-        'ipatokendisabled',
-        'ipatokennotbefore',
-        'ipatokennotafter',
-        'ipatokenotpdigits'
-    ))
+    )
 
-    has_output_params = Command.has_output_params + \
-        tuple(x for x in otptoken.takes_params if x.name in (
-            'ipatokenvendor',
-            'ipatokenmodel',
-            'ipatokenserial',
-        ))
+    def get_args(self):
+        for arg in self.api.Command.otptoken_add.args():
+            yield arg
+        for arg in super(otptoken_add_yubikey, self).get_args():
+            yield arg
+
+    def get_options(self):
+        for option in self.api.Command.otptoken_add.options():
+            if option.name not in ('type',
+                                   'ipatokenvendor',
+                                   'ipatokenmodel',
+                                   'ipatokenserial',
+                                   'ipatokenotpalgorithm',
+                                   'ipatokenhotpcounter',
+                                   'ipatokenotpkey',
+                                   'ipatokentotpclockoffset',
+                                   'ipatokentotptimestep',
+                                   'no_qrcode',
+                                   'qrcode',
+                                   'version'):
+                yield option
+        for option in super(otptoken_add_yubikey, self).get_options():
+            yield option
+
+    def _iter_output(self):
+        return self.api.Command.otptoken_add.output()
 
     def forward(self, *args, **kwargs):
         # Open the YubiKey
@@ -145,6 +149,4 @@ class otptoken_add_yubikey(Command):
         # Return which slot was used for writing.
         answer.get('result', {})['slot'] = kwargs['slot']
 
-        del answer['value']    # Why does this cause an error if omitted?
-        del answer['summary']  # Why does this cause an error if omitted?
         return answer

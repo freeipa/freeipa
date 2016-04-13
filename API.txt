@@ -2973,17 +2973,24 @@ output: Output('completed', type=[<type 'int'>])
 output: Output('failed', type=[<type 'dict'>])
 output: Entry('result')
 command: otptoken_add_yubikey
-args: 1,8,1
+args: 1,13,3
 arg: Str('ipatokenuniqueid?', cli_name='id')
+option: Str('addattr*', cli_name='addattr')
+option: Flag('all', autofill=True, cli_name='all', default=False)
 option: Str('description?', cli_name='desc')
 option: Bool('ipatokendisabled?', cli_name='disabled')
 option: DateTime('ipatokennotafter?', cli_name='not_after')
 option: DateTime('ipatokennotbefore?', cli_name='not_before')
 option: IntEnum('ipatokenotpdigits?', autofill=True, cli_name='digits', default=6, values=[6, 8])
 option: Str('ipatokenowner?', cli_name='owner')
+option: Flag('no_members', autofill=True, default=False)
+option: Flag('raw', autofill=True, cli_name='raw', default=False)
+option: Str('setattr*', cli_name='setattr')
 option: IntEnum('slot?', cli_name='slot', values=[1, 2])
 option: Str('version?')
-output: Output('result')
+output: Entry('result')
+output: Output('summary', type=[<type 'unicode'>, <type 'NoneType'>])
+output: PrimaryKey('value')
 command: otptoken_del
 args: 1,2,3
 arg: Str('ipatokenuniqueid+', cli_name='id')
